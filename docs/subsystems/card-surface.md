@@ -398,6 +398,21 @@ situation. A card about a THING has to be anchored to that thing, and
 nothing about the query text can express that — the anchor has to be
 the subject id, carried on the subscription.
 
+## ⚠⚠ The `look` card shows a room you cannot see
+
+Found by the apiculture build's browser walk (2026-09-30), and **not fixed
+there** because it is this surface's, not that trade's. In the pitch-dark
+Terminus general store the transcript says *"It is pitch dark"* while the
+card renders the room's **full authored description**.
+
+⭐ The card already gates **contents** — they degrade to `something` /
+`someone` through the ordinary perception path — so the bug is narrow and
+exactly locatable: *the room's own prose is not gated by the same read.*
+The two halves of one card disagree about whether you can see.
+
+⚠ It is a card-surface defect rather than a `PerceiverMixin` one: the
+transcript, which asks the same question through `look`, gets it right.
+
 ## ⚠ The column does not scroll to the card you just asked for
 
 Found by the fishing build's live browser drive (2026-09-22). A player

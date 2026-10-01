@@ -1,0 +1,23 @@
+# An extractor — ⭐ **the choice between two recipes, made of tin.**
+#
+# A drum you put frames in and crank until the honey comes out of the
+# comb by itself. It gives you more honey than crushing does AND the comb
+# back to put in the hive; crushing gives you less honey and a cake of
+# beeswax, which is what candles are made of.
+#
+# ⭐⭐ Neither is better. That is the design (AC 11): the crusher gets wax
+# and the spinner gets throughput, and which you want depends on what you
+# are selling. Nothing in the code branches on the tool — two recipes over
+# one input, and the capability word is what tells them apart.
+class: /platform/thing/Tool
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  keywords: [extractor, drum, spinner, "honey extractor"]
+  shortDescription: honey extractor
+  register: indefinite
+  longDescription: >-
+    A tinned drum on three legs with a geared crank on top and a tap at the
+    bottom, sticky to the touch however well it was washed.
+  _materialPath: /stuff/idea/material/element/iron
+  mass: 18
+  capabilities: ["extracting"]

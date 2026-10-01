@@ -1,0 +1,27 @@
+verbs: [rob]
+controller: /trade/apiculture/idea/cmd/apiculture/RobController
+description: "Take capped comb out of a hive"
+help: |
+  Lift the frames of sealed comb out and set them aside.
+
+  ⭐⭐ **One box-worth at a time, and nothing tells you when to stop.**
+  Rob again to take more; stop to leave them something. What they need to
+  get through a winter depends on how cold it gets and how well the box
+  holds heat, and nobody knows either in advance — which is the whole
+  decision, and the reason there is no warning here.
+
+  ⚠ What you get is COMB, not honey. Crushing it gives you honey and
+  beeswax and destroys the comb; spinning it in an extractor gives you
+  more honey, no wax, and the comb back to put in the hive.
+
+  ⚠ Out of the flow there is nothing capped, and the refusal is the
+  season's rather than the colony's. Smoke first, and wear a veil.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+args:
+  - name: target
+    type: object
+    required: true
+    scope: ["reachable"]
+    requires: ProducingMixin

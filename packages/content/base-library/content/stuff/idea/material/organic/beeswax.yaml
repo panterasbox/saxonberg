@@ -1,0 +1,34 @@
+# Beeswax — ⭐ **a fact about the world, so it lives in the commons.**
+#
+# Bees build with it; people have made candles, polish, waterproofing,
+# thread dressing and wax tablets out of it for as long as there have
+# been either. It ships HERE rather than in the apiculture trade because
+# the candle that is made of it is a generic object, and a generic object
+# must not depend on a trade to know what it is made of.
+#
+# ⚠ It melts at a temperature a room can reach in a hot summer (62 °C is
+# well above that, but a candle beside a fire is not), which is the whole
+# reason a wax object behaves differently from a horn one — the shipped
+# phase machinery reads this and nothing else has to.
+class: /platform/idea/material/Material
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: beeswax
+  keywords: [wax, beeswax]
+  appearance: pale yellow wax, slightly translucent at the edges
+  density: 960
+  specificHeat: 3400
+  thermalConductivity: 0.25
+  meltingPoint: 335
+  # Mechanical response (MPa / MJ·m⁻³): soft enough to mark with a nail,
+  # and it does not shatter — it gives.
+  hardness: 3
+  toughness: 1
+  electricalConductivity: 1.0e-14
+  waterAbsorptionCapacity: 0
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: ["organic", "wax", "beeswax", "once-living"]
+  composition: []
+  biologicalSource: null

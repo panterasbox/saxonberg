@@ -42,7 +42,6 @@ import { TemplatePaths } from '@saxonberg/server/mud/lib/paths';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type Species from '@saxonberg/server/mud/platform/idea/species/Species';
 import type { TapSpec } from '@saxonberg/server/mud/platform/idea/species/Species';
-import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 
 const SECONDS_PER_GAME_DAY = 86_400;
 
@@ -91,31 +90,40 @@ export function ProducingMixin<TBase extends MixinConstructor<Stuff>>(
     static _mixinName = PRODUCING_MIXIN;
 
     /**
-     * ⭐⭐ **The taps afford the tap verbs, and nothing else does.**
-     *
-     * They used to hang off the `Livestock` CLASS, which promised
-     * `milk`, `shear` and `gather` on every animal in the trade whether
-     * or not it gave anything — so a sheepdog offered `shear` and a
-     * plough ox offered `milk`, and each controller had to un-promise it
-     * at execute time (*"that is not an animal that gives anything"*).
-     * **A guard that re-narrows the host set is the tell that the
-     * affordance is on the wrong host**; the question the controller was
-     * asking late is the question the affordance should ask early.
-     *
-     * ⚠ The verbs are still just as gated — a dry cow declines the same
-     * way it always did. What changed is that an animal with no taps
-     * never offers them, so *"you can't milk that"* stops being a
-     * sentence the game has to say about a dog.
+     * ⚠ The refusal `rob`, `milk`, `shear` and `gather` give a target
+     * that has no taps. A pack mixin declares its own phrase beside its
+     * name (`lint:arg-kinds` refuses one with none, which is right — the
+     * generic sentence tells a player nothing).
      */
-    static commandContributions: CommandContributions = {
-      self: [],
-      peers: [
-        'trade/ranching/cmd/ranching/milk.yaml',
-        'trade/ranching/cmd/ranching/shear.yaml',
-        'trade/ranching/cmd/ranching/gather.yaml',
-      ],
-      environment: [],
-    };
+    static _mixinRefusal = "{} does not give anything";
+
+    /*
+     * ⭐⭐ **The taps used to afford the tap verbs from HERE, and the
+     * argument was right — but the seam does not exist yet.**
+     *
+     * The list moved off the `Livestock` CLASS onto this mixin because
+     * `Livestock` promised `milk`, `shear` and `gather` on every animal
+     * in the trade whether or not it gave anything: a sheepdog offered
+     * `shear` and a plough ox offered `milk`, and each controller had to
+     * un-promise it at execute time. **A guard that re-narrows the host
+     * set is the tell that the affordance is on the wrong host.**
+     *
+     * ⚠⚠ But a mixin static is still a CLASS-level answer, and the
+     * honest question is per-INSTANCE: *what does this animal's authored
+     * `production[]` contain?* A hive composes this mixin and gives
+     * honey; putting the three ranching views here promised it `milk`
+     * and `shear` for exactly the reason `Livestock` used to promise a
+     * sheepdog `shear`. So the flat list has gone back to `Livestock`
+     * (its only other composer, so nothing shipped changes) and a host
+     * that taps something else affords its own verb from its own class.
+     *
+     * ⭐ **The finding, for tapping-slate:** the right home is an
+     * instance-level contribution seam — a species with an `eggs` tap
+     * affording `gather` and nothing else — and
+     * `CommandApi.collectContributions` walks class statics only
+     * (`api/command.ts:1444`). Until that exists, the affordance is a
+     * class's answer and the class has to be the one that knows.
+     */
 
     static fieldMeta: FieldMeta = {
       tapState: { persistent: true },

@@ -206,6 +206,14 @@ export default class Location extends LocationBase {
     this.suppressesMagic = Suppressions.validate(value);
   }
 
+  /**
+   * Yes. See {@link Stuff.isAgent} for why the four branch predicates
+   * are methods on `Stuff` rather than `instanceof` checks.
+   */
+  public override isLocation(): boolean {
+    return true;
+  }
+
   // `getVolume` / `getCeilingHeight` live on AtmosphericMixin (composed
   // above) so Vessels — which also have meaningful interior volume —
   // pick them up too. Concrete Location subclasses (`CartesianLocation`,

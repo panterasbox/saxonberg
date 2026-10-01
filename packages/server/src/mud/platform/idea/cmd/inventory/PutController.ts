@@ -378,7 +378,21 @@ export default class PutController extends CommandController<PutModel> {
    */
   private static offersFor(target: Stuff): PutOffer[] {
     const offers: PutOffer[] = [];
-    if (MixinApi.isContainer(target) && !isBody(target)) {
+    // ⭐⭐ **One question, asked once.** *Is this an actor, whose insides
+    // are its own?* is the `Agent` branch, and `MixinApi.isOpenContainer`
+    // is documented in four files as the single rule everything that
+    // means "you can reach or see one level into that" asks. This used
+    // to be a local `isBody` copy whose own docstring admitted it was
+    // *"near enough the exclusions isOpenContainer makes, minus the
+    // lid"* — and the copy drifted: apiculture narrowed it and left the
+    // canonical rule wrong, so `put nucleus in hive` worked while
+    // nothing inside a hive was reachable. A second copy of a predicate
+    // is a second place to be wrong in.
+    //
+    // ⚠ Minus the lid, still: a SHUT chest offers region zero and
+    // refuses at the verb with a reason, which is a better sentence than
+    // pretending it has no inside.
+    if (MixinApi.isContainer(target) && !target.isAgent()) {
       const member = ContainmentApi.placement('in');
       const words = member?.getPrepositions() ?? ['in'];
       offers.push({ kind: 'zero', name: 'in', words: [...words] });
@@ -411,19 +425,7 @@ interface PutOffer {
   words: string[];
 }
 
-/**
- * A container that is somebody is not a region you put things in —
- * the same three exclusions `MixinApi.isOpenContainer` makes, minus
- * the lid (a shut chest still offers region zero; it refuses at the
- * verb, with a reason).
- */
-function isBody(target: Stuff): boolean {
-  return (
-    MixinApi.isOrganism(target) ||
-    MixinApi.isCommandGiver(target) ||
-    MixinApi.isHasInteractive(target)
-  );
-}
+
 
 /** `a`, `a or b`, `a, b or c` — the roster in a refusal. */
 function joinOr(words: readonly string[]): string {

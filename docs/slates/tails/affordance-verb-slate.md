@@ -9,9 +9,10 @@
 > documented at [command-spec.md](../../subsystems/command-spec.md) §
 > *Domain-local commands* (the Watch worked example shipped in that
 > shape, not the `Timepiece` mixin this slate sketched).
-> **Left:** source-scoped invocation (`watch::set`, sigil unsettled) and
-> its parse wiring (Q3–Q5) · extra `put` prepositions (Q2) · the
-> `Receiving` mixin (NPC consent for `give`)
+> **Left:** source-scoped invocation (`watch::set`, sigil unsettled — and
+> ⭐ the prefix is an **MQL string**, 2026-09-25) and its parse wiring
+> (Q3–Q5) · extra `put` prepositions (Q2) · the `Receiving` mixin (NPC
+> consent for `give`) · ⭐⭐ **the collision-resolution ladder** (below)
 > **Size:** a tail
 
 Working slate for two sandbox-foundational verbs that exercise
@@ -190,3 +191,70 @@ What remains for requirements is the disambiguation layer:
 The slate sets the design space for the affordance-verb family;
 follow-on slates (`Pourable`, `Switchable`, `Lockable`, etc.)
 plug in the same way when content earns them.
+
+
+---
+
+## ⭐⭐⭐ The collision-resolution ladder — what to do when two things want one verb
+
+**User doctrine, 2026-09-25, recorded because it had been given as a lecture
+more than once and never written down.** It is a *ladder of viable options*,
+not a single rule — *"there's a lot of different solutions here to a problem
+and they're all viable in different situations."*
+
+> ⭐ **The deciding question is whether the SYNTAX of one affordance conflicts
+> with the syntax of the other.** That is what picks a rung.
+
+### 1 · ⭐ Unify behind an interface — the usual answer
+
+> *"if two things want the same verb, the ideal thing is to make a controller
+> agnostic to the procedure being asked for, probably through some kind of
+> interface: `Verb`/`Verbable`. that's not always the best solution but most of
+> the time it looks something like that."*
+
+**The pattern already ships, in the extraction build's verb family.**
+`lib/ground/Workable.ts` declares `Workable` (`planWork` / `completeWork`) and
+`Splittable extends Workable`; `dig` · `split` · `hew` are
+`WorkedActController` subclasses, and `split.yaml` takes **`requires: any`** on
+its target while the controller narrows *by shape*. The procedure is the
+subject's; the controller only sequences it. Nothing is registered — the verb
+finds the subject by shape.
+
+⚠ So a new consumer of an existing verb is often **not** a new view: it is a
+class implementing the verb's interface.
+
+### 2 · Change what affords it, so the collision never happens
+
+Affordance is per-class and per-bucket (`self` / `peers` / `environment`), so
+two uses of one word can simply never appear in the same scope. ⚠ The failure
+this avoids is the shipped one: **a second view claiming a verb SHADOWS the
+first silently** (the consequence build paid for that). Same-verb collisions
+resolve at the assemble stage → [command-routing.md](../../subsystems/command-routing.md).
+
+### 3 · Subcommands, for multi-action UX
+
+`args` **or** `subcommands`, never both →
+[command-spec.md](../../subsystems/command-spec.md), whose own doctrine is
+*"a bare verb is something your body does; a subcommand is something…"*. 37 of
+~250 shipped views are subcommanded. Right when one noun genuinely hosts
+several related acts; wrong when the acts belong to different owners.
+
+### 4 · ⭐⭐ Source-scoped invocation — `keyword::verb -opt args`
+
+**Slated here, unbuilt, and it goes in whenever something needs it.** The
+prefix is ⭐ **an MQL string that resolves to one or more verb-affording
+objects**, and *the player picks which affordance runs* — so disambiguation
+becomes **explicit and diegetic** instead of a heuristic the engine has to get
+right. ⚠ Sigil still unsettled (`::` is the sketch).
+
+This is the rung that makes rungs 1–3 optional: where two affordances are
+genuinely different acts that happen to share a word, the honest answer can be
+to let the player say which one they mean.
+
+### ⚠ What NOT to do
+
+Collapse two different acts into one view by **alternating the arg types**. An
+arg `requires: A|B` **deletes a check** rather than adding a branch — see
+[command-spec.md](../../subsystems/command-spec.md) and the shipped
+`harvest.yaml`, whose `GrowingMixin|CultivableMixin` is a *widening of one act's
+subject*, not two acts sharing a verb.

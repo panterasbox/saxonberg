@@ -1,0 +1,27 @@
+# apiculture — ⭐ keeping bees, which is not keeping livestock.
+#
+# ⚠ **Its own Discipline, not a band of `stockmanship`.** Every RGO trade
+# ships one, and this one is genuinely different competence: a stockman
+# reads an individual body — a spine, a rib, a flesh score — and a
+# beekeeper reads an aggregate through a wall. You never touch a bee. What
+# you judge is traffic at a door, the heft of a box, whether the pattern
+# of brood is tight or spotty, and how much of the winter you can afford
+# to take.
+#
+# ISCED-F 2013 **0811 — Crop and livestock production**, the same field as
+# agriculture. ⭐ Sharing a code does not argue against a split: the code
+# says which body of knowledge this belongs to, and the Discipline says
+# what somebody can actually do.
+class: /platform/idea/Discipline
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  key: apiculture
+  channel: skill
+  label: Apiculture
+  iscedf: "0811"
+  description: >-
+    Reading a colony without taking it apart: how many of them there are,
+    whether there is a queen, how much they have stored against a winter
+    you have to guess the length of, and when they have run out of room.
+  specializes: []
+  requires: []

@@ -1,0 +1,19 @@
+# A jar of honey — ⭐ and it is a `Vat`, which is the honest choice.
+#
+# Bulk honey needs something that holds liquid, SEALS, and matures: honey
+# left open ferments by itself (AC 15), and a sealed jar keeps forever.
+# That is one object and one mechanism, and the jar's lid is the whole of
+# the difference.
+class: /platform/thing/Vat
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  keywords: [jar, honey, pot]
+  shortDescription: jar of honey
+  register: indefinite
+  longDescription: >-
+    A squat glazed jar with a waxed cloth over the mouth, tied down at the
+    neck.
+  _materialPath: /stuff/idea/material/ceramic/ceramic
+  interiorCapacity: 1
+  mass: 0.6
+  open: false

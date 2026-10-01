@@ -28,6 +28,7 @@ import { VisibleMixin } from '../../description/Visible';
 import { OrganismMixin } from '../../species/Organism';
 import { PersonaMixin } from '../../character/Persona';
 import { Idea } from '../../stuff/Idea';
+import { Agent } from '../../stuff/Agent';
 import { StuffApi } from '../../../api/stuff';
 import { ContainmentApi } from '../../../api/containment';
 import {
@@ -56,12 +57,24 @@ class Viewer extends BeliefStoreMixin(
 // impersonated, so a non-person organism renders its name to everybody.
 // A fixture called Bob that models a person must compose the thing that
 // makes one — faking the shape passes only until the rule gets stricter.
+// ⭐ On the `Agent` branch, deliberately: "someone" vs "something" is
+// the Agent/Thing split (`Stuff.isAgent`), so a fixture that models a
+// person and extends `Idea` renders as *something* when the viewer
+// cannot see it. The old `Idea` base was the cheap one, not the honest
+// one — the same point the PersonaMixin note above makes, one rung up.
 class Being extends PersonaMixin(
-  VisibleMixin(OrganismMixin(NamedMixin(ContainableMixin(Idea)))),
+  VisibleMixin(OrganismMixin(NamedMixin(ContainableMixin(Agent)))),
 ) {}
 
 // An inert item — not an Organism, so recognition doesn't apply.
 class Item extends VisibleMixin(ContainableMixin(Idea)) {}
+
+// ⭐ A living thing that is NOBODY — the shape of a plant, a beehive, a
+// colony of bees: an `Organism` with no `PersonaMixin`. The whole point
+// of the fixture is the mixin it does NOT have.
+class Growth extends VisibleMixin(
+  OrganismMixin(NamedMixin(ContainableMixin(Idea))),
+) {}
 
 // A bare room with no light infrastructure → pitch-black.
 class Room extends ContainerMixin(Idea) {}
@@ -133,6 +146,42 @@ describe('RecognitionApi.describe', () => {
     const rendered = bob.describeFor(viewer);
     expect(rendered).toBe('someone');
     expect(rendered).not.toContain('Bob');
+  });
+
+  it('⚠⚠ a living thing that is not a PERSON obscures to "something"', () => {
+    /*
+     * ⭐⭐ **"someone" is the person register, and it used to leak to
+     * everything alive.** `obscured` asked `isOrganism` — a far bigger
+     * set than *is this somebody*. A `Plant` composes `OrganismMixin`
+     * and nothing person-shaped, so a wheat stalk, a cherry tree and a
+     * houseplant have always announced themselves as "someone" in the
+     * dark; apiculture's beehive made it loud, because the colony IS
+     * the organism and `drop hive` answered *"You drop someone."*
+     *
+     * ⚠ Found in a LIVE BROWSER WALK — three cherry trees in a dim
+     * close offered themselves to the binder as *someone (1) ·
+     * someone (2) · someone (3)*. No unit test could see it: this
+     * file's own `Being` fixture is a `PersonaMixin` person, so every
+     * case it had was a case the old predicate got right.
+     *
+     * ⭐ And it is what this file already said it did: *recognition is a
+     * person-only gate — an animal cannot be a stranger, wear a hood,
+     * or be impersonated.*
+     */
+    installV1QuantityTagTables();
+    buildModality('vision');
+    const viewer = makeStuff(() => new Viewer());
+    // An ORGANISM with no Persona — a plant, a hive, a colony of bees.
+    const shrub = makeStuffAtPath(
+      () => {
+        const g = new Growth();
+        g.setName('cherry');
+        return g;
+      },
+      `/stuff/thing/plant/cherry-${beingCounter++}`,
+    );
+    ContainmentApi.move(shrub, makeStuff(() => new Room()));
+    expect(shrub.describeFor(viewer)).toBe('something');
   });
 });
 

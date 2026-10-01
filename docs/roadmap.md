@@ -37,8 +37,16 @@ that shapes every slate.
 > draft/return, the taps, body condition as a stock, and the university
 > teaching farm bound from archetypes with **zero pack code**. See
 > [soil.md](./subsystems/soil.md) + [ranching.md](./subsystems/ranching.md).
-> ⚠ Cut and recorded rather than half-shipped: **bees/pollination** and
-> **foraging**; breeding writes *served* and gestation is a follow-on. See [towns-slate](./slates/builds/towns-slate.md) D27 +
+>    ⭐⭐ **BEES/POLLINATION then shipped 2026-09-30** (MR !310) — cut from
+> the farmstead build rather than half-shipped, and taken whole a cycle
+> later: the colony as the animal, wintering by the hive's own walls,
+> swarm · abscond · starve, hefting with no number in it, and ⭐ the
+> first RGO whose reservoir is *somebody else's land* — a colony forages
+> a radius it does not own and leaves a fruit set behind, so two keepers
+> on one valley find each other out with no ledger telling them. See
+> [apiculture.md](./subsystems/apiculture.md).
+> ⚠ Still cut and recorded rather than half-shipped: **foraging**;
+> breeding writes *served* and gestation is a follow-on. See [towns-slate](./slates/builds/towns-slate.md) D27 +
 > [venue-and-supply-slate](./slates/builds/venue-and-supply-slate.md) V11.
 > ⭐⭐ **Phase 5's first half — PETS — shipped 2026-09-17** (MR !257): the
 > kept animal as a rung, the bond as regard × handling, feeding as a

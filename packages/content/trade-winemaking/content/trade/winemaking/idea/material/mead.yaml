@@ -1,0 +1,22 @@
+# Mead — the oldest fermented drink there is, and in this game it is the
+# same mechanism as wine with a different feedstock. ⭐ That is the point:
+# one microbial clock, many products, and nothing about mead is special
+# in the code.
+class: /platform/idea/material/ConsumableMaterial
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: mead
+  keywords: [mead, metheglin, honeywine]
+  appearance: "clear gold mead"
+  density: 1010
+  thermalConductivity: 0.55
+  specificHeat: 4000
+  edibility: true
+  tastes: [sweet]
+  nutrients: ["water", "alcohol", "sugar"]
+  nutrientAmounts:
+    alcohol: 11000
+    sugar: 30
+  tags: ["liquid", "drink", "alcoholic", "mead"]
+  composition: []
+  biologicalSource: null

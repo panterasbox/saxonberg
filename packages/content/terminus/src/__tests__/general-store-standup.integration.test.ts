@@ -17,6 +17,7 @@ import { fileURLToPath } from "url";
 import YAML from "yaml";
 import { StuffApi } from "@saxonberg/server/mud/api/stuff";
 import { ModuleApi } from "@saxonberg/server/mud/api/module";
+import { Construction } from "@saxonberg/server/mud/lib/material/Construction";
 import { MixinApi } from "@saxonberg/server/mud/api/mixin";
 import { AppSettings } from "@saxonberg/server/mud/lib/config/AppSettings";
 import PersistentHydrator from "@saxonberg/server/mud/platform/idea/persistence/PersistentHydrator";
@@ -57,6 +58,8 @@ const DIST_SRC = fileURLToPath(new URL("../../../trade-distilling/src", import.m
 // Trap / Bait classes, stocked cross-pack.
 const FISHING_DIR = fileURLToPath(new URL("../../../trade-fishing/content/trade/fishing/", import.meta.url));
 const FISHING_SRC = fileURLToPath(new URL("../../../trade-fishing/src", import.meta.url));
+const APICULTURE_DIR = fileURLToPath(new URL("../../../trade-apiculture/content/trade/apiculture/", import.meta.url));
+const APICULTURE_SRC = fileURLToPath(new URL("../../../trade-apiculture/src", import.meta.url));
 const COUNTER = "/world/terminus/general-store/counter";
 const TORCH = "/world/terminus/general-store/thing/torch";
 
@@ -101,6 +104,32 @@ const GARDEN_LINES = [
  * than store-local copies, so there is one bed in the world and the shop
  * sells it.
  */
+/**
+ * ⭐⭐ The beekeeper's line (apiculture D18) — and it is HERE rather than
+ * in the valley on purpose. A general store's job IS importing, which is
+ * what a `Stock` counter is for; putting a par faucet on Quist's farm
+ * would have made one NPC the farmer, the landowner, the pollination
+ * beneficiary, the honey buyer AND the woodenware seller, in the build
+ * whose thesis is that a beekeeper is a SECOND PARTY on land they do not
+ * own.
+ *
+ * ⚠ The nucleus is the one line in the trade that MINTS LIFE, at par 1:
+ * a new beekeeping district really does start by importing a colony, and
+ * after the first one splits and swarms supply themselves.
+ */
+const APIARY_LINES = [
+  "/trade/apiculture/thing/hive",
+  "/trade/apiculture/thing/thick-hive",
+  "/trade/apiculture/thing/super",
+  "/trade/apiculture/thing/frame",
+  "/trade/apiculture/thing/smoker",
+  "/trade/apiculture/thing/extractor",
+  "/trade/apiculture/thing/honey-jar",
+  "/stuff/thing/clothes/bee-veil",
+  "/stuff/thing/clothes/work-gloves",
+  "/trade/apiculture/thing/nuc",
+] as const;
+
 const FURNISH_LINES = [
   "/system/residence/thing/householders-kit",
   "/stuff/thing/fixture/bed",
@@ -191,6 +220,7 @@ const ROW_HOMES: { prefix: string; dir: () => string }[] = [
   { prefix: "/trade/brewing/", dir: () => BREW_DIR },
   { prefix: "/trade/distilling/", dir: () => DIST_DIR },
   { prefix: "/trade/fishing/", dir: () => FISHING_DIR },
+  { prefix: "/trade/apiculture/", dir: () => APICULTURE_DIR },
   { prefix: "/stuff/", dir: () => OBJ_DIR },
 ];
 
@@ -242,11 +272,27 @@ describe("general-store standup (real seeds)", () => {
       ...HAULAGE_LINES.map(objDoc),
       ...TACKLE_LINES.map(objDoc),
       ...ARMS_LINES.map(objDoc),
+      ...APIARY_LINES.map(objDoc),
     ]);
     ModuleApi.registerPackSource(DIST_SRC, "/trade/distilling");
     ModuleApi.registerPackSource(FISHING_SRC, "/trade/fishing");
+    ModuleApi.registerPackSource(APICULTURE_SRC, "/trade/apiculture");
     ModuleApi.registerPackSource(ARCANA_SRC, "/system/arcana");
     ModuleApi.registerPackSource(TRANSPORT_SRC, "/system/transport");
+    // ⚠⚠ The FABRIC forms, by hand. `woven` / `knit` / `felted` are
+    // registered at boot by `FabricCatalogue` from rows, and this
+    // harness stands rows up without it — so the moment the shelf
+    // started stocking CLOTH (apiculture's veil and gloves, which are
+    // ordinary clothing by design), every standup assertion died on
+    // `unknown form 'woven'`. The armour line never caught it because
+    // `plate` and `padded` are kernel forms.
+    Construction.registerFabric({
+      key: 'woven',
+      layerBand: 0,
+      loft: 0.1,
+      weaveDensity: 0.75,
+      drape: 0.6,
+    });
     installV1QuantityMarshallers();
     await AppSettings.warm();
   });

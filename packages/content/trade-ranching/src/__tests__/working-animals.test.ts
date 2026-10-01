@@ -121,6 +121,23 @@ describe('⭐⭐ a working animal is not livestock', () => {
     expect(cow).toContain('handle');
   });
 
+  it('⚠ the tap views live on `Livestock` again — a mixin static is still a CLASS answer', () => {
+    // apiculture D12/D3. The list sat on `ProducingMixin` on the
+    // argument above, and the argument is right — but the honest
+    // question is per-INSTANCE (*what is in this animal's authored
+    // `production[]`?*) and `collectContributions` walks class statics
+    // only. A hive composes `ProducingMixin` and gives honey; the mixin
+    // static promised it `milk` and `shear` for exactly the reason
+    // `Livestock` used to promise a sheepdog `shear`. So the flat list
+    // is `Livestock`'s (its only other composer — nothing shipped
+    // changed) and a host that taps something else affords its own verb.
+    const raw = readFileSync(
+      fileURLToPath(new URL('../lib/Producing.ts', import.meta.url)),
+      'utf8',
+    );
+    expect(raw).not.toContain('cmd/ranching/milk.yaml');
+  });
+
   it('and a head of stock still offers its taps — the move cost nothing', () => {
     const verbs = CommandApi.collectContributions(Livestock, 'peers')
       .map((d) => d.verbs)
