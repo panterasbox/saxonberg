@@ -78,7 +78,7 @@ export default class GridReading extends Reading {
     const room = scope as Stuff & Container;
     const roomPath = room.getTemplatePath() ?? '';
     const power = ParcelApi.powerOf(roomPath);
-    const epoch = await this.epochOf(room);
+    const epoch = await this.epochOf(room, power.feeder);
     const cat = await this.catalogue();
     const lit =
       power.feeder !== '' && cat !== null
@@ -134,7 +134,16 @@ export default class GridReading extends Reading {
    * electric if it draws from the grid, gas-lit if it burns oil, off-grid if it
    * lights nothing.
    */
-  private async epochOf(room: Stuff & Container): Promise<string> {
+  private async epochOf(
+    room: Stuff & Container,
+    premisesFeeder: string,
+  ): Promise<string> {
+    // ⭐ A premises that cites a feeder node IS on the grid — electric —
+    // whatever its locality's lighting is (Mayfield Row is addressed outside
+    // the city but the main reaches it). Only if nothing reaches the premises
+    // does the locality's lighting supply decide: a FuelStore ⇒ gas-lit, else
+    // off-grid.
+    if (premisesFeeder !== '') return 'electric';
     try {
       const locality = await AddressApi.resolveLocalityFor(room);
       const funding = (

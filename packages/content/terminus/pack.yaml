@@ -35,7 +35,11 @@ requires:
     # a player's estate escheats UP it, so every district names this as
     # its parent. The realm committee and the city committee are one
     # group until the Compact subdivides — deliberately.
-    - { extent: /world/terminus, holder: { group: terminus }, landUse: civic, powerBand: commercial, feeder: terminus-main:square }
+    # ⚠ The realm root declares a powerBand (so its city children inherit one
+    # for lint:power-posture) but NO feeder: a feeder citation here would be
+    # inherited by every locality under the realm — HD, Hinkley, Rejection —
+    # which do NOT draw from the Terminus main. Each city district cites its own.
+    - { extent: /world/terminus, holder: { group: terminus }, landUse: civic, powerBand: commercial }
     # The Terminus municipality's ground.
     - { extent: /world/terminus/terminal,        parentParcel: /world/terminus, holder: { group: terminus }, landUse: civic, feeder: terminus-main:crossing }
     - { extent: /world/terminus/counting-houses, parentParcel: /world/terminus, holder: { group: terminus }, landUse: commercial, feeder: terminus-main:avenue }

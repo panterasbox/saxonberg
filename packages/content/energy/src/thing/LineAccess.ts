@@ -68,10 +68,13 @@ export default class LineAccess
   public override async postRegister(context?: unknown): Promise<void> {
     await super.postRegister(context);
     try {
+      // Cache the ref only — do NOT warm the compile here. A pole is propped in
+      // a feeder-node street the compile stands up; warming during that street's
+      // boot hydration compiles before the exits are ready and caches a broken
+      // grid. The compile runs lazily, post-install, on the first real read.
       this._catalogue = (await StuffApi.singleton(
         GRID_CATALOGUE_PATH,
       )) as unknown as GridCatalogue;
-      await this._catalogue.ensureCompiled();
     } catch {
       this._catalogue = null;
     }

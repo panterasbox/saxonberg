@@ -67,6 +67,7 @@ declareFile({
     'trade-shopkeeping',
     'trade-haulage',
     'distribution',
+    'hinkley-hills',
   ],
   dirtyReason: DIRTY_REASON,
 });
@@ -74,6 +75,9 @@ declareFile({
 const VALLEY_GATE =
   '/world/terminus/hearts-delight/location/valley-gate';
 const MILLSITE = '/world/terminus/hearts-delight/location/millsite';
+const LOBBY = '/world/terminus/mayfield-row/seznick-house/lobby';
+const AVENUE = '/world/terminus/counting-houses/avenue-block';
+const HINKLEY = '/world/terminus/hinkley-hills/location/lane';
 
 const open: Session[] = [];
 const squash = (s: string): string => s.replace(/\s+/g, ' ').trim();
@@ -180,3 +184,74 @@ suite('⭐⭐ Heart\'s Delight is gas-lit — burning real oil, at boot', () => 
  *    rows cross-reference) and by `BankingLogic`'s suite (the sourced
  *    appropriation and the tax split).
  */
+
+// ───────── Stage B: Terminus is electric, and the epoch is derived ─────────
+
+suite("⭐⭐ Terminus is electric — the grid reaches a home, a cut darkens it", () => {
+  let lobby: Session;
+  let avenue: Session;
+
+  beforeAll(async () => {
+    lobby = await at(LOBBY, 'lobby', true);
+    avenue = await at(AVENUE, 'avenue', true);
+  }, 180_000);
+
+  it("⭐ drive 4+9 — the lobby reads ELECTRIC, its feeder live", async () => {
+    await lobby.drainProse();
+    const grid = await say(lobby, 'analyze grid');
+    // eslint-disable-next-line no-console -- the drive's own record
+    console.log('  [drive] lobby analyze grid:', grid);
+    // ⭐ The epoch, DERIVED (no flag): the city draws from the grid. And the
+    // premises' own meter: domestic band, its feeder node live. Unlike the
+    // settle-raced streetlights, the lamp's power is read live, so this is
+    // true at boot.
+    expect(grid).toMatch(/electric/i);
+    expect(grid).toMatch(/live|domestic/i);
+    expect(grid).not.toMatch(/off-grid|gas-lit/i);
+  });
+
+  it("⭐ drive 5 — sever the avenue, and the lobby's feeder goes dark; splice brings it back", async () => {
+    await avenue.drainProse();
+    const sev = await say(avenue, 'sever');
+    // eslint-disable-next-line no-console -- the drive's own record
+    console.log('  [drive] sever at avenue:', sev);
+
+    await lobby.drainProse();
+    const dark = await say(lobby, 'analyze grid');
+    // eslint-disable-next-line no-console -- the drive's own record
+    console.log('  [drive] lobby after sever:', dark);
+    expect(dark).toMatch(/dark/i);
+
+    await avenue.drainProse();
+    await avenue.cmd('splice');
+    await avenue.drainProse();
+    const back = await say(lobby, 'analyze grid');
+    expect(back).toMatch(/live/i);
+  });
+});
+
+suite("⭐ the epoch is derived from what reaches a place — no tech level", () => {
+  let hinkley: Session;
+  let valley: Session;
+
+  beforeAll(async () => {
+    hinkley = await at(HINKLEY, 'hinkley');
+    valley = await at(VALLEY_GATE, 'epoch-hd');
+  }, 180_000);
+
+  it("drive 7+9 — Hinkley Hills reads OFF-GRID", async () => {
+    const grid = await say(hinkley, 'analyze grid');
+    // eslint-disable-next-line no-console -- the drive's own record
+    console.log('  [drive] hinkley analyze grid:', grid);
+    expect(grid).toMatch(/off-grid/i);
+    expect(grid).not.toMatch(/electric/i);
+  });
+
+  it("drive 9 — Heart's Delight reads GAS-LIT", async () => {
+    const grid = await say(valley, 'analyze grid');
+    // eslint-disable-next-line no-console -- the drive's own record
+    console.log('  [drive] HD analyze grid:', grid);
+    expect(grid).toMatch(/gas-lit/i);
+    expect(grid).not.toMatch(/electric/i);
+  });
+});

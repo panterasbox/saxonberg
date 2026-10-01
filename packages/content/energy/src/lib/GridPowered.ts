@@ -94,12 +94,19 @@ export function GridPoweredMixin<TBase extends MixinConstructor<Stuff>>(
           this._powerBand = power.band;
           this._powerNodeRef = power.feeder !== '' ? power.feeder : null;
         }
-        // Cache the catalogue and warm the compile so `isPowered()` (sync) is
-        // live on the vision walk from the first look.
+        // Cache the catalogue ref only — do NOT warm the compile here.
+        //
+        // ⚠⚠ Warming in postRegister (even fire-and-forget) can run the compile
+        // DURING boot, before the feeder streets' exits are hydrated — it stands
+        // them up mid-install via `StuffApi.singleton`, reads no exits yet, and
+        // caches a grid where "a line leaves the road" and the whole tree is
+        // dark. The compile must run POST-install: it does, lazily, on the first
+        // real read (the dusk settle, or `analyze grid`), by which time every
+        // street is installed. `isPowered()` (sync) kicks the compile itself and
+        // answers `false` until it lands — the one-tick cold start.
         this._gridCatalogue = (await StuffApi.singleton(
           GRID_CATALOGUE_PATH,
         )) as unknown as GridCatalogue;
-        await this._gridCatalogue.ensureCompiled();
       } catch {
         // A premises we cannot resolve reads as off-grid — fail closed.
         this._powerBand = 'off-grid';

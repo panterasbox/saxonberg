@@ -1201,7 +1201,35 @@ posture gate is at 0 and a scratch claim with no band fails it.
 Commit: `build(energy B3): Terminus is electric — the same lamps, the
 source migrated`.
 
-#### B4 — the Stage B drive, the storm, the docs
+#### B4 — the Stage B drive, the storm, the docs ✅ DONE
+
+> **Done (commit `build(energy B4)` / `drive(energy B)`).** The drive extended to
+> Stage B — **6/6 green**. `docs/subsystems/energy.md` written. The storm duck is
+> unit-tested at B2 (`LineAccess.onStormExposure`); the wire storm is
+> presence-gated + needs a stormed occupied scope, so it stays unit-proven (noted
+> below). ⚠ **Sibling doc sweep + the CLAUDE.md map line are `/finalize`'s** (the
+> workflow's doc-sweep phase). What the drive FOUND and fixed:
+> 1. ⚠⚠ **A boot deadlock** — a pole propped in a feeder-node street that is also
+>    a boot producer (avenue-block) `await`ed the compile from inside that
+>    street's own hydration (the compile stands the street up). Fixed by not
+>    awaiting the compile warm in `postRegister`.
+> 2. ⚠⚠ **A premature-compile cache** — warming the compile from `postRegister`
+>    ran it mid-install, before the feeder streets' exits hydrated, caching a
+>    "line leaves the road" grid where everything was dark. Fixed by removing the
+>    warm entirely — the compile runs lazily, post-install, on the first real read.
+> 3. **The realm root cited a feeder** HD/Hinkley wrongly inherited (reading them
+>    partly electric). Removed it (kept the band for the posture lint); each city
+>    district cites its own.
+> 4. **The epoch read the locality** — but Mayfield Row is addressed outside the
+>    city (under the realm), so the lobby read off-grid. Fixed: `epochOf` reads
+>    "electric" from the PREMISES' own feeder citation first, the locality's
+>    lighting supply only as the fallback.
+>
+> ⭐ The drive proves live: Terminus a premises connected + lit, `sever` darkening
+> only downstream (the lobby's feeder goes dark the same second), splice
+> restoring, Hinkley off-grid, HD gas-lit — the epoch derived with no flag.
+
+#### B4 (plan notes) — the Stage B drive, the storm, the docs
 
 - Extend `energy.dirty.wire.test.ts` with requirements steps 4–9 (connected
   premises + lit lamp; sever/only-downstream/trace/splice; the
@@ -1448,4 +1476,29 @@ Read first, in this order:
 
 ## Drive record
 
-*(appended at build time, not at plan time.)*
+`packages/wire/tests/energy.dirty.wire.test.ts` — **Stage A 2/2 + Stage B 6/6
+green** (two files, run together: `6 passed`). Driven on a fresh DB, WIRE_PORT
+2015.
+
+Stage A (combustion), live over the socket:
+- Heart's Delight's ways declare gas lamps, bind `look lamps`, and read a
+  coherent epoch-correct state "fed from the valley's own oil".
+- ⚠ The lamps read *stand cold* at boot: the boot settle races the async pack
+  install (the same wall envelope hit), so a midnight-booted wire world settles
+  nothing until the next sunset (the live game recovers then). The LIT/drawdown
+  and the money are unit-proven (`FuelStore.test.ts`, `Locality.lighting.test.ts`,
+  `oilworks.test.ts`, `BankingLogic`). → a finding for the envelope/platform tail.
+
+Stage B (electric), live over the socket:
+- the Mayfield lobby reads **electric**, domestic band, feeder node LIVE;
+- `sever` at the avenue pole → the lobby's feeder goes **dark** the same second
+  (a cut darkens only downstream); `splice` → **live** again;
+- Hinkley Hills reads **off-grid**; Heart's Delight reads **gas-lit** — the epoch
+  derived from what reaches each place, no "tech level".
+
+What the drive found (all fixed; see B4 above): a boot deadlock, a
+premature-compile cache, the realm-root feeder over-inheritance, and the
+locality-vs-premises epoch. The storm fault is unit-proven
+(`LineAccess.test.ts`); the undeclared-premises build error is `lint:power-posture`
+(ceiling 0). The streetlight settle timing (both epochs) is the one wire wall,
+documented above.
