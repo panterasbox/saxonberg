@@ -1,0 +1,31 @@
+# A nucleus — ⭐⭐ **the one thing in this build that mints life**, and it
+# is a purchase at a shop rather than a faucet on a farm.
+#
+# A new beekeeping district really does start by importing bees: somebody
+# drives a nuc in from somewhere that has them. After the first one,
+# splits and swarms supply themselves, which is why this is ONE stocked
+# line and not nine.
+class: /trade/apiculture/thing/Colony
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  keywords: [nucleus, nuc, bees, colony]
+  shortDescription: nucleus of bees
+  register: indefinite
+  longDescription: >-
+    Four frames of bees in a travelling box with a mesh panel, roaring
+    quietly to themselves. There is a queen in there and a palm's worth of
+    brood.
+  # ⚠⚠ **No `_materialPath`, deliberately.** A LIVE colony is not meat:
+  # authoring flesh on it would put a rotting material on a class that
+  # composes no Freshness, which `lint:perishable` catches and is right to
+  # — a colony of bees does not go off. The species' own default material
+  # answers, exactly as it does for every head of stock.
+  _speciesPath: /stuff/idea/species/animalia/arthropoda/insecta/hymenoptera/apidae/apis/mellifera
+  mass: 3
+  lifecycleState: alive
+  strength: 0.35
+  hasQueen: true
+  pollenKg: 0.2
+  # ⭐ A bought nuc is already used to being handled — that is part of
+  # what you are paying for.
+  handling: 0.6

@@ -355,6 +355,26 @@ Four properties fall out, none of them bolted on:
 
 ---
 
+> ⭐⭐⭐ **The positive form of every rule in this Part: evidence, not
+> praise — show the dirt, never the score.** (Added 2026-09-30 from
+> [lens #63 · Feedback](./lenses/63-feedback.md).) Schell's worked example
+> is a mop: the Swiffer makes *the dirt you removed* visible on the cloth,
+> because **“this lack of feedback can make the entire task feel somewhat
+> futile… less feedback = dirtier floor.”**
+>
+> ⭐⭐ That is the external argument rule 4 deserved and did not have —
+> withholding evidence of progress does not purify anybody, **it makes them
+> do the thing less often** — and it draws the line this Part has been
+> groping for: **feedback may be as rich and as routine as you like, so
+> long as it is evidence of WHAT CHANGED rather than a judgment of WHO YOU
+> ARE.** A cleanliness score would have been a gauge; the dirt is not.
+>
+> ⛔ And the gap it exposes: of feedback's five jobs — judgment, reward,
+> instruction, **encouragement**, challenge — this doc has doctrine for
+> four. Every rule here about affirmation was written to kill a
+> manipulation, and **together they removed the category along with the
+> abuse.**
+
 # Part 6 — What the mirror may show
 
 Three reading rules. They are the operative part of this document.

@@ -65,9 +65,12 @@ describe('the shipped packs (real discovery, no install)', () => {
     // pack in the same window — `trade-shopkeeping` (trades-and-labor) and
     // `ground` (the system pack the column and the surface character moved
     // OUT of two trades into); 50 → 51: extraction adds `trade-quarrying`;
-    // 51 → 52: energy adds `energy` (the `/system/energy` pack — the feeder
-    // grid, the parcel meter, the oil store), installed after the kernel and
-    // before the localities that migrate their street lighting onto it.
+    // 51 → 52: apiculture adds `trade-apiculture`; 52 → 53: energy adds
+    // `energy` (the `/system/energy` pack — the feeder grid, the parcel meter,
+    // the oil store), installed after the kernel and before the localities that
+    // migrate their street lighting onto it. ⚠ energy and apiculture both
+    // landed `52` independently off `51`; the real total is 53 — the exact
+    // merge hazard this comment block documents.
     //
     // ⚠⚠ Worth knowing: each of those builds wrote `49` independently, and
     // git merged the two comment blocks as a CONFLICT while merging the
@@ -76,7 +79,7 @@ describe('the shipped packs (real discovery, no install)', () => {
     // one assertion a three-way merge cannot reconcile. A
     // count, not a claim — what the claims below check is the ORDER,
     // which is where a pack graph actually breaks.
-    expect(ids).toHaveLength(52);
+    expect(ids).toHaveLength(53);
     expect(ids[0]).toBe('platform');    for (const trade of ['trade-smithing', 'trade-cooking', 'trade-hospitality', 'trade-distilling']) {
       expect(ids.indexOf(trade)).toBeGreaterThan(ids.indexOf('generic-objects'));
     }

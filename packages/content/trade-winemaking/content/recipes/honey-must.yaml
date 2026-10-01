@@ -1,0 +1,28 @@
+# Honey must — ⭐ dilute honey until the yeast can get at it.
+#
+# Three parts water to one of honey, which is roughly what a traditional
+# mead is. ⚠ No tool: this is a bucket and a stick, and gating it on
+# equipment would put a shop between a player and the oldest drink in the
+# world.
+recipeId: honey-must
+name: Honey must
+keywords: [must, mead, "honey must"]
+discipline: fermenting
+difficulty: easy
+inputSlots:
+- slot: honey
+  kind: bulk
+  category: honey
+  minGrade: poor
+  measureL: 1
+- slot: water
+  kind: bulk
+  category: water
+  minGrade: poor
+  measureL: 3
+toolCapabilities: []
+outputApplication: bulk
+outputTemplate: /trade/winemaking/thing/must-bucket
+outputMaterial: /trade/winemaking/idea/material/honey-must
+outputPortionL: 4
+outputAppearance: pale cloudy must smelling of flowers

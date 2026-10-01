@@ -258,3 +258,52 @@ one shared one.
 
 *(Retire when: the mine's geology field ships and the pattern is proven at
 two live instances, or this graduates to a top-level doctrine doc.)*
+
+---
+
+## ⭐ 2026-09-25 — the pin walk is READY, and bees should ship the first derived field
+
+From the apiculture design conversation, and recorded here because both items
+are this slate's:
+
+**⚠⚠ The pin walk is ONE copy, not three — corrected 2026-09-25.** An earlier
+version of this note said `stepOutwardForPin` was copied three times and was
+therefore a ready promotion. It has **exactly one** copy: module-private in
+`platform/idea/api/WeatherLogic.ts`, four lines, walking containment,
+depth-capped at 32.
+
+⭐ What is true is more interesting. The **pattern** — climb containment,
+`isContainer`-guarded, depth-capped, first hit wins — appears three times with
+**three different caps and three different termination rules**: the weather pin
+walk (cap 32), `Growing.sampleLux` (cap 8), `Growing.resolveWarmth` (cap 8),
+with the biome chain resolver as a fourth relative. So the question is **not
+"where should this helper live"** but **"should these three walks agree?"** —
+and that is design, not a hoist. A hive's forage range would be a second
+consumer of whatever answer we reach.
+
+⚠ **Open, and it wants deciding properly:** the forage **metric**. Graph hops
+with a per-edge cost, or real distance where a zone has coordinates? Bees fly
+a radius; the world is a graph with Cartesian patches. Lean is hops with a
+per-edge cost, so it degrades honestly in both kinds of space.
+
+**⭐⭐ Whoever ships first defines the derived-field interface.** Every field
+shipped so far is **seeded** (weather, `Deposit`, `GroundCharacter`); the
+first **derived** one was slated to be foraging's stock. Bees now arrive
+first, and a hive's nectar availability is derived in exactly the same sense.
+So the sequencing should be **deliberate rather than accidental**: apiculture
+ships the nectar read *as* the first derived field, with foraging named as
+its declared second consumer — the way this pattern was validated before
+(weather, then `Deposit`, then `GroundCharacter`). The alternative is bees
+rolling a private nectar read that a later pass has to merge.
+
+⚠ **And the interface itself stays HELD until foraging.** Foraging is the
+case that completes it, and `lint-family.md`'s warning applies —
+*"driving it lower would mean unifying mechanisms that really are
+distinct."* Promote the tap and the pin walk now; hold the field interface.
+
+⭐ **A second shared shape surfaced in the same conversation, and it is not a
+field:** the **tap** (a recurring non-lethal draw on a living thing's
+surplus). Milk, eggs, wool, maple sap, rubber latex and honey are all taps.
+It belongs to [rgo-unification-slate](../builds/rgo-unification-slate.md),
+noted here only so a reader of this slate does not conclude the field is the
+only thing the RGOs share.

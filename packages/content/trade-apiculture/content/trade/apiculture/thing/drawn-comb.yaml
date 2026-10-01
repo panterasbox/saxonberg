@@ -1,0 +1,18 @@
+# Drawn comb — ⭐⭐ **the reason to own an extractor**, and it is an object
+# rather than a bonus.
+#
+# Comb the bees already built, spun empty and still whole. Put it back in
+# a hive and they have somewhere to put the next flow instead of spending
+# it on wax — which is what `combDrawn` is, and the hive reads it when
+# this arrives (`Hive.onContainableAdded`).
+class: /platform/thing/Thing
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  keywords: [comb, "drawn comb", frame, wax]
+  shortDescription: frame of drawn comb
+  register: indefinite
+  longDescription: >-
+    An empty frame of comb, spun out and dry, the cells still hexagonal and
+    the wax gone brown with use.
+  _materialPath: /stuff/idea/material/organic/beeswax
+  mass: 0.4

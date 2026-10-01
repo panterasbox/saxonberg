@@ -33,6 +33,28 @@ Sibling docs:
   `QuantityMarshaller` story, and PropertiedMixin's
   `savedPropMarshallers` for per-prop binding.
 
+> ⭐⭐⭐ **A real unit is a FALSIFIABLE PRECISION CLAIM. A point is not.**
+> (Added 2026-09-30 from
+> [lens #66 · Channels and Dimensions](../lenses/66-channels-and-dimensions.md).)
+> `design-philosophy.md` Principle 2 says the substrate carries real units
+> and real math; this is the rule that cuts the other way. **Nobody expects
+> hitpoints to feel like injury; everybody expects losing a pint of blood to
+> feel like blood loss.** Choosing litres writes a cheque the simulation must
+> honour — so **a real unit on a shallow model is worse than a point**,
+> because a player can catch it. *“50 points”* cannot be wrong; *“0.4
+> litres”* can.
+>
+> ⚠ `Quantity<U>` makes a real unit cheap to express, which is correct, and
+> therefore makes an **unearned** one cheap too. **Do not denominate in
+> litres what you modelled in vibes.** It is the complement to
+> `measurement.md`'s no-gauge rule — that one says *do not number the
+> undecidable*; this one says *if you do use a real unit, the unit obligates
+> you.*
+>
+> ⭐ And § *Scales* below is the general bridge between the numbers doctrine
+> and the letters one: the canonical value is held once and the vocabulary is
+> chosen at the call site. `bands-not-theta` is one application of it.
+
 ## The cast
 
 | Type | Kind | Role |

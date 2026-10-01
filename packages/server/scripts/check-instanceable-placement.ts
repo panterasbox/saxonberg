@@ -294,7 +294,7 @@ export function packBrainShapeOk(source: string): boolean {
  * `MaturationProfile`, `Reading` and the other catalogue Ideas are
  * over-represented here.
  */
-const ORPHAN_DATA_KEY_CEILING = 402;
+const ORPHAN_DATA_KEY_CEILING = 393;
 
 /** The standard hydrator — the only one whose appliers are `fieldMeta`. */
 const STANDARD_HYDRATOR = '/platform/idea/persistence/PersistentHydrator';
@@ -507,6 +507,11 @@ function main(): void {
   // inventory is the point — a key the Hydrator throws away has never
   // been visible anywhere before.
   if (orphans.length > ORPHAN_DATA_KEY_CEILING) {
+    // ⚠ The comment above has always promised the LIST prints either way,
+    // and it did not — so a build that pushed the count up got a number
+    // and no way to find the two rows that did it. An inventory nobody
+    // can read is not an inventory.
+    for (const o of orphans) console.error(`      ${o}`);
     findings.push({
       invariant: 12,
       file: 'packages/server/scripts/check-instanceable-placement.ts',

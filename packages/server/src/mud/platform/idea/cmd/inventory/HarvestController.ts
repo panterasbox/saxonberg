@@ -206,9 +206,10 @@ export default class HarvestController extends CommandController<HarvestModel> {
     const discipline = plant.getDiscipline();
     const bed = plant.getBed();
     const polycarp = plant.isPolycarp();
-    const count = polycarp
-      ? Math.max(1, Math.floor(plant.getProfile()?.fruitSetCount ?? 1))
-      : 1;
+    // ⭐ The count comes from the LATCH, not the profile: what was set
+    // is a fact about this episode (and about whether anything worked
+    // the bloom), and the pick is weeks after the set.
+    const count = polycarp ? plant.getFruitSetCount() : 1;
 
     // (2) Mint and stamp — the whole set for a polycarp, one for an
     // annual. The maker is NEVER a parameter; it derives from who acts.

@@ -927,22 +927,43 @@ export class MixinApi {
    * Two exclusions, both load-bearing:
    * - **A shut container hides its contents.** Non-`Sealable` is always
    *   open (a rack has no lid); a `Sealable` that is closed is opaque.
-   * - **A container that is somebody is never transparent.** You cannot
-   *   reach into another actor's pockets, so anything that is a person or
-   *   a creature is excluded even standing open. ⚠ `Organism` is in that
-   *   test deliberately: keying only on `CommandGiver`/`HasInteractive`
-   *   covered players and NPCs and left every non-commandable creature's
-   *   inventory transparent — a pack animal's panniers were public.
+   * - **A container that is an ACTOR is never transparent.** You cannot
+   *   reach into another actor's pockets, so an `Agent` is excluded even
+   *   standing open.
+   *
+   * ⭐⭐ **That exclusion is a BRANCH question, and it reads as one now.**
+   * It used to be three mixin predicates —
+   * `isCommandGiver || isHasInteractive || isOrganism` — which were three
+   * proxies for *is this an actor*, and the `Agent` branch says it
+   * outright. The two command-source mixins only ever added `Login`,
+   * which is an `Idea` and never a container in a room.
+   *
+   * ⚠⚠ And `isOrganism` over-reached. It was put there for a real reason
+   * — *"keying only on CommandGiver/HasInteractive left every
+   * non-commandable creature's inventory transparent: a pack animal's
+   * panniers were public"* — and the branch keeps that fixed, because a
+   * pack animal is a `Creature` and therefore an `Agent`. What it also
+   * did was exclude anything merely ALIVE, and apiculture's beehive is
+   * the first living thing in the game that is matter you reach into: the
+   * colony IS the organism, so the hive was excluded from its own
+   * contents. `look in hive` showed nothing, nothing inside it was
+   * reachable, and the MQL `peers` walk would not enter it.
+   *
+   * ⭐ The blast radius of the change is exactly two classes in the tree
+   * — `Creature` (vitals, an Agent, still excluded) and `Hive` (a Thing,
+   * newly admitted) — which is the measurement that made it safe to touch
+   * a rule four subsystems ask.
    */
   public static isOpenContainer(obj: Stuff): obj is Stuff & Container {
     if (!this.isContainer(obj)) return false;
-    if (
-      this.isCommandGiver(obj) ||
-      this.isHasInteractive(obj) ||
-      this.isOrganism(obj)
-    ) {
-      return false;
-    }
+    // An actor's insides are its own, and the OBJECT answers whether it
+    // is one. ⚠ Not `instanceof Agent`: `MixinApi` sits BELOW the branch
+    // classes, and importing one here is a cycle —
+    // `mixin → Agent → Stuff → … → mixin` — which leaves `Stuff`
+    // undefined and takes 176 test files down with
+    // `Class extends value undefined`. That cycle is almost certainly
+    // why this was three mixin predicates in the first place.
+    if (obj.isAgent()) return false;
     return !(this.isSealable(obj) && !obj.isOpen());
   }
 

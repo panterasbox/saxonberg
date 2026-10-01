@@ -18,6 +18,7 @@ import { ContainerMixin } from '../../../../../lib/spatial/Container';
 import { ContainableMixin } from '../../../../../lib/spatial/Containable';
 import { PlacingMixin } from '../../../../../lib/spatial/Placing';
 import { SealableMixin } from '../../../../../lib/spatial/Sealable';
+import { OrganismMixin } from '../../../../../lib/species/Organism';
 import Placement from '../../../Placement';
 import PlacementCatalogue from '../../../PlacementCatalogue';
 import { Template } from '../../../../../lib/stuff/Template';
@@ -47,6 +48,19 @@ class TestGiver extends SensorMixin(
   CommandGiverMixin(ContainerMixin(ContainableMixin(NamedMixin(Idea)))),
 ) {
   static _mixinName = 'TestGiver';
+}
+
+/**
+ * ⭐⭐ **A living thing that is ALSO a vessel** — the case `isBody` used
+ * to get wrong. A beehive is an `Organism` (the colony IS the organism,
+ * and its species is where its taps and its temper are read from) and a
+ * `Container` you put a nucleus, a super and frames into, which is the
+ * whole design of the object.
+ */
+class TestLivingVessel extends OrganismMixin(
+  ContainerMixin(ContainableMixin(NamedMixin(Idea))),
+) {
+  static _mixinName = 'TestLivingVessel';
 }
 
 class TestSurface extends PlacingMixin(
@@ -206,6 +220,52 @@ describe('PutController — in/on dispatch', () => {
 
     expect(item.getContainer()).toBe(chest);
     expect((item.getPlacement()?.host ?? null)).toBeNull();
+  });
+
+  it('⭐⭐ put X in Y where Y is ALIVE and a vessel — a hive takes a colony', async () => {
+    /*
+     * ⚠⚠ **`isBody` asked the wrong question, and a real object found
+     * it.** The exclusion read `isOrganism`, so ANY living container
+     * offered no region zero and `put nucleus in hive` answered *"you
+     * can't put things in a hive"* — a refusal about the one act the
+     * apiculture acquisition ladder is built on (a nucleus you bought, a
+     * swarm you caught and a split you made are the same object going in
+     * the same way).
+     *
+     * The honest marker of a BODY is that it has one — vitals, a body
+     * plan, parts you could wound — not merely that it is alive. Every
+     * real body is still excluded and by a stronger test: a player, an
+     * NPC, a head of stock and a corpse are all `Creature`s and all
+     * compose `VitalsMixin`.
+     *
+     * ⚠ No controller test could have seen it before this one existed:
+     * `PutController` is the platform's, the hive is a pack class, and
+     * the two only meet in a booted world. The drive is what found it.
+     */
+    const loc = makeStuff(() => new Location());
+    const giver = makeStuff(() => new TestGiver());
+    ContainmentApi.move(giver, loc);
+    const bees = makeStuff(() => {
+      const t = new TestItem();
+      t.setName('nucleus');
+      return t;
+    });
+    ContainmentApi.move(bees, giver);
+    const hive = makeStuff(() => {
+      const h = new TestLivingVessel();
+      h.setName('hive');
+      return h;
+    });
+    ContainmentApi.move(hive, loc);
+
+    const controller = makeStuff(() => new PutController());
+    const ctx = makeContext(giver, loc);
+    await controller.execute(
+      makeModel(one(bees, 'nucleus'), one(hive, 'hive', 'in')),
+      ctx,
+    );
+
+    expect(bees.getContainer()).toBe(hive);
   });
 
   it('put X on Y (Surfaced) sets restingOn and moves into surface\'s env', async () => {

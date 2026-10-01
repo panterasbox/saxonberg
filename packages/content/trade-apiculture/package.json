@@ -1,0 +1,26 @@
+{
+  "name": "@saxonberg/content-trade-apiculture",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "The apiculture trade — the colony as the organism, the box you winter it in, and what a crop owes the bees.",
+  "dependencies": {
+    "@saxonberg/content-base-library": "workspace:*",
+    "@saxonberg/content-generic-objects": "workspace:*",
+    "@saxonberg/content-platform": "workspace:*",
+    "@saxonberg/content-trade-farming": "workspace:*",
+    "@saxonberg/content-trade-ranching": "workspace:*",
+    "@saxonberg/server": "workspace:*",
+    "@saxonberg/types": "workspace:*"
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0",
+    "vitest": "^2.0.0",
+    "yaml": "^2.8.2"
+  }
+}

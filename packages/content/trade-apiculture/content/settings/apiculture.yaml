@@ -1,0 +1,119 @@
+# apiculture — the trade's dials (the `settings` kind: merge-missing, so a
+# value an operator changed through `config` is never touched).
+#
+# ⚠⚠ **These are playtest dials, not design decisions.** Every one of them
+# has a seeded fallback in `src/lib/Colony.ts`, so the pack works before
+# this row installs; what lives here is the numbers somebody will want to
+# turn after watching people keep bees for a week. The DESIGN is in the
+# shape of the arithmetic — that a thicker wall costs less honey, that a
+# full box in a flow swarms, that out of stores in the cold is death and
+# out of stores in the warm is a departure. None of that is tunable here
+# and none of it should be.
+settings:
+  # ---- the range, and what a hive finds in it ----
+  # About an hour's flight. A real colony works a radius of a few km; the
+  # game measures range in minutes of travel because that is what the
+  # world is actually made of.
+  - key: apiculture.forageRangeMinutes
+    value: "40"
+  # What an untimed exit costs the walk.
+  - key: apiculture.defaultEdgeMinutes
+    value: "5"
+  # Clover-equivalent square metres one flowering plant is worth.
+  - key: apiculture.bloomM2PerPlant
+    value: "6"
+  # What one hive wants to itself. Two hives on 600 m² of bloom each get
+  # half a living, which is the crowding lesson and nothing else.
+  - key: apiculture.forageM2PerHive
+    value: "600"
+  # How much of a flowering plant's set one hive-day of work is worth.
+  - key: apiculture.pollinationPerHiveDay
+    value: "0.08"
+
+  # ---- the winter ----
+  # How much of the box's heat loss the cluster actually pays for. Below 1
+  # because the bees heat themselves, not the woodwork; the entrance's own
+  # leak is folded in here rather than modelled as an opening.
+  - key: apiculture.coupling
+    value: "0.35"
+  # Joules per kilogram of honey — roughly 3 kcal/g, which is right.
+  - key: apiculture.honeyJPerKg
+    value: "12500000"
+  # What the colony eats just being alive, per game day at full strength.
+  - key: apiculture.maintenanceKgPerDay
+    value: "0.04"
+  # Brood nest temperature, and the looser winter cluster.
+  - key: apiculture.broodClusterK
+    value: "308"
+  - key: apiculture.winterClusterK
+    value: "293"
+  # Below this they do not fly at all — the whole of "brood season".
+  - key: apiculture.flightK
+    value: "283"
+  # What an unresolved outside reads as. ⚠ MILD, deliberately: a hive
+  # whose ambient walk has not run must neither freeze nor burn.
+  - key: apiculture.mildK
+    value: "293"
+
+  # ---- the population ----
+  - key: apiculture.pollenPerDay
+    value: "0.03"
+  - key: apiculture.broodPollenPerDay
+    value: "0.02"
+  - key: apiculture.growthPerDay
+    value: "0.02"
+  - key: apiculture.attritionPerDay
+    value: "0.004"
+  # Queenless for this long and they raise their own — if there are
+  # enough of them left to get her mated.
+  - key: apiculture.requeenDays
+    value: "21"
+  - key: apiculture.requeenFloor
+    value: "0.25"
+
+  # ---- leaving, and dying ----
+  - key: apiculture.swarmStrength
+    value: "0.85"
+  - key: apiculture.swarmFullness
+    value: "0.85"
+  - key: apiculture.swarmFlowFloor
+    value: "0.3"
+  # A swarm hangs for a day. Be there and it is yours; be elsewhere and
+  # the woods have it.
+  - key: apiculture.swarmHangDays
+    value: "1"
+  - key: apiculture.abscondDays
+    value: "3"
+  - key: apiculture.starveDays
+    value: "5"
+
+  # ---- the stings ----
+  - key: apiculture.stingBase
+    value: "6"
+  # ⚠⚠ **Calibrated, and the window is NARROW on purpose — 0.25 to 0.28.**
+  # The shipped covering grid says NO cloth resists a `point`
+  # (`CLOTH_PROFILE` is poor/poor/poor, and content may not author a
+  # resist profile — that is combat mitigation, deliberately kernel-only).
+  # So what a veil does to a sting is take a hair's worth of energy off
+  # something that was only just enough to break skin — which is exactly
+  # what a sting is. Below 0.25 nothing gets through bare skin either; at
+  # 0.30 the cloth stops mattering. `stings.test.ts` pins both ends.
+  - key: apiculture.stingJ
+    value: "0.26"
+  - key: apiculture.venomPerSting
+    value: "0.5"
+  # A bee dies when it stings, so every landed sting costs the colony.
+  - key: apiculture.stingCost
+    value: "0.002"
+  # Lit smoke in your hands.
+  - key: apiculture.smokeFactor
+    value: "0.15"
+  # Below this they are cross before you have opened anything, which is
+  # why hives are worked on warm afternoons.
+  - key: apiculture.crossK
+    value: "285"
+
+  # ---- the take ----
+  # Kilograms of comb one `Comb` thing carries.
+  - key: apiculture.combKg
+    value: "1"

@@ -1,0 +1,21 @@
+# A double-walled hive — ⭐ **the same object with a better wall**, and
+# that is the whole of the upgrade. It inherits every field from
+# `/trade/apiculture/thing/hive` and changes the enclosure, the prose, the
+# mass and the price of the timber.
+#
+# ⚠ It is not a tech unlock and there is no recipe gate on it: a thicker
+# box is more wood, and whether it is worth the wood depends on how cold
+# the winters are where you keep bees. That judgement is the mechanism.
+class: /trade/apiculture/thing/Hive
+extends: /trade/apiculture/thing/hive
+data:
+  keywords: [hive, beehive, box, "double-walled hive", "thick hive"]
+  shortDescription: double-walled beehive
+  longDescription: >-
+    A pine box built inside a second pine box, the gap between them packed
+    with chaff and the whole thing heavy enough to want two hands. It
+    knocks dull instead of hollow.
+  mass: 26
+  enclosure:
+    material: /stuff/idea/material/wood/pine
+    thicknessM: 0.045

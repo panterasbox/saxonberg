@@ -11,6 +11,7 @@
     "@saxonberg/content-ground": "workspace:*",
     "@saxonberg/content-platform": "workspace:*",
     "@saxonberg/content-terminus": "workspace:*",
+    "@saxonberg/content-trade-apiculture": "workspace:*",
     "@saxonberg/content-trade-farming": "workspace:*",
     "@saxonberg/content-trade-fuel": "workspace:*",
     "@saxonberg/content-trade-haulage": "workspace:*",

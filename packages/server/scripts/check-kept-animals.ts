@@ -3,12 +3,12 @@
  * them must agree, in both directions.**
  *
  * The bond is a triangle with three corners and only two of them are in
- * code. A **species row** authors `handlingRange` and `biddability`; an
- * **agent row** names that species and names a class; the **class**
- * composes `BondedMixin` or it does not. Get any pair right and the third
- * can still be wrong — and every way of being wrong fails **closed and
- * silent**, which is the single failure mode this codebase keeps paying
- * for:
+ * code. A **species row** authors `handlingRange` and `biddability`; a
+ * **row** names that species and names a class; the **class** composes
+ * the mixin that reads the dial, or it does not. Get any pair right and
+ * the third can still be wrong — and every way of being wrong fails
+ * **closed and silent**, which is the single failure mode this codebase
+ * keeps paying for:
  *
  *   - `feel` / `taste` shipped and had never run;
  *   - a row's `commandContributions:` is dead and says nothing;
@@ -17,12 +17,22 @@
  *
  * So both directions are checked, because both have a plausible author:
  *
- * **Direction 1 — a dial nobody can read.** A species authors
- * `biddability` or `handlingRange`, and every agent row naming that
- * species is on a class that never reaches `BondedMixin`. The author
- * declared how tame a thing can get and no instance of it can be tamed at
- * all. ⚠ A species named by NO agent row is fine: that is content on its
- * way, not a defect.
+ * **Direction 1 — a dial nobody can read.** A species authors a dial and
+ * every row naming that species is on a class that never composes the
+ * mixin which reads it. The author declared how tame a thing can get and
+ * no instance of it can be tamed at all. ⚠ A species named by NO row is
+ * fine: that is content on its way, not a defect.
+ *
+ * ⭐⭐ **And the two dials have two different readers** (corrected
+ * 2026-09-30, by apiculture). This gate asked for `BondedMixin` for both,
+ * which was true while both dials belonged to pets — every shipped
+ * `handlingRange` species was a cat, a fish or a canary. It is not true:
+ * `HandlingMixin.speciesHandlingRange()` is what reads `handlingRange`,
+ * and a head of STOCK composes `HandlingMixin` and never `BondedMixin`
+ * (a cow is not a pet). A beehive is the case that exposed it — a colony
+ * has a temper you find out with your hands and is nobody's companion —
+ * and the gate would have refused an honest authoring. So each dial now
+ * names its own reader, which is also what the gate says it is checking.
  *
  * **Direction 2 — a bondable animal nobody can ask anything.** A row's
  * class reaches `BondedMixin` and its species authors no `biddability`.
@@ -65,7 +75,20 @@ const CONTENT = join(REPO_ROOT, 'packages/content');
 const MUD = join(SERVER_ROOT, 'src', 'mud');
 const SKIP = new Set(['node_modules', '.git', 'dist', 'build', 'coverage']);
 
-const REQUIRED_MIXIN = 'BondedMixin';
+/**
+ * Which mixin reads which dial. ⭐ `biddability` is the ASKING axis
+ * (`wouldComply` — will it come when called), read by `BondedMixin`;
+ * `handlingRange` is the HANDLING axis (how far this animal can be
+ * brought by working it), read by `HandlingMixin`. Two axes, two
+ * readers, and conflating them is what this gate did until apiculture.
+ */
+const READER_OF = {
+  biddability: 'BondedMixin',
+  handlingRange: 'HandlingMixin',
+} as const;
+
+/** Direction 2's mixin — the asking axis, which is the bond proper. */
+const REQUIRED_MIXIN = READER_OF.biddability;
 
 interface Row {
   path: string;
@@ -121,13 +144,14 @@ function reachesBonded(
   classPath: string,
   sources: ReturnType<typeof packSources>,
   seen = new Set<string>(),
+  mixin: string = REQUIRED_MIXIN,
 ): boolean {
   if (!classPath || seen.has(classPath)) return false;
   seen.add(classPath);
   const file = classFileOf(classPath, sources);
   if (!existsSync(file)) return false;
   const src = stripComments(readFileSync(file, 'utf8'));
-  if (src.includes(REQUIRED_MIXIN)) return true;
+  if (src.includes(mixin)) return true;
   const ext = /class\s+\w+\s+extends\s+([^{]+)\{/.exec(src);
   if (!ext) return false;
 
@@ -173,7 +197,7 @@ function reachesBonded(
       ? '/' + spec.slice('@saxonberg/server/mud/'.length)
       : '/' +
         relative(MUD, resolve(dirname(file), spec)).split('\\').join('/');
-    if (reachesBonded(rel, sources, seen)) return true;
+    if (reachesBonded(rel, sources, seen, mixin)) return true;
   }
   return false;
 }
@@ -200,30 +224,35 @@ function main(): void {
     bySpecies.set(sp, list);
   }
 
-  const bonded = new Map<string, boolean>();
-  const isBonded = (klass: string): boolean => {
-    if (!bonded.has(klass)) bonded.set(klass, reachesBonded(klass, sources));
-    return bonded.get(klass)!;
+  const reaches = new Map<string, boolean>();
+  const composes = (klass: string, mixin: string): boolean => {
+    const key = `${mixin}|${klass}`;
+    if (!reaches.has(key)) {
+      reaches.set(key, reachesBonded(klass, sources, new Set<string>(), mixin));
+    }
+    return reaches.get(key)!;
   };
+  const isBonded = (klass: string): boolean => composes(klass, REQUIRED_MIXIN);
 
   const failures: string[] = [];
 
-  // Direction 1 — a dial nobody can read.
+  // Direction 1 — a dial nobody can read. ⭐ Checked PER DIAL, because
+  // the two dials have two different readers (see the header).
   for (const [speciesPath, dials] of dialled) {
     const users = bySpecies.get(speciesPath) ?? [];
     if (!users.length) continue; // content on its way, not a defect
-    if (users.some((r) => isBonded(r.klass))) continue;
-    const which = [
-      dials.biddability ? 'biddability' : '',
-      dials.range ? 'handlingRange' : '',
-    ]
-      .filter(Boolean)
-      .join(' + ');
-    failures.push(
-      `  ${speciesPath} authors ${which}, but no agent row naming it is on a\n` +
-        `    class that reaches ${REQUIRED_MIXIN} — the dial can never be read.\n` +
-        `    rows: ${users.map((r) => r.file).join(', ')}`,
-    );
+    const authored: Array<keyof typeof READER_OF> = [];
+    if (dials.biddability) authored.push('biddability');
+    if (dials.range) authored.push('handlingRange');
+    for (const dial of authored) {
+      const reader = READER_OF[dial];
+      if (users.some((r) => composes(r.klass, reader))) continue;
+      failures.push(
+        `  ${speciesPath} authors ${dial}, but no row naming it is on a\n` +
+          `    class that reaches ${reader} — the dial can never be read.\n` +
+          `    rows: ${users.map((r) => r.file).join(', ')}`,
+      );
+    }
   }
 
   /*
@@ -280,15 +309,17 @@ function main(): void {
     );
     for (const f of failures) console.error(f + '\n');
     console.error(
-      'A species declares how far an animal can be won over; a class\n' +
-        'composes BondedMixin to read it. Either both or neither.\n',
+      'A species declares a dial; a class composes the mixin that READS\n' +
+        'that dial. Either both or neither. ⭐ `biddability` is the asking\n' +
+        'axis (BondedMixin); `handlingRange` is the handling axis\n' +
+        '(HandlingMixin). A head of stock has the second and not the first.\n',
     );
     process.exit(1);
   }
 
   console.log(
     `check-kept-animals: ${dialled.size} species with dials, ` +
-      `${[...bonded.values()].filter(Boolean).length} bondable class(es) ✔`,
+      `${[...reaches.values()].filter(Boolean).length} reader composition(s) ✔`,
   );
 }
 

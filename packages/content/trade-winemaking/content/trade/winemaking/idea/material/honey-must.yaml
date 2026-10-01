@@ -1,0 +1,27 @@
+# Honey must — ⭐⭐ **honey with the hurdle taken down.**
+#
+# Honey keeps forever because its water activity sits at the microbial
+# floor. Add three parts water and it does not: the same sugar, the same
+# yeast, and now they can get at it. That is mead, and it is the
+# preservation lesson running backwards — which is why it lives in
+# `trade-winemaking` beside the grape must rather than in the bee trade.
+#
+# ⚠ It carries `honey-must` and deliberately **not** `honey`: the double
+# match rule means a profile keyed on `honey` and one keyed on
+# `honey-must` must never both fire on one vessel.
+class: /platform/idea/material/ConsumableMaterial
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: honey must
+  keywords: [must, "honey must", mead]
+  appearance: "pale cloudy liquid smelling strongly of flowers"
+  density: 1080
+  thermalConductivity: 0.55
+  specificHeat: 3800
+  edibility: true
+  nutrients: ["water", "sugar"]
+  nutrientAmounts:
+    sugar: 200
+  tags: ["liquid", "must", "honey-must"]
+  composition: []
+  biologicalSource: null

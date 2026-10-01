@@ -1,0 +1,26 @@
+# Clover nectar — ⭐⭐ **the one authored source in the forage read, and it
+# is authored because a sward is a FRACTION rather than a plant.**
+#
+# Every other thing a colony works is a `Plant` with a crop of its own, so
+# its nectar is its crop's material and needs nothing written here. But a
+# clover ley is `legumeFraction` on a field: there is no clover object to
+# ask, so its nectar is a row.
+#
+# ⚠ Not edible and not sold. It exists to be a KEY in a comb's
+# composition, so that honey off a clover ley tastes and reads differently
+# from honey off cherry blossom with no row written for either.
+class: /platform/idea/material/Material
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: clover nectar
+  keywords: [nectar, clover]
+  appearance: thin colourless nectar
+  density: 1050
+  specificHeat: 3800
+  thermalConductivity: 0.5
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: ["liquid", "nectar", "clover-nectar"]
+  composition: []
+  biologicalSource: null

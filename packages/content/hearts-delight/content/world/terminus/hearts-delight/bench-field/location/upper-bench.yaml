@@ -28,7 +28,7 @@ data:
   longDescription: |
     Four acres of the thinnest ground in the valley, running back from the lane in one long strip to where the hill gets too steep to plough. Stones everywhere. The wheat in it is a good deal shorter than wheat ought to be and there are bare patches up at the top end where the soil runs out altogether.
 
-    From up here you can see the whole of the flats below, green and wet and worth ten times this.
+    From up here you can see the whole of the flats below, green and wet and worth ten times this. Just under the lip on the left there is a walled close with three cherry trees in it and clover up to your boots, which is where all the good ground on this side went.
   coords: { x: -20, y: 4, z: 8 }
   _biomePath: /stuff/idea/biome/outdoor/meadow
   # ⚠ 20-metre cells and 4000 m²: lux is lumen over AREA, so the outdoor
@@ -45,6 +45,13 @@ data:
       destination: /world/terminus/hearts-delight/location/farmstead-yard
       media: [ground]
       edgeMinutes: 4
+    # Over the lip into the close — ⭐ two minutes, which matters: a
+    # colony's forage walk prices edges in MINUTES of flight, so the
+    # close being next door is what makes a hive on the bench viable.
+    east:
+      destination: /world/terminus/hearts-delight/bench-field/location/orchard-close
+      media: [ground]
+      edgeMinutes: 2
   props:
     - /trade/farming/thing/plant/wheat
     - /trade/farming/thing/plant/wheat

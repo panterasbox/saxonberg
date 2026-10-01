@@ -364,7 +364,7 @@ distinct point on the real-life attention scale:
 | **sheep** | seasonal | textiles' sourceless wool; a short-day breeder |
 | **cattle** | a dairy cow is a tyrant | the cooking chain's protein and tallow; near-aseasonal, so the roster teaches by CONTRAST |
 | **pigs** | moderate | the waste converter — `spent-grain` ships in two packs with nowhere to go |
-| **bees** | a look every real week or two | ⚠ the row ships; the hive does not (see below) |
+| **bees** | a look every real week or two | ✅ built — [apiculture.md](./apiculture.md); the colony is the organism |
 
 ---
 
@@ -507,17 +507,31 @@ because it is not a judgement on you.
 
 ---
 
-## ⚠ Not built: bees (D34–D39)
+## ✅ Bees: BUILT — see [apiculture.md](./apiculture.md)
 
-The colony is *the herdbook with the individual end amputated* — you
-never draft a bee — and it was designed precisely because the pollination
-coupling would be painful to retrofit. It is **severable by
-construction**, was marked cuttable at its decision, and was **cut** when
-the build ran long.
+The colony is *the herdbook with the individual end amputated* — you never
+draft a bee — and it was designed here precisely because the pollination
+coupling would have been painful to retrofit. It was severable by
+construction, was marked cuttable at its decision, and was cut when this
+build ran long.
 
-What ships: the `Apis mellifera` species row and clover, which is the
-classic bee plant. What does not: the hive, pollination modifying
-`fruitSetCount`, forage range by graph hops, honey's character from what
-is in flower, and swarming.
+⭐ **It shipped 2026-09-30 as the `trade-apiculture` pack**, and everything
+this section listed as missing is there: the hive (a `Vessel`, for the
+winter arithmetic), pollination pushing onto a latched set count, the
+forage range as a walk over EXITS priced in minutes, honey's character
+riding the comb's composition, and swarming on filled-its-room-in-a-flow.
 
-⚠ **AC 14 is therefore not met** and is the follow-on's first item.
+What ranching keeps, and what apiculture reaches back for:
+
+- the **taps** (`ProducingMixin`) — a hive has a `honey` tap like a cow
+  has a `milk` one, and `rob` is a `TapController` subclass. ⚠ The three
+  tap views are on `Livestock` rather than on the mixin for this reason:
+  a hive composes `ProducingMixin` and must not be promised `milk`.
+  `TapController.discipline()` is the hook that lets the fourth product
+  credit another trade.
+- ⭐⭐ **`HandledMixin.workedOver(actor)`** — the BODY of `handle` lives on
+  the animal now, and its default is this trade's: the rail-slam hazard,
+  the flesh score out of a hundred, the hand down the spine. A hive
+  overrides it with bands, because a colony has no spine to read and no
+  number to give you. `lint:verb-collisions` refuses a second `handle`
+  view, correctly, so there was never a second-verb way out.

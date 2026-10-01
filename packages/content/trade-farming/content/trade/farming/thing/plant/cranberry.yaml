@@ -34,3 +34,9 @@ data:
     # The fruit cycle (D1/D2): the PAIR is the polycarp marker.
     fruitSetCount: 12
     fruitFillDays: 15
+
+    # ⭐ Insect-pollinated (apiculture D4): HALF a crop with nothing
+    # working the bloom, the full authored set when something does.
+    # Cranberry is about as bee-dependent as a crop gets — the commercial trade moves hives onto the bogs for the bloom and nothing else would set it.
+    # Authors author the CAUSE; nothing here asks who pollinated it.
+    pollinationBaseline: 0.5

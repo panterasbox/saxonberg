@@ -6,6 +6,16 @@ message feed in the terminal*. It is not a lifetime system, not a
 liveness system and not a layout system — everything here exists to
 make it that and nothing more.
 
+> ⭐⭐⭐ **This is the deck's best example of a Schell lens answered in a
+> PROTOCOL rather than a layout** (noted 2026-09-30,
+> [lens #62 · Transparency](../lenses/62-transparency.md)). Tufte's
+> *“it would be better if there were less of it”* is usually a design
+> preference; the rule below makes it unviolatable. **No interface appears
+> that a player did not ask for**, and the strongest guarantee of it is
+> *the absence of a wire field* rather than a convention anybody could
+> erode. ⭐ Generalised: **chrome should vanish; vocabulary should become
+> fluent** — two disciplines, and this doc is the chrome half.
+
 ## ⭐⭐ One birth path
 
 **A card exists because a COMMAND caused the server to push it.** The
@@ -387,6 +397,21 @@ relative query (`here`, `$focus`, `person`) re-answers against the
 situation. A card about a THING has to be anchored to that thing, and
 nothing about the query text can express that — the anchor has to be
 the subject id, carried on the subscription.
+
+## ⚠⚠ The `look` card shows a room you cannot see
+
+Found by the apiculture build's browser walk (2026-09-30), and **not fixed
+there** because it is this surface's, not that trade's. In the pitch-dark
+Terminus general store the transcript says *"It is pitch dark"* while the
+card renders the room's **full authored description**.
+
+⭐ The card already gates **contents** — they degrade to `something` /
+`someone` through the ordinary perception path — so the bug is narrow and
+exactly locatable: *the room's own prose is not gated by the same read.*
+The two halves of one card disagree about whether you can see.
+
+⚠ It is a card-surface defect rather than a `PerceiverMixin` one: the
+transcript, which asks the same question through `look`, gets it right.
 
 ## ⚠ The column does not scroll to the card you just asked for
 

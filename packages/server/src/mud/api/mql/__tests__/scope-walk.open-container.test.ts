@@ -22,6 +22,7 @@ import { ContainerMixin } from '../../../lib/spatial/Container';
 import { SealableMixin } from '../../../lib/spatial/Sealable';
 import { CommandGiverMixin } from '../../../lib/command/CommandGiver';
 import { Idea } from '../../../lib/stuff/Idea';
+import { Agent } from '../../../lib/stuff/Agent';
 import { ContainmentApi } from '../../containment';
 import { makeStuff } from '../../../lib/security/__tests__/test-setup';
 import type { MqlContext } from '../types';
@@ -32,8 +33,14 @@ class Rack extends ContainerMixin(VisibleMixin(PerceptibleMixin(ContainableMixin
 class Chest extends SealableMixin(
   ContainerMixin(VisibleMixin(PerceptibleMixin(ContainableMixin(Idea)))),
 ) {}
+// ⭐ On the `Agent` branch, because that is what the exclusion asks now.
+// `isOpenContainer` used to key on `isCommandGiver || isHasInteractive ||
+// isOrganism` — three mixin proxies for *is this an actor* — and asks
+// `obj.isAgent()` instead (see `Stuff.isAgent`). A fixture called
+// `Somebody` describing itself as "a patron" and extending `Idea` was
+// passing on the proxy, not on the thing the rule means.
 class Somebody extends CommandGiverMixin(
-  ContainerMixin(VisibleMixin(PerceptibleMixin(ContainableMixin(Idea)))),
+  ContainerMixin(VisibleMixin(PerceptibleMixin(ContainableMixin(Agent)))),
 ) {}
 class Coupe extends VisibleMixin(PerceptibleMixin(ContainableMixin(Idea))) {}
 
