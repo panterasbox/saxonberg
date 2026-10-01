@@ -111,10 +111,58 @@ chamber, and its Meltable path is the radiant one.
 > samples** (2026-09-30). A coolbox that loses power warms on a Newton
 > curve, but two samples of 4 °C are equally consistent with *nothing
 > happened* and with *six hours at ambient* — and every gauge that reads
-> this host's temperature integrates on that reading. ⭐ **Store the step,
-> not the history**: a host that records *when its supply last changed and
-> to what* has a closed-form temperature at any `t`, which is one field
-> rather than a ledger. [uncertainty.md § The second abstraction law](../uncertainty.md) has the rule; [reconcile-chains-slate](../slates/builds/reconcile-chains-slate.md) has the work.
+> this host's temperature integrates on that reading. ✅ **BUILT**
+> (2026-10-01) — see *The trajectory contract* below: a publisher keeps a
+> breakpoint ring and dependents integrate over the reconstructed curve.
+> [uncertainty.md § The second abstraction law](../uncertainty.md) has the
+> rule; `reconcile-chains-slate` graduated into this doc.
+
+### ⭐⭐ The trajectory contract — a body drifts toward a MOVING ambient
+
+Built by the cold-storage build (2026-10-01), graduating
+`reconcile-chains-slate`. The rule
+([uncertainty.md § The second abstraction law](../uncertainty.md)):
+reconcile-on-read is exact only when the driver's trajectory is
+reconstructible. A gauge that sampled its driver's END value and spread it
+over an unobserved gap guessed — and the guess depended on *when you
+looked*. A coolbox that lost power, warmed, and re-cooled read *nothing
+happened* if sampled cold and *insta-spoiled* if sampled mid-outage, from
+one history.
+
+The fix is one primitive, `lib/Trajectory.ts`:
+
+- **`Piecewise`** — a trajectory as ordered exponential-relaxation
+  `Stretch`es. `integrate(f, subSteps)` (Simpson, `ThermalDose`'s
+  integrator lifted), `samples(subSteps)` (midpoint, for a closed-form
+  gauge to fold over), `at(t)`.
+- **`TrajectoryLog`** — a publisher's bounded **ring** of breakpoints
+  `(atS, value, target, tau)`; `window(fromS, toS)` reconstructs the curve
+  over any window inside the ring's horizon. ⚠ A ring, not one field — a
+  scope read by many bodies at *different* stamps needs each body's curve
+  from its own stamp (plan F2). The ring is runtime state; a reboot loses
+  the history and re-seeds a flat segment.
+
+**Publishers** implement `TemperatureTrajectory.temperatureTrajectory(fromS,
+toS)`: `ThermalMixin` (a body's own temperature, ring `thermalLog`) and
+`AtmosphericMixin` (a scope's air, ring `envelopeLog`). **Dependents** ask
+their publisher for `[myStamp, now]` and integrate — no push, no fan-out;
+two gauges on one host may hold different stamps and both are exact within
+the horizon. `ThermalMixin.reconcileThermal` is itself a dependent: it
+drifts toward the scope's MOVING air via the two-exponential closed form
+`driftTowardMoving` (per `Stretch` the ambient is one decay, so the body's
+response is exact). A lit furnace / shut coolbox is still a constant
+stretch — *what holds you outranks the room* unchanged. ⚠ The pull side
+reads a scope's trajectory **only when its envelope applies**; an authored
+`_temperature` or no-envelope scope is owned by the push side (`restamp` →
+the full biome chain into `lastAmbientK`), exactly as the scalar pull did.
+
+The census-ratchet `lint:reconcile-chains` holds the line: a new
+`reconcile*` that samples `getTemperature()` / `hostTemperatureK` /
+`getOwnTemperatureK` over its gap without reading a trajectory (or a
+`@samples` marker) fails the gate. The far-past absence guard is now
+**narrowed to `ThermalRegulation` hosts** — a living body drops a long gap
+(a logout), but dead matter integrates its absence, which is what makes a
+fridge losing power for a week spoil its contents.
 
 ### ⭐⭐ The cold twin — `holderK()` and a Coolbox
 

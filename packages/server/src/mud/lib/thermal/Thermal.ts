@@ -53,6 +53,11 @@ import { BiomeApi } from "../../api/biome";
 import { WorldClockApi } from "../../api/worldclock";
 import { TemplatePaths } from "../paths";
 import { Decay } from "../Decay";
+import {
+  Piecewise,
+  TrajectoryLog,
+  type Breakpoint,
+} from "../Trajectory";
 
 /**
  * Every thermal dial as a module const-object (the `METABOLIC_DEFAULTS`
@@ -302,6 +307,24 @@ export interface Thermal {
   reconcileThermal(): void;
   /** Resolve fresh ambient, freeze current T under the old ambient, re-stamp. */
   restamp(): Promise<void>;
+  /**
+   * ⭐ **This body's temperature over `[fromS, toS]`, as a trajectory** —
+   * reconstructed from the body's breakpoint ring (a {@link TemperatureTrajectory}
+   * publisher). A gauge on this body (freshness, dose, contamination)
+   * integrates over this instead of sampling the endpoint, so a body that
+   * warmed and re-cooled during an unobserved gap is spoiled correctly.
+   * Brings the body current first (records a breakpoint at `now`).
+   */
+  temperatureTrajectory(fromS: number, toS: number): Piecewise;
+}
+
+/**
+ * ⭐ A thing whose temperature has a reconstructible past. Both a body
+ * ({@link ThermalMixin}) and a scope's air (`AtmosphericMixin`) implement
+ * it; a dependent gauge asks its publisher for the window and integrates.
+ */
+export interface TemperatureTrajectory {
+  temperatureTrajectory(fromS: number, toS: number): Piecewise;
 }
 
 /**
@@ -385,6 +408,48 @@ function airScopeOf(host: Stuff): (Stuff & Atmospheric) | null {
 }
 
 /**
+ * ⭐ **A body relaxing toward a MOVING ambient** — the closed-form the
+ * trajectory primitive needs where `Decay.toward` (constant target) no
+ * longer suffices. Over one ambient stretch the ambient itself is a single
+ * exponential `A(s) = A∞ + (A0 − A∞)e^{−s/τa}`, and the body's response to
+ * it is the two-exponential solution of `dT/dt = (A(t) − T)/τb`:
+ *
+ *   T(t) = A∞ + (T0 − A∞)e^{−t/τb}
+ *             + (A0 − A∞)·[τa/(τa − τb)]·(e^{−t/τa} − e^{−t/τb})
+ *
+ * Exact per stretch. Degenerate cases: a massless body (`τb ≤ 0`) lands on
+ * the ambient's end value; a constant ambient (`τa ≤ 0`) is plain
+ * `Decay.toward`; and the `τa ≈ τb` resonance takes the limit form
+ * `(A0 − A∞)·(t/τb)·e^{−t/τb}`.
+ */
+function driftTowardMoving(
+  t0: number,
+  a0: number,
+  aInf: number,
+  tauA: number,
+  tauB: number,
+  dt: number,
+): number {
+  if (!(dt > 0)) return t0;
+  if (!(tauB > 0)) {
+    // Massless — lands on the ambient's own end value.
+    return tauA > 0 ? Decay.toward(a0, aInf, dt, tauA) : aInf;
+  }
+  if (!(tauA > 0)) {
+    // Constant ambient at aInf.
+    return Decay.toward(t0, aInf, dt, tauB);
+  }
+  const eB = Math.exp(-dt / tauB);
+  const settled = aInf + (t0 - aInf) * eB;
+  if (Math.abs(tauA - tauB) < 1e-9) {
+    // Resonance limit τa → τb.
+    return settled + (a0 - aInf) * (dt / tauB) * eB;
+  }
+  const eA = Math.exp(-dt / tauA);
+  return settled + (a0 - aInf) * (tauA / (tauA - tauB)) * (eA - eB);
+}
+
+/**
  * The shut `Coolbox` holding this body, or null.
  *
  * ⚠⚠ Called from `effectiveR`, which runs on every reconcile of every
@@ -436,12 +501,20 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
       thermalClockStamp: { persistent: true, runtimeState: true },
       lastAmbientK: { persistent: true, runtimeState: true },
       barrier: { persistent: true, authorable: true },
+      // ⭐ The body's own temperature breakpoint ring — a bounded history
+      // so a gauge reading at its own stamp can reconstruct the body's
+      // curve across an unobserved gap. Runtime state like the scalar
+      // thermal fields: a reboot loses the history (the plan's F2), which
+      // is acceptable — the next read re-seeds a flat segment.
+      thermalLog: { persistent: true, runtimeState: true },
     };
 
     public stampedTemperatureK: number = THERMAL_DEFAULTS.DEFAULT_TEMPERATURE_K;
     public thermalClockStamp = 0;
     public lastAmbientK: number = THERMAL_DEFAULTS.DEFAULT_TEMPERATURE_K;
     public barrier: string | null = null;
+    /** The breakpoint ring backing {@link temperatureTrajectory}. */
+    public thermalLog: Breakpoint[] = [];
 
     /**
      * Reentry guard for the reconcile. Case-1 per the CLAUDE.md hard
@@ -743,6 +816,47 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
       if (envelopeK !== null) this.lastAmbientK = envelopeK;
     }
 
+    /** The ring wrapper over this body's own breakpoint history. */
+    private thermalRing(): TrajectoryLog {
+      return new TrajectoryLog(this.thermalLog);
+    }
+
+    /**
+     * ⭐ **The ambient this body drifts toward, as a trajectory over the
+     * gap** — not a single sample. A lit furnace or a shut cold holder is
+     * a constant stretch (what holds you outranks the room, as the scalar
+     * path always said); otherwise the enclosing `Atmospheric` scope's
+     * own published trajectory, so a fridge that warmed during a power cut
+     * hands the body the warm-up curve, not just its endpoint.
+     */
+    private ambientTrajectory(fromS: number, toS: number): Piecewise {
+      const self = this.thermalHost;
+      const flat = (v: number): Piecewise =>
+        new Piecewise([{ fromS, toS, startValue: v, target: v, tau: 0 }]);
+      const heat = this.heatSourceK();
+      if (heat !== null) return flat(heat);
+      const holderCold = this.holderK();
+      if (holderCold !== null) return flat(holderCold);
+      const scope = airScopeOf(self);
+      // ⚠ Only an APPLYING envelope publishes a trajectory the pull side
+      // reads — the same split the scalar `refreshAmbientFromEnvelope`
+      // kept. A scope with an authored `_temperature` (or no envelope at
+      // all) is resolved by the PUSH side (`restamp` → the full biome
+      // chain into `lastAmbientK`); pulling its authored temperature here
+      // would double-own it and, for a pan pinned hot in a warm room,
+      // cool it back down. Fall back to the cached ambient the push side
+      // maintains.
+      if (scope === null || !scope.envelopeApplies()) {
+        return flat(this.lastAmbientK);
+      }
+      return scope.temperatureTrajectory(fromS, toS);
+    }
+
+    public temperatureTrajectory(fromS: number, toS: number): Piecewise {
+      if (!this._thermalReconciling) this.reconcileThermal();
+      return this.thermalRing().window(fromS, toS, this.stampedTemperatureK);
+    }
+
     public reconcileThermal(): void {
       if (this._thermalReconciling) return;
       const D = THERMAL_DEFAULTS;
@@ -750,10 +864,17 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
       const nowS = this.thermalNowSeconds();
       if (nowS === null) return; // no world clock — idle
 
-      // First touch: seed the stamp so a fresh object doesn't integrate
-      // a giant gap from epoch.
+      // First touch: seed the stamp AND a flat breakpoint so a fresh
+      // object doesn't integrate a giant gap from epoch, and a gauge that
+      // reads immediately gets a constant at the current temperature.
       if (this.thermalClockStamp === 0) {
         this.thermalClockStamp = nowS;
+        this.thermalRing().record(
+          nowS,
+          this.stampedTemperatureK,
+          this.stampedTemperatureK,
+          0,
+        );
         return;
       }
 
@@ -770,27 +891,44 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
         this.thermalClockStamp = nowS;
         return;
       }
-      // Far-past absence guard — a gap this long is logout/relog or a
-      // paused server; drop it (the body never "cooled" while away).
-      if (elapsed > D.MAX_REASONABLE_GAP_SEC) {
+      // ⭐ Far-past absence guard, **narrowed to a living/regulated body**
+      // (plan F5). A logout is a body's gap to drop — it never "cooled"
+      // while away. Dead matter has no such excuse: a corpse, a loaf, a
+      // blood bag integrates its absence, which is exactly what makes a
+      // fridge losing power for a week spoil its contents. The old guard
+      // fired for every Thermal thing and silently under-aged matter.
+      if (
+        MixinApi.isThermalRegulation(self) &&
+        elapsed > D.MAX_REASONABLE_GAP_SEC
+      ) {
         this.thermalClockStamp = nowS;
         return;
       }
 
       this._thermalReconciling = true;
       try {
-        this.refreshAmbientFromEnvelope();
         const tau = this.getTau().rawValue();
-        const ambient = this.lastAmbientK;
-        // Closed-form Newton relaxation — exact for a constant ambient,
-        // so no sub-stepping is needed for passive drift. A non-positive
-        // tau is a massless marker and lands on ambient immediately.
-        this.stampedTemperatureK = Decay.toward(
-          this.stampedTemperatureK,
-          ambient,
-          elapsed,
-          tau,
-        );
+        const ambientPw = this.ambientTrajectory(this.thermalClockStamp, nowS);
+        const ring = this.thermalRing();
+        let T = this.stampedTemperatureK;
+        // Integrate the body toward a MOVING ambient, stretch by stretch —
+        // each is a single ambient decay, so the two-exponential closed
+        // form is exact per stretch. Record a body breakpoint at each
+        // stretch start so a gauge can reconstruct the body's own curve.
+        for (const st of ambientPw.stretches) {
+          const dur = st.toS - st.fromS;
+          if (!(dur > 0)) continue;
+          const aEnd =
+            st.tau > 0
+              ? Decay.toward(st.startValue, st.target, dur, st.tau)
+              : st.target;
+          ring.record(st.fromS, T, aEnd, tau);
+          T = driftTowardMoving(T, st.startValue, st.target, st.tau, tau, dur);
+        }
+        this.stampedTemperatureK = T;
+        this.lastAmbientK = ambientPw.at(nowS);
+        // The forward segment: from now, drift toward the current ambient.
+        ring.record(nowS, T, this.lastAmbientK, tau);
         this.thermalClockStamp = nowS;
       } finally {
         this._thermalReconciling = false;

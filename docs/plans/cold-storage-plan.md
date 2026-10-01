@@ -531,7 +531,17 @@ As the first plan, plus:
 
 ### Stage A — kernel
 
-#### W0 — Rung 1: the containment read (D8)
+#### W0 — Rung 1: the containment read (D8) — ✅ DONE (`9d00c0eed`)
+
+**Done note.** Shipped as planned. `holds` is a `static` descriptor on
+both `Container` and `Placing` (capability, never fires); `placement` on
+`Containable`; `placed` on `Placing` (grouped, with the row heading).
+`Container.contents` gained `dependsOnFields: ['contents','placement']`
+and `ContainmentLogic.place` fires a `placement` event (plus the clear on
+move's container-change invariant). `Chest` composes `PlacingMixin` for a
+lid. Client: `HereList` affix (`· in`) + `▸` holds mark; new `PlacedList`.
+New test `mql-subscription.placement.test.ts`; fields snapshot updated.
+All 59 gates pass; type-clean. No surprises.
 
 Unchanged from the first plan: `Container.holds` + `contents.dependsOnFields`;
 `Placing.holds` + `placed`; `Containable.placement`;
@@ -543,7 +553,32 @@ Unchanged from the first plan: `Container.holds` + `contents.dependsOnFields`;
 **Commit.** `build(cold-storage W0): Rung 1 — the wire carries how each
 item sits and what holds more`.
 
-#### W1 — the trajectory primitive and its two publishers (D7, F1, F2)
+#### W1 — the trajectory primitive and its two publishers (D7, F1, F2) — ✅ DONE
+
+**Done note.** `lib/Trajectory.ts` ships `Piecewise` + `TrajectoryLog`
+(public constructors + instance methods only — the `lint:lib-statics`
+ratchet was at 337/337, zero headroom, so NO new value-statics; a constant
+is `new Piecewise([{…tau:0}])`). `ThermalMixin` and `AtmosphericMixin` are
+the two publishers (`thermalLog`/`envelopeLog` rings, `runtimeState`);
+`reconcileThermal` drifts toward the scope's moving air via the
+two-exponential `driftTowardMoving`, far-past guard narrowed to
+`ThermalRegulation`. F1 fixed in `BiomeLogic.outsideKFor` via
+`enclosingAtmosphericOf`. `envelopeDriveW`/`climateSetpointK` hooks added
+(default 0 / null — ClimateControl overrides in W3). `lint:reconcile-chains`
+ceiling set to **8** (the honest W1 census; W2 drives to 0). `@samples`
+added to typedoc blockTags.
+
+⚠ **Surprise re-planned in place:** routing the body's pull through the
+scope trajectory initially pulled an authored-`_temperature` room's temp
+(cooling a pan pinned hot in a 293 K room → Evaporative test regressed).
+Fixed: the pull reads a scope's trajectory **only when its envelope
+applies**; an authored/no-envelope scope stays push-side-owned
+(`lastAmbientK`), exactly the old scalar split. Tests: `Trajectory.test.ts`
+(12), `Thermal.trajectory.test.ts` (4 — moving-target within 1% of a fine
+reference, the narrowed guard both ways), `Atmospheric.nested.test.ts` (2 —
+F1). All 582 lib tests green.
+
+
 
 **Files.**
 - `lib/Trajectory.ts` — `Piecewise`, `TrajectoryLog` (+ tests:

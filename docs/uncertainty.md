@@ -491,6 +491,19 @@ consistent with *nothing happened* and with *six hours at 21 °C*.
 
 **Store the step, not the history.**
 
+> ✅ **BUILT (2026-10-01, the cold-storage build).** The cure is one
+> primitive, `lib/Trajectory.ts`: a publisher keeps a bounded
+> `TrajectoryLog` ring of breakpoints `(atS, value, target, tau)` and
+> serves `temperatureTrajectory(fromS, toS)` as a `Piecewise`; a dependent
+> integrates over it (`Piecewise.integrate` / `samples`) instead of
+> sampling the endpoint. ⭐ The "one field" became a short **ring**, not a
+> single field — a scope read by many bodies at different stamps needs each
+> body's curve from its own stamp, which only a short history answers. The
+> four answers became three-plus-the-primitive; the contract lives in
+> [thermal.md § The trajectory contract](./subsystems/thermal.md) and
+> [spoilage.md](./subsystems/spoilage.md), and `lint:reconcile-chains`
+> ratchets the remaining samplers to zero.
+
 ### ⚠ The audit — 27 time-integrating gauges, checked 2026-09-30
 
 | gauge | horizon | driver(s) | answer | |

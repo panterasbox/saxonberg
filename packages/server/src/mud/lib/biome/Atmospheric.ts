@@ -57,6 +57,7 @@ import { AppSettingKeys } from '../config/AppSettings';
 import { WorldClockApi } from '../../api/worldclock';
 import { TemplatePaths } from '../paths';
 import { Decay } from '../Decay';
+import { Piecewise, TrajectoryLog, type Breakpoint } from '../Trajectory';
 
 export interface Atmospheric {
   // ---------- biome reference ----------
@@ -225,6 +226,23 @@ export interface Atmospheric {
   reconcileEnvelope(): void;
 
   /**
+   * ⭐ This scope's air temperature over `[fromS, toS]` as a trajectory —
+   * what a body inside drifts toward (a {@link TemperatureTrajectory}
+   * publisher). Reconstructed from the envelope's breakpoint ring.
+   */
+  temperatureTrajectory(fromS: number, toS: number): Piecewise;
+
+  /**
+   * ⭐ `@hook` A driven heat term (W) folded into the envelope budget,
+   * at the current interior temperature; `0` unless a cooler/heater
+   * drives this scope (`ClimateControlMixin`).
+   */
+  envelopeDriveW(interiorK: number): number;
+
+  /** ⭐ The setpoint a driven scope clamps toward, else `null`. */
+  climateSetpointK(): number | null;
+
+  /**
    * The scope's own temperature (K), or `null` when no envelope
    * applies or its outside was never seeded. Sync: the thermal
    * reconcile reads it on the hot path.
@@ -318,6 +336,7 @@ export function AtmosphericMixin<
       envelopeTemperatureK: { persistent: true, runtimeState: true },
       envelopeClockStamp: { persistent: true, runtimeState: true },
       envelopeOutsideK: { persistent: true, runtimeState: true },
+      envelopeLog: { persistent: true, runtimeState: true },
     };
 
     // ---------- storage ----------
@@ -361,6 +380,12 @@ export function AtmosphericMixin<
     public envelopeClockStamp = 0;
     /** What it is drifting TOWARD (K) — stamped at the async resolve. */
     public envelopeOutsideK: number | null = null;
+    /**
+     * ⭐ The scope air's breakpoint ring, backing
+     * {@link temperatureTrajectory}. Runtime state like the envelope
+     * scalars (a reboot loses the history — plan F2).
+     */
+    public envelopeLog: Breakpoint[] = [];
     /**
      * The resolved fabric, cached transiently. A convenience, not a
      * necessity: the material lookup is a sync registry read, so a cold
@@ -816,16 +841,93 @@ export function AtmosphericMixin<
           heatW += occupant.spaceHeatOutputW();
         }
 
-        const steadyState = outside + heatW / coeff.uWperK;
+        // ⭐ A driven term — a cooler or heater the scope hosts
+        // (`ClimateControlMixin` answers a negative capacity while
+        // supplied; the base is 0). Folded into the heat budget so the
+        // envelope needs no second time constant.
+        const driveW = this.envelopeDriveW(this.envelopeTemperatureK);
+        const tau = coeff.capacityJPerK / coeff.uWperK;
+        let steadyState = outside + (heatW + driveW) / coeff.uWperK;
+        // ⭐ A thermostat does not undershoot its dial: a cooling drive
+        // (negative) clamps the steady state at the setpoint it is driving
+        // toward, so an over-strong pump holds the setpoint rather than
+        // sailing past it. Only a cooling drive clamps, and only from
+        // above (a heater clamps nothing here).
+        const setpoint = this.climateSetpointK();
+        if (driveW < 0 && setpoint !== null && steadyState < setpoint) {
+          steadyState = setpoint;
+        }
         this.envelopeTemperatureK = Decay.toward(
           this.envelopeTemperatureK,
           steadyState,
           elapsed,
-          coeff.capacityJPerK / coeff.uWperK,
+          tau,
+        );
+        // Record the segment just integrated so the scope can publish its
+        // trajectory to the bodies that read it.
+        new TrajectoryLog(this.envelopeLog).record(
+          this.envelopeClockStamp - elapsed,
+          this.envelopeTemperatureK,
+          steadyState,
+          tau,
         );
       } finally {
         this._envelopeReconciling = false;
       }
+    }
+
+    /**
+     * ⭐ `@hook` **A driven heat term folded into the envelope's budget**,
+     * in watts, evaluated at the current interior temperature. The base is
+     * `0` — most scopes drive nothing. `ClimateControlMixin` overrides it
+     * to `-coolingCapacityW` while supplied and above setpoint (a cooler),
+     * or a positive value (a heater). Kept a hook so the envelope reads a
+     * driven term without knowing the class that supplies it.
+     *
+     * @hook Override on a scope that actively drives its own air. Default
+     *   returns 0.
+     */
+    public envelopeDriveW(_interiorK: number): number {
+      return 0;
+    }
+
+    /**
+     * ⭐ The setpoint a driven scope clamps toward, or `null` when the
+     * scope drives nothing. Base returns `null`; `ClimateControlMixin`
+     * answers its `setpointK`. Read only to stop a cooler undershooting.
+     */
+    public climateSetpointK(): number | null {
+      return null;
+    }
+
+    /**
+     * ⭐ This scope's air temperature over `[fromS, toS]`, as a
+     * {@link Piecewise} — a {@link TemperatureTrajectory} publisher. A
+     * body inside reads this and drifts toward the MOVING air rather than
+     * its endpoint. Brings the envelope current first (records the
+     * segment), then windows the ring; an authored `_temperature` is a
+     * constant, and a scope with no envelope answers a flat line at its
+     * own temperature.
+     */
+    public temperatureTrajectory(fromS: number, toS: number): Piecewise {
+      const authored = this.getOwnTemperatureK();
+      const flat = (v: number): Piecewise =>
+        new Piecewise([{ fromS, toS, startValue: v, target: v, tau: 0 }]);
+      // An authored `_temperature`, or no envelope at all (no volume /
+      // sky-exposed), is a constant — `envelopeApplies()` already folds
+      // the authored-override case.
+      if (!this.envelopeApplies()) {
+        return flat(authored ?? this.envelopeTemperatureLast() ?? 293);
+      }
+      // ⚠ Do NOT force an integration here — a body PEEKING its scope must
+      // not advance the scope's clock (the same reason the scalar pull
+      // reads `envelopeTemperatureLast()`, not `...Sync()`). Reconstruct
+      // from the ring the scope's own reconciles populated; a ring with no
+      // breakpoints covering the gap degrades to a flat line at the
+      // scope's last-known air — which is the old pull-side behaviour, and
+      // still correct for a scope whose air is not currently moving.
+      const fallback = this.envelopeTemperatureLast() ?? authored ?? 293;
+      return new TrajectoryLog(this.envelopeLog).window(fromS, toS, fallback);
     }
 
     /**
