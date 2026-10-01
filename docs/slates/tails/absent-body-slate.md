@@ -16,8 +16,13 @@
 > §§ *A live hole*, *Standing orders* and *the situation matrix* below** — the
 > per-situation policy, which of them a player may choose, and where a
 > standing order is declared.
-> **Size:** ⚠ was *a tail (of connection + combat)*; with the widening it is
-> **a build**, and the situation matrix is why.
+> ⭐⭐⭐ **And the DIRECTION settled 2026-09-30: logout is SLEEP, not a
+> freeze** — see that section first; it supersedes the freeze doctrine and
+> retires *"never tax absence"*. ⚠ It reverses a shipped decision
+> (metabolism's linkdead freeze), which needs its own record.
+> **Size:** ⚠ was *a tail (of connection + combat)*; with the widening and
+> the sleep direction it is **a build** — it builds diegetic sleep, which
+> metabolism.md has as future work.
 
 Captured out of the **recovery** design conversation (the offline-healing
 question, [recovery-slate](../builds/recovery-slate.md) D3). Recovery forced
@@ -173,7 +178,102 @@ equally available to the escaper. The answer is not detection, it is price:
 > not a hook. The hook space is exactly the set of situations with two
 > defensible outcomes.
 
-## ⭐⭐⭐ The rule the matrix was groping for — a CLOCK versus a SITUATION
+# ⭐⭐⭐ The DIRECTION — logout is sleep, not a freeze
+
+*Decided 2026-09-30. This supersedes the freeze doctrine below, which is kept
+because it is an accurate description of **what ships today** and of why the
+shipped mix is coherent.*
+
+> **User: "isnt automation better than freezing the state machine? but
+> eventually they either have to reconnect or we have to log them out, which
+> in our game means sleeping. we'd want to check for a bedroll or something on
+> their person first I suppose."**
+
+> ⭐⭐ **Freeze is an EXCEPTION. Sleep is a MECHANISM.**
+
+Same outcome — you do not starve while you are away — but one is a fudge and
+the other is the world working. **A body that stands in a tavern for three
+days without hungering is not a body**, and *model honestly, no fudge
+anywhere* is the governing principle, so lens 1 decides this rather than
+taste.
+
+⭐ It also removes the mess § *a clock versus a situation* exists to explain.
+Freeze forces **two kinds of time**, and every subsystem has to know which it
+is in — which is exactly why some clocks stop and some do not and nobody
+could say why from first principles. **Sleep needs one kind of time.**
+
+## It composes with the standing-orders amendment rather than fighting it
+
+The principle is *automate the autonomic, never the strategic*:
+
+| | |
+|---|---|
+| **sleeping** | ✓ **autonomic** — a tired body sleeps. In scope by default |
+| **walking home / seeking shelter** | ✗ strategic; the direction leaks intent. ⭐ Out by default, **in as a standing order** (*"if I drop, seek shelter first"*) |
+
+## The grace window is the fairness answer
+
+Absence does not become sleep immediately. A window in which the autonomic
+body simply stands (or holds the defensive stance of option B) means **a
+thirty-second router blip costs nothing**, and only a sustained absence turns
+in for the night. ⭐ Lens 7's answer to *who can be wronged*: the
+bad-connection player is not taxed for the connection, only for **where they
+were standing.**
+
+## And the cost is already priced by shipped mechanisms
+
+**bed > campfire > rough**, with cold doing the pricing:
+
+- `Postures.Lie` exists; `PosturedMixin` carries **`restQuality`**, read off
+  the occupied host (`getOccupiedHost()?.getRestQuality() ?? 1.0`), with
+  **floor / standing as the low end**.
+- a `Bed` authors `lie:1` slots accepting `lie` / `sit`.
+- `restQuality` × `warmth` already feeds [thermal.md](../../subsystems/thermal.md),
+  and the envelope build made **cold a real cost**.
+- ⭐ `Campfire` already reads `restQuality` — camping is half-built.
+- ⚠ **No bedroll row exists anywhere in content.** It would be new — and
+  that is a *feature*: it gives a currently-nonexistent good **real demand
+  from nothing**, which is lens 6 finding a producer rather than inventing a
+  need.
+
+⭐ So **where you disconnect matters**, which is the diegetic form of *don't
+log out in a dungeon* — priced by the world rather than forbidden by a rule.
+
+## Two things it makes honest that are currently carve-outs
+
+- ⭐ **The far-past guard.** Today it is mechanical: *drop any gap longer than
+  a plausible session*. Under sleep it is the fiction — **a month away is a
+  month ASLEEP, not a month starving.** Same code, justified instead of
+  excused.
+- ⭐ **Reconnection becomes waking up** — a transition with prose, rather
+  than a state flag flipping.
+
+## ⚠⚠ What it costs, stated plainly
+
+- **It reverses a shipped decision.** [metabolism.md](../../subsystems/metabolism.md)'s
+  linkdead freeze goes — *"the reconcile re-stamps and integrates nothing"* —
+  and that is a **change, not an addition**. It needs its own record and it
+  touches metabolism, recovery, posture, residence and thermal.
+- **Sleep is designed-but-unbuilt.** metabolism.md: *"no sleeping player body
+  and no away-recovery… diegetic sleep is a future NPC behavior over the same
+  posture × `restQuality` rest path."* This build is what builds it, for
+  players first.
+- ⚠ **Asleep is MORE vulnerable, not less**, so a bad connection in a bad
+  place is genuinely dangerous. The mitigations are the autonomic defensive
+  stance (already decided), the medic vertical, and — honestly — **that is
+  what the bedroll and the inn are for.** A real risk; not to be smoothed
+  over.
+- ⚠ **And "never tax absence" is retired as a doctrine** in favour of
+  *absence has a diegetic mechanism with a price*. Anybody citing the old
+  phrase after this should be pointed here.
+
+---
+
+## The rule that describes what SHIPS — a clock versus a situation
+
+⚠ **Superseded as a direction by § *logout is sleep* above**; kept because it
+accurately describes today's behaviour and explains why the shipped mix is
+coherent rather than sloppy.
 
 Asked 2026-09-30: *does your body thirst while netdead, and will it drink
 automatically if possible?* **No, and there is nothing to drink for** — and
