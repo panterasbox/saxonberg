@@ -1800,6 +1800,16 @@ rule gets stricter"* — and it got stricter. A new `Growth` fixture (an
 
 - `npx tsc --noEmit -p packages/server/tsconfig.json` — clean.
 - `lint:family` — **58/58**, all gates pass.
+- ⭐⭐ **`pnpm test` — green whole, `SUITEEXIT=0`**: client 80 files,
+  server **1277 passed / 1 skipped**, and all 34 content packs including
+  this one's 6. ⚠ The FIRST run came back **red: 3 failed / 11 921
+  passed** — three more test fixtures that were lying about their branch,
+  in the same family as the two already found (`command-affordances`'s
+  `ViewerBase`, `perception.can-reach`'s `Actor` and `Person`, and ⭐ the
+  shared `fixtures/mql-world.ts` `TestGiver`, whose move off the Agent
+  branch had made it a *transparent* container, so `mustBeInLocation`
+  stopped rejecting an inventory item). Five fixtures in total, every one
+  a person or an actor built on `Idea` because `Idea` was the cheap base.
 - The eight suites that ask the changed rule (`lib/belief`,
   `lib/concealment`, `lib/perception`, `platform/idea/api/__tests__`,
   `platform/idea/cmd/inventory`, `api/mql`, `lib/spatial`,
