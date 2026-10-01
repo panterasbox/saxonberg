@@ -288,7 +288,9 @@ premise in the requirements or the task brief, it says so.
   `trade-farming/src/behavior/farms.ts` is the producer-brain exemplar:
   `forceCommand` of literal verbs, bounded loops, `presenceGated = false`,
   `ambient = false`. `CommandGiver.forceCommand` at `CommandGiver.ts:315`.
-- ⚠ **`Avatar` does not compose `BehavedMixin`.** `Avatar.ts:163-206`
+- ⚠ **`Avatar` does not compose `BehavedMixin`** — and ⚠⚠ **on
+  build-3's `reqs/avatar-family` this file no longer exists at all; see
+  D11a.** `Avatar.ts:163-206`
   chain: `Persistable(Estate(Forkable(PostRegistration(HasInteractive(
   Aether(Calendar(NotifyPolicy(Contacts(Wardrobe(PartyMember(
   SubjectSubscriber(Named(ShelledCharacter)))))))))))))`. `BehavedMixin`
@@ -613,7 +615,7 @@ about a bar. `lint:verb-collisions` is unaffected (verb-vs-verb only).
 | `Tappable` default `planTap/completeTap/tapWindow/tapRefusal/biomeWindowOpen` | on `ProducingMixin` | every producer is tappable with no per-host code; overrides are the bespoke case. The credit the host names is what makes a platform base credit a trade. |
 | `EngagedActController` | `lib/command/` (abstract) | inherited by `GroundWorkController` and `TapActController`; claims nothing about ground. |
 | `TapActController` | `platform/idea/cmd/inventory/` (abstract, kernel) | the kernel owns the ACT and no verb; `milk/shear/gather/rob/tap` stay their packs'. |
-| `BehavedMixin` | **`Avatar`** (inside `Persistable`, outside `PostRegistration`) | every player body may run brains; the eviction veto with a non-empty `behaviors` is the pin. ⛔ Not on `Character` — `NPC = Behaved(PostRegistration(Character))` would double-compose. ⚠ Flagged for the user. |
+| `BehavedMixin` | ⚠⚠ **`lib/character/Avatar` — build-3's, NOT `platform/agent/Avatar`** (inside `Persistable`, outside `PostRegistration`) | every player body may run brains; the eviction veto with a non-empty `behaviors` is the pin. ⛔ Not on `Character` — `NPC = Behaved(PostRegistration(Character))` would double-compose. **See D11a: the host this plan originally named is being deleted.** |
 | `keeps` brain | `lib/behavior/keeps.ts` | kernel commons: the relief is `#27`'s third relief, not a trade's. |
 | `instruct` verb + `standing: true` view key | `platform/cmd/system/instruct.yaml`, `Avatar.commandContributions.self`; the key on `CommandDefinition` | a view opts in to being kept on standing instruction; nothing else changes about dispatch. |
 | `WorldClockApi.advance` + sandbox name | `api/worldclock.ts` → `WorldClockLogic` → `WorldClockRegistry`; `EvalScript.SANDBOX_NAMES` | the sandbox already rides the code-trust axis; no new gate. |
@@ -821,7 +823,51 @@ Implements D6–D10 (the content half), the look line.
 - Acceptance: the W1 arithmetic observable through the verbs; `spin
   fleece` binds and runs; `make enriched dough` accepts two eggs.
 
+### ⚠⚠ D11a · The relief's host is being deleted by build-3 — W4 MOVES LAST
+
+Verified 2026-09-30 by reading `reqs/avatar-family` (build-3's branch,
+**1076 files, +35,884/−10,561, already at W6**) without checking it out:
+
+- **`platform/agent/Avatar.ts` does not exist there.** The avatar family
+  split on the phase axis into `platform/agent/PrimaryAvatar.ts` ·
+  `ShadeAvatar.ts` · `sandbox/SandboxAvatar.ts`.
+- ⭐ **`Avatar` became SUBSTRATE** at `lib/character/Avatar.ts` —
+  `PrimaryAvatar extends Avatar` imported from `../../lib/character/Avatar`.
+  That is CLAUDE.md's instanceable-vs-inherited split applied to the
+  family, and `lib/creature/{Actor,Creature,KeptAnimal}.ts` moved the
+  same way.
+- On **this** branch `lib/character/Avatar.ts` does not exist yet.
+
+**So the right host is `lib/character/Avatar`** — one place that every
+player body (primary, shade, sandbox) inherits, surviving the refactor —
+**and it is not reachable until build-3 lands.** Going lower is not an
+escape: `Beast` already composes `BehavedMixin`, so any shared ancestor
+of Avatar and Beast double-composes, which is the same hazard the
+`Character` row already rules out.
+
+**Consequences, both adopted:**
+
+1. ⭐ **W4 moves to the END, after W6.** Nothing in W0–W3 or W5–W7
+   depends on it, and it was already the build's largest unknown sitting
+   in front of its headline content. The sequencing concern and the
+   coordination hazard have the same fix.
+2. **W4 is gated on build-3's merge.** If avatar-family has not landed
+   when the build reaches it, W4 does not ship and **AC 7 goes with it**
+   (see Risks §2a for the choice that then falls due). The build is
+   never blocked — it is severable by construction.
+
+⚠ **And expect a large master-merge.** 1076 files across
+`platform/agent/`, `lib/` and the wire harness will land between this
+plan and the MR; `base-class-narrowing.dirty.wire.test.ts` (1294 lines)
+is in that diff too. Merge master into this branch early and often, and
+re-read `Producing.ts`'s composers after it.
+
+---
+
 ### W4 · The relief — `build(taps W4): a character keeps the round on standing instructions`
+
+⚠ **Runs LAST, after W6, and only if build-3's avatar-family has merged
+— see D11a.**
 
 Implements D11.
 
@@ -1035,12 +1081,24 @@ Nothing unmapped.
    and updates the apiculture wire test to await the engagement. ⚠ The
    user may prefer `takeMs: 0` for honey (the frames come out as fast as
    they did); it is one number on `mellifera.yaml`.
-2. **D11's surface is the user's call in two places:** (a)
-   `BehavedMixin` on `Avatar` — the placement is argued above, but it
-   puts `behaviors`/`dispositions` on every player body; (b) the
-   `instruct keep <literal line>` grammar and the `standing: true` view
-   key. The defaults are chosen so the build does not stop; both are
-   cheap to change before W4.
+2. **D11's surface** — `instruct keep <literal line>` and the
+   `standing: true` view key. ⭐ Approved by the user 2026-09-30
+   *"sounds good but I'll need to see it"*, so W4 demos the grammar
+   before it is final.
+
+2a. ⚠⚠ **If build-3's avatar-family has NOT merged when the build
+   reaches W4** (D11a), the relief cannot land on its correct host and
+   **AC 7 is unmet.** Two honest outs, and it is the user's call:
+   - **(a) ship anyway** — W0–W3 and W5–W7 land, the milking act
+     becomes *more* demanding (a duration, a vessel) with no relief, and
+     AC 7 moves to the dairy build with the rest of milk's story. The
+     argument for it: **nothing consumes milk**, so nobody is actually
+     dairying and the harshness is theoretical until dairy ships.
+   - **(b) hold the ranching re-shaping too** — milk's act changes
+     (W2/W3) wait with the relief, so the cow is never made harsher
+     without her remedy. The sap vertical ships alone.
+   ⭐ Recommend **(a)**, and say so in the MR rather than discovering it
+   in review.
 3. **Walk-away does not abort an engagement today** (Grounding). The
    plan's completion-time co-location check makes a walked-away take
    produce *nothing came of it* with no state change, and `stop` is the
