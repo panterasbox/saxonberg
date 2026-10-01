@@ -6,6 +6,16 @@ message feed in the terminal*. It is not a lifetime system, not a
 liveness system and not a layout system — everything here exists to
 make it that and nothing more.
 
+> ⭐⭐⭐ **This is the deck's best example of a Schell lens answered in a
+> PROTOCOL rather than a layout** (noted 2026-09-30,
+> [lens #62 · Transparency](../lenses/62-transparency.md)). Tufte's
+> *“it would be better if there were less of it”* is usually a design
+> preference; the rule below makes it unviolatable. **No interface appears
+> that a player did not ask for**, and the strongest guarantee of it is
+> *the absence of a wire field* rather than a convention anybody could
+> erode. ⭐ Generalised: **chrome should vanish; vocabulary should become
+> fluent** — two disciplines, and this doc is the chrome half.
+
 ## ⭐⭐ One birth path
 
 **A card exists because a COMMAND caused the server to push it.** The
