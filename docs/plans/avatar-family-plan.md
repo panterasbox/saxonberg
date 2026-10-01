@@ -795,7 +795,7 @@ the family (`lint:instanceable` covers rows; the test covers code);
 > body declares `postRegister`, and ⛔ a guard that fails if
 > `claimsRegistrySlot` ever comes back.
 
-### W4 — The estate's state, and `enter()` in steps (D14, D15)
+### ✅ W4 — The estate's state, and `enter()` in steps (D14, D15) — DONE
 
 **Files.**
 - `lib/chattel/Estate.ts:120` — `fieldMeta` gains the two entries;
@@ -810,6 +810,33 @@ the family (`lint:instanceable` covers rows; the test covers code);
 protected; the `@hook` on `announceSessionPresence` intact; `test:near`
 + `lint:family` (`lint:field-meta` for the `ref: 'identity'` entry).
 **Commit.** `build(avatar-family W4): the estate holds its own state; enter() is a sequence of named steps`
+
+> **Note for the reader who has forgotten.** `enter()` is twelve lines
+> of sequence over eight named steps; the order (welcome → auto-sense
+> → arrangement) is now the readable part instead of being buried in
+> 190.
+>
+> ⚠⚠ **D14 was wrong about the mechanism, and the round-trip test
+> caught it on the first run.** `captureState` runs a layer's
+> `captureSlice` **or** its declared `fieldMeta` — **never both**. So
+> moving `escheatedAt` / `beneficiary` into `EstateMixin.fieldMeta`
+> made them visible to `getAllPersistentFields`, visible in every
+> getter, and **silently never written**. A getter check would have
+> passed.
+>
+> They ride the **slice** instead, which is where the estate's durable
+> form already lives. `EstateMixin.fieldMeta` stays `{}` — and now has
+> a comment saying why that is not an oversight. The test asserts the
+> counter-intuitive thing directly (`not.toContain('escheatedAt')` in
+> the declared fields), so a future "fix" that re-declares them fails
+> instead of silently un-persisting them.
+>
+> ⭐ **This is worth generalising and is NOT fixed here:** any mixin
+> with a `captureSlice` silently drops its own `fieldMeta`. Today only
+> `Container`, `Slotted` and `Estate` have slices and none of the
+> other two declares fields, so nothing else is broken — but the next
+> author to declare a field beside a slice gets no warning at all.
+> ⭐ Census-then-ratchet shape; left as a finding for `lint-family`.
 
 ### W5 — The seam sentence, the docs, the panel page, the drive
 

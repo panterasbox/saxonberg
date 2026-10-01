@@ -344,48 +344,20 @@ export default abstract class Avatar extends AvatarBase {
    *
    * ⚠ A key no composed field declares is discarded by the Hydrator
    * SILENTLY; `lint:instanceable` invariant 12 is what counts them.
+   *
+   * ⭐ `escheatedAt` and `beneficiary` are NOT here. They are the
+   * estate's own succession state and live on `EstateMixin`, which is
+   * the mixin that behaves on them — composing it now claims *this
+   * host's goods can escheat and pass to a beneficiary*, which is
+   * true of its one composer and of nothing else.
    */
   static fieldMeta: FieldMeta = {
     // ⭐ ONE playerId for the whole family — see the note above.
     playerId: { persistent: true, runtimeState: true },
     mortalArc: { persistent: true },
     lastSeen: { persistent: true },
-    escheatedAt: { persistent: true },
-    beneficiary: { ref: 'identity', persistent: true },
     startLocation: { instruction: true },
   };
-
-  /**
-   * ⭐ Epoch ms the estate PASSED (economic bootstrap D17), or 0. Set by
-   * the escheat, cleared by the reclaim a return runs; the one flag that
-   * tells a login "the treasury holds something of yours". Public for
-   * the Hydrator; others read `getEscheatedAt`.
-   */
-  public escheatedAt: number = 0;
-
-  public getEscheatedAt(): number {
-    return this.escheatedAt;
-  }
-
-  public setEscheatedAt(at: number): void {
-    this.escheatedAt = Math.max(0, Math.floor(at));
-  }
-
-  /**
-   * The member's named BENEFICIARY (D17): an identity path the estate
-   * passes to instead of the treasury — unless they are themselves
-   * dormant, in which case the chain runs onward. '' = none. Set by
-   * `wallet beneficiary <player>`.
-   */
-  public beneficiary: string = '';
-
-  public getBeneficiary(): string {
-    return this.beneficiary;
-  }
-
-  public setBeneficiary(identityPath: string): void {
-    this.beneficiary = identityPath.trim();
-  }
 
   /**
    * Epoch ms of this character's last logout, or 0 for never-played.
@@ -883,10 +855,45 @@ export default abstract class Avatar extends AvatarBase {
    * emit) would double-fire if a caller did re-invoke; treat the
    * method as session-start-only.
    */
+  /**
+   * ⭐ Session-start ceremony, as the sequence it is.
+   *
+   * Eight named steps in the order they have always run. The body of
+   * this method is now the ORDER — which is the part that is load-
+   * bearing and was previously buried in 190 lines — and each step
+   * says in its own name what it is for.
+   *
+   * ⚠ The order is not arbitrary. The arrangement opens AFTER the
+   * auto-sense, so the room card lands beside a transcript that
+   * already says where you are; the welcome goes out before either,
+   * because the client cannot render anything until it has the
+   * bootstrap payload.
+   */
   public async enter(
     interactive: Interactive,
     opts: { firstArrival?: boolean } = {},
   ): Promise<void> {
+    const startingLocation = this.assertStartingLocation();
+    this.armSession();
+    await this.hydrateBeliefs();
+    await this.recordFirstArrival(startingLocation);
+    const payload = await this.buildWelcomePayload(interactive);
+    this.sendWelcome(payload, opts.firstArrival === true);
+    // Force a sense so the player perceives where they are across every
+    // channel they possess — MobileMixin's auto-sense-on-arrival path,
+    // reused rather than re-rendering the description here.
+    await this.autoSenseOnArrival();
+    this.openArrangementGuarded(interactive);
+    this.markSessionStarted(interactive);
+  }
+
+  /**
+   * The spawn a session needs, or an error that says how to fix the
+   * content. A body with no container cannot be entered into anything.
+   */
+  private assertStartingLocation(): NonNullable<
+    ReturnType<Avatar['getContainer']>
+  > {
     const startingLocation = this.getContainer();
     if (!startingLocation) {
       throw new Error(
@@ -901,6 +908,15 @@ export default abstract class Avatar extends AvatarBase {
       `Avatar.enter: ${this.getFullName()} in ${startingLocation.getPresentation()}`,
     );
 
+    return startingLocation;
+  }
+
+  /**
+   * Arm the session's own machinery: the periodic save, and the
+   * casting affordance, which is species-fixed in-session so once at
+   * enter suffices.
+   */
+  private armSession(): void {
     this.startAutoSave();
 
     // Reconcile the casting affordance (the dynamic `cast`/`spells`
@@ -908,12 +924,12 @@ export default abstract class Avatar extends AvatarBase {
     // contributions; the refreshConferrals mirror). Species-fixed
     // in-session, so once at enter suffices.
     this.refreshCastingAffordance();
+  }
 
-    // Lazy-hydrate this avatar's identity memory (recognition /
-    // identification) into its in-memory belief store. Serves the naming
-    // path from memory thereafter — no Mongo read on look/listing.
-    await this.hydrateBeliefs();
-
+  /** Mint the once-ever first-arrival deed. */
+  private async recordFirstArrival(
+    startingLocation: NonNullable<ReturnType<Avatar['getContainer']>>,
+  ): Promise<void> {
     // First-arrival deed — minted once, ever. Called unconditionally
     // (not gated on `opts.firstArrival`): the greeting flag only selects
     // prose, while the `recordOnce` key is the dedup authority, so the
@@ -926,7 +942,15 @@ export default abstract class Avatar extends AvatarBase {
       where: startingLocation.getIdentityPath() ?? null,
       tags: ["arrival"],
     });
+  }
 
+  /**
+   * Everything the client needs to draw a session it has just joined.
+   * Pure assembly — no sends, no mutation.
+   */
+  private async buildWelcomePayload(
+    interactive: Interactive,
+  ): Promise<ConnectionEstablishedPayload> {
     // Welcome scene: actor frame at session.link
     // carries the bootstrap payload the client needs.
     // Welcome is the introductory moment — explicitly the formal
@@ -1017,9 +1041,17 @@ export default abstract class Avatar extends AvatarBase {
           ) ?? "card",
       },
     };
+    return payload;
+  }
+
+  /** The greeting frame, in the register the arrival deserves. */
+  private sendWelcome(
+    payload: ConnectionEstablishedPayload,
+    firstArrival: boolean,
+  ): void {
     // First arrival (just created in char-gen) gets a fresh greeting;
     // a returning player gets the welcome-back register.
-    const greeting = opts.firstArrival
+    const greeting = firstArrival
       ? Mml.compose`Welcome, ${this.getFullName()}.`
       : Mml.compose`Welcome back, ${this.getFullName()}!`;
     MessageApi.scene(this)
@@ -1027,14 +1059,12 @@ export default abstract class Avatar extends AvatarBase {
       .toSelf(greeting)
       .payload(payload)
       .send();
+  }
 
-    // Force a sense so the player perceives where they are across
-    // every channel they possess. Reuses MobileMixin's auto-sense-
-    // on-arrival path (which forceCommand's the `sense` verb and
-    // resets focus first) rather than reimplementing the
-    // description rendering here.
-    await this.autoSenseOnArrival();
-
+  /**
+   * Open the active mode's arrangement for a freshly-attached session.
+   */
+  private openArrangementGuarded(interactive: Interactive): void {
     /*
      * ⭐⭐ **Apply the mode's arrangement on LOGIN, not only on a
      * mode or layout switch.**
@@ -1064,7 +1094,13 @@ export default abstract class Avatar extends AvatarBase {
           `arrangement: ${(err as Error).message}`,
       );
     }
+  }
 
+  /**
+   * Mark the session live and tell the world — the last step, because
+   * everything above it can still fail.
+   */
+  private markSessionStarted(interactive: Interactive): void {
     // Avatar is in-world; the user is playable. Engine-level presence
     // event for any observer (audit, achievements, the social presence
     // relay). A first-ever `enter()` for this instance is a fresh login;

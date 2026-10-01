@@ -22,6 +22,7 @@ import Shade from '../../../platform/agent/Shade';
 import WireBody from '../../../platform/agent/sandbox/WireBody';
 import { StuffApi } from '../../../api/stuff';
 import { makeStuff } from '../../security/__tests__/test-setup';
+import type { Stuff } from '../../stuff/Stuff';
 
 describe('⭐⭐ the Avatar family', () => {
   afterEach(() => {
@@ -30,13 +31,13 @@ describe('⭐⭐ the Avatar family', () => {
 
   it('all three bodies ARE Avatars', () => {
     for (const Body of [RecordBody, Shade, WireBody]) {
-      const b = makeStuff(() => new (Body as new () => object)());
+      const b = makeStuff(() => new (Body as unknown as new () => Stuff)());
       expect(b).toBeInstanceOf(Avatar);
     }
   });
 
   it('⭐ composition does not differ — the three carry the same mixins', () => {
-    const names = (Body: new () => object): string[] => {
+    const names = (Body: new () => Stuff): string[] => {
       const out = new Set<string>();
       let p: unknown = Object.getPrototypeOf(makeStuff(() => new Body()));
       while (p && p !== Object.prototype) {
@@ -47,16 +48,16 @@ describe('⭐⭐ the Avatar family', () => {
       }
       return [...out].sort();
     };
-    const record = names(RecordBody as unknown as new () => object);
+    const record = names(RecordBody as unknown as new () => Stuff);
     expect(record.length).toBeGreaterThan(10);
     // ⭐ mortality.md's rule, as a test: a shade and a circle body
     // ACTIVATE differently, they do not COMPOSE differently. A verb
     // that exists for one exists for all three; the refusal is what
     // varies, and a refusal you can be told about is the progression UI.
-    expect(names(Shade as unknown as new () => object)).toEqual(
+    expect(names(Shade as unknown as new () => Stuff)).toEqual(
       expect.arrayContaining(record),
     );
-    expect(names(WireBody as unknown as new () => object)).toEqual(
+    expect(names(WireBody as unknown as new () => Stuff)).toEqual(
       expect.arrayContaining(record),
     );
   });

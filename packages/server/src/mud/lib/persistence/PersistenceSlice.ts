@@ -163,6 +163,18 @@ export interface EstateEntry {
  */
 export interface EstateSlice {
   entries: EstateEntry[];
+  /**
+   * ⚠⚠ The estate's SUCCESSION state rides the slice, not a declared
+   * field, and that is forced rather than chosen: a layer with a
+   * `captureSlice` **never contributes its own `fieldMeta`** —
+   * `captureState` is an `if captureSlice / else if fields` — so a
+   * field declared beside a slice is silently never written.
+   *
+   * Optional because a record captured before the fields moved here
+   * has neither; both default on restore (0 and '').
+   */
+  escheatedAt?: number;
+  beneficiary?: string;
 }
 
 /**
