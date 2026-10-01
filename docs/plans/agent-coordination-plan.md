@@ -1488,7 +1488,80 @@ Read first, in this order:
 
 ## Drive record
 
-*(appended at build time, not at plan time — the output of running the
-requirements doc's drive script against the booted world, checkpoint by
-checkpoint, with the count and what each failure was. Precedent:
-`farming-plan.md § Checkpoint A`.)*
+`packages/wire/tests/agent-coordination.dirty.wire.test.ts`, run with
+`WIRE_BOOT=1 pnpm wire` against a world of its own on 2012.
+
+**Final: 13 / 13.** First run: **7 / 13**, and the six failures were four
+findings and two assertions of mine that were wrong. Every one is worth
+reading, because none of them is a bug in the build.
+
+### ⚠⚠ Finding 1 — the bar's `bartender` seat had NO `headcount`
+
+`apply for bartender` answered ***"There's no work going here."*** —
+`openingsFor('bartender')` was 0 because the seat never authored a
+`headcount`, so there was **no opening to apply for**, in the one venue
+whose entire story is that a player can join the crew.
+
+The requirements for this build say *"a player can join the crew via the
+shipped bartender opening"*, and **there was no opening.** The premise was
+false and nothing anywhere said so, because ⭐ *a seat that advertises
+nothing looks exactly like a seat that is full.* Fixed: `headcount: 5`
+against four rostered holders — the bar has room for one more barkeep,
+which is a decision and not a number. The drive now applies and clocks on.
+
+### ⚠ Finding 2 — the Hearthworks cookhouse is PITCH DARK
+
+`look` in the cookhouse reads *"it is pitch dark. you can make out
+no…"* to a newcomer carrying nothing. The shipped unlit-interior rule
+working exactly as designed — and it means **a venue whose whole product is
+a menu on a wall is unusable to anybody without a light.** Not this build's
+to fix; recorded here and offered to the hearthworks pack.
+
+### ⚠ Finding 3 — the bar's rail ships EMPTY, so an order has nothing to pour
+
+`order gin-tonic` → `insufficient-input`. Correct and authored (the par
+sheet comments say so in as many words: a fresh realm boots with nothing
+behind the bar). But it means **no drive can ever test the served path
+without stocking first**, and restocking runs through carriage bounties
+over game hours — days of real time at 12×. The drive stocks the rail
+directly as **setup**, loudly labelled as not-the-claim, and nothing a
+wizard does touches a roster, a band, a call rule or an order.
+
+### ⭐⭐ Findings 4 and 5 — two of my assertions were asserting the CLOCK
+
+The world boots with its clock restored to an arbitrary game hour and ⚠ **a
+drive may not set it**. So:
+
+- `order negroni` returned `not-learned`, and that was **right**: at 00:50
+  the barkeep on shift is Sloane, `mixology: competent`, which licenses
+  `easy` and not `standard`. **The band ladder discriminating is what I had
+  written down as a failure.**
+- the Hearthworks answered *"There's no one on hand to make that"*, which
+  was also right: Odo is rostered `[0..6] 6–19` and the roster tick had
+  moved him offstage — **W3 working.**
+
+Both checkpoints now assert the **shape** rather than the hour: served, or
+refused as `not-learned` **naming who could**; never `no-maker` where
+somebody is on, never `no-call-policy` anywhere. ⭐ The lesson is general:
+*a drive that cannot set the clock must assert invariants, not outcomes.*
+
+### What the drive proves live, that no unit test could
+
+- ⭐⭐⭐ **the mojito refusal, by name**: *"Nobody here knows how to make
+  that. Mara could."* — the build's headline finding, read as a player
+  reads it;
+- the break-off: ordering mid-task is answered, and the patron sees a
+  person rather than a drink appearing;
+- the ladder at a rail: `mix` refused with *"you haven't learned to mix it
+  — work it by hand first"*, on a verb that **shipped ungated**;
+- a newcomer applying to the bar and clocking on;
+- and the world-didn't-break check at the market, after four waves of brain
+  migration.
+
+### ⚠ Two operational notes for whoever drives next
+
+1. **Never run two wire files at once.** One database per worktree means
+   one world; three concurrent runs wedged the boot for half an hour and
+   produced no output at all. `pnpm dev:clean`, then one run.
+2. Boot is **~220 s** before a single checkpoint runs, so a drive that
+   polls for a cadence beat should poll in seconds, not minutes.

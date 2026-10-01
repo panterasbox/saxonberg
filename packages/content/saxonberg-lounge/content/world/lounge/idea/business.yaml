@@ -47,6 +47,20 @@ data:
       label: tending bar
       wageRate: 4
       fulfills: [bartending]
+      # ⚠⚠ **Found by driving.** This seat had NO `headcount`, so
+      # `openingsFor('bartender')` was 0 and `apply for bartender` answered
+      # *"There's no work going here."* — in the venue whose whole story is
+      # that a player can join the crew. The requirements for this build
+      # said "a player can join the crew via the shipped bartender opening",
+      # and **there was no opening**: the premise was false and nothing
+      # anywhere said so, because a seat that advertises nothing looks
+      # exactly like a seat that is full.
+      #
+      # ⭐ Five, against four rostered holders: the bar has room for one more
+      # barkeep, which is a decision and not a number — it is what makes the
+      # call rule's rotation leg observable from a player's side, and what
+      # the help-wanted sign derives from.
+      headcount: 5
     # The keeper — the seat that BUYS for the house. `purchases: true` is
     # what lets its holder `wallet use house` (the operating account
     # becomes the one they trade as) and run `house stock` / `house par`.
