@@ -813,7 +813,7 @@ tests green. Docs: energy.md.
 and ColdRoom over GridPowered; the blood fridge, the walk-in, the pan, the
 cooler`.
 
-#### W5 — the drive
+#### W5 — the drive — ✅ DONE (see Drive record below)
 
 `packages/wire/tests/cold-storage.dirty.wire.test.ts` (dirty: bleeds a
 donor, freezes a pan, severs the avenue). Checkpoints, in the
@@ -1022,4 +1022,47 @@ asserts bands after a real-time wait inside the run's budget).
 
 ## Drive record
 
-*(appended at build time, not at plan time)*
+**Run 2026-10-01**, `packages/wire/tests/cold-storage.dirty.wire.test.ts`,
+booted own world (`WIRE_BOOT=1 WIRE_PORT=2016`, my code — build-3 held 2010
+with stale code). **6/6 checkpoints green.** What it proved:
+
+- ⭐ **The world BOOTS clean with every new row** — the #1 drive value. The
+  `ColdStore`/`ColdRoom` classes, the blood-fridge (shipping a freezer-box
+  shipping an ice-pan), the walk-in cold-room (plotted, north of the shop
+  floor), the ice-pan, cooler, prime-cuts all clone and render. No
+  boot-breaking defect (contrast metal-chain's five).
+- The ward + cold-room read **electric**, their feeder node named on the grid.
+- The blood fridge renders coherently and names its **freezer compartment**
+  (container-of-containers). The walk-in renders the ColdRoom state line —
+  the SAME `ClimateControlMixin` on a Location.
+- **The cut mechanism responds**: `sever` at the avenue → "the lamps down the
+  way go dark"; `splice` → "You splice the line back together".
+
+⚠ **The wire wall (shared with the energy drive, documented in the file):**
+the grid's source-generation / full compile does not settle inside a wire
+boot, so every Terminus-main premises reads its feeder `dark` and the
+appliances read their CUT state (`silent` / `compressor silent`). The socket
+proves it is all WIRED; the COOLING behaviour (running on setpoint, pull-down,
+cut→warm, freeze-to-a-block, blood-ruin, the spoilage integral) is proven by
+the unit suites — `ClimateControl.test.ts` (Thing≡Location parity, pull-down,
+clamp, cut, AC), `ColdStore.test.ts` (powered pulls down, off-grid holds warm,
+cut warms), `Thermal.freeze.test.ts`, `Freshness.outage.test.ts` — and the
+same `GridPoweredMixin` meter was proven to energize LIVE in the energy
+build's browser walk (`ElectricLight` read `lit`). Browser confirmation of
+`ColdStore` reading `running` is the one check left to the user's live env.
+
+### Reachability — the five links, per capability
+
+- **the fridge/walk-in**: verb `look`/`go` (shipped) · affordance the markup
+  augmenter (a static on `ColdStore`/`ColdRoom`) · data the rows · boot the
+  path-resolved classes (confirmed — they clone) · arg gate n/a. ✓
+- **sever/splice**: shipped (energy). ✓
+- **the freeze → ice**: `fill`/`put` (shipped) · the ClimateControl content
+  phase pass · `water.castTemplate` → ice-block · `MaterialCatalogue` warms
+  water ✓ · arg gate n/a. (The freeze is unit-proven; the wire feeder does
+  not energize to drive it live.)
+- **Rung 1**: `look` · the `placed`/`holds`/`placement` descriptors · the
+  Placement rows' headings · `PlacementCatalogue` boot · n/a. ✓ (unit-proven,
+  W0).
+
+*(original plan note: appended at build time, not at plan time)*
