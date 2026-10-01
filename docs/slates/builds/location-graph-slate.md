@@ -865,6 +865,67 @@ exact; a survey you SELL has a measurable precision.** Competence grades the
 **good** instead of taxing the player — and a stated precision is a
 **falsifiable claim**, which is what `quantities.md` asks of a real unit.
 
+## 18. ⭐⭐⭐ The router — what survives the rewrite, and why there is one
+
+⛔ **`LaneCatalogue.planRoute` is to be replaced**, so the interesting part
+of reading it is which of its ideas should outlive it.
+
+### What should survive
+
+1. ⭐⭐⭐ **Conditions reach the router by GRAPH RECOMPILATION, not by
+   in-search checks.** `FordExit` sets the shipped `blocked` bit from a
+   cached water reading, and then *"`canTraverse` refuses with a reason that
+   names the water, **the lane compile drops the edge**, and a `Journey`
+   mid-route aborts `route-blocked` at the leg boundary."* **An unweighted
+   search over a *current* graph is correct**; a condition-checking search is
+   the wrong shape. Keep this.
+2. ⭐⭐⭐ **`refreshCrossing()` — a BY-SHAPE refresh protocol.** The compile
+   *"calls [it] by SHAPE on any exit that has one — so a compiled road is as
+   current as the river."* A seasonal pass, a tidal causeway, a shored adit
+   plug in with **zero router changes.** Keep this; it is the extension seam.
+3. ⭐⭐ **`FordExit`'s restraint** — *"The point of this class is how little
+   it invents… a road that changes with the season is **the same number
+   `measure` reads**, asked by an exit instead of by a person."* And it reads
+   the water pack **by shape, never by import**, so an install without water
+   has a ford that is always passable. That is the model for every
+   conditional edge.
+4. ⭐ **"The number belongs to the ground."** `edgeMinutes` is read *"from
+   the EXIT rather than from the lane, because two lanes share edges — the
+   towpath is walked and barged."*
+
+### ⛔ What is wrong with it, so the replacement does not repeat it
+
+| | |
+|---|---|
+| ⛔⛔ **single-lane only** | `planRoute(from, to, **laneKey**)` resolves one lane and refuses if `from` is not on it. **It cannot plan a journey that changes lanes** — you must already know the whole answer to ask the question |
+| ⛔ **no cost function** | plain BFS, **shortest in legs**. `edgeMinutesBetween` exists but is a *separate method used for reporting* and **the search never consults it** |
+| ⛔⛔⛔ **omniscient** | it plans against **the world's** current conditions |
+| ⚠ | no admission predicate in the search — `canTraverse` is consulted at the *traverse*, never at the *plan* |
+
+### ⭐⭐⭐ The requirement the replacement must meet
+
+> **The router must be able to plan on the PLAYER'S MAP rather than on the
+> world.**
+
+Because an omniscient router is **a spoiler one layer below the minimap, and
+a worse one** — it hands you *live* intel you never earned. Plan from the
+player's map and the same search becomes honest, and can be wrong.
+
+| adjacency compiled from | you get |
+|---|---|
+| the world | ⛔ plans perfectly, spoils everything |
+| ⭐ **the player's map** | plans on **what you know** |
+
+⭐⭐ **And then "the route states its assumptions" is free rather than a
+feature: the assumption list is the DIFF between the two plans.** Plan on
+your map, plan on the world, and where they differ *is* *"this route assumes
+the ford is passable"* — computed, never authored.
+
+⭐⭐⭐ **Which is also what finally makes annotation mechanically
+load-bearing**: your map's claim about the ford is what your router
+*believes*, so better intel produces better routes. **That is the product**
+(§17), and it is the one hard dependency this design has on the router.
+
 ## Open questions
 
 1. **Does the occupancy warren ever get indexed live?** Possible, but it
@@ -905,10 +966,14 @@ exact; a survey you SELL has a measurable precision.** Competence grades the
 8. ⛔⛔ **Confirm the `getDiscoveryKey()` collision against a running
    world** (§16). Found by reading, not executed. If it holds it is a live
    bug independent of this build and should be fixed on its own.
-9. ⚠⚠ **Does annotation reach the router?** (§17.) If *"the ford floods in
-   spring"* is flavour text rather than something a route planner reads,
-   **the map market has no product** and this whole design collapses to
-   geometry nobody will pay for. It is the one hard dependency here.
+9. ~~**Does annotation reach the router?**~~ ⭐⭐⭐ **ANSWERED, and the
+   question was wrong** (§18). Conditions already reach the router — by
+   **graph recompilation**, which is the right architecture and should
+   survive. The real dependency is the inverse: **the shipped router is
+   OMNISCIENT**, so it spoils live intel and makes annotation pointless.
+   The requirement on its replacement is that it **plan from the player's
+   map**. ⛔ `planRoute` itself is to be replaced (single-lane only, no cost
+   function, no admission predicate).
 10. ⭐⭐ **Do claims carry a modality?** (§16.) *"Recorded by echo"* is a
    different warranty from *"seen in daylight"*, and a non-visual map is
    honest rather than deficient — but it is a field on every claim and a

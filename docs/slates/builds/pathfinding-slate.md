@@ -130,6 +130,47 @@ Three things this adds to the questions below:
 
 ---
 
+## ⭐⭐⭐ Read at `c60280b5e` (2026-10-01) — `planRoute` is to be REPLACED
+
+> **User: "planRoute is garbage I want to replace all of that."**
+
+So this slate is no longer *"should a shared pathfinder exist"* — one of the
+three census entries is being rewritten regardless. What the read turned up,
+in full at
+[location-graph-slate § 18](./location-graph-slate.md):
+
+**⛔ Why it needs replacing:**
+
+| | |
+|---|---|
+| ⛔⛔ **single-lane only** | `planRoute(from, to, **laneKey**)` resolves one lane and refuses if `from` is not on it. **It cannot plan a journey that changes lanes** |
+| ⛔ **no cost function** | plain BFS, shortest in **legs**. `edgeMinutesBetween` exists, is a separate method for *reporting*, and **the search never consults it** — so question 2 below is not partly done, it is **not started** |
+| ⛔⛔⛔ **omniscient** | it plans against **the world's** conditions, which makes it a **spoiler** — live intel nobody earned |
+| ⚠ | **no admission predicate in the search.** `canTraverse` is consulted at the *traverse*, never at the *plan* |
+
+**⭐ What must survive it:**
+
+1. ⭐⭐⭐ **Conditions reach a router by GRAPH RECOMPILATION, not in-search
+   checks.** `FordExit` sets `blocked` from a cached water reading and *"the
+   lane compile **drops the edge**"*. An unweighted search over a *current*
+   graph is correct; a condition-checking search is the wrong shape.
+2. ⭐⭐⭐ **`refreshCrossing()` is a by-shape refresh protocol** — the compile
+   calls it on *"any exit that has one"*, so a seasonal pass or a tidal
+   causeway plugs in with **zero router changes.** This is the extension
+   seam and it already works.
+3. ⭐⭐ **`FordExit`'s restraint** — it invents nothing, asks watershed for
+   *"the same number `measure` reads"*, and reads the water pack **by shape,
+   never by import** (no water pack → the ford is simply always passable).
+4. ⭐ **"The number belongs to the ground"** — `edgeMinutes` lives on the
+   **exit**, not the lane, *"because two lanes share edges — the towpath is
+   walked and barged."*
+
+**⭐⭐⭐ And the requirement the replacement must meet:** it must be able to
+plan from **the player's map** rather than from the world — otherwise it is
+a spoiler and map annotation is pointless. ⭐⭐ *"The route states its
+assumptions"* then costs nothing: **the assumption list is the diff between
+the two plans.**
+
 ## If it is built anyway — the questions it must answer
 
 1. **Which graph.** Rooms-via-exits and the compiled lane network are
