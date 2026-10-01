@@ -5,7 +5,21 @@
 # row in it would have been *the one line that stops wool*. This is the
 # animal it was waiting for; the material row now names the species it
 # came off.
-class: /platform/thing/Provision
+#
+# ⭐⭐⭐ RANCHING'S ROW, TEXTILES' CLASS — and that is the whole fix for
+# `spin fleece`, which shipped and could never run. The verb's `stock`
+# arg declares `requires: StackableMixin` and a `Provision` is not
+# stackable, so every `spin fleece` died at the BINDER with 34 green
+# controller tests behind it. The producer still owns the yield row (the
+# comb precedent); the consumer owns the class a spinner can read. One
+# more gate sat behind the binder — `isSpinnable` tested the template
+# PATH for `/line` or `/tow` — and it now reads the material's `fibre`
+# tag, which wool and linen both carry.
+#
+# ⭐ `Crafted` also comes with the class, which is what lets the shears
+# stamp the year onto the grade: `TapState.worst` leaves with the take
+# and nothing can read it afterwards, so the band is set here or never.
+class: /trade/textiles/thing/TextileStock
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: fleece
@@ -16,3 +30,8 @@ data:
     greasy with lanolin and smelling of the animal.
   _materialPath: /stuff/idea/material/textile/wool
   mass: 3
+  # ⚠ Overwritten by the take, which sets both the mass and the count
+  # from what was standing. The authored values are the fallback for a
+  # fleece somebody clones by hand.
+  quantity: 1
+  gradeBand: fair

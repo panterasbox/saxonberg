@@ -41,11 +41,28 @@ data:
   ageCurve: { weanedAt: 60, matureAt: 300, agedAt: 1800, senescentAt: 2600 }
   breeding: { daylightFrom: 0, daylightTo: 1, gestationDays: 120, litter: 1 }
   production:
+    # ⭐⭐ Milk is a VOLUME, so `yieldRow` names the MATERIAL and the
+    # vessel is the object — there is no "pail of milk" row any more,
+    # because minting the pail along with the milk was a faucet shape
+    # for containers. Bring a pail; what it will not hold goes on the
+    # straw, and that is the one line in the build that teaches what a
+    # vessel is for.
+    #
+    # ⭐ `window: event` is a LACTATION, not a season: it opens when she
+    # freshens and closes when she dries off. A cow is near-aseasonal,
+    # and authoring a photoperiod band for her would be false.
+    #
+    # ⚠ Her ceiling is `perGameDay x windowDays`, and that is why milk
+    # carries no finer judgment at the act: she fills exactly as the
+    # window closes, so there is no interval in which she sits full. See
+    # the feedback-law table on `TapSpec`.
     - key: milk
-      yieldRow: /trade/ranching/thing/milk
+      yieldRow: /stuff/idea/material/food/milk
       perGameDay: 22
       behaviour: expire
       windowDays: 0.6
+      yieldShape: volume
+      window: { kind: event }
   longDescription: >-
     A deep-bodied cow with a hip bone you could hang a hat on, chewing
     steadily and entirely unbothered by you. Nothing on the farm is

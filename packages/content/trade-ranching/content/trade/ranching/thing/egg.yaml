@@ -1,0 +1,27 @@
+# An egg — the on-ramp's income, and small on purpose.
+#
+# ⭐ A hen is to ranching what the houseplant is to farming: cheap,
+# forgiving, and it teaches photoperiod on day one, because the laying
+# stops in short days and nothing is wrong with the bird.
+#
+# ⭐⭐ ONE egg, not a clutch. The tap is `yieldShape: count`, so a take
+# mints as many of these as were standing and leaves the fraction behind
+# — the Rob frame precedent. It matters because the next thing that
+# happens to an egg is a recipe with an item slot in it, and **a recipe
+# counts inputs**: `clutch of eggs` at 0.5 kg could not be asked for two
+# of, which is why eggs had no sink for the whole of their shipped life.
+#
+# ⚠ And it does NOT rot in days. A clean unwashed egg keeps for weeks —
+# the bloom is intact — which is why the old "they spoil in the nest"
+# failure was replaced by the hen's own decision to sit on the clutch.
+# It is a `Provision` and perishable, just slowly.
+class: /platform/thing/Provision
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: egg
+  keywords: [egg, eggs]
+  register: indefinite
+  longDescription: >-
+    Brown and dirty and still warm, with a feather stuck to it.
+  _materialPath: /stuff/idea/material/food/egg
+  mass: 0.06

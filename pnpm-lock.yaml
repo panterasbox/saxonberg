@@ -1433,6 +1433,9 @@ importers:
       '@saxonberg/content-trade-farming':
         specifier: workspace:*
         version: link:../trade-farming
+      '@saxonberg/content-trade-textiles':
+        specifier: workspace:*
+        version: link:../trade-textiles
       '@saxonberg/server':
         specifier: workspace:*
         version: link:../../server

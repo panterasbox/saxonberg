@@ -1,0 +1,47 @@
+# A pail — the thing you catch milk in, and the commons' plainest open
+# vessel.
+#
+# ⭐ In the COMMONS rather than in ranching, because it has a second
+# consumer on day one: sap goes in one too, and so will anything else the
+# game ever asks you to carry ten litres of. A dairy-shaped row would
+# have had to be re-authored the first time a different trade wanted a
+# bucket.
+#
+# ⚠ No `capabilities:`. A kind is minted by a CONSUMER
+# (`lint:capabilities`), and nothing asks for `pailing` — what a pail IS
+# is an open vessel of about ten litres, which `milk`'s vessel default
+# finds by `mixin.BulkableMixin` like any other.
+#
+# ⭐ It replaces ranching's `milk.yaml` "pail of milk" Provision, which
+# minted the pail WITH the milk — a faucet shape for containers. Now the
+# pail is a thing you own and the milk is bulk inside it, which is why a
+# pail too small is the player's own information.
+# ⚠⚠ `Receptacle`, NOT `Vessel` — and `lint:instanceable` invariant 12
+# is what caught it. `/platform/thing/Vessel` declares none of the bulk
+# fields (`interiorBulk`, `interiorCapacity`, `closure`, `open`,
+# `category`): it is the DISCRETE container rung
+# (`Location -> Holder -> Vessel -> ExitableVessel`, things you PUT in),
+# so all five keys would have been discarded by the Hydrator **silently**
+# and the pail would have had no interior at all. A `Receptacle` holds
+# bulk — what it holds is poured — which is what a pail is for.
+#
+# ⚠ The two names are arguably swapped (classically a *vessel* IS the
+# liquid one); `Receptacle.ts` records that and the rename is filed.
+class: /platform/thing/Receptacle
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: wooden pail
+  keywords: [pail, bucket, wooden]
+  register: indefinite
+  longDescription: |
+    A wide-mouthed wooden pail bound with two iron hoops, worn pale and smooth on the rim where hands have lifted it. It stands about as high as your knee and holds what a person can carry in one hand without slopping it.
+  _materialPath: /stuff/idea/material/wood/pine
+  interiorBulk: true
+  interiorCapacity: 10
+  # ⚠ No `category:` and no `open:` — a `Receptacle` declares neither
+  # (they are the `Vat`/`VesselKind` rung's, which is why the salt-pan
+  # has them), and `closure: none` already says a pail has no lid. The
+  # `milk` verb's vessel default matches `mixin.BulkableMixin`, not a
+  # kind, so nothing needed them.
+  closure: none
+  mass: 1.2

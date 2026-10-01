@@ -19,5 +19,9 @@ data:
   nutrients: ["protein", "fat", "water"]
   nutrientAmounts: { protein: 126000, fat: 106000, water: 750000 }
   toxicity: []
-  tags: ["food", "protein", "perishable", "once-living"]
+  # ⭐ `egg` is what a RECIPE matches on (`category: egg`), and it was
+  # missing — which is half of why eggs shipped with no sink at all. A
+  # recipe slot matches a MATERIAL CLASSIFICATION tag, so a new consumer
+  # is a tag here and never an edit to the recipe.
+  tags: ["food", "protein", "perishable", "once-living", "egg"]
   composition: []

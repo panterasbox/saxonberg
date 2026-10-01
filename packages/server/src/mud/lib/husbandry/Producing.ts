@@ -71,6 +71,19 @@ import type {
 } from '../../platform/idea/species/Species';
 import { CelestialApi } from '../../api/celestial';
 import { EARTH_LIKE } from '../time/CelestialProfile';
+import { BulkableApi } from '../../api/bulk';
+import { ContainmentApi } from '../../api/containment';
+import { Quantity } from '../quantity';
+import type Material from '../../platform/idea/material/Material';
+import type { Tooled } from '../craft/Tooled';
+import type { Bulkable } from '../bulk/Bulkable';
+import type { Tappable } from './Tappable';
+import type {
+  WorkDifficulty,
+  WorkPrognosis,
+  WorkResult,
+} from '../ground/Workable';
+import type { GradeBand } from '../craft/Grade';
 
 const SECONDS_PER_GAME_DAY = 86_400;
 
@@ -146,12 +159,20 @@ export interface Producing {
   biomeWindowOpen(spec: TapSpec): boolean;
   /** The `look` lines: what this producer is doing, in words. */
   productionRead(): string[];
+  /**
+   * ⭐ The Discipline this host asks to be credited for a take, or
+   * `null`. What lets a kernel controller earn a TRADE's competence
+   * without knowing the trade exists — ground's own seam, reused.
+   */
+  tapCredit(key: string): { discipline: string; difficulty: WorkDifficulty } | null;
 }
 
 export function ProducingMixin<TBase extends MixinConstructor<Stuff>>(
   Base: TBase,
 ) {
-  return class ProducingMixin extends Base implements Producing {
+  return class ProducingMixin extends Base implements Producing, Tappable {
+    public readonly tappable = true as const;
+
     static _mixinName: string = Mixins.Producing;
 
     /**
@@ -608,6 +629,276 @@ export function ProducingMixin<TBase extends MixinConstructor<Stuff>>(
       }
     }
 
+    /**
+     * ⭐ The Discipline this host asks for. Default `null` — the kernel
+     * credits nothing on its own, because *what* a take teaches is the
+     * host's claim and not the verb's.
+     */
+    public tapCredit(
+      _key: string,
+    ): { discipline: string; difficulty: WorkDifficulty } | null {
+      return null;
+    }
+
+    /* ─────────────────── the act (Tappable) ─────────────────── */
+
+    /**
+     * ⭐⭐ What this take would be, or why not — and **nothing happens
+     * here.** The order of refusals is the order a person would hit
+     * them: is the tap open at all, is there anything standing, and only
+     * then do you need something to put it in.
+     */
+    public async planTap(
+      _by: Stuff,
+      key: string,
+      _tool: (Stuff & Tooled) | null,
+      vessel: (Stuff & Bulkable) | null,
+      _what: string | null,
+    ): Promise<WorkPrognosis> {
+      const tap = this.taps().find((t) => t.key === key);
+      if (!tap) {
+        return {
+          kind: 'refusal',
+          reason: 'no-such-tap',
+          prose: (this as unknown as Stuff).getPresentation() +
+            ' does not give that.',
+        };
+      }
+      const window = this.tapWindow(key);
+      if (!window.open && window.reason !== null) {
+        return {
+          kind: 'refusal',
+          // ⭐ The reason travels as the season, so the controller can
+          // tell information from refusal. None of `TapClosedReason` is
+          // a failure — see its declaration.
+          reason: `season-${window.reason}`,
+          prose: this.tapRefusal(key, window.reason),
+        };
+      }
+      const standing = this.standingIn(key);
+      if (standing <= STANDING_EPSILON) {
+        return {
+          kind: 'refusal',
+          reason: 'nothing-standing',
+          prose: this.tapEmptyPhrase(key),
+        };
+      }
+      // ⭐⭐ Whether a vessel is needed DERIVES from the yield shape and
+      // is never a second flag: litres have to go somewhere, a count
+      // and a mass do not.
+      const shape = tap.yieldShape ?? 'mass';
+      if (shape === 'volume') {
+        if (!vessel) {
+          return {
+            kind: 'refusal',
+            reason: 'no-vessel',
+            prose: 'You have nothing to catch it in.',
+          };
+        }
+        const material = yieldMaterial(tap);
+        if (!material) {
+          return {
+            kind: 'refusal',
+            reason: 'no-material',
+            prose: 'There is nothing to draw.',
+          };
+        }
+        const slot = BulkableApi.slotFor(vessel, undefined);
+        const held = slot?.getMaterial() ?? null;
+        if (slot && held && held !== material) {
+          return {
+            kind: 'refusal',
+            reason: 'material-mismatch',
+            prose:
+              'There is ' + held.getName() + ' in ' +
+              vessel.getPresentation() + ' already.',
+          };
+        }
+      }
+      return {
+        kind: 'plan',
+        durationMs: tap.takeMs ?? defaultTakeMs(shape),
+        cost: TAKE_COST,
+        beginSelf: this.tapBeginPhrase(key),
+        beginPeers: null,
+        // ⚠ The token is the host's own bookkeeping. It carries the KEY
+        // so two takes in flight cannot draw the same tap by accident,
+        // and nothing outside this file reads it.
+        token: { key },
+      };
+    }
+
+    /**
+     * Land the take: draw it, put it somewhere, and say so.
+     *
+     * ⚠ Re-reads the tap at completion rather than trusting the plan's
+     * numbers — the interval between planning and landing is real game
+     * time, and a season can close inside it.
+     */
+    public async completeTap(
+      by: Stuff,
+      key: string,
+      _tool: (Stuff & Tooled) | null,
+      vessel: (Stuff & Bulkable) | null,
+      _token: unknown,
+    ): Promise<WorkResult> {
+      const tap = this.taps().find((t) => t.key === key);
+      if (!tap) return { self: 'Nothing came of it.' };
+      const shape = tap.yieldShape ?? 'mass';
+      const standing = this.standingIn(key);
+      if (standing <= STANDING_EPSILON) {
+        return { self: 'Nothing came of it.' };
+      }
+      const take = this.takeFrom(key);
+      if (take.units <= 0) return { self: 'Nothing came of it.' };
+
+      const credit = this.tapCredit(key);
+      if (shape === 'volume') {
+        const kept = await this.pourTake(tap, take.units, vessel);
+        return {
+          self: this.tapTookPhrase(key, take.units, kept),
+          peers: null,
+          credit,
+        };
+      }
+      const minted = await this.mintTake(tap, take, by, shape);
+      return {
+        self: this.tapTookPhrase(key, take.units, take.units, minted),
+        peers: null,
+        credit,
+      };
+    }
+
+    /**
+     * ⭐ Pour a `volume` take into the bound vessel, and return the
+     * litres actually KEPT.
+     *
+     * ⚠ The surplus is spilled, not held back — a take always empties
+     * the tap (there is no now-vs-later), so the vessel decides what you
+     * keep and the difference is the completeness the scene reports.
+     * That is why the refusal above asks for a vessel and this does not
+     * clamp the take to fit one.
+     *
+     * The source is a transient unbounded receptacle, which is the
+     * shipped way to put N litres of a material into a slot (the bulk
+     * conjuration path uses the same three calls). ⛔ No new Api.
+     */
+    protected async pourTake(
+      tap: TapSpec,
+      units: number,
+      vessel: (Stuff & Bulkable) | null,
+    ): Promise<number> {
+      if (!vessel) return 0;
+      const material = yieldMaterial(tap);
+      if (!material) return 0;
+      const to = BulkableApi.slotFor(vessel, undefined);
+      if (!to) return 0;
+      const source = await StuffApi.clone<Stuff & Bulkable>(
+        UNBOUNDED_RECEPTACLE,
+      );
+      try {
+        source.setBulkMaterial('interior', material);
+        const from = BulkableApi.slotFor(source, undefined);
+        if (!from) return 0;
+        const result = BulkableApi.transfer(from, to, {
+          kind: 'measure',
+          litres: units,
+          mode: 'lenient',
+        });
+        return result.applied ?? 0;
+      } finally {
+        StuffApi.destruct(source);
+      }
+    }
+
+    /**
+     * Mint a `mass` or `count` take into the taker's hands.
+     *
+     * ⭐ `count` mints `floor(units)` separate objects — the Rob frame
+     * precedent — so each one is a perishable `Provision` a recipe can
+     * ask for by the item. `mass` sets the mass on one object, and
+     * stamps the fleece's year onto its grade when the host recorded
+     * one.
+     */
+    protected async mintTake(
+      tap: TapSpec,
+      take: TapTake,
+      by: Stuff,
+      shape: 'mass' | 'count',
+    ): Promise<Stuff[]> {
+      const made: Stuff[] = [];
+      const n = shape === 'count' ? Math.floor(take.units) : 1;
+      for (let i = 0; i < n; i++) {
+        let thing: Stuff;
+        try {
+          thing = await StuffApi.clone<Stuff>(tap.yieldRow);
+        } catch {
+          break;
+        }
+        if (shape === 'mass') {
+          const host = thing as unknown as {
+            setMass?(q: Quantity<'kg'>): void;
+            setQuantity?(n: number): void;
+          };
+          host.setMass?.(Quantity.of(round2(take.units), 'kg'));
+          // ⭐ A stackable yield also carries its count, which is what
+          // makes `spin fleece` reach a charge (W3/D10).
+          host.setQuantity?.(Math.max(1, Math.round(take.units)));
+          // ⭐⭐ The fleece's YEAR lands on the grade here, and this is
+          // the only place it can: `worst` leaves with the take and the
+          // host resets it, so a later reader would find nothing.
+          if (take.worst < 1 && MixinApi.isGraded(thing)) {
+            thing.setGradeBand(gradeFromWorst(take.worst));
+          }
+        }
+        if (MixinApi.isContainer(by) && MixinApi.isContainable(thing)) {
+          ContainmentApi.move(thing, by);
+        }
+        made.push(thing);
+      }
+      return made;
+    }
+
+    /* ─────────────── the words (hosts override) ─────────────── */
+
+    /** What an empty tap says. Hosts override in their own voice. */
+    public tapEmptyPhrase(_key: string): string {
+      return 'There is nothing to take just now.';
+    }
+
+    /** What the actor reads as the take starts. */
+    public tapBeginPhrase(_key: string): string {
+      return 'You settle in to the work.';
+    }
+
+    /**
+     * What the actor reads when it lands.
+     *
+     * ⭐ `kept` vs `drawn` is the completeness the vessel decided, and
+     * the sentence says so without a number when they differ — a player
+     * who brought too small a pail should be told it overflowed, not
+     * handed a figure.
+     */
+    public tapTookPhrase(
+      _key: string,
+      drawn: number,
+      kept: number,
+      minted?: Stuff[],
+    ): string {
+      if (minted && minted.length > 0) {
+        const first = minted[0];
+        const what = first ? first.getPresentation() : 'something';
+        return minted.length > 1
+          ? `You come away with ${minted.length} of them.`
+          : `You come away with ${what}.`;
+      }
+      if (kept <= 0) return 'It runs away to nothing before you can catch it.';
+      if (kept < drawn - STANDING_EPSILON) {
+        return 'You catch what you can; the rest goes on the ground.';
+      }
+      return 'You come away with the lot.';
+    }
+
     /** Open a state for each authored tap at first touch. */
     private seedTaps(nowS: number): void {
       const next: Record<string, TapState> = { ...this.tapState };
@@ -617,6 +908,64 @@ export function ProducingMixin<TBase extends MixinConstructor<Stuff>>(
       this.tapState = next;
     }
   };
+}
+
+/** Below this, a tap counts as empty. Guards float dust, not a dial. */
+const STANDING_EPSILON = 0.01;
+
+/**
+ * Endurance one take costs a fresh body, in percentage points.
+ *
+ * ⭐ One figure for every take, deliberately: milking, shearing, robbing
+ * and tapping are all *bending over something for a while*, and pricing
+ * them apart would be inventing a difference the player cannot see.
+ */
+const TAKE_COST = 4;
+
+/**
+ * ⚠ The literal, not a `TemplatePaths` key — the bulk-conjuration path
+ * in `MagicLogic` names it the same way, and adding a key for a second
+ * caller is the kind of registry growth the paths file exists to avoid.
+ */
+const UNBOUNDED_RECEPTACLE = '/platform/thing/UnboundedReceptacle';
+
+/**
+ * How long a take occupies the hands when the spec says nothing, in
+ * real ms. Grain, and shaped by what you are doing rather than by what
+ * you are taking it from: litres come at the rate they come, a count is
+ * picked up, a mass is cut off.
+ */
+function defaultTakeMs(shape: 'mass' | 'volume' | 'count'): number {
+  return shape === 'volume' ? 10_000 : shape === 'count' ? 2_000 : 20_000;
+}
+
+/**
+ * The material a `volume` tap yields.
+ *
+ * ⚠ For a `volume` tap `yieldRow` names a **MATERIAL**, not a thing
+ * row — the vessel is the object, so there is nothing to clone. Stated
+ * on `TapSpec.yieldShape` too, because it is the one place the field's
+ * meaning changes with another field's value.
+ */
+function yieldMaterial(tap: TapSpec): Material | null {
+  return StuffApi.findByTemplatePath<Material>(tap.yieldRow) ?? null;
+}
+
+/**
+ * ⭐ The fleece's year as a grade band. The plant-side rule verbatim:
+ * the WORST stretch decides, because a break is a weak point wherever
+ * in the year it fell.
+ */
+function gradeFromWorst(worst: number): GradeBand {
+  if (worst >= 0.9) return 'exceptional';
+  if (worst >= 0.75) return 'fine';
+  if (worst >= 0.5) return 'fair';
+  return 'poor';
+}
+
+/** Two decimal places — a yield is weighed, not measured to the gram. */
+function round2(v: number): number {
+  return Math.round(v * 100) / 100;
 }
 
 /**

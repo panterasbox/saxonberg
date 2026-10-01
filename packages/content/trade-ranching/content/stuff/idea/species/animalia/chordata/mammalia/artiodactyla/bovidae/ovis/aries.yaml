@@ -45,11 +45,22 @@ data:
   ageCurve: { weanedAt: 30, matureAt: 150, agedAt: 900, senescentAt: 1400 }
   breeding: { daylightFrom: 0, daylightTo: 0.44, gestationDays: 60, litter: 2 }
   production:
+    # ⭐⭐ Wool records its YEAR. `continuous` means there is no window
+    # to miss and nothing to decide at the act — the feedback law's third
+    # row — so what varies is the QUALITY the year put in, and
+    # `TapState.worst` carries the worst stretch she lived through onto
+    # the fleece's grade band. A break is a weak point wherever it fell,
+    # and feeding her up afterwards does not heal it.
+    #
+    # ⭐ `capUnits: 4` because a fleece that heavy has shed: past it the
+    # growth is simply lost and `look` says so. A sheep does not
+    # accumulate wool forever, which is what the uncapped row implied.
     - key: wool
       yieldRow: /trade/ranching/thing/fleece
       perGameDay: 0.008
       behaviour: continuous
       windowDays: 0
+      capUnits: 4
   longDescription: >-
     A blocky ewe with a fleece gone yellow at the tips and a startlingly
     level stare. She keeps one eye on you and both feet pointed at the

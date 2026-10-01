@@ -889,6 +889,88 @@ Implements D2, D3, D15 and the `shear --quick`/milk-vessel view changes.
   comb as before after its engagement; `gather hen` and `shear ewe` run
   as engagements.
 
+### ✅ W2 · The take as an act — DONE `build(taps W2)`
+
+10 kernel controller cases green
+(`platform/idea/cmd/inventory/__tests__/TapActController.test.ts`),
+ranching 59/59, apiculture 69/69, textiles 29/29, **farming 81/81** (the
+promoted base's existing consumers), `tsc` clean, lint roster green.
+
+> **What landed**
+> - `lib/command/EngagedActController.ts` — the endurance check, the
+>   `hands` engagement, the three start-failure reasons, `decline`, and
+>   ⭐ a NEW `inform()` seam: *say something that is not a refusal and
+>   file no rejection*, which is what a closed season needs.
+>   `GroundWorkController` extends it and lost 60 lines;
+>   `GroundStepOptions` is now an alias and `GROUND_TOPIC` a re-export,
+>   so none of ground's five controllers changed.
+> - `lib/husbandry/Tappable.ts` — the sibling protocol, reusing
+>   `WorkPlan`/`WorkRefusal`/`WorkPrognosis`/`WorkResult` unchanged.
+> - `Producing.ts` implements both halves by default, plus the voice
+>   hooks (`tapEmptyPhrase`/`tapBeginPhrase`/`tapTookPhrase`) and
+>   `tapCredit`. So a cow, a hive and a tree get the whole act for free.
+> - `platform/idea/cmd/inventory/TapActController.ts` — abstract; a
+>   subclass names ONE string. `Milk`/`Shear`/`Gather`/`Rob` are ~12
+>   lines each now; `trade-ranching/…/TapController.ts` is deleted.
+> - `generic-objects/…/vessel/pail.yaml`; `milk.yaml`'s vessel arg;
+>   the cow's tap is `yieldShape: volume` naming the MILK MATERIAL, and
+>   **ranching's `thing/milk.yaml` ("pail of milk", mass 10) is
+>   deleted** — minting the pail along with the milk was a faucet shape
+>   for containers.
+>
+> **Decisions the plan did not make**
+> - ⭐ **D15 needed nothing.** The pour primitive already exists
+>   publicly: clone `/platform/thing/UnboundedReceptacle`, set its
+>   material, `BulkableApi.slotFor` → `BulkableApi.transfer`, destruct in
+>   a `finally`. `MagicLogic`'s bulk conjuration is the precedent. ⛔ No
+>   new Api, no new method on `BulkableApi`.
+> - ⛔ **`shear --quick` dropped** — see Deferred seams. The feedback law
+>   says wool has nothing to decide at the act; `--quick` would have been
+>   the third invented mechanism and the second one deleted.
+> - ⭐⭐ **`Hive.mintTake` replaces `RobController.mint`.** The
+>   controller used to stash its target on `this` in an `execute`
+>   override to reach the hive's forage — *a controller holding state
+>   about its subject is the tell that the behaviour belongs on the
+>   subject.* The comb composition, the per-frame minting and the forage
+>   blend all moved to `Hive`, and `RobController` lost its `execute`
+>   override entirely.
+> - ⭐ **The co-location check lives in `land()` and walks ONE level out
+>   on the subject's side**, because a tappable tree stands in a panel
+>   standing in the room — the same one-level reach the affordance walk
+>   uses to offer the verb. Without it every sugarbush take would land as
+>   *you are not there any more*.
+> - `completeTap` **re-reads the tap at completion** rather than trusting
+>   the plan's numbers: the interval between planning and landing is real
+>   game time and a season can close inside it. ⚠ Which means the yield
+>   is not a function of the plan — the W2 tests assert the SHAPE (one
+>   object vs several, the fraction left standing) rather than exact
+>   masses, and say so.
+> - `milk.yaml`'s vessel is `requires: VisibleMixin` +
+>   `mustHaveBulkSlot`, following `fill.yaml` rather than
+>   `requires: BulkableMixin` — the shipped precedent, and the slot is
+>   the real test.
+>
+> **⚠⚠ Found: `spin fleece` had a FOURTH gate, and fixing three would
+> have left it dead.** `isSpinnable` now reads the material's `fibre`
+> tag — but yarn's material is linen and carries `fibre` too, so the
+> material test alone would have let you **spin yarn into yarn**. The old
+> path test (`/line` or `/tow`) refused that by accident. The honest
+> discriminant is `yarnCount > 0` — a CONSTRUCTION fact, which is why no
+> material tag could ever have carried it.
+>
+> **Test-harness findings** (each one made an assertion vacuous or
+> impossible, and each is now commented at its site):
+> - A fixture giver with no `EngagedMixin` makes `engageAct` run the
+>   completion SYNCHRONOUSLY, so every *"nothing yet"* assertion passes
+>   for the wrong reason. Pinned as its own case.
+> - `StuffApi.clearAll()` in `afterEach` wipes the world clock from the
+>   template-path index while `_resetForTesting` reuses its cached
+>   pointer — so the NEXT test's `nowSeconds()` returns null and every
+>   tap silently fails to accrue. Unregister the event registry instead.
+> - A controller is a `Stuff`: a bare `new` throws, and the tests
+>   destruct it by hand before `settle()` to prove the completion really
+>   is a module function.
+
 ### W3 · The ranching rows, the look line, the two sinks — `build(taps W3): the hen goes broody, the fleece reports the year, eggs are counted and spun wool spins`
 
 Implements D6–D10 (the content half), the look line.
@@ -915,6 +997,58 @@ Implements D6–D10 (the content half), the look line.
   (the fleece), `spoilage.md` one line (eggs keep).
 - Acceptance: the W1 arithmetic observable through the verbs; `spin
   fleece` binds and runs; `make enriched dough` accepts two eggs.
+
+### ✅ W3 · The ranching rows, the look line, the two sinks — DONE `build(taps W3)`
+
+ranching 59/59, apiculture 69/69, textiles 29/29, baking 34/34,
+generic-objects 28/28, farming 81/81, `tsc` clean, lint roster green.
+
+> **The rows**
+> - `bos/taurus` — `yieldShape: volume` naming the milk MATERIAL,
+>   `window: {kind: event}` (a lactation is not a season; a cow is
+>   near-aseasonal and a photoperiod band for her would be false).
+> - `gallus/domesticus` — `yieldShape: count`, `perGameDay: 0.8`,
+>   `broodAfterDays: 4`, `window: photoperiod 0.45–1`. ⭐ That last one
+>   makes `gather`'s shipped refusal *"short days will do that"* TRUE;
+>   it was a sentence about hens that was not a sentence about the code.
+> - `ovis/aries` — `capUnits: 4`. A sheep does not accumulate wool
+>   forever, which the uncapped row implied.
+> - `apis/mellifera` — `window: {kind: biome}`, so the first RGO whose
+>   reservoir is somebody else's land says so in data. ⚠ No
+>   `broodAfterDays`: bees do not stop foraging because the supers are
+>   full, they swarm, and `ColonyMixin` already owns that.
+> - `thing/eggs.yaml` → `thing/egg.yaml` — ONE egg, mass 0.06.
+> - `thing/fleece.yaml` — ranching's row, **textiles' class**
+>   (`TextileStock`), plus `quantity` and `gradeBand`.
+> - `thing/milk.yaml` **deleted** (W2).
+> - the egg material gains the tag **`egg`** — which was the OTHER half
+>   of why eggs had no sink: a recipe slot matches a material
+>   classification tag and there was nothing to match.
+>
+> **The sinks**
+> - `trade-baking/content/recipes/enriched-dough.yaml` —
+>   `category: egg`, `kind: item`, `count: 2`. ⭐ A real distinction and
+>   not a reskin: fat and egg are what make a festival bread.
+> - `spin fleece` binds and runs. ⚠ See W2 for the **fourth** gate.
+>
+> **The look line**
+> - `Livestock.markupAugmenters = [productionAugmenter]`, appending
+>   `productionRead()` to `look`. The `Character.bodyAugmenter` shape.
+>   ⭐ `stockmanRead()` stays where it is — that one answers *what is
+>   this animal worth* (draft/return's question), and this one answers
+>   *what is it doing*.
+>
+> **⚠⚠ Found by `lint:instanceable` invariant 12 — a silently broken
+> row.** `pail.yaml` was authored as `/platform/thing/Vessel`, which
+> declares NONE of the bulk fields: `Vessel` is the discrete-container
+> rung (`Location → Holder → Vessel → ExitableVessel`, things you PUT
+> in), so `interiorBulk`, `interiorCapacity`, `closure`, `open` and
+> `category` would all have been discarded by the Hydrator **silently**
+> and the pail would have had no interior at all. It is a `Receptacle`
+> now (bulk — what it holds is poured), without `category`/`open`, which
+> that rung does not declare either. ⭐ The orphan-key ratchet sits at
+> exactly 393 again. This is the gate doing precisely what the
+> census-then-ratchet pattern is for.
 
 ### ⚠⚠ D11a · The relief's host is being deleted by build-3 — W4 MOVES LAST
 
@@ -1246,6 +1380,17 @@ Nothing unmapped.
   crossing of 273 K) is the first consumer. → the climate slate W7 files.
 - **The fourth copy** — `ManualBuildController.engageStep` onto
   `EngagedActController`. → a note in `architecture.md` at the sweep.
+- ⛔ **`shear --quick` is DROPPED, by the design's own thesis.** D8
+  specified a speed-for-quality option at the act. But the feedback law
+  this build is built on says wool has **nothing to decide at the act**
+  — that is the whole third row of the table — so `--quick` is a
+  judgment the biology does not put there, and adding an options channel
+  to the `Tappable` protocol for one flag is surface for its own sake.
+  The wool judgment that DOES exist (`worst` → the yield's grade band)
+  ships. ⚠ It is also the second invented mechanism this build deleted,
+  after D6's `vigour`; both came from the plan rather than the
+  requirements. → `ranching.md` if a shearer's haste ever earns its own
+  design.
 - **Rounds beyond the room** — the `keeps` brain walking to a byre is
   the `homes` brain's path-finding pointed at a target. → `#27`'s relief
   note / behavior.md future work.

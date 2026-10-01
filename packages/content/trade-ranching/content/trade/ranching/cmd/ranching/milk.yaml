@@ -14,6 +14,11 @@ help: |
   keeping the animal that pays best.
 
   Dairy being the most demanding farming there is happens to be true.
+
+  ⭐ Bring something to catch it in — `milk the cow into the pail`. A
+  pail too small is your own information: she is milked right out either
+  way, because holding some back would suppress her rather than save it,
+  and what the vessel will not hold goes on the straw.
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresConscious
@@ -23,3 +28,23 @@ args:
     required: true
     scope: ["reachable"]
     requires: HandlingMixin
+  # ⭐⭐ WHAT YOU CATCH IT IN — and whether it is needed at all derives
+  # from the tap's `yieldShape` (`volume`), never from a flag here. Milk
+  # is litres, so litres have to go somewhere; a count and a mass do not.
+  #
+  # ⚠ `required: false` because the REFUSAL is the host's: the animal
+  # says "you have nothing to catch it in", which teaches what a vessel
+  # is for. A binder-level refusal would say nothing at all.
+  #
+  # ⭐ And the pail is DECLARED with a default rather than hunted for
+  # (`lint:instrument-args`): bare, the binder hands over the first thing
+  # in your hands that holds liquid; a churn named by name is honoured.
+  - name: vessel
+    type: object
+    required: false
+    prepositions: [into, in]
+    default: "me:i:[mixin.BulkableMixin]"
+    scope: ["inventory", "reachable"]
+    requires: VisibleMixin
+    validators:
+      - /lib/command/validators/mustHaveBulkSlot

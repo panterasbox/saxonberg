@@ -15,6 +15,10 @@ description: >-
   world, so the rows live in the commons taxonomy with every other
   species. A second ranching locality needs ZERO pack code — that is the
   falsifiable line.
+  ⭐ It depends on `trade-textiles` for ONE class: the fleece row names
+  `TextileStock`, because the producer owns the yield row and the
+  consumer owns the class a spinner can read (the Hive-to-ranching shape
+  inverted). That is what made `spin fleece` reachable at all.
 requires:
   title:
     # ⭐⭐ This claim is the security model, not a filing convenience.
