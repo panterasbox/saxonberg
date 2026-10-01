@@ -30,7 +30,7 @@ import { AppSettingKeys } from '../../../lib/config/AppSettings';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import type { Containable } from '../../../lib/spatial/Containable';
 import type { Container } from '../../../lib/spatial/Container';
-import type Avatar from '../../agent/Avatar';
+import type Avatar from '../../../lib/character/Avatar';
 import type Interactive from '../Interactive';
 
 const SandboxApiCallers = SecurityPolicies.FromModule('/api/sandbox#SandboxApi');
@@ -343,7 +343,12 @@ async function enterImpl(
       // constructor arguments were guaranteeing.
       const body = await StuffApi.clone<Stuff>(
         '/platform/agent/sandbox/WireBody',
-        { playerId, wire: true },
+        // ⚠ No `playerId` in the CONTEXT — it rides the overlay below,
+        // which lands in hydration Phase 1, before `postRegister`.
+        // Passing it here as well was harmless but said the wrong
+        // thing: it read as *this body is registered under the player*,
+        // and a vessel never is (the parked body keeps the slot).
+        { wire: true },
         {
           // The REAL identity: every ledger keys on it, and the vessel
           // is a projection of the person, not a person of its own.

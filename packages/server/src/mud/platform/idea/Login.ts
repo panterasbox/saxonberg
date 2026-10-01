@@ -44,7 +44,7 @@ import { SaxonbergClientMixin } from "../../lib/connection/SaxonbergClient";
 import { SensorMixin } from "../../lib/message/Sensor";
 import { CommandGiverMixin } from "../../lib/command/CommandGiver";
 import { GoogleProfile } from "../../lib/identity/GoogleProfile";
-import Avatar from "../agent/Avatar";
+import Avatar from "../../lib/character/Avatar";
 import type { CommandContributions } from "../../api/command";
 import type {
   MessageFrame,

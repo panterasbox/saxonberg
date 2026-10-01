@@ -35,9 +35,8 @@
  *     The shade is a VIEW; the arc position is the state.
  */
 
-import Avatar, { type AvatarInitContext } from './Avatar';
+import Avatar, { type AvatarInitContext } from '../../lib/character/Avatar';
 import { IncorporealMixin } from '../../lib/mortality/Incorporeal';
-import { PlayerApi } from '../../api/player';
 
 /** Init context for a shade: the identity it stands in for. */
 export interface ShadeInitContext extends AvatarInitContext {
@@ -46,32 +45,20 @@ export interface ShadeInitContext extends AvatarInitContext {
 }
 
 export default class Shade extends IncorporealMixin(Avatar) {
+  /**
+   * ⭐ The whole override, and all it says is *a shade is undead*.
+   *
+   * It used to strip `playerId` from the context, because the shared
+   * base claimed the `PlayerApi` registry slot and a shade must not —
+   * registration happens in the death choreography, deliberately after
+   * the drained body has been unregistered. That claim now lives on
+   * the body of record alone, so a shade has nothing to say no to.
+   */
   public override async postRegister(
     context?: ShadeInitContext,
   ): Promise<void> {
-    // ⚠ Run the Avatar lifecycle WITHOUT a playerId in the CONTEXT:
-    // registration happens in the death choreography, deliberately
-    // AFTER the old body has been unregistered and destructed.
-    // Registering here would collide with the body still being drained.
-    //
-    // The field itself is already set — `playerId` arrives in the clone
-    // overlay (hydration Phase 1) before this hook runs — so stripping
-    // the context key suppresses the registration without losing the
-    // identity. W3 moves registration off the shared base and this
-    // strip goes with it.
-    await super.postRegister({ ...context, playerId: undefined });
+    await super.postRegister(context);
     this.setLifecycleState('undead');
-  }
-
-  /**
-   * ⛔ SCAFFOLDING — W3 deletes this (see `Avatar.claimsRegistrySlot`).
-   *
-   * Registration happens in the death choreography, deliberately AFTER
-   * the old body has been unregistered and destructed. Claiming it here
-   * would collide with the body still being drained.
-   */
-  protected override claimsRegistrySlot(): boolean {
-    return false;
   }
 
   /** A shade persists nothing — the arc lives on the identity. */
@@ -133,16 +120,13 @@ export default class Shade extends IncorporealMixin(Avatar) {
    *
    * Nothing durable rides on the lingering: the shade persists nothing, so
    * a restart simply drops it and the next login re-mints from the arc.
+   *
+   * ⭐ There is no `onDestruct` override here any more. It used to
+   * stop the autosave, unregister and detach — and then call `super`,
+   * which does those same three itself (plus the final save and the
+   * belief flush). Six lines that changed nothing; the reaping is the
+   * family's, not a shade's.
    */
-
-  public override async onDestruct(): Promise<void> {
-    this.stopAutoSave();
-    PlayerApi.unregisterAvatar(this);
-    for (const interactive of [...this.getInteractives()]) {
-      interactive.detach();
-    }
-    await super.onDestruct();
-  }
 
   public override toString(): string {
     return `[Shade for playerId=${this.playerId}]`;

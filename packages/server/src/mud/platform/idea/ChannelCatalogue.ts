@@ -53,7 +53,7 @@ import { GroupApi } from '../../api/group';
 import { StuffApi } from '../../api/stuff';
 import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../../lib/config/AppSettings';
-import type Avatar from '../agent/Avatar';
+import type Avatar from '../../lib/character/Avatar';
 import type SubjectCatalogue from './SubjectCatalogue';
 import type Subject from '../../lib/forum/Subject';
 import type { MessageFrame } from '@saxonberg/types';

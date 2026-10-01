@@ -9,7 +9,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { Application } from '../Application';
 import { ConnectionManager } from '../ConnectionManager';
-import Avatar from '../../mud/platform/agent/Avatar';
+import Avatar from '../../mud/lib/character/Avatar';
 import type { IBackend } from '../IBackend';
 import type Interactive from '../../mud/platform/idea/Interactive';
 import type { Envelope, EnvelopeTemplate } from '@saxonberg/types';

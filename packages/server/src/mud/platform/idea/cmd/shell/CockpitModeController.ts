@@ -30,7 +30,7 @@ import { MessageApi } from '../../../../api/message';
 import { MixinApi } from '../../../../api/mixin';
 import { Mml } from '../../../../api/mml';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
-import Avatar from '../../../agent/Avatar';
+import Avatar from '../../../../lib/character/Avatar';
 import type { ClientState } from '../../../../lib/connection/ClientState';
 import type { SaxonbergClient } from '../../../../lib/connection/SaxonbergClient';
 import { COCKPIT_MODES, type CockpitMode } from '@saxonberg/types';

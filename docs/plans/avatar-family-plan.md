@@ -706,7 +706,7 @@ undo a copy; the two dead species slots gone.
 > before a key but not a JSDoc block, and I had put one there. The
 > note moved above the static rather than the gate being weakened.
 
-### W3 — The abstract root and three concrete bodies (D9, D12, D13)
+### ✅ W3 — The abstract root and three concrete bodies (D9, D12, D13) — DONE
 
 **Goal.** `Avatar` is abstract in `lib/`; the record body is its twin;
 each vessel carries only what differs; `Shade.onDestruct` is gone.
@@ -753,6 +753,47 @@ test that `new (class extends Avatar {})` is the only way to instance
 the family (`lint:instanceable` covers rows; the test covers code);
 `test:near` + `lint:family`.
 **Commit.** `build(avatar-family W3): an abstract Avatar in lib/, the record body as its twin, each vessel keeping only what differs`
+
+> **Note for the reader who has forgotten.** `lib/character/Avatar.ts`
+> is the abstract root (everything true of every body); the record
+> body at `platform/agent/Avatar.ts` is ~190 lines holding exactly two
+> capabilities — **it claims the registry slot** and **it drives the
+> spine**. 49 importers switched to the abstract by one rule: a site
+> that means *the family* takes the abstract, and only `new Avatar()`
+> needs the concrete.
+>
+> ⭐ **The W2 scaffolding is deleted, and the deletion is the point.**
+> `claimsRegistrySlot` is gone, and so is the *reason* for it: with
+> registration on the one class that registers, neither vessel has
+> anything to say no to. `Shade.postRegister` is now two lines that
+> say only *a shade is undead*, and `WireBody` has no `postRegister`
+> at all. The context strip — `{ ...context, playerId: undefined }` —
+> is gone from both. ⭐ That is the shape D9 was arguing for: not an
+> override that refuses, but nothing to inherit.
+>
+> **One seam the plan did not name: `chainPostRegister()`.** The
+> record body cannot call `super.postRegister()`, because the
+> abstract's own sequence is the VESSEL one (stamp, floor, chain,
+> calendar) and would install the born-with floor a second time
+> **before** materialize — which is the `slot 'cranial' is full`
+> collision that bricks every relog-after-restart. So the abstract
+> exposes a named protected seam to the framework's `PostRegistration`
+> chain, and the record body reaches it on its own terms. One
+> sentence, one method, no boolean.
+>
+> `Shade.onDestruct` deleted: six lines that stopped the autosave,
+> unregistered and detached, then called `super`, which does those
+> same three itself. `Shade.composition.test.ts` now proves the
+> reaping still happens with no shade-specific code doing it.
+>
+> `SandboxLogic` no longer passes `playerId` in the clone CONTEXT —
+> harmless, but it read as *this body is registered under the player*,
+> and a vessel never is.
+>
+> New: `lib/character/__tests__/Avatar.family.test.ts` — all three
+> bodies are Avatars, composition does not differ, only the record
+> body declares `postRegister`, and ⛔ a guard that fails if
+> `claimsRegistrySlot` ever comes back.
 
 ### W4 — The estate's state, and `enter()` in steps (D14, D15)
 

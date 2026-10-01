@@ -13,7 +13,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import EmbodyController from '../EmbodyController';
 import Login from '../../../Login';
 import Interactive from '../../../Interactive';
-import Avatar from '../../../../agent/Avatar';
+import Avatar from '../../../../../lib/character/Avatar';
 import Species from '../../../species/Species';
 import { WearableMixin } from '../../../../../lib/slot/Wearable';
 import { SlottableMixin } from '../../../../../lib/slot/Slottable';

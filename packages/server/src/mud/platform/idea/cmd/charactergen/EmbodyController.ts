@@ -32,7 +32,7 @@ import { MixinApi } from "../../../../api/mixin";
 import { ContractApi } from "../../../../api/contract";
 import { AppSettingKeys } from "../../../../lib/config/AppSettings";
 import { Template } from "../../../../lib/stuff/Template";
-import Avatar from "../../../agent/Avatar";
+import Avatar from "../../../../lib/character/Avatar";
 import Login from "../../Login";
 import type { CharacterDraft } from "../../Login";
 import type Species from "../../species/Species";

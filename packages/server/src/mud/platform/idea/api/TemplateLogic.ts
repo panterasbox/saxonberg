@@ -20,7 +20,7 @@ import { ProvenanceApi } from '../../../api/provenance';
 import { AccessApi } from '../../../api/access';
 import { ExecutionContextApi } from '../../../api/execution-context';
 import { CodeNamingFields } from '../../../lib/stuff/CodeNamingFields';
-import Avatar from '../../agent/Avatar';
+import Avatar from '../../../lib/character/Avatar';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import PersistentHydrator from '../persistence/PersistentHydrator';
 

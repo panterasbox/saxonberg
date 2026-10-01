@@ -39,7 +39,7 @@ import type { GroupRef } from '../../lib/social/GroupProvider';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import { PlayerApi } from '../../api/player';
 import { GroupApi } from '../../api/group';
-import type Avatar from '../agent/Avatar';
+import type Avatar from '../../lib/character/Avatar';
 import type { VetoResult } from '../../lib/errors';
 import type { EvictionContext } from '../../lib/stuff/Stuff';
 

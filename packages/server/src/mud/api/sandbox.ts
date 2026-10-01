@@ -25,7 +25,7 @@ import { HotReloadApi } from './hot-reload';
 import { SandboxLogic } from '../platform/idea/api/SandboxLogic';
 import type { SandboxSession } from '../platform/idea/api/SandboxLogic';
 import type { Stuff } from '../lib/stuff/Stuff';
-import type Avatar from '../platform/agent/Avatar';
+import type Avatar from '../lib/character/Avatar';
 import { TemplatePathPrefixes } from '../lib/paths';
 import type Interactive from '../platform/idea/Interactive';
 import { fileURLToPath } from 'url';

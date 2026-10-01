@@ -5,7 +5,7 @@
 import { ApiLogic } from '../../../lib/stuff/ApiLogic';
 import { CallSecurity, Unshadowable } from '../../../lib/security/decorators';
 import { SecurityPolicies } from '../../../lib/security/SecurityPolicies';
-import Avatar from '../../agent/Avatar';
+import Avatar from '../../../lib/character/Avatar';
 import type { User } from '../../../lib/identity/User';
 
 /** The lazily-imported Avatar class's static surface this logic uses. */

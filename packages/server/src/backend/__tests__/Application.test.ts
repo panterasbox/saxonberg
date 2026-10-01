@@ -21,7 +21,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { Application } from '../Application';
 import { ConnectionManager } from '../ConnectionManager';
 import { PersistenceManager, Collections } from '../PersistenceManager';
-import Avatar from '../../mud/platform/agent/Avatar';
+import Avatar from '../../mud/lib/character/Avatar';
 import { Template } from '../../mud/lib/stuff/Template';
 import { TemplateApi } from '../../mud/api/template';
 import { User } from '../../mud/lib/identity/User';

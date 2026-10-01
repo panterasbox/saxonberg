@@ -7,7 +7,7 @@
 import "../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { TestHooks } from '../TestHooks';
-import Avatar from '../../mud/platform/agent/Avatar';
+import Avatar from '../../mud/lib/character/Avatar';
 import { Template } from '../../mud/lib/stuff/Template';
 import { TemplateApi } from '../../mud/api/template';
 import EmbodyController from '../../mud/platform/idea/cmd/charactergen/EmbodyController';

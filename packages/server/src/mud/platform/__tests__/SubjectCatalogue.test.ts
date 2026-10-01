@@ -27,7 +27,7 @@ import { PersistenceManager } from '../../../backend/PersistenceManager';
 import { StuffApi } from '../../api/stuff';
 import { PlayerApi } from '../../api/player';
 import { GroupApi } from '../../api/group';
-import type Avatar from '../agent/Avatar';
+import type Avatar from '../../lib/character/Avatar';
 
 // ---- In-memory multi-collection PM ----------------------------------
 

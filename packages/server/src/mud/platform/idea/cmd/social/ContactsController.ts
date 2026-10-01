@@ -26,7 +26,7 @@ import { Mml } from '../../../../api/mml';
 import { GrammarApi } from '../../../../api/grammar';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import type { Contacts } from '../../../../lib/social/Contacts';
-import Avatar from '../../../agent/Avatar';
+import Avatar from '../../../../lib/character/Avatar';
 import { Template } from '../../../../lib/stuff/Template';
 import { PlayerApi } from '../../../../api/player';
 

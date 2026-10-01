@@ -36,7 +36,7 @@ import { Group } from '../mud/lib/social/Group';
 import { PlayerApi } from '../mud/api/player';
 import { AppApi } from '../mud/api/app';
 import { AppSettingKeys } from '../mud/lib/config/AppSettings';
-import Avatar from '../mud/platform/agent/Avatar';
+import Avatar from '../mud/lib/character/Avatar';
 import { Template } from '../mud/lib/stuff/Template';
 import { SecurityApi } from '../mud/api/security';
 

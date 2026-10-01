@@ -19,7 +19,7 @@ import { Mml } from '../../../../api/mml';
 import { Group, type GroupRole } from '../../../../lib/social/Group';
 import { GroupApi } from '../../../../api/group';
 import { ChatApi } from '../../../../api/chat';
-import Avatar from '../../../agent/Avatar';
+import Avatar from '../../../../lib/character/Avatar';
 import { PlayerApi } from '../../../../api/player';
 import { CompactApi } from '../../../../api/compact';
 

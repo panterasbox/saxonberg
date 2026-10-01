@@ -32,7 +32,7 @@
  * body) instead of announcing field presence for a vessel.
  */
 
-import Avatar, { type AvatarInitContext } from '../Avatar';
+import Avatar, { type AvatarInitContext } from '../../../lib/character/Avatar';
 import { SandboxApi } from '../../../api/sandbox';
 
 /** Init context for a wire body: the projected identity. */
@@ -42,33 +42,6 @@ export interface WireBodyInitContext extends AvatarInitContext {
 }
 
 export default class WireBody extends Avatar {
-  public override async postRegister(
-    context?: WireBodyInitContext,
-  ): Promise<void> {
-    // ⚠ Run the Avatar lifecycle WITHOUT a playerId in the CONTEXT:
-    // `PlayerApi` registration is keyed on it and the PARKED avatar
-    // keeps that slot, so a vessel must never claim it. The spine is
-    // gated off by `shouldPersist()` anyway, and the default-loadout
-    // floor (implant + aether apps) still installs — minted under the
-    // circle root, so it is circle-born.
-    //
-    // The field itself is already set: `playerId` arrives in the clone
-    // overlay (hydration Phase 1), before this hook. W3 moves
-    // registration onto the one class that registers and this strip
-    // goes with it.
-    await super.postRegister({ ...context, playerId: undefined });
-  }
-
-  /**
-   * ⛔ SCAFFOLDING — W3 deletes this (see `Avatar.claimsRegistrySlot`).
-   *
-   * A vessel never registers: the PARKED avatar keeps the player's
-   * slot for the whole crossing.
-   */
-  protected override claimsRegistrySlot(): boolean {
-    return false;
-  }
-
   /** A vessel persists nothing — the guest gate, verbatim. */
   public override shouldPersist(): boolean {
     return false;

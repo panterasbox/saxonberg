@@ -486,7 +486,7 @@ export class StuffApi {
     //    to a bare dynamic import (Node ESM cache; matches the class
     //    identity any static import of the same module would see).
     //    `unload(absPath)` poisons the path: subsequent clones throw.
-    const className = classPath.split('/').pop()!; // "Avatar" from "/platform/agent/Avatar"
+    const className = classPath.split('/').pop()!; // "Avatar" from "/lib/character/Avatar"
     const absoluteClassPath = StuffApi.resolveClassFile(classPath).file;
     if (HotReloadApi.isFrozen(absoluteClassPath)) {
       throw new Error(
