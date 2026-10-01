@@ -1841,3 +1841,54 @@ not this build's: `open` and `put` take a non-greedy target arg, so
 *"That doesn't match any known command shape"* while `look in first
 hive` (greedy) resolves fine. The same `greedy: true` family
 `instrumentation.md` already warns about.
+
+### ⚠ The one observation the browser never got, and the route for it
+
+**A hive listing its CONTENTS was never seen rendered in a browser.** It
+is proven at the wire tier — checkpoint 10 asserts `put super in hive`
+then `look in first hive` matching `/super|box|frame/`, over the real
+socket and therefore through the real binder and arg gate, for a target
+the harness names. What a browser adds on top is the *rendering*, and
+that was observed for `look in <hive>` (the inspection card came back
+with the hive's prose and mass) — just never for a hive that had
+something in it.
+
+Three things blocked it, and the first two are findings in their own
+right:
+
+1. ⚠ **`open` and `put` take a non-greedy target arg.** With three hives
+   on the general-store floor, *no phrase can name one*: `open
+   double-walled beehive` and `put frame in first hive` both answer
+   *"That doesn't match any known command shape"*, while `look in first
+   hive` (greedy) resolves. So the hive has to be carried to a room that
+   holds no other hive before it can be opened at all.
+2. ⚠ **The par-1 nucleus does not regenerate**, so the dirty drive's
+   bees are gone after one run and the valley has no supplier — by
+   design (the trade ships with a supplier-shaped hole). A second run of
+   the drive has no colony.
+3. ⚠⚠ **Port 2010 is shared across worktrees and `dev:server`'s
+   preflight KILLS a sibling's server.** Mid-walk, build-4 claimed 2010
+   and terminated this worktree's world. The way round is to skip the
+   preflight entirely — `PORT=2013 AUTH_MODE=test
+   FOUNDER_GOOGLE_EMAIL=founder@e2e.local npx tsx src/preload.js` plus
+   `VITE_SERVER_URL=http://localhost:2013 npx vite --port 5174`, then
+   point Playwright at both with `E2E_SERVER_URL` / `E2E_CLIENT_URL`
+   (its `reuseExistingServer` then leaves the sibling alone). A
+   fresh-DB boot after that is the expensive part and did not finish
+   inside this session on a box that was also booting another worktree.
+
+⭐ **The route, for whoever picks it up** — and it is deliberately an
+ORDINARY player rather than the founder, because a hive is 12 and a
+frame is 1 against the 20-credit arrival stipend, so the whole walk is
+inside what a new character can afford (the founder cannot do it at all:
+`reserve override … to founder` answers *"founder has no account to
+receive into"*):
+
+```
+start /world/terminus/general-store/shop-floor
+buy hive · buy frame · south · drop hive · open hive
+put frame in hive · look in hive
+```
+
+`south` is what makes it work: the avenue holds no other hive, so the
+non-greedy arg can finally resolve one.
