@@ -16,6 +16,8 @@
  */
 
 import Thing from '@saxonberg/server/mud/lib/stuff/Thing';
+import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
+import type { MarkupAugmenter } from '@saxonberg/server/mud/api/mml';
 import { PostRegistrationMixin } from '@saxonberg/server/mud/lib/stuff/PostRegistration';
 import { AppApi } from '@saxonberg/server/mud/api/app';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
@@ -138,27 +140,33 @@ export default class LineAccess
 
   // ── detail ──
 
-  public override getDetail(
-    id: string,
-    senseOrParent?: unknown,
-    parent?: unknown,
-  ): string | null {
-    const base =
-      (
-        Thing.prototype as {
-          getDetail?: (i: string, s?: unknown, p?: unknown) => string | null;
-        }
-      ).getDetail?.call(this, id, senseOrParent, parent) ?? null;
-    if (id !== 'line' && id !== 'pole' && id !== 'wire' && id !== 'manhole') {
-      return base;
-    }
-    const visual = senseOrParent === undefined || senseOrParent === 'vision';
-    if (!visual) return base;
-    const live = this.isCut()
+  /**
+   * ⭐ The line's live/cut state, appended to the pole's `look` description via
+   * a `markupAugmenter` (the Floor/Weapon shape) — the hook that reaches the
+   * OBJECT's card. A `getDetail` override does NOT: it only answers a
+   * `look <pole>.<sub-detail>`, which a top-level `look pole` never takes, so
+   * the state never rendered. (The ElectricLight twin of this, both found by
+   * the live browser drive.)
+   */
+  static markupAugmenters: MarkupAugmenter[] = [lineAccessStateAugmenter];
+
+  /** The live state sentence, read off the host. */
+  public stateLine(): string {
+    return this.isCut()
       ? 'The line here is cut — the wire hangs dead.'
       : 'The line here is live.';
-    return base ? `${base} ${live}` : live;
   }
+}
+
+/** Append the line's live/cut state to a pole/manhole's `look` description. */
+function lineAccessStateAugmenter(
+  text: string,
+  host: Stuff,
+  _viewer: Stuff,
+): string {
+  if (!(host instanceof LineAccess)) return text;
+  const line = host.stateLine();
+  return text && text.length > 0 ? `${text}\n\n${line}` : line;
 }
 
 /** The storm fault rate for an overhead line, from the dial (0 = never). */

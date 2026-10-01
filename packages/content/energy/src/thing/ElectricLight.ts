@@ -23,6 +23,8 @@ import { LightSourceMixin } from '@saxonberg/server/mud/lib/perception/LightSour
 import { SwitchableMixin } from '@saxonberg/server/mud/lib/boundary/Switchable';
 import { PostRegistrationMixin } from '@saxonberg/server/mud/lib/stuff/PostRegistration';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
+import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
+import type { MarkupAugmenter } from '@saxonberg/server/mud/api/mml';
 import { GridPoweredMixin } from '../lib/GridPowered';
 
 const ElectricLightBase = GridPoweredMixin(
@@ -31,8 +33,19 @@ const ElectricLightBase = GridPoweredMixin(
 
 export default class ElectricLight extends ElectricLightBase {
   /**
+   * ⭐ The light's live state appended to its `look` description — three true
+   * sentences: lit, switched off, or dark because the premises has no power (a
+   * lapsed grid, not a broken lamp). A `markupAugmenter` (the Floor/Weapon
+   * shape) is the hook that reaches the OBJECT's card; a `getDetail` override
+   * does not — it only answers a `look <thing>.<sub-detail>`, which a top-level
+   * `look <light>` never takes. (Found by the live browser drive: the state was
+   * authored on `getDetail` and never rendered.)
+   */
+  static markupAugmenters: MarkupAugmenter[] = [electricLightStateAugmenter];
+
+  /**
    * The authored flux only while lit AND powered; dark otherwise. The two
-   * failure modes read differently in the detail below, but to the light walk
+   * failure modes read differently in the line above, but to the light walk
    * they are one: no lumens.
    */
   public override getEmittedFlux(): Quantity<'lumen'> {
@@ -41,30 +54,23 @@ export default class ElectricLight extends ElectricLightBase {
       : Quantity.of(0, 'lumen');
   }
 
-  /**
-   * The light's state, in prose — three true sentences: lit, switched off, or
-   * dark because the premises has no power (a lapsed grid, not a broken lamp).
-   * Authored as a `light`/`lamp`/`bulb` detail on the row so `look` binds it.
-   */
-  public override getDetail(
-    id: string,
-    senseOrParent?: unknown,
-    parent?: unknown,
-  ): string | null {
-    const base =
-      (
-        Thing.prototype as {
-          getDetail?: (i: string, s?: unknown, p?: unknown) => string | null;
-        }
-      ).getDetail?.call(this, id, senseOrParent, parent) ?? null;
-    if (id !== 'light' && id !== 'lamp' && id !== 'bulb') return base;
-    const visual = senseOrParent === undefined || senseOrParent === 'vision';
-    if (!visual) return base;
-    const live = !this.isOn()
+  /** The live state sentence, read off the host. */
+  public stateLine(): string {
+    return !this.isOn()
       ? 'It is switched off.'
       : this.isPowered()
         ? 'It is lit.'
         : 'It is dark — the premises has no power.';
-    return base ? `${base} ${live}` : live;
   }
+}
+
+/** Append the light's live state to its `look` long description. */
+function electricLightStateAugmenter(
+  text: string,
+  host: Stuff,
+  _viewer: Stuff,
+): string {
+  if (!(host instanceof ElectricLight)) return text;
+  const line = host.stateLine();
+  return text && text.length > 0 ? `${text}\n\n${line}` : line;
 }

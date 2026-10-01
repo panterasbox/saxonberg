@@ -72,14 +72,14 @@ describe('the light is lit because its parcel is live', () => {
     expect(l.getEmittedFlux().rawValue()).toBe(0);
   });
 
-  it('the detail reads the three states', () => {
+  it('the state line reads the three states (rendered to look via the augmenter)', () => {
     const l = lamp();
     meter(l, 'domestic', 'terminus-main:mayfield', true);
-    expect(l.getDetail('light', 'vision')).toMatch(/lit/i);
+    expect(l.stateLine()).toMatch(/lit/i);
     meter(l, 'domestic', 'terminus-main:mayfield', false);
-    expect(l.getDetail('light', 'vision')).toMatch(/no power|dark/i);
+    expect(l.stateLine()).toMatch(/no power|dark/i);
     l.setOn(false);
-    expect(l.getDetail('light', 'vision')).toMatch(/switched off/i);
+    expect(l.stateLine()).toMatch(/switched off/i);
   });
 
   it('availablePowerW answers the band ceiling while powered, else 0', () => {

@@ -77,10 +77,10 @@ describe('LineAccess', () => {
     expect(cat.isCut('main:avenue')).toBe(false);
   });
 
-  it('the detail reports live vs cut', () => {
+  it('the state line reports live vs cut (rendered to look via the augmenter)', () => {
     const { line } = pole('main:avenue', false);
-    expect(line.getDetail('line', 'vision')).toMatch(/live/i);
+    expect(line.stateLine()).toMatch(/live/i);
     line.sever();
-    expect(line.getDetail('line', 'vision')).toMatch(/cut|dead/i);
+    expect(line.stateLine()).toMatch(/cut|dead/i);
   });
 });

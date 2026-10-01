@@ -111,6 +111,13 @@ boot:
   - { template: /world/terminus/goods-yards/crowsfoot/idea/outfit, role: producer, reason: "the Crowsfoot hand's `purchases` position likewise" }
   - { template: /world/terminus/goods-yards/veshko/idea/outfit, role: producer, reason: "Veshko Distilling (parentOrganization /corpo/veshko) — the hand's purchases position is materialized over a live business; the consigns beat trades as it" }
   - { template: /world/terminus/goods-yards/hollis/idea/outfit, role: producer, reason: "Hollis Bottling (parentOrganization /corpo/hollis) — likewise" }
+  # ⭐ The oil works (energy build). The floor warms the Stock the lamp-oil
+  # casks spawn into — WITHOUT it, a cask's `container` resolution is the first
+  # thing to stand the Stock up, mid-spawn, and the reentrant populate trips the
+  # clone-tree cycle guard (lamp-oil-cask → lamp-oil-cask). Found by the live
+  # boot; the wire drive and the unit tests never stood the Stock up this way.
+  - { template: /world/terminus/goods-yards/oilworks/location/floor, role: producer, reason: "the oil works' floor — its Stock is the home container the lamp-oil casks spawn into, and its hand runs the consigns brain" }
+  - { template: /world/terminus/goods-yards/oilworks/idea/outfit, role: producer, reason: "the hand's `purchases` position is materialized over a live business; the consigns beat trades as it" }
   - { template: /world/terminus/goods-yards/bottling/location/floor, role: producer, reason: "the outfit's yard — its Stock is the home container the mixers and ice spawn into, and its hand runs the consigns brain" }
   - { template: /world/terminus/goods-yards/bottling/idea/outfit, role: producer, reason: "the hand's `purchases` position is materialized over a live business; the consigns beat trades as it" }
   - { template: /world/terminus/goods-yards/pantry/location/floor, role: producer, reason: "the pantry outfit's storeroom — its Stock is the home container the sacks spawn into, and its hand runs the consigns brain" }
