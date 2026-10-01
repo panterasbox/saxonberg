@@ -14,7 +14,7 @@ import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { makeStuff } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '@saxonberg/server/mud/lib/persistence/__tests__/quantity-marshaller-test-helpers';
 
-/** Force the resolved meter state a real `postRegister` would cache. */
+/** Force the resolved meter state the first read would otherwise resolve. */
 function meter(
   light: ElectricLight,
   band: string,
@@ -22,10 +22,14 @@ function meter(
   energized: boolean,
 ): void {
   const p = light as unknown as {
+    _resolved: boolean;
     _powerBand: string;
     _powerNodeRef: string | null;
     _gridCatalogue: { energizedAtSync: (n: string) => boolean } | null;
   };
+  // ⭐ Mark resolved so the lazy `ensureResolved()` (first read) does not clobber
+  // these forced values with a real parcel/containment lookup the test lacks.
+  p._resolved = true;
   p._powerBand = band;
   p._powerNodeRef = node;
   p._gridCatalogue = { energizedAtSync: () => energized };

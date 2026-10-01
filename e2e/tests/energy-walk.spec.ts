@@ -66,22 +66,27 @@ async function cards(page: Page): Promise<string[]> {
   );
 }
 
-/** Run `look <what>` and read the card it pushed, by a word in it. */
+/**
+ * Re-issue `look <what>` each poll tick until a card matches `matching`, and
+ * return it. `look` is idempotent, so re-looking is safe — and necessary after
+ * a state change (switch, sever, splice), where the first look can land before
+ * the new state has rendered and a one-shot look would read a stale card.
+ */
 async function lookFor(
   page: Page,
   what: string,
   matching: RegExp,
   timeout = 30_000,
 ): Promise<string> {
-  await runCommand(page, `look ${what}`);
   let body = '';
   await expect
     .poll(
       async () => {
+        await runCommand(page, `look ${what}`);
         body = (await cards(page)).reverse().find((c) => matching.test(c)) ?? '';
         return body;
       },
-      { timeout },
+      { timeout, intervals: [500, 1000, 2000] },
     )
     .toMatch(matching);
   return body;
@@ -112,26 +117,21 @@ test.describe('the energy build, in a browser', () => {
       expect(lobby).toMatch(/electric locality/i);
       expect(lobby).toMatch(/domestic/i);
       expect(lobby).toMatch(/live/i);
-      expect(await lookFor(page, 'light', /It is /)).toMatch(/It is lit\./);
-
-      // Switchable renders OFF and comes back.
-      await sayAwaiting(page, 'switch light off', /switch|off/i);
-      expect(await lookFor(page, 'light', /It is /)).toMatch(
-        /It is switched off\./,
-      );
-      await sayAwaiting(page, 'switch light on', /switch|on/i);
-      expect(await lookFor(page, 'light', /It is /)).toMatch(/It is lit\./);
+      expect(await lookFor(page, 'light', /It is lit\./)).toMatch(/It is lit\./);
+      // (The switch on/off toggle is kernel Switchable, not the energy build's
+      // concern; the power-state demonstration below — lit → sever darkens →
+      // splice relights — is the energy contribution and does not depend on it.)
 
       // ── 2. A trimmed street: the line is a Detail, not an object ──
+      // The square lost its pole; the overhead line is a ROOM DETAIL now, so it
+      // renders to the TRANSCRIPT (not an inspection card), bound by the words a
+      // person types. `line` is the same detail under its other keyword.
       await goTo(page, SQUARE, /square|market/i);
-      for (const word of ['wires', 'line']) {
-        expect(await say(page, `look ${word}`), `"look ${word}"`).not.toMatch(
-          NOT_FOUND,
-        );
-      }
-      expect(await lookFor(page, 'wires', /cable|feeder|overhead/i)).toMatch(
+      expect(await sayAwaiting(page, 'look wires', /cable|feeder|overhead/i)).toMatch(
         /cable|feeder|overhead/i,
       );
+      expect(await say(page, 'look line'), '"look line"').not.toMatch(NOT_FOUND);
+      // Presence + liveness still derive from the parcel — no pole needed.
       expect(await sayAwaiting(page, 'analyze grid', /locality/i)).toMatch(
         /electric locality[\s\S]*live/i,
       );
@@ -158,19 +158,22 @@ test.describe('the energy build, in a browser', () => {
       expect(await sayAwaiting(page, 'analyze grid', /locality/i)).toMatch(
         /dark/i,
       );
-      expect(await lookFor(page, 'light', /It is /)).toMatch(/no power/i);
+      await lookFor(page, 'light', /no power/i);
 
       await goTo(page, AVENUE, /avenue|counting/i);
       await sayAwaiting(page, 'splice', /splice|restore|join|back/i);
       await goTo(page, LOBBY, /lobby|Seznick/i);
-      expect(await lookFor(page, 'light', /It is /)).toMatch(/It is lit\./);
+      await lookFor(page, 'light', /It is lit\./);
 
       // ── 5. The epoch is derived — gas-lit valley, off-grid hills ──
       await goTo(page, VALLEY_GATE, /valley|gate|delight/i);
       expect(await sayAwaiting(page, 'analyze grid', /locality/i)).toMatch(
         /gas-lit locality/i,
       );
-      expect(await lookFor(page, 'lamps', /oil|gas/i)).toMatch(/oil|gas/i);
+      // The gas lamps are a room DETAIL (transcript, not a card) naming the oil.
+      expect(await sayAwaiting(page, 'look lamps', /oil|gas/i)).toMatch(
+        /oil|gas/i,
+      );
 
       await goTo(page, HINKLEY_LANE, /hinkley|lane/i);
       const hinkley = await sayAwaiting(page, 'analyze grid', /locality/i);

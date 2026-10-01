@@ -4,11 +4,20 @@
  *
  * A consuming device that draws grid power and does not care how the grid is
  * laid out: a residential lamp now, the cold-chain fridge later. It resolves
- * its premises' meter ONCE at `postRegister` — the covering parcel's power band
- * and feeder node (`ParcelApi.powerOf`) — and thereafter answers `isPowered()`
- * synchronously: the band is connected, and the feeder node is energized right
- * now (`GridCatalogue.energizedAtSync`). A cut upstream, a dead source, or an
- * off-grid premises all read as unpowered the same second.
+ * its premises' meter LAZILY on the first read — the covering parcel's power
+ * band and feeder node (`ParcelApi.powerOf`) — and thereafter answers
+ * `isPowered()` synchronously: the band is connected, and the feeder node is
+ * energized right now (`GridCatalogue.energizedAtSync`). A cut upstream, a dead
+ * source, or an off-grid premises all read as unpowered the same second.
+ *
+ * ⚠⚠ **The meter is resolved on first READ, never at `postRegister`.** At boot,
+ * a light's containment and the parcel registry's feeder citation are not both
+ * settled when its `postRegister` runs, so resolving there cached `off-grid` /
+ * `null` and the lamp stayed dark forever while `analyze grid` (which reads the
+ * parcel FRESH) reported the same premises live. Found by the live browser
+ * drive. Reads happen post-boot, when both are settled, so lazy is correct; the
+ * authored feeder citation never changes at runtime, so caching it after the
+ * first read is safe — only energization (the cut) is read live each call.
  *
  * ## ⚠ Composed only by things that DRAW
  *
@@ -78,15 +87,23 @@ export function GridPoweredMixin<TBase extends MixinConstructor<Stuff>>(
 
     static fieldMeta: FieldMeta = {};
 
-    /** Resolved once at postRegister; transient — re-resolved every boot. */
+    /** Resolved lazily on first read; transient — re-resolved every boot. */
+    private _resolved = false;
     private _powerBand: PowerBand = 'off-grid';
     private _powerNodeRef: string | null = null;
     private _gridCatalogue: GridCatalogue | null = null;
 
-    public async postRegister(context?: unknown): Promise<void> {
-      const sup = (Base.prototype as { postRegister?: (c?: unknown) => Promise<void> })
-        .postRegister;
-      if (typeof sup === 'function') await sup.call(this, context);
+    /**
+     * Resolve the meter the first time it is asked for — NOT at postRegister
+     * (too early; see the header). Sync: `resolveRoomPath` walks containment,
+     * `ParcelApi.powerOf` reads the registry, both synchronous. Kicks the grid
+     * compile fire-and-forget (post-boot, so no boot-time deadlock) so the
+     * first `energizedAtSync` has a grid to read; the authored band/feeder are
+     * cached, energization is not.
+     */
+    private ensureResolved(): void {
+      if (this._resolved) return;
+      this._resolved = true;
       try {
         const roomPath = this.resolveRoomPath();
         if (roomPath !== null) {
@@ -94,27 +111,22 @@ export function GridPoweredMixin<TBase extends MixinConstructor<Stuff>>(
           this._powerBand = power.band;
           this._powerNodeRef = power.feeder !== '' ? power.feeder : null;
         }
-        // Cache the catalogue ref only — do NOT warm the compile here.
-        //
-        // ⚠⚠ Warming in postRegister (even fire-and-forget) can run the compile
-        // DURING boot, before the feeder streets' exits are hydrated — it stands
-        // them up mid-install via `StuffApi.singleton`, reads no exits yet, and
-        // caches a grid where "a line leaves the road" and the whole tree is
-        // dark. The compile must run POST-install: it does, lazily, on the first
-        // real read (the dusk settle, or `analyze grid`), by which time every
-        // street is installed. `isPowered()` (sync) kicks the compile itself and
-        // answers `false` until it lands — the one-tick cold start.
-        this._gridCatalogue = (await StuffApi.singleton(
+        const cat = StuffApi.findByTemplatePath(
           GRID_CATALOGUE_PATH,
-        )) as unknown as GridCatalogue;
+        ) as GridCatalogue | null;
+        this._gridCatalogue = cat;
+        void cat?.ensureCompiled?.();
       } catch {
-        // A premises we cannot resolve reads as off-grid — fail closed.
+        // A premises we cannot resolve reads as off-grid — fail closed. Allow a
+        // retry next read (the registry may simply not be ready yet).
         this._powerBand = 'off-grid';
         this._powerNodeRef = null;
+        this._resolved = false;
       }
     }
 
     public isPowered(): boolean {
+      this.ensureResolved();
       if (this._powerBand === 'off-grid' || this._powerNodeRef === null) {
         return false;
       }
@@ -127,10 +139,12 @@ export function GridPoweredMixin<TBase extends MixinConstructor<Stuff>>(
     }
 
     public powerNodeRef(): string | null {
+      this.ensureResolved();
       return this._powerNodeRef;
     }
 
     public powerBandOf(): PowerBand {
+      this.ensureResolved();
       return this._powerBand;
     }
 
