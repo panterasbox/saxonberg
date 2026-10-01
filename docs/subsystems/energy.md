@@ -74,7 +74,14 @@ drive). It runs on the first real read (the dusk settle, or `analyze grid`).
   while on AND powered.
 - **`LineAccess`** — a pole/manhole on a node; affords `sever`/`splice`; an
   overhead one faults in a storm (`onStormExposure` → `energy.stormFaultRate`),
-  a buried one is storm-safe.
+  a buried one is storm-safe. ⭐ **A `LineAccess` is SPARSE, not one-per-street**:
+  it is the physical access point where a lineman actually works the line, so
+  content props one only where that interaction is wanted. The line *reaching* a
+  street is not an object — it is a parcel fact (`powerOf` → `feeder`, read by
+  `analyze grid` in any room) plus an authored `line` room Detail (`look wires`).
+  Terminus ships exactly two: an overhead **pole** at the avenue and a buried
+  **manhole** on the Mayfield spur (the overhead/buried contrast); the other
+  grid streets carry the line as a Detail and no object.
 - **`analyze grid`** — a `Reading` channel: bare = the premises + the locality's
   **derived epoch** (electric if a feeder reaches it, gas-lit if it burns oil,
   off-grid if neither — no "tech level"); on a pole = the trace naming the first

@@ -32,7 +32,6 @@ import {
   type Doc,
 } from "@saxonberg/server/mud/lib/persistence/__tests__/backend-store";
 import PersistentHydrator from "@saxonberg/server/mud/platform/idea/persistence/PersistentHydrator";
-import { installV1QuantityMarshallers } from "@saxonberg/server/mud/lib/persistence/__tests__/quantity-marshaller-test-helpers";
 
 const PH = PersistentHydrator.templatePath;
 // The rows this stand-up reads live across the packs (content-packs
@@ -71,11 +70,6 @@ const DOOR = "/world/terminus/university-avenue/thing/campus-gate-door";
 // authoring fault, and `lint:census` resolves the field at build time), so
 // every store that clones this room needs it.
 const PAVING = "/world/terminus/university-avenue/thing/crossing-paving";
-// ⭐ The energy build's utility pole: the crossing is on the Terminus main,
-// so the avenue carries an overhead line and a `LineAccess` pole where a
-// lineman reaches it. A populated prop like the flavor objects — it stands
-// up in the room (it is not bench/lamp/litter-bin prose).
-const POLE = "/world/terminus/university-avenue/location/thing/pole";
 
 // The curated realized set: only the flavorful touchables survive as Stuff
 // (the camp chair, the beacon, the gutter ticket-stub). The generic municipal
@@ -118,7 +112,6 @@ function docs(): Doc[] {
     seed("world/terminus/university-avenue/location/campus-gate.yaml", CAMPUS_GATE),
     seed("world/terminus/university-avenue/thing/campus-gate-door.yaml", DOOR),
     seed("world/terminus/university-avenue/thing/crossing-paving.yaml", PAVING),
-    seed("world/terminus/university-avenue/location/thing/pole.yaml", POLE),
     seed("world/terminus/university-avenue/thing/camp-chair.yaml", OBJECTS[0]!),
     seed("world/terminus/university-avenue/thing/beacon.yaml", OBJECTS[1]!),
     seed("world/terminus/university-avenue/thing/gutter-litter.yaml", OBJECTS[2]!),
@@ -196,11 +189,6 @@ describe("University Avenue crossing standup (real seeds)", () => {
   beforeEach(async () => {
     StuffApi.clearAll();
     installStore(docs());
-    // The energy build's utility pole carries an explicit `mass`, which
-    // hydrates through the v1 quantity marshaller — register the kg
-    // marshaller singleton so its template resolves (the flavor objects
-    // derive mass from their class and never needed it before).
-    installV1QuantityMarshallers();
     await AppSettings.warm();
   });
   afterEach(() => {

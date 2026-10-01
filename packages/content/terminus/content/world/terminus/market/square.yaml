@@ -77,7 +77,6 @@ data:
     # ⭐ The fish stall — a second consignment counter (fishing D11),
     # kept by the fishmonger on the market's roster.
     - /world/terminus/market/thing/fish-stall
-    - /world/terminus/market/thing/pole
   cast:
     - /world/terminus/market/agent/fishmonger
   details:
@@ -85,6 +84,10 @@ data:
       keywords: [lamps, lamp, standards, lighting]
       description: |
         Fluted iron standards at the corners, each with a glass head on a cross-bar and a lamplighter's notch worn into the post at shoulder height.
+    line:
+      keywords: [line, lines, wire, wires, cable, cables, feeder, overhead, grid]
+      description: |
+        Feeder cables cross the square overhead on their cross-arms, strung from the standards at the corners — the city main carrying power through on its way east.
     bunting:
       keywords: [bunting, canvas, awnings]
       description: |
