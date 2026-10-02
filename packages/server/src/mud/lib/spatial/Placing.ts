@@ -46,10 +46,18 @@
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import { Mixins } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
+import type { Sensor } from '../message/Sensor';
 import type { VetoResult } from '../errors';
+import type { StuffPlacedGroup } from '@saxonberg/types';
 import type { Containable } from './Containable';
 import { MixinApi, type AnyConstructor } from '../../api/mixin';
 import { ContainmentApi } from '../../api/containment';
+import { PerceptionApi } from '../../api/perception';
+import {
+  MqlSubscriptionApi,
+  REF_FIELDS,
+  type SubscribableFieldDescriptor,
+} from '../../api/mql-subscription';
 
 /**
  * Public shape provided by PlacingMixin.
@@ -140,6 +148,58 @@ export function PlacingMixin<TBase extends MixinConstructor>(Base: TBase) {
       airExposure: { persistent: true, authorable: true },
       placements: { persistent: true, authorable: true },
     };
+
+    /**
+     * ⭐ Rung 1 of the containment read.
+     *
+     * - `holds` — this host holds more (things sit on/in it). Capability,
+     *   not a count, so `static` and always true; a thing composing both
+     *   `Container` and `Placing` reads one `holds: true` (same-named
+     *   descriptor, map-deduped by name).
+     * - `placed` — a DETAIL field: the items placed on this host, grouped
+     *   by member with the member's own heading off its `Placement` row
+     *   (`On it` / `In it` / `Hanging from it`). Per-viewer filtered the
+     *   way `Container.contents` is. Name-keyed, woken by a `placement` or
+     *   `contents` fire. NOT a recursive nesting view — one flat grouping.
+     */
+    static subscribableFields: SubscribableFieldDescriptor[] = [
+      {
+        name: 'holds',
+        static: true,
+        read: () => true,
+      },
+      {
+        name: 'placed',
+        dependsOnFields: ['placement', 'contents'],
+        read: (stuff, viewer) => {
+          const host = stuff as unknown as Stuff & Placing;
+          const groups: StuffPlacedGroup[] = [];
+          for (const member of host.getPlacements()) {
+            const items = host.getPlaced(member).filter(
+              (c) =>
+                c.stuffId !== viewer.stuffId &&
+                MixinApi.isVisible(c) &&
+                PerceptionApi.perceives(viewer, c),
+            );
+            if (items.length === 0) continue;
+            const row = ContainmentApi.placement(member);
+            groups.push({
+              name: member,
+              heading: row?.getHeading() || 'With it',
+              items: items.map(
+                (c) =>
+                  MqlSubscriptionApi.projectFields(
+                    c,
+                    REF_FIELDS,
+                    viewer as Stuff & Sensor,
+                  ) as unknown as StuffPlacedGroup['items'][number],
+              ),
+            });
+          }
+          return groups.length > 0 ? groups : undefined;
+        },
+      },
+    ];
 
     /**
      * Composition-time check — the two refusals in the module

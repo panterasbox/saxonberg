@@ -107,6 +107,14 @@ export const REF_FIELDS: FieldSet = [
   'displayName',
   'quantity',
   'primaryKeyword',
+  // ⭐ Rung 1 of the containment read: a ref record now carries HOW it
+  // sits in its host (`placement`) and WHETHER it is itself a holder
+  // (`holds`), so a container's `contents` projection renders what's on
+  // the lid vs in the box and marks the compartments — without a
+  // drill-in. Both are omitted when they don't apply (a loose, leaf
+  // item carries neither).
+  'placement',
+  'holds',
 ];
 
 export const DETAIL_FIELDS: FieldSet = [
@@ -122,6 +130,11 @@ export const DETAIL_FIELDS: FieldSet = [
   'contents',
   'worn',
   'exits',
+  // ⭐ Rung 1: a Placing host's detail card carries the items placed on
+  // it, grouped by member with the member's own heading.
+  'placed',
+  'placement',
+  'holds',
 ];
 
 // eslint-disable-next-line no-restricted-syntax -- test-only export (white-box unit test); production callers go through MqlSubscriptionApi

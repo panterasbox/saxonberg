@@ -840,6 +840,32 @@ Diffs ride `FieldChangedEvent { field: 'worn' }`, fired inline from
 `occupy` / `vacate` / `vacateSole`, exactly as `contents` fires from
 `addContainable` / `removeContainable`.
 
+## ⭐ Rung 1: `placement` · `holds` · `placed` — the honest containment bytes
+
+The cold-storage build stopped the wire discarding what the model knows
+about *how* each item sits and *whether* it is a holder. Three fields
+(full table in [spatial.md](./spatial.md) § Rung 1):
+
+- **`placement`** (`REF_FIELDS`, on `Containable`) — the member name
+  (`on`/`in`/`from`) this item sits under, omitted when loose. The card
+  renders it as a muted affix (`· in`, `· hanging from`).
+- **`holds`** (`REF_FIELDS`, on `Container` **and** `Placing`) — `true`
+  when the item is itself a holder. `static` (a capability, it never
+  fires), so a fridge's freezer compartment, a chest, the hive read as
+  things that hold more — the card marks them with a `▸`.
+- **`placed`** (`DETAIL_FIELDS`, on `Placing`) — the items on this host,
+  grouped by member with the member's `Placement.getHeading()`. The card
+  renders each group as its own `Label` + rows (`PlacedList`), the card
+  twin of `look`'s drill-in prose.
+
+⭐ **This is Rung 1 only — the flat, per-item read.** No recursive
+nesting view, no expand/collapse tree, no "compartments spoken as parts"
+— those are Rung 2 (the containment-presentation build).
+`Container.contents` now `dependsOnFields: ['contents', 'placement']` so
+a placement change inside an unchanged container still wakes the open
+card, which re-projects children with their fresh placement (the fire is
+in `ContainmentApi.place`).
+
 ### The impression line — the card enumerates, the prose summarizes
 
 The same subject gets a second, lower-resolution reading: a

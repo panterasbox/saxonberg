@@ -1,0 +1,17 @@
+# Cooler — the carryable twin of the fixed icebox. Load it with a block of
+# ice from the freezer and it holds its contents cold off the grid: a medic
+# can walk a transfusion to a hunt. Same passive `Coolbox` couple the icebox
+# uses (the contents sit at the coldest thing inside while it is shut), but
+# light enough to carry — the fixed icebox never could.
+class: /platform/thing/Icebox
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: cooler
+  keywords: [cooler, cool-box, coolbox, chest]
+  register: indefinite
+  longDescription: |
+    A small insulated chest with a snug lid, light enough to carry — packed
+    with ice it keeps what is inside it cold for a journey.
+  open: false
+  insulationR: 8.0
+  mass: 3

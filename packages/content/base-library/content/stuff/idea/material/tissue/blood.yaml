@@ -30,6 +30,11 @@ data:
   # logistic, never by eye.
   spoilActivationEnergy: 96000
   waterActivity: 0.99
+  # ⭐ Freezing RUINS whole blood — the cells hemolyse; it does not become a
+  # usable solid. A unit that freezes (a bag left in the freezer compartment,
+  # not the fridge) is stamped ruined and `transfuse` refuses it. Blood banks
+  # at 1–6 °C, which is why it belongs in the FRIDGE, not the freezer.
+  ruinedByFreezing: true
   nutrients: []
   toxicity: []
   tags: ["tissue", "blood", "liquid", "organic"]

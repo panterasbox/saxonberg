@@ -5,11 +5,16 @@
 > ⭐ **And the passive rung shipped 2026-09-28** (the placement build,
 > MR !302): `CoolboxMixin`, `platform/thing/Icebox`, the cold-source
 > couple in `Thermal.ts`, the melt clock → [thermal.md](../../subsystems/thermal.md).
+> ⭐⭐ **And the powered rung shipped 2026-10-01** (the cold-storage build,
+> MR !320): `ClimateControlMixin` + the kernel `Powered` interface over
+> the energy pack's `GridPoweredMixin`, the fridge/freezer rows, and cold
+> PRODUCTION (the freezer makes ice) → [thermal.md](../../subsystems/thermal.md) ·
+> [energy.md](../../subsystems/energy.md).
 > **Left:** ⭐⭐ **`Chamber`** — the compartment with its own air, and
 > the `AtmosphericMixin` widening it needs; the spec is below, written
-> against the shipped tree and executable cold · `ClimateControl` +
-> `Powered` over the power-utility ref (the appliance/energy build) ·
-> the COP fork · the fridge/freezer rows · the mirror inbound channel
+> against the shipped tree and executable cold (this build shipped the
+> freezer compartment as `props:` instead) ·
+> the COP fork · the mirror inbound channel
 > (Part 4) · the civic "better resident" extension (Part 5 — needs its
 > own pass) · the partner surface (Part 6, bracketed)
 > **Size:** a build
