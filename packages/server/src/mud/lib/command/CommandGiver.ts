@@ -683,7 +683,11 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
         opts.barId !== undefined &&
         opts.interactive &&
         !opts.forced &&
-        MixinApi.isHasInteractive(giver)
+        // ⭐ The narrow is the CLIENT's, not the connection's:
+        // `cockpit.inputModes` is one client's key, so a giver whose
+        // client does not declare it genuinely has no input modes and
+        // `getClientState` would throw rather than return a default.
+        MixinApi.isSaxonbergClient(giver)
       ) {
         const modes = giver.getClientState<Record<string, string>>(
           'cockpit.inputModes',

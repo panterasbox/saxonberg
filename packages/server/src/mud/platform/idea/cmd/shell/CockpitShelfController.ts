@@ -56,8 +56,9 @@ import { MessageApi } from '../../../../api/message';
 import { MixinApi } from '../../../../api/mixin';
 import { Mml } from '../../../../api/mml';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
-import Avatar from '../../../agent/Avatar';
-import type { HasInteractive } from '../../../../lib/connection/HasInteractive';
+import Avatar from '../../../../lib/character/Avatar';
+import type { ClientState } from '../../../../lib/connection/ClientState';
+import type { SaxonbergClient } from '../../../../lib/connection/SaxonbergClient';
 import {
   SHELF_ROW_IDS,
   DEFAULT_SHELF,
@@ -67,7 +68,7 @@ import {
 const SHELF_KEY = 'cockpit.shelf';
 const SHELF_ACTIONS = ['list', 'pin', 'unpin', 'first'];
 
-type ShelfHost = Stuff & HasInteractive;
+type ShelfHost = Stuff & ClientState & SaxonbergClient;
 
 interface ShelfModel extends CommandModel {
   /** `list` | `pin` | `unpin` | `first`. Bare `cockpit shelf` means `list`. */
@@ -79,9 +80,9 @@ interface ShelfModel extends CommandModel {
 export default class CockpitShelfController extends CommandController<ShelfModel> {
   execute(model: ShelfModel, context: CommandContext): void {
     const giver = context.commandGiver;
-    if (!MixinApi.isHasInteractive(giver)) {
+    if (!MixinApi.isSaxonbergClient(giver)) {
       throw new Error(
-        'CockpitShelfController: command giver lacks HasInteractive',
+        'CockpitShelfController: command giver lacks the client mixin',
       );
     }
     const host = giver as ShelfHost;

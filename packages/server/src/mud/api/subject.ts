@@ -21,7 +21,7 @@ import type {
   SubjectSubscription,
   MakeSubjectOptions,
 } from '../platform/idea/SubjectCatalogue';
-import type Avatar from '../platform/agent/Avatar';
+import type Avatar from '../lib/character/Avatar';
 import { SubjectLogic } from '../platform/idea/api/SubjectLogic';
 import { fileURLToPath } from 'url';
 import { SecurityApi } from './security';

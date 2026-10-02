@@ -346,6 +346,31 @@ script also asserts the symmetric and inbound-only method sets stay
 disjoint, since the symmetric check short-circuits and an entry in both
 would quietly restore the hole.
 
+## ⭐ The vocabulary: sandbox · circle · wire
+
+Three words were doing overlapping work. They sort cleanly, and the
+avatar-family build made the code match:
+
+| word | what it actually names | where it belongs |
+|---|---|---|
+| **sandbox** | the FEATURE — `SandboxApi`, `SandboxLogic`, `SandboxAvatar`, `SandboxCrossingExit`, this doc, the policy table, `platform/agent/sandbox/` | **the code** |
+| **circle** | the SCOPE — `circleScope`, `discardScope`, the namespace | the persistence seam |
+| **wire** | the fiction a player meets at the door | **the fiction, and nowhere else in code** |
+
+⚠⚠ **Why `WireBody` was renamed `SandboxAvatar`.** In this repo *wire*
+means three different things: the protocol and the whole
+`packages/wire` test package (the dominant meaning), this subsystem's
+fiction, and the epistemic mark on a `pass(mark)` row. So `WireBody`
+reads, to anyone who has not read this doc, as *the body on the
+websocket* — which is every body. The class already lived in
+`platform/agent/sandbox/` and already wrote `circleScope`; the name
+was the last thing still saying "wire".
+
+⭐ **The fiction does not change.** The crossing still says *"step
+onto the wire"*, and that is good prose — players never read a class
+name. `CircleAvatar` was considered and rejected for a subtler reason:
+*circle* names **the fence, not the workshop**.
+
 ## The crossing (as built)
 
 - **Fork/merge**: `ForkableMixin` (`lib/persistence/Forkable.ts`) —
@@ -407,7 +432,7 @@ would quietly restore the hole.
 - **Parking (Decision P)**: `Avatar.parked` — presence emit
   suppressed in `onLinkdead`, `canEvict` veto while parked, captured
   at park (best-effort, loud on failure — the autosave posture).
-  `WireBody.onLinkdead` routes to the session machinery: bare drop →
+  `SandboxAvatar.onLinkdead` routes to the session machinery: bare drop →
   grace timer (`sandbox.session.graceMs`); leave-intent → exit
   choreography first, then the ordinary logout against the PARKED
   body. `Login.playCharacter` asks `SandboxApi.reconnect` before the
@@ -872,7 +897,7 @@ themselves. The body leaves a **circle-scoped corpse** (born in the circle,
 reaped with it) and the player is **ejected** to the parked field body. No
 shade, no arc, no snapshot — minting a real body from inside a circle is
 exactly the boundary this subsystem exists to hold. The discriminator is
-the receiver's circle stamp, not `instanceof WireBody`.
+the receiver's circle stamp, not `instanceof SandboxAvatar`.
 
 If the **field** body dies while its player is parked here, exit composes
 with no extra plumbing: a parked avatar still reads as connected, so the
@@ -910,7 +935,7 @@ identity."* Two things were wrong with that, and the identity build (MR
    stamped by the persistence layer from the ambient context, and
    `deriveBlame` is what refuses to convict on it — recorded, and
    structurally incapable of being evidence.
-2. ⚠ **The rows were keyed on the VESSEL.** A `WireBody` is stamped
+2. ⚠ **The rows were keyed on the VESSEL.** A `SandboxAvatar` is stamped
    `/platform/agent/Avatar/<id>/wire` while *projecting* the player's
    real identity, and the ledger keyed on `getTemplatePath()`. So an
    in-circle harm filed under a key no reader ever asks about.

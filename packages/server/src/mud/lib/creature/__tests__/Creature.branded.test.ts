@@ -6,7 +6,7 @@
  * argument that branding livestock is what marks were invented for.
  * The argument is right and the host was wrong: `Creature` is the base
  * of `Character`, so the same line put a maker's mark on every player
- * Avatar, every Cast member, every Extra, every Shade and every corpse
+ * Avatar, every Cast member, every Extra, every ShadeAvatar and every corpse
  * in the game. Nothing on that stack ever read it, so nothing failed —
  * which is exactly why it survived: the panel that would have shown it
  * (`wiki branded`) was reading a dead scan root.

@@ -23,7 +23,7 @@ import { MessageApi } from '../../../../../api/message';
 import { StuffApi } from '../../../../../api/stuff';
 import { PersistenceManager } from '../../../../../../backend/PersistenceManager';
 import { Group } from '../../../../../lib/social/Group';
-import Avatar from '../../../../agent/Avatar';
+import Avatar from '../../../../agent/PrimaryAvatar';
 import GroupRegistry from '../../../GroupRegistry';
 import { makeStuff, makeStuffAtPath } from '../../../../../lib/security/__tests__/test-setup';
 import type { CommandContext, CommandModel } from '../../../../../api/command';

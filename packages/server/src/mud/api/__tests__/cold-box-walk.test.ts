@@ -42,7 +42,7 @@ import requiresPublisher from '../../lib/command/validators/requiresPublisher';
 import OrganizationEntity from '../../platform/idea/Organization';
 import PressBoard from '../../platform/idea/PressBoard';
 import OfficeRegistry from '../../platform/idea/OfficeRegistry';
-import Avatar from '../../platform/agent/Avatar';
+import Avatar from '../../platform/agent/PrimaryAvatar';
 import Location from '../../lib/stuff/Location';
 import { PressRoutes } from '../../../backend/PressRoutes';
 import { PressApi } from '../press';

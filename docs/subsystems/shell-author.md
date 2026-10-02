@@ -1,6 +1,6 @@
 # AuthorMixin
 
-Object-lifecycle and code-execution verbs on `ShelledCharacter`.
+Object-lifecycle and code-execution verbs on `Shell`.
 
 The mixin owns no instance state v1 — its value is the verb
 contributions and a session-lifetime settings keyspace. Per-target
@@ -8,7 +8,7 @@ refusal lives on the targets themselves (witness-shape `canX`
 hooks); the actor-side capability seam is handled by the verb
 controllers and the future permission framework.
 
-Composition: applied to `ShelledCharacter` after `WorkspaceMixin`
+Composition: applied to `Shell` after `WorkspaceMixin`
 and `AliasMixin`.
 
 ## Verbs

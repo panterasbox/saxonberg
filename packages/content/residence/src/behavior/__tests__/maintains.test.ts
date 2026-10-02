@@ -35,7 +35,7 @@ import { OuterWarren } from '@saxonberg/server/mud/lib/location/OuterWarren';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import SingletonCartesianLocation from '@saxonberg/server/mud/platform/location/SingletonCartesianLocation';
-import Avatar from '@saxonberg/server/mud/platform/agent/Avatar';
+import Avatar from '@saxonberg/server/mud/platform/agent/PrimaryAvatar';
 import {
   makeStuff,
   makeStuffAtPath,

@@ -241,7 +241,7 @@ provisioning helper. So on every fresh box *nobody* is an author, **the
 founder included**, and the shipped gate refused the verb outright.
 
 The affordance was never the barrier — `AuthorMixin` rides
-`ShelledCharacter`, so every Avatar already carries the contribution. The
+`Shell`, so every Avatar already carries the contribution. The
 **validator** was.
 
 ## Reading it — three surfaces

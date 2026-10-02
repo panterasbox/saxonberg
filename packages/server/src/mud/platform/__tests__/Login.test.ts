@@ -15,7 +15,7 @@ import { PlayerApi } from '../../api/player';
 import { MixinApi } from '../../api/mixin';
 import { Mixins } from '../../lib/mixin';
 import type { User } from '../../lib/identity/User';
-import type Avatar from '../agent/Avatar';
+import type Avatar from '../../lib/character/Avatar';
 import { makeStuff } from '../../lib/security/__tests__/test-setup';
 
 function fakeUser(id: string, playerIds: string[] = []): User {

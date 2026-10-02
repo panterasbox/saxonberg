@@ -19,6 +19,7 @@ import { ContainmentApi } from "../../../api/containment";
 import { Quantity } from "../../quantity";
 import { Idea } from "../../stuff/Idea";
 import { Creature } from "../../creature/Creature";
+import { PlayerApi } from "../../../api/player";
 import { ContainerMixin } from "../../spatial/Container";
 import { ContainableMixin } from "../../spatial/Containable";
 import { BeliefStoreMixin } from "../../belief/BeliefStore";
@@ -99,6 +100,27 @@ describe("contract lifecycle", () => {
     gameNow = 10_000;
     vi.spyOn(WorldClockApi, "getNow").mockImplementation(() =>
       Quantity.of(gameNow, "s"),
+    );
+    /*
+     * ⚠⚠ The "players" in this file are lightweight `Creature`
+     * stand-ins parked at `/platform/agent/Avatar/<name>` — this suite
+     * is about contract settlement, not about bodies, and standing up
+     * real `PrimaryAvatar`s would drag in species, body plans and the
+     * loadout for no gain.
+     *
+     * They used to be read as players for free, because
+     * `PlayerApi.isAvatarStuff` prefix-tested the template path. It is
+     * `instanceof Avatar` now (2026-10-01) — a path alone no longer
+     * buys personhood, which is the whole point, since the string test
+     * also let a sandbox vessel fake its way in and refused every
+     * shade. So the stand-ins declare themselves here instead of
+     * relying on a hole.
+     */
+    vi.spyOn(PlayerApi, 'isAvatarStuff').mockImplementation(
+      ((stuff: { getTemplatePath?(): string | null | undefined }) =>
+        (stuff?.getTemplatePath?.() ?? '').startsWith(
+          '/platform/agent/Avatar/',
+        )) as never,
     );
     issuer = makeStuffAtPath(() => new TestIssuer(), ISSUER);
     courier = makeStuffAtPath(() => new Creature(), COURIER);

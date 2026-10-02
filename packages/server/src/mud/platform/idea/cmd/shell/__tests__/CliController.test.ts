@@ -10,6 +10,8 @@ import "../../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import CliController from '../CliController';
 import { HasInteractiveMixin } from '../../../../../lib/connection/HasInteractive';
+import { ClientStateMixin } from '../../../../../lib/connection/ClientState';
+import { SaxonbergClientMixin } from '../../../../../lib/connection/SaxonbergClient';
 import { CommandGiverMixin } from '../../../../../lib/command/CommandGiver';
 import { SensorMixin } from '../../../../../lib/message/Sensor';
 import { ContainerMixin } from '../../../../../lib/spatial/Container';
@@ -27,9 +29,9 @@ import { ShadowApi } from '../../../../../api/shadow';
 import { ContainmentApi } from '../../../../../api/containment';
 import { makeStuff } from '../../../../../lib/security/__tests__/test-setup';
 
-class TestActor extends HasInteractiveMixin(
+class TestActor extends SaxonbergClientMixin(ClientStateMixin(HasInteractiveMixin(
   SensorMixin(CommandGiverMixin(ContainerMixin(ContainableMixin(Idea)))),
-) {
+))) {
   static _mixinName = 'TestActor';
 }
 

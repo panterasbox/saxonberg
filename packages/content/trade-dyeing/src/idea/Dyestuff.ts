@@ -34,7 +34,7 @@ import type { EvictionContext } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 
 /** One `(mordant → outcome)` row of the shade table. */
-export interface Shade {
+export interface ShadeAvatar {
   /** The mordant key this outcome belongs to (`''` for a vat dye). */
   mordant: string;
   /**
@@ -92,7 +92,7 @@ export default class Dyestuff extends SingletonMixin(Idea) {
   /** `mordant` or `vat`. */
   public chemistry: 'mordant' | 'vat' = 'mordant';
   /** The outcome per mordant. A vat dye carries exactly one, keyed `''`. */
-  public shades: Shade[] = [];
+  public shades: ShadeAvatar[] = [];
 
   getKey(): string {
     return this.key;
@@ -121,10 +121,10 @@ export default class Dyestuff extends SingletonMixin(Idea) {
     this.chemistry = value;
   }
 
-  getShades(): readonly Shade[] {
+  getShades(): readonly ShadeAvatar[] {
     return this.shades;
   }
-  setShades(value: Shade[]): void {
+  setShades(value: ShadeAvatar[]): void {
     if (!Array.isArray(value)) {
       throw new TypeError('Dyestuff.setShades: must be an array');
     }
@@ -162,7 +162,7 @@ export default class Dyestuff extends SingletonMixin(Idea) {
    * applied to woad is refused, not silently ignored" fall out of the
    * data rather than out of a special case in the verb.
    */
-  public shadeFor(mordant: string): Shade | null {
+  public shadeFor(mordant: string): ShadeAvatar | null {
     return this.shades.find((s) => s.mordant === mordant) ?? null;
   }
 

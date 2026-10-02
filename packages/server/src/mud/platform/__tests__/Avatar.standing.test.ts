@@ -19,7 +19,7 @@
 import "../../../test-bootstrap";
 import { DerivedStandingCache } from '../../lib/standing/DerivedStandingCache';
 import { describe, it, expect, beforeEach } from 'vitest';
-import Avatar from '../agent/Avatar';
+import Avatar from '../agent/PrimaryAvatar';
 import { MqlSubscriptionApi, collectSubscribableFields } from '../../api/mql-subscription';
 import { StuffApi } from '../../api/stuff';
 import { User } from '../../lib/identity/User';

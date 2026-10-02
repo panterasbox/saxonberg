@@ -52,11 +52,12 @@ import { MessageApi } from '../../../../api/message';
 import { MixinApi } from '../../../../api/mixin';
 import { Mml } from '../../../../api/mml';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
-import type { HasInteractive } from '../../../../lib/connection/HasInteractive';
+import type { ClientState } from '../../../../lib/connection/ClientState';
+import type { SaxonbergClient } from '../../../../lib/connection/SaxonbergClient';
 
 const MODES_KEY = 'cockpit.inputModes';
 
-type CliHost = Stuff & HasInteractive;
+type CliHost = Stuff & ClientState & SaxonbergClient;
 
 interface CliModel extends CommandModel {
   /** `--prefix "<text>"` — the prefix to prepend to bare input. */
@@ -70,10 +71,10 @@ interface CliModel extends CommandModel {
 export default class CliController extends CommandController<CliModel> {
   execute(model: CliModel, context: CommandContext): void {
     const giver = context.commandGiver;
-    if (!MixinApi.isHasInteractive(giver)) {
-      throw new Error('CliController: command giver lacks HasInteractive');
+    if (!MixinApi.isSaxonbergClient(giver)) {
+      throw new Error('CliController: command giver lacks the client mixin');
     }
-    // `isHasInteractive` above narrows `giver` to `Stuff & HasInteractive`.
+    // `isSaxonbergClient` above narrows `giver` to `Stuff & ClientState & SaxonbergClient`.
     const host: CliHost = giver;
     // An explicit positional wins (un-prefixed affordances name their
     // target), then the line the command was typed in, then the main one.

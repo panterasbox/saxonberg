@@ -17,7 +17,7 @@ import "../../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import OfficeController from '../OfficeController';
 import OfficeRegistry from '../../../OfficeRegistry';
-import Avatar from '../../../../agent/Avatar';
+import Avatar from '../../../../agent/PrimaryAvatar';
 import { CompactApi } from '../../../../../api/compact';
 import { StuffApi } from '../../../../../api/stuff';
 import {

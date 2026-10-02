@@ -210,7 +210,7 @@ content owns the campus-specific narrative.
 
 ```typescript
 const AvatarBase = PostRegistrationMixin(
-  HasInteractiveMixin(AetherMixin(ContactsMixin(ShelledCharacter))),
+  HasInteractiveMixin(AetherMixin(ContactsMixin(Shell))),
 );
 ```
 

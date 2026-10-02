@@ -10,7 +10,7 @@ import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import AccessRegistry from "../idea/AccessRegistry";
 import GroupRegistry from "../idea/GroupRegistry";
-import Avatar from "../agent/Avatar";
+import Avatar from "../agent/PrimaryAvatar";
 import { AccessApi } from "../../api/access";
 import { ParcelApi } from "../../api/parcel";
 import { EmploymentApi } from "../../api/employment";

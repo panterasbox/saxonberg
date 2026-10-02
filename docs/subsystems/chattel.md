@@ -143,7 +143,7 @@ it), and nothing else does.
 ⚠⚠ **It was on the `Thing` root until the base-class narrowing
 (2026-09-29), and on `Creature` until the same build.** Between them those
 two lines declared that a floor, a hearth, a shop counter, a yard wall —
-and every player Avatar, Cast member, Extra, Shade and corpse in the game
+and every player Avatar, Cast member, Extra, ShadeAvatar and corpse in the game
 — were somebody's chattel. Nothing ever stamped one, so nothing failed:
 the defect was entirely in what the classes CLAIMED, which is the
 documented author surface. **Ownership of a thing you cannot carry off is

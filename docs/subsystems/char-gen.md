@@ -432,8 +432,9 @@ inconsistency and nothing more.
 `commit` (`EmbodyController.ts:620`) is the only step that persists. The
 sequence, in order:
 
-1. **Build the per-character overlay** (the picks over the shared seed
-   at `Avatar.SEED_TEMPLATE_PATH`). **No per-player template row is
+1. **Build the per-character overlay** (the picks over the one shared
+   row at `PrimaryAvatar.ROW_TEMPLATE_PATH`,
+   `/platform/agent/PrimaryAvatar`). **No per-player template row is
    written** (the identity doctrine — ref-shapes.md § Identity,
    lineage, and backing): the character's durable state is its
    persistence-spine snapshot, not `domain` data.

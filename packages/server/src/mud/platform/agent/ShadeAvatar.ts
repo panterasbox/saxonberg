@@ -1,5 +1,5 @@
 /**
- * Shade — what a player is between bodies.
+ * ShadeAvatar — what a player is between bodies.
  *
  * An `Avatar` SUBCLASS, deliberately, and for the reason the sandbox
  * already wrote down about its own vessel: the whole verb surface has to
@@ -11,7 +11,7 @@
  *     of a death lives on the IDENTITY (`Avatar.mortalArc`), never as a
  *     dead lifecycle on a body. A shade that captured would put the
  *     bricking defect straight back.
- *   - **holds the registry slot**: unlike `WireBody`, a shade IS
+ *   - **holds the registry slot**: unlike `SandboxAvatar`, a shade IS
  *     registered with `PlayerApi`. The wire body's rationale is that the
  *     parked field avatar keeps the slot — but in death there is no field
  *     avatar; it was destructed. Unregistered, a dead player would fall
@@ -35,63 +35,29 @@
  *     The shade is a VIEW; the arc position is the state.
  */
 
-import Avatar, { type AvatarInitContext } from './Avatar';
-import type Species from '../idea/species/Species';
+import Avatar, { type AvatarInitContext } from '../../lib/character/Avatar';
 import { IncorporealMixin } from '../../lib/mortality/Incorporeal';
-import { PlayerApi } from '../../api/player';
-import type { FieldMeta } from '../../lib/mixin';
 
 /** Init context for a shade: the identity it stands in for. */
-export interface ShadeInitContext extends AvatarInitContext {
+export interface ShadeAvatarInitContext extends AvatarInitContext {
   /** Marks the vessel; set by the death choreography. */
   shade?: boolean;
 }
 
-export default class Shade extends IncorporealMixin(Avatar) {
+export default class ShadeAvatar extends IncorporealMixin(Avatar) {
   /**
-   * The identity's playerId. Registered under it — see the class doc.
+   * ⭐ The whole override, and all it says is *a shade is undead*.
    *
-   * ⭐ Declared so the clone's `dataOverlay` can land it: hydration
-   * Phase 1 runs BEFORE `postRegister`, which is exactly the ordering
-   * the constructor argument used to guarantee. (A key no field
-   * declares is discarded by the Hydrator SILENTLY — `lint:instanceable`
-   * invariant 12 is the gate that now counts those.)
+   * It used to strip `playerId` from the context, because the shared
+   * base claimed the `PlayerApi` registry slot and a shade must not —
+   * registration happens in the death choreography, deliberately after
+   * the drained body has been unregistered. That claim now lives on
+   * the body of record alone, so a shade has nothing to say no to.
    */
-  public shadePlayerId = '';
-
-  static fieldMeta: FieldMeta = {
-    shadePlayerId: { persistent: true, runtimeState: true },
-  };
-
-  /**
-   * The deceased's species, applied before the Avatar lifecycle runs.
-   * ⚠ Not a constructor argument any more: the species arrives as
-   * `_speciesPath` in the same overlay, which `OrganismMixin` already
-   * declares, so `postRegister` reads it off the field.
-   */
-  private shadeSpecies: Species | null = null;
-
   public override async postRegister(
-    context?: ShadeInitContext,
+    context?: ShadeAvatarInitContext,
   ): Promise<void> {
-    if (this.shadeSpecies) {
-      this.setSpecies(this.shadeSpecies);
-      // Then LET GO — same reasoning as `WireBody`. `OrganismMixin`
-      // keeps species as `_speciesPath` and re-resolves on every read;
-      // retaining the live `Species` here would shadow that
-      // authoritative field with an instance ref for the shade's whole
-      // life. The ctor slot exists to survive until `setSpecies`, and
-      // no longer.
-      this.shadeSpecies = null;
-    }
-    // Run the Avatar lifecycle WITHOUT a playerId: registration happens
-    // in the death choreography, deliberately AFTER the old body has been
-    // unregistered and destructed. Registering here would collide with
-    // the body that is still being drained.
-    //
-    // No merge with `context.playerId`: `shadePlayerId` arrives in the
-    // clone overlay before this hook runs, so it is authoritative.
-    await super.postRegister({ ...context, playerId: undefined });
+    await super.postRegister(context);
     this.setLifecycleState('undead');
   }
 
@@ -103,17 +69,6 @@ export default class Shade extends IncorporealMixin(Avatar) {
   /** Nothing to save, so no periodic-save backstop. */
   public override startAutoSave(): void {
     // no-op
-  }
-
-  public override getPlayerId(): string {
-    return this.shadePlayerId;
-  }
-
-  /** The identity thread — acts attribute to the player, not the vessel. */
-  public override getIdentityPath(): string | null {
-    return this.shadePlayerId
-      ? Avatar.getTemplatePath(this.shadePlayerId)
-      : super.getIdentityPath();
   }
 
   /**
@@ -165,18 +120,15 @@ export default class Shade extends IncorporealMixin(Avatar) {
    *
    * Nothing durable rides on the lingering: the shade persists nothing, so
    * a restart simply drops it and the next login re-mints from the arc.
+   *
+   * ⭐ There is no `onDestruct` override here any more. It used to
+   * stop the autosave, unregister and detach — and then call `super`,
+   * which does those same three itself (plus the final save and the
+   * belief flush). Six lines that changed nothing; the reaping is the
+   * family's, not a shade's.
    */
 
-  public override async onDestruct(): Promise<void> {
-    this.stopAutoSave();
-    PlayerApi.unregisterAvatar(this);
-    for (const interactive of [...this.getInteractives()]) {
-      interactive.detach();
-    }
-    await super.onDestruct();
-  }
-
   public override toString(): string {
-    return `[Shade for playerId=${this.shadePlayerId}]`;
+    return `[ShadeAvatar for playerId=${this.playerId}]`;
   }
 }

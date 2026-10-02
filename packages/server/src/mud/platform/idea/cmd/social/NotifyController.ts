@@ -24,7 +24,7 @@ import { PlayerApi } from "../../../../api/player";
 import { ShellApi } from "../../../../api/shell";
 import { SocialApi } from "../../../../api/social";
 import type { Stuff } from "../../../../lib/stuff/Stuff";
-import type { HasInteractive } from "../../../../lib/connection/HasInteractive";
+import type { ClientState } from "../../../../lib/connection/ClientState";
 import type { NotifyPolicy } from "../../../../lib/social/NotifyPolicy";
 import type {
   SocialRuleProjection,
@@ -222,14 +222,14 @@ export default class NotifyController extends CommandController<NotifyModel> {
    * connected Interactive (the store mutation still stands).
    */
   private pushProjection(host: NotifyHost): void {
-    if (!MixinApi.isHasInteractive(host)) return;
+    if (!MixinApi.isClientState(host)) return;
     const state: SocialRulesState = {
       rules: buildRulesProjection(host),
       presenceFormat:
         ShellApi.resolveSetting<string>(host as Stuff, "social.presenceFormat") ||
         PRESENCE_FORMAT_DEFAULT,
     };
-    (host as NotifyHost & HasInteractive).pushClientStateUpdate(
+    (host as NotifyHost & ClientState).pushClientStateUpdate(
       "social.rules",
       state,
     );

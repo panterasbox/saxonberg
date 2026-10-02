@@ -17,7 +17,7 @@ import { MessageApi } from '../../api/message';
 import { EventApi } from '../../api/event';
 import { Events } from '../../lib/events';
 import StreamRelay from '../idea/StreamRelay';
-import type Avatar from '../agent/Avatar';
+import type Avatar from '../../lib/character/Avatar';
 import type { MessageFrame, RelaySpeaker } from '@saxonberg/types';
 
 function avatar(

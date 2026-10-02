@@ -12,7 +12,7 @@
  * `HasInteractiveMixin.clientStateSchema`.
  */
 
-import Avatar from '../../mud/platform/agent/Avatar';
+import Avatar from '../../mud/lib/character/Avatar';
 import type { InboundHandler } from './index';
 
 export const handleClientStateWrite: InboundHandler = async (ctx, message) => {

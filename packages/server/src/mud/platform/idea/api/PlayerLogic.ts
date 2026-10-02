@@ -5,13 +5,13 @@
 import { ApiLogic } from '../../../lib/stuff/ApiLogic';
 import { CallSecurity, Unshadowable } from '../../../lib/security/decorators';
 import { SecurityPolicies } from '../../../lib/security/SecurityPolicies';
-import Avatar from '../../agent/Avatar';
+import Avatar from '../../../lib/character/Avatar';
 import type { User } from '../../../lib/identity/User';
 
 /** The lazily-imported Avatar class's static surface this logic uses. */
 interface AvatarClassRef {
   getTemplatePath(playerId: string): string;
-  SEED_TEMPLATE_PATH: string;
+  ROW_TEMPLATE_PATH: string;
 }
 import { StuffApi } from '../../../api/stuff';
 import { AppApi } from '../../../api/app';
@@ -130,12 +130,30 @@ export class PlayerLogic extends ApiLogic {
   /** See {@link PlayerApi.isAvatarStuff}. */
   @CallSecurity(PlayerApiCallers)
   public isAvatarStuff(stuff: Stuff): stuff is Avatar {
-    const path = stuff.getTemplatePath();
-    return (
-      path !== undefined &&
-      path !== null &&
-      path.startsWith(Avatar.TEMPLATE_PATH_PREFIX)
-    );
+    /*
+     * ⭐⭐ `instanceof` the ABSTRACT family root — the question is
+     * *is this somebody's body*, and that is a question about TYPE.
+     *
+     * ⚠⚠ This was a `templatePath` PREFIX TEST until 2026-10-01, and
+     * it was wrong in both directions, measurably:
+     *
+     *   - a `ShadeAvatar`'s row is `/platform/agent/ShadeAvatar`, which
+     *     does not start with `/platform/agent/Avatar/` — so **a dead
+     *     player was not a person** to the ~90 callers of this
+     *     predicate. `wallet`, `chat`, `forum`, `office` and
+     *     `contacts` carry no `requiresEmbodied` gate, so this was the
+     *     only thing deciding, and it refused every shade silently;
+     *   - a `SandboxAvatar` only passed because `SandboxApi` RESTAMPED
+     *     the vessel's lineage to `/platform/agent/Avatar/<pid>/wire`
+     *     purely to satisfy the string — a fake stamp whose comment
+     *     recorded that players lost their own powers inside their own
+     *     circle, "found live". That restamp is gone with this change.
+     *
+     * It is the same mistake `Stuff.getPlayerId`'s docstring warns
+     * about at length: **keying a PERSON question on LINEAGE.** That
+     * one cost a shared bank account and a dead labour market.
+     */
+    return stuff instanceof Avatar;
   }
 
   /** See {@link PlayerApi.registerAvatar}. */
@@ -477,10 +495,10 @@ export class PlayerLogic extends ApiLogic {
   private async standUpForEstate(identityPath: string): Promise<Avatar | null> {
     const playerId = identityPath.slice(AVATAR_IDENTITY_PREFIX.length);
     if (!playerId) return null;
-    const { default: AvatarClass } = await import('../../agent/Avatar');
+    const { default: AvatarClass } = await import('../../agent/PrimaryAvatar');
     try {
       return await StuffApi.clone<Avatar>(
-        (AvatarClass as unknown as AvatarClassRef).SEED_TEMPLATE_PATH,
+        (AvatarClass as unknown as AvatarClassRef).ROW_TEMPLATE_PATH,
         { playerId },
         { asIdentityPath: identityPath },
       );
@@ -513,7 +531,7 @@ export class PlayerLogic extends ApiLogic {
     // deliberately does not statically depend on — see
     // [architecture.md § Backend → mudlib import discipline] row 4.
     // Lazy-load to honor that discipline.
-    const { default: AvatarClass } = await import('../../agent/Avatar');
+    const { default: AvatarClass } = await import('../../agent/PrimaryAvatar');
     const avatars: Avatar[] = [];
     for (const playerId of user.playerIds) {
       // Reuse if already in-world (multiplexing).
@@ -558,7 +576,7 @@ export class PlayerLogic extends ApiLogic {
   ): Promise<Avatar> {
     const identityPath = AvatarClass.getTemplatePath(playerId);
     return StuffApi.clone<Avatar>(
-      AvatarClass.SEED_TEMPLATE_PATH,
+      AvatarClass.ROW_TEMPLATE_PATH,
       { user, playerId },
       { asIdentityPath: identityPath }
     );

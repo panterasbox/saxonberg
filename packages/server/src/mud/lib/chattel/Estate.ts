@@ -103,6 +103,18 @@ export interface Estate {
   _dropEstateEntry(chattelId: string): void;
   /** The live instance backing `chattelId`, if one is loaded. */
   getEstateLive(chattelId: string): Stuff | null;
+
+  /**
+   * Epoch ms the estate PASSED, or 0 — the one flag that tells a login
+   * "the treasury holds something of yours".
+   */
+  getEscheatedAt(): number;
+  /** Stamp or clear the escheat. Floors at 0. */
+  setEscheatedAt(at: number): void;
+  /** The named beneficiary's identity path, or '' for none. */
+  getBeneficiary(): string;
+  /** Name the beneficiary (an identity path), or '' to clear. */
+  setBeneficiary(identityPath: string): void;
 }
 
 export function EstateMixin<TBase extends MixinConstructor<Stuff>>(
@@ -112,12 +124,53 @@ export function EstateMixin<TBase extends MixinConstructor<Stuff>>(
     static _mixinName = "EstateMixin";
 
     /**
-     * Nothing field-shaped: the whole layer is the slice below. Declaring
+     * Nothing field-shaped, and now for a second reason.
+     *
+     * The original: the whole layer is the slice below, and declaring
      * no persistent fields keeps a host that has never owned anything
-     * byte-identical to its pre-estate record — the slice is emitted only
-     * when there is something in it.
+     * byte-identical to its pre-estate record.
+     *
+     * ⚠⚠ The one that bites: `captureState` runs a layer's
+     * `captureSlice` **or** its declared fields — never both. A
+     * `fieldMeta` entry on a mixin that also has a `captureSlice` is
+     * therefore **silently never persisted**. The succession state
+     * (`escheatedAt`, `beneficiary`) lives IN the slice for exactly
+     * that reason; see `EstateSlice`.
      */
     static fieldMeta: FieldMeta = {};
+
+    /**
+     * ⭐ Epoch ms the estate PASSED (economic bootstrap D17), or 0. Set by
+     * the escheat, cleared by the reclaim a return runs; the one flag that
+     * tells a login "the treasury holds something of yours". Public for
+     * the Hydrator; others read `getEscheatedAt`.
+     */
+    public escheatedAt: number = 0;
+
+    public getEscheatedAt(): number {
+      return this.escheatedAt;
+    }
+
+    public setEscheatedAt(at: number): void {
+      this.escheatedAt = Math.max(0, Math.floor(at));
+    }
+
+    /**
+     * The member's named BENEFICIARY (D17): an identity path the estate
+     * passes to instead of the treasury — unless they are themselves
+     * dormant, in which case the chain runs onward. '' = none. Set by
+     * `wallet beneficiary <player>`.
+     */
+    public beneficiary: string = '';
+
+    public getBeneficiary(): string {
+      return this.beneficiary;
+    }
+
+    public setBeneficiary(identityPath: string): void {
+      this.beneficiary = identityPath.trim();
+    }
+
 
     /**
      * chattelId → entry. Transient (rebuilt by `restoreSlice`), because the
@@ -203,7 +256,15 @@ export function EstateMixin<TBase extends MixinConstructor<Stuff>>(
               },
         );
       }
-      return { entries } satisfies EstateSlice;
+      return {
+        entries,
+        // ⚠⚠ In the SLICE, not in `fieldMeta`. `captureState` runs a
+        // layer's `captureSlice` **or** its declared fields, never
+        // both, so a field declared beside a slice is silently never
+        // written. Found by the round-trip test on the first run.
+        escheatedAt: self.getEscheatedAt(),
+        beneficiary: self.getBeneficiary(),
+      } satisfies EstateSlice;
     }
 
     /**
@@ -218,6 +279,15 @@ export function EstateMixin<TBase extends MixinConstructor<Stuff>>(
     ): Promise<void> {
       if (!("entries" in slice)) return;
       const self = host as unknown as Estate;
+      // Succession state first: it is plain data and nothing below
+      // depends on it, but a throw further down must not lose it.
+      const est = slice as EstateSlice;
+      if (typeof est.escheatedAt === "number") {
+        self.setEscheatedAt(est.escheatedAt);
+      }
+      if (typeof est.beneficiary === "string") {
+        self.setBeneficiary(est.beneficiary);
+      }
       for (const entry of (slice as EstateSlice).entries) {
         if (entry.place === ESTATE_STORAGE) {
           // Owned-but-unplaced. Nothing is cloned; the entry alone IS the

@@ -136,7 +136,7 @@ A command that needs a screen and finds none declines `no-display`
 > *The display you can see shows X.*
 
 `show(display, source)` sets `_showing`, then projects to **every
-viewer**: a `HasInteractive` Stuff with at least one Interactive
+viewer**: a `SaxonbergClient` Stuff with at least one Interactive
 attached, in the display's resting room, passing
 `PerceptionApi.perceives(viewer, display)` (that predicate is a
 concealment gate only, so the room check is explicit). Derived from the
@@ -270,7 +270,7 @@ methods do not justify a namespace:
 
 | leftover | home | why |
 |---|---|---|
-| the arrival/departure hook | **`HasInteractive.refreshDisplays()`** | it re-syncs the *viewer's* client state, and this mixin owns that state — it declares the `cockpit.watch` key itself |
+| the arrival/departure hook | **`SaxonbergClient.refreshDisplays()`** | it re-syncs the *viewer's* client state, and that mixin declares the `cockpit.watch` key itself. ⭐ It moved there with the key when `HasInteractive` split three ways: a viewer whose client cannot render an embed simply is not projected to, which is a display failing closed and honestly |
 | the implicit-screen ladder | **`CommandController.resolveScreen()`** | it is the fallback for a command that named no screen; the explicit form already resolves through the ordinary arg machinery |
 
 `_setShowing`'s `FromTemplate` gate existed only because the Api was the

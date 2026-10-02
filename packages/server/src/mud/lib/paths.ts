@@ -21,6 +21,27 @@ import { DOCUMENT_KINDS } from "./document/DocumentKinds";
 
 /** Exact platform template paths — direct singleton / class lookups. */
 export const TemplatePaths = {
+  /**
+   * ⭐ The ONE authored row every played body is cloned from.
+   *
+   * Lives here rather than on the class because it is a PATH, and
+   * because `lib/paths.ts` is a leaf: `Login` and `EmbodyController`
+   * read it, and statically importing the concrete `PrimaryAvatar`
+   * from either of them closes a module cycle through the abstract
+   * root (`Class extends value undefined`). `PlayerLogic` lazy-imports
+   * the class for the same reason.
+   *
+   * ⚠⚠ It was `/platform/agent/Avatar/seed` until 2026-10-01 — a
+   * fossil twice over. A signup used to FORK this row into a real
+   * per-player row at `/platform/agent/Avatar/<playerId>`, so the
+   * namespace held rows and `seed` was a reserved fake playerId
+   * guarding against colliding with a real one. Nothing forks anything
+   * now (state is `holder_snapshots` via the persistence spine), so
+   * `/platform/agent/Avatar/` holds no rows at all and is purely the
+   * identity namespace.
+   */
+  primaryAvatar: "/platform/agent/PrimaryAvatar",
+
   // Singleton registries.
   accessRegistry: "/platform/idea/AccessRegistry",
   parcelRegistry: "/platform/idea/ParcelRegistry",

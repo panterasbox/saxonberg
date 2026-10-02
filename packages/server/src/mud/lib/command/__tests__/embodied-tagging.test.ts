@@ -67,8 +67,22 @@ const PLATFORM_CATEGORIES = [
  * a READ, so each stays untagged. Adding to this list is a deliberate
  * ruling, which is the point of naming them.
  */
+/*
+ * ⚠ Whole-FILE reads. A view here must carry no `requiresEmbodied`
+ * anywhere in it.
+ *
+ * ⭐ `bank.yaml` left this set on 2026-10-01 and is the first MIXED
+ * view: bare `bank`, `balance`, `statement` and `book` are reads a
+ * shade keeps, while `deposit`, `withdraw` and `transfer` are tagged
+ * per-SUBCOMMAND — cash across a counter needs hands. The granularity
+ * this set models is the file; a mixed view simply graduates out of it
+ * and is covered by the "every material verb requires a body" check
+ * instead, which only asks that the tag appear somewhere.
+ *
+ * ⚠⚠ If a third mixed view shows up, this set is the wrong shape and
+ * the check wants subcommand awareness rather than another exemption.
+ */
 const READ_ONLY_IN_MATERIAL = new Set([
-  'platform/cmd/banking/bank.yaml',
   'platform/cmd/banking/wallet.yaml',
   'platform/cmd/banking/house.yaml',
   'platform/cmd/banking/reserve.yaml',

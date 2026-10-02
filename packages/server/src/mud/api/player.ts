@@ -15,7 +15,7 @@
  * `dest /platform/idea/api/player` reloads it.
  */
 
-import type Avatar from '../platform/agent/Avatar';
+import type Avatar from '../lib/character/Avatar';
 import type { EstateState } from '../lib/character/Estate';
 import type { User } from '../lib/identity/User';
 import { StuffApi } from './stuff';

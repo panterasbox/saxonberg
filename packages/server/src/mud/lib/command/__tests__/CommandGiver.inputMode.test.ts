@@ -15,6 +15,8 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Location from '../../stuff/Location';
 import { CommandGiverMixin } from '../CommandGiver';
 import { HasInteractiveMixin } from '../../connection/HasInteractive';
+import { ClientStateMixin } from '../../connection/ClientState';
+import { SaxonbergClientMixin } from '../../connection/SaxonbergClient';
 import { ContainableMixin } from '../../spatial/Containable';
 import { ContainerMixin } from '../../spatial/Container';
 import { SensorMixin } from '../../message/Sensor';
@@ -27,9 +29,9 @@ import type { MessageFrame } from '@saxonberg/types';
 import { Idea } from '../../stuff/Idea';
 import type Interactive from '../../../platform/idea/Interactive';
 
-class TestGiver extends HasInteractiveMixin(
+class TestGiver extends SaxonbergClientMixin(ClientStateMixin(HasInteractiveMixin(
   CommandGiverMixin(SensorMixin(ContainerMixin(ContainableMixin(Idea)))),
-) {
+))) {
   static _mixinName = 'TestGiver';
   static override commandContributions = {
     peers: [],

@@ -19,8 +19,8 @@ import { Stuff } from '../../lib/stuff/Stuff';
 import { ExecutionContextApi } from '../execution-context';
 import EventRegistry from '../../platform/idea/EventRegistry';
 import Interactive from '../../platform/idea/Interactive';
-import Avatar from '../../platform/agent/Avatar';
-import WireBody from '../../platform/agent/sandbox/WireBody';
+import Avatar from '../../platform/agent/PrimaryAvatar';
+import SandboxAvatar from '../../platform/agent/sandbox/SandboxAvatar';
 import { Events } from '../../lib/events';
 import { OMNI_SCOPE } from '../execution-context';
 import { ScheduleApi } from '../schedule';
@@ -28,6 +28,7 @@ import { AccountabilityApi } from '../accountability';
 import AccountabilityEvent, {
   type AccountabilityFields,
 } from '../../lib/accountability/AccountabilityEvent';
+import { Document } from '../../lib/persistence/Document';
 
 /*
  * ⚠⚠ **A 20 s timeout, and the number is a MEASUREMENT rather than a
@@ -101,16 +102,28 @@ beforeEach(() => {
       data: {},
     },
     {
-      path: '/platform/agent/sandbox/WireBody',
-      class: '/platform/agent/sandbox/WireBody',
+      path: '/platform/agent/sandbox/SandboxAvatar',
+      class: '/platform/agent/sandbox/SandboxAvatar',
       hydratorClass: '/platform/idea/persistence/PersistentHydrator',
-      data: { wirePlayerId: '' },
+      data: { playerId: '' },
     },
   ]);
 });
 
 describe('sandbox crossing', () => {
   beforeEach(async () => {
+    /*
+     * ⭐ A body whose `playerId` is known now resolves its own
+     * identity path, so the persistence spine engages at
+     * `postRegister` instead of waiting for a template stamp that
+     * these fixtures apply afterwards. Production always minted the
+     * identity first, so nothing changed there — but the spine is
+     * live here now and wants the resolver a booted world wires.
+     */
+    Document.setMarshallerResolver(
+      () => undefined,
+      async () => undefined,
+    );
     StuffApi.clearAll();
     ShadowApi._clearAllForTesting();
     EventApi._clearAllForTesting();
@@ -140,7 +153,7 @@ describe('sandbox crossing', () => {
     expect(session.occupants.size).toBe(1);
 
     const wireBody = SandboxApi.activeBodyFor(PLAYER)!;
-    expect(wireBody).toBeInstanceOf(WireBody);
+    expect(wireBody).toBeInstanceOf(SandboxAvatar);
     // circle-born, in the circle's entry room
     expect(wireBody.getCircleScope()).toBe(SCOPE);
     asSystem(() => {
@@ -300,9 +313,9 @@ describe('sandbox crossing', () => {
    * ⚠⚠ **Issue #42, and the reason it stayed invisible.**
    *
    * The accountability ledger keyed on `getTemplatePath()` while every
-   * other ledger keyed on `getIdentityPath()`. A `WireBody` is stamped
-   * `/platform/agent/Avatar/<playerId>/wire` — a vessel path, backed by
-   * nothing — while *projecting* the player's real identity. So an
+   * other ledger keyed on `getIdentityPath()`. A `SandboxAvatar` carries
+   * its own lineage — `/platform/agent/sandbox/SandboxAvatar` — while
+   * *projecting* the player's real identity. So an
    * in-circle harm filed under the **vessel**: invisible to
    * `blameFor(realIdentity)`, and unreachable by the one reader that
    * cares.
@@ -322,8 +335,18 @@ describe('sandbox crossing', () => {
     const vessel = SandboxApi.activeBodyFor(PLAYER)!;
     // The premise: the vessel's template path is its OWN, and it is not
     // the person. If these two ever converge, this test is lying.
+    //
+    // ⭐ The premise got STRONGER on 2026-10-01. This used to read
+    // `${Avatar.getTemplatePath(PLAYER)}/wire` — a synthetic path
+    // backed by no row, which `SandboxApi` restamped onto the vessel
+    // for one reason: `isAvatarStuff` asked "is this an avatar?" by
+    // prefix-testing `/platform/agent/Avatar/`, and an honest vessel
+    // failed it, costing the player their own powers inside their own
+    // circle. The predicate is `instanceof Avatar` now, so the vessel
+    // keeps its real lineage and the premise is a fact rather than a
+    // stamp someone had to remember to apply.
     expect(vessel.getTemplatePath()).toBe(
-      `${Avatar.getTemplatePath(PLAYER)}/wire`,
+      '/platform/agent/sandbox/SandboxAvatar',
     );
     expect(vessel.getIdentityPath()).toBe(Avatar.getTemplatePath(PLAYER));
 

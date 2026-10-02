@@ -148,9 +148,15 @@ describe('a card is born on the server, or not at all', () => {
      * sees the screen (the holder among them) — the onlooker's card is a
      * fact the server pushes, so the display is a birth path, not a
      * second one. A display drives itself, so the mint site is the mixin. Three more apply an ARRANGEMENT: `cockpit mode`, `cockpit
-     * layout`, and — new here — `Avatar.enter`, which is what made a
-     * saved workspace something you can simply return to rather than
-     * something you have to switch modes twice to get back. And the
+     * layout`, and the client mixin's `openArrangement`, called from
+     * `Avatar.enter` — which is what made a saved workspace something
+     * you can simply return to rather than something you have to
+     * switch modes twice to get back.
+     *
+     * ⭐ That third one moved from `Avatar.ts` to
+     * `SaxonbergClient.ts`: a pushed card is PROTOCOL any client
+     * renders, but *which cards an arrangement opens* is one client's
+     * answer, so the site belongs with the vocabulary. And the
      * prompt substrate PUSHES, because a question is the one card
      * nobody types a command to get. And `sense` opens one because
      * ARRIVAL auto-senses — walking into a room is how most room cards
@@ -169,7 +175,7 @@ describe('a card is born on the server, or not at all', () => {
       [
         'content/trade-farming/src/idea/reading/SoilSurveyReading.ts:open',
         'content/trade-mining/src/idea/reading/GroundReading.ts:open',
-        'mud/platform/agent/Avatar.ts:applyCardArrangement',
+        'mud/lib/connection/SaxonbergClient.ts:applyCardArrangement',
         'mud/lib/display/Display.ts:pushCard',
         'mud/platform/idea/api/PromptLogic.ts:pushCard',
         'mud/platform/idea/cmd/author/CmsController.ts:open',

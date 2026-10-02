@@ -354,8 +354,8 @@ suite('A — what the world CLAIMS', () => {
     expect(
       page,
       'Branded left Creature in this build — no player character, ' +
-        'Cast member, Extra, Shade or corpse carries a maker’s mark',
-    ).not.toMatch(/agent\/(Avatar|Cast|Extra|Corpse|Shade|Character)\b/i);
+        'Cast member, Extra, ShadeAvatar or corpse carries a maker’s mark',
+    ).not.toMatch(/agent\/(Avatar|Cast|Extra|Corpse|ShadeAvatar|Character)\b/i);
   }, 120_000);
 });
 
@@ -643,7 +643,7 @@ suite('D — the containers that lost their weather still hold things', () => {
  * `ConcealableMixin`, so every floor, hearth, forge, counter and yard
  * wall in the game carried author surface saying it could be OWNED and
  * HIDDEN — and `Creature` composed `Chattel`, saying the same of every
- * player, Cast member, Extra, Shade and corpse.
+ * player, Cast member, Extra, ShadeAvatar and corpse.
  *
  * ⚠⚠ **Nothing ever stamped one, so nothing behaved differently**, which
  * is precisely why this part is written against the inverse panel and
@@ -740,9 +740,9 @@ suite('E — what is a GOOD, and what is part of the place', () => {
     expect(
       page,
       '⭐⭐ and no PERSON is anybody’s chattel — Chattel left Creature in ' +
-        'this build, so no Avatar, Cast member, Extra, Shade or corpse ' +
+        'this build, so no Avatar, Cast member, Extra, ShadeAvatar or corpse ' +
         'appears here',
-    ).not.toMatch(/agent\/(Avatar|Cast|Extra|Corpse|Shade|Character)\b/i);
+    ).not.toMatch(/agent\/(Avatar|Cast|Extra|Corpse|ShadeAvatar|Character)\b/i);
   }, 120_000);
 
   it('⭐⭐ the concealable panel: loose things and bodies, not the place itself', async () => {

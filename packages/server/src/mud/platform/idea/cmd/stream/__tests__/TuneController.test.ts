@@ -10,7 +10,7 @@
 import "../../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import TuneController from '../TuneController';
-import Avatar from '../../../../agent/Avatar';
+import Avatar from '../../../../agent/PrimaryAvatar';
 import { StreamApi } from '../../../../../api/stream';
 import { MessageApi } from '../../../../../api/message';
 import {
