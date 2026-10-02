@@ -1860,9 +1860,21 @@ anywhere on the server's stack**: the repo's existing
 have protected this method.
 
 So: `@TestOnly` (`lib/security/decorators.ts`, the sixth decorator).
-Outside a test environment the member is **removed from the class** —
-`typeof WorldClockApi.advance === 'undefined'`, and the `eval` sandbox
-binding simply has no such key. Not denied: absent, as asked.
+Outside a test environment the member's body is replaced by one that
+**refuses and explains** — naming the seam, naming the three signals
+that would make a process a test environment, and repeating the seam's
+own `guidance` argument about what to reach for instead.
+
+⚠ **Round 3b corrected this.** The first version *deleted* the
+property, which is literally what *"as if the method doesn't even
+exist"* asks for — and the user's follow-up was right that it is the
+wrong trade: *"we may not want to just make it undefined. we probably
+want to throw a more helpful message about using test only methods in a
+normal env."* Absence is the strongest guarantee and the worst
+diagnostic (`TypeError: X.advance is not a function` says nothing about
+why and reads like a build problem), and it contradicts the repo's own
+standing rule that **the refusal is the interface**. Nothing is given
+up: the guarantee that matters is that the seam cannot be *used*.
 
 `SecurityApi.isTestEnvironment()` is the oracle — `VITEST`, or
 `NODE_ENV=test`, or ⭐ `SAXONBERG_TEST_WORLD=1`, which is set in exactly
@@ -1872,15 +1884,15 @@ environment it spawns, and a leaked copy once killed the boot outright.
 A dev world carries none of the three, which is the point.
 
 ⚠ **The implementation trap, recorded because it looks like a bug and
-isn't.** The removal cannot live in the decorator. TypeScript's legacy
+isn't.** The substitution cannot live in the decorator. TypeScript's legacy
 decorator emit threads one descriptor through every decorator and then
 calls `Object.defineProperty(target, key, descriptor)` itself at the
 end, so a `delete` inside a decorator is undone a microsecond later. The
 decorator only **records** the name; the withhold runs from
 `#wrapAllStaticMethods`, reached by the class's module tail
 (`SecurityApi.decorateApiClass(FooApi)`). The test asserts the *outcome
-after the tail has run*, so a refactor that "simplifies" the delete back
-into the decorator fails rather than silently restoring the method.
+after the tail has run*, so a refactor that "simplifies" it back into
+the decorator fails rather than silently restoring the live method.
 
 **Api statics only.** That is where reachability is decided (the sandbox
 binds Api classes and nothing else) and the only place deletion is
@@ -1904,6 +1916,19 @@ gate fail, then deleting it. ⚠ The gate's first draft matched the bare
 substring `@TestOnly` and flagged `EvalScript` and `WorldClockRegistry`
 for the *comments explaining* the marker — now it matches only a line
 that is nothing but the decorator.
+
+⚠⚠ **And the gate itself mis-matched twice**, which is worth more than
+the gate. First it read the bare substring `@TestOnly` and flagged
+`EvalScript` and `WorldClockRegistry` for the comments *explaining* the
+marker. Then, tightened to require a line that is exactly `@TestOnly`,
+it stopped seeing the repo's only real use the moment round 3b gave
+`advance` a `guidance` argument — and reported **"0 @TestOnly members
+marked ✔"**. ⭐ A green gate counting nothing is the precise failure
+this whole family exists to prevent, and a regex over source will keep
+having it. The backstop is therefore a *runtime* assertion:
+`TestOnly.test.ts` asserts
+`SecurityApi.getTestOnlyMembers(WorldClockApi).has('advance')`, which
+formatting cannot fool.
 
 It also prints a **census**: 41 Api statics that are test-only by name
 and not yet marked — the worklist for the user's later pass. ⭐ It is

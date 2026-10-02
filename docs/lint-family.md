@@ -1002,15 +1002,21 @@ configured**.
 - **`lint:test-seams`** — ⭐ **a test seam must be MARKED, and the mark
   must actually fire.** `@TestOnly` withholds an Api static outside a
   test environment (`SecurityApi.isTestEnvironment()`): in a normal
-  runtime the property is *deleted* from the class. Two structural
+  runtime the body is replaced by one that *refuses and explains*. Two
+  structural
   ceilings at **0**, both of which fail silently without the gate:
   a `@TestOnly` on a class with **no `decorateApiClass` tail** records a
   name nothing ever reads — the decorator is present, the review reads
-  as settled, and the method is fully live in production (the removal
-  cannot live in the decorator: `__decorate` re-defines the property
-  after every method decorator runs); and a `@TestOnly` on an **instance
-  member** throws only when the class is imported, which a test path
-  may never do. ⭐ It also prints a **census** of Api statics that are
+  as settled, and the method is fully live in production (the
+  substitution cannot live in the decorator: `__decorate` re-defines the
+  property after every method decorator runs); and a `@TestOnly` on an
+  **instance member** throws only when the class is imported, which a
+  test path may never do. ⚠ The gate is a regex and has mis-matched
+  both ways — reading the bare substring flagged the files whose
+  *comments explain* the marker, then requiring an exact line stopped
+  seeing the only real use the moment it took an argument, reporting
+  **"0 marked ✔"**. The backstop is a runtime assertion in
+  `TestOnly.test.ts`, not a tighter regex. ⭐ It also prints a **census** of Api statics that are
   test-only *by name* (`_*ForTest`/`_*ForTesting`) and not yet marked —
   41 today, the worklist for the sweep that generalizes the decorator.
   ⚠ The census is deliberately **not** ratcheted: test seams grow with

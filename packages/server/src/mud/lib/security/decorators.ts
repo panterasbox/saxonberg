@@ -19,8 +19,9 @@
  *   - `@Shadowing` — Shadow-class method-only. Marks a shadow method
  *     as intercepting a host method (matching local name, or
  *     remapped via `@Shadowing('hostName')`).
- *   - `@TestOnly` — Api-static-only. The member EXISTS only in a test
- *     environment; in a normal runtime it is deleted from the class.
+ *   - `@TestOnly` — Api-static-only. The member only WORKS in a test
+ *     environment; in a normal runtime it is replaced by a refusal that
+ *     says so.
  *   - `@ShadowSecurity` — host method-only. Per-method gate on
  *     `ShadowApi.attach` / `detach`. Two forms: `@ShadowSecurity(p)`
  *     for both ops, or `@ShadowSecurity({ attach, detach })` for
@@ -217,12 +218,12 @@ function _stampShadowing(cls: object, hostName: string, localName: string): void
 /* ─────────────────────────── @TestOnly ─────────────────────────── */
 
 /**
- * **This member is a test seam, and in a normal runtime it does not
- * exist.**
+ * **This member is a test seam, and in a normal runtime calling it is
+ * refused.**
  *
  * ```ts
  *   export class WorldClockApi {
- *     @TestOnly
+ *     @TestOnly('Nothing in the game moves the realm\'s clock.')
  *     public static advance(by: Quantity<'s'> | string): void { ... }
  *   }
  *   SecurityApi.decorateApiClass(WorldClockApi);
@@ -231,9 +232,20 @@ function _stampShadowing(cls: object, hostName: string, localName: string): void
  * Unlike every other decorator here, this one does not express a
  * *policy* — no question about the caller decides it. It asks what
  * process this is (`SecurityApi.isTestEnvironment()`), and outside a
- * test environment the property is **removed from the class**:
- * `typeof WorldClockApi.advance === 'undefined'`, the `eval` sandbox
- * binding has no such key, and nothing can argue its way in.
+ * test environment the body is replaced by one that throws
+ * `SecurityError` naming the seam, naming the three signals that would
+ * make a process a test environment, and repeating whatever guidance
+ * the decorator was given.
+ *
+ * ⚠⚠ **It used to DELETE the property, and that was worse.** Absence
+ * is the strongest possible guarantee and the worst possible
+ * diagnostic: the caller got `TypeError: WorldClockApi.advance is not a
+ * function`, which says nothing about why and reads like a build
+ * problem. It is also the wrong shape for this codebase, where **the
+ * refusal is the interface** — a thing that is withheld should be able
+ * to say it was withheld, and under what condition it would not be.
+ * The guarantee is unchanged in the only sense that matters: the seam
+ * cannot be *used*.
  *
  * ⭐ It is also a review marker, which is half the reason it exists: a
  * method carrying `@TestOnly` is scaffolding for the suite, and a
@@ -243,33 +255,60 @@ function _stampShadowing(cls: object, hostName: string, localName: string): void
  *
  * ⚠ **Api statics only, and the class must run the standard tail**
  * (`SecurityApi.decorateApiClass(FooApi)`, or a class-form
- * `@CallSecurity`). The removal happens there rather than here because
- * TypeScript's `__decorate` helper re-defines the property after every
- * method decorator has run — see `SecurityApi` § Test-ENVIRONMENT
- * withholding. An instance method is refused outright: a Stuff's
- * methods are reached through the call-security Proxy, which resolves
- * against the prototype chain, so deleting one own descriptor would be
- * a half-measure that reads as a guarantee.
+ * `@CallSecurity`). The substitution happens there rather than here
+ * because TypeScript's `__decorate` helper re-defines the property
+ * after every method decorator has run — see `SecurityApi` §
+ * Test-ENVIRONMENT withholding. An instance method is refused
+ * outright: a Stuff's methods are reached through the call-security
+ * Proxy, which resolves against the prototype chain, so replacing one
+ * own descriptor would be a half-measure that reads as a guarantee.
  *
  * ⚠ Contrast `SecurityApi.assertTestOnly(op)`, which asks the other
  * question — *is a test frame on the stack* — and is therefore blind to
  * a caller arriving over a socket.
+ *
+ * @param guidance one or two sentences for the refusal message saying
+ *   what the caller should reach for instead. Optional, and worth
+ *   writing: the generic half of the message explains the *mechanism*,
+ *   and only the seam's owner can explain the *alternative*.
  */
+export function TestOnly(guidance: string): MethodDecorator;
 export function TestOnly(
   target: object,
   propertyKey: string,
-  _descriptor: PropertyDescriptor
+  descriptor: PropertyDescriptor
+): void;
+export function TestOnly(
+  ...args: unknown[]
+): void | ((
+  target: object,
+  propertyKey: string,
+  descriptor: PropertyDescriptor
+) => void) {
+  if (args.length === 1 && typeof args[0] === 'string') {
+    const guidance = args[0];
+    return function (target: object, propertyKey: string): void {
+      _markTestOnly(target, propertyKey, guidance);
+    };
+  }
+  _markTestOnly(args[0] as object, args[1] as string, '');
+}
+
+function _markTestOnly(
+  target: object,
+  propertyKey: string,
+  guidance: string
 ): void {
   if (typeof target !== 'function') {
     throw new Error(
       `@TestOnly: ${propertyKey} is an instance method. The decorator ` +
         `withholds an Api STATIC (the surface the sandbox binds); an ` +
         `instance method is reached through the Proxy against the whole ` +
-        `prototype chain, where deleting one own descriptor would not ` +
-        `remove it. Gate the Api static that forwards here instead.`
+        `prototype chain, where replacing one own descriptor would not ` +
+        `withhold it. Gate the Api static that forwards here instead.`
     );
   }
-  SecurityApi._markTestOnly(target, propertyKey);
+  SecurityApi._markTestOnly(target, propertyKey, guidance);
 }
 
 /* ─────────────────────────── @ShadowSecurity ─────────────────────────── */

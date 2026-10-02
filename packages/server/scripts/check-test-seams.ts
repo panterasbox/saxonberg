@@ -3,12 +3,13 @@
  * actually fire.**
  *
  * `@TestOnly` (lib/security/decorators.ts) withholds an Api static
- * outside a test environment: in a normal runtime the property is
- * deleted from the class, so `typeof Api.member === 'undefined'` and the
- * `eval` sandbox binding has no such key. It is also the review marker
- * that tells scaffolding from the game — which is the half a reader
- * depends on, because `WorldClockApi.advance`, its first consumer, is
- * named exactly like a game verb.
+ * outside a test environment: in a normal runtime the body is replaced
+ * by one that throws, naming the seam, the three signals that would
+ * make a process a test environment, and what to reach for instead. It
+ * is also the review marker that tells scaffolding from the game —
+ * which is the half a reader depends on, because
+ * `WorldClockApi.advance`, its first consumer, is named exactly like a
+ * game verb.
  *
  * ## ⚠⚠ Why this gate exists: the mark has TWO silent failure modes
  *
@@ -16,7 +17,7 @@
  *     itself — TypeScript's `__decorate` helper threads one descriptor
  *     through every decorator and then calls `Object.defineProperty`
  *     at the end, undoing it. So the decorator only RECORDS the name,
- *     and the removal runs from `SecurityApi.decorateApiClass(FooApi)`
+ *     and it runs from `SecurityApi.decorateApiClass(FooApi)`
  *     at the class's module tail. A `@TestOnly` on a class with no tail
  *     records a name nothing ever reads: the decorator is present, the
  *     review reads as settled, and the method is fully live in
@@ -26,7 +27,7 @@
  *     class is imported, and a class nobody imported on the path a test
  *     happens to take never throws. A Stuff's methods are reached
  *     through the call-security Proxy against the whole prototype
- *     chain, where deleting one own descriptor would be a half-measure
+ *     chain, where replacing one own descriptor would be a half-measure
  *     that reads as a guarantee.
  *
  * Both ceilings are **0**: neither is a thing the repo should hold any
@@ -80,13 +81,21 @@ for (const file of packSrcFiles(MUD)) {
   const source = readFileSync(file, 'utf8');
   const lines = source.split('\n');
 
-  // ⚠ A USE of the decorator is a line that is nothing but `@TestOnly`.
-  // Matching the bare substring instead reads every comment that
-  // DISCUSSES the marker as a use of it — which, on the first run of
-  // this gate, flagged `EvalScript` and `WorldClockRegistry` for the
-  // paragraphs explaining why the clock's Api static carries it.
+  // ⚠ A USE of the decorator is a line that STARTS with `@TestOnly` —
+  // bare, or opening the `@TestOnly('guidance')` call form.
+  //
+  // Two mistakes already made here, both recorded because each looked
+  // right:
+  //  - matching the bare SUBSTRING read every comment that DISCUSSES
+  //    the marker as a use of it, and flagged `EvalScript` and
+  //    `WorldClockRegistry` for the paragraphs explaining it;
+  //  - then requiring the line to be EXACTLY `@TestOnly` stopped seeing
+  //    the only real use in the repo the moment it took an argument,
+  //    and the gate reported "0 marked ✔" — ⭐ a green gate counting
+  //    nothing, which is the failure mode this whole family exists to
+  //    prevent.
   const uses = lines
-    .map((l, i) => (/^\s*@TestOnly\s*$/.test(l) ? i : -1))
+    .map((l, i) => (/^\s*@TestOnly\b/.test(l) ? i : -1))
     .filter((i) => i >= 0);
 
   if (uses.length > 0) {
@@ -100,9 +109,26 @@ for (const file of packSrcFiles(MUD)) {
     // (2) static-only
     for (const i of uses) {
       markedCount++;
-      // The decorated member is the next non-blank, non-decorator line.
-      let j = i + 1;
-      while (j < lines.length && /^\s*(@\w|$|\/\/|\/\*|\*)/.test(lines[j] ?? '')) {
+      // The decorated member is the next declaration line — which means
+      // walking PAST the decorator's own argument list when it has one,
+      // so paren depth decides rather than line count.
+      let depth = 0;
+      let j = i;
+      for (; j < lines.length; j++) {
+        const text = lines[j] ?? '';
+        for (const ch of text) {
+          if (ch === '(') depth++;
+          else if (ch === ')') depth--;
+        }
+        if (depth <= 0 && j > i) break;
+        if (depth <= 0 && j === i && !text.includes('(')) break;
+      }
+      // …then past any blank lines, comments or further decorators.
+      j++;
+      while (
+        j < lines.length &&
+        /^\s*(@\w|$|\/\/|\/\*|\*)/.test(lines[j] ?? '')
+      ) {
         j++;
       }
       const decl = lines[j] ?? '';
@@ -164,8 +190,9 @@ if (onInstance.length > 0) {
   console.error(
     `\n@TestOnly withholds an Api STATIC — the surface the \`eval\` sandbox\n` +
       `binds. An instance method is reached through the call-security Proxy\n` +
-      `against the whole prototype chain, so deleting one own descriptor\n` +
-      `would not remove it. Mark the Api static that forwards there instead.`,
+      `against the whole prototype chain, so replacing one own descriptor\n` +
+      `would not withhold it. Mark the Api static that forwards there\n` +
+      `instead.`,
   );
 }
 

@@ -181,7 +181,16 @@ export class WorldClockApi {
    *   any world an author is working in, this is not callable, so it
    *   must not be visible in the generated docs either.
    */
-  @TestOnly
+  @TestOnly(
+    'Nothing in the game moves the realm\u2019s clock: there is one ' +
+      'clock, it is global, and a jump ages every reconcile-on-read ' +
+      'system in the world at once. A slow system reaches its own state ' +
+      'by being read, so it needs nothing from here \u2014 pin the ' +
+      'arithmetic in a unit test instead (Producing.test.ts and ' +
+      'SapStandard.test.ts walk real game years that way). A wire drive ' +
+      'that genuinely needs the skipped interval WALKED must own the ' +
+      'world it is driving: run it with WIRE_BOOT=1.',
+  )
   public static advance(by: Quantity<'s'> | string): void {
     logic().advance(by);
   }

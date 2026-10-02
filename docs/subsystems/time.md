@@ -23,11 +23,14 @@ nectar flow, a sap run — was invisible to any test or drive that
 finished. `taps.dirty.wire.test.ts` is the first drive in the repo that
 walks a season.
 
-⛔⛔ **It carries `@TestOnly`, so in a normal runtime it does not
-exist.** The property is deleted from `WorldClockApi` at class-load
-time; the `eval` sandbox binding has no such key. It exists only where
-`SecurityApi.isTestEnvironment()` is true — an in-process vitest run,
-or a world the wire runner booted and marked
+⛔⛔ **It carries `@TestOnly`, so in a normal runtime calling it is
+refused.** The body is replaced at class-load time by one that throws,
+naming the seam, the three signals that would make a process a test
+environment, and ⭐ what to reach for instead — *nothing in the game
+moves the realm's clock; pin the arithmetic in a unit test, and a drive
+that needs the interval walked must own its world (`WIRE_BOOT=1`)*. It
+works only where `SecurityApi.isTestEnvironment()` is true: an
+in-process vitest run, or a world the wire runner booted and marked
 (`SAXONBERG_TEST_WORLD=1`). A development world carries no such marker.
 
 ⚠⚠ **This corrects what this section said for a build and a half.** It
@@ -67,9 +70,10 @@ reason the method exists rather than a bare anchor bump.
 - **Reachable from the `eval` sandbox — in a test world only.**
   `WorldClockApi` is on `SANDBOX_NAMES` so a drive can read the clock
   and jump it; where `@TestOnly` has withheld `advance`, the same
-  binding exposes a clock you can read and schedule against but not
-  move. ⛔ No new verb and no `isWizard` check; `shutdown` stays
-  `SystemRoot`, so an eval still cannot freeze the world.
+  binding exposes a clock you can read and schedule against, and a jump
+  that refuses with an explanation. ⛔ No new verb and no `isWizard`
+  check; `shutdown` stays `SystemRoot`, so an eval still cannot freeze
+  the world.
 - ⛔⛔⛔ **But NOT from a quarantined circle.** Every clock MUTATOR
   (`advance`, `pause`, `resume`, `setScale`, `restore`) refuses when the
   caller sits inside a wire circle, because world time is global and
