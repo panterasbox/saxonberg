@@ -41,6 +41,7 @@ import { Mml } from '../../../../api/mml';
 import { ContainmentApi } from '../../../../api/containment';
 import { SchedulerApi } from '../../../../api/scheduler';
 import { OfferEngagement } from '../../../../lib/husbandry/OfferEngagement';
+import { SpeciesApi } from '../../../../api/species';
 
 const TOPIC = 'act.deed';
 
@@ -64,6 +65,16 @@ export default class OfferController extends CommandController<OfferModel> {
       return;
     }
 
+    // ⭐ Warm the animal's own species before reading any dial off it.
+    // Every bond dial (`feedsBy`, `handlingRange`, `biddability`,
+    // olfactory acuity) is on a lazy-loaded `Species` row and
+    // `getSpecies()` is a live-only lookup, so an unwarmed read answers
+    // ABSENT — and absent means *not in this conversation*, which is a
+    // refusal shape that passes every refusal-shaped assertion. Found
+    // live: `offer` to a cat answered `no-hand-rung`. ⚠ Each caller
+    // warms what it is about to read (the nine-caller precedent); it is
+    // idempotent and cheap after the first.
+    await SpeciesApi.preloadAnatomy(animal);
     const refusal = animal.wouldEat(food);
     if (refusal === 'not-edible') {
       this.say(context, actor, `It won't eat that.`, 'not-edible');

@@ -39,6 +39,7 @@ import type { CommandContext, CommandModel } from '../../../../api/command';
 import type { MqlOneResult } from '../../../../api/mql';
 import { MessageApi } from '../../../../api/message';
 import { MixinApi } from '../../../../api/mixin';
+import { SpeciesApi } from '../../../../api/species';
 import { PerceptionApi } from '../../../../api/perception';
 import { Mml } from '../../../../api/mml';
 
@@ -82,6 +83,12 @@ export default class StayController extends CommandController<StayModel> {
       });
       return;
     }
+
+    // ⭐ Warm the species before the dial read — `biddability` is on a
+    // lazily-loaded `Species` row and an unwarmed `getSpecies()` answers
+    // ABSENT, which reads as *not askable at all*: a refusal
+    // indistinguishable from a correct one.
+    await SpeciesApi.preloadAnatomy(animal);
 
     if (!animal.wouldComply(actor)) {
       // ⚠ The SAME line whether it does not know you or simply is not

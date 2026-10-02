@@ -24,6 +24,7 @@ import {
   ON_CREATE_LOADING_CEILING,
   CENSUS_AT_LANDING,
   LOADING_PREDICATE,
+  stripComments,
 } from '../check-on-create';
 
 describe('the ratchet', () => {
@@ -100,5 +101,30 @@ describe('the census walker — declarations only', () => {
     ]) {
       expect(DECL.test(line), line).toBe(false);
     }
+  });
+});
+
+describe('the predicate reads CODE, not prose', () => {
+  it('⚠⚠ a comment explaining that there is no longer any loading must not count', () => {
+    // The real case: the species warm left `Bonded.onCreate` and the
+    // comment in its place said the dials live on a "lazily loaded"
+    // Species row — which kept the hook in the state-loading set all by
+    // itself, so the ratchet silently refused to fall for the rest of
+    // the build. A census that counts the word "load" inside an
+    // explanation of its own absence is measuring the wrong thing.
+    const body = `{
+      // ⭐ The SPECIES WARM left this hook: the dials live on a lazily
+      // loaded Species row and getSpecies() is a live-only lookup.
+      this.home = this.homeKeyOf(room);
+    }`;
+    expect(LOADING_PREDICATE.test(body)).toBe(true); // ⬅ the raw body DOES
+    expect(LOADING_PREDICATE.test(stripComments(body))).toBe(false); // ⬅ the code does not
+  });
+
+  it('strips block comments and line comments, and keeps a URL intact', () => {
+    expect(stripComments('/* await x.find({}) */ this.a = 1;')).not.toMatch(/find/);
+    expect(stripComments('this.a = 1; // await x.find({})')).not.toMatch(/find/);
+    // `://` must not be read as the start of a line comment.
+    expect(stripComments('const u = "https://x/find";')).toMatch(/find/);
   });
 });

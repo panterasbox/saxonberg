@@ -58,7 +58,7 @@ export const ON_CREATE_CEILING = 81;
  * limb 3. This is the number the hydration build drives down, and the one
  * worth reading: a fall here is state that moved onto a declared source.
  */
-export const ON_CREATE_LOADING_CEILING = 37;
+export const ON_CREATE_LOADING_CEILING = 34;
 
 /**
  * ⚠ A fact about the past: the census the day the gate landed. Never edit
@@ -66,6 +66,17 @@ export const ON_CREATE_LOADING_CEILING = 37;
  * stops being one.
  */
 export const CENSUS_AT_LANDING = { implementations: 82, loading: 38 };
+
+/**
+ * ⚠ **An instrument correction, recorded so the ratchet stays honest.**
+ * The loading count read 38 at landing and 37 after `Cast` left; adding
+ * {@link stripComments} dropped it to **34** without any code moving.
+ * Three hooks were in the state-loading set on the strength of their
+ * PROSE alone. That is a measurement fix, not progress — the ceiling
+ * follows the better instrument, and this note is why the number jumped
+ * by more than the wave that was running.
+ */
+export const INSTRUMENT_NOTE_2026_10_01 = 'stripComments: 37 → 34';
 
 /**
  * Limb 3's smoke alarm. A body that reads a collection, resolves a
@@ -100,6 +111,23 @@ const DECL =
 function isComment(line: string): boolean {
   const t = line.trimStart();
   return t.startsWith("*") || t.startsWith("//") || t.startsWith("/*");
+}
+
+/**
+ * Strip comments from a body before the predicate reads it.
+ *
+ * ⚠⚠ Added 2026-10-01 because the gate caught the build's own PROSE. The
+ * species warm was moved off `Bonded.onCreate` onto the read path, and
+ * the comment left in its place — explaining that the dials live on a
+ * *lazily loaded* `Species` row — kept the hook in the state-loading set
+ * all by itself. A census that counts the word "load" in an explanation
+ * of why there is no longer any loading is measuring the wrong thing,
+ * and would have silently refused to ratchet for the rest of the build.
+ */
+export function stripComments(body: string): string {
+  return body
+    .replace(/\/\*[\s\S]*?\*\//g, ' ')
+    .replace(/(^|[^:])\/\/[^\n]*/g, '$1');
 }
 
 /** Extract the brace-matched body beginning at or after `from`. */
@@ -141,7 +169,7 @@ export function census(repoRoot: string): OnCreateSite[] {
       sites.push({
         file: relative(repoRoot, file),
         line: i + 1,
-        loading: LOADING_PREDICATE.test(body),
+        loading: LOADING_PREDICATE.test(stripComments(body)),
       });
     }
   }

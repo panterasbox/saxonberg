@@ -47,6 +47,7 @@ import { AppSettingKeys } from '../config/AppSettings';
 import { ScheduleApi, type ScheduleHandle } from '../../api/schedule';
 import { SchedulerApi } from '../../api/scheduler';
 import { MixinApi } from '../../api/mixin';
+import { SpeciesApi } from '../../api/species';
 import type { CommandContributions } from '../../api/command';
 import { ReactionApi } from '../../api/reaction';
 import { SoulApi } from '../../api/soul';
@@ -545,6 +546,37 @@ export function BehavedMixin<TBase extends MixinConstructor<Stuff>>(
       this._lastBeatAt = Date.now();
       const candidates = this._candidates();
       if (!candidates.length) return;
+
+      // ⭐⭐ Warm this agent's own species ONCE per beat, before any brain
+      // is asked anything.
+      //
+      // ⚠⚠ It has to be here and not in the brains, and that is a real
+      // constraint rather than a preference: `urgency()` is SYNCHRONOUS
+      // for most brains, and the dials it reads (`feedsBy`,
+      // `handlingRange`, olfactory acuity) live on a lazily-loaded
+      // `Species` row behind the live-only `getSpecies()`. A brain that
+      // tried to warm lazily in its own `act()` would never get there —
+      // an unwarmed `feedsBy('ground')` answers false, `urgency` returns
+      // `idle`, and `act` is never called, so the warm that `act` would
+      // have done never happens. A read path that gates itself on the
+      // thing it is trying to load cannot fault it in.
+      //
+      // ⭐ The beat is the honest place: it is async, it is about to ask
+      // every brain to read its host, and `preloadAnatomy` is idempotent
+      // and cheap after the first call. This is the same
+      // warm-beside-the-read rule the nine other callers follow — the
+      // beat IS the read site for a brain.
+      const host = this as unknown as Stuff;
+      if (MixinApi.isOrganism(host)) {
+        try {
+          await SpeciesApi.preloadAnatomy(host);
+        } catch {
+          // A missing species row is the shared substrate's tolerated
+          // case (`preloadAnatomy`'s own contract); a brain reading an
+          // absent dial is the documented refusal, not a crash.
+        }
+      }
+
       const watched = this._hasAudience();
 
       // ⭐ Unwatched, only the brains that declare they run unwatched are

@@ -1152,7 +1152,36 @@ unchanged in behaviour). The pack test (D15).
 `lint:family` green; `lint:on-create` census falls; the kernel diff
 attributable to the pack proof is empty.
 
-### W6 — The species read goes back to the read path
+### W6 — The species read goes back to the read path ✅ DONE
+
+> **Landed.** The warm leaves `Bonded.onCreate` (born-hungry and home
+> stay) and is called by `offer`, `call`, `stay`, `pet` and the
+> deliberation beat.
+>
+> ⚠⚠ **The brains cannot warm themselves, and the plan's caller list
+> missed why.** D11 lists "the `feeds`/`follows`/`homes` brains' `act`",
+> but `urgency()` is SYNCHRONOUS for most brains and is what decides
+> whether `act` runs at all. An unwarmed `feedsBy('ground')` answers
+> false → `urgency` returns `idle` → `act` is never called → the warm
+> that `act` would have done never happens. **A read path cannot fault
+> in the thing it gates itself on.** `Behaved._deliberate` warms once per
+> beat instead, before any brain is asked anything — for a brain, the
+> beat IS the read site.
+>
+> ⚠⚠ **The census gate was counting its own prose.** The comment left
+> where the warm used to be says the dials live on a *lazily loaded*
+> `Species` row, and that alone kept `Bonded.onCreate` in the
+> state-loading set — so the ratchet would have silently refused to fall
+> for the rest of the build. `check-on-create` strips comments before the
+> predicate now, which took the loading count 37 → **34 with no code
+> moving**: three hooks were in the set on the strength of prose. Labelled
+> in the script as a measurement fix rather than progress.
+>
+> ⭐ The new `Bonded` tests are the POSITIVE ones. The original defect hid
+> for a whole build because every assertion about it was refusal-shaped —
+> `no-hand-rung` is what an animal says when its species is ABSENT, so a
+> test asserting the refusal passed whether the warm worked or not.
+
 
 **Goal.** A newborn kept animal answers about its own feeding, handling
 and biddability because the verb that asks warms what it reads.

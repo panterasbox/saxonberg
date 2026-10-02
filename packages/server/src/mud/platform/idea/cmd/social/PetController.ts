@@ -23,6 +23,7 @@ import type { MqlOneResult } from '../../../../api/mql';
 import { MessageApi } from '../../../../api/message';
 import { MixinApi } from '../../../../api/mixin';
 import { Mml } from '../../../../api/mml';
+import { SpeciesApi } from '../../../../api/species';
 import { PET_REGARD, TOUCH_BAND } from '../../../../lib/husbandry/Bonded';
 
 /** Diegetic world-action topic — an act, not speech. */
@@ -55,6 +56,13 @@ export default class PetController extends CommandController<PetModel> {
     // ⚠ ONE refusal sentence for both gates. A player learns what to do
     // by watching the animal, not by being told which threshold they
     // missed — and an animal has no way to explain itself.
+    // ⭐ Warm the species before the dial read: `handlingAtLeast` is
+    // ceilinged by the species' `handlingRange`, which lives on a
+    // lazily-loaded `Species` row behind the live-only `getSpecies()`.
+    // An unwarmed read falls back to the module constants, which is a
+    // quietly WRONG answer rather than an obviously missing one.
+    await SpeciesApi.preloadAnatomy(animal);
+
     const tooWild = !animal.handlingAtLeast(TOUCH_BAND);
     const tooCold = animal.bondWith(actor) < TOUCH_BOND;
     if (tooWild || tooCold) {
