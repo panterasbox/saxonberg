@@ -4,7 +4,6 @@
 # drained mage stages worse than a rested one. The landed condition is
 # an IMPULSE — it decays on its own clock, suppression never touches it.
 class: /platform/idea/magic/Spell
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   spellId: dread
   name: Dread

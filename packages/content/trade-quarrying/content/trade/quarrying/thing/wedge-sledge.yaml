@@ -5,7 +5,6 @@
 # convenience rather than a requirement — and it is here because a working face
 # has both lying about and because a sledge is genuinely the right tool.
 class: /platform/thing/Tool
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   keywords: [sledge, hammer, maul, wedge]
   shortDescription: long-hafted sledge

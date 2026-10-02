@@ -16,7 +16,7 @@ import { SingletonMixin } from '../../lib/stuff/Singleton';
 import { StagedMixin } from '../../lib/stuff/Staged';
 import { ContainerMixin } from '../../lib/spatial/Container';
 import { ContainableMixin } from '../../lib/spatial/Containable';
-import PersistentHydrator from '../../platform/idea/persistence/PersistentHydrator';
+import TemplateApplier from '../../platform/idea/TemplateApplier';
 import { StuffApi } from '../../api/stuff';
 import { HotReloadApi } from '../../api/hot-reload';
 import { TemplateApi } from '../../api/template';
@@ -30,7 +30,6 @@ type Doc = Record<string, unknown> & {
   _id?: string;
   path: string;
   class: string;
-  hydratorClass?: string;
   data: Record<string, unknown>;
 };
 
@@ -136,32 +135,28 @@ describe('spawn substrate integration', () => {
   it('library props: dispatches singleton-vs-clone correctly', async () => {
     installInMemoryStore([
       {
-        path: PersistentHydrator.templatePath,
-        class: '/platform/idea/persistence/PersistentHydrator',
+        path: TemplateApplier.templatePath,
+        class: '/platform/idea/TemplateApplier',
         data: {},
       },
       {
         path: '/test/treasury',
         class: '/platform/idea/SpawnTreasury',
-        hydratorClass: PersistentHydrator.templatePath,
         data: {},
       },
       {
         path: '/test/sword',
         class: '/platform/idea/SpawnSword',
-        hydratorClass: PersistentHydrator.templatePath,
         data: { container: '/test/treasury' },
       },
       {
         path: '/test/potion',
         class: '/platform/idea/SpawnPotion',
-        hydratorClass: PersistentHydrator.templatePath,
         data: {},
       },
       {
         path: '/test/library',
         class: '/platform/idea/SpawnLibrary',
-        hydratorClass: PersistentHydrator.templatePath,
         data: { props: ['/test/sword', '/test/potion'] },
       },
     ]);
@@ -196,20 +191,18 @@ describe('spawn substrate integration', () => {
   it('a go-live re-hydrate does NOT mint a second set (populates runs once)', async () => {
     installInMemoryStore([
       {
-        path: PersistentHydrator.templatePath,
-        class: '/platform/idea/persistence/PersistentHydrator',
+        path: TemplateApplier.templatePath,
+        class: '/platform/idea/TemplateApplier',
         data: {},
       },
       {
         path: '/test/potion',
         class: '/platform/idea/SpawnPotion',
-        hydratorClass: PersistentHydrator.templatePath,
         data: {},
       },
       {
         path: '/test/library',
         class: '/platform/idea/SpawnLibrary',
-        hydratorClass: PersistentHydrator.templatePath,
         data: { props: ['/test/potion'] },
       },
     ]);
@@ -230,20 +223,18 @@ describe('spawn substrate integration', () => {
   it('clone-from-template with data.container places the child via Layer 3 (hydration self-placement)', async () => {
     installInMemoryStore([
       {
-        path: PersistentHydrator.templatePath,
-        class: '/platform/idea/persistence/PersistentHydrator',
+        path: TemplateApplier.templatePath,
+        class: '/platform/idea/TemplateApplier',
         data: {},
       },
       {
         path: '/test/treasury',
         class: '/platform/idea/SpawnTreasury',
-        hydratorClass: PersistentHydrator.templatePath,
         data: {},
       },
       {
         path: '/test/sword',
         class: '/platform/idea/SpawnSword',
-        hydratorClass: PersistentHydrator.templatePath,
         data: { container: '/test/treasury' },
       },
     ]);

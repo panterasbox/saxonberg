@@ -4,7 +4,6 @@
 # for v1 because the visual contrast against sapiens is sharper in
 # composition tables.
 class: /platform/idea/species/Species
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   illustration: species/khazadicus.png
   binomial: Homo khazadicus

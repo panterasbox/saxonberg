@@ -191,22 +191,24 @@ Reconcile-on-read over game-time, with **two deliberate divergences from
 2. ⚠ **No linkdead freeze.** An item has no `Interactive`, and a carried
    ration does not stop rotting because its owner dropped link.
 
-⚠⚠ **And it reads it ONCE, at the end of the interval** — `advance()`
-takes a single `tempK`, computes one `μ`, and applies it closed-form over
-the whole `elapsedS`. The stored state is `{ load, stamp }` with **no
-prior temperature**, so a driver that *moved* during the gap is
-reconstructed as though it had always been at its final value. Food in a
-fridge through a power cut insta-spoils if you look during the outage and
-— worse — **under-spoils silently if the power came back first.**
-`ContaminableMixin` has the same shape and no sense reports it.
+✅ **The trajectory contract (cold-storage build, 2026-10-01).** It used to
+read the temperature ONCE, at the end of the interval — `advance()` took a
+single `tempK` and billed the whole `elapsedS` at it, so a driver that
+*moved* during the gap was reconstructed as though it had always been at
+its final value. Food in a fridge through a power cut insta-spoiled if you
+looked during the outage and — worse — **under-spoiled silently if the
+power came back first.**
 
-⭐ `ThermalDose`, in this same doc, is the exemplar of the fix: *it
-integrates, it does not sample.* See
-[uncertainty.md § The second abstraction law](../uncertainty.md) for the
-rule and the four answers, and
-[reconcile-chains-slate](../slates/builds/reconcile-chains-slate.md) for
-the work. ⚠ `Freshness` also reads `getWaterActivity()`, which is itself a
-reconcile-on-read gauge — **the sampling chains two deep.**
+Now `FreshnessMixin` (and `ContaminableMixin`) **fold the logistic over the
+host's `temperatureTrajectory`**: the growth/death are multiplicative in
+the odds, so folding `advance` across the trajectory's midpoint samples is
+exact for a piecewise-constant rate and correct for the warm-then-cool
+curve. The host publishes the curve from a bounded breakpoint ring
+([thermal.md § The trajectory contract](./thermal.md)); the water-activity
+arm stays an end sample (justified — no stepped state for an enclosed
+slot's humidity). The ratchet `lint:reconcile-chains` holds every spoilage
+gauge to the trajectory. See
+[uncertainty.md § The second abstraction law](../uncertainty.md).
 
 The temperature the gauge reads is the host's own (`Thermal`), which is
 why `Provision` — the class every food row is over — composes

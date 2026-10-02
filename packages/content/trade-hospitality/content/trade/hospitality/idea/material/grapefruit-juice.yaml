@@ -1,7 +1,6 @@
 # Fresh grapefruit juice — house-made (the `press-grapefruit` recipe's authored output
 # material). Tag `grapefruit-juice` is what a sour slot matches.
 class: /platform/idea/material/ConsumableMaterial
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: grapefruit juice
   keywords: [grapefruit, grapefruit-juice, juice]

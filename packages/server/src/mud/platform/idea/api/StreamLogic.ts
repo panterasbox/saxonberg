@@ -43,7 +43,7 @@ const StreamApiCallers = SecurityPolicies.FromModule('/api/stream#StreamApi');
 
 /**
  * StreamLogic — the gated logic singleton behind {@link StreamApi}, at
- * `/platform/idea/api/stream`. Stateless (no `PostRegistrationMixin`); every method
+ * `/platform/idea/api/stream`. Stateless (no `onCreate` override); every method
  * resolves the {@link StreamRelay} state singleton via the module-private
  * `requireRelay` and gates on `FromModule('/api/stream#StreamApi')`. Channels
  * are addressed by `(service, handle)`; each transport is reached directly —

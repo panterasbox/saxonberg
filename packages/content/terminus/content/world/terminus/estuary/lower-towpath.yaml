@@ -1,7 +1,6 @@
 # The lower towpath — the working end of Wharfside, where things are
 # loaded rather than looked at.
 class: /platform/location/SingletonCartesianLocation
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: lower towpath
   keywords: [towpath, lower]

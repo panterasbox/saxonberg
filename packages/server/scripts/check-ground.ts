@@ -65,8 +65,8 @@
  *       not being addressable by its own name, and the keyword union
  *       retired the need for it. A detail naming a real sub-feature (the
  *       crossing's worn track, the yard's gutter) is the opposite case.
- *   (e) every Location class that overrides `postRegister` also chains
- *       `super.postRegister`. ⭐ The mixin's default is a NON-chaining
+ *   (e) every Location class that overrides `onCreate` also chains
+ *       `super.onCreate`. ⭐ The mixin's default is a NON-chaining
  *       no-op, so an override that forgets the call silently leaves its
  *       rooms with no floor and nothing else goes wrong. The kernel's
  *       roster test covers the kernel's classes; a pack's cannot be
@@ -246,7 +246,6 @@ interface Row {
   /** Repo-relative file. */
   file: string;
   class: string;
-  hydratorClass?: string;
   data: Record<string, unknown>;
 }
 
@@ -305,8 +304,6 @@ function contentRows(): Map<string, Row> {
         path: "/" + rel.split(/[\\/]/).join("/"),
         file: relative(REPO, file),
         class: d.class,
-        hydratorClass:
-          typeof d.hydratorClass === "string" ? d.hydratorClass : undefined,
         data: (d.data as Record<string, unknown>) ?? {},
       });
     }
@@ -506,14 +503,13 @@ function onGradeGuess(row: Row): boolean {
 
 /**
  * Every Location class in every pack `src/` (and the kernel's world tree)
- * that overrides `postRegister` without calling `super.postRegister`.
+ * that overrides `onCreate` without calling `super.onCreate`.
  *
- * ⭐ The failure it prevents: `PostRegistrationMixin`'s default is a
- * NON-chaining no-op, so `Location.postRegister` — which is what gives the
+ * ⭐ The failure it prevents: `Location.onCreate` — which is what gives the
  * room its floor — is simply skipped, and nothing else goes wrong. Six of
  * the family's overrides had no `super` call before the ground build.
  */
-function unchainedPostRegister(sources: readonly PackSource[]): string[] {
+function unchainedOnCreate(sources: readonly PackSource[]): string[] {
   const out: string[] = [];
   const files: string[] = [];
   for (const s of sources) files.push(...packSrcFiles(s.srcDir));
@@ -522,12 +518,12 @@ function unchainedPostRegister(sources: readonly PackSource[]): string[] {
   for (const file of files) {
     if (!file.endsWith(".ts") || file.includes("__tests__")) continue;
     const src = readFileSync(file, "utf8");
-    if (!/\bpostRegister\s*\(/.test(src)) continue;
+    if (!/\bonCreate\s*\(/.test(src)) continue;
     // Only a body, not a call or a reference.
-    if (!/\bpostRegister\s*\([^)]*\)\s*:\s*Promise<[^>]*>\s*\{/.test(src)) {
+    if (!/\bonCreate\s*\([^)]*\)\s*:\s*Promise<[^>]*>\s*\{/.test(src)) {
       continue;
     }
-    if (/super\.postRegister\b/.test(src)) continue;
+    if (/super\.onCreate\b/.test(src)) continue;
     // ⚠ Is the class actually on the Location path? Grepping the FILE for the
     // word `Location` is not the same question and answered yes for
     // `CommandGiver`, `CardRegistry` and `Screen`, none of which is a room —
@@ -538,8 +534,8 @@ function unchainedPostRegister(sources: readonly PackSource[]): string[] {
     if (!classPath) continue;
     if (!composesMixin(classPath, "Location", sources, cache)) continue;
     out.push(
-      `${relative(REPO, file)}: overrides postRegister without ` +
-        `super.postRegister — the mixin's default does NOT chain, so this ` +
+      `${relative(REPO, file)}: overrides onCreate without ` +
+        `super.onCreate — the mixin's default does NOT chain, so this ` +
         `class's rooms get no floor`,
     );
   }
@@ -686,7 +682,7 @@ function lint(): void {
   }
 
   // (e) a Location override that forgets to chain
-  failures.push(...unchainedPostRegister(sources));
+  failures.push(...unchainedOnCreate(sources));
 
   if (failures.length) {
     console.error(`\n✖ lint:ground — ${failures.length} finding(s):\n`);
@@ -698,7 +694,7 @@ function lint(): void {
     `check-ground: ${rs.length} Location row(s) resolve a ground; ` +
       `${floors.length} Floor row(s) all say 'ground' and 'floor'; ` +
       `${UNBACKED_GROUND_CLAIMS.length}/${UNBACKED_GROUND_CLAIMS_CEILING} ` +
-      `unbacked claim(s) outstanding; every Location postRegister chains.`,
+      `unbacked claim(s) outstanding; every Location onCreate chains.`,
   );
 }
 

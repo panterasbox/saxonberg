@@ -12,7 +12,6 @@
 # one row covers the whole continuum and the named cloths are three
 # points on it rather than three rows drifting apart.
 class: /trade/textiles/thing/ClothBolt
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: bolt of linen
   keywords: [bolt, cloth, web, length, linen]

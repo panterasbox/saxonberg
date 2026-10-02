@@ -1,4 +1,4 @@
-# FabricCatalogue — the singleton whose postRegister registers every
+# FabricCatalogue — the singleton whose onCreate registers every
 # authored fabric row into `Construction`'s second covering source (the
 # self-warming catalogue shape; eager via this pack's boot list, not an
 # AppBootstrap sequencer line).

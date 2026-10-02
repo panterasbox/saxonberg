@@ -21,7 +21,7 @@
  *   3. Derived default — titlecased last segment as the label,
  *      `'(no description)'`, family = path prefix.
  *
- * `postRegister` warms the cache from mongo via
+ * `onCreate` warms the cache from mongo via
  * `Template.findDescendants`. Descriptor edits land at next boot;
  * a future `invalidateCache` admin verb (currently unused but
  * left in place) would let authors trigger a refresh in-process.
@@ -35,7 +35,6 @@ import { DiagnosticApi } from '../../api/diagnostics';
 import { PersistApi } from '../../api/persist';
 import { Collections } from '../../lib/persistence/Collections';
 import { Idea } from '../../lib/stuff/Idea';
-import { PostRegistrationMixin } from '../../lib/stuff/PostRegistration';
 import { Template } from '../../lib/stuff/Template';
 import Topic from './Topic';
 import type {
@@ -50,7 +49,7 @@ import { TOPIC_ROOTS } from '@saxonberg/types';
 import type { VetoResult } from '../../lib/errors';
 import type { EvictionContext } from '../../lib/stuff/Stuff';
 
-const TopicCatalogueBase = PostRegistrationMixin(Idea);
+const TopicCatalogueBase = Idea;
 
 /** The six facets, as a unit — the slice every tier must produce. */
 type TopicFacets = Pick<
@@ -169,7 +168,7 @@ export default class TopicCatalogue extends TopicCatalogueBase {
    * collection. One mongo query at boot, then the public surface
    * is sync.
    */
-  public override async postRegister(_context?: unknown): Promise<void> {
+  public override async onCreate(_context?: unknown): Promise<void> {
     await this.loadCacheFromTemplates();
   }
 
@@ -189,7 +188,7 @@ export default class TopicCatalogue extends TopicCatalogueBase {
 
   private ensureCache(): void {
     if (this.cache !== null) return;
-    // Cache was never warmed (postRegister wasn't awaited, e.g. in
+    // Cache was never warmed (onCreate wasn't awaited, e.g. in
     // a unit test that doesn't go through the clone pipeline).
     // Start with an empty cache — the fallback / derived-default
     // tiers still produce a usable descriptor.

@@ -1,5 +1,4 @@
 class: /platform/thing/equipment/Weapon
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: leather whip
   keywords: [whip, leather]

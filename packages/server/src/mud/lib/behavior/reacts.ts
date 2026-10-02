@@ -14,6 +14,7 @@
 
 import type { EngagementSlot } from '../activity/Engaged';
 import type { BrainContext, BrainStatics } from './brain';
+import type { TaskKind } from './Urgency';
 
 interface ReactionRule {
   to?: string;
@@ -23,6 +24,10 @@ interface ReactionRule {
 
 export const brain = class {
   static label = 'reacts';
+  static kind: TaskKind = 'social';
+  static summary =
+    "Answers somebody else's emote with one of its own — the room " +
+    'noticing you noticed it.';
   static claims: readonly EngagementSlot[] = ['attention'];
 
   static act(ctx: BrainContext): void | Promise<void> {

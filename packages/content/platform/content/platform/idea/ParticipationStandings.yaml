@@ -1,4 +1,4 @@
-# ParticipationStandings — the singleton whose postRegister warms the
+# ParticipationStandings — the singleton whose onCreate warms the
 # participation aggregate read-cache and arms the command-dispatch tap +
 # the real-time recompute schedule (the self-warming shape; eager via
 # this pack's boot list, not an AppBootstrap sequencer line).

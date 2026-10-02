@@ -52,7 +52,6 @@ Persistable   it can be promoted to something the world remembers
   Behaved     it decides things: follows · feeds · homes
     Bonded    the bond, the home, the verbs           ⟵ the point
       Status  legible attention
-      PostRegistration  ⚠ innermost: its postRegister is a terminal no-op
       BeliefStore  its opinion of you — the bond's first factor
       Handling     how tractable it is — the second       ⟵ SIBLINGS
         Engaged · Mobile · Sensor · Named · Creature
@@ -131,9 +130,26 @@ no row provides. It follows a pack's `const Base = Mixin(X)` and
 `@saxonberg/server/mud/…` specifiers.
 
 ⚠ **The species must be warm.** `getSpecies()` is a live-only lookup and
-`requiresAnimate` warms the *actor's* species, never the animal's. A
-`Bonded` animal warms its own at `postRegister`; before it did, every
-dial read as absent live and every refusal-shaped test passed anyway.
+`requiresAnimate` warms the *actor's* species, never the animal's — so an
+unwarmed dial reads ABSENT, and absent means *not in this conversation*:
+a refusal shape indistinguishable from a correct one. Every dial read as
+absent live while every refusal-shaped test passed anyway, until `offer`
+answering `no-hand-rung` to a cat was found by driving.
+
+⭐ **The warm is the READER's, since 2026-10-01.** It sat on
+`Bonded.onCreate` for one build; warming a shared reference row somebody
+else authored is not hydration (nothing is remembered about this
+instance, there is no capture side, and `preloadAnatomy` already had nine
+callers doing it beside the reads that need it). `offer`, `call`, `stay`,
+`pet` and the deliberation beat each warm what they are about to read.
+
+⚠⚠ **The brains could not warm themselves, and that is why the BEAT
+does it.** `urgency()` is synchronous for most brains and is what decides
+whether `act` runs at all: an unwarmed `feedsBy('ground')` answers false
+→ `urgency` returns `idle` → `act` is never called → the warm `act` would
+have done never happens. *A read path cannot fault in the thing it gates
+itself on.* `Behaved._deliberate` warms once per beat, before any brain
+is asked anything.
 
 ## Feeding is a ladder, and the rungs are a species fact
 
@@ -214,7 +230,7 @@ through `Bonded`, never a number the player could see.
   [pathfinding-slate](../slates/builds/pathfinding-slate.md).
 
 **Born hungry.** `reserves` is engine-written, so a row cannot say a
-stray is thin because it is hungry; `Bonded.postRegister` seeds an
+stray is thin because it is hungry; `Bonded.onCreate` seeds an
 **unkept** animal at `BORN_HUNGRY_SATIATION`. A kept one restores its own
 reserves from its record over this.
 
@@ -321,11 +337,15 @@ reversals, and a lens pass. The durable lessons:
 - **Prose asserting behaviour the model does not back** is the immersion
   lens's failing pattern, and it shipped twice ("it waits until you step
   back", "it moves off as you look at it" over nothing).
-- **`PostRegistrationMixin` innermost** — its `postRegister` never calls
-  `super`; composed above a layer with its own, that layer is silently
-  dead ([antipatterns.md](../antipatterns.md)).
+- **The marker-mixin ordering trap, ⛔ now unwriteable.**
+  `onCreate`'s `onCreate` never called `super`, so
+  composed above a layer with its own hook that layer was silently dead —
+  which is exactly what happened to `Bonded` here. Fixed at the root in
+  2026-10-01: the hook is a terminal `onCreate` on `Stuff`, dispatched
+  unconditionally, with no marker to misplace
+  ([antipatterns.md](../antipatterns.md)).
 - **The room never pulls.** A per-room "who stands in me" query at
-  `postRegister` was tried and reversed the next day.
+  `onCreate` was tried and reversed the next day.
 
 The drives are `packages/wire/tests/pets.wire.test.ts` (clean) and
 `pets-offer.dirty.wire.test.ts` (buys rations with founder coin; the four

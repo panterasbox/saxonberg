@@ -1,6 +1,5 @@
 # The hand loom — four posts, a beam, and a shuttle you throw.
 class: /trade/textiles/thing/Loom
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: hand loom
   keywords: [loom, hand-loom, shuttle, heddle, hand]

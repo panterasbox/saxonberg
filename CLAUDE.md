@@ -131,7 +131,7 @@ behavior. Read the relevant doc before editing in its area.
   operators, filters, pronouns, examples)
 - Subsystem references in `docs/subsystems/`. Each doc is the source
   of truth for its area — read it before editing. Map entries are ONE-LINE pointers by design — a build that grows a subsystem expands the DOC, never this blurb.
-  - [templates.md](./docs/subsystems/templates.md) — clone pipeline, Hydrator, TemplateApi, folder/leaf invariant, `extends:` row inheritance
+  - [templates.md](./docs/subsystems/templates.md) — clone pipeline, the TemplateApplier (three phases × three modes; `hydratorClass` retired), TemplateApi, folder/leaf invariant, `extends:` row inheritance
   - [persistence.md](./docs/subsystems/persistence.md) — Document vs Templates→Stuff, PersistenceManager, hooks; the self-persistence spine (PersistableMixin → `holder_snapshots`)
   - [record-layer.md](./docs/subsystems/record-layer.md) — what the server remembers for you: the per-player frame store, `recall` over three corpora, the nightly reset policy
   - [lifecycle.md](./docs/subsystems/lifecycle.md) — create/destroy choreography, construction sentinel, onDestruct
@@ -211,7 +211,7 @@ behavior. Read the relevant doc before editing in its area.
   - [textiles.md](./docs/subsystems/textiles.md) — cloth and what it is FOR: purpose is which channel a garment intercepts, the covering ladder + derived `clo`, fit as two numbers and a stamp, the subtractive dye stack + fade, the soiling seam; the three-trade chain
   - [banking.md](./docs/subsystems/banking.md) — two-tier money, the conservation chokepoint, custodial banks, settle/credential, coinage, Terms, quotas
   - [attendant.md](./docs/subsystems/attendant.md) — storefront attention: queue + lease on AttendantMixin, AttendanceEngagement, idle-eviction sweep
-  - [employment.md](./docs/subsystems/employment.md) — the Business Idea, positions/roster/shifts/wages/tips; what a SEAT grants as data on the seat (`fulfills`/`purchases`, read off the shift — the maker marker retired); derived openings, the closed hiring vocabulary, the derived help-wanted sign, `apply` + `clock on/off`
+  - [employment.md](./docs/subsystems/employment.md) — the Business Idea, positions/roster/shifts/wages/tips; what a SEAT grants as data on the seat (`fulfills`/`purchases`, read off the shift — the maker marker retired); derived openings, the closed hiring vocabulary, the derived help-wanted sign, `apply` + `clock on/off`; the CALL (`call: regulars | rota`, `callFor` over capability → your regular → the freest → rotation) and the roster tick that relocates and covers
   - [contract.md](./docs/subsystems/contract.md) — the work-contract (gig) substrate: clauses over verifiable conditions, escrow, the board, the custodian rule
   - [credit.md](./docs/subsystems/credit.md) — money that is owed: the three-rung ladder (terms → inventory finance → working capital) gated on the borrower's own ledger, the reserve's window and the two rules, the Arrival Note, rates as the lender's posted Terms, default revealed-not-scheduled and cured by trading, and the estate — dormant · escheated · reclaimed
   - [collections.md](./docs/subsystems/collections.md) — canonical surfaces for collection-shaped mixins, naming axes
@@ -243,6 +243,7 @@ behavior. Read the relevant doc before editing in its area.
   - [ground.md](./docs/subsystems/ground.md) — ⭐ what you are STANDING on: every Location's floor minted at `postRegister`, the five-rung material ladder, the derived ten-word kind (never authored), `noDefaultFloor` vs `onGrade` as two different questions, and the `/system/ground` pack the column + the surface character moved into
   - [soil.md](./docs/subsystems/soil.md) — ground as a ledger: SoilMixin's four reserves + the sky edge, GroundCharacter (the third seeded field; character prices IMPROVEMENT, never yield), the survey ladder, `Field` + `plot`, the sward, winter
   - [ranching.md](./docs/subsystems/ranching.md) — the animal economy: the herdbook as a filed record (you file, you do not hold the pen), draft/return, `flesh` as a stock, the taps, three ROLES not three classes, ⚠ breeding writes SERVED only
+  - [taps.md](./docs/subsystems/taps.md) — ⭐⭐ taking a yield from a living thing on ITS schedule: the **feedback law** (does the act feed back on the rate — milk directly, eggs through a state the act prevents, wool/honey/sap not at all) and therefore whether there is anything to DECIDE at the act; `TapSpec` on `Species.production[]` + `TapWindowSpec` (`always · event · photoperiod · biome · weather`, `rising` splitting spring from autumn); `yieldShape` deciding whether a vessel is needed; `Tappable` as a SIBLING of `Workable`; ⛔ the standing-instruction relief was CUT in review (AC 7 unmet) → `standing-instructions-slate`
   - [apiculture.md](./docs/subsystems/apiculture.md) — bees: ⭐ the first RGO whose reservoir is somebody ELSE'S land (a colony forages a radius it does not own and leaves a fruit set behind), the colony as the animal and the queen the only individual, `ColonyMixin` wintering by its walls (`U = A/(t/k + R_films)`), swarm · abscond · starve, hefting as the read with no number in it, the sting that a veil and smoke price, crush-vs-spin as the epoch ladder
   - [forestry.md](./docs/subsystems/forestry.md) — the wood as a PLACE: ⭐ the four representations of a tree (place · slot-plant · record-rejected · prop), the `Wood` location that IS ground with a `StandMixin` cover (derive-on-read from its own soil, stamped only by the axe, read by `look` in words), `fell` and the **bole** (a trunk too heavy to lift, cross-cut a length at a time; every felled good stamped AND placed AND the feller captured), the persistable coppice `Panel` on a one-game-year rotation, the deed written by the ground, the closed wood vocabulary, daylight and no night, a second wood as rows only
   - [fishing.md](./docs/subsystems/fishing.md) — taking what a water holds: ⭐⭐ the fishery as a DERIVED record on a reach (the water pack's; capacity = Liebig habitat fit × abundance × length, only `drawn` is state, recovery by half-life), the reach reporting every parameter a tank will ever hold, the `Shore` read banded by competence, the bite as the fish's decision (one epistemic draw), the pure landing contest, ⭐ the rig as numbers on the rod coupled by the rows (present-at × where it feeds, the hook's gape, the lure worked not eaten, the keepnet a trap full of water), traps that reconcile at the haul, the fish as a `Contaminable` kept animal alive until it is not, the fisher and the fishmonger
@@ -270,7 +271,7 @@ behavior. Read the relevant doc before editing in its area.
   - [stacks.md](./docs/subsystems/stacks.md) — fungible stacks: Stackable quantity, split/merge/applyQuantity, the MQL quantity surface
   - [response-envelope.md](./docs/subsystems/response-envelope.md) — DispatchResponseEnvelope, 16 Note kinds, Status auto-escalation, CommandContext
   - [activity.md](./docs/subsystems/activity.md) — the engagement framework: SchedulerApi, EngagedMixin slots, the AbortReason vocabulary
-  - [behavior.md](./docs/subsystems/behavior.md) — NPC behavior: BehavedMixin data-specs, brains as modules, cadence/witness triggers, the NPC class
+  - [behavior.md](./docs/subsystems/behavior.md) — NPC behavior: BehavedMixin data-specs, brains as modules, witness/`candidate` triggers, the ONE deliberation beat per agent + `Urgency`'s four bands × five `TaskKind`s, the NPC class
   - [npc-dialogue.md](./docs/subsystems/npc-dialogue.md) — the tree-dialogue responder: `talk`, the DialogueConversation engagement, the choice wheel, auto-introduce
   - [biome.md](./docs/subsystems/biome.md) — atmospheric substrate: Biome Idea, the outward-walking chain resolver, SkyExposed; the instrument rungs are `instrumentation.md`'s now (rows over `Tool`, not classes); ⚠ `getBiome()` is a REGISTRY read and `BiomeCatalogue` is what warms the roster
   - [instrumentation.md](./docs/subsystems/instrumentation.md) — the reading ladder: ⭐⭐⭐ competence resolves DETAIL and never ACCESS; `analyze`/`measure`/`readings`/`sample`/`assay` flat over a `Reading` ROW any pack ships (`<root>/idea/reading/<channel>`), warmed by `ReadingCatalogue` (no Api); the seeded bracket, the instrument CEILING, the bench that keeps nothing of yours; ⚠ the article defect (`greedy: true`) and a required arg with no default both fail closed and SILENT
@@ -332,7 +333,24 @@ Which branch · does anyone else hold it · am I behind · is anything
 unpushed. **Both 2026-08-02 failures were visible in this output and
 nobody looked.**
 
-7. **Merge on ORIGIN through the GitLab tool, never the git CLI.** A
+7. ⭐⭐ **Reverting a wave? The baseline is the branch's own MERGE
+   POINT, never `origin/master`.** `git checkout origin/master -- <file>`
+   looks like a revert and is a **contamination**: master moves while you
+   build (58 commits, during one review round, on 2026-10-02), so it
+   pulls files from a master your branch has never merged — the
+   stale-tree failure class rules 1–6 exist for, wearing a different
+   hat. The safe sequence is to find the merge point, then verify
+   **per file** that only the wave touched it:
+
+   ```bash
+   git log --oneline <merge-point>..HEAD -- <file>   # only the wave's commits?
+   git checkout <merge-point> -- <file>
+   ```
+
+   The tell that caught it was a `git diff origin/master --stat` showing
+   deletions in a directory the wave never touched.
+
+8. **Merge on ORIGIN through the GitLab tool, never the git CLI.** A
    CLI merge performs the join in a worktree — the exact machinery
    rules 1–6 exist to keep away from — and it bypasses the MR, so the
    merge commit carries no review record and the remote never observes
@@ -654,7 +672,7 @@ create free-floating helper modules.
 |---|---|---|---|
 | Stuff class | `platform/<branch>/` if **instanceable**, `lib/<subsystem>/` if **only inherited** | `PascalCase.ts` | Runtime classes extending Stuff/Idea/Thing/etc. See "Instanceable lives in obj/" below. |
 | Mixin | `lib/<subsystem>/` | `PascalCase.ts` (no `Mixin` suffix) | Class-factory mixin; export `FooMixin`, marker `_mixinName = 'FooMixin'`. |
-| Brain | `lib/behavior/` | lowercase `verb.ts` | Path-resolved stateless strategy module for NPC behavior. Sole export `export const brain = class {…}` (a **named class-expression** so the HMR registry retains it), statics `label`/`claims`/`requiresFree`/`act`. No class name, no registry; re-resolved per invocation for HMR. See [behavior.md](./docs/subsystems/behavior.md). |
+| Brain | `lib/behavior/` | lowercase `verb.ts` | Path-resolved stateless strategy module for NPC behavior. Sole export `export const brain = class {…}` (a **named class-expression** so the HMR registry retains it), statics `label`/`claims`/`requiresFree`/`act`, plus the declaration set a `candidate` spec needs (`kind`/`summary`/`discipline`/`urgency`/`interruptibleBy`). No class name, no registry; re-resolved per invocation for HMR. See [behavior.md](./docs/subsystems/behavior.md). |
 | Named value-object / vocabulary / registry | `lib/<subsystem>/` (or top-level `lib/`) | `PascalCase.ts` / lowercase | A substrate primitive that isn't an instanceable Stuff but IS the module's one concept: value class (`Light`, `Quantity`), enum-like vocabulary + its validation array, or a platform registry (`lib/mixin.ts`, `lib/paths.ts`). The home that kills the `types.ts` reflex. |
 | Api | `api/` | lowercase `feature.ts` | Static `FeatureApi` — a thin, typed, gated **forwarding shell**; ends with `SecurityApi.decorateApiClass(FeatureApi)`. Exports only the class + its call-shape types (nothing instanceable). |
 | Api logic singleton | `platform/idea/api/` | `PascalCaseLogic.ts` | Stateless `Stuff` (`extends ApiLogic`, which extends `Idea`; no `PostRegistrationMixin`) holding a convertible Api's logic + protected internals; `@internal` on the class, methods gated `FromModule('/api/<feature>#<Feature>Api')`; HMR-able at `/platform/idea/api/<feature>`. The `FooApi` statics forward here. (`ApiLogic` is the shared base that makes every logic singleton residency-exempt — see [residency.md](./docs/subsystems/residency.md).) |
@@ -948,10 +966,12 @@ base-class narrowing added with NO twin, deliberately: nothing should
 clone a bare holder or a bare acting body, and `lint:instanceable`
 invariant 1 holds by construction.
 
-`hydratorClass:` is a **template path**, not a module path, despite
-looking like one. It is optional; when absent **no hydration runs**, so
-never drop it from a template that has a `data:` block — the content
-would be silently discarded. `lint:instanceable` gates both directions.
+⛔ **`hydratorClass:` is RETIRED (2026-10-01).** It had ONE value across
+1,528 rows for the project's life, no row ever used the opt-out, and
+forgetting it **silently discarded the row's whole `data:` block.** A row
+with `data:` now gets its data, automatically, via the `TemplateApplier`;
+`lint:instanceable` invariant 13 refuses the key. See
+[templates.md](./docs/subsystems/templates.md).
 
 ## Member Privacy: `#` vs TypeScript Modifiers
 
@@ -1124,7 +1144,7 @@ orchestration cases:
 | Raw hydration or a bespoke snapshot to persist a live host's runtime state | `PersistableApi.capture(host)` / `PersistableApi.materialize(host)` — the universal self-persistence spine. A host composes `PersistableMixin` (singleton, keyed by `templatePath`); capture/restore is per-mixin-composed and routed through call-security as the owning principal, into `holder_snapshots`. `Avatar.save()` → `capture`, `Avatar.restore()` → `materialize`. `restoreFromTemplate` is NOT this — it re-hydrates a live clone from an edited *template* (CMS/Pack content go-live); `snapshotToTemplate` was retired. See [persistence.md](./docs/subsystems/persistence.md). |
 | Reading `template.data.container` from a verb to decide where a clone lands | Let `applyContainer` do it — the Hydrator's Phase 2 self-places the instance during the clone cascade. Verbs `clone` post-clone and treat hydration-self-placement as Layer 3 in the precedence chain (`--into` → `--here` → self-placement → giver fallback). See `platform/idea/cmd/author/CloneController.ts`. |
 | `await GroupApi.isMember(playerId, ref)` inside a controller to gate a staff verb | `await AccessApi.can(giver, action, resource)` — resolves title via `ParcelApi.ownerOf` (parcel registry, longest-prefix) then dispatches on owner kind (group / player / organization); untitled → `null` → **denied**. See [access.md](./docs/subsystems/access.md) + [parcel.md](./docs/subsystems/parcel.md). |
-| Hard-coded "is this player an admin?" check | `await AccessApi.can(giver, action, resource)` (resource-targeted), or `AccessApi.canMutateZone(giver, zone)` for Zone-Template targets, `AccessApi.canAtPath(giver, action, path)` for the path-addressed trees, `AccessApi.heldExtents(giver)` for a within-your-extent listing (there is no author tier), `AccessApi.isWizard(giver)` for the orthogonal code-trust (TS-escape) axis (eval, reload, source-tree writes, **and the `class`/`hydratorClass`/`behaviors[].brain` content-template fields**), `AccessApi.isArchwizard(giver)` for the wizard-conferral axis. |
+| Hard-coded "is this player an admin?" check | `await AccessApi.can(giver, action, resource)` (resource-targeted), or `AccessApi.canMutateZone(giver, zone)` for Zone-Template targets, `AccessApi.canAtPath(giver, action, path)` for the path-addressed trees, `AccessApi.heldExtents(giver)` for a within-your-extent listing (there is no author tier), `AccessApi.isWizard(giver)` for the orthogonal code-trust (TS-escape) axis (eval, reload, source-tree writes, **and the `class`/`behaviors[].brain` content-template fields** — ⚠ whose justification is WRONG for `class`; see [access.md](./docs/subsystems/access.md)), `AccessApi.isArchwizard(giver)` for the wizard-conferral axis. |
 | Reaching `AccessRegistry` directly via `StuffApi.findByTemplatePath('/platform/idea/AccessRegistry')` and calling its methods | `AccessApi` — the Registry's public methods carry `@CallSecurity(FromModule('/api/access#AccessApi'))` and throw on any other caller. The facade is the only legitimate path. |
 | `static collectionName = 'users'` (or a module constant holding the literal) | `static collectionName = Collections.Users` — a literal names a collection the vocabulary cannot see, so it gets no schema doc, no index, no sandbox policy and no help topic, silently. Enforced by `pnpm lint:schema`; `__tests__` fixtures are the one exemption. |
 | `import { readFileSync } from 'fs'` (or `path`/`url`/`yaml`/`../backend/…`) anywhere in the mudlib | Only `api/**` + `platform/idea/api/**` import outside `src/mud/`. To load an authored data file: `SourceTreeApi.readYamlResource(import.meta.url, '…/file.yaml')` (`import.meta.url` is a language construct, not an import). Also `readResource` / `readJsonResource` / `listResource` (a directory of authored files) / `parseYaml` / `toMudPath` / `resolveFrom`. Enforced by `pnpm lint:imports`. |
@@ -1145,12 +1165,12 @@ Some specific reminders worth keeping in front of mind:
   contract violations throw; there are no boolean success flags.
   YAML-level validators handle user-input failures separately.
 - **Per-field invariants belong on setters**, not in `normalize()`-style
-  post-hydrate hooks. `PersistentHydrator`'s **two-phase dispatch**
-  prefers a `set<Field>` method (Phase 1) and falls back to
-  bracket-assign through any accessor pair on the prototype.
-  Instruction fields use the `apply<Field>` Phase 2 dispatch.
-  Cross-field invariants go in a custom `Hydrator` subclass — see
-  [templates.md § The Hydrator Contract](./docs/subsystems/templates.md#the-hydrator-contract).
+  post-hydrate hooks. The **`TemplateApplier`**'s phase-1 dispatch prefers
+  a `set<Field>` method and falls back to bracket-assign through any
+  accessor pair on the prototype; instruction fields use the
+  `apply<Field>` phase-2 dispatch, and `seed`-marked fields phase 3.
+  Cross-field invariants go in the host's own `onCreate` — see
+  [templates.md § Where a cross-field rule goes](./docs/subsystems/templates.md#where-a-cross-field-rule-goes).
 - **`Mixins` registry constants** in `lib/mixin.ts` — use
   `Mixins.X` instead of string literals when calling
   `MixinApi.hasMixin()`.

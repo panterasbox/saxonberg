@@ -9,6 +9,6 @@
 # rather than conventional; callers reach it with
 # `StuffApi.singleton(DormThemes.CATALOGUE_PATH)`.
 #
-# No `data:` block and therefore no `hydratorClass:` — the catalogue holds
-# no authored state of its own; its content is the sibling YAML.
+# No `data:` block, so no applier runs — the catalogue holds no authored
+# state of its own; its content is the sibling YAML.
 class: /world/terminus/eternal/duncan-hall/idea/DormThemes

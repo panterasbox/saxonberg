@@ -28,7 +28,6 @@
 # lives in a boiling pan, and two shipped profiles were silently frozen
 # by the strain gate once already.
 class: /platform/idea/maturation/MaturationProfile
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   key: maple-sap
   # The tag the sap material already carries.

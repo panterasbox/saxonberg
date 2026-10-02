@@ -2,7 +2,6 @@
 # category (the lager process differs from the grist up — the
 # distinction is honest, not administrative).
 class: /platform/idea/material/ConsumableMaterial
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: lager wort
   keywords: [wort, lager]

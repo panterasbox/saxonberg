@@ -3,7 +3,6 @@
 # (~0.2% carbon by weight); higher-carbon steels and alloy steels
 # (stainless, tool steel, …) are content extensions.
 class: /platform/idea/material/Material
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: steel
   keywords: [steel]

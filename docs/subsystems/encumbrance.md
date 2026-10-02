@@ -166,8 +166,8 @@ guard; there is no persistent "seeded" flag.
 > without either layer changing.
 
 The seed runs at read-time rather than from a post-hydrate hook because the
-`postRegister` chain is not uniformly threaded below `CommandGiver`
-(`Avatar.postRegister` does not `super`-call), so a `getMass()` override is
+`onCreate` chain is not uniformly threaded below `CommandGiver`
+(`Avatar.onCreate` does not `super`-call), so a `getMass()` override is
 the one seam that makes mass honest for *every* reader of *every* Creature
 subclass.
 

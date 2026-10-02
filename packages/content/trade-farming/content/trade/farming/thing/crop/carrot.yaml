@@ -11,7 +11,6 @@
 # identical can grade differently, and the one grown by someone who went
 # away for a fortnight is the poorer.
 class: /platform/thing/Crop
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: bunch of carrots
   keywords: [carrots, carrot, bunch, vegetable, veg]

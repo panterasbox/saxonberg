@@ -1,6 +1,5 @@
 # a citrus press — a bar tool offering the `juicer` capability.
 class: /platform/thing/Tool
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: citrus press
   keywords: [juicer, press, citrus-press, citrus]

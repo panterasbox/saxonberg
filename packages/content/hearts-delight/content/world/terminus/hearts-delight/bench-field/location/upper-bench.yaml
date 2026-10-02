@@ -18,7 +18,6 @@
 # `areaM2: 4000` — ten times the college's home field, and a tenth as
 # good. That is what dryland arable is.
 class: /trade/farming/location/Field
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   fieldName: the upper bench
   shortDescription: upper bench

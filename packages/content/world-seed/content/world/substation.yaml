@@ -10,7 +10,6 @@
 #
 # No ownerGroup this cycle: it collects nothing.
 class: /platform/idea/location/CartesianZone
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: The Drowned Substation
   cellSize: 3.0

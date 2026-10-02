@@ -739,7 +739,7 @@ export default class Hive extends HiveBase implements Splittable {
     }
     if (made) {
       // ⚠ Through a METHOD, not three field writes: the colony's state
-      // fields are public for the Hydrator, and the inter-stuff contract
+      // fields are public for the applier, and the inter-stuff contract
       // is methods. ⭐ The nuc comes out QUEENLESS by construction —
       // `seedFromSplit` takes no queen argument, because they raise their
       // own in about three weeks and that is the real cost of a split.

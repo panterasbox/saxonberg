@@ -4,7 +4,6 @@
 # CYCLES (claim → serve → bus → wash → rack) and a broken glass is a
 # shortfall on the stock sheet, bought like anything else.
 class: /trade/hospitality/thing/GlassRack
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: glass rack
   keywords: [rack, glass-rack, glassware, glasses, glass]

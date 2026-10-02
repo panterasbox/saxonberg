@@ -14,7 +14,6 @@
 # `PersonaMixin` — a horse that could cast a spell and take a job —
 # because `HaulerMixin`, which `hitch` gates on, lived only there.
 class: /platform/agent/DraftAnimal
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/perissodactyla/equidae/equus/caballus-major
   lifecycleState: alive
@@ -29,7 +28,7 @@ data:
   mass: 700
   behaviors:
     - brain: /lib/behavior/idles
-      trigger: cadence:70s
+      trigger: candidate
       config:
         pool:
           - { kind: free, value: "shifts a foot and lets its weight down again." }

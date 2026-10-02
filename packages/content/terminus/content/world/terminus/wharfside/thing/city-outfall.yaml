@@ -12,7 +12,6 @@
 # discharge `persistent` at the headwaters is a different lesson, and it
 # ships with Rejection.
 class: /system/water/thing/Conduit
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: outfall
   keywords: [outfall, sewer, arch, discharge, drain]

@@ -5,7 +5,7 @@
  * Composition: `Mountable(Hauler(Beast))`.
  *
  * ⚠⚠ **It replaces `platform/agent/HaulingCreature`, which was
- * `Mountable(PostRegistration(Character))` — a horse that was a
+ * `Mountable(Character)` — a horse that was a
  * PERSON.** That class's own docstring stated the reason in the repo's
  * words: *"The cart-pulling capability itself comes from `Character`
  * (which composes `HaulerMixin` — every PC and NPC-character can hitch a

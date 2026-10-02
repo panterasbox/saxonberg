@@ -126,10 +126,10 @@ and the governance trigger remain deferred to the Compact-governance build.
 
 ### SubjectCatalogue — the runtime view
 
-`obj/SubjectCatalogue.ts` is a singleton `Idea` + `PostRegistrationMixin`
+`obj/SubjectCatalogue.ts` is a singleton `Idea` + `onCreate`
 at `/platform/idea/SubjectCatalogue`, named after its root entity like
 `ChannelCatalogue` / `SoulCatalogue`. The `forum_subjects` Documents are
-the source of truth; the catalogue warms them at `postRegister` via
+the source of truth; the catalogue warms them at `onCreate` via
 `Subject.find({})` and serves resolution off in-memory indexes:
 
 - `byId: Map<subjectId, Subject>` (the warm-gate) + `byTitle:

@@ -7,7 +7,6 @@
 # well as the can (`water.yaml`'s `source` default), and what the can
 # IS is its class. A kind is minted by a CONSUMER (`lint:capabilities`).
 class: /platform/thing/WateringCan
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: tin watering can
   keywords: [can, "watering can", watering, tin]

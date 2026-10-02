@@ -6,7 +6,6 @@
 # poison). The only thing distinguishing this from a pure poison is the
 # pleasant low rung ("tipsy"). Zero-order (linear) clearance.
 class: /platform/idea/Condition
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: intoxicated
   signature: []

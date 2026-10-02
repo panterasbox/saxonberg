@@ -1,6 +1,6 @@
 /**
  * MaturationProfileCatalogue — the self-warming roster (the boot()-
- * retirement shape): postRegister stands up every MaturationProfile row
+ * retirement shape): onCreate stands up every MaturationProfile row
  * and skips foreign classes, the platform pack's boot manifest is what
  * makes it EAGER (asserted on the pack.yaml — the wiring is the part
  * that silently rots), and the query statics on MaturationProfile match
@@ -28,7 +28,7 @@ afterEach(() => {
 });
 
 describe('the roster warm', () => {
-  it('postRegister stands up MaturationProfile rows and skips foreign classes', async () => {
+  it('onCreate stands up MaturationProfile rows and skips foreign classes', async () => {
     vi.spyOn(Template, 'findByPathInfix').mockResolvedValue([
       {
         path: '/stuff/idea/maturation/red-wine',
@@ -52,7 +52,7 @@ describe('the roster warm', () => {
     });
 
     const catalogue = makeStuff(() => new MaturationProfileCatalogue());
-    await catalogue.postRegister();
+    await catalogue.onCreate();
     expect(stood).toEqual(['/stuff/idea/maturation/red-wine']);
     expect(Template.findByPathInfix).toHaveBeenCalledWith('/idea/maturation/');
   });

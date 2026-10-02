@@ -24,7 +24,6 @@
 # reason a steel gauntlet makes a burn worse — and resolves to
 # `frostbite`: it numbs rather than weeps, and it wants warmth.
 class: /platform/idea/magic/Spell
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   spellId: frost
   name: Frost

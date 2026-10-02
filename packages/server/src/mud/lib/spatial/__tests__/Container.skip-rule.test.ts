@@ -24,9 +24,8 @@ import { PersistableApi } from "../../../api/persistable";
 import { PersistableMixin } from "../../persistence/Persistable";
 import { EstateMixin } from "../../chattel/Estate";
 import { ContainerMixin } from "../Container";
-import { PostRegistrationMixin } from "../../stuff/PostRegistration";
 import { Idea } from "../../stuff/Idea";
-import PersistentHydrator from "../../../platform/idea/persistence/PersistentHydrator";
+import TemplateApplier from "../../../platform/idea/TemplateApplier";
 import { Document } from "../../persistence/Document";
 import { PersistenceManager } from "../../../../backend/PersistenceManager";
 import { makeStuffAtPath } from "../../security/__tests__/test-setup";
@@ -43,12 +42,12 @@ const ALICE_PATH = "/platform/agent/Avatar/alice";
 class Torch extends Good {}
 
 /** A room: a persistable container with no estate of its own. */
-class Room extends PersistableMixin(ContainerMixin(PostRegistrationMixin(Idea))) {
+class Room extends PersistableMixin(ContainerMixin(Idea)) {
   static fieldMeta: FieldMeta = {};
 }
 /** An owner: a persistable container that carries an estate. */
 class Owner extends PersistableMixin(
-  EstateMixin(ContainerMixin(PostRegistrationMixin(Idea))),
+  EstateMixin(ContainerMixin(Idea)),
 ) {
   static fieldMeta: FieldMeta = {};
 }
@@ -109,8 +108,8 @@ function installStore(): void {
 async function boot(): Promise<void> {
   installV1QuantityMarshallers();
   const reg = makeStuffAtPath(() => new ChattelRegistry(), "/platform/idea/ChattelRegistry");
-  await reg.postRegister();
-  makeStuffAtPath(() => new PersistentHydrator(), PersistentHydrator.templatePath);
+  await reg.onCreate();
+  makeStuffAtPath(() => new TemplateApplier(), TemplateApplier.templatePath);
   vi.spyOn(StuffApi, "clone").mockImplementation(
     ((path: string) =>
       Promise.resolve(makeStuffAtPath(() => new Torch(), path))) as unknown as

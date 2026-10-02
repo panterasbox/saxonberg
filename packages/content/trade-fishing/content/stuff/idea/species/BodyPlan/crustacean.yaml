@@ -7,7 +7,6 @@
 # shore crab is the `bait` role of the fishery and the one species here
 # that will not drown in your hand.
 class: /platform/idea/species/BodyPlan
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: crustacean
   slots: []

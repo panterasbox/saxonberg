@@ -6,13 +6,17 @@ converts* — the husbandry SHAPE (reconcile lazily on read, staged, no
 far-past guard, no linkdead freeze) with a different equation: the mass
 is already present and what changes is what it IS.
 
-> ⚠⚠ **This gauge has the longest horizon in the tree, and it samples its
-> driver once** (2026-09-30). `Maturing` reads `getTemperature()` at
-> reconcile and rates the whole elapsed span from it, so a cellar that
-> warmed for a day reconciles a three-month batch at whatever the
-> thermometer reads on the day somebody visits — and grade, mark and strain
-> all ride the outcome. ⭐ The fix is the **restamp** `ThermalDose` already
-> uses. [uncertainty.md § The second abstraction law](../uncertainty.md) · [reconcile-chains-slate](../slates/builds/reconcile-chains-slate.md)
+> ✅ **FIXED (cold-storage build, 2026-10-01).** This gauge has the longest
+> horizon in the tree, so sampling its driver once was the worst case:
+> `reconcileFerment` used to read `getTemperature()` and rate the whole span
+> from it, so a cellar that warmed for a day reconciled a three-month batch
+> at whatever the thermometer read on the visit — grade, mark and strain all
+> rode the outcome. It now reads the vat's `temperatureTrajectory(stamp,
+> now)` and **folds the conversion integral over the samples** (the kill is
+> the peak over samples, the worst stretch the minimum); culture and
+> evaporative windows take the time-weighted mean. The ratchet
+> `lint:reconcile-chains` holds it. [uncertainty.md § The second abstraction
+> law](../uncertainty.md) · [thermal.md § The trajectory contract](./thermal.md)
 
 ## ⭐⭐ The second evaporative consumer: sap → syrup (2026-10-01)
 
@@ -163,7 +167,7 @@ itself in a shipped trade) pre-builds refining for free. See
 distiller's deferred cuts rung*. **A new drink is rows alone** — proven by the cider test
 (`world/__tests__/fermentation-cider.test.ts`).
 
-`MaturationProfileCatalogue.postRegister` stands the roster up, eager via
+`MaturationProfileCatalogue.onCreate` stands the roster up, eager via
 the platform pack's `boot:` manifest (`sync-read`) — the
 reference-Ideas-inert-at-boot rule, self-warming (the
 Discipline/Recipe catalogue shape rather than an `Api.boot()`

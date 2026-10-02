@@ -8,7 +8,7 @@
  * get the channel**. No kernel list, no stanza in a platform view, no
  * boot sequencer line.
  *
- * ⚠⚠ **It warms lazily as well as at `postRegister`.** The
+ * ⚠⚠ **It warms lazily as well as at `onCreate`.** The
  * reference-Idea-inert-at-boot trap has bitten this repo three times —
  * a roster nothing stands up reads null forever on a fresh process and
  * every consumer silently answers "no such thing". The verbs resolve a
@@ -22,7 +22,6 @@
  */
 
 import { Idea } from '../../lib/stuff/Idea';
-import { PostRegistrationMixin } from '../../lib/stuff/PostRegistration';
 import Reading from '../../lib/instrument/Reading';
 import { StuffApi } from '../../api/stuff';
 import { Template } from '../../lib/stuff/Template';
@@ -32,7 +31,7 @@ import type { EvictionContext } from '../../lib/stuff/Stuff';
 /** Where this singleton lives. */
 export const READING_CATALOGUE_PATH = '/platform/idea/ReadingCatalogue';
 
-const ReadingCatalogueBase = PostRegistrationMixin(Idea);
+const ReadingCatalogueBase = Idea;
 
 export default class ReadingCatalogue extends ReadingCatalogueBase {
   /** channel token → the live Reading. Rebuilt by {@link warm}. */
@@ -52,7 +51,7 @@ export default class ReadingCatalogue extends ReadingCatalogueBase {
     };
   }
 
-  public override async postRegister(_context?: unknown): Promise<void> {
+  public override async onCreate(_context?: unknown): Promise<void> {
     await this.warm();
   }
 

@@ -10,7 +10,6 @@
 # milk is a fact about mammals and not about the trade. A cow gives it
 # whether or not anybody is ranching.
 class: /platform/idea/material/Material
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: milk
   keywords: [milk]

@@ -1,6 +1,5 @@
 # Sparkling wine — `carbonated`, so the spritz fizzes (the derived payload carries the tag).
 class: /platform/idea/material/ConsumableMaterial
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: sparkling wine
   keywords: [sparkling, wine, fizz]

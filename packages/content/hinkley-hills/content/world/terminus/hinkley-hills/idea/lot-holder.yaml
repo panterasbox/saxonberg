@@ -5,7 +5,6 @@
 # reaches beyond it are minted road-segment clones that stand as
 # frontage sells; Hinkley Court branches off segment 2.
 class: /system/residence/idea/PlatWarren
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   # The holding programme every sold lot is a keyed instance of (D16).
   programmePath: /world/terminus/hinkley-hills/idea/house-programme

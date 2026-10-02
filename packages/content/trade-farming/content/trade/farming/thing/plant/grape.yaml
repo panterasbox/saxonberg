@@ -3,7 +3,6 @@
 # distilling build's one new mechanic. The trellis is prose (P10).
 # No moisture reserve — the water lives in the ground (see peace-lily).
 class: /platform/thing/Plant
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: grapevine
   keywords: [grapevine, grape, vine, plant]

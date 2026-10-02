@@ -19,9 +19,8 @@ import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { EstateMixin } from '../Estate';
 import { PersistableMixin } from '../../persistence/Persistable';
-import { PostRegistrationMixin } from '../../stuff/PostRegistration';
 import { Idea } from '../../stuff/Idea';
-import PersistentHydrator from '../../../platform/idea/persistence/PersistentHydrator';
+import TemplateApplier from '../../../platform/idea/TemplateApplier';
 import { Document } from '../../persistence/Document';
 import { PersistableApi } from '../../../api/persistable';
 import { MixinApi } from '../../../api/mixin';
@@ -35,7 +34,7 @@ import {
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 
 class EstateHost extends PersistableMixin(
-  EstateMixin(PostRegistrationMixin(Idea)),
+  EstateMixin(Idea),
 ) {}
 
 let snapshots: Record<string, unknown>[] = [];
@@ -79,8 +78,8 @@ describe('⭐ the estate holds its own succession state', () => {
       name: 'lounge',
     });
     makeStuffAtPath(
-      () => new PersistentHydrator(),
-      PersistentHydrator.templatePath,
+      () => new TemplateApplier(),
+      TemplateApplier.templatePath,
     );
   });
   afterEach(() => {

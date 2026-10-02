@@ -51,7 +51,6 @@
  */
 
 import { Idea } from '../../lib/stuff/Idea';
-import { PostRegistrationMixin } from '../../lib/stuff/PostRegistration';
 // ⚠ The `lib/` BASE, not the concrete twin beside this file. `SkyExposedBiome`
 // extends `SkyExposedMixin(lib/biome/Biome)` and NOT
 // `platform/idea/Biome`, so `prototype instanceof platform/idea/Biome` is
@@ -65,7 +64,7 @@ import { Template } from '../../lib/stuff/Template';
 import type { VetoResult } from '../../lib/errors';
 import type { EvictionContext } from '../../lib/stuff/Stuff';
 
-const BiomeCatalogueBase = PostRegistrationMixin(Idea);
+const BiomeCatalogueBase = Idea;
 
 export default class BiomeCatalogue extends BiomeCatalogueBase {
   /** Residency veto — the roster's warm; a culled catalogue re-warms nothing. */
@@ -80,7 +79,7 @@ export default class BiomeCatalogue extends BiomeCatalogueBase {
     };
   }
 
-  public override async postRegister(_context?: unknown): Promise<void> {
+  public override async onCreate(_context?: unknown): Promise<void> {
     await this.warm();
   }
 

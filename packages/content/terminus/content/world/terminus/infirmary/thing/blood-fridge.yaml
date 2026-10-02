@@ -1,0 +1,24 @@
+# The infirmary's blood fridge — a powered ColdStore on the avenue feeder.
+# It keeps the ward's blood bags at bank temperature (≈ 4 °C) so a unit
+# lasts weeks instead of a day, and ships a colder freezer compartment
+# (the container-of-containers shape the hive already proves). Cut the
+# avenue and it warms; the units begin to spoil.
+class: /system/energy/thing/ColdStore
+data:
+  shortDescription: blood fridge
+  keywords: [fridge, refrigerator, blood-fridge, bloodfridge]
+  register: indefinite
+  longDescription: |
+    A white-enamelled cabinet wired into the ward's line, a gauge on its
+    door. The fridge compartment holds the blood bank cold; a smaller
+    freezer compartment sits inside it, colder still.
+  # ⭐ F4: a cold store authors its own insulation — the enclosure IS the
+  # envelope's leak (U·A). Cork-lined panels (pine, 0.1 m) hold the cold.
+  enclosure: { material: /stuff/idea/material/wood/pine, thicknessM: 0.1 }
+  interiorVolumeM3: 0.4
+  setpointK: 277
+  coolingCapacityW: 400
+  open: false
+  mass: 80
+  props:
+    - /world/terminus/infirmary/thing/freezer-box

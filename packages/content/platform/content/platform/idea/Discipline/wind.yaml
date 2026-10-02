@@ -17,7 +17,6 @@
 # (`refreshConferrals` fires when the band crosses in either direction),
 # and the first real conferral is the swim, when there is water.
 class: /platform/idea/Discipline
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   key: wind
   channel: conditioning

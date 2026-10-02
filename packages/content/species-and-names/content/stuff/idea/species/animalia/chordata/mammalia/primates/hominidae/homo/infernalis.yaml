@@ -2,7 +2,6 @@
 # marked by an old infernal heritage: horns, ember eyes, a vision
 # profile that leans low-light. Modestly long-lived (~120 years).
 class: /platform/idea/species/Species
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   illustration: species/infernalis.png
   binomial: Homo infernalis

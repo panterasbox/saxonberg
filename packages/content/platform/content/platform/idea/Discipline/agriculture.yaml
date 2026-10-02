@@ -14,7 +14,6 @@
 # broad→narrow→detailed spine as deferred content, and `medicine` sets the
 # precedent of a leaf anchoring its own detailed code without one.
 class: /platform/idea/Discipline
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   key: agriculture
   channel: knowledge

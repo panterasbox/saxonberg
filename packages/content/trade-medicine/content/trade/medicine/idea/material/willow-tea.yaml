@@ -1,7 +1,6 @@
 # Willow-tea — the analgesic (D10), folk medicine anyone can brew. NOT
 # prescription-only.
 class: /platform/idea/material/Material
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: willow-tea
   keywords: [willow-tea, tea, analgesic, willow]

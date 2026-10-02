@@ -8,7 +8,6 @@
 # ⚠ The moor's Locality cites `holloway:vale`; the feature wins over
 # the locality by design, and nothing on the moor row changes.
 class: /system/water/thing/Shore
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: black mere
   keywords: [mere, water, pool, tarn, shore, edge, holloway]

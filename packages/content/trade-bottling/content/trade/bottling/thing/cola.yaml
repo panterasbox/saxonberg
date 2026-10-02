@@ -1,6 +1,5 @@
 # The floor bottle of cola — 1 L, at target in the bottling stock.
 class: /platform/thing/Bottle
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: "bottle of cola"
   keywords: [cola, coke, bottle, mixer]

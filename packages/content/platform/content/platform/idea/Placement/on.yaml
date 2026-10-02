@@ -6,7 +6,6 @@
 # ⭐ `encloses: false` — a surface does not put anything inside anything.
 # Air, sight and reach all read straight past it to the room.
 class: /platform/idea/Placement
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: on
   prepositions: [on, onto]

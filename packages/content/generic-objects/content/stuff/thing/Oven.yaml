@@ -1,7 +1,6 @@
 # Oven — a baking / roasting furnace. A gentle cooking heat (500 K), far below
 # smelting; no bellows. Lit with `ignite`.
 class: /platform/thing/Oven
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: clay oven
   keywords: [clay, oven, hearth, furnace]

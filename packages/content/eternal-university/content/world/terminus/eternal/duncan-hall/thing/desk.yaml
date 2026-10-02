@@ -2,7 +2,6 @@
 # template), seeded into each DormRoom via its `props:` data. A work surface;
 # generic label, no Named.
 class: /world/terminus/eternal/duncan-hall/thing/Desk
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: plain desk
   keywords: [desk, plain]

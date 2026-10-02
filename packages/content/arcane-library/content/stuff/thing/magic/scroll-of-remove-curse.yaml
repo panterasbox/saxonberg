@@ -9,7 +9,6 @@
 # but not stocked like stationery. It is the item a player goes looking
 # for once, having learned the hard way what a cursed ring is.
 class: /system/arcana/thing/Scroll
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: scroll of remove curse
   keywords: [scroll, remove, curse]

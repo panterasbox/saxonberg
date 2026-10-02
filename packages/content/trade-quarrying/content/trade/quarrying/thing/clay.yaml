@@ -9,7 +9,6 @@
 # rather than minting a `mineral/clay` beside it — which is the whole reason
 # the plan's own instruction to create one was wrong.
 class: /trade/quarrying/thing/Lump
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   keywords: [clay, lump]
   shortDescription: lump of clay

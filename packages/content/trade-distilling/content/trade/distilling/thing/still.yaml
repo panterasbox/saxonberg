@@ -3,7 +3,6 @@
 # capability, and the Still class is its own furnace (ignite it and
 # 351 K is in reach).
 class: /trade/distilling/thing/Still
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: copper pot still
   keywords: [pot, still, pot-still, copper]

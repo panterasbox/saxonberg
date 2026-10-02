@@ -14,7 +14,6 @@
 # argument: a birch gives sap whether or not anybody is sugaring. The
 # SYRUP is the trade's, because somebody has to make it.
 class: /platform/idea/material/ConsumableMaterial
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: maple sap
   keywords: [maple-sap, sap, maple]

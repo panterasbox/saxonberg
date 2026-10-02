@@ -33,7 +33,7 @@ let rootCache: string | null = null;
  * `StuffApi.singletonSync`. Any module that grabs this singleton and
  * calls a method other than through the Api gets `SecurityError`.
  *
- * Stateless by construction (no `PostRegistrationMixin`): the sandbox
+ * Stateless by construction (no `onCreate` override): the sandbox
  * root is memoised in the module-private `rootCache`, not on the
  * instance. The discovery body shared by `getSandboxRoot`, `resolvePath`,
  * and `toDisplayPath` lives in the module-private `sandboxRoot` free

@@ -3,7 +3,6 @@
 # and it RUNS OUT: each is consumed by one dressing (`treat`/`set` spend
 # it), so the clinic's stock is finite. The shipped `Bandage` (DressingMixin).
 class: /platform/thing/Bandage
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: clean bandage
   keywords: [bandage, clean, dressing, linen]

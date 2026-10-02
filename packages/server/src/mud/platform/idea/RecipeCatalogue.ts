@@ -17,13 +17,12 @@
  */
 
 import { Idea } from '../../lib/stuff/Idea';
-import { PostRegistrationMixin } from '../../lib/stuff/PostRegistration';
 import { Recipe } from '../../lib/craft/Recipe';
 import { DocumentApi } from '../../api/document';
 import type { VetoResult } from '../../lib/errors';
 import type { EvictionContext } from '../../lib/stuff/Stuff';
 
-const RecipeCatalogueBase = PostRegistrationMixin(Idea);
+const RecipeCatalogueBase = Idea;
 
 export default class RecipeCatalogue extends RecipeCatalogueBase {
 
@@ -70,7 +69,7 @@ export default class RecipeCatalogue extends RecipeCatalogueBase {
     return this.cache!.has(recipeId);
   }
 
-  public override async postRegister(_context?: unknown): Promise<void> {
+  public override async onCreate(_context?: unknown): Promise<void> {
     await this.warm();
   }
 

@@ -6,7 +6,6 @@
 # chemistry from the other two entirely: no mordant, a reduction, and
 # the colour arriving in the AIR afterwards.
 class: /platform/thing/Crop
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: armful of woad leaves
   keywords: [woad, leaves, leaf, dyestuff, pastel, armful]

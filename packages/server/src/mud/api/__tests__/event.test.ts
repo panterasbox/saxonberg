@@ -283,7 +283,7 @@ describe('EventApi', () => {
 
   it('survives EventApi.on for an event where the registry has no prop yet (returns null cache, succeeds)', async () => {
     const reg = await makeRegistry();
-    // Ensure the prop exists — postRegister created all standard
+    // Ensure the prop exists — onCreate created all standard
     // events. Subscribing returns lastPayload === null prior to any
     // emit; that's the "no NEVER_EMITTED sentinel needed" property.
     const sub = EventApi.on(Events.ModuleReloaded, () => {});
@@ -294,18 +294,18 @@ describe('EventApi', () => {
   });
 });
 
-describe('EventRegistry composition + postRegister', () => {
+describe('EventRegistry composition + onCreate', () => {
   beforeEach(() => {
     StuffApi.clearAll();
     EventApi._clearAllForTesting();
   });
 
-  it('composes PropertiedMixin + PostRegistrationMixin', async () => {
+  it('composes PropertiedMixin and overrides onCreate', async () => {
     const reg = await makeRegistry();
     // Sanity: it IS a Stuff and has setProp.
     expect(reg).toBeInstanceOf(Idea);
     expect(typeof reg.setProp).toBe('function');
-    expect(typeof reg.postRegister).toBe('function');
+    expect(typeof reg.onCreate).toBe('function');
   });
 
   it('initializes every Events.* so EventApi.on resolves for each', async () => {

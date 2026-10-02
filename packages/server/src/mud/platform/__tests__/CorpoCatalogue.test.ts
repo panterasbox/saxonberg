@@ -38,7 +38,7 @@ function stubTemplates(corpos: Loose[], brands: Loose[]): void {
 async function warm(corpos: Loose[], brands: Loose[]): Promise<CorpoCatalogue> {
   stubTemplates(corpos, brands);
   const cat = makeStuff(() => new CorpoCatalogue());
-  await cat.postRegister();
+  await cat.onCreate();
   return cat;
 }
 

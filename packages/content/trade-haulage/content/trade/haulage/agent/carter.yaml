@@ -32,7 +32,7 @@ data:
   # ── the dossier ─────────────────────────────────────────────────
   # Evidence, never values: each entry below expands into the same rows a
   # lived history would have written, marked `claim`. Seeded once at
-  # postRegister and skipped if any claim already exists, so a reclone or
+  # onCreate and skipped if any claim already exists, so a reclone or
   # a reboot cannot mint a second history.
   # ⚠ A best-guess pass, explicitly provisional — the considered version
   # is a content pass of its own before go-live.
@@ -55,7 +55,7 @@ data:
     # carter finds nothing, which is exactly what AC15e asks for and
     # costs no coordination at all.
     - brain: /trade/haulage/behavior/hauls
-      trigger: cadence:4m
+      trigger: candidate
       config:
         boards:
           - /trade/haulage/thing/works-board
@@ -72,7 +72,7 @@ data:
         # be teleporting in all but name.
         batch: 1
     - brain: /lib/behavior/idles
-      trigger: cadence:60s
+      trigger: candidate
       config:
         pool:
           - { kind: free, value: "checks a strap that did not need checking." }

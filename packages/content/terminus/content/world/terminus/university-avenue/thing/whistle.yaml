@@ -4,7 +4,6 @@
 # (breath/skill) is banked for the future player whistle. Generic object:
 # Visible.shortDescription, never Named.
 class: /world/terminus/university-avenue/thing/Whistle
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: brass pea whistle
   keywords: [whistle, brass, pea, cord]

@@ -61,7 +61,7 @@ async function warmCatalogue(): Promise<void> {
     () => new GovernmentCatalogue(),
     "/platform/idea/GovernmentCatalogue"
   );
-  await cat.postRegister();
+  await cat.onCreate();
 }
 
 function installLocality(

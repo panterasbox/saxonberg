@@ -21,7 +21,6 @@
 # ⭐ In the TRADE rather than the commons, unlike the sap: sap is a fact
 # about a tree and syrup is a thing somebody made.
 class: /platform/idea/material/ConsumableMaterial
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: maple syrup
   keywords: [maple-syrup, syrup, maple]

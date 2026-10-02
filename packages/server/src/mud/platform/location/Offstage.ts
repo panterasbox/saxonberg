@@ -19,11 +19,6 @@ import type { FieldMeta } from '../../lib/mixin';
 // `CartesianLocation` does), so every room class built directly on
 // `Location` has to remember. These rows were authoring `primaryKeyword`
 // into a void until 2026-09-11; `lint:presentation` clause (d) found it.
-// ⭐ `PostRegistrationMixin` is NOT composed here: it moved down into
-// `Location`'s own base stack (the ground build), because the mixin's
-// default `postRegister` is a non-chaining no-op — a second composition
-// above the base would SWALLOW `Location.postRegister`, and with it the
-// room's floor.
 const OffstageBase = SingletonMixin(
   OffstageMixin(Location)
 );

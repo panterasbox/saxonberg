@@ -10,7 +10,6 @@
 # be: a channel token cannot carry the agent's chemistry, but a real
 # material can, and does.
 class: /platform/idea/magic/Spell
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   spellId: acid-splash
   name: Acid Splash

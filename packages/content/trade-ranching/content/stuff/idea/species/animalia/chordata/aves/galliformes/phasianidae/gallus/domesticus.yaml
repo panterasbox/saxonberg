@@ -11,7 +11,6 @@
 # ⚠ And it accrues rather than expires, which is D93 and the same reason
 # it is the on-ramp: a hen forgives an absence that a dairy cow does not.
 class: /platform/idea/species/Species
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   binomial: Gallus domesticus
   commonNames: ["hen", "chicken", "fowl", "cockerel", "pullet", "bird"]

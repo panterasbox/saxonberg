@@ -7,7 +7,6 @@
 # long, frightening one — which is exactly the window a medic exists for,
 # and why its `resolution.by` is `antitoxin` and not `rest`.
 class: /platform/idea/Condition
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: botulinum toxin
   # Fluid loss, and the paralytic dullness of a serious neurotoxin.

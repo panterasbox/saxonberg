@@ -13,7 +13,7 @@
  * `Character`, because both rungs of person need it and nothing below
  * does. ⭐ The FIELD and its applier are `CostumedMixin`'s, beside
  * `props:` and `cast:` in `lib/stuff/Staged.ts` — it shipped as a
- * `wears: string[]` on `NPC` with a `postRegister` dressing step, and
+ * `wears: string[]` on `NPC` with a `onCreate` dressing step, and
  * review named it: that was `applyProps` with the designation check
  * missing plus one slot occupation.
  *
@@ -102,7 +102,7 @@ describe('NPC costume — the third designation', () => {
     const spy = spyOnDressing(n);
     stubTemplates({ [SHIRT]: WEARABLE, [TROUSERS]: WEARABLE });
     await n.applyCostume([SHIRT, TROUSERS]);
-    // ⭐ The once-flag, which the old `postRegister` shape did not have:
+    // ⭐ The once-flag, which the old `onCreate` shape did not have:
     // `restoreFromTemplate` re-runs the FULL hydrate on every go-live,
     // so without this a publish re-dressed every live person.
     await n.applyCostume([SHIRT, TROUSERS]);
@@ -147,9 +147,9 @@ describe('NPC costume — the third designation', () => {
     ).rejects.toThrow(/resolves to no template/);
   });
 
-  it('⚠⚠ still wires `behaviors:` — the override chains super.postRegister', async () => {
+  it('⚠⚠ still wires `behaviors:` — the override chains super.onCreate', async () => {
     // `BehavedMixin` is outermost of the mixin chain and its
-    // `postRegister` is what wires the behavior specs; `NPC`'s own
+    // `onCreate` is what wires the behavior specs; `NPC`'s own
     // override sits outside it. A forgotten `super` call would leave
     // every authored person in the realm silently inert, and no test of
     // the dressing itself would notice — which is exactly the class of
@@ -157,7 +157,7 @@ describe('NPC costume — the third designation', () => {
     const n = person();
     spyOnDressing(n);
     n.behaviors = [{ trigger: 'cadence:30s', brain: 'idle' }] as never;
-    await n.postRegister();
+    await n.onCreate();
     expect(MixinApi.isBehaved(n)).toBe(true);
     expect(n.getBehaviors()).toHaveLength(1);
     // ⭐ The observable proof that `super` ran: `_wireBehaviors` sets

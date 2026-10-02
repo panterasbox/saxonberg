@@ -6,7 +6,6 @@
 # meets Hinkley's own zone through its exit — walk one more step west
 # and you are at 130 m, on ground that has to fetch its own water.
 class: /platform/location/SingletonCartesianLocation
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: shoulder
   keywords: [shoulder]

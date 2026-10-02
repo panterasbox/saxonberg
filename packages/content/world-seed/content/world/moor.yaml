@@ -10,7 +10,6 @@
 # precedent — keeps content-area standup clean); reachable by teleport / a
 # future travel node. Collects nothing, so no ownerGroup this cycle.
 class: /platform/idea/location/CartesianZone
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: The Weeping Moor
   cellSize: 3.0

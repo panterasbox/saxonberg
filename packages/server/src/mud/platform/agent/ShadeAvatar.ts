@@ -54,10 +54,10 @@ export default class ShadeAvatar extends IncorporealMixin(Avatar) {
    * the drained body has been unregistered. That claim now lives on
    * the body of record alone, so a shade has nothing to say no to.
    */
-  public override async postRegister(
+  public override async onCreate(
     context?: ShadeAvatarInitContext,
   ): Promise<void> {
-    await super.postRegister(context);
+    await super.onCreate(context);
     this.setLifecycleState('undead');
   }
 

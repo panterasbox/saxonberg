@@ -4,7 +4,6 @@
 # distinct one). The `back:1` slot accepts any Slottable — saddles
 # claim it via Wearable's slot claim, riders occupy it bareback.
 class: /platform/idea/species/BodyPlan
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: quadruped
   # Slots reference anatomy via `bodyPart` / `covers` where they have a

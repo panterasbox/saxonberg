@@ -17,7 +17,6 @@
 # So the floor stops where the peat stops, and there is nothing underneath worth
 # the swing.
 class: /system/ground/idea/Deposit
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: heath
   stratigraphy:

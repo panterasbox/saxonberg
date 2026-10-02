@@ -4,7 +4,6 @@
 # the private-label fact is each row's `interiorMaterial` pointer, legible
 # on `look`.
 class: /platform/idea/Business
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: "the Hollis bottling floor"
   parentOrganization: /corpo/hollis

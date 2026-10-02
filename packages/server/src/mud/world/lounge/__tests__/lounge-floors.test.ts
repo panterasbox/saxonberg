@@ -7,10 +7,14 @@
  * kernel over synthetic fixtures; a test of real content lives beside the
  * content), and these three classes ARE content.
  *
- * What it guards: `PostRegistrationMixin` moved down into `Location`'s base
- * stack, and its default `postRegister` is a **non-chaining no-op** — so any
- * override that forgets `await super.postRegister(context)` silently leaves
- * its rooms with no floor and nothing else goes wrong. All three of these
+ * What it guards: the floor is minted by `Location.onCreate`, so any
+ * override that forgets `await super.onCreate(context)` silently leaves
+ * its rooms with no floor and nothing else goes wrong. (Until
+ * 2026-10-01 the hazard was worse: `PostRegistrationMixin`'s default was
+ * a non-chaining no-op, so a second composition anywhere above the base
+ * swallowed the base's hook. The terminal on `Stuff` removed that whole
+ * class of failure; forgetting `super` in your own override is the only
+ * way left.) All three of these
  * override the hook (`verifyOutboundExits`), and all three had no `super`
  * call before this build.
  */
@@ -40,7 +44,7 @@ describe('the lounge classes all get a floor', () => {
   ];
 
   for (const [name, factory] of ROSTER) {
-    it(`${name}.postRegister chains super, so the room has a floor`, async () => {
+    it(`${name}.onCreate chains super, so the room has a floor`, async () => {
       const room = await StuffApi.create(factory);
       const floor = room.getFloor();
       expect(floor, `${name} has no floor`).not.toBeNull();

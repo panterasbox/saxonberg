@@ -11,7 +11,6 @@
 # historically exact. You were paid after the assay, not on the spot, and
 # the wait is what makes the assay an event.
 class: /platform/location/SingletonCartesianLocation
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: assay shed
   keywords: [shed, "assay shed", assay]

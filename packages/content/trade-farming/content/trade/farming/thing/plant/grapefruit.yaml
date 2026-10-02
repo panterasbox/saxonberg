@@ -2,7 +2,6 @@
 # The heaviest citrus — thirsty, and slow to fill.
 # No moisture reserve — the water lives in the ground (see peace-lily).
 class: /platform/thing/Plant
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: grapefruit tree
   keywords: ["grapefruit tree", grapefruit, tree, citrus, plant]

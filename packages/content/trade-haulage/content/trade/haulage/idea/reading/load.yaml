@@ -2,7 +2,6 @@
 #
 # ⭐ The pack ships the row and the class; the platform names neither.
 class: /trade/haulage/idea/reading/LoadReading
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   channel: load
   kind: fact

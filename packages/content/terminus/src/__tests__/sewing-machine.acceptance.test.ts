@@ -29,7 +29,7 @@ import Material from "@saxonberg/server/mud/lib/material/Material";
 import Good from "@saxonberg/server/mud/lib/stuff/Good";
 import Garment from "@saxonberg/server/mud/platform/thing/equipment/Garment";
 import MendingTool from "@saxonberg/server/mud/platform/thing/MendingTool";
-import PersistentHydrator from "@saxonberg/server/mud/platform/idea/persistence/PersistentHydrator";
+import TemplateApplier from "@saxonberg/server/mud/platform/idea/TemplateApplier";
 import RecipeCatalogue from "@saxonberg/server/mud/platform/idea/RecipeCatalogue";
 import { Idea } from "@saxonberg/server/mud/lib/stuff/Idea";
 import { ContainerMixin } from "@saxonberg/server/mud/lib/spatial/Container";
@@ -87,7 +87,7 @@ async function hydrateMachine(): Promise<MendingTool> {
   }, "/stuff/idea/material/element/iron");
   const data = { ...seed.data };
   delete data["_materialPath"]; // instruction field — not this test's business
-  await makeStuff(() => new PersistentHydrator()).hydrate(machine, data);
+  await makeStuff(() => new TemplateApplier()).apply(machine, data, { mode: 'mint' });
   return machine;
 }
 

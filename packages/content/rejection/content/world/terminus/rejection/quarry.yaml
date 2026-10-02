@@ -9,7 +9,6 @@
 # `cellSize: 10` matches the region's, so a quarry cell is a mine cell and
 # `LIFT_M` means the same thing on both sides of the hill.
 class: /platform/idea/location/CartesianZone
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: The Hill Quarry
   cellSize: 10.0

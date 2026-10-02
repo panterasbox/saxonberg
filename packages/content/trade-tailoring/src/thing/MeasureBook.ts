@@ -49,7 +49,7 @@ import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 /**
  * One remembered subject. Flat scalars in a list — the
  * `composition[]` / `naturalAttacks[]` shape, which round-trips through
- * the default Hydrator with no marshaller.
+ * the default applier with no marshaller.
  */
 export interface BookEntry {
   /** Who — a durable identifier, never a display name. */

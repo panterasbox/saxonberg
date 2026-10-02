@@ -3,7 +3,7 @@
  *
  * Covers the `clientStateSchema` static-array lookup, the three
  * methods (`getClientState` / `setClientState` /
- * `snapshotClientState`), validator rejection, and Hydrator-style
+ * `snapshotClientState`), validator rejection, and applier-style
  * persistence round-trip.
  */
 
@@ -83,7 +83,7 @@ describe('HasInteractive client-state surface', () => {
     expect(snap['console.tabs']).toEqual([{ name: 'All', muted: [] }]);
   });
 
-  it('_clientState round-trips through reflection (Hydrator-shaped write)', () => {
+  it('_clientState round-trips through reflection (applier-shaped write)', () => {
     const h = makeStuff(() => new TestHost());
     (h as unknown as { _clientState: Record<string, unknown> })._clientState = {
       'console.activeTab': 'Rehydrated',

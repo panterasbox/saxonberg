@@ -51,7 +51,7 @@ indexes:
       ⚠ This replaced two wrong instruments in one build: a by-KIND scan
       of `holder_snapshots` (an identity-keyed store asked for every
       record of a kind), and then a per-room `placedIn` at every
-      `CartesianLocation.postRegister` — hundreds of point queries at
+      `CartesianLocation.onCreate` — hundreds of point queries at
       boot, the room-scan the user had ruled out wearing another face.
       Who may honour a pin (the owner's activity tier, the parcel's
       allowance) is the eager-residency slate's.

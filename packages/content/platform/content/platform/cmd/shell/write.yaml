@@ -4,11 +4,12 @@ description: "Author a content-tree template or source-tree file (uses workspace
 help: |
   Create or replace authored material at a path. A content-tree
   write lands a template, taking a per-field `data` map plus an
-  optional backing `--class` and `--hydrator`; a source-tree write
-  lands file bytes. `--extends <path>` makes the row a CHILD of
-  another row: it inherits that row's class, hydrator and data, and
-  states only what differs. A child needs no `--class`, which is
-  what lets a protowizard author one. The body and data payloads
+  optional backing `--class`; a source-tree write lands file bytes.
+  A row's `data` is applied when it is there — there is nothing to
+  opt into. `--extends <path>` makes the row a CHILD of another row:
+  it inherits that row's class and data, and states only what
+  differs. A child needs no `--class`, which is what lets a
+  protowizard author one. The body and data payloads
   come through a structured form, not bare text on the command
   line.
 
@@ -37,12 +38,9 @@ options:
   class:
     type: string
     description: "Backing class path for content writes (default /lib/stuff/Idea)"
-  hydrator:
-    type: string
-    description: "Hydrator class path for content writes (default /platform/idea/persistence/PersistentHydrator); pass empty string to omit"
   extends:
     type: string
-    description: "Parent template path — the row states only what differs from it. With --extends, --class and --hydrator default to ABSENT (inherited) rather than to the engine defaults."
+    description: "Parent template path — the row states only what differs from it. With --extends, --class defaults to ABSENT (inherited) rather than to the engine default."
 payload:
   data:
     type: struct

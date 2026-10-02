@@ -36,6 +36,8 @@
 
 import { Idea } from '@saxonberg/server/mud/lib/stuff/Idea';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
+import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
+import { Piecewise, type Stretch } from '@saxonberg/server/mud/lib/Trajectory';
 import { Template } from '@saxonberg/server/mud/lib/stuff/Template';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { EvictionContext } from '@saxonberg/server/mud/lib/stuff/Stuff';
@@ -50,6 +52,18 @@ import { FEEDER_PATH_PREFIX, type FeederDescriptor, type FeederNode } from './Fe
 
 /** The catalogue singleton's own template path — its row ships with the pack. */
 export const GRID_CATALOGUE_PATH = '/system/energy/idea/GridCatalogue';
+
+/** How many resolved outages to keep per catalogue (a bounded ring). */
+const OUTAGE_HISTORY_CAP = 64;
+
+/** Game-seconds now, or 0 before the clock is up. */
+function gridNowSeconds(): number {
+  try {
+    return WorldClockApi.getNow().rawValue();
+  } catch {
+    return 0;
+  }
+}
 
 /** A node ref — `<feederKey>:<nodeName>`. */
 export type NodeRef = string;
@@ -83,6 +97,8 @@ interface CompiledGrid {
   sources: Map<string, Generator | null>;
   /** Compile problems — recorded, never thrown. */
   problems: string[];
+  /** A street room was unresolvable during the compile (the boot-settle race). */
+  premature: boolean;
 }
 
 export default class GridCatalogue
@@ -94,6 +110,10 @@ export default class GridCatalogue
 
   /** ⚠ In-memory, transient — see the class docstring. Node refs cut open. */
   private cuts = new Set<NodeRef>();
+  /** Game-second each CURRENT cut began — for `poweredTrajectory`. */
+  private cutSince = new Map<NodeRef, number>();
+  /** Resolved (spliced) outages: a node was cut over `[fromS, toS]`. Bounded. */
+  private outages: Array<{ node: NodeRef; fromS: number; toS: number }> = [];
 
   /** A system singleton is never culled by the self-eviction sweep. */
   public canEvict(_context: EvictionContext): VetoResult {
@@ -130,13 +150,64 @@ export default class GridCatalogue
     return started;
   }
 
+  /** Real-ms before which a reachability recompile is throttled. */
+  private recompileThrottledUntil = 0;
+  /** How many reachability recompiles have been spent (a safety bound). */
+  private recompiles = 0;
+
   /** The compiled grid if it is already loaded, else `null` (kicks a load). */
   private loadedGrid(): CompiledGrid | null {
     if (this.loading === null) {
       void this.index(); // kick it; this read answers false until it lands
       return null;
     }
-    return LOADED.get(this) ?? null;
+    const grid = LOADED.get(this) ?? null;
+    if (grid !== null) this.maybeRecompileUnreachable(grid);
+    return grid;
+  }
+
+  /**
+   * ⭐ **Recover from a premature boot-settle compile.** The grid compiles
+   * lazily on first read — but the street-lighting settle fires that first
+   * read DURING boot, before the street rooms are instantiable, so
+   * `exitJoins` (which needs `StuffApi.singleton(street)`) finds nothing and
+   * drops every node below the first unreachable edge. That broken grid then
+   * caches for the process, and everything metered below it reads dark
+   * forever (the blood fridge, the walk-in cold room). This is the exact
+   * "boot settle races the install" wall the energy drive documented for
+   * streetlights, surfaced here by the first appliance on the main feeder.
+   *
+   * The fix: if the cached grid still has a reachability problem, recompile
+   * — throttled (so the boot-settle reads do not thrash) and bounded (so a
+   * genuinely mis-authored feeder gives up rather than looping). The first
+   * read after boot, with the rooms now present, rebuilds it clean and the
+   * problems clear, which stops the retries.
+   */
+  private maybeRecompileUnreachable(grid: CompiledGrid): void {
+    // Only a PREMATURE compile (a street room was unresolvable — the boot
+    // race) is worth retrying. A grid whose streets resolved but genuinely
+    // do not join is correctly unreachable, and retrying it would loop.
+    if (!grid.premature) return;
+    const now = Date.now();
+    if (now < this.recompileThrottledUntil || this.recompiles >= 20) return;
+    this.recompileThrottledUntil = now + 2_000;
+    this.recompiles += 1;
+    // ⚠ Recompile IN PLACE — swap the cache only when a clean grid lands,
+    // and keep serving the current (premature/dark) one meanwhile. Clearing
+    // the cache first (as `invalidateCache` would) leaves a window where a
+    // SYNC read — the appliance's own `energizedAtSync` — finds no grid and
+    // reads dark, so the fridge would flicker back to "silent" right after
+    // the feeder read live. This way, once a clean grid caches, sync reads
+    // are stably live and this never fires again (a clean grid is not
+    // premature).
+    const started = loadGrid().then((next) => {
+      if (!next.premature) LOADED.set(this, next);
+      return next;
+    });
+    this.loading = started;
+    void started.catch(() => {
+      if (this.loading === started) this.loading = null;
+    });
   }
 
   // ---------- reads ----------
@@ -233,12 +304,81 @@ export default class GridCatalogue
    * `Conduit.setCut` posture); the legitimate caller is `LineAccess`.
    */
   public sever(nodeRef: NodeRef): void {
-    this.cuts.add(nodeRef);
+    if (!this.cuts.has(nodeRef)) {
+      this.cuts.add(nodeRef);
+      this.cutSince.set(nodeRef, gridNowSeconds());
+    }
   }
 
   /** Splice the line at `nodeRef` back together — the lineman's `splice`. */
   public splice(nodeRef: NodeRef): void {
-    this.cuts.delete(nodeRef);
+    if (this.cuts.delete(nodeRef)) {
+      const from = this.cutSince.get(nodeRef);
+      this.cutSince.delete(nodeRef);
+      if (from !== undefined) {
+        this.outages.push({ node: nodeRef, fromS: from, toS: gridNowSeconds() });
+        // Bound the history the way a TrajectoryLog ring is bounded.
+        if (this.outages.length > OUTAGE_HISTORY_CAP) this.outages.shift();
+      }
+    }
+  }
+
+  /**
+   * ⭐ The supply at `nodeRef` over `[fromS, toS]` as a 0/1 {@link Piecewise}
+   * (1 = powered) — the complement of every cut that affected this node
+   * (itself or any node upstream of it) during the window. The {@link Powered}
+   * contract the parcel meter publishes so the envelope can integrate a cut
+   * that happened mid-gap. ⚠ Source generation is read as-now (a hydro source
+   * that stopped is not in this history — documented; the cut is the state
+   * that matters to a fridge).
+   */
+  public poweredTrajectory(
+    nodeRef: NodeRef,
+    fromS: number,
+    toS: number,
+  ): Piecewise {
+    const end = toS > fromS ? toS : fromS;
+    const grid = this.loadedGrid();
+    const affects = (cut: NodeRef): boolean =>
+      cut === nodeRef || grid?.downstream.get(cut)?.has(nodeRef) === true;
+    const now = gridNowSeconds();
+    // Collect the unpowered intervals affecting this node, clamped to [from,end].
+    const dark: Array<[number, number]> = [];
+    const add = (a: number, b: number): void => {
+      const lo = Math.max(a, fromS);
+      const hi = Math.min(b, end);
+      if (hi > lo) dark.push([lo, hi]);
+    };
+    for (const o of this.outages) if (affects(o.node)) add(o.fromS, o.toS);
+    for (const cut of this.cuts) {
+      if (affects(cut)) add(this.cutSince.get(cut) ?? fromS, now);
+    }
+    if (dark.length === 0) {
+      return new Piecewise([
+        { fromS, toS: end, startValue: 1, target: 1, tau: 0 },
+      ]);
+    }
+    // Merge overlapping dark intervals, then stitch 1/0 stretches across the
+    // window.
+    dark.sort((p, q) => p[0] - q[0]);
+    const merged: Array<[number, number]> = [];
+    for (const iv of dark) {
+      const last = merged[merged.length - 1];
+      if (last && iv[0] <= last[1]) last[1] = Math.max(last[1], iv[1]);
+      else merged.push([iv[0], iv[1]]);
+    }
+    const stretches: Stretch[] = [];
+    let cursor = fromS;
+    const flat = (a: number, b: number, v: number): void => {
+      if (b > a) stretches.push({ fromS: a, toS: b, startValue: v, target: v, tau: 0 });
+    };
+    for (const [a, b] of merged) {
+      flat(cursor, a, 1); // powered up to the cut
+      flat(a, b, 0); // dark through the outage
+      cursor = b;
+    }
+    flat(cursor, end, 1); // powered after the last splice
+    return new Piecewise(stretches);
   }
 
   /** Whether `nodeRef` is currently cut. */
@@ -323,6 +463,10 @@ async function loadGrid(): Promise<CompiledGrid> {
   const templates = await Template.findDescendants(FEEDER_PATH_PREFIX);
   const feeders = new Map<string, FeederDescriptor>();
   const problems: string[] = [];
+  // ⭐ Set when an adjacency check failed because a street room was not yet
+  // resolvable (the boot-settle race), as against resolving with no matching
+  // exit — only the former warrants a recompile.
+  let premature = false;
   for (const tpl of templates) {
     const d = descriptorOf(tpl.data as Record<string, unknown>);
     if (d === null) continue;
@@ -361,9 +505,11 @@ async function loadGrid(): Promise<CompiledGrid> {
       });
       nodeAt.set(n.at, ref);
       if (prev !== null && prevStreet !== null) {
-        if (await exitJoins(prevStreet, n.at)) {
+        const { joined, readable } = await exitJoins(prevStreet, n.at);
+        if (joined) {
           addEdge(succ, pred, prev, ref);
         } else {
+          if (!readable) premature = true;
           problems.push(
             `feeder '${feeder.key}': no exit joins '${prevStreet}' and ` +
               `'${n.at}' — a line may not leave the road; '${n.name}' and all ` +
@@ -415,7 +561,7 @@ async function loadGrid(): Promise<CompiledGrid> {
     // eslint-disable-next-line no-console -- the compile's own record (never a throw)
     console.warn(`GridCatalogue: ${problems.length} feeder problem(s):\n  - ${problems.join('\n  - ')}`);
   }
-  return { nodes, downstream, traceUp, nodeAt, sources, problems };
+  return { nodes, downstream, traceUp, nodeAt, sources, problems, premature };
 }
 
 /** Add a directed edge `from → to` to the successor/predecessor maps. */
@@ -472,17 +618,37 @@ async function resolveSource(path: string): Promise<Generator | null> {
  * Whether an exit joins two streets in either direction — the exit-graph
  * verification. Uses `StuffApi.singleton(streetPath)` + `getExits()` directly
  * (no transport-pack dependency), the way the plan's D3 says.
+ *
+ * ⭐ Also reports whether both streets were **readable** — a street whose
+ * room does not resolve (the boot-settle race, before the rooms are
+ * instantiable) is a different failure from one that resolves with no
+ * matching exit, and only the first warrants a recompile. See
+ * `GridCatalogue.maybeRecompileUnreachable`.
  */
-async function exitJoins(fromStreet: string, toStreet: string): Promise<boolean> {
-  return (
-    (await hasExitTo(fromStreet, toStreet)) ||
-    (await hasExitTo(toStreet, fromStreet))
-  );
+async function exitJoins(
+  fromStreet: string,
+  toStreet: string,
+): Promise<{ joined: boolean; readable: boolean }> {
+  const from = await exitsOf(fromStreet);
+  const to = await exitsOf(toStreet);
+  // ⚠ "Readable" means the exit graph is HYDRATED, not merely that the room
+  // resolved: at the boot-settle every street room exists but NONE of their
+  // exits have resolved destinations yet, so `exitsOf` returns empty for ALL
+  // of them. The signal that distinguishes that race from a genuine miss is
+  // whether EITHER endpoint has any hydrated exits — at the settle neither
+  // does; a genuine dead-end (an island with no exits) still has a reachable
+  // upstream street that does. So premature iff BOTH are empty.
+  const ready = (d: string[] | null): boolean => d !== null && d.length > 0;
+  const readable = ready(from) || ready(to);
+  const joined =
+    (from?.includes(toStreet) ?? false) || (to?.includes(fromStreet) ?? false);
+  return { joined, readable };
 }
 
-async function hasExitTo(fromStreet: string, toStreet: string): Promise<boolean> {
+/** The destination paths a street's exits lead to, or `null` if unresolvable. */
+async function exitsOf(street: string): Promise<string[] | null> {
   try {
-    const room = (await StuffApi.singleton(fromStreet)) as unknown as
+    const room = (await StuffApi.singleton(street)) as unknown as
       | (Stuff & {
           getExits?: () => ReadonlyMap<
             string,
@@ -490,12 +656,14 @@ async function hasExitTo(fromStreet: string, toStreet: string): Promise<boolean>
           >;
         })
       | null;
-    if (!room || typeof room.getExits !== 'function') return false;
+    if (!room || typeof room.getExits !== 'function') return null;
+    const dests: string[] = [];
     for (const exit of room.getExits().values()) {
-      if (exit.getDestinationTemplatePath?.() === toStreet) return true;
+      const d = exit.getDestinationTemplatePath?.();
+      if (typeof d === 'string') dests.push(d);
     }
-    return false;
+    return dests;
   } catch {
-    return false;
+    return null;
   }
 }

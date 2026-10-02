@@ -1593,6 +1593,38 @@ export interface StuffRefRecord {
   displayName: string;
   quantity?: number;
   primaryKeyword?: string;
+  /**
+   * ⭐ **How this item sits in its host** — the placement member name
+   * (`on` / `in` / `from`, a row-extensible vocabulary), omitted when
+   * the item is merely loose. Rung 1 of the containment read: the wire
+   * stops discarding the placement the model already knows, so a `look`
+   * can say what's *on* the lid vs *in* the box without a drill-in.
+   */
+  placement?: string;
+  /**
+   * ⭐ **This item is itself a holder** — it composes `Container` or
+   * `Placing`, so it holds more (a fridge's freezer compartment, a
+   * chest, the hive). A capability, not a count: it is true for an empty
+   * container too. Omitted for a thing that holds nothing. The client
+   * marks these so a fridge reads as one appliance with two
+   * compartments, not two anonymous boxes.
+   */
+  holds?: boolean;
+}
+
+/**
+ * ⭐ One placement group under a `Placing` host, for the detail card:
+ * the items sitting under one member (`on` / `in` / `from`), with the
+ * member's own heading (`On it`, `In it`, `Hanging from it`) off its
+ * `Placement` row. Rung 1 — a flat, per-member grouping, NOT a recursive
+ * nesting view (that is Rung 2).
+ */
+export interface StuffPlacedGroup {
+  /** The member name — `on` / `in` / `from`. */
+  name: string;
+  /** The member's drill-in heading, e.g. `On it` / `Hanging from it`. */
+  heading: string;
+  items: StuffRefRecord[];
 }
 
 /**
@@ -1659,6 +1691,14 @@ export interface StuffDetailRecord extends StuffRefRecord {
    * `agent`, where contents is deliberately suppressed.
    */
   worn?: StuffRefRecord[];
+  /**
+   * ⭐ Rung 1: items placed ON a `Placing` host, grouped by member
+   * (`on` / `in` / `from`) with the member's own heading. The card half
+   * of the `look`-drill-in prose — a flat per-member grouping, not a
+   * recursive nesting view (Rung 2). Omitted for a host with nothing
+   * placed on it, or one that is not a Placing host.
+   */
+  placed?: StuffPlacedGroup[];
   /**
    * Obvious exits for Exitable hosts — what `look` would surface as
    * "Obvious exits: ...". Omitted entirely for non-Exitable hosts.
@@ -4034,15 +4074,23 @@ export interface CmsReadResult {
   body: string;
   /** Editor language hint: 'json' | 'typescript' | 'yaml' | 'plaintext'. */
   language: string;
-  /** Content-only: the template's EFFECTIVE backing class + hydrator (what
-   *  the row clones into), plus its parent and the resolved chain when the
-   *  row `extends` another. The editable `body` is the RAW row. Absent for
+  /** Content-only: the template's EFFECTIVE backing class (what the row
+   *  clones into), plus its parent and the resolved chain when the row
+   *  `extends` another. The editable `body` is the RAW row. Absent for
    *  source. */
   templateMeta?: {
     class: string;
-    hydratorClass?: string;
     extends?: string;
     chain?: string[];
+    /**
+     * ⭐ What will FILL an instance of this row in, in the order the
+     * applier does it, plus any source the class's composition declares.
+     * Replaces the dropped `hydratorClass` (retired 2026-10-01): the
+     * question that field looked like it answered, actually answered.
+     * Each entry is already a sentence — `keywords`,
+     * `quantity (birth-only)`, `unapplied: material`, `remembers: beliefs`.
+     */
+    fill?: string[];
   };
 }
 
@@ -4509,7 +4557,14 @@ export interface TemplateWriteResult {
   disposition: StudioDisposition;
   /** The written template path when `committed`; absent on `denied`. */
   path?: string;
-  /** Human detail on `denied`. */
+  /**
+   * Human detail. On `denied`, why. ⭐ On `committed`, **what the row will
+   * actually do** — which of the author's keys the applier applies, which
+   * nobody applies, and what an instance will also be filled from. The
+   * Studio's create used to drop the row's hydrator and then apply none
+   * of the typed `data`, reporting `committed` either way; this is the
+   * line that makes the fix visible rather than merely true.
+   */
   message?: string;
 }
 

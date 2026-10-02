@@ -312,7 +312,7 @@ heading simply *reports a different atmosphere* (`blackdamp`) and every
 shipped consequence follows: the respiration crisis, mortality's
 rescuable dying clock, recovery on walking out. **Nothing in respiration
 learns what a mine is.** The write-through fires after a carve (the
-warren knows when the shape changed) and at `postRegister` (so a static
+warren knows when the shape changed) and at `onCreate` (so a static
 mine holds foul air too).
 
 ⭐ Air is the RIGHT lethal hazard for a build with no population: a free

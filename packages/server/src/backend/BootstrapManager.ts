@@ -11,7 +11,7 @@
  *
  * The manager topo-sorts entries by `dependsOn` and clones each
  * entry in order. `awaitInit` runs after the clone for entries
- * needing async setup beyond `postRegister`.
+ * needing async setup beyond `onCreate`.
  *
  * Failure modes throw and prevent server start: `dependsOn` cycles,
  * missing `dependsOn` references, clone failures, `awaitInit`
@@ -33,7 +33,7 @@ import {
 import { PersistenceManager } from './PersistenceManager';
 import { ApiLogic } from '../mud/lib/stuff/ApiLogic';
 import Interactive from '../mud/platform/idea/Interactive';
-import PersistentHydrator from '../mud/platform/idea/persistence/PersistentHydrator';
+import TemplateApplier from '../mud/platform/idea/TemplateApplier';
 import Species from '../mud/platform/idea/species/Species';
 import BodyPlan from '../mud/platform/idea/species/BodyPlan';
 import Clade from '../mud/platform/idea/species/Clade';
@@ -96,7 +96,7 @@ export interface BootstrapEntry {
   /** Other entries' templatePaths that must complete before this. */
   dependsOn?: string[];
 
-  /** Optional async init beyond `postRegister`'s sync surface. */
+  /** Optional async init beyond `onCreate`'s sync surface. */
   awaitInit?: (clone: Stuff) => Promise<void>;
 }
 
@@ -149,12 +149,12 @@ export class BootstrapManager {
     // domain state rides an Interactive's surface.
     SecurityApi._registerBoundaryExemptBase(ApiLogic);
     SecurityApi._registerBoundaryExemptBase(Interactive);
-    // Hydrators are shared, stateless engine singletons used as pure
-    // functions BY the clone pipeline — a circle-context clone must be
-    // able to call the one field-resident hydrator instance. (Found
-    // live: without this, every clone inside a circle silently skipped
-    // its hydration, so a wire body minted with no default loadout.)
-    SecurityApi._registerBoundaryExemptBase(PersistentHydrator);
+    // The template applier is a shared, stateless engine singleton used
+    // as a pure function BY the clone pipeline — a circle-context clone
+    // must be able to call the one field-resident instance. (Found live:
+    // without this, every clone inside a circle silently skipped its
+    // content step, so a wire body minted with no default loadout.)
+    SecurityApi._registerBoundaryExemptBase(TemplateApplier);
     // REFERENCE DATA — the closed, shared vocabularies every body reads
     // to know what it is, what it's made of, and how it moves. These
     // are commons, not world state: they are seeded, never mutated at
@@ -218,7 +218,7 @@ export class BootstrapManager {
       let clone: Stuff;
       // ⚠ A manifest singleton may already be RESIDENT: a lazy
       // `StuffApi.singleton` mint earlier in the boot (the content
-      // installer resolving the wiki registry, whose postRegister asks
+      // installer resolving the wiki registry, whose onCreate asks
       // for the group registry) lands it before the manifest runs. A
       // second clone would leave two live instances at one path and
       // every `findByTemplatePath` throwing "expected singleton, found 2"

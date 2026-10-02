@@ -9,7 +9,6 @@
 # ⚠ Deliberately worse than mead rather than the same: what distinguishes
 # the product from the defect is that somebody meant it.
 class: /platform/idea/material/ConsumableMaterial
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: fermented honey
   keywords: [honey, fermented, spoiled]

@@ -3,7 +3,6 @@
 #
 # ⚠ It lives in the COMMONS: fat is a fact about animals.
 class: /platform/idea/material/Material
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: animal fat
   keywords: [animal, fat, tallow, suet]

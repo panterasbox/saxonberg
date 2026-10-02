@@ -2,7 +2,6 @@
 # (firebolt → REAL ignition, spread, char), a stone basin (conjure-water),
 # room to shove/veil/glowlight. Fixtures placed declaratively.
 class: /platform/location/SingletonCartesianLocation
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: casting yard
   keywords: [yard, casting]

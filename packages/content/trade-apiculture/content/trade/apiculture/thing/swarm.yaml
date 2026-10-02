@@ -8,7 +8,6 @@
 # ⚠ It has a queen (the old one went with them) and no stores: a swarm is
 # carrying what it ate before it left, which is why it is urgent.
 class: /trade/apiculture/thing/Colony
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   keywords: [swarm, bees, cluster, colony]
   shortDescription: hanging swarm of bees

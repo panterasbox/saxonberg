@@ -1,7 +1,6 @@
 # Tongs — for holding what is too hot to hold. The rung that makes
 # smelting possible at all.
 class: /platform/thing/Tool
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   keywords: [tongs, pair, long]
   shortDescription: pair of long tongs

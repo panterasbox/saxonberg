@@ -3,7 +3,6 @@
 # `/trade/forestry/thing/plant/maple-standard`: ten game years to a
 # tappable stem.
 class: /platform/thing/Seed
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: maple key
   keywords: [key, seed, maple, "maple key", samara]

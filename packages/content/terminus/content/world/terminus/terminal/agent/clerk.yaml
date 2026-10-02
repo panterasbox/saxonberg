@@ -9,7 +9,6 @@
 # free, because a stranded traveller is a problem and Tootie does not care for
 # problems. Human (canon).
 class: /world/terminus/terminal/agent/TicketClerk
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: Tootie
   keywords: [tootie, ticket, clerk]
@@ -39,7 +38,7 @@ data:
   # ── the dossier ─────────────────────────────────────────────────
   # Evidence, never values: each entry below expands into the same rows a
   # lived history would have written, marked `claim`. Seeded once at
-  # postRegister and skipped if any claim already exists, so a reclone or
+  # onCreate and skipped if any claim already exists, so a reclone or
   # a reboot cannot mint a second history.
   # ⚠ A best-guess pass, explicitly provisional — the considered version
   # is a content pass of its own before go-live.
@@ -63,7 +62,7 @@ data:
           - "\"Window's open,\" Tootie says. \"Speak up, I don't bite before noon.\""
     # Small-business idle: the texture of a working ticket window.
     - brain: /lib/behavior/idles
-      trigger: cadence:20s
+      trigger: candidate
       config:
         pool:
           - { kind: free, value: "franks a form with a decisive thump." }

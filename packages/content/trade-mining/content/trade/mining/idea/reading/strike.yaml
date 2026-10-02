@@ -13,7 +13,6 @@
 # is underground — the push-your-luck decision arriving as a missing
 # parameter rather than as a paywall.
 class: /trade/mining/idea/reading/StrikeReading
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   channel: strike
   kind: fact

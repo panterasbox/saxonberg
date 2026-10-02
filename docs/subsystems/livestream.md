@@ -60,7 +60,7 @@ query-param delivery. Rotate via the env secret.
 
 ## `StreamState`
 
-A `PostRegistrationMixin(Idea)` singleton at `/platform/idea/StreamState`
+A `Idea` singleton at `/platform/idea/StreamState`
 (a platform-pack `boot:` entry; row `{ class: /platform/idea/StreamState, data: {} }`).
 Two transient fields:
 
@@ -133,7 +133,7 @@ TypeScript-escape capability). See [access.md](./access.md):
 + the `requiresStreamer` validator.
 
 Membership is seeded from the `STREAMER_PLAYER_IDS` env var
-(comma-separated Avatar playerIds) at `AccessRegistry.postRegister` —
+(comma-separated Avatar playerIds) at `AccessRegistry.onCreate` —
 additive + idempotent (never removes), deploy-time config alongside
 `BROADCAST_TOKEN`. Drop a member via the `group` verb.
 

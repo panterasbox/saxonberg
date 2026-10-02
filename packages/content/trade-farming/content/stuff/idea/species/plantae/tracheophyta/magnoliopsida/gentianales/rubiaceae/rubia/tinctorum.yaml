@@ -6,7 +6,6 @@
 # MORDANT dye: it needs a metal ion to bind, so what colour you get is
 # decided at the mordant bath and not at the dye pot.
 class: /platform/idea/species/Species
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   binomial: Rubia tinctorum
   commonNames: ["madder", "dyer's madder"]

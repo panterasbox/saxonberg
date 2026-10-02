@@ -262,7 +262,7 @@ zone path is an O(1) cache hit; first resolution clones. Returns
 
 The clone pipeline calls `resolveZoneForPath` once at clone time and
 stamps the result onto `Stuff.zone` before hydrate, so anything
-reading `this.zone` during `postRegister` sees the right value
+reading `this.zone` during `onCreate` sees the right value
 (see [templates.md](./templates.md#clone-pipeline)).
 
 #### Field inheritance via `Zone.lookupField`

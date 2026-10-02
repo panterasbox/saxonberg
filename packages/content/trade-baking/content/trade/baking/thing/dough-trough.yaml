@@ -3,7 +3,6 @@
 # ⭐ The cloth is the seal, and the seal is the decision: off, and wild
 # flora take it in a day; on, and you must pitch from the crock.
 class: /trade/baking/thing/DoughTrough
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: dough trough
   keywords: [trough, dough, kneading, board]

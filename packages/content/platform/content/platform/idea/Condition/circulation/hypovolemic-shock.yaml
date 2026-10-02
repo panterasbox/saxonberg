@@ -16,7 +16,6 @@
 # compensation (the tachycardia that precedes the pressure drop) is a real
 # sign and a real gap → blood-slate.
 class: /platform/idea/Condition
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: hypovolemic shock
   # Circulating volume is what carries oxygen to working muscle; lose

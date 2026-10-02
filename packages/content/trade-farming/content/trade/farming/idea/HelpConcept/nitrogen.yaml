@@ -2,7 +2,6 @@
 # `Soil.fixNitrogen` exists; only this can tell them why they should
 # care, and a build that adds an agronomy owes both.
 class: /platform/idea/HelpConcept
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   key: nitrogen
   title: Nitrogen

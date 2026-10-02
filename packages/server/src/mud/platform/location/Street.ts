@@ -17,7 +17,7 @@
  * *"any cartesian cell may be lit by a funded public service."* That
  * sentence is a rationalization for a catch-all bucket: the cookhouse,
  * the sealed cellar, the smithy, a mine heading and a ploughed field all
- * got a public-lighting field and a `postRegister` hook, and the tell was
+ * got a public-lighting field and a `onCreate` hook, and the tell was
  * the guard at the top of that hook — `if (this.publicLighting === null)
  * return;` — which is a mixin re-narrowing its own host set, i.e. the
  * host being wrong. **Five rows in the realm declare the service.** They

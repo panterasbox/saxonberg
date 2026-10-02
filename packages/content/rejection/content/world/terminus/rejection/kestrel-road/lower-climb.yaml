@@ -4,7 +4,6 @@
 # at the crossroads. Both sides are written out explicitly; neither pack
 # reaches into the other's files.
 class: /platform/location/SingletonCartesianLocation
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: lower climb
   keywords: [climb, lower]

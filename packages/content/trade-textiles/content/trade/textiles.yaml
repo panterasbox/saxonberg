@@ -14,7 +14,6 @@
 # Locality, no atmosphere override. Every trade floor in the repo was in
 # that state once.
 class: /platform/idea/location/CartesianZone
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: textiles-mill
   cellSize: 4.0

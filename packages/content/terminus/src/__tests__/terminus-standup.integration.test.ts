@@ -23,9 +23,9 @@ import {
   installStore,
   type Doc,
 } from "@saxonberg/server/mud/lib/persistence/__tests__/backend-store";
-import PersistentHydrator from "@saxonberg/server/mud/platform/idea/persistence/PersistentHydrator";
+import TemplateApplier from "@saxonberg/server/mud/platform/idea/TemplateApplier";
 
-const PH = PersistentHydrator.templatePath;
+const PH = TemplateApplier.templatePath;
 const SEED_ROOT = fileURLToPath(
   new URL("../../../terminus/content/world/terminus", import.meta.url),
 );
@@ -61,7 +61,6 @@ function loadSeeds(dir: string, rootLen: number): Doc[] {
       out.push({
         path,
         class: parsed.class as string,
-        hydratorClass: (parsed.hydratorClass as string) ?? PH,
         data,
       });
     }
@@ -102,22 +101,20 @@ const STUBS: Doc[] = [
   {
     path: "/world/lounge/thing/terminal",
     class: "/system/tpa/thing/TpaTerminal",
-    hydratorClass: PH,
     data: { seatIn: "/world/test/lounge-room", keywords: ["lounge"], directionality: "both", routes: [] },
   },
-  { path: "/world/test/lounge-room", class: "/platform/location/VoidLocation", hydratorClass: PH, data: { shortDescription: "the lounge" } },
+  { path: "/world/test/lounge-room", class: "/platform/location/VoidLocation", data: { shortDescription: "the lounge" } },
   {
     path: "/world/newbie-wilds/crossroads/terminal",
     class: "/system/tpa/thing/TpaTerminal",
-    hydratorClass: PH,
     data: { seatIn: "/world/test/crossroads-room", keywords: ["crossroads"], directionality: "both", routes: [] },
   },
-  { path: "/world/test/crossroads-room", class: "/platform/location/VoidLocation", hydratorClass: PH, data: { shortDescription: "the crossroads" } },
+  { path: "/world/test/crossroads-room", class: "/platform/location/VoidLocation", data: { shortDescription: "the crossroads" } },
   // The terminal office lists the clerk under props (a bare-`Thing` stub keeps the
   // cascade light); the registry office's registrar rides `cast:`, which
   // the loader strips.
-  { path: "/world/terminus/terminal/agent/clerk", class: "/platform/thing/Thing", hydratorClass: PH, data: { shortDescription: "the clerk" } },
-  { path: "/world/terminus/university-avenue/location/crossing", class: "/platform/location/VoidLocation", hydratorClass: PH, data: { shortDescription: "University Avenue" } },
+  { path: "/world/terminus/terminal/agent/clerk", class: "/platform/thing/Thing", data: { shortDescription: "the clerk" } },
+  { path: "/world/terminus/university-avenue/location/crossing", class: "/platform/location/VoidLocation", data: { shortDescription: "University Avenue" } },
 ];
 
 /**

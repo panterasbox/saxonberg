@@ -1,7 +1,6 @@
 # A syringe — the carried instrument behind bleed / transfuse / test
 # (blood build D5). Carry it and those verbs light up.
 class: /trade/medicine/thing/Syringe
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: brass-and-glass syringe
   keywords: [syringe, needle, brass, glass]

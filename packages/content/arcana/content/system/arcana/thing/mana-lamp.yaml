@@ -14,7 +14,6 @@
 # `armingFloorTau: 0` because a lamp has no working to lapse — it is lit
 # or it is not. The terminal is the other half of that axis.
 class: /system/arcana/thing/ManaLamp
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: mana lamp
   keywords: [lamp, sconce, light, mana]

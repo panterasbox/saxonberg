@@ -5,7 +5,6 @@
 # taxonomy row is identical in shape to wallisii.yaml; the divergence is
 # entirely in the growth profile on the plant template.
 class: /platform/idea/species/Species
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   binomial: Dracaena trifasciata
   commonNames: ["snake plant", "mother-in-law's tongue", "houseplant"]

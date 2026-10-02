@@ -1,0 +1,56 @@
+# Nev — the Hearthworks kitchen hand, and the ⭐ SECOND person in one seat's
+# discipline at one house.
+#
+# ⭐⭐ Why this row exists at all: until it did, "two or more people work one
+# shift and the work is shared" had nowhere in the realm to happen. Odo was
+# alone in the cookhouse, so the call rule could only ever have one
+# candidate and `rota` was unobservable. A mechanism you cannot watch is a
+# mechanism nobody can tell is broken.
+#
+# ⚠ The `kitchen-hand` seat was authored by the trades-and-labor build with
+# `headcount: 1` and `requires: { gigs: 2 }` and then rostered to NOBODY —
+# an opening that advertised itself and was never filled. Nev fills it; the
+# `requires` arm still governs a PLAYER who applies, which is the point of
+# the seat (it is a real first job).
+class: /platform/agent/Cast
+extends: /stuff/agent/costume/student
+data:
+  # ⚠ Named, not "the cookhand": `lint:identity` rule 2 refuses
+  # `register: indefinite` on a nameless Cast, and rightly — a nameless Cast
+  # is *the* cookhand, definite, the only one. This one is a person who
+  # works here beside another person, so she gets a name and `proper`.
+  name: Nev
+  keywords: [nev, cookhand, hand]
+  pronouns: she
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
+  lifecycleState: alive
+  alternateNames:
+    - cookhand
+  shortDescription: Nev the kitchen hand
+  register: proper
+  longDescription: |
+    A wiry young woman with her sleeves pinned back and a burn scar across
+    one forearm she is quietly proud of. She works fast and checks Odo's
+    face afterwards.
+  dispositions:
+    - { disposition: diligence, valence: 60 }
+    - { disposition: humility, valence: 30 }
+  # ── the dossier ─────────────────────────────────────────────────
+  # ⭐ COMPETENT, not proficient, and that is the design: she and Odo differ
+  # in what they can make without anybody authoring a second menu. Under the
+  # seeded-deed rule a competent hand makes the EASY lines and the standard
+  # ones wait for Odo — so "who comes over" has a visible consequence the
+  # first time somebody orders the wrong thing.
+  archetype: cook
+  competence:
+    - { discipline: cooking, asserting: competent }
+  behaviors:
+    - brain: /lib/behavior/introduces
+      trigger: arrival
+    - brain: /lib/behavior/idles
+      trigger: candidate
+      config:
+        pool:
+          - { kind: free, value: "wipes down the board with the flat of her knife." }
+          - { kind: free, value: "glances at the pot, then at Odo." }
+          - { kind: free, value: "pins a loose sleeve back up." }

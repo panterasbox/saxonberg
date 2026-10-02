@@ -2,7 +2,6 @@
 # craft-resolve with the recipe's authored difficulty (the smithing
 # sibling; mixology's shape).
 class: /platform/idea/Discipline
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   key: cooking
   channel: skill

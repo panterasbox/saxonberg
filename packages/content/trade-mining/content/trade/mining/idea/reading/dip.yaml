@@ -5,7 +5,6 @@
 # where an orebody meets the ground is a LINE, and a line has no fall in
 # it. Dip is why you drive a heading.
 class: /trade/mining/idea/reading/DipReading
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   channel: dip
   kind: fact

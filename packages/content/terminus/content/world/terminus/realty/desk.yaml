@@ -7,7 +7,6 @@
 # funds, the ascent condition, the subdivision, the transfer — is its
 # own, and the desk only says "paperwork happens here".
 class: /system/residence/thing/DeedDesk
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: deed desk
   keywords: [desk, counter, plat, book, maps, deed]

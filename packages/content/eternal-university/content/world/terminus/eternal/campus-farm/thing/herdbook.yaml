@@ -32,7 +32,6 @@
 # way round — a byre is a real constraint on a real number of animals,
 # and a student who wonders why not sixty has learned what a byre is for.
 class: /trade/ranching/thing/Herdbook
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: herdbook
   keywords: [herdbook, book, register, ledger]

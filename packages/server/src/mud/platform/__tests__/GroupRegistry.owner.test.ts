@@ -47,7 +47,7 @@ beforeEach(async () => {
   // The pinned registry singleton (the state home), booted the way the
   // residence tests boot it — no DB clone.
   const reg = makeStuffAtPath(() => new GroupRegistry(), '/platform/idea/GroupRegistry');
-  await reg.postRegister();
+  await reg.onCreate();
 });
 afterEach(() => {
   vi.restoreAllMocks();

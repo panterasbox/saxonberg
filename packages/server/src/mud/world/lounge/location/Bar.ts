@@ -37,11 +37,6 @@ import type { FieldMeta } from '../../../lib/mixin';
 // `CartesianLocation` does), so every room class built directly on
 // `Location` has to remember. These rows were authoring `primaryKeyword`
 // into a void until 2026-09-11; `lint:presentation` clause (d) found it.
-// ⭐ `PostRegistrationMixin` is NOT composed here: it moved down into
-// `Location`'s own base stack (the ground build), because the mixin's
-// default `postRegister` is a non-chaining no-op — a second composition
-// above the base would SWALLOW `Location.postRegister`, and with it the
-// room's floor.
 // ⭐⭐ **Dave's Bar was in no grid, and its own row said so.**
 //
 // This class restated `SingletonCartesianLocation`'s mixin set on a
@@ -49,7 +44,7 @@ import type { FieldMeta } from '../../../lib/mixin';
 // Location))))` — which composes the `coordinates` FIELD but not the
 // `coords` field, because `coords` lives on the `CartesianLocation`
 // CLASS, not on a mixin. `bar.yaml` authors `coords:` under a comment
-// reading *"`coords:` is the MEMBERSHIP operation"*, and the Hydrator
+// reading *"`coords:` is the MEMBERSHIP operation"*, and the applier
 // discarded it silently: the bar held no position and belonged to no
 // zone, in a `/world/lounge` that IS a `CartesianZone`.
 //
@@ -58,7 +53,7 @@ import type { FieldMeta } from '../../../lib/mixin';
 // inventory had it all along as `bar.yaml: data.coords`.
 //
 // ⭐ Extending the real class is the whole fix. `CartesianLocation`
-// already overrides `postRegister` to chain and then call
+// already overrides `onCreate` to chain and then call
 // `verifyOutboundExits()`, which is the only thing this class's own
 // override did — so the body is empty now. ⚠ Deleting the class
 // outright (the `Bench` precedent) is the further step and is FILED,

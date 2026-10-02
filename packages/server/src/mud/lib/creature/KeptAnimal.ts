@@ -23,8 +23,6 @@
  *   Behaved     it decides things: follows · feeds · homes
  *     Bonded    the bond, the home, the verbs           ⟵ the point
  *       Status  legible attention ("watching the stock")
- *       PostRegistration  the clone-pipeline marker — INNERMOST, its
- *                         postRegister is a terminal no-op (see below)
  *       BeliefStore  its opinion of you — the bond's first factor
  *       Handling     how tractable it is — the second       ⟵ SIBLINGS
  *         Named      ⭐ a pet HAS a name
@@ -55,7 +53,7 @@
  * unhelpful.
  *
  * ⚠ `Persistable` OUTSIDE `Behaved` is safe and deliberate:
- * `Persistable.postRegister` only chains, `Behaved.postRegister` chains
+ * `Persistable.onCreate` only chains, `Behaved.onCreate` chains
  * *then* wires, so the single call the clone pipeline makes reaches
  * both.
  *
@@ -82,7 +80,6 @@ import { HandlingMixin } from '../husbandry/Handling';
 import { BeliefStoreMixin } from '../belief/BeliefStore';
 import { StatusMixin } from '../status/Status';
 import { BondedMixin } from '../husbandry/Bonded';
-import { PostRegistrationMixin } from '../stuff/PostRegistration';
 import { BehavedMixin } from '../behavior/Behaved';
 import { PersistableMixin } from '../persistence/Persistable';
 import { ChattelMixin } from '../chattel/Chattel';
@@ -95,12 +92,6 @@ const KeptAnimalBody = HandlingMixin(
   BeliefStoreMixin(NamedMixin(Actor)),
 );
 
-// ⚠⚠ `PostRegistrationMixin` INNERMOST. Its `postRegister` is a terminal
-// no-op that never calls `super`, so every layer inside it is shadowed:
-// composed between `Behaved` and `Bonded`, as it shipped, `Bonded.postRegister`
-// never ran on a live animal — no home seeded, no species warmed — and
-// nothing above the fixtures could see it. `Creature` carries no
-// `postRegister`, so the chain terminates here harmlessly.
 // ⭐ `BrandedMixin` INSIDE `Persistable`, for the reason above it: the
 // outermost layer is `Persistable` on purpose (`pinsResidency`), so
 // anything added goes within it.
@@ -122,7 +113,7 @@ const KeptAnimalBase = PersistableMixin(
   ChattelMixin(
     BrandedMixin(
       BehavedMixin(
-        BondedMixin(StatusMixin(PostRegistrationMixin(KeptAnimalBody))),
+        BondedMixin(StatusMixin(KeptAnimalBody)),
       ),
     ),
   ),

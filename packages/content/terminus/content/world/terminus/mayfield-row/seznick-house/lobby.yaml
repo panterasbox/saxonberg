@@ -3,7 +3,6 @@
 # impassable while no unit is leased above, the dorm's honest-empty
 # rule); the way back out is the street door.
 class: /platform/location/SingletonCartesianLocation
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: Seznick House lobby
   keywords: [lobby, seznick, house]

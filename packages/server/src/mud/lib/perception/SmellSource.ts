@@ -76,7 +76,7 @@ export function SmellSourceMixin<TBase extends MixinConstructor>(Base: TBase) {
     private _odorIdentity: string = '';
 
     /**
-     * Host-internal accessor pair for the ppm scalar. Hydrator's
+     * Host-internal accessor pair for the ppm scalar. applier's
      * bracket-assign goes through here so a malformed template
      * (negative, NaN, non-number) crashes loudly.
      */

@@ -16,7 +16,7 @@
  * is what sparkling and real ale ARE, P5/P9).
  *
  * Reference data, the Material/Species shape: a singleton Idea per row,
- * stood up whole at boot by `MaturationProfileCatalogue.postRegister` (the roster warm that
+ * stood up whole at boot by `MaturationProfileCatalogue.onCreate` (the roster warm that
  * closes the reference-Ideas-inert-at-boot gap), read by SYNC seams.
  * Rows live under any root's `idea/maturation/` subtree — the kernel keeps
  * no list of roots.
@@ -152,7 +152,7 @@ export default class MaturationProfile extends SingletonMixin(Idea) {
 
   /**
    * Residency veto — profile reference data resolved by SYNC reads
-   * (the ferment reconcile); the only standup is the `MaturationProfileCatalogue.postRegister`
+   * (the ferment reconcile); the only standup is the `MaturationProfileCatalogue.onCreate`
    * roster warm, so a culled profile would stall every batch silently.
    */
   public canEvict(_context: EvictionContext): VetoResult {
@@ -530,7 +530,7 @@ export default class MaturationProfile extends SingletonMixin(Idea) {
   // ── the roster queries (statics on the owning class — no Api: a
   // stateless glob over the live population needs no gate, no logic
   // singleton, and no cache to invalidate; `MaturationProfileCatalogue`'s
-  // postRegister is what stands the population up at boot) ──
+  // onCreate is what stands the population up at boot) ──
 
   /** Every live profile, sorted by key — found by the branch segment. */
   private static all(): MaturationProfile[] {

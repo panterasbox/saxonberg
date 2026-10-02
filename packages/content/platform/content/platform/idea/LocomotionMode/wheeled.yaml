@@ -2,7 +2,6 @@
 # wheels-on-ground; reads as walk-shaped from the body-plan side (no
 # requires).
 class: /platform/idea/LocomotionMode
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: wheeled
   speed: 2.0

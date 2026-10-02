@@ -252,7 +252,7 @@ Every persistent and runtime piece of chat state lives on a single
 singleton Stuff at `/platform/idea/ChannelCatalogue`. It holds three maps:
 
 - `byName: Map<string, Channel>` — persistent-channel cache, keyed
-  on lowercased name. Warmed at `postRegister` via `Channel.find({})`
+  on lowercased name. Warmed at `onCreate` via `Channel.find({})`
   and refreshed write-through on create / rename / disband.
 - `byHandle: Map<string, AdHocChannel>` — runtime-only ad-hoc
   registry. An entry lives until disbanded or promoted to a
@@ -460,7 +460,7 @@ fails with a clear error (the handle is gone from the registry).
 
 ## Bootstrap and seeding
 
-The catalogue self-warms at registration time. Its `postRegister`
+The catalogue self-warms at registration time. Its `onCreate`
 hook awaits `Channel.find({})` and populates `byName`, so by the
 time any verb resolves a channel by name the cache is hot.
 

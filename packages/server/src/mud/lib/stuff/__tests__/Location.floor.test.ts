@@ -6,11 +6,11 @@
  * *"the choice of which Locations include a floor adornment is per-template
  * authoring"* was a choice nobody was making.
  *
- * ⭐ The roster test at the bottom is the guard that matters. The hook moved
- * DOWN into `Location`'s base stack, and `PostRegistrationMixin`'s default
- * `postRegister` is a **non-chaining no-op** — so any subclass override that
- * forgets `await super.postRegister(context)` silently leaves its rooms
- * unstandable, with nothing else going wrong. Counting `super.postRegister`
+ * ⭐ The roster test at the bottom is the guard that matters. The hook lives
+ * at the base of `Location`, and `Stuff.onCreate` is the terminal — so any
+ * subclass override that
+ * forgets `await super.onCreate(context)` silently leaves its rooms
+ * unstandable, with nothing else going wrong. Counting `super.onCreate`
  * across the family at plan time found **six** overrides with none. The
  * roster clones every concrete kernel Location class and asserts a floor,
  * so forgetting the line is a red test rather than a quiet regression.
@@ -45,17 +45,15 @@ type Doc = {
   _id?: string;
   path: string;
   class: string;
-  hydratorClass?: string;
   data: Record<string, unknown>;
 };
 
-const HYDRATOR = '/platform/idea/persistence/PersistentHydrator';
+const HYDRATOR = '/platform/idea/TemplateApplier';
 
 /** The default-floor row, as the generic-objects pack ships it. */
 const DEFAULT_FLOOR_ROW: Doc = {
   path: TemplatePaths.defaultFloor,
   class: '/platform/thing/Floor',
-  hydratorClass: HYDRATOR,
   data: {
     shortDescription: 'featureless plain floor',
     keywords: ['floor', 'ground', 'featureless', 'plain', 'underfoot'],
@@ -65,10 +63,10 @@ const DEFAULT_FLOOR_ROW: Doc = {
 };
 
 /**
- * The Hydrator itself is a template row too — `hydratorClass:` is a
+ * The applier itself is a template row too — its path is a
  * TEMPLATE path, not a module path, and the clone pipeline resolves it
  * through the same store. Leaving it out fails with
- * `Template not found: /platform/idea/persistence/PersistentHydrator`,
+ * `Template not found: /platform/idea/TemplateApplier`,
  * which reads like a missing class and is a missing ROW.
  */
 const HYDRATOR_ROW: Doc = {
@@ -115,7 +113,6 @@ describe('ensureFloor — the default', () => {
       {
         path: '/test/room/plain',
         class: '/platform/location/CartesianLocation',
-        hydratorClass: HYDRATOR,
         data: { shortDescription: 'a plain cell', coordinates: [0, 0, 0] },
       },
     ]);
@@ -164,7 +161,6 @@ describe('ensureFloor — authored wins', () => {
       {
         path: '/test/floor/weeping',
         class: '/platform/thing/Floor',
-        hydratorClass: HYDRATOR,
         data: {
           shortDescription: 'wet flagstones',
           keywords: ['flagstones', 'wet'],
@@ -175,7 +171,6 @@ describe('ensureFloor — authored wins', () => {
       {
         path: '/test/room/authored',
         class: '/platform/location/CartesianLocation',
-        hydratorClass: HYDRATOR,
         data: {
           shortDescription: 'a weeping cell',
           coordinates: [0, 0, 0],
@@ -201,7 +196,6 @@ describe('ensureFloor — the opt-out', () => {
       {
         path: '/test/room/void',
         class: '/platform/location/CartesianLocation',
-        hydratorClass: HYDRATOR,
         data: { shortDescription: 'nowhere', noDefaultFloor: true },
       },
     ]);
@@ -220,7 +214,6 @@ describe('ensureFloor — the opt-out', () => {
       {
         path: '/test/room/midair',
         class: '/platform/location/CartesianLocation',
-        hydratorClass: HYDRATOR,
         data: {
           shortDescription: 'open air',
           coordinates: [0, 0, 40],
@@ -245,7 +238,6 @@ describe('ensureFloor — the `floor:` spec (rung 2)', () => {
       {
         path: '/test/room/spec',
         class: '/platform/location/CartesianLocation',
-        hydratorClass: HYDRATOR,
         data: {
           shortDescription: 'a byre',
           coordinates: [0, 0, 0],
@@ -270,13 +262,11 @@ describe('ensureFloor — the `floor:` spec (rung 2)', () => {
       {
         path: '/test/floor/boards',
         class: '/platform/thing/Floor',
-        hydratorClass: HYDRATOR,
         data: { shortDescription: 'scrubbed boards', keywords: ['boards'] },
       },
       {
         path: '/test/room/tpl',
         class: '/platform/location/CartesianLocation',
-        hydratorClass: HYDRATOR,
         data: {
           shortDescription: 'a parlour',
           floor: { template: '/test/floor/boards' },
@@ -295,7 +285,6 @@ describe('11 · a spill pools in a room that had no floor before', () => {
       {
         path: '/test/room/spill',
         class: '/platform/location/CartesianLocation',
-        hydratorClass: HYDRATOR,
         data: { shortDescription: 'a plain cell', coordinates: [0, 0, 0] },
       },
     ]);
@@ -343,13 +332,11 @@ describe('⚠⚠ onGrade through the CLONE PIPELINE — the drive\u2019s finding
       {
         path: BIOME,
         class: '/platform/idea/SkyExposedBiome',
-        hydratorClass: HYDRATOR,
         data: { name: 'outdoor-test' },
       },
       {
         path: '/test/room/street',
         class: '/platform/location/CartesianLocation',
-        hydratorClass: HYDRATOR,
         data: {
           shortDescription: 'a street',
           coordinates: [0, 0, 0],
@@ -360,7 +347,6 @@ describe('⚠⚠ onGrade through the CLONE PIPELINE — the drive\u2019s finding
       {
         path: '/test/room/gallery',
         class: '/platform/location/CartesianLocation',
-        hydratorClass: HYDRATOR,
         data: { shortDescription: 'a gallery', coordinates: [0, 0, -4] },
       },
     ]);
@@ -430,7 +416,7 @@ describe('the default-floor row this all depends on', () => {
 });
 
 describe('⭐ the roster — every concrete kernel Location class', () => {
-  // `StuffApi.create` runs register → postRegister, which is the whole
+  // `StuffApi.create` runs register → onCreate, which is the whole
   // chain under test; the floor row still has to be findable, so the store
   // is installed even though no room is cloned.
   beforeEach(() => installStore([]));
@@ -454,7 +440,7 @@ describe('⭐ the roster — every concrete kernel Location class', () => {
   ];
 
   for (const [name, factory] of ROSTER) {
-    it(`${name} gets a floor (its postRegister chains super)`, async () => {
+    it(`${name} gets a floor (its onCreate chains super)`, async () => {
       const room = await StuffApi.create(factory);
       expect(room.getFloor(), `${name} has no floor`).not.toBeNull();
     });

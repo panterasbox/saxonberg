@@ -7,7 +7,6 @@
 # ⚠ The material is restamped from the block it came off, so one row serves
 # every stone.
 class: /platform/thing/Good
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   keywords: [piece, stone, block]
   shortDescription: piece of stone

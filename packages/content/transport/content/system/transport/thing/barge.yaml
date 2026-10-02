@@ -13,7 +13,6 @@
 # ⭐ An open deck is why passengers watch the river go by, and it costs
 # nothing: an open container is an open container.
 class: /system/transport/thing/Barge
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: flat-bottomed barge
   keywords: [barge, boat, lighter, craft, flat-bottomed]

@@ -14,7 +14,6 @@
 # ⚠ As with birch, the wood is not the point of the tree: the sap is
 # (`/stuff/idea/material/food/maple-sap`), and that is the species row's.
 class: /platform/idea/material/Material
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: maple
   keywords: [maple]

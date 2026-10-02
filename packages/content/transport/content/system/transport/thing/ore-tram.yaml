@@ -11,7 +11,6 @@
 # the thing itself weighs more. That is what rails are FOR, and it is the
 # whole of the difference, expressed as a number.
 class: /system/transport/thing/HaulageRig
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: ore tram
   keywords: [tram, ore-tram, box, ore]

@@ -48,9 +48,9 @@ function installInMemoryStore(): void {
 
 async function boot(): Promise<void> {
   const groups = makeStuffAtPath(() => new GroupRegistry(), "/platform/idea/GroupRegistry");
-  await groups.postRegister();
+  await groups.onCreate();
   const reg = makeStuffAtPath(() => new AccessRegistry(), "/platform/idea/AccessRegistry");
-  await reg.postRegister();
+  await reg.onCreate();
 }
 
 function makeAvatar(playerId: string): Avatar {

@@ -31,8 +31,8 @@
  * wielded occupancy is deliberately runtime-only (never persisted, never
  * seedable — see `lib/slot/Slotted.ts`). So a fresh NPC clone always boots
  * with empty hands and empty slots. The supported pattern is the one
- * `Avatar.installDefaultLoadout` uses: a `postRegister` hook that clones the
- * gear and equips it programmatically on standup. `postRegister` re-runs on
+ * `Avatar.installDefaultLoadout` uses: a `onCreate` hook that clones the
+ * gear and equips it programmatically on standup. `onCreate` re-runs on
  * every clone/reboot, so Gus re-equips himself each boot — exactly the model
  * we want (the world re-inits; Gus dresses for his shift again).
  *
@@ -76,11 +76,11 @@ interface SlotClaimer {
 
 export default class Gus extends Cast {
   /**
-   * @hook Standup: chain `super.postRegister` (so `Behaved` still wires the
+   * @hook Standup: chain `super.onCreate` (so `Behaved` still wires the
    *   `behaviors:` list) then dress for the shift.
    */
-  override async postRegister(context?: unknown): Promise<void> {
-    await super.postRegister(context);
+  override async onCreate(context?: unknown): Promise<void> {
+    await super.onCreate(context);
     await this.equipLoadout();
   }
 

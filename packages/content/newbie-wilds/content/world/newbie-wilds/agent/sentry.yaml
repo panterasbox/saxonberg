@@ -45,7 +45,7 @@ data:
   standingStopCondition: yield
   behaviors:
     - brain: /lib/behavior/wary
-      trigger: cadence:6s
+      trigger: candidate
       config:
         alertness: 3
         lines:
@@ -53,7 +53,7 @@ data:
           - "Far enough. State your business at the wood."
           - "You there — step into the light where I can look at you."
     - brain: /lib/behavior/idles
-      trigger: cadence:17s
+      trigger: candidate
       config:
         pool:
           - { kind: free, value: "sweeps a slow look across the treeline and back." }

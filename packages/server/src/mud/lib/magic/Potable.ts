@@ -84,7 +84,7 @@ export interface Potable {
     opts?: { readonly origin?: Stuff },
   ): Promise<string[]>;
 
-  // ---------- storage (public for the Hydrator) ----------
+  // ---------- storage (public for the applier) ----------
   route: string;
   dose: Record<string, unknown>;
 }

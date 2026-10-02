@@ -9,7 +9,6 @@
 # `/platform/thing/Chair` is the reusable posture-bearing class — the slot spec is
 # authored per seed, which is why a bed needs no class of its own.
 class: /platform/thing/Chair
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: bed
   keywords: [bed, mattress, bedding]

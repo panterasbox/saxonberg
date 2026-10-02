@@ -8,7 +8,6 @@
 # player touches is honest — a substance, administered, with an effect
 # they can reason about. Controlled: a doctor prescribes, a nurse gives.
 class: /platform/idea/Condition
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: anaesthesia
   signature:

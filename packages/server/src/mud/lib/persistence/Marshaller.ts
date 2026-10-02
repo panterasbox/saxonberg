@@ -24,7 +24,7 @@
  * restarting the server. Stateless by contract — a marshaller's
  * `fromStored` / `toStored` are pure functions of their input.
  *
- * Shape mirrors `PersistentHydrator`: concrete subclasses set
+ * Shape mirrors `TemplateApplier`: concrete subclasses set
  * `static templatePath = '/lib/persistence/...'`, get registered
  * via the standard Stuff lifecycle (clone or createSync depending
  * on context), and resolve via `StuffApi.findByTemplatePath` at the
@@ -35,14 +35,14 @@
  *     `static fieldMarshallers: Record<fieldName, marshallerTemplatePath>`.
  *   - `MixinApi.getAllFieldMarshallers(constructor)` walks the
  *     prototype chain collecting these maps (subclass-wins).
- *   - `PersistentHydrator.hydrate` and `Document.toDocument` /
+ *   - `TemplateApplier.hydrate` and `Document.toDocument` /
  *     `Document.fromDocument` look up the marshaller for each
  *     field and apply `fromStored` / `toStored` around the
  *     bracket-assign / bracket-read.
  *
  * Seeding (production): a CMS template at the marshaller's
  * `templatePath` is the canonical bootstrap path, mirroring how
- * `PersistentHydrator` is itself templated. v1 ships no production
+ * `TemplateApplier` is itself templated. v1 ships no production
  * marshallers (the existing object-shaped Light fields flatten to
  * scalars instead); the seeding pattern lands when a real production
  * marshaller arrives.
@@ -53,7 +53,7 @@ import { Idea } from '../stuff/Idea';
 export abstract class Marshaller<TRuntime, TStored> extends Idea {
   /**
    * Convert raw stored persistence shape into a runtime value object.
-   * Called by `PersistentHydrator.hydrate` and
+   * Called by `TemplateApplier.hydrate` and
    * `Document.fromDocument` before bracket-assigning into the
    * target — the strict mixin setter sees the runtime type, not
    * the raw shape.

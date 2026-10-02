@@ -2,7 +2,6 @@
 # against (see the five floor rows). `sealed`: a cork holds gas, which
 # is what keeps a sparkling wine sparkling.
 class: /platform/thing/Bottle
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: "wine bottle"
   keywords: [bottle, wine, empty]

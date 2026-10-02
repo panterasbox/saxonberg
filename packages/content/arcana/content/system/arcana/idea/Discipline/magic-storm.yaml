@@ -4,7 +4,6 @@
 # CasterMixin; per-spell access is a band gate at cast time on BOTH of a
 # cell's axes (competence IS access).
 class: /platform/idea/Discipline
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   key: magic-storm
   channel: skill

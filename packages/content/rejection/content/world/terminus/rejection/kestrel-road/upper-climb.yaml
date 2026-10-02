@@ -5,7 +5,6 @@
 # stops being met, which is what the `corridor` archetype's report is
 # for.
 class: /platform/location/SingletonCartesianLocation
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: last water
   keywords: [water, last]

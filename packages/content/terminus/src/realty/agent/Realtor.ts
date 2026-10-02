@@ -65,12 +65,12 @@ const TOPIC = "civics.title";
 export default class Realtor extends CastMixin(StagedMixin(NPC)) {
   /**
    * Register the two effects once the NPC is live — the
-   * `BankCounter.postRegister` shape. A live fixture in the world is
+   * `BankCounter.onCreate` shape. A live fixture in the world is
    * what makes a domain effect real; there is no module-scope
    * registration and no boot import.
    */
-  override async postRegister(context?: unknown): Promise<void> {
-    await super.postRegister(context);
+  override async onCreate(context?: unknown): Promise<void> {
+    await super.onCreate(context);
     DialogueEffectRegistry.register("realty-list", Realtor.LIST_EFFECT);
     DialogueEffectRegistry.register("realty-buy", Realtor.BUY_EFFECT);
   }

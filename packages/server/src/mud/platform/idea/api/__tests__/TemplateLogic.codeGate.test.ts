@@ -3,7 +3,7 @@
  *
  * The gate at `saveTemplate` rejects a non-wizard (protowizard) write
  * that introduces or changes a direct code-naming field
- * (`class` / `hydratorClass` / `behaviors[].brain`). Wizard-ness is
+ * (`class` / `behaviors[].brain`). Wizard-ness is
  * controlled by spying `AccessApi.isWizard`; the acting author is a real
  * `Avatar` (the gate narrows on `instanceof Avatar`), planted via the
  * `runRoot` + `tagActingAuthor` bridge (the CMS/REST shape).
@@ -23,6 +23,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { TemplateApi, TemplateError } from "../../../../api/template";
 import { AccessApi } from "../../../../api/access";
 import { ExecutionContextApi } from "../../../../api/execution-context";
+import { CodeNamingFields } from "../../../../lib/stuff/CodeNamingFields";
 import { StuffApi } from "../../../../api/stuff";
 import Avatar from "../../../agent/PrimaryAvatar";
 import {
@@ -34,8 +35,7 @@ import { PersistenceManager } from "../../../../../backend/PersistenceManager";
 const LEAF = "/platform/location/SingletonCartesianLocation";
 const OTHER_LEAF = "/platform/thing/Thing";
 const FOLDER = "/platform/idea/FolderZone";
-const HYDRATOR = "/platform/idea/persistence/PersistentHydrator";
-const OTHER_HYDRATOR = "/lib/persistence/SomeOtherHydrator";
+const HYDRATOR = "/platform/idea/TemplateApplier";
 const PATH = "/world/gallery/widget";
 const ALICE = "/platform/agent/Avatar/alice";
 
@@ -191,7 +191,6 @@ describe("TemplateLogic code-field gate", () => {
     seedTemplate({
       path: PATH,
       class: LEAF,
-      hydratorClass: HYDRATOR,
       data: { description: "old" },
     });
     const alice = makeAlice();
@@ -200,7 +199,7 @@ describe("TemplateLogic code-field gate", () => {
     await expect(
       asAuthor(alice, () =>
         TemplateApi.saveTemplate(
-          PATH, { class: LEAF, hydratorClass: HYDRATOR, data: { description: "new" } })
+          PATH, { class: LEAF, data: { description: "new" } })
       )
     ).resolves.toBeTruthy();
   });
@@ -215,21 +214,14 @@ describe("TemplateLogic code-field gate", () => {
     ).rejects.toThrow(/class/);
   });
 
-  it("rejects a non-wizard changing the hydratorClass on an existing template", async () => {
-    seedTemplate({
-      path: PATH,
-      class: LEAF,
-      hydratorClass: HYDRATOR,
-      data: {},
-    });
-    const alice = makeAlice();
-    vi.spyOn(AccessApi, "isWizard").mockResolvedValue(false as never);
-
-    await expect(
-      asAuthor(alice, () =>
-        TemplateApi.saveTemplate(PATH, { class: LEAF, hydratorClass: OTHER_HYDRATOR, data: {} })
-      )
-    ).rejects.toThrow(/hydratorClass/);
+  // ⭐ There was a `rejects a non-wizard changing the hydratorClass`
+  // case here. It retired 2026-10-01 WITH THE FIELD, not with an
+  // exemption: a row cannot name an applier any more, so there is
+  // nothing for the gate to refuse and nothing carved out of it. The
+  // violation list is two entries long now, and the case below asserts
+  // exactly that.
+  it("the violation vocabulary is `class` and `behaviors[].brain`, and nothing else", () => {
+    expect([...CodeNamingFields.FIELDS]).toEqual(["class", "behaviors[].brain"]);
   });
 
   it("rejects a non-wizard adding a brain not in the existing set", async () => {
@@ -310,17 +302,15 @@ describe("TemplateLogic code-field gate", () => {
     ).rejects.toThrow(/class/);
   });
 
-  it("rejects smuggling a non-standard hydrator or a brain under a folder class", async () => {
+  it("rejects smuggling a brain under a folder class", async () => {
     const alice = makeAlice();
     vi.spyOn(AccessApi, "isWizard").mockResolvedValue(false as never);
 
-    // Folder class but a non-standard hydrator → not a scaffold; the
-    // hydratorClass clause keeps the carve-out tight.
-    await expect(
-      asAuthor(alice, () =>
-        TemplateApi.saveTemplate("/world/gallery/sub", { class: FOLDER, hydratorClass: OTHER_HYDRATOR, data: {} })
-      )
-    ).rejects.toThrow(/hydratorClass|class/);
+    // ⚠ The bare `{ class: FOLDER, data: {} }` arm that used to open
+    // this test is GONE, and deliberately: with no hydrator to smuggle,
+    // a folder class with no behaviors IS the scaffold the carve-out
+    // exists for, so it is allowed. The brain arm is what still has to
+    // keep the carve-out tight.
 
     // Folder class but a brain in the data → not a scaffold; the
     // no-behaviors clause keeps the carve-out tight.

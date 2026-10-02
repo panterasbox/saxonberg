@@ -8,7 +8,6 @@
 #
 # Priced on the store's price-list (Law 1), never here.
 class: /platform/thing/Lamp
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: pitch-pine torch
   keywords: [torch, brand, light, pitch-pine]

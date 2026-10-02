@@ -1,6 +1,5 @@
 # A prescription pad — the doctor's instrument behind prescribe (D9).
 class: /trade/medicine/thing/PrescriptionPad
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: prescription pad
   keywords: [pad, prescription, block, paper]

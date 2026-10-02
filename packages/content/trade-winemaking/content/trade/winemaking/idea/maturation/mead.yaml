@@ -8,7 +8,6 @@
 # it at once; a must sealed from the start never starts at all. Three
 # behaviours, one row, no code.
 class: /platform/idea/maturation/MaturationProfile
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   key: mead
   mechanism: microbial

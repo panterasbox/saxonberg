@@ -4,7 +4,6 @@
 # wine but never lager, and home output carries the same band and
 # maker's mark, so a talented amateur can out-brew a corpo on the rail.
 class: /platform/thing/Vat
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: glass carboy
   keywords: [carboy, demijohn, "glass carboy", glass]

@@ -2,7 +2,6 @@
 # something to put water in for the cat on the lane. Mirrors the
 # waterskin line for line; the only difference is what it is for.
 class: /platform/thing/Feeder
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: shallow tin saucer
   keywords: [saucer, dish, tin, bowl]

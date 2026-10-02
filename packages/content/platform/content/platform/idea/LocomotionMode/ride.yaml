@@ -3,7 +3,6 @@
 # fields stay at class defaults — emission consumers walk the
 # passthrough chain to the host's own engaged mode via emissionAt.
 class: /platform/idea/LocomotionMode
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: ride
   requiresBodyPlanMode: []

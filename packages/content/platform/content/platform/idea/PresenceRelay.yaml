@@ -1,4 +1,4 @@
-# PresenceRelay — the singleton whose postRegister installs both
+# PresenceRelay — the singleton whose onCreate installs both
 # social-graph presence consumers: the notify-gated login/logout
 # notification relay and the presence-PUBLIC roster delta tap (the
 # self-warming shape; eager via this pack's boot list, not an

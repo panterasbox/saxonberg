@@ -3,7 +3,6 @@
 # class's `peers` contributions). Bussed glasses are washed here and
 # racked.
 class: /platform/thing/WaterFixture
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: wash basin
   keywords: [basin, sink, wash-basin, water, wash]

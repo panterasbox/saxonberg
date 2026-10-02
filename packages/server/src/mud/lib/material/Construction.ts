@@ -357,7 +357,7 @@ export class Construction {
   }
 
   /**
-   * Register one textile form. Called by `Fabric.postRegister` as each
+   * Register one textile form. Called by `Fabric.onCreate` as each
    * `/stuff/idea/fabric/<key>` row stands up (the roster's warm is
    * `FabricCatalogue`'s job).
    *
@@ -368,7 +368,7 @@ export class Construction {
    * Re-registering the same key overwrites (a pack go-live re-warms).
    *
    * @internal **and deliberately given no Api door.** Its two callers are
-   * `Fabric.postRegister` and `FabricCatalogue.warm` — the textile
+   * `Fabric.onCreate` and `FabricCatalogue.warm` — the textile
    * subsystem populating its own vocabulary at boot. Putting
    * `MaterialApi.registerFabric` in the generated docs would advertise a
    * boot seam as author surface, which is the *opposite* of what

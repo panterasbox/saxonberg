@@ -13,7 +13,6 @@
 # adjust-reserve on mana is refused at authoring (the catalogue drops
 # the row), so no effect anywhere can add mana without paying for it.
 class: /system/arcana/idea/material/PotionMaterial
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: mana draught
   keywords: [mana, draught, potion, philtre]

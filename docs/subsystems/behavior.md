@@ -74,7 +74,7 @@ hand rather than assuming.
 class: /lib/npc/NPC
 data:
   behaviors:
-    - { brain: /lib/behavior/shifts, trigger: cadence:60s,  config: { behindBar, offstage } }
+    - { brain: /lib/behavior/restocks, trigger: candidate }
     - { brain: /lib/behavior/idles,  trigger: cadence:300s, config: { pool: [...] } }
     - { brain: /lib/behavior/greets, trigger: arrival,      config: { lines: [...] } }
 ```
@@ -96,7 +96,7 @@ A **behavior spec** (`BehaviorSpec`) is `{ brain, trigger, config }` —
 
 the brain is a *path* to a code module, the trigger names *when*, the
 config is the brain's data. The list is a persistent field on
-`BehavedMixin`; at `postRegister` the mixin reads it, path-resolves each
+`BehavedMixin`; at `onCreate` the mixin reads it, path-resolves each
 brain, and wires each spec to its trigger substrate. Adding behavior is
 authoring data — no code, no subclass.
 
@@ -207,7 +207,7 @@ types by package specifier (`@saxonberg/server/mud/lib/behavior/brain`).
 
 **The class rule:** *a brain lives in the pack whose content is the only
 thing that names it.* A generic economy brain (`restocks`, `cellars`,
-`shifts`, `covers`, `enforces`) is kernel.
+`restocks`, `cellars`, `enforces`) is kernel.
 
 ⚠ **`stocks` and `consigns` moved out** with the trades-and-labor build:
 they are the shopkeeper's beats — one walks to a supplier and buys a
@@ -223,10 +223,115 @@ picks and consigns are named only by that pack's grounds and stalls),
 whose suite travels with it under `src/behavior/__tests__/`. Substrate
 proof: `lib/behavior/__tests__/pack-brain.test.ts`.
 
+## ⭐⭐⭐ The deliberation beat — one timer per agent, one decision, one act
+
+Until 2026-09-30 a Behaved host armed **one timer per behaviour spec**, and
+each one fired in ignorance of the others. Two consequences, and the second
+is the one that mattered:
+
+1. **Cost.** Σ 60 000/interval across the content tree was **263.2 fires a
+   minute** with nobody watching, and nothing anywhere added it up. Two
+   `sellsword` rows alone paid 60 of it on `cadence:2s`.
+2. ⭐⭐ **An agent could not have a priority.** `nurses` carried a private
+   `triageRank` — dying first, then open bleeds — and `idles` carried
+   nothing, so **the physician could be out-shouted by her own idle
+   chatter**: two timers, no arbiter, and the one that happened to fire won.
+
+So a host with `candidate` specs arms **one** beat. Each beat it asks every
+candidate brain `urgency(ctx)`, sorts, and runs **exactly one** winner.
+
+| rung | what the arbiter does with it |
+|---|---|
+| `idle` | not a candidate this beat at all |
+| `wanted` | runs if nothing outranks it |
+| `pressing` | beats every `wanted`, whatever KIND it is |
+| `critical` | beats everything, **preempts a running interruptible task**, and wakes the agent early |
+
+⭐ Four bands because each is a **distinct arbiter behaviour** — that is the
+test a band vocabulary has to pass, and it is why there is no fifth.
+Competence has five and light has six; those are estimator thresholds and
+physical magnitudes, not a reason to copy a count. `TaskKind` (`threat ·
+body · work · social · filler`) breaks ties **within** a band only, so a
+pressing meal never loses to a wanted fight.
+
+### The switch prose
+
+⭐⭐ `Urgency.because` is **the sentence a watcher reads when the agent
+changes its mind** — third person, no subject, so the framework puts the
+actor in front of it: *"glances at the near-empty gin bottle and heads for
+the cellar"*. There is no second string anywhere; a brain that cannot say
+why it wants the beat is a brain that should not have asked.
+
+⚠ It fires **only on a switch**. An agent carrying on says nothing, which is
+what makes the line informative when it comes.
+
+### Ordering, and the tie-break that matters
+
+Band → kind → **hysteresis** (keep doing what you were doing) → declaration
+order. ⚠⚠ The hysteresis rung exists so that **an exact tie is never broken
+by authored order**. Every ordering on insertion, authored or identity
+position is a *stable wrong answer*, and a stable wrong answer survives for
+a year because nothing ever looks arbitrary — see `CraftingLogic`'s retired
+identity-path sort.
+
+### Preemption, and the field nothing had ever read
+
+`host.preemptFor(reason)` cuts every engagement whose `interruptibleBy`
+contains `reason`, and says whether anything was cut. The two behavioural
+reasons are **`called`** (somebody with a claim on your attention asked) and
+**`outranked`** (your own next beat found something that matters more).
+
+⚠⚠ **`interruptibleBy` was consulted by nothing before this.** Every
+engagement in the tree declared a set and `SchedulerRegistry.cancel`
+cancelled unconditionally. So an empty set now genuinely means *nothing
+interrupts this* — which is why `tree-dialogue` declares `[]` on purpose: an
+NPC that walked off mid-sentence because its own beat found something better
+would be the arbiter leaking into the fiction.
+
+### Cost, and what an operator turns
+
+Three dials in `settings/behavior.yaml`: `behavior.beatMs` (20 s, watched),
+`behavior.beatNightlyMs` (120 s, unwatched) and `behavior.beatMinGapMs`
+(3 s, the early-wake debounce). ⭐ When nobody is watching, **only candidates
+whose brain declares `presenceGated = false` are consulted at all**, and an
+agent with none skips the beat's body entirely.
+
+`lint:idle-cadence` meters exactly this. After the migration the content
+tree holds **zero `cadence:` specs**, down from a Σ of **263.2 fires/min**,
+and the realm's whole idle cost is one beat per agent — 18/min at 36 agents
+against the 120 s dial, so **halving the dial halves the realm's idle cost
+with no content edited.**
+
+⚠ **The ratcheted figure is the TIMER sum, not that total.** Charging the beat
+too made the gate refuse new content: two agents arriving on a merge moved the
+census 17 → 18 with no timer added anywhere. The beat scales with how many
+people the realm has, which is the right shape and the wrong thing to ratchet
+— see [lint-family.md](../lint-family.md).
+
+### The early wake
+
+`requestBeat()` pulls the next beat forward, debounced. Fired by a perceived
+`act.combat*`/`speech.` frame and by being called — ⭐ because a `critical`
+candidate can only *become* critical through something the host perceived or
+something on a clock it already reads.
+
+### What a brain declares now
+
+`kind` · `summary` · `discipline?` · `produces?` · `consumes?` ·
+`requires?` · `interruptibleBy?` · `urgency?(ctx)`, all optional on
+`BrainStatics` so an un-migrated brain type-checks, and all **gated for a
+`candidate` brain** by `lint:idle-cadence`.
+
+⭐⭐ `summary` exists because **38 brains shipped with `label` repeating the
+filename** — so the author palette could tell you the name of a thing you
+had already typed, and nothing else. And `claims` is mandatory for any
+`work`/`body`/`threat` brain, because *"it does not do two things at once"*
+is only true if the act says which hands it is using.
+
 ## Triggers: cadence + witness — no new events
 
 A trigger is a thin selector over **two sources**. State conditions ("at
-night", "my shift") are **guards inside brain code** (e.g. `shifts`
+night", "my shift") are **guards inside brain code** (e.g. `eats`
 reads `WorldClockApi`), never a third source. Crucially, the trigger
 surface emits **zero new global events and subscribes to zero global
 event buses of its own** — everything an NPC reacts to, it already
@@ -268,7 +373,7 @@ in as additional `handleMessage` topic predicates with no new event.
 
 ## ⚠⚠ The cast holds still while the world is closed
 
-A brain wires at its host's `postRegister` — a host has to exist before
+A brain wires at its host's `onCreate` — a host has to exist before
 it can behave — but the schedule a cadence trigger arms is **real
 time**, not game time. So without a gate the whole cast begins acting
 the moment `BootstrapManager` has stood the world up, which is *minutes*
@@ -359,7 +464,7 @@ unit tests keep their fast cadences.
 
 **Scope: the dial touches only ambient cadence.** A brain is ambient by
 default; a **functional poller** whose timing is load-bearing sets
-`static ambient = false` (today `shifts` reading roster state, `covers`
+`static ambient = false` (today `restocks` reading the par sheet, `wary`
 checking for an absent maker) so its authored interval is honored exactly.
 Witness triggers are never scaled — responsiveness is never throttled.
 
@@ -403,10 +508,10 @@ next-tick re-start, not a suspended-engagement resume.
 
 ```ts
 // lib/npc/NPC.ts
-export class NPC extends BehavedMixin(PostRegistrationMixin(Character)) {}
+export class NPC extends BehavedMixin(Character) {}
 
 // platform/agent/Beast.ts — the same shape one rung down
-export class Beast extends BehavedMixin(PostRegistrationMixin(Actor)) {}
+export class Beast extends BehavedMixin(Actor) {}
 ```
 
 ⭐ **Two rungs carry a brain, not one** (base-class narrowing,
@@ -427,12 +532,14 @@ horse shifting its weight was a frame implantless bystanders drop), and
 `lint:dispositions` rule 4 fails the build on a pool entry whose `kind:`
 names a channel its class cannot speak on.
 
-Composition order is load-bearing. `clone` only invokes `postRegister`
-on a host that composes `PostRegistrationMixin` (the marker), so `NPC`
-must include it. `BehavedMixin` is **outermost** so the single
-`postRegister` the clone pipeline calls resolves to *its* override
-(which wires the behaviors); `PostRegistrationMixin` sits below to supply
-the marker and the terminal no-op. (`CommandGiver`'s own `postRegister`
+Composition order is load-bearing, though less brittle than it was.
+`BehavedMixin` is **outermost**, so the `onCreate` the clone pipeline
+calls resolves to *its* override (which wires the behaviors) and chains
+`super` down to the terminal on `Stuff`. ⭐ Until 2026-10-01 the host also
+had to compose `PostRegistrationMixin` for the pipeline to invoke the
+hook at all, and the marker's non-chaining default made its POSITION in
+the stack load-bearing too — put it above a layer with its own hook and
+that layer went silently dead. The terminal on `Stuff` removed both. (`CommandGiver`'s own `onCreate`
 deeper in the chain is shadowed, but it self-seeds lazily, and NPCs emit
 through Apis directly rather than the command system.)
 
@@ -466,8 +573,6 @@ the seen-set) is runtime-only and re-installed from the persisted
 | `patrols` | cadence | `body` | `attention` | traverse the next route direction (index in `state`) | `{ route: string[] }` |
 | `greets` | `arrival` | `attention` | — | greet the arriver (directed) | `{ lines: string[] }` |
 | `reacts` | `emote` | `attention` | — | emote/speak back at the perceived actor | `{ reactions: {to?,emote?,respond?}[] }` |
-| `shifts` | cadence | — | — | migrate by employment shift state (teleport) | `{ behindBar, offstage, railStool? }` |
-| `covers` | cadence | — | — | proprietor covers when no on-shift maker is present (`beginCover`/`endCover`) | `{}` |
 | `enforces` | cadence (not ambient, not presence-gated) | — | — | the house's own peace, kept by hand (bar-fight build; kernel commons — any barkeep reuses it): a fight gets the shout, then hands-first (`subdue` the **believed** aggressor — the read-the-room heuristic, the one *winning*, never the ledger — so he can be wrong), then the office taser only under real threat (a weapon out, or 3+ parties; a real fetch round-trip); a visibly-armed patron (`CombatApi.visibleArms`) gets a warning, then the 86 (a `DocumentApi` record in the venue's document-tree slice) + ordered out + bum-rushed. The cadence scan IS the witnessing; the belief lives in `ctx.state` for the episode | `{ alertness?, shoutLine?, warnLine?, orderLine?, ejectDirection?, officeDirection?, officeReturn?, taserKeyword?, recordsPath? }` |
 | `follows` | `departure` | `body` | — | goes with a person it is bonded to (`bondWith ≥ 0.5`), and **records that it did** — following somebody home is what earns the right to name it. ⚠ At a threshold whose room holds an armed `Hazard` it balks with one fixed line that names the ACT and never the cause: an animal that says *why* is a trap detector, one that just balks is an animal. `waiting` holds it | — |
 | `feeds` | cadence (not ambient, not presence-gated) | `body` | — | eats from a `Feeder` or off the floor, through the same ingest bridge a person's meal uses. ⚠⚠ **Returns before reading metabolism** when there is nothing in reach and nobody owns the animal — a metabolism read reconciles, and for a stamped animal it integrates the whole absence, so the beat itself would starve an unowned stray. ⭐ One refusal sentence for four reasons (not hungry · turned · a nose finding what yours cannot); a bowl meal credits **nobody** and advances where home is, a hand meal credits the hand | — |
@@ -484,19 +589,18 @@ in [trait.md](./trait.md).) The speech/idle cadence brains declare
 mid-conversation (a `DialogueConversation` holds both slots) — the spoken
 dialogue isn't muddied by ambient chatter.
 
-`shifts` reads the host's shift state from the **employment engine**
-(`EmploymentApi.shiftStateOf`, a sync read of the roster-maintained
-`Employment.status`) and migrates the NPC to `behindBar` (on-shift) or
-`offstage` (off-shift) — presence is now a *consequence* of employment
-state, not a clock read (the schedule lives on the Business roster; see
-[employment.md](./employment.md)). `railStool` is a reserved config key for
-the deferred off-shift-at-the-rail presence. It is **not** presence-gated (it
-must run unwatched to move off-stage cast). The sibling **`covers`** brain is
-the proprietor's cover-driver: on a presence-gated cadence, if no other
-active on-shift maker is present it `beginCover`s a transient unpaid
-transient shift on the house's first `fulfills` seat so an `order` still finds a fulfiller. This is
-presence/migration only — the in-room shift-*change* ritual (count-out,
-reconcile, hand-off) is a later scripting wave.
+⛔ **`shifts` and `covers` were retired (2026-09-30).** Presence and cover
+are the **roster tick's**, not a brain's — `offstage:` on the Business,
+`station:` on the seat, the move on each shift transition, and the cover
+reconciled at the end of `tickBusiness` (so also on the first `order`). See
+[employment.md](./employment.md) § Presence and cover.
+
+⭐⭐ Worth keeping as the lesson: both brains **polled every 30 seconds to
+notice an hourly flip** — 22 timer fires a minute across eleven rows to
+catch up with a state that changes at most once per game hour. The flip is
+the event. A poll in front of an event you already own is latency wearing a
+brain's clothes, and the test for it is *who writes the state* — if the
+answer is "the thing I am polling", the work belongs there.
 
 ⭐ **The roster is the schedule, and that makes opening hours a business
 strategy.** There is no NPC scheduling system and none is planned: a
@@ -573,7 +677,7 @@ dangling brain path is caught at author time, not silently at spawn.
 | `BehavedMixin` + `Behaved` | `lib/behavior/Behaved.ts` | Reads `behaviors:`, wires triggers, re-resolves brains, runs slot contention |
 | `BehaviorSpec` / `BrainContext` / `BrainStatics` / `parseTrigger` vocab | `lib/behavior/brain.ts` | The brain category contract + trigger alias table |
 | `BehaviorBeat` | `lib/behavior/BehaviorBeat.ts` | Generic short `DurativeActivity` that holds a slot for the contention window |
-| The canned brains | `lib/behavior/{idles,random-chatter,wanders,patrols,greets,reacts,shifts,covers,enforces,follows,feeds,homes}.ts` | Path-resolved strategy modules (`covers` = the proprietor cover-driver; see [employment.md](./employment.md)) |
+| The canned brains | `lib/behavior/{idles,random-chatter,wanders,patrols,greets,reacts,enforces,follows,feeds,homes,…}.ts` | Path-resolved strategy modules. ⚠ `shifts`/`covers` retired 2026-09-30 — presence and cover are the roster tick's; see [employment.md](./employment.md) |
 | `NPC` | `lib/npc/NPC.ts` | `Character` + `Behaved` archetype — **substrate**; rows name a rung, not this |
 | `CastMixin` / `Cast` / `Extra` | `lib/npc/Cast.ts`, `platform/agent/` | The identity rungs ([identity.md](./identity.md)) |
 | `StuffApi.resolveExport` / `resolveExportSync` | `api/stuff.ts` | Path → fs → hot-reload registry brain-export seam |
@@ -593,7 +697,7 @@ dangling brain path is caught at author time, not silently at spawn.
 - [reactions.md](./reactions.md) — `ReactionApi.actInfo` speaker-recover
   used to resolve the subject of a witnessed emote/speech.
 - [time.md](./time.md) — `WorldClockApi` + `DefaultCalendar`, the
-  game-clock guard `shifts` reads.
+  game-clock guard `eats` and `prints` read.
 - [cms.md](./cms.md) — the content surface NPC templates are authored in;
   the deferred holodeck / sandbox / publish gate.
 - Seeding slate: [npc-behavior-slate.md](../slates/builds/npc-behavior-slate.md)

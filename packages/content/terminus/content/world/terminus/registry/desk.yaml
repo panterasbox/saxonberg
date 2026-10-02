@@ -3,7 +3,6 @@
 # presence, never a room constant, so the realty office (and any future
 # records office) is a populated row and no code change.
 class: /system/residence/thing/DeedDesk
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: deed desk
   keywords: [desk, counter, book, plat, deed]

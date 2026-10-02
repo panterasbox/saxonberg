@@ -17,7 +17,7 @@ const ArrayApiCallers = SecurityPolicies.FromModule('/api/array#ArrayApi');
  * `StuffApi.singletonSync`. Any module that grabs this singleton and
  * calls a method other than through the Api gets `SecurityError`.
  *
- * Stateless by construction (no `PostRegistrationMixin`): `dest` is the
+ * Stateless by construction (no `onCreate` override): `dest` is the
  * reload invalidator and the next `singletonSync` re-creates against
  * the current blueprint.
  *

@@ -9,7 +9,6 @@
 # ranching trade already eats), and the poor man's bread. A mill that
 # threw it away would be throwing away its second income.
 class: /platform/idea/material/Material
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: bran
   keywords: [bran, offal, sharps]

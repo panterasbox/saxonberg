@@ -4,7 +4,6 @@
 # takes over (tryAutoignite → spread, smoke, char) — no magic-side damage
 # path exists. See docs/subsystems/magic.md.
 class: /platform/idea/magic/Spell
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   spellId: firebolt
   name: Firebolt

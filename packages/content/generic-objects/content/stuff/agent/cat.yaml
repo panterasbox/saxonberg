@@ -12,7 +12,6 @@
 # reach it after you step back, which is the ladder: food on the ground,
 # then food from the hand, then a hand, then it follows you.
 class: /platform/agent/KeptAnimal
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   _speciesPath: /stuff/idea/species/cat
   lifecycleState: alive
@@ -29,6 +28,6 @@ data:
     - brain: /lib/behavior/follows
       trigger: departure
     - brain: /lib/behavior/feeds
-      trigger: cadence:60s
+      trigger: candidate
     - brain: /lib/behavior/homes
-      trigger: cadence:90s
+      trigger: candidate

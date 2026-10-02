@@ -1,7 +1,6 @@
 # A wand of windrazor — a shearing edge of air, wielded by a non-caster. Carries the SHIPPED
 # `windrazor` working; `zap` spends the maker's stored labour, not competence.
 class: /system/arcana/thing/Wand
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: pale glass-edged rod
   keywords: [wand, rod, windrazor]

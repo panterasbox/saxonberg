@@ -71,8 +71,15 @@ export const TemplatePaths = {
   helpCatalogue: "/platform/idea/HelpCatalogue",
   pressBoard: "/platform/idea/PressBoard",
 
+  /**
+   * ⭐ The content step — what a ROW says, put onto the instance. Called
+   * `persistentHydrator` at `/platform/idea/persistence/PersistentHydrator`
+   * until 2026-10-01; *hydration* is reserved now for filling an instance
+   * from what the world REMEMBERED about it.
+   */
+  templateApplier: "/platform/idea/TemplateApplier",
+
   // Persistence infra (declared as `static templatePath` on these classes).
-  persistentHydrator: "/platform/idea/persistence/PersistentHydrator",
   quantityMarshaller: "/platform/idea/persistence/QuantityMarshaller",
   encryptedStringMarshaller: "/platform/idea/persistence/EncryptedStringMarshaller",
 
@@ -87,7 +94,7 @@ export const TemplatePaths = {
    * tree. A missing row throws at the first exit, loudly.
    */
   defaultExitKind: "/platform/idea/exits/passage",
-  /** A vessel's own doorway, in and out — pre-minted at `postRegister`. */
+  /** A vessel's own doorway, in and out — pre-minted at `onCreate`. */
   vesselInExit: "/platform/idea/exits/vessel-in",
   vesselOutExit: "/platform/idea/exits/vessel-out",
   /** The sandbox's two crossings (into a circle, and the way back). */
@@ -119,7 +126,7 @@ export const TemplatePaths = {
   key: "/stuff/thing/Key",
 
   // ⭐ The floor every Location gets when it authors none — cloned once per
-  // room by `Location.ensureFloor` at `postRegister`. Named here because
+  // room by `Location.ensureFloor` at `onCreate`. Named here because
   // the kernel mints it: before the ground build nothing attached this row
   // at all, and `lint:census` resolves template-path fields but not a
   // constant, so `Location.floor.test.ts` asserts it resolves.

@@ -10,7 +10,6 @@
 # ⚠ The `flux` tag is what the smelt reads, and it is a TAG rather than a
 # row check so a pack that ships dolomite or fluorspar works with no edit.
 class: /platform/idea/material/Material
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: limestone
   keywords: [limestone, lime, stone]

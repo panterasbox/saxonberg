@@ -9,7 +9,6 @@
 # formations are afforded by the party verb; competence grades the work,
 # it doesn't gate the menu (the awareness precedent).
 class: /platform/idea/Discipline
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   key: command
   channel: skill

@@ -2,7 +2,7 @@
  * General-store standup — an integration test over the REAL counter seed +
  * good templates (loaded from disk, through the actual clone pipeline). Proves
  * the boot-stock path: materializing the Stock counter fires
- * `postRegister → reset`, which clones each authored line to its par off the
+ * `onCreate → reset`, which clones each authored line to its par off the
  * real good templates. The arrival-walk-in-miniature: a fresh clone of the
  * store counter is stocked and priced, ready to `buy`.
  *
@@ -20,7 +20,7 @@ import { ModuleApi } from "@saxonberg/server/mud/api/module";
 import { Construction } from "@saxonberg/server/mud/lib/material/Construction";
 import { MixinApi } from "@saxonberg/server/mud/api/mixin";
 import { AppSettings } from "@saxonberg/server/mud/lib/config/AppSettings";
-import PersistentHydrator from "@saxonberg/server/mud/platform/idea/persistence/PersistentHydrator";
+import TemplateApplier from "@saxonberg/server/mud/platform/idea/TemplateApplier";
 import Stock from "@saxonberg/content-trade-shopkeeping/src/thing/Stock";
 import PlantPot from "@saxonberg/server/mud/platform/thing/PlantPot";
 import Seed from "@saxonberg/server/mud/platform/thing/Seed";
@@ -32,7 +32,7 @@ import type { LightSource } from "@saxonberg/server/mud/lib/perception/LightSour
 import { installStore, type Doc } from "@saxonberg/server/mud/lib/persistence/__tests__/backend-store";
 import { installV1QuantityMarshallers } from "@saxonberg/server/mud/lib/persistence/__tests__/quantity-marshaller-test-helpers";
 
-const PH = PersistentHydrator.templatePath;
+const PH = TemplateApplier.templatePath;
 const STORE_DIR = fileURLToPath(
   new URL("../../../terminus/content/world/terminus/general-store/", import.meta.url),
 );
@@ -231,7 +231,6 @@ function seedDoc(rel: string): Doc {
   return {
     path: `/world/terminus/general-store/${rel}`,
     class: parsed.class as string,
-    hydratorClass: (parsed.hydratorClass as string) ?? PH,
     data: (parsed.data as Record<string, unknown>) ?? {},
   };
 }
@@ -245,7 +244,6 @@ function objDoc(path: string): Doc {
   return {
     path,
     class: parsed.class as string,
-    hydratorClass: (parsed.hydratorClass as string) ?? PH,
     data: (parsed.data as Record<string, unknown>) ?? {},
   };
 }
@@ -305,7 +303,7 @@ describe("general-store standup (real seeds)", () => {
     const counter = await StuffApi.singleton<Stock>(COUNTER);
     expect(counter).toBeInstanceOf(Stock);
 
-    // postRegister → reset cloned each line to par off the real templates.
+    // onCreate → reset cloned each line to par off the real templates.
     expect(counter.onHand(TORCH)).toBe(4); // authored par
     expect(counter.priceFor(TORCH)).toBe(2); // authored price
     // A torch is on the shelf and resolvable by keyword (ready to buy).

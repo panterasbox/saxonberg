@@ -6,7 +6,6 @@
 # on the worst equipment and comes out visibly amateur, which is correct
 # and is another legible social signal.
 class: /trade/dyeing/thing/DyeVat
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: dyehouse vat
   keywords: [vat, bath, dye-vat, copper, dyehouse]

@@ -11,7 +11,6 @@
 # the row's and the metal is the instance's, and `analyze weapon` is
 # where you find out.
 class: /platform/thing/equipment/Weapon
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: spear
   keywords: [spear]

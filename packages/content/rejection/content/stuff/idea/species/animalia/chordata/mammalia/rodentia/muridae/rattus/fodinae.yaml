@@ -6,7 +6,6 @@
 # in the trade. A second mine is free to have something else in its
 # corners, and nothing in the machinery notices.
 class: /platform/idea/species/Species
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   binomial: Rattus fodinae
   commonNames: ["delve rat", "rat"]

@@ -1,7 +1,6 @@
 # Sailed — vehicular mode authored on rowboats / sailboats. Quiet,
 # partial contact with water.
 class: /platform/idea/LocomotionMode
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: sailed
   speed: 1.5

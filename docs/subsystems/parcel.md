@@ -254,14 +254,14 @@ forgeable. See [smallholding.md](./smallholding.md) for the consumer.
 
 ## `ParcelRegistry` + the coverage index
 
-`ParcelRegistry` (`obj/ParcelRegistry.ts`, an `Idea + PostRegistrationMixin`
+`ParcelRegistry` (`obj/ParcelRegistry.ts`, an `Idea + onCreate`
 singleton at `/platform/idea/ParcelRegistry`, sibling to `AccessRegistry` /
 `AddressRegistry` / `OfficeRegistry`) holds the durable state: a
 `PathTrie<ParcelRecord>` **coverage index** keyed on `extent` (the
 `AddressRegistry` precedent — extents are path-shaped and longest-prefix is
 exactly the nearest-parcel-bearing-ancestor query the hierarchy needs), plus
 the mint-or-find group-ref resolution that **moved here out of
-`AccessRegistry`**. `postRegister` rebuilds the index idempotently from the
+`AccessRegistry`**. `onCreate` rebuilds the index idempotently from the
 `parcels` collection.
 
 Every public method carries

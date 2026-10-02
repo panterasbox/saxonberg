@@ -11,7 +11,6 @@
 # before anybody drew one in metal, and the kind of detail that makes a
 # trade feel like it was practised rather than designed.
 class: /platform/thing/Thing
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   keywords: [spile, spout, tap, "sap spile"]
   shortDescription: spile

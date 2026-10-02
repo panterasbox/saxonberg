@@ -8,7 +8,6 @@
 # vault plainly by going north; the vault holds an obvious reward). Nothing
 # here gates the way on: the dart wounds, it does not block.
 class: /platform/location/SingletonCartesianLocation
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: low slab-floored corridor
   keywords: [corridor, low, slab-floored]

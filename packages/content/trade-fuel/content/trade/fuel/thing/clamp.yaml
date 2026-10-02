@@ -6,7 +6,6 @@
 # fuel yard is the same everywhere; a locality that wants its own charcoal
 # row overrides them.
 class: /trade/fuel/thing/CharcoalPit
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: turfed charcoal clamp
   keywords: [clamp, pit, heap, kiln, turfed, charcoal]

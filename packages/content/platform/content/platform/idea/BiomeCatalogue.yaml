@@ -1,4 +1,4 @@
-# BiomeCatalogue — the singleton whose postRegister stands the authored
+# BiomeCatalogue — the singleton whose onCreate stands the authored
 # biome roster up as live singletons (the MaterialCatalogue shape; eager
 # via this pack's boot list, not an AppBootstrap sequencer line).
 #

@@ -40,8 +40,7 @@
  *   - `VisibleMixin` (via Boundary): short/long descriptions.
  *
  * Template-loadable: `Door` is cloned from a `domain` template via
- * `StuffApi.clone()` with
- * `hydratorClass: '/platform/idea/persistence/PersistentHydrator'`. The
+ * `StuffApi.clone()`, which applies the row's `data`. The
  * persistent field shape is `open` (Sealable) plus the inherited
  * Visible / Perceptible fields. Doors are wired transitively when an
  * exit declares `door:` (via `Exitable.addBidirectionalExit`); they

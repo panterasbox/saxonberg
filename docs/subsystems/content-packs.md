@@ -374,7 +374,7 @@ code trust** (`DocumentLogic`); a cosmetic edit goes live through
 
 Each installed row carries a **top-level `sourcePack` field** (a `content`
 template, a `name_banks` bank — every stamped backend). On a template row
-it is a sibling of `data` (`{path, class, hydratorClass, data, sourcePack}`).
+it is a sibling of `data` (`{path, class, extends, data, sourcePack}`).
 It is **not** inside `data`, and the clone pipeline passes only
 `template.data` to the Hydrator — so the stamp is structurally
 unreachable by the instance (a `Material`/`Biome` never sees it). It is a
@@ -421,7 +421,7 @@ collection so no contribution kind can ever reach it (the
   boots its rows and still has maintainers.
 
 **Canonical hashing.** The preimage is the rendered content only —
-`{class, extends, hydratorClass, data}` for the template kind, the bank body for a
+`{class, extends, data}` for the template kind, the bank body for a
 bank, `{data}` for a document, `{front, body}` for a wiki page, the
 rendered subject shape for a subject — key-sorted, cycle-safe,
 `undefined`-normalized (`JSON.stringify`
@@ -500,7 +500,7 @@ food-safety drive, which spent a round chasing it as a pack defect.)
 ### requires-kernel
 
 Before any write, the installer resolves every distinct `class:` (and
-`hydratorClass:`) the pack's content names, via the standard
+) the pack's content names, via the standard
 `StuffApi.loadClassByPath`. A missing class fails the pack (before any
 of its writes) with a message naming the pack, the class, and the
 offending file. This is the enforced content-pack ↔ mod boundary. The
@@ -1117,7 +1117,7 @@ Each manifest's **`boot[]`** entry is `{ template, role, reason,
 dependsOn? }`: `template` an absolute template path the pack ships;
 `role` **`sync-read`** (a registry or catalogue some Api reads
 synchronously — it must be resident before the first read) or
-**`producer`** (a row whose `postRegister` *produces* something — warms
+**`producer`** (a row whose `onCreate` *produces* something — warms
 a cache, installs a stair, rebuilds a floor — or that nothing else would
 ever instantiate: `/platform/location/void`, the TPA network's eager root);
 `reason` mandatory prose (refused when blank — the manifest is where the
@@ -1581,7 +1581,7 @@ cocktail recipes) and cooking's second pass rides along —
 `generic-objects` ships no recipes. The A23 graduations: `Offstage` →
 `lib/employment` (`OffstageMixin` + the concrete
 `platform/location/Offstage`; both venues' casts park through it, the
-hearthworks gaining the `shifts` brain and an `offstage` row),
+hearthworks gaining an `offstage` row — and the `shifts` brain it gained here was retired onto the roster tick by MR !316),
 `MechanicalMovement` → `lib/time`, and the composition-only classes
 (`CraftVessel`, `GradedReceptacle`, `NeonSign`, `CocktailShaker`,
 `TipJar`, the three menus collapsed to ONE `Menu`) → `platform/thing/`.

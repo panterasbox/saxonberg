@@ -19,13 +19,12 @@ import MaintainController from '../idea/cmd/crafting/MaintainController';
 import FrontDoorExit from '../idea/FrontDoorExit';
 import { OuterWarren } from '@saxonberg/server/mud/lib/location/OuterWarren';
 import { SingletonMixin } from '@saxonberg/server/mud/lib/stuff/Singleton';
-import { PostRegistrationMixin } from '@saxonberg/server/mud/lib/stuff/PostRegistration';
 import FurnishableRoom from '@saxonberg/server/mud/platform/location/FurnishableRoom';
 import Thing from '@saxonberg/server/mud/platform/thing/Thing';
 import Avatar from '@saxonberg/server/mud/platform/agent/PrimaryAvatar';
 import ParcelRegistry from '@saxonberg/server/mud/platform/idea/ParcelRegistry';
 import GroupRegistry from '@saxonberg/server/mud/platform/idea/GroupRegistry';
-import PersistentHydrator from '@saxonberg/server/mud/platform/idea/persistence/PersistentHydrator';
+import TemplateApplier from '@saxonberg/server/mud/platform/idea/TemplateApplier';
 import { Document } from '@saxonberg/server/mud/lib/persistence/Document';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
@@ -51,7 +50,7 @@ interface Doc extends Record<string, unknown> {
   _id?: string;
 }
 
-const PH = PersistentHydrator.templatePath;
+const PH = TemplateApplier.templatePath;
 const PARENT = '/world/prog-test/lots';
 const WARREN_PATH = '/world/prog-test/holder';
 const PROGRAMME = '/world/prog-test/house-programme';
@@ -62,7 +61,7 @@ const LOT1 = `${PARENT}/lot-1`;
 
 /** The generic institution the programme hangs off (a PlatWarren stand-in). */
 class TestInstitution extends SingletonMixin(
-  PostRegistrationMixin(OuterWarren),
+  OuterWarren,
 ) {
   static _mixinName = 'ProgTestInstitution';
   protected async standUpHolding(key: string): Promise<MemberStuff> {
@@ -109,7 +108,7 @@ function col(name: string): Doc[] {
 function seedDomain(): void {
   const domain = col('content');
   const add = (path: string, cls: string, data: Record<string, unknown> = {}) =>
-    domain.push({ _id: `d-${++idCounter}`, path, class: cls, hydratorClass: PH, data });
+    domain.push({ _id: `d-${++idCounter}`, path, class: cls, data });
   domain.push({ _id: `d-${++idCounter}`, path: PH, class: PH, data: {} });
   // ⭐ The engine's own rows: every exit is a clone of a kind row
   // and a boundary's anchors are clones too.
@@ -224,12 +223,12 @@ function seedLot(): void {
 
 async function bootRegistries(): Promise<void> {
   const groups = makeStuffAtPath(() => new GroupRegistry(), '/platform/idea/GroupRegistry');
-  await groups.postRegister();
+  await groups.onCreate();
   const parcels = makeStuffAtPath(
     () => new ParcelRegistry(),
     '/platform/idea/ParcelRegistry',
   );
-  await parcels.postRegister();
+  await parcels.onCreate();
 }
 
 async function institution(): Promise<TestInstitution> {

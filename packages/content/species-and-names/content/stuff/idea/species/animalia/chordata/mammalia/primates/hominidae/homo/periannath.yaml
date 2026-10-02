@@ -2,7 +2,6 @@
 # scaled small; vision and lifespan stay close to human (~150 years).
 # Quick, comfortable, fond of a good meal and a warm hole.
 class: /platform/idea/species/Species
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   illustration: species/periannath.png
   binomial: Homo periannath

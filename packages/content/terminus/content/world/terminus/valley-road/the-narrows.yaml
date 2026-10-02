@@ -1,7 +1,6 @@
 # The narrows — the middle of the climb, where the road is the only
 # gradeable line and you can see why.
 class: /platform/location/SingletonCartesianLocation
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: narrows
   keywords: [narrows]

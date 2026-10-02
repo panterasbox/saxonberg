@@ -31,7 +31,7 @@ import { StuffApi } from "../../../api/stuff";
 import { ContainmentApi } from "../../../api/containment";
 import { ParcelApi } from "../../../api/parcel";
 import { MixinApi } from "../../../api/mixin";
-import PersistentHydrator from "../../../platform/idea/persistence/PersistentHydrator";
+import TemplateApplier from "../../../platform/idea/TemplateApplier";
 import { PersistableMixin } from "../Persistable";
 import { PersistenceManager } from "../../../../backend/PersistenceManager";
 import { Idea } from "../../stuff/Idea";
@@ -39,7 +39,6 @@ import type { Stuff } from "../../stuff/Stuff";
 import { ContainerMixin } from "../../spatial/Container";
 import { ContainableMixin } from "../../spatial/Containable";
 import { StagedMixin } from "../../stuff/Staged";
-import { PostRegistrationMixin } from "../../stuff/PostRegistration";
 import { GradedMixin } from "../../craft/Graded";
 import { PropertiedMixin, Property } from "../../stuff/Propertied";
 import { SlottedMixin } from "../../slot/Slotted";
@@ -56,7 +55,7 @@ import type { FieldMeta } from "../../mixin";
 // A persistable room host: Persistable ⊕ Staged ⊕ Container, with one
 // own persistent field. Composed outermost-Persistable.
 class RoomHost extends PersistableMixin(
-  StagedMixin(ContainerMixin(PostRegistrationMixin(Idea))),
+  StagedMixin(ContainerMixin(Idea)),
 ) {
   static fieldMeta: FieldMeta = {
     label: { persistent: true },
@@ -75,7 +74,7 @@ class RoomHost extends PersistableMixin(
 // room keyed on its unit parcel). No marker — the `(scope, key)` identity is
 // uniform; distinct keys simply never collide.
 class MultiRoom extends PersistableMixin(
-  ContainerMixin(PostRegistrationMixin(Idea)),
+  ContainerMixin(Idea),
 ) {
   static fieldMeta: FieldMeta = {
     label: { persistent: true },
@@ -127,7 +126,7 @@ class Trinket extends ContainableMixin(Idea) {
 // A persistable HOST chest — its own record, keyed by templatePath. Exercises
 // the host-reference boundary.
 class HostChest extends PersistableMixin(
-  ContainerMixin(ContainableMixin(PostRegistrationMixin(Idea))),
+  ContainerMixin(ContainableMixin(Idea)),
 ) {
   static fieldMeta: FieldMeta = {
     label: { persistent: true },
@@ -144,7 +143,7 @@ class HostChest extends PersistableMixin(
 // A Containable persistable host (an avatar-shaped stand-in) — captures its
 // OWN durable location into its record.
 class MovableHost extends PersistableMixin(
-  ContainerMixin(ContainableMixin(PostRegistrationMixin(Idea))),
+  ContainerMixin(ContainableMixin(Idea)),
 ) {
   static fieldMeta: FieldMeta = {
     label: { persistent: true },
@@ -161,7 +160,7 @@ class MovableHost extends PersistableMixin(
 // An opted-out host (a guest stand-in) — shouldPersist() is false, so it
 // writes and restores nothing.
 class GuestLikeHost extends PersistableMixin(
-  ContainerMixin(PostRegistrationMixin(Idea)),
+  ContainerMixin(Idea),
 ) {
   override shouldPersist(): boolean {
     return false;
@@ -174,7 +173,7 @@ class GuestLikeHost extends PersistableMixin(
 // round trip — without the full Avatar clone pipeline.
 class AvatarLike extends PersistableMixin(
   HasInteractiveMixin(
-    SlottedMixin(ContainerMixin(ContainableMixin(PostRegistrationMixin(Idea)))),
+    SlottedMixin(ContainerMixin(ContainableMixin(Idea))),
   ),
 ) {
   static fieldMeta: FieldMeta = {
@@ -192,7 +191,7 @@ class AvatarLike extends PersistableMixin(
 }
 
 // A Slotted host (worn-gear demo) + a Slottable garment.
-class Wearer extends SlottedMixin(ContainerMixin(PostRegistrationMixin(Idea))) {}
+class Wearer extends SlottedMixin(ContainerMixin(Idea)) {}
 class Garment extends SlottableMixin(ContainableMixin(Idea)) {
   static fieldMeta: FieldMeta = {
     tag: { persistent: true },
@@ -218,12 +217,12 @@ async function mockClone(path: string): Promise<Stuff> {
   const factory = cloneFactories[path];
   if (!factory) throw new Error(`no clone factory for ${path}`);
   const inst = makeStuffAtPath(factory, path);
-  // The real clone pipeline runs postRegister (which, post-D1, no longer
+  // The real clone pipeline runs onCreate (which, post-D1, no longer
   // auto-materializes); fire it to faithfully simulate the pipeline. The
   // nested-host `{ref}` restore is driven by the spine's `cloneHost` (a
-  // keyless materialize on the fresh clone), not by postRegister.
+  // keyless materialize on the fresh clone), not by onCreate.
   if (MixinApi.isPersistable(inst)) {
-    await (inst as unknown as { postRegister: () => Promise<void> }).postRegister();
+    await (inst as unknown as { onCreate: () => Promise<void> }).onCreate();
   }
   return inst;
 }
@@ -281,8 +280,8 @@ beforeEach(() => {
 
   // The standard hydrator singleton (restore's set<Field> dispatch).
   makeStuffAtPath(
-    () => new PersistentHydrator(),
-    PersistentHydrator.templatePath,
+    () => new TemplateApplier(),
+    TemplateApplier.templatePath,
   );
 });
 
@@ -517,7 +516,7 @@ describe("room decomposes by owner (AC #7)", () => {
 });
 
 describe("security (AC #8)", () => {
-  it("a forged record cannot inject class/hydratorClass/brain or undeclared keys", async () => {
+  it("a forged record cannot inject class/brain or undeclared keys", async () => {
     cloneFactories = { "/world/chest": () => new ContentChest() };
     const room = makeStuffAtPath(() => new RoomHost(), "/world/room");
     await PersistableApi.capture(room);
@@ -532,7 +531,6 @@ describe("security (AC #8)", () => {
               fields: {
                 label: "legit",
                 class: "/obj/evil/Backdoor",
-                hydratorClass: "/obj/evil/Hydrator",
                 brain: "/lib/behavior/pwn",
                 bogusUndeclared: "x",
               },

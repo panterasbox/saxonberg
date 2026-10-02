@@ -22,7 +22,6 @@
 # is where somebody will look for it, though a composite is what it
 # honestly is.
 class: /platform/idea/material/Material
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: bloom iron
   keywords: [bloom, "bloom iron", sponge]

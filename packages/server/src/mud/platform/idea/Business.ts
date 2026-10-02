@@ -32,7 +32,6 @@
  */
 
 import { Idea } from '../../lib/stuff/Idea';
-import { PostRegistrationMixin } from '../../lib/stuff/PostRegistration';
 import type { MixinConstructor, FieldMeta } from '../../lib/mixin';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type { VetoResult } from '../../lib/errors';
@@ -47,7 +46,7 @@ import type { ContractRecord } from '../../lib/employment/ContractRecord';
 /**
  * The trading half of the surface — what a Business adds to the chart
  * (methods only, per the inter-stuff contract). The `operatingLocations` /
- * `banksAt` fields are public so the Hydrator can reflect into them, but
+ * `banksAt` fields are public so the applier can reflect into them, but
  * they are NOT the contract surface.
  */
 /**
@@ -85,6 +84,8 @@ export interface BusinessTrade {
   getAccountPath(): string;
   /** The bank branch custodying the operating account ('' = unauthored). */
   getBanksAt(): string;
+  /** Where this house's off-shift cast wait (a location path); empty ⇒ nowhere. */
+  getOffstage(): string;
   /** The charters this business holds (`bank` — it may lend and present paper at the window). */
   getCharters(): readonly Charter[];
   /** Does it hold `charter`? */
@@ -171,9 +172,34 @@ export function BusinessMixin<
       },
       banksAt: { persistent: true, authorable: true, authorPicker: 'Template' },
       parLines: { persistent: true, authorable: true },
+      offstage: {
+        persistent: true,
+        authorable: true,
+        authorPicker: 'Template',
+      },
       charter: { persistent: true, authorable: true },
       payrollArrears: { persistent: true },
     };
+
+    /**
+     * ⭐⭐ **Where this house parks its cast when they are off shift** — a
+     * location templatePath, resolved live (and materialized on demand).
+     * Empty ⇒ nobody is moved, which is what every house that never
+     * authored a `shifts` brain does today.
+     *
+     * ⚠ It is a field on the BUSINESS, not config on each person's row.
+     * It used to be the same two paths repeated in every cast member's
+     * `shifts` config — eight rows saying `offstage: /world/lounge/
+     * location/offstage` — which is the shape that lets one of them say
+     * something different by accident. Presence FOLLOWS employment, so
+     * the fact belongs to the employer.
+     */
+    public offstage: string = '';
+
+    /** Where this house's off-shift cast wait; empty ⇒ nowhere. */
+    public getOffstage(): string {
+      return this.offstage;
+    }
 
     /**
      * ⭐ The charters this business holds (economic bootstrap D19) — a
@@ -186,7 +212,7 @@ export function BusinessMixin<
      */
     public charter: Charter[] = [];
 
-    /** The Hydrator's Phase-1 setter: an unknown charter is refused loudly, never read as `wild`. */
+    /** The applier's Phase-1 setter: an unknown charter is refused loudly, never read as `wild`. */
     public setCharter(value: unknown): void {
       const list = Array.isArray(value) ? value : [];
       for (const c of list) {
@@ -329,7 +355,7 @@ export function BusinessMixin<
  * class into a recursive base type).
  */
 class BusinessEntity extends BusinessMixin(
-  OrganizationMixin(PostRegistrationMixin(Idea)),
+  OrganizationMixin(Idea),
 ) {
   /** Singleton refusal (mirrors the catalogue singletons). */
   public canDestruct(): VetoResult {

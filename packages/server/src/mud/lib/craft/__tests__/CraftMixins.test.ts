@@ -7,7 +7,7 @@ import { EPOCHS } from '../Epoch';
 import { DurableMixin } from '../../material/Durable';
 import { CraftedMixin } from '../Crafted';
 import { Grade } from '../Grade';
-import PersistentHydrator from '../../../platform/idea/persistence/PersistentHydrator';
+import TemplateApplier from '../../../platform/idea/TemplateApplier';
 import { makeStuff } from '../../security/__tests__/test-setup';
 
 class GradedHost extends GradedMixin(Idea) {
@@ -102,15 +102,15 @@ describe('ToolMixin', () => {
       expect(t.capabilityRate('anvil')).toBe(1); // absent kind → 1
     });
 
-    it('a mixed authored array round-trips the Hydrator behavior-identically', async () => {
+    it('a mixed authored array round-trips the applier behavior-identically', async () => {
       const t = makeStuff(() => new ToolHost());
       const authored = [
         'whetstone',
         { kind: 'mending', rate: 3, control: 'fine' },
       ];
-      await makeStuff(() => new PersistentHydrator()).hydrate(t, {
+      await makeStuff(() => new TemplateApplier()).apply(t, {
         capabilities: authored,
-      });
+      }, { mode: 'mint' });
       expect(t.hasCapability('whetstone')).toBe(true);
       expect(t.capabilityRate('mending')).toBe(3);
       expect(t.capabilityControl('mending')).toBe('fine');
@@ -121,10 +121,10 @@ describe('ToolMixin', () => {
     it('carries an EPOCH stamp — unstated by default, hydrated from the row, and a CLOSED vocabulary', async () => {
       const t = makeStuff(() => new ToolHost());
       expect(t.getEpoch()).toBeNull();
-      await makeStuff(() => new PersistentHydrator()).hydrate(t, {
+      await makeStuff(() => new TemplateApplier()).apply(t, {
         capabilities: ['felling'],
         epoch: 'medieval',
-      });
+      }, { mode: 'mint' });
       expect(t.getEpoch()).toBe('medieval');
       t.setEpoch(null);
       expect(t.getEpoch()).toBeNull();

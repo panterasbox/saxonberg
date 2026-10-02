@@ -11,7 +11,6 @@
 # `trade-cooking`, the move carries a verb and a controller — not a skill
 # model.
 class: /platform/idea/Discipline
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   key: butchery
   channel: skill

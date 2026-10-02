@@ -4,7 +4,6 @@
 # nothing; carbonation is a material-level fact the ferment produces
 # (D11: no kernel code may test how it got fizzy).
 class: /platform/idea/maturation/MaturationProfile
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   key: sparkling-conditioning
   mechanism: microbial

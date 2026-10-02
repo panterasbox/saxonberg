@@ -9,7 +9,7 @@
  * it carries `commandContributions` and confers the `handle` verb. Every
  * other near-empty mixin in the tree confers something real —
  * `Palatable` and `NutritionLabel` each carry a `markupAugmenter`,
- * `PostRegistration` carries its hook, `Singleton` enforces one-instance.
+ * `Singleton` enforces one-instance.
  * A mixin that is only a tag is a tag pretending to be architecture.
  *
  * What it confers now, all of which something reads:

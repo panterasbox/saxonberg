@@ -2,7 +2,6 @@
 # smithing ladder's easy rung (forge one, then cook in it). Portable
 # capital: reachable heat + a pot is a kitchen, anywhere.
 class: /trade/cooking/thing/CookPot
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: cook pot
   keywords: [pot, cook-pot, kettle, cook]

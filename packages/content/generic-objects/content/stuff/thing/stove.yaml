@@ -6,7 +6,6 @@
 # ⭐ A second heating object and ZERO new code: `Hearth` is the class, and
 # what makes this a stove is three numbers and some prose.
 class: /platform/thing/Hearth
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: cast-iron stove
   keywords: [stove, fire, firebox, iron]

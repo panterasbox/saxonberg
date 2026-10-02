@@ -11,7 +11,6 @@
 # municipal plumbing, so the tier can pick the fixture later without
 # touching an archetype row. Keep it that way.
 class: /platform/thing/WaterFixture
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: washbasin
   keywords: [basin, sink, washbasin, tap, water]

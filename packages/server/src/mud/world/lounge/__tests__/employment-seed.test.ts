@@ -114,7 +114,12 @@ describe("Dave's Bar — Business seed integrity", () => {
     const sloane = doc.data.rosterSlots.find((s) =>
       s.assignee.endsWith('sloane'),
     );
-    expect(sloane!.schedule).toHaveLength(2); // 22–24 + 0–6
+    // ⭐ THREE windows now: the weekday midnight wrap (22–24 + 0–6) plus the
+    // weekend graveyard (0–6 on days 5,6) the agent-coordination build
+    // added. Weekend 00:00–10:00 was on nobody's roster, so for ten hours of
+    // every Saturday and Sunday the only person who could serve anybody was
+    // Dave, covering his own bar unpaid.
+    expect(sloane!.schedule).toHaveLength(3);
     expect(doc.data.operatingLocations).toContain('/world/lounge/location/bar');
   });
 });

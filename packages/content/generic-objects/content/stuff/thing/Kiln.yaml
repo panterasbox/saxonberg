@@ -18,7 +18,6 @@
 #
 # So the dials were always what made it a kiln, and now they are all there is.
 class: /platform/thing/Oven
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: brick kiln
   keywords: [brick, kiln, furnace, oven]

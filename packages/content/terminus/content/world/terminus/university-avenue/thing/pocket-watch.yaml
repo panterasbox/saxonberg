@@ -9,7 +9,6 @@
 # engraving hides the full name the badge keeps off. Generic object:
 # Visible.shortDescription, never Named.
 class: /world/terminus/university-avenue/thing/Watch
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: brass pocket-watch
   keywords: [watch, pocketwatch, brass, hunter, chain, pocket-watch]

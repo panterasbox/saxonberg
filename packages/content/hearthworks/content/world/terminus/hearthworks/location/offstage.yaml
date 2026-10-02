@@ -5,7 +5,6 @@
 # practice Berta and Odo never leave the floor — the room exists so that
 # a shortened schedule parks them somewhere rather than nowhere.
 class: /platform/location/Offstage
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: The Hearthworks — Back room
   keywords: [room, hearthworks, back]

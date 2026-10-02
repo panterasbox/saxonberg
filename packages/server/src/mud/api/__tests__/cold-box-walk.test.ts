@@ -276,7 +276,7 @@ describe('⭐⭐ the cold-box walk', () => {
     );
     void makeStuffAtPath(() => new PressBoard(), '/platform/idea/PressBoard');
     const reg = makeStuffAtPath(() => new OfficeRegistry(), '/platform/idea/OfficeRegistry');
-    await reg.postRegister();
+    await reg.onCreate();
     CompactApi._resetOfficeRegistryRefForReload();
   });
 

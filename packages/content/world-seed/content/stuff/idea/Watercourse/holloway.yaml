@@ -7,7 +7,6 @@
 # that stops a diversion in one valley curtailing a right in another.
 # The moor sits on it.
 class: /system/water/idea/Watercourse
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   key: holloway
   name: the Holloway

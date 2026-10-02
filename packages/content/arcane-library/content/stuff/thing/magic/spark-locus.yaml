@@ -2,7 +2,6 @@
 # resolution (voltage set from the spell, the real graph does the rest),
 # then destructed. Players never see one at rest.
 class: /arcane-library/thing/SparkLocus
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: crackle of gathered charge
   keywords: [charge, crackle, gathered]

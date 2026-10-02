@@ -11,7 +11,6 @@
 # venue, and payment in kind is both the historical answer and the one
 # that needs no banking code at all.
 class: /platform/thing/Sack
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: toll bin
   keywords: [bin, toll, multure, chest]

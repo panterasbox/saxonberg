@@ -12,7 +12,6 @@
 # the grain is — von Thünen, and the reason every valley in Europe had
 # its own mill rather than one big one.
 class: /platform/location/Street
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   # ⭐ Lit by the valley's oil after dusk (energy build). Seniority 3 — the
   # JUNIOR way, the FIRST to stand cold when the store runs short: a lamp at

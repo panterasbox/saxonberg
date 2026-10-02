@@ -4,7 +4,6 @@
 # the ride out is cheap and the gate is never dark. That is the same
 # fact the fare shows, from the other end.
 class: /system/arcana/thing/ManaMain
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   seatIn: /world/lounge/idea/warren
   shortDescription: mana line

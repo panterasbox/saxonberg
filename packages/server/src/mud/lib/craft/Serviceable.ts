@@ -33,22 +33,22 @@ import type { Stuff } from '../stuff/Stuff';
  * needs no gate.
  *
  * ⚠⚠ **The clone pipeline arms are not optional.** `soiled` is a
- * `persistent` field, so a `Hydrator` writes it through the two-phase
+ * `persistent` field, so the `TemplateApplier` writes it through the two-phase
  * `set<Field>` dispatch — both for a fresh clone and, critically, for a
  * logged-out player's inventory coming back out of `holder_snapshots`.
  *
  * ⭐ That is not theoretical. A live drive washed a coupe, logged out, and
  * could not log back in: `handleUserConnect` died with `Policy
  * FromModule(CraftingLogic) denied setSoiled()` from inside
- * `PersistentHydrator.hydrate`. Ordinary play wrote a `soiled` glass into
+ * `TemplateApplier.hydrate`. Ordinary play wrote a `soiled` glass into
  * the snapshot and the player was locked out of their character.
  */
 const SoiledWriters = SecurityPolicies.AnyOf(
   SecurityPolicies.FromModule('/platform/idea/api/CraftingLogic#CraftingLogic'),
-  SecurityPolicies.FromModule('/platform/idea/persistence/PersistentHydrator', {
+  SecurityPolicies.FromModule('/platform/idea/TemplateApplier', {
     includeSubclasses: true,
   }),
-  SecurityPolicies.FromTemplate('/platform/idea/persistence/*Hydrator'),
+  SecurityPolicies.FromTemplate('/platform/idea/TemplateApplier'),
 );
 
 /** The method surface serviceable kit offers other Stuff. */

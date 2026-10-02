@@ -2,8 +2,8 @@
 recipeId: old-fashioned
 name: Old fashioned
 keywords: [old-fashioned]
-discipline: bartending
-difficulty: moderate
+discipline: mixology
+difficulty: standard
 inputSlots:
 - { slot: base, category: whiskey, minGrade: fair, measureL: 0.06 }
 - { slot: sweet, category: sugar, minGrade: fair, measureL: 0.005 }

@@ -25,7 +25,6 @@
  */
 
 import { Idea } from "../../lib/stuff/Idea";
-import { PostRegistrationMixin } from "../../lib/stuff/PostRegistration";
 import { Template } from "../../lib/stuff/Template";
 import Discipline, {
   DISCIPLINE_CHANNELS,
@@ -37,7 +36,7 @@ import { CompetenceBand } from "../../lib/advancement/CompetenceBand";
 import type { VetoResult } from "../../lib/errors";
 import type { EvictionContext } from '../../lib/stuff/Stuff';
 
-const DisciplineCatalogueBase = PostRegistrationMixin(Idea);
+const DisciplineCatalogueBase = Idea;
 
 export default class DisciplineCatalogue extends DisciplineCatalogueBase {
 
@@ -50,7 +49,7 @@ export default class DisciplineCatalogue extends DisciplineCatalogueBase {
   }
   /**
    * Transient runtime cache keyed by Discipline `key`. `null` means "not
-   * built yet"; warmed in `postRegister` (or lazily on first access in a
+   * built yet"; warmed in `onCreate` (or lazily on first access in a
    * unit test that skips the clone pipeline). HMR drops it back to `null`.
    *
    * TypeScript `private` per the domain-code default — the mixin proxy
@@ -112,7 +111,7 @@ export default class DisciplineCatalogue extends DisciplineCatalogueBase {
    * Warm the cache from the `content` collection. One mongo query at boot,
    * then the public surface is sync.
    */
-  public override async postRegister(_context?: unknown): Promise<void> {
+  public override async onCreate(_context?: unknown): Promise<void> {
     await this.loadCacheFromTemplates();
   }
 
@@ -133,7 +132,7 @@ export default class DisciplineCatalogue extends DisciplineCatalogueBase {
 
   private ensureCache(): void {
     if (this.cache !== null) return;
-    // Never warmed (postRegister wasn't awaited, e.g. a unit test). An
+    // Never warmed (onCreate wasn't awaited, e.g. a unit test). An
     // empty cache is a valid cold state — every reader degrades to "no
     // such Discipline".
     this.cache = new Map();

@@ -4,7 +4,6 @@
 # The conduction walk reads its `voltage`; switch it off (`switch off the
 # cable`) and the cell goes dead. Per-instance (cloned fresh each standup).
 class: /platform/thing/LiveWire
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: downed live cable
   keywords: [live, cable, wire, cord, line, downed]

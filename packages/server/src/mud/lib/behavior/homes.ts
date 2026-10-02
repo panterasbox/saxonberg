@@ -44,9 +44,46 @@ import { MixinApi } from '../../api/mixin';
 import { LocomotionApi } from '../../api/locomotion';
 import { PersistableApi } from '../../api/persistable';
 import { FOLLOW_BOND } from '../husbandry/Bonded';
+import type { TaskKind } from './Urgency';
+import { Urgency } from './Urgency';
 
 export const brain = class {
   static label = 'homes';
+  static kind: TaskKind = 'body';
+  static summary =
+    'Walks one step toward the nearest place it remembers, by its own ' +
+    'trail — memory, not pathfinding, so lost stays possible.';
+  /**
+   * ⚠⚠ **The one urgency with a side effect, and it has to be.** The
+   * trail is written by *noticing where you are standing*, and it must be
+   * written on a beat this brain LOSES — an animal carried through a room
+   * while it was eating still passed through that room. Leaving the note
+   * in `act` would mean an animal that never wins a beat has no way back
+   * at all, which is the exact failure the trail was built to prevent.
+   *
+   * Noticing where you are costs no turn. Walking does, and that is what
+   * `act` asks for.
+   */
+  static urgency(ctx: BrainContext): Urgency {
+    const host = ctx.host;
+    if (!MixinApi.isBonded(host) || !MixinApi.isContainable(host)) {
+      return new Urgency("idle");
+    }
+    const room = host.getContainer();
+    if (!room) return new Urgency("idle");
+    const here = PersistableApi.placeIdOf(room);
+    host.rememberPlace(here);
+    if (host.isWaiting()) return new Urgency("idle");
+    const home = host.getHome();
+    if (!home || here === home) return new Urgency("idle");
+    // Its person is here — it is not lost, it is WITH somebody.
+    if (MixinApi.isContainer(room)) {
+      for (const other of room.getContents()) {
+        if (host.bondWith(other) >= FOLLOW_BOND) return new Urgency("idle");
+      }
+    }
+    return new Urgency('wanted', 'turns its head toward home and sets off');
+  }
   static claims: readonly EngagementSlot[] = ['body'];
   static presenceGated = false;
   static ambient = false;

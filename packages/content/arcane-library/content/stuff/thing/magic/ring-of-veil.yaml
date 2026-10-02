@@ -12,7 +12,6 @@
 # veil's cursed branch is a figure every eye is DRAWN to. `remove curse`
 # is the recourse.
 class: /system/arcana/thing/Ring
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: thin silver ring
   keywords: [ring, thin, silver]

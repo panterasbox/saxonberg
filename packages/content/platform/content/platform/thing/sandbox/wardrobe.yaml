@@ -10,7 +10,6 @@
 # one, place it, step in (the authoring ladder, literally).
 # See docs/subsystems/sandbox.md.
 class: /platform/thing/sandbox/SandboxCrossing
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   # The exit label this fixture installs. Skin-specific, hence data —
   # the class is the mechanism, and a turbolift template says

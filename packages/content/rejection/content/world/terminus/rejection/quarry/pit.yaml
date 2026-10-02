@@ -13,7 +13,6 @@
 # and it has been moved before"*. ⭐ The waste going somewhere a person can
 # SEE is the whole of the lesson; a counter would not have taught it.
 class: /trade/quarrying/location/OpenWorking
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: quarry face
   keywords: [quarry, pit, face, working]

@@ -30,7 +30,6 @@
  */
 
 import { Idea } from '../../lib/stuff/Idea';
-import { PostRegistrationMixin } from '../../lib/stuff/PostRegistration';
 import { MessageApi } from '../../api/message';
 import { SecurityApi } from '../../api/security';
 import { PlayerApi } from '../../api/player';
@@ -73,7 +72,7 @@ export interface RelayChannelRef {
   handle: string;
 }
 
-const StreamRelayBase = PostRegistrationMixin(Idea);
+const StreamRelayBase = Idea;
 
 export default class StreamRelay extends StreamRelayBase {
   /**

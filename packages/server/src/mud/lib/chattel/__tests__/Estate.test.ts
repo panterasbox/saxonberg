@@ -31,9 +31,8 @@ import { PersistableApi } from "../../../api/persistable";
 import { PersistableMixin } from "../../persistence/Persistable";
 import { EstateMixin } from "../Estate";
 import { ContainerMixin } from "../../spatial/Container";
-import { PostRegistrationMixin } from "../../stuff/PostRegistration";
 import { Idea } from "../../stuff/Idea";
-import PersistentHydrator from "../../../platform/idea/persistence/PersistentHydrator";
+import TemplateApplier from "../../../platform/idea/TemplateApplier";
 import { Document } from "../../persistence/Document";
 import { PersistenceManager } from "../../../../backend/PersistenceManager";
 import { makeStuffAtPath } from "../../security/__tests__/test-setup";
@@ -51,7 +50,7 @@ class Torch extends Good {}
 
 /** An owner: a persistable container that carries an estate (Avatar's shape). */
 class Owner extends PersistableMixin(
-  EstateMixin(ContainerMixin(PostRegistrationMixin(Idea))),
+  EstateMixin(ContainerMixin(Idea)),
 ) {
   static fieldMeta: FieldMeta = {};
 }
@@ -121,8 +120,8 @@ async function boot(): Promise<void> {
   // the marshaller singletons, so a re-boot must stand them back up.
   installV1QuantityMarshallers();
   const reg = makeStuffAtPath(() => new ChattelRegistry(), "/platform/idea/ChattelRegistry");
-  await reg.postRegister();
-  makeStuffAtPath(() => new PersistentHydrator(), PersistentHydrator.templatePath);
+  await reg.onCreate();
+  makeStuffAtPath(() => new TemplateApplier(), TemplateApplier.templatePath);
   vi.spyOn(StuffApi, "clone").mockImplementation(
     ((path: string) =>
       Promise.resolve(makeStuffAtPath(() => new Torch(), path))) as unknown as
@@ -343,7 +342,7 @@ describe("release drops the owner's estate entry — the resurrection bug", () =
    * carries it forward verbatim (correct for a merely *unloaded* good —
    * see "an entry whose good is not live is carried forward verbatim"
    * above, which is the counter-case this fix must not break), so the dead
-   * good landed in the durable slice and `restoreSlice` re-minted it.
+   * good landed in the durable slice and `hydrateSlice` re-minted it.
    * `Estate._dropEstateEntry` existed for precisely this and had zero
    * callers anywhere in the tree.
    */

@@ -1,7 +1,6 @@
 # Fresh orange juice — house-made (the `press-orange` recipe's authored output
 # material). Tag `orange-juice` is what a sour slot matches.
 class: /platform/idea/material/ConsumableMaterial
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: orange juice
   keywords: [orange, orange-juice, juice]

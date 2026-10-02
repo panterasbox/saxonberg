@@ -4,7 +4,6 @@
 # NOT `sealed`, and that is not an oversight: a cask breathes through
 # the oak; bung it (`close`) and the conditioning profile takes over.
 class: /platform/thing/Vat
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: "cask"
   keywords: [cask, barrel, oak, empty]

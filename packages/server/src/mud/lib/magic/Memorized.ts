@@ -105,7 +105,7 @@ export interface Memorized {
    */
   neighbourCount(spellPath: string): number;
 
-  // ---------- storage (public for the Hydrator) ----------
+  // ---------- storage (public for the applier) ----------
   memorized: MemorizedSpec[];
 }
 

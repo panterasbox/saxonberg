@@ -10,7 +10,6 @@
 # spatial-zone (CartesianZone) ownership stamp. The retired `ownerGroupName`
 # moved to the parcel row.
 class: /platform/idea/location/CartesianZone
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: Terminus Terminal
   cellSize: 3.0

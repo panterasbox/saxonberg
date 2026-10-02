@@ -4,11 +4,14 @@
 # bin — which is why a mill could pay for itself in a world with almost
 # no coin in it.
 class: /platform/idea/Business
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   appointingAuthority:
     kind: entity
     path: /world/terminus/hearts-delight/agent/miller
+  # Who comes over: `rota` — the least-recently-called able hand. No
+  # relational leg, because a floor has no regulars and should not pretend
+  # to. See docs/subsystems/employment.md.
+  call: rota
   positions:
     - key: miller
       noun: miller

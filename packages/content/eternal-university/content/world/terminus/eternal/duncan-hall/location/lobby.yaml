@@ -18,7 +18,6 @@
 # to render; the reading ladder made it the place a student can actually
 # borrow a dial, and the case is the whole family now.
 class: /platform/location/SingletonCartesianLocation
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   # ⭐ Daylight reaches this room through a real opening, and the
   # opening is named so the claim is something a player can walk up

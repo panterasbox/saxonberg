@@ -74,7 +74,6 @@ describe('Template.extends — raw vs effective', () => {
       {
         path: '/p',
         class: '/platform/thing/Thing',
-        hydratorClass: '/h',
         data: { bare: 'parent', details: { a: 1, b: 2 } },
       },
       { path: '/c', extends: '/p', class: null, data: { details: { b: 9 } } },
@@ -84,11 +83,9 @@ describe('Template.extends — raw vs effective', () => {
   it('a child with no class of its own clones into its parent’s', async () => {
     const child = (await Template.findByPath('/c'))!;
     expect(child.class).toBe('/platform/thing/Thing');
-    expect(child.hydratorClass).toBe('/h');
     expect(child.chain).toEqual(['/p']);
     // …and the raw row still says it stated neither.
     expect(child.own.class).toBeUndefined();
-    expect(child.own.hydratorClass).toBeUndefined();
   });
 
   it('a value the child does not state falls through', async () => {
@@ -202,7 +199,6 @@ describe('Template.toDocument — the round-trip', () => {
       {
         path: '/p',
         class: '/platform/thing/Thing',
-        hydratorClass: '/h',
         data: { bare: 'parent', details: { a: 1 } },
       },
       { path: '/c', extends: '/p', class: null, data: { details: { b: 2 } } },
@@ -212,7 +208,6 @@ describe('Template.toDocument — the round-trip', () => {
     const [, doc] = save.mock.calls.at(-1)!;
     const written = doc as Record<string, unknown>;
     expect(written.class).toBeNull();
-    expect(written.hydratorClass).toBeNull();
     expect(written.extends).toBe('/p');
     expect(written.data).toEqual({ details: { b: 2 } });
   });

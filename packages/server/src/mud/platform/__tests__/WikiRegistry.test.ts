@@ -767,7 +767,7 @@ describe('bootstrap', () => {
       if (typeof doc.name === 'string') minted.push(doc.name);
       return 'gid';
     });
-    await raw().postRegister();
+    await raw().onCreate();
     expect(minted).toEqual(['wiki-editors']);
   });
 
@@ -782,7 +782,7 @@ describe('bootstrap', () => {
       .PersistenceManager.get();
     const saveSpy = vi.mocked(pm.save);
     saveSpy.mockClear();
-    await raw().postRegister();
+    await raw().onCreate();
     expect(saveSpy).not.toHaveBeenCalled();
   });
 });

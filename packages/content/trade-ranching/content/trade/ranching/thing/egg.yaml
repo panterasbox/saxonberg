@@ -16,7 +16,6 @@
 # failure was replaced by the hen's own decision to sit on the clutch.
 # It is a `Provision` and perishable, just slowly.
 class: /platform/thing/Provision
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: egg
   keywords: [egg, eggs]

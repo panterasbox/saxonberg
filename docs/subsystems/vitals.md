@@ -250,7 +250,7 @@ behind one `ActiveCondition` collection (`getConditions` / `afflict` /
   > that **authored `Condition` behavior is inert**: signs, names,
   > progression and `toxinBehavior` are all read off an object that isn't
   > there. ✅ **`ConditionCatalogue` closed it** — a self-warming
-  > `postRegister` stands every authored row up as a live singleton, so
+  > `onCreate` stands every authored row up as a live singleton, so
   > the sync resolve-on-read seams hit from the first frame. ⭐ The
   > durable lesson is the one the banner keeps: the reads all
   > `?.`-chained past a null, **so CI was green over a dead subsystem**.

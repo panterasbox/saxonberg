@@ -2,7 +2,6 @@
 # firewood, and a hearth lights it (the `dry-log.yaml` shape: `Firewood`
 # reads its ignition off its Material, which the mint stamps per species).
 class: /platform/thing/Firewood
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: log
   keywords: [log, firewood, wood, crown]

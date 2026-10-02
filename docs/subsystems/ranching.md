@@ -114,6 +114,16 @@ containment holds **position**. Their disagreement *is* straying (D95) —
 derivable on read, needing no new event, and the reason a herd has a
 jurisdictional anchor at all.
 
+### Open — `herdId` should SEED itself
+
+⭐ Left by the hydration build (2026-10-02). A `Herdbook`'s `herdId` is
+filed imperatively today; it is a textbook **`seed`** field —
+`fieldMeta`'s `seed: true` plus a `seedHerdId` applier, run in the
+applier's phase 3 at mint only. Now a **pack-only** change: since
+`hydratorClass` retired there is no kernel row to name and no second
+applier to subclass. See
+[templates.md § The three phases](./templates.md).
+
 ---
 
 ## ⭐⭐ Draft and return (D21)

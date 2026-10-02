@@ -2,7 +2,6 @@
 # never the venue; nothing in this build checks where you stand). The
 # winery's basket press at carry weight, same capability.
 class: /platform/thing/Tool
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: small basket press
   keywords: [press, "small press", basket, small]

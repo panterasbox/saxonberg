@@ -1,7 +1,6 @@
 # A wand of stone-lance — a driven spike of stone, wielded by a non-caster. Carries the SHIPPED
 # `stone-lance` working; `zap` spends the maker's stored labour, not competence.
 class: /system/arcana/thing/Wand
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: slender basalt rod, splintered to a point
   keywords: [wand, rod, stone-lance]

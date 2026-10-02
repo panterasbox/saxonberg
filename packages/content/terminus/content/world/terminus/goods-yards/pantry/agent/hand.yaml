@@ -26,7 +26,7 @@ data:
   # ── the dossier ─────────────────────────────────────────────────
   # Evidence, never values: each entry below expands into the same rows a
   # lived history would have written, marked `claim`. Seeded once at
-  # postRegister and skipped if any claim already exists, so a reclone or
+  # onCreate and skipped if any claim already exists, so a reclone or
   # a reboot cannot mint a second history.
   # ⚠ A best-guess pass, explicitly provisional — the considered version
   # is a content pass of its own before go-live.
@@ -51,14 +51,14 @@ data:
     # prices, and two people on two wage rates buy different bread on the
     # same morning with nothing anywhere labelling either of them.
     - brain: /lib/behavior/eats
-      trigger: cadence:90s
+      trigger: candidate
       config:
         counter: /world/terminus/market/thing/bread-counter
         fromHour: 6
         toHour: 10
         spendFraction: 0.25
     - brain: /trade/shopkeeping/behavior/consigns
-      trigger: cadence:4m
+      trigger: candidate
       config:
         stock: /world/terminus/goods-yards/pantry/thing/stock
         shelf: /world/terminus/counting-houses/distributor/thing/counter
@@ -78,8 +78,15 @@ data:
           pantry:salt: 5
           pantry:coffee: 22
           pantry:syrup: 6
+    - brain: /lib/behavior/greets
+      trigger: arrival
+      config:
+        lines:
+          - "Mind the flour."
+          - "Don't lean on that, it's not dry."
+          - "Help you with something?"
     - brain: /lib/behavior/idles
-      trigger: cadence:41s
+      trigger: candidate
       config:
         pool:
           - { kind: free, value: "thumps a sack to settle it." }

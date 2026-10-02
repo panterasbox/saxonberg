@@ -6,7 +6,6 @@
 # — a `Switchable` — which meant it burned forever, and the only reason that
 # never mattered is that nowhere in the realm was dark.
 class: /platform/thing/Lamp
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: punched-tin lantern
   keywords: [lantern, lamp, light, tin, punched-tin]

@@ -7,7 +7,6 @@
 # locked, so nobody ever stands here. A dead-end stub (no exits) on purpose;
 # the real campus entry replaces it when EU content lands.
 class: /platform/location/SingletonCartesianLocation
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: university gatehouse
   keywords: [gatehouse, university]

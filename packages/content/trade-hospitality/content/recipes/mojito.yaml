@@ -2,7 +2,7 @@
 recipeId: mojito
 name: Mojito
 keywords: [mojito]
-discipline: bartending
+discipline: mixology
 difficulty: hard
 inputSlots:
 - { slot: herb, category: mint, minGrade: fair, kind: item, count: 1 }

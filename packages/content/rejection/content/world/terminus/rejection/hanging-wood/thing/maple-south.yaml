@@ -10,11 +10,15 @@
 # whose KEYWORDS say so.
 #
 # ⭐ `extends:` keeps that from being six copies: the standard row
-# carries the CLASS, the hydrator, the species, the profile and the
-# growth numbers, and this states only what differs. ⚠ Re-stating
-# `class:` or `hydratorClass:` here is flagged by
-# `lint:instanceable` — *a child states only what differs* — which is
-# how the first draft of these six rows was corrected.
+# carries the CLASS, the species, the profile and the growth numbers,
+# and this states only what differs. ⚠ Re-stating `class:` here is
+# flagged by `lint:instanceable` — *a child states only what differs* —
+# which is how the first draft of these six rows was corrected.
+#
+# ⭐ `hydratorClass:` used to be on that list and is now RETIRED
+# outright (hydration-framework W3 swept 1,528 rows): a row with `data`
+# has a hydrator applied, full stop. The hazard the old line guarded
+# against is structurally gone, not merely unmentioned.
 #
 # ⭐ `growthStage: mature` — these trees were here before the player
 # was. A mature stem takes two spiles; the scars say it has been tapped

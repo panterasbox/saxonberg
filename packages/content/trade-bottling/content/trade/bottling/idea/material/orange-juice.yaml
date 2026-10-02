@@ -1,6 +1,5 @@
 # Orange juice — bottling's. Category tag `orange-juice`.
 class: /platform/idea/material/ConsumableMaterial
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: orange juice
   keywords: [orange, orange-juice, juice, oj]

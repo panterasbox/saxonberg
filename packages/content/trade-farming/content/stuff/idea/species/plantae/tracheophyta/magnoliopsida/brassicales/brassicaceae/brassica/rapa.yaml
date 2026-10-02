@@ -17,7 +17,6 @@
 # by more hands than the "Turnip Townshend" story suggests. The mechanism
 # is real; the great-man framing is not.
 class: /platform/idea/species/Species
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   binomial: Brassica rapa
   commonNames: ["turnip", "turnips", "neeps", "roots"]

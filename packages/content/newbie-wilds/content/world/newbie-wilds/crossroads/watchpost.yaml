@@ -14,7 +14,6 @@
 # avoided by construction). It asserts no exit count, composes no
 # FastTravelMixin, and appears in no TPA manifest. Content-only.
 class: /platform/location/SingletonCartesianLocation
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: watchpost in the treeline
   keywords: [watchpost, treeline]

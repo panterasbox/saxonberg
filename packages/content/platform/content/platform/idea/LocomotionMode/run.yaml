@@ -8,7 +8,6 @@
 # The `loud` noiseLevel is authored-as-data; its observer-side stealth
 # use is the reserved stealth consumer.
 class: /platform/idea/LocomotionMode
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: run
   speed: 2.0

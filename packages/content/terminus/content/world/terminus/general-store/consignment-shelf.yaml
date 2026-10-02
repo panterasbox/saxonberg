@@ -5,7 +5,6 @@
 # good survives a relog while in the shop's custody. Affords consign / reclaim
 # / buy (a listing can be bought where it sits).
 class: /trade/shopkeeping/thing/ConsignmentShelf
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: consignment shelf
   keywords: [shelf, consignment, board, secondhand, resale]

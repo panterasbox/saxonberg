@@ -4,7 +4,6 @@
 # either trade's pack. Credits at the act — the crush, the rack, the
 # pitch; competence derives on read.
 class: /platform/idea/Discipline
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   key: fermenting
   channel: skill

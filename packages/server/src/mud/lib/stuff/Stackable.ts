@@ -21,7 +21,7 @@
  *      resolves exactly as it does today.
  *
  * The mixin's surface is methods only (per the inter-stuff contract);
- * the persistent `quantity` field is reflected into by the Hydrator.
+ * the persistent `quantity` field is reflected into by the applier.
  *
  * Composition constraints (G6):
  *   - `Stackable ⊥ Container` — stacks aren't containers. A subclass
@@ -110,7 +110,7 @@ export function StackableMixin<TBase extends MixinConstructor<Stuff>>(
 
     /**
      * Stack size. Persisted by name; default 1. Template authoring
-     * sets the initial value in YAML `data:` and the Hydrator reflects
+     * sets the initial value in YAML `data:` and the applier reflects
      * it in here.
      */
     public quantity: number = 1;
@@ -125,7 +125,18 @@ export function StackableMixin<TBase extends MixinConstructor<Stuff>>(
      * adornments).
      */
     static fieldMeta: FieldMeta = {
-      quantity: { persistent: true, authorable: true },
+      // ⚠⚠ `birthOnly` is the money fix. A row authors a starting count
+      // (`Coin.yaml` says `quantity: 1`), which is right for a stack
+      // being MINTED and catastrophic for a live one: a CMS save or a
+      // `pack sync` re-applies every authored field to every live
+      // instance at that path, so going live on the coin row reset every
+      // coin stack in the world to one — minting and burning outside the
+      // conservation chokepoint, invisibly. Declared here, by the field's
+      // owner, because the hazard belongs to the FIELD wherever it is
+      // authored: a scrip's quantity and a crate of limes' carry exactly
+      // the same one, and a row-level switch would have to be remembered
+      // on every row that authors a stack.
+      quantity: { persistent: true, authorable: true, birthOnly: true },
     };
 
     /**

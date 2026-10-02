@@ -10,7 +10,6 @@
 # something has to rot the glue away first, which is what the retting
 # pit is for and why the harvest yields straw rather than fibre.
 class: /platform/idea/species/Species
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   binomial: Linum usitatissimum
   commonNames: ["flax", "linseed"]

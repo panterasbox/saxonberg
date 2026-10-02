@@ -598,10 +598,16 @@ function satisfyingItem(
   // inside. An empty icebox in a warm kitchen is a box, not a larder.
   const box = pool.find(
     (i) =>
-      MixinApi.isThermal(i) &&
       MixinApi.isSealable(i) &&
       MixinApi.isContainer(i) &&
-      i.getContentsTemperature().rawValue() <= COLD_K,
+      // A passive insulated holder reads its CONTENTS (the icebox); an
+      // actively-cooled holder is a tiny Atmospheric scope and reads its own
+      // AIR (the powered ColdStore — it is Atmospheric, not Thermal). Both
+      // read the same COLD word; neither names a class.
+      ((MixinApi.isThermal(i) &&
+        i.getContentsTemperature().rawValue() <= COLD_K) ||
+        (MixinApi.isAtmospheric(i) &&
+          (i.getOwnTemperatureK() ?? Number.POSITIVE_INFINITY) <= COLD_K)),
   );
   return box ? box.getPresentation() : null;
 }

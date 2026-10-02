@@ -561,7 +561,7 @@ Two properties the diminishment must keep, and a service's must too:
 
   > **⚠ HISTORICAL — closed by `ConditionCatalogue`.** This paragraph used
   > to say "no Condition Idea is live at any path today," which was true
-  > when written and is not any more: a self-warming `postRegister` now
+  > when written and is not any more: a self-warming `onCreate` now
   > stands every authored row up as a live singleton at boot, so
   > `findByTemplatePath` resolves `recovering` (and every other condition)
   > from the first frame. See vitals.md § Conditions for the full account

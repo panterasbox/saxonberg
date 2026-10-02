@@ -46,7 +46,7 @@ describe('PosturedMixin.restQuality', () => {
       bed.constructor as new (...args: never[]) => unknown,
     );
     expect(fields).toContain('restQuality');
-    // The Hydrator's Phase-1 dispatch prefers the set<Field> method;
+    // The applier's Phase-1 dispatch prefers the set<Field> method;
     // simulate that path.
     bed.setRestQuality(1.3);
     expect(bed.getRestQuality()).toBe(1.3);

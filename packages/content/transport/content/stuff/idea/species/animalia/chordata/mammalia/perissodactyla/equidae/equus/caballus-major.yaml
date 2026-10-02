@@ -11,7 +11,6 @@
 # every ROAD has, and the functional half of an ecology belongs with the
 # system that needs it. A realm's own beasts belong to the realm.
 class: /platform/idea/species/Species
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   binomial: Equus caballus major
   commonNames: ["draft horse", "carthorse", "horse", "shire"]

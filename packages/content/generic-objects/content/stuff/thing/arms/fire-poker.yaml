@@ -3,7 +3,6 @@
 # (hafted → blunt delivery) so even the first thing a learner forges is
 # real — it stirs a fire and cracks a knee.
 class: /platform/thing/equipment/Weapon
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: fire poker
   keywords: [poker, fire-poker, rod, fire]

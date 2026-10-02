@@ -78,6 +78,9 @@ import type { Mobile } from '../spatial/Mobile';
 import type { Container } from '../spatial/Container';
 import type { Containable } from '../spatial/Containable';
 import type { BrainContext, BrainStatics } from './brain';
+import type { EngagementSlot } from '../activity/Engaged';
+import type { TaskKind } from './Urgency';
+import { Urgency } from './Urgency';
 
 /** How a par unit is said in an order — the `job post` phrase's words. */
 const UNIT_WORD: Record<string, string> = { L: 'litres', kg: 'kilos' };
@@ -101,6 +104,41 @@ interface Glass {
 
 export const brain = class {
   static label = 'restocks';
+  static kind: TaskKind = 'work';
+  static claims: readonly EngagementSlot[] = ['hands', 'body'];
+  static summary =
+    'Reads the par sheet from where she stands, posts a carriage bounty ' +
+    'for every short line, lands the bench onto the rail, and busses glasses.';
+  static consumes: readonly string[] = ['stock'];
+  /**
+   * ⭐ A short line is `pressing` and a clean rail is `wanted`. Both are
+   * real work, and the difference is what a keeper would actually feel:
+   * running out of gin beats collecting an empty glass.
+   *
+   * The sheet is read from the rail, perception-scoped — the same read
+   * `house stock` shows a player, so she counts what she can see.
+   */
+  static async urgency(ctx: BrainContext): Promise<Urgency> {
+    const host = ctx.host;
+    if (!MixinApi.isEmployed(host) || host.shiftState() !== 'on-shift') {
+      return new Urgency("idle");
+    }
+    if (!MixinApi.isContainable(host)) return new Urgency("idle");
+    const home = host.getContainer();
+    if (!home || !MixinApi.isContainer(home)) return new Urgency("idle");
+    const business = await businessHere(host as unknown as Stuff, home);
+    if (!business) return new Urgency("idle");
+    const short = business
+      .stockSheetFor(host as unknown as Stuff)
+      .filter((l) => l.shortfall > 0 && l.line.supplier);
+    if (short.length) {
+      return new Urgency(
+        'pressing',
+        'runs an eye down the rail and reaches for the order book',
+      );
+    }
+    return new Urgency('wanted', 'starts gathering the empties');
+  }
   static presenceGated = false;
   // Functional poller (moves stock), not ambient chatter — exempt from
   // the global ambient-cadence dial.

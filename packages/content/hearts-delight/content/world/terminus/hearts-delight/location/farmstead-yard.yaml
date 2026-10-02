@@ -1,6 +1,5 @@
 # The farmstead yard — somebody's place, on the poor ground.
 class: /platform/location/SingletonCartesianLocation
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: farmstead yard
   keywords: [yard, farmstead, farm, house]

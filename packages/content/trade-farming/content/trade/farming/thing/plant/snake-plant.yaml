@@ -7,7 +7,6 @@
 # It ships as the general store's seed, which is how a player comes by a
 # second species. See docs/subsystems/husbandry.md.
 class: /platform/thing/Plant
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: snake plant
   keywords: ["snake plant", snake, sansevieria, plant, houseplant]

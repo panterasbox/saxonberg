@@ -18,7 +18,6 @@
 # no operating account. Same consequence as the watch — the sellsword
 # states her `institution:` rather than riding a roster.
 class: /platform/idea/Organization
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   # A free company answers to its own captain, and at this crossroads
   # that is the blade standing in it. Small companies were exactly this.

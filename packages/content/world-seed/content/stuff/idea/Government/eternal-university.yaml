@@ -5,7 +5,6 @@
 # declares this key); a Chancellor seat and college structure are later
 # content.
 class: /platform/idea/Government
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   key: eternal-university
   name: the Eternal University

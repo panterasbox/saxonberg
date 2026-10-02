@@ -8,7 +8,6 @@
 # BulkPayload (macros in = macros out) — per-cocktail material rows are
 # the retired anti-pattern (the fixed-vocabulary rule).
 class: /platform/idea/material/ConsumableMaterial
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: blend
   keywords: [cocktail, blend, drink, mixed]

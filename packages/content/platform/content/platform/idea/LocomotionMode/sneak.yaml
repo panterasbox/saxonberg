@@ -8,7 +8,6 @@
 # The `quiet` noiseLevel is authored-as-data; its observer-side stealth
 # use is the reserved stealth consumer.
 class: /platform/idea/LocomotionMode
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: sneak
   speed: 0.5

@@ -4,7 +4,6 @@
 # the clearance term). Fiction is ours (wardmoss, steeped); the mechanism
 # a player touches is honest. Controlled.
 class: /platform/idea/Condition
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: antibiosis
   signature:

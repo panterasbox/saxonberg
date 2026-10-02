@@ -2,7 +2,6 @@
 # `red-must` is the ferment-profile category; sugar is the mass balance
 # (g/L — what the hydrometer sees and the ferment converts, D4).
 class: /platform/idea/material/ConsumableMaterial
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: red must
   keywords: [red, must]

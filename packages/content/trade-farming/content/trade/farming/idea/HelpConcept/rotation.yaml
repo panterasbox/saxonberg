@@ -1,6 +1,5 @@
 # ⭐⭐⭐ The agricultural revolution, available to be REDISCOVERED.
 class: /platform/idea/HelpConcept
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   key: rotation
   title: Rotation

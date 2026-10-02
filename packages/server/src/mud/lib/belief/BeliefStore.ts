@@ -63,7 +63,9 @@ import type {
   BeliefSlice,
   CaptureContext,
   MixinSlice,
-  RestoreContext,
+  HydrateContext,
+  HydrationSource,
+  HydrateOutcome,
 } from '../persistence/PersistenceSlice';
 import BeliefDocument from './BeliefDocument';
 import {
@@ -274,7 +276,6 @@ export interface BeliefStore {
    * never does.
    */
   allBeliefs(): readonly BeliefRecord[];
-  hydrateBeliefs(): Promise<void>;
   evictAndFlushBeliefs(): Promise<void>;
   keepsPersonalRegard(): boolean;
   regardFor(subject: Stuff): number;
@@ -366,6 +367,24 @@ function viewerKey(viewer: Stuff): string | null {
 }
 
 /**
+ * ⭐ The one read of the `beliefs` collection, in one place. Both callers
+ * go through it: the declared hydration source (driven at mint by the
+ * clone pipeline, for a host with no record of its own) and the
+ * declared hydration source the clone pipeline drives at mint.
+ *
+ * Returns how many records landed, so the source hook can report an
+ * honest outcome without a second query.
+ */
+async function loadFromCollection(host: Stuff): Promise<number> {
+  const viewerId = viewerKey(host);
+  if (!viewerId) return 0;
+  const docs = await BeliefDocument.find({ viewerId });
+  const self = host as unknown as BeliefStore;
+  for (const doc of docs) self.loadBelief(doc.toRecord());
+  return docs.length;
+}
+
+/**
  * Per-record write-through. Persists a learned record (upsert keyed by
  * `{viewerId, realm, referent}`); no-ops for a bare stranger record, a
  * keyless viewer, or a closed connection. The find-then-save read is on
@@ -446,21 +465,78 @@ export function BeliefStoreMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     /**
      * Install a captured memory back onto the host. An ungated direct
-     * install, deliberately **not** `hydrateBeliefs()`: that method is
-     * `SelfOnly`, and a restore runs in a frame whose executing principal
-     * is the owner rather than the host, so the self-call would be denied
-     * exactly when the owner happens to be online.
+     * install. ⚠ It must stay ungated: a restore runs in a frame whose
+     * executing principal is the OWNER rather than the host, so anything
+     * `SelfOnly` would be denied exactly when the owner happens to be
+     * online. (That hazard is why the retired `hydrateBeliefs()` could
+     * never have been reused here.)
      */
-    static async restoreSlice(
+    static async hydrateSlice(
       host: Stuff,
       slice: MixinSlice,
-      _ctx: RestoreContext,
+      _ctx: HydrateContext,
     ): Promise<void> {
       if (!('beliefs' in slice)) return;
       const self = host as unknown as BeliefStore;
       for (const record of (slice as BeliefSlice).beliefs) {
         self.loadBelief(record);
       }
+    }
+
+    /**
+     * ⭐⭐ **The other half of the same framework** — where this mixin's
+     * memory lives when the host does NOT keep a record of its own.
+     *
+     * `beliefs` is a collection, not a slice, so nothing in the restore
+     * path was ever going to drive it: `hydrateSlice` runs only when a
+     * record carries this layer's slice, and a singleton has no record.
+     * Every `Cast`'s regard was written through on every change since
+     * the belief store shipped and read back exactly never — an NPC's
+     * opinion of you reset on every restart while the rows piled up in
+     * Mongo. The clone pipeline drives this one instead, record or no
+     * record.
+     *
+     * `required: false` because a closed Mongo (every test run, all of
+     * early boot) must skip rather than refuse to mint an NPC.
+     *
+     * ⚠⚠ There is no "read it later" option, and this host is why one
+     * would be unsafe: `adjustRegard` is a read-modify-write off the
+     * in-memory map with a write-through, so a window in which the map
+     * is unfilled means `regardFor` answers `0`, the next nudge computes
+     * `0 + 1`, and a stored `12` is overwritten by a `1`. Besides which
+     * `regardFor` is SYNCHRONOUS and read from `look`, the brains and
+     * the presentation layer — there is no `await` anywhere to fault a
+     * deferred read in from.
+     */
+    static hydrationSource: HydrationSource = {
+      name: 'beliefs',
+      required: false,
+    };
+
+    /**
+     * Read this host's memory back from the `beliefs` collection.
+     *
+     * ⚠ `viewerKey(host) === null` is a SKIP, not a failure, and it
+     * covers two different hosts: one that keeps its own record (row 1 —
+     * its beliefs ride `captureSlice`, and reading here too would load
+     * them twice and let the copies diverge) and one with no durable
+     * identity at all (row 4 — a stray's regard is session-local by
+     * design). ⭐ At mint a to-be-named animal is row 4 and skips; being
+     * named is what promotes it to row 1, and `materialize` then fills
+     * it from its own record.
+     */
+    static async hydrateFromSource(host: Stuff): Promise<HydrateOutcome> {
+      if (viewerKey(host) === null) {
+        return {
+          status: 'skipped',
+          reason: 'no durable viewer key — its own record, or memory only',
+        };
+      }
+      if (!persistenceActive()) {
+        return { status: 'unreachable', reason: 'persistence not connected' };
+      }
+      await loadFromCollection(host);
+      return { status: 'hydrated' };
     }
 
     /**
@@ -621,22 +697,6 @@ export function BeliefStoreMixin<TBase extends MixinConstructor>(Base: TBase) {
      */
     private _writeThrough(record: BeliefRecord): void {
       void writeRecordImpl(this as unknown as Stuff, record).catch(() => {});
-    }
-
-    /**
-     * Lazy-hydrate this viewer's persisted beliefs into the in-memory
-     * map. Called on session establish (`Avatar.enter` — a self-call,
-     * which is what the gate admits). No-op without a durable viewer
-     * key or an active connection.
-     */
-    @CallSecurity(SecurityPolicies.SelfOnly)
-    public async hydrateBeliefs(): Promise<void> {
-      if (!persistenceActive()) return;
-      const self = this as unknown as Stuff;
-      const viewerId = viewerKey(self);
-      if (!viewerId) return;
-      const docs = await BeliefDocument.find({ viewerId });
-      for (const doc of docs) this.loadBelief(doc.toRecord());
     }
 
     /**

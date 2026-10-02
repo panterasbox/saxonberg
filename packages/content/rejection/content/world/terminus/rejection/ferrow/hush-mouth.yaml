@@ -7,7 +7,6 @@
 # `-30,-10,-10` is what makes the ground here say *hush-mouth*; this room
 # is what a player finds when they break into it.
 class: /trade/mining/location/AuthoredWorking
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: break in the rock
   keywords: [break, hole, mouth, rock]

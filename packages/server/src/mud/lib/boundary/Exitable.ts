@@ -97,7 +97,7 @@ export interface Exitable {
    * diagnostic naming both seed paths. Per declarative-content-slate
    * § exits on ExitableMixin.
    *
-   * @hook Invoked by the `Hydrator`'s Phase-2 instruction dispatch from
+   * @hook Invoked by the `TemplateApplier`'s Phase-2 instruction dispatch from
    *   a template's `exits` field. **Instruction applier** — consumes a
    *   declaration to produce derived runtime state; no paired getter
    *   (not a property). Per-direction idempotent across re-clone.
@@ -697,7 +697,7 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
 
     /**
      * Mutual-exit invariant check, run at Location load (via
-     * `postRegister`) and on traversal as a fallback. Walks ONLY the
+     * `onCreate`) and on traversal as a fallback. Walks ONLY the
      * `_pendingVerify` set — exits the addExit-time triage flagged as
      * "could be wired but isn't yet."
      *

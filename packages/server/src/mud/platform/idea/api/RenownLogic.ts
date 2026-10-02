@@ -48,7 +48,7 @@ const RenownApiCallers = SecurityPolicies.FromModule('/api/renown#RenownApi'
  * The install/warm seam is also callable by the self-warming
  * `RenownStandings` singleton (the boot()-retirement shape): the tap +
  * schedule state stays HERE (hot-reload re-assertion), the manifest
- * home arms it at postRegister.
+ * home arms it at onCreate.
  */
 const RenownBootCallers = SecurityPolicies.AnyOf(
   RenownApiCallers,
@@ -614,7 +614,7 @@ export class RenownLogic extends ApiLogic {
   /**
    * Install the reaction → renown ingestion tap (idempotent). Subscribes
    * to `ReactionFiredEvent` and appends a scope-tagged `RenownEvent` per
-   * fired reaction. Armed by `RenownStandings.warm` (the manifest postRegister).
+   * fired reaction. Armed by `RenownStandings.warm` (the manifest onCreate).
    *
    * The sibling *regard* update is deliberately NOT installed here — a
    * reaction has no principled signed regard delta without the

@@ -12,7 +12,6 @@
 # bar has, and "put it on the bench, I'll deal with it" is what anybody
 # would say to a delivery.
 class: /platform/thing/Fitting
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: receiving bench
   keywords: [bench, dock, delivery, receiving, counter]

@@ -34,7 +34,7 @@ const PartyMemberCallers = SecurityPolicies.AnyOf(
  * The roster materialization is also callable by the self-warming
  * `PartyRoster` singleton (the boot()-retirement shape): the provider
  * + record machinery stays module-private HERE, the manifest home
- * drives it at postRegister.
+ * drives it at onCreate.
  */
 const PartyBootCallers = SecurityPolicies.AnyOf(
   PartyApiCallers,
@@ -74,7 +74,7 @@ export class PartyLogic extends ApiLogic {
   /**
    * Register the `party:` grouping provider + re-materialize durable
    * parties into live Ideas. Idempotent. Driven by `PartyRoster.warm`
-   * (the manifest postRegister).
+   * (the manifest onCreate).
    */
   @CallSecurity(PartyBootCallers)
   public async materializeRoster(): Promise<void> {

@@ -7,7 +7,6 @@
 # the classic arable partner to a grass ley — which gives the rotation's
 # arable half something to be.
 class: /platform/idea/species/Species
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   binomial: Hordeum vulgare
   commonNames: ["barley", "bere", "corn"]

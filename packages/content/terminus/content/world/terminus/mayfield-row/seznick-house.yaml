@@ -26,7 +26,6 @@
 #
 # Found by booting the metal-chain build against a real database.
 class: /platform/idea/location/CartesianZone
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: Seznick House
   cellSize: 3.0

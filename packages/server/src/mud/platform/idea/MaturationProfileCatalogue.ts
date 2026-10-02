@@ -4,7 +4,7 @@
  * boot()-retirement direction: an operator-shaped warm does not belong
  * on a consumer Api).
  *
- * `postRegister` stands up every authored {@link MaturationProfile} row as
+ * `onCreate` stands up every authored {@link MaturationProfile} row as
  * a live singleton so the SYNC reads (`MaturationProfile.forMaterial` /
  * `.byKey`, driven from `MaturingMixin.reconcileFerment`) hit from
  * the first frame — the reference-Ideas-inert-at-boot rule. The roster
@@ -22,14 +22,13 @@
  */
 
 import { Idea } from '../../lib/stuff/Idea';
-import { PostRegistrationMixin } from '../../lib/stuff/PostRegistration';
 import MaturationProfile from '../../lib/maturation/MaturationProfile';
 import { StuffApi } from '../../api/stuff';
 import { Template } from '../../lib/stuff/Template';
 import type { VetoResult } from '../../lib/errors';
 import type { EvictionContext } from '../../lib/stuff/Stuff';
 
-const MaturationProfileCatalogueBase = PostRegistrationMixin(Idea);
+const MaturationProfileCatalogueBase = Idea;
 
 export default class MaturationProfileCatalogue extends MaturationProfileCatalogueBase {
   /** Residency veto — the roster's warm; a culled catalogue re-warms nothing. */
@@ -44,7 +43,7 @@ export default class MaturationProfileCatalogue extends MaturationProfileCatalog
     };
   }
 
-  public override async postRegister(_context?: unknown): Promise<void> {
+  public override async onCreate(_context?: unknown): Promise<void> {
     await this.warm();
   }
 

@@ -2,7 +2,6 @@
 # ferromagnetic, mediocre fire behavior at room temp. Standard
 # slash/blunt resistance baseline for weapon-grade materials.
 class: /platform/idea/material/Material
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: iron
   keywords: [iron]

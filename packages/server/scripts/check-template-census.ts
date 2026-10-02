@@ -14,8 +14,8 @@
  *       `floor.template`, `stockLines[].itemTemplatePath`,
  *       `prices` keys, `roomTemplate`, `holderPath`, `streetPath`,
  *       `corridorTemplate`, `programmePath`, and floorplan `room`
- *       entries. (`class:` / `hydratorClass:` stay
- *       `check-instanceable-placement`'s — shared reader, no duplicate.)
+ *       entries. (`class:` stays `check-instanceable-placement`'s —
+ *       shared reader, no duplicate.)
  *   (c) Every `TemplatePaths` constant in `lib/paths.ts` that names a
  *       singleton *Registry/Catalogue* resolves to a pack row (the six
  *       framework registries ride trivial platform-pack rows; a renamed
@@ -158,11 +158,24 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
     // nothing. The stand's own `mix[].woodMaterialPath` / `seedPath` /
     // `speciesPath` are read below, the `props:` way.
     'standardMaterialPath',
+    // ⭐ `offstage` (the agent-coordination build) — where a house parks its
+    // cast off shift, resolved live by the roster tick with
+    // `singletonOrClone`. Read here rather than ignored because a rowless
+    // one does something worse than nothing: `singletonOrClone` would mint
+    // a bare room at the path and park the realm's cast in a place no
+    // author ever wrote, which looks exactly like working.
+    'offstage',
     // ⭐ `source` (the energy build) — a `Feeder` row's generator: the
     // `ControlStructure` whose `isGenerating()` powers the whole feeder tree.
     // Resolved live at the grid compile, and a rowless one is a feeder that
     // energizes nothing with no author-findable reason.
     'source',
+    // ⭐ `castTemplate` (the cold-storage build) — what a frozen pool of a
+    // Material becomes (water → `/stuff/thing/ice-block`). Resolved live at
+    // the solidify edge of `reconcileBulkPhase`, and a rowless one is a
+    // freeze that empties the pool and mints nothing. Read here rather than
+    // ignored, because the ref IS the behaviour.
+    'castTemplate',
   ] as const) {
     push(f, data[f]);
   }

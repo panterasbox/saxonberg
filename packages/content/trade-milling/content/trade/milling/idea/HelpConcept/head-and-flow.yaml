@@ -1,7 +1,6 @@
 # ⭐⭐ Why a mill is where it is — the one equation, in words, with the
 # conclusion a player can act on.
 class: /platform/idea/HelpConcept
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   key: head-and-flow
   title: Head and flow

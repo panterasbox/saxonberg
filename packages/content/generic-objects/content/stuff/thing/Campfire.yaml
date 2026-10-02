@@ -5,7 +5,6 @@
 # slot lets a body sit at the fire to both recover (restQuality) and stay
 # warm (warmth, read by the body's effective-ambient resolver).
 class: /platform/thing/Campfire
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: crackling campfire
   keywords: [crackling, campfire, fire, flames, hearth]

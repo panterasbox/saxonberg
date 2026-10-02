@@ -27,12 +27,16 @@ import { LocomotionApi } from '../../api/locomotion';
 import { MessageApi } from '../../api/message';
 import { Mml } from '../../api/mml';
 import { FOLLOW_BOND } from '../husbandry/Bonded';
+import type { TaskKind } from './Urgency';
 
 /** The one line a refusal to cross a threshold ever produces. */
 const BALKS = 'stops at the doorway and will not go in.';
 
 export const brain = class {
   static label = 'follows';
+  static kind: TaskKind = 'body';
+  static summary =
+    'Follows the person it is bonded to out of the room they just left.';
   static claims: readonly EngagementSlot[] = ['body'];
 
   static async act(ctx: BrainContext): Promise<void> {

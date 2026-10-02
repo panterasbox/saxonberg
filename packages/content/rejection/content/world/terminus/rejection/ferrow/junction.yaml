@@ -3,7 +3,6 @@
 # four-way junction in slate genuinely wants timber and the same junction
 # in granite does not. The prose says which without saying the number.
 class: /trade/mining/location/MineRoom
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: junction
   keywords: [junction, crossing, meeting]

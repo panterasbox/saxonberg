@@ -23,13 +23,12 @@ import { StuffApi } from '../../../../api/stuff';
 import { stubRegistries } from './pack-harness';
 
 const MATERIAL = '/platform/idea/material/Material';
-const HYDRATOR = '/platform/idea/persistence/PersistentHydrator';
+const HYDRATOR = '/platform/idea/TemplateApplier';
 
 interface Row extends Record<string, unknown> {
   _id?: string;
   path?: string;
   class?: string;
-  hydratorClass?: string;
   data?: Record<string, unknown>;
   sourcePack?: string;
   /** Which collection a row belongs to (the stub is collection-aware so the
@@ -103,7 +102,6 @@ interface FixtureFile {
   /** content-relative path, e.g. `lib/material/spirit/gin.yaml`. */
   rel: string;
   class?: string;
-  hydratorClass?: string;
   data?: Record<string, unknown>;
 }
 
@@ -139,7 +137,6 @@ function writePack(
       file,
       YAML.stringify({
         class: f.class ?? MATERIAL,
-        hydratorClass: f.hydratorClass ?? HYDRATOR,
         data: f.data ?? { name: f.rel },
       }),
     );
@@ -207,7 +204,6 @@ describe('PackLogic — reconcile (fixture packs, stubbed class resolution)', ()
       join(root, 'content/stuff/idea/material/spirit/gin.yaml'),
       YAML.stringify({
         class: MATERIAL,
-        hydratorClass: HYDRATOR,
         data: { name: 'gin', density: 950 },
       }),
     );
@@ -241,7 +237,6 @@ describe('PackLogic — reconcile (fixture packs, stubbed class resolution)', ()
       __col: 'content',
       path: '/stuff/idea/material/spirit/gin',
       class: MATERIAL,
-      hydratorClass: HYDRATOR,
       data: { name: 'old gin' },
     });
     const root = writePack('p', [

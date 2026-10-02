@@ -3,7 +3,6 @@
 # grey status light and refuses travel. Generic room; connections declared
 # explicitly on both sides — the hall lies one cell east.
 class: /platform/location/SingletonCartesianLocation
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: Departure Gate B
   keywords: [b, departure, gate]

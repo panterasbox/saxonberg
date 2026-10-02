@@ -1,5 +1,4 @@
 class: /platform/thing/equipment/Garment
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: rugged field jacket
   keywords: [jacket, rugged, field]

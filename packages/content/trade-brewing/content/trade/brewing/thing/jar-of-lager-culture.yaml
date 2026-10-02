@@ -1,7 +1,6 @@
 # The lager culture jar — the cold strain, kept in the cold store
 # (D14): the lager line exists exactly as long as this stays alive.
 class: /platform/thing/Vat
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: jar of lager culture
   keywords: [jar, culture, "lager culture", lager]

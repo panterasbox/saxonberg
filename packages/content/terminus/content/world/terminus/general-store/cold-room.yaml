@@ -1,0 +1,31 @@
+# The general store's walk-in cold room — the LOCATION half of the
+# Thing≡Location proof. It composes the SAME ClimateControlMixin the blood
+# fridge (a Thing) does, over a Location, and gets the same behaviour: its
+# air is driven cold while the store's meter is live and warms when the
+# avenue is cut. Food kept here outlasts food on the shop floor. A thick
+# cork-lined wall (the enclosure) holds the cold longer than a thin fridge.
+class: /system/energy/location/ColdRoom
+data:
+  shortDescription: cold room
+  keywords: [cold-room, coldroom, walk-in, cold, larder]
+  register: definite
+  _address: terminus/city/counting-houses/general-store/cold-room
+  longDescription: |
+    A cramped walk-in larder off the shop floor, its walls panelled thick
+    and cork-lined, the air inside biting cold. Sides of meat and crates of
+    roots keep here far longer than they would on the shelves outside.
+  coords:
+    x: 0
+    y: 1
+    z: 0
+  # ⭐ F4: a walk-in authors its own insulation — thick cork-lined panels
+  # (pine, 0.15 m) hold the cold much longer than a thin fridge, for free.
+  enclosure: { material: /stuff/idea/material/wood/pine, thicknessM: 0.15 }
+  setpointK: 275
+  coolingCapacityW: 1500
+  exits:
+    south:
+      destination: /world/terminus/general-store/shop-floor
+  props:
+    - /stuff/thing/items/prime-cut
+    - /stuff/thing/items/root-vegetables

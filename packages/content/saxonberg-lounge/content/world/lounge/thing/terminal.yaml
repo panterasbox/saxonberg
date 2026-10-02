@@ -3,7 +3,7 @@
 # Avenue (the standalone University Avenue terminal is retired — Terminus
 # absorbs the campus-arrival role; walk across the avenue to campus).
 # `seatIn` names the lounge Warren: the terminal seats ITSELF into the elastic
-# host on postRegister and registers to re-seat on host migration
+# host on onCreate and registers to re-seat on host migration
 # (FixtureMixin) — which is also what makes its arrival room right with no
 # code, since `seatSelf` moves it INTO the live host and `getArrivalRoom()`
 # is `getContainer()`.
@@ -19,7 +19,6 @@
 # overrides: this label, and an arrival room that was already redundant. TPA
 # reform P6 retired it — a bespoke string is authored content, not a class.
 class: /system/tpa/thing/TpaTerminal
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   seatIn: /world/lounge/idea/warren
   shortDescription: Teleport Authority terminal

@@ -5,7 +5,6 @@
 # put the result here beside the baker's own two lines, and what they get
 # for it is whatever somebody will pay.
 class: /trade/shopkeeping/thing/ConsignmentShelf
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: bakery shelf
   keywords: [shelf, consignment, board, basket]

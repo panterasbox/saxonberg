@@ -2,7 +2,6 @@
 # and electrical conductor (the standard for wiring); essentially
 # non-magnetic.
 class: /platform/idea/material/Material
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: copper
   keywords: [copper]

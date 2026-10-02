@@ -8,9 +8,9 @@
  * of `templatePath` by design, Localities cannot be found by walking
  * template paths — the trie is the only way to answer "which Locality
  * covers this address?" by longest-prefix match. The index lives on
- * this `PostRegistrationMixin` Stuff (not the stateless logic
+ * this registry Stuff (not the stateless logic
  * singleton) so it survives a reload of `api/address.ts`; a reload of
- * this file re-clones the Registry and `postRegister` rebuilds the
+ * this file re-clones the Registry and `onCreate` rebuilds the
  * index idempotently.
  *
  * Every public method is gated `FromTemplate('/platform/idea/api/address')` — the
@@ -21,7 +21,7 @@
  *
  * **Eager roster clone.** Leaf Ideas are cloned lazily, so a Locality's
  * self-registration hook only fires once something clones it.
- * `postRegister` therefore eagerly clones every Locality template under
+ * `onCreate` therefore eagerly clones every Locality template under
  * the Locality rosters (`TemplatePathRosters.locality`) to populate the index even for never-accessed
  * Localities — a v1 simplification (trivial for the demonstrative
  * roster; a future delivery build with hundreds of Localities may want
@@ -30,7 +30,6 @@
  */
 
 import { Idea } from '../../lib/stuff/Idea';
-import { PostRegistrationMixin } from '../../lib/stuff/PostRegistration';
 import { SecurityApi } from '../../api/security';
 import { CallSecurity } from '../../lib/security/decorators';
 import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
@@ -40,7 +39,7 @@ import { Template } from '../../lib/stuff/Template';
 import { TemplatePathRosters } from '../../lib/paths';
 import type Locality from './Locality';
 
-const AddressRegistryBase = PostRegistrationMixin(Idea);
+const AddressRegistryBase = Idea;
 
 /** Only the AddressLogic singleton at `/platform/idea/api/address` may call in. */
 const AddressLogicCaller = SecurityPolicies.FromTemplate('/platform/idea/api/address');
@@ -101,7 +100,7 @@ export default class AddressRegistry extends AddressRegistryBase {
     this.byName.set(name, locality);
   }
 
-  public override async postRegister(_context?: unknown): Promise<void> {
+  public override async onCreate(_context?: unknown): Promise<void> {
     await this.rebuildIndex();
   }
 
@@ -180,7 +179,7 @@ export default class AddressRegistry extends AddressRegistryBase {
 
   /**
    * Eagerly clone every Locality template under the two roster prefixes and
-   * index its claimed prefix. Ungated private — `postRegister` and the
+   * index its claimed prefix. Ungated private — `onCreate` and the
    * gated `rebuildCoverageIndex` both route here.
    */
   private async rebuildIndex(): Promise<void> {

@@ -2,7 +2,7 @@
 recipeId: vodka-soda
 name: Vodka soda
 keywords: [vodka-soda]
-discipline: bartending
+discipline: mixology
 difficulty: easy
 inputSlots:
 - { slot: base, category: vodka, minGrade: fair, measureL: 0.05 }

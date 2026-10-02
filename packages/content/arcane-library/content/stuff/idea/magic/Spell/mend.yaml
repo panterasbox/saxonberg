@@ -10,7 +10,6 @@
 # A bleeding wound still wants a dressing first; a rupture still wants
 # surgery. What mend buys is TIME.
 class: /platform/idea/magic/Spell
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   spellId: mend
   name: Mend

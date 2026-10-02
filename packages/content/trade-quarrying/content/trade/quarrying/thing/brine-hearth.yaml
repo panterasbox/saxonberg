@@ -19,7 +19,6 @@
 # ⭐ 450 K is deliberately modest — hot enough to boil hard, nowhere near a
 # kiln. A brine hearth cannot burn lime, and saying so costs one number.
 class: /platform/thing/Oven
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: brine hearth
   keywords: [hearth, "brine hearth", fire, furnace]

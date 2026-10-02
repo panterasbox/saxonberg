@@ -30,7 +30,6 @@
 # 45 τ against Dispel's 20 is that ratio, near enough, and it puts one
 # casting near half a mid caster's whole reserve.
 class: /platform/idea/magic/Spell
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   spellId: remove-curse
   name: Remove Curse

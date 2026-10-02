@@ -4,7 +4,6 @@
 # an iron ingot makes an iron knife. A real Weapon — wieldable, bladed,
 # read by `analyze weapon` and combat.
 class: /platform/thing/equipment/Weapon
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: belt knife
   keywords: [knife, belt-knife, blade, belt]

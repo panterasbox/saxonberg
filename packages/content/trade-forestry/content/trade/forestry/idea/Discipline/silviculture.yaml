@@ -9,7 +9,6 @@
 # A sibling of `colliery` (0722 — the collier CHARS wood) and of `mining`
 # (0724 — the hewer cuts rock): different fields, different codes.
 class: /platform/idea/Discipline
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   key: silviculture
   channel: skill

@@ -11,7 +11,6 @@
 # copy with its own `seatIn`. `severed` and `closed` are the two of the
 # six supply words a line can be in: `cut` and `off`.
 class: /system/arcana/thing/ManaMain
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: mana line
   keywords: [line, main, conduit, mana]

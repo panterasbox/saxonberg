@@ -20,7 +20,6 @@
 import { OuterWarren } from '@saxonberg/server/mud/lib/location/OuterWarren';
 import type { Attachment } from '@saxonberg/server/mud/lib/location/Warren';
 import { SingletonMixin } from '@saxonberg/server/mud/lib/stuff/Singleton';
-import { PostRegistrationMixin } from '@saxonberg/server/mud/lib/stuff/PostRegistration';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { AppApi } from '@saxonberg/server/mud/api/app';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
@@ -47,7 +46,7 @@ const DORM_DOOR_KIND =
 type MemberStuff = Stuff & Container;
 type ExitableContainer = Stuff & Container & Exitable;
 
-const DormWarrenBase = SingletonMixin(PostRegistrationMixin(OuterWarren));
+const DormWarrenBase = SingletonMixin(OuterWarren);
 
 export default class DormWarren extends DormWarrenBase {
   /** Seeded Warren-definition path (the singleton). */
@@ -116,8 +115,8 @@ export default class DormWarren extends DormWarrenBase {
    * `ensureFloor(1)`), so the building reconstitutes from just the
    * parcel rows.
    */
-  public override async postRegister(context?: unknown): Promise<void> {
-    await super.postRegister?.(context);
+  public override async onCreate(context?: unknown): Promise<void> {
+    await super.onCreate?.(context);
     await this.refreshProvisioned();
     await this.installLobbyUpExit();
   }

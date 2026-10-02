@@ -41,7 +41,6 @@
  */
 
 import { Idea } from '@saxonberg/server/mud/lib/stuff/Idea';
-import { PostRegistrationMixin } from '@saxonberg/server/mud/lib/stuff/PostRegistration';
 import type { ContractRecord } from '@saxonberg/server/mud/lib/employment/ContractRecord';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
@@ -143,7 +142,7 @@ export interface EdgeTraffic {
   crossings: number;
 }
 
-export default class WaybillRegistry extends PostRegistrationMixin(Idea) {
+export default class WaybillRegistry extends Idea {
   /**
    * ⭐⭐ **Every completed carriage files the paper, whatever path
    * produced it.**
@@ -179,7 +178,7 @@ export default class WaybillRegistry extends PostRegistrationMixin(Idea) {
    * mistyped override fails to compile instead of silently never
    * running.
    */
-  public async postRegister(): Promise<void> {
+  public async onCreate(): Promise<void> {
     // Nothing to wire: the carrier calls in.
   }
 

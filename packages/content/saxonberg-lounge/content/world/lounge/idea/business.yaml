@@ -13,7 +13,6 @@
 # account — the deficit P&L reads them together. See
 # docs/subsystems/employment.md.
 class: /platform/idea/Business
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: "Dave's Bar"
   # Who may fill this business's positions. Dave owns the bar, so the
@@ -32,12 +31,35 @@ data:
   # ⭐ Every drinkable row in the realm — hospitality's 25, bottling's,
   # brewing's and winemaking's finished pours — authors
   # `discipline: bartending`, so one word covers the whole rail.
+  # ⭐⭐ Who comes over when somebody orders. `regulars`: capability first,
+  # then YOUR REGULAR (the barkeep who knows you and thinks well of you),
+  # then whoever is freest, then rotation. The relational leg is why a
+  # patron can predict who serves them — and the rotation leg is why a
+  # newly hired player gets some orders instead of all of them or none.
+  # ⚠ It replaced sorting candidates by identity path, which handed every
+  # tie to the player forever (`/platform/…` sorts before `/world/…`) and,
+  # between two NPCs, handed one of them every order of the bar's life.
+  call: regulars
   positions:
     - key: bartender
       noun: bartender
       label: tending bar
       wageRate: 4
       fulfills: [bartending]
+      # ⚠⚠ **Found by driving.** This seat had NO `headcount`, so
+      # `openingsFor('bartender')` was 0 and `apply for bartender` answered
+      # *"There's no work going here."* — in the venue whose whole story is
+      # that a player can join the crew. The requirements for this build
+      # said "a player can join the crew via the shipped bartender opening",
+      # and **there was no opening**: the premise was false and nothing
+      # anywhere said so, because a seat that advertises nothing looks
+      # exactly like a seat that is full.
+      #
+      # ⭐ Five, against four rostered holders: the bar has room for one more
+      # barkeep, which is a decision and not a number — it is what makes the
+      # call rule's rotation leg observable from a player's side, and what
+      # the help-wanted sign derives from.
+      headcount: 5
     # The keeper — the seat that BUYS for the house. `purchases: true` is
     # what lets its holder `wallet use house` (the operating account
     # becomes the one they trade as) and run `house stock` / `house par`.
@@ -67,22 +89,39 @@ data:
     - positionKey: bartender
       assignee: /world/lounge/agent/remy
       schedule:
-        - { days: [0, 1, 2, 3, 4], hours: [14, 22] }
+        # ⭐ 12, not 14: a two-hour overlap with Mara is the LUNCH RUSH, and
+        # it is the only window in the week where two people are on the rail
+        # at once with no player involved. Without it "the crew shares the
+        # work" has nowhere to happen.
+        - { days: [0, 1, 2, 3, 4], hours: [12, 22] }
     - positionKey: bartender
       assignee: /world/lounge/agent/sloane
       schedule:
         # The after-hours close — two windows cover the midnight wrap.
         - { days: [0, 1, 2, 3, 4], hours: [22, 24] }
         - { days: [0, 1, 2, 3, 4], hours: [0, 6] }
+        # ⚠⚠ THE HOLE. Weekend 00:00–10:00 was on nobody's roster, so for ten
+        # hours of every Saturday and Sunday the only person who could serve
+        # anybody was Dave — covering his own bar, for free, on the graveyard
+        # shift, because the cover reconcile has no idea it is being
+        # imposed on. A bar that never closes has to be staffed when it is
+        # open.
+        - { days: [5, 6], hours: [0, 6] }
     - positionKey: bartender
       assignee: /world/lounge/agent/augie
       schedule:
-        - { days: [5, 6], hours: [10, 24] }
+        # 6, not 10 — the other end of the weekend hole.
+        - { days: [5, 6], hours: [6, 24] }
   # Where the house banks (an authored fact — Terms/fees follow it).
   # v1: Goodkin, the one real branch; a rival bank is one edit away.
   banksAt: goodkin
   operatingLocations:
     - /world/lounge/location/bar
+  # ⭐ Where the cast wait when they are off shift. One fact on the HOUSE,
+  # where it used to be the same path repeated in four people's `shifts`
+  # config — the shape that lets one of them say something different by
+  # accident. The roster tick moves them; no brain polls for it.
+  offstage: /world/lounge/location/offstage
 
   # The par manifest — what the house means to keep on hand, and where it
   # buys it. Every line is bought from the one distributor (distribution's cash-and-carry, where every producer outfit consigns). Spirits,

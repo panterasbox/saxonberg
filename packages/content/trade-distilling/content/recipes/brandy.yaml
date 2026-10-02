@@ -3,7 +3,7 @@ recipeId: brandy
 name: Brandy
 keywords: [brandy]
 discipline: distilling
-difficulty: moderate
+difficulty: standard
 inputSlots:
 - slot: wine
   category: wine

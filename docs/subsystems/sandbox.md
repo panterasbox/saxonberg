@@ -260,7 +260,7 @@ check + deny-receipt in the boundary wave):
 | `SoulCatalogue` | `mint`, `edit`, `delete` | flat-global emote verb/alias namespace, author-reachable |
 | `SubjectCatalogue` | `makeSubject`, `makeThreadSubject`, `deleteSubject`, `renameSubject` | flat-global title namespace (forums/chat spine) |
 | `ChannelCatalogue` | `createPlayerChannel`, `createBoundChannel`, `attachChatToSubject`, `promoteAdHocToManaged`, `renamePlayerChannel`, `disbandPlayerChannel` | global channel-name namespace |
-| `AddressRegistry` | `registerLocality` (via `Locality.postRegister`) | any circle-cloned Locality would self-insert into the shared address trie |
+| `AddressRegistry` | `registerLocality` (via `Locality.onCreate`) | any circle-cloned Locality would self-insert into the shared address trie |
 | `SchedulerRegistry` | the `activityRegistry` capture-at-start write in `start` | free-string type→class dispatch index; a circle activity class must not re-point field dispatch |
 | `ParcelRegistry` | trie writers (`subdivide`/`transfer`/`grantUse`/`revokeUse`/`retire`) | live coverage trie beside the REFUSE'd rows |
 | `HotReloadApi` | `reload`/`unload` | path-keyed global class registry (wizard-gated, but a circle wizard's reload is field-visible) |

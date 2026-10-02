@@ -13,7 +13,6 @@
 # one crosses a warren boundary; both are *you go through the gate to get
 # to the field*.
 class: /platform/idea/location/CartesianZone
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: the home field
   cellSize: 20.0

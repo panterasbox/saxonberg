@@ -6,7 +6,6 @@
 # until the trade has a seat of its own. Operates the counter (where `buy`
 # settles) and the showroom (where `wallet use house` resolves the house).
 class: /platform/idea/Business
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: "the cash-and-carry"
   appointingAuthority:

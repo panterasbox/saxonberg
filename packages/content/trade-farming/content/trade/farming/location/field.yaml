@@ -12,7 +12,6 @@
 # the street's grid. Its position on the soil field is `groundSpot`,
 # stamped at plot time from where the plotter was standing.
 class: /trade/farming/location/Field
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: field
   keywords: [land, field, ground]

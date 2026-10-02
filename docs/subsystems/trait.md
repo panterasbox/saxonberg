@@ -153,7 +153,7 @@ Authored NPCs need their defining character *immediately*, but
 derive-don't-track means a fresh ledger is near-neutral. The resolution
 (mirroring char-gen's chronicle/transcript claim-seeding): seed disposition
 **evidence**, not a stat. `BehavedMixin` carries a declarative
-`dispositions: ClaimSeed[]` field; at `postRegister` it seeds those as
+`dispositions: ClaimSeed[]` field; at `onCreate` it seeds those as
 `claim`-kind rows via the host's own `seedTraitClaims` — **once** (idempotent across
 re-clone / CMS go-live: it skips if any `claim` row already exists). So
 Mara derives reserved & temperate, Remy gregarious, etc. — personality that

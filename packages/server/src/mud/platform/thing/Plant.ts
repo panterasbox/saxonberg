@@ -34,7 +34,6 @@ import { OrganismMixin } from "../../lib/species/Organism";
 import { ReservedMixin } from "../../lib/reserve";
 import { GrowingMixin } from "../../lib/husbandry/Growing";
 import { SlottableMixin } from "../../lib/slot/Slottable";
-import { PostRegistrationMixin } from "../../lib/stuff/PostRegistration";
 import { PersistableMixin } from "../../lib/persistence/Persistable";
 import { MixinApi } from "../../api/mixin";
 import { StuffApi } from "../../api/stuff";
@@ -50,13 +49,7 @@ import type { FieldMeta } from "../../lib/mixin";
 
 // PersistableMixin OUTERMOST — the documented host rule.
 const PlantBase = PersistableMixin(
-  PostRegistrationMixin(
-    SlottableMixin(
-      GrowingMixin(
-        ReservedMixin(OrganismMixin(ThermalMixin(Good))),
-      ),
-    ),
-  ),
+  SlottableMixin( GrowingMixin( ReservedMixin(OrganismMixin(ThermalMixin(Good))), ), ),
 );
 
 export default class Plant extends PlantBase {
@@ -228,7 +221,7 @@ export default class Plant extends PlantBase {
   /**
    * Every cultivated plant is one of many instances of its template, so
    * its record is keyed **per instance** — and the key is minted lazily,
-   * on first demand, never in `postRegister`: a keyed restore stamps the
+   * on first demand, never in `onCreate`: a keyed restore stamps the
    * real key *after* register, so minting at register would race it.
    *
    * The override sits on the getter because the capture path is the only

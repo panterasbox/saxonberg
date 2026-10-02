@@ -6,6 +6,5 @@
 # `narnia/...` tree the Localities claim prefixes in) is independent of
 # this templatePath tree; the divergence is deliberate.
 class: /platform/idea/FolderZone
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: address

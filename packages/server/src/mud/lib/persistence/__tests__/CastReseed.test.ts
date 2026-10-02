@@ -22,7 +22,7 @@ import { StuffApi } from "../../../api/stuff";
 import { ContainmentApi } from "../../../api/containment";
 import { ParcelApi } from "../../../api/parcel";
 import { MixinApi } from "../../../api/mixin";
-import PersistentHydrator from "../../../platform/idea/persistence/PersistentHydrator";
+import TemplateApplier from "../../../platform/idea/TemplateApplier";
 import { PersistableMixin } from "../Persistable";
 import { Template } from "../../stuff/Template";
 import { PersistenceManager } from "../../../../backend/PersistenceManager";
@@ -31,7 +31,6 @@ import type { Stuff } from "../../stuff/Stuff";
 import { ContainerMixin } from "../../spatial/Container";
 import { ContainableMixin } from "../../spatial/Containable";
 import { StagedMixin } from "../../stuff/Staged";
-import { PostRegistrationMixin } from "../../stuff/PostRegistration";
 import { BehavedMixin } from "../../behavior/Behaved";
 import { makeStuffAtPath } from "../../security/__tests__/test-setup";
 
@@ -39,7 +38,7 @@ import { makeStuffAtPath } from "../../security/__tests__/test-setup";
 
 // A persistable room that declares its born-with troupe via `cast:`.
 class CastRoom extends PersistableMixin(
-  StagedMixin(ContainerMixin(PostRegistrationMixin(Idea))),
+  StagedMixin(ContainerMixin(Idea)),
 ) {}
 
 // The cast — a Behaved containable (the hand that commutes).
@@ -124,8 +123,8 @@ beforeEach(() => {
   });
 
   makeStuffAtPath(
-    () => new PersistentHydrator(),
-    PersistentHydrator.templatePath,
+    () => new TemplateApplier(),
+    TemplateApplier.templatePath,
   );
 });
 

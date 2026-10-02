@@ -15,7 +15,6 @@
 # defect `lint:condition-arms` exists to prevent. The fever is narrated by
 # the observable signs, not integrated onto core temperature.
 class: /platform/idea/Condition
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: transfusion reaction
   signature:

@@ -57,7 +57,7 @@ export class AppApi {
    * and opens it at the end.
    *
    * ⚠ The reason is not tidiness. NPC brains are wired at their host's
-   * `postRegister`, which necessarily runs early — the host has to exist
+   * `onCreate`, which necessarily runs early — the host has to exist
    * before it can behave — but the schedules they arm are REAL-TIME, so
    * the cast starts acting minutes before the subsystems it acts through
    * are booted. A live drive of this branch opened with every trade

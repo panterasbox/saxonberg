@@ -4,7 +4,6 @@
 # molar mass are a capacity, not a mandate — left unset until a consumer
 # (chemistry, electrolysis) actually needs them.
 class: /platform/idea/material/Material
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: water
   keywords: [water]
@@ -22,6 +21,11 @@ data:
   latentHeatOfFusion: 334000
   boilingPoint: 373
   latentHeatOfVaporization: 2260000
+  # ⭐ What a frozen pool of water becomes — a carryable ice block (the good
+  # the iceboxes already consume). A powered freezer drives a pan of water
+  # below 273 K, the latent plateau banks the fusion heat, and the pool mints
+  # this. See docs/subsystems/thermal.md § Phase change both ways.
+  castTemplate: /stuff/thing/ice-block
   edibility: true
   nutrients: [water]
   toxicity: []

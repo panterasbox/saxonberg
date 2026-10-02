@@ -1954,7 +1954,7 @@ Each leaves as a slate line, not a plan section.
 - **Per-zone celestial profiles** — the D1 guard names the seam;
   `time.md § Future work`.
 - **Business hours driving a house's own lamp** (a keeper lights the shop
-  at dusk) — a brain, when the labor build wants it (`crew-slate`).
+  at dusk) — a brain, when the labor build wants it (`call-slate`).
 
 ---
 

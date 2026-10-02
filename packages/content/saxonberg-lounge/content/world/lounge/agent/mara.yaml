@@ -34,7 +34,7 @@ data:
   # ── the dossier ─────────────────────────────────────────────────
   # Evidence, never values: each entry below expands into the same rows a
   # lived history would have written, marked `claim`. Seeded once at
-  # postRegister and skipped if any claim already exists, so a reclone or
+  # onCreate and skipped if any claim already exists, so a reclone or
   # a reboot cannot mint a second history.
   # ⚠ A best-guess pass, explicitly provisional — the considered version
   # is a content pass of its own before go-live.
@@ -50,12 +50,10 @@ data:
     # learn who they are (the NPC half of the auto-introduce feature).
     - brain: /lib/behavior/introduces
       trigger: arrival
-    - brain: /lib/behavior/shifts
-      trigger: cadence:30s
-      config:
-        behindBar: /world/lounge/location/bar
-        railStool: /world/lounge/location/bar
-        offstage: /world/lounge/location/offstage
+    # ⚠ The `shifts` and `covers` specs used to sit here. Presence is a
+    # CONSEQUENCE of employment state, so the move belongs to the roster
+    # tick that owns the state — `offstage:` on the house, `station:` on
+    # the seat. See docs/subsystems/employment.md.
     # The keeper's back loop: on shift, read the par sheet from the rail,
     # `wallet use house` and `job post` a carriage bounty for each short
     # line that isn't already on the board, clear the receiving bench onto
@@ -68,7 +66,7 @@ data:
       # a beat posts what is short and clears the bench, and the road
       # decides when the goods actually come. Ordering faster than the
       # road can answer would just pile up dockets.
-      trigger: cadence:15m
+      trigger: candidate
       config:
         shelf: /trade/hospitality/thing/back-bar
         rack: /trade/hospitality/thing/glass-rack
@@ -86,7 +84,7 @@ data:
         # labor market's SECOND rung — the producer leg needs no capital
         # at all, and this one needs enough to front a load.
     - brain: /lib/behavior/idles
-      trigger: cadence:11s
+      trigger: candidate
       config:
         pool:
           - { kind: free, value: "runs a cloth slowly down the rail." }
@@ -94,7 +92,7 @@ data:
           - { kind: free, value: "straightens a row of bottles without looking." }
           - { kind: say, value: "Mm." }
     - brain: /lib/behavior/random-chatter
-      trigger: cadence:41s
+      trigger: candidate
       config:
         lines:
           - "What'll it be."
@@ -110,7 +108,7 @@ data:
     # Trait-aware chatter: Mara's reserved sociability keeps this sparse —
     # mostly silence, the occasional clipped word.
     - brain: /lib/behavior/converses
-      trigger: cadence:19s
+      trigger: candidate
       config:
         chatty:
           - "Good to have you in."

@@ -202,7 +202,7 @@ describe('⭐⭐ the dog is the fourth rung, and it costs a relationship', () =>
  * ranching build, and nothing could have told anybody.
  *
  * Two links, both dead, both silent. The class composed no `BehavedMixin`
- * — so the Hydrator, which reflects only into fields a composed class
+ * — so the applier, which reflects only into fields a composed class
  * declares, discarded the row's whole `behaviors:` block without a word.
  * And the block used `cadenceMs:`, which is not a key `_parseTrigger`
  * understands. Either alone would have been enough.
@@ -235,7 +235,12 @@ describe('⚠⚠ the affordance links that failed closed and silent', () => {
     expect(row.data.behaviors.length).toBeGreaterThan(0);
     for (const spec of row.data.behaviors) {
       expect(typeof spec.trigger).toBe('string');
-      expect(String(spec.trigger)).toMatch(/^(cadence:\d+s|departure|arrival)$/);
+      // ⭐ `candidate` joined the vocabulary with the deliberation beat:
+      // a brain that knows how much it wants the next beat no longer runs
+      // a timer of its own.
+      expect(String(spec.trigger)).toMatch(
+        /^(cadence:\d+s|candidate|departure|arrival)$/,
+      );
       expect(spec.cadenceMs).toBeUndefined();
     }
   });

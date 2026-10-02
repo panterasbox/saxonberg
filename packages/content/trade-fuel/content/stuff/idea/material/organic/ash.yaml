@@ -1,7 +1,6 @@
 # Wood ash — the mineral residue when a burn goes all the way through.
 # Worth something to a farmer (potash) and nothing to a smelter.
 class: /platform/idea/material/Material
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: ash
   keywords: [ash]

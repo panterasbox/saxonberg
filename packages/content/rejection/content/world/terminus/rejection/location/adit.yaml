@@ -13,7 +13,6 @@
 # zone*. The adit IS that way out. Every heading's air is measured from
 # here.
 class: /platform/location/SingletonCartesianLocation
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: adit mouth
   keywords: [adit, mouth, entrance, tunnel]

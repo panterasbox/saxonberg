@@ -26,7 +26,6 @@
 # whatever the caster chooses to spend, and the loss to coupling is
 # where the real price lands.
 class: /platform/idea/magic/Spell
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   spellId: transfer
   name: Transfer

@@ -1,6 +1,5 @@
 # Seed for saffron — the same discrete-Thing shape every shipped seed has.
 class: /platform/thing/Seed
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: tray of saffron corms
   keywords: [seed, seeds, saffron, tray, corms]

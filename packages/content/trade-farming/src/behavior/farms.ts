@@ -54,6 +54,9 @@ import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable'
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { BrainContext, BrainStatics } from '@saxonberg/server/mud/lib/behavior/brain';
 import type { Employed } from '@saxonberg/server/mud/lib/employment/Employed';
+import { Urgency } from '@saxonberg/server/mud/lib/behavior/Urgency';
+import type { TaskKind } from '@saxonberg/server/mud/lib/behavior/Urgency';
+import type { EngagementSlot } from '@saxonberg/server/mud/lib/activity/Engaged';
 
 const DEFAULT_BATCH = 6;
 const DEFAULT_ASK = 5;
@@ -68,6 +71,16 @@ type Hand = Stuff & Mobile & Containable & Container & CommandGiver;
 
 export const brain = class {
   static label = 'farms';
+  static kind: TaskKind = 'work';
+  static summary =
+    'Works the farm: waters dry ground, feeds hungry ground, picks what is ripe, and consigns the take at the market.';
+  static discipline = 'agriculture';
+  static produces: readonly string[] = ['produce'];
+  static consumes: readonly string[] = ['water', 'fertilizer'];
+  static claims: readonly EngagementSlot[] = ['hands', 'body'];
+  static urgency(): Urgency {
+    return new Urgency('wanted', 'looks out over the ground and reaches for the can');
+  }
   static presenceGated = false;
   // A functional poller (grows food, moves stock), not ambient chatter.
   static ambient = false;

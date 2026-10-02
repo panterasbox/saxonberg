@@ -332,8 +332,11 @@ factory in the folder shown.
 - **`Propertied`** — dynamic runtime properties (`Property<T>`),
   transient or saved, access-controlled.
 - **`Singleton`** — one instance per template path.
-- **`PostRegistration`** — post-registration lifecycle hook
-  (`@PostConstruct`-style).
+- ⛔ **`PostRegistration`** — RETIRED 2026-10-01. The post-registration
+  hook is `onCreate`, a **terminal on `Stuff`** dispatched
+  unconditionally, so no class composes for it; its non-chaining default
+  had been silently swallowing every layer inside it. See
+  [architecture.md § What each branch composes](./architecture.md).
 - **`Spawner`** / **`Spawned`** — track within-session dynamic
   spawns and their back-reference.
 - **`Staged`** — declaratively spawns contents into a `Container`

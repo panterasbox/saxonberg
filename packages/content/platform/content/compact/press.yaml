@@ -17,7 +17,6 @@
 # Visibility `public`: this is the feed an anonymous visitor reads on the
 # start screen. A release may narrow that; it may never widen it.
 class: /platform/idea/Organization
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   appointingAuthority:
     kind: committee

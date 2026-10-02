@@ -30,7 +30,7 @@ function stubTemplates(governments: Loose[]): void {
 async function warm(governments: Loose[]): Promise<GovernmentCatalogue> {
   stubTemplates(governments);
   const cat = makeStuff(() => new GovernmentCatalogue());
-  await cat.postRegister();
+  await cat.onCreate();
   return cat;
 }
 

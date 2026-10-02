@@ -8,7 +8,6 @@
 # item. Cave fauna really do go blind and pale; the invention is only
 # which fungus.
 class: /platform/idea/species/Species
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   binomial: Subterracavia pallida
   commonNames: ["pale grazer", "grazer"]

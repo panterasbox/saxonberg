@@ -98,9 +98,7 @@ export abstract class TapActController<
   ): Promise<(Stuff & Tappable) | null> {
     const bound = model.target?.stuff ?? null;
     if (bound === null) return null;
-    return MixinApi.isProducing(bound)
-      ? (bound as unknown as Stuff & Tappable)
-      : null;
+    return MixinApi.isProducing(bound) ? bound : null;
   }
 
   async execute(model: M, context: CommandContext): Promise<void> {

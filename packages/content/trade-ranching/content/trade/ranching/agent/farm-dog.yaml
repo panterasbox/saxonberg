@@ -7,7 +7,6 @@
 # nobody has worked with works badly — which is the bond acquiring an
 # economic consequence without any livestock acquiring a bond stat.
 class: /trade/ranching/agent/WorkingAnimal
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: rough-coated collie
   keywords: [dog, collie, sheepdog, rough-coated]
@@ -25,7 +24,7 @@ data:
   # say so. Both halves are fixed now.
   behaviors:
     - brain: /trade/ranching/behavior/herds
-      trigger: cadence:300s
+      trigger: candidate
       config: {}
     # ⭐ And the collie is a companion as well as a worker: it follows the
     # person it is bonded to, eats what it is given, and makes its own way
@@ -33,6 +32,6 @@ data:
     - brain: /lib/behavior/follows
       trigger: departure
     - brain: /lib/behavior/feeds
-      trigger: cadence:60s
+      trigger: candidate
     - brain: /lib/behavior/homes
-      trigger: cadence:90s
+      trigger: candidate

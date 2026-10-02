@@ -21,7 +21,6 @@
 # `docs/slates/tails/preservation-slate.md`'s. This row exists so a
 # retail row can name it the day that trade ships.
 class: /platform/thing/Casting
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: block of ice
   keywords: [ice, block, ice-block]

@@ -5,7 +5,6 @@
 # design pass. It charters the city corporation and the University; it is
 # ordinary authored fiction, NOT the Compact (no tier is).
 class: /platform/idea/Government
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   key: terminus-realm
   name: the Realm of Terminus

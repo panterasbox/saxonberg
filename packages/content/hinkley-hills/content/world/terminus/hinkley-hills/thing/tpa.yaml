@@ -6,7 +6,6 @@
 # town is a real arrangement rather than a penalty, which is the whole
 # premise of a commuter suburb.
 class: /system/tpa/thing/TpaTerminal
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   seatIn: /world/terminus/hinkley-hills/location/arrival
   shortDescription: Teleport Authority post
@@ -34,7 +33,7 @@ data:
   # A cell in the bay on standup — the Authority put one in, and the
   # standing draw is already eating it. Somebody has to come back.
   # ⓘ Not `props:`: props seed CONTENTS, and a bay is occupancy. The
-  # terminal seats this itself on `postRegister`, once, and only into an
+  # terminal seats this itself on `onCreate`, once, and only into an
   # empty bay — so a restart restores the captured occupant rather than
   # minting a second cell.
   bornWithCell: /system/arcana/thing/mana-cell

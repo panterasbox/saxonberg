@@ -7,7 +7,6 @@
 # a body simply lay where it fell until the residency sweep took it. A
 # grave is the honest terminus, and somebody is paid to dig it.
 class: /platform/idea/location/CartesianZone
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: The Necropolis
   cellSize: 4.0

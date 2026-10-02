@@ -32,6 +32,36 @@
  *      the assertion. This is the assert-vs-derive check proper, and it
  *      is possible only because the estimator is a pure function of its
  *      evidence.
+ *   6. ⭐⭐⭐ WARN + RATCHET — **a person employed (or brained) to practise a
+ *      trade they claim NOTHING in.** The assert-vs-REQUIRE check, beside
+ *      rule 4's assert-vs-derive.
+ *
+ *      Since the agent-coordination build a dossier is not only a
+ *      description: `CraftingApi.canMake` folds `claim`-kind rows through
+ *      `seededBandFor`, so **an authored person who was never written as a
+ *      smith cannot forge.** That makes a missing `competence:` line a
+ *      functional hole, and the shape of its failure is the worst
+ *      available: the NPC runs its beat, forces its verb, is refused
+ *      `not-learned`, and produces nothing, forever, while looking exactly
+ *      like a person at work.
+ *
+ *      ⚠ Found live: the crowsfoot yard's only hand holds a seat fulfilling
+ *      `[distilling, fermenting]` and asserted **no fermenting claim at
+ *      all**, so its floor could never crush a wash.
+ *
+ *      Two sources of requirement, both exact:
+ *        (a) a seat the person is ROSTERED to (`position.fulfills`);
+ *        (b) a brain the row NAMES that declares a `discipline`.
+ *      ⚠ Exact, not through `specializes`: `seededBandFor` queries the
+ *      Discipline key itself, so a mixology-only claim does not answer for
+ *      a bartending seat. The gate says what the engine does.
+ *
+ *      ⚠⚠ This is NOT `lint:menu-staff`. That gate asks *can anybody here
+ *      make this LINE* (and its residue is deliberate — a bar may offer a
+ *      drink nobody can mix, as a standing vacancy). This one asks *does
+ *      this PERSON claim the trade they are employed in*, which has no
+ *      honest residue at all.
+ *
  *   5. WARN + RATCHET — a `Cast` row carrying no dossier at all. Census
  *      today's count as the ceiling; it may fall, never rise. ⚠ This is
  *      the reachability failure the plan flagged: *a Cast with no dossier
@@ -88,6 +118,12 @@ const CONTENT = join(REPO_ROOT, 'packages/content');
  * affordable before anyone has time to fill every row in.
  */
 const UNDOSSIERED_CAST_CEILING = 0;
+
+/**
+ * ⭐ Rule 6's ratchet — people seated to a trade they claim nothing in.
+ * Census today; it may fall, never rise.
+ */
+const UNCLAIMED_TRADE_CEILING = 0;
 
 const STANDING_BANDS = DEFAULT_BAND_THRESHOLDS.map((t) => t.name);
 
@@ -154,6 +190,71 @@ function disciplineKeys(rows: Row[]): Set<string> {
     if (row.raw.class !== '/platform/idea/Discipline') continue;
     const key = row.data.key;
     if (typeof key === 'string') out.add(key);
+  }
+  return out;
+}
+
+/**
+ * Every Discipline a row is REQUIRED to claim, and why — keyed by the row's
+ * template path.
+ *
+ * The source is **seats, and only seats**: walk every house's `positions` ×
+ * `rosterSlots`, so an assignee inherits its seat's `fulfills` list. A house
+ * with a `fulfills` seat and nobody rostered to it requires nothing of
+ * anybody, which is `lint:openings`' question rather than this one.
+ *
+ * ⚠ **Not brains**, though the first cut of this gate read them and found
+ * ten more rows. A brain's `static discipline` is the channel its act
+ * CREDITS, not a band its act requires, and every pack path that does read
+ * a band reads `competenceBandFor` — the whole Transcript, deeds included —
+ * so a brain with no seeded claim still works and still earns. The seat is
+ * different in kind: it is the house's promise to a patron that this person
+ * can do the work, and `isFulfilling` → `canMake` → `seededBandFor` is that
+ * promise being tested against the dossier alone.
+ */
+function requiredTrades(rows: readonly Row[]): Map<string, Map<string, string>> {
+  const out = new Map<string, Map<string, string>>();
+  const add = (who: string, discipline: string, why: string): void => {
+    if (!who || !discipline) return;
+    const seen = out.get(who) ?? new Map<string, string>();
+    if (!seen.has(discipline)) seen.set(discipline, why);
+    out.set(who, seen);
+  };
+
+  for (const row of rows) {
+    // The seats this house rosters.
+    const positions = Array.isArray(row.data.positions)
+      ? (row.data.positions as Record<string, unknown>[])
+      : [];
+    if (positions.length) {
+      const grants = new Map<string, string[]>();
+      for (const p of positions) {
+        if (!p || typeof p !== 'object') continue;
+        const key = typeof p.key === 'string' ? p.key : '';
+        if (!key) continue;
+        grants.set(
+          key,
+          Array.isArray(p.fulfills)
+            ? (p.fulfills as unknown[]).filter(
+                (f): f is string => typeof f === 'string',
+              )
+            : [],
+        );
+      }
+      const slots = Array.isArray(row.data.rosterSlots)
+        ? (row.data.rosterSlots as Record<string, unknown>[])
+        : [];
+      for (const slot of slots) {
+        if (!slot || typeof slot !== 'object') continue;
+        const assignee =
+          typeof slot.assignee === 'string' ? slot.assignee : '';
+        const key =
+          typeof slot.positionKey === 'string' ? slot.positionKey : '';
+        for (const d of grants.get(key) ?? []) {
+          add(assignee, d, `the '${key}' seat at ${row.path} fulfils it`);
+        }
+      }
+    }
   }
   return out;
 }
@@ -282,6 +383,56 @@ function main(): void {
     }
   }
 
+  // ⭐⭐ Rule 6 — assert-vs-REQUIRE. Rule 4 asks whether a written band is
+  // one the estimator can derive; this asks whether the trades a person is
+  // actually put to work at are trades they claim anything in at all.
+  // ⚠ Exact keys, never through `specializes`: `seededBandFor` folds the
+  // claim rows for the key it is HANDED, so a parent claim is not a child
+  // claim and the reverse is equally false.
+  const required = requiredTrades(rows);
+  const assertedBy = new Map<string, Set<string>>();
+  const rowByPath = new Map<string, Row>();
+  for (const row of rows) {
+    rowByPath.set(row.path, row);
+    const claims = Array.isArray(row.data.competence)
+      ? (row.data.competence as Record<string, unknown>[])
+      : [];
+    assertedBy.set(
+      row.path,
+      new Set(
+        claims
+          .map((c) => (typeof c.discipline === 'string' ? c.discipline : ''))
+          .filter((d) => d),
+      ),
+    );
+  }
+  let unclaimedTrades = 0;
+  const unclaimed: string[] = [];
+  for (const [who, needs] of Array.from(required).sort()) {
+    const row = rowByPath.get(who);
+    // An assignee naming no row is `lint:openings`' finding, not this one.
+    if (!row) continue;
+    const has = assertedBy.get(who) ?? new Set<string>();
+    for (const [discipline, why] of Array.from(needs).sort()) {
+      if (has.has(discipline)) continue;
+      unclaimedTrades++;
+      unclaimed.push(
+        `${row.file}: ${who} is put to '${discipline}' work — ${why} — and ` +
+          `asserts no '${discipline}' claim at all, so its seeded floor ` +
+          `licenses nothing and every recipe in that trade refuses it ` +
+          `SILENTLY, with the seat still reading as staffed.`,
+      );
+    }
+  }
+  if (unclaimedTrades > UNCLAIMED_TRADE_CEILING) {
+    failures.push(
+      `${unclaimedTrades} person(s) hold a seat that fulfils a trade they ` +
+        `claim nothing in, above the ceiling of ` +
+        `${UNCLAIMED_TRADE_CEILING}. ⭐ The census may fall, never rise.\n` +
+        unclaimed.map((u) => `      ${u}`).join('\n'),
+    );
+  }
+
   if (report) {
     console.log(`Competence assertions (${inventory.length}):`);
     console.log(inventory.sort().join('\n'));
@@ -302,7 +453,8 @@ function main(): void {
   }
   console.log(
     `✔ lint:dossiers — every asserted band is one the estimator derives, ` +
-      `and every dossier names the archetype that minted it.`,
+      `every dossier names the archetype that minted it, and everybody put ` +
+      `to a trade claims something in it.`,
   );
 }
 

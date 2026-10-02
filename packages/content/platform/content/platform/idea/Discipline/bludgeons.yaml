@@ -9,7 +9,6 @@
 # — a discipline is how people organise knowledge, not a function of
 # kilograms, so the weapon row says which one it trains.
 class: /platform/idea/Discipline
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   key: bludgeons
   channel: skill

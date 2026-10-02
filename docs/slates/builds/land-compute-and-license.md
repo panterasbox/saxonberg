@@ -3,6 +3,15 @@
 > **Status: PARTIAL** — the land half (parcel title, the path-addressed
 > trees + `/studio`, path-scoped access) ships →
 > [parcel.md](../../subsystems/parcel.md)
+> ⭐⭐⭐ **Movement 2's SCOPE NARROWED 2026-10-01** by
+> [scarcity-slate](./scarcity-slate.md): *"compute"* merged four channels
+> and three kinds of legislative instrument. **Movement 2 is the CPU
+> economy** — an allocation, rivalrous at zero marginal cost. RAM is
+> engine physics (`residency.md`), storage is a **retention** policy that
+> belongs with the record, and tokens + egress are an **appropriation**
+> that belongs with the treasury. The machinery here (title vs
+> entitlement, subsidiarity, the capacity door) is unchanged and correct
+> for CPU.
 > **Left:** compute metering and the entitlement function (quality vs
 > demand weights) · the per-citizen or per-parcel compute floor · the
 > capacity door + the admission taxonomy (instanced / ticketed) ·

@@ -10,7 +10,6 @@
 # reads — a parcel that admits augers and refuses drills asks the
 # INSTRUMENT, never the player.
 class: /platform/thing/Tool
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   keywords: [auger, bit, brace, "tapping auger"]
   shortDescription: tapping auger

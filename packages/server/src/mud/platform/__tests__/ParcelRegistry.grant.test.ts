@@ -82,9 +82,9 @@ function seedParcel(extent: string, owner: ParcelOwner): void {
 
 async function boot(): Promise<void> {
   const groups = makeStuffAtPath(() => new GroupRegistry(), "/platform/idea/GroupRegistry");
-  await groups.postRegister();
+  await groups.onCreate();
   const parcels = makeStuffAtPath(() => new ParcelRegistry(), "/platform/idea/ParcelRegistry");
-  await parcels.postRegister();
+  await parcels.onCreate();
 }
 
 function reset(): void {
@@ -191,13 +191,13 @@ describe("ParcelApi.grant", () => {
 
   it("mints the registry when none is resident (the grant path mints)", async () => {
     const groups = makeStuffAtPath(() => new GroupRegistry(), "/platform/idea/GroupRegistry");
-    await groups.postRegister();
+    await groups.onCreate();
     // No ParcelRegistry mounted; a template-backed singleton clone is not
     // available in this harness, so the mint path is exercised through the
     // StuffApi.singleton seam.
     const mint = vi.spyOn(StuffApi, "singleton").mockImplementation(async () => {
       const reg = makeStuffAtPath(() => new ParcelRegistry(), "/platform/idea/ParcelRegistry");
-      await reg.postRegister();
+      await reg.onCreate();
       return reg as never;
     });
     const r = await ParcelApi.grant({ extent: "/stuff", holder: EXECUTIVE });

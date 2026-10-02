@@ -29,7 +29,6 @@ import { VisibleMixin } from '../description/Visible';
 import { PerceptibleMixin } from '../description/Perceptible';
 import { DetailedMixin } from '../description/Detailed';
 import { AmbientLitMixin } from '../perception/AmbientLit';
-import { PostRegistrationMixin } from './PostRegistration';
 import { Suppressions, type MagicSuppression } from '../magic/Suppression';
 import { AppSettingKeys } from '../config/AppSettings';
 import { TemplatePaths } from '../paths';
@@ -116,20 +115,19 @@ export interface FloorDefaults {
 // perception walk skips a zero-flux ambient, so an unauthored room reads
 // exactly as it did before.
 //
-// ⭐⭐ `PostRegistrationMixin` composes HERE, at the base, since the ground
-// build — and it had to move down rather than be added to a seventh class.
-// The mixin's default `postRegister` is a **non-chaining no-op**, so a
-// second composition anywhere above the base SWALLOWS the base's hook: the
-// ten Location classes that used to compose it individually
-// (`CartesianLocation`, `SphericalLocation`, `FurnishableRoom`, `Offstage`,
-// `CircleFloor`, `Lounge`, `Bar`, and the university's
-// `Corridor` + `DormRoom`) each dropped it, and every `postRegister`
-// override in the family now chains `super`. Inert by default, exactly as
+// ⭐⭐ The floor is minted by `Location.onCreate` HERE, at the base, since
+// the ground build. Until 2026-10-01 the hook arrived from
+// `PostRegistrationMixin`, whose default was a **non-chaining no-op**, so a
+// second composition anywhere above the base SWALLOWED the base's hook and
+// the ten Location classes that composed it individually each had to drop
+// it. The hook is a terminal on `Stuff` now, so there is no marker to
+// compose twice and no layer to swallow; what still matters is that every
+// `onCreate` override in the family chains `super`. Inert by default, exactly as
 // `AmbientLitMixin` above it is: a Location with nothing to do at
 // post-register does `ensureFloor()` and returns.
 //
 // ⚠ Consequence worth knowing before touching the hook: after this, the
-// ENTIRE Location tree depends on base-level `postRegister`. A hydration
+// ENTIRE Location tree depends on base-level `onCreate`. A hydration
 // build that changes how the hook is composed or invoked has one more
 // consumer, at the root of the biggest class family in the game.
 // ⭐⭐ **`Visible`, `Perceptible` and `Detailed` joined the root in the
@@ -166,7 +164,7 @@ const LocationBase = AddressableMixin(
       AdornableMixin(
         ContainerMixin(
           VisibleMixin(
-            DetailedMixin(PerceptibleMixin(PostRegistrationMixin(Stuff))),
+            DetailedMixin(PerceptibleMixin(Stuff)),
           ),
         ),
       ),
@@ -310,13 +308,13 @@ export default class Location extends LocationBase {
    * room does, because `LoungeWarren.createMember` goes through
    * `StuffApi.clone` like everything else.
    *
-   * @hook Chained from `PostRegistrationMixin`. A Location subclass that
-   *   overrides this **must** call `await super.postRegister(context)` —
-   *   the mixin's default is a non-chaining no-op, so forgetting it means
-   *   the room silently has no floor. The W2 roster test is the guard.
+   * @hook Chained from `Stuff.onCreate`. A Location subclass that
+   *   overrides this **must** call `await super.onCreate(context)` —
+   *   forgetting it means the room silently has no floor. The roster test
+   *   is the guard.
    */
-  public async postRegister(context?: unknown): Promise<void> {
-    await super.postRegister(context);
+  public async onCreate(context?: unknown): Promise<void> {
+    await super.onCreate(context);
     await this.ensureFloor();
   }
 
@@ -326,17 +324,17 @@ export default class Location extends LocationBase {
    * left exactly as authored and only has its material ladder resolved.
    *
    * ⚠⚠ **This loads nothing, deliberately.** The hydration framework slate
-   * is running a census-and-ratchet over `postRegister` bodies that load
+   * is running a census-and-ratchet over `onCreate` bodies that load
    * state — its census greps for `.find(` / `findByScope` / `hydrate` /
    * `rebuildIndex` / `warm(` / `restore` / `load` — and this body must match
    * none of them. It does not: it constructs a companion object the world
    * requires, which is *structural completion*, the same act as
-   * `Lounge.postRegister`'s `verifyOutboundExits()`. The material ladder,
+   * `Lounge.onCreate`'s `verifyOutboundExits()`. The material ladder,
    * which does resolve citations, is the FLOOR's method and runs lazily
    * behind `resolveUnderfoot`. If a later edit pulls a lookup into this
    * body, that ratchet's number moves and this decision is void.
    *
-   * ⚠ A failure to mint is **warned, not thrown**. `postRegister` throwing
+   * ⚠ A failure to mint is **warned, not thrown**. `onCreate` throwing
    * unregisters the half-built object, so a missing `default-floor` row —
    * a realm that does not ship the generic-objects pack — would take every
    * room in the world down with it. A room with no floor is a degradation;
@@ -385,7 +383,7 @@ export default class Location extends LocationBase {
       warnedFloorFailures.add(cause);
       // ⚠⚠ `console.warn`, NOT `MudlogApi.warn` — measured, not chosen.
       // Mudlog resolves a recipient from the ambient command frame and
-      // THROWS *"no recipient"* when there is none, and `postRegister`
+      // THROWS *"no recipient"* when there is none, and `onCreate`
       // runs inside the clone pipeline where there is no giver. So the
       // warning path would itself have thrown, unregistered the room, and
       // turned a floorless room into a failed clone — the exact failure

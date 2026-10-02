@@ -98,20 +98,51 @@ const SUGARBUSH = '/world/terminus/rejection/hanging-wood/sugarbush';
 const REJECTION = '/world/terminus/rejection';
 const BANK_HALL = '/world/terminus/counting-houses/banking-hall';
 
+/** Game-seconds a duration string names — the same grammar `after()` takes. */
+function secondsOf(duration: string): number {
+  const m = /^\s*(\d+(?:\.\d+)?)\s*(second|minute|hour|day)s?\s*$/.exec(
+    duration,
+  );
+  expect(m, `unparseable duration '${duration}'`).toBeTruthy();
+  const units: Record<string, number> = {
+    second: 1,
+    minute: 60,
+    hour: 3_600,
+    day: 86_400,
+  };
+  return Number(m![1]) * (units[m![2] as string] ?? 0);
+}
+
 /**
- * ⭐⭐ **No `--parcel`, deliberately.** `EvalController` defaults the
- * jurisdiction to `/home/<playerKey>` — *your own circle* — and that
- * **passes by the pure rule**, so a wizard needs no title anywhere to
- * run code against the world clock.
+ * ⭐⭐ **The clock is moved by the FOUNDER, in a GOVERNED jurisdiction.**
  *
- * ⚠ Drive run 4 passed `--parcel /world/terminus/market` (copied from
- * the fishing drive, which evals ON objects in a parcel it holds) and
- * every call answered `access-denied` — *you hold no authority over
- * /world/terminus/market* — which cascaded into fourteen failures,
- * because without the clock there is no season. ⚠⚠ And it did not read
- * as a refusal on the note I was checking, so it looked like an `eval`
- * that neither ran nor complained. The lesson is the harness's: **read
- * the PROSE when a command is supposed to answer with a value.**
+ * ⛔⛔ **This paragraph used to say the opposite, and it was stale code
+ * documentation that cost a whole drive run.** It read *"no `--parcel`,
+ * deliberately — `EvalController` defaults the jurisdiction to
+ * `/home/<playerKey>`, your own circle, and that passes by the pure
+ * rule."* That was true when it was written and **false by the time the
+ * MR opened**: W0's review fix (`assertNotQuarantined`) made every
+ * clock MUTATOR refuse a quarantined caller, and `/home/<player>` IS
+ * the quarantined circle. World time is global; a circle may not move
+ * it, because there is no per-circle clock to move.
+ *
+ * ⚠⚠ **And the drive record said 15/15 the whole time**, because it was
+ * recorded BEFORE that review fix and never re-run. The throw landed as
+ * neither a refusal note nor matching prose, so the helper's own
+ * assertions passed and the break surfaced two lines later as
+ * arithmetic — *the clock moved 9.9 game-seconds instead of 259,200.*
+ * ⭐ Re-running the drive after a review fix is not optional; see the
+ * plan's § Review round 5.
+ *
+ * So the jump runs as the founder against `/world/terminus/rejection`,
+ * a jurisdiction the founder genuinely holds — which is also the honest
+ * fiction. Moving world time is an operator act, not something you do
+ * inside your own circle, and the governed path receipts it.
+ *
+ * ⚠ Drive run 4 passed `--parcel /world/terminus/market`, which the
+ * founder does NOT hold, and every call answered `access-denied` in
+ * PROSE with no note — the lesson that is still live: **read the prose
+ * when a command is supposed to answer with a value.**
  */
 
 /**
@@ -125,6 +156,15 @@ const TO_THE_TREELINE = ['east', 'north', 'north', 'north'] as const;
 const TREELINE_TO_BUSH = ['north', 'east'] as const;
 
 let k: Session;
+/**
+ * ⭐ The founder session that moves the clock, held open for the file.
+ *
+ * A governed `eval` needs an actor with authority over the jurisdiction
+ * (see `advance` below), and checkpoint 7 walks the year in 20-day
+ * steps — up to ~18 jumps — so opening a session per jump would be a
+ * waste of a boot-heavy handshake.
+ */
+let clock: Session | null = null;
 let handle = '';
 
 async function walk(s: Session, route: readonly string[]): Promise<void> {
@@ -219,9 +259,14 @@ async function settle(s: Session, started: CommandResult): Promise<void> {
  * capability, which is why it is marked rather than merely gated.
  */
 async function advance(s: Session, duration: string): Promise<void> {
+  // ⭐ `s` is the session whose CLOCK we then read; the jump itself goes
+  // through the founder's governed session (see the header above).
+  const mover = clock ?? s;
+  const expectedS = secondsOf(duration);
+  const before = await gameNow(s);
   const out = await say(
-    s,
-    `eval return (WorldClockApi.advance('${duration}'), 1)`,
+    mover,
+    `eval --parcel ${REJECTION} return (WorldClockApi.advance('${duration}'), 1)`,
   );
   expect(refusedFor(out), `advance ${duration}`).toBeNull();
   // ⚠ An `eval` that is refused for jurisdiction says so in PROSE and
@@ -231,8 +276,29 @@ async function advance(s: Session, duration: string): Promise<void> {
   expect(said, `advance ${duration} must not be denied`).not.toMatch(
     /hold no authority|don.t understand/i,
   );
-  await s.drainProse();
+  await mover.drainProse();
   await new Promise((r) => setTimeout(r, 400));
+  // ⭐⭐⭐ **THE JUMP MUST BE PROVED, HERE, ON EVERY CALL.**
+  //
+  // ⚠⚠ This is the single assertion whose absence let a DEAD CLOCK pass
+  // a drive. `advance` returns silently when the parsed duration is 0
+  // and throws (without a note, and without prose this helper matched)
+  // when the caller is quarantined — so for one whole review round the
+  // helper "succeeded" on every call while world-time never moved. Only
+  // checkpoint 0 did the arithmetic, so checkpoint 7 walked fourteen
+  // months of nothing and set its spile in a season that happened to be
+  // open already. ⭐ Proving it in the HELPER means no checkpoint
+  // anywhere can be vacuous about the clock again.
+  const moved = (await gameNow(s)) - before;
+  expect(
+    moved,
+    `advance ${duration}: world-time did not move (the clock is the ` +
+      `premise of every seasonal checkpoint in this file). ` +
+      // ⭐ The PROSE goes in the message, because this drive has now
+      // twice lost a round to an `eval` that neither ran nor filed a
+      // note — the whole diagnosis lives in what it said back.
+      `the eval answered: ${JSON.stringify(said)}`,
+  ).toBeGreaterThan(expectedS * 0.9);
 }
 
 /**
@@ -287,9 +353,23 @@ beforeAll(async () => {
     startLocation: PROVISIONING,
     wizard: true,
   });
+  // ⭐ The clock-mover, held for the file. The founder is the one actor
+  // with authority over `/world/terminus/rejection`, and a GOVERNED
+  // eval is the only route to a clock mutator — a quarantined circle is
+  // refused (W0's review fix). `wizard: true` because `eval` is the
+  // code-trust axis.
+  if (isOwnedTestWorld()) {
+    clock = await Session.open('founder', {
+      startLocation: PROVISIONING,
+      wizard: true,
+    });
+  }
 }, 300_000);
 
-afterAll(() => k?.close());
+afterAll(() => {
+  k?.close();
+  clock?.close();
+});
 
 /* ───────────── 0. the clock, without which nothing else runs ───────────── */
 
@@ -508,19 +588,40 @@ suite('⭐⭐ 5–6. six named stems, and the sap is not up', () => {
     }
   }, 300_000);
 
-  it('⭐⭐⭐ 6. out of season the TREE says so — no number, no date', async () => {
-    const out = await say(k, 'tap birch-north with auger');
-    const prose = await k.drainProse();
-    void prose;
-    // ⭐ A closed season is INFORMATION: the reason travels as
-    // `season-*`, and the controller renders it without filing a
-    // rejection, because the calendar is not the player's mistake.
-    const reason = refusedFor(out);
-    if (reason !== null) {
-      expect(reason.startsWith('season-')).toBe(true);
-    }
+  it('⭐⭐⭐ 6. the TREE states its sap in WORDS — no number, no date', async () => {
+    // ⛔⛔ **THIS CHECKPOINT USED TO BE UNFALSIFIABLE**, and it is the
+    // worst thing the sweep found. It read:
+    //
+    //     const reason = refusedFor(out);
+    //     if (reason !== null) {
+    //       expect(reason.startsWith('season-')).toBe(true);
+    //     }
+    //     const said = await read(k, 'look birch-north');
+    //     void said;
+    //
+    // — so a tap that SUCCEEDED passed it, a tap that was refused for
+    // any season reason passed it, and the `look` it claimed to be
+    // about was read and thrown away. It could not fail. It reported
+    // ✓ on every run of this drive while asserting nothing, and it is
+    // why nobody noticed the sap window is OPEN at game-time 0 and the
+    // closed case had never once been exercised.
+    //
+    // ⭐ What is unconditionally true, clock or no clock, is AC 8: the
+    // tree says where its sap is **in words, with no digit in any of
+    // them** (`productionRead()`). That is asserted here. The *closed
+    // season refuses with `season-*`* claim needs a closed window, so it
+    // moved to checkpoint 6b below where the clock can reach one.
     const said = await read(k, 'look birch-north');
-    void said;
+    expect(said, 'the tree must say something about its sap').toMatch(
+      /sap|run|season|spile/i,
+    );
+    // ⭐ The whole point of a banded read: no quantities, no dates.
+    const sapLine = said
+      .split(/\n/)
+      .filter((l) => /sap|run|season/i.test(l))
+      .join(' ');
+    expect(sapLine, 'the sap line must exist').not.toBe('');
+    expect(sapLine, 'AC 8 — banded in WORDS, no digits').not.toMatch(/\d/);
   }, 300_000);
 });
 
@@ -529,6 +630,34 @@ suite('⭐⭐ 5–6. six named stems, and the sap is not up', () => {
 suite.skipIf(!isOwnedTestWorld())(
   '⭐⭐⭐ 7–9. open the season, bore a hole, and be refused the third',
   () => {
+  it('⭐⭐⭐ 6b. walk to a CLOSED window, and the tree says so as INFORMATION', async () => {
+    // ⭐ The half of checkpoint 6 that needs a clock, and that this
+    // drive had never actually reached: the sap window is OPEN at
+    // game-time 0, so *out of season* has to be walked to.
+    //
+    // ⭐ A closed season is INFORMATION, not the player's mistake: the
+    // reason travels as `season-*` and the controller renders it
+    // without filing a rejection.
+    let closed: string | null = null;
+    for (let step = 0; step < 10 && closed === null; step++) {
+      await advance(k, '20 days');
+      const out = await say(k, 'tap birch-north with auger');
+      const reason = refusedFor(out);
+      await k.drainProse();
+      if (reason !== null && reason.startsWith('season-')) closed = reason;
+      // ⚠ If it was NOT refused it opened an engagement; let it settle
+      // rather than leaving the hands held into the next jump.
+      if (reason === null) await settle(k, out);
+    }
+    expect(
+      closed,
+      'in two hundred days of walking the sap window never closed — ' +
+        'either the photoperiod opener is always-open (which would make ' +
+        'every season assertion in this file vacuous) or `tap` stopped ' +
+        'reporting the season as `season-*`',
+    ).not.toBeNull();
+  }, 900_000);
+
   it('⭐⭐ 7. advance to the run, and `tap` SETS a spile as an engagement', async () => {
     // ⚠ The season band is daylength-driven, so finding the run means
     // walking the year rather than guessing a date. A jump at a time,

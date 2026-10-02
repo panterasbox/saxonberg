@@ -1,7 +1,6 @@
 # A bar stool — the seating the `hospitality` archetype counts (a Chair with
 # one `sit` slot).
 class: /platform/thing/Chair
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: bar stool
   keywords: [stool, seat, bar-stool, bar]

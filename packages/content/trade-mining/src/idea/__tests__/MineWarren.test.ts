@@ -25,7 +25,7 @@ import Material from '@saxonberg/server/mud/platform/idea/material/Material';
 import Tool from '@saxonberg/server/mud/platform/thing/Tool';
 import Thing from '@saxonberg/server/mud/platform/thing/Thing';
 import SingletonCartesianLocation from '@saxonberg/server/mud/platform/location/SingletonCartesianLocation';
-import PersistentHydrator from '@saxonberg/server/mud/platform/idea/persistence/PersistentHydrator';
+import TemplateApplier from '@saxonberg/server/mud/platform/idea/TemplateApplier';
 import { Document } from '@saxonberg/server/mud/lib/persistence/Document';
 import { PersistenceManager } from '@saxonberg/server/mud/lib/persistence/__tests__/backend-store';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
@@ -41,7 +41,7 @@ import type { Cell } from '../../lib/Working';
 
 interface Doc extends Record<string, unknown> { _id?: string }
 
-const PH = PersistentHydrator.templatePath;
+const PH = TemplateApplier.templatePath;
 const ZONE = '/world/fx-mine/mine';
 const DEPOSIT = '/world/fx-mine/idea/deposit/fx';
 const WARREN = '/world/fx-mine/idea/fx-warren';
@@ -71,7 +71,7 @@ function col(name: string): Doc[] {
 function seedContent(): void {
   const content = col('content');
   const add = (path: string, cls: string, data: Record<string, unknown> = {}) =>
-    content.push({ _id: `d-${++idCounter}`, path, class: cls, hydratorClass: PH, data });
+    content.push({ _id: `d-${++idCounter}`, path, class: cls, data });
   content.push({ _id: `d-${++idCounter}`, path: PH, class: PH, data: {} });
   // ⭐ The engine's own rows — every exit is a clone of a kind row now.
   for (const row of KERNEL_CONTENT_ROWS) {

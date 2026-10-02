@@ -3,10 +3,9 @@
 # crossing room (`_address: terminus/city/university-avenue/crossing`) resolves
 # here and is
 # weather-eligible under it. Homed under seeds/lib/address/ (the narnia /
-# terminus precedent) so AddressRegistry.postRegister eagerly clones + warms
+# terminus precedent) so AddressRegistry.onCreate eagerly clones + warms
 # its prefix at boot. templatePath ≠ claimed address.
 class: /platform/idea/Locality
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   # ⭐⭐ The town's street-lighting service (envelope W5). ONE FIGURE IN
   # ONE PLACE: a town does not track lamps, it funds a service and finds

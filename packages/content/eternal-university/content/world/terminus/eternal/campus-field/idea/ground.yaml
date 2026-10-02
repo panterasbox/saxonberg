@@ -32,7 +32,6 @@
 # the difference by measuring it, which is the only way it is worth
 # learning.
 class: /system/ground/idea/GroundCharacter
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: the college ground
   pins:

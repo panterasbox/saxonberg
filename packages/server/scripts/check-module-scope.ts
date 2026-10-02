@@ -9,7 +9,7 @@
  * conditionals, assignments, mutations of other modules' state. All
  * cross-module initialization happens through runtime lifecycles
  * instead: `BootstrapManager.installFrameworkWiring` (the boot seam),
- * `postRegister` (instance lifecycle), capture-at-start (the
+ * `onCreate` (instance lifecycle), capture-at-start (the
  * scheduler's dispatch index), the `ModuleApi.stamp` module lifecycle
  * (Api-facade decoration), or lazy first-use initializers.
  *

@@ -2,7 +2,6 @@
 # water muffles. bodyProfile horizontal — tripwires at ankle height
 # miss a swimming actor.
 class: /platform/idea/LocomotionMode
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: swim
   speed: 0.5

@@ -41,7 +41,6 @@
  */
 
 import { Idea } from '../../lib/stuff/Idea';
-import { PostRegistrationMixin } from '../../lib/stuff/PostRegistration';
 import { CallSecurity } from '../../lib/security/decorators';
 import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
 import { AccessApi } from '../../api/access';
@@ -62,7 +61,7 @@ import {
 import { WikiRevision, type RevisionKind } from '../../lib/wiki/WikiRevision';
 import { Sections } from '../../lib/wiki/Section';
 
-const WikiRegistryBase = PostRegistrationMixin(Idea);
+const WikiRegistryBase = Idea;
 
 /**
  * The one legitimate caller. String form (matching
@@ -152,7 +151,7 @@ export default class WikiRegistry extends WikiRegistryBase {
   /** Cached namespace-zone singletons, keyed by namespace. */
   private zoneCache = new Map<string, WikiNamespaceZone | null>();
 
-  public override async postRegister(_context?: unknown): Promise<void> {
+  public override async onCreate(_context?: unknown): Promise<void> {
     await this.seedEditorsGroup();
   }
 

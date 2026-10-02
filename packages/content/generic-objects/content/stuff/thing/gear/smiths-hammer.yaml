@@ -3,7 +3,6 @@
 # the consumed stock when forged; this seed is also cloned directly as
 # venue kit.
 class: /platform/thing/Tool
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: smith's hammer
   keywords: [hammer, smiths-hammer, cross-peen, "smith's", smith]

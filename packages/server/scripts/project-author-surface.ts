@@ -153,7 +153,7 @@ export interface ConsumerMember {
 export const HOOK_NAMES: ReadonlySet<string> = new Set([
   "onDestruct",
   "canDestruct",
-  "postRegister",
+  "onCreate",
   "aroundSave",
   "aroundDelete",
   "onLinkdead",

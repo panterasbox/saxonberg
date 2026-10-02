@@ -9,7 +9,6 @@
 # `_materialPath` is oak (the cask body), stated on the ROW so its mass is
 # honest — a wooden cask, not the glass a bare Bottle defaults to.
 class: /platform/thing/Bottle
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: oak cask
   keywords: [cask, oil-cask, barrel]

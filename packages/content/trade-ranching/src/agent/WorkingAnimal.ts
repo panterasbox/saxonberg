@@ -56,7 +56,7 @@ import { HandledMixin } from '../lib/Handled';
  * ⚠⚠ **Its brain had never run.** The farm-dog row has authored
  * `behaviors: [{ brain: /trade/ranching/behavior/herds, … }]` since the
  * ranching build, and this class composed no `BehavedMixin` — so the
- * Hydrator discarded the field silently and the collie has been standing
+ * applier discarded the field silently and the collie has been standing
  * in the yard doing nothing that whole time. (The key was also wrong:
  * `cadenceMs: 300000` is not a shape `_parseTrigger` knows; it wants
  * `trigger: cadence:300s`.) Two dead links in one row, neither of which

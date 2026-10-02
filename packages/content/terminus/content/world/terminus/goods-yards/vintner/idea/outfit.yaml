@@ -6,12 +6,15 @@
 # operating account. The annex names the host (the counter); the host
 # names nobody.
 class: /platform/idea/Business
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: "the vintner's outfit"
   appointingAuthority:
     kind: office
     office: prime-minister
+  # Who comes over: `rota` — the least-recently-called able hand. No
+  # relational leg, because a floor has no regulars and should not pretend
+  # to. See docs/subsystems/employment.md.
+  call: rota
   positions:
     - key: hand
       noun: hand

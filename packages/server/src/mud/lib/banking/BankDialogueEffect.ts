@@ -9,7 +9,7 @@
  * (the officer's tree reaches its `circle` node). A no-op (the officer's
  * dialogue nudges instead) if the player hasn't yet opened an account at that
  * corpo's bank; the write is idempotent. Registered by
- * `BankCounter.postRegister` — a live bank fixture is the object lifecycle
+ * `BankCounter.onCreate` — a live bank fixture is the object lifecycle
  * that makes the verb real (no module-scope registration, no boot import).
  */
 

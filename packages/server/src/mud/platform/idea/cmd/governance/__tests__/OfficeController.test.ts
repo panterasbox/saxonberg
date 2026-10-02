@@ -185,7 +185,7 @@ describe('OfficeController', () => {
       () => new OfficeRegistry(),
       '/platform/idea/OfficeRegistry',
     );
-    await reg.postRegister();
+    await reg.onCreate();
   });
 
   afterEach(() => {

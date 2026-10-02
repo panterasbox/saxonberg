@@ -1,6 +1,5 @@
 # Sugar — the pantry's; the syrup's input (tag `sugar`).
 class: /platform/idea/material/ConsumableMaterial
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: sugar
   keywords: [sugar]

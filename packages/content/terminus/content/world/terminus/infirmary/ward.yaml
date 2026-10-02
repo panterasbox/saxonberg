@@ -3,7 +3,6 @@
 # cross-zone cardinal exit, both sides explicit), on the same walk as the
 # store and the bank.
 class: /platform/location/SingletonCartesianLocation
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: infirmary
   keywords: [infirmary]
@@ -27,6 +26,12 @@ data:
     - /world/terminus/infirmary/thing/tariff
     - /world/terminus/infirmary/thing/cot
     - /world/terminus/infirmary/thing/dressing-cabinet
+    # ⭐ Cold storage (cold-storage build): a powered blood fridge on the
+    # avenue feeder keeps the ward's blood bags cold for weeks, with a colder
+    # freezer compartment that makes ice; a carried cooler walks a unit to a
+    # hunt off the grid.
+    - /world/terminus/infirmary/thing/blood-fridge
+    - /stuff/thing/vessel/cooler
     # ⭐ The trade's instruments (recovery build) — the splint backs `set`,
     # the surgeon's kit backs `operate`, and a vial of antivenin backs
     # `dose`. Kept here so the ward can actually treat every wound, not

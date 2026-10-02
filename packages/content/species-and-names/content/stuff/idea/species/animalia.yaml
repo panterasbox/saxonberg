@@ -3,7 +3,6 @@
 # (Clade extends Zone — picked up by ZoneApi.isFolderClass);
 # descendants are sub-clades and Species leaves.
 class: /platform/idea/species/Clade
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: Animalia
   rank: kingdom

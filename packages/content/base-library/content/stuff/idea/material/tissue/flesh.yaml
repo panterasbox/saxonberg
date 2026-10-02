@@ -6,7 +6,6 @@
 # (`Homo sapiens`-flesh, frog-flesh, …) is a content extension that
 # populates `biologicalSource`.
 class: /platform/idea/material/Material
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: flesh
   keywords: [flesh]

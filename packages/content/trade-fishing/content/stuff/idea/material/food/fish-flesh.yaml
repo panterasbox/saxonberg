@@ -10,7 +10,6 @@
 # salted at the quay and not in the kitchen. The one number that makes
 # *a fillet spoils on the shipped clock and keeps when smoked* true.
 class: /platform/idea/material/ConsumableMaterial
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: fish flesh
   keywords: [fish, flesh, fillet]

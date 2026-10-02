@@ -1,7 +1,6 @@
 # Juniper — produce's food material; tag `juniper` is the recipe category
 # (the gin still's item slot, when a distilling build learns it).
 class: /platform/idea/material/ConsumableMaterial
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: juniper
   keywords: [juniper]

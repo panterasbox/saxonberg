@@ -1,7 +1,6 @@
 # A prime cut — FINE-grade meat (a graded Provision): what the fine roast
 # demands. The grade spread on solid stock, felt at the pot.
 class: /platform/thing/Provision
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: prime cut of meat
   keywords: [prime-cut, cut, prime, meat]

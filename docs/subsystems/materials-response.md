@@ -132,7 +132,7 @@ aramid's toughness and comes out genuinely protective. That is
    assertion** over `TEXTILE_RESIST_PROFILE`, because they all share it
    — the whole reason that profile is a kernel constant.
 4. `FabricCatalogue` (`platform/idea/FabricCatalogue.ts`) warms the
-   roster at `postRegister`, **never an operator `boot()`**, and rides
+   roster at `onCreate`, **never an operator `boot()`**, and rides
    the platform pack's `boot:` manifest. ⚠ This is the
    *reference-Ideas-inert-at-boot* rule, and here the failure would not
    even be silent: a garment row authoring `constructionForm: woven`

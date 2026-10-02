@@ -1,7 +1,6 @@
 # AetherImplant — Wave 1 implant template. Hardened (no power
 # state, no failure modes); confers AetherMixin.
 class: /platform/thing/AetherImplant
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: "aether implant"
   keywords: [implant, aether]

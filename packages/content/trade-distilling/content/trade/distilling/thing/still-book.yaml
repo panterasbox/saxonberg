@@ -2,7 +2,6 @@
 # sibling): mash, run, compound — unpriced, `order`-lit. Zero new
 # verbs.
 class: /platform/thing/Menu
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: still book
   keywords: [book, "still book", board, ledger, still]

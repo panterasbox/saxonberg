@@ -422,7 +422,7 @@ describe('trade-distilling — the outfit consigns as itself, and the house card
       return c;
     }) as unknown as typeof StuffApi.clone);
     const reg = makeStuffAtPath(() => new ChattelRegistry(), '/platform/idea/ChattelRegistry');
-    await reg.postRegister();
+    await reg.onCreate();
     makeStuffAtPath(() => {
       const b = new BankCounter();
       b.setCorpoKey('goodkin');

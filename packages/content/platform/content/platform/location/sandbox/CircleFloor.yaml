@@ -5,7 +5,6 @@
 # later; deliberately spare prose now — the point of the floor is what
 # you build on it. See docs/subsystems/sandbox.md.
 class: /platform/location/sandbox/CircleFloor
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   # ⭐ An INHERENT glow, and the one place in the realm that honestly has
   # one: the circle's floor is itself the light source. Does not follow

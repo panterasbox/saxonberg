@@ -129,6 +129,10 @@ describe("general-store content integrity", () => {
     expect(room.data?.props).toEqual([
       "/world/terminus/general-store/counter",
       "/world/terminus/general-store/consignment-shelf",
+      // ⭐ A prime cut on the open shelf (cold-storage build) — the warm
+      // twin of the one kept in the walk-in cold room next door, so a look
+      // at both reads the cold chain's whole point.
+      "/stuff/thing/items/prime-cut",
       // ⭐ A hearth (the envelope build). A shop with a street door
       // that opens all day is the room that most obviously wants one,
       // and it gives the realm one place a player can walk into, light

@@ -2,7 +2,6 @@
 # clad in scales with a keen draconic nose; vision stays close to human.
 # Proud, short-lived (~80 years), with the bearing of an elder wyrm.
 class: /platform/idea/species/Species
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   illustration: species/draconicus.png
   binomial: Homo draconicus

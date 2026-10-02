@@ -6,7 +6,6 @@
 # ⚠ No `follows`, no `homes`: a fish does not walk. `feeds` alone, at a
 # cadence — it eats what is in its bowl and asks nobody.
 class: /trade/fishing/agent/Fish
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   _speciesPath: /stuff/idea/species/carp
   lifecycleState: alive
@@ -19,4 +18,4 @@ data:
   handling: 0.25
   behaviors:
     - brain: /lib/behavior/feeds
-      trigger: cadence:60s
+      trigger: candidate

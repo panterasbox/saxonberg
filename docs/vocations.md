@@ -9,6 +9,18 @@ for finding the work it *doesn't* yet.
 
 Started 2026-07-31, seeded from the transport/industry design run.
 
+> ⭐⭐ **This register could DERIVE, and 2026-10-01 is when that became
+> possible.** MR !316 gave every brain optional `produces` / `consumes`
+> declarations, so a build-time walk over the brain tree can answer *what work
+> does this realm actually do, and what does that work need* without anybody
+> maintaining a table. ⚠ **Nothing consumes those declarations yet** — they
+> are written and read by no walk, which is this file's own gap-finding method
+> turned on itself. The chain walk is the next thing: pair each `produces`
+> against every `consumes` and a **producer with no consumer** or a
+> **consumer with no producer** is a gap the register currently finds by
+> hand. Until it lands, the statuses below are maintained, not derived; the
+> `shipped` column is the one to distrust.
+
 ## ⭐⭐⭐ The governing test
 
 > **A vocation exists iff there is unmet demand — somebody needs

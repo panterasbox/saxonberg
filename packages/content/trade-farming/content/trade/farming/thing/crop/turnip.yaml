@@ -3,7 +3,6 @@
 # rotation's root course and once as the thing that gets the stock
 # through February.
 class: /platform/thing/Crop
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: load of turnips
   keywords: [turnips, crop, load]

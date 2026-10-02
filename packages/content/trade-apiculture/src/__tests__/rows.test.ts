@@ -31,7 +31,6 @@ const TRADE = join(CONTENT, 'trade', 'apiculture');
 interface Row {
   class?: string;
   extends?: string;
-  hydratorClass?: string;
   data?: Record<string, unknown>;
 }
 

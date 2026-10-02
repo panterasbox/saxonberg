@@ -1,4 +1,4 @@
-# PartyRoster — the singleton whose postRegister registers the `party:`
+# PartyRoster — the singleton whose onCreate registers the `party:`
 # grouping provider and re-materializes durable parties into live Ideas
 # (the self-warming shape; eager via this pack's boot list, not an
 # AppBootstrap sequencer line). After GroupRegistry.

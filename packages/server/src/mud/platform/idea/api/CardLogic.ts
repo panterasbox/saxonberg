@@ -62,10 +62,10 @@ function resolveRegistry(): CardRegistry {
   }
   const reg = StuffApi.createSync<CardRegistry>(
     () => new registryClass!(),
-    // The manifest clone is the production path (postRegister = the
+    // The manifest clone is the production path (onCreate = the
     // sweep install). A lazily-built harness registry starts with no
-    // sweep; the test that needs one drives postRegister().
-    { deferPostRegister: true },
+    // sweep; the test that needs one drives onCreate().
+    { deferOnCreate: true },
   );
   reg.setTemplatePath(REGISTRY_PATH);
   return reg;

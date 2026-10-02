@@ -11,7 +11,7 @@
  *
  * Holds:
  *   - `byName: Map<string, Channel>` — persistent channel cache,
- *     warmed at `postRegister` via `Channel.find({})`.
+ *     warmed at `onCreate` via `Channel.find({})`.
  *   - `byHandle: Map<string, AdHocChannel>` — runtime-only ad-hoc
  *     registry (no subject — `'ad-hoc'` stays runtime-only in v1).
  *   - `history: Map<channelId, MessageFrame[]>` — per-channel history
@@ -35,7 +35,6 @@
 
 import { SecurityApi } from '../../api/security';
 import { Idea } from '../../lib/stuff/Idea';
-import { PostRegistrationMixin } from '../../lib/stuff/PostRegistration';
 import { Channel } from '../../lib/social/Channel';
 import type { ChannelAnonymity } from '../../lib/social/Channel';
 import type { GroupRole } from '../../lib/social/Group';
@@ -106,7 +105,7 @@ const DEFAULT_SUBSCRIPTION: ChannelSubscription = {
   muted: false,
 };
 
-const ChannelCatalogueBase = PostRegistrationMixin(Idea);
+const ChannelCatalogueBase = Idea;
 
 export default class ChannelCatalogue extends ChannelCatalogueBase {
 
@@ -121,7 +120,7 @@ export default class ChannelCatalogue extends ChannelCatalogueBase {
   private byHandle: Map<string, AdHocChannel> = new Map();
   private history: Map<string, MessageFrame[]> = new Map();
 
-  public override async postRegister(_context?: unknown): Promise<void> {
+  public override async onCreate(_context?: unknown): Promise<void> {
     await this.warmCache();
   }
 

@@ -1,4 +1,4 @@
-# ReadingCatalogue — the singleton whose postRegister stands the authored
+# ReadingCatalogue — the singleton whose onCreate stands the authored
 # reading-channel roster up as live singletons and indexes it by the
 # token a player types (the self-warming catalogue shape; eager via this
 # pack's boot list, not an AppBootstrap sequencer line).

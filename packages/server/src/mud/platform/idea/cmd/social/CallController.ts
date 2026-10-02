@@ -32,6 +32,7 @@ import { CommandController } from '../../../../lib/command/CommandController';
 import type { CommandContext, CommandModel } from '../../../../api/command';
 import { MessageApi } from '../../../../api/message';
 import { MixinApi } from '../../../../api/mixin';
+import { SpeciesApi } from '../../../../api/species';
 import { Mml } from '../../../../api/mml';
 import { LocomotionApi } from '../../../../api/locomotion';
 import { AudienceGather } from '../../../../lib/perception/AudienceGather';
@@ -95,6 +96,14 @@ export default class CallController extends CommandController<CallModel> {
         answered += 1;
         continue;
       }
+
+      // ⭐ Warm this animal's own species before reading a dial off it.
+      // `biddability` lives on a lazily-loaded `Species` row and
+      // `getSpecies()` is a live-only lookup, so an unwarmed read answers
+      // ABSENT — which `wouldComply` reads as *not askable at all*, a
+      // refusal that looks exactly like a correct one. Idempotent and
+      // cheap after the first call (the nine-caller precedent).
+      await SpeciesApi.preloadAnatomy(animal);
 
       if (!animal.wouldComply(actor)) {
         // The cat's answer and the stranger's answer, and they are the

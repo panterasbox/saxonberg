@@ -4,7 +4,6 @@
 # itself: pull a frame out of a working hive and you read what that
 # colony is doing. On a bench it is a frame on a bench.
 class: /trade/apiculture/thing/Frame
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   keywords: [frame, comb, wire]
   shortDescription: hive frame

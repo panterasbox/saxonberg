@@ -139,11 +139,11 @@ export interface ManaPowered {
 
   /**
    * Stand the linked mains up, if this device names one. A host calls
-   * it once at `postRegister`.
+   * it once at `onCreate`.
    */
   armSupply(): Promise<void>;
 
-  // ---------- storage (public for the Hydrator) ----------
+  // ---------- storage (public for the applier) ----------
   drawMode: DrawMode;
   mainsRef: string;
   armingFloorTau: number;

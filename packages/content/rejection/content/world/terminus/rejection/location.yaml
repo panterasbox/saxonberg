@@ -6,7 +6,6 @@
 # the same grid the workings are cut on, so a bearing taken at the surface
 # and a heading driven below are in one coordinate system.
 class: /platform/idea/location/CartesianZone
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: the pithead
   cellSize: 10.0

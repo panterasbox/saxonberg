@@ -3,7 +3,6 @@
 # dark, runs a touch cool. NPC-first. See
 # docs/slates/builds/species-expansion-slate.md.
 class: /platform/idea/species/Species
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   illustration: species/koboldus.png
   binomial: Homo koboldus

@@ -6,7 +6,6 @@
 # Ships COLD and full of fuel: somebody lights it, somebody feeds it, and
 # it goes out when they stop.
 class: /platform/thing/Hearth
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: open hearth
   keywords: [hearth, fire, fireplace, grate, hob]

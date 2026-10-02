@@ -5,7 +5,6 @@
 # hive sums what its contents declare; nothing here is a mechanism, and
 # neither is the act.
 class: /trade/apiculture/thing/HiveBox
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   # ⚠⚠ NOT `"hive box"`. Multi-word keywords tokenize, so `hive` matched
   # a super as well as the hive itself and the binder asked *which

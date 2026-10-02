@@ -5,7 +5,6 @@
 # is why madder was a landholder's crop and not a smallholder's, and why
 # a red coat signalled what it signalled.
 class: /platform/thing/Plant
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: bed of madder
   keywords: [madder, crop, bed]

@@ -75,7 +75,7 @@ async function warmCatalogue(): Promise<void> {
     () => new DisciplineCatalogue(),
     "/platform/idea/DisciplineCatalogue"
   );
-  await cat.postRegister();
+  await cat.onCreate();
 }
 
 function affordedVerbs(giver: TestGiver): string[] {

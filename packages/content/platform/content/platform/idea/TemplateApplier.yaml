@@ -1,0 +1,10 @@
+# The content step itself — the one row the clone pipeline resolves to put
+# an author's `data` onto an instance.
+#
+# ⭐ `data: {}` is LOAD-BEARING. Since `hydratorClass` retired
+# (2026-10-01) the applier is resolved only when there is data to apply,
+# so an empty `data` block here is what terminates the resolution
+# recursion: cloning the applier plans no applier. Give this row a key and
+# the first clone in the world recurses until the cycle guard throws.
+class: /platform/idea/TemplateApplier
+data: {}

@@ -13,7 +13,6 @@
 # nothing whatever against the mordant problem. A bleached linen still
 # needs its tannin.
 class: /platform/idea/material/Material
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: bleached linen
   keywords: [linen, bleached, white, "bleached linen"]

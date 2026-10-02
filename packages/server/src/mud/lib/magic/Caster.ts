@@ -154,7 +154,7 @@ export interface Caster {
   isOverchannelStrained(): boolean;
   /** The banded, numbers-free self-view. */
   getFacultyView(): FacultyView;
-  /** Storage — public for the Hydrator. */
+  /** Storage — public for the applier. */
   facultyClockStamp: number;
 
   // The cast face (F3) — forwards into MagicLogic.

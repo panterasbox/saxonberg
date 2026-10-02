@@ -1,4 +1,4 @@
-# ConditionCatalogue — the singleton whose postRegister stands the
+# ConditionCatalogue — the singleton whose onCreate stands the
 # authored condition roster up as live singletons (the self-warming
 # catalogue shape; eager via this pack's boot list, not an AppBootstrap
 # sequencer line). Ordered after MaterialCatalogue on the boot

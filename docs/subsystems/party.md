@@ -152,7 +152,7 @@ the durable-party queries (`party list` / `muster`) read the `PartyRecord`
 collection (indexed on `memberIds` / `name`), which is exactly the
 "backed by a document gives you a queryable index" payoff. What was a
 stateful singleton collapses to the **`PartyRoster` manifest singletons
-`postRegister` warm** (the Api OO sweep retired `PartyApi.boot`): it registers the
+`onCreate` warm** (the Api OO sweep retired `PartyApi.boot`): it registers the
 `PartyGroupProvider` (`lib/party/PartyGroupProvider.ts`) with the shared
 `GroupRegistry` and re-materializes durable `PartyRecord`s into live Party
 Ideas. The provider is **stateless** — the id in a `party:<path>` ref is

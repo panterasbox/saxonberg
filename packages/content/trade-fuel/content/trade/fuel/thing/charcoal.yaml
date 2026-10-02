@@ -4,7 +4,6 @@
 # authored here twice. Charcoal burns hot because charcoal is carbon, and
 # the row says which material it is rather than restating what that means.
 class: /platform/thing/Provision
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: basket of charcoal
   keywords: [charcoal, char, coal, basket]

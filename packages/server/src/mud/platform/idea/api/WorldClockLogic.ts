@@ -85,10 +85,10 @@ function resolveRegistry(): WorldClockRegistry {
   }
   const reg = StuffApi.createSync<WorldClockRegistry>(
     () => new registryClass!(),
-    // The manifest clone is the production path (postRegister = the
+    // The manifest clone is the production path (onCreate = the
     // self-warming boot). A lazily-built harness registry starts
-    // unwarmed; the test that needs the boot drives postRegister().
-    { deferPostRegister: true }
+    // unwarmed; the test that needs the boot drives onCreate().
+    { deferOnCreate: true }
   );
   reg.setTemplatePath(REGISTRY_PATH);
   registryRef = reg;
@@ -104,7 +104,7 @@ function resolveRegistry(): WorldClockRegistry {
  * `StuffApi.singletonSync`. Any module that grabs this singleton and
  * calls a method other than through the Api gets `SecurityError`.
  *
- * Stateless by construction (no `PostRegistrationMixin`) — all clock /
+ * Stateless by construction (no `onCreate` override) — all clock /
  * scheduler state lives on the `WorldClockRegistry` at
  * `/platform/idea/WorldClockRegistry`, resolved via the module-level
  * `resolveRegistry()` (which survives this singleton's destruct/recreate

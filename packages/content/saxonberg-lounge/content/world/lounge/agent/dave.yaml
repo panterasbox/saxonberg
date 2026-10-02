@@ -43,7 +43,7 @@ data:
   # ── the dossier ─────────────────────────────────────────────────
   # Evidence, never values: each entry below expands into the same rows a
   # lived history would have written, marked `claim`. Seeded once at
-  # postRegister and skipped if any claim already exists, so a reclone or
+  # onCreate and skipped if any claim already exists, so a reclone or
   # a reboot cannot mint a second history.
   # ⚠ A best-guess pass, explicitly provisional — the considered version
   # is a content pass of its own before go-live.
@@ -67,9 +67,10 @@ data:
     # transient, unpaid cover on the house's `fulfills` seat, so an
     # `order` still finds a fulfiller. Shift scheduling lives on the
     # Business roster now.
-    - brain: /lib/behavior/covers
-      trigger: cadence:30s
-      config: {}
+    # ⚠ The `shifts` and `covers` specs used to sit here. Presence is a
+    # CONSEQUENCE of employment state, so the move belongs to the roster
+    # tick that owns the state — `offstage:` on the house, `station:` on
+    # the seat. See docs/subsystems/employment.md.
     # Dave keeps his own house. On a slow cadence he watches the floor:
     # a fight gets the shout, then his hands (subdue the one he believes
     # started it), and — only under real threat — the office taser; a
@@ -77,7 +78,7 @@ data:
     # Kernel-commons `enforces` brain (any barkeep reuses it); config binds
     # it to this house's geography and records.
     - brain: /lib/behavior/enforces
-      trigger: cadence:20s
+      trigger: candidate
       config:
         alertness: 5
         shoutLine: "Hey! Break it up — not in my house."
@@ -93,7 +94,7 @@ data:
         # it, while the wizard `lounge` group keeps the whole parcel.
         recordsPath: /world/lounge/location/bar/records/eighty-six
     - brain: /lib/behavior/idles
-      trigger: cadence:15s
+      trigger: candidate
       config:
         pool:
           - { kind: free, value: "polishes a glass that didn't need polishing." }

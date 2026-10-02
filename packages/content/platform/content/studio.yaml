@@ -12,7 +12,6 @@
 # self-home rule); group space is a grant. See
 # docs/subsystems/sandbox.md.
 class: /platform/idea/FolderZone
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: studio
   wire: true

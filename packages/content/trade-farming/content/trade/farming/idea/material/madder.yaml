@@ -10,7 +10,6 @@
 # decided at the mordant bath. Alum gives a clear red, iron saddens it
 # to maroon, tannin softens it to brick.
 class: /platform/idea/material/Material
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: madder
   keywords: [alizarin, madder]

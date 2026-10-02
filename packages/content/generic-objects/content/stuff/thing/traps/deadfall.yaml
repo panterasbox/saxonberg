@@ -13,7 +13,6 @@
 # ladder, no rupture), and a broken leg impairs `locomotion` — the visible
 # consequence the drive reads.
 class: /platform/thing/Trap
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: counterweighted deadfall block
   keywords: [deadfall, block, stone, counterweight]

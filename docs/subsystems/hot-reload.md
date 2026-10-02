@@ -122,7 +122,7 @@ blueprint at path." This means **every Stuff that flows through
 - Hooks (cloned by `PersistenceManager.loadHooks` from `hooks.yaml`).
 - Command controllers (cloned by `CommandGiver.executeController`
   from the `/platform/idea/cmd/*` Templates the platform pack installs).
-- Hydrators (cloned by `clone()` itself from the `hydratorClass`
+- The template applier (cloned by `clone()` itself from its row
   field of the backing's Template — see Hydrators below).
 - Anything else templated, including avatars, locations, ideas.
 
@@ -163,7 +163,7 @@ function logic(): MaterialLogic {
 ```
 
 The logic class is a stateless `Stuff` (`extends Idea`, **no**
-`PostRegistrationMixin`), marked `@internal` **on the `export class`
+`onCreate`), marked `@internal` **on the `export class`
 declaration** (a leading file-top comment would become TypeDoc's module
 comment and fail to exclude the class), and each public method carries
 its own `@CallSecurity(FromModule('/api/<feature>#<Feature>Api'))`
@@ -182,7 +182,7 @@ Two facts make this HMR-correct:
   `getCurrentExport`) and the `/platform/idea/api/<feature>` stamp path (for
   addressing) are **distinct** — both appear in every conversion.
 - **Reload is `dest`.** The singletons are stateless by construction
-  (no `PostRegistrationMixin`), so destruction is free.
+  (no `onCreate`), so destruction is free.
   `StuffApi.destruct` unregisters the singleton, emptying its
   `byTemplatePath` bucket; the next `logic()` call re-creates it
   through the factory against the current blueprint. No automatic
@@ -235,8 +235,8 @@ pipeline resolves them via `StuffApi.singleton` — one cached
 instance per hydrator class, reused across every backing it hydrates:
 
 ```ts
-const hydrator = template.hydratorClass
-  ? await StuffApi.singleton<Hydrator & Stuff>(template.hydratorClass)
+const applier = Object.keys(data).length > 0
+  ? await StuffApi.singleton<TemplateApplier>(TemplatePaths.templateApplier)
   : null;
 // ... construct backing ...
 if (hydrator) await hydrator.hydrate(backing, data);
@@ -253,8 +253,8 @@ instance — the next clone that needs it will lazy-re-create through
 `singleton(path) → clone(path) → HMR-aware class lookup`:
 
 ```ts
-await HotReloadApi.reload('/abs/.../PersistentHydrator.ts');
-const stale = StuffApi.findByTemplatePath('/platform/idea/persistence/PersistentHydrator');
+await HotReloadApi.reload('/abs/.../TemplateApplier.ts');
+const stale = StuffApi.findByTemplatePath('/platform/idea/persistence/TemplateApplier');
 if (stale) StuffApi.destruct(stale);
 ```
 

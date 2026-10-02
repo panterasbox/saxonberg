@@ -407,7 +407,7 @@ export const FrameKind = {
 - **`Root`** — synthetic frame planted by `runRoot` at a network →
   Application boundary. `caller = null`.
 - **`Constructor`** — synthetic frame planted by `StuffApi.create` /
-  `clone` around hydrate + `postRegister` (see
+  `clone` around hydrate + `onCreate` (see
   [lifecycle.md](./lifecycle.md)).
 - **`Command`** — tagged by `CommandGiverMixin.executeCommand` so
   `getCurrentCommandGiver` can find it.
@@ -638,7 +638,7 @@ Adoption:
 - **`scheduler`** (`SchedulerRegistry`), **`worldclock`**,
   **`mql-subscription`** (pinned registries) — existing gate re-pointed.
 - **`soul`** (`SoulCatalogue`) had **no** gate; one was *added* (with a
-  `SelfOnly` arm for its `postRegister`→`warmCache` self-calls).
+  `SelfOnly` arm for its `onCreate`→`warmCache` self-calls).
 - **`access`** (`AccessRegistry`), **`group`** (`GroupRegistry`),
   **`belief`**, **`prompt`** (per-Interactive registry) were converted in
   the bootstrap-cycle-unblock pass (below); their backing-state gates
@@ -677,7 +677,7 @@ favor of Stuff-to-Stuff contracts — is a separate, correct move (see
 
 The recipe gates everything the consumer *calls*. There's a second tier
 the author *implements* and the framework *invokes* — override hooks
-(`onDestruct`, `canDestruct`, `postRegister`, `aroundSave`/`aroundDelete`,
+(`onDestruct`, `canDestruct`, `onCreate`, `aroundSave`/`aroundDelete`,
 `onLinkdead`, `save`, the Hydrator `apply<Field>` appliers). These are
 **public, ungated, and ungateable**: a subclass's `super.onDestruct()`
 is *author code calling the hook*, so a `FromModule(framework)` gate

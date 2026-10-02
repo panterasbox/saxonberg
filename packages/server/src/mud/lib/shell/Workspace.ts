@@ -72,7 +72,7 @@ export interface TreeFlags {
 /**
  * Public shape provided by `WorkspaceMixin`. Methods only, per the
  * inter-stuff contract — `contentCwd` / `sourceCwd` are public
- * fields for the Hydrator's reflection but external callers go
+ * fields for the applier's reflection but external callers go
  * through these accessors.
  *
  * Extends `Environment` because Workspace always co-composes with
@@ -174,7 +174,7 @@ export function WorkspaceMixin<
     static _mixinName = 'WorkspaceMixin';
 
     /**
-     * Hydrator round-trips both cwds. They are operational state
+     * applier round-trips both cwds. They are operational state
      * but persist across logins so the avatar's session resumes
      * where it left off.
      */
@@ -290,7 +290,7 @@ export function WorkspaceMixin<
     /**
      * Persistent cwd in the content tree. Defaults to `/` rather
      * than reading `workspace.home` at construction time — the
-     * Hydrator hasn't loaded settings yet at the moment fields
+     * applier hasn't loaded settings yet at the moment fields
      * default-initialise.
      */
     public contentCwd: string = DEFAULT_HOME;

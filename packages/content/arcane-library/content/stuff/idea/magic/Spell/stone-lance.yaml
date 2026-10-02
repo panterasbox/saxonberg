@@ -4,7 +4,6 @@
 # school is a FAMILY, not a one-off: one gathering, two very different
 # wounds, decided by the shape the working gives the matter it collects.
 class: /platform/idea/magic/Spell
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   spellId: stone-lance
   name: Stone Lance

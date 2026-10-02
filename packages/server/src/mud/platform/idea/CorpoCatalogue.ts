@@ -30,14 +30,13 @@
  */
 
 import { Idea } from "../../lib/stuff/Idea";
-import { PostRegistrationMixin } from "../../lib/stuff/PostRegistration";
 import { Template } from "../../lib/stuff/Template";
 import Corpo, { type CorpoDescriptor } from "./corpo/Corpo";
 import Brand, { type BrandDescriptor } from "./corpo/Brand";
 import type { VetoResult } from "../../lib/errors";
 import type { EvictionContext } from '../../lib/stuff/Stuff';
 
-const CorpoCatalogueBase = PostRegistrationMixin(Idea);
+const CorpoCatalogueBase = Idea;
 
 export default class CorpoCatalogue extends CorpoCatalogueBase {
 
@@ -50,7 +49,7 @@ export default class CorpoCatalogue extends CorpoCatalogueBase {
   }
   /**
    * Transient runtime caches keyed by durable `key`. `null` means "not
-   * built yet"; warmed in `postRegister` (or lazily as an empty cold state
+   * built yet"; warmed in `onCreate` (or lazily as an empty cold state
    * in a unit test that skips the clone pipeline). HMR drops them to `null`.
    */
   private corpoCache: Map<string, CorpoDescriptor> | null = null;
@@ -112,7 +111,7 @@ export default class CorpoCatalogue extends CorpoCatalogueBase {
    * Warm the caches from the `content` collection. Two mongo queries at
    * boot, then the public surface is sync.
    */
-  public override async postRegister(_context?: unknown): Promise<void> {
+  public override async onCreate(_context?: unknown): Promise<void> {
     await this.loadCacheFromTemplates();
   }
 
@@ -135,7 +134,7 @@ export default class CorpoCatalogue extends CorpoCatalogueBase {
 
   private ensureCache(): void {
     if (this.corpoCache !== null) return;
-    // Never warmed (postRegister wasn't awaited, e.g. a unit test). Empty
+    // Never warmed (onCreate wasn't awaited, e.g. a unit test). Empty
     // caches are a valid cold state — every reader degrades to "no such".
     this.corpoCache = new Map();
     this.brandCache = new Map();

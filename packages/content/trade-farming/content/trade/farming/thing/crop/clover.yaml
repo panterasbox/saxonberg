@@ -3,7 +3,6 @@
 # the field lost when it was cut. Feed value and fertility are one
 # accounting.
 class: /platform/thing/Crop
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: cut of clover hay
   keywords: [clover, crop, cut, hay]

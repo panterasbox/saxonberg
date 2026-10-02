@@ -9,7 +9,6 @@
 # Cursed, it is a light that gnaws: the glowlight's cursed branch
 # afflicts the wearer with dread, and the amulet will not come off.
 class: /system/arcana/thing/Amulet
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: dull brass amulet on a cord
   keywords: [amulet, dull, brass, cord]

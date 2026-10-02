@@ -1,7 +1,6 @@
 # ⭐⭐⭐ The one fact that makes the miller's decision a decision, stated
 # so a reader can PREDICT the bread box rather than be told about it.
 class: /platform/idea/HelpConcept
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   key: extraction
   title: Extraction

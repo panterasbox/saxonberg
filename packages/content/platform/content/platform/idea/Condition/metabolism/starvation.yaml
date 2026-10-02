@@ -6,7 +6,6 @@
 # here — `progression.intervalMs` is the legibility cadence for a future
 # staged-prose pass.
 class: /platform/idea/Condition
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: starvation
   signature: []

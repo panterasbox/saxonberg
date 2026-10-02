@@ -25,7 +25,6 @@
 # whole tree rather than having it pre-decided by one cohort. See
 # templates.md § Inheritance.
 class: /platform/agent/Extra
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: student
   register: indefinite

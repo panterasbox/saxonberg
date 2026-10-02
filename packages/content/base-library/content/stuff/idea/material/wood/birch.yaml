@@ -16,7 +16,6 @@
 # (`/stuff/idea/material/food/birch-sap`), which is a fact about the
 # living tree and lives on the species row.
 class: /platform/idea/material/Material
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: birch
   keywords: [birch]

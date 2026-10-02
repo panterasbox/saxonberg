@@ -1,5 +1,4 @@
 class: /platform/idea/material/Material
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: willow bark
   keywords: [willow, bark, herb]

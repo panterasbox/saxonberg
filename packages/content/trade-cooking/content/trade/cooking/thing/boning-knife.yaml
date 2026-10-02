@@ -11,7 +11,6 @@
 # ⚠ Which is the whole split: CARRYING contamination is a property of a
 # surface that touches food; BUTCHERING is an affordance of an edge.
 class: /trade/cooking/thing/BoningKnife
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: boning knife
   keywords: [knife, boning, blade, boning-knife]

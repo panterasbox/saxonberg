@@ -66,7 +66,7 @@ export default class ParticipationStanding extends Document {
    * Load all standings into the read index. Called at boot + post-recompute.
    *
    * @internal the callable door is `ConsumerApi.participationOf`; the warm is
-   * `ParticipationStandings.postRegister`'s. Not author surface.
+   * `ParticipationStandings.onCreate`'s. Not author surface.
    */
   static async warm(): Promise<void> {
     const rows = await ParticipationStanding.find({});

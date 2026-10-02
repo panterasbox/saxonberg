@@ -3,7 +3,6 @@
 # eight game years to a tappable stem, which is fast enough that a
 # sugarbush is something a player can plant rather than only inherit.
 class: /platform/thing/Seed
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: birch seed
   keywords: [seed, birch, "birch seed", catkin]

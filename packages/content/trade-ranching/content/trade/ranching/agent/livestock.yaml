@@ -11,7 +11,6 @@
 # its temper, its age — is derived from the seed and the register, and
 # reads as prose rather than as fields.
 class: /trade/ranching/agent/Livestock
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: head of stock
   keywords: [of, head, stock, animal, beast]

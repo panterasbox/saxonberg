@@ -2,7 +2,6 @@
 # rough). Flammable only once distilled; the still concentrates the
 # fire along with the spirit (P10).
 class: /platform/idea/material/ConsumableMaterial
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: wash
   keywords: [wash]

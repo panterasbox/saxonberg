@@ -7,7 +7,6 @@
 # the bird would refuse every bowl in the game and starve, silently,
 # with nothing anywhere to say why.
 class: /platform/thing/Feeder
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: small seed hopper
   register: indefinite

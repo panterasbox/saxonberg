@@ -6,7 +6,6 @@
 # houseplant does. Everything about the suburb's growing conditions comes
 # down to being out here instead of in there.
 class: /platform/location/SingletonCartesianLocation
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: Hinkley Hills stop
   keywords: [stop, hinkley, hills]

@@ -20,7 +20,6 @@
 # and ornament are all human interception of a signal that was never
 # meant for us.
 class: /platform/idea/species/Species
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   binomial: Crocus sativus
   commonNames: ["saffron", "saffron crocus", "crocus"]

@@ -28,6 +28,8 @@ import type { EngagementSlot } from '@saxonberg/server/mud/lib/activity/Engaged'
 import type { Dressing } from '@saxonberg/server/mud/lib/vitals/Dressing';
 import type { Trauma } from '@saxonberg/server/mud/platform/idea/Condition';
 import type { BrainContext, BrainStatics } from '@saxonberg/server/mud/lib/behavior/brain';
+import { Urgency } from '@saxonberg/server/mud/lib/behavior/Urgency';
+import type { TaskKind } from '@saxonberg/server/mud/lib/behavior/Urgency';
 
 const NURSING = 'nursing';
 const BLEED = new Set(['laceration', 'puncture', 'avulsion']);
@@ -91,6 +93,59 @@ function findDressing(room: Stuff & Container): (Stuff & Dressing) | null {
 
 export const brain = class NursesBrain {
   static label = 'nurses';
+  static kind: TaskKind = 'body';
+  static summary =
+    'Triages the bodies in the room — dying, then open bleeds, then the ' +
+    'worst untreated wound, then infection — and does one thing for the ' +
+    'top patient, through the same primitives a player uses.';
+  static discipline = 'nursing';
+  /**
+   * ⭐⭐ **The smuggled priority, now declared.** `triageRank` was always a
+   * priority function; it was simply private to this brain, so the
+   * physician could be out-shouted by her own idle chatter because nothing
+   * above her could see that a dying patient outranks a wiped counter.
+   * Same arithmetic, same determinism — no roll decides who she treats —
+   * read by the arbiter instead of only by the sort inside `act`:
+   *
+   * - a dying patient (400) ⇒ `critical`: it preempts whatever she was
+   *   doing and wakes her early;
+   * - an open bleed (300+) ⇒ `pressing`;
+   * - any untreated wound or infection ⇒ `wanted`;
+   * - a quiet ward ⇒ `idle`.
+   *
+   * ⚠ And the reason names the patient, because a watcher should be able
+   * to see who she crossed the room for.
+   */
+  static urgency(ctx: BrainContext): Urgency {
+    const host = ctx.host;
+    if (!MixinApi.isEmployed(host) || host.shiftState() !== 'on-shift') {
+      return new Urgency('idle');
+    }
+    if (!MixinApi.isContainable(host)) return new Urgency('idle');
+    const room = host.getContainer();
+    if (!room || !MixinApi.isContainer(room)) return new Urgency('idle');
+    let worst: (Stuff & Vitals) | null = null;
+    let rank = 0;
+    for (const occ of (room as Stuff & Container).getContents()) {
+      const s = occ as unknown as Stuff;
+      if (s === (host as unknown as Stuff)) continue;
+      if (!MixinApi.isVitals(s)) continue;
+      const r = triageRank(s);
+      if (r > rank) {
+        rank = r;
+        worst = s;
+      }
+    }
+    if (!worst || rank <= 0) return new Urgency('idle');
+    const who = worst.getPresentation();
+    if (rank >= 400) {
+      return new Urgency('critical', `goes straight to ${who}`);
+    }
+    if (rank >= 300) {
+      return new Urgency('pressing', `moves to stop ${who} bleeding`);
+    }
+    return new Urgency('wanted', `turns to ${who}`);
+  }
   static presenceGated = false;
   static ambient = false;
   static claims: readonly EngagementSlot[] = ['attention'];

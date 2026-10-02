@@ -32,7 +32,6 @@
 # wants cardinal exits INTRA-zone, and until now one end of this door was
 # in no zone at all.
 class: /platform/location/SingletonCartesianLocation
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   coords:
     x: 0

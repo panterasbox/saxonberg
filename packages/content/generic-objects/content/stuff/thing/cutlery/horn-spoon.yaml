@@ -10,7 +10,6 @@
 # never filled — serviceware without contents. `utensilKind: spoon` is
 # what `eat` matches on (`lib/bulk/Utensil.ts`).
 class: /platform/thing/Cutlery
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: horn spoon
   keywords: [spoon, horn-spoon, utensil, horn]

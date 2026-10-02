@@ -52,7 +52,7 @@ own interest**:
 |---|---|
 | destruction | `onDestruct()` witness, `canDestruct()` veto |
 | residency | **self**-eviction, `canEvict()` veto |
-| registration | `postRegister()` |
+| registration | `onCreate()` ✅ **BUILT 2026-10-01** (hydration build W0 — was `postRegister` on an opt-in marker mixin; now a terminal no-op on `Stuff`, dispatched unconditionally, with `lint:on-create` censusing what it carries) |
 | persistence | `aroundSave` / `aroundDelete` |
 | connection | `onLinkdead()` |
 

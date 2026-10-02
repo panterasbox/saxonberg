@@ -2,7 +2,6 @@
 # down raw) but meant to be cooked; the cooking branch's protein input,
 # matched by the `meat` tag.
 class: /platform/idea/material/ConsumableMaterial
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: stew meat
   keywords: [stew, meat, cut, cuts]

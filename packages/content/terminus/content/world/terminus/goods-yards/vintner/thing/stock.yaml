@@ -3,7 +3,6 @@
 # a reset), no prices (nothing is sold here — the hand carries it to the
 # cash-and-carry and consigns it).
 class: /trade/shopkeeping/thing/Stock
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: "vintner stock"
   keywords: [stock, pallet, cases, vintner]

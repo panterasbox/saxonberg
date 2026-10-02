@@ -17,7 +17,6 @@
 # ⚠ It is still IRON: `ferrous`, and a furnace will take it back. What it is
 # not is `forgeable`, which is the one tag a smith's hand reaches for.
 class: /platform/idea/material/Material
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: hot-short iron
   keywords: [iron, "hot-short", sulfurous, bloom]

@@ -38,7 +38,7 @@ describe('AddressApi.resolvePlace', () => {
 
   beforeEach(async () => {
     makeStuffAtPath(() => new AddressRegistry(), REGISTRY);
-    // Index by hand — `postRegister` walks the shipped Locality roster,
+    // Index by hand — `onCreate` walks the shipped Locality roster,
     // which is content this unit test has no business standing up.
     asker = makeStuffAtPath(() => new Idea(), '/stuff/test/asker');
   });

@@ -3,7 +3,6 @@
 # the one row where an attentive can matters more than the sun.
 # No moisture reserve — the water lives in the ground (see peace-lily).
 class: /platform/thing/Plant
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: cranberry shrub
   keywords: [cranberry, shrub, bush, plant]

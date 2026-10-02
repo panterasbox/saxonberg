@@ -15,10 +15,13 @@
  *   1. No template's `class:` resolves under `/lib/`.       (the headline)
  *   2. No template PATH lives under `/lib/`.
  *   3. Every `class:` resolves to a real module + export.
- *   4. Every `hydratorClass:` resolves to a real template row.
- *   5. No redundant `hydratorClass:` — declared with no `data` to apply.
- *   6. No orphaned `data:` — a data block with no `hydratorClass`,
- *      whose every key is therefore silently discarded.
+ *   4-6. RETIRED 2026-10-01 with the `hydratorClass` field itself.
+ *      Each guarded a state that can no longer occur: an applier that
+ *      resolves to nothing, an applier with nothing to apply, and the
+ *      dangerous one — a `data` block with no applier, whose every key
+ *      vanished without a word. A row with data gets its data now, so
+ *      invariant 6's failure is unreachable rather than unobserved.
+ *      Invariant 13 keeps the retired key itself out.
  *   7. Under `/platform/`, `/stuff/` and `/trade/<industry>/`, an
  *      instanceable template (one naming a `class:`) sits under a BRANCH
  *      segment — `thing`, `idea`, `agent` or `location` — the path
@@ -40,14 +43,14 @@
  *   9. Every curated blueprint's `classPath:` resolves (blueprints carry
  *      no `class:`, so invariant 3 never sees them).
  *  10. No template row carries the RETIRED `populates:` key (split into
- *      `props:`/`cast:` 2026-09-01) — the Hydrator silently discards a
+ *      `props:`/`cast:` 2026-09-01) — the applier silently discards a
  *      data key with no applier, so a surviving row quietly stops being
  *      furnished. Fails with the conversion rule in hand.
  *  11. Every row states a `class:` or names a parent with `extends:`
  *      whose chain resolves (no missing parent, no cycle, within the
  *      depth cap) and states one.
  *  12. ⭐ No ORPHAN DATA KEY — every key in a row's EFFECTIVE `data` is
- *      a field its EFFECTIVE class declares. The Hydrator discards a key
+ *      a field its EFFECTIVE class declares. The applier discards a key
  *      no composed field declares, SILENTLY; authored alone that hurts
  *      one row, but INHERITED one junk key reaches every descendant.
  *      Census-then-ratchet: the ceiling is today's count, it may fall
@@ -61,16 +64,9 @@
  * which is indistinguishable from passing. That shape has shipped here
  * before.
  *
- * Invariants 5 and 6 are the `hydratorClass` pair, and 6 is the one that
- * matters: `StuffApi.clone` step 5 runs NO hydration when the field is
- * absent, so authored content vanishes without a word. Both need a real
- * YAML parse — `data: {}` inline versus block form is exactly what
- * defeats a grep, and is how the pre-existing default-floor defect
- * survived.
- *
- * Note that `class:` is a MODULE path and `hydratorClass:` is a TEMPLATE
- * path, despite looking alike (`api/stuff.ts` resolves the latter via
- * `singleton()`). They are checked against different universes.
+ * ⭐ Invariant 12 still needs a real YAML parse — `data: {}` inline
+ * versus block form is exactly what defeats a grep, and is how the
+ * pre-existing default-floor defect survived.
  *
  * **No exemption list, by design.** A class that legitimately lives in
  * `lib/` is simply never named by a template. If something appears to
@@ -278,7 +274,7 @@ export function packBrainShapeOk(source: string): boolean {
  * ⚠⚠ **A large share of the count is FALSE POSITIVES, and naming them
  * is the honest state of this ratchet** (base-class narrowing,
  * 2026-09-30). Invariant 12 asks *does a composed field declare this
- * key*, which assumes the Hydrator is the only reader. It is not:
+ * key*, which assumes the applier is the only reader. It is not:
  * `TopicCatalogue.ts:318,367` parses `data.address`, `data.actor`,
  * `data.audience`, `data.affordance` and `data.communicative` off the
  * topic rows ITSELF, through `pick(data?.address, …)`. That is ~161 of
@@ -296,8 +292,6 @@ export function packBrainShapeOk(source: string): boolean {
  */
 const ORPHAN_DATA_KEY_CEILING = 393;
 
-/** The standard hydrator — the only one whose appliers are `fieldMeta`. */
-const STANDARD_HYDRATOR = '/platform/idea/persistence/PersistentHydrator';
 
 function main(): void {
   const findings: Finding[] = [];
@@ -351,8 +345,6 @@ function main(): void {
     // ⚠ EFFECTIVE from here down. Read raw and a child row is skipped
     // silently by 5, 6, 7 and 12 alike.
     const cls = eff.class;
-    const hyd = eff.hydratorClass;
-    const ownHyd = typeof t.hydratorClass === 'string' ? t.hydratorClass : null;
     const data = eff.data;
     const hasData = Object.keys(eff.data).length > 0;
 
@@ -368,33 +360,21 @@ function main(): void {
     if (cls && !cls.startsWith('/lib/') && !classResolves(cls, sources)) {
       findings.push({ invariant: 3, file, detail: `class: ${cls} resolves to no module + export` });
     }
-    // 4 — hydratorClass is a TEMPLATE path, so check it against template rows
-    if (hyd && !knownPaths.has(hyd)) {
-      findings.push({ invariant: 4, file, detail: `hydratorClass: ${hyd} names no template row` });
-    }
-    // 5 — redundant declaration. Two shapes now: a hydrator with
-    // nothing to apply, and a CHILD restating the hydrator its parent
-    // already supplies (a line that says nothing, on the row whose
-    // whole purpose is to state only what differs).
-    if (hyd && !hasData) {
-      findings.push({ invariant: 5, file, detail: `hydratorClass: ${hyd} with no data to apply` });
-    }
-    if (ownHyd && parent) {
-      const parentHyd = effectiveRow(parent, rows, idx.rules).hydratorClass;
-      if (parentHyd === ownHyd) {
-        findings.push({
-          invariant: 5,
-          file,
-          detail: `hydratorClass: ${ownHyd} is already what '${parent}' supplies — a child states only what differs`,
-        });
-      }
-    }
-    // 6 — orphaned data (the dangerous one)
-    if (!hyd && hasData) {
+    // 13 — the RETIRED `hydratorClass:` key (2026-10-01). Same shape as
+    // invariant 10's `populates:` guard: the engine does not read the
+    // key any more, so a row that still carries one is stating a fact
+    // nothing consumes — and the author would reasonably believe it
+    // still selects something.
+    if (
+      typeof (t as { hydratorClass?: unknown }).hydratorClass === 'string' ||
+      (data && typeof data === 'object' && 'hydratorClass' in (data as object))
+    ) {
       findings.push({
-        invariant: 6,
+        invariant: 13,
         file,
-        detail: `data has ${Object.keys(data as object).length} key(s) but no hydratorClass — every one is silently discarded`,
+        detail:
+          `carries retired \`hydratorClass:\` — a row with \`data\` has ` +
+          `it applied, full stop; delete the line`,
       });
     }
     // 9 — a curated blueprint's `classPath` must resolve, exactly as a
@@ -414,7 +394,7 @@ function main(): void {
       });
     }
     // 10 — the RETIRED `populates:` key (2026-09-01: split into
-    // `props:` + `cast:`). The Hydrator silently discards a data key
+    // `props:` + `cast:`). The applier silently discards a data key
     // with no applier, so a surviving row quietly stops being
     // furnished — no conflict, no error, just a bare room (the exact
     // silent-vanish failure invariant 6 exists for). Machine-decidable
@@ -430,13 +410,15 @@ function main(): void {
         detail:
           `carries retired \`populates:\` — split into \`props:\` ` +
           `(write-back content) and \`cast:\` (Behaved troupe); the ` +
-          `Hydrator discards the old key silently`,
+          `applier discards the old key silently`,
       });
     }
-    // 12 — orphan data keys. Only under the STANDARD hydrator: a custom
-    // hydrator's appliers are its own business, and `fieldMeta` is not
-    // the universe there.
-    if (hyd === STANDARD_HYDRATOR) {
+    // 12 — orphan data keys, over every row with data. ⭐ The population
+    // is unchanged: before the field retired this read
+    // `if (hyd === STANDARD_HYDRATOR)`, and zero rows had data without
+    // that hydrator, so widening it to "every row with data" adds
+    // nobody. The ceiling is re-measured rather than assumed.
+    if (hasData) {
       const declared = declaredFields(cls, sources, fieldCache);
       // An empty set means the source reader found nothing, not that the
       // class declares nothing — never accuse on no evidence.
@@ -504,7 +486,7 @@ function main(): void {
 
   // 12 — the ratchet. Census-then-ratchet: the count is the ceiling, it
   // may fall and may never rise. The LIST prints either way, because the
-  // inventory is the point — a key the Hydrator throws away has never
+  // inventory is the point — a key the applier throws away has never
   // been visible anywhere before.
   if (orphans.length > ORPHAN_DATA_KEY_CEILING) {
     // ⚠ The comment above has always promised the LIST prints either way,
@@ -517,7 +499,7 @@ function main(): void {
       file: 'packages/server/scripts/check-instanceable-placement.ts',
       detail:
         `${orphans.length} orphan data key(s), ceiling ${ORPHAN_DATA_KEY_CEILING}. ` +
-        `A key no composed field declares is discarded by the Hydrator ` +
+        `A key no composed field declares is discarded by the applier ` +
         `SILENTLY — and a junk key on a PARENT reaches every descendant. ` +
         `Fix the row (or the class), or move the key to a field that exists.`,
     });
@@ -550,15 +532,16 @@ function main(): void {
     1: 'template names a /lib/ class',
     2: 'template path under /lib/',
     3: 'class: does not resolve',
-    4: 'hydratorClass: names no template row',
-    5: 'redundant hydratorClass (no data to apply)',
-    6: 'orphaned data (no hydratorClass — silently discarded)',
+    4: '(retired 2026-10-01 with the hydratorClass field)',
+    5: '(retired 2026-10-01 with the hydratorClass field)',
+    6: '(retired 2026-10-01 with the hydratorClass field)',
     7: 'instanceable template not under a branch segment (thing|idea|agent|location)',
     8: 'a capability pack src/ outside the taxonomy (a module not under a branch, behavior/ or lib/; a behavior/ module not brain-shaped; a lib/ module that is not inherited substrate)',
     9: 'classPath: does not resolve (a curated blueprint pointing at nothing)',
-    10: 'retired `populates:` key (split into props:/cast: 2026-09-01) — the Hydrator discards it silently',
+    10: 'retired `populates:` key (split into props:/cast: 2026-09-01) — the applier discards it silently',
     11: 'a row that clones into nothing (no class, and no extends chain that states one)',
-    12: 'orphan data keys above the ratchet (a key the Hydrator discards silently)',
+    12: 'orphan data keys above the ratchet (a key the applier discards silently)',
+    13: 'retired `hydratorClass:` key (the applier runs on data alone since 2026-10-01)',
   };
   console.warn(
     `\n[check-instanceable-placement — ${EXIT_ON_FINDINGS ? 'ERROR' : 'WARN'}] ` +

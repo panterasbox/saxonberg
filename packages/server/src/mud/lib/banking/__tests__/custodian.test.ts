@@ -133,7 +133,7 @@ describe("ensureVenueAccount — the custodian gate (institution keys)", () => {
 
 /**
  * Drive the boot restamp the way production does since the boot()
- * retirement: `CentralBank.postRegister` (warms the two caches, then
+ * retirement: `CentralBank.onCreate` (warms the two caches, then
  * runs the gate-widened `BankingLogic.restampCustodians`).
  */
 async function runBootRestamp(): Promise<void> {
@@ -145,7 +145,7 @@ async function runBootRestamp(): Promise<void> {
   const cb =
     StuffApi.findByTemplatePath<CentralBank>("/platform/idea/CentralBank") ??
     makeStuffAtPath(() => new CentralBank(), "/platform/idea/CentralBank");
-  await cb.postRegister();
+  await cb.onCreate();
 }
 
 describe("the boot restamp pass (legacy → institution keys)", () => {

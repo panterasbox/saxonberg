@@ -28,7 +28,6 @@
 # ⚠ The two names are arguably swapped (classically a *vessel* IS the
 # liquid one); `Receptacle.ts` records that and the rename is filed.
 class: /platform/thing/Receptacle
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: wooden pail
   keywords: [pail, bucket, wooden]

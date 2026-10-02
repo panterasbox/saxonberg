@@ -6,7 +6,6 @@
 # Stands up LAZILY off `operatingLocations` on the first order — no
 # manifest entry, no standup hook.
 class: /platform/idea/Business
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: "the infirmary"
   appointingAuthority:

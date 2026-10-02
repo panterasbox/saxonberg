@@ -30,7 +30,6 @@ abstract class Template extends Document {
     path: { persistent: true },
     extends: { persistent: true },
     class: { persistent: true },
-    hydratorClass: { persistent: true },
     data: { persistent: true },
   };
 
@@ -38,7 +37,6 @@ abstract class Template extends Document {
   extends?: string;                       // the parent's path, or absent
 
   readonly class: string = '';            // EFFECTIVE — the chain resolved
-  readonly hydratorClass?: string;        // EFFECTIVE
   readonly data: Record<string, unknown> = {};  // EFFECTIVE (merged)
 
   own: TemplateOwn;                       // RAW — what this row states
@@ -87,11 +85,14 @@ CRUD goes through the inherited `Document` surface
   invariants (below) constrain paths.
 - `class` names the runtime backing class to instantiate. Resolved by
   dynamic import; validated against an allow-list (below).
-- `hydratorClass` is opt-in. **When absent, no hydrator runs and `data` is
-  ignored.** Templates that want generic mixin-field copy must explicitly
-  set `hydratorClass: '/platform/idea/persistence/PersistentHydrator'` (the standard
-  implementation). Custom hydrators are also class paths under `/lib/`.
-- `data` is pure hydration payload — never carries class paths itself.
+- `data` is what an author wrote, and **a row with `data` has it
+  applied** — there is nothing to opt into. ⛔ A row used to name its own
+  `hydratorClass`, and the field **retired 2026-10-01**: it had ONE value
+  across 1,528 rows for the project's life, zero rows used the opt-out,
+  and forgetting it silently discarded the row's entire `data` block. It
+  expressed a choice nobody had ever made while making a whole failure
+  class possible. See § The TemplateApplier.
+- `data` never carries class paths itself.
 - `extends` names a PARENT ROW. See the section below.
 
 ## ⭐⭐ Inheritance — `extends:` and the raw/effective split
@@ -123,7 +124,7 @@ tree** rather than having it pre-decided here by one cohort.
 ### Resolved at READ time, never flattened
 
 `Template._materialize` walks the chain and writes the **effective**
-`class`, `hydratorClass` and `data` onto the instance. So all sixty-odd
+`class` and `data` onto the instance. So all sixty-odd
 existing readers — the clone pipeline, every catalogue, zone
 resolution, the designation gates — are correct unchanged, because what
 they want is *what this row clones into*.
@@ -184,8 +185,8 @@ what kind of person they are). Requiring class-compatibility would
 forbid the build's best exemplar and is unenforceable at the edge,
 since a parent may state no class at all.
 
-⚠ **What actually goes wrong is narrower**: the Hydrator silently
-discards a data key the effective class does not declare, and under
+⚠ **What actually goes wrong is narrower**: the applier discards a data
+key the effective class does not declare, and under
 inheritance one junk key reaches every descendant instead of one row.
 That is what `check-instanceable-placement` invariant 12 censuses and
 ratchets — see [lint-family.md](../lint-family.md).
@@ -227,11 +228,6 @@ is already on the instance and the zone walk is never consulted. See
 [zone.md](./zone.md).
 
 
-The two class fields are independent. A single hydrator can serve many
-backing classes (a `CreatureHydrator` for both `Guard` and `GuardDog`).
-A single backing class can be paired with many hydrators (different
-domain-specific hydrators per template family).
-
 ## Class Path Validation
 
 `StuffApi.#validateClassPath(classPath)` gates every dynamic import:
@@ -248,7 +244,10 @@ This validation is **format-only** (shape of the path). The orthogonal
 **trust** question — *may this author name this code at all?* — is
 enforced separately at the `saveTemplate` chokepoint: a non-wizard
 (protowizard) author cannot introduce or change the executable
-code-naming fields (`class` / `hydratorClass` / `behaviors[].brain`).
+code-naming fields (`class` / `behaviors[].brain`). ⭐ `hydratorClass`
+was the third until 2026-10-01, and it left the gate WITH the field
+rather than by exemption: a row cannot name an applier, so there is
+nothing to refuse and nothing carved out.
 See [access.md § The code-trust lockdown](./access.md).
 
 ## The Clone Pipeline
@@ -264,18 +263,17 @@ See [access.md § The code-trust lockdown](./access.md).
    template is itself a Zone, or when no ancestor is a Zone. Stamped onto
    the instance before hydrate so anything that reads `this.zone` during
    hydrate sees the right value.
-4. **Resolve `hydratorClass`** if present. Hydrators are themselves
-   templated `Idea` Stuff. Because they're stateless by contract,
-   `clone` resolves them via `StuffApi.singleton` — one cached
-   instance per hydrator class, reused across every backing. The
-   first clone that needs a particular hydrator triggers a recursive
-   `clone` (HMR-aware via the same path as the backing class) to
-   warm the cache; subsequent clones reuse the singleton. Recursion
-   terminates because hydrator Templates name no `hydratorClass` of
-   their own. Cycles (a hydrator transitively naming itself) are
-   caught by `clone`'s in-flight-path guard and surfaced as
-   `circular template dependency`. See
-   [hot-reload.md § Hydrators](./hot-reload.md#hydrators).
+4. **Resolve the applier** — iff there is anything to apply. The row no
+   longer names one: the test is the MERGED data (the row's, with any
+   `dataOverlay` over it), because five production callers pass an
+   overlay onto rows whose own `data` is empty. `TemplateApplier` is
+   itself a templated `Idea`, stateless by contract, so `clone` resolves
+   it via `StuffApi.singleton` — one cached instance reused across every
+   backing. ⭐ Recursion terminates STRUCTURALLY: the applier's own row
+   carries `data: {}`, so cloning the applier plans no applier.
+   `clone`'s in-flight-path guard stays as the backstop and still
+   surfaces `circular template dependency`. See
+   [hot-reload.md § The applier](./hot-reload.md#hydrators).
 5. **Construct** the backing under the construction sentinel:
    ```typescript
    Stuff._beginConstruction();
@@ -292,19 +290,31 @@ See [access.md § The code-trust lockdown](./access.md).
    raw instance — the security gate is then in the call path for those
    callers.
 8. **Register** the proxy in `StuffApi`'s `objectsById` map.
-9. **Hydrate**: if `hydratorClass` was named, run
-   `await hydrator.hydrate(proxy, template.data ?? {})` inside a synthetic
-   constructor frame (`ExecutionContextApi.run` with
+9. **Apply the row**: when there is data, run
+   `await applier.apply(proxy, data, { mode: 'mint' })` inside a
+   synthetic constructor frame (`ExecutionContextApi.run` with
    `FrameKind.Constructor`).
-10. **postRegister**: if the backing composes `PostRegistrationMixin`,
-    `await proxy.postRegister(context)` — same synthetic frame.
+10. **Hydrate from every declared source**: for each
+    `PersistenceContributor` of the host's class that declares a
+    `hydrationSource`, run it — **whether or not the host has a
+    record**. ⭐ There is no deferred option: hydration is an
+    initialization step with a terminus, and fetching the same data on a
+    live object is a different mandate with its own lifecycle. See
+    [persistence.md § Per-mixin composition](./persistence.md).
+11. **`onCreate`**: `await proxy.onCreate(context)`, same synthetic
+    frame, **unconditionally** — the hook is a terminal no-op on `Stuff`
+    (it was `onCreate` on an opt-in `onCreate` until
+    2026-10-01). See [lifecycle.md](./lifecycle.md).
 
-If hydrate or `postRegister` throws, the object is unregistered before the
-error propagates. Half-initialised objects never linger in the registry.
+If any of those throws, the object is unregistered before the error
+propagates. Half-initialised objects never linger in the registry.
 
-Order is load-bearing. **Register fires before hydrate** so that anything
-resolving the in-flight object by `stuffId` during hydrate or
-`postRegister` (e.g., a self-referencing exit hydrator) finds it.
+Order is load-bearing, in two ways. **Register fires before the content
+step** so that anything resolving the in-flight object by `stuffId`
+during it (a self-referencing exit row) finds it. ⭐ And **every eager
+hydration source completes before `onCreate` begins**, so a hook may
+rely on remembered state being present instead of reading a collection
+itself.
 
 ## ⭐ The entry shape: `as`, `count`, `onto`
 
@@ -366,43 +376,127 @@ applied **re-clones**; there are no migrations.
 **The general rule for a new instruction field: if the applier creates
 Stuff, it must be idempotent, because go-live will call it again.**
 
-## The Hydrator Contract
+## ⭐⭐ The TemplateApplier
 
-`Hydrator` (`lib/stuff/Hydrator.ts`) is a one-method interface:
+`TemplateApplier` (`platform/idea/TemplateApplier.ts`, row
+`/platform/idea/TemplateApplier`) is **the content step: what the ROW
+says, put onto the instance.**
 
 ```typescript
-interface Hydrator {
-  hydrate(backing: Stuff, data: Record<string, unknown>): Promise<void>;
-}
+apply(host: Stuff, data: Record<string, unknown>,
+      opts: { mode: 'mint' | 'go-live' | 'restore' }): Promise<void>
 ```
 
-Hydrators are stateless. One instance hydrates many backings. They
-don't mirror-compose the backing's mixin chain — they introspect the
-backing directly. That's why a single hydrator class can serve multiple
-backing classes.
+⭐⭐ **It was called `PersistentHydrator` until 2026-10-01, and the
+rename is a distinction rather than a tidy-up.** *Hydration* now means
+filling an instance from what the world REMEMBERED about it
+(`holder_snapshots`, `beliefs`) — keyed on the instance's own identity,
+with a capture counterpart. This class does the opposite job: it applies
+what an AUTHOR wrote, keyed on a template path, with no capture side at
+all. Calling both "hydration" is what made the first cut of the hydration
+build try to unify five things that were alike with one that was not.
+The `Hydrator` interface is gone with it: there was one implementer, and
+a row can no longer select one.
 
-The standard `PersistentHydrator` (`lib/persistence/PersistentHydrator.ts`)
-runs a **two-phase dispatch**:
+It is stateless — one instance fills many backings, introspecting each
+one's `fieldMeta` rather than mirror-composing its mixin chain.
+
+### The three phases
+
+Each runs to completion before the next, so every property has settled
+before an instruction reads one and both have settled before anything is
+written to a ledger.
 
 - **Phase 1 — property fields.** For each entry in
-  `MixinApi.getAllPersistentFields(backing.constructor)`, the hydrator
-  prefers `await target.set<PascalCase(field)>(value)` when that
-  method exists, and falls back to `target[field] = value`
-  bracket-assign otherwise. The async-first dispatch lets setters
-  with side effects (e.g.,
-  `CartesianLocation.setCoords` registers with the zone via
-  `addLocation`) complete their work before the next field is
-  processed. The bracket-assign fallback still fires an accessor
-  pair when one is defined on the prototype — runtime-shape
-  validation declared as a `set` accessor continues to gate the
-  write.
-- **Phase 2 — instruction fields.** For each entry in
-  `MixinApi.getAllInstructionFields(backing.constructor)`, the
-  hydrator calls `await target.apply<PascalCase(field)>(value)`. The
-  applier is **required** — absence of `applyX` is a configuration
-  bug surfaced as a clear runtime error. No bracket-assign fallback
-  for instruction fields. Phase 2 runs sequentially after Phase 1
-  so all property fields settle before any instruction is applied.
+  `MixinApi.getAllPersistentFields(host.constructor)`, prefer
+  `await target.set<PascalCase(field)>(value)` when that method exists,
+  else `target[field] = value`. The async-first dispatch lets a setter
+  with side effects (`CartesianLocation.setCoords` registers with the
+  zone) finish before the next field. The bracket-assign fallback still
+  fires an accessor pair declared on the prototype, so a shape invariant
+  on a `set` accessor continues to gate the write.
+- **Phase 2 — instruction fields.** `await target.apply<Field>(value)`.
+  The applier is **required** — an `applyX` that does not exist is a
+  configuration bug surfaced loudly, never a silent skip.
+- **Phase 3 — seed fields.** `await target.seed<Field>(value)`, also
+  required. An authored HISTORY being written into the ledger that owns
+  it: a `Cast`'s prologue into the chronicle, `dispositions` into the
+  trait log, claims into renown and the transcript. Last, and mint-only.
+
+A seed field is usually ALSO a property field: phase 1 keeps the authored
+value on the instance (so `getRenownClaims()` can read it back) and phase
+3 hands the same value to the ledger. `seed: true` adds phase 3, it does
+not replace phase 1.
+
+### The three modes
+
+| mode | caller | 1 | 2 | 3 |
+|---|---|---|---|---|
+| `mint` | `StuffApi.clone` | all | ✓ | ✓ |
+| `go-live` | `TemplateApi.restoreFromTemplate` (a CMS save, `pack sync`) | all but `birthOnly` | ✓ | — |
+| `restore` | `PersistableApi.materialize` | all, `birthOnly` included | — | — |
+
+⚠⚠ **`go-live` skipping `birthOnly` is a money fix, not a nicety.** A CMS
+save or a pack reconcile re-applies a row's authored fields to every LIVE
+instance at that path. `Coin` authors `quantity: 1`, so going live on the
+coin row reset every coin stack in the world to one — minting and burning
+outside the conservation chokepoint, invisibly, which is the one thing
+that chokepoint exists to make impossible. `Stackable.quantity` declares
+`birthOnly: true`, because the hazard belongs to the FIELD wherever it is
+authored: a scrip's quantity and a crate of limes' carry the same one, and
+a row-level switch would have to be remembered on every row that authors a
+stack.
+
+⚠ **`restore` is not `go-live`.** A record replays what this instance
+actually had, so a birth-only field is exactly what it must write back;
+conflating the two would empty every logged-out player's purse. Phases 2
+and 3 are skipped by SELECTION rather than by special case — an
+instruction or seed field never appears in a captured field slice.
+
+### Once-ness: the applier owns WHEN, the ledger owns WHETHER
+
+Phase 3 runs at mint only. But a re-clone after a destruct IS a new mint,
+and only the ledger knows the history is already written — so each
+`seed<Field>` keeps its own guard (`Cast.seedPrologue` skips if any
+`claim` row exists; `RenownApi.seedTo` counts the evidence already on the
+log and writes the difference). ⚠ A once-flag on the applier would be the
+obvious simplification and would be wrong: it cannot tell *the same
+object being re-filled* from *a new object at the same path*.
+
+### ⛔ An unapplied key is reported now, not discarded in silence
+
+Both the property and instruction loops `continue` on a key the class does
+not declare, so an author's line simply had no effect — no throw, no
+warning, nothing in a log. The bill, all of it found by DRIVING:
+`material:` instead of `_materialPath:` on **49 rows across eight packs**
+(a sack of wheat that was "not grain" at the mill); `name:` and
+`description:` on the bar; `primaryKeyword` on a family of rooms; a
+zone's whole `deposit:` orebody, so `hew` refused in a room with a seam
+visibly in the face.
+
+At mint the applier now writes one `DiagnosticApi` record per
+`(templatePath, key-set)` per process, readable at the `errors` verb.
+⚠ A **warning**, not a throw: a catalogue class that parses its own row's
+`data` directly is a legitimate authoring act and ~161 rows do it.
+
+### Reading what will fill a row in
+
+`TemplateApi.describeFill(spec)` answers it in three lists — the keys the
+applier **applies** (with phase, and whether the field is birth-only),
+the keys nobody **applies**, and what an instance will also **remember**
+from a declared source. Four surfaces print it (`cat`, `write`, the
+Studio's create disposition, the CMS's `templateMeta.fill`) from that one
+method. ⭐ "Nothing" is printed out loud rather than omitted, because an
+absent line is indistinguishable from a surface that forgot to write one.
+
+### Where a cross-field rule goes
+
+On the class, not in a subclass of the applier. A per-field shape rule
+belongs on the field's setter (the applier routes through it for free); a
+cross-field invariant ("if `isLocked`, `lockKey` must reference a real
+key") belongs in the host's own `set<Field>` / `apply<Field>`. ⚠ There is
+no second applier to subclass: a row cannot name one and the engine
+resolves exactly this one.
 
 **Bracket-assign (the Phase 1 fallback) IS still part of the contract
 surface.** It invokes accessor pairs when present. So if a field has
@@ -469,18 +563,16 @@ shape asymmetry (setter takes specs, getter returns runtime state)
 — "marshaller work in the wrong place." Recognizing them as separate
 concepts dissolves that.
 
-The constant `PersistentHydrator.templatePath` is the single source of
-truth for the standard hydrator's path; use it at call sites instead of
-duplicating the literal:
-
-```typescript
-TemplateApi.saveTemplate(path, classPath, data, PersistentHydrator.templatePath);
-```
+The constant `TemplateApplier.templatePath` is the single source of truth
+for the applier's row path. ⚠ No call site passes it to `saveTemplate` any
+more — the engine resolves the applier itself — so it is read by the
+pipeline, the restore paths, the boundary exemption and the three
+call-security gates, and by nothing in content.
 
 ## The Context Bag
 
 `StuffApi.clone(path, context?)` accepts an opaque `context` bag that
-gets threaded through to `postRegister`. It exists to carry runtime
+gets threaded through to `onCreate`. It exists to carry runtime
 setup that cannot come from the template — typically references to other
 runtime objects.
 
@@ -494,7 +586,7 @@ export interface AvatarInitContext {
 }
 
 class Avatar extends AvatarBase {
-  override async postRegister(context?: unknown): Promise<void> {
+  override async onCreate(context?: unknown): Promise<void> {
     const ctx = context as AvatarInitContext | undefined;
     this.user = ctx?.user;
     // ...
@@ -511,33 +603,35 @@ const avatar = await StuffApi.clone<Avatar>(
 Subclasses narrow the context to a concrete type locally. The clone path
 itself stays generic — no type parameter on `StuffApi.clone`.
 
-## PostRegistrationMixin
+## `onCreate`
 
-`PostRegistrationMixin` (`lib/stuff/PostRegistration.ts`) is the opt-in
-post-registration hook. Spring `@PostConstruct` semantics:
-`postRegister(context?)` runs **after** registration, so any resolver
-that walks the registry sees the in-flight instance.
+`Stuff.onCreate(context?)` is the post-registration hook, and it is a
+**terminal no-op on `Stuff`** — the twin of `onDestruct` at the other end
+of a life, named for the two events the engine already emits
+(`stuff.created` / `stuff.destructed`). It runs after registration, so any
+resolver that walks the registry sees the in-flight instance, and after
+every declared hydration source, so it may rely on remembered state.
 
-Composition is the marker. The clone pipeline checks
-`MixinApi.isPostRegistration(proxy)` and only awaits the hook when the
-backing composes the mixin. The default implementation is a no-op;
-subclasses override.
-
-This replaced the older `'initialize' in obj && typeof init === 'function'`
-duck-typing check that used to live in `StuffApi`.
+⛔ **It was `onCreate` on an opt-in `onCreate` until
+2026-10-01, and the mixin's retirement removed a failure class rather
+than renaming one.** The mixin's default was a *non-chaining* no-op, so
+composing it anywhere but innermost SWALLOWED every layer inside it —
+`KeptAnimal` shipped that way, and `Bonded.onCreate` never ran on a
+live animal. With the terminal on the root there is no layer to shadow
+and no composition order to get wrong; the only way left to shadow a
+layer is to forget `super` in your own override. The full account is in
+[lifecycle.md](./lifecycle.md).
 
 ## TemplateApi & the Folder/Leaf Invariant
 
-`TemplateApi.saveTemplate(path, classPath, data, hydratorClassPath?)` is
-the typed convenience wrapper for writing a template:
+`TemplateApi.saveTemplate(path, spec)` is the typed writer, taking the
+RAW row an author means to state:
 
 ```typescript
-await TemplateApi.saveTemplate(
-  '/narnia/castle/foyer',
-  '/lib/location/CartesianLocation',
-  { /* persistent fields */ },
-  PersistentHydrator.templatePath
-);
+await TemplateApi.saveTemplate('/narnia/castle/foyer', {
+  class: '/lib/location/CartesianLocation',
+  data: { /* persistent fields */ },
+});
 ```
 
 It looks up an existing `_id` for upsert semantics and delegates to
@@ -582,8 +676,7 @@ The validation fires at the PM chokepoint, so calling
 `PM.save(Collections.Domain, doc)` directly is equivalent to
 `TemplateApi.saveTemplate` — both go through the hook.
 
-`hydratorClass` is orthogonal to zonehood. Zone classification uses the
-runtime `class` field only.
+Zone classification uses the runtime `class` field only.
 
 ## Avatar Template Convention
 
@@ -611,12 +704,18 @@ the record is (seed-then-persist).
 
 ## Restore-from-template (content go-live)
 
-`TemplateApi.restoreFromTemplate(stuff)` re-hydrates a live Stuff from its
-backing Template's `data` — looks up the Template by the host's
-runtime-stamped `getTemplatePath()` and runs
-`PersistentHydrator.hydrate(host, tpl.data)`. Operates on the existing live
-instance; preserves identity / stuffId / wired Interactives. Phase 2 appliers
-re-fire (e.g., `applyContainer` moves the host via compare-and-move).
+`TemplateApi.restoreFromTemplate(stuff)` re-applies a live Stuff's backing
+row — looks the row up by the host's runtime-stamped `getTemplatePath()`
+and runs `applier.apply(host, tpl.data, { mode: 'go-live' })`. Operates on
+the existing live instance; preserves identity / stuffId / wired
+Interactives. Phase 2 appliers re-fire (`applyContainer` moves the host
+via compare-and-move).
+
+⚠⚠ **`go-live` is the mode, and the mode is load-bearing.** It skips
+every `birthOnly` field and runs no seed phase, because this pushes an
+author's edit onto objects ALREADY IN THE WORLD. Before that mode
+existed, a save on the coin row re-applied its authored `quantity: 1` to
+every live coin stack in the game. See § The TemplateApplier.
 
 Its consumers are the **content go-live** paths: `CmsLogic` and `PackLogic`
 re-hydrate live clones after an author edits a template. It is NOT a
@@ -634,17 +733,23 @@ is covered by `lib/persistence/__tests__/persistence-spine.test.ts`.
 where templates aren't right:
 
 - **`StuffApi.create(factory, context?)` (async)** — caller-supplied
-  factory, no template lookup, no hydration step. Same register +
-  `postRegister` tail. Used for runtime-only objects whose construction
+  factory, no row lookup, no content step, and no hydration sources
+  (nothing names a template). Same register + `onCreate` tail. Used for
+  runtime-only objects whose construction
   needs explicit arguments and don't round-trip through the CMS pattern.
   `Interactive` is the canonical example: `socketId`, `sessionId`, `user`
   all flow through the closure, not a template.
 
 - **`StuffApi.createSync(factory)` (sync)** — same sentinel-flip + Proxy
-  wrap + register guarantees as `create`, but no hydrate step and no
-  `postRegister` await. **Throws if the constructed Stuff composes
-  `PostRegistrationMixin`** — silently skipping `postRegister` would
-  yield a half-initialised object. Used inside sync helpers where
+  wrap + register guarantees as `create`, but no content step and no
+  `onCreate` await. **Throws if the constructed Stuff OVERRIDES
+  `onCreate`** — silently skipping it would yield a half-initialised
+  object. ⚠⚠ The comparison is `raw.onCreate !== Stuff.prototype.onCreate`
+  on the **raw target, before `ProxyApi.wrap`**: the proxy's get trap
+  returns a fresh interception wrapper for every callable access, so a
+  comparison through the proxy is always unequal and would throw on every
+  `createSync` — taking `singletonSync` and every lazy logic-singleton
+  resolver with it. Used inside sync helpers where
   awaiting would force the caller (and its callers) to become async too;
   `Exitable.addBidirectionalExit`'s `new Exit(...)` calls are the typical
   trigger.
@@ -682,12 +787,21 @@ per-instance Stuff (avatars, items, NPCs) that should multiply.
 - Class path validation fails → `Error("Class path must…")`
 - Dynamic import fails → `Error("Failed to import class…")`
 - Class name not exported by module → `Error("Class … not found in module…")`
-- Hydrator path invalid / import fails → analogous "Failed to import
-  hydrator…" / "Hydrator … not found…"
-- Hydrate or `postRegister` throws → object is unregistered, then the
-  original error propagates
-- `createSync` on a `PostRegistrationMixin` class → throws before
-  registration
+- A declared `instruction` or `seed` field with no `apply<Field>` /
+  `seed<Field>` method → throws, naming the field and the class. ⚠ Never
+  a silent skip; that is the whole point of the required dispatch.
+- A data key the class does not declare → **a `warn` diagnostic on the
+  `template` channel**, one per `(path, key-set)` per process, readable at
+  the `errors` verb. ⛔ Before 2026-10-01 it was discarded in total
+  silence, which cost `material:` on 49 rows across eight packs.
+- The content step, a required hydration source, or `onCreate` throws →
+  object is unregistered, then the original error propagates
+- `createSync` on a class that OVERRIDES `onCreate` → throws before
+  registration. ⭐ The predicate compares the override against the
+  terminal on the raw target, which is more accurate than the retired
+  marker mixin: a class that composed the marker without overriding was
+  refused for no reason, and one that overrode without composing passed
+  and never had its hook called.
 
 ## Deferred / known limitations
 
@@ -733,7 +847,7 @@ left for future work:
 ## Cross-References
 
 - [lifecycle.md](./lifecycle.md) — full create → register → hydrate →
-  postRegister → destroy lifecycle, construction sentinel, onDestruct
+  onCreate → destroy lifecycle, construction sentinel, onDestruct
   hook
 - [persistence.md](./persistence.md) — `Document`, around-save/delete
   hooks (the mechanism `DomainHook` rides on)

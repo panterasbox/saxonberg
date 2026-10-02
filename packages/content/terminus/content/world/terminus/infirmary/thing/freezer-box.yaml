@@ -1,0 +1,21 @@
+# The freezer compartment inside the blood fridge — a colder ColdStore
+# nested in the fridge (its outside is the fridge's interior, F1 applied
+# twice). It holds the ice pan below freezing and makes the ice the ward's
+# coolers eat. ⚠ Blood does NOT go here — freezing ruins a unit; the FRIDGE
+# compartment is for blood, the freezer for ice.
+class: /system/energy/thing/ColdStore
+data:
+  shortDescription: freezer compartment
+  keywords: [freezer, compartment, box, freezer-box]
+  register: indefinite
+  longDescription: |
+    A small, heavily-insulated box within the fridge, its own door frosted
+    at the edges — cold enough to freeze a pan of water to a block of ice.
+  enclosure: { material: /stuff/idea/material/wood/pine, thicknessM: 0.12 }
+  interiorVolumeM3: 0.08
+  setpointK: 255
+  coolingCapacityW: 250
+  open: false
+  mass: 10
+  props:
+    - /stuff/thing/vessel/ice-pan

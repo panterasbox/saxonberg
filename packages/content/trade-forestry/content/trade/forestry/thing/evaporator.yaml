@@ -27,7 +27,6 @@
 # feedstock are the same acre. Nothing enforces that; it is just where
 # the arch is.
 class: /platform/thing/Oven
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: sugaring arch
   keywords: [evaporator, arch, hearth, fire, "sugaring arch"]

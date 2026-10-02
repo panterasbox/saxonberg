@@ -12,7 +12,6 @@
 # estimator's own anti-grind property does the work and there is no
 # bespoke guard.
 class: /platform/idea/Discipline
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   key: stockmanship
   channel: skill

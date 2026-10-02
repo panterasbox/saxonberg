@@ -85,7 +85,7 @@ function resolveRegistry(): MqlSubscriptionRegistry {
  * module that grabs this singleton and calls a method other than through
  * the Api gets `SecurityError`.
  *
- * Stateless by construction (no `PostRegistrationMixin`) — all
+ * Stateless by construction (no `onCreate` override) — all
  * subscription state lives on the `MqlSubscriptionRegistry` at
  * `/platform/idea/MqlSubscriptionRegistry`, resolved via the module-level
  * `resolveRegistry()` (which survives this singleton's destruct/recreate

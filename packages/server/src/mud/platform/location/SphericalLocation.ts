@@ -23,11 +23,6 @@ import type { FieldMeta } from '../../lib/mixin';
 // `StuffApi.singleton(path)`; a class with it can back ONLY those,
 // because `clone()` throws after the first.
 // {@link SingletonSphericalLocation} is the opt-in.
-// ⭐ `PostRegistrationMixin` is NOT composed here: it moved down into
-// `Location`'s own base stack (the ground build), because the mixin's
-// default `postRegister` is a non-chaining no-op — a second composition
-// above the base would SWALLOW `Location.postRegister`, and with it the
-// room's floor.
 const SphericalLocationBase =
   ExitableMixin(SphericalCoordinatesMixin(Location));
 
@@ -38,8 +33,8 @@ export default class SphericalLocation extends SphericalLocationBase {
    * semantic labels (`'office'`, `'plaza'`) are no-ops here; they rely
    * on `addBidirectionalExit` for inverse wiring at construction time.
    */
-  public override async postRegister(context?: unknown): Promise<void> {
-    await super.postRegister(context);
+  public override async onCreate(context?: unknown): Promise<void> {
+    await super.onCreate(context);
     this.verifyOutboundExits();
   }
 

@@ -200,7 +200,7 @@ two identities either side of its first capture.
 
 ⚠⚠ **Only a host that persists ITSELF overlays** — the four location
 classes that compose `Persistable`. A public room never asks. The pets
-build tried putting the overlay on every `CartesianLocation.postRegister`
+build tried putting the overlay on every `CartesianLocation.onCreate`
 (hundreds of indexed point queries at boot) and reversed it the next day:
 a room doing work to find things that are not its own state is the room
 scan wearing another face. What a good in a public room needs is the

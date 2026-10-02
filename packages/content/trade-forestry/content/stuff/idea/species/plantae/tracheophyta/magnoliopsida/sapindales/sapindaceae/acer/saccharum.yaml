@@ -28,7 +28,6 @@
 # the test that `TapWindowSpec` was declared as data for the right
 # reason.
 class: /platform/idea/species/Species
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   binomial: Acer saccharum
   commonNames: ["maple", "sugar maple", "hard maple"]

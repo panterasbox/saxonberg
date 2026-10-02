@@ -4,7 +4,6 @@
 # is a separate object in the same economy. The primary is `pick`; the
 # head's is `pick-head`.
 class: /platform/thing/Tool
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   keywords: [pick, miners-pick, "miner's", miner]
   shortDescription: miner's pick

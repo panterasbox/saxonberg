@@ -2,7 +2,6 @@
 # it; the economy consumes it). Tag `compost` is the `feed` verb's gate:
 # the growers buy it back for the nitrogen — and grappa distils from it.
 class: /platform/idea/material/ConsumableMaterial
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: pomace
   keywords: [marc, pomace]

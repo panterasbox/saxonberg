@@ -17,7 +17,6 @@
 # single rule `canReach`, the MQL `peers` walk and `VisionModality` all
 # ask. Nothing in the transport pack implements perception (D3/AC8).
 class: /system/transport/thing/HaulageRig
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   # ⭐ A wagon and a team is the four-horse job, and it is the CAPABILITY half of teamstering — a different act, not the same act done better.
   #

@@ -47,6 +47,7 @@ import { MixinApi } from '../../api/mixin';
 import { ScheduleApi, type ScheduleHandle } from '../../api/schedule';
 import type { AudibleEmitOptions } from '../perception/Audible';
 import type { BrainContext, BrainStatics } from './brain';
+import type { TaskKind } from './Urgency';
 
 /**
  * The `CrossingLog` mark surface, duck-typed by its method contract (the
@@ -110,6 +111,10 @@ function isMarkableLog(x: Stuff): x is Stuff & MarkableLog {
 
 export const brain = class CrossingRitual {
   static label = 'crossing-ritual';
+  static kind: TaskKind = 'social';
+  static summary =
+    'Performs the authored ritual for somebody arriving at a crossing — ' +
+    'the toll, the question, the blessing.';
   // The ceremony owns Gus's voice + attention; idle chatter yields to it.
   static claims: readonly EngagementSlot[] = ['voice', 'attention'];
 

@@ -53,11 +53,47 @@ import { MixinApi } from '../../api/mixin';
 import { MessageApi } from '../../api/message';
 import { Mml } from '../../api/mml';
 import { WorldClockApi } from '../../api/worldclock';
+import type { TaskKind } from './Urgency';
+import { Urgency } from './Urgency';
 
 const SECONDS_PER_GAME_DAY = 86_400;
 
 export const brain = class {
   static label = 'feeds';
+  static kind: TaskKind = 'body';
+  static summary =
+    'Decides whether to eat what is in a feeder, a bowl or on the ' +
+    'ground — and refuses with one sentence for every reason.';
+  static consumes: readonly string[] = ['food'];
+  /**
+   * ⚠⚠ **This must not read metabolism.** A metabolism read RECONCILES —
+   * it integrates the whole elapsed absence — so asking *am I hungry*
+   * once a beat for an unowned animal is what starves the lane's stray in
+   * an afternoon of uptime. The guard in `act` exists for exactly this,
+   * and the deliberation beat would multiply it by every candidate.
+   *
+   * So the question here is the one that costs nothing: **is there
+   * anything to eat.** Whether it WILL eat is the animal's business,
+   * inside the beat it won, where the refusal reads as a refusal.
+   */
+  static urgency(ctx: BrainContext): Urgency {
+    const host = ctx.host;
+    if (!MixinApi.isBonded(host) || !MixinApi.isContainable(host)) {
+      return new Urgency("idle");
+    }
+    const room = host.getContainer();
+    if (!room || !MixinApi.isContainer(room)) return new Urgency("idle");
+    const here = [...room.getContents()];
+    const self = host as unknown as Stuff;
+    const found =
+      foodInVessel(here, host) ??
+      (host.feedsBy('ground')
+        ? (here.find((t) => t !== self && edible(t)) ?? null)
+        : null);
+    return found
+      ? new Urgency('wanted', 'noses toward the food')
+      : new Urgency("idle");
+  }
   static claims: readonly EngagementSlot[] = ['body'];
   static presenceGated = false;
   static ambient = false;

@@ -7,7 +7,6 @@
 # one place the fold makes a judgement call, and sand is the case it was
 # written for.
 class: /platform/idea/material/Material
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: sand
   keywords: [sand, grit]

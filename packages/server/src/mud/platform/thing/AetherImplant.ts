@@ -17,7 +17,7 @@
  * Hardened (per the augmentation slate's Wave 1 framing): no power
  * state, no fuel, no failure modes, no removal procedure in v1. A
  * future medical-procedure subsystem unlocks install/remove; for
- * now `Avatar.postRegister` (via `installDefaultLoadout`) bootstraps
+ * now `Avatar.onCreate` (via `installDefaultLoadout`) bootstraps
  * the implant into the cranial slot idempotently.
  *
  * Diegetically: a small, brass-and-silicon device the size of a

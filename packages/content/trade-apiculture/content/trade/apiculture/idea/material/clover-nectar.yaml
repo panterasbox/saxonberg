@@ -10,7 +10,6 @@
 # composition, so that honey off a clover ley tastes and reads differently
 # from honey off cherry blossom with no row written for either.
 class: /platform/idea/material/Material
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: clover nectar
   keywords: [nectar, clover]

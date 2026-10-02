@@ -1,5 +1,4 @@
 class: /platform/idea/Discipline
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   key: business-admin-law
   channel: knowledge

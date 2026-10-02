@@ -188,7 +188,7 @@ fallback resolver uses the dotted-path structure directly.
 
 ## The TopicCatalogue singleton
 
-`TopicCatalogue extends PostRegistrationMixin(Idea)`. Three instance
+`TopicCatalogue extends Idea`. Three instance
 methods compose its surface:
 
 - `getDescriptor(topic: string): TopicDescriptor` — three-tier
@@ -201,7 +201,7 @@ methods compose its surface:
   boot).
 
 Cache state lives as a `Map<string, TopicDescriptor> | null` private
-instance field, warmed by `postRegister`'s call to
+instance field, warmed by `onCreate`'s call to
 `Template.findDescendants('/platform/idea/Topic/')`. Resolution
 dispatches through the standard call-security gate via
 `StuffApi.findByTemplatePath('/platform/idea/TopicCatalogue')` — there's no
@@ -263,7 +263,7 @@ shape is forward-compatible with that move.
 The cache builds once at boot from mongo and stays put for the
 process lifetime. Descriptor edits written to mongo during the
 process are picked up on next boot (or via a future admin verb
-that calls `invalidateCache` + `postRegister` to re-read). Since
+that calls `invalidateCache` + `onCreate` to re-read). Since
 the catalogue no longer holds runtime `Topic` Stuff instances,
 there are no `Events.StuffCreated/Destructed` subscriptions to
 manage.
@@ -394,7 +394,7 @@ standing loop for reference data.
    sit in mongo as template docs, no runtime presence).
 2. `BootstrapManager` clones `/platform/idea/TopicCatalogue` (and nothing
    else in the messaging substrate).
-3. `TopicCatalogue.postRegister` reads every Topic template via
+3. `TopicCatalogue.onCreate` reads every Topic template via
    `Template.findDescendants('/platform/idea/Topic/')` and warms
    the descriptor cache.
 4. Welcome-scene payload composition reads `getSnapshot()` and

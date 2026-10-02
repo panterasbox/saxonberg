@@ -27,7 +27,6 @@ import type {
   HelpSearchGroup,
 } from "@saxonberg/types";
 import { Idea } from "../../lib/stuff/Idea";
-import { PostRegistrationMixin } from "../../lib/stuff/PostRegistration";
 import { Mixins } from "../../lib/mixin";
 import { CommandApi } from "../../api/command";
 import { Mml } from "../../api/mml";
@@ -139,7 +138,7 @@ function loadAuthorSurfaceFromDisk(): AuthorSurface | null {
   }
 }
 
-const HelpCatalogueBase = PostRegistrationMixin(Idea);
+const HelpCatalogueBase = Idea;
 
 export default class HelpCatalogue extends HelpCatalogueBase {
 
@@ -159,7 +158,7 @@ export default class HelpCatalogue extends HelpCatalogueBase {
   /** Same, for the schema docs. */
   private warnedMissingSchema = false;
 
-  public override async postRegister(_context?: unknown): Promise<void> {
+  public override async onCreate(_context?: unknown): Promise<void> {
     await this.warm();
   }
 
@@ -718,7 +717,7 @@ export default class HelpCatalogue extends HelpCatalogueBase {
  * Resolve each doc's owner class and harvest its `fieldMeta`.
  *
  * ⭐ D3, made real: the doc does NOT carry a field list. `fieldMeta` is
- * what the `Hydrator` actually reflects on, so a YAML restating it would
+ * what the `TemplateApplier` actually reflects on, so a YAML restating it would
  * be two copies of one sentence and the copy that drifts is the one
  * nobody executes. Adding a persistent field to `LedgerEntry` changes
  * `help bank_ledger` with no edit to `bank_ledger.yaml`.

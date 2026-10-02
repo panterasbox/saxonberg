@@ -179,11 +179,12 @@ The substrate is in place. Major shipped surfaces:
   policies, `@CallSecurity` / `@Final` / `@Unshadowable`,
   `SecurityApi.decorateApiClass`.
 - **Bootstrap + state model** — `BootstrapManager`, unified
-  state model (Shadow, PostRegistration), HomeZone for
+  state model (Shadow; `PostRegistration` retired 2026-10-01 — the hook
+  is `onCreate` on `Stuff`), HomeZone for
   per-player namespace at `/home/<playerId>`.
 - **Spawn shape (declarative authoring)** — Template
   `environment:` field, `StagedMixin`, escape hatch via
-  `PostRegistrationMixin`. Shipped — see
+  `onCreate`. Shipped — see
   [subsystems/templates.md](./subsystems/templates.md),
   [spatial.md](./subsystems/spatial.md), and
   [boundary.md](./subsystems/boundary.md) (deferred notes preserved in
@@ -310,7 +311,10 @@ remains in the near-term Track A queue:
 >   diagnostic **labs** vertical (→
 >   [sampling-and-labs-slate](./slates/builds/sampling-and-labs-slate.md)),
 >   the blood-BANK economy (→
->   [blood-slate](./slates/builds/blood-slate.md)), cold storage (→
+>   [blood-slate](./slates/builds/blood-slate.md)), the preindustrial
+>   **ice trade** (cold storage's powered rung SHIPPED 2026-10-01, MR !320
+>   — a powered blood fridge now keeps units cold, the freezer makes ice,
+>   and a cooler carries it; only the harvest/ice-house trade is left →
 >   [cold-chain-slate](./slates/builds/cold-chain-slate.md)), and the full
 >   surgery build (→
 >   [surgery-specialty-slate](./slates/builds/surgery-specialty-slate.md)).

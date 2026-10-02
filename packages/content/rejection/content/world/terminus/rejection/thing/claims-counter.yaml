@@ -6,7 +6,6 @@
 # one. A claims field in an editable collection is the attack the parcel
 # layer exists to refuse.
 class: /trade/mining/thing/ClaimsRegister
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: claims register
   keywords: [register, ledger, book, counter, claims]

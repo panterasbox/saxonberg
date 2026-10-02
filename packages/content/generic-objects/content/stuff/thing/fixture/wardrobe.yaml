@@ -8,7 +8,6 @@
 # clothes in a let unit and leaves with you when the lease ends
 # (eviction moves it to storage intact, with what is in it).
 class: /platform/thing/Chest
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: pine wardrobe
   keywords: [wardrobe, closet, press, doors, pine]

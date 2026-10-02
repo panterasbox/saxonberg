@@ -5,7 +5,6 @@
 # over yellow is how green was made, so this is half of every green in
 # the world before synthetics.
 class: /platform/idea/material/Material
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: weld
   keywords: [luteolin, weld]

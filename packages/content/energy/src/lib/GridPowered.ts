@@ -10,9 +10,9 @@
  * energized right now (`GridCatalogue.energizedAtSync`). A cut upstream, a dead
  * source, or an off-grid premises all read as unpowered the same second.
  *
- * ⚠⚠ **The meter is resolved on first READ, never at `postRegister`.** At boot,
+ * ⚠⚠ **The meter is resolved on first READ, never at `onCreate`.** At boot,
  * a light's containment and the parcel registry's feeder citation are not both
- * settled when its `postRegister` runs, so resolving there cached `off-grid` /
+ * settled when its `onCreate` runs, so resolving there cached `off-grid` /
  * `null` and the lamp stayed dark forever while `analyze grid` (which reads the
  * parcel FRESH) reported the same premises live. Found by the live browser
  * drive. Reads happen post-boot, when both are settled, so lazy is correct; the
@@ -44,6 +44,8 @@ import { AppSettingKeys } from '@saxonberg/server/mud/lib/config/AppSettings';
 import type { MixinConstructor, FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { PowerBand } from '@saxonberg/server/mud/lib/parcel/PowerBand';
+import type { Powered } from '@saxonberg/server/mud/lib/supply/Powered';
+import { Piecewise } from '@saxonberg/server/mud/lib/Trajectory';
 import GridCatalogue, { GRID_CATALOGUE_PATH } from '../idea/GridCatalogue';
 
 /** The mixin marker — a pack cannot add to the kernel `Mixins` registry. */
@@ -65,8 +67,8 @@ function bandWatts(band: PowerBand): number {
   }
 }
 
-/** Public shape provided by GridPoweredMixin. */
-export interface GridPowered {
+/** Public shape provided by GridPoweredMixin (the kernel `Powered` shape + extras). */
+export interface GridPowered extends Powered {
   /** Is this thing's premises' meter live right now? */
   isPowered(): boolean;
   /** The band's ceiling in watts while powered, else 0 — the `analyze power` duck. */
@@ -94,7 +96,7 @@ export function GridPoweredMixin<TBase extends MixinConstructor<Stuff>>(
     private _gridCatalogue: GridCatalogue | null = null;
 
     /**
-     * Resolve the meter the first time it is asked for — NOT at postRegister
+     * Resolve the meter the first time it is asked for — NOT at onCreate
      * (too early; see the header). Sync: `resolveRoomPath` walks containment,
      * `ParcelApi.powerOf` reads the registry, both synchronous. Kicks the grid
      * compile fire-and-forget (post-boot, so no boot-time deadlock) so the
@@ -138,6 +140,26 @@ export function GridPoweredMixin<TBase extends MixinConstructor<Stuff>>(
       return this.isPowered() ? bandWatts(this._powerBand) : 0;
     }
 
+    /**
+     * ⭐ The supply over `[fromS, toS]` as a 0/1 trajectory — the parcel
+     * meter's `Powered` contract, so `ClimateControlMixin`'s envelope can
+     * integrate a cut that happened mid-gap. Off-grid / no feeder → a
+     * constant 0 (never powered); otherwise the catalogue's cut-complement
+     * for this node.
+     */
+    public poweredTrajectory(fromS: number, toS: number): Piecewise {
+      this.ensureResolved();
+      const end = toS > fromS ? toS : fromS;
+      const node = this._powerNodeRef;
+      const cat = this._gridCatalogue;
+      if (this._powerBand === 'off-grid' || node === null || cat === null) {
+        return new Piecewise([
+          { fromS, toS: end, startValue: 0, target: 0, tau: 0 },
+        ]);
+      }
+      return cat.poweredTrajectory(node, fromS, end);
+    }
+
     public powerNodeRef(): string | null {
       this.ensureResolved();
       return this._powerNodeRef;
@@ -157,6 +179,12 @@ export function GridPoweredMixin<TBase extends MixinConstructor<Stuff>>(
      */
     private resolveRoomPath(): string | null {
       const self = this as unknown as Stuff;
+      // ⭐ A host that is not Containable IS its own premises — a `ColdRoom`
+      // Location is metered against itself, not an enclosing container. (A
+      // light propped in a room walks out to the room below.)
+      if (!MixinApi.isContainable(self)) {
+        return self.getTemplatePath();
+      }
       let cursor: Stuff = self;
       const seen = new Set<string>();
       while (MixinApi.isContainable(cursor)) {

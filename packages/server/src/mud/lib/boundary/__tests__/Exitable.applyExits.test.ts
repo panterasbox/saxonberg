@@ -4,7 +4,7 @@ import CartesianLocation from '../../location/CartesianLocation';
 import Door from '../../../platform/thing/Door';
 import { PersistenceManager, Collections } from '../../../../backend/PersistenceManager';
 import { StuffApi } from '../../../api/stuff';
-import PersistentHydrator from '../../../platform/idea/persistence/PersistentHydrator';
+import TemplateApplier from '../../../platform/idea/TemplateApplier';
 import {
   makeStuffAtPath,
   makeStuffAtPathAsync,
@@ -20,7 +20,6 @@ type Doc = Record<string, unknown> & {
   _id?: string;
   path: string;
   class: string;
-  hydratorClass?: string;
   data: Record<string, unknown>;
 };
 
@@ -173,7 +172,7 @@ describe('Exitable.applyExits', () => {
     ).rejects.toThrow(/already wired/);
   });
 
-  it('hydrate via PersistentHydrator dispatches applyExits (Phase 2 instruction field)', async () => {
+  it('hydrate via TemplateApplier dispatches applyExits (Phase 2 instruction field)', async () => {
     installInMemoryStore([
       {
         path: '/zone',
@@ -184,8 +183,8 @@ describe('Exitable.applyExits', () => {
     const a = makeStuffAtPath(() => new CartesianLocation(), '/zone/a');
     const b = makeStuffAtPath(() => new CartesianLocation(), '/zone/b');
 
-    const hydrator = makeStuff(() => new PersistentHydrator());
-    await hydrator.hydrate(a, { exits: { north: { destination: '/zone/b' } } });
+    const hydrator = makeStuff(() => new TemplateApplier());
+    await hydrator.apply(a, { exits: { north: { destination: '/zone/b' } } }, { mode: 'mint' });
 
     expect(a.getExit('north')?.getDestination()).toBe(b);
   });

@@ -24,7 +24,6 @@
 # bast bundles to the woody core. Its sibling `bleaching` is the one
 # that is not.
 class: /platform/idea/maturation/MaturationProfile
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   key: retting
   mechanism: microbial

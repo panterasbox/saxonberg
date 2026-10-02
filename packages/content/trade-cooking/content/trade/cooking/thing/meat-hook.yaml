@@ -20,7 +20,6 @@
 # keywords already carry that, and two things answering to one word in
 # one room is a disambiguation prompt nobody asked for.
 class: /platform/thing/Fitting
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: meat hook
   keywords: [hook, meat-hook]

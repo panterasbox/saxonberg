@@ -15,7 +15,7 @@
  * reads `_address` off ancestors directly during the
  * containment-outward walk. That direct read is the same chain-walker
  * carve-out `AtmosphericMixin._biomePath` documents (the API layer is
- * the one external reader of the field, parallel to the Hydrator's
+ * the one external reader of the field, parallel to the applier's
  * reflection into persistent fields).
  *
  * Composed onto `Location`. A future Vessel-carries-an-address case

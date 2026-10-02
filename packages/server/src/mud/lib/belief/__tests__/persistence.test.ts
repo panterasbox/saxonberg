@@ -150,8 +150,15 @@ describe('belief persistence (the mixin viewer face)', () => {
     StuffApi.unregister(s1);
 
     // Session 2: a fresh viewer at the same durable key re-hydrates.
+    // ⭐ Through the DECLARED SOURCE, which is what the clone pipeline
+    // runs at mint. It used to drive `hydrateBeliefs()`, an avatar-only
+    // `SelfOnly` method that `Avatar.enter` called; both retired
+    // 2026-10-01 once the pipeline covered every path (see
+    // `entryPoints.test.ts` for the three facts that proved it).
     const s2 = makeStuffAtPath(() => new Viewer(), AVATAR_ROW, path);
-    await withRootContext(s2, 'hydrate', () => s2.hydrateBeliefs());
+    expect((await Viewer.hydrateFromSource(s2 as never)).status).toBe(
+      'hydrated',
+    );
     const rec = s2.recall(RECOGNITION, '/obj/npc/mara');
     expect(rec?.knownAs).toBe('Mara');
   });
@@ -237,7 +244,9 @@ describe('belief persistence — regard realm', () => {
     StuffApi.unregister(s1);
 
     const s2 = makeStuffAtPath(() => new Viewer(), row, path);
-    await withRootContext(s2, 'hydrate', () => s2.hydrateBeliefs());
+    expect((await Viewer.hydrateFromSource(s2 as never)).status).toBe(
+      'hydrated',
+    );
     expect(s2.recall(REGARD, '/obj/npc/bob')?.payload.regard).toBe(12);
   });
 
@@ -365,7 +374,7 @@ describe('the keyed host carries its own memory (D2)', () => {
 
     const reborn = makeStuffAtPath(() => new KeyedViewer(), '/stuff/agent/cat');
     reborn.setPersistenceKey('mouse-1');
-    await KeyedViewer.restoreSlice(reborn as never, slice, {} as never);
+    await KeyedViewer.hydrateSlice(reborn as never, slice, {} as never);
     expect(reborn.regardFor(bob)).toBe(42);
   });
 
@@ -376,5 +385,83 @@ describe('the keyed host carries its own memory (D2)', () => {
     const player = makeViewerAt();
     const slice = KeyedViewer.captureSlice(player as never, {} as never);
     expect('beliefs' in slice && slice.beliefs).toHaveLength(0);
+  });
+});
+
+/**
+ * ⭐⭐ **The defect that shipped, and the framework that fixes it.**
+ *
+ * A `Cast` is a singleton, so its template path is a durable viewer key
+ * (`viewerKey` row 3) and its regard has been written through on every
+ * change since the belief store shipped. Nothing ever read it back: the
+ * only driver of the per-mixin framework was
+ * `PersistableLogic.restoreState`, which runs a layer's hook **only when
+ * the host's record carries that layer's slice** — and a singleton has no
+ * record at all. So the rows accumulated in Mongo and an NPC's opinion of
+ * you reset on every restart, invisibly: no error, no warning, and every
+ * unit test that exercised the hook exercised it on a fixture.
+ *
+ * `BeliefStoreMixin.hydrationSource` + `hydrateFromSource` are the fix,
+ * and the thing that makes them reach a singleton is that the CLONE
+ * PIPELINE drives them — record or no record.
+ */
+describe('a singleton reads its memory back at mint (the shipped defect)', () => {
+  it('⭐ destruct + re-mint recovers the regard, with no record and no hook', async () => {
+    const bob = registerReferent('/obj/npc/bob-restart');
+    const PATH = '/obj/npc/mara-restart';
+
+    // A live NPC forms an opinion. The write-through is what already
+    // worked; the collection has the row.
+    const before = makeStuffAtPath(() => new SingletonViewer(), PATH);
+    before.adjustRegard(bob, 7);
+    await flush();
+    expect(store.size).toBe(1);
+
+    // The restart. `makeStuffAtPath` stands a fresh instance at the same
+    // path the way a reboot's first clone does — a different object, no
+    // record, nothing carried across in memory.
+    StuffApi.destruct(before);
+
+    const after = makeStuffAtPath(() => new SingletonViewer(), PATH);
+    // Before the fix this is where it ended: a brand-new empty map.
+    expect(after.regardFor(bob)).toBe(0);
+
+    // The source is what the clone pipeline runs. Drive it directly here
+    // (this suite builds its hosts through `makeStuffAtPath`, not
+    // `clone`); `hydration-source.test.ts` proves the pipeline calls it.
+    const outcome = await SingletonViewer.hydrateFromSource(after as never);
+    expect(outcome.status).toBe('hydrated');
+    expect(after.regardFor(bob)).toBe(7);
+  });
+
+  it('a host that keeps its own record SKIPS — or the beliefs land twice', async () => {
+    // `viewerKey` row 1. Its beliefs ride `captureSlice` into
+    // `holder_snapshots`; reading the collection here as well would load
+    // them from two places and let the copies diverge on the next touch.
+    const pet = makeStuffAtPath(() => new KeyedViewer(), '/stuff/agent/cat-src');
+    pet.setPersistenceKey('mouse-src');
+    const outcome = await KeyedViewer.hydrateFromSource(pet as never);
+    expect(outcome.status).toBe('skipped');
+  });
+
+  it('⭐ an Avatar does NOT skip — its beliefs ARE in the collection', async () => {
+    // `viewerKey` row 2. The contrast with the case above is the whole
+    // point of the row table: a minted identity is durable and unique, so
+    // its memory lives in `beliefs`, while a keyed persistable host's
+    // rides its own record. Reading the wrong one of those twice is the
+    // divergence the table exists to prevent.
+    const player = makeViewerAt();
+    const outcome = await KeyedViewer.hydrateFromSource(player as never);
+    expect(outcome.status).toBe('hydrated');
+  });
+
+  it('a generic clone with no durable identity SKIPS — its regard is session-local', async () => {
+    // `viewerKey` row 4, and a feature rather than a shortfall: a
+    // stray's opinion of you accumulates in memory and is forgotten at
+    // reboot. ⭐ At mint a to-be-named animal is THIS row and skips, so
+    // nothing loads twice; being named promotes it to row 1.
+    const stray = makeStuffAtPath(() => new Viewer(), '/obj/stray/one');
+    const outcome = await Viewer.hydrateFromSource(stray as never);
+    expect(outcome.status).toBe('skipped');
   });
 });

@@ -5,7 +5,6 @@
 # an ambient strike = a shock, with no new glue. Mirrors the substation's
 # flooded-floor, authored empty.
 class: /platform/thing/Floor
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: sodden peat ground
   # ⚠ `floor` was missing until `lint:ground` clause (d) asked. This row was

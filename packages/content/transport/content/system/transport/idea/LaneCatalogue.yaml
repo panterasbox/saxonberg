@@ -7,8 +7,6 @@
 # whatever asks a question about a road — there is deliberately no boot
 # step to forget.
 #
-# No `hydratorClass`: there is no `data` to apply, and declaring one with
-# nothing to hydrate is what `lint:instanceable` invariant 5 exists to
-# catch.
+# No `data:` to apply, so no applier runs.
 class: /system/transport/idea/LaneCatalogue
 data: {}

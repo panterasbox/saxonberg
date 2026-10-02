@@ -2,7 +2,6 @@
 # parks off-duty cast (the lounge's back office, for the square).
 # Materialized on demand by shifts; players cannot reach it.
 class: /platform/location/Offstage
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: Farmers Market — behind the stalls
   keywords: [behind, stalls, yard, market, back]

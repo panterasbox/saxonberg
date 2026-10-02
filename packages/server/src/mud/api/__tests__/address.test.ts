@@ -7,7 +7,7 @@
  *   /stuff/idea/Locality/cair-paravel  claims 'narnia/castle' (nested Locality)
  *   /stuff/idea/Locality/lantern-waste claims 'narnia/wild'   (sibling)
  *
- * The test harness skips `postRegister`, so Localities are registered
+ * The test harness skips `onCreate`, so Localities are registered
  * explicitly through `AddressApi`. The module-level registry cache in
  * AddressLogic survives `StuffApi.clearAll`, so each test resets it.
  */

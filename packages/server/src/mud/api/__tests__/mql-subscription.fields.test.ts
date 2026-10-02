@@ -12,7 +12,14 @@ import {
 
 describe('MQL subscription — field-set aliases', () => {
   it('REF_FIELDS shape', () => {
-    expect(REF_FIELDS).toEqual(['displayName', 'quantity', 'primaryKeyword']);
+    expect(REF_FIELDS).toEqual([
+      'displayName',
+      'quantity',
+      'primaryKeyword',
+      // Rung 1 of the containment read.
+      'placement',
+      'holds',
+    ]);
   });
 
   it('DETAIL_FIELDS shape', () => {
@@ -29,6 +36,10 @@ describe('MQL subscription — field-set aliases', () => {
       'contents',
       'worn',
       'exits',
+      // Rung 1 of the containment read.
+      'placed',
+      'placement',
+      'holds',
     ]);
   });
 

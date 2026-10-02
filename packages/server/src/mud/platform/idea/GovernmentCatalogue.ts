@@ -26,7 +26,6 @@
 
 import { TemplatePathRosters } from '../../lib/paths';
 import { Idea } from "../../lib/stuff/Idea";
-import { PostRegistrationMixin } from "../../lib/stuff/PostRegistration";
 import { Template } from "../../lib/stuff/Template";
 import Government, {
   type GovernmentDescriptor,
@@ -35,7 +34,7 @@ import Government, {
 import type { VetoResult } from "../../lib/errors";
 import type { EvictionContext } from "../../lib/stuff/Stuff";
 
-const GovernmentCatalogueBase = PostRegistrationMixin(Idea);
+const GovernmentCatalogueBase = Idea;
 
 export default class GovernmentCatalogue extends GovernmentCatalogueBase {
   /**
@@ -48,7 +47,7 @@ export default class GovernmentCatalogue extends GovernmentCatalogueBase {
 
   /**
    * Transient runtime cache keyed by durable `key`. `null` means "not
-   * built yet"; warmed in `postRegister` (or lazily as an empty cold
+   * built yet"; warmed in `onCreate` (or lazily as an empty cold
    * state in a unit test that skips the clone pipeline). HMR drops it
    * to `null`.
    */
@@ -77,7 +76,7 @@ export default class GovernmentCatalogue extends GovernmentCatalogueBase {
    * Warm the cache from the `content` collection. One mongo query at
    * boot, then the public surface is sync.
    */
-  public override async postRegister(_context?: unknown): Promise<void> {
+  public override async onCreate(_context?: unknown): Promise<void> {
     await this.loadCacheFromTemplates();
   }
 
@@ -98,7 +97,7 @@ export default class GovernmentCatalogue extends GovernmentCatalogueBase {
 
   private ensureCache(): void {
     if (this.governmentCache !== null) return;
-    // Never warmed (postRegister wasn't awaited, e.g. a unit test). An
+    // Never warmed (onCreate wasn't awaited, e.g. a unit test). An
     // empty cache is a valid cold state — every reader degrades to
     // "no such government".
     this.governmentCache = new Map();

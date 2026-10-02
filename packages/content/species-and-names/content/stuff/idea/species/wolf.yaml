@@ -13,7 +13,6 @@
 # which is the wrong home — what a wolf's mouth does is a fact about
 # wolves, not about this particular animal in this particular wood.
 class: /platform/idea/species/Species
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   binomial: Canis lupus
   commonNames: ["wolf", "grey wolf", "wolfshead", "beast"]

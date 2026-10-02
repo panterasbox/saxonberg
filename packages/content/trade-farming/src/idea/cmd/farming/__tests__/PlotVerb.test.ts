@@ -94,15 +94,14 @@ function installStore(): void {
   col('content').push(
     {
       _id: 'ph',
-      path: '/platform/idea/persistence/PersistentHydrator',
-      class: '/platform/idea/persistence/PersistentHydrator',
+      path: '/platform/idea/TemplateApplier',
+      class: '/platform/idea/TemplateApplier',
       data: {},
     },
     {
       _id: 'field',
       path: FIELD_ROW,
       class: '/trade/farming/location/Field',
-      hydratorClass: '/platform/idea/persistence/PersistentHydrator',
       data: { shortDescription: 'a field' },
     },
   );
@@ -138,9 +137,9 @@ function installStore(): void {
 
 async function bootRegistries(): Promise<void> {
   const groups = makeStuffAtPath(() => new GroupRegistry(), '/platform/idea/GroupRegistry');
-  await groups.postRegister();
+  await groups.onCreate();
   const parcels = makeStuffAtPath(() => new ParcelRegistry(), '/platform/idea/ParcelRegistry');
-  await parcels.postRegister();
+  await parcels.onCreate();
 }
 
 interface Scene {

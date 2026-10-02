@@ -5,7 +5,6 @@
 # corporation, commission under charter). Everything addressed
 # `terminus/city/...` that no finer Locality claims resolves here.
 class: /platform/idea/Locality
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   # ⭐⭐ The town's street-lighting service (envelope W5). ONE FIGURE IN
   # ONE PLACE: a town does not track lamps, it funds a service and finds

@@ -207,7 +207,7 @@ async function pushCurrentBranch(branch: string): Promise<{
  * `StuffApi.singletonSync`. Any module that grabs this singleton and calls
  * a method other than through the Api gets `SecurityError`.
  *
- * Stateless by construction (no `PostRegistrationMixin`): the repo root is
+ * Stateless by construction (no `onCreate` override): the repo root is
  * memoised in the module-private `rootCache`, and all non-gate logic lives
  * in module-private free functions (the token read, the path-space
  * translations, the verbatim source-write gate, the push) so there are no

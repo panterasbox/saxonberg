@@ -22,7 +22,6 @@
 
 import { OuterWarren } from "@saxonberg/server/mud/lib/location/OuterWarren";
 import { SingletonMixin } from "@saxonberg/server/mud/lib/stuff/Singleton";
-import { PostRegistrationMixin } from "@saxonberg/server/mud/lib/stuff/PostRegistration";
 import { StuffApi } from "@saxonberg/server/mud/api/stuff";
 import { MixinApi } from "@saxonberg/server/mud/api/mixin";
 import { NavigationApi } from "@saxonberg/server/mud/api/navigation";
@@ -38,7 +37,7 @@ import type { FieldMeta } from "@saxonberg/server/mud/lib/mixin";
 type MemberStuff = Stuff & Container;
 type ExitableContainer = Stuff & Container & Exitable;
 
-const PlatWarrenBase = SingletonMixin(PostRegistrationMixin(OuterWarren));
+const PlatWarrenBase = SingletonMixin(OuterWarren);
 
 export default class PlatWarren extends PlatWarrenBase {
   static fieldMeta: FieldMeta = {
@@ -90,8 +89,8 @@ export default class PlatWarren extends PlatWarrenBase {
    *
    * @hook
    */
-  public override async postRegister(context?: unknown): Promise<void> {
-    await super.postRegister(context);
+  public override async onCreate(context?: unknown): Promise<void> {
+    await super.onCreate(context);
     if (!this.getParentExtent()) return;
     try {
       await this.refreshProvisioned();

@@ -3,7 +3,6 @@
 # (`_brandKey`), never the material's. Distilling's, by the generic drain
 # rule: the trade whose PROCESS makes it ships it.
 class: /platform/idea/material/ConsumableMaterial
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: vodka
   keywords: [vodka]

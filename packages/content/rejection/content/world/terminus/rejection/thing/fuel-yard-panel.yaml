@@ -28,7 +28,6 @@
 # panel`). In THIS yard a planted standard joins no stand — the yard is
 # not a wood — and is felled for what the sapling row says it is made of.
 class: /trade/forestry/thing/Panel
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: panel of coppiced hazel
   keywords: [panel, coppice, hazel, stand, stools, cant]

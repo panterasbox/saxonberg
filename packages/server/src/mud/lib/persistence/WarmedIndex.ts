@@ -44,7 +44,7 @@
  * it, and the next `singletonSync` builds a fresh one. A warmed index
  * there would be silently dropped on every hot reload. State that must
  * survive a reload lives either here, on the record class, or on a
- * `PostRegistrationMixin` holder whose `postRegister` re-warms it.
+ * registry holder whose `onCreate` re-warms it.
  */
 
 /**

@@ -16,7 +16,6 @@
 # row's — a birch gives sap whether it was planted in a panel or grew
 # where it fell.
 class: /trade/forestry/thing/SapStandard
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: birch sapling
   keywords: [sapling, birch, tree, standard, "birch sapling"]

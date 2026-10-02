@@ -15,7 +15,6 @@
 #
 # Cells are 20 m — a road room is a stretch of country, not a parlour.
 class: /platform/idea/location/CartesianZone
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: The Delight Road
   cellSize: 20.0

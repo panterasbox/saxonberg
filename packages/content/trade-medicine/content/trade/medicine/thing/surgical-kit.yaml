@@ -3,7 +3,6 @@
 # sells your own. Operating still demands a lying patient and a competent
 # hand — the kit affords the verb, it does not confer the skill.
 class: /trade/medicine/thing/SurgicalKit
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: rolled surgeon's kit
   keywords: [kit, surgeon, surgical, instruments, roll]

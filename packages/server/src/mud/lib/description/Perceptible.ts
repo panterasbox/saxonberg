@@ -19,7 +19,7 @@
  * Setter-normalized: `keywords` is the persistent field exposed as a
  * property. The setter routes every entry through `addKeyword()`, so the
  * incremental API and bulk-assign (`obj.keywords = [...]`) share a single
- * normalization path (lowercase / trim / dedupe). `Hydrator`'s
+ * normalization path (lowercase / trim / dedupe). the applier's
  * `target[field] = data[field]` is bracket-assign — it goes through this
  * setter, so a template that lists keywords lands normalized without any
  * post-hydrate fixup.
@@ -190,7 +190,7 @@ export function PerceptibleMixin<TBase extends MixinConstructor>(Base: TBase) {
      * this value (after fail-soft validation against the live keyword
      * pool). Persistent — author-set via template `data:`.
      *
-     * Hydrator routes through `setPrimaryKeyword` (the Phase 1 dispatch
+     * applier routes through `setPrimaryKeyword` (the Phase 1 dispatch
      * prefers a `set<Field>` method), so an authored-but-invalid value
      * in a template is logged + dropped at clone time rather than
      * silently sitting in the slot waiting to confuse a renderer.
@@ -228,7 +228,7 @@ export function PerceptibleMixin<TBase extends MixinConstructor>(Base: TBase) {
      * Author-set the primary keyword. Stores the normalized value
      * unconditionally; pool-membership is a cross-field invariant
      * (the pool depends on `shortDescription` via VisibleMixin and
-     * `name` via NamedMixin) and the Hydrator's Phase 1 dispatch
+     * `name` via NamedMixin) and the applier's Phase 1 dispatch
      * makes no ordering guarantee across mixins. Validating in the
      * setter would (and did) silently drop authored values when this
      * mixin's setter ran before the others contributing to the pool.
@@ -269,7 +269,7 @@ export function PerceptibleMixin<TBase extends MixinConstructor>(Base: TBase) {
         // This runtime warn is for the code paths that mint a thing and
         // name it — a coat-check ticket, a salvaged lump, a key.
         //
-        // An empty pool means the Hydrator has not reached the keyword
+        // An empty pool means the applier has not reached the keyword
         // field yet; nothing to check against, so no warn.
         const pool = this.keywords;
         if (pool.length > 0 && !pool.includes(normalized)) {

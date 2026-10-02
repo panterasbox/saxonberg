@@ -2,6 +2,5 @@
 # Admin/ownership scope. Shared indoor defaults live on
 # `indoor/baseline`.
 class: /platform/idea/FolderZone
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: indoor

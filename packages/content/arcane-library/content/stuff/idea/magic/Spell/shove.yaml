@@ -2,7 +2,6 @@
 # through the posture surface (prone), with a one-exit displacement when
 # an open way stands behind the target. No combat machinery.
 class: /platform/idea/magic/Spell
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   spellId: shove
   name: Unseen Shove

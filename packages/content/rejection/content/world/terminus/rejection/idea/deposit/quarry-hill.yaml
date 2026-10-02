@@ -35,7 +35,6 @@
 # asymmetry is the sentence the whole build turns on — *a mine wins the
 # lode; a quarry wins the host* — and it needed no new type.
 class: /system/ground/idea/Deposit
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: quarry-hill
   stratigraphy:

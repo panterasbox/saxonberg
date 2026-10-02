@@ -3,7 +3,6 @@
 # sells it BACK to the growers (the reverse B2B), and a bed fed with
 # it measurably recovers nitrogen. Real nutrient cycling.
 class: /platform/idea/material/ConsumableMaterial
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: spent grain
   keywords: [spent, grain, draff]

@@ -3,7 +3,6 @@
 # harm). Burden = dose × potency / bodyMass; moderate absorption (a real
 # vomit window), slow clearance. Acute content.
 class: /platform/idea/Condition
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: food-poisoning
   # The fluid loss that makes food poisoning dangerous rather than

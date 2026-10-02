@@ -1,6 +1,5 @@
 # Ale — brewing's, by the generic drain rule (the ferment makes it). The base-library row retires in phase 5. Category tags `beer`, `ale`.
 class: /platform/idea/material/ConsumableMaterial
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: ale
   keywords: [ale, beer, brew]

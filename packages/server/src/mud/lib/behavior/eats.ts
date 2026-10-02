@@ -70,6 +70,9 @@ import { StuffApi } from '../../api/stuff';
 import { BankingApi } from '../../api/banking';
 import { CelestialApi } from '../../api/celestial';
 import { WorldClockApi } from '../../api/worldclock';
+import type { EngagementSlot } from '../activity/Engaged';
+import type { TaskKind } from './Urgency';
+import { Urgency } from './Urgency';
 
 /** The morning window, in local hours. A baker's customers come early. */
 const DEFAULT_FROM_HOUR = 6;
@@ -98,6 +101,35 @@ type Buyer = Stuff & Mobile & Containable & Container & CommandGiver;
 
 export const brain = class {
   static label = 'eats';
+  static kind: TaskKind = 'body';
+  static claims: readonly EngagementSlot[] = ['hands', 'body'];
+  static summary =
+    'Buys and eats a morning meal once a game-day, choosing the loaf its ' +
+    'purse can carry — the demand at the end of the grain chain.';
+  static consumes: readonly string[] = ['food'];
+  /**
+   * ⭐ The window IS the urgency. Outside the morning hours, or having
+   * already eaten today, there is nothing to want — and the read is the
+   * same clock read `act` makes, so the two cannot disagree.
+   *
+   * `pressing`, not `critical`: breakfast beats polishing the rail and
+   * loses to a fight. ⚠ Starving is not this brain's business —
+   * metabolism's own conditions are, and this is the thing that stops
+   * you getting there.
+   */
+  static async urgency(ctx: BrainContext): Promise<Urgency> {
+    const host = ctx.host;
+    if (!MixinApi.isContainable(host)) return new Urgency("idle");
+    const home = host.getContainer();
+    if (!home || !MixinApi.isContainer(home)) return new Urgency("idle");
+    const when = await localTime(home);
+    if (when === null) return new Urgency("idle");
+    const from = numberOr(ctx.config.fromHour, DEFAULT_FROM_HOUR);
+    const to = numberOr(ctx.config.toHour, DEFAULT_TO_HOUR);
+    if (when.hour < from || when.hour >= to) return new Urgency("idle");
+    if (ctx.state.lastAteDay === when.day) return new Urgency("idle");
+    return new Urgency('pressing', 'sets off to find something to eat');
+  }
   static presenceGated = false;
   /**
    * Not ambient chatter — this moves goods and money, so it is exempt

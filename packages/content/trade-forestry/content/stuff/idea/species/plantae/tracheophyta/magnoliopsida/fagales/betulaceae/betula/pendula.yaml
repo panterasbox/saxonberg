@@ -22,7 +22,6 @@
 # The living tree is plant tissue; what is felled is
 # `/stuff/idea/material/wood/birch`, and the two rows name each other.
 class: /platform/idea/species/Species
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   binomial: Betula pendula
   commonNames: ["birch", "silver birch", "white birch"]

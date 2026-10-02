@@ -2,7 +2,6 @@
 # off-duty cast. Materialized on demand by shifts (singletonOrClone).
 # Players cannot reach it (no Exitable).
 class: /platform/location/Offstage
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: Dave's Bar — Back office
   keywords: [office, "dave's", dave, bar, back]

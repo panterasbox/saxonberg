@@ -1,7 +1,6 @@
 # Barley grain — ⭐ what `malt.yaml` has been made from all along, with
 # nothing behind it until now.
 class: /platform/idea/material/Material
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: barley grain
   keywords: [corn, barley, grain]

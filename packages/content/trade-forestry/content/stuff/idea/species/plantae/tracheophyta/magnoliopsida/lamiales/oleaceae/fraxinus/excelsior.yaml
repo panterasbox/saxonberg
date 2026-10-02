@@ -6,7 +6,6 @@
 # species carries and nothing reads yet; the forestry slate names the
 # reader). An ash key is its seed.
 class: /platform/idea/species/Species
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   binomial: Fraxinus excelsior
   commonNames: ["ash", "common ash"]

@@ -17,7 +17,6 @@
 # Ships with no positions filled: the Ministry's acts are the Minister's.
 # Realm `ooc`; visibility `members`.
 class: /platform/idea/Organization
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   appointingAuthority:
     kind: office

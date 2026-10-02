@@ -28,7 +28,7 @@ const BoundaryApiCallers = SecurityPolicies.FromModule('/api/boundary#BoundaryAp
  * `StuffApi.singletonSync`. Any module that grabs this singleton and
  * calls a method other than through the Api gets `SecurityError`.
  *
- * Stateless by construction (no `PostRegistrationMixin`). The
+ * Stateless by construction (no `onCreate` override). The
  * install-on-two-hosts body shared by `attachExistingBoundary` and
  * `create` lives in the module-private `installBoundary` free function
  * (off-class, ungated, un-callable from outside), so the async `create`
@@ -94,7 +94,7 @@ function installBoundary<T extends Boundary>(
       'BoundaryApi.attachExistingBoundary: hostA and hostB must differ.'
     );
   }
-  // ⭐ The pair is PRE-MINTED by `Boundary.postRegister` (they are clones
+  // ⭐ The pair is PRE-MINTED by `Boundary.onCreate` (they are clones
   // of `/platform/thing/BoundaryAnchor` now, and a clone is async while
   // this path must stay sync — a vessel's `onMoved` calls it). So this
   // function only WIRES: what was "already has anchors" is now "already
@@ -104,7 +104,7 @@ function installBoundary<T extends Boundary>(
   if (!anchorA || !anchorB) {
     throw new Error(
       'BoundaryApi.attachExistingBoundary: boundary has no anchor pair. ' +
-        'A Boundary mints its anchors at postRegister, so this one was ' +
+        'A Boundary mints its anchors at onCreate, so this one was ' +
         'never registered (a bare `new Door()` rather than a clone).'
     );
   }

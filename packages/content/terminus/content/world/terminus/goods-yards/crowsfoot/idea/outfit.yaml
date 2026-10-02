@@ -5,12 +5,15 @@
 # `wallet use house` / `consign` trade AS this business — each resale at
 # the cash-and-carry splits to this operating account.
 class: /platform/idea/Business
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: "Crowsfoot"
   appointingAuthority:
     kind: office
     office: prime-minister
+  # Who comes over: `rota` — the least-recently-called able hand. No
+  # relational leg, because a floor has no regulars and should not pretend
+  # to. See docs/subsystems/employment.md.
+  call: rota
   positions:
     - key: hand
       noun: hand

@@ -7,7 +7,6 @@
 # the one thing a mine visibly needs and could not previously ask for: a
 # guard on the fuel yard through the night shift.
 class: /platform/thing/JobBoard
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: board of nailed-up slips
   keywords: [board, slips, notices, jobs, job-board, nailed-up]

@@ -61,7 +61,7 @@ import {
 } from '@saxonberg/server/mud/api/command';
 import { CommandDefinition } from '@saxonberg/server/mud/lib/command/CommandDefinition';
 import Location from '@saxonberg/server/mud/lib/stuff/Location';
-import PersistentHydrator from '@saxonberg/server/mud/platform/idea/persistence/PersistentHydrator';
+import TemplateApplier from '@saxonberg/server/mud/platform/idea/TemplateApplier';
 import { Document } from '@saxonberg/server/mud/lib/persistence/Document';
 import ParcelRegistry from '@saxonberg/server/mud/platform/idea/ParcelRegistry';
 import GroupRegistry from '@saxonberg/server/mud/platform/idea/GroupRegistry';
@@ -90,7 +90,7 @@ interface Doc extends Record<string, unknown> {
   _id?: string;
 }
 
-const PH = PersistentHydrator.templatePath;
+const PH = TemplateApplier.templatePath;
 const DORMS = DormWarren.DORMS_EXTENT;
 
 // The rows this stand-up reads live in four packs (content-packs wave 3).
@@ -133,7 +133,6 @@ function addSeed(path: string, file: string): void {
     _id: `d-${++idCounter}`,
     path,
     class: parsed.class as string,
-    hydratorClass: (parsed.hydratorClass as string) ?? PH,
     data: (parsed.data as Record<string, unknown>) ?? {},
   });
 }
@@ -385,12 +384,12 @@ async function bootRegistries(): Promise<void> {
     () => new GroupRegistry(),
     '/platform/idea/GroupRegistry',
   );
-  await groups.postRegister();
+  await groups.onCreate();
   const parcels = makeStuffAtPath(
     () => new ParcelRegistry(),
     '/platform/idea/ParcelRegistry',
   );
-  await parcels.postRegister();
+  await parcels.onCreate();
 }
 
 async function warren(): Promise<DormWarren> {
@@ -1106,7 +1105,7 @@ describe('the dorm houseplant — durability', () => {
         'wilting',
       ),
     );
-    // The pot's clock cursor is public (`Hydrator` reflects into it), so
+    // The pot's clock cursor is public (`TemplateApplier` reflects into it), so
     // this is a plain write, not a cast through the contract. Winding it
     // back is HOW you simulate a restart: production restores the stamp
     // from the record, and there is no other seam that puts a pot's soil

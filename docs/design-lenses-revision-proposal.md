@@ -269,7 +269,7 @@ imagination budget* — and it never made it up into the rubric.
 Alexander's *roughness* (#93: *"When a game is too perfect, it has no
 character"*) looked like a conflict with lens 1's honesty requirement,
 given how much of this world is derived — weather as a stateless field,
-ground minted at `postRegister`, competence bands, soil, husbandry,
+ground minted at `onCreate`, competence bands, soil, husbandry,
 spoilage. Under the betrayal test it is **not an immersion problem at
 all**: a machined world betrays nothing. It is a **charm** problem, and
 charm has no lens in our six. Left as an open question (Part 5).

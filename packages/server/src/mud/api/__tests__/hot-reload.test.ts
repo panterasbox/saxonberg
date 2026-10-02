@@ -42,7 +42,7 @@ async function bootRegistry(): Promise<void> {
   StuffApi.unregister(reg);
   StuffApi.register(reg);
   EventApi._setRegistryForTesting(reg);
-  await (reg as unknown as { postRegister(): Promise<void> }).postRegister();
+  await (reg as unknown as { onCreate(): Promise<void> }).onCreate();
 }
 
 async function flushMicrotasks(): Promise<void> {

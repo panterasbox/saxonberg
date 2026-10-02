@@ -234,7 +234,7 @@ for a cross-cut.
 ## The panel — the coppice, and it remembers being cut
 
 `/trade/forestry/thing/Panel` =
-`PersistableMixin(SingletonMixin(PostRegistrationMixin(GardenBed)))`.
+`PersistableMixin(SingletonMixin(GardenBed))`.
 One row is one panel: a room's `props:` mints a singleton through
 `StuffApi.singleton`, the one path that restores-or-seeds a keyless
 persistable, so a cut panel comes back cut and its rotation runs across a

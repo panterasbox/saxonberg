@@ -12,7 +12,11 @@ import { Template, type TemplateSpec } from '../../../lib/stuff/Template';
 import { ZoneTemplate } from '../../../lib/stuff/ZoneTemplate';
 import { LeafTemplate } from '../../../lib/stuff/LeafTemplate';
 import { StuffApi } from '../../../api/stuff';
-import { MixinApi } from '../../../api/mixin';
+import type {
+  FillDescription,
+  FillField,
+} from '../../../api/template';
+import { MixinApi, type AnyConstructor } from '../../../api/mixin';
 import { Mixins } from '../../../lib/mixin';
 import { TemplateError } from '../../../lib/stuff/TemplateError';
 import { ReservedTemplatePrefixes } from '../../../lib/paths';
@@ -22,7 +26,7 @@ import { ExecutionContextApi } from '../../../api/execution-context';
 import { CodeNamingFields } from '../../../lib/stuff/CodeNamingFields';
 import Avatar from '../../../lib/character/Avatar';
 import type { Stuff } from '../../../lib/stuff/Stuff';
-import PersistentHydrator from '../persistence/PersistentHydrator';
+import TemplateApplier from '../TemplateApplier';
 
 const TemplateApiCallers = SecurityPolicies.FromModule('/api/template#TemplateApi'
 );
@@ -36,7 +40,7 @@ const TemplateApiCallers = SecurityPolicies.FromModule('/api/template#TemplateAp
  * `StuffApi.singletonSync`. Any module that grabs this singleton and
  * calls a method other than through the Api gets `SecurityError`.
  *
- * Stateless by construction (no `PostRegistrationMixin`). 0-self-call:
+ * Stateless by construction (no `onCreate` override). 0-self-call:
  * the validators thread through `Template.*` / `ZoneApi.*` helpers and
  * never call another `TemplateApi` method, so the plain `FromModule`
  * gate suffices per method. `TemplateError` was relocated to
@@ -59,7 +63,6 @@ export class TemplateLogic extends ApiLogic {
     const existing = await Template.findByPath(path);
     const classPath = spec.class;
     const data = spec.data;
-    const hydratorClassPath = spec.hydratorClass;
 
     // A row states a class or names a parent; neither is a row that
     // clones into nothing.
@@ -101,16 +104,10 @@ export class TemplateLogic extends ApiLogic {
 
     // Code-trust lockdown: a non-wizard author (a protowizard) may not
     // introduce or change a direct code-naming field
-    // (`class` / `hydratorClass` / `behaviors[].brain`). The actor is
-    // derived from the execution context (never caller-supplied); the
-    // `existing` doc is the diff baseline. See access.md § The
-    // code-trust lockdown.
-    await this.enforceCodeFieldGate(
-      classPath,
-      data,
-      hydratorClassPath,
-      existing,
-    );
+    // (`class` / `behaviors[].brain`). The actor is derived from the
+    // execution context (never caller-supplied); the `existing` doc is
+    // the diff baseline. See access.md § The code-trust lockdown.
+    await this.enforceCodeFieldGate(classPath, data, existing);
 
     // The folder/leaf subclass follows the EFFECTIVE class — a child
     // that states none is the folder (or leaf) its parent is.
@@ -140,7 +137,7 @@ export class TemplateLogic extends ApiLogic {
   /**
    * The code-field gate (wizard-authority). Enforces that a non-wizard
    * content author cannot set or change any **direct code-naming field**
-   * — `class`, `hydratorClass`, or any `behaviors[].brain` — on a
+   * — `class` or any `behaviors[].brain` — on a
    * content template, since each resolves to executable code at clone /
    * hydrate / behavior-fire time. The transitive reference fields close
    * by construction (every referenced template passed this same gate).
@@ -153,18 +150,18 @@ export class TemplateLogic extends ApiLogic {
    *  3. else (a protowizard) → enforce the delta rule below.
    *
    * The delta rule rejects a write that **introduces or changes** a
-   * code-naming field vs. the `existing` doc: `class` / `hydratorClass`
+   * code-naming field vs. the `existing` doc: `class`
    * inequality, or an incoming brain multiset that is not a subset of
-   * the existing one. A pure cosmetic edit (same class/hydrator, brain
-   * set unchanged-or-reduced) passes — the protowizard authoring path.
+   * the existing one. A pure cosmetic edit (same class, brain set
+   * unchanged-or-reduced) passes — the protowizard authoring path.
    *
    * Structural carve-out (D4): a `mkdir`-shaped write — a Zone/folder
-   * `class` with no behaviors and the standard (or absent) hydrator —
+   * `class` with no behaviors —
    * is exempt. A folder class is engine code by construction, carries no
    * author-chosen executable strategy, and is constrained by the
    * folder/leaf invariant. The carve-out admits *any* `isFolderClass`
    * value (broader than the single `FolderZone` that `mkdir` emits); the
-   * no-behaviors + standard-hydrator clauses keep it from smuggling an
+   * no-behaviors clause keeps it from smuggling an
    * executable strategy. It is not a code-execution escape (every folder
    * class is wizard-authored engine code), though it does let a
    * protowizard turn a leaf template into a folder — a content-integrity
@@ -181,10 +178,46 @@ export class TemplateLogic extends ApiLogic {
    * `PackLogic`, is wizard-gated at the `pack` verb); if one is ever added,
    * the gate moves to `aroundSave` beside `validateFolderLeafSave`.
    */
+  // ⚠⚠ **This gate's name is a claim its `class` arm cannot support, and
+  // the claim is recorded as wrong rather than quietly kept.**
+  //
+  // Reviewer, 2026-10-02: *"naming a class isn't code trust. PUBLISHING a
+  // class is. the act of publishing means 'you can use this' — there's no
+  // 'only x templates may use my code', it's an open source project."*
+  // Three things in this file and its neighbours agree:
+  //
+  //   1. ⛔ on a create `existing` is null, so ANY `classPath` violates —
+  //      the gate refuses a class five hundred rows already name, so it
+  //      is not guarding a decision to bring code into play;
+  //   2. ⛔ a protowizard reaches the identical instance through
+  //      `extends` (a class-less child of a row naming that class) — same
+  //      constructor, same `onCreate`, same mixins. A hop, not a boundary;
+  //   3. ⛔ `lint:instanceable` ALREADY declares which classes content may
+  //      name, structurally and author-independently (not `/lib/`,
+  //      resolves, under a branch segment). That is
+  //      publishing-for-content; a per-author gate on top is redundant.
+  //
+  // What the `class` arm actually does is stop a non-wizard being
+  // author-of-record for a row that STATES a class — bookkeeping.
+  //
+  // ⭐ `behaviors[].brain` survives, under a different name: a brain is
+  // data the engine runs BY ITSELF, on a timer, with no player act. That
+  // is autonomy and shared-world resource, not code provenance.
+  //
+  // ⭐⭐ And the distinction the gate was groping for lives elsewhere
+  // entirely: **a row is a RECORD; CLONING is execution.** Authoring is
+  // inert — cloning is what runs the class's initialization. If instancing
+  // a class should be privileged, that is the CLASS's question, asked of
+  // whoever is instancing, and neither the row's business nor hydration's.
+  // ⚠ It is also not a call-security question: inside the clone pipeline
+  // the caller is always `StuffApi` by design, so `@CallSecurity` answers
+  // *which code*, where the question is *which person* — `AccessApi`'s
+  // axis. See access.md § The code-trust lockdown for the shape (a static
+  // veto seam, the `canDestruct` pattern) and for why it is a non-issue
+  // today.
   private async enforceCodeFieldGate(
     classPath: string | undefined,
     data: Record<string, unknown>,
-    hydratorClassPath: string | undefined,
     existing: Template | null,
   ): Promise<void> {
     const actor = ExecutionContextApi.getActingAuthor();
@@ -198,15 +231,12 @@ export class TemplateLogic extends ApiLogic {
     const existingBrains = CodeNamingFields.extractBrains(existing?.own.data);
 
     // A structural folder scaffold (mkdir / lounge seed) carries no
-    // author-chosen executable strategy — exempt its class + standard
-    // hydrator. Requiring no behaviors + the standard hydrator prevents
-    // smuggling a brain/hydrator in under a folder class.
-    const standardHydrator =
-      hydratorClassPath === undefined ||
-      hydratorClassPath === PersistentHydrator.templatePath;
+    // author-chosen executable strategy — exempt its class. Requiring no
+    // behaviors prevents smuggling a brain in under a folder class.
+    // ⭐ The `hydratorClass` arm went with the field (2026-10-01), not
+    // with an exemption: there is no applier for a scaffold to smuggle.
     const folderScaffold =
       incomingBrains.length === 0 &&
-      standardHydrator &&
       classPath !== undefined &&
       (await ZoneApi.isFolderClass(classPath));
 
@@ -214,13 +244,6 @@ export class TemplateLogic extends ApiLogic {
 
     if (classPath !== (existing?.own.class ?? undefined) && !folderScaffold) {
       violations.push('class');
-    }
-    if (
-      (hydratorClassPath ?? undefined) !==
-        (existing?.own.hydratorClass ?? undefined) &&
-      !folderScaffold
-    ) {
-      violations.push('hydratorClass');
     }
     if (!CodeNamingFields.isMultisetSubset(incomingBrains, existingBrains)) {
       violations.push('behaviors[].brain');
@@ -430,6 +453,77 @@ export class TemplateLogic extends ApiLogic {
     return Template.ancestorPaths(path);
   }
 
+  /** See {@link TemplateApi.describeFill}. */
+  @CallSecurity(TemplateApiCallers)
+  public async describeFill(spec: {
+    path?: string;
+    class?: string;
+    extends?: string;
+    data?: Record<string, unknown>;
+  }): Promise<FillDescription> {
+    // The EFFECTIVE class and data: a child states only what differs, so
+    // asking a class-less row what fills it has to follow the chain.
+    let cls = spec.class;
+    let data = spec.data ?? {};
+    if (spec.path !== undefined && (cls === undefined || spec.data === undefined)) {
+      const tpl = await Template.findByPath(spec.path);
+      if (tpl) {
+        cls = cls ?? (tpl.class || undefined);
+        data = spec.data ?? (tpl.data ?? {});
+      }
+    }
+    if (cls === undefined && spec.extends !== undefined) {
+      const parent = await Template.findByPath(spec.extends);
+      cls = parent?.class || undefined;
+    }
+    if (!cls) {
+      return { applies: [], unapplied: Object.keys(data), remembers: [] };
+    }
+
+    let ctor: AnyConstructor;
+    try {
+      ctor = (await StuffApi.loadClassByPath(cls)) as AnyConstructor;
+    } catch {
+      // An unresolvable class is the clone pipeline's error to raise, with
+      // its own message. Here it only means we cannot say what applies —
+      // and saying nothing is better than saying "nothing applies", which
+      // would read as a finding about the row.
+      return { applies: [], unapplied: [], remembers: [] };
+    }
+
+    const meta = MixinApi.getAllFieldMeta(ctor) as Record<
+      string,
+      { persistent?: true; instruction?: true; seed?: true; birthOnly?: true }
+    >;
+    const applies: FillField[] = [];
+    const unapplied: string[] = [];
+    for (const key of Object.keys(data)) {
+      const entry = meta[key];
+      if (entry?.persistent) {
+        applies.push({
+          field: key,
+          phase: entry.seed ? 'seed' : 'property',
+          birthOnly: entry.birthOnly === true,
+        });
+      } else if (entry?.instruction) {
+        applies.push({ field: key, phase: 'instruction', birthOnly: false });
+      } else if (entry?.seed) {
+        applies.push({ field: key, phase: 'seed', birthOnly: false });
+      } else {
+        unapplied.push(key);
+      }
+    }
+
+    // ⭐ What the world will REMEMBER about an instance of this row, as
+    // its composition declares it — the other half of "what fills this
+    // in", and the half an author had no way to see at all.
+    const remembers = MixinApi.getPersistenceContributors(ctor)
+      .filter((c) => c.source !== undefined)
+      .map((c) => ({ mixin: c.key, source: c.source!.name }));
+
+    return { applies, unapplied, remembers };
+  }
+
   /** See {@link TemplateApi.restoreFromTemplate}. */
   @CallSecurity(TemplateApiCallers)
   public async restoreFromTemplate(stuff: Stuff): Promise<void> {
@@ -445,9 +539,15 @@ export class TemplateLogic extends ApiLogic {
         `TemplateApi.restoreFromTemplate: no template at '${path}'`
       );
     }
-    const hydrator = await StuffApi.singleton<PersistentHydrator>(
-      PersistentHydrator.templatePath
+    const applier = await StuffApi.singleton<TemplateApplier>(
+      TemplateApplier.templatePath
     );
-    await hydrator.hydrate(stuff, tpl.data ?? {});
+    // ⚠⚠ GO-LIVE, not mint. This re-applies an edited row to objects
+    // that are ALREADY IN THE WORLD, so it must not push a `birthOnly`
+    // field (a stack's `quantity`) and must not re-seed an authored
+    // history. Going live on the coin row used to reset every coin
+    // stack in the game to its authored `quantity: 1` — minting and
+    // burning outside the conservation chokepoint, invisibly.
+    await applier.apply(stuff, tpl.data ?? {}, { mode: 'go-live' });
   }
 }

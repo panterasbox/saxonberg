@@ -30,6 +30,8 @@ import { Mml } from '../../../api/mml';
 import type { ClockHandle } from '../../../api/worldclock';
 import { Quantity } from '../../../lib/quantity';
 import { DefaultCalendar } from '../../../lib/time/DefaultCalendar';
+import type { RosterAssignment } from '../../../lib/employment/Roster';
+import type { Container } from '../../../lib/spatial/Container';
 import { Mixins } from '../../../lib/mixin';
 import type { Business } from '../Business';
 import type { Organization } from '../../../lib/employment/Organization';
@@ -811,6 +813,107 @@ function beginCoverImpl(
   );
 }
 
+/**
+ * ⭐⭐ **Presence is a consequence of employment state** — so the move
+ * belongs to the thing that owns the state.
+ *
+ * On an off→on transition the assignee is put at their station (the
+ * seat's `station`, else the house's first operating location); on
+ * on→off, at the house's `offstage`. A house that authors no `offstage`
+ * moves nobody off, which is what every house without a `shifts` brain
+ * did before this existed.
+ *
+ * ⚠ This replaced the `shifts` brain, which polled `shiftState()` every
+ * 30 s on eleven rows to notice an HOURLY flip — 22 timer fires a minute
+ * to catch up with something that changes at most once per game hour. The
+ * flip itself is the event; a poll in front of it was only ever latency.
+ */
+async function moveForShift(
+  business: BusinessStuff,
+  assignment: RosterAssignment,
+  actor: Stuff,
+  onShift: boolean,
+): Promise<void> {
+  if (!MixinApi.isMobile(actor) || !MixinApi.isContainable(actor)) return;
+  const targetPath = onShift
+    ? (assignment.station ?? business.getOperatingLocations()[0] ?? '')
+    : business.getOffstage();
+  if (!targetPath) return;
+  try {
+    const dest = await StuffApi.singletonOrClone(targetPath);
+    if (!MixinApi.isContainer(dest)) return;
+    const current = actor.getContainer();
+    if (current && current.stuffId === dest.stuffId) return;
+    actor.teleport(dest as Stuff & Container);
+  } catch (err) {
+    console.error(
+      `EmploymentLogic: shift move to '${targetPath}' failed`,
+      err,
+    );
+  }
+}
+
+/**
+ * ⭐ The proprietor covers their own house when nobody rostered is
+ * tending it, and stands down when somebody is.
+ *
+ * ⚠ The old `covers` brain asked *is another on-shift maker in MY room*,
+ * which made cover a question about where the proprietor happened to be
+ * standing. This asks it of the HOUSE: is any rostered holder of a
+ * `fulfills` seat on shift anywhere this house operates. A proprietor in
+ * the back office no longer concludes the bar is unattended.
+ */
+async function reconcileCover(
+  business: BusinessStuff,
+  nowRaw: number,
+): Promise<void> {
+  const businessPath = business.getOrganizationPath();
+  if (!businessPath) return;
+  // Does this house even have a seat worth covering?
+  const fulfillingSeats = business
+    .getPositions()
+    .filter((p) => (p.fulfills ?? []).length > 0);
+  if (!fulfillingSeats.length) return;
+
+  const proprietorKey = business.getProprietor();
+  if (!proprietorKey) return;
+  const proprietor = StuffApi.findByTemplatePath(proprietorKey);
+  if (!proprietor || !MixinApi.isEmployed(proprietor)) return;
+
+  let rosteredOnShift = false;
+  for (const assignment of business.getRoster().getAssignments()) {
+    if (!fulfillingSeats.some((p) => p.key === assignment.positionKey)) {
+      continue;
+    }
+    if (assignment.assignee === proprietorKey) continue;
+    const who = StuffApi.findByTemplatePath(assignment.assignee);
+    if (!who || !MixinApi.isEmployed(who)) continue;
+    if (who.getEmployment(businessPath)?.status === 'on-shift') {
+      rosteredOnShift = true;
+      break;
+    }
+  }
+
+  const covering =
+    proprietor.getEmployment(businessPath)?.status === 'on-shift';
+  if (!rosteredOnShift && !covering) {
+    business.beginCover(proprietor as EmployedActor, nowRaw);
+    // A cover is a shift: stand where the work is.
+    await moveForShift(
+      business,
+      {
+        positionKey: fulfillingSeats[0]!.key,
+        assignee: proprietorKey,
+        schedule: [],
+      },
+      proprietor,
+      true,
+    );
+  } else if (rosteredOnShift && covering) {
+    business.endCover(proprietor as EmployedActor);
+  }
+}
+
 /** End a proprietor's cover: drop the transient cover Employment. */
 function endCoverImpl(self: Stuff, business: OrganizationStuff): void {
   if (!MixinApi.isEmployed(self)) return;
@@ -1400,6 +1503,7 @@ export class EmploymentLogic extends ApiLogic {
       const currentlyOn = emp.status === 'on-shift';
       if (desired === 'on-shift' && !currentlyOn) {
         business.beginShift(employed, nowRaw);
+        void moveForShift(business, assignment, actor, true);
       } else if (desired === 'off-shift' && currentlyOn) {
         // Settle off the captured record (has `onShiftSince`) at this
         // tick's instant, before the synchronous clear below — no race.
@@ -1412,8 +1516,15 @@ export class EmploymentLogic extends ApiLogic {
           console.error('EmploymentLogic: shift-wage settle failed', err),
         );
         business.endShift(employed);
+        void moveForShift(business, assignment, actor, false);
       }
     }
+    // ⭐ Cover is evaluated here rather than on a brain's own 30 s poll,
+    // which means it is evaluated at the moment of an `order` too —
+    // `ensureOperatorAt` calls this very method. The proprietor steps
+    // behind an empty bar WHEN SOMEBODY ORDERS, which is what the old
+    // presence-gating was approximating.
+    void reconcileCover(business, nowRaw);
   }
 
   /** Self-register the recurring game-time roster tick (idempotent). */

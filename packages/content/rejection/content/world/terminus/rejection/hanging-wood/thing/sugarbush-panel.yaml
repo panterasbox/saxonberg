@@ -19,7 +19,6 @@
 # a bush somebody else established. A player who wants their own plants
 # a panel somewhere they hold title to.
 class: /trade/forestry/thing/Panel
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: stand of tapping trees
   keywords: [panel, bush, sugarbush, trees, stand]

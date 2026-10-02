@@ -9,7 +9,6 @@
 #
 # ⭐ The pack ships the row and the class; the platform names neither.
 class: /trade/tailoring/idea/reading/FigureReading
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   channel: figure
   kind: fact

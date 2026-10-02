@@ -1,5 +1,4 @@
 class: /platform/thing/equipment/Garment
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: hide jerkin
   keywords: [jerkin, hide]

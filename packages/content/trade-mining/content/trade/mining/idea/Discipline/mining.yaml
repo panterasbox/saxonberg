@@ -17,7 +17,6 @@
 # duplicate: the collier chars **wood**, the hewer and the onsetter cut
 # **rock**. Genuinely different fields, correctly different codes.
 class: /platform/idea/Discipline
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   key: mining
   channel: skill

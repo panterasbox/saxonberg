@@ -1,5 +1,4 @@
 class: /platform/idea/Discipline
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   key: services
   channel: knowledge

@@ -21,14 +21,13 @@
  * resolution; access-*decision* logic stays in the access layer.
  *
  * Modeled on `AddressRegistry`'s coverage index: the trie lives on this
- * `PostRegistrationMixin` Stuff (not the stateless logic singleton) so it
- * survives a reload of `api/parcel.ts`; `postRegister` rebuilds it
+ * registry Stuff (not the stateless logic singleton) so it
+ * survives a reload of `api/parcel.ts`; `onCreate` rebuilds it
  * idempotently from the `parcels` collection.
  */
 
 import { Idea } from "../../lib/stuff/Idea";
 import type { ParcelSpace } from "../../lib/parcel/ParcelRecord";
-import { PostRegistrationMixin } from "../../lib/stuff/PostRegistration";
 import { SecurityApi } from '../../api/security';
 import { CallSecurity } from "../../lib/security/decorators";
 import { SecurityPolicies } from "../../lib/security/SecurityPolicies";
@@ -50,7 +49,7 @@ import type { Quantity } from "../../lib/quantity";
 import type { VetoResult } from "../../lib/errors";
 import type { Stuff } from "../../lib/stuff/Stuff";
 
-const ParcelRegistryBase = PostRegistrationMixin(Idea);
+const ParcelRegistryBase = Idea;
 
 // Admit both the Api face module and the logic singleton's template path,
 // mirroring `AccessRegistry`'s two-caller policy.
@@ -71,7 +70,7 @@ export default class ParcelRegistry extends ParcelRegistryBase {
    *  The data-driven group resolution moved here from `AccessRegistry`. */
   private cachedGroupRefs = new Map<string, GroupRef>();
 
-  public override async postRegister(_context?: unknown): Promise<void> {
+  public override async onCreate(_context?: unknown): Promise<void> {
     await this.rebuildIndex();
   }
 
@@ -138,7 +137,7 @@ export default class ParcelRegistry extends ParcelRegistryBase {
    * answers `wild`.
    *
    * A consuming thing (a lamp, later a fridge) resolves this ONCE at its
-   * `postRegister` and asks the energy pack's catalogue whether the feeder
+   * `onCreate` and asks the energy pack's catalogue whether the feeder
    * node is energized — it never walks the interior. A read; no mutation.
    */
   @CallSecurity(ParcelApiCallers)

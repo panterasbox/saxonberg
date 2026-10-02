@@ -16,7 +16,7 @@
  *
  * Composition — the member-side mixins plus coordinates and the usual
  * description/exit surface:
- *   WarrenMember → Lounge(Mixin) → Visible → Detailed → Cartesian → Exitable → PostRegistration
+ *   WarrenMember → Lounge(Mixin) → Visible → Detailed → Cartesian → Exitable
  *
  * Still no `SingletonMixin`: repeated clones are the whole point.
  */
@@ -33,11 +33,6 @@ import type { FieldMeta } from '../../../lib/mixin';
 // `CartesianLocation` does), so every room class built directly on
 // `Location` has to remember. These rows were authoring `primaryKeyword`
 // into a void until 2026-09-11; `lint:presentation` clause (d) found it.
-// ⭐ `PostRegistrationMixin` is NOT composed here: it moved down into
-// `Location`'s own base stack (the ground build), because the mixin's
-// default `postRegister` is a non-chaining no-op — a second composition
-// above the base would SWALLOW `Location.postRegister`, and with it the
-// room's floor.
 const LoungeBase =
   ExitableMixin(
     CartesianCoordinatesMixin(
@@ -52,10 +47,10 @@ export default class Lounge extends LoungeBase {
    * Wire any inverse exit pointers (host fixtures are imperatively
    * installed by the Warren, so there is rarely pending work). The
    * instruction-field `warren` self-registration has already run via the
-   * Hydrator's Phase 2 (`applyWarren`) by the time this hook fires.
+   * applier's Phase 2 (`applyWarren`) by the time this hook fires.
    */
-  public override async postRegister(context?: unknown): Promise<void> {
-    await super.postRegister(context);
+  public override async onCreate(context?: unknown): Promise<void> {
+    await super.onCreate(context);
     this.verifyOutboundExits();
   }
 

@@ -41,9 +41,9 @@ import type { CredentialWallet } from "@saxonberg/server/mud/lib/credential/Cred
 import type { FastTravel } from "../lib/FastTravel";
 import { makeStuff } from "@saxonberg/server/mud/lib/security/__tests__/test-setup";
 import { installStore, type Doc } from "@saxonberg/server/mud/lib/persistence/__tests__/backend-store";
-import PersistentHydrator from "@saxonberg/server/mud/platform/idea/persistence/PersistentHydrator";
+import TemplateApplier from "@saxonberg/server/mud/platform/idea/TemplateApplier";
 
-const PH = PersistentHydrator.templatePath;
+const PH = TemplateApplier.templatePath;
 const D_ROOM = "/world/test/d-room";
 const R_ROOM = "/world/test/r-room";
 const OFF_ROOM = "/world/test/off-room";
@@ -65,13 +65,12 @@ class Traveller extends AetherMixin(
 
 const docs: Doc[] = [
   { path: PH, class: PH, data: {} },
-  { path: D_ROOM, class: "/platform/location/VoidLocation", hydratorClass: PH, data: { shortDescription: "the departure hall" } },
-  { path: R_ROOM, class: "/platform/location/VoidLocation", hydratorClass: PH, data: { shortDescription: "the arrival hall" } },
-  { path: OFF_ROOM, class: "/platform/location/VoidLocation", hydratorClass: PH, data: { shortDescription: "the shuttered hall" } },
+  { path: D_ROOM, class: "/platform/location/VoidLocation", data: { shortDescription: "the departure hall" } },
+  { path: R_ROOM, class: "/platform/location/VoidLocation", data: { shortDescription: "the arrival hall" } },
+  { path: OFF_ROOM, class: "/platform/location/VoidLocation", data: { shortDescription: "the shuttered hall" } },
   {
     path: DEPART,
     class: "/system/tpa/thing/TpaTerminal",
-    hydratorClass: PH,
     data: {
       seatIn: D_ROOM,
       shortDescription: "a Teleport Authority terminal",
@@ -84,7 +83,6 @@ const docs: Doc[] = [
   {
     path: OFF_GATE,
     class: "/system/tpa/thing/TpaTerminal",
-    hydratorClass: PH,
     data: {
       seatIn: OFF_ROOM,
       shortDescription: "a Teleport Authority terminal",
@@ -97,7 +95,6 @@ const docs: Doc[] = [
   {
     path: ARRIVE,
     class: "/system/tpa/thing/TpaTerminal",
-    hydratorClass: PH,
     data: {
       seatIn: R_ROOM,
       shortDescription: "a Teleport Authority terminal",

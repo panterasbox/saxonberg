@@ -9,7 +9,6 @@
 # it holds); stiffer and far less springy than wool, and a poorer
 # insulator because the weave is open rather than lofted.
 class: /platform/idea/material/Material
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: jute
   keywords: [sacking, jute, hessian, burlap]

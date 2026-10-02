@@ -4,7 +4,6 @@
 # answer with a well, a pond, a stream or roof catchment, and the
 # archetype would be equally satisfied.
 class: /platform/thing/Thing
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: stone water trough
   keywords: [trough, stone, water]

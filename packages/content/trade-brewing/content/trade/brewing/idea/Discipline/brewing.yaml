@@ -12,7 +12,6 @@
 # answers "is this a field of study at all?"; the divergence test answers
 # "is it its own branch?"
 class: /platform/idea/Discipline
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   key: brewing
   channel: skill

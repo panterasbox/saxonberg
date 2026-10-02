@@ -34,7 +34,6 @@ import type Exit from '@saxonberg/server/mud/lib/boundary/Exit';
 import { InnerWarren } from '@saxonberg/server/mud/lib/location/InnerWarren';
 import { PersistableMixin } from '@saxonberg/server/mud/lib/persistence/Persistable';
 import { WarrenMemberMixin } from '@saxonberg/server/mud/lib/location/WarrenMember';
-import { PostRegistrationMixin } from '@saxonberg/server/mud/lib/stuff/PostRegistration';
 import { ContainerMixin } from '@saxonberg/server/mud/lib/spatial/Container';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { AppApi } from '@saxonberg/server/mud/api/app';
@@ -93,7 +92,7 @@ const GAME_DAY_SECONDS = 86_400;
 
 const ProgrammeBase = PersistableMixin(
   WarrenMemberMixin(
-    PostRegistrationMixin(ContainerMixin(InnerWarren)),
+    ContainerMixin(InnerWarren),
   ),
 );
 

@@ -111,7 +111,7 @@ export interface Stales {
   /** Set it outright — the mint, and the test seam. */
   setStaleness(value: number): void;
 
-  // Public so the Hydrator can reflect into them.
+  // Public so the applier can reflect into them.
   _staleness: number;
   stalingClockStamp: number;
   /** Authored per row: the five numbers that shape the curve. */
@@ -193,6 +193,12 @@ export function StalingMixin<TBase extends MixinConstructor<Stuff>>(
     /**
      * ⚠ No far-past guard and no linkdead freeze. Bread stales while you
      * are away, and that is the point rather than an oversight.
+     *
+     * @samples Staling's time constant is MINUTES-to-hours while its
+     *   driver (loaf temperature) moves over DAYS, so sampling the current
+     *   temperature over the gap is exact to well within the noise — the
+     *   τ-ratio justification (`uncertainty.md` answer 3). It does not need
+     *   the trajectory integral the spoilage clock does.
      */
     public reconcileStaling(): void {
       if (this._reconcilingStaling) return;

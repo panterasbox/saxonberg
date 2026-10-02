@@ -4,8 +4,8 @@
  * Hosting a comms update onto a giver surfaces its `self`-bucket verbs
  * (dm / reply / broadcast / chat) in `getAffordances()` with the update
  * as the affording source; unhosting retires them. Exercises the
- * no-`postRegister` construction path (the lazy `_ensureSelfEntry`
- * safety net) — affordances are read without ever calling postRegister.
+ * no-`onCreate` construction path (the lazy `_ensureSelfEntry`
+ * safety net) — affordances are read without ever calling onCreate.
  */
 
 import "../../../../test-bootstrap";

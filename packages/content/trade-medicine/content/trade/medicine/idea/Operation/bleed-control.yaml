@@ -1,5 +1,4 @@
 class: /platform/idea/Operation
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   key: bleed-control
   label: bleed control

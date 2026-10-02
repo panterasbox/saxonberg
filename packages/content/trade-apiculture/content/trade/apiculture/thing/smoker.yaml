@@ -9,7 +9,6 @@
 # ⚠ No verb, no capability word. It is lit with the platform's `ignite`
 # and it burns out when the fuel does, exactly as a lantern does.
 class: /trade/apiculture/thing/Smoker
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   keywords: [smoker, bellows, tin, smoke]
   shortDescription: bee smoker

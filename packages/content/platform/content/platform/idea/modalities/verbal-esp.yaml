@@ -3,7 +3,6 @@
 # network routing on top. v1 signalAt is inherited null;
 # AetherMixin.dm handles delivery.
 class: /platform/idea/modalities/Modality
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: verbal-esp
   family: field

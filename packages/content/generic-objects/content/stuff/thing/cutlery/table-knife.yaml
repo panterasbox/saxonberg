@@ -8,7 +8,6 @@
 # it is claimed at a meal, dirtied, and washed. Give it a blade profile and
 # every dinner service becomes an armoury.
 class: /platform/thing/Cutlery
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: table knife
   keywords: [table-knife, knife, utensil, table]

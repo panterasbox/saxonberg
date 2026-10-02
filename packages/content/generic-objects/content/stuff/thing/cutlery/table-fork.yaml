@@ -3,7 +3,6 @@
 # a second near-copy buys the roster nothing the first has not already
 # proved. When forks matter enough to fight over, they get their own recipe.
 class: /platform/thing/Cutlery
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: table fork
   keywords: [fork, table-fork, utensil, table]

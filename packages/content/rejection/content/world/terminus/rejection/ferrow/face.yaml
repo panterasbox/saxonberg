@@ -13,7 +13,6 @@
 # be able to say slate and quartz and malachite. The idea transfers; the
 # document kind does not.
 class: /trade/mining/location/MineRoom
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: working face
   keywords: [face, working, heading]

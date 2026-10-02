@@ -76,7 +76,6 @@ describe('the install record', () => {
     expect(gin.hash).toMatch(/^sha256:[0-9a-f]{64}$/);
     expect(JSON.parse(gin.body)).toEqual({
       class: MATERIAL,
-      hydratorClass: HYDRATOR,
       data: { name: 'gin' },
     });
     const bank = rec.rows['/name-banks/common']!;
@@ -129,7 +128,7 @@ describe('the install record', () => {
     expect(recordOf('p')!.status).toBe('failed');
     writeFileSync(
       join(root, 'content', 'stuff/idea/material/x.yaml'),
-      `class: ${MATERIAL}\nhydratorClass: ${HYDRATOR}\ndata: { name: x }\n`,
+      `class: ${MATERIAL}\ndata: { name: x }\n`,
     );
     const [r] = await PackApi.install([root]);
     expect(r!.failure).toBeNull();
@@ -146,7 +145,7 @@ describe('the install record', () => {
     mkdirSync(dirname(file), { recursive: true });
     writeFileSync(
       file,
-      `hydratorClass: ${HYDRATOR}\ndata:\n  b:\n    d: 3\n    c: 2\n  a: 1\nclass: ${MATERIAL}\n`,
+      `data:\n  b:\n    d: 3\n    c: 2\n  a: 1\nclass: ${MATERIAL}\n`,
     );
     const [r2] = await PackApi.install([root]);
     expect(r2!.updated).toEqual([]);
@@ -154,7 +153,7 @@ describe('the install record', () => {
 
     writeFileSync(
       file,
-      `class: ${MATERIAL}\nhydratorClass: ${HYDRATOR}\ndata: { a: 1, b: { c: 2, d: 4 } }\n`,
+      `class: ${MATERIAL}\ndata: { a: 1, b: { c: 2, d: 4 } }\n`,
     );
     const [r3] = await PackApi.install([root]);
     expect(r3!.updated).toEqual(['/stuff/idea/material/spirit/gin']);

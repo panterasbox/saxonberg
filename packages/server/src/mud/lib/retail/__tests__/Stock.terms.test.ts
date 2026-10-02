@@ -69,7 +69,7 @@ beforeEach(async () => {
   settings = { "retail.stockingElasticity": "0.5", "retail.termsMargin": "0.25" };
   vi.spyOn(AppApi, "setting").mockImplementation(((key: string) => settings[key] ?? "") as never);
   const reg = makeStuffAtPath(() => new ChattelRegistry(), "/platform/idea/ChattelRegistry");
-  await reg.postRegister();
+  await reg.onCreate();
   room = makeStuff(() => new Location());
   counter = makeStuffAtPath(() => {
     const s = new Stock();

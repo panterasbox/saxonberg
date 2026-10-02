@@ -7,7 +7,6 @@
 # front-loaded: you commit to a colour family in the first bath, before
 # you can see anything at all.
 class: /platform/idea/material/Material
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: alum
   keywords: [alum]

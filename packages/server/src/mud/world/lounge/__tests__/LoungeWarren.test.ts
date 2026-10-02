@@ -17,7 +17,7 @@ import type { Stuff } from '../../../lib/stuff/Stuff';
 import type { Container } from '../../../lib/spatial/Container';
 import { StuffApi } from '../../../api/stuff';
 import { ContainmentApi } from '../../../api/containment';
-import PersistentHydrator from '../../../platform/idea/persistence/PersistentHydrator';
+import TemplateApplier from '../../../platform/idea/TemplateApplier';
 import {
   PersistenceManager,
   Collections,
@@ -31,11 +31,10 @@ type Doc = Record<string, unknown> & {
   _id?: string;
   path: string;
   class: string;
-  hydratorClass?: string;
   data: Record<string, unknown>;
 };
 
-const PH = PersistentHydrator.templatePath;
+const PH = TemplateApplier.templatePath;
 
 function installLoungeStore(): Doc[] {
   const store: Doc[] = [
@@ -46,13 +45,11 @@ function installLoungeStore(): Doc[] {
     {
       path: LoungeWarren.LOUNGE_TEMPLATE,
       class: '/world/lounge/location/Lounge',
-      hydratorClass: PH,
       data: { warren: LoungeWarren.WARREN_PATH, shortDescription: 'the lounge' },
     },
     {
       path: LoungeWarren.BAR_PATH,
       class: '/world/lounge/location/Bar',
-      hydratorClass: PH,
       data: { shortDescription: "Dave's Bar" },
     },
   ].map((d, i) => ({ _id: String(i + 1), ...d }));

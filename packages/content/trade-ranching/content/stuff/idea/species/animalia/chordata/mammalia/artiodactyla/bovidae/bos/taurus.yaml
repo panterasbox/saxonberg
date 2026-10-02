@@ -12,7 +12,6 @@
 # rather than a date, and the calendar teaches by CONTRAST between the
 # two species rather than by a rule about either.
 class: /platform/idea/species/Species
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   binomial: Bos taurus
   commonNames: ["cow", "cattle", "heifer", "bull", "calf", "ox", "beast"]

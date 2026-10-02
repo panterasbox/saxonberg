@@ -40,7 +40,7 @@ const ChatActorCallers = SecurityPolicies.AnyOf(
  * `StuffApi.singletonSync`. Any module that grabs this singleton and
  * calls a method other than through the Api gets `SecurityError`.
  *
- * Stateless by construction (no `PostRegistrationMixin`). Every public
+ * Stateless by construction (no `onCreate` override). Every public
  * method resolves the `ChannelCatalogue` through the module-private
  * `requireCatalogue` free function (off-class, ungated, un-callable from
  * outside) which holds the memoised catalogue ref — so there are no

@@ -6,7 +6,6 @@
 # midden were missing, the yard would still work and the archetype would
 # simply say so.
 class: /platform/location/SingletonCartesianLocation
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: university farmyard
   keywords: [farmyard, yard, farm, university]

@@ -1573,7 +1573,7 @@ export class CommandApi {
   /**
    * Collect each hosted update's `self`-bucket command definitions for
    * a host, paired with the update as the affording source. Used by
-   * `CommandGiverMixin`'s self-seeding (both `postRegister` and the
+   * `CommandGiverMixin`'s self-seeding (both `onCreate` and the
    * lazy `_ensureSelfEntry` safety net) so a host that gained updates
    * outside a delta (e.g. a test that hosts then reads affordances)
    * still surfaces their verbs. Returns `[]` for a non-host.

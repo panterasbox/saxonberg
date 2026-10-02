@@ -3,7 +3,6 @@
 # path, second supplier). Unsold cakes stand where they were left —
 # the ambient-burden rule, never a silent vanish.
 class: /platform/thing/Receptacle
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: cake of pomace
   keywords: [pomace, cake, marc, skins]

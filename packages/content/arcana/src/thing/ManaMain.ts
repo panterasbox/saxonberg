@@ -25,14 +25,11 @@ import { ReservedMixin } from '@saxonberg/server/mud/lib/reserve';
 import { ChargedMixin } from '@saxonberg/server/mud/lib/magic/Charged';
 import { FixtureMixin } from '@saxonberg/server/mud/lib/stuff/Fixture';
 import { SingletonMixin } from '@saxonberg/server/mud/lib/stuff/Singleton';
-import { PostRegistrationMixin } from '@saxonberg/server/mud/lib/stuff/PostRegistration';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 import type { SupplyState } from '@saxonberg/server/mud/lib/supply/SupplyState';
 
 const ManaMainBase = SingletonMixin(
-  PostRegistrationMixin(
-    FixtureMixin(ChargedMixin(ReservedMixin(Thing))),
-  ),
+  FixtureMixin(ChargedMixin(ReservedMixin(Thing))),
 );
 
 export default class ManaMain extends ManaMainBase {
@@ -87,7 +84,7 @@ export default class ManaMain extends ManaMainBase {
     return null;
   }
 
-  public override async postRegister(_context?: unknown): Promise<void> {
+  public override async onCreate(_context?: unknown): Promise<void> {
     await this.seatSelf();
     this.installChargeReserve();
   }

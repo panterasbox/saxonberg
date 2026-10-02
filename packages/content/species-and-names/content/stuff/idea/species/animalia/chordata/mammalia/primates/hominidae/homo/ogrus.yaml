@@ -3,7 +3,6 @@
 # troll. NPC-first. The "dumb brute" framing is persona, played mundane —
 # not a species law. See docs/slates/builds/species-expansion-slate.md.
 class: /platform/idea/species/Species
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   illustration: species/ogrus.png
   binomial: Homo ogrus

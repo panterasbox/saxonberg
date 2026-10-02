@@ -1,6 +1,5 @@
 # ⭐ The long game, and the reason land you farmed well is worth more.
 class: /platform/idea/HelpConcept
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   key: organic-matter
   title: Organic matter

@@ -25,13 +25,12 @@ import { makeStuff } from '../../lib/security/__tests__/test-setup';
 import type { Stuff } from '../../lib/stuff/Stuff';
 
 const MATERIAL = '/platform/idea/material/Material';
-const HYDRATOR = '/platform/idea/persistence/PersistentHydrator';
+const HYDRATOR = '/platform/idea/TemplateApplier';
 
 interface Row extends Record<string, unknown> {
   _id?: string;
   path: string;
   class: string;
-  hydratorClass?: string;
   data: Record<string, unknown>;
   sourcePack?: string;
 }
@@ -89,7 +88,7 @@ function writePack(id: string, file: string, data: Record<string, unknown>): str
   mkdirSync(dirname(f), { recursive: true });
   writeFileSync(
     f,
-    YAML.stringify({ class: MATERIAL, hydratorClass: HYDRATOR, data }),
+    YAML.stringify({ class: MATERIAL, data }),
   );
   return root;
 }
@@ -118,7 +117,6 @@ describe('PackApi.sync', () => {
       join(root, 'content/stuff/idea/material/spirit/gin.yaml'),
       YAML.stringify({
         class: MATERIAL,
-        hydratorClass: HYDRATOR,
         data: { name: 'gin', appearance: 'cloudy' },
       }),
     );
@@ -133,7 +131,7 @@ describe('PackApi.sync', () => {
     const result = await PackApi.sync('p', root);
     expect(result.updated).toEqual(['/stuff/idea/material/spirit/gin']);
     expect(restore).toHaveBeenCalledWith(liveGin);
-    expect(result.rehydrated).toBe(1);
+    expect(result.reapplied).toBe(1);
   });
 });
 

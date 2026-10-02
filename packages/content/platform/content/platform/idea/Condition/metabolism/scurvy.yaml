@@ -22,7 +22,6 @@
 # no new arm, no new spawn path. Progression is weekly: the signs
 # accumulate slowly.
 class: /platform/idea/Condition
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: scurvy
   signature: []

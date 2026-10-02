@@ -7,6 +7,5 @@
 # Biome at `/stuff/idea/biome/universe`, which other biomes extend via
 # their `extends` ref.
 class: /platform/idea/FolderZone
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: biome

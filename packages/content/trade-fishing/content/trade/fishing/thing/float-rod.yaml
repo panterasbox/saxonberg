@@ -5,7 +5,6 @@
 # rig for the shoal, not for the sturgeon. The small hook takes small
 # fish a bigger one would miss.
 class: /trade/fishing/thing/Rod
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   keywords: [rod, float-rod, float, quill, tackle]
   primaryKeyword: float-rod

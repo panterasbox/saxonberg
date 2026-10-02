@@ -2,7 +2,6 @@
 # (low hardness — an edge bites it) but tough for its softness (it
 # spreads and absorbs a blow). The material a hide jerkin is cut from.
 class: /platform/idea/material/Material
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: leather
   keywords: [hide, leather]

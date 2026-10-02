@@ -649,7 +649,7 @@ export abstract class Stuff {
     // one `unwrap` of a proxy-of-a-proxy yields the INNER PROXY — which
     // carries no private slot at all, so reading it throws `Cannot read
     // private member`. That is not a hypothetical: it turned a
-    // deliberate `postRegister` failure into the wrong error on the
+    // deliberate `onCreate` failure into the wrong error on the
     // unregister path. The slot check is the terminator, so this stays
     // correct however many wrappers there are.
     let raw: Stuff = stuff;
@@ -1275,6 +1275,32 @@ export abstract class Stuff {
    *   so mixin layers run.
    */
   public onDestruct(): void {}
+
+  /**
+   * Terminal `onCreate` no-op — the twin of `onDestruct` at the other
+   * end of a Stuff's life. Every Stuff is registered, so the hook
+   * bottoms out here and nothing composes a marker mixin to get it
+   * (`PostRegistrationMixin` retired 2026-10-01; the hook was called
+   * `onCreate`). A layer that overrides chains with a plain
+   * `await super.onCreate(context)` — no cast-to-optional-callable
+   * dance, and no ordering hazard: there is no non-chaining default
+   * in the middle of the chain to shadow the layers inside it.
+   *
+   * The hook receives the caller-supplied `context` from
+   * `StuffApi.clone(path, context)` / `StuffApi.create(factory, context)`.
+   * Subclasses narrow `context` locally to their concrete type — see
+   * `Avatar.AvatarInitContext` — rather than threading a generic through.
+   *
+   * @hook Invoked once by `StuffApi.create`/`clone` after the instance
+   *   is registered (so self-resolving lookups during setup see it),
+   *   after the template applier has applied the row's `data` and after
+   *   every eager hydration source has completed, inside the synthetic
+   *   constructor frame. **Witness** (async allowed) — runs
+   *   class-specific async setup; a throw unregisters the half-built
+   *   object. Override and **chain `super.onCreate(context)`** so mixin
+   *   layers initialize. Default is a no-op.
+   */
+  public onCreate(_context?: unknown): Promise<void> | void {}
 
   /**
    * Consent seam for the residency (self-eviction) sweep. The sweep

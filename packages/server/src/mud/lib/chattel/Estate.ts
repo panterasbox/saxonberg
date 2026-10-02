@@ -68,7 +68,7 @@ import {
   type EstateSlice,
   type MixinSlice,
   type CaptureContext,
-  type RestoreContext,
+  type HydrateContext,
 } from "../persistence/PersistenceSlice";
 
 /**
@@ -78,7 +78,7 @@ import {
  *   - the **persistence logic singleton**, when the capture flush pushes a
  *     skipped good into an owner's estate;
  *   - the **host itself** (`SelfOnly`), because the spine restores every
- *     record *as its owning principal* — so during `restoreSlice` the
+ *     record *as its owning principal* — so during `hydrateSlice` the
  *     caller IS the host whose estate is being rebuilt, not the Logic that
  *     started the walk.
  *
@@ -143,7 +143,7 @@ export function EstateMixin<TBase extends MixinConstructor<Stuff>>(
      * ⭐ Epoch ms the estate PASSED (economic bootstrap D17), or 0. Set by
      * the escheat, cleared by the reclaim a return runs; the one flag that
      * tells a login "the treasury holds something of yours". Public for
-     * the Hydrator; others read `getEscheatedAt`.
+     * the applier; others read `getEscheatedAt`.
      */
     public escheatedAt: number = 0;
 
@@ -173,7 +173,7 @@ export function EstateMixin<TBase extends MixinConstructor<Stuff>>(
 
 
     /**
-     * chattelId → entry. Transient (rebuilt by `restoreSlice`), because the
+     * chattelId → entry. Transient (rebuilt by `hydrateSlice`), because the
      * durable copy IS the slice. A `Map` rather than an array so the
      * spine's flush is an upsert.
      */
@@ -272,10 +272,10 @@ export function EstateMixin<TBase extends MixinConstructor<Stuff>>(
      * anything in the world from here — `storage` is deliberately nothing,
      * and a room identity is that room's job (D3/D4).
      */
-    static async restoreSlice(
+    static async hydrateSlice(
       host: Stuff,
       slice: MixinSlice,
-      ctx: RestoreContext,
+      ctx: HydrateContext,
     ): Promise<void> {
       if (!("entries" in slice)) return;
       const self = host as unknown as Estate;

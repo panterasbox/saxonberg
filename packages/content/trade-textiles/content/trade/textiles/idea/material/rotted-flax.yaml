@@ -9,7 +9,6 @@
 # ⭐ It rides `MaturationProfile.turnedMaterial`, exactly as vinegar does
 # off an open finished ale: the same shipped mechanism, no new one.
 class: /platform/idea/material/Material
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: rotted flax
   keywords: [flax, rotted-flax, rot, slime, ruin, rotted]

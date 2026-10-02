@@ -13,7 +13,6 @@
 # Earned by taking readings and by running samples at a bench; the
 # difficulty is the material's, not the instrument's.
 class: /platform/idea/Discipline
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   key: chemistry
   channel: skill

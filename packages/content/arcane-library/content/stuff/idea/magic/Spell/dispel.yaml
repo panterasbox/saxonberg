@@ -3,7 +3,6 @@
 # (releasing any bound emitter), structurally unable to touch a
 # laceration or a fever. Arcana bottoms out in a real op (Relieve).
 class: /platform/idea/magic/Spell
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   spellId: dispel
   name: Dispel

@@ -22,7 +22,7 @@
  *
  * HMR-aware: reload of `api/scheduler.ts` only drops the cached
  * pointer in the Api; this Stuff's state survives. Reload of THIS file
- * re-clones the Registry (state resets, `postRegister` re-runs
+ * re-clones the Registry (state resets, `onCreate` re-runs
  * idempotently) per HotReloadApi's pattern.
  */
 
@@ -339,10 +339,11 @@ export default class SchedulerRegistry extends Idea {
   public cancelByPredicate(
     actor: Stuff & Engaged,
     pred: (e: Engagement) => boolean,
+    reason: AbortReason = 'cancelled',
   ): void {
     const snapshot = actor.getEngagements();
     for (const e of snapshot) {
-      if (pred(e)) this.terminate(e, 'cancelled');
+      if (pred(e)) this.terminate(e, reason);
     }
   }
 

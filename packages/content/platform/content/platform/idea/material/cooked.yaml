@@ -8,7 +8,6 @@
 # material rows are the retired anti-pattern (the fixed-vocabulary rule,
 # see /platform/idea/material/ConsumableMaterial).
 class: /platform/idea/material/ConsumableMaterial
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: cooked fare
   keywords: [cooked, food, fare, portion]

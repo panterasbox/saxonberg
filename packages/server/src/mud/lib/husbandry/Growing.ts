@@ -334,7 +334,7 @@ export interface Growing {
    */
   getFruitSetCount(): number;
 
-  // Public so the Hydrator can reflect into them; in-class code reads them
+  // Public so the applier can reflect into them; in-class code reads them
   // directly. Not the inter-Stuff contract (that's the method surface).
   growthClockStamp: number;
   _vigor: number;

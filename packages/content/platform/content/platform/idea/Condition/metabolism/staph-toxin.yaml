@@ -10,7 +10,6 @@
 # `staph-aureus` pathogen row). Heat kills the population and leaves this
 # exactly where it was.
 class: /platform/idea/Condition
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: staph toxin
   # Violent, fast, and short — the fluid goes out of you.

@@ -132,7 +132,18 @@ export interface TapTake {
 }
 
 /** The public surface a producing animal offers. */
-export interface Producing {
+/**
+ * ⭐ **`Producing` IS `Tappable`** — `ProducingMixin` implements both
+ * halves by default (a cow, a hive and a sap tree get the whole act for
+ * free), so the interface says so rather than leaving every caller to
+ * assert it.
+ *
+ * ⚠ Without this `extends`, `MixinApi.isProducing()` narrowed to
+ * `Stuff & Producing` and each of the three call sites then wrote
+ * `as unknown as Stuff & Tappable` to get the half it already had — a
+ * cast standing in for a declaration. Found in the pre-merge sweep.
+ */
+export interface Producing extends Tappable {
   /** Reconcile every tap over elapsed game-time. Sync, read-triggered. */
   reconcileProduction(): void;
   /** The taps this animal's species authors. */

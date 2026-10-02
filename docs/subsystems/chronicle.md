@@ -157,7 +157,7 @@ excludes.
 
 Char-gen is no longer the only source of claims. A `Cast` row carries a
 **dossier** (`archetype` · `prologue` · `competence` · `renown`) that
-`CastMixin` seeds at `postRegister` — the shipped `dispositions:`
+`CastMixin` seeds at `onCreate` — the shipped `dispositions:`
 precedent exactly: **idempotent, once**, skipped when any `claim` row
 already exists, so a re-clone, a reboot or a CMS go-live cannot mint a
 second history.

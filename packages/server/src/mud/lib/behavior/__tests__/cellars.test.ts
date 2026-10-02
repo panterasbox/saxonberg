@@ -172,7 +172,7 @@ describe('the cellars beat — rack, cork, consign, home', () => {
       () => new ChattelRegistry(),
       '/platform/idea/ChattelRegistry',
     );
-    await reg.postRegister();
+    await reg.onCreate();
     makeStuffAtPath(() => {
       const b = new BankCounter();
       b.setCorpoKey('goodkin');

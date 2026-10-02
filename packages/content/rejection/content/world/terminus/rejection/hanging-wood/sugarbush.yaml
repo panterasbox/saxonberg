@@ -14,7 +14,6 @@
 # kept for their sap and felling one would be the end of it. (A player
 # who wants timber walks fifty yards back to the ride.)
 class: /platform/location/SingletonCartesianLocation
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: sugarbush
   keywords: [sugarbush, bush, hollow, birch, maple, sugarhouse]

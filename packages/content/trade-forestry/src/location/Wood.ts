@@ -174,8 +174,8 @@ export default class Wood extends WoodBase {
    * for, and the sky edge learning where it is. `Persistable`'s driver
    * does nothing here — the establishing context is `singleton()`.
    */
-  public override async postRegister(context?: unknown): Promise<void> {
-    await super.postRegister(context);
+  public override async onCreate(context?: unknown): Promise<void> {
+    await super.onCreate(context);
     this.installWoodReserves();
     this.settleSoilPlacement();
   }

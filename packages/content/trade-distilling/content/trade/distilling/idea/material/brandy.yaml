@@ -1,6 +1,5 @@
 # Brandy — wine through the still: the grape lane's own spirit (W6).
 class: /platform/idea/material/ConsumableMaterial
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: brandy
   keywords: [brandy]

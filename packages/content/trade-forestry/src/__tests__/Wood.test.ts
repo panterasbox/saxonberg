@@ -28,7 +28,7 @@ import { Collections } from '@saxonberg/server/mud/lib/persistence/Collections';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import { Document } from '@saxonberg/server/mud/lib/persistence/Document';
 import { SOIL_MOISTURE_RESERVE_KEY, SOIL_NITROGEN_RESERVE_KEY } from '@saxonberg/server/mud/lib/husbandry/Soil';
-import PersistentHydrator from '@saxonberg/server/mud/platform/idea/persistence/PersistentHydrator';
+import TemplateApplier from '@saxonberg/server/mud/platform/idea/TemplateApplier';
 import { makeStuffAtPath } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
 import {
   installV1QuantityMarshallers,
@@ -78,7 +78,7 @@ describe('Wood — the stack', () => {
 
   it('stands itself up at registration: reserves from its area, idempotently', async () => {
     const w = makeStuffAtPath(newWood, ROOM);
-    await w.postRegister();
+    await w.onCreate();
     expect(w.hasReserve(SOIL_MOISTURE_RESERVE_KEY)).toBe(true);
     expect(w.getReserve(SOIL_MOISTURE_RESERVE_KEY)!.capacity.rawValue()).toBe(4500);
     expect(w.getReserve(SOIL_MOISTURE_RESERVE_KEY)!.current.rawValue()).toBe(2250);
@@ -121,13 +121,13 @@ describe('Wood — ⭐ StuffApi.singleton is its establishing context', () => {
     });
     vi.spyOn(PersistApi, 'delete').mockImplementation(async () => undefined);
     vi.spyOn(ParcelApi, 'ownerOf').mockResolvedValue({ kind: 'group', name: 'rejection' });
-    makeStuffAtPath(() => new PersistentHydrator(), PersistentHydrator.templatePath);
+    makeStuffAtPath(() => new TemplateApplier(), TemplateApplier.templatePath);
     // `singleton()` clones the row; here the "row" is the factory, and
-    // its postRegister stands the ground up as the real cascade would.
+    // its onCreate stands the ground up as the real cascade would.
     vi.spyOn(StuffApi, 'clone').mockImplementation((async (path: string) => {
       if (path !== ROOM) throw new Error(`no template ${path}`);
       const w = makeStuffAtPath(newWood, path);
-      await w.postRegister();
+      await w.onCreate();
       return w;
     }) as unknown as typeof StuffApi.clone);
   });

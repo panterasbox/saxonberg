@@ -29,14 +29,13 @@
  *
  * Every read the shore needs is async (the catalogue, the registry) and
  * an augmenter is sync, so the shore keeps a memo refreshed
- * fire-and-forget at `postRegister` and on every render once a weather
+ * fire-and-forget at `onCreate` and on every render once a weather
  * segment old — the `GristMill` shape. A shore asked before its first
  * refresh lands says *the water is hard to read yet*, which reads as
  * "not yet", never as a lie.
  */
 
 import Thing from '@saxonberg/server/mud/platform/thing/Thing';
-import { PostRegistrationMixin } from '@saxonberg/server/mud/lib/stuff/PostRegistration';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { MarkupAugmenter } from '@saxonberg/server/mud/api/mml';
@@ -72,7 +71,7 @@ interface ShoreMemo {
   atS: number;
 }
 
-const ShoreBase = PostRegistrationMixin(Thing);
+const ShoreBase = Thing;
 
 export default class Shore extends ShoreBase {
   static fieldMeta: FieldMeta = {
@@ -97,7 +96,7 @@ export default class Shore extends ShoreBase {
   }
 
   /** A shore is part of the bank; nobody carries one off. */
-  public override async postRegister(_context?: unknown): Promise<void> {
+  public override async onCreate(_context?: unknown): Promise<void> {
     this.fixedInPlace = true;
     void this.refresh();
   }

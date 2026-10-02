@@ -10,7 +10,7 @@
  * where the bare-string toxicity finally threw.
  *
  * This is the guard the MR lacked: it runs the SAME
- * `PersistentHydrator.hydrate` field-setter path the live clone pipeline
+ * `TemplateApplier.hydrate` field-setter path the live clone pipeline
  * runs, over each material row this MR introduces — so a malformed field
  * throws here, in the build's own suite, instead of in another pack's.
  */
@@ -21,7 +21,7 @@ import { fileURLToPath } from 'url';
 import { join } from 'path';
 import YAML from 'yaml';
 import Material from '../Material';
-import PersistentHydrator from '../../../platform/idea/persistence/PersistentHydrator';
+import TemplateApplier from '../../../platform/idea/TemplateApplier';
 import { QuantityMarshaller } from '../../../platform/idea/persistence/QuantityMarshaller';
 import type { Unit } from '../../quantity';
 import {
@@ -72,8 +72,8 @@ function rowData(rel: string): Record<string, unknown> {
 
 async function hydrate(rel: string): Promise<Material> {
   const material = makeStuff(() => new Material());
-  const hydrator = makeStuff(() => new PersistentHydrator());
-  await hydrator.hydrate(material as never, rowData(rel));
+  const hydrator = makeStuff(() => new TemplateApplier());
+  await hydrator.apply(material as never, rowData(rel), { mode: 'mint' });
   return material;
 }
 

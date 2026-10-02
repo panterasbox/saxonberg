@@ -3,7 +3,6 @@
 # strain keeps. The cold band is a PLACE, never a rule (the husbandry
 # clock doctrine); a working cellar authors its air (P11).
 class: /platform/location/SingletonCartesianLocation
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   # ⚠ `coords:` is the MEMBERSHIP operation — `setCoords` is the only way
   # an authored row joins a zone. ⭐ This room arrived with the

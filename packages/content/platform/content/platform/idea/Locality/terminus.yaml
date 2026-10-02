@@ -6,11 +6,10 @@
 # Declares the Realm of Terminus's jurisdiction over the whole tree
 # (consent-by-construction: this seed is landowner-authored content).
 # Homed under `seeds/obj/address/` (the narnia precedent) so
-# AddressRegistry.postRegister eagerly clones + warms its prefix at boot —
+# AddressRegistry.onCreate eagerly clones + warms its prefix at boot —
 # a domain-dir seed would never register and the board would fall back to
 # "a Teleport Authority terminal". templatePath ≠ claimed address.
 class: /platform/idea/Locality
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: Terminus
   _address: terminus

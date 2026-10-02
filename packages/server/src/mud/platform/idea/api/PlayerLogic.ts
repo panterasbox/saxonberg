@@ -97,7 +97,7 @@ const PlayerApiCallers = SecurityPolicies.AnyOf(
  * dispatch on a Stuff host runs through the call-security proxy and
  * `#`-private slots are unreachable through it. The avatar registry is a
  * runtime index keyed by playerId, so per-process instance state is the
- * right home (no `PostRegistrationMixin`).
+ * right home (no `onCreate` override).
  *
  * Guts-variant gate (`AnyOf(FromModule, SelfOnly)`): `loadAvatarsForUser`
  * makes an intra-singleton `this.findAvatarByPlayerId(...)` self-call, so
@@ -489,7 +489,7 @@ export class PlayerLogic extends ApiLogic {
   /**
    * Stand an ABSENT member's avatar up for the estate's act — the login
    * path's clone (the shared seed, the identity minted, the snapshot
-   * restored at `postRegister`) with no connection behind it. The caller
+   * restored at `onCreate`) with no connection behind it. The caller
    * destructs it when the act is done.
    */
   private async standUpForEstate(identityPath: string): Promise<Avatar | null> {
@@ -565,7 +565,7 @@ export class PlayerLogic extends ApiLogic {
    * (`/platform/agent/Avatar/<playerId>`) is MINTED on the identity
    * axis (D17 — no per-player `domain` row, ever): clone the SHARED
    * seed row with the identity via `asIdentityPath`;
-   * `Avatar.postRegister` materializes the snapshot over the seed
+   * `Avatar.onCreate` materializes the snapshot over the seed
    * defaults (a roster entry with no snapshot logs in on defaults and
    * the first capture creates one).
    */

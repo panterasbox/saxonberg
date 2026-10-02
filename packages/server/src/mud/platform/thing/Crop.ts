@@ -34,7 +34,7 @@ import type { FieldMeta } from "../../lib/mixin";
 /**
  * ⭐⭐ A crop is a **`Provision`** — harvested matter that spoils, cures,
  * carries the gauge and the mark. It was `CraftedMixin(DetailedMixin(
- * Thing))` while its rows authored `material:` — a key the Hydrator
+ * Thing))` while its rows authored `material:` — a key the applier
  * never wrote — so no crop had a material, none could be eaten, and
  * `lint:perishable` had nothing to read. The day the key was fixed the
  * gate said what a sack of carrots is: matter that rots, on a class that

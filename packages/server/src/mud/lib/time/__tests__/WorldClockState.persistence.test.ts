@@ -121,19 +121,19 @@ describe('WorldClockState persistence (AC3)', () => {
     expect(state.scale).toBe(3);
   });
 
-  it('postRegister restores the persisted anchor; shutdown() persists the snapshot', async () => {
+  it('onCreate restores the persisted anchor; shutdown() persists the snapshot', async () => {
     pm.setFindResult([
       { elapsedGameTimeS: 7200, scale: 6, lastShutdownRealMs: 1 },
     ]);
 
-    // The self-warming boot: the manifest clone's postRegister runs
+    // The self-warming boot: the manifest clone's onCreate runs
     // `this.boot()` (SelfOnly arm). The lazy test registry stands in
     // for the manifest clone.
     const registry = StuffApi.findByTemplatePath<WorldClockRegistry>(
       TemplatePaths.worldClockRegistry,
     )!;
     expect(registry).toBeTruthy();
-    await registry.postRegister();
+    await registry.onCreate();
     expect(WorldClockApi.getScale()).toBe(6);
     expect(WorldClockApi.getNow().rawValue()).toBe(7200);
 
@@ -147,7 +147,7 @@ describe('WorldClockState persistence (AC3)', () => {
 
   it('shutdown() is SystemRoot-gated and registry.boot() is caller-gated — denied under any caller frame', () => {
     // The allow paths (empty stack → null caller for shutdown; the
-    // SelfOnly postRegister arm for boot) are exercised above. Here:
+    // SelfOnly onCreate arm for boot) are exercised above. Here:
     // any in-world / scheduled / network context runs under a frame
     // with a non-null target, so it must be rejected — no one in-game
     // can re-anchor the clock or freeze world-time.

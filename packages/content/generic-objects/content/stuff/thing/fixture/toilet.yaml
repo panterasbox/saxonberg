@@ -11,7 +11,6 @@
 #
 # A fixture by encumbrance, like the pantry chest (the anvil rule).
 class: /platform/thing/Thing
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: toilet
   keywords: [toilet, lavatory, wc]

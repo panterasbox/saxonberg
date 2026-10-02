@@ -9,7 +9,7 @@
  * Not a persisted record. Every event prop is `transient: true` and the
  * `checkAccess` closures don't survive serialization, so there's
  * nothing meaningful to round-trip. Composition stops at
- * `PropertiedMixin(Idea)` plus `PostRegistrationMixin` for the
+ * `PropertiedMixin(Idea)`, with an `onCreate` override for the
  * one-shot setup.
  *
  * No emit/subscribe surface lives on this class — EventApi is the
@@ -24,13 +24,12 @@ import {
   type PropValue,
   type PropOperation,
 } from '../../lib/stuff/Propertied';
-import { PostRegistrationMixin } from '../../lib/stuff/PostRegistration';
 import { Events } from '../../lib/events';
 import { EventApi } from '../../api/event';
 import type { VetoResult } from '../../lib/errors';
 import type { EvictionContext } from '../../lib/stuff/Stuff';
 
-const EventRegistryBase = PostRegistrationMixin(PropertiedMixin(Idea));
+const EventRegistryBase = PropertiedMixin(Idea);
 
 export default class EventRegistry extends EventRegistryBase {
 
@@ -52,7 +51,7 @@ export default class EventRegistry extends EventRegistryBase {
    * frontloading just lets the well-known set carry tighter
    * per-event allowlists from the start.
    */
-  public override async postRegister(_context?: unknown): Promise<void> {
+  public override async onCreate(_context?: unknown): Promise<void> {
     for (const eventName of Object.values(Events)) {
       this.initProp(Property.of<PropValue>(eventName), {
         transient: true,

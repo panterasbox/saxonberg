@@ -18,7 +18,6 @@
 # floor. Which puts a library's product where it belongs — the CATALOG,
 # not the books.
 class: /system/arcana/thing/Spellbook
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: slim grey primer
   keywords: [primer, slim, grey]

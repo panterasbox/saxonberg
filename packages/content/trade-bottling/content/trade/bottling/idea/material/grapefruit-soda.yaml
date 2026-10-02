@@ -1,6 +1,5 @@
 # Grapefruit soda — bottling's. `carbonated`: a drink built on it fizzes (the derived payload carries the tag).
 class: /platform/idea/material/ConsumableMaterial
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: grapefruit soda
   keywords: [grapefruit, grapefruit-soda, soda]

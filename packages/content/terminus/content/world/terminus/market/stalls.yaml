@@ -15,7 +15,6 @@
 # the `stall` verb it affords to whoever stands here. A rented stall is a
 # plain `Stock` minted from `thing/stall` with the renter's identity.
 class: /world/terminus/market/thing/MarketStalls
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   # Against the ladder (stipend 20; a lantern 10, a bed 45): a week's
   # pitch on the square is an evening's wages — the lowest rung of

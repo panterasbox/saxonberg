@@ -6,7 +6,6 @@
 # you and that you paid for. A player filtering their feed for "what did
 # I accomplish" should not get an itemized bill.
 class: /platform/idea/Topic
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   topic: act.service
   family: "act"

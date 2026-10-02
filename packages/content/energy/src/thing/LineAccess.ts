@@ -18,7 +18,6 @@
 import Thing from '@saxonberg/server/mud/lib/stuff/Thing';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { MarkupAugmenter } from '@saxonberg/server/mud/api/mml';
-import { PostRegistrationMixin } from '@saxonberg/server/mud/lib/stuff/PostRegistration';
 import { AppApi } from '@saxonberg/server/mud/api/app';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { AppSettingKeys } from '@saxonberg/server/mud/lib/config/AppSettings';
@@ -38,7 +37,7 @@ const LINE_VERBS = [
   'system/energy/cmd/energy/splice.yaml',
 ];
 
-const LineAccessBase = PostRegistrationMixin(Thing);
+const LineAccessBase = Thing;
 
 export default class LineAccess
   extends LineAccessBase
@@ -67,8 +66,8 @@ export default class LineAccess
     this.fixedInPlace = true;
   }
 
-  public override async postRegister(context?: unknown): Promise<void> {
-    await super.postRegister(context);
+  public override async onCreate(context?: unknown): Promise<void> {
+    await super.onCreate(context);
     try {
       // Cache the ref only — do NOT warm the compile here. A pole is propped in
       // a feeder-node street the compile stands up; warming during that street's

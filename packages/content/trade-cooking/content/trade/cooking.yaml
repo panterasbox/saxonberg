@@ -29,7 +29,6 @@
 # zone covering the whole trade belongs anyway. `/world/terminus/rejection.yaml`
 # is the same shape: the region zone one level above its rooms.
 class: /platform/idea/location/CartesianZone
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: The Hearth Kitchens
   cellSize: 3.0

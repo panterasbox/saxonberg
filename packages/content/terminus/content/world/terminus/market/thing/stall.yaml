@@ -5,7 +5,6 @@
 # A brokerage counter that takes goods on supplier TERMS: no lines,
 # nothing cloned to par, every good on it somebody's until sold.
 class: /trade/shopkeeping/thing/Stock
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: rented stall
   keywords: [stall, counter, trestle]

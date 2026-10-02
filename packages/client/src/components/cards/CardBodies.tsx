@@ -214,6 +214,40 @@ const Overflow = styled.div`
   color: ${tokens.color.fgMuted};
 `;
 
+/**
+ * ⭐ Rung 1 affixes: how a contained item sits (`· in`) and whether it
+ * holds more (a trailing ▸). Both muted — they annotate the name, they
+ * are not controls. `holds` reads as "you can look into this".
+ */
+const PlacementAffix = styled.span`
+  margin-left: ${tokens.space.xs};
+  font-family: ${tokens.font.mono};
+  font-size: ${tokens.font.label};
+  color: ${tokens.color.fgMuted};
+`;
+
+const HoldsMark = styled.span`
+  margin-left: 4px;
+  color: ${tokens.color.fgMuted};
+`;
+
+/** The phrase a placement name reads as beside an item. */
+function placementPhrase(name: string): string {
+  switch (name) {
+    case "in":
+      return "in";
+    case "from":
+      return "hanging from";
+    case "on":
+      return "on";
+    default:
+      return name;
+  }
+}
+
+/** The group heading for a `placed` section when the server omits one. */
+const PLACED_FALLBACK_HEADING = "With it";
+
 const InlineLinks = styled.div`
   font-size: ${tokens.font.small};
   line-height: 1.5;
@@ -293,7 +327,8 @@ const Prose = styled.div`
  * thing.
  *
  * ⚠ Found by driving: the lounge's chip row read `PostRegistrationMixin
- * · ExitableMixin · DetailedMixin`, so two of the three visible slots
+ * · ExitableMixin · DetailedMixin` (that mixin retired 2026-10-01 — the
+ * hook is a terminal on `Stuff`), so two of the three visible slots
  * on a **teaching surface** were spent on machinery. The chips exist to
  * show a player the composition palette they would author with; a
  * lifecycle hook is not part of that palette.
@@ -304,7 +339,6 @@ const Prose = styled.div`
  * which is the client's; the overflow count still includes them.
  */
 const PLUMBING: ReadonlySet<string> = new Set([
-  "PostRegistration",
   "Propertied",
   "Persistable",
   "Forkable",
@@ -802,6 +836,13 @@ function HereList({
                 onPreview={preview}
                 onClick={() => onSendCommand(command)}
               />
+              {/* ⭐ Rung 1: how it sits, and whether it holds more. */}
+              {row.placement && (
+                <PlacementAffix>· {placementPhrase(row.placement)}</PlacementAffix>
+              )}
+              {row.holds && (
+                <HoldsMark title="holds more — click to look inside">▸</HoldsMark>
+              )}
             </div>
           );
         })}
@@ -809,6 +850,64 @@ function HereList({
       {hidden > 0 && (
         <Overflow data-testid="here-overflow">+{hidden} more</Overflow>
       )}
+    </>
+  );
+}
+
+/**
+ * ⭐ Rung 1: the items placed ON a host, grouped by member with the
+ * member's own heading (`On it` / `In it` / `Hanging from it`). Rendered
+ * beneath the detail card for a `Placing` host — the card half of the
+ * `look`-drill-in prose. NOT a recursive nesting view (Rung 2): one flat
+ * level, each item clickable to open its own card.
+ */
+function PlacedList({
+  record,
+  onSendCommand,
+  onCommandPreview,
+}: {
+  record: StuffDetailRecord | undefined;
+  onSendCommand: (text: string) => void;
+  onCommandPreview?: (command: string | null) => void;
+}): React.ReactElement | null {
+  const groups = record?.placed ?? [];
+  if (groups.length === 0) return null;
+  const preview = onCommandPreview ?? (() => undefined);
+  return (
+    <>
+      {groups.map((group) => {
+        const shown = group.items.slice(0, HERE_SHOWN);
+        const hidden = group.items.length - shown.length;
+        return (
+          <React.Fragment key={group.name}>
+            <Label>{group.heading || PLACED_FALLBACK_HEADING}</Label>
+            <Rows>
+              {shown.map((row) => {
+                const target = row.primaryKeyword ?? row.displayName;
+                const command = `look ${target}`;
+                return (
+                  <div key={row.stuffId}>
+                    <EntityName
+                      stuffId={row.stuffId}
+                      label={row.displayName}
+                      title={`Click to send: ${command}`}
+                      command={command}
+                      onPreview={preview}
+                      onClick={() => onSendCommand(command)}
+                    />
+                    {row.holds && (
+                      <HoldsMark title="holds more — click to look inside">
+                        ▸
+                      </HoldsMark>
+                    )}
+                  </div>
+                );
+              })}
+            </Rows>
+            {hidden > 0 && <Overflow>+{hidden} more</Overflow>}
+          </React.Fragment>
+        );
+      })}
     </>
   );
 }
@@ -1384,6 +1483,14 @@ function MqlBody(props: CardBodyProps): React.ReactElement {
       {/* ⚠ Never for an agent: a person's contents are their pockets. */}
       {!isAgent && !isIdea && (
         <HereList
+          record={record}
+          onSendCommand={onSendCommand}
+          onCommandPreview={onCommandPreview}
+        />
+      )}
+      {/* ⭐ Rung 1: what's placed ON this host (the lid, the hooks). */}
+      {!isIdea && (
+        <PlacedList
           record={record}
           onSendCommand={onSendCommand}
           onCommandPreview={onCommandPreview}

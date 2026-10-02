@@ -23,7 +23,6 @@
 # shows your formation + role; the interception mints her nothing (brain)
 # but yours would mint `command`.
 class: /platform/agent/Mercenary
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
   lifecycleState: alive
@@ -48,13 +47,13 @@ data:
   behaviors:
     # Keep a blade in hand (take up the nearest wieldable).
     - brain: /lib/behavior/arms
-      trigger: cadence:2s
+      trigger: candidate
     # Throw in with a party-mate who's started a fight.
     - brain: /lib/behavior/backs-up
-      trigger: cadence:2s
+      trigger: candidate
     # Ambient between jobs.
     - brain: /lib/behavior/idles
-      trigger: cadence:17s
+      trigger: candidate
       config:
         pool:
           - { kind: free, value: "rolls a shoulder and re-counts the exits." }

@@ -2,7 +2,6 @@
 # bought malt (D7: gin opens at the process tier over bought malt).
 # Its own category so the wash profile, not the ale's, takes it.
 class: /platform/idea/material/ConsumableMaterial
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: distiller's wort
   keywords: [wort, "distiller's", distiller]

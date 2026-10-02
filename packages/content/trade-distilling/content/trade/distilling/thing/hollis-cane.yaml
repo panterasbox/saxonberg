@@ -1,6 +1,5 @@
 # Hollis Cane — Hollis's mark on Veshko's dark rum.
 class: /trade/distilling/thing/SpiritBottle
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: "bottle of Hollis Cane"
   keywords: [hollis-cane, hollis, rum, bottle, spirit, cane]

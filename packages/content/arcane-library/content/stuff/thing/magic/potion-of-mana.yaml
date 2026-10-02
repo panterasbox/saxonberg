@@ -6,7 +6,6 @@
 # `mana-draught`, a PotionMaterial with NO spell, whose meal chemistry
 # feeds the coupled recovery a caster's reserve already refills through.
 class: /system/arcana/thing/Potion
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: stoppered glass flask
   keywords: [flask, stoppered, glass]

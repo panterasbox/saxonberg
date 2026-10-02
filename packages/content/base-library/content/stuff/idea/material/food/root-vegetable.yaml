@@ -2,7 +2,6 @@
 # pantry has). Edible raw in a pinch; its worth is what a pot makes of
 # it. The cooking branch's staple input, matched by the `vegetable` tag.
 class: /platform/idea/material/ConsumableMaterial
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: root vegetable
   keywords: [veg, vegetable, root, roots, turnip]

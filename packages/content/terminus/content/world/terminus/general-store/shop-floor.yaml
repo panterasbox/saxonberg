@@ -8,7 +8,6 @@
 # counting-houses Locality (`counting-houses/general-store`) — it sits on that
 # street, so no new address node is minted (the slim-roster discipline).
 class: /platform/location/SingletonCartesianLocation
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: general store
   keywords: [store, general]
@@ -24,9 +23,18 @@ data:
   exits:
     south:
       destination: /world/terminus/counting-houses/avenue-block
+    # ⭐ Cold storage (cold-storage build): a walk-in cold room off the shop
+    # floor — the Location half of the Thing≡Location proof. An interior
+    # door, so the envelope leaks nothing to the floor (openExteriorOpenings
+    # counts sky exits only).
+    north:
+      destination: /world/terminus/general-store/cold-room
   props:
     - /world/terminus/general-store/counter
     - /world/terminus/general-store/consignment-shelf
+    # A prime cut on the open shelf — the warm twin of the one in the cold
+    # room, so a look at both reads the cold chain's whole point.
+    - /stuff/thing/items/prime-cut
     # ⭐⭐ A hearth (envelope W4) — the fire that heats WHERE YOU STAND,
     # as against a forge or an oven, which heat what you put in them.
     # A shop with a street door that opens all day is the room that

@@ -7,7 +7,6 @@
 # biological rather than combustible, which is Rejection's own answer to
 # the archetype's defaultless `light` slot.
 class: /platform/location/SingletonCartesianLocation
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: provisioning shed
   keywords: [provisioning, stores, shop, shed]

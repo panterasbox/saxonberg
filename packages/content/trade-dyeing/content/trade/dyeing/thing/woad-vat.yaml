@@ -9,7 +9,6 @@
 # reduction, and the seal is the difference between a living vat and a
 # dead one.
 class: /trade/dyeing/thing/WoadVat
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: woad vat
   keywords: [woad-vat, woad, vat, blue]

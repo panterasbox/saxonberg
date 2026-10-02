@@ -107,9 +107,29 @@ about animals living in a class about people.
 | singleton | ✅ `SingletonMixin`; a second live clone **throws** | ❌ two sentries are the point |
 | dossier | ✅ | ⛔ a build error (`lint:identity`) |
 | proper name | ✅ `CastMixin` composes `NamedMixin` | ⛔ **structural** — the field is not there to fill in |
-| register | `proper` (named) or `definite` | `indefinite` |
+| register | ⚠ see below — **`register` is about the `shortDescription`, not the rung** | `indefinite` |
 | harm attributes to | the person **and** the institution | the institution only |
 | personality | ✅ | ✅ — a role is a mask, not a life, so it never changes |
+
+⚠⚠ **`register` describes the `shortDescription`, not the rung — and this
+table has misled at least one reader into a 22-row sweep.** It is the
+article that short description takes, nothing more:
+
+| | `shortDescription` | `register` | reads as |
+|---|---|---|---|
+| Dave | `Dave the Barkeep` | `proper` | *Dave the Barkeep* |
+| the collier | `collier, black to the elbow` | `definite` | *the collier…* |
+| ⭐ **Mara** | `steady, watchful dwarf tending bar` | **`indefinite`** | *a steady, watchful dwarf tending bar* |
+
+⭐ **A named `Cast` with `register: indefinite` is CORRECT and is the normal
+case** — 22 rows do it, including the whole bar. Mara *has* a name; the
+name is what you **learn**, and until you do she is *a dwarf tending bar*.
+Recognition is [belief.md](./belief.md)'s job, not `register`'s.
+
+⭐ **Which is why `lint:identity` rule 2 guards on `!name`:** a **nameless**
+Cast cannot present indefinitely, because there is nothing to learn — *"a
+hewer on tutwork"* really is just a role. A **named** one can. That guard is
+the point, not a hole.
 
 ⚠ **An `Extra` keeps its OWN identity.** It is not anonymous and it does
 not project onto its institution: two dead sentries must not collapse
@@ -197,7 +217,7 @@ Four properties that matter more than the shape:
 
 1. **Evidence, not values.** Each entry expands into the same rows a
    lived history would have written, marked `claim`.
-2. **Idempotent, once** — applied at `postRegister`, skipped when a claim
+2. **Idempotent, once** — applied at `onCreate`, skipped when a claim
    already exists, so a re-clone, a reboot or a CMS go-live cannot mint a
    second history.
 3. **It states its intent**, which makes it checkable — `lint:dossiers`.
@@ -346,7 +366,7 @@ nothing at all if it cannot reach the band.
 
 | Element | Lives in | Role |
 |---|---|---|
-| `CastMixin` | `lib/npc/Cast.ts` | The identity rung: `SingletonMixin` + the dossier fields + the `postRegister` seeder |
+| `CastMixin` | `lib/npc/Cast.ts` | The identity rung: `SingletonMixin` + the dossier fields + the `onCreate` seeder |
 | `Cast` / `Extra` | `platform/agent/{Cast,Extra}.ts` | The two generic clone targets, so a row's `class:` names its rung out loud |
 | `Employed.institutionPath` | `lib/employment/Employed.ts` | Who answers for you — the two-tier resolve |
 | `AccountabilityEvent.partyIdOf` / `partyForOf` | `lib/accountability/AccountabilityEvent.ts` | The one durable-id read, and the party read |
@@ -416,3 +436,28 @@ folded into `EmployedMixin` in review: a mixin whose composers are
 exactly one class is the mixin-on-the-wrong-host tell, and both shipped
 tiers are authored-or-employment. Split it back out if a third tier over
 ground title lands, or if a non-employable host ever needs fielding.
+
+## ⭐ The dossier's third consumer — what a claim LICENSES
+
+The `competence:` block was seeded evidence read by two things: the
+`chronicle` verb, and `competenceBandFor`. From the agent-coordination build
+it has a third reader, and it is the one with teeth:
+`AdvancementMixin.seededBandFor` folds **`claim`-kind rows only**, and
+`CraftingApi.canMake` uses the result to decide what an authored person can
+make without ever having been watched making it.
+
+So a dossier line is no longer only a *description*. `mixology: proficient`
+on Mara's row is what lets her mix a Manhattan the first time anybody orders
+one — and `competent` on Nev's row is what makes her and Odo differ in what
+they can cook, with no second menu authored anywhere.
+
+⚠⚠ **Which means a dossier may not be tuned to make a number go green.** The
+build found that nobody at Dave's Bar can make the menu's one `hard`
+cocktail, and the answer was to leave it: promoting Mara to `expert` would be
+rewriting a history to fix an outcome, and the outcome *is the finding* — a
+standing vacancy for a mixologist. `lint:menu-staff` reports it; it does not
+demand it be closed.
+
+⭐ And the asymmetry is the point: **only a dossier writes claims**, so this
+licence does not exist for players. A player earns a recipe by making it,
+every time. See [advancement.md](./advancement.md) § `seededBandFor`.

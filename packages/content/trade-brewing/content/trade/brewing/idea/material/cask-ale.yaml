@@ -3,7 +3,6 @@
 # fact the ferment produced (D11: no kernel code may test how it got
 # fizzy); the `ale` tag keeps every ale recipe serving it.
 class: /platform/idea/material/ConsumableMaterial
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: cask ale
   keywords: [ale, "cask ale", beer, cask]

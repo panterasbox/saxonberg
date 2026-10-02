@@ -12,7 +12,6 @@
 # the conduction walk reads every Energized node; safe here because it ships
 # safed.) Per-instance (cloned fresh); one-handed.
 class: /platform/thing/equipment/StunBaton
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: stun baton
   keywords: [baton, stun]

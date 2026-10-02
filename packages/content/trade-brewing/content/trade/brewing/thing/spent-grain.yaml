@@ -2,7 +2,6 @@
 # `feed <bed> with grain` restores nitrogen (the compost tag's verb).
 # Unsold sacks stand where they were left — the ambient-burden rule.
 class: /platform/thing/Receptacle
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: sack of spent grain
   keywords: [grain, sack, draff, "spent grain", spent]

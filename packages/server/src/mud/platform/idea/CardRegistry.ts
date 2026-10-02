@@ -47,7 +47,6 @@ import type {
 } from '@saxonberg/types';
 import { CARDS, CARDS_BY_NAME, type CardDefinition } from '../../lib/connection/Cards';
 import { Idea } from '../../lib/stuff/Idea';
-import { PostRegistrationMixin } from '../../lib/stuff/PostRegistration';
 import { Agent } from '../../lib/stuff/Agent';
 import Location from '../../lib/stuff/Location';
 import type { VetoResult } from '../../lib/errors';
@@ -221,7 +220,7 @@ const DEFAULT_WINDOW_MS = 10 * 60_000;
 /** How often the sweep looks. See the note on {@link DEFAULT_WINDOW_MS}. */
 const SWEEP_INTERVAL_MS = 30_000;
 
-const CardRegistryBase = PostRegistrationMixin(Idea);
+const CardRegistryBase = Idea;
 
 export default class CardRegistry extends CardRegistryBase {
   /** The ONE recurring sweep handle — retained so re-install is a no-op. */
@@ -232,7 +231,7 @@ export default class CardRegistry extends CardRegistryBase {
    * `CardApi.boot()` sequencer line): install the relevance-window
    * sweep when the boot manifest clones this Registry.
    */
-  public override async postRegister(_context?: unknown): Promise<void> {
+  public override async onCreate(_context?: unknown): Promise<void> {
     this.installSweep();
   }
 

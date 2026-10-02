@@ -71,7 +71,7 @@ export function LoungeMixin<
     static _mixinName = 'LoungeMixin';
 
     /**
-     * Declared-warren seed. Consumed once by Phase 2 of the Hydrator —
+     * Declared-warren seed. Consumed once by Phase 2 of the applier —
      * an instruction field, not a stored property (no paired getter; the
      * live affiliation is `WarrenMember.getWarren()`).
      */

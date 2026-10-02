@@ -5,7 +5,6 @@
 # ordinary. Two crops in one plot teach the price of red without anyone
 # writing a price down.
 class: /platform/thing/Plant
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: stand of weld
   keywords: [weld, rocket, crop, stand]

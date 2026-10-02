@@ -50,14 +50,13 @@ function tree(files: Record<string, Record<string, unknown>>): {
 describe('effectiveRow', () => {
   it('a child takes its parent’s class and hydrator, and merges data', () => {
     const t = tree({
-      'a/parent.yaml': { class: '/x/Y', hydratorClass: '/h', data: { a: 1, b: 2 } },
+      'a/parent.yaml': { class: '/x/Y', data: { a: 1, b: 2 } },
       'a/child.yaml': { extends: '/a/parent', data: { b: 9, c: 3 } },
     });
     const rows = templateRows(t.serverSrc, t.contentDir);
     const eff = effectiveRow('/a/child', rows);
     expect(eff.error).toBeNull();
     expect(eff.class).toBe('/x/Y');
-    expect(eff.hydratorClass).toBe('/h');
     expect(eff.data).toEqual({ a: 1, b: 9, c: 3 });
     expect(eff.chain).toEqual(['/a/parent']);
   });

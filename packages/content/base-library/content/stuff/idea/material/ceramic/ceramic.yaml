@@ -2,7 +2,6 @@
 # heat capacity. A real, tabulated material consumed by the Thermal
 # capability (the open-mug wall term — cools faster than a sealed flask).
 class: /platform/idea/material/Material
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: ceramic
   keywords: [clay, ceramic]

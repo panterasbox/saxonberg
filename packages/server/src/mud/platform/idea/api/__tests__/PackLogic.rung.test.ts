@@ -33,7 +33,6 @@ import {
   contentRows,
 } from './pack-harness';
 
-const HYDRATOR = '/platform/idea/persistence/PersistentHydrator';
 const CLASS_SRC = 'export default class X {}\n';
 
 beforeEach(() => {
@@ -53,7 +52,7 @@ afterEach(() => {
   cleanupPacks();
 });
 
-const ROW = (rel: string, cls: string) => ({ rel, class: cls, hydratorClass: HYDRATOR, data: { name: rel } });
+const ROW = (rel: string, cls: string) => ({ rel, class: cls, data: { name: rel } });
 
 describe('the rung check', () => {
   it('a src/-less pack whose class lies in its own namespace fails: claims data, ships code', async () => {
@@ -74,7 +73,12 @@ describe('the rung check', () => {
     expect(r!.failure).toBeNull();
     expect(r!.rung).toBe('capability');
     expect(r!.classOrigins['/cap/thing/X']).toBe(join(root, 'src', 'thing', 'X.ts').replace(/\\/g, '/'));
-    expect(r!.classOrigins[HYDRATOR]).toBe('kernel');
+    // ⭐ The `classOrigins[HYDRATOR] === 'kernel'` assertion that used to
+    // sit here went with `hydratorClass` (2026-10-01). The origin map
+    // covers classes a ROW names, and no row names the applier any more
+    // — so the kernel arm is proved by the pack's own class resolving
+    // into its `src/` while nothing else appears in the map at all.
+    expect(Object.keys(r!.classOrigins)).toEqual(['/cap/thing/X']);
     const rec = recordOf('cap')!;
     expect(rec.rung).toBe('capability');
     expect(Object.keys(rec.codeVersions)).toEqual(['thing/X.ts']);

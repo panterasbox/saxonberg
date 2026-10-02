@@ -23,7 +23,6 @@
  */
 
 import Holder from '@saxonberg/server/mud/lib/stuff/Holder';
-import { PostRegistrationMixin } from '@saxonberg/server/mud/lib/stuff/PostRegistration';
 import { SingletonMixin } from '@saxonberg/server/mud/lib/stuff/Singleton';
 import { StagedMixin } from '@saxonberg/server/mud/lib/stuff/Staged';
 import { AddressApi } from '@saxonberg/server/mud/api/address';
@@ -47,9 +46,9 @@ const OIL_TAG = 'lamp-oil';
 // ⭐ One store per town (`SingletonMixin` — a distinct templatePath per
 // locality, so `StuffApi.singleton(<store path>)` resolves it reliably from
 // the settle and the props once-guard is safe); `StagedMixin` so a row can
-// declare its founding casks (`props:`); `PostRegistrationMixin` for the
+// declare its founding casks (`props:`); an `onCreate` override for the
 // locality-rate resolution.
-const FuelStoreBase = PostRegistrationMixin(StagedMixin(SingletonMixin(Holder)));
+const FuelStoreBase = StagedMixin(SingletonMixin(Holder));
 
 export default class FuelStore
   extends FuelStoreBase
@@ -57,7 +56,7 @@ export default class FuelStore
 {
   /**
    * Litres burned per street per night, resolved once from the covering
-   * locality's `_publicLighting.fuelPerStreetNight` at `postRegister`
+   * locality's `_publicLighting.fuelPerStreetNight` at `onCreate`
    * (transient — re-resolved every boot). The single source of truth is the
    * locality's funding; this is a cache so the settle does not re-resolve.
    */
@@ -71,8 +70,8 @@ export default class FuelStore
     this.fixedInPlace = true;
   }
 
-  public override async postRegister(context?: unknown): Promise<void> {
-    await super.postRegister(context);
+  public override async onCreate(context?: unknown): Promise<void> {
+    await super.onCreate(context);
     try {
       const locality = await AddressApi.resolveLocalityFor(
         this as unknown as never,

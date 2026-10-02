@@ -2,7 +2,6 @@
 # vision profile leans toward low light (keen-sighted in dim conditions)
 # and the lifespan stretches to ~750 years. Melodic, measured, watchful.
 class: /platform/idea/species/Species
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   illustration: species/eldarinus.png
   binomial: Homo eldarinus

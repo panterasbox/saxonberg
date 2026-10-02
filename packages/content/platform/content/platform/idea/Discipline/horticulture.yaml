@@ -23,7 +23,6 @@
 # band is supposed to open. The row is still live rather than decorative: it
 # accrues real evidence today and `competence` reports its band.
 class: /platform/idea/Discipline
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   key: horticulture
   channel: skill

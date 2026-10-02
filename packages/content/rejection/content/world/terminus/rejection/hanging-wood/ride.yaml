@@ -13,7 +13,6 @@
 # on a live world and nothing changes until the DB is dropped, exactly
 # as a `props:` edit never reaches a booted world.
 class: /trade/forestry/location/Wood
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: main ride
   keywords: [ride, wood, "hanging wood", path, canopy]

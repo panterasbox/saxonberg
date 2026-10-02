@@ -12,7 +12,6 @@
 # ⭐ Install the pack, get the channel. This row and its class are the
 # whole registration story — nothing in a platform view names it.
 class: /platform/idea/reading/ElevationReading
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   channel: elevation
   kind: fact

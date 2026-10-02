@@ -7,7 +7,6 @@
 # buy` hands the buyer). `owner-all` (D5): a Hinkley owner owes the
 # whole shell.
 class: /system/residence/idea/HoldingWarren
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   upkeepTerm: owner-all
   floorplan:

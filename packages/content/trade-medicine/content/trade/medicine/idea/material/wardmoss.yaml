@@ -1,5 +1,4 @@
 class: /platform/idea/material/Material
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: wardmoss
   keywords: [wardmoss, moss, herb]

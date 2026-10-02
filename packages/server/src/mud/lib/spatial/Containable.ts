@@ -49,7 +49,10 @@ import { SecurityPolicies } from '../security/SecurityPolicies';
 import { MixinApi } from '../../api/mixin';
 import { ContainmentApi } from '../../api/containment';
 import { StuffApi } from '../../api/stuff';
-import { MqlSubscriptionApi } from '../../api/mql-subscription';
+import {
+  MqlSubscriptionApi,
+  type SubscribableFieldDescriptor,
+} from '../../api/mql-subscription';
 
 /**
  * Public shape provided by ContainableMixin.
@@ -75,7 +78,7 @@ export interface Containable {
   getRootContainer(): (Stuff & Container) | null;
 
   /**
-   * Declarative-content applier. Phase 2 of the Hydrator's two-
+   * Declarative-content applier. Phase 2 of the applier's two-
    * phase dispatch reads `data.container` from the source template
    * and calls this method with the resolved templatePath. The
    * applier resolves the target via `StuffApi.singleton` (the
@@ -88,7 +91,7 @@ export interface Containable {
    * move shape supports both fresh-clone placement AND
    * `Avatar.restore()` re-move semantics with no flag.
    *
-   * @hook Invoked by the `Hydrator`'s Phase-2 instruction dispatch from
+   * @hook Invoked by the `TemplateApplier`'s Phase-2 instruction dispatch from
    *   a template's `container` field (self-placement during the clone
    *   cascade). **Instruction applier** — no paired getter (not a
    *   property); idempotent (compare-and-move, no-op when already in
@@ -225,7 +228,7 @@ export function ContainableMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     /**
      * Instruction field — declarative spawn target. Consumed by
-     * Phase 2 of the Hydrator. There is NO paired `getContainer(path)`
+     * Phase 2 of the applier. There is NO paired `getContainer(path)`
      * declaration accessor; the live `getContainer()` ref is the
      * only runtime getter.
      */
@@ -237,6 +240,24 @@ export function ContainableMixin<TBase extends MixinConstructor>(Base: TBase) {
       environment: { ref: 'instance', lifetime: 'weak' },
       _placementHost: { ref: 'instance', lifetime: 'weak' },
     };
+
+    /**
+     * ⭐ Rung 1 of the containment read: a ref record carries HOW this
+     * thing sits in its host — the placement member name (`on` / `in` /
+     * `from`), or omitted when the thing is merely loose. Name-keyed on
+     * the bus and woken by the `placement` fire in `ContainmentLogic.place`
+     * (and the clear on move), which also wakes the host container's
+     * `contents` projection (it `dependsOnFields: ['contents','placement']`).
+     */
+    static subscribableFields: SubscribableFieldDescriptor[] = [
+      {
+        name: 'placement',
+        read: (stuff) => {
+          const p = (stuff as Stuff & Containable).getPlacement();
+          return p ? p.name : undefined;
+        },
+      },
+    ];
 
     /**
      * Framework cleanup (R2.4 collection-symmetric). When a
@@ -263,7 +284,7 @@ export function ContainableMixin<TBase extends MixinConstructor>(Base: TBase) {
     /**
      * Live reference to the container. NOT a persistent field —
      * cross-Stuff references would round-trip badly through the
-     * Hydrator's reflection. The container relationship is rebuilt
+     * applier's reflection. The container relationship is rebuilt
      * at clone time via the `applyContainer` instruction-field path
      * (declared `{ instruction: true }` in `fieldMeta` above) or by
      * direct `ContainmentApi.move` calls after hydration.

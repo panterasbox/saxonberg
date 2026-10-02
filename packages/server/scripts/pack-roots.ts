@@ -433,7 +433,6 @@ export interface TemplateRow {
 /** The row a clone actually sees: the parent chain folded in. */
 export interface EffectiveRow {
   class: string | null;
-  hydratorClass: string | null;
   data: Record<string, unknown>;
   /** Parent paths, nearest first. */
   chain: string[];
@@ -573,8 +572,8 @@ export function templateRows(
 export const TEMPLATE_CHAIN_DEPTH_CAP = 32;
 
 /**
- * The effective row at `path`: the nearest stated `class` /
- * `hydratorClass` along the chain, and the merged `data`.
+ * The effective row at `path`: the nearest stated `class` along the
+ * chain, and the merged `data`.
  *
  * ⚠ It implements the SAME per-field `inherit` algebra the runtime does
  * — `never`, `by-key`, `by-entry`, `replace` — because a partial one
@@ -594,21 +593,21 @@ export function effectiveRow(
   const seen = new Set<string>([path]);
   let cursor = rows.get(path);
   if (!cursor) {
-    return { class: null, hydratorClass: null, data: {}, chain, error: `no row at ${path}` };
+    return { class: null, data: {}, chain, error: `no row at ${path}` };
   }
   stack.push(cursor.raw);
   for (;;) {
     const parent = cursor!.raw.extends;
     if (typeof parent !== "string" || parent.length === 0) break;
     if (seen.has(parent)) {
-      return { class: null, hydratorClass: null, data: {}, chain, error: `cyclic extends chain through '${parent}'` };
+      return { class: null, data: {}, chain, error: `cyclic extends chain through '${parent}'` };
     }
     if (chain.length >= TEMPLATE_CHAIN_DEPTH_CAP) {
-      return { class: null, hydratorClass: null, data: {}, chain, error: `extends chain deeper than ${TEMPLATE_CHAIN_DEPTH_CAP}` };
+      return { class: null, data: {}, chain, error: `extends chain deeper than ${TEMPLATE_CHAIN_DEPTH_CAP}` };
     }
     const next = rows.get(parent);
     if (!next) {
-      return { class: null, hydratorClass: null, data: {}, chain, error: `extends '${parent}', which no row ships` };
+      return { class: null, data: {}, chain, error: `extends '${parent}', which no row ships` };
     }
     seen.add(parent);
     chain.push(parent);
@@ -616,14 +615,10 @@ export function effectiveRow(
     cursor = next;
   }
   let cls: string | null = null;
-  let hyd: string | null = null;
   // Ancestor-first, so the nearest statement overwrites.
   for (let i = stack.length - 1; i >= 0; i--) {
     const r = stack[i]!;
     if (typeof r.class === "string" && r.class.length > 0) cls = r.class;
-    if (typeof r.hydratorClass === "string" && r.hydratorClass.length > 0) {
-      hyd = r.hydratorClass;
-    }
   }
   // ⚠⚠ The merge respects each field's declared `inherit` rule, and the
   // one that MATTERS here is `never`: every `Biome` field declares it,
@@ -674,7 +669,7 @@ export function effectiveRow(
     }
     data = next;
   }
-  return { class: cls, hydratorClass: hyd, data, chain, error: null };
+  return { class: cls, data, chain, error: null };
 }
 
 /**
@@ -789,7 +784,7 @@ export function fieldMetaEntries(source: string): Map<string, FieldRule> {
       // comment skip only knew `//`, so `HandlingMixin`'s `handling:` —
       // which carries a fourteen-line JSDoc about the spoiler split —
       // was never read as a declared field, and ELEVEN shipped rows that
-      // author `handling:` were counted as orphan keys the Hydrator
+      // author `handling:` were counted as orphan keys the applier
       // discards. They are not: the field is there and the gate could
       // not see it. A blind spot in an inventory is worse than a gap in
       // it, because the number looks like an answer.
@@ -845,7 +840,7 @@ export function inheritanceIndex(
 /**
  * ⭐⭐ The one-line shim every class-selecting gate applies right after
  * it parses a row: the doc it goes on to reason about, with the parent
- * chain folded into `class`, `hydratorClass` and `data`.
+ * chain folded into `class` and `data`.
  *
  * A file the index does not know (a kind dir's yaml — an emote, a
  * recipe, a command view) and a row with no parent both pass through
@@ -867,6 +862,5 @@ export function effectiveDoc(
   if (eff.error) return doc;
   const out: Record<string, unknown> = { ...doc, data: eff.data };
   if (eff.class !== null) out.class = eff.class;
-  if (eff.hydratorClass !== null) out.hydratorClass = eff.hydratorClass;
   return out;
 }

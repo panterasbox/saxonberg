@@ -10,7 +10,6 @@
 # Counting-Houses moved under `terminus/city` because they ARE the city; this
 # one stays out until it is authored otherwise. Do not "fix" it.
 class: /platform/idea/Locality
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: The Last Counted Mile
   _address: last-counted-mile

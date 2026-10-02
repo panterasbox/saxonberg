@@ -12,7 +12,6 @@
 # is why bog bodies survive millennia in it. So no freshness fields, and no
 # exemption needed: a material is not a `Provision`.
 class: /platform/idea/material/Material
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: peat
   keywords: [peat, turf]

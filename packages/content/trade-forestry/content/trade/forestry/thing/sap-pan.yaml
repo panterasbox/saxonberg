@@ -12,7 +12,6 @@
 # three-quarters of a litre of syrup. The pan is not the bottleneck; the
 # SAP is, and that is the honest shape of the trade.
 class: /platform/thing/Vat
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: sap pan
   keywords: [pan, "sap pan", sappan, flue]

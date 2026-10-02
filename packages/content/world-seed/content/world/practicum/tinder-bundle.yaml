@@ -25,7 +25,6 @@
 # ⭐ Second-instance proof: this is a row of an existing class with a mass
 # and a material. A second flammable target is another row, zero code.
 class: /platform/thing/Firewood
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: bundle of tinder
   keywords: [tinder, bundle, shavings, kindling]

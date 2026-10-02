@@ -20,7 +20,6 @@
 # stamp the year onto the grade: `TapState.worst` leaves with the take
 # and nothing can read it afterwards, so the band is set here or never.
 class: /trade/textiles/thing/TextileStock
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: fleece
   keywords: [fleece, wool]

@@ -33,7 +33,7 @@ class TestNPC extends BehavedMixin(
 class TestPlayer extends SensorMixin(ContainableMixin(Idea)) {}
 
 type NPC = TestNPC & {
-  postRegister(c?: unknown): Promise<void>;
+  onCreate(c?: unknown): Promise<void>;
   onMessage(f: MessageFrame): void;
   behaviors: unknown[];
 };
@@ -59,7 +59,7 @@ function movementFrame(): MessageFrame {
 }
 
 beforeAll(async () => {
-  // Warm both fixture brain paths so postRegister's resolveExport is a
+  // Warm both fixture brain paths so onCreate's resolveExport is a
   // synchronous registry hit under fake timers.
   await StuffApi.resolveExport(PROBE, 'brain');
   await StuffApi.resolveExport(GUARDED, 'brain');
@@ -101,7 +101,7 @@ describe('cadence wiring + presence gating', () => {
     const npc = makeStuff(() => new TestNPC()) as unknown as NPC;
     ContainmentApi.move(npc as never, room as never);
     npc.behaviors = [{ brain: PROBE, trigger: 'cadence:1s' }];
-    await npc.postRegister();
+    await npc.onCreate();
 
     await vi.advanceTimersByTimeAsync(3000);
     expect(fires().length).toBe(0); // presence-gated, no audience
@@ -114,7 +114,7 @@ describe('cadence wiring + presence gating', () => {
   });
 
   // ⭐ The cast holds still while the world is closed. Brains wire at
-  // `postRegister` — a host must exist before it can behave — but the
+  // `onCreate` — a host must exist before it can behave — but the
   // schedules they arm are REAL-TIME, so without this gate they act
   // through subsystems that boot minutes later. On the drive that found
   // it, every trade hand's `consigns` beat failed (`wallet` unknown, then
@@ -127,7 +127,7 @@ describe('cadence wiring + presence gating', () => {
     const npc = makeStuff(() => new TestNPC()) as unknown as NPC;
     ContainmentApi.move(npc as never, room as never);
     npc.behaviors = [{ brain: PROBE, trigger: 'cadence:1s' }];
-    await npc.postRegister();
+    await npc.onCreate();
     const player = makeStuff(() => new TestPlayer());
     ContainmentApi.move(player as never, room as never);
 
@@ -151,7 +151,7 @@ describe('cadence wiring + presence gating', () => {
     ContainmentApi.move(npc as never, room as never);
     ContainmentApi.move(player as never, room as never);
     npc.behaviors = [{ brain: PROBE, trigger: 'cadence:1s' }];
-    await npc.postRegister();
+    await npc.onCreate();
 
     await vi.advanceTimersByTimeAsync(6000);
     const seen = delays.mock.calls.map((c) => c[0]);
@@ -174,7 +174,7 @@ describe('cadence wiring + presence gating', () => {
     ContainmentApi.move(npc as never, room as never);
     ContainmentApi.move(player as never, room as never);
     npc.behaviors = [{ brain: PROBE, trigger: 'cadence:1s' }];
-    await npc.postRegister();
+    await npc.onCreate();
 
     await vi.advanceTimersByTimeAsync(3000);
     const fired = fires().length;
@@ -207,7 +207,7 @@ describe('ambient pacing dial', () => {
     const npc = makeStuff(() => new TestNPC()) as unknown as NPC;
     ContainmentApi.move(npc as never, room as never);
     npc.behaviors = [{ brain: PROBE, trigger: 'cadence:1s' }]; // 1000ms authored
-    await npc.postRegister();
+    await npc.onCreate();
 
     // Authored 1s, but PROBE is ambient (default) → clamped up to the 60s
     // floor, then ±25% jitter, so never near the raw ~1s.
@@ -222,7 +222,7 @@ describe('witness dispatch (arrival)', () => {
     const npc = makeStuff(() => new TestNPC()) as unknown as NPC;
     ContainmentApi.move(npc as never, room as never);
     npc.behaviors = [{ brain: PROBE, trigger: 'arrival' }];
-    await npc.postRegister(); // seen-set seeded empty (no players yet)
+    await npc.onCreate(); // seen-set seeded empty (no players yet)
 
     const player = makeStuff(() => new TestPlayer());
     ContainmentApi.move(player as never, room as never);
@@ -241,7 +241,7 @@ describe('slot contention (requiresFree yields while a slot is occupied)', () =>
     const npc = makeStuff(() => new TestNPC()) as unknown as NPC;
     ContainmentApi.move(npc as never, room as never);
     npc.behaviors = [{ brain: GUARDED, trigger: 'cadence:1s' }]; // not presence-gated
-    await npc.postRegister();
+    await npc.onCreate();
 
     await vi.advanceTimersByTimeAsync(3000);
     const before = guardedFires();

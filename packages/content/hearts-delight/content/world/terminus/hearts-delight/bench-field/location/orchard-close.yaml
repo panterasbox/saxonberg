@@ -21,7 +21,6 @@
 # not own, and you cannot be a second party to a farm that already keeps
 # its own hives.
 class: /trade/farming/location/Field
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   fieldName: the close
   # ⚠ No article in the stem — `register: definite` below is what puts

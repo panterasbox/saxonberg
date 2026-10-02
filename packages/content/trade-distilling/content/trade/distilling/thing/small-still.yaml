@@ -3,7 +3,6 @@
 # mechanic. The Still class is its own furnace, so `ignite` and 351 K
 # work at a kitchen hearth's scale.
 class: /trade/distilling/thing/Still
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: small pot still
   keywords: [still, "pot still", alembic, small, pot]

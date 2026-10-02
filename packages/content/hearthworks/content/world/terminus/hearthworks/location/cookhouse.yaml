@@ -4,7 +4,6 @@
 # and the cook. Order a meal, or make it yourself with their tools — the
 # DIY floor.
 class: /platform/location/SingletonCartesianLocation
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   # ⭐ Daylight reaches this room through a real opening, and the
   # opening is named so the claim is something a player can walk up
@@ -156,6 +155,7 @@ data:
     - /trade/cooking/agent/hanging-carcass
   cast:
     - /world/terminus/hearthworks/agent/cook
+    - /world/terminus/hearthworks/agent/cookhand
   details:
     window:
       keywords: [window, glass, light]

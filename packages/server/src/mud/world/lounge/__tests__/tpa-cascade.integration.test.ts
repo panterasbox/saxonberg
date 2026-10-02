@@ -2,7 +2,7 @@
  * Fast-travel cascade + lounge seating — integration over the in-memory
  * lounge domain store. Proves: resolving the eager root terminal (the
  * boot-manifest sim) stands the lounge host up and self-seats the node into
- * it (FixtureMixin → `seatIn` → the lounge Warren); and its `postRegister`
+ * it (FixtureMixin → `seatIn` → the lounge Warren); and its `onCreate`
  * cascade brings the rest of the network live from that one seed — with no
  * registry and no manual loading.
  *
@@ -56,9 +56,9 @@ import {
   flush,
   type Doc,
 } from "./lounge-fixtures";
-import PersistentHydrator from "../../../platform/idea/persistence/PersistentHydrator";
+import TemplateApplier from "../../../platform/idea/TemplateApplier";
 
-const PH = PersistentHydrator.templatePath;
+const PH = TemplateApplier.templatePath;
 
 /**
  * The tpa pack's `src/`, so `StuffApi.resolveClassFile` can find
@@ -79,7 +79,6 @@ const fastTravelDocs: Doc[] = [
   {
     path: LoungePaths.terminal,
     class: "/system/tpa/thing/TpaTerminal",
-    hydratorClass: PH,
     data: {
       seatIn: LoungeWarren.WARREN_PATH,
       shortDescription: "a Teleport Authority terminal",
@@ -92,7 +91,6 @@ const fastTravelDocs: Doc[] = [
   {
     path: TERMINUS_TERMINAL,
     class: "/system/tpa/thing/TpaTerminal",
-    hydratorClass: PH,
     data: {
       seatIn: TERMINUS_ROOM,
       shortDescription: "a Teleport Authority terminal",
@@ -104,7 +102,6 @@ const fastTravelDocs: Doc[] = [
   {
     path: TERMINUS_ROOM,
     class: "/platform/location/VoidLocation",
-    hydratorClass: PH,
     data: { shortDescription: "the Terminus arrival gate" },
   },
 ];
@@ -117,7 +114,7 @@ async function land(): Promise<Avatar> {
   return avatar;
 }
 
-// Boot-manifest sim: resolving the eager root terminal runs its postRegister
+// Boot-manifest sim: resolving the eager root terminal runs its onCreate
 // — self-seat into the lounge Warren's host (standing the host up) plus the
 // network cascade.
 async function bootNetwork(): Promise<Stuff & FastTravel> {

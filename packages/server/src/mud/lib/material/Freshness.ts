@@ -85,6 +85,8 @@ export type FreshnessBand = 'fresh' | 'tainted' | 'spoiled' | 'rotten';
 /** Seeded-literal fallbacks — pre-warm / test safe. */
 const FRESHNESS_DEFAULTS = {
   SECONDS_PER_HOUR: 3600,
+  /** Midpoint samples per trajectory stretch when integrating over a gap. */
+  SUB_STEPS: 8,
   /** The universal gas constant (J/(mol·K)) — a physical constant, not a dial. */
   GAS_CONSTANT: 8.314,
   /** Ambient a materialless / non-Thermal host reads (K). */
@@ -685,11 +687,12 @@ export class Freshness {
     // `WaterActivity.stateFor` may rewrite the payload — so read it before the
     // freshness write, or the write below stamps over it.
     const water = new WaterActivity(this.slot).state();
-    const load = Freshness.advance(
+    const load = advanceFreshnessOverHost(
+      this.slot.getHolder(),
       gauge.load,
-      nowS - gauge.stamp,
+      gauge.stamp,
+      nowS,
       this.slot.getMaterial(),
-      Freshness.hostTemperatureK(this.slot.getHolder()),
       water,
     );
     this.slot.setPayload({
@@ -749,6 +752,44 @@ export class Freshness {
   }
 }
 
+/**
+ * ⭐ Advance a microbial load across `[stampS, nowS]`, integrating over the
+ * host's TEMPERATURE TRAJECTORY instead of sampling its endpoint. The
+ * logistic (and the thermal-death exponential) are multiplicative in the
+ * odds, so folding `Freshness.advance` across the trajectory's midpoint
+ * samples is EXACT for a piecewise-constant rate and convergent for the
+ * true μ(T(t)) curve — the fridge that warmed during an outage and
+ * re-cooled is spoiled on its real curve, not its endpoint.
+ *
+ * A Thermal host publishes the curve (`temperatureTrajectory`); a
+ * non-Thermal host has one ambient, so a single `advance` is exact. Not a
+ * class static — the `lint:lib-statics` ratchet is at its ceiling, and this
+ * is the module's own fold, consumed by the mixin reconcile and the slot
+ * gauge.
+ */
+function advanceFreshnessOverHost(
+  host: Stuff | null,
+  load: number,
+  stampS: number,
+  nowS: number,
+  material: Material | null,
+  water: WaterState | null,
+): number {
+  if (host !== null && MixinApi.isThermal(host)) {
+    const pw = host.temperatureTrajectory(stampS, nowS);
+    let l = load;
+    for (const s of pw.samples(FRESHNESS_DEFAULTS.SUB_STEPS)) {
+      l = Freshness.advance(l, s.durationS, material, s.value, water);
+    }
+    return l;
+  }
+  const tempK =
+    host !== null
+      ? Freshness.hostTemperatureK(host)
+      : dial(AppSettingKeys.freshnessAmbientK, FRESHNESS_DEFAULTS.AMBIENT_K);
+  return Freshness.advance(load, nowS - stampS, material, tempK, water);
+}
+
 export interface Fresh {
   /** Current microbial load `[0, 1]` (reconciles on read). */
   getMicrobialLoad(): number;
@@ -767,7 +808,7 @@ export interface Fresh {
    */
   setMicrobialLoad(load: number): void;
 
-  // Public so the Hydrator can reflect into them; in-class code reads them
+  // Public so the applier can reflect into them; in-class code reads them
   // directly. Not the inter-Stuff contract (that's the method surface).
   _microbialLoad: number;
   freshnessClockStamp: number;
@@ -916,11 +957,12 @@ export function FreshnessMixin<TBase extends MixinConstructor<Stuff>>(
       this._reconcilingFreshness = true;
       try {
         const self = this as unknown as Stuff;
-        this._microbialLoad = Freshness.advance(
+        this._microbialLoad = advanceFreshnessOverHost(
+          self,
           this._microbialLoad,
-          elapsed,
+          this.freshnessClockStamp,
+          nowS,
           material,
-          Freshness.hostTemperatureK(self),
           MixinApi.isWaterActive(self) ? self.getWaterState() : null,
         );
         this.freshnessClockStamp = nowS;

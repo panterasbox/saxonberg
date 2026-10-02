@@ -12,7 +12,6 @@
 # anywhere in this build.** The mine makes new MATTER; the CB remains the
 # only mint; wear is the matter sink.
 class: /platform/idea/Business
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   appointingAuthority:
     kind: entity

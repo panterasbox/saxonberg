@@ -1,5 +1,4 @@
 class: /platform/idea/Operation
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   key: rupture-repair
   label: rupture repair

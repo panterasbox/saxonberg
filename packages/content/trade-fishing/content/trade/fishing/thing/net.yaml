@@ -3,7 +3,6 @@
 # class; a reach netted an afternoon is fished out because the record
 # says so, and recovers over days because the record says that too.
 class: /trade/fishing/thing/Trap
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   keywords: [net, seine, trap]
   shortDescription: net

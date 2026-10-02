@@ -8,7 +8,6 @@
 # / examine are universally afforded verbs — competence only *grades* them,
 # it doesn't gate the menu.
 class: /platform/idea/Discipline
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   key: awareness
   channel: skill

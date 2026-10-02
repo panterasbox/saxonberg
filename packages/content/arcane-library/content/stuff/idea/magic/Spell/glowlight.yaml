@@ -4,7 +4,6 @@
 # released on dispel or expiry (the mote destructs). Light, not heat — the
 # sim decouples them, so this warms nothing.
 class: /platform/idea/magic/Spell
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   spellId: glowlight
   name: Glowlight

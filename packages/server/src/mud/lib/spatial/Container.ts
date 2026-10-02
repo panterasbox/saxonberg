@@ -179,7 +179,7 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
      *
      * Restore of the container slice is centralized in `PersistableLogic`
      * (it cross-references the Slotted slice by index), so there is no
-     * paired `restoreSlice` here.
+     * paired `hydrateSlice` here.
      */
     static captureSlice(
       host: Stuff,
@@ -349,13 +349,20 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
      * `dependsOnFields: ['contents']` keys the dependency-index entry
      * to the `FieldChangedEvent { field: 'contents' }` fires installed
      * on `addContainable` / `removeContainable` below — the field is
-     * not a persistent field (Hydrator never reflects into it) and
+     * not a persistent field (the applier never reflects into it) and
      * setter-shaped invariants don't fit, so the events fire from the
      * primitives.
      */
     static subscribableFields: SubscribableFieldDescriptor[] = [
       {
         name: 'contents',
+        // ⭐ Rung 1: a placement change on a child (an apple placed ON a
+        // desk that is already IN this room) moves nothing in this
+        // container's set, so `contents` alone would not wake — the
+        // field is name-keyed on the bus, so a `placement` fire anywhere
+        // re-resolves every open container card, which re-projects its
+        // children with their fresh placement.
+        dependsOnFields: ['contents', 'placement'],
         read: (stuff, viewer) => {
           const host = stuff as Stuff & Container;
           // ⭐ `contents` and `worn` are a PARTITION of one set. Wearing
@@ -383,6 +390,18 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
             MqlSubscriptionApi.projectFields(child, REF_FIELDS, viewer),
           );
         },
+      },
+      {
+        // ⭐ Rung 1: this thing is itself a holder — it holds more. A
+        // capability, not a count, so it is `static` (never fires) and
+        // true even for an empty container. Carried on every ref record
+        // so a fridge's freezer compartment, a chest, the hive read as
+        // things that hold more, not anonymous boxes. `Placing` declares
+        // the same-named field for a bare surface; a thing composing both
+        // reads one `holds: true`.
+        name: 'holds',
+        static: true,
+        read: () => true,
       },
     ];
 

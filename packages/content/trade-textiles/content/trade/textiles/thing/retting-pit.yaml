@@ -8,7 +8,6 @@
 # upstream of towns. That is siting, and siting is what makes this an
 # industry rather than a crafting station.
 class: /trade/textiles/thing/RettingPit
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: retting pit
   keywords: [pit, pond, retting, water]

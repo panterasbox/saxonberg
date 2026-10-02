@@ -21,7 +21,6 @@
 # So: the template says what a corpse IS, the overlay says whose it is, and
 # the pour says what happened to it.
 class: /platform/agent/Corpse
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: body
   keywords: [body]

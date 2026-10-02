@@ -5,7 +5,6 @@
 # here is the one road a grain chain needs and the prose that says the
 # rest is there.
 class: /platform/location/Street
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   # ⭐ The valley lights this way (energy build) — gas lamps on standards,
   # burning the town's oil after dusk. A PROPERTY of the street, nothing

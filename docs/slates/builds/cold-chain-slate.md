@@ -10,18 +10,30 @@
 > wrong on both rungs. → [thermal.md](../../subsystems/thermal.md) ·
 > [spatial.md](../../subsystems/spatial.md) ·
 > [furnishing.md](../../subsystems/furnishing.md).
-> **Left:** cold PRODUCTION (a powered freezer on the electricity tier;
-> the seasonal ice-house and ⚠ **who SELLS ice** — the icebox consumes
-> a good nobody makes, which is this slate's sharpest open) · CARRIED
-> cold (an iced cooler a medic walks with; the shipped `Icebox` is
-> `fixedInPlace`) · a cold ROOM as a place rather than a box · the
-> `Chamber` compartment (a fridge's freezer half → fridge-design-pack, and
-> ⚠ see [chambered-vessels-slate](../tails/chambered-vessels-slate.md),
+> ⭐⭐ **And the ACTIVE rung shipped 2026-10-01** (the cold-storage build,
+> MR !320): `ClimateControlMixin` over `Powered` (the one mixin a fridge
+> and a walk-in both compose), the electric freezer that MAKES ice, the
+> CARRIED cooler, the cold ROOM as a Location, and blood as the first
+> consumer — the powered blood fridge in the ward. →
+> [thermal.md](../../subsystems/thermal.md) ·
+> [energy.md](../../subsystems/energy.md).
+> **Left:** ⚠ **the preindustrial ice trade** — the seasonal ice-house,
+> the iceman, and **who SELLS ice** (the icebox still consumes a good
+> nobody makes; deferred by user decision to its own build, the cold
+> twin of trade-fuel) · the `Chamber` compartment (a fridge's freezer
+> half shipped as `props:` this build; the own-air compartment →
+> fridge-design-pack, and ⚠ see
+> [chambered-vessels-slate](../tails/chambered-vessels-slate.md),
 > written 2026-09-25 for the same problem — **possible duplicate ground**)
 > · the coolant reserve as a `BurnerMixin`-shaped fuel analogue (the
 > shipped model uses a discrete `Meltable` block instead, which may be
-> enough) · first consumers beyond food: blood, pharma/vaccines.
-> **Size:** a build (what is left is production and the carried tier).
+> enough) · first consumers beyond food & blood: pharma/vaccines.
+> **Size:** a build (what is left is the ice trade).
+>
+> ⭐ **Tidiness note (from the retired cold-storage plan):** `ice-block`
+> lives in `generic-objects` but its only producer-row is base-library's
+> `water.yaml` (`castTemplate`); the cross-pack ref works, but the row
+> could move to base-library for cohesion whenever the ice trade is built.
 
 ## Why it deferred out of clinical-medicine (user direction, 2026-09-24)
 

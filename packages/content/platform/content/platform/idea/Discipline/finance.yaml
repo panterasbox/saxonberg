@@ -5,7 +5,6 @@
 # never conferred: a shop borrowing on its purchase history is doing
 # finance whether or not anyone has told it so.
 class: /platform/idea/Discipline
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   key: finance
   channel: knowledge

@@ -15,7 +15,7 @@ import { Freshness } from '../Freshness';
 import { MixinApi } from '../../../api/mixin';
 import { WorldClockApi } from '../../../api/worldclock';
 import { Quantity } from '../../quantity';
-import PersistentHydrator from '../../../platform/idea/persistence/PersistentHydrator';
+import TemplateApplier from '../../../platform/idea/TemplateApplier';
 import { makeStuff, makeStuffAtPath } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 import '../../../platform/idea/WorldClockRegistry';
@@ -402,11 +402,11 @@ describe('the gauge across a restore (AC5)', () => {
 
     const restored = makeStuff(() => new Provision());
     restored.setMaterial(mat);
-    await makeStuff(() => new PersistentHydrator()).hydrate(restored, stored);
+    await makeStuff(() => new TemplateApplier()).apply(restored, stored, { mode: 'mint' });
 
     // ⚠ The stamp survives hydration — a `set<Field>` that re-stamped
     // would silently swallow the whole absence. (`_microbialLoad` has no
-    // `set_microbialLoad`, so the Hydrator bracket-assigns; the public
+    // `set_microbialLoad`, so the applier bracket-assigns; the public
     // `setMicrobialLoad` is the KILL seam and deliberately does re-stamp.)
     expect(restored.freshnessClockStamp).toBe(takenAt);
 
@@ -418,9 +418,10 @@ describe('the gauge across a restore (AC5)', () => {
     const warmStored = { ...stored, stampedTemperatureK: 303, lastAmbientK: 303 };
     const warmRestored = makeStuff(() => new Provision());
     warmRestored.setMaterial(mat);
-    await makeStuff(() => new PersistentHydrator()).hydrate(
+    await makeStuff(() => new TemplateApplier()).apply(
       warmRestored,
       warmStored,
+      { mode: 'mint' },
     );
     expect(warmRestored.getMicrobialLoad()).toBeGreaterThan(cold * 3);
   });

@@ -9,7 +9,6 @@
 # into farmland is one of the best land-economics stories the subject
 # has. That door is open; nothing here closes it.
 class: /trade/textiles/thing/BleachingGreen
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: bleaching green
   keywords: [green, sward, bleaching, grass]

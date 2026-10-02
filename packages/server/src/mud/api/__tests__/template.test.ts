@@ -107,11 +107,14 @@ describe('TemplateApi.saveTemplate', () => {
     expect((secondDoc as Doc)._id).toBeDefined();
   });
 
-  it('passes hydratorClass through when provided', async () => {
+  // ⭐ A row no longer names an applier, so the stored doc must not
+  // carry the key at all — a residual `hydratorClass: null` would keep
+  // the retired field alive in the preimage and in every export.
+  it('writes no hydratorClass key — the field retired 2026-10-01', async () => {
     await TemplateApi.saveTemplate(
-      '/narnia/door', { class: '/platform/thing/Door', hydratorClass: '/platform/idea/persistence/PersistentHydrator', data: {} });
+      '/narnia/door', { class: '/platform/thing/Door', data: {} });
     const [, doc] = save.mock.calls[0]!;
-    expect((doc as Record<string, unknown>).hydratorClass).toBe('/platform/idea/persistence/PersistentHydrator');
+    expect(doc as Record<string, unknown>).not.toHaveProperty('hydratorClass');
   });
 });
 

@@ -25,7 +25,6 @@
 # job. The old class reached for the whole person rung to get
 # `HaulerMixin`.
 class: /platform/agent/DraftAnimal
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/perissodactyla/equidae/equus/caballus-pumilus
   lifecycleState: alive
@@ -39,7 +38,7 @@ data:
   mass: 320
   behaviors:
     - brain: /lib/behavior/idles
-      trigger: cadence:55s
+      trigger: candidate
       config:
         pool:
           - { kind: free, value: "shifts its weight and blows out through its nose." }

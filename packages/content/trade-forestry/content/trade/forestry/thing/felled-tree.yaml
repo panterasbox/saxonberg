@@ -5,7 +5,6 @@
 # case, and the honest inverse of the bole. Not fuel until somebody
 # splits it; nothing here does.
 class: /platform/thing/Good
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: felled sapling
   keywords: [sapling, tree, felled, "felled tree", "young tree"]

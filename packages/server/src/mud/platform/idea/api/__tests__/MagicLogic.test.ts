@@ -101,7 +101,7 @@ async function installCatalogue(): Promise<void> {
     stampTemplatePathForTest(catalogueSingleton, "/platform/idea/SpellCatalogue");
   }
   catalogueSingleton.invalidateCache();
-  await catalogueSingleton.postRegister();
+  await catalogueSingleton.onCreate();
   spy.mockRestore();
 }
 

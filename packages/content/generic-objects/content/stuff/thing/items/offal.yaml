@@ -1,7 +1,6 @@
 # The offal off a carcass — the cut a butcher sets aside and somebody's
 # dog is extremely interested in.
 class: /platform/thing/Provision
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: fold of dark offal
   register: indefinite

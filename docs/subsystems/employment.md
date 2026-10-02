@@ -109,7 +109,7 @@ Four value objects + two mixins + the concrete entity:
   { positionKey, assignee /* templatePath */, schedule: ShiftEntry[] }`;
   `ShiftEntry { days: number[], hours: [start, end) }`. `evaluate(assignment,
   date)` is the pure day/hour-window match lifted verbatim from what the
-  `shifts` brain read inline before this build.
+  the retired `shifts` brain read inline before this build.
 - **`OrganizationMixin`** (`lib/employment/Organization.ts`, marker
   `_mixinName='OrganizationMixin'`) — the chart. Persistent fields
   `appointingAuthority`, `proprietorPath` (the legacy hydration slot),
@@ -123,7 +123,7 @@ Four value objects + two mixins + the concrete entity:
   instanceable non-trading organization.
 - **`Business`** — `BusinessMixin` (marker `_mixinName='BusinessMixin'`) +
   the concrete **default-export `BusinessEntity`** (`class BusinessEntity
-  extends BusinessMixin(PostRegistrationMixin(Idea))`). The concrete class
+  extends BusinessMixin(Idea)`). The concrete class
   name differs from the `Business` **interface** + `BusinessMixin` on purpose
   (the `Bank`→`BankCounter` convention — a same-named class+interface+mixin
   triad recurses as a base type). It **requires `OrganizationMixin` on its
@@ -289,7 +289,7 @@ extends Idea` at `/platform/idea/api/employment`, HMR-able; every method gated
   Business's own `operatingLocations` template data via a cached reverse index
   (`operatingLocation → BusinessTemplatePath`, filtered cheaply by the field's
   presence, `isBusiness`-verified after standup). This retires the per-venue
-  standup hooks: **no** manifest entry, **no** `Bar.postRegister` /
+  standup hooks: **no** manifest entry, **no** `Bar.onCreate` /
   `TicketClerk` clone — the first `businessAt`-style query at a fixture (an
   order, a fare) stands the Business up. Consumers: `OrderController` (the bar)
   and `TeleportController.settleFare` (the transit fare) call `ensureOperatorAt`;
@@ -344,7 +344,7 @@ and be credited with `cooking`.
 `CraftingLogic.resolveMaker` breaks ties on the lowest identity path,
 which is predictable rather than right — two cooks in one kitchen wants a
 queue. That is arbitration and belongs to the crew substrate
-([crew-slate](../slates/builds/crew-slate.md)).
+([call-slate](../slates/builds/call-slate.md)).
 
 ### ⚠ What this replaced, and why
 
@@ -458,49 +458,145 @@ attributes to it, un-spoofably), pays the **terminal clerk** (a bounded roster
 shift so the wage settles at the boundary), and closes the conserved fare-in →
 wage-out loop. The budget Business stands up **lazily** — derived from its own
 `operatingLocations`, on the first `ensureOperatorAt(fixture)` query (a fare at
-the gate) — no `TicketClerk`/`Bar.postRegister` clone. See
+the gate) — no `TicketClerk`/`Bar.onCreate` clone. See
 [fasttravel.md](./fasttravel.md) § Terminus.
 
-## The `shifts` + `covers` brains
+## ⭐⭐⭐ The call — who comes over
 
-Presence is a **consequence** of employment state, kept in brains so it
-stays hot-swappable:
+Somebody orders a drink. Two bartenders are on the rail and both can make
+it. **Which one comes over?**
 
-- **`shifts`** — reads `host.shiftState()` (sync) and
-  teleports on-shift → `config.behindBar`, off-shift → `config.offstage`.
-  The game-clock schedule match is **gone** (the schedule lives on the
-  Business roster now). Not presence-gated (off-stage cast must move out
-  before a player arrives). config: `{ behindBar, offstage, railStool? }` —
-  `railStool` is a reserved key for the deferred off-shift-at-the-rail
-  presence (v1 presence is binary). `config.offstage` names the venue's
-  own **`Offstage`** row (below); both shipped venues park through it.
+Until 2026-09-30 the answer was `CraftingLogic.resolveMaker`'s tie-break:
+sort the able by identity path, take the first. ⚠⚠ Every player Avatar's
+identity path begins `/platform/` and every NPC's `/world/` — **so the
+player won every tie, forever**; and between two NPCs, one of them served
+every order of the bar's life while the other stood there. *Predictable
+beats arbitrary; neither is right.*
+
+`call:` is a field on **`OrganizationMixin`**, not on the trading half: a
+watch or a registry with two clerks needs a rule the day it has two, and
+putting it beside `banksAt` would make the watch a Business again to get
+one — the exact conflation the organizations build undid.
+
+| policy | the house | the legs |
+|---|---|---|
+| `regulars` | Dave's Bar | capability → **your regular** → freest → rotation |
+| `rota` | the Hearthworks kitchen, three yards, the bakery, two Hearts-Delight houses | capability → freest → rotation |
+
+⭐ A closed vocabulary with **a shipped consumer for each member**. A third
+policy with no house behind it would be a word that cannot be wrong.
+
+The legs, and why each is there:
+
+1. **capability** — applied by the caller, which knows what was asked for;
+   the house does not.
+2. **your regular** (`regulars` only) — among candidates who `recognizes`
+   the patron, the highest `regardFor`. ⭐ This is the leg that lets a
+   patron *predict* who comes over, which is the whole point. ⚠ Only among
+   candidates who know you: being fond of a stranger is not a thing.
+3. **the freest** — somebody holding no engagement beats somebody
+   mid-something.
+4. **rotation** — least recently called, by a **monotonic ticket** rather
+   than a clock (the rotation needs an *order*, and a ticket cannot be
+   confused by a paused world clock or two calls in one game-second).
+   ⭐ Never-called sorts first, so **a new hire's first order is their own**.
+
+⚠⚠ **No leg anywhere reads insertion, authored or identity order.** That is
+the invariant worth protecting.
+
+**A house with no rule declines.** `callFor` answers
+`{ok: false, reason: 'no-call-policy'}` and the order is refused, rather
+than quietly serving the first member — because a fallback would make the
+whole mechanism optional, which is how the identity sort survived this long.
+`lint:menu-staff` refuses a row with a `fulfills` seat and no `call:`, so an
+author meets the refusal at build time and a player never does. ⭐ `''` is
+legal on a house with no fulfilling seat: a chart that calls nobody needs no
+rule.
+
+⚠ The method is **`callFor(request)`**, not `call(request)` — `call` is the
+authored field and a field and a method cannot share a name. The field is
+the rule; the method is the act.
+
+### Being called breaks off what you were doing
+
+The chosen maker's `preemptFor('called')` cuts whatever yields to being
+called, the break-off is narrated as **one act** (*"Mara sets aside what she
+was doing and comes over."*) and `requestBeat()` wakes them to re-decide the
+moment the drink is served. ⚠ Importance flows one way: a call preempts a
+task, and a task never defers a call. A `critical` body need that should
+beat a call is deferred design, in `call-slate`.
+
+### Two houses in one room
+
+`resolveMaker` declines `ambiguous-house` when the able candidates belong to
+different houses, rather than routing the call to whichever one
+`getContents()` happened to yield first. Every shipped venue has one house
+per room; the refusal is there so the first shared room is a conversation
+rather than a silent coin-flip.
+
+## Presence and cover — on the roster tick
+
+Presence is a **consequence** of employment state, so it belongs to the
+thing that owns the state. ⭐⭐ Until the agent-coordination build it lived
+in two brains (`shifts`, `covers`) polling every 30 seconds to notice an
+**hourly** flip — 22 timer fires a minute across eleven rows to catch up
+with something that changes at most once a game hour. **The flip is the
+event; a poll in front of it was only ever latency.** Both brains are
+retired.
+
+- **The move** — `tickBusiness` teleports an assignee on each transition:
+  off→on to the seat's **`station`** (a new optional field on a
+  `rosterSlot`), defaulting to the house's first `operatingLocations`
+  entry; on→off to the house's **`offstage`** (a new `BusinessMixin`
+  field). A house that authors no `offstage` moves nobody off, which is
+  exactly what every house without the old brain did.
+  ⭐ `station` exists because a house may operate two rooms: the
+  Hearthworks default is the smithy, so the **cook's seat** says
+  `station: …/cookhouse`. A cook sent to the forge is the silent wrongness
+  the field prevents.
+  ⚠ It is a field on the **employer**, not config on each person's row. It
+  used to be the same two paths repeated in every cast member's `shifts`
+  config — four rows all saying `offstage: /world/lounge/location/offstage`
+  — which is the shape that lets one of them say something different by
+  accident.
 - **`Offstage`** — the off-shift parking role (content packs wave 4b,
   graduated out of the lounge): `OffstageMixin` in `lib/employment/`
   (a marker + the one invariant — never `Exitable`; `Mixins.Offstage`,
   `MixinApi.isOffstage`) and the clonable `platform/location/Offstage`
   (singleton per template path, Visible/Detailed for the operator who
   teleports in) that every venue's `offstage` row names —
-  `/world/lounge/location/offstage`, `/world/terminus/hearthworks/location/offstage`.
+  `/world/lounge/location/offstage`,
+  `/world/terminus/hearthworks/location/offstage`,
+  `/world/terminus/market/offstage`.
   The world conserves identity: an off-duty NPC is relocated, never
   destroyed and respawned, so each venue with a scheduled cast needs
-  somewhere for that cast to *be*. Materialized on demand by `shifts`
-  (`StuffApi.singletonOrClone`). The hearthworks roster is 24/7, so its
-  parking never fires in shipped hours; the room exists so a shortened
-  schedule parks Berta and Odo somewhere rather than nowhere. Tests:
-  `lib/employment/__tests__/Offstage.test.ts` (two venues, no bleed)
-  and one per venue beside its content (`world/<venue>/__tests__/offstage.test.ts`).
-- **`covers`** — the proprietor covers gaps. On a presence-gated cadence, if
-  **no other active on-shift maker is present** in the proprietor's location,
-  `self.beginCovering(business)` upserts a **transient, on-shift**
-  Employment against the first **`fulfills`** Position (falling back to
-  `positions[0]`) — reusing the whole on-shift path, so the covering
-  proprietor serves an `order` and a customer still finds a fulfiller.
+  somewhere for that cast to *be*. Materialized on demand
+  (`StuffApi.singletonOrClone`).
+- **Cover, on demand** — `reconcileCover` runs at the **end** of
+  `tickBusiness`, which means it also runs on `ensureOperatorAt`: ⭐⭐ **the
+  proprietor steps behind an empty bar when somebody orders**, not up to a
+  game-hour later. That is what the retired brain's presence-gating was
+  approximating, and it is why the move off a 30 s poll onto a game-hour
+  tick costs nothing.
+  It asks the question **of the house**: is any rostered holder of a
+  `fulfills` seat on shift anywhere this house operates? ⚠ The old brain
+  asked *is another on-shift maker in MY room*, which made cover a question
+  about where the proprietor happened to be standing — a proprietor in the
+  back office concluded the bar was unattended. If nobody is tending,
+  `business.beginCover(proprietor, now)` upserts a **transient, on-shift**
+  Employment against the first **`fulfills`** Position, and the proprietor
+  is moved to that seat's station. A cover is a shift: stand where the
+  work is.
   ⭐ The seat a cover covers is a fulfilling one: a proprietor steps behind
-  the bar to serve, not into the bookkeeping. Unpaid by construction (the wage settlement skips a
-  proprietor-held Employment, and the tick never governs the proprietor).
-  `endCover` drops it when a real bartender is back. v1 = clause-unheld only
-  (demand has no measure yet); `beginCover` does **not** verify
-  proprietorship — the brain gates on `businessOfProprietor`.
+  the bar to serve, not into the bookkeeping. Unpaid by construction (the
+  wage settlement skips a proprietor-held Employment, and the tick never
+  governs the proprietor). `endCover` drops it when a rostered bartender is
+  back on. A house with **no** fulfilling seat is never covered — there is
+  nothing to cover.
+  Tests: `platform/idea/api/__tests__/EmploymentLogic.shiftMove.test.ts`
+  (the move, the station, the missing `offstage`, cover both ways), plus
+  one content test per venue beside its rows
+  (`world/<venue>/__tests__/offstage.test.ts`).
 - **`restocks`** (libations) — the keeper reads the par sheet and buys
   the shortfall; **`consigns`** — a producer's floor hand carries stock
   to a distributor's counter and consigns it as the business. Both are
@@ -652,8 +748,8 @@ standup is economically load-bearing, not a performance nicety — and it
 is residency's symmetric partner: fault in on demand, evict the cold
 tail (graduated from the content-packs slate, 2026-09).
 
-A Business is **not** stood up by a `postRegister` hook (the old
-`Bar.postRegister` / `TicketClerk` clones are gone) nor a manifest entry. It
+A Business is **not** stood up by a `onCreate` hook (the old
+`Bar.onCreate` / `TicketClerk` clones are gone) nor a manifest entry. It
 stands up **lazily**, derived from its own `operatingLocations`, on the first
 `ensureOperatorAt(fixture)` query — an order at the bar, a fare at a terminal
 (see **Fixture-keyed attribution + derived lazy standup** above). Idempotent
@@ -679,7 +775,8 @@ the actor stands in), not a scan.
 ## Cast (`domain/lounge/`)
 
 Dave → pure **proprietor** (the `proprietorPath` edge on the Business seed;
-`covers` brain, no `shifts` schedule). The four staff (Mara/Remy/Sloane/
+no roster slot — the tick's cover reconcile is what puts him behind the
+bar when nobody rostered is tending). The four staff (Mara/Remy/Sloane/
 Augie) → roster **assignees** (schedules lifted verbatim from the old NPC
 seeds, incl. Sloane's midnight-wrap two-window shift); each keeps
 `class: /platform/agent/Cast` — ⭐ plain `Cast` since the maker marker
@@ -761,7 +858,8 @@ two-beat turn-in) lives in [contract.md](./contract.md).
   *player* maker — craft it yourself, or the engine crafts as you — is
   crafting.md's question, not this one's.
 - **Hire/fire drivers** beyond Dave's cover (a fuller management brain) — the
-  `hire`/`fire` Api exists; v1 driver is seed authoring + `covers`.
+  `hire`/`fire` Api exists; v1 driver is seed authoring + the tick's cover
+  reconcile.
 - **The `patronize`/recirculation loop** — off-shift staff at the rail
   ordering/paying/tipping; restores the three-way presence (`railStool`).
 - **Shift-change ritual** (count-out / reconcile / handoff), **per-drink tip
@@ -868,7 +966,7 @@ plan. Notable design→implementation shifts:
   only named `HouseController`) — required for a combined P&L.
 - The Business stands up **lazily** (derived from `operatingLocations` via
   `ensureOperatorAt`) rather than a bootstrap manifest entry or a
-  `postRegister` clone, and fixture resolution moved to MQL `peers` + type
+  `onCreate` clone, and fixture resolution moved to MQL `peers` + type
   filter (both from MR review; the lazy standup finalized in the Terminus
   build).
 

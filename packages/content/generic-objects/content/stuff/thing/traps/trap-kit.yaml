@@ -4,7 +4,6 @@
 # step-dart), conceals the deployed trap at the placer's own stealth level,
 # stamps who set it, and spends the kit. One kit → one trap.
 class: /platform/thing/TrapKit
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: folded trap kit
   keywords: [kit, folded, trap]

@@ -2,7 +2,6 @@
 # world, and the reason is entirely LABOUR: roughly 150 flowers per gram,
 # every stigma pulled by hand.
 class: /platform/idea/material/Material
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: saffron
   keywords: [threads, saffron]

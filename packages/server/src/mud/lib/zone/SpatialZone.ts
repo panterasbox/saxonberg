@@ -91,7 +91,7 @@ export abstract class SpatialZone extends Zone {
    *
    * ⚠ `ResidencyLogic` has read this through `lookupField('blessingOdds')`
    * since the magic-items build, but **no Zone class declared it**, so the
-   * Hydrator silently dropped any authored zone-level value and the
+   * applier silently dropped any authored zone-level value and the
    * documented override could never fire — the same silent-drop bug
    * `stocks`/`favours` had. Declared here with them. Nothing ships an
    * authored zone value yet; the item-level field is a different one, on

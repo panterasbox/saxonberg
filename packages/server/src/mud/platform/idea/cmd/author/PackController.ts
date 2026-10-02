@@ -337,7 +337,7 @@ export default class PackController extends CommandController<PackModel> {
         .map(([k, n]) => `, ${n} ${k} document(s)`)
         .join('') +
       ', ' +
-      `${r.rehydrated} live instance(s) re-hydrated` +
+      `${r.reapplied} live instance(s) re-applied` +
       (r.conflicts.length > 0
         ? '\n' +
           r.conflicts

@@ -6,7 +6,6 @@
 # vocabulary works: the word outlives the machine. A called,
 # capacity-limited lift is a later stage's, and an adit needs none.
 class: /trade/mining/location/AuthoredWorking
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: cage bottom
   keywords: [bottom, "cage bottom", cage, junction]

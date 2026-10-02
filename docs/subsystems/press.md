@@ -98,7 +98,7 @@ publicly. ⚠ An unauthored or misspelled `visibility` coerces to the
 
 `obj/Organization.ts` is the concrete instanceable organization — a
 ministry, a press office, a registry — composing
-`PublisherMixin(OrganizationMixin(PostRegistrationMixin(Idea)))`. It is
+`PublisherMixin(OrganizationMixin(Idea))`. It is
 what a template's `class:` names; **nothing instances `/lib/`**.
 
 ## The entitlement — `publisher.allowsPublishingBy(principal)`
@@ -202,7 +202,7 @@ shell ending in `SecurityApi.decorateApiClass`; the logic is `@internal
 - `toRow(release)` → `ReleaseRow` — the pure projection shared by the
   frame fan-out and the session-establish window.
 - `boot()` — a warm/activation seam for call-site symmetry; the board
-  warms via its manifest `postRegister` and the fan-out is inline, so
+  warms via its manifest `onCreate` and the fan-out is inline, so
   there is no event tap to install.
 
 **`PressBoard`** (`obj/PressBoard.ts`, manifest-registered at

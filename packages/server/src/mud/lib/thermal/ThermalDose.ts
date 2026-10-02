@@ -544,7 +544,7 @@ export interface Dosed {
   /** Stamp the gauge outright — the mint, and the test seam. */
   stampThermalDose(doseS: number, scorchS?: number): void;
 
-  // Public so the Hydrator can reflect into them.
+  // Public so the applier can reflect into them.
   _doseS: number;
   _scorchS: number;
   doseClockStamp: number;
@@ -638,23 +638,36 @@ export function ThermalDoseMixin<TBase extends MixinConstructor<Stuff>>(
 
       this._reconcilingDose = true;
       try {
-        const next = ThermalDose.advance(
-          {
-            doseS: this._doseS,
-            scorchS: this._scorchS,
-            stamp: this.doseClockStamp,
-            tempK: this.doseSampleK,
-          },
-          nowS,
-          currentK,
-          (self as unknown as { lastAmbientK: number }).lastAmbientK,
-          self.getTau().rawValue(),
-          ThermalDose.ceilingFor(this.doseRecipe()),
-        );
-        this._doseS = next.doseS;
-        this._scorchS = next.scorchS;
-        this.doseClockStamp = next.stamp;
-        this.doseSampleK = next.tempK;
+        const ceilingK = ThermalDose.ceilingFor(this.doseRecipe());
+        if (nowS > this.doseClockStamp) {
+          // ⭐ Integrate the dose over the body's PUBLISHED temperature
+          // trajectory, not a single constant-ambient reconstruction. Each
+          // stretch is one of the body's own Newton decays (startValue →
+          // target over tau), so the exact scalar `integrate` / `scorchOver`
+          // apply per stretch and SUM — identical numbers for a constant
+          // ambient (one stretch), correct for a pot whose fire went out
+          // mid-cook (several).
+          const pw = self.temperatureTrajectory(this.doseClockStamp, nowS);
+          for (const st of pw.stretches) {
+            const dur = st.toS - st.fromS;
+            if (!(dur > 0)) continue;
+            this._doseS += ThermalDose.integrate(
+              st.startValue,
+              st.target,
+              dur,
+              st.tau,
+            ).doseS;
+            this._scorchS += ThermalDose.scorchOver(
+              st.startValue,
+              st.target,
+              dur,
+              st.tau,
+              ceilingK,
+            );
+          }
+          this.doseClockStamp = nowS;
+          this.doseSampleK = currentK;
+        }
         this.writeDownIfRuined();
       } finally {
         this._reconcilingDose = false;

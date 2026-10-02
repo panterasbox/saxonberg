@@ -62,12 +62,12 @@ function species(): Species {
 
 async function shadeFor(playerId: string): Promise<ShadeAvatar> {
   // The constructor arguments moved into the clone's `dataOverlay`
-  // (hydration Phase 1, which lands before `postRegister`); here the
+  // (hydration Phase 1, which lands before `onCreate`); here the
   // fields are set directly, which is the same ordering.
   const sh = makeStuff(() => new ShadeAvatar());
   sh.playerId = playerId;
   sh.setSpecies(species());
-  await sh.postRegister();
+  await sh.onCreate();
   return sh;
 }
 

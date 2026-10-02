@@ -26,7 +26,6 @@
 # rung is about — would have been unreachable. The old comment called
 # iron "Stage C's"; the distal fringe put it here.
 class: /trade/smelting/thing/SmeltingFurnace
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: stone smelting furnace
   keywords: [furnace, smelter, shaft, bellows, stone, smelting]

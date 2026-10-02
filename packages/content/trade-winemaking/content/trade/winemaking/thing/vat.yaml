@@ -4,7 +4,6 @@
 # turns by its bung, and carries the batch's band + mark for the
 # transfer seam). `open`/`close` work the bung; `pour` racks.
 class: /platform/thing/Vat
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: oak fermenting vat
   keywords: [vat, "fermenting vat", tun, oak, fermenting]

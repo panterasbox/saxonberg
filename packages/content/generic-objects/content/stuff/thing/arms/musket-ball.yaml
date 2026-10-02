@@ -7,7 +7,6 @@
 # `fail`. A sword thrust carrying a tenth the energy over ten times the
 # area is penetration 1, and the same plate turns it all day.
 class: /platform/thing/equipment/Projectile
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: musket ball
   keywords: [ball, balls, shot, lead]

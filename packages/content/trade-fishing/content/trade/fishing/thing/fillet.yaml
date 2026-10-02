@@ -3,7 +3,6 @@
 # recipes, and carries whatever the fish carried (the butcher hands the
 # carcass's own load onto every cut).
 class: /platform/thing/Provision
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: fillet of fish
   keywords: [fillet, fish, flesh, meat]

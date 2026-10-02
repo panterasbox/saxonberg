@@ -3,7 +3,7 @@ import { describe, it, expect } from 'vitest';
 import { SealableMixin } from '../Sealable';
 import { Idea } from '../../stuff/Idea';
 import { MixinApi } from '../../../api/mixin';
-import PersistentHydrator from '../../../platform/idea/persistence/PersistentHydrator';
+import TemplateApplier from '../../../platform/idea/TemplateApplier';
 import { makeStuff } from '../../security/__tests__/test-setup';
 
 class TestSealable extends SealableMixin(Idea) {}
@@ -49,24 +49,24 @@ describe('SealableMixin', () => {
   describe('persistence round-trip', () => {
     it('hydrates open via the new method-first dispatch (setOpen)', async () => {
       const s = makeStuff(() => new TestSealable());
-      await makeStuff(() => new PersistentHydrator()).hydrate(s, { open: true });
+      await makeStuff(() => new TemplateApplier()).apply(s, { open: true }, { mode: 'mint' });
       expect(s.isOpen()).toBe(true);
     });
 
     it('hydrating a non-boolean throws via setOpen guard', async () => {
       const s = makeStuff(() => new TestSealable());
       await expect(
-        makeStuff(() => new PersistentHydrator()).hydrate(s, {
+        makeStuff(() => new TemplateApplier()).apply(s, {
           open: 1 as unknown as boolean,
-        })
+        }, { mode: 'mint' })
       ).rejects.toThrow(TypeError);
     });
 
     it('the old "isOpen" key is ignored — no dispatch happens', async () => {
       const s = makeStuff(() => new TestSealable());
-      await makeStuff(() => new PersistentHydrator()).hydrate(s, {
+      await makeStuff(() => new TemplateApplier()).apply(s, {
         isOpen: true,
-      } as unknown as Record<string, unknown>);
+      } as unknown as Record<string, unknown>, { mode: 'mint' });
       // No persistent field 'isOpen' is declared, so the data key is
       // silently skipped. State remains the default (closed).
       expect(s.isOpen()).toBe(false);

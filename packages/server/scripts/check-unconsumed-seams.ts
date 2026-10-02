@@ -27,7 +27,7 @@
  *    where no file outside the declaring one reads it: no
  *    `get<Field>(` call, no `.<field>` property access, anywhere in the
  *    kernel or in any pack `src/`. **A write is not a consumer** — the
- *    Hydrator writes every persistent field by reflection, and a YAML row
+ *    applier writes every persistent field by reflection, and a YAML row
  *    authoring a value is the *supply* side. What makes a seam real is
  *    somebody reading it.
  *
@@ -266,7 +266,7 @@ export function readSurfaceOf(
  *
  * Reading is a `.field` property access or a call to one of the field's
  * read-surface methods (above). A `set<Field>(` is deliberately NOT a
- * read: the Hydrator sets every persistent field by name, and a row
+ * read: the applier sets every persistent field by name, and a row
  * authoring a value is the supply side of the seam, not its consumer.
  */
 export function fieldIsRead(
@@ -299,7 +299,7 @@ export function fieldIsRead(
  * ⚠ This is what separates the two shapes `@hook` marks, and getting it
  * wrong makes the gate noise. `Combatant.onDefeated` is a no-op terminal
  * that nothing composes — dead surface, the finding. `Detailed.applyDetails`
- * is a Hydrator applier with a real body, invoked by name through
+ * is an applier with a real body, invoked by name through
  * reflection: it has no textual caller and no override, and it is
  * perfectly alive. Body-shape tells them apart where "zero overrides"
  * alone cannot.
