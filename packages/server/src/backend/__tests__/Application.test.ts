@@ -433,7 +433,6 @@ describe('Application', () => {
         path: PrimaryAvatar.ROW_TEMPLATE_PATH,
         class: '/platform/agent/Avatar',
         data: { species: 'human' },
-        hydratorClass: '/platform/idea/persistence/PersistentHydrator',
       } as never);
       vi.spyOn(TemplateApi, 'saveTemplate').mockResolvedValue(undefined as never);
 

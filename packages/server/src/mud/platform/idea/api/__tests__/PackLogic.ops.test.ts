@@ -182,7 +182,6 @@ describe('resolve', () => {
     const written = YAML.parse(readFileSync(file, 'utf-8'));
     expect(written).toEqual({
       class: MATERIAL,
-      hydratorClass: HYDRATOR,
       data: { name: 'gin', v: 2 },
     });
     expect(recordOf('p')!.conflicts).toHaveLength(1); // stays open until sync

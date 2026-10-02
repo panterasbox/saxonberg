@@ -79,7 +79,6 @@ const fastTravelDocs: Doc[] = [
   {
     path: LoungePaths.terminal,
     class: "/system/tpa/thing/TpaTerminal",
-    hydratorClass: PH,
     data: {
       seatIn: LoungeWarren.WARREN_PATH,
       shortDescription: "a Teleport Authority terminal",
@@ -92,7 +91,6 @@ const fastTravelDocs: Doc[] = [
   {
     path: TERMINUS_TERMINAL,
     class: "/system/tpa/thing/TpaTerminal",
-    hydratorClass: PH,
     data: {
       seatIn: TERMINUS_ROOM,
       shortDescription: "a Teleport Authority terminal",
@@ -104,7 +102,6 @@ const fastTravelDocs: Doc[] = [
   {
     path: TERMINUS_ROOM,
     class: "/platform/location/VoidLocation",
-    hydratorClass: PH,
     data: { shortDescription: "the Terminus arrival gate" },
   },
 ];

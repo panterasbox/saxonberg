@@ -71,7 +71,7 @@ function col(name: string): Doc[] {
 function seedContent(): void {
   const content = col('content');
   const add = (path: string, cls: string, data: Record<string, unknown> = {}) =>
-    content.push({ _id: `d-${++idCounter}`, path, class: cls, hydratorClass: PH, data });
+    content.push({ _id: `d-${++idCounter}`, path, class: cls, data });
   content.push({ _id: `d-${++idCounter}`, path: PH, class: PH, data: {} });
   // ⭐ The engine's own rows — every exit is a clone of a kind row now.
   for (const row of KERNEL_CONTENT_ROWS) {

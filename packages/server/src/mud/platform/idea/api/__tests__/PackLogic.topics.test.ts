@@ -96,7 +96,6 @@ function writeTopicPack(id: string, topicKey: string): string {
     file,
     YAML.stringify({
       class: TOPIC_CLASS,
-      hydratorClass: HYDRATOR,
       data: {
         topic: topicKey,
         family: topicKey.split('.').slice(0, -1).join('.'),

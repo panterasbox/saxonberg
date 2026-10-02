@@ -31,7 +31,6 @@ interface Row extends Record<string, unknown> {
   _id?: string;
   path: string;
   class: string;
-  hydratorClass?: string;
   data: Record<string, unknown>;
   sourcePack?: string;
 }
@@ -89,7 +88,7 @@ function writePack(id: string, file: string, data: Record<string, unknown>): str
   mkdirSync(dirname(f), { recursive: true });
   writeFileSync(
     f,
-    YAML.stringify({ class: MATERIAL, hydratorClass: HYDRATOR, data }),
+    YAML.stringify({ class: MATERIAL, data }),
   );
   return root;
 }
@@ -118,7 +117,6 @@ describe('PackApi.sync', () => {
       join(root, 'content/stuff/idea/material/spirit/gin.yaml'),
       YAML.stringify({
         class: MATERIAL,
-        hydratorClass: HYDRATOR,
         data: { name: 'gin', appearance: 'cloudy' },
       }),
     );

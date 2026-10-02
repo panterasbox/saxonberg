@@ -138,7 +138,6 @@ beforeEach(() => {
     {
       path: '/platform/agent/sandbox/SandboxAvatar',
       class: '/platform/agent/sandbox/SandboxAvatar',
-      hydratorClass: '/platform/idea/persistence/PersistentHydrator',
       data: { playerId: '' },
     },
   ]);

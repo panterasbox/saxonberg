@@ -1,7 +1,7 @@
 /**
  * CpController — copy `<src>` to `<dst>`.
  *
- * Templates: clone the source template's class/data/hydratorClass to
+ * Templates: clone the source template's class/data to
  * the dst path via `TemplateApi.saveTemplate`. Code: `SourceTreeApi.cp`
  * (recursive). Both endpoints in the same tree v1 — cross-tree copy
  * is a follow-up.
@@ -78,7 +78,6 @@ export default class CpController extends CommandController<CpModel> {
         // silently fork the content away from its parent.
         await TemplateApi.saveTemplate(dst, {
           class: tpl.own.class,
-          hydratorClass: tpl.own.hydratorClass,
           extends: tpl.extends,
           data: tpl.own.data ?? {},
         });

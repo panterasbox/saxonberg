@@ -231,7 +231,6 @@ function seedDoc(rel: string): Doc {
   return {
     path: `/world/terminus/general-store/${rel}`,
     class: parsed.class as string,
-    hydratorClass: (parsed.hydratorClass as string) ?? PH,
     data: (parsed.data as Record<string, unknown>) ?? {},
   };
 }
@@ -245,7 +244,6 @@ function objDoc(path: string): Doc {
   return {
     path,
     class: parsed.class as string,
-    hydratorClass: (parsed.hydratorClass as string) ?? PH,
     data: (parsed.data as Record<string, unknown>) ?? {},
   };
 }

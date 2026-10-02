@@ -40,7 +40,6 @@ const YEAR = 365 * 86_400;
 interface Row {
   path: string;
   class: string;
-  hydratorClass?: string;
   data: Record<string, unknown>;
 }
 
@@ -74,20 +73,18 @@ const WORLD: Row[] = [
     class: '/platform/idea/Locality',
     data: { name: 'terminus', _reach: 'kestrel:falls', _catchmentKm2: 900 },
   },
-  // ⚠ `hydratorClass` is not optional here: without it `clone()`
-  // silently discards every key in `data`, and the zone would come back
-  // with no elevation at all — the orphaned-`data` trap `lint:instanceable`
-  // exists to catch in shipped content.
+  // ⭐ The zone's `elevation` arrives because the row has `data` — the
+  // applier runs on that alone since 2026-10-01. The orphaned-`data`
+  // trap this comment used to warn about (a row whose missing
+  // `hydratorClass` silently discarded every key) is structurally gone.
   {
     path: '/world/lowtown',
     class: '/platform/idea/location/CartesianZone',
-    hydratorClass: '/platform/idea/persistence/PersistentHydrator',
     data: { elevation: 5 },
   },
   {
     path: '/world/hightown',
     class: '/platform/idea/location/CartesianZone',
-    hydratorClass: '/platform/idea/persistence/PersistentHydrator',
     data: { elevation: 900 },
   },
   // A zone that declares NO elevation — the unresolved-head case.

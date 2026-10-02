@@ -25,7 +25,6 @@ export interface Row extends Record<string, unknown> {
   _id?: string;
   path?: string;
   class?: string;
-  hydratorClass?: string;
   data?: Record<string, unknown>;
   sourcePack?: string;
   __col?: string;
@@ -209,12 +208,11 @@ export interface FixtureFile {
   /** content-relative path, e.g. `obj/material/spirit/gin.yaml`. */
   rel: string;
   class?: string;
-  hydratorClass?: string;
   data?: Record<string, unknown>;
   /**
-   * A parent row's path. When set, `class` and `hydratorClass` are
-   * omitted unless stated — a CHILD row states only what differs, which
-   * is the shape the installer has to accept.
+   * A parent row's path. When set, `class` is omitted unless stated —
+   * a CHILD row states only what differs, which is the shape the
+   * installer has to accept.
    */
   extends?: string;
 }
@@ -285,10 +283,8 @@ export function writeDomainFile(root: string, f: FixtureFile): void {
   if (f.extends !== undefined) {
     body.extends = f.extends;
     if (f.class !== undefined) body.class = f.class;
-    if (f.hydratorClass !== undefined) body.hydratorClass = f.hydratorClass;
   } else {
     body.class = f.class ?? MATERIAL;
-    body.hydratorClass = f.hydratorClass ?? HYDRATOR;
   }
   body.data = f.data ?? { name: f.rel };
   writeFileSync(file, YAML.stringify(body));

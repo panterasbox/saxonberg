@@ -41,7 +41,6 @@ const PACK_SRC = fileURLToPath(new URL('../', import.meta.url));
 type Row = {
   path: string;
   class: string;
-  hydratorClass?: string;
   data: Record<string, unknown>;
 };
 

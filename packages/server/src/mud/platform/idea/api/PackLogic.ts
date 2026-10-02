@@ -112,7 +112,6 @@ interface DomainFile {
   class?: string;
   /** The parent row's path, when this row states only what differs. */
   extends?: string;
-  hydratorClass?: string;
   data: Record<string, unknown>;
   /** Pack-relative file path, for diagnostics. */
   relFile: string;
@@ -970,8 +969,6 @@ function readContent(pack: ResolvedPack): PackContent {
       path: fileToTemplatePath(pack.contentRoot, file),
       class: typeof doc.class === 'string' ? doc.class : undefined,
       extends: typeof doc.extends === 'string' ? doc.extends : undefined,
-      hydratorClass:
-        typeof doc.hydratorClass === 'string' ? doc.hydratorClass : undefined,
       data:
         doc.data && typeof doc.data === 'object' && !Array.isArray(doc.data)
           ? (doc.data as Record<string, unknown>)
@@ -1195,9 +1192,6 @@ async function assertClassesResolve(
   const classes = new Map<string, string>(); // classPath -> first relFile
   for (const f of rp.content.domain) {
     if (f.class && !classes.has(f.class)) classes.set(f.class, f.relFile);
-    if (f.hydratorClass && !classes.has(f.hydratorClass)) {
-      classes.set(f.hydratorClass, f.relFile);
-    }
   }
   const origins = new Map<string, ClassResolution>();
   for (const [classPath, relFile] of classes) {
@@ -1375,7 +1369,6 @@ async function reportUnreferencedClasses(read: ReadPack[]): Promise<void> {
   for (const rp of read) {
     for (const f of rp.content.domain) {
       if (f.class) named.add(f.class);
-      if (f.hydratorClass) named.add(f.hydratorClass);
       // ⚠ A BRAIN is named in `data.behaviors[].brain`, not in `class:`,
       // so a pack that ships one read as dead code until this line
       // existed. Found when the world-scan build moved the `maintains`
@@ -1581,17 +1574,24 @@ interface DomainRow extends Record<string, unknown> {
   path: string;
   class?: string;
   extends?: string;
-  hydratorClass?: string;
   data: Record<string, unknown>;
   sourcePack: string;
 }
 
 /**
- * The domain-kind preimage: `{class, hydratorClass, data}` only. Adding a
+ * The domain-kind preimage: `{class, extends, data}` only. Adding a
  * field to the row shape means deciding here whether it is content (in)
  * or bookkeeping (out) — `_id`, `path`, `sourcePack`, timestamps are out.
  * `JSON.stringify` drops `undefined`, so absent-vs-undefined normalizes
  * identically on the file side and the BSON round-trip side.
+ *
+ * ⚠⚠ **Dropping `hydratorClass` from the preimage re-hashes EVERY row
+ * once** (2026-10-01). The first boot after that change reconciles ~1,970
+ * rows as changed and re-applies each one's data to its live singletons
+ * through go-live; the second boot reports zero. On a dev DB that is a
+ * drop-and-reboot, never a migration. ⭐ It is also the first event the
+ * `birthOnly` flag has to survive in anger — without it that boot would
+ * reset every live coin stack to its authored `quantity`.
  */
 const domainStrategy: KindStrategy<DomainFile> = {
   kind: 'domain',
@@ -1608,7 +1608,6 @@ const domainStrategy: KindStrategy<DomainFile> = {
     };
     if (f.class) row.class = f.class;
     if (f.extends) row.extends = f.extends;
-    if (f.hydratorClass) row.hydratorClass = f.hydratorClass;
     return row;
   },
   // `JSON.stringify` drops `undefined`, so adding `extends` changed no
@@ -1617,14 +1616,12 @@ const domainStrategy: KindStrategy<DomainFile> = {
     canonical({
       class: r.class ?? undefined,
       extends: r.extends ?? undefined,
-      hydratorClass: r.hydratorClass ?? undefined,
       data: r.data ?? {},
     }),
   exportBody: (r) => {
     const out: Record<string, unknown> = {};
     if (r.class) out.class = r.class;
     if (r.extends) out.extends = r.extends;
-    if (r.hydratorClass) out.hydratorClass = r.hydratorClass;
     out.data = r.data ?? {};
     return out;
   },

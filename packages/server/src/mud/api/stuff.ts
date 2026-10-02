@@ -18,6 +18,7 @@ import { ModuleApi } from './module';
 import { AsyncLocalStorage } from 'node:async_hooks';
 import { Stuff, type DestroyedObjectMetadata } from '../lib/stuff/Stuff';
 import type { Hydrator } from '../lib/stuff/Hydrator';
+import { TemplatePaths } from '../lib/paths';
 import { MixinApi, type AnyConstructor } from './mixin';
 import { Mixins } from '../lib/mixin';
 import { PathTrie } from '../lib/collections/PathTrie';
@@ -173,10 +174,14 @@ export class StuffApi {
 
   /**
    * Per-clone-tree set of templatePaths currently in flight, carried in
-   * AsyncLocalStorage. Catches circular template dependencies — e.g. a
-   * hydrator template naming itself (or another hydrator) as
-   * `hydratorClass`. Without detection the recursion would stack-
-   * overflow; with detection we throw a clear error before that happens.
+   * AsyncLocalStorage. Catches circular template dependencies — the
+   * applier's own row being cloned while it is being resolved, or any
+   * other path that re-enters `clone()` during hydrate/onCreate. Without
+   * detection the recursion would stack-overflow; with detection we
+   * throw a clear error before that happens. ⭐ Since the row stopped
+   * naming its applier (2026-10-01) the applier's own terminator is
+   * structural — its row has `data: {}`, so cloning it plans no applier
+   * — and this set is the backstop rather than the mechanism.
    *
    * Crucially, the set is scoped to ONE async clone tree, not module-
    * global. A genuine cycle is the same path reappearing within a single
@@ -373,11 +378,10 @@ export class StuffApi {
    *   3. Construct an empty backing (no-arg ctor) and stamp its zone.
    *   4. Register the instance so recursive resolution during hydrate /
    *      initialize can observe the in-flight object.
-   *   5. If the template names a `hydratorClass`, resolve it and
-   *      `await hydrator.hydrate(backing, doc.data)`. When absent, no
-   *      hydration step runs — templates that want generic mixin-field
-   *      copy must opt in by naming
-   *      `'/platform/idea/persistence/PersistentHydrator'`.
+   *   5. If there is any `data` to apply — the row's, with any
+   *      `dataOverlay` merged over it — resolve the applier and
+   *      `await applier.hydrate(backing, data)`. Nothing to apply plans
+   *      no applier.
    *   6. Await `onCreate(context)`, forwarding the caller-supplied
    *      context. The hook bottoms out on a terminal no-op on `Stuff`,
    *      so the step is unconditional.
@@ -433,9 +437,9 @@ export class StuffApi {
     opts?: { dataOverlay?: Record<string, unknown>; asIdentityPath?: string }
   ): Promise<T> {
     // Per-clone-tree cycle guard (see `#cloneStackALS`). Catches a
-    // template whose `hydratorClass` resolves (transitively) back to
-    // itself before the recursion stack-overflows. Normal clones aren't
-    // recursive — only the hydrator-resolution recursion can hit this.
+    // template that re-enters its own clone before the recursion
+    // stack-overflows. Normal clones aren't recursive — only the
+    // applier resolution and a hook that clones can hit this.
     // The in-flight set is scoped to this async clone tree, so concurrent
     // independent clones of the same path don't false-trip it.
     const existing = this.#cloneStackALS.getStore();
@@ -558,18 +562,40 @@ export class StuffApi {
     const { ZoneApi } = await import('./zone');
     const zone = await ZoneApi.resolveZoneForPath(identityPath);
 
-    // 6. Resolve the hydrator. When `hydratorClass` is omitted, no
-    //    hydration step runs at all — `data` is ignored. Otherwise
-    //    `singleton(path)` returns the cached hydrator instance if
-    //    one is registered, or lazily clones the first time a
-    //    backing needs it. Hydrators are stateless by contract
-    //    (`Hydrator.ts` documents this) — reusing one instance
-    //    across many `hydrate` calls is correct, and avoids a
-    //    per-clone Template.findByPath round-trip. HMR-aware via
-    //    the same clone-override path as the backing class.
-    const hydrator: (Hydrator & Stuff) | null = template.hydratorClass
-      ? await this.singleton<Hydrator & Stuff>(template.hydratorClass)
-      : null;
+    // 6. Resolve the applier — iff there is anything to apply.
+    //    ⭐ The row no longer names one. `hydratorClass` retired
+    //    2026-10-01: it had ONE value across 1,528 rows and zero rows
+    //    used the opt-out, so the field expressed a choice nobody had
+    //    made — while forgetting it silently discarded the row's whole
+    //    `data` block. The question "should this row's data be applied?"
+    //    has only ever had one honest answer.
+    //
+    //    ⚠⚠ The test is the MERGED data, which is why the overlay merge
+    //    moved above this line. Five production callers pass a
+    //    `dataOverlay` (the guest body, embody, two condition mints, a
+    //    sandbox crossing, a market stall) and some of their rows carry
+    //    `data: {}` — gating on `template.data` alone would drop every
+    //    one of those overlays, silently, which is the exact failure
+    //    mode the retired field had.
+    //
+    //    ⚠ The recursion terminator is structural rather than declared
+    //    now: the applier's OWN row carries `data: {}`, so cloning the
+    //    applier plans no applier. The in-flight singleton cycle guard
+    //    stays as the backstop.
+    //
+    //    The applier is stateless by contract, so `singleton(path)`'s
+    //    one cached instance is reused across every backing it fills —
+    //    no per-clone `Template.findByPath` round-trip, and HMR-aware
+    //    through the same clone-override path as the backing class.
+    const data = opts?.dataOverlay
+      ? { ...(template.data ?? {}), ...opts.dataOverlay }
+      : (template.data ?? {});
+    const hydrator: (Hydrator & Stuff) | null =
+      Object.keys(data).length > 0
+        ? await this.singleton<Hydrator & Stuff>(
+            TemplatePaths.persistentHydrator
+          )
+        : null;
 
     // 7. Construct, stamp zone, then run the shared register / hydrate /
     //    onCreate sequence. The hydrator captures `template.data`.
@@ -602,9 +628,6 @@ export class StuffApi {
     if (opts?.asIdentityPath) {
       Stuff._stampIdentityPath(obj, opts.asIdentityPath);
     }
-    const data = opts?.dataOverlay
-      ? { ...(template.data ?? {}), ...opts.dataOverlay }
-      : (template.data ?? {});
     return this.#registerAndInit(
       obj,
       hydrator ? (o) => hydrator.hydrate(o, data) : null,

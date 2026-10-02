@@ -73,7 +73,7 @@ function col(collection: string): Doc[] {
 function seedDomain(): void {
   const domain = col('content');
   const add = (path: string, cls: string, data: Record<string, unknown> = {}) =>
-    domain.push({ _id: `d-${++idCounter}`, path, class: cls, hydratorClass: PH, data });
+    domain.push({ _id: `d-${++idCounter}`, path, class: cls, data });
   domain.push({ _id: `d-${++idCounter}`, path: PH, class: PH, data: {} });
   // ⭐ The engine's own rows plus the hall's exit kinds.
   for (const row of KERNEL_CONTENT_ROWS) {

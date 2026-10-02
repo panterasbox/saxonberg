@@ -102,7 +102,6 @@ function installStore(): void {
       _id: 'field',
       path: FIELD_ROW,
       class: '/trade/farming/location/Field',
-      hydratorClass: '/platform/idea/persistence/PersistentHydrator',
       data: { shortDescription: 'a field' },
     },
   );

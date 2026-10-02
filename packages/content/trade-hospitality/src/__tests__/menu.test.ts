@@ -69,7 +69,7 @@ const MENU = [
 ];
 const PRESSES = ['press-lime', 'press-lemon', 'press-orange', 'press-grapefruit'];
 
-type Row = { path: string; class: string; hydratorClass?: string; data: Record<string, unknown> };
+type Row = { path: string; class: string; data: Record<string, unknown> };
 
 function yamlDir(pack: string, dir: string, prefix: string): Row[] {
   const abs = join(CONTENT, pack, 'content', dir);

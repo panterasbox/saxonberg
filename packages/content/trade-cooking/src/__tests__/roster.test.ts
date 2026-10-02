@@ -89,7 +89,6 @@ const ROSTER = [
 type Row = {
   path: string;
   class: string;
-  hydratorClass?: string;
   data: Record<string, unknown>;
 };
 

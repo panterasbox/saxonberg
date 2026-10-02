@@ -259,14 +259,14 @@ describe('BootstrapManager + EventRegistry integration', () => {
     // Stub the Template lookup so we don't need a live Mongo
     // connection — return what the seeded YAML would produce.
     // PersistentHydrator is itself templated now, so we serve its
-    // Template here too (a hydrator template names no hydratorClass,
+    // Template here too (the applier's row carries no data,
     // breaking the recursion).
     vi.spyOn(Template, 'findByPath').mockImplementation(
       async (path: string) => {
         if (path === '/platform/idea/EventRegistry') {
           const t = new LeafTemplate();
           t.path = path;
-          t.setOwn({ class: '/platform/idea/EventRegistry', hydratorClass: '/platform/idea/persistence/PersistentHydrator', data: {} });
+          t.setOwn({ class: '/platform/idea/EventRegistry', data: {} });
           return t;
         }
         if (path === '/platform/idea/persistence/PersistentHydrator') {

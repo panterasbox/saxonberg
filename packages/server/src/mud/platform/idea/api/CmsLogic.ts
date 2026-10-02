@@ -428,9 +428,6 @@ export class CmsLogic extends ApiLogic {
           // The EFFECTIVE class: the Studio composer is describing what
           // this row clones into, which a child gets from its parent.
           class: tpl.class,
-          ...(tpl.hydratorClass !== undefined
-            ? { hydratorClass: tpl.hydratorClass }
-            : {}),
           ...(tpl.extends !== undefined ? { extends: tpl.extends } : {}),
           ...(tpl.chain.length > 0 ? { chain: [...tpl.chain] } : {}),
         },
@@ -573,8 +570,7 @@ export class CmsLogic extends ApiLogic {
   /**
    * Content write: parse → recover backing class → gate → persist →
    * re-hydrate live instances. The editor edits `data` only, so the
-   * existing template's RAW `class`/`hydratorClass`/`extends` round-trip
-   * unchanged.
+   * existing template's RAW `class`/`extends` round-trip unchanged.
    *
    * Private — not gated; reached only from the gated `write` on the
    * same proxy receiver.
@@ -615,7 +611,6 @@ export class CmsLogic extends ApiLogic {
     // flatten it into a copy of its parent at the first CMS save.
     await TemplateApi.saveTemplate(path, {
       class: existing.own.class,
-      hydratorClass: existing.own.hydratorClass,
       extends: existing.extends,
       data,
     });

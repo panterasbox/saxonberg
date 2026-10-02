@@ -383,11 +383,22 @@ describe('StuffApi', () => {
   });
 
   describe('clone() cycle detection', () => {
-    it('throws on a self-referencing template (hydratorClass = self)', async () => {
-      // Use PersistentHydrator (a real on-disk class) but stub its
-      // Template to falsely claim it hydrates itself, creating a
-      // one-step cycle. clone() should bail before the recursion
-      // stack-overflows.
+    // ⚠ Each case must start with an EMPTY registry. `singleton()`
+    // short-circuits on a cached instance, so an applier left registered
+    // by the previous case means the next one never looks its row up —
+    // and the "scheduled inside a clone tree" case below arms itself
+    // from inside that lookup, so it would pass vacuously with nothing
+    // scheduled.
+    beforeEach(() => {
+      StuffApi.clearAll();
+    });
+
+    // ⭐ The terminator is STRUCTURAL since `hydratorClass` retired
+    // (2026-10-01): the applier's own row carries `data: {}`, so cloning
+    // the applier plans no applier and the recursion cannot start. This
+    // test gives that row DATA — the one authoring state that would
+    // re-open the cycle — and asserts the guard is still the backstop.
+    it('throws on a self-referencing applier row (its own row carries data)', async () => {
       const { Template } = await import('../../lib/stuff/Template');
       const { LeafTemplate } = await import('../../lib/stuff/LeafTemplate');
       const { vi } = await import('vitest');
@@ -396,7 +407,10 @@ describe('StuffApi', () => {
           if (path === '/platform/idea/persistence/PersistentHydrator') {
             const t = new LeafTemplate();
             t.path = path;
-            t.setOwn({ class: '/platform/idea/persistence/PersistentHydrator', hydratorClass: '/platform/idea/persistence/PersistentHydrator', data: {} });
+            t.setOwn({
+              class: '/platform/idea/persistence/PersistentHydrator',
+              data: { shortDescription: 'an applier that applies itself' },
+            });
             return t;
           }
           return null;
@@ -406,6 +420,33 @@ describe('StuffApi', () => {
       await expect(
         StuffApi.clone('/platform/idea/persistence/PersistentHydrator')
       ).rejects.toThrow(/circular template dependency/);
+
+      vi.restoreAllMocks();
+    });
+
+    it('⭐ the applier\'s own EMPTY row terminates with no guard needed', async () => {
+      const { Template } = await import('../../lib/stuff/Template');
+      const { LeafTemplate } = await import('../../lib/stuff/LeafTemplate');
+      const { vi } = await import('vitest');
+      vi.spyOn(Template, 'findByPath').mockImplementation(
+        async (path: string) => {
+          if (path === '/platform/idea/persistence/PersistentHydrator') {
+            const t = new LeafTemplate();
+            t.path = path;
+            t.setOwn({
+              class: '/platform/idea/persistence/PersistentHydrator',
+              data: {},
+            });
+            return t;
+          }
+          return null;
+        }
+      );
+
+      const applier = await StuffApi.clone(
+        '/platform/idea/persistence/PersistentHydrator'
+      );
+      expect(applier).toBeDefined();
 
       vi.restoreAllMocks();
     });
@@ -431,7 +472,16 @@ describe('StuffApi', () => {
             await new Promise((r) => setTimeout(r, 5));
             const t = new LeafTemplate();
             t.path = path;
-            t.setOwn({ class: '/platform/thing/Thing', hydratorClass: HYDRATOR, data: {} });
+            // ⚠ The `data` is load-bearing for this test now: since
+            // `hydratorClass` retired (2026-10-01) the applier is
+            // resolved only when there IS data to apply, and the
+            // applier lookup is what arms the two scheduled clones
+            // below. A `data: {}` row would never reach that branch and
+            // the test would pass vacuously with `later` empty.
+            t.setOwn({
+              class: '/platform/thing/Thing',
+              data: { shortDescription: 'a prop' },
+            });
             return t;
           }
           if (path === HYDRATOR) {

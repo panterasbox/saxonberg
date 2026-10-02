@@ -32,13 +32,11 @@ const docs: Doc[] = [
   {
     path: BIZ_A,
     class: "/platform/idea/Business",
-    hydratorClass: PH,
     data: { proprietorPath: "", positions: [], operatingLocations: [FIXTURE_A] },
   },
   {
     path: BIZ_B,
     class: "/platform/idea/Business",
-    hydratorClass: PH,
     data: { proprietorPath: "", positions: [], operatingLocations: [FIXTURE_B] },
   },
   // A rostered venue whose assignee is NOT live — the shape every cast-staffed
@@ -46,7 +44,6 @@ const docs: Doc[] = [
   {
     path: BIZ_C,
     class: "/platform/idea/Business",
-    hydratorClass: PH,
     data: {
       proprietorPath: "",
       positions: [{ key: "cook", label: "minding the hearth", wageRate: 4, fulfills: ['cooking'] }],

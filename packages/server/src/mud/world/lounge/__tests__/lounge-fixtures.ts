@@ -31,13 +31,11 @@ export function loungeDocs(extra: Doc[] = []): Doc[] {
     {
       path: LoungeWarren.LOUNGE_TEMPLATE,
       class: '/world/lounge/location/Lounge',
-      hydratorClass: PH,
       data: { warren: LoungeWarren.WARREN_PATH, shortDescription: 'the lounge' },
     },
     {
       path: LoungeWarren.BAR_PATH,
       class: '/world/lounge/location/Bar',
-      hydratorClass: PH,
       data: { shortDescription: "Dave's Bar" },
     },
     // ⭐ The default floor. Since the ground build every Location mints one
@@ -48,7 +46,6 @@ export function loungeDocs(extra: Doc[] = []): Doc[] {
     {
       path: TemplatePaths.defaultFloor,
       class: '/platform/thing/Floor',
-      hydratorClass: PH,
       data: {
         shortDescription: 'featureless plain floor',
         keywords: ['floor', 'ground', 'featureless', 'plain', 'underfoot'],

@@ -246,7 +246,6 @@ interface Row {
   /** Repo-relative file. */
   file: string;
   class: string;
-  hydratorClass?: string;
   data: Record<string, unknown>;
 }
 
@@ -305,8 +304,6 @@ function contentRows(): Map<string, Row> {
         path: "/" + rel.split(/[\\/]/).join("/"),
         file: relative(REPO, file),
         class: d.class,
-        hydratorClass:
-          typeof d.hydratorClass === "string" ? d.hydratorClass : undefined,
         data: (d.data as Record<string, unknown>) ?? {},
       });
     }

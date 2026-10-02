@@ -114,7 +114,6 @@ describe('EmbodyController.commit → chronicle seeding', () => {
       path: PrimaryAvatar.ROW_TEMPLATE_PATH,
       class: '/platform/agent/PrimaryAvatar',
       data: { startLocation: '/world/lounge/idea/warren' },
-      hydratorClass: '/platform/idea/persistence/PersistentHydrator',
     } as never);
     vi.spyOn(TemplateApi, 'saveTemplate').mockImplementation(
       async (path: string) => path

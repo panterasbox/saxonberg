@@ -45,7 +45,6 @@ type Doc = {
   _id?: string;
   path: string;
   class: string;
-  hydratorClass?: string;
   data: Record<string, unknown>;
 };
 
@@ -55,7 +54,6 @@ const HYDRATOR = '/platform/idea/persistence/PersistentHydrator';
 const DEFAULT_FLOOR_ROW: Doc = {
   path: TemplatePaths.defaultFloor,
   class: '/platform/thing/Floor',
-  hydratorClass: HYDRATOR,
   data: {
     shortDescription: 'featureless plain floor',
     keywords: ['floor', 'ground', 'featureless', 'plain', 'underfoot'],
@@ -65,7 +63,7 @@ const DEFAULT_FLOOR_ROW: Doc = {
 };
 
 /**
- * The Hydrator itself is a template row too — `hydratorClass:` is a
+ * The applier itself is a template row too — its path is a
  * TEMPLATE path, not a module path, and the clone pipeline resolves it
  * through the same store. Leaving it out fails with
  * `Template not found: /platform/idea/persistence/PersistentHydrator`,
@@ -115,7 +113,6 @@ describe('ensureFloor — the default', () => {
       {
         path: '/test/room/plain',
         class: '/platform/location/CartesianLocation',
-        hydratorClass: HYDRATOR,
         data: { shortDescription: 'a plain cell', coordinates: [0, 0, 0] },
       },
     ]);
@@ -164,7 +161,6 @@ describe('ensureFloor — authored wins', () => {
       {
         path: '/test/floor/weeping',
         class: '/platform/thing/Floor',
-        hydratorClass: HYDRATOR,
         data: {
           shortDescription: 'wet flagstones',
           keywords: ['flagstones', 'wet'],
@@ -175,7 +171,6 @@ describe('ensureFloor — authored wins', () => {
       {
         path: '/test/room/authored',
         class: '/platform/location/CartesianLocation',
-        hydratorClass: HYDRATOR,
         data: {
           shortDescription: 'a weeping cell',
           coordinates: [0, 0, 0],
@@ -201,7 +196,6 @@ describe('ensureFloor — the opt-out', () => {
       {
         path: '/test/room/void',
         class: '/platform/location/CartesianLocation',
-        hydratorClass: HYDRATOR,
         data: { shortDescription: 'nowhere', noDefaultFloor: true },
       },
     ]);
@@ -220,7 +214,6 @@ describe('ensureFloor — the opt-out', () => {
       {
         path: '/test/room/midair',
         class: '/platform/location/CartesianLocation',
-        hydratorClass: HYDRATOR,
         data: {
           shortDescription: 'open air',
           coordinates: [0, 0, 40],
@@ -245,7 +238,6 @@ describe('ensureFloor — the `floor:` spec (rung 2)', () => {
       {
         path: '/test/room/spec',
         class: '/platform/location/CartesianLocation',
-        hydratorClass: HYDRATOR,
         data: {
           shortDescription: 'a byre',
           coordinates: [0, 0, 0],
@@ -270,13 +262,11 @@ describe('ensureFloor — the `floor:` spec (rung 2)', () => {
       {
         path: '/test/floor/boards',
         class: '/platform/thing/Floor',
-        hydratorClass: HYDRATOR,
         data: { shortDescription: 'scrubbed boards', keywords: ['boards'] },
       },
       {
         path: '/test/room/tpl',
         class: '/platform/location/CartesianLocation',
-        hydratorClass: HYDRATOR,
         data: {
           shortDescription: 'a parlour',
           floor: { template: '/test/floor/boards' },
@@ -295,7 +285,6 @@ describe('11 · a spill pools in a room that had no floor before', () => {
       {
         path: '/test/room/spill',
         class: '/platform/location/CartesianLocation',
-        hydratorClass: HYDRATOR,
         data: { shortDescription: 'a plain cell', coordinates: [0, 0, 0] },
       },
     ]);
@@ -343,13 +332,11 @@ describe('⚠⚠ onGrade through the CLONE PIPELINE — the drive\u2019s finding
       {
         path: BIOME,
         class: '/platform/idea/SkyExposedBiome',
-        hydratorClass: HYDRATOR,
         data: { name: 'outdoor-test' },
       },
       {
         path: '/test/room/street',
         class: '/platform/location/CartesianLocation',
-        hydratorClass: HYDRATOR,
         data: {
           shortDescription: 'a street',
           coordinates: [0, 0, 0],
@@ -360,7 +347,6 @@ describe('⚠⚠ onGrade through the CLONE PIPELINE — the drive\u2019s finding
       {
         path: '/test/room/gallery',
         class: '/platform/location/CartesianLocation',
-        hydratorClass: HYDRATOR,
         data: { shortDescription: 'a gallery', coordinates: [0, 0, -4] },
       },
     ]);

@@ -65,13 +65,12 @@ class Traveller extends AetherMixin(
 
 const docs: Doc[] = [
   { path: PH, class: PH, data: {} },
-  { path: D_ROOM, class: "/platform/location/VoidLocation", hydratorClass: PH, data: { shortDescription: "the departure hall" } },
-  { path: R_ROOM, class: "/platform/location/VoidLocation", hydratorClass: PH, data: { shortDescription: "the arrival hall" } },
-  { path: OFF_ROOM, class: "/platform/location/VoidLocation", hydratorClass: PH, data: { shortDescription: "the shuttered hall" } },
+  { path: D_ROOM, class: "/platform/location/VoidLocation", data: { shortDescription: "the departure hall" } },
+  { path: R_ROOM, class: "/platform/location/VoidLocation", data: { shortDescription: "the arrival hall" } },
+  { path: OFF_ROOM, class: "/platform/location/VoidLocation", data: { shortDescription: "the shuttered hall" } },
   {
     path: DEPART,
     class: "/system/tpa/thing/TpaTerminal",
-    hydratorClass: PH,
     data: {
       seatIn: D_ROOM,
       shortDescription: "a Teleport Authority terminal",
@@ -84,7 +83,6 @@ const docs: Doc[] = [
   {
     path: OFF_GATE,
     class: "/system/tpa/thing/TpaTerminal",
-    hydratorClass: PH,
     data: {
       seatIn: OFF_ROOM,
       shortDescription: "a Teleport Authority terminal",
@@ -97,7 +95,6 @@ const docs: Doc[] = [
   {
     path: ARRIVE,
     class: "/system/tpa/thing/TpaTerminal",
-    hydratorClass: PH,
     data: {
       seatIn: R_ROOM,
       shortDescription: "a Teleport Authority terminal",

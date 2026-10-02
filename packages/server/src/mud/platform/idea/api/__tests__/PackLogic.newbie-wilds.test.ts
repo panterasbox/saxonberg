@@ -72,7 +72,6 @@ describe('the newbie-wilds pack (real root, real class resolution)', () => {
       {
         rel: 'stuff/agent/costume/student.yaml',
         class: '/platform/agent/Extra',
-        hydratorClass: HYDRATOR,
         data: { shortDescription: 'student' },
       },
     ]);
@@ -112,7 +111,6 @@ describe('the newbie-wilds pack (real root, real class resolution)', () => {
           _id: `seed-${++n}`,
           path: '/' + relative(CONTENT, full).replace(/\.yaml$/, ''),
           class: doc.class as string,
-          hydratorClass: doc.hydratorClass as string | undefined,
           data: (doc.data as Record<string, unknown>) ?? {},
           __col: 'content',
         });

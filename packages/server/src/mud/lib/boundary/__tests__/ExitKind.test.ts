@@ -46,7 +46,6 @@ function mockKindTemplates(): void {
         t.path = path;
         t.setOwn({
           class: '/platform/idea/Exit',
-          hydratorClass: '/platform/idea/persistence/PersistentHydrator',
           data: {
           media: ['ground'],
           messageOut: '{{ mover }} passes through the archway.',
@@ -57,7 +56,7 @@ function mockKindTemplates(): void {
       }
       if (path === '/platform/idea/persistence/PersistentHydrator') {
         // The hydrator's own template (the real seed's base case: no
-        // hydratorClass — terminates the clone recursion).
+        // data — terminates the clone recursion).
         const t = new LeafTemplate();
         t.path = path;
         t.setOwn({ class: '/platform/idea/persistence/PersistentHydrator', data: {} });
@@ -68,7 +67,6 @@ function mockKindTemplates(): void {
         t.path = path;
         t.setOwn({
           class: '/platform/idea/Exit',
-          hydratorClass: '/platform/idea/persistence/PersistentHydrator',
           data: {
           media: ['ground'],
           wheelPassable: false,

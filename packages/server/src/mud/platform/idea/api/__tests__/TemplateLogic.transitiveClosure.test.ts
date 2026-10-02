@@ -2,7 +2,7 @@
  * Transitive-closure proof (wizard-authority AC4).
  *
  * The code-field gate gates only the **direct** code-naming fields
- * (`class` / `hydratorClass` / `behaviors[].brain`). The **transitive**
+ * (`class` / `behaviors[].brain`). The **transitive**
  * reference fields (`exits[].destination`, `adornments[].template`,
  * `props[]`, `cast[]`, `container`, …) get no per-field gate — they are closed
  * *by construction*: every template a transitive field can resolve to

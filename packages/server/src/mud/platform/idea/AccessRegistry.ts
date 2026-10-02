@@ -240,7 +240,7 @@ export default class AccessRegistry extends AccessRegistryBase {
    * Orthogonal wizard axis — is the actor in `'wizards'`? This is the
    * code-trust capability: it determines who can write TypeScript
    * source, run `eval`, `reload` modules, AND set the executable
-   * code-naming fields (`class` / `hydratorClass` / `behaviors[].brain`)
+   * code-naming fields (`class` / `behaviors[].brain`)
    * on a content template (see the code-field gate in `TemplateLogic`).
    * Doesn't matter what slices they own; the question is whether they
    * have escape capability. A non-wizard author is a "protowizard" —

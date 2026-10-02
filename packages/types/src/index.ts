@@ -4040,7 +4040,6 @@ export interface CmsReadResult {
    *  source. */
   templateMeta?: {
     class: string;
-    hydratorClass?: string;
     extends?: string;
     chain?: string[];
   };

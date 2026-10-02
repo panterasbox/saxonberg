@@ -116,7 +116,6 @@ describe('Storm lightning strikes (Phase E)', () => {
     {
       path: '/platform/thing/LightningStrike',
       class: '/platform/thing/LightningStrike',
-      hydratorClass: '/platform/idea/persistence/PersistentHydrator',
       data: { shortDescription: 'a lightning strike' },
     },
     ]);

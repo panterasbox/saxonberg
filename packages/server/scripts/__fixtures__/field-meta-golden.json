@@ -3101,7 +3101,6 @@
     "persistentFields": [
       "path",
       "class",
-      "hydratorClass",
       "data"
     ],
     "fieldMarshallers": {},

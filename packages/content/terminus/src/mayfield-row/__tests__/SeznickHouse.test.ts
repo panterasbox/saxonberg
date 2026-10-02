@@ -103,7 +103,6 @@ function seedDomain(): void {
       // The shipped class wins wherever the row really exists; `cls` is
       // the fallback for the synthetic rows this fixture invents.
       class: shippedClass(path) ?? cls,
-      hydratorClass: PH,
       data,
     });
   domain.push({ _id: `d-${++idCounter}`, path: PH, class: PH, data: {} });

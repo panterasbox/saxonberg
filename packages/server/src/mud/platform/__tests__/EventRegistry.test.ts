@@ -28,7 +28,7 @@ async function bootstrapEventRegistry(): Promise<EventRegistry> {
     if (path === '/platform/idea/EventRegistry') {
       const t = new LeafTemplate();
       t.path = path;
-      t.setOwn({ class: '/platform/idea/EventRegistry', hydratorClass: '/platform/idea/persistence/PersistentHydrator', data: {} });
+      t.setOwn({ class: '/platform/idea/EventRegistry', data: {} });
       return t;
     }
     if (path === '/platform/idea/persistence/PersistentHydrator') {

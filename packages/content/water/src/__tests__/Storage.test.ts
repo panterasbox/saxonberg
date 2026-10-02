@@ -51,7 +51,6 @@ const G = 9.81;
 interface Row {
   path: string;
   class: string;
-  hydratorClass?: string;
   data: Record<string, unknown>;
 }
 
@@ -85,7 +84,6 @@ const WORLD: Row[] = [
     // exactly why it needs a tower to get any head at all.
     path: '/world/flatcity',
     class: '/platform/idea/location/CartesianZone',
-    hydratorClass: '/platform/idea/persistence/PersistentHydrator',
     data: { elevation: 5 },
   },
 ];

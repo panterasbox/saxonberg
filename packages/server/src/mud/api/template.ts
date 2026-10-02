@@ -56,7 +56,7 @@ export class TemplateApi {
   /**
    * Upsert a Template at `path`. Looks up an existing Template at the
    * same path (so the underlying upsert reuses its `_id`), writes the
-   * RAW row (`class` / `hydratorClass` / `extends` / `data` exactly as
+   * RAW row (`class` / `extends` / `data` exactly as
    * the author stated them — a save never flattens an inherited value),
    * and saves through `Document.save()`. The
    * folder/leaf invariant fires through `DomainHook` against the PM
@@ -103,7 +103,7 @@ export class TemplateApi {
    * Zone classification uses the runtime `class` field via
    * `ZoneApi.isFolderClass` — a Zone subclass extends `Zone`,
    * regardless of whether anyone registered it in a central
-   * allow-list. `hydratorClass` is orthogonal to zonehood.
+   * allow-list.
    */
   public static async validateFolderLeafSave(
     doc: Record<string, unknown>

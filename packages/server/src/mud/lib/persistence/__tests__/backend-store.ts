@@ -31,7 +31,6 @@ export type Doc = Record<string, unknown> & {
   _id?: string;
   path: string;
   class: string;
-  hydratorClass?: string;
   data: Record<string, unknown>;
 };
 

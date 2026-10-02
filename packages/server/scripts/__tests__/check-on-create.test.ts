@@ -14,6 +14,7 @@
  * `docstring mention` case below is that defect, pinned.
  */
 
+import '../../src/test-bootstrap';
 import { describe, it, expect } from 'vitest';
 import { mkdtempSync, writeFileSync, mkdirSync, rmSync } from 'fs';
 import { tmpdir } from 'os';

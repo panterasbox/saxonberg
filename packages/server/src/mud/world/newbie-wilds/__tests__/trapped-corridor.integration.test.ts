@@ -99,7 +99,6 @@ function seedDoc(file: string, path: string): Doc {
   return {
     path,
     class: parsed.class as string,
-    hydratorClass: (parsed.hydratorClass as string) ?? PH,
     data: (parsed.data as Record<string, unknown>) ?? {},
   };
 }
@@ -138,7 +137,6 @@ function trapsStore(): Doc[] {
     {
       path: '/world/newbie-wilds/crossroads/treeline',
       class: '/platform/location/VoidLocation',
-      hydratorClass: PH,
       data: { shortDescription: 'the treeline' },
     },
   ];

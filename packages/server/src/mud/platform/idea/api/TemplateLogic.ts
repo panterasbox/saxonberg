@@ -59,7 +59,6 @@ export class TemplateLogic extends ApiLogic {
     const existing = await Template.findByPath(path);
     const classPath = spec.class;
     const data = spec.data;
-    const hydratorClassPath = spec.hydratorClass;
 
     // A row states a class or names a parent; neither is a row that
     // clones into nothing.
@@ -101,16 +100,10 @@ export class TemplateLogic extends ApiLogic {
 
     // Code-trust lockdown: a non-wizard author (a protowizard) may not
     // introduce or change a direct code-naming field
-    // (`class` / `hydratorClass` / `behaviors[].brain`). The actor is
-    // derived from the execution context (never caller-supplied); the
-    // `existing` doc is the diff baseline. See access.md § The
-    // code-trust lockdown.
-    await this.enforceCodeFieldGate(
-      classPath,
-      data,
-      hydratorClassPath,
-      existing,
-    );
+    // (`class` / `behaviors[].brain`). The actor is derived from the
+    // execution context (never caller-supplied); the `existing` doc is
+    // the diff baseline. See access.md § The code-trust lockdown.
+    await this.enforceCodeFieldGate(classPath, data, existing);
 
     // The folder/leaf subclass follows the EFFECTIVE class — a child
     // that states none is the folder (or leaf) its parent is.
@@ -140,7 +133,7 @@ export class TemplateLogic extends ApiLogic {
   /**
    * The code-field gate (wizard-authority). Enforces that a non-wizard
    * content author cannot set or change any **direct code-naming field**
-   * — `class`, `hydratorClass`, or any `behaviors[].brain` — on a
+   * — `class` or any `behaviors[].brain` — on a
    * content template, since each resolves to executable code at clone /
    * hydrate / behavior-fire time. The transitive reference fields close
    * by construction (every referenced template passed this same gate).
@@ -153,13 +146,13 @@ export class TemplateLogic extends ApiLogic {
    *  3. else (a protowizard) → enforce the delta rule below.
    *
    * The delta rule rejects a write that **introduces or changes** a
-   * code-naming field vs. the `existing` doc: `class` / `hydratorClass`
+   * code-naming field vs. the `existing` doc: `class`
    * inequality, or an incoming brain multiset that is not a subset of
-   * the existing one. A pure cosmetic edit (same class/hydrator, brain
-   * set unchanged-or-reduced) passes — the protowizard authoring path.
+   * the existing one. A pure cosmetic edit (same class, brain set
+   * unchanged-or-reduced) passes — the protowizard authoring path.
    *
    * Structural carve-out (D4): a `mkdir`-shaped write — a Zone/folder
-   * `class` with no behaviors and the standard (or absent) hydrator —
+   * `class` with no behaviors —
    * is exempt. A folder class is engine code by construction, carries no
    * author-chosen executable strategy, and is constrained by the
    * folder/leaf invariant. The carve-out admits *any* `isFolderClass`
@@ -184,7 +177,6 @@ export class TemplateLogic extends ApiLogic {
   private async enforceCodeFieldGate(
     classPath: string | undefined,
     data: Record<string, unknown>,
-    hydratorClassPath: string | undefined,
     existing: Template | null,
   ): Promise<void> {
     const actor = ExecutionContextApi.getActingAuthor();
@@ -198,15 +190,12 @@ export class TemplateLogic extends ApiLogic {
     const existingBrains = CodeNamingFields.extractBrains(existing?.own.data);
 
     // A structural folder scaffold (mkdir / lounge seed) carries no
-    // author-chosen executable strategy — exempt its class + standard
-    // hydrator. Requiring no behaviors + the standard hydrator prevents
-    // smuggling a brain/hydrator in under a folder class.
-    const standardHydrator =
-      hydratorClassPath === undefined ||
-      hydratorClassPath === PersistentHydrator.templatePath;
+    // author-chosen executable strategy — exempt its class. Requiring no
+    // behaviors prevents smuggling a brain in under a folder class.
+    // ⭐ The `hydratorClass` arm went with the field (2026-10-01), not
+    // with an exemption: there is no applier for a scaffold to smuggle.
     const folderScaffold =
       incomingBrains.length === 0 &&
-      standardHydrator &&
       classPath !== undefined &&
       (await ZoneApi.isFolderClass(classPath));
 
@@ -214,13 +203,6 @@ export class TemplateLogic extends ApiLogic {
 
     if (classPath !== (existing?.own.class ?? undefined) && !folderScaffold) {
       violations.push('class');
-    }
-    if (
-      (hydratorClassPath ?? undefined) !==
-        (existing?.own.hydratorClass ?? undefined) &&
-      !folderScaffold
-    ) {
-      violations.push('hydratorClass');
     }
     if (!CodeNamingFields.isMultisetSubset(incomingBrains, existingBrains)) {
       violations.push('behaviors[].brain');

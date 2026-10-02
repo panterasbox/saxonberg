@@ -516,7 +516,7 @@ describe("room decomposes by owner (AC #7)", () => {
 });
 
 describe("security (AC #8)", () => {
-  it("a forged record cannot inject class/hydratorClass/brain or undeclared keys", async () => {
+  it("a forged record cannot inject class/brain or undeclared keys", async () => {
     cloneFactories = { "/world/chest": () => new ContentChest() };
     const room = makeStuffAtPath(() => new RoomHost(), "/world/room");
     await PersistableApi.capture(room);
@@ -531,7 +531,6 @@ describe("security (AC #8)", () => {
               fields: {
                 label: "legit",
                 class: "/obj/evil/Backdoor",
-                hydratorClass: "/obj/evil/Hydrator",
                 brain: "/lib/behavior/pwn",
                 bogusUndeclared: "x",
               },

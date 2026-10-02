@@ -78,7 +78,7 @@ const CoinQuantityMutators = SecurityPolicies.AnyOf(
   //
   // ⚠ This does mean a template authored with `data.quantity: 1000000` would
   // clone into a fortune. That is a CONTENT-authoring surface, not a code
-  // one: `class` / `hydratorClass` are wizard-gated fields, and
+  // one: `class` is a wizard-gated field, and
   // "can a template mint coins" is enumerated in
   // docs/slates/builds/money-integrity-slate.md § the audit surface
   // (clone-a-coin, content packs, the CMS coin row) as that cycle's work.

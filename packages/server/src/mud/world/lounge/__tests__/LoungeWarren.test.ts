@@ -31,7 +31,6 @@ type Doc = Record<string, unknown> & {
   _id?: string;
   path: string;
   class: string;
-  hydratorClass?: string;
   data: Record<string, unknown>;
 };
 
@@ -46,13 +45,11 @@ function installLoungeStore(): Doc[] {
     {
       path: LoungeWarren.LOUNGE_TEMPLATE,
       class: '/world/lounge/location/Lounge',
-      hydratorClass: PH,
       data: { warren: LoungeWarren.WARREN_PATH, shortDescription: 'the lounge' },
     },
     {
       path: LoungeWarren.BAR_PATH,
       class: '/world/lounge/location/Bar',
-      hydratorClass: PH,
       data: { shortDescription: "Dave's Bar" },
     },
   ].map((d, i) => ({ _id: String(i + 1), ...d }));

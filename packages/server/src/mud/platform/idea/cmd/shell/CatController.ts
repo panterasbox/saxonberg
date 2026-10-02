@@ -3,7 +3,7 @@
  * tree file.
  *
  * Templates: render the leaf template's `data` payload as YAML-ish
- * key/value lines plus a header line with `class` / `hydratorClass`.
+ * key/value lines plus a header line with `class`.
  * (Folders/Zones produce a "is a folder" notice — use `ls` for those.)
  *
  * Code: read the file via `SourceTreeApi.read`. Output is paged at
@@ -156,14 +156,6 @@ export default class CatController extends CommandController<CatModel> {
         ? `class:         ${tpl.class}`
         : `class:         ${tpl.class}  (inherited via ${this._inheritedVia(tpl)})`,
     );
-    if (tpl.hydratorClass) {
-      lines.push(
-        tpl.own.hydratorClass !== undefined
-          ? `hydratorClass: ${tpl.hydratorClass}`
-          : `hydratorClass: ${tpl.hydratorClass}  (inherited via ` +
-              `${this._inheritedVia(tpl)})`,
-      );
-    }
     lines.push('data:');
     for (const [k, v] of Object.entries(tpl.own.data ?? {})) {
       lines.push(`  ${k}: ${this._formatValue(v)}`);

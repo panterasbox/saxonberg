@@ -676,7 +676,7 @@ async function restoreState(
   principal: Stuff,
 ): Promise<void> {
   // (1) Fields — drift-guarded to the class's declared persistent fields,
-  // so a forged record cannot inject `class`/`hydratorClass`/`brain` (which
+  // so a forged record cannot inject `class`/`brain` (which
   // are Template-level, never persistent fields) nor any undeclared key.
   const allowed = new Set(
     MixinApi.getAllPersistentFields(target.constructor as AnyConstructor),

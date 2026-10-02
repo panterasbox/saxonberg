@@ -157,7 +157,7 @@ export class AccessApi {
    * Gates every TypeScript-authoring/execution door (`eval`, `reload`,
    * source writes, CMS source read/write) AND the executable
    * code-naming fields on a content template (`class` /
-   * `hydratorClass` / `behaviors[].brain`). A content author who is not
+   * `behaviors[].brain`). A content author who is not
    * a wizard is a "protowizard": content-write access without code
    * trust.
    */

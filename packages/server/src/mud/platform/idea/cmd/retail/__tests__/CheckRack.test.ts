@@ -112,7 +112,6 @@ describe("CheckRack — custody-not-title over the consignment substrate", () =>
     seedRow({
       path: '/platform/thing/Ticket',
       class: '/platform/thing/Ticket',
-      hydratorClass: '/platform/idea/persistence/PersistentHydrator',
       data: { shortDescription: 'coat-check ticket', keywords: ['ticket'] },
     });
     installV1QuantityMarshallers();

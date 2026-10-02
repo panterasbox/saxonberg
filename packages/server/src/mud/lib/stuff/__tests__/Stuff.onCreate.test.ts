@@ -57,7 +57,7 @@ describe('Stuff.onCreate — the terminal', () => {
     function InnerMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
       return class InnerMixin extends Base {
         static _mixinName: string = 'TestInnerMixin';
-        override async onCreate(context?: unknown): Promise<void> {
+        async onCreate(context?: unknown): Promise<void> {
           await super.onCreate(context);
           order.push('inner');
         }
@@ -66,7 +66,7 @@ describe('Stuff.onCreate — the terminal', () => {
     function MiddleMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
       return class MiddleMixin extends Base {
         static _mixinName: string = 'TestMiddleMixin';
-        override async onCreate(context?: unknown): Promise<void> {
+        async onCreate(context?: unknown): Promise<void> {
           await super.onCreate(context);
           order.push('middle');
         }
@@ -92,7 +92,7 @@ describe('Stuff.onCreate — the terminal', () => {
     function SeededMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
       return class SeededMixin extends Base {
         static _mixinName: string = 'TestSeededMixin';
-        override async onCreate(context?: unknown): Promise<void> {
+        async onCreate(context?: unknown): Promise<void> {
           await super.onCreate(context);
           order.push('seeded');
         }

@@ -30,7 +30,6 @@ type Doc = Record<string, unknown> & {
   _id?: string;
   path: string;
   class: string;
-  hydratorClass?: string;
   data: Record<string, unknown>;
 };
 
@@ -143,25 +142,21 @@ describe('spawn substrate integration', () => {
       {
         path: '/test/treasury',
         class: '/platform/idea/SpawnTreasury',
-        hydratorClass: PersistentHydrator.templatePath,
         data: {},
       },
       {
         path: '/test/sword',
         class: '/platform/idea/SpawnSword',
-        hydratorClass: PersistentHydrator.templatePath,
         data: { container: '/test/treasury' },
       },
       {
         path: '/test/potion',
         class: '/platform/idea/SpawnPotion',
-        hydratorClass: PersistentHydrator.templatePath,
         data: {},
       },
       {
         path: '/test/library',
         class: '/platform/idea/SpawnLibrary',
-        hydratorClass: PersistentHydrator.templatePath,
         data: { props: ['/test/sword', '/test/potion'] },
       },
     ]);
@@ -203,13 +198,11 @@ describe('spawn substrate integration', () => {
       {
         path: '/test/potion',
         class: '/platform/idea/SpawnPotion',
-        hydratorClass: PersistentHydrator.templatePath,
         data: {},
       },
       {
         path: '/test/library',
         class: '/platform/idea/SpawnLibrary',
-        hydratorClass: PersistentHydrator.templatePath,
         data: { props: ['/test/potion'] },
       },
     ]);
@@ -237,13 +230,11 @@ describe('spawn substrate integration', () => {
       {
         path: '/test/treasury',
         class: '/platform/idea/SpawnTreasury',
-        hydratorClass: PersistentHydrator.templatePath,
         data: {},
       },
       {
         path: '/test/sword',
         class: '/platform/idea/SpawnSword',
-        hydratorClass: PersistentHydrator.templatePath,
         data: { container: '/test/treasury' },
       },
     ]);

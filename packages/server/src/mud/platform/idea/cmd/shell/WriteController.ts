@@ -46,12 +46,12 @@
  * `CommandContext`, opt controllers in.
  *
  * Content tree: writes a `LeafTemplate` at the resolved path via
- * `TemplateApi.saveTemplate`. The backing class and hydrator are
- * customisable per call via `--class` / `--hydrator`; defaults are
- * `/lib/stuff/Idea` and `/platform/idea/persistence/PersistentHydrator` for
- * a generic "data bag" template. Source tree: writes the body to
- * the resolved file via `SourceTreeApi.write`; `--class` /
- * `--hydrator` are ignored.
+ * `TemplateApi.saveTemplate`. The backing class is customisable per call
+ * via `--class`, defaulting to `/lib/stuff/Idea` for a generic "data bag"
+ * template. ⭐ There is no `--hydrator`: a row's data is applied because
+ * it is there (the field retired 2026-10-01). Source tree: writes the
+ * body to the resolved file via `SourceTreeApi.write`; `--class` is
+ * ignored.
  */
 
 import { CommandController } from '../../../../lib/command/CommandController';
@@ -81,7 +81,6 @@ interface WriteModel extends CommandModel {
   content?: boolean;
   source?: boolean;
   class?: string;
-  hydrator?: string;
   extends?: string;
 }
 
@@ -96,7 +95,6 @@ interface SchemaBearingClass {
 }
 
 const DEFAULT_CONTENT_CLASS = TemplatePaths.idea;
-const DEFAULT_CONTENT_HYDRATOR = TemplatePaths.persistentHydrator;
 
 export default class WriteController extends CommandController<WriteModel> {
   async execute(model: WriteModel, context: CommandContext): Promise<void> {
@@ -139,23 +137,13 @@ export default class WriteController extends CommandController<WriteModel> {
       const contentErr = await this._gateContentWrite(giver, target);
       if (contentErr) return this.fail(context, contentErr, 'access-denied');
       // ⭐⭐ `--extends` is the protowizard's door. With a parent named,
-      // `--class` and `--hydrator` default to ABSENT rather than to the
-      // engine's generic pair: the whole point of *like that one, but
-      // different* is that the child states only what differs, and a
-      // silently-defaulted class would make every child a generic Idea.
+      // `--class` defaults to ABSENT rather than to the engine's generic
+      // Idea: the whole point of *like that one, but different* is that
+      // the child states only what differs, and a silently-defaulted
+      // class would make every child a generic Idea.
       const parentPath = model.extends;
       const classPath =
         model.class ?? (parentPath === undefined ? DEFAULT_CONTENT_CLASS : undefined);
-      // Empty string explicitly omits the hydrator; undefined uses
-      // the default (or, under `--extends`, the parent's).
-      const hydratorPath =
-        model.hydrator === undefined
-          ? parentPath === undefined
-            ? DEFAULT_CONTENT_HYDRATOR
-            : undefined
-          : model.hydrator.length === 0
-            ? undefined
-            : model.hydrator;
       // Class-attached schema check: classes opt in by exporting
       // `static dataSchema`. Async load goes through the cache after
       // the first hit, so the typical path is cheap.
@@ -181,7 +169,6 @@ export default class WriteController extends CommandController<WriteModel> {
         // above already gated this write.
         await TemplateApi.saveTemplate(target, {
           class: classPath,
-          hydratorClass: hydratorPath,
           extends: parentPath,
           data: model.data,
         });

@@ -21,9 +21,9 @@
  * the runtime value first, then the same method-first/bracket-fallback
  * dispatch applies.
  *
- * Templates opt in by naming `'/platform/idea/persistence/PersistentHydrator'` as
- * their `hydratorClass`. Templates that omit `hydratorClass` skip
- * hydration entirely.
+ * ⭐ Templates do not opt in: a row with a non-empty `data` block has it
+ * applied, and a row with nothing to apply plans no applier. The
+ * `hydratorClass` field retired 2026-10-01.
  *
  * Subclasses override `hydrate()` for cross-field or async logic; call
  * `super.hydrate()` first if the default two-phase dispatch should
@@ -43,17 +43,16 @@ type Indexable = Record<string, unknown>;
 /**
  * Extends `Idea` so the clone pipeline can produce a hydrator the
  * same way it produces every other templated Stuff. `clone()`
- * resolves `template.hydratorClass` via `StuffApi.singleton` — one
- * instance per hydrator class, reused across every backing it
- * hydrates (hydrators are stateless by contract; see `Hydrator.ts`).
- * No special-case `#resolveHydrator` path; HMR comes for free via
- * the standard clone integration.
+ * resolves this one row via `StuffApi.singleton` — a single instance
+ * reused across every backing it fills (it is stateless by contract;
+ * see `Hydrator.ts`). No special-case `#resolveHydrator` path; HMR comes
+ * for free via the standard clone integration.
  */
 export default class PersistentHydrator extends Idea implements Hydrator {
   /**
    * Canonical template path for templates that want generic mixin-field
    * copy. Use this constant at call sites (e.g.,
-   * `TemplateApi.saveTemplate(path, { class: cls, hydratorClass: PersistentHydrator.templatePath, data: data })`)
+   * `TemplateApi.saveTemplate(path, { class: cls, data: data })`)
    * instead of duplicating the string literal — this is the single source
    * of truth for "the standard hydrator's template path".
    */
@@ -80,8 +79,8 @@ export default class PersistentHydrator extends Idea implements Hydrator {
       if (path && raw != null) {
         // Lazy resolution: `singleton(path)` returns the cached
         // marshaller if one exists, else clones from the seeded
-        // template. Mirrors how `StuffApi.clone` resolves
-        // `hydratorClass`. Tests bypass Mongo so they pre-register
+        // template. Mirrors how `StuffApi.clone` resolves the
+        // applier. Tests bypass Mongo so they pre-register
         // marshallers up-front (see
         // `__tests__/quantity-marshaller-test-helpers.ts`); in
         // production the seeder put the template doc in `domain`

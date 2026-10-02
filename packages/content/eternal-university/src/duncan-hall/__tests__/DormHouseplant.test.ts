@@ -133,7 +133,6 @@ function addSeed(path: string, file: string): void {
     _id: `d-${++idCounter}`,
     path,
     class: parsed.class as string,
-    hydratorClass: (parsed.hydratorClass as string) ?? PH,
     data: (parsed.data as Record<string, unknown>) ?? {},
   });
 }
