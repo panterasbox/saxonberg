@@ -214,24 +214,6 @@ export class StuffApi {
   static #pendingSingletons: Map<string, Promise<Stuff>> = new Map();
 
   /**
-   * ⭐ Per-host set of LAZY hydration-source keys not yet read — the
-   * fault list `ensureHydrated()` drains.
-   *
-   * A `WeakMap` so a destructed host is collected with its entry; there
-   * is no sweep and nothing to forget. A host whose every source is
-   * eager never appears here at all.
-   */
-  static #pendingHydration: WeakMap<Stuff, Set<string>> = new WeakMap();
-
-  /**
-   * In-flight `ensureHydrated()` drains, keyed by host — so two
-   * concurrent first reads of a lazily-sourced field share ONE pass
-   * rather than each running the source. The `#pendingSingletons` shape,
-   * for the same reason.
-   */
-  static #hydratingHosts: WeakMap<Stuff, Promise<void>> = new WeakMap();
-
-  /**
    * Atomically add or remove `obj` across every index. Called from
    * `register` / `unregister`. Reads `obj.stuffId` and the
    * `templatePath` field stamped by `clone()` (`undefined` when the
@@ -1025,10 +1007,26 @@ export class StuffApi {
    * ⭐⭐ **Fill the newborn from what the world remembered about it.**
    *
    * Walks the host's class for `PersistenceContributor`s that declare a
-   * {@link HydrationSource} and runs the eager ones now, inside the
+   * {@link HydrationSource} and runs each one now, inside the
    * constructor frame, after the content step and before `onCreate`.
-   * A lazy one is noted on {@link #pendingHydration} for
-   * {@link ensureHydrated} to fault in later.
+   *
+   * ⭐⭐ **There is no lazy option, and that is a modelling decision
+   * rather than a missing feature.** Hydration is an INITIALIZATION step
+   * with a terminus: it runs once, before the object is observable, and
+   * then it is done — which is why freshness is not one of its
+   * questions. Fetching the same data at runtime, after the object is
+   * live, is a different mandate wearing the same call: it owns
+   * invalidation, refresh, eviction, and *who is authoritative between
+   * the fetch and the first write* — a state machine each property would
+   * want to shape for itself. A boolean on this declaration asserted
+   * those were two modes of one operation.
+   *
+   * ⚠ It is not academic. `BeliefStore`'s `adjustRegard` is a
+   * read-modify-write off the in-memory map with a write-through to
+   * Mongo, so a window where the map is not yet filled means
+   * `regardFor` honestly answers `0`, the next nudge computes `0 + 1`,
+   * and a stored `12` is overwritten by a `1`. The memory is gone, and
+   * nothing can tell that it happened.
    *
    * ⚠⚠ **This runs whether or not the host has a record**, and that
    * clause is the whole original defect. The slice half of the framework
@@ -1050,25 +1048,13 @@ export class StuffApi {
       host.constructor as AnyConstructor
     );
     for (const c of contributors) {
-      const src = c.source;
-      if (!src) continue;
-      if (!src.eager) {
-        let pending = this.#pendingHydration.get(host);
-        if (!pending) {
-          pending = new Set<string>();
-          this.#pendingHydration.set(host, pending);
-        }
-        pending.add(c.key);
-        continue;
-      }
+      if (!c.source) continue;
       await this.#runSource(host, c);
     }
   }
 
   /**
    * Run one contributor's source and enforce its `required` flag.
-   * Shared by the mint-time driver and {@link ensureHydrated} so the
-   * two cannot drift on what an unreachable source means.
    */
   static async #runSource(
     host: Stuff,
@@ -1095,39 +1081,6 @@ export class StuffApi {
         `'${host.getTemplatePath() ?? host.stuffId}'. The host cannot ` +
         `enter the world without its remembered state.`
     );
-  }
-
-  /**
-   * Run a host's **lazy** hydration sources, once, and serialised per
-   * host. The fault site a lazily-sourced mixin calls from its own async
-   * read seam; a no-op for a host with nothing pending, which is almost
-   * every host.
-   *
-   * ⚠ Framework lifecycle, which is why it is an Api static taking a
-   * host rather than a method on one: the walk is `MixinApi`'s and the
-   * pending set is the pipeline's. `StuffApi` is already on
-   * `lint:object-verbs`' exempt list for exactly this reason — nothing
-   * was added to that list.
-   */
-  public static async ensureHydrated(host: Stuff): Promise<void> {
-    const pending = this.#pendingHydration.get(host);
-    if (!pending || pending.size === 0) return;
-    const inFlight = this.#hydratingHosts.get(host);
-    if (inFlight) return inFlight;
-    const run = (async () => {
-      const contributors = MixinApi.getPersistenceContributors(
-        host.constructor as AnyConstructor
-      );
-      for (const c of contributors) {
-        if (!pending.has(c.key)) continue;
-        pending.delete(c.key);
-        await this.#runSource(host, c);
-      }
-    })().finally(() => {
-      this.#hydratingHosts.delete(host);
-    });
-    this.#hydratingHosts.set(host, run);
-    return run;
   }
 
   /**

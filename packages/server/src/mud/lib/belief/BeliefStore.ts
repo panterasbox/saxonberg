@@ -496,15 +496,21 @@ export function BeliefStoreMixin<TBase extends MixinConstructor>(Base: TBase) {
      * Mongo. The clone pipeline drives this one instead, record or no
      * record.
      *
-     * `eager` because the thing it fills is what `look` reads the first
-     * time a player is seen, and `required: false` because a closed
-     * Mongo (every test run, all of early boot) must skip rather than
-     * refuse to mint an NPC.
+     * `required: false` because a closed Mongo (every test run, all of
+     * early boot) must skip rather than refuse to mint an NPC.
+     *
+     * ⚠⚠ There is no "read it later" option, and this host is why one
+     * would be unsafe: `adjustRegard` is a read-modify-write off the
+     * in-memory map with a write-through, so a window in which the map
+     * is unfilled means `regardFor` answers `0`, the next nudge computes
+     * `0 + 1`, and a stored `12` is overwritten by a `1`. Besides which
+     * `regardFor` is SYNCHRONOUS and read from `look`, the brains and
+     * the presentation layer — there is no `await` anywhere to fault a
+     * deferred read in from.
      */
     static hydrationSource: HydrationSource = {
       name: 'beliefs',
       required: false,
-      eager: true,
     };
 
     /**

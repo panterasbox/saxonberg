@@ -294,11 +294,12 @@ See [access.md § The code-trust lockdown](./access.md).
    `await applier.apply(proxy, data, { mode: 'mint' })` inside a
    synthetic constructor frame (`ExecutionContextApi.run` with
    `FrameKind.Constructor`).
-10. **Hydrate from every EAGER source**: for each
+10. **Hydrate from every declared source**: for each
     `PersistenceContributor` of the host's class that declares a
     `hydrationSource`, run it — **whether or not the host has a
-    record**. A lazy one is noted for `StuffApi.ensureHydrated` to fault
-    in later. See
+    record**. ⭐ There is no deferred option: hydration is an
+    initialization step with a terminus, and fetching the same data on a
+    live object is a different mandate with its own lifecycle. See
     [persistence.md § Per-mixin composition](./persistence.md).
 11. **`onCreate`**: `await proxy.onCreate(context)`, same synthetic
     frame, **unconditionally** — the hook is a terminal no-op on `Stuff`
@@ -609,7 +610,7 @@ itself stays generic — no type parameter on `StuffApi.clone`.
 of a life, named for the two events the engine already emits
 (`stuff.created` / `stuff.destructed`). It runs after registration, so any
 resolver that walks the registry sees the in-flight instance, and after
-every eager hydration source, so it may rely on remembered state.
+every declared hydration source, so it may rely on remembered state.
 
 ⛔ **It was `onCreate` on an opt-in `onCreate` until
 2026-10-01, and the mixin's retirement removed a failure class rather

@@ -12,14 +12,18 @@
  * in Mongo, unread. No test could see it, because every test that drove
  * the hook drove it on a fixture.
  *
- * One fixture contributor per declaration, because the two declared
- * properties are the whole contract:
+ * `required` is the whole declared contract: an unreachable source is a
+ * recorded skip (`false`) or a refused mint (`true`). Every test run and
+ * all of early boot are the `false` case, which is exactly why it must be
+ * said out loud rather than guessed.
  *
- *   - `required` — an unreachable source is a recorded skip (`false`) or
- *     a refused mint (`true`). Every test run and all of early boot are
- *     the `false` case, which is exactly why it must be said out loud.
- *   - `eager` — read at mint, before `onCreate` begins, or faulted on
- *     first read via `StuffApi.ensureHydrated`.
+ * ⭐⭐ **WHEN is not declarable, and the absence is deliberate.** A source
+ * always runs at mint. There was an `eager: boolean` for one wave, and it
+ * was a category error — hydration is an initialization step with a
+ * terminus, and fetching the same data on a live object is a different
+ * mandate that owns invalidation, eviction and write-authority. See
+ * `PersistenceSlice.HydrationSource` for the full reasoning and for why
+ * `BeliefStore` in particular could not have used a deferred read.
  */
 
 import '../../../../test-bootstrap';
@@ -69,24 +73,14 @@ function SourcedMixin<TBase extends MixinConstructor<Stuff>>(
   };
 }
 
-const EAGER_OPTIONAL: HydrationSource = {
-  name: 'eager-optional',
-  required: false,
-  eager: true,
-};
-const EAGER_REQUIRED: HydrationSource = {
-  name: 'eager-required',
-  required: true,
-  eager: true,
-};
-const LAZY: HydrationSource = { name: 'lazy', required: false, eager: false };
+const OPTIONAL: HydrationSource = { name: 'optional', required: false };
+const REQUIRED: HydrationSource = { name: 'required-src', required: true };
 
-class EagerOptionalHost extends SourcedMixin(Idea, EAGER_OPTIONAL) {}
-class EagerRequiredHost extends SourcedMixin(Idea, EAGER_REQUIRED) {}
-class LazyHost extends SourcedMixin(Idea, LAZY) {}
+class OptionalHost extends SourcedMixin(Idea, OPTIONAL) {}
+class RequiredHost extends SourcedMixin(Idea, REQUIRED) {}
 
 /** Observes the ORDER invariant: the source runs before the hook. */
-class OrderHost extends SourcedMixin(Idea, EAGER_OPTIONAL) {
+class OrderHost extends SourcedMixin(Idea, OPTIONAL) {
   public sawAtOnCreate: string[] = [];
   override async onCreate(): Promise<void> {
     this.sawAtOnCreate = [...this.loaded];
@@ -104,26 +98,26 @@ afterEach(() => StuffApi.clearAll());
 
 describe('the walk finds a source-only contributor', () => {
   it('⭐ a layer with no fields and no captureSlice is STILL a contributor', () => {
-    const cs = MixinApi.getPersistenceContributors(EagerOptionalHost);
-    const mine = cs.find((c) => c.key === 'Sourced:eager-optional');
+    const cs = MixinApi.getPersistenceContributors(OptionalHost);
+    const mine = cs.find((c) => c.key === 'Sourced:optional');
     expect(mine).toBeDefined();
     expect(mine!.fields).toEqual([]);
     expect(mine!.captureSlice).toBeUndefined();
-    expect(mine!.source).toMatchObject(EAGER_OPTIONAL);
+    expect(mine!.source).toMatchObject(OPTIONAL);
   });
 });
 
-describe('eager', () => {
+describe('the source runs at mint', () => {
   it('runs at mint, with NO record anywhere', async () => {
-    store.set('eager-optional', ['one', 'two']);
-    const h = await StuffApi.create(() => new EagerOptionalHost());
-    expect(calls).toEqual(['eager-optional:anon']);
+    store.set('optional', ['one', 'two']);
+    const h = await StuffApi.create(() => new OptionalHost());
+    expect(calls).toEqual(['optional:anon']);
     expect(h.loaded).toEqual(['one', 'two']);
   });
 
   it('⭐ completes BEFORE onCreate begins', async () => {
     // The invariant that lets a hook stop reading collections itself.
-    store.set('eager-optional', ['remembered']);
+    store.set('optional', ['remembered']);
     const h = await StuffApi.create(() => new OrderHost());
     expect(h.sawAtOnCreate).toEqual(['remembered']);
   });
@@ -132,7 +126,7 @@ describe('eager', () => {
 describe('required', () => {
   it('optional + unreachable is a recorded skip — the mint succeeds', async () => {
     reachable = false;
-    const h = await StuffApi.create(() => new EagerOptionalHost());
+    const h = await StuffApi.create(() => new OptionalHost());
     expect(h.isDestroyed()).toBe(false);
     expect(StuffApi.findById(h.stuffId)).toBe(h);
     expect(h.loaded).toEqual([]);
@@ -143,7 +137,7 @@ describe('required', () => {
     let id: string | null = null;
     await expect(
       StuffApi.create(() => {
-        const o = new EagerRequiredHost();
+        const o = new RequiredHost();
         id = o.stuffId;
         return o;
       }),
@@ -153,54 +147,16 @@ describe('required', () => {
   });
 
   it('required + reachable mints normally', async () => {
-    store.set('eager-required', ['x']);
-    const h = await StuffApi.create(() => new EagerRequiredHost());
+    store.set('required-src', ['x']);
+    const h = await StuffApi.create(() => new RequiredHost());
     expect(h.loaded).toEqual(['x']);
-  });
-});
-
-describe('lazy', () => {
-  it('is NOT run at mint', async () => {
-    store.set('lazy', ['later']);
-    const h = await StuffApi.create(() => new LazyHost());
-    expect(calls).toEqual([]);
-    expect(h.loaded).toEqual([]);
-  });
-
-  it('ensureHydrated runs it, once', async () => {
-    store.set('lazy', ['later']);
-    const h = await StuffApi.create(() => new LazyHost());
-    await StuffApi.ensureHydrated(h);
-    expect(h.loaded).toEqual(['later']);
-    expect(calls).toHaveLength(1);
-    await StuffApi.ensureHydrated(h);
-    expect(calls).toHaveLength(1); // ⬅ once, not once per call
-  });
-
-  it('two concurrent faults share ONE pass', async () => {
-    store.set('lazy', ['later']);
-    const h = await StuffApi.create(() => new LazyHost());
-    await Promise.all([
-      StuffApi.ensureHydrated(h),
-      StuffApi.ensureHydrated(h),
-    ]);
-    expect(calls).toHaveLength(1);
-  });
-
-  it('ensureHydrated on a host with nothing pending is a no-op', async () => {
-    const h = await StuffApi.create(() => new EagerOptionalHost());
-    calls = [];
-    await StuffApi.ensureHydrated(h);
-    expect(calls).toEqual([]);
   });
 });
 
 describe('a create()d object with no sources', () => {
   it('runs none, and nothing is recorded against it', async () => {
     class Plain extends Idea {}
-    const h = await StuffApi.create(() => new Plain());
-    expect(calls).toEqual([]);
-    await StuffApi.ensureHydrated(h);
+    await StuffApi.create(() => new Plain());
     expect(calls).toEqual([]);
   });
 });

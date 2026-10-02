@@ -5,7 +5,7 @@ specified lifecycle that no class is allowed to bypass:
 
 ```
 construct → wrap (Proxy) → register → apply the row →
-            hydrate from every eager source → onCreate →
+            hydrate from every declared source → onCreate →
             (live) →
 destruct → canDestruct (veto) → onDestruct (user cleanup) →
            cleanupOnDestruct walk (framework cleanup) →
@@ -100,7 +100,7 @@ synthetic constructor frame.
 
 The production path. Loads a template from `Collections.Domain`,
 dynamic-imports the backing class, applies the row's `data` when there
-is any, runs every eager hydration source, awaits `onCreate`. Full
+is any, runs every declared hydration source, awaits `onCreate`. Full
 pipeline documented in
 [templates.md § The Clone Pipeline](./templates.md#the-clone-pipeline).
 

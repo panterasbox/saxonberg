@@ -77,7 +77,6 @@ function MeteredMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
     static hydrationSource: HydrationSource = {
       name: 'pack-meter-store',
       required: false,
-      eager: true,
     };
 
     static async hydrateFromSource(host: Stuff): Promise<HydrateOutcome> {
@@ -116,7 +115,6 @@ describe("a pack mixin's remembered state", () => {
     expect(mine!.source).toMatchObject({
       name: 'pack-meter-store',
       required: false,
-      eager: true,
     });
   });
 

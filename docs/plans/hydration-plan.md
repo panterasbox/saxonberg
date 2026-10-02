@@ -280,7 +280,8 @@ it silently.
    `extends` field (a `based on` picker, `types/src/index.ts` +
    `StudioLogic.createTemplate` + `TemplateForm.tsx`) — small, content-
    authoring-shaped, not in the requirements. Not planned.
-2. **Lazy hydration has no shipped consumer.** The requirements' second
+2. **Lazy hydration has no shipped consumer.** ✅ SETTLED IN REVIEW — cut
+   entirely; see § *Post-review decision*. The requirements' second
    live example of "faulted on first read" is `GridPowered`, which reads
    a Feeder/Locality **reference row** — kind B by this doc's own table,
    not remembered state. The `eager` declaration ships as the
@@ -1438,6 +1439,75 @@ Nothing in the requirements is unmapped.
    `TemplateApi` rather than a new face; lazy with a test consumer only.
 
 ---
+
+## ⭐⭐ Post-review decision — the lazy half is CUT (2026-10-02)
+
+Flagged in the MR as *"lazy hydration ships with no production
+consumer"* and settled in review, on a better argument than the one the
+flag made.
+
+**The flag's argument** was economic: `eager` had one production value,
+`ensureHydrated` had zero callers, and the only `eager: false` in the tree
+was a test fixture — the same shape as the `hydratorClass` this build had
+just deleted.
+
+**The reviewer's argument was that it is a CATEGORY ERROR**, which is
+stronger and makes the economics beside the point:
+
+> hydration is an initialization step to get an object into the world. if
+> it's already in the world it's just fetching data. […] hydration is
+> performed and then "done". fetching data later at runtime who
+> knows…you fetch it once but mongo is the system of record. so whats the
+> entire lifecycle there? What about when the data changes or when the
+> object simply doesn't need it anymore. none of that has anything to do
+> with hydration that's a totally separate state machine that each
+> property probably wants to manage independently
+
+The call is identical (`BeliefDocument.find({viewerId})`); the **mandate**
+is not, and the mandate is what has a lifecycle:
+
+| | hydration | runtime fetching |
+|---|---|---|
+| when | once, before the object is observable | whenever, after it is live |
+| terminus | **yes** — performed, then done | none |
+| failure | the clone fails; nothing half-built escapes | a degraded read on a live object |
+| freshness | **not a question** — nothing has happened yet | invalidate / refresh / evict, per property |
+| authority | memory takes over at the handoff | undecided, and must be decided |
+
+⚠⚠ **And the unanswered authority question is a live data-loss path for
+the one consumer there is.** `BeliefStore.adjustRegard` is a
+read-modify-write off the in-memory map with a write-through to Mongo. A
+window in which the map is unfilled means `regardFor` honestly answers
+`0`, the next nudge computes `0 + 1`, and a stored `12` is overwritten by
+a `1` — the NPC's memory of a player gone, with nothing able to tell. A
+lazy source would have had to answer *who is authoritative between the
+fetch and the first write* before it could be used at all, and answering
+that is the cache's job, not this interface's.
+
+⚠ Independently: `regardFor` is **synchronous**, read from `look`, the
+brains and the presentation layer. `ensureHydrated` is async. So
+`BeliefStore` could not have faulted a deferred read in even if the
+authority question had been answered — the same wall W6 hit with
+`urgency()`. *A read path cannot fault in the thing it gates itself on*,
+twice in one build, which makes it a property of this codebase rather
+than bad luck: most state here is read through synchronous getters,
+because that is what `look` and the brains need.
+
+⭐ **This was the build's own disease, re-committed at small scale.** The
+rewrite exists because the first plan unified six things that were not
+alike; then the fix unified eager initialization with a runtime cache
+behind a boolean, and made it required so every future source would have
+to answer a question that only makes sense for one of the two.
+
+**What was cut:** `HydrationSource.eager`; `StuffApi.ensureHydrated`,
+`#pendingHydration`, `#hydratingHosts`, and the driver's not-eager branch;
+the kernel test's whole `lazy` describe. `hydrationSource` is
+`{ name, required }`, and the driver is unconditional. **What replaces it
+if something ever needs it:** a cache designed as one, with
+invalidation / eviction / authority answered per property — `WarmedIndex`
+is the nearest prior art for the roster-shaped case. Recorded in
+`PersistenceSlice.HydrationSource`'s own docblock so the next person meets
+the reasoning where the type is.
 
 ## Deferred seams
 

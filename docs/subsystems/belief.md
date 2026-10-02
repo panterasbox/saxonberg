@@ -396,7 +396,7 @@ holds; sequential single-viewer commands keep the race benign).
 
   ⭐⭐ **Fixed 2026-10-01 by a DECLARATION rather than a hook.**
   `BeliefStoreMixin` declares
-  `hydrationSource = { name: 'beliefs', required: false, eager: true }`
+  `hydrationSource = { name: 'beliefs', required: false }`
   plus a `hydrateFromSource` static, and the CLONE PIPELINE drives it —
   **whether or not the host has a record.** That last clause is what
   makes it reach a singleton at all: the slice half (`hydrateSlice`) is
