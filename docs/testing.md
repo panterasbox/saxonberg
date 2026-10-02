@@ -91,6 +91,45 @@ reset DB the same tree was 139/139. The reset is one command:
 pnpm --filter @saxonberg/server reset:db     # then re-run
 ```
 
+### ⚠⚠ `pnpm test`'s default workspace concurrency is over budget on WSL
+
+Measured at the agent-coordination sweep (2026-10-01), twice in three runs,
+and worth recognising on sight because **it does not look like an infra
+failure — it looks like a broken package**:
+
+```
+packages/content/arcana test:  Test Files  4 failed (4)
+packages/content/arcana test:       Tests  no tests
+Error: [vitest-worker]: Timeout calling "fetch" with
+  "["/@fs/.../packages/server/src/mud/lib/material/Keen.ts","ssr"]"
+```
+
+**The tells, all three present:** `Tests  no tests` (nothing was *collected*,
+so no assertion ran), a `/@fs/` path pointing into `packages/server`, and a
+`Duration` dominated by `transform` — 646s and 863s in the two runs, against
+9.5s when the same pack runs alone.
+
+**The cause.** Each content pack's vitest transforms the whole server source
+graph through Vite. Run concurrently they contend for it; in the worse run
+`packages/server`'s own `collect` took **6561s** against ~400s normal, and the
+packs beside it starved waiting on fetches and hit the worker timeout. 15 GB
+of RAM with ~5 GB free is not enough for the default fan-out.
+
+⚠⚠ **And `pnpm test` ABORTS at the first failing PACKAGE**, so the ~30 packs
+after the one that timed out never ran at all. ⭐ The trap is that
+`packages/server` has already printed its 12 000-test total by then, so the
+output *reads* green. Re-running the one pack alone and finding it fine is
+**not** a fix — it leaves thirty packs unproven.
+
+**What to do.** Run the packs serially; they pass:
+
+```bash
+pnpm --filter='./packages/content/*' -r --workspace-concurrency=1 test
+```
+
+34 packs, EXIT=0, zero failures. ⭐ Report *that*, and say the concurrency was
+reduced — never a narrowed run described as though the suite passed.
+
 ### ⭐⭐⭐ A checkpoint's NAME is a coverage claim — audit it like one
 
 Found at the agent-coordination sweep (2026-10-01), and the cheapest defect
