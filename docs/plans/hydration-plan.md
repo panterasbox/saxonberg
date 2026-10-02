@@ -1574,6 +1574,58 @@ never a new `isWizard` check.
 **Status: a non-issue today** (the reviewer's call). Recorded so the first
 class that wants it is not written as a hand-rolled check in a controller.
 
+## ⭐⭐ Post-review decision — `hydrateBeliefs()` is RETIRED (2026-10-02)
+
+The MR flagged it as a deferred seam: an avatar's beliefs were read twice
+per login — once at mint by W5's source driver, once again by
+`Avatar.enter`'s `await this.hydrateBeliefs()`. Both loaded the same keyed
+map, so the second read was idempotent and cost one round-trip.
+
+The reviewer's call: ⭐ **one filler per path.** *"I dont really like it
+but I agree its harmless. if we need to make the call on the reconnect
+path I'd prefer that be the only callsite then"* — then *"do what you
+need to do to be confident we're not fucking shit up."*
+
+⚠ **Why that needed proving rather than arguing.** `adjustRegard` is
+`setRegard(subject, regardFor(subject) + delta)` — a read-modify-write
+with a write-through. If the map is ever *unfilled* at the moment an
+avatar adjusts an opinion, the write does not throw: it **overwrites the
+stored value with the delta**. The failure mode of being wrong here is
+silent data loss on a live player's memory, so a happy-path assertion was
+not enough evidence.
+
+**The deletion stands on three separate facts**, each its own test in the
+new `packages/server/src/mud/lib/belief/__tests__/entryPoints.test.ts`
+(7 tests):
+
+| | fact | why it is load-bearing |
+|---|---|---|
+| **F1** | a body with a stored opinion comes out of the clone pipeline **already holding it** (`regardFor === 12`), and an empty one comes out honestly empty (`=== 0`) | this is the claim the deletion makes |
+| **F2** | a real `PrimaryAvatar` is a **`viewerKey` row-2 host** — persistable, identity not explicit, `getIdentityPath() !== getTemplatePath()` — so `Viewer.hydrateFromSource(body)` returns `'hydrated'`, not `'skipped'` | F1 could pass on a fixture that is not shaped like a player |
+| **F3** | the map is cleared **only on destruct** — clearing the backing rows after a hydrate leaves `regardFor === 7`, and `evictAndFlushBeliefs` empties it | nothing between mint and `enter` re-empties what F1 filled |
+
+A fourth test pins the failure mode itself, so the thing the facts insure
+against is visible in the file rather than only in this note.
+
+⭐ **They were sabotage-verified before the deletion.** Making
+`hydrateFromSource` return `{ status: 'skipped', reason: 'SABOTAGE' }`
+turned **4 of the 7 red**; `BeliefStore.ts` was then restored exactly
+(`git diff --stat` empty) and the 7 went green again. *A test that cannot
+fail is not evidence* — and `stuff.test.ts`'s two vacuous cases earlier in
+this same build are why that step is now reflexive.
+
+**What changed:** `Avatar.enter` loses the call (with a comment pointing
+at the three facts and at the silence of the failure mode);
+`BeliefStore.hydrateBeliefs()` and its interface declaration go;
+`hydrationSource` + `hydrateFromSource` stay as the one path; two
+`persistence.test.ts` tests repoint to `Viewer.hydrateFromSource`;
+`api/identity.ts`'s comment list drops the name. Two deliberate
+historical references to the retired method remain in prose.
+
+Verification: server `tsc --noEmit` exit 0 · belief + character + api +
+platform + connection suites **3,684 tests green** · `lint:family`
+**62/62**.
+
 ## Deferred seams
 
 Each is an attach point, not a stub; the slate it leaves as is named.

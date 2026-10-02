@@ -100,7 +100,18 @@ describe('TemperatureReading', () => {
 
   it('emits canonical Kelvin + thermal tag when the actor has a thermometer', async () => {
     const room = makeStuff(() => new TestLocation());
-    room.setTemperature(Quantity.of(310, 'K'));
+    // ⚠⚠ **340 K, not 310 K — the band word must not depend on what DAY
+    // it is.** `observe()` offsets the reported centre by a seeded amount
+    // inside the band's half-width, and `seedFor` hashes the game DAY into
+    // that seed. The thermal tag table makes `hot` only [305, 320) wide
+    // while the untrained half-width is 8 K, so a true 310 K reports
+    // anywhere in [302, 318] — `warm` on some game days and `hot` on
+    // others. 340 K sits in `scorching`, which is open-ended above 320, so
+    // the whole bracket lands in one band whatever the seed draws. The
+    // assertion below is about the tag being a bare JUDGEMENT WORD; which
+    // word it is was never the point, and pinning it to a boundary-
+    // straddling figure made a formatting claim time-dependent.
+    room.setTemperature(Quantity.of(340, 'K'));
     const avatar = makeStuff(() => new FakeAvatar());
     avatar.setName('Alice');
     ContainmentApi.move(avatar, room);
@@ -115,10 +126,11 @@ describe('TemperatureReading', () => {
     // through the prose — the prose is bracketed now, and a reading is
     // an act with an honest error in it. `truth()` is the surface that
     // exists for exactly this: tests assert values, players never see it.
-    expect(await reading.truth(room as unknown as never)).toBe(310);
-    // The tag is NOT bracketed: `hot` is a judgement about the reading,
-    // not a second measurement, and hedging a word would hedge twice.
-    expect(frame.body).toContain('(hot)');
+    expect(await reading.truth(room as unknown as never)).toBe(340);
+    // The tag is NOT bracketed: `scorching` is a judgement about the
+    // reading, not a second measurement, and hedging a word would hedge
+    // twice.
+    expect(frame.body).toContain('(scorching)');
   });
 
   it('refuses without a thermometer', async () => {
