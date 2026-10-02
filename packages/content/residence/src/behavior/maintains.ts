@@ -37,6 +37,9 @@ import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Mobile } from '@saxonberg/server/mud/lib/spatial/Mobile';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
+import { Urgency } from '@saxonberg/server/mud/lib/behavior/Urgency';
+import type { TaskKind } from '@saxonberg/server/mud/lib/behavior/Urgency';
+import type { EngagementSlot } from '@saxonberg/server/mud/lib/activity/Engaged';
 import type {
   BrainContext,
   BrainStatics,
@@ -58,6 +61,13 @@ type Keeper = Stuff & Mobile & Containable & Container & CommandGiver;
 
 export const brain = class {
   static label = 'maintains';
+  static kind: TaskKind = 'work';
+  static summary =
+    'Walks the extent its tenure term is responsible for and does the upkeep, through the ordinary `maintain` verb.';
+  static claims: readonly EngagementSlot[] = ['hands', 'body'];
+  static urgency(): Urgency {
+    return new Urgency('wanted', 'finds the nearest shell wanting work');
+  }
   static presenceGated = false;
   // Functional (it changes the world), not ambient chatter — exempt
   // from the ambient-cadence dial the same way `restocks` is.

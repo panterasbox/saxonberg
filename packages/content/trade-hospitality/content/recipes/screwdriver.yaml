@@ -2,7 +2,7 @@
 recipeId: screwdriver
 name: Screwdriver
 keywords: [screwdriver]
-discipline: bartending
+discipline: mixology
 difficulty: easy
 inputSlots:
 - { slot: base, category: vodka, minGrade: fair, measureL: 0.05 }

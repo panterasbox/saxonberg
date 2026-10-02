@@ -19,9 +19,14 @@
 import type { EngagementSlot } from '../activity/Engaged';
 import type { BrainContext, BrainStatics } from './brain';
 import { MixinApi } from '../../api/mixin';
+import type { TaskKind } from './Urgency';
 
 export const brain = class {
   static label = 'introduces';
+  static kind: TaskKind = 'social';
+  static summary =
+    'Gives its own name to somebody who does not know it yet, so the ' +
+    'stranger becomes a person you have met.';
   static claims: readonly EngagementSlot[] = ['attention'];
 
   static act(ctx: BrainContext): void {

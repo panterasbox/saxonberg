@@ -13,3 +13,19 @@ settings:
 
   - key: behavior.ambientCadenceFloorMs
     value: "60000"
+
+  # ⭐⭐ The deliberation beat — one timer per agent, however many
+  # candidate brains it has to choose between. `beatMs` while somebody is
+  # watching, `beatNightlyMs` when nobody is (and then only candidates
+  # that declare `presenceGated = false` are even consulted, so an agent
+  # with none costs nothing at all). `beatMinGapMs` is the debounce on an
+  # early wake — a perceived fight or a call can pull a beat forward, and
+  # without a floor a noisy room is an unbounded loop.
+  - key: behavior.beatMs
+    value: "20000"
+
+  - key: behavior.beatNightlyMs
+    value: "120000"
+
+  - key: behavior.beatMinGapMs
+    value: "3000"

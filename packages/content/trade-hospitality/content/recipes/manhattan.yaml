@@ -2,8 +2,8 @@
 recipeId: manhattan
 name: Manhattan
 keywords: [manhattan]
-discipline: bartending
-difficulty: moderate
+discipline: mixology
+difficulty: standard
 inputSlots:
 - { slot: base, category: whiskey, minGrade: fair, measureL: 0.06 }
 - { slot: modifier, category: sweet-vermouth, minGrade: fair, measureL: 0.03 }

@@ -101,7 +101,7 @@ data:
     # global `behavior.ambientCadenceScale` dial retunes the whole world at
     # once during playtest without editing this.
     - brain: /lib/behavior/idles
-      trigger: cadence:300s
+      trigger: candidate
       config:
         pool:
           - { kind: free, value: "paces his stretch of curb, hands behind his back." }

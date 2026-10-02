@@ -53,7 +53,7 @@ data:
     # refusal at the window is the ladder working. Runs with nobody
     # online, which is why the shop floor is `boot:`-pinned.
     - brain: /trade/shopkeeping/behavior/stocks
-      trigger: cadence:90s
+      trigger: candidate
       config:
         counter: /world/terminus/general-store/counter
         # ⭐⭐ The ways she knows. Odell's shop is ON the block: out the
@@ -75,7 +75,7 @@ data:
     - brain: /lib/behavior/introduces
       trigger: arrival
     - brain: /lib/behavior/idles
-      trigger: cadence:27s
+      trigger: candidate
       config:
         pool:
           - { kind: free, value: "totals a column of figures without writing anything down, and nods to herself." }

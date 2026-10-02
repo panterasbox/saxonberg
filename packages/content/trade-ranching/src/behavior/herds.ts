@@ -33,12 +33,23 @@ import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { BrainContext } from '@saxonberg/server/mud/lib/behavior/brain';
+import { Urgency } from '@saxonberg/server/mud/lib/behavior/Urgency';
+import type { TaskKind } from '@saxonberg/server/mud/lib/behavior/Urgency';
+import type { EngagementSlot } from '@saxonberg/server/mud/lib/activity/Engaged';
 
 /** Handling one beat buys, at a dog that is perfectly bonded. */
 const DEFAULT_REACH = 0.02;
 
 export const brain = class {
   static label = 'herds';
+  static kind: TaskKind = 'work';
+  static summary =
+    'Works stock for its handler — the rung of the automation ladder that substitutes for ATTENTION and costs a relationship.';
+  static discipline = 'stockmanship';
+  static claims: readonly EngagementSlot[] = ['body'];
+  static urgency(): Urgency {
+    return new Urgency('wanted', 'circles wide and brings the flock in');
+  }
   /**
    * ⚠ Unwatched, like every real chore: the dog works whether or not
    * anybody is in the field, which is the entire reason it is worth

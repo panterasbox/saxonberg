@@ -2,8 +2,8 @@
 recipeId: negroni
 name: Negroni
 keywords: [negroni]
-discipline: bartending
-difficulty: moderate
+discipline: mixology
+difficulty: standard
 inputSlots:
 - { slot: base, category: gin, minGrade: fair, measureL: 0.03 }
 - { slot: modifier, category: sweet-vermouth, minGrade: fair, measureL: 0.03 }

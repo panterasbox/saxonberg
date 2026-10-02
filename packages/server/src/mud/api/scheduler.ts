@@ -222,11 +222,22 @@ export class SchedulerApi {
     logic().cancelByType(actor, type);
   }
 
+  /**
+   * Cancel every engagement of `actor` the predicate selects, telling
+   * each one `reason`.
+   *
+   * ⚠ The reason used to be hardcoded `'cancelled'`, which was invisible
+   * while nothing selected on a reason at all. The deliberation beat
+   * selects on `interruptibleBy`, so an `onAbort` told `'cancelled'`
+   * when it was in fact `'called'` would be the same class of dishonesty
+   * as a field nothing reads.
+   */
   public static cancelByPredicate(
     actor: Stuff & Engaged,
-    pred: (e: Engagement) => boolean
+    pred: (e: Engagement) => boolean,
+    reason?: AbortReason
   ): void {
-    logic().cancelByPredicate(actor, pred);
+    logic().cancelByPredicate(actor, pred, reason);
   }
 
   /* ─────────────────── introspection ───────────────────

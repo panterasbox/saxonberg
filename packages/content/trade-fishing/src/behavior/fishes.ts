@@ -23,9 +23,19 @@ import { SchedulerApi } from '@saxonberg/server/mud/api/scheduler';
 import Waters, { WATERS_PATH } from '../idea/Waters';
 import { FishingEngagement, FISHING_TYPE } from '../lib/FishingEngagement';
 import Rod from '../thing/Rod';
+import { Urgency } from '@saxonberg/server/mud/lib/behavior/Urgency';
+import type { TaskKind } from '@saxonberg/server/mud/lib/behavior/Urgency';
 
 export const brain = class {
   static label = 'fishes';
+  static kind: TaskKind = 'work';
+  static summary =
+    'Sits a rod at his reach on his own cadence, bare-hooked — a reader with a rod, not a supplier.';
+  static discipline = 'fishing';
+  static claims: readonly EngagementSlot[] = ['hands'];
+  static urgency(): Urgency {
+    return new Urgency('wanted', 'settles down and puts a line in the water');
+  }
   static requiresFree: readonly EngagementSlot[] = ['hands'];
   /** Unwatched: the record is drawn down whether or not anybody is on the bank. */
   static presenceGated = false;

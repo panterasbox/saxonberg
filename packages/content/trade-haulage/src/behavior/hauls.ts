@@ -69,6 +69,9 @@ import type { Mobile } from '@saxonberg/server/mud/lib/spatial/Mobile';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { ContractRecord } from '@saxonberg/server/mud/lib/employment/ContractRecord';
+import { Urgency } from '@saxonberg/server/mud/lib/behavior/Urgency';
+import type { TaskKind } from '@saxonberg/server/mud/lib/behavior/Urgency';
+import type { EngagementSlot } from '@saxonberg/server/mud/lib/activity/Engaged';
 import type {
   BrainContext,
   BrainStatics,
@@ -87,6 +90,15 @@ type Carter = Stuff & Mobile & Containable & Container & CommandGiver;
 
 export const brain = class {
   static label = 'hauls';
+  static kind: TaskKind = 'work';
+  static summary =
+    'Reads the boards and performs any posted haul nobody took inside its window — the reserve supply of the labor market.';
+  static discipline = 'teamstering';
+  static consumes: readonly string[] = ['freight'];
+  static claims: readonly EngagementSlot[] = ['hands', 'body'];
+  static urgency(): Urgency {
+    return new Urgency('wanted', 'reads the board and shoulders the next load');
+  }
   static presenceGated = false;
   // A functional poller (it moves freight), not ambient chatter —
   // exempt from the global ambient-cadence dial.

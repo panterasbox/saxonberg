@@ -286,25 +286,38 @@ The gated forwarding pair (the `ProvenanceApi`↔`ProvenanceLogic` shape):
    discipline** (`isFulfilling(discipline)`) in the patron's location.
    Never off the wire.
 
-   ⚠⚠ **The discipline leg is load-bearing and the tie-break is not.** A
-   venue can run two trades off one business (the Hearthworks: a smith and
-   a cook over both its rooms), and a recipe's discipline is **credited,
-   never gated** — so a wrongly-picked maker crafts successfully and is
-   credited with a trade they do not practise. Ties beyond the discipline
-   fall to the lowest identity path, which is predictable rather than
-   right: two equally-qualified cooks wants a queue, which is the crew
-   substrate's ([crew-slate](../slates/builds/crew-slate.md)).
+   ⚠⚠ **The discipline leg is load-bearing, and so is the tie-break now.**
+   A venue can run two trades off one business (the Hearthworks: a smith
+   and a cook over both its rooms), so the discipline leg decides *who is
+   even able*. The agent-coordination build then handed the able set to the
+   **house**: `organization.callFor({patron, candidates})` picks by its own
+   `call:` policy (`regulars` · `rota`) rather than by sorting identity
+   paths. ⚠ Until that shipped, ties fell to the **lowest identity path** —
+   predictable rather than right, and in practice one bartender on a rail
+   of four was served forever while every other seat was decorative. A
+   maker with no resolvable house is now refused rather than served; see
+   [employment.md § The call](./employment.md).
 
-   ⭐ **An open question this inherited.** Retiring the maker marker made
-   a PLAYER on shift in a `fulfills` seat a resolvable maker — the seam
-   employment.md had deferred as *player tending*. What `order` should
-   then ask of a player maker is undecided: today the engine crafts as
-   them, exactly as it does for an NPC, which is the least surprising
-   default and arguably the wrong one. The alternatives are *you craft it
-   yourself with the verbs* (real work, real friction, and a customer
-   waiting on a human's attention) or *a hybrid — the engine crafts, the
-   grade reads your competence*. Nobody has chosen; the default was
-   inherited rather than decided.
+   ⭐⭐ **Somebody else if anybody else; otherwise yourself.** The able set
+   is *other people in the room first*, and the asker only when nobody else
+   able is present. Both halves matter: a patron in a staffed bar is never
+   served by themselves, and **the lone hand on its own floor, in its own
+   seat, asking a room containing nobody else, is the answer** — which is
+   what makes a one-hand yard able to work its own station at all. Until
+   2026-10-01 the asker was excluded outright, so the distilling yard's own
+   crush leg answered *"there's no one on hand to make that"* and could
+   never have worked. The player case carries no loophole: `canMake`
+   applies identically, and `order` still settles the house's charge.
+
+   ⭐ **A player maker.** Retiring the maker marker made a PLAYER on shift
+   in a `fulfills` seat a resolvable maker — the seam employment.md had
+   deferred as *player tending*. Today the engine crafts as them, exactly
+   as it does for an NPC, which is the least surprising default and
+   arguably the wrong one. The alternatives are *you craft it yourself with
+   the verbs* (real work, real friction, and a customer waiting on a
+   human's attention) or *a hybrid — the engine crafts, the grade reads
+   your competence*. Nobody has chosen; the default was inherited rather
+   than decided.
 3. **Gather reachable matter** (`gatherMatter`) — the walk's real
    shape: the room's direct contents (surface-resting items already
    have `container = the room`), **the maker's own inventory** (held
@@ -1091,6 +1104,68 @@ and the BKT difficulty coupling already makes trivial-recipe grinding
 worthless. The seeded rosters span a deliberate difficulty ladder per
 branch (trivial → hard rungs in the `generic-objects` pack — the ZPD
 obligation: the recipe tiers ARE the ladder a learner climbs).
+
+## ⭐⭐⭐ `canMake` — one read, for a player and an NPC alike
+
+Every knowledge gate in the crafting family now asks one question through
+`CraftingApi.canMake(recipeRef)`, and there are exactly two ways to be able:
+
+1. **The lived deed** — a chronicle row saying you have made this before.
+   ⭐ A player earns this by making it by hand, once, and it is **the only
+   way a player ever earns it**. *The hands learn.*
+2. **The seeded deed** — your authored dossier licensed work of this
+   difficulty in this Discipline (`AdvancementMixin.seededBandFor` folded
+   through `Competence.seedRunFor`). ⚠⚠ Only a dossier writes `claim`-kind
+   Transcript rows, so this leg is **structurally unavailable to a player**:
+   twenty hand-built gin-tonics raise a player's *lived* band and license
+   nothing by assertion.
+
+That split is what lets Mara mix a Manhattan the first time anybody orders
+one — *a person who has tended this bar for years has made one before* —
+without handing a player a shortcut past the same work.
+
+⭐ **Consequences, by band, with no new content**: `competent` is six *easy*
+successes, `proficient` four *standard*, `expert` four *hard*. So Sloane and
+Augie (competent) make the easy pours, Mara and Remy (proficient) make the
+standard cocktails, and **nothing any dossier can assert reaches
+`formidable`** — the hardest recipes in the realm are hand-only, for
+everybody. That is a statement, not an oversight.
+
+⚠ A recipe with **no `discipline` or no `difficulty` is ungated**, which is
+right: a pint is poured, not mixed. And a ref naming no shipped recipe
+passes — it is somebody's own `def`, which they wrote. ⭐ A maker that cannot
+hold competence at all is also ungated: the gate asks *has this person
+learned it*, and a thing that cannot learn is not failing to have learned.
+
+### The refusal names somebody
+
+`not-learned` is a **different answer from `no-maker`**, and the difference
+is the mechanism: somebody *is* tending and none of them knows this one. The
+prose says who could — *"Nobody here knows how to make that. Mara could."* —
+because *"come back at two, Remy can make that"* is a far better answer than
+*"no"*, and because a house whose whole staff cannot make a listed line is a
+standing job advertisement.
+
+### Which verbs are gated
+
+`make` · `cook` · `forge` · `bake` through `CraftController.requireDeed`,
+and from this build **`mix` and `serve`** as well. ⚠ Both shipped **ungated**:
+a player who had read the board could `mix` a Negroni they had never made,
+while `make` refused them the same drink. `order` is gated differently and on
+purpose — the gate applies to the *maker it resolves*, not to the patron.
+
+⚠ `preserve` stays ungated, by documented design: a gate whose key does not
+exist is a lock. See the Deferred section.
+
+### ⭐ Mixology is a real seat question now
+
+The 20 cocktails author `discipline: mixology` (the four presses and the
+coffee stay `bartending` — a squeezed lime is not mixology). That only works
+because `Employed.isFulfilling` **walks `specializes`**: a `bartending` seat
+fulfils every specialization of bartending. ⚠⚠ Without the walk, moving the
+rows would have made every bartender seat in the realm stop fulfilling every
+cocktail — `order` answering *"There's no one on hand to make that"* in a
+bar with four barkeeps in it. See [employment.md](./employment.md).
 
 ## The lifecycle: two wear axes, repair, broken, salvage
 

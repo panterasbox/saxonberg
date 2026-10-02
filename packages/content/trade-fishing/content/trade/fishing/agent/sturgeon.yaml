@@ -16,4 +16,4 @@ data:
   handling: 0.0
   behaviors:
     - brain: /lib/behavior/feeds
-      trigger: cadence:60s
+      trigger: candidate

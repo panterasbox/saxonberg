@@ -35,7 +35,7 @@ materials-response all shipped, which made the name actively misleading.
 
 <!-- BEGIN GENERATED — ./tools/slate-index -->
 
-**260 slates.** 63 greenfield · 90 continuations · 58 waves · 49 tails.
+**262 slates.** 63 greenfield · 92 continuations · 58 waves · 49 tails.
 
 ## ⭐ Greenfield — nothing shipped yet (63)
 
@@ -59,7 +59,6 @@ respect.
 | [college](./builds/college-slate.md) | the course catalogue + reader in the study.com taxonomy · the procedural item generator + examination on Magic 101 (the centerpiece; the seed, evaluator contract, misconception-bank distractors and the discrimination invariant) · enrollment as contract + Transcript wiring · the lecture and exam halls + the watch-embed lesson card … |
 | [content-generation](./builds/content-generation-slate.md) | the operation vocabulary + its refusals · the generator as a |
 | [courts](./builds/courts-slate.md) | the case object (matter · parties · fact record · claims … |
-| [crew](./builds/crew-slate.md) | the whole of it — the crew as a substrate, its arbitration rule, the workplace consumer (who serves this order, among several who could), the mob consumer (who speaks for the pack; when do they all turn), and the retirement of the two placeholder tie-breaks named below. |
 | [dairy](./builds/dairy-slate.md) | the dairy as a business (the hourly tap and the hired hand) · pasteurization on the shipped kill curve · cheese as a maturation profile with whey as the lees · butter and cream as mechanical process … |
 | [deduction](./builds/deduction-slate.md) | the thin generic quest spine (milestones · branches · completion) · the casebook word-bank … |
 | [demo](./builds/demo-slate.md) | the mock issuer adapter · the aged demo world · the threshold-ceremony beats · aid-post content … |
@@ -82,7 +81,8 @@ respect.
 | [intervention](./builds/intervention-slate.md) | the sideless participant · a relation whose object is a |
 | [live-drive](./builds/live-drive-slate.md) | the sidecar that holds the agent session · the channel bridge (prompts in, replies out) · the agent's own character + how it logs in · the approval posture for a live audience … |
 | [llm-content](./builds/llm-content-slate.md) | the director agent + its locality prompt · the salience gate + the active-cast set · the forced-cast command-bus seam (no `force` exists) · the ambient narrator … |
-| [map](./builds/map-slate.md) | the 2D per-floor grid + the player minimap · the 2D node-graph · the 3D procedural box render · the draft-template and live-Stuff adapters … |
+| [location-graph](./builds/location-graph-slate.md) | the node projection + its five indexes · the boot rebuild + write-chokepoint maintenance · `PlatPlan` expansion as a graph source · occupancy-warren reflection at query time … |
+| [map](./builds/map-slate.md) | the SVG grid + up/down corner glyphs + the pinned card · the |
 | [mind](./builds/mind-slate.md) | the equanimity Reserve + the stress equilibrium (the deferred `traits-stress` build named in trait.md) · the start/stop axis on `AbortReason` · emotes as evidence about the ACTOR (rate · range … |
 | [mirror](./builds/mirror-slate.md) | the inbound assertion channel · what is admissible (the INTRINSIC/SOCIAL firewall — condition, never character) · claim, corroboration and decay · the density threshold … |
 | [notification](./builds/notification-slate.md) | the subject-keyed event · the substrate-owned prose templates (not a second bus) · the durable subscription (`PathTrie` routing) · derive-on-read delivery + the cursor/dismissal read state … |
@@ -108,7 +108,7 @@ respect.
 | [wizard-axis-cleanup](./builds/wizard-axis-cleanup-slate.md) | W0 `lint:wizard-axis` allowlist · W1 the `isAgentOf` wizard short-circuit + the four lease/provision views' `requiresWizard` (a dorms-agent / ownership validator that says what it means, and the Katie `dispatch provision` live drive — absorbed from wizard-duty-slate 2026-09-21) + the `execScript` verdict + the `practice` verdict · W2 the code-door folds (reload/git/cms/studio/Template/Document) · W3 `AppSettingKeys` B/C tier tags + Tier C routed to an office + the tier-totality check … |
 | [wizard-duty](./builds/wizard-duty-slate.md) | break-glass declared-purpose logging for reads and impersonation (the conspicuous record — `wizard-bar-slate` leans on it from here) · `su` as an agency consumer · the duty text in the wizard grant (the safe harbour's TEXT is wizard-bar-slate's) · subject notification on record access … |
 
-## ⭐ Continuations — substrate shipped, a build's worth remains (90)
+## ⭐ Continuations — substrate shipped, a build's worth remains (92)
 
 The subsystem doc is the reference for what already ships; these
 are the named remainders.
@@ -117,6 +117,7 @@ are the named remainders.
 |---|---|
 | [acquisition](./builds/acquisition-slate.md) | forums leaving the default loadout · the payment credential required at hire · the conferral certificate · the journey-v2 route *(Dr. Limen's build is onboarding-slate's; this slate keeps its rulings on it — cluster pass 2026-09-21)* |
 | [advancement](./builds/advancement-slate.md) | ⛔ **retiring conferral** (the one live declaration, the mechanism, the doc) and the graduated-outcome + named-lift refusal that replaces it · the loadout (capacity-not-decay + warm-up) · guilds (venue, mentors, credential, membership-as-affordance; a seed Bartenders' Guild — the institution design is guild-slate's) · declared focus (the focus-tagged Transcript) … |
+| [agent-coordination](./builds/agent-coordination-slate.md) | the whole of Stage 2 — § *What we mean by INTELLIGENCE*, the declared faculty profile and its three axes (no code was written for any of it) · the LLM arbiter behind `_deliberate`'s one `_arbitrate` seam · a brain-specific break-off sentence (`breaksOff?` on `BrainStatics`; the kernel's generic one serves until a brain wants its own) · a Cast earning a chronicle deed by acting (the formidable rung for NPCs) … |
 | [antecedents](./builds/antecedents-slate.md) | the `background:` effort→prior function (kind × years × at) + the Phase A open questions (decay · Catalog edges · `conditioning` · in-world readability) … |
 | [auction](./builds/auction-slate.md) | the `auction` + `bid` verbs · the lot-as-contract mapping · silent (sealed) mode first, then the live auctioneer `SustainedEngagement` with reset-on-bid · proxy/absentee maxima … |
 | [authoring-intelligence](./builds/authoring-intelligence-slate.md) | the platform-semantic model (template-path completion, reference validation, mixin-composition rules + their declared source, scope awareness over the titled extent) · the LSP server · the VS Code extension · the engine `.d.ts` pipeline … |
@@ -124,6 +125,7 @@ are the named remainders.
 | [base-class-narrowing](./builds/base-class-narrowing-slate.md) | everything under § Deferred, with destinations — chiefly `Persona`'s 60 empty biographies, the `Extra` taxonomy, the structure tier, the `Staged` split, and the two content burn-downs (362 rows with no details; 38 species with no appearance). |
 | [bathroom](./builds/bathroom-slate.md) | the washing/cleanliness state · the mirror self-recognition read · the interior lock as a consequence · the closed restroom archetype set + district skins … |
 | [biome-normalization](./builds/biome-normalization-slate.md) | the granularity doctrine (what a biome is a claim about, and the test that decides it) · splitting the three jobs — atmospheric field · sky exposure · sensory dressing … |
+| [call](./builds/call-slate.md) | the whole push-at-range column (dispatch, the turnout, the hue and cry) and the brain-fact eligibility it needs · the addressed posting (`claimMode` gains `addressed`; the resolver already takes a handed-in set) · a `critical` need that REFUSES a call — importance flows one way today and the reverse needs a criterion and an appeal (the lens 7 question below) · the mob's rule, if it turns out to need one (§ *the mob is an employer*) … |
 | [campus-grounds](./builds/campus-grounds-slate.md) | the four labs (assay · fermentation · agronomy · medical) + the observatory … |
 | [capability-magic](./builds/capability-magic-slate.md) | Part I — derived physical capacity (baseline × condition, per-part muscle mass as the strength baseline, the attribute readings vitals.md still defers) · conditioning as a bounded, bidirectional channel · the CHA / INT dissolution (derived presence + learned social skill) · the `Transform` primitive's Api (polymorph is its own build) … |
 | [cast-archetype](./builds/cast-archetype-slate.md) | the archetype rows themselves (closed `role` + `temperament` kinds, open entries; the ten temperaments + `counter`/`venue-staff`) · the lens-vs-seed dual compilation · the `requires` config gate + its lint (with `temperament: opaque` and the ungateable role) · standing as pointers (Change 2) … |

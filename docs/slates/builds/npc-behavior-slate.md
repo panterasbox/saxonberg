@@ -6,7 +6,17 @@
 > `NPC` class → [behavior.md](../../subsystems/behavior.md); the tree
 > responder → [npc-dialogue.md](../../subsystems/npc-dialogue.md); the
 > personality layer → [trait.md](../../subsystems/trait.md).
-> **Left:** the upper rungs of the ladder — intent-match, the code-tier
+> **Left:** ⭐⭐ **a Cast earning a chronicle deed by ACTING** — the gap
+> MR !316 left visible: a `canMake` refusal reads the *seeded* band for an
+> NPC exactly as it reads a player's, so an NPC with no authored claim is
+> refused identically — but **nothing lets an NPC earn its way up**, because
+> the by-hand verbs are the only path to a deed and no brain drives them
+> (`forceCommand` from a brain act is the seam). The consequence is sharp:
+> `Competence.seedRunFor` reaches `expert` and **nothing reaches
+> `formidable`**, so the top rung is unoccupied by construction and an
+> authored realm's best practitioner is as good as an author can write rather
+> than as good as a life can get · the upper rungs of the ladder —
+> intent-match, the code-tier
 > `scripted-behavior` brain, the LLM brain · the `addressed` and `given`
 > triggers · the `guards` brain + the block-substrate seam · reactive
 > scenery (`Behaved` on a `Thing`/`Location` host) · archetype behavior

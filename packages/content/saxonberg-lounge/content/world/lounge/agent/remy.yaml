@@ -44,14 +44,12 @@ data:
     # learn who they are (the NPC half of the auto-introduce feature).
     - brain: /lib/behavior/introduces
       trigger: arrival
-    - brain: /lib/behavior/shifts
-      trigger: cadence:30s
-      config:
-        behindBar: /world/lounge/location/bar
-        railStool: /world/lounge/location/bar
-        offstage: /world/lounge/location/offstage
+    # ⚠ The `shifts` and `covers` specs used to sit here. Presence is a
+    # CONSEQUENCE of employment state, so the move belongs to the roster
+    # tick that owns the state — `offstage:` on the house, `station:` on
+    # the seat. See docs/subsystems/employment.md.
     - brain: /lib/behavior/idles
-      trigger: cadence:9s
+      trigger: candidate
       config:
         pool:
           - { kind: free, value: "spins a coaster across the bar and catches it." }
@@ -59,7 +57,7 @@ data:
           - { kind: say, value: "— so anyway, there I was." }
           - { kind: say, value: "You hear about the corpo lot up the avenue?" }
     - brain: /lib/behavior/random-chatter
-      trigger: cadence:23s
+      trigger: candidate
       config:
         lines:
           - "Good to see a friendly face!"
@@ -80,7 +78,7 @@ data:
           - { respond: "Now you're talking." }
     # Trait-aware chatter: Remy's gregarious sociability keeps this loud.
     - brain: /lib/behavior/converses
-      trigger: cadence:17s
+      trigger: candidate
       config:
         chatty:
           - "So get this — you'll love this one."

@@ -57,6 +57,9 @@ import type { BrainContext, BrainStatics } from '@saxonberg/server/mud/lib/behav
 import type { Employed } from '@saxonberg/server/mud/lib/employment/Employed';
 import type { Exitable } from '@saxonberg/server/mud/lib/boundary/Exitable';
 import Stock from '@saxonberg/server/mud/lib/retail/Stock';
+import { Urgency } from '@saxonberg/server/mud/lib/behavior/Urgency';
+import type { TaskKind } from '@saxonberg/server/mud/lib/behavior/Urgency';
+import type { EngagementSlot } from '@saxonberg/server/mud/lib/activity/Engaged';
 
 const DEFAULT_BATCH = 6;
 
@@ -67,6 +70,14 @@ type Way = { to: string; go: readonly string[]; back: readonly string[] };
 
 export const brain = class {
   static label = 'stocks';
+  static kind: TaskKind = 'work';
+  static summary =
+    'Keeps a counter stocked against its stock lines, filling the shortfall from the house behind it.';
+  static discipline = 'retail-sales';
+  static claims: readonly EngagementSlot[] = ['hands'];
+  static urgency(): Urgency {
+    return new Urgency('wanted', 'squares up the shelf and counts what is short');
+  }
   static presenceGated = false;
   // A functional poller (moves stock and money), not ambient chatter.
   static ambient = false;

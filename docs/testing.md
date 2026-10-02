@@ -91,6 +91,82 @@ reset DB the same tree was 139/139. The reset is one command:
 pnpm --filter @saxonberg/server reset:db     # then re-run
 ```
 
+### ⚠⚠ `pnpm test`'s default workspace concurrency is over budget on WSL
+
+Measured at the agent-coordination sweep (2026-10-01), twice in three runs,
+and worth recognising on sight because **it does not look like an infra
+failure — it looks like a broken package**:
+
+```
+packages/content/arcana test:  Test Files  4 failed (4)
+packages/content/arcana test:       Tests  no tests
+Error: [vitest-worker]: Timeout calling "fetch" with
+  "["/@fs/.../packages/server/src/mud/lib/material/Keen.ts","ssr"]"
+```
+
+**The tells, all three present:** `Tests  no tests` (nothing was *collected*,
+so no assertion ran), a `/@fs/` path pointing into `packages/server`, and a
+`Duration` dominated by `transform` — 646s and 863s in the two runs, against
+9.5s when the same pack runs alone.
+
+**The cause.** Each content pack's vitest transforms the whole server source
+graph through Vite. Run concurrently they contend for it; in the worse run
+`packages/server`'s own `collect` took **6561s** against ~400s normal, and the
+packs beside it starved waiting on fetches and hit the worker timeout. 15 GB
+of RAM with ~5 GB free is not enough for the default fan-out.
+
+⚠⚠ **And `pnpm test` ABORTS at the first failing PACKAGE**, so the ~30 packs
+after the one that timed out never ran at all. ⭐ The trap is that
+`packages/server` has already printed its 12 000-test total by then, so the
+output *reads* green. Re-running the one pack alone and finding it fine is
+**not** a fix — it leaves thirty packs unproven.
+
+**What to do.** Run the packs serially; they pass:
+
+```bash
+pnpm --filter='./packages/content/*' -r --workspace-concurrency=1 test
+```
+
+34 packs, EXIT=0, zero failures. ⭐ Report *that*, and say the concurrency was
+reduced — never a narrowed run described as though the suite passed.
+
+### ⭐⭐⭐ A checkpoint's NAME is a coverage claim — audit it like one
+
+Found at the agent-coordination sweep (2026-10-01), and the cheapest defect
+class in this file to introduce: **a drive checkpoint whose title claims more
+than its body asserts.** Three of that build's acceptance rows cited drive
+proof that did not exist:
+
+| the claim | what was actually asserted |
+|---|---|
+| *"repeated orders are not answered by the same person every time"* | that six orders were each **answered** — never that two different people answered |
+| *"one candidate among several — not all, not none"* | that a player could `apply` and `clock on` — the checkpoint never ordered anything |
+| the acceptance table cited **"drive 9"** | there is no checkpoint 9; the file runs 1–8 and 10–15 |
+
+⚠ **Why this is worse than a missing test.** A missing checkpoint is visibly
+missing. A checkpoint named for the thing it *meant* to prove reads as the
+strongest evidence on the table, and the acceptance map then cites it — so one
+optimistic title becomes a satisfied requirement.
+
+⭐ **The cause is almost always an honest limit discovered late.** All three
+came from the same real constraint: **a wire drive cannot choose the game
+hour**, and two candidates on shift in one hour is what *sharing the work*
+needs. The checkpoint was written against the intent, then narrowed to what
+would actually pass, and only the body was edited.
+
+**So the rules are:**
+
+1. **Name the checkpoint after the assertion, not the requirement.** *"six
+   repeated orders are each answered, and the realm names who served"* is
+   duller and is the truth.
+2. **Never assert conditionally to make a hour-bound checkpoint pass.** An
+   `if (served > 0) expect(...)` is a vacuous assertion that reads like a
+   passing one — say in a comment what cannot be proved live and where it *is*
+   proved (a unit test with 30 calls and three hands, in this case).
+3. **At the sweep, walk the acceptance map by re-reading each cited
+   checkpoint's body.** Citing it is not observing it. This is the one audit
+   that caught all three.
+
 ### ⭐⭐ The exemption that keeps getting invented
 
 The table above has been in this doc for a while and the full suite
@@ -661,6 +737,34 @@ the failure is a timeout rather than an assertion, and what the load
 average was. ⭐ And remember the standing rule that pulls the other way —
 *an unnamed failure is NOT a flake*: "the box was busy" only counts once
 you have shown the test passes with a budget it can actually meet.
+
+### ⭐⭐ And the fix is to move the cost, not to raise the budget
+
+The agent-coordination sweep (2026-10-01) hit the same class in
+`packages/server/src/__tests__/index.test.ts` — *"should export Server
+class"*, `Test timed out in 5000ms`, passing alone. The diagnosis was the
+interesting part: **that test was never really asserting an export.** Each of
+its twelve cases did `await import("..")`, so the FIRST one to run stood up
+the whole server entry graph (~4.6s measured quiet, a **434ms** margin) and
+the other eleven got a warm cache.
+
+⭐ **So the margin was never the bug — the shape was.** Raising that one
+test's timeout would have been wrong twice: it reads as *asserting an export
+is slow*, and it leaves the standup cost on whichever case happens to run
+first, so the flake just moves. Hoisting the import into a `beforeAll` with
+its own explicit budget costs one line, makes every `it` assert exactly what
+its name says, and removes the cliff:
+
+```ts
+let entry: typeof import("..");
+beforeAll(async () => { entry = await import(".."); }, 60_000);
+it("should export Server class", () => expect(entry.Server).toBeDefined());
+```
+
+**The generalization:** when a per-test budget is tight, look for a one-time
+standup hiding inside the first case. A `beforeAll` is honest about being
+setup; a test that silently pays for setup is not, and it is the one that
+flakes.
 
 ## ⭐⭐ Two tiers: WIRE and RENDER
 

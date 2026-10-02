@@ -33,6 +33,19 @@ export class CraftingDecline {
     switch (failure.reason) {
       case 'no-maker':
         return "There's no one on hand to make that.";
+      case 'not-learned':
+        // ⭐ The refusal NAMES somebody, because "come back at two, Remy can
+        // make that" is a different and far better answer than "no" — and
+        // because a bar whose whole staff cannot make a listed drink is a
+        // standing job advertisement, which is the thing worth saying out
+        // loud.
+        return detail
+          ? `Nobody here knows how to make that. ${detail} could.`
+          : 'Nobody here knows how to make that, and nobody here could.';
+      case 'no-call-policy':
+        return 'Nobody seems sure whose job that is.';
+      case 'ambiguous-house':
+        return "It isn't clear who you'd be ordering from here.";
       case 'missing-tool':
         return `There's no ${detail || 'tool'} here to make that with.`;
       case 'insufficient-input':

@@ -39,12 +39,22 @@ import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { ConditionApi } from '@saxonberg/server/mud/api/condition';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { BrainContext } from '@saxonberg/server/mud/lib/behavior/brain';
+import { Urgency } from '@saxonberg/server/mud/lib/behavior/Urgency';
+import type { TaskKind } from '@saxonberg/server/mud/lib/behavior/Urgency';
+import type { EngagementSlot } from '@saxonberg/server/mud/lib/activity/Engaged';
 
 /** What the fox will not come near. */
 const DEFAULT_GUARDS = ['dog', 'hound', 'collie'];
 
 export const brain = class {
   static label = 'raids';
+  static kind: TaskKind = 'threat';
+  static summary =
+    'Kills everything in an unguarded hen house and carries one off — a sudden total loss, with a buildable defence.';
+  static claims: readonly EngagementSlot[] = ['body'];
+  static urgency(): Urgency {
+    return new Urgency('pressing', 'slips along the fence line, testing it');
+  }
   /**
    * ⚠ It must run whether or not anybody is watching — the whole failure
    * is that it happens at night while you are asleep, and you find out

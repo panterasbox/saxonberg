@@ -30,6 +30,7 @@ import {
 } from '@saxonberg/server/mud/lib/npc/DialogueConversation';
 import Waters, { WATERS_PATH } from '../idea/Waters';
 import type { FisheryStanding } from '../lib/FisheryRead';
+import type { TaskKind } from '@saxonberg/server/mud/lib/behavior/Urgency';
 
 interface Lines {
   empty?: string;
@@ -47,6 +48,11 @@ const DEFAULT_LINES: Required<Lines> = {
 
 export const brain = class {
   static label = 'reads-water';
+  static kind: TaskKind = 'social';
+  static summary =
+    'Reads the reach aloud from the record when talked to, in the lines ' +
+    'the row authored for what the water actually holds.';
+  static discipline = 'fishing';
   static claims: readonly EngagementSlot[] = ['voice', 'attention'];
 
   /** Never fires on its own: reached only through {@link open}. */

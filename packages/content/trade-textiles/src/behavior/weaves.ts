@@ -53,6 +53,9 @@ import type { Mobile } from '@saxonberg/server/mud/lib/spatial/Mobile';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
 import type { CommandGiver } from '@saxonberg/server/mud/lib/command/CommandGiver';
+import { Urgency } from '@saxonberg/server/mud/lib/behavior/Urgency';
+import type { TaskKind } from '@saxonberg/server/mud/lib/behavior/Urgency';
+import type { EngagementSlot } from '@saxonberg/server/mud/lib/activity/Engaged';
 import type {
   BrainContext,
   BrainStatics,
@@ -113,6 +116,16 @@ function positiveInt(value: unknown, fallback: number): number {
 
 export const brain = class {
   static label = 'weaves';
+  static kind: TaskKind = 'work';
+  static summary =
+    'Works the loom: warps, weaves, takes the cloth off and consigns it.';
+  static discipline = 'textiles';
+  static produces: readonly string[] = ['cloth'];
+  static consumes: readonly string[] = ['yarn'];
+  static claims: readonly EngagementSlot[] = ['hands', 'body'];
+  static urgency(): Urgency {
+    return new Urgency('wanted', 'sits back down at the loom');
+  }
   // The floor runs unwatched — a mill that only worked when somebody was
   // standing in it would put no cloth in the shops.
   static presenceGated = false;

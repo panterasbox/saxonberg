@@ -207,10 +207,19 @@ describe('the mill floor is wired', () => {
     expect(beat, 'the spinner runs the producer beat').toBeTruthy();
     expect(beat!.config?.stock).toBe('/world/terminus/wharfside/mill/thing/stock');
     expect(beat!.config?.floor).toBe('/world/terminus/wharfside/mill/location/floor');
-    // ⚠ Ahead of the consigning beat's 120 s, or the cart arrives to an
-    // empty shelf.
-    const seconds = Number(/cadence:(\d+)s/.exec(beat!.trigger)?.[1]);
-    expect(seconds).toBeGreaterThan(0);
-    expect(seconds).toBeLessThan(120);
+    // ⭐⭐ **This used to assert the spinner's cadence ran AHEAD of the
+    // consigning beat's 120 s, "or the cart arrives to an empty shelf".**
+    // Under the deliberation beat it cannot: both agents run on their own
+    // one beat at the same dial, so **relative pacing between two agents
+    // is no longer something a row can author.**
+    //
+    // ⚠ The degradation is named rather than hidden: a carrier beat that
+    // finds an empty shelf does nothing and tries again, so the chain
+    // still runs — it simply wastes a beat sometimes instead of being
+    // guaranteed by two numbers that happened to be ordered. If that ever
+    // matters, the mechanism is the URGENCY BAND (a maker that knows its
+    // shelf is empty should say `pressing`), not a cadence; recorded as an
+    // open item on the agent-coordination plan.
+    expect(beat!.trigger).toBe('candidate');
   });
 });

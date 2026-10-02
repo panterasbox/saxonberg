@@ -36,4 +36,3 @@ data:
     # rather than a seed — `lint:dossiers` catches exactly this, and the
     # honest fix is to claim only what the world can read back.
   behaviors:
-    - brain: /lib/behavior/shifts

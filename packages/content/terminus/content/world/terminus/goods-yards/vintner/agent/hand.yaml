@@ -33,14 +33,18 @@ data:
   archetype: hand
   competence:
     - { discipline: winemaking, asserting: novice }
-    - { discipline: fermenting, asserting: novice }
+    # ⭐ The board's mashes are STANDARD and only `proficient` licenses
+    # standard work; at `novice` this hand could not mash on its own
+    # board. The trade band stays `novice` — this is a hand, not a
+    # master — but the step it is SEATED to must be reachable.
+    - { discipline: fermenting, asserting: proficient }
   behaviors:
     # The producing beat (fermentation W4): work the press off the
     # cellar book, tend the vats, bottle and consign the take. The W8
     # switchover retired the floor-bottle faucet: every bottle on the
     # counter is now a batch this beat made.
     - brain: /lib/behavior/cellars
-      trigger: cadence:120s
+      trigger: candidate
       config:
         home: /world/terminus/goods-yards/vintner/location/floor
         counterRoom: /trade/distribution/location/cash-and-carry
@@ -62,8 +66,15 @@ data:
           vinegar: 4
           dry-vermouth: 12
           sweet-vermouth: 12
+    - brain: /lib/behavior/greets
+      trigger: arrival
+      config:
+        lines:
+          - "Mind the press."
+          - "Don't touch that, it's working."
+          - "Aye? Make it quick, I'm mid-rack."
     - brain: /lib/behavior/idles
-      trigger: cadence:41s
+      trigger: candidate
       config:
         pool:
           - { kind: free, value: "holds a bottle to the lamp and turns it." }

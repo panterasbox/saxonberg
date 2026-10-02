@@ -2,7 +2,7 @@
 recipeId: dark-and-stormy
 name: Dark & stormy
 keywords: [dark-and-stormy, dark-n-stormy]
-discipline: bartending
+discipline: mixology
 difficulty: easy
 inputSlots:
 - { slot: base, category: dark-rum, minGrade: fair, measureL: 0.05 }

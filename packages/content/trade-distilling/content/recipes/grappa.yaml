@@ -3,7 +3,7 @@ recipeId: grappa
 name: Grappa
 keywords: [grappa]
 discipline: distilling
-difficulty: moderate
+difficulty: standard
 inputSlots:
 - slot: pomace
   category: pomace

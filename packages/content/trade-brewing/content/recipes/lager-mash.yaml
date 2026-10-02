@@ -16,7 +16,7 @@ recipeId: lager-mash
 name: Lager mash
 keywords: [lager-mash, "cold mash"]
 discipline: fermenting
-difficulty: moderate
+difficulty: standard
 inputSlots:
 - slot: malt
   category: grist

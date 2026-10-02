@@ -183,11 +183,32 @@ function localImports(file: string, src: string): string[] {
  */
 function needsWiring(file: string): boolean {
   const src = read(file);
-  if (NEEDS_RE.test(src)) return true;
+  if (NEEDS_RE.test(stripComments(src))) return true;
   for (const dep of localImports(file, src)) {
-    if (helperFiles.has(dep) && NEEDS_RE.test(read(dep))) return true;
+    if (helperFiles.has(dep) && NEEDS_RE.test(stripComments(read(dep)))) {
+      return true;
+    }
   }
   return false;
+}
+
+/**
+ * Comments out, before matching.
+ *
+ * ⚠⚠ Without this the gate reads a file that MENTIONS a wired Api in
+ * prose as a file that USES one. `lib/persistence/__tests__/SchemaDoc
+ * .test.ts` was refused for the words "`PersistenceManager.sandbox-policy
+ * .test.ts`" inside a doc comment pointing at a sibling test — a pure
+ * value-object test whose own header says *"No wiring"*, and it was
+ * right. The remedies a false positive invites are both bad: add an
+ * import the file does not need, or reword a comment to appease a gate.
+ *
+ * ⭐ Exactly the trap `check-mass` documents from the other side
+ * (`stripComments` there): a substring test satisfying itself on a
+ * comment that says the opposite of what it concluded.
+ */
+function stripComments(src: string): string {
+  return src.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/\/\/[^\n]*/g, ' ');
 }
 
 /** The relative specifier from `file` to `src/test-bootstrap`. */

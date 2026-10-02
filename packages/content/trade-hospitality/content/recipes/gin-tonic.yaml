@@ -2,7 +2,7 @@
 recipeId: gin-tonic
 name: Gin & tonic
 keywords: [gin-tonic, g-and-t, gt]
-discipline: bartending
+discipline: mixology
 difficulty: easy
 inputSlots:
 - { slot: base, category: gin, minGrade: fair, measureL: 0.05 }

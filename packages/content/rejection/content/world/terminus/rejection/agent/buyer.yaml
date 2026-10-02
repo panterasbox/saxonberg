@@ -40,7 +40,7 @@ data:
     - { disposition: trust, valence: -40 }
   behaviors:
     - brain: /lib/behavior/idles
-      trigger: cadence:45s
+      trigger: candidate
       config:
         pool:
           - { kind: free, value: "tips a sample bin and lets the light run across the break." }

@@ -9,9 +9,14 @@
 
 import type { EngagementSlot } from '../activity/Engaged';
 import type { BrainContext, BrainStatics } from './brain';
+import type { TaskKind } from './Urgency';
 
 export const brain = class {
   static label = 'greets';
+  static kind: TaskKind = 'social';
+  static summary =
+    'Greets somebody arriving in the room with one line from an authored ' +
+    'pool, once per arrival.';
   static claims: readonly EngagementSlot[] = ['attention'];
 
   static act(ctx: BrainContext): void {

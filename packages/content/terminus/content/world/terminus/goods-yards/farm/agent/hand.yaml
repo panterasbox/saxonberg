@@ -40,7 +40,7 @@ data:
     - { discipline: retail-sales, asserting: novice }
   behaviors:
     - brain: /trade/shopkeeping/behavior/consigns
-      trigger: cadence:4m
+      trigger: candidate
       config:
         stock: /world/terminus/goods-yards/farm/thing/stock
         shelf: /world/terminus/counting-houses/distributor/thing/counter
@@ -71,8 +71,15 @@ data:
           produce:cranberry: 5
           produce:grape: 5
           produce:juniper: 5
+    - brain: /lib/behavior/greets
+      trigger: arrival
+      config:
+        lines:
+          - "Looking for something?"
+          - "Everything out front's today's."
+          - "Mind the crates."
     - brain: /lib/behavior/idles
-      trigger: cadence:41s
+      trigger: candidate
       config:
         pool:
           - { kind: free, value: "halves a lime and sniffs it." }

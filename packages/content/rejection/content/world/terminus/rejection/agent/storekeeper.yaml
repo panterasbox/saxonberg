@@ -40,7 +40,7 @@ data:
     - { disposition: composure, valence: 70 }
   behaviors:
     - brain: /lib/behavior/idles
-      trigger: cadence:35s
+      trigger: candidate
       config:
         pool:
           - { kind: free, value: "turns a jar of glowcap so the good side faces out." }

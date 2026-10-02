@@ -47,21 +47,19 @@ data:
     - { discipline: mixology, asserting: competent }
     - { discipline: awareness, asserting: competent }
   behaviors:
-    - brain: /lib/behavior/shifts
-      trigger: cadence:30s
-      config:
-        behindBar: /world/lounge/location/bar
-        railStool: /world/lounge/location/bar
-        offstage: /world/lounge/location/offstage
+    # ⚠ The `shifts` and `covers` specs used to sit here. Presence is a
+    # CONSEQUENCE of employment state, so the move belongs to the roster
+    # tick that owns the state — `offstage:` on the house, `station:` on
+    # the seat. See docs/subsystems/employment.md.
     - brain: /lib/behavior/idles
-      trigger: cadence:14s
+      trigger: candidate
       config:
         pool:
           - { kind: free, value: "wipes the same spot on the bar, slowly." }
           - { kind: free, value: "watches the door without seeming to." }
           - { kind: free, value: "pours a measure with unhurried precision." }
     - brain: /lib/behavior/random-chatter
-      trigger: cadence:53s
+      trigger: candidate
       config:
         lines:
           - "Rough one?"
@@ -75,7 +73,7 @@ data:
           - "Take your time."
     # Trait-aware chatter: Sloane's deep reserve keeps this near-silent.
     - brain: /lib/behavior/converses
-      trigger: cadence:19s
+      trigger: candidate
       config:
         chatty:
           - "You came back."

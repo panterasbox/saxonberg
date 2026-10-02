@@ -29,6 +29,9 @@ data:
   rosterSlots:
     - positionKey: monger
       assignee: /world/terminus/market/agent/fishmonger
+      # The monger stands in the square, not among the stalls — which is
+      # what her retired `shifts` config said with `behindBar:`.
+      station: /world/terminus/market/square
       schedule:
         - { days: [0, 1, 2, 3, 4, 5, 6], hours: [5, 14] }
   # Where the municipality banks (the budget.yaml precedent): city
@@ -37,3 +40,4 @@ data:
   operatingLocations:
     - /world/terminus/market/stalls
     - /world/terminus/market/thing/fish-stall
+  offstage: /world/terminus/market/offstage

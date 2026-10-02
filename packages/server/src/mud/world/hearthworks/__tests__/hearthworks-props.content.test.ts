@@ -36,9 +36,13 @@ function shippedFile(path: string): string | null {
 
 describe('the hearthworks venue pack props/cast rows the packs ship at those paths', () => {
   const venues = walk(VENUE);
-  it('ships fourteen rows under branch subdirs', () => {
+  it('ships fifteen rows under branch subdirs', () => {
     expect(venues.map((f) => f.slice(VENUE.length + 1)).sort()).toEqual([
-      'agent/cook.yaml', 'agent/smith.yaml', 'idea/business.yaml',
+      // ⭐ `cookhand.yaml` — Nev, the SECOND cook, added by the
+      // agent-coordination build so "two people work one shift and the work
+      // is shared" has somewhere in the realm to happen.
+      'agent/cook.yaml', 'agent/cookhand.yaml', 'agent/smith.yaml',
+      'idea/business.yaml',
       'location/cellar.yaml', 'location/cookhouse.yaml', 'location/offstage.yaml', 'location/smithy.yaml', 'location/woodshed.yaml',
       'thing/forge-floor.yaml', 'thing/kitchen-menu.yaml', 'thing/pantry-chest.yaml', 'thing/smithy-menu.yaml',
       'thing/smithy-tariff.yaml',
@@ -75,7 +79,9 @@ describe('the hearthworks venue pack props/cast rows the packs ship at those pat
       '/stuff/thing/items/ration-stock', '/stuff/thing/items/root-vegetables', '/stuff/thing/items/stew-meat', '/stuff/thing/items/wet-log',
     ]);
     expect([...seen].filter((p) => p.startsWith('/world/terminus/hearthworks/')).sort()).toEqual([
-      '/world/terminus/hearthworks/agent/cook', '/world/terminus/hearthworks/agent/smith',
+      '/world/terminus/hearthworks/agent/cook',
+      '/world/terminus/hearthworks/agent/cookhand',
+      '/world/terminus/hearthworks/agent/smith',
       '/world/terminus/hearthworks/thing/kitchen-menu', '/world/terminus/hearthworks/thing/pantry-chest', '/world/terminus/hearthworks/thing/smithy-menu',
       '/world/terminus/hearthworks/thing/smithy-tariff',
       '/world/terminus/hearthworks/thing/stocked-icebox',

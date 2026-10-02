@@ -1581,7 +1581,7 @@ cocktail recipes) and cooking's second pass rides along —
 `generic-objects` ships no recipes. The A23 graduations: `Offstage` →
 `lib/employment` (`OffstageMixin` + the concrete
 `platform/location/Offstage`; both venues' casts park through it, the
-hearthworks gaining the `shifts` brain and an `offstage` row),
+hearthworks gaining an `offstage` row — and the `shifts` brain it gained here was retired onto the roster tick by MR !316),
 `MechanicalMovement` → `lib/time`, and the composition-only classes
 (`CraftVessel`, `GradedReceptacle`, `NeonSign`, `CocktailShaker`,
 `TipJar`, the three menus collapsed to ONE `Menu`) → `platform/thing/`.

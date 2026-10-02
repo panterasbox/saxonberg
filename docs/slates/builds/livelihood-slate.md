@@ -370,13 +370,27 @@ the model it demands):
   firing-for-cause (above) load-bearing rather than flavour, and it is the
   first thing the next labor build should close.
 
-- ⚠ **A producer can never be her own maker through `order`.** Found by
-  driving: the vintner's hand issues `order dry-vermouth` on her own floor
-  and gets `no-maker`, because `resolveMaker` excludes the giver
-  (`c !== giver`) and she is the only fulfilling agent there. Unchanged by
-  trades-and-labor — either the beat should `make` rather than `order`, or
-  `fulfilling-bartender` mode needs a self-serve case. One for the
-  fermentation trade.
+- ✅ **CLOSED 2026-10-01 (MR !316): a producer can now be her own maker.**
+  Found by driving: the vintner's hand issued `order dry-vermouth` on her own
+  floor and got `no-maker`, because `resolveMaker` excluded the giver
+  (`c !== giver`) and she was the only fulfilling agent there. The fix is
+  **somebody else if anybody else; otherwise yourself** — others first, the
+  asker as the fallback leg, so a patron in a staffed bar is still never
+  served by themselves. ⭐ The scope was wider than it looked: `cellars`'
+  crush leg could never have worked either, which recast several
+  `lint:menu-staff` lines as already-dead production paths rather than
+  standing vacancies. → [crafting.md](../../subsystems/crafting.md).
+
+- ⚠ **NOTHING UN-LEARNS A RECIPE** — the sibling of the firing hole above,
+  and offered here by the agent-coordination drive's dirty reason. One
+  cocktail earns a permanent chronicle deed, so a knowledge ladder with no
+  forgetting is a ladder every character climbs exactly once. That is right
+  for a person and worth saying out loud for a realm that reboots: the
+  drive's knowledge-ladder checkpoints only hold on a fresh realm, which is
+  a **test-fixture cost today and a design question tomorrow** — whether
+  disuse, injury or epoch change may ever take a rung back. Nothing in
+  `advancement.md` can, and the `suppressed()` seam (which lowers a *derived*
+  read without touching the ledger) is the nearest shipped shape.
 
 ## 6. The arrangement schema (employment in the abstract)
 
@@ -582,7 +596,7 @@ now.
 ### 8.1 Unemployment decomposes into two problems
 
 - **Unfilled seats** (too few workers) — already solved
-  structurally: NPCs are the backstop (rosters, the `covers` brain),
+  structurally: NPCs are the backstop (rosters, and the roster tick's cover leg — the `covers` brain until MR !316),
   receding as players take seats. §3's NPC-bootstrap doing its job.
 - **Too few jobs** (players saturate the demand-derived work) — the
   real macro lever. Jobs derive from demand ← spending ← money

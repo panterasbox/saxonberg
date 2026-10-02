@@ -22,7 +22,7 @@ data:
   # legacy field.
   behaviors:
     - brain: /lib/behavior/idles
-      trigger: cadence:14s
+      trigger: candidate
       config:
         pool:
           - { kind: free, value: "growls, low and steady, the sound of a held breath let out slow." }

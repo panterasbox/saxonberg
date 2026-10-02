@@ -35,7 +35,7 @@ data:
     - { discipline: fermenting, asserting: novice }
   behaviors:
     - brain: /trade/shopkeeping/behavior/consigns
-      trigger: cadence:4m
+      trigger: candidate
       config:
         stock: /world/terminus/goods-yards/bottling/thing/stock
         shelf: /world/terminus/counting-houses/distributor/thing/counter
@@ -60,8 +60,15 @@ data:
           mixer:cranberry-juice: 4
           mixer:orange-juice: 4
           ice:bag: 5
+    - brain: /lib/behavior/greets
+      trigger: arrival
+      config:
+        lines:
+          - "Mind the floor — it's wet through there."
+          - "Line's running. Shout if you need someone."
+          - "With you in a tick."
     - brain: /lib/behavior/idles
-      trigger: cadence:41s
+      trigger: candidate
       config:
         pool:
           - { kind: free, value: "shrink-wraps a pallet with a hiss." }
