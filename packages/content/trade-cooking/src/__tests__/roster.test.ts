@@ -124,6 +124,17 @@ function recipeDocs(): StoredDocument[] {
 function contentRows(): Row[] {
   const rows: Row[] = [
     ...yamlDir('platform', 'platform/idea/persistence', '/platform/idea/persistence'),
+    // ⚠⚠ The template applier's own row, read EXPLICITLY. It lived in
+    // `platform/idea/persistence/` until 2026-10-01 and this list picked
+    // it up by globbing that directory; `TemplateApplier` is flat at
+    // `platform/idea/` now (the directory holds the two marshallers,
+    // which are persistence-shaped — the applier is not). A glob over the
+    // old directory silently stopped finding it, and the failure is
+    // `Template not found: /platform/idea/TemplateApplier` from inside
+    // the first clone — which is to say, every clone in the suite.
+    ...yamlDir('platform', 'platform/idea', '/platform/idea').filter(
+      (r) => r.path === '/platform/idea/TemplateApplier',
+    ),
     ...yamlDir(
       'platform',
       'platform/idea/persistence/QuantityMarshaller',
