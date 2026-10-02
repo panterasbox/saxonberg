@@ -179,7 +179,8 @@ The substrate is in place. Major shipped surfaces:
   policies, `@CallSecurity` / `@Final` / `@Unshadowable`,
   `SecurityApi.decorateApiClass`.
 - **Bootstrap + state model** — `BootstrapManager`, unified
-  state model (Shadow, PostRegistration), HomeZone for
+  state model (Shadow; `PostRegistration` retired 2026-10-01 — the hook
+  is `onCreate` on `Stuff`), HomeZone for
   per-player namespace at `/home/<playerId>`.
 - **Spawn shape (declarative authoring)** — Template
   `environment:` field, `StagedMixin`, escape hatch via

@@ -5,7 +5,6 @@
 # avenue is cut. Food kept here outlasts food on the shop floor. A thick
 # cork-lined wall (the enclosure) holds the cold longer than a thin fridge.
 class: /system/energy/location/ColdRoom
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: cold room
   keywords: [cold-room, coldroom, walk-in, cold, larder]

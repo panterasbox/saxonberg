@@ -350,18 +350,19 @@ trap — not room familiarity, still distinct). Added by the concealment build
 - Per-viewer isolation, no-inherit, and persistence (`beliefs` collection)
   are inherited from the store unchanged.
 
-## Persistence — lazily-hydrated working set (mixin-internal)
+## Persistence — filled at mint, flushed at destruct (mixin-internal)
 
 Module-private write-through in `lib/belief/BeliefStore.ts` (the Api OO
 sweep retired `BeliefStoreApi`/`BeliefStoreLogic`; the mixin's own
-`know`/`forget` drive it, and the session lifecycle is
-`viewer.hydrateBeliefs()` / `viewer.evictAndFlushBeliefs()` — both
-`SelfOnly`, called from Avatar's own enter/destruct) over
+`know`/`forget` drive it, and the session lifecycle is **the clone
+pipeline's `hydrateFromSource`** on the way in and the `SelfOnly`
+`viewer.evictAndFlushBeliefs()` on destruct — ⛔ `hydrateBeliefs()`
+**retired 2026-10-02**, see below) over
 `BeliefDocument extends Document` — a dedicated
 **`beliefs`** collection, one document per `{viewerId, realm, referent}`,
 indexed on `viewerId` **and** on `{realm, referent}` (both declared
 centrally in `PersistenceManager.createIndexes`). The `viewerId` index
-serves the forward direction (a viewer's lazy-hydrate + cleanup cascade);
+serves the forward direction (a viewer's fill + cleanup cascade);
 the `{realm, referent}` index serves the **reverse** direction — "all
 beliefs held *toward* subject X," the regard realm's renown / Sybil-
 keystone data path (no consumer reads it yet). NOT one-big-doc-per-viewer
@@ -372,14 +373,31 @@ upsert keys on `{viewerId, realm, referent}` via a find-then-save (a read
 on the *write* path — never the naming path, so the no-read constraint
 holds; sequential single-viewer commands keep the race benign).
 
-- **Lazy hydrate** on `Avatar.enter`; **evict + final-flush** on
-  `Avatar.onDestruct`; **per-record write-through** fired fire-and-forget
-  from `know`/`forget` (inert when Mongo is closed — tests, pre-boot).
+- **Filled once, by the clone pipeline**, through the declared
+  `hydrationSource` — on every path that mints a body, with no call site
+  in `Avatar`; **evict + final-flush** on `Avatar.onDestruct`;
+  **per-record write-through** fired fire-and-forget from `know`/`forget`
+  (inert when Mongo is closed — tests, pre-boot).
 - **Write-through gate**: only a record that has *learned* something
   (`knownAs` set, or a payload flag) persists; bare null-`knownAs`
   strangers stay session-local.
 - **No Mongo read on the naming path** — `recall` is pure in-memory; Mongo
-  is touched only on hydrate + write-through.
+  is touched only on fill + write-through.
+- ⛔ **`hydrateBeliefs()` retired 2026-10-02 — one filler per path.** Once
+  the clone pipeline drove the source (below), `Avatar.enter` read the map
+  a second time per login; both loaded the same keyed map, so it was
+  idempotent and invisible. ⚠ It was deleted on **proof, not argument**,
+  because the failure mode if the map were ever unfilled is silent:
+  `adjustRegard` is a read-modify-write with a write-through, so an empty
+  map makes it **overwrite a stored opinion with the delta** rather than
+  throw. Three separate facts are pinned in
+  `lib/belief/__tests__/entryPoints.test.ts` — a body comes out of the
+  pipeline already holding its stored opinion; a real `PrimaryAvatar` is a
+  `viewerKey` row-2 host, so the source is driven rather than skipped; and
+  the map is cleared only on destruct — plus a fourth test pinning the
+  data-loss shape itself. The tests were sabotage-verified (stubbing
+  `hydrateFromSource` to `'skipped'` turned 4 of 7 red) before the call
+  was removed.
 - **⭐ `viewerKey` — the four-viewer table (pets build, 2026-09-15).** A
   belief record is keyed under a **durable unique** key, or not at all:
   a keyed `Persistable` viewer → its own `(scope, key)` record, carried
@@ -389,8 +407,8 @@ holds; sequential single-viewer commands keep the race benign).
   its template path; anything else → session-local. ⚠ Before this,
   `viewerKey` was `getIdentityPath()` unconditionally, which was correct
   only while every belief-holding NPC happened to be a singleton — two
-  sentries from one row **shared one record**. And `hydrateBeliefs()` had
-  exactly one caller (`Avatar.enter`), so an NPC's opinion of you was
+  sentries from one row **shared one record**. And the then-`hydrateBeliefs()`
+  had exactly one caller (`Avatar.enter`), so an NPC's opinion of you was
   written and never read — the rows piled up in Mongo while its regard
   reset on every restart.
 

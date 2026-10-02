@@ -1,23 +1,44 @@
 # Hydration framework slate — one framework for filling a thing with its state
 
-> **Status: UNBUILT** — three hydration paths exist and none of them
-> knows about the others; the census below is measured at `868c35b46`.
-> Re-run 2026-09-19 on `design/slate-compaction`: **67 of 123** (the
-> same script, packs' `src/` included); still one `Hydrator` implementer
-> (`PersistentHydrator`, 1,339 rows); `Cast.postRegister` still calls
-> `hydrateBeliefs()` (`lib/npc/Cast.ts:173`); no gate in `package.json`.
-> **Left:** ⭐⭐ the census + ratchet on the `postRegister` implementations
-> that load state (63 → 67, ungated) · the finishing-hydration vs
-> warming-a-roster ruling the census feeds · ⭐ let a
-> `PersistenceContributor` name its own SOURCE (so a layer can restore
-> from a collection that is not `holder_snapshots`) · pre- vs
-> post-register for a source-naming contributor (Q1) · unreachable-source
-> as a declared property (Q2) · the per-clone cost (Q3) · decide whether
-> `Hydrator` becomes mixin-composed, which reverses a stated design
-> decision (Q4) · the `Cast` belief load as the first consumer
-> **Size:** **a build** — it touches the clone pipeline, the persistence
-> spine and 60-odd call sites; the narrow version (a contributor naming
-> its source) is a wave inside it
+> **Status: SHIPPED** ✅ 2026-10-02 (MR !323) — **and the slate's own
+> premise was REJECTED.** ⭐⭐ It asked for one framework with many composed
+> hydrators; the build shipped **three kinds of filling-in and two
+> mechanisms, with no abstraction over them**, because the first plan's
+> attempt needed four rules (D4/D7/D10/D17) to exempt the first member
+> from the other five. **When a family needs four carve-outs for one
+> member, it is not a family.** The honest axis is *authored* vs
+> *remembered*: **A** a row's own `data:` (keyed on the template path, no
+> capture side) → the `TemplateApplier` · **B** somebody else's row by
+> path (idempotent, read at the READ site) · **C** what the world
+> remembered about *this instance* (keyed on its identity, with a capture
+> counterpart) → the `PersistenceContributor` framework.
+>
+> **All four open questions answered:** Q1 **post**-register (the clone
+> pipeline drives the source) · Q2 `required: false` *is* the declared
+> property · Q3 the source runs unconditionally per clone, and the lazy
+> half that existed to price this was **cut** (hydration has a terminus;
+> a cache has a lifecycle) · Q4 `Hydrator` did **not** survive —
+> ⛔ `hydratorClass:` is retired, one value across 1,528 rows for the
+> project's life, and CLAUDE.md's "never drop it" rule is gone.
+>
+> **Where it landed:** [templates.md § The TemplateApplier](../../subsystems/templates.md)
+> (three phases × three modes, the unapplied-key report, `describeFill`)
+> · [persistence.md](../../subsystems/persistence.md) (the contributor
+> framework; § *Deferred* holds the lazy cut) ·
+> [belief.md § Persistence](../../subsystems/belief.md) (the declared
+> source, `viewerKey`, and `hydrateBeliefs()`'s retirement) ·
+> [lifecycle.md](../../subsystems/lifecycle.md) (`onCreate` a terminal on
+> `Stuff`; `PostRegistrationMixin` retired) ·
+> [access.md](../../subsystems/access.md) (the code-trust justification
+> corrected) · `lint:on-create` + `lint:instanceable` invariant 13.
+>
+> **Left:** nothing of this slate's own; its one live tail — the
+> never-fault predicate on `check-on-create.ts` — was rehomed to
+> [eager-residency-slate](../builds/eager-residency-slate.md) § 2.
+> **Size:** a tail
+>
+> Kept rather than retired, for the **census shape** and the provenance
+> below — the material no subsystem doc carries.
 
 **Captured 2026-09-16**, in review of the pets MR (!257), when the user
 asked why `CastMixin.postRegister` was calling `hydrateBeliefs()`.
@@ -191,6 +212,9 @@ this slate:
   `hydrateBeliefs()` stays as shipped. It is the 63rd instance of a
   tree-wide pattern, not a pets defect, and moving it before the
   framework exists would mean inventing the framework inside a pets MR.
+  ✅ **The build took it anyway**: `Cast`'s override is deleted, and so
+  is `hydrateBeliefs()` itself — the clone pipeline's declared source is
+  the one filler on every path.
 - **The two belief restore paths.** A keyed `Persistable` host carries
   beliefs in its own record (`captureSlice`); a singleton `Cast` reads the
   `beliefs` collection. That is not redundancy — the hosts have genuinely

@@ -889,6 +889,20 @@ concern).
 Possession (per-owner *loose* items in a shared room) and the
 compute-allowance persistence cap — property Phase 0b/1.
 
+⛔ **A LAZY hydration source — cut 2026-10-02, and not on economics.**
+The hydration build shipped `hydrationSource { name, required, eager }`
+and a `StuffApi.ensureHydrated` seam, then deleted the `eager` flag and
+the seam in review. The argument that settled it is a category one:
+⭐⭐ **hydration is an initialization step with a terminus; fetching data
+at runtime is a CACHE, and a cache has a lifecycle** — invalidation,
+refresh, eviction, write authority — each shaped differently per
+property. One boolean on a source declaration cannot carry both
+mandates, and declaring the lazy half with no consumer is how a dead
+capability ships. `#hydrateFromSources` is unconditional now. When
+something does want runtime fetching, it designs its own state machine
+on the property that wants it; that is not a hydration feature and must
+not re-enter as one.
+
 **Multi-instance persistable hosts** (many live instances of one template,
 each keyed by an explicit per-instance key) — **shipped (D1)**: the
 `capture/materialize/hasRecord` `key` param and the host key stash, with the

@@ -377,4 +377,26 @@ the guard says *the sandbox build ships no verbs*, not *the word is
 reserved forever* — and the composer is the one this subsystem doc is
 named after.
 
+## Open — a protowizard cannot reach the template form
+
+⭐ **The gap, found by the hydration build (2026-10-02).** The Studio's
+template create requires a `classPath`, and the code-field gate refuses
+`class` on a create for every non-wizard — so a protowizard, who is
+exactly the person the Studio is for, cannot use it at all.
+
+Letting one through needs an **`extends` / "based on"** field on
+`CreateTemplateInput`: name a PARENT ROW instead of a class, and the
+child inherits the class by `extends:` resolution without ever naming
+code. Small, real, and content-authoring-shaped.
+
+⚠ And the justification the refusal was resting on is **wrong**:
+*naming* a class is not code trust — *publishing* one is, and publishing
+is what the open-source project already did. What may genuinely be
+privileged is **cloning** a row, because that EXECUTES the class's
+initialization; that is the class's own decision and belongs in the
+class, with nothing to do with the template or with hydration.
+⛔ Whatever lands there is a seat, a title or an `AccessApi.can` — never
+a new `isWizard` check. See
+[access.md § The code-trust lockdown](./access.md).
+
 See [card-surface.md](./card-surface.md).

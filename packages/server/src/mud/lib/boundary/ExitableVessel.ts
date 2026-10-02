@@ -2,7 +2,8 @@
  * ExitableVessel — an enterable, portable-by-shape container.
  *
  * Composition:
- *   `DoorBearingMixin(ExitableMixin(AdornableMixin( *     AtmosphericMixin(Vessel))))`.
+ *   `DoorBearingMixin(ExitableMixin(AdornableMixin(
+ *     AtmosphericMixin(Vessel))))`.
  * `Vessel` already carries the describable-physical baseline
  * (`Visible`/`Perceptible`/`Tangible`) + Container + Containable, so nothing
  * is re-added here beyond the enterable-container machinery.

@@ -17,7 +17,7 @@
  *
  * ⚠ It uses a FIXTURE mixin rather than converting a shipped one, on
  * purpose: no pack mixin has remembered state in a non-`holder_snapshots`
- * source today (`grep restoreSlice packages/content/*​/src` found zero
+ * source today (a `restoreSlice` grep across every pack's `src/` found zero
  * before this build), so converting one would be inventing a consumer to
  * justify the mechanism. The energy pack is the host because it already
  * ships a `src/lib/`; any pack with a vitest would do.

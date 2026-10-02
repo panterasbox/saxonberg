@@ -4,7 +4,6 @@
 # uses (the contents sit at the coldest thing inside while it is shut), but
 # light enough to carry — the fixed icebox never could.
 class: /platform/thing/Icebox
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: cooler
   keywords: [cooler, cool-box, coolbox, chest]

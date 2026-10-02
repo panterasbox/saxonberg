@@ -1,7 +1,8 @@
 /**
  * ElectricLight — a switchable light that draws from the grid.
  *
- * `GridPoweredMixin(LightSourceMixin(SwitchableMixin(* Thing)))`. The `PortableLight` coupling (flux only while ON) plus the meter:
+ * `GridPoweredMixin(LightSourceMixin(SwitchableMixin(Thing)))`. The
+ * `PortableLight` coupling (flux only while ON) plus the meter:
  * it emits its authored flux only while **switched on AND its premises' feeder
  * node is energized**, and goes dark the same second a cut upstream, a dead
  * source, or an off-grid premises takes the power away — `VisionModality` reads

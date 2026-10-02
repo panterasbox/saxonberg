@@ -981,7 +981,7 @@ on Character). `Creature` is concrete, so a bare non-agent body (a frog,
 a corpse) is valid. ⭐ **`KeptAnimal`** (`lib/creature/`, twin
 `platform/agent/KeptAnimal`) is the other rung off `Creature` — *an
 animal kept for itself*: `Persistable(Behaved(Bonded(Status(
-PostRegistration(Handling(BeliefStore(Named(Actor)))))))))` — the cat,
+Handling(BeliefStore(Named(Actor)))))))` — the cat,
 the collie (`WorkingAnimal = HandledMixin(KeptAnimal)` in
 trade-ranching) and the canary all clone
 from it, and it deliberately composes no `Vocal` / `Soul` / `Persona` /
@@ -991,13 +991,13 @@ transcript, which is the whole objection to building it on `Character`.
 ⚠⚠ **That objection was written here, and three animals were built on
 `Character` anyway.** The newbie-wilds wolf was an `Extra` (*"a
 character who is a role, not a person"*), and the draft horse and the
-pit pony were `HaulingCreature = Mountable(PostRegistration(Character))`
+pit pony were `HaulingCreature = Mountable(Character)`
 — so all three carried `Caster`, `Memorized`, `Employed`, `Persona`,
 `CommandGiver`, `Soul` and `Vocal`. ⭐ Each class had written the reason
 in its own docstring: `HaulingCreature`'s said *"the cart-pulling
 capability itself comes from `Character`"*, which is a class reaching
 for a rung to get one mixin. They are `platform/agent/Beast`
-(`Behaved(PostRegistration(Actor))`) and `platform/agent/DraftAnimal`
+(`Behaved(Actor)`) and `platform/agent/DraftAnimal`
 (`Mountable(Hauler(Beast))`) now, and `KeptAnimal` composed three of
 `Actor`'s five by hand until it became the rung's third consumer.
 See [pets.md](./subsystems/pets.md). `Character` has two branches: the
@@ -1104,11 +1104,21 @@ points readers here.
 
 ### What each branch composes
 
+⛔ **`PostRegistrationMixin` is RETIRED (2026-10-01)** and the
+compositions below no longer name it: `onCreate` is a **terminal on
+`Stuff`** and the dispatch is unconditional, so every class has the hook
+and nothing has to compose for it. ⚠⚠ Why it had to go rather than stay
+as a convenience: the mixin's default was a **non-chaining no-op**, so
+composing it anywhere but innermost **swallowed every layer inside it** —
+`KeptAnimal` shipped that way and `Bonded.postRegister` never ran on a
+live animal. 96 composition sites were stripped. See
+[lifecycle.md](./subsystems/lifecycle.md).
+
 | Branch | Composition | Notes |
 |---|---|---|
 | `Idea` | `Stuff` | No spatial mixin. Default for incorporeal entities. |
 | `Thing` | `Wet(Visible(Detailed(Perceptible(Tangible(Containable(Stuff))))))` | Physical MATTER: describable, addressable by keyword and therefore `Detailed`, `Tangible` (material + mass), `Wet` (can get wet), `Containable` ("I live somewhere"). ⚠ **Not `Concealable` and not `Chattel`** — those are what it means to be carried off, and they are `Good`'s (the base-class narrowing; this row said otherwise until 2026-09-30, which is one line W4 of that build missed). |
-| `Location` | `Addressable(AmbientLit(Atmospheric(Adornable(Container(Visible(Detailed(Perceptible(PostRegistration(Stuff))))))))` | A PLACE: contained-in-able, adornable, with air, light and an address — and since the narrowing describable, addressable by keyword and detailed, which every room class used to have to remember for itself. ⚠ Not `Exitable`: being a place you can walk BETWEEN is the next rung, and `Offstage` is the class that proves it. |
+| `Location` | `Addressable(AmbientLit(Atmospheric(Adornable(Container(Visible(Detailed(Perceptible(Stuff)))))))` | A PLACE: contained-in-able, adornable, with air, light and an address — and since the narrowing describable, addressable by keyword and detailed, which every room class used to have to remember for itself. ⚠ Not `Exitable`: being a place you can walk BETWEEN is the next rung, and `Offstage` is the class that proves it. |
 | `Location` | `Addressable(Atmospheric(Adornable(Container(Stuff))))` | "I'm a place." Pure *space* — NOT `Tangible` (a room has no material/mass). Subclasses (`CartesianLocation`, …) layer on coordinate / Visible / Exitable mixins. |
 | `Holder` | `ContainerMixin(Thing)` | **Matter that holds other matter** — a shop counter, a teller's counter, a warehouse, a shelf, a rack. Part of the premises: its ownership, if any, is the PARCEL's. |
 | `Vessel` | `ChattelMixin(ConcealableMixin(Holder))` | **A `Holder` that is also a `Good`** — an article of property with a chattel identity, so it can change hands and be put out of sight: a chest, a pack, a crate. A describable container is a plain `Vessel` (the root carries `Detailed`). ⚠ It composed `Atmospheric` too until the base-class narrowing — *a bag is not a place*; see `ExitableVessel`. |

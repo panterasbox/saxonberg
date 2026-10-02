@@ -4084,7 +4084,9 @@ Its two siblings, both of which cost real time here:
 `StuffApi.clone` → `Template.findByPath` → `PersistApi.find` goes to
 Mongo **every time**, and the hydration cascade recurses through `clone`
 for `hydratorClass` and `props:`. Against Atlas at a measured 33 ms
-round trip, one shipped item costs about **13 serialized trips —
+round trip (⚠ `hydratorClass` retired 2026-10-01 — the cascade recurses
+for the `TemplateApplier` and `props:` now; the shape of the cost is
+unchanged), one shipped item costs about **13 serialized trips —
 448 ms** — and the boot spawn sweep clones 341 of them, one after
 another, for **152 seconds of a 5.7-minute boot**. A CPU profile of that
 boot is **76% idle**: it is not computing, it is waiting.
