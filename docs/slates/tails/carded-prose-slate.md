@@ -13,6 +13,14 @@
 > see below. The general answer is a card that
 > renders the prose it was handed; the alternative is a rule that room
 > body = fields only, and nothing may be appended to it.
+> ⭐⭐ **And it is now a BLOCKER, 2026-10-02** — every new card body
+> [client-vocabulary-slate](../builds/client-vocabulary-slate.md) wants
+> (image-first, list-of-images, a pack-shipped view) is built on the
+> assumption that the card is a *superset* of the prose, and it is not.
+> ⭐ Cheaper than this slate implies, too: `prose` already arrives at the
+> client — `store/cardFeedSlice.ts:211` reads `c.prose` to decide
+> *visibility* and never renders it. **The data is on the wire and in the
+> store; this is a client render, not a protocol change.**
 > **Size:** a tail.
 
 ---
