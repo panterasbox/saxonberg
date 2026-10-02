@@ -4,7 +4,7 @@
 substitution with positional argument interpolation, plus a small
 defaults tier walked from any composed mixin's static data. It's a
 sibling of [shell-environment.md](./shell-environment.md) under the
-`lib/shell/` substrate, and is composed onto `ShelledCharacter`. NPCs
+`lib/shell/` substrate, and is composed onto `Shell`. NPCs
 that don't run an interactive shell don't carry it.
 
 The shape lives in:
@@ -320,7 +320,7 @@ as for a name that was never declared).
 
 ## Composition order
 
-`ShelledCharacter` is
+`Shell` is
 `AuthorMixin(WorkspaceMixin(AliasMixin(EnvironmentMixin(FocusedMixin(Character)))))`.
 AliasMixin sits mid-chain — WorkspaceMixin and AuthorMixin wrap it. It
 has no method dependency on Environment or Focused state, but composing

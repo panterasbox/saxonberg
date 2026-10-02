@@ -322,6 +322,17 @@ export class AddressLogic extends ApiLogic {
     }
   }
 
+  /** See {@link AddressApi.localityOwnTreasuryAccountId}. */
+  @CallSecurity(AddressApiCallers)
+  public async localityOwnTreasuryAccountId(
+    at: Stuff,
+    currency: string,
+  ): Promise<string | null> {
+    const locality = await this.resolveLocalityFor(at as Stuff & Container);
+    if (locality === null) return null;
+    return locality.ownTreasuryAccountId(currency);
+  }
+
   /** See {@link AddressApi._resetRegistryRefForReload}. */
   @CallSecurity(AddressApiCallers)
   public _resetRegistryRefForReload(): void {

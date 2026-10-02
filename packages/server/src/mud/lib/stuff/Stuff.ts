@@ -525,7 +525,7 @@ export abstract class Stuff {
    * chattel stamps and snapshot owners attribute to. The stamped
    * instance identity when one was minted (`asIdentityPath` — D17),
    * else `getTemplatePath()` (byte-identical for every ordinary
-   * object); a projection vessel (the sandbox `WireBody`) overrides
+   * object); a projection vessel (the sandbox `SandboxAvatar`) overrides
    * the METHOD to return the real identity's path
    * (`/platform/agent/Avatar/<playerId>`), so in-circle derive-on-read
    * composes the player's real history ∪ scoped appends and PASS rows
@@ -549,7 +549,7 @@ export abstract class Stuff {
    *
    * ⚠⚠ This paragraph said `getTemplatePath()` until 2026-09-08, and that
    * was FALSE after D17 split identity from lineage: a player Avatar is
-   * cloned from `Avatar.SEED_TEMPLATE_PATH` with the per-player path
+   * cloned from `PrimaryAvatar.ROW_TEMPLATE_PATH` with the per-player path
    * supplied as `asIdentityPath`, so **every player shares one
    * `templatePath`** and only `getIdentityPath()` tells them apart.
    * Banking and the work-contract substrate followed this comment and

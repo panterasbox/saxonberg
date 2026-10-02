@@ -567,7 +567,7 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
       // longer. One hook, both directions; the viewer owns its own
       // client state, so the viewer is who re-syncs it (display.md).
       const self = this as unknown as Stuff;
-      if (MixinApi.isHasInteractive(self)) self.refreshDisplays();
+      if (MixinApi.isSaxonbergClient(self)) self.refreshDisplays();
     }
 
     /**
@@ -670,7 +670,7 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
         void this.autoSenseOnArrival().catch(() => {});
         this.autoIntroduceOnArrival();
       }
-      if (MixinApi.isHasInteractive(self)) self.refreshDisplays();
+      if (MixinApi.isSaxonbergClient(self)) self.refreshDisplays();
     }
 
     /**

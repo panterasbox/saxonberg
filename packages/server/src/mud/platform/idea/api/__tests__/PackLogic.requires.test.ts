@@ -24,7 +24,7 @@ import { DiagnosticApi } from '../../../../api/diagnostics';
 import { ExecutionContextApi } from '../../../../api/execution-context';
 import { Idea } from '../../../../lib/stuff/Idea';
 import { OrganizationMixin } from '../../../../lib/employment/Organization';
-import Avatar from '../../../agent/Avatar';
+import Avatar from '../../../agent/PrimaryAvatar';
 import { makeStuffAtPath, withRootContext } from '../../../../lib/security/__tests__/test-setup';
 import {
   store,

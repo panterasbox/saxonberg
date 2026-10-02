@@ -47,6 +47,7 @@ import {
   PRECIPITATION_RATES_MM_PER_HOUR,
   type PrecipitationIntegral,
   type WeatherSegment,
+  type StormExposed,
 } from '../../../lib/weather/WeatherType';
 import type { Atmospheric } from '../../../lib/biome/Atmospheric';
 import { Seeded } from '../../../lib/Seeded';
@@ -987,6 +988,19 @@ async function runStormFanout(): Promise<void> {
     const locality = await AddressApi.resolveLocalityFor(room);
     const resolved = computeResolved(room, locality, nowS, true);
     if (resolved.sample.type !== 'storm') continue;
+    // ⭐ D13: every occupant that answers to a storm is called — an overhead
+    // LineAccess pole faults here (presence-gated, like every weather
+    // consequence). Separate from the lightning strike below, and per-occupant
+    // guarded so one bad row does not take the fan-out down.
+    for (const occ of room.getContents()) {
+      const exposed = occ as unknown as StormExposed;
+      if (typeof exposed.onStormExposure !== 'function') continue;
+      try {
+        await exposed.onStormExposure(nowS);
+      } catch {
+        // A pole that throws on a fault does not stop the storm.
+      }
+    }
     if (stormRoll() >= rate) continue;
     await fireStrike(room);
   }

@@ -112,7 +112,7 @@ export { PersistenceManager } from './backend/PersistenceManager';
 export { ConnectionManager } from './backend/ConnectionManager';
 export { ConnectionApi } from './mud/api/connection';
 export { MixinApi, Mixins } from './mud/api/mixin';
-export { default as Avatar } from './mud/platform/agent/Avatar';
+export { default as Avatar } from './mud/lib/character/Avatar';
 export { default as Interactive } from './mud/platform/idea/Interactive';
 export type { HasInteractive } from './mud/lib/connection/HasInteractive';
 export { HasInteractiveMixin } from './mud/lib/connection/HasInteractive';

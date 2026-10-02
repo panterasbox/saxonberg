@@ -20,7 +20,7 @@ import { EventApi } from '../../../api/event';
 import { Events } from '../../../lib/events';
 import { SocialApi } from '../../../api/social';
 import type { PresenceStatus, RosterFrame } from '@saxonberg/types';
-import type Avatar from '../../agent/Avatar';
+import type Avatar from '../../../lib/character/Avatar';
 import type { Subscription } from '../../../api/event';
 import { SecurityApi } from '../../../api/security';
 

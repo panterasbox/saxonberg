@@ -386,6 +386,36 @@ without touching the interaction model at all.
 preview their command.** A click is touch, touch is primal, and the
 preview **teaches the text** by showing what it would have typed.
 
+## ⭐⭐⭐ Why prose quality is engineering
+
+Added 2026-09-30 from [lens #64 · Juiciness](./lenses/64-juiciness.md).
+Schell's **second-order motion** is *motion derived from the action of the
+player* — and read properly it is **amplification, not decoration**, which
+means this engine has more of it than any graphical game: one verb moves
+derived state in a dozen places at once.
+
+⚠⚠ **And almost none of it is rendered.** Derive-on-read gives a cascade
+no moment to be announced at, so **we are mechanically juicy and
+presentationally dry** — which is Schell's own *“inner contradictions and
+a self-defeating experience if you put a dry interface on a fun game”*,
+arrived at from the opposite side: his fear is a dry skin on a thin game,
+and ours would be a dry skin on a very deep one.
+
+> ⭐⭐⭐ **Which makes this an economy question, not a polish one.** *“The
+> difference between work and play is one of attitude… the feedback it
+> gives is so powerful that it **changes work into play**.”* **Our economy
+> is work** — trades, shifts, wages, hauling — so **a dry interface over
+> an economy of labour is a job.** If the product is *learning as the side
+> effect of a life you are choosing to lead*, the feedback is what
+> converts the work into the life.
+
+⚠ The medium's constraint, and it is the one a graphical designer never
+meets: **juice is parallel in graphics and serial in text.** The budget is
+*time*, so the question is never *what else can we say* but **what one
+line carries the most change** — and
+[reactions.md](./subsystems/reactions.md)'s *aggregate-and-flush* is the
+only shipped way through.
+
 ## The honest downsides
 
 Text earns its place, but the argument owns its costs.

@@ -12,6 +12,7 @@
   "dependencies": {
     "@saxonberg/content-arcana": "workspace:*",
     "@saxonberg/content-corpo-goodkin": "workspace:*",
+    "@saxonberg/content-energy": "workspace:*",
     "@saxonberg/content-corpo-vionne": "workspace:*",
     "@saxonberg/content-distribution": "workspace:*",
     "@saxonberg/content-generic-objects": "workspace:*",

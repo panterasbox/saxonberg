@@ -25,6 +25,7 @@ import {
 } from "../lib/parcel/ParcelRecord";
 import { LandUses } from "../lib/parcel/LandUse";
 import type { LandUse, CultivationScale } from "../lib/parcel/LandUse";
+import type { PowerBand } from "../lib/parcel/PowerBand";
 import type { GroupRef } from "../lib/social/GroupProvider";
 import { fileURLToPath } from "url";
 import { SecurityApi } from './security';
@@ -134,6 +135,23 @@ export class ParcelApi {
     return logic().parcelsOnReach(reachRef);
   }
 
+  /**
+   * ⭐ **The meter read**: the power band and feeder node metering the ground
+   * at `path` (longest-prefix, then the inherit walk). `off-grid` / `''` when
+   * nothing reaches or declares. A consuming thing resolves this once and asks
+   * the energy pack whether the feeder is live. See {@link ParcelApi.landUseOf}.
+   */
+  public static powerOf(
+    path: string,
+  ): { band: PowerBand; feeder: string; parcel: ParcelRecord | null } {
+    return logic().powerOf(path);
+  }
+
+  /** Every parcel row citing feeder node `feederRef` — the meter's twin of {@link parcelsOnReach}. */
+  public static async parcelsOnFeeder(feederRef: string): Promise<ParcelRecord[]> {
+    return logic().parcelsOnFeeder(feederRef);
+  }
+
 
   /**
    * Write a genesis child-parcel row (owner inherited, `parentParcel` set)
@@ -231,6 +249,14 @@ export class ParcelApi {
     reach: string,
   ): Promise<ParcelRecord | null> {
     return logic().citeReach(extent, reach);
+  }
+
+  /** Cite a feeder node for `extent` (the meter). The twin of {@link citeReach}. */
+  public static async citeFeeder(
+    extent: string,
+    feeder: string,
+  ): Promise<ParcelRecord | null> {
+    return logic().citeFeeder(extent, feeder);
   }
 
   /**

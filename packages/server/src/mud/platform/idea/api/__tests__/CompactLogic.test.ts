@@ -15,7 +15,7 @@ import { ChatApi } from "../../../../api/chat";
 import { ExecutionContextApi } from "../../../../api/execution-context";
 import { TemplatePaths } from "../../../../lib/paths";
 import { Idea } from "../../../../lib/stuff/Idea";
-import Avatar from "../../../agent/Avatar";
+import Avatar from "../../../agent/PrimaryAvatar";
 import { EmploymentApi } from "../../../../api/employment";
 import { OrganizationMixin } from "../../../../lib/employment/Organization";
 import { StuffApi } from "../../../../api/stuff";

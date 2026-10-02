@@ -20,6 +20,7 @@ import { Idea } from "../../../../../lib/stuff/Idea";
 import { StuffApi } from "../../../../../api/stuff";
 import { NotifyPolicyMixin } from "../../../../../lib/social/NotifyPolicy";
 import { HasInteractiveMixin } from "../../../../../lib/connection/HasInteractive";
+import { ClientStateMixin } from "../../../../../lib/connection/ClientState";
 import { makeStuff } from "../../../../../lib/security/__tests__/test-setup";
 import type { CommandContext, CommandModel } from "../../../../../api/command";
 import type { SocialRulesState } from "@saxonberg/types";
@@ -31,12 +32,14 @@ class NotifyHost extends NotifyPolicyMixin(Idea) {
 }
 
 /**
- * A connected host — composes `HasInteractiveMixin` so the controller's
+ * A connected host — composes the client-state mechanism so the controller's
  * `social.rules` projection push fires (the `MixinApi.isHasInteractive`
  * gate). `pushClientStateUpdate` is stubbed via a spy so no backend wire
  * is needed (the `StyleController` precedent).
  */
-class ConnectedNotifyHost extends HasInteractiveMixin(NotifyPolicyMixin(Idea)) {
+class ConnectedNotifyHost extends ClientStateMixin(
+  HasInteractiveMixin(NotifyPolicyMixin(Idea)),
+) {
   getPlayerId(): string {
     return "me";
   }

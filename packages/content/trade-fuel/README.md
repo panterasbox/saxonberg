@@ -15,6 +15,13 @@ charcoal that makes a smelt reach copper.
   half-burnt brands. **You can lose a whole burn.**
 - **Charcoal** — its material row and the `Combustible` thing, fuel value
   and ignition read off the material rather than authored twice.
+- **Lamp oil** — the burning oil a street lamp consumes: a `bulk` material
+  (`lamp-oil`, `heatOfCombustion: 43`), an empty `oil-cask` and the filled
+  `lamp-oil-cask` (both `Bottle` presets, 40 L, oak). It answers the
+  street-lighting market (the energy build): the town buys casks from a
+  producer and `/system/energy/thing/FuelStore` burns them a street-night
+  at a time. The producer is a Terminus goods-yards **oil works**; the
+  crafted retort (coal/wood → oil) is the destructive-distillation build.
 
 ⭐ The same stand that yields charcoal yields the **timber the mine
 shores with** — two consumers, one supply, which is the wood contest the

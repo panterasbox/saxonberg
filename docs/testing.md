@@ -184,6 +184,41 @@ detection appears to fail open and select everything. Failing *open* is
 the right direction for a test runner to fail, but it means the flag
 buys nothing. Don't reach for it without re-running the control above.
 
+## ⚠⚠ The e2e (Playwright) suite is RED on master — validate it before believing it
+
+Measured 2026-10-01, running `smoke` · `cockpit` · `chargen` ·
+`mortality` · `sandbox` · `shelf` against a clean stack: **18 failed,
+5 passed** — including *all twelve* sandbox crossing tests. On a branch
+that changes **zero client files**.
+
+The causes are content and UI drift the specs never followed:
+
+- `tests/sandbox.spec.ts` crosses from the **lounge**, and
+  `8b51b682f fix(sandbox): a circle's door belongs at your home, not in
+  a commons` moved the wardrobe out of the lounge on **2026-09-01**.
+  Every crossing test has been red for a month.
+- `tests/chargen.spec.ts` waits on a `chargen-detail-pane` testid that
+  no longer exists.
+- `tests/shelf.spec.ts` asserts stale row counts.
+
+⭐⭐ **The hazard is not that it is red — it is that it is red in a
+shape that looks like YOUR build.** Twelve sandbox failures land
+exactly where an avatar/sandbox change would land. What distinguishes
+them is cheap and must be done first: *did this branch touch the
+client at all*, and *is the breaking commit an ancestor of master,
+dated before this branch began*. Both answers took one `git log -S`.
+
+⚠ This is the same decay as the five retired one-off drive scripts,
+two of which had been failing on master with nobody able to know. A
+browser walk is still the right instrument — `e2e/tests/avatar-family.spec.ts`
+was written fresh against the world as it actually is and found what
+the wire drive could not — but **run your own spec, and treat the
+existing suite as unmaintained until someone adopts it.**
+
+⚠ Memory of this repo already flags the e2e suite as *not a priority*.
+That is a decision, not an accident; the cost it buys is that the
+suite cannot be used as a regression signal.
+
 ## Re-measuring
 
 ```bash

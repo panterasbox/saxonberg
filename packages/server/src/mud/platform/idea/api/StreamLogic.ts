@@ -19,7 +19,7 @@ import { KickProfile } from '../../../lib/identity/KickProfile';
 import { StreamerTarget } from '../../../lib/streaming/StreamerTarget';
 import type { ParsedTarget } from '../../../lib/streaming/StreamerTarget';
 import type { Stuff } from '../../../lib/stuff/Stuff';
-import type Avatar from '../../agent/Avatar';
+import type Avatar from '../../../lib/character/Avatar';
 import type StreamRelay from '../StreamRelay';
 import type { RelayChannelRef } from '../StreamRelay';
 import type { MessageFrame, RelaySpeaker } from '@saxonberg/types';

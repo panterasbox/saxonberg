@@ -12,7 +12,7 @@
 import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Interactive from '../idea/Interactive';
-import Avatar from '../agent/Avatar';
+import Avatar from '../agent/PrimaryAvatar';
 import { User } from '../../lib/identity/User';
 import { StuffApi } from '../../api/stuff';
 import { ProxyApi } from '../../api/proxy';

@@ -56,13 +56,20 @@ describe('the estate captures a self-persisting good as a REFERENCE', () => {
    * ⭐ The estate's entry map is written behind a `SelfOnly` gate by the
    * spine itself. What is under test here is the **capture decision** —
    * given an entry and the live good it names, copy or reference? — so
-   * the host is stubbed to its two reads and the security machinery
-   * (which has its own tests) stays out of it.
+   * the host is stubbed to the reads `captureSlice` makes and the
+   * security machinery (which has its own tests) stays out of it.
+   *
+   * ⚠ The succession pair joined those reads when it moved off
+   * `Avatar` and into the slice — a layer with a `captureSlice` never
+   * contributes its own declared fields, so the slice is the only
+   * place they can ride.
    */
   const captureWith = (entry: EstateEntry, live: unknown): EstateEntry[] => {
     const host = {
       getEstateEntries: () => [entry],
       getEstateLive: () => live,
+      getEscheatedAt: () => 0,
+      getBeneficiary: () => '',
     };
     const slice = Owner.captureSlice(host as never, ctx as never);
     return (slice as { entries: EstateEntry[] }).entries;

@@ -11,7 +11,7 @@
 import '../../../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import RecallController from '../RecallController';
-import Avatar from '../../../../agent/Avatar';
+import Avatar from '../../../../agent/PrimaryAvatar';
 import { CommandApi, type CommandModel } from '../../../../../api/command';
 import type { CommandDefinition } from '../../../../../lib/command/CommandDefinition';
 import { MessageApi } from '../../../../../api/message';

@@ -206,7 +206,7 @@ suite('the boss funds himself and posts a gig', () => {
  * resolution was fine: the SELF-CLAIM GUARD was matching everyone.
  *
  * The cause was not in the contract substrate. Since D17 split identity
- * from lineage, a player Avatar is cloned from `Avatar.SEED_TEMPLATE_PATH`
+ * from lineage, a player Avatar is cloned from `PrimaryAvatar.ROW_TEMPLATE_PATH`
  * with its per-player path supplied as `asIdentityPath`
  * (`StuffApi.clone` stamps the two separately) — so **every player shares
  * one `getTemplatePath()`** and only `getIdentityPath()` tells them

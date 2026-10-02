@@ -1,0 +1,29 @@
+# The public-works yard — where the valley keeps its lamp oil and orders more.
+#
+# By the valley gate: the oil store (a `FuelStore`, self-placed here by its
+# `container:`), a receiving bench where the carter drops the casks the warden
+# ordered, and a works board carrying the valley's carriage. The warden works
+# the yard on shift and runs the `restocks` loop from it.
+class: /platform/location/SingletonCartesianLocation
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  coords: { x: 2, y: 0, z: 0 }
+  shortDescription: public-works yard
+  keywords: [yard, works, depot, public-works]
+  register: definite
+  _address: terminus/hearts-delight/public-works
+  _biomePath: /stuff/idea/biome/outdoor/baseline
+  ambientIntensity: 40000
+  ambientColorTemperature: 5800
+  longDescription: |
+    A fenced yard just inside the valley gate. A timber shed along one side holds the town's lamp oil, racked in casks; a plank receiving bench stands by the gate where the carter leaves what has been ordered; and a works board on the fence carries the valley's carriage. This is where the lamps come from — not by magic, but by somebody buying the oil and somebody hauling it.
+  exits:
+    west:
+      destination: /world/terminus/hearts-delight/location/valley-gate
+      media: [ground]
+      edgeMinutes: 1
+  props:
+    - /trade/haulage/thing/works-board
+    - /trade/haulage/thing/receiving-bench
+  cast:
+    - /world/terminus/hearts-delight/public-works/agent/warden

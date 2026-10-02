@@ -20,7 +20,7 @@ import { Authority, type PrincipalRef } from '../Authority';
 import { OrganizationMixin } from '../Organization';
 import { EmployedMixin } from '../Employed';
 import { Idea } from '../../stuff/Idea';
-import Avatar from '../../../platform/agent/Avatar';
+import Avatar from '../../../platform/agent/PrimaryAvatar';
 import GovernmentCatalogue from '../../../platform/idea/GovernmentCatalogue';
 import Government from '../../../platform/idea/Government';
 import OfficeRegistry from '../../../platform/idea/OfficeRegistry';
@@ -175,7 +175,7 @@ async function warmGovernment(): Promise<void> {
           path: `${Government.TEMPLATE_PATH_PREFIX}terminus-city`,
           data: {
             key: 'terminus-city',
-            displayName: 'the City of Terminus',
+            name: 'the City of Terminus',
             seats: [
               {
                 key: 'magistrate',

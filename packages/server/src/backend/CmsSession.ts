@@ -33,7 +33,7 @@ import type { Request } from 'express';
 import { ExecutionContextApi } from '../mud/api/execution-context';
 import { PlayerApi } from '../mud/api/player';
 import { User } from '../mud/lib/identity/User';
-import type Avatar from '../mud/platform/agent/Avatar';
+import type Avatar from '../mud/lib/character/Avatar';
 import { Backend } from './Backend';
 
 export class CmsSession {

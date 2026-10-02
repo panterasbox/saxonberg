@@ -40,7 +40,7 @@
  * an NPC's key is unchanged; it differs exactly where identity is
  * *minted* or *projected*, which is where this ledger used to be wrong:
  *
- *   - a sandbox `WireBody` has **no template row at all**, so the former
+ *   - a sandbox `SandboxAvatar` has **no template row at all**, so the former
  *     `getTemplatePath() ?? ''` filed every in-circle combatant under the
  *     empty string. `deriveBlame`'s circle filter — the thing that stops
  *     a staged killing minting a real crime row — had therefore never

@@ -1,0 +1,24 @@
+verbs: [sever]
+controller: /system/energy/idea/cmd/energy/SeverController
+description: "Cut the distribution line at a pole or manhole"
+help: |
+  `sever` cuts the feeder line at the pole or manhole you are standing at.
+  Everything downstream of the cut goes dark at once — the lamps down the
+  way, the lights in the premises the line fed — while the stretch above it
+  stays lit. `splice` puts it back.
+
+  ⚠ Not `cut` — that is the tailor's. The line is the lineman's `sever`.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  # ⭐ WHICH access point. The default narrows by CLASS (a pole and a manhole
+  # are both LineAccess); `requires:` carries the binder refusal.
+  - name: line
+    type: object
+    required: false
+    prepositions: [at]
+    default: "reachable:[class.LineAccess]"
+    scope: ["reachable"]
+    requires: [DetailedMixin]

@@ -29,7 +29,7 @@ among the ledgers — trait, transcript, chronicle, access, reactions,
 channels and subjects all attribute to identity. The two are
 byte-identical for every ordinary object and diverge exactly where
 identity is *minted* or *projected*, which is where this ledger was
-wrong: a sandbox `WireBody` is stamped `/platform/agent/Avatar/<id>/wire`
+wrong: a sandbox `SandboxAvatar` is stamped `/platform/agent/Avatar/<id>/wire`
 while *projecting* the player's real identity, so an in-circle harm filed
 under the **vessel** — invisible to `blameFor(realIdentity)`, and
 unreachable by the one reader that cares.

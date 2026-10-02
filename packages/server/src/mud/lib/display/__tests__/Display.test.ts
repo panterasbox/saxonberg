@@ -25,7 +25,7 @@ import { BankingApi } from '../../../api/banking';
 import { MqlSubscriptionApi } from '../../../api/mql-subscription';
 import EventRegistry from '../../../platform/idea/EventRegistry';
 import Interactive from '../../../platform/idea/Interactive';
-import Avatar from '../../../platform/agent/Avatar';
+import Avatar from '../../../platform/agent/PrimaryAvatar';
 import SingletonCartesianLocation from '../../../platform/location/SingletonCartesianLocation';
 import Tablet from '../../../platform/thing/Tablet';
 // ⭐ `Tablet` is the SHIPPED `Display` — two rows name it (the lounge's

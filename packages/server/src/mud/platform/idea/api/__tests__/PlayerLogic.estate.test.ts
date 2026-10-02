@@ -10,7 +10,7 @@
 
 import '../../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import Avatar from '../../../agent/Avatar';
+import Avatar from '../../../agent/PrimaryAvatar';
 import { PlayerApi } from '../../../../api/player';
 import { ContractApi } from '../../../../api/contract';
 import { EmploymentApi } from '../../../../api/employment';

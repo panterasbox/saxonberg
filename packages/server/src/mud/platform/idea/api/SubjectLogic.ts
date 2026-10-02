@@ -15,7 +15,7 @@ import type {
   SubjectSubscription,
   MakeSubjectOptions,
 } from '../SubjectCatalogue';
-import type Avatar from '../../agent/Avatar';
+import type Avatar from '../../../lib/character/Avatar';
 
 const CATALOGUE_PATH = TemplatePaths.subjectCatalogue;
 

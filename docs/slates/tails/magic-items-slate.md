@@ -224,7 +224,7 @@ Predicted to be the biggest structural gap; it isn't — the architecture is
 surprisingly ready, for an unplanned reason.
 
 - **The body is fused into the one `Avatar` object** (`Avatar` →
-  `ShelledCharacter` → the Agent/Creature/Organism/Vitals/embodiment stack).
+  `Shell` → the Agent/Creature/Organism/Vitals/embodiment stack).
   Species is **not** frozen: `OrganismMixin` holds `_speciesPath` as a mutable
   resolve-on-read pointer, and **`setSpecies()` already exists.**
 - **The "`getSpecies()` HMR discipline" already makes the big derivations live**

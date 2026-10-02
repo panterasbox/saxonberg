@@ -260,6 +260,8 @@ export const Mixins = {
   AroundDeleteHook: 'AroundDeleteHookMixin',
   PostRegistration: 'PostRegistrationMixin',
   HasInteractive: 'HasInteractiveMixin',
+  ClientState: 'ClientStateMixin',
+  SaxonbergClient: 'SaxonbergClientMixin',
   Environment: 'EnvironmentMixin',
   Alias: 'AliasMixin',
   Singleton: 'SingletonMixin',
@@ -736,6 +738,11 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
   BurnerMixin: "{} won't hold a fire",
   SpaceHeatingMixin: "{} doesn't warm a room",
   PublicLightingMixin: "{} isn't a street the town lights",
+  // ⚠ A weak, general gate: nearly everything is Detailed, so this refusal
+  // rarely fires — an object arg that also narrows by class (energy's
+  // `sever`/`splice` on `reachable:[class.LineAccess]`) leans on the class
+  // filter and carries this only so the binder has a phrase to speak.
+  DetailedMixin: "{} isn't something you can make out",
 
   // Bodies & behavior.
   VitalsMixin: "{} isn't alive",

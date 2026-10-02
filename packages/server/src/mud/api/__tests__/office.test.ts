@@ -9,7 +9,7 @@ import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { CompactApi } from '../compact';
 import { StuffApi } from '../stuff';
-import Avatar from '../../platform/agent/Avatar';
+import Avatar from '../../platform/agent/PrimaryAvatar';
 import { SecurityError } from '../../lib/security/errors';
 import { makeStuffAtPath } from '../../lib/security/__tests__/test-setup';
 

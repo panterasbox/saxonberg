@@ -32,7 +32,7 @@ import { Mml } from '../../../../api/mml';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import { StuffApi } from '../../../../api/stuff';
 import type { MqlManyResult } from '../../../../api/mql';
-import Avatar from '../../../agent/Avatar';
+import Avatar from '../../../../lib/character/Avatar';
 import type EvalScript from '../../EvalScript';
 import { ScriptApi } from '../../../../api/script';
 import { SandboxApi } from '../../../../api/sandbox';

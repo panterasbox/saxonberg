@@ -381,7 +381,7 @@ An `Avatar` subclass — the whole verb surface has to survive losing a body,
 and re-deriving it as a parallel stack would start missing verbs
 immediately. **Activations differ; composition does not.**
 
-| | Avatar | Shade |
+| | Avatar | ShadeAvatar |
 |---|---|---|
 | persistence | captures | `shouldPersist() → false` |
 | `PlayerApi` slot | held | **held** |
@@ -395,7 +395,7 @@ already admits it, so a shade walks and speaks; `isLivingBody()` excludes
 it, so it does not starve, suffocate, freeze, or die again. race.md shipped
 the state unused; this is its first consumer.
 
-**It holds the registry slot**, unlike `WireBody` — whose rationale is that
+**It holds the registry slot**, unlike `SandboxAvatar` — whose rationale is that
 the parked field avatar keeps it. In death there is no field avatar. Every
 `getAllAvatars()` consumer (channels, presence, social, bulletin, stream)
 is a platform-half surface that must keep reaching a dead player, so
@@ -455,6 +455,40 @@ wallet, no gear**, so the shipped `Lockable` / credential machinery keeps it
 in the commons by itself. **The shade walks; it never phases.** It goes
 anywhere an ordinary member of the public could walk, and nowhere else —
 which needs no new access model and never touches parcels.
+
+### ⚠⚠ "A shade cannot advance" is not shipped — it is an ABSENCE
+
+The sentence everyone repeats about a shade is *canon, but it cannot
+advance*. Half of that is a rule and half is an accident, and the
+avatar-family build measured which:
+
+- **It is canon.** A shade's deeds persist. Every ledger keys on
+  `getIdentityPath()`, which a shade threads to the real player, so
+  what a ghost does is written down under the person who did it —
+  tagged as having happened while ghosted, not discarded. ⛔ The word
+  *canon* is therefore the wrong axis name for the family; it
+  separates the circle body, not this one.
+- **"Cannot advance" has no mechanism.** `AdvancementMixin` holds no
+  host state at all — Competence is derive-on-read and the Transcript
+  is identity-keyed Documents — so there is no structural barrier to a
+  shade accruing. Nothing refuses it. It simply does not come up,
+  because a shade has no gear, no keys, and very little it can do.
+
+⭐⭐ **It has to become a declared, liftable property.** Not because
+the current behaviour is wrong, but because of what it blocks: an
+underworld content pack — a ghost doing things that matter, Orpheus —
+is *by definition* a shade advancing. A hardcoded absence blocks that
+pack before it is designed, and worse, blocks it invisibly: there is
+nothing to grep for and nothing to lift.
+
+⚠ Same lesson as the retired verb conferral: **the refusal must exist
+in order to be lifted.** A capability a band silently lacks cannot be
+granted, and cannot even tell the player it is being withheld. A
+declared refusal is the progression UI.
+
+Left as a finding rather than built here — it is a design question
+(*what exactly may a ghost accrue, and who lifts it?*) and not a
+rename.
 
 ## Coming back
 
@@ -568,7 +602,7 @@ minting a real body from inside a circle is the boundary the sandbox exists
 to hold.
 
 The discriminator is the receiver's circle stamp, not `instanceof
-WireBody`. `SandboxApi.respawnWireBody` was deleted — no production caller,
+SandboxAvatar`. `SandboxApi.respawnWireBody` was deleted — no production caller,
 and its behaviour is now wrong.
 
 If the **field** body dies while its player is parked in a circle, exit
@@ -627,7 +661,7 @@ went on metabolizing.
 lib/mortality/MortalArc.ts     the durable arc + decay vocabulary
 lib/mortality/Postmortem.ts    the corpse clock + canEvict terminus
 lib/mortality/Incorporeal.ts   the capability lever (prison reuses it)
-lib/mortality/Shade.ts         the between-bodies vessel
+lib/mortality/ShadeAvatar.ts         the between-bodies vessel
 lib/command/validators/requiresEmbodied.ts
 cmd/charactergen/passage.yaml + platform/idea/cmd/charactergen/PassageController.ts
 ```
@@ -755,7 +789,7 @@ all. The append is hoisted above the circle branch — see
 
 Built 2026-07-31 in eight waves. Two decisions reversed during the build,
 both recorded above: the shade **is** registered with `PlayerApi` (the
-requirements said never, copied from `WireBody` without its rationale), and
+requirements said never, copied from `SandboxAvatar` without its rationale), and
 the survival guards read `isLivingBody()` rather than the `!isAlive()` the
 plan specified. Three latent defects were found and fixed along the way —
 metabolism's missing lifecycle guard, `Avatar.shouldPersist` not chaining

@@ -30,7 +30,7 @@ import { AppSettingKeys } from '../../../lib/config/AppSettings';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import type { Containable } from '../../../lib/spatial/Containable';
 import type { Container } from '../../../lib/spatial/Container';
-import type Avatar from '../../agent/Avatar';
+import type Avatar from '../../../lib/character/Avatar';
 import type Interactive from '../Interactive';
 
 const SandboxApiCallers = SecurityPolicies.FromModule('/api/sandbox#SandboxApi');
@@ -325,7 +325,7 @@ async function enterImpl(
   // Mint the vessel + fork the slices INSIDE the circle-scoped root —
   // the induction stamps everything (the vessel, its implant floor, the
   // shadow followers) circle-born.
-  const { default: WireBody } = await import('../../agent/sandbox/WireBody');
+  const { default: SandboxAvatar } = await import('../../agent/sandbox/SandboxAvatar');
   // Read the field body's species HERE, in field context: the mint
   // below runs under the circle root, where reading the parked avatar
   // is the cross-boundary dispatch the layers deny. Species is
@@ -342,14 +342,19 @@ async function enterImpl(
       // slots the implant into a body plan) and exactly what the
       // constructor arguments were guaranteeing.
       const body = await StuffApi.clone<Stuff>(
-        '/platform/agent/sandbox/WireBody',
-        { playerId, wire: true },
+        '/platform/agent/sandbox/SandboxAvatar',
+        // ⚠ No `playerId` in the CONTEXT — it rides the overlay below,
+        // which lands in hydration Phase 1, before `postRegister`.
+        // Passing it here as well was harmless but said the wrong
+        // thing: it read as *this body is registered under the player*,
+        // and a vessel never is (the parked body keeps the slot).
+        { wire: true },
         {
           // The REAL identity: every ledger keys on it, and the vessel
           // is a projection of the person, not a person of its own.
           asIdentityPath: actor.getIdentityPath() ?? undefined,
           dataOverlay: {
-            wirePlayerId: playerId,
+            playerId,
             ...(actorSpecies?.getTemplatePath()
               ? { _speciesPath: actorSpecies.getTemplatePath() }
               : {}),
@@ -403,7 +408,7 @@ async function enterImpl(
   // client needs its connection-established payload (it re-binds cards
   // to the new body) and an auto-sense of the circle. Without this the
   // player types `go wardrobe` and the screen simply doesn't change.
-  // Presence stays silent — `WireBody.announceSessionPresence` is a
+  // Presence stays silent — `SandboxAvatar.announceSessionPresence` is a
   // no-op, so nobody hears a login that didn't happen.
   for (const interactive of moved) {
     await ExecutionContextApi.runRootGuarded(

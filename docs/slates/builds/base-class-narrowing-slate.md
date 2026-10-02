@@ -514,3 +514,177 @@ real objection rather than the plausible one.
   falsified: both mixins are live, and the census missed them because
   **the narrowing read is in the CONTROLLER, not in a view's
   `requires:`**. That is the sixth necessity channel.
+
+---
+
+## ⭐⭐ The Extra taxonomy — measured 2026-09-30
+
+Taken at `89c75417c` for
+[agent-branch-layering-requirements](../../requirements/agent-branch-layering-requirements.md),
+cross-checked against `packages/server/scripts/check-identity.ts --report`.
+This is the demotion audit the § Deferred bullet says is "already done" —
+it was not on disk, and re-taking it corrected the bullet in four places.
+
+### The census
+
+**49 `Cast`** (43 rows naming `/platform/agent/Cast` + 6 on TS
+subclasses: `Gus`, `Editor`, `TicketClerk`, `Walter`/`Realtor`/`Katie`
+on `CastMixin(StagedMixin(NPC))`) — ✅ the slate's number is exact.
+**4 `Extra`**, ⚠ but one is **not a character**:
+`generic-objects/.../agent/costume/student.yaml` is the abstract
+`extends:` parent for ~45 rows, with no species and no brain; its own
+header calls it *"a known rough edge."* So **3 role characters in the
+whole realm.** Plus one `Mercenary` on neither rung.
+
+By pack: terminus 29 · rejection 6 · lounge 5 · trade-haulage 3 ·
+hearthworks 2 · hearts-delight 2 · newbie-wilds 1 · eternal-university 1.
+**39 named, 10 nameless** (`register: definite`).
+
+⚠ **The slate's "18 seated with no work brain" is wrong** — it is the
+sum of its own four audit buckets (7+4+3+4), not a count. The real
+number is **23** by the strict reading, **17** if `shifts` counts as
+work (it does not: `lib/behavior/shifts.ts` teleports a body between
+`behindBar` and `offstage` and performs no labour). **43 of 49 hold a
+roster seat.**
+
+### 🔴 The demotion list — seat, no work brain, no reference ANYWHERE (13)
+
+| row | name |
+|---|---|
+| `terminus/wharfside/dyehouse/agent/dyer` | Ilva Marrow — ⚠ **no brain at all** |
+| `terminus/market/agent/baker` | Marn Ottoway |
+| `terminus/market/agent/fishmonger` | Hessa Vane |
+| `terminus/necropolis/agent/undertaker` | Merrick Sault |
+| `hearts-delight/agent/farmer` | Odell Quist |
+| `hearts-delight/agent/miller` | Sennet Aubry |
+| `rejection/agent/onsetter` · `smelterman` · `buyer` · `collier` · `storekeeper` | nameless (the buyer holds **two** seats) |
+| `trade-haulage/agent/dispatcher` · `warehouseman` | nameless |
+
+Nine carry a dossier (`archetype` + `competence`, some `prologue`) that
+nothing ever reads back into prose.
+
+### ⭐ The eight goods-yards hands — one role, eight invented people
+
+`bottling` Dez Okoro · `brewing` Tamsin Roke · `crowsfoot` Wren Ashby ·
+`farm` Wen Hartley · `hollis` Bram Tull · `pantry` Rufus Penhallow ·
+`veshko` Petra Volkova · `vintner` Ilse Marrow.
+
+Same archetype (`hand`), one `consigns`/`cellars` brain, one `idles`, a
+unique proper name, **and no external reference except the cast-archetype
+slate that named them**. ⚠ They *do* have work brains, so they fail the
+audit on *eight names for one role*, not on doing nothing — the teller
+pathology at 8× volume, and the judgment call in any demotion.
+
+**Keep as people:** Odile (prologue, renown claim, two seats, canonical
+in three subsystem docs — untouchable), Dave, Gus, Ricky, Katie, Walter,
+the three lounge bartenders, Ambrose Tull, Halloran and Tootie (dialogue
+trees + a command surface), Mara, Hesper Quill, and the 20 with genuine
+work brains.
+
+### ⭐⭐ The signal already in the data
+
+**24 of the 49 Cast are `register: indefinite` WITH a name.** Their prose
+reads *"a brisk Goodkin teller"* while their class asserts a singleton
+individual with a private ledger. **Every one of the 13 above is
+indefinite-with-a-name or nameless.** `lint:identity` rule 2 only forbids
+`indefinite` on a *nameless* Cast, so the combination is currently legal
+and is the cheapest available demotion heuristic.
+
+### ⚠⚠ The singleton does NOT throw on the path content uses
+
+`StuffApi.clone` (`api/stuff.ts:531-550`) throws for a `SingletonMixin`
+class. **But NPCs are not cloned** — they are staged by a location's
+`cast:`, and `StagedMixin` branches (`lib/stuff/Staged.ts:371-392`):
+singleton → `StuffApi.singleton(path)`, and if the instance is already
+placed and the entry carries no placement, it **`continue`s**.
+
+So a second counting house naming the teller in its `cast:` yields:
+- **no placement** → the hall stands up with **no teller, silently**;
+- **with a placement** → the one Wenna is **moved out of the first hall**.
+
+Neither throws. `identity.md:92` (*"a second live clone throws"*) and
+`Cast.ts:14-17` describe the `clone()` door, **which content does not
+use.** The invariant holds today by authoring discipline plus
+`check-identity.ts:361-370` (rule 3) — verified: all 49 are staged
+exactly once.
+
+**What actually breaks with two live instances** is shared identity: a
+Cast row clones with no `asIdentityPath`, so both return the row path,
+and everything identity-keyed collides — belief, chronicle, transcript,
+renown, grants, chattel, **bank accounts**, employments. The same defect
+class that once gave every player one bank account.
+`BeliefStore.ts:352-366` names the dependency explicitly (*"Row 3 — one
+live instance per row, so the row path IS unique"*).
+
+### What an `Extra` costs — 8 of 15 dead, 6 by DECLARED RULE
+
+| verdict | mixins |
+|---|---|
+| ✅ read (5) | `Employed` (the only attribution a role's harms carry), `CommandGiver` (brains drive forced verbs), `Vocal`, `Soul`, `Perceiver` |
+| ⚠ marginal (2) | `Hauler` (self-haul term; its docstring says it sits high so `hitch` can *refuse* a wolf), `Advancement` |
+| ⛔⛔ refused by rule (2) | **`Persona`** — `check-identity.ts:389-397` makes `prologue`/`competence`/`circumstance`/`renown` on an Extra a **build error** (*"A role has no history — that is what being a role means"*); **`BeliefStore`** — `Extra.keepsPersonalRegard() → false` and `viewerKey` returns `null` |
+| ⛔ dead (6) | `Caster`, `Memorized` (the tell that the wolf was misfiled), `Gendered`, `Status`, `Dispositioned`, `Hiding` |
+
+**Only 4 of the 15 expose any `authorable` field at all** (`Gendered`,
+`Persona`, `Status`, `Employed`), and **the four Extra rows author
+exactly one field between them** — `institution` on the sentry.
+
+### `Persona` — four corrections
+
+1. **57 rows / 12 classes**, not 60/14: the 3 beast rows / 2 beast
+   classes came off the person rung in the Agent pass (`Beast` and
+   `DraftAnimal` sit on `Actor`). *"0 authored"* is confirmed exact.
+2. **14 affordances, not 15** (`Persona.ts:135-193`), all `self`;
+   `peers` and `environment` are empty. ("Fifteen" belongs to
+   `Actor.ts:48`, about `CommandGiverMixin`'s affordance statics.)
+3. ⚠ **`prologue` is NOT a duplicate field** — it is a `string[]` that
+   *feeds* `Persona.seedChronicleClaims` and guards on
+   `MixinApi.isPersona` (`Cast.ts:189-199`); `bio` is a prose blob the
+   chronicle prints separately. Nothing is deduplicated by moving
+   `Persona`. And **only 18 of 49** Cast author `prologue`, so 31 are
+   the same unmitigated gap.
+4. ⭐⭐ **The fork has a measured answer, and it is not `CommandGiver`.**
+   `CommandGiverMixin` **affords nothing today** and has **two**
+   composers — `Character` and `Login`. Every `Character` composes both,
+   so the move buys **no host that wants the verbs**; it adds only
+   `Login`, breaking the invariant its own docstring states (*"the
+   recency stack IS the sandbox — no world verbs leak because `Login`
+   composes none of the mixins that contribute them"*). 11 of the 14
+   would refuse with *"Login can't do that"* at a character-select
+   prompt, 3 would not refuse at all, and **`quit` would answer "you
+   hold no position" to somebody trying to disconnect.**
+   ⭐ **"Every person who can act" is already spelled `Character` — and
+   `Character` is a class, not a mixin.** The 14 belong on it as a class
+   static, which is what `Avatar` already does with its own 17.
+
+⚠ And none of the 14 is narrower than *every animate person* at the
+affordance level: 11 carry `requiresAnimate`, 3 (`chronicle`, `traits`,
+`standing`) carry **no verb-level validator at all**. Every real
+narrowing is a validator or a controller refusal — the doctrine holds.
+⚠ `EmployedMixin` is composed at exactly one site (`Character.ts:115`),
+so *"everyone with an employment seat"* and *"every person"* are the
+same host set today; the four employment verbs' `isEmployed` guards are
+runtime tautologies against every current composer.
+
+### Loose ends for whoever builds this
+
+1. ⚠ **One Cast is invisible to `lint:identity`** — the dyer row has no
+   `behaviors:` key and the census loop `continue`s past it
+   (`check-identity.ts:315`), so no rule in the file sees her. Any rung
+   rule needs a second pass over all organism rows (rule 6 is the
+   precedent).
+2. `/stuff/agent/costume/student.yaml` is an `Extra` that is not a
+   character and will be counted by any class-based census.
+3. `MixinApi.isCast` has **zero production callers**, and the
+   `CastMixin` refusal string is never triggered — the rung is read only
+   via `SingletonMixin`, `BeliefStore.viewerKey`, and the lint.
+   `MixinApi` has no `isExtra` by design, so *"not Cast"* does double
+   duty for role, animal and mercenary in the lint's own bucketing.
+4. **Two rows hold two seats each** (the rejection ore buyer, Odile) —
+   a per-seat rule needs a many-to-one seat→row mapping.
+5. **There is no Extra→Cast promotion and this build must not invent
+   one.** `Cast.ts:41-47` and `identity.md:133-138` both say *"promotion
+   is an authoring act"*; a rung is fixed at construction (`NamedMixin`
+   and `SingletonMixin` are in the class chain). The animal `name` verb
+   is gated on `isBonded` + `isNamed` and cannot reach an Extra twice
+   over. Even the collision half is unbuilt (`NameController.ts:93-95`).

@@ -20,7 +20,7 @@ import type BuildingWarren from '@saxonberg/content-residence/src/idea/BuildingW
 import ParcelRegistry from '@saxonberg/server/mud/platform/idea/ParcelRegistry';
 import GroupRegistry from '@saxonberg/server/mud/platform/idea/GroupRegistry';
 import ChattelRegistry from '@saxonberg/server/mud/platform/idea/ChattelRegistry';
-import Avatar from '@saxonberg/server/mud/platform/agent/Avatar';
+import Avatar from '@saxonberg/server/mud/platform/agent/PrimaryAvatar';
 import PersistentHydrator from '@saxonberg/server/mud/platform/idea/persistence/PersistentHydrator';
 import { Document } from '@saxonberg/server/mud/lib/persistence/Document';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';

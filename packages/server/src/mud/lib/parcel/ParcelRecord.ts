@@ -34,6 +34,8 @@ import { Document } from "../persistence/Document";
 import { Collections } from "../persistence/Collections";
 import { LandUses } from "./LandUse";
 import type { LandUse } from "./LandUse";
+import { POWER_BANDS } from "./PowerBand";
+import type { PowerBand } from "./PowerBand";
 import type { GroupRef } from "../social/GroupProvider";
 import type { FieldMeta } from "../mixin";
 
@@ -74,6 +76,10 @@ export interface TitleClaim {
   areaM2?: number;
   /** The reach this ground fronts — see {@link ParcelRecord.reach}. */
   reach?: string;
+  /** The feeder node that meters this ground — see {@link ParcelRecord.feeder}. */
+  feeder?: string;
+  /** The electric posture this premises declares — see {@link ParcelRecord.powerBand}. */
+  powerBand?: PowerBand;
 }
 
 /**
@@ -140,6 +146,8 @@ export class ParcelRecord extends Document {
     keyway: { persistent: true },
     landUse: { persistent: true },
     reach: { persistent: true },
+    feeder: { persistent: true },
+    powerBand: { persistent: true },
   };
 
   /** The path this parcel claims — the coverage-index key (longest-prefix). */
@@ -229,6 +237,31 @@ export class ParcelRecord extends Document {
    */
   reach: string = "";
 
+  /**
+   * ⭐ **The feeder node that meters this ground** — a citation like
+   * `terminus-main:avenue`, or `''` for ground no line reaches.
+   *
+   * The electric twin of {@link reach}: a citation on the land, the only
+   * honest link between a title and the grid. A consuming thing on this parcel
+   * (a lamp, later a fridge) asks whether *this node* is energized — it never
+   * walks the interior. Interpreting the citation is the energy pack's job
+   * (`GridCatalogue`); the kernel just carries the string, so the kernel never
+   * imports the pack. `''` inherits the covering parcel's, exactly as `reach`
+   * and `landUse` do.
+   *
+   * See [docs/subsystems/energy.md].
+   */
+  feeder: string = "";
+
+  /**
+   * ⭐ **The electric posture this premises declares** — a {@link PowerBand}
+   * (`domestic` / `commercial` / `industrial`), `off-grid` for a declared
+   * unconnected place, or `null` to **inherit** the covering parcel's (the
+   * `landUse` shape). The kernel says what a premises declares; the energy
+   * pack prices each band in watts.
+   */
+  powerBand: PowerBand | null = null;
+
   getExtent(): string {
     return this.extent;
   }
@@ -255,6 +288,40 @@ export class ParcelRecord extends Document {
    */
   setLandUse(use: LandUse | string | null): void {
     this.landUse = use === null ? null : LandUses.parse(use);
+  }
+
+  /** The feeder node that meters this ground, or `''`. */
+  getFeeder(): string {
+    return this.feeder;
+  }
+
+  /** Cite a feeder node for this ground; `''` takes it off the grid. */
+  setFeeder(value: string): void {
+    this.feeder = typeof value === "string" ? value.trim() : "";
+  }
+
+  /** This parcel's OWN declared power band, or null when it inherits. */
+  getPowerBand(): PowerBand | null {
+    return this.powerBand;
+  }
+
+  /**
+   * Declare this parcel's power band. Validates against the closed vocabulary
+   * — an unknown band throws naming the offending value. `null` restores
+   * inheritance.
+   */
+  setPowerBand(band: PowerBand | string | null): void {
+    if (band === null) {
+      this.powerBand = null;
+      return;
+    }
+    if (!(POWER_BANDS as readonly string[]).includes(band)) {
+      throw new RangeError(
+        `ParcelRecord.setPowerBand: unknown power band '${band}' ` +
+          `(expected one of ${POWER_BANDS.join(", ")})`,
+      );
+    }
+    this.powerBand = band as PowerBand;
   }
 
   getKeyway(): string {

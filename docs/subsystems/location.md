@@ -507,7 +507,7 @@ owns the *domain* semantics:
 `validateSingletonContainerTarget` keeps its hard deny. The startLocation
 path is the only place the Warren semantics live.
 
-The avatar seed (`platform/content/platform/agent/Avatar/seed.yaml`) declares
+The avatar row (`platform/content/platform/agent/PrimaryAvatar.yaml`) declares
 `startLocation: /world/lounge/idea/warren`. **`DEFAULT_STARTING_LOCATION_PATH`
 is unchanged** — it is the container-typed *evacuation* fallback in
 `Container.cleanupOnDestruct` (a Warren is not a Container); spawn and

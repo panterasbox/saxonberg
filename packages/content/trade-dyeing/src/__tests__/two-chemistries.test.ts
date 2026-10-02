@@ -17,7 +17,7 @@ import YAML from "yaml";
 const here = dirname(fileURLToPath(import.meta.url));
 const DYEING = join(here, "..", "..", "content", "trade", "dyeing");
 
-interface Shade {
+interface ShadeAvatar {
   mordant: string;
   colour: string;
   fastness: number;
@@ -26,7 +26,7 @@ interface DyestuffRow {
   key: string;
   materialPath: string;
   chemistry: "mordant" | "vat";
-  shades: Shade[];
+  shades: ShadeAvatar[];
 }
 
 function dyestuffs(): DyestuffRow[] {

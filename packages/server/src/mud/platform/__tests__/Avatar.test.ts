@@ -18,7 +18,7 @@ import {
   afterEach,
   vi,
 } from 'vitest';
-import Avatar from '../agent/Avatar';
+import Avatar from '../agent/PrimaryAvatar';
 import { CommandApi } from '../../api/command';
 import Interactive from '../idea/Interactive';
 import { Character } from '../../lib/character/Character';

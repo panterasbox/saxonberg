@@ -18,6 +18,13 @@ help: |
   events, and a refusal says which number was not met. `bank book` reads
   the paper: what you owe here, and — for the bank's own people — what
   the bank holds.
+  ⭐ A shade banks by READING. `bank`, `bank balance`, `bank statement`
+  and `bank book` stay open to the dead — death costs embodied agency,
+  never a seat as a person. `deposit`, `withdraw` and `transfer` are
+  tagged `requiresEmbodied`: cash across a counter needs hands, and
+  "a ghost cannot spend" is the owner's call (2026-10-01). `borrow` is
+  deliberately NOT tagged pending its own lens pass — taking on debt is
+  not spending, and whether a ghost may is a design question.
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresConscious
@@ -34,6 +41,8 @@ subcommands:
         required: false
   deposit:
     description: "Deposit a coin stack into your account"
+    validators:
+      - /lib/command/validators/requiresEmbodied
     args:
       - name: coins
         type: object
@@ -42,6 +51,8 @@ subcommands:
         requires: StackableMixin
   withdraw:
     description: "Withdraw cash from your account (till-bounded)"
+    validators:
+      - /lib/command/validators/requiresEmbodied
     args:
       - name: amount
         type: string
@@ -61,6 +72,8 @@ subcommands:
     description: "The paper: loans you owe here; what the bank holds, for its own people"
   transfer:
     description: "Transfer money to someone by name"
+    validators:
+      - /lib/command/validators/requiresEmbodied
     args:
       - name: amount
         type: string

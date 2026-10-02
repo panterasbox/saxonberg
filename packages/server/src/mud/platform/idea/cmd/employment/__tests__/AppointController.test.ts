@@ -19,7 +19,7 @@ import AppointController from '../AppointController';
 import mustHoldAppointingAuthority from '../../../../../lib/command/validators/mustHoldAppointingAuthority';
 import { OrganizationMixin } from '../../../../../lib/employment/Organization';
 import { Idea } from '../../../../../lib/stuff/Idea';
-import Avatar from '../../../../agent/Avatar';
+import Avatar from '../../../../agent/PrimaryAvatar';
 import { StuffApi } from '../../../../../api/stuff';
 import { EmploymentApi } from '../../../../../api/employment';
 import { ExecutionContextApi } from '../../../../../api/execution-context';

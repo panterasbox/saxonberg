@@ -24,7 +24,7 @@ import { TemplateApi, TemplateError } from "../../../../api/template";
 import { AccessApi } from "../../../../api/access";
 import { ExecutionContextApi } from "../../../../api/execution-context";
 import { StuffApi } from "../../../../api/stuff";
-import Avatar from "../../../agent/Avatar";
+import Avatar from "../../../agent/PrimaryAvatar";
 import {
   makeStuffAtPath,
   withRootContext,

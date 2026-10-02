@@ -10,8 +10,8 @@
  * connection drops.
  */
 
-import { ShelledCharacter } from "../../lib/shell/ShelledCharacter";
-import { NamedMixin } from "../../lib/description/Named";
+import { ShelledCharacter } from "../shell/ShelledCharacter";
+import { NamedMixin } from "../description/Named";
 import { PlayerApi } from "../../api/player";
 import { SandboxApi } from "../../api/sandbox";
 import { ConnectionApi } from "../../api/connection";
@@ -19,44 +19,46 @@ import { EventApi } from "../../api/event";
 import { StuffApi } from "../../api/stuff";
 import { ContainmentApi } from "../../api/containment";
 import { MixinApi } from "../../api/mixin";
-import type { Containable } from "../../lib/spatial/Containable";
-import type { Container } from "../../lib/spatial/Container";
-import type { Stuff, EvictionContext } from "../../lib/stuff/Stuff";
-import type { VetoResult } from "../../lib/errors";
+import type { Containable } from "../spatial/Containable";
+import type { Container } from "../spatial/Container";
+import type { Stuff, EvictionContext } from "../stuff/Stuff";
+import type { VetoResult } from "../errors";
 import { SpeciesApi } from "../../api/species";
-import AetherImplant from "../thing/AetherImplant";
-import CommsUpdate from "../idea/CommsUpdate";
-import CredentialWalletUpdate from "../idea/CredentialWalletUpdate";
-import ForumsUpdate from "../idea/ForumsUpdate";
-import CalendarUpdate from "../idea/CalendarUpdate";
+import AetherImplant from "../../platform/thing/AetherImplant";
+import CommsUpdate from "../../platform/idea/CommsUpdate";
+import CredentialWalletUpdate from "../../platform/idea/CredentialWalletUpdate";
+import ForumsUpdate from "../../platform/idea/ForumsUpdate";
+import CalendarUpdate from "../../platform/idea/CalendarUpdate";
 import { MessageApi } from "../../api/message";
 import { Mml } from "../../api/mml";
 import { ScheduleApi, type ScheduleHandle } from "../../api/schedule";
 import {
   SettingTypes,
   type SettingsSchemaEntry,
-} from "../../lib/shell/Environment";
+} from "../shell/Environment";
 import { ShellApi } from "../../api/shell";
 import { CardApi } from "../../api/card";
 import { PressApi } from "../../api/press";
 import { ReactionApi } from "../../api/reaction";
 import { RecordApi } from "../../api/record";
-import { PostRegistrationMixin } from "../../lib/stuff/PostRegistration";
-import { PersistableMixin } from "../../lib/persistence/Persistable";
-import { ForkableMixin } from "../../lib/persistence/Forkable";
+import { PostRegistrationMixin } from "../stuff/PostRegistration";
+import { PersistableMixin } from "../persistence/Persistable";
+import { ForkableMixin } from "../persistence/Forkable";
 import { PersistableApi } from "../../api/persistable";
-import { HasInteractiveMixin } from "../../lib/connection/HasInteractive";
-import { AetherMixin } from "../../lib/message/Aether";
-import { ContactsMixin } from "../../lib/social/Contacts";
-import { WardrobeMixin } from "../../lib/slot/Wardrobe";
-import { NotifyPolicyMixin } from "../../lib/social/NotifyPolicy";
-import { CalendarMixin } from "../../lib/calendar/Calendar";
-import { SubjectSubscriberMixin } from "../../lib/forum/SubjectSubscriber";
-import { PartyMemberMixin } from "../../lib/party/PartyMember";
-import { Events } from "../../lib/events";
-import type { User } from "../../lib/identity/User";
-import type { AccountSubjects } from "../../lib/standing/AccountScoped";
-import type { MortalArc } from "../../lib/mortality/MortalArc";
+import { HasInteractiveMixin } from "../connection/HasInteractive";
+import { ClientStateMixin } from "../connection/ClientState";
+import { SaxonbergClientMixin } from "../connection/SaxonbergClient";
+import { AetherMixin } from "../message/Aether";
+import { ContactsMixin } from "../social/Contacts";
+import { WardrobeMixin } from "../slot/Wardrobe";
+import { NotifyPolicyMixin } from "../social/NotifyPolicy";
+import { CalendarMixin } from "../calendar/Calendar";
+import { SubjectSubscriberMixin } from "../forum/SubjectSubscriber";
+import { PartyMemberMixin } from "../party/PartyMember";
+import { Events } from "../events";
+import type { User } from "../identity/User";
+import type { AccountSubjects } from "../standing/AccountScoped";
+import type { MortalArc } from "../mortality/MortalArc";
 import type {
   ConnectionEstablishedPayload,
   EnvelopeTemplate,
@@ -66,11 +68,11 @@ import type {
 } from "@saxonberg/types";
 import { DEFAULT_ROUTING } from "@saxonberg/types";
 import type { CommandContributions } from "../../api/command";
-import type Interactive from "../idea/Interactive";
-import type TopicCatalogue from "../idea/TopicCatalogue";
-import { TemplatePathPrefixes } from "../../lib/paths";
-import { EstateMixin } from "../../lib/chattel/Estate";
-import type { FieldMeta } from "../../lib/mixin";
+import type Interactive from "../../platform/idea/Interactive";
+import type TopicCatalogue from "../../platform/idea/TopicCatalogue";
+import { TemplatePathPrefixes } from "../paths";
+import { EstateMixin } from "../chattel/Estate";
+import type { FieldMeta } from "../mixin";
 import type { SubscribableFieldDescriptor } from '../../api/mql-subscription';
 import { InfluenceApi } from '../../api/influence';
 import { RenownApi } from '../../api/renown';
@@ -164,7 +166,9 @@ const AvatarBase = PersistableMixin(
   EstateMixin(
     ForkableMixin(
       PostRegistrationMixin(
-        HasInteractiveMixin(
+        SaxonbergClientMixin(
+          ClientStateMixin(
+            HasInteractiveMixin(
           AetherMixin(
             // ⭐ A played person keeps a personal calendar (D12) — dated
             // reminders on the implant. Inside PersistableMixin, so the
@@ -199,11 +203,42 @@ const AvatarBase = PersistableMixin(
           ),
         ),
       ),
+      ),
+      ),
     ),
   ),
 );
 
-export default class Avatar extends AvatarBase {
+/**
+ * ⭐⭐ **A human's handle in the world, in some phase of play.**
+ *
+ * The abstract root of the Avatar family. Everything that is true of
+ * *every* body a player wears lives here — the thirteen-mixin
+ * composition, the identity thread, the session ceremony, the loadout
+ * floor, parking, the fork slices, the verb set. Nothing instances it:
+ * a row's `class:` names a concrete body, and `lint:instanceable`
+ * holds that.
+ *
+ * ```
+ * Character  →  ShelledCharacter  →  Avatar  (abstract, here)
+ *                                    ├── the body of record
+ *                                    ├── ShadeAvatar        (the dead one)
+ *                                    └── SandboxAvatar     (the circle one)
+ * ```
+ *
+ * ⚠⚠ **`instanceof Avatar` always means THIS class.** A site left on
+ * the concrete body of record silently excludes shades and circle
+ * bodies — and both are the same person, so an identity-keyed read
+ * that misses them is wrong rather than merely narrow.
+ *
+ * ⭐ The two axes the family varies on: *are your acts canon*, and
+ * *can you fully act*. The body of record gives up neither; a shade's
+ * deeds persist (tagged as having happened while ghosted) but it
+ * cannot advance; a circle body can act fully and is rolled back at
+ * the door. Each non-primary body gives up exactly one, and a
+ * different one — which is why no single word named the axis.
+ */
+export default abstract class Avatar extends AvatarBase {
   /**
    * Command provider for Avatar-specific commands (diagnostic/system)
    */
@@ -298,46 +333,31 @@ export default class Avatar extends AvatarBase {
    * **only** durable record that a player is dead. Deliberately NOT
    * `lifecycleState: 'dead'` on the body: see [MortalArc](../lib/mortality/MortalArc.ts)
    * for why those two behave oppositely.
+   *
+   * ⭐⭐ `playerId` is declared here, once, for the whole family.
+   * Declared (rather than merely held) so a clone's `dataOverlay` can
+   * land it: hydration Phase 1 runs BEFORE `postRegister`, which is
+   * exactly the ordering the two vessels' private copies
+   * (`shadePlayerId`, `wirePlayerId`) existed to guarantee — and the
+   * reason each then overrode `getPlayerId()` to undo its own copy and
+   * `getIdentityPath()` to rebuild the same string.
+   *
+   * ⚠ A key no composed field declares is discarded by the Hydrator
+   * SILENTLY; `lint:instanceable` invariant 12 is what counts them.
+   *
+   * ⭐ `escheatedAt` and `beneficiary` are NOT here. They are the
+   * estate's own succession state and live on `EstateMixin`, which is
+   * the mixin that behaves on them — composing it now claims *this
+   * host's goods can escheat and pass to a beneficiary*, which is
+   * true of its one composer and of nothing else.
    */
   static fieldMeta: FieldMeta = {
+    // ⭐ ONE playerId for the whole family — see the note above.
+    playerId: { persistent: true, runtimeState: true },
     mortalArc: { persistent: true },
     lastSeen: { persistent: true },
-    escheatedAt: { persistent: true },
-    beneficiary: { ref: 'identity', persistent: true },
     startLocation: { instruction: true },
   };
-
-  /**
-   * ⭐ Epoch ms the estate PASSED (economic bootstrap D17), or 0. Set by
-   * the escheat, cleared by the reclaim a return runs; the one flag that
-   * tells a login "the treasury holds something of yours". Public for
-   * the Hydrator; others read `getEscheatedAt`.
-   */
-  public escheatedAt: number = 0;
-
-  public getEscheatedAt(): number {
-    return this.escheatedAt;
-  }
-
-  public setEscheatedAt(at: number): void {
-    this.escheatedAt = Math.max(0, Math.floor(at));
-  }
-
-  /**
-   * The member's named BENEFICIARY (D17): an identity path the estate
-   * passes to instead of the treasury — unless they are themselves
-   * dormant, in which case the chain runs onward. '' = none. Set by
-   * `wallet beneficiary <player>`.
-   */
-  public beneficiary: string = '';
-
-  public getBeneficiary(): string {
-    return this.beneficiary;
-  }
-
-  public setBeneficiary(identityPath: string): void {
-    this.beneficiary = identityPath.trim();
-  }
 
   /**
    * Epoch ms of this character's last logout, or 0 for never-played.
@@ -585,20 +605,6 @@ export default class Avatar extends AvatarBase {
    */
   static readonly TEMPLATE_PATH_PREFIX = TemplatePathPrefixes.avatar;
 
-  /**
-   * Reserved playerId for the seed avatar at
-   * `/platform/agent/Avatar/seed` — the orphan template every new user's
-   * avatar is forked from. 4 chars; nanoids are 21, so it can't
-   * collide with a real playerId.
-   */
-  static readonly SEED_PLAYER_ID = "seed";
-
-  /**
-   * Convenience: the seed avatar's template path.
-   */
-  static readonly SEED_TEMPLATE_PATH =
-    Avatar.TEMPLATE_PATH_PREFIX + Avatar.SEED_PLAYER_ID;
-
   static getTemplatePath(playerId: string): string {
     return `${this.TEMPLATE_PATH_PREFIX}${playerId}`;
   }
@@ -648,16 +654,41 @@ export default class Avatar extends AvatarBase {
 
   /**
    * Character slot id (key under `/platform/agent/Avatar/<playerId>` and in `User.playerIds`).
-   * Runtime-only: the template path encodes it, so it does not need to be
-   * mirrored into the doc. Stamped by `postRegister` from the clone
-   * context, or seeded by the test/direct-construction data blob.
+   *
+   * ⭐ Public because the Hydrator reflects into persistent fields by
+   * name; external readers still use `getPlayerId()` (the inter-Stuff
+   * contract is methods). Landed from a clone overlay before
+   * `postRegister`, or stamped there from the context.
    */
-  protected playerId: string = "";
+  public playerId: string = "";
   public override getPlayerId(): string {
     return this.playerId;
   }
   public setPlayerId(value: string): void {
     this.playerId = value;
+  }
+
+  /**
+   * ⭐⭐ The identity thread, for the whole family and in one place.
+   *
+   * Every body belonging to a player answers under
+   * `/platform/agent/Avatar/<playerId>`, so a deed done as a shade or
+   * inside a circle attributes to the person, not to the vessel. The
+   * two vessels each carried their own copy of this before, over their
+   * own copy of the field.
+   *
+   * ⚠ The class is lineage and the identity path is identity: this is
+   * NOT the template stamp. A shade keeps its own
+   * `/platform/agent/ShadeAvatar/<pid>` template path, so
+   * `findByTemplatePath` still tells the bodies apart.
+   *
+   * Falls through for a guest (`playerId === ''`) to whatever minted
+   * path it was given, exactly as before.
+   */
+  public override getIdentityPath(): string | null {
+    return this.playerId
+      ? Avatar.getTemplatePath(this.playerId)
+      : super.getIdentityPath();
   }
 
   /**
@@ -680,148 +711,60 @@ export default class Avatar extends AvatarBase {
    */
 
   /**
-   * Post-registration setup called by the clone pipeline (Spring
-   * `@PostConstruct`-style). Stamps runtime-only references (user,
-   * playerId) from the caller-supplied context, registers with
-   * PlayerApi so later lookups by playerId resolve to this instance,
-   * and installs the v1 default-issuance loadout (currently just the
-   * AetherImplant in the cranial slot).
+   * Stamp the runtime-only references a clone's context carries.
    *
-   * Default loadout install lives here — at clone time, alongside
-   * the rest of the instance wiring — rather than in `Avatar.enter`
-   * (which is session-start ceremony, not setup). When char-gen
-   * ships, the loadout install moves there with the rest of
-   * character creation.
+   * ⚠ Each only when GIVEN. An overlay-borne `playerId` — the two
+   * vessels' mint path — lands in hydration Phase 1, before any
+   * `postRegister` runs, and an absent context key must not overwrite
+   * it.
+   */
+  protected stampContext(context?: AvatarInitContext): void {
+    if (context?.user) this.user = context.user;
+    if (context?.playerId) this.playerId = context.playerId;
+    if (context?.isGuest) this.isGuest = true;
+  }
+
+  /**
+   * Reach the framework's `PostRegistration` chain.
+   *
+   * ⭐ A named seam, and it earns its name: the body of record runs a
+   * materially different `postRegister` sequence — it claims the
+   * registry slot and drives the persistence spine around the chain —
+   * so it cannot call `super.postRegister()` without also re-running
+   * this class's. This is how it reaches the chain on its own terms.
+   */
+  protected async chainPostRegister(
+    context?: AvatarInitContext,
+  ): Promise<void> {
+    await super.postRegister(context);
+  }
+
+  /**
+   * Bring a body into being.
+   *
+   * ⭐ The VESSEL sequence, and the honest default: a shade and a
+   * circle body are always newly made. They have no record to restore
+   * — `shouldPersist()` is false for both — so the born-with floor
+   * installs unconditionally and there is no spine to drive.
+   *
+   * ⚠ The floor is not optional for a vessel. `installDefaultLoadout`
+   * is what puts the aether implant in the cranial slot, and without
+   * it a player inside their own circle can *receive* a channel
+   * message and cannot send one.
+   *
+   * The body of record overrides this entirely — see its own
+   * `postRegister`, which is the only place registration and the
+   * snapshot live.
    */
   public override async postRegister(
     context?: AvatarInitContext,
   ): Promise<void> {
-    if (context?.user) this.user = context.user;
-    if (context?.playerId) this.playerId = context.playerId;
-    if (context?.isGuest) this.isGuest = true;
-
-    // Guests have no playerId and are not registered — they're
-    // throwaway and looked up by nothing. (A guest's reserved-word name
-    // comes from its transient template data, set by the Hydrator.)
-    if (this.playerId) {
-      PlayerApi.registerAvatar(this);
-    }
-
-    // Born-with loadout BEFORE the spine only on a FIRST mint. A returning
-    // avatar's snapshot carries its worn gear (incl. the cranial implant),
-    // and the spine restore below re-occupies the slots — installing the
-    // default first would collide (`Slotted.occupy: slot 'cranial' is
-    // full`) and brick every relog-after-restart. The returning path runs
-    // the loadout AFTER materialize instead (below): the cranial guard
-    // sees the restored implant and skips the hardware, while the
-    // session-scoped aether apps (comms / forums / the credential wallet)
-    // are re-provisioned onto it — they are deliberately not in the
-    // snapshot.
-    const spineKey = this.shouldPersist() ? this.getIdentityPath() : null;
-    const hasSnapshot = spineKey
-      ? await PersistableApi.hasRecord(spineKey, spineKey)
-      : false;
-    if (!hasSnapshot) {
-      await this.installDefaultLoadout();
-    }
-
-    // Preserve the PostRegistration chain (the spine no longer auto-drives
-    // here — D1).
-    await super.postRegister(context);
-
-    // Drive the persistence spine LAST, after the born-with loadout is in
-    // place, with an EXPLICIT key (D1). The key is this avatar's own
-    // templatePath (`/platform/agent/Avatar/<playerId>`) — the self-owned singleton
-    // owner, byte-identical to the pre-D1 scope-derived owner, so the record
-    // `owner` column and the account-deletion cascade
-    // (`deleteAllFor('/platform/agent/Avatar/<pid>')`) are unchanged. A returning login
-    // materializes (restoring fields + carried inventory + worn gear + spawn
-    // location, overriding the clone-time template defaults); a fresh signup
-    // captures the first record. A guest's `shouldPersist()` is false, so
-    // this is a no-op for guests.
-    if (spineKey) {
-      if (hasSnapshot) {
-        await PersistableApi.materialize(this, spineKey);
-        // A snapshot may never hand back a body that cannot act again.
-        // Runs BEFORE the loadout re-provision below, which reads restored
-        // gear and must not race the heal.
-        await this.reconcileMortalState(spineKey);
-        // Re-provision the session-scoped born-with floor on top of the
-        // restored gear. Idempotent: the restored implant keeps the
-        // cranial slot (the loadout's occupancy guard skips the
-        // hardware); only the hosted aether apps re-clone, restoring the
-        // comms / forums / credential-wallet surfaces a snapshot never
-        // carries.
-        await this.installDefaultLoadout();
-      } else {
-        await PersistableApi.capture(this, spineKey);
-      }
-    }
-
-    // ⭐ Re-arm the personal-calendar ping (D12): schedules are never
-    // persisted, so a returning body re-books its next reminder from the
-    // restored entries. An entry that came due while offline pings once
-    // here (deferred-not-skipped). No-op for a fresh body with no entries.
+    this.stampContext(context);
+    await this.installDefaultLoadout();
+    await this.chainPostRegister(context);
+    // Schedules are never persisted, so a body re-books its reminders.
+    // A no-op for a body with no entries, which is every vessel today.
     this.rescheduleCalendarPing();
-  }
-
-  /**
-   * The terminal backstop that makes "a snapshot never hands back an
-   * unusable body" unfalsifiable.
-   *
-   * A body whose snapshot carries `lifecycleState: 'dead'` cannot act:
-   * `requiresAnimate` refuses `say`, `go`, `get` — forever, on every
-   * subsequent login, because the dead state is itself persisted. That was
-   * a live defect. Nothing in this build writes that state to a player
-   * snapshot any more (the death choreography drains the body first and
-   * records the arc on the identity instead), so reaching this method at
-   * all means a record predates the fix or something upstream regressed.
-   * Either way the only honest exit is to heal it — and to heal the
-   * *record*, not just the instance, so the next login is clean too.
-   *
-   * Deliberately kept forever rather than deleted once the arc ships: it
-   * costs one field read on a live path and it is what makes the invariant
-   * hold against code that hasn't been written yet.
-   */
-  private async reconcileMortalState(spineKey: string): Promise<void> {
-    if (this.getLifecycleState() !== "dead") return;
-
-    console.warn(
-      `Avatar.reconcileMortalState: healing a snapshot that restored ` +
-        `${this.getPresentation()} (${spineKey}) as dead — a player body ` +
-        `must never persist a dead lifecycle.`,
-    );
-
-    this.setLifecycleState("alive");
-    this.setCauseOfDeath(null);
-    this.resetVitalsToSpeciesBaseline();
-    for (const condition of [...this.getConditions()]) {
-      this.relieve(condition);
-    }
-
-    await this.recordDeed({
-      template: "{{ who | name }} returned to the world.",
-      vars: { who: this },
-      tags: ["death", "recovery"],
-    });
-
-    await PersistableApi.capture(this, spineKey);
-  }
-
-  /**
-   * Persistence opt-out (the spine's `shouldPersist` hook). A guest is
-   * throwaway and persists nothing — the single point (alongside the
-   * `save()` guard) that makes "zero guest persistence" hold across
-   * materialize / capture / autosave / onDestruct.
-   *
-   * Chains to `super` so `PersistableMixin.markForRevert()` is real for an
-   * Avatar. Without the chain the revert flag is dead here, and the death
-   * choreography — which drains the body and marks it for revert *before*
-   * destructing it — would let the capture-on-destruct backstop write the
-   * drained body back over a good snapshot.
-   */
-  public override shouldPersist(): boolean {
-    return !this.isGuest && super.shouldPersist();
   }
 
   /**
@@ -898,17 +841,53 @@ export default class Avatar extends AvatarBase {
    * emit) would double-fire if a caller did re-invoke; treat the
    * method as session-start-only.
    */
+  /**
+   * ⭐ Session-start ceremony, as the sequence it is.
+   *
+   * Eight named steps in the order they have always run. The body of
+   * this method is now the ORDER — which is the part that is load-
+   * bearing and was previously buried in 190 lines — and each step
+   * says in its own name what it is for.
+   *
+   * ⚠ The order is not arbitrary. The arrangement opens AFTER the
+   * auto-sense, so the room card lands beside a transcript that
+   * already says where you are; the welcome goes out before either,
+   * because the client cannot render anything until it has the
+   * bootstrap payload.
+   */
   public async enter(
     interactive: Interactive,
     opts: { firstArrival?: boolean } = {},
   ): Promise<void> {
+    const startingLocation = this.assertStartingLocation();
+    this.armSession();
+    await this.hydrateBeliefs();
+    await this.recordFirstArrival(startingLocation);
+    const payload = await this.buildWelcomePayload(interactive);
+    this.sendWelcome(payload, opts.firstArrival === true);
+    // Force a sense so the player perceives where they are across every
+    // channel they possess — MobileMixin's auto-sense-on-arrival path,
+    // reused rather than re-rendering the description here.
+    await this.autoSenseOnArrival();
+    this.openArrangementGuarded(interactive);
+    this.markSessionStarted(interactive);
+  }
+
+  /**
+   * The spawn a session needs, or an error that says how to fix the
+   * content. A body with no container cannot be entered into anything.
+   */
+  private assertStartingLocation(): NonNullable<
+    ReturnType<Avatar['getContainer']>
+  > {
     const startingLocation = this.getContainer();
     if (!startingLocation) {
       throw new Error(
         `Avatar.enter: ${this.getFullName()} has no container. ` +
           `The avatar seed must declare a spawn via 'data.startLocation' ` +
           `(a room or a Warren) or 'data.container'; the seed at ` +
-          `'${Avatar.SEED_TEMPLATE_PATH}' sets the default the embody/guest ` +
+          `the '/platform/agent/PrimaryAvatar' row sets the default the ` +
+          `embody/guest ` +
           `overlay clones from (no per-player template row exists).`,
       );
     }
@@ -916,6 +895,15 @@ export default class Avatar extends AvatarBase {
       `Avatar.enter: ${this.getFullName()} in ${startingLocation.getPresentation()}`,
     );
 
+    return startingLocation;
+  }
+
+  /**
+   * Arm the session's own machinery: the periodic save, and the
+   * casting affordance, which is species-fixed in-session so once at
+   * enter suffices.
+   */
+  private armSession(): void {
     this.startAutoSave();
 
     // Reconcile the casting affordance (the dynamic `cast`/`spells`
@@ -923,12 +911,12 @@ export default class Avatar extends AvatarBase {
     // contributions; the refreshConferrals mirror). Species-fixed
     // in-session, so once at enter suffices.
     this.refreshCastingAffordance();
+  }
 
-    // Lazy-hydrate this avatar's identity memory (recognition /
-    // identification) into its in-memory belief store. Serves the naming
-    // path from memory thereafter — no Mongo read on look/listing.
-    await this.hydrateBeliefs();
-
+  /** Mint the once-ever first-arrival deed. */
+  private async recordFirstArrival(
+    startingLocation: NonNullable<ReturnType<Avatar['getContainer']>>,
+  ): Promise<void> {
     // First-arrival deed — minted once, ever. Called unconditionally
     // (not gated on `opts.firstArrival`): the greeting flag only selects
     // prose, while the `recordOnce` key is the dedup authority, so the
@@ -941,7 +929,15 @@ export default class Avatar extends AvatarBase {
       where: startingLocation.getIdentityPath() ?? null,
       tags: ["arrival"],
     });
+  }
 
+  /**
+   * Everything the client needs to draw a session it has just joined.
+   * Pure assembly — no sends, no mutation.
+   */
+  private async buildWelcomePayload(
+    interactive: Interactive,
+  ): Promise<ConnectionEstablishedPayload> {
     // Welcome scene: actor frame at session.link
     // carries the bootstrap payload the client needs.
     // Welcome is the introductory moment — explicitly the formal
@@ -1032,9 +1028,17 @@ export default class Avatar extends AvatarBase {
           ) ?? "card",
       },
     };
+    return payload;
+  }
+
+  /** The greeting frame, in the register the arrival deserves. */
+  private sendWelcome(
+    payload: ConnectionEstablishedPayload,
+    firstArrival: boolean,
+  ): void {
     // First arrival (just created in char-gen) gets a fresh greeting;
     // a returning player gets the welcome-back register.
-    const greeting = opts.firstArrival
+    const greeting = firstArrival
       ? Mml.compose`Welcome, ${this.getFullName()}.`
       : Mml.compose`Welcome back, ${this.getFullName()}!`;
     MessageApi.scene(this)
@@ -1042,17 +1046,15 @@ export default class Avatar extends AvatarBase {
       .toSelf(greeting)
       .payload(payload)
       .send();
+  }
 
-    // Force a sense so the player perceives where they are across
-    // every channel they possess. Reuses MobileMixin's auto-sense-
-    // on-arrival path (which forceCommand's the `sense` verb and
-    // resets focus first) rather than reimplementing the
-    // description rendering here.
-    await this.autoSenseOnArrival();
-
+  /**
+   * Open the active mode's arrangement for a freshly-attached session.
+   */
+  private openArrangementGuarded(interactive: Interactive): void {
     /*
      * ⭐⭐ **Apply the mode's arrangement on LOGIN, not only on a
-     * `cockpit mode` / `cockpit layout` switch.**
+     * mode or layout switch.**
      *
      * `applyArrangement` was called from those two controllers alone,
      * which meant a player who logged straight into `build` — or into
@@ -1072,17 +1074,20 @@ export default class Avatar extends AvatarBase {
      * log in at all.
      */
     try {
-      const mode = this.getCockpitMode();
-      interactive.applyCardArrangement(
-        this.arrangementCards(mode, this.getCockpitArrangement(mode)),
-      );
+      this.openArrangement(interactive);
     } catch (err) {
       console.warn(
         `Avatar.enter: could not apply the ${this.getPlayerId()} ` +
           `arrangement: ${(err as Error).message}`,
       );
     }
+  }
 
+  /**
+   * Mark the session live and tell the world — the last step, because
+   * everything above it can still fail.
+   */
+  private markSessionStarted(interactive: Interactive): void {
     // Avatar is in-world; the user is playable. Engine-level presence
     // event for any observer (audit, achievements, the social presence
     // relay). A first-ever `enter()` for this instance is a fresh login;
@@ -1210,7 +1215,7 @@ export default class Avatar extends AvatarBase {
    * crash the clone cascade — failures log and the sense / dm verbs
    * surface their own polite refusals downstream.
    */
-  private async installDefaultLoadout(): Promise<void> {
+  protected async installDefaultLoadout(): Promise<void> {
     try {
       if (!MixinApi.isSlotted(this)) return;
       // Ensure species + body plan are loaded so the BodyPlanSlots

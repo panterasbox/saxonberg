@@ -20,7 +20,7 @@ import { ShadowApi } from '../shadow';
 import { Stuff } from '../../lib/stuff/Stuff';
 import EventRegistry from '../../platform/idea/EventRegistry';
 import Interactive from '../../platform/idea/Interactive';
-import Avatar from '../../platform/agent/Avatar';
+import Avatar from '../../platform/agent/PrimaryAvatar';
 import Good from '../../lib/stuff/Good';
 
 async function bootRegistry(): Promise<void> {

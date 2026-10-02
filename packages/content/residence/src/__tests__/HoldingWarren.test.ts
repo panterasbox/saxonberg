@@ -22,7 +22,7 @@ import { SingletonMixin } from '@saxonberg/server/mud/lib/stuff/Singleton';
 import { PostRegistrationMixin } from '@saxonberg/server/mud/lib/stuff/PostRegistration';
 import FurnishableRoom from '@saxonberg/server/mud/platform/location/FurnishableRoom';
 import Thing from '@saxonberg/server/mud/platform/thing/Thing';
-import Avatar from '@saxonberg/server/mud/platform/agent/Avatar';
+import Avatar from '@saxonberg/server/mud/platform/agent/PrimaryAvatar';
 import ParcelRegistry from '@saxonberg/server/mud/platform/idea/ParcelRegistry';
 import GroupRegistry from '@saxonberg/server/mud/platform/idea/GroupRegistry';
 import PersistentHydrator from '@saxonberg/server/mud/platform/idea/persistence/PersistentHydrator';

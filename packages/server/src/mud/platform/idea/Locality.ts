@@ -40,12 +40,26 @@ import type {
 import type { FieldMeta } from '../../lib/mixin';
 import { BankingApi } from '../../api/banking';
 import { Money } from '../../lib/banking/Money';
+import { StuffApi } from '../../api/stuff';
+import { MixinApi } from '../../api/mixin';
+import { GovernmentApi } from '../../api/government';
+import { EmploymentApi } from '../../api/employment';
+import type { StreetLightingSupply } from '../../lib/supply/SupplyState';
+import type { Business } from './Business';
+import type { Stuff } from '../../lib/stuff/Stuff';
 
 /** Seconds in a game day — the night index `settleStreetLighting` keys on. */
 const DAY_SECONDS = 86_400;
 
 /** The currency a lighting bill defaults to when a row names none. */
 const DEFAULT_CURRENCY = 'credit';
+
+/**
+ * The realm treasury's owner path — the fallback source for an appropriation
+ * when a locality declares no treasury of its own. Matches
+ * `BankingLogic.TREASURY_PATH`; the kernel names it by string, never imports.
+ */
+const TREASURY_OWNER_PATH = '/compact/treasury';
 
 /**
  * ⭐⭐ **What a town's street lighting costs it, and who it pays.** One
@@ -70,38 +84,40 @@ export interface PublicLightingFunding {
    */
   costPerStreetNight: number;
   /**
-   * The Business path the bill is paid to.
+   * ⭐ **Litres of fuel burned per street per night** — the goods leg the
+   * name always promised. When {@link supply} names a physical store, the
+   * settle drains this many litres from it per covered street; when it names
+   * the grid, it is ignored (a wire consumes no litres). Absent/`0` on a
+   * money-only or electric locality.
    *
-   * ⚠⚠ **There is NO GOODS LEG, and nothing here should be read as a
-   * supply chain.** `settleStreetLighting` does exactly one thing with
-   * this: `BankingApi.appropriate(supplier, n × costPerStreetNight)`.
-   * Money leaves the treasury and lands in that business's account. **No
-   * oil is consumed, no stock depletes, and no lamp-oil good exists in
-   * the game at all** — a lantern's `fuel` is an abstract `%` reserve
-   * with `theme: combustion`, not a commodity.
+   * The name was freed for exactly this by envelope (the money figure moved
+   * to {@link costPerStreetNight}); the energy build makes it true.
+   */
+  fuelPerStreetNight?: number;
+  /**
+   * ⭐⭐ **The goods leg**: the template path of the thing that actually
+   * keeps the streets lit — a `/system/energy/thing/FuelStore` (oil it
+   * burns) or `/system/energy/idea/GridCatalogue` (a wire it energizes),
+   * resolved by `StuffApi.singleton` and narrowed to the
+   * {@link StreetLightingSupply} shape. `undefined` = the legacy money-only
+   * path (envelope's behaviour, preserved: money moves, nothing is
+   * consumed).
    *
-   * So the name states an INTENT that the mechanism does not yet keep.
-   * It is named `supplier` rather than `payee` because that is what it
-   * becomes, not what it does — and this paragraph is here so the energy
-   * build does not discover it the hard way.
+   * When set, the settle asks it `lightStreets(candidates, nowS)` and lights
+   * exactly what it covers — so a town that has run out of oil, or a stretch
+   * whose feeder is cut, goes dark the same way a short treasury already
+   * darkens the junior streets.
+   */
+  supply?: string;
+  /**
+   * The Business path a money bill is paid to (`null` = none).
    *
-   * ⭐ Terminus names its **general store**, which stocks the lantern
-   * and the torch, so a shop selling the oil for the lamps it sells is
-   * honest fiction and a municipal lamp-oil contract with the local
-   * merchant is how small towns really did it. What it is NOT is a
-   * producer: `trade-fuel` ships a collier and a clamp and extraction
-   * ships peat and coal, and none of that chain sees a penny of this
-   * recurring demand. By `vocations.md`'s own test — *a vocation exists
-   * iff there is unmet demand* — that is demand being absorbed instead
-   * of creating a market.
-   *
-   * → the energy build (`build-4`). The bill it inherits is in
-   * `power-utility-slate` § *The first demand case is already running*
-   * — a slate rather than a plan, because a plan gets retired and a
-   * code comment must not point at something that can be deleted.
-   * ⚠ The demand figure is already live and calibrated
-   * (`costPerStreetNight` × lit streets × nightly), so that build gets a
-   * market to price rather than a number to invent.
+   * ⚠ Now genuinely optional. A gas-lit town pays for its light through the
+   * **procurement loop** (its public-works department buys casks from a
+   * producer), not through this leg, so it sets `costPerStreetNight: 0` and
+   * leaves this `null`; an electric town's own lamps cost it nothing. The
+   * money leg fires only when `costPerStreetNight > 0` and a `supplier` is
+   * named — the pure-transfer path (Terminus, until it migrates to the grid).
    */
   supplier: string | null;
   /** The currency the bill is denominated in. Defaults to `credit`. */
@@ -216,6 +232,14 @@ export default class Locality extends PostRegistrationMixin(Idea) {
    */
   protected _lightingLitStreets: string[] = [];
 
+  /**
+   * Runtime: how the supply that lit the streets tonight reads — *"burning
+   * the town's oil"*, *"fed from the Wharfside line"* — or `null` (money-only
+   * / never settled). The street's lamp detail appends it, so the epoch is
+   * derived off a lamp rather than flagged.
+   */
+  protected _lightingSourceLabel: string | null = null;
+
   static fieldMeta: FieldMeta = {
     name: { persistent: true },
     _address: { persistent: true },
@@ -227,6 +251,7 @@ export default class Locality extends PostRegistrationMixin(Idea) {
     _publicLighting: { persistent: true, authorable: true },
     _lightingNight: { persistent: true, runtimeState: true },
     _lightingLitStreets: { persistent: true, runtimeState: true },
+    _lightingSourceLabel: { persistent: true, runtimeState: true },
   };
 
   // ---------- public lighting ----------
@@ -235,14 +260,45 @@ export default class Locality extends PostRegistrationMixin(Idea) {
     return this._publicLighting;
   }
 
-  /** Is this extent's money lighting `streetPath` tonight? */
+  /**
+   * Is this extent's service lighting `streetPath` tonight?
+   *
+   * ⭐ Two conditions: it was settled as lit at dusk, **and** its supply is
+   * still reaching it right now. The second is what makes a cut line or a
+   * drained store darken the street the same second (`isServingNow` is sync
+   * and live) rather than at the next settle. A money-only locality names no
+   * supply, so the second condition is vacuously true — envelope's behaviour.
+   */
   public isStreetLitTonight(streetPath: string): boolean {
-    return this._lightingLitStreets.includes(streetPath);
+    if (!this._lightingLitStreets.includes(streetPath)) return false;
+    const supply = this.liveSupply();
+    return supply === null ? true : supply.isServingNow(streetPath);
   }
 
   /** The streets this extent is lighting tonight, in seniority order. */
   public getLitStreets(): readonly string[] {
     return this._lightingLitStreets;
+  }
+
+  /** How tonight's lit lamps read (the derived epoch), or `null`. */
+  public getLightingSourceLabel(): string | null {
+    return this._lightingSourceLabel;
+  }
+
+  /**
+   * The live supply object, resolved sync from `_publicLighting.supply`, or
+   * `null` (money-only, or not yet stood up). Sync because
+   * {@link isStreetLitTonight} is on the vision walk; a supply that has not
+   * been stood up yet reads as "not serving", which the next settle fixes.
+   */
+  private liveSupply(): StreetLightingSupply | null {
+    const path = this._publicLighting?.supply;
+    if (!path) return null;
+    const inst = StuffApi.findByTemplatePath(path) as
+      | (Stuff & Partial<StreetLightingSupply>)
+      | null;
+    if (!inst || typeof inst.isServingNow !== 'function') return null;
+    return inst as unknown as StreetLightingSupply;
   }
 
   /**
@@ -261,21 +317,18 @@ export default class Locality extends PostRegistrationMixin(Idea) {
    *  - **`n` is computed from the balance FIRST**, so the refusal is
    *    the exception rather than the path. A treasury holding less than
    *    one street-night lights nothing, and `look at the lamps` says so.
-   *  - **One appropriation leg per night**, for `n × fuel`, through the
-   *    SHIPPED `BankingApi.appropriate`: no acting-owner check, sourced
-   *    from the treasury, destination the supplier's primary account,
-   *    category `appropriation` — which is the correct accounting name
-   *    for public lighting. No new banking primitive and no new gate on
-   *    the money subsystem.
-   *
-   * ⚠ **One treasury per currency, none per locality.** `TREASURY_PATH`
-   * is `/compact/treasury` and no Locality holds an account, so v1
-   * reads as *"the realm appropriates for Terminus's lamps"* rather
-   * than *"Terminus pays its own bill"*. The town's PREFERENCE — which
-   * streets, in what order — is the extent's, as designed; the MONEY is
-   * the realm's until a locality treasury exists. That is a deferred
-   * seam (`livelihood-slate` §7, `credit-slate` Q8), and it is recorded
-   * rather than papered over.
+   *  - **The goods leg** (energy build): when the funding names a `supply`,
+   *    the settle asks it `lightStreets` and lights exactly what it covers —
+   *    a `FuelStore` burns oil and runs dry, a `GridCatalogue` returns the
+   *    energized subset. A money-only locality names no supply and behaves
+   *    as envelope shipped it.
+   *  - **At most one appropriation leg per night**, for `n × cost`, through
+   *    the SHIPPED `BankingApi.appropriate`, and only when `costPerStreetNight
+   *    > 0` and a `supplier` is named — sourced from **this locality's own
+   *    treasury** when it declares one, else the realm's ({@link
+   *    resolveTreasury}), destination the supplier's primary account, category
+   *    `appropriation`. A gas-lit town sets cost 0 and pays through
+   *    procurement instead; an electric town's own lamps cost it nothing.
    */
   public async settleStreetLighting(
     nowS: number,
@@ -287,33 +340,58 @@ export default class Locality extends PostRegistrationMixin(Idea) {
     const night = Math.floor(nowS / DAY_SECONDS);
     if (this._lightingNight === night) return; // already paid tonight
 
-    const streets = candidates;
     this._lightingNight = night;
     this._lightingLitStreets = [];
-    if (streets.length === 0) return;
+    this._lightingSourceLabel = null;
+    if (candidates.length === 0) return;
 
     const currency = funding.currency ?? DEFAULT_CURRENCY;
-    let affordable = 0;
-    try {
-      const treasuryId = await BankingApi.treasuryAccountId(currency);
-      const balance = BankingApi.balanceOf(treasuryId);
-      affordable =
-        funding.costPerStreetNight > 0
-          ? Math.floor(balance.minor / funding.costPerStreetNight)
-          : streets.length;
-    } catch {
-      affordable = 0; // no treasury, no light — and the street says so
+    const cost = funding.costPerStreetNight ?? 0;
+
+    // ── The goods leg (D10): how many can the supply physically cover
+    // tonight? A `FuelStore` burns oil per street and runs dry; a
+    // `GridCatalogue` returns the energized subset. `null` = money-only
+    // (envelope's behaviour — nothing is consumed, everything is
+    // affordable-limited).
+    let covered: readonly string[] | null = null;
+    const supply = await this.resolveSupply();
+    if (supply !== null) {
+      try {
+        covered = await supply.lightStreets(candidates, nowS);
+        this._lightingSourceLabel = supply.lightingSourceLabel?.() ?? null;
+      } catch {
+        covered = []; // a broken supply lights nothing — the streets say so
+      }
     }
-    const n = Math.min(streets.length, Math.max(0, affordable));
-    if (n === 0) return;
+
+    // ── The money leg (D12): how many can the treasury afford? Only when a
+    // per-night cost is set (a gas-lit town pays through procurement, not
+    // here). Sourced from the locality's own treasury, else the realm's.
+    let affordable = candidates.length;
+    let treasury: { ownerPath: string; accountId: string } | null = null;
+    if (cost > 0) {
+      try {
+        treasury = await this.resolveTreasury(currency);
+        const balance = BankingApi.balanceOf(treasury.accountId);
+        affordable = Math.floor(balance.minor / cost);
+      } catch {
+        affordable = 0; // no treasury, no light — and the street says so
+      }
+    }
+
+    let n = candidates.length;
+    if (covered !== null) n = Math.min(n, covered.length);
+    n = Math.min(n, Math.max(0, affordable));
+    if (n <= 0) return;
 
     const supplier = funding.supplier;
-    if (supplier) {
+    if (cost > 0 && supplier) {
       try {
         await BankingApi.appropriate(
           supplier,
-          Money.of(n * funding.costPerStreetNight, currency),
+          Money.of(n * cost, currency),
           `street lighting, ${this.name || this._address}: ${n} street-night(s)`,
+          treasury ? { fromOwnerPath: treasury.ownerPath } : undefined,
         );
       } catch {
         // The shipped refusal (the treasury went short between the read
@@ -322,7 +400,80 @@ export default class Locality extends PostRegistrationMixin(Idea) {
         return;
       }
     }
-    this._lightingLitStreets = streets.slice(0, n);
+
+    this._lightingLitStreets = (covered ?? candidates).slice(0, n);
+  }
+
+  /**
+   * Resolve the goods-leg supply object named by `_publicLighting.supply`,
+   * narrowed to {@link StreetLightingSupply}, standing it up if needed
+   * (`StuffApi.singleton` — a `FuelStore` self-places by its `container:`, a
+   * `GridCatalogue` is a singleton Idea). `null` for a money-only locality.
+   */
+  private async resolveSupply(): Promise<StreetLightingSupply | null> {
+    const path = this._publicLighting?.supply;
+    if (!path) return null;
+    try {
+      const inst = (await StuffApi.singleton(path)) as unknown as
+        | (Stuff & Partial<StreetLightingSupply>)
+        | null;
+      if (!inst || typeof inst.lightStreets !== 'function') return null;
+      return inst as unknown as StreetLightingSupply;
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * ⭐ **This locality's treasury** — its own if it declares a government
+   * with one, else the realm's (envelope's behaviour). Walks the government
+   * chain covering this extent's address for the first descriptor naming a
+   * `treasury` Business, stands that Business up, and resolves its operating
+   * account. Returns both the owner path (for `appropriate`'s source) and the
+   * account id (for the balance read).
+   */
+  public async resolveTreasury(
+    currency: string,
+  ): Promise<{ ownerPath: string; accountId: string; own: boolean }> {
+    let chain: ReturnType<typeof GovernmentApi.governmentChainAt> = [];
+    try {
+      chain = this._address
+        ? GovernmentApi.governmentChainAt(this._address)
+        : [];
+    } catch {
+      chain = []; // no government registry (a test / early boot) → the realm
+    }
+    for (const gov of chain) {
+      const tpath = gov.treasury?.trim();
+      if (!tpath) continue;
+      try {
+        const inst = await StuffApi.singleton(tpath);
+        if (MixinApi.isBusiness(inst)) {
+          const accountId = await EmploymentApi.operatingAccountOf(
+            inst as Stuff & Business,
+          );
+          return { ownerPath: tpath, accountId, own: true };
+        }
+      } catch {
+        // A broken treasury row falls through to the realm — the streets
+        // still light from the realm rather than the whole realm's evening
+        // going dark on one town's bad reference.
+      }
+    }
+    const accountId = await BankingApi.treasuryAccountId(currency);
+    return { ownerPath: TREASURY_OWNER_PATH, accountId, own: false };
+  }
+
+  /**
+   * This locality's **own** treasury account, or `null` when it has none
+   * (the realm's does not count). The tax-split income side asks this: a
+   * locality with no treasury of its own simply gets no share of a sale.
+   */
+  public async ownTreasuryAccountId(
+    currency: string,
+  ): Promise<string | null> {
+    const t = await this.resolveTreasury(currency);
+    return t.own ? t.accountId : null;
   }
 
   /**

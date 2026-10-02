@@ -13,7 +13,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { parse } from 'yaml';
 import BusinessEntity from '@saxonberg/server/mud/platform/idea/Business';
-import Avatar from '@saxonberg/server/mud/platform/agent/Avatar';
+import Avatar from '@saxonberg/server/mud/platform/agent/PrimaryAvatar';
 import { EmploymentApi } from '@saxonberg/server/mud/api/employment';
 import { CompactApi } from '@saxonberg/server/mud/api/compact';
 import { ParcelApi } from '@saxonberg/server/mud/api/parcel';

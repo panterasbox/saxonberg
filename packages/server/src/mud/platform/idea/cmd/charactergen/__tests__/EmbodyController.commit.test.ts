@@ -13,7 +13,8 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import EmbodyController from '../EmbodyController';
 import Login from '../../../Login';
 import Interactive from '../../../Interactive';
-import Avatar from '../../../../agent/Avatar';
+import Avatar from '../../../../../lib/character/Avatar';
+import PrimaryAvatar from '../../../../../platform/agent/PrimaryAvatar';
 import Species from '../../../species/Species';
 import { WearableMixin } from '../../../../../lib/slot/Wearable';
 import { SlottableMixin } from '../../../../../lib/slot/Slottable';
@@ -108,7 +109,7 @@ describe('EmbodyController.commit', () => {
 
     // Seed template + persistence
     vi.spyOn(Template, 'findByPath').mockResolvedValue({
-      path: Avatar.SEED_TEMPLATE_PATH,
+      path: PrimaryAvatar.ROW_TEMPLATE_PATH,
       class: '/platform/agent/Avatar',
       data: { startLocation: '/world/lounge/idea/warren' },
       hydratorClass: '/platform/idea/persistence/PersistentHydrator',
@@ -146,7 +147,7 @@ describe('EmbodyController.commit', () => {
           asIdentityPath?: string;
         },
       ) => {
-        if (path === Avatar.SEED_TEMPLATE_PATH) {
+        if (path === PrimaryAvatar.ROW_TEMPLATE_PATH) {
           savedTemplate = {
             path: opts?.asIdentityPath ?? path,
             data: opts?.dataOverlay ?? {},

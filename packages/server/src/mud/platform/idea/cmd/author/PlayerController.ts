@@ -16,7 +16,7 @@ import type {
 import type { Pronouns } from '@saxonberg/types';
 import { MessageApi } from '../../../../api/message';
 import { Mml } from '../../../../api/mml';
-import type Avatar from '../../../agent/Avatar';
+import type Avatar from '../../../../lib/character/Avatar';
 
 interface PlayerModel extends CommandModel {
   name?: string;

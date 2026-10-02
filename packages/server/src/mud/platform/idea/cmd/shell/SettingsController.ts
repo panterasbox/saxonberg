@@ -25,7 +25,7 @@ import type {
   SettingsSchemaEntry,
 } from '../../../../lib/shell/Environment';
 import { ShellApi } from '../../../../api/shell';
-import type { HasInteractive } from '../../../../lib/connection/HasInteractive';
+import type { ClientState } from '../../../../lib/connection/ClientState';
 import type { ResultDisplay } from '@saxonberg/types';
 
 type EnvHost = Stuff & Environment;
@@ -154,9 +154,9 @@ export default class SettingsController extends CommandController<SettingsModel>
    */
   private pushResultDisplay(avatar: EnvHost, key: string): void {
     if (key !== 'shell.result' && !key.startsWith('shell.result.')) return;
-    if (!MixinApi.isHasInteractive(avatar)) return;
+    if (!MixinApi.isClientState(avatar)) return;
     const host = avatar as unknown as Stuff;
-    (avatar as unknown as HasInteractive).pushClientStateUpdate(
+    (avatar as unknown as ClientState).pushClientStateUpdate(
       'shell.result',
       {
         desktop:

@@ -12,7 +12,7 @@ import { ConnectionApi } from '../connection';
 import { ConnectionLogic } from '../../platform/idea/api/ConnectionLogic';
 import { SecurityError } from '../../lib/security/errors';
 import Interactive from '../../platform/idea/Interactive';
-import Avatar from '../../platform/agent/Avatar';
+import Avatar from '../../platform/agent/PrimaryAvatar';
 import { User } from '../../lib/identity/User';
 import { StuffApi } from '../stuff';
 import { PlayerApi } from '../player';

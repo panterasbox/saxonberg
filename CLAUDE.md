@@ -227,6 +227,7 @@ behavior. Read the relevant doc before editing in its area.
   - [ranged.md](./docs/subsystems/ranged.md) — the `close·reach·near·far` band ladder, the arena cap from real room extent, aim×answer placement, the Delivery Profile, `energySource` readiness, splash-as-relationship + its consent gate, `throw`
   - [combat-hooks.md](./docs/subsystems/combat-hooks.md) — wizard-facing combat extension grammar: three `@hook` surfaces, the augment carrier, the influence bridge, species vocabulary
   - [electricity.md](./docs/subsystems/electricity.md) — the shock channel + conduction spread: the Ohm's-law core, the ElectricityApi walk, SustainedShock, FloodedCell
+  - [energy.md](./docs/subsystems/energy.md) — the `/system/energy` power economy, both epochs: lamp-oil street lighting (a producer + a depleting FuelStore + a civic bill) and the electric grid (a Feeder row → GridCatalogue compiled reachability, the parcel meter — feeder+powerBand, GridPoweredMixin, the sever/splice cut as the one state, `analyze grid`'s derived epoch); the meter is the boundary, poles are sparse LineAccess access points
   - [maturation.md](./docs/subsystems/maturation.md) — the durative transform: MaturingMixin on the VESSEL, MaturationProfile rows + the boot-warmed roster, the grade/mark/strain transfer seam, cultures + the lees split, the cellar CO₂, the cellars brain, the work boards; zero new verbs
   - [fire.md](./docs/subsystems/fire.md) — combustion + high heat: the heat channel, FireApi/Combustible, the ignition balance, phase change, furnaces, Hearthworks
   - [magic.md](./docs/subsystems/magic.md) — effect substrate + casting: Effect-iff-gated-Api, the grid as Disciplines, CasterMixin faculty, suppression, the Practicum
@@ -880,21 +881,26 @@ platform/thing/FoldingChair` is ordinary OO and correct. Only classes that are
 
 **When a substrate class is also cloned generically, split it.** The
 abstract base stays in `lib/`; a thin concrete subclass in `platform/`
-absorbs the clones, and templates name that. Twelve exist. **Nine
+absorbs the clones, and templates name that. Thirteen exist. **Nine
 deliberately share their base's name** (the import aliases it as
 `<Name>Base`; the module registry keys on class identity, not name):
 `platform/thing/Thing`, `platform/thing/Good`, `platform/thing/Vessel`,
 `platform/idea/modalities/Modality`,
 `platform/location/CartesianLocation`,
 `platform/location/SingletonCartesianLocation`, `platform/idea/Exit`,
-`platform/idea/material/Material`, `platform/idea/Biome`. **Three are
+`platform/idea/material/Material`, `platform/idea/Biome`. **Four are
 real renames because they are real concepts**: `platform/agent/Corpse`
-(← `Creature`), and ⭐ `platform/agent/Extra` + `platform/agent/Cast`,
+(← `Creature`); ⭐ `platform/agent/Extra` + `platform/agent/Cast`,
 where the concrete twin **split into two things** — `lib/npc/NPC`'s two
 identity rungs, a role and a person (`platform/agent/NPC` retired; see
-[docs/subsystems/identity.md](./docs/subsystems/identity.md)). ⭐ Sharing
-the name is the DEFAULT — a twin that renames is claiming to be a
-different thing, and had better be one.
+[docs/subsystems/identity.md](./docs/subsystems/identity.md)); and
+⭐ `platform/agent/PrimaryAvatar` (← abstract `lib/character/Avatar`),
+the body of record among three named bodies — the root keeps `Avatar`
+because the identity namespace `/platform/agent/Avatar/<playerId>` is
+the FAMILY's (see
+[docs/subsystems/connection.md](./docs/subsystems/connection.md)).
+⭐ Sharing the name is the DEFAULT — a twin that renames is claiming to
+be a different thing, and had better be one.
 `platform/thing/Thing` was called `Prop` until 2026-09-03, which named
 nothing (there is no prop concept anywhere in the tree) and read as
 "generic object nobody cares about" — so nobody defended it, and a

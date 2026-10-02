@@ -449,7 +449,7 @@ authored content rather than player input.
 NPC scripts that hit `$X` either fail loud at MQL parse time
 (`$` isn't valid MQL syntax outside `$$`) or pass a literal token
 the resolver doesn't recognize. The contract: opt in to the shell
-suite (compose `ShelledCharacter` instead of `Character`) if you
+suite (compose `Shell` instead of `Character`) if you
 want drill state or var interpolation; the default NPC has
 neither.
 

@@ -35,7 +35,7 @@ import { fileURLToPath } from 'node:url';
 import { parse } from 'yaml';
 import OrganizationEntity from '../../../idea/Organization';
 import BusinessEntity from '../../../idea/Business';
-import Avatar from '../../../agent/Avatar';
+import Avatar from '../../../agent/PrimaryAvatar';
 import { EmploymentApi } from '../../../../api/employment';
 import { CompactApi } from '../../../../api/compact';
 import { ParcelApi } from '../../../../api/parcel';

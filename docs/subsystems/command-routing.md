@@ -33,7 +33,7 @@ The shape lives in:
 - `packages/server/src/mud/lib/command/Focused.ts` — the
   `FocusedMixin` (focus fragment, pronoun memory, `focus` self-bucket
   contribution, `$focus` synthetic var). Composed onto Avatars via
-  `ShelledCharacter`.
+  `Shell`.
 - `packages/server/src/mud/lib/command/CommandDefinition.ts` — the
   loaded YAML view, validated against `cmd/command.schema.json`.
 - `packages/server/src/mud/lib/command/CommandController.ts` — the

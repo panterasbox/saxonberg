@@ -26,7 +26,7 @@
  * `Creature` in the same wave and on the same argument — *branding
  * livestock is what marks were invented for* — but `Creature` is also
  * the base of `Character`, so that line marked every player, Cast
- * member, Extra, Shade and corpse in the game as somebody's stock. The
+ * member, Extra, ShadeAvatar and corpse in the game as somebody's stock. The
  * base-class narrowing build moved it to where the argument pointed: the
  * kernel's `KeptAnimal` and this class. `Livestock` does not extend
  * `KeptAnimal` — a head of stock is not a pet — so it composes the
@@ -78,7 +78,7 @@ import { STOCKMANSHIP } from '../idea/cmd/ranching/HandleController';
 // ⭐⭐ `ChattelMixin` beside `Branded`, and it came off `Creature` in the
 // base-class narrowing for the same reason `Branded` did: the argument
 // was about STOCK, and `Creature` is also the base of every player, Cast
-// member, Extra, Shade and corpse in the game. A head of stock is owned;
+// member, Extra, ShadeAvatar and corpse in the game. A head of stock is owned;
 // a person is not.
 /**
  * Game-days of growth past which a fleece starts losing its quality,

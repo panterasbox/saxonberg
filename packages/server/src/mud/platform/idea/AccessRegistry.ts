@@ -45,7 +45,7 @@ import type { ParcelOwner } from '../../lib/parcel/ParcelRecord';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import { Zone } from '../../lib/zone/Zone';
 import FolderZone from './FolderZone';
-import Avatar from '../agent/Avatar';
+import Avatar from '../../lib/character/Avatar';
 import { PlayerApi } from '../../api/player';
 
 /**

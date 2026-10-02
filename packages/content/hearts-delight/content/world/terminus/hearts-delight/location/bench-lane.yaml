@@ -1,8 +1,15 @@
 # The bench lane — the climb out of the fruit country onto the thin
 # ground, and ⭐ the geography doing the explaining.
-class: /platform/location/SingletonCartesianLocation
+class: /platform/location/Street
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
+  # ⭐ Lit by the valley's oil after dusk (energy build). Seniority 2:
+  # darkens before the gate but after the millsite when the oil runs short.
+  publicLighting:
+    flux: 300
+    colorTemperature: 2200
+    detail: lamps
+    seniority: 2
   shortDescription: bench lane
   keywords: [lane, bench, track, climb]
   register: definite
@@ -31,6 +38,12 @@ data:
       media: [ground]
       edgeMinutes: 5
   details:
+    # ⭐ The static detail MQL binds `look lamps` to; PublicLightingMixin
+    # appends the live state.
+    lamps:
+      keywords: [lamps, lamp, standards, lighting]
+      description: |
+        A few gaslamp standards up the zigzags — iron posts with glass heads, fed from the valley's oil store, the last of them at the millsite turn.
     ditch:
       keywords: [ditch, ditches, irrigation, channel, line]
       description: |
