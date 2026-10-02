@@ -697,7 +697,7 @@ export function SlottedMixin<TBase extends MixinConstructor<Stuff>>(
      * to index -1 and are skipped: they are separate entities, not this
      * host's persistent gear. Restore re-wears via `SlotApi.occupyAll`,
      * centralized in `PersistableLogic` (it needs the restored-contents
-     * array), so there is no paired `restoreSlice` here.
+     * array), so there is no paired `hydrateSlice` here.
      */
     static captureSlice(
       host: Stuff,

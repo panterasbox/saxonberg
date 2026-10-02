@@ -177,23 +177,27 @@ export function CastMixin<TBase extends MixinConstructor>(Base: TBase) {
       return this.renown;
     }
 
-    public async onCreate(context?: unknown): Promise<void> {
-      await super.onCreate(context);
-      // ⭐⭐ Read this rung's memory back. A `Cast` is a singleton, so its
-      // template path IS a unique durable key (`viewerKey`, row 3) and its
-      // regard has been WRITTEN through on every change since the belief
-      // store shipped — but nothing ever read it back, so an NPC's
-      // opinion of you reset to nothing on every restart while the
-      // records piled up unread in Mongo. The self-call is what
-      // `SelfOnly` admits (the `Avatar.enter` shape); it runs before the
-      // dossier seed so a hydrated history is visible to it.
-      const self = this as unknown as Stuff;
-      if (MixinApi.isBeliefStore(self)) await self.hydrateBeliefs();
-      // ⭐ The dossier SEED left this hook 2026-10-01: the three channels
-      // are `seed: true` fields now and the appliers below are the
-      // template applier's phase-3 calls. The belief read leaves in W5,
-      // onto a declared `hydrationSource`, and this override goes with it.
-    }
+    // ⭐⭐ **There is no `onCreate` override on this rung any more**, and
+    // its absence is the point of the hydration build.
+    //
+    // It used to do two jobs, and neither belonged at birth in a hook:
+    //
+    //   - **read this rung's memory back.** A `Cast` is a singleton, so
+    //     its template path IS a durable key (`viewerKey`, row 3) and
+    //     its regard had been written through on every change since the
+    //     belief store shipped — but nothing ever read it, so an NPC's
+    //     opinion of you reset on every restart while the records piled
+    //     up unread in Mongo. That is `BeliefStoreMixin.hydrationSource`
+    //     now, driven by the clone pipeline whether or not the host has
+    //     a record — which is what makes it reach a singleton at all.
+    //   - **seed the authored dossier.** That is the template applier's
+    //     phase 3: `prologue`/`renown`/`competence` are `seed: true`
+    //     fields with the three appliers below.
+    //
+    // ⭐ And the ORDER the old hook needed is an invariant of the
+    // pipeline now rather than two lines in one method: every eager
+    // source completes before `onCreate` begins, so a hydrated history
+    // is visible to anything that runs at birth.
 
     /**
      * Phase-3 applier for the authored `prologue:` — the founding history,

@@ -51,14 +51,14 @@ import { MUD, packSources, packSrcFiles } from "./pack-roots";
  * (much more likely) the work belongs on one of the two declarative seams
  * the hydration build added.
  */
-export const ON_CREATE_CEILING = 82;
+export const ON_CREATE_CEILING = 81;
 
 /**
  * ⭐⭐ **The loading ceiling** — the subset of those bodies that look like
  * limb 3. This is the number the hydration build drives down, and the one
  * worth reading: a fall here is state that moved onto a declared source.
  */
-export const ON_CREATE_LOADING_CEILING = 38;
+export const ON_CREATE_LOADING_CEILING = 37;
 
 /**
  * ⚠ A fact about the past: the census the day the gate landed. Never edit

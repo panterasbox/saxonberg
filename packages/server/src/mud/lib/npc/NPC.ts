@@ -43,9 +43,19 @@ export class NPC extends NPCBase {
    * pipeline's critical path beyond what `onCreate` already is: a
    * garment that fails to clone must not take the person down with it,
    * which is why `wearGarments` swallows per-garment failures.
+   *
+   * ⚠⚠ It takes and FORWARDS `context`, and until 2026-10-01 it did
+   * neither: the body was
+   * `await (super.onCreate as () => Promise<void>).call(this)` — the
+   * cast-chain dance, with the parameter dropped on the floor. So every
+   * layer below `NPC` that reads the caller-supplied clone context got
+   * `undefined` on every NPC in the game, silently. Surfaced as a type
+   * error the moment `Cast`'s own override was deleted and `Gus` and
+   * `Realtor` started chaining through here. The cast is gone too: the
+   * hook is a terminal on `Stuff` now, so TypeScript can see it.
    */
-  public override async onCreate(): Promise<void> {
-    await (super.onCreate as () => Promise<void>).call(this);
+  public override async onCreate(context?: unknown): Promise<void> {
+    await super.onCreate(context);
   }
 }
 

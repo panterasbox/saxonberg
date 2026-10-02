@@ -129,7 +129,7 @@ describe('the belief slice rides WITH the animal', () => {
 
     const reborn = makeStuffAtPath(() => new Pet(), `/stuff/agent/cat-${n++}`);
     reborn.setPersistenceKey('mouse-2');
-    void Pet.restoreSlice(reborn as never, slice, {} as never);
+    void Pet.hydrateSlice(reborn as never, slice, {} as never);
     expect(reborn.regardFor(me)).toBe(61);
   });
 });

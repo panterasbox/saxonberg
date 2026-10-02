@@ -1074,7 +1074,50 @@ strings; `lint:gates` resolves them.
 `lint:family` green; the coin go-live test passes; `grep -rn PersistentHydrator packages`
 is empty.
 
-### W5 — Hydration: the pair, the source, the driver, the first consumer
+### W5 — Hydration: the pair, the source, the driver, the first consumer ✅ DONE
+
+> **Landed.** `hydrateSlice`/`HydrateContext` renames; `HydrationSource`
+> + `HydrateOutcome` in `PersistenceSlice.ts`;
+> `PersistenceContributor.source`; `StuffApi.#hydrateFromSources` /
+> `#pendingHydration` / `#hydratingHosts` / `ensureHydrated`;
+> `BeliefStore`'s two statics + `loadFromCollection`; `Cast`'s override
+> deleted; the pack-side proof in `packages/content/energy`.
+>
+> **Two deviations from the plan, and one defect in the walk:**
+>
+> 1. ⚠ **`hydrateFromSource(host)` takes no context.** D8 gives it a
+>    `HydrateContext`, but that type is the slice framework's item
+>    RECURSION seam (`restoreItem`/`standUpKeyed`) and only
+>    `PersistableLogic` can build one — the clone pipeline has nothing to
+>    build it from. A half-populated context would be worse than none, and
+>    `BeliefStore` needs nothing but the host.
+> 2. ⚠⚠ **`getPersistenceContributors` would have dropped a source-only
+>    layer silently.** Its push condition was `ownFields.length > 0 ||
+>    hasCapture`, so a mixin declaring ONLY a source — no persistent
+>    fields, no `captureSlice` — was invisible to the walk. That is the
+>    dead-declaration failure class this whole build exists to remove,
+>    re-created in the framework meant to fix it. The walk tests for a
+>    source too, and the pack proof's fixture is deliberately that shape.
+> 3. **The census fell by both of D13's first two steps at once** — 82/38
+>    → 81/37 here, with nothing at W4, because the belief read was what
+>    made `Cast.onCreate` read as loading.
+>
+> ⭐ The ordering comment that used to sit inside `Cast.onCreate`
+> ("it runs before the dossier seed so a hydrated history is visible to
+> it") is an invariant of the pipeline now: every eager source completes
+> before `onCreate` begins.
+>
+> ⚠⚠ **And deleting that override surfaced a shipped defect in `NPC`.**
+> `NPC.onCreate` was declared `(): Promise<void>` with the body
+> `await (super.onCreate as () => Promise<void>).call(this)` — the
+> cast-chain dance, **with the clone context dropped on the floor**. So
+> every layer below `NPC` that reads the caller-supplied context got
+> `undefined`, on every NPC in the game, silently. It only became
+> VISIBLE as a type error when `Cast`'s 1-arg override went away and
+> `Gus` and `Realtor` began chaining through `NPC`'s 0-arg signature.
+> It takes and forwards `context` now, and the cast is gone with it —
+> which is the whole point of W0's terminal.
+
 
 **Goal.** The contributor framework reads capture/hydrate, a contributor
 may name its own source, the clone pipeline drives it with no record,

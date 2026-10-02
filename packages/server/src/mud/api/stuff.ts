@@ -18,6 +18,7 @@ import { ModuleApi } from './module';
 import { AsyncLocalStorage } from 'node:async_hooks';
 import { Stuff, type DestroyedObjectMetadata } from '../lib/stuff/Stuff';
 import type TemplateApplier from '../platform/idea/TemplateApplier';
+import type { HydrateOutcome } from '../lib/persistence/PersistenceSlice';
 import { TemplatePaths } from '../lib/paths';
 import { MixinApi, type AnyConstructor } from './mixin';
 import { Mixins } from '../lib/mixin';
@@ -211,6 +212,24 @@ export class StuffApi {
    * creating the lounge Warren).
    */
   static #pendingSingletons: Map<string, Promise<Stuff>> = new Map();
+
+  /**
+   * ⭐ Per-host set of LAZY hydration-source keys not yet read — the
+   * fault list `ensureHydrated()` drains.
+   *
+   * A `WeakMap` so a destructed host is collected with its entry; there
+   * is no sweep and nothing to forget. A host whose every source is
+   * eager never appears here at all.
+   */
+  static #pendingHydration: WeakMap<Stuff, Set<string>> = new WeakMap();
+
+  /**
+   * In-flight `ensureHydrated()` drains, keyed by host — so two
+   * concurrent first reads of a lazily-sourced field share ONE pass
+   * rather than each running the source. The `#pendingSingletons` shape,
+   * for the same reason.
+   */
+  static #hydratingHosts: WeakMap<Stuff, Promise<void>> = new WeakMap();
 
   /**
    * Atomically add or remove `obj` across every index. Called from
@@ -977,6 +996,11 @@ export class StuffApi {
         { kind: FrameKind.Constructor },
         async () => {
           if (hydrate) await hydrate(proxy);
+          // ⭐⭐ Every EAGER hydration source completes here, between the
+          // content step and the hook — so an `onCreate` override may
+          // rely on remembered state being present, and nothing has to
+          // read a collection from inside a lifecycle hook to get it.
+          await this.#hydrateFromSources(proxy);
           await proxy.onCreate(context);
         }
       );
@@ -995,6 +1019,115 @@ export class StuffApi {
     });
 
     return proxy;
+  }
+
+  /**
+   * ⭐⭐ **Fill the newborn from what the world remembered about it.**
+   *
+   * Walks the host's class for `PersistenceContributor`s that declare a
+   * {@link HydrationSource} and runs the eager ones now, inside the
+   * constructor frame, after the content step and before `onCreate`.
+   * A lazy one is noted on {@link #pendingHydration} for
+   * {@link ensureHydrated} to fault in later.
+   *
+   * ⚠⚠ **This runs whether or not the host has a record**, and that
+   * clause is the whole original defect. The slice half of the framework
+   * (`hydrateSlice`) is driven by `PersistableLogic.restoreState` and
+   * only when the record carries that layer's slice — so a singleton
+   * with no record was never driven at all. Every `Cast`'s regard was
+   * written through on every change since the belief store shipped and
+   * never read back once: an NPC's opinion of you reset on every
+   * restart while the records piled up in Mongo, unread.
+   *
+   * The outcome vocabulary is the mixin's to interpret
+   * ({@link HydrateOutcome}); this driver only enforces `required`. A
+   * throw propagates to `#registerAndInit`'s existing catch, which
+   * unregisters the half-built object — so a host that MUST have its
+   * memory does not enter the world without it.
+   */
+  static async #hydrateFromSources(host: Stuff): Promise<void> {
+    const contributors = MixinApi.getPersistenceContributors(
+      host.constructor as AnyConstructor
+    );
+    for (const c of contributors) {
+      const src = c.source;
+      if (!src) continue;
+      if (!src.eager) {
+        let pending = this.#pendingHydration.get(host);
+        if (!pending) {
+          pending = new Set<string>();
+          this.#pendingHydration.set(host, pending);
+        }
+        pending.add(c.key);
+        continue;
+      }
+      await this.#runSource(host, c);
+    }
+  }
+
+  /**
+   * Run one contributor's source and enforce its `required` flag.
+   * Shared by the mint-time driver and {@link ensureHydrated} so the
+   * two cannot drift on what an unreachable source means.
+   */
+  static async #runSource(
+    host: Stuff,
+    c: { key: string; source?: { name: string; required: boolean; hydrate: (h: Stuff) => Promise<HydrateOutcome> } }
+  ): Promise<void> {
+    const src = c.source;
+    if (!src) return;
+    const outcome = await src.hydrate(host);
+    if (outcome.status === 'hydrated') return;
+    if (outcome.status === 'skipped') return;
+    // `unreachable`. Optional → a recorded skip; required → the host
+    // does not come into the world.
+    if (!src.required) {
+      console.warn(
+        `StuffApi: hydration source '${src.name}' for ${c.key} on ` +
+          `${host.getTemplatePath() ?? host.stuffId} is unreachable ` +
+          `(${outcome.reason}); skipped — the source is declared optional.`
+      );
+      return;
+    }
+    throw new Error(
+      `StuffApi: hydration source '${src.name}' declared by ${c.key} is ` +
+        `required and unreachable (${outcome.reason}) for ` +
+        `'${host.getTemplatePath() ?? host.stuffId}'. The host cannot ` +
+        `enter the world without its remembered state.`
+    );
+  }
+
+  /**
+   * Run a host's **lazy** hydration sources, once, and serialised per
+   * host. The fault site a lazily-sourced mixin calls from its own async
+   * read seam; a no-op for a host with nothing pending, which is almost
+   * every host.
+   *
+   * ⚠ Framework lifecycle, which is why it is an Api static taking a
+   * host rather than a method on one: the walk is `MixinApi`'s and the
+   * pending set is the pipeline's. `StuffApi` is already on
+   * `lint:object-verbs`' exempt list for exactly this reason — nothing
+   * was added to that list.
+   */
+  public static async ensureHydrated(host: Stuff): Promise<void> {
+    const pending = this.#pendingHydration.get(host);
+    if (!pending || pending.size === 0) return;
+    const inFlight = this.#hydratingHosts.get(host);
+    if (inFlight) return inFlight;
+    const run = (async () => {
+      const contributors = MixinApi.getPersistenceContributors(
+        host.constructor as AnyConstructor
+      );
+      for (const c of contributors) {
+        if (!pending.has(c.key)) continue;
+        pending.delete(c.key);
+        await this.#runSource(host, c);
+      }
+    })().finally(() => {
+      this.#hydratingHosts.delete(host);
+    });
+    this.#hydratingHosts.set(host, run);
+    return run;
   }
 
   /**

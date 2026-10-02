@@ -179,7 +179,7 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
      *
      * Restore of the container slice is centralized in `PersistableLogic`
      * (it cross-references the Slotted slice by index), so there is no
-     * paired `restoreSlice` here.
+     * paired `hydrateSlice` here.
      */
     static captureSlice(
       host: Stuff,

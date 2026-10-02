@@ -406,7 +406,7 @@ export class ChattelLogic extends ApiLogic {
    * and the index entry. The estate half drops the owner's entry for that
    * good — and without it the owner's `_estate` map keeps an entry whose
    * good no longer exists, `Estate.captureSlice` finds it not-live and
-   * carries it into the durable slice **verbatim**, and `restoreSlice`
+   * carries it into the durable slice **verbatim**, and `hydrateSlice`
    * re-mints it on next load. Because `_chattelId` is persistent, the
    * resurrected good even came back carrying the id of a title row that
    * had been deleted. Eat a carrot, log out, log back in, carrot's there.
@@ -435,7 +435,7 @@ export class ChattelLogic extends ApiLogic {
    * not in memory, so there is no map here to edit. A good destroyed while
    * its owner is offline still resurrects on their next login.
    *
-   * The obvious total fix — have `Estate.restoreSlice` skip any entry
+   * The obvious total fix — have `Estate.hydrateSlice` skip any entry
    * whose title row is gone — was deliberately NOT taken here. It cannot
    * distinguish "no title, the good was released" from "the registry has
    * not rebuilt its index yet", and getting that wrong at restore time

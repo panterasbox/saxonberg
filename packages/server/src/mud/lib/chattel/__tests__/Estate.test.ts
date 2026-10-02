@@ -342,7 +342,7 @@ describe("release drops the owner's estate entry — the resurrection bug", () =
    * carries it forward verbatim (correct for a merely *unloaded* good —
    * see "an entry whose good is not live is carried forward verbatim"
    * above, which is the counter-case this fix must not break), so the dead
-   * good landed in the durable slice and `restoreSlice` re-minted it.
+   * good landed in the durable slice and `hydrateSlice` re-minted it.
    * `Estate._dropEstateEntry` existed for precisely this and had zero
    * callers anywhere in the tree.
    */
