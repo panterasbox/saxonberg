@@ -4034,14 +4034,23 @@ export interface CmsReadResult {
   body: string;
   /** Editor language hint: 'json' | 'typescript' | 'yaml' | 'plaintext'. */
   language: string;
-  /** Content-only: the template's EFFECTIVE backing class + hydrator (what
-   *  the row clones into), plus its parent and the resolved chain when the
-   *  row `extends` another. The editable `body` is the RAW row. Absent for
+  /** Content-only: the template's EFFECTIVE backing class (what the row
+   *  clones into), plus its parent and the resolved chain when the row
+   *  `extends` another. The editable `body` is the RAW row. Absent for
    *  source. */
   templateMeta?: {
     class: string;
     extends?: string;
     chain?: string[];
+    /**
+     * ⭐ What will FILL an instance of this row in, in the order the
+     * applier does it, plus any source the class's composition declares.
+     * Replaces the dropped `hydratorClass` (retired 2026-10-01): the
+     * question that field looked like it answered, actually answered.
+     * Each entry is already a sentence — `keywords`,
+     * `quantity (birth-only)`, `unapplied: material`, `remembers: beliefs`.
+     */
+    fill?: string[];
   };
 }
 
@@ -4508,7 +4517,14 @@ export interface TemplateWriteResult {
   disposition: StudioDisposition;
   /** The written template path when `committed`; absent on `denied`. */
   path?: string;
-  /** Human detail on `denied`. */
+  /**
+   * Human detail. On `denied`, why. ⭐ On `committed`, **what the row will
+   * actually do** — which of the author's keys the applier applies, which
+   * nobody applies, and what an instance will also be filled from. The
+   * Studio's create used to drop the row's hydrator and then apply none
+   * of the typed `data`, reporting `committed` either way; this is the
+   * line that makes the fix visible rather than merely true.
+   */
   message?: string;
 }
 

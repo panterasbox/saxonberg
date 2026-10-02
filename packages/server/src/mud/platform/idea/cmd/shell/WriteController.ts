@@ -175,6 +175,37 @@ export default class WriteController extends CommandController<WriteModel> {
       } catch (err) {
         return this.fail(context, (err as Error).message);
       }
+      // ⭐⭐ Say what nobody will apply, at the moment the author wrote
+      // it. The applier discards an undeclared key in silence, and that
+      // silence has cost real content: `material:` instead of
+      // `_materialPath:` on 49 rows across eight packs, `name:` and
+      // `description:` on the bar, a zone's whole `deposit:` orebody.
+      //
+      // ⚠ A NOTE, not a refusal. A catalogue class that parses its own
+      // row's data directly is a legitimate authoring act (~161 rows do
+      // it), so refusing here would refuse content that works.
+      const fill = await TemplateApi.describeFill({
+        path: target,
+        class: classPath,
+        extends: parentPath,
+        data: model.data,
+      });
+      if (fill.unapplied.length > 0) {
+        // ⚠ Told, not noted. The plan called for
+        // `ctx.note({ kind: 'warning', … })`, and there is no `warning`
+        // in the envelope's Note vocabulary — the 29 kinds are a closed
+        // list in `@saxonberg/types`, and minting a kind for one
+        // advisory is a wider surface change than this wave should make
+        // unasked. The author reads it on the same screen either way;
+        // `cat` carries the structured view.
+        this.tell(
+          context,
+          `\n⚠ nobody applies [${fill.unapplied.join(', ')}] — ` +
+            `the backing class declares no such field, so each is ` +
+            `discarded. If the class reads this row itself that is ` +
+            `expected; otherwise check the spelling.\n`,
+        );
+      }
       this.tell(context, `\nwrote ${target}\n`);
       return;
     }

@@ -79,6 +79,7 @@ import { Idea } from '../../lib/stuff/Idea';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type { Marshaller } from '../../lib/persistence/Marshaller';
 import { TemplatePaths } from '../../lib/paths';
+import { DiagnosticApi } from '../../api/diagnostics';
 
 type Indexable = Record<string, unknown>;
 
@@ -197,7 +198,84 @@ export default class TemplateApplier extends Idea {
         'seed',
         'seed'
       );
+      // ⭐ And say so when a key nobody will apply slipped through.
+      this.reportUnapplied(host, data, constructor);
     }
+  }
+
+  /**
+   * ⭐⭐ **A data key nobody will apply used to vanish in total silence**,
+   * and that is the single most expensive property of the old content
+   * step. Both loops `continue` on a key the class does not declare, so
+   * the author's line simply had no effect — no throw, no warning, no
+   * diagnostic. It cost `material:` on 49 rows across eight packs (a sack
+   * of wheat that was "not grain" at the mill), `name:` and
+   * `description:` on the bar, `primaryKeyword` on a family of rooms, and
+   * a zone's whole `deposit:` orebody.
+   *
+   * ⚠ It is a WARNING and not a throw, because an unapplied key is a
+   * legitimate authoring act: ~161 rows are parsed directly by a
+   * catalogue class that reads its own `data`, and refusing those would
+   * be refusing content that works. The diagnostic makes the far more
+   * common cause — a typo — visible at the `errors` verb.
+   *
+   * One record per `(templatePath, key-set)` per process: a row cloned a
+   * thousand times is one finding, not a thousand.
+   */
+  private reportUnapplied(
+    host: Stuff,
+    data: Record<string, unknown>,
+    constructor: new (...args: unknown[]) => Stuff
+  ): void {
+    const keys = Object.keys(data);
+    if (keys.length === 0) return;
+    const applied = new Set<string>([
+      ...MixinApi.getAllPersistentFields(constructor),
+      ...MixinApi.getAllInstructionFields(constructor),
+      ...MixinApi.getAllSeedFields(constructor),
+    ]);
+    const unapplied = keys.filter((k) => !applied.has(k));
+    if (unapplied.length === 0) return;
+    const path = host.getTemplatePath();
+    if (!path) return;
+    const fingerprint = `${path}|${unapplied.slice().sort().join(',')}`;
+    if (TemplateApplier.#reported.has(fingerprint)) return;
+    TemplateApplier.#reported.add(fingerprint);
+    // ⚠ No `channel` — it DERIVES from the row's path
+    // (`DiagnosticChannel.pathToChannel`), which is the point of that
+    // taxonomy: a finding about `/world/lounge/...` belongs to the
+    // lounge's channel and reaches whoever reads it, and a hardcoded
+    // `'template'` would have routed every one of these to a channel
+    // nobody subscribes to. Author attribution derives from the path too.
+    void DiagnosticApi.record({
+      path,
+      severity: 'warning',
+      message:
+        `data key(s) [${unapplied.join(', ')}] are applied by nobody: ` +
+        `${constructor.name} declares no such field, so each one is ` +
+        `discarded. If the class reads this row's data itself, this is ` +
+        `expected; otherwise check the spelling.`,
+    });
+  }
+
+  /**
+   * ⭐ Per-process de-duplication for {@link reportUnapplied}, keyed on
+   * `(templatePath, key-set)`.
+   *
+   * ⚠ A STATIC on the Api-layer side of the applier, and `#` is fine
+   * here precisely because it is static — the proxy-receiver hazard that
+   * forced `dispatchPhase` to be TypeScript `private` applies to instance
+   * members only.
+   */
+  static #reported: Set<string> = new Set();
+
+  /**
+   * Clear the per-process de-dup set. ⚠ Test seam, and it has to exist:
+   * the de-dup is deliberately process-wide, so a second test in the
+   * same file would otherwise observe nothing and pass vacuously.
+   */
+  public static _resetReportedForTesting(): void {
+    TemplateApplier.#reported.clear();
   }
 
   /**

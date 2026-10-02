@@ -22,6 +22,7 @@ import { MixinApi } from '../../../../api/mixin';
 import { SourceTreeApi, SourceTreeSandboxError } from '../../../../api/source-tree';
 import { AccessApi } from '../../../../api/access';
 import { Template } from '../../../../lib/stuff/Template';
+import { TemplateApi } from '../../../../api/template';
 import { DocumentApi } from '../../../../api/document';
 import { ZoneApi } from '../../../../api/zone';
 import type { MqlOneResult } from '../../../../api/mql';
@@ -165,6 +166,37 @@ export default class CatController extends CommandController<CatModel> {
     );
     if (inherited.length > 0) {
       lines.push(`inherited:     ${inherited.join(', ')}`);
+    }
+
+    // ⭐⭐ **What will fill an instance of this row in** — the question
+    // `cat` could not answer before. The author could see the keys they
+    // wrote; nothing told them which ones LAND, which the applier
+    // discards in silence, or that the instance will also be filled from
+    // somewhere the row never mentions.
+    const fill = await TemplateApi.describeFill({ path: tpl.path });
+    const applies = fill.applies.map((f) =>
+      f.birthOnly ? `${f.field} (birth-only)` : f.field,
+    );
+    if (applies.length > 0) lines.push(`applies:       ${applies.join(', ')}`);
+    if (fill.unapplied.length > 0) {
+      // ⚠ Not phrased as an error: a catalogue class that parses its own
+      // row is a legitimate authoring act. It says what happens.
+      lines.push(`unapplied:     ${fill.unapplied.join(', ')}  (nobody applies these)`);
+    }
+    if (fill.remembers.length > 0) {
+      lines.push(
+        `remembers:     ${fill.remembers.map((r) => r.source).join(', ')}`,
+      );
+    }
+    if (
+      applies.length === 0 &&
+      fill.unapplied.length === 0 &&
+      fill.remembers.length === 0
+    ) {
+      // ⭐ "Nothing" reads as nothing, out loud. An absent line is
+      // indistinguishable from a surface that forgot to print one, which
+      // is the whole failure mode this build is about.
+      lines.push('fills:         nothing');
     }
     this.tell(context, `\n${lines.join('\n')}\n`);
     return;

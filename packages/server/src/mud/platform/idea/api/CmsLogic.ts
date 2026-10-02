@@ -7,6 +7,7 @@ import { CallSecurity, Unshadowable } from '../../../lib/security/decorators';
 import { SecurityPolicies } from '../../../lib/security/SecurityPolicies';
 import { SourceTreeApi, SourceTreeSandboxError } from '../../../api/source-tree';
 import { TemplateApi } from '../../../api/template';
+import type { FillDescription } from '../../../api/template';
 import { HotReloadApi } from '../../../api/hot-reload';
 import { AccessApi } from '../../../api/access';
 import { ExecutionContextApi } from '../../../api/execution-context';
@@ -256,6 +257,24 @@ async function canRead(actor: Stuff | null, path: string): Promise<boolean> {
 }
 
 /**
+ * ⭐ One rendering of a {@link FillDescription}, as lines an author reads.
+ * Module-local because it is presentation for this subsystem's two REST
+ * surfaces, and because the STRUCTURE already has one home
+ * (`TemplateApi.describeFill`) — a second Api method to format it would
+ * be a thin wrapper around a `map`.
+ */
+function fillLines(fill: FillDescription): string[] {
+  const out: string[] = [];
+  for (const f of fill.applies) {
+    out.push(f.birthOnly ? `${f.field} (birth-only)` : f.field);
+  }
+  for (const key of fill.unapplied) out.push(`unapplied: ${key}`);
+  for (const r of fill.remembers) out.push(`remembers: ${r.source}`);
+  if (out.length === 0) out.push('nothing');
+  return out;
+}
+
+/**
  * CmsLogic — the hot-reloadable logic singleton behind {@link CmsApi}.
  *
  * Lives at `/platform/idea/api/cms` (a stateless `Stuff` singleton, no backing
@@ -415,6 +434,7 @@ export class CmsLogic extends ApiLogic {
           'folders have no editable body; list it instead'
         );
       }
+      const fill = await TemplateApi.describeFill({ path: tpl.path });
       return {
         backend,
         path,
@@ -430,6 +450,11 @@ export class CmsLogic extends ApiLogic {
           class: tpl.class,
           ...(tpl.extends !== undefined ? { extends: tpl.extends } : {}),
           ...(tpl.chain.length > 0 ? { chain: [...tpl.chain] } : {}),
+          // ⭐ In place of the dropped `hydratorClass`: what will actually
+          // fill an instance of this row in. The old field looked like it
+          // answered this and did not — it named a strategy, with one
+          // value, and said nothing about which of the author's keys land.
+          fill: fillLines(fill),
         },
       };
     }

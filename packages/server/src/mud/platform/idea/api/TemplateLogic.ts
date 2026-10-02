@@ -12,7 +12,11 @@ import { Template, type TemplateSpec } from '../../../lib/stuff/Template';
 import { ZoneTemplate } from '../../../lib/stuff/ZoneTemplate';
 import { LeafTemplate } from '../../../lib/stuff/LeafTemplate';
 import { StuffApi } from '../../../api/stuff';
-import { MixinApi } from '../../../api/mixin';
+import type {
+  FillDescription,
+  FillField,
+} from '../../../api/template';
+import { MixinApi, type AnyConstructor } from '../../../api/mixin';
 import { Mixins } from '../../../lib/mixin';
 import { TemplateError } from '../../../lib/stuff/TemplateError';
 import { ReservedTemplatePrefixes } from '../../../lib/paths';
@@ -410,6 +414,77 @@ export class TemplateLogic extends ApiLogic {
   @CallSecurity(TemplateApiCallers)
   public ancestorPaths(path: string): string[] {
     return Template.ancestorPaths(path);
+  }
+
+  /** See {@link TemplateApi.describeFill}. */
+  @CallSecurity(TemplateApiCallers)
+  public async describeFill(spec: {
+    path?: string;
+    class?: string;
+    extends?: string;
+    data?: Record<string, unknown>;
+  }): Promise<FillDescription> {
+    // The EFFECTIVE class and data: a child states only what differs, so
+    // asking a class-less row what fills it has to follow the chain.
+    let cls = spec.class;
+    let data = spec.data ?? {};
+    if (spec.path !== undefined && (cls === undefined || spec.data === undefined)) {
+      const tpl = await Template.findByPath(spec.path);
+      if (tpl) {
+        cls = cls ?? (tpl.class || undefined);
+        data = spec.data ?? (tpl.data ?? {});
+      }
+    }
+    if (cls === undefined && spec.extends !== undefined) {
+      const parent = await Template.findByPath(spec.extends);
+      cls = parent?.class || undefined;
+    }
+    if (!cls) {
+      return { applies: [], unapplied: Object.keys(data), remembers: [] };
+    }
+
+    let ctor: AnyConstructor;
+    try {
+      ctor = (await StuffApi.loadClassByPath(cls)) as AnyConstructor;
+    } catch {
+      // An unresolvable class is the clone pipeline's error to raise, with
+      // its own message. Here it only means we cannot say what applies —
+      // and saying nothing is better than saying "nothing applies", which
+      // would read as a finding about the row.
+      return { applies: [], unapplied: [], remembers: [] };
+    }
+
+    const meta = MixinApi.getAllFieldMeta(ctor) as Record<
+      string,
+      { persistent?: true; instruction?: true; seed?: true; birthOnly?: true }
+    >;
+    const applies: FillField[] = [];
+    const unapplied: string[] = [];
+    for (const key of Object.keys(data)) {
+      const entry = meta[key];
+      if (entry?.persistent) {
+        applies.push({
+          field: key,
+          phase: entry.seed ? 'seed' : 'property',
+          birthOnly: entry.birthOnly === true,
+        });
+      } else if (entry?.instruction) {
+        applies.push({ field: key, phase: 'instruction', birthOnly: false });
+      } else if (entry?.seed) {
+        applies.push({ field: key, phase: 'seed', birthOnly: false });
+      } else {
+        unapplied.push(key);
+      }
+    }
+
+    // ⭐ What the world will REMEMBER about an instance of this row, as
+    // its composition declares it — the other half of "what fills this
+    // in", and the half an author had no way to see at all.
+    const remembers = MixinApi.getPersistenceContributors(ctor)
+      .filter((c) => c.source !== undefined)
+      .map((c) => ({ mixin: c.key, source: c.source!.name }));
+
+    return { applies, unapplied, remembers };
   }
 
   /** See {@link TemplateApi.restoreFromTemplate}. */

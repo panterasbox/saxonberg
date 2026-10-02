@@ -613,7 +613,13 @@ describe('StudioLogic.createTemplate', () => {
 
     expect(out.disposition).toBe('committed');
     expect(out.path).toBe('/world/parlor/my-coin');
-    expect(out.message).toBeUndefined();
+    // ⭐ The `committed` message says WHAT THE ROW WILL DO (W7). It used
+    // to be `undefined`, and the silence was the problem: the Studio's
+    // create dropped the row's hydrator entirely, so it saved, reported
+    // `committed`, and then applied none of the `data` the author had
+    // just typed. The class here is unresolvable in this suite, so
+    // `describeFill` honestly reports nothing rather than guessing.
+    expect(out.message).toBe('fills nothing');
     // The class + data were passed straight to the saveTemplate chokepoint.
     expect(save).toHaveBeenCalledWith('/world/parlor/my-coin', {
       class: '/stuff/thing/Coin',
