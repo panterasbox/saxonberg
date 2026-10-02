@@ -1536,5 +1536,39 @@ passing quietly.
 
 ### Run 2 — the second boot, against the database run 1 left
 
-*(the acceptance check for risk 2: a reconcile that settles)*
+✅ **Risk 2's acceptance check, met.** The plan's wording was *"the
+acceptance check is that the second boot reports zero."*
+
+```
+PersistenceManager: 1973 content row(s) resident
+PackApi: 'platform' installed — 0 inserted, 0 updated, 0 deleted, 53 kept, …
+… (53 packs)
+Σ across all 53 packs:  inserted=0  updated=0  deleted=0
+BootstrapManager: bootstrapped 108 entries (23 already resident, reused)
+AppBootstrap: world open — the cast may act
+errors in the boot log: 0
+```
+
+⭐ **1,973 rows resident**, which is the figure the plan estimated at
+~1,970 — so the first boot installed every row with the key gone, and the
+second reconciled **nothing**. The preimage change costs exactly one
+re-hash of the whole tree and then settles, which is what makes a
+drop-and-reboot a sufficient answer and a migration unnecessary.
+
+⚠ The boot log's only findings are the 18 pre-existing *"ships N class(es)
+no row of any installed pack names"* notices — dead code in a pack, which
+that gate calls a review finding and which this build neither caused nor
+touched.
+
+### What is still a BROWSER walk, and why
+
+Not deferred — unreachable from a socket, each for a stated reason:
+
+| step | why a socket cannot | where the mechanism is driven |
+|---|---|---|
+| 1 — create a data-bearing row through the Studio form | REST, and `write -c`'s `data` is a structured payload the harness cannot send | `StudioLogic.test.ts` (the create's message names what the row applies) |
+| 3 — be told at write time | same payload limit | `WriteController` + `template.describeFill.test.ts` |
+| 4, 5, 9 — a real server RESTART | one boot per wire run, by design | `belief/__tests__/persistence.test.ts` (destruct + re-mint recovers the regard), `KeptAnimalPersistence.test.ts` |
+| 7 — a restart between two clones | same | `TemplateApplier.seedOnce.test.ts` |
+| 8 — the coin's CMS go-live | REST write + go-live | ⚠⚠ `template.snapshotRestore.test.ts` — a live stack at 500 survives a row authoring 1, through the real `restoreFromTemplate`, while an ordinary edit still lands |
 
