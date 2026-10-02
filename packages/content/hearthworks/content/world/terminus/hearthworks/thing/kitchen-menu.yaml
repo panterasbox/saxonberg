@@ -3,7 +3,6 @@
 # priced to be climbable: toasted rations near-free, the fine roast a
 # treat.
 class: /platform/thing/Menu
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: kitchen board
   keywords: [board, menu, kitchen-board, kitchen]

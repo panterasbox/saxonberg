@@ -12,7 +12,6 @@
 #   - a **16 mm** ball, so penetration ≈ 3.7 and plate's `resist` falls
 #     toward `fail`. The same plate turns a sword thrust all day.
 class: /platform/thing/equipment/Launcher
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: flintlock musket
   keywords: [musket, flintlock, gun, firearm]

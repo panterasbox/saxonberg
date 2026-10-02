@@ -2,7 +2,6 @@
 # `sharpen` (the working-surface ritual); it wears with use and the store
 # sells the next one. Granite, with an Audible rasp the room hears.
 class: /trade/smithing/thing/Whetstone
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: whetstone
   keywords: [whetstone, stone, hone]

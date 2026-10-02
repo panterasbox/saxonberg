@@ -1,7 +1,6 @@
 # Grappa — pomace through the still (P11): the historically honest
 # byproduct spirit, a margin lesson for a small house.
 class: /platform/idea/material/ConsumableMaterial
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: grappa
   keywords: [grappa]

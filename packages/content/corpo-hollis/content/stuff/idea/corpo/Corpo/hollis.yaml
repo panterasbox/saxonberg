@@ -1,5 +1,4 @@
 class: /platform/idea/corpo/Corpo
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   key: hollis
   label: Hollis

@@ -31,7 +31,6 @@
 # `rosterSlots` stays empty and honest; the seat is here so a player the
 # Warden swears in has somewhere to be sworn to.
 class: /platform/idea/Organization
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   # The frontier's own body holds this ground (pack.yaml's title claim),
   # so the committee over it appoints — nobody owns a watch.

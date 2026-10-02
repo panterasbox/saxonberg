@@ -18,7 +18,6 @@
 # Resolution is `rest` — it clears on its own as the reserves refill
 # through ordinary metabolism, so nobody has to build a cure for it.
 class: /platform/idea/Condition
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: recovering
   # ⭐⭐ **Dying makes you worse at EVERYTHING, for a while, and writes

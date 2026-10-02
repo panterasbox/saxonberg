@@ -3,7 +3,6 @@
 # `BulkableApi.transfer` (the `fill`/pour verb path). Its budget is large
 # enough to read as a fixed refill station rather than a carried supply.
 class: /platform/thing/Receptacle
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: air compressor
   keywords: [compressor, air]

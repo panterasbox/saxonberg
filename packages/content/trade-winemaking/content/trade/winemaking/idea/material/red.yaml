@@ -1,6 +1,5 @@
 # Red wine — winemaking's. Category tags `wine`, `red`.
 class: /platform/idea/material/ConsumableMaterial
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: red wine
   keywords: [red, wine]

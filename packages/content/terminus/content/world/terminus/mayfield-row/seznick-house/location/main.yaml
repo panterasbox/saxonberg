@@ -1,7 +1,6 @@
 # A unit's main room — built-ins only (a hearth alcove and shelving in
 # the prose; furniture is the tenant's own). Empty at move-in (D9).
 class: /platform/location/FurnishableRoom
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   # ⭐ Daylight reaches this room through a real opening, and the
   # opening is named so the claim is something a player can walk up

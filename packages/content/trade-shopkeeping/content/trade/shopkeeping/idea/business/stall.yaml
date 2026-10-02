@@ -6,7 +6,6 @@
 # the operating location (their minted counter). Never stood up as
 # itself.
 class: /platform/idea/Business
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: "a market stall"
   appointingAuthority:

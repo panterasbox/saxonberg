@@ -1,6 +1,5 @@
 # Coffee — cooking's (the brew is a hearth's). The base-library row retires in phase 5. Tag `coffee`.
 class: /platform/idea/material/Material
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: coffee
   keywords: [java, coffee, brew]

@@ -13,7 +13,6 @@
 # cot's `restQuality` was 0.7 — worse for recovery than open ground, the
 # inversion the build set out to fix.
 class: /platform/thing/Chair
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: low cot
   keywords: [cot, bed, bunk, low]

@@ -6,7 +6,6 @@
 #
 # `Chest` is the shipped openable-container class; the doors stand open.
 class: /platform/thing/Chest
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: tall dressing cabinet
   keywords: [cabinet, dressings, bandages, cupboard, tall, dressing]

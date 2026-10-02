@@ -2,7 +2,6 @@
 # uses — it names the plant it grows into and carries no variation of
 # its own.
 class: /platform/thing/Seed
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: packet of madder seed
   keywords: [seed, seeds, packet, "madder seed", madder, alizarin]

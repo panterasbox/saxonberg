@@ -26,7 +26,6 @@
 # that line — so geology, engineering, the tech ladder and the economics
 # all put the cut in one place and the scope needs no defending.
 class: /system/ground/idea/Deposit
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: ferrow
   # Slate over granite. ⭐ The band is not decoration: a heading in slate

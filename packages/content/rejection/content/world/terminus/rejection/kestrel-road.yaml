@@ -14,7 +14,6 @@
 # outward walk is what makes `measure strike` work at the yard gate as
 # well as in the yard.
 class: /platform/idea/location/CartesianZone
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: The Kestrel Road
   cellSize: 20.0

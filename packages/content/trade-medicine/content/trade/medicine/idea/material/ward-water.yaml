@@ -1,6 +1,5 @@
 # Ward-water — the antibiotic (D10). Steeped from wardmoss.
 class: /platform/idea/material/Material
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: ward-water
   keywords: [ward-water, draught, antibiotic, wardmoss]

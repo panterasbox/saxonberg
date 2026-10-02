@@ -1,6 +1,5 @@
 # The floor bottle of soda water — 1 L, at target in the bottling stock.
 class: /platform/thing/Bottle
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: "bottle of soda water"
   keywords: [soda, soda-water, fizz, bottle, mixer, water]

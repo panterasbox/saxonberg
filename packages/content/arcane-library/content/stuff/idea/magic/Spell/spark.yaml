@@ -3,7 +3,6 @@
 # shared pools bridge, ground sinks). The caster obeys their own physics —
 # stand in the same puddle and the walk finds you too.
 class: /platform/idea/magic/Spell
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   spellId: spark
   name: Spark

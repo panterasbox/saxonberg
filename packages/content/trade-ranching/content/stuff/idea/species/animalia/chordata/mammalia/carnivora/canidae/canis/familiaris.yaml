@@ -17,7 +17,6 @@
 # and it keeps deer off the crop. All three are the same animal being
 # where it is.
 class: /platform/idea/species/Species
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   binomial: Canis familiaris
   commonNames: ["dog", "collie", "sheepdog", "hound", "bitch"]

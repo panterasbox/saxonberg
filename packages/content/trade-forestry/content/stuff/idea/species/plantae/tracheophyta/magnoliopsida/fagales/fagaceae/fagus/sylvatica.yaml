@@ -3,7 +3,6 @@
 # hard timber that splits clean — the best firewood, and never a post.
 # In the vocabulary for the wood it yields; no venue stands it yet.
 class: /platform/idea/species/Species
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   binomial: Fagus sylvatica
   commonNames: ["beech", "common beech"]

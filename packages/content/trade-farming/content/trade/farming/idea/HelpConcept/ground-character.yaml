@@ -1,6 +1,5 @@
 # ⭐⭐ D55, said to the player: character prices the WORK, not the yield.
 class: /platform/idea/HelpConcept
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   key: ground-character
   title: What ground is like

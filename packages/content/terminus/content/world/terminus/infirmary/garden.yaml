@@ -2,7 +2,6 @@
 # grows its simples (D10). Walkable from the ward; harvest by hand, steep
 # in the pot, and the autarkist has their whole drug supply.
 class: /platform/location/SingletonCartesianLocation
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: physic garden
   keywords: [garden, physic]

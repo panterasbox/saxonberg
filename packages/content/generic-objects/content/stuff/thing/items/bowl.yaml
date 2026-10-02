@@ -3,7 +3,6 @@
 # it a bowl rather than a plate is the one word `category`, which is what
 # a recipe's output row names and what the house counts by.
 class: /platform/thing/Dish
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: bowl
   keywords: [bowl, dish, serving]

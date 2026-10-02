@@ -5,7 +5,6 @@
 # (scheduled-refill) wells are deferred; ∞ is the simpler demonstration.
 # Holds coffee.
 class: /platform/thing/UnboundedReceptacle
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: coffee urn
   keywords: [coffee, urn]

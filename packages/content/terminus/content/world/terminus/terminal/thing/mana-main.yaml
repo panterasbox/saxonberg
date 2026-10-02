@@ -13,7 +13,6 @@
 # is the whole difference between a thing somebody can fix by opening a
 # valve and a thing somebody has to repair.
 class: /system/arcana/thing/ManaMain
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   seatIn: /world/terminus/terminal/location/arrival-gate
   shortDescription: district mana line

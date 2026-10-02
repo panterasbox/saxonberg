@@ -6,7 +6,6 @@
 # (Container), never a `Bottle`. It has no `closure` — that scale is
 # the bulk domain's.
 class: /platform/thing/Crate
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: empty crate
   keywords: [crate, box, empty]

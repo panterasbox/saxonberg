@@ -3,7 +3,6 @@
 # for an hour on the bank, which is why a lifted pot is full of live
 # crabs and not dead ones.
 class: /platform/idea/species/Species
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   binomial: Carcinus maenas
   commonNames: ["shore crab", "crab"]

@@ -7,7 +7,6 @@
 # then plainly present and takeable. Pure upside — the obvious reward waits in
 # the vault regardless, so no critical content sits behind this perception wall.
 class: /platform/thing/Good
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: mortar-chinked stash pouch
   keywords: [pouch, mortar-chinked, stash]

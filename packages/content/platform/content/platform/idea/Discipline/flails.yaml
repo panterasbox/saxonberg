@@ -8,7 +8,6 @@
 # offense↔defense axis, and learning it is learning to live without a
 # guard.
 class: /platform/idea/Discipline
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   key: flails
   channel: skill

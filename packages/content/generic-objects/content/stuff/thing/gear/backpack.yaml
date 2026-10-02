@@ -3,7 +3,6 @@
 # surcharge) and leaves the hands free, versus carrying it loose.
 # transmissionFactor omitted ⇒ 1.0 (a plain pack transmits full weight).
 class: /platform/thing/equipment/Pack
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: canvas backpack
   keywords: [backpack, canvas]

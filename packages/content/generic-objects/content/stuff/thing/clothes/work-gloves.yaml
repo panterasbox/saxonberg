@@ -8,7 +8,6 @@
 # the seam, when somebody wants it, is the covering stack's own encumbrance
 # axis rather than anything in this trade.
 class: /platform/thing/equipment/Garment
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: pair of work gloves
   keywords: [gloves, "work gloves", gauntlets]

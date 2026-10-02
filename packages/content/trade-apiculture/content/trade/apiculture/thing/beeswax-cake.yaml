@@ -4,7 +4,6 @@
 # what was already there. The honey goes in the jar and this is the rest
 # of the comb.
 class: /platform/thing/Thing
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   keywords: [wax, beeswax, cake, block]
   shortDescription: cake of beeswax

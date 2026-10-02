@@ -11,7 +11,6 @@
 # is why clover honey and cherry-blossom honey taste different with no row
 # authored for either.
 class: /platform/thing/Provision
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: frame of capped comb
   keywords: [comb, honeycomb, frame, honey]

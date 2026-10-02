@@ -16,7 +16,6 @@
 # novice firing this genuinely outperforms that novice casting, which is
 # the point of the whole class.
 class: /system/arcana/thing/Wand
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: slender ashwood wand
   keywords: [wand, slender, ashwood]

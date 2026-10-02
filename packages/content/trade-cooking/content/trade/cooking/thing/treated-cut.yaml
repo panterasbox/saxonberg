@@ -12,7 +12,6 @@
 # so a treated cut of beef is still beef and can be treated again — dry
 # the one you salted and the hurdles multiply.
 class: /platform/thing/Provision
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: treated cut of meat
   keywords: [cut, meat, treated, cured, salted, dried, smoked]

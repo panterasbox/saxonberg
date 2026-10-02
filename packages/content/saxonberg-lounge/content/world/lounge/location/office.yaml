@@ -13,7 +13,6 @@
 # unlock (concealment-detection Phase 3). The south exit back out is plain
 # and visible.
 class: /platform/location/SingletonCartesianLocation
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   # ⚠ `coords:` is the MEMBERSHIP operation — `setCoords` is the only way
   # an authored row joins a zone. North of the bar, matching the exit pair that already named the direction.

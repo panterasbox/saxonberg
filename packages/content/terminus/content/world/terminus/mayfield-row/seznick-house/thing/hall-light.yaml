@@ -4,7 +4,6 @@
 # terminus-mayfield:mayfield, and it goes dark the second a cut upstream, a dead
 # source, or an off-grid declaration takes the power away.
 class: /system/energy/thing/ElectricLight
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: hall light
   keywords: [light, lamp, bulb, fixture, hall-light]

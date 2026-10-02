@@ -4,7 +4,6 @@
 # fills as patrons tip — inspectable, so you can watch it fill. Populated onto
 # the bar's rail by the Bar seed's `props` list.
 class: /platform/thing/TipJar
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: tip jar
   keywords: [tip-jar, jar, tips, tip]

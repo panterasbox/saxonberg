@@ -16,7 +16,6 @@
 # state. The class stands itself up at registration from its own ground —
 # which is exactly what makes authoring one possible without code.
 class: /trade/farming/location/Field
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   fieldName: the home field
   shortDescription: home field

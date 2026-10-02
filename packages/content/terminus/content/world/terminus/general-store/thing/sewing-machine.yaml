@@ -5,7 +5,6 @@
 # floors every repair at that band (skill embedded in the capital).
 # 18 kg: shop capital by encumbrance, not the pocket kind.
 class: /platform/thing/MendingTool
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: treadle sewing machine
   keywords: [sewing-machine, machine, sewing, treadle]

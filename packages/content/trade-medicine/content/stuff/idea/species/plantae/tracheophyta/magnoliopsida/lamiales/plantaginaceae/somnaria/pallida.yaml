@@ -3,7 +3,6 @@
 # whole fiction is ours, invented backwards from "surgery needs a way to
 # put a patient under."
 class: /platform/idea/species/Species
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   binomial: Somnaria pallida
   commonNames: ["greywort"]

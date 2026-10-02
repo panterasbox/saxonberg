@@ -4,7 +4,6 @@
 # willingness, calibrated to the store's ladder (a knife the store sells
 # at 6 is 15 bespoke — provenance carries worth).
 class: /platform/thing/Menu
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: chalked slate of smith-work
   keywords: [slate, board, menu, price-board, chalked, smith-work]

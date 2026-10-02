@@ -1,7 +1,6 @@
 # A saline bag — half a litre of salt water, the untyped volume floor
 # (blood build). `transfuse` reads salt-water as an expander.
 class: /platform/thing/Receptacle
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: bag of saline
   keywords: [bag, saline, salt, water]

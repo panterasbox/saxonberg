@@ -12,7 +12,6 @@
 # interop case: a steel layer is armour against lime and NO armour against
 # vitriol, and the covering fold reads exactly that off this one list.
 class: /platform/idea/material/Material
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: vitriol
   keywords: [vitriol, acid]

@@ -12,7 +12,6 @@
 # is why it needs no separate `repair` affordance: a thing that can sew
 # a coat together can obviously mend one.
 class: /trade/tailoring/thing/SewingTool
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: needle-case
   keywords: [needle-case, needlecase, case, needle, needles, thread]

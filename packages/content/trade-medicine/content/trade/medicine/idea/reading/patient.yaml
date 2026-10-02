@@ -12,7 +12,6 @@
 #
 # ⭐ The pack ships the row and the class; the platform names neither.
 class: /trade/medicine/idea/reading/PatientReading
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   channel: patient
   kind: fact

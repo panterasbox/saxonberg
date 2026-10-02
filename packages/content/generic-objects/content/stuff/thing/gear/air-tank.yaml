@@ -4,7 +4,6 @@
 # empties underwater the body falls into the supply-exhausted crisis.
 # Refill via `BulkableApi.transfer` from a dive-shop air source.
 class: /platform/thing/AirTank
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: air tank
   keywords: [tank, air]

@@ -15,7 +15,6 @@
 # ⭐ It is also the entry rung's shape: a crate goes on a back or in a
 # barrow, so the smallest posted job needs no capital.
 class: /platform/thing/Crate
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: supply crate
   keywords: [crate, box, case, consignment, supply]

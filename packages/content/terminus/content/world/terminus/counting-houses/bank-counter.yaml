@@ -18,7 +18,6 @@
 # backed 1:1 by the branch's own operating balance), so early withdrawals work
 # before customer deposits accumulate.
 class: /platform/thing/BankCounter
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: Goodkin teller counter
   keywords: [goodkin, counter, teller, desk, window, till, grille]

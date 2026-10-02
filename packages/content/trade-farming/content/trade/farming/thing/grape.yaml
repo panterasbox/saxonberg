@@ -2,7 +2,6 @@
 # its own material, the prime-cut shape). D8: it ships ahead of its
 # consumer — the wine press is a later distilling build.
 class: /platform/thing/Provision
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: bunch of grapes
   keywords: [grapes, grape, bunch, produce]

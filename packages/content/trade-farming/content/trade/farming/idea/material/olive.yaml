@@ -1,6 +1,5 @@
 # Olive — produce's food material; tag `olive` is the recipe category (a garnish slot, a press's item slot, the par sheet).
 class: /platform/idea/material/ConsumableMaterial
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: olive
   keywords: [olive]

@@ -19,7 +19,6 @@
 # overrides: this label, and an arrival room that was already redundant. TPA
 # reform P6 retired it — a bespoke string is authored content, not a class.
 class: /system/tpa/thing/TpaTerminal
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   seatIn: /world/lounge/idea/warren
   shortDescription: Teleport Authority terminal

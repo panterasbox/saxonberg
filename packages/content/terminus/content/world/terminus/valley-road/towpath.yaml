@@ -3,7 +3,6 @@
 # Still at the city's elevation (35 m, inherited from `/world/terminus`).
 # The climb has not begun.
 class: /platform/location/SingletonCartesianLocation
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: towpath
   keywords: [towpath]

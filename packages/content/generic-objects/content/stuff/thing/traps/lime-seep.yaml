@@ -19,7 +19,6 @@
 # the answer exists and is a walk away — which is the shape a consequence
 # should have.
 class: /platform/thing/Trap
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: seep of white crust
   keywords: [seep, crust, lime, quicklime, caustic, white]

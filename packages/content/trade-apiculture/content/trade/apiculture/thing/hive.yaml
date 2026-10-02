@@ -11,7 +11,6 @@
 # `broodVolumeM3` plus whatever supers are in it — derived from contents,
 # so `put super in hive` is the supering act and there is no verb for it.
 class: /trade/apiculture/thing/Hive
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   keywords: [hive, beehive, box, "bee hive"]
   shortDescription: pine beehive

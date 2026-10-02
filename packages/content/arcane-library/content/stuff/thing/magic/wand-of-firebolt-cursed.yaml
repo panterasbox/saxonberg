@@ -22,7 +22,6 @@
 # kind of thing for stock purposes, and a separate bucket would let a
 # player read BUC off the census.
 class: /system/arcana/thing/Wand
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: slender ashwood wand
   keywords: [wand, slender, ashwood]

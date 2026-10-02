@@ -6,7 +6,6 @@
 # `interiorCapacity: 4` litres; fill it from a tank or a standpipe. A
 # bowl of fouled water is a bowl a fish does not breathe in.
 class: /platform/thing/Feeder
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: glass fish bowl
   register: indefinite

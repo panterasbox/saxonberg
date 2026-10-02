@@ -4,7 +4,6 @@
 # and the two fats have different smoke points, which is what makes the
 # choice between them a real one.
 class: /trade/cooking/thing/KitchenTool
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: fruit press
   keywords: [press, fruit-press, juicer, fruit]

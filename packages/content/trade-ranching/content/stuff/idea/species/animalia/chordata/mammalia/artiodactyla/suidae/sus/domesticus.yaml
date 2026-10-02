@@ -7,7 +7,6 @@
 # It is the clearest instance in the build of a byproduct finding its
 # consumer rather than a consumer being invented for it.
 class: /platform/idea/species/Species
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   binomial: Sus domesticus
   commonNames: ["pig", "sow", "boar", "hog", "piglet", "swine"]

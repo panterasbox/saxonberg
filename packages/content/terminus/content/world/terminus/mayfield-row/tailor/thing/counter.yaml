@@ -13,7 +13,6 @@
 # pulling one without the others breaks the wage/price consistency that
 # makes them teach anything.
 class: /platform/thing/AttendancePoint
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: "tailor's counter"
   keywords: [counter, desk, tailor, "tailor's"]

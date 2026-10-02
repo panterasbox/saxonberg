@@ -6,7 +6,6 @@
 # floor's durability lives on its persistable fixtures (the Stock), and the
 # consigned casks ride those, respawning each boot.
 class: /platform/location/SingletonCartesianLocation
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   # ⚠ `coords:` is the MEMBERSHIP operation — the only way an authored row
   # joins its zone (the oilworks sub-zone beside it).

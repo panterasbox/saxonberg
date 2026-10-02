@@ -2,7 +2,6 @@
 # crate; the difference is entirely the row's words, which is the
 # honest way to ship two things that behave identically.
 class: /platform/thing/Crate
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: wicker basket
   keywords: [basket, wicker, empty]

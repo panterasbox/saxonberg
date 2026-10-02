@@ -6,7 +6,6 @@
 # splits and swarms supply themselves, which is why this is ONE stocked
 # line and not nine.
 class: /trade/apiculture/thing/Colony
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   keywords: [nucleus, nuc, bees, colony]
   shortDescription: nucleus of bees

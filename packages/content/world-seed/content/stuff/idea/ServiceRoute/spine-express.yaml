@@ -10,7 +10,6 @@
 # Wharfside quay and the valley crossroads, which is where the wheeled
 # road ends and bulk breaks.
 class: /system/transport/idea/ServiceRoute
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   key: spine-express
   name: the express

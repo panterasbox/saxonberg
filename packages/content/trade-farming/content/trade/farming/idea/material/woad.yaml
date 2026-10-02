@@ -9,7 +9,6 @@
 # alum, and the trade refuses it rather than silently ignoring it —
 # because the point is that dyeing is TWO chemistries, not one.
 class: /platform/idea/material/Material
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: woad
   keywords: [pastel, woad, indigotin]

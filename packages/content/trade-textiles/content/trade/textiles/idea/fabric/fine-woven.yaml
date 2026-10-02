@@ -4,7 +4,6 @@
 # breaks a wind (windproofing derives from `weaveDensity`, so nobody
 # authors "this is a shell") and takes far longer to wear through.
 class: /platform/idea/material/Fabric
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   key: fine-woven
   layerBand: 0

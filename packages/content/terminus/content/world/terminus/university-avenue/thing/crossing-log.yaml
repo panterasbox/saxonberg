@@ -8,7 +8,6 @@
 # `startingCount` folds in the souls seen across before this page began.
 # Generic object: Visible.shortDescription, never Named.
 class: /world/terminus/university-avenue/thing/CrossingLog
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: crossing-log clipboard
   keywords: [log, clipboard, tally, ledger, crossing-log]

@@ -4,7 +4,6 @@
 # the first thing a new player has a REASON to buy, and the reason is
 # legible before the purchase.
 class: /platform/thing/PlantPot
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: large clay pot
   keywords: [pot, "large pot", "clay pot", planter, large, clay]

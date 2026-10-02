@@ -11,7 +11,6 @@
 # when the lobby's south exit hydrates (bidirectional default for
 # cardinals).
 class: /platform/location/SingletonCartesianLocation
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   _biomePath: /stuff/idea/biome/outdoor/baseline
   _address: terminus/city/campus/duncan-hall

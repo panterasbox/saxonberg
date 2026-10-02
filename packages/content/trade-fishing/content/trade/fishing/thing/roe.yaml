@@ -1,7 +1,6 @@
 # Roe — the eggs, a cut of their own off a fish in season. Rich, and it
 # will not keep: the same clock as the flesh, a smaller mass.
 class: /platform/thing/Provision
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: skein of roe
   keywords: [roe, eggs, skein, fish]

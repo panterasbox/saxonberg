@@ -17,7 +17,6 @@
 # *whose claim is this* directly. The mapping is the workaround for keyed
 # members not having distinct paths, and it is honest to say so.
 class: /trade/mining/idea/MineWarren
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: Ferrow diggings
   register: definite

@@ -5,7 +5,6 @@
 # a bowl can hold and a name can be given to. Its handling ceiling is
 # where a fish stops being wild.
 class: /platform/idea/species/Species
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   binomial: Cyprinus carpio
   commonNames: ["carp"]

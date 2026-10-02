@@ -5,7 +5,6 @@
 # 2026-07-12: the arrival alcove and this dead gate swapped ends so the
 # terminal's north frontage opens onto University Avenue).
 class: /platform/location/SingletonCartesianLocation
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: Departure Gate C
   keywords: [c, departure, gate]

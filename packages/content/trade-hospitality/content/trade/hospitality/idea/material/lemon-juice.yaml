@@ -1,7 +1,6 @@
 # Fresh lemon juice — house-made (the `press-lemon` recipe's authored output
 # material). Tag `lemon-juice` is what a sour slot matches.
 class: /platform/idea/material/ConsumableMaterial
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: lemon juice
   keywords: [lemon, lemon-juice, juice]

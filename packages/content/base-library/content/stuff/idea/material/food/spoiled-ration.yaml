@@ -5,7 +5,6 @@
 # into the digestion pool, which absorbs into the burden over time —
 # leaving a window to `vomit` it before it absorbs.
 class: /platform/idea/material/ConsumableMaterial
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: spoiled ration
   keywords: [spoiled, ration, food]

@@ -2,7 +2,6 @@
 # consigning hand takes it from. No `stockLines` and no prices: nothing
 # is sold here.
 class: /trade/shopkeeping/thing/Stock
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: "mill's stock"
   keywords: [stock, bolts, shelf, "mill's", mill]

@@ -7,7 +7,6 @@
 # collection (the pack manifest's title claim), the governing security
 # invariant.
 class: /platform/idea/location/CartesianZone
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: Mayfield & Co.
   cellSize: 3.0

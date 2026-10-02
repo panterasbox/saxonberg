@@ -20,7 +20,6 @@
 # itself this far along — and that is the honest price of the ground
 # nobody had taken.
 class: /trade/mining/location/AuthoredWorking
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   _biomePath: /stuff/idea/biome/outdoor/baseline
   shortDescription: open ground at the far fringe

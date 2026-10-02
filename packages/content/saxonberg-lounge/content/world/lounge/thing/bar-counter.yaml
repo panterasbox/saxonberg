@@ -7,7 +7,6 @@
 # subsystem the bank and the ticket office do. `order`/`serve`/`mix` stay the
 # payload (afforded by the Menu); this fixture is the wrapping.
 class: /platform/thing/AttendancePoint
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: bar
   keywords: [counter, bar]

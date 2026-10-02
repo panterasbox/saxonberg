@@ -1,7 +1,6 @@
 # The brewhouse board — the brewery's work board (the cellar book's
 # sibling): lights `order`, unpriced. Zero new verbs.
 class: /platform/thing/Menu
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: brewhouse board
   keywords: [board, chalkboard, "brew board", brewhouse]

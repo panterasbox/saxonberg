@@ -15,7 +15,6 @@
 # exact inversion of every other channel in the game and the reason
 # corrosion exists as its own fold.
 class: /platform/idea/material/Material
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: quicklime
   description: >-

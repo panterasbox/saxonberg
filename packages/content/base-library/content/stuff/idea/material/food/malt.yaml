@@ -6,7 +6,6 @@
 # The mash recipes match the `malt` tag; the sack that carries it at
 # the distributor is `/trade/distribution/thing/malt-sack`.
 class: /platform/idea/material/ConsumableMaterial
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: malt
   keywords: [grain, malt, "malted barley"]

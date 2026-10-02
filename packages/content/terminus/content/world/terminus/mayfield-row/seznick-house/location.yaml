@@ -33,7 +33,6 @@
 # would be walked straight past and every unit room would land back in
 # the street's zone — which is the failure this fixes.
 class: /platform/idea/location/CartesianZone
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: Seznick House units
   cellSize: 3.0

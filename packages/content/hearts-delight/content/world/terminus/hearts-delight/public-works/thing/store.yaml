@@ -12,7 +12,6 @@
 # ⚠ `_materialPath` (oak, the shed's timber) is stated on the ROW so the store
 # carries mass — a `FuelStore` reaches `TangibleMixin` (lint:mass).
 class: /system/energy/thing/FuelStore
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: oil store
   keywords: [store, oil, shed, casks]

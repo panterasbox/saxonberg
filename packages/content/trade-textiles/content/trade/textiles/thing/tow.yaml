@@ -4,7 +4,6 @@
 # spins into coarse yarn, twists into rope, and stuffs a mattress. A
 # chain whose off-cuts vanish has quietly stopped being an economy.
 class: /trade/textiles/thing/TextileStock
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: wad of tow
   keywords: [tow, wad, short, fibre]

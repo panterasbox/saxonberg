@@ -6,7 +6,6 @@
 # stays a bare `Thing` — composing Feeder would claim an animal feeds from
 # it, and nothing does.
 class: /platform/thing/Feeder
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: long wooden trough
   register: indefinite

@@ -5,7 +5,6 @@
 # resolves here; a `narnia/other/...` scope falls back to Narnia; a
 # scope outside the `narnia` tree resolves to no Locality (global).
 class: /platform/idea/Locality
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: Lantern Waste
   _address: narnia/wild

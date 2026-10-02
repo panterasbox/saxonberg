@@ -5,7 +5,6 @@
 # capability entry alone confers the smithing verb surface (the
 # capability table — a tool variant is pure seed data).
 class: /trade/smithing/thing/Anvil
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: smithy anvil
   keywords: [anvil, stump, smithy]

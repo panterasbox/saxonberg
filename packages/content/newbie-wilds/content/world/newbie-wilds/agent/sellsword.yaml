@@ -23,7 +23,6 @@
 # shows your formation + role; the interception mints her nothing (brain)
 # but yours would mint `command`.
 class: /platform/agent/Mercenary
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
   lifecycleState: alive

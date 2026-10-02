@@ -19,7 +19,6 @@
 # rung of this channel's ladder was in the world and unreachable; this
 # wires it rather than minting a rival.
 class: /trade/mining/thing/instrument/AssayBench
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: assay bench
   keywords: [bench, "assay bench", cupel]

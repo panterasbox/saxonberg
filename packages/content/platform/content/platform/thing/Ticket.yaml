@@ -6,7 +6,6 @@
 # path and the number are still patched on after the clone: those are
 # the runtime state a factory legitimately supplies.
 class: /platform/thing/Ticket
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: coat-check ticket
   register: indefinite

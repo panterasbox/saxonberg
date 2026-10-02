@@ -5,7 +5,6 @@
 # shipped behaviour (the Hearthworks pantry chest is the exemplar); the
 # archetype just depends on it now. Seeded open, so `cook` works at home.
 class: /platform/thing/Chest
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: larder
   keywords: [larder, pantry, cupboard, chest]

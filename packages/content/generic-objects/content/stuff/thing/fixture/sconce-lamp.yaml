@@ -10,7 +10,6 @@
 # it persists owner-side and comes off the wall with you when a lease
 # ends (residences D11).
 class: /generic-objects/thing/SconceLamp
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: brass wall sconce
   keywords: [sconce, lamp, light, wall, brass]

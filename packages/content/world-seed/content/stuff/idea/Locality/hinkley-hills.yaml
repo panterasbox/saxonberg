@@ -19,7 +19,6 @@
 # boot. A `domain/`-homed seed would never register, and the departures
 # board would fall back to a generic label.
 class: /platform/idea/Locality
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: Hinkley Hills
   _address: terminus/hinkley-hills

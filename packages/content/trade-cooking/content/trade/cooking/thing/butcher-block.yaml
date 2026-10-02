@@ -5,7 +5,6 @@
 # reach (any `bladed` construction — a boning knife, a clasp knife); the
 # block is how you learn the verb exists by walking into a kitchen.
 class: /trade/cooking/thing/ButcherBlock
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: butcher's block
   keywords: [block, butcher, butchers-block, bench, "butcher's"]

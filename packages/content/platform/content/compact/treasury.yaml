@@ -18,7 +18,6 @@
 # Realm `ooc`: the Treasury is the meta's, not a body inside the fiction
 # (the city keeps its own Treasurer). Visibility `members`.
 class: /platform/idea/Organization
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   appointingAuthority:
     kind: office

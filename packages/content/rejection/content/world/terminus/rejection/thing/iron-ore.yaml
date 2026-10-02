@@ -12,7 +12,6 @@
 # pool into one heap with an averaged grade. Two ores, two piles, two
 # prices at the counter.
 class: /trade/mining/thing/Ore
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: lump of rusty ironstone
   keywords: [ore, ironstone, rock, lump, goethite, rusty]

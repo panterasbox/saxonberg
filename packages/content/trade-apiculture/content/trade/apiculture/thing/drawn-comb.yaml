@@ -6,7 +6,6 @@
 # it on wax — which is what `combDrawn` is, and the hive reads it when
 # this arrives (`Hive.onContainableAdded`).
 class: /platform/thing/Thing
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   keywords: [comb, "drawn comb", frame, wax]
   shortDescription: frame of drawn comb

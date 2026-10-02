@@ -26,7 +26,6 @@
 # ⚠ nowhere near `bright`, which is why you cannot judge grade by eye
 # down here and why the Assay Shed is a surface room.
 class: /platform/thing/equipment/PortableLight
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: bed of glowcap in a niche
   keywords: [glowcap, niche, fungus, light, bed]

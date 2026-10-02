@@ -16,7 +16,6 @@
 # Delight's upper bench grows one of them and the flats grow fruit.
 # Nobody authors that comparison; it falls out of three numbers.
 class: /platform/idea/species/Species
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   binomial: Triticum aestivum
   commonNames: ["wheat", "bread wheat", "corn"]

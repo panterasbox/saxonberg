@@ -3,7 +3,6 @@
 # floor when no vessel is offered). Downstream physics is honest — it
 # wets, it conducts, it douses.
 class: /platform/idea/magic/Spell
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   spellId: conjure-water
   name: Conjure Water

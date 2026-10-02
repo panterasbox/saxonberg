@@ -17,7 +17,6 @@
 # verb here is band-locked, and authoring the tech ladder ahead of
 # demand is the thing the trades doctrine forbids.
 class: /platform/idea/Discipline
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   key: textiles
   channel: skill

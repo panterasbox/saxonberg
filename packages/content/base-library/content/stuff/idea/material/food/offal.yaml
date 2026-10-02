@@ -7,7 +7,6 @@
 # because it will not keep until tomorrow. A higher activation energy
 # means it answers more steeply to warmth.
 class: /platform/idea/material/ConsumableMaterial
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: offal
   keywords: [offal, organ, liver, lights, pluck]

@@ -13,7 +13,6 @@
 # the reason a water tower and an aqueduct are both worth building, and
 # `analyze water the intake` will tell you the kilowatts.
 class: /system/water/thing/Conduit
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: city intake
   keywords: [intake, mouth, screen, pillar, waterworks, city]

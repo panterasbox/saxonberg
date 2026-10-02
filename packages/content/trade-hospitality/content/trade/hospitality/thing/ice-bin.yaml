@@ -2,7 +2,6 @@
 # interior is bottling's ice). A recipe's `ice:` draws from it; the keeper
 # refills it from bagged ice. Starts empty: ice is bought.
 class: /trade/hospitality/thing/IceBin
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: ice bin
   keywords: [bin, ice-bin, ice]

@@ -7,7 +7,6 @@
 # store's `itemTemplatePath` takes any path, and duplicating it under
 # `goods/` would mean two seeds that grow the same plant and drift apart.
 class: /platform/thing/Seed
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: peace lily seed
   keywords: [seed, "lily seed", "peace lily seed", peace, lily]

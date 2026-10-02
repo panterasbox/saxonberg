@@ -5,7 +5,6 @@
 # ends: the manure while it lived and the bone when it did not, which is
 # as complete as a cycle gets and needed no new substance to say so.
 class: /platform/thing/Provision
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: heap of bone
   keywords: [bone, bones, heap]

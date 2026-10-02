@@ -1,5 +1,4 @@
 class: /platform/idea/material/Material
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: greywort root
   keywords: [greywort, root, herb]

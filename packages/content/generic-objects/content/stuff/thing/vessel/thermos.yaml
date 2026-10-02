@@ -5,7 +5,6 @@
 # Gus's won't-open thermos (that's a deliberate prop, banked by intent) —
 # a plain substrate fixture.
 class: /platform/thing/Flask
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: steel thermos
   keywords: [steel, thermos, flask]

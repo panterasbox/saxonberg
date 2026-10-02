@@ -3,7 +3,6 @@
 # the rock went: a lump of ore is mostly not ore, and the heap outside a
 # smelter is the visible proof.
 class: /platform/thing/Provision
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: lump of cooled slag
   keywords: [slag, dross, lump, cooled]

@@ -3,7 +3,6 @@
 # where the hay fire lives: a stack put up wet heats, and this is what it
 # heats.
 class: /platform/thing/Thing
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: hay barn
   keywords: [barn, hay]

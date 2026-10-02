@@ -5,7 +5,6 @@
 # units go dormant, and the durable slot set reconstitutes the shape.
 # Capacity is the operator's `mayfield.unitCap` dial over the shipped 8.
 class: /system/residence/idea/BuildingWarren
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   programmePath: /world/terminus/mayfield-row/seznick-house/unit-programme
   corridorTemplate: /world/terminus/mayfield-row/seznick-house/corridor

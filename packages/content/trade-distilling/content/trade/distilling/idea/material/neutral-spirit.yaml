@@ -5,7 +5,6 @@
 # material — an ignited spill burns, which is what a still-house
 # respects.
 class: /platform/idea/material/ConsumableMaterial
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: neutral spirit
   keywords: [spirit, "neutral spirit", neutral]

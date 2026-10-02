@@ -10,7 +10,6 @@
 # a domain-dir seed would never register and the board would fall back to
 # "a Teleport Authority terminal". templatePath ≠ claimed address.
 class: /platform/idea/Locality
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: Terminus
   _address: terminus

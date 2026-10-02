@@ -4,7 +4,6 @@
 # authored bare + marshalled; the thermal value feeds algor-mortis
 # cooling when the Thermal capability lands.
 class: /platform/idea/material/Material
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: muscle
   keywords: [muscle]

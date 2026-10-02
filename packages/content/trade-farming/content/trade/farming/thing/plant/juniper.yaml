@@ -3,7 +3,6 @@
 # hardest thing here to kill and the slowest to reward you.
 # No moisture reserve — the water lives in the ground (see peace-lily).
 class: /platform/thing/Plant
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: juniper bush
   keywords: [juniper, bush, plant]

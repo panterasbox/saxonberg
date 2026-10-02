@@ -11,7 +11,6 @@
 # convenience costs. A player who does the sums walks their gear down the
 # Delight.
 class: /platform/thing/Tariff
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: mending slate
   keywords: [mending, slate, repairs, tariff]

@@ -24,7 +24,6 @@
 # and a chain nobody can buy into. The metal chain put it best: supply
 # must not be a function of concurrency.
 class: /trade/shopkeeping/thing/Stock
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: "mill's bale store"
   keywords: [bales, bale-store, store, flax, delivery, "mill's", mill, bale]

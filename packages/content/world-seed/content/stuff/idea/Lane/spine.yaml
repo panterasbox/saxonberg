@@ -22,7 +22,6 @@
 #
 # `stops: []` — every node is a stop. An ordinary road is not a service.
 class: /system/transport/idea/Lane
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   key: spine
   name: the spine

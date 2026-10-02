@@ -5,7 +5,6 @@
 # whoever is standing at it. A second depot in a second town is this
 # file again with a different `carrierPath`, and zero pack code.
 class: /trade/haulage/thing/DepotCounter
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: depot counter
   keywords: [counter, desk, shipping, depot]

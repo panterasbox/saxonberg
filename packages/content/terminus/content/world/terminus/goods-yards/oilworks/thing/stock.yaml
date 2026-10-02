@@ -3,7 +3,6 @@
 # faucet, never a reset), no prices (nothing is sold here — the hand carries
 # the casks to the cash-and-carry and consigns them).
 class: /trade/shopkeeping/thing/Stock
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: "oil works stock"
   keywords: [stock, casks, oil, pallet]

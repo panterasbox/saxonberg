@@ -3,7 +3,6 @@
 # ThermalApi.reconcilePhase; the seed is deliberately generic (no default
 # material). Re-meltable (Meltable + Thermal).
 class: /platform/thing/Casting
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: cast lump
   keywords: [cast, casting, lump]

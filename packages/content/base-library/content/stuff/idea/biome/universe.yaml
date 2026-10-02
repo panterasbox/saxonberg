@@ -5,7 +5,6 @@
 # at boot — the chain's terminal step (step 6) consults this biome.
 # `_defaultWind` is calm (0 m/s) by default; windy biomes override.
 class: /platform/idea/Biome
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: universe
   _defaultTemperature: { value: 295, unit: K }

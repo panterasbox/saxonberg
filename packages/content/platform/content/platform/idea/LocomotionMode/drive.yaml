@@ -1,7 +1,6 @@
 # Drive — passthrough mode. The driver doesn't traverse on their own;
 # the Drivable host engages its vehicularMode for the traversal.
 class: /platform/idea/LocomotionMode
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: drive
   requiresBodyPlanMode: []

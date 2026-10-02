@@ -15,7 +15,6 @@
 # the trade: the mine digs through it and the potter has an opinion about
 # it, whether or not anybody is farming.
 class: /platform/idea/material/Material
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: marl
   keywords: [marl]

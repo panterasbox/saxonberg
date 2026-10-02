@@ -8,7 +8,6 @@
 # imperatively by the DormWarren. A plain non-coordinate Location; generic
 # label, no Named.
 class: /world/terminus/eternal/duncan-hall/location/Corridor
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   _address: terminus/city/campus/duncan-hall
   shortDescription: dorm corridor

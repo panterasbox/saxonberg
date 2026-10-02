@@ -2,7 +2,6 @@
 # second species. Same shape as the peace-lily seed; only the plant it names
 # differs.
 class: /platform/thing/Seed
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: snake plant seed
   keywords: [seed, "snake plant seed", "snake seed", snake, plant]

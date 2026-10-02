@@ -2,7 +2,6 @@
 # residual sugar referments SEALED where it stands; what comes off the
 # tap is naturally carbonated. `sealedOnly`: an open cask just breathes.
 class: /platform/idea/maturation/MaturationProfile
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   key: cask-conditioning
   mechanism: microbial

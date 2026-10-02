@@ -8,7 +8,6 @@
 # docs/staging/eternal-university/npcs/medical-examiner.md (Dr. Vance)
 # and docs/slates/builds/species-expansion-slate.md.
 class: /platform/idea/species/Species
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   illustration: species/ghulius.png
   binomial: Homo ghulius

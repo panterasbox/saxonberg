@@ -4,7 +4,6 @@
 # driver taps a worn tank whose interior material name is in the body's
 # breathable set (`air`). Not breathable-as-food; a gas.
 class: /platform/idea/material/Material
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: air
   keywords: [air]

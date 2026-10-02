@@ -1,7 +1,6 @@
 # The still-house mash tun — the wash's capital (content is copied;
 # the brewer's row, the distiller's copy).
 class: /platform/thing/Tool
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: scarred mash tun
   keywords: [tun, "mash tun", scarred, mash]

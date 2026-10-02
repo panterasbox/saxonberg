@@ -5,7 +5,6 @@
 # has no bearer. Nothing fills up, charges rent or turns anyone away.
 # What ships is the RECEIPT and the DUTY. See the warehousing non-goal.
 class: /trade/haulage/thing/Warehouse
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: goods shed
   keywords: [shed, warehouse, store, goods]

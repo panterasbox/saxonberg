@@ -2,7 +2,6 @@
 # place rather than as a season: somewhere out of the weather is what
 # makes a hard winter survivable.
 class: /platform/thing/Thing
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: low stone byre
   keywords: [byre, low, stone]

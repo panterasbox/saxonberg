@@ -15,7 +15,6 @@
 # earns its keep: below 12 °C the survivors simply sit there. Cool it fast
 # and the whole mechanism never starts.
 class: /platform/idea/Condition
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: perfringens poisoning
   # ⭐⭐ The hydration drain, MOVED OUT OF CODE. It used to be

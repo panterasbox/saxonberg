@@ -8,7 +8,6 @@
 # lands you at the treeline); a duelling-stone holds a knife he takes up.
 # Carries the Last-Counted-Mile locality address like its siblings.
 class: /platform/location/SingletonCartesianLocation
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: hollow full of fog
   keywords: [hollow, full, fog]

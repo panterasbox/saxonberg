@@ -5,7 +5,6 @@
 # scythe mows, and the two are not interchangeable at either end. An open
 # vocabulary, so a later sickle, reaper or mower answers the same string.
 class: /platform/thing/Tool
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   keywords: [scythe, snath]
   shortDescription: scythe

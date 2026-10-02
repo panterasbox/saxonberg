@@ -6,7 +6,6 @@
 # dead for everybody. It is `measure elevation` now, and this is the
 # thing that takes it.
 class: /platform/thing/Tool
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: brass sextant
   keywords: [sextant, arc, mirror]

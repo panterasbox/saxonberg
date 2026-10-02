@@ -15,7 +15,6 @@
 # because a honeybee is a fact about the world and belongs in the commons;
 # quarrying ships `/stuff/thing/clay-pot` the same way.
 class: /platform/idea/species/Species
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   binomial: Apis mellifera
   commonNames: ["bee", "honeybee", "bees"]

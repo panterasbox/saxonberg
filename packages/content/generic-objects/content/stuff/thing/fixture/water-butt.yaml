@@ -12,7 +12,6 @@
 # so a kitchen with no water source cannot boil, which is correct and
 # would otherwise be an accident.
 class: /platform/thing/WaterFixture
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: water butt
   keywords: [water-butt, butt, barrel, cask, water, rainwater]

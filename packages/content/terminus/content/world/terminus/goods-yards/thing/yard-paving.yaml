@@ -8,7 +8,6 @@
 # fixtures are in the `reachable` scope, so the floor and its details bind
 # exactly as they did when the room owned them.
 class: /platform/thing/Floor
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: worn yard cobbles
   keywords: [cobbles, cobble, paving, floor, ground, stone, setts]

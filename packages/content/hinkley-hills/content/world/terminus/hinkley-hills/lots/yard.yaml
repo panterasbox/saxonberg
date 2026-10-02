@@ -28,7 +28,6 @@
 # singleton-shaped. It authors no `air` reserve, which is exactly what
 # "outdoors" means to FireLogic.
 class: /platform/location/FurnishableRoom
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: yard behind the house
   keywords: [yard, behind, house]

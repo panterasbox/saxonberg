@@ -3,7 +3,6 @@
 # into `/trade/forestry/thing/plant/oak-standard`: fifteen game years to
 # a standard, stated on that row.
 class: /platform/thing/Seed
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: acorn
   keywords: [acorn, seed, oak, nut]

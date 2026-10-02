@@ -4,7 +4,6 @@
 # a master ring). The born-with (empty) keychain record comes from
 # Key.defaultCredentialKinds.
 class: /platform/thing/Key
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: key
   keywords: [key]

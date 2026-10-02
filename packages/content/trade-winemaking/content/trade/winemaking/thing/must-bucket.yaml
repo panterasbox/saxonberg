@@ -4,7 +4,6 @@
 # Portable by design: the recipe output must land in someone's arms,
 # never mint into the vat directly.
 class: /platform/thing/CraftVessel
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: must bucket
   keywords: [bucket, tub, "must bucket", must]

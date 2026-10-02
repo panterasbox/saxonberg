@@ -4,7 +4,6 @@
 # one above the dyer. What it buys is FIT PRECISION, which is knowledge
 # about a specific body rather than throughput.
 class: /platform/idea/Business
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: "the tailor's shop"
   appointingAuthority:

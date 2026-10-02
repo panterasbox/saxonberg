@@ -3,7 +3,6 @@
 # It proves the last mechanical channel `edge` — the slashing seam — and
 # it is the lightest of the force workings, because air is cheap to move.
 class: /platform/idea/magic/Spell
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   spellId: windrazor
   name: Windrazor

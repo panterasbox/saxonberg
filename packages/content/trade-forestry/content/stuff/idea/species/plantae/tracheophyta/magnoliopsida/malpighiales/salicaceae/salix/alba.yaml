@@ -3,7 +3,6 @@
 # the toughest here — the bat, the basket, the withy. Dioecious. In the
 # vocabulary for the wood it yields; a riverbank is where it belongs.
 class: /platform/idea/species/Species
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   binomial: Salix alba
   commonNames: ["willow", "white willow"]

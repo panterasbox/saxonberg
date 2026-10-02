@@ -4,7 +4,6 @@
 # the declared next crafting wave), so the Transcript simply fills
 # honestly ahead of it.
 class: /platform/idea/Discipline
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   key: smithing
   channel: skill

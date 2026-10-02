@@ -1,6 +1,5 @@
 # Cranberry juice — bottling's (the press is produce's fruit; the bottled juice is the bottling floor's). Category tag `cranberry-juice`.
 class: /platform/idea/material/ConsumableMaterial
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: cranberry juice
   keywords: [juice, cranberry, cranberry-juice]

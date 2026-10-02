@@ -9,7 +9,6 @@
 # are self-service; a market clerk is a later hire the positions list is
 # ready for.
 class: /platform/idea/Business
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: "the farmers market"
   # City-run: the committee over the ground it operates on (the market

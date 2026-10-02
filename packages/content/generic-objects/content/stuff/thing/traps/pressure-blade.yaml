@@ -5,7 +5,6 @@
 # novice notices it and steps around, a running one barrels in (the care-speed
 # demonstrator's run/walk case). It trips; it does not block.
 class: /platform/thing/Trap
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: pressure-plate sweep blade
   keywords: [blade, pressure-plate, sweep]

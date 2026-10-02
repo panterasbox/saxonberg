@@ -14,7 +14,6 @@
 # ⚠ Cheaper than white, on the counter — not here. The bakery prices it;
 # the extraction is why: nothing was thrown away to make it.
 class: /trade/baking/thing/Loaf
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: wholemeal loaf
   keywords: [loaf, bread, wholemeal, brown]

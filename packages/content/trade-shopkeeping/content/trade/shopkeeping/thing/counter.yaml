@@ -8,7 +8,6 @@
 # clones this into a derived venue, and a consignor can sell across it on
 # the day it stands up.
 class: /trade/shopkeeping/thing/Stock
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: shop counter
   keywords: [counter, shop, till]

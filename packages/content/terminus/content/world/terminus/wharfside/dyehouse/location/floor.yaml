@@ -4,7 +4,6 @@
 # is EVENNESS, and evenness is a service performed on cloth you bring.
 # `discipline: line` — bring cloth, wait your turn.
 class: /platform/location/SingletonCartesianLocation
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   coords:
     x: 0

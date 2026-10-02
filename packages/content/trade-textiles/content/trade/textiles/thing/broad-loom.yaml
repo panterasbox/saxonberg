@@ -4,7 +4,6 @@
 # more rows at higher rates rather than more code. `weave`'s decision is
 # the same decision in a mill.
 class: /trade/textiles/thing/Loom
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: broad loom
   keywords: [broadloom, broad-loom, loom, wide, broad]

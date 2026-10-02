@@ -29,7 +29,6 @@
 # be locked out of. Two places, because one farm hand is a curiosity and
 # two is a job anybody can walk into.
 class: /platform/idea/Business
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: "the university farm"
   appointingAuthority:

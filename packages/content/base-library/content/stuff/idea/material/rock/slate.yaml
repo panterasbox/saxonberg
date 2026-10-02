@@ -10,7 +10,6 @@
 # same reason granite's does — the mineral rows exist now, but a slate
 # is a graded continuum of them, not a recipe.
 class: /platform/idea/material/Material
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: slate
   keywords: [slate]

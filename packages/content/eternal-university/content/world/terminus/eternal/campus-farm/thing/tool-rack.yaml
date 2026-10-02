@@ -19,7 +19,6 @@
 # ⚠ It is a FIXTURE. A rack you could pocket would be the obvious way
 # around all of the above.
 class: /trade/farming/thing/ToolRack
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: tool rack
   keywords: [rack, tools, pegs, tool]

@@ -11,7 +11,6 @@
 # cross-pack), and carried by the property managers whose term owes the
 # shell — Katie for the dorm, Walter for Seznick House.
 class: /system/residence/thing/HouseholdersKit
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: householder's kit
   keywords: [kit, householder, householders, tools, box, putty, "householder's"]

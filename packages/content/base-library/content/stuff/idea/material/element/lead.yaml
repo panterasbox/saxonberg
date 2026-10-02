@@ -14,7 +14,6 @@
 # matter. Soft (hardness 38) and not much use for anything you would hit
 # with.
 class: /platform/idea/material/Material
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: lead
   keywords: [lead]

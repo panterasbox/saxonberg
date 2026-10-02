@@ -3,7 +3,6 @@
 # reading `getBodyPlan()` never null-checks, the result is a real
 # BodyPlan whose surfaces are all empty.
 class: /platform/idea/species/BodyPlan
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: sessile
   slots: []

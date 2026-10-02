@@ -20,7 +20,6 @@
 # alighting is `out`, and a passenger holds no engagement at all — the
 # journey is the driver's `hands`.
 class: /system/transport/thing/Coach
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: road coach
   keywords: [coach, carriage, cab, road]

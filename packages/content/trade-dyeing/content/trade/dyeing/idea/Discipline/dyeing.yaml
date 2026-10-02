@@ -15,7 +15,6 @@
 # `apothecary`: extraction is apothecary's business, but **fastness is
 # nobody else's**.
 class: /platform/idea/Discipline
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   key: dyeing
   channel: skill

@@ -14,7 +14,6 @@
 # A carcass that had been lying in the sun is a different animal, and the
 # arithmetic for it is the same one — see the `butcher` verb's help.
 class: /platform/agent/Corpse
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   _speciesPath: /stuff/idea/species/hog
   lifecycleState: dead

@@ -12,7 +12,6 @@
 # used and why the pastel trade made towns rich in a way madder never
 # did.
 class: /platform/idea/species/Species
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   binomial: Isatis tinctoria
   commonNames: ["woad", "dyer's woad", "pastel"]

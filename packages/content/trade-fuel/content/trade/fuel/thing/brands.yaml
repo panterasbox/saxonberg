@@ -5,7 +5,6 @@
 # is not waste and it is not charcoal; it is the visible, gradable record
 # of a judgment call that went one way.
 class: /platform/thing/Provision
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: heap of half-burnt brands
   keywords: [brands, brand, "half-burnt wood", heap, half-burnt]

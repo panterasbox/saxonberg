@@ -6,7 +6,6 @@
 # The `distribution` counter is a faucet and is honest precisely because
 # it admits to being one; this is not, and must not become one.
 class: /platform/location/SingletonCartesianLocation
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: barn
   keywords: [barn, store, threshing]

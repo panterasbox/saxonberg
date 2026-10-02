@@ -8,7 +8,6 @@
 # at the hall counter — a little parlor↔hall movement is the design). Halloran
 # is a `populate`; the enrollment tree is his brain config, not its own Stuff.
 class: /platform/location/SingletonCartesianLocation
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: Goodkin Circle parlor
   keywords: [parlor, goodkin, circle]

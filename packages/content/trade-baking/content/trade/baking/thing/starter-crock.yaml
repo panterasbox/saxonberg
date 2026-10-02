@@ -3,7 +3,6 @@
 # Pitching is `pour`: the strain-transfer seam is the shipped one, so a
 # baker feeds and pitches a starter with verbs that already existed.
 class: /platform/thing/Vat
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: starter crock
   keywords: [crock, starter, levain, leaven, sourdough]

@@ -26,7 +26,6 @@
 # `operator: ""` — nobody runs it. It is the mine's own iron, laid by
 # whoever cut the adit, and free to anybody standing at either end.
 class: /system/transport/idea/Lane
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   key: ferrow-tram
   name: the Ferrow tramway

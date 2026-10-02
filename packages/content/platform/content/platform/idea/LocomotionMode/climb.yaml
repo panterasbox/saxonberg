@@ -2,7 +2,6 @@
 # the destination still composes Climbable (or contains a Climbable);
 # otherwise transient.
 class: /platform/idea/LocomotionMode
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: climb
   speed: 0.5

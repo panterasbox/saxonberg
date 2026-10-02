@@ -1,7 +1,6 @@
 # The undertaking — a working business, not a civic office. Somebody digs
 # the ground, somebody cuts the stone, and both are paid for it.
 class: /platform/idea/Business
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: "the necropolis"
   appointingAuthority:

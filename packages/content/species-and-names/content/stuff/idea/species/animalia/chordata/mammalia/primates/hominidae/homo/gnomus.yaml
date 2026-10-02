@@ -3,7 +3,6 @@
 # eyes and a long, inquisitive life. Playable. See
 # docs/slates/builds/species-expansion-slate.md.
 class: /platform/idea/species/Species
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   illustration: species/gnomus.png
   binomial: Homo gnomus

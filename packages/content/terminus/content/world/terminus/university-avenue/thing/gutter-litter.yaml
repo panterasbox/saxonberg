@@ -2,7 +2,6 @@
 # bin. Generic object (Visible.shortDescription, never Named); pick it up,
 # read it, drop it in the bin. Its readable face is a Detailed sub-feature.
 class: /platform/thing/Good
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: crumpled ticket stub
   keywords: [stub, crumpled, ticket]

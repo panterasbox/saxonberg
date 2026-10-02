@@ -9,7 +9,6 @@
 # free, because a stranded traveller is a problem and Tootie does not care for
 # problems. Human (canon).
 class: /world/terminus/terminal/agent/TicketClerk
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: Tootie
   keywords: [tootie, ticket, clerk]

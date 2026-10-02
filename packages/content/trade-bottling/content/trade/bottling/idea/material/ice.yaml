@@ -1,6 +1,5 @@
 # Ice — frozen water, bottling's row (bagged ice is a bottling-floor product). Tag `ice` is what the ice bin is recognised by and what a recipe's `ice:` draws from.
 class: /platform/idea/material/Material
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: ice
   keywords: [ice]

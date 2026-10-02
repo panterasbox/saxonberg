@@ -4,7 +4,6 @@
 # for anyone, but a thief gets only the sheet — `house stock` reads the
 # principal, money authority stays the wallet's.
 class: /platform/thing/Tablet
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: house tablet
   keywords: [tablet, house-tablet, screen, house]

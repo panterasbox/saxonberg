@@ -5,7 +5,6 @@
 # smith, comes back as a pick head, and gets swung at the ground it came
 # out of — with a real sink at the end, because picks wear out.
 class: /platform/location/SingletonCartesianLocation
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: smelter
   keywords: [smelter, furnace, works]

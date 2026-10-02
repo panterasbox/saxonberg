@@ -10,7 +10,6 @@
 # when you read it. An `identify` affordance would announce what you
 # were holding just by appearing in your list.
 class: /platform/idea/magic/Spell
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   spellId: identify
   name: Identify

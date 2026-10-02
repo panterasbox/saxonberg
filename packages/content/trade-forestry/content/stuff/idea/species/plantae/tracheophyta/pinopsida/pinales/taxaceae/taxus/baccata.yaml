@@ -4,7 +4,6 @@
 # fact for the physiology build and the ranching pack's browse, not for
 # the wood. In the vocabulary for the wood it yields.
 class: /platform/idea/species/Species
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   binomial: Taxus baccata
   commonNames: ["yew", "English yew"]

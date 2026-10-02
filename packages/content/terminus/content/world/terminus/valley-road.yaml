@@ -20,7 +20,6 @@
 # 130 m at the stop. Everything the suburb's water problem consists of
 # is in that hundred metres.
 class: /platform/idea/location/CartesianZone
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: The Valley Road
   cellSize: 6.0

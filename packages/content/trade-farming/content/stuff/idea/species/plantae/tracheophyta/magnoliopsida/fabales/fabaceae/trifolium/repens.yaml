@@ -10,7 +10,6 @@
 # ⚠ It was implicit in three decisions and unstated in all of them.
 # Naming it was a correction, not an addition.
 class: /platform/idea/species/Species
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   binomial: Trifolium repens
   commonNames: ["clover", "white clover", "trefoil"]

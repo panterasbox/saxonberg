@@ -3,7 +3,6 @@
 # (the metabolism/anaesthesia Condition carries the effect + prescription
 # gate). Fiction ours; honest mechanism.
 class: /platform/idea/material/Material
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: grey-draught
   keywords: [grey-draught, draught, anaesthetic, greywort]

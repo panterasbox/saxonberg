@@ -38,7 +38,6 @@
 # The name is the town's, and the town is named for what the ground did
 # to the people who came here first.
 class: /platform/idea/location/CartesianZone
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: Rejection
   cellSize: 10.0

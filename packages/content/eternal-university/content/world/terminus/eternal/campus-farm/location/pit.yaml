@@ -21,7 +21,6 @@
 # Reached by going `down` from the yard, which is the only way anybody
 # ever gets into one.
 class: /platform/location/SingletonCartesianLocation
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: slurry pit
   keywords: [pit, slurry, tank, midden]

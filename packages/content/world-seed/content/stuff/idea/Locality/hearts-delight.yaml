@@ -35,7 +35,6 @@
 # public-works department, a Warden of the Ways). Everything else about the
 # valley's governance is still open.
 class: /platform/idea/Locality
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: Heart's Delight
   _address: terminus/hearts-delight

@@ -5,6 +5,5 @@
 # inheritance is the mechanism, not an oversight: tightening a
 # namespace is adding one field to its seed, and needs no code.
 class: /platform/idea/WikiNamespaceZone
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: main

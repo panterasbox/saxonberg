@@ -6,7 +6,6 @@
 # reads as plain bread rather than as white bread, which is honest:
 # not knowing what it is made of is not the same as being pale.
 class: /trade/baking/thing/Loaf
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: loaf of bread
   keywords: [loaf, bread]

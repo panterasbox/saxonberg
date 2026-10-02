@@ -10,7 +10,6 @@
 # comes back the wrong way (the self-arm backfire below). The band ladder
 # is magnitude on the covering-fold token, as every channel spell carries.
 class: /platform/idea/magic/Spell
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   spellId: stonefist
   name: Stonefist

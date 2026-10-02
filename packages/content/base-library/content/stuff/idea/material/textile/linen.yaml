@@ -15,7 +15,6 @@
 # cloth. The dyeing trade reads this tag; nothing else distinguishes a
 # plant fibre from a protein one.
 class: /platform/idea/material/Material
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: linen
   keywords: [flax, linen]

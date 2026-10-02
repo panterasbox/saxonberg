@@ -17,7 +17,6 @@
 # runs out is a simplification everybody can see. The FARM is the source
 # node that can run out.
 class: /trade/shopkeeping/thing/Stock
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: bread counter
   keywords: [counter, bread, loaves, till, shelf]

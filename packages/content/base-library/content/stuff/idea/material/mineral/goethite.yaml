@@ -22,7 +22,6 @@
 # the bloomery, and the fuel technology to hold that heat is the rung
 # above copper.
 class: /platform/idea/material/Material
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: goethite
   keywords: [goethite, ironstone, gossan]

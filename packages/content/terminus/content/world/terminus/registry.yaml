@@ -7,7 +7,6 @@
 # managed `terminus` group; mud/config/parcels.yaml), the governing
 # security invariant.
 class: /platform/idea/location/CartesianZone
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: Terminus Registry
   cellSize: 3.0

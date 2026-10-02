@@ -9,7 +9,6 @@
 # for ~8 game days and runs dry at ~12 — a daily player tops it up right as
 # it starts to dip. See docs/subsystems/husbandry.md.
 class: /platform/thing/Plant
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: peace lily
   keywords: [lily, "peace lily", plant, houseplant, peace]

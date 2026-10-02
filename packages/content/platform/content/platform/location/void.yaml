@@ -12,10 +12,10 @@
 # this row is what makes it true. Mid-air and mid-water rooms will use the
 # same field: *a place with no floor is a place you cannot stand.*
 class: /platform/location/VoidLocation
-# ⚠⚠ `hydratorClass` is REQUIRED the moment `data:` carries a key — with no
-# hydrator NOTHING hydrates and every key is silently discarded, so the
-# opt-out below would have been dead text of exactly the kind it replaces.
-# `lint:instanceable` invariant 6 caught it in the same commit.
-hydratorClass: /platform/idea/persistence/PersistentHydrator
+# ⭐ The opt-out below reaches the instance because the row has `data`.
+# It once needed a `hydratorClass` line to say so, and without one every
+# key was silently discarded — the opt-out would have been dead text of
+# exactly the kind it replaces. `lint:instanceable` invariant 6 caught
+# that in the same commit; the invariant retired with the field.
 data:
   noDefaultFloor: true

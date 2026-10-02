@@ -34,7 +34,6 @@
 # [authored-vs-procedural-slate](../../../../../../docs/slates/builds/authored-vs-procedural-slate.md),
 # which this and the glowcap together forced.
 class: /platform/idea/location/CartesianZone
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: the Ferrow diggings
   cellSize: 10.0

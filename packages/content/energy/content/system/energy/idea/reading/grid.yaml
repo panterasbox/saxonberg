@@ -5,7 +5,6 @@
 # neither. Bare = the premises + the locality's derived epoch; on a LineAccess =
 # the trace back to the source, naming the first cut.
 class: /system/energy/idea/reading/GridReading
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   channel: grid
   kind: fact

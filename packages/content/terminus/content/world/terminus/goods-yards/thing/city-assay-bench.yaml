@@ -16,7 +16,6 @@
 # rather than an assayer's — which is the honest trade: you pay for the
 # furnace and you do not get the eye.
 class: /trade/mining/thing/instrument/AssayBench
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: yard assay bench
   keywords: [bench, "assay bench", "yard bench", cupel]

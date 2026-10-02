@@ -5,7 +5,6 @@
 # number, because a second number saying the same thing would drift from
 # the first.
 class: /trade/textiles/thing/TextileStock
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: hank of flax line
   keywords: [line, flax, fibre, hank, strick]

@@ -7,7 +7,6 @@
 # `digging` capability, different tool, different trade — which is the
 # shipped rule that code is shared and content is copied.
 class: /trade/farming/thing/Spade
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   keywords: [spade, garden-spade, digging-spade, garden]
   shortDescription: garden spade

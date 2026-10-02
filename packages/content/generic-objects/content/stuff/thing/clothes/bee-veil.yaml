@@ -9,7 +9,6 @@
 # is a `face` body part. A veil over your hat with nothing over your hands
 # is how most people get stung.
 class: /platform/thing/equipment/Garment
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: bee veil
   keywords: [veil, "bee veil", net, hat]

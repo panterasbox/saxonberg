@@ -4,7 +4,6 @@
 # condition, `repair` restores it, and a mine that runs out has a supply
 # problem.
 class: /trade/mining/thing/TimberSet
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   keywords: [timber, set, prop, stull, mine]
   shortDescription: set of mine timber

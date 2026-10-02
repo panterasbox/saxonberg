@@ -1,6 +1,5 @@
 # ⚠ The one place the animals HARM the farm.
 class: /platform/idea/HelpConcept
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   key: structure
   title: Soil structure

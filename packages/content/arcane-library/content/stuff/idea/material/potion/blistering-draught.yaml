@@ -19,7 +19,6 @@
 # `threshold` potion in the same throw would simply not fire on them,
 # which is also true and also free.
 class: /system/arcana/idea/material/PotionMaterial
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: blistering draught
   keywords: [blistering, draught, potion, caustic]

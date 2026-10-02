@@ -7,7 +7,6 @@
 # at all. That is the neglect signal, arriving free — and it reads
 # identically whether or not you meant it.
 class: /platform/thing/Feeder
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: shallow tin saucer
   register: indefinite

@@ -3,7 +3,6 @@
 # lump can assay poor — a quartz-heavy sample is heavy and glassy and
 # carries no metal at all.
 class: /platform/idea/material/Material
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: quartz
   keywords: [quartz]

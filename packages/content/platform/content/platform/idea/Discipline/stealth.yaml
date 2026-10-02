@@ -9,7 +9,6 @@
 # /platform/idea/Discipline/* leaf at boot. No `conferrals`: `hide` /
 # `arm` are universally afforded — competence only *grades* them.
 class: /platform/idea/Discipline
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   key: stealth
   channel: skill

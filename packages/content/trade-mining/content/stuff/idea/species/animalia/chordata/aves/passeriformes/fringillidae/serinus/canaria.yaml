@@ -15,7 +15,6 @@
 # which is why a second mine can use a different animal by writing a
 # different row.
 class: /platform/idea/species/Species
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   binomial: Serinus canaria
   commonNames: ["canary", "bird"]

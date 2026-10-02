@@ -6,7 +6,6 @@
 # few harvests. The scarcity that matters is remembering to do it, not
 # counting sacks.
 class: /platform/thing/Receptacle
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: sack of compost
   keywords: [sack, compost, "compost sack", bag, muck, manure]

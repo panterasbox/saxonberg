@@ -13,7 +13,6 @@
 # account — the deficit P&L reads them together. See
 # docs/subsystems/employment.md.
 class: /platform/idea/Business
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: "Dave's Bar"
   # Who may fill this business's positions. Dave owns the bar, so the

@@ -5,7 +5,6 @@
 # temperature at which the flora starts dying, so smoking preserves
 # without sterilising. Banking the fire down is the skill.
 class: /trade/cooking/thing/SmokeChimney
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: smoke chimney
   keywords: [chimney, smoke, smokehouse, flue]

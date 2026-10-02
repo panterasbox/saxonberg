@@ -7,7 +7,6 @@
 # Stands up LAZILY off `operatingLocations` on the first buy/wage query
 # (EmploymentApi.ensureOperatorAt) — no manifest entry, no standup hook.
 class: /platform/idea/Business
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: "the general store"
   # The keeper owns the shop: an ENTITY authority.

@@ -4,7 +4,6 @@
 # (nothing grew it in a bed) and not a `Provision` (wood does not spoil).
 # The material is restamped from the bole it came off.
 class: /platform/thing/Good
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: length of green timber
   keywords: [timber, length, wood, round, green]

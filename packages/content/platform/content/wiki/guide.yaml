@@ -2,6 +2,5 @@
 # from `main` (which documents what a thing IS) and from `help` (which
 # documents what a verb DOES) by being about what a person should do.
 class: /platform/idea/WikiNamespaceZone
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: guide

@@ -9,7 +9,6 @@
 # So: one room behind Wharfside, and one door from each mainland floor
 # onto it. The hands never use those doors. The haulers do.
 class: /platform/idea/location/CartesianZone
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: The Goods Yards
   cellSize: 12.0

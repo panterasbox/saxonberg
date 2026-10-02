@@ -3,7 +3,6 @@
 # the veil drops inside a suppression field and under dispel. Semblance,
 # not invisibility: you are seen, but not as yourself.
 class: /platform/idea/magic/Spell
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   spellId: veil
   name: Veil

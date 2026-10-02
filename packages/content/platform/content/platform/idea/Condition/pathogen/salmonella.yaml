@@ -12,7 +12,6 @@
 # (salmonella's real infectious dose is famously low) and it is what makes
 # the raw-meat lesson land on the first try instead of the fourth.
 class: /platform/idea/Condition
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: salmonellosis
   # ⭐⭐ The hydration drain, MOVED OUT OF CODE. It used to be

@@ -1,6 +1,5 @@
 # Cranberry — produce's food material; tag `cranberry` is the recipe category (a garnish slot, a press's item slot, the par sheet).
 class: /platform/idea/material/ConsumableMaterial
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: cranberry
   keywords: [cranberry]

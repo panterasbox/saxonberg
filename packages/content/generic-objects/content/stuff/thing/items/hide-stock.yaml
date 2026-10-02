@@ -2,7 +2,6 @@
 # slot; the tailoring branch's attach point) and the mending-repair
 # donor material.
 class: /platform/thing/Good
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: folded tanned hide
   keywords: [hide, leather, skin, folded, tanned]

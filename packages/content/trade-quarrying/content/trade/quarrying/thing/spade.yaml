@@ -14,7 +14,6 @@
 # ⚠ Longer in the handle and wider in the blade than a mine shovel, because
 # there is headroom at a quarry face and there is none in a drift.
 class: /platform/thing/Spade
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   keywords: [spade, shovel, "quarry spade"]
   shortDescription: long-handled spade

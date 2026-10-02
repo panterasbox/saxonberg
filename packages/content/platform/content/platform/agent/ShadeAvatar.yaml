@@ -6,10 +6,9 @@
 # Phase 1 — which lands before `onCreate`, the ordering the old
 # constructor arguments existed to guarantee.
 #
-# ⚠ The `hydratorClass` is load-bearing precisely because of that: a row
-# with no hydrator runs NO hydration, so the overlay would be discarded
-# in silence.
+# ⭐ The overlay lands because there IS data to apply. Until 2026-10-01
+# this row had to name a `hydratorClass` to say so, and a row that forgot
+# ran no hydration at all — the overlay discarded in silence.
 class: /platform/agent/ShadeAvatar
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   playerId: ""

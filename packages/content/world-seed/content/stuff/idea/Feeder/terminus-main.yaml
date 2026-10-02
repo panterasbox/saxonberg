@@ -3,7 +3,6 @@
 # below. Each consecutive pair stands on streets a direct exit joins (the
 # compile verifies it): bank↔square, square↔avenue, avenue↔crossing.
 class: /system/energy/idea/Feeder
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   key: terminus-main
   name: the Terminus main

@@ -11,7 +11,6 @@
 # year and never see it flower — which is why its `daysToStage` is short
 # next to a peace lily's and why the harvest simply ends it.
 class: /platform/idea/species/Species
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   binomial: Daucus carota
   commonNames: ["carrot", "carrots"]

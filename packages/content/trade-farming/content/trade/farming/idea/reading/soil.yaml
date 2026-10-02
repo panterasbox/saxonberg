@@ -4,7 +4,6 @@
 # decides whether the generalization is available at all: a novice has
 # several readings, and an agronomist has a field.
 class: /trade/farming/idea/reading/SoilSurveyReading
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   channel: soil
   kind: record

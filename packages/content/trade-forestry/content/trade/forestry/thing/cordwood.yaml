@@ -10,7 +10,6 @@
 # the material is what the charcoal recipe (`category: wood`) and the
 # timber-set recipe match through, by the `wood` tag.
 class: /platform/thing/Crop
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: length of cordwood
   keywords: [cordwood, wood, pole, billet, length, hazel]

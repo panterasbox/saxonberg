@@ -6,7 +6,6 @@
 # "carry it downriver" is a thing you can do rather than a direction you
 # can face.
 class: /platform/location/SingletonCartesianLocation
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: mouth of the estuary
   keywords: [mouth, estuary]

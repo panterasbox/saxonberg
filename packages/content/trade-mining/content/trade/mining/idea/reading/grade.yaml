@@ -18,7 +18,6 @@
 # only job was to be required. The `measure` rung refuses and names the
 # bench, which is the honest route.
 class: /trade/mining/idea/reading/GradeReading
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   channel: grade
   kind: fact

@@ -1,7 +1,6 @@
 # a muddler — the bar tool that muddles. `muddle` is declared on the
 # Muddler class; the row carries the working it performs.
 class: /trade/hospitality/thing/Muddler
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: muddler
   keywords: [muddler]

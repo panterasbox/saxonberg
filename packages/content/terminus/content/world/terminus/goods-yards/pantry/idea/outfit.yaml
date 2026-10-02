@@ -6,7 +6,6 @@
 # operating account. The annex names the host (the counter); the host
 # names nobody.
 class: /platform/idea/Business
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: "the pantry outfit"
   appointingAuthority:

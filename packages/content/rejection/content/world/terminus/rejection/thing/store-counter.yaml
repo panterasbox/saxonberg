@@ -8,7 +8,6 @@
 # discovery, no market. Solvency tuning is a balance question against a
 # running game, not a requirement of this one.
 class: /trade/shopkeeping/thing/Stock
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: provisioning counter
   keywords: [counter, till, stores, goods, provisioning]

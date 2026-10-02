@@ -2,7 +2,6 @@
 # and therefore STERILE (D14): a brewer pitches a culture or leaves the
 # vat open for wild flora and takes the lag. Sugar in g/L (D4).
 class: /platform/idea/material/ConsumableMaterial
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: wort
   keywords: [wort]

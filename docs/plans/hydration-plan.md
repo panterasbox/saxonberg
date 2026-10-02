@@ -715,7 +715,44 @@ Each wave is independently landable and ends at one commit
 (`build(hydration W<n>): …`, message from a file, never `-m`). The
 pre-MR full suite runs once, after the last source-touching wave.
 
-### W0 — `onCreate`: the terminal on `Stuff`, the mixin retired
+### W0 — `onCreate`: the terminal on `Stuff`, the mixin retired ✅ DONE
+
+> **Landed.** 96 composition sites stripped (the plan said 78 — the grep
+> at plan time missed the test fixtures that compose the marker on a
+> fixture class), the hook renamed at every declaration and call site
+> across 364 files, `PostRegistration.ts` / `Mixins.PostRegistration` /
+> `MixinApi.isPostRegistration` deleted, the dispatch in
+> `#registerAndInit` made unconditional, and the `createSync` guardrail
+> moved onto `raw.onCreate !== Stuff.prototype.onCreate`.
+>
+> **Three corrections to the plan, found by doing it:**
+>
+> 1. ⚠ **Seven defensive chains, not eight.** The plan's eighth was
+>    `lib/spatial/Mobile.ts`, whose `Base.prototype as` dance is on
+>    `onSlotReleased`, not the hook — `Mobile` declares no `onCreate` at
+>    all. The seven that converted to a plain `await super.onCreate()`
+>    are `CommandGiver`, `Cast`, `Bonded`, `PublicLighting`,
+>    `Persistable`, `Behaved` and `trade-mining/Working`.
+> 2. ⚠⚠ **A scripted strip that collapses newlines eats `//` comments.**
+>    Removing `PostRegistrationMixin(…)` by brace-matching and
+>    re-joining the inner expression turned `Avatar.ts`'s 20-line
+>    composition — which carries four explanatory comment blocks between
+>    the mixin calls — into one 1,078-character line where everything
+>    after the first `//` was commented out. `tsc` caught it as a
+>    syntax error one line later; a `//`-free file would have been
+>    silently mangled. The block was rewritten by hand. ⭐ The general
+>    lesson for the W2/W3 scripted sweeps: **a text transform that
+>    reflows lines is unsafe in a tree with line comments** — delete
+>    whole lines or match within one line, never re-join.
+> 3. The nine concrete classes that declared the hook without composing
+>    the marker need no roster test any more: the dispatch is
+>    unconditional, so "reached through the pipeline" is true by
+>    construction for every class. `Stuff.onCreate.test.ts`'s second
+>    case (*an override is called with NO mixin composed at all*) is
+>    that proof, and it is stronger than nine clones would be.
+>
+> `pnpm build` type-clean across every package.
+
 
 **Goal.** Every Stuff has an `onCreate` hook that bottoms out on `Stuff`;
 nothing composes a marker to get it; the chain is plain `super`. One
@@ -774,7 +811,26 @@ is empty; `pnpm test:near` + every touched pack's vitest + `lint:family`
 green; `createSync`/`singletonSync` work (the guardrail test); the nine
 concrete classes verified reached.
 
-### W1 — The census gate and the two field flags
+### W1 — The census gate and the two field flags ✅ DONE
+
+> **Landed.** `scripts/check-on-create.ts` + `lint:on-create` (derived
+> into `lint:family` by `package.json`, no list to edit), `seed?: true`
+> and `birthOnly?: true` on `FieldMetaEntry`, both taught to
+> `check-field-meta`'s `KNOWN_PROPS` + `TRUE_ONLY`.
+>
+> ⭐ **The census is 82 implementations / 38 state-loading.** The plan
+> predicted 84/40 and the requirements 82; the script is the truth, as
+> D13 said it would be, and 82 is what the ceiling is set to. The
+> ceilings fall at W4 (Cast leaves the loading set), W5 (Cast leaves the
+> implementation set) and W6 (Bonded leaves the loading set).
+>
+> The script is importable (the `process.argv[1]` CLI guard, the
+> `check-menu-staff` precedent) so its test can read the ceilings
+> without running the gate. The test asserts the invariant and the two
+> discriminations the regex makes — declaration versus call site versus
+> docstring mention — the last being the exact defect the slate's first
+> census script shipped.
+
 
 **Goal.** Gate the hook count before anything moves; teach `fieldMeta`
 the two words the build needs. **Implements** D13 (the gate), the
@@ -791,7 +847,45 @@ census and exits 0; `lint:family --list` shows it; the test proves the
 gate fires on a fixture that adds a loading hook; `lint:field-meta`
 accepts the two flags.
 
-### W2 — The applier is automatic: `hydratorClass` leaves the engine
+### W2 — The applier is automatic: `hydratorClass` leaves the engine ✅ DONE
+
+> **Landed.** The field is gone from `TemplateOwn`/`TemplateSpec`/
+> `Template.fieldMeta`/the effective field/`setOwn`/`fromDocument`/
+> `toDocument`/`#inherit`, from the clone pipeline, from `PackLogic`'s
+> `DomainFile`+parse+`assertClassesResolve`+`reportUnreferencedClasses`+
+> preimage+`exportBody`, from `CmsLogic`'s `templateMeta` and round-trip,
+> from `write`/`cat`/`cp`/`mv`, from `CodeNamingFields`, from
+> `types/src/index.ts` and `cmsSlice.ts`, from `test-bootstrap`'s
+> `KERNEL_CONTENT_ROWS`, and from 66 test files' row literals.
+>
+> ⚠⚠ **The one defect this wave nearly shipped, and the plan's wording
+> is what caught it.** D1 says the gate is `Object.keys(data).length > 0`
+> where `data` is the MERGED value; the code resolved the hydrator at
+> step 6 and merged `opts.dataOverlay` at step 7. Gating on
+> `template.data` alone would have dropped the overlay for every caller
+> whose row is `data: {}` — and five production callers pass one
+> (`Login`'s guest body, `EmbodyController`, `ConditionLogic` ×2,
+> `SandboxLogic`, the market `StallController`). That is the retired
+> field's own failure mode, re-created. **The merge moved above the
+> resolve.**
+>
+> ⚠ **The recursion terminator changed kind.** It was declared (the
+> applier's row named no hydrator); it is structural now (the applier's
+> row has `data: {}`). `stuff.test.ts` drives both arms: the empty row
+> terminating with no guard needed, and the row given data re-opening
+> the cycle so the guard is still *seen* to fire. Without the second
+> case the guard would have become untested the day the field left.
+>
+> ⭐ **The gate shrank with no carve-out.** `codeGate.test.ts`'s
+> "changing the hydratorClass" case retires WITH the field, replaced by
+> one asserting the violation vocabulary is exactly `class` and
+> `behaviors[].brain`. The "smuggling a non-standard hydrator under a
+> folder class" arm goes too: with no applier to smuggle, a folder class
+> with no behaviors IS the scaffold the carve-out exists for.
+>
+> Invariants 4/5/6 retired, 12 widened (same population — zero rows had
+> data without the standard hydrator), 13 added in invariant 10's shape.
+
 
 **Goal.** A row with data gets its data; the field is gone from the
 type, the pipeline, the pack installer, the gate, the authoring verbs,
@@ -834,7 +928,40 @@ class-less child with data clones with the data (the W2 half of drive
 step 1); a wizard's Studio create carries its data; `grep -rn hydratorClass packages/server/src packages/server/scripts packages/types packages/client` is
 empty outside doc comments.
 
-### W3 — The content sweep
+### W3 — The content sweep ✅ DONE
+
+> **Landed.** 1,528 `hydratorClass:` lines deleted across 51 packs by one
+> whole-line `sed` (never a reflow — W0's lesson). ~20 rows whose
+> COMMENTS discussed having or lacking an applier were rewritten by hand
+> rather than stripped: several explained a real hazard, and the honest
+> edit says the hazard is structurally gone, not that it never existed.
+> Three keep the old field name deliberately, as history.
+>
+> `grep -rn '^\s*hydratorClass:' packages/content` is empty.
+>
+> ⚠⚠ **Two defects found by verifying, both of them tests that had
+> stopped testing anything:**
+>
+> 1. `stuff.test.ts`'s *"a callback scheduled INSIDE a clone tree is a
+>    fresh root"* case armed its two concurrent clones from inside the
+>    APPLIER ROW LOOKUP. With the applier resolved only when there is
+>    data, its fixture row (`data: {}`) never reached that branch, so
+>    `later` was empty and the test asserted nothing — a **vacuous
+>    assertion that looks exactly like a passing one**. Its row now
+>    carries data deliberately, with a comment saying why.
+> 2. The same describe needed a `StuffApi.clearAll()` per case:
+>    `singleton()` short-circuits on a cached instance, so an applier
+>    left registered by the previous case meant the next one never
+>    looked its row up. Two of the three cases in that block were
+>    passing for the wrong reason.
+>
+> ⚠ **And a process note worth keeping: W0 was committed with three TS
+> errors in its own new test file** (`override` on a member of a mixin
+> class-expression, which has no base to override). The `tsc --noEmit`
+> that reported clean had been launched BEFORE that file was written.
+> *Verify after the last edit, not after the last big edit* — the fix
+> rides W2's commit.
+
 
 **Goal.** No row anywhere names a hydrator; the lint keeps it so.
 **Implements** D14's invariant 13.

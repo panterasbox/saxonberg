@@ -2,7 +2,6 @@
 # (residences D16): BUILT-INS ONLY, empty at move-in (D9) — the tenant
 # furnishes it with owned goods; the landlord's shell is the walls.
 class: /platform/location/FurnishableRoom
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   # ⭐ Daylight reaches this room through a real opening, and the
   # opening is named so the claim is something a player can walk up

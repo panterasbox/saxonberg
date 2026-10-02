@@ -5,7 +5,6 @@
 # start. What decides whether it DOES is the trough's cloth: covered, it
 # waits for a pitched culture; open, wild flora settle out of the air.
 class: /platform/idea/material/Material
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: dough
   keywords: [dough, paste]

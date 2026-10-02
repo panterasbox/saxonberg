@@ -7,7 +7,6 @@
 # a `control: fine` that saves the unit of cloth a knee-laid pattern
 # wastes.
 class: /trade/tailoring/thing/CuttingTool
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: cutting table
   keywords: [table, bench, cutting]

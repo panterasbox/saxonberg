@@ -2,7 +2,6 @@
 # insulating cloth a warm garment is woven from. Its low
 # thermalConductivity is why a wool layer authors meaningful `clo`.
 class: /platform/idea/material/Material
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: wool
   keywords: [wool]

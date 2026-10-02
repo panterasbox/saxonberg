@@ -10,7 +10,6 @@
 # Not a player-facing weapon: no census key, no store line. The less-lethal
 # family (a real taser) is the ranged tail's business, not this.
 class: /platform/thing/equipment/StunBaton
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: stun baton
   keywords: [taser, baton, stun]

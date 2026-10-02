@@ -12,7 +12,6 @@
 # which is the honest reason flour keeps worse than the grain it came
 # from.
 class: /platform/idea/material/Material
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: wheat grain
   keywords: [corn, wheat, grain]

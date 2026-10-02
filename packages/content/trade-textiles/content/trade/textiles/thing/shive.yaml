@@ -5,7 +5,6 @@
 # stage — you throw away the majority of what you grew, and the
 # minority is worth more than the crop.
 class: /trade/textiles/thing/TextileStock
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: heap of shive
   keywords: [shive, boon, chaff, woody, heap]

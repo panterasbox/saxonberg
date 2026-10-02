@@ -15,7 +15,6 @@
 # See `CarrierBusiness` — ordinary inheritance over the `@hook`, in place
 # of the global bus event this used to need.
 class: /trade/haulage/idea/CarrierBusiness
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   appointingAuthority:
     kind: entity

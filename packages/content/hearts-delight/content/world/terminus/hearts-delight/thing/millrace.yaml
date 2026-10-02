@@ -17,7 +17,6 @@
 # `headM: 6` — twenty feet, which is what the ledge gives. `generates:
 # true` is what makes `generationW` answer at all.
 class: /system/water/thing/ControlStructure
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: millrace
   keywords: [race, millrace, weir, channel, leat]

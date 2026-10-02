@@ -2,7 +2,6 @@
 # S. pastorianus. The jar of this IS the lager line (D14): without the
 # cold strain — and the cold cellar — no lager ferments.
 class: /platform/idea/material/ConsumableMaterial
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: lager lees
   keywords: [lager, lees]

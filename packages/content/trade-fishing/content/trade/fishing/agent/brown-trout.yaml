@@ -3,7 +3,6 @@
 # clock; in a bowl of water it lives. Nothing about it says what water
 # it came from or what it carries.
 class: /trade/fishing/agent/Fish
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   _speciesPath: /stuff/idea/species/brown-trout
   lifecycleState: alive

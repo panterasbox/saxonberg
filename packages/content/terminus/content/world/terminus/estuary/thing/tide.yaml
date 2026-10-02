@@ -9,7 +9,6 @@
 # dropped, and it is deliberately immovable in the only way that matters: its
 # mass.
 class: /platform/thing/WaterFixture
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: tide
   keywords: [tide, sea, water, channel, saltwater, "salt water", brine]

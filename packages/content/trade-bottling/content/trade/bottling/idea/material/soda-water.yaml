@@ -1,6 +1,5 @@
 # Soda water — bottling's. `carbonated`: a drink built on it fizzes (the derived payload carries the tag).
 class: /platform/idea/material/ConsumableMaterial
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: soda water
   keywords: [water, soda, soda-water, fizz]

@@ -3,7 +3,6 @@
 # long-lived and warm-natured. NPC-first. See
 # docs/slates/builds/species-expansion-slate.md.
 class: /platform/idea/species/Species
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   illustration: species/satyrus.png
   binomial: Homo satyrus

@@ -22,7 +22,6 @@
 # opposite directions, and the seam is now visible in content rather
 # than only in a docstring.
 class: /platform/thing/Signpost
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: small dotted slate
   keywords: [slate, tablet, dots, small, dotted]

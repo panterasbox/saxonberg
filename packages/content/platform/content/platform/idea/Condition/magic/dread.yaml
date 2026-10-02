@@ -6,7 +6,6 @@
 # on magic.dread.decayPerSec); dispel relieves it early; suppression
 # never touches it (it already happened).
 class: /platform/idea/Condition
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: dread
   # ⭐ Dread is exhausting to carry. It decays on its own clock; while

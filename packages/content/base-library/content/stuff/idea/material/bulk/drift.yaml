@@ -10,7 +10,6 @@
 # ⚠ Tagged `earth`, which is what makes it a SPADE's job rather than a
 # pick's — the tool is the constraint, and the ground says so.
 class: /platform/idea/material/Material
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: drift
   keywords: [drift, overburden, spoil, waste]

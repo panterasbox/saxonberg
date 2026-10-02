@@ -1,7 +1,6 @@
 # The wash bucket — the mash's landing vessel (the wort bucket's
 # sibling, the still-house's own).
 class: /platform/thing/CraftVessel
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: wash bucket
   keywords: [bucket, pail, "wash bucket", wash]

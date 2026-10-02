@@ -10,7 +10,6 @@
 # LIVING material (plant tissue) — the wood is what is left when it is
 # felled, and `density` is what a bole is minted at.
 class: /platform/idea/material/Material
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: oak
   keywords: [oak]

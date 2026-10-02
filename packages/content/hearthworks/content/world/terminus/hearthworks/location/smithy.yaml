@@ -6,7 +6,6 @@
 # DIY floor. Recipes own FORMING (ingot → blade), gated on reachable
 # heat: `forge knife` at a cold forge is a diegetic decline.
 class: /platform/location/SingletonCartesianLocation
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   # ⭐ Daylight reaches this room through a real opening, and the
   # opening is named so the claim is something a player can walk up

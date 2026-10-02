@@ -11,7 +11,6 @@
 # haulage is a need EVERY mine has — the functional half of the ecology
 # split. This place's own crickets and delve-rats belong to the venue.
 class: /platform/idea/species/Species
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   binomial: Equus caballus pumilus
   commonNames: ["pit pony", "pony", "horse"]

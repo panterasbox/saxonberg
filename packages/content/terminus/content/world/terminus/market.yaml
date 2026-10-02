@@ -7,7 +7,6 @@
 # (`/world/terminus/market` → the managed `terminus` group). The market
 # owns its *Business* (commission attribution), not the ground.
 class: /platform/idea/location/CartesianZone
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: The Farmers Market
   cellSize: 3.0

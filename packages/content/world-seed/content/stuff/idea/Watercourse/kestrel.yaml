@@ -14,7 +14,6 @@
 # unwriteable. Direction, upstream/downstream, navigability and which
 # way contamination travels all fall out of these numbers.
 class: /system/water/idea/Watercourse
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   # `catchmentKm2` on a node is the WILD ground draining to it — the
   # fell nobody's locality covers. A locality declares the ground it

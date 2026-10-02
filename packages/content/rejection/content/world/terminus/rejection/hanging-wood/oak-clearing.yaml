@@ -3,7 +3,6 @@
 # ride's header for the rules. The prose never states a number the
 # stand holds, and it does not change when the clearing is felled out.
 class: /trade/forestry/location/Wood
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: oak clearing
   keywords: [clearing, "oak clearing", oaks, wood, "hanging wood"]

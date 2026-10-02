@@ -7,7 +7,6 @@
 # back) but whether the INFERENCE is available at all, which is an honest
 # thing for training to decide.
 class: /trade/mining/idea/reading/GroundReading
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   channel: ground
   kind: record

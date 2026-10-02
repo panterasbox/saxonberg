@@ -18,7 +18,6 @@
 # teaches you something and sampling a sandpit does not. Nothing anywhere
 # gates on the band.
 class: /platform/idea/Discipline
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   key: soil-science
   channel: skill

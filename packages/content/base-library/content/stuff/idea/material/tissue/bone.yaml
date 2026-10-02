@@ -4,7 +4,6 @@
 # material-response — `resistance.<type>` — is deferred until the
 # mechanism-of-injury system lands and can model it honestly.)
 class: /platform/idea/material/Material
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: bone
   keywords: [bone]

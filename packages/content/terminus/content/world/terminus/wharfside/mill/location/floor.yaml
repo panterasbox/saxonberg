@@ -12,7 +12,6 @@
 # is in no grid and inherits nothing. That was a real defect twice
 # before this build.
 class: /platform/location/SingletonCartesianLocation
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   coords:
     x: 0

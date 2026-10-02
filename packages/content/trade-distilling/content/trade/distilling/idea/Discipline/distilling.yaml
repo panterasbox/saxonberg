@@ -3,7 +3,6 @@
 # in the platform: the rule the capability rung applies to magic applies to
 # a trade the moment it reaches the rung.
 class: /platform/idea/Discipline
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   key: distilling
   channel: skill

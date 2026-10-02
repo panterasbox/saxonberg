@@ -15,7 +15,6 @@
 # governs its own lamps. Everything else about how the valley is governed is
 # still open.
 class: /platform/idea/Government
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   key: hearts-delight
   name: the Heart's Delight Parish

@@ -5,7 +5,6 @@
 # spinner. Skilled, and the trade's whole product is fastness and
 # repeatability, which is knowledge rather than throughput.
 class: /platform/idea/Business
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: "the Wharfside dyehouse"
   appointingAuthority:

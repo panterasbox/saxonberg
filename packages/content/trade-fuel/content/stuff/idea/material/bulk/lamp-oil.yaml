@@ -16,7 +16,6 @@
 # ⚠ Fuel value and ignition are the MATERIAL's, read off here and never
 # restated on the good — a lamp burns lamp oil because of what lamp oil is.
 class: /platform/idea/material/Material
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: lamp-oil
   keywords: [lamp-oil, oil, lamp, kerosene, paraffin]

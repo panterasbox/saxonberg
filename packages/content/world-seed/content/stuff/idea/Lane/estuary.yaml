@@ -13,7 +13,6 @@
 # of edges is exactly why edge duration lives on the EXIT: the number
 # belongs to the ground, not to the lane.
 class: /system/transport/idea/Lane
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   key: estuary
   name: the estuary

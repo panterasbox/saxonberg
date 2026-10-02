@@ -14,7 +14,6 @@
 # it takes up a bad atmosphere sooner, not because anything here treats
 # it as special.
 class: /platform/idea/species/BodyPlan
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: avian
   slots:

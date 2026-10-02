@@ -5,7 +5,6 @@
 # reward (unconcealed, taken with no search) — the concealed cache back in
 # corridor 1 is a bonus, not the prize.
 class: /platform/location/SingletonCartesianLocation
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: delve vault
   keywords: [vault, delve]

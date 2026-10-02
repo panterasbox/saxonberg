@@ -1,7 +1,6 @@
 # The reach — the middle of the water lane. Short edges, and something
 # in every one of them.
 class: /platform/location/SingletonCartesianLocation
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: reach
   keywords: [reach]

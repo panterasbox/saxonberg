@@ -6,7 +6,6 @@
 # and patched on after the clone; everything a person could ever read
 # about a strike is here.
 class: /platform/thing/LightningStrike
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: lightning strike
   register: indefinite

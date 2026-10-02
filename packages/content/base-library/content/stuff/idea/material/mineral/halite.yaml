@@ -10,7 +10,6 @@
 # every source of salt in the game yields the same thing in the same way,
 # and nothing had to learn a second shape.
 class: /platform/idea/material/Material
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: rock salt
   keywords: [halite, "rock salt", salt]

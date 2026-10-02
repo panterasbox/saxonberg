@@ -1,6 +1,5 @@
 # A sack of spent grain — the wash mash's residue (P11), feed-shaped.
 class: /platform/thing/Receptacle
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: sack of spent grain
   keywords: [grain, sack, draff, "spent grain", spent]

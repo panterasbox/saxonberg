@@ -1,6 +1,5 @@
 # ⭐⭐ Why bread is a WHEAT food, and what kneading is actually for.
 class: /platform/idea/HelpConcept
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   key: gluten
   title: Gluten

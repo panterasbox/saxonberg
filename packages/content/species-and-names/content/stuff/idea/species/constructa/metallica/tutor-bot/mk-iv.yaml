@@ -3,7 +3,6 @@
 # unpowered / destroyed). No SexedMixin on instances (sexDeterminationSystem
 # is 'none'). Default material is steel.
 class: /platform/idea/species/Species
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   binomial: Constructa metallica
   sentient: true

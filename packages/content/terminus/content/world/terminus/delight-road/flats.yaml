@@ -6,7 +6,6 @@
 # A corridor whose every room is a landmark is a high street; the flats
 # are what make the milestone and the crossroads mean anything.
 class: /platform/location/SingletonCartesianLocation
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: empty flats
   keywords: [flats, empty]

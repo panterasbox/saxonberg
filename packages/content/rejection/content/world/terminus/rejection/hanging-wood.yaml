@@ -16,7 +16,6 @@
 # own. The rows are all this venue ships: no code, which is the claim a
 # second wood in a second locality rests on.
 class: /platform/idea/location/CartesianZone
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: the Hanging Wood
   cellSize: 10.0

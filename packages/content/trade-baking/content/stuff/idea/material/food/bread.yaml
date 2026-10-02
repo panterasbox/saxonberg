@@ -15,7 +15,6 @@
 # `Provision` would spoil and never go hard — silently, which is exactly
 # the failure `lint:perishable` cannot see, because such a row passes it.
 class: /platform/idea/material/Material
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: bread
   keywords: [bread, loaf, crumb]

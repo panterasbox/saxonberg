@@ -8,7 +8,6 @@
 # Not a built-in — the kitchen archetype's `surface` need is satisfied
 # by the built-in counter; this is the good you buy to eat at.
 class: /platform/thing/Fitting
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: plain deal table
   keywords: [table, deal, top, plain]

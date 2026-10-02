@@ -5,7 +5,6 @@
 # `wallet use house` / `consign` trade AS this business — each resale at
 # the cash-and-carry splits to this operating account.
 class: /platform/idea/Business
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: "Crowsfoot"
   appointingAuthority:

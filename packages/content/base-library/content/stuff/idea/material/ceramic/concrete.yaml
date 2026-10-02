@@ -9,7 +9,6 @@
 # epoch lens working as intended — the mechanism is the same from a Roman
 # opus caementicium floor to a substation, and only the dynamics differ.
 class: /platform/idea/material/Material
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: concrete
   keywords: [concrete, cement]

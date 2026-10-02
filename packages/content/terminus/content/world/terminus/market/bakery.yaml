@@ -9,7 +9,6 @@
 #
 # West off the square, which was a free exit.
 class: /platform/location/SingletonCartesianLocation
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: bakery
   keywords: [bakery, baker, bakehouse, shop]

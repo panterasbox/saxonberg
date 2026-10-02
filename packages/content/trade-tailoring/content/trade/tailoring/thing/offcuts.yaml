@@ -1,6 +1,5 @@
 # A bag of offcuts.
 class: /trade/textiles/thing/TextileStock
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: bag of offcuts
   keywords: [offcuts, scraps, rags, patchwork, bag]

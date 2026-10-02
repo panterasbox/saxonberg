@@ -6,7 +6,6 @@
 # docs/staging/eternal-university/npcs/property-manager.md (Katie) and
 # docs/slates/builds/species-expansion-slate.md.
 class: /platform/idea/species/Species
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   illustration: species/trollius.png
   binomial: Homo trollius

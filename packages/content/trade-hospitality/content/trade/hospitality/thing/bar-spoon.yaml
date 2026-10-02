@@ -1,6 +1,5 @@
 # a bar spoon — a bar tool offering the `bar-spoon` capability.
 class: /platform/thing/Tool
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: bar spoon
   keywords: [bar-spoon, spoon, bar]

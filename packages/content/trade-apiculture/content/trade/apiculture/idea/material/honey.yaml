@@ -14,7 +14,6 @@
 # limiting case — food that preserves itself. Dilute it and the hurdle
 # comes down, which is exactly what mead is.
 class: /platform/idea/material/ConsumableMaterial
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: honey
   keywords: [honey]

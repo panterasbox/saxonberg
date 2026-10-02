@@ -7,7 +7,6 @@
 #
 # It stacks, so twenty loads read as one heap.
 class: /trade/quarrying/thing/Lump
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   keywords: [spoil, drift, waste, muck]
   shortDescription: load of spoil

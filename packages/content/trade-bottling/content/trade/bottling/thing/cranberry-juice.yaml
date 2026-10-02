@@ -1,6 +1,5 @@
 # The floor bottle of cranberry juice — 1 L, at target in the bottling stock.
 class: /platform/thing/Bottle
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: "bottle of cranberry juice"
   keywords: [cranberry, juice, bottle, mixer]

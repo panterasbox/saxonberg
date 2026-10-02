@@ -4,7 +4,6 @@
 # inverse of the barley sack beside it, which weighs twenty-five kilos
 # and took a field.
 class: /platform/thing/Crop
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: paper of saffron
   keywords: [saffron, crop, paper]

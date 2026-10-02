@@ -1,6 +1,5 @@
 # Sweet vermouth. Category tags `vermouth`, `sweet-vermouth`.
 class: /platform/idea/material/ConsumableMaterial
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: sweet vermouth
   keywords: [sweet, vermouth]

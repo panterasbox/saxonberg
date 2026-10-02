@@ -4,7 +4,6 @@
 # fall wounds and delays; it does not strand — the content-discipline rule
 # ("traps redirect but never hard-block") realized as geometry.
 class: /platform/location/SingletonCartesianLocation
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: floor of the pit
   keywords: [pit, floor]

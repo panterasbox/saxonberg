@@ -2,7 +2,6 @@
 # built against (see `cola.yaml` and its siblings). `sealed` because a
 # screw cap holds gas: an uncapped mixer goes flat, a capped one keeps.
 class: /platform/thing/Bottle
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: "mixer bottle"
   keywords: [bottle, mixer, empty]

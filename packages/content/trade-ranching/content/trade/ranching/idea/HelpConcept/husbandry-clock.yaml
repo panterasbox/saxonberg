@@ -1,6 +1,5 @@
 # ⭐⭐ D89 and D92, said plainly, BEFORE somebody buys a dairy cow.
 class: /platform/idea/HelpConcept
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   key: husbandry-clock
   title: What an animal asks of you

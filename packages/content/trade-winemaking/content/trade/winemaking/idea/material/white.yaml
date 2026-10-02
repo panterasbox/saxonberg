@@ -1,6 +1,5 @@
 # White wine. Category tags `wine`, `white`.
 class: /platform/idea/material/ConsumableMaterial
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: white wine
   keywords: [white, wine]

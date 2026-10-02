@@ -19,7 +19,6 @@
 # identical rooms would, at a hundredth the cost. Room-spec rule: prose is
 # bulk, Stuff is few.
 class: /platform/location/SingletonCartesianLocation
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: Hinkley Lane
   keywords: [lane, hinkley]

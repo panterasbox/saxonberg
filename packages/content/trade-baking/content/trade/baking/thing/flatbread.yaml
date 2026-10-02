@@ -9,7 +9,6 @@
 # `gluten` tag, so a barley loaf would be a lie; a barley FLATBREAD is
 # exactly right, and is what people actually ate.
 class: /trade/baking/thing/Loaf
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: flatbread
   keywords: [flatbread, bread, bannock, round]

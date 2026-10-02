@@ -10,7 +10,6 @@
 # That is a measurable fact about this pack, asserted rather than
 # claimed.
 class: /trade/textiles/thing/SpinningTool
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: spinning wheel
   keywords: [wheel, spinning-wheel, treadle, flyer, spinning]

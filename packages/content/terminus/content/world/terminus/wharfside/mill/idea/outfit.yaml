@@ -16,7 +16,6 @@
 # ⭐ No `AttendancePoint`. The mill produces and consigns; cloth reaches
 # players in the general store, where they already shop.
 class: /platform/idea/Business
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: "the Wharfside mill"
   appointingAuthority:

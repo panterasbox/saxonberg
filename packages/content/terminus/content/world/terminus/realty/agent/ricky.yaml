@@ -13,7 +13,6 @@
 # own building (Walter, up the Row), and there is deliberately no beat
 # here that leads to one.
 class: /world/terminus/realty/agent/Realtor
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: Ricky
   keywords: [shiny, ricky, land, agent, good, coat, gone, slightly]

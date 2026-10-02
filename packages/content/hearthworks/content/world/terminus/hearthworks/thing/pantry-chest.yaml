@@ -2,7 +2,6 @@
 # contents feed a craft (the gather walk descends one level into open
 # room containers); closed, they never do. Seeded open.
 class: /platform/thing/Chest
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: pantry chest
   keywords: [chest, pantry, larder]

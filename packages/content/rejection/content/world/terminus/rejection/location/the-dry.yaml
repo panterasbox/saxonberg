@@ -5,7 +5,6 @@
 # miners who have never spoken end up talking because there is nowhere
 # else to sit while your clothes steam.
 class: /platform/location/SingletonCartesianLocation
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: dry
   keywords: [dry, "the dry", shack, canteen]

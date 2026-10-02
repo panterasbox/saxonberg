@@ -10,7 +10,6 @@
 # player who understands that lime wants a far hotter fire than bread can
 # predict which chamber will do which job without reading anything.
 class: /platform/thing/Oven
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: limekiln
   keywords: [limekiln, kiln, lime, furnace]

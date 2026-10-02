@@ -6,7 +6,6 @@
 # numbers turned, and the trade-off between them is authored here —
 # never coded.
 class: /trade/fishing/thing/Rod
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   keywords: [rod, cane, fishing-rod, tackle]
   shortDescription: cane rod

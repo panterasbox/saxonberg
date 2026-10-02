@@ -9,7 +9,6 @@
 # one game year, the shipped polycarp cycle); cordwood is hazel, and
 # `/stuff/idea/material/wood/hazel` is what a length of it is made of.
 class: /platform/idea/species/Species
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   binomial: Corylus avellana
   commonNames: ["hazel", "coppice hazel", "nut tree"]

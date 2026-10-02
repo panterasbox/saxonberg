@@ -24,7 +24,6 @@
 # whole of what the District is actually deciding when it decides how
 # big to build.
 class: /system/water/thing/StorageNode
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: District tank
   keywords: [tank, cistern, reservoir, district, water]

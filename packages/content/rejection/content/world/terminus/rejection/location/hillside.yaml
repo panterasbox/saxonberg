@@ -11,7 +11,6 @@
 # box, and still in the copper heart of the body. It is the first step of
 # a gradient, not a destination.
 class: /platform/location/SingletonCartesianLocation
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   _biomePath: /stuff/idea/biome/outdoor/baseline
   shortDescription: hillside above the yard

@@ -3,7 +3,6 @@
 # chart it hangs off; its `hand` position purchases, so the hand consigns AS
 # Veshko Distilling onto the cash-and-carry and each sale lands here.
 class: /platform/idea/Business
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: "Veshko's yard"
   parentOrganization: /corpo/veshko

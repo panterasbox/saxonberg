@@ -4,7 +4,6 @@
 # venue. Zero new verbs: the hand's beat and a visiting player use the
 # same shipped `order crush`.
 class: /platform/thing/Menu
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: cellar book
   keywords: [book, "cellar book", board, ledger, cellar]

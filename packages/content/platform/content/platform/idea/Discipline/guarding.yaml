@@ -15,7 +15,6 @@
 # studied from opposite ends, which is exactly what a shared ISCED-F code
 # means. A shared code says same *field*; it never says same *practice*.
 class: /platform/idea/Discipline
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   key: guarding
   channel: skill

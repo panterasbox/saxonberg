@@ -4,7 +4,6 @@
 # the shipped ignition model — see the note on `mass` below. The thing in
 # the yard that DOES catch is the tinder bundle. Cloned fresh each standup.
 class: /platform/thing/Firewood
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: straw practice dummy
   keywords: [practice, dummy, target, straw]

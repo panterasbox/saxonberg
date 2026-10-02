@@ -5,7 +5,6 @@
 # `maintains` cadence (the landlord-shell upkeep the term owes) joins
 # him in the condition wave.
 class: /world/terminus/mayfield-row/agent/Walter
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: Walter
   keywords: [walter, house, manager, pencil, behind, ear]

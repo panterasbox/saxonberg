@@ -2,7 +2,6 @@
 # with no further author setup. Walk needs no enablement-scope (any
 # floor is walk-shaped) and is the fallback for resolveHostMode.
 class: /platform/idea/LocomotionMode
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: walk
   speed: 1.0

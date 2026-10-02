@@ -1,7 +1,6 @@
 # An ash key — the winged seed of the ash; what a felled ash drops. Plant
 # it in a panel and it grows into `/trade/forestry/thing/plant/ash-standard`.
 class: /platform/thing/Seed
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: ash key
   keywords: [key, "ash key", seed, ash, keys]

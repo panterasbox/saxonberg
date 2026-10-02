@@ -26,7 +26,6 @@
 # purer economy — it is a mill that stands idle and a chain nobody can
 # buy into.
 class: /platform/thing/GradedReceptacle
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: bale of retted flax
   keywords: [bale, retted, bundle, flaxbale, flax]

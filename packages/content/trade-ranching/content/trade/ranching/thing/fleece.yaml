@@ -6,7 +6,6 @@
 # animal it was waiting for; the material row now names the species it
 # came off.
 class: /platform/thing/Provision
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: fleece
   keywords: [fleece, wool]

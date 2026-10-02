@@ -3,7 +3,6 @@
 # low-light eyes, short and intense of life. Playable. See
 # docs/slates/builds/species-expansion-slate.md.
 class: /platform/idea/species/Species
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   illustration: species/orcus.png
   binomial: Homo orcus

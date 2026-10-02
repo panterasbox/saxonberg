@@ -14,7 +14,6 @@
 # mould. What a player learns here is that more fuel is not more better,
 # which is the whole of the carbon decision.
 class: /platform/thing/Ingot
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: pig of cast iron
   keywords: [pig, cast-iron, "cast iron", iron, ingot]

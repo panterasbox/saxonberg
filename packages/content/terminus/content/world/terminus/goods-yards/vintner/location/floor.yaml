@@ -8,7 +8,6 @@
 # consigned goods and their listings ride those, never the room; the
 # `populates` set below is the placement and respawns each boot.
 class: /platform/location/SingletonCartesianLocation
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   # ⭐ Daylight reaches this room through a real opening, and the
   # opening is named so the claim is something a player can walk up

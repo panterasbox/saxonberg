@@ -9,7 +9,6 @@
 # than replace it — and the reason a fight that ruins your armour is a
 # bill rather than a shopping trip.
 class: /platform/thing/Tariff
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: second slate, for mending
   keywords: [mending, tariff, repairs, "second slate", second, slate]

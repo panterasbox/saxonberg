@@ -13,7 +13,6 @@
 # ⚠ It is a LUMP, not bulk: you cart burnt lime in lumps and slake it where
 # you spread it.
 class: /trade/quarrying/thing/Lump
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   keywords: [quicklime, lime, burnt, lump]
   shortDescription: lump of quicklime

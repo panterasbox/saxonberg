@@ -1,5 +1,4 @@
 class: /platform/thing/equipment/Weapon
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: oak waster
   keywords: [waster, sword, practice-sword, oak]

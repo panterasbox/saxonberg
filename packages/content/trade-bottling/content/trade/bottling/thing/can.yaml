@@ -10,7 +10,6 @@
 # `closure: sealed` is CONSTRUCTION (gas-tight — it is why fizzy drinks
 # come in cans); `open` is STATE. An empty can is an opened can.
 class: /platform/thing/Bottle
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: "can"
   keywords: [can, tin, empty]

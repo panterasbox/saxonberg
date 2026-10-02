@@ -13,7 +13,6 @@
 # enabling data fails closed and silent* trap, which this repo has been
 # bitten by twice.
 class: /platform/thing/Provision
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: barrowload of marl
   keywords: [marl, clay, calcareous-clay, barrowload]

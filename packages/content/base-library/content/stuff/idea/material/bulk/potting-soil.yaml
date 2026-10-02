@@ -8,7 +8,6 @@
 # makes quality mean something is farming's (phase 2/4). What the growth
 # model reads is only how many litres of it a pot holds: the root ceiling.
 class: /platform/idea/material/Material
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: potting soil
   keywords: [potting, soil, dirt, compost]

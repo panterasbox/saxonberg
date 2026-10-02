@@ -4,7 +4,6 @@
 # the content-discipline invariant made content — the reward that proves no
 # critical thing hides behind a perception wall.
 class: /platform/thing/Good
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: dull metal offering bowl
   keywords: [bowl, dull, metal, offering]

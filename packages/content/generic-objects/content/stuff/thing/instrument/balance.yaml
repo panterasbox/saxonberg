@@ -1,7 +1,6 @@
 # Balance — handheld balance/scale that grants the `weigh` verb to
 # its carrier.
 class: /platform/thing/instrument/Balance
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: precision balance
   keywords: [balance, precision]

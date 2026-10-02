@@ -1,6 +1,5 @@
 # ⭐ D24, said to the player. And it is the one read that costs an act.
 class: /platform/idea/HelpConcept
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   key: body-condition
   title: Body condition

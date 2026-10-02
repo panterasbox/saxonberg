@@ -3,7 +3,6 @@
 # shod in it) takes no current even in a live pool — the counterplay the
 # electricity model teaches. Conductivity ~1×10⁻¹³ S/m.
 class: /platform/idea/material/Material
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: rubber
   keywords: [rubber]

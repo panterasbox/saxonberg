@@ -8,7 +8,6 @@
 # A works board on the wall of a distillery is completely ordinary
 # content, and it costs one `props:` line per floor.
 class: /platform/thing/JobBoard
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: works board
   keywords: [works-board, board, jobs, work, slate, works]

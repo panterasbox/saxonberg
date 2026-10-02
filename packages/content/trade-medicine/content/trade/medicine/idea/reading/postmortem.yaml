@@ -2,7 +2,6 @@
 #
 # ⭐ The pack ships the row and the class; the platform names neither.
 class: /trade/medicine/idea/reading/PostmortemReading
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   channel: postmortem
   kind: fact

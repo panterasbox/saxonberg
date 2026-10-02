@@ -8,7 +8,6 @@
 # what you get is a flat, sour, close-grained loaf. That is the honest
 # outcome of the mistake: a worse loaf, not a lost one.
 class: /platform/idea/material/Material
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: collapsed dough
   keywords: [dough, collapsed, fallen, over-proofed]

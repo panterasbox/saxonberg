@@ -3,7 +3,6 @@
 # ⚠ _materialPath is linen — no paper material exists yet; a paper Material
 # is a pharma-slate tail.
 class: /platform/thing/Prescription
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: prescription slip
   keywords: [prescription, slip, paper, script]

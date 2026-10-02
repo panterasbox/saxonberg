@@ -2,7 +2,6 @@
 # with an archetype's default bindings (the derived test venue, A13.5).
 # Nothing populates it; the archetype does.
 class: /platform/location/CartesianLocation
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: venue
   register: indefinite
