@@ -272,10 +272,6 @@ export default abstract class Avatar extends AvatarBase {
     self: [
       "platform/cmd/system/ping.yaml",
       "platform/cmd/system/help.yaml",
-      // ⭐ The standing-instruction verb. Afforded from `self` because
-      // the thing it instructs is YOU — there is no object in the room
-      // that confers it, and a round is kept by your own body.
-      "platform/cmd/system/instruct.yaml",
       // The wiki sits beside `help` deliberately. Both are reference
       // surfaces a player carries rather than reaches for: `help` tells
       // you what a verb does, `wiki` tells you what a thing IS. Reading
@@ -284,6 +280,18 @@ export default abstract class Avatar extends AvatarBase {
       // way `forum`/`chat` are gated would contradict the access model
       // the build actually implements.
       "platform/cmd/system/wiki.yaml",
+      // ⭐ The standing-instruction verb (`instruct keep <line>`, the
+      // taps build's relief). Afforded from `self` because the thing it
+      // instructs is YOU — no object in the room confers it, and a
+      // round is kept by your own body.
+      //
+      // ⚠ AFTER the reference-surface cluster, not inside it.
+      // `Avatar.wikiAffordance.test.ts` asserts `wiki` sits ADJACENT to
+      // `help` — they are the two things a player carries to look
+      // something up — and the first draft of this line wedged
+      // `instruct` between them and broke that claim. It is not a
+      // reference surface; it is an order you give yourself.
+      "platform/cmd/system/instruct.yaml",
       /*
        * ⭐ The news sits beside `help` and `wiki` for the same reason:
        * it is a reference surface a player carries, and bare `press`

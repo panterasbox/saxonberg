@@ -49,6 +49,9 @@ import {
 } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 import WorldClockRegistry from '../../../platform/idea/WorldClockRegistry';
+import { CommandApi } from '../../../api/command';
+import PrimaryAvatar from '../../../platform/agent/PrimaryAvatar';
+import ShadeAvatar from '../../../platform/agent/ShadeAvatar';
 
 const DAY = 86_400;
 const T0 = 1_000 * DAY;
@@ -302,6 +305,28 @@ describe('BehavedMixin — live rewiring, and the residency pin', () => {
     expect(me.getBehaviors()).toEqual([]);
     // Idempotent: a second clear removes nothing and says so.
     expect(me.removeBehaviors('/lib/behavior/keeps')).toBe(0);
+  });
+
+  it('⭐⭐ the VERB reaches a played body — and deliberately not a shade', async () => {
+    // ⭐ The affordance link, which no controller test can see. `instruct`
+    // is declared on `lib/character/Avatar.commandContributions.self`, so
+    // it reaches the body a player actually drives.
+    const primary = CommandApi.collectContributions(PrimaryAvatar, 'self')
+      .map((d) => d.verbs)
+      .flat();
+    expect(primary).toContain('instruct');
+
+    // ⚠⚠ A SHADE does not get it, and that is right rather than an
+    // oversight: `ShadeAvatar` is `IncorporealMixin(Avatar)` and that
+    // mixin curates its own `commandContributions`, which SHADOWS the
+    // root's (the documented static-shadowing hazard). A shade cannot
+    // milk a cow — `requiresEmbodied` gates the takes — so it must not
+    // be able to instruct one. ⭐ A draft of `taps.md` claimed the
+    // opposite and this read is what corrected it.
+    const shade = CommandApi.collectContributions(ShadeAvatar, 'self')
+      .map((d) => d.verbs)
+      .flat();
+    expect(shade).not.toContain('instruct');
   });
 
   it('⭐⭐⭐ a body with a round standing is NOT evicted', async () => {

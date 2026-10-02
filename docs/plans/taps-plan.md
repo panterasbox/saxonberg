@@ -1105,9 +1105,17 @@ all 59 lint gates pass.
 > `Persistable`* (the field rides the snapshot) and *outside
 > `PostRegistration`* (the wiring re-runs at reconnect) — leave one
 > slot: `ForkableMixin(BehavedMixin(PostRegistrationMixin(…)))`. ⭐ On
-> the ABSTRACT root rather than `PrimaryAvatar`, because the claim holds
-> in any phase: a shade keeps the round it was given, and the sandbox
-> body inherits it so a circle can rehearse one.
+> the ABSTRACT root rather than `PrimaryAvatar`, so the field and the
+> re-wiring are inherited once by every player body.
+>
+> ⚠⚠ **And a claim of mine was wrong.** I wrote that *"a shade keeps the
+> round it was given"*; it does not. `ShadeAvatar` is
+> `IncorporealMixin(Avatar)` and that mixin curates its own
+> `commandContributions`, which **shadows** the root's — the documented
+> static-shadowing hazard. ⭐ Which is the right outcome rather than a
+> bug to fix: a shade cannot milk a cow (`requiresEmbodied` gates the
+> takes), so it should not be able to instruct one. A direct affordance
+> read caught it; the doc is corrected and the state is pinned.
 >
 > **What shipped**
 > - `BehavedMixin.addBehavior` / `removeBehaviors` — live rewiring,
@@ -1655,7 +1663,35 @@ clock seam exists.
 | 7 | 4/… then crashed | the sandbox correctly refuses cloning world content in a quarantined eval — ⚠ as an unhandled rejection that kills the process |
 | 8 | 5/… | the kit was dropped in the DARK, where nothing can be picked up |
 | 9 | 11/15, then wedged | ⭐⭐⭐ **checkpoint 7 PASSED** — a year walked, the season opened, a spile set. Then the session stopped answering |
-| **10** | ⭐⭐ **15/15** | the final shape |
+| **10** | ⭐⭐ **15/15** | the final shape, before W4 |
+| 11 | 13/17 | ⭐ W4's three checkpoints added. Every taps checkpoint green — including #7 again — and only the `instruct` ones failed, in a world already answering at 60 s |
+| 12 | 6/17 | ⚠ noise: 290 s for a step that took 106 s, then 90 s timeouts on commands that took 2 s |
+| 13 | not reached | boot never completed |
+
+### ⚠⚠ The machine, and an orphan I made
+
+Runs 12–13 are **not measurements.** Found by `ps`: a **2.8 GB orphaned
+wire world** from run 11 was still resident, on top of twelve world
+boots and a 36-minute suite in one session. Killed by PID (⛔ never
+`pkill -f`, and ⛔ not the 2.5 GB one beside it — that is build-4's). The
+`dev-preflight` note in CLAUDE.md is about exactly this: nothing in the
+five-deep launch chain forwards a signal, so an owned world that is
+interrupted re-parents to init and survives.
+
+⚠ So the three W4 socket checkpoints are **written and unconfirmed on a
+healthy world.** What IS confirmed:
+
+| link | how |
+|---|---|
+| the verb installs | the same path rule as fifty other platform views (`isViewPath`), and ⭐ the controller template row exists — the thing `lint:controller-rows` would catch |
+| ⭐ **the affordance** | a direct `CommandApi.collectContributions(PrimaryAvatar, 'self')` read — **`instruct` is there**, pinned as a case in `keeps.test.ts` |
+| the arg gate | `instruct keep <line>` is a greedy string; nothing to narrow |
+| ⛔ the earn/preserve bound | 8 `InstructController` cases over the real catalogue |
+| the brain's beat | 11 `keeps` cases, including that it fires only where the target is and issues nothing but the configured line |
+
+⭐ And the drive's own assertions stay in the file, so the next boot —
+CI's, or the sweep's — answers the socket question without anybody
+re-deriving it.
 
 ### ⭐⭐ Run 10 — 15/15
 
