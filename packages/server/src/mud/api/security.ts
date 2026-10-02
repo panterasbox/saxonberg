@@ -226,6 +226,12 @@ export class SecurityApi {
   /** @Final method names per class. Read by the loader-hook validator. */
   static #finalMethods: WeakMap<ClassKey, Set<string>> = new WeakMap();
 
+  /** @TestOnly member names per class, awaiting the withhold pass. */
+  static #testOnlyMembers: WeakMap<ClassKey, Set<string>> = new WeakMap();
+
+  /** Every `Class.member` actually withheld this process. Diagnostics. */
+  static #withheldTestOnly: string[] = [];
+
   /** Per-method @ShadowSecurity. */
   static #shadowSecurity: WeakMap<ClassKey, Map<string, ShadowSecuritySpec>> =
     new WeakMap();
@@ -561,6 +567,10 @@ export class SecurityApi {
   }
 
   static #wrapAllStaticMethods(cls: ClassKey): void {
+    // ⭐ Before wrapping: drop any `@TestOnly` static when this is not a
+    // test environment. Doing it first means a withheld member is never
+    // wrapped, so it leaves no frame-pushing shell behind either.
+    SecurityApi.#withholdTestOnlyMembers(cls);
     for (const name of Object.getOwnPropertyNames(cls)) {
       if (name === 'length' || name === 'name' || name === 'prototype') continue;
       const descriptor = Object.getOwnPropertyDescriptor(cls, name);
@@ -570,6 +580,127 @@ export class SecurityApi {
         continue;
       }
       SecurityApi.#wrapStaticDescriptor(cls, name, descriptor);
+    }
+  }
+
+  /* ─────────────── Test-ENVIRONMENT withholding (@TestOnly) ───────────────
+   *
+   * ⭐⭐ **Two different questions, and they are not interchangeable.**
+   *
+   *   - `assertTestOnly(op)` below asks **who is calling** — it walks
+   *     the stack for a `.test.ts` / `__tests__/` frame. It is the right
+   *     check for the ~40 `_*ForTesting` seams that only in-process unit
+   *     tests ever reach, and it is useless across a socket: a wire
+   *     drive's `eval` arrives in the server with no test frame on the
+   *     stack anywhere.
+   *   - `@TestOnly` asks **what process is this** — is this world a test
+   *     fixture at all. When the answer is no, the member is REMOVED
+   *     from the class. Not denied: absent. `typeof Api.member` is
+   *     `'undefined'`, the sandbox binding has no such key, and the
+   *     author-surface projection cannot see it.
+   *
+   * The second is what a seam needs when its legitimate caller is a
+   * *test world* rather than a test stack frame, and it is the stronger
+   * guarantee of the two — a policy can be argued with, a missing
+   * property cannot.
+   *
+   * ⚠ **The removal cannot live in the decorator.** TypeScript's legacy
+   * method-decorator emit (`__decorate`) threads one descriptor through
+   * every decorator and then calls `Object.defineProperty(target, key,
+   * descriptor)` itself at the end — so a `delete` performed inside a
+   * decorator is undone a microsecond later by the emit. The decorator
+   * therefore only RECORDS the name, and the removal happens in
+   * `#wrapAllStaticMethods`, which runs from the class's module tail
+   * (`SecurityApi.decorateApiClass(FooApi)`) or from the class-form
+   * `@CallSecurity` — both of which run after every method decorator.
+   *
+   * ⚠ Consequence worth knowing at review time: `@TestOnly` is for
+   * **Api statics**, the surface where reachability is actually decided
+   * (the `eval` sandbox binds Api classes and nothing else). A logic
+   * singleton's or registry's matching method stays present and keeps
+   * its `FromModule`/`FromTemplate` gate — with the Api surface gone
+   * there is no longer a path to it.
+   */
+
+  /**
+   * Is this process a test environment — i.e. may `@TestOnly` members
+   * exist at all?
+   *
+   * Three signals, any of which is sufficient:
+   *
+   *   - `VITEST` — an in-process unit-test run.
+   *   - `NODE_ENV=test` — the conventional marker.
+   *   - `SAXONBERG_TEST_WORLD=1` — **a world the test suite booted and
+   *     owns.** This one has to be explicit and deliberate: the wire
+   *     runner SCRUBS `VITEST` from the server environment it spawns
+   *     (an inherited copy tells `preload.js` to skip the call-security
+   *     loader hook, and the boot then dies on the first `FromModule`
+   *     policy), so a wire world cannot be recognised by inheritance.
+   *     It is set in `packages/wire/src/runner/boot.ts`.
+   *
+   * ⚠ A development world (`pnpm dev:server`) carries none of these and
+   * is therefore NOT a test environment — which is the point. The
+   * operator's own world is a world somebody plays in.
+   */
+  public static isTestEnvironment(): boolean {
+    return (
+      Boolean(process.env.VITEST) ||
+      process.env.NODE_ENV === 'test' ||
+      process.env.SAXONBERG_TEST_WORLD === '1'
+    );
+  }
+
+  /**
+   * Record `methodName` on `cls` as test-only. Called by the
+   * `@TestOnly` decorator; the removal itself happens later, in
+   * `#wrapAllStaticMethods`. @internal
+   */
+  public static _markTestOnly(cls: object, methodName: string): void {
+    const k = cls as ClassKey;
+    let set = SecurityApi.#testOnlyMembers.get(k);
+    if (!set) {
+      set = new Set();
+      SecurityApi.#testOnlyMembers.set(k, set);
+    }
+    set.add(methodName);
+  }
+
+  /**
+   * The `@TestOnly` member names declared on `cls` directly. Present
+   * whether or not they were withheld, so a test environment — where
+   * nothing is withheld — can still assert that a seam is MARKED.
+   * Mirrors `getFinalMethods`.
+   */
+  public static getTestOnlyMembers(
+    cls: object,
+  ): ReadonlySet<string> | undefined {
+    return SecurityApi.#testOnlyMembers.get(cls as ClassKey);
+  }
+
+  /**
+   * Every `Class.member` this process actually withheld, in the order
+   * the classes loaded. Empty in a test environment (nothing is
+   * withheld there) and empty in a build with no `@TestOnly` members.
+   * Read by diagnostics and by the decorator's own tests.
+   */
+  public static withheldTestOnlySeams(): readonly string[] {
+    return SecurityApi.#withheldTestOnly;
+  }
+
+  /**
+   * Remove every recorded `@TestOnly` static from `cls` unless this
+   * process is a test environment. Idempotent — the second call finds
+   * nothing left to delete.
+   */
+  static #withholdTestOnlyMembers(cls: ClassKey): void {
+    const set = SecurityApi.#testOnlyMembers.get(cls);
+    if (!set || set.size === 0) return;
+    if (SecurityApi.isTestEnvironment()) return;
+    const label = (cls as { name?: string }).name ?? '<anonymous>';
+    for (const name of set) {
+      if (!Object.prototype.hasOwnProperty.call(cls, name)) continue;
+      delete (cls as unknown as Record<string, unknown>)[name];
+      SecurityApi.#withheldTestOnly.push(`${label}.${name}`);
     }
   }
 

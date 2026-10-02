@@ -42,9 +42,12 @@ import type { FieldMeta } from '../../lib/mixin';
  * `ContainmentApi`, `MixinApi`), with `console` for output. Tighten
  * or expand based on what playtesting actually wants.
  *
- * `WorldClockApi` is here because a world whose slow systems are
- * reconcile-on-read cannot be DRIVEN without moving time — a game day
- * is two real hours, so a season is unreachable from any session.
+ * `WorldClockApi` is here so that a DRIVE can move time — a game day
+ * is two real hours, so a season is unreachable from any session that
+ * finishes. ⭐ Its `advance` carries `@TestOnly`, so in a normal runtime
+ * the Api class simply has no such key and this binding exposes a clock
+ * you can READ and schedule against but not jump. The capability is
+ * the test harness's, not the player's.
  *
  * ⚠⚠ **And the first version of this comment justified it with a
  * falsehood.** It claimed *"`setScale` was always reachable from here,
@@ -61,7 +64,8 @@ import type { FieldMeta } from '../../lib/mixin';
  * `WorldClockRegistry.assertNotQuarantined`. A governed eval passes and
  * is receipted; a wire circle is denied. `shutdown` stays `SystemRoot`,
  * so nothing in-world can freeze the world either way, and `advance`
- * writes a `worldclock.advance` mudlog line so a jump is never silent.
+ * writes a server-log line so a jump is never silent even in a test
+ * world.
  */
 const SANDBOX_NAMES = [
   'StuffApi',

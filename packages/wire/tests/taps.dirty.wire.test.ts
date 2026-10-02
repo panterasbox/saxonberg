@@ -19,6 +19,13 @@
  * fails, two thirds of this file is unreachable and the build has no
  * exit criterion.
  *
+ * ⛔ **And it is a TEST SEAM, not a thing in the game.** `advance`
+ * carries `@TestOnly`: it exists only in a world the suite booted, so
+ * the two clock-dependent suites run under `WIRE_BOOT=1` / CI and SKIP
+ * when the run is merely attached to somebody's dev server. Jumping a
+ * month in a world the operator is playing in would age every
+ * reconcile-on-read system in it at once.
+ *
  * ## ⚠⚠ What is NOT here, said plainly
  *
  *  - ⭐ **Checkpoint 18 (the standing-instruction relief) IS here** —
@@ -48,6 +55,7 @@ import {
   uniqueHandle,
   expectOk,
   engagementIdOf,
+  isOwnedTestWorld,
 } from '../src/harness';
 
 /**
@@ -197,10 +205,17 @@ async function settle(s: Session, started: CommandResult): Promise<void> {
 }
 
 /**
- * ⭐⭐⭐ **Checkpoint 0's instrument: move world-time from inside the
- * game.** `eval` is the code-trust surface and `WorldClockApi` is on its
- * allowlist (W0/D12), so a wizard can skip a season and every schedule
- * in it DRAINS rather than being skipped.
+ * ⭐⭐⭐ **Checkpoint 0's instrument: move world-time.** `eval` is the
+ * code-trust surface and `WorldClockApi` is on its allowlist (W0/D12),
+ * so the jump skips a season and every schedule in it DRAINS rather
+ * than being skipped.
+ *
+ * ⛔ **This is a TEST SEAM, and it only exists in a world the suite
+ * booted.** `WorldClockApi.advance` carries `@TestOnly`, so in an
+ * attached dev world the static is deleted from the class and the two
+ * clock-dependent suites below skip on `isOwnedTestWorld()`. Nothing a
+ * player does moves the realm's clock — this is scaffolding, not a
+ * capability, which is why it is marked rather than merely gated.
  */
 async function advance(s: Session, duration: string): Promise<void> {
   const out = await say(
@@ -277,7 +292,9 @@ afterAll(() => k?.close());
 
 /* ───────────── 0. the clock, without which nothing else runs ───────────── */
 
-suite('⭐⭐⭐ 0. the clock moves, from inside the game', () => {
+suite.skipIf(!isOwnedTestWorld())(
+  '⭐⭐⭐ 0. the clock moves (owned world only — `advance` is @TestOnly)',
+  () => {
   it('⭐⭐ `eval WorldClockApi.advance` moves game time, and says so', async () => {
     // ⚠ The checkpoint the whole drive rests on. Every earlier RGO drive
     // was blind to its own seasons; this is the seam that fixes it.
@@ -508,7 +525,9 @@ suite('⭐⭐ 5–6. six named stems, and the sap is not up', () => {
 
 /* ───────────── 7–9. the spile, and the girth ───────────── */
 
-suite('⭐⭐⭐ 7–9. open the season, bore a hole, and be refused the third', () => {
+suite.skipIf(!isOwnedTestWorld())(
+  '⭐⭐⭐ 7–9. open the season, bore a hole, and be refused the third',
+  () => {
   it('⭐⭐ 7. advance to the run, and `tap` SETS a spile as an engagement', async () => {
     // ⚠ The season band is daylength-driven, so finding the run means
     // walking the year rather than guessing a date. A jump at a time,

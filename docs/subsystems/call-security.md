@@ -859,6 +859,84 @@ right for test seams. Tests legitimately call framework code which
 might call further framework code; what matters is that some test is at
 the bottom of the chain, not that every frame between is a test.
 
+### ⭐⭐ `@TestOnly` — the other question entirely
+
+`assertTestOnly` asks **who is calling**. There is a second question,
+and a seam whose legitimate caller is a *test world* rather than a test
+stack frame needs it instead:
+
+> **`@TestOnly` asks what process this is.** Outside a test
+> environment the member is **removed from the class** — not denied,
+> absent. `typeof WorldClockApi.advance === 'undefined'`, the `eval`
+> sandbox binding has no such key, and the author-surface projection
+> cannot see it.
+
+The distinction is not academic. A **wire drive** speaks to the server
+over a socket, so its `eval` arrives with no test frame on the stack
+anywhere: `assertTestOnly` is structurally blind to it, and a seam the
+drive needs cannot be protected that way at all. Meanwhile the thing
+actually worth preventing is not *a production caller reaching a test
+method* but *the method existing in a world somebody plays in*.
+
+`SecurityApi.isTestEnvironment()` is the oracle. Three signals, any
+one sufficient:
+
+| signal | the case it covers |
+|---|---|
+| `VITEST` | an in-process unit-test run |
+| `NODE_ENV=test` | the conventional marker |
+| `SAXONBERG_TEST_WORLD=1` | ⭐ **a world the test suite booted and owns** |
+
+⚠ The third has to be explicit, and it is set in exactly one place
+(`packages/wire/src/runner/boot.ts`). It cannot be inherited: the wire
+runner **scrubs `VITEST`** from the server environment it spawns,
+because an inherited copy tells `preload.js` to skip the call-security
+loader hook and the boot then dies on the first `FromModule` policy.
+⭐ And a development world (`pnpm dev:server`) carries none of the
+three, which is the point — the operator's world is a world somebody
+plays in.
+
+**⚠⚠ The removal cannot live in the decorator**, and this is the part a
+refactor will get wrong. TypeScript's legacy method-decorator emit
+(`__decorate`) threads one descriptor through every decorator and then
+calls `Object.defineProperty(target, key, descriptor)` itself at the
+end — so a `delete` performed inside a decorator is undone a
+microsecond later. The decorator therefore only **records** the name,
+and the withhold runs from `#wrapAllStaticMethods`, reached by the
+class's module tail (`SecurityApi.decorateApiClass(FooApi)`) or by a
+class-form `@CallSecurity`. Both run after every method decorator.
+
+**Api statics only.** That is the surface where reachability is decided
+— the `eval` sandbox binds Api classes and nothing else — and it is
+the only surface where deletion is honest: a Stuff's methods are
+reached through the Proxy against the whole prototype chain, where
+removing one own descriptor would be a half-measure that reads as a
+guarantee. The decorator throws on an instance method.
+
+A logic singleton's or registry's matching method stays present and
+keeps its `FromModule` / `FromTemplate` gate. With the Api surface gone
+there is no longer a path to it.
+
+**⭐ It is half a review instrument.** A method carrying `@TestOnly` is
+scaffolding for the suite; a method without it is the game. That line
+used to be carried only by the `_*ForTesting` naming convention — and
+`WorldClockApi.advance`, the first consumer, is named exactly like a
+game verb, which is how it shipped for a build and a half being
+described in its own docstring as an in-world capability.
+
+`pnpm lint:test-seams` gates the two silent failure modes at 0 (a
+`@TestOnly` with no module tail withholds nothing; a `@TestOnly` on an
+instance member throws only if the class is imported) and prints a
+census of Api statics that are test-only *by name* and not yet marked —
+the worklist for the sweep that generalizes the decorator. ⚠ The census
+is deliberately **not** ratcheted: test seams grow with features, so a
+ceiling there would refuse an author for legitimately adding one.
+
+`SecurityApi.getTestOnlyMembers(cls)` reads the marks (present whether
+or not they were withheld, so a test environment can still assert that
+a seam is marked); `SecurityApi.withheldTestOnlySeams()` lists what
+this process actually removed.
+
 ## Built-in Policies
 
 A `SecurityPolicy` is just `{ name, allows(caller, target, method,

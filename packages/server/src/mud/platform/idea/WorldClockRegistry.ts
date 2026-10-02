@@ -434,10 +434,14 @@ export default class WorldClockRegistry extends WorldClockRegistryBase {
    * Move world-time forward by `by` game-seconds, firing every schedule
    * the skipped interval contains.
    *
-   * See {@link WorldClockApi.advance} for the contract. This is the
-   * in-world seam (the `eval` sandbox reaches it), NOT a test seam:
-   * `_advanceForTesting` moves the injected real clock, while this
-   * moves the game-time anchor and leaves the real clock alone.
+   * See {@link WorldClockApi.advance} for the contract. ⛔ **A TEST
+   * SEAM**: the Api static that forwards here carries `@TestOnly`, so
+   * in a normal runtime it is deleted from the class and there is no
+   * path to this method at all. The difference from the other seam is
+   * which clock moves — `_advanceForTesting` moves the injected real
+   * clock (and so needs a now-provider, i.e. an in-process test), while
+   * this moves the game-time anchor and leaves the real clock alone,
+   * which is what a drive speaking over a socket needs.
    */
   @CallSecurity(WorldClockApiCallers)
   public advance(by: Quantity<'s'> | string): void {
@@ -463,14 +467,14 @@ export default class WorldClockRegistry extends WorldClockRegistryBase {
     // Re-anchor first so the elapsed real interval is banked at the old
     // scale, then jump the anchor. `anchorRealMs` is untouched by the
     // jump, so live time keeps running from the new game-time.
-    // ⭐⭐ **A jump of world time is an OPERATOR ACT, so it leaves a
-    // trace.** Every other hand-typed mutation of a global in this
-    // codebase is recorded with who and how much (`reserve override` is
-    // the precedent — the one remaining hand mint, receipted with a
-    // reason). A clock jump is irreversible by construction (time only
-    // runs forward) and it ages every reconcile-on-read system in the
-    // realm at once, so a silent one would be the single hardest thing
-    // in the game to diagnose after the fact.
+    // ⭐ **A jump of world time leaves a trace even in a test world.**
+    // It is irreversible by construction (time only runs forward) and
+    // it ages every reconcile-on-read system in the realm at once, so a
+    // silent one is the hardest thing here to diagnose after the fact —
+    // and a drive that jumps twenty days wants that line in the log
+    // beside whatever it then found. The production case is handled a
+    // rung up instead of here: `@TestOnly` removes the Api static, so
+    // outside a test world nothing reaches this at all.
     // ⚠ The SERVER log, not `MudlogApi` — mudlog is a player-facing
     // channel and needs a recipient (*"no recipient — pass opts.to, or
     // call inside a command execution"*), and `advance` can be reached

@@ -13,7 +13,7 @@ captured in [Future work](#future-work) below).
 
 ---
 
-## ⭐⭐ `WorldClockApi.advance` — moving time from inside the game
+## ⭐⭐ `WorldClockApi.advance` — ⛔ a TEST SEAM, not an in-world act
 
 Added by the taps build (2026-10-01), and the reason is one sentence:
 **a world whose slow systems are reconcile-on-read cannot be DRIVEN
@@ -22,6 +22,37 @@ behaviour the game has shipped — a lactation curve, a fleece's year, a
 nectar flow, a sap run — was invisible to any test or drive that
 finished. `taps.dirty.wire.test.ts` is the first drive in the repo that
 walks a season.
+
+⛔⛔ **It carries `@TestOnly`, so in a normal runtime it does not
+exist.** The property is deleted from `WorldClockApi` at class-load
+time; the `eval` sandbox binding has no such key. It exists only where
+`SecurityApi.isTestEnvironment()` is true — an in-process vitest run,
+or a world the wire runner booted and marked
+(`SAXONBERG_TEST_WORLD=1`). A development world carries no such marker.
+
+⚠⚠ **This corrects what this section said for a build and a half.** It
+was first shipped as *"moving time from inside the game"* and
+*"reachable from the `eval` sandbox, which is the code-trust axis"* —
+which made a global, irreversible, immersion-breaking capability sound
+like an authoring affordance, on the strength of a precedent that did
+not exist (the claim that `setScale` was already sandbox-reachable was
+false; the only reference to it outside the clock's own files was the
+sentence asserting it). ⭐ **Nothing a player does moves the realm's
+clock.** There is one clock, it is global, and a jump ages every
+reconcile-on-read system in the world at once. Being receipted does not
+make that acceptable; it only makes it diagnosable.
+
+The slow systems themselves need nothing from the clock — they are
+reconcile-on-read and the realm reaches them by living. Only a
+*scheduled* act needs the interval actually walked, which is why the
+jump drains. And the arithmetic is pinned where arithmetic belongs:
+`Producing.test.ts` (30 cases) and `SapStandard.test.ts` (14) walk real
+game years through the celestial model with no clock jump at all, the
+way `colony.test.ts` does over `_advanceForTesting`.
+
+⚠ The two clock-dependent checkpoints in the taps drive therefore
+**skip** when the wire run is merely attached to a dev server rather
+than owning a world it booted (`isOwnedTestWorld()` in the harness).
 
 ```
 WorldClockApi.advance(by: Quantity<'s'> | string): void
@@ -33,10 +64,12 @@ a one-shot once, an `every` **once per missed period**. A jump that
 silently dropped them would make the clock a liar, which is the whole
 reason the method exists rather than a bare anchor bump.
 
-- **Reachable from the `eval` sandbox**, which is the code-trust axis —
-  `WorldClockApi` is on `SANDBOX_NAMES`. ⛔ No new verb and no
-  `isWizard` check; `shutdown` stays `SystemRoot`, so an eval still
-  cannot freeze the world.
+- **Reachable from the `eval` sandbox — in a test world only.**
+  `WorldClockApi` is on `SANDBOX_NAMES` so a drive can read the clock
+  and jump it; where `@TestOnly` has withheld `advance`, the same
+  binding exposes a clock you can read and schedule against but not
+  move. ⛔ No new verb and no `isWizard` check; `shutdown` stays
+  `SystemRoot`, so an eval still cannot freeze the world.
 - ⛔⛔⛔ **But NOT from a quarantined circle.** Every clock MUTATOR
   (`advance`, `pause`, `resume`, `setScale`, `restore`) refuses when the
   caller sits inside a wire circle, because world time is global and
@@ -62,11 +95,16 @@ reason the method exists rather than a bare anchor bump.
 - ⚠ A jump of years is a loop of thousands of fires. Jump a season at a
   time; the TSDoc says so.
 
-**Distinct from `_advanceForTesting`**, which moves the injected REAL
-clock and is `assertTestOnly`. `advance` moves the game-time anchor and
-leaves the real clock alone, which is what makes it usable from a
-running world. ⭐ Both share one `drainDue` loop, so the two seams
-cannot diverge.
+**Distinct from `_advanceForTesting`.** Both are test seams; they are
+protected by *different questions* and move *different clocks*:
+
+| | moves | protected by | the caller it is for |
+|---|---|---|---|
+| `_advanceForTesting(realMs)` | the injected REAL clock | `assertTestOnly` — a test frame on the stack | an in-process unit test (needs a now-provider) |
+| `advance(by)` | the game-time ANCHOR | `@TestOnly` — this process is a test world | a wire drive (speaks over a socket; can inject nothing, and has no test frame in the server) |
+
+⭐ Both share one `drainDue` loop, so the two seams cannot diverge.
+See [call-security.md § `@TestOnly`](./call-security.md#test-seams).
 
 
 ## Layer 1 — Time axis (`WorldClockApi`, `api/worldclock.ts`)
@@ -264,7 +302,9 @@ its host schedules); the new clone re-establishes in `postRegister`.
 
 ### Test seams
 
-Gated by `SecurityApi.assertTestOnly`:
+Gated by `SecurityApi.assertTestOnly` (a test frame on the stack) —
+`advance` is the fourth seam and is gated differently, by `@TestOnly`;
+see the section at the top:
 
 - `_setNowProviderForTesting(fn)` — inject the real clock (AC1/AC2
   tests step it directly).

@@ -108,3 +108,21 @@ export function declaredPacks(): string[] {
   for (const f of allFiles()) for (const p of f.packs) all.add(p);
   return [...all].sort();
 }
+
+/**
+ * ⭐ Did the suite BOOT this world, or merely attach to one?
+ *
+ * Only a world the suite booted is a test fixture
+ * (`SAXONBERG_TEST_WORLD` — see `runner/boot.ts`), and only in such a
+ * world do `@TestOnly` Api statics exist. The one that matters today is
+ * `WorldClockApi.advance`: in an attached world — somebody's dev server
+ * — the static is deleted from the class, and a checkpoint that jumps
+ * the clock must skip rather than fail. It would otherwise age every
+ * reconcile-on-read system in a world the operator is playing in.
+ *
+ * Set by `globalSetup` before the workers spawn. A file gates a
+ * clock-dependent checkpoint with `it.skipIf(!isOwnedTestWorld())`.
+ */
+export function isOwnedTestWorld(): boolean {
+  return process.env.WIRE_TEST_WORLD === '1';
+}

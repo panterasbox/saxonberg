@@ -999,6 +999,26 @@ configured**.
 
 ## Tests
 
+- **`lint:test-seams`** — ⭐ **a test seam must be MARKED, and the mark
+  must actually fire.** `@TestOnly` withholds an Api static outside a
+  test environment (`SecurityApi.isTestEnvironment()`): in a normal
+  runtime the property is *deleted* from the class. Two structural
+  ceilings at **0**, both of which fail silently without the gate:
+  a `@TestOnly` on a class with **no `decorateApiClass` tail** records a
+  name nothing ever reads — the decorator is present, the review reads
+  as settled, and the method is fully live in production (the removal
+  cannot live in the decorator: `__decorate` re-defines the property
+  after every method decorator runs); and a `@TestOnly` on an **instance
+  member** throws only when the class is imported, which a test path
+  may never do. ⭐ It also prints a **census** of Api statics that are
+  test-only *by name* (`_*ForTest`/`_*ForTesting`) and not yet marked —
+  41 today, the worklist for the sweep that generalizes the decorator.
+  ⚠ The census is deliberately **not** ratcheted: test seams grow with
+  features, so a ceiling there would refuse an author for legitimately
+  adding one. Added by the taps build, on review of
+  `WorldClockApi.advance` — a global, irreversible clock jump that
+  shipped documented as an in-world authoring capability, because
+  nothing in its shape or its name said *test*.
 - **`lint:test-bootstrap`** — anything touching the wired runtime
   imports `test-bootstrap`. Fails only in the cheap direction; a
   redundant import is free because the bootstrap is once-guarded.

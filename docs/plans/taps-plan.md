@@ -1831,3 +1831,119 @@ until W0 nothing in the repo could walk a season at all.
    season at a time"* is a limit, not advice — the drive walks in 20-day
    steps now.
 
+
+---
+
+## ⛔⛔ Review round 3 — `advance` is a test seam, and now it says so
+
+**The user's objection, in full:** *"I'm still confused why you would
+need to manually advance the clock at all. that seems immersion
+breaking"* — then, on being told the honest answer: *"it sounds like the
+answer is 'its just for tests' if that's the case then I withdraw my
+objection, but then call security does really matter here. the thing is
+the call security we need isn't who the caller is, its 'are we running in
+a test environment' and only under that condition do we allow calls to be
+made. under a normal runtime its as if the method doesnt even exist.
+that's how I want it to work. … this isn't just about security its about
+making it obvious to me when I review your code whats there for testing
+and whats there for the game."*
+
+### D18 — `@TestOnly`: a new decorator, because the question is new
+
+Every policy in `SecurityPolicies` answers *who is calling*. The
+protection this seam needs answers *what process is this* — and the
+difference is not cosmetic, because the legitimate caller of `advance`
+is a **test world**, not a test stack frame. A wire drive speaks to the
+server over a socket, so its `eval` arrives with **no test frame
+anywhere on the server's stack**: the repo's existing
+`SecurityApi.assertTestOnly` is structurally blind to it and could never
+have protected this method.
+
+So: `@TestOnly` (`lib/security/decorators.ts`, the sixth decorator).
+Outside a test environment the member is **removed from the class** —
+`typeof WorldClockApi.advance === 'undefined'`, and the `eval` sandbox
+binding simply has no such key. Not denied: absent, as asked.
+
+`SecurityApi.isTestEnvironment()` is the oracle — `VITEST`, or
+`NODE_ENV=test`, or ⭐ `SAXONBERG_TEST_WORLD=1`, which is set in exactly
+one place (`packages/wire/src/runner/boot.ts`) because it **cannot be
+inherited**: that runner deliberately scrubs `VITEST` from the server
+environment it spawns, and a leaked copy once killed the boot outright.
+A dev world carries none of the three, which is the point.
+
+⚠ **The implementation trap, recorded because it looks like a bug and
+isn't.** The removal cannot live in the decorator. TypeScript's legacy
+decorator emit threads one descriptor through every decorator and then
+calls `Object.defineProperty(target, key, descriptor)` itself at the
+end, so a `delete` inside a decorator is undone a microsecond later. The
+decorator only **records** the name; the withhold runs from
+`#wrapAllStaticMethods`, reached by the class's module tail
+(`SecurityApi.decorateApiClass(FooApi)`). The test asserts the *outcome
+after the tail has run*, so a refactor that "simplifies" the delete back
+into the decorator fails rather than silently restoring the method.
+
+**Api statics only.** That is where reachability is decided (the sandbox
+binds Api classes and nothing else) and the only place deletion is
+honest — a Stuff's methods are reached through the Proxy against the
+whole prototype chain. The decorator throws on an instance method. The
+registry and logic `advance` stay, keeping their `FromTemplate` gate;
+with the Api surface gone there is no path to them.
+
+### D19 — a gate, because both failure modes are silent
+
+`pnpm lint:test-seams` (`scripts/check-test-seams.ts`), ceilings **0**:
+
+1. **`@TestOnly` with no module tail** — records a name nothing reads.
+   The decorator is present, the review reads as settled, and the method
+   is fully live in production.
+2. **`@TestOnly` on an instance member** — the decorator throws, but
+   only on import, and a class no test path imports never throws.
+
+Both were verified by writing a file that violates each and watching the
+gate fail, then deleting it. ⚠ The gate's first draft matched the bare
+substring `@TestOnly` and flagged `EvalScript` and `WorldClockRegistry`
+for the *comments explaining* the marker — now it matches only a line
+that is nothing but the decorator.
+
+It also prints a **census**: 41 Api statics that are test-only by name
+and not yet marked — the worklist for the user's later pass. ⭐ It is
+deliberately **not** a ratchet. Test seams grow with features, so
+gating today's count would refuse an author for legitimately adding
+one — the failure mode a ratchet over a content-scaling figure always
+has (`agent-coordination` paid for that once).
+
+### D20 — the drive skips rather than lies
+
+The wire suite has two modes: it **owns** a world it booted
+(`WIRE_BOOT=1` / CI) or it **attaches** to one already running, which
+locally defaults to the operator's dev server on 2010. Only an owned
+world is a test fixture, so `advance` exists only there.
+
+`isOwnedTestWorld()` joins the harness surface, and the drive's two
+clock-dependent suites (checkpoint 0 and checkpoints 7–9) carry
+`suite.skipIf(!isOwnedTestWorld())`. ⭐ That is the right behaviour on
+its own terms, not a workaround: jumping twenty days in a world the
+operator is playing in would age every reconcile-on-read system in it at
+once.
+
+⚠ **Consequence for review:** the drive's full 15/15 is reachable under
+`WIRE_BOOT=1` and CI only. Attached, it runs 11 and skips 4.
+
+### What this reverses
+
+AC 16 and the requirements' checkpoint 0 asked for the clock jump by
+name, and the first version of `advance` shipped documented as *"moving
+time from inside the game"* and *"reachable from the `eval` sandbox,
+which is the code-trust axis."* ⛔ **Both sentences are now struck.**
+The capability is the harness's. `docs/subsystems/time.md`'s section
+heading, its sandbox bullet and its `_advanceForTesting` comparison are
+rewritten; `call-security.md` gains § `@TestOnly`.
+
+⭐ The deeper finding is the one worth keeping: the apiculture build had
+already answered this exact question — its drive header states *"No wire
+drive can advance the game clock… those are pinned as arithmetic where
+the arithmetic lives"* — and this build overrode it without noticing,
+then justified the override with a precedent that did not exist. The
+arithmetic *is* still pinned where it belongs: 30 cases in
+`Producing.test.ts` and 14 in `SapStandard.test.ts` walk real game years
+with no clock jump at all.
