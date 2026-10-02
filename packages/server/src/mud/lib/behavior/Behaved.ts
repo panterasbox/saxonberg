@@ -124,6 +124,13 @@ interface BehaviorWiring {
 export interface Behaved {
   getBehaviors(): readonly BehaviorSpec[];
   /**
+   * @hook The template applier's phase-3 call for the authored
+   *   `dispositions:` field. Seeds them into the trait ledger as `claim`
+   *   evidence, once; the ledger's own skip-if-a-claim-exists read is
+   *   what makes a re-clone safe.
+   */
+  seedDispositions(seeds: readonly ClaimSeed[]): Promise<void>;
+  /**
    * Fire the cadence beat wired for `brainPath` NOW — the author's seam
    * (a wizard `eval`, a drive) onto the same beat the timer runs, gates
    * and all. False when no live wiring names that brain.
@@ -171,14 +178,17 @@ export function BehavedMixin<TBase extends MixinConstructor<Stuff>>(
     /** The declarative spec list — pure data, persisted as-is. */
     static fieldMeta: FieldMeta = {
       behaviors: { persistent: true, authorable: true },
-      dispositions: { persistent: true, authorable: true },
+      // ⭐ `seed: true` adds the applier's phase 3; `persistent` keeps
+      // the authored value on the instance, which is what the row
+      // round-trips. The two are not alternatives.
+      dispositions: { persistent: true, authorable: true, seed: true },
     };
     public behaviors: BehaviorSpec[] = [];
 
     /**
      * An authored host's established character, as disposition `claim`
      * seeds — pure data, persisted as-is. Seeded into the trait ledger
-     * once at spawn (`onCreate`) so derive-on-read yields the host's
+     * once at mint (the applier's phase 3) so derive-on-read yields the host's
      * defining traits immediately, while keeping personality
      * derive-don't-track (it came from a seeded history, not a stat). The
      * behavior→trait edge this introduces is the same one the trait-aware
@@ -261,24 +271,37 @@ export function BehavedMixin<TBase extends MixinConstructor<Stuff>>(
       await super.onCreate(context);
       // Idempotent re-wire: cancel any prior wiring (CMS go-live
       // re-hydrate / re-clone) before installing fresh.
+      // ⭐ The disposition SEED left this hook 2026-10-01: `dispositions`
+      // is a `seed: true` field now and `seedDispositions` below is the
+      // template applier's phase-3 call. What is left here is structural
+      // completion — the host is not finished until its brains are wired
+      // — which is the one limb that belongs at birth.
       this._teardownBehaviors();
       await this._wireBehaviors();
-      await this._seedDispositions();
     }
 
     /**
-     * Seed the host's authored `dispositions:` into the trait ledger as
-     * `claim` evidence — once. Idempotent across re-clone / reboot: skips
-     * if any `claim` row already exists for this host (claims persist).
+     * Phase-3 applier for the authored `dispositions:` field — seed them
+     * into the trait ledger as `claim` evidence, once.
+     *
+     * ⚠ **The idempotence is the LEDGER's, and it stays here.** The
+     * applier decides *when* (mint only, never go-live, never restore);
+     * only the ledger knows whether this history has already been
+     * written, because a re-clone after a destruct is a genuinely new
+     * mint. So the skip-if-any-claim-exists read below is load-bearing,
+     * not belt-and-braces.
+     *
+     * The host-shape check is the ledger's absence, not a host
+     * narrowing: every `Behaved` host can be asked to seed, and one with
+     * no trait ledger has nowhere to put it.
      */
-    private async _seedDispositions(): Promise<void> {
-      const seeds = this.dispositions ?? [];
+    public async seedDispositions(seeds: readonly ClaimSeed[]): Promise<void> {
       if (!seeds.length) return;
       const host = this as unknown as Stuff;
       if (!MixinApi.isDispositioned(host)) return;
       const existing = await host.dispositionEntries();
       if (existing.some((e) => e.kind === 'claim')) return;
-      await host.seedTraitClaims(seeds);
+      await host.seedTraitClaims([...seeds]);
     }
 
     public onDestruct(): void {

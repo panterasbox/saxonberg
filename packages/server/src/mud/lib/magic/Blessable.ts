@@ -57,7 +57,7 @@ export interface Blessable {
    */
   getBlessing(): Blessing;
   setBlessing(value: Blessing): void;
-  /** The persisted band word. The Hydrator's entry. */
+  /** The persisted band word. The applier's entry. */
   getBlessingBand(): string;
   setBlessingBand(value: string): void;
 
@@ -159,7 +159,7 @@ export interface Blessable {
    */
   applyMintOdds(regionOdds: BlessingOdds | null, roll?: () => number): void;
 
-  // ---------- storage (public for the Hydrator) ----------
+  // ---------- storage (public for the applier) ----------
   blessingBand: string;
   blessingBucket: string;
   blessingOdds: BlessingOdds | null;

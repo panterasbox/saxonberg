@@ -43,14 +43,14 @@
  *   9. Every curated blueprint's `classPath:` resolves (blueprints carry
  *      no `class:`, so invariant 3 never sees them).
  *  10. No template row carries the RETIRED `populates:` key (split into
- *      `props:`/`cast:` 2026-09-01) — the Hydrator silently discards a
+ *      `props:`/`cast:` 2026-09-01) — the applier silently discards a
  *      data key with no applier, so a surviving row quietly stops being
  *      furnished. Fails with the conversion rule in hand.
  *  11. Every row states a `class:` or names a parent with `extends:`
  *      whose chain resolves (no missing parent, no cycle, within the
  *      depth cap) and states one.
  *  12. ⭐ No ORPHAN DATA KEY — every key in a row's EFFECTIVE `data` is
- *      a field its EFFECTIVE class declares. The Hydrator discards a key
+ *      a field its EFFECTIVE class declares. The applier discards a key
  *      no composed field declares, SILENTLY; authored alone that hurts
  *      one row, but INHERITED one junk key reaches every descendant.
  *      Census-then-ratchet: the ceiling is today's count, it may fall
@@ -274,7 +274,7 @@ export function packBrainShapeOk(source: string): boolean {
  * ⚠⚠ **A large share of the count is FALSE POSITIVES, and naming them
  * is the honest state of this ratchet** (base-class narrowing,
  * 2026-09-30). Invariant 12 asks *does a composed field declare this
- * key*, which assumes the Hydrator is the only reader. It is not:
+ * key*, which assumes the applier is the only reader. It is not:
  * `TopicCatalogue.ts:318,367` parses `data.address`, `data.actor`,
  * `data.audience`, `data.affordance` and `data.communicative` off the
  * topic rows ITSELF, through `pick(data?.address, …)`. That is ~161 of
@@ -394,7 +394,7 @@ function main(): void {
       });
     }
     // 10 — the RETIRED `populates:` key (2026-09-01: split into
-    // `props:` + `cast:`). The Hydrator silently discards a data key
+    // `props:` + `cast:`). The applier silently discards a data key
     // with no applier, so a surviving row quietly stops being
     // furnished — no conflict, no error, just a bare room (the exact
     // silent-vanish failure invariant 6 exists for). Machine-decidable
@@ -410,7 +410,7 @@ function main(): void {
         detail:
           `carries retired \`populates:\` — split into \`props:\` ` +
           `(write-back content) and \`cast:\` (Behaved troupe); the ` +
-          `Hydrator discards the old key silently`,
+          `applier discards the old key silently`,
       });
     }
     // 12 — orphan data keys, over every row with data. ⭐ The population
@@ -486,7 +486,7 @@ function main(): void {
 
   // 12 — the ratchet. Census-then-ratchet: the count is the ceiling, it
   // may fall and may never rise. The LIST prints either way, because the
-  // inventory is the point — a key the Hydrator throws away has never
+  // inventory is the point — a key the applier throws away has never
   // been visible anywhere before.
   if (orphans.length > ORPHAN_DATA_KEY_CEILING) {
     // ⚠ The comment above has always promised the LIST prints either way,
@@ -499,7 +499,7 @@ function main(): void {
       file: 'packages/server/scripts/check-instanceable-placement.ts',
       detail:
         `${orphans.length} orphan data key(s), ceiling ${ORPHAN_DATA_KEY_CEILING}. ` +
-        `A key no composed field declares is discarded by the Hydrator ` +
+        `A key no composed field declares is discarded by the applier ` +
         `SILENTLY — and a junk key on a PARENT reaches every descendant. ` +
         `Fix the row (or the class), or move the key to a field that exists.`,
     });
@@ -538,7 +538,7 @@ function main(): void {
     7: 'instanceable template not under a branch segment (thing|idea|agent|location)',
     8: 'a capability pack src/ outside the taxonomy (a module not under a branch, behavior/ or lib/; a behavior/ module not brain-shaped; a lib/ module that is not inherited substrate)',
     9: 'classPath: does not resolve (a curated blueprint pointing at nothing)',
-    10: 'retired `populates:` key (split into props:/cast: 2026-09-01) — the Hydrator discards it silently',
+    10: 'retired `populates:` key (split into props:/cast: 2026-09-01) — the applier discards it silently',
     11: 'a row that clones into nothing (no class, and no extends chain that states one)',
     12: 'orphan data keys above the ratchet (a key the applier discards silently)',
     13: 'retired `hydratorClass:` key (the applier runs on data alone since 2026-10-01)',

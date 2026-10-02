@@ -154,7 +154,7 @@ export interface PackReconcileResult {
    */
   documents: Record<string, number>;
   /** Live instances re-hydrated (sync only; 0 at boot). */
-  rehydrated: number;
+  reapplied: number;
   /** Set when the pack FAILED — boot continued without it (install only). */
   failure: PackFailure | null;
   /** The requires phase's outcomes (wave 3). */

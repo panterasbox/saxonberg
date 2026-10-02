@@ -25,7 +25,7 @@ import ShadeAvatar from '../agent/ShadeAvatar';
 import SandboxAvatar from '../agent/sandbox/SandboxAvatar';
 import Species from '../idea/species/Species';
 import BodyPlan from '../idea/species/BodyPlan';
-import PersistentHydrator from '../idea/persistence/PersistentHydrator';
+import TemplateApplier from '../idea/TemplateApplier';
 import { Document } from '../../lib/persistence/Document';
 import { PersistableApi } from '../../api/persistable';
 import { PlayerApi } from '../../api/player';
@@ -97,8 +97,8 @@ describe('⭐⭐ one playerId, one identity thread', () => {
       name: 'lounge',
     });
     makeStuffAtPath(
-      () => new PersistentHydrator(),
-      PersistentHydrator.templatePath,
+      () => new TemplateApplier(),
+      TemplateApplier.templatePath,
     );
   });
   afterEach(() => {

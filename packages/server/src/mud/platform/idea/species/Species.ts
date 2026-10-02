@@ -754,7 +754,7 @@ export default class Species extends SingletonMixin(
     lifecycleStates: { persistent: true },
     sexDeterminationSystem: { persistent: true },
     reproductiveMode: { persistent: true },
-    // ⚠ Rows have always authored these and the Hydrator has always
+    // ⚠ Rows have always authored these and the applier has always
     // written them — `authorable` gates the STUDIO schema, not YAML
     // hydration. Declaring it only makes the schema honest.
     lifespanMin: { persistent: true, authorable: true },

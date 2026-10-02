@@ -29,7 +29,7 @@
  * project rule: a dev DB is dropped and reseeded.
  *
  * Composes onto `Container` (`Stuff & Container`) and declares two
- * instruction fields, applied by Phase 2 of the Hydrator's two-phase
+ * instruction fields, applied by Phase 2 of the applier's two-phase
  * dispatch:
  *
  *   - **`props:`** — the set dressing: fixtures, stock, furniture,
@@ -205,7 +205,7 @@ function templateOf(spec: PropSpec | CastSpec): string | null {
  */
 export interface Staged {
   /**
-   * @hook Invoked by the `Hydrator`'s Phase-2 instruction dispatch from
+   * @hook Invoked by the `TemplateApplier`'s Phase-2 instruction dispatch from
    *   a template's `props` field. **Instruction applier** — consumes
    *   the spec during hydration to spawn the host's born-with props;
    *   the spec is not retained and there is no paired getter (not a
@@ -219,7 +219,7 @@ export interface Staged {
   applyProps(specs: PropSpec[]): Promise<void>;
 
   /**
-   * @hook Invoked by the `Hydrator`'s Phase-2 instruction dispatch from
+   * @hook Invoked by the `TemplateApplier`'s Phase-2 instruction dispatch from
    *   a template's `cast` field. **Instruction applier** — mints the
    *   host's troupe. Throws on an entry whose class does NOT compose
    *   `Behaved` (that is a prop, not cast).
@@ -233,10 +233,10 @@ export interface Staged {
    * (props, cast, or both). */
   isStaged(): boolean;
 
-  /** Storage for the props once-guard (public for the Hydrator). */
+  /** Storage for the props once-guard (public for the applier). */
   _propsStaged: boolean;
 
-  /** Storage for the cast once-guard (public for the Hydrator). */
+  /** Storage for the cast once-guard (public for the applier). */
   _castStaged: boolean;
 }
 
@@ -477,7 +477,7 @@ export function StagedMixin<
  */
 export interface Costumed {
   /**
-   * @hook Invoked by the `Hydrator`'s Phase-2 instruction dispatch from
+   * @hook Invoked by the `TemplateApplier`'s Phase-2 instruction dispatch from
    *   a template's `costume` field. **Instruction applier** — clothes
    *   the host. Throws on an entry whose class does not compose
    *   `Wearable` (a thing you carry is a prop, not a costume).
@@ -487,7 +487,7 @@ export interface Costumed {
    */
   applyCostume(specs: CostumeSpec[]): Promise<void>;
 
-  /** Storage for the costume once-guard (public for the Hydrator). */
+  /** Storage for the costume once-guard (public for the applier). */
   _costumeWorn: boolean;
 }
 

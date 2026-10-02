@@ -172,7 +172,7 @@ function installStore(): void {
   } as unknown as PersistenceManager);
   // The house rows the programme wakes (real clone pipeline).
   const domain = col('content');
-  const PH = '/platform/idea/persistence/PersistentHydrator';
+  const PH = '/platform/idea/TemplateApplier';
   const add = (path: string, cls: string, data: Record<string, unknown> = {}) =>
     domain.push({ _id: `d-${++idCounter}`, path, class: cls, data });
   domain.push({ _id: `d-${++idCounter}`, path: PH, class: PH, data: {} });

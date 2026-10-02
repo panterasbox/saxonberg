@@ -288,7 +288,7 @@ export function PersistableMixin<
      */
     async seedBornWith(): Promise<void> {
       // Present at runtime whenever specs were retained (specs only arrive
-      // via the Hydrator when `props`/`cast` are instruction fields, i.e.
+      // via the applier when `props`/`cast` are instruction fields, i.e.
       // the host composes StagedMixin below). The `?.` guards the
       // vacuous case.
       if (this._bornWithProps.length > 0) {

@@ -22,7 +22,7 @@ import { ExecutionContextApi } from '../../../api/execution-context';
 import { CodeNamingFields } from '../../../lib/stuff/CodeNamingFields';
 import Avatar from '../../../lib/character/Avatar';
 import type { Stuff } from '../../../lib/stuff/Stuff';
-import PersistentHydrator from '../persistence/PersistentHydrator';
+import TemplateApplier from '../TemplateApplier';
 
 const TemplateApiCallers = SecurityPolicies.FromModule('/api/template#TemplateApi'
 );
@@ -157,7 +157,7 @@ export class TemplateLogic extends ApiLogic {
    * author-chosen executable strategy, and is constrained by the
    * folder/leaf invariant. The carve-out admits *any* `isFolderClass`
    * value (broader than the single `FolderZone` that `mkdir` emits); the
-   * no-behaviors + standard-hydrator clauses keep it from smuggling an
+   * no-behaviors clause keeps it from smuggling an
    * executable strategy. It is not a code-execution escape (every folder
    * class is wizard-authored engine code), though it does let a
    * protowizard turn a leaf template into a folder — a content-integrity
@@ -427,9 +427,15 @@ export class TemplateLogic extends ApiLogic {
         `TemplateApi.restoreFromTemplate: no template at '${path}'`
       );
     }
-    const hydrator = await StuffApi.singleton<PersistentHydrator>(
-      PersistentHydrator.templatePath
+    const applier = await StuffApi.singleton<TemplateApplier>(
+      TemplateApplier.templatePath
     );
-    await hydrator.hydrate(stuff, tpl.data ?? {});
+    // ⚠⚠ GO-LIVE, not mint. This re-applies an edited row to objects
+    // that are ALREADY IN THE WORLD, so it must not push a `birthOnly`
+    // field (a stack's `quantity`) and must not re-seed an authored
+    // history. Going live on the coin row used to reset every coin
+    // stack in the game to its authored `quantity: 1` — minting and
+    // burning outside the conservation chokepoint, invisibly.
+    await applier.apply(stuff, tpl.data ?? {}, { mode: 'go-live' });
   }
 }

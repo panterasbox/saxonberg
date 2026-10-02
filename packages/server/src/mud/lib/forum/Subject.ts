@@ -24,7 +24,7 @@
  * `parentSubject/boardScopedName` handle). Cycle 1 exercises both.
  *
  * **Methods-only contract** — other Stuff reads/writes through the
- * accessor methods below, never the public fields (the Hydrator carve-out
+ * accessor methods below, never the public fields (the applier carve-out
  * aside). Persistent fields are public so the persistence layer can
  * reflect into them.
  */

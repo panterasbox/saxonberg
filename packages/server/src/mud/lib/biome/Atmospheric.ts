@@ -180,7 +180,7 @@ export interface Atmospheric {
   // `BiomeApi` is the only external reader; in-class code reads
   // `this._x` directly. Per CLAUDE.md "Inter-Stuff Contract" the
   // chain-walker reach is the API-layer carve-out (same shape as
-  // Hydrator's reflection into persistent fields).
+  // applier's reflection into persistent fields).
 
   _biomePath: string | null;
   _temperature: Quantity<'K'> | null;

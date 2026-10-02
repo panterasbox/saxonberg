@@ -5,7 +5,7 @@ import { BistateMixin } from '../Bistate';
 import { SealableMixin } from '../spatial/Sealable';
 import { SwitchableMixin } from '../boundary/Switchable';
 import { FoldableMixin } from '../slot/Foldable';
-import PersistentHydrator from '../../platform/idea/persistence/PersistentHydrator';
+import TemplateApplier from '../../platform/idea/TemplateApplier';
 import { StuffApi } from '../../api/stuff';
 import { makeStuff } from '../security/__tests__/test-setup';
 
@@ -15,10 +15,10 @@ import { makeStuff } from '../security/__tests__/test-setup';
  *
  * The genuine persistence path these content-clone mixins ride is
  * **template `data: { <field>: true }` → the two-phase
- * `PersistentHydrator` → `set<Field>()` → `is<Field>() === true`**. That
+ * `TemplateApplier` → `set<Field>()` → `is<Field>() === true`**. That
  * is the path `StuffApi.clone` / `restoreFromTemplate` drive when a Door
  * / lamp / folding chair is instantiated from its template. The test
- * exercises that real framework path (via `PersistentHydrator.hydrate`),
+ * exercises that real framework path (via `TemplateApplier.hydrate`),
  * not a hand-rolled serializer: set true → hydrate a fresh instance from
  * the stored `data` → assert the boolean survived (and false stays
  * false, and a malformed non-boolean is rejected by the guard).
@@ -33,12 +33,12 @@ import { makeStuff } from '../security/__tests__/test-setup';
  * property of how these mixins declare persistence — the refactor
  * preserves it byte-for-byte (same `private` storage, same `set<Field>`
  * restore) and does not attempt to change persistence semantics. These
- * mixins are only ever persisted via the reliable template→Hydrator path
+ * mixins are only ever persisted via the reliable template→applier path
  * covered below; the capture-path gap is latent, not live.
  */
 
-function hydrator(): PersistentHydrator {
-  return makeStuff(() => new PersistentHydrator());
+function hydrator(): TemplateApplier {
+  return makeStuff(() => new TemplateApplier());
 }
 
 class TestSealable extends SealableMixin(Idea) {}
@@ -87,11 +87,11 @@ describe('BistateMixin — shared guarded-boolean base', () => {
 
   for (const c of cases) {
     describe(c.label, () => {
-      it(`survives a template → Hydrator round trip (${c.field}: true)`, async () => {
+      it(`survives a template → applier round trip (${c.field}: true)`, async () => {
         // Restore a fresh instance from the stored template data — the
         // real content-clone persistence path (set<Field> preferred).
         const restored = c.make();
-        await hydrator().hydrate(restored, { [c.field]: true });
+        await hydrator().apply(restored, { [c.field]: true }, { mode: 'mint' });
         expect(c.read(restored)).toBe(true);
       });
 
@@ -99,24 +99,24 @@ describe('BistateMixin — shared guarded-boolean base', () => {
         // Pre-set true, then hydrate false — proves the stored value
         // drives the outcome, not the default.
         const seeded = c.make();
-        await hydrator().hydrate(seeded, { [c.field]: true });
+        await hydrator().apply(seeded, { [c.field]: true }, { mode: 'mint' });
         expect(c.read(seeded)).toBe(true);
-        await hydrator().hydrate(seeded, { [c.field]: false });
+        await hydrator().apply(seeded, { [c.field]: false }, { mode: 'mint' });
         expect(c.read(seeded)).toBe(false);
       });
 
       it(`defaults to false when the field is absent from data`, async () => {
         const restored = c.make();
-        await hydrator().hydrate(restored, {});
+        await hydrator().apply(restored, {}, { mode: 'mint' });
         expect(c.read(restored)).toBe(false);
       });
 
       it(`rejects a malformed non-boolean at hydrate time`, async () => {
-        // The guard on setState fires through the setter the Hydrator
+        // The guard on setState fires through the setter the applier
         // prefers — a malformed template crashes loudly.
         const restored = c.make();
         await expect(
-          hydrator().hydrate(restored, { [c.field]: 1 })
+          hydrator().apply(restored, { [c.field]: 1 }, { mode: 'mint' })
         ).rejects.toThrow(TypeError);
       });
     });

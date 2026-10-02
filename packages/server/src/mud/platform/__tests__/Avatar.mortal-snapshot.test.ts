@@ -24,7 +24,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Avatar from '../agent/PrimaryAvatar';
 import Species from '../idea/species/Species';
 import BodyPlan from '../idea/species/BodyPlan';
-import PersistentHydrator from '../idea/persistence/PersistentHydrator';
+import TemplateApplier from '../idea/TemplateApplier';
 import { Document } from '../../lib/persistence/Document';
 import { PersistableApi } from '../../api/persistable';
 import { StuffApi } from '../../api/stuff';
@@ -113,8 +113,8 @@ describe('a snapshot never hands back an unusable body', () => {
     });
     // The chronicle write is not what is under test here.
     makeStuffAtPath(
-      () => new PersistentHydrator(),
-      PersistentHydrator.templatePath,
+      () => new TemplateApplier(),
+      TemplateApplier.templatePath,
     );
   });
   afterEach(() => {

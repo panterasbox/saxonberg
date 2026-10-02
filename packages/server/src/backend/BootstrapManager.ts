@@ -33,7 +33,7 @@ import {
 import { PersistenceManager } from './PersistenceManager';
 import { ApiLogic } from '../mud/lib/stuff/ApiLogic';
 import Interactive from '../mud/platform/idea/Interactive';
-import PersistentHydrator from '../mud/platform/idea/persistence/PersistentHydrator';
+import TemplateApplier from '../mud/platform/idea/TemplateApplier';
 import Species from '../mud/platform/idea/species/Species';
 import BodyPlan from '../mud/platform/idea/species/BodyPlan';
 import Clade from '../mud/platform/idea/species/Clade';
@@ -149,12 +149,12 @@ export class BootstrapManager {
     // domain state rides an Interactive's surface.
     SecurityApi._registerBoundaryExemptBase(ApiLogic);
     SecurityApi._registerBoundaryExemptBase(Interactive);
-    // Hydrators are shared, stateless engine singletons used as pure
-    // functions BY the clone pipeline — a circle-context clone must be
-    // able to call the one field-resident hydrator instance. (Found
-    // live: without this, every clone inside a circle silently skipped
-    // its hydration, so a wire body minted with no default loadout.)
-    SecurityApi._registerBoundaryExemptBase(PersistentHydrator);
+    // The template applier is a shared, stateless engine singleton used
+    // as a pure function BY the clone pipeline — a circle-context clone
+    // must be able to call the one field-resident instance. (Found live:
+    // without this, every clone inside a circle silently skipped its
+    // content step, so a wire body minted with no default loadout.)
+    SecurityApi._registerBoundaryExemptBase(TemplateApplier);
     // REFERENCE DATA — the closed, shared vocabularies every body reads
     // to know what it is, what it's made of, and how it moves. These
     // are commons, not world state: they are seeded, never mutated at

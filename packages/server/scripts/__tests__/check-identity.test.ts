@@ -5,7 +5,7 @@
  * itself creates the failure it guards: until `NamedMixin` leaves the
  * creature base, every creature has a `name` slot and an author can fill
  * one in on anything; afterwards the same row is discarded by the
- * Hydrator without a word. The gate turns that silence into a build
+ * applier without a word. The gate turns that silence into a build
  * error naming the file.
  */
 

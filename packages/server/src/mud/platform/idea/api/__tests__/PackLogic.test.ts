@@ -23,7 +23,7 @@ import { StuffApi } from '../../../../api/stuff';
 import { stubRegistries } from './pack-harness';
 
 const MATERIAL = '/platform/idea/material/Material';
-const HYDRATOR = '/platform/idea/persistence/PersistentHydrator';
+const HYDRATOR = '/platform/idea/TemplateApplier';
 
 interface Row extends Record<string, unknown> {
   _id?: string;

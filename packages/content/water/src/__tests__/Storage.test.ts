@@ -56,8 +56,8 @@ interface Row {
 
 const WORLD: Row[] = [
   {
-    path: '/platform/idea/persistence/PersistentHydrator',
-    class: '/platform/idea/persistence/PersistentHydrator',
+    path: '/platform/idea/TemplateApplier',
+    class: '/platform/idea/TemplateApplier',
     data: {},
   },
   {

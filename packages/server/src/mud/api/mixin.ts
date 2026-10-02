@@ -652,7 +652,7 @@ export class MixinApi {
    * at use time.
    *
    * Mirrors the shape of {@link getAllPersistentFields} and is the
-   * companion lookup for `PersistentHydrator` / `Document`'s
+   * companion lookup for `TemplateApplier` / `Document`'s
    * marshaller-aware coercion path.
    *
    * @param constructor - The class constructor to inspect
@@ -720,7 +720,7 @@ export class MixinApi {
    * `'coords'` → `'Coords'`, so a hydrator can dispatch
    * `'set' + pascalCase('coords')` → `'setCoords'`).
    *
-   * Used by `PersistentHydrator` (Phase 1 `set<X>` / Phase 2
+   * Used by `TemplateApplier` (Phase 1 `set<X>` / Phase 2
    * `apply<X>` dispatch) and `Zone.lookupField` (`get<X>` reflection).
    * Lives here because the field-name-to-method-name convention is
    * the same one `getAllPersistentFields` / `getAllInstructionFields`
@@ -761,7 +761,7 @@ export class MixinApi {
    * is concrete-first chain order — so
    * `Object.keys(meta).filter((k) => meta[k].persistent)` reproduces
    * `getAllPersistentFields` exactly, including the order
-   * `PersistentHydrator` Phase 1 applies fields in.
+   * `TemplateApplier` Phase 1 applies fields in.
    *
    * @param constructor - The class constructor to inspect
    * @returns One merged entry per declared field, in chain order
@@ -1930,7 +1930,7 @@ export class MixinApi {
    * paired getter for the spec; the runtime collection has its own
    * API (`getExit`, `addExit`, …).
    *
-   * `PersistentHydrator` dispatches in two phases: Phase 1 reads every
+   * `TemplateApplier` dispatches in two phases: Phase 1 reads every
    * entry in `getAllPersistentFields` and writes via `setX` (or
    * bracket-assigns when no setter exists); Phase 2 reads every entry
    * in `getAllInstructionFields` and calls `applyX`. An instruction
@@ -1943,6 +1943,25 @@ export class MixinApi {
   public static getAllInstructionFields(constructor: AnyConstructor): string[] {
     const meta = MixinApi.getAllFieldMeta(constructor);
     return Object.keys(meta).filter((f) => meta[f]!.instruction === true);
+  }
+
+  /**
+   * Every `seed`-flagged field across the chain — the template
+   * applier's third phase. A thin derivation of
+   * {@link getAllFieldMeta}, exactly like
+   * {@link getAllInstructionFields}.
+   *
+   * ⭐ A seed field is usually ALSO a persistent field, so it appears in
+   * both lists: phase 1 puts the authored value on the instance (so
+   * `getRenownClaims()` and friends can read it back) and phase 3 hands
+   * the same value to the ledger that owns the truth.
+   *
+   * @param constructor - The class constructor to inspect
+   * @returns Array of all seed field names (deduplicated)
+   */
+  public static getAllSeedFields(constructor: AnyConstructor): string[] {
+    const meta = MixinApi.getAllFieldMeta(constructor);
+    return Object.keys(meta).filter((f) => meta[f]!.seed === true);
   }
 
   /**

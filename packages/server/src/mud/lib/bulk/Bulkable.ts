@@ -104,7 +104,7 @@ export const BULK_VOLUME_UNIT = 'L' as const;
  * pours, and same-material pours keep the destination's payload).
  *
  * Plain JSON-able record (the `reserves` precedent) — round-trips
- * through the default Hydrator with no marshaller.
+ * through the default applier with no marshaller.
  */
 /**
  * One ingredient of a blend: which Material, and how many servings of it
@@ -564,7 +564,7 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
       this._surfaceCapacity = value;
     }
 
-    // ---- public field accessors (Hydrator Phase-1 dispatch) ----
+    // ---- public field accessors (applier Phase-1 dispatch) ----
     public getInteriorAmount(): Quantity<'L'> {
       return this._interiorAmount;
     }

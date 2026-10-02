@@ -94,8 +94,8 @@ function installStore(): void {
   col('content').push(
     {
       _id: 'ph',
-      path: '/platform/idea/persistence/PersistentHydrator',
-      class: '/platform/idea/persistence/PersistentHydrator',
+      path: '/platform/idea/TemplateApplier',
+      class: '/platform/idea/TemplateApplier',
       data: {},
     },
     {

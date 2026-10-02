@@ -15,7 +15,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Panel from '../thing/Panel';
 import Plant from '@saxonberg/server/mud/platform/thing/Plant';
 import Material from '@saxonberg/server/mud/lib/material/Material';
-import PersistentHydrator from '@saxonberg/server/mud/platform/idea/persistence/PersistentHydrator';
+import TemplateApplier from '@saxonberg/server/mud/platform/idea/TemplateApplier';
 import { PersistApi } from '@saxonberg/server/mud/api/persist';
 import { Collections } from '@saxonberg/server/mud/lib/persistence/Collections';
 import { Document } from '@saxonberg/server/mud/lib/persistence/Document';
@@ -166,7 +166,7 @@ beforeEach(() => {
     throw new Error(`no clone factory for ${path}`);
   }) as unknown as typeof StuffApi.clone);
   vi.spyOn(ParcelApi, 'ownerOf').mockResolvedValue({ kind: 'group', name: 'rejection' });
-  makeStuffAtPath(() => new PersistentHydrator(), PersistentHydrator.templatePath);
+  makeStuffAtPath(() => new TemplateApplier(), TemplateApplier.templatePath);
 });
 
 afterEach(() => {

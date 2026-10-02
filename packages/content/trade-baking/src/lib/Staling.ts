@@ -111,7 +111,7 @@ export interface Stales {
   /** Set it outright — the mint, and the test seam. */
   setStaleness(value: number): void;
 
-  // Public so the Hydrator can reflect into them.
+  // Public so the applier can reflect into them.
   _staleness: number;
   stalingClockStamp: number;
   /** Authored per row: the five numbers that shape the curve. */

@@ -51,7 +51,7 @@ import { BeliefStoreMixin } from '../../../lib/belief/BeliefStore';
 import { makeStuff
 } from '../../../lib/security/__tests__/test-setup';
 
-const PH = '/platform/idea/persistence/PersistentHydrator';
+const PH = '/platform/idea/TemplateApplier';
 const HINT = 'a hairline seam and a thread of cool air from the north wall';
 
 class Patron extends BeliefStoreMixin(

@@ -69,7 +69,7 @@ const CoinBase = StackableMixin(Good);
  * different currency, so it inherits this gate for free.
  */
 const CoinQuantityMutators = SecurityPolicies.AnyOf(
-  // ⚠ The CLONE PIPELINE. A `Hydrator` applies a template's (or a captured
+  // ⚠ The CLONE PIPELINE. The applier applies a template's (or a captured
   // snapshot's) `quantity` through the two-phase `set<Field>` dispatch, so
   // hydration is how a coin stack legitimately comes into existence at all —
   // both for a fresh `/stuff/thing/Coin` clone and for a logged-out player's cash
@@ -82,13 +82,16 @@ const CoinQuantityMutators = SecurityPolicies.AnyOf(
   // "can a template mint coins" is enumerated in
   // docs/slates/builds/money-integrity-slate.md § the audit surface
   // (clone-a-coin, content packs, the CMS coin row) as that cycle's work.
-  // `lib/stuff/Hydrator` is an INTERFACE — there is no runtime class to gate
-  // on, so the arms are the concrete hydrator's code provenance and its
-  // template lineage (`lint:gates` catches a dead arm here).
-  SecurityPolicies.FromModule("/platform/idea/persistence/PersistentHydrator", {
+  // Two arms: the applier's code provenance and its template lineage.
+  // ⚠⚠ The template arm used to be the GLOB `/platform/idea/persistence/
+  // *Hydrator`, and `lint:gates` does not resolve a plain `FromTemplate`
+  // glob — so that arm was never verified by anything, on the method
+  // that guards money, for as long as it existed. It names the one row
+  // exactly now, and the gate check resolves it.
+  SecurityPolicies.FromModule("/platform/idea/TemplateApplier", {
     includeSubclasses: true,
   }),
-  SecurityPolicies.FromTemplate("/platform/idea/persistence/*Hydrator"),
+  SecurityPolicies.FromTemplate("/platform/idea/TemplateApplier"),
   // The stack mechanics: split subtracts what it hands out, merge sums what it
   // absorbs — both conserve by construction.
   SecurityPolicies.FromModule("/api/stackable#StackableApi", {

@@ -1,6 +1,6 @@
 /**
  * Material — the Wave-2 nutrition shape: `toxicity` reshaped to
- * `{type, amount}[]` (the per-consumable dose; default-Hydrator
+ * `{type, amount}[]` (the per-consumable dose; default-applier
  * round-trip like `composition`) and `nutrientAmounts` (the inspectable
  * profile). The label RENDER lives on `NutritionLabelMixin` (an opt-in
  * consumable affordance that rides the long-description augmenter seam),

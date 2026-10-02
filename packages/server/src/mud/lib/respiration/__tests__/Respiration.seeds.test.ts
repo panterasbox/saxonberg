@@ -10,7 +10,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
 import YAML from 'yaml';
-import PersistentHydrator from '../../../platform/idea/persistence/PersistentHydrator';
+import TemplateApplier from '../../../platform/idea/TemplateApplier';
 import AirTank from '../../../platform/thing/AirTank';
 import Condition from '../../../platform/idea/Condition';
 import Material from '../../material/Material';
@@ -28,8 +28,8 @@ function seedData(rel: string): Record<string, unknown> {
   return doc.data;
 }
 
-function hydrator(): PersistentHydrator {
-  return makeStuff(() => new PersistentHydrator());
+function hydrator(): TemplateApplier {
+  return makeStuff(() => new TemplateApplier());
 }
 
 describe('respiration seeds — new content shapes hydrate', () => {
@@ -48,7 +48,7 @@ describe('respiration seeds — new content shapes hydrate', () => {
       '../../../../../../content/generic-objects/content/stuff/thing/gear/air-tank.yaml',
     );
     const tank = makeStuff(() => new AirTank());
-    await hydrator().hydrate(tank, data);
+    await hydrator().apply(tank, data, { mode: 'mint' });
 
     expect(tank.hasInteriorBulk()).toBe(true);
     const slot = tank.getBulk('interior');
@@ -64,7 +64,7 @@ describe('respiration seeds — new content shapes hydrate', () => {
       '../../../../../../content/platform/content/platform/idea/Condition/respiration/asphyxiation.yaml',
     );
     const cond = makeStuff(() => new Condition());
-    await hydrator().hydrate(cond, data);
+    await hydrator().apply(cond, data, { mode: 'mint' });
     expect(cond.getName()).toBe('asphyxiation');
   });
 });

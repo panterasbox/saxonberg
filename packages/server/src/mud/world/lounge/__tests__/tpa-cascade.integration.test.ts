@@ -56,9 +56,9 @@ import {
   flush,
   type Doc,
 } from "./lounge-fixtures";
-import PersistentHydrator from "../../../platform/idea/persistence/PersistentHydrator";
+import TemplateApplier from "../../../platform/idea/TemplateApplier";
 
-const PH = PersistentHydrator.templatePath;
+const PH = TemplateApplier.templatePath;
 
 /**
  * The tpa pack's `src/`, so `StuffApi.resolveClassFile` can find

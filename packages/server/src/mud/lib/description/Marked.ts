@@ -127,7 +127,7 @@ export interface Marked {
   getMarkScript(): MarkScript;
   setMarkScript(script: string): void;
 
-  // ---------- storage (public for the Hydrator) ----------
+  // ---------- storage (public for the applier) ----------
   markText: string;
   markForm: string;
   markScript: string;

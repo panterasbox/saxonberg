@@ -101,7 +101,7 @@ export default class PrimaryAvatar extends Avatar {
     //
     // Guests have no playerId and are not registered — they're
     // throwaway and looked up by nothing. (A guest's reserved-word name
-    // comes from its transient template data, set by the Hydrator.)
+    // comes from its transient template data, set by the applier.)
     if (this.playerId) {
       PlayerApi.registerAvatar(this);
     }

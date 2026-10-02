@@ -49,7 +49,7 @@ import type { FieldMeta } from '../mixin';
 export abstract class Zone extends Idea {
   /** The two fields Zone itself owns (subclasses declare their own on
    *  top). `wire` HAS to be here: it's a declared field with an
-   *  accessor pair, so the Hydrator only reaches it by name — and a
+   *  accessor pair, so the applier only reaches it by name — and a
    *  `wire: true` seed row that silently doesn't apply reads as "not
    *  wire", which routes quarantined code down the governed path
    *  (found live: `eval` inside a circle ran GOVERNED). See the

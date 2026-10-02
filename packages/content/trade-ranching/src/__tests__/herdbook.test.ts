@@ -347,7 +347,7 @@ describe('the herdbook fixture', () => {
  * because a person is addressed by their NAME. An animal is not. The
  * livestock row has always authored
  * `keywords: [head, stock, animal, beast]` and every one of them was
- * silently discarded — the Hydrator writes only what `fieldMeta`
+ * silently discarded — the applier writes only what `fieldMeta`
  * declares, and nothing declared `keywords`. In play a drafted head
  * answered to `stock` and nothing else, and only because *"a head of
  * stock"* is its short description: `handle beast` said *"that is not an

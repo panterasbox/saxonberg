@@ -90,7 +90,7 @@ export interface Alloyed {
   getTemper(): Temper;
   setTemper(temper: Temper): void;
 
-  // Public so the Hydrator can reflect into them; in-class code reads
+  // Public so the applier can reflect into them; in-class code reads
   // them directly. Not the inter-Stuff contract (that is the methods).
   alloying: CompositionEntry[];
   temper: Temper;

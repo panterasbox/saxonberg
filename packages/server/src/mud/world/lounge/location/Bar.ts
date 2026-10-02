@@ -44,7 +44,7 @@ import type { FieldMeta } from '../../../lib/mixin';
 // Location))))` — which composes the `coordinates` FIELD but not the
 // `coords` field, because `coords` lives on the `CartesianLocation`
 // CLASS, not on a mixin. `bar.yaml` authors `coords:` under a comment
-// reading *"`coords:` is the MEMBERSHIP operation"*, and the Hydrator
+// reading *"`coords:` is the MEMBERSHIP operation"*, and the applier
 // discarded it silently: the bar held no position and belonged to no
 // zone, in a `/world/lounge` that IS a `CartesianZone`.
 //

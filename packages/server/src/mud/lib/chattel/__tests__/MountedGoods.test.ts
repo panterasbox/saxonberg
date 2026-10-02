@@ -36,7 +36,7 @@ import { AdornableMixin } from "../../boundary/Adornable";
 import { AdornmentMixin } from "../../boundary/Adornment";
 import { ContainmentApi } from "../../../api/containment";
 import { Idea } from "../../stuff/Idea";
-import PersistentHydrator from "../../../platform/idea/persistence/PersistentHydrator";
+import TemplateApplier from "../../../platform/idea/TemplateApplier";
 import { Document } from "../../persistence/Document";
 import { PersistenceManager } from "../../../../backend/PersistenceManager";
 import { makeStuffAtPath } from "../../security/__tests__/test-setup";
@@ -130,7 +130,7 @@ async function boot(): Promise<void> {
     "/platform/idea/ChattelRegistry",
   );
   await reg.onCreate();
-  makeStuffAtPath(() => new PersistentHydrator(), PersistentHydrator.templatePath);
+  makeStuffAtPath(() => new TemplateApplier(), TemplateApplier.templatePath);
   vi.spyOn(StuffApi, "clone").mockImplementation(
     ((path: string) =>
       Promise.resolve(makeStuffAtPath(() => new Sconce(), path))) as unknown as

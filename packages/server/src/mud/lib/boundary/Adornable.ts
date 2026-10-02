@@ -107,7 +107,7 @@ export interface Adornable {
   getFixtureSmellSources(): (Stuff & Adornment)[];
   getFixtureSoundSources(): (Stuff & Adornment)[];
   /**
-   * @hook Invoked by the `Hydrator`'s Phase-2 instruction dispatch from
+   * @hook Invoked by the `TemplateApplier`'s Phase-2 instruction dispatch from
    *   a template's `adornments` field. **Instruction applier** — clones
    *   each spec's template and attaches it as a fixture via
    *   `addFixture`; the spec is not retained and there is no paired

@@ -49,7 +49,7 @@ export interface Labelled {
   /** Does this carry a player-written label? */
   isLabelled(): boolean;
 
-  // ---------- storage (public for the Hydrator) ----------
+  // ---------- storage (public for the applier) ----------
   label: string;
 }
 

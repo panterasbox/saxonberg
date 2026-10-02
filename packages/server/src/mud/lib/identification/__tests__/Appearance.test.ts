@@ -197,7 +197,7 @@ describe('Appearance — derived, never stored', () => {
     // construction, so hashing it would make every item's flip moment
     // jitter on every reboot — and items would visibly flip BACK.
     const restored = makeFlask('/obj/test/flask-restored');
-    restored.turnoverSeed = seed; // what the Hydrator does
+    restored.turnoverSeed = seed; // what the applier does
     expect(restored.getTurnoverSeed()).toBe(seed);
     expect(Appearance.windowPositionOf(restored.getTurnoverSeed())).toBe(
       Appearance.windowPositionOf(seed),

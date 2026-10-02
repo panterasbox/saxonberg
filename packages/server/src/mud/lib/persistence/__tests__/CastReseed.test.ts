@@ -22,7 +22,7 @@ import { StuffApi } from "../../../api/stuff";
 import { ContainmentApi } from "../../../api/containment";
 import { ParcelApi } from "../../../api/parcel";
 import { MixinApi } from "../../../api/mixin";
-import PersistentHydrator from "../../../platform/idea/persistence/PersistentHydrator";
+import TemplateApplier from "../../../platform/idea/TemplateApplier";
 import { PersistableMixin } from "../Persistable";
 import { Template } from "../../stuff/Template";
 import { PersistenceManager } from "../../../../backend/PersistenceManager";
@@ -123,8 +123,8 @@ beforeEach(() => {
   });
 
   makeStuffAtPath(
-    () => new PersistentHydrator(),
-    PersistentHydrator.templatePath,
+    () => new TemplateApplier(),
+    TemplateApplier.templatePath,
   );
 });
 

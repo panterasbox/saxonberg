@@ -591,7 +591,7 @@ export default class Material extends SingletonMixin(
    * education-by-reference profile `examine <food>` surfaces. Parallel
    * to {@link nutrients}: the tags drive routing, these amounts are
    * data + display only (no body-side machinery). A flat
-   * `Record<string, number>` → default-Hydrator round-trip (the
+   * `Record<string, number>` → default-applier round-trip (the
    * `reserves` precedent), no marshaller.
    */
   protected nutrientAmounts: Record<string, number> = {};
@@ -602,7 +602,7 @@ export default class Material extends SingletonMixin(
    * per serving (mg for solids / derived for liquids). The per-body rate
    * params (absorption, clearance, potency, severity bands) live on the
    * toxin's `Condition` seed, NOT here — the same amount-vs-rate split as
-   * nutrients. A list of flat objects → default-Hydrator round-trip (the
+   * nutrients. A list of flat objects → default-applier round-trip (the
    * `composition` precedent), no marshaller.
    */
   protected toxicity: ToxinTag[] = [];
@@ -904,7 +904,7 @@ export default class Material extends SingletonMixin(
     // authored row can never sneak in — which means a new `ToxinTag` field
     // must be added HERE too or it is silently dropped at the setter. That
     // is exactly what happened to `labileAtK` on its first run: the
-    // Hydrator and every caller went through this line, so a cooked bean
+    // applier and every caller went through this line, so a cooked bean
     // kept its lectin and nothing anywhere said why.
     this.toxicity = value.map((e) => ({
       type: e.type,

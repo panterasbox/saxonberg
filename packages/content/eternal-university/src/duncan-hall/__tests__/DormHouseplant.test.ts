@@ -61,7 +61,7 @@ import {
 } from '@saxonberg/server/mud/api/command';
 import { CommandDefinition } from '@saxonberg/server/mud/lib/command/CommandDefinition';
 import Location from '@saxonberg/server/mud/lib/stuff/Location';
-import PersistentHydrator from '@saxonberg/server/mud/platform/idea/persistence/PersistentHydrator';
+import TemplateApplier from '@saxonberg/server/mud/platform/idea/TemplateApplier';
 import { Document } from '@saxonberg/server/mud/lib/persistence/Document';
 import ParcelRegistry from '@saxonberg/server/mud/platform/idea/ParcelRegistry';
 import GroupRegistry from '@saxonberg/server/mud/platform/idea/GroupRegistry';
@@ -90,7 +90,7 @@ interface Doc extends Record<string, unknown> {
   _id?: string;
 }
 
-const PH = PersistentHydrator.templatePath;
+const PH = TemplateApplier.templatePath;
 const DORMS = DormWarren.DORMS_EXTENT;
 
 // The rows this stand-up reads live in four packs (content-packs wave 3).
@@ -1105,7 +1105,7 @@ describe('the dorm houseplant — durability', () => {
         'wilting',
       ),
     );
-    // The pot's clock cursor is public (`Hydrator` reflects into it), so
+    // The pot's clock cursor is public (`TemplateApplier` reflects into it), so
     // this is a plain write, not a cast through the contract. Winding it
     // back is HOW you simulate a restart: production restores the stamp
     // from the record, and there is no other seam that puts a pot's soil

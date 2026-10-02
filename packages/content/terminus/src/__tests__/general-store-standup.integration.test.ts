@@ -20,7 +20,7 @@ import { ModuleApi } from "@saxonberg/server/mud/api/module";
 import { Construction } from "@saxonberg/server/mud/lib/material/Construction";
 import { MixinApi } from "@saxonberg/server/mud/api/mixin";
 import { AppSettings } from "@saxonberg/server/mud/lib/config/AppSettings";
-import PersistentHydrator from "@saxonberg/server/mud/platform/idea/persistence/PersistentHydrator";
+import TemplateApplier from "@saxonberg/server/mud/platform/idea/TemplateApplier";
 import Stock from "@saxonberg/content-trade-shopkeeping/src/thing/Stock";
 import PlantPot from "@saxonberg/server/mud/platform/thing/PlantPot";
 import Seed from "@saxonberg/server/mud/platform/thing/Seed";
@@ -32,7 +32,7 @@ import type { LightSource } from "@saxonberg/server/mud/lib/perception/LightSour
 import { installStore, type Doc } from "@saxonberg/server/mud/lib/persistence/__tests__/backend-store";
 import { installV1QuantityMarshallers } from "@saxonberg/server/mud/lib/persistence/__tests__/quantity-marshaller-test-helpers";
 
-const PH = PersistentHydrator.templatePath;
+const PH = TemplateApplier.templatePath;
 const STORE_DIR = fileURLToPath(
   new URL("../../../terminus/content/world/terminus/general-store/", import.meta.url),
 );

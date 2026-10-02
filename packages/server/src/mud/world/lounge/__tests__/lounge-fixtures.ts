@@ -8,7 +8,7 @@ import LoungeWarren from '../idea/LoungeWarren';
 import { ContainableMixin } from '../../../lib/spatial/Containable';
 import { HasInteractiveMixin } from '../../../lib/connection/HasInteractive';
 import { Idea } from '../../../lib/stuff/Idea';
-import PersistentHydrator from '../../../platform/idea/persistence/PersistentHydrator';
+import TemplateApplier from '../../../platform/idea/TemplateApplier';
 import { makeStuff } from '../../../lib/security/__tests__/test-setup';
 
 import {
@@ -17,7 +17,7 @@ import {
 } from '../../../lib/persistence/__tests__/backend-store';
 export { installStore, type Doc };
 
-const PH = PersistentHydrator.templatePath;
+const PH = TemplateApplier.templatePath;
 
 /** The baseline lounge + campus templates every lounge suite needs. */
 export function loungeDocs(extra: Doc[] = []): Doc[] {

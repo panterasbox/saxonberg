@@ -128,7 +128,7 @@ export default class Stock extends StockBase {
    */
   public purchasing: StockPurchasing = "consignment";
 
-  /** The Hydrator's Phase-1 setter: an unknown policy is refused, never read as consignment. */
+  /** The applier's Phase-1 setter: an unknown policy is refused, never read as consignment. */
   public setPurchasing(value: unknown): void {
     if (!(STOCK_PURCHASINGS as readonly unknown[]).includes(value)) {
       throw new Error(

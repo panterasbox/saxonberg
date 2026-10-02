@@ -13,7 +13,7 @@
  *   - wraps the raw instance in the call-security Proxy,
  *   - registers the proxy under its `stuffId`.
  *
- * It deliberately skips `Hydrator.hydrate()` and `onCreate()` — if
+ * It deliberately skips `TemplateApplier.apply()` and `onCreate()` — if
  * a test needs those, use `await StuffApi.create(...)` instead.
  *
  * Stage 2's loader-hook spike may add a setupFiles fallback here that

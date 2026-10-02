@@ -48,7 +48,7 @@ type Doc = {
   data: Record<string, unknown>;
 };
 
-const HYDRATOR = '/platform/idea/persistence/PersistentHydrator';
+const HYDRATOR = '/platform/idea/TemplateApplier';
 
 /** The default-floor row, as the generic-objects pack ships it. */
 const DEFAULT_FLOOR_ROW: Doc = {
@@ -66,7 +66,7 @@ const DEFAULT_FLOOR_ROW: Doc = {
  * The applier itself is a template row too — its path is a
  * TEMPLATE path, not a module path, and the clone pipeline resolves it
  * through the same store. Leaving it out fails with
- * `Template not found: /platform/idea/persistence/PersistentHydrator`,
+ * `Template not found: /platform/idea/TemplateApplier`,
  * which reads like a missing class and is a missing ROW.
  */
 const HYDRATOR_ROW: Doc = {

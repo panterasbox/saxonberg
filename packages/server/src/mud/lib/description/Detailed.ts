@@ -190,7 +190,7 @@ export interface Detailed {
    * front so re-application during template re-clone replaces, not
    * appends. Quietly skips malformed entries.
    *
-   * @hook Invoked by the `Hydrator`'s Phase-2 instruction dispatch from
+   * @hook Invoked by the `TemplateApplier`'s Phase-2 instruction dispatch from
    *   a template's `details` field. **Instruction applier** — consumes
    *   a declaration to produce derived runtime state; no paired getter
    *   (not a property). Must be idempotent across template re-clone.
@@ -219,7 +219,7 @@ export function DetailedMixin<TBase extends MixinConstructor>(Base: TBase) {
      * Used by PersistApi for automatic synchronization.
      *
      * Instruction-field applier roster. `details` is consumed by
-     * `applyDetails` (Phase 2 of PersistentHydrator). The
+     * `applyDetails` (Phase 2 of TemplateApplier). The
      * declarative YAML shape (a plain object keyed by detail name)
      * differs from the runtime `Map<DetailId, Detail>` shape, so
      * the applier sits between them — it owns the conversion. The

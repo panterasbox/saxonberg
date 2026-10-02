@@ -113,7 +113,7 @@ describe('check-unconsumed-seams — must NOT fire', () => {
   });
 
   it('⚠ IGNORES an interface hook the mixin implements in the SAME file', () => {
-    // The Hydrator-applier shape — a contract with a live implementation
+    // The applier shape — a contract with a live implementation
     // one screen down, which "no override outside this file" misreads.
     expect(seamNames()).not.toContain('hook:applyThings');
   });
@@ -123,7 +123,7 @@ describe('check-unconsumed-seams — must NOT fire', () => {
   });
 
   it('does not count a SETTER as a read', () => {
-    // The Hydrator writes every persistent field by reflection, so a
+    // The applier writes every persistent field by reflection, so a
     // write proves nothing about whether the seam is honoured.
     const onlySetter = new Map<string, string>([
       [DECL, src()],

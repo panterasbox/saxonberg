@@ -131,7 +131,7 @@ export default class ExitableVessel extends ExitableVesselBase {
 
   /**
    * The accessor pair owns the invariant (the project rule); the
-   * setter method delegates here so the Hydrator's Phase-1
+   * setter method delegates here so the applier's Phase-1
    * `set<Field>` dispatch and in-process callers share one check.
    */
   protected get interiorVolume(): Quantity<'m³'> | null {

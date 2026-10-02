@@ -7,7 +7,7 @@
  *
  *   import { Identity } from "./identity";
  *   Identity.Recognition.describe(viewer, target);
- *   Identity.Belief.hydrate(viewer);
+ *   Identity.Belief.apply(viewer, { mode: 'mint' });
  *
  * **Why a namespace, not a merged `IdentityApi`.** The cluster's
  * methods are heterogeneous (per-viewer cache lifecycle, viewer×target

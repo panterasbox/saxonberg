@@ -176,7 +176,7 @@ export interface OpenWorking extends Strata, Diggable {
   /** How this working reads, at a viewer's competence. */
   faceReadFor(band: CompetenceBandName): Promise<string>;
 
-  // Public so the Hydrator can reflect into them. Not the contract.
+  // Public so the applier can reflect into them. Not the contract.
   floorDepthM: number;
   wonByBand: Record<string, number>;
   faceRunM: number;

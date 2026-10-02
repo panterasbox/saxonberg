@@ -25,7 +25,7 @@ import { PersistableMixin } from "../../persistence/Persistable";
 import { EstateMixin } from "../../chattel/Estate";
 import { ContainerMixin } from "../Container";
 import { Idea } from "../../stuff/Idea";
-import PersistentHydrator from "../../../platform/idea/persistence/PersistentHydrator";
+import TemplateApplier from "../../../platform/idea/TemplateApplier";
 import { Document } from "../../persistence/Document";
 import { PersistenceManager } from "../../../../backend/PersistenceManager";
 import { makeStuffAtPath } from "../../security/__tests__/test-setup";
@@ -109,7 +109,7 @@ async function boot(): Promise<void> {
   installV1QuantityMarshallers();
   const reg = makeStuffAtPath(() => new ChattelRegistry(), "/platform/idea/ChattelRegistry");
   await reg.onCreate();
-  makeStuffAtPath(() => new PersistentHydrator(), PersistentHydrator.templatePath);
+  makeStuffAtPath(() => new TemplateApplier(), TemplateApplier.templatePath);
   vi.spyOn(StuffApi, "clone").mockImplementation(
     ((path: string) =>
       Promise.resolve(makeStuffAtPath(() => new Torch(), path))) as unknown as

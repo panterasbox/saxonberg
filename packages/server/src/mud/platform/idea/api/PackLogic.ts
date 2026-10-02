@@ -2961,7 +2961,15 @@ function filesOfKind(content: PackContent, strategy: KindStrategy<unknown>): unk
 
 // --- reconcile -------------------------------------------------------------
 
-/** Re-hydrate / destruct live singletons after a sync's reconcile. */
+/**
+ * Re-apply the changed rows to their live singletons, and destruct the
+ * ones whose row is gone, after a sync's reconcile.
+ *
+ * ⚠ The word is RE-APPLIED, not re-hydrated: this pushes what an AUTHOR
+ * wrote onto objects already in the world (go-live mode), which is a
+ * different act from filling an instance with what the world remembered
+ * about it. The count `pack sync` prints is a count of hosts touched.
+ */
 async function rehydrate(
   changedPaths: string[],
   deletedPaths: string[],
@@ -3075,7 +3083,7 @@ function emptyResult(packId: string): PackReconcileResult {
     normalized: 0,
     quantityTables: 0,
     documents: {},
-    rehydrated: 0,
+    reapplied: 0,
     failure: null,
     requires: emptyRequiresResult(),
     boot: { 'sync-read': 0, producer: 0 },
@@ -3742,7 +3750,7 @@ async function reconcilePack(
 
   if (opts.rehydrate) {
     const domain = perKind.get('domain')!.changes;
-    result.rehydrated = await rehydrate(
+    result.reapplied = await rehydrate(
       [...domain.inserted, ...domain.updated],
       domain.deleted,
     );
@@ -4082,7 +4090,7 @@ export class PackLogic extends ApiLogic {
         await saveRecord(record);
         const r = emptyResult(packId);
         r.deleted.push(path);
-        if (strategy.kind === 'domain') r.rehydrated = await rehydrate([], [path]);
+        if (strategy.kind === 'domain') r.reapplied = await rehydrate([], [path]);
         else if (strategy.documentKind) await invalidateDocumentKind(strategy.documentKind);
         return r;
       }
@@ -4145,7 +4153,7 @@ export class PackLogic extends ApiLogic {
       await saveRecord(record);
       const r = emptyResult(packId);
       r.updated.push(path);
-      if (strategy.kind === 'domain') r.rehydrated = await rehydrate([path], []);
+      if (strategy.kind === 'domain') r.reapplied = await rehydrate([path], []);
       else if (strategy.documentKind) await invalidateDocumentKind(strategy.documentKind);
       else {
         DescriptorBank.clearCache();

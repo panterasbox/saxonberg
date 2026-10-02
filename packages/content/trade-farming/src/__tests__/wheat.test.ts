@@ -58,7 +58,7 @@ describe("wheat has the five rows a cereal needs", () => {
     expect(plant.harvestTemplatePath).toBe("/trade/farming/thing/crop/wheat");
     expect(plant._speciesPath).toBe(seed._speciesPath);
     expect(existsSync(join(POACEAE, "triticum", "aestivum.yaml"))).toBe(true);
-    // ⚠ `_materialPath` — the key the Hydrator writes; `material:` was a dead
+    // ⚠ `_materialPath` — the key the applier writes; `material:` was a dead
     // key 49 rows carried (found by the grain-chain wire flow).
     expect(crop._materialPath).toBe("/stuff/idea/material/food/wheat-grain");
     expect(existsSync(join(MATERIALS, "wheat-grain.yaml"))).toBe(true);

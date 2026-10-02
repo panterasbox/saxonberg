@@ -18,7 +18,7 @@
  * from becoming a class hierarchy.
  *
  * ⚠ The field keeps its name. `growsIntoPath` moved from `Seed` to
- * here, and the `Hydrator` reflects into persistent fields **by name**,
+ * here, and the `TemplateApplier` reflects into persistent fields **by name**,
  * so existing `Seed` rows hydrate unchanged.
  *
  * ⚠ This says nothing about whether the thing is *ready* to plant, or
@@ -54,7 +54,7 @@ export function PlantableMixin<TBase extends MixinConstructor>(Base: TBase) {
     /**
      * The `/trade/farming/thing/plant/…` template this mints when planted.
      *
-     * Public because the `Hydrator` reflects into persistent fields by
+     * Public because the `TemplateApplier` reflects into persistent fields by
      * name; other Stuff use the method surface.
      */
     public growsIntoPath: string | null = null;

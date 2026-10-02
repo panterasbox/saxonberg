@@ -83,7 +83,7 @@ export interface Coolbox {
    */
   getContentsTemperature(): Quantity<'K'>;
 
-  /** Public so the Hydrator can reflect into it. Not the contract. */
+  /** Public so the applier can reflect into it. Not the contract. */
   insulationR: number;
 }
 

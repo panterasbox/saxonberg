@@ -31,9 +31,9 @@ import {
   installStore,
   type Doc,
 } from "@saxonberg/server/mud/lib/persistence/__tests__/backend-store";
-import PersistentHydrator from "@saxonberg/server/mud/platform/idea/persistence/PersistentHydrator";
+import TemplateApplier from "@saxonberg/server/mud/platform/idea/TemplateApplier";
 
-const PH = PersistentHydrator.templatePath;
+const PH = TemplateApplier.templatePath;
 // The rows this stand-up reads live across the packs (content-packs
 // wave 3): the locality rows in the locality packs, the species in
 // species-and-names, the rest in the platform / generic-objects packs.

@@ -319,7 +319,7 @@ export default abstract class Avatar extends AvatarBase {
    * distinct: it holds a singleton room **or a Warren**, and resolves at
    * hydration via `applyStartLocation`. Only avatars have a
    * spawn/recall location, so it lives directly here (no mixin). The
-   * Hydrator's Phase 2 auto-dispatches any declared instruction field, so
+   * applier's Phase 2 auto-dispatches any declared instruction field, so
    * the declaration alone wires it. See
    * [docs/requirements/multilocation-lounge-requirements.md].
    *
@@ -339,7 +339,7 @@ export default abstract class Avatar extends AvatarBase {
    * reason each then overrode `getPlayerId()` to undo its own copy and
    * `getIdentityPath()` to rebuild the same string.
    *
-   * ⚠ A key no composed field declares is discarded by the Hydrator
+   * ⚠ A key no composed field declares is discarded by the applier
    * SILENTLY; `lint:instanceable` invariant 12 is what counts them.
    *
    * ⭐ `escheatedAt` and `beneficiary` are NOT here. They are the
@@ -369,7 +369,7 @@ export default abstract class Avatar extends AvatarBase {
    * heartbeat-updated field would answer a different one while costing
    * a write per tick.
    *
-   * Public because the `Hydrator` reflects into persistent fields by
+   * Public because the `TemplateApplier` reflects into persistent fields by
    * name; other Stuff use `getLastSeen` / `markSeen`.
    */
   public lastSeen: number = 0;
@@ -498,7 +498,7 @@ export default abstract class Avatar extends AvatarBase {
    * The identity's death-arc position, or `null` while embodied and alive.
    *
    * Written only by the death choreography and cleared only by
-   * re-embodiment. Public because the `Hydrator` reflects into persistent
+   * re-embodiment. Public because the `TemplateApplier` reflects into persistent
    * fields by name; other Stuff use the method surface below.
    */
   public mortalArc: MortalArc | null = null;
@@ -652,7 +652,7 @@ export default abstract class Avatar extends AvatarBase {
   /**
    * Character slot id (key under `/platform/agent/Avatar/<playerId>` and in `User.playerIds`).
    *
-   * ⭐ Public because the Hydrator reflects into persistent fields by
+   * ⭐ Public because the applier reflects into persistent fields by
    * name; external readers still use `getPlayerId()` (the inter-Stuff
    * contract is methods). Landed from a clone overlay before
    * `onCreate`, or stamped there from the context.

@@ -143,7 +143,7 @@ export function EstateMixin<TBase extends MixinConstructor<Stuff>>(
      * ⭐ Epoch ms the estate PASSED (economic bootstrap D17), or 0. Set by
      * the escheat, cleared by the reclaim a return runs; the one flag that
      * tells a login "the treasury holds something of yours". Public for
-     * the Hydrator; others read `getEscheatedAt`.
+     * the applier; others read `getEscheatedAt`.
      */
     public escheatedAt: number = 0;
 

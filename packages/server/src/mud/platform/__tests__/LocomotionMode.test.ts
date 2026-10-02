@@ -57,8 +57,8 @@ describe('LocomotionMode', () => {
       }
     });
 
-    it('the composed list is own-first, then inherited — the key order the Hydrator relies on', () => {
-      // `PersistentHydrator` Phase 1 applies fields in this order, and
+    it('the composed list is own-first, then inherited — the key order the applier relies on', () => {
+      // `TemplateApplier` Phase 1 applies fields in this order, and
       // `getAllFieldMeta` collects keys concrete-class-first. That the
       // class's own twelve lead, in declared order, is the guarantee.
       expect(MixinApi.getAllPersistentFields(LocomotionMode)).toEqual(OWN);

@@ -39,7 +39,7 @@ type Doc = {
   data: Record<string, unknown>;
 };
 
-const H = '/platform/idea/persistence/PersistentHydrator';
+const H = '/platform/idea/TemplateApplier';
 
 /** ⭐ The pink of Limbo Lane: a material nothing in the fold recognises. */
 const LIMBO_PINK = '/test/material/limbo-pink';

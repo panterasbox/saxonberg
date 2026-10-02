@@ -4,7 +4,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import CartesianLocation from '../../location/CartesianLocation';
 import CartesianZone from '../../../platform/idea/location/CartesianZone';
 import Window from '../../../platform/thing/Window';
-import PersistentHydrator from '../../../platform/idea/persistence/PersistentHydrator';
+import TemplateApplier from '../../../platform/idea/TemplateApplier';
 import { PersistenceManager, Collections } from '../../../../backend/PersistenceManager';
 import { StuffApi } from '../../../api/stuff';
 
@@ -79,8 +79,8 @@ describe('Declarative content lazy hydrate — CartesianZone + rooms + Window', 
     installInMemoryStore([
       // The applier's own row (no data — terminates the recursion).
       {
-        path: PersistentHydrator.templatePath,
-        class: '/platform/idea/persistence/PersistentHydrator',
+        path: TemplateApplier.templatePath,
+        class: '/platform/idea/TemplateApplier',
         data: {},
       },
       // The zone.
@@ -197,8 +197,8 @@ describe('Declarative content lazy hydrate — CartesianZone + rooms + Window', 
   it('back-edge idempotency: applyExits on roomB sees south already wired and no-ops', async () => {
     installInMemoryStore([
       {
-        path: PersistentHydrator.templatePath,
-        class: '/platform/idea/persistence/PersistentHydrator',
+        path: TemplateApplier.templatePath,
+        class: '/platform/idea/TemplateApplier',
         data: {},
       },
       {

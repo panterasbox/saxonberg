@@ -341,7 +341,7 @@ export default class BodyPlan extends SingletonMixin(Idea) {
   public getBaseMass(): number { return this.baseMass; }
   public setBaseMass(value: number): void {
     // Per-field invariant on the setter (the project rule): the
-    // Hydrator's Phase-1 `setBaseMass` dispatch is the validation point.
+    // applier's Phase-1 `setBaseMass` dispatch is the validation point.
     if (typeof value !== 'number' || !Number.isFinite(value) || value < 0) {
       throw new RangeError(
         `BodyPlan.setBaseMass: must be a finite, non-negative number, ` +

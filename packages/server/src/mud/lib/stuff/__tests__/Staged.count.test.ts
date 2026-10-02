@@ -20,7 +20,7 @@ import { StagedMixin } from '../Staged';
 import { ContainerMixin } from '../../spatial/Container';
 import { ContainableMixin } from '../../spatial/Containable';
 import { PlacingMixin } from '../../spatial/Placing';
-import PersistentHydrator from '../../../platform/idea/persistence/PersistentHydrator';
+import TemplateApplier from '../../../platform/idea/TemplateApplier';
 import { PersistenceManager, Collections } from '../../../../backend/PersistenceManager';
 import { StuffApi } from '../../../api/stuff';
 import { BehavedMixin } from '../../behavior/Behaved';
@@ -76,7 +76,7 @@ const CLASSES: Record<string, unknown> = {
 };
 
 const ROWS: Doc[] = [
-  { path: PersistentHydrator.templatePath, class: '/platform/idea/persistence/PersistentHydrator', data: {} },
+  { path: TemplateApplier.templatePath, class: '/platform/idea/TemplateApplier', data: {} },
   { path: '/test/lime', class: '/test/PlainThing', data: {} },
   { path: '/test/bench', class: '/test/SurfaceThing', data: {} },
   { path: '/test/only-one', class: '/test/SingletonThing', data: {} },

@@ -143,7 +143,7 @@ export interface ManaPowered {
    */
   armSupply(): Promise<void>;
 
-  // ---------- storage (public for the Hydrator) ----------
+  // ---------- storage (public for the applier) ----------
   drawMode: DrawMode;
   mainsRef: string;
   armingFloorTau: number;

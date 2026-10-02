@@ -79,7 +79,7 @@ export interface DefaultAliasEntry {
  * Public shape provided by AliasMixin — methods only, per the
  * inter-stuff contract. The persistent (`aliases`) and session
  * (`aliasesSession`) stores live as public fields on the
- * implementing class so the Hydrator can reflect into them by name,
+ * implementing class so the applier can reflect into them by name,
  * but they are NOT part of the contract surface; every external
  * read or write goes through the methods below. Tests that need to
  * seed raw state reach for the concrete class type rather than the
@@ -202,7 +202,7 @@ export function AliasMixin<TBase extends MixinConstructor>(Base: TBase) {
   class AliasMixin extends Base implements Alias {
     static _mixinName = 'AliasMixin';
 
-    /** Hydrator round-trips `aliases` by reflection. `aliasesSession` is transient. */
+    /** The applier round-trips `aliases` by reflection. `aliasesSession` is transient. */
     /**
      * Fork per-character verb aliases onto a wire body (sandbox
      * Decision Q). An alias is a typing habit, not a possession; a

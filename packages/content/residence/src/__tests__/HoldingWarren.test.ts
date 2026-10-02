@@ -24,7 +24,7 @@ import Thing from '@saxonberg/server/mud/platform/thing/Thing';
 import Avatar from '@saxonberg/server/mud/platform/agent/PrimaryAvatar';
 import ParcelRegistry from '@saxonberg/server/mud/platform/idea/ParcelRegistry';
 import GroupRegistry from '@saxonberg/server/mud/platform/idea/GroupRegistry';
-import PersistentHydrator from '@saxonberg/server/mud/platform/idea/persistence/PersistentHydrator';
+import TemplateApplier from '@saxonberg/server/mud/platform/idea/TemplateApplier';
 import { Document } from '@saxonberg/server/mud/lib/persistence/Document';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
@@ -50,7 +50,7 @@ interface Doc extends Record<string, unknown> {
   _id?: string;
 }
 
-const PH = PersistentHydrator.templatePath;
+const PH = TemplateApplier.templatePath;
 const PARENT = '/world/prog-test/lots';
 const WARREN_PATH = '/world/prog-test/holder';
 const PROGRAMME = '/world/prog-test/house-programme';

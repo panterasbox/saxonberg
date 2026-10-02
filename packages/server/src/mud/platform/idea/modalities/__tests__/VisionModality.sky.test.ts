@@ -42,7 +42,7 @@ function atGameSecond(t: number): void {
 
 /**
  * A 3 m Terminus-sized cell that follows the sun. `ambientSource` is
- * bracket-assigned exactly as the Hydrator's Phase-2 dispatch assigns
+ * bracket-assigned exactly as the applier's Phase-2 dispatch assigns
  * it from a row's `data:` — there is deliberately no runtime setter,
  * because nothing in the game ever changes what a room's light source
  * IS at runtime.

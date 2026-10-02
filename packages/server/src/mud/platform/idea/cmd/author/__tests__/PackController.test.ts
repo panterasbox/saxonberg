@@ -43,7 +43,7 @@ const OK: PackReconcileResult = {
   normalized: 0,
   quantityTables: 0,
   documents: {},
-  rehydrated: 1,
+  reapplied: 1,
   failure: null,
   requires: {
     groupsCreated: [], groupsFound: [], titlesGranted: [], titlesKept: [],

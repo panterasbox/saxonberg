@@ -83,7 +83,7 @@ export interface Wet {
   /** Reconcile the elapsed drain (sync, presence-frozen). */
   reconcileWetness(): void;
 
-  // Public so the Hydrator can reflect into them; in-class code reads them
+  // Public so the applier can reflect into them; in-class code reads them
   // directly. Not the inter-Stuff contract (that's the method surface).
   _saturation: number;
   wetnessClockStamp: number;

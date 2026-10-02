@@ -5,7 +5,7 @@ import CartesianLocation from '../../lib/location/CartesianLocation';
 import Good from '../../lib/stuff/Good';
 import { PersistenceManager, Collections } from '../../../backend/PersistenceManager';
 import { StuffApi } from '../../api/stuff';
-import PersistentHydrator from '../idea/persistence/PersistentHydrator';
+import TemplateApplier from '../idea/TemplateApplier';
 import { BoundaryApi } from '../../api/boundary';
 import {
   makeStuffAtPath,  makeStuff,
@@ -161,13 +161,13 @@ describe('Window.setAttachedHosts', () => {
     expect(w.getAnchorB()).not.toBeNull();
   });
 
-  it('hydrates via PersistentHydrator method-dispatch', async () => {
+  it('hydrates via TemplateApplier method-dispatch', async () => {
     makeStuffAtPath(() => new CartesianLocation(), '/room/a');
     makeStuffAtPath(() => new CartesianLocation(), '/room/b');
     const w = await StuffApi.create(() => new Window());
-    await makeStuff(() => new PersistentHydrator()).hydrate(w, {
+    await makeStuff(() => new TemplateApplier()).apply(w, {
       attachedHosts: ['/room/a', '/room/b'],
-    });
+    }, { mode: 'mint' });
     expect(w.getAttachedHosts()).toEqual(['/room/a', '/room/b']);
     expect(w.getAnchorA()).not.toBeNull();
     expect(w.getAnchorB()).not.toBeNull();

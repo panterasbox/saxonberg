@@ -20,7 +20,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { EstateMixin } from '../Estate';
 import { PersistableMixin } from '../../persistence/Persistable';
 import { Idea } from '../../stuff/Idea';
-import PersistentHydrator from '../../../platform/idea/persistence/PersistentHydrator';
+import TemplateApplier from '../../../platform/idea/TemplateApplier';
 import { Document } from '../../persistence/Document';
 import { PersistableApi } from '../../../api/persistable';
 import { MixinApi } from '../../../api/mixin';
@@ -78,8 +78,8 @@ describe('⭐ the estate holds its own succession state', () => {
       name: 'lounge',
     });
     makeStuffAtPath(
-      () => new PersistentHydrator(),
-      PersistentHydrator.templatePath,
+      () => new TemplateApplier(),
+      TemplateApplier.templatePath,
     );
   });
   afterEach(() => {

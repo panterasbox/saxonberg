@@ -50,8 +50,8 @@ interface Row {
 const WORLD: Row[] = [
   // The hydrator the zone rows name — a row like any other.
   {
-    path: '/platform/idea/persistence/PersistentHydrator',
-    class: '/platform/idea/persistence/PersistentHydrator',
+    path: '/platform/idea/TemplateApplier',
+    class: '/platform/idea/TemplateApplier',
     data: {},
   },
   {

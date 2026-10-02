@@ -55,7 +55,7 @@ export interface Consumable {
    */
   consume(): Promise<Stuff | null>;
 
-  // ---------- storage (public for the Hydrator) ----------
+  // ---------- storage (public for the applier) ----------
   usesRemaining: number;
   residueTemplatePath: string;
 }

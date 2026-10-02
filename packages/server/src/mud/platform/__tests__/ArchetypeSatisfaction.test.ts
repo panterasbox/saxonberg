@@ -169,7 +169,7 @@ function hotplate(k = 500): Oven {
 }
 function tap(): UnboundedReceptacle {
   const t = makeStuff(() => new UnboundedReceptacle());
-  // The two authored bulk flags have no setters — the Hydrator writes
+  // The two authored bulk flags have no setters — the applier writes
   // them by name off the row (`interiorBulk: true`), which is exactly
   // what this stands in for.
   const authored = t as unknown as {

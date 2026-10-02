@@ -39,7 +39,7 @@ import { PersistableMixin } from "../../lib/persistence/Persistable";
 import { ContainerMixin } from "../../lib/spatial/Container";
 import { EstateMixin } from "../../lib/chattel/Estate";
 import { Idea } from "../../lib/stuff/Idea";
-import PersistentHydrator from "../idea/persistence/PersistentHydrator";
+import TemplateApplier from "../idea/TemplateApplier";
 import { ChattelEvent } from "../../lib/chattel/ChattelEvent";
 import { Document } from "../../lib/persistence/Document";
 import { PersistenceManager } from "../../../backend/PersistenceManager";
@@ -152,8 +152,8 @@ async function boot(): Promise<void> {
   );
   await reg.onCreate();
   makeStuffAtPath(
-    () => new PersistentHydrator(),
-    PersistentHydrator.templatePath,
+    () => new TemplateApplier(),
+    TemplateApplier.templatePath,
   );
   // Item reconstitution → fresh Torch fixtures (the gated clone stand-in).
   vi.spyOn(StuffApi, "clone").mockImplementation(

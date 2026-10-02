@@ -97,7 +97,7 @@ export interface Exitable {
    * diagnostic naming both seed paths. Per declarative-content-slate
    * § exits on ExitableMixin.
    *
-   * @hook Invoked by the `Hydrator`'s Phase-2 instruction dispatch from
+   * @hook Invoked by the `TemplateApplier`'s Phase-2 instruction dispatch from
    *   a template's `exits` field. **Instruction applier** — consumes a
    *   declaration to produce derived runtime state; no paired getter
    *   (not a property). Per-direction idempotent across re-clone.

@@ -578,7 +578,7 @@ export interface Contaminable {
   /** Reconcile the elapsed growth / die-off (sync). */
   reconcileContamination(): void;
 
-  // Public so the Hydrator can reflect into them.
+  // Public so the applier can reflect into them.
   _pathogenLoads: PathogenLoads;
   pathogenClockStamp: number;
 }

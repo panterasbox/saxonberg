@@ -18,7 +18,7 @@ import { ExecutionContextApi } from "../../../api/execution-context";
 import { PersistedRecord } from "../../../lib/persistence/PersistedRecord";
 import { Template } from "../../../lib/stuff/Template";
 import { Document } from "../../../lib/persistence/Document";
-import PersistentHydrator from "../persistence/PersistentHydrator";
+import TemplateApplier from "../TemplateApplier";
 import type { Marshaller } from "../../../lib/persistence/Marshaller";
 import type {
   MixinSlice,
@@ -695,14 +695,19 @@ async function restoreState(
       slottedSlice = slice;
     }
   }
-  // Hydrate through the standard two-phase Hydrator: prefers `set<Field>`
-  // (the invariant-enforcing gated setter surface), un-marshals rich values,
+  // Apply through the standard property phase: prefers `set<Field>` (the
+  // invariant-enforcing gated setter surface), un-marshals rich values,
   // and only bracket-assigns setterless pure-storage fields (already
   // drift-guarded to declared persistent fields). No raw-target write.
-  const hydrator = await StuffApi.singleton<PersistentHydrator>(
-    PersistentHydrator.templatePath,
+  //
+  // ⚠ RESTORE mode, which is NOT go-live: this replays a record of what
+  // this instance actually had, so a `birthOnly` field is exactly what
+  // it must write back. Phases 2 and 3 are skipped by selection — an
+  // instruction or seed field never appears in a captured field slice.
+  const applier = await StuffApi.singleton<TemplateApplier>(
+    TemplateApplier.templatePath,
   );
-  await hydrator.hydrate(target, fieldData);
+  await applier.apply(target, fieldData, { mode: 'restore' });
 
   // (2) Container contents — cloned through the gated path, placed into the
   // target. Index-aligned with the slice so the Slotted pass resolves.

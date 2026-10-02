@@ -71,8 +71,15 @@ export const TemplatePaths = {
   helpCatalogue: "/platform/idea/HelpCatalogue",
   pressBoard: "/platform/idea/PressBoard",
 
+  /**
+   * ⭐ The content step — what a ROW says, put onto the instance. Called
+   * `persistentHydrator` at `/platform/idea/persistence/PersistentHydrator`
+   * until 2026-10-01; *hydration* is reserved now for filling an instance
+   * from what the world REMEMBERED about it.
+   */
+  templateApplier: "/platform/idea/TemplateApplier",
+
   // Persistence infra (declared as `static templatePath` on these classes).
-  persistentHydrator: "/platform/idea/persistence/PersistentHydrator",
   quantityMarshaller: "/platform/idea/persistence/QuantityMarshaller",
   encryptedStringMarshaller: "/platform/idea/persistence/EncryptedStringMarshaller",
 

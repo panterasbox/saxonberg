@@ -1273,7 +1273,7 @@ describe('PropertiedMixin', () => {
       );
 
       // Restored host: replay the doc by bracket-assigning both
-      // persistent records (mimics what PersistentHydrator does).
+      // persistent records (mimics what TemplateApplier does).
       const restored = makeStuff(() => new PropertiedThing());
       (restored as unknown as {
         savedProps: Record<string, unknown>;

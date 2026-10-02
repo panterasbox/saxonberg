@@ -28,7 +28,7 @@ import MineRoom from '../../../../location/MineRoom';
 import Ore from '../../../../thing/Ore';
 import CartesianZone from '@saxonberg/server/mud/platform/idea/location/CartesianZone';
 import Material from '@saxonberg/server/mud/platform/idea/material/Material';
-import PersistentHydrator from '@saxonberg/server/mud/platform/idea/persistence/PersistentHydrator';
+import TemplateApplier from '@saxonberg/server/mud/platform/idea/TemplateApplier';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { ConditionApi } from '@saxonberg/server/mud/api/condition';
@@ -182,7 +182,7 @@ describe('ground support', () => {
      * below can answer for it.**
      *
      * `shore` promotes a cell and writes its record, and the persistence
-     * spine reaches `StuffApi.singleton(PersistentHydrator.templatePath)`
+     * spine reaches `StuffApi.singleton(TemplateApplier.templatePath)`
      * on the way. `singleton` falls through to `clone` on a miss — and
      * the clone mock answers for EVERY path, so it handed back a
      * `MineRoom`, and `hydrator.hydrate is not a function` escaped as an
@@ -193,7 +193,7 @@ describe('ground support', () => {
      * promotion through the actual hydrator rather than mocking the
      * spine out from under the act this file exists to prove.
      */
-    makeStuffAtPath(() => new PersistentHydrator(), PersistentHydrator.templatePath);
+    makeStuffAtPath(() => new TemplateApplier(), TemplateApplier.templatePath);
 
     vi.spyOn(StuffApi, 'clone').mockImplementation((async (path: string) => {
       if (path === ORE_ROW) return makeStuff(() => new Ore()) as unknown as Stuff;

@@ -40,7 +40,7 @@ import { HasInteractiveMixin } from "../../connection/HasInteractive";
 import { ContainmentApi } from "../../../api/containment";
 import { PersistedRecord } from "../../persistence/PersistedRecord";
 import { Idea } from "../../stuff/Idea";
-import PersistentHydrator from "../../../platform/idea/persistence/PersistentHydrator";
+import TemplateApplier from "../../../platform/idea/TemplateApplier";
 import { Document } from "../../persistence/Document";
 import { PersistenceManager } from "../../../../backend/PersistenceManager";
 import { makeStuffAtPath } from "../../security/__tests__/test-setup";
@@ -208,7 +208,7 @@ async function boot(): Promise<void> {
     "/platform/idea/ChattelRegistry",
   );
   await reg.onCreate();
-  makeStuffAtPath(() => new PersistentHydrator(), PersistentHydrator.templatePath);
+  makeStuffAtPath(() => new TemplateApplier(), TemplateApplier.templatePath);
   vi.spyOn(StuffApi, "clone").mockImplementation(((path: string) => {
     const factory = factories[path];
     if (!factory) throw new Error(`no clone factory for ${path}`);

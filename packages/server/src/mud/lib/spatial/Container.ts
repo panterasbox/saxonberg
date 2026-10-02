@@ -349,7 +349,7 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
      * `dependsOnFields: ['contents']` keys the dependency-index entry
      * to the `FieldChangedEvent { field: 'contents' }` fires installed
      * on `addContainable` / `removeContainable` below — the field is
-     * not a persistent field (Hydrator never reflects into it) and
+     * not a persistent field (the applier never reflects into it) and
      * setter-shaped invariants don't fit, so the events fire from the
      * primitives.
      */

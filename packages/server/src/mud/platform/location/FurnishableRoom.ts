@@ -107,7 +107,7 @@ const FurnishableRoomBase = PersistableMixin(
         // ⭐⭐ `PerceptibleMixin` beside `Visible` — a furnished room is
         // addressable by keyword, and **all ten shipped rows already say
         // so**: every one authors `primaryKeyword` / `keywords` /
-        // `alternateNames`, and until 2026-09-11 the Hydrator discarded
+        // `alternateNames`, and until 2026-09-11 the applier discarded
         // every one of them, because this stack builds on `Location`
         // rather than `CartesianLocation` and so never composed it.
         //

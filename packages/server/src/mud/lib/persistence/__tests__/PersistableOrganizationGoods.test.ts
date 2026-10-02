@@ -22,7 +22,7 @@ import { ContainmentApi } from "../../../api/containment";
 import { ParcelApi } from "../../../api/parcel";
 import { ChattelApi } from "../../../api/chattel";
 import { MixinApi } from "../../../api/mixin";
-import PersistentHydrator from "../../../platform/idea/persistence/PersistentHydrator";
+import TemplateApplier from "../../../platform/idea/TemplateApplier";
 import { PersistableMixin } from "../Persistable";
 import { PersistenceManager } from "../../../../backend/PersistenceManager";
 import { Idea } from "../../stuff/Idea";
@@ -124,7 +124,7 @@ beforeEach(() => {
   vi.spyOn(ChattelApi, "placedIn").mockResolvedValue([]);
   Document.setMarshallerResolver(() => undefined, async () => undefined);
   installV1QuantityMarshallers();
-  makeStuffAtPath(() => new PersistentHydrator(), PersistentHydrator.templatePath);
+  makeStuffAtPath(() => new TemplateApplier(), TemplateApplier.templatePath);
 });
 afterEach(() => vi.restoreAllMocks());
 
@@ -154,7 +154,7 @@ describe("organization-owned goods persist with their host", () => {
     await PersistableApi.capture(room);
     StuffApi.clearAll();
     installV1QuantityMarshallers();
-    makeStuffAtPath(() => new PersistentHydrator(), PersistentHydrator.templatePath);
+    makeStuffAtPath(() => new TemplateApplier(), TemplateApplier.templatePath);
 
     const reborn = (await StuffApi.singleton<Room>(ROOM)) as Room;
     const counter2 = reborn
@@ -181,7 +181,7 @@ describe("organization-owned goods persist with their host", () => {
     await PersistableApi.capture(room);
     StuffApi.clearAll();
     installV1QuantityMarshallers();
-    makeStuffAtPath(() => new PersistentHydrator(), PersistentHydrator.templatePath);
+    makeStuffAtPath(() => new TemplateApplier(), TemplateApplier.templatePath);
 
     const reborn = (await StuffApi.singleton<Room>(ROOM)) as Room;
     const paths = reborn.getContents().map((c) => c.getTemplatePath()).sort();

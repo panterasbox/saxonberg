@@ -239,7 +239,7 @@ export default class Field extends FieldBase {
    * The spot on the soil field this ground samples. Stamped at plot
    * time; see the class docstring for why it is not the coordinates.
    *
-   * ⚠ Two scalars rather than a tuple, because the Hydrator reflects
+   * ⚠ Two scalars rather than a tuple, because the applier reflects
    * into fields by name and a two-element array is a shape it would have
    * to be told about. Scalars decompose for free — the `Reserve`
    * precedent.

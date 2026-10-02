@@ -95,7 +95,7 @@ export class Vessel extends VesselBase {
 
   /**
    * Accessor pair owns the per-field invariant (the project rule);
-   * `setTransmissionFactor` delegates here so the Hydrator's Phase-1
+   * `setTransmissionFactor` delegates here so the applier's Phase-1
    * dispatch and in-process callers share one validation point.
    */
   protected get transmissionFactor(): number {

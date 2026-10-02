@@ -7,7 +7,7 @@
  *
  * **Persistence vs contract.** The durable shape is the band *word*
  * (`gradeBand: string`, stable + human-readable in seeds), reached by the
- * persist accessor pair `getGradeBand`/`setGradeBand` — what the Hydrator
+ * persist accessor pair `getGradeBand`/`setGradeBand` — what the applier
  * dispatches `set<Field>` into. The **inter-Stuff contract** is the
  * value-object surface `getGrade(): Grade` / `setGrade(Grade)` — other Stuff
  * read quality as a `Grade`, never the raw string.

@@ -31,7 +31,7 @@ import { PersistApi } from '../../../../api/persist';
 import { StuffApi } from '../../../../api/stuff';
 
 const TOPIC_CLASS = '/platform/idea/Topic';
-const HYDRATOR = '/platform/idea/persistence/PersistentHydrator';
+const HYDRATOR = '/platform/idea/TemplateApplier';
 
 interface Row extends Record<string, unknown> {
   _id?: string;

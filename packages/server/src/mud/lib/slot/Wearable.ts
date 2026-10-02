@@ -34,7 +34,7 @@ export interface Wearable extends Slottable {
   setSlotClaim(bodyPlanPath: string, slots: string[]): void;
   getEligibleBodyPlans(): readonly string[];
 
-  // Persistence-shape accessor pair (default Hydrator).
+  // Persistence-shape accessor pair (default applier).
   getSlotClaims(): Readonly<Record<string, readonly string[]>>;
   setSlotClaims(value: Record<string, string[]>): void;
 
@@ -83,7 +83,7 @@ export interface Wearable extends Slottable {
   /** Stamp the measurements — `cut`'s job. */
   setCutTo(bodyPlanPath: string, statureM: number, girthIndex: number): void;
 
-  // Persistence-shape accessor pairs (default Hydrator). ⚠ THREE named
+  // Persistence-shape accessor pairs (default applier). ⚠ THREE named
   // scalars rather than one composite object: a fixed-key composite of
   // three scalars is exactly the case the persistent-fields doctrine
   // says decomposes. (`slotClaims` is the contrasting VARIABLE-key case

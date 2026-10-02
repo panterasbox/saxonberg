@@ -47,7 +47,7 @@ export default class Lounge extends LoungeBase {
    * Wire any inverse exit pointers (host fixtures are imperatively
    * installed by the Warren, so there is rarely pending work). The
    * instruction-field `warren` self-registration has already run via the
-   * Hydrator's Phase 2 (`applyWarren`) by the time this hook fires.
+   * applier's Phase 2 (`applyWarren`) by the time this hook fires.
    */
   public override async onCreate(context?: unknown): Promise<void> {
     await super.onCreate(context);

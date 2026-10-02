@@ -4,7 +4,7 @@ import { AmbientLitMixin } from '../AmbientLit';
 import { Idea } from '../../stuff/Idea';
 import { MixinApi } from '../../../api/mixin';
 import { ProxyApi } from '../../../api/proxy';
-import PersistentHydrator from '../../../platform/idea/persistence/PersistentHydrator';
+import TemplateApplier from '../../../platform/idea/TemplateApplier';
 import { Mixins } from '../../mixin';
 import { Quantity } from '../../quantity';
 import { makeStuff } from '../../security/__tests__/test-setup';
@@ -57,10 +57,10 @@ describe('AmbientLitMixin', () => {
   describe('persistence round-trip — scalar fields', () => {
     it('hydrates ambientIntensity + ambientColorTemperature as scalars (string color resolves via tag)', async () => {
       const t = makeStuff(() => new TestAmbient());
-      await makeStuff(() => new PersistentHydrator()).hydrate(t, {
+      await makeStuff(() => new TemplateApplier()).apply(t, {
         ambientIntensity: 40,
         ambientColorTemperature: 'warm',
-      });
+      }, { mode: 'mint' });
       expect(t.getAmbientFlux().rawValue()).toBe(40);
       const c = t.getAmbientColorTemperature();
       expect(c).not.toBeNull();
@@ -69,10 +69,10 @@ describe('AmbientLitMixin', () => {
 
     it('toDocument-shape bracket-read returns the stored scalars', async () => {
       const t = makeStuff(() => new TestAmbient());
-      await makeStuff(() => new PersistentHydrator()).hydrate(t, {
+      await makeStuff(() => new TemplateApplier()).apply(t, {
         ambientIntensity: 40,
         ambientColorTemperature: 'warm',
-      });
+      }, { mode: 'mint' });
       const raw = ProxyApi.unwrap(t) as unknown as {
         ambientIntensity: number;
         ambientColorTemperature: number | null;
@@ -99,18 +99,18 @@ describe('AmbientLitMixin', () => {
     it('hydrating a malformed intensity throws TypeError via the setter', async () => {
       const t = makeStuff(() => new TestAmbient());
       await expect(
-        makeStuff(() => new PersistentHydrator()).hydrate(t, {
+        makeStuff(() => new TemplateApplier()).apply(t, {
           ambientIntensity: 'lots' as unknown as number,
-        })
+        }, { mode: 'mint' })
       ).rejects.toThrow(TypeError);
     });
 
     it('hydrating a negative intensity throws TypeError via the setter', async () => {
       const t = makeStuff(() => new TestAmbient());
       await expect(
-        makeStuff(() => new PersistentHydrator()).hydrate(t, {
+        makeStuff(() => new TemplateApplier()).apply(t, {
           ambientIntensity: -1,
-        })
+        }, { mode: 'mint' })
       ).rejects.toThrow(TypeError);
     });
   });

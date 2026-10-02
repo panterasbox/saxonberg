@@ -15,9 +15,9 @@ import {
   installStore,
   type Doc,
 } from "../../../../world/lounge/__tests__/lounge-fixtures";
-import PersistentHydrator from "../../persistence/PersistentHydrator";
+import TemplateApplier from "../../TemplateApplier";
 
-const PH = PersistentHydrator.templatePath;
+const PH = TemplateApplier.templatePath;
 const FIXTURE_A = "/world/test/emp/fixture-a";
 const FIXTURE_B = "/world/test/emp/fixture-b";
 const BIZ_A = "/world/test/emp/business-a";

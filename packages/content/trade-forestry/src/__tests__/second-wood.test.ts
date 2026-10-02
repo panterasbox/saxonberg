@@ -4,7 +4,7 @@
  *
  * Two clearings authored as a second locality would author them —
  * literal rows on `/trade/forestry/location/Wood` with a `mix:` each,
- * hydrated through the shipped `PersistentHydrator` — register, derive
+ * hydrated through the shipped `TemplateApplier` — register, derive
  * their own standing from their own block, afford `fell` to whoever
  * stands in them, and felling one leaves the other untouched. No pack
  * code was written to make this true; that is the claim.
@@ -17,7 +17,7 @@ import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { CommandApi } from '@saxonberg/server/mud/api/command';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
-import PersistentHydrator from '@saxonberg/server/mud/platform/idea/persistence/PersistentHydrator';
+import TemplateApplier from '@saxonberg/server/mud/platform/idea/TemplateApplier';
 import { makeStuff, makeStuffAtPath } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
 import {
   installV1QuantityMarshallers,
@@ -63,7 +63,7 @@ describe('a second wood is rows', () => {
 
   async function hydrate(path: string, data: Record<string, unknown>): Promise<Wood> {
     const w = makeStuffAtPath(() => new Wood(), path);
-    await makeStuff(() => new PersistentHydrator()).hydrate(w, data);
+    await makeStuff(() => new TemplateApplier()).apply(w, data, { mode: 'mint' });
     await w.onCreate();
     return w;
   }

@@ -404,11 +404,11 @@ describe('StuffApi', () => {
       const { vi } = await import('vitest');
       vi.spyOn(Template, 'findByPath').mockImplementation(
         async (path: string) => {
-          if (path === '/platform/idea/persistence/PersistentHydrator') {
+          if (path === '/platform/idea/TemplateApplier') {
             const t = new LeafTemplate();
             t.path = path;
             t.setOwn({
-              class: '/platform/idea/persistence/PersistentHydrator',
+              class: '/platform/idea/TemplateApplier',
               data: { shortDescription: 'an applier that applies itself' },
             });
             return t;
@@ -418,7 +418,7 @@ describe('StuffApi', () => {
       );
 
       await expect(
-        StuffApi.clone('/platform/idea/persistence/PersistentHydrator')
+        StuffApi.clone('/platform/idea/TemplateApplier')
       ).rejects.toThrow(/circular template dependency/);
 
       vi.restoreAllMocks();
@@ -430,11 +430,11 @@ describe('StuffApi', () => {
       const { vi } = await import('vitest');
       vi.spyOn(Template, 'findByPath').mockImplementation(
         async (path: string) => {
-          if (path === '/platform/idea/persistence/PersistentHydrator') {
+          if (path === '/platform/idea/TemplateApplier') {
             const t = new LeafTemplate();
             t.path = path;
             t.setOwn({
-              class: '/platform/idea/persistence/PersistentHydrator',
+              class: '/platform/idea/TemplateApplier',
               data: {},
             });
             return t;
@@ -444,7 +444,7 @@ describe('StuffApi', () => {
       );
 
       const applier = await StuffApi.clone(
-        '/platform/idea/persistence/PersistentHydrator'
+        '/platform/idea/TemplateApplier'
       );
       expect(applier).toBeDefined();
 
@@ -460,7 +460,7 @@ describe('StuffApi', () => {
       const { LeafTemplate } = await import('../../lib/stuff/LeafTemplate');
       const { ScheduleApi } = await import('../schedule');
       const { vi } = await import('vitest');
-      const HYDRATOR = '/platform/idea/persistence/PersistentHydrator';
+      const HYDRATOR = '/platform/idea/TemplateApplier';
       const PROP = '/stuff/test/clone-tree/prop';
       const later: Promise<unknown>[] = [];
       let armed = false;

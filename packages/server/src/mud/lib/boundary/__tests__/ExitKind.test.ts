@@ -54,12 +54,12 @@ function mockKindTemplates(): void {
         });
         return t;
       }
-      if (path === '/platform/idea/persistence/PersistentHydrator') {
+      if (path === '/platform/idea/TemplateApplier') {
         // The hydrator's own template (the real seed's base case: no
         // data — terminates the clone recursion).
         const t = new LeafTemplate();
         t.path = path;
-        t.setOwn({ class: '/platform/idea/persistence/PersistentHydrator', data: {} });
+        t.setOwn({ class: '/platform/idea/TemplateApplier', data: {} });
         return t;
       }
       if (path === STAIR) {

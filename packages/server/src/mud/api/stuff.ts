@@ -17,7 +17,7 @@ import { fileURLToPath, pathToFileURL } from 'url';
 import { ModuleApi } from './module';
 import { AsyncLocalStorage } from 'node:async_hooks';
 import { Stuff, type DestroyedObjectMetadata } from '../lib/stuff/Stuff';
-import type { Hydrator } from '../lib/stuff/Hydrator';
+import type TemplateApplier from '../platform/idea/TemplateApplier';
 import { TemplatePaths } from '../lib/paths';
 import { MixinApi, type AnyConstructor } from './mixin';
 import { Mixins } from '../lib/mixin';
@@ -49,7 +49,7 @@ import { SecurityPolicies } from '../lib/security/SecurityPolicies';
 
 /**
  * Constructor type for Stuff classes. Clone instantiates backings with no
- * argument; hydration happens in a separate `Hydrator.hydrate()` step.
+ * argument; hydration happens in a separate `TemplateApplier.apply()` step.
  * Classes may still define a raw-data constructor for direct test
  * construction — that's a class-local convenience, not a clone contract.
  */
@@ -380,7 +380,7 @@ export class StuffApi {
    *      initialize can observe the in-flight object.
    *   5. If there is any `data` to apply — the row's, with any
    *      `dataOverlay` merged over it — resolve the applier and
-   *      `await applier.hydrate(backing, data)`. Nothing to apply plans
+   *      `await applier.apply(backing, data, { mode: 'mint' })`. Nothing to apply plans
    *      no applier.
    *   6. Await `onCreate(context)`, forwarding the caller-supplied
    *      context. The hook bottoms out on a terminal no-op on `Stuff`,
@@ -590,15 +590,15 @@ export class StuffApi {
     const data = opts?.dataOverlay
       ? { ...(template.data ?? {}), ...opts.dataOverlay }
       : (template.data ?? {});
-    const hydrator: (Hydrator & Stuff) | null =
+    const applier: TemplateApplier | null =
       Object.keys(data).length > 0
-        ? await this.singleton<Hydrator & Stuff>(
-            TemplatePaths.persistentHydrator
+        ? await this.singleton<TemplateApplier>(
+            TemplatePaths.templateApplier
           )
         : null;
 
     // 7. Construct, stamp zone, then run the shared register / hydrate /
-    //    onCreate sequence. The hydrator captures `template.data`.
+    //    onCreate sequence. The applier captures `template.data`.
     //    The construction sentinel must be flipped immediately around
     //    `new` with no intervening async — otherwise a parallel call
     //    could observe it set and bypass.
@@ -630,7 +630,7 @@ export class StuffApi {
     }
     return this.#registerAndInit(
       obj,
-      hydrator ? (o) => hydrator.hydrate(o, data) : null,
+      applier ? (o) => applier.apply(o, data, { mode: 'mint' }) : null,
       context
     );
   }
@@ -805,7 +805,7 @@ export class StuffApi {
 
   /**
    * Synchronous variant of `create()` for runtime objects whose
-   * construction is purely synchronous — no `Hydrator.hydrate()` step
+   * construction is purely synchronous — no `TemplateApplier.apply()` step
    * (the factory does the work) and no `onCreate()` (the class does not
    * override the terminal).
    *
@@ -934,12 +934,12 @@ export class StuffApi {
   /**
    * Shared register / hydrate / onCreate sequence used by both
    * `clone()` and `create()`. `hydrate` is `null` for the create path
-   * (no template, no hydrator); `clone()` passes a closure that captures
-   * the resolved hydrator and template data.
+   * (no template, no applier); `clone()` passes a closure that captures
+   * the resolved applier and template data.
    *
    * Order is load-bearing: register fires first so anything resolving the
    * in-flight object by `stuffId` during hydrate or `onCreate` (e.g.,
-   * a self-referencing exit hydrator) finds it. If hydrate or
+   * a self-referencing exit row) finds it. If the content step or
    * `onCreate` throws, we unregister before propagating so a partial
    * object never lingers in the registry.
    */

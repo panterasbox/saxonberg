@@ -593,7 +593,7 @@ async function seedCopyImpl(actor: Avatar, target: Stuff): Promise<Stuff> {
   );
 
   // Mint in the AMBIENT circle context (auto-stamped circle-born), then
-  // reflect the captured instance state in (the Hydrator carve-out).
+  // reflect the captured instance state in (the applier carve-out).
   const copy = await StuffApi.clone(templatePath);
   const rawCopy = copy as unknown as Record<string, unknown>;
   for (const [name, value] of Object.entries(captured!)) {

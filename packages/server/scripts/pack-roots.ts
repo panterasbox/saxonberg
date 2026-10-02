@@ -784,7 +784,7 @@ export function fieldMetaEntries(source: string): Map<string, FieldRule> {
       // comment skip only knew `//`, so `HandlingMixin`'s `handling:` —
       // which carries a fourteen-line JSDoc about the spoiler split —
       // was never read as a declared field, and ELEVEN shipped rows that
-      // author `handling:` were counted as orphan keys the Hydrator
+      // author `handling:` were counted as orphan keys the applier
       // discards. They are not: the field is there and the gate could
       // not see it. A blind spot in an inventory is worse than a gap in
       // it, because the number looks like an answer.

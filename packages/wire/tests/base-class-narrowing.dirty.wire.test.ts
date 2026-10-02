@@ -921,12 +921,12 @@ suite('E — what is a GOOD, and what is part of the place', () => {
 
 /* ───────── F — the dead keys ───────── */
 
-suite('F — a key the Hydrator never writes is a key nobody wrote', () => {
+suite('F — a key the applier never writes is a key nobody wrote', () => {
   it('⭐⭐ `look sextant` has a long description again', async () => {
     /*
-     * ⚠⚠ **Eleven shipped instruments authored `long:` and the Hydrator
+     * ⚠⚠ **Eleven shipped instruments authored `long:` and the applier
      * has never written that field.** `VisibleMixin` declares
-     * `longDescription`; `long` is declared nowhere, so the Hydrator —
+     * `longDescription`; `long` is declared nowhere, so the applier —
      * which reflects only into fields a composed class declares —
      * discarded every one of them at hydration, without a word. The
      * balance, the altimeter, the hydrometer, the sextant: every
@@ -1200,7 +1200,7 @@ suite('H — a room can be named, and a cellar can be read', () => {
     /*
      * `cellar.yaml` authored `name:` and `description:`; the Location
      * branch declares `shortDescription` and `longDescription`, so the
-     * Hydrator discarded both. The hospitality cellar has NEVER
+     * applier discarded both. The hospitality cellar has NEVER
      * rendered its prose, and it is good prose.
      *
      * ⚠ `startLocation`, not `goto` — a singleton room nobody has
@@ -1232,7 +1232,7 @@ suite('H — a room can be named, and a cellar can be read', () => {
      * plain `Location`, which composes the `coordinates` FIELD and not
      * `coords` — `coords` lives on the `CartesianLocation` CLASS. The
      * row authored `coords:` under a comment reading *"`coords:` is
-     * the MEMBERSHIP operation"* and the Hydrator dropped it: the bar
+     * the MEMBERSHIP operation"* and the applier dropped it: the bar
      * belonged to no zone, inside a `/world/lounge` that IS a
      * `CartesianZone`.
      *

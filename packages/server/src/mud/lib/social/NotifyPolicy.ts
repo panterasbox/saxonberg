@@ -62,7 +62,7 @@ function profileLogic(): ProfileLogic {
 
 /**
  * Public method surface — methods only, per the inter-stuff contract.
- * `_notifyRules` is a public field so the Hydrator can reflect into it,
+ * `_notifyRules` is a public field so the applier can reflect into it,
  * but it is NOT part of the contract surface; external code goes through
  * these methods (or, for resolution, `SocialApi`).
  */

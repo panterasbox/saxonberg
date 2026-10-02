@@ -16,7 +16,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { TemplateApi } from '../template';
 import { Idea } from '../../lib/stuff/Idea';
 import { ContainableMixin } from '../../lib/spatial/Containable';
-import PersistentHydrator from '../../platform/idea/persistence/PersistentHydrator';
+import TemplateApplier from '../../platform/idea/TemplateApplier';
 import { StuffApi } from '../stuff';
 import {
   PersistenceManager,
@@ -90,8 +90,8 @@ describe('TemplateApi.restoreFromTemplate', () => {
   it('re-applies field values from the current template', async () => {
     const store = installInMemoryStore([
       {
-        path: PersistentHydrator.templatePath,
-        class: '/platform/idea/persistence/PersistentHydrator',
+        path: TemplateApplier.templatePath,
+        class: '/platform/idea/TemplateApplier',
         data: {},
       },
       {
@@ -112,15 +112,66 @@ describe('TemplateApi.restoreFromTemplate', () => {
     // (we're not stubbing loadClassByPath here, since the path
     // resolves via dynamic import). Force a manual register so the
     // restore doesn't need to dynamic-import.
-    const hyd = await StuffApi.create(() => new PersistentHydrator());
+    const hyd = await StuffApi.create(() => new TemplateApplier());
     StuffApi.unregister(hyd);
-    Stuff._stampTemplatePath(hyd, PersistentHydrator.templatePath);
+    Stuff._stampTemplatePath(hyd, TemplateApplier.templatePath);
     StuffApi.register(hyd);
 
     void store;
     await TemplateApi.restoreFromTemplate(host);
     expect(host.nickname).toBe('fresh');
     expect(host.level).toBe(7);
+  });
+
+  // ⚠⚠ **THE MONEY FIX, through the real go-live path.** `Stackable.quantity`
+  // is `birthOnly`, and `restoreFromTemplate` is what a CMS save and a
+  // `pack sync` call on every live instance at an edited path. Before
+  // 2026-10-01 a save on the coin row re-applied its authored
+  // `quantity: 1` to every live stack in the world — minting and burning
+  // outside the conservation chokepoint, invisibly, which is exactly what
+  // the chokepoint exists to make impossible.
+  it('⚠⚠ go-live leaves a live stack alone while an ordinary edit lands', async () => {
+    const { Stuff } = await import('../../lib/stuff/Stuff');
+    const { StackableMixin } = await import('../../lib/stuff/Stackable');
+
+    class TestStack extends StackableMixin(ContainableMixin(Idea)) {
+      static fieldMeta: FieldMeta = {
+        nickname: { persistent: true },
+      };
+      public nickname = 'default';
+    }
+
+    installInMemoryStore([
+      {
+        path: TemplateApplier.templatePath,
+        class: '/platform/idea/TemplateApplier',
+        data: {},
+      },
+      {
+        path: '/test/stack',
+        class: '/test/TestStack',
+        // The row authors a starting count of ONE, as `Coin.yaml` does.
+        data: { quantity: 1, nickname: 'edited' },
+      },
+    ]);
+
+    const stack = await StuffApi.create(() => new TestStack());
+    StuffApi.unregister(stack);
+    Stuff._stampTemplatePath(stack, '/test/stack');
+    StuffApi.register(stack);
+    // A live stack somebody is holding.
+    stack.setQuantity(500);
+    stack.nickname = 'in-memory';
+
+    const applier = await StuffApi.create(() => new TemplateApplier());
+    StuffApi.unregister(applier);
+    Stuff._stampTemplatePath(applier, TemplateApplier.templatePath);
+    StuffApi.register(applier);
+
+    await TemplateApi.restoreFromTemplate(stack);
+
+    expect(stack.getQuantity()).toBe(500); // ⬅ nobody's money changed
+    expect(stack.nickname).toBe('edited'); // ⬅ the edit still went live
   });
 
   it('throws when host has no templatePath stamp', async () => {

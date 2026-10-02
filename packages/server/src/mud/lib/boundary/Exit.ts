@@ -191,7 +191,7 @@ const ByPartyRoom = SecurityPolicies.FromMixin(Mixins.Exitable, {
 
 export default class Exit extends ConcealableMixin(Idea) {
   /**
-   * The exit-KIND hydration allowlist (the Hydrator applies only
+   * The exit-KIND hydration allowlist (the applier applies only
    * declared fields). Exits are never saved — no persistence host
    * captures them — so this list exists purely so a kind template's
    * authored defaults (`/stuff/idea/exits/<kind>` data) hydrate onto a fresh
@@ -261,7 +261,7 @@ export default class Exit extends ConcealableMixin(Idea) {
    * authored with a templated destination. The getter resolves on
    * every call via `StuffApi.findByTemplatePath` — no runtime cache.
    *
-   * Hydrators / framework brackets writing `exit['destinationPath'] = X`
+   * The applier / framework brackets writing `exit['destinationPath'] = X`
    * land directly on the field; the public method form
    * (`setDestination(loc)`) is the inter-Stuff contract.
    */

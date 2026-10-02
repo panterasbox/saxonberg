@@ -29,7 +29,7 @@ import { ExecutionContextApi } from '@saxonberg/server/mud/api/execution-context
 import { HasInteractiveMixin } from '@saxonberg/server/mud/lib/connection/HasInteractive';
 import { ContainableMixin } from '@saxonberg/server/mud/lib/spatial/Containable';
 import { Idea } from '@saxonberg/server/mud/lib/stuff/Idea';
-import PersistentHydrator from '@saxonberg/server/mud/platform/idea/persistence/PersistentHydrator';
+import TemplateApplier from '@saxonberg/server/mud/platform/idea/TemplateApplier';
 import { Document } from '@saxonberg/server/mud/lib/persistence/Document';
 import ParcelRegistry from '@saxonberg/server/mud/platform/idea/ParcelRegistry';
 import GroupRegistry from '@saxonberg/server/mud/platform/idea/GroupRegistry';
@@ -46,7 +46,7 @@ interface Doc extends Record<string, unknown> {
   _id?: string;
 }
 
-const PH = PersistentHydrator.templatePath;
+const PH = TemplateApplier.templatePath;
 const DORMS = DormWarren.DORMS_EXTENT;
 
 // The born-with fixtures a DormRoom seeds, declared as `props:` data (the

@@ -544,7 +544,7 @@ export interface Dosed {
   /** Stamp the gauge outright — the mint, and the test seam. */
   stampThermalDose(doseS: number, scorchS?: number): void;
 
-  // Public so the Hydrator can reflect into them.
+  // Public so the applier can reflect into them.
   _doseS: number;
   _scorchS: number;
   doseClockStamp: number;

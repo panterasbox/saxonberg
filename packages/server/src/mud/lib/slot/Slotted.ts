@@ -59,7 +59,7 @@ export const UNBOUNDED_CAPACITY: number = Number.MAX_SAFE_INTEGER;
 
 /**
  * Per-slot declaration. Flat record — round-trips through the default
- * Hydrator with no custom marshaller.
+ * applier with no custom marshaller.
  *
  * - `name` — canonical internal slot name (e.g., `'hand:left'`,
  *   `'sit:1'`). Colon-positional per decision #5.

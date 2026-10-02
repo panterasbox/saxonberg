@@ -87,7 +87,7 @@ function buildSandbox(receiver: Stuff): Record<string, unknown> {
 export default class EvalScript extends Idea {
   /**
    * The current code body. Set via `setCode`; read indirectly via
-   * `run`. Public so the Hydrator (if `--save` lands later) can
+   * `run`. Public so the applier (if `--save` lands later) can
    * reflect into it; reads from outside this class go through
    * `run()`.
    */

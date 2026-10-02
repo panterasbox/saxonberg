@@ -157,7 +157,7 @@ const CreatureBase = PostmortemMixin(
         // agent rows have been authoring `primaryKeyword:` into a void**
         // the whole time (`clerk`, `wolf`, `sentry`, `collier`, `weaver`,
         // `dave`, `katie`, `pony`, `ox`…), plus 17 authoring `keywords:`.
-        // The Hydrator reflects only into fields a composed class
+        // The applier reflects only into fields a composed class
         // declares, so every one was discarded at hydration without a
         // word. Ranching had noticed the symptom and composed it on
         // `Livestock`/`WorkingAnimal` locally; those go, because the

@@ -14,7 +14,7 @@
  * added to the scanner's matcher list below (itself a reviewable change).
  *
  * A NEW, unclassified call site of an existing resolver — e.g. a custom
- * `Hydrator` subclass reading a new instruction field that resolves a
+ * applier subclass reading a new instruction field that resolves a
  * module — makes this test FAIL, forcing the author to either join
  * `CodeNamingFields.FIELDS` + the gate, or justify a classification here.
  *

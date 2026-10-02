@@ -981,7 +981,58 @@ the doc-comment mentions in `Door.ts:44`, `Window.ts:22`, `Reading.ts:18`,
 empty; `lint:instanceable` passes with 13 live; a fresh-DB boot installs
 every pack. ⭐ A dev DB installed before W2 is **dropped**, not migrated.
 
-### W4 — `TemplateApplier`: the name, the third phase, the go-live mode
+### W4 — `TemplateApplier`: the name, the third phase, the go-live mode ✅ DONE
+
+> **Landed.** `git mv` of the class to `platform/idea/TemplateApplier.ts`
+> and the row to `content/platform/idea/TemplateApplier.yaml`;
+> `lib/stuff/Hydrator.ts` deleted; `hydrate(host, data)` →
+> `apply(host, data, { mode })`; three phases, three modes;
+> `MixinApi.getAllSeedFields`; `birthOnly` on `Stackable.quantity`;
+> `_seedDossier` and `_seedDispositions` split into four public
+> phase-3 appliers; the three gates' arms made exact; `reapplied`
+> replacing `rehydrated`; ~130 files' prose stops calling the content
+> step a hydrator.
+>
+> **Three things found by doing it:**
+>
+> 1. ⚠⚠ **`#dispatchPhase` could not be `#`-private.** Instance dispatch
+>    runs `method.apply(proxy, args)`, so inside `apply()` `this` is the
+>    proxy and a hard-private slot lives on the raw target only — every
+>    phase-2 and phase-3 call threw `Receiver must be an instance of
+>    class TemplateApplier`. CLAUDE.md § Member Privacy hard constraint
+>    2, firing exactly as written. It is TypeScript `private` now, with
+>    the reason at the site.
+> 2. ⚠⚠ **The three gates' template arm had never been checked.** Each
+>    carried `FromTemplate('/platform/idea/persistence/*Hydrator')`, and
+>    `lint:gates` does not resolve a plain `FromTemplate` glob — so on
+>    the method that guards money, one of the two arms was decorative
+>    for as long as it existed. All three name the one row exactly now
+>    and the gate resolves them. ⭐ This is the plan's own flag about
+>    `lint:gates`, confirmed rather than merely suspected.
+> 3. **The census did NOT fall at W4, and the plan said it would.** D13
+>    expected the loading count to drop by one here because "Cast leaves
+>    the loading set" — but what makes `Cast.onCreate` read as loading is
+>    the `hydrateBeliefs()` call, not the dossier seed, and that leaves
+>    in W5. Still 82/38. The W5 and W6 falls stand.
+>
+> ⭐ **And one thing the wave did that the plan did not ask for.** D2 says
+> the exact `FromTemplate` path means *"`lint:gates` resolves them"* — it
+> does not. The gate matches `FromModule`, `FromController` and
+> `FromTemplateMethod` and has never matched a plain `FromTemplate` at
+> all, exact or glob. Making the arm exact therefore made it *correct and
+> auditable*, not *checked*. So this wave taught `check-gate-strings` to
+> resolve a plain `FromTemplate('<path>')` (a glob still returns early, as
+> `FromTemplateMethod`'s does, because it names a family on purpose).
+>
+> ⚠ It found two findings on its first run — `/platform/idea/api/worldclock`
+> resolving to `WorldclockLogic.ts` rather than `WorldClockLogic.ts`. Both
+> gates are correct; the resolver cannot derive a `*Logic` singleton's
+> capitalisation from its path, because the row is named for the FEATURE
+> and the class for the LOGIC (CLAUDE.md's one deliberate
+> template-vs-class naming exception). The check falls back to a
+> case-insensitive match in the resolved directory, which still catches a
+> wrong PATH without inventing a name table.
+
 
 **Goal.** The content step is named for what it does, seeds as a phase,
 and never pushes a value-bearing field by going live — the coin is fixed.

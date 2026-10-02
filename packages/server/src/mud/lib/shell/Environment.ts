@@ -5,7 +5,7 @@
  * `docs/subsystems/shell-environment.md`). Owns two stores:
  *
  *   - persistent — schema-validated, declared by mixins via static
- *     `settings: SettingsSchemaEntry[]`. Saved through the Hydrator.
+ *     `settings: SettingsSchemaEntry[]`. Saved through the applier.
  *   - session   — transient, lives for the lifetime of the in-memory
  *     instance; not persisted. Holds ad-hoc `var` writes plus any
  *     setting whose schema declares `lifetime: 'session'`.
@@ -122,9 +122,9 @@ export interface SettingsSnapshotEntry {
 
 /**
  * Public shape provided by `EnvironmentMixin` — methods only, per
- * the inter-stuff contract. The `persistentStore` (Hydrator-saved)
+ * the inter-stuff contract. The `persistentStore` (applier-saved)
  * and `sessionStore` (transient) stores live as public fields on the
- * implementing class so the Hydrator can reflect into them by name,
+ * implementing class so the applier can reflect into them by name,
  * but they are NOT part of the contract surface; external code goes
  * through `getSetting` / `setSetting` / `setVar` / `listVars`. Tests
  * that need raw state reach for the concrete class type, not the
@@ -261,7 +261,7 @@ export function EnvironmentMixin<TBase extends MixinConstructor>(Base: TBase) {
     static _mixinName = 'EnvironmentMixin';
 
     /**
-     * Persistent fields declared by this mixin. The Hydrator uses
+     * Persistent fields declared by this mixin. The applier uses
      * this list; `persistentStore` is a plain `Record` so it
      * round-trips through Mongo without a custom handler.
      */
