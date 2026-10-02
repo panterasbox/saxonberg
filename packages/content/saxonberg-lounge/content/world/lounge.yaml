@@ -18,7 +18,6 @@
 # gated `parcels` collection, never on this editable zone template — the
 # governing security invariant.
 class: /platform/idea/location/CartesianZone
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: lounge
   # 4 m cells — a bar and its side rooms are ordinary interior spans.

@@ -13,7 +13,6 @@
 # runaway, not a microbial clock, and the reason the two mechanisms stay
 # separate. See docs/subsystems/soil.md and docs/subsystems/spoilage.md.
 class: /platform/idea/material/ConsumableMaterial
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: hay
   keywords: [herbage, hay, fodder, forage, grass]

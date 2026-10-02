@@ -470,7 +470,7 @@ concrete content object beside `Flask`/`AirTank` (memory: *obj vs lib Stuff
 placement*).
 
 `obj/CentralBank.ts` — the singleton mint/sink + world-presence anchor
-(`PostRegistrationMixin(Idea)`; mint/drain logic surfaced through
+(`Idea`; mint/drain logic surfaced through
 `BankingApi`, developer-gated at the verb layer).
 
 `api/banking.ts` — `BankingApi`, the thin gated forwarding shell.

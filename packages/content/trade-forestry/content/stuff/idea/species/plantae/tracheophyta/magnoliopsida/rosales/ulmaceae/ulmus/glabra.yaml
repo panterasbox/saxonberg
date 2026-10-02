@@ -2,7 +2,6 @@
 # hub, the chair seat) and does not rot under water (the pipe, the pile).
 # In the vocabulary for the wood it yields; no venue stands it yet.
 class: /platform/idea/species/Species
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   binomial: Ulmus glabra
   commonNames: ["elm", "wych elm"]

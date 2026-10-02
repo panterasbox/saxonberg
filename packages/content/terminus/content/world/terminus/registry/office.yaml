@@ -5,7 +5,6 @@
 # `props`. Cross-zone exit pair with the terminal's arrival gate,
 # declared explicitly on both sides (the gate lists `east`→here).
 class: /platform/location/SingletonCartesianLocation
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: Terminus Registry
   keywords: [registry, terminus]

@@ -2,7 +2,6 @@
 # residential turning. A cut on the main at or above the avenue darkens it too
 # (it is downstream of the branch point); a cut on the spur darkens only it.
 class: /system/energy/idea/Feeder
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   key: terminus-mayfield
   name: the Mayfield spur

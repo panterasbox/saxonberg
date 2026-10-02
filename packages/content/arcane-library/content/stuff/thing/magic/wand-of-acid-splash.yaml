@@ -1,7 +1,6 @@
 # A wand of acid-splash — a flung gout of vitriol, wielded by a non-caster. Carries the SHIPPED
 # `acid-splash` working; `zap` spends the maker's stored labour, not competence.
 class: /system/arcana/thing/Wand
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: thick brass-stoppered glass rod
   keywords: [wand, rod, acid-splash]

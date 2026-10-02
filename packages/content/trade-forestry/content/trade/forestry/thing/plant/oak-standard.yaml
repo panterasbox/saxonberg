@@ -15,7 +15,6 @@
 # A mature standard sets acorns into its panel once a flowering
 # episode (the shipped monocarp latch) — a wood that seeds itself.
 class: /platform/thing/Plant
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: oak sapling
   keywords: [sapling, oak, tree, standard, "oak sapling"]

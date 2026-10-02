@@ -16,7 +16,6 @@
 
 import { OuterWarren } from '@saxonberg/server/mud/lib/location/OuterWarren';
 import { SingletonMixin } from '@saxonberg/server/mud/lib/stuff/Singleton';
-import { PostRegistrationMixin } from '@saxonberg/server/mud/lib/stuff/PostRegistration';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { PersistableApi } from '@saxonberg/server/mud/api/persistable';
@@ -44,7 +43,7 @@ const FRONT_DOOR_KIND = '/system/residence/idea/exits/front-door';
 type MemberStuff = Stuff & Container;
 type ExitableContainer = Stuff & Container & Exitable;
 
-const BuildingWarrenBase = SingletonMixin(PostRegistrationMixin(OuterWarren));
+const BuildingWarrenBase = SingletonMixin(OuterWarren);
 
 export default class BuildingWarren extends BuildingWarrenBase {
   static fieldMeta: FieldMeta = {
@@ -99,8 +98,8 @@ export default class BuildingWarren extends BuildingWarrenBase {
    *
    * @hook
    */
-  public override async postRegister(context?: unknown): Promise<void> {
-    await super.postRegister?.(context);
+  public override async onCreate(context?: unknown): Promise<void> {
+    await super.onCreate?.(context);
     try {
       await this.refreshProvisioned();
       await this.installLobbyUpExit();

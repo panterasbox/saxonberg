@@ -69,7 +69,7 @@ describe('a pack ships child rows', () => {
 describe('a parent must be reachable', () => {
   it('⚠ fails the boot when the parent is in a pack this one does not depend on', async () => {
     const base = writePack('base', [
-      { rel: 'stuff/thing/can.yaml', class: MATERIAL, hydratorClass: HYDRATOR, data: {} },
+      { rel: 'stuff/thing/can.yaml', class: MATERIAL, data: {} },
     ], { root: '/stuff' });
     const dependent = writePack('drinks', [
       { rel: 'trade/drinks/thing/cola.yaml', extends: '/stuff/thing/can', data: {} },
@@ -81,7 +81,7 @@ describe('a parent must be reachable', () => {
 
   it('passes once the dependency is declared', async () => {
     const base = writePack('base', [
-      { rel: 'stuff/thing/can.yaml', class: MATERIAL, hydratorClass: HYDRATOR, data: {} },
+      { rel: 'stuff/thing/can.yaml', class: MATERIAL, data: {} },
     ], { root: '/stuff' });
     const dependent = writePack('drinks', [
       { rel: 'trade/drinks/thing/cola.yaml', extends: '/stuff/thing/can', data: {} },

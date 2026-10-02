@@ -13,7 +13,6 @@
 
 import { Idea } from "@saxonberg/server/mud/lib/stuff/Idea";
 import { SingletonMixin } from "@saxonberg/server/mud/lib/stuff/Singleton";
-import { PostRegistrationMixin } from "@saxonberg/server/mud/lib/stuff/PostRegistration";
 import { LandUses, type LandUse } from "@saxonberg/server/mud/lib/parcel/LandUse";
 import { StuffApi } from "@saxonberg/server/mud/api/stuff";
 import { ParcelApi } from "@saxonberg/server/mud/api/parcel";
@@ -26,7 +25,7 @@ interface HolderView {
   nextFreeLeaf(taken: ReadonlySet<string>): string | null;
 }
 
-const PlatBookBase = SingletonMixin(PostRegistrationMixin(Idea));
+const PlatBookBase = SingletonMixin(Idea);
 
 export default class PlatBook extends PlatBookBase {
   static fieldMeta: FieldMeta = {

@@ -5,7 +5,6 @@
 # houseplant does: an outdoor cereal stops in winter because it is cold,
 # and the same plant under glass does not. Winter is not a mode.
 class: /platform/thing/Plant
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: stand of barley
   keywords: [barley, crop, stand]

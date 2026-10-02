@@ -7,7 +7,6 @@
 # appears when a lot sells is the PlatWarren's programme
 # (house-programme.yaml).
 class: /system/residence/idea/PlatBook
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   label: Hinkley Hills
   parentExtent: /world/terminus/hinkley-hills

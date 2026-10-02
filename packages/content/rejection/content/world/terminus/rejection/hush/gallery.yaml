@@ -5,7 +5,6 @@
 # sphere exits back to the exact grid cell it was entered from. A
 # one-sided crossing is how a player ends up somewhere with no way home.
 class: /platform/location/SingletonSphericalLocation
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: Hush
   register: definite

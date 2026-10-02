@@ -8,7 +8,6 @@
 # whole skill is knowing when it is ready rather than when the recipe
 # said it would be.
 class: /platform/idea/Discipline
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   key: baking
   channel: skill

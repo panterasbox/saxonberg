@@ -3,7 +3,6 @@
 # is correct: code is shared, CONTENT IS COPIED. A cook straining a broth
 # is not reaching across the yard for the bartender's tool.
 class: /trade/cooking/thing/KitchenTool
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: kitchen sieve
   keywords: [sieve, strainer, sifter, kitchen]

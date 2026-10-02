@@ -8,7 +8,7 @@
  *
  * Top-level Stuff branch alongside `Idea` and `Agent`. Shadows ARE
  * Stuff: they have stuffIds, can be cloned from templates, persist
- * via the standard Hydrator pipeline. The attachment relationship
+ * via the standard applier pipeline. The attachment relationship
  * itself does NOT persist (deferred to Tier 5).
  *
  * Authoring shape — explicit declaration declares the surface.

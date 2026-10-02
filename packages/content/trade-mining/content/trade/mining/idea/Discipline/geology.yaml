@@ -12,7 +12,6 @@
 # — a faint trace is a harder read than a stained one, and the ground
 # decides which it was. Nothing anywhere gates on the band.
 class: /platform/idea/Discipline
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   key: geology
   channel: skill

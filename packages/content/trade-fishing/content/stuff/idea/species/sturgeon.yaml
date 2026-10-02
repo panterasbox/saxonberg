@@ -7,7 +7,6 @@
 # practised eye names it. Nothing else makes it special — its fight
 # does.
 class: /platform/idea/species/Species
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   binomial: Acipenser sturio
   commonNames: ["sturgeon", "royal fish"]

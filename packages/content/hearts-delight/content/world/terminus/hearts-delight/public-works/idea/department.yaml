@@ -9,7 +9,6 @@
 # warden posts the shortfall on the works board, and the carter or a player
 # fills it. Private supply, public service, the board the appeal.
 class: /platform/idea/Business
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: "the Heart's Delight public works"
   # The committee over the valley's ground appoints the warden (as the city

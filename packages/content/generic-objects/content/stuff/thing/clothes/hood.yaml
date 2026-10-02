@@ -1,5 +1,4 @@
 class: /platform/thing/equipment/DisguiseGarment
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: deep grey hood
   keywords: [hood, deep, grey]

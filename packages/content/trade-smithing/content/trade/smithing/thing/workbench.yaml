@@ -1,7 +1,6 @@
 # The smithy workbench — a Placing fixture the soft-goods work happens
 # at (the jerkin's bench recipe); stock rests on it, reachable.
 class: /platform/thing/Fitting
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: smithy workbench
   keywords: [workbench, bench, table, smithy]

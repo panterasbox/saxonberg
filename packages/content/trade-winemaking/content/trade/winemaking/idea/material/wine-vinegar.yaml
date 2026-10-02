@@ -3,7 +3,6 @@
 # someone (the cook buys it — everything is a business). Homed in
 # winemaking because the process that makes it lives here.
 class: /platform/idea/material/ConsumableMaterial
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: wine vinegar
   keywords: [vinegar, wine]

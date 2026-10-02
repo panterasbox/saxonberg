@@ -1,7 +1,6 @@
 # A utility pole carrying the Terminus main overhead — where a lineman reaches
 # the line to `sever` or `splice` it, and where a storm can fell it.
 class: /system/energy/thing/LineAccess
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: utility pole
   keywords: [pole, line, standard, utility, wire]

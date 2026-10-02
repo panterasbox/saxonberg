@@ -4,7 +4,6 @@
 # and the `smokePoint` below is the ceiling that recipe's heat is capped
 # at. That is the whole of "you can fry hotter than you can boil".
 class: /platform/idea/material/ConsumableMaterial
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: tallow
   keywords: [suet, tallow, fat, dripping]

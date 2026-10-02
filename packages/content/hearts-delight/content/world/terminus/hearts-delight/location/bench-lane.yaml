@@ -1,7 +1,6 @@
 # The bench lane — the climb out of the fruit country onto the thin
 # ground, and ⭐ the geography doing the explaining.
 class: /platform/location/Street
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   # ⭐ Lit by the valley's oil after dusk (energy build). Seniority 2:
   # darkens before the gate but after the millsite when the oil runs short.

@@ -2,7 +2,6 @@
 # into every fresh avatar's inventory by Avatar.installDefaultLoadout. State
 # (the registered-node set) lives on the card, so it's transferable.
 class: /system/tpa/thing/TravelCard
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: Teleport Authority travel card
   keywords: [card, teleport, authority, travel]

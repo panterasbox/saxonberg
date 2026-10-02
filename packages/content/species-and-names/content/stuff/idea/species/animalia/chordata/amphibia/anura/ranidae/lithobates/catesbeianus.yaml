@@ -1,7 +1,6 @@
 # Lithobates catesbeianus — American bullfrog. Quadruped amphibian,
 # short lifespan, mostly nocturnal. The non-mammal acceptance entry.
 class: /platform/idea/species/Species
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   binomial: Lithobates catesbeianus
   commonNames: ["bullfrog", "frog"]

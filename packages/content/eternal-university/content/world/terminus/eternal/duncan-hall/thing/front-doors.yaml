@@ -9,7 +9,6 @@
 # them at runtime via the `close` verb stops light and movement
 # through this boundary per the Door substrate doc.
 class: /platform/thing/Door
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: front doors
   keywords: [doors, front]

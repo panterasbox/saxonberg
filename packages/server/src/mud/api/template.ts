@@ -52,11 +52,39 @@ function logic(): TemplateLogic {
   );
 }
 
+/** One key the applier will put on an instance, and how. */
+export interface FillField {
+  field: string;
+  /** Which of the applier's three phases handles it. */
+  phase: 'property' | 'instruction' | 'seed';
+  /**
+   * Applied at mint, never pushed by a go-live — a stack's `quantity`.
+   * The thing an author most needs to know about a value-bearing field.
+   */
+  birthOnly: boolean;
+}
+
+/** A source an instance of this row will also be filled from. */
+export interface FillSource {
+  /** The declaring mixin's name. */
+  mixin: string;
+  /** Where it reads from — a collection, a tree, a pack's own store. */
+  source: string;
+}
+
+/** See {@link TemplateApi.describeFill}. */
+export interface FillDescription {
+  applies: FillField[];
+  /** Keys nobody will apply. A warning, never a refusal. */
+  unapplied: string[];
+  remembers: FillSource[];
+}
+
 export class TemplateApi {
   /**
    * Upsert a Template at `path`. Looks up an existing Template at the
    * same path (so the underlying upsert reuses its `_id`), writes the
-   * RAW row (`class` / `hydratorClass` / `extends` / `data` exactly as
+   * RAW row (`class` / `extends` / `data` exactly as
    * the author stated them — a save never flattens an inherited value),
    * and saves through `Document.save()`. The
    * folder/leaf invariant fires through `DomainHook` against the PM
@@ -103,7 +131,7 @@ export class TemplateApi {
    * Zone classification uses the runtime `class` field via
    * `ZoneApi.isFolderClass` — a Zone subclass extends `Zone`,
    * regardless of whether anyone registered it in a central
-   * allow-list. `hydratorClass` is orthogonal to zonehood.
+   * allow-list.
    */
   public static async validateFolderLeafSave(
     doc: Record<string, unknown>
@@ -182,6 +210,41 @@ export class TemplateApi {
     return logic().ancestorPaths(path);
   }
 
+
+  /**
+   * ⭐⭐ **What will fill this row in** — the one answer, for the four
+   * surfaces that print it.
+   *
+   * Three lists, and the third is the one an author had no way to see at
+   * all before:
+   *
+   *   - **applies** — the keys the applier will put on the instance,
+   *     with the phase that does it (`property` / `instruction` /
+   *     `seed`) and whether the field is `birthOnly` (applied at mint,
+   *     never pushed by a go-live).
+   *   - **unapplied** — keys nobody will apply. ⚠ NOT an error: a
+   *     catalogue class that parses its own row's `data` directly is a
+   *     legitimate authoring act, and ~161 rows do it. It is a warning
+   *     because the far more common cause is a typo, and until now the
+   *     applier discarded such a key in total silence (`material:`
+   *     instead of `_materialPath:` cost 49 rows across eight packs).
+   *   - **remembers** — the sources the effective class's composition
+   *     declares, so an author can see that an instance of this row will
+   *     also be filled from somewhere the row does not mention.
+   *
+   * ⭐ One method, four readers (`cat`, `write`, the Studio's create
+   * disposition, the CMS's `templateMeta`), so the sentence has exactly
+   * one copy. Takes a SPEC rather than only a path, because `write` has
+   * to answer before the row exists.
+   */
+  public static async describeFill(spec: {
+    path?: string;
+    class?: string;
+    extends?: string;
+    data?: Record<string, unknown>;
+  }): Promise<FillDescription> {
+    return logic().describeFill(spec);
+  }
 
   /**
    * Re-hydrate a live Stuff host's in-memory state from its current

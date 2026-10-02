@@ -69,7 +69,7 @@ import {
   PersistenceManager,
   Collections,
 } from '../../../../backend/PersistenceManager';
-import PersistentHydrator from '../../../platform/idea/persistence/PersistentHydrator';
+import TemplateApplier from '../../../platform/idea/TemplateApplier';
 import {
   makeStuff,
   stampTemplatePathForTest
@@ -78,7 +78,7 @@ import { installV1QuantityMarshallers } from '../../../lib/persistence/__tests__
 import type { Trauma } from '../../../platform/idea/Condition';
 import type Interactive from '../../../platform/idea/Interactive';
 
-const PH = PersistentHydrator.templatePath;
+const PH = TemplateApplier.templatePath;
 // The trap rows are the generic-objects pack's (content-packs wave 3).
 const SEEDS = fileURLToPath(new URL('../../../../../../content/generic-objects/content', import.meta.url));
 /** The newbie-wilds content now ships as a pack; resolve its root the way
@@ -99,7 +99,6 @@ function seedDoc(file: string, path: string): Doc {
   return {
     path,
     class: parsed.class as string,
-    hydratorClass: (parsed.hydratorClass as string) ?? PH,
     data: (parsed.data as Record<string, unknown>) ?? {},
   };
 }
@@ -138,7 +137,6 @@ function trapsStore(): Doc[] {
     {
       path: '/world/newbie-wilds/crossroads/treeline',
       class: '/platform/location/VoidLocation',
-      hydratorClass: PH,
       data: { shortDescription: 'the treeline' },
     },
   ];

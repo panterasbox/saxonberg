@@ -8,7 +8,6 @@
 # the compound; nothing here answers to a bare fragment another object in
 # the same room would also answer to.
 class: /trade/mining/thing/instrument/SurveyInstrument
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   keywords: [dial, miners-dial, theodolite, "miner's", miner, leather, case]
   shortDescription: miner's dial in a leather case

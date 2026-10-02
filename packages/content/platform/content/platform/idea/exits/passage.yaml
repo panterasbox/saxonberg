@@ -13,8 +13,7 @@
 # warm. Found by the trapped-corridor suite, which went "you can't walk
 # that way" the moment the row said `ground` out loud.
 #
-# ⚠ And no `hydratorClass`, because there is no data to apply — which
-# `lint:instanceable` invariant 5 would otherwise call out.
+# ⚠ And no `data:`, so no applier runs — there is nothing to apply.
 #
 # If this row is missing the FIRST exit in the world throws, by name.
 # That is the intended failure: loud, at boot, and one line to fix.

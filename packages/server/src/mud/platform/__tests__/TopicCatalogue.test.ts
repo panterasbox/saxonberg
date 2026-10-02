@@ -45,7 +45,7 @@ const FLOOR = {
 
 /**
  * Stub `Template.findDescendants` to return a synthetic list of
- * Topic templates. The catalogue's `postRegister` reads `tpl.data`
+ * Topic templates. The catalogue's `onCreate` reads `tpl.data`
  * directly off each one — no actual `Template._materialize` round
  * trip needed.
  */
@@ -66,7 +66,7 @@ async function warmCatalogue(
 ): Promise<TopicCatalogue> {
   stubTopicTemplates(seeds);
   const cat = makeStuff(() => new TopicCatalogue());
-  await cat.postRegister();
+  await cat.onCreate();
   return cat;
 }
 
@@ -209,7 +209,7 @@ describe('TopicCatalogue', () => {
       },
     ]);
     cat.invalidateCache();
-    await cat.postRegister();
+    await cat.onCreate();
 
     expect(cat.getDescriptor('speech').label).toBe('Speech');
   });
@@ -223,8 +223,8 @@ describe('TopicCatalogue', () => {
     }
   });
 
-  it('falls through to fallback resolution when postRegister was never awaited', () => {
-    // Bypass the helper — never call postRegister, never warm cache.
+  it('falls through to fallback resolution when onCreate was never awaited', () => {
+    // Bypass the helper — never call onCreate, never warm cache.
     const cat = makeStuff(() => new TopicCatalogue());
     const d = cat.getDescriptor('any.topic.here');
     expect(d.label).toBe('Here');

@@ -25,7 +25,6 @@
 # job. The old class reached for the whole person rung to get
 # `HaulerMixin`.
 class: /platform/agent/DraftAnimal
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/perissodactyla/equidae/equus/caballus-pumilus
   lifecycleState: alive

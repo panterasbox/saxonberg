@@ -129,7 +129,7 @@ class BootstrapManager {
     const sorted = topologicalSort(manifest);
     for (const entry of sorted) {
       const clone = await StuffApi.clone(entry.templatePath);
-      // PostRegistration fires per existing Stuff lifecycle (sync)
+      // onCreate fires per existing Stuff lifecycle (sync)
       if (entry.awaitInit) {
         await entry.awaitInit(clone);
       }
@@ -140,7 +140,7 @@ class BootstrapManager {
 
 `StuffApi.clone(templatePath, context?)` is the clone primitive — it
 loads the Template by path, dynamic-imports the backing class, runs
-the optional Hydrator, and awaits any `postRegister`. The clone
+the optional Hydrator, and awaits any `onCreate`. The clone
 always lives at its template path; there's no separate "destination"
 concept (each bootstrapped singleton's identity IS its template
 path).
@@ -176,14 +176,14 @@ interface BootstrapEntry {
   /** Other entries' templatePaths that must complete before this one. */
   dependsOn?: string[];
 
-  /** Optional async init beyond PostRegistration's sync surface. */
+  /** Optional async init beyond `onCreate`'s sync surface. */
   awaitInit?: (clone: Stuff) => Promise<void>;
 }
 ```
 
 Most entries will have just `templatePath`. `dependsOn` for
 ordering; `awaitInit` only for entries that need async setup beyond
-PostRegistration. `templatePathPrefix` is the bulk-bootstrap option
+`onCreate`. `templatePathPrefix` is the bulk-bootstrap option
 for clusters of singletons that all need to be live but shouldn't
 bloat the manifest — species clades, materials, biomes. Expansion
 sorts depth-ascending (shorter paths first) so ancestor clades land
@@ -254,16 +254,16 @@ Earlier design considered a mixin that templates compose to declare
 - A pack appends to the same union through its `boot:` list; no
   special mod-specific mechanism needed.
 
-### PostRegistration cooperates
+### `onCreate` cooperates
 
-Bootstrap orchestrates *what gets created and when*. PostRegistration
+Bootstrap orchestrates *what gets created and when*. `onCreate`
 handles *how each instance initializes itself* — existing mechanism,
-unchanged. For most entries, PostRegistration is enough. `awaitInit`
+unchanged. For most entries, `onCreate` is enough. `awaitInit`
 on the BootstrapEntry is only for entries needing async setup beyond
-PostRegistration's sync surface.
+`onCreate`'s sync surface.
 
 The decision to put async setup on the bootstrap entry (not on a new
-PostRegistration variant) avoids changing PostRegistration's contract
+`onCreate` variant) avoids changing the hook's contract
 and keeps the async-init concern visible at the bootstrap manifest
 level where the orchestration decisions live.
 
@@ -396,7 +396,7 @@ to fit a label is over-engineering for a pure constants object.
   one are tightly coupled in scope but designed independently.
 - [templates.md](./templates.md) — TemplateApi.clone is the underlying
   mechanism BootstrapManager uses for each entry.
-- [lifecycle.md](./lifecycle.md) — PostRegistration is what each
+- [lifecycle.md](./lifecycle.md) — `onCreate` is what each
   bootstrapped instance uses for its own per-instance setup.
 - [persistence.md](./persistence.md) — the `Document` track; registries
   are seeded Ideas rebuilt at boot, so a registry that needs to persist

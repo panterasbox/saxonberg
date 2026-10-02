@@ -132,7 +132,7 @@ of the read-through mode the mutable registries will need.
   that is the non-interference boundary, stated so the two migrations do
   not collide.
 - **Letting a `PersistenceContributor` name its own source** →
-  [hydration-framework-slate](../slates/builds/hydration-framework-slate.md),
+  [hydration-framework-slate](../slates/tails/hydration-framework-slate.md),
   which owns that knob on the same dispatch point.
 - **The in-circle death arc** (minting a real body from inside a circle)
   → [mortal-vessel-slate](../slates/builds/mortal-vessel-slate.md). This
@@ -495,7 +495,7 @@ the world never saw any of it). Ada starts in a bedroom with a wardrobe.
 - [measurement.md](../measurement.md) — A2, A5, A14.
 - [sandbox-slate](../slates/tails/sandbox-slate.md) — D9.
 - [estate-nesting-slate](../slates/builds/estate-nesting-slate.md),
-  [hydration-framework-slate](../slates/builds/hydration-framework-slate.md)
+  [hydration-framework-slate](../slates/tails/hydration-framework-slate.md)
   — the two sequencing hazards, bounded in § Non-goals.
 - [money-integrity-slate](../slates/builds/money-integrity-slate.md) —
   D8's destination, and the in-memory overlay precedent.

@@ -3,7 +3,6 @@
 # generic label, no Named. Its tenant-scoped contents are the deferred
 # "possession" seam (the apartment's chattel-title); v1 is functional-empty.
 class: /world/terminus/eternal/duncan-hall/thing/Footlocker
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: footlocker
   keywords: [footlocker]

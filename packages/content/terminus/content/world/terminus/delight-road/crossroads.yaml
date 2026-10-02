@@ -13,7 +13,6 @@
 # day it opens, which is the difference between a service and a shipped
 # building nobody needs.
 class: /platform/location/SingletonCartesianLocation
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: valley crossroads
   keywords: [crossroads, valley]

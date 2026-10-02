@@ -10,7 +10,6 @@
 # transition). So iron keeps needing charcoal off a coppice somebody tends,
 # and the epoch step stays available to be told as the epoch step it is.
 class: /platform/idea/material/Material
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: coal
   keywords: [coal, sea-coal]

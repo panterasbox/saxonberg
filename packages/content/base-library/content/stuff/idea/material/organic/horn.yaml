@@ -8,7 +8,6 @@
 # heat (which is exactly why a horn spoon never scalds a lip), and
 # electrically an insulator when dry.
 class: /platform/idea/material/Material
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: horn
   keywords: [keratin, horn]

@@ -16,7 +16,6 @@
 # conveyance uses rather than what it has under it, and the exits that
 # refuse a sledge are the ones that refuse a wagon.
 class: /system/transport/thing/HaulageRig
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: dragged sledge
   keywords: [sledge, sled, drag, boat, dragged]

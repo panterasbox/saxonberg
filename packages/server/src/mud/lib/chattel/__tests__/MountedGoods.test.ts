@@ -35,9 +35,8 @@ import { ContainerMixin } from "../../spatial/Container";
 import { AdornableMixin } from "../../boundary/Adornable";
 import { AdornmentMixin } from "../../boundary/Adornment";
 import { ContainmentApi } from "../../../api/containment";
-import { PostRegistrationMixin } from "../../stuff/PostRegistration";
 import { Idea } from "../../stuff/Idea";
-import PersistentHydrator from "../../../platform/idea/persistence/PersistentHydrator";
+import TemplateApplier from "../../../platform/idea/TemplateApplier";
 import { Document } from "../../persistence/Document";
 import { PersistenceManager } from "../../../../backend/PersistenceManager";
 import { makeStuffAtPath } from "../../security/__tests__/test-setup";
@@ -60,13 +59,13 @@ class Sconce extends AdornmentMixin(Good) {}
 
 /** A room you can hang things in — every Location composes Adornable. */
 class Room extends PersistableMixin(
-  AdornableMixin(ContainerMixin(PostRegistrationMixin(Idea))),
+  AdornableMixin(ContainerMixin(Idea)),
 ) {
   static fieldMeta: FieldMeta = {};
 }
 
 class Person extends PersistableMixin(
-  EstateMixin(ContainerMixin(PostRegistrationMixin(Idea))),
+  EstateMixin(ContainerMixin(Idea)),
 ) {
   static fieldMeta: FieldMeta = {};
 }
@@ -130,8 +129,8 @@ async function boot(): Promise<void> {
     () => new ChattelRegistry(),
     "/platform/idea/ChattelRegistry",
   );
-  await reg.postRegister();
-  makeStuffAtPath(() => new PersistentHydrator(), PersistentHydrator.templatePath);
+  await reg.onCreate();
+  makeStuffAtPath(() => new TemplateApplier(), TemplateApplier.templatePath);
   vi.spyOn(StuffApi, "clone").mockImplementation(
     ((path: string) =>
       Promise.resolve(makeStuffAtPath(() => new Sconce(), path))) as unknown as

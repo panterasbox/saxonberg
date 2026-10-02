@@ -8,7 +8,7 @@
  *
  *  - a hire is visible **immediately**, without a re-derivation;
  *  - so is an actor whose records arrive by assignment (the shape the
- *    Hydrator and the persistence spine both land on);
+ *    applier and the persistence spine both land on);
  *  - a reload re-derives the same answer from the index, because the memo
  *    is never warmed and nothing at boot is responsible for it;
  *  - an exit stays **in** the roster — `holdersByPosition` needs to see a

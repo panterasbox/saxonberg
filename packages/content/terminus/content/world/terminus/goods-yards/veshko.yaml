@@ -4,7 +4,6 @@
 # each floor row's own `regionTarget` for this region. "How many Volk stand
 # in Veshko's yard" is a fact about the yard.
 class: /platform/idea/location/CartesianZone
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: The Veshko Yard
   cellSize: 3.0

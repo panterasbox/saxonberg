@@ -19,7 +19,6 @@
 # air. And it is three exits from the yard, so the air reads good for
 # free: there is no roof on it.
 class: /trade/mining/location/AuthoredWorking
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   _biomePath: /stuff/idea/biome/outdoor/baseline
   shortDescription: staked ground on the fringe

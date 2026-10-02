@@ -4,7 +4,6 @@
 # committee's chart, not the Compact's own press room, and its editor is an
 # NPC on a roster who could be replaced by a member tomorrow.
 class: /platform/idea/Organization
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   appointingAuthority:
     kind: committee

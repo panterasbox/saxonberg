@@ -10,7 +10,6 @@
 # ever climbed anything. Going down is deeper ore, worse air, and further
 # from the adit; the room says all three without saying any of them.
 class: /trade/mining/location/AuthoredWorking
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: winze head
   keywords: [winze, head, "winze head", ladder]

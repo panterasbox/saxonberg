@@ -4,7 +4,6 @@
 # is entirely on its `/trade/farming/thing/plant/grape` template: the
 # harvest surface and — for a fruiting plant — the cycle fields.
 class: /platform/idea/species/Species
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   binomial: Vitis vinifera
   commonNames: ["grape", "grapevine"]

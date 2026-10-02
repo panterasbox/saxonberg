@@ -13,7 +13,6 @@
 # ⭐ A `PlantPot`, which is the kernel's class and farming's only consumer so
 # far: hold it, plant in it, look at it. Three affordances out of one row.
 class: /platform/thing/PlantPot
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   keywords: [pot, "clay pot", earthenware, crock]
   shortDescription: clay pot

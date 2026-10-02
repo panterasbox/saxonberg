@@ -327,7 +327,8 @@ const Prose = styled.div`
  * thing.
  *
  * ⚠ Found by driving: the lounge's chip row read `PostRegistrationMixin
- * · ExitableMixin · DetailedMixin`, so two of the three visible slots
+ * · ExitableMixin · DetailedMixin` (that mixin retired 2026-10-01 — the
+ * hook is a terminal on `Stuff`), so two of the three visible slots
  * on a **teaching surface** were spent on machinery. The chips exist to
  * show a player the composition palette they would author with; a
  * lifecycle hook is not part of that palette.
@@ -338,7 +339,6 @@ const Prose = styled.div`
  * which is the client's; the overflow count still includes them.
  */
 const PLUMBING: ReadonlySet<string> = new Set([
-  "PostRegistration",
   "Propertied",
   "Persistable",
   "Forkable",

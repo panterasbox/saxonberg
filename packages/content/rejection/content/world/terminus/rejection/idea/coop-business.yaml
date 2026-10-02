@@ -12,7 +12,6 @@
 # second path without any of the political layer, and that is historically
 # exact for adit-level working.
 class: /platform/idea/Business
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   appointingAuthority:
     kind: entity

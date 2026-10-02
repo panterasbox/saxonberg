@@ -45,7 +45,7 @@ function installStore(): void {
 
 async function boot(): Promise<GroupRegistry> {
   const reg = makeStuffAtPath(() => new GroupRegistry(), "/platform/idea/GroupRegistry");
-  await reg.postRegister();
+  await reg.onCreate();
   return reg;
 }
 

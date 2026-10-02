@@ -3,7 +3,7 @@
  * (the MaturationProfileCatalogue shape; the boot()-retirement direction:
  * an operator-shaped warm does not belong on a consumer Api).
  *
- * `postRegister` warms the materialized aggregate read-cache
+ * `onCreate` warms the materialized aggregate read-cache
  * (`ProducerStanding.warm()` — so the first reads are populated) and
  * then installs the ingestion tap(s) + the real-time recompute
  * schedule on the {@link ProducerLogic} singleton. The tap/schedule
@@ -17,14 +17,13 @@
  */
 
 import { Idea } from '../../lib/stuff/Idea';
-import { PostRegistrationMixin } from '../../lib/stuff/PostRegistration';
 import ProducerStanding from '../../lib/standing/ProducerStanding';
 import { ProducerLogic } from './api/ProducerLogic';
 import { StuffApi } from '../../api/stuff';
 import type { VetoResult } from '../../lib/errors';
 import type { EvictionContext } from '../../lib/stuff/Stuff';
 
-const ProducerStandingsBase = PostRegistrationMixin(Idea);
+const ProducerStandingsBase = Idea;
 
 export default class ProducerStandings extends ProducerStandingsBase {
   /** Residency veto — the warm + taps; a culled singleton re-arms nothing. */
@@ -39,7 +38,7 @@ export default class ProducerStandings extends ProducerStandingsBase {
     };
   }
 
-  public override async postRegister(_context?: unknown): Promise<void> {
+  public override async onCreate(_context?: unknown): Promise<void> {
     await this.warm();
   }
 

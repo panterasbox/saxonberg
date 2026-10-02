@@ -17,7 +17,9 @@ import { fileURLToPath, pathToFileURL } from 'url';
 import { ModuleApi } from './module';
 import { AsyncLocalStorage } from 'node:async_hooks';
 import { Stuff, type DestroyedObjectMetadata } from '../lib/stuff/Stuff';
-import type { Hydrator } from '../lib/stuff/Hydrator';
+import type TemplateApplier from '../platform/idea/TemplateApplier';
+import type { HydrateOutcome } from '../lib/persistence/PersistenceSlice';
+import { TemplatePaths } from '../lib/paths';
 import { MixinApi, type AnyConstructor } from './mixin';
 import { Mixins } from '../lib/mixin';
 import { PathTrie } from '../lib/collections/PathTrie';
@@ -48,7 +50,7 @@ import { SecurityPolicies } from '../lib/security/SecurityPolicies';
 
 /**
  * Constructor type for Stuff classes. Clone instantiates backings with no
- * argument; hydration happens in a separate `Hydrator.hydrate()` step.
+ * argument; hydration happens in a separate `TemplateApplier.apply()` step.
  * Classes may still define a raw-data constructor for direct test
  * construction — that's a class-local convenience, not a clone contract.
  */
@@ -173,14 +175,18 @@ export class StuffApi {
 
   /**
    * Per-clone-tree set of templatePaths currently in flight, carried in
-   * AsyncLocalStorage. Catches circular template dependencies — e.g. a
-   * hydrator template naming itself (or another hydrator) as
-   * `hydratorClass`. Without detection the recursion would stack-
-   * overflow; with detection we throw a clear error before that happens.
+   * AsyncLocalStorage. Catches circular template dependencies — the
+   * applier's own row being cloned while it is being resolved, or any
+   * other path that re-enters `clone()` during hydrate/onCreate. Without
+   * detection the recursion would stack-overflow; with detection we
+   * throw a clear error before that happens. ⭐ Since the row stopped
+   * naming its applier (2026-10-01) the applier's own terminator is
+   * structural — its row has `data: {}`, so cloning it plans no applier
+   * — and this set is the backstop rather than the mechanism.
    *
    * Crucially, the set is scoped to ONE async clone tree, not module-
    * global. A genuine cycle is the same path reappearing within a single
-   * `clone()`'s own recursive descent (hydrate/postRegister re-entering
+   * `clone()`'s own recursive descent (hydrate/onCreate re-entering
    * `clone()`). Two INDEPENDENT concurrent clones of the same shared
    * template — e.g. two avatars each cloning `/platform/idea/CommsUpdate` for
    * their loadout, whose `await` points interleave — must NOT see each
@@ -373,25 +379,25 @@ export class StuffApi {
    *   3. Construct an empty backing (no-arg ctor) and stamp its zone.
    *   4. Register the instance so recursive resolution during hydrate /
    *      initialize can observe the in-flight object.
-   *   5. If the template names a `hydratorClass`, resolve it and
-   *      `await hydrator.hydrate(backing, doc.data)`. When absent, no
-   *      hydration step runs — templates that want generic mixin-field
-   *      copy must opt in by naming
-   *      `'/platform/idea/persistence/PersistentHydrator'`.
-   *   6. If the backing composes `PostRegistrationMixin`, await
-   *      `postRegister(context)`, forwarding the caller-supplied context.
+   *   5. If there is any `data` to apply — the row's, with any
+   *      `dataOverlay` merged over it — resolve the applier and
+   *      `await applier.apply(backing, data, { mode: 'mint' })`. Nothing to apply plans
+   *      no applier.
+   *   6. Await `onCreate(context)`, forwarding the caller-supplied
+   *      context. The hook bottoms out on a terminal no-op on `Stuff`,
+   *      so the step is unconditional.
    *
-   * If hydration or `postRegister` throws, the object is unregistered
+   * If hydration or `onCreate` throws, the object is unregistered
    * before the error propagates.
    *
    * The optional `context` is a caller-supplied bag threaded through to
-   * `postRegister`. It carries runtime setup that cannot come from the
+   * `onCreate`. It carries runtime setup that cannot come from the
    * template's `data` — e.g., an authenticated `User` for an avatar.
    * Objects that don't care ignore it; objects that do (Avatar) declare a
    * narrower context type locally and read what they need.
    *
    * @param templatePath - Path to the template (e.g., "/platform/agent/Avatar/<playerId>")
-   * @param context - Optional runtime context passed to `postRegister`
+   * @param context - Optional runtime context passed to `onCreate`
    * @returns The cloned and registered object
    *
    * @example
@@ -416,7 +422,7 @@ export class StuffApi {
   /**
    * Run `fn` outside any in-flight clone tree. The cycle guard's store
    * propagates through every async continuation spawned inside a clone
-   * — including a timer an NPC's `postRegister` arms — so work that is
+   * — including a timer an NPC's `onCreate` arms — so work that is
    * a fresh ROOT by definition (a scheduled callback) must shed it, or
    * two later, unrelated forced commands share one "in flight" set and
    * the second trips as a false cycle. `ScheduleApi`'s root wrapper is
@@ -432,9 +438,9 @@ export class StuffApi {
     opts?: { dataOverlay?: Record<string, unknown>; asIdentityPath?: string }
   ): Promise<T> {
     // Per-clone-tree cycle guard (see `#cloneStackALS`). Catches a
-    // template whose `hydratorClass` resolves (transitively) back to
-    // itself before the recursion stack-overflows. Normal clones aren't
-    // recursive — only the hydrator-resolution recursion can hit this.
+    // template that re-enters its own clone before the recursion
+    // stack-overflows. Normal clones aren't recursive — only the
+    // applier resolution and a hook that clones can hit this.
     // The in-flight set is scoped to this async clone tree, so concurrent
     // independent clones of the same path don't false-trip it.
     const existing = this.#cloneStackALS.getStore();
@@ -460,7 +466,7 @@ export class StuffApi {
     };
 
     // A top-level clone establishes the tree's store; nested clones
-    // (triggered during hydrate / postRegister) inherit it via getStore().
+    // (triggered during hydrate / onCreate) inherit it via getStore().
     return existing ? run() : this.#cloneStackALS.run(stack, run);
   }
 
@@ -557,21 +563,43 @@ export class StuffApi {
     const { ZoneApi } = await import('./zone');
     const zone = await ZoneApi.resolveZoneForPath(identityPath);
 
-    // 6. Resolve the hydrator. When `hydratorClass` is omitted, no
-    //    hydration step runs at all — `data` is ignored. Otherwise
-    //    `singleton(path)` returns the cached hydrator instance if
-    //    one is registered, or lazily clones the first time a
-    //    backing needs it. Hydrators are stateless by contract
-    //    (`Hydrator.ts` documents this) — reusing one instance
-    //    across many `hydrate` calls is correct, and avoids a
-    //    per-clone Template.findByPath round-trip. HMR-aware via
-    //    the same clone-override path as the backing class.
-    const hydrator: (Hydrator & Stuff) | null = template.hydratorClass
-      ? await this.singleton<Hydrator & Stuff>(template.hydratorClass)
-      : null;
+    // 6. Resolve the applier — iff there is anything to apply.
+    //    ⭐ The row no longer names one. `hydratorClass` retired
+    //    2026-10-01: it had ONE value across 1,528 rows and zero rows
+    //    used the opt-out, so the field expressed a choice nobody had
+    //    made — while forgetting it silently discarded the row's whole
+    //    `data` block. The question "should this row's data be applied?"
+    //    has only ever had one honest answer.
+    //
+    //    ⚠⚠ The test is the MERGED data, which is why the overlay merge
+    //    moved above this line. Five production callers pass a
+    //    `dataOverlay` (the guest body, embody, two condition mints, a
+    //    sandbox crossing, a market stall) and some of their rows carry
+    //    `data: {}` — gating on `template.data` alone would drop every
+    //    one of those overlays, silently, which is the exact failure
+    //    mode the retired field had.
+    //
+    //    ⚠ The recursion terminator is structural rather than declared
+    //    now: the applier's OWN row carries `data: {}`, so cloning the
+    //    applier plans no applier. The in-flight singleton cycle guard
+    //    stays as the backstop.
+    //
+    //    The applier is stateless by contract, so `singleton(path)`'s
+    //    one cached instance is reused across every backing it fills —
+    //    no per-clone `Template.findByPath` round-trip, and HMR-aware
+    //    through the same clone-override path as the backing class.
+    const data = opts?.dataOverlay
+      ? { ...(template.data ?? {}), ...opts.dataOverlay }
+      : (template.data ?? {});
+    const applier: TemplateApplier | null =
+      Object.keys(data).length > 0
+        ? await this.singleton<TemplateApplier>(
+            TemplatePaths.templateApplier
+          )
+        : null;
 
     // 7. Construct, stamp zone, then run the shared register / hydrate /
-    //    postRegister sequence. The hydrator captures `template.data`.
+    //    onCreate sequence. The applier captures `template.data`.
     //    The construction sentinel must be flipped immediately around
     //    `new` with no intervening async — otherwise a parallel call
     //    could observe it set and bypass.
@@ -601,12 +629,9 @@ export class StuffApi {
     if (opts?.asIdentityPath) {
       Stuff._stampIdentityPath(obj, opts.asIdentityPath);
     }
-    const data = opts?.dataOverlay
-      ? { ...(template.data ?? {}), ...opts.dataOverlay }
-      : (template.data ?? {});
     return this.#registerAndInit(
       obj,
-      hydrator ? (o) => hydrator.hydrate(o, data) : null,
+      applier ? (o) => applier.apply(o, data, { mode: 'mint' }) : null,
       context
     );
   }
@@ -743,21 +768,21 @@ export class StuffApi {
   /**
    * Create and register a Stuff object via a caller-supplied factory.
    *
-   * Sister of `clone()`: same register / postRegister tail, no hydration
+   * Sister of `clone()`: same register / onCreate tail, no hydration
    * step (the factory IS the construction). Use this for runtime-only
    * objects whose construction needs explicit arguments and which don't
    * round-trip through the CMS template pattern (Interactive being the
    * canonical example — `socketId`, `sessionId`, `user` all flow through
    * the closure).
    *
-   * Registration happens BEFORE `postRegister()` so that recursive
+   * Registration happens BEFORE `onCreate()` so that recursive
    * resolution during setup (e.g. a location whose exits resolve back to
    * itself via the registry) can observe the in-flight instance. If
-   * `postRegister()` throws, the object is unregistered before the error
+   * `onCreate()` throws, the object is unregistered before the error
    * propagates.
    *
    * @param factory - Function that constructs the object
-   * @param context - Optional runtime context passed to `postRegister`
+   * @param context - Optional runtime context passed to `onCreate`
    * @returns The created and registered object
    *
    * @example
@@ -781,9 +806,9 @@ export class StuffApi {
 
   /**
    * Synchronous variant of `create()` for runtime objects whose
-   * construction is purely synchronous — no `Hydrator.hydrate()` step
-   * (the factory does the work) and no `postRegister()` (the class
-   * does not compose `PostRegistrationMixin`).
+   * construction is purely synchronous — no `TemplateApplier.apply()` step
+   * (the factory does the work) and no `onCreate()` (the class does not
+   * override the terminal).
    *
    * Same sentinel-flip + Proxy-wrap + register guarantees as the
    * async path, so the result is interception-mediated and tracked
@@ -795,23 +820,27 @@ export class StuffApi {
    * Reach for `create()` whenever async hydration or post-registration
    * matters; `createSync()` is the narrow-use sister.
    *
-   * Guardrail: throws if the constructed Stuff composes
-   * `PostRegistrationMixin`. The point of `createSync` is "this Stuff
-   * has no async setup" — silently skipping `postRegister()` would
-   * yield a half-initialised object. The throw forces such classes
-   * to use the async `create()` path instead.
+   * Guardrail: throws if the constructed Stuff **overrides**
+   * `onCreate()`. The point of `createSync` is "this Stuff has no async
+   * setup" — silently skipping `onCreate()` would yield a
+   * half-initialised object. The throw forces such classes to use the
+   * async `create()` path instead. ⭐ The override comparison is more
+   * accurate than the retired `PostRegistrationMixin` marker was: a
+   * class that composed the marker without overriding was refused for
+   * no reason, and a class that overrode without composing passed the
+   * guardrail and never had its hook called.
    *
-   * `opts.deferPostRegister` is the one sanctioned bypass, for the
+   * `opts.deferOnCreate` is the one sanctioned bypass, for the
    * lazy registry resolvers (`resolveRegistry` in the Logic
    * singletons): the boot manifest is the production path (clone runs
-   * `postRegister` there), and a lazily-built harness registry
+   * `onCreate` there), and a lazily-built harness registry
    * DELIBERATELY starts unwarmed — the test that needs the warm
-   * drives `postRegister()` itself. Skipping stays explicit, never
+   * drives `onCreate()` itself. Skipping stays explicit, never
    * silent.
    */
   public static createSync<T extends Stuff>(
     factory: () => T,
-    opts?: { deferPostRegister?: boolean }
+    opts?: { deferOnCreate?: boolean }
   ): T {
     const prevSentinel = Stuff._beginConstruction();
     let raw: T;
@@ -825,12 +854,18 @@ export class StuffApi {
       raw,
       MixinApi.getWeakRefFields(raw.constructor as AnyConstructor)
     );
-    if (!opts?.deferPostRegister && MixinApi.isPostRegistration(proxy)) {
+    // ⚠⚠ The comparison is on `raw`, NOT on `proxy`. The proxy's get trap
+    // returns a fresh interception wrapper for every callable access
+    // (`api/proxy.ts`), so `proxy.onCreate` is never identical to the
+    // prototype's function and this guardrail would throw on EVERY
+    // `createSync` — taking `singletonSync` and every lazy logic-singleton
+    // resolver with it.
+    if (!opts?.deferOnCreate && raw.onCreate !== Stuff.prototype.onCreate) {
       // Don't even register — fail before the half-initialised object
       // can leak into the registry.
       throw new Error(
-        `StuffApi.createSync(): ${(proxy as object).constructor.name} ` +
-          `composes PostRegistrationMixin and needs async setup. ` +
+        `StuffApi.createSync(): ${(raw as object).constructor.name} ` +
+          `overrides onCreate() and needs async setup. ` +
           `Use 'await StuffApi.create(...)' instead.`
       );
     }
@@ -848,7 +883,7 @@ export class StuffApi {
    * the `byTemplatePath` index; otherwise builds one via `createSync`,
    * stamps `path`, inserts it into `byTemplatePath`, and returns it.
    * Entirely synchronous — no template doc, no hydration, no
-   * `postRegister` — so an Api method can reach its logic without
+   * `onCreate` — so an Api method can reach its logic without
    * becoming `async`. That is exactly what a stateless, data-less
    * logic singleton allows (see {@link createSync}).
    *
@@ -898,15 +933,15 @@ export class StuffApi {
   }
 
   /**
-   * Shared register / hydrate / postRegister sequence used by both
+   * Shared register / hydrate / onCreate sequence used by both
    * `clone()` and `create()`. `hydrate` is `null` for the create path
-   * (no template, no hydrator); `clone()` passes a closure that captures
-   * the resolved hydrator and template data.
+   * (no template, no applier); `clone()` passes a closure that captures
+   * the resolved applier and template data.
    *
    * Order is load-bearing: register fires first so anything resolving the
-   * in-flight object by `stuffId` during hydrate or `postRegister` (e.g.,
-   * a self-referencing exit hydrator) finds it. If hydrate or
-   * `postRegister` throws, we unregister before propagating so a partial
+   * in-flight object by `stuffId` during hydrate or `onCreate` (e.g.,
+   * a self-referencing exit row) finds it. If the content step or
+   * `onCreate` throws, we unregister before propagating so a partial
    * object never lingers in the registry.
    */
   static async #registerAndInit<T extends Stuff>(
@@ -931,7 +966,7 @@ export class StuffApi {
     this.register(proxy);
 
     try {
-      // Synthetic constructor frame around hydrate + postRegister so
+      // Synthetic constructor frame around hydrate + onCreate so
       // anything those steps invoke has `caller = StuffApi` and
       // `target = <new instance>`. Inner `this.foo()` calls then
       // appear as self-calls, which is the natural reading of
@@ -943,9 +978,12 @@ export class StuffApi {
         { kind: FrameKind.Constructor },
         async () => {
           if (hydrate) await hydrate(proxy);
-          if (MixinApi.isPostRegistration(proxy)) {
-            await proxy.postRegister(context);
-          }
+          // ⭐⭐ Every EAGER hydration source completes here, between the
+          // content step and the hook — so an `onCreate` override may
+          // rely on remembered state being present, and nothing has to
+          // read a collection from inside a lifecycle hook to get it.
+          await this.#hydrateFromSources(proxy);
+          await proxy.onCreate(context);
         }
       );
     } catch (error) {
@@ -963,6 +1001,86 @@ export class StuffApi {
     });
 
     return proxy;
+  }
+
+  /**
+   * ⭐⭐ **Fill the newborn from what the world remembered about it.**
+   *
+   * Walks the host's class for `PersistenceContributor`s that declare a
+   * {@link HydrationSource} and runs each one now, inside the
+   * constructor frame, after the content step and before `onCreate`.
+   *
+   * ⭐⭐ **There is no lazy option, and that is a modelling decision
+   * rather than a missing feature.** Hydration is an INITIALIZATION step
+   * with a terminus: it runs once, before the object is observable, and
+   * then it is done — which is why freshness is not one of its
+   * questions. Fetching the same data at runtime, after the object is
+   * live, is a different mandate wearing the same call: it owns
+   * invalidation, refresh, eviction, and *who is authoritative between
+   * the fetch and the first write* — a state machine each property would
+   * want to shape for itself. A boolean on this declaration asserted
+   * those were two modes of one operation.
+   *
+   * ⚠ It is not academic. `BeliefStore`'s `adjustRegard` is a
+   * read-modify-write off the in-memory map with a write-through to
+   * Mongo, so a window where the map is not yet filled means
+   * `regardFor` honestly answers `0`, the next nudge computes `0 + 1`,
+   * and a stored `12` is overwritten by a `1`. The memory is gone, and
+   * nothing can tell that it happened.
+   *
+   * ⚠⚠ **This runs whether or not the host has a record**, and that
+   * clause is the whole original defect. The slice half of the framework
+   * (`hydrateSlice`) is driven by `PersistableLogic.restoreState` and
+   * only when the record carries that layer's slice — so a singleton
+   * with no record was never driven at all. Every `Cast`'s regard was
+   * written through on every change since the belief store shipped and
+   * never read back once: an NPC's opinion of you reset on every
+   * restart while the records piled up in Mongo, unread.
+   *
+   * The outcome vocabulary is the mixin's to interpret
+   * ({@link HydrateOutcome}); this driver only enforces `required`. A
+   * throw propagates to `#registerAndInit`'s existing catch, which
+   * unregisters the half-built object — so a host that MUST have its
+   * memory does not enter the world without it.
+   */
+  static async #hydrateFromSources(host: Stuff): Promise<void> {
+    const contributors = MixinApi.getPersistenceContributors(
+      host.constructor as AnyConstructor
+    );
+    for (const c of contributors) {
+      if (!c.source) continue;
+      await this.#runSource(host, c);
+    }
+  }
+
+  /**
+   * Run one contributor's source and enforce its `required` flag.
+   */
+  static async #runSource(
+    host: Stuff,
+    c: { key: string; source?: { name: string; required: boolean; hydrate: (h: Stuff) => Promise<HydrateOutcome> } }
+  ): Promise<void> {
+    const src = c.source;
+    if (!src) return;
+    const outcome = await src.hydrate(host);
+    if (outcome.status === 'hydrated') return;
+    if (outcome.status === 'skipped') return;
+    // `unreachable`. Optional → a recorded skip; required → the host
+    // does not come into the world.
+    if (!src.required) {
+      console.warn(
+        `StuffApi: hydration source '${src.name}' for ${c.key} on ` +
+          `${host.getTemplatePath() ?? host.stuffId} is unreachable ` +
+          `(${outcome.reason}); skipped — the source is declared optional.`
+      );
+      return;
+    }
+    throw new Error(
+      `StuffApi: hydration source '${src.name}' declared by ${c.key} is ` +
+        `required and unreachable (${outcome.reason}) for ` +
+        `'${host.getTemplatePath() ?? host.stuffId}'. The host cannot ` +
+        `enter the world without its remembered state.`
+    );
   }
 
   /**

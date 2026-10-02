@@ -3,7 +3,6 @@
 # `zap` spends the maker's stored labour, so it delivers a blunt blow a
 # person who never trained could not throw.
 class: /system/arcana/thing/Wand
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: squat granite-capped rod
   keywords: [wand, rod, granite, stonefist]

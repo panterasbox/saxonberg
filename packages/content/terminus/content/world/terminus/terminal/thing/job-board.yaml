@@ -5,7 +5,6 @@
 # Populated by the hall's `props` list. Keyworded as a NOTICEBOARD —
 # the hall's `board` detail is the split-flap departures board.
 class: /platform/thing/JobBoard
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: public noticeboard
   keywords: [noticeboard, notice-board, notices, jobs, job-board, public]

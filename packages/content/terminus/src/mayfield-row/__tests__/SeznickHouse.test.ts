@@ -21,7 +21,7 @@ import ParcelRegistry from '@saxonberg/server/mud/platform/idea/ParcelRegistry';
 import GroupRegistry from '@saxonberg/server/mud/platform/idea/GroupRegistry';
 import ChattelRegistry from '@saxonberg/server/mud/platform/idea/ChattelRegistry';
 import Avatar from '@saxonberg/server/mud/platform/agent/PrimaryAvatar';
-import PersistentHydrator from '@saxonberg/server/mud/platform/idea/persistence/PersistentHydrator';
+import TemplateApplier from '@saxonberg/server/mud/platform/idea/TemplateApplier';
 import { Document } from '@saxonberg/server/mud/lib/persistence/Document';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
@@ -52,7 +52,7 @@ interface Doc extends Record<string, unknown> {
   _id?: string;
 }
 
-const PH = PersistentHydrator.templatePath;
+const PH = TemplateApplier.templatePath;
 const HOUSE = '/world/terminus/mayfield-row/seznick-house';
 const BUILDING = `${HOUSE}/building`;
 const PROGRAMME = `${HOUSE}/unit-programme`;
@@ -103,7 +103,6 @@ function seedDomain(): void {
       // The shipped class wins wherever the row really exists; `cls` is
       // the fallback for the synthetic rows this fixture invents.
       class: shippedClass(path) ?? cls,
-      hydratorClass: PH,
       data,
     });
   domain.push({ _id: `d-${++idCounter}`, path: PH, class: PH, data: {} });
@@ -230,11 +229,11 @@ function installStore(): void {
 
 async function bootRegistries(): Promise<void> {
   const g = makeStuffAtPath(() => new GroupRegistry(), '/platform/idea/GroupRegistry');
-  await g.postRegister();
+  await g.onCreate();
   const p = makeStuffAtPath(() => new ParcelRegistry(), '/platform/idea/ParcelRegistry');
-  await p.postRegister();
+  await p.onCreate();
   const c = makeStuffAtPath(() => new ChattelRegistry(), '/platform/idea/ChattelRegistry');
-  await c.postRegister();
+  await c.onCreate();
   await ParcelApi.rebuildCoverageIndex();
 }
 
@@ -531,7 +530,7 @@ describe('Seznick House — the lease loop', () => {
     await w.admit(unit);
 
     w.teardown();
-    await w.postRegister();
+    await w.onCreate();
 
     expect(w.nodeReachable('main:1')).toBe(true);
     const reborn = await w.admit(unit);

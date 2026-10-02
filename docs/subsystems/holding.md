@@ -158,8 +158,7 @@ should be written and lets the rest grow.
 
 ## Tier 2 — `HoldingWarren`, the holding
 
-An instanceable `Warren` (`PersistableMixin(PostRegistrationMixin(
-Warren))`) — deliberately **not** a singleton, because there is one live
+An instanceable `Warren` (`PersistableMixin(Warren)`) — deliberately **not** a singleton, because there is one live
 instance per holding, all sharing one row and separated by their
 persistence key.
 

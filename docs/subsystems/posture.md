@@ -86,7 +86,7 @@ but-not-sittable to sittable:
   userFacingDetail: floor
 ```
 
-`Location.ensureFloor()` runs at `postRegister` — the one lifecycle every
+`Location.ensureFloor()` runs at `onCreate` — the one lifecycle every
 clone AND every `create` passes through — and clones
 `TemplatePaths.defaultFloor` unless the room already has a floor or opts
 out. So a warren-minted room gets its floor from the same line an authored

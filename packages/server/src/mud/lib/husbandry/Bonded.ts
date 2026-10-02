@@ -46,7 +46,6 @@ import type { CommandContributions } from '../../api/command';
 import { BulkableApi } from '../../api/bulk';
 import { StuffApi } from '../../api/stuff';
 import { PersistableApi } from '../../api/persistable';
-import { SpeciesApi } from '../../api/species';
 import { METABOLIC_DEFAULTS } from '../metabolism/Metabolic';
 
 /**
@@ -389,33 +388,28 @@ export function BondedMixin<TBase extends MixinConstructor>(Base: TBase) {
      * the collie's is the farm. After that it moves only by being fed
      * somewhere else for days — see {@link creditHomeCandidate}.
      *
-     * ⚠ Chains super first: `Behaved.postRegister` wires the brains, and
+     * ⚠ Chains super first: `Behaved.onCreate` wires the brains, and
      * a brain that fires before home exists would read `''` and treat the
      * animal as having nowhere to go.
      */
-    public async postRegister(context?: unknown): Promise<void> {
-      const sup = (
-        Base.prototype as {
-          postRegister?: (c?: unknown) => unknown | Promise<unknown>;
-        }
-      ).postRegister;
-      if (typeof sup === 'function') await sup.call(this, context);
+    public async onCreate(context?: unknown): Promise<void> {
+      await super.onCreate(context);
       const self = this as unknown as Stuff;
-      // ⭐⭐ Warm its own species. Every dial the bond reads — `feedingStyle`,
-      // `biddability`, `handlingRange` — is on a lazy-loaded Species row,
-      // and `getSpecies()` is a live-only lookup. `requiresAnimate` warms
-      // the ACTOR's species, never the animal's, so in the live game every
-      // dial read as ABSENT: no hand rung, not askable, the default range
-      // — and every refusal-shaped assertion passed anyway (found live:
-      // `offer` to a cat answered `no-hand-rung`). Self-warming at birth,
-      // once, rather than a preload at every one of eight read sites.
-      if (MixinApi.isOrganism(self)) {
-        try {
-          await SpeciesApi.preloadAnatomy(self);
-        } catch (err) {
-          console.warn(`BondedMixin: species preload failed for ${self.getTemplatePath()}:`, err);
-        }
-      }
+      // ⭐ The SPECIES WARM left this hook 2026-10-01, and the reasoning
+      // is the hydration build's central one: warming a shared, lazily
+      // loaded reference row is not hydration. It is kind B — somebody
+      // ELSE's row, read by path, idempotent, with no capture side and
+      // nothing remembered about this instance. `SpeciesApi.preloadAnatomy`
+      // already had nine callers doing exactly that beside the reads that
+      // need it, and this was the tenth pretending to be a lifecycle.
+      //
+      // ⚠ It is now called by each verb and brain that is about to read a
+      // dial (`offer`, `call`, `stay`, `pet`, the `feeds` brain) — the
+      // nine-caller precedent. The hazard it was added for is real and
+      // unchanged: `getSpecies()` is a live-only lookup, so an unwarmed
+      // read answers ABSENT, and absent means *not in this conversation* —
+      // a refusal shape that passes every refusal-shaped assertion. Found
+      // live: `offer` to a cat answered `no-hand-rung`.
       // Born hungry, if nobody keeps it yet (`BORN_HUNGRY_SATIATION`). A
       // restore overwrites this from the record, so a kept animal comes
       // back as fed as it was.

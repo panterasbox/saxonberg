@@ -5,7 +5,6 @@
 # construction property, not the wall material (a steel bucket and a
 # steel sieve differ).
 class: /platform/thing/Receptacle
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: tin colander
   keywords: [tin, colander, sieve, strainer]

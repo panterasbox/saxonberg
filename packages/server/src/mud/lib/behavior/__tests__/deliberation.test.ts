@@ -48,7 +48,7 @@ class TestNPC extends BehavedMixin(
 class TestPlayer extends SensorMixin(ContainableMixin(Idea)) {}
 
 type NPC = TestNPC & {
-  postRegister(c?: unknown): Promise<void>;
+  onCreate(c?: unknown): Promise<void>;
   onMessage(f: MessageFrame): void;
   behaviors: unknown[];
 };
@@ -120,7 +120,7 @@ describe('one beat per agent', () => {
   it('⭐⭐ arms ONE timer however many candidates there are, and runs ONE act a beat', async () => {
     vi.useFakeTimers();
     const { npc } = setup([FILLER, WORK, NIGHTLY]);
-    await npc.postRegister();
+    await npc.onCreate();
     d().bands = { 'cand-filler': 'wanted', 'cand-work': 'wanted' };
 
     await vi.advanceTimersByTimeAsync(BEAT_MS * 1.5);
@@ -132,7 +132,7 @@ describe('one beat per agent', () => {
   it('a candidate spec arms no timer of its own — an all-idle agent acts not at all', async () => {
     vi.useFakeTimers();
     const { npc } = setup([FILLER, WORK]);
-    await npc.postRegister();
+    await npc.onCreate();
     // every band absent ⇒ idle
     await vi.advanceTimersByTimeAsync(BEAT_MS * 3);
     expect(d().ran).toEqual([]);
@@ -144,7 +144,7 @@ describe('one beat per agent', () => {
     const npc = makeStuff(() => new TestNPC()) as unknown as NPC;
     ContainmentApi.move(npc as never, room as never);
     npc.behaviors = [{ brain: FILLER, trigger: 'arrival' }];
-    await npc.postRegister();
+    await npc.onCreate();
     await vi.advanceTimersByTimeAsync(BEAT_MS * 3);
     expect(d().ran).toEqual([]);
     expect(npc.getIntention()).toBeNull();
@@ -155,7 +155,7 @@ describe('the arbiter', () => {
   it('⭐ a pressing work candidate beats a wanted filler', async () => {
     vi.useFakeTimers();
     const { npc } = setup([FILLER, WORK]);
-    await npc.postRegister();
+    await npc.onCreate();
     d().bands = { 'cand-filler': 'wanted', 'cand-work': 'pressing' };
 
     await vi.advanceTimersByTimeAsync(BEAT_MS * 1.5);
@@ -167,7 +167,7 @@ describe('the arbiter', () => {
   it('⚠ and within a band the KIND decides — work over filler', async () => {
     vi.useFakeTimers();
     const { npc } = setup([FILLER, WORK]);
-    await npc.postRegister();
+    await npc.onCreate();
     d().bands = { 'cand-filler': 'wanted', 'cand-work': 'wanted' };
 
     await vi.advanceTimersByTimeAsync(BEAT_MS * 1.5);
@@ -177,7 +177,7 @@ describe('the arbiter', () => {
   it('⭐⭐ hysteresis: an exact tie goes to what the agent was ALREADY doing', async () => {
     vi.useFakeTimers();
     const { npc } = setup([FILLER, WORK]);
-    await npc.postRegister();
+    await npc.onCreate();
     // Filler wins first (work is idle), then both tie at wanted/filler
     // kind… so give them the same kind by using two filler-kind brains is
     // not possible here; instead prove the intention survives a tie
@@ -196,7 +196,7 @@ describe('the arbiter', () => {
     const PROBE = '/lib/behavior/__tests__/fixtures/probe';
     await StuffApi.resolveExport(PROBE, 'brain');
     const { npc } = setup([PROBE, FILLER]);
-    await npc.postRegister();
+    await npc.onCreate();
     d().bands = { 'cand-filler': 'wanted' };
     await vi.advanceTimersByTimeAsync(BEAT_MS * 1.5);
     // The urgency-less spec is skipped; the real candidate still runs.
@@ -222,7 +222,7 @@ describe('the switch prose', () => {
       brain,
       trigger: 'candidate',
     }));
-    await npc.postRegister();
+    await npc.onCreate();
 
     d().bands = { 'cand-filler': 'wanted' };
     await vi.advanceTimersByTimeAsync(BEAT_MS * 1.5);
@@ -256,7 +256,7 @@ describe('preemption — the first consumer of interruptibleBy', () => {
   it('⭐⭐ preemptFor cuts a LIVE beat and says so; it reports false when there is nothing to cut', async () => {
     vi.useFakeTimers();
     const { npc } = setup([WORK]);
-    await npc.postRegister();
+    await npc.onCreate();
     const host = npc as unknown as {
       preemptFor(r: string): boolean;
       requestBeat(): void;
@@ -286,7 +286,7 @@ describe('preemption — the first consumer of interruptibleBy', () => {
     const UNCUTTABLE = '/lib/behavior/__tests__/fixtures/probe-candidate-fixed';
     await StuffApi.resolveExport(UNCUTTABLE, 'brain');
     const { npc } = setup([UNCUTTABLE]);
-    await npc.postRegister();
+    await npc.onCreate();
     const host = npc as unknown as {
       preemptFor(r: string): boolean;
       requestBeat(): void;
@@ -306,7 +306,7 @@ describe('preemption — the first consumer of interruptibleBy', () => {
   it('⭐⭐ a critical candidate cuts the beat a lesser one was holding', async () => {
     vi.useFakeTimers();
     const { npc } = setup([WORK, NIGHTLY]);
-    await npc.postRegister();
+    await npc.onCreate();
     const host = npc as unknown as {
       requestBeat(): void;
       getEngagementByType(t: string): unknown;
@@ -345,7 +345,7 @@ describe('nobody watching', () => {
   it('⭐ an unwatched agent consults ONLY the candidates that run unwatched', async () => {
     vi.useFakeTimers();
     const { npc } = setup([FILLER, NIGHTLY], { audience: false });
-    await npc.postRegister();
+    await npc.onCreate();
     d().bands = { 'cand-filler': 'critical', 'cand-nightly': 'wanted' };
 
     await vi.advanceTimersByTimeAsync(NIGHTLY_MS * 1.5);
@@ -358,7 +358,7 @@ describe('nobody watching', () => {
   it('⚠ and an agent with no unwatched candidate at all does nothing in an empty room', async () => {
     vi.useFakeTimers();
     const { npc } = setup([FILLER, WORK], { audience: false });
-    await npc.postRegister();
+    await npc.onCreate();
     d().bands = { 'cand-filler': 'critical', 'cand-work': 'critical' };
     await vi.advanceTimersByTimeAsync(NIGHTLY_MS * 2);
     expect(d().ran).toEqual([]);
@@ -369,7 +369,7 @@ describe('requestBeat — the early wake', () => {
   it('⭐ pulls a beat forward, and ⚠ debounces so a noisy room is not a loop', async () => {
     vi.useFakeTimers();
     const { npc } = setup([WORK]);
-    await npc.postRegister();
+    await npc.onCreate();
     d().bands = { 'cand-work': 'wanted' };
     const host = npc as unknown as { requestBeat(): void };
 
@@ -391,7 +391,7 @@ describe('requestBeat — the early wake', () => {
     };
     ContainmentApi.move(npc as never, room as never);
     npc.behaviors = [];
-    await npc.postRegister();
+    await npc.onCreate();
     expect(() => npc.requestBeat()).not.toThrow();
     await vi.advanceTimersByTimeAsync(BEAT_MS * 2);
     expect(d().ran).toEqual([]);
@@ -402,7 +402,7 @@ describe('fireBeat — the drive seam', () => {
   it('⭐ firing a candidate brain runs the agent’s DELIBERATION, not that brain', async () => {
     vi.useFakeTimers();
     const { npc } = setup([FILLER, WORK]);
-    await npc.postRegister();
+    await npc.onCreate();
     d().bands = { 'cand-filler': 'wanted', 'cand-work': 'pressing' };
 
     const ran = npc.fireBeat(FILLER);

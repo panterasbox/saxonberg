@@ -6,7 +6,6 @@
 # capability kind, different parameters, NO class beyond the tool. A
 # tool variant is pure seed data.
 class: /trade/textiles/thing/SpinningTool
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: drop spindle
   keywords: [spindle, drop-spindle, whorl, drop]

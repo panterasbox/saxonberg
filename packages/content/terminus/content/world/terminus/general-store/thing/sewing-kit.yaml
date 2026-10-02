@@ -4,7 +4,6 @@
 # `mending` capability entry alone confers repair/salvage (the
 # capability table). Its up-market variant is the sewing machine.
 class: /platform/thing/MendingTool
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: sewing kit
   keywords: [sewing-kit, kit, sewing, needle, awl, thread]

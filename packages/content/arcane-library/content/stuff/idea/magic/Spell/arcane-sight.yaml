@@ -2,7 +2,6 @@
 # effect scanning the magicOrigin tags on the target (or the scene) and
 # reporting what magic currently rides there. Reveals; changes nothing.
 class: /platform/idea/magic/Spell
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   spellId: arcane-sight
   name: Arcane Sight

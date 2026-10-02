@@ -17,7 +17,7 @@
  *
  * No `get on() / set on()` accessor pair is declared — it would collide
  * with nothing but the noun-form runtime-shape validation lives in
- * `setOn` directly (the Hydrator's Phase 1 tries `setOn` first).
+ * `setOn` directly (the applier's Phase 1 tries `setOn` first).
  *
  * The guarded-boolean storage is delegated to `BistateMixin` (the
  * shared substrate under Sealable/Switchable/Foldable); this mixin is

@@ -15,7 +15,6 @@
 # canaries, named them, and been sorry when one died. The game just never
 # had a rung that could hold that.
 class: /platform/agent/KeptAnimal
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   _speciesPath: /stuff/idea/species/animalia/chordata/aves/passeriformes/fringillidae/serinus/canaria
   lifecycleState: alive

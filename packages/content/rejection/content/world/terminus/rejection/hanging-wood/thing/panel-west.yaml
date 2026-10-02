@@ -14,7 +14,6 @@
 # Wood a planted standard is recorded on the ROOM's stand — who, what,
 # which game day — and read back by `look`.
 class: /trade/forestry/thing/Panel
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: panel of coppiced hazel
   keywords: [panel, coppice, hazel, stools, cant]

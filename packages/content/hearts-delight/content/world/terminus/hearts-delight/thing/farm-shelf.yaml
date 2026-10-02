@@ -9,7 +9,6 @@
 # sweep, which is a faucet — and a static authored farm is a source NODE,
 # never a faucet. What is on this shelf came off that field.
 class: /trade/shopkeeping/thing/ConsignmentShelf
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: farm shelf
   keywords: [shelf, stall, sacks, board, slate]

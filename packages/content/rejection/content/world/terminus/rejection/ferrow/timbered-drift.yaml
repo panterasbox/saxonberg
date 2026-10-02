@@ -6,7 +6,6 @@
 # a room where the consequences of getting them wrong are visible and
 # survivable — which is what a tutorial face IS, historically and here.
 class: /trade/mining/location/AuthoredWorking
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: timbered drift
   keywords: [drift, "timbered drift", timbered]

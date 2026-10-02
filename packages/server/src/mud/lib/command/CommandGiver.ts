@@ -418,14 +418,8 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
      * dedupes by YAML filename so a mixin and its consumer can't
      * double-contribute the same command.
      */
-    public async postRegister(_context?: unknown): Promise<void> {
-      // Chain super in case the host composes PostRegistrationMixin
-      // (which is a no-op default but custom subclasses may override).
-      const sup = (Base.prototype as { postRegister?: (c?: unknown) => unknown })
-        .postRegister;
-      if (typeof sup === 'function') {
-        await sup.call(this, _context);
-      }
+    public async onCreate(_context?: unknown): Promise<void> {
+      await super.onCreate(_context);
       const defs = CommandApi.collectSelfDefs(this.constructor);
       this.pushCommandSource('self', 'self', defs);
       this._seedHostedUpdateSources();
@@ -440,9 +434,9 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
      * dispatch chain decides ordering; we don't dedup.
      *
      * Lazily seeds the `'self'` entry on first read so callers that
-     * skip `postRegister` (test helpers like `makeStuff`, ad-hoc
+     * skip `onCreate` (test helpers like `makeStuff`, ad-hoc
      * scripts) still see the giver's own contributions. Production
-     * code goes through `postRegister`; this branch is the safety net.
+     * code goes through `onCreate`; this branch is the safety net.
      */
     getAffordances(): Affordance[] {
       this._ensureSelfEntry();
@@ -484,7 +478,7 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
         const defs = CommandApi.collectSelfDefs(this.constructor);
         this.pushCommandSource('self', 'self', defs);
       }
-      // Safety net for the no-`postRegister` construction path (test
+      // Safety net for the no-`onCreate` construction path (test
       // helpers, ad-hoc scripts): surface any hosted updates' verbs
       // even when the host gained them outside a host/unhost delta.
       // Idempotent — `pushCommandSource` dedupes by (source, bucket).

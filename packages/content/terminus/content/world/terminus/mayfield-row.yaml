@@ -4,7 +4,6 @@
 # 3 m cells. Ownership lives in `parcels` (the terminus municipality
 # holds the street; Mayfield Holdings the building), never here.
 class: /platform/idea/location/CartesianZone
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: Mayfield Row
   cellSize: 3.0

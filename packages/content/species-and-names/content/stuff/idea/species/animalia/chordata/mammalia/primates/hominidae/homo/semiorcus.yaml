@@ -2,7 +2,6 @@
 # built broad and powerful; a keen nose (orcish smell) and a vision
 # profile that leans low-light. Shorter-lived (~80 years), quietly steady.
 class: /platform/idea/species/Species
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   illustration: species/semiorcus.png
   binomial: Homo semiorcus

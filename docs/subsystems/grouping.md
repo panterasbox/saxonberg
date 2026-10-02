@@ -119,16 +119,16 @@ the contract reserves the slot but v1 routes writes through the
 ## `GroupRegistry` and `GroupApi`
 
 The registry is a singleton Idea at `/platform/idea/GroupRegistry`, composed
-with `PostRegistrationMixin`. Its `postRegister` instantiates the
+with `onCreate`. Its `onCreate` instantiates the
 three v1 providers and indexes them by source. It follows the
 **catalogue / registry naming convention**: registries hold *code*
 (in this case, provider implementations); catalogues hold *data*.
 
 ```ts
-class GroupRegistry extends PostRegistrationMixin(Idea) {
+class GroupRegistry extends Idea {
   private providers: Map<string, GroupProvider> = new Map();
 
-  public override async postRegister(_context?: unknown): Promise<void> {
+  public override async onCreate(_context?: unknown): Promise<void> {
     const managed = new ManagedGroupProvider();
     const mql = new MqlGroupProvider();
     const contacts = new ContactsGroupProvider();

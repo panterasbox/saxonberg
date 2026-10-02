@@ -41,7 +41,7 @@ export interface Composed {
   /** Replace the composition outright (the mint, and the test seam). */
   setComposition(parts: readonly BlendPart[]): void;
 
-  // Public so the Hydrator can reflect into it.
+  // Public so the applier can reflect into it.
   composition: BlendPart[];
 }
 

@@ -5,7 +5,6 @@
 # joke and the ache; a real movement-gate would ruin both. Generic object:
 # Visible.shortDescription, never Named.
 class: /platform/thing/Paddle
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: STOP paddle
   keywords: [paddle, stop, sign, octagon]

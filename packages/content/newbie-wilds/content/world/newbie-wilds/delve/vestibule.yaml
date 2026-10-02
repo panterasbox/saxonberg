@@ -4,7 +4,6 @@
 # out to the treeline (the one cross-zone edge from inside this sphere — its
 # partner, the inbound `north`, is authored on the treeline seed).
 class: /platform/location/SingletonCartesianLocation
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: mouth of the delve
   keywords: [delve, mouth]

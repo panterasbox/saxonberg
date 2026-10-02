@@ -5,7 +5,6 @@
 # (the lounge's `/world/lounge/thing/house-tablet`) sets it. Holding the
 # tablet confers NO money authority: that is the wallet's, always.
 class: /platform/thing/Tablet
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: house tablet
   keywords: [tablet, house-tablet, screen, house]

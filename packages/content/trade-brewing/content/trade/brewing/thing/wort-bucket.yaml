@@ -2,7 +2,6 @@
 # sibling): claimed empty, stamped with the masher's mark, carried to
 # the vat and poured.
 class: /platform/thing/CraftVessel
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: wort bucket
   keywords: [bucket, pail, "wort bucket", wort]

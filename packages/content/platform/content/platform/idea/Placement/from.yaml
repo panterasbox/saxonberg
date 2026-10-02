@@ -10,7 +10,6 @@
 # is how the world teaches the word without a tutorial. It never steals
 # `on`'s own key: a primary always wins its word.
 class: /platform/idea/Placement
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: from
   prepositions: [from, on]

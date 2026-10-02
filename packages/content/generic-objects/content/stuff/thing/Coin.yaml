@@ -16,7 +16,6 @@
 # `issueCash` stamps it; `Coin.getMass` reads the pair and throws if it does
 # not resolve — an unstamped coin is a corrupt object, not a coin worth 1.
 class: /platform/thing/Coin
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   keywords: [money, coin, coins, cash]
   mass: 0.002

@@ -215,7 +215,7 @@ export class AddressApi {
    *
    * Sync, because the light walk is: a street's contribution to a room's
    * flux is read on every `look`, and it cannot afford an address walk.
-   * The street resolved its covering locality ONCE at `postRegister`
+   * The street resolved its covering locality ONCE at `onCreate`
    * and carries the path.
    */
   public static isStreetLitTonight(

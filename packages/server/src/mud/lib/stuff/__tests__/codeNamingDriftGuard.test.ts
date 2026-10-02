@@ -14,7 +14,7 @@
  * added to the scanner's matcher list below (itself a reviewable change).
  *
  * A NEW, unclassified call site of an existing resolver — e.g. a custom
- * `Hydrator` subclass reading a new instruction field that resolves a
+ * applier subclass reading a new instruction field that resolves a
  * module — makes this test FAIL, forcing the author to either join
  * `CodeNamingFields.FIELDS` + the gate, or justify a classification here.
  *
@@ -115,10 +115,10 @@ const MANIFEST: ReadonlyArray<{ site: string; classification: string }> = [
   // The clone pipeline resolves a template's `class` — gate-passed at
   // saveTemplate.
   { site: "api/stuff.ts::loadClassByPath", classification: "gated-direct" },
-  // `MaterialCatalogue.postRegister` keeps a row by `instanceof Material` — resolving
+  // `MaterialCatalogue.onCreate` keeps a row by `instanceof Material` — resolving
   // the class wherever it lives (a capability pack's src/ included).
   { site: "platform/idea/MaterialCatalogue.ts::loadClassByPath", classification: "gated-direct" },
-  // `BiomeCatalogue.postRegister` keeps a row by `instanceof Biome` — the
+  // `BiomeCatalogue.onCreate` keeps a row by `instanceof Biome` — the
   // MaterialCatalogue filter exactly, added by the ground build because
   // `Atmospheric.getBiome()` is a registry read and NOTHING stood the biome
   // rows up, so every room's biome was null in a fresh world.
@@ -139,11 +139,11 @@ const MANIFEST: ReadonlyArray<{ site: string; classification: string }> = [
   // does, because `Placement` is a concrete class rows name directly
   // rather than a `lib/` abstract with a thin twin.
   { site: "platform/idea/PlacementCatalogue.ts::loadClassByPath", classification: "gated-direct" },
-  // `MaturationProfileCatalogue.postRegister` keeps a row by
+  // `MaturationProfileCatalogue.onCreate` keeps a row by
   // `instanceof MaturationProfile` (the MaterialLogic filter, homed on a
   // self-warming catalogue — the boot()-retirement direction).
   { site: "platform/idea/MaturationProfileCatalogue.ts::loadClassByPath", classification: "gated-direct" },
-  // `FabricCatalogue.postRegister` keeps a row by `instanceof Fabric` —
+  // `FabricCatalogue.onCreate` keeps a row by `instanceof Fabric` —
   // the same self-warming shape one row up. ⚠ Its predicate carries an
   // extra `cls === Fabric` clause the siblings do not need: those have a
   // `lib/` abstract base plus a thin `platform/` concrete that rows
@@ -328,6 +328,17 @@ const MANIFEST: ReadonlyArray<{ site: string; classification: string }> = [
     site: "platform/idea/api/TemplateLogic.ts::loadClassByPath",
     classification: "validation-only",
   },
+  {
+    site: "platform/idea/api/TemplateLogic.ts::loadClassByPath",
+    classification: "validation-only",
+  },
+  // ⭐ `describeFill` — reads the effective class's `fieldMeta` and its
+  // persistence contributors to answer *what will fill this row in*
+  // (hydration build W7). READ-ONLY and instantiates nothing: it asks
+  // the constructor what it declares, which is the same question
+  // `isFolderClass` asks one line down. The class it resolves is the
+  // row's own `class:`, which passed the code-trust gate when somebody
+  // authored it; `describeFill` cannot introduce one.
   {
     site: "platform/idea/api/TemplateLogic.ts::loadClassByPath",
     classification: "validation-only",

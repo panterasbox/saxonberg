@@ -42,7 +42,7 @@ const SubjectActorCallers = SecurityPolicies.AnyOf(
  * `StuffApi.singletonSync`. Any module that grabs this singleton and
  * calls a method other than through the Api gets `SecurityError`.
  *
- * Stateless by construction (no `PostRegistrationMixin`); the
+ * Stateless by construction (no `onCreate` override); the
  * `SubjectCatalogue` is resolved through the module-private
  * `requireCatalogue` free function.
  *

@@ -3,7 +3,6 @@
 # like: a big open room, well over the span the ground wants, standing on
 # whatever the last crew left in it.
 class: /trade/mining/location/MineRoom
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: worked stope
   keywords: [stope, void, chamber, worked]

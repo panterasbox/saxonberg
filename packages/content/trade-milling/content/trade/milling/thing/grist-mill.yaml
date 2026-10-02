@@ -19,7 +19,6 @@
 # The toll is a tenth, in kind. That is a multure — the mill's pay is a
 # share of the flour, which pays the premises with no coin changing hands.
 class: /trade/milling/thing/GristMill
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: millstones
   keywords: [millstones, stones, mill, grist]

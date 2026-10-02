@@ -6,7 +6,6 @@
 # What it gives up is energy — ~50 J against a musket's 1500 — so it
 # beats mail by being a POINT, not by arriving at firearm pressure.
 class: /platform/thing/equipment/Launcher
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: hunting bow
   keywords: [bow, hunting, shortbow]

@@ -6,7 +6,6 @@
 # fabric row carries drape, loft and weave density, which is exactly why
 # a pack may add one without a kernel edit.
 class: /platform/idea/material/Fabric
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   key: woven
   # Innermost band — cloth goes under everything. Wear order decides

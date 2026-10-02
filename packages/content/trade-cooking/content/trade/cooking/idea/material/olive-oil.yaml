@@ -4,7 +4,6 @@
 # interchangeable, and which one a recipe can be worked in is decided by
 # one tabulated number rather than by a rule anybody wrote.
 class: /platform/idea/material/ConsumableMaterial
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: olive oil
   keywords: [olive, oil, olive-oil]

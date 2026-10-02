@@ -13,7 +13,6 @@
 # YAML, and the classes it names are `trade-farming`'s and
 # `trade-ranching`'s.
 class: /platform/idea/location/CartesianZone
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: the campus farm
   cellSize: 20.0

@@ -1,7 +1,6 @@
 # The small mash tun — the kit's mash (D15). The brewhouse copper at
 # carry weight, same capability.
 class: /platform/thing/Tool
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: small mash tun
   keywords: [tun, "mash tun", kettle, small, mash]

@@ -94,7 +94,7 @@ const OUT_OF_BAND_INBOUND: ReadonlySet<string> = new Set([
  * `StuffApi.singletonSync`. Any module that grabs this singleton and
  * calls a method other than through the Api gets `SecurityError`.
  *
- * Stateless by construction (no `PostRegistrationMixin`) — the inbound
+ * Stateless by construction (no `onCreate` override) — the inbound
  * lanes above are MODULE state, not instance state, precisely so the
  * singleton can be dest/recreated without losing an in-flight ordering
  * guarantee (the `PromptLogic` registry precedent). Otherwise 0-guts:

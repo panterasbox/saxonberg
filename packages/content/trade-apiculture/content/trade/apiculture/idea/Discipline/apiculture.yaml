@@ -13,7 +13,6 @@
 # says which body of knowledge this belongs to, and the Discipline says
 # what somebody can actually do.
 class: /platform/idea/Discipline
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   key: apiculture
   channel: skill

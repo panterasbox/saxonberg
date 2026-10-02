@@ -685,7 +685,7 @@ them two questions — *do you take water* (the `Withdrawing` shape) and
 asked of the same objects, so they share one pass.
 
 ⚠ **Derive-on-read, not a registry.** A registry that objects joined at
-`postRegister` would need an ordering, an eviction hook and a
+`onCreate` would need an ordering, an eviction hook and a
 re-registration on materialize, and every one of those is a way for the
 roster to go quietly stale — a failure this codebase has paid for three
 times. A scan cannot go stale.

@@ -1,7 +1,6 @@
 # Fresh lime juice — house-made (the `press-lime` recipe's authored output
 # material). Tag `lime-juice` is what a sour slot matches.
 class: /platform/idea/material/ConsumableMaterial
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: lime juice
   keywords: [lime, lime-juice, juice]

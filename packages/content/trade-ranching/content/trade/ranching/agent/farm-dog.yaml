@@ -7,7 +7,6 @@
 # nobody has worked with works badly — which is the bond acquiring an
 # economic consequence without any livestock acquiring a bond stat.
 class: /trade/ranching/agent/WorkingAnimal
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: rough-coated collie
   keywords: [dog, collie, sheepdog, rough-coated]

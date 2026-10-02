@@ -206,10 +206,10 @@ export class PlayerApi {
    * full set. Reuses any Avatars already registered (multiplexing — a
    * second connection for the same user finds the existing Avatars,
    * doesn't re-clone). Otherwise clones from the user's avatar
-   * templates and registers via PostRegistration.
+   * templates and registers, then runs `onCreate`.
    *
    * Threads the user reference and playerId into the clone context so
-   * each Avatar's `postRegister` sees its owning user synchronously.
+   * each Avatar's `onCreate` sees its owning user synchronously.
    */
   public static async loadAvatarsForUser(user: User): Promise<Avatar[]> {
     return logic().loadAvatarsForUser(user);

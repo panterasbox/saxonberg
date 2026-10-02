@@ -13,7 +13,6 @@
 # build ships go well below that, so the property is authored and correct
 # and waits for a lighter cure to exercise it.)
 class: /platform/idea/Condition
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: staphylococcal food poisoning
   # ⭐⭐ The hydration drain, MOVED OUT OF CODE. It used to be

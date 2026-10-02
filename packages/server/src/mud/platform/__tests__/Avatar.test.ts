@@ -749,7 +749,7 @@ describe('Avatar', () => {
 
       // enter() is pure ceremony — no template-resolution calls
       // and no teleport. Container placement and default-loadout
-      // install run during clone (applyContainer + postRegister)
+      // install run during clone (applyContainer + onCreate)
       // before enter ever fires.
       expect(singletonSpy).not.toHaveBeenCalled();
       expect(teleportSpy).not.toHaveBeenCalled();
@@ -929,7 +929,7 @@ describe('Avatar', () => {
         '../../lib/security/__tests__/test-setup'
       );
       stampTpl.stampTemplatePathForTest(cat, '/platform/idea/TopicCatalogue');
-      await cat.postRegister();
+      await cat.onCreate();
 
       const avatar = makeAvatar('enter-5');
       vi.spyOn(avatar, 'getContainer').mockReturnValue({

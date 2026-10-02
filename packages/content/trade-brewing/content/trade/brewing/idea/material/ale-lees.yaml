@@ -2,7 +2,6 @@
 # LIVING material (D13): biologicalSource bridges to S. cerevisiae;
 # the ale-culture profile makes a jar of this a kept culture (D14).
 class: /platform/idea/material/ConsumableMaterial
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: ale lees
   keywords: [ale, lees, barm]

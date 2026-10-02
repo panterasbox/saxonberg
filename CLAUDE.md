@@ -131,7 +131,7 @@ behavior. Read the relevant doc before editing in its area.
   operators, filters, pronouns, examples)
 - Subsystem references in `docs/subsystems/`. Each doc is the source
   of truth for its area — read it before editing. Map entries are ONE-LINE pointers by design — a build that grows a subsystem expands the DOC, never this blurb.
-  - [templates.md](./docs/subsystems/templates.md) — clone pipeline, Hydrator, TemplateApi, folder/leaf invariant, `extends:` row inheritance
+  - [templates.md](./docs/subsystems/templates.md) — clone pipeline, the TemplateApplier (three phases × three modes; `hydratorClass` retired), TemplateApi, folder/leaf invariant, `extends:` row inheritance
   - [persistence.md](./docs/subsystems/persistence.md) — Document vs Templates→Stuff, PersistenceManager, hooks; the self-persistence spine (PersistableMixin → `holder_snapshots`)
   - [record-layer.md](./docs/subsystems/record-layer.md) — what the server remembers for you: the per-player frame store, `recall` over three corpora, the nightly reset policy
   - [lifecycle.md](./docs/subsystems/lifecycle.md) — create/destroy choreography, construction sentinel, onDestruct
@@ -948,10 +948,12 @@ base-class narrowing added with NO twin, deliberately: nothing should
 clone a bare holder or a bare acting body, and `lint:instanceable`
 invariant 1 holds by construction.
 
-`hydratorClass:` is a **template path**, not a module path, despite
-looking like one. It is optional; when absent **no hydration runs**, so
-never drop it from a template that has a `data:` block — the content
-would be silently discarded. `lint:instanceable` gates both directions.
+⛔ **`hydratorClass:` is RETIRED (2026-10-01).** It had ONE value across
+1,528 rows for the project's life, no row ever used the opt-out, and
+forgetting it **silently discarded the row's whole `data:` block.** A row
+with `data:` now gets its data, automatically, via the `TemplateApplier`;
+`lint:instanceable` invariant 13 refuses the key. See
+[templates.md](./docs/subsystems/templates.md).
 
 ## Member Privacy: `#` vs TypeScript Modifiers
 
@@ -1124,7 +1126,7 @@ orchestration cases:
 | Raw hydration or a bespoke snapshot to persist a live host's runtime state | `PersistableApi.capture(host)` / `PersistableApi.materialize(host)` — the universal self-persistence spine. A host composes `PersistableMixin` (singleton, keyed by `templatePath`); capture/restore is per-mixin-composed and routed through call-security as the owning principal, into `holder_snapshots`. `Avatar.save()` → `capture`, `Avatar.restore()` → `materialize`. `restoreFromTemplate` is NOT this — it re-hydrates a live clone from an edited *template* (CMS/Pack content go-live); `snapshotToTemplate` was retired. See [persistence.md](./docs/subsystems/persistence.md). |
 | Reading `template.data.container` from a verb to decide where a clone lands | Let `applyContainer` do it — the Hydrator's Phase 2 self-places the instance during the clone cascade. Verbs `clone` post-clone and treat hydration-self-placement as Layer 3 in the precedence chain (`--into` → `--here` → self-placement → giver fallback). See `platform/idea/cmd/author/CloneController.ts`. |
 | `await GroupApi.isMember(playerId, ref)` inside a controller to gate a staff verb | `await AccessApi.can(giver, action, resource)` — resolves title via `ParcelApi.ownerOf` (parcel registry, longest-prefix) then dispatches on owner kind (group / player / organization); untitled → `null` → **denied**. See [access.md](./docs/subsystems/access.md) + [parcel.md](./docs/subsystems/parcel.md). |
-| Hard-coded "is this player an admin?" check | `await AccessApi.can(giver, action, resource)` (resource-targeted), or `AccessApi.canMutateZone(giver, zone)` for Zone-Template targets, `AccessApi.canAtPath(giver, action, path)` for the path-addressed trees, `AccessApi.heldExtents(giver)` for a within-your-extent listing (there is no author tier), `AccessApi.isWizard(giver)` for the orthogonal code-trust (TS-escape) axis (eval, reload, source-tree writes, **and the `class`/`hydratorClass`/`behaviors[].brain` content-template fields**), `AccessApi.isArchwizard(giver)` for the wizard-conferral axis. |
+| Hard-coded "is this player an admin?" check | `await AccessApi.can(giver, action, resource)` (resource-targeted), or `AccessApi.canMutateZone(giver, zone)` for Zone-Template targets, `AccessApi.canAtPath(giver, action, path)` for the path-addressed trees, `AccessApi.heldExtents(giver)` for a within-your-extent listing (there is no author tier), `AccessApi.isWizard(giver)` for the orthogonal code-trust (TS-escape) axis (eval, reload, source-tree writes, **and the `class`/`behaviors[].brain` content-template fields** — ⚠ whose justification is WRONG for `class`; see [access.md](./docs/subsystems/access.md)), `AccessApi.isArchwizard(giver)` for the wizard-conferral axis. |
 | Reaching `AccessRegistry` directly via `StuffApi.findByTemplatePath('/platform/idea/AccessRegistry')` and calling its methods | `AccessApi` — the Registry's public methods carry `@CallSecurity(FromModule('/api/access#AccessApi'))` and throw on any other caller. The facade is the only legitimate path. |
 | `static collectionName = 'users'` (or a module constant holding the literal) | `static collectionName = Collections.Users` — a literal names a collection the vocabulary cannot see, so it gets no schema doc, no index, no sandbox policy and no help topic, silently. Enforced by `pnpm lint:schema`; `__tests__` fixtures are the one exemption. |
 | `import { readFileSync } from 'fs'` (or `path`/`url`/`yaml`/`../backend/…`) anywhere in the mudlib | Only `api/**` + `platform/idea/api/**` import outside `src/mud/`. To load an authored data file: `SourceTreeApi.readYamlResource(import.meta.url, '…/file.yaml')` (`import.meta.url` is a language construct, not an import). Also `readResource` / `readJsonResource` / `listResource` (a directory of authored files) / `parseYaml` / `toMudPath` / `resolveFrom`. Enforced by `pnpm lint:imports`. |
@@ -1145,12 +1147,12 @@ Some specific reminders worth keeping in front of mind:
   contract violations throw; there are no boolean success flags.
   YAML-level validators handle user-input failures separately.
 - **Per-field invariants belong on setters**, not in `normalize()`-style
-  post-hydrate hooks. `PersistentHydrator`'s **two-phase dispatch**
-  prefers a `set<Field>` method (Phase 1) and falls back to
-  bracket-assign through any accessor pair on the prototype.
-  Instruction fields use the `apply<Field>` Phase 2 dispatch.
-  Cross-field invariants go in a custom `Hydrator` subclass — see
-  [templates.md § The Hydrator Contract](./docs/subsystems/templates.md#the-hydrator-contract).
+  post-hydrate hooks. The **`TemplateApplier`**'s phase-1 dispatch prefers
+  a `set<Field>` method and falls back to bracket-assign through any
+  accessor pair on the prototype; instruction fields use the
+  `apply<Field>` phase-2 dispatch, and `seed`-marked fields phase 3.
+  Cross-field invariants go in the host's own `onCreate` — see
+  [templates.md § Where a cross-field rule goes](./docs/subsystems/templates.md#where-a-cross-field-rule-goes).
 - **`Mixins` registry constants** in `lib/mixin.ts` — use
   `Mixins.X` instead of string literals when calling
   `MixinApi.hasMixin()`.

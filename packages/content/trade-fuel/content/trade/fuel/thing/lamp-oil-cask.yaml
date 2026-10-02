@@ -15,7 +15,6 @@
 # sweep stands casks at target there, and the works' hand consigns them to the
 # cash-and-carry, where a town's public-works department buys them.
 class: /platform/thing/Bottle
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: cask of lamp oil
   keywords: [cask, oil-cask, lamp-oil, oil]

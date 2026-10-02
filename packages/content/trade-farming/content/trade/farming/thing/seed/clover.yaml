@@ -1,6 +1,5 @@
 # Seed for clover — the same discrete-Thing shape every shipped seed has.
 class: /platform/thing/Seed
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: bag of clover seed
   keywords: [seed, seeds, clover, bag]

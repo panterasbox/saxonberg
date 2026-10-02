@@ -219,7 +219,7 @@ Diegetically a small brass-and-silicon device. The implant is purely
 the **attunement conferrer** now — it no longer carries any credential
 directly (those live in the hosted `CredentialWalletUpdate`).
 
-`Avatar.installDefaultLoadout` (dispatched from `postRegister` during
+`Avatar.installDefaultLoadout` (dispatched from `onCreate` during
 the clone cascade, once per session) keys off **whether the avatar is
 attuned by any source**: if `AetherMixin` isn't already active (a
 born-attuned species confers it intrinsically — see below), it occupies
@@ -333,7 +333,7 @@ to include a host's hosted updates:
 - **Command-source** — `CommandApi.collectHostedUpdateDefs` +
   `applyHostedUpdateDelta` push each hosted update's `self`-bucket verbs
   onto the host's recency stack with the update as `commandSource`.
-  `CommandGiverMixin` seeds them in `postRegister` and the lazy
+  `CommandGiverMixin` seeds them in `onCreate` and the lazy
   `_ensureSelfEntry` safety net; host/unhost surfaces/retires them live
   (gain-/lose-post-spawn).
 - **Sensorium** — `walkAugmentedModalities` unions `_grantsModalities`
@@ -359,7 +359,7 @@ What ships:
 - `@RequiresActive` decorator (inlined equivalent in AetherMixin).
 - Cranial slot on biped/quadruped body plans.
 - AetherImplant template + Avatar.installDefaultLoadout (from
-  postRegister) clone-time install.
+  onCreate) clone-time install.
 - `requiresVerbalESP` + `requiresEmotiveESP` verb-level validators.
 - Reception-gating integration (`Scene.modality` + filterMessage)
   drops `dm` frames for implant-less recipients.

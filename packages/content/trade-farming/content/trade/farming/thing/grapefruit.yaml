@@ -2,7 +2,6 @@
 # material, the prime-cut shape). A recipe's `kind: item` slot matches the
 # material tag `grapefruit`; the crate below mints these.
 class: /platform/thing/Provision
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: grapefruit
   keywords: [grapefruit, grapefruits, produce]

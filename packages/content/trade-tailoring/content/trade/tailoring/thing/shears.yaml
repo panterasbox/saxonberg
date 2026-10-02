@@ -21,7 +21,6 @@
 # server would not boot. `fair` is the band below `fine` and is what
 # `coarse` was reaching for.
 class: /trade/tailoring/thing/CuttingTool
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: pair of shears
   keywords: [shears, scissors, snips, pair]

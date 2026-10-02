@@ -9,7 +9,6 @@
 # set costs: 20 to 160 kg, 15 W per kg (a 60 kg set is 900 W — over a
 # fresh body's overload line, which is the point), 30 s a set.
 class: /platform/thing/LoadDevice
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: iron barbell
   keywords: [barbell, bar, weights, iron]

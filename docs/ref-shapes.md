@@ -331,7 +331,7 @@ instrument read it — a claim about a thing that may since have broken).
 | `Drivable` | `_vehicularModePath` | `getVehicularMode()` / `setVehicularMode(value)` |
 | `BodyPlan` | `defaultLocomotionMode` (short-name variant; no `_xxxPath`, no leading slash) | `getDefaultLocomotionMode()` / `setDefaultLocomotionMode(value)` |
 | `Atmospheric` | `_biomePath` | `getBiome()` / `setBiome(value)` ([biome.md](./subsystems/biome.md)) |
-| `Biome` | the ROW's `extends:` (cached at `postRegister`; the `_parentOverride` slot is a live override, not authored) | `getExtendsBiome()` / `setExtendsBiome(value)` / `setExtendsBiomePath(path)` / `getExtendsBiomePath()` (raw — consumed by `BiomeApi`'s ancestry walker) |
+| `Biome` | the ROW's `extends:` (cached at `onCreate`; the `_parentOverride` slot is a live override, not authored) | `getExtendsBiome()` / `setExtendsBiome(value)` / `setExtendsBiomePath(path)` / `getExtendsBiomePath()` (raw — consumed by `BiomeApi`'s ancestry walker) |
 | `Party` | `formationPath` (raw-path variant — the holder **never resolves**: the party side stores/returns the string only and never imports `lib/combat`; the consumer (combat) resolves path → `CombatFormation` Idea on its own side of the one-way dep, via the total `PartyApi.formationPathOf` chain) | `getFormationPath()` / `setFormationPath(value)` |
 | `Character` | `_domicileAddress` (ADDRESS-namespace path, not templatePath — the raw-path variant: the holder never resolves; `GovernmentApi.residentOf` resolves address → jurisdiction chain on the civics side; setter enforces persists-until-replaced) | `getDomicileAddress()` / `setDomicileAddress(value)` ([civics.md](./subsystems/civics.md)) |
 | `Locality` | `_governmentKey` (durable-`key` join variant, the `_brandKey` shape — resolves on read through `GovernmentCatalogue`) | `getGovernmentKey()` / `setGovernmentKey(value)` ([civics.md](./subsystems/civics.md)) |
@@ -767,7 +767,7 @@ current holder was swapped.
 > The older version of this entry overstated this.
 
 **Not an instance of this antipattern**: a live ref held *genuinely
-transiently* — a constructor parameter consumed during `postRegister`,
+transiently* — a constructor parameter consumed during `onCreate`,
 handed to a setter that stores the path, **and then released**. Judge the
 **durable** field, not every variable that briefly holds an object.
 

@@ -10,7 +10,6 @@
 # in content — no code change. Rooms are runtime clones minted by
 # `DormWarren.admit`. A plain non-coordinate Location; generic label, no Named.
 class: /world/terminus/eternal/duncan-hall/location/DormRoom
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   # ⭐ Daylight reaches this room through a real opening, and the
   # opening is named so the claim is something a player can walk up

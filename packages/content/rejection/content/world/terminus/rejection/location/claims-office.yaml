@@ -6,7 +6,6 @@
 # staking is a first-come registration, which is a different act with a
 # different verb.
 class: /platform/location/SingletonCartesianLocation
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: claims office
   keywords: [office, "claims office", claims]

@@ -76,7 +76,7 @@ const OrganizationSurface = SecurityPolicies.AnyOf(
 /**
  * Public method surface (methods only, per the inter-stuff contract). The
  * `proprietorPath` / `positions` / `rosterSlots` fields are public so the
- * Hydrator can reflect into them, but they are NOT the contract surface —
+ * applier can reflect into them, but they are NOT the contract surface —
  * external code goes through these methods.
  */
 /**
@@ -224,7 +224,7 @@ export interface Organization {
 
 /**
  * The persistent field slots this mixin declares. Public because the
- * Hydrator reflects into them by name — NOT the contract surface (other
+ * applier reflects into them by name — NOT the contract surface (other
  * Stuff go through the {@link Organization} methods). Named as an
  * interface so a mixin that requires this one can say so in its base
  * constraint (`BusinessMixin` does).
@@ -285,7 +285,7 @@ export function OrganizationMixin<TBase extends MixinConstructor>(
       return this.call;
     }
 
-    /** The Hydrator's Phase-1 setter: an unknown policy is refused loudly. */
+    /** The applier's Phase-1 setter: an unknown policy is refused loudly. */
     public setCall(value: unknown): void {
       if (value === '' || value === undefined || value === null) {
         this.call = '';

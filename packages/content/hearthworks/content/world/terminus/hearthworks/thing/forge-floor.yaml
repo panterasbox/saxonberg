@@ -2,7 +2,6 @@
 # forge (the puddle precedent). A melting ingot flows its mass here as a
 # pourable liquid pool.
 class: /platform/thing/Floor
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: stone floor
   keywords: [stone, floor, ground]

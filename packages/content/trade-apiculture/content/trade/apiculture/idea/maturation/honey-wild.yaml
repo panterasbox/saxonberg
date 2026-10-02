@@ -16,7 +16,6 @@
 # fermented honey does not go on to become vinegar, it just stays
 # disappointing.
 class: /platform/idea/maturation/MaturationProfile
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   key: honey-wild
   mechanism: microbial

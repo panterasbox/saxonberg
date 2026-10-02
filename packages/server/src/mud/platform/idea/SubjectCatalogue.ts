@@ -8,7 +8,7 @@
  *
  * Owns:
  *   - `byId: Map<subjectId, Subject>` and `byTitle: Map<lowerTitle,
- *     Subject>` — the resolution caches, warmed at `postRegister` via
+ *     Subject>` — the resolution caches, warmed at `onCreate` via
  *     `Subject.find({})`.
  *   - The reserved-name set (lifted from `ChannelCatalogue.RESERVED_NAMES`
  *     — a subject title MUST NOT collide with a subcommand word).
@@ -28,7 +28,6 @@
  */
 
 import { Idea } from '../../lib/stuff/Idea';
-import { PostRegistrationMixin } from '../../lib/stuff/PostRegistration';
 import { SecurityApi } from '../../api/security';
 import Subject, {
   type SubjectSurface,
@@ -70,7 +69,7 @@ export interface MakeSubjectOptions {
   curatedMembers?: { id: string; role: GroupRole }[];
 }
 
-const SubjectCatalogueBase = PostRegistrationMixin(Idea);
+const SubjectCatalogueBase = Idea;
 
 export default class SubjectCatalogue extends SubjectCatalogueBase {
 
@@ -85,7 +84,7 @@ export default class SubjectCatalogue extends SubjectCatalogueBase {
   private byTitle: Map<string, Subject> = new Map();
   private backedGroupIds: Set<string> = new Set();
 
-  public override async postRegister(_context?: unknown): Promise<void> {
+  public override async onCreate(_context?: unknown): Promise<void> {
     await this.warmCache();
   }
 

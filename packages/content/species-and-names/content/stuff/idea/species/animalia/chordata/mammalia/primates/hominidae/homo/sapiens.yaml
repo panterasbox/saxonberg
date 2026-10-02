@@ -2,7 +2,6 @@
 # point for human-shaped fantasy variants (dwarf/elf/etc.) which share
 # the body plan but differ on capability fields.
 class: /platform/idea/species/Species
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   illustration: species/sapiens.png
   binomial: Homo sapiens

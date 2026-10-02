@@ -21,7 +21,6 @@
 # it is the operation the whole Teleport Authority exists because most
 # people cannot perform.
 class: /platform/idea/magic/Spell
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   spellId: teleport
   name: Teleport

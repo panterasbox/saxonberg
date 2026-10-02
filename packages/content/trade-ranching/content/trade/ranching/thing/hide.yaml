@@ -7,7 +7,6 @@
 # already waiting. ⚠ What must NOT happen is a `leather` row minted here
 # out of nothing, which would close the loop with a faucet.
 class: /platform/thing/Provision
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: green hide
   keywords: [hide, skin, pelt, green]

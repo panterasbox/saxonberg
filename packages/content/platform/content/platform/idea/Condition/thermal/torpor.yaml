@@ -4,7 +4,6 @@
 # `requiresConscious` validator reads it to gate exertion verbs, exactly
 # as it reads metabolism's `collapse` — alive, immobile, not dead.
 class: /platform/idea/Condition
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: torpor
   # ⚠ Torpor is the cold gone far enough to dull the mind — a band of

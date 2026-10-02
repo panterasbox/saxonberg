@@ -13,7 +13,6 @@
 #
 # `operator: null` — the public street.
 class: /system/transport/idea/Lane
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   key: city
   name: the city streets

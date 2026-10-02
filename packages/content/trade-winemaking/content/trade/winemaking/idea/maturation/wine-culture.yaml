@@ -3,7 +3,6 @@
 # on a warm shelf; feeding (a pour of must) restores it; above 310 K it
 # dies — the hot-pitch death, and why pasteurization works.
 class: /platform/idea/maturation/MaturationProfile
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   key: wine-culture
   mechanism: microbial

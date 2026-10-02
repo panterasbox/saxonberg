@@ -4,7 +4,6 @@
 # construction, lower material height) — the materials-response
 # "steel plate > bronze plate" contrast.
 class: /platform/idea/material/Material
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: bronze
   keywords: [bronze]

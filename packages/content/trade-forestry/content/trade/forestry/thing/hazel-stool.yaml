@@ -18,7 +18,6 @@
 # before anything else happens. A panel that persists (the forestry
 # `Panel`) is what makes the cut STICK across a restart.
 class: /platform/thing/Plant
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: hazel stool
   keywords: [stool, hazel, coppice]

@@ -108,7 +108,7 @@ export interface Identifiable {
    */
   unidentifiedDetailRootFor(viewer: Stuff): DetailMap | null;
 
-  // ---------- storage (public for the Hydrator) ----------
+  // ---------- storage (public for the applier) ----------
   identifiedName: string;
   descriptorClass: string;
   turnoverSeed: string;

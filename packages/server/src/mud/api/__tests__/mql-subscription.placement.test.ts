@@ -26,7 +26,7 @@ import { Stuff } from '../../lib/stuff/Stuff';
 import { Sensor } from '../../lib/message/Sensor';
 import EventRegistry from '../../platform/idea/EventRegistry';
 import Interactive from '../../platform/idea/Interactive';
-import Avatar from '../../platform/agent/Avatar';
+import Avatar from '../../platform/agent/PrimaryAvatar';
 import Good from '../../lib/stuff/Good';
 import Chest from '../../platform/thing/Chest';
 import Location from '../../lib/stuff/Location';

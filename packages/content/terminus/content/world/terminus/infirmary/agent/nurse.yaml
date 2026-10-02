@@ -4,7 +4,6 @@
 # The physician (Aldis) is the intervention side — diagnosis, operations,
 # prescribing.
 class: /platform/agent/Cast
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: Mabley Crole
   keywords: [nurse, mabley, crole, brisk]

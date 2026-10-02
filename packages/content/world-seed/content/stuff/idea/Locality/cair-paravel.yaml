@@ -5,7 +5,6 @@
 # templatePath `cair-paravel` deliberately bears no resemblance to the
 # claimed address `narnia/castle` (a place name is not a path segment).
 class: /platform/idea/Locality
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: Cair Paravel
   _address: narnia/castle

@@ -6,7 +6,6 @@
 # about what fabric construction IS, rather than describing the one
 # form the launch fibre happens to reach.
 class: /platform/idea/material/Fabric
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   key: knit
   layerBand: 0

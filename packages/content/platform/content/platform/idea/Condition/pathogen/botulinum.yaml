@@ -14,7 +14,6 @@
 # (`awFloor: 0.95`, `muMaxPerHour: 0.35`, a high `infectiousDose`). When it
 # does arrive it is the worst thing in the roster.
 class: /platform/idea/Condition
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: botulism
   # ⭐⭐ The hydration drain, MOVED OUT OF CODE. It used to be

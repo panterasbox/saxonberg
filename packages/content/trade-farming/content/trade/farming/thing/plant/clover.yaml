@@ -5,7 +5,6 @@
 # the AIR. That one field, set to nothing, is why the legume rotation is
 # derivable from the ledger rather than granted as a bonus.
 class: /platform/thing/Plant
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: ley of clover
   keywords: [clover, crop, ley]

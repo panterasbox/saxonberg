@@ -76,7 +76,7 @@ describe('EmbodyController step model', () => {
     flesh.setDensity(Quantity.of(1010, 'kg/m³'));
     flesh.setEdibility(false);
     // No setter for this one — it is a hydrator-populated field, so the
-    // test writes it the way the Hydrator would.
+    // test writes it the way the applier would.
     species._defaultMaterialPath = FLESH_PATH;
 
     vi.spyOn(StuffApi, 'singleton').mockImplementation(async (p: string) => {

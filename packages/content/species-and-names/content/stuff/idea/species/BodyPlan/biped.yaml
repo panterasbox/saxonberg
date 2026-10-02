@@ -3,7 +3,6 @@
 # two lateral ears, one forward nose. Capability variance lives on
 # species, not here.
 class: /platform/idea/species/BodyPlan
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: biped
   # Whole-body default mass (kg). A Creature of this plan seeds its

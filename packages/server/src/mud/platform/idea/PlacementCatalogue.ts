@@ -8,7 +8,7 @@
  * registration story for a new way of sitting: **install the pack, get
  * the relation**. No kernel list, no stanza in a platform view.
  *
- * ⚠⚠ **It warms lazily as well as at `postRegister`.** The
+ * ⚠⚠ **It warms lazily as well as at `onCreate`.** The
  * reference-Idea-inert-at-boot trap has bitten this repo three times —
  * a roster nothing stands up reads null forever on a fresh process and
  * every consumer silently answers "no such thing". `put`, `look` and
@@ -23,7 +23,6 @@
  */
 
 import { Idea } from '../../lib/stuff/Idea';
-import { PostRegistrationMixin } from '../../lib/stuff/PostRegistration';
 import Placement from './Placement';
 import { StuffApi } from '../../api/stuff';
 import { Template } from '../../lib/stuff/Template';
@@ -33,7 +32,7 @@ import type { EvictionContext } from '../../lib/stuff/Stuff';
 /** Where this singleton lives. */
 export const PLACEMENT_CATALOGUE_PATH = '/platform/idea/PlacementCatalogue';
 
-const PlacementCatalogueBase = PostRegistrationMixin(Idea);
+const PlacementCatalogueBase = Idea;
 
 export default class PlacementCatalogue extends PlacementCatalogueBase {
   /** member name → the live Placement. Rebuilt by {@link warm}. */
@@ -56,7 +55,7 @@ export default class PlacementCatalogue extends PlacementCatalogueBase {
     };
   }
 
-  public override async postRegister(_context?: unknown): Promise<void> {
+  public override async onCreate(_context?: unknown): Promise<void> {
     await this.warm();
   }
 

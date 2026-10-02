@@ -4,6 +4,5 @@
 # leaf; outdoor biome templates extend that one (directly or
 # transitively) via their `extends` ref.
 class: /platform/idea/FolderZone
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: outdoor

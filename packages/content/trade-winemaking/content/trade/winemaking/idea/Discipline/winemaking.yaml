@@ -8,7 +8,6 @@
 # split and a vintage that is one batch a year; a brewer works a mash and
 # a boil and can start again on Tuesday. Same field, different craft.
 class: /platform/idea/Discipline
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   key: winemaking
   channel: skill

@@ -1,6 +1,5 @@
 # The bakery — the Business entity behind the counter.
 class: /platform/idea/Business
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   appointingAuthority:
     kind: entity

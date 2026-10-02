@@ -10,7 +10,6 @@
 # free plant is also the thing that teaches transplanting, and the large pot
 # at the general store is the first purchase a player has a reason to make.
 class: /platform/thing/PlantPot
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: small clay pot
   keywords: [pot, "small pot", "clay pot", planter, small, clay]

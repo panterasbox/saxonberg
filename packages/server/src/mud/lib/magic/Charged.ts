@@ -188,7 +188,7 @@ export interface Charged {
   /** Receive charge from `actor`'s reserve into this shell. */
   chargeFrom(actor: Stuff, committedPt: number): Promise<ChargeTransfer>;
 
-  // ---------- storage (public for the Hydrator) ----------
+  // ---------- storage (public for the applier) ----------
   capacityTau: number;
   alwaysOn: boolean;
   drawActive: boolean;

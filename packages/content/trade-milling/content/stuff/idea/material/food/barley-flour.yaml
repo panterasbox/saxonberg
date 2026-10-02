@@ -11,7 +11,6 @@
 # It still mills, still keeps, still feeds you, and a flatbread made of
 # it is a perfectly good flatbread.
 class: /platform/idea/material/Material
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: barley flour
   keywords: [flour, barley, meal]

@@ -16,7 +16,7 @@
  *
  * Note: no `get open() / set open()` accessor pair is declared — the
  * accessor name would collide with the `open()` action method. With
- * the new two-phase Hydrator dispatch (`PersistentHydrator` Phase 1
+ * the new three-phase applier dispatch (`TemplateApplier` Phase 1
  * tries `setOpen` first, falls back to bracket-assign only when no
  * setter exists), the bracket-assign-fallback path is never reached
  * for `open` because `setOpen` is defined; the runtime-shape

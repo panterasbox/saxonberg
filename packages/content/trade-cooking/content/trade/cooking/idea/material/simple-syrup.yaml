@@ -1,6 +1,5 @@
 # Simple syrup — the syrup recipe's output material (1:1 sugar and water, brought to heat). Tag `syrup`.
 class: /platform/idea/material/ConsumableMaterial
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: simple syrup
   keywords: [simple, syrup, simple-syrup]

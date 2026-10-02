@@ -4,7 +4,6 @@
 # cash-and-carry and consigns it). Composes the shelf mixin like every
 # Stock, unused here.
 class: /trade/shopkeeping/thing/Stock
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: crowsfoot stock
   keywords: [stock, cases, pallet, bottles, crowsfoot]

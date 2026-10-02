@@ -5,7 +5,6 @@
 # margin. Gates volitional verbs through the consciousness surface as the
 # body fails.
 class: /platform/idea/Condition
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: hypothermia
   # ⭐ Shivering costs. The thermal driver owns the temperature; what

@@ -36,11 +36,10 @@ type Doc = {
   _id?: string;
   path: string;
   class: string;
-  hydratorClass?: string;
   data: Record<string, unknown>;
 };
 
-const H = '/platform/idea/persistence/PersistentHydrator';
+const H = '/platform/idea/TemplateApplier';
 
 /** ⭐ The pink of Limbo Lane: a material nothing in the fold recognises. */
 const LIMBO_PINK = '/test/material/limbo-pink';
@@ -50,13 +49,11 @@ const ROWS: Doc[] = [
   {
     path: TemplatePaths.defaultFloor,
     class: '/platform/thing/Floor',
-    hydratorClass: H,
     data: { shortDescription: 'plain floor', keywords: ['floor', 'ground'] },
   },
   {
     path: LIMBO_PINK,
     class: '/platform/idea/material/Material',
-    hydratorClass: H,
     data: {
       name: 'limbo pink',
       appearance: 'seamless rubbery pink',
@@ -80,7 +77,6 @@ const ROWS: Doc[] = [
   {
     path: '/test/limbo/lane',
     class: '/platform/location/CartesianLocation',
-    hydratorClass: H,
     data: {
       shortDescription: 'Limbo Lane',
       coordinates: [0, 0, 0],
@@ -90,7 +86,6 @@ const ROWS: Doc[] = [
   {
     path: '/test/limbo/alley',
     class: '/platform/location/CartesianLocation',
-    hydratorClass: H,
     data: {
       shortDescription: 'Limbo Alley',
       coordinates: [9, 9, 0],

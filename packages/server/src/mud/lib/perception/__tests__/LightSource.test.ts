@@ -11,7 +11,7 @@ import { AmbientLitMixin } from '../AmbientLit';
 import { MixinApi } from '../../../api/mixin';
 import { Mixins } from '../../mixin';
 import { ProxyApi } from '../../../api/proxy';
-import PersistentHydrator from '../../../platform/idea/persistence/PersistentHydrator';
+import TemplateApplier from '../../../platform/idea/TemplateApplier';
 import { StuffApi } from '../../../api/stuff';
 import { Quantity } from '../../quantity';
 import { makeStuff } from '../../security/__tests__/test-setup';
@@ -61,12 +61,12 @@ describe('LightSourceMixin', () => {
     expect(() => c.setEmittedFlux(-1)).toThrow();
   });
 
-  it('PersistentHydrator round-trips emittedIntensity + emittedColorTemperature', async () => {
+  it('TemplateApplier round-trips emittedIntensity + emittedColorTemperature', async () => {
     const c = makeStuff(() => new Candle());
-    await makeStuff(() => new PersistentHydrator()).hydrate(c, {
+    await makeStuff(() => new TemplateApplier()).apply(c, {
       emittedIntensity: 30,
       emittedColorTemperature: 'warm',
-    });
+    }, { mode: 'mint' });
     expect(c.getEmittedFlux().rawValue()).toBe(30);
     expect(c.getEmittedColorTemperature()!.rawValue()).toBe(2700);
     const raw = ProxyApi.unwrap(c) as unknown as {

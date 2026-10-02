@@ -15,7 +15,6 @@
  *
  * ```yaml
  * class: /platform/idea/reading/LightReading
- * hydratorClass: /platform/idea/persistence/PersistentHydrator
  * data:
  *   channel: light
  *   kind: fact

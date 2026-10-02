@@ -5,7 +5,6 @@
 # off a furnace before the charge is spoiled — the same rule the rest of
 # this build keeps: competence buys knowing, never getting.
 class: /platform/idea/Discipline
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   key: smelting
   channel: skill

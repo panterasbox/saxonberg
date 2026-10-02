@@ -10,7 +10,6 @@
 # are selling. Nothing in the code branches on the tool — two recipes over
 # one input, and the capability word is what tells them apart.
 class: /platform/thing/Tool
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   keywords: [extractor, drum, spinner, "honey extractor"]
   shortDescription: honey extractor

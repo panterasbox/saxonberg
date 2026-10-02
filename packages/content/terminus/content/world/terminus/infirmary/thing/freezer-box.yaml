@@ -4,7 +4,6 @@
 # coolers eat. ⚠ Blood does NOT go here — freezing ruins a unit; the FRIDGE
 # compartment is for blood, the freezer for ice.
 class: /system/energy/thing/ColdStore
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: freezer compartment
   keywords: [freezer, compartment, box, freezer-box]

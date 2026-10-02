@@ -22,7 +22,6 @@ const PACK = fileURLToPath(
 
 interface Seed {
   class?: string;
-  hydratorClass?: string;
   data?: Record<string, unknown>;
 }
 

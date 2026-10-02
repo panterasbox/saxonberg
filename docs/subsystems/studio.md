@@ -18,7 +18,7 @@ code-execution surface.
 
 
 > ⚠⚠ **`blueprints` is a CACHE that persists, and is a deletion candidate**
-> (collection audit, 2026-09-03). `BlueprintCatalogue.postRegister` calls
+> (collection audit, 2026-09-03). `BlueprintCatalogue.onCreate` calls
 > `rebuild()` — the only `rebuild()` among 39 singletons, where every other
 > catalogue `warm()`s — and `Blueprint.find()` appears **twice in the whole
 > non-test tree, both inside that rebuild.** 147 rows survive a restart and
@@ -316,7 +316,7 @@ warns a non-wizard before a commit the server will decline.
 - [templates.md](./templates.md) — the Hydrator two-phase `setX`/`applyX`
   dispatch (property vs instruction fields).
 - [mixins.md](./mixins.md) — the `Mixins` registry, `_mixinName`, `MixinApi`.
-- [access.md](./access.md) — the wizard-lockdown (`class`/`hydratorClass`/
+- [access.md](./access.md) — the wizard-lockdown (`class`/
   `behaviors[].brain` code-naming gate), `isWizard`, `canAtPath`.
 - [provenance.md](./provenance.md) — the authoring ledger, `getActingAuthor`,
   the `recordAuthoring` gate (broadened to accept the studio transport).
@@ -376,5 +376,27 @@ as forbidden; it is exempted **by path** (`author/studio.yaml`), because
 the guard says *the sandbox build ships no verbs*, not *the word is
 reserved forever* — and the composer is the one this subsystem doc is
 named after.
+
+## Open — a protowizard cannot reach the template form
+
+⭐ **The gap, found by the hydration build (2026-10-02).** The Studio's
+template create requires a `classPath`, and the code-field gate refuses
+`class` on a create for every non-wizard — so a protowizard, who is
+exactly the person the Studio is for, cannot use it at all.
+
+Letting one through needs an **`extends` / "based on"** field on
+`CreateTemplateInput`: name a PARENT ROW instead of a class, and the
+child inherits the class by `extends:` resolution without ever naming
+code. Small, real, and content-authoring-shaped.
+
+⚠ And the justification the refusal was resting on is **wrong**:
+*naming* a class is not code trust — *publishing* one is, and publishing
+is what the open-source project already did. What may genuinely be
+privileged is **cloning** a row, because that EXECUTES the class's
+initialization; that is the class's own decision and belongs in the
+class, with nothing to do with the template or with hydration.
+⛔ Whatever lands there is a seat, a title or an `AccessApi.can` — never
+a new `isWizard` check. See
+[access.md § The code-trust lockdown](./access.md).
 
 See [card-surface.md](./card-surface.md).

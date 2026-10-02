@@ -13,7 +13,6 @@
 # more for it, and the extraction is the reason they could: at 0.62 you
 # threw away a third of the grain's weight to get it.
 class: /trade/baking/thing/Loaf
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: white loaf
   keywords: [loaf, bread, white, manchet]

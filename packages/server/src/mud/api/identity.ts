@@ -7,7 +7,7 @@
  *
  *   import { Identity } from "./identity";
  *   Identity.Recognition.describe(viewer, target);
- *   Identity.Belief.hydrate(viewer);
+ *   Identity.Belief.apply(viewer, { mode: 'mint' });
  *
  * **Why a namespace, not a merged `IdentityApi`.** The cluster's
  * methods are heterogeneous (per-viewer cache lifecycle, viewer×target
@@ -37,7 +37,7 @@
 
 export const Identity = Object.freeze({
   // (Belief retired by the Api OO sweep — the viewer face lives ON
-  // BeliefStoreMixin: hydrateBeliefs · evictAndFlushBeliefs · the
+  // BeliefStoreMixin: evictAndFlushBeliefs · the
   // regard face. The store's write-through is mixin-internal.)
   // (Recognition retired by the Api OO sweep — the target face lives ON
   // the Stuff base: describeFor · describeWithStatusFor ·

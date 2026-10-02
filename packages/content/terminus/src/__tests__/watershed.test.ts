@@ -104,8 +104,8 @@ function installShippedContent(): void {
   add('/world/terminus/hinkley-hills', 'world/terminus/hinkley-hills.yaml');
   store.push({
     _id: String(store.length + 1),
-    path: '/platform/idea/persistence/PersistentHydrator',
-    class: '/platform/idea/persistence/PersistentHydrator',
+    path: '/platform/idea/TemplateApplier',
+    class: '/platform/idea/TemplateApplier',
     data: {},
   });
 

@@ -2,7 +2,6 @@
 # `administer` reads the `active` matter; a controlled active, so a nurse
 # needs a prescription (or a doctor's licence).
 class: /platform/thing/Receptacle
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: stoppered vial of grey-draught
   keywords: [vial, grey-draught, anaesthetic, stoppered]

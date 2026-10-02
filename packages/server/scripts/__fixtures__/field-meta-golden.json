@@ -3101,7 +3101,6 @@
     "persistentFields": [
       "path",
       "class",
-      "hydratorClass",
       "data"
     ],
     "fieldMarshallers": {},
@@ -3958,7 +3957,7 @@
     "stackIdentityFields": []
   },
   {
-    "file": "packages/server/src/mud/platform/idea/persistence/__tests__/PersistentHydrator.test.ts",
+    "file": "packages/server/src/mud/platform/idea/persistence/__tests__/TemplateApplier.test.ts",
     "index": 0,
     "className": "PropertyFieldBacking",
     "persistentFields": [
@@ -3969,7 +3968,7 @@
     "stackIdentityFields": []
   },
   {
-    "file": "packages/server/src/mud/platform/idea/persistence/__tests__/PersistentHydrator.test.ts",
+    "file": "packages/server/src/mud/platform/idea/persistence/__tests__/TemplateApplier.test.ts",
     "index": 1,
     "className": "BracketAssignBacking",
     "persistentFields": [
@@ -3980,7 +3979,7 @@
     "stackIdentityFields": []
   },
   {
-    "file": "packages/server/src/mud/platform/idea/persistence/__tests__/PersistentHydrator.test.ts",
+    "file": "packages/server/src/mud/platform/idea/persistence/__tests__/TemplateApplier.test.ts",
     "index": 2,
     "className": "AsyncSetterBacking",
     "persistentFields": [
@@ -3991,7 +3990,7 @@
     "stackIdentityFields": []
   },
   {
-    "file": "packages/server/src/mud/platform/idea/persistence/__tests__/PersistentHydrator.test.ts",
+    "file": "packages/server/src/mud/platform/idea/persistence/__tests__/TemplateApplier.test.ts",
     "index": 3,
     "className": "ThrowingSetterBacking",
     "persistentFields": [
@@ -4002,7 +4001,7 @@
     "stackIdentityFields": []
   },
   {
-    "file": "packages/server/src/mud/platform/idea/persistence/__tests__/PersistentHydrator.test.ts",
+    "file": "packages/server/src/mud/platform/idea/persistence/__tests__/TemplateApplier.test.ts",
     "index": 4,
     "className": "InstructionFieldBacking",
     "persistentFields": [],
@@ -4013,7 +4012,7 @@
     "stackIdentityFields": []
   },
   {
-    "file": "packages/server/src/mud/platform/idea/persistence/__tests__/PersistentHydrator.test.ts",
+    "file": "packages/server/src/mud/platform/idea/persistence/__tests__/TemplateApplier.test.ts",
     "index": 5,
     "className": "MisconfiguredInstructionBacking",
     "persistentFields": [],
@@ -4024,7 +4023,7 @@
     "stackIdentityFields": []
   },
   {
-    "file": "packages/server/src/mud/platform/idea/persistence/__tests__/PersistentHydrator.test.ts",
+    "file": "packages/server/src/mud/platform/idea/persistence/__tests__/TemplateApplier.test.ts",
     "index": 6,
     "className": "MixedFieldBacking",
     "persistentFields": [

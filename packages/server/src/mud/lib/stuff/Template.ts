@@ -2,10 +2,16 @@
  * Template — a CMS asset record. Lives in the `domain` MongoDB collection.
  *
  * Templates describe how to clone game-world objects: a path identifier,
- * the runtime backing class, an optional Hydrator class, and a hydration
- * payload. Cloning happens via `StuffApi.clone(path, context?)`, which
- * loads a Template by path, dynamic-imports the backing class, optionally
- * runs the hydrator over `data`, and runs `postRegister`.
+ * the runtime backing class, and an authored `data` payload. Cloning
+ * happens via `StuffApi.clone(path, context?)`, which loads a Template by
+ * path, dynamic-imports the backing class, applies `data` when there is
+ * any, and runs `onCreate`.
+ *
+ * ⭐ A row used to name its own `hydratorClass`, and the field retired
+ * 2026-10-01: it had one value across 1,528 rows for the project's life
+ * and zero rows used the opt-out, so it expressed a choice nobody had
+ * made — while its absence silently discarded a row's whole `data` block.
+ * A row with data gets its data; that is the rule now.
  *
  * Template is a `Document`, not a `Stuff` — like `User` and
  * `GoogleProfile`, it's a record, not a game-world entity (it is the data
@@ -51,18 +57,16 @@ const TEMPLATE_CHAIN_DEPTH_CAP = 32;
 /** What the AUTHOR wrote on one row, before any parent is folded in. */
 export interface TemplateOwn {
   class?: string;
-  hydratorClass?: string;
   data: Record<string, unknown>;
 }
 
 /**
  * The row an author means to save. Replaces the positional
- * `(path, class, data, hydrator)` form, which `extends` made unreadable
- * (`(path, null, data, undefined, parent)`).
+ * `(path, class, data)` form, which `extends` made unreadable
+ * (`(path, null, data, parent)`).
  */
 export interface TemplateSpec {
   class?: string;
-  hydratorClass?: string;
   extends?: string;
   data: Record<string, unknown>;
 }
@@ -128,7 +132,6 @@ export abstract class Template extends Document {
     path: { persistent: true },
     extends: { persistent: true },
     class: { persistent: true },
-    hydratorClass: { persistent: true },
     data: { persistent: true },
   };
 
@@ -153,15 +156,6 @@ export abstract class Template extends Document {
    * writers go through {@link setOwn} and read {@link own}.
    */
   readonly class: string = '';
-
-  /**
-   * Optional `Hydrator` class path — **EFFECTIVE** (the nearest stated
-   * value along the chain). When ABSENT, the clone pipeline runs
-   * no hydrator and `data` is ignored. Templates that want generic
-   * mixin-field copy must opt in by naming
-   * `'/platform/idea/persistence/PersistentHydrator'`.
-   */
-  readonly hydratorClass?: string;
 
   /**
    * Pure hydration payload (mixin-field values, etc.) — **EFFECTIVE**:
@@ -189,17 +183,14 @@ export abstract class Template extends Document {
   public setOwn(spec: TemplateSpec): void {
     this.own = {
       class: spec.class,
-      hydratorClass: spec.hydratorClass,
       data: spec.data,
     };
     this.extends = spec.extends;
     const w = this as unknown as {
       class: string;
-      hydratorClass?: string;
       data: Record<string, unknown>;
     };
     w.class = spec.class ?? '';
-    w.hydratorClass = spec.hydratorClass;
     w.data = spec.data;
     this.chain = [];
   }
@@ -216,18 +207,14 @@ export abstract class Template extends Document {
         : {};
     this.own = {
       class: typeof doc.class === 'string' ? doc.class : undefined,
-      hydratorClass:
-        typeof doc.hydratorClass === 'string' ? doc.hydratorClass : undefined,
       data: rawData,
     };
     this.extends = typeof doc.extends === 'string' ? doc.extends : undefined;
     const w = this as unknown as {
       class: string;
-      hydratorClass?: string;
       data: Record<string, unknown>;
     };
     w.class = this.own.class ?? '';
-    w.hydratorClass = this.own.hydratorClass;
     w.data = rawData;
     this.chain = [];
   }
@@ -238,7 +225,7 @@ export abstract class Template extends Document {
    * and it holds for every writer that goes through `Document.save()`:
    * `saveTemplate`, `cp`, `mv`, the CMS, `pack --export`.
    *
-   * The three inheritable keys are written as value-or-`null` rather
+   * The two inheritable keys are written as value-or-`null` rather
    * than omitted, because the terminal write is a `$set`: an omitted key
    * would leave a previously-stored value in place, so "this child
    * states no class" has to be said out loud.
@@ -247,16 +234,14 @@ export abstract class Template extends Document {
     const doc = super.toDocument();
     doc.extends = this.extends ?? null;
     doc.class = this.own.class ?? null;
-    doc.hydratorClass = this.own.hydratorClass ?? null;
     doc.data = this.own.data;
     return doc;
   }
 
   /**
    * Fold `chainDocs` (this row first, then each ancestor) into the
-   * effective fields. Nearest statement wins for `class` and
-   * `hydratorClass`; `data` merges per the owning field's `inherit`
-   * rule.
+   * effective fields. Nearest statement wins for `class`; `data`
+   * merges per the owning field's `inherit` rule.
    *
    * A private INSTANCE method, not a static: `lint:lib-statics` ratchets
    * public statics on non-Api classes and `Template` is a `lib/` class.
@@ -264,21 +249,15 @@ export abstract class Template extends Document {
   async #inherit(chainDocs: readonly DomainDoc[]): Promise<void> {
     const w = this as unknown as {
       class: string;
-      hydratorClass?: string;
       data: Record<string, unknown>;
     };
     // Nearest-stated wins: walk ancestor-first so the child overwrites.
     let cls: string | undefined;
-    let hyd: string | undefined;
     for (let i = chainDocs.length - 1; i >= 0; i--) {
       const d = chainDocs[i]!;
       if (typeof d.class === 'string' && d.class.length > 0) cls = d.class;
-      if (typeof d.hydratorClass === 'string' && d.hydratorClass.length > 0) {
-        hyd = d.hydratorClass;
-      }
     }
     w.class = cls ?? '';
-    w.hydratorClass = hyd;
 
     // The merge rules are the EFFECTIVE class's — a field's owner
     // declares how it merges, so a pack field (`routes`) and every

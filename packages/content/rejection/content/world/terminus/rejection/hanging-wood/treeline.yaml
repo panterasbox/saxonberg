@@ -4,7 +4,6 @@
 # standing here has no `fell`, and that is the first thing the wood
 # teaches about itself.
 class: /platform/location/SingletonCartesianLocation
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: treeline above the yard
   keywords: [treeline, edge, scrub, trees, wood, "hanging wood"]

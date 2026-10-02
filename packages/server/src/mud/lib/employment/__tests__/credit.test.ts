@@ -282,7 +282,7 @@ describe("the credit ladder", () => {
     const granted = await ContractApi.issueLoan({ borrower: shop as never, counter: bankCounter, principalMinor: 100, rung: 1 });
     if (!granted.ok) throw new Error("not granted");
     // A mark needs the registry that keeps the chain of title.
-    await makeStuffAtPath(() => new ChattelRegistry(), "/platform/idea/ChattelRegistry").postRegister();
+    await makeStuffAtPath(() => new ChattelRegistry(), "/platform/idea/ChattelRegistry").onCreate();
     // Two crates on the pledged counter: one the shop's, one a stranger's.
     const mine = makeStuffAtPath(() => new Crate(), "/test/credit/crate-mine");
     const theirs = makeStuffAtPath(() => new Crate(), "/test/credit/crate-theirs");

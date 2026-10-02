@@ -2,7 +2,6 @@
 # Citrus, the lime's sibling row — same appetites, its own species.
 # No moisture reserve — the water lives in the ground (see peace-lily).
 class: /platform/thing/Plant
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: lemon tree
   keywords: ["lemon tree", lemon, tree, citrus, plant]

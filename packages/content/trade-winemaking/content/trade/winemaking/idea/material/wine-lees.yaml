@@ -4,7 +4,6 @@
 # Saccharomyces cerevisiae species row, and the wine-culture ferment
 # profile makes a jar of this a culture you keep alive (D14).
 class: /platform/idea/material/ConsumableMaterial
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: wine lees
   keywords: [wine, lees, sediment]

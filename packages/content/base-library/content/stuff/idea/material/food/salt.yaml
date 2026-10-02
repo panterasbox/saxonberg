@@ -11,7 +11,6 @@
 #
 # Salt — the pantry's (base-library has only salt-WATER). Tag `salt`: the rim of a margarita.
 class: /platform/idea/material/ConsumableMaterial
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: salt
   keywords: [salt]

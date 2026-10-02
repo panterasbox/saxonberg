@@ -51,7 +51,7 @@ import { BeliefStoreMixin } from '../../../lib/belief/BeliefStore';
 import { makeStuff
 } from '../../../lib/security/__tests__/test-setup';
 
-const PH = '/platform/idea/persistence/PersistentHydrator';
+const PH = '/platform/idea/TemplateApplier';
 const HINT = 'a hairline seam and a thread of cool air from the north wall';
 
 class Patron extends BeliefStoreMixin(
@@ -72,7 +72,6 @@ function installStore(): void {
     {
       path: '/world/lounge/location/bar',
       class: '/world/lounge/location/Bar',
-      hydratorClass: PH,
       data: {
         shortDescription: "Dave's Bar",
         primaryKeyword: 'bar',
@@ -89,7 +88,6 @@ function installStore(): void {
     {
       path: '/world/lounge/location/office',
       class: '/platform/location/SingletonCartesianLocation',
-      hydratorClass: PH,
       data: { shortDescription: "Dave's office", primaryKeyword: 'office' },
     },
     // The default locomotion mode so `go north` (defaultModeFor → walk) can
@@ -97,7 +95,6 @@ function installStore(): void {
     {
       path: '/platform/idea/LocomotionMode/walk',
       class: '/platform/idea/LocomotionMode',
-      hydratorClass: PH,
       data: {
         name: 'walk',
         speed: 1.0,

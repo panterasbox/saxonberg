@@ -13,7 +13,6 @@
 # state at all; only a component a developer wrote can, which is the
 # real line. It is a blast-radius boundary.
 class: /platform/idea/WikiNamespaceZone
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: snippet
   protection: editors

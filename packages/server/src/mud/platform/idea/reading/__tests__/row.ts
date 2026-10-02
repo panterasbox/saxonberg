@@ -8,7 +8,7 @@
  * reads the real yaml, so a row that stops agreeing with its class fails
  * here rather than in a browser.
  *
- * ⚠ It assigns fields by name, which is the Hydrator's carve-out and
+ * ⚠ It assigns fields by name, which is the applier's carve-out and
  * nobody else's. That is exactly what this is standing in for.
  */
 

@@ -110,7 +110,7 @@ export interface Arcane {
   getDeliveryEfficiency(): number;
   setDeliveryEfficiency(value: number): void;
 
-  // ---------- storage (public for the Hydrator) ----------
+  // ---------- storage (public for the applier) ----------
   carriedSpellPath: string;
   declaredAddresses: ArcaneAddress[];
   makerId: string;

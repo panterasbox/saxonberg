@@ -40,7 +40,6 @@
 import Thing from '@saxonberg/server/mud/lib/stuff/Thing';
 import { FixtureMixin } from '@saxonberg/server/mud/lib/stuff/Fixture';
 import { ResettableMixin } from '@saxonberg/server/mud/lib/residency/Resettable';
-import { PostRegistrationMixin } from '@saxonberg/server/mud/lib/stuff/PostRegistration';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
@@ -49,9 +48,7 @@ import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
 
-const ToolRackBase = PostRegistrationMixin(
-  ResettableMixin(FixtureMixin(Thing)),
-);
+const ToolRackBase = ResettableMixin(FixtureMixin(Thing));
 
 export default class ToolRack extends ToolRackBase {
   static fieldMeta: FieldMeta = {
@@ -86,8 +83,8 @@ export default class ToolRack extends ToolRackBase {
    *
    * @hook
    */
-  public override async postRegister(context?: unknown): Promise<void> {
-    await super.postRegister(context);
+  public override async onCreate(context?: unknown): Promise<void> {
+    await super.onCreate(context);
     await this.reset();
   }
 
@@ -127,7 +124,7 @@ export default class ToolRack extends ToolRackBase {
     // tools down at its birth — that is exactly what initial furnishing
     // is for, and it is the only thing that works at that moment: a prop
     // is cloned BEFORE it is moved, so this rack has no container yet
-    // when its own `postRegister` runs and has nowhere to hang anything.
+    // when its own `onCreate` runs and has nowhere to hang anything.
     //
     // So the rack takes responsibility for what it finds beside it. A
     // tool of a declared row lying in the yard and tracked by nobody is

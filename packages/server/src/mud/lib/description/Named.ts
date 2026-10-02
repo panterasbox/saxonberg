@@ -29,7 +29,7 @@
  *
  * ⚠ `lint:identity` rule 6 makes a name-shaped key on a class that
  * cannot hold one a **build error** rather than a silent discard, which
- * is what it would otherwise be: the Hydrator reflects only into fields
+ * is what it would otherwise be: the applier reflects only into fields
  * a composed class declares.
  *
  * ## What this mixin IS for
@@ -155,7 +155,7 @@ export function NamedMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     /**
      * Persistent fields. `alternateNames` is an array of plain
-     * objects — the generic Hydrator copy works without a custom
+     * objects — the generic applier copy works without a custom
      * persistenceHandler.
      */
     static fieldMeta: FieldMeta = {

@@ -26,7 +26,6 @@ export interface CmsOpenLeaf {
   body: string;
   templateMeta?: {
     class: string;
-    hydratorClass?: string;
     extends?: string;
     chain?: string[];
   };

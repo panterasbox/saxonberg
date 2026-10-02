@@ -2,7 +2,7 @@
  * Engine event vocabulary and per-event default policies.
  *
  * Consolidates the well-known events table, payload type map, and
- * the access-policy lookup that `EventRegistry.postRegister`
+ * the access-policy lookup that `EventRegistry.onCreate`
  * frontloads at boot. Custom (unlisted) events are first-class —
  * `EventApi.emit` / `EventApi.on` auto-register on first touch with
  * the default `EventApi.emittableBy()` policy. The well-known set differs

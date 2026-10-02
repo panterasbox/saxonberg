@@ -33,7 +33,7 @@
  *      so a `hasRecord` gate can't tell seed from restore), so the keyed
  *      holder drives the seed after stamping the key. This keeps born-with
  *      content as author-editable DATA rather than imperative code.
- *   3. **Materialize-on-register** — `postRegister` loads and restores every
+ *   3. **Materialize-on-register** — `onCreate` loads and restores every
  *      record scoped to this host after the shell is cloned.
  *
  * See [docs/subsystems/persistence.md] and
@@ -65,7 +65,7 @@ export interface Persistable {
    * Whether this host actually persists. Default `!markForRevert()` (a host
    * marked for revert writes nothing on the way out); a host overrides to
    * opt out per-instance (an Avatar returns `!isGuest` — a guest is throwaway
-   * and writes nothing). Consulted by `postRegister` / `cleanupOnDestruct`
+   * and writes nothing). Consulted by `onCreate` / `cleanupOnDestruct`
    * here and by `PersistableLogic.capture` / `materialize`, so the opt-out
    * holds across every trigger.
    *
@@ -288,7 +288,7 @@ export function PersistableMixin<
      */
     async seedBornWith(): Promise<void> {
       // Present at runtime whenever specs were retained (specs only arrive
-      // via the Hydrator when `props`/`cast` are instruction fields, i.e.
+      // via the applier when `props`/`cast` are instruction fields, i.e.
       // the host composes StagedMixin below). The `?.` guards the
       // vacuous case.
       if (this._bornWithProps.length > 0) {
@@ -328,24 +328,17 @@ export function PersistableMixin<
     }
 
     /**
-     * `postRegister` **no longer auto-drives persistence** (D1). The mixin
+     * `onCreate` **no longer auto-drives persistence** (D1). The mixin
      * provides capture/restore; the **establishing context decides when and
      * with what key** — Avatar drives an explicit keyed materialize/capture
      * at login (`obj/Avatar.ts`), and `DormWarren.admit` drives a keyed
      * restore-or-seed per unit. So this override only preserves the chain.
      *
-     * `super.postRegister` is optional-chained (persistable hosts compose
-     * `PostRegistrationMixin`, but a host that doesn't still composes cleanly).
+     * `super.onCreate` is a plain chain — the hook bottoms out on a
+     * terminal no-op on `Stuff`, so every host has one.
      */
-    async postRegister(context?: unknown): Promise<void> {
-      const sup = (
-        Base.prototype as {
-          postRegister?: (c?: unknown) => Promise<void> | void;
-        }
-      ).postRegister;
-      if (typeof sup === "function") {
-        await sup.call(this, context);
-      }
+    async onCreate(context?: unknown): Promise<void> {
+      await super.onCreate(context);
     }
 
     /**

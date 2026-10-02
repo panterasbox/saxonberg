@@ -1,6 +1,5 @@
 # Seed for barley — the same discrete-Thing shape every shipped seed has.
 class: /platform/thing/Seed
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: sack of barley seed
   keywords: [seed, seeds, barley, sack]

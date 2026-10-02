@@ -863,7 +863,7 @@ Floors are first-class entities — `Adornment`s on the Location's
 `Adornable` surface, composing `FloorMixin` over `Postured` (see
 [posture.md](./posture.md)). ⭐⭐ **Since the ground build every Location
 has one by construction**: `Location.ensureFloor()` mints
-`TemplatePaths.defaultFloor` at `postRegister` unless the room authors a
+`TemplatePaths.defaultFloor` at `onCreate` unless the room authors a
 floor of its own or opts out. The v1 note that used to sit here — *"no
 class-level default; floor presence is authored per-Location"* — is
 retired: 27 of 180 Locations had a floor, and per-Location authoring was

@@ -74,7 +74,7 @@ describe('ExitableVessel', () => {
     // A vessel is a room that goes places, so it keeps ONE `out` exit
     // and re-points it. (It used to build a fresh `new Exit` per
     // environment; now the exit is a clone of a row, minted once at
-    // `postRegister` — which is what `Exit.rebind` exists for.)
+    // `onCreate` — which is what `Exit.rebind` exists for.)
     ContainmentApi.move(wardrobe, park);
     const first = wardrobe.getExit('out');
     ContainmentApi.move(wardrobe, park2);

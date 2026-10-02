@@ -11,7 +11,6 @@
 # reason a wax object behaves differently from a horn one — the shipped
 # phase machinery reads this and nothing else has to.
 class: /platform/idea/material/Material
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: beeswax
   keywords: [wax, beeswax]

@@ -12,7 +12,6 @@
 # when four are planted in 12 L. Plant four and they finish; plant four
 # in a bed you never fed and the nitrogen runs out first.
 class: /platform/thing/Plant
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: row of carrots
   keywords: [carrots, carrot, "carrot tops", tops, crop, row]

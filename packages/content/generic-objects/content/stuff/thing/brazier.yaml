@@ -5,7 +5,6 @@
 # ⚠ Not to be confused with the practicum's bronze brazier, which is a
 # `Campfire` row and shipped alight on purpose.
 class: /platform/thing/Hearth
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: iron brazier
   keywords: [brazier, coals, basket, fire, iron]

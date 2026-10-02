@@ -10,7 +10,6 @@
 # granular phase lands, every sack row here becomes `closure: open` and
 # nothing else changes.
 class: /platform/thing/Bottle
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: "sack"
   keywords: [sack, bag, empty]

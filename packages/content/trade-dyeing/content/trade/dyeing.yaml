@@ -5,7 +5,6 @@
 # invariant 7), and the industry root is where a zone covering the whole
 # trade belongs anyway.
 class: /platform/idea/location/CartesianZone
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: The Dyehouse Yard
   cellSize: 4.0

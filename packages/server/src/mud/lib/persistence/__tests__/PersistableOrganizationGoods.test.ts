@@ -22,7 +22,7 @@ import { ContainmentApi } from "../../../api/containment";
 import { ParcelApi } from "../../../api/parcel";
 import { ChattelApi } from "../../../api/chattel";
 import { MixinApi } from "../../../api/mixin";
-import PersistentHydrator from "../../../platform/idea/persistence/PersistentHydrator";
+import TemplateApplier from "../../../platform/idea/TemplateApplier";
 import { PersistableMixin } from "../Persistable";
 import { PersistenceManager } from "../../../../backend/PersistenceManager";
 import { Idea } from "../../stuff/Idea";
@@ -30,7 +30,6 @@ import Good from "../../stuff/Good";
 import type { Stuff } from "../../stuff/Stuff";
 import { ContainerMixin } from "../../spatial/Container";
 import { ContainableMixin } from "../../spatial/Containable";
-import { PostRegistrationMixin } from "../../stuff/PostRegistration";
 import { makeStuffAtPath } from "../../security/__tests__/test-setup";
 import type { FieldMeta } from "../../mixin";
 import ChattelRegistry from "../../../platform/idea/ChattelRegistry";
@@ -46,16 +45,16 @@ const CARD = "/test/card";
 const OUTFIT = "/test/outfit";
 
 class Room extends PersistableMixin(
-  ContainerMixin(PostRegistrationMixin(Idea)),
+  ContainerMixin(Idea),
 ) {
   static fieldMeta: FieldMeta = {};
 }
 class Counter extends PersistableMixin(
-  ContainerMixin(ContainableMixin(PostRegistrationMixin(Idea))),
+  ContainerMixin(ContainableMixin(Idea)),
 ) {
   static fieldMeta: FieldMeta = {};
 }
-class Hand extends ContainerMixin(ContainableMixin(PostRegistrationMixin(Idea))) {
+class Hand extends ContainerMixin(ContainableMixin(Idea)) {
   static fieldMeta: FieldMeta = {};
 }
 // ⭐ The local fixture was `class Good extends Movable {}` — this test
@@ -78,7 +77,7 @@ async function mockClone(path: string): Promise<Stuff> {
   if (!factory) throw new Error(`no clone factory for ${path}`);
   const inst = makeStuffAtPath(factory, path);
   if (MixinApi.isPersistable(inst)) {
-    await (inst as unknown as { postRegister: () => Promise<void> }).postRegister();
+    await (inst as unknown as { onCreate: () => Promise<void> }).onCreate();
   }
   return inst;
 }
@@ -125,7 +124,7 @@ beforeEach(() => {
   vi.spyOn(ChattelApi, "placedIn").mockResolvedValue([]);
   Document.setMarshallerResolver(() => undefined, async () => undefined);
   installV1QuantityMarshallers();
-  makeStuffAtPath(() => new PersistentHydrator(), PersistentHydrator.templatePath);
+  makeStuffAtPath(() => new TemplateApplier(), TemplateApplier.templatePath);
 });
 afterEach(() => vi.restoreAllMocks());
 
@@ -135,7 +134,7 @@ async function stamp(good: Stuff, owner: unknown): Promise<void> {
   (good as unknown as { _chattelId: string })._chattelId = id;
   chattelRows.push({ _id: id, chattelId: id, owner, place: "", titledAt: 1 });
   const reg = makeStuffAtPath(() => new ChattelRegistry(), TemplatePaths.chattelRegistry);
-  await reg.postRegister();
+  await reg.onCreate();
 }
 const OUTFIT_OWNER = { kind: "organization", templatePath: OUTFIT };
 const ALICE_OWNER = { kind: "player", templatePath: "/platform/agent/Avatar/alice" };
@@ -155,7 +154,7 @@ describe("organization-owned goods persist with their host", () => {
     await PersistableApi.capture(room);
     StuffApi.clearAll();
     installV1QuantityMarshallers();
-    makeStuffAtPath(() => new PersistentHydrator(), PersistentHydrator.templatePath);
+    makeStuffAtPath(() => new TemplateApplier(), TemplateApplier.templatePath);
 
     const reborn = (await StuffApi.singleton<Room>(ROOM)) as Room;
     const counter2 = reborn
@@ -182,7 +181,7 @@ describe("organization-owned goods persist with their host", () => {
     await PersistableApi.capture(room);
     StuffApi.clearAll();
     installV1QuantityMarshallers();
-    makeStuffAtPath(() => new PersistentHydrator(), PersistentHydrator.templatePath);
+    makeStuffAtPath(() => new TemplateApplier(), TemplateApplier.templatePath);
 
     const reborn = (await StuffApi.singleton<Room>(ROOM)) as Room;
     const paths = reborn.getContents().map((c) => c.getTemplatePath()).sort();

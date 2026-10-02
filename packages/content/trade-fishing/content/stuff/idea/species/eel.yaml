@@ -2,7 +2,6 @@
 # on the ebb. Tolerates warmth, mud and thin air; will not sit in a cold
 # fast upland reach, which is why the moor's mere holds none.
 class: /platform/idea/species/Species
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   binomial: Anguilla anguilla
   commonNames: ["eel"]

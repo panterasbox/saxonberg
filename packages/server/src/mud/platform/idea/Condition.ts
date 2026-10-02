@@ -577,7 +577,7 @@ export const HARM_DEFAULTS = {
  * relieved the moment the circuit breaks (the body steps out / the source
  * dies) — UNLESS `tetany` holds it closed ("can't let go"). The event that
  * mints it is `ElectricityApi.conduct`; the integration lives in
- * `VitalsMixin.reconcileConditions`. Plain-scalar fields → default-Hydrator
+ * `VitalsMixin.reconcileConditions`. Plain-scalar fields → default-applier
  * round-trip (the `Trauma` precedent), no marshaller.
  */
 export interface SustainedShock {
@@ -677,7 +677,7 @@ export interface SustainedEffect {
  *   `RESPIRATION_DEFAULTS.ANOXIA_LETHAL_SEC` precedent). Bleeding out and
  *   freezing to death are not the same length of story.
  *
- * Plain scalars → default-Hydrator round-trip, no marshaller (the `Trauma`
+ * Plain scalars → default-applier round-trip, no marshaller (the `Trauma`
  * precedent). It persists, so a dying body that is evicted and restored is
  * still dying, with its accrued time intact.
  */

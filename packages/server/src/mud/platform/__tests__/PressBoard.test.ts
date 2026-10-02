@@ -91,7 +91,7 @@ async function warmBoard(): Promise<PressBoard> {
     () => new PressBoard(),
     '/platform/idea/PressBoard'
   );
-  await board.postRegister();
+  await board.onCreate();
   return board;
 }
 

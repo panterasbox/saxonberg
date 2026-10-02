@@ -7,7 +7,7 @@ import { SingletonMixin } from '../Singleton';
 import { StagedMixin } from '../Staged';
 import { ContainerMixin } from '../../spatial/Container';
 import { ContainableMixin } from '../../spatial/Containable';
-import PersistentHydrator from '../../../platform/idea/persistence/PersistentHydrator';
+import TemplateApplier from '../../../platform/idea/TemplateApplier';
 import { PersistenceManager, Collections } from '../../../../backend/PersistenceManager';
 import { StuffApi } from '../../../api/stuff';
 import { BehavedMixin } from '../../behavior/Behaved';
@@ -22,7 +22,6 @@ type Doc = Record<string, unknown> & {
   _id?: string;
   path: string;
   class: string;
-  hydratorClass?: string;
   data: Record<string, unknown>;
 };
 
@@ -129,8 +128,8 @@ describe('StagedMixin', () => {
   it('exposes applyProps on instances', async () => {
     installInMemoryStore([
       {
-        path: PersistentHydrator.templatePath,
-        class: '/platform/idea/persistence/PersistentHydrator',
+        path: TemplateApplier.templatePath,
+        class: '/platform/idea/TemplateApplier',
         data: {},
       },
     ]);
@@ -142,8 +141,8 @@ describe('StagedMixin', () => {
   it('handles empty populates array gracefully', async () => {
     installInMemoryStore([
       {
-        path: PersistentHydrator.templatePath,
-        class: '/platform/idea/persistence/PersistentHydrator',
+        path: TemplateApplier.templatePath,
+        class: '/platform/idea/TemplateApplier',
         data: {},
       },
     ]);
@@ -155,8 +154,8 @@ describe('StagedMixin', () => {
   it('skips malformed entries (non-strings, empty strings)', async () => {
     installInMemoryStore([
       {
-        path: PersistentHydrator.templatePath,
-        class: '/platform/idea/persistence/PersistentHydrator',
+        path: TemplateApplier.templatePath,
+        class: '/platform/idea/TemplateApplier',
         data: {},
       },
     ]);
@@ -172,8 +171,8 @@ describe('StagedMixin', () => {
   it('handles non-array specs as a no-op (defensive)', async () => {
     installInMemoryStore([
       {
-        path: PersistentHydrator.templatePath,
-        class: '/platform/idea/persistence/PersistentHydrator',
+        path: TemplateApplier.templatePath,
+        class: '/platform/idea/TemplateApplier',
         data: {},
       },
     ]);
@@ -185,8 +184,8 @@ describe('StagedMixin', () => {
   it('throws when a populates entry references a missing template', async () => {
     installInMemoryStore([
       {
-        path: PersistentHydrator.templatePath,
-        class: '/platform/idea/persistence/PersistentHydrator',
+        path: TemplateApplier.templatePath,
+        class: '/platform/idea/TemplateApplier',
         data: {},
       },
     ]);
@@ -206,8 +205,8 @@ describe('StagedMixin', () => {
     it('dispatches to singleton() for singleton-shaped source templates', async () => {
       installInMemoryStore([
         {
-          path: PersistentHydrator.templatePath,
-          class: '/platform/idea/persistence/PersistentHydrator',
+          path: TemplateApplier.templatePath,
+          class: '/platform/idea/TemplateApplier',
           data: {},
         },
         {
@@ -245,8 +244,8 @@ describe('StagedMixin', () => {
     it('dispatches to clone() for non-singleton source templates', async () => {
       installInMemoryStore([
         {
-          path: PersistentHydrator.templatePath,
-          class: '/platform/idea/persistence/PersistentHydrator',
+          path: TemplateApplier.templatePath,
+          class: '/platform/idea/TemplateApplier',
           data: {},
         },
         {
@@ -284,8 +283,8 @@ describe('StagedMixin', () => {
     it('skips moving a singleton already placed elsewhere', async () => {
       installInMemoryStore([
         {
-          path: PersistentHydrator.templatePath,
-          class: '/platform/idea/persistence/PersistentHydrator',
+          path: TemplateApplier.templatePath,
+          class: '/platform/idea/TemplateApplier',
           data: {},
         },
         {
@@ -322,8 +321,8 @@ describe('StagedMixin', () => {
     it('always moves non-singletons even if they had a prior container (fresh clones)', async () => {
       installInMemoryStore([
         {
-          path: PersistentHydrator.templatePath,
-          class: '/platform/idea/persistence/PersistentHydrator',
+          path: TemplateApplier.templatePath,
+          class: '/platform/idea/TemplateApplier',
           data: {},
         },
         {
@@ -366,8 +365,8 @@ describe('StagedMixin', () => {
     const seedStore = () =>
       installInMemoryStore([
         {
-          path: PersistentHydrator.templatePath,
-          class: '/platform/idea/persistence/PersistentHydrator',
+          path: TemplateApplier.templatePath,
+          class: '/platform/idea/TemplateApplier',
           data: {},
         },
         { path: '/test/agent-child', class: '/test/BehavedAgentTest', data: {} },

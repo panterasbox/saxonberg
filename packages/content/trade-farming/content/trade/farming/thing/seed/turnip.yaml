@@ -1,6 +1,5 @@
 # Seed for turnips — the same discrete-Thing shape every shipped seed has.
 class: /platform/thing/Seed
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: paper of turnip seed
   keywords: [seed, seeds, turnips, paper, turnip]

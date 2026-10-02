@@ -23,7 +23,6 @@
 # while wholemeal sits above it and does not. Nothing flags that; it is
 # `a_w = base * moisture * (1 - solute)`.
 class: /platform/idea/material/Material
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: wheat flour
   keywords: [flour, wheat, meal]

@@ -4,7 +4,6 @@
 # starvation (the lethal timing is a METABOLIC_DEFAULTS dial). Cleared
 # when hydration recovers above the hysteresis band.
 class: /platform/idea/Condition
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: dehydration
   signature: []

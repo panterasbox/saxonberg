@@ -10,7 +10,6 @@
 # on a shelf as a new can in roughly sixty days. Both facts are the
 # point of this row — see the aluminium-can slate.
 class: /platform/idea/material/Material
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: aluminium
   keywords: [aluminium]

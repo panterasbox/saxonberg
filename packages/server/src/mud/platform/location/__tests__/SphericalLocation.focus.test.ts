@@ -2,7 +2,7 @@ import "../../../../test-bootstrap";
 import { describe, it, expect, afterEach } from 'vitest';
 import SphericalLocation from '../SphericalLocation';
 import SphericalZone from '../../idea/location/SphericalZone';
-import PersistentHydrator from '../../idea/persistence/PersistentHydrator';
+import TemplateApplier from '../../idea/TemplateApplier';
 import { Stuff } from '../../../lib/stuff/Stuff';
 import { StuffApi } from '../../../api/stuff';
 import { makeStuff } from '../../../lib/security/__tests__/test-setup';
@@ -61,11 +61,11 @@ describe('SphericalLocation.setFocus', () => {
     ).rejects.toThrow(TypeError);
   });
 
-  it('hydrates via PersistentHydrator method-dispatch', async () => {
+  it('hydrates via TemplateApplier method-dispatch', async () => {
     const { zone, room } = makeRoomInZone();
-    await makeStuff(() => new PersistentHydrator()).hydrate(room, {
+    await makeStuff(() => new TemplateApplier()).apply(room, {
       focus: { rho: 3, theta: 0.1, phi: 0.2, radius: 5 },
-    });
+    }, { mode: 'mint' });
     expect(room.getFocus()).toEqual({ rho: 3, theta: 0.1, phi: 0.2, radius: 5 });
     expect(room.getRadius()).toBe(5);
     expect(zone.contains(room)).toBe(true);

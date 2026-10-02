@@ -78,11 +78,22 @@ the index who stands in it" (D21) and reversed it the next day: 439
 indexed point queries at boot, the room scan wearing a different face.
 The moment somebody wants *"the neighbour walks onto the lane, so load
 the lane's cats"*, the design has become demand paging and a third face
-of the same scan. **A gate should say so**: no `postRegister`, no
+of the same scan. **A gate should say so**: no `onCreate`, no
 `materialize`, no traversal may call `standUpKeyed` or read `placedIn`
 for goods it does not persist itself. The four self-persisting location
 classes' D4 overlay is the one sanctioned exception and it is bounded by
 construction.
+
+⭐ **Where the gate now goes (hydration build, 2026-10-02).** W1 shipped
+`lint:on-create` — a census walker over every `onCreate` implementation
+that already classifies each as state-loading or not, with a ratchet on
+the loading count. The never-fault rule is **a predicate added to
+`packages/server/scripts/check-on-create.ts`**, not a new
+gate: it flags an `onCreate` that reaches `standUpKeyed` or `placedIn`,
+with the four self-persisting location classes as the named exception.
+⚠ The walker **strips comments** before matching — prose about a lazily
+loaded row once counted itself into the loading set and would have
+frozen the ratchet silently.
 
 ## 3. ⭐⭐ Two tiers of account — what membership may and may not mean
 

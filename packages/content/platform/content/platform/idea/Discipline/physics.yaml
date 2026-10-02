@@ -13,7 +13,6 @@
 # reader. What the band decides is the width of the bracket, and whether
 # the reader can tell a bad reading from a surprising one.
 class: /platform/idea/Discipline
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   key: physics
   channel: skill

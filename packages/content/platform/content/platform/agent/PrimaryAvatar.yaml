@@ -26,7 +26,6 @@
 # ⭐ Editing THIS YAML is how you change the defaults. It is content.
 #
 class: /platform/agent/PrimaryAvatar
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   pronouns: they
   # NOTE: `startLocation` is no longer a seed literal. Every avatar-mint

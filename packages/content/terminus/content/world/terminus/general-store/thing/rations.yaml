@@ -4,7 +4,6 @@
 # discrete "pack", NOT a Stackable stack — a chattel stamp needs a discrete
 # instance, so it can be bought and consigned.
 class: /platform/thing/Provision
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: wrapped ration pack
   keywords: [rations, ration, pack, food, trail, wrapped]

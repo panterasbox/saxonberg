@@ -11,7 +11,7 @@ without overlap:
   data, why there is no `Player` class, the persistent-vs-runtime
   field split.
 - [lifecycle.md](./lifecycle.md) — the generic Stuff create/destroy
-  choreography (`postRegister`, `onDestruct`).
+  choreography (`onCreate`, `onDestruct`).
 - [messaging.md](./messaging.md) — Scene composer, Sensor routing,
   MML rendering. This doc points at the boundary; the inside lives
   there.
@@ -69,7 +69,7 @@ pkce: true }` on the generic `passport-oauth2` strategy; names `'kick'`
 **`Avatar`** is what walks around the world. Composes
 `HasInteractiveMixin` so it can carry zero, one, or many connected
 `Interactive`s. `user` and `playerId` are runtime-only pointers
-stamped from the clone context (`Avatar.ts § postRegister`); the
+stamped from the clone context (`Avatar.ts § onCreate`); the
 public surface is `getUser()` / `getPlayerId()`.
 
 **`Interactive`** is a connection. Holds `socketId`, `sessionId`, the
@@ -379,7 +379,7 @@ a session" means; Avatar doesn't need to know how Login picked it.
    each `playerId` on the user, returns the existing in-memory
    Avatar if one is registered; otherwise clones from the per-user
    template with context `{ user, playerId }` so
-   `Avatar.postRegister` can stamp the runtime fields synchronously.
+   `Avatar.onCreate` can stamp the runtime fields synchronously.
 
    ```typescript
    avatar = await StuffApi.clone<Avatar>(
@@ -388,7 +388,7 @@ a session" means; Avatar doesn't need to know how Login picked it.
    );
    ```
 
-   **`Avatar.postRegister` registers the avatar with `PlayerApi`
+   **`Avatar.onCreate` registers the avatar with `PlayerApi`
    keyed on `playerId`** — that's what makes "second connection
    finds the same avatar" possible.
 
@@ -1010,7 +1010,7 @@ taxonomy and how `FrameKind`/`runRoot` plant frames.
   goes through `ExecutionContextApi.runRoot(Backend, ...)`. Adding a
   fifth entry path (e.g. a REST command endpoint) requires planting
   the same frame.
-- **Avatar registration via `postRegister`, not constructor.** The
+- **Avatar registration via `onCreate`, not constructor.** The
   context bag (`{ user, playerId }`) reaches the Avatar there, and
   registration must happen after the Stuff is in `objectsById` —
   see [lifecycle.md](./lifecycle.md).
@@ -1058,7 +1058,7 @@ taxonomy and how `FrameKind`/`runRoot` plant frames.
 - [state-model.md](./state-model.md) — `User`/`Avatar` data model,
   no `Player` class, what's persistent vs runtime
 - [lifecycle.md](./lifecycle.md) — generic Stuff create/destroy,
-  `postRegister`, `onDestruct`, idle eviction (open design)
+  `onCreate`, `onDestruct`, idle eviction (open design)
 - [messaging.md](./messaging.md) — Scene composer, Sensor routing,
   audiences, MML rendering (the "inside" of outbound delivery)
 - [command-routing.md](./command-routing.md) — command pipeline reached via

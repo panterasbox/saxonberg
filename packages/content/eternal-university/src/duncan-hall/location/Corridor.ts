@@ -12,7 +12,7 @@
  * stairs. No persistence — floors reconstitute from the durable slot set.
  * No `Named` — a generic labelled room.
  *
- *   Exitable → Detailed → Visible → PostRegistration → Location
+ *   Exitable → Detailed → Visible → Location
  */
 
 import Location from '@saxonberg/server/mud/lib/stuff/Location';
@@ -20,11 +20,6 @@ import { ExitableMixin } from '@saxonberg/server/mud/lib/boundary/Exitable';
 import type { VetoResult } from '@saxonberg/server/mud/lib/errors';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 
-// ⭐ `PostRegistrationMixin` is NOT composed here: it moved down into
-// `Location`'s own base stack (the ground build), because the mixin's
-// default `postRegister` is a non-chaining no-op — a second composition
-// above the base would SWALLOW `Location.postRegister`, and with it the
-// room's floor.
 const CorridorBase = ExitableMixin(
   Location,
 );

@@ -90,7 +90,7 @@ async function installCatalogue(): Promise<void> {
       })) as unknown as Template[];
     });
   const cat = makeStuff(() => new SpellCatalogue());
-  await cat.postRegister();
+  await cat.onCreate();
   stampTemplatePathForTest(cat, "/platform/idea/SpellCatalogue");
   spy.mockRestore();
 }

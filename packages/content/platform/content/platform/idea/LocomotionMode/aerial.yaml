@@ -1,7 +1,6 @@
 # Aerial — vehicular mode authored on airships / gliders. Loud,
 # fully airborne, fastest in v1.
 class: /platform/idea/LocomotionMode
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: aerial
   speed: 3.0

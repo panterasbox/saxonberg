@@ -8,7 +8,6 @@
 # The prose matches `Lock.keyDescription('pin-tumbler', master=true)`; the
 # master state lives in the serialized `key` credential row (`masterTechs`).
 class: /platform/thing/Key
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: heavy ring of master keys
   keywords: [of, ring, keys, master, key, heavy]

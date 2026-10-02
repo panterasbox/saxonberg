@@ -1,7 +1,6 @@
 # ⭐⭐⭐ The two clocks, stated so a reader can predict the bread box
 # before ever putting a loaf in one.
 class: /platform/idea/HelpConcept
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   key: retrogradation
   title: Retrogradation

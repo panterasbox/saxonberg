@@ -4,7 +4,6 @@
 # molar mass are a capacity, not a mandate — left unset until a consumer
 # (chemistry, electrolysis) actually needs them.
 class: /platform/idea/material/Material
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: water
   keywords: [water]

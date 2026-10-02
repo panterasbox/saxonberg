@@ -22,7 +22,7 @@
  *
  * HMR-aware: reload of `api/scheduler.ts` only drops the cached
  * pointer in the Api; this Stuff's state survives. Reload of THIS file
- * re-clones the Registry (state resets, `postRegister` re-runs
+ * re-clones the Registry (state resets, `onCreate` re-runs
  * idempotently) per HotReloadApi's pattern.
  */
 

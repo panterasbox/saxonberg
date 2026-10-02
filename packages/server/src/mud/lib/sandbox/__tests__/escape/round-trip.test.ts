@@ -147,7 +147,7 @@ describe('sandbox-escape: the round-trip criterion', () => {
     /*
      * ⭐ A body whose `playerId` is known now resolves its own
      * identity path, so the persistence spine engages at
-     * `postRegister` instead of waiting for a template stamp that
+     * `onCreate` instead of waiting for a template stamp that
      * these fixtures apply afterwards. Production always minted the
      * identity first, so nothing changed there — but the spine is
      * live here now and wants the resolver a booted world wires.
@@ -177,7 +177,6 @@ describe('sandbox-escape: the round-trip criterion', () => {
       {
         path: '/platform/agent/sandbox/SandboxAvatar',
         class: '/platform/agent/sandbox/SandboxAvatar',
-        hydratorClass: '/platform/idea/persistence/PersistentHydrator',
         data: { playerId: '' },
       } as unknown as FakeRow,
     ]);

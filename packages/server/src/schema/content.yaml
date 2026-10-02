@@ -6,7 +6,7 @@ summary: >-
   The template tree — every authored row the world is cloned from.
 purpose: |
   The templates collection: one row per template path, holding the `class:`,
-  the optional `extends:` parent path, the `data:` block the Hydrator
+  the optional `extends:` parent path, the `data:` block the applier
   applies, and (for pack-installed rows) the `sourcePack` stamp that tells
   the installer's three-way reconcile which baseline to compare against.
 

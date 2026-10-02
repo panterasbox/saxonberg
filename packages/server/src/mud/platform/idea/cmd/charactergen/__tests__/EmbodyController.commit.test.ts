@@ -112,7 +112,6 @@ describe('EmbodyController.commit', () => {
       path: PrimaryAvatar.ROW_TEMPLATE_PATH,
       class: '/platform/agent/Avatar',
       data: { startLocation: '/world/lounge/idea/warren' },
-      hydratorClass: '/platform/idea/persistence/PersistentHydrator',
     } as never);
     // No per-player template row is written anymore (the identity
     // doctrine): the picks ride the clone's `dataOverlay` and the

@@ -4,7 +4,6 @@
 # The same class as the wagon. Lighter, easier to load and unload from
 # either side, and it holds less.
 class: /system/transport/thing/HaulageRig
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   # A dray is a working rig: a novice teamster handles one.
   #

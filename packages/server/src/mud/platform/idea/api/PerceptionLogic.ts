@@ -152,7 +152,7 @@ let modalityByOrganKeyCache: Map<string, Modality> | null = null;
  * `StuffApi.singletonSync`. Any module that grabs this singleton and
  * calls a method other than through the Api gets `SecurityError`.
  *
- * Stateless by construction (no `PostRegistrationMixin`); the modality
+ * Stateless by construction (no `onCreate` override); the modality
  * caches live at module scope. Guts-variant gate
  * (`AnyOf(FromModule, SelfOnly)`): `canPerceive` self-calls
  * `this.sensorium`, and `preloadForSenseGate` self-calls

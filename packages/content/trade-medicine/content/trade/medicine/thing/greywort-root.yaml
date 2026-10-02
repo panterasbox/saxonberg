@@ -1,7 +1,6 @@
 # A simple — a medicinal herb you steep into a draught (D10). Harvested
 # from the physic garden; `steep` turns it (in water) into grey-draught.
 class: /trade/medicine/thing/Simple
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: greywort root
   keywords: [greywort,root, simple, herb]

@@ -1,6 +1,5 @@
 # The floor bottle of ginger beer — 1 L, at target in the bottling stock.
 class: /platform/thing/Bottle
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: "bottle of ginger beer"
   keywords: [ginger-beer, ginger, bottle, mixer, beer]

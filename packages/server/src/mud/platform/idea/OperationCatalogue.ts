@@ -6,7 +6,7 @@
  * The `DisciplineCatalogue` recipe exactly: warmed at boot by CLASS
  * (`Template.findByClass(Operation.CLASS_PATH)`), so a row shipped under
  * ANY pack root (`/trade/medicine/idea/Operation/…`) is found; a residency
- * veto so it is never culled; a `postRegister` warm, a lazy cold state for
+ * veto so it is never culled; a `onCreate` warm, a lazy cold state for
  * unit tests. Read-only canon — no runtime mutation.
  *
  * ⚠ A catalogue nothing boots reads empty forever, so the platform ships
@@ -15,7 +15,6 @@
  */
 
 import { Idea } from "../../lib/stuff/Idea";
-import { PostRegistrationMixin } from "../../lib/stuff/PostRegistration";
 import { Template } from "../../lib/stuff/Template";
 import Operation, {
   OPERATION_RESOLUTIONS,
@@ -28,7 +27,7 @@ import { CompetenceBand } from "../../lib/advancement/CompetenceBand";
 import type { VetoResult } from "../../lib/errors";
 import type { EvictionContext } from "../../lib/stuff/Stuff";
 
-const OperationCatalogueBase = PostRegistrationMixin(Idea);
+const OperationCatalogueBase = Idea;
 
 export default class OperationCatalogue extends OperationCatalogueBase {
   public canEvict(_context: EvictionContext): VetoResult {
@@ -55,7 +54,7 @@ export default class OperationCatalogue extends OperationCatalogueBase {
     return [...this.cache!.values()].map(cloneDescriptor);
   }
 
-  public override async postRegister(_context?: unknown): Promise<void> {
+  public override async onCreate(_context?: unknown): Promise<void> {
     await this.loadCacheFromTemplates();
   }
 

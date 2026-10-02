@@ -31,7 +31,7 @@ import { PersistApi } from '../../../../api/persist';
 import { StuffApi } from '../../../../api/stuff';
 
 const TOPIC_CLASS = '/platform/idea/Topic';
-const HYDRATOR = '/platform/idea/persistence/PersistentHydrator';
+const HYDRATOR = '/platform/idea/TemplateApplier';
 
 interface Row extends Record<string, unknown> {
   _id?: string;
@@ -96,7 +96,6 @@ function writeTopicPack(id: string, topicKey: string): string {
     file,
     YAML.stringify({
       class: TOPIC_CLASS,
-      hydratorClass: HYDRATOR,
       data: {
         topic: topicKey,
         family: topicKey.split('.').slice(0, -1).join('.'),

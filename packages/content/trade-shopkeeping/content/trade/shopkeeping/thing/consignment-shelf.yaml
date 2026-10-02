@@ -2,7 +2,6 @@
 # (trades-and-labor D6). Custody plus a sale layer, nothing authored that
 # belongs to a place: goods on it stay their consignor's until they sell.
 class: /trade/shopkeeping/thing/ConsignmentShelf
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: consignment shelf
   keywords: [shelf, consignment, resale]

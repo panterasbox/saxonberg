@@ -1,6 +1,5 @@
 # A mixing glass — a tool offering the `mixing-glass` capability (stirred drinks).
 class: /platform/thing/CocktailShaker
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: mixing glass
   keywords: [glass, mixing-glass, mixing]

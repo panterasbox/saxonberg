@@ -79,8 +79,8 @@ no separate edge documents. They are **authored and stored**; their runtime
 graph is real and queryable; the estimator just doesn't walk it yet.
 
 `DisciplineCatalogue` (`obj/DisciplineCatalogue.ts`, `/platform/idea/DisciplineCatalogue`,
-bootstrapped) is the `TopicCatalogue` recipe: `PostRegistrationMixin(Idea)`
-warming a `Map<key, DisciplineDescriptor>` in `postRegister` from
+bootstrapped) is the `TopicCatalogue` recipe: `Idea`
+warming a `Map<key, DisciplineDescriptor>` in `onCreate` from
 `Template.findDescendants`. Read-only canon — no runtime mutation surface
 this increment. Unlike `TopicCatalogue` there is no derived fallback: a
 Discipline either exists in the canon or it does not.

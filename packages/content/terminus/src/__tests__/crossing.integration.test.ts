@@ -31,9 +31,9 @@ import {
   installStore,
   type Doc,
 } from "@saxonberg/server/mud/lib/persistence/__tests__/backend-store";
-import PersistentHydrator from "@saxonberg/server/mud/platform/idea/persistence/PersistentHydrator";
+import TemplateApplier from "@saxonberg/server/mud/platform/idea/TemplateApplier";
 
-const PH = PersistentHydrator.templatePath;
+const PH = TemplateApplier.templatePath;
 // The rows this stand-up reads live across the packs (content-packs
 // wave 3): the locality rows in the locality packs, the species in
 // species-and-names, the rest in the platform / generic-objects packs.
@@ -51,7 +51,6 @@ function seed(relFromSeeds: string, path: string): Doc {
   return {
     path,
     class: parsed.class as string,
-    hydratorClass: (parsed.hydratorClass as string) ?? PH,
     data: (parsed.data as Record<string, unknown>) ?? {},
   };
 }
@@ -129,7 +128,6 @@ function docs(): Doc[] {
     {
       path: HUMAN,
       class: "/platform/idea/species/Species",
-      hydratorClass: PH,
       data: { name: "human", _bodyPlanPath: BIPED },
     },
     // The reoriented terminal frontage across the avenue.
@@ -147,7 +145,6 @@ function docs(): Doc[] {
   const stub = (p: string, cls = "/platform/location/VoidLocation"): Doc => ({
     path: p,
     class: cls,
-    hydratorClass: PH,
     data: { shortDescription: p.split("/").pop()! },
   });
   const stubs: Doc[] = [

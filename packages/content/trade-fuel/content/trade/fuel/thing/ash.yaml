@@ -2,7 +2,6 @@
 # much air burns its charge all the way through and leaves nothing at all.
 # You can lose an entire burn, and this is what losing it looks like.
 class: /platform/thing/Provision
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: drift of pale ash
   keywords: [ash, ashes, drift, pale]

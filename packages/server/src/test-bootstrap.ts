@@ -65,12 +65,11 @@ let installed = false;
 export const KERNEL_CONTENT_ROWS: ReadonlyArray<{
   path: string;
   class: string;
-  hydratorClass?: string;
   data: Record<string, unknown>;
 }> = [
   {
-    path: "/platform/idea/persistence/PersistentHydrator",
-    class: "/platform/idea/persistence/PersistentHydrator",
+    path: "/platform/idea/TemplateApplier",
+    class: "/platform/idea/TemplateApplier",
     data: {},
   },
   {
@@ -81,25 +80,21 @@ export const KERNEL_CONTENT_ROWS: ReadonlyArray<{
   {
     path: "/platform/idea/exits/vessel-in",
     class: "/platform/idea/Exit",
-    hydratorClass: "/platform/idea/persistence/PersistentHydrator",
     data: {},
   },
   {
     path: "/platform/idea/exits/vessel-out",
     class: "/platform/idea/Exit",
-    hydratorClass: "/platform/idea/persistence/PersistentHydrator",
     data: {},
   },
   {
     path: "/platform/idea/exits/sandbox-crossing",
     class: "/platform/idea/SandboxCrossingExit",
-    hydratorClass: "/platform/idea/persistence/PersistentHydrator",
     data: {},
   },
   {
     path: "/platform/idea/exits/sandbox-return",
     class: "/platform/idea/SandboxCrossingExit",
-    hydratorClass: "/platform/idea/persistence/PersistentHydrator",
     data: {},
   },
   {

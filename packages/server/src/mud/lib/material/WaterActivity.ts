@@ -533,7 +533,7 @@ export interface WaterActive {
   /** Reconcile the elapsed rehydration (sync). */
   reconcileWater(): void;
 
-  // Public so the Hydrator can reflect into them; in-class code reads them
+  // Public so the applier can reflect into them; in-class code reads them
   // directly. Not the inter-Stuff contract (that's the method surface).
   _moisture: number;
   _solute: number;

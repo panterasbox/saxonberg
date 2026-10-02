@@ -3,7 +3,6 @@
 # stones stacked at the edge. Zero waste, historically exact, and it
 # inverts an expectation in a way a player remembers.
 class: /platform/thing/Thing
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: drystone wall
   keywords: [wall, drystone]

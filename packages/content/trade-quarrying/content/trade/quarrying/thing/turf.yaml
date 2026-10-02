@@ -10,7 +10,6 @@
 # full moisture and refuses the flame in the shipped words, *"It's too wet to
 # catch."*
 class: /trade/quarrying/thing/Turf
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   keywords: [turf, peat, sod, brick]
   shortDescription: turf

@@ -41,7 +41,7 @@ const ConsumerApiCallers = SecurityPolicies.FromModule('/api/consumer#ConsumerAp
  * The install/warm seam is also callable by the self-warming
  * `ParticipationStandings` singleton (the boot()-retirement shape): the tap +
  * schedule state stays HERE (hot-reload re-assertion), the manifest
- * home arms it at postRegister.
+ * home arms it at onCreate.
  */
 const ConsumerBootCallers = SecurityPolicies.AnyOf(
   ConsumerApiCallers,
@@ -288,7 +288,7 @@ export class ConsumerLogic extends ApiLogic {
    * Install the command-dispatch → participation tap (idempotent). Locks the
    * event's receive side to the consumer+producer allowlist
    * (`restrictSubscribe`), then subscribes. Called at boot
-   * (`ParticipationStandings.warm`, the manifest postRegister); a hot-reload re-asserts with the reloaded classes.
+   * (`ParticipationStandings.warm`, the manifest onCreate); a hot-reload re-asserts with the reloaded classes.
    */
   @CallSecurity(ConsumerBootCallers)
   public installDispatchTap(): void {

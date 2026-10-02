@@ -2,8 +2,8 @@
 # field body stays parked.
 #
 # Same shape as the shade's row: the identity and the species ride the
-# clone overlay, and the `hydratorClass` is what lets them land.
+# clone overlay, and the applier is what lets them land — it runs
+# because there is `data` to apply, the row's or the overlay's.
 class: /platform/agent/sandbox/SandboxAvatar
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   playerId: ""

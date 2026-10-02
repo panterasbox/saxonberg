@@ -4,7 +4,6 @@
 # pool. The per-serving amount is declared here; the metabolism rates live on
 # the driver, not the food.
 class: /platform/idea/material/ConsumableMaterial
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: trail ration
   keywords: [rations, ration, food, trail]

@@ -5,7 +5,6 @@
 # pinholes-where-the-badge-re-clips are Detailed sub-features; the CROSSING
 # AUTHORITY badge itself is Gus's own hero detail (on gus.yaml), clipped here.
 class: /platform/thing/equipment/Garment
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: faded hi-vis vest
   keywords: [vest, hi-vis, hivis, orange, safety, faded]

@@ -3,7 +3,6 @@
 # the beacon gates no movement — theatrical, like Gus's paddle). `switch`/
 # `toggle` drive it.
 class: /platform/thing/Beacon
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: crossing beacon
   keywords: [beacon, crossing]

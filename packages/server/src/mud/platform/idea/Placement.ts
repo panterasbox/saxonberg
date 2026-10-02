@@ -13,7 +13,6 @@
  *
  * ```yaml
  * class: /platform/idea/Placement
- * hydratorClass: /platform/idea/persistence/PersistentHydrator
  * data:
  *   name: from
  *   prepositions: [from, on]

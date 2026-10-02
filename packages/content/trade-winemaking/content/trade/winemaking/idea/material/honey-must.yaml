@@ -10,7 +10,6 @@
 # match rule means a profile keyed on `honey` and one keyed on
 # `honey-must` must never both fire on one vessel.
 class: /platform/idea/material/ConsumableMaterial
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: honey must
   keywords: [must, "honey must", mead]

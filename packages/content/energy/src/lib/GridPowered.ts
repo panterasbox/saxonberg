@@ -10,9 +10,9 @@
  * energized right now (`GridCatalogue.energizedAtSync`). A cut upstream, a dead
  * source, or an off-grid premises all read as unpowered the same second.
  *
- * ⚠⚠ **The meter is resolved on first READ, never at `postRegister`.** At boot,
+ * ⚠⚠ **The meter is resolved on first READ, never at `onCreate`.** At boot,
  * a light's containment and the parcel registry's feeder citation are not both
- * settled when its `postRegister` runs, so resolving there cached `off-grid` /
+ * settled when its `onCreate` runs, so resolving there cached `off-grid` /
  * `null` and the lamp stayed dark forever while `analyze grid` (which reads the
  * parcel FRESH) reported the same premises live. Found by the live browser
  * drive. Reads happen post-boot, when both are settled, so lazy is correct; the
@@ -96,7 +96,7 @@ export function GridPoweredMixin<TBase extends MixinConstructor<Stuff>>(
     private _gridCatalogue: GridCatalogue | null = null;
 
     /**
-     * Resolve the meter the first time it is asked for — NOT at postRegister
+     * Resolve the meter the first time it is asked for — NOT at onCreate
      * (too early; see the header). Sync: `resolveRoomPath` walks containment,
      * `ParcelApi.powerOf` reads the registry, both synchronous. Kicks the grid
      * compile fire-and-forget (post-boot, so no boot-time deadlock) so the

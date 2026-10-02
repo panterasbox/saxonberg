@@ -75,7 +75,7 @@ const FORUM_DIALECT = { longForm: true, tags: 'inert' } as const;
  * manifestations). All mutations are funneled here so the Wave 2
  * `record(event)` dual-write has a single home.
  *
- * Stateless by construction (no `PostRegistrationMixin`).
+ * Stateless by construction (no `onCreate` override).
  *
  * @internal
  */

@@ -5,7 +5,6 @@
 # combat's gambits are `fight` subcommands, not standalone verbs, so
 # band-gating the gambit menu defers with the client combat card.
 class: /platform/idea/Discipline
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   key: melee-combat
   channel: skill

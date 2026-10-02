@@ -8,7 +8,6 @@
 # Business's account path; departments are Business templatePaths (a
 # Business's path IS its durable key).
 class: /platform/idea/Government
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   key: terminus-city
   name: the City of Terminus

@@ -13,7 +13,6 @@
 # content chooses the weave and the kernel decides that cloth resists
 # poorly.
 class: /platform/idea/material/Fabric
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   key: sackcloth
   layerBand: 0

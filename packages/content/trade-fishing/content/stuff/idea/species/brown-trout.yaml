@@ -7,7 +7,6 @@
 # warm, slow and brackish. Move the numbers and the map moves with them
 # — that is the whole pedagogy claim, stated as a row.
 class: /platform/idea/species/Species
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   binomial: Salmo trutta
   commonNames: ["brown trout", "trout"]

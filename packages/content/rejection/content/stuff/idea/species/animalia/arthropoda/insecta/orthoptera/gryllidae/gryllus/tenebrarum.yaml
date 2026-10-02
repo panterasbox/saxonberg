@@ -9,7 +9,6 @@
 # canary, on a different sense: the bird you have to look at, the
 # crickets you cannot help hearing. Neither is a spare.
 class: /platform/idea/species/Species
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   binomial: Gryllus tenebrarum
   commonNames: ["delve cricket", "cricket"]

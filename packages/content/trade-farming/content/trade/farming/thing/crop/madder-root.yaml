@@ -5,7 +5,6 @@
 # other harvest, and for madder that stretch is three years long, which
 # is exactly why red cloth cost what it cost.
 class: /platform/thing/Crop
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: bundle of madder root
   keywords: [madder, root, roots, dyestuff, bundle]

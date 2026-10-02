@@ -34,7 +34,7 @@
 
 import { readFileSync, readdirSync, existsSync, statSync } from "fs";
 import { fileURLToPath } from "url";
-import { dirname, join, relative, resolve as resolvePath } from "path";
+import { basename, dirname, join, relative, resolve as resolvePath } from "path";
 import { packSources, classFileOf, packOfClassPath, type PackSource } from "./pack-roots";
 
 const EXIT_ON_FINDINGS = true; // CI-gating (flipped at end of P3)
@@ -59,6 +59,25 @@ const MODULE_ID_CONST = /\b\w*MODULE_ID\b\s*=\s*['"]([^'"]+)['"]/g;
  */
 const TEMPLATE_METHOD_CALL =
   /\bFromTemplateMethod\(\s*['"]([^'"]+)['"]\s*,\s*['"]([^'"]+)['"]/g;
+
+/**
+ * ⚠⚠ `FromTemplate('<template>')` — the arm this gate used to ignore.
+ *
+ * Added 2026-10-01, and the reason is a live finding rather than a
+ * tidy-up: the coin's `setQuantity` gate, the craft vessel's and
+ * `Serviceable`'s each carried
+ * `FromTemplate('/platform/idea/persistence/*Hydrator')`. Nothing
+ * resolved it, because a plain `FromTemplate` was not matched here at
+ * all — so on the method that guards MONEY, one of the two arms was
+ * decorative for as long as it existed, and a typo in it would have
+ * read as a working gate.
+ *
+ * A GLOB still returns early: it names a family of rows on purpose
+ * (`FromTemplateMethod` has the same carve-out for the same reason).
+ * What is checked is an exact path, against the same universe
+ * `check-instanceable-placement` resolves `class:` against.
+ */
+const TEMPLATE_CALL = /\bFromTemplate\(\s*['"]([^'"]+)['"]\s*\)/g;
 
 interface Finding {
   file: string;
@@ -262,6 +281,41 @@ function declaresMethod(source: string, method: string): boolean {
   ).test(source);
 }
 
+function checkTemplate(
+  templatePath: string,
+  file: string,
+  findings: Finding[],
+  sources: readonly PackSource[],
+): void {
+  // A glob names a FAMILY of rows; there is no single file to resolve.
+  if (templatePath.includes("*")) return;
+  const target = templateFileOf(templatePath, sources);
+  if (existsSync(target)) return;
+  // ⚠ The `*Logic` singletons are the repo's one deliberate
+  // template-vs-class naming exception: the row is named for the FEATURE
+  // (`/platform/idea/api/worldclock`) and the class for the LOGIC
+  // (`WorldClockLogic`), so a leaf's capitalisation is not derivable from
+  // its path. Found immediately by adding this check — two live, correct
+  // gates failed on `Worldclock` vs `WorldClock`. A case-insensitive
+  // match in the resolved directory still catches a wrong PATH, which is
+  // the failure worth catching, without inventing a name table.
+  const dir = dirname(target);
+  const want = basename(target).toLowerCase();
+  if (existsSync(dir)) {
+    for (const entry of readdirSync(dir)) {
+      if (entry.toLowerCase() === want) return;
+    }
+  }
+  findings.push({
+    file,
+    raw: templatePath,
+    reason:
+      `no source file for template '${templatePath}' (looked at ` +
+      `${relative(SERVER_SRC, target)}) — the gate would admit nobody, ` +
+      `silently`,
+  });
+}
+
 function checkTemplateMethod(
   templatePath: string,
   method: string,
@@ -315,12 +369,18 @@ function main(): void {
     while ((pair = TEMPLATE_METHOD_CALL.exec(source)) !== null) {
       checkTemplateMethod(pair[1]!, pair[2]!, file, findings, sources);
     }
+    TEMPLATE_CALL.lastIndex = 0;
+    let tpl: RegExpExecArray | null;
+    while ((tpl = TEMPLATE_CALL.exec(source)) !== null) {
+      checkTemplate(tpl[1]!, file, findings, sources);
+    }
   }
 
   if (findings.length === 0) {
     console.log(
-      `check-gate-strings: all FromModule/FromController/FromTemplateMethod ` +
-        `gate strings resolve (${files.length} files scanned).`
+      `check-gate-strings: all FromModule/FromController/FromTemplate/` +
+        `FromTemplateMethod gate strings resolve (${files.length} files ` +
+        `scanned).`
     );
     return;
   }

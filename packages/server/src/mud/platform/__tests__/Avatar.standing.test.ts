@@ -50,7 +50,7 @@ const FIGURES = [
 
 /**
  * Synchronous construction — `makeStuffAtPath` skips the clone
- * pipeline, so no `postRegister` and no mongo. These tests are about
+ * pipeline, so no `onCreate` and no mongo. These tests are about
  * the field descriptors, not about how an avatar comes to exist.
  */
 function makeAvatar(playerId: string): Avatar {

@@ -81,7 +81,6 @@ export default class MvController extends CommandController<MvModel> {
         // silently fork the content away from its parent.
         await TemplateApi.saveTemplate(dst, {
           class: tpl.own.class,
-          hydratorClass: tpl.own.hydratorClass,
           extends: tpl.extends,
           data: tpl.own.data ?? {},
         });

@@ -4,7 +4,6 @@
 # distance between them: the city's INTAKE, upstream, and its OUTFALL,
 # downstream. Which is which is not a label — it is where they are.
 class: /platform/location/Street
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   # ⭐⭐ The town lights this street (envelope W5) — a PROPERTY of the
   # street, not objects on it. NOTHING IS MINTED: nobody binds a street

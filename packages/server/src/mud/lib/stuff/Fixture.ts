@@ -17,10 +17,10 @@
  *
  * The fixture knows nothing about "hosts" or warrens — it names a target and
  * delegates the warren-vs-location decision to the Api. Seating is driven by
- * the composing class from its `postRegister` (so it runs after the fixture
+ * the composing class from its `onCreate` (so it runs after the fixture
  * is a registered singleton); the mixin exposes `seatSelf()` for that call
  * rather than hooking the lifecycle itself, because a host class typically
- * already owns `postRegister`.
+ * already owns `onCreate`.
  *
  * Precedent for an object self-registering with its Warren: `Lounge`
  * declares a `warren` field and self-registers via `LoungeMixin.applyWarren`.

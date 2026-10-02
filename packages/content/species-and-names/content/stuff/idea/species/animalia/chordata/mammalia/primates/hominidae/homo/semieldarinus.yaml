@@ -3,7 +3,6 @@
 # a stretched (but mortal) lifespan, at home in neither world fully.
 # Playable. See docs/slates/builds/species-expansion-slate.md.
 class: /platform/idea/species/Species
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   illustration: species/semieldarinus.png
   binomial: Homo semieldarinus

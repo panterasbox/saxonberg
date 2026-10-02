@@ -2,7 +2,6 @@
 # are one class and two rows: this one is slow, takes only what crawls,
 # and holds two.
 class: /trade/fishing/thing/Trap
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   keywords: [pot, crab-pot, trap]
   shortDescription: crab pot

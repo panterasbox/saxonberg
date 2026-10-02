@@ -22,10 +22,20 @@
  *   - **belief** (`BeliefSlice`) — `BeliefStoreMixin`'s memory, but only
  *     for a host with an explicit persistence key. See {@link BeliefSlice}.
  *
- * The recursion seam ({@link CaptureContext} / {@link RestoreContext}) lets a
- * mixin's `captureSlice` / `restoreSlice` hook recurse into item state
+ * The recursion seam ({@link CaptureContext} / {@link HydrateContext}) lets a
+ * mixin's `captureSlice` / `hydrateSlice` hook recurse into item state
  * without importing `PersistableLogic` (breaking the lib → obj/api cycle):
  * `PersistableLogic` implements the seam and passes it into every hook.
+ *
+ * ⭐⭐ **A contributor may also name a source that is NOT the record.**
+ * `hydrationSource` + `hydrateFromSource` (below) are the other half of
+ * the same framework: a mixin says where its remembered state lives, and
+ * the clone pipeline drives it **whether or not the host has a record at
+ * all**. That last clause is the whole original defect — `hydrateSlice`
+ * ran only when a record carried the layer's slice, so a singleton with
+ * no record (every `Cast`) had its memory written through on every change
+ * and never read back once. The records piled up in Mongo unread while an
+ * NPC's opinion of you reset on every restart.
  */
 
 // Type-only: erased at compile time, so no runtime edge and no cycle.
@@ -264,10 +274,14 @@ export interface CaptureContext {
 }
 
 /**
- * The recursion seam a `restoreSlice` hook uses to reconstitute item state
+ * The recursion seam a `hydrateSlice` hook uses to reconstitute item state
  * through the gated clone path without importing `PersistableLogic`.
+ *
+ * ⚠ Called `RestoreContext` until 2026-10-01. The pair reads
+ * capture / hydrate now, because *hydrate* is this build's word for
+ * filling an instance from what the world remembered about it.
  */
-export interface RestoreContext {
+export interface HydrateContext {
   /**
    * Reconstitute one `ContentEntry` into a live Stuff placed inside
    * `host`: a `{ ref }` follows the reference (materializes the nested
@@ -288,3 +302,74 @@ export interface RestoreContext {
    */
   standUpKeyed(scope: string, key: string): Promise<unknown | null>;
 }
+
+/**
+ * ⭐⭐ **Where a mixin's remembered state lives, when it is not the
+ * host's own record.**
+ *
+ * Declared as a static on the mixin's returned class, beside
+ * `captureSlice` / `hydrateSlice`, and read by the same prototype-chain
+ * walk (`MixinApi.getPersistenceContributors`). `required` is REQUIRED,
+ * deliberately: the shape forces every source to say out loud whether it
+ * may be missing, because that was previously implicit and was wrong.
+ *
+ * ⭐⭐ **WHEN is not a property here, and the absence is the design.**
+ * A source always runs at mint, before the host is observable. There was
+ * an `eager: boolean` for one wave, and it was a category error: it
+ * asserted that eager initialization and runtime fetching are two modes
+ * of one operation.
+ *
+ * They are not. **Hydration is an initialization step with a terminus**
+ * — performed once, then done — which is precisely why freshness is not
+ * one of its questions. Fetching the same data later, on a live object,
+ * is a different mandate using the same call: it owns invalidation,
+ * refresh, eviction, and *who is authoritative between the fetch and the
+ * first write*. That is a state machine, and its shape is the
+ * property's own, not this interface's — a belief cache invalidates on
+ * nothing (memory leads after birth and the write-through keeps Mongo in
+ * step), while a grid-reachability cache invalidates when a feeder is
+ * cut. One boolean could never have carried both.
+ *
+ * ⚠ And the omission is not theoretical. `BeliefStore.adjustRegard` is a
+ * read-modify-write off the in-memory map with a write-through to Mongo:
+ * a window in which the map is unfilled means `regardFor` honestly
+ * answers `0`, the next nudge computes `0 + 1`, and a stored `12` is
+ * overwritten by a `1` — memory lost, silently. A lazy source would have
+ * had to answer that before it could be used at all, and answering it is
+ * the cache's job.
+ *
+ * ⭐ If something ever genuinely needs runtime fetching, it wants a cache
+ * designed as one, with those answers given per property. `WarmedIndex`
+ * is the nearest prior art for the roster-shaped case.
+ */
+export interface HydrationSource {
+  /**
+   * What the source is, for diagnostics and for the `remembers:` line an
+   * author reads — a collection name (`'beliefs'`), a document tree
+   * path, a pack's own store.
+   */
+  name: string;
+  /**
+   * ⚠ **`true` means a host that cannot reach this source must not come
+   * into the world.** The clone fails and the half-built object is
+   * unregistered, naming the mixin and the row.
+   *
+   * `false` means an unreachable source is a recorded skip. Every test
+   * run and all of early boot are the `false` case (Mongo is not
+   * connected), which is exactly why the flag exists: the alternative is
+   * a framework that either bricks the test suite or swallows a real
+   * outage, and nothing in between.
+   */
+  required: boolean;
+}
+
+/**
+ * What a `hydrateFromSource` call reports back. ⭐ Three outcomes, not a
+ * boolean: *filled*, *this host does not keep its state here*, and *the
+ * source is not reachable right now* are three different facts, and
+ * collapsing the last two is how a real outage reads as a design choice.
+ */
+export type HydrateOutcome =
+  | { status: 'hydrated' }
+  | { status: 'skipped'; reason: string }
+  | { status: 'unreachable'; reason: string };

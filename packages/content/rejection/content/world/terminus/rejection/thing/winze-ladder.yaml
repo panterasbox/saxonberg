@@ -8,7 +8,6 @@
 # gate is the body, not a check: a fresh body stops on the way for its
 # breath and a conditioned one does not.
 class: /platform/thing/Ladder
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: winze ladder
   keywords: [ladder, winze, rungs, "winze ladder"]

@@ -16,7 +16,6 @@
 # so an old cat READS old for a long time before anything happens to it.
 # The warning is the point; the death is the consequence of ignoring it.
 class: /platform/idea/species/Species
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   binomial: Felis catus
   commonNames: ["cat", "housecat", "moggy"]

@@ -38,7 +38,6 @@
  */
 
 import Thing from '../stuff/Thing';
-import { PostRegistrationMixin } from '../stuff/PostRegistration';
 import { TemplatePaths } from '../paths';
 import type { Stuff } from '../stuff/Stuff';
 import type { Conduit, BoundarySide } from './Conduit';
@@ -48,7 +47,7 @@ import { StuffApi } from '../../api/stuff';
 import type { FieldMeta } from '../mixin';
 
 /**
- * ⭐ `PostRegistrationMixin` for ONE reason: a boundary's two anchors are
+ * ⭐ It overrides `onCreate` for ONE reason: a boundary's two anchors are
  * CLONES OF A ROW now (`/platform/thing/BoundaryAnchor`), and a clone is
  * async — while `installBoundary` is sync and must stay so (a vessel's
  * `onMoved` migrates a door's anchors). So the pair is minted here, once,
@@ -57,7 +56,7 @@ import type { FieldMeta } from '../mixin';
  * ⚠ Consequence: `StuffApi.createSync(() => new Door())` now throws. No
  * production site does it; `lint:create-sites` names one if it appears.
  */
-const BoundaryBase = PostRegistrationMixin(Thing);
+const BoundaryBase = Thing;
 
 export class Boundary extends BoundaryBase {
   /**
@@ -152,17 +151,17 @@ export class Boundary extends BoundaryBase {
    * per boundary, at registration — they then live as long as it does,
    * migrating between hosts rather than being destroyed and rebuilt.
    */
-  public override async postRegister(context?: unknown): Promise<void> {
-    await super.postRegister(context);
+  public override async onCreate(context?: unknown): Promise<void> {
+    await super.onCreate(context);
     await this.ensureAnchors();
   }
 
   /**
    * Mint the pair if it is not there yet. Idempotent.
    *
-   * ⚠ Public and callable before `postRegister` because a Boundary can
+   * ⚠ Public and callable before `onCreate` because a Boundary can
    * be asked to WIRE ITSELF during hydration — `Window.setAttachedHosts`
-   * is a Phase-1 setter, and Phase 1 runs before `postRegister`. That
+   * is a Phase-1 setter, and Phase 1 runs before `onCreate`. That
    * ordering is why this is a separate method and not just the hook's
    * body: the hook is the normal path, this is the one that is earlier.
    */

@@ -37,7 +37,6 @@ import { ContainerMixin } from "../spatial/Container";
 import { PricedOfferMixin } from "../commerce/PricedOffer";
 import { AttendantMixin } from "../attendant/Attendant";
 import { ResettableMixin } from "../residency/Resettable";
-import { PostRegistrationMixin } from "../stuff/PostRegistration";
 import { PersistableMixin } from "../persistence/Persistable";
 import { ConsignmentShelfMixin } from "./Consignment";
 import { ContainmentApi } from "../../api/containment";
@@ -101,7 +100,7 @@ const StockBase = PersistableMixin(
   ConsignmentShelfMixin(
     ResettableMixin(
       AttendantMixin(
-        PricedOfferMixin(PostRegistrationMixin(Holder)),
+        PricedOfferMixin(Holder),
       ),
     ),
   ),
@@ -129,7 +128,7 @@ export default class Stock extends StockBase {
    */
   public purchasing: StockPurchasing = "consignment";
 
-  /** The Hydrator's Phase-1 setter: an unknown policy is refused, never read as consignment. */
+  /** The applier's Phase-1 setter: an unknown policy is refused, never read as consignment. */
   public setPurchasing(value: unknown): void {
     if (!(STOCK_PURCHASINGS as readonly unknown[]).includes(value)) {
       throw new Error(
@@ -209,8 +208,8 @@ export default class Stock extends StockBase {
   }
 
   /** Boot-stock the shelf to par (then the reset sweep maintains it). */
-  public override async postRegister(context?: unknown): Promise<void> {
-    await super.postRegister(context);
+  public override async onCreate(context?: unknown): Promise<void> {
+    await super.onCreate(context);
     await this.reset();
   }
 

@@ -1,7 +1,6 @@
 # White must — juice pressed clear off the skins at the crush (white
 # wine is a PROCESS fact: no skin contact). Its own profile category.
 class: /platform/idea/material/ConsumableMaterial
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: white must
   keywords: [white, must, juice]

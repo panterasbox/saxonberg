@@ -1081,7 +1081,7 @@ async function fireStrike(room: Stuff & Container): Promise<void> {
  * {@link WeatherApi}.
  *
  * Lives at `/platform/idea/api/weather`. **Stateless** — mirrors `BiomeLogic`
- * exactly (`extends Idea`, **no** `PostRegistrationMixin`, no backing
+ * exactly (`extends Idea`, **no** `onCreate` override, no backing
  * `Template`); `dest /platform/idea/api/weather` reloads it. Holds the weather
  * compute as gated methods plus the grammar as module-private functions
  * (the `BiomeLogic` free-function shape). It holds **no** runtime state —

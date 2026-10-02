@@ -22,9 +22,9 @@ import {
   installStore,
   type Doc,
 } from "@saxonberg/server/mud/lib/persistence/__tests__/backend-store";
-import PersistentHydrator from "@saxonberg/server/mud/platform/idea/persistence/PersistentHydrator";
+import TemplateApplier from "@saxonberg/server/mud/platform/idea/TemplateApplier";
 
-const PH = PersistentHydrator.templatePath;
+const PH = TemplateApplier.templatePath;
 
 function loadDir(dir: string, pathPrefixFrom: string): Doc[] {
   const out: Doc[] = [];
@@ -51,7 +51,6 @@ function loadDir(dir: string, pathPrefixFrom: string): Doc[] {
       out.push({
         path: `/${path}`,
         class: parsed.class as string,
-        hydratorClass: (parsed.hydratorClass as string) ?? PH,
         data,
       });
     }
@@ -81,21 +80,20 @@ const STUBS: Doc[] = [
   {
     path: "/world/lounge/thing/terminal",
     class: "/system/tpa/thing/TpaTerminal",
-    hydratorClass: PH,
     data: { seatIn: "/world/test/lounge-room", shortDescription: "The Lounge", register: "proper", keywords: ["lounge"], directionality: "both", routes: [] },
   },
-  { path: "/world/test/lounge-room", class: "/platform/location/VoidLocation", hydratorClass: PH, data: { shortDescription: "the lounge" } },
-  { path: "/world/terminus/university-avenue/location/crossing", class: "/platform/location/VoidLocation", hydratorClass: PH, data: { shortDescription: "University Avenue" } },
+  { path: "/world/test/lounge-room", class: "/platform/location/VoidLocation", data: { shortDescription: "the lounge" } },
+  { path: "/world/terminus/university-avenue/location/crossing", class: "/platform/location/VoidLocation", data: { shortDescription: "University Avenue" } },
   // The terminal office lists the clerk under props (a bare-`Thing` stub keeps the
   // cascade light); the registry office's registrar rides `cast:`, which
   // the loader strips.
-  { path: "/world/terminus/terminal/agent/clerk", class: "/platform/thing/Thing", hydratorClass: PH, data: { shortDescription: "the clerk" } },
+  { path: "/world/terminus/terminal/agent/clerk", class: "/platform/thing/Thing", data: { shortDescription: "the clerk" } },
   // The crossroads props a `water-butt` (the injury build's first water in
   // the wilds). This suite is about how a destination is NAMED, not the
   // butt — a bare-`Thing` stub keeps the cascade light rather than
   // dragging the real fixture's bulk + its quantity marshallers in behind
   // it, exactly as the clerk above is stubbed.
-  { path: "/stuff/thing/fixture/water-butt", class: "/platform/thing/Thing", hydratorClass: PH, data: { shortDescription: "a water butt" } },
+  { path: "/stuff/thing/fixture/water-butt", class: "/platform/thing/Thing", data: { shortDescription: "a water butt" } },
   // ⭐⭐ The two ends of the Kestrel road (logistics W4). Terminus's
   // Delight road and the wilds crossroads both wire an exit into the
   // rejection pack now — the realm is one connected place — and
@@ -105,8 +103,8 @@ const STUBS: Doc[] = [
   // the whole mining town to satisfy two exits would drag its trades in
   // behind it. The road itself is asserted in the transport pack and in
   // `logistics-corridors`.
-  { path: "/world/terminus/rejection/kestrel-road/lower-climb", class: "/platform/location/VoidLocation", hydratorClass: PH, data: { shortDescription: "the lower climb" } },
-  { path: "/world/terminus/rejection/kestrel-road/yard-gate", class: "/platform/location/VoidLocation", hydratorClass: PH, data: { shortDescription: "the yard gate" } },
+  { path: "/world/terminus/rejection/kestrel-road/lower-climb", class: "/platform/location/VoidLocation", data: { shortDescription: "the lower climb" } },
+  { path: "/world/terminus/rejection/kestrel-road/yard-gate", class: "/platform/location/VoidLocation", data: { shortDescription: "the yard gate" } },
 ];
 
 describe("destination naming + crossroads (real seeds)", () => {
@@ -131,7 +129,7 @@ describe("destination naming + crossroads (real seeds)", () => {
     ].filter((d) => !stubbed.has(d.path as string));
     installStore([...docs, ...STUBS]);
     await AppSettings.warm();
-    // Stand up the AddressRegistry — its postRegister eagerly clones + registers
+    // Stand up the AddressRegistry — its onCreate eagerly clones + registers
     // every Locality under /stuff/idea/Locality/ (claiming their address prefixes).
     await StuffApi.singleton("/platform/idea/AddressRegistry");
   });

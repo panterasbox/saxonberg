@@ -27,7 +27,6 @@
 # bleaching) were silently frozen by the strain gate before this build; a
 # third would have been.
 class: /platform/idea/maturation/MaturationProfile
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   key: brine
   # The tag `bulk/salt-water` already carries.

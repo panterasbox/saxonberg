@@ -198,7 +198,7 @@ never cull) when AppSettings isn't warmed (pre-boot / tests).
   `MqlSubscriptionRegistry`, `OfficeRegistry`, the catalogues,
   `Interactive`, …) veto per-instance: they hold irreplaceable in-memory
   state and can't ride `ApiLogic` (not `*Logic`) nor be blanket-protected
-  on `PostRegistrationMixin` (also worn by cullable `NPC`).
+  on `onCreate` (also worn by cullable `NPC`).
 
 **(B) Relational / structural — derived from the R2.x ref-cleanup
 rules.** The attachment relationships that require coordinated cleanup on
@@ -275,7 +275,7 @@ consumer** is the general store's `Stock` (see [retail.md](./retail.md)):
 its `reset()` tops each stock line back to authored par by cloning fresh
 goods (items, never coin), and it overrides `resetsWhilePresent() → true`.
 The `Stock` also self-stocks on standup by calling `reset()` from
-`postRegister`, so the same one mechanism handles boot-stock and ongoing
+`onCreate`, so the same one mechanism handles boot-stock and ongoing
 topup. (Note the subsumption: a *cold* resettable object is simply culled
 and re-cloned fresh by eviction — its template state *is* its reset state
 — so explicit reset only earns its keep for **warm/resident** objects
@@ -522,7 +522,7 @@ vetoes eviction today; the slate below is where the veto learns to
 lapse). And there is **no fault**: nothing in the game can trigger a
 load by touching a good, and no room asks for what is recorded as
 standing in it. ⚠ That last one was tried and reversed in the same
-build — `reclaimOwnedGoods` on every `CartesianLocation.postRegister`,
+build — `reclaimOwnedGoods` on every `CartesianLocation.onCreate`,
 439 indexed point queries at boot — and it is the room scan wearing a
 different face. The day a fault is wanted ("a neighbour walks onto the
 lane, so load the lane's cats") the design has become a pager, and this

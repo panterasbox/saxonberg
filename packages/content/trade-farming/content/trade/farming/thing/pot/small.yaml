@@ -7,7 +7,6 @@
 # explained to them. The `plant` slot and the capacity are the only things
 # that distinguish this from the large pot — one class, two data files.
 class: /platform/thing/PlantPot
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: small clay pot
   keywords: [pot, "small pot", "clay pot", small, clay]

@@ -2,7 +2,6 @@
 # in every term, which is the agricultural-economics lesson the build
 # could not otherwise teach.
 class: /platform/thing/Plant
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: bed of saffron crocus
   keywords: [saffron, crop, bed, crocus]

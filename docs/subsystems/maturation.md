@@ -135,7 +135,7 @@ itself in a shipped trade) pre-builds refining for free. See
 distiller's deferred cuts rung*. **A new drink is rows alone** — proven by the cider test
 (`world/__tests__/fermentation-cider.test.ts`).
 
-`MaturationProfileCatalogue.postRegister` stands the roster up, eager via
+`MaturationProfileCatalogue.onCreate` stands the roster up, eager via
 the platform pack's `boot:` manifest (`sync-read`) — the
 reference-Ideas-inert-at-boot rule, self-warming (the
 Discipline/Recipe catalogue shape rather than an `Api.boot()`

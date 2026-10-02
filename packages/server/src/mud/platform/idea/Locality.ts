@@ -24,14 +24,13 @@
  * Like `Biome`, a Locality does NOT call `Stuff._registerTopLevelBranch`
  * (leaf Ideas aren't instance-tree roots) and does NOT compose
  * `SingletonMixin` (leaving room for future per-clone variance). It
- * DOES compose `PostRegistrationMixin` — unlike `Biome` — because the
+ * DOES override `onCreate` — unlike `Biome` — because the
  * `AddressRegistry` keeps a live coverage index and a Locality
  * self-registers into it (wired in the Api commit); `Biome` needs no
  * such hook because `BiomeApi` re-resolves on every read with no index.
  */
 
 import { Idea } from '../../lib/stuff/Idea';
-import { PostRegistrationMixin } from '../../lib/stuff/PostRegistration';
 import { AddressApi } from '../../api/address';
 import type {
   ClimateLean,
@@ -124,7 +123,7 @@ export interface PublicLightingFunding {
   currency?: string;
 }
 
-export default class Locality extends PostRegistrationMixin(Idea) {
+export default class Locality extends Idea {
   /** Display name (e.g. `'Narnia'`, `'Cair Paravel'`). */
   protected name: string = '';
 
@@ -575,8 +574,8 @@ export default class Locality extends PostRegistrationMixin(Idea) {
    * again on HMR re-clone, so the index never holds a stale node. The
    * Registry's own boot rebuild covers never-accessed Localities.
    */
-  public override async postRegister(context?: unknown): Promise<void> {
-    await super.postRegister(context);
+  public override async onCreate(context?: unknown): Promise<void> {
+    await super.onCreate(context);
     if (this._address.length > 0) AddressApi.registerLocality(this);
   }
 

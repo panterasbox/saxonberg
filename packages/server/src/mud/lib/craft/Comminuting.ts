@@ -136,7 +136,7 @@ export interface Comminuting {
   isGrinding(): boolean;
   setGrinding(value: boolean): void;
 
-  // Public so the Hydrator can reflect into them.
+  // Public so the applier can reflect into them.
   throughputKgPerMin: number;
   kgPerMinPerKw: number;
   maxThroughputKgPerMin: number;

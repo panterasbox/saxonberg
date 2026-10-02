@@ -9,7 +9,6 @@
 # The `narnia`-roster precedent: templatePath (`/stuff/idea/Locality/moor`) diverges
 # from the claimed address (`moor`).
 class: /platform/idea/Locality
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: The Weeping Moor
   _address: moor

@@ -31,7 +31,6 @@
 # ERROR in the slate: all 46 shipped Disciplines were checked and animal
 # handling is not among them.
 class: /platform/idea/Discipline
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   key: teamstering
   channel: skill

@@ -3,7 +3,6 @@
 # One season rather than madder's three, which is exactly why yellow
 # cloth was ordinary and red was not.
 class: /platform/thing/Crop
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: bundle of dried weld
   keywords: [weld, bundle, dyestuff, rocket, dried]

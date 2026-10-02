@@ -2,7 +2,6 @@
 # bundle's one fixture; a venue's `props: { onto }` puts crates and
 # casks on it.
 class: /platform/thing/Fitting
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: racking
   keywords: [bay, racking, rack, shelves, shelving]

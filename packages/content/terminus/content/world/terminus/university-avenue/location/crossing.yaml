@@ -23,7 +23,6 @@
 # dangling path — the locked *veto* never resolves the destination, but boot
 # hydration does.
 class: /platform/location/Crossing
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   # ⭐⭐ The town lights this street (envelope W5) — a PROPERTY of the
   # street, not objects on it. NOTHING IS MINTED: nobody binds a street

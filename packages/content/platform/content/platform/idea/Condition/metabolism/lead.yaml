@@ -4,7 +4,6 @@
 # burden socket already handles chronic mechanically (slow clearance +
 # small repeated doses accumulate on the same scalar). Pure poison.
 class: /platform/idea/Condition
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: lead-poisoning
   # ⭐⭐ The cognitive tax, and it is the honest one: chronic lead

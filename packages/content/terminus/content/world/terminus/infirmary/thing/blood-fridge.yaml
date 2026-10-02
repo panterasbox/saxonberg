@@ -4,7 +4,6 @@
 # (the container-of-containers shape the hive already proves). Cut the
 # avenue and it warms; the units begin to spoil.
 class: /system/energy/thing/ColdStore
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: blood fridge
   keywords: [fridge, refrigerator, blood-fridge, bloodfridge]

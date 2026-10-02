@@ -7,7 +7,6 @@
 # clearance (CO lingers) + a single acute band; the burden socket handles the
 # accumulation of repeated small breaths on one scalar.
 class: /platform/idea/Condition
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: carbon-monoxide-poisoning
   # ⭐ CO displaces oxygen. `spo2` falling is the mechanism, not a

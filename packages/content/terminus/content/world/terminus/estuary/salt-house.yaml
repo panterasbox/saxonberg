@@ -11,7 +11,6 @@
 # `mining-slate`'s and `institutions-slate`'s. What stands here is the
 # apparatus, open to anybody who brings brine.
 class: /platform/location/SingletonCartesianLocation
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: salt house
   keywords: [salt, "salt house", salthouse, shed, hearth]

@@ -3,7 +3,6 @@
 # matter: a quantity of flour has no identity to be graded, and a marked
 # sack does. The same convention a bottle of graded gin follows.
 class: /platform/thing/Sack
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: bran sack
   keywords: [bran, sack, sharps, offal]

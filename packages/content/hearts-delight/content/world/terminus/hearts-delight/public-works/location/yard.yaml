@@ -5,7 +5,6 @@
 # ordered, and a works board carrying the valley's carriage. The warden works
 # the yard on shift and runs the `restocks` loop from it.
 class: /platform/location/SingletonCartesianLocation
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   coords: { x: 2, y: 0, z: 0 }
   shortDescription: public-works yard

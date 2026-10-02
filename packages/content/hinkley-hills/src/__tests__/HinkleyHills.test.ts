@@ -172,14 +172,14 @@ async function bootParcels(): Promise<void> {
       () => new GroupRegistry(),
       '/platform/idea/GroupRegistry',
     );
-    await groups.postRegister();
+    await groups.onCreate();
   }
   if (!StuffApi.findByTemplatePath('/platform/idea/ParcelRegistry')) {
     const parcels = makeStuffAtPath(
       () => new ParcelRegistry(),
       '/platform/idea/ParcelRegistry',
     );
-    await parcels.postRegister();
+    await parcels.onCreate();
   }
   await ParcelApi.rebuildCoverageIndex();
 }

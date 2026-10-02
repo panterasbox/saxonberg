@@ -24,7 +24,6 @@
 # 4 m → 8 × 40 = 320. They are above capacity on purpose, so a later change
 # to `faceRunM` cannot silently un-exhaust the room.
 class: /trade/quarrying/location/OpenWorking
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: abandoned quarry face
   keywords: [quarry, pit, face, working, abandoned]

@@ -2,7 +2,6 @@
 # row had nothing behind it at all. Brewing and distilling have both been
 # drawing it from nowhere; this is the crop that closes both.
 class: /platform/thing/Crop
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: sack of barley
   keywords: [barley, crop, sack]

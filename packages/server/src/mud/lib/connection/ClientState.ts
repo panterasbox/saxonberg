@@ -74,7 +74,7 @@ export interface ClientStateSchemaEntry<T = unknown> {
   /**
    * Transient keys live with the live session, not the character: held
    * in an in-memory store that is never persisted (so they reset to the
-   * default on a fresh login) and never round-trips through the Hydrator.
+   * default on a fresh login) and never round-trips through the applier.
    * Used for ephemeral UI scoping like per-bar input modes. Defaults to
    * persisted (`false`/absent).
    */
@@ -177,7 +177,7 @@ export function ClientStateMixin<
     /**
      * Persistent UI state slot. Keys come from
      * `clientStateSchema`; values are the JSON-shape the schema
-     * declares. Round-trips via the Hydrator like any other
+     * declares. Round-trips via the applier like any other
      * persistent field; populated wholesale on session-establish
      * via the welcome payload, updated by `client-state-write`.
      */
@@ -186,7 +186,7 @@ export function ClientStateMixin<
     /**
      * Transient client-state slot — keys whose schema entry is
      * `transient`. In-memory only: deliberately NOT in `persistentFields`,
-     * so it never reaches the Hydrator and resets to defaults on a fresh
+     * so it never reaches the applier and resets to defaults on a fresh
      * login. Per-bar input modes live here (ephemeral input scoping that
      * belongs to the session, not the character).
      */

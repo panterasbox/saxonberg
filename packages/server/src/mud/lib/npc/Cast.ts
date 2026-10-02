@@ -79,7 +79,7 @@ export interface RenownClaim {
   asserting: BandName;
 }
 
-/** Public method surface. The dossier fields are Hydrator-facing. */
+/** Public method surface. The dossier fields are applier-facing. */
 export interface Cast extends Named {
   /** The archetype that minted this character's seeded rows, or `''`. */
   getArchetype(): string;
@@ -89,6 +89,23 @@ export interface Cast extends Named {
   getCompetenceClaims(): readonly CompetenceClaim[];
   /** The authored reputation assertions. */
   getRenownClaims(): readonly RenownClaim[];
+  /**
+   * @hook The template applier's phase-3 call for `prologue:` — the
+   *   founding history into the chronicle, once. The ledger's own
+   *   skip-if-a-claim-exists read is what makes a re-clone safe.
+   */
+  seedPrologue(lines: readonly string[]): Promise<void>;
+  /**
+   * @hook The template applier's phase-3 call for `renown:`. Idempotent
+   *   by construction — it writes only the evidence the assertion still
+   *   needs.
+   */
+  seedRenown(claims: readonly RenownClaim[]): Promise<void>;
+  /**
+   * @hook The template applier's phase-3 call for `competence:` — a
+   *   seeded run of signature work credited to the transcript, once.
+   */
+  seedCompetence(claims: readonly CompetenceClaim[]): Promise<void>;
 }
 
 export function CastMixin<TBase extends MixinConstructor>(Base: TBase) {
@@ -112,9 +129,14 @@ export function CastMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     static fieldMeta: FieldMeta = {
       archetype: { persistent: true, authorable: true },
-      prologue: { persistent: true, authorable: true },
-      competence: { persistent: true, authorable: true },
-      renown: { persistent: true, authorable: true },
+      // ⭐ The three dossier channels are `seed: true` — the template
+      // applier's phase 3 hands each to the ledger that owns the truth,
+      // at mint only. They stay `persistent` as well, because the
+      // authored value is what the row round-trips and what
+      // `getRenownClaims()` / `getCompetenceClaims()` read back.
+      prologue: { persistent: true, authorable: true, seed: true },
+      competence: { persistent: true, authorable: true, seed: true },
+      renown: { persistent: true, authorable: true, seed: true },
     };
 
     /**
@@ -155,91 +177,103 @@ export function CastMixin<TBase extends MixinConstructor>(Base: TBase) {
       return this.renown;
     }
 
-    public async postRegister(context?: unknown): Promise<void> {
-      const sup = (
-        Base.prototype as {
-          postRegister?: (c?: unknown) => unknown | Promise<unknown>;
-        }
-      ).postRegister;
-      if (typeof sup === 'function') await sup.call(this, context);
-      // ⭐⭐ Read this rung's memory back. A `Cast` is a singleton, so its
-      // template path IS a unique durable key (`viewerKey`, row 3) and its
-      // regard has been WRITTEN through on every change since the belief
-      // store shipped — but nothing ever read it back, so an NPC's
-      // opinion of you reset to nothing on every restart while the
-      // records piled up unread in Mongo. The self-call is what
-      // `SelfOnly` admits (the `Avatar.enter` shape); it runs before the
-      // dossier seed so a hydrated history is visible to it.
+    // ⭐⭐ **There is no `onCreate` override on this rung any more**, and
+    // its absence is the point of the hydration build.
+    //
+    // It used to do two jobs, and neither belonged at birth in a hook:
+    //
+    //   - **read this rung's memory back.** A `Cast` is a singleton, so
+    //     its template path IS a durable key (`viewerKey`, row 3) and
+    //     its regard had been written through on every change since the
+    //     belief store shipped — but nothing ever read it, so an NPC's
+    //     opinion of you reset on every restart while the records piled
+    //     up unread in Mongo. That is `BeliefStoreMixin.hydrationSource`
+    //     now, driven by the clone pipeline whether or not the host has
+    //     a record — which is what makes it reach a singleton at all.
+    //   - **seed the authored dossier.** That is the template applier's
+    //     phase 3: `prologue`/`renown`/`competence` are `seed: true`
+    //     fields with the three appliers below.
+    //
+    // ⭐ And the ORDER the old hook needed is an invariant of the
+    // pipeline now rather than two lines in one method: every eager
+    // source completes before `onCreate` begins, so a hydrated history
+    // is visible to anything that runs at birth.
+
+    /**
+     * Phase-3 applier for the authored `prologue:` — the founding history,
+     * written into the chronicle as `claim` entries, in order.
+     *
+     * ⚠ **Idempotent, once, and the guard is the LEDGER's.** The applier
+     * decides *when* (mint only — never go-live, never restore); only the
+     * chronicle knows whether this history is already written, because a
+     * re-clone after a destruct is a genuinely new mint. A written history
+     * applied twice must not count twice; that is an acceptance criterion,
+     * not a nicety.
+     */
+    public async seedPrologue(lines: readonly string[]): Promise<void> {
+      if (!lines.length) return;
       const self = this as unknown as Stuff;
-      if (MixinApi.isBeliefStore(self)) await self.hydrateBeliefs();
-      await this._seedDossier();
+      if (!MixinApi.isPersona(self)) return;
+      const stamp = this.archetype || '';
+      const existing = await self.chronicleEntries();
+      if (existing.some((e) => e.kind === 'claim')) return;
+      await self.seedChronicleClaims(
+        lines.map((text, i) => ({ text, order: i, archetype: stamp })),
+      );
     }
 
     /**
-     * ⚠ **Idempotent, once** — the `dispositions:` precedent exactly.
-     * Applied at `postRegister` and skipped when any `claim` row already
-     * exists, so a re-clone, a reboot or a CMS go-live cannot mint a
-     * second history. A written history applied twice must not count
-     * twice; that is an acceptance criterion, not a nicety.
+     * Phase-3 applier for the authored `renown:` claims.
+     *
+     * ⭐ Idempotent by CONSTRUCTION rather than by a guard: the seeder
+     * counts the evidence already on the log and writes only what the
+     * assertion still needs, so a re-clone or a reboot adds nothing. That
+     * is a stronger property than the skip-if-any-claim-exists check the
+     * other two channels use, and it is available here because renown's
+     * evidence is quantitative.
      */
-    private async _seedDossier(): Promise<void> {
+    public async seedRenown(claims: readonly RenownClaim[]): Promise<void> {
+      if (!claims.length) return;
       const self = this as unknown as Stuff;
+      const subject = self.getIdentityPath();
+      if (!subject) return;
+      for (const claim of claims) {
+        await RenownApi.seedTo(subject, claim.scope ?? null, claim.asserting);
+      }
+    }
+
+    /**
+     * Phase-3 applier for the authored `competence:` claims — a seeded
+     * run of signature work at the difficulty the asserted band licenses,
+     * credited to the transcript as `claim` evidence.
+     *
+     * ⚠ Same ledger-owned idempotence as {@link seedPrologue}.
+     */
+    public async seedCompetence(
+      claims: readonly CompetenceClaim[],
+    ): Promise<void> {
+      if (!claims.length) return;
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isAdvancing(self)) return;
       const stamp = this.archetype || '';
-
-      if (this.prologue.length && MixinApi.isPersona(self)) {
-        const existing = await self.chronicleEntries();
-        if (!existing.some((e) => e.kind === 'claim')) {
-          await self.seedChronicleClaims(
-            this.prologue.map((text, i) => ({
-              text,
-              order: i,
-              archetype: stamp,
-            })),
-          );
-        }
-      }
-
-      if (this.renown.length) {
-        const subject = self.getIdentityPath();
-        if (subject) {
-          for (const claim of this.renown) {
-            // ⭐ Idempotent by CONSTRUCTION rather than by a guard: the
-            // seeder counts the evidence already on the log and writes
-            // only what the assertion still needs, so a re-clone or a
-            // reboot adds nothing. That is a stronger property than the
-            // skip-if-any-claim-exists check the other two channels use,
-            // and it is available here because renown's evidence is
-            // quantitative.
-            await RenownApi.seedTo(
-              subject,
-              claim.scope ?? null,
-              claim.asserting,
-            );
-          }
-        }
-      }
-
-      if (this.competence.length && MixinApi.isAdvancing(self)) {
-        const existing = await self.transcriptEntries();
-        if (!existing.some((e) => e.kind === 'claim')) {
-          for (const claim of this.competence) {
-            const run = Competence.seedRunFor(claim.asserting);
-            if (!run) continue;
-            for (let i = 0; i < run.count; i++) {
-              await self.creditSignature(
+      const existing = await self.transcriptEntries();
+      if (existing.some((e) => e.kind === 'claim')) return;
+      for (const claim of claims) {
+        const run = Competence.seedRunFor(claim.asserting);
+        if (!run) continue;
+        for (let i = 0; i < run.count; i++) {
+          await self.creditSignature(
+            {
+              discipline: [
                 {
-                  discipline: [
-                    {
-                      discipline: claim.discipline,
-                      difficulty: run.difficulty,
-                      outcome: 'success',
-                    },
-                  ],
+                  discipline: claim.discipline,
+                  difficulty: run.difficulty,
+                  outcome: 'success',
                 },
-                { kind: 'claim', when: null, archetype: stamp },
-              );
-            }
-          }
+              ],
+            },
+            { kind: 'claim', when: null, archetype: stamp },
+          );
         }
       }
     }

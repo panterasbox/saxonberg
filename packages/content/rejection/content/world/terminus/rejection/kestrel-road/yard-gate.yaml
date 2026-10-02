@@ -9,7 +9,6 @@
 # It is also where newbie-wilds attaches: the road does not stop at the
 # diggings, it goes on past them into country nobody has counted.
 class: /platform/location/SingletonCartesianLocation
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: yard gate
   keywords: [gate, yard]

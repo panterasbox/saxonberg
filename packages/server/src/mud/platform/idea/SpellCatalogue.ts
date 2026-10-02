@@ -21,7 +21,6 @@
  */
 
 import { Idea } from '../../lib/stuff/Idea';
-import { PostRegistrationMixin } from '../../lib/stuff/PostRegistration';
 import { Template } from '../../lib/stuff/Template';
 import Spell, {
   SPELL_COST_MODELS,
@@ -38,7 +37,7 @@ import type { CastingProfile } from '../../lib/magic/CastingProfile';
 import type { VetoResult } from '../../lib/errors';
 import type { EvictionContext } from '../../lib/stuff/Stuff';
 
-const SpellCatalogueBase = PostRegistrationMixin(Idea);
+const SpellCatalogueBase = Idea;
 
 export default class SpellCatalogue extends SpellCatalogueBase {
   /** Residency veto — a load-bearing process-lifetime singleton. */
@@ -118,7 +117,7 @@ export default class SpellCatalogue extends SpellCatalogueBase {
   }
 
   /** Warm the cache from the `content` collection (one query at boot). */
-  public override async postRegister(_context?: unknown): Promise<void> {
+  public override async onCreate(_context?: unknown): Promise<void> {
     await this.loadCacheFromTemplates();
   }
 

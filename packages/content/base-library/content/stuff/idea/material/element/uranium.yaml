@@ -12,7 +12,6 @@
 # `class: /platform/idea/material/RadioactiveMaterial`. Plain elements stay on
 # `class: /platform/idea/material/Material`.
 class: /platform/idea/material/RadioactiveMaterial
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: uranium
   keywords: [uranium]

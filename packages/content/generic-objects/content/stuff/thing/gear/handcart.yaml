@@ -8,7 +8,6 @@
 # light-load floor, draining no endurance. A dragged sledge would set it
 # high (~0.35); carrying it in your arms is 1.0.
 class: /platform/thing/equipment/Handcart
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: wooden handcart
   keywords: [handcart, wooden]

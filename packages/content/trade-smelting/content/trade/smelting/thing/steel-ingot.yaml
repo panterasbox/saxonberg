@@ -12,7 +12,6 @@
 # Two steel bars off two different carburizing runs are both steel and
 # are not the same; `analyze chemistry` is how you tell.
 class: /platform/thing/Ingot
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: steel bar
   keywords: [bar, steel, ingot, billet]

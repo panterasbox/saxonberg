@@ -114,7 +114,7 @@ export interface Colonial {
   /**
    * ⭐ Seed a freshly split colony — **the one write another Stuff makes
    * to a colony**, and it is a METHOD because the inter-stuff contract is
-   * methods: the state fields are `public` only so the Hydrator can
+   * methods: the state fields are `public` only so the applier can
    * reflect into them, which is not the same as being external surface.
    * Queenlessness is not a parameter — a split starts without one by
    * construction, and raising a new one is the real cost of splitting.

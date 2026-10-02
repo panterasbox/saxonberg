@@ -5,7 +5,6 @@
 # (`/stuff/idea/material/element/carbon-graphite`, `.../carbon-diamond`) is a
 # content extension when content needs the distinction.
 class: /platform/idea/material/Material
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: carbon
   keywords: [carbon]

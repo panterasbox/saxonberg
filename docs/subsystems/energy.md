@@ -61,7 +61,7 @@ work-order economy. A consecutive node pair whose streets no exit joins is a
 — *a line may not leave the road*.
 
 ⚠ **The compile is lazy and must run post-install** — warming it from a
-`postRegister` races the street hydration and caches a broken grid (found by the
+`onCreate` races the street hydration and caches a broken grid (found by the
 drive). It runs on the first real read (the dusk settle, or `analyze grid`).
 
 ## The consumer, the light, the pole

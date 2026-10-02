@@ -7,7 +7,6 @@
 # line shows the bait poorly (`showing: 0.8`), and the big hook takes
 # nothing small. You choose it for what you are fishing FOR.
 class: /trade/fishing/thing/Rod
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   keywords: [rod, leger-rod, leger, tackle]
   primaryKeyword: leger-rod

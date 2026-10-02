@@ -9,7 +9,6 @@
 # kit and cellar furniture alike (D15 — verbs ride the instrument,
 # never the venue).
 class: /platform/thing/Vat
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: glass culture jar
   keywords: [jar, "culture jar", crock, glass, culture]

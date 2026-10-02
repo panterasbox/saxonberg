@@ -1,6 +1,5 @@
 # Seed wheat — the same discrete-Thing shape every shipped seed has.
 class: /platform/thing/Seed
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: sack of seed wheat
   keywords: [seed, seeds, wheat, sack]

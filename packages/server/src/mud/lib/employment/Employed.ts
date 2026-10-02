@@ -167,7 +167,7 @@ const ByEmployingOrganization = SecurityPolicies.AnyOf(
 
 /**
  * Public method surface (methods only). `employments` is public for the
- * Hydrator but is not the contract surface.
+ * applier but is not the contract surface.
  */
 /**
  * What `clock on` / `clock off` did, or why it did not. ⭐ Every refusal
@@ -329,7 +329,7 @@ export function EmployedMixin<TBase extends MixinConstructor>(Base: TBase) {
      *
      * ⭐ **An accessor pair, not a plain field.** Every write lands on the
      * setter — a hire (`_upsertEmployment`), an exit (`_removeEmployment`),
-     * the Hydrator's bracket-assign fallback, the persistence spine's
+     * the applier's bracket-assign fallback, the persistence spine's
      * restore, and a test's direct assignment — and the setter is what
      * keeps the employment logic's per-organization roster memo true. Its
      * predecessor was the reason *who works here?* had to read every
@@ -352,7 +352,7 @@ export function EmployedMixin<TBase extends MixinConstructor>(Base: TBase) {
      * witness is gated on *the actor writing its own relationship*, and an
      * accessor is not a dispatched frame — a bare
      * `employedLogic().noteEmployments(this)` inside the setter is
-     * attributed to whoever did the assigning (a test, the Hydrator) and
+     * attributed to whoever did the assigning (a test, the applier) and
      * denied. Going through a method gives the call the actor's own frame.
      *
      * The memo is additive and safe when stale: a leftover entry resolves

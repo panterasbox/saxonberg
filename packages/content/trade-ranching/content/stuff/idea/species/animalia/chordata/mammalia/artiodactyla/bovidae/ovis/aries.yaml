@@ -15,7 +15,6 @@
 # ⚠ The row lives in the COMMONS. A sheep exists whether or not anybody
 # ranches; the husbandry is the trade, the animal is a thing in the world.
 class: /platform/idea/species/Species
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   binomial: Ovis aries
   commonNames: ["sheep", "ewe", "ram", "lamb", "hogget"]

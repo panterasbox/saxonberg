@@ -33,7 +33,7 @@ class TestRoom extends ContainerMixin(Idea) {}
 class TestNPC extends BehavedMixin(EngagedMixin(SensorMixin(ContainableMixin(Idea)))) {}
 class TestPlayer extends SensorMixin(ContainableMixin(Idea)) {}
 
-type NPC = TestNPC & { postRegister(c?: unknown): Promise<void>; behaviors: unknown[] };
+type NPC = TestNPC & { onCreate(c?: unknown): Promise<void>; behaviors: unknown[] };
 
 let src: string;
 
@@ -82,7 +82,7 @@ describe('a brain shipped by a pack', () => {
     ContainmentApi.move(npc as never, room as never);
     ContainmentApi.move(player as never, room as never);
     npc.behaviors = [{ brain: BRAIN, trigger: 'cadence:1s' }];
-    await npc.postRegister();
+    await npc.onCreate();
     await vi.advanceTimersByTimeAsync(3000);
     expect(fired()).toBeGreaterThan(before);
   });

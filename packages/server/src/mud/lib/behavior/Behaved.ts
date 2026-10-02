@@ -4,7 +4,7 @@
  * substrate (see activity.md).
  *
  * A host carries a declarative `behaviors:` data list — each entry a
- * `{ brain, trigger, config }` spec. At spawn (`postRegister`) the mixin
+ * `{ brain, trigger, config }` spec. At spawn (`onCreate`) the mixin
  * reads the list, **path-resolves each brain** (warming the hot-reload
  * registry), and **wires** each spec to its trigger:
  *
@@ -20,7 +20,7 @@
  * calls its static `act(ctx)` — so editing a brain hot-reloads into a
  * live NPC's next action with no re-spawn. The mixin **never captures**
  * a brain reference. Live wiring (timers, the seen-set) is
- * runtime-only; `postRegister` re-installs it from the persisted
+ * runtime-only; `onCreate` re-installs it from the persisted
  * `behaviors:` data on every clone/reboot.
  *
  * **Slot contention** rides the shared `EngagedMixin` map: a brain
@@ -47,6 +47,7 @@ import { AppSettingKeys } from '../config/AppSettings';
 import { ScheduleApi, type ScheduleHandle } from '../../api/schedule';
 import { SchedulerApi } from '../../api/scheduler';
 import { MixinApi } from '../../api/mixin';
+import { SpeciesApi } from '../../api/species';
 import type { CommandContributions } from '../../api/command';
 import { ReactionApi } from '../../api/reaction';
 import { SoulApi } from '../../api/soul';
@@ -124,6 +125,13 @@ interface BehaviorWiring {
 export interface Behaved {
   getBehaviors(): readonly BehaviorSpec[];
   /**
+   * @hook The template applier's phase-3 call for the authored
+   *   `dispositions:` field. Seeds them into the trait ledger as `claim`
+   *   evidence, once; the ledger's own skip-if-a-claim-exists read is
+   *   what makes a re-clone safe.
+   */
+  seedDispositions(seeds: readonly ClaimSeed[]): Promise<void>;
+  /**
    * Fire the cadence beat wired for `brainPath` NOW — the author's seam
    * (a wizard `eval`, a drive) onto the same beat the timer runs, gates
    * and all. False when no live wiring names that brain.
@@ -171,14 +179,17 @@ export function BehavedMixin<TBase extends MixinConstructor<Stuff>>(
     /** The declarative spec list — pure data, persisted as-is. */
     static fieldMeta: FieldMeta = {
       behaviors: { persistent: true, authorable: true },
-      dispositions: { persistent: true, authorable: true },
+      // ⭐ `seed: true` adds the applier's phase 3; `persistent` keeps
+      // the authored value on the instance, which is what the row
+      // round-trips. The two are not alternatives.
+      dispositions: { persistent: true, authorable: true, seed: true },
     };
     public behaviors: BehaviorSpec[] = [];
 
     /**
      * An authored host's established character, as disposition `claim`
      * seeds — pure data, persisted as-is. Seeded into the trait ledger
-     * once at spawn (`postRegister`) so derive-on-read yields the host's
+     * once at mint (the applier's phase 3) so derive-on-read yields the host's
      * defining traits immediately, while keeping personality
      * derive-don't-track (it came from a seeded history, not a stat). The
      * behavior→trait edge this introduces is the same one the trait-aware
@@ -257,33 +268,41 @@ export function BehavedMixin<TBase extends MixinConstructor<Stuff>>(
 
     // ───────── lifecycle ─────────
 
-    public async postRegister(context?: unknown): Promise<void> {
-      const sup = (
-        Base.prototype as {
-          postRegister?: (c?: unknown) => unknown | Promise<unknown>;
-        }
-      ).postRegister;
-      if (typeof sup === 'function') await sup.call(this, context);
+    public async onCreate(context?: unknown): Promise<void> {
+      await super.onCreate(context);
       // Idempotent re-wire: cancel any prior wiring (CMS go-live
       // re-hydrate / re-clone) before installing fresh.
+      // ⭐ The disposition SEED left this hook 2026-10-01: `dispositions`
+      // is a `seed: true` field now and `seedDispositions` below is the
+      // template applier's phase-3 call. What is left here is structural
+      // completion — the host is not finished until its brains are wired
+      // — which is the one limb that belongs at birth.
       this._teardownBehaviors();
       await this._wireBehaviors();
-      await this._seedDispositions();
     }
 
     /**
-     * Seed the host's authored `dispositions:` into the trait ledger as
-     * `claim` evidence — once. Idempotent across re-clone / reboot: skips
-     * if any `claim` row already exists for this host (claims persist).
+     * Phase-3 applier for the authored `dispositions:` field — seed them
+     * into the trait ledger as `claim` evidence, once.
+     *
+     * ⚠ **The idempotence is the LEDGER's, and it stays here.** The
+     * applier decides *when* (mint only, never go-live, never restore);
+     * only the ledger knows whether this history has already been
+     * written, because a re-clone after a destruct is a genuinely new
+     * mint. So the skip-if-any-claim-exists read below is load-bearing,
+     * not belt-and-braces.
+     *
+     * The host-shape check is the ledger's absence, not a host
+     * narrowing: every `Behaved` host can be asked to seed, and one with
+     * no trait ledger has nowhere to put it.
      */
-    private async _seedDispositions(): Promise<void> {
-      const seeds = this.dispositions ?? [];
+    public async seedDispositions(seeds: readonly ClaimSeed[]): Promise<void> {
       if (!seeds.length) return;
       const host = this as unknown as Stuff;
       if (!MixinApi.isDispositioned(host)) return;
       const existing = await host.dispositionEntries();
       if (existing.some((e) => e.kind === 'claim')) return;
-      await host.seedTraitClaims(seeds);
+      await host.seedTraitClaims([...seeds]);
     }
 
     public onDestruct(): void {
@@ -527,6 +546,37 @@ export function BehavedMixin<TBase extends MixinConstructor<Stuff>>(
       this._lastBeatAt = Date.now();
       const candidates = this._candidates();
       if (!candidates.length) return;
+
+      // ⭐⭐ Warm this agent's own species ONCE per beat, before any brain
+      // is asked anything.
+      //
+      // ⚠⚠ It has to be here and not in the brains, and that is a real
+      // constraint rather than a preference: `urgency()` is SYNCHRONOUS
+      // for most brains, and the dials it reads (`feedsBy`,
+      // `handlingRange`, olfactory acuity) live on a lazily-loaded
+      // `Species` row behind the live-only `getSpecies()`. A brain that
+      // tried to warm lazily in its own `act()` would never get there —
+      // an unwarmed `feedsBy('ground')` answers false, `urgency` returns
+      // `idle`, and `act` is never called, so the warm that `act` would
+      // have done never happens. A read path that gates itself on the
+      // thing it is trying to load cannot fault it in.
+      //
+      // ⭐ The beat is the honest place: it is async, it is about to ask
+      // every brain to read its host, and `preloadAnatomy` is idempotent
+      // and cheap after the first call. This is the same
+      // warm-beside-the-read rule the nine other callers follow — the
+      // beat IS the read site for a brain.
+      const host = this as unknown as Stuff;
+      if (MixinApi.isOrganism(host)) {
+        try {
+          await SpeciesApi.preloadAnatomy(host);
+        } catch {
+          // A missing species row is the shared substrate's tolerated
+          // case (`preloadAnatomy`'s own contract); a brain reading an
+          // absent dial is the documented refusal, not a crash.
+        }
+      }
+
       const watched = this._hasAudience();
 
       // ⭐ Unwatched, only the brains that declare they run unwatched are
@@ -715,7 +765,7 @@ export function BehavedMixin<TBase extends MixinConstructor<Stuff>>(
       source: 'cadence' | 'witness' | 'candidate'
     ): Promise<void> {
       // ⭐ The cast holds still while the world is closed. Brains are
-      // wired at `postRegister` — the host must exist before it can
+      // wired at `onCreate` — the host must exist before it can
       // behave — but their schedules are REAL-TIME, so without this they
       // start acting minutes before the subsystems they act THROUGH are
       // booted, and their failing beats starve the boot that would fix

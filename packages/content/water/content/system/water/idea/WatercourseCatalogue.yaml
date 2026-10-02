@@ -6,8 +6,6 @@
 # rows beside them. Lazily cloned on first use by whatever asks a
 # question about water — there is deliberately no boot step to forget.
 #
-# No `hydratorClass`: there is no `data` to apply, and declaring one
-# with nothing to hydrate is what `lint:instanceable` invariant 5 exists
-# to catch.
+# No `data:` to apply, so no applier runs.
 class: /system/water/idea/WatercourseCatalogue
 data: {}

@@ -4,7 +4,6 @@
 # is entirely on its `/trade/farming/thing/plant/cherry` template: the
 # harvest surface and — for a fruiting plant — the cycle fields.
 class: /platform/idea/species/Species
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   binomial: Prunus avium
   commonNames: ["cherry", "sweet cherry"]

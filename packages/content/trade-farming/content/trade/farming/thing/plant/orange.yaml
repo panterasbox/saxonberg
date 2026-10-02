@@ -2,7 +2,6 @@
 # The slowest of the citrus — a bigger tree, a longer fill.
 # No moisture reserve — the water lives in the ground (see peace-lily).
 class: /platform/thing/Plant
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: orange tree
   keywords: ["orange tree", orange, tree, citrus, plant]

@@ -1,7 +1,6 @@
 # A unit's bedroom — built-ins only; the BED is the tenant's first real
 # purchase (the store's ladder-visible rung above the dorm's 1.5).
 class: /platform/location/FurnishableRoom
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   # ⭐⭐ **The sandbox's door, and it is in your BEDROOM because a
   # sandbox belongs to your home.** `linkForEnterer`'s *owned* case: a

@@ -106,7 +106,7 @@ export interface Circulating {
   getRegionTarget(): number;
   setRegionTarget(n: number): void;
 
-  // ---------- storage (public for the Hydrator) ----------
+  // ---------- storage (public for the applier) ----------
   materialTags: string[];
   censusKey: string;
   regionTarget: number;

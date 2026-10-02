@@ -5,6 +5,5 @@
 # the governing security invariant. The retired `ownerGroupName` stamp moved
 # to the parcel row.
 class: /platform/idea/FolderZone
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: lounge

@@ -6,7 +6,6 @@
 # body can't run the intake verbs — the grounded death-spiral with
 # starvation falls out of the gate, no special-case code.
 class: /platform/idea/Condition
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: collapse
   signature: []

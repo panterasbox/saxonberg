@@ -9,7 +9,6 @@
 # being a POINT (the channel), not by arriving at firearm pressure. That
 # is the honest answer and it is what keeps a bow from being a gun.
 class: /platform/thing/equipment/Projectile
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: arrow
   keywords: [arrow, arrows, shaft]

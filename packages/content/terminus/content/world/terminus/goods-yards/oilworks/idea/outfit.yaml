@@ -6,7 +6,6 @@
 # operating account. ⭐ Appointed by the Ministry of Trade (matching who holds
 # `/trade/fuel`): the fuel trade's producer answers to the fuel trade's office.
 class: /platform/idea/Business
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: "the oil works"
   appointingAuthority:

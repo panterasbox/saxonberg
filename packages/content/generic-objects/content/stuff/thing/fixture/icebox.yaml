@@ -12,7 +12,6 @@
 # there is ice in it, and the ice melts — which is what makes this an
 # object somebody has to KEEP rather than a property of the room.
 class: /platform/thing/Icebox
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: icebox
   keywords: [icebox, ice-box, cold box]

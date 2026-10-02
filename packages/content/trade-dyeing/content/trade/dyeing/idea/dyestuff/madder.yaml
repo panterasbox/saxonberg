@@ -19,7 +19,6 @@
 # alum-madder and iron-madder are different pigments rather than
 # one pigment darkened.
 class: /trade/dyeing/idea/Dyestuff
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   key: madder
   materialPath: /trade/farming/idea/material/madder

@@ -6,14 +6,14 @@
  * or `StuffApi.clone`. Tests that historically called `new` directly
  * either need to migrate to `await StuffApi.create(() => new T())` (the
  * canonical path) or, for terse synchronous tests that don't exercise
- * the async hydrate / postRegister machinery, use `makeStuff` below.
+ * the async hydrate / onCreate machinery, use `makeStuff` below.
  *
  * `makeStuff` does the minimum a Stuff needs:
  *   - flips the construction sentinel so `new` is allowed,
  *   - wraps the raw instance in the call-security Proxy,
  *   - registers the proxy under its `stuffId`.
  *
- * It deliberately skips `Hydrator.hydrate()` and `postRegister()` — if
+ * It deliberately skips `TemplateApplier.apply()` and `onCreate()` — if
  * a test needs those, use `await StuffApi.create(...)` instead.
  *
  * Stage 2's loader-hook spike may add a setupFiles fallback here that
@@ -40,7 +40,7 @@ void SecurityApi; // referenced only for the static-init side effect
 
 /**
  * Synchronously construct, wrap, and register a Stuff. Mirrors the
- * Stage-1 production path minus the async hydrate / postRegister step.
+ * Stage-1 production path minus the async hydrate / onCreate step.
  * Use only from tests.
  *
  * @internal — do not import from production code.
@@ -170,7 +170,7 @@ export function makeStuffAtPath<T extends Stuff>(
 
 /**
  * The async twin of {@link makeStuffAtPath}: registers AND runs
- * `postRegister`, which is what a real clone does.
+ * `onCreate`, which is what a real clone does.
  *
  * ⭐ Needed since a `Boundary` mints its two anchors there (they are
  * clones of `/platform/thing/BoundaryAnchor` now). A `Door` built with
@@ -185,9 +185,9 @@ export async function makeStuffAtPathAsync<T extends Stuff>(
 ): Promise<T> {
   const stuff = makeStuffAtPath(factory, path, identityPath);
   const hook = stuff as unknown as {
-    postRegister?: (context?: unknown) => Promise<void> | void;
+    onCreate?: (context?: unknown) => Promise<void> | void;
   };
-  if (typeof hook.postRegister === 'function') await hook.postRegister();
+  if (typeof hook.onCreate === 'function') await hook.onCreate();
   return stuff;
 }
 

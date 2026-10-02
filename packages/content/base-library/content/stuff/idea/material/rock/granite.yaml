@@ -8,7 +8,6 @@
 # populating composition entries here. The `igneous` tag carries the
 # rock-cycle classification meanwhile.
 class: /platform/idea/material/Material
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: granite
   keywords: [granite]

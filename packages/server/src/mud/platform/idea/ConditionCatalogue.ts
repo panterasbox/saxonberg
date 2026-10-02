@@ -3,7 +3,7 @@
  * roster (the MaturationProfileCatalogue shape; the boot()-retirement
  * direction: an operator-shaped warm does not belong on a consumer Api).
  *
- * `postRegister` stands up every authored `Condition` row as a live
+ * `onCreate` stands up every authored `Condition` row as a live
  * singleton so the sync resolve-on-read seams hit from the first frame
  * of live play — the reference-Ideas-inert-at-boot rule.
  *
@@ -26,7 +26,6 @@
  */
 
 import { Idea } from '../../lib/stuff/Idea';
-import { PostRegistrationMixin } from '../../lib/stuff/PostRegistration';
 import { StuffApi } from '../../api/stuff';
 import { Template } from '../../lib/stuff/Template';
 import { TemplatePathPrefixes } from '../../lib/paths';
@@ -37,7 +36,7 @@ import type { EvictionContext } from '../../lib/stuff/Stuff';
 /** The backing class every authored `Condition` row names. */
 const CONDITION_CLASS = '/platform/idea/Condition';
 
-const ConditionCatalogueBase = PostRegistrationMixin(Idea);
+const ConditionCatalogueBase = Idea;
 
 export default class ConditionCatalogue extends ConditionCatalogueBase {
   /** Residency veto — the roster's warm; a culled catalogue re-warms nothing. */
@@ -52,7 +51,7 @@ export default class ConditionCatalogue extends ConditionCatalogueBase {
     };
   }
 
-  public override async postRegister(_context?: unknown): Promise<void> {
+  public override async onCreate(_context?: unknown): Promise<void> {
     await this.warm();
   }
 

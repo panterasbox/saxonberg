@@ -527,7 +527,7 @@ export interface Vitals {
   // ---------- conditions — both kinds, one collection ----------
   getConditions(): readonly ActiveCondition[];
   /**
-   * The Hydrator's Phase-1 entry for the persisted `conditions`
+   * The applier's Phase-1 entry for the persisted `conditions`
    * collection — the seam that normalizes each record's magical
    * provenance tag on the way in. See the implementation note.
    */
@@ -589,7 +589,7 @@ export interface Vitals {
   /** Is a being-shocked circuit currently closed on this body? */
   isBeingShocked(): boolean;
 
-  // ---------- storage (public for the Hydrator) ----------
+  // ---------- storage (public for the applier) ----------
   _coreTemperature: Quantity<'K'>;
   _heartRate: Quantity<'bpm'>;
   _respiratoryRate: Quantity<'bpm'>;
@@ -2169,7 +2169,7 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     /**
-     * Phase-1 hydrate entry for `conditions` (the Hydrator prefers a
+     * Phase-1 hydrate entry for `conditions` (the applier prefers a
      * `set<Field>` method over the bracket-assign fallback).
      *
      * The one invariant it enforces: **magical provenance is normalized

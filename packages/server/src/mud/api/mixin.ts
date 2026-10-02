@@ -62,7 +62,6 @@ import type { CartesianCoordinates } from '../lib/location/CartesianCoordinates'
 import type { SphericalCoordinates } from '../lib/location/SphericalCoordinates';
 import type { AroundSaveHook } from '../lib/persistence/AroundSaveHook';
 import type { AroundDeleteHook } from '../lib/persistence/AroundDeleteHook';
-import type { PostRegistration } from '../lib/stuff/PostRegistration';
 import type { HasInteractive } from '../lib/connection/HasInteractive';
 import type { ClientState } from '../lib/connection/ClientState';
 import type { SaxonbergClient } from '../lib/connection/SaxonbergClient';
@@ -132,7 +131,9 @@ import type { Forkable } from '../lib/persistence/Forkable';
 import type {
   MixinSlice,
   CaptureContext,
-  RestoreContext,
+  HydrateContext,
+  HydrationSource,
+  HydrateOutcome,
 } from '../lib/persistence/PersistenceSlice';
 import type { Slottable } from '../lib/slot/Slottable';
 import type { Wearable } from '../lib/slot/Wearable';
@@ -257,18 +258,35 @@ export type AnyMixinName = MixinName | (string & {});
  * prototype-chain layer that contributes serialization to the persistence
  * spine. `key` is the layer's stable name (its slice key in a record's
  * `state`); `fields` are that layer's OWN declared persistent fields (the
- * default slice); `captureSlice` / `restoreSlice` are the optional non-field
+ * default slice); `captureSlice` / `hydrateSlice` are the optional non-field
  * hooks (`Container` / `Slotted`).
  */
 export interface PersistenceContributor {
   key: string;
   fields: string[];
   captureSlice?: (host: Stuff, ctx: CaptureContext) => MixinSlice;
-  restoreSlice?: (
+  hydrateSlice?: (
     host: Stuff,
     slice: MixinSlice,
-    ctx: RestoreContext,
+    ctx: HydrateContext,
   ) => Promise<void>;
+  /**
+   * ⭐⭐ **A source that is not the host's own record**, declared by the
+   * mixin and driven by the CLONE PIPELINE rather than by a restore —
+   * so a host with no record at all is still filled. See
+   * {@link HydrationSource}.
+   *
+   * ⚠ `hydrate` is the mixin's `hydrateFromSource` static, bound by
+   * nothing: it takes the host and nothing else. The slice framework's
+   * {@link HydrateContext} is an item-RECURSION seam
+   * (`restoreItem`/`standUpKeyed`) that only `PersistableLogic` can
+   * build, and the clone pipeline has nothing to build it from — so a
+   * source hook is deliberately given the host alone rather than a
+   * half-populated context.
+   */
+  source?: HydrationSource & {
+    hydrate: (host: Stuff) => Promise<HydrateOutcome>;
+  };
 }
 
 interface MixinClass {
@@ -655,7 +673,7 @@ export class MixinApi {
    * at use time.
    *
    * Mirrors the shape of {@link getAllPersistentFields} and is the
-   * companion lookup for `PersistentHydrator` / `Document`'s
+   * companion lookup for `TemplateApplier` / `Document`'s
    * marshaller-aware coercion path.
    *
    * @param constructor - The class constructor to inspect
@@ -723,7 +741,7 @@ export class MixinApi {
    * `'coords'` → `'Coords'`, so a hydrator can dispatch
    * `'set' + pascalCase('coords')` → `'setCoords'`).
    *
-   * Used by `PersistentHydrator` (Phase 1 `set<X>` / Phase 2
+   * Used by `TemplateApplier` (Phase 1 `set<X>` / Phase 2
    * `apply<X>` dispatch) and `Zone.lookupField` (`get<X>` reflection).
    * Lives here because the field-name-to-method-name convention is
    * the same one `getAllPersistentFields` / `getAllInstructionFields`
@@ -764,7 +782,7 @@ export class MixinApi {
    * is concrete-first chain order — so
    * `Object.keys(meta).filter((k) => meta[k].persistent)` reproduces
    * `getAllPersistentFields` exactly, including the order
-   * `PersistentHydrator` Phase 1 applies fields in.
+   * `TemplateApplier` Phase 1 applies fields in.
    *
    * @param constructor - The class constructor to inspect
    * @returns One merged entry per declared field, in chain order
@@ -826,7 +844,7 @@ export class MixinApi {
    * {@link PersistedRecord}'s `state`), that layer's OWN declared
    * persistent `fieldMeta` entries (the default-slice fields — NOT the aggregated
    * chain, so each layer's slice is independent), and its optional
-   * `captureSlice` / `restoreSlice` hooks (present on `Container` /
+   * `captureSlice` / `hydrateSlice` hooks (present on `Container` /
    * `Slotted`, which serialize non-field state).
    *
    * Walked concrete-class-first (chain order) and de-duplicated by key so
@@ -846,7 +864,9 @@ export class MixinApi {
     while (current && current !== Object && (current as MixinClass).prototype) {
       const c = current as MixinClass & {
         captureSlice?: unknown;
-        restoreSlice?: unknown;
+        hydrateSlice?: unknown;
+        hydrationSource?: unknown;
+        hydrateFromSource?: unknown;
       };
       // OWN `_mixinName` only — the static is inherited, so a concrete
       // subclass (e.g. `ContentChest extends ContainerMixin(...)`) would
@@ -878,9 +898,23 @@ export class MixinApi {
         Object.prototype.hasOwnProperty.call(c, 'captureSlice') &&
         typeof c.captureSlice === 'function';
       const hasRestore =
-        Object.prototype.hasOwnProperty.call(c, 'restoreSlice') &&
-        typeof c.restoreSlice === 'function';
-      if (key && !seen.has(key) && (ownFields.length > 0 || hasCapture)) {
+        Object.prototype.hasOwnProperty.call(c, 'hydrateSlice') &&
+        typeof c.hydrateSlice === 'function';
+      // ⭐ A layer that declares ONLY a source — no persistent fields of
+      // its own, no `captureSlice` — is a contributor too. Without this
+      // arm the walk would silently drop it, which is the dead-row
+      // failure class this build exists to remove.
+      const hasSource =
+        Object.prototype.hasOwnProperty.call(c, 'hydrationSource') &&
+        c.hydrationSource !== null &&
+        typeof c.hydrationSource === 'object' &&
+        Object.prototype.hasOwnProperty.call(c, 'hydrateFromSource') &&
+        typeof c.hydrateFromSource === 'function';
+      if (
+        key &&
+        !seen.has(key) &&
+        (ownFields.length > 0 || hasCapture || hasSource)
+      ) {
         seen.add(key);
         out.push({
           key,
@@ -888,8 +922,16 @@ export class MixinApi {
           captureSlice: hasCapture
             ? (c.captureSlice as PersistenceContributor['captureSlice'])
             : undefined,
-          restoreSlice: hasRestore
-            ? (c.restoreSlice as PersistenceContributor['restoreSlice'])
+          hydrateSlice: hasRestore
+            ? (c.hydrateSlice as PersistenceContributor['hydrateSlice'])
+            : undefined,
+          source: hasSource
+            ? {
+                ...(c.hydrationSource as HydrationSource),
+                hydrate: c.hydrateFromSource as (
+                  host: Stuff,
+                ) => Promise<HydrateOutcome>,
+              }
             : undefined,
         });
       }
@@ -1144,10 +1186,6 @@ export class MixinApi {
 
   public static isAroundDeleteHook(obj: Stuff): obj is Stuff & AroundDeleteHook {
     return this.hasMixin(obj, Mixins.AroundDeleteHook);
-  }
-
-  public static isPostRegistration(obj: Stuff): obj is Stuff & PostRegistration {
-    return this.hasMixin(obj, Mixins.PostRegistration);
   }
 
   public static isHasInteractive(obj: Stuff): obj is Stuff & HasInteractive {
@@ -1943,7 +1981,7 @@ export class MixinApi {
    * paired getter for the spec; the runtime collection has its own
    * API (`getExit`, `addExit`, …).
    *
-   * `PersistentHydrator` dispatches in two phases: Phase 1 reads every
+   * `TemplateApplier` dispatches in two phases: Phase 1 reads every
    * entry in `getAllPersistentFields` and writes via `setX` (or
    * bracket-assigns when no setter exists); Phase 2 reads every entry
    * in `getAllInstructionFields` and calls `applyX`. An instruction
@@ -1956,6 +1994,25 @@ export class MixinApi {
   public static getAllInstructionFields(constructor: AnyConstructor): string[] {
     const meta = MixinApi.getAllFieldMeta(constructor);
     return Object.keys(meta).filter((f) => meta[f]!.instruction === true);
+  }
+
+  /**
+   * Every `seed`-flagged field across the chain — the template
+   * applier's third phase. A thin derivation of
+   * {@link getAllFieldMeta}, exactly like
+   * {@link getAllInstructionFields}.
+   *
+   * ⭐ A seed field is usually ALSO a persistent field, so it appears in
+   * both lists: phase 1 puts the authored value on the instance (so
+   * `getRenownClaims()` and friends can read it back) and phase 3 hands
+   * the same value to the ledger that owns the truth.
+   *
+   * @param constructor - The class constructor to inspect
+   * @returns Array of all seed field names (deduplicated)
+   */
+  public static getAllSeedFields(constructor: AnyConstructor): string[] {
+    const meta = MixinApi.getAllFieldMeta(constructor);
+    return Object.keys(meta).filter((f) => meta[f]!.seed === true);
   }
 
   /**

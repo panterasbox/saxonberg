@@ -8,7 +8,6 @@
 # are reachable now, and the gate that would have caught it is the
 # capability census, which could not see a class check.
 class: /platform/thing/Tool
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: folding sundial
   keywords: [sundial, dial, gnomon]

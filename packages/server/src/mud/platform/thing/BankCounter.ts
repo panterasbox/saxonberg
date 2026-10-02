@@ -17,14 +17,13 @@
 
 import Holder from "../../lib/stuff/Holder";
 import { ContainerMixin } from "../../lib/spatial/Container";
-import { PostRegistrationMixin } from "../../lib/stuff/PostRegistration";
 import { DialogueEffectRegistry } from "../../lib/npc/DialogueEffects";
 import { BankMixin } from "../../lib/banking/Bank";
 import { BANK_CIRCLE_EFFECT } from "../../lib/banking/BankDialogueEffect";
 import type { FieldMeta } from "../../lib/mixin";
 
 const BankCounterBase = BankMixin(
-  PostRegistrationMixin(Holder),
+  Holder,
 );
 
 export default class BankCounter extends BankCounterBase {
@@ -40,8 +39,8 @@ export default class BankCounter extends BankCounterBase {
    * Idempotent `Map.set`; every counter re-asserts it, which also
    * re-points the handler after a hot reload of the effect module.
    */
-  public override async postRegister(context?: unknown): Promise<void> {
-    await super.postRegister(context);
+  public override async onCreate(context?: unknown): Promise<void> {
+    await super.onCreate(context);
     DialogueEffectRegistry.register("bank-circle", BANK_CIRCLE_EFFECT);
   }
 }

@@ -8,7 +8,6 @@
 # ⚠ Its keyword matters: the burial arm finds a grave by looking for one
 # in the room, and `plot` is one of the words it knows.
 class: /platform/thing/Chest
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: open plot
   keywords: [plot, grave, trough, hole, open]

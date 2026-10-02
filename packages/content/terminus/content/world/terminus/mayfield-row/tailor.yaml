@@ -6,7 +6,6 @@
 # A sub-zone of its own so the floor keeps its authored coords (the
 # seznick-house / veshko shape); the district zone is its parent.
 class: /platform/idea/location/CartesianZone
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: The Tailor's Shop
   cellSize: 3.0

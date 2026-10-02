@@ -14,7 +14,6 @@
 # roster (`holdersByPosition` reads it without a tick), so Walter holds
 # the position from boot with no employment write.
 class: /platform/idea/Organization
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: Mayfield Holdings
   appointingAuthority:

@@ -11,14 +11,14 @@
  *   Avatar's existing `holder_snapshots` capture for free.
  * - **not a `Property`** — a prop is for a slot whose KEY is computed at
  *   runtime. Wardrobe names are computed at runtime, but the *field* is
- *   authored-shaped and narrowed on, and the Hydrator reflects into
+ *   authored-shaped and narrowed on, and the applier reflects into
  *   fields.
  * - **not an `EnvironmentMixin` setting** — settings are a fixed
  *   keyspace; wardrobes are whatever the player calls them.
  *
  * So: a mixin field, **byte-identical in shape to
  * `Wearable.slotClaims`** — a `Record<string, string[]>` that round-trips
- * through the default Hydrator with no marshaller. ⭐ It is the
+ * through the default applier with no marshaller. ⭐ It is the
  * doctrine's named **variable-key** escape hatch, the exact contrast to
  * the fit stamp's three fixed scalars.
  *
@@ -51,7 +51,7 @@ export interface Wardrobe {
   /** Every saved set's name, in save order. */
   getWardrobeNames(): readonly string[];
 
-  // Persistence-shape accessor pair (default Hydrator).
+  // Persistence-shape accessor pair (default applier).
   getWardrobes(): Readonly<Record<string, readonly string[]>>;
   setWardrobes(value: Record<string, string[]>): void;
 }

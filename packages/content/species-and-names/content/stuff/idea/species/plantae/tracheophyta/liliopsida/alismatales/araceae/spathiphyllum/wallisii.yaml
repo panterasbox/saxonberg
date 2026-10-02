@@ -2,7 +2,6 @@
 # aperiodic (plants don't have a circadian behavior to speak of in v1's
 # sense). The houseplant entry.
 class: /platform/idea/species/Species
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   binomial: Spathiphyllum wallisii
   commonNames: ["peace lily", "houseplant"]

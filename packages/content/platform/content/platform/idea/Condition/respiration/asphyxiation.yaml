@@ -5,7 +5,6 @@
 # clears the affliction above the lethal floor. Sustained dwell at the
 # floor fires the death seam (cause-of-death `asphyxiation`).
 class: /platform/idea/Condition
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: asphyxiation
   signature: []

@@ -95,8 +95,8 @@ precedent.
 The advancement-precedent three singletons:
 
 - **`CorpoCatalogue`** (`obj/CorpoCatalogue.ts`, `/platform/idea/CorpoCatalogue`) — the
-  read-only **data-cache** singleton (`PostRegistrationMixin(Idea)`). At boot
-  `postRegister` scans the `Corpo` and `Brand` leaf templates from the
+  read-only **data-cache** singleton (`Idea`). At boot
+  `onCreate` scans the `Corpo` and `Brand` leaf templates from the
   `domain` collection into two descriptor maps keyed by `key`, then builds a
   derived **portfolio index** (corpo key → owned brand keys) — the "portfolio
   is the forward edge" projection as a cheap precomputed inverted index. A

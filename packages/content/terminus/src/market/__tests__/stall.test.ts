@@ -183,7 +183,7 @@ describe('a player shop is a rented market stall', () => {
     Document.setMarshallerResolver(() => undefined, async () => undefined);
     stubSeeds();
     const reg = makeStuffAtPath(() => new ChattelRegistry(), '/platform/idea/ChattelRegistry');
-    await reg.postRegister();
+    await reg.onCreate();
     makeStuffAtPath(() => {
       const b = new BankCounter();
       b.setCorpoKey('goodkin');

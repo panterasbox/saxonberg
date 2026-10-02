@@ -240,9 +240,9 @@ a **`Document`** managed by a catalogue singleton — the
     the craft-resolve evidence records (see the knowledge ladder below);
     absent ⇒ no advancement row (every bar row).
 - **`RecipeCatalogue`** (`obj/RecipeCatalogue.ts`, singleton
-  `PostRegistrationMixin(Idea)` at `/platform/idea/RecipeCatalogue`) — caches
+  `Idea` at `/platform/idea/RecipeCatalogue`) — caches
   `DocumentApi.listOfKind('recipe')`, resolves by id + keyword (`order
-  martini` → one recipe), `warm()` on `postRegister`,
+  martini` → one recipe), `warm()` on `onCreate`,
   `invalidateCache()` + `warm()` as the installer's go-live after a live
   `pack sync`. The `SoulCatalogue` shape. **Read methods
   are ungated** (the `TopicCatalogue` "public knowledge" precedent — a

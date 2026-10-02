@@ -15,7 +15,6 @@
 # on both sides — the steps declare `down` to here, this room declares `up`
 # back). One cell below the steps at [0, 0, -1].
 class: /platform/location/SingletonCartesianLocation
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: flooded cistern
   keywords: [cistern, flooded]

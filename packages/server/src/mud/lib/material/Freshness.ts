@@ -808,7 +808,7 @@ export interface Fresh {
    */
   setMicrobialLoad(load: number): void;
 
-  // Public so the Hydrator can reflect into them; in-class code reads them
+  // Public so the applier can reflect into them; in-class code reads them
   // directly. Not the inter-Stuff contract (that's the method surface).
   _microbialLoad: number;
   freshnessClockStamp: number;

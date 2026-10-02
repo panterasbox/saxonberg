@@ -2,7 +2,6 @@
 # RETURN LEG of the nitrogen ledger. A byre with nowhere to put the muck
 # is a byre throwing away half of what the animals are for.
 class: /platform/thing/Thing
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: steaming midden
   keywords: [midden, steaming]

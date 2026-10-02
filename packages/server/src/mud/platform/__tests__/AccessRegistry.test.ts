@@ -4,7 +4,7 @@
  *
  * Harness: an in-memory PersistenceManager (groups + templates share one
  * store, filtered by name/path), a hand-stamped Registry at
- * `/platform/idea/AccessRegistry` whose `postRegister` mints the bootstrap groups,
+ * `/platform/idea/AccessRegistry` whose `onCreate` mints the bootstrap groups,
  * and real `Avatar` instances (the `isWizard` predicate narrows on
  * `instanceof Avatar` + a non-empty playerId).
  */
@@ -94,19 +94,19 @@ function installInMemoryStore(initial: Doc[] = []): Doc[] {
 async function bootRegistry(): Promise<AccessRegistry> {
   // The AccessRegistry's seeding talks to the GroupRegistry via
   // GroupApi.registry(); stand one up (providers register in its
-  // postRegister) before AccessRegistry.postRegister runs.
+  // onCreate) before AccessRegistry.onCreate runs.
   if (!StuffApi.findByTemplatePath("/platform/idea/GroupRegistry")) {
     const groups = makeStuffAtPath(
       () => new GroupRegistry(),
       "/platform/idea/GroupRegistry",
     );
-    await groups.postRegister();
+    await groups.onCreate();
   }
   const reg = makeStuffAtPath(
     () => new AccessRegistry(),
     "/platform/idea/AccessRegistry",
   );
-  await reg.postRegister();
+  await reg.onCreate();
   return reg;
 }
 
@@ -125,7 +125,7 @@ async function bootParcelRegistry(): Promise<ParcelRegistry> {
     () => new ParcelRegistry(),
     "/platform/idea/ParcelRegistry",
   );
-  await reg.postRegister();
+  await reg.onCreate();
   return reg;
 }
 

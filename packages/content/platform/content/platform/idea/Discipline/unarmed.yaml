@@ -4,7 +4,6 @@
 # wielded weapon), so a brawler's transcript diverges from a swordsman's
 # over time. The fisticuffs sibling of blades.
 class: /platform/idea/Discipline
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   key: unarmed
   channel: skill

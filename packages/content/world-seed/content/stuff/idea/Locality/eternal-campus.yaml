@@ -5,7 +5,6 @@
 # addresses under this prefix, so a dorm room's jurisdiction chain reads
 # [university, city, realm] — the civics flagship's three-deep proof.
 class: /platform/idea/Locality
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: Eternal University Campus
   _address: terminus/city/campus

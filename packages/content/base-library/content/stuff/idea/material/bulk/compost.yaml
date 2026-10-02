@@ -10,7 +10,6 @@
 # limiting nutrient is enough to make an unfed bed yield worse, which is
 # the whole lesson phase 2 is after.
 class: /platform/idea/material/Material
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: compost
   keywords: [humus, compost, muck, manure]

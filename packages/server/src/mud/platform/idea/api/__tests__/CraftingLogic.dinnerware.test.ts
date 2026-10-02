@@ -31,7 +31,7 @@ import Dish from '../../../thing/Dish';
 import CraftVessel from '../../../thing/CraftVessel';
 import Tool from '../../../thing/Tool';
 import Oven from '../../../thing/Oven';
-import PersistentHydrator from '../../persistence/PersistentHydrator';
+import TemplateApplier from '../../TemplateApplier';
 import RecipeCatalogue from '../../RecipeCatalogue';
 import { Reserve } from '../../../../lib/reserve';
 import { Idea } from '../../../../lib/stuff/Idea';
@@ -321,19 +321,19 @@ describe('the pot in the pool does not misbehave', () => {
 });
 
 describe('the hydrator arms cover Dish too (the logged-out-lockout lesson)', () => {
-  it('⭐ a soiled dish round-trips through the Hydrator without a policy denial', async () => {
+  it('⭐ a soiled dish round-trips through the applier without a policy denial', async () => {
     const b = bowl();
     // What a snapshot of a used dish holds. `setSoiled` is gated to
-    // CraftingLogic + the two Hydrator arms; a Dish that did NOT inherit
+    // CraftingLogic + the two applier arms; a Dish that did NOT inherit
     // that gate — or a gate that named only glasses — would THROW here,
     // and in production it locked a player out of their character.
     const restored = makeStuff(() => new Dish());
     await expect(
-      makeStuff(() => new PersistentHydrator()).hydrate(restored, {
+      makeStuff(() => new TemplateApplier()).apply(restored, {
         soiled: true,
         technique: 'stewed',
         interiorBulk: true,
-      }),
+      }, { mode: 'mint' }),
     ).resolves.toBeUndefined();
     expect(restored.isSoiled()).toBe(true);
     expect(MixinApi.isBulkable(restored)).toBe(true);

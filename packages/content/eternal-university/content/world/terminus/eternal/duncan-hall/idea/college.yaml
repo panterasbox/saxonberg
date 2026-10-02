@@ -10,7 +10,6 @@
 # committee member) acts. The appointing authority is the building's
 # committee: whoever holds the hall hires and fires the manager.
 class: /platform/idea/Organization
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: Duncan Hall
   appointingAuthority:

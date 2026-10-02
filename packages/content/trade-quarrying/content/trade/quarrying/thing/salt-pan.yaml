@@ -14,7 +14,6 @@
 # ⭐ `open: true` and it stays open — a covered pan is a pan that does not
 # work. And `closure: none`, because the whole apparatus is *no lid*.
 class: /platform/thing/Vat
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: salt pan
   keywords: [pan, "salt pan", saltpan, saltern, lead]

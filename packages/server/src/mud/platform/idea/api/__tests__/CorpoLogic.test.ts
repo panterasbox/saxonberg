@@ -61,7 +61,7 @@ async function warmCatalogue(): Promise<void> {
     () => new CorpoCatalogue(),
     "/platform/idea/CorpoCatalogue"
   );
-  await cat.postRegister();
+  await cat.onCreate();
 }
 
 describe("CorpoApi / CorpoLogic", () => {

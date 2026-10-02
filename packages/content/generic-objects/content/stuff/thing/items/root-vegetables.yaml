@@ -1,6 +1,5 @@
 # Pantry roots — cooking stock (the `vegetable` category slot).
 class: /platform/thing/Provision
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: bundle of root vegetables
   keywords: [vegetables, roots, bundle, veg, root]

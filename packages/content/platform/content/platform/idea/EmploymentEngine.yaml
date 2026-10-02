@@ -1,4 +1,4 @@
-# EmploymentEngine — the singleton whose postRegister arms the recurring game-time roster tick (the immediate boot pass stays a sequencer line, P2)
+# EmploymentEngine — the singleton whose onCreate arms the recurring game-time roster tick (the immediate boot pass stays a sequencer line, P2)
 # (the self-warming shape; eager via this pack's boot list, not an
 # AppBootstrap sequencer line).
 class: /platform/idea/EmploymentEngine

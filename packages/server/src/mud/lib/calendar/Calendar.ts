@@ -74,7 +74,7 @@ export function CalendarMixin<TBase extends MixinConstructor<Stuff>>(
     /** The dated entries. Persisted; rides the Avatar snapshot. */
     public calendarEntries: CalendarEntryStored[] = [];
 
-    /** The live one-shot ping handle — transient, re-armed in postRegister. */
+    /** The live one-shot ping handle — transient, re-armed in onCreate. */
     private calendarPingHandle: ClockHandle | null = null;
 
     @Final

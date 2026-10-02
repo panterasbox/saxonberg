@@ -4,7 +4,6 @@
 # "fruit" is the flush of sprigs; cutting it is the pick.
 # No moisture reserve — the water lives in the ground (see peace-lily).
 class: /platform/thing/Plant
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: clump of mint
   keywords: [mint, clump, spearmint, herb, plant]

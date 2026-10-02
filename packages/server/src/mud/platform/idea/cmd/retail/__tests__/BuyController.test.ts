@@ -111,7 +111,7 @@ async function bootChattel(): Promise<void> {
     () => new ChattelRegistry(),
     "/platform/idea/ChattelRegistry",
   );
-  await reg.postRegister();
+  await reg.onCreate();
 }
 
 function makeStore(opts: {

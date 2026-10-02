@@ -155,7 +155,7 @@ export class WorldClockApi {
    * game, eval, scheduled-callback, and network context runs under a
    * frame (non-null caller) and is denied — nothing in-world can
    * freeze world-time. (The boot itself is the Registry's own
-   * `postRegister` — self-warming via the boot manifest.)
+   * `onCreate` — self-warming via the boot manifest.)
    */
   @CallSecurity(SecurityPolicies.SystemRoot)
   public static async shutdown(): Promise<void> {

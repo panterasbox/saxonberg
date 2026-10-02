@@ -9,7 +9,6 @@
 # from below it (the water slate's finding); what is landed here
 # carries what the city put in.
 class: /system/water/thing/Shore
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: river's edge
   keywords: [edge, water, river, shore, bank, shallows, confluence]

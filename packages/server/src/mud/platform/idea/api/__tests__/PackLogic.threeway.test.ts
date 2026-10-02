@@ -270,7 +270,6 @@ describe('a stamped row with no baseline (partial older record)', () => {
     expect(recordOf('p')!.rows[GIN]).toBeDefined();
     expect(JSON.parse(recordOf('p')!.rows[GIN]!.body)).toMatchObject({
       class: MATERIAL,
-      hydratorClass: HYDRATOR,
       data: { name: 'gin' },
     });
   });

@@ -20,16 +20,16 @@ answered the question a player asks by standing somewhere:
 ## Three claims, and the rest follows
 
 **1. Every Location has a floor, by construction.** `Location.ensureFloor()`
-runs at `postRegister` — the one lifecycle every clone *and* every `create`
+runs at `onCreate` — the one lifecycle every clone *and* every `create`
 passes through, which is why a warren-minted Lounge room gets its floor from
 the same line an authored room does. A room opts out with
 `noDefaultFloor: true`; the void is the only shipped user.
 
-⚠ That is why `PostRegistrationMixin` sits in `Location`'s **base** stack.
+⚠ That is why `onCreate` sits in `Location`'s **base** stack.
 The mixin's default hook is a **non-chaining no-op**, so a second
 composition anywhere above the base *swallows* the base's — which is what
 the ten Location classes that used to compose it individually would each
-have done. Every override in the family now chains `super.postRegister()`,
+have done. Every override in the family now chains `super.onCreate()`,
 and `lint:ground` clause (e) is what keeps it that way.
 
 **2. A floor knows what it is made of, and never has to be told.** Five

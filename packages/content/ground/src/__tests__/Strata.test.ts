@@ -33,7 +33,7 @@ function stubZone(cellSize: number, deposit: string | null) {
 
 function room(coords: [number, number, number], zone: unknown): TestGround {
   // ⚠ `makeStuff`, not `StuffApi.createSync`: since the ground build every
-  // Location composes `PostRegistrationMixin` at the base (that is what
+  // `Location.onCreate` mints the floor at the base (that is what
   // gives it a floor), and `createSync` refuses a class that needs async
   // setup. This test is about the position reads, not about minting rooms.
   const r = makeStuff(() => new TestGround());

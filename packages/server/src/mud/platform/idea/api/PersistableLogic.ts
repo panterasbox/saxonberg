@@ -18,7 +18,7 @@ import { ExecutionContextApi } from "../../../api/execution-context";
 import { PersistedRecord } from "../../../lib/persistence/PersistedRecord";
 import { Template } from "../../../lib/stuff/Template";
 import { Document } from "../../../lib/persistence/Document";
-import PersistentHydrator from "../persistence/PersistentHydrator";
+import TemplateApplier from "../TemplateApplier";
 import type { Marshaller } from "../../../lib/persistence/Marshaller";
 import type {
   MixinSlice,
@@ -30,7 +30,7 @@ import type {
   ContentPlacement,
   HostPlacement,
   CaptureContext,
-  RestoreContext,
+  HydrateContext,
   EstateEntry,
 } from "../../../lib/persistence/PersistenceSlice";
 import type { Stuff } from "../../../lib/stuff/Stuff";
@@ -203,7 +203,7 @@ function capturePlacement(host: Stuff): HostPlacement | null {
   // ⚠ Carried by somebody (an avatar anywhere up the chain): no placement.
   // Every avatar shares one template path, so a `via` hop naming one
   // could land the good in a stranger's pockets; and a good in hand is
-  // the owner's estate's to put back (`Estate.restoreSlice`, inventory).
+  // the owner's estate's to put back (`Estate.hydrateSlice`, inventory).
   if (carried) return null;
   const nested = via.length > 0 ? { via } : {};
   // A KEYED host container (a holding's room — residences D16): record
@@ -676,7 +676,7 @@ async function restoreState(
   principal: Stuff,
 ): Promise<void> {
   // (1) Fields — drift-guarded to the class's declared persistent fields,
-  // so a forged record cannot inject `class`/`hydratorClass`/`brain` (which
+  // so a forged record cannot inject `class`/`brain` (which
   // are Template-level, never persistent fields) nor any undeclared key.
   const allowed = new Set(
     MixinApi.getAllPersistentFields(target.constructor as AnyConstructor),
@@ -695,14 +695,19 @@ async function restoreState(
       slottedSlice = slice;
     }
   }
-  // Hydrate through the standard two-phase Hydrator: prefers `set<Field>`
-  // (the invariant-enforcing gated setter surface), un-marshals rich values,
+  // Apply through the standard property phase: prefers `set<Field>` (the
+  // invariant-enforcing gated setter surface), un-marshals rich values,
   // and only bracket-assigns setterless pure-storage fields (already
   // drift-guarded to declared persistent fields). No raw-target write.
-  const hydrator = await StuffApi.singleton<PersistentHydrator>(
-    PersistentHydrator.templatePath,
+  //
+  // ⚠ RESTORE mode, which is NOT go-live: this replays a record of what
+  // this instance actually had, so a `birthOnly` field is exactly what
+  // it must write back. Phases 2 and 3 are skipped by selection — an
+  // instruction or seed field never appears in a captured field slice.
+  const applier = await StuffApi.singleton<TemplateApplier>(
+    TemplateApplier.templatePath,
   );
-  await hydrator.hydrate(target, fieldData);
+  await applier.apply(target, fieldData, { mode: 'restore' });
 
   // (2) Container contents — cloned through the gated path, placed into the
   // target. Index-aligned with the slice so the Slotted pass resolves.
@@ -763,7 +768,7 @@ async function restoreState(
   // against each other is load-bearing and cannot be a generic loop); this
   // dispatches the rest — today, `EstateMixin`. Runs last, so an estate's
   // `inventory` goods land in a container that has already been restored.
-  const ctx: RestoreContext = {
+  const ctx: HydrateContext = {
     restoreItem: (entry, host) =>
       restoreItem(entry as ContentEntry, host as Stuff, principal),
     standUpKeyed: (scope, key) => cloneHost(scope, key),
@@ -771,9 +776,9 @@ async function restoreState(
   for (const c of MixinApi.getPersistenceContributors(
     target.constructor as AnyConstructor,
   )) {
-    if (!c.restoreSlice) continue;
+    if (!c.hydrateSlice) continue;
     const slice = state[c.key];
-    if (slice) await c.restoreSlice(target, slice, ctx);
+    if (slice) await c.hydrateSlice(target, slice, ctx);
   }
 }
 

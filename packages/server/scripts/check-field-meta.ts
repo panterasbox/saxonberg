@@ -48,7 +48,7 @@
  * Measured against the pre-codemod tree, exactly ONE array in `src/mud`
  * shifts: `Weapon.fieldMarshallers`, declared `[mass, length]`, read back
  * `[length, mass]` because `length` is also persistent. `persistentFields`
- * — the one order the docs call load-bearing (`PersistentHydrator` Phase 1
+ * — the one order the docs call load-bearing (`TemplateApplier` Phase 1
  * applies in that order) — is preserved by construction, since it is
  * emitted first. `instructionFields` and `stackIdentityFields` shift
  * nowhere.
@@ -56,7 +56,7 @@
  * So marshaller keys are stored SORTED here and compared
  * order-insensitively, and the other three stay order-sensitive. That is
  * sound rather than convenient: `getAllFieldMarshallers` is consumed as a
- * lookup map (`marshallerPaths[field]` in the Hydrator), and
+ * lookup map (`marshallerPaths[field]` in the applier), and
  * `getAllStackIdentityFields` is unioned into a `Set` — neither has an
  * order to lose. The alternative, blanket-sorting all four, would throw
  * away a real check on the one array that needs it.
@@ -534,6 +534,8 @@ const KNOWN_PROPS = new Set([
   "spoiler",
   "spoilerName",
   "inherit",
+  "seed",
+  "birthOnly",
 ]);
 const TRUE_ONLY = new Set([
   "persistent",
@@ -541,6 +543,8 @@ const TRUE_ONLY = new Set([
   "stackIdentity",
   "authorable",
   "runtimeState",
+  "seed",
+  "birthOnly",
 ]);
 const STRING_PROPS = new Set(["marshaller", "inverse", "authorPicker"]);
 const REF_VALUES = new Set(["identity", "instance"]);

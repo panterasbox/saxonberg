@@ -11,7 +11,6 @@
 # `container:` is Veshko's yard Stock — the ONLY faucet. Its hand carries
 # the case to the cash-and-carry and consigns it AS Veshko.
 class: /trade/distilling/thing/SpiritBottle
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: bottle of gin
   keywords: [gin, bottle, spirit]

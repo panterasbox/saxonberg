@@ -10,7 +10,6 @@
 # blow is untouched. The vessel breaks by ITS OWN material (glass), not
 # the acid it holds.
 class: /platform/thing/Receptacle
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: flask of vitriol
   keywords: [flask, vitriol, acid, glass]

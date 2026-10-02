@@ -2,7 +2,6 @@
 # Oak's real figures (autoignition 570 K, heat of combustion 16 MJ/kg) drive
 # it; on burnout it chars to carbon.
 class: /platform/thing/Firewood
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: split oak log
   keywords: [split, log, oak, firewood, wood]

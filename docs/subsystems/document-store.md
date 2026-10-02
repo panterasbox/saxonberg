@@ -141,7 +141,7 @@ today.
 
 A third disposition exists beside *move* and *keep*: **a collection that
 is a cache of derivable state should not persist at all.** And there is a
-one-word tell, visible in every singleton's `postRegister`:
+one-word tell, visible in every singleton's `onCreate`:
 
 | the call | what it means | verdict |
 |---|---|---|
@@ -160,7 +160,7 @@ rest all **warm** — they load, and their collections are real state.
 |---|---|---|
 | ⭐⭐⭐ **`blueprints`** | **delete — derivable** | the only `rebuild()` in the tree; `Blueprint.find()` appears **twice**, both inside `BlueprintCatalogue.rebuild()`; the class says *"A CACHE: `rebuild` regenerates it at every boot"* |
 | ⭐⭐⭐ **`descriptor_banks`** | **move — should be a kind** | ⚠ **a documented inconsistency** (below) |
-| ⭐⭐ **`office_holders`** | **move** | 0 indexes, 5 sparse rows, `postRegister` does **no DB work**, and `holderOf` = *explicit row else the founder default* — a path lookup with a fallback |
+| ⭐⭐ **`office_holders`** | **move** | 0 indexes, 5 sparse rows, `onCreate` does **no DB work**, and `holderOf` = *explicit row else the founder default* — a path lookup with a fallback |
 | ⭐ `media_assets` | move | 0 indexes; provenance records, addressable by asset |
 | ⚠ `bank_supply` | **leave** | 1 row, 0 indexes, looks perfect — **it is money.** The conservation chokepoint's counter does not go in a generic JSON store where `canAtPath` decides who may write. |
 | ⚠ `pack_installs` | **leave** | circular: it is the *installer's* ledger, and documents are what the installer writes |

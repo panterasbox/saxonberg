@@ -4,7 +4,6 @@
 # explicitly on both sides (the template is self-describing): the hall lies one
 # cell west.
 class: /platform/location/SingletonCartesianLocation
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: Departure Gate A
   keywords: [gate, departure]

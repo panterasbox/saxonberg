@@ -2,7 +2,6 @@
 # conductor than fresh water (~5 S/m, ~500×), the cheap teachable for why
 # the flooded cell is lethal. Otherwise a flat bulk Material like water.
 class: /platform/idea/material/Material
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: salt water
   keywords: [water, brine, "salt water", saltwater, seawater, salt]

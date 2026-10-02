@@ -2,7 +2,6 @@
 # sharpen ritual lights up (the carried-affordance model); the store
 # sells your own.
 class: /trade/smithing/thing/Whetstone
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: smithy whetstone
   keywords: [whetstone, stone, hone, smithy]

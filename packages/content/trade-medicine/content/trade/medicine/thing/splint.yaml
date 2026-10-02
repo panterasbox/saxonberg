@@ -2,7 +2,6 @@
 # `set` verb lights up (the carried-affordance model); the infirmary keeps
 # one, and the store sells your own.
 class: /trade/medicine/thing/Splint
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: wooden splint and bindings
   keywords: [splint, brace, bindings, wooden]

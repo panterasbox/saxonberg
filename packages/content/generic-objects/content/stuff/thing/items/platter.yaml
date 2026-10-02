@@ -3,7 +3,6 @@
 # three commons dinnerware kinds (plate · bowl · platter), and the same
 # claimed-not-cloned vessel as the other two.
 class: /platform/thing/Dish
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: platter
   keywords: [platter, dish, board, serving]

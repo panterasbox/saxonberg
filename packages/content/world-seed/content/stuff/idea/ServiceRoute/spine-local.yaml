@@ -13,7 +13,6 @@
 #
 # `stops` omitted ⇒ it stops everywhere it passes.
 class: /system/transport/idea/ServiceRoute
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   key: spine-local
   name: the local

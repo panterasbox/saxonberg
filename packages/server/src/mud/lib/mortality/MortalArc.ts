@@ -16,7 +16,7 @@
  *
  * Every field is a plain, DURABLE scalar — nothing here is a handle to a
  * live object, so nothing here can be stale by the time it is read. That
- * also means the `Hydrator`'s scalar default carries it with no marshaller (docs/antipatterns.md § *Persistent Fields Default
+ * also means the `TemplateApplier`'s scalar default carries it with no marshaller (docs/antipatterns.md § *Persistent Fields Default
  * to Scalars*).
  *
  * See [docs/subsystems/mortality.md](../../../../../docs/subsystems/mortality.md).

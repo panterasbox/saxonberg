@@ -36,7 +36,6 @@
 # CB banks only the treasury), so it banks commercially: Goodkin, v1's one
 # real branch, until the corpo banks land.
 class: /platform/idea/Business
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   # Self-regulating: the committee over its OWN extent. Names no realm.
   appointingAuthority:

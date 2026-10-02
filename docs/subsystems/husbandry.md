@@ -49,8 +49,8 @@ rewrite. A fused pot-and-plant object would have been thrown away.
 
 ```ts
 // obj/Plant.ts — PersistableMixin OUTERMOST (the host rule)
-PersistableMixin(PostRegistrationMixin(SlottableMixin(GrowingMixin(
-  ReservedMixin(OrganismMixin(ThermalMixin(Good)))))))
+PersistableMixin(SlottableMixin(GrowingMixin(
+  ReservedMixin(OrganismMixin(ThermalMixin(Good))))))
 
 // obj/PlantPot.ts — the Slotted host + the soil holder. NOT a host.
 StagedMixin(SlottedMixin(BulkableMixin(ContainerMixin(Good))))

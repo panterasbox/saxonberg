@@ -27,7 +27,6 @@
 # and coldly, from luciferin oxidation. The invention is the brightness,
 # not the mechanism.
 class: /platform/idea/species/Species
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   binomial: Mycena lucifera
   commonNames: ["glowcap", "foxfire", "lamp fungus"]

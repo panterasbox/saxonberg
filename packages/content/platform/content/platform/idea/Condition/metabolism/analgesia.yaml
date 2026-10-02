@@ -2,7 +2,6 @@
 # can brew (willow tea), so NOT prescription-only. Read by an operation's
 # conscious penalties (they scale by 1 − relief) and by look/assess.
 class: /platform/idea/Condition
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: analgesia
   signature:

@@ -32,7 +32,6 @@
  */
 
 import { Idea } from '../../lib/stuff/Idea';
-import { PostRegistrationMixin } from '../../lib/stuff/PostRegistration';
 import type { MixinConstructor, FieldMeta } from '../../lib/mixin';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type { VetoResult } from '../../lib/errors';
@@ -47,7 +46,7 @@ import type { ContractRecord } from '../../lib/employment/ContractRecord';
 /**
  * The trading half of the surface — what a Business adds to the chart
  * (methods only, per the inter-stuff contract). The `operatingLocations` /
- * `banksAt` fields are public so the Hydrator can reflect into them, but
+ * `banksAt` fields are public so the applier can reflect into them, but
  * they are NOT the contract surface.
  */
 /**
@@ -213,7 +212,7 @@ export function BusinessMixin<
      */
     public charter: Charter[] = [];
 
-    /** The Hydrator's Phase-1 setter: an unknown charter is refused loudly, never read as `wild`. */
+    /** The applier's Phase-1 setter: an unknown charter is refused loudly, never read as `wild`. */
     public setCharter(value: unknown): void {
       const list = Array.isArray(value) ? value : [];
       for (const c of list) {
@@ -356,7 +355,7 @@ export function BusinessMixin<
  * class into a recursive base type).
  */
 class BusinessEntity extends BusinessMixin(
-  OrganizationMixin(PostRegistrationMixin(Idea)),
+  OrganizationMixin(Idea),
 ) {
   /** Singleton refusal (mirrors the catalogue singletons). */
   public canDestruct(): VetoResult {

@@ -560,3 +560,55 @@ describe('the trail — how it knows the way back', () => {
     expect(a.getTrail()[0]).not.toBe('/test/r0');
   });
 });
+
+/**
+ * ⭐⭐ **A newborn animal answers about its own feeding, handling and
+ * biddability — because the verb that asks warms what it reads.**
+ *
+ * The species warm used to sit in `Bonded.onCreate`, added after a live
+ * drive found `offer` answering `no-hand-rung` to a cat. It left the hook
+ * in W6 (warming a shared reference row somebody else authored is not
+ * hydration — it is kind B, read by path, idempotent, with no capture
+ * side), and each verb and the deliberation beat now warm what they are
+ * about to read.
+ *
+ * ⚠ These assertions are deliberately the POSITIVE ones. The original
+ * defect hid for a whole build because every assertion about it was
+ * refusal-shaped: `no-hand-rung` and `not askable` are what an animal
+ * says when its species is ABSENT, so a test that asserted the refusal
+ * passed whether the warm worked or not. *A drive checkpoint must be able
+ * to fail.*
+ */
+describe('⭐ a fresh animal reads its own species dials', () => {
+  it('answers the SPECIES hand rung, not the absent-species refusal', async () => {
+    const sp = speciesFeeding(['hand']);
+    const cat = animal(sp);
+    // ⬇ The assertion that can fail: `offerRung` returns the authored
+    // rung. An absent species answers `after-you-go` for everyone, which
+    // is the shape the defect wore.
+    cat.handling = 1;
+    expect(cat.takesFromHand()).toBe(true);
+    expect(cat.offerRung(person('p-fresh'))).toBe('hand');
+  });
+
+  it('answers biddability, so `call`/`stay` can be obeyed at all', () => {
+    const collie = animal(species({ biddability: 0.9 }));
+    const owner = person('p-collie');
+    collie.adjustRegard(owner, 100);
+    collie.handling = 1;
+    // An absent biddability makes `wouldComply` false for everyone, for
+    // ever — "not in this conversation". A read dial makes it reachable.
+    expect(collie.wouldComply(owner)).toBe(true);
+  });
+
+  it('⚠ and with NO species the refusals are still the documented ones', () => {
+    // The other half of the pair: absent is *not in this conversation*,
+    // not "average". This is what the warm is protecting against being
+    // the answer a player gets.
+    const stray = animal();
+    stray.handling = 1;
+    expect(stray.takesFromHand()).toBe(false);
+    expect(stray.offerRung(person('p-stray'))).toBe('after-you-go');
+    expect(stray.wouldComply(person('p-stray'))).toBe(false);
+  });
+});

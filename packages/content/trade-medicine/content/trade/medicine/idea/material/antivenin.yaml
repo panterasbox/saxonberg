@@ -7,7 +7,6 @@
 # ⚠ The tag namespace is `antidote:<toxinType>`, and `<toxinType>` is the
 # metabolism burden key it crashes (`venom`, later `botulinum`, `lead`…).
 class: /platform/idea/material/Material
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: antivenin
   keywords: [antivenin, antivenom, serum, remedy]

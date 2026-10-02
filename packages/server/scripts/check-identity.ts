@@ -65,7 +65,7 @@
  *      named artefact) — it is NOT on the creature base. So a row that
  *      authors `name:` / `surname:` / `honorific:` / `nameSuffix:` /
  *      `alternateNames:` on an `Extra`, a corpse or a head of stock is
- *      writing a key the `Hydrator` will **discard without a word**,
+ *      writing a key the `TemplateApplier` will **discard without a word**,
  *      because it reflects only into fields a composed class declares.
  *
  *      ⚠ This is the rule that makes the proper-name move SAFE rather
@@ -280,7 +280,7 @@ export const DEFINITE = /^the\s+/i;
 export const INDEFINITE = /^an?\s+/i;
 
 /**
- * The keys `NamedMixin` declares — the ones the Hydrator will reflect
+ * The keys `NamedMixin` declares — the ones the applier will reflect
  * into if and only if the row's class composes it. Read off
  * `Named.fieldMeta`; a field added there must be added here.
  */
@@ -399,7 +399,7 @@ function main(): void {
     }
   }
 
-  // 6 — a name-shaped key the Hydrator would discard. Its own pass: it
+  // 6 — a name-shaped key the applier would discard. Its own pass: it
   // is about every organism row, not only the ones with a brain (a
   // corpse and a head of stock have no brain and can still be authored
   // a name by mistake).
@@ -418,7 +418,7 @@ function main(): void {
     if (composes(classPath, 'NamedMixin')) continue;
     failures.push(
       `${row.file}: authors ${authored.map((k) => `'${k}'`).join(', ')} on ` +
-        `${classPath}, which does not compose NamedMixin — so the Hydrator ` +
+        `${classPath}, which does not compose NamedMixin — so the applier ` +
         `discards it in silence. A proper name belongs to somebody: put the ` +
         `row on the Cast rung, or compose NamedMixin on a class of its own ` +
         `(that is what a named animal or a named artefact does).`,

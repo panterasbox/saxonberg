@@ -16,7 +16,6 @@
 # (the two packs disagree on the unit — a finding for whoever owns
 # base-library, not this build's to fix).
 class: /platform/idea/material/Material
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: grist
   keywords: [grist, grits, malt]

@@ -47,15 +47,10 @@ import type { FieldMeta } from '../mixin';
 // otherwise silently produce two of them. It is wrong wherever a row
 // describes a KIND of place minted many times — nine reaches of one
 // lane, a landing per floor — which had nowhere to live before.
-// ⭐ `PostRegistrationMixin` is NOT composed here: it moved down into
-// `Location`'s own base stack (the ground build), because the mixin's
-// default `postRegister` is a non-chaining no-op — a second composition
-// above the base would SWALLOW `Location.postRegister`, and with it the
-// room's floor.
 // ⚠⚠ `PublicLightingMixin` is NOT here, and was for one build. It went
 // on this base on the reasoning that "any cartesian cell may be lit by a
 // funded public service" — which gave a cellar, a smithy, a mine heading
-// and a ploughed field a lighting field and a `postRegister` hook to
+// and a ploughed field a lighting field and a `onCreate` hook to
 // answer for. FIVE rows in the realm declare the service. It lives on
 // `platform/location/Street` now, which is what a town lights.
 const CartesianLocationBase =
@@ -146,11 +141,11 @@ export default class CartesianLocation extends CartesianLocationBase {
    * (or the next traversal) will rerun the check. See
    * `ExitableMixin.verifyOutboundExits`.
    */
-  public override async postRegister(context?: unknown): Promise<void> {
-    // ⚠ Chain FIRST: `Location.postRegister` is what gives the room its
+  public override async onCreate(context?: unknown): Promise<void> {
+    // ⚠ Chain FIRST: `Location.onCreate` is what gives the room its
     // floor, and the mixin's default is a non-chaining no-op — so an
     // override that forgets this line leaves the room standable by nobody.
-    await super.postRegister(context);
+    await super.onCreate(context);
     this.verifyOutboundExits();
   }
 

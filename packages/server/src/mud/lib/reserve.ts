@@ -222,7 +222,7 @@ export interface Reserved {
   removeReserve(key: string): boolean;
   /** Install the default biological reserves if absent (idempotent). */
   installBiologicalReserves(): void;
-  /** Storage — public for the Hydrator. */
+  /** Storage — public for the applier. */
   reserves: Record<string, ReserveStored>;
 }
 

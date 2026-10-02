@@ -15,7 +15,6 @@
 # is *"steep enough that no boat has ever been up it"* — the water build
 # decided that, not this one.
 class: /platform/idea/location/CartesianZone
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: The Estuary
   cellSize: 20.0

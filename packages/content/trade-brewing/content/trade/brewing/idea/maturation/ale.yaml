@@ -3,7 +3,6 @@
 # and wild flora take it after four days (the lambic move — with wild
 # character riding the strain). Fast, forgiving, brews in a week.
 class: /platform/idea/maturation/MaturationProfile
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   key: ale
   mechanism: microbial

@@ -15,7 +15,6 @@
 # mirror's instrumented bedroom is behaviour its contents cannot carry.
 # Until then it is a row, and promoting it is a one-line `class:` edit.
 class: /platform/location/FurnishableRoom
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   # ⭐ Daylight reaches this room through a real opening, and the
   # opening is named so the claim is something a player can walk up

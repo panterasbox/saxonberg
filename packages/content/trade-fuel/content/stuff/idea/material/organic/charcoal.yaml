@@ -13,7 +13,6 @@
 # commons path is still the commons path — pack ownership is a review
 # unit, not a namespace.
 class: /platform/idea/material/Material
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: charcoal
   keywords: [charcoal]

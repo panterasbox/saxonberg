@@ -3,7 +3,6 @@
 # to bear, and wanting the most light of anything on this list.
 # No moisture reserve — the water lives in the ground (see peace-lily).
 class: /platform/thing/Plant
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: olive tree
   keywords: ["olive tree", olive, tree, plant]

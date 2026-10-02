@@ -32,7 +32,7 @@ import Location from '@saxonberg/server/mud/lib/stuff/Location';
 import { HasInteractiveMixin } from '@saxonberg/server/mud/lib/connection/HasInteractive';
 import { ContainableMixin } from '@saxonberg/server/mud/lib/spatial/Containable';
 import { Idea } from '@saxonberg/server/mud/lib/stuff/Idea';
-import PersistentHydrator from '@saxonberg/server/mud/platform/idea/persistence/PersistentHydrator';
+import TemplateApplier from '@saxonberg/server/mud/platform/idea/TemplateApplier';
 import { Document } from '@saxonberg/server/mud/lib/persistence/Document';
 import ParcelRegistry from '@saxonberg/server/mud/platform/idea/ParcelRegistry';
 import GroupRegistry from '@saxonberg/server/mud/platform/idea/GroupRegistry';
@@ -52,7 +52,7 @@ interface Doc extends Record<string, unknown> {
   _id?: string;
 }
 
-const PH = PersistentHydrator.templatePath;
+const PH = TemplateApplier.templatePath;
 const DORMS = DormWarren.DORMS_EXTENT;
 
 let store: Map<string, Doc[]>;
@@ -78,7 +78,7 @@ const FIXTURES = [
 function seedDomain(): void {
   const domain = col('content');
   const add = (path: string, cls: string, data: Record<string, unknown> = {}) =>
-    domain.push({ _id: `d-${++idCounter}`, path, class: cls, hydratorClass: PH, data });
+    domain.push({ _id: `d-${++idCounter}`, path, class: cls, data });
   domain.push({ _id: `d-${++idCounter}`, path: PH, class: PH, data: {} });
   // ⭐ The engine's own rows: every exit is a clone of a kind row
   // and a boundary's anchors are clones too.
@@ -199,9 +199,9 @@ function installStore(): void {
 
 async function bootRegistries(): Promise<void> {
   const groups = makeStuffAtPath(() => new GroupRegistry(), '/platform/idea/GroupRegistry');
-  await groups.postRegister();
+  await groups.onCreate();
   const parcels = makeStuffAtPath(() => new ParcelRegistry(), '/platform/idea/ParcelRegistry');
-  await parcels.postRegister();
+  await parcels.onCreate();
 }
 
 async function warren(): Promise<DormWarren> {

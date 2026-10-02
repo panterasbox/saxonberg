@@ -5,7 +5,6 @@
 # vocabulary for the wood it yields (the garden bed is made of it); no
 # venue stands it yet.
 class: /platform/idea/species/Species
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   binomial: Pinus sylvestris
   commonNames: ["pine", "Scots pine"]

@@ -16,7 +16,6 @@
 # `biologicalSource` names the tree; the species row names its LIVING
 # material (plant tissue) — the wood is what is left when it is felled.
 class: /platform/idea/material/Material
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: willow
   keywords: [willow]

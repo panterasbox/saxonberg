@@ -11,7 +11,6 @@
 # terminal's north frontage onto University Avenue), south to dead Departure
 # Gate C, east/west to departure gates A/B, up to the ticket office mezzanine.
 class: /platform/location/SingletonCartesianLocation
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: Terminus Terminal, the station hall
   keywords: [hall, terminus, terminal, station]

@@ -9,7 +9,6 @@
 # (`resolution: rest, atStage: 4`, one stage per hour), so a mend is a
 # window, not a permanent buff.
 class: /platform/idea/Condition
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: mending
   signature:

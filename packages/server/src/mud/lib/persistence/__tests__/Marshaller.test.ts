@@ -3,7 +3,7 @@ import { describe, it, expect, afterEach, beforeEach } from 'vitest';
 import { Marshaller } from '../Marshaller';
 import { Idea } from '../../stuff/Idea';
 import { Document } from '../Document';
-import PersistentHydrator from '../../../platform/idea/persistence/PersistentHydrator';
+import TemplateApplier from '../../../platform/idea/TemplateApplier';
 import { MixinApi } from '../../../api/mixin';
 import { StuffApi } from '../../../api/stuff';
 import { ProxyApi } from '../../../api/proxy';
@@ -149,12 +149,12 @@ describe('Marshaller framework', () => {
     });
   });
 
-  describe('PersistentHydrator round-trip', () => {
+  describe('TemplateApplier round-trip', () => {
     it('hydrates raw record-shape into a MoneyBag instance via the marshaller', async () => {
       const w = makeStuff(() => new TestWallet());
-      await makeStuff(() => new PersistentHydrator()).hydrate(w, {
+      await makeStuff(() => new TemplateApplier()).apply(w, {
         wallet: { USD: 100, EUR: 50, GBP: 25 },
-      });
+      }, { mode: 'mint' });
       const wallet = w.getWallet();
       expect(wallet).toBeInstanceOf(MoneyBag);
       expect(wallet.total('USD')).toBe(100);
@@ -166,7 +166,7 @@ describe('Marshaller framework', () => {
     it('skips fields not present in the data', async () => {
       const w = makeStuff(() => new TestWallet());
       // No `wallet` key in data — wallet stays at the default empty bag.
-      await makeStuff(() => new PersistentHydrator()).hydrate(w, {});
+      await makeStuff(() => new TemplateApplier()).apply(w, {}, { mode: 'mint' });
       expect(w.getWallet().currencies()).toEqual([]);
     });
 
@@ -184,9 +184,9 @@ describe('Marshaller framework', () => {
       StuffApi.clearAll();
       const w = makeStuff(() => new TestWallet());
       await expect(
-        makeStuff(() => new PersistentHydrator()).hydrate(w, {
+        makeStuff(() => new TemplateApplier()).apply(w, {
           wallet: { USD: 100 },
-        })
+        }, { mode: 'mint' })
       ).rejects.toThrow();
     });
   });
@@ -250,9 +250,9 @@ describe('Marshaller framework', () => {
 
     it('post-hydration bracket-read returns the raw scalar shape (not the MoneyBag)', async () => {
       const w = makeStuff(() => new TestWallet());
-      await makeStuff(() => new PersistentHydrator()).hydrate(w, {
+      await makeStuff(() => new TemplateApplier()).apply(w, {
         wallet: { USD: 100 },
-      });
+      }, { mode: 'mint' });
       // After hydration the field stores the runtime MoneyBag —
       // bracket-read returns the live instance, not the raw record.
       const raw = ProxyApi.unwrap(w) as unknown as { wallet: MoneyBag };

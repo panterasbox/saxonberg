@@ -1,6 +1,5 @@
 # Lager — brewing's second line. Category tags `beer`, `lager`.
 class: /platform/idea/material/ConsumableMaterial
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: lager
   keywords: [lager, beer, brew]

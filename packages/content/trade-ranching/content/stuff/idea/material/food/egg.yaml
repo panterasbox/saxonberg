@@ -3,7 +3,6 @@
 #
 # ⚠ It lives in the COMMONS. A bird lays whether or not anybody keeps it.
 class: /platform/idea/material/Material
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: egg
   keywords: [eggs, egg]

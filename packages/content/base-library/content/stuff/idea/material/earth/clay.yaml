@@ -7,7 +7,6 @@
 # one is the mug. The two share the keyword `clay` because both honestly
 # answer to it.
 class: /platform/idea/material/Material
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: clay
   keywords: [clay, earth]

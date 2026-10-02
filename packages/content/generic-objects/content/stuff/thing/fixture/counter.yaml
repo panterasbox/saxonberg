@@ -3,7 +3,6 @@
 # `place` keep `container = the room` and gain a placement naming it, so they
 # read as being ON the counter rather than as loose room clutter.
 class: /platform/thing/Fitting
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: kitchen counter
   keywords: [counter, worktop, surface, bench, kitchen]

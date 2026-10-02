@@ -855,7 +855,7 @@ export class SocialLogic extends ApiLogic {
    * Install the presence relay (idempotent). Subscribes to
    * `PlayerLoggedIn` / `PlayerLoggedOut` and fans each out to the online
    * viewers whose first-matching rule for the acting player is non-silent.
-   * Armed by `PresenceRelay.warm` (the manifest postRegister).
+   * Armed by `PresenceRelay.warm` (the manifest onCreate).
    *
    * Unlike the renown reaction/reception taps, this does NOT
    * `restrictSubscribe`: login/logout is *public presence* (already an

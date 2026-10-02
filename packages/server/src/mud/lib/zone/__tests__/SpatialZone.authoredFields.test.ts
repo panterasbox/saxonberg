@@ -2,7 +2,7 @@
  * ⚠⚠ **Every key a shipped zone row authors must be declared in some
  * zone class's `fieldMeta` — because the failure is SILENT.**
  *
- * `fieldMeta` is what the Hydrator reflects through. An undeclared key
+ * `fieldMeta` is what the applier reflects through. An undeclared key
  * in a `data:` block is not an error and not a warning: it is discarded,
  * and the zone comes up as though the author had written nothing. This
  * has now cost two separate things:
@@ -48,7 +48,7 @@ const CONTENT = join(HERE, '..', '..', '..', '..', '..', '..', 'content');
  * and was not in the list. That is the same mistake in miniature that
  * this test exists to catch, so it does not get to make it: resolve the
  * class the row names and ask `MixinApi.getAllFieldMeta`, which walks the
- * chain exactly as the Hydrator does.
+ * chain exactly as the applier does.
  */
 async function fieldsOf(classPath: string): Promise<Set<string> | null> {
   try {

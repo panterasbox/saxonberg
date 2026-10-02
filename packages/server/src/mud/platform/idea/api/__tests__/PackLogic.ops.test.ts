@@ -150,7 +150,7 @@ describe('resolve', () => {
     const restore = vi.spyOn(TemplateApi, 'restoreFromTemplate').mockResolvedValue(undefined as never);
     const r = await PackApi.resolve('p', GIN, 'take-pack', root);
     expect(r!.updated).toEqual([GIN]);
-    expect(r!.rehydrated).toBe(1);
+    expect(r!.reapplied).toBe(1);
     expect(restore).toHaveBeenCalledWith(inst);
     expect(contentRows()[0]!.data).toEqual({ name: 'gin', v: 1 });
     const rec = recordOf('p')!;
@@ -182,7 +182,6 @@ describe('resolve', () => {
     const written = YAML.parse(readFileSync(file, 'utf-8'));
     expect(written).toEqual({
       class: MATERIAL,
-      hydratorClass: HYDRATOR,
       data: { name: 'gin', v: 2 },
     });
     expect(recordOf('p')!.conflicts).toHaveLength(1); // stays open until sync

@@ -57,7 +57,7 @@
  *
  * ## Why the reason is a list HERE and not a `reason:` key on the row
  *
- * ⚠ A `data:` key the Hydrator does not write is dropped **silently** —
+ * ⚠ A `data:` key the applier does not write is dropped **silently** —
  * the grain-chain drive found 49 such rows. A `reason:` beside the
  * temperature would be a field nothing reads and nothing can miss. This
  * list is a **diff a reviewer reads**, which is the whole point: a sixth

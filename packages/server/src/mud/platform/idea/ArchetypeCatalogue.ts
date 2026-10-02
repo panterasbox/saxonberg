@@ -17,13 +17,12 @@
  */
 
 import { Idea } from '../../lib/stuff/Idea';
-import { PostRegistrationMixin } from '../../lib/stuff/PostRegistration';
 import { Archetype } from '../../lib/archetype/Archetype';
 import { DocumentApi } from '../../api/document';
 import type { VetoResult } from '../../lib/errors';
 import type { EvictionContext } from '../../lib/stuff/Stuff';
 
-const ArchetypeCatalogueBase = PostRegistrationMixin(Idea);
+const ArchetypeCatalogueBase = Idea;
 
 export default class ArchetypeCatalogue extends ArchetypeCatalogueBase {
   /** Residency veto — a load-bearing process-lifetime singleton is never culled. */
@@ -46,7 +45,7 @@ export default class ArchetypeCatalogue extends ArchetypeCatalogueBase {
     return [...this.cache!.values()];
   }
 
-  public override async postRegister(_context?: unknown): Promise<void> {
+  public override async onCreate(_context?: unknown): Promise<void> {
     await this.warm();
   }
 

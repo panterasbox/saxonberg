@@ -20,7 +20,6 @@
 # inheritance rule doing its job: say it once, override where it is
 # false.
 class: /platform/idea/FolderZone
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: Terminus
   elevation: 35

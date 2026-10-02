@@ -180,8 +180,8 @@ A leaf `extends Idea`. Nine persistent fields:
   `'quad'`)
 - ⭐ **The parent is the ROW's `extends:`** (2026-09-25 — the private
   `_extendsBiomePath` field is retired; see below). `Biome` composes
-  `PostRegistrationMixin` and caches its row's parent at
-  `postRegister`. `getExtendsBiome()` resolves it via
+  `onCreate` and caches its row's parent at
+  `onCreate`. `getExtendsBiome()` resolves it via
   `StuffApi.findByTemplatePath` (HMR-safe); `getExtendsBiomePath()`
   exposes the raw string for the chain walker;
   `setExtendsBiome(value)` / `setExtendsBiomePath(path)` write a live
@@ -313,7 +313,7 @@ outward chain walk never gets past the room, and the ground build's on-grade
 derivation hands an interior default to open country.
 
 ⭐ **`BiomeCatalogue` (`platform/idea/BiomeCatalogue.ts`) is what warms it** —
-the `MaterialCatalogue` shape, self-warming at `postRegister`, eager through
+the `MaterialCatalogue` shape, self-warming at `onCreate`, eager through
 the platform pack's `boot:` manifest (role `sync-read`). The roster is
 **derived**: every root's `idea/biome/` subtree filtered to rows whose `class`
 extends `Biome`, so a realm pack shipping

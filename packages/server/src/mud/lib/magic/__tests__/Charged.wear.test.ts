@@ -89,7 +89,7 @@ async function installCatalogue(): Promise<void> {
     stampTemplatePathForTest(catalogue, '/platform/idea/SpellCatalogue');
   }
   catalogue.invalidateCache();
-  await catalogue.postRegister();
+  await catalogue.onCreate();
   spy.mockRestore();
 }
 

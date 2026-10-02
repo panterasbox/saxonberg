@@ -130,7 +130,7 @@ composes its capability).
 - **`reset()`** (the `ResettableMixin` hook) tops each line back to par by
   cloning fresh goods from `itemTemplatePath` — **items, never money**
   (Law 2). `resetsWhilePresent() → true` (restock while browsed is fine).
-- **Self-stocks on standup**: `postRegister` calls `reset()`, so the same
+- **Self-stocks on standup**: `onCreate` calls `reset()`, so the same
   one mechanism handles boot-stock and ongoing topup.
 - **One counter is both** (libations): `Stock` composes
   `ConsignmentShelfMixin` (+ `PersistableMixin`), so a counter with

@@ -361,7 +361,7 @@ export function FloorMixin<
      *
      * ⚠ Written to load **nothing**: no `find`, no `hydrate`, no roster
      * warm. That is deliberate and load-bearing — the hydration slate is
-     * running a census-and-ratchet on `postRegister` bodies that load
+     * running a census-and-ratchet on `onCreate` bodies that load
      * state, and `ensureFloor` must never match it. It constructs a
      * companion object and resolves a citation; if a later edit pulls a
      * `findByTemplatePath` into the hook's body, that ratchet's number

@@ -249,7 +249,7 @@ describe("the purchase", () => {
 describe("Ricky", () => {
   it("registers both effects when he stands up — no module-scope registration", async () => {
     const ricky = makeStuffAtPath(() => new Realtor(), "/world/fx/realty/ricky");
-    await ricky.postRegister();
+    await ricky.onCreate();
     expect(DialogueEffectRegistry.has("realty-list")).toBe(true);
     expect(DialogueEffectRegistry.has("realty-buy")).toBe(true);
   });

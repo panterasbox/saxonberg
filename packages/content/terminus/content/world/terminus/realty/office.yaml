@@ -8,7 +8,6 @@
 # declares `realty` in; this declares `row` back) — a non-cardinal name
 # across a zone boundary, the mayfield/avenue precedent.
 class: /platform/location/SingletonCartesianLocation
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: Mayfield & Co., land agents
   keywords: [agents, mayfield, co, land]

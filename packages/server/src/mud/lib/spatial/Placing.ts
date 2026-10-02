@@ -132,9 +132,9 @@ export interface Placing {
   getAirExposure(): number;
   setAirExposure(v: number): void;
 
-  /** Public so the Hydrator can reflect into it. Not the contract. */
+  /** Public so the applier can reflect into it. Not the contract. */
   airExposure: number;
-  /** Public so the Hydrator can reflect into it. Not the contract. */
+  /** Public so the applier can reflect into it. Not the contract. */
   placements: string[];
 }
 

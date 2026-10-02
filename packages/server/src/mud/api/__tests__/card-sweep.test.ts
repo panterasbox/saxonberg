@@ -27,13 +27,13 @@ import { makeStuffAtPath } from '../../lib/security/__tests__/test-setup';
 
 /**
  * Install the sweep the way production does since the boot()
- * retirement: the CardRegistry's postRegister (the manifest path).
+ * retirement: the CardRegistry's onCreate (the manifest path).
  */
 async function installSweep(): Promise<void> {
   const reg =
     StuffApi.findByTemplatePath<CardRegistry>('/platform/idea/CardRegistry') ??
     makeStuffAtPath(() => new CardRegistry(), '/platform/idea/CardRegistry');
-  await reg.postRegister();
+  await reg.onCreate();
 }
 
 function openWho(h: Harness, text: string): string | null {

@@ -155,7 +155,7 @@ HasInteractive (any Stuff that can hold a connection):
   onLinkRestored?(): void
 ```
 
-**Stuff lifecycle**: `PostRegistration.postRegister(context)` and
+**Stuff lifecycle**: `Stuff.onCreate(context)` and
 `onDestruct()` cover construction and teardown. Use those for
 new-instance / about-to-be-destroyed reactions; they predate the
 Witness pattern but fit the same shape.
@@ -294,7 +294,7 @@ already-registered events (e.g. anything from the well-known
 table) no-op.
 
 Well-known events differ only in being **frontloaded**:
-`EventRegistry.postRegister` declares them at registry creation
+`EventRegistry.onCreate` declares them at registry creation
 with their specific allowlists from `lib/events.ts`
 (`emittableBy(StuffApi)` for `StuffCreated`, etc.). If you find
 yourself wanting a non-default policy for a custom event, promote
@@ -316,7 +316,7 @@ single-target alternative.
 ### EventRegistry — the underlying storage
 
 `EventRegistry` is an Idea in `mud/platform/idea/EventRegistry.ts`, composing
-`PostRegistrationMixin(PropertiedMixin(Idea))`. Singleton. Lives at
+`PropertiedMixin(Idea)`. Singleton. Lives at
 template path `/platform/idea/EventRegistry`. Bootstrapped by `BootstrapManager`
 (see [bootstrap.md](./bootstrap.md)).
 
@@ -326,7 +326,7 @@ nothing meaningful to round-trip. Composition deliberately stops at
 `PropertiedMixin(Idea)`.
 
 Each well-known event is a property on the registry, initialized at
-bootstrap time inside `postRegister`. The property's `checkAccess`
+bootstrap time inside `onCreate`. The property's `checkAccess`
 function is what gates publishers and subscribers.
 
 `EventApi` reaches into the registry to set/get props; nothing else

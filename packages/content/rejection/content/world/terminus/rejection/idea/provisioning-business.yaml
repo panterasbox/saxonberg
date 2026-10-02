@@ -1,6 +1,5 @@
 # The provisioning shed — buys tools and timber in, sells them on.
 class: /platform/idea/Business
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   appointingAuthority:
     kind: entity

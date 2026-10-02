@@ -17,7 +17,7 @@ const AppApiCallers = SecurityPolicies.FromModule('/api/app#AppApi');
  * `StuffApi.singletonSync`. Any module that grabs this singleton and
  * calls a method other than through the Api gets `SecurityError`.
  *
- * Stateless by construction (no `PostRegistrationMixin`): the settings
+ * Stateless by construction (no `onCreate` override): the settings
  * state lives on the `AppSettings` cached singleton Document, not here;
  * each method reads/writes that cache. No intra-singleton self-calls.
  *

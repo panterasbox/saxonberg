@@ -1,7 +1,7 @@
 /**
  * Beast — **an animal: a body that acts, and is nobody.**
  *
- * Composition: `Behaved(PostRegistration(Actor))` — the `NPC` shape one
+ * Composition: `Behaved(Actor)` — the `NPC` shape one
  * rung down, and without `Costumed`, because an animal is not dressed.
  *
  * A rangy grey wolf. A fox in the yard, a boar in the wood. It has a
@@ -34,9 +34,8 @@
 
 import { Actor } from '../../lib/creature/Actor';
 import { BehavedMixin } from '../../lib/behavior/Behaved';
-import { PostRegistrationMixin } from '../../lib/stuff/PostRegistration';
 
-const BeastBase = BehavedMixin(PostRegistrationMixin(Actor));
+const BeastBase = BehavedMixin(Actor);
 
 export class Beast extends BeastBase {}
 

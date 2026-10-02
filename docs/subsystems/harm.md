@@ -368,9 +368,9 @@ reads that must reflect the current bleed — `getVitalSign('bloodVolume')`,
   persisted game-time `tickedAt` anchor (rides the `VitalsMixin.conditions`
   collection). `inflict` stamps it at onset; every read advances it. A body
   coming live simply resumes from its last stamp on the next read — nothing
-  to re-arm, no `Avatar.enter` / `NPC.postRegister` touch. (The old
+  to re-arm, no `Avatar.enter` / `NPC.onCreate` touch. (The old
   `HarmApi.rearmWoundTicks` seam is **gone**; `NPC` reverts to the bare
-  `BehavedMixin` `postRegister`.)
+  `BehavedMixin` `onCreate`.)
 - **Per-trauma integration.** For each active trauma,
   `reconcileConditions` computes the in-session game-time elapsed since its
   `tickedAt`, calls `TRAUMA_BEHAVIOR[t.type].tick(host, t, elapsedSec)`,
@@ -842,7 +842,7 @@ plan/requirements docs describe the pre-review shape:
   distinct axes and stay out. Logic singleton at `/platform/idea/api/condition`.
 - **Push tick → reconcile-on-read.** Wound progression was originally
   planned as a `ScheduleApi.recurring` push with an in-memory tick-handle
-  map re-armed on hydrate from `Avatar.enter` + `NPC.postRegister`. It was
+  map re-armed on hydrate from `Avatar.enter` + `NPC.onCreate`. It was
   reworked to reconcile-on-read on the `VitalsMixin` read path (a
   persisted per-trauma `tickedAt`), which deleted the re-arm seam entirely
   and made harm consistent with the metabolism / thermal reconcile

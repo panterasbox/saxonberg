@@ -11,7 +11,7 @@ import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import { StuffApi } from '../stuff';
 import { Stuff } from '../../lib/stuff/Stuff';
-import { PostRegistrationMixin } from '../../lib/stuff/PostRegistration';
+import { ProxyApi } from '../proxy';
 import { makeStuff } from '../../lib/security/__tests__/test-setup';
 import { Idea } from "../../lib/stuff/Idea";
 
@@ -68,22 +68,22 @@ describe('StuffApi', () => {
   });
 
   describe('create', () => {
-    // Test class without PostRegistrationMixin (no postRegister hook)
+    // Test class that does not override the terminal onCreate hook
     class SimpleStuff extends Idea {}
 
-    // Test class composing PostRegistrationMixin
-    class InitializableStuff extends PostRegistrationMixin(Idea) {
+    // Test class overriding onCreate
+    class InitializableStuff extends Idea {
       initializeCalled = false;
 
-      override async postRegister() {
+      override async onCreate() {
         this.initializeCalled = true;
       }
     }
 
-    class AsyncStuff extends PostRegistrationMixin(Idea) {
+    class AsyncStuff extends Idea {
       loadedData: string = '';
 
-      override async postRegister() {
+      override async onCreate() {
         await new Promise((resolve) => setTimeout(resolve, 10));
         this.loadedData = 'loaded';
       }
@@ -94,7 +94,7 @@ describe('StuffApi', () => {
       StuffApi.clearAll();
     });
 
-    it('should create object without postRegister hook', async () => {
+    it('should create object without onCreate hook', async () => {
       const obj = await StuffApi.create(() => new SimpleStuff());
 
       expect(obj).toBeInstanceOf(SimpleStuff);
@@ -102,31 +102,31 @@ describe('StuffApi', () => {
       expect(obj.isDestroyed()).toBe(false);
     });
 
-    it('should call postRegister when PostRegistrationMixin is composed', async () => {
+    it('should call onCreate when the class overrides it', async () => {
       const obj = await StuffApi.create(() => new InitializableStuff());
 
       expect(obj.initializeCalled).toBe(true);
     });
 
-    it('should wait for async postRegister to complete', async () => {
+    it('should wait for async onCreate to complete', async () => {
       const obj = await StuffApi.create(() => new AsyncStuff());
 
       expect(obj.loadedData).toBe('loaded');
     });
 
-    it('should register object after postRegister', async () => {
+    it('should register object after onCreate', async () => {
       const obj = await StuffApi.create(() => new InitializableStuff());
 
       const found = StuffApi.findById(obj.stuffId);
       expect(found).toBe(obj);
     });
 
-    it('should register object in correct order (register → postRegister)', async () => {
+    it('should register object in correct order (register → onCreate)', async () => {
       let registeredDuringInit = false;
 
-      class OrderTestStuff extends PostRegistrationMixin(Idea) {
-        override async postRegister() {
-          // Registration happens before postRegister() so recursive resolvers
+      class OrderTestStuff extends Idea {
+        override async onCreate() {
+          // Registration happens before onCreate() so recursive resolvers
           // (e.g. exit hydration that points back to this object) can see
           // the in-flight instance.
           registeredDuringInit = !!StuffApi.findById(this.stuffId);
@@ -139,9 +139,9 @@ describe('StuffApi', () => {
       expect(StuffApi.findById(obj.stuffId)).toBe(obj);
     });
 
-    it('should unregister the object if postRegister() throws', async () => {
-      class FailingInitStuff extends PostRegistrationMixin(Idea) {
-        override async postRegister() {
+    it('should unregister the object if onCreate() throws', async () => {
+      class FailingInitStuff extends Idea {
+        override async onCreate() {
           throw new Error('init failed');
         }
       }
@@ -159,11 +159,11 @@ describe('StuffApi', () => {
       expect(obj1.stuffId).not.toBe(obj2.stuffId);
     });
 
-    it('should thread context into postRegister(context)', async () => {
-      class ContextStuff extends PostRegistrationMixin(Idea) {
+    it('should thread context into onCreate(context)', async () => {
+      class ContextStuff extends Idea {
         received: unknown = undefined;
 
-        override async postRegister(context?: unknown) {
+        override async onCreate(context?: unknown) {
           this.received = context;
         }
       }
@@ -175,10 +175,10 @@ describe('StuffApi', () => {
     });
 
     it('should pass undefined when no context is supplied', async () => {
-      class ContextStuff extends PostRegistrationMixin(Idea) {
+      class ContextStuff extends Idea {
         received: unknown = 'sentinel';
 
-        override async postRegister(context?: unknown) {
+        override async onCreate(context?: unknown) {
           this.received = context;
         }
       }
@@ -192,8 +192,8 @@ describe('StuffApi', () => {
   describe('createSync', () => {
     class SimpleStuff extends Idea {}
 
-    class NeedsAsyncSetup extends PostRegistrationMixin(Idea) {
-      override async postRegister() {
+    class NeedsAsyncSetup extends Idea {
+      override async onCreate() {
         // would never run via createSync — guardrail should catch it
       }
     }
@@ -208,10 +208,38 @@ describe('StuffApi', () => {
       expect(StuffApi.findById(obj.stuffId)).toBe(obj);
     });
 
-    it('throws when given a Stuff that composes PostRegistrationMixin', () => {
+    it('throws when given a Stuff that overrides onCreate', () => {
       expect(() => StuffApi.createSync(() => new NeedsAsyncSetup())).toThrow(
-        /composes PostRegistrationMixin and needs async setup/
+        /overrides onCreate\(\) and needs async setup/
       );
+    });
+
+    // ⚠⚠ The guardrail's other arm, and the one that can brick boot. The
+    // predicate compares `raw.onCreate` against `Stuff.prototype.onCreate`
+    // BEFORE `ProxyApi.wrap`: the proxy's get trap returns a fresh
+    // interception wrapper for every callable access, so a comparison on
+    // the proxy is ALWAYS unequal and would throw on every `createSync` —
+    // taking `singletonSync` and every lazy logic-singleton resolver with
+    // it. These two assertions are what prove it is on `raw`.
+    it('does NOT throw for a class that merely inherits the terminal', () => {
+      expect(() => StuffApi.createSync(() => new SimpleStuff())).not.toThrow();
+    });
+
+    it('the proxy would have defeated the comparison (documents why `raw`)', () => {
+      const obj = StuffApi.createSync(() => new SimpleStuff());
+      // Through the proxy, the method is a fresh wrapper per access …
+      expect(obj.onCreate).not.toBe(Stuff.prototype.onCreate);
+      // … while the raw target still holds the inherited terminal.
+      const raw = (obj as unknown as Record<symbol, unknown>)[
+        ProxyApi.RAW_TARGET
+      ] as Stuff;
+      expect(raw.onCreate).toBe(Stuff.prototype.onCreate);
+    });
+
+    it('deferOnCreate bypasses the guardrail', () => {
+      expect(() =>
+        StuffApi.createSync(() => new NeedsAsyncSetup(), { deferOnCreate: true })
+      ).not.toThrow();
     });
 
     it('does NOT register the object when the guardrail rejects', () => {
@@ -355,20 +383,34 @@ describe('StuffApi', () => {
   });
 
   describe('clone() cycle detection', () => {
-    it('throws on a self-referencing template (hydratorClass = self)', async () => {
-      // Use PersistentHydrator (a real on-disk class) but stub its
-      // Template to falsely claim it hydrates itself, creating a
-      // one-step cycle. clone() should bail before the recursion
-      // stack-overflows.
+    // ⚠ Each case must start with an EMPTY registry. `singleton()`
+    // short-circuits on a cached instance, so an applier left registered
+    // by the previous case means the next one never looks its row up —
+    // and the "scheduled inside a clone tree" case below arms itself
+    // from inside that lookup, so it would pass vacuously with nothing
+    // scheduled.
+    beforeEach(() => {
+      StuffApi.clearAll();
+    });
+
+    // ⭐ The terminator is STRUCTURAL since `hydratorClass` retired
+    // (2026-10-01): the applier's own row carries `data: {}`, so cloning
+    // the applier plans no applier and the recursion cannot start. This
+    // test gives that row DATA — the one authoring state that would
+    // re-open the cycle — and asserts the guard is still the backstop.
+    it('throws on a self-referencing applier row (its own row carries data)', async () => {
       const { Template } = await import('../../lib/stuff/Template');
       const { LeafTemplate } = await import('../../lib/stuff/LeafTemplate');
       const { vi } = await import('vitest');
       vi.spyOn(Template, 'findByPath').mockImplementation(
         async (path: string) => {
-          if (path === '/platform/idea/persistence/PersistentHydrator') {
+          if (path === '/platform/idea/TemplateApplier') {
             const t = new LeafTemplate();
             t.path = path;
-            t.setOwn({ class: '/platform/idea/persistence/PersistentHydrator', hydratorClass: '/platform/idea/persistence/PersistentHydrator', data: {} });
+            t.setOwn({
+              class: '/platform/idea/TemplateApplier',
+              data: { shortDescription: 'an applier that applies itself' },
+            });
             return t;
           }
           return null;
@@ -376,14 +418,41 @@ describe('StuffApi', () => {
       );
 
       await expect(
-        StuffApi.clone('/platform/idea/persistence/PersistentHydrator')
+        StuffApi.clone('/platform/idea/TemplateApplier')
       ).rejects.toThrow(/circular template dependency/);
 
       vi.restoreAllMocks();
     });
 
+    it('⭐ the applier\'s own EMPTY row terminates with no guard needed', async () => {
+      const { Template } = await import('../../lib/stuff/Template');
+      const { LeafTemplate } = await import('../../lib/stuff/LeafTemplate');
+      const { vi } = await import('vitest');
+      vi.spyOn(Template, 'findByPath').mockImplementation(
+        async (path: string) => {
+          if (path === '/platform/idea/TemplateApplier') {
+            const t = new LeafTemplate();
+            t.path = path;
+            t.setOwn({
+              class: '/platform/idea/TemplateApplier',
+              data: {},
+            });
+            return t;
+          }
+          return null;
+        }
+      );
+
+      const applier = await StuffApi.clone(
+        '/platform/idea/TemplateApplier'
+      );
+      expect(applier).toBeDefined();
+
+      vi.restoreAllMocks();
+    });
+
     it('a callback scheduled INSIDE a clone tree is a fresh root — two later concurrent clones of one path do not false-trip the guard', async () => {
-      // The live-drive race: an NPC's postRegister arms its cadence inside
+      // The live-drive race: an NPC's onCreate arms its cadence inside
       // the room's clone tree; the guard's ALS store rode into the timer,
       // so two beats' forced `consign` clones shared one in-flight set and
       // the second threw `circular template dependency`.
@@ -391,7 +460,7 @@ describe('StuffApi', () => {
       const { LeafTemplate } = await import('../../lib/stuff/LeafTemplate');
       const { ScheduleApi } = await import('../schedule');
       const { vi } = await import('vitest');
-      const HYDRATOR = '/platform/idea/persistence/PersistentHydrator';
+      const HYDRATOR = '/platform/idea/TemplateApplier';
       const PROP = '/stuff/test/clone-tree/prop';
       const later: Promise<unknown>[] = [];
       let armed = false;
@@ -403,7 +472,16 @@ describe('StuffApi', () => {
             await new Promise((r) => setTimeout(r, 5));
             const t = new LeafTemplate();
             t.path = path;
-            t.setOwn({ class: '/platform/thing/Thing', hydratorClass: HYDRATOR, data: {} });
+            // ⚠ The `data` is load-bearing for this test now: since
+            // `hydratorClass` retired (2026-10-01) the applier is
+            // resolved only when there IS data to apply, and the
+            // applier lookup is what arms the two scheduled clones
+            // below. A `data: {}` row would never reach that branch and
+            // the test would pass vacuously with `later` empty.
+            t.setOwn({
+              class: '/platform/thing/Thing',
+              data: { shortDescription: 'a prop' },
+            });
             return t;
           }
           if (path === HYDRATOR) {

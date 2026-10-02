@@ -4,7 +4,6 @@
 # ferment finishes, what you hold IS sparkling wine — consign it as it
 # is. No mixin on Bottle, no second mechanism.
 class: /platform/thing/Vat
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: heavy conditioning bottle
   keywords: [bottle, "conditioning bottle", fizz, heavy, conditioning]

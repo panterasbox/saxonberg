@@ -3,7 +3,7 @@
  * (the MaturationProfileCatalogue shape; the boot()-retirement direction:
  * an operator-shaped sweep install does not belong on a consumer Api).
  *
- * `postRegister` arms the sweep(s) on the {@link ResidencyLogic}
+ * `onCreate` arms the sweep(s) on the {@link ResidencyLogic}
  * singleton. The handle state stays on the Logic — it is entangled
  * with the Logic's module internals and hot-reload re-assertion — so
  * the install methods live there, their gates widened to admit this
@@ -14,13 +14,12 @@
  */
 
 import { Idea } from '../../lib/stuff/Idea';
-import { PostRegistrationMixin } from '../../lib/stuff/PostRegistration';
 import { ResidencyLogic } from './api/ResidencyLogic';
 import { StuffApi } from '../../api/stuff';
 import type { VetoResult } from '../../lib/errors';
 import type { EvictionContext } from '../../lib/stuff/Stuff';
 
-const ResidencyWardenBase = PostRegistrationMixin(Idea);
+const ResidencyWardenBase = Idea;
 
 export default class ResidencyWarden extends ResidencyWardenBase {
   /** Residency veto — the armed sweeps; a culled singleton re-arms nothing. */
@@ -35,7 +34,7 @@ export default class ResidencyWarden extends ResidencyWardenBase {
     };
   }
 
-  public override async postRegister(_context?: unknown): Promise<void> {
+  public override async onCreate(_context?: unknown): Promise<void> {
     await this.warm();
   }
 

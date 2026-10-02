@@ -19,7 +19,6 @@
 # somebody fishes — which is the same externality one step further out, and it
 # is recorded for the watershed too.
 class: /trade/quarrying/location/Turbary
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: turf bank
   keywords: [bank, "turf bank", turbary, peat, moss, face]

@@ -20,7 +20,6 @@
 # `feverish` from `observableSigns` — the salmonella pattern (hydration is
 # the only mechanism; the signs carry the fever).
 class: /platform/idea/Condition
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: wound sepsis
   signature:

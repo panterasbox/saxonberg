@@ -3,7 +3,6 @@
 # one microbial clock, many products, and nothing about mead is special
 # in the code.
 class: /platform/idea/material/ConsumableMaterial
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: mead
   keywords: [mead, metheglin, honeywine]

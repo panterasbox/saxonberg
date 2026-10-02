@@ -5,7 +5,6 @@
 # reachable by teleport / a future travel node (the treeline reachability
 # precedent keeps content-area standup clean).
 class: /platform/idea/location/CartesianZone
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: The Practicum
   cellSize: 3.0

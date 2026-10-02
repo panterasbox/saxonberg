@@ -10,7 +10,6 @@
 # half — commissioning a player-tailor through the work board — is
 # deferred and is the player-tailor's, not the NPC's.
 class: /platform/location/SingletonCartesianLocation
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   coords:
     x: 0

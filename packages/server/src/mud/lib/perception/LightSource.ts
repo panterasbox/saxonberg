@@ -83,7 +83,7 @@ export function LightSourceMixin<TBase extends MixinConstructor>(Base: TBase) {
     private _emittedColorTemperature: number | null = null;
 
     /**
-     * Host-internal accessor pair for the lumen scalar. Hydrator's
+     * Host-internal accessor pair for the lumen scalar. applier's
      * bracket-assign goes through here so a malformed template
      * (negative, NaN, non-number) crashes loudly. Public API uses
      * the typed `getEmittedFlux` / `setEmittedFlux` pair.

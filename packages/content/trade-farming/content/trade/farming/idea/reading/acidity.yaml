@@ -9,7 +9,6 @@
 # pH, and `6.4 ± 0.8` and `6.4 ± 0.1` are the same dirt read by two
 # people.
 class: /trade/farming/idea/reading/AcidityReading
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   channel: acidity
   kind: fact

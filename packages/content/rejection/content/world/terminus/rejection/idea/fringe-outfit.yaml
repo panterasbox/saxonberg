@@ -20,7 +20,6 @@
 # the ore fetches, which is the entire difference between tutwork and
 # working your own claim, stated as a field.
 class: /platform/idea/Business
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: "the fringe outfit"
   appointingAuthority:

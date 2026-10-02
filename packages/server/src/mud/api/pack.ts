@@ -75,7 +75,7 @@ export interface PackRequires {
 /**
  * One eager-at-boot template a pack declares (`boot[]`, wave 3). `role`
  * says WHY it is eager: `sync-read` (something resolves it synchronously)
- * or `producer` (its postRegister produces state nothing else would).
+ * or `producer` (its onCreate produces state nothing else would).
  * `reason` is required prose. The union of every applied pack's list is
  * what `BootstrapManager` runs.
  */
@@ -154,7 +154,7 @@ export interface PackReconcileResult {
    */
   documents: Record<string, number>;
   /** Live instances re-hydrated (sync only; 0 at boot). */
-  rehydrated: number;
+  reapplied: number;
   /** Set when the pack FAILED — boot continued without it (install only). */
   failure: PackFailure | null;
   /** The requires phase's outcomes (wave 3). */

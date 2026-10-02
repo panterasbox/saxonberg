@@ -12,7 +12,7 @@
  * Here the failure would be worse than silent — a garment row authoring
  * `constructionForm: woven` would THROW at hydration, because
  * `Constructed.setConstructionForm` validates against the vocabulary.
- * So the warm is `postRegister`, **never an operator `Api.boot()`**, and
+ * So the warm is `onCreate`, **never an operator `Api.boot()`**, and
  * eager loading rides the platform pack's `boot:` manifest.
  *
  * ⚠ **Ordering matters and is guaranteed by construction.** The boot
@@ -28,7 +28,6 @@
  */
 
 import { Idea } from '../../lib/stuff/Idea';
-import { PostRegistrationMixin } from '../../lib/stuff/PostRegistration';
 import Fabric from './material/Fabric';
 import { Construction } from '../../lib/material/Construction';
 import type { FabricSpec } from '../../lib/material/Construction';
@@ -37,7 +36,7 @@ import { Template } from '../../lib/stuff/Template';
 import type { VetoResult } from '../../lib/errors';
 import type { EvictionContext } from '../../lib/stuff/Stuff';
 
-const FabricCatalogueBase = PostRegistrationMixin(Idea);
+const FabricCatalogueBase = Idea;
 
 export default class FabricCatalogue extends FabricCatalogueBase {
   /** Residency veto — a culled catalogue re-warms nothing. */
@@ -52,7 +51,7 @@ export default class FabricCatalogue extends FabricCatalogueBase {
     };
   }
 
-  public override async postRegister(_context?: unknown): Promise<void> {
+  public override async onCreate(_context?: unknown): Promise<void> {
     await this.warm();
   }
 

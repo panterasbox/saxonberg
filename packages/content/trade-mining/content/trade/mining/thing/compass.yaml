@@ -8,7 +8,6 @@
 # the reader's eye is what sets the error band. Competence buys
 # resolution; equipment buys access.
 class: /trade/mining/thing/instrument/SurveyInstrument
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   keywords: [compass, surveyors-compass, needle, "surveyor's", surveyor, brass]
   shortDescription: surveyor's brass compass

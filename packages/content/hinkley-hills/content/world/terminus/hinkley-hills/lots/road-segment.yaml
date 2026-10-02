@@ -4,7 +4,6 @@
 # state of an unbuilt reach; the gates that hang here as lots sell are
 # what make it a street.
 class: /platform/location/CartesianLocation
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: reach of Hinkley Lane
   keywords: [lane, reach, hinkley]

@@ -1,6 +1,5 @@
 # The floor sack of sugar — 10 kg at target in the pantry stock.
 class: /platform/thing/Bottle
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: "sack of sugar"
   keywords: [sugar, sack]

@@ -252,7 +252,7 @@ describe('Zone.lookupAncestorField — override seam for barrier subclasses', ()
   });
 
   /**
-   * ⚠ The Hydrator reflects into fields it finds in the merged
+   * ⚠ The applier reflects into fields it finds in the merged
    * `fieldMeta` chain, so an UNDECLARED field is silently dropped from a
    * template's `data:` — the bug `stocks`/`favours` had before libations
    * declared them, and which `blessingOdds` still had afterwards:
@@ -260,11 +260,11 @@ describe('Zone.lookupAncestorField — override seam for barrier subclasses', ()
    * documented zone-wide BUC override could never fire, because nothing
    * ever put a value there to be read.
    *
-   * This asserts the declaration itself, since that is what the Hydrator
+   * This asserts the declaration itself, since that is what the applier
    * consults — a `lookupField` test alone would pass on a hand-set value
    * and hide the drop.
    */
-  it('all three region fields are DECLARED on the spatial chain, so the Hydrator can reach them', () => {
+  it('all three region fields are DECLARED on the spatial chain, so the applier can reach them', () => {
     const spatial = MixinApi.getAllFieldMeta(CartesianZone);
     for (const field of ['stocks', 'favours', 'blessingOdds']) {
       expect(spatial[field], `${field} declared`).toBeDefined();

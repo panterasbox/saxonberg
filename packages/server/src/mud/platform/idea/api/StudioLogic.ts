@@ -874,7 +874,35 @@ export class StudioLogic extends ApiLogic {
       throw err;
     }
 
-    return { disposition: 'committed', path };
+    // ⭐⭐ Say what the row will actually DO, on the create that made it.
+    // Until 2026-10-01 the Studio's create dropped `hydratorClass`
+    // entirely and its author had no way to know: the row saved,
+    // reported `committed`, and then applied none of the `data` they had
+    // just typed. The field is gone and the data lands now — and this
+    // line is what makes that visible rather than merely true.
+    const fill = await TemplateApi.describeFill({
+      path,
+      class: classPath,
+      data: input.data ?? {},
+    });
+    const applied = fill.applies.map((f) =>
+      f.birthOnly ? `${f.field} (birth-only)` : f.field,
+    );
+    const parts: string[] = [];
+    if (applied.length > 0) parts.push(`applies ${applied.join(', ')}`);
+    if (fill.unapplied.length > 0) {
+      parts.push(`nobody applies ${fill.unapplied.join(', ')}`);
+    }
+    if (fill.remembers.length > 0) {
+      parts.push(`remembers ${fill.remembers.map((r) => r.source).join(', ')}`);
+    }
+    return {
+      disposition: 'committed',
+      path,
+      // ⭐ "nothing" out loud, never an absent line: an empty message is
+      // indistinguishable from a surface that forgot to write one.
+      message: parts.length > 0 ? parts.join('; ') : 'fills nothing',
+    };
   }
 
   /** See {@link StudioApi.scaffoldClass}. */
@@ -1216,7 +1244,7 @@ export class StudioLogic extends ApiLogic {
    * Read a field's class-default off a throwaway construction (no live
    * instance existed). Constructed + destructed through the Api so the
    * construction sentinel + registry stay consistent; guarded so a
-   * side-effecting `postRegister` never breaks a read.
+   * side-effecting `onCreate` never breaks a read.
    */
   private async readClassDefault(
     ctor: AnyConstructor,

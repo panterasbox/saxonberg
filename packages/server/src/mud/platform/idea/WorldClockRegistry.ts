@@ -17,7 +17,7 @@
  *
  * HMR-aware: reload of `api/worldclock.ts` only drops the cached
  * pointer in the Api; this Stuff's state survives. Reload of THIS file
- * re-clones the Registry (state resets, `postRegister` re-runs
+ * re-clones the Registry (state resets, `onCreate` re-runs
  * idempotently) per HotReloadApi's pattern.
  *
  * Field privacy uses TypeScript `private` (not `#`) — instance methods
@@ -29,7 +29,6 @@
 
 import { SecurityApi } from '../../api/security';
 import { Idea } from '../../lib/stuff/Idea';
-import { PostRegistrationMixin } from '../../lib/stuff/PostRegistration';
 import type { VetoResult } from '../../lib/errors';
 import type { EvictionContext } from '../../lib/stuff/Stuff';
 import { CallSecurity } from '../../lib/security/decorators';
@@ -111,7 +110,7 @@ interface Schedule {
   birthScope: string | null;
 }
 
-const WorldClockRegistryBase = PostRegistrationMixin(Idea);
+const WorldClockRegistryBase = Idea;
 
 export default class WorldClockRegistry extends WorldClockRegistryBase {
 
@@ -123,7 +122,7 @@ export default class WorldClockRegistry extends WorldClockRegistryBase {
    * boot manifest clones this Registry; `this.boot()` passes the
    * gate via its `SelfOnly` arm.
    */
-  public override async postRegister(_context?: unknown): Promise<void> {
+  public override async onCreate(_context?: unknown): Promise<void> {
     await this.boot();
   }
 

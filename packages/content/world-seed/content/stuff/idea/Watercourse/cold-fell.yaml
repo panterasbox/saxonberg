@@ -19,7 +19,6 @@
 # Nothing lives here. It ships as water and geography, with no
 # settlement, because the point of it is that it is empty.
 class: /system/water/idea/Watercourse
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   key: cold-fell
   name: Cold Fell

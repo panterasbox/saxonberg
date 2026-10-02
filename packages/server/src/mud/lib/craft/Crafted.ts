@@ -13,7 +13,7 @@
  * Composes {@link GradedMixin} so a crafted output is graded by the same
  * surface as a graded input — `getGrade()` is uniform across the pipeline.
  *
- * **Un-spoofable.** The setters are ordinary (the clone Hydrator must reach
+ * **Un-spoofable.** The setters are ordinary (the clone applier must reach
  * them, the verdict renderer reads them), but the *maker value* is never
  * user-supplied: the only caller that stamps it is `CraftingLogic`, which
  * derives the maker from the execution context (the giver) or resolves it

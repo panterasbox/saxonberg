@@ -83,9 +83,9 @@ describe("MetabolicMixin — composition + state", () => {
     c.setMetabolicClockStamp(123.5);
     c.setLastMealLabel("ration");
 
-    // Simulate the Hydrator's bracket-assign of decomposed scalars onto
+    // Simulate the applier's bracket-assign of decomposed scalars onto
     // a fresh instance (the `reserves` precedent — flat Records and
-    // scalars round-trip through the default Hydrator, no marshaller).
+    // scalars round-trip through the default applier, no marshaller).
     const fresh = makeStuff(() => new Creature()) as unknown as Record<
       string,
       unknown

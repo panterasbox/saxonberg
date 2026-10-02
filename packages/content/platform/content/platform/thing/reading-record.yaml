@@ -11,7 +11,6 @@
 # the room overlay when it is left on a bench. No collection, no
 # `DocumentKinds` edit.
 class: /platform/thing/ReadingRecord
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: assay report
   keywords: [report, assay, paper, slip]

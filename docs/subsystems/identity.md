@@ -217,7 +217,7 @@ Four properties that matter more than the shape:
 
 1. **Evidence, not values.** Each entry expands into the same rows a
    lived history would have written, marked `claim`.
-2. **Idempotent, once** — applied at `postRegister`, skipped when a claim
+2. **Idempotent, once** — applied at `onCreate`, skipped when a claim
    already exists, so a re-clone, a reboot or a CMS go-live cannot mint a
    second history.
 3. **It states its intent**, which makes it checkable — `lint:dossiers`.
@@ -366,7 +366,7 @@ nothing at all if it cannot reach the band.
 
 | Element | Lives in | Role |
 |---|---|---|
-| `CastMixin` | `lib/npc/Cast.ts` | The identity rung: `SingletonMixin` + the dossier fields + the `postRegister` seeder |
+| `CastMixin` | `lib/npc/Cast.ts` | The identity rung: `SingletonMixin` + the dossier fields + the `onCreate` seeder |
 | `Cast` / `Extra` | `platform/agent/{Cast,Extra}.ts` | The two generic clone targets, so a row's `class:` names its rung out loud |
 | `Employed.institutionPath` | `lib/employment/Employed.ts` | Who answers for you — the two-tier resolve |
 | `AccountabilityEvent.partyIdOf` / `partyForOf` | `lib/accountability/AccountabilityEvent.ts` | The one durable-id read, and the party read |

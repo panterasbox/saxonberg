@@ -16,7 +16,6 @@
 # fungiculture build, not a line of prose — see
 # `docs/slates/builds/authored-vs-procedural-slate.md`.
 class: /platform/thing/equipment/PortableLight
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: stoppered jar of glowcap
   keywords: [jar, glowcap, lamp, light, stoppered]

@@ -6,7 +6,6 @@
 # burying somebody trivial would make the grave a bin. It should be a
 # decision somebody makes for a person they knew.
 class: /platform/thing/Tariff
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: slate of charges
   keywords: [slate, tariff, charges, board]

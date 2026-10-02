@@ -1,5 +1,4 @@
 class: /platform/idea/corpo/Brand
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   key: old-hollis
   name: Old Hollis

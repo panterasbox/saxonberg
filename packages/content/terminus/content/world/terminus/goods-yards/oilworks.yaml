@@ -9,7 +9,6 @@
 # where a town's public-works department buys them. A sub-zone of its own so
 # the floor keeps its authored coords; the district zone is its parent.
 class: /platform/idea/location/CartesianZone
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: The Oil Works
   cellSize: 3.0

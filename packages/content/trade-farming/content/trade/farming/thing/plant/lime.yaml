@@ -4,7 +4,6 @@
 # stalls it — an orchard tree wants its ground to itself.
 # No moisture reserve — the water lives in the ground (see peace-lily).
 class: /platform/thing/Plant
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: lime tree
   keywords: ["lime tree", lime, tree, citrus, plant]

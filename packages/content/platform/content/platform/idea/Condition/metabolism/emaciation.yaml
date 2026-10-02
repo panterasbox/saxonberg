@@ -19,7 +19,6 @@
 # Resolution is `food`, like starvation's, because the answer is the same
 # answer — only it takes a season rather than a meal.
 class: /platform/idea/Condition
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: emaciation
   signature: []

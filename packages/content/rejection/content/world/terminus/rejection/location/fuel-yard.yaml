@@ -5,7 +5,6 @@
 # charcoal than you smelt of ore, so the expensive thing to move is the
 # fuel. Von Thünen, in one exit.
 class: /platform/location/SingletonCartesianLocation
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   _biomePath: /stuff/idea/biome/outdoor/baseline
   shortDescription: fuel yard

@@ -6,7 +6,6 @@
 # So a baker who skips the proof has nothing to bake — the step is not
 # enforced by a check, it is enforced by the recipe's input not existing.
 class: /platform/idea/material/Material
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: proofed dough
   keywords: [dough, proofed, risen, sponge]

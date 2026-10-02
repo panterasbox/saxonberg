@@ -6,7 +6,6 @@
 # short, light, plain blade: fast tempo, close range, a fair working grade.
 # A discrete Thing (chattel-stampable, never Stackable).
 class: /platform/thing/equipment/Weapon
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: folding clasp knife
   keywords: [knife, clasp, tool, blade, pocketknife, folding]

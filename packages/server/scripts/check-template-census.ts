@@ -14,8 +14,8 @@
  *       `floor.template`, `stockLines[].itemTemplatePath`,
  *       `prices` keys, `roomTemplate`, `holderPath`, `streetPath`,
  *       `corridorTemplate`, `programmePath`, and floorplan `room`
- *       entries. (`class:` / `hydratorClass:` stay
- *       `check-instanceable-placement`'s — shared reader, no duplicate.)
+ *       entries. (`class:` stays `check-instanceable-placement`'s —
+ *       shared reader, no duplicate.)
  *   (c) Every `TemplatePaths` constant in `lib/paths.ts` that names a
  *       singleton *Registry/Catalogue* resolves to a pack row (the six
  *       framework registries ride trivial platform-pack rows; a renamed

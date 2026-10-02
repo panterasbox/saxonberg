@@ -14,7 +14,7 @@
  *
  *   - The **apparatus** (`OFFICE_APPARATUS`) is an authored code constant
  *     — there is nothing to seed and "re-seeding never clobbers
- *     occupants" is trivial. `postRegister` does **no DB work**: it only
+ *     occupants" is trivial. `onCreate` does **no DB work**: it only
  *     reads the founder credential env into instance fields.
  *   - **Occupancy is founder-default + sparse handoffs.** The founder is
  *     the computed default holder of every office. The `office_holders`
@@ -35,7 +35,6 @@
  */
 
 import { Idea } from '../../lib/stuff/Idea';
-import { PostRegistrationMixin } from '../../lib/stuff/PostRegistration';
 import { CallSecurity } from '../../lib/security/decorators';
 import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
 import { User } from '../../lib/identity/User';
@@ -52,7 +51,7 @@ import { OfficeHolder } from '../../lib/governance/OfficeHolder';
 import type { VetoResult } from '../../lib/errors';
 import type { EvictionContext } from '../../lib/stuff/Stuff';
 
-const OfficeRegistryBase = PostRegistrationMixin(Idea);
+const OfficeRegistryBase = Idea;
 
 // The office face lives on CompactApi (the single meta-institution
 // facade), its logic in the /platform/idea/api/compact singleton. Admit both the
@@ -79,7 +78,7 @@ export default class OfficeRegistry extends OfficeRegistryBase {
   /** Original-case display handle for offline founder presentation. */
   private founderDisplay: string | null = null;
 
-  public override async postRegister(_context?: unknown): Promise<void> {
+  public override async onCreate(_context?: unknown): Promise<void> {
     const rawEmail = (process.env.FOUNDER_GOOGLE_EMAIL ?? '').trim();
     const rawHandle = (process.env.FOUNDER_TWITCH_HANDLE ?? '').trim();
     this.founderGoogleEmail =

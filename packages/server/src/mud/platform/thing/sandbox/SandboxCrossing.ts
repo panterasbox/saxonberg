@@ -45,7 +45,6 @@
  *     new fixture may carry the same path — doors are concurrent).
  */
 
-import { PostRegistrationMixin } from '../../../lib/stuff/PostRegistration';
 import Good from '../../../lib/stuff/Good';
 import { StuffApi } from '../../../api/stuff';
 import { MixinApi } from '../../../api/mixin';
@@ -63,10 +62,10 @@ import type { Chattel } from '../../../lib/chattel/Chattel';
 const DEFAULT_PASSAGE_DIRECTION = 'crossing';
 
 /**
- * ⭐ `PostRegistrationMixin` for one reason: the crossing's passage exit
+ * ⭐ It overrides `onCreate` for one reason: the crossing's passage exit
  * is a clone of a row now, and a clone is async while `onMoved` is not.
  */
-const SandboxCrossingBase = PostRegistrationMixin(Good);
+const SandboxCrossingBase = Good;
 
 export default class SandboxCrossing extends SandboxCrossingBase {
   static fieldMeta: FieldMeta = {
@@ -98,14 +97,14 @@ export default class SandboxCrossing extends SandboxCrossingBase {
   /**
    * The crossing's own passage exit — a clone of
    * `/platform/idea/exits/sandbox-crossing`, minted once at
-   * `postRegister` and rebound into each room the fixture lands in.
+   * `onCreate` and rebound into each room the fixture lands in.
    * Runtime-only.
    */
   private passage: SandboxCrossingExit | null = null;
 
   /** Mint the passage exit. See {@link onMoved}. */
-  public override async postRegister(context?: unknown): Promise<void> {
-    await super.postRegister(context);
+  public override async onCreate(context?: unknown): Promise<void> {
+    await super.onCreate(context);
     this.passage ??= await StuffApi.clone<SandboxCrossingExit>(
       TemplatePaths.sandboxCrossingExit,
     );
@@ -184,7 +183,7 @@ export default class SandboxCrossing extends SandboxCrossingBase {
   ): void {
     this.teardownPassage(from);
     if (to && MixinApi.isExitable(to)) {
-      // ⭐ ONE exit, minted at `postRegister` and REBOUND — the same
+      // ⭐ ONE exit, minted at `onCreate` and REBOUND — the same
       // shape a vessel's `in`/`out` pair uses, and for the same reason:
       // this exit MOVES WITH ITS HOST. The fixture is carried from room
       // to room and its doorway goes along.
@@ -245,7 +244,7 @@ export default class SandboxCrossing extends SandboxCrossingBase {
       room.removeExit(this.getPassageDirection());
     }
     // ⭐ The exit SURVIVES the move. It is this crossing's own passage,
-    // minted once at `postRegister` and rebound into each room the
+    // minted once at `onCreate` and rebound into each room the
     // fixture lands in — the same lifecycle a vessel's `in`/`out` pair
     // has, and the reason `Exit.rebind` exists.
     //

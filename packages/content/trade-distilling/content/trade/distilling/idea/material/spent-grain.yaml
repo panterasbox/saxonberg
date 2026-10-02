@@ -1,7 +1,6 @@
 # Spent grain — the wash mash's residue (P11): tag `compost` is the
 # feed verb's gate; the still-house sells it back to the growers.
 class: /platform/idea/material/ConsumableMaterial
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: spent grain
   keywords: [spent, grain, draff]

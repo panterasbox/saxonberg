@@ -4,7 +4,6 @@
 # conductivity, the form's loft and the mass over the area covered — an
 # authored number would silently override the whole thermal model.
 class: /platform/thing/equipment/Garment
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: linen coat
   keywords: [coat, linen]

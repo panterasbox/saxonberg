@@ -8,7 +8,6 @@
 # well as a person — the service has premises, which is what turns it
 # into a vocation rather than a favour.
 class: /system/arcana/thing/Conduit
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: charging bench
   keywords: [bench, cradle, apparatus, charging]

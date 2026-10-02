@@ -56,7 +56,7 @@ describe('lounge landing integration', () => {
     // (`LoungeWarren.createMember` → `StuffApi.clone`), and `sit` / `lie` /
     // `kneel` all answered `empty-result[target]`. The room is minted, not
     // authored, so it could never have been fixed by editing a row —
-    // `Location.ensureFloor()` at `postRegister` is what reaches it.
+    // `Location.ensureFloor()` at `onCreate` is what reaches it.
     const avatar = await land();
     const room = (avatar as unknown as { getContainer(): Stuff & Container })
       .getContainer();

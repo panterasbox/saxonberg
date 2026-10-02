@@ -15,7 +15,6 @@
 # up. Beat it at an anvil and it becomes a bar; that is the one thing it
 # is for.
 class: /trade/smelting/thing/Bloom
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: iron bloom
   keywords: [bloom, iron, sponge, mass]

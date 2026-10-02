@@ -8,7 +8,6 @@
 # of the flour's grade and never its ceiling: capital embeds somebody
 # else's skill, and it cannot make poor grain good.
 class: /platform/idea/Discipline
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   key: milling
   channel: skill

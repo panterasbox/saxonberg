@@ -5,7 +5,6 @@
 # doors are the reason a hauler can do the job the hands post. Nothing
 # is made here; everything passes through.
 class: /platform/location/SingletonCartesianLocation
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: goods yards
   keywords: [yards, goods]

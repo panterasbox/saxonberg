@@ -3,7 +3,6 @@
 # by a bulk recipe whose outputTemplate names it, served, bussed, washed —
 # never minted per drink. `category` is the glassware par key.
 class: /platform/thing/ServingVessel
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: coupe
   keywords: [coupe, glass, cocktail, cocktail-glass]

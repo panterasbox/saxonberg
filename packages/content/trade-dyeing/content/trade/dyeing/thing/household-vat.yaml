@@ -5,7 +5,6 @@
 # measured, but you recolour your own coat at home — and that asymmetry
 # is what makes "buy rarely, recolour often" actually often.
 class: /trade/dyeing/thing/DyeVat
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: dyeing pot
   keywords: [pot, dyeing-pot, household, dyeing]

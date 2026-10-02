@@ -54,7 +54,7 @@ async function warmCatalogue(): Promise<void> {
     () => new CorpoCatalogue(),
     "/platform/idea/CorpoCatalogue"
   );
-  await cat.postRegister();
+  await cat.onCreate();
 }
 
 function bottle(brandKey: string, long = "A squat bottle."): BrandedBottle {

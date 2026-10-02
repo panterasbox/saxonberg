@@ -6,7 +6,6 @@
 # coup. "Solo" is not a concept; this preset is what solo resolves to.
 # Value-equal to CombatFormation.DEFAULT_POLICY (a test pins it).
 class: /platform/idea/CombatFormation
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: default
   roles: []

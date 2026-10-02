@@ -2,7 +2,6 @@
 # the syrup bottle and the tallow crock; `category` is what ties the empty
 # bottle to the product that is it filled.
 class: /platform/thing/CraftVessel
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: oil bottle
   keywords: [oil-bottle, bottle, oil]

@@ -6,7 +6,6 @@
 # what makes prehistoric the bottom of this ladder rather than a
 # different one.
 class: /trade/textiles/thing/ScutchingBoard
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: scutching board
   keywords: [board, scutching, knife, swingle]

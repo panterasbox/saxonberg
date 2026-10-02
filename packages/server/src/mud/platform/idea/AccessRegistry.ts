@@ -13,7 +13,7 @@
  * (this Stuff), one calling surface (`AccessApi`), and one
  * structurally-enforced path between them.
  *
- * `postRegister` runs idempotent bootstrap seeding: mint the three
+ * `onCreate` runs idempotent bootstrap seeding: mint the three
  * axis groups (`'wizards'`, `'streamers'`, `'archwizards'`) if absent.
  * There is no `core` group (content-packs wave 3): title is the packs'
  * `requires`, and an untitled path is nobody's. Caches
@@ -21,11 +21,10 @@
  * lazily on first read and live as instance fields — reload of
  * `api/access.ts` doesn't affect them; reload of this file re-clones
  * the Registry per HotReloadApi's pattern (state resets and
- * `postRegister` re-runs idempotently).
+ * `onCreate` re-runs idempotently).
  */
 
 import { Idea } from '../../lib/stuff/Idea';
-import { PostRegistrationMixin } from '../../lib/stuff/PostRegistration';
 import { CallSecurity } from '../../lib/security/decorators';
 import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
 import { GroupApi } from '../../api/group';
@@ -57,7 +56,7 @@ import { PlayerApi } from '../../api/player';
  */
 const PRIME_MINISTER = 'prime-minister';
 
-const AccessRegistryBase = PostRegistrationMixin(Idea);
+const AccessRegistryBase = Idea;
 
 // AccessApi's logic now lives in the /platform/idea/api/access logic singleton
 // (the Api face is a thin forwarding shell). Admit both the face module
@@ -94,7 +93,7 @@ export default class AccessRegistry extends AccessRegistryBase {
   /** Organization paths already diagnosed as unresolved — once-per-path. */
   private readonly reportedUnresolvedOrganizations = new Set<string>();
 
-  public override async postRegister(_context?: unknown): Promise<void> {
+  public override async onCreate(_context?: unknown): Promise<void> {
     // Zone-ownership (lounge / Terminus) is NOT resolved here anymore.
     // Ownership moved out of the editable `domain` zone template into the
     // gated `parcels` collection (the governing security invariant); the
@@ -241,7 +240,7 @@ export default class AccessRegistry extends AccessRegistryBase {
    * Orthogonal wizard axis — is the actor in `'wizards'`? This is the
    * code-trust capability: it determines who can write TypeScript
    * source, run `eval`, `reload` modules, AND set the executable
-   * code-naming fields (`class` / `hydratorClass` / `behaviors[].brain`)
+   * code-naming fields (`class` / `behaviors[].brain`)
    * on a content template (see the code-field gate in `TemplateLogic`).
    * Doesn't matter what slices they own; the question is whether they
    * have escape capability. A non-wizard author is a "protowizard" —
@@ -625,10 +624,10 @@ export default class AccessRegistry extends AccessRegistryBase {
     this.cachedWizardPlayerIds = null;
     this.cachedStreamerPlayerIds = null;
     this.cachedArchwizardPlayerIds = null;
-    await this.postRegister();
+    await this.onCreate();
   }
 
-  // ── Seeding (idempotent; called from postRegister) ──
+  // ── Seeding (idempotent; called from onCreate) ──
 
   private async seedWizardsGroup(): Promise<void> {
     const reg = await GroupApi.registry();

@@ -8,7 +8,7 @@ import { BoundaryApi } from '../../api/boundary';
 import { StuffApi } from '../../api/stuff';
 import { MixinApi } from '../../api/mixin';
 import { ProxyApi } from '../../api/proxy';
-import PersistentHydrator from '../idea/persistence/PersistentHydrator';
+import TemplateApplier from '../idea/TemplateApplier';
 import {
   makeStuff,
   seedKernelContentStore,
@@ -85,15 +85,15 @@ describe('Window', () => {
     expect(sight.canSeeThrough('A', 'B')).toBe(false);
   });
 
-  it('hydrates configuration via the PersistentHydrator (scalar fields)', async () => {
+  it('hydrates configuration via the TemplateApplier (scalar fields)', async () => {
     const w = await StuffApi.create(() => new Window());
-    await makeStuff(() => new PersistentHydrator()).hydrate(w, {
+    await makeStuff(() => new TemplateApplier()).apply(w, {
       baseTransmissivity: 0.4,
       aToBOverride: 0.4,
       bToAOverride: 0,
       colorTint: 'amber',
       open: true,
-    });
+    }, { mode: 'mint' });
     expect(w.getBaseTransmissivity()).toBe(0.4);
     // The structured runtime API is reconstructed from the two scalars.
     expect(w.getDirectionalOverrides()).toEqual({ aToB: 0.4, bToA: 0 });
@@ -116,10 +116,10 @@ describe('Window', () => {
 
   it('one-side-only override hydrates correctly', async () => {
     const w = await StuffApi.create(() => new Window());
-    await makeStuff(() => new PersistentHydrator()).hydrate(w, {
+    await makeStuff(() => new TemplateApplier()).apply(w, {
       aToBOverride: 0.5,
       // bToAOverride absent — should stay null
-    });
+    }, { mode: 'mint' });
     expect(w.getDirectionalOverrides()).toEqual({ aToB: 0.5 });
   });
 

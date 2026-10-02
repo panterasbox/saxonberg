@@ -7,7 +7,6 @@
 # living tree is plant tissue; what is felled is `/stuff/idea/material/wood/oak`,
 # and the two rows name each other.
 class: /platform/idea/species/Species
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   binomial: Quercus robur
   commonNames: ["oak", "English oak", "pedunculate oak"]

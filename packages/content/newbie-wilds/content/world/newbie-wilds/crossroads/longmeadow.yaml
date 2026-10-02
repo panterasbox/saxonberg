@@ -13,7 +13,6 @@
 # ONE number and it moves light and air with it — a bigger room really is
 # dimmer and airier, not just longer-ranged.
 class: /platform/location/SingletonCartesianLocation
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: long meadow
   keywords: [meadow, long]

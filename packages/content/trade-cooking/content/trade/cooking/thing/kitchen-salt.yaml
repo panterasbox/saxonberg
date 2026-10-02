@@ -12,7 +12,6 @@
 # a shelf, and it is the trade's own content rather than the retail
 # outfit's stock.
 class: /platform/thing/Bottle
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: "working sack of salt"
   keywords: [salt, sack, working]

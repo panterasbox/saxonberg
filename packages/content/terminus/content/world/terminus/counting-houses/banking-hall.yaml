@@ -10,7 +10,6 @@
 # The vault is glimpsed PROSE (a Detail), not a room — it becomes enterable the
 # day heists/safe-deposit exist, never a speculative empty room now.
 class: /platform/location/SingletonCartesianLocation
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: Goodkin banking hall
   keywords: [hall, goodkin, banking]

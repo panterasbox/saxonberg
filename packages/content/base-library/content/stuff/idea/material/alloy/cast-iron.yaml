@@ -23,7 +23,6 @@
 # `brittle` is the tag the refusals read, and it is honest about more
 # than iron: anything that shatters rather than spreading wants it.
 class: /platform/idea/material/Material
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: cast iron
   keywords: [cast-iron, "cast iron", pig, pig-iron]

@@ -19,7 +19,6 @@
 # cites its own `groundCharacter` is asked first, and a room's own
 # `floor: { material: … }` beats both.
 class: /system/ground/idea/GroundCharacter
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: the ordinary ground
   pins: {}

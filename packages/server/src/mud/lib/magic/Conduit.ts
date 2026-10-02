@@ -70,7 +70,7 @@ export interface Conduit {
   getCouplingEfficiency(): number;
   setCouplingEfficiency(value: number): void;
 
-  // ---------- storage (public for the Hydrator) ----------
+  // ---------- storage (public for the applier) ----------
   couplingEfficiency: number;
 }
 

@@ -5,7 +5,6 @@
 # NutritionLabel renders the honest macros; getLong appends the working and
 # the quality verdict.
 class: /platform/thing/Dish
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: plated dish
   keywords: [dish, plate, meal, serving, plated]

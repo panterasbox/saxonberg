@@ -4,7 +4,6 @@
 # one number `spin`'s decision produces. ⚠ The real unit rather than a
 # "fineness" abstraction: without it, *how fine* is a vibe.
 class: /trade/textiles/thing/TextileStock
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: skein of linen yarn
   keywords: [yarn, skein, thread, spun, linen]

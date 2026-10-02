@@ -9,7 +9,7 @@
  *
  * Composes `FastTravelMixin` (the node mechanism) on a `Thing` (which already
  * brings Visible / Perceptible / Tangible / Containable), plus Detailed (so a
- * terminal can carry `look`-able features), PostRegistration (cascade + arm
+ * terminal can carry `look`-able features), an `onCreate` override (cascade + arm
  * the timetable on boot), and Singleton (each terminal is network-resident).
  *
  * Surfaces the affordance two ways so bare-`teleport`-shows-the-board is
@@ -31,7 +31,6 @@ import type { Stuff } from "@saxonberg/server/mud/lib/stuff/Stuff";
 import Holder from "@saxonberg/server/mud/lib/stuff/Holder";
 import { FastTravelMixin } from "../lib/FastTravel";
 import { FixtureMixin } from "@saxonberg/server/mud/lib/stuff/Fixture";
-import { PostRegistrationMixin } from "@saxonberg/server/mud/lib/stuff/PostRegistration";
 import { SingletonMixin } from "@saxonberg/server/mud/lib/stuff/Singleton";
 import { DisplayMixin } from "@saxonberg/server/mud/lib/display/Display";
 import { PersistableMixin } from "@saxonberg/server/mud/lib/persistence/Persistable";
@@ -84,19 +83,7 @@ import {
 const TpaTerminalBase = DisplayMixin(
   PersistableMixin(
     SingletonMixin(
-      PostRegistrationMixin(
-        FixtureMixin(
-            FastTravelMixin(
-              ManaPoweredMixin(
-                SlottedMixin(
-                  ChargedMixin(
-                    ReservedMixin(ConduitMixin(Holder)),
-                  ),
-                ),
-              ),
-            ),
-        ),
-      ),
+      FixtureMixin( FastTravelMixin( ManaPoweredMixin( SlottedMixin( ChargedMixin( ReservedMixin(ConduitMixin(Holder)), ), ), ), ), ),
     ),
   ),
 );
@@ -203,7 +190,7 @@ export default class TpaTerminal extends TpaTerminalBase {
     ]);
   }
 
-  public override async postRegister(_context?: unknown): Promise<void> {
+  public override async onCreate(_context?: unknown): Promise<void> {
     // Seat self into the declared target (a Warren host or a static
     // location) via `seatIn`, then cascade the rest of the network live off
     // this node and arm any scheduled/cycle departures. Runs after singleton
@@ -218,10 +205,10 @@ export default class TpaTerminal extends TpaTerminalBase {
   /**
    * @hook Seat the authored cell — the spine's **no-record branch**.
    *
-   * ⚠⚠ This was `postRegister`'s job for about an hour, and the live
+   * ⚠⚠ This was `onCreate`'s job for about an hour, and the live
    * drive killed it: `StuffApi.singleton` already runs
    * `hasRecord ? materialize : seedBornWith + capture`, so seating a
-   * cell in `postRegister` put one in the bay and THEN let the restore
+   * cell in `onCreate` put one in the bay and THEN let the restore
    * try to re-seat the captured one — *"Slotted.occupy: slot 'battery'
    * is full"*, and the terminal failed to stand up at all. Every gate
    * on the frontier was dark on the second boot.

@@ -10,7 +10,6 @@
 # person's clothes are visibly better because they were dyed earlier in
 # the chain.** Honest economics, legible on sight.
 class: /platform/thing/AttendancePoint
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: "dyehouse counter"
   keywords: [counter, board, dyehouse]

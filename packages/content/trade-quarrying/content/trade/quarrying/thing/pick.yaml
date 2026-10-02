@@ -8,7 +8,6 @@
 # is what a block asks for when you split it — so one tool answers both, which
 # is why a quarryman's kit is small.
 class: /platform/thing/Tool
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   keywords: [pick, "quarry pick", mattock]
   shortDescription: quarryman's pick

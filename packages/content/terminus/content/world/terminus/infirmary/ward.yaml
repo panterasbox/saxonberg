@@ -3,7 +3,6 @@
 # cross-zone cardinal exit, both sides explicit), on the same walk as the
 # store and the bank.
 class: /platform/location/SingletonCartesianLocation
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: infirmary
   keywords: [infirmary]

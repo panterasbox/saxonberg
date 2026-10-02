@@ -1,7 +1,6 @@
 # The fermenting vat — the brewery's working vessel (the winery's row,
 # copied: code is shared, content is copied).
 class: /platform/thing/Vat
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: oak fermenting vat
   keywords: [vat, "fermenting vat", tun, oak, fermenting]

@@ -7,7 +7,6 @@
 # baker's starter is a thing you keep alive, and forgetting it for a
 # fortnight is a real loss.
 class: /platform/idea/material/Material
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: levain
   keywords: [levain, starter, leaven, sourdough, barm]

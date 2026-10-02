@@ -7,7 +7,6 @@
 # reach dance the engine already models (a too-short attacker is simply
 # out of range and must close before they can answer).
 class: /platform/idea/Discipline
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   key: polearms
   channel: skill

@@ -20,7 +20,7 @@ import { Template } from '../../lib/stuff/Template';
 
 function makeCatalogue(): TopicCatalogue {
   // The derived tier needs no clone pipeline: ensureCache() starts an
-  // empty cache when postRegister never ran, which is exactly the
+  // empty cache when onCreate never ran, which is exactly the
   // unauthored path under test.
   return makeStuff(() => new TopicCatalogue());
 }
@@ -102,7 +102,7 @@ describe('boot-time prune of retired topic rows', () => {
       .spyOn(PersistApi, 'deleteMany')
       .mockResolvedValue(0 as never);
 
-    await makeCatalogue().postRegister();
+    await makeCatalogue().onCreate();
 
     expect(del).toHaveBeenCalledTimes(1);
     const filter = del.mock.calls[0]?.[1] as { path: { $in: string[] } };
@@ -119,7 +119,7 @@ describe('boot-time prune of retired topic rows', () => {
     vi.spyOn(PersistApi, 'isConnected').mockReturnValue(false);
     const del = vi.spyOn(PersistApi, 'deleteMany');
 
-    await expect(makeCatalogue().postRegister()).resolves.not.toThrow();
+    await expect(makeCatalogue().onCreate()).resolves.not.toThrow();
     expect(del).not.toHaveBeenCalled();
   });
 });

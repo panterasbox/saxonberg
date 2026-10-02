@@ -196,7 +196,7 @@ describe('⭐⭐ the dog is the fourth rung, and it costs a relationship', () =>
  * ranching build, and nothing could have told anybody.
  *
  * Two links, both dead, both silent. The class composed no `BehavedMixin`
- * — so the Hydrator, which reflects only into fields a composed class
+ * — so the applier, which reflects only into fields a composed class
  * declares, discarded the row's whole `behaviors:` block without a word.
  * And the block used `cadenceMs:`, which is not a key `_parseTrigger`
  * understands. Either alone would have been enough.

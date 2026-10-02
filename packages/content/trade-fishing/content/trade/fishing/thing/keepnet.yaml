@@ -5,7 +5,6 @@
 # and take them home — or open it and let them go. Keep or kill is
 # yours now, not the clock's.
 class: /trade/fishing/thing/Trap
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   keywords: [keepnet, keep-net, net-bag]
   primaryKeyword: keepnet

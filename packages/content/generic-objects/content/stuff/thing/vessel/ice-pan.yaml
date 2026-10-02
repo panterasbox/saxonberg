@@ -4,7 +4,6 @@
 # and the pool mints a block of ice (water's `castTemplate`). The electric
 # answer to "who makes the ice the iceboxes eat".
 class: /platform/thing/Receptacle
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: ice pan
   keywords: [pan, ice-pan, tray, ice-tray]

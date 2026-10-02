@@ -5,7 +5,6 @@
 # down. Same embodiment contract as cerevisiae (D13): the living thing
 # in the world is the lees material; this row is the classification.
 class: /platform/idea/species/Species
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   binomial: Saccharomyces pastorianus
   commonNames: ["lager yeast", "cold yeast"]

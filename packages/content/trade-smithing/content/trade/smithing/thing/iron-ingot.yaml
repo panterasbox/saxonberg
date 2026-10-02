@@ -13,7 +13,6 @@
 # pool on the floor. That is a bellows-fed forge's heat and a mistake you
 # can make.
 class: /platform/thing/Ingot
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: wrought iron bar
   keywords: [bar, ingot, iron, wrought, billet]

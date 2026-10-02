@@ -1,8 +1,19 @@
 /**
  * BehavedMixin disposition seeding — an authored host's `dispositions:`
- * seed list becomes `claim` evidence at spawn (`postRegister`), so
- * derive-on-read yields its defining traits immediately. Idempotent across
- * a re-postRegister (re-clone / CMS go-live): claims are seeded once.
+ * seed list becomes `claim` evidence, so derive-on-read yields its
+ * defining traits immediately.
+ *
+ * ⚠ It is the TEMPLATE APPLIER's phase 3 that calls `seedDispositions`,
+ * not `onCreate`, since 2026-10-01: `dispositions` is a `seed: true`
+ * field and the hook kept only the structural half (wiring the brains).
+ * These tests drive the applier's entry point directly, which is also
+ * what changed about the GUARANTEE: the applier runs phase 3 at mint
+ * ONLY — never on a go-live, never on a restore — so the two reasons a
+ * history could be written twice are now a wave apart.
+ *
+ * ⭐ The ledger's own idempotence is still tested here, and still has to
+ * be the ledger's: a re-clone after a destruct is a genuinely new mint,
+ * and only the trait log knows the claims are already filed.
  *
  * A minimal Behaved host on the in-memory PM stub (no full Character).
  */
@@ -21,7 +32,10 @@ import { PersistenceManager } from "../../../../backend/PersistenceManager";
 // host since the OO sweep (Behaved narrows with isDispositioned).
 class TestNPC extends DispositionedMixin(BehavedMixin(Idea)) {}
 type Host = TestNPC & {
-  postRegister(c?: unknown): Promise<void>;
+  onCreate(c?: unknown): Promise<void>;
+  seedDispositions(
+    seeds: readonly { disposition: string; valence: number }[],
+  ): Promise<void>;
   dispositions: { disposition: string; valence: number }[];
 };
 
@@ -65,13 +79,13 @@ function makeHost(): Host {
 }
 
 describe("BehavedMixin disposition seeding", () => {
-  it("seeds claim evidence at postRegister and derives defining traits", async () => {
+  it("seeds claim evidence and derives defining traits", async () => {
     const host = makeHost();
     host.dispositions = [
       { disposition: "sociability", valence: -70 },
       { disposition: "temperance", valence: 70 },
     ];
-    await host.postRegister();
+    await host.seedDispositions(host.dispositions);
 
     const rows = await host.dispositionEntries();
     expect(rows).toHaveLength(2);
@@ -84,17 +98,30 @@ describe("BehavedMixin disposition seeding", () => {
     expect(byAxis.get("temperance")!.position).toBeGreaterThan(0);
   });
 
-  it("is idempotent across a second postRegister", async () => {
+  it("is idempotent across a second seed — the LEDGER refuses it", async () => {
+    // ⭐ Which is the half that has to stay a ledger read: the applier
+    // only promises not to run phase 3 on the SAME fill, and a re-clone
+    // after a destruct is a different one.
     const host = makeHost();
     host.dispositions = [{ disposition: "generosity", valence: 70 }];
-    await host.postRegister();
-    await host.postRegister();
+    await host.seedDispositions(host.dispositions);
+    await host.seedDispositions(host.dispositions);
     expect(await host.dispositionEntries()).toHaveLength(1);
+  });
+
+  it("⭐ onCreate no longer seeds — that limb moved to the applier", async () => {
+    // The structural half stays on the hook (wiring the brains); the
+    // seed does not. If this ever starts passing with rows > 0, the
+    // seeding limb has crept back onto the lifecycle.
+    const host = makeHost();
+    host.dispositions = [{ disposition: "generosity", valence: 70 }];
+    await host.onCreate();
+    expect(await host.dispositionEntries()).toHaveLength(0);
   });
 
   it("no-ops for a host with no dispositions", async () => {
     const host = makeHost();
-    await host.postRegister();
+    await host.seedDispositions([]);
     expect(await host.dispositionEntries()).toHaveLength(0);
   });
 });

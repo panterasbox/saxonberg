@@ -210,7 +210,7 @@ export class StackableApi {
         // Resident absorbs the arrival. First mergeable sibling wins —
         // multiple mergeable stacks in the same container should never
         // exist by invariant; if they do (initial-state seed, an edge
-        // case the slate's "PostRegistration sweep" defers), absorbing
+        // case the slate's "onCreate sweep" defers), absorbing
         // into the first one is the conservative pick.
         sibling.absorb(moved);
         return;

@@ -99,7 +99,7 @@ class RecordingEar extends SensorMixin(ContainableMixin(Idea)) {
 }
 
 type NPC = TestNPC & {
-  postRegister(c?: unknown): Promise<void>;
+  onCreate(c?: unknown): Promise<void>;
   onMessage(f: MessageFrame): void;
   behaviors: unknown[];
 };
@@ -162,7 +162,6 @@ beforeEach(() => {
     {
       path: '/platform/agent/sandbox/SandboxAvatar',
       class: '/platform/agent/sandbox/SandboxAvatar',
-      hydratorClass: '/platform/idea/persistence/PersistentHydrator',
       data: { playerId: '' },
     },
   ]);
@@ -243,7 +242,7 @@ describe('crossing-ritual brain (unit — tally decoupling + batch)', () => {
 
 describe('crossing-ritual brain (integration — cross-room whistle + no departure tally)', () => {
   beforeAll(async () => {
-    // Warm the brain paths so postRegister's resolveExport is a sync hit.
+    // Warm the brain paths so onCreate's resolveExport is a sync hit.
     await StuffApi.resolveExport(RITUAL, 'brain');
     await StuffApi.resolveExport(GREETS, 'brain');
   });
@@ -303,7 +302,7 @@ describe('crossing-ritual brain (integration — cross-room whistle + no departu
     ContainmentApi.move(watch as never, gus as never);
     ContainmentApi.move(whistle as never, gus as never);
     gus.behaviors = [{ brain: RITUAL, trigger: 'arrival' }];
-    await gus.postRegister();
+    await gus.onCreate();
 
     // A player walks in from the terminal (the south-side arrival).
     const player = makeStuff(() => new TestPlayer());
@@ -340,7 +339,7 @@ describe('crossing-ritual brain (integration — cross-room whistle + no departu
       { brain: RITUAL, trigger: 'arrival' },
       { brain: GREETS, trigger: 'departure', config: { lines: ['see ya'] } },
     ];
-    await gus.postRegister();
+    await gus.onCreate();
 
     // Arrive → one tally.
     const player = makeStuff(() => new TestPlayer());

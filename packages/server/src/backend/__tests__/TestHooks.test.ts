@@ -29,7 +29,6 @@ function stubSeedClone() {
     path: PrimaryAvatar.ROW_TEMPLATE_PATH,
     class: '/platform/agent/Avatar',
     data: {},
-    hydratorClass: '/platform/idea/persistence/PersistentHydrator',
   } as never);
   // ⭐ `wearGarments` as well as `save`: the mint DRESSES the character
   // it mints (`TestHooks.#dress`, envelope W1 — a naked body spends

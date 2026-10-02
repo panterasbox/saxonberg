@@ -13,7 +13,6 @@
 # maintained or a dispute settled, the Hills will need an office to do it,
 # and that is the moment to add one — not now.
 class: /platform/idea/Government
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   key: hinkley-hills
   name: the Hinkley Hills Improvement District

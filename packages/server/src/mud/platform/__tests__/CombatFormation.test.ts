@@ -110,12 +110,12 @@ describe("CombatFormation — the fallback-honesty pin", () => {
 });
 
 describe("CombatFormation — the seeds hydrate (the live clone path)", () => {
-  it("every preset seed hydrates through the real PersistentHydrator into its policy", async () => {
+  it("every preset seed hydrates through the real TemplateApplier into its policy", async () => {
     // The presets reach the live world by clone-from-template — drive the
     // seeds' `data` blocks through the real hydrator so a field/setter
     // mismatch in a YAML can't survive to a live server.
-    const { default: PersistentHydrator } = await import(
-      "../idea/persistence/PersistentHydrator"
+    const { default: TemplateApplier } = await import(
+      "../idea/TemplateApplier"
     );
     const seedsDir = fileURLToPath(
       new URL("../../../../../content/platform/content/platform/idea/CombatFormation/", import.meta.url),
@@ -128,8 +128,8 @@ describe("CombatFormation — the seeds hydrate (the live clone path)", () => {
         data: Record<string, unknown>;
       };
       const f = formation();
-      const hydrator = makeStuff(() => new PersistentHydrator());
-      await hydrator.hydrate(f, seed.data);
+      const hydrator = makeStuff(() => new TemplateApplier());
+      await hydrator.apply(f, seed.data, { mode: 'mint' });
       const p = f.policy();
       expect(p.name).toBe(seed.data.name);
       expect(p.allocation).toBe(seed.data.allocation);

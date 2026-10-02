@@ -397,14 +397,12 @@ export function WorkingMixin<TBase extends MixinConstructor<Stuff & Container>>(
      * would read as fresh air everywhere — the exemplar claim quietly
      * false in the one place nobody would test.
      *
-     * @hook Chained from `PostRegistrationMixin`.
+     * @hook Chained from `Stuff.onCreate`.
      */
-    public async postRegister(context?: unknown): Promise<void> {
+    public async onCreate(context?: unknown): Promise<void> {
       // The `Persistable` chain shape: reach the base's own hook off the
       // prototype, because a mixin's `super` is not a class.
-      const sup = (Base.prototype as { postRegister?(c?: unknown): Promise<void> | void })
-        .postRegister;
-      if (typeof sup === 'function') await sup.call(this, context);
+      await super.onCreate(context);
       await this.airAt();
     }
 

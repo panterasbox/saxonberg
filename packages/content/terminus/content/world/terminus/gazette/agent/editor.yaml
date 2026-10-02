@@ -5,7 +5,6 @@
 # `boot:` entry, because a paper that prints with nobody reading it is
 # the point.
 class: /world/terminus/gazette/agent/Editor
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: Hesper Quill
   keywords: [editor, hesper, quill, ink-stained, notebook]

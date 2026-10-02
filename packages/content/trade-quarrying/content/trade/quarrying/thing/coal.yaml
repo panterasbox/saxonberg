@@ -11,7 +11,6 @@
 # a coppice somebody tends, and the energy transition stays available to be
 # told as the epoch step it is. Coal → coke is `metal-chain-slate`'s.
 class: /platform/thing/Firewood
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   keywords: [coal, lump, "sea-coal"]
   shortDescription: lump of coal

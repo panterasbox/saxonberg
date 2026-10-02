@@ -3,7 +3,6 @@
 # per lot (`<lotExtent>/hall`); the programme wires kitchen east, living
 # west, bedroom north, and the way back down the step south.
 class: /platform/location/FurnishableRoom
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   # ⭐ Daylight reaches this room through a real opening, and the
   # opening is named so the claim is something a player can walk up

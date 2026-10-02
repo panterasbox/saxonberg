@@ -278,8 +278,8 @@ setting (default off) that opts a player into introducing on arrival. See
 The verb→Emote runtime cache lives on a Stuff singleton,
 `/platform/idea/SoulCatalogue`, sibling to `/platform/idea/TopicCatalogue` and
 `/platform/idea/EventRegistry` per the singleton-in-`obj/` convention. The
-catalogue extends `Idea` composed with `PostRegistrationMixin` —
-the `postRegister` hook warms `cache: Map<string, Emote>` from
+catalogue extends `Idea` composed with `onCreate` —
+the `onCreate` hook warms `cache: Map<string, Emote>` from
 `DocumentApi.listOfKind('emote')` after `PackApi.install` has
 reconciled the `expression` pack. The map is keyed by **canonical
 verb only**; a second index (`bySearchTerm`: term → verbs, over each

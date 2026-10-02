@@ -12,7 +12,6 @@
 # credited with `cooking`. Only where the `shifts` brain parks her stood
 # between that and a player, which is an accident of content.
 class: /platform/idea/Business
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   # The smith owns the forge: an ENTITY authority.
   appointingAuthority:

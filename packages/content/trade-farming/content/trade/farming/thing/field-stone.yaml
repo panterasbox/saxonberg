@@ -7,7 +7,6 @@
 # waste, and the fencing a holding needs anyway comes out of the job it
 # already had to do.
 class: /platform/thing/Provision
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: heap of field stone
   keywords: [stone, stones, field-stone, rubble, heap, field]

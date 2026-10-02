@@ -18,8 +18,8 @@
  *     only; does not propagate elsewhere.
  *
  * Template authoring follows the "option (b)" in the plan: `Window`
- * is template-loadable like `Door` (`class: '/platform/thing/Window'`,
- * `hydratorClass: '/platform/idea/persistence/PersistentHydrator'`); seed code
+ * is template-loadable like `Door` (`class: '/platform/thing/Window'`);
+ * seed code
  * calls `BoundaryApi.attachExistingBoundary({ boundary, hostA, hostB })`
  * to wire the per-side anchors after clone time. Mirrors how
  * `addBidirectionalExit({ door })` wires a templated Door.
@@ -269,7 +269,7 @@ export default class Window extends WindowBase {
         `Window.setAttachedHosts: hostA path and hostB path must differ ('${value[0]}').`
       );
     }
-    // ⚠ Phase 1 runs BEFORE `postRegister`, so the anchor pair may not
+    // ⚠ Phase 1 runs BEFORE `onCreate`, so the anchor pair may not
     // exist yet — mint it here rather than assuming the hook has run.
     await this.ensureAnchors();
     // Idempotency check via where the anchors are INSTALLED. (It used to

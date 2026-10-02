@@ -209,8 +209,8 @@ mixin codifies "this Stuff transmits and receives over the Aether";
 content owns the campus-specific narrative.
 
 ```typescript
-const AvatarBase = PostRegistrationMixin(
-  HasInteractiveMixin(AetherMixin(ContactsMixin(Shell))),
+const AvatarBase = HasInteractiveMixin(
+  AetherMixin(ContactsMixin(Shell)),
 );
 ```
 

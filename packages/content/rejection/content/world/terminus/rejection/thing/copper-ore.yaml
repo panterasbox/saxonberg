@@ -5,7 +5,6 @@
 # face. A row that authored a grade would be a second source of truth for
 # a number the ground already knows.
 class: /trade/mining/thing/Ore
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: lump of green-stained rock
   keywords: [ore, rock, lump, malachite, green-stained]

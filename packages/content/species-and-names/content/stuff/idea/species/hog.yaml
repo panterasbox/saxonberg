@@ -7,7 +7,6 @@
 # cook who has never held a bow can still find out what a knife does to
 # one — which is how the trade actually works.
 class: /platform/idea/species/Species
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   binomial: Sus domesticus
   commonNames: ["hog", "pig", "swine", "boar"]

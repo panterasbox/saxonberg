@@ -15,6 +15,5 @@
 # own prose. Whether chamber zones can be keyed instances the way rooms
 # are is a later build's question.
 class: /platform/idea/location/SphericalZone
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: the Hush

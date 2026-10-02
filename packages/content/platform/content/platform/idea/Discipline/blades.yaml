@@ -3,7 +3,6 @@
 # this Discipline on any exchange delivered with an edge/point instrument,
 # so a swordsman's transcript diverges from a brawler's over time.
 class: /platform/idea/Discipline
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   key: blades
   channel: skill

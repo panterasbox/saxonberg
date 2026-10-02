@@ -78,7 +78,7 @@ export interface Containable {
   getRootContainer(): (Stuff & Container) | null;
 
   /**
-   * Declarative-content applier. Phase 2 of the Hydrator's two-
+   * Declarative-content applier. Phase 2 of the applier's two-
    * phase dispatch reads `data.container` from the source template
    * and calls this method with the resolved templatePath. The
    * applier resolves the target via `StuffApi.singleton` (the
@@ -91,7 +91,7 @@ export interface Containable {
    * move shape supports both fresh-clone placement AND
    * `Avatar.restore()` re-move semantics with no flag.
    *
-   * @hook Invoked by the `Hydrator`'s Phase-2 instruction dispatch from
+   * @hook Invoked by the `TemplateApplier`'s Phase-2 instruction dispatch from
    *   a template's `container` field (self-placement during the clone
    *   cascade). **Instruction applier** — no paired getter (not a
    *   property); idempotent (compare-and-move, no-op when already in
@@ -228,7 +228,7 @@ export function ContainableMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     /**
      * Instruction field — declarative spawn target. Consumed by
-     * Phase 2 of the Hydrator. There is NO paired `getContainer(path)`
+     * Phase 2 of the applier. There is NO paired `getContainer(path)`
      * declaration accessor; the live `getContainer()` ref is the
      * only runtime getter.
      */
@@ -284,7 +284,7 @@ export function ContainableMixin<TBase extends MixinConstructor>(Base: TBase) {
     /**
      * Live reference to the container. NOT a persistent field —
      * cross-Stuff references would round-trip badly through the
-     * Hydrator's reflection. The container relationship is rebuilt
+     * applier's reflection. The container relationship is rebuilt
      * at clone time via the `applyContainer` instruction-field path
      * (declared `{ instruction: true }` in `fieldMeta` above) or by
      * direct `ContainmentApi.move` calls after hydration.

@@ -21,7 +21,6 @@
 # moved to the Avatar: everyone can type `measure`, and what an
 # instrument buys is the reading, not the verb.
 class: /platform/thing/Tool
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: brass photometer
   keywords: [photometer, brass]

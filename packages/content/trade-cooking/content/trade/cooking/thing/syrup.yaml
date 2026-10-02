@@ -4,7 +4,6 @@
 # at target in the pantry stock; consigned to the cash-and-carry by the
 # pantry hand like the sacks.
 class: /platform/thing/Bottle
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: "bottle of simple syrup"
   keywords: [syrup, simple-syrup, bottle, simple]

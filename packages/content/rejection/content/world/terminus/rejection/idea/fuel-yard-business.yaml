@@ -6,7 +6,6 @@
 # ⚠ Its stand is also the MINE's timber supply. Two consumers, one supply
 # — the wood contest, and the reason this is a business rather than a prop.
 class: /platform/idea/Business
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   appointingAuthority:
     kind: entity

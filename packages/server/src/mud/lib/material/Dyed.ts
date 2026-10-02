@@ -55,7 +55,7 @@ import { AppSettingKeys } from '../config/AppSettings';
 /**
  * One trip through a bath. Flat scalars — the `CompositionEntry` /
  * `NaturalAttackSpec` shape, so it round-trips through the default
- * Hydrator with no marshaller.
+ * applier with no marshaller.
  */
 export interface DyeApplication {
   /** Template path of the dyestuff material (madder, weld, woad). */

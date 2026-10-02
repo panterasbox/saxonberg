@@ -1,5 +1,4 @@
 class: /platform/idea/Topic
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   topic: act
   family: ""

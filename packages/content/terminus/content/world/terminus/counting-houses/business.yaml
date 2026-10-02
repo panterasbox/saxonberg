@@ -13,7 +13,6 @@
 # The banking affiliation (corpoKey: goodkin) lives on the BankCounter fixture,
 # NOT here — a Business has no corpoKey (the map convention).
 class: /platform/idea/Business
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   # What the branch calls itself on paper — the lender's name on every loan
   # it holds (`bank book`: *Goodkin holds: …*). Unnamed, a Business

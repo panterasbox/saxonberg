@@ -5,7 +5,6 @@
 # rather than a record of practice — and learning where the draught band
 # ends is precisely what a burnt clamp teaches.
 class: /platform/idea/Discipline
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   key: colliery
   channel: skill

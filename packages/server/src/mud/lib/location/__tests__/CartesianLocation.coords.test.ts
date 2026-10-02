@@ -2,7 +2,7 @@ import "../../../../test-bootstrap";
 import { describe, it, expect, afterEach } from 'vitest';
 import CartesianLocation from '../CartesianLocation';
 import CartesianZone from '../../../platform/idea/location/CartesianZone';
-import PersistentHydrator from '../../../platform/idea/persistence/PersistentHydrator';
+import TemplateApplier from '../../../platform/idea/TemplateApplier';
 import { Stuff } from '../../stuff/Stuff';
 import { StuffApi } from '../../../api/stuff';
 import { makeStuff } from '../../security/__tests__/test-setup';
@@ -57,11 +57,11 @@ describe('CartesianLocation.setCoords', () => {
     ).rejects.toThrow(TypeError);
   });
 
-  it('hydrates via PersistentHydrator method-dispatch', async () => {
+  it('hydrates via TemplateApplier method-dispatch', async () => {
     const { zone, room } = makeRoomInZone();
-    await makeStuff(() => new PersistentHydrator()).hydrate(room, {
+    await makeStuff(() => new TemplateApplier()).apply(room, {
       coords: { x: 3, y: 4, z: 0 },
-    });
+    }, { mode: 'mint' });
     expect(room.getCoords()).toEqual({ x: 3, y: 4, z: 0 });
     expect(zone.contains(room)).toBe(true);
   });

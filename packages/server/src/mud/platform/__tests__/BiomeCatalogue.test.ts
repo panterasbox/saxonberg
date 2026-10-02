@@ -50,7 +50,7 @@ describe('the roster warm', () => {
     });
 
     const catalogue = makeStuff(() => new BiomeCatalogue());
-    await catalogue.postRegister();
+    await catalogue.onCreate();
 
     // ⭐ The folder is skipped by the CLASS test, not by a path allowlist —
     // which is what lets a realm pack ship `/world/<place>/idea/biome/cavern`

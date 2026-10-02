@@ -6,7 +6,6 @@
 # a real fact about a valley road, and because when ranching lands, the
 # place its drovers use is already here and already crosses the freight.
 class: /platform/location/SingletonCartesianLocation
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: drove crossing
   keywords: [drove, crossing]

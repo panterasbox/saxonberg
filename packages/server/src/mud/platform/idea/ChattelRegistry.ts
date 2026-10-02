@@ -18,7 +18,6 @@
  */
 
 import { Idea } from "../../lib/stuff/Idea";
-import { PostRegistrationMixin } from "../../lib/stuff/PostRegistration";
 import { CallSecurity } from "../../lib/security/decorators";
 import { SecurityPolicies } from "../../lib/security/SecurityPolicies";
 import { ExecutionContextApi } from "../../api/execution-context";
@@ -32,7 +31,7 @@ import { ChattelEvent, type ChattelEventKind } from "../../lib/chattel/ChattelEv
 import type { VetoResult } from "../../lib/errors";
 import type { Stuff } from "../../lib/stuff/Stuff";
 
-const ChattelRegistryBase = PostRegistrationMixin(Idea);
+const ChattelRegistryBase = Idea;
 
 // Admit both the Api face module and the logic singleton's template path,
 // mirroring `ParcelRegistry`/`AccessRegistry`'s two-caller policy.
@@ -45,7 +44,7 @@ export default class ChattelRegistry extends ChattelRegistryBase {
   /** The current-state title index, keyed on the durable per-instance id. */
   private index = new Map<string, ChattelOwner>();
 
-  public override async postRegister(_context?: unknown): Promise<void> {
+  public override async onCreate(_context?: unknown): Promise<void> {
     await this.rebuildIndex();
   }
 

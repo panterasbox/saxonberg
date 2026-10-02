@@ -26,7 +26,6 @@ const SEEDS = fileURLToPath(new URL('../../../../../content/platform/content/', 
 
 interface Seed {
   class?: string;
-  hydratorClass?: string;
   data?: Record<string, unknown>;
 }
 
@@ -57,7 +56,6 @@ describe('the Compact press office', () => {
 
   it('is an instanceable Organization with one publishing position', () => {
     expect(press.class).toBe('/platform/idea/Organization');
-    expect(press.hydratorClass).toBe('/platform/idea/persistence/PersistentHydrator');
     expect(positionsOf(press).map((p) => p.key)).toEqual([
       'communications-director',
     ]);

@@ -15,9 +15,9 @@ import {
   installStore,
   type Doc,
 } from "../../../../world/lounge/__tests__/lounge-fixtures";
-import PersistentHydrator from "../../persistence/PersistentHydrator";
+import TemplateApplier from "../../TemplateApplier";
 
-const PH = PersistentHydrator.templatePath;
+const PH = TemplateApplier.templatePath;
 const FIXTURE_A = "/world/test/emp/fixture-a";
 const FIXTURE_B = "/world/test/emp/fixture-b";
 const BIZ_A = "/world/test/emp/business-a";
@@ -32,13 +32,11 @@ const docs: Doc[] = [
   {
     path: BIZ_A,
     class: "/platform/idea/Business",
-    hydratorClass: PH,
     data: { proprietorPath: "", positions: [], operatingLocations: [FIXTURE_A] },
   },
   {
     path: BIZ_B,
     class: "/platform/idea/Business",
-    hydratorClass: PH,
     data: { proprietorPath: "", positions: [], operatingLocations: [FIXTURE_B] },
   },
   // A rostered venue whose assignee is NOT live — the shape every cast-staffed
@@ -46,7 +44,6 @@ const docs: Doc[] = [
   {
     path: BIZ_C,
     class: "/platform/idea/Business",
-    hydratorClass: PH,
     data: {
       proprietorPath: "",
       positions: [{ key: "cook", label: "minding the hearth", wageRate: 4, fulfills: ['cooking'] }],

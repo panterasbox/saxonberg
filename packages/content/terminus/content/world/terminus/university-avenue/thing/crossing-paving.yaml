@@ -18,7 +18,6 @@
 # street is the case where the derivation would be right anyway and saying
 # so costs one line and documents the intent.
 class: /platform/thing/Floor
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: swept city paving
   keywords: [paving, floor, ground, stone, flagstones, underfoot]

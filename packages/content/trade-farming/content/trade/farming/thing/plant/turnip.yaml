@@ -5,7 +5,6 @@
 # stand and manure as they go, which is literally the graze row applied
 # to a root crop and needs no new mechanism at all.
 class: /platform/thing/Plant
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: field of turnips
   keywords: [turnips, crop, field]

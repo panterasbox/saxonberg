@@ -38,7 +38,7 @@ const ProducerApiCallers = SecurityPolicies.FromModule('/api/producer#ProducerAp
  * The install/warm seam is also callable by the self-warming
  * `ProducerStandings` singleton (the boot()-retirement shape): the tap +
  * schedule state stays HERE (hot-reload re-assertion), the manifest
- * home arms it at postRegister.
+ * home arms it at onCreate.
  */
 const ProducerBootCallers = SecurityPolicies.AnyOf(
   ProducerApiCallers,

@@ -5,7 +5,6 @@
 # far it is, and where two hundred years of people have said what they
 # thought of that.
 class: /platform/location/SingletonCartesianLocation
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: milestone
   keywords: [milestone]

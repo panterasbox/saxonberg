@@ -2,7 +2,6 @@
 # energy balance must first boil off the water it holds, so it resists catching
 # until it dries (the wet-firewood, now derived). Its saturation is authored.
 class: /platform/thing/Firewood
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: rain-soaked oak log
   keywords: [rain-soaked, log, oak, firewood, wood, wet]

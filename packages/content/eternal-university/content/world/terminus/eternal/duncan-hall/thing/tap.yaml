@@ -7,7 +7,6 @@
 # A university-owned fixture: invariant, respawned from template, seeded
 # into each DormRoom via its `props:` data.
 class: /platform/thing/WaterFixture
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: corner tap
   keywords: [tap, faucet, sink, water, corner]

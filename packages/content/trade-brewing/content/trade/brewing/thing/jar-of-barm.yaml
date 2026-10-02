@@ -1,7 +1,6 @@
 # The house barm — the brewer's kept ale culture, alive in its jar
 # (D14): pitched by pour, fed with wort, kept out of the sun.
 class: /platform/thing/Vat
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: jar of barm
   keywords: [jar, barm, culture]

@@ -2,7 +2,6 @@
 # confluence below the tide's reach, the wharf. Wants salt, wants slow
 # water, and is not there in winter.
 class: /platform/idea/species/Species
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   binomial: Chelon labrosus
   commonNames: ["grey mullet", "mullet"]

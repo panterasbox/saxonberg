@@ -10,7 +10,6 @@
 # (see lib/stuff/Vessel.ts). Empty it and a strong character could shift
 # the frame, which is a consequence rather than a special case.
 class: /platform/thing/GardenBed
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: raised garden bed
   keywords: [bed, "garden bed", "raised bed", plot, planter, raised, garden]

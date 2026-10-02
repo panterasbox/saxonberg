@@ -59,7 +59,7 @@ describe('the fabric roster warm', () => {
     });
 
     const catalogue = makeStuff(() => new FabricCatalogue());
-    await catalogue.postRegister();
+    await catalogue.onCreate();
 
     expect(stood).toEqual(['/stuff/idea/fabric/woven']);
     expect(Template.findByPathInfix).toHaveBeenCalledWith('/idea/fabric/');

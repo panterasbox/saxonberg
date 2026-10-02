@@ -6,6 +6,5 @@
 # beat would sit, and a namespace can be tightened while a tag cannot
 # (tags carry no permission meaning, by design).
 class: /platform/idea/WikiNamespaceZone
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: lore

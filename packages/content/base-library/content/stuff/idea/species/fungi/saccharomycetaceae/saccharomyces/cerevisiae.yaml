@@ -7,7 +7,6 @@
 # is the least-wrong sessile — a yeast has no body the simulation
 # resolves.
 class: /platform/idea/species/Species
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   binomial: Saccharomyces cerevisiae
   commonNames: ["yeast", "wine yeast", "ale yeast", "brewer's yeast"]

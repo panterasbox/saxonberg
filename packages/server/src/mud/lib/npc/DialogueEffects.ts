@@ -44,9 +44,9 @@ export class DialogueEffectRegistry {
   /**
    * Register a domain effect verb (idempotent overwrite — HMR-safe).
    *
-   * @internal a **`postRegister` boot seam**, not author surface — the same
+   * @internal a **`onCreate` boot seam**, not author surface — the same
    * ruling as `Construction.registerFabric`. Its callers are
-   * `BankCounter.postRegister` and (in the terminus pack) `Realtor`'s;
+   * `BankCounter.onCreate` and (in the terminus pack) `Realtor`'s;
    * pack `src/` is CODE at the capability rung, not content, so a pack
    * caller does not make a registration seam something a content author
    * reaches for. Advertising it in the generated docs would say otherwise.

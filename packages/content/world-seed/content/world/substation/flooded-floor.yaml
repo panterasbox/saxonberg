@@ -6,7 +6,6 @@
 # and grounds anyone standing in it. Mirrors `/stuff/thing/surface/default-floor` (the
 # posture `ground:1` slot + the `floor` detail) with the pool authored on top.
 class: /platform/thing/Floor
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: flooded concrete floor
   # `ground` added by `lint:ground` clause (d) — see the gate.

@@ -10,7 +10,6 @@
 # by looking at the shape, only by what it is made of and what happens when
 # you hit it.
 class: /trade/smelting/thing/Bloom
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   keywords: [bloom, iron, "hot-short"]
   shortDescription: hot-short bloom

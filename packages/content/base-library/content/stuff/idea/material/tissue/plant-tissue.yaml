@@ -2,7 +2,6 @@
 # a stem); distinct from oak (dead, processed wood). Flammable when
 # dry.
 class: /platform/idea/material/Material
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: plant-tissue
   keywords: [plant-tissue]

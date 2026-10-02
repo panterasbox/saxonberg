@@ -58,7 +58,7 @@ export const RELEASE_VISIBILITIES: readonly ReleaseVisibility[] = [
 
 /**
  * Public method surface (methods only, per the inter-stuff contract). The
- * fields are public so the Hydrator can reflect into them; they are not
+ * fields are public so the applier can reflect into them; they are not
  * the contract surface.
  */
 export interface Publisher {
@@ -78,7 +78,7 @@ export interface Publisher {
   getPublishingPositions(): readonly string[];
 }
 
-/** The persistent field slots this mixin declares — Hydrator-facing. */
+/** The persistent field slots this mixin declares — applier-facing. */
 export interface PublisherFields {
   label: string;
   realm: string;

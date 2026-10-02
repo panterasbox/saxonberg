@@ -9,7 +9,6 @@
 # honest work, which is meant to be felt without being ruinous — a fight
 # you walked away from should cost you an afternoon, not a career.
 class: /platform/thing/Tariff
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: slate of charges
   keywords: [slate, tariff, charges, prices, board]

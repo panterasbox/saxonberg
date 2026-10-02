@@ -3,7 +3,6 @@
 # nothing in this build can trap or bury anybody. What a fall costs is a
 # shift spent barring it down, which is exactly what neglect should cost.
 class: /trade/mining/location/MineRoom
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: fall of ground
   keywords: [fall, collapse, rubble, ground]

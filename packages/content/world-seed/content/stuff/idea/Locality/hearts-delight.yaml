@@ -7,7 +7,7 @@
 #
 # ⚠⚠ **It lives here, in `world-seed`, and not in the `hearts-delight`
 # pack** — which differs from the requirements' letter and is deliberate.
-# `AddressRegistry.postRegister` walks `TemplatePathRosters.locality`,
+# `AddressRegistry.onCreate` walks `TemplatePathRosters.locality`,
 # which is `['/platform/idea/Locality/', '/stuff/idea/Locality/']`. A
 # Locality row anywhere else is **silently absent**: the registry never
 # sees it, `resolveLocalityFor` answers null for every room in the
@@ -35,7 +35,6 @@
 # public-works department, a Warden of the Ways). Everything else about the
 # valley's governance is still open.
 class: /platform/idea/Locality
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: Heart's Delight
   _address: terminus/hearts-delight

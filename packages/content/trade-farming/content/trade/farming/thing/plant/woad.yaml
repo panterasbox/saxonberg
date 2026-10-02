@@ -9,7 +9,6 @@
 # and it comes again. The one crop in this build that keeps giving, and
 # the reason a small bed can feed a vat at all.
 class: /platform/thing/Plant
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: bed of woad
   keywords: [woad, pastel, crop, bed]

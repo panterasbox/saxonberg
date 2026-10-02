@@ -4,7 +4,6 @@
 # trout, the sturgeon — never the bottom-feeders. It is not consumed at
 # a take: one spoon, all season.
 class: /trade/fishing/thing/Bait
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   keywords: [spoon, lure, tin-spoon]
   primaryKeyword: spoon

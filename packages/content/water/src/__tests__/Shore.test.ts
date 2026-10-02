@@ -98,7 +98,7 @@ function viewer(band: string | null): Stuff {
 async function shoreOn(reach = REACH.ref): Promise<Shore> {
   const s = makeStuff(() => new Shore());
   s.setReachRef(reach);
-  await s.postRegister();
+  await s.onCreate();
   await s.settle();
   return s;
 }
@@ -193,7 +193,7 @@ describe('the memo', () => {
     installWater();
     const s = makeStuff(() => new Shore());
     s.setReachRef(REACH.ref);
-    // No postRegister, no settle: cold.
+    // No onCreate, no settle: cold.
     expect(look(s, viewer(null))).toMatch(/hard to read yet/);
   });
 

@@ -1,7 +1,6 @@
 # Grape — produce's food material; tag `grape` is the recipe category (a
 # future press's item slot; the par sheet).
 class: /platform/idea/material/ConsumableMaterial
-hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: grape
   keywords: [grape]
