@@ -100,6 +100,20 @@ export interface Behaved {
    * and all. False when no live wiring names that brain.
    */
   fireBeat(brainPath: string): Promise<boolean>;
+  /**
+   * ⭐ Add a spec and wire it **now**, without a re-clone.
+   *
+   * Wiring used to happen only at `postRegister`, which is right for
+   * AUTHORED cast — their specs arrive with the row. A player setting a
+   * standing instruction is the other case: the spec arrives mid-life,
+   * from a verb, and has to start running without bouncing the body.
+   */
+  addBehavior(spec: BehaviorSpec): Promise<void>;
+  /**
+   * Drop every spec naming `brainPath` and cancel its schedules.
+   * Returns how many went. `null` clears all of them.
+   */
+  removeBehaviors(brainPath: string | null): number;
 }
 
 export function BehavedMixin<TBase extends MixinConstructor<Stuff>>(
@@ -265,6 +279,43 @@ export function BehavedMixin<TBase extends MixinConstructor<Stuff>>(
         }
         // Witness wirings need no schedule — handleMessage dispatches.
       }
+    }
+
+    /**
+     * ⭐⭐ Add one spec and wire it live.
+     *
+     * ⚠ Re-wires the WHOLE set rather than splicing one schedule in.
+     * That is deliberate: `_wireBehaviors` also re-seeds the witness
+     * baseline (`_seenPlayers`), and a partial wire would leave a body
+     * that greets everyone already standing there. Re-wiring is cheap —
+     * a handful of timers — and it is the same path `postRegister`
+     * takes, so there is one wiring code path and not two.
+     */
+    public async addBehavior(spec: BehaviorSpec): Promise<void> {
+      this.behaviors = [...(this.behaviors ?? []), spec];
+      this._teardownBehaviors();
+      await this._wireBehaviors();
+    }
+
+    /**
+     * Drop every spec naming `brainPath` (or all of them, for `null`)
+     * and cancel what they had running.
+     */
+    public removeBehaviors(brainPath: string | null): number {
+      const before = this.behaviors?.length ?? 0;
+      this.behaviors =
+        brainPath === null
+          ? []
+          : (this.behaviors ?? []).filter((s) => s.brain !== brainPath);
+      const gone = before - this.behaviors.length;
+      if (gone > 0) {
+        this._teardownBehaviors();
+        // ⚠ Fire-and-forget: the caller is a verb, and a re-wire that
+        // rejected would otherwise take down the command. The warn
+        // inside `_wireBehaviors` is the report.
+        void this._wireBehaviors();
+      }
+      return gone;
     }
 
     private _teardownBehaviors(): void {

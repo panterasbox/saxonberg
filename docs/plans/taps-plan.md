@@ -1091,7 +1091,72 @@ re-read `Producing.ts`'s composers after it.
 
 ---
 
-### W4 · The relief — `build(taps W4): a character keeps the round on standing instructions`
+### ✅ W4 · The relief — DONE `build(taps W4)`
+
+⭐⭐ **Unblocked and shipped**: build-3's avatar-family merged
+(2026-10-01), `lib/character/Avatar` exists on master, and
+`origin/master` merged into this branch **clean** — 73 commits, no
+conflicts. 18 new kernel cases (`keeps` 10, `InstructController` 8),
+all 59 lint gates pass.
+
+> **Where `BehavedMixin` went, and why there was exactly one gap.** The
+> merged chain is `PersistableMixin(EstateMixin(ForkableMixin(
+> PostRegistrationMixin(…))))`, so D11's two constraints — *inside
+> `Persistable`* (the field rides the snapshot) and *outside
+> `PostRegistration`* (the wiring re-runs at reconnect) — leave one
+> slot: `ForkableMixin(BehavedMixin(PostRegistrationMixin(…)))`. ⭐ On
+> the ABSTRACT root rather than `PrimaryAvatar`, because the claim holds
+> in any phase: a shade keeps the round it was given, and the sandbox
+> body inherits it so a circle can rehearse one.
+>
+> **What shipped**
+> - `BehavedMixin.addBehavior` / `removeBehaviors` — live rewiring,
+>   which did not exist. ⚠ Both re-wire the WHOLE set rather than
+>   splicing one schedule, because `_wireBehaviors` also re-seeds the
+>   witness baseline and a partial wire leaves a body that greets
+>   everyone already standing there.
+> - `lib/behavior/keeps.ts` — `presenceGated = false`, `ambient = false`,
+>   `claims: ['hands']`, `cadence:600s` (ten real minutes = five game
+>   hours, comfortably inside a cow's 0.6-game-day window).
+> - `CommandView.standing` + `CommandDefinition.standing`, and ⭐ the
+>   key added to `command.schema.json`.
+> - `platform/cmd/system/instruct.yaml` (`keep` / `none` / `list`, the
+>   line **greedy** because it IS a command line) + `InstructController`
+>   + its template row.
+> - `standing: true` on `milk`, `gather`, `rob`, `tap`.
+>
+> **Decisions the build made**
+> - ⚠⚠ **`shear` is NOT keepable.** Wool is `continuous` with no window
+>   to miss, so a kept shear would take the fleece the instant there was
+>   any of it — the opposite of a relief. The plan named four verbs and
+>   this is why it was four and not five.
+> - ⭐ **A round only fires when the tap is worth an act**, by shape: an
+>   `expire` tap wants half a window's worth (a cow milked out the moment
+>   she has a cupful would be *the game milking her for you*), a `count`
+>   tap at least one whole egg, anything else any amount. ⚠ A
+>   non-producer answers YES — refusing a bad target is the VERB's job,
+>   and guessing is how a brain starts re-implementing the verbs it
+>   issues.
+> - **The target word is parsed crudely** (first token after the verb
+>   that is not an article or preposition) and deliberately so: the round
+>   does not resolve the target, it only checks the thing is still in the
+>   room before spending a beat. The real binder runs at dispatch.
+> - **One spec carries every round**, so `instruct keep` twice does not
+>   stack two brains on one body.
+>
+> **⚠⚠ Found: the schema is the real gate, and `lint:whole-table` is new**
+> - `command.schema.json` has `additionalProperties: false`, so
+>   `standing: true` was rejected at parse until the key was added — and
+>   ⭐ that is the gate working: a typo'd view key fails at boot rather
+>   than reading as a verb that quietly cannot be kept.
+> - **`lint:whole-table` (59 gates now, from the merge) caught
+>   `CommandApi.allDefinitions().find(…)`.** The rule is *ask the owner
+>   the question*, so `CommandApi.definitionForVerb(verb)` was added —
+>   which is where a verb index can later go without a caller moving.
+>   ⚠ The controller test had to mock the new read rather than the table,
+>   or the real lookup would have run against an empty cache.
+
+### W4 (as planned) — `build(taps W4): a character keeps the round on standing instructions`
 
 ⚠ **Runs LAST, after W6, and only if build-3's avatar-family has merged
 — see D11a.**

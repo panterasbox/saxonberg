@@ -21,10 +21,13 @@
  *
  * ## ⚠⚠ What is NOT here, said plainly
  *
- *  - **Checkpoint 18 (the standing-instruction relief).** W4 did not
- *    ship: its host (`lib/character/Avatar`) is build-3's and MR !315 is
- *    open, not merged. AC 7 moves to the dairy build. See the plan's
- *    D11a / Risks §2a.
+ *  - ⭐ **Checkpoint 18 (the standing-instruction relief) IS here** —
+ *    W4 landed once build-3's avatar-family merged and
+ *    `lib/character/Avatar` existed to compose `BehavedMixin` on. What
+ *    the socket proves is the verb, the affordance and ⛔ the
+ *    earn/preserve bound; the brain's own beat is pinned in
+ *    `lib/behavior/__tests__/keeps.test.ts`, because a kept round comes
+ *    round on a ten-real-minute cadence and no drive waits for that.
  *  - **Checkpoint 16's second half.** The requirements asked whether
  *    *leaving some in her* starts her off; W1 found that mechanism
  *    cannot exist (`ceiling = perGameDay × windowDays`, so she fills
@@ -631,18 +634,47 @@ suite('⭐⭐ 15, 20–22. a verb is known where something AFFORDS it', () => {
     }
   }, 300_000);
 
-  it('⭐ and `instruct` is NOT here — W4 did not ship, deliberately', async () => {
-    // ⭐⭐ The honest record of the build's one severed wave. The
-    // standing-instruction relief's host is build-3's
-    // `lib/character/Avatar` and MR !315 is open, not merged — so AC 7
-    // moves to the dairy build, and this is what will FAIL (loudly,
-    // here) the day somebody lands the brain without the verb or the
-    // verb without the brain.
-    const out = await say(k, 'instruct keep milk cow');
+  it('⭐⭐ 18. `instruct` IS here, and it is afforded from your own body', async () => {
+    // ⭐ W4 landed once build-3's avatar-family merged: `BehavedMixin`
+    // composes on `lib/character/Avatar`, so every player body may
+    // carry standing instructions. The verb is afforded from `self` —
+    // there is no object in the room that confers it, because the thing
+    // it instructs is YOU.
+    const out = await say(k, 'instruct');
     const rejected = out.notes.find((n) => n.kind === 'command-rejected');
     expect(
       JSON.stringify(rejected ?? {}),
-      'instruct must not exist yet — see the plan D11a / Risks §2a',
-    ).toMatch(/unknown-verb/);
+      'instruct must be afforded from the body itself',
+    ).not.toMatch(/unknown-verb/);
+  }, 300_000);
+
+  it('⛔⛔ 18. a TAKE may be kept; a SALE is refused, and the refusal says why', async () => {
+    // ⭐⭐⭐ The bound that makes the relief defensible rather than
+    // idle-game drift, checked through the real dispatch: the verb
+    // accepts a line only when that line's own view declares
+    // `standing: true`, and only the takes do.
+    const sale = await say(k, 'instruct keep sell the syrup');
+    expect(refusedFor(sale)).toBe('not-standing');
+    // ⭐ And the refusal teaches the rule rather than reading as a fussy
+    // parser — a player who tried should come away understanding it.
+    const said = await sale.said();
+    expect(said).toMatch(/taking|milking|yours to do yourself/i);
+  }, 300_000);
+
+  it('⭐⭐⭐ 18. `instruct keep tap …` is accepted, and `none` clears it', async () => {
+    // The sugarbush is where this drive is standing, so the keepable
+    // verb to hand is `tap` — and it is one of the four that opt in.
+    const kept = await say(k, 'instruct keep tap birch-north into pail');
+    expect(refusedFor(kept)).toBeNull();
+
+    // It is standing, and the body says so.
+    const listed = await read(k, 'instruct');
+    expect(listed).toMatch(/tap birch-north into pail/i);
+
+    // ⚠ And it can be stopped, which is the half a player needs most.
+    const cleared = await say(k, 'instruct none');
+    expect(refusedFor(cleared)).toBeNull();
+    const after = await say(k, 'instruct');
+    expect(refusedFor(after)).toBe('nothing-kept');
   }, 300_000);
 });

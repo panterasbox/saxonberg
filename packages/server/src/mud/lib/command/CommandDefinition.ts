@@ -84,6 +84,12 @@ export class CommandDefinition {
    */
   public readonly fallthrough: boolean;
   /**
+   * ⭐⭐ Whether this verb may be kept on a standing instruction — see
+   * {@link CommandView.standing}. ⛔ A take may be kept; a sale may
+   * never be, and absent means no.
+   */
+  public readonly standing: boolean;
+  /**
    * Default async-dispatch mode for this verb (default `false`). When
    * `true`, `CommandGiverMixin._executeOne` detaches the controller body
    * from the giver's own input chain at accept-time. Overridden
@@ -161,6 +167,7 @@ export class CommandDefinition {
     this.args = view.args || [];
     this.subcommands = view.subcommands || {};
     this.fallthrough = view.fallthrough === true;
+    this.standing = view.standing === true;
     this.async = view.async === true;
     this.opensCards =
       view.opens_card === undefined

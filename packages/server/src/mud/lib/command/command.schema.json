@@ -78,6 +78,10 @@
       "type": "boolean",
       "description": "Opt-in flag permitting top-level `args:` AND `subcommands:` to coexist. When set, the matcher tries subcommands first; on an unknown first token it falls through to bind against the top-level `args:` (Phase 3a). Required together with both `args:` and `subcommands:` \u2014 schema rejects any other combination."
     },
+    "standing": {
+      "type": "boolean",
+      "description": "Opt-in flag: may this verb be kept on a STANDING INSTRUCTION (`instruct keep <line>`, the `keeps` brain)? A TAKE may be kept; a SALE may never be, so only the taking verbs (milk, gather, rob, tap) declare it. Absent means no. The declaration lives on the view rather than in a list in InstructController, because a list is the thing somebody forgets to edit and a verb that quietly became keepable would be the game earning on a player's behalf."
+    },
     "opens_card": {
       "oneOf": [
         {"type": "string", "minLength": 1},

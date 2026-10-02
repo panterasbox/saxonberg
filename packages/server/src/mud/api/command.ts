@@ -1234,6 +1234,21 @@ export interface CommandView {
    */
   fallthrough?: boolean;
   /**
+   * ⭐⭐ **May this verb be kept on a STANDING INSTRUCTION?**
+   *
+   * The taps build's relief (`instruct keep <line>`, the `keeps` brain)
+   * refuses any line whose view does not declare this, and it is the
+   * bound that makes the whole feature defensible: ⛔ **a take may be
+   * kept; a SALE may never be.** Only `milk`, `gather`, `rob` and `tap`
+   * set it.
+   *
+   * ⚠ A DECLARATION rather than a list in the controller, for the usual
+   * reason: a list is a thing somebody forgets to edit, and a verb that
+   * quietly became keepable would be the game earning on a player's
+   * behalf. Absent means no.
+   */
+  standing?: boolean;
+  /**
    * Default async-dispatch mode for this verb (default `false`). When
    * `true`, the controller body detaches from the giver's own input
    * chain at accept-time — see {@link AssembleSuccess.reservedAsync} for
@@ -1372,6 +1387,21 @@ export class CommandApi {
    */
   static allDefinitions(): CommandDefinition[] {
     return logic().allDefinitions();
+  }
+
+  /**
+   * ⭐ **The definition that owns `verb`**, or `null`.
+   *
+   * The question a caller actually has, asked of the owner instead of
+   * filtering its table — `lint:whole-table`'s rule, and the right one:
+   * this is where a verb index can later go without a single caller
+   * moving. ⚠ Case-insensitive, because a player types what they type.
+   *
+   * Added by the taps build for `instruct`, which has to know whether a
+   * named line's view declares `standing: true` before it will keep it.
+   */
+  static definitionForVerb(verb: string): CommandDefinition | null {
+    return logic().definitionForVerb(verb);
   }
 
   /**

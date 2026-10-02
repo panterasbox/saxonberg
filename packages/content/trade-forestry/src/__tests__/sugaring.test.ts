@@ -180,7 +180,13 @@ describe('the sap trees — the rows the mechanism reads', () => {
     const m = (maple().production as unknown as Array<Record<string, unknown>>)[0]!;
     const bw = b.window as Record<string, number>;
     const mw = m.window as Record<string, number>;
-    expect(mw.daylightFrom).toBeLessThan(bw.daylightFrom);
+    // ⚠ `noUncheckedIndexedAccess` makes an index read `| undefined`,
+    // so the band is asserted present before it is compared — a bare
+    // `toBeLessThan(undefined)` would have passed vacuously on a row
+    // that lost its window.
+    expect(mw.daylightFrom).toBeDefined();
+    expect(bw.daylightFrom).toBeDefined();
+    expect(Number(mw.daylightFrom)).toBeLessThan(Number(bw.daylightFrom));
   });
 
   it('⚠⚠ no window asks for a FREEZE — it would never fire in this climate', () => {

@@ -42,6 +42,7 @@ import { PressApi } from "../../api/press";
 import { ReactionApi } from "../../api/reaction";
 import { RecordApi } from "../../api/record";
 import { PostRegistrationMixin } from "../stuff/PostRegistration";
+import { BehavedMixin } from "../behavior/Behaved";
 import { PersistableMixin } from "../persistence/Persistable";
 import { ForkableMixin } from "../persistence/Forkable";
 import { PersistableApi } from "../../api/persistable";
@@ -165,6 +166,30 @@ export interface AvatarInitContext {
 const AvatarBase = PersistableMixin(
   EstateMixin(
     ForkableMixin(
+      // ⭐⭐⭐ **Every player body may carry STANDING INSTRUCTIONS** — the
+      // taps build's relief (`instruct keep <line>`, the `keeps` brain).
+      //
+      // Placement is both constraints at once and there is exactly one
+      // gap that satisfies them: **inside `PersistableMixin`** so the
+      // `behaviors` field rides the Avatar snapshot across a
+      // disconnect, and **outside `PostRegistrationMixin`** so the
+      // mixin's own `postRegister` re-wires the persisted round at
+      // reconnect (the `NPC = Behaved(PostRegistration(Character))`
+      // ordering, for the same reason).
+      //
+      // ⚠ On the ABSTRACT root rather than on `PrimaryAvatar`, because
+      // the claim is true of a body in any phase: a shade keeps the
+      // round it was given, and the sandbox body inherits it so a
+      // circle can rehearse one. ⛔ And not on any shared ancestor of
+      // `Beast` — `Beast` already composes `BehavedMixin`, so going
+      // lower double-composes.
+      //
+      // ⭐ `canEvict`'s veto earns a second job here: a linkdead body
+      // **with a round to keep stays resident** (the pets.md residency
+      // pin), which is the whole point of an instruction that outlives
+      // your session. `dispositions` stays empty and seeds nothing — a
+      // player's character is not authored.
+      BehavedMixin(
       PostRegistrationMixin(
         SaxonbergClientMixin(
           ClientStateMixin(
@@ -202,6 +227,7 @@ const AvatarBase = PersistableMixin(
             ),
           ),
         ),
+      ),
       ),
       ),
       ),
@@ -246,6 +272,10 @@ export default abstract class Avatar extends AvatarBase {
     self: [
       "platform/cmd/system/ping.yaml",
       "platform/cmd/system/help.yaml",
+      // ⭐ The standing-instruction verb. Afforded from `self` because
+      // the thing it instructs is YOU — there is no object in the room
+      // that confers it, and a round is kept by your own body.
+      "platform/cmd/system/instruct.yaml",
       // The wiki sits beside `help` deliberately. Both are reference
       // surfaces a player carries rather than reaches for: `help` tells
       // you what a verb does, `wiki` tells you what a thing IS. Reading

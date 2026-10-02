@@ -19,6 +19,11 @@ help: |
   pail too small is your own information: she is milked right out either
   way, because holding some back would suppress her rather than save it,
   and what the vessel will not hold goes on the straw.
+# ⭐⭐ KEEPABLE. `instruct keep <this line>` runs it while you are away
+# — and this key is the ONLY thing that permits it. ⛔ A take may be
+# kept; a sale may never be, which is why `sell`, `consign` and the rest
+# declare nothing. See `CommandView.standing` and the `keeps` brain.
+standing: true
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresConscious
