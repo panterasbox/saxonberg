@@ -769,6 +769,14 @@ the powered cold source drives a `Bulkable` freeze (the ClimateControl
 content pass); a jug of water in a cold weather room does not freeze this
 build (`thermal-slate`).
 
+⚠ **Two meltwater edges are accepted limitations** (both → `thermal-slate`):
+(1) a solid melting inside a **floorless container** (a cooler, a freezer
+box) loses its litres — `doMelt`'s `findScopeFloor` returns null, so the
+solid destructs and the meltwater has nowhere to pool (the drama is
+spoilage, not puddles); (2) a cold **ROOM**'s own floor puddle does not
+re-freeze — the content phase pass drives a scope's loose contents, and a
+`Floor` is a fixture, not a loose content.
+
 ### ⭐ A body may author its own starting temperature
 
 `ThermalMixin.stampedTemperatureK` is `authorable` (2026-09-28). A
