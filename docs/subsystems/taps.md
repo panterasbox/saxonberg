@@ -21,7 +21,7 @@ taking feeds back on the rate**:
 
 | | feedback | the judgment, and where it lives |
 |---|---|---|
-| **milk** | ⭐ direct — lactation is demand-driven, so removal stimulates synthesis and residual suppresses it | ⚠ and therefore **nothing to decide at the act.** A take always empties her. What the player trades is **attendance against her rate** — labour — so the answer is the standing-instruction relief, and `look` bands the window clock so the loss is visible coming |
+| **milk** | ⭐ direct — lactation is demand-driven, so removal stimulates synthesis and residual suppresses it | ⚠ and therefore **nothing to decide at the act.** A take always empties her. What the player trades is **attendance against her rate** — labour — and ⛔ **nothing in the game discharges it yet**: the standing-instruction relief was cut in review (§ The relief), so AC 7 is unmet. `look` bands the window clock so the loss is at least visible coming |
 | **eggs** | ⭐ through a state the act PREVENTS — a hen is an indeterminate layer, so a clutch left standing makes her brood and stop | `TapState.brooding` + `fullSince`, armed by `broodAfterDays`. Take the clutch and she starts again |
 | **wool · honey · sap** | none | nothing to decide at the act; `TapState.worst` records what the YEAR put in, read at the take |
 
@@ -276,124 +276,48 @@ diagnose after the fact.
 
 ---
 
-## ⭐⭐⭐ The relief — `instruct keep <line>`
+## ⛔⛔ The relief — CUT IN REVIEW, and it is milk's unanswered question
 
-**Milk's answer, and the one piece of this build that is about the
-player rather than the animal.**
+**Milk's answer was going to be the relief, and the relief is not in
+this build.** W4 shipped `instruct keep <line>` plus a `keeps` brain so
+a player's body could keep a milking round while they were offline. It
+was removed before the MR merged, on two objections:
 
-A dairy cow wants taking twice a GAME day and a game day is two real
-hours. The feedback law says there is nothing to decide at the act — a
-take always empties her — so attendance *is* what milk costs, and no
-mechanic fixes that. What fixes it is being able to keep the round when
-you are not there.
+1. ⛔ **Scope.** It is offline automation, decided inside a build about
+   tapping trees for syrup. Whether players may automate labour at all
+   is a lens-level question — pedagogy (what Discipline does an absent
+   body exercise?), participation, values, economy — and it needs its
+   own conversation rather than a wave.
+2. ⛔ **It contradicts the absent-body doctrine**: *automate only the
+   AUTONOMIC (what any body does unattended), never the STRATEGIC (what
+   a mind chooses); reflex is real, strategy-by-proxy is faking; the
+   absent body holds LESS than an NPC brain, not a decision agent.*
+   Milking a named cow into a named pail fails that test, and W4 gave a
+   player body an actual NPC brain (`BehavedMixin` on `Avatar`).
 
-```
-instruct keep milk the cow into the pail
-instruct                  → what you are keeping
-instruct none             → stop all of it
-```
+⚠ **So acceptance criterion 7 is UNMET, and the dairy cow's attendance
+cost is unrelieved.** That is the honest state of the design: the
+feedback law says milk has nothing to decide at the act, so what the
+player trades is attendance against her rate — *labour* — and nothing
+in the game currently discharges it. `look` bands the window clock so
+the loss is at least visible coming.
 
-### ⛔⛔ It PRESERVES; it never EARNS
+⭐ One finding is worth carrying forward, because it is about the
+mechanism and not the policy: W4 took a **greedy free-form command
+line** and replayed it through `forceCommand`, which means the brain
+could issue *any* verb — so it needed a per-verb allowlist, and that
+allowlist became a new `standing?: boolean` field on `CommandView` (a
+598-view schema). ⭐⭐ **The field was a filter invented to re-narrow an
+input that was accepted too wide.** A design that takes a TARGET and
+lets the engine construct the take from the tap needs no allowlist
+anywhere: a sale is then unreachable by construction. ⚠ And the
+declaration proved exactly as forgettable as a list — there are five
+`TapActController` subclasses and W4 set the flag on four, silently
+omitting `shear`.
 
-The bound, and the reason this is a remedy rather than idle-game drift:
+The design question lives at
+`docs/slates/builds/standing-instructions-slate.md`.
 
-- a round is the **literal line the player typed**, re-issued through
-  `forceCommand` — so every gate the manual act has still runs: the
-  window, the vessel, the engagement, the endurance check;
-- the yield lands in the body's own hands or vessel, where a manual take
-  would have put it;
-- ⛔ **it cannot reach money, a counter, a shelf or a ledger.** The verb
-  refuses any line whose view does not declare **`standing: true`**, and
-  only the four takes do (`milk` · `gather` · `rob` · `tap`).
-
-⚠ `shear` deliberately does NOT declare it: wool is `continuous` with no
-window to miss, so a kept shear would take the fleece the instant there
-was any of it.
-
-⭐ `standing:` is a **view key**, not a list in the controller — a list
-is the thing somebody forgets to edit, and a verb that quietly became
-keepable would be the game earning on a player's behalf. It is in
-`command.schema.json` with `additionalProperties: false`, so a typo
-fails at boot.
-
-### ⛔⛔⛔ And an ambiguous verb is REFUSED, not guessed
-
-⚠⚠ **A verb may legitimately be claimed by more than one view.** Nine
-such collisions are shipped — `lint:verb-collisions` is an ALLOWLIST
-rather than a zero (`butcher` across two trades, `dress`
-medical-vs-cooking, `pour`, `hang`, `mount`, `drive`, `me`, `lease`,
-`unlease`) — and ⭐ **dispatch resolves them PER-GIVER**, newest-first on
-the recency stack, by shape-vs-bind at the assemble stage
-([command-routing.md](./command-routing.md)).
-
-No catalogue read can reproduce that. So `instruct` asks
-`CommandApi.definitionsForVerb(verb)` — **plural** — and keeps the line
-only when **every** claim declares `standing: true`:
-
-| claims | outcome |
-|---|---|
-| none | `unknown-verb` |
-| all keepable | ⭐ kept — true whichever one dispatch picks |
-| **some keepable** | ⛔ **refused** (`ambiguous-verb`), in words: *"'shear' means more than one thing here, and only some of them are work you can leave running."* |
-| none keepable | refused, and the refusal states the rule |
-
-⚠ The first draft took the **first match** off the filename cache's
-insertion order, which fails in both directions and the dangerous one
-is silent:
-
-- ⛔ **fails OPEN** — permits keeping a line that will dispatch to the
-  view that never opted in. That is the earn/preserve bound breaking,
-  and it is the only safety property this feature has.
-- ⚠ **fails arbitrarily** — refuses a legitimate take because a homonym
-  happened to be cached first, which reads to the player as the verb
-  being fussy for no reason.
-
-⭐ Failing closed costs nothing today (none of the four keepable verbs is
-collided) and stays correct the day somebody claims `tap` for a beer
-tap — which is not far-fetched: the noun is already bound on nine bar
-fixtures.
-
-### ⚠ It stays where you left it
-
-Each round resolves its target among the host's peers **in the room the
-host is standing in**. No path-finding, no teleport: the instruction is
-*stay here and keep this round*, and a round whose target is not there
-**lapses silently** — the honest cost of logging off in the wrong place
-rather than a rule to learn. (Walking to a byre is the `homes` brain's
-path-finding pointed at a target, and is deferred.)
-
-### Where it lives
-
-| piece | where | why there |
-|---|---|---|
-| `BehavedMixin` | `lib/character/Avatar` — ⭐ **inside `Persistable`, outside `PostRegistration`**, which is the one gap that satisfies both | inside Persistable so `behaviors` rides the snapshot across a disconnect; outside PostRegistration so the mixin re-wires the persisted round at reconnect (the `NPC = Behaved(PostRegistration(Character))` ordering) |
-| | on the **abstract root**, not `PrimaryAvatar` | the MIXIN belongs to every player body, so the field and the re-wiring are inherited once. ⛔ And not lower — `Beast` already composes `BehavedMixin`, so a shared ancestor double-composes |
-| the `instruct` VERB | reaches `PrimaryAvatar` only | ⚠ and that is right rather than an oversight: `ShadeAvatar` is `IncorporealMixin(Avatar)` and that mixin curates its own `commandContributions`, which SHADOWS the root's. A shade cannot milk a cow — `requiresEmbodied` gates the takes — so it should not be able to instruct one. ⭐ An earlier draft of this doc claimed *"a shade keeps the round it was given"*; that was never true and a direct affordance read is what caught it |
-| `addBehavior` / `removeBehaviors` | `BehavedMixin` | wiring used to happen only at `postRegister`, which is right for AUTHORED cast. A player's instruction arrives mid-life, from a verb |
-| `keeps` brain | `lib/behavior/keeps.ts` | kernel commons — the relief is Schell #27's third relief, not a trade's. `presenceGated = false` (the whole point), `ambient = false` (a functional poller, so the chatter dial must not stretch it) |
-| `instruct` | `platform/cmd/system/`, afforded from `Avatar.commandContributions.self` | the thing it instructs is YOU; no object in the room confers it |
-
-⭐ **`canEvict` earns a second job.** `BehavedMixin` already vetoed
-eviction for authored cast carrying a spec; on a player body that veto
-*is the residency pin* — **a linkdead body with a round to keep stays
-resident**, which is the whole point of an instruction that outlives
-your session. `dispositions` stays empty and seeds nothing: a player's
-character is not authored.
-
-### The cadence
-
-`cadence:600s` — ten real minutes, which is five game hours at the
-shipped 12× scale. Comfortably inside a dairy cow's window (0.6 game
-days ≈ 1.2 real hours) and nowhere near often enough to look like a
-faucet. Grain.
-
-⚠ A round only fires when the tap is **worth an act**, by shape: an
-`expire` tap wants half a window's worth (a cow milked out the instant
-she has a cupful would be *the game milking her for you*), a `count` tap
-wants at least one whole egg, anything else whenever there is any of it.
-⭐ A non-producer answers *yes* — refusing a bad target is the VERB's
-job, and guessing here is how a brain starts re-implementing the verbs
-it is supposed to be issuing.
 
 ---
 
@@ -402,8 +326,9 @@ it is supposed to be issuing.
 - **Chicks / incubation** — `TapState.brooding` is the attach point.
 - **The dry-off decision** — `window: {kind: event}` + `freshen()` is
   the seam; the breeding cycle calls it.
-- ~~The relief~~ — ⭐ **SHIPPED** once build-3's avatar-family merged
-  (2026-10-01). See § The relief below.
+- ⛔ **The relief** — built in W4 and **cut in review** (scope, and the
+  absent-body doctrine). AC 7 unmet; see § The relief above. →
+  `standing-instructions-slate`.
 - **Resin / pitch** — a `production:` row on `pinus/sylvestris` with
   `yieldShape: mass` and a `weather` opener, on `SapStandard`. Nothing in
   the kernel changes. → `tapping-slate`.

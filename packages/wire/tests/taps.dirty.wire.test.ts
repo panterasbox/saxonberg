@@ -28,13 +28,14 @@
  *
  * ## ⚠⚠ What is NOT here, said plainly
  *
- *  - ⭐ **Checkpoint 18 (the standing-instruction relief) IS here** —
- *    W4 landed once build-3's avatar-family merged and
- *    `lib/character/Avatar` existed to compose `BehavedMixin` on. What
- *    the socket proves is the verb, the affordance and ⛔ the
- *    earn/preserve bound; the brain's own beat is pinned in
- *    `lib/behavior/__tests__/keeps.test.ts`, because a kept round comes
- *    round on a ten-real-minute cadence and no drive waits for that.
+ *  - ⛔⛔ **Checkpoint 18 — the standing-instruction relief — was CUT
+ *    in review, and acceptance criterion 7 is UNMET.** It shipped in W4
+ *    and was removed: it is offline automation, and this is a build
+ *    about tapping trees. It also contradicts the absent-body doctrine
+ *    (*automate only the autonomic, never the strategic*). The design
+ *    question goes to
+ *    `docs/slates/builds/standing-instructions-slate.md`; the drive
+ *    asserts the verb is ABSENT.
  *  - **Checkpoint 16's second half.** The requirements asked whether
  *    *leaving some in her* starts her off; W1 found that mechanism
  *    cannot exist (`ceiling = perGameDay × windowDays`, so she fills
@@ -653,47 +654,34 @@ suite('⭐⭐ 15, 20–22. a verb is known where something AFFORDS it', () => {
     }
   }, 300_000);
 
-  it('⭐⭐ 18. `instruct` IS here, and it is afforded from your own body', async () => {
-    // ⭐ W4 landed once build-3's avatar-family merged: `BehavedMixin`
-    // composes on `lib/character/Avatar`, so every player body may
-    // carry standing instructions. The verb is afforded from `self` —
-    // there is no object in the room that confers it, because the thing
-    // it instructs is YOU.
+  it('⛔⛔ 18. CUT — `instruct` is ABSENT, and that is the assertion', async () => {
+    // ⭐⭐⭐ **The relief was cut from this build in review, and this
+    // checkpoint is its headstone rather than a gap.**
+    //
+    // W4 shipped `instruct keep <line>` + a `keeps` brain so a player's
+    // body could keep a milking round while they were offline. Two
+    // objections ended it, and both were right:
+    //
+    //  1. ⛔ **Scope.** It is offline automation, decided inside a build
+    //     about tapping trees for syrup. Whether players may automate
+    //     labour at all is a lens-level question — pedagogy (what
+    //     Discipline does an absent body exercise), participation,
+    //     values, economy — and it needs its own conversation.
+    //  2. ⛔ **It contradicts the absent-body doctrine**: *automate only
+    //     the autonomic, never the strategic; strategy-by-proxy is
+    //     faking; the absent body holds LESS than an NPC brain, not a
+    //     decision agent.* Milking a named cow into a named pail is not
+    //     autonomic, and W4 gave the body an actual NPC brain.
+    //
+    // ⚠ So **acceptance criterion 7 is UNMET** and recorded as unmet —
+    // see docs/slates/builds/standing-instructions-slate.md. Milk's
+    // attendance cost is therefore still unrelieved, which is the
+    // honest state of the design and not a defect of this build.
     const out = await say(k, 'instruct');
     const rejected = out.notes.find((n) => n.kind === 'command-rejected');
     expect(
       JSON.stringify(rejected ?? {}),
-      'instruct must be afforded from the body itself',
-    ).not.toMatch(/unknown-verb/);
-  }, 300_000);
-
-  it('⛔⛔ 18. a TAKE may be kept; a SALE is refused, and the refusal says why', async () => {
-    // ⭐⭐⭐ The bound that makes the relief defensible rather than
-    // idle-game drift, checked through the real dispatch: the verb
-    // accepts a line only when that line's own view declares
-    // `standing: true`, and only the takes do.
-    const sale = await say(k, 'instruct keep sell the syrup');
-    expect(refusedFor(sale)).toBe('not-standing');
-    // ⭐ And the refusal teaches the rule rather than reading as a fussy
-    // parser — a player who tried should come away understanding it.
-    const said = await sale.said();
-    expect(said).toMatch(/taking|milking|yours to do yourself/i);
-  }, 300_000);
-
-  it('⭐⭐⭐ 18. `instruct keep tap …` is accepted, and `none` clears it', async () => {
-    // The sugarbush is where this drive is standing, so the keepable
-    // verb to hand is `tap` — and it is one of the four that opt in.
-    const kept = await say(k, 'instruct keep tap birch-north into pail');
-    expect(refusedFor(kept)).toBeNull();
-
-    // It is standing, and the body says so.
-    const listed = await read(k, 'instruct');
-    expect(listed).toMatch(/tap birch-north into pail/i);
-
-    // ⚠ And it can be stopped, which is the half a player needs most.
-    const cleared = await say(k, 'instruct none');
-    expect(refusedFor(cleared)).toBeNull();
-    const after = await say(k, 'instruct');
-    expect(refusedFor(after)).toBe('nothing-kept');
+      'instruct must NOT exist — the relief is slated, not shipped',
+    ).toMatch(/unknown-verb/);
   }, 300_000);
 });

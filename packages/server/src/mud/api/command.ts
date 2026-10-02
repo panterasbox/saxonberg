@@ -1234,21 +1234,6 @@ export interface CommandView {
    */
   fallthrough?: boolean;
   /**
-   * ⭐⭐ **May this verb be kept on a STANDING INSTRUCTION?**
-   *
-   * The taps build's relief (`instruct keep <line>`, the `keeps` brain)
-   * refuses any line whose view does not declare this, and it is the
-   * bound that makes the whole feature defensible: ⛔ **a take may be
-   * kept; a SALE may never be.** Only `milk`, `gather`, `rob` and `tap`
-   * set it.
-   *
-   * ⚠ A DECLARATION rather than a list in the controller, for the usual
-   * reason: a list is a thing somebody forgets to edit, and a verb that
-   * quietly became keepable would be the game earning on a player's
-   * behalf. Absent means no.
-   */
-  standing?: boolean;
-  /**
    * Default async-dispatch mode for this verb (default `false`). When
    * `true`, the controller body detaches from the giver's own input
    * chain at accept-time — see {@link AssembleSuccess.reservedAsync} for
@@ -1387,34 +1372,6 @@ export class CommandApi {
    */
   static allDefinitions(): CommandDefinition[] {
     return logic().allDefinitions();
-  }
-
-  /**
-   * ⭐⭐ **Every definition that claims `verb`** — and it is PLURAL on
-   * purpose.
-   *
-   * ⚠⚠ A verb may legitimately be claimed by more than one view, and
-   * nine such collisions are shipped today (`lint:verb-collisions` is
-   * an ALLOWLIST, not a zero: `butcher` across two trades, `dress`
-   * medical-vs-cooking, `pour`, `hang`, `mount`, `drive`, `me`,
-   * `lease`, `unlease`). So a `definitionForVerb()` returning the FIRST
-   * match would hand its caller an arbitrary winner decided by the
-   * filename cache's insertion order — which is not how dispatch picks
-   * either.
-   *
-   * ⭐ **Dispatch resolves per-GIVER**, newest-first on the recency
-   * stack, by shape-vs-bind at the assemble stage
-   * (`command-routing.md`). No caller can reproduce that from a
-   * catalogue read, and this API does not pretend to: it answers *who
-   * claims this word* and leaves the caller to decide what an ambiguous
-   * answer means for it. ⚠ A caller that wants a single winner almost
-   * certainly wants to FAIL CLOSED on `length > 1` rather than pick.
-   *
-   * Case-insensitive, because a player types what they type. Aliases
-   * count — `verbs: [job, jobs]` claims both.
-   */
-  static definitionsForVerb(verb: string): CommandDefinition[] {
-    return logic().definitionsForVerb(verb);
   }
 
   /**

@@ -13,11 +13,6 @@ help: |
 
   ⚠ And in short days there will be nothing there at all. That is not a
   sick bird — it is a bird, in winter.
-# ⭐⭐ KEEPABLE. `instruct keep <this line>` runs it while you are away
-# — and this key is the ONLY thing that permits it. ⛔ A take may be
-# kept; a sale may never be, which is why `sell`, `consign` and the rest
-# declare nothing. See `CommandView.standing` and the `keeps` brain.
-standing: true
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresConscious

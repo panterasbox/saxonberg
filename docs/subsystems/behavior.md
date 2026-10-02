@@ -14,53 +14,6 @@ cadence + perception triggers, engagement-slot contention, the thin
 `scripted-behavior` brain, the LLM brain, and traits are later waves —
 this doc notes the seams they plug into.
 
-## ⭐⭐ `keeps`, and ⚠ **a PLAYER body is a Behaved host now**
-
-The taps build (2026-10-01) composed `BehavedMixin` on
-`lib/character/Avatar`, which is the first time a brain rides something
-a person is driving. Two things follow, both deliberate:
-
-1. ⭐ **The claim is "every player body may carry standing
-   instructions"** — not "players are NPCs". `dispositions` stays empty
-   and seeds nothing: a player's character is derived from what they
-   did, never authored.
-2. ⭐ **`canEvict`'s veto becomes the residency pin.** It already
-   refused to cull authored cast carrying a spec; on a player body it
-   keeps a **linkdead body with a round to keep resident**, which is the
-   whole point of an instruction that outlives a session.
-
-Placement is `PersistableMixin( … ForkableMixin( BehavedMixin(
-PostRegistrationMixin( … )))` — inside `Persistable` so `behaviors`
-rides the Avatar snapshot, outside `PostRegistration` so the wiring
-re-runs at reconnect (the same ordering `NPC` uses, for the same
-reason). ⛔ Not lower: `Beast` already composes the mixin, so a shared
-ancestor would double-compose.
-
-### The brain
-
-| brain | trigger | what it does |
-|---|---|---|
-| `keeps` (`lib/behavior/keeps`) | `cadence:600s`, ⭐ `presenceGated = false`, `ambient = false` | re-issues the literal take lines a player set with `instruct keep`, for targets **in the room the body is standing in** |
-
-⛔ **It preserves; it never earns** — it cannot reach money, a counter,
-a shelf or a ledger, because the only thing it can do is `forceCommand`
-a line whose view declared `standing: true`, and only the four takes do.
-⚠ A round whose target is not in the room **lapses silently**: the
-honest cost of logging off in the wrong place.
-
-### ⭐ `addBehavior` / `removeBehaviors`
-
-New on `BehavedMixin`, and the player case is the reason. Wiring used to
-happen only at `postRegister`, which is right for AUTHORED cast — their
-specs arrive with the row. A standing instruction arrives mid-life from
-a verb and has to start running without bouncing the body. ⚠ Both
-re-wire the WHOLE set rather than splicing one schedule in, because
-`_wireBehaviors` also re-seeds the witness baseline — a partial wire
-would leave a body that greets everyone already standing there.
-
-See [taps.md § The relief](./taps.md).
-
-
 ## ⭐⭐⭐ The `eats` brain — and NPC hunger begins existing here
 
 The grain chain shipped a grower, a miller and a baker and **nobody who

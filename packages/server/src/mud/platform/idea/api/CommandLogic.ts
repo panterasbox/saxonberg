@@ -580,16 +580,6 @@ export class CommandLogic extends ApiLogic {
     return [...commands.values()];
   }
 
-  /** See {@link CommandApi.definitionsForVerb}. */
-  @CallSecurity(CommandApiCallers)
-  public definitionsForVerb(verb: string): CommandDefinition[] {
-    const want = verb.trim().toLowerCase();
-    if (want === '') return [];
-    return this.allDefinitions().filter((def) =>
-      def.verbs.some((v) => v.toLowerCase() === want),
-    );
-  }
-
   /** See {@link CommandApi.invalidate}. */
   @CallSecurity(CommandApiCallers)
   public invalidate(filename: string): boolean {

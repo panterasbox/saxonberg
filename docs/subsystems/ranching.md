@@ -345,21 +345,14 @@ and the test suite is what caught both:
 - **`shear --quick`** (speed for quality) is a judgment the biology does
   not put at the act — the feedback law's third row says so.
 
-### ⭐⭐⭐ The relief — and it is milk's whole answer
+### ⚠ Still open: the relief
 
-`instruct keep milk the cow into the pail`, and your character keeps at
-it while you are offline. Because attendance IS what milk costs — the
-feedback law leaves nothing to decide at the act — the remedy could not
-be another mechanic; it had to be a way to keep the round when nobody is
-awake for it.
-
-⛔ **It preserves; it never earns.** The round is the literal line you
-typed, the yield lands in your own pail, and the verb refuses any line
-whose view does not declare `standing: true` — which only the takes do.
-⚠ `shear` deliberately does not: wool is `continuous`, so a kept shear
-would take the fleece the instant there was any of it.
-
-The mechanism is [taps.md § The relief](./taps.md).
+Milk's answer to attendance is a **standing instruction** (`instruct
+keep <line>`, a brain on the player's own body) and it **did not ship**:
+its host is build-3's `lib/character/Avatar` and MR !315 had not merged.
+AC 7 moves to the dairy build with the rest of milk's story — and the
+argument that this is survivable is that **nothing consumes milk yet**,
+so nobody is actually dairying and the harshness is theoretical.
 
 ---
 
