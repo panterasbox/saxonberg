@@ -29,7 +29,10 @@ this is the operational summary.
 | `GoogleProfile` | OAuth cache (identity only) | yes (`google_profiles`) | account |
 | `TwitchProfile` | OAuth cache + **credentials** | yes (`twitch_profiles`) | per provider link |
 | `KickProfile` | OAuth cache + **credentials** (+ the owner's channel slug/broadcaster id) | yes (`kick_profiles`) | per provider link |
-| `Avatar` | game-world character | minted identity path (`/platform/agent/Avatar/<playerId>`), snapshot-backed — no per-player template row | from first connection until explicit destruct |
+| `Avatar` | ⭐ **abstract** family root (`lib/character/Avatar.ts`) — a human's handle in the world | n/a; nothing instances it | — |
+| `PrimaryAvatar` | the **body of record** — the one you play | minted identity path (`/platform/agent/Avatar/<playerId>`), snapshot-backed — no per-player template row | from first connection until explicit destruct |
+| `ShadeAvatar` | the body you wear while dead | no — the arc lives on the identity | death → `passage` |
+| `SandboxAvatar` | the body you wear inside a circle | no — rolled back at the door | the crossing |
 | `Interactive` | live connection | **no** | one WebSocket session |
 | `Login` | entry-procedure scratch object | **no** | one entry — destructed when `enter()` finishes |
 
@@ -102,9 +105,9 @@ Provider OAuth ──▶ /auth/{provider}/callback
               Application.findOrCreateUserFromProvider(provider, …)
                   ├─ findOrCreateProfile(provider)  (google_profiles | twitch_profiles | kick_profiles)
                   └─ findOrCreateUser(provider, …)  (users)
-                       └─ first time? → createDefaultAvatarTemplate
-                                         (forks /platform/agent/Avatar/seed →
-                                          /platform/agent/Avatar/<new playerId>)
+                       └─ a user with an empty roster; no character is
+                          minted here (char-gen does it, at `embody
+                          confirm`)
                           │
                           ▼
                   Passport serializes { id, authProvider } into session
@@ -247,11 +250,21 @@ rotated tokens, which re-encrypts them through the marshaller. (The relay
 that *spends* the tokens is a downstream build; this build only stores
 them and proves the write-back.)
 
-`createDefaultAvatarTemplate` forks from the seed avatar at
-`Avatar.SEED_TEMPLATE_PATH` (`/platform/agent/Avatar/seed`), generates a fresh
-`playerId` via `nanoid()`, overlays the user's `name`/`surname`, and
-persists the new template via `TemplateApi.saveTemplate`. **If the
-seed is missing it throws** — the platform pack must have installed at boot.
+⚠⚠ **`createDefaultAvatarTemplate` does not exist.** This paragraph
+described it as the live signup path until 2026-10-01 and it is gone
+from the code entirely — as is `SeederManager`, and as is the whole
+scheme of **forking a per-player template row**. Nothing mints a
+character at auth time: a new user arrives with an empty roster and
+char-gen mints the body at `embody confirm`.
+
+A played body is cloned from the single authored row
+`/platform/agent/PrimaryAvatar` (`PrimaryAvatar.ROW_TEMPLATE_PATH`),
+with the per-player identity supplied as `asIdentityPath` and the state
+living in `holder_snapshots` through the persistence spine. ⭐ **No row
+is ever written per player**, so `/platform/agent/Avatar/` holds no rows
+at all — it is purely the identity namespace. The row sat at
+`/platform/agent/Avatar/seed` (a reserved fake playerId) long after the
+scheme that needed it was deleted.
 
 Passport serializes `{ id: userId }` into the session
 (`PassportConfig.ts § serializeUser`). At this point the persistent state is
@@ -532,31 +545,51 @@ guard drops the away time on relog). There is no `logout` command, no
 sleep flag, and no voluntary-vs-involuntary distinction — both absences
 just stop the clock.
 
-### Client state
+### Client state — three mixins, and the line between them
 
-`HasInteractiveMixin` also owns the **persistent UI state**
-surface: every HasInteractive-bearing thing has, by definition, a
-client attached, and that client has settings worth keeping across
-sessions (tabbed-terminal layout, theme, notification prefs,
-keybinds, channel mutes, saved MQL queries, onboarding flags).
-Putting the storage on the same mixin pairs the two concerns —
-"I hold connections" and "I persist state for whoever's on the
-other end."
+⭐⭐ **The tower**, outermost first:
 
-**Storage.** `_clientState: Record<string, unknown>` —
-Hydrator-saved. Keys are dotted strings; values are JSON-shape per
+```
+SaxonbergClientMixin  →  ClientStateMixin  →  HasInteractiveMixin
+  our client's words       the mechanism        a human is here
+```
+
+The dependency arrow only ever points right, and each answers a
+different question. Narrow on the one you actually need:
+`MixinApi.isSaxonbergClient` to read a `cockpit.*` key,
+`isClientState` to push a key you do not own, `isHasInteractive` only
+to ask *is anyone connected?*
+
+- **`HasInteractiveMixin`** (`lib/connection/HasInteractive.ts`) — the
+  connection set and nothing else: `getInteractives`, the witness
+  hooks, the residency veto, `presenceStatus`, `getPortraitUrl`. **No
+  UI vocabulary at all.**
+- **`ClientStateMixin`** (`lib/connection/ClientState.ts`) — the
+  mechanism, and ⭐ **zero keys**: the two stores,
+  `get`/`set`/`snapshot`/`push`, the fork slice, the backend→mudlib
+  push DI seam. Requires `HasInteractive` because the push iterates
+  the connection set.
+- **`SaxonbergClientMixin`** (`lib/connection/SaxonbergClient.ts`) —
+  our client's vocabulary: the fifteen `console.*` / `cards.*` /
+  `style.overlay` / `cockpit.*` keys, the nine cockpit methods,
+  `refreshDisplays`, `openArrangement`, and the `cockpit` verb tree.
+
+**Storage.** `_clientState` (Hydrator-saved) and
+`_transientClientState` (in-memory, reset on a fresh login), both on
+`ClientStateMixin`. Keys are dotted strings; values are JSON-shape per
 the schema.
 
-**Schema.** `static clientStateSchema: ClientStateSchemaEntry[]`
-on `HasInteractiveMixin` itself — one flat array. Each entry
-declares `{ key, defaultValue, description?, validator? }`.
-Today's entries (`console.tabs`, `console.activeTab`, and
-`style.overlay` from the message-rendering build); future features
-append to the same array. *No* prototype-chain walker: the
-schema's scope is exactly HasInteractive-bearers, so there's no
-useful distinction between substrate keys and feature-mixin keys.
-If the array grows past comfortable, externalize (YAML / DB /
-per-feature mixin registry) — not before.
+**Schema.** ⭐ A **chain walk**, not a flat array. Any mixin on the
+host's chain may declare `static clientStateSchema` and every
+declaration is unioned, nearest winning on a duplicate key; the result
+is memoized per constructor. `ClientStateMixin` declares **nothing**,
+which is what makes the vocabulary separable from the mechanism.
+
+⚠ `getClientState` **throws** on a key no entry declares — it is not a
+soft read. So a host that does not compose our client mixin genuinely
+has no `cockpit.mode`, and a reader that assumes otherwise crashes at
+the command bus rather than quietly defaulting. That is deliberate;
+`HasInteractive.schema.test.ts` pins the key set by name.
 
 **Methods.** `getClientState<T>(key)` returns the stored value or
 the schema default; `setClientState(key, value)` validates +
@@ -604,6 +637,39 @@ See [shell-environment.md](./shell-environment.md) for settings;
 The transition fire-once-per-edge semantics matter: a user with two
 devices who closes one tab does NOT trigger `onLinkdead`. Only the
 last close does.
+
+### ⭐⭐ What a second client implements
+
+> **A second client implements the connection set and the
+> client-state mechanism — the `Interactive` frames and the
+> `client-state-write` / `client-state-update` / welcome-snapshot
+> trio — and nothing about modes, arrangements, cards-per-mode or
+> shelves, which are one client's vocabulary declared on one mixin.**
+
+That sentence is the deliverable of the three-way split, and it is
+checkable: everything a second client must implement is named above
+it, and everything it may ignore is in
+`lib/connection/SaxonbergClient.ts`.
+
+What is **protocol** (any client renders it): a pushed card
+(`CardApi`, `Interactive.pushCard`), the message frames, the welcome
+payload's shape, the client-state key/value channel.
+
+What is **ours** (one client's answer, and replaceable by composing a
+different mixin): which cards open in which mode, the mode and
+arrangement axes themselves, the console's tabs and routing, the
+overlay theme, the shelf, and the `cockpit` verb that edits all of it.
+
+⚠ **It is kernel, not a pack, and that is a conclusion rather than a
+convenience.** A capability pack must hold a namespace root, because
+class resolution is by longest path prefix — and none of the five axes
+takes a client. It is not a thing, a place, a trade, a firm, or
+something written down; and `/system/` means *true whether or not
+anyone is participating*, which a client is precisely the opposite of.
+Making it a pack needs a sixth axis (*how the world is seen*) plus a
+way for the platform's own `cockpit.yaml` and its six controllers to
+move out of the platform pack. That is a namespace design, not a
+refactor.
 
 ### Inbound from a multiplexed session
 
@@ -1008,6 +1074,32 @@ taxonomy and how `FrameKind`/`runRoot` plant frames.
   keystone the Twitch chat relay and capital→stake ledger depend on)
 
 ## History
+
+- **The Avatar family (avatar-family build, 2026-10, MR !315;
+  `dafc87df0..`).** `HasInteractiveMixin` was 1,168 lines holding six
+  concerns and was cut into three — `HasInteractiveMixin` (the
+  connection set, 204 lines, **no UI vocabulary**), `ClientStateMixin`
+  (the mechanism, **zero keys**) and `SaxonbergClientMixin` (our
+  client's words). The `clientStateSchema` became a memoized
+  prototype-chain walk; the one back-edge (`snapshotClientState`
+  hard-coding `cockpit.*`) became an override calling `super`. ⭐ The
+  deliverable is § *What a second client implements*, which the split
+  makes a checkable sentence rather than an aspiration.
+
+  `Avatar` became an **abstract family root** (`lib/character/Avatar`)
+  over three named bodies — `PrimaryAvatar`, `ShadeAvatar`,
+  `SandboxAvatar`. ⚠⚠ `instanceof Avatar` now always means the
+  abstract: a site left on the concrete record body silently excludes
+  shades and circle bodies, which are the same person.
+
+  ⚠⚠ **`PlayerApi.isAvatarStuff` was keying personhood on a lineage
+  PREFIX**, so a dead player was not a person to ~90 call sites — none
+  of `wallet`/`chat`/`forum`/`office`/`contacts` carries a
+  `requiresEmbodied` gate, so that predicate was the only thing
+  deciding. It is `instanceof` now, and `SandboxApi`'s fake lineage
+  restamp (invented to get vessels past the same string) is deleted.
+  See [antipatterns.md § Keying a PERSON on
+  `getTemplatePath()`](../antipatterns.md).
 
 - **Multi-provider auth (auth-providers build, 2026-06).** The
   Google-only spine was generalized to be provider-parameterized and

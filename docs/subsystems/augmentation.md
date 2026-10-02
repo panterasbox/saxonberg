@@ -36,7 +36,7 @@ uniformly across both kinds.
 Later builds reused the same `_augmentGated` flag for conferral sources
 that never touch a slot at all: `CasterMixin` (magic faculty,
 `lib/magic/Caster.ts` — conferred by `Species.innateMixins` or an
-augment) and `AetherMixin` (implant comms — or intrinsic, for a `Shade`
+augment) and `AetherMixin` (implant comms — or intrinsic, for a `ShadeAvatar`
 and a born-attuned species) are `_augmentGated` and route through
 `isActive` today, not hypothetical future rows.
 
@@ -114,7 +114,7 @@ neither by species nor by implant. `collectAugmentConferralNames`
 (`api/mixin.ts`) reads it by the same structural soft-lookup as the slot
 and species legs, no import.
 
-⭐ **Its one consumer is `Shade`** (`platform/agent/Shade.ts`), which is
+⭐ **Its one consumer is `ShadeAvatar`** (`platform/agent/ShadeAvatar.ts`), which is
 attuned with no implant and no slot occupancy. `Species.innateMixins`
 would be the obvious home and cannot be: it is species-level reference
 data shared by every member and never mutated at runtime, so a shade

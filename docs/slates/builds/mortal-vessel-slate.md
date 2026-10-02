@@ -45,7 +45,7 @@ platform first.
 
 ## Thesis 1 — The three-layer self — shipped
 
-**Shipped as designed** — the Participant/Vessel/Shade split is exactly what mortality.md's shade is. See mortality.md § The shade and connection.md / state-model.md for the `Login`↔`Interactive`↔`Avatar` handoff it names.
+**Shipped as designed** — the Participant/Vessel/ShadeAvatar split is exactly what mortality.md's shade is. See mortality.md § The shade and connection.md / state-model.md for the `Login`↔`Interactive`↔`Avatar` handoff it names.
 
 ## Thesis 2 — Function over form — shipped
 
@@ -241,7 +241,7 @@ Still open, and deliberately downstream:
   engine + material economy); combat-experience owns the framing. Moved
   2026-09-10 to [end-of-life-slate.md](../builds/end-of-life-slate.md) as a
   trade question, not a metaphysics one.
-- **The interstitial content** — what the Shade actually experiences; the
+- **The interstitial content** — what the ShadeAvatar actually experiences; the
   escape-from-Hades set-pieces.
 - **Permadeath** — the opt-in extreme end of the recovery-cost dial.
 - **Combat's boundary** — combat produces the *death event* only; the vessel

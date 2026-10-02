@@ -364,7 +364,7 @@ went active. Three things were wrong with it:
 
 `MakerMixin`, `MixinApi.isMaker`, `Mixins.Maker` and `Crafter` are gone;
 the seven `Crafter` rows are plain `Cast`. ⭐ The augment fold itself
-**stays** — `Shade` overrides `getConferredMixinNames()` to confer
+**stays** — `ShadeAvatar` overrides `getConferredMixinNames()` to confer
 `AetherMixin` intrinsically (attuned with no implant and no slot, and
 species `innateMixins` is shared reference data a shade cannot write),
 which is a genuine augment conferral and exactly what the seam is for.

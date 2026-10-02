@@ -529,7 +529,10 @@ primacy made absolute.
   strip the slash, run raw; (3) the `mode` verb itself is exempt;
   otherwise prepend (`chat` + `hello` → `chat hello`). `executeCommand`
   hooks it behind `barId !== undefined && interactive && !forced &&
-  isHasInteractive`, looking up `cockpit.inputModes[barId]`. Kept in
+  isSaxonbergClient`, looking up `cockpit.inputModes[barId]`. ⭐ The
+  narrow is the CLIENT's, not the connection's — `cockpit.inputModes`
+  is one client's key, and `getClientState` throws on a key no schema
+  declares rather than returning a default. Kept in
   `CommandApi` (not `msh`) so the tokenizer stays Stuff-unaware; the
   per-bar lookup is at the call site. The echo reflects the **dispatched**
   text.

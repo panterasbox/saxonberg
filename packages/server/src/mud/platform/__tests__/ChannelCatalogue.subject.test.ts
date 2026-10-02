@@ -29,7 +29,7 @@ import { StuffApi } from '../../api/stuff';
 import { PlayerApi } from '../../api/player';
 import { GroupApi } from '../../api/group';
 import type { Stuff } from '../../lib/stuff/Stuff';
-import type Avatar from '../agent/Avatar';
+import type Avatar from '../../lib/character/Avatar';
 
 let store: Map<string, Map<string, Record<string, unknown>>>;
 let idCounter: number;

@@ -20,7 +20,7 @@ import { Authority, type PrincipalRef } from '../Authority';
 import { OrganizationMixin } from '../Organization';
 import { EmployedMixin } from '../Employed';
 import { Idea } from '../../stuff/Idea';
-import Avatar from '../../../platform/agent/Avatar';
+import Avatar from '../../../platform/agent/PrimaryAvatar';
 import GovernmentCatalogue from '../../../platform/idea/GovernmentCatalogue';
 import Government from '../../../platform/idea/Government';
 import OfficeRegistry from '../../../platform/idea/OfficeRegistry';

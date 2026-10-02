@@ -12,7 +12,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import AccessRegistry from "../idea/AccessRegistry";
 import GroupRegistry from "../idea/GroupRegistry";
 import FolderZone from "../idea/FolderZone";
-import Avatar from "../agent/Avatar";
+import Avatar from "../agent/PrimaryAvatar";
 import { Idea } from "../../lib/stuff/Idea";
 import { OrganizationMixin } from "../../lib/employment/Organization";
 import { AccessApi } from "../../api/access";

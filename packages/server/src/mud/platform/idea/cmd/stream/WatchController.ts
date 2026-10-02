@@ -32,12 +32,13 @@ import type { MqlOneResult } from '../../../../api/mql';
 import { StreamerTarget } from '../../../../lib/streaming/StreamerTarget';
 import type { ParsedTarget } from '../../../../lib/streaming/StreamerTarget';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
-import type { HasInteractive } from '../../../../lib/connection/HasInteractive';
+import type { ClientState } from '../../../../lib/connection/ClientState';
+import type { SaxonbergClient } from '../../../../lib/connection/SaxonbergClient';
 import type { WatchTarget } from '@saxonberg/types';
 
 const WATCH_KEY = 'cockpit.watch';
 
-type WatchHost = Stuff & HasInteractive;
+type WatchHost = Stuff & ClientState & SaxonbergClient;
 
 interface WatchModel extends CommandModel {
   target?: string;
@@ -51,7 +52,7 @@ interface WatchModel extends CommandModel {
 export default class WatchController extends CommandController<WatchModel> {
   async execute(model: WatchModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
-    if (!MixinApi.isHasInteractive(giver)) {
+    if (!MixinApi.isSaxonbergClient(giver)) {
       return this.fail(
         context,
         'Only players can watch a stream.',

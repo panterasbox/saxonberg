@@ -27,7 +27,7 @@ import type {
 } from "../lib/social/NotifyRule";
 import { StuffApi } from "./stuff";
 import { HotReloadApi } from "./hot-reload";
-import type Avatar from "../platform/agent/Avatar";
+import type Avatar from "../lib/character/Avatar";
 import type { PresenceStatus, RosterRow } from "@saxonberg/types";
 import { SocialLogic } from "../platform/idea/api/SocialLogic";
 import { PresenceLogic } from "../platform/idea/api/PresenceLogic";

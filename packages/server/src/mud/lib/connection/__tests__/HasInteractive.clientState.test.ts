@@ -10,12 +10,14 @@
 import "../../../../test-bootstrap";
 import { describe, it, expect, afterEach } from 'vitest';
 import { HasInteractiveMixin } from '../HasInteractive';
-import type { ClientStateSchemaEntry } from '../HasInteractive';
+import { ClientStateMixin } from '../ClientState';
+import { SaxonbergClientMixin } from '../SaxonbergClient';
+import type { ClientStateSchemaEntry } from '../ClientState';
 import { Idea } from '../../stuff/Idea';
 import { StuffApi } from '../../../api/stuff';
 import { makeStuff } from '../../security/__tests__/test-setup';
 
-class TestHost extends HasInteractiveMixin(Idea) {}
+class TestHost extends SaxonbergClientMixin(ClientStateMixin(HasInteractiveMixin(Idea))) {}
 
 describe('HasInteractive client-state surface', () => {
   afterEach(() => {
@@ -55,12 +57,12 @@ describe('HasInteractive client-state surface', () => {
   });
 
   it('setClientState invokes the entry validator and rejects on failure', () => {
-    class ValidatedHost extends HasInteractiveMixin(Idea) {
+    class ValidatedHost extends SaxonbergClientMixin(ClientStateMixin(HasInteractiveMixin(Idea))) {
       static clientStateSchema: ClientStateSchemaEntry[] = [
         {
           key: 'val.even',
           defaultValue: 0,
-          validator: (v) =>
+          validator: (v: unknown) =>
             typeof v === 'number' && v % 2 === 0
               ? true
               : `expected even number, got ${String(v)}`,

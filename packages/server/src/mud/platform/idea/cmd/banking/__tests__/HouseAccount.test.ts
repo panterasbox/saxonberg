@@ -21,6 +21,7 @@ import ReclaimController from "../../retail/ReclaimController";
 import WalletController from "../WalletController";
 import HouseController from "../HouseController";
 import QuitController from "../../employment/QuitController";
+import { PlayerApi } from "../../../../../api/player";
 import StockBase from "../../../../../lib/retail/Stock";
 import { Vessel } from "../../../../../lib/stuff/Vessel";
 import { DetailedMixin } from "../../../../../lib/description/Detailed";
@@ -235,6 +236,26 @@ function rejections(c: CommandContext): string[] {
 describe("the house account in the wallet (D6)", () => {
   let loc: Location;
   beforeEach(async () => {
+    /*
+     * ⚠⚠ The givers here are `TestGiver` stand-ins parked at
+     * `/platform/agent/Avatar/<name>` — this suite is about house
+     * accounts, not bodies. They were read as players for free because
+     * `PlayerApi.isAvatarStuff` prefix-tested the template path; it is
+     * `instanceof Avatar` now (2026-10-01), so a path alone no longer
+     * buys personhood.
+     *
+     * ⚠ Without this, `openAccount` takes its non-player branch and
+     * fire-and-forgets a payment-card issue against a template this
+     * harness does not stand up — surfacing as SEVEN unhandled
+     * rejections that left every test "passing" while the run exited
+     * non-zero. An unawaited promise is exactly how that hides.
+     */
+    vi.spyOn(PlayerApi, 'isAvatarStuff').mockImplementation(
+      ((stuff: { getTemplatePath?(): string | null | undefined }) =>
+        (stuff?.getTemplatePath?.() ?? '').startsWith(
+          '/platform/agent/Avatar/',
+        )) as never,
+    );
     installBankingHarness();
     installV1QuantityMarshallers();
     Document.setMarshallerResolver(

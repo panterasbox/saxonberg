@@ -10,7 +10,7 @@ import '../../../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import TeleportController from '../TeleportController';
 import SingletonCartesianLocation from '../../../../../platform/location/SingletonCartesianLocation';
-import Avatar from '../../../../../platform/agent/Avatar';
+import Avatar from '../../../../../platform/agent/PrimaryAvatar';
 import { AccessApi } from '../../../../../api/access';
 import { ContainmentApi } from '../../../../../api/containment';
 import { StuffApi } from '../../../../../api/stuff';

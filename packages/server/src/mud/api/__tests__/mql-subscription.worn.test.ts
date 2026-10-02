@@ -20,7 +20,7 @@ import { MqlSubscriptionApi, DETAIL_FIELDS } from '../mql-subscription';
 import { StuffApi } from '../stuff';
 import { ContainmentApi } from '../containment';
 import { PerceptionApi } from '../perception';
-import Avatar from '../../platform/agent/Avatar';
+import Avatar from '../../platform/agent/PrimaryAvatar';
 import Species from '../../platform/idea/species/Species';
 import BodyPlan from '../../platform/idea/species/BodyPlan';
 import Good from '../../lib/stuff/Good';

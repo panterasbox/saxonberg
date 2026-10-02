@@ -29,6 +29,8 @@ import { CommandLineApi } from '../command-line';
 import { CommandDefinition } from '../../lib/command/CommandDefinition';
 import { ContainmentApi } from '../containment';
 import { HasInteractiveMixin } from '../../lib/connection/HasInteractive';
+import { ClientStateMixin } from '../../lib/connection/ClientState';
+import { SaxonbergClientMixin } from '../../lib/connection/SaxonbergClient';
 import { Idea } from '../../lib/stuff/Idea';
 import { ContainableMixin } from '../../lib/spatial/Containable';
 import { ContainerMixin } from '../../lib/spatial/Container';
@@ -70,30 +72,31 @@ const MUD_ROOT = fileURLToPath(new URL('../..', import.meta.url));
  * it a view question or a permission question?
  */
 const MODE_READERS_ALLOWED = [
-  'lib/connection/HasInteractive.ts',
-  'platform/idea/cmd/shell/CockpitController.ts',
-  'platform/idea/cmd/shell/CockpitModeController.ts',
-  'platform/idea/cmd/shell/LayoutController.ts',
   /*
-   * ⭐ `Avatar.enter` reads the mode to apply its ARRANGEMENT on login
-   * — the seam that made a saved workspace something you can simply
-   * return to, rather than something you had to switch modes twice to
-   * get back.
+   * ⭐⭐ Two readers became one. The mode used to be read in
+   * `lib/connection/HasInteractive.ts` (to resolve the welcome
+   * snapshot) and in `platform/agent/Avatar.ts` (to apply the login
+   * arrangement), and both reads moved here when the client's
+   * vocabulary was split out onto its own mixin.
    *
-   * ⚠ A VIEW read, and the distinction is the whole criterion: it asks
-   * the mode *which cards to open*, which is the mode doing exactly
-   * what it owns. It never asks the mode whether an action is
+   * ⚠ Both are VIEW reads, and the distinction is the whole
+   * criterion: the mode's own mixin asks the mode *how to render its
+   * snapshot* and *which cards to open*, which is the mode doing
+   * exactly what it owns. Neither asks whether an action is
    * permitted, and the behavioural half below still proves a verb
    * resolves identically in every mode.
    */
-  'platform/agent/Avatar.ts',
+  'lib/connection/SaxonbergClient.ts',
+  'platform/idea/cmd/shell/CockpitController.ts',
+  'platform/idea/cmd/shell/CockpitModeController.ts',
+  'platform/idea/cmd/shell/LayoutController.ts',
 ];
 
 class TestLocation extends ContainerMixin(NamedMixin(PerceptibleMixin(Idea))) {}
 class TestThing extends TangibleMixin(
   VisibleMixin(ContainableMixin(NamedMixin(PerceptibleMixin(Idea))))
 ) {}
-class TestActor extends HasInteractiveMixin(
+class TestActor extends SaxonbergClientMixin(ClientStateMixin(HasInteractiveMixin(
   SensorMixin(
     ContainerMixin(
       ContainableMixin(
@@ -101,7 +104,7 @@ class TestActor extends HasInteractiveMixin(
       )
     )
   )
-) {
+))) {
   static _mixinName = 'ModeGateTestActor';
 }
 

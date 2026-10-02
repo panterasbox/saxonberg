@@ -18,7 +18,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import ParcelRegistry from "../idea/ParcelRegistry";
 import GroupRegistry from "../idea/GroupRegistry";
 import AccessRegistry from "../idea/AccessRegistry";
-import Avatar from "../agent/Avatar";
+import Avatar from "../agent/PrimaryAvatar";
 import FolderZone from "../idea/FolderZone";
 import { ParcelApi } from "../../api/parcel";
 import { AccessApi } from "../../api/access";

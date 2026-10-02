@@ -15,7 +15,7 @@
 
 import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import Avatar from '../agent/Avatar';
+import Avatar from '../agent/PrimaryAvatar';
 import Interactive from '../idea/Interactive';
 import { Release } from '../../lib/press/Release';
 import { PressApi } from '../../api/press';

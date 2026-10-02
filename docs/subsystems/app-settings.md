@@ -139,7 +139,7 @@ succeeded; it is **not** a `controller-rejected` envelope note).
 
 | Key | Seeded value | Read by |
 |---|---|---|
-| `defaultStartLocation` | `/world/lounge/idea/warren` | The three avatar-mint sites stamp it into a new avatar's `startLocation` at clone time: `EmbodyController.commit`, `Application.createDefaultAvatarTemplate`, `Login.mintRandomGuestAvatar`. |
+| `defaultStartLocation` | `/world/lounge/idea/warren` | The avatar-mint sites stamp it into a new avatar's `startLocation` at clone time: `EmbodyController.commit` (char-gen) and `Login.enterAsGuest` (a throwaway guest), plus `TestHooks` for the wire harness. ⚠ Named `Application.createDefaultAvatarTemplate` as a third site until 2026-10-01; that method does not exist anywhere in the code — it was deleted with the fork-a-row-per-player scheme. (`Login.mintRandomGuestAvatar` is real: the private static behind `enterAsGuest`.) |
 | `evacuationFallback` | `/world/void` | `Container.cleanupOnDestruct` — where an orphaned `HasInteractive` evacuates when its container destructs with no outer. |
 
 `defaultStartLocation` supplies only the *initial* value of each avatar's

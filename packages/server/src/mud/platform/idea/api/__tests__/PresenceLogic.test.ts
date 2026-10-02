@@ -12,7 +12,7 @@ import { AppApi } from '../../../../api/app';
 import { StuffApi } from '../../../../api/stuff';
 import { ProxyApi } from '../../../../api/proxy';
 import { PresenceLogic } from '../PresenceLogic';
-import type Avatar from '../../../agent/Avatar';
+import type Avatar from '../../../../lib/character/Avatar';
 
 /**
  * White-box: the RAW (unproxied) logic instance — the avatar fakes are

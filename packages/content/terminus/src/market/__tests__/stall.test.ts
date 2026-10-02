@@ -44,6 +44,7 @@ import { Idea } from '@saxonberg/server/mud/lib/stuff/Idea';
 import Location from '@saxonberg/server/mud/lib/stuff/Location';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import { makeStuff, makeStuffAtPath, withRootContext } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
+import { PlayerApi } from '@saxonberg/server/mud/api/player';
 import { installV1QuantityMarshallers } from '@saxonberg/server/mud/lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import { installBankingHarness, teardownBankingHarness } from '@saxonberg/server/mud/lib/banking/__tests__/banking-test-harness';
 
@@ -162,6 +163,21 @@ function stubSeeds(): void {
 
 describe('a player shop is a rented market stall', () => {
   beforeEach(async () => {
+    /*
+     * ⚠⚠ The givers here are `TestGiver` stand-ins parked at
+     * `/platform/agent/Avatar/<name>` — this suite is about market
+     * stalls, not bodies. They were read as players for free because
+     * `PlayerApi.isAvatarStuff` prefix-tested the template path; it is
+     * `instanceof Avatar` now (2026-10-01), so a path alone no longer
+     * buys personhood. The stand-ins declare themselves rather than
+     * leaning on a hole that also refused every shade.
+     */
+    vi.spyOn(PlayerApi, 'isAvatarStuff').mockImplementation(
+      ((stuff: { getTemplatePath?(): string | null | undefined }) =>
+        (stuff?.getTemplatePath?.() ?? '').startsWith(
+          '/platform/agent/Avatar/',
+        )) as never,
+    );
     installBankingHarness();
     installV1QuantityMarshallers();
     Document.setMarshallerResolver(() => undefined, async () => undefined);

@@ -50,7 +50,8 @@
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import type { WatchTarget, CardId } from '@saxonberg/types';
-import type { HasInteractive } from '../connection/HasInteractive';
+import type { SaxonbergClient } from '../connection/SaxonbergClient';
+import type { ClientState } from '../connection/ClientState';
 import Location from '../stuff/Location';
 import { Mml } from '../../api/mml';
 import { MixinApi } from '../../api/mixin';
@@ -137,7 +138,7 @@ export interface Display {
   /** Is this screen somewhere inside `actor` (inventory, at any depth)? */
   isCarriedBy(actor: Stuff): boolean;
   /** The connected viewers who see it (same room, perceives). */
-  viewersOf(): (Stuff & HasInteractive)[];
+  viewersOf(): (Stuff & ClientState & SaxonbergClient)[];
 
   /**
    * Show `source`, and project it to every viewer who sees the screen —
@@ -299,19 +300,19 @@ export function DisplayMixin<TBase extends MixinConstructor<Stuff>>(
     }
 
     refreshFor(viewer: Stuff): void {
-      if (!MixinApi.isHasInteractive(viewer)) return;
+      if (!MixinApi.isSaxonbergClient(viewer)) return;
       const source = this._showing;
       if (source && this.sees(viewer)) {
-        this.project(viewer as Stuff & HasInteractive, source);
+        this.project(viewer as Stuff & ClientState & SaxonbergClient, source);
         return;
       }
       // Walked away from a shared embed: it leaves the screen with you.
-      this.clearWatch(viewer as Stuff & HasInteractive);
+      this.clearWatch(viewer as Stuff & ClientState & SaxonbergClient);
     }
 
     /**
      * Derived from the screen's ROOM, not from the connection registry
-     * and not from the world: a viewer is a `HasInteractive` Stuff with
+     * and not from the world: a viewer is a `SaxonbergClient` Stuff with
      * at least one Interactive attached — the same fact `CardApi.push`
      * needs — in this screen's room, perceiving it.
      *
@@ -320,12 +321,12 @@ export function DisplayMixin<TBase extends MixinConstructor<Stuff>>(
      * candidate set; a world scan was only ever a slower way to the same
      * answer, paid on every `show`, `clear` and `refresh`.
      */
-    viewersOf(): (Stuff & HasInteractive)[] {
+    viewersOf(): (Stuff & ClientState & SaxonbergClient)[] {
       const room = this.roomOf(this as unknown as Stuff);
       if (!room) return [];
-      const out: (Stuff & HasInteractive)[] = [];
+      const out: (Stuff & ClientState & SaxonbergClient)[] = [];
       for (const s of this.subtreeOf(room)) {
-        if (!MixinApi.isHasInteractive(s)) continue;
+        if (!MixinApi.isSaxonbergClient(s)) continue;
         // getInteractives() is undefined on an avatar mid-teardown —
         // and this walk runs inside command dispatch (a display refresh
         // rides look/move), so an unguarded read crashes the COMMAND.
@@ -342,7 +343,7 @@ export function DisplayMixin<TBase extends MixinConstructor<Stuff>>(
      * reached by a different channel — which is precisely the axis that
      * has to be carried rather than inferred.
      */
-    private project(viewer: Stuff & HasInteractive, source: DisplaySource): void {
+    private project(viewer: Stuff & ClientState & SaxonbergClient, source: DisplaySource): void {
       const self = this as unknown as Stuff;
       switch (source.kind) {
         case 'video': {
@@ -379,7 +380,7 @@ export function DisplayMixin<TBase extends MixinConstructor<Stuff>>(
       }
     }
 
-    private clearWatch(viewer: Stuff & HasInteractive): void {
+    private clearWatch(viewer: Stuff & ClientState & SaxonbergClient): void {
       const self = this as unknown as Stuff;
       const current = viewer.getClientState<WatchTarget | null>(WATCH_KEY) ?? null;
       if (current?.display?.stuffId !== self.stuffId) return;

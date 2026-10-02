@@ -10,7 +10,7 @@
 
 import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import Avatar from "../agent/Avatar";
+import Avatar from "../agent/PrimaryAvatar";
 import Species from "../idea/species/Species";
 import BodyPlan from "../idea/species/BodyPlan";
 import AetherImplant from "../thing/AetherImplant";

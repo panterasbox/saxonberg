@@ -12,6 +12,8 @@ import "../../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import WatchController from '../WatchController';
 import { HasInteractiveMixin } from '../../../../../lib/connection/HasInteractive';
+import { ClientStateMixin } from '../../../../../lib/connection/ClientState';
+import { SaxonbergClientMixin } from '../../../../../lib/connection/SaxonbergClient';
 import { CommandGiverMixin } from '../../../../../lib/command/CommandGiver';
 import { SensorMixin } from '../../../../../lib/message/Sensor';
 import { ContainerMixin } from '../../../../../lib/spatial/Container';
@@ -36,9 +38,9 @@ import type { WatchTarget } from '@saxonberg/types';
 import Tablet from '../../../../thing/Tablet';
 import { ContainmentApi } from '../../../../../api/containment';
 
-class TestActor extends HasInteractiveMixin(
+class TestActor extends SaxonbergClientMixin(ClientStateMixin(HasInteractiveMixin(
   SensorMixin(CommandGiverMixin(ContainerMixin(ContainableMixin(Idea)))),
-) {
+))) {
   static _mixinName = 'TestActor';
 }
 

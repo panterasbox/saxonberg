@@ -19,7 +19,7 @@ import { HotReloadApi } from './hot-reload';
 import { StreamLogic } from '../platform/idea/api/StreamLogic';
 import { fileURLToPath } from 'url';
 import type { Stuff } from '../lib/stuff/Stuff';
-import type Avatar from '../platform/agent/Avatar';
+import type Avatar from '../lib/character/Avatar';
 import type { MessageFrame } from '@saxonberg/types';
 import type { StreamerTarget, ParsedTarget } from '../lib/streaming/StreamerTarget';
 import type { RelayChannelRef } from '../platform/idea/StreamRelay';

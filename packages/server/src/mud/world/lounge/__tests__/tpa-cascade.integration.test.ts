@@ -26,7 +26,7 @@ import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import LoungeWarren from "../idea/LoungeWarren";
 import { LoungePaths } from "../paths";
-import Avatar from "../../../platform/agent/Avatar";
+import Avatar from "../../../platform/agent/PrimaryAvatar";
 import { fileURLToPath } from "url";
 import { StuffApi } from "../../../api/stuff";
 import { ModuleApi } from "../../../api/module";

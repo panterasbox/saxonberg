@@ -18,7 +18,7 @@ import {
 } from '../../../../api/execution-context';
 import EventRegistry from '../../../../platform/idea/EventRegistry';
 import Interactive from '../../../../platform/idea/Interactive';
-import Avatar from '../../../../platform/agent/Avatar';
+import Avatar from '../../../../platform/agent/PrimaryAvatar';
 
 /*
  * ⚠⚠ **A 20 s timeout, and the number is a MEASUREMENT rather than a

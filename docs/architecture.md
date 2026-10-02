@@ -399,7 +399,7 @@ set. Two kinds are recognized:
   `lib/command/parsers/msh.ts#detectEmotePrefix`/`stripEmotePrefix`,
   `lib/description/Visible.ts#senseStripAugmenter`.
 - **DI injection seams** — a backend→mudlib wiring slot a free function
-  fills at boot. Today: `lib/connection/HasInteractive.ts#setClientStateUpdatePush`.
+  fills at boot. Today: `lib/connection/ClientState.ts#setClientStateUpdatePush`.
 - **Logic-singleton sibling cross-imports** (`no-restricted-imports`) — two
   logic singletons in one subsystem that must reference each other's class
   *identity* for a framework allowlist, which the facade can't broker.
@@ -852,7 +852,12 @@ Stuff (base — runtime ID, FINAL destroy, construction sentinel)
   │           └── Actor   a body that ACTS — moves, perceives, fights
   │                 ├── Beast      an animal: it has a brain, it is nobody
   │                 ├── KeptAnimal an animal somebody keeps
-  │                 └── Character  a body that is SOMEBODY → Avatar
+  │                 └── Character  a body that is SOMEBODY
+  │                       └── ShelledCharacter  + a command line
+  │                             └── Avatar   (abstract) a human drives it
+  │                                   ├── PrimaryAvatar  the one you play
+  │                                   ├── ShadeAvatar    the dead one
+  │                                   └── SandboxAvatar  the rehearsal one
   └── Shadow        function-shadowing host — see call-security.md
 ```
 
@@ -995,10 +1000,52 @@ for a rung to get one mixin. They are `platform/agent/Beast`
 (`Behaved(PostRegistration(Actor))`) and `platform/agent/DraftAnimal`
 (`Mountable(Hauler(Beast))`) now, and `KeptAnimal` composed three of
 `Actor`'s five by hand until it became the rung's third consumer.
-See [pets.md](./subsystems/pets.md). `Character` has two leaf subclasses: `Avatar`
-(player-driven, in `platform/agent/`) and the thin `NPC` (`lib/npc/NPC.ts` =
+See [pets.md](./subsystems/pets.md). `Character` has two branches: the
+**Avatar family** (player-driven) and the thin `NPC` (`lib/npc/NPC.ts` =
 `Character` + `BehavedMixin`) for authored, automation-driven characters —
-which keeps `Behaved` off players. `NPC` is **substrate**: a row names one
+which keeps `Behaved` off players.
+
+⭐⭐ **The Avatar family** is `Character → ShelledCharacter → Avatar`,
+with three concrete bodies. `ShelledCharacter`
+(`lib/shell/ShelledCharacter.ts`) is the command-line rung — *aliases,
+settings, focus, a workspace, authoring*: things an NPC has no use for.
+
+⚠ **It keeps its name, and the near-miss is worth recording.** The
+avatar-family build renamed it `Shell` for one wave and reverted:
+*shell* is a capability bundle, not a kind of body, so a bare `Shell`
+reads as a mixin — and the class composes **five**. It also collided
+three ways: with `lib/shell/`, the directory of mixins it lives in;
+with `ShellApi`, which is the settings facade and NOT this class's Api
+despite the mirror convention; and with
+[holding.md](./subsystems/holding.md)'s **closed** vocabulary, where a
+*shell* is a dwelling's structure (`shellCondition`, `shellStamp`,
+`landlord-shell`). ⭐ Exactly the three-meanings problem that got
+`WireBody` renamed, one rung up. `ShelledCharacter` was already
+conformant — an adjectival modifier on a noun, like
+`SingletonCartesianLocation` — and it says what an instance IS. `Avatar`
+(`lib/character/Avatar.ts`) is **abstract** and adds *a human is on the
+other side*; nothing instances it.
+
+| class | what it is | registers? | persists? |
+|---|---|---|---|
+| `platform/agent/PrimaryAvatar` | the body of record — **the one you play** | yes, claims the slot | yes, drives the spine |
+| `platform/agent/ShadeAvatar` | the body you wear while **dead** | later, by the death choreography | no — the arc is on the identity |
+| `platform/agent/sandbox/SandboxAvatar` | the body you wear **inside a circle** | never — the parked body keeps the slot | no — rolled back at the door |
+
+⭐ **Composition does not differ** across the three; only
+*activation* does. A verb that exists for one exists for all three, so
+a refusal can be read instead of a capability silently missing. The
+two axes they vary on are *are your acts canon* and *can you fully
+act*, and each non-primary body gives up exactly one — a different one
+(see [connection.md](./subsystems/connection.md) and
+[mortality.md](./subsystems/mortality.md)).
+
+⚠⚠ **`instanceof Avatar` always means the ABSTRACT.** A site left on
+`PrimaryAvatar` silently excludes shades and circle bodies, and those
+are the same person — an identity-keyed read that misses them is wrong
+rather than merely narrow.
+
+`NPC` is **substrate**: a row names one
 of its two identity rungs, `platform/agent/Cast` (somebody) or
 `platform/agent/Extra` (a role), or a capability combination over them
 (`Mercenary = PartyMemberMixin(NPC)`; ⚠ `Crafter = CastMixin(MakerMixin(NPC))` was the other example until trades-and-labor retired the marker). See
@@ -1224,7 +1271,9 @@ registry) lives in `lib/mixin.ts`.
 | `lib/stuff/` | `PostRegistrationMixin` | opt-in `postRegister(context?)` lifecycle hook |
 | `lib/persistence/` | `AroundSaveHookMixin` | middleware-style PM save hook |
 | `lib/persistence/` | `AroundDeleteHookMixin` | middleware-style PM delete hook |
-| `lib/connection/` | `HasInteractiveMixin` | "this Stuff has connected `Interactive`s" — `add`/`remove`/`getInteractives`/`isConnected`/`isLinkdead`. Composed by `Avatar` (multiplexing) and `Login` (singleton). |
+| `lib/connection/` | `HasInteractiveMixin` | ⭐ "a human may be on the other side of this" — `add`/`remove`/`getInteractives`/`isConnected`/`isLinkdead`, the witness hooks, the residency veto, `presenceStatus`, `getPortraitUrl`. **No UI vocabulary.** Composed by `Avatar` (multiplexing) and `Login` (singleton). |
+| `lib/connection/` | `ClientStateMixin` | The client-state MECHANISM and **zero keys**: the two stores, `get`/`set`/`snapshot`/`push`, the `clientStateSchema` chain walk, the `ClientState` fork slice, and the backend→mudlib push DI seam. Requires `HasInteractive`. |
+| `lib/connection/` | `SaxonbergClientMixin` | ⭐⭐ **Our client's vocabulary, and nothing else** — the fifteen `console.*`/`cards.*`/`style.*`/`cockpit.*` schema entries, the nine cockpit methods, `refreshDisplays`, `openArrangement`, the `cockpit` verb tree. The line a second client is written against (see [connection.md](./subsystems/connection.md) § *What a second client implements*). Requires `ClientState`. |
 | `lib/activity/` | `EngagedMixin` | actor-side engagement slot map (`body`/`hands`/`attention`/`voice`); runtime-only. `_setEngagement` / `_clearEngagement` are ApiOnly-gated; only `SchedulerApi` may mutate. Composed by `Character`. Provides the `cancel` verb and `stop` default alias. |
 | `lib/biome/` | `AtmosphericMixin` | biome ref + atmospheric overrides (temperature/pressure/humidity/gravity/atmosphere) at room or per-Detail scope. Composed by `Location` and **`ExitableVessel`** (⚠ it was `Vessel` until the base-class narrowing build, which gave every bag and till its own weather; *a thing you can go inside is a place with air*). `ExitableVessel` also carries the authored `interiorVolume` the envelope runs on, and overrides `envelopeApplies` (a vessel's roof is its declaration, not the sky above it) and `openExteriorOpenings` (for a vessel the seal IS the door). See [biome.md](./subsystems/biome.md). |
 | `lib/biome/` | `SkyExposedMixin` | trait stamp for biomes whose Locations look out on the open sky. Composed by `SkyExposedBiome`. ⚠ Reached through `BiomeApi.isSkyExposed`, which walks outward to the nearest Atmospheric ancestor **with a biome** and answers `false` when none resolves — so it is only as live as the roster `BiomeCatalogue` warms. |
@@ -1244,7 +1293,7 @@ registry) lives in `lib/mixin.ts`.
 | `lib/vitals/` | `VitalsMixin` (+ `DressingMixin`) | body-state: vital-sign `Quantity` fields, per-species survivable-band lookup, derived `getConditionBand` / `getConsciousness` (computed, never stored), the anatomy resolver, the active-condition collection, and the death/consciousness seams — now including the **dying clock** (`DyingRecord`, the `dying` band, `beginDying`/`stabilize`, and the reconcile arm that deliberately does NOT freeze on linkdead) and the fork-only **material slices** + gated `adoptMaterialState` that make a corpse un-reanimatable. Also hosts the **reconcile-on-read wound driver** (`reconcileConditions` on the read path, driving the harm subsystem's bleed/heal/`exsanguination` off a persisted per-trauma `tickedAt`) + `isSlotImpairedByTrauma` / `drainForLimp`. `DressingMixin` is the first-aid dressing capability (`Bandage`); the harm producer facade is `ConditionApi`/`ConditionLogic`. Requires `OrganismMixin`. Composed by `Creature`. See [vitals.md](./subsystems/vitals.md) / [harm.md](./subsystems/harm.md). |
 | `lib/vitals/` | `HygieneMixin` | body cleanliness (recovery build): one `washedAt` stamp with a derived `handsCleanliness()` decaying over `HYGIENE_SOIL_SEC`; `scrub()` / `soil()` (the `Serviceable` shape). Read only of a TREATER — dirty hands infect a wound (D11). Composed by `Creature` beside `VitalsMixin`. See [harm.md § Recovery](./subsystems/harm.md). |
 | `lib/mortality/` | `PostmortemMixin` | what a body does AFTER it stops: the decay clock (staged, degrading forensic readability while the cause stamp stays ground truth), and the `canEvict` veto that keeps a corpse in the world until it is spent. Runs unguarded — a corpse has no player to protect. Composed by `Creature`; inert on the living. See [mortality.md](./subsystems/mortality.md). |
-| `lib/mortality/` | `IncorporealMixin` | present, but unable to touch anything — the capability half of function-over-form. Platform verbs ride the participant; embodied verbs are refused by the `requiresEmbodied` validator. Carries the refusal prose so the same lever re-skins (the deferred prison work). Composed by `Shade`. See [mortality.md](./subsystems/mortality.md). |
+| `lib/mortality/` | `IncorporealMixin` | present, but unable to touch anything — the capability half of function-over-form. Platform verbs ride the participant; embodied verbs are refused by the `requiresEmbodied` validator. Carries the refusal prose so the same lever re-skins (the deferred prison work). Composed by `ShadeAvatar`. See [mortality.md](./subsystems/mortality.md). |
 | `lib/reserve.ts` | `ReservedMixin` | a keyed collection of `Reserve` capacity axes (decomposed-scalar persistence). Biological reserves (endurance/satiation/hydration) + the authored-thematic seam (mana is content; a cultivated plant's root-zone `moisture` is another). **Neutral, not Creature-coupled** — composed by `Creature`, `Campfire` (fuel), a `Location` (air) and `Plant` (moisture). See [reserve.md](./subsystems/reserve.md). |
 | `lib/encumbrance/` | `LoadBearingMixin` | the carry-weight gauge (first vitals driver): derived-on-read `getBorneBurden` (weighted walk over contents + slot occupants with `Vessel.transmissionFactor` + slot-derived placement coupling) / `getCarryCapacity` (body mass × physiology margins) / `getLoadRatio` / `wouldExceedCeiling` (× the lean margin). Requires `Container + Slotted + Tangible + Reserved + Vitals`. Composed outermost by `Creature`. See [encumbrance.md](./subsystems/encumbrance.md). |
 | `lib/exertion/` | `ExertingMixin` | ⭐ what working does to a body — ONE event `exert({durationS, powerW})` emitted by the scheduler (`DurativeActivity.effortW`), the self-powered traverse and the combat exchange; read by endurance (excess over sustainable, clamped at the spent line), `wind`, `lean` (overload, spends `protein`) and the heat load. `canExert` / `canSustainPace` / `conditioningBand` / `bodyState` + the `self.body` cue. On `Creature`. See [exertion.md](./subsystems/exertion.md). |
@@ -1282,7 +1331,7 @@ registry) lives in `lib/mixin.ts`.
 | `lib/forums/` | `ForumsMixin` | the forums transmission capability (post / reply / vote / subscribe verb family), composed on a hosted update (`ForumsUpdate`). Born-with: the `ForumsUpdate` is an `AetherHosted` implant conferring this mixin, granted at intake. Acts on behalf of its host via `getHost()`. See [forums.md](./subsystems/forums.md). |
 | `lib/forums/` | `SubjectSubscriberMixin` | per-Avatar forum-subscription storage: the keyed set of subscribed `Subject`s feeding the `ForumSubscriptionRegistry` fan-out. Composed by `Avatar`. See [forums.md](./subsystems/forums.md). |
 | `lib/behavior/` | `BehavedMixin` | the NPC automation layer (first behavior consumer of the activity substrate): runs a declarative `behaviors:` data-spec list, path-resolving + re-resolving "brain" code modules per fire (HMR), wiring cadence (jittered, presence-gated) + `handleMessage`-witness triggers, with slot contention over `EngagedMixin`. Branch-agnostic; composed by the thin `NPC` class. See [behavior.md](./subsystems/behavior.md). |
-| `lib/corpo/` | `BrandedMixin` | the per-product corpo **mark**: a `_brandKey` durable join resolving on read (via `CorpoApi`) to a `Brand` and its owning `Corpo` (or a null corpo for an independent). MQL-visible via a `subscribableFields` `brand`/`corpo` projection; appends a derived "a product of <Corpo>" `markupAugmenter` line. Composed by content onto branded objects, and on the **animal rungs** — the kernel's `KeptAnimal` and ranching's `Livestock` — never on every Stuff and never on `Creature` (⚠ it was, from the ranching build until the base-class narrowing build, which marked every player, Cast member, Extra, Shade and corpse; see [ranching.md](./subsystems/ranching.md)). See [corpo.md](./subsystems/corpo.md). |
+| `lib/corpo/` | `BrandedMixin` | the per-product corpo **mark**: a `_brandKey` durable join resolving on read (via `CorpoApi`) to a `Brand` and its owning `Corpo` (or a null corpo for an independent). MQL-visible via a `subscribableFields` `brand`/`corpo` projection; appends a derived "a product of <Corpo>" `markupAugmenter` line. Composed by content onto branded objects, and on the **animal rungs** — the kernel's `KeptAnimal` and ranching's `Livestock` — never on every Stuff and never on `Creature` (⚠ it was, from the ranching build until the base-class narrowing build, which marked every player, Cast member, Extra, ShadeAvatar and corpse; see [ranching.md](./subsystems/ranching.md)). See [corpo.md](./subsystems/corpo.md). |
 | `lib/craft/` | `GradedMixin` | the ordinal-quality carrier: a persisted `gradeBand` word + the `Grade` value-object contract (`getGrade`/`setGrade`/`getGradeBand`/`setGradeBand`). Composed by input bottles (`GradedReceptacle`) and inherited by `CraftedMixin`. See [crafting.md](./subsystems/crafting.md). |
 | `lib/craft/` | `ToolMixin` | the crafting-**capabilities** layer: `capabilities: string[]` (matched by recipe-required capability). Composed as `ToolMixin(DurableMixin(…))` by `Tool` — the wear/condition half lives on `DurableMixin` (below), NOT here. See [crafting.md](./subsystems/crafting.md). Since forestry also carries `epoch` — a CLOSED vocabulary (`lib/craft/Epoch.ts`, `EPOCHS`; the setter refuses a sixth word; `null` = unstated) that the land-use covenant's predicate will read. |
 | `lib/material/` | `DurableMixin` | the **wear-state axis** of a physical object (sibling of `Tangible`/`Constructed`, NOT a crafting mixin): a `condition` (0..1) that `wear()`s on **use, not the clock**. Composed by tools, weapons, and armor alike (durability ≠ "tool"); narrow via `MixinApi.isDurable`. Split out of `ToolMixin`. See [crafting.md](./subsystems/crafting.md) + [materials-response.md](./subsystems/materials-response.md). |

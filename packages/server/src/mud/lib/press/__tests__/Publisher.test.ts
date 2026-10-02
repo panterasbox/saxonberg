@@ -16,7 +16,7 @@
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import OrganizationEntity from '../../../platform/idea/Organization';
-import Avatar from '../../../platform/agent/Avatar';
+import Avatar from '../../../platform/agent/PrimaryAvatar';
 import { EmploymentApi } from '../../../api/employment';
 import { CompactApi } from '../../../api/compact';
 import { ParcelApi } from '../../../api/parcel';

@@ -13,7 +13,7 @@ import { seedKernelContentStore } from '../../../../../../mud/lib/security/__tes
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import SubdivideController from "../SubdivideController";
 import TransferController from "../TransferController";
-import Avatar from "../../../../agent/Avatar";
+import Avatar from "../../../../agent/PrimaryAvatar";
 import { ParcelApi } from "../../../../../api/parcel";
 import { AccessApi } from "../../../../../api/access";
 import { TemplateApi } from "../../../../../api/template";

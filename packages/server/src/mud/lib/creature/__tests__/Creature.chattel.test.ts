@@ -9,7 +9,7 @@
  *
  * The argument is right and the host was one level too high. `Creature` is
  * the base of `Character`, so the same line declared that every player
- * Avatar, every Cast member, every Extra, every Shade and every corpse in
+ * Avatar, every Cast member, every Extra, every ShadeAvatar and every corpse in
  * the game is somebody's chattel. Nothing ever stamped one, so nothing
  * failed — the defect was entirely in what the classes CLAIMED, which is
  * the documented author surface and therefore exactly what

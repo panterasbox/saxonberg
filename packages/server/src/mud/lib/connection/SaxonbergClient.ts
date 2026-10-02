@@ -1,0 +1,883 @@
+/**
+ * SaxonbergClientMixin — **our client's vocabulary**, and the line a
+ * second client would be written against.
+ *
+ * ⭐⭐ Everything in this file is one client's words. The console tabs,
+ * the card views, the overlay theme, the cockpit's modes and
+ * arrangements and shelf — none of it is *the game*, and none of it is
+ * what a connection is. It is how the Saxonberg web client chooses to
+ * draw a session, declared on a mixin so that choosing differently
+ * means composing a different mixin rather than editing the engine.
+ *
+ * The seam, stated once (and in `connection.md`):
+ *
+ * > **A second client implements the connection set and the
+ * > client-state mechanism — the `Interactive` frames and the
+ * > `client-state-write` / `client-state-update` / welcome-snapshot
+ * > trio — and nothing about modes, arrangements, cards-per-mode or
+ * > shelves, which are one client's vocabulary declared on one mixin.**
+ *
+ * ⚠ This is kernel, not a pack, and that is a conclusion rather than a
+ * convenience: a capability pack must hold a namespace root (class
+ * resolution is by longest path prefix), and none of the five axes
+ * takes a client — it is not a thing, a place, a trade, a firm or
+ * something written down, and `/system/` means *true whether or not
+ * anyone is participating*, which a client is precisely the opposite
+ * of. Making it a pack needs a sixth axis. See the plan's D1.
+ *
+ * Composed by `Avatar` (inherited identically by every body in the
+ * family) and by `Login` — our client draws character-select and
+ * char-gen with a command bar and pushes client state at them, so the
+ * claim it makes is true of both.
+ */
+
+import type { MixinConstructor } from '../mixin';
+import type { CommandContributions } from '../../api/command';
+import type Interactive from '../../platform/idea/Interactive';
+import type { Stuff as StuffRef } from '../stuff/Stuff';
+import { MixinApi } from '../../api/mixin';
+import { MqlApi } from '../../api/mql';
+import type { HasInteractive } from './HasInteractive';
+import type { ClientState, ClientStateSchemaEntry } from './ClientState';
+import {
+  LAYOUT_NAMES,
+  COCKPIT_MODES,
+  COCKPIT_ARRANGEMENTS,
+  DEFAULT_COCKPIT_MODE,
+  LEGACY_LAYOUT_MIGRATION,
+  LEGACY_LAYOUT_FOR,
+  MAX_ARRANGEMENT_NAME_LENGTH,
+  MAX_SAVED_ARRANGEMENTS_PER_MODE,
+  SHELF_ROW_IDS,
+  DEFAULT_SHELF,
+  DEFAULT_ROUTING,
+  FEED_DESTINATIONS,
+  CARD_IDS,
+  SHIPPED_ARRANGEMENT_CARDS,
+  type ArrangementSpec,
+  type CockpitMode,
+  type LayoutName,
+  type CardId,
+} from '@saxonberg/types';
+
+/**
+ * The tower as this mixin sees it: our own surface, the mechanism
+ * below it, the connection set below that, and the two raw stores.
+ *
+ * ⚠ The raw stores are named here because the legacy-layout migration
+ * has to tell *stored* from *schema default*, a distinction
+ * `getClientState` deliberately collapses — a host still sitting on the
+ * `world` default has chosen nothing and must not be migrated as though
+ * it chose. Host-internal to this tower's three files; nothing outside
+ * reads a client-state field, only the methods.
+ *
+ * ⚠ A local `const self = this as unknown as ClientHost` is the idiom
+ * throughout this file. A class-factory mixin's `this` does not carry
+ * the base's members through the type bound (TS resolves `extends Base`
+ * for a generic `Base` without them), and `refreshDisplays` already
+ * used this cast before the split.
+ */
+type ClientHost = HasInteractive &
+  ClientState &
+  SaxonbergClient & {
+    _clientState: Record<string, unknown>;
+    _transientClientState: Record<string, unknown>;
+    migratedLegacyLayout(): { mode: CockpitMode; arrangement: string } | null;
+  };
+
+/**
+ * Public shape provided by SaxonbergClientMixin.
+ *
+ * ⭐ Extends `ClientState` (and through it `HasInteractive`): every
+ * method here reads or writes a client-state key, so a host that has
+ * our vocabulary necessarily has the mechanism that stores it. The
+ * narrow carries the whole tower, which is what lets a controller
+ * declare one host type instead of three.
+ */
+export interface SaxonbergClient extends ClientState {
+  /**
+   * Re-sync this viewer's client state with the screens they can reach:
+   * project every lit display they now see, and clear a shared embed
+   * (`cockpit.watch` with a `display` marker) they have walked away
+   * from. A *personal* watch — no marker — is never touched.
+   *
+   * ⭐ Lives here because `cockpit.watch` is this client's key; the
+   * projection itself is the screen's own (`display.refreshFor`).
+   * A viewer whose client cannot render an embed is simply not
+   * projected to, which is a display failing closed and honestly.
+   */
+  refreshDisplays(): void;
+
+  /**
+   * The active cockpit mode, legacy-migration aware. Prefer this over
+   * `getClientState('cockpit.mode')`: a player who last played before
+   * the mode axis existed has no `cockpit.mode` at all, only a legacy
+   * `cockpit.layout`, and only this resolves it.
+   */
+  getCockpitMode(): CockpitMode;
+
+  /**
+   * The arrangement active in a mode (the mode's remembered choice, its
+   * shipped default, or the legacy migration's answer — in that order).
+   * Defaults to the active mode.
+   */
+  getCockpitArrangement(mode?: CockpitMode): string;
+
+  /** Shipped defaults then saved names — what `cockpit layout` resolves against. */
+  getArrangementNames(mode?: CockpitMode): string[];
+
+  /** Is `name` one of `mode`'s shipped defaults? */
+  isShippedArrangement(mode: CockpitMode, name: string): boolean;
+
+  /** Which mode owns `name`, skipping `except`. Null when nobody does. */
+  findArrangementMode(name: string, except?: CockpitMode): CockpitMode | null;
+
+  /** This player's saved arrangements for one mode. */
+  savedArrangementsFor(mode: CockpitMode): Record<string, ArrangementSpec>;
+
+  /**
+   * ⭐ The cards an arrangement opens — a saved one's own list, or the
+   * shipped default for the mode.
+   *
+   * ⚠ Names only. An arrangement is a statement about a WORKSPACE, so
+   * it names cards by catalogue id and nothing else; a card about a
+   * particular person is a statement about a MOMENT and belongs to the
+   * pin, which is session-scoped for exactly that reason.
+   */
+  arrangementCards(mode: CockpitMode, name: string): readonly CardId[];
+
+  /** Error string for a player-supplied arrangement name, or null if fine. */
+  validateArrangementName(mode: CockpitMode, raw: string): string | null;
+
+  /** Compat: the legacy LayoutName that best paints (mode, arrangement). */
+  legacyLayoutFor(mode: CockpitMode, arrangement: string): LayoutName;
+
+  /**
+   * Open the active mode's arrangement on a freshly-attached session.
+   * Called from `Avatar.enter()`; guarded there, because a session must
+   * never fail because a workspace convenience could not open.
+   */
+  openArrangement(interactive: Interactive): void;
+}
+
+export function SaxonbergClientMixin<
+  TBase extends MixinConstructor<HasInteractive & ClientState>,
+>(Base: TBase) {
+  return class SaxonbergClientMixin extends Base {
+    static _mixinName: string = 'SaxonbergClientMixin';
+
+
+    /**
+     * Client-state schema. Declares every persisted UI key + its
+     * default. One flat array — no chain walker, no per-feature
+     * mixin layer. Add an entry to ship a new key.
+     *
+     * Scope rule: only put a key here if it's substrate-level
+     * (meaningful for every HasInteractive-bearing thing). If a
+     * key is owned by a narrower mixin, the right move is to
+     * promote a small registry / walker — but defer that until
+     * the array genuinely outgrows a single file.
+     */
+    static clientStateSchema: ClientStateSchemaEntry[] = [
+      {
+        key: 'console.tabs',
+        defaultValue: [{ name: 'All', muted: [] }],
+        description:
+          'Cockpit tabbed-terminal tabs. Each tab carries its ' +
+          'own name and a list of muted topic strings.',
+      },
+      {
+        /**
+         * ⭐ Named views over the CARD feed — the terminal's tab strip,
+         * for the other column.
+         *
+         * ⚠ `All` is deliberately NOT in the default: it is the
+         * *absence* of a filter rather than a member of the list, which
+         * is what makes it locked, unstored and undeletable. A stored
+         * `All` row could be edited into a view that quietly filtered,
+         * and the lock has to hold against state that predates it.
+         *
+         * Views filter on **card kind** (`cardId`) — the one axis a
+         * player can name. Filtering on topic paths would be the
+         * terminal's question asked in the wrong column.
+         */
+        key: 'cards.views',
+        defaultValue: [],
+        description:
+          'Named views over the card feed. Each carries a name and a ' +
+          'list of card kinds it shows; `All` is structural and is ' +
+          'never stored here.',
+        validator: (v) =>
+          Array.isArray(v) &&
+          v.every(
+            (r) =>
+              typeof r === 'object' &&
+              r !== null &&
+              typeof (r as { name?: unknown }).name === 'string' &&
+              Array.isArray((r as { kinds?: unknown }).kinds),
+          )
+            ? true
+            : 'expected an array of { name, kinds[] }',
+      },
+      {
+        key: 'cards.activeView',
+        defaultValue: 'All',
+        description:
+          'Which card view is showing. `All` is the absence of a ' +
+          'filter and is always valid.',
+        validator: (v) =>
+          typeof v === 'string' ? true : 'expected a view name',
+      },
+      {
+        /**
+         * ⭐ The feed routing table — one stream, several destinations.
+         *
+         * An ORDERED list, and the order is the semantics: first match
+         * wins for a `move`, a `copy` routes and keeps going. Each rule
+         * is a predicate over the frame's topic FACETS, which is why a
+         * "quiet" rule is one entry rather than a list of sixty topic
+         * paths that drifts every time a topic is added.
+         *
+         * ⚠⚠ **The undeletable catch-all is deliberately NOT stored
+         * here.** The evaluator appends it, so writing this key
+         * directly cannot remove it. Every frame must land somewhere —
+         * without one, a mistyped predicate silently drops output, and
+         * *in a world where a frame can be "you are on fire", a lost
+         * message is not a cosmetic bug.*
+         *
+         * The default's copy-to-Attention rule ships **on**: a
+         * convenience on a desktop, where the frame is in World anyway,
+         * and the safety net on a phone, where World may not be the
+         * feed you are looking at.
+         */
+        key: 'console.routing',
+        defaultValue: DEFAULT_ROUTING,
+        description:
+          'Feed routing rules — an ordered table of facet predicates, ' +
+          'each naming a destination (world | attention | channels | ' +
+          'diagnostics) and MOVE (stop) or COPY (continue). The ' +
+          'undeletable catch-all is appended by the evaluator, not ' +
+          'stored here.',
+        validator: (v) =>
+          Array.isArray(v) &&
+          v.every(
+            (r) =>
+              typeof r === 'object' &&
+              r !== null &&
+              (FEED_DESTINATIONS as readonly string[]).includes(
+                (r as { to?: unknown }).to as string,
+              ) &&
+              ((r as { disposition?: unknown }).disposition === 'move' ||
+                (r as { disposition?: unknown }).disposition === 'copy'),
+          )
+            ? true
+            : 'must be a list of { when, to, disposition } rules',
+      },
+      {
+        /**
+         * ⚠⚠ Which shipped views this player has already been OFFERED
+         * — not which ones they still have.
+         *
+         * The distinction is the whole point: seeding is additive, so
+         * without a record of what has been offered a view the player
+         * deliberately DELETED would be re-added on their next login.
+         * "Delete" would mean "hide until you reconnect", which is not
+         * what the word means.
+         *
+         * ⚠ It shipped missing from this schema, so every write of it
+         * was rejected and logged — and the guarantee it exists to
+         * provide was quietly not there.
+         */
+        key: 'console.seededViews',
+        defaultValue: [],
+        description:
+          'Names of the shipped default views this player has already ' +
+          'been offered. Additive seeding consults it so a deleted ' +
+          'view stays deleted across reconnects.',
+        validator: (v) =>
+          Array.isArray(v) && v.every((n) => typeof n === 'string')
+            ? true
+            : 'must be a list of view names',
+      },
+      {
+        key: 'console.activeTab',
+        defaultValue: 'All',
+        description:
+          'Cockpit tabbed-terminal active tab name. Falls back ' +
+          'to "All" if the named tab is unknown.',
+      },
+      {
+        key: 'style.overlay',
+        defaultValue: {},
+        description:
+          "Reader-owned visual customization overlay (themes, " +
+          "channel colors, plain-mode, mention prefs). One JSON " +
+          "blob keyed by dotted selector; edited via the `style` " +
+          "verb. The cockpit's stylesheet engine reads this and " +
+          "layers it on top of the theme.",
+        // Permissive validator: only require an object at the top
+        // level. Selector / treatment shape is enforced lazily by
+        // the resolver (unknown selectors no-op) so mid-edit
+        // partial states from a future visual editor don't trip.
+        validator: (v) =>
+          typeof v === 'object' && v !== null && !Array.isArray(v)
+            ? true
+            : 'must be a JSON object',
+      },
+      {
+        key: 'cockpit.layout',
+        defaultValue: 'world',
+        description:
+          'The cockpit layout this player is in — the server-' +
+          'authoritative view axis (world | forum | livestream-' +
+          'viewer | streamer | builder). Set by `cockpit layout`; ' +
+          'the client holds a layout→component registry and swaps the ' +
+          'whole cockpit on change.',
+        validator: (v) =>
+          typeof v === 'string' &&
+          (LAYOUT_NAMES as readonly string[]).includes(v)
+            ? true
+            : `unknown layout (known: ${LAYOUT_NAMES.join(', ')})`,
+      },
+      {
+        key: 'cockpit.mode',
+        // ⚠ `null`, not 'play', so "never set" stays distinguishable
+        // from "deliberately set to the default". A legacy player has
+        // no `cockpit.mode` but DOES have a `cockpit.layout` that
+        // already names their mode — `getCockpitMode()` reads this null
+        // as its cue to migrate. A 'play' default here would silently
+        // answer for them and the migration would never run.
+        defaultValue: null,
+        description:
+          'The cockpit activity mode — the front-door axis (chat | ' +
+          'play | watch | build | govern), answering "what am I here ' +
+          'to do". Set by `cockpit mode`. Null means never set: read ' +
+          'through `getCockpitMode()`, which migrates a legacy ' +
+          '`cockpit.layout` rather than assuming the default.',
+        validator: (v) =>
+          v === null ||
+          (typeof v === 'string' &&
+            (COCKPIT_MODES as readonly string[]).includes(v))
+            ? true
+            : `unknown cockpit mode (known: ${COCKPIT_MODES.join(', ')})`,
+      },
+      {
+        key: 'cockpit.arrangements',
+        // Per-mode arrangement memory: `{ [mode]: arrangementName }`.
+        // Switching modes and back returns you where you were.
+        defaultValue: {},
+        description:
+          'Per-mode arrangement memory — a { mode → arrangement name } ' +
+          'map. Switching modes and back restores the arrangement last ' +
+          'used in that mode. Written by `cockpit layout`; read through ' +
+          '`getCockpitArrangement()`, which falls back to the mode’s ' +
+          'shipped default.',
+        validator: (v) => {
+          if (typeof v !== 'object' || v === null || Array.isArray(v)) {
+            return 'must be a { mode: arrangement } object';
+          }
+          for (const [mode, name] of Object.entries(
+            v as Record<string, unknown>,
+          )) {
+            if (!(COCKPIT_MODES as readonly string[]).includes(mode)) {
+              return `unknown cockpit mode '${mode}'`;
+            }
+            if (typeof name !== 'string') {
+              return 'every arrangement name must be a string';
+            }
+          }
+          return true;
+        },
+      },
+      {
+        key: 'cockpit.savedArrangements',
+        // `{ [mode]: { [name]: ArrangementSpec } }`. Scoped by mode
+        // because an arrangement only means anything inside one — the
+        // same reason `cockpit layout` refuses a name from elsewhere
+        // instead of quietly switching modes for you.
+        defaultValue: {},
+        description:
+          'Player-composed card arrangements, per mode — a ' +
+          '{ mode → { name → { cards } } } map. Written by ' +
+          '`cockpit layout save` / `forget`. These sit BESIDE the ' +
+          'shipped per-mode defaults; a saved name may never shadow a ' +
+          'shipped one, so the union is unambiguous.',
+        validator: (v) => {
+          if (typeof v !== 'object' || v === null || Array.isArray(v)) {
+            return 'must be a { mode: { name: spec } } object';
+          }
+          for (const [mode, byName] of Object.entries(
+            v as Record<string, unknown>,
+          )) {
+            if (!(COCKPIT_MODES as readonly string[]).includes(mode)) {
+              return `unknown cockpit mode '${mode}'`;
+            }
+            if (
+              typeof byName !== 'object' ||
+              byName === null ||
+              Array.isArray(byName)
+            ) {
+              return `arrangements for '${mode}' must be an object`;
+            }
+            for (const [name, spec] of Object.entries(
+              byName as Record<string, unknown>,
+            )) {
+              if (name.length === 0 || name.length > MAX_ARRANGEMENT_NAME_LENGTH) {
+                return `arrangement name '${name}' must be 1..${MAX_ARRANGEMENT_NAME_LENGTH} characters`;
+              }
+              if (
+                typeof spec !== 'object' ||
+                spec === null ||
+                !Array.isArray((spec as { cards?: unknown }).cards)
+              ) {
+                return `arrangement '${name}' must carry a cards array`;
+              }
+            }
+          }
+          return true;
+        },
+      },
+      {
+        key: 'cockpit.inputModes',
+        // Transient: input scoping belongs to the live session, not the
+        // character. Resets to {} on a fresh login — no persisted barId
+        // vocabulary to maintain across sessions. The barId is just an
+        // in-session routing handle, not a saved key.
+        transient: true,
+        defaultValue: {},
+        description:
+          'Per-bar input modes — a { barId → prefix } map. The ' +
+          'command interpreter prepends a bar’s prefix to bare ' +
+          'input submitted from that bar (escape with `/`; the ' +
+          '`cockpit` verb and its whole subtree are exempt — interface ' +
+          'control is not world input). Set/cleared by `cockpit scope` ' +
+          'from a given bar; the client renders the prefix as an inline ' +
+          'uneditable span. Transient — never persisted; clears on ' +
+          'a fresh session.',
+        // Shape: a flat object whose values are all strings. The
+        // resolver/interpreter tolerate a missing key (= that bar is
+        // unset); this validator only rejects non-objects and non-
+        // string values so a malformed write can't poison the map.
+        validator: (v) => {
+          if (typeof v !== 'object' || v === null || Array.isArray(v)) {
+            return 'must be a { barId: prefix } object';
+          }
+          for (const val of Object.values(v as Record<string, unknown>)) {
+            if (typeof val !== 'string') return 'every mode prefix must be a string';
+          }
+          return true;
+        },
+      },
+      {
+        key: 'cockpit.watch',
+        // Transient: the focal-embed target belongs to the live session, not
+        // the character. Resets to null on a fresh login — matching the
+        // `cockpit.inputModes` precedent. Set by the `watch` verb.
+        transient: true,
+        defaultValue: null,
+        description:
+          'The livestream-viewer focal-embed target — a server-' +
+          'authoritative per-viewer WatchTarget ({platform,channel} | ' +
+          '{platform,videoId} | {platform,channelId}) or null. Set by the ' +
+          '`watch` verb; the client mirrors it and renders the platform ' +
+          'player iframe. Transient — never persisted; clears on a fresh ' +
+          'session.',
+        // Shape: null (nothing watched) or an embed-shaped object with a
+        // `platform` and one of channel/videoId/channelId.
+        validator: (v) => {
+          if (v === null) return true;
+          if (typeof v !== 'object' || Array.isArray(v)) {
+            return 'must be null or a { platform, … } object';
+          }
+          const o = v as Record<string, unknown>;
+          if (
+            (o.platform === 'twitch' || o.platform === 'kick') &&
+            typeof o.channel === 'string'
+          ) {
+            return true;
+          }
+          if (
+            o.platform === 'youtube' &&
+            (typeof o.videoId === 'string' || typeof o.channelId === 'string')
+          ) {
+            return true;
+          }
+          return 'unknown watch target shape';
+        },
+      },
+      {
+        key: 'cockpit.tuned',
+        // Transient for the same reason `cockpit.watch` is: what you are
+        // following belongs to the live session, and the relay drops you
+        // from every channel at logout anyway (`StreamApi.dropPlayer`),
+        // so a persisted list would outlive the thing it describes.
+        transient: true,
+        defaultValue: [],
+        description:
+          'The channels this viewer is tuned to — an array of ' +
+          '{ platform, handle, canPost }. Written by `tune` / `tune off`; ' +
+          'the client renders the tuned rail from it. ⭐ `canPost` is the ' +
+          "server's answer about outbound posting (a linked identity with " +
+          'chat authorized — Twitch only this cycle), sent so the rail can ' +
+          'disable a composer rather than let a player type into a channel ' +
+          'that will refuse. Transient — clears on a fresh session.',
+        validator: (v) => {
+          if (!Array.isArray(v)) return 'must be an array of tuned targets';
+          for (const row of v) {
+            if (typeof row !== 'object' || row === null) {
+              return 'every tuned target must be an object';
+            }
+            const o = row as Record<string, unknown>;
+            if (
+              o.platform !== 'twitch' &&
+              o.platform !== 'youtube' &&
+              o.platform !== 'kick'
+            ) {
+              return `unknown platform '${String(o.platform)}'`;
+            }
+            if (typeof o.handle !== 'string' || o.handle === '') {
+              return 'every tuned target needs a handle';
+            }
+            if (typeof o.canPost !== 'boolean') {
+              return 'canPost must be a boolean';
+            }
+          }
+          return true;
+        },
+      },
+      {
+        key: 'cockpit.shelf',
+        // ⚠ NOT transient, unlike `inputModes` and `watch`. A shelf is a
+        // preference — the same kind of thing as `cockpit.layout` — and
+        // a player who arranged their figures expects to find them
+        // arranged tomorrow. `inputModes` and `watch` are session
+        // routing, which is why those two reset.
+        defaultValue: [...DEFAULT_SHELF],
+        description:
+          'The widget shelf — which figures are pinned to the top bar, ' +
+          'in order. An array of ShelfRowId. Edited by `cockpit shelf ' +
+          'pin|unpin`; defaults to the rows that are actually wired ' +
+          '(play, renown, skill), never to a bar of dead widgets. The ' +
+          'other six are one `cockpit shelf pin` away and explain ' +
+          'themselves in the widget menu. Server-authoritative on ' +
+          'purpose: a pin affordance that mutated local state would ' +
+          'falsify the claim the status bar makes, that every click ' +
+          'sends a command.',
+        // Shape: an array of known row ids, no duplicates. The id
+        // vocabulary is `SHELF_ROW_IDS` in `@saxonberg/types` — one
+        // list, shared, so the server's validation and the client's
+        // catalogue cannot drift into two.
+        validator: (v) => {
+          if (!Array.isArray(v)) return 'must be an array of shelf row ids';
+          const seen = new Set<string>();
+          for (const row of v) {
+            if (typeof row !== 'string') return 'every row must be a string';
+            if (!(SHELF_ROW_IDS as readonly string[]).includes(row)) {
+              return `unknown shelf row '${row}' (known: ${SHELF_ROW_IDS.join(', ')})`;
+            }
+            if (seen.has(row)) return `duplicate shelf row '${row}'`;
+            seen.add(row);
+          }
+          return true;
+        },
+      },
+    ];
+
+    /**
+     * Verbs that travel with every HasInteractive-bearing host
+     * (Avatar today, future cockpit-bearing classes tomorrow). The
+     * `cockpit` verb belongs here because the state it edits IS the
+     * client state on this mixin; co-locating verb + schema keeps the
+     * wiring local.
+     *
+     * One entry, not three: `layout`, `style` and `mode` were absorbed
+     * as `cockpit layout` / `cockpit style` / `cockpit scope`. They
+     * each wrote this same `cockpit.*` keyspace, so three top-level
+     * verbs was scatter, not separation.
+     */
+    static commandContributions: CommandContributions = {
+      self: ['platform/cmd/shell/cockpit.yaml'],
+      peers: [],
+      environment: [],
+    };
+
+    public refreshDisplays(): void {
+      const self = this as unknown as StuffRef & ClientHost;
+      const current =
+        self.getClientState<{ display?: { stuffId: string } } | null>(
+          'cockpit.watch',
+        ) ?? null;
+      const named = current?.display?.stuffId ?? null;
+      let stillSeen = false;
+      // MQL is how you search: `reachable` is the actor-anchored seed —
+      // inventory and room, at depth — so a screen the viewer carries and
+      // one standing in the room are both found, and no world scan is.
+      if (!MixinApi.isCommandGiver(self)) return;
+      const found = MqlApi.resolveMany('reachable:[mixin.DisplayMixin]', {
+        commandGiver: self,
+        scope: 'reachable',
+      });
+      for (const s of found.stuff) {
+        if (!MixinApi.isDisplay(s)) continue;
+        if (s.stuffId === named) stillSeen = true;
+        s.refreshFor(self);
+      }
+      // Walked out of the booth: the shared embed leaves with the screen.
+      if (named && !stillSeen) {
+        self.setClientState('cockpit.watch', null);
+        self.pushClientStateUpdate('cockpit.watch', null);
+      }
+    }
+
+    /**
+     * The active cockpit mode, resolving the legacy `cockpit.layout`
+     * when no mode was ever set.
+     *
+     * ⚠ **The migration is a MAPPING, not a rename.** Before the mode
+     * axis existed, `cockpit.layout` held one of five values that were
+     * really *a mode plus that mode's arrangement* flattened into one
+     * string. Every player who ever ran `layout builder` has that
+     * string persisted. Resolution order:
+     *
+     *   1. an explicitly set `cockpit.mode` — the post-migration world;
+     *   2. the legacy `cockpit.layout`, mapped through
+     *      {@link LEGACY_LAYOUT_MIGRATION};
+     *   3. {@link DEFAULT_COCKPIT_MODE}, for a genuinely fresh player.
+     *
+     * Derive-on-read rather than a one-shot rewrite: nothing has to run
+     * against every stored Avatar, and a player who never logs in again
+     * costs nothing.
+     */
+    public getCockpitMode(): CockpitMode {
+      const self = this as unknown as ClientHost;
+      const explicit = self.getClientState<CockpitMode | null>('cockpit.mode');
+      if (explicit !== null && explicit !== undefined) return explicit;
+      return self.migratedLegacyLayout()?.mode ?? DEFAULT_COCKPIT_MODE;
+    }
+
+    /**
+     * The arrangement active in `mode` (default: the active mode).
+     * Resolution order mirrors {@link getCockpitMode}: the remembered
+     * per-mode choice, then the legacy layout's arrangement when that
+     * legacy value maps to *this* mode, then the mode's shipped default.
+     *
+     * The legacy step is scoped to the matching mode on purpose. The
+     * two livestream layouts collapse into one `watch` mode with
+     * different arrangements, so `livestream-viewer` may answer for
+     * `watch` — but it must not answer for `play`.
+     */
+    public getCockpitArrangement(mode?: CockpitMode): string {
+      const self = this as unknown as ClientHost;
+      const active = mode ?? self.getCockpitMode();
+      const remembered = self.getClientState<Record<string, string>>(
+        'cockpit.arrangements',
+      );
+      const stored = remembered?.[active];
+      if (typeof stored === 'string' && stored.length > 0) return stored;
+
+      const legacy = self.migratedLegacyLayout();
+      if (legacy && legacy.mode === active) return legacy.arrangement;
+
+      return COCKPIT_ARRANGEMENTS[active][0] ?? 'default';
+    }
+
+    /**
+     * Every arrangement name available in `mode` — the shipped
+     * defaults first, then this player's saved ones. This union is what
+     * `cockpit layout <name>` resolves against; there is deliberately
+     * no frozen list, because the slate's arrangements are *savable*.
+     */
+    public getArrangementNames(mode?: CockpitMode): string[] {
+      const self = this as unknown as ClientHost;
+      const active = mode ?? self.getCockpitMode();
+      const shipped = [...COCKPIT_ARRANGEMENTS[active]];
+      const saved = Object.keys(self.savedArrangementsFor(active));
+      return [...shipped, ...saved.filter((n) => !shipped.includes(n))];
+    }
+
+    /** Is `name` a shipped default of `mode`? */
+    public isShippedArrangement(mode: CockpitMode, name: string): boolean {
+      return (COCKPIT_ARRANGEMENTS[mode] as readonly string[]).includes(name);
+    }
+
+    /**
+     * The mode that owns `name`, or null. Used to refuse a cross-mode
+     * recall *with a reason naming the mode* — "unknown arrangement" is
+     * a bad answer when the player has one by that name one door over.
+     * Skips `except` so a caller can ask "who else has this?".
+     */
+    public findArrangementMode(
+      name: string,
+      except?: CockpitMode,
+    ): CockpitMode | null {
+      const self = this as unknown as ClientHost;
+      for (const mode of COCKPIT_MODES) {
+        if (mode === except) continue;
+        if (self.getArrangementNames(mode).includes(name)) return mode;
+      }
+      return null;
+    }
+
+    /** This player's saved arrangements for one mode (never null). */
+    /** See {@link HasInteractive.arrangementCards}. */
+    public arrangementCards(
+      mode: CockpitMode,
+      name: string,
+    ): readonly CardId[] {
+      const self = this as unknown as ClientHost;
+      const saved = self.savedArrangementsFor(mode)[name];
+      if (saved) {
+        // ⚠ Filter to the catalogue. A saved list is player data that
+        // has outlived a rename before, and an unknown name would make
+        // the whole arrangement fail to open rather than one card.
+        return saved.cards.filter((p): p is CardId =>
+          (CARD_IDS as readonly string[]).includes(p),
+        );
+      }
+      /*
+       * ⚠ Keyed by (mode, arrangement), not by mode alone. `watch` ships
+       * two arrangements and one flat list cannot express them. A mode's
+       * entry need not be total over the shipped arrangements — an
+       * arrangement with no row simply opens nothing.
+       */
+      return SHIPPED_ARRANGEMENT_CARDS[mode][name] ?? [];
+    }
+
+    public savedArrangementsFor(
+      mode: CockpitMode,
+    ): Record<string, ArrangementSpec> {
+      const self = this as unknown as ClientHost;
+      const all = self.getClientState<
+        Record<string, Record<string, ArrangementSpec>>
+      >('cockpit.savedArrangements');
+      return all?.[mode] ?? {};
+    }
+
+    /**
+     * Validate a player-supplied arrangement name. Returns an error
+     * string, or null when acceptable.
+     *
+     * ⚠ A saved name may never shadow a shipped default. Allowing it
+     * would make `cockpit layout viewer` ambiguous with no way for the
+     * player to say which they meant — so the collision is refused at
+     * save time, where it can still be explained, rather than resolved
+     * silently at recall time in favour of whichever we happened to
+     * check first.
+     */
+    public validateArrangementName(
+      mode: CockpitMode,
+      raw: string,
+    ): string | null {
+      const self = this as unknown as ClientHost;
+      const name = raw.trim();
+      if (name.length === 0) return 'an arrangement needs a name';
+      if (name.length > MAX_ARRANGEMENT_NAME_LENGTH) {
+        return `name is too long (max ${MAX_ARRANGEMENT_NAME_LENGTH} characters)`;
+      }
+      if (/\s/.test(name)) return 'an arrangement name cannot contain spaces';
+      if (self.isShippedArrangement(mode, name)) {
+        return `'${name}' is a shipped ${mode} arrangement and cannot be overwritten`;
+      }
+      /*
+       * ⚠ The COUNT, not just the name. A save writes a player-chosen
+       * key into a persisted map, so uncapped it is unbounded growth of
+       * the player's own stored document — self-inflicted, which is
+       * precisely why it is easy to leave open: the cost lands on
+       * storage and on every read of that document rather than on the
+       * player doing it. Overwriting an existing name is always allowed,
+       * because that adds no key.
+       */
+      const existing = self.savedArrangementsFor(mode);
+      if (
+        existing[name] === undefined &&
+        Object.keys(existing).length >= MAX_SAVED_ARRANGEMENTS_PER_MODE
+      ) {
+        return (
+          `you have ${MAX_SAVED_ARRANGEMENTS_PER_MODE} saved ${mode} ` +
+          `arrangements — forget one first`
+        );
+      }
+      return null;
+    }
+
+    /**
+     * The legacy {@link LayoutName} that best paints (mode,
+     * arrangement).
+     *
+     * ⚠ Compatibility only. The shipped client still swaps its frame
+     * off `cockpit.layout`, and repainting it is a separate cycle, so
+     * the server keeps that key populated while mode + arrangement
+     * carry the truth. A saved arrangement and the `govern` mode have
+     * no legacy name by construction — both fall back to the mode's
+     * first mapping, which is the honest answer: the old client cannot
+     * render them, so it renders the nearest thing it has.
+     */
+    public legacyLayoutFor(mode: CockpitMode, arrangement: string): LayoutName {
+      const forMode = LEGACY_LAYOUT_FOR[mode];
+      const exact = forMode[arrangement];
+      if (exact) return exact;
+      const fallback = Object.values(forMode)[0];
+      return fallback ?? 'world';
+    }
+
+    /**
+     * The legacy `cockpit.layout` as a (mode, arrangement) pair, or
+     * null when this host never stored one.
+     *
+     * Host-internal: reads `_clientState` directly to tell "stored" from
+     * "schema default", which `getClientState` deliberately collapses.
+     * The distinction is the whole migration — a host still sitting on
+     * the `world` default must NOT be treated as having chosen `play`,
+     * because it has chosen nothing.
+     */
+    private migratedLegacyLayout(): { mode: CockpitMode; arrangement: string } | null {
+      const self = this as unknown as ClientHost;
+      const store = self._clientState;
+      if (!store || !Object.prototype.hasOwnProperty.call(store, 'cockpit.layout')) {
+        return null;
+      }
+      const legacy = store['cockpit.layout'];
+      if (typeof legacy !== 'string') return null;
+      return LEGACY_LAYOUT_MIGRATION[legacy as LayoutName] ?? null;
+    }
+
+    /**
+     * ⭐ The cockpit axes go out RESOLVED, never raw — and that
+     * resolution is OURS, so it is an override rather than something
+     * the mechanism knows.
+     *
+     * A legacy host stores `cockpit.mode: null` and a `cockpit.layout`
+     * that has to be mapped, and the client owns zero semantics, so it
+     * must not be the thing doing that mapping. Resolving here keeps
+     * the migration in exactly one place and means the client can read
+     * the snapshot literally.
+     */
+    public snapshotClientState(): Record<string, unknown> {
+      const self = this as unknown as ClientHost;
+      const out = super.snapshotClientState();
+      const mode = self.getCockpitMode();
+      out['cockpit.mode'] = mode;
+      out['cockpit.arrangements'] = {
+        ...(out['cockpit.arrangements'] as Record<string, string>),
+        [mode]: self.getCockpitArrangement(mode),
+      };
+      return out;
+    }
+
+    /**
+     * Open the active mode's arrangement on a freshly-attached session.
+     *
+     * ⭐ Moved off `Avatar.enter()` because *which cards open in which
+     * mode* is our client's answer, while a pushed card is protocol any
+     * client renders. `CardApi` and `Interactive.applyCardArrangement`
+     * stay exactly where they are.
+     */
+    public openArrangement(interactive: Interactive): void {
+      const self = this as unknown as ClientHost;
+      const mode = self.getCockpitMode();
+      interactive.applyCardArrangement(
+        self.arrangementCards(mode, self.getCockpitArrangement(mode)),
+      );
+    }
+  };
+}

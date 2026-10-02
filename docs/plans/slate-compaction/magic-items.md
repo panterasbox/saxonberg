@@ -120,7 +120,7 @@ under it.
 - `## Scrolls` → intro line · bullet 3 *Create-monster* (no procgen-NPC generator; `mintRandomGuestAvatar` is still `Login.ts`'s only mint) · the *Rapid-clear* cross-ref paragraph
 - `## Rings & amulets` → the ESP/presence convergence bullet (`VerbalESPModality`/`EmotiveESPModality` exist at `platform/idea/modalities/`; no amulet grants one; the hollow is `presence-hollowing-slate`) · the *amulet of strangulation* exemplar (no row; `Respiration.ts:95` has the `strangulation` channel it would use) · the *Rest are conferred-while-worn modifiers* index
 - `### What it costs to build` → *Open for the roster pass* — see Uncertain
-- `## Gap roundup` → intro · Tier 2 items 4, 6, 7 (see Uncertain for 4 and 7; 6: `grep -rni reprofil packages/server/src/mud` → 0) · Tier 3 items 8–11 (11: `Organism.setSpecies` is still a bare `_speciesPath` write, `Organism.ts:230-232`, now called by `Shade.ts:72` and `WireBody.ts:86` on fresh bodies with no reconciliation; no slot-eviction path — `grep -rni "slotsChanged|evictOrphan|onBodyPlanChanged"` → 0) · *Decisions / deferrals* (see Uncertain)
+- `## Gap roundup` → intro · Tier 2 items 4, 6, 7 (see Uncertain for 4 and 7; 6: `grep -rni reprofil packages/server/src/mud` → 0) · Tier 3 items 8–11 (11: `Organism.setSpecies` is still a bare `_speciesPath` write, `Organism.ts:230-232`, now called by `ShadeAvatar.ts:72` and `SandboxAvatar.ts:86` on fresh bodies with no reconciliation; no slot-eviction path — `grep -rni "slotsChanged|evictOrphan|onBodyPlanChanged"` → 0) · *Decisions / deferrals* (see Uncertain)
 - `## The catalog map` — whole, all five buckets (minus the identify bullet); see Uncertain for the shipped items inside kept bullets
 - `## Deferred / own-slate` — whole
 

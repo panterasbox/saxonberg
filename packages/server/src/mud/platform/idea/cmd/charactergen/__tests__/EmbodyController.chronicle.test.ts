@@ -15,7 +15,8 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import EmbodyController from '../EmbodyController';
 import Login from '../../../Login';
 import Interactive from '../../../Interactive';
-import Avatar from '../../../../agent/Avatar';
+import Avatar from '../../../../../lib/character/Avatar';
+import PrimaryAvatar from '../../../../../platform/agent/PrimaryAvatar';
 import { PersonaMixin } from '../../../../../lib/character/Persona';
 
 /**
@@ -110,8 +111,8 @@ describe('EmbodyController.commit → chronicle seeding', () => {
     vi.spyOn(species, 'getBodyPlanPath').mockReturnValue(null as never);
 
     vi.spyOn(Template, 'findByPath').mockResolvedValue({
-      path: Avatar.SEED_TEMPLATE_PATH,
-      class: '/platform/agent/Avatar',
+      path: PrimaryAvatar.ROW_TEMPLATE_PATH,
+      class: '/platform/agent/PrimaryAvatar',
       data: { startLocation: '/world/lounge/idea/warren' },
       hydratorClass: '/platform/idea/persistence/PersistentHydrator',
     } as never);
@@ -124,8 +125,14 @@ describe('EmbodyController.commit → chronicle seeding', () => {
     // so the durable owner key resolves; enter is a no-op (so the
     // first-arrival deed does not fire from here).
     avatarPath = '';
+    // ⚠ Matches the ROW, not the identity namespace. This read
+    // `startsWith('/platform/agent/Avatar/')` until 2026-10-01, which
+    // caught the row AND every identity because the row was parked
+    // inside the identity namespace as `.../Avatar/seed`. The row lives
+    // at `/platform/agent/PrimaryAvatar` now, so the two are finally
+    // distinguishable.
     vi.spyOn(StuffApi, 'clone').mockImplementation(async (path: string) => {
-      if (path.startsWith('/platform/agent/Avatar/')) {
+      if (path === PrimaryAvatar.ROW_TEMPLATE_PATH) {
         avatarPath = path;
         return makeStuffAtPath(() => new StubAvatar(), path) as never;
       }

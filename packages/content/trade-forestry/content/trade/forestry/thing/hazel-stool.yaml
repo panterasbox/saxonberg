@@ -44,7 +44,7 @@ data:
     moistureHappyAt: 0.2
     moistureWiltAt: 0.03
     litresPerGameDay: 0.15
-    # Shade-tolerant: a thirty-lux clearing and a fifteen-lux ride both
+    # ShadeAvatar-tolerant: a thirty-lux clearing and a fifteen-lux ride both
     # keep a hazel thriving, which is what lets a panel stand under oaks.
     luxHappyAt: 15
     luxDarkAt: 2

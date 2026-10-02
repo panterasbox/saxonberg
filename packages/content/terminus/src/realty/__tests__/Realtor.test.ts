@@ -22,7 +22,7 @@ import { readFileSync } from "fs";
 import { fileURLToPath } from "url";
 import Realtor from "../agent/Realtor";
 import PlatBook from "@saxonberg/content-residence/src/idea/PlatBook";
-import Avatar from "@saxonberg/server/mud/platform/agent/Avatar";
+import Avatar from "@saxonberg/server/mud/platform/agent/PrimaryAvatar";
 import { Idea } from "@saxonberg/server/mud/lib/stuff/Idea";
 import { StuffApi } from "@saxonberg/server/mud/api/stuff";
 import { ParcelApi } from "@saxonberg/server/mud/api/parcel";

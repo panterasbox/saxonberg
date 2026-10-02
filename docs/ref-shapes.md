@@ -771,7 +771,7 @@ transiently* — a constructor parameter consumed during `postRegister`,
 handed to a setter that stores the path, **and then released**. Judge the
 **durable** field, not every variable that briefly holds an object.
 
-> The emphasis on *released* is load-bearing, and `Shade`/`WireBody` are
+> The emphasis on *released* is load-bearing, and `ShadeAvatar`/`SandboxAvatar` are
 > the worked example. Both take a `species` ctor argument and hand it to
 > `setSpecies()` — so the durable field is `OrganismMixin._speciesPath`,
 > correctly an identity ref. They used to retain the ctor's live

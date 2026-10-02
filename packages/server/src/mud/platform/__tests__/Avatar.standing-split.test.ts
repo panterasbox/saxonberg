@@ -29,7 +29,7 @@
 
 import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
-import Avatar from '../agent/Avatar';
+import Avatar from '../agent/PrimaryAvatar';
 import { User } from '../../lib/identity/User';
 import { StuffApi } from '../../api/stuff';
 import { ShadowApi } from '../../api/shadow';

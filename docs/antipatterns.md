@@ -1882,7 +1882,7 @@ caused by any user command).
 ### BAD (raw Node timer)
 
 ```ts
-class Avatar extends ShelledCharacter {
+class Avatar extends Shell {
   private _periodicSaveHandle: ReturnType<typeof setInterval> | null = null;
 
   startAutoSave(): void {
@@ -1912,7 +1912,7 @@ show up in any introspection / debug surface that wraps
 ```ts
 import { ScheduleApi, type ScheduleHandle } from '../api/schedule';
 
-class Avatar extends ShelledCharacter {
+class Avatar extends Shell {
   private _periodicSaveHandle: ScheduleHandle | null = null;
 
   startAutoSave(): void {
@@ -4816,11 +4816,51 @@ it is, the branch adds nothing and the whole thing collapses.
 
 ---
 
+## Declaring a `fieldMeta` field on a mixin that has a `captureSlice`
+
+⚠⚠ **`captureState` runs a layer's `captureSlice` OR its declared
+fields — never both.** So a `fieldMeta` entry on a mixin that also
+defines `captureSlice` is **silently never persisted**:
+
+```ts
+// WRONG — visible everywhere, written nowhere
+class EstateMixin {
+  static fieldMeta = { beneficiary: { persistent: true } };
+  static captureSlice(host, ctx) { return { entries: [...] }; }
+}
+```
+
+The field passes `MixinApi.getAllPersistentFields`, every getter and
+setter works, and nothing errors. It simply never reaches
+`holder_snapshots`, and you find out when a value does not survive a
+logout.
+
+```ts
+// RIGHT — the slice IS the layer's durable form, so put it there
+static captureSlice(host, ctx) {
+  return { entries: [...], beneficiary: self.getBeneficiary() };
+}
+```
+
+⭐ **Only a capture → store → materialize test catches this.** A getter
+assertion passes against the broken version; so does a round trip that
+never leaves memory. `Estate.succession-state.test.ts` asserts the
+counter-intuitive thing head-on — that the fields must NOT appear in
+`getAllPersistentFields` — so a future "fix" that re-declares them
+fails loudly instead of un-persisting them.
+
+⚠ Found 2026-10-01 moving the estate's succession state onto
+`EstateMixin`. Today only `Container`, `Slotted` and `Estate` define
+slices and neither of the other two declares fields, so nothing else
+is broken — but **the next author to declare a field beside a slice
+gets no warning at all.** A census-then-ratchet candidate for
+[lint-family.md](./lint-family.md).
+
 ## Keying a PERSON on `getTemplatePath()`
 
 **Every player Avatar shares one `templatePath`.** Since D17 split
 identity from lineage, an Avatar is cloned from
-`Avatar.SEED_TEMPLATE_PATH` with its per-player path supplied as
+`PrimaryAvatar.ROW_TEMPLATE_PATH` with its per-player path supplied as
 `asIdentityPath`, and `StuffApi.clone` stamps the two **separately**
 (`_stampTemplatePath` then `_stampIdentityPath`). So the template path
 is the LINEAGE — the same string for every player alive — and only
@@ -4842,6 +4882,48 @@ minted and `getTemplatePath()` otherwise, so switching is
 why it is the right default for any durable person key: bank account
 owners, contract parties, chattel stamps, grants, group memberships,
 chronicle subjects.
+
+### ⭐⭐ The second shape: a PREFIX TEST on the lineage (2026-10-01)
+
+The same mistake wearing a different costume, and it survived the
+2026-09-08 sweep because it does not read as a key:
+
+```ts
+// WRONG — "is this a person?" answered by a lineage STRING
+return path !== undefined && path.startsWith(Avatar.TEMPLATE_PATH_PREFIX);
+
+// RIGHT — a question about TYPE, answered by type
+return stuff instanceof Avatar;   // the abstract family root
+```
+
+`PlayerApi.isAvatarStuff` did this, with **~90 call sites** behind it
+including `AccessApi.isWizard`. It was wrong in both directions:
+
+- **A dead player was not a person.** A `ShadeAvatar`'s row is
+  `/platform/agent/ShadeAvatar`, which does not start with
+  `/platform/agent/Avatar/`. `wallet`, `chat`, `forum`, `office` and
+  `contacts` carry no `requiresEmbodied` gate, so this predicate was
+  the only thing deciding — and it silently refused every shade.
+  ⚠ That contradicts `requiresEmbodied`'s own doctrine, written down
+  one file away: death *"costs embodied agency and the price of coming
+  back; it never costs a seat as a person."*
+- **A vessel had to FAKE its lineage to pass.** `SandboxApi.enter`
+  restamped the circle body's `templatePath` to
+  `/platform/agent/Avatar/<pid>/wire` — a path backed by no row —
+  purely to satisfy the string, after players were found losing their
+  own powers inside their own circles. A predicate that forces a
+  caller to forge its input is telling you the predicate is wrong.
+
+⭐ **The tell, and it generalizes:** three test suites were *exploiting*
+it — lightweight `Creature`/`TestGiver` stand-ins parked at
+`/platform/agent/Avatar/<name>` and read as players for free. When a
+string is the criterion, a fixture can simply assert it; when the type
+is the criterion, it has to BE one.
+
+⚠ A prefix test on the identity namespace is still correct when the
+thing being tested really is an identity key (`DocumentLogic`,
+`ContractLogic` read `partyKey.startsWith(...)`). The error is using
+lineage to answer *what KIND of thing is this*.
 
 ### What keying on lineage actually cost (2026-09-08)
 

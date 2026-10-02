@@ -20,8 +20,8 @@
 
 import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import Shade from '../agent/Shade';
-import Avatar from '../agent/Avatar';
+import ShadeAvatar from '../agent/ShadeAvatar';
+import Avatar from '../../lib/character/Avatar';
 import Species from '../idea/species/Species';
 import Clade from '../idea/species/Clade';
 import BodyPlan from '../idea/species/BodyPlan';
@@ -60,18 +60,18 @@ function species(): Species {
   return s;
 }
 
-async function shadeFor(playerId: string): Promise<Shade> {
+async function shadeFor(playerId: string): Promise<ShadeAvatar> {
   // The constructor arguments moved into the clone's `dataOverlay`
   // (hydration Phase 1, which lands before `postRegister`); here the
   // fields are set directly, which is the same ordering.
-  const sh = makeStuff(() => new Shade());
-  sh.shadePlayerId = playerId;
+  const sh = makeStuff(() => new ShadeAvatar());
+  sh.playerId = playerId;
   sh.setSpecies(species());
   await sh.postRegister();
   return sh;
 }
 
-describe('Shade — activations differ, composition does not', () => {
+describe('ShadeAvatar — activations differ, composition does not', () => {
   beforeEach(() => installV1QuantityMarshallers());
   afterEach(() => StuffApi.clearAll());
 
@@ -182,5 +182,34 @@ describe('Shade — activations differ, composition does not', () => {
       expect(held).toBe(sh);
       expect(MixinApi.isIncorporeal(held!)).toBe(true);
     });
+  });
+});
+
+describe('⭐ the reaping is the family\'s, not a shade\'s', () => {
+  beforeEach(() => installV1QuantityMarshallers());
+  afterEach(() => StuffApi.clearAll());
+
+  /*
+   * `ShadeAvatar.onDestruct` used to stop the autosave, unregister and
+   * detach — and then call `super`, which does those same three itself.
+   * Six lines that changed nothing. Deleting an override is only safe
+   * if something proves the behaviour it duplicated still happens, so
+   * this is that proof.
+   */
+  it('destructing a shade still unregisters it', async () => {
+    const sh = await shadeFor('ghost-reap');
+    // The death choreography registers the shade AFTER draining the old
+    // body; this stands in for that step.
+    PlayerApi.registerAvatar(sh);
+    expect(PlayerApi.findAvatarByPlayerId('ghost-reap')).toBe(sh);
+
+    await StuffApi.destruct(sh);
+
+    // ⭐ The slot is released by the family's `onDestruct`, with no
+    // shade-specific code doing it. That is the whole claim.
+    expect(PlayerApi.findAvatarByPlayerId('ghost-reap')).toBeUndefined();
+    // ⚠ The detach half is not asserted from the destroyed host — a
+    // destructed Stuff refuses method calls. It is the same `super`
+    // body, proven for the family by `Avatar.test.ts`.
   });
 });

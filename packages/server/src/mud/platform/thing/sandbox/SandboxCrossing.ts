@@ -54,7 +54,7 @@ import { ChattelApi } from '../../../api/chattel';
 import { SandboxApi } from '../../../api/sandbox';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import type { Container } from '../../../lib/spatial/Container';
-import type Avatar from '../../agent/Avatar';
+import type Avatar from '../../../lib/character/Avatar';
 import SandboxCrossingExit from '../../../lib/sandbox/SandboxCrossingExit';
 import type { FieldMeta } from '../../../lib/mixin';
 import type { Chattel } from '../../../lib/chattel/Chattel';

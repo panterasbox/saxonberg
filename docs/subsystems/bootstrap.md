@@ -70,24 +70,40 @@ the same namespace with a per-instance suffix:
 segments as opaque tokens, so this works without a separator
 distinct from `/`.
 
-### Orphan templates (forked at runtime)
+### ⛔ Orphan templates (forked at runtime) — RETIRED 2026-10-01
 
-Most shipped rows are end-state singletons — `/platform/idea/EventRegistry`
-ships and that's it. Some are **orphans** — templates that live in
-the same namespace as their class's instances but with a reserved id
-no real instance can collide with. The seed avatar is the worked
-example:
+An **orphan** was a template living in the same namespace as its
+class's instances, under a reserved id no real instance could collide
+with. The avatar seed was the worked example, and the **only** one:
+`/platform/agent/Avatar/seed`, where `seed` was a reserved playerId
+(4 chars; nanoids are 21).
 
-- `platform/content/platform/agent/Avatar/seed.yaml` lands at `/platform/agent/Avatar/seed`.
-  It's mechanically just an avatar template; the `seed` playerId is
-  reserved (`Avatar.SEED_PLAYER_ID`) — 4 chars, nanoids are 21,
-  no collision with a real player.
-- Every avatar-mint site (`EmbodyController.commit`, the test-auth
-  `Application.createDefaultCharacter`, `Login.mintRandomGuestAvatar`)
-  reads `Avatar.SEED_TEMPLATE_PATH`, copies its `class` /
-  `hydratorClass` / `data`, overlays the character's own fields, and
-  clones. A minted avatar is snapshot-backed (`holder_snapshots`), not
-  a per-player template row — see [persistence.md](./persistence.md).
+⚠⚠ **The pattern existed to serve a mechanism that no longer does.**
+When a signup FORKED the seed into a real per-player row at
+`/platform/agent/Avatar/<playerId>`, that namespace held rows and the
+reserved id earned its keep. The forking method
+(`Application.createDefaultAvatarTemplate`) is gone from the code
+entirely, `SeederManager` is gone, and a minted avatar is
+snapshot-backed in `holder_snapshots` through the persistence spine —
+so `/platform/agent/Avatar/` holds **no rows at all** and is purely the
+identity namespace.
+
+The row moved to `/platform/agent/PrimaryAvatar`, mirroring its class
+as its two siblings' rows already did
+(`/platform/agent/ShadeAvatar`, `/platform/agent/sandbox/SandboxAvatar`).
+⭐ It is an ordinary end-state row now, and **the orphan pattern has no
+shipped example left.** If you are reaching for a reserved id to park a
+row inside an instance namespace, that is the signal to ask why the
+namespace has instances in it at all.
+
+The mint sites read `PrimaryAvatar.ROW_TEMPLATE_PATH`, copy its
+`class` / `hydratorClass` / `data`, overlay the character's own fields,
+and clone with the per-player identity as `asIdentityPath`:
+`EmbodyController.commit` (char-gen), `Login.mintRandomGuestAvatar` (a
+throwaway guest), and `TestHooks.#createDefaultCharacter` (the wire
+harness's test-auth path — ⚠ this doc called it
+`Application.createDefaultCharacter` until 2026-10-01; it is a private
+static on `TestHooks`). See [persistence.md](./persistence.md).
 
 To change the defaults going forward, edit the seed row in the pack
 and let the reconcile carry it. The pattern isn't an installer

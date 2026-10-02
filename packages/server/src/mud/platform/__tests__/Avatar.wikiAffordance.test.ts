@@ -12,7 +12,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import Avatar from '../agent/Avatar';
+import Avatar from '../../lib/character/Avatar';
 
 describe('the wiki verb is afforded to players', () => {
   it('rides Avatar’s innate `self` contributions', () => {

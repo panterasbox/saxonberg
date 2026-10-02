@@ -36,7 +36,7 @@ import { SourceTreeApi } from '../../mud/api/source-tree';
 import { HotReloadApi } from '../../mud/api/hot-reload';
 import { AccessApi } from '../../mud/api/access';
 import { DiagnosticApi } from '../../mud/api/diagnostics';
-import type Avatar from '../../mud/platform/agent/Avatar';
+import type Avatar from '../../mud/lib/character/Avatar';
 
 /** Minimal app mirroring Server's auth middleware + CmsRoutes. */
 function makeApp(): Express {

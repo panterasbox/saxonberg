@@ -20,7 +20,8 @@ import { Stuff } from '../../lib/stuff/Stuff';
 import { ExecutionContextApi } from '../execution-context';
 import EventRegistry from '../../platform/idea/EventRegistry';
 import Interactive from '../../platform/idea/Interactive';
-import Avatar from '../../platform/agent/Avatar';
+import Avatar from '../../platform/agent/PrimaryAvatar';
+import { Document } from '../../lib/persistence/Document';
 
 /*
  * ⚠⚠ **A 20 s timeout, and the number is a MEASUREMENT rather than a
@@ -84,16 +85,28 @@ beforeEach(() => {
     data: {},
   },
   {
-    path: '/platform/agent/sandbox/WireBody',
-    class: '/platform/agent/sandbox/WireBody',
+    path: '/platform/agent/sandbox/SandboxAvatar',
+    class: '/platform/agent/sandbox/SandboxAvatar',
     hydratorClass: '/platform/idea/persistence/PersistentHydrator',
-    data: { wirePlayerId: '' },
+    data: { playerId: '' },
   },
   ]);
 });
 
 describe('guests and the group cell (Wave 6)', () => {
   beforeEach(async () => {
+    /*
+     * ⭐ A body whose `playerId` is known now resolves its own
+     * identity path, so the persistence spine engages at
+     * `postRegister` instead of waiting for a template stamp that
+     * these fixtures apply afterwards. Production always minted the
+     * identity first, so nothing changed there — but the spine is
+     * live here now and wants the resolver a booted world wires.
+     */
+    Document.setMarshallerResolver(
+      () => undefined,
+      async () => undefined,
+    );
     StuffApi.clearAll();
     ShadowApi._clearAllForTesting();
     EventApi._clearAllForTesting();

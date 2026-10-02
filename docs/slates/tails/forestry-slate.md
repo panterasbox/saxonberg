@@ -379,7 +379,7 @@ is their storm, not a verb.
 
 - **No age structure in the record** — standing, capacity and an
   increment per species; *how old* is prose and the plantings list.
-- **Shade is asserted, not modelled** — *every standard you leave
+- **ShadeAvatar is asserted, not modelled** — *every standard you leave
   shades the coppice beneath it* is the slate's sharpest sentence and a
   standard in a panel lowers nobody's lux. v1 does not claim it in
   prose; later, a standard in a panel lowers the panel's sampled light.
