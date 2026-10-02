@@ -276,7 +276,6 @@ export interface BeliefStore {
    * never does.
    */
   allBeliefs(): readonly BeliefRecord[];
-  hydrateBeliefs(): Promise<void>;
   evictAndFlushBeliefs(): Promise<void>;
   keepsPersonalRegard(): boolean;
   regardFor(subject: Stuff): number;
@@ -371,7 +370,7 @@ function viewerKey(viewer: Stuff): string | null {
  * ⭐ The one read of the `beliefs` collection, in one place. Both callers
  * go through it: the declared hydration source (driven at mint by the
  * clone pipeline, for a host with no record of its own) and the
- * `SelfOnly` `hydrateBeliefs()` an avatar still calls from `enter`.
+ * declared hydration source the clone pipeline drives at mint.
  *
  * Returns how many records landed, so the source hook can report an
  * honest outcome without a second query.
@@ -466,10 +465,11 @@ export function BeliefStoreMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     /**
      * Install a captured memory back onto the host. An ungated direct
-     * install, deliberately **not** `hydrateBeliefs()`: that method is
-     * `SelfOnly`, and a restore runs in a frame whose executing principal
-     * is the owner rather than the host, so the self-call would be denied
-     * exactly when the owner happens to be online.
+     * install. ⚠ It must stay ungated: a restore runs in a frame whose
+     * executing principal is the OWNER rather than the host, so anything
+     * `SelfOnly` would be denied exactly when the owner happens to be
+     * online. (That hazard is why the retired `hydrateBeliefs()` could
+     * never have been reused here.)
      */
     static async hydrateSlice(
       host: Stuff,
@@ -697,24 +697,6 @@ export function BeliefStoreMixin<TBase extends MixinConstructor>(Base: TBase) {
      */
     private _writeThrough(record: BeliefRecord): void {
       void writeRecordImpl(this as unknown as Stuff, record).catch(() => {});
-    }
-
-    /**
-     * Lazy-hydrate this viewer's persisted beliefs into the in-memory
-     * map. Called on session establish (`Avatar.enter` — a self-call,
-     * which is what the gate admits). No-op without a durable viewer
-     * key or an active connection.
-     */
-    @CallSecurity(SecurityPolicies.SelfOnly)
-    public async hydrateBeliefs(): Promise<void> {
-      if (!persistenceActive()) return;
-      // ⭐ One copy of the read, shared with `hydrateFromSource`. Since
-      // the clone pipeline drives the source at mint, an avatar's
-      // beliefs are now read twice per login — once at mint, once here
-      // from `enter`. Both load into the same keyed map, so it is
-      // idempotent and costs one extra round-trip; retiring this call
-      // is a deferred seam, not this build's.
-      await loadFromCollection(this as unknown as Stuff);
     }
 
     /**

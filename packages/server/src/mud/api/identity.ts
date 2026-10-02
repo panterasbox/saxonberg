@@ -37,7 +37,7 @@
 
 export const Identity = Object.freeze({
   // (Belief retired by the Api OO sweep — the viewer face lives ON
-  // BeliefStoreMixin: hydrateBeliefs · evictAndFlushBeliefs · the
+  // BeliefStoreMixin: evictAndFlushBeliefs · the
   // regard face. The store's write-through is mixin-internal.)
   // (Recognition retired by the Api OO sweep — the target face lives ON
   // the Stuff base: describeFor · describeWithStatusFor ·

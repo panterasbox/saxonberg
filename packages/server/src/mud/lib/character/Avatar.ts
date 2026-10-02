@@ -858,7 +858,18 @@ export default abstract class Avatar extends AvatarBase {
   ): Promise<void> {
     const startingLocation = this.assertStartingLocation();
     this.armSession();
-    await this.hydrateBeliefs();
+    // ⭐⭐ **No belief read here, and its absence is proved rather than
+    // assumed.** This used to call `hydrateBeliefs()`, from before the
+    // belief store had a declared source. Since 2026-10-01
+    // `BeliefStoreMixin` declares a `hydrationSource` that the CLONE
+    // PIPELINE drives at mint, so a body arrives already remembering —
+    // and the map is cleared ONLY on destruct, so a body `enter` gets
+    // without a fresh mint (multiplexing, a reconnect) still holds it.
+    // Pinned as three separate facts in
+    // `lib/belief/__tests__/entryPoints.test.ts`, because ⚠ the failure
+    // mode if that is wrong is silent: `adjustRegard` is a
+    // read-modify-write with a write-through, so an unfilled map
+    // overwrites a stored regard with a value derived from zero.
     await this.recordFirstArrival(startingLocation);
     const payload = await this.buildWelcomePayload(interactive);
     this.sendWelcome(payload, opts.firstArrival === true);

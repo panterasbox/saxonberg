@@ -150,8 +150,15 @@ describe('belief persistence (the mixin viewer face)', () => {
     StuffApi.unregister(s1);
 
     // Session 2: a fresh viewer at the same durable key re-hydrates.
+    // ⭐ Through the DECLARED SOURCE, which is what the clone pipeline
+    // runs at mint. It used to drive `hydrateBeliefs()`, an avatar-only
+    // `SelfOnly` method that `Avatar.enter` called; both retired
+    // 2026-10-01 once the pipeline covered every path (see
+    // `entryPoints.test.ts` for the three facts that proved it).
     const s2 = makeStuffAtPath(() => new Viewer(), AVATAR_ROW, path);
-    await withRootContext(s2, 'hydrate', () => s2.hydrateBeliefs());
+    expect((await Viewer.hydrateFromSource(s2 as never)).status).toBe(
+      'hydrated',
+    );
     const rec = s2.recall(RECOGNITION, '/obj/npc/mara');
     expect(rec?.knownAs).toBe('Mara');
   });
@@ -237,7 +244,9 @@ describe('belief persistence — regard realm', () => {
     StuffApi.unregister(s1);
 
     const s2 = makeStuffAtPath(() => new Viewer(), row, path);
-    await withRootContext(s2, 'hydrate', () => s2.hydrateBeliefs());
+    expect((await Viewer.hydrateFromSource(s2 as never)).status).toBe(
+      'hydrated',
+    );
     expect(s2.recall(REGARD, '/obj/npc/bob')?.payload.regard).toBe(12);
   });
 
