@@ -42,9 +42,9 @@ function installInMemoryStore(): void {
 
 async function bootRegistry(): Promise<AccessRegistry> {
   const groups = makeStuffAtPath(() => new GroupRegistry(), "/platform/idea/GroupRegistry");
-  await groups.postRegister();
+  await groups.onCreate();
   const reg = makeStuffAtPath(() => new AccessRegistry(), "/platform/idea/AccessRegistry");
-  await reg.postRegister();
+  await reg.onCreate();
   return reg;
 }
 

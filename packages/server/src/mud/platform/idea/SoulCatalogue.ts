@@ -6,7 +6,7 @@
  * source of truth is the `documents` collection, `kind: 'emote'` — rows
  * the `expression` content pack installs (and an author mints at
  * `/emotes/<verb>`). The catalogue warms its verb→Emote map at
- * `postRegister` (after `PackApi.install` has reconciled the pack) and
+ * `onCreate` (after `PackApi.install` has reconciled the pack) and
  * serves dispatch-path lookups; the installer's go-live drops the cache
  * after a live `pack sync` touches the kind.
  *
@@ -24,7 +24,6 @@
  */
 
 import { Idea } from '../../lib/stuff/Idea';
-import { PostRegistrationMixin } from '../../lib/stuff/PostRegistration';
 import { SecurityApi } from '../../api/security';
 import { CallSecurity } from '../../lib/security/decorators';
 import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
@@ -34,14 +33,14 @@ import type { EmoteCatalogueEntry } from '@saxonberg/types';
 import type { VetoResult } from '../../lib/errors';
 import type { EvictionContext } from '../../lib/stuff/Stuff';
 
-const SoulCatalogueBase = PostRegistrationMixin(Idea);
+const SoulCatalogueBase = Idea;
 
 // The catalogue's surface is reachable only through SoulApi → the
 // SoulLogic singleton (the surface-architecture two-singleton shape):
 // `FromModule('/api/soul#SoulApi')` admits the facade, `FromTemplate
 // ('/platform/idea/api/soul')` admits the logic singleton (its actual caller after
 // the conversion), and `SelfOnly` admits the internal self-calls
-// (`postRegister`/`ensureCache` → `warmCache`). Any other caller is
+// (`onCreate`/`ensureCache` → `warmCache`). Any other caller is
 // denied. Mirrors the AccessRegistry encapsulation pattern (soul had no
 // gate before this build).
 const SoulApiCallers = SecurityPolicies.AnyOf(
@@ -95,12 +94,12 @@ export default class SoulCatalogue extends SoulCatalogueBase {
   /** Search term (verb, tag, or `searchTerms` entry) → canonical verbs. */
   private bySearchTerm: Map<string, Set<string>> = new Map();
 
-  public override async postRegister(_context?: unknown): Promise<void> {
+  public override async onCreate(_context?: unknown): Promise<void> {
     await this.warmCache();
   }
 
   /**
-   * Reload the cache from Mongo. Called at boot via `postRegister` and
+   * Reload the cache from Mongo. Called at boot via `onCreate` and
    * by external authors after bulk YAML changes. Idempotent.
    */
   @CallSecurity(SoulApiCallers)

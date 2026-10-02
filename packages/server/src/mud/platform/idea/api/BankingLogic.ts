@@ -78,7 +78,7 @@ const BankCallers = SecurityPolicies.AnyOf(
 
 /**
  * The custodian-restamp seam is also callable by the `CentralBank`
- * singleton's postRegister (the boot()-retirement shape): the restamp
+ * singleton's onCreate (the boot()-retirement shape): the restamp
  * logic stays HERE (entangled with the module's account internals),
  * the manifest home runs it after warming the two read caches.
  */
@@ -2378,7 +2378,7 @@ async function recomputeSupplyImpl(): Promise<void> {
 @Unshadowable
 export class BankingLogic extends ApiLogic {
   /**
-   * The custodian restamp, run from `CentralBank.postRegister` after
+   * The custodian restamp, run from `CentralBank.onCreate` after
    * the two cache warms. Idempotent — a cache-field fill over legacy
    * `bank_accounts` rows; no money moves.
    */

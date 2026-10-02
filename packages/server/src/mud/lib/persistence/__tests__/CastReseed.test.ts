@@ -31,7 +31,6 @@ import type { Stuff } from "../../stuff/Stuff";
 import { ContainerMixin } from "../../spatial/Container";
 import { ContainableMixin } from "../../spatial/Containable";
 import { StagedMixin } from "../../stuff/Staged";
-import { PostRegistrationMixin } from "../../stuff/PostRegistration";
 import { BehavedMixin } from "../../behavior/Behaved";
 import { makeStuffAtPath } from "../../security/__tests__/test-setup";
 
@@ -39,7 +38,7 @@ import { makeStuffAtPath } from "../../security/__tests__/test-setup";
 
 // A persistable room that declares its born-with troupe via `cast:`.
 class CastRoom extends PersistableMixin(
-  StagedMixin(ContainerMixin(PostRegistrationMixin(Idea))),
+  StagedMixin(ContainerMixin(Idea)),
 ) {}
 
 // The cast — a Behaved containable (the hand that commutes).

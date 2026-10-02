@@ -538,8 +538,8 @@ export class Creature extends CreatureBase {
    * a plain `super.getMass()`).
    *
    * Runs lazily here rather than from a post-hydrate hook: the
-   * `postRegister` chain is not uniformly threaded below `CommandGiver`
-   * (e.g. `Avatar.postRegister` does not `super`-call), so a read-time
+   * `onCreate` chain is not uniformly threaded below `CommandGiver`
+   * (e.g. `Avatar.onCreate` does not `super`-call), so a read-time
    * seed is the one seam that makes mass honest for *every* reader of
    * *every* Creature subclass, the moment a body plan is resolvable. The
    * "is mass still 0?" check is the idempotency guard — no persistent

@@ -670,7 +670,7 @@ export default class EmbodyController extends CommandController<EmbodyModel> {
     //    NO per-player template row is forked (the identity doctrine —
     //    ref-shapes.md: a `domain` row is a hydration source for
     //    authored content only; a character's durable state is its
-    //    persistence-spine snapshot, captured in `postRegister` right
+    //    persistence-spine snapshot, captured in `onCreate` right
     //    after this clone).
     const seed = await Template.findByPath(TemplatePaths.primaryAvatar);
     if (!seed) {
@@ -716,7 +716,7 @@ export default class EmbodyController extends CommandController<EmbodyModel> {
     await user.save();
 
     // 3. Clone the runtime Avatar from the SHARED seed, overlaying the
-    //    picks and minting the identity path (postRegister stamps +
+    //    picks and minting the identity path (onCreate stamps +
     //    installs the baseline implant + captures the first snapshot).
     const avatar = await StuffApi.clone<Avatar>(
       TemplatePaths.primaryAvatar,

@@ -115,7 +115,7 @@ const FIXTURE: Refl = {
               hook: "Invoked by StuffApi.destruct. Call super.onDestruct(). Witness.",
             }),
             // Known hook name, NO @hook tag → extension by name.
-            method("postRegister", { isStatic: false }),
+            method("onCreate", { isStatic: false }),
           ],
         },
         {
@@ -184,8 +184,8 @@ describe("projectAuthorSurface", () => {
   });
 
   it("routes a known hook-name method with no @hook tag into extension", () => {
-    expect(hookNames).toContain("postRegister");
-    expect(consumerNames.some((n) => n.endsWith(".postRegister"))).toBe(false);
+    expect(hookNames).toContain("onCreate");
+    expect(consumerNames.some((n) => n.endsWith(".onCreate"))).toBe(false);
   });
 
   it("skips inheritedFrom members (no duplicate surface)", () => {

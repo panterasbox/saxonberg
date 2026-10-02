@@ -105,7 +105,7 @@ async function wireFromSeeds(): Promise<void> {
     () => new GovernmentCatalogue(),
     "/platform/idea/GovernmentCatalogue"
   );
-  await cat.postRegister();
+  await cat.onCreate();
 }
 
 describe("the civics flagship (authored seeds, end-to-end)", () => {

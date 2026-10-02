@@ -1216,7 +1216,7 @@ export class StudioLogic extends ApiLogic {
    * Read a field's class-default off a throwaway construction (no live
    * instance existed). Constructed + destructed through the Api so the
    * construction sentinel + registry stay consistent; guarded so a
-   * side-effecting `postRegister` never breaks a read.
+   * side-effecting `onCreate` never breaks a read.
    */
   private async readClassDefault(
     ctor: AnyConstructor,

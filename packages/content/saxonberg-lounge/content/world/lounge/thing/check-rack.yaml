@@ -6,7 +6,7 @@
 # over the rack itself.
 #
 # `seatIn` names the lounge Warren (the terminal precedent): the rack seats
-# ITSELF into the elastic host on postRegister and re-seats on host
+# ITSELF into the elastic host on onCreate and re-seats on host
 # migration (FixtureMixin), so it always stands in whichever room currently
 # holds the north exit to the bar. PersistableMixin keeps checked weapons
 # (and their owner-stamps) across a relog / server bounce.

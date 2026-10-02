@@ -12,7 +12,7 @@
  * A biome that inherits defaults from another names it with the row's
  * own `extends:` — the same key every other template uses. The private
  * `_extendsBiomePath` field is gone (2026-09-25); a biome caches its
- * row's parent at `postRegister` and `getExtendsBiomePath()` answers
+ * row's parent at `onCreate` and `getExtendsBiomePath()` answers
  * from that.
  *
  * ⚠⚠ **Biome keeps its own RESOLVER, and that is why every Biome field
@@ -42,18 +42,17 @@
  */
 
 import { Idea } from '../stuff/Idea';
-import { PostRegistrationMixin } from '../stuff/PostRegistration';
 import { Quantity } from '../quantity';
 import { QuantityMarshaller } from '../../platform/idea/persistence/QuantityMarshaller';
 import { StuffApi } from '../../api/stuff';
 import type { FieldMeta } from '../mixin';
 
 /**
- * ⭐ `PostRegistrationMixin` is composed for ONE reason: a live biome has
+ * ⭐ It overrides `onCreate` for ONE reason: a live biome has
  * to know the parent its ROW names, and the row is only readable after
  * the instance is registered and stamped with its template path.
  */
-const BiomeBase = PostRegistrationMixin(Idea);
+const BiomeBase = Idea;
 
 export default class Biome extends BiomeBase {
   /** Display name (e.g. `'universe'`, `'temperate-baseline'`, `'quad'`). */
@@ -68,7 +67,7 @@ export default class Biome extends BiomeBase {
   private _parentOverride: string | null | undefined = undefined;
 
   /**
-   * The parent this instance's ROW names, read once at `postRegister`.
+   * The parent this instance's ROW names, read once at `onCreate`.
    * `null` for the root universe biome.
    */
   private _parentPath: string | null = null;
@@ -161,8 +160,8 @@ export default class Biome extends BiomeBase {
    * Cache this instance's row parent. A by-path template read, which the
    * resident `content` cache answers from memory.
    */
-  public override async postRegister(context?: unknown): Promise<void> {
-    await super.postRegister(context);
+  public override async onCreate(context?: unknown): Promise<void> {
+    await super.onCreate(context);
     const path = this.getTemplatePath();
     if (!path) return;
     const { Template } = await import('../stuff/Template');

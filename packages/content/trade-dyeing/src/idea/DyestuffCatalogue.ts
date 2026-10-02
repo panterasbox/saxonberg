@@ -6,7 +6,7 @@
  * synchronously, and without a warm every read returns null forever and
  * the whole trade silently does nothing.
  *
- * `postRegister`, **never an operator `Api.boot()`** — an
+ * `onCreate`, **never an operator `Api.boot()`** — an
  * operator-shaped warm does not belong on a consumer surface. Eager
  * loading rides this pack's own `boot:` manifest, which is what a pack
  * declares instead of asking the kernel to list it.
@@ -20,14 +20,13 @@
  */
 
 import { Idea } from '@saxonberg/server/mud/lib/stuff/Idea';
-import { PostRegistrationMixin } from '@saxonberg/server/mud/lib/stuff/PostRegistration';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { Template } from '@saxonberg/server/mud/lib/stuff/Template';
 import type { VetoResult } from '@saxonberg/server/mud/lib/errors';
 import type { EvictionContext } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import Dyestuff from './Dyestuff';
 
-const DyestuffCatalogueBase = PostRegistrationMixin(Idea);
+const DyestuffCatalogueBase = Idea;
 
 export default class DyestuffCatalogue extends DyestuffCatalogueBase {
   /** Residency veto — a culled catalogue re-warms nothing. */
@@ -42,7 +41,7 @@ export default class DyestuffCatalogue extends DyestuffCatalogueBase {
     };
   }
 
-  public override async postRegister(_context?: unknown): Promise<void> {
+  public override async onCreate(_context?: unknown): Promise<void> {
     await this.warm();
   }
 

@@ -64,7 +64,7 @@ describe('a second wood is rows', () => {
   async function hydrate(path: string, data: Record<string, unknown>): Promise<Wood> {
     const w = makeStuffAtPath(() => new Wood(), path);
     await makeStuff(() => new PersistentHydrator()).hydrate(w, data);
-    await w.postRegister();
+    await w.onCreate();
     return w;
   }
 

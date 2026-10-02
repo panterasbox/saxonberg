@@ -75,7 +75,7 @@ export interface PackRequires {
 /**
  * One eager-at-boot template a pack declares (`boot[]`, wave 3). `role`
  * says WHY it is eager: `sync-read` (something resolves it synchronously)
- * or `producer` (its postRegister produces state nothing else would).
+ * or `producer` (its onCreate produces state nothing else would).
  * `reason` is required prose. The union of every applied pack's list is
  * what `BootstrapManager` runs.
  */

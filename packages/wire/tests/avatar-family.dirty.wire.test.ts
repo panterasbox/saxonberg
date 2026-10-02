@@ -147,7 +147,7 @@ suite('2 — a new player still arrives with their loadout', () => {
     expectOk(look);
 
     // ⚠ The aether implant is the born-with floor, and it is what the
-    // postRegister restructure (W3) most threatened: the loadout install
+    // onCreate restructure (W3) most threatened: the loadout install
     // moved onto the abstract root for vessels and stayed in the record
     // body's own sequence for the record. Installing it twice collides
     // on the cranial slot; installing it never leaves a player who can

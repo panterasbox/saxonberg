@@ -7,7 +7,7 @@
  * dispatches `membersOf(ref)` etc. by stripping the `source:` prefix
  * and routing to the matching provider.
  *
- * Providers are registered at `postRegister` time — the three v1
+ * Providers are registered at `onCreate` time — the three v1
  * shapes (managed, mql, contacts) instantiate together. New providers
  * (future) register through `register(provider)`. Chat is a CONSUMER
  * of this registry (channel.groupRef points at a managed Group),
@@ -18,7 +18,6 @@
  */
 
 import { Idea } from '../../lib/stuff/Idea';
-import { PostRegistrationMixin } from '../../lib/stuff/PostRegistration';
 import type { GroupProvider, GroupRef, GroupChangeHandle, GroupChangeListener } from '../../lib/social/GroupProvider';
 import { GroupApi } from '../../api/group';
 import { CompactApi } from '../../api/compact';
@@ -31,7 +30,7 @@ import type { GroupRole } from '../../lib/social/Group';
 import type { VetoResult } from '../../lib/errors';
 import type { EvictionContext } from '../../lib/stuff/Stuff';
 
-const GroupRegistryBase = PostRegistrationMixin(Idea);
+const GroupRegistryBase = Idea;
 
 export default class GroupRegistry extends GroupRegistryBase {
 
@@ -50,7 +49,7 @@ export default class GroupRegistry extends GroupRegistryBase {
   /** Contacts-provider instance — exposed so the contacts controller can fire change notifications. */
   private contactsRef: ContactsGroupProvider | null = null;
 
-  public override async postRegister(_context?: unknown): Promise<void> {
+  public override async onCreate(_context?: unknown): Promise<void> {
     const managed = new ManagedGroupProvider();
     const mql = new MqlGroupProvider();
     const contacts = new ContactsGroupProvider();

@@ -338,13 +338,13 @@ async function enterImpl(
     async () => {
       // ⭐ Species and identity ride the clone OVERLAY, not the
       // constructor: hydration Phase 1 lands them before
-      // `postRegister`, which is the ordering the loadout needs (it
+      // `onCreate`, which is the ordering the loadout needs (it
       // slots the implant into a body plan) and exactly what the
       // constructor arguments were guaranteeing.
       const body = await StuffApi.clone<Stuff>(
         '/platform/agent/sandbox/SandboxAvatar',
         // ⚠ No `playerId` in the CONTEXT — it rides the overlay below,
-        // which lands in hydration Phase 1, before `postRegister`.
+        // which lands in hydration Phase 1, before `onCreate`.
         // Passing it here as well was harmless but said the wrong
         // thing: it read as *this body is registered under the player*,
         // and a vessel never is (the parked body keeps the slot).

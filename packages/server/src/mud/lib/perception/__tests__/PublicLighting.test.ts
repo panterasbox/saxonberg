@@ -68,7 +68,7 @@ function makeStreet(seniority = 1): Street {
     detail: 'lamps',
     seniority,
   };
-  // The covering locality is resolved once at postRegister in
+  // The covering locality is resolved once at onCreate in
   // production; the test wires it directly.
   (s as unknown as { _lightingLocalityPath: string })._lightingLocalityPath =
     CITY;

@@ -129,9 +129,9 @@ describe('CommandGiverMixin recency stack', () => {
     } as unknown as PersistenceManager);
   });
 
-  it('lazily seeds the self entry when a giver was built without postRegister', () => {
+  it('lazily seeds the self entry when a giver was built without onCreate', () => {
     const giver = makeStuff(() => new TestGiver()) as TestGiver & CommandGiver;
-    // No postRegister fired (makeStuff skips it). Stack starts empty.
+    // No onCreate fired (makeStuff skips it). Stack starts empty.
     expect(stackOf(giver)).toHaveLength(0);
     // First read seeds self.
     giver.getAvailableCommands();

@@ -64,7 +64,7 @@ function authoredConditionSeeds(): { path: string; cls: string }[] {
 }
 
 describe('the roster warm', () => {
-  it('postRegister stands up Condition rows and skips folder rows', async () => {
+  it('onCreate stands up Condition rows and skips folder rows', async () => {
     vi.spyOn(Template, 'findDescendants').mockResolvedValue([
       { path: '/platform/idea/Condition/metabolism', class: '/platform/idea/FolderZone' },
       { path: '/platform/idea/Condition/metabolism/alcohol', class: '/platform/idea/Condition' },
@@ -77,7 +77,7 @@ describe('the roster warm', () => {
     });
 
     const catalogue = makeStuff(() => new ConditionCatalogue());
-    await catalogue.postRegister();
+    await catalogue.onCreate();
     expect(stood).toEqual([
       '/platform/idea/Condition/metabolism/alcohol',
       '/platform/idea/Condition/thermal/hypothermia',

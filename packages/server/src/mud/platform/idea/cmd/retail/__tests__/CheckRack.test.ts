@@ -14,7 +14,6 @@ import ReclaimController from "../ReclaimController";
 import { Vessel } from "../../../../../lib/stuff/Vessel";
 import { DetailedMixin } from "../../../../../lib/description/Detailed";
 import { PersistableMixin } from "../../../../../lib/persistence/Persistable";
-import { PostRegistrationMixin } from "../../../../../lib/stuff/PostRegistration";
 import { FixtureMixin } from "../../../../../lib/stuff/Fixture";
 import { HeldGoodsMixin } from "../../../../../lib/retail/Consignment";
 import Ticket from "../../../../thing/Ticket";
@@ -52,10 +51,10 @@ import {
 // The coat check is a composition of kernel mixins; the instanceable class
 // ships in `/trade/hospitality`. The composition line IS the fixture.
 class CheckRack extends PersistableMixin(
-  HeldGoodsMixin(PostRegistrationMixin(FixtureMixin(DetailedMixin(Vessel)))),
+  HeldGoodsMixin(FixtureMixin(DetailedMixin(Vessel))),
 ) {
-  async postRegister(): Promise<void> {
-    await super.postRegister();
+  async onCreate(): Promise<void> {
+    await super.onCreate();
     await this.seatSelf();
   }
 }
@@ -125,7 +124,7 @@ describe("CheckRack — custody-not-title over the consignment substrate", () =>
       () => new ChattelRegistry(),
       "/platform/idea/ChattelRegistry",
     );
-    await reg.postRegister();
+    await reg.onCreate();
   });
   afterEach(() => {
     teardownBankingHarness();

@@ -276,7 +276,7 @@ export class AddressLogic extends ApiLogic {
    *
    * ⭐ ONE registry walk for the whole realm, once per game night: every
    * scope that declares the public-lighting service, bucketed by the
-   * covering locality each resolved at its own `postRegister`, and
+   * covering locality each resolved at its own `onCreate`, and
    * sorted by the seniority its row records. Each extent is then handed
    * its own queue and makes its own decision.
    *

@@ -95,7 +95,7 @@ async function boot(): Promise<void> {
   // The DormWarren / KatieProvisioning precedent.
   ParcelApi._resetRegistryRefForReload();
   const reg = makeStuffAtPath(() => new ParcelRegistry(), "/platform/idea/ParcelRegistry");
-  await reg.postRegister();
+  await reg.onCreate();
 }
 
 beforeEach(async () => {

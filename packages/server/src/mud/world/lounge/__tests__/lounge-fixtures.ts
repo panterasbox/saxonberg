@@ -41,7 +41,7 @@ export function loungeDocs(extra: Doc[] = []): Doc[] {
       data: { shortDescription: "Dave's Bar" },
     },
     // ⭐ The default floor. Since the ground build every Location mints one
-    // at `postRegister`, so every fixture world that clones a room needs
+    // at `onCreate`, so every fixture world that clones a room needs
     // this row — without it `ensureFloor` warns and continues (deliberate:
     // a floorless room is a degradation, a world that will not boot is
     // not), and any assertion about sitting down quietly measures nothing.

@@ -67,12 +67,12 @@ describe('⭐⭐ the Avatar family', () => {
   it('⭐ only the body of record claims the registry slot', () => {
     // The two vessels carry no registration code at all now — not an
     // override that says no, simply nothing to inherit. Proven by
-    // absence: neither declares `postRegister` beyond its own concern.
+    // absence: neither declares `onCreate` beyond its own concern.
     expect(
-      Object.prototype.hasOwnProperty.call(SandboxAvatar.prototype, 'postRegister'),
+      Object.prototype.hasOwnProperty.call(SandboxAvatar.prototype, 'onCreate'),
     ).toBe(false);
     expect(
-      Object.prototype.hasOwnProperty.call(RecordBody.prototype, 'postRegister'),
+      Object.prototype.hasOwnProperty.call(RecordBody.prototype, 'onCreate'),
     ).toBe(true);
   });
 

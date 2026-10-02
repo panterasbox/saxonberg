@@ -26,7 +26,6 @@ import StockBase from "../../../../../lib/retail/Stock";
 import { Vessel } from "../../../../../lib/stuff/Vessel";
 import { DetailedMixin } from "../../../../../lib/description/Detailed";
 import { PersistableMixin } from "../../../../../lib/persistence/Persistable";
-import { PostRegistrationMixin } from "../../../../../lib/stuff/PostRegistration";
 import { ConsignmentShelfMixin } from "../../../../../lib/retail/Consignment";
 import Good from "../../../../../lib/stuff/Good";
 import Coin from "../../../../thing/Coin";
@@ -68,7 +67,7 @@ import {
 // class ships in `/trade/shopkeeping`, which the kernel may not import.
 // The composition line IS the fixture.
 class ConsignmentShelf extends PersistableMixin(
-  ConsignmentShelfMixin(PostRegistrationMixin(DetailedMixin(Vessel))),
+  ConsignmentShelfMixin(DetailedMixin(Vessel)),
 ) {}
 
 // The counter mechanism is kernel substrate; the instanceable twin is
@@ -264,7 +263,7 @@ describe("the house account in the wallet (D6)", () => {
     );
     stubClones();
     const reg = makeStuffAtPath(() => new ChattelRegistry(), "/platform/idea/ChattelRegistry");
-    await reg.postRegister();
+    await reg.onCreate();
     makeStuffAtPath(() => {
       const b = new BankCounter();
       b.setCorpoKey("goodkin");

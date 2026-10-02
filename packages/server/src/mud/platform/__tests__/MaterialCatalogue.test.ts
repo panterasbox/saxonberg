@@ -1,6 +1,6 @@
 /**
  * MaterialCatalogue — the self-warming material roster (the boot()-
- * retirement shape, MaturationProfileCatalogue precedent): postRegister
+ * retirement shape, MaturationProfileCatalogue precedent): onCreate
  * stands up every `Material` row and skips the FolderZone folders, and
  * the platform pack's boot manifest is what makes it EAGER (asserted
  * on the pack.yaml — the wiring is the part that silently rots).
@@ -24,7 +24,7 @@ afterEach(() => {
 });
 
 describe("the roster warm", () => {
-  it("postRegister stands up Material rows and skips the FolderZone folders", async () => {
+  it("onCreate stands up Material rows and skips the FolderZone folders", async () => {
     vi.spyOn(Template, "findByPathInfix").mockResolvedValue([
       { path: "/stuff/idea/material/wood", class: "/platform/idea/FolderZone" },
       { path: "/stuff/idea/material/wood/oak", class: "/platform/idea/material/Material" },
@@ -37,7 +37,7 @@ describe("the roster warm", () => {
     });
 
     const catalogue = makeStuff(() => new MaterialCatalogue());
-    await catalogue.postRegister();
+    await catalogue.onCreate();
     expect(stood).toEqual([
       "/stuff/idea/material/wood/oak",
       "/stuff/idea/material/element/uranium",

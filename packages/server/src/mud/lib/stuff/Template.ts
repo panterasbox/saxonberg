@@ -5,7 +5,7 @@
  * the runtime backing class, an optional Hydrator class, and a hydration
  * payload. Cloning happens via `StuffApi.clone(path, context?)`, which
  * loads a Template by path, dynamic-imports the backing class, optionally
- * runs the hydrator over `data`, and runs `postRegister`.
+ * runs the hydrator over `data`, and runs `onCreate`.
  *
  * Template is a `Document`, not a `Stuff` — like `User` and
  * `GoogleProfile`, it's a record, not a game-world entity (it is the data

@@ -197,9 +197,9 @@ function installStore(): void {
 
 async function bootRegistries(): Promise<void> {
   const groups = makeStuffAtPath(() => new GroupRegistry(), '/platform/idea/GroupRegistry');
-  await groups.postRegister();
+  await groups.onCreate();
   const parcels = makeStuffAtPath(() => new ParcelRegistry(), '/platform/idea/ParcelRegistry');
-  await parcels.postRegister();
+  await parcels.onCreate();
 }
 
 async function warren(): Promise<DormWarren> {

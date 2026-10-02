@@ -597,7 +597,7 @@ async function warmBrandCatalogue(): Promise<void> {
     () => new CorpoCatalogue(),
     '/platform/idea/CorpoCatalogue',
   );
-  await cat.postRegister();
+  await cat.onCreate();
 }
 
 describe('the well — an unnamed pour takes the rail, a named one takes the brand', () => {

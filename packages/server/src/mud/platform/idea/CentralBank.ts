@@ -11,12 +11,11 @@
  * (developer-gated) through `BankingApi`, NOT as a free Stuff method players
  * can reach. This singleton holds the central bank's own account identity
  * and is the world-presence anchor the later governance wrapper attaches to
- * — a `PostRegistrationMixin(Idea)` singleton (the catalogue precedent,
+ * — a `Idea` singleton (the catalogue precedent,
  * with the singleton-destruct refusal).
  */
 
 import { Idea } from "../../lib/stuff/Idea";
-import { PostRegistrationMixin } from "../../lib/stuff/PostRegistration";
 import { Account } from "../../lib/banking/Account";
 import AccountBalance from "../../lib/banking/AccountBalance";
 import SupplyAggregate from "../../lib/banking/SupplyAggregate";
@@ -25,7 +24,7 @@ import { StuffApi } from "../../api/stuff";
 import type { VetoResult } from "../../lib/errors";
 import type { EvictionContext } from '../../lib/stuff/Stuff';
 
-const CentralBankBase = PostRegistrationMixin(Idea);
+const CentralBankBase = Idea;
 
 export default class CentralBank extends CentralBankBase {
 
@@ -37,7 +36,7 @@ export default class CentralBank extends CentralBankBase {
    * — then run the idempotent custodian restamp on the logic singleton
    * (whose gate admits this singleton by template).
    */
-  public override async postRegister(_context?: unknown): Promise<void> {
+  public override async onCreate(_context?: unknown): Promise<void> {
     await AccountBalance.warm();
     await SupplyAggregate.warm();
     // The Api's own logic() factory (with its HMR getCurrentExport

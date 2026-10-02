@@ -154,13 +154,13 @@ async function boot(): Promise<void> {
       () => new GroupRegistry(),
       "/platform/idea/GroupRegistry",
     );
-    await groups.postRegister();
+    await groups.onCreate();
   }
   const parcels = makeStuffAtPath(
     () => new ParcelRegistry(),
     "/platform/idea/ParcelRegistry",
   );
-  await parcels.postRegister();
+  await parcels.onCreate();
 }
 
 async function bootWithAccess(): Promise<void> {
@@ -169,7 +169,7 @@ async function bootWithAccess(): Promise<void> {
     () => new AccessRegistry(),
     "/platform/idea/AccessRegistry",
   );
-  await access.postRegister();
+  await access.onCreate();
 }
 
 function makeAvatar(playerId: string): Avatar {

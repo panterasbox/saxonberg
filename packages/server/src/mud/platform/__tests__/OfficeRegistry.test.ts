@@ -115,7 +115,7 @@ async function bootRegistry(): Promise<OfficeRegistry> {
     () => new OfficeRegistry(),
     '/platform/idea/OfficeRegistry',
   );
-  await reg.postRegister();
+  await reg.onCreate();
   return reg;
 }
 
@@ -331,7 +331,7 @@ describe('OfficeRegistry', () => {
     });
 
     // Reload: re-construct the registry over the same store, re-run
-    // postRegister (which does no DB work).
+    // onCreate (which does no DB work).
     CompactApi._resetOfficeRegistryRefForReload();
     StuffApi.clearAll();
     await bootRegistry();

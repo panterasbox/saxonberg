@@ -144,7 +144,7 @@ describe('Address roster — slim demonstrative inventory', () => {
       //
       // ⚠⚠ It lives in `world-seed` rather than in its own pack, and
       // that is the whole reason it is in this roster at all.
-      // `AddressRegistry.postRegister` walks
+      // `AddressRegistry.onCreate` walks
       // `TemplatePathRosters.locality`, so a Locality row anywhere else
       // is SILENTLY ABSENT — `resolveLocalityFor` answers null for every
       // room in the valley, and the ground seed, the reach and the

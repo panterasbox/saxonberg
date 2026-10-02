@@ -41,7 +41,6 @@ import { CardApi } from "../../api/card";
 import { PressApi } from "../../api/press";
 import { ReactionApi } from "../../api/reaction";
 import { RecordApi } from "../../api/record";
-import { PostRegistrationMixin } from "../stuff/PostRegistration";
 import { PersistableMixin } from "../persistence/Persistable";
 import { ForkableMixin } from "../persistence/Forkable";
 import { PersistableApi } from "../../api/persistable";
@@ -131,7 +130,7 @@ function standingSubject(stuff: Stuff, viewer: Stuff): string | undefined {
 }
 
 /**
- * Context passed to Avatar.postRegister() by Login when cloning.
+ * Context passed to Avatar.onCreate() by Login when cloning.
  *
  * Threaded through the clone pipeline from `StuffApi.clone(path, context)`
  * so these runtime pointers are set synchronously before PlayerApi
@@ -154,7 +153,7 @@ export interface AvatarInitContext {
 // per-class by composing AetherMixin themselves when content requires
 // it. The mixin gates `tell` and (future) chat / remote-emote.
 // PersistableMixin is composed **outermost** so its persistence-host
-// behaviors (materialize/seed on `postRegister`, capture-on-destruct
+// behaviors (materialize/seed on `onCreate`, capture-on-destruct
 // backstop, the persistable `canEvict` fall-through) wrap the rest. Avatar
 // persists through the universal spine (see docs/subsystems/persistence.md):
 // its record carries its declared fields, its carried inventory (Container
@@ -165,45 +164,43 @@ export interface AvatarInitContext {
 const AvatarBase = PersistableMixin(
   EstateMixin(
     ForkableMixin(
-      PostRegistrationMixin(
-        SaxonbergClientMixin(
-          ClientStateMixin(
-            HasInteractiveMixin(
-          AetherMixin(
-            // ⭐ A played person keeps a personal calendar (D12) — dated
-            // reminders on the implant. Inside PersistableMixin, so the
-            // entries ride the Avatar snapshot; the ping re-arms at login.
-            CalendarMixin(
-            NotifyPolicyMixin(
-              ContactsMixin(
-                // ⭐ The wardrobe rides the `holder_snapshots` capture
-                // this composition already performs — named outfits are
-                // a `Record<string, string[]>` field, so they need no
-                // collection and no marshaller of their own.
-                WardrobeMixin(
-                  PartyMemberMixin(
-                    SubjectSubscriberMixin(
-                      // ⭐ A player body has a name because EMBODY WRITES
-                      // ONE, and it is the one piece of identity a player
-                      // typed themselves. Composed here rather than
-                      // inherited from the creature base: a body is not a
-                      // somebody, and an Avatar is.
-                      //
-                      // ⚠ The fails-closed check on this is the ROUND
-                      // TRIP — embody → `holder_snapshots` → reconnect. A
-                      // missing field hydrates as empty and the banner
-                      // reads "Welcome, ." with nothing thrown.
-                      NamedMixin(ShelledCharacter),
+      SaxonbergClientMixin(
+        ClientStateMixin(
+          HasInteractiveMixin(
+            AetherMixin(
+              // ⭐ A played person keeps a personal calendar (D12) — dated
+              // reminders on the implant. Inside PersistableMixin, so the
+              // entries ride the Avatar snapshot; the ping re-arms at login.
+              CalendarMixin(
+                NotifyPolicyMixin(
+                  ContactsMixin(
+                    // ⭐ The wardrobe rides the `holder_snapshots` capture
+                    // this composition already performs — named outfits are
+                    // a `Record<string, string[]>` field, so they need no
+                    // collection and no marshaller of their own.
+                    WardrobeMixin(
+                      PartyMemberMixin(
+                        SubjectSubscriberMixin(
+                          // ⭐ A player body has a name because EMBODY WRITES
+                          // ONE, and it is the one piece of identity a player
+                          // typed themselves. Composed here rather than
+                          // inherited from the creature base: a body is not a
+                          // somebody, and an Avatar is.
+                          //
+                          // ⚠ The fails-closed check on this is the ROUND
+                          // TRIP — embody → `holder_snapshots` → reconnect. A
+                          // missing field hydrates as empty and the banner
+                          // reads "Welcome, ." with nothing thrown.
+                          NamedMixin(ShelledCharacter),
+                        ),
+                      ),
                     ),
                   ),
                 ),
               ),
             ),
-            ),
           ),
         ),
-      ),
-      ),
       ),
     ),
   ),
@@ -336,7 +333,7 @@ export default abstract class Avatar extends AvatarBase {
    *
    * ⭐⭐ `playerId` is declared here, once, for the whole family.
    * Declared (rather than merely held) so a clone's `dataOverlay` can
-   * land it: hydration Phase 1 runs BEFORE `postRegister`, which is
+   * land it: hydration Phase 1 runs BEFORE `onCreate`, which is
    * exactly the ordering the two vessels' private copies
    * (`shadePlayerId`, `wirePlayerId`) existed to guarantee — and the
    * reason each then overrode `getPlayerId()` to undo its own copy and
@@ -610,7 +607,7 @@ export default abstract class Avatar extends AvatarBase {
   }
 
   /**
-   * Runtime-only pointer to the owning User. Stamped by `postRegister`
+   * Runtime-only pointer to the owning User. Stamped by `onCreate`
    * from the clone context; NOT persisted. Ownership lives on
    * `User.playerIds`. Host-internal storage; external callers use
    * `getUser()` / `setUser()`.
@@ -658,7 +655,7 @@ export default abstract class Avatar extends AvatarBase {
    * ⭐ Public because the Hydrator reflects into persistent fields by
    * name; external readers still use `getPlayerId()` (the inter-Stuff
    * contract is methods). Landed from a clone overlay before
-   * `postRegister`, or stamped there from the context.
+   * `onCreate`, or stamped there from the context.
    */
   public playerId: string = "";
   public override getPlayerId(): string {
@@ -693,7 +690,7 @@ export default abstract class Avatar extends AvatarBase {
 
   /**
    * Anonymous-guest marker. Runtime-only (NOT persisted — guests never
-   * save). Stamped in `postRegister` from the clone context. This is the
+   * save). Stamped in `onCreate` from the clone context. This is the
    * **character axis** (is this body a throwaway persona?), distinct from
    * the session's auth state (`User.anonymous`). Every guest *behavior*
    * — don't-flush, destroy-on-disconnect, reserved name, client badge —
@@ -715,7 +712,7 @@ export default abstract class Avatar extends AvatarBase {
    *
    * ⚠ Each only when GIVEN. An overlay-borne `playerId` — the two
    * vessels' mint path — lands in hydration Phase 1, before any
-   * `postRegister` runs, and an absent context key must not overwrite
+   * `onCreate` runs, and an absent context key must not overwrite
    * it.
    */
   protected stampContext(context?: AvatarInitContext): void {
@@ -725,18 +722,18 @@ export default abstract class Avatar extends AvatarBase {
   }
 
   /**
-   * Reach the framework's `PostRegistration` chain.
+   * Reach the framework's `onCreate` chain.
    *
    * ⭐ A named seam, and it earns its name: the body of record runs a
-   * materially different `postRegister` sequence — it claims the
+   * materially different `onCreate` sequence — it claims the
    * registry slot and drives the persistence spine around the chain —
-   * so it cannot call `super.postRegister()` without also re-running
+   * so it cannot call `super.onCreate()` without also re-running
    * this class's. This is how it reaches the chain on its own terms.
    */
-  protected async chainPostRegister(
+  protected async chainOnCreate(
     context?: AvatarInitContext,
   ): Promise<void> {
-    await super.postRegister(context);
+    await super.onCreate(context);
   }
 
   /**
@@ -753,15 +750,15 @@ export default abstract class Avatar extends AvatarBase {
    * message and cannot send one.
    *
    * The body of record overrides this entirely — see its own
-   * `postRegister`, which is the only place registration and the
+   * `onCreate`, which is the only place registration and the
    * snapshot live.
    */
-  public override async postRegister(
+  public override async onCreate(
     context?: AvatarInitContext,
   ): Promise<void> {
     this.stampContext(context);
     await this.installDefaultLoadout();
-    await this.chainPostRegister(context);
+    await this.chainOnCreate(context);
     // Schedules are never persisted, so a body re-books its reminders.
     // A no-op for a body with no entries, which is every vessel today.
     this.rescheduleCalendarPing();
@@ -803,7 +800,7 @@ export default abstract class Avatar extends AvatarBase {
    *
    * v1: developer/admin operation — no multi-connection synchronization,
    * and intended for a **fresh** instance (the normal login path
-   * materializes via `postRegister`; re-running `restore()` on a live
+   * materializes via `onCreate`; re-running `restore()` on a live
    * avatar that already holds inventory would re-clone the captured items on
    * top). Should not be invoked during the initial clone cascade.
    */
@@ -831,7 +828,7 @@ export default abstract class Avatar extends AvatarBase {
    * template's `data.container` field (Phase 2 `applyContainer`
    * during clone) or by `Avatar.restore()` re-hydrating saved
    * state; default loadout (currently the AetherImplant) is
-   * installed in `postRegister`. Both run before `enter` fires.
+   * installed in `onCreate`. Both run before `enter` fires.
    *
    * **One call per session-start, not per connection.** When a second
    * Interactive multiplexes onto an already-playing Avatar,
@@ -1194,7 +1191,7 @@ export default abstract class Avatar extends AvatarBase {
   /**
    * Install the v1 default loadout — attune the avatar, then inject the
    * default hosted updates (comms + the travel credential). Called from
-   * `postRegister`, runs once per clone (every login, since the runtime
+   * `onCreate`, runs once per clone (every login, since the runtime
    * Avatar is destructed at logout and re-cloned on the next session).
    *
    * Keys off **whether the avatar is attuned by any source**: if

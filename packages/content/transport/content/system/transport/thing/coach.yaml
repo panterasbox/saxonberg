@@ -7,7 +7,7 @@
 #
 # ⭐ **Composition, as of the base-class narrowing build:** `Coach` is
 # `Drivable(Sealable(Mobile(ExitableVessel)))`, and `ExitableVessel` is
-# `PostRegistration(DoorBearing(Exitable(Adornable(Atmospheric(Vessel)))))`.
+# `DoorBearing(Exitable(Adornable(Atmospheric(Vessel))))`.
 # The air is `ExitableVessel`'s, not `Vessel`'s — a bag is not a place.
 #
 # ⚠ **Sealable, and shut it is opaque** (AC8): a passenger in an open

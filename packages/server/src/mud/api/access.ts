@@ -226,7 +226,7 @@ export class AccessApi {
    *
    * The nightly reset wipes `groups`, and the three tag-like system
    * groups (`wizards`, `archwizards`, `streamers`) live there beside the
-   * player ones. They are minted in CODE by `AccessRegistry.postRegister`
+   * player ones. They are minted in CODE by `AccessRegistry.onCreate`
    * at boot only, so without this the world comes back with no wizard
    * axis at all and no fix short of a restart. Title-holding groups are
    * NOT re-minted here — `PackApi.reprovision()` re-runs every pack's

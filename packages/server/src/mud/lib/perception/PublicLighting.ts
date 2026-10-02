@@ -87,7 +87,7 @@ export interface PublicLighting {
   isPubliclyLitNow(): boolean;
   /** The flux the service contributes right now (0 when unlit). */
   publicLightingFlux(): number;
-  /** The covering locality's path, resolved once at postRegister. */
+  /** The covering locality's path, resolved once at onCreate. */
   getLightingLocalityPath(): string | null;
 }
 
@@ -106,7 +106,7 @@ export function PublicLightingMixin<TBase extends MixinConstructor<Stuff>>(
 
     /**
      * The covering locality's template path, resolved ONCE at
-     * `postRegister` because `AddressApi.resolveLocalityFor` is async
+     * `onCreate` because `AddressApi.resolveLocalityFor` is async
      * and the light walk is not. Transient: re-resolved every boot.
      */
     private _lightingLocalityPath: string | null = null;
@@ -119,10 +119,8 @@ export function PublicLightingMixin<TBase extends MixinConstructor<Stuff>>(
       return this._lightingLocalityPath;
     }
 
-    public async postRegister(): Promise<void> {
-      const sup = (Base.prototype as { postRegister?: () => Promise<void> })
-        .postRegister;
-      if (typeof sup === 'function') await sup.call(this);
+    public async onCreate(): Promise<void> {
+      await super.onCreate();
       if (this.publicLighting === null) return;
       try {
         const locality = await AddressApi.resolveLocalityFor(

@@ -36,7 +36,7 @@ const TemplateApiCallers = SecurityPolicies.FromModule('/api/template#TemplateAp
  * `StuffApi.singletonSync`. Any module that grabs this singleton and
  * calls a method other than through the Api gets `SecurityError`.
  *
- * Stateless by construction (no `PostRegistrationMixin`). 0-self-call:
+ * Stateless by construction (no `onCreate` override). 0-self-call:
  * the validators thread through `Template.*` / `ZoneApi.*` helpers and
  * never call another `TemplateApi` method, so the plain `FromModule`
  * gate suffices per method. `TemplateError` was relocated to

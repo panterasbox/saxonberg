@@ -2,7 +2,7 @@
 # hall, reached by the iron stair (the hall lies one cell down; the `down`
 # exit is declared explicitly here, the `up` on the hall). The terminal clerk
 # works here; `props` stands the clerk NPC up on hydrate, and the clerk's
-# postRegister stands up the city-budget Business (Phase 4). Generic room.
+# onCreate stands up the city-budget Business (Phase 4). Generic room.
 class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:

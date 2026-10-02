@@ -10,7 +10,7 @@ purpose: |
   as one of four `GroupProvider` implementations.
 
   ⚠ It carries the AXIS groups — `wizards`, `archwizards`, `streamers` —
-  which are minted in CODE by `AccessRegistry.postRegister`, idempotently.
+  which are minted in CODE by `AccessRegistry.onCreate`, idempotently.
   That is why wiping this collection is survivable: the axis groups come
   back on the next boot, and `PackApi.reprovision` re-mints the packs'
   groups from the install records. Founder access is part of the boot phase,

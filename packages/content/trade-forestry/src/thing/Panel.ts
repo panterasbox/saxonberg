@@ -10,7 +10,7 @@
  *
  * ## The stack, and why each layer
  *
- * `PersistableMixin(SingletonMixin(PostRegistrationMixin(GardenBed)))`:
+ * `PersistableMixin(SingletonMixin(GardenBed))`:
  *
  * - **`GardenBed`** — the same ground as every bed: soil with its own two
  *   checkpoints, N plant slots, the four cultivation verbs. A panel is a
@@ -56,7 +56,6 @@
 
 import GardenBed from '@saxonberg/server/mud/platform/thing/GardenBed';
 import { SingletonMixin } from '@saxonberg/server/mud/lib/stuff/Singleton';
-import { PostRegistrationMixin } from '@saxonberg/server/mud/lib/stuff/PostRegistration';
 import { PersistableMixin } from '@saxonberg/server/mud/lib/persistence/Persistable';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
@@ -75,7 +74,7 @@ import { STAND_MIXIN, type Stand } from '../lib/Stand';
 const SECONDS_PER_GAME_DAY = 86_400;
 
 const PanelBase = PersistableMixin(
-  SingletonMixin(PostRegistrationMixin(GardenBed)),
+  SingletonMixin(GardenBed),
 );
 
 /**

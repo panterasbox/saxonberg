@@ -31,7 +31,6 @@ import { PersistableApi } from "../../../api/persistable";
 import { PersistableMixin } from "../../persistence/Persistable";
 import { EstateMixin } from "../Estate";
 import { ContainerMixin } from "../../spatial/Container";
-import { PostRegistrationMixin } from "../../stuff/PostRegistration";
 import { Idea } from "../../stuff/Idea";
 import PersistentHydrator from "../../../platform/idea/persistence/PersistentHydrator";
 import { Document } from "../../persistence/Document";
@@ -51,7 +50,7 @@ class Torch extends Good {}
 
 /** An owner: a persistable container that carries an estate (Avatar's shape). */
 class Owner extends PersistableMixin(
-  EstateMixin(ContainerMixin(PostRegistrationMixin(Idea))),
+  EstateMixin(ContainerMixin(Idea)),
 ) {
   static fieldMeta: FieldMeta = {};
 }
@@ -121,7 +120,7 @@ async function boot(): Promise<void> {
   // the marshaller singletons, so a re-boot must stand them back up.
   installV1QuantityMarshallers();
   const reg = makeStuffAtPath(() => new ChattelRegistry(), "/platform/idea/ChattelRegistry");
-  await reg.postRegister();
+  await reg.onCreate();
   makeStuffAtPath(() => new PersistentHydrator(), PersistentHydrator.templatePath);
   vi.spyOn(StuffApi, "clone").mockImplementation(
     ((path: string) =>

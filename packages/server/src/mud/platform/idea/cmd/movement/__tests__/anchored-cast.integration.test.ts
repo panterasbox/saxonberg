@@ -90,7 +90,7 @@ async function installCatalogue(): Promise<void> {
     );
   }
   catalogueSingleton.invalidateCache();
-  await catalogueSingleton.postRegister();
+  await catalogueSingleton.onCreate();
   spy.mockRestore();
 }
 

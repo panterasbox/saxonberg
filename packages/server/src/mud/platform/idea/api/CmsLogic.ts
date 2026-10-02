@@ -263,7 +263,7 @@ async function canRead(actor: Stuff | null, path: string): Promise<boolean> {
  * `StuffApi.singletonSync`. Any module that grabs this singleton and
  * calls a method other than through the Api gets `SecurityError`.
  *
- * Stateless by construction (no `PostRegistrationMixin`): it composes
+ * Stateless by construction (no `onCreate` override): it composes
  * `SourceTreeApi`, `TemplateApi`, `HotReloadApi`, and `AccessApi`. The
  * write gates mirror `WriteController._gateContentWrite` /
  * `_gateSourceWrite` verbatim and live as module-private free

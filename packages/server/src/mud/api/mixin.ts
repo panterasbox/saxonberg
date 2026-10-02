@@ -60,7 +60,6 @@ import type { CartesianCoordinates } from '../lib/location/CartesianCoordinates'
 import type { SphericalCoordinates } from '../lib/location/SphericalCoordinates';
 import type { AroundSaveHook } from '../lib/persistence/AroundSaveHook';
 import type { AroundDeleteHook } from '../lib/persistence/AroundDeleteHook';
-import type { PostRegistration } from '../lib/stuff/PostRegistration';
 import type { HasInteractive } from '../lib/connection/HasInteractive';
 import type { ClientState } from '../lib/connection/ClientState';
 import type { SaxonbergClient } from '../lib/connection/SaxonbergClient';
@@ -1136,10 +1135,6 @@ export class MixinApi {
 
   public static isAroundDeleteHook(obj: Stuff): obj is Stuff & AroundDeleteHook {
     return this.hasMixin(obj, Mixins.AroundDeleteHook);
-  }
-
-  public static isPostRegistration(obj: Stuff): obj is Stuff & PostRegistration {
-    return this.hasMixin(obj, Mixins.PostRegistration);
   }
 
   public static isHasInteractive(obj: Stuff): obj is Stuff & HasInteractive {

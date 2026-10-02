@@ -269,7 +269,7 @@ export default class Window extends WindowBase {
         `Window.setAttachedHosts: hostA path and hostB path must differ ('${value[0]}').`
       );
     }
-    // ⚠ Phase 1 runs BEFORE `postRegister`, so the anchor pair may not
+    // ⚠ Phase 1 runs BEFORE `onCreate`, so the anchor pair may not
     // exist yet — mint it here rather than assuming the hook has run.
     await this.ensureAnchors();
     // Idempotency check via where the anchors are INSTALLED. (It used to

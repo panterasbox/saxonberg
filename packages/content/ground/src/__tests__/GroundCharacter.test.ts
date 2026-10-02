@@ -155,7 +155,7 @@ describe('the fold — pin over lean over procedural', () => {
 /**
  * ⚠⚠ **The citation walk — the half that shipped BROKEN.**
  *
- * Three controllers and `Field.postRegister` ask a zone for
+ * Three controllers and `Field.onCreate` ask a zone for
  * `groundCharacter`. Nothing declared that field on a zone class, so the
  * hydrator discarded any authored value and the walk answered `null`
  * forever: the whole authored layer above was unreachable, and every

@@ -2,7 +2,7 @@
  * Fast-travel cascade + lounge seating — integration over the in-memory
  * lounge domain store. Proves: resolving the eager root terminal (the
  * boot-manifest sim) stands the lounge host up and self-seats the node into
- * it (FixtureMixin → `seatIn` → the lounge Warren); and its `postRegister`
+ * it (FixtureMixin → `seatIn` → the lounge Warren); and its `onCreate`
  * cascade brings the rest of the network live from that one seed — with no
  * registry and no manual loading.
  *
@@ -117,7 +117,7 @@ async function land(): Promise<Avatar> {
   return avatar;
 }
 
-// Boot-manifest sim: resolving the eager root terminal runs its postRegister
+// Boot-manifest sim: resolving the eager root terminal runs its onCreate
 // — self-seat into the lounge Warren's host (standing the host up) plus the
 // network cascade.
 async function bootNetwork(): Promise<Stuff & FastTravel> {

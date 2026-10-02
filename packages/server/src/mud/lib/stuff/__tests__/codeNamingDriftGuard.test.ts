@@ -115,10 +115,10 @@ const MANIFEST: ReadonlyArray<{ site: string; classification: string }> = [
   // The clone pipeline resolves a template's `class` — gate-passed at
   // saveTemplate.
   { site: "api/stuff.ts::loadClassByPath", classification: "gated-direct" },
-  // `MaterialCatalogue.postRegister` keeps a row by `instanceof Material` — resolving
+  // `MaterialCatalogue.onCreate` keeps a row by `instanceof Material` — resolving
   // the class wherever it lives (a capability pack's src/ included).
   { site: "platform/idea/MaterialCatalogue.ts::loadClassByPath", classification: "gated-direct" },
-  // `BiomeCatalogue.postRegister` keeps a row by `instanceof Biome` — the
+  // `BiomeCatalogue.onCreate` keeps a row by `instanceof Biome` — the
   // MaterialCatalogue filter exactly, added by the ground build because
   // `Atmospheric.getBiome()` is a registry read and NOTHING stood the biome
   // rows up, so every room's biome was null in a fresh world.
@@ -139,11 +139,11 @@ const MANIFEST: ReadonlyArray<{ site: string; classification: string }> = [
   // does, because `Placement` is a concrete class rows name directly
   // rather than a `lib/` abstract with a thin twin.
   { site: "platform/idea/PlacementCatalogue.ts::loadClassByPath", classification: "gated-direct" },
-  // `MaturationProfileCatalogue.postRegister` keeps a row by
+  // `MaturationProfileCatalogue.onCreate` keeps a row by
   // `instanceof MaturationProfile` (the MaterialLogic filter, homed on a
   // self-warming catalogue — the boot()-retirement direction).
   { site: "platform/idea/MaturationProfileCatalogue.ts::loadClassByPath", classification: "gated-direct" },
-  // `FabricCatalogue.postRegister` keeps a row by `instanceof Fabric` —
+  // `FabricCatalogue.onCreate` keeps a row by `instanceof Fabric` —
   // the same self-warming shape one row up. ⚠ Its predicate carries an
   // extra `cls === Fabric` clause the siblings do not need: those have a
   // `lib/` abstract base plus a thin `platform/` concrete that rows

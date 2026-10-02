@@ -91,7 +91,7 @@ describe('sandbox-escape: crossing', () => {
     /*
      * ⭐ A body whose `playerId` is known now resolves its own
      * identity path, so the persistence spine engages at
-     * `postRegister` instead of waiting for a template stamp that
+     * `onCreate` instead of waiting for a template stamp that
      * these fixtures apply afterwards. Production always minted the
      * identity first, so nothing changed there — but the spine is
      * live here now and wants the resolver a booted world wires.

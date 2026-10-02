@@ -16,7 +16,7 @@
  *  1. **The boot settle races the install.** The town's lamps settle 60 game-
  *     seconds after the clock starts — five real seconds at 12× — which is
  *     BEFORE a ~100s pack install has finished resolving each street's covering
- *     locality (`getLightingLocalityPath`, set at `postRegister`). So a
+ *     locality (`getLightingLocalityPath`, set at `onCreate`). So a
  *     freshly-booted midnight world settles nothing, and the next settle is the
  *     following sunset — ~1.5 real hours away, past any drive. The live game
  *     lights the valley at that first sunset; a five-minute wire run cannot

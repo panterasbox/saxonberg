@@ -31,7 +31,7 @@
  * (loudly) rather than at the moment somebody swings.
  *
  * Reference data, the `MaturationProfile` shape: a singleton Idea per row,
- * stood up whole at boot by `FabricCatalogue.postRegister` (the roster
+ * stood up whole at boot by `FabricCatalogue.onCreate` (the roster
  * warm that closes the reference-Ideas-inert-at-boot rule), read by
  * SYNC seams. Rows live under any root's `idea/fabric/` subtree — the
  * kernel keeps no list of roots.

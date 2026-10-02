@@ -136,7 +136,7 @@ describe('a snapshot never hands back an unusable body', () => {
       ),
     ).toBe(true);
 
-    // A fresh shell materializes, then the backstop runs (as `postRegister`
+    // A fresh shell materializes, then the backstop runs (as `onCreate`
     // drives it on a returning login).
     logout(avatar);
     const reborn = makeAvatar('brick-1');

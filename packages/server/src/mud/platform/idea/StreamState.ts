@@ -26,14 +26,13 @@
  */
 
 import { Idea } from '../../lib/stuff/Idea';
-import { PostRegistrationMixin } from '../../lib/stuff/PostRegistration';
 import { EventApi } from '../../api/event';
 import { Events } from '../../lib/events';
 import type { StreamStateSnapshot } from '@saxonberg/types';
 import type { VetoResult } from '../../lib/errors';
 import type { EvictionContext } from '../../lib/stuff/Stuff';
 
-const StreamStateBase = PostRegistrationMixin(Idea);
+const StreamStateBase = Idea;
 
 export default class StreamState extends StreamStateBase {
 

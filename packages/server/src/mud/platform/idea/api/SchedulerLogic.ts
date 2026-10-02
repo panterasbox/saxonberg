@@ -80,7 +80,7 @@ function resolveRegistry(): SchedulerRegistry {
  * `StuffApi.singletonSync`. Any module that grabs this singleton and
  * calls a method other than through the Api gets `SecurityError`.
  *
- * Stateless by construction (no `PostRegistrationMixin`) — all
+ * Stateless by construction (no `onCreate` override) — all
  * engagement state lives on the `SchedulerRegistry` at
  * `/platform/idea/SchedulerRegistry`, resolved via the module-level
  * `resolveRegistry()` (which survives this singleton's destruct/recreate

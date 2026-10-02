@@ -49,7 +49,6 @@ import { ExitableMixin } from '@saxonberg/server/mud/lib/boundary/Exitable';
 import { ContainableMixin } from '@saxonberg/server/mud/lib/spatial/Containable';
 import { Idea } from '@saxonberg/server/mud/lib/stuff/Idea';
 import { PersistableMixin } from '@saxonberg/server/mud/lib/persistence/Persistable';
-import { PostRegistrationMixin } from '@saxonberg/server/mud/lib/stuff/PostRegistration';
 import Location from '@saxonberg/server/mud/lib/stuff/Location';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
@@ -73,7 +72,7 @@ import {
 
 /** A persistable room — what a real house room clones to. */
 class TitleTestRoom extends PersistableMixin(
-  PostRegistrationMixin(ContainerMixin(Location)),
+  ContainerMixin(Location),
 ) {
   static _mixinName = 'TitleTestRoom';
 }
@@ -285,14 +284,14 @@ function seedStreet(): StreetRoom {
 async function bootRegistries(): Promise<void> {
   if (!StuffApi.findByTemplatePath('/platform/idea/GroupRegistry')) {
     const g = makeStuffAtPath(() => new GroupRegistry(), '/platform/idea/GroupRegistry');
-    await g.postRegister();
+    await g.onCreate();
   }
   if (!StuffApi.findByTemplatePath('/platform/idea/ParcelRegistry')) {
     const p = makeStuffAtPath(
       () => new ParcelRegistry(),
       '/platform/idea/ParcelRegistry',
     );
-    await p.postRegister();
+    await p.onCreate();
   }
   await ParcelApi.rebuildCoverageIndex();
 }
@@ -705,7 +704,7 @@ describe('title', () => {
     StuffApi.destruct(StuffApi.findByTemplatePath<StreetRoom>(STREET_PATH)!);
     const reborn = seedStreet();
 
-    await holder.postRegister();
+    await holder.onCreate();
 
     expect(reborn.getExit('south')).toBeDefined(); // lot-2
     expect(reborn.getExit('northwest')).toBeDefined(); // lot-3

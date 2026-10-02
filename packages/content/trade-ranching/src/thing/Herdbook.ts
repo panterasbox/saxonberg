@@ -46,7 +46,6 @@
 
 import Thing from '@saxonberg/server/mud/lib/stuff/Thing';
 import { FixtureMixin } from '@saxonberg/server/mud/lib/stuff/Fixture';
-import { PostRegistrationMixin } from '@saxonberg/server/mud/lib/stuff/PostRegistration';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
 import { TemplatePaths } from '@saxonberg/server/mud/lib/paths';
@@ -56,7 +55,7 @@ import HerdRegistry, {
   DEFAULT_FOUNDING_MEAN_AGE_DAYS,
 } from '../idea/HerdRegistry';
 
-const HerdbookBase = PostRegistrationMixin(FixtureMixin(Thing));
+const HerdbookBase = FixtureMixin(Thing);
 
 /** The registry singleton's identity path. */
 const HERD_REGISTRY_PATH = '/trade/ranching/idea/HerdRegistry';
@@ -153,8 +152,8 @@ export default class Herdbook extends HerdbookBase {
    *
    * @hook
    */
-  public override async postRegister(): Promise<void> {
-    await super.postRegister();
+  public override async onCreate(): Promise<void> {
+    await super.onCreate();
     if (!this.herdId || !this.speciesPath || this.tally <= 0) return;
     const registry = await this.registry();
     if (registry === null) return;

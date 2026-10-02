@@ -20,7 +20,7 @@
  * retired: 27 of 180 Locations had a floor, `sit` / `lie` / `kneel`
  * declined in the room a new player opens their eyes in, and *"per-template
  * authoring"* is not a choice anybody was making. `Location.ensureFloor()`
- * now mints one at `postRegister` unless the row says `noDefaultFloor`.
+ * now mints one at `onCreate` unless the row says `noDefaultFloor`.
  *
  * The capability is `FloorMixin` (`lib/ground/Floor.ts`) — the keyword
  * union, the canonical `ground:1` slot, the five-rung material ladder and
@@ -65,7 +65,7 @@ export default class Floor extends FloorBase {
     // base-class narrowing's own drive: `get floor` answered *"You pick
     // up a featureless plain floor"* and put the ground of the room into
     // the player's hands. Every locality's floor is minted at
-    // `postRegister` and none of them said this, so it was true of every
+    // `onCreate` and none of them said this, so it was true of every
     // room in the game.
     //
     // ⚠ Note what did NOT catch it. `AdornmentMixin`'s not-portable

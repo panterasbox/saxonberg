@@ -3,7 +3,7 @@
  * (the boot()-retirement direction: an operator-armed destructive
  * schedule does not belong on a consumer Api).
  *
- * `postRegister` arms the recurring reset, if this server is armed for
+ * `onCreate` arms the recurring reset, if this server is armed for
  * one. Reads dials — safe post-P1 (AppSettings warms at step zero,
  * before the boot manifest runs).
  *
@@ -24,7 +24,6 @@
  */
 
 import { Idea } from '../../lib/stuff/Idea';
-import { PostRegistrationMixin } from '../../lib/stuff/PostRegistration';
 import { RecordApi } from '../../api/record';
 import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../../lib/config/AppSettings';
@@ -44,7 +43,7 @@ function readSetting(key: string): string {
   }
 }
 
-const ResetWardenBase = PostRegistrationMixin(Idea);
+const ResetWardenBase = Idea;
 
 export default class ResetWarden extends ResetWardenBase {
   /** The armed reset handle — retained so re-arm is a no-op. */
@@ -62,7 +61,7 @@ export default class ResetWarden extends ResetWardenBase {
     };
   }
 
-  public override async postRegister(_context?: unknown): Promise<void> {
+  public override async onCreate(_context?: unknown): Promise<void> {
     this.arm();
   }
 

@@ -4,7 +4,7 @@
  * substrate (see activity.md).
  *
  * A host carries a declarative `behaviors:` data list — each entry a
- * `{ brain, trigger, config }` spec. At spawn (`postRegister`) the mixin
+ * `{ brain, trigger, config }` spec. At spawn (`onCreate`) the mixin
  * reads the list, **path-resolves each brain** (warming the hot-reload
  * registry), and **wires** each spec to its trigger:
  *
@@ -20,7 +20,7 @@
  * calls its static `act(ctx)` — so editing a brain hot-reloads into a
  * live NPC's next action with no re-spawn. The mixin **never captures**
  * a brain reference. Live wiring (timers, the seen-set) is
- * runtime-only; `postRegister` re-installs it from the persisted
+ * runtime-only; `onCreate` re-installs it from the persisted
  * `behaviors:` data on every clone/reboot.
  *
  * **Slot contention** rides the shared `EngagedMixin` map: a brain
@@ -178,7 +178,7 @@ export function BehavedMixin<TBase extends MixinConstructor<Stuff>>(
     /**
      * An authored host's established character, as disposition `claim`
      * seeds — pure data, persisted as-is. Seeded into the trait ledger
-     * once at spawn (`postRegister`) so derive-on-read yields the host's
+     * once at spawn (`onCreate`) so derive-on-read yields the host's
      * defining traits immediately, while keeping personality
      * derive-don't-track (it came from a seeded history, not a stat). The
      * behavior→trait edge this introduces is the same one the trait-aware
@@ -257,13 +257,8 @@ export function BehavedMixin<TBase extends MixinConstructor<Stuff>>(
 
     // ───────── lifecycle ─────────
 
-    public async postRegister(context?: unknown): Promise<void> {
-      const sup = (
-        Base.prototype as {
-          postRegister?: (c?: unknown) => unknown | Promise<unknown>;
-        }
-      ).postRegister;
-      if (typeof sup === 'function') await sup.call(this, context);
+    public async onCreate(context?: unknown): Promise<void> {
+      await super.onCreate(context);
       // Idempotent re-wire: cancel any prior wiring (CMS go-live
       // re-hydrate / re-clone) before installing fresh.
       this._teardownBehaviors();
@@ -715,7 +710,7 @@ export function BehavedMixin<TBase extends MixinConstructor<Stuff>>(
       source: 'cadence' | 'witness' | 'candidate'
     ): Promise<void> {
       // ⭐ The cast holds still while the world is closed. Brains are
-      // wired at `postRegister` — the host must exist before it can
+      // wired at `onCreate` — the host must exist before it can
       // behave — but their schedules are REAL-TIME, so without this they
       // start acting minutes before the subsystems they act THROUGH are
       // booted, and their failing beats starve the boot that would fix

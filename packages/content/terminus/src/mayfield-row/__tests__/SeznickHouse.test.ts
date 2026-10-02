@@ -230,11 +230,11 @@ function installStore(): void {
 
 async function bootRegistries(): Promise<void> {
   const g = makeStuffAtPath(() => new GroupRegistry(), '/platform/idea/GroupRegistry');
-  await g.postRegister();
+  await g.onCreate();
   const p = makeStuffAtPath(() => new ParcelRegistry(), '/platform/idea/ParcelRegistry');
-  await p.postRegister();
+  await p.onCreate();
   const c = makeStuffAtPath(() => new ChattelRegistry(), '/platform/idea/ChattelRegistry');
-  await c.postRegister();
+  await c.onCreate();
   await ParcelApi.rebuildCoverageIndex();
 }
 
@@ -531,7 +531,7 @@ describe('Seznick House — the lease loop', () => {
     await w.admit(unit);
 
     w.teardown();
-    await w.postRegister();
+    await w.onCreate();
 
     expect(w.nodeReachable('main:1')).toBe(true);
     const reborn = await w.admit(unit);

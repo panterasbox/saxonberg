@@ -19,7 +19,6 @@ import MaintainController from '../idea/cmd/crafting/MaintainController';
 import FrontDoorExit from '../idea/FrontDoorExit';
 import { OuterWarren } from '@saxonberg/server/mud/lib/location/OuterWarren';
 import { SingletonMixin } from '@saxonberg/server/mud/lib/stuff/Singleton';
-import { PostRegistrationMixin } from '@saxonberg/server/mud/lib/stuff/PostRegistration';
 import FurnishableRoom from '@saxonberg/server/mud/platform/location/FurnishableRoom';
 import Thing from '@saxonberg/server/mud/platform/thing/Thing';
 import Avatar from '@saxonberg/server/mud/platform/agent/PrimaryAvatar';
@@ -62,7 +61,7 @@ const LOT1 = `${PARENT}/lot-1`;
 
 /** The generic institution the programme hangs off (a PlatWarren stand-in). */
 class TestInstitution extends SingletonMixin(
-  PostRegistrationMixin(OuterWarren),
+  OuterWarren,
 ) {
   static _mixinName = 'ProgTestInstitution';
   protected async standUpHolding(key: string): Promise<MemberStuff> {
@@ -224,12 +223,12 @@ function seedLot(): void {
 
 async function bootRegistries(): Promise<void> {
   const groups = makeStuffAtPath(() => new GroupRegistry(), '/platform/idea/GroupRegistry');
-  await groups.postRegister();
+  await groups.onCreate();
   const parcels = makeStuffAtPath(
     () => new ParcelRegistry(),
     '/platform/idea/ParcelRegistry',
   );
-  await parcels.postRegister();
+  await parcels.onCreate();
 }
 
 async function institution(): Promise<TestInstitution> {

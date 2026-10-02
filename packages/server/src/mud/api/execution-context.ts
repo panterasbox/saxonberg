@@ -64,7 +64,7 @@ import type { CommandContext } from './command';
 export const FrameKind = {
   /** Synthetic frame planted by `runRoot` at a network → Application boundary. caller = null. */
   Root: 'root',
-  /** Synthetic frame planted by `StuffApi.create` / `clone` around hydrate + postRegister. */
+  /** Synthetic frame planted by `StuffApi.create` / `clone` around hydrate + onCreate. */
   Constructor: 'constructor',
   /** Tagged by `CommandGiverMixin.executeCommand` so `getCurrentCommandGiver` can find it. */
   Command: 'command',

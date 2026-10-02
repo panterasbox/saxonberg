@@ -291,7 +291,7 @@ describe('the herdbook fixture', () => {
   it('⭐ registering it FILES the herd onto the trade\'s branch', async () => {
     const reg = registry(); // the register has to exist to file into
     const b = book();
-    await b.postRegister();
+    await b.onCreate();
 
     const filed = await reg.read('college-herd');
     expect(filed).not.toBeNull();
@@ -309,7 +309,7 @@ describe('the herdbook fixture', () => {
   it('⚠⚠ filing is GET-OR-CREATE — a cold room never rolls the herd back', async () => {
     const reg = registry();
     const b = book();
-    await b.postRegister();
+    await b.onCreate();
 
     // The herd lives a bit: one head out, and the register remembers
     // something about another.
@@ -320,7 +320,7 @@ describe('the herdbook fixture', () => {
 
     // The room goes cold and comes back. If this re-filed, six head with
     // no history would silently replace everything that had happened.
-    await b.postRegister();
+    await b.onCreate();
 
     const after = (await reg.read('college-herd'))!;
     expect(after.drafted.map((d) => d.index)).toEqual([2]);
@@ -333,7 +333,7 @@ describe('the herdbook fixture', () => {
       () => new Herdbook(),
       '/world/test/thing/blank-book',
     ) as Herdbook;
-    await expect(b.postRegister()).resolves.toBeUndefined();
+    await expect(b.onCreate()).resolves.toBeUndefined();
     expect(await reg.isEmpty()).toBe(true);
   });
 });

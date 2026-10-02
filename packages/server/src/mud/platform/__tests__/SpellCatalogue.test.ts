@@ -52,14 +52,14 @@ async function warmCatalogueAt(
       rows.map(([path, data]) => ({ path, data })) as unknown as Template[],
   );
   const cat = makeStuff(() => new SpellCatalogue());
-  await cat.postRegister();
+  await cat.onCreate();
   return cat;
 }
 
 async function warmCatalogue(seeds: Loose[]): Promise<SpellCatalogue> {
   stubSpellTemplates(seeds);
   const cat = makeStuff(() => new SpellCatalogue());
-  await cat.postRegister();
+  await cat.onCreate();
   return cat;
 }
 

@@ -2,7 +2,7 @@
  * General-store standup — an integration test over the REAL counter seed +
  * good templates (loaded from disk, through the actual clone pipeline). Proves
  * the boot-stock path: materializing the Stock counter fires
- * `postRegister → reset`, which clones each authored line to its par off the
+ * `onCreate → reset`, which clones each authored line to its par off the
  * real good templates. The arrival-walk-in-miniature: a fresh clone of the
  * store counter is stocked and priced, ready to `buy`.
  *
@@ -305,7 +305,7 @@ describe("general-store standup (real seeds)", () => {
     const counter = await StuffApi.singleton<Stock>(COUNTER);
     expect(counter).toBeInstanceOf(Stock);
 
-    // postRegister → reset cloned each line to par off the real templates.
+    // onCreate → reset cloned each line to par off the real templates.
     expect(counter.onHand(TORCH)).toBe(4); // authored par
     expect(counter.priceFor(TORCH)).toBe(2); // authored price
     // A torch is on the shelf and resolvable by keyword (ready to buy).

@@ -369,7 +369,7 @@ export function DispositionedMixin<TBase extends MixinConstructor>(
      * an authored NPC's defining dispositions or a char-gen seed. The
      * form-then-entrench model's starting evidence (personality comes
      * from a seeded history, not an assigned stat). SelfOnly — the
-     * Behaved host seeds itself at postRegister; char-gen would too.
+     * Behaved host seeds itself at onCreate; char-gen would too.
      */
     @CallSecurity(SecurityPolicies.SelfOnly)
     @Final

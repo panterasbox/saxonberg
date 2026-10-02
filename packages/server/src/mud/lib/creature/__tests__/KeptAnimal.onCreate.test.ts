@@ -1,14 +1,17 @@
 /**
- * ⚠⚠ `postRegister` must REACH `Bonded` through the real `KeptAnimal` stack.
+ * ⚠⚠ `onCreate` must REACH `Bonded` through the real `KeptAnimal` stack.
  *
- * `PostRegistrationMixin.postRegister` is a terminal no-op that never calls
- * `super`. Composed between `Behaved` and `Bonded` — as it shipped — every
- * layer inside it was shadowed: `Bonded.postRegister` never ran on a live
- * animal, so no home was seeded and (once the species preload lived there)
- * no species was warmed. Every unit test called `Bonded.postRegister` on a
- * fixture that composed no `PostRegistration` layer above it, and every
- * live assertion was refusal-shaped, so nothing could see it. Found live:
- * `offer` to a cat answered `no-hand-rung` because `getSpecies()` was null.
+ * The shipped defect this pins: `PostRegistrationMixin.onCreate` (the hook
+ * was `postRegister`, the mixin retired 2026-10-01) was a terminal no-op
+ * that never called `super`. Composed between `Behaved` and `Bonded` — as
+ * it shipped — every layer inside it was shadowed: `Bonded.onCreate` never
+ * ran on a live animal, so no home was seeded and (once the species
+ * preload lived there) no species was warmed. Every unit test called
+ * `Bonded.onCreate` on a fixture that composed no marker layer above it,
+ * and every live assertion was refusal-shaped, so nothing could see it.
+ * Found live: `offer` to a cat answered `no-hand-rung` because
+ * `getSpecies()` was null. The hook is a terminal on `Stuff` now, so the
+ * failure class is structurally gone — this test keeps the chain honest.
  *
  * This test composes the SHIPPED class and walks the chain.
  */
@@ -39,10 +42,10 @@ afterEach(() => {
   StuffApi.clearAll();
 });
 
-describe('KeptAnimal.postRegister reaches Bonded', () => {
+describe('KeptAnimal.onCreate reaches Bonded', () => {
   it('⭐⭐ warms its species — through the whole shipped stack', async () => {
     const cat = makeStuffAtPath(() => new KeptAnimal(), '/test/agent/cat');
-    await cat.postRegister();
+    await cat.onCreate();
     expect(SpeciesApi.preloadAnatomy).toHaveBeenCalledWith(cat);
   });
 
@@ -50,14 +53,14 @@ describe('KeptAnimal.postRegister reaches Bonded', () => {
     const lane = makeStuff(() => new Room());
     const cat = makeStuffAtPath(() => new KeptAnimal(), '/test/agent/cat');
     ContainmentApi.move(cat, lane);
-    await cat.postRegister();
+    await cat.onCreate();
     expect(cat.getHome()).toBe('/test/world/Lane');
   });
 
   it('⭐ an UNKEPT animal is born hungry — a thin stray wants a meal', async () => {
     const cat = makeStuffAtPath(() => new KeptAnimal(), '/test/agent/cat');
     expect(cat.getSatiation().current.rawValue()).toBe(100);
-    await cat.postRegister();
+    await cat.onCreate();
     expect(cat.getSatiation().current.rawValue()).toBeCloseTo(BORN_HUNGRY_SATIATION, 5);
     expect(cat.isHungry()).toBe(true);
   });

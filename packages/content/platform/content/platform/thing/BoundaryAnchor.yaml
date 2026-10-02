@@ -2,7 +2,7 @@
 #
 # ⭐ A row rather than a `new` because the doctrine is *the template is
 # the base, the factory is the patch*: a Boundary clones two of these at
-# `postRegister` and tells each which side it is. The row authors
+# `onCreate` and tells each which side it is. The row authors
 # nothing — an anchor is not a thing a player ever sees named; it is how
 # a door shows up on both walls at once.
 class: /platform/thing/BoundaryAnchor

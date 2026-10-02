@@ -64,7 +64,7 @@ async function warmCatalogue(): Promise<void> {
     ] as unknown as Template[];
   });
   const cat = makeStuffAtPath(() => new DisciplineCatalogue(), TemplatePaths.disciplineCatalogue);
-  await cat.postRegister();
+  await cat.onCreate();
 }
 
 describe("conditioning — the band is a threshold over a body stock", () => {

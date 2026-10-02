@@ -672,7 +672,7 @@ async function mintShadeFrom(
   // ⭐ Clone the row with the minted-identity channel, exactly as an
   // Avatar is minted. What the constructor used to take — the player id
   // and the species — rides `dataOverlay`, which hydration Phase 1
-  // lands BEFORE `postRegister`, which is the ordering the constructor
+  // lands BEFORE `onCreate`, which is the ordering the constructor
   // existed to guarantee.
   const shade = await StuffApi.clone<Stuff>(
     '/platform/agent/ShadeAvatar',

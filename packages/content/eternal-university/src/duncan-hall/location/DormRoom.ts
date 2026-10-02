@@ -14,7 +14,7 @@
  * description surface, `PersistableMixin` outermost, `StagedMixin` inner
  * (so the spine's `seedBornWith` reaches its applier via `super`):
  *
- *   Persistable → WarrenMember → PostRegistration → Exitable → Detailed
+ *   Persistable → WarrenMember → Exitable → Detailed
  *     → Visible → Staged → Location  (Location carries Container/Adornable)
  *
  * The Warren coordinates instances; the room stays an ordinary containment
@@ -28,11 +28,6 @@
 import FurnishableRoom from '@saxonberg/server/mud/platform/location/FurnishableRoom';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 
-// ⭐ `PostRegistrationMixin` is NOT composed here: it moved down into
-// `Location`'s own base stack (the ground build), because the mixin's
-// default `postRegister` is a non-chaining no-op — a second composition
-// above the base would SWALLOW `Location.postRegister`, and with it the
-// room's floor.
 // ⭐⭐ **A `DormRoom` IS a `FurnishableRoom`, and that class's own
 // docstring says so** — *"That the shipped dorm room already had
 // exactly this stack is the reason to mirror it rather than re-derive:

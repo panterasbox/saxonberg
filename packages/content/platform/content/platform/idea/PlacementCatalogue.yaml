@@ -1,4 +1,4 @@
-# PlacementCatalogue — the singleton whose postRegister stands the
+# PlacementCatalogue — the singleton whose onCreate stands the
 # authored ways-of-sitting roster up as live singletons and indexes it
 # by member name and by every preposition (the self-warming catalogue
 # shape; eager via this pack's boot list, not an AppBootstrap line).

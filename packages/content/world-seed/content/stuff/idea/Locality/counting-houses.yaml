@@ -3,7 +3,7 @@
 # off Cheapside). Names the district on departures boards / address readouts
 # and carries the weather node for its outdoor street. Homed under
 # `seeds/obj/address/` (the terminus/narnia precedent) so
-# AddressRegistry.postRegister eagerly clones + warms its prefix at boot — a
+# AddressRegistry.onCreate eagerly clones + warms its prefix at boot — a
 # domain-dir seed would never register. templatePath ≠ claimed address.
 class: /platform/idea/Locality
 hydratorClass: /platform/idea/persistence/PersistentHydrator

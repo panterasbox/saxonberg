@@ -78,7 +78,7 @@ describe('Wood — the stack', () => {
 
   it('stands itself up at registration: reserves from its area, idempotently', async () => {
     const w = makeStuffAtPath(newWood, ROOM);
-    await w.postRegister();
+    await w.onCreate();
     expect(w.hasReserve(SOIL_MOISTURE_RESERVE_KEY)).toBe(true);
     expect(w.getReserve(SOIL_MOISTURE_RESERVE_KEY)!.capacity.rawValue()).toBe(4500);
     expect(w.getReserve(SOIL_MOISTURE_RESERVE_KEY)!.current.rawValue()).toBe(2250);
@@ -123,11 +123,11 @@ describe('Wood — ⭐ StuffApi.singleton is its establishing context', () => {
     vi.spyOn(ParcelApi, 'ownerOf').mockResolvedValue({ kind: 'group', name: 'rejection' });
     makeStuffAtPath(() => new PersistentHydrator(), PersistentHydrator.templatePath);
     // `singleton()` clones the row; here the "row" is the factory, and
-    // its postRegister stands the ground up as the real cascade would.
+    // its onCreate stands the ground up as the real cascade would.
     vi.spyOn(StuffApi, 'clone').mockImplementation((async (path: string) => {
       if (path !== ROOM) throw new Error(`no template ${path}`);
       const w = makeStuffAtPath(newWood, path);
-      await w.postRegister();
+      await w.onCreate();
       return w;
     }) as unknown as typeof StuffApi.clone);
   });

@@ -220,7 +220,7 @@ export class TestHooks {
    * legacy per-player-row fallback is gone): clone the SHARED seed with
    * the overlay riding `dataOverlay` and the identity minted via
    * `asIdentityPath` — exactly the embody path — and leave the avatar
-   * RESIDENT. `Avatar.postRegister` installs the loadout and captures
+   * RESIDENT. `Avatar.onCreate` installs the loadout and captures
    * the first snapshot; the `play` that follows multiplexes onto the
    * live instance, so nothing is torn down and nothing can re-capture a
    * mid-teardown avatar (the failure the old headless
@@ -261,7 +261,7 @@ export class TestHooks {
       { dataOverlay: data, asIdentityPath: path }
     );
     await TestHooks.#dress(avatar);
-    // Belt to postRegister's first capture — a second capture of a live,
+    // Belt to onCreate's first capture — a second capture of a live,
     // fully-formed avatar is a cheap no-op-shaped write.
     await avatar.save();
     console.info(

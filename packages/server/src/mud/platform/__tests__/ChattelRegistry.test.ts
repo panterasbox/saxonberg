@@ -38,7 +38,6 @@ import { PersistableApi } from "../../api/persistable";
 import { PersistableMixin } from "../../lib/persistence/Persistable";
 import { ContainerMixin } from "../../lib/spatial/Container";
 import { EstateMixin } from "../../lib/chattel/Estate";
-import { PostRegistrationMixin } from "../../lib/stuff/PostRegistration";
 import { Idea } from "../../lib/stuff/Idea";
 import PersistentHydrator from "../idea/persistence/PersistentHydrator";
 import { ChattelEvent } from "../../lib/chattel/ChattelEvent";
@@ -61,14 +60,14 @@ class Torch extends Good {}
 
 /** A persistable container host (an Avatar / chest stand-in). */
 class Vault extends PersistableMixin(
-  ContainerMixin(PostRegistrationMixin(Idea)),
+  ContainerMixin(Idea),
 ) {
   static fieldMeta: FieldMeta = {};
 }
 
 /** An OWNER: the same, plus the estate a stamped good persists into (D1). */
 class EstateHolder extends PersistableMixin(
-  EstateMixin(ContainerMixin(PostRegistrationMixin(Idea))),
+  EstateMixin(ContainerMixin(Idea)),
 ) {
   static fieldMeta: FieldMeta = {};
 }
@@ -151,7 +150,7 @@ async function boot(): Promise<void> {
     () => new ChattelRegistry(),
     "/platform/idea/ChattelRegistry",
   );
-  await reg.postRegister();
+  await reg.onCreate();
   makeStuffAtPath(
     () => new PersistentHydrator(),
     PersistentHydrator.templatePath,

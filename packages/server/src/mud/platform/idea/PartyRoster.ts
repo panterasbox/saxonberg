@@ -2,7 +2,7 @@
  * PartyRoster — the self-warming home of the party operational core's
  * boot (the boot()-retirement direction).
  *
- * `postRegister` drives {@link PartyLogic.materializeRoster}: register
+ * `onCreate` drives {@link PartyLogic.materializeRoster}: register
  * the `party:` grouping provider with the (already-warmed)
  * GroupRegistry and re-materialize durable parties from their
  * `parties` records into live Party Ideas. The provider + record
@@ -15,13 +15,12 @@
  */
 
 import { Idea } from '../../lib/stuff/Idea';
-import { PostRegistrationMixin } from '../../lib/stuff/PostRegistration';
 import { PartyLogic } from './api/PartyLogic';
 import { StuffApi } from '../../api/stuff';
 import type { VetoResult } from '../../lib/errors';
 import type { EvictionContext } from '../../lib/stuff/Stuff';
 
-const PartyRosterBase = PostRegistrationMixin(Idea);
+const PartyRosterBase = Idea;
 
 export default class PartyRoster extends PartyRosterBase {
   /** Residency veto — the registered provider; a culled singleton re-arms nothing. */
@@ -36,7 +35,7 @@ export default class PartyRoster extends PartyRosterBase {
     };
   }
 
-  public override async postRegister(_context?: unknown): Promise<void> {
+  public override async onCreate(_context?: unknown): Promise<void> {
     await this.warm();
   }
 

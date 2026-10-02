@@ -81,7 +81,7 @@ export class SourceTreeApi {
   /**
    * Read a **shipped resource** — an authored data file that lives in the
    * source tree next to (or near) the module asking for it. Synchronous:
-   * these loads happen in static initialisers, `postRegister`, and lazy
+   * these loads happen in static initialisers, `onCreate`, and lazy
    * first-use paths that cannot await.
    *
    * `moduleUrl` is the caller's own `import.meta.url`. That is a language

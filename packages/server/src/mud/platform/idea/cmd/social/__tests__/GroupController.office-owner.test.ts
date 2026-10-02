@@ -126,7 +126,7 @@ beforeEach(async () => {
     return b as never;
   });
   const reg = makeStuffAtPath(() => new GroupRegistry(), '/platform/idea/GroupRegistry');
-  await reg.postRegister();
+  await reg.onCreate();
   // As a pack's requires.groups would mint it: office-owned, empty.
   const g = new Group();
   g.name = 'ops-committee';

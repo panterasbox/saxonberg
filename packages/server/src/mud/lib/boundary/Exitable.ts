@@ -697,7 +697,7 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
 
     /**
      * Mutual-exit invariant check, run at Location load (via
-     * `postRegister`) and on traversal as a fallback. Walks ONLY the
+     * `onCreate`) and on traversal as a fallback. Walks ONLY the
      * `_pendingVerify` set — exits the addExit-time triage flagged as
      * "could be wired but isn't yet."
      *

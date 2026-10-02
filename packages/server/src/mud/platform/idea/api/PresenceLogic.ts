@@ -236,7 +236,7 @@ export class PresenceLogic extends ApiLogic {
     return snapshotForImpl(viewer);
   }
 
-  /** Armed by `PresenceRelay.warm` (the manifest postRegister). Idempotent. */
+  /** Armed by `PresenceRelay.warm` (the manifest onCreate). Idempotent. */
   @CallSecurity(SocialBootCallers)
   public installRosterTap(): void {
     if (this.loginSub) return;

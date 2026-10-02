@@ -3,7 +3,7 @@
  * resolved address, its provenance, the covering Locality, and the
  * longest-prefix chain. No instrument required. Mirrors the
  * AnalyzeSkyController test harness; additionally installs the
- * AddressRegistry + a Locality roster (the harness skips postRegister,
+ * AddressRegistry + a Locality roster (the harness skips onCreate,
  * so Localities are registered explicitly).
  */
 

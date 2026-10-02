@@ -14,7 +14,7 @@
 # your attention, so leaving is a real option long before anyone writes a
 # law worth leaving over.
 #
-# MUST live under `seeds/obj/address/` — AddressRegistry.postRegister
+# MUST live under `seeds/obj/address/` — AddressRegistry.onCreate
 # eagerly clones every Locality template so its prefix is in the trie at
 # boot. A `domain/`-homed seed would never register, and the departures
 # board would fall back to a generic label.

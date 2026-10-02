@@ -59,7 +59,7 @@ type LiveCoach = Coach &
     getEntryExit(): unknown;
   };
 // ⚠ ASYNC now: an `ExitableVessel` mints its `in`/`out` pair at
-// `postRegister` (they are clones of rows), and the sync test shim skips
+// `onCreate` (they are clones of rows), and the sync test shim skips
 // that hook. `StuffApi.create` is what the world uses.
 const coachOf = async (): Promise<LiveCoach> =>
   (await StuffApi.create(

@@ -2,8 +2,7 @@
  * ExitableVessel — an enterable, portable-by-shape container.
  *
  * Composition:
- *   `PostRegistrationMixin(DoorBearingMixin(ExitableMixin(AdornableMixin(
- *     AtmosphericMixin(Vessel)))))`.
+ *   `DoorBearingMixin(ExitableMixin(AdornableMixin( *     AtmosphericMixin(Vessel))))`.
  * `Vessel` already carries the describable-physical baseline
  * (`Visible`/`Perceptible`/`Tangible`) + Container + Containable, so nothing
  * is re-added here beyond the enterable-container machinery.
@@ -33,7 +32,7 @@
  * Exit semantics: the explicit exit map is always consultable. In
  * addition the vessel holds its own `out` and `in` pair — ⭐ CLONES of
  * `/platform/idea/exits/vessel-out` and `…/vessel-in`, minted once at
- * `postRegister` and REBOUND whenever the vessel's environment or door
+ * `onCreate` and REBOUND whenever the vessel's environment or door
  * changes. `getExit('out')` and `getEntryExit()` (used by `go
  * <vessel-keyword>`) return them, rebinding first if they are stale.
  *
@@ -68,7 +67,6 @@ import { StuffApi } from '../../api/stuff';
 import { BoundaryApi } from '../../api/boundary';
 import { PerceptionApi } from '../../api/perception';
 import { MixinApi } from '../../api/mixin';
-import { PostRegistrationMixin } from '../stuff/PostRegistration';
 import { TemplatePaths } from '../paths';
 import { Quantity } from '../quantity';
 import { QuantityMarshaller } from '../../platform/idea/persistence/QuantityMarshaller';
@@ -76,7 +74,7 @@ import type { EnclosureDefaults } from '../spatial/Enclosed';
 import type { FieldMeta } from '../mixin';
 
 /**
- * ⭐ `PostRegistrationMixin` is composed for ONE reason: a vessel's `in`
+ * ⭐ It overrides `onCreate` for ONE reason: a vessel's `in`
  * and `out` exits are CLONES OF ROWS now, and a clone is async. They are
  * minted once, here, and then REBOUND as the vessel moves — because a
  * vessel is a room that goes places, so the same two exits join a
@@ -98,9 +96,7 @@ const VESSEL_WALL_M = 0.01;
 // `Atmospheric` innermost of the additions: `Adornable` and `Exitable`
 // read nothing off it, and `openExteriorOpenings` needs `isExitable` to
 // be true of the COMPOSED class, which it is at any order.
-const ExitableVesselBase = PostRegistrationMixin(
-  DoorBearingMixin(ExitableMixin(AdornableMixin(AtmosphericMixin(Vessel))))
-);
+const ExitableVesselBase = DoorBearingMixin(ExitableMixin(AdornableMixin(AtmosphericMixin(Vessel))));
 
 export default class ExitableVessel extends ExitableVesselBase {
   /**
@@ -239,8 +235,8 @@ export default class ExitableVessel extends ExitableVesselBase {
   /**
    * The vessel's own two exits — clones of
    * `/platform/idea/exits/vessel-out` and `…/vessel-in`, minted once at
-   * `postRegister` and rebound whenever the vessel moves or its door
-   * changes. `null` only before `postRegister` has run.
+   * `onCreate` and rebound whenever the vessel moves or its door
+   * changes. `null` only before `onCreate` has run.
    */
   private outCache: Exit | null = null;
   private outCacheEnvId: string | null = null;
@@ -251,8 +247,8 @@ export default class ExitableVessel extends ExitableVesselBase {
    * Mint the pair from their rows, and bind them if the vessel is
    * already somewhere.
    */
-  public override async postRegister(context?: unknown): Promise<void> {
-    await super.postRegister(context);
+  public override async onCreate(context?: unknown): Promise<void> {
+    await super.onCreate(context);
     this.outCache = await StuffApi.clone<Exit>(TemplatePaths.vesselOutExit);
     this.entryCache = await StuffApi.clone<Exit>(TemplatePaths.vesselInExit);
     this.rebindVesselExits(this.getContainer());

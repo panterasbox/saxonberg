@@ -820,8 +820,8 @@ export default class Field extends FieldBase {
    * `installSward` both skip a reserve that already exists, so a restored
    * field keeps its history and only a fresh one is seeded.
    */
-  public override async postRegister(): Promise<void> {
-    await super.postRegister();
+  public override async onCreate(): Promise<void> {
+    await super.onCreate();
     const locality = await AddressApi.resolveLocalityFor(
       this as unknown as Stuff & Container,
     );

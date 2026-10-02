@@ -238,7 +238,7 @@ describe("the keeper's back loop — Mara orders Dave's Bar's rail in, and recei
     }) as unknown as typeof StuffApi.clone);
     vi.spyOn(EmploymentLogic.prototype, 'shiftStateOf').mockReturnValue('on-shift');
     const reg = makeStuffAtPath(() => new ChattelRegistry(), '/platform/idea/ChattelRegistry');
-    await reg.postRegister();
+    await reg.onCreate();
     makeStuffAtPath(() => {
       const b = new BankCounter();
       b.setCorpoKey('goodkin');

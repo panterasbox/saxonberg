@@ -293,7 +293,7 @@ export abstract class Warren extends Idea {
   /**
    * Re-seat each registered fixture into the current host. A fixture seated
    * in a host usually cascade-dies when that host is force-destroyed:
-   * re-resolving its singleton clones a fresh one whose `postRegister`
+   * re-resolving its singleton clones a fresh one whose `onCreate`
    * self-seats into the now-current host (and re-registers here,
    * idempotently). When a fixture instead survived (evacuated elsewhere
    * rather than cascade-destructed), the explicit move relocates it. Either

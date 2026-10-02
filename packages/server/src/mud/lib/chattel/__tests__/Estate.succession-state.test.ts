@@ -19,7 +19,6 @@ import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { EstateMixin } from '../Estate';
 import { PersistableMixin } from '../../persistence/Persistable';
-import { PostRegistrationMixin } from '../../stuff/PostRegistration';
 import { Idea } from '../../stuff/Idea';
 import PersistentHydrator from '../../../platform/idea/persistence/PersistentHydrator';
 import { Document } from '../../persistence/Document';
@@ -35,7 +34,7 @@ import {
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 
 class EstateHost extends PersistableMixin(
-  EstateMixin(PostRegistrationMixin(Idea)),
+  EstateMixin(Idea),
 ) {}
 
 let snapshots: Record<string, unknown>[] = [];

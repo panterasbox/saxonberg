@@ -21,7 +21,6 @@
  */
 
 import { Idea } from '../../lib/stuff/Idea';
-import { PostRegistrationMixin } from '../../lib/stuff/PostRegistration';
 import { Release, RELEASE_DOCUMENT_KIND } from '../../lib/press/Release';
 import { DocumentApi } from '../../api/document';
 import { AppApi } from '../../api/app';
@@ -29,7 +28,7 @@ import { AppSettingKeys } from '../../lib/config/AppSettings';
 import type { VetoResult } from '../../lib/errors';
 import type { EvictionContext } from '../../lib/stuff/Stuff';
 
-const PressBoardBase = PostRegistrationMixin(Idea);
+const PressBoardBase = Idea;
 
 /** Window length when AppSettings isn't warmed. */
 const TICKER_WINDOW_FALLBACK = 30;
@@ -97,7 +96,7 @@ export default class PressBoard extends PressBoardBase {
     this.cache!.set(id, release);
   }
 
-  public override async postRegister(_context?: unknown): Promise<void> {
+  public override async onCreate(_context?: unknown): Promise<void> {
     await this.warm();
   }
 

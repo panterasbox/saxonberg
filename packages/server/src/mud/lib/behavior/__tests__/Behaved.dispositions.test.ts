@@ -1,8 +1,8 @@
 /**
  * BehavedMixin disposition seeding — an authored host's `dispositions:`
- * seed list becomes `claim` evidence at spawn (`postRegister`), so
+ * seed list becomes `claim` evidence at spawn (`onCreate`), so
  * derive-on-read yields its defining traits immediately. Idempotent across
- * a re-postRegister (re-clone / CMS go-live): claims are seeded once.
+ * a re-onCreate (re-clone / CMS go-live): claims are seeded once.
  *
  * A minimal Behaved host on the in-memory PM stub (no full Character).
  */
@@ -21,7 +21,7 @@ import { PersistenceManager } from "../../../../backend/PersistenceManager";
 // host since the OO sweep (Behaved narrows with isDispositioned).
 class TestNPC extends DispositionedMixin(BehavedMixin(Idea)) {}
 type Host = TestNPC & {
-  postRegister(c?: unknown): Promise<void>;
+  onCreate(c?: unknown): Promise<void>;
   dispositions: { disposition: string; valence: number }[];
 };
 
@@ -65,13 +65,13 @@ function makeHost(): Host {
 }
 
 describe("BehavedMixin disposition seeding", () => {
-  it("seeds claim evidence at postRegister and derives defining traits", async () => {
+  it("seeds claim evidence at onCreate and derives defining traits", async () => {
     const host = makeHost();
     host.dispositions = [
       { disposition: "sociability", valence: -70 },
       { disposition: "temperance", valence: 70 },
     ];
-    await host.postRegister();
+    await host.onCreate();
 
     const rows = await host.dispositionEntries();
     expect(rows).toHaveLength(2);
@@ -84,17 +84,17 @@ describe("BehavedMixin disposition seeding", () => {
     expect(byAxis.get("temperance")!.position).toBeGreaterThan(0);
   });
 
-  it("is idempotent across a second postRegister", async () => {
+  it("is idempotent across a second onCreate", async () => {
     const host = makeHost();
     host.dispositions = [{ disposition: "generosity", valence: 70 }];
-    await host.postRegister();
-    await host.postRegister();
+    await host.onCreate();
+    await host.onCreate();
     expect(await host.dispositionEntries()).toHaveLength(1);
   });
 
   it("no-ops for a host with no dispositions", async () => {
     const host = makeHost();
-    await host.postRegister();
+    await host.onCreate();
     expect(await host.dispositionEntries()).toHaveLength(0);
   });
 });

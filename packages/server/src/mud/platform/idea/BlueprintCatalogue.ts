@@ -28,7 +28,6 @@
  */
 
 import { Idea } from '../../lib/stuff/Idea';
-import { PostRegistrationMixin } from '../../lib/stuff/PostRegistration';
 import { Blueprint, type CuratedBlueprintData } from '../../lib/studio/Blueprint';
 import { DocumentApi } from '../../api/document';
 import { StuffApi } from '../../api/stuff';
@@ -37,7 +36,7 @@ import type { AnyConstructor } from '../../api/mixin';
 import type { VetoResult } from '../../lib/errors';
 import type { EvictionContext } from '../../lib/stuff/Stuff';
 
-const BlueprintCatalogueBase = PostRegistrationMixin(Idea);
+const BlueprintCatalogueBase = Idea;
 
 export default class BlueprintCatalogue extends BlueprintCatalogueBase {
   /**
@@ -93,7 +92,7 @@ export default class BlueprintCatalogue extends BlueprintCatalogueBase {
     if (sig) this.bySignature.set(sig, id);
   }
 
-  public override async postRegister(_context?: unknown): Promise<void> {
+  public override async onCreate(_context?: unknown): Promise<void> {
     await this.rebuild();
     await this.warm();
   }

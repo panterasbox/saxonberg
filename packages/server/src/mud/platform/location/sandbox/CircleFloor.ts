@@ -23,11 +23,6 @@ import { ExitableMixin } from '../../../lib/boundary/Exitable';
 import { StagedMixin } from '../../../lib/stuff/Staged';
 import type { FieldMeta } from '../../../lib/mixin';
 
-// ⭐ `PostRegistrationMixin` is NOT composed here: it moved down into
-// `Location`'s own base stack (the ground build), because the mixin's
-// default `postRegister` is a non-chaining no-op — a second composition
-// above the base would SWALLOW `Location.postRegister`, and with it the
-// room's floor.
 const CircleFloorBase =
   StagedMixin(
     ExitableMixin(Location)

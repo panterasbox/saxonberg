@@ -33,7 +33,6 @@ import { PersistableApi } from "../../../api/persistable";
 import { PersistableMixin } from "../../persistence/Persistable";
 import { EstateMixin } from "../Estate";
 import { ContainerMixin } from "../../spatial/Container";
-import { PostRegistrationMixin } from "../../stuff/PostRegistration";
 import { Idea } from "../../stuff/Idea";
 import PersistentHydrator from "../../../platform/idea/persistence/PersistentHydrator";
 import { Document } from "../../persistence/Document";
@@ -58,18 +57,18 @@ const ALICE_PATH = "/platform/agent/Avatar/alice";
 const BOB_PATH = "/platform/agent/Avatar/bob";
 
 class Chair extends Good {}
-class Room extends PersistableMixin(ContainerMixin(PostRegistrationMixin(Idea))) {
+class Room extends PersistableMixin(ContainerMixin(Idea)) {
   static fieldMeta: FieldMeta = {};
 }
 class Person extends PersistableMixin(
-  EstateMixin(ContainerMixin(PostRegistrationMixin(Idea))),
+  EstateMixin(ContainerMixin(Idea)),
 ) {
   static fieldMeta: FieldMeta = {};
 }
 
 /** A sleeper: Posed + Slottable + Containable, an Avatar reduced to D10. */
 class Sleeper extends PersistableMixin(
-  PosedMixin(SlottableMixin(ContainableMixin(PostRegistrationMixin(Idea)))),
+  PosedMixin(SlottableMixin(ContainableMixin(Idea))),
 ) {
   static fieldMeta: FieldMeta = {};
 }
@@ -140,7 +139,7 @@ function installStore(): void {
 async function boot(): Promise<void> {
   installV1QuantityMarshallers();
   const reg = makeStuffAtPath(() => new ChattelRegistry(), "/platform/idea/ChattelRegistry");
-  await reg.postRegister();
+  await reg.onCreate();
   makeStuffAtPath(() => new PersistentHydrator(), PersistentHydrator.templatePath);
   vi.spyOn(StuffApi, "clone").mockImplementation(
     ((path: string) =>

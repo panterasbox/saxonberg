@@ -32,7 +32,6 @@
  */
 
 import { Idea } from '../../lib/stuff/Idea';
-import { PostRegistrationMixin } from '../../lib/stuff/PostRegistration';
 import type { MixinConstructor, FieldMeta } from '../../lib/mixin';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type { VetoResult } from '../../lib/errors';
@@ -356,7 +355,7 @@ export function BusinessMixin<
  * class into a recursive base type).
  */
 class BusinessEntity extends BusinessMixin(
-  OrganizationMixin(PostRegistrationMixin(Idea)),
+  OrganizationMixin(Idea),
 ) {
   /** Singleton refusal (mirrors the catalogue singletons). */
   public canDestruct(): VetoResult {

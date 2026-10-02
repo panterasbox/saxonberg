@@ -71,7 +71,7 @@ const StackCallers = SecurityPolicies.AnyOf(
  * `StuffApi.singletonSync`. Any module that grabs this singleton and
  * calls a method other than through the Api gets `SecurityError`.
  *
- * Stateless by construction (no `PostRegistrationMixin`). The
+ * Stateless by construction (no `onCreate` override). The
  * `applyQuantity` orchestrator makes intra-singleton `this.split()` /
  * `this.merge()` self-calls, so every method carries
  * `AnyOf(FromModule, SelfOnly)` (the guts-variant recipe): `FromModule`

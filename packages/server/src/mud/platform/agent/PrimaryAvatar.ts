@@ -86,7 +86,7 @@ export default class PrimaryAvatar extends Avatar {
    * ships, the loadout install moves there with the rest of
    * character creation.
    */
-  public override async postRegister(
+  public override async onCreate(
     context?: AvatarInitContext,
   ): Promise<void> {
     this.stampContext(context);
@@ -124,12 +124,12 @@ export default class PrimaryAvatar extends Avatar {
       await this.installDefaultLoadout();
     }
 
-    // Preserve the PostRegistration chain (the spine no longer auto-drives
-    // here — D1). ⭐ Through the named seam, not `super.postRegister`:
+    // Preserve the `onCreate` chain (the spine no longer auto-drives
+    // here — D1). ⭐ Through the named seam, not `super.onCreate`:
     // the abstract root's own sequence is the VESSEL one (floor, chain,
     // calendar) and would install the floor a second time, before
     // materialize, which is the slot collision that bricks a relog.
-    await this.chainPostRegister(context);
+    await this.chainOnCreate(context);
 
     // Drive the persistence spine LAST, after the born-with loadout is in
     // place, with an EXPLICIT key (D1). The key is this avatar's own

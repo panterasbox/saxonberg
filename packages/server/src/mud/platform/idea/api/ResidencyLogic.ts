@@ -58,7 +58,7 @@ const ResidencyApiCallers = SecurityPolicies.FromModule(
  * The sweep-install seam is also callable by the self-warming
  * `ResidencyWarden` singleton (the boot()-retirement shape): the
  * handle state stays HERE (hot-reload re-assertion), the manifest home
- * arms it at postRegister.
+ * arms it at onCreate.
  */
 const ResidencyBootCallers = SecurityPolicies.AnyOf(
   ResidencyApiCallers,

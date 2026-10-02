@@ -22,7 +22,7 @@ describe('Boundary', () => {
 
   it('⭐ mints its anchor pair at registration, adorned to nobody', async () => {
     // The pair is CLONED (`/platform/thing/BoundaryAnchor`) at
-    // postRegister and lives as long as the boundary does, migrating
+    // onCreate and lives as long as the boundary does, migrating
     // between hosts rather than being destroyed and rebuilt. Before
     // template inheritance they were `createSync`'d at install time.
     const b = await StuffApi.create(() => new Boundary());

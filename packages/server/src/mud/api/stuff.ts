@@ -180,7 +180,7 @@ export class StuffApi {
    *
    * Crucially, the set is scoped to ONE async clone tree, not module-
    * global. A genuine cycle is the same path reappearing within a single
-   * `clone()`'s own recursive descent (hydrate/postRegister re-entering
+   * `clone()`'s own recursive descent (hydrate/onCreate re-entering
    * `clone()`). Two INDEPENDENT concurrent clones of the same shared
    * template — e.g. two avatars each cloning `/platform/idea/CommsUpdate` for
    * their loadout, whose `await` points interleave — must NOT see each
@@ -378,20 +378,21 @@ export class StuffApi {
    *      hydration step runs — templates that want generic mixin-field
    *      copy must opt in by naming
    *      `'/platform/idea/persistence/PersistentHydrator'`.
-   *   6. If the backing composes `PostRegistrationMixin`, await
-   *      `postRegister(context)`, forwarding the caller-supplied context.
+   *   6. Await `onCreate(context)`, forwarding the caller-supplied
+   *      context. The hook bottoms out on a terminal no-op on `Stuff`,
+   *      so the step is unconditional.
    *
-   * If hydration or `postRegister` throws, the object is unregistered
+   * If hydration or `onCreate` throws, the object is unregistered
    * before the error propagates.
    *
    * The optional `context` is a caller-supplied bag threaded through to
-   * `postRegister`. It carries runtime setup that cannot come from the
+   * `onCreate`. It carries runtime setup that cannot come from the
    * template's `data` — e.g., an authenticated `User` for an avatar.
    * Objects that don't care ignore it; objects that do (Avatar) declare a
    * narrower context type locally and read what they need.
    *
    * @param templatePath - Path to the template (e.g., "/platform/agent/Avatar/<playerId>")
-   * @param context - Optional runtime context passed to `postRegister`
+   * @param context - Optional runtime context passed to `onCreate`
    * @returns The cloned and registered object
    *
    * @example
@@ -416,7 +417,7 @@ export class StuffApi {
   /**
    * Run `fn` outside any in-flight clone tree. The cycle guard's store
    * propagates through every async continuation spawned inside a clone
-   * — including a timer an NPC's `postRegister` arms — so work that is
+   * — including a timer an NPC's `onCreate` arms — so work that is
    * a fresh ROOT by definition (a scheduled callback) must shed it, or
    * two later, unrelated forced commands share one "in flight" set and
    * the second trips as a false cycle. `ScheduleApi`'s root wrapper is
@@ -460,7 +461,7 @@ export class StuffApi {
     };
 
     // A top-level clone establishes the tree's store; nested clones
-    // (triggered during hydrate / postRegister) inherit it via getStore().
+    // (triggered during hydrate / onCreate) inherit it via getStore().
     return existing ? run() : this.#cloneStackALS.run(stack, run);
   }
 
@@ -571,7 +572,7 @@ export class StuffApi {
       : null;
 
     // 7. Construct, stamp zone, then run the shared register / hydrate /
-    //    postRegister sequence. The hydrator captures `template.data`.
+    //    onCreate sequence. The hydrator captures `template.data`.
     //    The construction sentinel must be flipped immediately around
     //    `new` with no intervening async — otherwise a parallel call
     //    could observe it set and bypass.
@@ -743,21 +744,21 @@ export class StuffApi {
   /**
    * Create and register a Stuff object via a caller-supplied factory.
    *
-   * Sister of `clone()`: same register / postRegister tail, no hydration
+   * Sister of `clone()`: same register / onCreate tail, no hydration
    * step (the factory IS the construction). Use this for runtime-only
    * objects whose construction needs explicit arguments and which don't
    * round-trip through the CMS template pattern (Interactive being the
    * canonical example — `socketId`, `sessionId`, `user` all flow through
    * the closure).
    *
-   * Registration happens BEFORE `postRegister()` so that recursive
+   * Registration happens BEFORE `onCreate()` so that recursive
    * resolution during setup (e.g. a location whose exits resolve back to
    * itself via the registry) can observe the in-flight instance. If
-   * `postRegister()` throws, the object is unregistered before the error
+   * `onCreate()` throws, the object is unregistered before the error
    * propagates.
    *
    * @param factory - Function that constructs the object
-   * @param context - Optional runtime context passed to `postRegister`
+   * @param context - Optional runtime context passed to `onCreate`
    * @returns The created and registered object
    *
    * @example
@@ -782,8 +783,8 @@ export class StuffApi {
   /**
    * Synchronous variant of `create()` for runtime objects whose
    * construction is purely synchronous — no `Hydrator.hydrate()` step
-   * (the factory does the work) and no `postRegister()` (the class
-   * does not compose `PostRegistrationMixin`).
+   * (the factory does the work) and no `onCreate()` (the class does not
+   * override the terminal).
    *
    * Same sentinel-flip + Proxy-wrap + register guarantees as the
    * async path, so the result is interception-mediated and tracked
@@ -795,23 +796,27 @@ export class StuffApi {
    * Reach for `create()` whenever async hydration or post-registration
    * matters; `createSync()` is the narrow-use sister.
    *
-   * Guardrail: throws if the constructed Stuff composes
-   * `PostRegistrationMixin`. The point of `createSync` is "this Stuff
-   * has no async setup" — silently skipping `postRegister()` would
-   * yield a half-initialised object. The throw forces such classes
-   * to use the async `create()` path instead.
+   * Guardrail: throws if the constructed Stuff **overrides**
+   * `onCreate()`. The point of `createSync` is "this Stuff has no async
+   * setup" — silently skipping `onCreate()` would yield a
+   * half-initialised object. The throw forces such classes to use the
+   * async `create()` path instead. ⭐ The override comparison is more
+   * accurate than the retired `PostRegistrationMixin` marker was: a
+   * class that composed the marker without overriding was refused for
+   * no reason, and a class that overrode without composing passed the
+   * guardrail and never had its hook called.
    *
-   * `opts.deferPostRegister` is the one sanctioned bypass, for the
+   * `opts.deferOnCreate` is the one sanctioned bypass, for the
    * lazy registry resolvers (`resolveRegistry` in the Logic
    * singletons): the boot manifest is the production path (clone runs
-   * `postRegister` there), and a lazily-built harness registry
+   * `onCreate` there), and a lazily-built harness registry
    * DELIBERATELY starts unwarmed — the test that needs the warm
-   * drives `postRegister()` itself. Skipping stays explicit, never
+   * drives `onCreate()` itself. Skipping stays explicit, never
    * silent.
    */
   public static createSync<T extends Stuff>(
     factory: () => T,
-    opts?: { deferPostRegister?: boolean }
+    opts?: { deferOnCreate?: boolean }
   ): T {
     const prevSentinel = Stuff._beginConstruction();
     let raw: T;
@@ -825,12 +830,18 @@ export class StuffApi {
       raw,
       MixinApi.getWeakRefFields(raw.constructor as AnyConstructor)
     );
-    if (!opts?.deferPostRegister && MixinApi.isPostRegistration(proxy)) {
+    // ⚠⚠ The comparison is on `raw`, NOT on `proxy`. The proxy's get trap
+    // returns a fresh interception wrapper for every callable access
+    // (`api/proxy.ts`), so `proxy.onCreate` is never identical to the
+    // prototype's function and this guardrail would throw on EVERY
+    // `createSync` — taking `singletonSync` and every lazy logic-singleton
+    // resolver with it.
+    if (!opts?.deferOnCreate && raw.onCreate !== Stuff.prototype.onCreate) {
       // Don't even register — fail before the half-initialised object
       // can leak into the registry.
       throw new Error(
-        `StuffApi.createSync(): ${(proxy as object).constructor.name} ` +
-          `composes PostRegistrationMixin and needs async setup. ` +
+        `StuffApi.createSync(): ${(raw as object).constructor.name} ` +
+          `overrides onCreate() and needs async setup. ` +
           `Use 'await StuffApi.create(...)' instead.`
       );
     }
@@ -848,7 +859,7 @@ export class StuffApi {
    * the `byTemplatePath` index; otherwise builds one via `createSync`,
    * stamps `path`, inserts it into `byTemplatePath`, and returns it.
    * Entirely synchronous — no template doc, no hydration, no
-   * `postRegister` — so an Api method can reach its logic without
+   * `onCreate` — so an Api method can reach its logic without
    * becoming `async`. That is exactly what a stateless, data-less
    * logic singleton allows (see {@link createSync}).
    *
@@ -898,15 +909,15 @@ export class StuffApi {
   }
 
   /**
-   * Shared register / hydrate / postRegister sequence used by both
+   * Shared register / hydrate / onCreate sequence used by both
    * `clone()` and `create()`. `hydrate` is `null` for the create path
    * (no template, no hydrator); `clone()` passes a closure that captures
    * the resolved hydrator and template data.
    *
    * Order is load-bearing: register fires first so anything resolving the
-   * in-flight object by `stuffId` during hydrate or `postRegister` (e.g.,
+   * in-flight object by `stuffId` during hydrate or `onCreate` (e.g.,
    * a self-referencing exit hydrator) finds it. If hydrate or
-   * `postRegister` throws, we unregister before propagating so a partial
+   * `onCreate` throws, we unregister before propagating so a partial
    * object never lingers in the registry.
    */
   static async #registerAndInit<T extends Stuff>(
@@ -931,7 +942,7 @@ export class StuffApi {
     this.register(proxy);
 
     try {
-      // Synthetic constructor frame around hydrate + postRegister so
+      // Synthetic constructor frame around hydrate + onCreate so
       // anything those steps invoke has `caller = StuffApi` and
       // `target = <new instance>`. Inner `this.foo()` calls then
       // appear as self-calls, which is the natural reading of
@@ -943,9 +954,7 @@ export class StuffApi {
         { kind: FrameKind.Constructor },
         async () => {
           if (hydrate) await hydrate(proxy);
-          if (MixinApi.isPostRegistration(proxy)) {
-            await proxy.postRegister(context);
-          }
+          await proxy.onCreate(context);
         }
       );
     } catch (error) {

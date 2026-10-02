@@ -39,7 +39,6 @@ import { ContainableMixin } from "../../spatial/Containable";
 import { HasInteractiveMixin } from "../../connection/HasInteractive";
 import { ContainmentApi } from "../../../api/containment";
 import { PersistedRecord } from "../../persistence/PersistedRecord";
-import { PostRegistrationMixin } from "../../stuff/PostRegistration";
 import { Idea } from "../../stuff/Idea";
 import PersistentHydrator from "../../../platform/idea/persistence/PersistentHydrator";
 import { Document } from "../../persistence/Document";
@@ -63,7 +62,7 @@ class Torch extends Good {}
 
 /** A good that persists ITSELF and pins — the named-animal shape. */
 class Pet extends PersistableMixin(
-  ChattelMixin(ContainableMixin(PostRegistrationMixin(Idea))),
+  ChattelMixin(ContainableMixin(Idea)),
 ) {
   static fieldMeta: FieldMeta = {};
   public override pinsResidency(): boolean {
@@ -73,14 +72,14 @@ class Pet extends PersistableMixin(
 
 /** A self-persisting good that does NOT opt in. */
 class Heirloom extends PersistableMixin(
-  ChattelMixin(ContainableMixin(PostRegistrationMixin(Idea))),
+  ChattelMixin(ContainableMixin(Idea)),
 ) {
   static fieldMeta: FieldMeta = {};
 }
 
 /** A room that persists ITSELF — a bedroom, a leased unit. */
 class PersistentRoom extends PersistableMixin(
-  ContainerMixin(PostRegistrationMixin(Idea)),
+  ContainerMixin(Idea),
 ) {
   static fieldMeta: FieldMeta = {};
 }
@@ -94,7 +93,7 @@ const CHEST_PATH = "/test/thing/Chest";
 
 /** An owner: a persistable container that carries an estate. */
 class Owner extends PersistableMixin(
-  EstateMixin(ContainerMixin(PostRegistrationMixin(Idea))),
+  EstateMixin(ContainerMixin(Idea)),
 ) {
   static fieldMeta: FieldMeta = {};
 }
@@ -208,7 +207,7 @@ async function boot(): Promise<void> {
     () => new ChattelRegistry(),
     "/platform/idea/ChattelRegistry",
   );
-  await reg.postRegister();
+  await reg.onCreate();
   makeStuffAtPath(() => new PersistentHydrator(), PersistentHydrator.templatePath);
   vi.spyOn(StuffApi, "clone").mockImplementation(((path: string) => {
     const factory = factories[path];

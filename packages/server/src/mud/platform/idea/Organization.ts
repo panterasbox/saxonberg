@@ -21,7 +21,6 @@
  */
 
 import { Idea } from '../../lib/stuff/Idea';
-import { PostRegistrationMixin } from '../../lib/stuff/PostRegistration';
 import { OrganizationMixin } from '../../lib/employment/Organization';
 import { PublisherMixin } from '../../lib/press/Publisher';
 import type { VetoResult } from '../../lib/errors';
@@ -33,7 +32,7 @@ import type { VetoResult } from '../../lib/errors';
  * records that name it.
  */
 export default class OrganizationEntity extends PublisherMixin(
-  OrganizationMixin(PostRegistrationMixin(Idea)),
+  OrganizationMixin(Idea),
 ) {
   /** Singleton refusal (mirrors the Business / catalogue singletons). */
   public canDestruct(): VetoResult {

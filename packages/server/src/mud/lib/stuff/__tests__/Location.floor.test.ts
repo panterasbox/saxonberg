@@ -6,11 +6,11 @@
  * *"the choice of which Locations include a floor adornment is per-template
  * authoring"* was a choice nobody was making.
  *
- * ⭐ The roster test at the bottom is the guard that matters. The hook moved
- * DOWN into `Location`'s base stack, and `PostRegistrationMixin`'s default
- * `postRegister` is a **non-chaining no-op** — so any subclass override that
- * forgets `await super.postRegister(context)` silently leaves its rooms
- * unstandable, with nothing else going wrong. Counting `super.postRegister`
+ * ⭐ The roster test at the bottom is the guard that matters. The hook lives
+ * at the base of `Location`, and `Stuff.onCreate` is the terminal — so any
+ * subclass override that
+ * forgets `await super.onCreate(context)` silently leaves its rooms
+ * unstandable, with nothing else going wrong. Counting `super.onCreate`
  * across the family at plan time found **six** overrides with none. The
  * roster clones every concrete kernel Location class and asserts a floor,
  * so forgetting the line is a red test rather than a quiet regression.
@@ -430,7 +430,7 @@ describe('the default-floor row this all depends on', () => {
 });
 
 describe('⭐ the roster — every concrete kernel Location class', () => {
-  // `StuffApi.create` runs register → postRegister, which is the whole
+  // `StuffApi.create` runs register → onCreate, which is the whole
   // chain under test; the floor row still has to be findable, so the store
   // is installed even though no room is cloned.
   beforeEach(() => installStore([]));
@@ -454,7 +454,7 @@ describe('⭐ the roster — every concrete kernel Location class', () => {
   ];
 
   for (const [name, factory] of ROSTER) {
-    it(`${name} gets a floor (its postRegister chains super)`, async () => {
+    it(`${name} gets a floor (its onCreate chains super)`, async () => {
       const room = await StuffApi.create(factory);
       expect(room.getFloor(), `${name} has no floor`).not.toBeNull();
     });

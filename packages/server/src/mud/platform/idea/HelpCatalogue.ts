@@ -27,7 +27,6 @@ import type {
   HelpSearchGroup,
 } from "@saxonberg/types";
 import { Idea } from "../../lib/stuff/Idea";
-import { PostRegistrationMixin } from "../../lib/stuff/PostRegistration";
 import { Mixins } from "../../lib/mixin";
 import { CommandApi } from "../../api/command";
 import { Mml } from "../../api/mml";
@@ -139,7 +138,7 @@ function loadAuthorSurfaceFromDisk(): AuthorSurface | null {
   }
 }
 
-const HelpCatalogueBase = PostRegistrationMixin(Idea);
+const HelpCatalogueBase = Idea;
 
 export default class HelpCatalogue extends HelpCatalogueBase {
 
@@ -159,7 +158,7 @@ export default class HelpCatalogue extends HelpCatalogueBase {
   /** Same, for the schema docs. */
   private warnedMissingSchema = false;
 
-  public override async postRegister(_context?: unknown): Promise<void> {
+  public override async onCreate(_context?: unknown): Promise<void> {
     await this.warm();
   }
 

@@ -116,7 +116,7 @@ describe('CommandContext.commandSource threading', () => {
   });
 
   it('attributes an item-afforded verb to the granting item', async () => {
-    // Seed the self entry first (as postRegister does in production),
+    // Seed the self entry first (as onCreate does in production),
     // so the later-arriving item is newer on the stack and wins the
     // match — modelling item-afforded-over-innate precedence.
     giver.getAvailableCommands();

@@ -131,7 +131,7 @@ describe("destination naming + crossroads (real seeds)", () => {
     ].filter((d) => !stubbed.has(d.path as string));
     installStore([...docs, ...STUBS]);
     await AppSettings.warm();
-    // Stand up the AddressRegistry — its postRegister eagerly clones + registers
+    // Stand up the AddressRegistry — its onCreate eagerly clones + registers
     // every Locality under /stuff/idea/Locality/ (claiming their address prefixes).
     await StuffApi.singleton("/platform/idea/AddressRegistry");
   });

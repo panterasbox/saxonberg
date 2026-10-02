@@ -3,7 +3,7 @@
 # Avenue (the standalone University Avenue terminal is retired — Terminus
 # absorbs the campus-arrival role; walk across the avenue to campus).
 # `seatIn` names the lounge Warren: the terminal seats ITSELF into the elastic
-# host on postRegister and registers to re-seat on host migration
+# host on onCreate and registers to re-seat on host migration
 # (FixtureMixin) — which is also what makes its arrival room right with no
 # code, since `seatSelf` moves it INTO the live host and `getArrivalRoom()`
 # is `getContainer()`.

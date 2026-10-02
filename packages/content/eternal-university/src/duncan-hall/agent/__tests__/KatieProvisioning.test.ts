@@ -6,7 +6,7 @@
  * `execute()` (a forced command bypasses the `requiresWizard` validator).
  * `isDormsAgent` is that boundary — a wizard OR an agent of the dorms owner
  * (a member of the `duncan-hall` group). Katie enrolls herself into that
- * group at `postRegister`, keyed by her templatePath (NPCs have no playerId);
+ * group at `onCreate`, keyed by her templatePath (NPCs have no playerId);
  * a random principal is not a member and is refused.
  */
 
@@ -127,11 +127,11 @@ async function bootWithAccess(): Promise<void> {
     async () => undefined,
   );
   const groups = makeStuffAtPath(() => new GroupRegistry(), '/platform/idea/GroupRegistry');
-  await groups.postRegister();
+  await groups.onCreate();
   const parcels = makeStuffAtPath(() => new ParcelRegistry(), '/platform/idea/ParcelRegistry');
-  await parcels.postRegister();
+  await parcels.onCreate();
   const access = makeStuffAtPath(() => new AccessRegistry(), '/platform/idea/AccessRegistry');
-  await access.postRegister();
+  await access.onCreate();
 }
 
 function reset(): void {

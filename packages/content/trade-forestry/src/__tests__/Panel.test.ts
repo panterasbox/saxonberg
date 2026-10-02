@@ -160,7 +160,7 @@ beforeEach(() => {
   vi.spyOn(StuffApi, 'clone').mockImplementation((async (path: string) => {
     if (path === STOOL_PATH) {
       const inst = makeStuffAtPath(newStool, path);
-      await (inst as unknown as { postRegister: () => Promise<void> }).postRegister();
+      await (inst as unknown as { onCreate: () => Promise<void> }).onCreate();
       return inst;
     }
     throw new Error(`no clone factory for ${path}`);

@@ -7,7 +7,7 @@
  *
  *   - `defaultPropAccess` denies-by-default so a caller holding the
  *     registry instance can't forge events via `reg.setProp(name, v)`.
- *   - `postRegister` registers a transient prop for every name in the
+ *   - `onCreate` registers a transient prop for every name in the
  *     `Events` table.
  */
 
@@ -56,7 +56,7 @@ describe('EventRegistry', () => {
     vi.restoreAllMocks();
   });
 
-  it('postRegister installs a prop for every well-known event', async () => {
+  it('onCreate installs a prop for every well-known event', async () => {
     await bootstrapEventRegistry();
     for (const name of Object.values(Events)) {
       // EventApi.on succeeds for every well-known event — implies the

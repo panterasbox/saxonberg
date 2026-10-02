@@ -3,7 +3,7 @@
  * presence consumers (the boot()-retirement direction: an
  * operator-shaped tap install does not belong on a consumer Api).
  *
- * `postRegister` installs BOTH: the notify-gated login/logout
+ * `onCreate` installs BOTH: the notify-gated login/logout
  * **notification** relay ({@link SocialLogic.installPresenceTap}) and
  * the presence-PUBLIC **roster** delta tap
  * ({@link PresenceLogic.installRosterTap}, feeding the "Who's Online"
@@ -16,14 +16,13 @@
  */
 
 import { Idea } from '../../lib/stuff/Idea';
-import { PostRegistrationMixin } from '../../lib/stuff/PostRegistration';
 import { SocialLogic } from './api/SocialLogic';
 import { PresenceLogic } from './api/PresenceLogic';
 import { StuffApi } from '../../api/stuff';
 import type { VetoResult } from '../../lib/errors';
 import type { EvictionContext } from '../../lib/stuff/Stuff';
 
-const PresenceRelayBase = PostRegistrationMixin(Idea);
+const PresenceRelayBase = Idea;
 
 export default class PresenceRelay extends PresenceRelayBase {
   /** Residency veto — the armed taps; a culled singleton re-arms nothing. */
@@ -38,7 +37,7 @@ export default class PresenceRelay extends PresenceRelayBase {
     };
   }
 
-  public override async postRegister(_context?: unknown): Promise<void> {
+  public override async onCreate(_context?: unknown): Promise<void> {
     await this.warm();
   }
 

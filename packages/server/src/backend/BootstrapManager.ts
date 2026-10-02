@@ -11,7 +11,7 @@
  *
  * The manager topo-sorts entries by `dependsOn` and clones each
  * entry in order. `awaitInit` runs after the clone for entries
- * needing async setup beyond `postRegister`.
+ * needing async setup beyond `onCreate`.
  *
  * Failure modes throw and prevent server start: `dependsOn` cycles,
  * missing `dependsOn` references, clone failures, `awaitInit`
@@ -96,7 +96,7 @@ export interface BootstrapEntry {
   /** Other entries' templatePaths that must complete before this. */
   dependsOn?: string[];
 
-  /** Optional async init beyond `postRegister`'s sync surface. */
+  /** Optional async init beyond `onCreate`'s sync surface. */
   awaitInit?: (clone: Stuff) => Promise<void>;
 }
 
@@ -218,7 +218,7 @@ export class BootstrapManager {
       let clone: Stuff;
       // ⚠ A manifest singleton may already be RESIDENT: a lazy
       // `StuffApi.singleton` mint earlier in the boot (the content
-      // installer resolving the wiki registry, whose postRegister asks
+      // installer resolving the wiki registry, whose onCreate asks
       // for the group registry) lands it before the manifest runs. A
       // second clone would leave two live instances at one path and
       // every `findByTemplatePath` throwing "expected singleton, found 2"

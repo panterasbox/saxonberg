@@ -155,13 +155,8 @@ export function CastMixin<TBase extends MixinConstructor>(Base: TBase) {
       return this.renown;
     }
 
-    public async postRegister(context?: unknown): Promise<void> {
-      const sup = (
-        Base.prototype as {
-          postRegister?: (c?: unknown) => unknown | Promise<unknown>;
-        }
-      ).postRegister;
-      if (typeof sup === 'function') await sup.call(this, context);
+    public async onCreate(context?: unknown): Promise<void> {
+      await super.onCreate(context);
       // ⭐⭐ Read this rung's memory back. A `Cast` is a singleton, so its
       // template path IS a unique durable key (`viewerKey`, row 3) and its
       // regard has been WRITTEN through on every change since the belief
@@ -177,7 +172,7 @@ export function CastMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     /**
      * ⚠ **Idempotent, once** — the `dispositions:` precedent exactly.
-     * Applied at `postRegister` and skipped when any `claim` row already
+     * Applied at `onCreate` and skipped when any `claim` row already
      * exists, so a re-clone, a reboot or a CMS go-live cannot mint a
      * second history. A written history applied twice must not count
      * twice; that is an acceptance criterion, not a nicety.

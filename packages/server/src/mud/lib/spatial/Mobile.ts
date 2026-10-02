@@ -414,7 +414,7 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
       // Traversal-time fallback for the mutual-exit invariant. Fires
       // only when the source has at least one exit still awaiting
       // verification — typically a neighbor that hadn't loaded when
-      // the source's postRegister verifier ran. Settled exits are
+      // the source's onCreate verifier ran. Settled exits are
       // tracked individually and don't trigger this re-check.
       if (MixinApi.isExitable(source) && source.hasPendingVerification()) {
         source.verifyOutboundExits();

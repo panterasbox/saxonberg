@@ -99,7 +99,7 @@ export class AppBootstrap {
     // root invariant must populate before any construction, including
     // the lazy singletons built during seeding below).
     // ⭐ The world is CLOSED for the length of this sequence. NPC brains
-    // wire at their host's `postRegister` (below, in
+    // wire at their host's `onCreate` (below, in
     // `BootstrapManager.run`) because a host must exist before it can
     // behave — but the schedules they arm are real-time, so without this
     // the cast starts acting minutes before the subsystems it acts
@@ -183,7 +183,7 @@ export class AppBootstrap {
     // its `settings` kind is merge-missing, so an operator's `config`
     // value is never clobbered). Nothing between install and here feeds
     // it, and warming FIRST is what lets every boot-manifest
-    // `postRegister` — including the self-warming catalogues — read
+    // `onCreate` — including the self-warming catalogues — read
     // dials (`getCached` throws loudly when unwarmed; the seeded-literal
     // `dial()` fallbacks in the Logics are test-mode discipline only).
     // Warm-only — the values come from the pack's content/settings/*.yaml.

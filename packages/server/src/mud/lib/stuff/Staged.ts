@@ -455,7 +455,7 @@ export function StagedMixin<
  *   `costume: [/stuff/thing/rock]` cloned the rock, moved it into the
  *   person's hands, found no slot to claim and **said nothing** — so the
  *   row claimed a garment and the world got a carried rock.
- * - **A once-flag.** `wears` ran in `postRegister` and leaned on
+ * - **A once-flag.** `wears` ran in `onCreate` and leaned on
  *   `wearGarments` being idempotent *by slot occupancy*, which is true
  *   of a real garment and false of anything that occupies no slot. A
  *   non-wearable entry was therefore re-cloned on **every** go-live

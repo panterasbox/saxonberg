@@ -967,7 +967,7 @@ suite('F — a key the Hydrator never writes is a key nobody wrote', () => {
  * perceive, be engaged or fight had to be filed as a person to get it.
  * The newbie-wilds wolf was an `Extra` (*"a character who is a role,
  * not a person"*) and the draft horse was a `HaulingCreature`
- * (`Mountable(PostRegistration(Character))`), so both composed
+ * (`Mountable(Character)`), so both composed
  * `CasterMixin`, `MemorizedMixin`, `EmployedMixin`, `PersonaMixin`,
  * `CommandGiverMixin`, `SoulMixin` and `VocalMixin`.
  *

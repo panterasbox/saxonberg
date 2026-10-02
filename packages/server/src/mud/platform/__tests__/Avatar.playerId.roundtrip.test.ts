@@ -10,7 +10,7 @@
  * `getPlayerId()` to undo its own copy, and each overrode
  * `getIdentityPath()` to rebuild the same string. The copies existed for
  * one real reason — a clone's `dataOverlay` lands in hydration Phase 1,
- * before `postRegister` — and declaring the base field persistent gets
+ * before `onCreate` — and declaring the base field persistent gets
  * that ordering without the copies.
  *
  * ⚠ The consequence this pins: the record body's snapshot now CARRIES
@@ -146,7 +146,7 @@ describe('⭐⭐ one playerId, one identity thread', () => {
     const sh = makeStuff(() => new ShadeAvatar());
     sh.playerId = 'pid-rt-3';
     sh.setSpecies(species());
-    await sh.postRegister();
+    await sh.onCreate();
 
     expect(sh.getPlayerId()).toBe('pid-rt-3');
     expect(sh.getIdentityPath()).toBe(Avatar.getTemplatePath('pid-rt-3'));
@@ -156,7 +156,7 @@ describe('⭐⭐ one playerId, one identity thread', () => {
     const wb = makeStuff(() => new SandboxAvatar());
     wb.playerId = 'pid-rt-4';
     wb.setSpecies(species());
-    await wb.postRegister();
+    await wb.onCreate();
 
     expect(wb.getPlayerId()).toBe('pid-rt-4');
     expect(wb.getIdentityPath()).toBe(Avatar.getTemplatePath('pid-rt-4'));
@@ -166,7 +166,7 @@ describe('⭐⭐ one playerId, one identity thread', () => {
     const sh = makeStuff(() => new ShadeAvatar());
     sh.playerId = 'pid-rt-5';
     sh.setSpecies(species());
-    await sh.postRegister();
+    await sh.onCreate();
     // The death choreography registers the shade LATER, deliberately,
     // after the drained body has been unregistered.
     expect(PlayerApi.findAvatarByPlayerId('pid-rt-5')).toBeUndefined();

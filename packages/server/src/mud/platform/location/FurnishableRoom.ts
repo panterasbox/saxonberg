@@ -24,7 +24,7 @@
  * somebody FURNISHES needs:
  *
  *   Persistable → WarrenMember → Reserved → CartesianLocation
- *     (which carries PostRegistration, Staged, Detailed, Perceptible,
+ *     (which carries Staged, Detailed, Perceptible,
  *     Exitable, CartesianCoordinates, Visible, and Location's Container,
  *     Adornable, AmbientLit, Atmospheric, Addressable)
  *
@@ -101,11 +101,6 @@ export const UNRESTRICTED = "unrestricted";
 // room somebody FURNISHES needs and a bare cell does not — a record of
 // its own (`Persistable`), a warren to belong to (`WarrenMember`), and
 // the ability to author a finite `air` budget (`Reserved`).
-// ⭐ `PostRegistrationMixin` is NOT composed here: it moved down into
-// `Location`'s own base stack (the ground build), because the mixin's
-// default `postRegister` is a non-chaining no-op — a second composition
-// above the base would SWALLOW `Location.postRegister`, and with it the
-// room's floor.
 const FurnishableRoomBase = PersistableMixin(
   WarrenMemberMixin(
       ExitableMixin(

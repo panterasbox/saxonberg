@@ -38,7 +38,7 @@ const SpeciesApiCallers = SecurityPolicies.FromModule('/api/species#SpeciesApi'
  * `StuffApi.singletonSync`. Any module that grabs this singleton and
  * calls a method other than through the Api gets `SecurityError`.
  *
- * Stateless by construction (no `PostRegistrationMixin`). The kingdom
+ * Stateless by construction (no `onCreate` override). The kingdom
  * resolution shared by `getKingdom` and `isAnimate` lives in the
  * module-private `resolveKingdom` free function (off-class,
  * ungated, un-callable from outside), so the predicates don't make

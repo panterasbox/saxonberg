@@ -30,7 +30,6 @@ import Good from "../../stuff/Good";
 import type { Stuff } from "../../stuff/Stuff";
 import { ContainerMixin } from "../../spatial/Container";
 import { ContainableMixin } from "../../spatial/Containable";
-import { PostRegistrationMixin } from "../../stuff/PostRegistration";
 import { makeStuffAtPath } from "../../security/__tests__/test-setup";
 import type { FieldMeta } from "../../mixin";
 import ChattelRegistry from "../../../platform/idea/ChattelRegistry";
@@ -46,16 +45,16 @@ const CARD = "/test/card";
 const OUTFIT = "/test/outfit";
 
 class Room extends PersistableMixin(
-  ContainerMixin(PostRegistrationMixin(Idea)),
+  ContainerMixin(Idea),
 ) {
   static fieldMeta: FieldMeta = {};
 }
 class Counter extends PersistableMixin(
-  ContainerMixin(ContainableMixin(PostRegistrationMixin(Idea))),
+  ContainerMixin(ContainableMixin(Idea)),
 ) {
   static fieldMeta: FieldMeta = {};
 }
-class Hand extends ContainerMixin(ContainableMixin(PostRegistrationMixin(Idea))) {
+class Hand extends ContainerMixin(ContainableMixin(Idea)) {
   static fieldMeta: FieldMeta = {};
 }
 // ⭐ The local fixture was `class Good extends Movable {}` — this test
@@ -78,7 +77,7 @@ async function mockClone(path: string): Promise<Stuff> {
   if (!factory) throw new Error(`no clone factory for ${path}`);
   const inst = makeStuffAtPath(factory, path);
   if (MixinApi.isPersistable(inst)) {
-    await (inst as unknown as { postRegister: () => Promise<void> }).postRegister();
+    await (inst as unknown as { onCreate: () => Promise<void> }).onCreate();
   }
   return inst;
 }
@@ -135,7 +134,7 @@ async function stamp(good: Stuff, owner: unknown): Promise<void> {
   (good as unknown as { _chattelId: string })._chattelId = id;
   chattelRows.push({ _id: id, chattelId: id, owner, place: "", titledAt: 1 });
   const reg = makeStuffAtPath(() => new ChattelRegistry(), TemplatePaths.chattelRegistry);
-  await reg.postRegister();
+  await reg.onCreate();
 }
 const OUTFIT_OWNER = { kind: "organization", templatePath: OUTFIT };
 const ALICE_OWNER = { kind: "player", templatePath: "/platform/agent/Avatar/alice" };

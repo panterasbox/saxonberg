@@ -32,7 +32,7 @@ function stubDisciplineTemplates(seeds: Loose[]): void {
 async function warmCatalogue(seeds: Loose[]): Promise<DisciplineCatalogue> {
   stubDisciplineTemplates(seeds);
   const cat = makeStuff(() => new DisciplineCatalogue());
-  await cat.postRegister();
+  await cat.onCreate();
   return cat;
 }
 
@@ -152,7 +152,7 @@ describe("DisciplineCatalogue", () => {
     expect(cat.getRequires("mixology")).toEqual(["recipe-knowledge"]);
   });
 
-  it("cold state (postRegister never awaited) degrades to no-such-Discipline", () => {
+  it("cold state (onCreate never awaited) degrades to no-such-Discipline", () => {
     const cat = makeStuff(() => new DisciplineCatalogue());
     expect(cat.getDiscipline("mixology")).toBeNull();
     expect(cat.has("mixology")).toBe(false);
@@ -166,7 +166,7 @@ describe("DisciplineCatalogue", () => {
     expect(cat.has("mixology")).toBe(false);
     stubDisciplineTemplates(SEED);
     cat.invalidateCache();
-    await cat.postRegister();
+    await cat.onCreate();
     expect(cat.has("mixology")).toBe(true);
   });
 

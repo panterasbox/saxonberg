@@ -130,7 +130,7 @@ describe("work verbs", () => {
     await makeStuffAtPath(
       () => new ChattelRegistry(),
       "/platform/idea/ChattelRegistry",
-    ).postRegister();
+    ).onCreate();
     room = makeStuffAtPath(() => new TestRoom(), HERE);
     dest = makeStuffAtPath(() => new TestRoom(), DEST);
     board = makeStuffAtPath(() => new JobBoard(), BOARD);

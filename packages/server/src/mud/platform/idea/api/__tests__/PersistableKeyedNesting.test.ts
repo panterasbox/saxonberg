@@ -26,7 +26,6 @@ import { Idea } from "../../../../lib/stuff/Idea";
 import type { Stuff } from "../../../../lib/stuff/Stuff";
 import { ContainerMixin } from "../../../../lib/spatial/Container";
 import { ContainableMixin } from "../../../../lib/spatial/Containable";
-import { PostRegistrationMixin } from "../../../../lib/stuff/PostRegistration";
 import { makeStuffAtPath } from "../../../../lib/security/__tests__/test-setup";
 import type { FieldMeta } from "../../../../lib/mixin";
 
@@ -34,7 +33,7 @@ import type { FieldMeta } from "../../../../lib/mixin";
 
 // A persistable room-shaped outer host.
 class Room extends PersistableMixin(
-  ContainerMixin(PostRegistrationMixin(Idea)),
+  ContainerMixin(Idea),
 ) {
   static fieldMeta: FieldMeta = {
     label: { persistent: true },
@@ -51,7 +50,7 @@ class Room extends PersistableMixin(
 // A nestable persistable host — many instances share this one template,
 // each keyed per instance (the plant/pet shape Wave 2 unlocks).
 class KeyedChest extends PersistableMixin(
-  ContainerMixin(ContainableMixin(PostRegistrationMixin(Idea))),
+  ContainerMixin(ContainableMixin(Idea)),
 ) {
   static fieldMeta: FieldMeta = {
     label: { persistent: true },
@@ -92,8 +91,8 @@ async function mockClone(path: string): Promise<Stuff> {
   const inst = makeStuffAtPath(factory, path);
   if (MixinApi.isPersistable(inst)) {
     await (
-      inst as unknown as { postRegister: () => Promise<void> }
-    ).postRegister();
+      inst as unknown as { onCreate: () => Promise<void> }
+    ).onCreate();
   }
   return inst;
 }

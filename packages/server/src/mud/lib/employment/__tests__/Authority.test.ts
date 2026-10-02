@@ -144,7 +144,7 @@ async function bootOfficeRegistry(): Promise<OfficeRegistry> {
     () => new OfficeRegistry(),
     '/platform/idea/OfficeRegistry',
   );
-  await reg.postRegister();
+  await reg.onCreate();
   CompactApi._resetOfficeRegistryRefForReload();
   return reg;
 }
@@ -193,7 +193,7 @@ async function warmGovernment(): Promise<void> {
     () => new GovernmentCatalogue(),
     '/platform/idea/GovernmentCatalogue',
   );
-  await cat.postRegister();
+  await cat.onCreate();
 }
 
 /* ───────────────────────── the tests ───────────────────────── */

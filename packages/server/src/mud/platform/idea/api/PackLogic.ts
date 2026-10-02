@@ -3848,7 +3848,7 @@ function siblingsOf(pack: ResolvedPack, packRoots?: string[]): ReadPack[] {
 /**
  * PackLogic — the hot-reloadable logic singleton behind {@link PackApi}.
  *
- * A stateless `Stuff` singleton (no `PostRegistrationMixin`) at
+ * A stateless `Stuff` singleton (no `onCreate` override) at
  * `/platform/idea/api/pack`. All real work lives in module-level functions (the
  * `CraftingLogic` precedent) so there are no intra-singleton `this.x()`
  * calls to trip the gate; each public method carries the `FromModule` gate.

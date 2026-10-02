@@ -2,7 +2,7 @@
 # shelf goods (a Container/Vessel), prices them (PricedOffer — Law 1, worth on
 # the offer not the good), attends its customers (Attendant — instant/scrum,
 # no wait for the newcomer path), and tops itself back to par on the game-time
-# reset sweep (Resettable). It stocks itself to par on standup (postRegister →
+# reset sweep (Resettable). It stocks itself to par on standup (onCreate →
 # reset). The Business stands up lazily off `operatingLocations` (this path).
 #
 # ⭐ The store sells INPUTS and conveniences — a torch, rations, a

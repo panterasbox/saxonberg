@@ -389,17 +389,12 @@ export function BondedMixin<TBase extends MixinConstructor>(Base: TBase) {
      * the collie's is the farm. After that it moves only by being fed
      * somewhere else for days — see {@link creditHomeCandidate}.
      *
-     * ⚠ Chains super first: `Behaved.postRegister` wires the brains, and
+     * ⚠ Chains super first: `Behaved.onCreate` wires the brains, and
      * a brain that fires before home exists would read `''` and treat the
      * animal as having nowhere to go.
      */
-    public async postRegister(context?: unknown): Promise<void> {
-      const sup = (
-        Base.prototype as {
-          postRegister?: (c?: unknown) => unknown | Promise<unknown>;
-        }
-      ).postRegister;
-      if (typeof sup === 'function') await sup.call(this, context);
+    public async onCreate(context?: unknown): Promise<void> {
+      await super.onCreate(context);
       const self = this as unknown as Stuff;
       // ⭐⭐ Warm its own species. Every dial the bond reads — `feedingStyle`,
       // `biddability`, `handlingRange` — is on a lazy-loaded Species row,

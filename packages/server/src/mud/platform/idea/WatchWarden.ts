@@ -1,5 +1,5 @@
 /**
- * ⭐⭐ WatchWarden — the singleton whose `postRegister` arms the **watch
+ * ⭐⭐ WatchWarden — the singleton whose `onCreate` arms the **watch
  * reconcile**: the sweep that pays a guard for standing at their post.
  *
  * The `AttendantWarden` shape (self-warming; the boot()-retirement
@@ -33,7 +33,6 @@
  */
 
 import { Idea } from "../../lib/stuff/Idea";
-import { PostRegistrationMixin } from "../../lib/stuff/PostRegistration";
 import { ContractApi } from "../../api/contract";
 import { ScheduleApi } from "../../api/schedule";
 import { AppApi } from "../../api/app";
@@ -54,7 +53,7 @@ function readInt(key: string, fallback: number): number {
   }
 }
 
-const WatchWardenBase = PostRegistrationMixin(Idea);
+const WatchWardenBase = Idea;
 
 export default class WatchWarden extends WatchWardenBase {
   /** Residency veto — the armed sweep; a culled singleton re-arms nothing. */
@@ -69,7 +68,7 @@ export default class WatchWarden extends WatchWardenBase {
     };
   }
 
-  public override async postRegister(_context?: unknown): Promise<void> {
+  public override async onCreate(_context?: unknown): Promise<void> {
     await this.warm();
   }
 

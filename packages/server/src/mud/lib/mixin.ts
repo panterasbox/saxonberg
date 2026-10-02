@@ -258,7 +258,6 @@ export const Mixins = {
   MechanicalMovement: 'MechanicalMovementMixin',
   AroundSaveHook: 'AroundSaveHookMixin',
   AroundDeleteHook: 'AroundDeleteHookMixin',
-  PostRegistration: 'PostRegistrationMixin',
   HasInteractive: 'HasInteractiveMixin',
   ClientState: 'ClientStateMixin',
   SaxonbergClient: 'SaxonbergClientMixin',
