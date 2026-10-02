@@ -2,7 +2,7 @@
 recipeId: cuba-libre
 name: Cuba libre
 keywords: [cuba-libre, rum-and-coke]
-discipline: bartending
+discipline: mixology
 difficulty: easy
 inputSlots:
 - { slot: base, category: rum, minGrade: fair, measureL: 0.05 }

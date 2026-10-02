@@ -30,9 +30,24 @@ import {
   DialoguePartnerHold,
   DIALOGUE_CONVERSATION_TYPE,
 } from "../npc/DialogueConversation";
+import type { AbortReason } from "@saxonberg/types";
+import type { TaskKind } from "./Urgency";
 
 export const brain = class {
   static label = "tree-dialogue";
+  static kind: TaskKind = "social";
+  static summary =
+    "Runs an authored dialogue tree as a conversation, through the " +
+    "`talk` verb and the private choice wheel.";
+  /**
+   * ⭐⭐ **Nothing interrupts a conversation with a player.** This is the
+   * first real use of a field nothing had ever read, and it is the one
+   * place where the answer is plainly `[]`: an NPC that walked off
+   * mid-sentence because its own next beat found something it liked
+   * better would be the arbiter leaking into the fiction. A call cannot
+   * cut it either — the patron waits, as patrons do.
+   */
+  static interruptibleBy: readonly AbortReason[] = [];
   static claims: readonly EngagementSlot[] = ["voice", "attention"];
 
   /**

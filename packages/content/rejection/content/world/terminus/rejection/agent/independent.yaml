@@ -44,7 +44,7 @@ data:
     - /world/terminus/rejection/thing/glowcap-jar
   behaviors:
     - brain: /trade/mining/behavior/delves
-      trigger: cadence:90s
+      trigger: candidate
       config:
         home: /world/terminus/rejection/location/fringe-claim
         shelf: /world/terminus/rejection/thing/assay-counter

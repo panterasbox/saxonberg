@@ -40,7 +40,7 @@ data:
     - { disposition: sociability, valence: -40 }
   behaviors:
     - brain: /lib/behavior/idles
-      trigger: cadence:40s
+      trigger: candidate
       config:
         pool:
           - { kind: free, value: "turns a page of the register and squares it with two fingers." }

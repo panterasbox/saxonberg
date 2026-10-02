@@ -33,7 +33,7 @@ data:
     - { discipline: distilling, asserting: novice }
   behaviors:
     - brain: /trade/shopkeeping/behavior/consigns
-      trigger: cadence:4m
+      trigger: candidate
       config:
         stock: /world/terminus/goods-yards/veshko/thing/stock
         shelf: /world/terminus/counting-houses/distributor/thing/counter
@@ -58,8 +58,15 @@ data:
           spirit:rum-light: 7
           spirit:rum-dark: 8
           spirit:tequila: 8
+    - brain: /lib/behavior/greets
+      trigger: arrival
+      config:
+        lines:
+          - "Yard's busy. Keep to the left."
+          - "Deliveries round the side."
+          - "Something you need?"
     - brain: /lib/behavior/idles
-      trigger: cadence:43s
+      trigger: candidate
       config:
         pool:
           - { kind: free, value: "checks a pallet count against a clipboard." }

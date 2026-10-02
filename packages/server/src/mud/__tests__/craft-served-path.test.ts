@@ -35,6 +35,7 @@ import { NamedMixin } from '../lib/description/Named';
 import { EmployedMixin } from '../lib/employment/Employed';
 import { makeStuff, makeStuffAtPath } from '../lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../lib/persistence/__tests__/quantity-marshaller-test-helpers';
+import BusinessEntity from '../platform/idea/Business';
 
 const SCALE = 12;
 let real = 0;
@@ -75,10 +76,13 @@ const VERMOUTH = '/stuff/idea/material/spirit/vermouth';
 const MARTINI_MAT = '/stuff/idea/material/cocktail/martini';
 const GLASS = '/trade/hospitality/thing/coupe';
 const DAVE = '/world/lounge/dave-test';
+const SELF = '/world/lounge/self-test';
 
 class TestRoom extends ContainerMixin(Idea) {
   static _mixinName = 'TestRoom';
 }
+const TEST_HOUSE = '/world/lounge/idea/business-served-test';
+
 class TestBartender extends EmployedMixin(NamedMixin(ContainableMixin(Idea))) {
   static _mixinName = 'TestBartender';
   // ⭐ Stands in for an on-shift holder of a `fulfills` seat. The real
@@ -185,7 +189,28 @@ beforeEach(async () => {
   await catalogue.warm();
 
   room = makeStuff(() => new TestRoom());
-  ContainmentApi.move(makeStuffAtPath(() => new TestBartender(), DAVE), room);
+  const dave = makeStuffAtPath(() => new TestBartender(), DAVE);
+  ContainmentApi.move(dave, room);
+  // ⭐⭐ The fixture needs a HOUSE. Under the agent-coordination build, WHICH
+  // able maker serves is the house's decision — `resolveMaker` hands the able
+  // set to `house.callFor(...)` — so a maker with no resolvable organization
+  // is refused rather than served. The old resolver picked the lowest
+  // identity path with no house involved at all, which handed every tie to
+  // the player.
+  const house = makeStuffAtPath(() => new BusinessEntity(), TEST_HOUSE);
+  house.positions = [
+    { key: 'bartender', label: 'tending bar', wageRate: 1, fulfills: ['mixology'] },
+  ];
+  house.setCall('rota');
+  (dave as unknown as { employments: unknown[] }).employments = [
+    {
+      organizationPath: TEST_HOUSE,
+      positionKey: 'bartender',
+      status: 'on-shift',
+      hiredAt: 0,
+      onShiftSince: 0,
+    },
+  ];
   ContainmentApi.move(makeBottle(GIN, 'fine'), room);
   ContainmentApi.move(makeBottle(VERMOUTH, 'fair'), room);
   // The glass pool: one clean coupe of the recipe's output form in reach.
@@ -240,5 +265,76 @@ describe("Dave's Bar — order, drink, feel it", () => {
 
     advance(patron, 1800); // ~30 game-min: the dose absorbs
     expect(patron.getBAC().rawValue()).toBeGreaterThan(before);
+  });
+});
+
+/**
+ * ⭐⭐ **Somebody else if anybody else; otherwise yourself.**
+ *
+ * `presentFulfillers` used to exclude the asker outright, which read as
+ * modest and was in fact a dead end: the distilling yard's own hand, stood
+ * on its own floor in its own seat, asking a room containing nobody else,
+ * got "there's no one on hand to make that" — so `cellars`' crush leg could
+ * never have worked. The asker is now the LAST answer, never the first, so
+ * a patron in a staffed bar is still never served by themselves.
+ */
+describe('resolveMaker — the asker is the last fulfiller, not an excluded one', () => {
+  it('somebody else serves when somebody else is there', async () => {
+    const asker = makeStuffAtPath(() => new TestBartender(), SELF);
+    (asker as unknown as { employments: unknown[] }).employments = [
+      {
+        organizationPath: TEST_HOUSE,
+        positionKey: 'bartender',
+        status: 'on-shift',
+        hiredAt: 0,
+        onShiftSince: 0,
+      },
+    ];
+    ContainmentApi.move(asker, room);
+
+    const outcome = await ExecutionContextApi.runRoot(null, 'test', () => {
+      ExecutionContextApi.tagActingAuthor(asker);
+      return CraftingApi.craft({
+        recipeRef: 'martini',
+        makerMode: 'fulfilling-bartender',
+      });
+    });
+    expect(outcome.ok).toBe(true);
+    if (!outcome.ok) return;
+    expect(
+      (outcome.output as unknown as { getMaker(): string }).getMaker(),
+    ).toBe(DAVE);
+  });
+
+  it('and the only able person in the room, asked, is the answer', async () => {
+    // Nobody else able is present — the fallback leg, and the only reason
+    // a lone hand can work its own station on its own ask.
+    const dave = StuffApi.findByTemplatePath(DAVE);
+    if (dave) StuffApi.destruct(dave);
+
+    const asker = makeStuffAtPath(() => new TestBartender(), SELF);
+    (asker as unknown as { employments: unknown[] }).employments = [
+      {
+        organizationPath: TEST_HOUSE,
+        positionKey: 'bartender',
+        status: 'on-shift',
+        hiredAt: 0,
+        onShiftSince: 0,
+      },
+    ];
+    ContainmentApi.move(asker, room);
+
+    const outcome = await ExecutionContextApi.runRoot(null, 'test', () => {
+      ExecutionContextApi.tagActingAuthor(asker);
+      return CraftingApi.craft({
+        recipeRef: 'martini',
+        makerMode: 'fulfilling-bartender',
+      });
+    });
+    expect(outcome.ok).toBe(true);
+    if (!outcome.ok) return;
+    expect(
+      (outcome.output as unknown as { getMaker(): string }).getMaker(),
+    ).toBe(SELF);
   });
 });

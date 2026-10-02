@@ -30,6 +30,7 @@ import Material from '@saxonberg/server/mud/lib/material/Material';
 import Ingot from '@saxonberg/server/mud/platform/thing/Ingot';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { CommandContext } from '@saxonberg/server/mud/api/command';
+import BusinessEntity from '@saxonberg/server/mud/platform/idea/Business';
 import {
   TestActor,
   TestKnife,
@@ -59,6 +60,56 @@ class TestSmithNpc extends EmployedMixin(TestActor) {
   isFulfilling(): boolean {
     return true;
   }
+
+  /**
+   * ⭐⭐ And the competence seam, stubbed the same way — because the
+   * agent-coordination build made the maker's ABILITY part of the answer.
+   *
+   * `canMake` asks two questions: have you made this before (a chronicle
+   * deed), or did your **dossier** license work of this difficulty
+   * (`seededBandFor`). A stand-in with no dossier answers the FLOOR, which
+   * licenses nothing — so without this the smithy's smith cannot forge, and
+   * that is correct rather than a bug: an authored person who was never
+   * written as a smith is not one.
+   *
+   * A real `Cast` row carries `competence:` and the seeder writes the claim
+   * rows this folds. Here the fulfiller is scenery, so it asserts its band
+   * directly.
+   */
+  async seededBandFor(): Promise<'expert'> {
+    return 'expert';
+  }
+}
+
+/**
+ * ⭐⭐ The stand-in smith needs a HOUSE. Under the agent-coordination build
+ * *which* able maker serves is the house's decision — `resolveMaker` hands
+ * the able set to `house.callFor(...)` — so a fulfilling maker with no
+ * resolvable organization is refused rather than served, and `order` is not
+ * "ungated" so much as *answered by a house*.
+ *
+ * ⚠ The claim this test makes is unchanged and still the right one: a
+ * patron who has never forged anything can ORDER a belt-knife, because the
+ * deed gate applies to the MAKER and not to the person asking. What changed
+ * is that the maker has to belong to somebody.
+ */
+const LADDER_HOUSE = '/world/terminus/hearthworks/idea/business-ladder-test';
+
+function standUpLadderHouse(maker: Stuff): void {
+  const house = makeStuffAtPath(() => new BusinessEntity(), LADDER_HOUSE);
+  house.positions = [
+    { key: 'smith', label: 'at the anvil', wageRate: 1, fulfills: ['smithing'] },
+  ];
+  house.setCall('rota');
+  (maker as unknown as { employments: unknown[] }).employments = [
+    {
+      organizationPath: LADDER_HOUSE,
+      positionKey: 'smith',
+      status: 'on-shift',
+      hiredAt: 0,
+      onShiftSince: 0,
+    },
+  ];
 }
 
 /** Run a controller execute with `who` tagged as the acting author. */
@@ -145,10 +196,18 @@ describe('the knowledge ladder, generalized (wiki parity)', () => {
     expect(rejectedWith(await tryForge(builder), 'not-learned')).toBe(true);
 
     // `order` works for everyone throughout — a present maker fulfills.
-    ContainmentApi.move(
-      makeStuffAtPath(() => new TestSmithNpc(), '/obj/_test/ladder-smith'),
-      room,
+    // ⭐ Still the right claim, and sharper now: the deed gate applies to the
+    // MAKER, never to the person asking. A patron who has never forged
+    // anything orders a belt-knife and gets one, because a competent smith
+    // is standing there. What the build added is that the smith has to
+    // belong to a house (which calls them) and has to be able (which the
+    // stubs above supply).
+    const ladderSmith = makeStuffAtPath(
+      () => new TestSmithNpc(),
+      '/obj/_test/ladder-smith',
     );
+    standUpLadderHouse(ladderSmith as unknown as Stuff);
+    ContainmentApi.move(ladderSmith, room);
     const ordered = await ExecutionContextApi.runRoot(null, 'test', () => {
       ExecutionContextApi.tagActingAuthor(builder);
       return CraftingApi.craft({

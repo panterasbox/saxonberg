@@ -33,6 +33,7 @@ import { ContainableMixin } from '../../../../lib/spatial/Containable';
 import { NamedMixin } from '../../../../lib/description/Named';
 import { EmployedMixin } from '../../../../lib/employment/Employed';
 import { Stuff } from '../../../../lib/stuff/Stuff';
+import BusinessEntity from '../../Business';
 import {
   makeStuff,
   makeStuffAtPath,
@@ -53,6 +54,19 @@ class TestBartender extends EmployedMixin(NamedMixin(ContainableMixin(Idea))) {
     return true;
   }
 }
+
+/**
+ * ⭐⭐ The fixture gained a HOUSE, because under the agent-coordination
+ * build *which* able maker serves is the house's decision: `resolveMaker`
+ * hands the able set to `house.callFor(...)`, and a maker with no
+ * resolvable organization is refused rather than served.
+ *
+ * ⚠ That refusal is the mechanism working, not a break — the old resolver
+ * picked the lowest identity path with no house involved at all, which
+ * handed every tie to the player. A fixture that proves "the maker is the
+ * bartender" has to say which bartender, and only a house can.
+ */
+const TEST_HOUSE = '/world/lounge/idea/business-test';
 class TestPatron extends NamedMixin(ContainableMixin(Idea)) {
   static _mixinName = 'TestPatron';
 }
@@ -182,6 +196,21 @@ beforeEach(async () => {
   // The room: gin (fine) + vermouth (fair) bottles, a mixing glass, Dave.
   room = makeStuff(() => new TestRoom());
   bartender = makeStuffAtPath(() => new TestBartender(), DAVE);
+  // The house that calls him. `rota` because a fixture has no regulars.
+  const house = makeStuffAtPath(() => new BusinessEntity(), TEST_HOUSE);
+  house.positions = [
+    { key: 'bartender', label: 'tending bar', wageRate: 1, fulfills: ['mixology'] },
+  ];
+  house.setCall('rota');
+  (bartender as unknown as { employments: unknown[] }).employments = [
+    {
+      organizationPath: TEST_HOUSE,
+      positionKey: 'bartender',
+      status: 'on-shift',
+      hiredAt: 0,
+      onShiftSince: 0,
+    },
+  ];
   ContainmentApi.move(makeBottle(GIN, 'fine', 0.7), room);
   ContainmentApi.move(makeBottle(VERMOUTH, 'fair', 0.7), room);
   ContainmentApi.move(makeTool('mixing-glass'), room);

@@ -94,6 +94,9 @@ describe('the two functional species', () => {
       trigger: string;
     }>;
     expect(behaviors[0]!.brain).toBe('/trade/mining/behavior/reads-air');
-    expect(behaviors[0]!.trigger).toMatch(/^cadence:/);
+    // ⭐ A candidate, not a cadence: the bird joins its own one deliberation
+    // beat like every other agent. Its pacing is the `behavior.beat*Ms`
+    // dial now, not a number in this row.
+    expect(behaviors[0]!.trigger).toBe('candidate');
   });
 });

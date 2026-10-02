@@ -28,6 +28,14 @@ export interface RosterAssignment {
   assignee: string;
   /** The shift windows the assignee works. */
   schedule: ShiftEntry[];
+  /**
+   * ⭐ Where this assignee stands while on shift — a location templatePath.
+   * Absent ⇒ the business's first operating location, so every shipped
+   * row stays valid. A shift is SOMEWHERE, and for a house that operates
+   * two rooms (the Hearthworks smithy and cookhouse) the seat is what
+   * says which.
+   */
+  station?: string;
 }
 
 /** A decomposed game-time — the fields the shift match consults. */
@@ -87,6 +95,9 @@ function coerceAssignment(raw: unknown): RosterAssignment {
   return {
     positionKey: String(r.positionKey ?? ''),
     assignee: String(r.assignee ?? ''),
+    ...(typeof r.station === 'string' && r.station
+      ? { station: r.station }
+      : {}),
     schedule: schedule.map((e) => {
       const entry = (e ?? {}) as Partial<ShiftEntry>;
       const hours = Array.isArray(entry.hours) ? entry.hours : [0, 0];

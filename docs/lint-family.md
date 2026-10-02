@@ -739,6 +739,34 @@ recurring shape.
   vocabulary, and a **census-then-ratchet** on dossier-less `Cast` rows —
   censused at 33, driven to **0** by the content pass in the same build.
 
+  ⭐⭐ **Rule 6 — assert-vs-REQUIRE** (agent-coordination, 2026-10-01).
+  Beside rule 4's *is the written band derivable*, this asks the other
+  direction: **is the trade this person is actually put to work at a trade
+  they claim anything in?** The source is **seats, and only seats** — every
+  house's `positions` × `rosterSlots`, so an assignee inherits its seat's
+  `fulfills` list. A seat is the house's promise to a patron that this
+  person can do the work, and `isFulfilling` → `canMake` → `seededBandFor`
+  is that promise tested against **the dossier alone** (claim rows only,
+  unsuppressed — a deed cannot stand in for it). Exact keys, never through
+  `specializes`: `seededBandFor` folds the rows for the key it is handed, so
+  a parent claim is not a child claim and the reverse is equally false.
+
+  ⚠ **Not brains**, though the first cut read them and found ten more rows.
+  A brain's `static discipline` is the channel its act *credits*, not a band
+  its act requires, and every pack path that does read a band reads
+  `competenceBandFor` — the whole Transcript, deeds included — so a brain
+  with no seeded claim still works and still earns. Reading them would have
+  flagged a **farm dog** for claiming no stockmanship.
+
+  Censused at **3** and fixed to **0** in the same build: the distilling
+  yard's only hand held a seat fulfilling `[distilling, fermenting]` and
+  asserted *no fermenting claim at all*, so its floor could never crush a
+  wash; Quist's farm promised `cooking` and the mill promised `baking` off
+  holders who claimed neither. ⭐ Each one read as **a staffed seat** from
+  every direction except the only one that mattered. `lint:menu-staff` is
+  the same omission seen from the offer side, and fixing these three
+  dropped its shortfall from **11 to 3**.
+
 ⚠ `lint:dossiers` deliberately does **not** fold renown: its derive is
 not a pure function of its seeds (AppSettings' value function, the Emote
 documents' valences, the world clock), so the build-time fold that makes
@@ -1160,3 +1188,73 @@ resolve*. `apply` and `clock` shipped with their views, their affordances
 and fifteen green controller tests, and died on dispatch — found on the
 third checkpoint of a live drive. This is the **data** link of the
 reachability chain, and it had no gate until now.
+
+### `lint:idle-cadence` — what the realm costs when nobody is looking
+
+⭐⭐ Σ **60 000/interval** over every `trigger: cadence:` spec in the content
+tree, plus one nightly beat per row that arms one. **Nothing had ever added
+it up**, and a row dropping a `cadence:2s` on a brain nobody watches was
+indistinguishable from a row doing the right thing.
+
+Census-then-ratchet: **263.2 → 0 fires/min from authored timers** across the
+agent-coordination build, which moved every deliberative brain onto one beat
+per agent. **Zero authored `cadence:` specs remain**, so the realm's idle cost
+is one number an operator turns (`behaviorBeatNightlyMs`).
+
+⚠⚠ **The ratchet counts the TIMERS and deliberately not the beat — and the
+first version got this wrong.** It charged both, reached 17 (34 agents × the
+120 s dial), and then a merge from master arrived with two new agents — a
+public-works warden and an oilworks hand — and the census went **17 → 18 with
+no timer added anywhere.** ⭐ A ratchet over a figure that scales with content
+size is *a bare COUNT as a permanent gate*: it refuses an NPC for existing,
+and the author it refuses is the one doing the right thing. So the meter
+split — the `cadence:` sum ratchets (at 0) and the beat total is measured,
+reported and checked per-agent at most one each. **The lesson generalizes:
+before ratcheting a number, ask what else moves it.**
+
+It also gates the brain declarations a `candidate` spec needs: `kind` in the
+vocabulary, a `summary` that is not the filename, `claims` on any
+work/body/threat brain, a `discipline` that resolves to a shipped row, a
+`candidate` spec whose brain declares `urgency`, and (the other direction) a
+brain declaring `urgency` still wired on a `cadence:` of its own.
+
+⚠ **Its first run found five shipped specs with no `trigger:` at all** —
+`_parseTrigger(undefined)` throws, the spec is skipped with a warning, and so
+nobody in the Terminus infirmary had ever been nursed.
+
+⚠⚠ And a gate bug worth copying the fix from: the Discipline walk was first
+rooted at `packages/content`, which descends into every pack's
+`node_modules`, where the workspace symlinks make it unbounded — **the gate
+hung rather than failing**, which is the worst way for a gate to be wrong.
+Walk each pack's `content/` subtree only.
+
+### `lint:menu-staff` — can the house make what the house offers?
+
+⭐⭐ A menu is a promise. For every offered recipe, is there somebody on this
+house's roster holding a seat that fulfils the recipe's Discipline (through
+the `specializes` walk) whose **authored dossier** licenses work of that
+difficulty? The derivation runs `Competence.seedRunFor` for real — the same
+arithmetic the runtime gate applies — which is the only reason a promise
+about people can be checked at build time at all.
+
+⚠⚠ **It is not expected to reach zero, and that is the design.** Dave's Bar
+offers one `hard` cocktail nobody on the rail can mix; a bar offering a drink
+none of its staff can make is a **standing vacancy for a skilled
+mixologist**, which is the mechanism, not a defect. The gate's job is to keep
+saying so.
+
+⭐ **Today's three, after the ratchet** — the mojito, a `hard` roast at the
+Hearthworks, and a tailoring line on a *smithy's* menu. All three are
+standing vacancies the realm means to keep. The census opened at **eleven**,
+and the eight that went were not vacancies at all but the same authoring
+omission `lint:dossiers` rule 6 catches from the roster side: three yard
+hands `novice` against the only difficulty their own board offers, and a
+distilling hand with no fermenting claim whatever. ⚠ **A producer that
+cannot run its own still is a defect, not a job opening** — which is the
+line that tells the two apart, and the reason the ceiling is a judgment
+rather than a burn-down.
+
+It also gates, at ceiling zero: a recipe `difficulty` outside `DIFFICULTIES`,
+a `call:` outside `CALL_POLICIES`, and ⭐ **a house with a `fulfills` seat and
+no `call:`** — which would decline every order it ever received.
+

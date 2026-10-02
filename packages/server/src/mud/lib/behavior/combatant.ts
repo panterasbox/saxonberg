@@ -29,9 +29,14 @@ import { SpeciesApi } from "../../api/species";
 import type { Combatant } from '../combat/Combatant';
 import type { Stuff } from '../stuff/Stuff';
 import { MixinApi } from '../../api/mixin';
+import type { TaskKind } from './Urgency';
 
 export const brain = class {
   static label = "combatant";
+  static kind: TaskKind = "threat";
+  static summary =
+    "Picks the next gambit inside a fight — press, exploit an opening, " +
+    "or feint a patient turtle. Invoked by the session, not by a trigger.";
   static claims: readonly EngagementSlot[] = ["body"];
 
   static act(ctx: BrainContext): void {

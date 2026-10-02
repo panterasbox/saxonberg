@@ -55,7 +55,7 @@ data:
     # prices, and two people on two wage rates buy different bread on the
     # same morning with nothing anywhere labelling either of them.
     - brain: /lib/behavior/eats
-      trigger: cadence:90s
+      trigger: candidate
       config:
         counter: /world/terminus/market/thing/bread-counter
         fromHour: 6
@@ -70,7 +70,7 @@ data:
           - "\"Trade only, mind — but if you're buying for a house, the board's the board.\" Tam taps the chalk on the counter."
           - "\"Everything on the shelf came in on consignment. You want to know whose, look at the label.\""
     - brain: /lib/behavior/idles
-      trigger: cadence:23s
+      trigger: candidate
       config:
         pool:
           - { kind: free, value: "chalks a fresh ask on the board and rubs out an old one with her thumb." }

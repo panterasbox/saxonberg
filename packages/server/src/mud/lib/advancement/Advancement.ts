@@ -281,6 +281,12 @@ export interface Advancing {
   creditDeed(subcheck: Subcheck, opts?: RecordOptions): Promise<void>;
   transcriptEntries(discipline?: string): Promise<TranscriptEntry[]>;
   competenceBandFor(discipline: string): Promise<CompetenceBandName>;
+  /**
+   * ⭐⭐ What this character's **authored dossier** licensed in one
+   * Discipline — folded from `claim`-kind Transcript rows only, so a player
+   * (who has none) answers the floor. See the implementation.
+   */
+  seededBandFor(discipline: string): Promise<CompetenceBandName>;
   bestBandFor(disciplines: string[]): Promise<CompetenceBandName>;
   competenceBands(): Promise<DisciplineBand[]>;
   conferredVerbs(): Promise<string[]>;
@@ -524,6 +530,48 @@ export function AdvancementMixin<TBase extends MixinConstructor<Stuff>>(
         discipline,
       });
       return this.suppressed(Competence.bandOf(entries));
+    }
+
+    /**
+     * ⭐⭐⭐ **What this character's AUTHORED HISTORY licensed** — the band
+     * folded from `kind: 'claim'` Transcript rows only.
+     *
+     * This is the seam that lets an authored person be competent at a trade
+     * without anybody simulating the years, and lets a player not be.
+     * Mara's dossier says `mixology: proficient`, which the seeder wrote as
+     * four `standard` successes marked `claim`; so she can mix a standard
+     * cocktail the first time anybody orders one, because *a person who has
+     * tended this bar for years has made a Manhattan before.*
+     *
+     * ⚠⚠ **A player answers the floor, and that is the point.** Only the
+     * dossier writes `claim` rows (advancement.md: *no consumer mints
+     * claims this increment*), so twenty hand-built gin-tonics raise a
+     * player's **lived** band — `competenceBandFor` — and license nothing
+     * by assertion. *The hands learn* stays literally true: a player earns
+     * a recipe by making it, every time, and nothing about an NPC's
+     * shortcut leaks into that.
+     *
+     * ⭐ So the two reads are deliberately different questions:
+     * `competenceBandFor` is *what you can currently express*;
+     * `seededBandFor` is *what was written down about you before you
+     * existed*. Nothing adds them together.
+     */
+    public async seededBandFor(
+      discipline: string
+    ): Promise<CompetenceBandName> {
+      if (!transcriptActive()) return CompetenceBand.FLOOR;
+      const ownerId = ownerKeyOf(this as unknown as Stuff);
+      if (!ownerId) return CompetenceBand.FLOOR;
+      const entries = await TranscriptEntry.find({
+        owner: ownerId,
+        discipline,
+        kind: 'claim',
+      });
+      // ⚠ NOT `suppressed()`. A body that is recovering expresses less than
+      // it knows, which is right for `competenceBandFor` and wrong here:
+      // what an author wrote down does not get worse because the character
+      // is hurt.
+      return Competence.bandOf(entries);
     }
 
     /**

@@ -26,13 +26,13 @@ data:
     # The edition: on a real cadence, skipping until the Schedule's game
     # hours have passed since the last one she remembers.
     - brain: /lib/behavior/prints
-      trigger: cadence:2m
+      trigger: candidate
       config:
         publisher: /world/terminus/gazette
     - brain: /lib/behavior/introduces
       trigger: arrival
     - brain: /lib/behavior/idles
-      trigger: cadence:53s
+      trigger: candidate
       config:
         pool:
           - { kind: free, value: "copies a price off a chalkboard into her notebook." }

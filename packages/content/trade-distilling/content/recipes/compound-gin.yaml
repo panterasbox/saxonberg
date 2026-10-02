@@ -4,7 +4,7 @@ recipeId: compound-gin
 name: Compound gin
 keywords: [gin, compound-gin]
 discipline: distilling
-difficulty: moderate
+difficulty: standard
 inputSlots:
 - slot: spirit
   category: neutral-spirit

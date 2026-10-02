@@ -23,7 +23,7 @@ data:
     - { discipline: colliery, asserting: novice }
   behaviors:
     - brain: /trade/shopkeeping/behavior/consigns
-      trigger: cadence:4m
+      trigger: candidate
       config:
         stock: /world/terminus/goods-yards/oilworks/thing/stock
         shelf: /world/terminus/counting-houses/distributor/thing/counter
@@ -36,7 +36,7 @@ data:
           # survives as a market price rather than a constant.
           fuel:lamp-oil: 80
     - brain: /lib/behavior/idles
-      trigger: cadence:41s
+      trigger: candidate
       config:
         pool:
           - { kind: free, value: "sounds a cask with two knuckles and listens." }

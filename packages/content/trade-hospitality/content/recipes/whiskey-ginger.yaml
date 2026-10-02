@@ -2,7 +2,7 @@
 recipeId: whiskey-ginger
 name: Whiskey ginger
 keywords: [whiskey-ginger]
-discipline: bartending
+discipline: mixology
 difficulty: easy
 inputSlots:
 - { slot: base, category: whiskey, minGrade: fair, measureL: 0.05 }

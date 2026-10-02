@@ -5,7 +5,7 @@ recipeId: distil
 name: Distil
 keywords: [distil, run]
 discipline: distilling
-difficulty: moderate
+difficulty: standard
 inputSlots:
 - slot: wash
   category: wash

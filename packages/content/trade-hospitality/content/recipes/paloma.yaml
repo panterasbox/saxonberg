@@ -2,7 +2,7 @@
 recipeId: paloma
 name: Paloma
 keywords: [paloma]
-discipline: bartending
+discipline: mixology
 difficulty: easy
 inputSlots:
 - { slot: base, category: tequila, minGrade: fair, measureL: 0.05 }

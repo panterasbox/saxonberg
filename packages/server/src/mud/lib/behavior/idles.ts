@@ -12,6 +12,8 @@
 
 import type { EngagementSlot } from '../activity/Engaged';
 import type { BrainContext, BrainStatics } from './brain';
+import { Urgency } from './Urgency';
+import type { TaskKind } from './Urgency';
 
 interface PoolEntry {
   kind?: string;
@@ -20,6 +22,16 @@ interface PoolEntry {
 
 export const brain = class {
   static label = 'idles';
+  static kind: TaskKind = 'filler';
+  static summary =
+    'Fills a quiet moment with one line of idle business from an ' +
+    'authored pool — a wipe of the rail, a muttered half-sentence.';
+  // ⭐ The floor of the ladder, and that is the whole job: `wanted`
+  // always, so an agent with nothing pressing still looks inhabited, and
+  // ANY other candidate that wants the beat takes it.
+  static urgency(): Urgency {
+    return new Urgency('wanted', 'turns back to the business of the room');
+  }
   // Yield while the host is mid-conversation (voice/attention held).
   static requiresFree: readonly EngagementSlot[] = ['voice', 'attention'];
 

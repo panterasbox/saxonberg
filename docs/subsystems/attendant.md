@@ -128,3 +128,13 @@ appointment/scheduling beyond FIFO + ticket; the full take-a-number "now serving
 dynamic-Detail board + ticket idle-expiry wiring; the lifted shared
 exclusive-lease primitive; player-run/player-staffed points; a client
 queue-position card; the self-service machine's cash ops.
+
+## ⭐ The supply-side twin exists now
+
+`AttendantMixin.resolveServer` answers *who is free to attend a queue* — the
+**demand** side, scoped to one storefront point. Its supply-side twin landed
+with the agent-coordination build: `Organization.callFor` answers *who among
+the able is called*, over a candidate set the caller filters, by a rule the
+house authors (`call: regulars | rota`). Same shape, opposite question; see
+[employment.md](./employment.md) § The call. The two have not been unified
+and should not be until a third consumer asks for it.

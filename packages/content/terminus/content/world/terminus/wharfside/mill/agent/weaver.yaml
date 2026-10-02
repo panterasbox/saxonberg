@@ -31,7 +31,7 @@ data:
     - { discipline: textiles, asserting: competent }
   behaviors:
     - brain: /trade/shopkeeping/behavior/consigns
-      trigger: cadence:120s
+      trigger: candidate
       config:
         stock: /world/terminus/wharfside/mill/thing/stock
         shelf: /world/terminus/general-store/counter

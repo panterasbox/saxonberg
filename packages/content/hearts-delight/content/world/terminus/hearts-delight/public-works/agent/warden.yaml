@@ -29,14 +29,14 @@ data:
     # ⭐ The procurement loop: read the par sheet, post the shortfall on the
     # works board, and rack what the carter leaves on the bench into the store.
     - brain: /lib/behavior/restocks
-      trigger: cadence:15m
+      trigger: candidate
       config:
         shelf: /world/terminus/hearts-delight/public-works/thing/store
         board: /trade/haulage/thing/works-board
         bench: /trade/haulage/thing/receiving-bench
         reward: 30
     - brain: /lib/behavior/idles
-      trigger: cadence:47s
+      trigger: candidate
       config:
         pool:
           - { kind: free, value: "checks the oil in the shed and marks his ledger." }

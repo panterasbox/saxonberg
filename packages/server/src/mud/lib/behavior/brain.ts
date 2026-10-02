@@ -25,13 +25,53 @@
  * — no re-spawn, no captured reference.
  */
 
+import type { AbortReason } from '@saxonberg/types';
 import type { Stuff } from '../stuff/Stuff';
 import type { EngagementSlot } from '../activity/Engaged';
+import type { Urgency } from './Urgency';
+import type { TaskKind } from './Urgency';
 import type { MessageFrame } from '@saxonberg/types';
 import type Interactive from '../../platform/idea/Interactive';
 
 /** The canonical export name a brain module marks itself with. */
 export const BRAIN_EXPORT = 'brain' as const;
+
+/**
+ * The two reasons a **deliberated** task stops, as a declaration-merge
+ * augmentation of the shared registry (the `lib/script/AbortReason.ts`
+ * shape — the engagement layer already registers `cancelled`/`replaced`/
+ * `preconditions-changed`/`host-destroyed`/`thrown`, and a pack may add
+ * its own the same way).
+ *
+ * - `called` — somebody with a claim on this agent's attention asked for
+ *   it. A patron ordered; the bartender sets down the crate.
+ * - `outranked` — the agent's own next beat found something that matters
+ *   more. Nobody asked; the agent changed its mind.
+ *
+ * ⚠⚠ **`interruptibleBy` had never been consulted by anything.** Every
+ * engagement in the tree declared a set and `SchedulerRegistry.cancel`
+ * cancelled unconditionally regardless; the deliberation beat and the
+ * call are the field's first readers. A beat that declares neither of
+ * these cannot be interrupted by either, which is now a statement with
+ * consequences.
+ */
+declare module '@saxonberg/types' {
+  interface AbortReasonRegistry {
+    called: true;
+    outranked: true;
+  }
+}
+
+/** The behavioural abort reasons, as a runtime array. */
+export const BEHAVIOR_ABORT_REASONS = ['called', 'outranked'] as const;
+
+/**
+ * What a reflex beat yields to when its brain says nothing: both of them.
+ * A brain that wants to be uninterruptible says `interruptibleBy: []` and
+ * means it.
+ */
+export const DEFAULT_BEAT_INTERRUPTIBLE: readonly AbortReason[] =
+  BEHAVIOR_ABORT_REASONS;
 
 /**
  * A single behavior spec — the unit of the host's `behaviors:` data
@@ -60,7 +100,7 @@ export interface BrainContext {
   config: Record<string, unknown>;
   state: Record<string, unknown>;
   perceived?: { frame: MessageFrame; subject?: Stuff };
-  trigger: { source: 'cadence' | 'witness'; raw: string };
+  trigger: { source: 'cadence' | 'witness' | 'candidate'; raw: string };
 
   // Emission helpers bound to the host (the framework supplies them so
   // brains stay free of mixin-narrowing boilerplate and the contract
@@ -106,6 +146,54 @@ export interface BrainStatics {
    * budget.
    */
   readonly ambient?: boolean;
+  /**
+   * ⭐ What KIND of act this is — read by the arbiter only to break a tie
+   * **within** an urgency band, and by the author palette to say what a
+   * brain is for. Optional so an un-migrated brain still type-checks;
+   * mandatory for any brain a row wires as a `candidate` (the
+   * `lint:idle-cadence` arm).
+   */
+  readonly kind?: TaskKind;
+  /**
+   * ⭐⭐ One sentence saying what this brain DOES, for the author palette.
+   * ⚠ Not the label: 38 brains shipped with `label` repeating the
+   * filename, so the palette could tell an author the name of a thing
+   * they had already typed and nothing else.
+   */
+  readonly summary?: string;
+  /** The Discipline this act exercises, when it exercises one. */
+  readonly discipline?: string;
+  /** Kinds of good this act brings into the world (for the chain walk). */
+  readonly produces?: readonly string[];
+  /** Kinds of good this act consumes. */
+  readonly consumes?: readonly string[];
+  /**
+   * What the host must compose for this brain to work at all — checked at
+   * wire time and failed loudly, like a bad trigger. A brain wired onto a
+   * host that cannot run it is otherwise a spec that does nothing forever.
+   */
+  readonly requires?: { readonly mixins?: readonly string[] };
+  /**
+   * What stops this act once it is running. ⚠ Empty means **nothing can**
+   * — not even a call. Omitted means {@link DEFAULT_BEAT_INTERRUPTIBLE}.
+   */
+  readonly interruptibleBy?: readonly AbortReason[];
+  /**
+   * ⭐⭐ **How much this brain wants the next beat, and why.** The
+   * deliberation seam: the agent asks every candidate once per beat and
+   * runs exactly one winner. Returning `new Urgency('idle')` means *not this
+   * beat* and is the common answer.
+   *
+   * Only the brain can answer it — a triage rank is readable only by
+   * `nurses`, a stomach only by `eats` — which is why this is a static on
+   * the brain and not a number in the row.
+   *
+   * ⚠ Async by design: the reads brains need (a metabolism reconcile, a
+   * transcript fold, a par sheet through perception) already are.
+   *
+   * @hook
+   */
+  urgency?(ctx: BrainContext): Urgency | Promise<Urgency>;
   /** The entry point the framework invokes when a wired trigger fires. */
   act(ctx: BrainContext): void | Promise<void>;
   /**
@@ -158,7 +246,13 @@ export type ParsedTrigger =
   // the spec surfaces the tree to the `talk` controller, warms the brain
   // path at wire time, and marks the host as conversational (the
   // discoverability signal). The brain is reached only via `open`.
-  | { source: 'engage' };
+  | { source: 'engage' }
+  // ⭐ `candidate` wires no timer of its own. The brain joins the host's
+  // ONE deliberation beat and is asked `urgency(ctx)` each time it runs;
+  // pacing stops being the row's business and becomes the agent's. A
+  // `candidate` spec over a brain declaring no `urgency` is skipped with
+  // a warning (and refused by `lint:idle-cadence`).
+  | { source: 'candidate' };
 
 /**
  * Witness alias → the frame `topic` (prefix) it observes on the host's

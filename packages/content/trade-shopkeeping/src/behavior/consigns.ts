@@ -80,6 +80,9 @@ import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable'
 import type { BrainContext, BrainStatics } from '@saxonberg/server/mud/lib/behavior/brain';
 import type { Employed } from '@saxonberg/server/mud/lib/employment/Employed';
 import Stock from '@saxonberg/server/mud/lib/retail/Stock';
+import { Urgency } from '@saxonberg/server/mud/lib/behavior/Urgency';
+import type { TaskKind } from '@saxonberg/server/mud/lib/behavior/Urgency';
+import type { EngagementSlot } from '@saxonberg/server/mud/lib/activity/Engaged';
 
 const DEFAULT_BATCH = 6;
 const DEFAULT_ASK = 10;
@@ -88,6 +91,14 @@ type Hand = Stuff & Mobile & Containable & Container & CommandGiver;
 
 export const brain = class {
   static label = 'consigns';
+  static kind: TaskKind = 'work';
+  static summary =
+    'Carries the outfit floor stock to a distributor counter and consigns it as the business, at the authored ask.';
+  static discipline = 'retail-sales';
+  static claims: readonly EngagementSlot[] = ['hands', 'body'];
+  static urgency(): Urgency {
+    return new Urgency('wanted', 'gathers up an armful of stock for the counter');
+  }
   static presenceGated = false;
   // Functional poller (moves stock), not ambient chatter — exempt from
   // the global ambient-cadence dial.

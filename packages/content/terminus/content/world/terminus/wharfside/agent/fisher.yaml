@@ -46,7 +46,7 @@ data:
     - brain: /lib/behavior/introduces
       trigger: arrival
     - brain: /trade/fishing/behavior/fishes
-      trigger: cadence:90s
+      trigger: candidate
       config:
         shore: /world/terminus/wharfside/thing/river-edge
     - brain: /trade/fishing/behavior/reads-water

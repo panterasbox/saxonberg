@@ -27,6 +27,10 @@ data:
     - "Keeps the stones trued and the cloth clean, and takes a tenth."
   competence:
     - { discipline: milling, asserting: proficient }
+    # ⭐ The mill's seat fulfils `baking` — he bakes from his own flour —
+    # and he claimed nothing in it. `competent` licenses the easy end.
+    # (lint:dossiers rule 6.)
+    - { discipline: baking, asserting: competent }
   dispositions:
     - { disposition: sociability, valence: 40 }
     - { disposition: composure, valence: 50 }
@@ -34,7 +38,7 @@ data:
     - brain: /lib/behavior/introduces
       trigger: arrival
     - brain: /lib/behavior/idles
-      trigger: cadence:45s
+      trigger: candidate
       config:
         pool:
           - { kind: free, value: "puts a hand flat on the bedstone, listening to it through her palm." }

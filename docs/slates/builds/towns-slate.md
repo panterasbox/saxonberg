@@ -558,10 +558,13 @@ no `tpa` lane.*
 **28 NPCs. Total. In the whole game.** 8 Terminus, 7 Rejection, 5 Lounge,
 4 wilds, 2 Hearthworks, 2 university. Not hundreds.
 
-And **the mechanism already ships.** `lib/behavior/shifts` is a two-state
-machine driven off the employment roster: `on-shift` → the workplace,
-`off-shift` → `Offstage`, a **no-exit holding room**, moved by `teleport`.
-Six NPCs run it today.
+And **the mechanism already ships.** ⚠ *Updated 2026-09-30:* it is no longer
+a brain — the agent-coordination build moved it onto the **roster tick**
+(`offstage:` on the Business, `station?` on the seat), because presence is a
+consequence of employment state and `shifts` was polling every 30 s to
+notice an hourly flip. Same two states, same `Offstage` no-exit holding
+room, same `teleport`; the schedule and the move now live together. See
+[employment.md](../../subsystems/employment.md) § Presence and cover.
 
 Now read what an `Offstage` room already says
 (`hearthworks/location/offstage.yaml`):
@@ -970,8 +973,10 @@ the seasons) — the compaction ledger has each with its pointer.*
   everything else keyed-minted from `house-programme`. `_governmentKey:
   hinkley-hills`. Tank is the District's first job (D27).
 - **28 agent rows total** across all packs.
-- **`shifts` brain** = `on-shift → workplace` / `off-shift → Offstage`,
-  via `teleport`, not presence-gated, `ambient = false`.
+- **The roster tick** = `on-shift → workplace` / `off-shift → Offstage`,
+  via `teleport`. ⚠ Was the `shifts` brain, RETIRED 2026-10-01 (MR !316):
+  relocation is not a decision an agent makes, so it belongs on the tick
+  that already knew the hours, not on a brain beating against the clock.
 - **`Offstage`** is `/platform/location/Offstage`, no `Exitable`,
   materialized on demand by `singletonOrClone`.
 - **Shift schedules**: only the Lounge, the budget, the general store and

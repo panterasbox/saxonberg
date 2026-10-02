@@ -691,7 +691,7 @@ So if you pay for roles, structure it not to break:
 
 *Superseded by the code: the role-slot with two agent-typed ends shipped
 as `EmployedMixin` on `Character` (employment.md), NPC job performance
-as the `shifts`/`covers` brains (behavior.md), and — contrary to "no
+as the roster tick's relocation and cover legs (behavior.md · employment.md; both were brains until MR !316), and — contrary to "no
 labor market to build" — a gig board did ship (`job`/`fulfill`,
 contract.md § The board). Labor disputes → the courts slate; labor
 policy → the legislature (amendment-library).*

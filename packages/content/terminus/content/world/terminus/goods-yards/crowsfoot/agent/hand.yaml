@@ -34,7 +34,15 @@ data:
   # is a content pass of its own before go-live.
   archetype: hand
   competence:
-    - { discipline: distilling, asserting: novice }
+    # ⭐ The bands are what the STILL BOOK asks for, not decoration.
+    # `distil`/`compound-gin`/`brandy`/`grappa` are all STANDARD, and only
+    # `proficient` licenses standard work — at `novice` this yard's own
+    # hand could not run this yard's own still, and the refusal arrived
+    # with the seat still reading as staffed. `fermenting` was absent
+    # altogether, so the easy `wash-mash` refused too and there was
+    # nothing for the still to take. (lint:dossiers rule 6.)
+    - { discipline: distilling, asserting: proficient }
+    - { discipline: fermenting, asserting: competent }
   behaviors:
     # The producing beat (fermentation W6): mash bought malt off the
     # still book, ferment the wash, RUN THE STILL when a back finishes
@@ -44,7 +52,7 @@ data:
     # beat below keeps carrying the FAUCET's cases until the W8
     # switchover.
     - brain: /lib/behavior/cellars
-      trigger: cadence:120s
+      trigger: candidate
       config:
         home: /world/terminus/goods-yards/crowsfoot/location/floor
         counterRoom: /trade/distribution/location/cash-and-carry
@@ -76,7 +84,7 @@ data:
           grappa: 11
           brandy: 14
     - brain: /trade/shopkeeping/behavior/consigns
-      trigger: cadence:4m
+      trigger: candidate
       config:
         stock: /world/terminus/goods-yards/crowsfoot/thing/stock
         shelf: /world/terminus/counting-houses/distributor/thing/counter
@@ -98,8 +106,15 @@ data:
           spirit:orange-liqueur: 22
           spirit:bitter-liqueur: 24
           spirit:aperitivo: 20
+    - brain: /lib/behavior/greets
+      trigger: arrival
+      config:
+        lines:
+          - "Help you?"
+          - "Mind the barrels by the door."
+          - "If you're after the counter, it's not here."
     - brain: /lib/behavior/idles
-      trigger: cadence:37s
+      trigger: candidate
       config:
         pool:
           - { kind: free, value: "squares a case on the pallet and chalks a tally on its side." }

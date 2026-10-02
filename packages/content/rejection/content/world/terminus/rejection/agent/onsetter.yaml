@@ -41,7 +41,7 @@ data:
     - { disposition: diligence, valence: 70 }
   behaviors:
     - brain: /lib/behavior/idles
-      trigger: cadence:50s
+      trigger: candidate
       config:
         pool:
           - { kind: free, value: "makes a mark on the tally board without looking at it." }

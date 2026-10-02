@@ -29,7 +29,7 @@ data:
   mass: 700
   behaviors:
     - brain: /lib/behavior/idles
-      trigger: cadence:70s
+      trigger: candidate
       config:
         pool:
           - { kind: free, value: "shifts a foot and lets its weight down again." }

@@ -156,6 +156,7 @@ data:
     - /trade/cooking/agent/hanging-carcass
   cast:
     - /world/terminus/hearthworks/agent/cook
+    - /world/terminus/hearthworks/agent/cookhand
   details:
     window:
       keywords: [window, glass, light]

@@ -229,7 +229,12 @@ describe('⚠⚠ the affordance links that failed closed and silent', () => {
     expect(row.data.behaviors.length).toBeGreaterThan(0);
     for (const spec of row.data.behaviors) {
       expect(typeof spec.trigger).toBe('string');
-      expect(String(spec.trigger)).toMatch(/^(cadence:\d+s|departure|arrival)$/);
+      // ⭐ `candidate` joined the vocabulary with the deliberation beat:
+      // a brain that knows how much it wants the next beat no longer runs
+      // a timer of its own.
+      expect(String(spec.trigger)).toMatch(
+        /^(cadence:\d+s|candidate|departure|arrival)$/,
+      );
       expect(spec.cadenceMs).toBeUndefined();
     }
   });

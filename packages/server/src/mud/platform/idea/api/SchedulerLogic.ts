@@ -152,9 +152,10 @@ export class SchedulerLogic extends ApiLogic {
   @CallSecurity(SchedulerApiCallers)
   public cancelByPredicate(
     actor: Stuff & Engaged,
-    pred: (e: Engagement) => boolean
+    pred: (e: Engagement) => boolean,
+    reason?: AbortReason
   ): void {
-    resolveRegistry().cancelByPredicate(actor, pred);
+    resolveRegistry().cancelByPredicate(actor, pred, reason);
   }
 
   /* ──────────────────── introspection ──────────────────── */

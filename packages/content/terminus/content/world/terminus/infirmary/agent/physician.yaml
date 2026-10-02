@@ -37,5 +37,8 @@ data:
   competence:
     - { discipline: medicine, asserting: proficient }
   behaviors:
-    - brain: /lib/behavior/shifts
-    - { brain: /trade/medicine/behavior/nurses, cadenceMs: 20000 }
+    # ⚠ This spec carried NO `trigger:` and a spec-level `cadenceMs: 20000`
+    # that the engine never reads, so `_parseTrigger(undefined)` threw and
+    # the spec was skipped with a warning at every wire: nobody in this
+    # infirmary has ever been nursed. `lint:idle-cadence` found it.
+    - { brain: /trade/medicine/behavior/nurses, trigger: candidate }

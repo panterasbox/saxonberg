@@ -40,6 +40,9 @@ import type { BrainContext, BrainStatics } from '@saxonberg/server/mud/lib/behav
 import type { Working, Face } from '../lib/Working';
 import { WORKING_MIXIN } from '../lib/Working';
 import type { Employed } from '@saxonberg/server/mud/lib/employment/Employed';
+import { Urgency } from '@saxonberg/server/mud/lib/behavior/Urgency';
+import type { TaskKind } from '@saxonberg/server/mud/lib/behavior/Urgency';
+import type { EngagementSlot } from '@saxonberg/server/mud/lib/activity/Engaged';
 
 /** Cuts per beat — a bound, like every loop here. */
 const DEFAULT_BATCH = 4;
@@ -52,6 +55,15 @@ type Hand = Stuff & Mobile & Containable & Container & CommandGiver;
 
 export const brain = class {
   static label = 'delves';
+  static kind: TaskKind = 'work';
+  static summary =
+    'Works a face, carries the take to the assay shed and consigns it — so supply is not a function of concurrency.';
+  static discipline = 'mining';
+  static produces: readonly string[] = ['ore'];
+  static claims: readonly EngagementSlot[] = ['hands', 'body'];
+  static urgency(): Urgency {
+    return new Urgency('wanted', 'spits on its hands and turns back to the face');
+  }
   // A functional producer (moves matter, feeds a smelter), not chatter:
   // its timing is load-bearing and it must run unwatched.
   static presenceGated = false;

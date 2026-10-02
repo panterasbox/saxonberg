@@ -19,6 +19,7 @@ import type { AbortReason } from '@saxonberg/types';
 import type { Stuff } from '../stuff/Stuff';
 import type { EngagementSlot, Engaged } from '../activity/Engaged';
 import type { DurativeActivity } from '../../api/scheduler';
+import { DEFAULT_BEAT_INTERRUPTIBLE } from './brain';
 
 export const BEHAVIOR_BEAT_TYPE = 'behavior-beat' as const;
 
@@ -28,7 +29,17 @@ export class BehaviorBeat implements DurativeActivity {
   readonly actor: Stuff & Engaged;
   startedAt = 0;
   readonly slots: ReadonlySet<EngagementSlot>;
-  readonly interruptibleBy: ReadonlySet<AbortReason> = new Set<AbortReason>();
+  /**
+   * ⭐ What stops this beat, **taken from the brain**. A beat is
+   * interruptible by what its brain says it is.
+   *
+   * ⚠⚠ Until the agent-coordination build this was an unconditionally
+   * empty set — and so was every other engagement's, because
+   * `SchedulerRegistry.cancel` never read the field at all. The
+   * deliberation beat and the call are its first readers, so an empty set
+   * now genuinely means *nothing interrupts this*.
+   */
+  readonly interruptibleBy: ReadonlySet<AbortReason>;
   readonly cancelable = true;
   readonly duration: number;
   readonly replaceableBy: readonly string[] = [];
@@ -36,11 +47,13 @@ export class BehaviorBeat implements DurativeActivity {
   constructor(
     actor: Stuff & Engaged,
     slots: readonly EngagementSlot[],
-    durationMs: number
+    durationMs: number,
+    interruptibleBy: readonly AbortReason[] = DEFAULT_BEAT_INTERRUPTIBLE
   ) {
     this.actor = actor;
     this.slots = new Set(slots);
     this.duration = durationMs;
+    this.interruptibleBy = new Set(interruptibleBy);
   }
 
   onStart(): void {

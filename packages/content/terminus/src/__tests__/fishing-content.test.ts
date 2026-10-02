@@ -73,7 +73,11 @@ describe('the fisher', () => {
       expect(b.trigger, b.brain).toBeTruthy();
     }
     const fishes = d.behaviors.find((b) => b.brain === '/trade/fishing/behavior/fishes')!;
-    expect(fishes.trigger).toMatch(/^cadence:/);
+    // ⭐ A candidate, not a cadence: `fishes` declares an `urgency` now, so it
+    // joins the fisher's ONE deliberation beat instead of running a timer of
+    // its own. Pacing is the `behavior.beat*Ms` dial, not a number in this
+    // row — which is what took the realm from 263.2 fires/min to 17.
+    expect(fishes.trigger).toBe('candidate');
     expect(rowExists(fishes.config!.shore as string)).toBe(true);
     const reads = d.behaviors.find((b) => b.brain === '/trade/fishing/behavior/reads-water')!;
     expect(reads.trigger).toBe('engage');
@@ -113,13 +117,25 @@ describe('the market', () => {
     expect(square.cast).toContain('/world/terminus/market/agent/fishmonger');
   });
 
-  it('⚠ the fishmonger\'s shift has a trigger and an Offstage that exists — the undertaker\'s defect, not repeated', () => {
-    const monger = data('/world/terminus/market/agent/fishmonger') as { behaviors: Array<{ brain: string; trigger?: string; config?: Record<string, string> }> };
-    const shifts = monger.behaviors.find((b) => b.brain === '/lib/behavior/shifts')!;
-    expect(shifts.trigger).toMatch(/^cadence:/);
-    expect(rowExists(shifts.config!.offstage!)).toBe(true);
-    expect(rowAt(shifts.config!.offstage!).class).toBe('/platform/location/Offstage');
-    expect(rowExists(shifts.config!.behindBar!)).toBe(true);
+  it('⚠ the market names an Offstage that EXISTS, and a station for the square — the undertaker\'s defect, not repeated', () => {
+    // ⭐ This used to read the fishmonger's `shifts` config. The brain is
+    // retired: presence is a consequence of employment state, so the
+    // off-shift room is the HOUSE's field and the on-shift room is the
+    // SEAT's. The thing worth asserting is unchanged — that both paths
+    // resolve to rows, because a path that resolves to nothing moves
+    // nobody and says nothing.
+    const biz = data('/world/terminus/market/business') as {
+      offstage?: string;
+      rosterSlots: Array<{ positionKey: string; station?: string }>;
+    };
+    expect(rowExists(biz.offstage!)).toBe(true);
+    expect(rowAt(biz.offstage!).class).toBe('/platform/location/Offstage');
+    const monger = biz.rosterSlots.find((s) => s.positionKey === 'monger')!;
+    expect(rowExists(monger.station!)).toBe(true);
+
+    // And the row itself no longer names the retired brain.
+    const row = data('/world/terminus/market/agent/fishmonger') as { behaviors: Array<{ brain: string }> };
+    expect(row.behaviors.map((b) => b.brain)).not.toContain('/lib/behavior/shifts');
   });
 });
 

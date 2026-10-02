@@ -85,6 +85,8 @@ export interface BusinessTrade {
   getAccountPath(): string;
   /** The bank branch custodying the operating account ('' = unauthored). */
   getBanksAt(): string;
+  /** Where this house's off-shift cast wait (a location path); empty ⇒ nowhere. */
+  getOffstage(): string;
   /** The charters this business holds (`bank` — it may lend and present paper at the window). */
   getCharters(): readonly Charter[];
   /** Does it hold `charter`? */
@@ -171,9 +173,34 @@ export function BusinessMixin<
       },
       banksAt: { persistent: true, authorable: true, authorPicker: 'Template' },
       parLines: { persistent: true, authorable: true },
+      offstage: {
+        persistent: true,
+        authorable: true,
+        authorPicker: 'Template',
+      },
       charter: { persistent: true, authorable: true },
       payrollArrears: { persistent: true },
     };
+
+    /**
+     * ⭐⭐ **Where this house parks its cast when they are off shift** — a
+     * location templatePath, resolved live (and materialized on demand).
+     * Empty ⇒ nobody is moved, which is what every house that never
+     * authored a `shifts` brain does today.
+     *
+     * ⚠ It is a field on the BUSINESS, not config on each person's row.
+     * It used to be the same two paths repeated in every cast member's
+     * `shifts` config — eight rows saying `offstage: /world/lounge/
+     * location/offstage` — which is the shape that lets one of them say
+     * something different by accident. Presence FOLLOWS employment, so
+     * the fact belongs to the employer.
+     */
+    public offstage: string = '';
+
+    /** Where this house's off-shift cast wait; empty ⇒ nowhere. */
+    public getOffstage(): string {
+      return this.offstage;
+    }
 
     /**
      * ⭐ The charters this business holds (economic bootstrap D19) — a

@@ -57,7 +57,7 @@ data:
           - "\"Opening an account? Just say the word — Mr. Halloran's through the back if you'd like to get set up.\""
           - "Wenna smiles the practised Goodkin smile. \"You're among friends here.\""
     - brain: /lib/behavior/idles
-      trigger: cadence:19s
+      trigger: candidate
       config:
         pool:
           - { kind: free, value: "squares a stack of forms against the counter." }

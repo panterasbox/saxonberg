@@ -9,7 +9,14 @@
 > when knowledge asymmetry is load-bearing · script emission · sponsorship
 > funding + the parity floor (the complete tree) · the cost levers
 > (witness gating · model tiering · prefix caching · Batch offline) · the
-> first experiment (one Dave's Bar NPC, one number)
+> first experiment (one Dave's Bar NPC, one number) · ⭐⭐ **the arbiter
+> override** — the attach point MR !316 left on purpose: `Behaved._deliberate`
+> sorts a `Candidate[]` (`{wiring, descriptor, urgency}`) through ONE
+> protected method `_arbitrate(candidates): Candidate | null`, so an LLM brain
+> overrides that method and gets the list as its prompt. The declarations the
+> same build added (`kind`, `summary`, `discipline`, `urgency`) are the prompt
+> — **a brain already describes itself in words**, which is why no separate
+> prompt layer is needed for this rung
 > **Size:** a build
 
 Working slate for **LLM-driven content** — the runtime use of a language

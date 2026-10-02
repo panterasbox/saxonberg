@@ -61,6 +61,7 @@ import {
 import { installV1QuantityMarshallers } from '../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import { BlendLabel } from '../../../lib/metabolism/BlendLabel';
 import { BlendIdentity } from '../../../lib/craft/BlendIdentity';
+import BusinessEntity from '../../../platform/idea/Business';
 
 /**
  * The three trade packs that ship every recipe (content packs wave 4a/4b):
@@ -107,6 +108,43 @@ class TestMaker extends EmployedMixin(
     return true;
   }
 }
+/**
+ * ⭐⭐ The fixture makers need a HOUSE, because under the agent-coordination
+ * build *which* able maker serves is the house's decision: `resolveMaker`
+ * hands the able set to `house.callFor(...)`, and a maker with no resolvable
+ * organization is refused rather than served. The old resolver picked the
+ * lowest identity path with no house involved at all.
+ *
+ * `rota`, because a fixture has no regulars. `fulfills` lists both trades
+ * because one stand-in stands in for the smith and the cook.
+ */
+const TEST_HOUSE = '/world/terminus/hearthworks/idea/business-venue-test';
+
+function employAt(maker: Stuff): void {
+  (maker as unknown as { employments: unknown[] }).employments = [
+    {
+      organizationPath: TEST_HOUSE,
+      positionKey: 'maker',
+      status: 'on-shift',
+      hiredAt: 0,
+      onShiftSince: 0,
+    },
+  ];
+}
+
+function standUpHouse(): void {
+  const house = makeStuffAtPath(() => new BusinessEntity(), TEST_HOUSE);
+  house.positions = [
+    {
+      key: 'maker',
+      label: 'at the bench',
+      wageRate: 1,
+      fulfills: ['smithing', 'cooking'],
+    },
+  ];
+  house.setCall('rota');
+}
+
 class TestPatron extends ThermalMixin(
   ContainerMixin(NamedMixin(ContainableMixin(Idea))),
 ) {
@@ -395,10 +433,13 @@ describe('the smithy, served', () => {
       ) as unknown as Material,
     );
     ContainmentApi.move(ingot, room);
-    ContainmentApi.move(
-      makeStuffAtPath(() => new TestMaker(), `/obj/_test/venue-smith-${lit}-${bellows}`),
-      room,
+    standUpHouse();
+    const maker = makeStuffAtPath(
+      () => new TestMaker(),
+      `/obj/_test/venue-smith-${lit}-${bellows}`,
     );
+    employAt(maker as unknown as Stuff);
+    ContainmentApi.move(maker, room);
     const patron = makeStuff(() => new TestPatron());
     ContainmentApi.move(patron, room);
     return { room, patron, ingot };
@@ -449,10 +490,13 @@ describe('the cookhouse, served', () => {
     ContainmentApi.move(stock('/stuff/idea/material/food/root-vegetable', 0.6), chest);
     ContainmentApi.move(stock('/stuff/idea/material/food/stew-meat', 0.4), chest);
     chest.setOpen(chestOpen);
-    ContainmentApi.move(
-      makeStuffAtPath(() => new TestMaker(), `/obj/_test/venue-cook-${chestOpen}`),
-      room,
+    standUpHouse();
+    const maker = makeStuffAtPath(
+      () => new TestMaker(),
+      `/obj/_test/venue-cook-${chestOpen}`,
     );
+    employAt(maker as unknown as Stuff);
+    ContainmentApi.move(maker, room);
     const patron = makeStuff(() => new TestPatron());
     ContainmentApi.move(patron, room);
     return { room, patron, chest };

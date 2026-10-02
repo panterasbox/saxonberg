@@ -41,7 +41,7 @@ data:
     # tenant puts INSIDE a unit stays the tenant's problem, which is
     # exactly what the term says and exactly what `maintain` does.
     - brain: /system/residence/behavior/maintains
-      trigger: cadence:19m
+      trigger: candidate
       config:
         extent: /world/terminus/mayfield-row/seznick-house
     - brain: /lib/behavior/introduces

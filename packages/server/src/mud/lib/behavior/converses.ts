@@ -17,6 +17,8 @@
 import type { EngagementSlot } from '../activity/Engaged';
 import { MixinApi } from '../../api/mixin';
 import type { BrainContext, BrainStatics } from './brain';
+import { Urgency } from './Urgency';
+import type { TaskKind } from './Urgency';
 
 /** The disposition axis this brain reads (Gregarious ↔ Shy). */
 const AXIS = 'sociability';
@@ -33,6 +35,13 @@ function pick(lines: string[]): string | undefined {
 
 export const brain = class {
   static label = 'converses';
+  static kind: TaskKind = 'social';
+  static summary =
+    "Chatters at a length and warmth set by the host's own sociability " +
+    '— a Gregarious host holds court, a Shy one mostly keeps quiet.';
+  static urgency(): Urgency {
+    return new Urgency('wanted', 'looks round for somebody to talk to');
+  }
   static claims: readonly EngagementSlot[] = ['voice'];
   // Yield while the host is mid-conversation (voice/attention held) so its
   // trait-flavored chatter doesn't talk over the directed dialogue.

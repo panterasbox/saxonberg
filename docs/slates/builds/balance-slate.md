@@ -1364,12 +1364,16 @@ exactly who is called tonight.
 
 Every NPC row carries a `behaviors:` block of
 `BehaviorSpec = { brain, trigger, config }`, where the trigger is
-`{ source: 'cadence' | 'witness' }`
+`{ source: 'cadence' | 'witness' | 'candidate' | 'engage' }` — ⚠ `candidate`
+and the measurement below are **answered** as of 2026-09-30: every
+deliberative brain moved onto one beat per agent, the content tree holds
+zero `cadence:` specs, and `lint:idle-cadence` took the realm from 263.2 to
+17 fires/min
 ([behavior.md](../../subsystems/behavior.md)):
 
 ```yaml
-- { brain: /lib/behavior/shifts, trigger: cadence:60s,  … }
-- { brain: /lib/behavior/greets, trigger: arrival,      … }
+- { brain: /lib/behavior/restocks, trigger: candidate,  … }
+- { brain: /lib/behavior/greets,   trigger: arrival,    … }
 ```
 
 > ⭐⭐⭐ **A cadence trigger costs `1/period`, always, whether anybody is

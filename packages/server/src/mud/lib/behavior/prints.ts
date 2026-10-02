@@ -27,11 +27,41 @@ import { GrammarApi } from '../../api/grammar';
 import { WorldClockApi } from '../../api/worldclock';
 import { AppSettingKeys } from '../config/AppSettings';
 import type { BrainContext, BrainStatics } from './brain';
+import type { EngagementSlot } from '../activity/Engaged';
+import type { TaskKind } from './Urgency';
+import { Urgency } from './Urgency';
 
 const DEFAULT_EDITION_GAME_HOURS = 6;
 
 export const brain = class {
   static label = 'prints';
+  static kind: TaskKind = 'work';
+  static claims: readonly EngagementSlot[] = ['hands', 'attention'];
+  static summary =
+    "Prints the price index as the paper's notice once an edition " +
+    'window, through the ordinary `press post` verb.';
+  // ⚠ No `discipline:` — the realm ships no journalism Discipline, and a
+  // brain crediting a key nothing resolves writes evidence nobody can
+  // read back. `lint:idle-cadence` refuses it, which is how this comment
+  // came to exist.
+  // ⭐ The honest read: there is nothing to do until the window is up.
+  // Returning `wanted` every beat and discarding it inside `act` would
+  // make the editor look busy while doing nothing, and would cost every
+  // other candidate a tie-break it should have won.
+  static urgency(ctx: BrainContext): Urgency {
+    const publisher = ctx.config.publisher;
+    if (typeof publisher !== 'string' || publisher === '') {
+      return new Urgency("idle");
+    }
+    const now = WorldClockApi.getNow().rawValue();
+    const window = editionGameHours() * 3600;
+    const last =
+      typeof ctx.state.lastEditionS === 'number'
+        ? ctx.state.lastEditionS
+        : -Infinity;
+    if (now - last < window) return new Urgency("idle");
+    return new Urgency('wanted', 'squares up a sheet and starts setting type');
+  }
   static presenceGated = false;
   // A functional poller (the paper prints with nobody reading), not
   // ambient chatter — exempt from the global ambient-cadence dial.

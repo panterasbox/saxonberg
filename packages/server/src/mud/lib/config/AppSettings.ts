@@ -214,6 +214,29 @@ export const AppSettingKeys = {
   behaviorAmbientCadenceFloorMs: "behavior.ambientCadenceFloorMs",
 
   /**
+   * Behavior — ⭐⭐ **the deliberation beat.** How often (ms) a Behaved
+   * host with `candidate` specs asks every candidate brain how much it
+   * wants the next beat, and runs the one winner. ONE timer per agent,
+   * whatever it has to choose between — which is what replaced N timers
+   * per agent deciding N times.
+   */
+  behaviorBeatMs: "behavior.beatMs",
+  /**
+   * Behavior — the beat period (ms) when **nobody is watching**. Only
+   * candidates whose brain declares `presenceGated = false` are consulted
+   * then, and an agent with none skips the beat's body entirely, so this
+   * is the realm's idle cost per deliberating agent. See
+   * `lint:idle-cadence`, which meters exactly this.
+   */
+  behaviorBeatNightlyMs: "behavior.beatNightlyMs",
+  /**
+   * Behavior — the debounce floor (ms) on an early wake. A perceived
+   * fight or a call can wake an agent before its next beat;
+   * ⚠ without a floor, a noisy room is an unbounded deliberation loop.
+   */
+  behaviorBeatMinGapMs: "behavior.beatMinGapMs",
+
+  /**
    * Scripting — resource governance. The interpreter is non-blocking by
    * construction (every engaged/`wait` step suspends and yields); these
    * bound the one pathological shape — a no-suspension tight loop — plus

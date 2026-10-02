@@ -30,6 +30,7 @@
  */
 
 import { Grade } from './Grade';
+import { DIFFICULTIES } from '../advancement/ActSignature';
 import { ThermalDose } from '../thermal/ThermalDose';
 import type { FieldMeta } from '../mixin';
 import type { StoredDocument } from '../document/StoredDocument';
@@ -354,6 +355,17 @@ export class Recipe {
     r.outputPortionL = num(data.outputPortionL);
     r.outputAppearance = str(data.outputAppearance);
     r.difficulty = str(data.difficulty);
+    // ⚠ A difficulty word outside the vocabulary used to be credited as
+    // `easy` by `recordCraftEvidence`, silently — eighteen rows shipped
+    // saying `moderate` or `simple` and were recorded as the easiest rung
+    // there is. A misspelt ladder placement fails the pack at READ now.
+    if (r.difficulty && !DIFFICULTIES.includes(r.difficulty as never)) {
+      throw new Error(
+        `Recipe '${r.recipeId}': 'difficulty' is ` +
+          `'${r.difficulty}', which is not a difficulty ` +
+          `(${DIFFICULTIES.join(' · ')}).`,
+      );
+    }
     r.discipline = str(data.discipline);
     r.garnish = Recipe.garnishFrom(data.garnish, r.recipeId);
     r.ice = Recipe.iceFrom(data.ice, r.recipeId);

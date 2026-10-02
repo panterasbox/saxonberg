@@ -33,7 +33,11 @@ data:
   archetype: hand
   competence:
     - { discipline: brewing, asserting: novice }
-    - { discipline: fermenting, asserting: novice }
+    # ⭐ The board's mashes are STANDARD and only `proficient` licenses
+    # standard work; at `novice` this hand could not mash on its own
+    # board. The trade band stays `novice` — this is a hand, not a
+    # master — but the step it is SEATED to must be reachable.
+    - { discipline: fermenting, asserting: proficient }
   behaviors:
     # The producing beats (fermentation W5). The brewhouse beat mashes
     # off the board, pitches the house barm, kegs finished ale and
@@ -43,7 +47,7 @@ data:
     # switchover retired the keg faucet: every keg on the counter is
     # now a batch these beats brewed.
     - brain: /lib/behavior/cellars
-      trigger: cadence:120s
+      trigger: candidate
       config:
         home: /world/terminus/goods-yards/brewing/location/floor
         counterRoom: /trade/distribution/location/cash-and-carry
@@ -62,7 +66,7 @@ data:
           ale: 12
           "cask ale": 14
     - brain: /lib/behavior/cellars
-      trigger: cadence:150s
+      trigger: candidate
       config:
         home: /world/terminus/goods-yards/brewing/location/cold-store
         counterRoom: /trade/distribution/location/cash-and-carry
@@ -73,8 +77,15 @@ data:
         batch: 3
         asks:
           lager: 13
+    - brain: /lib/behavior/greets
+      trigger: arrival
+      config:
+        lines:
+          - "Mind the hoses."
+          - "Watch yourself — that pipe's hot."
+          - "Aye? Speak up, it's loud in here."
     - brain: /lib/behavior/idles
-      trigger: cadence:41s
+      trigger: candidate
       config:
         pool:
           - { kind: free, value: "rolls a keg into line with one boot." }

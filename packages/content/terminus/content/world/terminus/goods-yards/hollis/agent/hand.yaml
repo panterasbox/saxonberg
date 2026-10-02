@@ -32,7 +32,7 @@ data:
     - { discipline: distilling, asserting: novice }
   behaviors:
     - brain: /trade/shopkeeping/behavior/consigns
-      trigger: cadence:4m
+      trigger: candidate
       config:
         stock: /world/terminus/goods-yards/hollis/thing/stock
         shelf: /world/terminus/counting-houses/distributor/thing/counter
@@ -50,8 +50,15 @@ data:
         ask:
           spirit:old-hollis: 10
           spirit:hollis-cane: 10
+    - brain: /lib/behavior/greets
+      trigger: arrival
+      config:
+        lines:
+          - "Afternoon!"
+          - "Come for the good stuff, have you?"
+          - "Mind the cases — I've got them just so."
     - brain: /lib/behavior/idles
-      trigger: cadence:47s
+      trigger: candidate
       config:
         pool:
           - { kind: free, value: "turns a case so the red label faces out." }

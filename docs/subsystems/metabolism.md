@@ -181,6 +181,19 @@ for the `WorldClock` time-source cut from encumbrance.
 Absence freezes the clock with **zero connection-layer work** — metabolism
 reads presence only:
 
+⚠⚠ **DECIDED 2026-09-30, NOT YET BUILT — the linkdead freeze is going.**
+Logout becomes **sleep**, not a frozen state machine: *freeze is an
+exception, sleep is a mechanism*, and a body that stands in a tavern for
+three days without hungering is not a body. Absence will get a **grace
+window** (a router blip costs nothing), then turn in for the night at
+whatever `restQuality` × `warmth` the place affords — **bed > campfire >
+rough** — which prices *where* you disconnected rather than forbidding it.
+⭐ The far-past guard survives and becomes honest: a month away is a month
+**asleep**. ⚠ *"Never tax absence"* is retired as a doctrine in favour of
+*absence has a diegetic mechanism with a price*. See
+[absent-body-slate](../slates/tails/absent-body-slate.md) § *the DIRECTION*.
+**Until that builds, the shipped behaviour is as follows.**
+
 - **Linkdead** — when the host `isHasInteractive` and `isLinkdead()`, the
   reconcile re-stamps and integrates nothing (the body lingers in-world but
   doesn't tick); reconnect resumes as left.
