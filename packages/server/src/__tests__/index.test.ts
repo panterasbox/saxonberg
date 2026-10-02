@@ -1,62 +1,74 @@
 import "../test-bootstrap";
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, beforeAll } from "vitest";
 
-// Basic test - server exports are tested separately
+/**
+ * The entry point's export surface.
+ *
+ * ⚠⚠ **The import is hoisted into `beforeAll` with its own budget, and
+ * that is the point of this file's shape.** `await import("..")` stands up
+ * the WHOLE server entry graph — ~4.6s on a quiet machine. It used to sit
+ * inside the first `it`, so that one test paid the standup against the
+ * default 5000ms and the other eleven got a warm cache: a 434ms margin that
+ * the suite's own collect pressure eats, and it failed at the
+ * agent-coordination sweep (2026-10-01) with `Test timed out in 5000ms` on
+ * "should export Server class" while passing alone.
+ *
+ * ⭐ A timeout on the first `it` would have been the wrong fix twice over:
+ * it reads as *asserting an export is slow*, and it leaves the cost on
+ * whichever test happens to run first. Each `it` below now asserts exactly
+ * what its name says. See docs/testing.md § *A 5s budget on an integration
+ * standup reads as assertion failures*.
+ */
 describe("Server", () => {
-  it("should export Server class", async () => {
-    const { Server } = await import("..");
-    expect(Server).toBeDefined();
+  let entry: typeof import("..");
+
+  beforeAll(async () => {
+    entry = await import("..");
+  }, 60_000);
+
+  it("should export Server class", () => {
+    expect(entry.Server).toBeDefined();
   });
 
-  it("should export Application class", async () => {
-    const { Application } = await import("..");
-    expect(Application).toBeDefined();
+  it("should export Application class", () => {
+    expect(entry.Application).toBeDefined();
   });
 
-  it("should export Backend class", async () => {
-    const { Backend } = await import("..");
-    expect(Backend).toBeDefined();
+  it("should export Backend class", () => {
+    expect(entry.Backend).toBeDefined();
   });
 
-  it("should export PersistenceManager class", async () => {
-    const { PersistenceManager } = await import("..");
-    expect(PersistenceManager).toBeDefined();
+  it("should export PersistenceManager class", () => {
+    expect(entry.PersistenceManager).toBeDefined();
   });
 
-  it("should export ConnectionManager class", async () => {
-    const { ConnectionManager } = await import("..");
-    expect(ConnectionManager).toBeDefined();
+  it("should export ConnectionManager class", () => {
+    expect(entry.ConnectionManager).toBeDefined();
   });
 
-  it("should export ConnectionApi class", async () => {
-    const { ConnectionApi } = await import("..");
-    expect(ConnectionApi).toBeDefined();
+  it("should export ConnectionApi class", () => {
+    expect(entry.ConnectionApi).toBeDefined();
   });
 
-  it("should export MixinApi class", async () => {
-    const { MixinApi } = await import("..");
-    expect(MixinApi).toBeDefined();
+  it("should export MixinApi class", () => {
+    expect(entry.MixinApi).toBeDefined();
   });
 
-  it("should export Mixins constants", async () => {
-    const { Mixins } = await import("..");
-    expect(Mixins).toBeDefined();
-    expect(Mixins.Named).toBe("NamedMixin");
-    expect(Mixins.Gendered).toBe("GenderedMixin");
+  it("should export Mixins constants", () => {
+    expect(entry.Mixins).toBeDefined();
+    expect(entry.Mixins.Named).toBe("NamedMixin");
+    expect(entry.Mixins.Gendered).toBe("GenderedMixin");
   });
 
-  it("should export Avatar class", async () => {
-    const { Avatar } = await import("..");
-    expect(Avatar).toBeDefined();
+  it("should export Avatar class", () => {
+    expect(entry.Avatar).toBeDefined();
   });
 
-  it("should export Interactive class", async () => {
-    const { Interactive } = await import("..");
-    expect(Interactive).toBeDefined();
+  it("should export Interactive class", () => {
+    expect(entry.Interactive).toBeDefined();
   });
 
-  it("should export Agent class", async () => {
-    const { Agent } = await import("..");
-    expect(Agent).toBeDefined();
+  it("should export Agent class", () => {
+    expect(entry.Agent).toBeDefined();
   });
 });

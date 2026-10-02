@@ -738,6 +738,34 @@ average was. ⭐ And remember the standing rule that pulls the other way —
 *an unnamed failure is NOT a flake*: "the box was busy" only counts once
 you have shown the test passes with a budget it can actually meet.
 
+### ⭐⭐ And the fix is to move the cost, not to raise the budget
+
+The agent-coordination sweep (2026-10-01) hit the same class in
+`packages/server/src/__tests__/index.test.ts` — *"should export Server
+class"*, `Test timed out in 5000ms`, passing alone. The diagnosis was the
+interesting part: **that test was never really asserting an export.** Each of
+its twelve cases did `await import("..")`, so the FIRST one to run stood up
+the whole server entry graph (~4.6s measured quiet, a **434ms** margin) and
+the other eleven got a warm cache.
+
+⭐ **So the margin was never the bug — the shape was.** Raising that one
+test's timeout would have been wrong twice: it reads as *asserting an export
+is slow*, and it leaves the standup cost on whichever case happens to run
+first, so the flake just moves. Hoisting the import into a `beforeAll` with
+its own explicit budget costs one line, makes every `it` assert exactly what
+its name says, and removes the cliff:
+
+```ts
+let entry: typeof import("..");
+beforeAll(async () => { entry = await import(".."); }, 60_000);
+it("should export Server class", () => expect(entry.Server).toBeDefined());
+```
+
+**The generalization:** when a per-test budget is tight, look for a one-time
+standup hiding inside the first case. A `beforeAll` is honest about being
+setup; a test that silently pays for setup is not, and it is the one that
+flakes.
+
 ## ⭐⭐ Two tiers: WIRE and RENDER
 
 Testing splits in two, and the split is about what a test is entitled to
