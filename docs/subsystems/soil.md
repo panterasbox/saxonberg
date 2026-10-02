@@ -161,7 +161,7 @@ and it is inherited by the ordinary `lookupField` ancestor walk — so a
 farm's own zone declares its ground, or a region declares the ground
 under a whole valley and every field cut in it reads the same clay.
 `GroundCharacter.forZone(zone)` is the **one** place the citation is
-followed; `Field.postRegister`, the three field-work verbs and the survey
+followed; `Field.onCreate`, the three field-work verbs and the survey
 channel all go through it, so they cannot disagree about the dirt they
 are standing on.
 
@@ -271,7 +271,7 @@ since its own build; this is it made real.
 ### ⭐ An AUTHORED field stands itself up
 
 `reserves` is engine state, so a row cannot declare soil — and an
-authored field has no `plot` to hang them on. `postRegister` resolves the
+authored field has no `plot` to hang them on. `onCreate` resolves the
 ground and installs what its character calls for, which is what makes
 authoring a field possible with **zero pack code** (AC 62). ⚠ It skips a
 field with no area: registration runs before `plot` has sized a minted

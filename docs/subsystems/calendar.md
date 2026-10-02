@@ -29,7 +29,7 @@ source, addedAtS, firedAtS? }`.
 
 `rescheduleCalendarPing()` cancels the prior handle and books a one-shot
 `WorldClockApi.at(nextDue, cb, { host: this })`; re-armed in
-`Avatar.postRegister` after `materialize` and after every add. The
+`Avatar.onCreate` after `materialize` and after every add. The
 callback stamps `firedAtS` and pushes *"Your calendar: <label>."* to self
 (topic `session.notice`). ⭐ The ping is **timeliness, never validity** —
 `calendar` lists overdue entries regardless of whether the one-shot fired

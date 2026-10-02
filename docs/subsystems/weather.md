@@ -46,7 +46,7 @@ Wave-2 tail): fog→visibility, snow depth, vector wind, moving fronts.
 | File | Category | Holds |
 |---|---|---|
 | `lib/weather/WeatherType.ts` | value-object / vocabulary | the `WeatherType` union + `WEATHER_TYPES`, `WEATHER_PROFILES`, `TRANSITIONS`, `SEASON_BIAS`, `ANCHOR_CANDIDATES`, `WEATHER_DEFAULTS` dials, and the `WeatherSample`/`WeatherForecast` I/O shapes — **consts + types only** |
-| `platform/idea/api/WeatherLogic.ts` | Api logic singleton (`/platform/idea/api/weather`) | **stateless** (`extends Idea`, no `PostRegistrationMixin`); the gated compute methods + the grammar as **module-private** functions + a bounded pure-function season memo |
+| `platform/idea/api/WeatherLogic.ts` | Api logic singleton (`/platform/idea/api/weather`) | **stateless** (`extends Idea`, no `onCreate`); the gated compute methods + the grammar as **module-private** functions + a bounded pure-function season memo |
 | `api/weather.ts` | Api | `WeatherApi` — thin gated forwarding shell |
 
 The grammar **functions** (`segmentIndexAt`, `typeForSegment`,

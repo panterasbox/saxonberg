@@ -35,7 +35,7 @@ this divergence.
 
 ## The Locality node
 
-`Locality extends PostRegistrationMixin(Idea)` — reference data, a leaf
+`Locality extends Idea` — reference data, a leaf
 like `Biome` / `Material` / `Species`, hanging under `<root>/idea/Locality/`.
 
 - **`_address` is the claimed coverage prefix.** A Locality claims
@@ -51,8 +51,8 @@ like `Biome` / `Material` / `Species`, hanging under `<root>/idea/Locality/`.
   stay implied-by-string).
 - **Lifecycle.** Like `Biome`, a Locality does **not** call
   `Stuff._registerTopLevelBranch` and does **not** compose
-  `SingletonMixin`. Unlike `Biome`, it composes `PostRegistrationMixin`:
-  `postRegister` self-registers its prefix into the `AddressRegistry`
+  `SingletonMixin`. Unlike `Biome`, it overrides `onCreate`:
+  `onCreate` self-registers its prefix into the `AddressRegistry`
   coverage index and `onDestruct` deregisters, so HMR re-clone never
   leaves a stale node. (`Biome` needs no such hook because `BiomeApi`
   re-resolves on every read with no index.)
@@ -121,18 +121,18 @@ room, no address, no zone                → null           (source: none)
 Because address ≠ templatePath, Localities cannot be found by walking
 template paths; the longest-prefix match needs an index keyed by
 claimed prefix. `AddressRegistry` (`/platform/idea/AddressRegistry`, a
-`PostRegistrationMixin` singleton parallel to `AccessRegistry`) holds a
+registry singleton parallel to `AccessRegistry`) holds a
 `PathTrie<Locality>` of claimed-prefix → Locality. The index lives on
 the Registry (not the stateless logic singleton) so it survives a
 reload of `api/address.ts`; a reload of the Registry re-clones and
-`postRegister` rebuilds idempotently.
+`onCreate` rebuilds idempotently.
 
 - **`PathTrie.longestPrefix(path)` / `longestPrefixPath(path)`** — the
   additive nearest-ancestor reads (the deepest value-carrying prefix);
   segment-wise, no glob semantics.
 - **Eager roster clone.** Leaf Ideas clone lazily, so a Locality's
   self-registration only fires once something clones it. The Registry's
-  `postRegister` therefore eagerly clones every Locality template under
+  `onCreate` therefore eagerly clones every Locality template under
   `<root>/idea/Locality/` so the index is complete even for never-accessed
   Localities. `PathTrie.insert` is idempotent, so the eager insert and a
   Locality's self-registration converge.
@@ -163,7 +163,7 @@ extent cover?"* is **this subsystem's**, and that is why
 
 It is one registry walk for the whole realm per game night: every scope
 composing `PublicLightingMixin` (i.e. the `Street` class), bucketed by the covering locality each
-one resolved at its own `postRegister`, sorted by the seniority its row
+one resolved at its own `onCreate`, sorted by the seniority its row
 records, and each extent handed its own queue.
 
 ⚠⚠ **`Locality` does not look its own streets up, on purpose.** Finding

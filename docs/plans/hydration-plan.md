@@ -1201,7 +1201,27 @@ previous defect passed every refusal-shaped assertion).
 **Acceptance.** `pnpm test:near` + `lint:family` green; drive step 6's
 unit half.
 
-### W7 — The authoring surfaces
+### W7 — The authoring surfaces ✅ DONE
+
+> **Landed.** `TemplateApi.describeFill` + the `FillField`/`FillSource`/
+> `FillDescription` types; the mint-time unapplied-key diagnostic with a
+> per-`(path, key-set)`-per-process de-dup; `cat`'s `applies:` /
+> `unapplied:` / `remembers:` / `fills: nothing` lines; `write`'s
+> author-facing warning; the Studio create's `committed` message;
+> `templateMeta.fill` in place of the dropped `hydratorClass`.
+>
+> ⚠ **One plan deviation.** D5 asks `write` to report through
+> `ctx.note({ kind: 'warning', … })`. There is no `warning` kind — the
+> envelope's Note kinds are a closed union in `@saxonberg/types`, and
+> minting one for a single advisory is a wider surface change than this
+> wave should make unasked. `write` `tell`s the author on the same
+> screen; `cat` and the CMS carry the structured view.
+>
+> ⭐ `templateMeta.fill` is a deliberate answer to the right question.
+> The dropped `hydratorClass` looked like it told a CMS author what would
+> fill the row in and did not — it named a strategy, with one value
+> project-wide, and said nothing about which of the author's keys land.
+
 
 **Goal.** An author can read what will fill a row in, and is told at
 write time what nobody will apply. **Implements** D5.
@@ -1230,7 +1250,40 @@ and `remembers: nothing` (wording the build chooses, the facts fixed).
 ⭐ **`pnpm test` runs here once — the pre-MR full run** — if W8 touches
 no source.
 
-### W8 — Docs and the drive
+### W8 — Docs and the drive ✅ DONE
+
+> **Landed.** `templates.md` § *The TemplateApplier* (replacing § *The
+> Hydrator Contract*), `lifecycle.md`'s new § *`onCreate` — and the four
+> limbs of work at birth*, three `antipatterns.md` entries (one of them
+> marked RETIRED-and-kept), `money-integrity-slate.md`'s go-live finding
+> marked ✅ CLOSED, `lint-family.md` for all three gate changes, and a
+> sweep of persistence / access / studio / cms / content-packs /
+> hot-reload / belief / pets / husbandry / bootstrap / behavior / events /
+> address / augmentation / architecture / ref-shapes + three slates.
+>
+> ⚠ **The composition-expression sweep needed hand-checking.** A blind
+> `PostRegistrationMixin` → `onCreate` rename turns
+> `PostRegistrationMixin(Idea)` into `onCreate(Idea)`, which reads like a
+> call rather than a composition. Nine were unwrapped by hand, and the
+> antipattern entry's WRONG example was restored verbatim because its
+> whole point is the old name.
+>
+> ⚠⚠ **The drive's honest finding: steps 1 and 3 are NOT
+> socket-reachable.** `write -c`'s `data` is a structured PAYLOAD and the
+> wire harness's `cmd()` sends `{ text }` only — there is no payload
+> channel on the socket at all. The plan assumed `write` was drivable;
+> it is not, and extending the harness is its own change. Those two steps
+> are driven at the mechanism (`StudioLogic`, `WriteController`,
+> `template.describeFill`) and in a browser. ⭐ What the drive DOES settle
+> is the step most worth a socket: `cat` answering *what will fill this
+> row's instances in*.
+>
+> ⚠ One code fix found while writing the docs: the applier passed
+> `channel: 'template'` to `DiagnosticApi.record`, and the channel
+> taxonomy DERIVES a channel from the row's path. A hardcoded string
+> would have routed every one of these findings to a channel nobody
+> subscribes to. The field is omitted now.
+
 
 **Goal.** The next build finds the three kinds where it looks, and the
 drive is a wire file that has been run.
@@ -1441,8 +1494,47 @@ Read first, in this order:
 
 ## Drive record
 
-*(appended at build time, not at plan time)* — the output of running the
-requirements' nine-step drive against the running game: the wire file's
-run (count, each failure), and the browser transcript for steps 1 (as
-§ flags 1 states it), 8, and the real-restart halves of 4, 5 and 9.
-Precedent: `farming-plan.md § Checkpoint A — the drive record`.
+### Run 1 — `hydration.dirty.wire.test.ts`, on a FRESHLY DROPPED database
+
+```
+wire: booting a world of my own on 2016.
+wire: world up in 368.1s
+
+ ✓ step 2 — `cat` names the keys that APPLY, and the birth-only one
+ ✓ step 2 — and names what an instance will REMEMBER, which the row never mentions
+ ✓ step 2 — “nothing” reads as nothing, out loud
+ ✓ the regression step — a lounge room still arrives with its authored prose and its floor
+
+ Test Files  1 passed (1)
+      Tests  4 passed (4)
+   Duration  391.32s
+EXIT=0
+```
+
+⭐⭐ **The 368-second cold boot is half the drive record.** The database
+was dropped first, on purpose: W2's preimage change (dropping
+`hydratorClass` from the hash) re-hashes every row, and the plan's risk 2
+is that the first boot afterwards reconciles ~1,970 rows as changed and
+re-applies each one's data to its live singletons through go-live. A
+fresh install is the sanctioned answer (**NO MIGRATIONS EVER** — a rename
+is a drop), and this boot is it: **every pack installed, with no row
+anywhere naming a hydrator, and the world came up.**
+
+⭐ The regression step is the one that matters most for a build that took
+a line off 1,528 rows: an ordinary authored room still reads as itself.
+Its `data` applied through the renamed applier, and its floor minted by
+`Location.onCreate` through the renamed hook.
+
+⚠⚠ **What the drive could NOT do, and it is not a skip:** steps 1 and 3
+are not socket-reachable at all. `write -c`'s `data` is a structured
+PAYLOAD, and the wire harness's `cmd()` sends `{ text }` only — there is
+no payload channel on the socket. The plan assumed `write` was drivable
+over a socket and it is not. Both steps are driven at the mechanism
+(`StudioLogic.test.ts`, `WriteController`, `template.describeFill.test.ts`)
+and remain browser walks. The file says so in its header rather than
+passing quietly.
+
+### Run 2 — the second boot, against the database run 1 left
+
+*(the acceptance check for risk 2: a reconcile that settles)*
+

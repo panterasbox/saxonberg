@@ -78,7 +78,7 @@ the spine (`lib/persistence/Persistable.ts`, `platform/idea/api/PersistableLogic
   method. (Avatar's loadout stays imperative in `installDefaultLoadout`: it
   attunes + hosts implant apps, which isn't a plain clone-into-inventory list;
   `seedBornWith` no-ops when no `props:` is declared.)
-- **`postRegister` no longer auto-drives persistence.** The mixin provides
+- **`onCreate` no longer auto-drives persistence.** The mixin provides
   capture/restore; the establishing context decides *when* and *with what
   key*. Avatar drives an explicit self-keyed materialize/capture at login
   (`obj/Avatar.ts`); `DormWarren.admit` drives a keyed restore-or-seed per
@@ -104,7 +104,7 @@ unchanged.
 
 ## The elastic building — `DormWarren`
 
-`DormWarren` (`SingletonMixin(PostRegistrationMixin(Warren))`, content, the
+`DormWarren` (`SingletonMixin(Warren)`, content, the
 `LoungeWarren` precedent) is the **two-tier room-collection manager**. It
 supplies dorm *policy* over the base `Warren` mechanism; **the base `Warren`
 is unchanged**. Duncan Hall's dorms wing starts as **just the ground-floor
@@ -379,7 +379,7 @@ today, across three packs).
 belongs to eternal-university and descends straight from the kernel's
 `OuterWarren` without touching this pack at all, so a roster that only
 knew its own classes would be wrong on the first campus — and a push at
-`postRegister` cannot be inherited from a base the pack does not own.
+`onCreate` cannot be inherited from a base the pack does not own.
 
 ⭐ **The second-instance test, which is what this placement was chosen
 against:** a new subdivision, dormitory or let building needs **zero

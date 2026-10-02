@@ -886,10 +886,10 @@ still offering an extension mechanism (masks, in
 `PropertiedMixin`'s case). Most mixins are not `@Unshadowable`; a
 shadow that overrides `fullName` from `NamedMixin` is supported.
 
-### Lifecycle — `PostRegistrationMixin`
+### Lifecycle — `onCreate`
 
 `StuffApi.create` / `clone` checks `MixinApi.isPostRegistration(obj)`
-and `await`s `obj.postRegister(context)` after registration. Mixin-
+and `await`s `obj.onCreate(context)` after registration. Mixin-
 gated lifecycle hooks are how the framework adds extension points
 without bolting them onto `Stuff` itself — the hook is opt-in by
 composition.
@@ -922,7 +922,7 @@ explicitly prohibited.
 | `lib/command/` | `CommandGiverMixin` |
 | `lib/connection/` | `HasInteractiveMixin` |
 | `lib/persistence/` | `AroundSaveHookMixin`, `AroundDeleteHookMixin` |
-| `lib/stuff/` | `PropertiedMixin`, `PostRegistrationMixin` |
+| `lib/stuff/` | `PropertiedMixin`, `onCreate` |
 
 "Mixin" is an implementation technique, not a subsystem — a `lib/mixins/`
 folder would group by *form* rather than by what the code is *for*. If
@@ -1147,7 +1147,7 @@ contribute or whether one wins.
 - [properties.md](./properties.md) — `PropertiedMixin` as a worked
   example of a class-form `@Unshadowable` mixin with its own per-
   property override mechanism.
-- [lifecycle.md](./lifecycle.md) — `PostRegistrationMixin` and the
+- [lifecycle.md](./lifecycle.md) — `onCreate` and the
   framework's mixin-gated lifecycle hooks.
 - [messaging.md](./messaging.md) — `SensorMixin` / `VocalMixin` as the
   scope predicates for message routing.

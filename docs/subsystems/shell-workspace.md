@@ -120,7 +120,7 @@ The async surface above backs the author shell. A second, **synchronous**
 group serves a different caller: mudlib modules that need to load an
 authored data file shipping in the source tree — a char-gen roster, a
 theme catalogue, a command schema — from a static initialiser,
-`postRegister`, or a lazy first-use path that cannot await.
+`onCreate`, or a lazy first-use path that cannot await.
 
 - `readResource(moduleUrl, relativePath)` — raw text.
 - `readYamlResource<T>(moduleUrl, relativePath)` — text + YAML parse.

@@ -123,7 +123,7 @@ Four value objects + two mixins + the concrete entity:
   instanceable non-trading organization.
 - **`Business`** — `BusinessMixin` (marker `_mixinName='BusinessMixin'`) +
   the concrete **default-export `BusinessEntity`** (`class BusinessEntity
-  extends BusinessMixin(PostRegistrationMixin(Idea))`). The concrete class
+  extends BusinessMixin(Idea)`). The concrete class
   name differs from the `Business` **interface** + `BusinessMixin` on purpose
   (the `Bank`→`BankCounter` convention — a same-named class+interface+mixin
   triad recurses as a base type). It **requires `OrganizationMixin` on its
@@ -289,7 +289,7 @@ extends Idea` at `/platform/idea/api/employment`, HMR-able; every method gated
   Business's own `operatingLocations` template data via a cached reverse index
   (`operatingLocation → BusinessTemplatePath`, filtered cheaply by the field's
   presence, `isBusiness`-verified after standup). This retires the per-venue
-  standup hooks: **no** manifest entry, **no** `Bar.postRegister` /
+  standup hooks: **no** manifest entry, **no** `Bar.onCreate` /
   `TicketClerk` clone — the first `businessAt`-style query at a fixture (an
   order, a fare) stands the Business up. Consumers: `OrderController` (the bar)
   and `TeleportController.settleFare` (the transit fare) call `ensureOperatorAt`;
@@ -458,7 +458,7 @@ attributes to it, un-spoofably), pays the **terminal clerk** (a bounded roster
 shift so the wage settles at the boundary), and closes the conserved fare-in →
 wage-out loop. The budget Business stands up **lazily** — derived from its own
 `operatingLocations`, on the first `ensureOperatorAt(fixture)` query (a fare at
-the gate) — no `TicketClerk`/`Bar.postRegister` clone. See
+the gate) — no `TicketClerk`/`Bar.onCreate` clone. See
 [fasttravel.md](./fasttravel.md) § Terminus.
 
 ## ⭐⭐⭐ The call — who comes over
@@ -748,8 +748,8 @@ standup is economically load-bearing, not a performance nicety — and it
 is residency's symmetric partner: fault in on demand, evict the cold
 tail (graduated from the content-packs slate, 2026-09).
 
-A Business is **not** stood up by a `postRegister` hook (the old
-`Bar.postRegister` / `TicketClerk` clones are gone) nor a manifest entry. It
+A Business is **not** stood up by a `onCreate` hook (the old
+`Bar.onCreate` / `TicketClerk` clones are gone) nor a manifest entry. It
 stands up **lazily**, derived from its own `operatingLocations`, on the first
 `ensureOperatorAt(fixture)` query — an order at the bar, a fare at a terminal
 (see **Fixture-keyed attribution + derived lazy standup** above). Idempotent
@@ -966,7 +966,7 @@ plan. Notable design→implementation shifts:
   only named `HouseController`) — required for a combined P&L.
 - The Business stands up **lazily** (derived from `operatingLocations` via
   `ensureOperatorAt`) rather than a bootstrap manifest entry or a
-  `postRegister` clone, and fixture resolution moved to MQL `peers` + type
+  `onCreate` clone, and fixture resolution moved to MQL `peers` + type
   filter (both from MR review; the lazy standup finalized in the Terminus
   build).
 

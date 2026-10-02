@@ -96,7 +96,7 @@ A **behavior spec** (`BehaviorSpec`) is `{ brain, trigger, config }` —
 
 the brain is a *path* to a code module, the trigger names *when*, the
 config is the brain's data. The list is a persistent field on
-`BehavedMixin`; at `postRegister` the mixin reads it, path-resolves each
+`BehavedMixin`; at `onCreate` the mixin reads it, path-resolves each
 brain, and wires each spec to its trigger substrate. Adding behavior is
 authoring data — no code, no subclass.
 
@@ -373,7 +373,7 @@ in as additional `handleMessage` topic predicates with no new event.
 
 ## ⚠⚠ The cast holds still while the world is closed
 
-A brain wires at its host's `postRegister` — a host has to exist before
+A brain wires at its host's `onCreate` — a host has to exist before
 it can behave — but the schedule a cadence trigger arms is **real
 time**, not game time. So without a gate the whole cast begins acting
 the moment `BootstrapManager` has stood the world up, which is *minutes*
@@ -508,10 +508,10 @@ next-tick re-start, not a suspended-engagement resume.
 
 ```ts
 // lib/npc/NPC.ts
-export class NPC extends BehavedMixin(PostRegistrationMixin(Character)) {}
+export class NPC extends BehavedMixin(Character) {}
 
 // platform/agent/Beast.ts — the same shape one rung down
-export class Beast extends BehavedMixin(PostRegistrationMixin(Actor)) {}
+export class Beast extends BehavedMixin(Actor) {}
 ```
 
 ⭐ **Two rungs carry a brain, not one** (base-class narrowing,
@@ -532,12 +532,14 @@ horse shifting its weight was a frame implantless bystanders drop), and
 `lint:dispositions` rule 4 fails the build on a pool entry whose `kind:`
 names a channel its class cannot speak on.
 
-Composition order is load-bearing. `clone` only invokes `postRegister`
-on a host that composes `PostRegistrationMixin` (the marker), so `NPC`
-must include it. `BehavedMixin` is **outermost** so the single
-`postRegister` the clone pipeline calls resolves to *its* override
-(which wires the behaviors); `PostRegistrationMixin` sits below to supply
-the marker and the terminal no-op. (`CommandGiver`'s own `postRegister`
+Composition order is load-bearing, though less brittle than it was.
+`BehavedMixin` is **outermost**, so the `onCreate` the clone pipeline
+calls resolves to *its* override (which wires the behaviors) and chains
+`super` down to the terminal on `Stuff`. ⭐ Until 2026-10-01 the host also
+had to compose `PostRegistrationMixin` for the pipeline to invoke the
+hook at all, and the marker's non-chaining default made its POSITION in
+the stack load-bearing too — put it above a layer with its own hook and
+that layer went silently dead. The terminal on `Stuff` removed both. (`CommandGiver`'s own `onCreate`
 deeper in the chain is shadowed, but it self-seeds lazily, and NPCs emit
 through Apis directly rather than the command system.)
 

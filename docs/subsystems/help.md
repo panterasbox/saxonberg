@@ -42,8 +42,8 @@ request/response DTOs (`HelpIndexResult` / `HelpKindListResult` /
 
 ## The boot-warmed index — harvest, don't register
 
-`/platform/idea/HelpCatalogue` is a singleton `Idea`+`PostRegistrationMixin`
-(bootstrap-manifest entry, no `dependsOn`), warming in `postRegister` —
+`/platform/idea/HelpCatalogue` is a singleton `Idea`+`onCreate`
+(bootstrap-manifest entry, no `dependsOn`), warming in `onCreate` —
 the `TopicCatalogue` / `RecipeCatalogue` precedent. The index is
 **harvested**: `warm()` *pulls* three projectors. No content-side hook
 ever pushes a topic in (the substrate-no-content-hooks rule).

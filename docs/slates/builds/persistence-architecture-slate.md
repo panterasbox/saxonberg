@@ -3,10 +3,12 @@
 > **Status: PARTIAL** — Waves 1-2 and Wave 4 shipped (`Document` vs
 > `Stuff`, the neutral core, `Persistable` deleted; the schema docs) →
 > [persistence.md](../../subsystems/persistence.md)
-> **Left:** Wave 3 — un-Stuff `PersistentHydrator`, the marshallers and
+> **Left:** Wave 3 — un-Stuff `TemplateApplier`, the marshallers and
 > `platform/idea/hooks/` (`DomainHook` + `hooks.yaml`) into path-resolved,
 > lazy, re-resolved modules on the shipped brain pattern (verified
-> unstarted 2026-08-08: `PersistentHydrator` still `extends Idea`) · Wave
+> unstarted 2026-08-08: `TemplateApplier` still `extends Idea`; ⭐ CHEAPER
+> since 2026-10-01 — no row names it, so it need not be author-selectable
+> by path) · Wave
 > 4's tail — per-field prose on `fieldMeta`, Mongo-side JSON Schema
 > validators (see Wave 4 below)
 > **Size:** a build (Wave 3) · a tail (Wave 4's tail)

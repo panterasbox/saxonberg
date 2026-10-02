@@ -78,7 +78,7 @@ the index who stands in it" (D21) and reversed it the next day: 439
 indexed point queries at boot, the room scan wearing a different face.
 The moment somebody wants *"the neighbour walks onto the lane, so load
 the lane's cats"*, the design has become demand paging and a third face
-of the same scan. **A gate should say so**: no `postRegister`, no
+of the same scan. **A gate should say so**: no `onCreate`, no
 `materialize`, no traversal may call `standUpKeyed` or read `placedIn`
 for goods it does not persist itself. The four self-persisting location
 classes' D4 overlay is the one sanctioned exception and it is bounded by

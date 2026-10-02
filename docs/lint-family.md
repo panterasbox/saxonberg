@@ -85,8 +85,19 @@ POSITIVE — a violation is found — not merely that a clean tree is clean.
 ## Architecture & call security
 
 - **`lint:gates`** — every concrete `FromModule`/`FromController`
-  string, every `FromTemplateMethod('<template>', '<method>')` **pair**,
-  and every `*_MODULE_ID` constant resolves to a real module + export.
+  string, every `FromTemplate('<template>')`, every
+  `FromTemplateMethod('<template>', '<method>')` **pair**, and every
+  `*_MODULE_ID` constant resolves to a real module + export.
+
+  ⚠⚠ **The plain `FromTemplate` arm was added 2026-10-01 because it had
+  never been checked at all.** The coin's `setQuantity` gate, the craft
+  vessel's and `Serviceable`'s each carried
+  `FromTemplate('/platform/idea/persistence/*Hydrator')` — and nothing
+  resolved it, so on the method that guards MONEY one of the two arms was
+  decorative for as long as it existed, and a typo in it would have read
+  as a working gate. A GLOB still returns early (it names a family on
+  purpose, as `FromTemplateMethod`'s carve-out does); an exact path is
+  resolved.
   A script rather than an ESLint rule because ESLint 8's legacy config
   can't load a local rule without `--rulesdir`.
   ⭐ **The method half is the one that earns its keep.** A mistyped
@@ -153,15 +164,46 @@ of at 0. That is a floor with a name and a reason, not a shortfall:
 normalization pass gives those systems faces (from the lib-statics
 dossier, 2026-09).
 
+- ⭐⭐ **`lint:on-create`** — **the census of what happens when a thing
+  is born.** Two counts against two ceilings: every `onCreate` METHOD
+  declaration in the kernel and every pack `src/`, and the subset whose
+  body looks like **state loading**. Each may fall, never rise.
+
+  `Stuff.onCreate` is the one async seam at birth, so it collected four
+  different kinds of work under one name — structural completion, roster
+  warming, state loading, and seeding an authored history. The first two
+  are legitimate and are not going away, which is why ⭐ **the
+  implementation ceiling stays ABOVE zero on purpose**: a burn-down to
+  zero would be a gate refusing a class for being a registry. The LOADING
+  count is the one worth reading, because a fall there is state that moved
+  onto a declared `hydrationSource`. See
+  [lifecycle.md](./subsystems/lifecycle.md).
+
+  ⚠ Two instrument notes, both earned the hard way. It counts
+  **declarations** — the hydration slate's first census script scanned
+  from any MENTION of the name to the next closing brace, so every Api
+  facade that merely described the hook counted. And it **strips comments
+  before the predicate reads a body**: moving the species warm off
+  `Bonded.onCreate` left a comment saying the dials live on a *lazily
+  loaded* row, which kept the hook in the loading set by itself and would
+  have silently stopped the ratchet falling for the rest of the build.
+  Stripping took the count 37 → 34 with no code moving.
+
 ## Content, templates & vocabulary
 
-- **`lint:instanceable`** — **nothing instances `/lib/`.** Twelve
+- **`lint:instanceable`** — **nothing instances `/lib/`.** Thirteen
   invariants over every template: no `class:` resolves under `/lib/`,
   no template path lives there, every `class:` resolves to a real
-  module + export, every `hydratorClass:` to a real row, no redundant
-  `hydratorClass`, and no orphaned `data` (a data block with no
-  hydrator, whose keys `clone()` silently discards). No exemption list,
-  by design.
+  module + export. No exemption list, by design.
+
+  ⛔ **Invariants 4, 5 and 6 RETIRED 2026-10-01 with the `hydratorClass`
+  field.** They checked that the field resolved to a real row, that it
+  was not declared with nothing to apply, and — the dangerous one — that
+  a `data` block was never left with no applier, every key silently
+  discarded. Each guarded a state that can no longer occur: a row with
+  `data` has it applied, so invariant 6's failure is unreachable rather
+  than merely unobserved. ⭐ **13** replaces them in invariant 10's
+  shape: the retired key is refused wherever it still appears.
 
   Template inheritance added two, and re-aimed three:
 
@@ -816,8 +858,8 @@ listed row that now authors a floor FAILS** — the debt is paid, so delete
 the line and lower the ceiling, and the gate refuses to let the credit go
 unrecorded, which is what makes the meter move; (d) every row whose `class:`
 composes `FloorMixin` carries **both** `ground` and `floor` in its own
-`keywords:`; (e) every Location class overriding `postRegister` chains
-`super.postRegister`.
+`keywords:`; (e) every Location class overriding `onCreate` chains
+`super.onCreate`.
 
 ⚠⚠ Clause (d) is not tidiness, and it found three shipped rows on its first
 run. The MQL scope walk pools a thing's own `getKeywords()`, and
@@ -828,7 +870,7 @@ nothing could sit on or look at. `FloorMixin` unions both words onto the
 class so the failure is impossible; this clause makes every row say them out
 loud as well, so a row reads honestly on its own.
 
-⭐ Clause (e) exists because `PostRegistrationMixin`'s default is a
+⭐ Clause (e) exists because `onCreate`'s default is a
 **non-chaining** no-op: an override that forgets `super` silently leaves its
 rooms floorless and nothing else goes wrong. Six of the Location family's
 overrides had no `super` call before the ground build. The kernel's roster

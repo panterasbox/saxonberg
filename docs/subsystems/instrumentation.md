@@ -48,7 +48,7 @@ and keeps a row whose class extends `Reading` wherever it lives — never
 an allowlist of roots, which is exactly what lets a pack's own channel
 qualify.
 
-⚠⚠ **It warms lazily as well as at `postRegister`.** The verbs resolve a
+⚠⚠ **It warms lazily as well as at `onCreate`.** The verbs resolve a
 channel on *every* dispatch, so the dispatch path must not depend on
 boot order. The inert-reference-Idea trap has bitten this repo three
 times: a roster nothing stands up reads null forever on a fresh process

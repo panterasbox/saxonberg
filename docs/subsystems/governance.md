@@ -108,7 +108,7 @@ through the `User` ↔ `GoogleProfile`/`TwitchProfile` link
 ([identity](../../packages/server/src/mud/lib/identity/)):
 
 - `FOUNDER_GOOGLE_EMAIL` and/or `FOUNDER_TWITCH_HANDLE` (env, read at
-  `OfficeRegistry.postRegister`). Both normalized lowercased for
+  `OfficeRegistry.onCreate`). Both normalized lowercased for
   comparison; the Twitch handle matches the lowercased `TwitchProfile.login`
   case-insensitively. The original-case handle is kept for offline
   display (`founderLabel`).
@@ -147,7 +147,7 @@ absence of a row = the founder default holds the seat.**
 
 ## The Api / Logic surface
 
-`OfficeRegistry` (`/platform/idea/OfficeRegistry`, `Idea` + `PostRegistrationMixin`,
+`OfficeRegistry` (`/platform/idea/OfficeRegistry`, `Idea` + `onCreate`,
 manifest-warmed) holds the durable state, mirroring `AccessRegistry` minus
 all seeding. The caller surface is **the office face of `CompactApi`**
 (`api/compact.ts` — the single meta-institution facade; the standalone

@@ -199,7 +199,7 @@ See `ConsignController`.
   collection) + the mint-a-fresh-id seam; the **sole writer** of `chattel`
   / `chattel_events`. Every method gated
   `AnyOf(FromModule('/api/chattel#ChattelApi'), FromTemplate('/platform/idea/api/chattel'))`.
-  Warmed at boot via a `bootstrapManifest` entry (`postRegister` rebuilds
+  Warmed at boot via a `bootstrapManifest` entry (`onCreate` rebuilds
   the index from the collection).
 
 ## Storage

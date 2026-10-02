@@ -177,7 +177,7 @@ record.** That direction is closed.
 doc comment:**
 
 > v1: developer/admin operation … intended for a **fresh** instance (the
-> normal login path materializes via `postRegister`; **re-running
+> normal login path materializes via `onCreate`; **re-running
 > `restore()` on a live avatar that already holds inventory would
 > re-clone the captured items on top**).
 
@@ -204,7 +204,7 @@ The mechanism is verified; the callers are not. Paths that could reach a
 | path | the question |
 |---|---|
 | `Avatar.restore()` | Public and documented as admin-only. Is it reachable by a verb? ⭐ See open question 6. |
-| ~~`postRegister` under **hot reload**~~ | ✅ **TRACED 2026-09-24 — SAFE.** `clone` is the only HMR-aware site; `reload` never touches a live instance. See below. |
+| ~~`onCreate` under **hot reload**~~ | ✅ **TRACED 2026-09-24 — SAFE.** `clone` is the only HMR-aware site; `reload` never touches a live instance. See below. |
 | ~~`standUpKeyed` → `restoreOrSeed`~~ | ✅ **TRACED 2026-09-24 — SAFE, and they are not one path.** See below. |
 | `restoreOrSeed` | ⚠ A **separate** public Api, called from five capability packs. Every caller passes a fresh clone today; the precondition is enforced nowhere. See below. |
 | `restoreFromTemplate` (CMS / pack go-live) | ⚠⚠ **TRACED — the CONTENTS are guarded (run-once appliers) but the FIELDS are not.** Not a mint: a silent DRAIN. See § *Go-live pushes persistent fields*. |
@@ -280,7 +280,7 @@ a *different* instance. Exactly three ways in:
 1. ✅ **`Avatar.restore()`** — confirmed, by its own comment.
 2. ⚠ **A pack calling `restoreOrSeed(liveHost, sameKey)`** — nobody does
    today; nothing stops it.
-3. ⚠⚠ **Hot reload re-running `postRegister`** — ⭐ **the only untraced
+3. ⚠⚠ **Hot reload re-running `onCreate`** — ⭐ **the only untraced
    row left, and the only one that could still be a live leak.**
 
 ### ⚠⚠ And the CAPTURE side is worse than the restore side
@@ -350,7 +350,7 @@ two-tier ratio is sharper than it looked.
 re-imports the module with a cache-busting query and stamps new class
 objects under fresh `ModuleId` entries — it changes what **future**
 clones resolve to. It does not re-register, re-hydrate or re-materialize
-any live instance, so `postRegister` never re-runs on a populated host.
+any live instance, so `onCreate` never re-runs on a populated host.
 
 ⭐ **All three duplication paths are now accounted for:**
 `Avatar.restore()` confirmed · a pack passing a live host hypothetical ·
@@ -387,7 +387,7 @@ The chain, every link verified:
 | `CmsLogic` go-live | `StuffApi.findAllByTemplatePath(path)` → `restoreFromTemplate(instance)` **for every live clone**. `PackLogic` does the same on a pack reconcile. |
 | `restoreFromTemplate` | runs the full `hydrate(stuff, tpl.data)` — no per-field opt-out. |
 | the Coin row | `generic-objects/content/stuff/thing/Coin.yaml` declares **`data.quantity: 1`**. |
-| the gate | `PersistentHydrator` is an **allowed caller** of the gated `Coin.setQuantity` — deliberately. The gate's own comment: *"A `Hydrator` applies a template's … `quantity` through the two-phase `set<Field>` dispatch."* |
+| the gate | `TemplateApplier` is an **allowed caller** of the gated `Coin.setQuantity` — deliberately. ⚠⚠ Its other arm was DECORATIVE until 2026-10-01: `FromTemplate('/platform/idea/persistence/*Hydrator')` was a glob, and `lint:gates` resolved no plain `FromTemplate` at all, so one of the two arms on the method that guards money was unchecked for as long as it existed. Both now name the one row exactly and the gate resolves them. The gate's own comment: *"A `Hydrator` applies a template's … `quantity` through the two-phase `set<Field>` dispatch."* |
 
 > ⛔ **A CMS save or a pack reconcile on the Coin row re-hydrates every
 > live coin stack in the world to `quantity: 1`.** A 500-coin stack
@@ -416,17 +416,39 @@ after the fact does not help anyone whose money vanished.** The shape is:
 
 > **A value-bearing field must not be hydrated by go-live.**
 
-⭐⭐ Which lands on **open question 2 — the value-bearing marker** — and
-gives it a second, sharper justification than it had. It is no longer
-only *"generalize the gate so scrip inherits it"*; it is **"go-live needs
-to know which fields it may not push."** Two consumers for one marker is
-what turns it from a tidiness idea into the thing that closes a live
-drain.
+✅ **CLOSED 2026-10-01 by the hydration build (W4).** The marker is
+`fieldMeta`'s `birthOnly: true` — *applied when the instance is minted,
+never pushed by go-live* — declared on `Stackable.quantity`, which `Coin`
+inherits. The content step gained an explicit `mode`
+(`mint` / `go-live` / `restore`) and skips every `birthOnly` field in
+`go-live`.
 
-⚠ Open, and cheap to answer: does the same hazard reach **any other
-value-bearing field** hydrated from a template — `denomination`, a
-future scrip's face value, a bearer credential's amount? The marker
-should be chosen against that list, not against `Coin` alone.
+⭐ Three things about the shape, for whoever extends it:
+
+- **The flag is the FIELD OWNER's, not the row's.** The hazard belongs to
+  the field wherever it is authored — a scrip's quantity, a crate of
+  limes' — and a row-level switch would have to be remembered on every
+  row that authors a stack.
+- ⚠ **`restore` is NOT `go-live`.** A record replays what this instance
+  actually had, so `birthOnly` is exactly what it must write back.
+  Conflating them would empty every logged-out player's purse instead of
+  resetting every live stack, which is the same bug with the sign
+  flipped. Both directions are pinned by tests.
+- ⚠ **Diff-based go-live was considered and rejected.** It would stop the
+  reset but still write a CHANGED authored `quantity` onto live stacks —
+  minting with no ledger leg.
+
+⭐⭐ It landed on **open question 2 — the value-bearing marker** — and
+gave it a second, sharper justification than it had: not only
+*"generalize the gate so scrip inherits it"* but **"go-live needs to know
+which fields it may not push."** Two consumers for one marker is what
+turned it from a tidiness idea into the thing that closed a live drain.
+
+⚠ **Still open, and now cheap:** does the same hazard reach any other
+value-bearing field applied from a row — `denomination`, a future scrip's
+face value, a bearer credential's amount? The mechanism exists; extending
+it is one `birthOnly: true` per field, by that field's owner. The list is
+what still needs deciding.
 
 ## D. The sandbox boundary
 
@@ -677,7 +699,7 @@ imagine.
 6. ⭐ **Should `Avatar.restore()` exist as a public operation at all?**
    It is described as v1 developer/admin, it carries a documented
    duplication hazard in its own comment, and the normal login path does
-   not use it (`postRegister` materializes). ⚠ **The cheapest close is
+   not use it (`onCreate` materializes). ⚠ **The cheapest close is
    deleting it rather than guarding it** — but check what depends on it
    first; a public method with one documented caller is exactly the
    shape of something load-bearing somewhere unexpected.

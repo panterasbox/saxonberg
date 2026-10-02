@@ -161,13 +161,13 @@ The state-relevant ordering:
    Phase 2 walks `MixinApi.getAllInstructionFields(constructor)` and
    calls the required `await target.apply<Field>(value)`. See
    [templates.md § The Hydrator Contract](./templates.md#the-hydrator-contract).
-7. **`postRegister(context)`** if the backing composes
-   `PostRegistrationMixin`.
+7. **`onCreate(context)`** if the backing composes
+   `onCreate`.
 
 Register-before-hydrate is load-bearing: the in-flight object must be
 resolvable by `stuffId` so that hydrators with self-references find it.
 
-If hydrate or `postRegister` throws, the object is unregistered before
+If hydrate or `onCreate` throws, the object is unregistered before
 the error propagates.
 
 ## The Context Bag
@@ -186,10 +186,10 @@ export interface AvatarInitContext {
 }
 
 class Avatar extends AvatarBase {
-  user?: User;        // runtime-only, set in postRegister
+  user?: User;        // runtime-only, set in onCreate
   playerId: string = '';
 
-  override async postRegister(context?: AvatarInitContext): Promise<void> {
+  override async onCreate(context?: AvatarInitContext): Promise<void> {
     if (context?.user) this.user = context.user;
     if (context?.playerId) this.playerId = context.playerId;
     if (this.playerId) PlayerApi.registerAvatar(this);
@@ -265,7 +265,7 @@ exist on every Stuff regardless of mixins.
   distinction.
 - **Character selection**: multi-character flow is structurally
   supported via `user.playerIds`.
-- **PlayerApi registration**: still happens, just from `postRegister`
+- **PlayerApi registration**: still happens, just from `onCreate`
   now (`PlayerApi.registerAvatar(this)`).
 - **Avatar destroy/cleanup**: still unregisters with `PlayerApi`, still
   drops all `interactives`.
@@ -289,7 +289,7 @@ substrate shared by avatars, rooms, and vessels) into its own
   await; the MongoDB write is async.
 - **`Avatar.restore()`** → `materialize`: re-hydrates a live instance from
   its record. v1 is developer/admin only (and intended for a fresh instance).
-  The normal login path materializes automatically via `postRegister`.
+  The normal login path materializes automatically via `onCreate`.
 - **Auto-save fires** on logout/linkdead (via `Avatar.onDestruct`'s
   fire-and-forget save) and on a periodic backstop installed by
   `Avatar.enter()` (called from `Login.enter` after the connection
@@ -313,7 +313,7 @@ contents the same way. Still out of scope for v1:
 ## Cross-References
 
 - [templates.md](./templates.md) — clone pipeline, `Hydrator` contract,
-  `PostRegistrationMixin`, `TemplateApi`, folder/leaf invariant
+  `onCreate`, `TemplateApi`, folder/leaf invariant
 - [lifecycle.md](./lifecycle.md) — construction sentinel, ProxyApi
   wrap, synthetic constructor frame, destruct → canDestruct veto
   → onDestruct witness → cleanupOnDestruct walk → shadow detach

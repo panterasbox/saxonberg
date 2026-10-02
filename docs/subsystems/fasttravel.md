@@ -211,7 +211,7 @@ wallet.
   terminal's authored `keywords`** (`teleport terminus`/`crossroads`/`lounge`),
   not the multi-word Locality name. The three board Localities (Terminus /
   The Lounge / The Last Counted Mile) are seeded under `seeds/lib/address/`
-  so `AddressRegistry.postRegister` warms their prefixes at boot.
+  so `AddressRegistry.onCreate` warms their prefixes at boot.
 - **Selection** is node state: `selectedDestinationRef` (defaults to the
   first route). A keyword sets it; the timetable can flip it.
 

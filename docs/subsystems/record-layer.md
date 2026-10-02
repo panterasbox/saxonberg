@@ -284,7 +284,7 @@ Two traps, both recorded before they were hit:
 
 1. **The wipe takes `groups` and `parcels`.** `groups` carries the three
    axis groups (`wizards`, `archwizards`, `streamers`), minted in code by
-   `AccessRegistry.postRegister` — boot-only — and every holder group a
+   `AccessRegistry.onCreate` — boot-only — and every holder group a
    pack declared; `parcels` carries every title. With no state default
    (content-packs wave 3) a world with no titles refuses every `can`
    until restart, the founder included. The job re-seeds the axis groups

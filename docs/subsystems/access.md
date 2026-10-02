@@ -111,15 +111,15 @@ The substrate ships these predicates:
    **code-trust capability**. True iff `subject` is in `'wizards'`.
    Determines who can write TypeScript source, run `eval`, `reload`
    modules, AND set the executable code-naming fields
-   (`class` / `hydratorClass` / `behaviors[].brain`) on a content
-   template (see *The code-trust lockdown* below). Doesn't matter
+   (`class` / `behaviors[].brain`) on a content template (see *The
+   code-trust lockdown* below). Doesn't matter
    what slices you own; the question is whether you have escape
    capability. A content author who is *not* a wizard is a
    **protowizard** (content-write access without code trust — an
    ⭐⭐ **and the role a CONTENT GENERATOR takes**: code that writes
    content rows is a protowizard, not a wizard — it may create things and
    may never change what a thing IS, because `class:` /
-   `hydratorClass:` / `behaviors[].brain` are the code-trust axis and are
+   `behaviors[].brain` are the code-trust axis and are
    closed to it. `canAtPath` then gates it **by parcel title** exactly
    like a human author, which makes **its budget the extent it holds**
    rather than an invented quota, and **the titleholder the author of
@@ -170,7 +170,7 @@ Plus one helper for slice-aware workspace verbs:
 
 ## `AccessRegistry` Stuff
 
-The Registry is an `Idea + PostRegistrationMixin` singleton at
+The Registry is an `Idea + onCreate` singleton at
 `/platform/idea/AccessRegistry`. Instance state:
 
 - `cachedWizardsRef` / `cachedStreamersRef` / `cachedArchwizardsRef` —
@@ -198,7 +198,7 @@ exhibit the avatar-vs-NPC mix.
   `archwizardCacheCancel` — onChange cancellation handles, cleared
   on destruct.
 
-`postRegister` runs idempotent bootstrap seeding of the **tag-like** groups
+`onCreate` runs idempotent bootstrap seeding of the **tag-like** groups
 (whose membership comes from env vars, not zone ownership). There is
 **no `core` group** (content-packs wave 3): title is the packs'
 manifests' to declare, and the platform's own roots are held by the
@@ -220,7 +220,7 @@ executive.
 **Zone-ownership is NOT resolved here anymore.** As of property phase 0a,
 ownership moved out of the editable `domain` zone template into the gated
 `parcels` collection (the governing security invariant). The `ParcelRegistry`
-owns the title store + the mint-or-find group-ref resolution; `postRegister`
+owns the title store + the mint-or-find group-ref resolution; `onCreate`
 seeds only the tag-like groups above. The former data-driven
 `effectiveOwnerRef` / `resolveOwnerGroupName` machinery is retired.
 
@@ -312,12 +312,17 @@ unstored complement of a wizard: any actor with content-write access
 `protowizard` group or flag — "can edit content, can't write code"
 falls out of the existing content gate plus the code-field gate below.
 
-**The direct gated set.** Three template fields name a module export
+**The direct gated set.** Two template fields name a module export
 directly and are **wizard-only-writable**:
 
 - `class`
-- `hydratorClass`
 - `behaviors[].brain`
+
+⭐ There were three. `hydratorClass` **retired 2026-10-01 WITH THE FIELD**,
+not by exemption: a row cannot name its applier any more — a row with
+`data` has it applied, full stop — so there is nothing for the gate to
+refuse and nothing carved out of it. The surface shrank; the lockdown did
+not weaken.
 
 (`CodeNamingFields.FIELDS` is the single source of truth.) The gate
 lives at the **universal `TemplateApi.saveTemplate` chokepoint**
@@ -332,11 +337,10 @@ allow ladder:
    **ALLOW** (the provisioning invariant);
 2. a wizard → **ALLOW**;
 3. else (a protowizard) → the **delta rule**: reject any write that
-   *introduces or changes* a direct field — `class` / `hydratorClass`
-   inequality vs. the existing doc, or an incoming `behaviors[].brain`
-   multiset that is not a subset of the existing one. A pure cosmetic
-   edit (same class/hydrator, brain set unchanged-or-reduced) passes —
-   the protowizard authoring path.
+   *introduces or changes* a direct field — `class` inequality vs. the
+   existing doc, or an incoming `behaviors[].brain` multiset that is not
+   a subset of the existing one. A pure cosmetic edit (same class, brain
+   set unchanged-or-reduced) passes — the protowizard authoring path.
 
 **The transitive set closes by construction.** The reference fields
 (`adornments[].template`, `exits[].destination`, `exits[].door`,
@@ -388,7 +392,7 @@ template write funnels through `saveTemplate` except `PackLogic`
 that path. Avatar persist-back no longer writes the `domain` collection at
 all — it captures runtime state into the separate `holder_snapshots` store
 via the self-persistence spine, which drift-guards fields to declared
-`fieldMeta`'s persistent entries (never an author-named `class`/`hydratorClass`/`brain`
+`fieldMeta`'s persistent entries (never an author-named `class`/`brain`
 string) and reconstitutes items only through the gated `StuffApi.clone` — so
 it cannot forge a code-naming field. See
 [persistence.md § The self-persistence spine](./persistence.md#the-self-persistence-spine-persistable).
@@ -515,7 +519,7 @@ still needs it in reach). See [mql.md](./mql.md).
 
 ## The bootstrap-seeded groups
 
-`postRegister` mints three **tag-like** groups (membership from env vars, not
+`onCreate` mints three **tag-like** groups (membership from env vars, not
 zone ownership):
 
 | Group | Owner | Purpose |
@@ -557,7 +561,7 @@ The vocabulary in use today: `'destruct'` / `'force-destruct'` /
   (`AccessApi._resetRegistryRefForReload()`); Registry state is
   unaffected.
 - Reload of `obj/AccessRegistry.ts` re-clones the Stuff per
-  HotReloadApi's pattern. State resets; `postRegister` re-runs
+  HotReloadApi's pattern. State resets; `onCreate` re-runs
   idempotently; caches re-warm lazily on first read. The
   `wizardCacheCancel` / `streamerCacheCancel` /
   `archwizardCacheCancel` handles are

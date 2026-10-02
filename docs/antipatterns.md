@@ -167,7 +167,7 @@ DialogueEffectRegistry.register('bank-circle', BANK_CIRCLE_EFFECT);
 
 **INSTEAD**: module scope *declares*; initialization happens through a
 runtime lifecycle — capture-at-use (the scheduler dispatch index),
-`postRegister` (instance lifecycle),
+`onCreate` (instance lifecycle),
 `BootstrapManager.installFrameworkWiring()` (the boot seam), or a lazy
 first-use initializer.
 
@@ -501,7 +501,7 @@ could author it:
 
 - ~~Live-ref relational~~ — an `Exit` is a clone of a kind row and the
   live refs arrive through `bind`; a `BoundaryAnchor` is a clone its
-  boundary mints at `postRegister`.
+  boundary mints at `onCreate`.
 - ~~Dynamically-minted uniques~~ — that is the `asIdentityPath`
   channel, not a reason to skip the row: `Party` clones
   `/platform/idea/Party` with `/platform/idea/party/<uuid>` as its
@@ -1040,7 +1040,7 @@ class WalletMixin {
 }
 ```
 
-`PersistentHydrator.hydrate` and `Document.toDocument` /
+`TemplateApplier.apply` and `Document.toDocument` /
 `fromDocument` look up the marshaller via
 `MixinApi.getAllFieldMarshallers(constructor)` and apply
 `fromStored` / `toStored` around the bracket-assign / bracket-read.
@@ -1132,7 +1132,7 @@ addKeyword(k: string): void {
 }
 ```
 
-`PersistentHydrator`'s **two-phase dispatch** (see
+`TemplateApplier`'s **three-phase dispatch** (see
 [templates.md § The Hydrator Contract](./subsystems/templates.md#the-hydrator-contract))
 goes through these write paths. Phase 1 prefers a `set<Field>` method
 when present (calling `setOpen` here) and falls back to bracket-assign
@@ -1459,7 +1459,7 @@ paths, `TemplatePathPrefixes` for trailing-slash families), a sibling of
 
 ```typescript
 const REGISTRY_PATH = '/platform/idea/AccessRegistry';          // duplicated per file
-static readonly templatePath = '/platform/idea/persistence/PersistentHydrator';
+static readonly templatePath = '/platform/idea/TemplateApplier';
 ```
 
 ### GOOD
@@ -1753,6 +1753,51 @@ Optional-method dispatchers in API code (the
 against shadows / dynamic composition, not against missing
 prototype links.
 
+### ⭐⭐ The precedent: `onCreate`, and what the cast was HIDING
+
+2026-10-01: `onCreate` retired and `onCreate` became a
+terminal `onCreate` on `Stuff`, by exactly the test above — every Stuff
+is registered, more universally than it is destructed, so the root is the
+natural terminal. Seven sites lost the dance.
+
+⚠⚠ **But the cast was not merely ugly; it was concealing a live
+defect.** `NPC.onCreate` was declared `(): Promise<void>` with the body
+`await (super.onCreate as () => Promise<void>).call(this)` — and the
+clone `context` was **dropped on the floor**. Every layer below `NPC`
+that reads the caller-supplied context got `undefined`, on every NPC in
+the game, silently. It only became visible as a type error the moment a
+subclass's 1-arg override was deleted and real callers started chaining
+through that 0-arg signature.
+
+⭐ **The lesson for the pattern, and the reason to prefer the terminal
+even when the dance "works":** a cast to a hand-written call signature
+is a second, unchecked declaration of the hook. It can disagree with the
+real one about parameters, and nothing will say so.
+
+### ⭐ A terminal also removes an ORDERING hazard
+
+`onCreate`'s default was a *non-chaining* no-op, so
+composing the marker anywhere but innermost **swallowed every layer
+inside it**. `KeptAnimal` shipped that way and `Bonded.onCreate`
+never ran on a live animal — no home seeded, no species warmed — with no
+error and no warning. A terminal on the root has no layer to shadow, so
+the failure class is structurally gone: the only way left to shadow a
+layer is to forget `super` in your own override.
+
+### ⭐⭐ And a framework whose rules are mostly carve-outs for its first
+### member is the wrong shape
+
+Recorded from the same build, because it is the more general finding.
+The first cut of the hydration plan defined one `HydrationLayer` family
+with six members — and four of its own numbered decisions existed only to
+hold the FIRST member apart from the other five (the default layer is
+unnameable; the gate strings do not change because only one layer writes
+a gated field; only one layer runs at go-live; a layer is never a
+persistence contributor). ⭐ **When a family needs four rules to exempt
+one member, the family is not a family.** The real axis there was
+*authored* versus *remembered*, and it split three ways; the rewrite
+shipped two mechanisms and no abstraction over them.
+
 
 - Use the correct abstraction level: `LocomotionApi.traverseWithDefault` /
   `engageAround` for locomotion (creatures, vehicles), `ContainmentApi.move()`
@@ -1762,8 +1807,10 @@ prototype links.
   `Stuff.getPresentation()`; mixin presence checks use
   `MixinApi.isX()` predicates (preferred) or `MixinApi.hasMixin()`
   (introspection only).
-- Per-field invariants go on setters. Cross-field invariants go in a
-  `Hydrator` subclass.
+- Per-field invariants go on setters. Cross-field invariants go in the
+  host's own `set<Field>` / `apply<Field>` — ⚠ NOT in an applier
+  subclass: a row cannot name one and the engine resolves exactly one
+  (`TemplateApplier`, 2026-10-01).
 - Dynamic, per-instance state goes through `PropertiedMixin`'s
   `setProp` / `getProp` / `initProp`, never via direct field
   assignment.
@@ -4162,7 +4209,7 @@ await FermentApi.boot();
 
 ```ts
 // platform/idea/MaturationProfileCatalogue.ts
-public override async postRegister(): Promise<void> { await this.warm(); }
+public override async onCreate(): Promise<void> { await this.warm(); }
 ```
 
 ```yaml
@@ -5241,43 +5288,47 @@ Sweep tracked at
 [value-object-statics-slate.md](./slates/builds/value-object-statics-slate.md);
 worked example in [presentation.md](./subsystems/presentation.md).
 
-## `PostRegistrationMixin` composed OUTSIDE a layer that has its own `postRegister`
+## ⛔ RETIRED 2026-10-01 — `onCreate` composed OUTSIDE a layer with its own hook
 
-⭐⭐ **Its `postRegister` is a terminal no-op that never calls `super`, so
-everything inside it is silently dead.**
+**This antipattern is now UNWRITEABLE, and the entry stays because the
+failure it describes is the best argument in the repo for a terminal on
+the root class.**
 
-`PostRegistrationMixin` exists to *mark* a class as supporting the hook
-(`MixinApi.isPostRegistration`); its default body is empty and does not
-chain. Every real layer that overrides `postRegister` chains
-`Base.prototype.postRegister` — so the chain runs outer → inner and stops
-at the first override that does not chain. Put the marker in the middle
-of a stack and it is that override.
+The mixin's `onCreate` was a terminal no-op that **never called
+`super`**, so everything composed inside it was silently dead. The marker
+existed only to mark a class as supporting the hook
+(`MixinApi.isPostRegistration`); every real layer chained
+`Base.prototype.postRegister`, so the chain ran outer → inner and stopped
+at the first override that did not chain. Put the marker in the middle of
+a stack and it was that override.
 
 ```ts
-// WRONG — Bonded.postRegister never runs on a live animal
+// WRONG — Bonded.postRegister never ran on a live animal
 PersistableMixin(BehavedMixin(PostRegistrationMixin(BondedMixin(Status(...)))))
-
-// RIGHT — the marker innermost, where the chain terminates harmlessly
-PersistableMixin(BehavedMixin(BondedMixin(Status(PostRegistrationMixin(...)))))
 ```
 
 **What it cost (pets build, 2026-09-17).** `KeptAnimal` shipped with the
 marker between `Behaved` and `Bonded`. `Bonded.postRegister` seeds the
-animal's home and (from round 8) warms its species; neither ever
-happened on a live animal — the `homes` brain had nowhere to go, and
-every species dial read as absent. Nothing above the fixtures could see
-it: every unit test called `Bonded.postRegister` on a fixture that
-composed no marker above it. Found live, by `offer` answering
-`no-hand-rung` to a cat whose species declares `hand`.
+animal's home and warms its species; **neither ever happened on a live
+animal** — the `homes` brain had nowhere to go and every species dial
+read as absent. Nothing could see it: every unit test called
+`Bonded.onCreate` on a fixture that composed no marker above it, and
+every live assertion was refusal-shaped, so `no-hand-rung` was what a
+correct refusal looked like too. Found by DRIVING — `offer` to a cat
+whose species declares `hand`.
 
-**The rule:** the marker goes **innermost** — directly on the base
-(`PostRegistrationMixin(Idea)`, `…(Vessel)`) or below every layer with a
-hook of its own. A test that composes the *shipped* class and walks the
-chain is the proof (`KeptAnimal.postRegister.test`). ⚠ Eleven other
-stacks compose the marker above `FixtureMixin` / `Character` / a
-`Detailed` layer; whether any of those has a `postRegister` beneath the
-marker is a census worth running before a lint ratchets it —
-[lint-family.md](./lint-family.md).
+⭐⭐ **How it was fixed, and why that is the general lesson.** Not by a
+lint, not by a composition rule, and not by the census of eleven other
+stacks this entry used to recommend: **by putting the hook on the root as
+a terminal no-op and making the pipeline's dispatch unconditional.**
+`Stuff.onCreate` has no layer to shadow and no marker to misplace, so
+there is nothing left to get wrong except forgetting `super` in your own
+override. See § *Cast-Chain to `super` for an Optional Inherited Method*.
+
+⚠ A rule that tells authors to compose carefully is weaker than a shape
+in which careless composition cannot fail. The eleven-stack census was
+the right next step under the old shape and became unnecessary under the
+new one — which is usually the sign that the shape was the problem.
 
 ## A bare COUNT as a permanent gate — a refusal nothing can lift
 

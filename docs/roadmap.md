@@ -183,7 +183,7 @@ The substrate is in place. Major shipped surfaces:
   per-player namespace at `/home/<playerId>`.
 - **Spawn shape (declarative authoring)** — Template
   `environment:` field, `StagedMixin`, escape hatch via
-  `PostRegistrationMixin`. Shipped — see
+  `onCreate`. Shipped — see
   [subsystems/templates.md](./subsystems/templates.md),
   [spatial.md](./subsystems/spatial.md), and
   [boundary.md](./subsystems/boundary.md) (deferred notes preserved in

@@ -413,7 +413,7 @@ So the street's exits are **installed by the provisioner**:
 `LotGateExit`, a `DeferredDestinationExit` (the `DormDoor` shape) whose
 `computeDestination` calls `PlatWarren.provision(lotExtent)`. Hung as
 lots sell, and re-hung at boot from the title registry
-(`PlatWarren.postRegister` → `ParcelApi.childParcelsOf`) so an owner can
+(`PlatWarren.onCreate` → `ParcelApi.childParcelsOf`) so an owner can
 still get home after a restart. Deferred, so a lane with five sold lots
 materializes no yards until somebody walks in.
 

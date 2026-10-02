@@ -282,7 +282,7 @@ declared list. Reload reconstructs an empty `transientProps` and an
 empty `propOptions` map. **Property options (transient flag, access
 control function) do NOT persist.** Re-installing access predicates
 after load is the responsibility of the class — typically in a
-post-hydrate hook or `postRegister` — because access functions are
+post-hydrate hook or `onCreate` — because access functions are
 closures and aren't representable in MongoDB.
 
 `getProps()` returns a read-only view combining both storages

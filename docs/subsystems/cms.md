@@ -218,7 +218,9 @@ path*:
   *all*, not the throws-on-many `findByTemplatePath`). `saveTemplate`
   persists the new `data`; re-hydrating makes it observable in the running
   world. The editor edits `data` only, so the template's `class` /
-  `hydratorClass` round-trip unchanged.
+  round-trip unchanged. ⭐ `templateMeta.fill` says what will actually
+  fill an instance of the row in — the question the dropped
+  `hydratorClass` looked like it answered and did not.
 
 ## Client surface
 

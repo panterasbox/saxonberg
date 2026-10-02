@@ -107,7 +107,7 @@ asset (the doc you clone game-world objects from — see
 The walk is centralised in `MixinApi.getAllPersistentFields(constructor)`
 — `Document` calls it automatically. It is constructor-static (no
 instance/Stuff coupling), so the same walk serves the `Document` CRUD
-path **and** the Stuff `PersistentHydrator` used by templates. A
+path **and** the Stuff `TemplateApplier` used by templates. A
 subclass MAY override `static getAllPersistentFields()` for an escape
 hatch, but this is rare.
 
@@ -309,7 +309,7 @@ Avatar on the spine.
 ## Setter-Based Field Invariants
 
 For both tracks, **per-field shape invariants belong on setters, not in
-post-hydrate `normalize()` hooks**. `PersistentHydrator`'s two-phase
+post-hydrate `normalize()` hooks**. `TemplateApplier`'s two-phase
 dispatch — Phase 1 prefers `set<Field>` methods (or bracket-assigns
 through an accessor pair when no setter exists); Phase 2 calls
 `apply<Field>` for instruction fields — fires the rule for free
@@ -407,7 +407,7 @@ abstract class Marshaller<TRuntime, TStored> extends Idea {
 ```
 
 A Marshaller is an Idea-shaped Stuff (singleton-resolved by
-templatePath, mirroring `PersistentHydrator`'s shape) so
+templatePath, mirroring `TemplateApplier`'s shape) so
 content-author marshallers participate in `HotReloadApi` and can
 hot-swap without restarting the server. Stateless by contract;
 `fromStored` and `toStored` are pure functions of their input.
@@ -443,9 +443,9 @@ key.
 
 ### Resolution
 
-`PersistentHydrator.hydrate` resolves marshallers via
+`TemplateApplier.apply` resolves marshallers via
 `StuffApi.singleton(path)` — lazy. The async path mirrors how
-`StuffApi.clone` resolves `hydratorClass`: returns the cached
+`StuffApi.clone` resolves the applier: returns the cached
 instance if registered, or clones from the seeded template on first
 need. No bootstrap manifest entry is required for marshallers; they
 self-organize when first used.
@@ -571,7 +571,7 @@ Persistence is a property of **hosts** — singletons keyed by `templatePath`
 (an avatar, an authored home/room, a unique container). A host composes
 `PersistableMixin` (`lib/persistence/Persistable.ts`, `_mixinName =
 'PersistableMixin'`), **outermost**, and carries three behaviors: a
-`postRegister` **materialize driver** (with a record → restore; without →
+`onCreate` **materialize driver** (with a record → restore; without →
 capture the first record, the seed-then-persist gate), an `applyProps`
 override that skips the seed once a record exists (no duplication), and a
 `cleanupOnDestruct` **capture-on-destruct backstop**. ⚠ The backstop is
@@ -654,16 +654,16 @@ composes three defenses:
    `SchedulerRegistry`/`EventSubscriptions` precedent).
 2. **Drift guard** — a default slice's fields are filtered to the cloned
    class's declared `fieldMeta`'s persistent entries before hydration, so a forged record
-   cannot inject `class`/`hydratorClass`/`brain` (Template-level, never
+   cannot inject `class`/`brain` (Template-level, never
    persistent fields) nor any undeclared key. Fields hydrate through the
-   standard two-phase `PersistentHydrator` (prefers the invariant-enforcing
+   standard two-phase `TemplateApplier` (prefers the invariant-enforcing
    `set<Field>` setter, un-marshals rich values, bracket-assigns only
    setterless pure-storage fields).
 3. **Gated reconstitution** — each `ContentEntry` is re-created via
    `StuffApi.clone(templatePath)` (the record names only a path + declared
    slices, never a class), then has its own `state` applied recursively;
    `{ref}` entries follow the reference — cloning the nested host, which
-   self-materializes its own records via `postRegister`, reconstructing the
+   self-materializes its own records via `onCreate`, reconstructing the
    tree by walking references.
 
 Capture snapshots synchronously (after a marshaller pre-warm) so concurrent
@@ -821,7 +821,7 @@ Avatar persists through the universal spine — the per-player-template
 outermost; its record carries its declared fields, its carried inventory
 (`Container` slice), its worn gear (`Slotted` slice — new; gear was lost on
 logout before), and its **own spawn/recall location** (`place`). `Avatar.save`
-→ `PersistableApi.capture`, `Avatar.restore` → `materialize`. `postRegister`
+→ `PersistableApi.capture`, `Avatar.restore` → `materialize`. `onCreate`
 orders the two paths differently: a **fresh signup** runs the born-with
 loadout first, then `capture`; a **returning login** runs `materialize`
 first, then re-runs the loadout **on top** — the snapshot carries the worn
@@ -869,14 +869,14 @@ Three generic substrate capabilities support it:
   `assertUniqueKey` throw and abort that room's whole restore mid-tree.
   The later record moves the standing instance — last-to-materialize
   wins, never fatal, and the stale record heals on its next capture.
-  `PersistableApi.standUpKeyed` and `RestoreContext.standUpKeyed` are the
+  `PersistableApi.standUpKeyed` and `HydrateContext.standUpKeyed` are the
   same question from the Api and from a slice.
 - **Self-owner** — a `HasInteractive` host owns its own record
   (`owner = scope`), so the account-deletion cascade `deleteAllFor(<avatar
   path>)` is a keyed match; and `ContainerMixin.captureSlice` **skips**
   `HasInteractive` occupants (a live avatar is never a room's content).
 - **`shouldPersist()`** — a per-instance opt-out (an Avatar returns
-  `!isGuest`), consulted by capture / materialize / `postRegister` /
+  `!isGuest`), consulted by capture / materialize / `onCreate` /
   `cleanupOnDestruct`, so a guest writes and restores nothing.
 
 Only `snapshotToTemplate` (the Avatar-only snapshot direction) was retired;
@@ -898,7 +898,7 @@ degenerate case (key from scope) and a keyed room is the general one, with
 **no `multiInstance` marker/mode**. The single invariant `assertUniqueKey`
 (no two live instances share a `(scope, key)`) replaced the eager
 singleton-scope guard; `applyProps` is a uniform no-op (holders seed
-imperatively via their context); `postRegister` no longer auto-drives. First
+imperatively via their context); `onCreate` no longer auto-drives. First
 consumer: the leased dorm room (keyed on its unit parcel). See
 [residence.md](./residence.md).
 
@@ -920,7 +920,7 @@ While we could scan all properties, explicit declaration:
 - Documents the persistence contract at the class boundary.
 - Prevents accidental data leaks (a field added later isn't silently
   persisted).
-- Is the lookup mechanism the standard `PersistentHydrator` uses to
+- Is the lookup mechanism the standard `TemplateApplier` uses to
   decide which keys to copy from `data`.
 
 ### Why not decorators?
@@ -958,7 +958,7 @@ at the Api/collection/lease layer, not per-object. (An audit confirmed
 nothing relied on `User`/`GoogleProfile`/`Template` being Stuff.)
 
 The one Stuff-coupling that remains is marshallers + hooks +
-`PersistentHydrator`, which stay Idea-rooted *for HMR only* (they're
+`TemplateApplier`, which stay Idea-rooted *for HMR only* (they're
 stateless strategy objects hot-swapped via the clone pipeline).
 Un-Stuffing them — re-homing them as path-resolved code modules — is a
 deferred, separate change; `Document` reaches them through the injected
@@ -1243,7 +1243,7 @@ The **second persistence scope** landed: owned chattel persists with its
 
 - **A fourth slice type.** `EstateSlice` joins `FieldsSlice` /
   `ContainerSlice` / `SlottedSlice` in the `MixinSlice` union.
-- **`restoreSlice` is now invoked.** It was declared on
+- **`hydrateSlice` is now invoked.** It was declared on
   `PersistenceContributor` and collected by `getPersistenceContributors`
   but never called — `Container` and `Slotted` have explicit passes. It is
   now dispatched as step (4) of `restoreState`, after the slotted pass, so
@@ -1307,7 +1307,7 @@ for the REPORT.
 The D17 identity split reads a hard-private slot to key the registry
 index. One `ProxyApi.unwrap` of a proxy-of-a-proxy yields the inner
 PROXY, which carries no private slot and throws — which turned a
-deliberate `postRegister` failure into the wrong error on the unregister
+deliberate `onCreate` failure into the wrong error on the unregister
 path. It now peels until the slot is present, which is correct at any
 wrapping depth.
 
@@ -1357,7 +1357,7 @@ non-Behaved one under `cast:`, or a thing you can only carry under
 
 > ⚠⚠ **`costume:` shipped outside this rail and it cost all three
 > guarantees.** The envelope build added it as `wears: string[]` on `NPC`
-> with a `postRegister` dressing step, which is `applyProps` with the
+> with a `onCreate` dressing step, which is `applyProps` with the
 > check missing plus one slot occupation. So: a `wears:` entry that was
 > not wearable **cloned, went into the person's hands, claimed no slot
 > and said nothing** — the row promised a garment and the world got a

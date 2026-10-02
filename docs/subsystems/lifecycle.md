@@ -4,7 +4,8 @@ Every game-world object in Saxonberg is a `Stuff`. Stuff has a tightly
 specified lifecycle that no class is allowed to bypass:
 
 ```
-construct → wrap (Proxy) → register → hydrate → postRegister →
+construct → wrap (Proxy) → register → apply the row →
+            hydrate from every eager source → onCreate →
             (live) →
 destruct → canDestruct (veto) → onDestruct (user cleanup) →
            cleanupOnDestruct walk (framework cleanup) →
@@ -12,9 +13,12 @@ destruct → canDestruct (veto) → onDestruct (user cleanup) →
 ```
 
 The whole sequence runs inside `StuffApi`. Subclasses participate via
-three narrow extension points: `postRegister(context?)` for setup,
+three narrow extension points: `onCreate(context?)` for setup,
 `canDestruct(): VetoResult` for refusing destruction, and
-`onDestruct()` for cleanup. Mixin authors have a fourth extension
+`onDestruct()` for cleanup. ⭐ `onCreate` and `onDestruct` are both
+**terminal no-ops on `Stuff`**, named for the two events the engine
+emits (`stuff.created` / `stuff.destructed`); a layer that wants either
+overrides it and chains `super`. Mixin authors have a fourth extension
 point — `static cleanupOnDestruct(stuff)` — for substrate-invariant
 cleanup that subclass overrides cannot bypass. Everything else is
 locked down.
@@ -35,9 +39,11 @@ the permission framework does. See
 > death seams (the transition driver is deferred); see
 > [vitals.md § Death & consciousness seams](./vitals.md).
 
-This doc covers the lifecycle mechanics. The clone-side hydration
-detail (templates, `Hydrator`, `hydratorClass`) lives in
-[templates.md](./templates.md). The decorator and security mechanism
+This doc covers the lifecycle mechanics. The content step (the row's
+`data`, the `TemplateApplier`'s three phases and three modes) lives in
+[templates.md](./templates.md); filling an instance from what the world
+REMEMBERED about it lives in
+[persistence.md](./persistence.md#per-mixin-composition). The decorator and security mechanism
 that makes the locks enforceable live in
 [call-security.md](./call-security.md).
 
@@ -93,14 +99,16 @@ synthetic constructor frame.
 ### `StuffApi.clone<T>(templatePath, context?): Promise<T>`
 
 The production path. Loads a template from `Collections.Domain`,
-dynamic-imports the backing class, optionally hydrates from
-`template.data`, awaits `postRegister`. Full pipeline documented in
+dynamic-imports the backing class, applies the row's `data` when there
+is any, runs every eager hydration source, awaits `onCreate`. Full
+pipeline documented in
 [templates.md § The Clone Pipeline](./templates.md#the-clone-pipeline).
 
 ### `StuffApi.create<T>(factory, context?): Promise<T>`
 
-Caller-supplied factory; no template lookup; no hydration step. Same
-register + `postRegister` tail as `clone`. Used for runtime-only
+Caller-supplied factory; no row lookup; no content step; no hydration
+sources (nothing names a template). Same register + `onCreate` tail as
+`clone`. Used for runtime-only
 objects whose construction needs explicit arguments and don't
 round-trip through the CMS pattern. `Interactive` is the canonical
 example (`socketId`, `sessionId`, `user` flow through the closure):
@@ -115,9 +123,10 @@ const interactive = await StuffApi.create(
 ### `StuffApi.createSync<T>(factory): T`
 
 Sync sister of `create`. Same sentinel-flip + Proxy wrap + register
-guarantees, no hydrate, no `postRegister` await. **Throws if the
-constructed Stuff composes `PostRegistrationMixin`** — silently skipping
-`postRegister` would yield a half-initialised object, so the throw
+guarantees, no content step, no `onCreate` await. **Throws if the
+constructed Stuff OVERRIDES `onCreate`** (compared on the raw target,
+before the Proxy wrap — see templates.md) — silently skipping
+`onCreate` would yield a half-initialised object, so the throw
 forces such classes onto the async `create()` path.
 
 Used inside sync helpers where awaiting would force the caller (and its
@@ -136,6 +145,51 @@ is the convenient surface that respects the contract automatically;
 shared-state Stuff (the starting room, the EventRegistry) should
 use it instead of `clone()`.
 
+## ⭐⭐ `onCreate` — and the four limbs of work at birth
+
+`Stuff.onCreate(context?)` is a terminal no-op. Every Stuff inherits it,
+so a layer that wants birth-time work overrides it and chains
+`await super.onCreate(context)` — no cast, no marker mixin, no
+composition order to get right.
+
+⛔ **It was `onCreate` on an opt-in `onCreate` until
+2026-10-01, and retiring the mixin removed a failure class rather than
+renaming a method.** The mixin's default was a *non-chaining* no-op, so
+composing it anywhere but innermost SWALLOWED every layer inside it.
+`KeptAnimal` shipped that way: composed between `Behaved` and `Bonded`,
+`Bonded.onCreate` never ran on a live animal — no home seeded, no
+species warmed — and nothing could see it, because every unit test drove
+`Bonded` on a fixture with no marker above it and every live assertion
+was refusal-shaped. The clone pipeline's dispatch was also conditional on
+the marker, which produced two more live defects: `createSync` refused a
+class that composed without overriding, and a class that overrode
+*without* composing passed every predicate and never had its hook called.
+
+⭐ **And the hook collected four different kinds of work under one name.**
+The hydration build's organising finding is that only two of them belong:
+
+1. **structural completion** — the object is not finished until this runs.
+   A `Location` mints its floor, a `Boundary` mints its two anchors, a
+   vessel mints its `in`/`out` exits. ✅ Legitimate; it stays.
+2. **roster warming** — a catalogue or registry singleton rebuilds its
+   index from a collection. ✅ Legitimate; it stays. Twenty-odd
+   `*Catalogue` classes implement exactly one hook each and nothing else.
+3. **state loading** — reading back what the world remembered about *this
+   instance*. ⛔ Belongs to a `hydrationSource` on the mixin that owns the
+   state, driven by the clone pipeline whether or not a record exists —
+   see [persistence.md](./persistence.md#per-mixin-composition).
+4. **seeding** — writing an authored history into a ledger, once.
+   ⛔ Belongs to a `seed: true` field and a `seed<Field>` applier, run as
+   the content step's third phase — see
+   [templates.md](./templates.md).
+
+`lint:on-create` censuses both numbers — every implementation, and the
+subset whose body looks like limb 3 — and ratchets each. ⭐ The
+implementation ceiling stays above zero on purpose: limbs 1 and 2 are
+real and are not going away, so a burn-down to zero would be a gate
+refusing a class for being a registry. See
+[lint-family.md](../lint-family.md).
+
 ## What Registration Actually Does
 
 `StuffApi.register(proxy)` adds the proxy to `objectsById:
@@ -151,17 +205,18 @@ that empty-bucket cleanup is what the `singleton()` pre-flight
 relies on, so the destroy path must run before the next clone of a
 singleton template.
 
-Registration happens **before** hydrate and `postRegister`. The
-ordering is load-bearing: a hydrator might resolve the in-flight object
+Registration happens **before** the content step and `onCreate`. The
+ordering is load-bearing: an applier might resolve the in-flight object
 by id (e.g., a self-referencing exit), and that lookup must succeed.
 
-If hydrate or `postRegister` throws, the object is unregistered before
+If any of those throws, the object is unregistered before
 the error propagates. Half-initialised objects never linger in the
 registry.
 
 ## Synthetic Constructor Frame
 
-Hydrate and `postRegister` run inside a synthetic frame planted by
+The content step, the hydration sources and `onCreate` run inside a
+synthetic frame planted by
 `ExecutionContextApi.run`:
 
 ```typescript
@@ -172,9 +227,8 @@ await ExecutionContextApi.run(
   { kind: FrameKind.Constructor },
   async () => {
     if (hydrate) await hydrate(proxy);
-    if (MixinApi.isPostRegistration(proxy)) {
-      await proxy.postRegister(context);
-    }
+    await this.#hydrateFromSources(proxy);
+    await proxy.onCreate(context);
   }
 );
 ```
@@ -412,15 +466,15 @@ mixin actually defines `onDestruct`.
 
 ## Failure Rollback
 
-If hydrate or `postRegister` throws during creation:
+If the content step, a required hydration source, or `onCreate` throws
+during creation:
 
 ```typescript
 try {
   await ExecutionContextApi.run(/* ... */, async () => {
     if (hydrate) await hydrate(proxy);
-    if (MixinApi.isPostRegistration(proxy)) {
-      await proxy.postRegister(context);
-    }
+    await this.#hydrateFromSources(proxy);
+    await proxy.onCreate(context);
   });
 } catch (error) {
   this.unregister(proxy);   // <-- rollback
@@ -432,8 +486,8 @@ The proxy is unregistered before the error bubbles up. Half-initialised
 objects don't linger.
 
 `createSync` short-circuits **before** registering when the class
-composes `PostRegistrationMixin` — there's nothing to roll back because
-the object never made it into the registry.
+overrides `onCreate` — there's nothing to roll back because the object
+never made it into the registry.
 
 ## The `makeStuff` Test Seam
 
@@ -474,8 +528,8 @@ residency's scope entirely.)
 
 ## Cross-References
 
-- [templates.md](./templates.md) — clone pipeline, `Hydrator`,
-  `PostRegistrationMixin`, the context bag, `TemplateApi`, the
+- [templates.md](./templates.md) — clone pipeline, `TemplateApplier`,
+  `onCreate`, the context bag, `TemplateApi`, the
   folder/leaf invariant
 - [persistence.md](./persistence.md) — the `Document` track (auth/meta
   records are not Stuff and have no lifecycle), around-save/delete hooks

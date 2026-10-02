@@ -18,7 +18,7 @@ code-execution surface.
 
 
 > ⚠⚠ **`blueprints` is a CACHE that persists, and is a deletion candidate**
-> (collection audit, 2026-09-03). `BlueprintCatalogue.postRegister` calls
+> (collection audit, 2026-09-03). `BlueprintCatalogue.onCreate` calls
 > `rebuild()` — the only `rebuild()` among 39 singletons, where every other
 > catalogue `warm()`s — and `Blueprint.find()` appears **twice in the whole
 > non-test tree, both inside that rebuild.** 147 rows survive a restart and
@@ -316,7 +316,7 @@ warns a non-wizard before a commit the server will decline.
 - [templates.md](./templates.md) — the Hydrator two-phase `setX`/`applyX`
   dispatch (property vs instruction fields).
 - [mixins.md](./mixins.md) — the `Mixins` registry, `_mixinName`, `MixinApi`.
-- [access.md](./access.md) — the wizard-lockdown (`class`/`hydratorClass`/
+- [access.md](./access.md) — the wizard-lockdown (`class`/
   `behaviors[].brain` code-naming gate), `isWizard`, `canAtPath`.
 - [provenance.md](./provenance.md) — the authoring ledger, `getActingAuthor`,
   the `recordAuthoring` gate (broadened to accept the studio transport).

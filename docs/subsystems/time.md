@@ -111,7 +111,7 @@ The **lifecycle is owned by the Api**, invoked from the backend layer:
 - `WorldClockApi.boot()` — `loadOrSeed` → `restore` → start backstop →
   register system schedules. Called once as a sequencer step in
   `AppBootstrap.run()` (after `BootstrapManager.run()`, so any Stuff
-  re-establishing a schedule in `postRegister` has a live clock).
+  re-establishing a schedule in `onCreate` has a live clock).
   Fresh DB ⇒ zero clock at scale 12.
 - `WorldClockApi.shutdown()` — pause + persist the snapshot. Called
   from `AppBootstrap.shutdown()` (the backend-layer teardown
@@ -198,13 +198,13 @@ WorldClockApi.cron(pattern: CronPattern, cb, opts? & { calendar? }): ClockHandle
 **Schedules are pure runtime state. The clock never persists them.**
 The pattern is **persist state, not schedules**: a Stuff that wants to
 fire later stores its deadline as a persistent field and
-re-establishes the schedule in `postRegister`, owning its own
+re-establishes the schedule in `onCreate`, owning its own
 missed-event semantics (fire-immediately / skip / log-and-reschedule).
 This is what makes "deferred-not-skipped" work across downtime — on
 crash-recovery the clock rewinds slightly, so a persisted deadline is
 still in the future and re-arms (fired late, never silently dropped).
 Hot-reload is free: clone-replace destructs the old clone (cancelling
-its host schedules); the new clone re-establishes in `postRegister`.
+its host schedules); the new clone re-establishes in `onCreate`.
 
 ### Test seams
 

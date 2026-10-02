@@ -391,7 +391,25 @@ holds; sequential single-viewer commands keep the race benign).
   only while every belief-holding NPC happened to be a singleton — two
   sentries from one row **shared one record**. And `hydrateBeliefs()` had
   exactly one caller (`Avatar.enter`), so an NPC's opinion of you was
-  written and never read: `Cast.postRegister` hydrates now.
+  written and never read — the rows piled up in Mongo while its regard
+  reset on every restart.
+
+  ⭐⭐ **Fixed 2026-10-01 by a DECLARATION rather than a hook.**
+  `BeliefStoreMixin` declares
+  `hydrationSource = { name: 'beliefs', required: false, eager: true }`
+  plus a `hydrateFromSource` static, and the CLONE PIPELINE drives it —
+  **whether or not the host has a record.** That last clause is what
+  makes it reach a singleton at all: the slice half (`hydrateSlice`) is
+  driven by `PersistableLogic.restoreState` and only when a record
+  carries this layer's slice, so a `Cast` was never driven. `Cast`'s own
+  `onCreate` override is deleted.
+
+  ⚠ `viewerKey(host) === null` is a SKIP covering two hosts for two
+  different reasons: one that keeps its own record (reading here too
+  would load its beliefs twice and let the copies diverge) and one with
+  no durable identity (a stray's regard is session-local by design).
+  ⭐ At mint a to-be-named animal is the second; naming it promotes it to
+  the first, and `materialize` then fills it from its own record.
 - **A role holds no opinion.** `keepsPersonalRegard()` is a `@hook`,
   false on `platform/agent/Extra` (a role-filler) and true on `Cast`
   (a person): the shopkeeper-as-role remembers nobody, the named
