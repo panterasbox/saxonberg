@@ -241,6 +241,16 @@ export default class TemplateApplier extends Idea {
     const fingerprint = `${path}|${unapplied.slice().sort().join(',')}`;
     if (TemplateApplier.#reported.has(fingerprint)) return;
     TemplateApplier.#reported.add(fingerprint);
+    // ⚠⚠ **Fire-and-forget, and the `.catch` is NOT decoration.** This
+    // runs on EVERY clone in the game, and a diagnostic that cannot be
+    // written must never take down the thing it was describing. Found by
+    // the full suite: a test that stubs `PersistenceManager.get` with a
+    // partial object makes `DiagnosticApi.record` throw, and with no
+    // catch the rejection surfaced as an unhandled error — in a file
+    // that had nothing to do with this build. In production the same
+    // shape is a store hiccup during a clone cascade. The precedent is
+    // `BeliefStore._writeThrough`, for the same reason.
+    //
     // ⚠ No `channel` — it DERIVES from the row's path
     // (`DiagnosticChannel.pathToChannel`), which is the point of that
     // taxonomy: a finding about `/world/lounge/...` belongs to the
@@ -255,6 +265,9 @@ export default class TemplateApplier extends Idea {
         `${constructor.name} declares no such field, so each one is ` +
         `discarded. If the class reads this row's data itself, this is ` +
         `expected; otherwise check the spelling.`,
+    }).catch(() => {
+      // Nothing to do and nothing to say: the finding is advisory, and
+      // the clone it describes has already succeeded.
     });
   }
 
