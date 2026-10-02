@@ -53,11 +53,26 @@ const REPO_ROOT = resolve(SERVER_ROOT, '../..');
 const CONTENT = join(REPO_ROOT, 'packages/content');
 
 /**
- * ⭐ **Census-then-ratchet.** Today's Σ fires/min across the content
- * tree. Lower it whenever a wave moves rows off their own timers; never
- * raise it. A new row that wants a timer of its own has to make room.
+ * ⭐ **Census-then-ratchet, over the AUTHORED TIMERS only.** Σ fires/min of
+ * every `cadence:` spec in the content tree. Lower it whenever a wave moves
+ * rows off their own timers; never raise it. A new row that wants a timer of
+ * its own has to make room. At **0** since the agent-coordination build moved
+ * every deliberative brain onto the beat.
+ *
+ * ⚠⚠ **This deliberately EXCLUDES the nightly beat, and the exclusion is the
+ * design.** It did not at first, and the gate was wrong within one merge:
+ * master arrived with two new agents — a public-works warden and an oilworks
+ * hand — and the census went 17 → 18 **with no timer added anywhere**,
+ * because each agent pays exactly one beat and the realm had grown by two.
+ * ⭐ A ratchet over a figure that scales with content size is a gate that
+ * refuses an NPC for existing: *a bare COUNT as a permanent gate is a refusal
+ * nothing can lift*, and the author it refuses is the one doing the right
+ * thing. The beat total is still MEASURED and still reported — see
+ * `beatsPerMinOf` — but it is checked per-agent (at most one each), which is
+ * the invariant that actually matters, and the operator's dial is
+ * `behaviorBeatNightlyMs` rather than a number in this file.
  */
-export const IDLE_CADENCE_CEILING_PER_MIN = 17;
+export const IDLE_CADENCE_CEILING_PER_MIN = 0;
 
 /**
  * ⚠ A fact about the past: the census the day the gate landed. Never edit
@@ -335,6 +350,10 @@ function main(): void {
   let cadenceSpecs = 0;
   let candidateSpecs = 0;
   let beatRows = 0;
+  // ⚠ Charged SEPARATELY from `total`: the beat scales with how many agents
+  // the realm has, so ratcheting it would refuse new content. See
+  // IDLE_CADENCE_CEILING_PER_MIN.
+  let beatTotal = 0;
 
   for (const row of rows) {
     let rowTotal = 0;
@@ -413,7 +432,7 @@ function main(): void {
     // arbiter, so the meter must charge it once.
     if (hasUnwatchedCandidate) {
       beatRows++;
-      rowTotal += 60_000 / nightly;
+      beatTotal += 60_000 / nightly;
       perBrain.set('(the beat)', (perBrain.get('(the beat)') ?? 0) + 60_000 / nightly);
     }
     if (rowTotal > 0) perRow.set(row.file, rowTotal);
@@ -475,9 +494,12 @@ function main(): void {
   if (report) {
     const top = [...perRow.entries()].sort((a, b) => b[1] - a[1]);
     console.log(
-      `Idle cost: ${rounded} fires/min · ${cadenceSpecs} cadence spec(s) · ` +
-        `${candidateSpecs} candidate spec(s) · ${beatRows} row(s) arming a ` +
-        `nightly beat at ${nightly} ms.\n`,
+      `Idle cost: ${rounded} fires/min from AUTHORED TIMERS ` +
+        `(${cadenceSpecs} cadence spec(s)) — the ratcheted figure — plus ` +
+        `${Math.round(beatTotal * 10) / 10}/min from the beat ` +
+        `(${beatRows} agent(s) × one beat at ${nightly} ms), which scales ` +
+        `with the realm and is the operator's dial, not a ceiling. ` +
+        `${candidateSpecs} candidate spec(s).\n`,
     );
     console.log('By row (heaviest first):');
     for (const [file, n] of top.slice(0, 25)) {
@@ -494,11 +516,13 @@ function main(): void {
 
   if (rounded > IDLE_CADENCE_CEILING_PER_MIN) {
     failures.push(
-      `the content tree fires ${rounded} behaviour beats per minute with ` +
-        `nobody watching, above the ceiling of ` +
+      `the content tree fires ${rounded} behaviour beat(s) per minute from ` +
+        `AUTHORED TIMERS with nobody watching, above the ceiling of ` +
         `${IDLE_CADENCE_CEILING_PER_MIN}. ⭐ The census may fall, never rise ` +
-        `— lower IDLE_CADENCE_CEILING_PER_MIN when a wave moves rows onto ` +
-        `the deliberation beat. Run with --report to see which rows pay.`,
+        `— a row that wants a timer of its own has to make room, and the ` +
+        `answer is almost always 'trigger: candidate' so the row rides the ` +
+        `one beat it already pays for. Run with --report to see which rows ` +
+        `pay.`,
     );
   }
 
@@ -508,8 +532,11 @@ function main(): void {
     process.exit(1);
   }
   console.log(
-    `✔ lint:idle-cadence — ${rounded} fires/min across ${perRow.size} row(s), ` +
-      `at or under the ceiling of ${IDLE_CADENCE_CEILING_PER_MIN}.`,
+    `✔ lint:idle-cadence — ${rounded} fires/min from authored timers ` +
+      `across ${perRow.size} row(s), at or under the ceiling of ` +
+      `${IDLE_CADENCE_CEILING_PER_MIN}; plus ` +
+      `${Math.round(beatTotal * 10) / 10}/min from ${beatRows} agent(s) × ` +
+      `one beat, which is the dial and not a ceiling.`,
   );
 }
 

@@ -78,6 +78,13 @@ watching; the player starts **outside** it and earns first *visibility*,
 then *a place in it*. **Presence buys legibility** — a newcomer sees a bar,
 a barfly sees the whole social world. Discovery is never exposition: the
 cold-or-warm handoff, who covers whose shift, who Dave calls into the back,
+⭐⭐ **the senior seat and the duty that hangs off it** — scoped and
+deliberately NOT built by MR !316: a `head-bartender` position beside
+`bartender`/`keeper`, with the weekly inventory duty attached **to the seat,
+not the person**, so a player who earns the seat inherits the seniority and
+the arbitration stays readable off the chart. The call substrate it needs
+shipped (`call: regulars | rota`, `callFor`); what is missing is the position
+row, the duty, and the shift hand-off beat,
 a glance, a silence. *Wasting time on the stool* is the unlock, and it's
 the same loop that builds belonging — so discovery and relatedness are one
 mechanic.

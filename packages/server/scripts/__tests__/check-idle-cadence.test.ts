@@ -20,7 +20,19 @@ describe('the ratchet', () => {
     expect(IDLE_CADENCE_CEILING_PER_MIN).toBeLessThanOrEqual(
       IDLE_CADENCE_HIGH_WATER,
     );
-    expect(IDLE_CADENCE_CEILING_PER_MIN).toBeGreaterThan(0);
+    expect(IDLE_CADENCE_CEILING_PER_MIN).toBeGreaterThanOrEqual(0);
+  });
+
+  it('⚠⚠ counts only AUTHORED TIMERS, never the per-agent beat', () => {
+    // The ceiling reached 0 the day every deliberative brain moved onto the
+    // beat, and the first version of this gate also charged the beat — so a
+    // merge that added two agents pushed the census 17 → 18 with no timer
+    // added anywhere, and the ratchet refused an NPC for existing. A figure
+    // that scales with content size cannot be ratcheted; the beat is the
+    // operator's `behaviorBeatNightlyMs` dial instead, measured and
+    // reported but never a ceiling. ⭐ This assertion is the guard: the
+    // ceiling at 0 is only meaningful while the beat is excluded.
+    expect(IDLE_CADENCE_CEILING_PER_MIN).toBe(0);
   });
 
   it('⚠ and the high-water mark is a fact about the past — never edit it down', () => {

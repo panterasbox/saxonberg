@@ -309,7 +309,7 @@ suite('6 — the world did not break', () => {
 });
 
 suite('7 — two on the rail share the work', () => {
-  it('⭐⭐ repeated orders are not answered by the same person every time', async () => {
+  it('⭐⭐ six repeated orders are each answered, and the realm names who served', async () => {
     // ⚠ The retired defect: candidates sorted by identity path, so one NPC
     // served every order of the bar's life. The rotation leg is what makes
     // this checkpoint able to fail.
@@ -325,17 +325,18 @@ suite('7 — two on the rail share the work', () => {
         if (said.includes(name)) servers.add(name);
       }
     }
-    // ⚠ What this CAN prove live is that repeated orders are served at all
-    // and that the realm names who served them. Proving the ROTATION needs
-    // two on shift in the same hour, which the drive's own hour may not be;
-    // the distribution is proved exhaustively in `CallPolicy.test.ts`
-    // (30 calls, three hands, ten each).
-    // ⚠ Hour-and-stock bound: an empty rail serves nothing, and only ONE
-    // barkeep is on in most hours. What is asserted live is that repeated
-    // orders are answered CONSISTENTLY — the same question gets the same
-    // kind of answer, which is what a stable resolver means. The rotation's
-    // distribution is proved exhaustively in `CallPolicy.test.ts` (30 calls,
-    // three hands, ten each) because a drive cannot reach two hours.
+    // ⚠⚠ **Read the name of this checkpoint, not the defect it retired.**
+    // It is hour-and-stock bound: an empty rail serves nothing, and in most
+    // hours only ONE barkeep is on, so a DISTRIBUTION cannot be asserted
+    // live — the drive cannot choose its own hour. What it does prove is
+    // that six repeated orders are each ANSWERED (served or refused, never
+    // silent) and that the realm names who served, which is what a stable
+    // resolver means and is exactly what the retired identity-path sort
+    // could not have given. The rotation's distribution is proved
+    // exhaustively in `CallPolicy.test.ts` — 30 calls, three hands, ten
+    // each. ⭐ An earlier draft of this comment claimed the live run proved
+    // the rotation; it never did, and a checkpoint that overstates itself is
+    // worse than one that admits a limit.
     expect(answered, 'every order is answered, served or refused').toBe(6);
     if (served > 0) {
       expect(servers.size, 'the realm says who served').toBeGreaterThan(0);
@@ -344,7 +345,16 @@ suite('7 — two on the rail share the work', () => {
 });
 
 suite('8 — a hired player gets SOME orders', () => {
-  it('⭐⭐ applies, clocks on, and is one candidate among several — not all, not none', async () => {
+  it('⭐⭐ a player can apply for the bar\'s place and clock on to it', async () => {
+    // ⚠⚠ **What this does NOT prove, said plainly.** The requirement is
+    // *"a newly hired player gets SOME orders and not all of them"*, and
+    // this checkpoint stops at the hiring. Observing the share needs two
+    // candidates on shift in the same hour, which the drive cannot choose
+    // (see checkpoint 7's note); asserting it conditionally would be a
+    // vacuous assertion that reads like a passing one. The share itself is
+    // proved in `CallPolicy.test.ts`, where a player-shaped candidate takes
+    // its tenth of thirty calls like any other. ⭐ The gap is the drive's,
+    // not the mechanism's, and it is recorded in the plan's acceptance map.
     const applied = await act(hire, 'apply for bartender');
     if (applied.result.status === 'ok') {
       const clocked = await act(hire, 'clock on');

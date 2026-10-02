@@ -2268,15 +2268,8 @@ async function craftImpl(req: CraftRequest): Promise<CraftOutcome> {
   // break-off is narrated as one act so the patron sees the person come
   // over rather than a drink appearing. `interruptibleBy` is read for real
   // here — the first thing in the engine's history to read it.
-  if (
-    req.makerMode !== 'self' &&
-    MixinApi.hasMixin(maker.constructor as never, 'BehavedMixin' as never)
-  ) {
-    const behaved = maker as unknown as {
-      preemptFor(reason: 'called'): boolean;
-      requestBeat(): void;
-    };
-    if (behaved.preemptFor('called')) {
+  if (req.makerMode !== 'self' && MixinApi.isBehaved(maker)) {
+    if (maker.preemptFor('called')) {
       MessageApi.scene(maker)
         .topic('act.deed')
         .toPeers(
@@ -2287,7 +2280,7 @@ async function craftImpl(req: CraftRequest): Promise<CraftOutcome> {
     // Re-decide the moment the drink is served, rather than at the next
     // scheduled beat: being called is exactly the kind of event that
     // should wake an agent.
-    behaved.requestBeat();
+    maker.requestBeat();
   }
   const location = maker.getContainer();
   if (!location) {

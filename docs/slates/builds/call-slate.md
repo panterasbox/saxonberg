@@ -483,8 +483,9 @@ pass 3. ⭐ Pass 3 cannot be authored — which is why a **player** is the only
 actor who makes it fire, and why the fairness stakes are what they are.
 
 ⭐ **The understudy is one seam, not three.** Quest's open n+1 (*"Dave dies;
-the understudy steps in"*), the shipped `covers` brain (the proprietor
-filling a gap), and a crew whose rostered member is absent are the same
+the understudy steps in"*), the shipped cover leg (the proprietor
+filling a gap — the `covers` brain until MR !316, the roster tick's now),
+and a crew whose rostered member is absent are the same
 pass-2→3 override. Three slates were holding it separately.
 
 ## ⭐⭐⭐ Crews and quests — what unifies, and what must not
@@ -523,10 +524,10 @@ designed for* — dies with it (lens 3).
 | **employment** | `head-bartender` | the seat's `requires` criterion | **one employment** |
 
 ⭐ **It earns its keep by predicting something true:** the understudy exists
-at all three lifetimes — the shipped `covers` brain is the *one-request*
+at all three lifetimes — the shipped cover leg is the *one-request*
 substitute, quest's open n+1 is the *one-plot* substitute, and a vacancy is
 the *one-employment* substitute. **Three slates were holding one seam**, and
-`covers` was the instance nobody had recognized as one.
+cover was the instance nobody had recognized as one.
 
 ### ⭐⭐⭐⭐ The transfer worth having — a RELATIONAL leg
 

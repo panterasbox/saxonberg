@@ -71,8 +71,8 @@ actor-agnostic ([employment.md](../subsystems/employment.md)):
    `Character` (employment.md:60); both player Avatars and NPCs *are*
    Characters. `getConferredMixinNames()` reads the `confers` of every
    **on-shift** Position — identical whether the holder is player or NPC.
-3. **An NPC fills the seat** as a roster assignee: the `shifts` brain
-   teleports it on-stage on-shift, and the Position's mixins go active via
+3. **An NPC fills the seat** as a roster assignee: the roster tick
+   teleports it on-stage on-shift (the `shifts` brain until MR !316), and the Position's mixins go active via
    the augment substrate (employment.md:112-148,171-180).
 4. **A player fills the same seat** via `hire`/`beginShift` — the Api is
    already actor-generic (employment.md:70-73).
@@ -80,7 +80,7 @@ actor-agnostic ([employment.md](../subsystems/employment.md)):
    through `MixinApi.isActive` (activeness), **not** `hasMixin`
    (composition) — order/duty resolution finds "the present agent with an
    active capability" without asking *who* (employment.md:24-27,131-138).
-6. **Live handoff** is the `covers` brain: if no active on-shift maker is
+6. **Live handoff** is the roster tick's cover leg (the `covers` brain until MR !316): if no active on-shift maker is
    present, `beginCover` upserts a transient on-shift Employment reusing
    the same confer path (employment.md:181-202) — NPC steps in / player
    steps out over one shared seam.

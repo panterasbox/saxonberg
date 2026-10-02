@@ -1196,11 +1196,21 @@ tree, plus one nightly beat per row that arms one. **Nothing had ever added
 it up**, and a row dropping a `cadence:2s` on a brain nobody watches was
 indistinguishable from a row doing the right thing.
 
-Census-then-ratchet: **263.2 → 17 fires/min** across the agent-coordination
-build, which moved every deliberative brain onto one beat per agent. All 17
-is now the beat itself (34 agents × the 120 s nightly dial), and **zero
-authored `cadence:` specs remain** — so the realm's idle cost is one number
-an operator turns.
+Census-then-ratchet: **263.2 → 0 fires/min from authored timers** across the
+agent-coordination build, which moved every deliberative brain onto one beat
+per agent. **Zero authored `cadence:` specs remain**, so the realm's idle cost
+is one number an operator turns (`behaviorBeatNightlyMs`).
+
+⚠⚠ **The ratchet counts the TIMERS and deliberately not the beat — and the
+first version got this wrong.** It charged both, reached 17 (34 agents × the
+120 s dial), and then a merge from master arrived with two new agents — a
+public-works warden and an oilworks hand — and the census went **17 → 18 with
+no timer added anywhere.** ⭐ A ratchet over a figure that scales with content
+size is *a bare COUNT as a permanent gate*: it refuses an NPC for existing,
+and the author it refuses is the one doing the right thing. So the meter
+split — the `cadence:` sum ratchets (at 0) and the beat total is measured,
+reported and checked per-agent at most one each. **The lesson generalizes:
+before ratcheting a number, ask what else moves it.**
 
 It also gates the brain declarations a `candidate` spec needs: `kind` in the
 vocabulary, a `summary` that is not the filename, `claims` on any

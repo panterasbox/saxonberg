@@ -91,6 +91,43 @@ reset DB the same tree was 139/139. The reset is one command:
 pnpm --filter @saxonberg/server reset:db     # then re-run
 ```
 
+### ⭐⭐⭐ A checkpoint's NAME is a coverage claim — audit it like one
+
+Found at the agent-coordination sweep (2026-10-01), and the cheapest defect
+class in this file to introduce: **a drive checkpoint whose title claims more
+than its body asserts.** Three of that build's acceptance rows cited drive
+proof that did not exist:
+
+| the claim | what was actually asserted |
+|---|---|
+| *"repeated orders are not answered by the same person every time"* | that six orders were each **answered** — never that two different people answered |
+| *"one candidate among several — not all, not none"* | that a player could `apply` and `clock on` — the checkpoint never ordered anything |
+| the acceptance table cited **"drive 9"** | there is no checkpoint 9; the file runs 1–8 and 10–15 |
+
+⚠ **Why this is worse than a missing test.** A missing checkpoint is visibly
+missing. A checkpoint named for the thing it *meant* to prove reads as the
+strongest evidence on the table, and the acceptance map then cites it — so one
+optimistic title becomes a satisfied requirement.
+
+⭐ **The cause is almost always an honest limit discovered late.** All three
+came from the same real constraint: **a wire drive cannot choose the game
+hour**, and two candidates on shift in one hour is what *sharing the work*
+needs. The checkpoint was written against the intent, then narrowed to what
+would actually pass, and only the body was edited.
+
+**So the rules are:**
+
+1. **Name the checkpoint after the assertion, not the requirement.** *"six
+   repeated orders are each answered, and the realm names who served"* is
+   duller and is the truth.
+2. **Never assert conditionally to make a hour-bound checkpoint pass.** An
+   `if (served > 0) expect(...)` is a vacuous assertion that reads like a
+   passing one — say in a comment what cannot be proved live and where it *is*
+   proved (a unit test with 30 calls and three hands, in this case).
+3. **At the sweep, walk the acceptance map by re-reading each cited
+   checkpoint's body.** Citing it is not observing it. This is the one audit
+   that caught all three.
+
 ### ⭐⭐ The exemption that keeps getting invented
 
 The table above has been in this doc for a while and the full suite

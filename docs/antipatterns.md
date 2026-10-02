@@ -5617,3 +5617,49 @@ build never ran), the *drive* caught one, and the third needed a **browser
 walk at a specific hour** — the wire harness boots at `t = 0`, so a build
 about the sun had its entire daylight half untested until somebody looked
 at noon. None of the three was caught by the code that changed.
+
+## Breaking a tie between equally-able agents by sorting IDENTITY PATHS
+
+**Don't.** When two or more people could answer a request, do not pick by
+sorting their identity paths, template paths, or authored declaration order.
+
+```ts
+// WRONG — predictable, and predictably one person forever
+const able = present.filter((c) => c.isFulfilling(discipline));
+able.sort((a, b) => a.getIdentityPath().localeCompare(b.getIdentityPath()));
+return able[0];
+
+// RIGHT — the house's own authored rule decides
+return house.callFor({ patron, candidates: able });
+```
+
+**Why it is not merely arbitrary: it is STABLE.** An arbitrary tie-break
+that varied would look like a bug and get noticed. A sort on a path is
+deterministic, so **the same person answers every request for the lifetime
+of the world** — and every other seat is decorative while reading as
+staffed. Dave's Bar shipped four barkeeps on one rail and one of them served
+every drink the bar ever poured; a player who earned the seat got nothing,
+which is the exact opposite of what the seat was for.
+
+**The tell** is that the sort key has nothing to do with the question. *Who
+comes over* is a fact about this house, this hour, and this patron's
+history; a path is a fact about who authored the row first.
+
+⚠ **It hides behind a correct-looking filter.** The capability leg —
+*which of these people can actually do this* — is real work and is usually
+right, so the function reads as considered. The defect is in the one line
+after it, and it will pass every test that asserts *somebody* was served.
+
+⭐ **The fix is to name the decider, not to randomize.** Randomizing swaps a
+stable wrong answer for an unexplainable one, and *lens 4* says a choice with
+no derivable right answer must still be **decided by somebody nameable** — so
+it belongs to the house as authored data (`call: regulars | rota`), not to
+the engine as a sort. The rotation leg is then a monotonic ticket, which is
+*fair* rather than *random*, and an author can predict it.
+
+See [employment.md § The call](./subsystems/employment.md) and
+[crafting.md](./subsystems/crafting.md). The sibling case is a brain's
+candidate list: `Behaved._deliberate` orders on urgency band → task kind →
+hysteresis → declaration order, and **declaration order is the last resort
+there on purpose** — it is the only leg that is a fact about the author
+rather than about the world.

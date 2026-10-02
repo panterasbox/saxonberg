@@ -612,7 +612,7 @@ chain.
 
 Quest's open n+1 — *"Pass 3 may override pass 2, and that is where n+1
 lives. Dave dies; the understudy steps in"* — is the same question as the
-shipped `covers` brain (the proprietor filling a gap) and the same question
+shipped cover leg (the proprietor filling a gap — a brain until MR !316, the roster tick's now) and the same question
 as a crew whose rostered member is absent. ⭐ **Three slates had it
 separately; it is one seam**, and it is a pass-2→3 override.
 

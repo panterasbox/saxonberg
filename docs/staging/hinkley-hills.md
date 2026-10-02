@@ -515,7 +515,7 @@ ticker) · a lit window at an hour nothing else is lit.
 
 - Their houses are the **same keyed programme** a player buys into — no
   bespoke rooms. Lots 1, 3, 5, 6 taken; the player buys from 7 up.
-- Commute = the `shifts` brain with a **residence** rather than an
+- Commute = the roster tick's relocation with a **residence** rather than an
   `Offstage`, with the walk to the stop rendered; the rail leg may stay a
   teleport. The *visible* half is the lane and the platform.
 - ⚠ Prove the residency/eviction interaction first (towns-slate D13):

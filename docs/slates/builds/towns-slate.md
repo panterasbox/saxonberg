@@ -973,8 +973,10 @@ the seasons) — the compaction ledger has each with its pointer.*
   everything else keyed-minted from `house-programme`. `_governmentKey:
   hinkley-hills`. Tank is the District's first job (D27).
 - **28 agent rows total** across all packs.
-- **`shifts` brain** = `on-shift → workplace` / `off-shift → Offstage`,
-  via `teleport`, not presence-gated, `ambient = false`.
+- **The roster tick** = `on-shift → workplace` / `off-shift → Offstage`,
+  via `teleport`. ⚠ Was the `shifts` brain, RETIRED 2026-10-01 (MR !316):
+  relocation is not a decision an agent makes, so it belongs on the tick
+  that already knew the hours, not on a brain beating against the clock.
 - **`Offstage`** is `/platform/location/Offstage`, no `Exitable`,
   materialized on demand by `singletonOrClone`.
 - **Shift schedules**: only the Lounge, the budget, the general store and

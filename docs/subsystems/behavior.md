@@ -297,8 +297,16 @@ whose brain declares `presenceGated = false` are consulted at all**, and an
 agent with none skips the beat's body entirely.
 
 `lint:idle-cadence` meters exactly this. After the migration the content
-tree holds **zero `cadence:` specs** and the realm's whole idle cost is
-**17 fires/min** — 34 agents × one nightly beat. From 263.2.
+tree holds **zero `cadence:` specs**, down from a Σ of **263.2 fires/min**,
+and the realm's whole idle cost is one beat per agent — 18/min at 36 agents
+against the 120 s dial, so **halving the dial halves the realm's idle cost
+with no content edited.**
+
+⚠ **The ratcheted figure is the TIMER sum, not that total.** Charging the beat
+too made the gate refuse new content: two agents arriving on a merge moved the
+census 17 → 18 with no timer added anywhere. The beat scales with how many
+people the realm has, which is the right shape and the wrong thing to ratchet
+— see [lint-family.md](../lint-family.md).
 
 ### The early wake
 
