@@ -61,6 +61,51 @@ export interface FieldMetaEntry {
   stackIdentity?: true;
 
   /**
+   * ⭐ **Seeded once, at mint, by a `seed<Field>` method** — the template
+   * applier's third phase. The row authors a *history* (a prologue, a
+   * disposition set, a renown claim) and the applier hands it to the
+   * owner, which writes it into the ledger that owns the truth.
+   *
+   * A seed field is **also** a property field when it declares
+   * {@link persistent}: phase 1 still puts the authored value on the
+   * instance (so `getRenownClaims()` et al. can read it back), and
+   * `seed: true` adds phase 3 on top. It does not replace phase 1.
+   *
+   * ⚠ Phase 3 runs at **mint only** — never at go-live, never at
+   * restore. Re-seeding a live object would double its history. A
+   * re-clone after a destruct IS a new mint, so idempotence against the
+   * ledger's own contents stays the applier's job: only the ledger knows
+   * the history is already there.
+   *
+   * A seed key with no `seed<Field>` method throws, naming the field —
+   * the same rule {@link instruction} has, for the same reason.
+   */
+  seed?: true;
+
+  /**
+   * ⭐⭐ **Applied when the instance is MINTED, never pushed by go-live.**
+   *
+   * The hazard this names is value-bearing authored state. A row authors
+   * `quantity: 1` on a coin; the authored number is the right starting
+   * point for a newly-minted stack and is **catastrophically wrong** for
+   * a live one, because a CMS save or a `pack sync` re-applies every
+   * authored field to every live instance at that path — which would
+   * reset every coin stack in the world to one. Money has a conservation
+   * chokepoint precisely so that nothing mints or burns outside the
+   * ledger, and go-live hydration was a hole straight through it.
+   *
+   * Declared by the field's OWNER (`Stackable.quantity`), not per row:
+   * the hazard is a property of the field wherever it is authored — a
+   * scrip's quantity, a crate of limes' — and a row-level switch would
+   * have to be remembered on every row that authors a stack.
+   *
+   * ⚠ Restore is NOT go-live: `PersistableApi.materialize` replays a
+   * record of what this instance actually had, so it applies birth-only
+   * fields like any other. Only the authored push skips them.
+   */
+  birthOnly?: true;
+
+  /**
    * **How this field merges when a template row `extends` another.**
    *
    * Declared by the field's OWNER, which is the whole point: a pack's

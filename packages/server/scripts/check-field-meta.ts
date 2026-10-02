@@ -534,6 +534,8 @@ const KNOWN_PROPS = new Set([
   "spoiler",
   "spoilerName",
   "inherit",
+  "seed",
+  "birthOnly",
 ]);
 const TRUE_ONLY = new Set([
   "persistent",
@@ -541,6 +543,8 @@ const TRUE_ONLY = new Set([
   "stackIdentity",
   "authorable",
   "runtimeState",
+  "seed",
+  "birthOnly",
 ]);
 const STRING_PROPS = new Set(["marshaller", "inverse", "authorPicker"]);
 const REF_VALUES = new Set(["identity", "instance"]);

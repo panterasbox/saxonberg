@@ -63,6 +63,7 @@
     "lint:lib-statics": "tsx scripts/check-lib-statics.ts --lint",
     "lint:locations": "tsx scripts/check-location-classes.ts",
     "mixin-census": "tsx scripts/check-mixin-census.ts",
+    "lint:on-create": "tsx scripts/check-on-create.ts",
     "lint:placement-words": "tsx scripts/check-placement-words.ts --lint",
     "lint:menu-staff": "tsx scripts/check-menu-staff.ts",
     "lint:mixin-names": "tsx scripts/check-mixin-names.ts --lint",
