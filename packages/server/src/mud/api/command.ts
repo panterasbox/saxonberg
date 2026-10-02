@@ -1390,18 +1390,31 @@ export class CommandApi {
   }
 
   /**
-   * ⭐ **The definition that owns `verb`**, or `null`.
+   * ⭐⭐ **Every definition that claims `verb`** — and it is PLURAL on
+   * purpose.
    *
-   * The question a caller actually has, asked of the owner instead of
-   * filtering its table — `lint:whole-table`'s rule, and the right one:
-   * this is where a verb index can later go without a single caller
-   * moving. ⚠ Case-insensitive, because a player types what they type.
+   * ⚠⚠ A verb may legitimately be claimed by more than one view, and
+   * nine such collisions are shipped today (`lint:verb-collisions` is
+   * an ALLOWLIST, not a zero: `butcher` across two trades, `dress`
+   * medical-vs-cooking, `pour`, `hang`, `mount`, `drive`, `me`,
+   * `lease`, `unlease`). So a `definitionForVerb()` returning the FIRST
+   * match would hand its caller an arbitrary winner decided by the
+   * filename cache's insertion order — which is not how dispatch picks
+   * either.
    *
-   * Added by the taps build for `instruct`, which has to know whether a
-   * named line's view declares `standing: true` before it will keep it.
+   * ⭐ **Dispatch resolves per-GIVER**, newest-first on the recency
+   * stack, by shape-vs-bind at the assemble stage
+   * (`command-routing.md`). No caller can reproduce that from a
+   * catalogue read, and this API does not pretend to: it answers *who
+   * claims this word* and leaves the caller to decide what an ambiguous
+   * answer means for it. ⚠ A caller that wants a single winner almost
+   * certainly wants to FAIL CLOSED on `length > 1` rather than pick.
+   *
+   * Case-insensitive, because a player types what they type. Aliases
+   * count — `verbs: [job, jobs]` claims both.
    */
-  static definitionForVerb(verb: string): CommandDefinition | null {
-    return logic().definitionForVerb(verb);
+  static definitionsForVerb(verb: string): CommandDefinition[] {
+    return logic().definitionsForVerb(verb);
   }
 
   /**

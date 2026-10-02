@@ -118,10 +118,16 @@ export default class InstructController extends CommandController<InstructModel>
       return;
     }
     // ⭐ Ask the OWNER the question, rather than filtering its table —
-    // `lint:whole-table`'s rule, and the right one: this is where a verb
-    // index can later go without this caller moving.
-    const def = CommandApi.definitionForVerb(verb);
-    if (!def) {
+    // `lint:whole-table`'s rule.
+    //
+    // ⚠⚠ PLURAL, and that is the whole point. A verb may legitimately be
+    // claimed by more than one view — nine such collisions are shipped
+    // (`butcher` across two trades, `dress` medical-vs-cooking, `pour`,
+    // `hang`, …) and `lint:verb-collisions` is an ALLOWLIST rather than
+    // a zero. Taking the FIRST match would pick an arbitrary winner off
+    // the filename cache's insertion order.
+    const claims = CommandApi.definitionsForVerb(verb);
+    if (claims.length === 0) {
       this.decline(
         context,
         Mml.compose`There is no such command as '${verb}'.`,
@@ -130,8 +136,39 @@ export default class InstructController extends CommandController<InstructModel>
       return;
     }
 
-    // ── ⛔ and it must be KEEPABLE ──
-    if (!def.standing) {
+    // ── ⛔ and EVERY claim must be KEEPABLE ──
+    //
+    // ⭐⭐⭐ **Fail closed on ambiguity, and the reason is soundness
+    // rather than caution.** Dispatch resolves a collided verb
+    // PER-GIVER — newest-first on the recency stack, shape-vs-bind at
+    // the assemble stage — and no catalogue read can reproduce that. So
+    // if two views claim this word and only one of them opted in, a
+    // controller that picked either answer would be wrong half the
+    // time, in both directions:
+    //
+    //  - ⛔ **fails OPEN** — it permits keeping a line that will
+    //    actually dispatch to the view that did NOT opt in. That is the
+    //    earn/preserve bound breaking, which is the only safety
+    //    property this feature has.
+    //  - ⚠ **fails arbitrarily** — it refuses a legitimate take because
+    //    a homonym happened to be cached first, which reads to the
+    //    player as the verb being fussy for no reason.
+    //
+    // Requiring ALL claims to declare `standing` makes the answer true
+    // whichever one dispatch picks. ⭐ It costs nothing today (none of
+    // the four keepable verbs is collided) and it is the behaviour that
+    // stays correct the day somebody adds a second `tap` — a beer tap
+    // is not far-fetched, the noun is already bound on nine fixtures.
+    const keepable = claims.filter((d) => d.standing);
+    if (keepable.length > 0 && keepable.length < claims.length) {
+      this.decline(
+        context,
+        Mml.compose`'${verb}' means more than one thing here, and only some of them are work you can leave running. Say it a different way.`,
+        'ambiguous-verb',
+      );
+      return;
+    }
+    if (keepable.length === 0) {
       // ⭐ The refusal says the RULE, because the rule is the design: a
       // player who tried to keep a sale should come away understanding
       // why they cannot, not thinking the parser is fussy.

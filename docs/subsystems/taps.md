@@ -276,6 +276,43 @@ keepable would be the game earning on a player's behalf. It is in
 `command.schema.json` with `additionalProperties: false`, so a typo
 fails at boot.
 
+### ⛔⛔⛔ And an ambiguous verb is REFUSED, not guessed
+
+⚠⚠ **A verb may legitimately be claimed by more than one view.** Nine
+such collisions are shipped — `lint:verb-collisions` is an ALLOWLIST
+rather than a zero (`butcher` across two trades, `dress`
+medical-vs-cooking, `pour`, `hang`, `mount`, `drive`, `me`, `lease`,
+`unlease`) — and ⭐ **dispatch resolves them PER-GIVER**, newest-first on
+the recency stack, by shape-vs-bind at the assemble stage
+([command-routing.md](./command-routing.md)).
+
+No catalogue read can reproduce that. So `instruct` asks
+`CommandApi.definitionsForVerb(verb)` — **plural** — and keeps the line
+only when **every** claim declares `standing: true`:
+
+| claims | outcome |
+|---|---|
+| none | `unknown-verb` |
+| all keepable | ⭐ kept — true whichever one dispatch picks |
+| **some keepable** | ⛔ **refused** (`ambiguous-verb`), in words: *"'shear' means more than one thing here, and only some of them are work you can leave running."* |
+| none keepable | refused, and the refusal states the rule |
+
+⚠ The first draft took the **first match** off the filename cache's
+insertion order, which fails in both directions and the dangerous one
+is silent:
+
+- ⛔ **fails OPEN** — permits keeping a line that will dispatch to the
+  view that never opted in. That is the earn/preserve bound breaking,
+  and it is the only safety property this feature has.
+- ⚠ **fails arbitrarily** — refuses a legitimate take because a homonym
+  happened to be cached first, which reads to the player as the verb
+  being fussy for no reason.
+
+⭐ Failing closed costs nothing today (none of the four keepable verbs is
+collided) and stays correct the day somebody claims `tap` for a beer
+tap — which is not far-fetched: the noun is already bound on nine bar
+fixtures.
+
 ### ⚠ It stays where you left it
 
 Each round resolves its target among the host's peers **in the room the

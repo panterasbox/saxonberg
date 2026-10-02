@@ -86,18 +86,26 @@ describe('instruct — only a take may be kept', () => {
     // ⭐ The catalogue the controller resolves the line's verb against:
     // `milk` opts in, `sell` does not. That is the whole gate.
     //
-    // ⚠ Mocking `definitionForVerb` rather than `allDefinitions`,
+    // ⚠ Mocking `definitionsForVerb` rather than `allDefinitions`,
     // because the controller asks the OWNER the question now
     // (`lint:whole-table`) — mocking the table would leave the real
     // lookup running against an empty cache.
-    const catalogue = new Map([
-      ['milk', view('milk', true)],
-      ['gather', view('gather', true)],
-      ['sell', view('sell', false)],
-      ['consign', view('consign', false)],
+    //
+    // ⚠⚠ PLURAL, because a verb can be claimed twice and nine such
+    // collisions are shipped. `shear` is the ambiguous case: two views,
+    // only one keepable.
+    const catalogue = new Map<string, CommandDefinition[]>([
+      ['milk', [view('milk', true)]],
+      ['gather', [view('gather', true)]],
+      ['sell', [view('sell', false)]],
+      ['consign', [view('consign', false)]],
+      // A collided verb where the claims DISAGREE.
+      ['shear', [view('shear', true), view('shear', false)]],
+      // …and one where they agree.
+      ['tap', [view('tap', true), view('tap', true)]],
     ]);
-    vi.spyOn(CommandApi, 'definitionForVerb').mockImplementation(
-      (v: string) => catalogue.get(v.toLowerCase()) ?? null,
+    vi.spyOn(CommandApi, 'definitionsForVerb').mockImplementation(
+      (v: string) => catalogue.get(v.toLowerCase()) ?? [],
     );
   });
   afterEach(() => {
@@ -183,6 +191,41 @@ describe('instruct — only a take may be kept', () => {
     const dup = ctx(me, room);
     await c.execute(model('keep', 'milk cow into pail'), dup);
     expect(reasons(dup)).toContain('already-kept');
+  });
+
+  it('⛔⛔⛔ an AMBIGUOUS verb is REFUSED — the bound must not fail open', async () => {
+    // ⭐⭐⭐ The soundness case, and the reason the lookup is plural.
+    //
+    // Dispatch resolves a collided verb PER-GIVER (newest-first on the
+    // recency stack, shape-vs-bind at assemble) and no catalogue read
+    // can reproduce that. So when two views claim one word and only one
+    // opted in, picking either answer is wrong half the time — and the
+    // dangerous half PERMITS keeping a line that will dispatch to the
+    // view that never opted in. That is the earn/preserve bound failing
+    // OPEN, which is the only safety property this feature has.
+    //
+    // ⚠ The first draft of this controller took the FIRST match off the
+    // filename cache's insertion order, which is exactly that bug.
+    const { me, room, c } = scene();
+    const context = ctx(me, room);
+    await c.execute(model('keep', 'shear the ewe'), context);
+    expect(reasons(context)).toContain('ambiguous-verb');
+    expect(me.getBehaviors()).toEqual([]);
+    // ⭐ And the refusal is a real sentence: a player who hits this
+    // should understand the word is overloaded, not think the verb is
+    // fussy for no reason.
+    expect(JSON.stringify(me.received)).toMatch(/more than one thing/i);
+  });
+
+  it('⭐ a collided verb whose claims AGREE is still keepable', async () => {
+    // Failing closed on ambiguity must not mean failing closed on
+    // collision: if every view claiming the word opted in, the answer is
+    // true whichever one dispatch picks.
+    const { me, room, c } = scene();
+    const context = ctx(me, room);
+    await c.execute(model('keep', 'tap the birch'), context);
+    expect(reasons(context)).toEqual([]);
+    expect(me.getBehaviors().length).toBe(1);
   });
 
   it('`instruct none` clears the lot; bare `instruct` lists them', async () => {

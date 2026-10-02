@@ -1159,10 +1159,38 @@ all 59 lint gates pass.
 >   than reading as a verb that quietly cannot be kept.
 > - **`lint:whole-table` (59 gates now, from the merge) caught
 >   `CommandApi.allDefinitions().find(…)`.** The rule is *ask the owner
->   the question*, so `CommandApi.definitionForVerb(verb)` was added —
->   which is where a verb index can later go without a caller moving.
+>   the question*, so a verb lookup was added to `CommandApi`.
 >   ⚠ The controller test had to mock the new read rather than the table,
 >   or the real lookup would have run against an empty cache.
+>
+> **⛔⛔⛔ And the first version of that lookup was WRONG — raised in
+> review, and it was a soundness hole rather than a nicety.**
+>
+> `definitionForVerb()` returned the FIRST definition claiming a word.
+> ⚠⚠ But **verb collisions are part of the design and nine are
+> shipped**: `lint:verb-collisions` is an ALLOWLIST, not a zero
+> (`butcher` across two trades, `dress` medical-vs-cooking, `pour`,
+> `hang`, `mount`, `drive`, `me`, `lease`, `unlease`). "First" meant
+> *whatever the filename cache happened to insert first*, which is not
+> how dispatch picks either — ⭐ dispatch resolves **per-giver**,
+> newest-first on the recency stack, shape-vs-bind at assemble.
+>
+> Two failures, and the dangerous one is silent:
+> - ⛔ **fails OPEN** — permits keeping a line that will dispatch to the
+>   view that never declared `standing`. The earn/preserve bound
+>   breaking, which is W4's only safety property.
+> - ⚠ **fails arbitrarily** — refuses a legitimate take because a
+>   homonym was cached first, reading to the player as a fussy verb.
+>
+> **Fixed two ways.** The Api is now `definitionsForVerb(verb):
+> CommandDefinition[]` — ⭐ **plural, so the shape itself stops encoding
+> the wrong assumption** and every future caller has to confront the
+> collision instead of silently picking one. And `instruct` keeps a line
+> only when EVERY claim declares `standing: true`; a split claim is
+> refused as `ambiguous-verb` in words. ⚠ It would have been tempting to
+> reproduce dispatch's resolution in the controller — that is the
+> *brain re-implementing the verbs* mistake `keeps.ts` warns about, and
+> failing closed is both sound and honest. Two cases pin it.
 
 ### W4 (as planned) — `build(taps W4): a character keeps the round on standing instructions`
 
