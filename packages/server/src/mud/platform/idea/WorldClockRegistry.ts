@@ -83,6 +83,9 @@ const MS_PER_SECOND = 1000;
 /** See `WorldClockApi`'s explanation — fractional second-drift tolerance. */
 const FIRE_EPSILON_S = 1e-9;
 
+/** Game-seconds in a game day — for the advance log line's game-day read. */
+const SECONDS_PER_GAME_DAY_LOG = 86_400;
+
 const DURATION_UNITS: Record<string, number> = {
   second: 1,
   minute: 60,
@@ -163,6 +166,7 @@ export default class WorldClockRegistry extends WorldClockRegistryBase {
 
   @CallSecurity(WorldClockApiCallers)
   public setScale(scale: number): void {
+    this.assertNotQuarantined('setScale');
     if (typeof scale !== 'number' || !Number.isFinite(scale) || scale <= 0) {
       throw new TypeError(
         `WorldClockApi.setScale: scale must be a positive finite number, got ${String(scale)}`,
@@ -175,6 +179,7 @@ export default class WorldClockRegistry extends WorldClockRegistryBase {
 
   @CallSecurity(WorldClockApiCallers)
   public pauseClock(): void {
+    this.assertNotQuarantined('pause');
     if (this.paused) return;
     this.reanchor();
     this.paused = true;
@@ -183,6 +188,7 @@ export default class WorldClockRegistry extends WorldClockRegistryBase {
 
   @CallSecurity(WorldClockApiCallers)
   public resumeClock(): void {
+    this.assertNotQuarantined('resume');
     if (!this.paused) return;
     // Resume from the frozen value exactly — re-anchor real time
     // without advancing game time (AC2).
@@ -209,6 +215,7 @@ export default class WorldClockRegistry extends WorldClockRegistryBase {
 
   @CallSecurity(WorldClockApiCallers)
   public restore(snap: WorldClockSnapshot): void {
+    this.assertNotQuarantined('restore');
     this.anchorGameTimeS = snap.elapsedGameTimeS;
     this.anchorRealMs = this.nowMs();
     this.scale = snap.scale;
@@ -434,6 +441,7 @@ export default class WorldClockRegistry extends WorldClockRegistryBase {
    */
   @CallSecurity(WorldClockApiCallers)
   public advance(by: Quantity<'s'> | string): void {
+    this.assertNotQuarantined('advance');
     const gameS = this.parseDelayToSeconds(by);
     if (gameS < 0) {
       throw new Error(
@@ -455,6 +463,30 @@ export default class WorldClockRegistry extends WorldClockRegistryBase {
     // Re-anchor first so the elapsed real interval is banked at the old
     // scale, then jump the anchor. `anchorRealMs` is untouched by the
     // jump, so live time keeps running from the new game-time.
+    // ⭐⭐ **A jump of world time is an OPERATOR ACT, so it leaves a
+    // trace.** Every other hand-typed mutation of a global in this
+    // codebase is recorded with who and how much (`reserve override` is
+    // the precedent — the one remaining hand mint, receipted with a
+    // reason). A clock jump is irreversible by construction (time only
+    // runs forward) and it ages every reconcile-on-read system in the
+    // realm at once, so a silent one would be the single hardest thing
+    // in the game to diagnose after the fact.
+    // ⚠ The SERVER log, not `MudlogApi` — mudlog is a player-facing
+    // channel and needs a recipient (*"no recipient — pass opts.to, or
+    // call inside a command execution"*), and `advance` can be reached
+    // from boot or a test where there is nobody to tell. This is the
+    // same `console.info` the restore line above uses, for the same
+    // reason: it always lands.
+    //
+    // ⭐ The eval route is receipted SEPARATELY and better — the
+    // governed path already writes provenance plus a
+    // `sandbox.eval.governed` mudlog line naming who ran what against
+    // which extent. This line is the one that is true whoever called.
+    console.info(
+      `WorldClockApi: ADVANCED by ${Math.round(gameS)}s ` +
+        `(${(gameS / SECONDS_PER_GAME_DAY_LOG).toFixed(2)} game-days) ` +
+        `— every schedule in the interval drains`,
+    );
     this.reanchor();
     this.anchorGameTimeS += gameS;
     this.drainDue('advance');
@@ -506,6 +538,41 @@ export default class WorldClockRegistry extends WorldClockRegistryBase {
         );
       }
     }
+  }
+
+  /**
+   * ⛔⛔⛔ **No QUARANTINED context may mutate world time.**
+   *
+   * The sandbox's promise is that a circle's code has real effects which
+   * stay inside the circle. ⚠⚠ **There is no per-circle clock** — world
+   * time is global and shared by every player — so a clock mutation from
+   * inside a quarantine is a containment breach by construction, however
+   * well-intentioned the caller.
+   *
+   * ⭐ This is `shutdown`'s own argument, applied to its inverse.
+   * `shutdown` is `SystemRoot`-gated because *nothing in-world may
+   * FREEZE world-time*; by exactly the same reasoning nothing
+   * quarantined may SKIP it, slow it, pause it or re-anchor it. The taps
+   * build added `advance` next to that comment and ungated it, which was
+   * wrong, and the blanket `WorldClockApi` sandbox binding it also added
+   * exposed `pause`/`setScale`/`restore` along with it. Raised in
+   * review.
+   *
+   * ⭐ `getCircleScope()` is the containment build's single scope oracle
+   * (`runScoped` plants `circleScope`; `runGoverned` plants
+   * `jurisdictionBound` and no circle scope), so a GOVERNED eval — whose
+   * writes are real, bounded to an extent, and already receipted with
+   * provenance plus a mudlog line — passes, and a wire circle does not.
+   */
+  private assertNotQuarantined(op: string): void {
+    const scope = ExecutionContextApi.getCircleScope();
+    if (scope === null) return;
+    throw new Error(
+      `WorldClockApi.${op}: world time is GLOBAL and this caller is ` +
+        `quarantined in circle '${scope}'. A circle may not move the ` +
+        `realm's clock — there is no per-circle clock to move. Run it ` +
+        `in a governed jurisdiction, where the act is receipted.`,
+    );
   }
 
   /* ────────────── internal helpers ────────────── */

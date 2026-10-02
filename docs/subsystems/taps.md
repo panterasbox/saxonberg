@@ -234,6 +234,46 @@ from the clock, but a *scheduled* act does — and without this seam no
 drive could ever walk a season. `taps.dirty.wire.test.ts` is the first
 drive in the repo that does.
 
+### ⛔⛔⛔ No QUARANTINED context may mutate world time
+
+⚠⚠ The first version of this shipped `advance` **ungated**, justified by
+a sentence claiming *"`setScale` was always reachable from the sandbox"*
+— which was **false**: before that binding nothing in the sandbox could
+touch the clock at all, and the only reference to `setScale` outside the
+clock's own files was that sentence asserting it. Worse, the binding was
+the whole `WorldClockApi`, so eval'd code also got `pause`, `resume`,
+`setScale` and `restore`. Raised in review.
+
+⭐ **The argument that settles it is `shutdown`'s own.** `shutdown` is
+`SystemRoot`-gated *because nothing in-world may FREEZE world-time* — so
+by identical reasoning nothing quarantined may **skip** it, slow it,
+pause it or re-anchor it. `advance` is that comment's inverse and was
+ungated right beside it.
+
+So every clock **mutator** now calls
+`WorldClockRegistry.assertNotQuarantined`:
+
+| caller | may mutate the clock? |
+|---|---|
+| a **wire circle** (`runScoped` → `circleScope` planted) | ⛔ **no** — refused, naming why |
+| a **governed** jurisdiction (`runGoverned` → `jurisdictionBound`) | ⭐ yes, and the eval path already receipts it (provenance + a `sandbox.eval.governed` line) |
+| boot, a schedule, a test (no scope planted) | yes |
+| any of them, for a **READ** (`getNow`, `getScale`) | ⭐ yes — containment is about effects escaping, not secrecy, and a circle that cannot read the clock cannot simulate anything |
+
+⭐⭐ It is a **containment** property, not a permission one: the sandbox
+promises a circle's effects stay inside the circle, and **there is no
+per-circle clock** — world time is global and shared by every player, so
+a clock mutation from inside a quarantine breaches containment by
+construction, however well-intentioned the caller.
+
+⚠ And `advance` writes a `WorldClockApi: ADVANCED by …` **server-log**
+line, so a jump is never silent. The server log rather than `MudlogApi`
+because mudlog needs a recipient and `advance` can be reached from boot
+or a test where there is nobody to tell. A jump is irreversible (time
+only runs forward) and ages every reconcile-on-read system in the realm
+at once, which makes a silent one the hardest thing in the game to
+diagnose after the fact.
+
 ---
 
 ## ⭐⭐⭐ The relief — `instruct keep <line>`

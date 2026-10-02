@@ -156,4 +156,102 @@ describe('WorldClockApi.advance', () => {
     WorldClockApi.advance('1 day');
     expect(sawScope).toBe(OMNI_SCOPE);
   });
+
+  /* ─────────── ⛔⛔⛔ the privilege line ─────────── */
+
+  /**
+   * ⭐⭐⭐ **No quarantined context may mutate world time**, and it is a
+   * CONTAINMENT property rather than a permission one.
+   *
+   * The sandbox's promise is that a circle's code has real effects which
+   * stay inside the circle. ⚠⚠ There is no per-circle clock — world time
+   * is global and shared by every player — so a clock mutation from
+   * inside a quarantine breaches containment by construction.
+   *
+   * ⭐ This is `shutdown`'s own argument applied to its inverse:
+   * `shutdown` is `SystemRoot`-gated because *nothing in-world may
+   * FREEZE world-time*, so nothing quarantined may skip it, slow it,
+   * pause it or re-anchor it either. The taps build added `advance` next
+   * to that comment and ungated it, and its blanket `WorldClockApi`
+   * sandbox binding exposed `pause`/`setScale`/`restore` with it.
+   * Raised in review.
+   */
+  describe('⛔ inside a quarantined circle, every clock MUTATOR refuses', () => {
+    /**
+     * Run `fn` as a wire circle would — `SandboxLogic.runScoped`'s own
+     * root shape, verbatim.
+     *
+     * ⚠⚠ The `'rethrow'` is LOAD-BEARING and omitting it is how the
+     * first version of this test lied. `runRootGuarded(target, method,
+     * fn, policy, opts)` takes a policy BEFORE the opts, so passing
+     * `{ circleScope }` in its place both lost the scope (the root was
+     * planted with no metadata, so the guard could not fire) and made
+     * the guard's throw **swallowed** — `return undefined` on any
+     * non-`'rethrow'` policy. The test reported *"promise resolved
+     * undefined instead of rejecting"*, which reads like a missing
+     * guard and was a miscalled harness.
+     */
+    const inCircle = async <T,>(fn: () => T): Promise<T> =>
+      (await ExecutionContextApi.runRootGuarded(
+        null,
+        'sandbox.runScoped',
+        fn,
+        'rethrow',
+        { circleScope: '/world/_test/circle' },
+      )) as T;
+
+    it('⛔⛔ `advance` is denied, and the refusal says WHY', async () => {
+      const before = WorldClockApi.getNow().rawValue();
+      await expect(inCircle(() => WorldClockApi.advance('1 day'))).rejects.toThrow(
+        /quarantined|per-circle clock/i,
+      );
+      // ⚠ And the clock did not move — a denied mutation is not a
+      // partial one.
+      expect(WorldClockApi.getNow().rawValue()).toBeCloseTo(before, 3);
+    });
+
+    it('⛔ so are `pause`, `resume`, `setScale` and `restore`', async () => {
+      // ⚠ These were NOT part of the review note, and that is the point:
+      // the blanket sandbox binding exposed the whole Api, so fixing
+      // only `advance` would have left `pause()` able to freeze the
+      // realm from inside a circle.
+      await expect(inCircle(() => WorldClockApi.pause())).rejects.toThrow(/quarantined/i);
+      await expect(inCircle(() => WorldClockApi.resume())).rejects.toThrow(/quarantined/i);
+      await expect(inCircle(() => WorldClockApi.setScale(999))).rejects.toThrow(
+        /quarantined/i,
+      );
+      await expect(
+        inCircle(() => WorldClockApi.restore(WorldClockApi.snapshot())),
+      ).rejects.toThrow(/quarantined/i);
+      // …and the clock is intact and still running at its own scale.
+      expect(WorldClockApi.isPaused()).toBe(false);
+      expect(WorldClockApi.getScale()).toBe(1);
+    });
+
+    it('⭐ a READ is fine from a circle — only mutation is contained', async () => {
+      // Containment is about effects escaping, not about secrecy: what
+      // time it is is not privileged, and a circle that could not read
+      // the clock could not simulate anything.
+      const now = await inCircle(() => WorldClockApi.getNow().rawValue());
+      expect(Number.isFinite(now)).toBe(true);
+      expect(await inCircle(() => WorldClockApi.getScale())).toBe(1);
+    });
+
+    it('⭐⭐ and an UNSCOPED caller still passes — the drive must work', async () => {
+      // A governed eval plants `jurisdictionBound`, not `circleScope`
+      // (`SandboxLogic.runGoverned`), so it reads as unscoped here and
+      // passes — which is what the drive's checkpoint 0 relies on, and
+      // that path is already receipted with provenance plus a mudlog
+      // line.
+      const before = WorldClockApi.getNow().rawValue();
+      await ExecutionContextApi.runRootGuarded(
+        null,
+        'sandbox.runGoverned',
+        () => WorldClockApi.advance('1 day'),
+        'rethrow',
+        { jurisdictionBound: '/world/_test/field' },
+      );
+      expect(WorldClockApi.getNow().rawValue() - before).toBeCloseTo(DAY_S, 3);
+    });
+  });
 });

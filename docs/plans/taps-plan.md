@@ -794,6 +794,65 @@ Implements D4–D9 (the mechanism half).
 - Acceptance: all shipped rows still parse (no row edited yet — every
   new field is optional and the defaults are today's behaviour).
 
+### ⛔⛔⛔ W0 CORRECTED in review — `advance` was ungated, on a false premise
+
+Raised 2026-10-02. Two separate problems, and the justification for the
+first was fabricated.
+
+**1. The premise was false.** The sandbox comment read *"`setScale` was
+always reachable from here, so `advance` is the same authority stated
+honestly."* ⚠⚠ It was not: before this build's binding **nothing in the
+sandbox could touch the clock at all**, and the only reference to
+`setScale` outside the clock's own files was that sentence asserting it.
+A premise stated once and then cited — the exact failure the project
+memory records.
+
+**2. The binding was the whole Api.** Putting `WorldClockApi` on
+`SANDBOX_NAMES` handed eval'd code `pause`, `resume`, `setScale` and
+`restore` as well as `advance`. ⚠ `pause()` from a quarantined circle
+freezes the realm's time for every player. That was never raised,
+because nobody knew to look — it was wider than the note.
+
+**⭐ The argument that settles it is `shutdown`'s own**, which sits ten
+lines above `advance` in the same file: `shutdown` is `SystemRoot`-gated
+*because nothing in-world may FREEZE world-time*. By identical
+reasoning nothing quarantined may **skip** it. I added the inverse
+capability and ungated it, directly beside the comment explaining why
+that is wrong.
+
+**The fix: a containment line, not a permission one.** Every clock
+mutator calls `assertNotQuarantined`, which refuses when
+`ExecutionContextApi.getCircleScope()` is non-null — the containment
+build's documented single scope oracle. ⭐ `runScoped` plants
+`circleScope`, `runGoverned` plants `jurisdictionBound`, so a wire
+circle is denied and a **governed** jurisdiction passes — and that path
+is already receipted (provenance plus a `sandbox.eval.governed` line).
+Reads stay open: containment is about effects escaping, not secrecy, and
+a circle that cannot read the clock cannot simulate anything.
+
+⚠ Plus a `WorldClockApi: ADVANCED by …` **server-log** line per jump —
+the server log rather than `MudlogApi`, which needs a recipient
+(*"no recipient — pass opts.to…"*) and `advance` can be reached from
+boot or a test. A jump is irreversible and ages every reconcile-on-read
+system at once, so a silent one is the hardest thing in the game to
+diagnose later.
+
+⛔ **Not an `isWizard` check** — the standing rule holds: *any argument
+ending in a wizard check is wrong by shape.* This is not a capability
+question about a person, it is a statement about what a quarantine may
+reach.
+
+⚠⚠ **And my first test of the guard lied.** `runRootGuarded(target,
+method, fn, policy, opts)` takes a **policy before the opts**; I passed
+`{ circleScope }` in the policy slot, which both lost the scope (so the
+guard could not fire) and made its throw **swallowed** — any
+non-`'rethrow'` policy returns `undefined`. The failure read *"promise
+resolved undefined instead of rejecting"*, which looks like a missing
+guard and was a miscalled harness. ⭐ Worth recording because the
+decorative-gate outcome is worse than no gate: it would have reported
+privileged and been open. 14 cases now, including that a governed caller
+still passes — which is what the drive's checkpoint 0 relies on.
+
 ### ✅ W1 · `TapSpec` v2 and the per-tap states — DONE `build(taps W0+W1)`
 
 30 kernel cases green (`lib/husbandry/__tests__/Producing.test.ts`),

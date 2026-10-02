@@ -43,11 +43,25 @@ import type { FieldMeta } from '../../lib/mixin';
  * or expand based on what playtesting actually wants.
  *
  * `WorldClockApi` is here because a world whose slow systems are
- * reconcile-on-read cannot be DRIVEN without moving time, and the
- * code-trust axis is already the right gate for it: `setScale` was
- * always reachable from here, `advance` is the same authority stated
- * honestly. `shutdown` stays `SystemRoot`, so an eval still cannot
- * freeze the world.
+ * reconcile-on-read cannot be DRIVEN without moving time — a game day
+ * is two real hours, so a season is unreachable from any session.
+ *
+ * ⚠⚠ **And the first version of this comment justified it with a
+ * falsehood.** It claimed *"`setScale` was always reachable from here,
+ * `advance` is the same authority stated honestly"*. It was not: before
+ * this binding, **nothing in the sandbox could touch the clock at all**
+ * — the only reference to `setScale` outside the clock's own files was
+ * this sentence asserting it. A premise stated once and then cited.
+ * Raised in review.
+ *
+ * ⛔ So the authority does NOT come from this list. Every clock MUTATOR
+ * (`advance`, `pause`, `resume`, `setScale`, `restore`) refuses when the
+ * caller sits inside a quarantined circle, because world time is global
+ * and **there is no per-circle clock** — see
+ * `WorldClockRegistry.assertNotQuarantined`. A governed eval passes and
+ * is receipted; a wire circle is denied. `shutdown` stays `SystemRoot`,
+ * so nothing in-world can freeze the world either way, and `advance`
+ * writes a `worldclock.advance` mudlog line so a jump is never silent.
  */
 const SANDBOX_NAMES = [
   'StuffApi',

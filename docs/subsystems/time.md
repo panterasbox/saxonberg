@@ -34,10 +34,23 @@ silently dropped them would make the clock a liar, which is the whole
 reason the method exists rather than a bare anchor bump.
 
 - **Reachable from the `eval` sandbox**, which is the code-trust axis —
-  `WorldClockApi` is on `SANDBOX_NAMES`. `setScale` was always reachable
-  from there, so this is the same authority stated honestly. ⛔ No new
-  verb and no `isWizard` check; `shutdown` stays `SystemRoot`, so an
-  eval still cannot freeze the world.
+  `WorldClockApi` is on `SANDBOX_NAMES`. ⛔ No new verb and no
+  `isWizard` check; `shutdown` stays `SystemRoot`, so an eval still
+  cannot freeze the world.
+- ⛔⛔⛔ **But NOT from a quarantined circle.** Every clock MUTATOR
+  (`advance`, `pause`, `resume`, `setScale`, `restore`) refuses when the
+  caller sits inside a wire circle, because world time is global and
+  **there is no per-circle clock** — a clock mutation from inside a
+  quarantine breaches containment by construction. ⭐ This is
+  `shutdown`'s own argument applied to its inverse: if nothing in-world
+  may FREEZE world-time, nothing quarantined may skip it either. A
+  governed jurisdiction passes and is receipted. Reads are always
+  allowed — containment is about effects escaping, not secrecy.
+  ⚠ Shipped ungated and corrected in review; see
+  `WorldClockRegistry.assertNotQuarantined`.
+- ⚠ **It is recorded.** A `WorldClockApi: ADVANCED by …` server-log line
+  per jump, because a jump is irreversible and ages every
+  reconcile-on-read system at once.
 - ⚠ **It throws while the clock is PAUSED.** A paused clock fires
   nothing, so a jump there would bank the game-time and strand every
   schedule in the interval — the exact silent skip the drain prevents.
