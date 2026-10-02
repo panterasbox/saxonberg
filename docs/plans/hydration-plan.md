@@ -1560,6 +1560,33 @@ no row of any installed pack names"* notices — dead code in a pack, which
 that gate calls a review finding and which this build neither caused nor
 touched.
 
+### The full suite — four runs, and what each one found
+
+⚠⚠ **Worth recording as a process finding: the first green run was the
+FOURTH, and none of the three failures before it would have been caught
+by `test:near`.**
+
+| run | result | what it found |
+|---|---|---|
+| 1 | 3 failed / 12,242 passed | three tests recording an old truth |
+| 2 | **0 failed, 1 ERROR, exit 1** | ⭐ an unhandled rejection — W7's fire-and-forget diagnostic, reported against an unrelated file |
+| 3 | 1 pack suite failed | three pack tests globbing the directory the applier's row moved out of |
+| 4 | **1,568 files / 14,802 tests / exit 0** | — |
+
+⭐ **Run 2 is the one that justifies the rule.** Every test passed and the
+run still failed: the applier's `void DiagnosticApi.record(...)` had no
+`.catch`, so a test that stubs `PersistenceManager.get` with a partial
+object sent a rejection into whatever ran next. It runs on EVERY clone in
+the game — in production the same shape is a store hiccup taking down the
+clone it was only describing. ⚠ Fixing the three stale tests from run 1
+and re-checking each file individually would have left it in.
+
+⭐ **Run 3's shape is the generalisable one**: a glob over a directory is a
+dependency on a FILE LAYOUT, and moving a file is not a rename a search
+finds. Two of the three globbing tests were green only because nothing
+they clone carries `data`, so no applier was ever resolved — they are one
+authored key from the same failure and were fixed anyway.
+
 ### What is still a BROWSER walk, and why
 
 Not deferred — unreachable from a socket, each for a stated reason:
