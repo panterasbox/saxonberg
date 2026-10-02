@@ -349,5 +349,9 @@ no channel.
   (a declared standard is never a gauge), the enforcement ladder.
 - [compact-political-science.md](../../compact-political-science.md) § The
   three chambers — and its warning that they are not three groups.
+- ⭐⭐⭐ [feedback-slate.md](./feedback-slate.md) — **what DRIVES the
+  allocation** these institutions perform: *votes allocate, measurements
+  mint*. The two slates are one loop seen from its two ends, and the
+  meter of § 9 is the shared prerequisite.
 - [balance-slate.md](./balance-slate.md) — *every global ledger is a
   currency*, which is why none of these four may be spendable by players.
