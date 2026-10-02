@@ -2052,3 +2052,114 @@ to do with W4.
 point (`b8d9fa119`), never `origin/master`** — and the check that makes
 it safe is `git log --oneline <merge-point>..HEAD -- <file>` per file,
 confirming no non-W4 commit touched it. All eight did qualify.
+
+---
+
+## ⛔⛔⛔ Review round 5 (the pre-merge sweep) — THE DRIVE NEVER WALKED A SEASON
+
+**This is the finding of the build, and it invalidates its own drive
+record.** `/finalize` re-ran the drive and three things came out.
+
+### F1 — the 15/15 drive record was FALSE, and provably so
+
+The record at `b2164c6a5` predates commit `8bc7e8268` — W0's review fix,
+which added `assertNotQuarantined` so no quarantined caller may move
+world time. The drive's `eval` defaults its jurisdiction to
+`/home/<playerKey>`, which **is** the quarantined circle. So from that
+commit onward every `advance` in the drive threw.
+
+⚠ And it threw **invisibly**: the error landed as neither a rejection
+note nor prose the helper matched, so the helper's own assertions
+passed. ⭐⭐ **A review fix invalidated the exit criterion and nobody
+re-ran it.** The drive is not a record you keep; it is a thing you run
+after every round that touches what it drives.
+
+### F2 — checkpoint 6 was UNFALSIFIABLE, and had been all along
+
+```ts
+const reason = refusedFor(out);
+if (reason !== null) {
+  expect(reason.startsWith('season-')).toBe(true);
+}
+const said = await read(k, 'look birch-north');
+void said;
+```
+
+A tap that succeeded passed it. A tap refused for any season reason
+passed it. The `look` it was named for was read and thrown away. ⛔ **It
+could not fail**, and it reported ✓ on every run — which is why nobody
+noticed that **the sap window is OPEN at game-time 0** and the closed
+case had never once been exercised. Checkpoint 7 then set its spile in a
+season that was already open, with a dead clock, and also passed.
+
+Fixed: 6 now asserts AC 8 unconditionally (the tree's sap line exists
+and contains **no digit**), and a new **6b** walks the clock to a CLOSED
+window and asserts the `season-*` information — the half that needs a
+clock, in the suite that has one.
+
+⭐⭐ **And the class is fixed at the helper, not per checkpoint**:
+`advance()` now reads the clock before and after and asserts it actually
+moved. No checkpoint anywhere can be vacuous about the clock again. The
+helper also puts the eval's **prose** in the failure message, because
+this drive has now twice lost a round to an `eval` that neither ran nor
+filed a note.
+
+### F3 — ⛔ `advance` CANNOT be reached from the drive at all
+
+Measured, twice, on a freshly reset DB:
+
+- **quarantined** (`/home/<player>`, the default) — refused by W0's
+  guard, correctly.
+- **governed** (`eval --parcel /world/terminus/rejection` as the
+  founder, who holds it) — answers:
+
+  > `Something went wrong in /platform/idea/cmd/author/EvalController:
+  > sandbox boundary denied onCreate() on Stuff …: context scope field
+  > vs receiver scope field (jurisdiction /world/terminus/rejection)`
+
+  and world-time does not move (no `ADVANCED by` line is ever logged).
+
+⚠⚠ **And the unit test that "proves" the governed path works does not
+exercise it.** `WorldClockApi.advance.test.ts`'s *"an UNSCOPED caller
+still passes — the drive must work"* calls `runRootGuarded` with
+`{jurisdictionBound}` **directly**, which is a MODEL of
+`SandboxLogic.runGoverned`, not the real eval path. It is green and it
+is not evidence. ⭐ Third instance this build of a premise I asserted and
+then cited (the `setScale` precedent at W0, `command-spec.md` at W4).
+
+### ⭐⭐ The recommendation: a test seam does not belong in the sandbox
+
+The eval route was a category error from the start, and it is the same
+category error the user named twice: **`advance` is scaffolding, not a
+capability**, and laundering scaffolding through the in-world sandbox is
+exactly what made it look like an authoring act.
+
+`packages/server/src/backend/TestHooks.ts` already is *"every backend
+seam that exists ONLY to support tests, in one module, out of the
+business logic"*, defended in depth by `AUTH_MODE === 'test'` (three
+independent gates, including a boot refusal if test mode meets
+`NODE_ENV=production`). The honest shape is a hook there plus a route on
+`TestAuthRoutes`, called by the harness over HTTP.
+
+⭐ It is strictly better containment, not just a workaround: it lets
+`WorldClockApi` come **off `SANDBOX_NAMES` entirely**, so no clock
+mutator is reachable from in-world code by any route, and the gates
+become three independent ones (`@TestOnly` · `AUTH_MODE=test` · the
+route only mounted in test mode).
+
+⚠ **Not done, deliberately.** It removes an entry from the sandbox
+allowlist, which is systemic surface, and the user's standing
+instruction this round was that I stop deciding that class of thing
+inside a trade build. The alternative — drop the clock from the drive
+and prove seasons by unit tests only, which is what the apiculture build
+concluded — is cheaper and leaves more acceptance criteria unmet. **The
+user's call.**
+
+### State at the sweep
+
+The drive is **13/16 with 3 honest failures**, where it was 15/15
+dishonestly. Everything that does not depend on the clock passes,
+including ⛔ checkpoint 18's assertion that `instruct` is absent. ⚠ The
+requirements and plan are therefore **NOT retired** this round: the
+acceptance criteria that depend on a walked season are in question, and
+retiring the docs that record them before that is settled would bury it.
