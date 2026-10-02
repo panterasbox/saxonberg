@@ -959,7 +959,6 @@ Tariff.services = 0
 Template.class = 0
 Template.data = 0
 Template.extends = 0
-Template.hydratorClass = 0
 Template.path = 0
 ThermalDoseMixin._doseS = 0
 ThermalDoseMixin._scorchS = 0

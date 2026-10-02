@@ -332,6 +332,17 @@ const MANIFEST: ReadonlyArray<{ site: string; classification: string }> = [
     site: "platform/idea/api/TemplateLogic.ts::loadClassByPath",
     classification: "validation-only",
   },
+  // ⭐ `describeFill` — reads the effective class's `fieldMeta` and its
+  // persistence contributors to answer *what will fill this row in*
+  // (hydration build W7). READ-ONLY and instantiates nothing: it asks
+  // the constructor what it declares, which is the same question
+  // `isFolderClass` asks one line down. The class it resolves is the
+  // row's own `class:`, which passed the code-trust gate when somebody
+  // authored it; `describeFill` cannot introduce one.
+  {
+    site: "platform/idea/api/TemplateLogic.ts::loadClassByPath",
+    classification: "validation-only",
+  },
   // isFolderClass class probe.
   {
     site: "platform/idea/api/ZoneLogic.ts::loadClassByPath",

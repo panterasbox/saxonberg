@@ -43,10 +43,43 @@ afterEach(() => {
 });
 
 describe('KeptAnimal.onCreate reaches Bonded', () => {
-  it('⭐⭐ warms its species — through the whole shipped stack', async () => {
+  // ⚠⚠ **The species warm is NOT here any more, and its absence is
+  // asserted rather than assumed.**
+  //
+  // This file's reason for existing is the pets-build defect: the warm
+  // (and the home seed) sat on `Bonded.postRegister`, which never ran on
+  // a live animal because the marker mixin above it swallowed the chain.
+  // Both halves were therefore pinned here, through the SHIPPED stack.
+  //
+  // The hydration build moved the warm OFF the hook (2026-10-01): warming
+  // a shared `Species` row somebody else authored is not hydration —
+  // nothing is remembered about this instance and there is no capture
+  // side — so it belongs beside the reads that need it, where
+  // `preloadAnatomy`'s nine other callers already put it. The readers are
+  // `offer`, `call`, `stay`, `pet` and the deliberation beat, and the
+  // positive assertions that the DIALS read live in `Bonded.test.ts`.
+  //
+  // ⭐ This case inverts rather than disappears, because "the hook warms
+  // the species" silently coming back is a regression worth catching: it
+  // would mean the limb crept back onto the lifecycle.
+  it('⭐⭐ does NOT warm its species — that limb moved to the readers', async () => {
     const cat = makeStuffAtPath(() => new KeptAnimal(), '/test/agent/cat');
     await cat.onCreate();
-    expect(SpeciesApi.preloadAnatomy).toHaveBeenCalledWith(cat);
+    expect(SpeciesApi.preloadAnatomy).not.toHaveBeenCalled();
+  });
+
+  it('⭐⭐ but the hook STILL reaches Bonded through the whole shipped stack', async () => {
+    // The thing this file actually guards, now carried by the limbs that
+    // stayed: the hook has to reach `Bonded` at all. `home` and
+    // born-hungry are both `Bonded.onCreate`'s, so either of the two
+    // cases below failing means the chain is broken again — which is the
+    // defect, not the warm specifically.
+    const lane = makeStuff(() => new Room());
+    const cat = makeStuffAtPath(() => new KeptAnimal(), '/test/agent/cat');
+    ContainmentApi.move(cat, lane);
+    await cat.onCreate();
+    expect(cat.getHome()).toBe('/test/world/Lane');
+    expect(cat.isHungry()).toBe(true);
   });
 
   it('and seeds home when it is born somewhere', async () => {
