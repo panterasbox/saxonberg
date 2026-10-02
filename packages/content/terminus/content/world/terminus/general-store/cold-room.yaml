@@ -10,7 +10,6 @@ data:
   shortDescription: cold room
   keywords: [cold-room, coldroom, walk-in, cold, larder]
   register: definite
-  alternateNames: [cold room, walk-in, larder]
   _address: terminus/city/counting-houses/general-store/cold-room
   longDescription: |
     A cramped walk-in larder off the shop floor, its walls panelled thick
