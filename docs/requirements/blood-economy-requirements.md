@@ -80,6 +80,11 @@ harm-on-non-consent append. Everything else is rows.
 - The infirmary blood bank **holds a typed stock that refills toward par
   from NPC donors on a cadence**, so a combat blood supply exists whether
   or not any player donates.
+- Blood is a **universal-service good with an NPC-guaranteed floor**:
+  *nobody dies for lack of blood that physically exists.* A dying patient
+  with a compatible unit in the bank is always served — by the NPC
+  attendant if no player acts — and no player-held seat can withdraw that
+  floor.
 - A player **donating blood as a gift** (to the bank, or to a named
   person in need) earns a recorded deed, generosity/compassion evidence,
   and a move in local standing — and **the same act for one's own use
@@ -88,9 +93,13 @@ harm-on-non-consent append. Everything else is rows.
   read (the press ticker) and a room summons for a specific type — and
   the pull to answer it is the value offered (a life, the credit), never
   a badgering nudge.
-- The bank is a **civic institution a player can hold and staff**: a
-  Blood Service org with a founder-default holder and seats that draw,
-  screen, and issue — a second one authorable as rows.
+- The bank is a **civic institution a player can hold and staff *above
+  the floor***: a Blood Service org with a founder-default holder and
+  seats that draw, screen, and issue — a player operator runs drives,
+  answers the summons, stocks the rare types, and makes the hard
+  allocation of *scarce* units, building standing by doing it well, but
+  is **never the reason someone bleeds out next to a full fridge**. A
+  second Service is authorable as rows.
 - An authorized attendant can **issue a typed unit** from the bank
   gift-only, leaving a chain-of-custody record; and a transfusion
   **honours consent** (implied in an emergency, required when conscious),
@@ -209,6 +218,42 @@ that is simultaneously a malpractice record and a credential
 the dispensing end too (values). Raiding the fridge with `get` was
 rejected: "authorized" would have no criterion.
 
+### The floor/ceiling split — players operate above an NPC-guaranteed floor
+**Q:** Blood is life-or-death. Do we hand players the controls on a good
+whose failure mode is a *third party's* death — and does the player
+experience differ from the NPC's?
+**A:** **Yes to both, split by altitude.** Blood is a **universal-service
+good**: unlike every luxury trade shipped (a failed gin shop just doesn't
+clear a nice-to-have), a blood bank that fails *kills*, so the economy
+lens forbids a floor the market can withdraw.
+- **Floor — NPC-guaranteed, un-withdrawable:** the emergency case (a
+  dying patient + a compatible unit on hand) is always served, by the NPC
+  attendant if no player acts, bypassing any player-held gate. Supply
+  *and* emergency dispensing have an NPC floor.
+- **Ceiling — player-operable, where the drama is:** everything above
+  "don't die" — donor drives, the named summons, stocking rare types,
+  *elective*-surgery supply, and the allocation of **scarce** (not
+  last-ditch) units. A player registrar makes the bank *good* and earns
+  standing for it.
+- **The player/NPC experience is deliberately asymmetric.** An NPC giving
+  or dispensing is *plumbing* (mints supply, no standing). A player
+  giving or running the Service is a *character act* (the deed, the
+  trait, the standing, the hard allocation call). The engine guarantees
+  the floor; the player participates where it is a choice with a
+  consequence to their character — the measurement doctrine's
+  feed-measures / mirror-shows-you, applied to life and death.
+- **Abuse is a governance story, not a silent death:** a player operator
+  who hoards or mis-issues hits the custody/accountability ledger
+  (mis-issue without consent is already `harm`; hoarding a public good is
+  a legible, standing-destroying, punishable act), never a third party
+  dying beside a full fridge.
+
+**Chosen with the user**, over the alternative (*pure NPC infrastructure
+— players only donate and receive*). That alternative was safest and kept
+the gift (the pedagogical core) intact, but threw away the values-lens
+allocation moment and the registrar vocation; the floor/ceiling split
+keeps both without the "I logged off and three people died" failure mode.
+
 ### Consent
 **Q:** Can a transfusion happen without the patient's agreement?
 **A:** **Implied consent in an emergency** — a dying/unconscious body may
@@ -245,26 +290,36 @@ lever a future legislative choice.
    hole: a civic bank with a registrar seat, a summons that makes a
    specific stranger matter, a donation that is remembered. The polity
    can run a blood service we didn't script.
-4. **Values** — the forced choice is *give / don't*, with no scale and no
-   ranking: an **unearned distinction** (your type is just true) that
-   makes universal donors community assets. Standing is conferred by the
-   locality (renown), the deed by the chronicle. Gift-only keeps the act
+4. **Values** — two forced choices with no right answer. *Give / don't*,
+   with no scale and no ranking: an **unearned distinction** (your type is
+   just true) that makes universal donors community assets. And, above the
+   floor, *who gets the last scarce unit* — a genuine undecidable this
+   build hands a **player** operator to decide, which is exactly lens 4's
+   home and the richest content here. Standing is conferred by the
+   locality (renown); the deed by the chronicle; gift-only keeps the act
    an act of character.
 5. **Continuity** — the mechanism holds across epochs: a bank that holds
    typed perishable units, issued on authority, answers the same acts
    whether the era is medieval or industrial; only the cold-chain and
    paid-market dynamics change.
-6. **Economy** — produces: a reliable typed blood supply + four vocations
-   (registrar, phlebotomist, screener, cold-chain courier later).
-   Consumes: donor volume/marrow, cold-chain power, the Service's wages.
-   Who pays: the Service's treasury (wages), the donor (volume) — never
-   the recipient (gift-only). The demand was there first (surgery's
-   `bloodCostL`, the bleed).
+6. **Economy** — ⭐ a **life-or-death good inverts the usual player ruling.**
+   For every luxury trade, a failed player business is harmless (the
+   market just doesn't clear a nice-to-have); blood is a
+   **universal-service good** where "go without" = die, so the supply and
+   emergency-dispense **floor cannot be withdrawn by a player** — the NPC
+   institution guarantees it; players operate above it. Produces: a
+   reliable typed supply + the registrar/phlebotomist/screener vocations
+   (courier later). Consumes: donor volume/marrow, cold-chain power, the
+   Service's wages. Who pays: the Service's treasury (wages), the donor
+   (volume) — never the recipient (gift-only). The demand was there first
+   (surgery's `bloodCostL`, the bleed).
 7. **Governance** — when the bank judges *who may draw*, the criterion is
    the seat (on-shift, authorized), the record is the custody/harm
    ledger, and the holder is an office with a founder-default and a
-   hand-off. The gift/paid policy is named as a future legislative choice
-   (not built).
+   hand-off. A player operator's abuse (hoarding, mis-issue) is a legible,
+   recorded, punishable act — a governance story, never a silent death,
+   because the floor still serves the dying. The gift/paid policy is named
+   as a future legislative choice (not built).
 
 ## The drive
 
@@ -294,18 +349,26 @@ Driven at the Terminus infirmary on a live world.
    **renown moves** (append + recompute). Then confirm the control: a
    player who `bleed`s into their *own* bag for their *own* use earns
    **none** of the three.
-6. **The registrar issues a unit.** An on-shift Blood Service attendant
-   `issue`s an O− unit to the clinician/patient — **gift-only, no coin
-   changes hands** — and a **custody record** appends (who issued what,
-   to whom). An unauthorized or off-shift person is refused.
+6. **The registrar issues a unit — and makes a hard call.** An on-shift
+   Blood Service attendant `issue`s an O− unit to the clinician/patient —
+   **gift-only, no coin changes hands** — and a **custody record** appends
+   (who issued what, to whom). An unauthorized or off-shift person is
+   refused. Then the scarcity moment: with one compatible unit and two
+   patients wanting it (one elective, one urgent-but-not-dying), the
+   player operator chooses — a values call the record remembers.
 7. **Consent.** Transfusing a **conscious** patient requires their
    agreement; transfusing a **dying/unconscious** one proceeds under
    implied consent. Transfuse a conscious patient *without* agreement and
    confirm a **harm** row appends against the administrator (the
    poisoner's shape).
-8. **The backbone holds with no players.** With no player donating, the
-   bank still refills toward par from the Blood Service's NPC donors on
-   its cadence — the combat supply does not depend on a player.
+8. **The backbone and the floor hold with no players.** With no player
+   donating, the bank still refills toward par from the Blood Service's
+   NPC donors on its cadence — the combat supply does not depend on a
+   player. And the floor: with **no player operator on shift**, a dying
+   patient with a compatible unit on hand is still served (the NPC
+   attendant dispenses under implied consent) — nobody bleeds out beside a
+   full fridge. Conversely, a player operator who **refuses/hoards** does
+   not override the floor for a dying patient, and the refusal is recorded.
 9. **A second bank is rows.** (Author-level check) a second clinic's
    Blood Service — a Business with a blood par and a donor supplier —
    stands up a working typed bank with no new code.
@@ -328,6 +391,13 @@ Driven at the Terminus infirmary on a live world.
 - An **on-shift Blood Service attendant can issue a typed unit** with no
   payment; an unauthorized person cannot, and the issue leaves a record a
   player can read (`chronicle` of the bank / the custody trail).
+- **The floor holds regardless of players:** a dying patient with a
+  compatible unit on hand is served even with **no player operator on
+  shift**, and a player operator **cannot withhold** blood from a dying
+  patient to death — the attempt is recorded, the floor still serves.
+- Above the floor, a player operator **can choose** who receives a
+  **scarce** (non-last-ditch) unit, and that choice is attributable in
+  the custody record.
 - A **conscious patient can refuse** a transfusion; a **dying one is
   treated** without being asked; a transfusion **without consent** shows
   up as harm attributable to whoever gave it.
