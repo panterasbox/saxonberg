@@ -264,7 +264,9 @@ requirements' wording do not meet, recorded so the build does not decide
 it silently.
 
 1. ⚠ **Drive step 1 cannot pass for a protowizard *through the Studio* by
-   deleting `hydratorClass`.** The Studio's create requires `classPath`
+   deleting `hydratorClass`.** ✅ SETTLED IN REVIEW — and the flag's
+   premise was wrong; see § *Post-review decision — the Studio/protowizard
+   flag*. The Studio's create requires `classPath`
    and the gate refuses `class` on a create for every non-wizard — the
    code-trust rule this build must not weaken (requirements § Governance:
    *nothing here may become a new reason to ask whether someone is a
@@ -1508,6 +1510,69 @@ invalidation / eviction / authority answered per property — `WarmedIndex`
 is the nearest prior art for the roster-shaped case. Recorded in
 `PersistenceSlice.HydrationSource`'s own docblock so the next person meets
 the reasoning where the type is.
+
+## ⭐⭐ Post-review decision — the Studio/protowizard flag, and what it uncovered (2026-10-02)
+
+Flagged in the MR as *"a protowizard still cannot reach the Studio
+form — needs an `extends` field on `CreateTemplateInput`"*. ⚠ **That
+framing was wrong, because it accepted a justification that does not
+hold.** The flag reasoned from access.md's claim that naming a class is a
+code-trust act; the reviewer rejected the premise:
+
+> naming a class isn't code trust. publishing a class is. the act of
+> publishing means 'you can use this' there's no "only x templates may use
+> my code" its an open source project
+
+Checked, and it holds — three ways: the gate refuses a class five hundred
+rows already name; `extends` reaches the identical instance; and
+`lint:instanceable` already declares which classes content may name,
+structurally and author-independently. The full account is in
+access.md § The code-trust lockdown, which now opens by saying its own
+justification is wrong rather than teaching it.
+
+⭐ **The consequence for the flag: the Studio gap closes by deleting a
+rule, not by building a feature.** Drop the `class` branch from
+`enforceCodeFieldGate` and a protowizard's Studio create works with **zero
+client change** — `createTemplate` already sends `classPath`. The row
+picker I proposed is then an ordinary authoring convenience, not a
+workaround. ⚠ Not folded into this MR: it is an access-doctrine change and
+this build only removed `hydratorClass` from that gate.
+
+### ⭐⭐ And the distinction the gate was groping for
+
+The reviewer's second point is the one worth keeping, because it relocates
+the whole question:
+
+> a template can use any class, that's just a record. […] but cloning a
+> template means actually running code in that template's class and that
+> may indeed be privileged. […] that's a decision of the class so the
+> logic for it belongs in the class, it has nothing to do with the
+> template or hydration
+
+**Authoring a row is inert; CLONING is execution.** If instancing a class
+should be privileged, that is the class's own question, asked at the
+moment of instancing, about whoever is doing it — not a property of the
+row and not hydration's business. Which is why gating the ROW was always
+aimed at the wrong object.
+
+⚠ **The modelling constraint the reviewer named, for whoever builds it:**
+the instinct is to reach for call security, and that is the wrong axis.
+`@CallSecurity` answers *which CODE may call this*, and inside the clone
+pipeline the caller is `StuffApi` every time, by design — the synthetic
+constructor frame. The question is *which PERSON may cause this*, which is
+`AccessApi`'s axis, read off `ExecutionContextApi.getActingAuthor`.
+
+⭐ The shape that fits is a **veto seam on the class** — the
+`canDestruct` / `canEvict` pattern — with one real difference: a
+**static**, because the pipeline must ask before an instance exists.
+Statics inside a mixin factory's returned class are already the shipped
+home for that kind of declaration (`captureSlice`, `hydrationSource`, this
+build's own additions) and sit outside `lint:lib-statics` by its own rule.
+⛔ And what goes inside it is a seat, a title or an `AccessApi.can` —
+never a new `isWizard` check.
+
+**Status: a non-issue today** (the reviewer's call). Recorded so the first
+class that wants it is not written as a hand-rolled check in a controller.
 
 ## Deferred seams
 

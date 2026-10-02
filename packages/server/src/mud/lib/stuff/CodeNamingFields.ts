@@ -39,6 +39,22 @@ export class CodeNamingFields {
   static readonly FIELDS = ["class", "behaviors[].brain"] as const;
 
   /**
+   * ⚠⚠ **`"class"` is in this list on a premise that does not hold**, and
+   * the entry is left standing only because re-deciding the rule is an
+   * access-doctrine change rather than a hydration one.
+   *
+   * Naming a class is not a code-trust act — PUBLISHING the class is, and
+   * that happens through a source-tree write. `lint:instanceable` already
+   * declares which classes content may name, structurally; this gate
+   * refuses a class five hundred rows already use; and `extends` reaches
+   * the identical instance anyway. See
+   * `TemplateLogic.enforceCodeFieldGate` and access.md § The code-trust
+   * lockdown for the full account and for what the rule was actually
+   * groping for (a row is a record; CLONING is execution, and that gate
+   * belongs to the class).
+   */
+
+  /**
    * ⭐ `hydratorClass` was the third, and it retired 2026-10-01 with the
    * field itself. The gate did not have to be relaxed to let it go: a
    * row no longer names its applier at all, so there is nothing to

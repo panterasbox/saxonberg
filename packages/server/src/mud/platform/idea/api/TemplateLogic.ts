@@ -178,6 +178,43 @@ export class TemplateLogic extends ApiLogic {
    * `PackLogic`, is wizard-gated at the `pack` verb); if one is ever added,
    * the gate moves to `aroundSave` beside `validateFolderLeafSave`.
    */
+  // ⚠⚠ **This gate's name is a claim its `class` arm cannot support, and
+  // the claim is recorded as wrong rather than quietly kept.**
+  //
+  // Reviewer, 2026-10-02: *"naming a class isn't code trust. PUBLISHING a
+  // class is. the act of publishing means 'you can use this' — there's no
+  // 'only x templates may use my code', it's an open source project."*
+  // Three things in this file and its neighbours agree:
+  //
+  //   1. ⛔ on a create `existing` is null, so ANY `classPath` violates —
+  //      the gate refuses a class five hundred rows already name, so it
+  //      is not guarding a decision to bring code into play;
+  //   2. ⛔ a protowizard reaches the identical instance through
+  //      `extends` (a class-less child of a row naming that class) — same
+  //      constructor, same `onCreate`, same mixins. A hop, not a boundary;
+  //   3. ⛔ `lint:instanceable` ALREADY declares which classes content may
+  //      name, structurally and author-independently (not `/lib/`,
+  //      resolves, under a branch segment). That is
+  //      publishing-for-content; a per-author gate on top is redundant.
+  //
+  // What the `class` arm actually does is stop a non-wizard being
+  // author-of-record for a row that STATES a class — bookkeeping.
+  //
+  // ⭐ `behaviors[].brain` survives, under a different name: a brain is
+  // data the engine runs BY ITSELF, on a timer, with no player act. That
+  // is autonomy and shared-world resource, not code provenance.
+  //
+  // ⭐⭐ And the distinction the gate was groping for lives elsewhere
+  // entirely: **a row is a RECORD; CLONING is execution.** Authoring is
+  // inert — cloning is what runs the class's initialization. If instancing
+  // a class should be privileged, that is the CLASS's question, asked of
+  // whoever is instancing, and neither the row's business nor hydration's.
+  // ⚠ It is also not a call-security question: inside the clone pipeline
+  // the caller is always `StuffApi` by design, so `@CallSecurity` answers
+  // *which code*, where the question is *which person* — `AccessApi`'s
+  // axis. See access.md § The code-trust lockdown for the shape (a static
+  // veto seam, the `canDestruct` pattern) and for why it is a non-issue
+  // today.
   private async enforceCodeFieldGate(
     classPath: string | undefined,
     data: Record<string, unknown>,

@@ -301,10 +301,94 @@ external code's only reachable surface is the Api facade.
 
 In a Node + proxy-security stack, anyone who can author a line of
 TypeScript can subvert the whole security apparatus — so that power
-is the **wizard** capability and nothing else. The catch: a content
-template is *data*, but several of its fields resolve to executable
-code, so "can write content" silently grants "can run code" unless
-those fields are gated. This build closes that bypass.
+is the **wizard** capability and nothing else.
+
+## ⚠⚠ The justification below is WRONG for `class`, and mislabelled for `brain`
+
+> **Reviewer, 2026-10-02:** *"naming a class isn't code trust.
+> publishing a class is. the act of publishing means 'you can use this'
+> there's no 'only x templates may use my code' — it's an open source
+> project."*
+
+This section used to argue that *"several of a template's fields resolve
+to executable code, so 'can write content' silently grants 'can run
+code'"*. That premise does not survive contact with the implementation,
+and the rule it justifies should be re-decided rather than quietly kept:
+
+1. ⛔ **The gate refuses a class that five hundred other rows already
+   name.** On a create `existing` is null, so *any* `classPath` is a
+   violation — it never asks whether the class is novel. So it is not
+   protecting a decision about bringing code into play.
+2. ⛔ **`extends` reaches the identical outcome.** A protowizard makes a
+   class-less child of a row naming `Coin` and gets an instance of
+   `Coin` — same constructor, same `onCreate`, same mixins. The gate adds
+   a hop, not a boundary.
+3. ⛔ **The "you may use this" declaration already exists, and it is
+   STRUCTURAL.** `lint:instanceable` states it at build time and
+   author-independently: not under `/lib/`, resolves to a real module +
+   export, sits under a branch segment. That *is* publishing-for-content.
+   A per-author gate on top is redundant with a rule already enforced.
+
+So what the `class` arm actually does is stop a non-wizard being
+author-of-record for a row that *states* a class. That is bookkeeping,
+and it lives in a method named for something it is not doing.
+
+⭐ **`behaviors[].brain` survives the argument, under a different name.**
+Not because a brain is untrusted — it is published, and the reviewer's
+rule applies — but because it is data the engine runs **by itself, on a
+timer, with no player act**. That is a question about autonomy and
+shared-world resource (and the resource half already has a ratchet,
+`lint:idle-cadence`), not about code provenance.
+
+⚠ **And one real code-trust case neither arm names.** `EvalScript.code`
+is `persistent` but not `authorable`, so the applier *would* write it
+from a row's `data`. Its row says *"the code is the one thing that is
+never authored here"* — a comment, not a rule. Inert without a wizard to
+`run` it, so not urgent; but **data that CONTAINS source** is what the
+gate should have been about, and nothing enforces it.
+
+## ⭐⭐ The distinction the rule was groping for: a row is a RECORD, cloning is EXECUTION
+
+> **Reviewer, same conversation:** *"a template can use any class, that's
+> just a record. […] but cloning a template means actually running code
+> in that template's class and that may indeed be privileged. […] that's
+> a decision of the class so the logic for it belongs in the class, it
+> has nothing to do with the template or hydration."*
+
+Authoring a row is inert. **Cloning is the act that runs code** — the
+class's constructor, its mixins' `onCreate` chain, its initialization.
+If instancing a particular class should be privileged, that is **the
+class's own question**, asked at the moment of instancing, about whoever
+is doing it. It is not a property of the row that names the class, and it
+is not hydration's business.
+
+⚠ **The modelling constraint, for whoever builds it:** this is **not** a
+call-security question, and reaching for `@CallSecurity` would be the
+wrong axis. Call security answers *which CODE may call this* — and inside
+the clone pipeline the caller is `StuffApi`, every time, by design (the
+synthetic constructor frame). The question here is *which PERSON may
+cause this*, which is `AccessApi`'s axis, read off the acting author
+(`ExecutionContextApi.getActingAuthor`).
+
+⭐ The shape that would fit the repo is a **veto seam on the class**, the
+`canDestruct` / `canEvict` pattern — with one real difference: it has to
+be a **static**, because the pipeline must ask before an instance exists.
+Statics inside a mixin factory's returned class are already the shipped
+home for exactly this kind of declaration (`captureSlice`,
+`hydrationSource`) and sit outside `lint:lib-statics` by that gate's own
+rule. ⛔ And whatever goes inside it is a seat, a title or an
+`AccessApi.can` — **never a new `isWizard` check**.
+
+**Status: a non-issue today** (the reviewer's call) — nothing shipped
+wants it. Recorded so that the first class that does want it is not
+written as a hand-rolled check in a controller, and so that the
+false justification above stops being taught.
+
+---
+
+The original framing, kept because the mechanism below is what actually
+ships today: a content template is *data*, but two of its fields name a
+module export, and the gate treats writing one as a code-trust act.
 
 **The wizard / protowizard partition.** A **protowizard** is the
 unstored complement of a wizard: any actor with content-write access
