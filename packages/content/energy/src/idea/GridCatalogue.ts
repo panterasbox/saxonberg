@@ -97,6 +97,8 @@ interface CompiledGrid {
   sources: Map<string, Generator | null>;
   /** Compile problems — recorded, never thrown. */
   problems: string[];
+  /** A street room was unresolvable during the compile (the boot-settle race). */
+  premature: boolean;
 }
 
 export default class GridCatalogue
@@ -148,13 +150,64 @@ export default class GridCatalogue
     return started;
   }
 
+  /** Real-ms before which a reachability recompile is throttled. */
+  private recompileThrottledUntil = 0;
+  /** How many reachability recompiles have been spent (a safety bound). */
+  private recompiles = 0;
+
   /** The compiled grid if it is already loaded, else `null` (kicks a load). */
   private loadedGrid(): CompiledGrid | null {
     if (this.loading === null) {
       void this.index(); // kick it; this read answers false until it lands
       return null;
     }
-    return LOADED.get(this) ?? null;
+    const grid = LOADED.get(this) ?? null;
+    if (grid !== null) this.maybeRecompileUnreachable(grid);
+    return grid;
+  }
+
+  /**
+   * ⭐ **Recover from a premature boot-settle compile.** The grid compiles
+   * lazily on first read — but the street-lighting settle fires that first
+   * read DURING boot, before the street rooms are instantiable, so
+   * `exitJoins` (which needs `StuffApi.singleton(street)`) finds nothing and
+   * drops every node below the first unreachable edge. That broken grid then
+   * caches for the process, and everything metered below it reads dark
+   * forever (the blood fridge, the walk-in cold room). This is the exact
+   * "boot settle races the install" wall the energy drive documented for
+   * streetlights, surfaced here by the first appliance on the main feeder.
+   *
+   * The fix: if the cached grid still has a reachability problem, recompile
+   * — throttled (so the boot-settle reads do not thrash) and bounded (so a
+   * genuinely mis-authored feeder gives up rather than looping). The first
+   * read after boot, with the rooms now present, rebuilds it clean and the
+   * problems clear, which stops the retries.
+   */
+  private maybeRecompileUnreachable(grid: CompiledGrid): void {
+    // Only a PREMATURE compile (a street room was unresolvable — the boot
+    // race) is worth retrying. A grid whose streets resolved but genuinely
+    // do not join is correctly unreachable, and retrying it would loop.
+    if (!grid.premature) return;
+    const now = Date.now();
+    if (now < this.recompileThrottledUntil || this.recompiles >= 20) return;
+    this.recompileThrottledUntil = now + 2_000;
+    this.recompiles += 1;
+    // ⚠ Recompile IN PLACE — swap the cache only when a clean grid lands,
+    // and keep serving the current (premature/dark) one meanwhile. Clearing
+    // the cache first (as `invalidateCache` would) leaves a window where a
+    // SYNC read — the appliance's own `energizedAtSync` — finds no grid and
+    // reads dark, so the fridge would flicker back to "silent" right after
+    // the feeder read live. This way, once a clean grid caches, sync reads
+    // are stably live and this never fires again (a clean grid is not
+    // premature).
+    const started = loadGrid().then((next) => {
+      if (!next.premature) LOADED.set(this, next);
+      return next;
+    });
+    this.loading = started;
+    void started.catch(() => {
+      if (this.loading === started) this.loading = null;
+    });
   }
 
   // ---------- reads ----------
@@ -410,6 +463,10 @@ async function loadGrid(): Promise<CompiledGrid> {
   const templates = await Template.findDescendants(FEEDER_PATH_PREFIX);
   const feeders = new Map<string, FeederDescriptor>();
   const problems: string[] = [];
+  // ⭐ Set when an adjacency check failed because a street room was not yet
+  // resolvable (the boot-settle race), as against resolving with no matching
+  // exit — only the former warrants a recompile.
+  let premature = false;
   for (const tpl of templates) {
     const d = descriptorOf(tpl.data as Record<string, unknown>);
     if (d === null) continue;
@@ -448,9 +505,11 @@ async function loadGrid(): Promise<CompiledGrid> {
       });
       nodeAt.set(n.at, ref);
       if (prev !== null && prevStreet !== null) {
-        if (await exitJoins(prevStreet, n.at)) {
+        const { joined, readable } = await exitJoins(prevStreet, n.at);
+        if (joined) {
           addEdge(succ, pred, prev, ref);
         } else {
+          if (!readable) premature = true;
           problems.push(
             `feeder '${feeder.key}': no exit joins '${prevStreet}' and ` +
               `'${n.at}' — a line may not leave the road; '${n.name}' and all ` +
@@ -502,7 +561,7 @@ async function loadGrid(): Promise<CompiledGrid> {
     // eslint-disable-next-line no-console -- the compile's own record (never a throw)
     console.warn(`GridCatalogue: ${problems.length} feeder problem(s):\n  - ${problems.join('\n  - ')}`);
   }
-  return { nodes, downstream, traceUp, nodeAt, sources, problems };
+  return { nodes, downstream, traceUp, nodeAt, sources, problems, premature };
 }
 
 /** Add a directed edge `from → to` to the successor/predecessor maps. */
@@ -559,17 +618,37 @@ async function resolveSource(path: string): Promise<Generator | null> {
  * Whether an exit joins two streets in either direction — the exit-graph
  * verification. Uses `StuffApi.singleton(streetPath)` + `getExits()` directly
  * (no transport-pack dependency), the way the plan's D3 says.
+ *
+ * ⭐ Also reports whether both streets were **readable** — a street whose
+ * room does not resolve (the boot-settle race, before the rooms are
+ * instantiable) is a different failure from one that resolves with no
+ * matching exit, and only the first warrants a recompile. See
+ * `GridCatalogue.maybeRecompileUnreachable`.
  */
-async function exitJoins(fromStreet: string, toStreet: string): Promise<boolean> {
-  return (
-    (await hasExitTo(fromStreet, toStreet)) ||
-    (await hasExitTo(toStreet, fromStreet))
-  );
+async function exitJoins(
+  fromStreet: string,
+  toStreet: string,
+): Promise<{ joined: boolean; readable: boolean }> {
+  const from = await exitsOf(fromStreet);
+  const to = await exitsOf(toStreet);
+  // ⚠ "Readable" means the exit graph is HYDRATED, not merely that the room
+  // resolved: at the boot-settle every street room exists but NONE of their
+  // exits have resolved destinations yet, so `exitsOf` returns empty for ALL
+  // of them. The signal that distinguishes that race from a genuine miss is
+  // whether EITHER endpoint has any hydrated exits — at the settle neither
+  // does; a genuine dead-end (an island with no exits) still has a reachable
+  // upstream street that does. So premature iff BOTH are empty.
+  const ready = (d: string[] | null): boolean => d !== null && d.length > 0;
+  const readable = ready(from) || ready(to);
+  const joined =
+    (from?.includes(toStreet) ?? false) || (to?.includes(fromStreet) ?? false);
+  return { joined, readable };
 }
 
-async function hasExitTo(fromStreet: string, toStreet: string): Promise<boolean> {
+/** The destination paths a street's exits lead to, or `null` if unresolvable. */
+async function exitsOf(street: string): Promise<string[] | null> {
   try {
-    const room = (await StuffApi.singleton(fromStreet)) as unknown as
+    const room = (await StuffApi.singleton(street)) as unknown as
       | (Stuff & {
           getExits?: () => ReadonlyMap<
             string,
@@ -577,12 +656,14 @@ async function hasExitTo(fromStreet: string, toStreet: string): Promise<boolean>
           >;
         })
       | null;
-    if (!room || typeof room.getExits !== 'function') return false;
+    if (!room || typeof room.getExits !== 'function') return null;
+    const dests: string[] = [];
     for (const exit of room.getExits().values()) {
-      if (exit.getDestinationTemplatePath?.() === toStreet) return true;
+      const d = exit.getDestinationTemplatePath?.();
+      if (typeof d === 'string') dests.push(d);
     }
-    return false;
+    return dests;
   } catch {
-    return false;
+    return null;
   }
 }
