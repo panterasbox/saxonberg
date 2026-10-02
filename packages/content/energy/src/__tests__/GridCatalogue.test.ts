@@ -215,3 +215,50 @@ describe('a line may not leave the road', () => {
     expect(cat.isStreetEnergizedSync(S_ISLAND)).toBe(false); // no line reaches it
   });
 });
+
+describe('GridCatalogue — poweredTrajectory (the cut log)', () => {
+  it('a severed-then-spliced node reads 1 · 0 · 1 across the outage', async () => {
+    const { WorldClockApi } = await import('@saxonberg/server/mud/api/worldclock');
+    const { TemplatePaths } = await import('@saxonberg/server/mud/lib/paths');
+    await import('@saxonberg/server/mud/platform/idea/WorldClockRegistry');
+    const WorldClockRegistry = (
+      await import('@saxonberg/server/mud/platform/idea/WorldClockRegistry')
+    ).default;
+    WorldClockApi._resetForTesting();
+    let nowMs = 1_000_000;
+    WorldClockApi._setNowProviderForTesting(() => nowMs);
+    if (!StuffApi.findByTemplatePath(TemplatePaths.worldClockRegistry)) {
+      makeStuffAtPath(
+        () => new WorldClockRegistry(),
+        TemplatePaths.worldClockRegistry,
+      );
+    }
+    const gs = (): number => WorldClockApi.getNow().rawValue();
+    const advanceGame = (g: number): void => {
+      nowMs += (g / WorldClockApi.getScale()) * 1000;
+    };
+
+    const cat = makeStuffAtPath(
+      () => new GridCatalogue(),
+      GRID_CATALOGUE_PATH,
+    ) as GridCatalogue;
+
+    const start = gs();
+    advanceGame(100);
+    const cutAt = gs();
+    cat.sever('n1'); // a direct cut on the node itself (affects it without a grid)
+    advanceGame(200);
+    const spliceAt = gs();
+    cat.splice('n1');
+    advanceGame(100);
+    const end = gs();
+
+    const pw = cat.poweredTrajectory('n1', start, end);
+    // Powered before the cut, dark through the outage, powered after the splice.
+    expect(pw.at(start + 50)).toBe(1);
+    expect(pw.at((cutAt + spliceAt) / 2)).toBe(0);
+    expect(pw.at(spliceAt + 50)).toBe(1);
+
+    WorldClockApi._resetForTesting();
+  });
+});

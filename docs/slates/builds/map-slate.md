@@ -10,6 +10,11 @@
 > **compass rose** (an input surface, and the refusal doctrine rendered), a
 > **named list for interzone exits** (the same widget as the departures
 > board), and a **zone honest-state panel**.
+> ⭐⭐ **And it needs an ICON SET it does not have** — the up/down corner
+> glyphs and the compass rose are the first real consumers, and the client
+> has no icon library at all (2026-10-01: two non-test files contain inline
+> SVG). See [iconography-slate](./iconography-slate.md), whose
+> direction/elevation tier exists for this card.
 > **Left:** the SVG grid + up/down corner glyphs + the pinned card · the
 > **compass rose** and its state vocabulary · the **interzone list** · the
 > **zone metadata panel** · ⭐ **the annotation surface (pins, markup,

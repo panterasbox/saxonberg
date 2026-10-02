@@ -1,0 +1,17 @@
+# Ice pan — a shallow tin tray a powered freezer freezes solid. Fill it
+# from a basin, put it in the freezer compartment, and the cold drives the
+# water below its melting point: the latent plateau banks the fusion heat
+# and the pool mints a block of ice (water's `castTemplate`). The electric
+# answer to "who makes the ice the iceboxes eat".
+class: /platform/thing/Receptacle
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: ice pan
+  keywords: [pan, ice-pan, tray, ice-tray]
+  register: indefinite
+  longDescription: |
+    A shallow tin pan, its edges turned up a finger's width — made to be
+    filled with water and set in a freezer until it carries a block of ice.
+  interiorBulk: true
+  interiorCapacity: 4.0
+  mass: 0.6

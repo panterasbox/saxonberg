@@ -86,6 +86,8 @@ export const FERMENT_PHASES = ['idle', 'active', 'finished', 'turned'] as const;
 export type MaturationPhase = (typeof FERMENT_PHASES)[number];
 
 const SECONDS_PER_GAME_DAY = 86_400;
+/** Midpoint samples per trajectory stretch when integrating over a gap. */
+const MATURING_SUB_STEPS = 8;
 
 /**
  * Kelvin past `damageAboveK` at which the stretch satisfaction reaches
@@ -544,9 +546,22 @@ export function MaturingMixin<TBase extends MixinConstructor>(Base: TBase) {
           return;
         }
 
-        const tempK = MixinApi.isThermal(self)
-          ? self.getTemperature().rawValue()
-          : DEFAULT_ROOM_K;
+        // ⭐ The vat's temperature over the gap, as a trajectory — a
+        // months-long batch in a cellar that warmed for a week converts on
+        // its real curve, not on its endpoint (the longest horizon in the
+        // tree, so the worst place to sample). The threshold/culture reads
+        // take the time-weighted mean; the conversion folds per sample.
+        const tempPw = MixinApi.isThermal(self)
+          ? self.temperatureTrajectory(this.maturationClockStamp, nowS)
+          : null;
+        const tempSamples = tempPw
+          ? tempPw.samples(MATURING_SUB_STEPS)
+          : [{ value: DEFAULT_ROOM_K, durationS: elapsed }];
+        const tempK =
+          elapsed > 0
+            ? tempSamples.reduce((a, s) => a + s.value * s.durationS, 0) /
+              elapsed
+            : DEFAULT_ROOM_K;
         const days = elapsed / SECONDS_PER_GAME_DAY;
         const open = MixinApi.isSealable(self) ? self.isOpen() : true;
 
@@ -557,13 +572,19 @@ export function MaturingMixin<TBase extends MixinConstructor>(Base: TBase) {
             this.reconcileEvaporativeWindow(profile, tempK, amount, nowS);
           } else {
             // Heat hurts the wash whether or not it is converting; cold
-            // merely stalls (forgiving, D3).
-            const sat = damageSat(profile, tempK);
-            if (sat < this._worstStretch) this._worstStretch = sat;
+            // merely stalls (forgiving, D3). ⭐ The worst stretch is the
+            // minimum over the trajectory's samples — a brief hot spike
+            // during the gap damages even if the batch cooled back down.
+            for (const s of tempSamples) {
+              const sat = damageSat(profile, s.value);
+              if (sat < this._worstStretch) this._worstStretch = sat;
+            }
             // Yeast death in the vat: past killK the batch goes sterile
-            // again (the stuck ferment) until re-pitched.
+            // again (the stuck ferment) until re-pitched. A spike past killK
+            // at ANY sample kills (peak temperature over the gap).
             const killK = profile.getKillK();
-            if (killK !== null && tempK > killK) {
+            const peakK = tempSamples.reduce((m, s) => Math.max(m, s.value), 0);
+            if (killK !== null && peakK > killK) {
               this.batchStrain = '';
               this.wildLagDays = 0;
             }
@@ -597,9 +618,18 @@ export function MaturingMixin<TBase extends MixinConstructor>(Base: TBase) {
             const converting =
               strainOk && (profile.getSealedOnly() ? !open : true);
             if (converting) {
+              // ⭐ The conversion integral over the trajectory: sum
+              // rateAt(T(s))·dt per sample. `rateAt` is clamped (0 below
+              // stall, full above happy), so the time-weighted MEAN would
+              // misread a batch that swung across those edges — fold it.
+              const convDays = tempSamples.reduce(
+                (a, s) =>
+                  a + rateAt(profile, s.value) * (s.durationS / SECONDS_PER_GAME_DAY),
+                0,
+              );
               this.fractionConverted = Math.min(
                 1,
-                this.fractionConverted + rateAt(profile, tempK) * days,
+                this.fractionConverted + convDays,
               );
               // ⚠⚠ **Microbial only.** A converting batch displaces the
               // room's air because *something is breathing* — it is CO₂ off

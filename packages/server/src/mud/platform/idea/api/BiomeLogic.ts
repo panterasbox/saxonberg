@@ -644,6 +644,28 @@ function skyExposedWalk(scope: Stuff & Container): boolean {
   return false;
 }
 
+/**
+ * ⭐ F1 — the nearest Atmospheric scope OUTSIDE `scope` (skipping `scope`
+ * itself), or `null`. A room-shaped scope is not Containable, so it has no
+ * enclosing scope and this returns `null`; a Thing-shaped scope (a fridge,
+ * the coach) finds the room it stands in, and a compartment finds the
+ * appliance it sits in (the seam applied twice). The walk is `getContainer`
+ * outward, the same one `skyExposedWalk` uses.
+ */
+function enclosingAtmosphericOf(
+  scope: Stuff & Container,
+): (Stuff & Container & Atmospheric) | null {
+  let cursor = stepOutward(scope);
+  let depth = CONTAINMENT_DEPTH_CAP;
+  while (cursor !== null && depth-- > 0) {
+    if (MixinApi.isAtmospheric(cursor)) {
+      return cursor as Stuff & Container & Atmospheric;
+    }
+    cursor = stepOutward(cursor);
+  }
+  return null;
+}
+
 // ---------- cache helpers (module-private) ----------
 
 /**
@@ -875,6 +897,21 @@ async function pressureTraceFor(
  * weather is happening to.
  */
 async function outsideKFor(scope: Stuff & Container): Promise<number> {
+  // ⭐ F1 — the nested-envelope seam. A scope that stands INSIDE another
+  // scope's air (a fridge in a shop, the coach in a coach-house) drifts
+  // toward the ROOM it stands in, not toward the biome default. Before the
+  // chain walk — which reads only biome/ancestor rows and would hand a
+  // nested envelope the indoor default the room-envelope build removed one
+  // level up — ask whether an enclosing Atmospheric applies, and take its
+  // last-integrated air as the outside. A room's own enclosing scope is
+  // nothing (it is not Containable), so a room's outside stays the
+  // weather; only a Thing-shaped scope finds a room here.
+  const enclosing = enclosingAtmosphericOf(scope);
+  if (enclosing !== null && enclosing.envelopeApplies()) {
+    const encK = enclosing.envelopeTemperatureLast();
+    if (encK !== null) return encK;
+  }
+
   const trace = await runChainWalk<Quantity<'K'>>(
     scope,
     undefined,

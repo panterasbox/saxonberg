@@ -111,10 +111,58 @@ chamber, and its Meltable path is the radiant one.
 > samples** (2026-09-30). A coolbox that loses power warms on a Newton
 > curve, but two samples of 4 °C are equally consistent with *nothing
 > happened* and with *six hours at ambient* — and every gauge that reads
-> this host's temperature integrates on that reading. ⭐ **Store the step,
-> not the history**: a host that records *when its supply last changed and
-> to what* has a closed-form temperature at any `t`, which is one field
-> rather than a ledger. [uncertainty.md § The second abstraction law](../uncertainty.md) has the rule; [reconcile-chains-slate](../slates/builds/reconcile-chains-slate.md) has the work.
+> this host's temperature integrates on that reading. ✅ **BUILT**
+> (2026-10-01) — see *The trajectory contract* below: a publisher keeps a
+> breakpoint ring and dependents integrate over the reconstructed curve.
+> [uncertainty.md § The second abstraction law](../uncertainty.md) has the
+> rule; `reconcile-chains-slate` graduated into this doc.
+
+### ⭐⭐ The trajectory contract — a body drifts toward a MOVING ambient
+
+Built by the cold-storage build (2026-10-01), graduating
+`reconcile-chains-slate`. The rule
+([uncertainty.md § The second abstraction law](../uncertainty.md)):
+reconcile-on-read is exact only when the driver's trajectory is
+reconstructible. A gauge that sampled its driver's END value and spread it
+over an unobserved gap guessed — and the guess depended on *when you
+looked*. A coolbox that lost power, warmed, and re-cooled read *nothing
+happened* if sampled cold and *insta-spoiled* if sampled mid-outage, from
+one history.
+
+The fix is one primitive, `lib/Trajectory.ts`:
+
+- **`Piecewise`** — a trajectory as ordered exponential-relaxation
+  `Stretch`es. `integrate(f, subSteps)` (Simpson, `ThermalDose`'s
+  integrator lifted), `samples(subSteps)` (midpoint, for a closed-form
+  gauge to fold over), `at(t)`.
+- **`TrajectoryLog`** — a publisher's bounded **ring** of breakpoints
+  `(atS, value, target, tau)`; `window(fromS, toS)` reconstructs the curve
+  over any window inside the ring's horizon. ⚠ A ring, not one field — a
+  scope read by many bodies at *different* stamps needs each body's curve
+  from its own stamp (plan F2). The ring is runtime state; a reboot loses
+  the history and re-seeds a flat segment.
+
+**Publishers** implement `TemperatureTrajectory.temperatureTrajectory(fromS,
+toS)`: `ThermalMixin` (a body's own temperature, ring `thermalLog`) and
+`AtmosphericMixin` (a scope's air, ring `envelopeLog`). **Dependents** ask
+their publisher for `[myStamp, now]` and integrate — no push, no fan-out;
+two gauges on one host may hold different stamps and both are exact within
+the horizon. `ThermalMixin.reconcileThermal` is itself a dependent: it
+drifts toward the scope's MOVING air via the two-exponential closed form
+`driftTowardMoving` (per `Stretch` the ambient is one decay, so the body's
+response is exact). A lit furnace / shut coolbox is still a constant
+stretch — *what holds you outranks the room* unchanged. ⚠ The pull side
+reads a scope's trajectory **only when its envelope applies**; an authored
+`_temperature` or no-envelope scope is owned by the push side (`restamp` →
+the full biome chain into `lastAmbientK`), exactly as the scalar pull did.
+
+The census-ratchet `lint:reconcile-chains` holds the line: a new
+`reconcile*` that samples `getTemperature()` / `hostTemperatureK` /
+`getOwnTemperatureK` over its gap without reading a trajectory (or a
+`@samples` marker) fails the gate. The far-past absence guard is now
+**narrowed to `ThermalRegulation` hosts** — a living body drops a long gap
+(a logout), but dead matter integrates its absence, which is what makes a
+fridge losing power for a week spoil its contents.
 
 ### ⭐⭐ The cold twin — `holderK()` and a Coolbox
 
@@ -646,6 +694,88 @@ them. The call sits outside the reentry guard so the plateau's own
 
 ⭐ It is one line on the lazy read path, and it is the reason an
 icebox has a clock at all.
+
+### ⭐⭐ The active twin — ClimateControl (Thing ≡ Location)
+
+The cold-storage build (2026-10-01) added the **active** cooler/heater.
+Where a furnace pins a *body* at a fuelled temperature,
+**`ClimateControlMixin`** (`lib/thermal/ClimateControl.ts`) drives an
+**air** — the `Atmospheric` envelope — toward a `setpointK` while its
+supply is live, and lets it drift when cut. Because it drives the envelope
+and not a lumped body, the **same mixin** composes on a Thing (a fridge, a
+freezer, an iced cabinet) and on a Location (a walk-in cold room, an AC'd
+hall): both run the same `reconcileEnvelope`, the same `envelopeDriveW`
+hook, the same supply segments, and a thing inside either reads its air by
+the same `airScopeOf`. ⭐ That is the Thing≡Location promise, delivered —
+a two-fixture unit test runs one assertion set over both and asserts they
+land on the same temperature.
+
+- It composes over `Stuff & Container & Atmospheric & Powered`. **Powered**
+  is a kernel shape (`lib/supply/Powered.ts`) the energy pack's
+  `GridPoweredMixin` implements structurally (the `TravelNode`↔`tpa`
+  pattern); the kernel reads it through a **structural probe**, never an
+  import.
+- Two authored CAUSES: `setpointK` (the dial) and `coolingCapacityW` (the
+  nameplate — **positive cools, negative heats**, the sign of `capW − leak`
+  deciding, no direction flag). The pull-down time is the envelope's own
+  `C/U`; a thermostat **holds at** the setpoint (the steady-state clamp)
+  and does not sail past it.
+- The drive is folded into the envelope budget through `envelopeDriveW(T,
+  powered)` — `−capW` while supplied and on the wrong side of the setpoint,
+  `0` otherwise. `reconcileEnvelope` **segments the gap by the supply's
+  `poweredTrajectory`**, so a cut mid-outage and a splice after it are
+  separate closed-form stretches even if nobody watched — the warm-up is
+  read correctly however you look.
+- After the air integrates, ClimateControl **drives the phase of what it
+  holds** (`Bulkable & Thermal` contents) — the freezer freezes the water
+  in its ice pan. Guarded against the reentry a content's own reconcile
+  would cause.
+
+⭐ The narrowing test holds: nothing reads `isClimateControl` in `Thermal`,
+`Atmospheric` or the archetype — the body reads the scope, the envelope
+reads the hook, the `coldStorage` satisfier reads a temperature (its holder
+rung gained one clause: an Atmospheric sealable container at `≤ 283 K` is
+cold storage too, reading its own air, not a class).
+
+**Heat rejection is a documented abstraction**: a real fridge rejects
+`capW·(1 + 1/COP)` into its kitchen, but COP is the billing build's one new
+quantity, so no waste heat ships on either host (a running fridge does not
+warm its kitchen this build). The attach point is exact — the Thing
+composer answers `spaceHeatOutputW()` the day COP exists; a walk-in's
+condenser is outdoors and answers nothing.
+
+### ⭐⭐ Phase change both ways — the freeze honours its latent heat too
+
+The melt plateau always honoured latent heat; the **freeze** used to be a
+threshold flip (zero the pool, mint a cast the instant `T ≤ mp`). The
+cold-storage build made it the mirror: a pool at/below its melting point
+**plateaus at `mp`** while the undershoot `(mp − T)·C` is banked into
+`BulkPayload.latentRemovedJ`, and only solidifies once the bank reaches
+`mass × latentHeatOfFusion` — real ice-tray time (a 4 L pan at 255 K is a
+few game-hours). The frozen pool clones the **material's `castTemplate`**
+(water → `/stuff/thing/ice-block`; a metal → the generic
+`/stuff/thing/Casting`), mass stamped always, material/prose only when the
+clone authored none.
+
+⚠ **Boil is still a flip** — no boiling feature rides this build, so steam
+is a disappearance (the pool clears; no steam cloud / burn / pressure). The
+asymmetry is deliberate and noted; `thermal-slate` carries boil-as-a-plateau.
+
+⭐ **Freezing RUINS some materials.** `Material.ruinedByFreezing` (blood):
+at the solidify edge no cast is minted — the pool stays liquid at `mp`, its
+freshness load is stamped ruined (reads *rotten*; `transfuse` refuses
+*spoiled*), and the accumulator clears so a thaw does not re-trigger. Only
+the powered cold source drives a `Bulkable` freeze (the ClimateControl
+content pass); a jug of water in a cold weather room does not freeze this
+build (`thermal-slate`).
+
+⚠ **Two meltwater edges are accepted limitations** (both → `thermal-slate`):
+(1) a solid melting inside a **floorless container** (a cooler, a freezer
+box) loses its litres — `doMelt`'s `findScopeFloor` returns null, so the
+solid destructs and the meltwater has nowhere to pool (the drama is
+spoilage, not puddles); (2) a cold **ROOM**'s own floor puddle does not
+re-freeze — the content phase pass drives a scope's loose contents, and a
+`Floor` is a fixture, not a loose content.
 
 ### ⭐ A body may author its own starting temperature
 

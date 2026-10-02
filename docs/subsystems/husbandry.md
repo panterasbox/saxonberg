@@ -20,14 +20,17 @@ conventions](../slates/builds/ranching-slate.md); phase 1 of nine in
 
 ---
 
-> ⚠ **`Growing` restamps `_lastAmbientK` and then rates from the STORED
-> value** (noted 2026-09-30) — a rectangle from the **start** of the
-> interval, where the spoilage family rectangles from the **end**.
-> `ThermalDose`'s docstring says both are wrong (*“from the start reads
-> zero; from the end, half again too much”*), but growth is a `min`-of-four
-> limiting factor and the conservative value may be deliberate. ⭐⭐ **Read
-> the intent before changing it** — open question 1 in [reconcile-chains-slate](../slates/builds/reconcile-chains-slate.md).
-> [uncertainty.md § The second abstraction law](../uncertainty.md) has the general rule.
+> ✅ **Intent read, left as-is (cold-storage build, 2026-10-01).** The
+> spoilage family migrated to integrate over the temperature trajectory,
+> but `Growing` was deliberately NOT changed: its four limiting factors
+> (water · light · root · warmth) are each a per-window MEAN, sub-stepped,
+> because *the season does not turn inside one integration step* — a
+> `min`-of-four model where the window mean is the right figure (answer 3),
+> not the endpoint rectangle the spoilage clock had. It reads `_lastAmbientK`
+> (a resolved mean), not a stepped endpoint, so `lint:reconcile-chains` does
+> not flag it. [uncertainty.md § The second abstraction law](../uncertainty.md)
+> has the general rule; [thermal.md § The trajectory contract](./thermal.md)
+> has the primitive.
 
 ## The object model — four things you assemble
 

@@ -67,11 +67,28 @@ drive). It runs on the first real read (the dusk settle, or `analyze grid`).
 ## The consumer, the light, the pole
 
 - **`GridPoweredMixin`** (pack `lib/`) — composed only by things that DRAW
-  (`ElectricLight` now, the cold-chain fridge later; never on `Thing`/
+  (`ElectricLight`, the `ColdStore`/`ColdRoom`; never on `Thing`/
   `LightSource`/`BurnerMixin`). Resolves its premises' band + feeder once;
-  `isPowered()` is sync.
+  `isPowered()` is sync. ⭐ **It implements the kernel `Powered` shape**
+  (`isPowered` · `availablePowerW` · `poweredTrajectory`) structurally, so
+  `ClimateControlMixin` (kernel) drives off it without the kernel importing
+  the pack. A host that is not Containable (a `ColdRoom` Location) is metered
+  against ITSELF (`resolveRoomPath` returns its own path).
 - **`ElectricLight`** — `GridPowered(LightSource(Switchable(…)))`: emits only
   while on AND powered.
+- **`ColdStore`** (`/system/energy/thing/ColdStore`) + **`ColdRoom`**
+  (`/system/energy/location/ColdRoom`) — ⭐ the cold-storage build's active
+  cooler, a Thing and a Location composing the one `ClimateControlMixin`
+  (the Thing≡Location proof; see [thermal.md § The active twin](./thermal.md)).
+  A fridge/freezer is a `ColdStore` row (it ships a colder freezer
+  compartment via `props:`); a walk-in is a `ColdRoom` row. Both gate their
+  cooling on `isPowered()` and warm when the feeder is cut.
+- **The cut log** — `GridCatalogue` records each `sever`/`splice` with a
+  game-time stamp (`cutSince` + a bounded `outages` ring) and publishes
+  `poweredTrajectory(node, fromS, toS)`, a 0/1 trajectory an appliance's
+  envelope integrates — so a cut mid-outage and a splice after it warm and
+  re-cool the store correctly even if nobody watched. (Source generation is
+  read as-now, not logged — the cut is the state a fridge cares about.)
 - **`LineAccess`** — a pole/manhole on a node; affords `sever`/`splice`; an
   overhead one faults in a storm (`onStormExposure` → `energy.stormFaultRate`),
   a buried one is storm-safe. ⭐ **A `LineAccess` is SPARSE, not one-per-street**:

@@ -27,6 +27,8 @@ import type { Container } from '../lib/spatial/Container';
 import type { Containable } from '../lib/spatial/Containable';
 import type { Placing } from '../lib/spatial/Placing';
 import type { Coolbox } from '../lib/thermal/Coolbox';
+import type { ClimateControl } from '../lib/thermal/ClimateControl';
+import type { Powered } from '../lib/supply/Powered';
 import type { Mobile } from '../lib/spatial/Mobile';
 import type { Sensor } from '../lib/message/Sensor';
 import type { Vocal } from '../lib/message/Vocal';
@@ -1023,6 +1025,12 @@ export class MixinApi {
     obj: Stuff,
   ): obj is Stuff & Coolbox & Container & Thermal & Sealable {
     return this.hasMixin(obj, Mixins.Coolbox);
+  }
+
+  public static isClimateControl(
+    obj: Stuff,
+  ): obj is Stuff & ClimateControl & Container & Atmospheric & Powered {
+    return this.hasMixin(obj, Mixins.ClimateControl);
   }
 
   public static isMobile(obj: Stuff): obj is Stuff & Mobile {

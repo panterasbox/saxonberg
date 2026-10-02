@@ -149,7 +149,12 @@ describe('phase change — boil + freeze (ice → water → steam)', () => {
       .mockImplementation((async () =>
         makeStuff(() => new Casting())) as unknown as typeof StuffApi.clone);
     try {
-      const { flask, room } = waterFlask(260); // < 273 K → ice
+      // ⭐ The honest freeze takes its latent heat: a pool just below the
+      // melting point PLATEAUS rather than flipping. A deep undershoot
+      // (150 K) banks ≥ mass × latentHeatOfFusion in one reconcile, so the
+      // pool actually solidifies. (The plateau itself is pinned in
+      // Thermal.freeze.test.ts; the melt test above pins the mirror.)
+      const { flask, room } = waterFlask(150); // far below 273 K → ice
       if (MixinApi.isThermal(flask)) flask.reconcilePhase();
       expect(flask.getBulkAmount('interior').rawValue()).toBe(0);
       await flush();

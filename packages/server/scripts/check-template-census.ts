@@ -170,6 +170,12 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
     // Resolved live at the grid compile, and a rowless one is a feeder that
     // energizes nothing with no author-findable reason.
     'source',
+    // ⭐ `castTemplate` (the cold-storage build) — what a frozen pool of a
+    // Material becomes (water → `/stuff/thing/ice-block`). Resolved live at
+    // the solidify edge of `reconcileBulkPhase`, and a rowless one is a
+    // freeze that empties the pool and mints nothing. Read here rather than
+    // ignored, because the ref IS the behaviour.
+    'castTemplate',
   ] as const) {
     push(f, data[f]);
   }

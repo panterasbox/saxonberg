@@ -460,6 +460,33 @@ export default class Material extends SingletonMixin(
   }
 
   /**
+   * ⭐ The identity path a frozen pool of this material MINTS when it
+   * solidifies — a `Casting`-shaped Thing. Water authors
+   * `/stuff/thing/ice-block`; a metal keeps the generic `/stuff/thing/Casting`.
+   * Authorable per row; the default is the generic cast.
+   */
+  public castTemplate: string = '/stuff/thing/Casting';
+
+  /**
+   * ⭐ Whether freezing RUINS this material rather than casting it — blood
+   * hemolyses, it does not become a usable ice block. At the solidify edge
+   * of such a material no cast is minted: the pool stays liquid at its
+   * melting point, its freshness load is stamped ruined, and the latent
+   * accumulator clears so a thaw does not re-trigger. Authorable; default
+   * false (ordinary matter casts).
+   */
+  public ruinedByFreezing: boolean = false;
+
+  /** The identity path a frozen pool of this becomes. */
+  public getCastTemplate(): string {
+    return this.castTemplate;
+  }
+  /** Whether freezing ruins this material (blood) rather than casting it. */
+  public isRuinedByFreezing(): boolean {
+    return this.ruinedByFreezing;
+  }
+
+  /**
    * Boiling point (`K`) — the liquid↔gas transition temperature (water
    * 373, iron ≈ 3134). the host's `reconcilePhase` boils a liquid past it
    * to a gas emission (steam). `0` = does not boil in the modelled range.
@@ -776,6 +803,10 @@ export default class Material extends SingletonMixin(
     heatOfCombustion: { persistent: true, spoiler: 1, spoilerName: 0, marshaller: QuantityMarshaller.pathFor('MJ/kg') },
     meltingPoint: { persistent: true, spoiler: 1, spoilerName: 0, marshaller: QuantityMarshaller.pathFor('K') },
     latentHeatOfFusion: { persistent: true, spoiler: 1, spoilerName: 0, marshaller: QuantityMarshaller.pathFor('J/kg') },
+    // ⭐ What a frozen pool becomes / whether freezing ruins it — material
+    // facts an author writes per row (water → ice-block; blood → ruined).
+    castTemplate: { persistent: true, authorable: true },
+    ruinedByFreezing: { persistent: true, authorable: true },
     boilingPoint: { persistent: true, spoiler: 1, spoilerName: 0, marshaller: QuantityMarshaller.pathFor('K') },
     latentHeatOfVaporization: { persistent: true, spoiler: 1, spoilerName: 0, marshaller: QuantityMarshaller.pathFor('J/kg') },
     smokePoint: { persistent: true, spoiler: 1, spoilerName: 0, marshaller: QuantityMarshaller.pathFor('K') },
