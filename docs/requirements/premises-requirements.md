@@ -480,6 +480,9 @@ Observable from outside the code.
 ## Cross-references
 
 **Seeding slates** — `stewardship-slate` (primary; step 5) ·
+`money-recirculation-slate` (⭐ created by this conversation — rent to an
+NPC landlord manufactures a concentration point, so this build owes that
+slate's **backstop** and only the backstop) ·
 `power-utility-slate` (the billing half) · `property-slate` (the parent;
 the two-scarcities rule) · `tenancy-design-pack` (owns the rent economics
 this consumes) · `residence-ladder-design-pack` (the premises money half) ·
