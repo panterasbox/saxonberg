@@ -48,11 +48,23 @@ data:
   # anything about the species. So the species authors a window long
   # enough never to bind and the box does the work.
   production:
+    # ⭐⭐ `window: biome` — the FIRST RGO whose reservoir is somebody
+    # else's land, now stated as data rather than implied by the empty
+    # phrase. A colony's supply is what is in bloom within range, so the
+    # HIVE answers whether the tap is open (`biomeWindowOpen` reads its
+    # own forage census) and the refusal is the season's rather than the
+    # colony's.
+    #
+    # ⚠ No `broodAfterDays`: honey is also `accrue` and is deliberately
+    # untouched by the hen's clutch choice. Bees do not stop foraging
+    # because the supers are full — they swarm, which `ColonyMixin`
+    # already owns.
     - key: honey
       yieldRow: /trade/apiculture/thing/comb
       perGameDay: 0.5
       behaviour: accrue
       windowDays: 400
+      window: { kind: biome }
   circadianBand: diurnal
   diet: herbivore
   longDescription: >-

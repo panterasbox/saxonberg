@@ -219,10 +219,29 @@ export function StandMixin<TBase extends MixinConstructor<Stuff & Reserved>>(
     /**
      * ⭐ The stand affords the felling of it, to whoever is standing in
      * the place (`inventory` — a location's occupants). See the header.
+     *
+     * ⭐⭐ And it affords `tap` **in order to refuse it**, which is not
+     * a contradiction: *a stand is a number of trees, not a stem, and a
+     * spile goes into one tree you can put your hand on.* That sentence
+     * is the design being taught, and it can only be said by something
+     * that answers the verb. A wood that simply did not afford `tap`
+     * would give the platform's not-here answer and teach nothing.
+     *
+     * ⚠ The refusal is the WOOD's own, not a guard in the controller
+     * re-narrowing a host set — `fell` lives here for exactly the same
+     * reason, and at the treeline (which is no `Wood` at all) both verbs
+     * give the same not-afforded answer, which is the parity the drive
+     * asserts.
      */
     static commandContributions = {
-      self: ['trade/forestry/cmd/forestry/fell.yaml'],
-      inventory: ['trade/forestry/cmd/forestry/fell.yaml'],
+      self: [
+        'trade/forestry/cmd/forestry/fell.yaml',
+        'trade/forestry/cmd/forestry/tap.yaml',
+      ],
+      inventory: [
+        'trade/forestry/cmd/forestry/fell.yaml',
+        'trade/forestry/cmd/forestry/tap.yaml',
+      ],
     };
 
     /** The derived reading, rendered into the host's `look`. */

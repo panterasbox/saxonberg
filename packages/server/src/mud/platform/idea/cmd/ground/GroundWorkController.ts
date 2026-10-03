@@ -33,23 +33,30 @@
  * whole reason the promotion is possible.
  */
 
-import { CommandController } from '../../../../lib/command/CommandController';
-import type { CommandContext, CommandModel } from '../../../../api/command';
-import type { AbortReason } from '@saxonberg/types';
+import {
+  EngagedActController,
+  type EngagedStepOptions,
+} from '../../../../lib/command/EngagedActController';
+import type { CommandModel } from '../../../../api/command';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import type { Container } from '../../../../lib/spatial/Container';
 import { MixinApi } from '../../../../api/mixin';
-import { MessageApi } from '../../../../api/message';
-import { Mml } from '../../../../api/mml';
-import { SchedulerApi } from '../../../../api/scheduler';
-import { ManualBuildStep } from '../../../../lib/craft/ManualBuildStep';
 import type {
   Improvable,
   ImprovementCost,
   ImprovementJob,
 } from '../../../../lib/ground/Improvable';
 
-/** The topic every ground act narrates on. */
+/**
+ * The topic every ground act narrates on. ⭐ The same string as
+ * `EngagedActController.ACT_TOPIC` and `WorkedActController.WORK_TOPIC`
+ * — it is ONE topic across every hands-work act.
+ *
+ * ⚠ A LITERAL rather than an alias of the promoted const, because
+ * `lint:topics` resolves a literal and cannot follow a re-export: an
+ * alias here made three shipped ground controllers report as *holes in
+ * the gate*. One literal per file is the shipped pattern.
+ */
 export const GROUND_TOPIC = 'act.deed';
 
 /**
@@ -72,23 +79,12 @@ export const AGRICULTURE = 'agriculture';
  */
 export const LABOUR_PER_ACT = 1;
 
-type Composed = ReturnType<typeof Mml.compose>;
-
-export interface GroundStepOptions {
-  durationMs: number;
-  beginSelf: Composed;
-  beginPeers?: Composed;
-  /**
-   * Endurance the act costs a FRESH body, in percentage points — the felt
-   * cost, kept as the authored figure because an improvement act's
-   * duration is an abstraction (four seconds to lime a field). The base
-   * converts it to metabolic watts through the body, so a conditioned body
-   * feels the same work as less.
-   */
-  cost: number;
-  onComplete: () => void;
-  onAbort?: (reason: AbortReason) => void;
-}
+/**
+ * One engaged ground step. ⚠ An alias of the promoted
+ * {@link EngagedStepOptions} — ground's acts added nothing of their own
+ * to the shape, which is part of why the promotion was clean.
+ */
+export type GroundStepOptions = EngagedStepOptions;
 
 /** Ground that can be improved, and the bill it says it owes. */
 export interface GroundReading {
@@ -98,7 +94,7 @@ export interface GroundReading {
 
 export abstract class GroundWorkController<
   M extends CommandModel = CommandModel,
-> extends CommandController<M> {
+> extends EngagedActController<M> {
   /**
    * The improvable ground the actor is standing on, with its bill — or
    * `null` when they are not standing on any, or when the host answers no
@@ -120,12 +116,6 @@ export abstract class GroundWorkController<
     return { ground, bill };
   }
 
-  /** Decline diegetically, and file the structured reason. */
-  protected decline(context: CommandContext, prose: Composed, reason: string): void {
-    MessageApi.scene(context.commandGiver).topic(GROUND_TOPIC).toSelf(prose).send();
-    context.note({ kind: 'controller-rejected', reason, detail: reason });
-  }
-
   /**
    * ⭐ The bound tool, if it can do this job.
    *
@@ -138,51 +128,6 @@ export abstract class GroundWorkController<
   protected toolOf(bound: Stuff | null | undefined, capability: string): Stuff | null {
     if (!bound || !MixinApi.isTool(bound)) return null;
     return bound.hasCapability(capability) ? bound : null;
-  }
-
-  /**
-   * Run the act as an engaged activity on the giver's `hands` slot, so the
-   * effect lands **at completion** and a barge-in leaves the ground as it
-   * was. Spends the endurance up front — the work was done whether or not
-   * anything came of it.
-   */
-  protected engageAct(context: CommandContext, opts: GroundStepOptions): void {
-    const giver = context.commandGiver;
-    const durationS = opts.durationMs / 1000;
-    let effortW: number | undefined;
-    if (MixinApi.isExerting(giver)) {
-      effortW = giver.wattsForFeltCost(opts.cost, durationS);
-      if (!giver.canExert(effortW, durationS)) {
-        this.decline(context, Mml.fromMarkup(giver.exhaustionRefusal()), 'too-tired');
-        return;
-      }
-    }
-    if (!MixinApi.isEngaged(giver)) {
-      opts.onComplete();
-      return;
-    }
-    const step = new ManualBuildStep({
-      actor: giver,
-      slots: ['hands'],
-      durationMs: opts.durationMs,
-      effortW,
-      onComplete: opts.onComplete,
-      onAbort: opts.onAbort,
-    });
-    const result = SchedulerApi.start(step);
-    if (result.ok && (result.status === 'started' || result.status === 'replaced')) {
-      context.note(result.note);
-      const scene = MessageApi.scene(giver).topic(GROUND_TOPIC).toSelf(opts.beginSelf);
-      if (opts.beginPeers) scene.toPeers(opts.beginPeers);
-      scene.send();
-      return;
-    }
-    if (result.ok && result.status === 'completed-sync') return;
-    if (!result.ok && result.reason === 'engagement-conflict') {
-      this.decline(context, Mml.compose`Your hands are already busy.`, 'engagement-conflict');
-      return;
-    }
-    this.decline(context, Mml.compose`You can't manage that just now.`, 'start-rejected');
   }
 
   /** The duration one act of `job` takes on this ground. */

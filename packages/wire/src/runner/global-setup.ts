@@ -41,11 +41,28 @@ async function probe(url: string): Promise<boolean> {
 const ownsTheWorld = (): boolean =>
   process.env.WIRE_BOOT === '1' || process.env.CI === 'true';
 
+/**
+ * ⭐ Owned mode sets `WIRE_TEST_WORLD=1` for the test files, because the
+ * two modes do not have the same capabilities.
+ *
+ * A world we booted is marked `SAXONBERG_TEST_WORLD` (see `boot.ts`), so
+ * `@TestOnly` Api statics exist in it — `WorldClockApi.advance` above
+ * all. A world we merely ATTACHED to is somebody's dev server, where
+ * those statics are deleted and a checkpoint that jumps the clock cannot
+ * run and should not: it would age every reconcile-on-read system in the
+ * world the operator is playing in.
+ *
+ * This propagates because `globalSetup` runs before the test workers are
+ * spawned — the same mechanism `WIRE_SERVER_URL` already relies on.
+ */
+const TEST_WORLD_FLAG = 'WIRE_TEST_WORLD';
+
 export async function setup(): Promise<void> {
   process.env.WIRE_RUN_REPORT = REPORT;
   rmSync(REPORT, { force: true });
 
   if (ownsTheWorld()) {
+    process.env[TEST_WORLD_FLAG] = '1';
     console.log(
       `\nwire: booting a world of my own on ${WIRE_PORT}.\n` +
         `  ⚠ It uses the database packages/server/.env names — one\n` +
@@ -62,6 +79,7 @@ export async function setup(): Promise<void> {
 
   const url = process.env.WIRE_SERVER_URL ?? 'http://localhost:2010';
   process.env.WIRE_SERVER_URL = url;
+  delete process.env[TEST_WORLD_FLAG];
 
   if (!(await probe(url))) {
     throw new Error(

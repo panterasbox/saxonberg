@@ -859,6 +859,131 @@ right for test seams. Tests legitimately call framework code which
 might call further framework code; what matters is that some test is at
 the bottom of the chain, not that every frame between is a test.
 
+### ⭐⭐ `@TestOnly` — the other question entirely
+
+`assertTestOnly` asks **who is calling**. There is a second question,
+and a seam whose legitimate caller is a *test world* rather than a test
+stack frame needs it instead:
+
+> **`@TestOnly` asks what process this is.** Outside a test
+> environment the member's body is replaced by one that **refuses, and
+> explains** — naming the seam, naming the three signals that would
+> make a process a test environment, and repeating the seam's own
+> guidance about what to reach for instead.
+
+⚠⚠ **It deleted the property in its first version, and that was
+worse.** Absence is the strongest possible guarantee and the worst
+possible diagnostic: the caller was left holding `TypeError:
+WorldClockApi.advance is not a function`, which says nothing about why
+and reads like a build problem. It is also the wrong shape for this
+codebase, whose standing rule is that **the refusal is the interface** —
+a thing that is withheld should be able to say it was withheld, and
+under what condition it would not be. Nothing is given up: the
+guarantee that matters is that the seam cannot be *used*.
+
+What a caller actually sees:
+
+```
+WorldClockApi.advance is a TEST-ONLY seam and this process is not a
+test environment, so the method is withheld.
+
+A process is a test environment when any of these holds:
+  VITEST                  — an in-process vitest run
+  NODE_ENV=test           — the conventional marker
+  SAXONBERG_TEST_WORLD=1  — a world the suite BOOTED and owns,
+                            set only by the wire runner
+                            (packages/wire/src/runner/boot.ts)
+
+A development world is deliberately none of those: it is a world
+somebody plays in.
+
+Nothing in the game moves the realm's clock: there is one clock, it is
+global, and a jump ages every reconcile-on-read system in the world at
+once. …
+```
+
+⭐ The last paragraph is the decorator's `guidance` argument
+(`@TestOnly('…')`). The generic half of the message can explain the
+*mechanism*; only the seam's owner can explain the *alternative*, so
+write it.
+
+The distinction is not academic. A **wire drive** speaks to the server
+over a socket, so its `eval` arrives with no test frame on the stack
+anywhere: `assertTestOnly` is structurally blind to it, and a seam the
+drive needs cannot be protected that way at all. Meanwhile the thing
+actually worth preventing is not *a production caller reaching a test
+method* but *the method existing in a world somebody plays in*.
+
+`SecurityApi.isTestEnvironment()` is the oracle. Three signals, any
+one sufficient:
+
+| signal | the case it covers |
+|---|---|
+| `VITEST` | an in-process unit-test run |
+| `NODE_ENV=test` | the conventional marker |
+| `SAXONBERG_TEST_WORLD=1` | ⭐ **a world the test suite booted and owns** |
+
+⚠ The third has to be explicit, and it is set in exactly one place
+(`packages/wire/src/runner/boot.ts`). It cannot be inherited: the wire
+runner **scrubs `VITEST`** from the server environment it spawns,
+because an inherited copy tells `preload.js` to skip the call-security
+loader hook and the boot then dies on the first `FromModule` policy.
+⭐ And a development world (`pnpm dev:server`) carries none of the
+three, which is the point — the operator's world is a world somebody
+plays in.
+
+**⚠⚠ The substitution cannot live in the decorator**, and this is the
+part a refactor will get wrong. TypeScript's legacy method-decorator
+emit (`__decorate`) threads one descriptor through every decorator and
+then calls `Object.defineProperty(target, key, descriptor)` itself at
+the end — so anything a decorator does to the property is undone a
+microsecond later. The decorator therefore only **records** the name,
+and the withhold runs from `#wrapAllStaticMethods`, reached by the
+class's module tail (`SecurityApi.decorateApiClass(FooApi)`) or by a
+class-form `@CallSecurity`. Both run after every method decorator.
+
+**Api statics only.** That is the surface where reachability is decided
+— the `eval` sandbox binds Api classes and nothing else — and it is
+the only surface where the substitution is honest: a Stuff's methods
+are reached through the Proxy against the whole prototype chain, where
+replacing one own descriptor would be a half-measure that reads as a
+guarantee. The decorator throws on an instance method.
+
+A logic singleton's or registry's matching method stays present and
+keeps its `FromModule` / `FromTemplate` gate. With the Api surface gone
+there is no longer a path to it.
+
+**⭐ It is half a review instrument.** A method carrying `@TestOnly` is
+scaffolding for the suite; a method without it is the game. That line
+used to be carried only by the `_*ForTesting` naming convention — and
+`WorldClockApi.advance`, the first consumer, is named exactly like a
+game verb, which is how it shipped for a build and a half being
+described in its own docstring as an in-world capability.
+
+`pnpm lint:test-seams` gates the two silent failure modes at 0 (a
+`@TestOnly` with no module tail withholds nothing; a `@TestOnly` on an
+instance member throws only if the class is imported) and prints a
+census of Api statics that are test-only *by name* and not yet marked —
+the worklist for the sweep that generalizes the decorator. ⚠ The census
+is deliberately **not** ratcheted: test seams grow with features, so a
+ceiling there would refuse an author for legitimately adding one.
+
+⚠ The gate is a regex over source, so it has the matching failure both
+ways and has had both: reading the bare substring `@TestOnly` flagged
+the two files whose *comments explain* the marker, and then requiring
+the line to be exactly `@TestOnly` stopped seeing the repo's only real
+use the moment it took a `guidance` argument — reporting **"0 marked
+✔"**, a green gate counting nothing. ⭐ The backstop is a runtime
+assertion rather than a tighter regex: `TestOnly.test.ts` asserts
+`SecurityApi.getTestOnlyMembers(WorldClockApi).has('advance')`, which
+cannot be fooled by formatting.
+
+`SecurityApi.getTestOnlyMembers(cls)` reads the marks as a
+`Map<member, guidance>` (present whether or not they were withheld, so
+a test environment can still assert that a seam is marked);
+`SecurityApi.withheldTestOnlySeams()` lists what this process actually
+withheld.
+
 ## Built-in Policies
 
 A `SecurityPolicy` is just `{ name, allows(caller, target, method,

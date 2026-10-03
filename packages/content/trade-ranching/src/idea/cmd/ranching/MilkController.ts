@@ -1,5 +1,6 @@
 /**
- * MilkController — `milk <animal>`, and ⭐ **the tyrant of the roster.**
+ * MilkController — `milk <animal> [into <vessel>]`, and ⭐ **the tyrant
+ * of the roster.**
  *
  * A dairy cow wants taking twice a game day, no exceptions, and the
  * failure is the sharpest in the build without being a cliff: **she
@@ -10,28 +11,28 @@
  * ladder in one object. Nobody is told they cannot keep a dairy cow —
  * they are told, honestly and in advance, what one costs in attention,
  * and **a player's real-life cadence decides what they can keep.**
+ *
+ * ⭐⭐⭐ And that cost is milk's WHOLE mechanism. The taps build looked
+ * for a finer judgment at the act and found there isn't one: lactation
+ * is demand-driven, so a take always empties her and holding some back
+ * would suppress her rather than save it. What the player trades is
+ * **attendance against her rate** — labour — which is why the standing
+ * instruction is milk's answer and not a second dial.
+ *
+ * The body of the act is the kernel's {@link TapActController}; the
+ * words and the credit are hers (`Livestock.tapTookPhrase`,
+ * `tapCredit`). This file is the verb and nothing else.
  */
 
-import { TapController } from './TapController';
+import { TapActController } from '@saxonberg/server/mud/platform/idea/cmd/inventory/TapActController';
 import { Mml } from '@saxonberg/server/mud/api/mml';
-import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
-import type Livestock from '../../../agent/Livestock';
 
-export default class MilkController extends TapController {
+export default class MilkController extends TapActController {
   protected tapKey(): string {
     return 'milk';
   }
 
-  protected emptyPhrase(): ReturnType<typeof Mml.compose> {
-    return Mml.compose`There is nothing in her yet. Come back later.`;
-  }
-
-  protected takePhrase(
-    animal: Livestock,
-    units: number,
-    got: Stuff | null,
-  ): ReturnType<typeof Mml.compose> {
-    void got;
-    return Mml.compose`You settle in against her flank and milk her out — ${units.toFixed(1)} litres, and she stands for it. ${animal.handlingPhrase()}.`;
+  protected nothingHere(): ReturnType<typeof Mml.compose> {
+    return Mml.compose`There is nothing here to milk.`;
   }
 }

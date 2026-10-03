@@ -48,6 +48,24 @@ is), [metabolism.md](./metabolism.md) (where the dose lands and where an
 infection starts), [vitals.md](./vitals.md) (where an infection grows)
 and [bulk.md](./bulk.md) (the blend half of every gauge here).
 
+## ⚠ An egg KEEPS — and a design once said otherwise
+
+A clean unwashed egg keeps for **weeks**: the bloom is intact and the
+shell is the hurdle. It is a `Provision` and perishable, just slowly.
+
+⭐ Worth recording because the ranching build's eggs failed by
+*"spoiling in the nest past what a clutch holds"*, and that is simply
+false biology. The taps build replaced it with the real mechanism — a
+hen is an indeterminate layer, so a full clutch left sitting makes her
+**broody** and she stops laying — which is a choice at the act rather
+than a punishment on a clock. See [taps.md](./taps.md).
+
+⚠ The general lesson is this doc's own thesis pointed at a design:
+**spoilage is a CLOCK**, and reaching for it to express *you should have
+come sooner* is reaching for the wrong instrument when the honest answer
+is that the animal changed its behaviour.
+
+
 ## The rate law
 
 ```

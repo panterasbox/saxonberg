@@ -13,6 +13,118 @@ captured in [Future work](#future-work) below).
 
 ---
 
+## ⭐⭐ `WorldClockApi.advance` — ⛔ a TEST SEAM, not an in-world act
+
+Added by the taps build (2026-10-01), and the reason is one sentence:
+**a world whose slow systems are reconcile-on-read cannot be DRIVEN
+without moving time.** A game day is two real hours, so every seasonal
+behaviour the game has shipped — a lactation curve, a fleece's year, a
+nectar flow, a sap run — was invisible to any test or drive that
+finished. `taps.dirty.wire.test.ts` is the first drive in the repo that
+walks a season.
+
+⛔⛔ **It carries `@TestOnly`, so in a normal runtime calling it is
+refused.** The body is replaced at class-load time by one that throws,
+naming the seam, the three signals that would make a process a test
+environment, and ⭐ what to reach for instead — *nothing in the game
+moves the realm's clock; pin the arithmetic in a unit test, and a drive
+that needs the interval walked must own its world (`WIRE_BOOT=1`)*. It
+works only where `SecurityApi.isTestEnvironment()` is true: an
+in-process vitest run, or a world the wire runner booted and marked
+(`SAXONBERG_TEST_WORLD=1`). A development world carries no such marker.
+
+⚠⚠ **This corrects what this section said for a build and a half**, and
+it took three review rounds. It first shipped as *"moving time from
+inside the game"* and *"reachable from the `eval` sandbox, which is the
+code-trust axis"* — which made a global, irreversible,
+immersion-breaking capability sound like an authoring affordance, on the
+strength of a precedent that did not exist (the claim that `setScale`
+was already sandbox-reachable was false; the only reference to it
+outside the clock's own files was the sentence asserting it).
+
+⭐ **Nothing a player does moves the realm's clock.** There is one
+clock, it is global, and a jump ages every reconcile-on-read system in
+the world at once. Being receipted does not make that acceptable; it
+only makes it diagnosable.
+
+⛔ **And the sandbox route could never have worked anyway**, which is
+the part worth keeping. An `eval` always runs inside a sandbox boundary
+— a quarantined circle (`/home/<player>`, the default) or a parcel-bound
+jurisdiction (`--parcel`) — and a jump of GLOBAL time is precisely what
+a bounded context must not do: the quarantined route is refused by
+`assertNotQuarantined`, and the governed route dies on the jurisdiction
+boundary the moment the drain creates a Stuff outside the extent. ⚠ Both
+failed **silently** (no note, no matching prose) while the drive
+reported 15/15. The clock now lives in `backend/TestHooks.advanceClock`
+behind `POST /auth/test-clock`, which is where scaffolding belongs.
+
+The slow systems themselves need nothing from the clock — they are
+reconcile-on-read and the realm reaches them by living. Only a
+*scheduled* act needs the interval actually walked, which is why the
+jump drains. And the arithmetic is pinned where arithmetic belongs:
+`Producing.test.ts` (30 cases) and `SapStandard.test.ts` (14) walk real
+game years through the celestial model with no clock jump at all, the
+way `colony.test.ts` does over `_advanceForTesting`.
+
+⚠ The two clock-dependent checkpoints in the taps drive therefore
+**skip** when the wire run is merely attached to a dev server rather
+than owning a world it booted (`isOwnedTestWorld()` in the harness).
+
+```
+WorldClockApi.advance(by: Quantity<'s'> | string): void
+```
+
+⭐⭐ **It DRAINS the skipped interval rather than skipping it.** Every
+schedule whose deadline now sits in the past fires, in deadline order:
+a one-shot once, an `every` **once per missed period**. A jump that
+silently dropped them would make the clock a liar, which is the whole
+reason the method exists rather than a bare anchor bump.
+
+- ⛔⛔ **NOT reachable from the `eval` sandbox, by any route.**
+  `WorldClockApi` is **off `SANDBOX_NAMES`** — see § *Nothing in the
+  game can advance the clock* below, which this build broke and the
+  pre-merge sweep restored. The harness moves time from outside the
+  fiction (`POST /auth/test-clock` → `TestHooks.advanceClock`), where a
+  root frame carries no sandbox scope and no jurisdiction bound, which
+  is exactly what a global jump needs. ⛔ No new verb and no `isWizard`
+  check; `shutdown` stays `SystemRoot`.
+- ⛔⛔⛔ **But NOT from a quarantined circle.** Every clock MUTATOR
+  (`advance`, `pause`, `resume`, `setScale`, `restore`) refuses when the
+  caller sits inside a wire circle, because world time is global and
+  **there is no per-circle clock** — a clock mutation from inside a
+  quarantine breaches containment by construction. ⭐ This is
+  `shutdown`'s own argument applied to its inverse: if nothing in-world
+  may FREEZE world-time, nothing quarantined may skip it either. A
+  governed jurisdiction passes and is receipted. Reads are always
+  allowed — containment is about effects escaping, not secrecy.
+  ⚠ Shipped ungated and corrected in review; see
+  `WorldClockRegistry.assertNotQuarantined`.
+- ⚠ **It is recorded.** A `WorldClockApi: ADVANCED by …` server-log line
+  per jump, because a jump is irreversible and ages every
+  reconcile-on-read system at once.
+- ⚠ **It throws while the clock is PAUSED.** A paused clock fires
+  nothing, so a jump there would bank the game-time and strand every
+  schedule in the interval — the exact silent skip the drain prevents.
+  `resume()` then `advance()` is the honest sequence.
+- ⚠ **A cascade does not catch up.** A callback that re-arms off `now`
+  lands *after* the jumped time, because that is where `now` is. An
+  `every` catches up; a chained `after` does not. The intuition goes the
+  other way, so it is pinned as a test.
+- ⚠ A jump of years is a loop of thousands of fires. Jump a season at a
+  time; the TSDoc says so.
+
+**Distinct from `_advanceForTesting`.** Both are test seams; they are
+protected by *different questions* and move *different clocks*:
+
+| | moves | protected by | the caller it is for |
+|---|---|---|---|
+| `_advanceForTesting(realMs)` | the injected REAL clock | `assertTestOnly` — a test frame on the stack | an in-process unit test (needs a now-provider) |
+| `advance(by)` | the game-time ANCHOR | `@TestOnly` — this process is a test world | a wire drive (speaks over a socket; can inject nothing, and has no test frame in the server) |
+
+⭐ Both share one `drainDue` loop, so the two seams cannot diverge.
+See [call-security.md § `@TestOnly`](./call-security.md#test-seams).
+
+
 ## Layer 1 — Time axis (`WorldClockApi`, `api/worldclock.ts`)
 
 The single global authority for "what time is it in the world." A
@@ -208,7 +320,9 @@ its host schedules); the new clone re-establishes in `onCreate`.
 
 ### Test seams
 
-Gated by `SecurityApi.assertTestOnly`:
+Gated by `SecurityApi.assertTestOnly` (a test frame on the stack) —
+`advance` is the fourth seam and is gated differently, by `@TestOnly`;
+see the section at the top:
 
 - `_setNowProviderForTesting(fn)` — inject the real clock (AC1/AC2
   tests step it directly).
@@ -568,7 +682,20 @@ Found by the apiculture build's browser walk (2026-09-30). There is **no
 clock verb in any category**, and the `eval` sandbox allowlist is
 `StuffApi · MqlApi · ContainmentApi · MixinApi · console · self · target`
 — so no in-world instrument, not even a wizard's, can move game time.
-Only `_advanceForTesting` reaches it, and that is unit-test surface.
+
+⭐⭐ **The taps build broke this for three review rounds and the
+pre-merge sweep put it back**, which is the strongest evidence this
+section is load-bearing. W0 added `WorldClockApi` to that allowlist so a
+drive could skip a season; the sweep removed it again and moved the jump
+to `backend/TestHooks.advanceClock` behind `POST /auth/test-clock` (a
+route mounted only when `AUTH_MODE === 'test'`). The drive now asserts
+the absence directly: `eval return WorldClockApi.getNow()` must answer
+*not defined*.
+
+Two seams reach the clock, both test-only and both outside the fiction:
+`_advanceForTesting` (unit-test surface, moves the injected real clock)
+and `advance` (`@TestOnly`, moves the game-time anchor, reached only
+through the harness route).
 
 ⭐⭐ **The consequence is a whole class of mechanism being unobservable
 rather than merely slow.** A game day is ~2 real hours, so every

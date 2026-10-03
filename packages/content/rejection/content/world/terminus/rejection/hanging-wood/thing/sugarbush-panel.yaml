@@ -1,0 +1,65 @@
+# The sugarbush panel — ⭐ ground that holds six NAMED trees, which is a
+# different thing from a stand.
+#
+# `panel-north.yaml`'s twin: a `/trade/forestry/thing/Panel`, one row one
+# panel, restored from its own record and also a nested keyed host in the
+# room's container slice. What differs is what is planted in it — six
+# standards rather than six stools — and the consequence of that:
+#
+# ⭐⭐ **A tree in a panel slot affords its OWN verb outward.** The
+# affordance walk goes one level into an open container standing in the
+# room, and a `Panel` is a `GardenBed` with no `Sealable`, so a player in
+# the hollow has `tap` because the TREES have it. The panel does not
+# offer `tap` and must not — a hazel panel would then offer it too and
+# the controller would have to un-promise it, which is the
+# host-placement tell.
+#
+# ⚠ Six slots and six trees, so the bush is FULL: there is nowhere to
+# plant a seventh until somebody fells one, which is the honest shape of
+# a bush somebody else established. A player who wants their own plants
+# a panel somewhere they hold title to.
+class: /trade/forestry/thing/Panel
+data:
+  shortDescription: stand of tapping trees
+  keywords: [panel, bush, sugarbush, trees, stand]
+  register: indefinite
+  longDescription: |
+    Not a planted block so much as what was left when somebody cleared round the trees worth keeping: six stems standing in open trodden ground, three white and three grey, each with the old scars of previous years' spiles healed over at waist height.
+  _materialPath: /stuff/idea/material/wood/birch
+  mass: 2400
+  fixedGround: true
+  landRequirementM2: 140
+  interiorBulk: true
+  interiorCapacity: 180
+  interiorMaterial: /stuff/idea/material/bulk/potting-soil
+  interiorAmount: 180
+  reserves:
+    moisture:
+      capacityValue: 90
+      currentValue: 90
+      unit: "L"
+      theme: cultivation
+      floorEffect: wilting
+    nitrogen:
+      capacityValue: 100
+      currentValue: 100
+      unit: "%"
+      theme: cultivation
+      floorEffect: spent
+  staticSlots:
+    - name: plant
+      accepts: SlottableMixin
+      capacity: 6
+      userFacingDetail: planting
+  props:
+    - /world/terminus/rejection/hanging-wood/thing/birch-north
+    - /world/terminus/rejection/hanging-wood/thing/birch-middle
+    - /world/terminus/rejection/hanging-wood/thing/birch-south
+    - /world/terminus/rejection/hanging-wood/thing/maple-north
+    - /world/terminus/rejection/hanging-wood/thing/maple-middle
+    - /world/terminus/rejection/hanging-wood/thing/maple-south
+  details:
+    planting:
+      keywords: [ground, trodden, scars, stems, waist]
+      description: |
+        Beaten bare between the stems, and on each trunk at about waist height a little cluster of healed-over holes — a tree that has been tapped for years and is none the worse for it.

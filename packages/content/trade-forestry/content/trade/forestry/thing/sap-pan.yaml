@@ -1,0 +1,30 @@
+# A sap pan — ⭐ the salt pan again, in sheet iron over a wood fire.
+#
+# The brine pan's row with three things changed: iron rather than lead
+# (you are going to eat what comes out of it), the `birch-sap`/`maple-sap`
+# profiles rather than brine, and a fire under it rather than the sky.
+# ⭐⭐ **Nothing in the maturation substrate changed to make this work** —
+# the vessel kind `pan` is the tie between this row and every product
+# that is *this vessel, filled*.
+#
+# ⚠ Forty litres, which is deliberately a pail-and-change of a day's
+# gathering and not a day's: at 2% for birch a full pan is about
+# three-quarters of a litre of syrup. The pan is not the bottleneck; the
+# SAP is, and that is the honest shape of the trade.
+class: /platform/thing/Vat
+data:
+  shortDescription: sap pan
+  keywords: [pan, "sap pan", sappan, flue]
+  register: indefinite
+  longDescription: >-
+    A long shallow pan of sheet iron, hardly deeper than your hand and
+    broad enough to sit across the whole arch, its bottom gone blue-black
+    with heat and sticky at the corners where the last boil crept up and
+    caught.
+  category: pan
+  _materialPath: /stuff/idea/material/alloy/steel
+  interiorBulk: true
+  interiorCapacity: 40
+  closure: none
+  open: true
+  mass: 60

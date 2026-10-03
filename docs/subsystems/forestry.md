@@ -23,6 +23,41 @@ of them:
 What comes DOWN is a fifth thing: the **bole**, the felled trunk as one
 loose object on the room floor, which is where bigness lives (below).
 
+### ⭐⭐ And the taps build added a SIXTH axis to the slot-plant
+
+`SapStandard` (`ProducingMixin(Plant)`) is the slot-plant with one thing
+added: **a reservoir with a recharge law**, which is the RGO law, and a
+birch satisfies it exactly as a cow does. ⛔ Not on `Plant` itself —
+every houseplant in the game would then "give something". Only
+sap-bearing species rows name the class; `oak-standard` stays a plain
+`Plant`.
+
+| axis | where it lives |
+|---|---|
+| the sap, and when it runs | ⭐ the SPECIES row's `production:` — a birch gives sap whether anyone sugars, so the window is a fact about the tree |
+| what has been taken, and how many wounds | `SapStandard.spiles`, per-instance and persistent: a tree carries its wounds across a bounce and a felled one takes them to the ground |
+| how much it can take | `maxSpiles()`, derived from the growth stage — ⭐ the game's stage IS its girth, so the refusal for over-tapping is a fact a player can read off the tree |
+
+The mechanism is [taps.md](./taps.md). ⭐ **The sugarbush is the place
+where the slot-plant representation wins outright**: you do not tap a
+stand, you tap a stem, so the room is a plain singleton location with
+six NAMED trees in a `Panel` — and it is NOT a `Wood`, because a stand's
+derived reading would say *"nothing stands here worth the axe"* over six
+standards a player can see and touch.
+
+### ⭐⭐⭐ The three-way `tap` contest — the design is legible from the refusals
+
+| where | `tap` | what it teaches |
+|---|---|---|
+| beside a `SapStandard` in a panel | **works** | you tap a stem |
+| in a `Wood` | **afforded, and refuses**: *"A stand is a number of trees, not a stem. A spile goes into one tree you can put your hand on."* | ⭐ the stand affords a verb it cannot satisfy IN ORDER to say that — a sentence only something that answers the verb can say. ⚠ Not a guard re-narrowing a host set; `fell` lives on `StandMixin` for exactly the same reason |
+| at the treeline (no `Wood`) | not afforded — and **neither is `fell`** | the parity is deliberate, and the drive asserts it: the verbs are legible from where they ARE afforded |
+
+⚠ A tree reaches a player in the room because the affordance walk goes
+one level into an **open container standing there**, and a `Panel` is a
+`GardenBed` with no `Sealable`. **If a future panel is ever made
+sealable, every sugarbush affordance dies silently.**
+
 ## The Wood — a place that is ground
 
 `/trade/forestry/location/Wood` (`trade-forestry/src/location/Wood.ts`):
@@ -273,6 +308,12 @@ not a Wood: the deed, and no planting. ⚠ Cultivable's own reseat test
 seed whose plant says so.
 
 ## The wood vocabulary — closed, and minted here
+
+⭐ **TEN since the taps build**, not eight: birch and maple joined, and
+they joined for their **sap** rather than their timber — both are indoor
+woods with no decay resistance worth the name. That is the first time a
+tree earned its way into the vocabulary for something other than what it
+is made of.
 
 Eight woods in the commons (`base-library/…/material/wood/`), eight tree
 species in the pack, each naming the other (`biologicalSource.speciesPath`

@@ -18,6 +18,38 @@ is already present and what changes is what it IS.
 > `lint:reconcile-chains` holds it. [uncertainty.md § The second abstraction
 > law](../uncertainty.md) · [thermal.md § The trajectory contract](./thermal.md)
 
+## ⭐⭐ The second evaporative consumer: sap → syrup (2026-10-01)
+
+The taps build added `birch-sap` and `maple-sap` profiles, and the
+argument for having built `evaporative` as a MECHANISM is that
+**nothing in this subsystem changed to make sugaring work.** ⭐⭐ *Before
+designing a mechanism, look for the shipped one with a different
+feedstock* — the brine pan IS the sap pan, and what differs is three
+numbers and where the heat comes from.
+
+| | brine (quarrying) | sap (forestry) |
+|---|---|---|
+| the heat | ⭐ the **SUN**, so the rate is the air's and a wet week is a setback | ⭐ a **FIRE**, so `happyK: 370` is a rolling boil and an unlit arch does nothing at all |
+| `productFraction` | 0.1 | 0.02 birch / 0.04 maple — ⚠ the real 50:1 and 25:1, and the whole economy of the trade rests on it being this bad |
+| what ruins it | boiled dry and burnt to a bitter scale | the same, and nothing else |
+
+⚠⚠ **The calibration that had to be checked rather than chosen.** The
+arch's `burnTemperatureK` must sit **above** `happyK` (or the trade does
+not work) and **below** `damageAboveK` (or every batch scorches no
+matter who is watching). The first draft authored 480 against a
+`damageAboveK` of 400, which would have made attention worthless — the
+exact inverse of the design — and a row test caught it. It is 390.
+
+⭐ So a lit arch **cannot scorch by temperature at all**, and what ruins
+syrup is **boiling dry**: this subsystem's own `damageSat` path. Which
+means the thing a sugarer watches for is the pan getting low — which is
+what a sugarer actually watches for.
+
+⚠ And both profiles author **no strain** (`requiresFlora` absent):
+nothing lives in a boiling pan, and two shipped evaporative profiles
+were silently frozen by the strain gate once already.
+
+
 ## ⭐⭐ Which failure is it? (`stalled` / `killed`)
 
 A ferment fails in three ways that feel completely different to whoever

@@ -509,12 +509,12 @@ describe('the colony', () => {
     const h = hive({ honeyKg: 30 });
     // 30 kg standing, 12 kg to a super's worth: three robs to empty it,
     // and the third is the one that kills them. Nothing says so.
-    expect(h.takeFrom('honey')).toBe(12);
+    expect(h.takeFrom('honey').units).toBe(12);
     expect(h.combDrawn).toBe(0);
     expect(honeyOf(h)).toBeCloseTo(18, 5);
     h.combDrawn = 1;
-    expect(h.takeFrom('honey')).toBe(12);
-    expect(h.takeFrom('honey')).toBeCloseTo(6, 5);
+    expect(h.takeFrom('honey').units).toBe(12);
+    expect(h.takeFrom('honey').units).toBeCloseTo(6, 5);
     expect(honeyOf(h)).toBe(0);
   });
 

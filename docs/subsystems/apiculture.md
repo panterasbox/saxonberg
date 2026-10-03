@@ -20,6 +20,39 @@ not own. Both of those are the subsystem's reason to exist.
   `consign`. All the platform's or ranching's.
 - **Discipline:** `apiculture` (ISCED-F 0811).
 
+## ⭐ What the taps build changed here (2026-10-01)
+
+Nothing a player can see, which was the point — `rob` is the exemplar
+the tap substrate was generalized FROM, and AC 15 was *the hive behaves
+exactly as it shipped.* What moved is where the code lives:
+
+- `ProducingMixin` is the **kernel's** now (`lib/husbandry/Producing`),
+  so `Hive`'s import is a specifier. ⚠ The pack still depends on
+  `trade-ranching` — for `HandledMixin`, which carries the `handle` verb
+  — so the dependency did not go away, only the mixin import.
+- The honey tap declares `window: {kind: biome}`, which states in DATA
+  the thing this doc already claimed: ⭐ the first RGO whose reservoir is
+  somebody else's land. `Hive.biomeWindowOpen()` reads its own forage
+  census, so *"the refusal is the season's rather than the colony's"* is
+  now a window answer rather than an empty phrase.
+- ⭐⭐ **`RobController.mint` moved onto `Hive.mintTake`.** The
+  controller used to stash its target on `this` in an `execute` override
+  just to reach the hive's forage — *a controller holding state about
+  its subject is the tell that the behaviour belongs on the subject* —
+  and the comb composition, the per-frame minting and the forage blend
+  all live on the hive now. `RobController` is twelve lines.
+- `rob` gains a short **duration** (it is an engagement like every other
+  take). ⚠ That is the one player-visible change, and it was the plan's
+  Risks §1: AC 4 (*every take takes observable time*) against AC 15
+  (*the hive is untouched*). Resolved toward AC 4; it is one number on
+  `mellifera.yaml` if it reads wrong.
+- `Hive.takeFrom` keeps its one-box-worth override and returns the new
+  `TapTake {units, worst}` shape. `worst: 1` means *no quality record*,
+  not *best* — `worst` is a `continuous` tap's field and a hive has none.
+
+The mechanism is [taps.md](./taps.md).
+
+
 ## The two hosts, and why there are exactly two
 
 `ColonyMixin` (`src/lib/Colony.ts`) carries the population. It is composed
