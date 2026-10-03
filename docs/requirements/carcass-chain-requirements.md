@@ -74,6 +74,16 @@ all.** It destroys the animal and hands you the parts.
 | **offal** | the stockyard's | ⛔ **nothing** |
 | milk | the `milk` tap | ⛔ **nothing** — [dairy-slate](../slates/builds/dairy-slate.md)'s, not this build's |
 
+⚠ **And one correction to an earlier draft of this doc.** A field's four
+reserves are **moisture, nitrogen, organic matter and structure** —
+**there is no phosphorus**, and the engine names nitrogen *"the limiting
+nutrient"* deliberately. The bone row's own prose claims bone meal is
+phosphorus, which the soil does not model. Bone therefore goes in as a
+**slow amendment** by the act that already works muck in, which is what
+bone meal honestly is; inventing a fifth reserve for one input would be
+this build reaching into farming's model, and the min-of-four limiting
+law is not ours to change.
+
 The hide's own description states a clock nobody runs: *"it wants to be
 in a tanpit within the week or it is worth nothing."* The leather jerkin
 carries a note saying its input *"has NO PRODUCER… do not invent a hide
@@ -245,7 +255,7 @@ the expression.
 | butcher a carcass | cooking | butchery already specializes cooking |
 | render suet to tallow | cooking | the recipe is already there, and rendering fat is a kitchen act |
 | bark off a felled oak | forestry | felling already yields three things, and this is forestry's own recorded design |
-| bone to the soil | farming | phosphorus is already one of a field's reserves |
+| bone to the soil | farming | a field already takes slow amendments, by the act that works muck in |
 | dog bread | baking | it is baked, in an oven, and historically it was the baker's cheapest line |
 | leather goods | tailoring | cutting and sewing hide is the same act as cutting and sewing cloth |
 
@@ -619,9 +629,9 @@ What a person does, in order, in the live game.
 16. Do it again with a cake of beeswax. **A different candle** — pale,
     smelling of honey — from the same act. Hold them up next to each
     other.
-17. Take the bone to a field and work it in. The field's phosphorus
-    answers, which closes the animal's circuit: it ate the field while it
-    lived and feeds it now it has not.
+17. Take the bone to a field and work it in, by the same act that works
+    muck in. The field answers, which closes the animal's circuit: it ate
+    the field while it lived and feeds it now it has not.
 18. Take the bran, the offal and some fat to the bakery and bake a dog
     loaf. Compare its price to a loaf for people on the same slate.
 19. Find the knacker's yard. Bring him something dead that nobody
