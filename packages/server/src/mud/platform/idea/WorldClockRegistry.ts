@@ -82,6 +82,9 @@ const MS_PER_SECOND = 1000;
 /** See `WorldClockApi`'s explanation — fractional second-drift tolerance. */
 const FIRE_EPSILON_S = 1e-9;
 
+/** Game-seconds in a game day — for the advance log line's game-day read. */
+const SECONDS_PER_GAME_DAY_LOG = 86_400;
+
 const DURATION_UNITS: Record<string, number> = {
   second: 1,
   minute: 60,
@@ -162,6 +165,7 @@ export default class WorldClockRegistry extends WorldClockRegistryBase {
 
   @CallSecurity(WorldClockApiCallers)
   public setScale(scale: number): void {
+    this.assertNotQuarantined('setScale');
     if (typeof scale !== 'number' || !Number.isFinite(scale) || scale <= 0) {
       throw new TypeError(
         `WorldClockApi.setScale: scale must be a positive finite number, got ${String(scale)}`,
@@ -174,6 +178,7 @@ export default class WorldClockRegistry extends WorldClockRegistryBase {
 
   @CallSecurity(WorldClockApiCallers)
   public pauseClock(): void {
+    this.assertNotQuarantined('pause');
     if (this.paused) return;
     this.reanchor();
     this.paused = true;
@@ -182,6 +187,7 @@ export default class WorldClockRegistry extends WorldClockRegistryBase {
 
   @CallSecurity(WorldClockApiCallers)
   public resumeClock(): void {
+    this.assertNotQuarantined('resume');
     if (!this.paused) return;
     // Resume from the frozen value exactly — re-anchor real time
     // without advancing game time (AC2).
@@ -208,6 +214,7 @@ export default class WorldClockRegistry extends WorldClockRegistryBase {
 
   @CallSecurity(WorldClockApiCallers)
   public restore(snap: WorldClockSnapshot): void {
+    this.assertNotQuarantined('restore');
     this.anchorGameTimeS = snap.elapsedGameTimeS;
     this.anchorRealMs = this.nowMs();
     this.scale = snap.scale;
@@ -419,23 +426,156 @@ export default class WorldClockRegistry extends WorldClockRegistryBase {
   public _advanceForTesting(realMs: number): void {
     const target = this.nowMs() + realMs;
     this.nowMs = () => target;
+    this.drainDue('_advanceForTesting');
+  }
+
+  /**
+   * Move world-time forward by `by` game-seconds, firing every schedule
+   * the skipped interval contains.
+   *
+   * See {@link WorldClockApi.advance} for the contract. ⛔ **A TEST
+   * SEAM**: the Api static that forwards here carries `@TestOnly`, so
+   * in a normal runtime it is deleted from the class and there is no
+   * path to this method at all. The difference from the other seam is
+   * which clock moves — `_advanceForTesting` moves the injected real
+   * clock (and so needs a now-provider, i.e. an in-process test), while
+   * this moves the game-time anchor and leaves the real clock alone,
+   * which is what a drive speaking over a socket needs.
+   */
+  @CallSecurity(WorldClockApiCallers)
+  public advance(by: Quantity<'s'> | string): void {
+    this.assertNotQuarantined('advance');
+    const gameS = this.parseDelayToSeconds(by);
+    if (gameS < 0) {
+      throw new Error(
+        `WorldClockApi.advance: time only runs forward (got ${gameS}s)`,
+      );
+    }
+    if (gameS === 0) return;
+    // ⚠ A paused clock cannot DRAIN — `onHeartbeat` returns immediately
+    // while paused — so a jump taken here would bank the game-time and
+    // strand every schedule in the skipped interval, which is exactly
+    // the silent skip the drain exists to prevent. Refuse instead:
+    // `resume()` then `advance()` is the honest sequence.
+    if (this.paused) {
+      throw new Error(
+        'WorldClockApi.advance: the clock is paused — nothing in the ' +
+          'skipped interval could fire. Resume first.',
+      );
+    }
+    // Re-anchor first so the elapsed real interval is banked at the old
+    // scale, then jump the anchor. `anchorRealMs` is untouched by the
+    // jump, so live time keeps running from the new game-time.
+    // ⭐ **A jump of world time leaves a trace even in a test world.**
+    // It is irreversible by construction (time only runs forward) and
+    // it ages every reconcile-on-read system in the realm at once, so a
+    // silent one is the hardest thing here to diagnose after the fact —
+    // and a drive that jumps twenty days wants that line in the log
+    // beside whatever it then found. The production case is handled a
+    // rung up instead of here: `@TestOnly` removes the Api static, so
+    // outside a test world nothing reaches this at all.
+    // ⚠ The SERVER log, not `MudlogApi` — mudlog is a player-facing
+    // channel and needs a recipient (*"no recipient — pass opts.to, or
+    // call inside a command execution"*), and `advance` can be reached
+    // from boot or a test where there is nobody to tell. This is the
+    // same `console.info` the restore line above uses, for the same
+    // reason: it always lands.
+    //
+    // ⭐ The eval route is receipted SEPARATELY and better — the
+    // governed path already writes provenance plus a
+    // `sandbox.eval.governed` mudlog line naming who ran what against
+    // which extent. This line is the one that is true whoever called.
+    console.info(
+      `WorldClockApi: ADVANCED by ${Math.round(gameS)}s ` +
+        `(${(gameS / SECONDS_PER_GAME_DAY_LOG).toFixed(2)} game-days) ` +
+        `— every schedule in the interval drains`,
+    );
+    this.reanchor();
+    this.anchorGameTimeS += gameS;
+    this.drainDue('advance');
+    this.rearmHeartbeat();
+  }
+
+  /**
+   * Fire every schedule whose deadline now sits in the past, in order,
+   * until nothing is due. `onHeartbeat` itself catches an interval
+   * schedule up one missed period at a time, so this loop only has to
+   * re-ask after each pass.
+   */
+  private drainDue(who: string): void {
     let guard = 0;
     for (;;) {
       if (this.paused) break;
-      const now = this.currentGameSeconds();
-      const deadline = now + FIRE_EPSILON_S;
+      const deadline = this.currentGameSeconds() + FIRE_EPSILON_S;
       const anyDue = [...this.schedules.values()].some(
         (s) => s.nextFireAtS !== null && s.nextFireAtS <= deadline,
       );
       if (!anyDue) break;
-      this.onHeartbeat();
+      // ⚠⚠ **Re-rooted under OMNI scope, and a live drive is what proved
+      // it necessary.** A drained schedule belongs to the WORLD, not to
+      // whoever happened to move the clock — but a bare
+      // `this.onHeartbeat()` inherits the caller's execution context, so
+      // an `advance` run from inside the `eval` sandbox fired the
+      // street-lighting tick *in the eval's circle scope*. It hit the
+      // sandbox boundary (`getPublicLighting` — context scope
+      // `/home/<player>` vs receiver scope `field`), threw an unhandled
+      // rejection, and **took the server process down.**
+      //
+      // ⭐ The live heartbeat already does exactly this in
+      // `rearmHeartbeat`; the drain simply has to agree with it. (And
+      // `_advanceForTesting` shares this loop, so it is fixed too — it
+      // never showed the bug only because a test has no circle scope to
+      // leak.)
+      ExecutionContextApi.runRoot(
+        WorldClockApi,
+        who,
+        () => {
+          this.onHeartbeat();
+        },
+        { circleScope: OMNI_SCOPE },
+      );
       if (++guard > 1_000_000) {
         throw new Error(
-          'WorldClockApi._advanceForTesting: heartbeat did not settle ' +
+          `WorldClockApi.${who}: heartbeat did not settle ` +
             '(runaway schedule?)',
         );
       }
     }
+  }
+
+  /**
+   * ⛔⛔⛔ **No QUARANTINED context may mutate world time.**
+   *
+   * The sandbox's promise is that a circle's code has real effects which
+   * stay inside the circle. ⚠⚠ **There is no per-circle clock** — world
+   * time is global and shared by every player — so a clock mutation from
+   * inside a quarantine is a containment breach by construction, however
+   * well-intentioned the caller.
+   *
+   * ⭐ This is `shutdown`'s own argument, applied to its inverse.
+   * `shutdown` is `SystemRoot`-gated because *nothing in-world may
+   * FREEZE world-time*; by exactly the same reasoning nothing
+   * quarantined may SKIP it, slow it, pause it or re-anchor it. The taps
+   * build added `advance` next to that comment and ungated it, which was
+   * wrong, and the blanket `WorldClockApi` sandbox binding it also added
+   * exposed `pause`/`setScale`/`restore` along with it. Raised in
+   * review.
+   *
+   * ⭐ `getCircleScope()` is the containment build's single scope oracle
+   * (`runScoped` plants `circleScope`; `runGoverned` plants
+   * `jurisdictionBound` and no circle scope), so a GOVERNED eval — whose
+   * writes are real, bounded to an extent, and already receipted with
+   * provenance plus a mudlog line — passes, and a wire circle does not.
+   */
+  private assertNotQuarantined(op: string): void {
+    const scope = ExecutionContextApi.getCircleScope();
+    if (scope === null) return;
+    throw new Error(
+      `WorldClockApi.${op}: world time is GLOBAL and this caller is ` +
+        `quarantined in circle '${scope}'. A circle may not move the ` +
+        `realm's clock — there is no per-circle clock to move. Run it ` +
+        `in a governed jurisdiction, where the act is receipted.`,
+    );
   }
 
   /* ────────────── internal helpers ────────────── */

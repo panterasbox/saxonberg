@@ -510,6 +510,11 @@ export const Mixins = {
   // neglect, and a SAFETY mechanic before it is an efficiency one. In
   // the kernel because pets will want it and pets is not ranching.
   Handling: 'HandlingMixin',
+  // ⭐ A living thing with TAPS — a renewable yield its species authors,
+  // drawn by an act that resets the neglect clock. In the kernel because
+  // its composers have no common pack ancestor: a cow (ranching), a hive
+  // (apiculture) and a sap-bearing tree (forestry).
+  Producing: 'ProducingMixin',
   // ⭐ An animal that can be won over: regard × handling, plus where home
   // is and how home moves. NOT on Creature — a wolf must be able to not
   // apply, which is what the nullable species dials are for.
@@ -807,6 +812,7 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
   SlottableMixin: "{} doesn't sit in anything",
   SoilMixin: "{} has no soil in it",
   HandlingMixin: "{} isn't an animal you can work with",
+  ProducingMixin: '{} does not give anything',
   BondedMixin: "{} isn't an animal that can be kept",
   FeederMixin: "{} isn't something an animal can feed from",
   CultivableMixin: "{} isn't ground you can plant in",

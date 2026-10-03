@@ -1,0 +1,64 @@
+# Acer saccharum — the sugar maple, and ⚠ **the compromise in this
+# build, stated plainly rather than hidden in a dial.**
+#
+# A real sugar maple runs on FREEZE–THAW. Nights below freezing draw the
+# sap down and build negative pressure; days above freezing push it back
+# up; the cycle is literally driven by ice forming and melting in the
+# xylem, and it is why sugaring is a few weeks in late winter and not a
+# season.
+#
+# ⚠⚠ **That is unbuildable in this realm today, by arithmetic.** The
+# weather field's temperature is a 295 K baseline with about ±10 K
+# annual and ±4 K diurnal deviation, so the floor anywhere, in any
+# season, is around 276 K. A freeze–thaw window (a diurnal crossing of
+# 273 K) would never fire ONCE. Authoring one would have shipped a tree
+# that silently never ran — the failure class this whole build's
+# reachability discipline exists against.
+#
+# ⭐ So maple ships with the window it CAN have: a daylength band a
+# little earlier than birch's (sugaring comes before the birch run, which
+# is true) with the same warmth term. It is a worse model of a maple than
+# the birch row is of a birch, and that is the honest statement — which
+# is why BIRCH is the proving case for the mechanism and maple is the
+# second row that shows the mechanism takes two.
+#
+# ⭐⭐ **The fix is a row, not code.** When winter is real, maple gets a
+# `weather` window with a diurnal 273 K crossing and nothing in the
+# kernel changes. That is the climate slate's first consumer, and it is
+# the test that `TapWindowSpec` was declared as data for the right
+# reason.
+class: /platform/idea/species/Species
+data:
+  binomial: Acer saccharum
+  commonNames: ["maple", "sugar maple", "hard maple"]
+  _bodyPlanPath: /stuff/idea/species/BodyPlan/sessile
+  _parentCladePath: /stuff/idea/species/plantae
+  _defaultMaterialPath: /stuff/idea/material/tissue/plant-tissue
+  lifecycleStates: ["alive", "dead"]
+  sexDeterminationSystem: monoecious
+  reproductiveMode: sexual
+  lifespanMin: 0
+  lifespanMax: 300
+  circadianBand: aperiodic
+  diet: photosynthesis
+  production:
+    # ⭐ Less sap per spile than birch and far sweeter — which is the
+    # whole economic difference between the two, and it lands entirely in
+    # the maturation profiles' `productFraction` (maple 4%, birch 2%).
+    # Two litres a game day a spile, boiled at twice the yield.
+    - key: sap
+      yieldRow: /stuff/idea/material/food/maple-sap
+      perGameDay: 2
+      behaviour: accrue
+      windowDays: 4
+      yieldShape: volume
+      window:
+        kind: weather
+        daylightFrom: 0.36
+        daylightTo: 0.44
+        rising: true
+        minK: 276
+        maxK: 295
+  longDescription: >-
+    A broad-crowned maple with grey furrowed bark and big five-lobed
+    leaves that go the colour of a fire in autumn.

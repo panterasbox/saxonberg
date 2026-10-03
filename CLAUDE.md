@@ -243,6 +243,7 @@ behavior. Read the relevant doc before editing in its area.
   - [ground.md](./docs/subsystems/ground.md) — ⭐ what you are STANDING on: every Location's floor minted at `postRegister`, the five-rung material ladder, the derived ten-word kind (never authored), `noDefaultFloor` vs `onGrade` as two different questions, and the `/system/ground` pack the column + the surface character moved into
   - [soil.md](./docs/subsystems/soil.md) — ground as a ledger: SoilMixin's four reserves + the sky edge, GroundCharacter (the third seeded field; character prices IMPROVEMENT, never yield), the survey ladder, `Field` + `plot`, the sward, winter
   - [ranching.md](./docs/subsystems/ranching.md) — the animal economy: the herdbook as a filed record (you file, you do not hold the pen), draft/return, `flesh` as a stock, the taps, three ROLES not three classes, ⚠ breeding writes SERVED only
+  - [taps.md](./docs/subsystems/taps.md) — ⭐⭐ taking a yield from a living thing on ITS schedule: the **feedback law** (does the act feed back on the rate — milk directly, eggs through a state the act prevents, wool/honey/sap not at all) and therefore whether there is anything to DECIDE at the act; `TapSpec` on `Species.production[]` + `TapWindowSpec` (`always · event · photoperiod · biome · weather`, `rising` splitting spring from autumn); `yieldShape` deciding whether a vessel is needed; `Tappable` as a SIBLING of `Workable`; ⛔ the standing-instruction relief was CUT in review (AC 7 unmet) → `standing-instructions-slate`
   - [apiculture.md](./docs/subsystems/apiculture.md) — bees: ⭐ the first RGO whose reservoir is somebody ELSE'S land (a colony forages a radius it does not own and leaves a fruit set behind), the colony as the animal and the queen the only individual, `ColonyMixin` wintering by its walls (`U = A/(t/k + R_films)`), swarm · abscond · starve, hefting as the read with no number in it, the sting that a veil and smoke price, crush-vs-spin as the epoch ladder
   - [forestry.md](./docs/subsystems/forestry.md) — the wood as a PLACE: ⭐ the four representations of a tree (place · slot-plant · record-rejected · prop), the `Wood` location that IS ground with a `StandMixin` cover (derive-on-read from its own soil, stamped only by the axe, read by `look` in words), `fell` and the **bole** (a trunk too heavy to lift, cross-cut a length at a time; every felled good stamped AND placed AND the feller captured), the persistable coppice `Panel` on a one-game-year rotation, the deed written by the ground, the closed wood vocabulary, daylight and no night, a second wood as rows only
   - [fishing.md](./docs/subsystems/fishing.md) — taking what a water holds: ⭐⭐ the fishery as a DERIVED record on a reach (the water pack's; capacity = Liebig habitat fit × abundance × length, only `drawn` is state, recovery by half-life), the reach reporting every parameter a tank will ever hold, the `Shore` read banded by competence, the bite as the fish's decision (one epistemic draw), the pure landing contest, ⭐ the rig as numbers on the rod coupled by the rows (present-at × where it feeds, the hook's gape, the lure worked not eaten, the keepnet a trap full of water), traps that reconcile at the haul, the fish as a `Contaminable` kept animal alive until it is not, the fisher and the fishmonger
@@ -332,7 +333,24 @@ Which branch · does anyone else hold it · am I behind · is anything
 unpushed. **Both 2026-08-02 failures were visible in this output and
 nobody looked.**
 
-7. **Merge on ORIGIN through the GitLab tool, never the git CLI.** A
+7. ⭐⭐ **Reverting a wave? The baseline is the branch's own MERGE
+   POINT, never `origin/master`.** `git checkout origin/master -- <file>`
+   looks like a revert and is a **contamination**: master moves while you
+   build (58 commits, during one review round, on 2026-10-02), so it
+   pulls files from a master your branch has never merged — the
+   stale-tree failure class rules 1–6 exist for, wearing a different
+   hat. The safe sequence is to find the merge point, then verify
+   **per file** that only the wave touched it:
+
+   ```bash
+   git log --oneline <merge-point>..HEAD -- <file>   # only the wave's commits?
+   git checkout <merge-point> -- <file>
+   ```
+
+   The tell that caught it was a `git diff origin/master --stat` showing
+   deletions in a directory the wave never touched.
+
+8. **Merge on ORIGIN through the GitLab tool, never the git CLI.** A
    CLI merge performs the join in a worktree — the exact machinery
    rules 1–6 exist to keep away from — and it bypasses the MR, so the
    merge commit carries no review record and the remote never observes

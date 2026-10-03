@@ -103,6 +103,17 @@ type ClassKey = (abstract new (...args: any[]) => unknown) & {
 };
 
 /**
+ * The body a withheld `@TestOnly` member is replaced with: a function
+ * that only throws, flagged so the withhold pass and the static-wrap
+ * pass both recognise their own work.
+ */
+type TestOnlyStub = {
+  (...args: readonly unknown[]): never;
+  _testOnlyWithheld: boolean;
+  _callSecWrapped: boolean;
+};
+
+/**
  * Per-method `@ShadowSecurity` shape. `attach` and `detach` each
  * gate the corresponding `ShadowApi` operation on the host method.
  * Omitted ops default to Public.
@@ -225,6 +236,17 @@ export class SecurityApi {
 
   /** @Final method names per class. Read by the loader-hook validator. */
   static #finalMethods: WeakMap<ClassKey, Set<string>> = new WeakMap();
+
+  /**
+   * @TestOnly member names per class, mapped to that seam's own
+   * guidance (what the caller should reach for instead), awaiting the
+   * withhold pass.
+   */
+  static #testOnlyMembers: WeakMap<ClassKey, Map<string, string>> =
+    new WeakMap();
+
+  /** Every `Class.member` actually withheld this process. Diagnostics. */
+  static #withheldTestOnly: string[] = [];
 
   /** Per-method @ShadowSecurity. */
   static #shadowSecurity: WeakMap<ClassKey, Map<string, ShadowSecuritySpec>> =
@@ -561,6 +583,12 @@ export class SecurityApi {
   }
 
   static #wrapAllStaticMethods(cls: ClassKey): void {
+    // ⭐ Before wrapping: withhold any `@TestOnly` static when this is
+    // not a test environment. Doing it first means the live body is
+    // gone before anything can close over it, and the stub marks itself
+    // `_callSecWrapped` so the loop below leaves it alone — there is
+    // nothing to gate on a body that only throws.
+    SecurityApi.#withholdTestOnlyMembers(cls);
     for (const name of Object.getOwnPropertyNames(cls)) {
       if (name === 'length' || name === 'name' || name === 'prototype') continue;
       const descriptor = Object.getOwnPropertyDescriptor(cls, name);
@@ -571,6 +599,191 @@ export class SecurityApi {
       }
       SecurityApi.#wrapStaticDescriptor(cls, name, descriptor);
     }
+  }
+
+  /* ─────────────── Test-ENVIRONMENT withholding (@TestOnly) ───────────────
+   *
+   * ⭐⭐ **Two different questions, and they are not interchangeable.**
+   *
+   *   - `assertTestOnly(op)` below asks **who is calling** — it walks
+   *     the stack for a `.test.ts` / `__tests__/` frame. It is the right
+   *     check for the ~40 `_*ForTesting` seams that only in-process unit
+   *     tests ever reach, and it is useless across a socket: a wire
+   *     drive's `eval` arrives in the server with no test frame on the
+   *     stack anywhere.
+   *   - `@TestOnly` asks **what process is this** — is this world a test
+   *     fixture at all. When the answer is no, the member's body is
+   *     replaced by one that throws `SecurityError`, naming the seam,
+   *     naming the three signals that would make a process a test
+   *     environment, and repeating the seam's own guidance about what
+   *     to reach for instead.
+   *
+   * ⚠⚠ The first version DELETED the property. That is the strongest
+   * guarantee and the worst diagnostic — `TypeError: X.advance is not a
+   * function` says nothing about why — and it is the wrong shape for a
+   * codebase whose standing rule is that **the refusal is the
+   * interface**: a thing that is withheld should be able to say so. The
+   * guarantee is unchanged in the only sense that matters, which is
+   * that the seam cannot be USED.
+   *
+   * The second is what a seam needs when its legitimate caller is a
+   * *test world* rather than a test stack frame. It is also the
+   * stronger of the two, because nothing about the call can satisfy
+   * it: a policy is a question about the caller, and this is a fact
+   * about the process.
+   *
+   * ⚠ **The substitution cannot live in the decorator.** TypeScript's legacy
+   * method-decorator emit (`__decorate`) threads one descriptor through
+   * every decorator and then calls `Object.defineProperty(target, key,
+   * descriptor)` itself at the end — so a `delete` performed inside a
+   * decorator is undone a microsecond later by the emit. The decorator
+   * therefore only RECORDS the name, and the substitution happens in
+   * `#wrapAllStaticMethods`, which runs from the class's module tail
+   * (`SecurityApi.decorateApiClass(FooApi)`) or from the class-form
+   * `@CallSecurity` — both of which run after every method decorator.
+   *
+   * ⚠ Consequence worth knowing at review time: `@TestOnly` is for
+   * **Api statics**, the surface where reachability is actually decided
+   * (the `eval` sandbox binds Api classes and nothing else). A logic
+   * singleton's or registry's matching method stays present and keeps
+   * its `FromModule`/`FromTemplate` gate — with the Api surface gone
+   * there is no longer a path to it.
+   */
+
+  /**
+   * Is this process a test environment — i.e. may `@TestOnly` members
+   * exist at all?
+   *
+   * Three signals, any of which is sufficient:
+   *
+   *   - `VITEST` — an in-process unit-test run.
+   *   - `NODE_ENV=test` — the conventional marker.
+   *   - `SAXONBERG_TEST_WORLD=1` — **a world the test suite booted and
+   *     owns.** This one has to be explicit and deliberate: the wire
+   *     runner SCRUBS `VITEST` from the server environment it spawns
+   *     (an inherited copy tells `preload.js` to skip the call-security
+   *     loader hook, and the boot then dies on the first `FromModule`
+   *     policy), so a wire world cannot be recognised by inheritance.
+   *     It is set in `packages/wire/src/runner/boot.ts`.
+   *
+   * ⚠ A development world (`pnpm dev:server`) carries none of these and
+   * is therefore NOT a test environment — which is the point. The
+   * operator's own world is a world somebody plays in.
+   */
+  public static isTestEnvironment(): boolean {
+    return (
+      Boolean(process.env.VITEST) ||
+      process.env.NODE_ENV === 'test' ||
+      process.env.SAXONBERG_TEST_WORLD === '1'
+    );
+  }
+
+  /**
+   * Record `methodName` on `cls` as test-only. Called by the
+   * `@TestOnly` decorator; the removal itself happens later, in
+   * `#wrapAllStaticMethods`. @internal
+   */
+  public static _markTestOnly(
+    cls: object,
+    methodName: string,
+    guidance = '',
+  ): void {
+    const k = cls as ClassKey;
+    let map = SecurityApi.#testOnlyMembers.get(k);
+    if (!map) {
+      map = new Map();
+      SecurityApi.#testOnlyMembers.set(k, map);
+    }
+    map.set(methodName, guidance);
+  }
+
+  /**
+   * The `@TestOnly` member names declared on `cls` directly. Present
+   * whether or not they were withheld, so a test environment — where
+   * nothing is withheld — can still assert that a seam is MARKED.
+   * Mirrors `getFinalMethods`.
+   */
+  public static getTestOnlyMembers(
+    cls: object,
+  ): ReadonlyMap<string, string> | undefined {
+    return SecurityApi.#testOnlyMembers.get(cls as ClassKey);
+  }
+
+  /**
+   * Every `Class.member` this process actually withheld, in the order
+   * the classes loaded. Empty in a test environment (nothing is
+   * withheld there) and empty in a build with no `@TestOnly` members.
+   * Read by diagnostics and by the decorator's own tests.
+   */
+  public static withheldTestOnlySeams(): readonly string[] {
+    return SecurityApi.#withheldTestOnly;
+  }
+
+  /**
+   * Replace every recorded `@TestOnly` static on `cls` with a refusal,
+   * unless this process is a test environment. Idempotent — the second
+   * call recognises its own stub and leaves it alone.
+   */
+  static #withholdTestOnlyMembers(cls: ClassKey): void {
+    const map = SecurityApi.#testOnlyMembers.get(cls);
+    if (!map || map.size === 0) return;
+    if (SecurityApi.isTestEnvironment()) return;
+    const label = (cls as { name?: string }).name ?? '<anonymous>';
+    for (const [name, guidance] of map) {
+      if (!Object.prototype.hasOwnProperty.call(cls, name)) continue;
+      const existing = Object.getOwnPropertyDescriptor(cls, name);
+      if ((existing?.value as TestOnlyStub | undefined)?._testOnlyWithheld) {
+        continue;
+      }
+      Object.defineProperty(cls, name, {
+        value: SecurityApi.#testOnlyStub(`${label}.${name}`, guidance),
+        writable: true,
+        enumerable: false,
+        configurable: true,
+      });
+      SecurityApi.#withheldTestOnly.push(`${label}.${name}`);
+    }
+  }
+
+  /**
+   * The replacement body a withheld `@TestOnly` member gets.
+   *
+   * ⭐⭐ **It throws rather than vanishing, and the message is the
+   * point.** The first version of this deleted the property outright,
+   * which is the strongest possible guarantee and the worst possible
+   * diagnostic: the caller got `TypeError: X.advance is not a
+   * function`, which says nothing about *why* and reads like a build
+   * problem. It is also the wrong shape for this codebase, where
+   * **the refusal is the interface** — a thing that is withheld should
+   * be able to tell you it was withheld, and under what condition it
+   * would not be.
+   *
+   * The stub is marked `_testOnlyWithheld` so the withhold pass is
+   * idempotent and so `#wrapAllStaticMethods` leaves it alone (no
+   * frame-pushing shell around a method that only throws).
+   */
+  static #testOnlyStub(qualified: string, guidance: string): TestOnlyStub {
+    const stub = function testOnlyWithheld(): never {
+      throw new SecurityError(
+        `${qualified} is a TEST-ONLY seam and this process is not a test ` +
+          `environment, so the method is withheld.\n\n` +
+          `A process is a test environment when any of these holds:\n` +
+          `  VITEST                  — an in-process vitest run\n` +
+          `  NODE_ENV=test           — the conventional marker\n` +
+          `  SAXONBERG_TEST_WORLD=1  — a world the suite BOOTED and owns,\n` +
+          `                            set only by the wire runner\n` +
+          `                            (packages/wire/src/runner/boot.ts)\n\n` +
+          `A development world is deliberately none of those: it is a world ` +
+          `somebody plays in.` +
+          (guidance ? `\n\n${guidance}` : '') +
+          `\n\nSee docs/subsystems/call-security.md § @TestOnly.`,
+      );
+    } as unknown as TestOnlyStub;
+    stub._testOnlyWithheld = true;
+    // Already "wrapped" as far as the static-wrap pass is concerned —
+    // there is nothing to gate on a body that only throws.
+    stub._callSecWrapped = true;
+    return stub;
   }
 
   /* ───────────────────── Test-seam enforcement ─────────────────────

@@ -27,7 +27,7 @@ import type { Calendar, CalendarDate } from '../lib/time/Calendar';
 import { SecurityApi } from './security';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { CallSecurity } from '../lib/security/decorators';
+import { CallSecurity, TestOnly } from '../lib/security/decorators';
 import { SecurityPolicies } from '../lib/security/SecurityPolicies';
 import { WorldClockLogic } from '../platform/idea/api/WorldClockLogic';
 import { fileURLToPath } from 'url';
@@ -134,6 +134,65 @@ export class WorldClockApi {
 
   public static isPaused(): boolean {
     return logic().isPaused();
+  }
+
+  /**
+   * ⛔ **A TEST SEAM. In a normal runtime this method does not exist.**
+   *
+   * Move world-time forward by `by`, firing every schedule the skipped
+   * interval contains — one-shots once, an `every` once per missed
+   * period, in deadline order.
+   *
+   * It exists because a game day is about two real hours, so a *test*
+   * cannot observe anything a slow system does over a season. The slow
+   * systems themselves need nothing from it: a sap run, a lactation
+   * curve and a fleece's year are all reconcile-on-read, and the realm
+   * reaches them by living. Only a scheduled act needs the interval
+   * actually walked, which is what the drain does.
+   *
+   * ⚠⚠ **It is NOT an in-world capability, and the earlier version of
+   * this comment claiming it was is the mistake the `@TestOnly` marker
+   * exists to make unrepeatable.** Nothing a player does moves the
+   * realm's clock; there is one clock, it is global, and a jump ages
+   * every reconcile-on-read system in the world at once. An
+   * immersion-breaking act is not made acceptable by being receipted.
+   *
+   * The two clock seams are different instruments:
+   *
+   *   - `_advanceForTesting(realMs)` moves the **injected real clock**,
+   *     and only works where a now-provider was injected — so,
+   *     in-process unit tests. 44 unit cases walk real game years that
+   *     way.
+   *   - `advance(by)` moves the **game-time anchor** on a live running
+   *     world, and is what a wire drive has to use: it speaks to the
+   *     server over a socket and cannot inject anything.
+   *
+   * ⚠ A jump of years is a loop of thousands of fires. Jump a season at
+   * a time. ⚠ And it **throws while the clock is paused** — a paused
+   * clock cannot fire, so a jump there would strand every schedule in
+   * the interval.
+   *
+   * @param by game-time to skip, as a `Quantity<'s'>` or a duration
+   *   string in the same format `after()` accepts (`'3 days'`,
+   *   `'5 minutes'`).
+   *
+   * @internal ⭐ Not author surface, and the `callable == visible ==
+   *   cared-about` invariant makes that mandatory rather than tidy: in
+   *   any world an author is working in, this is not callable, so it
+   *   must not be visible in the generated docs either.
+   */
+  @TestOnly(
+    'Nothing in the game moves the realm\u2019s clock: there is one ' +
+      'clock, it is global, and a jump ages every reconcile-on-read ' +
+      'system in the world at once. A slow system reaches its own state ' +
+      'by being read, so it needs nothing from here \u2014 pin the ' +
+      'arithmetic in a unit test instead (Producing.test.ts and ' +
+      'SapStandard.test.ts walk real game years that way). A wire drive ' +
+      'that genuinely needs the skipped interval WALKED must own the ' +
+      'world it is driving: run it with WIRE_BOOT=1.',
+  )
+  public static advance(by: Quantity<'s'> | string): void {
+    logic().advance(by);
   }
 
   /* ──────────────────── persistence (own-thing model) ──────────────────── */

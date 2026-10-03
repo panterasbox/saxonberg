@@ -42,9 +42,15 @@ import { HandlingMixin } from '@saxonberg/server/mud/lib/husbandry/Handling';
 import { ChattelMixin } from '@saxonberg/server/mud/lib/chattel/Chattel';
 import { BrandedMixin } from '@saxonberg/server/mud/lib/corpo/Branded';
 import { HandledMixin } from '../lib/Handled';
-import { ProducingMixin } from '../lib/Producing';
+import { ProducingMixin } from '@saxonberg/server/mud/lib/husbandry/Producing';
 import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
+import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
+import type { MarkupAugmenter } from '@saxonberg/server/mud/api/mml';
+import { MixinApi } from '@saxonberg/server/mud/api/mixin';
+import type { WorkDifficulty } from '@saxonberg/server/mud/lib/ground/Workable';
+import type { TapClosedReason } from '@saxonberg/server/mud/platform/idea/species/Species';
+import { STOCKMANSHIP } from '../idea/cmd/ranching/HandleController';
 
 /**
  * ⭐ **`Perceptible` arrives from `Creature` now, and the argument this
@@ -74,11 +80,50 @@ import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 // was about STOCK, and `Creature` is also the base of every player, Cast
 // member, Extra, ShadeAvatar and corpse in the game. A head of stock is owned;
 // a person is not.
+/**
+ * Game-days of growth past which a fleece starts losing its quality,
+ * expressed as the kilos it would have reached — `perGameDay` × a year.
+ */
+const PRIME_WOOL_KG = 360 * 0.008;
+
+/** One decimal place — milk is measured, wool is weighed. */
+function round1(v: number): number {
+  return Math.round(v * 10) / 10;
+}
+
 const LivestockBase = ProducingMixin(
   HandledMixin(HandlingMixin(ChattelMixin(BrandedMixin(Creature)))),
 );
 
+/**
+ * ⭐⭐ **What she is doing, appended to `look`** — in words, with no
+ * digit in any of them.
+ *
+ * This is how AC 8 is met: *going off is visible before it is lost.* A
+ * player who looks at a cow is told she is overdue before the lactation
+ * is gone, told a hen is sitting tight before they wonder why the nest
+ * is empty, and told a fleece carries a weak point months before the
+ * shears find it. ⚠ None of that is a number, because a number would
+ * turn husbandry into arithmetic and the whole point is that you read
+ * the animal.
+ *
+ * The `Character.bodyAugmenter` shape, and the stockman's own read
+ * (`stockmanRead`) stays where it is — that one is `draft`/`return`'s
+ * and is a different question (*what is this animal worth*, not *what is
+ * it doing*).
+ */
+function productionAugmenter(text: string, host: Stuff, _viewer: Stuff): string {
+  if (host.isDestroyed()) return text;
+  if (!MixinApi.isProducing(host)) return text;
+  const lines = host.productionRead();
+  if (lines.length === 0) return text;
+  const block = lines.join(' ');
+  return text && text.length > 0 ? `${text}\n\n${block}` : block;
+}
+
 export default class Livestock extends LivestockBase {
+  static markupAugmenters: MarkupAugmenter[] = [productionAugmenter];
+
   /**
    * ⭐⭐ **Only the acts that are true of a head of STOCK.**
    *
@@ -130,6 +175,110 @@ export default class Livestock extends LivestockBase {
 
   /** Its index within that herd — its identity, and it never changes. */
   public headIndex = -1;
+
+  /* ──────────────── the taps, in her own voice ──────────────── */
+
+  /**
+   * ⭐⭐ **The animal names the Discipline, and the difficulty.**
+   *
+   * `WorkResult.credit` is what retires the old `TapController`'s
+   * `discipline()` hook: a kernel controller credits `stockmanship`
+   * without knowing ranching exists, and ⚠ the difficulty is read off
+   * HER at the moment of the act rather than off a counter — milking a
+   * half-wild heifer is a hard check and milking a quiet old cow is a
+   * standard one, which is the estimator's own anti-grind property doing
+   * the work instead of a bespoke guard.
+   */
+  public override tapCredit(
+    _key: string,
+  ): { discipline: string; difficulty: WorkDifficulty } | null {
+    return {
+      discipline: STOCKMANSHIP,
+      difficulty: this.getHandling() < 0.35 ? 'hard' : 'standard',
+    };
+  }
+
+  /**
+   * ⚠ Her refusals, not the verb's — and **not one of them carries a
+   * digit**, because a shut tap is something you read off the animal
+   * rather than a figure you are quoted.
+   */
+  public override tapRefusal(key: string, reason: TapClosedReason): string {
+    if (reason === 'dried-off') {
+      return 'She has dried off for this season. Nothing will come of it until she freshens again.';
+    }
+    if (reason === 'brooding') {
+      return 'She is sitting tight on the clutch and will not be shifted. Take the eggs and she will start again.';
+    }
+    if (key === 'eggs' && reason === 'before-season') {
+      return 'The days are too short for laying. There is nothing wrong with the bird.';
+    }
+    if (key === 'eggs' && reason === 'after-season') {
+      return 'The laying season is over. She will come back to it as the days lengthen.';
+    }
+    return super.tapRefusal(key, reason);
+  }
+
+  public override tapEmptyPhrase(key: string): string {
+    if (key === 'milk') return 'There is nothing in her yet. Come back later.';
+    if (key === 'wool') return 'There is nothing on it worth the shears yet.';
+    if (key === 'eggs') return 'Nothing in the nest.';
+    return super.tapEmptyPhrase(key);
+  }
+
+  public override tapBeginPhrase(key: string): string {
+    if (key === 'milk') {
+      return 'You set the pail under her, settle in against her flank, and start.';
+    }
+    if (key === 'wool') {
+      return 'You get her off her feet and set to with the shears.';
+    }
+    if (key === 'eggs') return 'You start feeling under the straw.';
+    return super.tapBeginPhrase(key);
+  }
+
+  /**
+   * What the take came to.
+   *
+   * ⭐ The numbers stay here — you WEIGH a fleece and you MEASURE milk,
+   * so a figure is honest at the moment of the act in a way it never is
+   * in a refusal. ⚠ And milk reports **completeness**: a pail too small
+   * is the player's own information, and it is the one line in the
+   * build that teaches what a vessel is for.
+   */
+  public override tapTookPhrase(
+    key: string,
+    drawn: number,
+    kept: number,
+    minted?: Stuff[],
+  ): string {
+    if (key === 'milk') {
+      if (kept <= 0) {
+        return 'She stands for it, and it all goes on the floor — you had nothing to catch it in.';
+      }
+      if (kept < drawn - 0.05) {
+        return `You milk her out and the pail fills before she is done; ${round1(drawn - kept)} litres go on the straw. ${this.handlingPhrase()}.`;
+      }
+      return `You milk her right out — ${round1(kept)} litres, and she stands for it. ${this.handlingPhrase()}.`;
+    }
+    if (key === 'wool') {
+      // ⚠ How long it has been growing is READ OFF the take, because a
+      // continuous tap's standing amount IS its age in growth. No second
+      // clock, and no way for the two to disagree.
+      const overgrown = drawn > PRIME_WOOL_KG * 1.4;
+      return overgrown
+        ? `It comes off in one heavy matted piece — ${round1(drawn)} kilos of it, and half of that is second cuts and dung. It should have come off a year ago.`
+        : `The fleece comes off clean in a single piece, ${round1(drawn)} kilos, and the animal walks away looking half the size.`;
+    }
+    if (key === 'eggs') {
+      const n = minted?.length ?? 0;
+      if (n <= 0) return 'Nothing comes of it.';
+      return n === 1
+        ? 'You come away with one egg, still warm.'
+        : `You come away with ${n} eggs, still warm.`;
+    }
+    return super.tapTookPhrase(key, drawn, kept, minted);
+  }
 
   public getHerdId(): string {
     return this.herdId;

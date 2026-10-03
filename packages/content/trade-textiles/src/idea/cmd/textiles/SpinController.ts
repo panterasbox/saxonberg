@@ -227,10 +227,35 @@ function bandOf(source: Stuff): string {
   return Grade.isBand(raw) ? raw : 'fair';
 }
 
-/** Line and tow both spin; shive and cloth do not. */
+/**
+ * ⭐⭐ **Can you spin it? Ask the MATERIAL.** Line, tow and a fleece all
+ * carry `fibre`; shive and cloth do not.
+ *
+ * ⚠ This was a template-PATH test (`endsWith('/line') ||
+ * endsWith('/tow')`) and it was the **third gate behind `spin
+ * fleece`** — a verb that shipped and could never run. The first two
+ * were the arg's `requires: StackableMixin` against a `Provision`
+ * fleece, and the class the row named; fixing those still left this,
+ * which would have refused a stackable fleece in the controller with
+ * nothing in the envelope to say why.
+ *
+ * ⭐ The rule it replaces the hard-coded pair with is the one the
+ * textiles design already states: **the distinction is the material.**
+ * A new fibre is then a material tag and not an edit here — which is
+ * exactly the test a second spinnable was always going to apply.
+ */
 function isSpinnable(stock: Stuff): boolean {
-  const path = stock.getTemplatePath() ?? '';
-  return path.endsWith('/line') || path.endsWith('/tow');
+  if (!MixinApi.isTangible(stock)) return false;
+  if (stock.getMaterial()?.hasTag('fibre') !== true) return false;
+  // ⚠⚠ …and it must not be spun ALREADY. Yarn's material is linen and
+  // carries `fibre` too, so the material test alone would let you spin
+  // yarn into yarn — which the old path test refused by accident, since
+  // `/yarn` is neither `/line` nor `/tow`. `yarnCount` is the honest
+  // discriminant: it is non-zero iff somebody has already drawn this
+  // out, and it is a CONSTRUCTION fact, which is why no material tag
+  // could ever have carried it.
+  const spun = stock as unknown as { getYarnCount?(): number };
+  return (spun.getYarnCount?.() ?? 0) <= 0;
 }
 
 async function competenceOf(giver: Stuff): Promise<CompetenceBandName> {

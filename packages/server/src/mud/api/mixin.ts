@@ -91,6 +91,7 @@ import type { Hygiene } from '../lib/vitals/Hygiene';
 import type { Postmortem } from '../lib/mortality/Postmortem';
 import type { Incorporeal } from '../lib/mortality/Incorporeal';
 import type { Reserved } from '../lib/reserve';
+import type { Producing } from '../lib/husbandry/Producing';
 import type { LoadBearing } from '../lib/encumbrance/LoadBearing';
 import type { Metabolic } from '../lib/metabolism/Metabolic';
 import type { Exerting } from '../lib/exertion/Exerting';
@@ -1345,6 +1346,14 @@ export class MixinApi {
 
   public static isReserved(obj: Stuff): obj is Stuff & Reserved {
     return this.hasMixin(obj, Mixins.Reserved);
+  }
+
+  /**
+   * A living thing with taps — a renewable yield its species authors,
+   * drawn by an act. A cow, a hive, a sap-bearing tree.
+   */
+  public static isProducing(obj: Stuff): obj is Stuff & Producing {
+    return this.hasMixin(obj, Mixins.Producing);
   }
 
   public static isLoadBearing(obj: Stuff): obj is Stuff & LoadBearing {

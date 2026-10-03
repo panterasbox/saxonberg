@@ -1,0 +1,18 @@
+# A birch seed — a scrap of a catkin, barely there. Plant it in a
+# panel and it grows into `/trade/forestry/thing/plant/birch-standard`:
+# eight game years to a tappable stem, which is fast enough that a
+# sugarbush is something a player can plant rather than only inherit.
+class: /platform/thing/Seed
+data:
+  shortDescription: birch seed
+  keywords: [seed, birch, "birch seed", catkin]
+  register: indefinite
+  longDescription: |
+    A papery winged seed out of a catkin, light enough to blow off your palm.
+  # ⚠ Stated, because `lint:mass` counts a tangible row that does not.
+  # (The shipped acorn and ash key are grandfathered under the ratchet;
+  # a new row pays the rule.) A winged seed weighs next to nothing, and
+  # that is the point of the wing.
+  mass: 0.0002
+  growsIntoPath: /trade/forestry/thing/plant/birch-standard
+  _speciesPath: /stuff/idea/species/plantae/tracheophyta/magnoliopsida/fagales/betulaceae/betula/pendula

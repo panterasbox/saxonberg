@@ -66,6 +66,16 @@ function serverEnv(): NodeJS.ProcessEnv {
   delete env.NODE_OPTIONS;
   env.AUTH_MODE = 'test';
   env.PORT = String(WIRE_PORT);
+  // ⭐⭐ **This world is a TEST FIXTURE, and it has to say so out loud.**
+  // `SecurityApi.isTestEnvironment()` is what decides whether a
+  // `@TestOnly` Api static exists at all (`WorldClockApi.advance` is the
+  // first), and a world the suite booted is exactly the case the marker
+  // is for. It cannot be inferred: `VITEST` is scrubbed above on
+  // purpose, and `NODE_ENV` is left alone so the server boots the way
+  // production does in every other respect. So: an explicit variable,
+  // set only here and by nothing that stands up a world somebody plays
+  // in.
+  env.SAXONBERG_TEST_WORLD = '1';
   // The founder handle resolves through the SHIPPED deploy contract —
   // `OfficeRegistry` reads it at boot exactly as production does.
   env.FOUNDER_GOOGLE_EMAIL = env.FOUNDER_GOOGLE_EMAIL ?? 'founder@e2e.local';

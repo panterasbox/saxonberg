@@ -265,43 +265,104 @@ one is false of a person.
 
 ---
 
-## The taps (D25, D93)
+## The taps (D25, D93) — ✅ **PROMOTED; the mechanism is [taps.md](./taps.md)**
 
-> ⭐⭐⭐ **A tap is not a livestock concept, and the kernel already says
-> so.** `TapSpec` lives on `Species.production[]` in
-> `platform/idea/species/Species.ts` — the **kernel** — and trees are
-> `Species` rows like anything else. The only livestock-bound piece is
-> `ProducingMixin`, which sits in this pack's `lib/`. Tapping a tree for
-> sap or resin is the first composer outside this pack and therefore owns
-> the promotion; the bee wave (below, D34–D39) rides *on* ranching and
-> does not force it. ⚠ Whatever lands first must **not fork the tap
-> contract**. See [tapping-slate](../slates/builds/tapping-slate.md),
-> which also records the one thing `TapSpec` lacks: **a window
-> predicate** — nothing says *when* a tap is open, and milk (calving),
-> honey (the nectar flow) and sap (freeze–thaw) each need one. The idiom
-> is this doc's own: *a photoperiod season, not a date, and the refusal
-> names the reason.*
-
+> ⭐⭐⭐ **A tap is not a livestock concept, and as of the taps build
+> (2026-10-01) the code says so too.** `ProducingMixin` is the KERNEL's
+> now — `lib/husbandry/Producing.ts`, beside `Handling` — because its
+> composers have no common pack ancestor: a cow (here), a hive
+> (apiculture) and a sap-bearing tree (forestry). `TapSpec` was already
+> kernel, on `Species.production[]`.
+>
+> ⭐ **The window predicate this doc asked for exists.**
+> `TapSpec.window` is declared data (`always · event · photoperiod ·
+> biome · weather`), so a new season is a row — and the idiom is this
+> doc's own: *a photoperiod season, not a date, and the refusal names
+> the reason.* ⚠ Milk's window is `event` (a lactation is not a season);
+> the hen's is `photoperiod`; the hive's is `biome`; sap's is `weather`.
+>
+> **The mechanism, the act, the window kinds and the host-placement
+> table now live in [taps.md](./taps.md).** What stays here is what is
+> true of RANCHING's three.
 
 ⚠⚠ **A tap fills from the production slice of the energy budget and
-mints nothing.** Copy `Stock`'s reset *sweep*; never its `par` semantics,
-which is a faucet wearing a hat. The rate scales with `flesh`: an animal
-in poor flesh gives less because it has less to give.
+mints nothing.** Copy `Stock`'s reset *sweep*; never its `par`
+semantics, which is a faucet wearing a hat. The rate scales with
+`flesh`: an animal in poor flesh gives less because it has less to give.
 
-| | behaviour | neglect |
-|---|---|---|
-| **milk** | expire | she **dries off** for that lactation — a large **slope**, not a cliff |
-| **eggs** | accrue | they **spoil** in the nest past what a clutch holds |
-| **wool** | continuous | a worse fleece, and a hot sheep |
+### ⭐⭐⭐ The feedback law — and two of the three rows changed
 
-⭐⭐ **Accrual for the on-ramp, expiry for the committed.** The forgiving
-end of the roster accrues and expiry is what you take on when you commit
-— which is why hens are the on-ramp and a dairy cow is a tyrant, and why
-**a player's real-life cadence honestly decides what they can keep**.
+`behaviour` says what NEGLECT costs. What decides how each product PLAYS
+is whether the act of taking feeds back on the rate, and asking that
+question reversed two of these three:
 
-⭐ Shearing reads how long a fleece has been growing **off the take
-itself**, because a continuous tap's standing amount IS its age in
-growth. One clock, and no way for two to disagree.
+| | behaviour | neglect | the judgment at the act |
+|---|---|---|---|
+| **milk** | `expire` | she **dries off** for that lactation — a large **slope**, not a cliff | ⭐ **none, and that is the finding.** Lactation is demand-driven, so a take always empties her and holding some back would suppress her rather than save it. What the player trades is **attendance against her rate** — labour |
+| **eggs** | `accrue` | ⚠ **REVERSED.** Not *they spoil in the nest* — a clean unwashed egg keeps for weeks. A hen is an **indeterminate layer**: a full clutch left sitting makes her **broody**, and she stops laying | ⭐ take the clutch and she starts again, or leave it and she stops. One state flag, no invented punishment |
+| **wool** | `continuous` | a worse fleece, and a hot sheep | none at the act — but ⭐ the year is **recorded** now (`TapState.worst`), carried away by the take and stamped onto the fleece's grade band. A ewe who went hungry in February carries the break in June, and feeding her up afterwards does not heal it |
+
+⭐⭐ **Accrual for the on-ramp, expiry for the committed.** The
+forgiving end of the roster accrues and expiry is what you take on when
+you commit — which is why hens are the on-ramp and a dairy cow is a
+tyrant, and why **a player's real-life cadence honestly decides what
+they can keep**.
+
+### The act, and what changed at the verbs
+
+Every take is an **engagement** now (`TapActController`): observable
+time on the `hands` slot, abortable with `stop`, and ⚠ walk away and
+*nothing came of it* with no state change.
+
+- **`milk <cow> [into <vessel>]`** — a `volume` tap, so it REQUIRES
+  something to catch it in and the refusal names the pail. ⚠ The *"pail
+  of milk"* Provision is **deleted**: minting the pail along with the
+  milk was a faucet shape for containers. What the pail will not hold
+  goes on the straw, and that is the one line in the build that teaches
+  what a vessel is for.
+- **`gather <hen>`** — a `count` tap: it mints EGGS, not a kilo of egg,
+  which is what lets a recipe ask for two (and is half of why eggs had
+  no sink for their whole shipped life — the other half was the egg
+  material carrying no `egg` tag).
+- **`shear <ewe>`** — the fleece is `/trade/textiles/thing/TextileStock`
+  now: ranching's ROW, textiles' CLASS. That is what made `spin fleece`
+  reachable at all; see [textiles.md](./textiles.md).
+
+### ⭐ What a `look` says
+
+`Livestock.markupAugmenters` appends `productionRead()` — in words, with
+**no digit in any of them**: *She is in full milk · She is heavy and
+wants milking · She is overdue, and will dry off for the season if
+nobody comes · She has dried off · She is sitting tight on a clutch and
+has stopped laying · A lean spell has left a weak point in the fleece ·
+The fleece is so heavy it is starting to shed.*
+
+⭐⭐ That is how *going off is visible before it is lost* is met, and it
+holds **no state**: the milk bands are read off the window clock, which
+is the one number milk was ever about. ⚠ `stockmanRead()` stays where it
+is — that answers *what is this animal worth* (draft/return's question),
+not *what is it doing*.
+
+### ⛔ Two mechanisms specified and deleted
+
+Recorded because both came from the plan rather than the requirements,
+and the test suite is what caught both:
+
+- **`TapState.vigour`** (a milk suppression curve) is
+  **unimplementable**: `ceiling = perGameDay × windowDays`, so she fills
+  to her ceiling exactly as her window closes and the region where she
+  sits full and suppresses herself is *empty by construction*.
+- **`shear --quick`** (speed for quality) is a judgment the biology does
+  not put at the act — the feedback law's third row says so.
+
+### ⚠ Still open: the relief
+
+Milk's answer to attendance is a **standing instruction** (`instruct
+keep <line>`, a brain on the player's own body) and it **did not ship**:
+its host is build-3's `lib/character/Avatar` and MR !315 had not merged.
+AC 7 moves to the dairy build with the rest of milk's story — and the
+argument that this is survivable is that **nothing consumes milk yet**,
+so nobody is actually dairying and the harshness is theoretical.
 
 ---
 

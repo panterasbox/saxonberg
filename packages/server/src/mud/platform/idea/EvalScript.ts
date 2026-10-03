@@ -40,6 +40,45 @@ import type { FieldMeta } from '../../lib/mixin';
  * Start narrow: enough to do useful authoring (`StuffApi`, `MqlApi`,
  * `ContainmentApi`, `MixinApi`), with `console` for output. Tighten
  * or expand based on what playtesting actually wants.
+ *
+ * ⛔⛔⛔ **`WorldClockApi` IS NOT HERE, and the story of why is worth the
+ * paragraph.**
+ *
+ * The taps build added it so a drive could skip a season, then spent
+ * three review rounds learning that it was wrong three different ways:
+ *
+ *  1. ⚠⚠ **The justification was fabricated.** The first version of this
+ *     comment claimed *"`setScale` was always reachable from here;
+ *     `advance` is the same authority stated honestly."* It was not —
+ *     before that binding **nothing in the sandbox could touch the clock
+ *     at all**, and the only reference to `setScale` outside the clock's
+ *     own files was that sentence asserting it. A premise stated once
+ *     and then cited.
+ *  2. ⛔ **It was a category error.** A clock jump is *scaffolding*, not
+ *     a capability: nothing in the game moves the realm's clock, and
+ *     binding it here made the fiction owe an explanation for a player
+ *     who can skip a month.
+ *  3. ⛔ **And it could never have worked.** An `eval` always runs inside
+ *     a sandbox boundary — a quarantined circle (`/home/<player>`, the
+ *     default) or a parcel-bound jurisdiction (`--parcel`) — and a jump
+ *     of GLOBAL time is precisely the thing a bounded context must not
+ *     do. The quarantined route is refused by
+ *     `WorldClockRegistry.assertNotQuarantined`; the governed route dies
+ *     on the jurisdiction boundary when the drain creates a Stuff
+ *     outside the extent. ⚠ Both failed SILENTLY (no note, no matching
+ *     prose) while the drive reported 15/15.
+ *
+ * ⭐ The clock now lives where scaffolding belongs:
+ * `backend/TestHooks.advanceClock` behind `POST /auth/test-clock`, a
+ * route mounted only when `AUTH_MODE === 'test'`, called by the harness
+ * from OUTSIDE the fiction — where a root frame carries no scope and no
+ * jurisdiction, which is exactly what a global jump needs.
+ *
+ * ⭐ So nothing in-world can read or move the clock through this list at
+ * all, which is the containment the build should have started with.
+ * `shutdown` keeps its `SystemRoot` gate; `assertNotQuarantined` stays
+ * on every mutator for the callers that are not this list (a
+ * circle-born schedule's callback re-roots under its birth scope).
  */
 const SANDBOX_NAMES = [
   'StuffApi',
