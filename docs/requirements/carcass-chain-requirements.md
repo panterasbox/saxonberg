@@ -56,12 +56,27 @@ the hard case."*
 
 ### Every other death already leaves a carcass
 
-A single path in the engine turns any dying body into a corpse, and
-stamps it with what species it was, what killed it and when it died. A
-beast killed in a fight, a starved animal, a hunted deer — all of them
-leave a body the kitchen's `butcher` can open. **The stockyard's
-slaughter is the only killing in the realm that leaves no carcass at
-all.** It destroys the animal and hands you the parts.
+A single path in the engine takes any body from alive to dead, and
+**death is not destruction**: the body stays in the world, marked dead,
+with the time of death recorded and its temperature already drifting
+toward the room's. A beast killed in a fight, a starved animal, a hunted
+deer — all of them leave something the kitchen's `butcher` can open.
+
+⚠ **For an animal the carcass IS the animal** — the same object, still
+carrying its mass, its condition and its place in the book. Only a
+*player* death divides the body in two, because a player's identity
+walks away and the material half needs somewhere to be. That is the
+right shape for this build rather than an obstacle: everything the yield
+needs to read is still on the thing you are cutting up.
+
+⚠⚠ **And it has a consequence this build must close.** A dead animal
+still answers every verb a live one does — it can be milked, sheared,
+handled, bred and turned back into the book — because nothing has ever
+been able to kill one. Introducing a deliberate way to kill an animal is
+what makes those six refusals necessary.
+
+**The stockyard's slaughter is the only killing in the realm that leaves
+no body at all.** It destroys the animal and hands you the parts.
 
 ### What a carcass gives, and who takes it
 
@@ -670,6 +685,9 @@ Observable from outside the code, by a person playing.
 12. A player can find all three new jobs standing vacant, see what each
     wants, and take one.
 13. `dress` no longer means two incompatible things.
+14. A dead animal cannot be milked, sheared, handled, bred, gathered
+    from or turned back into the book — and each refusal says it is dead
+    rather than failing silently.
 
 ---
 
