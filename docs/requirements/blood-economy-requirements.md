@@ -16,8 +16,10 @@ hold a unit for weeks instead of hours. What is still missing is the
 **economy around the bank**: nothing produces blood to fill the par, a
 gift earns nothing, a shortage is invisible, and there is no civic
 institution that holds and issues the supply. This build wires those
-over shipped substrate. It executes the `blood-slate` v1 (gift-only; the
-Titmuss paid-market lever stays out). Seeding slate: `blood-slate`.
+over shipped substrate. It executes the `blood-slate` v1 — **gift-only
+meaning the donor is never paid** (the patient still pays a service fee
+for the processing around the gift); the Titmuss *paid-donor* lever stays
+out. Seeding slate: `blood-slate`.
 
 ## What already exists
 
@@ -64,16 +66,22 @@ grounding):
   row with a producer-supplied `consent` boolean (the bad-meal
   precedent); a row derives as a crime when `!consented && sentient`.
 
-**Therefore what is genuinely new here is** four things, each a thin
-wire over the above: (1) **a supplier that fills the blood par** — an
-NPC-donor-fed Blood Service org, so the combat supply exists regardless
-of players; (2) **a gift mints credit** — donating to the bank or a
-named other appends a chronicle deed + generosity/compassion disposition
-+ a renown move, while self-use mints nothing; (3) **a type-aware bank**
-— shortage is legible by type and the summons names it ("anyone
-O-negative?"); (4) **the civic draw** — a seat-gated, gift-only `issue`
-of a typed unit, plus an emergency-implied-consent predicate and a
-harm-on-non-consent append. Everything else is rows.
+**Therefore what is genuinely new here is** a thin wire over the above:
+(1) **a supplier that fills the blood par** — the divested dispensing
+window is restocked from the upstream (collection + distribution) the
+corpo *kept*, NPC-fed, so the combat supply exists regardless of players;
+(2) **a gift mints credit** — donating appends a chronicle deed +
+generosity/compassion disposition + a renown move, while self-use mints
+nothing, and the **donor is never paid**; (3) **a type-aware bank** —
+shortage is legible by type and the summons names it ("anyone
+O-negative?"); (4) **the civic draw** — a seat-gated `issue` of a typed
+unit (the gift is not sold; the transfusion carries a **service fee** for
+the processing, on the shipped treatment-billing rail), plus the
+**donor-card directive + consent ladder** and a harm-on-non-consent
+append; (5) **failure is reachable and self-teaching** — the acts permit
+the historical mistakes and the record shows what went wrong. Everything
+else is rows (including the corpo lore — the Decree, the ghost on the
+window).
 
 ## Goals
 
@@ -81,30 +89,40 @@ harm-on-non-consent append. Everything else is rows.
   from NPC donors on a cadence**, so a combat blood supply exists whether
   or not any player donates.
 - Blood is a **universal-service good with an NPC-guaranteed floor**:
-  *nobody dies for lack of blood that physically exists.* A dying patient
-  with a compatible unit in the bank is always served — by the NPC
-  attendant if no player acts — and no player-held seat can withdraw that
+  *nobody dies for lack of blood that physically exists — or for
+  inability to pay for it.* A dying patient with a compatible unit on hand
+  is always served (by the NPC attendant if no player acts; the fee is
+  handled after), and no operator — player or corpo — can withdraw that
   floor.
 - A player **donating blood as a gift** (to the bank, or to a named
   person in need) earns a recorded deed, generosity/compassion evidence,
   and a move in local standing — and **the same act for one's own use
-  earns none of it** (the gift/sale thesis, expressed as gift-vs-self).
+  earns none of it**. The **donor is never paid** (the gift/sale thesis,
+  at the donation end).
+- **The patient pays for the service, not the gift.** A transfusion
+  carries a **service fee** (the processing/testing/cold-chain around the
+  donated unit — not the blood itself), billed on the shipped
+  treatment-billing rail; the donor's gift is never commodified.
 - A blood **shortage is legible by type** — a named shortage a player can
   read (the press ticker) and a room summons for a specific type — and
   the pull to answer it is the value offered (a life, the credit), never
   a badgering nudge.
-- In the city the blood trade is **run by a corpo** (the houses that
-  already run the banks): the bank is a corpo-administered institution,
-  and a player participates by **working for it** (a registrar /
-  phlebotomist / screener seat, `apply`/`clock`) and by **donating** —
-  not by owning the life-or-death controls. The top seat is a
-  corpo-political climb, never a founder-default handout. The *mechanism*
-  is generic, so a frontier town can still run an **independent** civic
-  bank as rows.
-- A player operator (within the corpo, *above the floor*) runs drives,
+- The city's dispensing point is **an independent window that still bears
+  the old corpo's name** — the Goodkin ghost sign over a door Goodkin no
+  longer runs (the Paramount divestiture). A player participates by
+  **donating**, by **working the window** (the divested link is exactly
+  the small, local, holdable one), and the **upstream supply stays the
+  corpo's** — the NPC-backed floor. The *mechanism* is generic (a second
+  bank is rows).
+- A player operator at the window (*above the floor*) runs drives,
   answers the summons, stocks the rare types, and makes the hard
   allocation of *scarce* units, building standing by doing it well, but
   is **never the reason someone bleeds out next to a full fridge**.
+- **The historical failure modes are reachable and self-teaching.** The
+  acts never paternalistically block the mistake (transfuse untyped,
+  cross-clade in desperation, skip screening, let the cold chain lapse);
+  the consequence and the legible record (accountability + the forensic
+  reader) teach what the forebears learned the hard way.
 - **Prior consent is first-class — the donor card.** A player sets a
   standing directive on their identity (*will receive / won't receive /
   registered donor*) decided in calm, and a transfusion reads it before
@@ -126,9 +144,16 @@ harm-on-non-consent append. Everything else is rows.
   lives) → `blood-slate` v2.
 - **Disease transmission through the supply** → rides the Titmuss lever,
   `blood-slate`.
-- **A dedicated donor centre as a second location** → a later content
-  build; v1 co-sites the Blood Service at the infirmary (the mechanism
-  must make a second venue need zero code).
+- **A second/competing blood bank, exhibition franchises, the "AMC"
+  texture** → the paid-donor future. v1 is **one window** in the city:
+  gift-dispensing has nothing to compete over, so a second bank has no
+  economic reason to exist *until* blood can be sold (the deferred
+  Titmuss lever) — at which point competition arrives with its own
+  justification. The mechanism is generic so these are rows when the
+  lever lands.
+- **The corpo's upstream as operable content** (running collection or
+  distribution as a player) → a later build; v1 models the **dispensing
+  window** and leaves the kept upstream as the NPC supplier + lore.
 - **Emergent trait-driven NPC donation** (a callous neighbourhood runs
   short because its population won't give) → deferred to `blood-slate`;
   v1's NPC supply is a reliable restock cadence, because NPCs earn no
@@ -158,25 +183,27 @@ content**.
   names the mechanism generically so a later milk/vaccine bank is rows.
 - The **blood acts** (`test`/`bleed`/`transfuse`) and the blood Material
   stay in `trade-medicine`, where they shipped.
-- The **par/restock, org, credit-ledger, accountability, and corpo**
-  substrate is kernel/platform + the shipped corpo system, already
-  generic — this build *extends* it (type-aware par read, the
-  gift-credit wiring, the `issue` act, the consent ladder + the identity
-  directive) rather than forking it.
-- The **city bank is corpo-run**: the operating Business's appointing
-  authority is **a corpo** (Goodkin the natural candidate), not a
-  founder-default office — so the un-withdrawable institution is the
-  NPC-backed corpo, and players hold *employee* seats under it.
-- The **Blood Service org, its seats, the donor supply, and the typed
-  bank** at the Terminus infirmary are **content rows**.
+- The **par/restock, org, credit-ledger, accountability, treatment-
+  billing, and corpo** substrate is kernel/platform + the shipped corpo
+  system, already generic — this build *extends* it (type-aware par read,
+  the gift-credit wiring, the `issue` act + its service fee, the consent
+  ladder + the identity directive) rather than forking it.
+- The **dispensing window is an independent Business** that bears the
+  corpo's name (the ghost sign) — its own small operation, player-holdable
+  — while the **corpo keeps the upstream** (collection + distribution) as
+  the NPC supplier that fills the window's par. The divestiture is the
+  product fact; which `appointingAuthority` shape the independent window
+  uses is the plan's.
+- The **window, its seats, the upstream supplier edge, and the typed
+  stock** at the Terminus infirmary are **content rows**; the **Decree +
+  the ghost name** are corpo lore (one paragraph + one NPC line).
 - ⭐ **The test: a second bank needs zero code** — another locality
-  authors the Business (corpo-run in a city, independent/civic on a
-  frontier) with a typed par and a donor supplier, and it works. The
-  trade=mechanism / locality=expression line.
+  authors the window Business with a typed par and an upstream supplier,
+  and it works. The trade=mechanism / locality=expression line.
 - Whether the Terminus rows ride `trade-medicine`, the corpo pack, or a
   thin new pack is the plan's call; the product requirement is only that
-  the bank is a *generic donation-bank org over the shipped Business +
-  corpo substrate*, not a hardcoded NPC caste.
+  the bank is a *generic donation-bank over the shipped Business + corpo
+  substrate*, not a hardcoded NPC caste.
 
 ## Collisions
 
@@ -186,26 +213,30 @@ Everyone this touches already lives at **the Terminus infirmary**
 - **The physician's practice** is already a Business there (physician +
   nurse positions, hours 7–19, `banksAt: goodkin`) — and it currently
   carries the `{category: blood, level: 2, unit: L}` par line. ⚠ **The
-  blood par must move off the practice onto the corpo-run Blood Service**
-  — the slate is explicit the blood people are *separate from medical*,
-  and the trade is a corpo's now. Two Businesses operating at one location
-  (the medical practice and the corpo Blood Service) must stand up and
-  attribute independently.
-- **The corpo** (Goodkin — already the infirmary's bank, the warm
-  sunrise-stone house with a mascot in the window) is the operator; a
-  free blood service reads as exactly its goodwill/brand play. Its
-  counting-houses frontage is the political seat of the trade; the ward
-  is where it collects and dispenses. A second corpo could compete.
+  blood par must move off the practice onto the independent blood
+  window** — the blood people are *separate from medical*. Two Businesses
+  at one location (the medical practice and the blood window) must stand
+  up and attribute independently.
+- **Goodkin is the ghost, not the operator.** The infirmary already
+  `banksAt: goodkin`, and the warm sunrise-stone house is the name
+  everyone still associates with blood — but post-Decree it runs only the
+  upstream; the **window is independent** and just wears the sign. (The
+  money-bank relationship is unaffected; the blood relationship is the
+  one the Decree severed.)
 - **The ward** (cots, tariff slate, the basin, the just-placed blood
-  fridge + cooler, the dressing cabinet) is where the Blood Service
-  co-sites — it needs an `operatingLocations` fixture there (a donation
-  couch / a registrar's desk) without displacing the practice's.
+  fridge + cooler, the dressing cabinet) is where the window sits — it
+  needs an `operatingLocations` fixture there (a donation couch / the
+  registrar's desk) without displacing the practice's. **The transfusion
+  service fee rides the same billing the practice already uses for
+  `order treatment`** — not new money substrate.
 - **The physic garden** (north of the ward) and the **counting-houses
   avenue** (the ward's southwest exit, which carries the grid feeder the
   fridge draws) are unaffected but are the neighbours.
-- **The physician + nurse cast** stay the practice's; the Blood Service
-  brings its **own cast** (a registrar, and the donor NPCs that feed the
-  supply).
+- **The physician + nurse cast** stay the practice's; the window brings
+  its **own cast** — a **crusty independent registrar** who keeps the
+  Goodkin name out of habit and trust, is the floor that always serves a
+  dying delver, runs the drives, and delivers the Decree in a line to
+  anyone who asks — plus the donor NPCs that feed the supply.
 - The **general-store cold room** (the other cold-storage consumer) is
   unrelated and elsewhere.
 
@@ -242,14 +273,16 @@ becomes necessary*, which almost nothing else in the design does.
 
 ### Dispensing is a seat-gated, gift-only issue act
 **Q:** How does a unit leave the bank to be used?
-**A:** A new **`issue`/`requisition`** act: an on-shift bank attendant
-dispenses a typed unit gift-only (never `buy`), appending a
-chain-of-custody record. **Chosen by lenses 6/3b/7/4** — it is the
-registrar's actual job (economy), makes the bank a counter you transact
-with (participation), names who may draw and leaves an auditable trail
-that is simultaneously a malpractice record and a credential
-(governance), and keeps the draw off money so the gift thesis survives at
-the dispensing end too (values). Raiding the fridge with `get` was
+**A:** A new **`issue`/`requisition`** act: an on-shift window attendant
+dispenses a typed unit, appending a chain-of-custody record. The **unit
+is not sold** (the donor's gift is never commodified — you do not `buy`
+blood); the **transfusion carries a service fee** for the processing
+around it, billed separately on the treatment rail. **Chosen by lenses
+6/3b/7/4** — it is the registrar's actual job (economy), makes the window
+a counter you transact with (participation), names who may draw and
+leaves an auditable trail that is a malpractice record and a credential
+at once (governance), and keeps the *gift* off the price tag while the
+*service* is honestly charged (values). Raiding the fridge with `get` was
 rejected: "authorized" would have no criterion.
 
 ### The floor/ceiling split — players operate above an NPC-guaranteed floor
@@ -262,8 +295,9 @@ clear a nice-to-have), a blood bank that fails *kills*, so the economy
 lens forbids a floor the market can withdraw.
 - **Floor — NPC-guaranteed, un-withdrawable:** the emergency case (a
   dying patient + a compatible unit on hand) is always served, by the NPC
-  attendant if no player acts, bypassing any player-held gate. Supply
-  *and* emergency dispensing have an NPC floor.
+  attendant if no player acts, bypassing any player-held gate — and
+  **regardless of the patient's ability to pay** the fee (handled after).
+  Supply *and* emergency dispensing have an NPC floor.
 - **Ceiling — player-operable, where the drama is:** everything above
   "don't die" — donor drives, the named summons, stocking rare types,
   *elective*-surgery supply, and the allocation of **scarce** (not
@@ -288,23 +322,69 @@ the gift (the pedagogical core) intact, but threw away the values-lens
 allocation moment and the registrar vocation; the floor/ceiling split
 keeps both without the "I logged off and three people died" failure mode.
 
-### The corpo runs the city blood trade
-**Q:** Who owns the bank — an independent founder, a civic office, or one
-of the houses that already run the city's money?
-**A:** **A corpo** (Goodkin the natural candidate). The city's blood
-trade is corpo-administered; the operating Business's appointing authority
-is the corpo, not a founder-default. **Chosen by the user**, and it
-sharpens three lenses: governance (the floor becomes a *regulatory
-obligation the polity imposes on a private operator*), economy + the
-future Titmuss lever (a *donated* good under *corporate* control is the
-richest version and loads the paid-market beat), and the kill-switch
-worry dissolves (the un-withdrawable institution is the NPC-backed corpo;
-players hold *employee* seats under it, and the top seat is a political
-climb, not a handout). ⚠ Honest cost: it muddies the pure
-collective-action lesson into a corpo-administered commons — a gain in
-realism and teachability, but a real shift from the slate's "civic habit"
-framing. The generic mechanism still lets a frontier town run an
-independent civic bank as rows.
+### The Paramount divestiture — the ghost on the window
+**Q:** Who runs the city blood trade, and why isn't it the obvious house?
+**A:** The **Paramount Decrees shape.** One corpo — **Goodkin** — was once
+the integrated blood monopoly (collection + distribution + dispensing). A
+clean **antitrust Decree** (a private monopoly over a life-or-death good
+was intolerable) forced it to divest **one** link. It kept the two that
+hold the value — **collection + distribution** (the processing/testing/
+cold-chain, where the service fee's margin lives) — and gave up the least
+profitable: **dispensing**, which in a gift world makes no money. The
+infirmary's blood window is now **independently operated but still bears
+the Goodkin name** — the sign outlived the ownership. **Chosen with the
+user**, and it does a lot of work at once:
+- **It answers vertical integration permanently.** Integration *happened*;
+  the state broke it; re-integrating is now illegal — a named, forbidden
+  ambition if we ever want a menace, not a plot hole.
+- **It produces the floor/ceiling split as structure.** The kept upstream
+  is the NPC-backed, un-withdrawable supply floor; the divested window is
+  exactly the small, local, **player-holdable** link. The Decree carved
+  off the one piece a player can run.
+- **It uses Goodkin as a ghost, not the operator** — the name everyone
+  trusts, over a door the house no longer runs. The misread ("so Goodkin
+  runs it?") *is* the history lesson, delivered by the registrar's one
+  line.
+- **It keeps the map honest.** One window; no competing storefronts,
+  because gift-dispensing has nothing to compete over. The Decree is
+  realm-wide, so Terminus needs no special exception.
+
+⚠ Honest cost: it muddies the pure collective-action lesson into a
+divested-but-corpo-shadowed commons — a gain in realism and teachability,
+a shift from the slate's "civic habit" framing.
+
+### The gift is the donor's; the sale is the service
+**Q:** Isn't blood sold? A transfusion isn't free, and it isn't all labor.
+**A:** Right — and the money goes in a specific place. **The donor is
+never paid** (gift-only, the Titmuss line, at the *donation* end). **The
+patient pays a service fee** — for the testing/processing/cold-chain that
+makes a donated unit safe and available (reagents and refrigeration, the
+"not all labor" part), **not** for the blood-as-substance. The gift is
+never commodified; the service around it is a legitimate charge, on the
+shipped `order treatment` billing rail. **Chosen by the user.** It
+sharpens everything: it is airtight *why* the corpo kept distribution
+(that is where the margin is — the window takes only thin clinical-labor
+markup); it gives a second bank a real economic reason to exist *once blood
+can be sold* (the deferred lever, self-justifying); and it hardens the
+floor — the dying are served **even when they can't pay the fee** (the fee
+is handled after), real emergency-care ethics. Titmuss is untouched: the
+deferred lever is still *paying the donor*, the only payment that corrupts.
+
+### The historical failure modes are reachable and self-teaching
+**Q:** The history is the lesson — how does a player learn it?
+**A:** By being allowed to **make the forebears' mistakes**, deterministically,
+and seeing the consequence (never by a paternalistic block; competence
+buys refusal-*judgment*, never a safer act). Each real blunder has a
+reachable in-game analogue: the **untyped gamble** (skip `test`, transfuse
+unlabelled — Blundell 1818), **blood too far across the tree** (cross-clade
+in desperation — Denys' animal blood → the ×2 reaction), **skipped
+screening → a tainted unit** (a drunk/sick donor's blood enters the
+supply), the **cold-chain lapse** (let the feeder cut, the vault spoils).
+And the mistake **leaves evidence** — the accountability ledger records
+who gave what, the forensic reader (`analyze postmortem`, shipped) reads a
+reaction-death back to its cause. Failure is information, not a dead-end:
+the mirror shows you. **Independent of the lore** (no catastrophe backstory
+required — the Decree is clean antitrust).
 
 ### Prior consent — the donor card — is first-class
 **Q:** How is consent handled, given a dying patient cannot give it?
@@ -344,13 +424,15 @@ derivable, not opaque*.)
 Material on the freshness clock, kept by the cold fridge). Noted only
 because it couples supply pressure to `setScale`; the rates are dials.
 
-### The holder is the corpo (see "The corpo runs the city blood trade")
-The city bank's appointing authority is **a corpo** — the un-withdrawable
-NPC-backed institution, bound by the regulatory floor; players hold
-employee seats under it. (A frontier/independent bank would instead use a
-`{kind: office}` founder-default so it is never ownerless — the generic
-mechanism supports both.) This is where the politics lives and keeps the
-paid lever a future legislative choice against the corpo.
+### The holder — the window is independent, the floor is the corpo's upstream
+Two holders, by the divestiture (see *The Paramount divestiture*). The
+**dispensing window** is an **independent** Business — small, local,
+player-holdable, bound by the regulatory floor whoever runs it. The
+**kept upstream** (collection + distribution) is the **corpo's** — the
+NPC-backed, un-withdrawable supply floor behind the window. A player works
+or holds the *window*; the corpo supply behind it is never a player's to
+switch off. (The exact `appointingAuthority` shape for the independent
+window — a founder-default office, a civic trust — is the plan's.)
 
 ## Lens pass
 
@@ -362,10 +444,15 @@ paid lever a future legislative choice against the corpo.
    under private control (the advance-directive ethic via the donor card).
    ⭐ **Finding → requirement:** the compatibility graph must be **legible
    in-world** or the across-species lesson is hidden (see *Compatibility
-   must be legible*). The craft Disciplines are the shipped
-   `nursing`/`medicine`; no new skill bar — the real teaching is civics.
+   must be legible*). ⭐ **And the history is taught by repeating it** — the
+   acts let a player make the forebears' mistakes (untyped gamble,
+   cross-clade, skipped screening, cold-chain lapse) and read the
+   consequence off the record (see *The historical failure modes*). The
+   craft Disciplines are the shipped `nursing`/`medicine`; no new skill
+   bar — the real teaching is civics and history.
 2. **Creative expression** — the ordinary case is rows (a second bank is
-   authored, corpo-run in a city or independent on a frontier, zero code);
+   authored — a ghost-named independent window in a city, a civic bank on
+   a frontier — zero code);
    the bespoke case (a rare-type donor drive, a species whose blood is
    incompatible with the common pool → *more fragile, its own drive*,
    expressed as allele frequencies + a clade edge + a type-targeted par)
@@ -374,7 +461,8 @@ paid lever a future legislative choice against the corpo.
    milk/vaccine/seed bank is rows later — *name the substrate, not its
    first consumer.*
 3. **Immersion / participation** — ⭐ fills a real institution-shaped
-   hole: a corpo-run bank with a registrar seat, a summons that makes a
+   hole: an independent window (the ghost name) with a registrar seat, a
+   summons that makes a
    specific stranger matter, a donation that is remembered. ⚠ Two
    immersion requirements fall out: the **NPC supply needs a visible
    face** (a donor cot / an occasional "someone gives blood" beat — not a
@@ -410,34 +498,42 @@ paid lever a future legislative choice against the corpo.
    emergency-dispense **floor cannot be withdrawn by a player** — the NPC
    institution guarantees it; players operate above it. Produces: a
    reliable typed supply + the registrar/phlebotomist/screener vocations
-   (courier later). Consumes: donor volume/marrow, cold-chain power, the
-   Service's wages. Who pays: the Service's treasury (wages), the donor
-   (volume) — never the recipient (gift-only). The demand was there first
-   (surgery's `bloodCostL`, the bleed).
-7. **Governance** — when the bank judges *who may draw*, the criterion is
-   the seat (on-shift, authorized), the record is the custody/harm ledger,
-   and the operator is **a corpo bound by a regulatory floor** the polity
-   imposes (*you may run the trade; you may not let a dying person die for
-   your inventory*). A player employee's abuse (hoarding, mis-issue) is a
-   legible, recorded, punishable act — a governance story, never a silent
-   death, because the floor still serves the dying. The gift/paid policy
-   is a future legislative choice *against the corpo* (not built).
+   (courier later). Consumes: donor volume/marrow, cold-chain power,
+   wages. ⭐ **Who pays what:** the **donor is never paid** (the gift); the
+   **patient pays a service fee** for the processing around the gift (the
+   margin the corpo kept when it divested the free-dispensing window).
+   Gift-dispensing having no margin is *why* there is one window and no
+   competition — until the paid-donor lever creates one. The demand was
+   there first (surgery's `bloodCostL`, the bleed).
+7. **Governance** — the trade's shape is a **state act** (the antitrust
+   Decree that broke the monopoly and forbids re-integration). When the
+   window judges *who may draw*, the criterion is the seat (on-shift,
+   authorized), the record is the custody/harm ledger, and the operator —
+   player or NPC — is **bound by a regulatory floor** (*you may run the
+   window; you may not let a dying person die for your inventory, or for
+   their empty purse*). Abuse (hoarding, mis-issue) is legible, recorded,
+   punishable — a governance story, never a silent death. The paid-donor
+   policy is a future legislative choice (not built).
 
 ## The drive
 
 Driven at the Terminus infirmary on a live world.
 
-1. **The bank is stocked, by NPCs, and it is the corpo's.** Arrive at the
-   ward. Look at / query the blood bank: it is run by the corpo (Goodkin),
-   and holds **typed** units (e.g. "O+ 1.5 L, A− 0.4 L, O− — none")
-   because the Service's donors have been giving on a cadence. Confirm the
-   stock is **derived from the units actually in the fridge**, not a
-   stored number — and that there is a **visible donor** presence (a donor
-   on the couch / a "someone gives blood" beat), not a number rising by
-   itself.
-2. **Surgery spends it.** A patient needs a rupture-repair (0.3 L). The
-   clinician transfuses a compatible banked unit; the bank's stock for
-   that type drops. (Demand is real and pre-existing.)
+1. **The bank is stocked, by NPCs, under a name that isn't its owner.**
+   Arrive at the ward. The blood window wears the **Goodkin** sign; it
+   holds **typed** units (e.g. "O+ 1.5 L, A− 0.4 L, O− — none") because the
+   upstream has been filling it on a cadence. Ask the registrar and get
+   the history in a line (*"we keep the name — Goodkin hasn't run this
+   window since the Decree"*). Confirm the stock is **derived from the
+   units actually in the fridge**, not a stored number — and that there is
+   a **visible donor** presence (a donor on the couch / a "someone gives
+   blood" beat), not a number rising by itself.
+2. **Surgery spends it, and the patient is billed for the service.** A
+   patient needs a rupture-repair (0.3 L). The clinician transfuses a
+   compatible banked unit; the stock for that type drops, and a
+   **transfusion service fee** lands on the patient's bill (the
+   processing, not the blood) on the shipped treatment rail. (Demand is
+   real and pre-existing.)
 3. **A shortage becomes legible.** Drive the O− stock to zero (surgeries
    / issues). A **press notice** posts — "the Terminus infirmary is short
    of O−" — readable on the news ticker and the start-screen press room.
@@ -459,30 +555,40 @@ Driven at the Terminus infirmary on a live world.
    recompute). Then the control: a player who `bleed`s into their *own*
    bag for their *own* use earns **none** of the three.
 6. **The registrar issues a unit — and makes a hard call.** An on-shift
-   Blood Service attendant `issue`s an O− unit to the clinician/patient —
-   **gift-only, no coin changes hands** — and a **custody record** appends
-   (who issued what, to whom). An unauthorized or off-shift person is
-   refused. Then the scarcity moment: with one compatible unit and two
+   window attendant `issue`s an O− unit to the clinician/patient — the
+   **unit itself is not sold** (no `buy` of the gift), though the
+   transfusion's service fee still applies — and a **custody record**
+   appends (who issued what, to whom). An unauthorized or off-shift person
+   is refused. Then the scarcity moment: with one compatible unit and two
    patients wanting it (one elective, one urgent-but-not-dying), the
    player operator chooses — a values call the record remembers.
-7. **The consent ladder.** A patient with a **donor-card directive** has
+7. **You can make the forebears' mistake.** Transfuse an **untested /
+   unlabelled** unit into a typed patient without matching — it is *not*
+   blocked (you are Blundell, 1818). On a mismatch the transfusion-reaction
+   fires; the patient sickens on the shipped cascade; and the
+   **accountability ledger records who gave it**, readable afterward
+   (`analyze postmortem` if it kills). The lesson is the consequence, not a
+   refusal. (Same shape reachable for cross-clade and a skipped-screening
+   tainted unit.)
+8. **The consent ladder.** A patient with a **donor-card directive** has
    it read first (a "won't receive" refusal holds even unconscious; a
    "will receive" pre-grants). With no directive: a **conscious** patient
    is asked; a **dying/unconscious** one is treated under implied consent.
    A **conscious refusal always wins**, even to death. Transfuse against
    the ladder (a conscious or pre-registered "no") and confirm a **harm**
    row appends against the administrator (the poisoner's shape).
-8. **The backbone and the floor hold with no players.** With no player
-   donating, the bank still refills toward par from the Blood Service's
-   NPC donors on its cadence — the combat supply does not depend on a
-   player. And the floor: with **no player operator on shift**, a dying
-   patient with a compatible unit on hand is still served (the NPC
-   attendant dispenses under implied consent) — nobody bleeds out beside a
-   full fridge. Conversely, a player operator who **refuses/hoards** does
-   not override the floor for a dying patient, and the refusal is recorded.
-9. **A second bank is rows.** (Author-level check) a second clinic's
-   Blood Service — a Business with a blood par and a donor supplier —
-   stands up a working typed bank with no new code.
+9. **The backbone and the floor hold with no players.** With no player
+   donating, the window still refills toward par from the upstream on its
+   cadence — the combat supply does not depend on a player. The floor:
+   with **no player operator on shift**, a dying patient with a compatible
+   unit on hand is still served (the NPC attendant, under implied consent),
+   and **a patient who cannot pay the fee is still served** (billed after,
+   not turned away) — nobody bleeds out beside a full fridge. Conversely, a
+   player operator who **refuses/hoards** cannot override the floor for a
+   dying patient, and the refusal is recorded.
+10. **A second bank is rows.** (Author-level check) a second window — a
+    Business with a typed blood par and an upstream supplier — stands up a
+    working typed bank with no new code.
 
 ## Acceptance criteria
 
@@ -499,13 +605,21 @@ Driven at the Terminus infirmary on a live world.
 - When a type runs out, a **named shortage for that type** is readable on
   the press ticker without the player being pushed or nagged; and the
   room summons names the type.
-- An **on-shift Blood Service attendant can issue a typed unit** with no
-  payment; an unauthorized person cannot, and the issue leaves a record a
-  player can read (`chronicle` of the bank / the custody trail).
-- **The floor holds regardless of players:** a dying patient with a
-  compatible unit on hand is served even with **no player operator on
-  shift**, and a player operator **cannot withhold** blood from a dying
-  patient to death — the attempt is recorded, the floor still serves.
+- An **on-shift window attendant can issue a typed unit**; an
+  unauthorized person cannot, and the issue leaves a record a player can
+  read (`chronicle` of the window / the custody trail).
+- **The patient pays for the service, not the gift:** a transfusion lands
+  a service fee on the patient's bill (on the shipped treatment rail), the
+  donor is never paid, and the donated unit itself is never a priced
+  `buy`.
+- **The floor holds regardless of players *or purse*:** a dying patient
+  with a compatible unit on hand is served even with **no player operator
+  on shift** and even if they **cannot pay** (billed after); a player
+  operator **cannot withhold** blood from a dying patient to death — the
+  attempt is recorded, the floor still serves.
+- **A player can make a historical mistake and learn from it:** an
+  untyped/cross-clade/tainted transfusion is *not* blocked, it inflicts
+  the reaction, and the record shows who gave it (readable post-mortem).
 - Above the floor, a player operator **can choose** who receives a
   **scarce** (non-last-ditch) unit, and that choice is attributable in
   the custody record.
@@ -521,11 +635,11 @@ Driven at the Terminus infirmary on a live world.
 - A compatible-across-species, incompatible-within-species donation
   **works** (the clade graph is not a hierarchy) — nobody is ever
   hard-blocked from a donor pool.
-- The city bank is **the corpo's**: a player can hold an **employee** seat
-  under it (apply/clock), the top seat is a corpo-political position (not
-  a founder handout), and the corpo is bound by the floor; an independent
-  frontier bank (founder-default office) works off the same mechanism as
-  rows.
+- The city window is an **independent operation wearing the Goodkin
+  name**: asking the registrar yields the divestiture history; the
+  upstream that fills it is the corpo's (the player can never switch that
+  supply off); a player can work/hold the **window** (apply/clock); and a
+  second window elsewhere works off the same mechanism as rows.
 
 ## Cross-references
 
