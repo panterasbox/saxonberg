@@ -697,8 +697,11 @@ path free) · [dairy-slate](../slates/builds/dairy-slate.md) ·
 [vocations](../vocations.md) ·
 [settlement-model](../settlement-model.md)
 
-**In flight** — the tapping build (`design/2026-09-30-tapping`) is
-working the forestry pack and the species rows heavily; this build must
-read that tree rather than today's. The cold-storage work
+**In flight** — the tapping build **merged to master on 2026-10-02**,
+while this doc was being written. It lands two things this build should
+read rather than rediscover: the tap substrate is now the engine's
+rather than the ranching trade's, and the forestry pack gained a
+sugaring chain, two new tree species and a sugarbush in the Hanging Wood
+— the same wood this build takes bark from. The cold-storage work
 (`design/cold-storage`) is what eventually moves slaughter out of the
 city, per lens 5.
