@@ -526,7 +526,12 @@ an Extra-without-Persona simply has no card, which is the truth). Verb
 `platform/idea/cmd/medical/DonorController.ts`): bare `donor` shows the
 card and your tested type (or *untested*); `donor register|withdraw`;
 `donor accept|refuse|clear`. Afforded by `PersonaMixin.commandContributions.self`
-(the `chronicle.yaml` precedent, L137). Acts on the giver only.
+(the `chronicle.yaml` precedent, L137). Acts on the giver only. ⭐ With
+the summons pure-pull (user decision), `donor register` places you on the
+window's **donor roll** — an opt-in list read off `analyze bank` (D15)
+that someone facing a shortage consults and answers in the room, never a
+push target. Registration's v1 consumer is the roll + the legibility of
+your own card; it is also the seam the future paid-donor lever reads.
 
 ### D5 — The consent ladder lives on the patient's Persona; harm is appended controller-side (E5)
 
@@ -766,14 +771,18 @@ unbranded — the gift is legibly not the corpo's). Zero code.
    player attendant could do the identical thing. Free (D6). The custody
    deed's `who` lists every on-shift window holder present (a fact the
    record keeps: *the floor served while X held the window*).
-2. **The summons.** For each lot in `window.shortLots()` not announced
-   within `config.summonsCooldownS` (default one game-hour): `say`
-   *"Anyone type O? The window is out."*; and ONE `tell` to each
-   **connected** avatar (`PlayerApi.connectedAvatars()`) whose card has
-   `donor: true` **and** whose tested type (`isBloodTyped() &&
-   bloodType() === lot`) matches — once per shortage onset (the cooldown
-   key is `lot`; it resets when the lot refills). Opt-in by the card,
-   bounded by construction; a non-registrant is never told.
+2. **The summons — pure pull (decided by the user).** For each lot in
+   `window.shortLots()` not announced within `config.summonsCooldownS`
+   (default one game-hour): `say` *"Anyone type O? The window is out."*
+   in the room, once per shortage onset (the cooldown key is `lot`; it
+   resets when the lot refills). **No targeted message of any kind** — no
+   `tell`, no push into anyone's feed. The pull is the room ask + the
+   ticker notice (beat 3), both of which a donor meets by being present
+   or by reading, never by being nudged. The opt-in **donor roll** (the
+   `donor register` flag) is a READABLE surface, not a push target: a
+   registrar or player facing a shortage reads it off `analyze bank`
+   (D15) to see who has registered as that type, and asks them in the
+   room — the summons stays something a person chooses to answer.
 3. **The notice.** When a lot first goes short (transition, not level):
    `press post "The Goodkin window at the infirmary is short of type
    O" --kind notice`; when it refills, no retraction (a notice ages off
@@ -810,10 +819,15 @@ Both registrars run `banks`; the night one only ever fires the floor
   `scope: [subject, here]`, `discipline: nursing`): `analyze bank
   [window]` — the typed panel: each lot's litres/units, the par and
   aggregate shortfall, which lots are **out**; proficient adds the
-  freshest-spoils-first order; expert adds the custody trail — the last
-  N chronicle deeds tagged `blood,custody` with `where` = this room
+  freshest-spoils-first order **and the donor roll** (who has
+  `donor register`ed, by tested type — the opt-in list a shortage is
+  answered from, the pull surface that replaces the push; present
+  registrants first); expert adds the custody trail — the last N
+  chronicle deeds tagged `blood,custody` with `where` = this room
   (`ChronicleEntry.find`), *who issued what to whom*. This is the read
-  the drive's step 1 and step 6 assert against. Both rows are warmed by
+  the drive's step 1 and step 6 assert against. (The roll reads
+  registered donors from their `donorCard.donor`; keyed on
+  `getIdentityPath()`, present-in-locality scoped.) Both rows are warmed by
   `ReadingCatalogue` with no kernel edit.
 
 ### D16 — Custody is chronicle deeds on the persons, trail derived by tag
@@ -1130,8 +1144,9 @@ game-days — the perishable gate cannot see this), `issue.test.ts`
 writes both deeds), `donate.test.ts` (a player's own unit → deed +
 disposition rows + a renown event; an NPC's → none; somebody else's unit
 → none; a short lot → compassion too), `banks.test.ts` (the floor beat
-issues+transfuses a dying body; skips a `wont` card; the summons tells
-only connected registrants of the matching tested type, once),
+issues+transfuses a dying body; skips a `wont` card; the summons `say`s
+the short lot once per onset and sends **no** `tell`; the donor roll on
+`analyze bank` lists a registered donor of that type),
 `supplies.test.ts` (the runner moves a unit floor→fridge through
 `open`/`put`/`close`), `readings.test.ts` (prose at each band contains
 the band's facts — *tested by reading it*).
@@ -1216,9 +1231,10 @@ specific words, never *"the status is defined"*):
    session's prose).
 5. A new player session: `test` → the type line; `analyze blood` lists
    species of the same system and excludes one of another;
-   `donor register`, `donor accept` → `donor` echoes both; `bleed into
-   bag` (wait the draw out — the clinical-medicine drive's pattern — or
-   run not-engaged), `donate bag` → `chronicle` has the gift deed,
+   `donor register`, `donor accept` → `donor` echoes both, and `analyze
+   bank` now lists them on the donor roll for their type (the pull
+   surface); `bleed into bag` (wait the draw out — the clinical-medicine
+   drive's pattern — or run not-engaged), `donate bag` → `chronicle` has the gift deed,
    `traits` prints generosity, `eval` `RenownApi.renownOf(id, locality)`
    > 0 after the scheduled fold (await it). The control: a second player
    `bleed`s into a bag and keeps it — no deed, no trait line, renown 0.
@@ -1270,7 +1286,7 @@ the MR.
 | `donate` | `donate.yaml` | same | a bag whose slot payload has `blood` | — | `bag requires: [BulkableMixin]` scope `inventory`, greedy |
 | `order transfusion` | `retail/order.yaml` (shipped) | `Tariff.commandContributions` inherited by `BloodWindow` | `prices.transfusion` + `services.transfusion` on the window row | the window Business live for `collect` | `counter default reachable:[class.Tariff]` + the W3 scan |
 | `analyze blood` / `analyze bank` | `perception/analyze.yaml` (shipped) | global | the two reading rows (`/trade/medicine/idea/reading/`) warmed by infix | `ReadingCatalogue` (lazy + onCreate) | `subject` greedy, `requires: any` |
-| the floor / summons / notice | `banks` brain (`forceCommand` of `issue`/`transfuse`/`say`/`tell`/`press post`) | the registrar rows' `behaviors: [{brain: /trade/medicine/behavior/banks, trigger: cadence, config: {window: …}}]` | the window Business `publishingPositions` + `feedPath`; the registrar's roster seat | the registrar Cast spawned (ward in `boot:`), the Business live and on shift | `press`'s `requiresPublisher` |
+| the floor / summons / notice | `banks` brain (`forceCommand` of `issue`/`transfuse`/`say`/`press post` — no `tell`, pure pull) | the registrar rows' `behaviors: [{brain: /trade/medicine/behavior/banks, trigger: cadence, config: {window: …}}]` | the window Business `publishingPositions` + `feedPath`; the registrar's roster seat | the registrar Cast spawned (ward in `boot:`), the Business live and on shift | `press`'s `requiresPublisher` |
 | the supply | `supplies` brain | the runner row's `behaviors:` | `stocks:` on the infirmary zone + the unit rows' `censusKey`/`container:` | the collection room + its Stock in `boot:` (the sweep draws into a live home) | `open`/`put`/`close` views' gates (Sealable, Container) |
 | the sign | — | `ward.yaml adornments:` | `_brandKey` → the Brand row | corpo-goodkin installed (terminus depends on it) | — |
 | the Decree | `talk registrar` (shipped `talk`) | `tree-dialogue` brain on the Cast, `trigger: engage` | the node text | the Cast spawned | — |
@@ -1294,7 +1310,7 @@ the only thing that proves it; every verb above is exercised there.
 | the floor holds with no operator and no purse; an operator cannot withhold to death; the attempt is recorded | W4 (`banks` floor beat), D6, drive 9 |
 | historical mistakes not blocked; the reaction; the record shows who gave it | W1 (harm append), shipped reaction, drive 7 |
 | above the floor a player chooses who gets a scarce unit; attributable | W4 (`issue`), W3 (deeds), drive 6 |
-| donor-card directive read first; a pre-registered refusal holds unconscious; a conscious refusal wins; against-directive = harm; registrants only are reached | W1, W4 (summons filter), drive 5/8 |
+| donor-card directive read first; a pre-registered refusal holds unconscious; a conscious refusal wins; against-directive = harm; the opt-in roll is readable (pull, no push) | W1, W4 (`analyze bank` roll), drive 5/8 |
 | compatibility legible in-world, crossing species | W0, W4 (`analyze blood`), drive 5 |
 | a cross-species compatible / within-species incompatible donation works; nobody hard-blocked | W0, drive 5 (a system-mate recipient) |
 | the window is independent under the Goodkin name; the registrar yields the history; the upstream is the corpo's and unswitchable; a player can apply/clock; a second window is rows | W5 (D11, D12, D17), drive 1/6/10 |
@@ -1340,12 +1356,13 @@ after"* (D6) and *"O−"* (D18).
 2. ⚠ **Rh is not shipped; the drive says O−** (D18). The build names ABO
    types. If Rh is wanted, add it in W0 (it doubles the lot vocabulary;
    the readings and rows follow). **User's eye.**
-3. ⚠ **The summons push** — D14 sends ONE `tell` per shortage onset to
-   connected registrants of the matching *tested* type. If even that
-   reads as a nudge, drop beat 2's `tell` and keep the room `say` + the
-   ticker; the acceptance *"the registration box is what the summons
-   reaches"* is then satisfied vacuously. Decide at build; default is the
-   bounded tell.
+3. ✅ **The summons is pure pull (decided by the user).** No `tell`, no
+   targeted message: the room `say` + the ticker notice are the whole
+   summons. The `donor register` flag is now a READABLE donor roll on
+   `analyze bank` (D15), not a push target — a shortage is answered by
+   someone reading the roll and asking in the room. "The registration box
+   is what the summons reaches" is satisfied by the roll being the thing
+   a registrant chooses to be found on, never by a notification.
 4. **The donor Extra's marrow never regrows without food** (D13). The
    floor does not depend on it; the face does. If the live drive shows
    the donor never once gives, keep the emote beat only. Do not add a
