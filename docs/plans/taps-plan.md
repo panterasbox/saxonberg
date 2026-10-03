@@ -2163,3 +2163,92 @@ including ⛔ checkpoint 18's assertion that `instruct` is absent. ⚠ The
 requirements and plan are therefore **NOT retired** this round: the
 acceptance criteria that depend on a walked season are in question, and
 retiring the docs that record them before that is settled would bury it.
+
+---
+
+## ⭐⭐⭐ Review round 6 — the clock moved OUT of the fiction, and the drive is 16/16
+
+The user's call on round 5's fork: *"I want to make sure this is tested
+before we merge. Also if anything needs that testhook thing apply that
+as well."* Both done.
+
+### D22 — the clock is a HARNESS seam, not a sandbox binding
+
+`backend/TestHooks.advanceClock(duration)` + `clockNow()`, behind
+`POST /auth/test-clock` on `TestAuthRoutes` — the module whose own
+docstring is *"every backend seam that exists ONLY to support tests, in
+one module, out of the business logic."* The wire harness calls it over
+HTTP (`advanceWorldClock` / `worldClockNow`).
+
+⭐⭐ **And `WorldClockApi` came OFF `SANDBOX_NAMES` entirely**, which
+restores the state `time.md § Nothing in the game can advance the clock`
+describes — a section the apiculture build wrote, this build broke for
+three review rounds, and the sweep put back. The drive now asserts the
+absence directly: `eval return WorldClockApi.getNow()` must answer *not
+defined*.
+
+**Three independent gates, three different questions:** `AUTH_MODE ===
+'test'` (is this process a fixture; `Server` refuses to boot if that is
+ever true with `NODE_ENV=production`) · the route is mounted only in
+that same branch · `WorldClockApi.advance` carries `@TestOnly`.
+
+⭐ **Why a root frame is the whole mechanism**, and it is asserted rather
+than assumed: `runRoot` carries **no circle scope and no jurisdiction
+bound**, which is exactly what a global jump needs and exactly what an
+`eval` can never give it. `TestHooks.clock.test.ts` pins it from both
+sides — a jump *inside* a quarantined circle and *inside* a
+parcel-bound jurisdiction both succeed, because the hook sheds the
+caller's context.
+
+### ⚠⚠ F4 — a NEW measurement: four 20-day jumps wedge the world
+
+With a clock that actually moves, the drain cost is real: the session
+stopped answering inside the harness's 30 s dispatch timeout after the
+**fourth** 20-day jump, and every later checkpoint died with it.
+
+⭐⭐ **Nobody knew this, and the reason is exactly F1's.** Checkpoint 7's
+old shape walked *"eight 20-day steps"* and the clock was DEAD for all
+of them — the cost of its own loop had never once been paid. The TSDoc's
+*"jump a season at a time"* turns out to be generous.
+
+So the drive asks the smallest question that still proves the thing:
+
+- **Checkpoint 7** tries the tap FIRST and touches the clock only if the
+  season refuses (at most twice) — the sap window is open at game-time 0.
+- ⛔ **Checkpoint 6b is DELETED.** Walking out of the season to prove the
+  closed-window refusal costs more jumps than the world survives. That
+  case is arithmetic over declared data and is pinned where arithmetic
+  belongs — `SapStandard.test.ts` walks real game years through the
+  photoperiod band, `Producing.test.ts` covers `tapWindow`'s three
+  answers. ⭐ Which is the apiculture build's own conclusion, reached the
+  hard way a second time.
+- **Checkpoint 6** keeps the claim the drive CAN make unconditionally:
+  the tree states its sap in words with **no digit** (AC 8).
+
+### Two of my own bugs on the way, both caught by running it
+
+1. `SERVER_URL` in the wire harness is a lazy **function**, not a
+   string; `${SERVER_URL}` interpolated the source text into a URL.
+2. A scripted edit anchored on the wrong line and deleted 219 lines of
+   the drive's helpers. Caught by `tsc` immediately and restored from
+   HEAD — ⭐ which is the argument for committing before restructuring,
+   not after.
+
+### Drive record — 16/16, honestly
+
+```
+✓ 0.  the test-clock route moves game time, and by how much
+✓ 0.  a ZERO jump is a legal no-op, and the clock survives it
+✓ 0.  ⛔⛔ and the clock is NOT reachable from in-world code at all
+✓ 1.  the kit (⚠ the Rejection till's `insufficient-funds` finding stands)
+✓ 2–4. a stand is not a stem, and the refusals say so
+✓ 5.  the sugarbush names each stem, and says how big it is
+✓ 6.  the TREE states its sap in WORDS — no number, no date
+✓ 7.  in the run, `tap` SETS a spile as an engagement
+✓ 15, 20. `tap` is afforded here; `milk`/`shear`/`gather`/`rob` are not
+✓ 18. ⛔ CUT — `instruct` is ABSENT, and that is the assertion
+   Tests  16 passed (16)
+```
+
+⚠ Still unmet and recorded as unmet: **AC 7** (the relief, cut — see
+round 4) and the out-of-season refusal as a *driven* checkpoint (F4).

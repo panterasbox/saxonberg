@@ -33,17 +33,30 @@ works only where `SecurityApi.isTestEnvironment()` is true: an
 in-process vitest run, or a world the wire runner booted and marked
 (`SAXONBERG_TEST_WORLD=1`). A development world carries no such marker.
 
-⚠⚠ **This corrects what this section said for a build and a half.** It
-was first shipped as *"moving time from inside the game"* and
-*"reachable from the `eval` sandbox, which is the code-trust axis"* —
-which made a global, irreversible, immersion-breaking capability sound
-like an authoring affordance, on the strength of a precedent that did
-not exist (the claim that `setScale` was already sandbox-reachable was
-false; the only reference to it outside the clock's own files was the
-sentence asserting it). ⭐ **Nothing a player does moves the realm's
-clock.** There is one clock, it is global, and a jump ages every
-reconcile-on-read system in the world at once. Being receipted does not
-make that acceptable; it only makes it diagnosable.
+⚠⚠ **This corrects what this section said for a build and a half**, and
+it took three review rounds. It first shipped as *"moving time from
+inside the game"* and *"reachable from the `eval` sandbox, which is the
+code-trust axis"* — which made a global, irreversible,
+immersion-breaking capability sound like an authoring affordance, on the
+strength of a precedent that did not exist (the claim that `setScale`
+was already sandbox-reachable was false; the only reference to it
+outside the clock's own files was the sentence asserting it).
+
+⭐ **Nothing a player does moves the realm's clock.** There is one
+clock, it is global, and a jump ages every reconcile-on-read system in
+the world at once. Being receipted does not make that acceptable; it
+only makes it diagnosable.
+
+⛔ **And the sandbox route could never have worked anyway**, which is
+the part worth keeping. An `eval` always runs inside a sandbox boundary
+— a quarantined circle (`/home/<player>`, the default) or a parcel-bound
+jurisdiction (`--parcel`) — and a jump of GLOBAL time is precisely what
+a bounded context must not do: the quarantined route is refused by
+`assertNotQuarantined`, and the governed route dies on the jurisdiction
+boundary the moment the drain creates a Stuff outside the extent. ⚠ Both
+failed **silently** (no note, no matching prose) while the drive
+reported 15/15. The clock now lives in `backend/TestHooks.advanceClock`
+behind `POST /auth/test-clock`, which is where scaffolding belongs.
 
 The slow systems themselves need nothing from the clock — they are
 reconcile-on-read and the realm reaches them by living. Only a
@@ -67,13 +80,14 @@ a one-shot once, an `every` **once per missed period**. A jump that
 silently dropped them would make the clock a liar, which is the whole
 reason the method exists rather than a bare anchor bump.
 
-- **Reachable from the `eval` sandbox — in a test world only.**
-  `WorldClockApi` is on `SANDBOX_NAMES` so a drive can read the clock
-  and jump it; where `@TestOnly` has withheld `advance`, the same
-  binding exposes a clock you can read and schedule against, and a jump
-  that refuses with an explanation. ⛔ No new verb and no `isWizard`
-  check; `shutdown` stays `SystemRoot`, so an eval still cannot freeze
-  the world.
+- ⛔⛔ **NOT reachable from the `eval` sandbox, by any route.**
+  `WorldClockApi` is **off `SANDBOX_NAMES`** — see § *Nothing in the
+  game can advance the clock* below, which this build broke and the
+  pre-merge sweep restored. The harness moves time from outside the
+  fiction (`POST /auth/test-clock` → `TestHooks.advanceClock`), where a
+  root frame carries no sandbox scope and no jurisdiction bound, which
+  is exactly what a global jump needs. ⛔ No new verb and no `isWizard`
+  check; `shutdown` stays `SystemRoot`.
 - ⛔⛔⛔ **But NOT from a quarantined circle.** Every clock MUTATOR
   (`advance`, `pause`, `resume`, `setScale`, `restore`) refuses when the
   caller sits inside a wire circle, because world time is global and
@@ -668,7 +682,20 @@ Found by the apiculture build's browser walk (2026-09-30). There is **no
 clock verb in any category**, and the `eval` sandbox allowlist is
 `StuffApi · MqlApi · ContainmentApi · MixinApi · console · self · target`
 — so no in-world instrument, not even a wizard's, can move game time.
-Only `_advanceForTesting` reaches it, and that is unit-test surface.
+
+⭐⭐ **The taps build broke this for three review rounds and the
+pre-merge sweep put it back**, which is the strongest evidence this
+section is load-bearing. W0 added `WorldClockApi` to that allowlist so a
+drive could skip a season; the sweep removed it again and moved the jump
+to `backend/TestHooks.advanceClock` behind `POST /auth/test-clock` (a
+route mounted only when `AUTH_MODE === 'test'`). The drive now asserts
+the absence directly: `eval return WorldClockApi.getNow()` must answer
+*not defined*.
+
+Two seams reach the clock, both test-only and both outside the fiction:
+`_advanceForTesting` (unit-test surface, moves the injected real clock)
+and `advance` (`@TestOnly`, moves the game-time anchor, reached only
+through the harness route).
 
 ⭐⭐ **The consequence is a whole class of mechanism being unobservable
 rather than merely slow.** A game day is ~2 real hours, so every

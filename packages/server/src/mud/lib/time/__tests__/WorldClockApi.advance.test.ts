@@ -237,12 +237,22 @@ describe('WorldClockApi.advance', () => {
       expect(await inCircle(() => WorldClockApi.getScale())).toBe(1);
     });
 
-    it('⭐⭐ and an UNSCOPED caller still passes — the drive must work', async () => {
-      // A governed eval plants `jurisdictionBound`, not `circleScope`
-      // (`SandboxLogic.runGoverned`), so it reads as unscoped here and
-      // passes — which is what the drive's checkpoint 0 relies on, and
-      // that path is already receipted with provenance plus a mudlog
-      // line.
+    it('⭐⭐ and a caller with no CIRCLE scope passes', async () => {
+      // ⚠⚠ **This case was cited as proof that the drive's governed
+      // `eval` would work, and it never proved that.** It calls
+      // `runRootGuarded` with `{jurisdictionBound}` directly, which is
+      // a MODEL of `SandboxLogic.runGoverned` — the real path also
+      // evaluates a script, drains inside the bound, and dies on the
+      // jurisdiction boundary the moment a drained schedule creates a
+      // Stuff outside the extent. Green here, and not evidence about
+      // there: the drive proved otherwise on a live world.
+      //
+      // ⭐ What it DOES pin, and all it pins, is the quarantine guard's
+      // own boundary: `assertNotQuarantined` reads `circleScope` and
+      // nothing else, so a jurisdiction bound alone does not trip it.
+      // The clock's real caller is `TestHooks.advanceClock`, which runs
+      // on a fresh root carrying neither — see
+      // `backend/__tests__/TestHooks.clock.test.ts`.
       const before = WorldClockApi.getNow().rawValue();
       await ExecutionContextApi.runRootGuarded(
         null,

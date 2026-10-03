@@ -1,8 +1,9 @@
 /**
- * TestAuthRoutes — TEST-ONLY authentication bypass.
+ * TestAuthRoutes — the TEST-ONLY route surface.
  *
  * Mounts `POST /auth/test-login`, which establishes a real Passport
- * session for a deterministic synthetic user, skipping Google OAuth.
+ * session for a deterministic synthetic user, skipping Google OAuth —
+ * and ⭐ `POST /auth/test-clock`, which moves world-time.
  * This is the seam that lets browser E2E tests (Playwright) get past
  * the login screen without automating a real Google flow.
  *
@@ -16,10 +17,20 @@
  *      `X-Test-Auth` header.
  * Production never sets `AUTH_MODE`, so this route does not exist there.
  *
- * The endpoint reaches the SAME session state as the real OAuth path
- * (`session.passport.user = { id }`, set via `req.login`), so
+ * The login endpoint reaches the SAME session state as the real OAuth
+ * path (`session.passport.user = { id }`, set via `req.login`), so
  * `/auth/status`, `req.isAuthenticated()`, and the WebSocket upgrade's
  * `session.passport.user.id` check all work with no other changes.
+ *
+ * ⭐⭐ **Why the clock is a ROUTE and not a verb.** A game day is about
+ * two real hours, so a seasonal system is unobservable to any test that
+ * finishes. The taps build first reached for the `eval` sandbox, which
+ * was a category error twice over: it dressed scaffolding as an in-world
+ * authoring act, and it could not work anyway — an `eval` always runs
+ * inside a sandbox boundary (a quarantined circle, or a parcel-bound
+ * jurisdiction) and a GLOBAL clock jump is the one thing a bounded
+ * context must not be allowed to do. ⛔ Nothing in the game moves the
+ * realm's clock. The harness does, from outside the fiction, here.
  */
 
 import type { Express, Request, Response } from 'express';
@@ -91,8 +102,50 @@ export class TestAuthRoutes {
       );
     });
 
+    // ⭐ The clock. Same mount gate, same token check, and
+    // `TestHooks.advanceClock` refuses independently on `AUTH_MODE`
+    // while `WorldClockApi.advance` refuses independently on
+    // `@TestOnly` — three questions, three gates.
+    app.post('/auth/test-clock', (req: Request, res: Response) => {
+      if (TEST_AUTH_TOKEN && req.get('x-test-auth') !== TEST_AUTH_TOKEN) {
+        res.status(403).json({ error: 'forbidden' });
+        return;
+      }
+      const body = req.body as { advance?: unknown } | undefined;
+      const advance = body?.advance;
+      // No `advance` is a pure READ, which is what a drive uses to
+      // assert the jump landed.
+      if (advance === undefined) {
+        try {
+          res.json({ now: TestHooks.clockNow() });
+        } catch (err) {
+          console.error('TestAuthRoutes: test-clock read failed:', err);
+          res.status(500).json({ error: String(err) });
+        }
+        return;
+      }
+      if (typeof advance !== 'string') {
+        res.status(400).json({ error: 'advance must be a duration string' });
+        return;
+      }
+      void TestHooks.advanceClock(advance)
+        .then((moved) => res.json(moved))
+        .catch((err: unknown) => {
+          // ⚠ The MESSAGE goes back, not a bare 500. A refusal here is
+          // `@TestOnly`'s or the clock's own (a paused clock, a
+          // duration it cannot parse), and each says exactly what is
+          // wrong — losing that is how the eval route stayed
+          // undiagnosed for three review rounds.
+          console.error('TestAuthRoutes: test-clock failed:', err);
+          res
+            .status(500)
+            .json({ error: err instanceof Error ? err.message : String(err) });
+        });
+    });
+
     console.warn(
-      'TestAuthRoutes: ⚠  /auth/test-login is MOUNTED (test auth). Never in production.'
+      'TestAuthRoutes: ⚠  /auth/test-login and /auth/test-clock are MOUNTED ' +
+        '(test seams). Never in production.'
     );
   }
 }

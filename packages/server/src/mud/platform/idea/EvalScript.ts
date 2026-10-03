@@ -29,7 +29,6 @@ import { StuffApi } from '../../api/stuff';
 import { MqlApi } from '../../api/mql';
 import { ContainmentApi } from '../../api/containment';
 import { MixinApi } from '../../api/mixin';
-import { WorldClockApi } from '../../api/worldclock';
 import type { FieldMeta } from '../../lib/mixin';
 
 /**
@@ -42,37 +41,50 @@ import type { FieldMeta } from '../../lib/mixin';
  * `ContainmentApi`, `MixinApi`), with `console` for output. Tighten
  * or expand based on what playtesting actually wants.
  *
- * `WorldClockApi` is here so that a DRIVE can move time — a game day
- * is two real hours, so a season is unreachable from any session that
- * finishes. ⭐ Its `advance` carries `@TestOnly`, so in a normal runtime
- * the Api class simply has no such key and this binding exposes a clock
- * you can READ and schedule against but not jump. The capability is
- * the test harness's, not the player's.
+ * ⛔⛔⛔ **`WorldClockApi` IS NOT HERE, and the story of why is worth the
+ * paragraph.**
  *
- * ⚠⚠ **And the first version of this comment justified it with a
- * falsehood.** It claimed *"`setScale` was always reachable from here,
- * `advance` is the same authority stated honestly"*. It was not: before
- * this binding, **nothing in the sandbox could touch the clock at all**
- * — the only reference to `setScale` outside the clock's own files was
- * this sentence asserting it. A premise stated once and then cited.
- * Raised in review.
+ * The taps build added it so a drive could skip a season, then spent
+ * three review rounds learning that it was wrong three different ways:
  *
- * ⛔ So the authority does NOT come from this list. Every clock MUTATOR
- * (`advance`, `pause`, `resume`, `setScale`, `restore`) refuses when the
- * caller sits inside a quarantined circle, because world time is global
- * and **there is no per-circle clock** — see
- * `WorldClockRegistry.assertNotQuarantined`. A governed eval passes and
- * is receipted; a wire circle is denied. `shutdown` stays `SystemRoot`,
- * so nothing in-world can freeze the world either way, and `advance`
- * writes a server-log line so a jump is never silent even in a test
- * world.
+ *  1. ⚠⚠ **The justification was fabricated.** The first version of this
+ *     comment claimed *"`setScale` was always reachable from here;
+ *     `advance` is the same authority stated honestly."* It was not —
+ *     before that binding **nothing in the sandbox could touch the clock
+ *     at all**, and the only reference to `setScale` outside the clock's
+ *     own files was that sentence asserting it. A premise stated once
+ *     and then cited.
+ *  2. ⛔ **It was a category error.** A clock jump is *scaffolding*, not
+ *     a capability: nothing in the game moves the realm's clock, and
+ *     binding it here made the fiction owe an explanation for a player
+ *     who can skip a month.
+ *  3. ⛔ **And it could never have worked.** An `eval` always runs inside
+ *     a sandbox boundary — a quarantined circle (`/home/<player>`, the
+ *     default) or a parcel-bound jurisdiction (`--parcel`) — and a jump
+ *     of GLOBAL time is precisely the thing a bounded context must not
+ *     do. The quarantined route is refused by
+ *     `WorldClockRegistry.assertNotQuarantined`; the governed route dies
+ *     on the jurisdiction boundary when the drain creates a Stuff
+ *     outside the extent. ⚠ Both failed SILENTLY (no note, no matching
+ *     prose) while the drive reported 15/15.
+ *
+ * ⭐ The clock now lives where scaffolding belongs:
+ * `backend/TestHooks.advanceClock` behind `POST /auth/test-clock`, a
+ * route mounted only when `AUTH_MODE === 'test'`, called by the harness
+ * from OUTSIDE the fiction — where a root frame carries no scope and no
+ * jurisdiction, which is exactly what a global jump needs.
+ *
+ * ⭐ So nothing in-world can read or move the clock through this list at
+ * all, which is the containment the build should have started with.
+ * `shutdown` keeps its `SystemRoot` gate; `assertNotQuarantined` stays
+ * on every mutator for the callers that are not this list (a
+ * circle-born schedule's callback re-roots under its birth scope).
  */
 const SANDBOX_NAMES = [
   'StuffApi',
   'MqlApi',
   'ContainmentApi',
   'MixinApi',
-  'WorldClockApi',
   'console',
 ] as const;
 
@@ -89,7 +101,6 @@ function buildSandbox(receiver: Stuff): Record<string, unknown> {
     MqlApi,
     ContainmentApi,
     MixinApi,
-    WorldClockApi,
     console,
     // The eval'd script's `this` binding — the `--on` target (or the
     // avatar by default). Exposed both as a bare `this` (via the
