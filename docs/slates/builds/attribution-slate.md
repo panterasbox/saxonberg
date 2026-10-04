@@ -4,11 +4,14 @@
 > assumed without stating.**
 > ⭐ The goal, in the user's words: ***"making sure every bit of content
 > and code has someone responsible for it."***
-> **Left:** the template rating (sampled, amortised) · the mint ledger ·
-> apportioning iterating work · the `every-template-resolves-to-a-parcel`
-> lint · the five grant lines and their three forms · the **capacity
-> read** and its reference basket · the cost-basis pin at mint ·
-> per-template breakers
+> **Left:** ⭐ **the observe-only sampler** (§ 4 — the one new
+> instrument, and the thing to prototype first) · the **bucketed use
+> counter** (§ 4a — the denominator) · the offline RAM rating table
+> (§ 4d) · the mint ledger · apportioning iterating work · the
+> `every-template-resolves-to-a-parcel` lint · the **six** grant lines
+> and their three forms · the **capacity read** and its reference basket
+> (⭐ now load-bearing three ways) · the cost-basis pin at mint ·
+> per-template breakers · the sandbox diagnostic producer (§ 4e)
 > **Size:** **a build**, and it gates the storage/CPU/RAM half of
 > [scarcity-slate](./scarcity-slate.md) the way
 > [llm-economy-slate](./llm-economy-slate.md) gates the token half.
@@ -140,23 +143,533 @@ own.**
 *it has no appetite*: **an Api is not a thing that exists in a parcel.**
 `/platform` holds no inventory.
 
-## 4. What is measured — two instruments, not one
+## 4. ⭐⭐⭐ How CPU is actually measured — sample, don't instrument
 
-| instrument | cost | for |
+> **User: "is it just a timer for how long a method takes to run? are you
+> actually checking something more fundamental?"**
+
+### ⛔ Instrumenting every call cannot work
+
+The naive version wraps the proxy's dispatch in `process.cpuUsage()` and
+accumulates per template. ⚠ **Cost is proportional to call volume**, and
+our volume is *every method on every Stuff* — two `cpuUsage()` reads
+around a three-line getter **cost more than the work being measured.**
+
+⭐ That is [scarcity-slate](./scarcity-slate.md)'s *"the meter is made of
+the thing it measures"* arriving concretely, and it is **fatal rather
+than merely inefficient**, because the overhead lands hardest on exactly
+the cheap methods that make up most of the volume.
+
+### ⭐⭐⭐ Sampling is not a compromise — it is the right instrument
+
+> **Sampling's cost is constant** — ~1,000 stack reads per second whether
+> the process made a hundred calls or a hundred million.
+
+And § 3 already decided the rating is **per-template and amortised**,
+which is a *statistical* quantity. **So sampling is the correct
+instrument for the thing we chose to measure**, not a worse version of
+measurement.
+
+**The pieces all ship** (`api/execution-context.ts`):
+
+- `CallFrame` carries **`target`** (the receiver), `caller`, `method`,
+  `timestamp`;
+- the stack lives in **`AsyncLocalStorage<FrameNode>`** (line 161), so it
+  propagates across awaits;
+- `runRoot` plants a root whose context covers *"its whole async tree."*
+
+```ts
+// the sampler — one jittered timer, ~1kHz, reading state that exists
+function sample() {
+  const stack = ExecutionContextApi.getCallStack();
+  const t = attributionTarget(stack);       // the ladder, below
+  if (t) histogram[t.getTemplatePath()]++;  // ⚠ template, NEVER identity
+}
+```
+
+> ⭐ **Per-call cost: zero new work.** The frame already exists and
+> already holds the target. The proxy does not time anything — it keeps
+> doing what it does.
+
+### ⭐⭐⭐ Which solves async by construction
+
+> **A wall-clock timer charges an awaiting object for the entire wait.**
+> Sampling attributes CPU to **whoever is actually on the CPU** — and an
+> awaiting frame is not on it.
+>
+> **The thing that breaks timers is automatically correct under
+> sampling.**
+
+⭐⭐ **And scheduled work becomes moot for the same reason.**
+`ScheduleApi.recurring`/`schedule` already wrap callbacks in `runRoot`,
+so a timer callback has a frame and the sample attributes to whatever
+Stuff the callback is operating on. **Sampling never has to answer *who
+caused this timer*** — the question § 2 showed has no stable answer. It
+does not ask.
+
+### ⭐⭐⭐ The attribution ladder — ordered by WHO HAS A LEVER
+
+> **User: "this sampling algo needs a little more thought or we could get
+> some numbers we can't actually easily act on and then whats the
+> point."**
+
+That is the design principle: **an attribution is only useful if it
+names somebody with a lever.** So the ladder is not arbitrary precedence:
+
+| the number lands on | can they act? |
+|---|---|
+| a parcel's content | ✅ cut it, cheapen it, checkpoint it |
+| a mixin's maintainer | ✅ optimise the mixin |
+| a controller's shipping pack | ✅ optimise the controller |
+| ⛔ **a player** | ⛔ **only by playing less** |
+| "the engine" | ⚠ only if small — if large, *that is the finding* |
+
+Walk the stack **deepest-first** and take the most specific match:
+
+1. a **content Stuff** — `templatePath` resolves into a parcel that is
+   not `/platform` → ⭐ **that parcel**
+2. a **mixin method on a shared host** (an Avatar, a platform class) →
+   ⭐ **the mixin → its shipping pack**
+3. a **controller or Api** with no content frame beneath → **the pack
+   that ships it**
+4. nothing but framework → **overhead**
+
+```ts
+// classify by KIND OF OWNER, not by "is it framework"
+function attributionTarget(stack: CallStack) { /* rungs 1-4 */ }
+```
+
+⚠ **A first sketch classified frames by *"is this a real receiver"* and
+skipped only `ApiLogic`** — which lands rung 2 squarely on the player's
+Avatar. The predicate has to be **owner-kind**, not framework-ness.
+
+### ⛔ Never the player — two independent reasons
+
+1. ⭐⭐⭐ **Charging a player for playing is a tax on the activity the
+   game exists to provide.** It makes the quiet player the cheap one —
+   the most perverse incentive available here.
+2. It fails the lever test: the player's only response is *do less*.
+
+⭐⭐ **And the Avatar's cost distributes across its composed mixins.** An
+Avatar is not one thing with one owner; a sample inside
+`VitalsMixin.reconcile` attributes to **`VitalsMixin` → whoever ships
+it**, and `_mixinName` + `sourcePack` already name that party.
+
+> **The cost of simulating a body belongs to whoever wrote the body
+> simulation.** Which answers *"the avatar committee — or one of
+> several?"*: **as many as there are mixins, and the attribution tells
+> you which ones matter.**
+
+⭐ The **three player-side bodies** (the Avatar, the shade, the sandbox
+wire-body) are distinct templates, so the histogram separates them for
+free — *what do shades cost, what does playtesting cost* become readable
+with no new instrumentation.
+
+### Verbs stay shared — and the stack carries what you need
+
+⭐ We cannot mint per-parcel verbs; a common interface is the whole point
+against EotL's **4,472** bespoke-verb files. And most of a `look`'s cost
+is not in the controller — the downstream frames **already name the
+content**:
+
+```
+LookController.lookAtLocation      ← framework, thin
+  crossing (/world/terminus/…)     ← ⭐ content, owned
+    DetailedMixin.getDetail        ← the 7 details
+```
+
+⚠ Samples landing in the controller's *own* code go to **the pack that
+ships it** — platform for `look`, University Avenue for `tally`.
+Actionable by a real maintainer either way.
+
+### ⭐⭐ Exclusive vs inclusive — the bill vs the INTEREST LIST
+
+> **User: "there's possibly more than one interested party in a thing. if
+> a mixin is expensive then the mixin owner will care. but so should the
+> person owning the content that depended on the mixin."**
+
+| | who gets the sample | what it is |
 |---|---|---|
-| **a counter on the proxy** (calls per Stuff) | cheap, continuous | ⭐ a **shape signal** — is this object chatty? |
-| **a sampled duration / heap walk**, per **template** | expensive, rare | ⭐ the **rating** |
+| **exclusive** | the **deepest** attributable frame | ⭐ **the bill** — one winner, nothing double-charged |
+| ⭐⭐ **inclusive** | **every** attributable frame on the stack | **the interest list** |
 
-⚠ Call *counts* are not cost: a call that does nothing and a call that
-walks ten thousand rows are both one call. **Counts find anomalies;
-samples set prices.**
+And the reason the interest list matters is that **both parties have
+levers, but different ones:**
 
-⭐⭐ **Command controllers resolve cleanly**: a platform controller is
-`/platform`'s, has no appetite, runs on another's behalf → **overhead**.
-A *domain-local* controller — University Avenue's `blow`/`tally`, Duncan
-Hall's `provision` — **is content somebody authored in a parcel.** So **a
-controller is rated to the pack that ships it**, and `sourcePack` already
-draws that line.
+| party | lever |
+|---|---|
+| the mixin's maintainer | optimise it |
+| ⭐ the content owner who composed it | **stop using it**, hit it less often, or wait for the fix |
+
+> ⭐⭐⭐ **So inclusive attribution is how everyone with a lever learns
+> they have one.**
+
+⭐⭐ With a consequence worth having: **an expensive mixin is reported to
+every parcel that composes it**, so pressure on its maintainer is
+**distributed and visible** rather than depending on one person noticing.
+Same market shape one layer up: *an expensive item is one players will
+not carry* → **an expensive mixin is one authors will not compose.**
+
+⚠ **Presentation rule, because it is the classic profiler misreading:
+inclusive counts over-count by design and do not sum to 100%.** They are
+a co-occurrence measure, and presenting one as a bill would discredit the
+instrument.
+
+⭐ Note the interest list lands on exactly § 5's three parties — **the
+template's author (rating), the minter (mint), the holder (load)** — now
+with one sampler feeding all three views.
+
+## 4a. ⭐⭐⭐ Expensive vs popular — the denominator problem
+
+> **User: "how do you separate expensive from popular from just sampling
+> cpu? this feels like it makes the popularity feedback system actually
+> load bearing."**
+
+The identity is **`total CPU = rating × uses`**, and sampling gives only
+**total.** So an expensive thing used once and a cheap thing used a
+million times produce **identical sample counts** — with opposite
+remedies:
+
+| | remedy |
+|---|---|
+| expensive and rare | ⭐ optimise it — the author's lever |
+| cheap and popular | ⭐⭐ **nothing is wrong. That is success.** The remedy is *more allocation* |
+
+> ⚠⚠ **An undifferentiated total would systematically PUNISH POPULARITY**
+> — the failure already deleted twice (owner-pays for brains,
+> author-pays-forever for torches). **This would be the third time.**
+
+### ⭐⭐⭐ The use COUNTER is the denominator
+
+```
+rating = samples_attributed / uses_counted
+```
+
+Worked: `look crossing` runs **10,000** times for **72,000** samples →
+**7.2/use.** Another room reaching the same total in **10** uses →
+**7,200/use**, a thousandfold more expensive. **Identical totals,
+radically different ratings.**
+
+> ⭐⭐⭐ **The sample is the numerator; the counter is the denominator.
+> Neither alone is a rating.** The counter is not a diagnostic
+> nice-to-have — it is half the measurement, and it is one increment on a
+> dispatch that already pushes a frame.
+
+### ⛔ And ratings must NOT be the denominator
+
+If player ratings supplied the divisor: **game your ratings → your
+measured per-use cost falls → you look efficient.** That breaks the
+property ratings are safe *because* of — being upstream of a bet rather
+than an input to a measurement — and half-breaches
+[feedback-slate](./feedback-slate.md)'s firewall, since raters would move
+cost without being able to see it.
+
+> ⭐⭐⭐ **A use counter is an ENGINE FACT** — unforgeable, free, nobody's
+> judgment. **A rating is a PLAYER JUDGMENT** — gameable by design.
+> **They must never be the same number.**
+>
+> So the counter is what **keeps** the feedback system from becoming
+> load-bearing.
+
+### ⭐⭐ Revealed vs expressed — which revises `feedback-slate`
+
+| | |
+|---|---|
+| the **counter** | ⭐ **revealed** demand — people came |
+| the **rating** | **expressed** demand — people want more |
+
+And the standing rule is *reputation **revealed** beats **expressed***:
+
+> ⭐⭐⭐ **Revealed demand (the counter) is the denominator, and the
+> honest `demand` term in `f(standing, demand, activity)`. Expressed
+> demand (the rating) is the allocation APPLICATION** — what a committee
+> reads.
+
+⚠ `feedback-slate` has ratings feeding the entitlement function
+directly; this moves them one step out, to the thing a human weighs
+rather than the thing a formula multiplies. **Ratings stay consequential
+without becoming a measurement input.**
+
+### ⭐⭐ And bucket the counter, because a mean hides the scaling
+
+Even with the counter, a mean conceals whether a cost **scales** — and
+the scaling factor is the thing an author can actually fix.
+
+| occupancy | samples/use |
+|---|---|
+| 1–5 | 7 |
+| 6–20 | 31 |
+| ⚠ 21+ | **410** |
+
+> **That table names the bug.** The mean (≈24) names nothing, and reads
+> as *slightly expensive room* rather than *something here is O(n²) in
+> occupants.*
+
+⭐ Bucket a room by occupancy, a derive by event-count decade, a
+container by contents — one increment into a bucketed counter instead of
+a flat one.
+
+⚠ **And this wants playing with.** Three cheap levers (samples, bucketed
+counts, the ladder) interact, and the right combination is an empirical
+question, not a derivation. ⭐ **The observe-only prototype is how it gets
+answered**, not more design.
+
+## 4b. ⭐⭐⭐ Why sampling is trustworthy — and where it is not
+
+> **User: "I don't claim to totally understand why its so trustworthy. a
+> lot is riding on people trusting these methods."**
+
+Standard error is `√(p(1−p)/N)`. At 1 kHz over an hour — **3.6M
+samples**:
+
+| true share | measured as (95% CI) |
+|---|---|
+| 10% | 10% ± 0.03% |
+| 1% | 1% ± 0.01% |
+| ⚠ 0.001% | **± 17% of itself** (~36 samples) |
+
+> ⭐⭐⭐ **Precision is proportional to the stakes** — three digits on the
+> big consumers, nothing on the negligible ones. **Which is right: a
+> template using 0.001% does not need an accurate rating, it needs to be
+> known as negligible.**
+
+⭐ That is the property a per-call timer lacks: uniformly precise and
+uniformly expensive, paying full price for accuracy nobody needs.
+
+**What sampling can be genuinely wrong about:**
+
+- ⚠⚠ **Correlated sampling** — a sampler whose interval phase-locks with
+  a periodic workload (a 1 Hz tick, a sweep cadence) systematically
+  over- or under-counts it. ⭐ **Fix: jitter the interval.** The one real
+  statistical trap here.
+- **Short windows are noise** — so ratings are long-window and
+  slow-moving, which also makes them **stable**, which is what a price
+  needs.
+- The sampler appears in no sample (it is not Stuff), so it lands in
+  overhead. Honest.
+
+### ⭐⭐⭐ And the trust argument that matters is constitutional
+
+**Verify-don't-trust**, with Art. VII §2 requiring integrity outputs be
+**independently re-derivable by any member.**
+
+> ⭐⭐⭐ **The sample stream must be publishable, not just the
+> conclusion.** If the histogram is the only artefact, you must trust us.
+> If the raw counts (or a signed digest) are published, **anybody can
+> recompute a rating and check our arithmetic.**
+
+⭐⭐ And the cheap companion: **publish the error bars.** `0.8% ± 0.4%`
+is self-evidently a rating; `0.8%` invites a precision it does not have.
+B4 again — *a declared standard is never a gauge* — same countermeasure.
+
+**Publish the samples, publish the error bars.** Together they convert
+*trust our sampler* into **check our sampler.**
+
+## 4c. ⚠⚠ The firewall between resource accounting and STANDING
+
+> **User: "this instrumentation intersects with labor and consumer
+> standing in possibly fraught ways."**
+
+Three hazards, and the third needs a rule stated before anything ships.
+
+⭐⭐⭐ **(a) Efficiency must never be a political qualification.**
+**Resource consumption may never mint or reduce standing in any
+chamber.** Efficiency is a *craft* property; standing measures
+*contribution*. Conflate them and the cheapest content becomes the most
+politically powerful — the producer chamber becomes a chamber of thrifty
+engineers rather than of makers.
+
+⭐ **(b) But scarcity constraining production is fine, and the line is
+sharp.** If resource pressure makes me cut content, my engagement falls,
+so my standing falls — that is an economy, the same as not affording the
+land. What is unacceptable is the engine **docking standing for being
+expensive.**
+
+> **Scarcity may constrain what you produce. It may never score what you
+> produced.**
+
+⚠⚠ **(c) The consumer-chamber hazard.** The automata allowance derives
+from **participation**, which is measured engagement. So **hours played
+buy agent capability** — and for a chamber founded on *one verified
+human = one seat*, a capability ladder keyed to activity is a soft
+reintroduction of weighting.
+
+> ⭐⭐⭐ **Fix: the allowance needs a floor that is NOT
+> participation-derived.** Every citizen gets a baseline automata
+> capability *as a citizen*; participation affects only the headroom
+> above it — land-compute's floor pattern (*"a baseline it is never
+> squeezed below"*) applied to a person.
+
+⚠ **(d) And the nearly-invisible one.** A sampler recording which
+template is executing a thousand times a second, with player Avatars as
+targets, is **a behavioural trace at far higher resolution than the frame
+store** — the dossier A3 forbids.
+
+> ⭐⭐⭐ The fix falls out of the design: **the histogram is keyed on
+> `templatePath`, and every player Avatar shares one `templatePath`** —
+> so player activity aggregates into a single bucket and is
+> **structurally un-individuated.** ⚠ The sampler must **never** key on
+> identity path.
+>
+> ⭐⭐ A nice inversion: the shared-`templatePath` property that once cost
+> a shared bank account is what makes CPU sampling privacy-safe.
+
+## 4d. RAM — rate it OFFLINE, and a catalogue is `fixed + n × per_entry`
+
+`v8.getHeapSnapshot()` is stop-the-world and enormous. **Never in
+production.**
+
+> ⭐⭐⭐ **Compute the RAM rating offline**: a staging box, a
+> representative world, one snapshot, attribute retained size by
+> constructor → template, **ship the table as data.**
+
+⭐ Which resolves the contradiction with
+[scarcity-slate § 4](./scarcity-slate.md) cleanly: **RAM is *rateable*
+offline, not *measurable* online.** No production heap walk, ever — and
+the rating is honest because it *is* a rating, same as weight.
+
+### ⭐⭐ The Api layer's RAM — and you can have it both ways
+
+> **User: "the api logic singletons may consume a lot of RAM, or the
+> registry/catalogue singletons they reference… we may want to attribute
+> some slice in the Api layer to a specific template or parcel instead of
+> / in addition to the Api itself."**
+
+Look at *what* they hold: `MaterialCatalogue` → 175 material rows ·
+`ReadingCatalogue` → 32 readings · `SubjectCatalogue` → `byId`/`byTitle`
+over every Subject · `HelpCatalogue` → the harvested index ·
+`BiomeCatalogue`, `LaneCatalogue`, `ParcelRegistry`…
+
+> ⭐⭐⭐ **A catalogue's retained size is almost entirely the rows it
+> holds, and rows belong to parcels.** The catalogue is a **container**;
+> its contents are attributable. **This is § 12's apportionment rule,
+> applied to RAM.**
+
+So the rating is two terms, which is the *"instead of / in addition to"*
+answered as **both**:
+
+> **`fixed + (n × per_entry)`**
+>
+> - the **fixed** part (the Maps, the singleton's own fields, the code) →
+>   ⭐ **the Api's**, monitored as one body, `/platform`'s;
+> - the **proportional** part → ⭐ **apportioned to whoever owns the
+>   rows.**
+
+⭐ A parcel adding 100 material rows sees its RAM line move by
+`100 × per_entry`, attributed correctly, **with no production measurement
+at all.** And an offline snapshot reads both terms directly — a
+catalogue's entries *are* distinct objects with distinct constructors.
+
+⚠ **One honest caveat: shared structure.** When two parcels' rows both
+reference one interned string or one shared prototype, retained-size
+attribution either double-counts or assigns arbitrarily. ⭐ **Report the
+ambiguity rather than resolve it** — the genuinely shared part goes to
+the fixed bucket, which is the overhead figure the committee already
+watches.
+
+## 4e. ⭐⭐⭐ The sandbox is where limits matter MOST
+
+> **User: "your sandbox only has actual limits on the real scarcities…
+> so the sandbox is actually where it's most important to enforce limits
+> because its where unpublished code runs."**
+
+⚠⚠ **A correction:** `sandbox.md`'s *"powerless by design"* was read as
+covering resources. It does not.
+
+> ⭐⭐⭐ **The sandbox's powerlessness is about STATE, not RESOURCES.** It
+> cannot touch shared state — and it can absolutely burn the box, because
+> CPU, RAM, storage and tokens are machine-level, not state-level.
+
+| | production | sandbox |
+|---|---|---|
+| in-game scarcities (land, occupancy, the sixteen needs) | ⭐ bind | ⛔ **free — that is the point** |
+| code review | published, reviewed | ⛔ **unreviewed by definition** |
+| ⭐⭐⭐ **what brakes it** | the in-game economy **and** the real scarcities | **the real scarcities, alone** |
+
+**So the sandbox needs TIGHTER limits than production**, not looser.
+
+### ⭐⭐ A breaker trip there is a TEST RESULT, not an incident
+
+An author iterating writes infinite loops **routinely** — that is what
+development is.
+
+| | a trip is |
+|---|---|
+| production | ⭐ **an incident** — public, attributed to a template, escalated |
+| sandbox | ⭐⭐ **a test result** — fast, local, cheap, reported to you |
+
+⭐⭐⭐ And the home exists: [diagnostics.md](../../subsystems/diagnostics.md)
+— *three producers, the DiagnosticApi store, the `errors` verb + CMS
+pane.* **A sandbox breaker trip is a diagnostic**, landing in `errors`
+beside your type errors, because it **is** an authoring error. Nothing
+new but a producer.
+
+### ⭐⭐⭐ And the sandbox profile IS the publishing application
+
+> **User: "it's also where the author is most going to want to know their
+> usage because that's all going to come up when they request publishing
+> through the state."**
+
+> **Measuring it is not a cost imposed on testing — it is producing the
+> evidence the author needs.** ⭐ An author *wants* their sandbox
+> metered; an unmetered sandbox means arriving at the publish gate with
+> nothing to show.
+
+⭐⭐⭐ **And it supplies the enforcement step the content-declaration
+doctrine was missing.** That doctrine says the produced output is
+measured against the declarations, but never said *where* — before it
+costs anybody.
+
+> **The sandbox is the measurement chamber. Publishing is the review of
+> the measurement.**
+
+A publish request therefore carries three things:
+
+1. the **declaration** — *this is a farm; it needs N inference, M heap*;
+2. the **measured sandbox profile**;
+3. ⭐⭐ **the comparison** — *you declared X, your sandbox measured Y* —
+   which peers adjudicate, exactly *"peers review whether the
+   declarations fit the form."*
+
+### ⚠ Two caveats, and the first upgrades an open question
+
+⚠⚠ **A sandbox profile is not a production profile.** Your sandbox has
+one occupant; the published room has forty. So the useful figure is
+**per-unit**, not total.
+
+> ⭐⭐⭐ Which means it needs **the same normaliser the capacity read
+> needs. The reference basket now serves THREE jobs**: the capacity read,
+> the fingerprint comparison, and **sandbox→production extrapolation** —
+> raising it from *a thing somebody must choose* to **the load-bearing
+> shared denominator.**
+
+⚠ **Second: a sandbox profile is gameable by testing gently.** Test with
+one NPC, publish with twenty. ⭐ So the declaration still binds and **the
+production profile is checked against the sandbox claim after go-live** —
+the land-compute ladder doing its actual job.
+
+**The full loop: declare → test → measure → apply → publish →
+re-measure → flag on divergence.**
+
+### The grant gets a sixth line, and it is the tighter one
+
+```
+cpu:         0.05 core      (live — reviewed code, in-game brakes too)
+cpu-sandbox: 0.01 core      (⭐ TIGHTER — unreviewed, no other brake)
+```
+
+⭐ Non-fungible, so testing cannot starve your world and your world
+cannot starve your testing. ⭐⭐ And it keeps `land-compute`'s rule
+intact — *the publish gate is the security boundary, not the compute
+boundary*: **compute still rides the parcel; the sandbox just gets its
+own line on the same grant**, because the risk profile differs, not the
+ownership.
+
+⭐ `getCircleScope()` is the partition handle: a root planted with
+`circleScope` *"runs its whole async tree as circle-context work"*, so
+**one read per sample partitions ALL sandbox work** — not merely the
+samples that land on a sandbox body.
+
 
 ## 5. ⭐⭐⭐ Three charges, not one
 
@@ -306,7 +819,7 @@ downstream notifications.** An author who keeps making public content
 more expensive acquires a reputation for it — which a private committee
 will weigh before extending from them again.
 
-## 7. ⭐⭐⭐ What a grant actually says — three forms, five lines
+## 7. ⭐⭐⭐ What a grant actually says — three forms, six lines
 
 > **User: "we named 4 scarcities but we never actually said what a grant
 > looks like."**
@@ -322,14 +835,15 @@ The form follows the resource's **shape**:
 | **tokens** | flow, **priced** | ⭐ **a QUOTA** — a count per period, **expires** | narrow |
 
 ```
-cpu:      0.05 core          (rate,    short-window enforced)
-ram:      64 MB resident     (ceiling, eviction-enforced)
-records:  50 MB              (ceiling, write-refused; also taxes ram + cpu)
-assets:   2 GB               (ceiling; reads cost egress)
-tokens:   400K / day         (quota,   expires, narrows)
+cpu:         0.05 core       (rate,    short-window enforced)
+cpu-sandbox: 0.01 core       (rate,    ⭐ TIGHTER — see § 4e)
+ram:         64 MB resident  (ceiling, eviction-enforced)
+records:     50 MB           (ceiling, write-refused; also taxes ram + cpu)
+assets:      2 GB            (ceiling; reads cost egress)
+tokens:      400K / day      (quota,   expires, narrows)
 ```
 
-⭐ **One document, five lines, three forms.** The lines are
+⭐ **One document, six lines, three forms.** The lines are
 **non-fungible** (a rule), but granted together, to one holder, in one
 act.
 
@@ -632,25 +1146,42 @@ and if it grows, something apportionable stopped being apportioned.**
 
 ## 13. Open questions
 
-1. ⭐⭐⭐ **The reference basket for the capacity read** (§ 8). *"Supports
-   a small tavern"* requires a published basket of reference content to
-   divide by, and **choosing that basket is a content judgment somebody
-   has to make and defend.**
-2. ⭐ **Is the template rating published?** Disclosed-on-the-object makes
+1. ⭐⭐⭐ **The reference basket** — now load-bearing **three** ways: the
+   capacity read (*"supports a small tavern"*), the fingerprint
+   comparison (*"farms cost about this"*), and **sandbox→production
+   extrapolation** (§ 4e). **Choosing and publishing it is a content
+   judgment somebody has to defend**, and three mechanisms break without
+   it.
+2. ⭐⭐ **How the three levers combine.** Samples, bucketed counts and the
+   ladder interact, and the weighting is **empirical, not derivable** —
+   *"something we'll have to play with, maybe multiple levers."* ⭐ The
+   observe-only prototype answers it; more design does not.
+3. ⭐ **Is the template rating published?** Disclosed-on-the-object makes
    the holder's load informed and the author's cost a market pressure —
    but a *public per-template cost table* is a leaderboard of expensive
-   authors, which is the gauge § 11 guards against. ⚠ Instinct: **visible
-   on the object (like weight), aggregated at the parcel (like a bill),
-   no cross-author ranking anywhere.** A values call, not a derivation.
-3. **Does the quadrant get a threshold?** A line is actionable and
+   authors, the gauge § 11 guards against. ⚠ Instinct: **visible on the
+   object (like weight), aggregated at the parcel (like a bill), no
+   cross-author ranking anywhere.**
+4. **Does the quadrant get a threshold?** A line is actionable and
    instantly gamed; a scatter is honest and requires somebody to look.
    ⭐ Instinct: **no threshold at the commons** (the executive sees only
-   the parcel aggregate at the seam); **the holder may draw their own
-   internally**, because the recursion rule says the commons does not
-   reach in.
-4. ⚠ **Does RAM move into the accounting system?** § 3 says per-template
-   sampling makes it affordable; `scarcity-slate § 4` says it is engine
-   physics. **The revision is real and unresolved.**
+   the parcel aggregate at the seam); the holder may draw their own
+   internally, per the recursion rule.
+5. ⚠⚠ **The `demand` revision needs ratifying.** § 4a moves player
+   ratings **out** of `f(standing, demand, activity)` and puts the
+   engine's **use counter** there instead, on the
+   *revealed-beats-expressed* rule — ratings becoming the allocation
+   **application** a committee reads. That contradicts
+   [feedback-slate](./feedback-slate.md) as written and should be decided
+   rather than left as two slates disagreeing.
+6. **How much tighter is the sandbox line?** § 4e argues tighter on
+   principle; the ratio is a guess until the sampler reports what
+   authoring actually costs.
+
+⭐ **Resolved by this pass:** *does RAM move into the accounting system?*
+— **yes, as an offline rating** (§ 4d). The scarcity-slate contradiction
+closes: **RAM is rateable offline, not measurable online** — no
+production heap walk, no per-object measurement.
 
 ## Cross-refs
 

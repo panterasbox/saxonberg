@@ -120,9 +120,14 @@ and belongs beside the record-integrity rules, not beside CPU's formula.
 > unaffordable thing was the GRANULARITY, not the measurement** — a
 > sampled heap figure per **template**, amortised over every instance, is
 > affordable, and the count is free because the registry already has it.
-> **So RAM may have a principal and a price after all**, which would move
-> it out of the rationing system and into the accounting one. ⚠ Unresolved,
-> and it is that slate's open question 4.
+> ⭐⭐⭐ **RESOLVED there: RAM is RATEABLE OFFLINE, not measurable
+> online.** One heap snapshot on a staging box against a representative
+> world, retained size attributed by constructor → template, shipped as a
+> **table of data** — so there is **no production heap walk and no
+> per-object measurement**, and the rating is honest because it *is* a
+> rating, same as weight. **RAM moves into the accounting system on those
+> terms**; the concession below about per-object cost per sweep stands
+> untouched and is simply not the thing that had to be afforded.
 
 Nobody wants anything about RAM. No chamber has an interest, no author has
 a preference, no player has an experience of it. That is not a gap in the
