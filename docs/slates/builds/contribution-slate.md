@@ -351,6 +351,40 @@ decide later whether it cares.
 For the CMS that means the agent is **a command-bus participant with a
 card**, not a chat widget bolted onto Monaco.
 
+### ⭐⭐⭐ And for a creator who brings their own agent, the delivery is MCP
+
+> **User: "claude users wont even use the cms UI they'll just use the MCP
+> and test drive their own changes via a live browser."**
+
+⭐⭐ **Already designed** —
+[cms-connectors-slate](./cms-connectors-slate.md) Part 2 specifies five
+tools 1:1 with shipped methods (`tree` · `read` · `write` ·
+`diagnostics` · `run`), at **size: small**, with the observation that
+*"Claude Code speaks MCP natively, and an agent does not want a
+filesystem — it wants tools."* Its **Part 2a** (added 2026-10-04) raises
+the priority and records four amendments from this conversation.
+
+> ⭐⭐⭐ **Which resolves BYO better than key-custody could: the creator
+> brings their own AGENT, not their own key.** No key ever reaches us, no
+> server-side agent to build, and their agent keeps its shell and
+> filesystem — **we supply the knowledge, they supply the compute.**
+
+⭐⭐ **And it makes § 7a's advantage a property of the API rather than of
+location**: `describeClass`, `read`, MQL and validate, exposed as tools
+over a scoped token, **ARE live reference resolution** — available to an
+external agent. So the two paths **converge** instead of competing.
+
+⭐ `llm-content-slate` had already named this as the one place the
+protocol earns its place: *"**MCP earns its place only across a
+boundary** — external clients reaching into the game: a builder using
+Claude Desktop to author content."*
+
+⚠ **The auth gap is real and stated**: *"no non-session auth path exists
+anywhere in the backend."* ⭐ But `agency-slate`'s rule settles its
+hardest question — **code-trust never flows through a delegation**, so a
+token is **content/document only** and there is no source-scope decision
+to get wrong.
+
 ## 8. ⭐ The nightly mirror — and it may already exist
 
 > **User: "maybe we also want a nightly mirror developers can point to
@@ -409,9 +443,13 @@ external gets the content, in-engine gets the world.**
   externally-authored work too.
 - [committee-slate.md](./committee-slate.md) — facade (b), the authority
   an export binds.
-- [authoring-intelligence-slate.md](./authoring-intelligence-slate.md) +
-  [cms-connectors-slate.md](./cms-connectors-slate.md) — the external
-  path's tooling, already designed.
+- ⭐⭐⭐ [cms-connectors-slate.md](./cms-connectors-slate.md) **Part 2 +
+  2a** — the MCP tools, the scoped token, and why this is the primary
+  creator path rather than an editor-preference convenience.
+- [authoring-intelligence-slate.md](./authoring-intelligence-slate.md) —
+  validation, which is one of the two real gaps.
+- [agency-slate.md](./agency-slate.md) — *code-trust never flows through
+  agency*, which decides the token's scope.
 - [sandbox.md](../../subsystems/sandbox.md) — containment for playing
   against prod, which is what it is *for*.
 - [git-workflow.md](../../subsystems/git-workflow.md) — one credential,
