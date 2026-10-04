@@ -942,6 +942,16 @@ collapses into noise; the content read does not.
 
 ## 9. Governance layering — the seam is TITLE, not the org chart
 
+> ⭐⭐ **Generalised 2026-10-04 into
+> [committee-slate](./committee-slate.md)**, which defines what a
+> committee must expose (**three questions**, not four — *given a path
+> who is answerable* turned out never to be the commons' question), the
+> menu of structures, and why `subdivide` beats a responsibility map
+> wherever the division is territorial. ⚠ It also corrects a claim made
+> below and elsewhere in this slate: **`ParcelApi.ownerOf` resolves
+> TITLE** — who may write here — **and says nothing about who inside a
+> committee answers for a given file.**
+
 > **User: "parcels don't have to subdivide with the same lines as
 > management does. all the compact cares about is who is at the top."**
 
@@ -1192,6 +1202,9 @@ production heap walk, no per-object measurement.
   on this model: the quota, the cap stack, the breakers § 6 reuses.
 - [feedback-slate.md](./feedback-slate.md) — the ratings § 11 joins, and
   the firewall its mirror image completes.
+- ⭐⭐ [committee-slate.md](./committee-slate.md) — who the holder in § 9
+  actually **is**: the three-question facade, per-committee seats, the
+  model menu, and the `ownerOf` correction.
 - [land-compute-and-license.md](./land-compute-and-license.md) — the
   entitlement function, subsidiarity, the dormancy ladder, and *the owner
   does the cutting*.
