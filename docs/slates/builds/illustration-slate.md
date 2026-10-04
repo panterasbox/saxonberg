@@ -126,6 +126,64 @@ crossing's own prose:
 per-instance portraits are deferred to recognition
 ([media.md § Deferred](../../subsystems/media.md)).
 
+## 2a. ⭐⭐⭐ The reins stay central — generation is NOT bring-your-own
+
+**Added 2026-10-04.**
+
+> **User: "image generation is a separate thing. I wanna be able to
+> control the reigns there and I dont think BYO actually does you much
+> good as an author for that sorta thing."**
+
+⭐⭐⭐ **And it was already decided.** `media.md`'s deferred list, verbatim:
+
+> *"**in-CMS on-demand generation + a quota system** (per-author credit
+> pool — **the only place generation cost needs metering**; offline
+> generation is one-time and self-controlled)."*
+
+**Four reasons it differs from the CMS's text agent**, which *is*
+bring-your-own ([llm-economy-slate § 5a](./llm-economy-slate.md)):
+
+1. ⭐⭐ **The style is a shared asset.** A style row declares a prompt
+   block, a palette, an avoid list, a model floor and its supported
+   channels — and **a different provider cannot honour it.** The tuning is
+   against one model's behaviour; another produces something else from the
+   same words. **BYO breaks the gallery's one mechanism.**
+2. The output is a **durable shared artifact** — our bucket, every
+   player, part of the world's look.
+3. ⭐⭐⭐ **BYO would convert private money into COMMONS STORAGE
+   PRESSURE** — every image is a permanent byte liability on the assets
+   appropriation, so an author could spend unlimited private money to
+   consume a commons ceiling faster. **Capital buying a bigger slice**,
+   paying the cheap one-time part while the commons pays the forever part.
+4. ⭐ Generation is **bursty and episodic** — a handful at publish, then
+   never — so central funding is easy to plan and BYO solves nothing.
+
+### ⭐⭐⭐ And why it does an author little good anyway
+
+The author's bottleneck is not generation *throughput* — it is **style
+conformance and acceptance.** Five hundred variants on your own dime do
+not help if 499 miss the style row.
+
+> **BYO buys volume where the scarce thing is FIT.**
+
+⭐⭐⭐ And § 0's doctrine already settles what the author's lever *is* —
+the prompt is **derived from the model**, so:
+
+> **Making your room better is how you get a better picture.**
+
+⚠ **A money lever would COMPETE with that**, adding a second path to a
+better image that bypasses improving the content — which would quietly
+undo the best property this pipeline has: that it is **an instrument on
+content density** rather than an art budget.
+
+### ⭐⭐ No new quota needed
+
+Generating an image spends two things already on the grant
+([attribution-slate § 7](./attribution-slate.md)): **bytes** — the
+`assets` ceiling — and **dollars** — the **production** line. So the only
+new mechanism is **a rate limit**, so one author cannot drain production
+in an afternoon.
+
 ## 3. ⭐⭐⭐ Two render channels — raster, and monochrome SVG painted at render
 
 > **User: "for dynamic color sometimes we want to generate a monochrome

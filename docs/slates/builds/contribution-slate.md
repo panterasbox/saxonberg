@@ -244,6 +244,7 @@ So do not make them compete:
 |---|---|---|
 | ⭐ **CMS, in-engine** | **the uninitiated** — ships with the game, zero setup | curiosity, immediacy, **real data**, nothing to install |
 | ⭐ **external checkout** | the serious dev **and their agent** | a shell, a filesystem, tests, speed |
+| ⭐⭐ **the in-CMS agent** (§ 7a) | **anyone authoring CONTENT** | ⭐ **live reference resolution** — the thing a checkout cannot give |
 
 > ⭐⭐⭐ **The CMS does not need to beat Claude Code. It needs an EXIT.** A
 > creator starts there out of curiosity, builds something, and when they
@@ -266,6 +267,89 @@ So do not make them compete:
 ⭐⭐ **`author-surface.json` is the one I would point at hardest for the
 agent case** — it is exactly what an agent needs to be good at *our*
 domain, and we did not build it for this.
+
+## 7a. ⭐⭐⭐ The third path: an agent IN the CMS — because content is JSON
+
+> **User: "claude still wants to write content… thats why I wanted to
+> have like an agent in the CMS too. this is all just json no
+> javascript."**
+
+### ⭐⭐⭐ The unlock, and it skips three gates
+
+| gate | why content skips it |
+|---|---|
+| **code trust** | ⭐⭐ `isWizard` gates eval, reload, source writes **and the `class` / `hydratorClass` / `behaviors[].brain` template fields.** ⭐⭐⭐ **Those three fields ARE the code-trust surface inside content.** Everything else in a row is data, gated only by `canAtPath` — parcel title |
+| **a deploy** | ⭐ rows go through the template store with the **go-live split** — runtime, no restart |
+| **a containment run** | a bad row makes bad content; it cannot make an infinite loop |
+
+> ⭐⭐⭐ **So an agent writing JSON in the CMS is not a privilege
+> escalation** — the dangerous fields are *already* separately gated, by a
+> distinction that shipped for other reasons.
+
+### ⭐⭐⭐ And it has the one thing no external agent can have
+
+> **Live reference resolution.** An external agent *guesses* whether
+> `/stuff/idea/material/oak` exists, whether that `class:` is
+> instanceable, what is in the neighbouring room, what the locality's
+> voice sounds like. **An in-CMS agent can ask.**
+
+⭐ Which inverts § 7's conclusion in a useful way rather than
+contradicting it: in-engine will never beat a checkout **for code** — but
+for **content** the advantage runs the other way, because content
+correctness is mostly *runtime facts* (resolvable paths, closed
+vocabularies, existing neighbours) and those live in the running world,
+not in a schema.
+
+⭐⭐ **And its tools largely ship.** `studio.md`: `StudioApi.listMixins` /
+`describeMixin` / `describeClass` over `@authorable` TSDoc, plus named
+**blueprints**.
+
+> **That catalogue is not documentation — it is a tool surface.**
+> `describeClass` is a function an agent calls. The toolset is: describe
+> mixins/classes · resolve a path · read neighbouring content · write a
+> row (gated) · go-live — **nearly all existing gated Apis.**
+
+### Why the running game needs this path at all
+
+`pack sync` *does* support a live apply — *"the same reconcile, then
+re-hydrate"* — but ⚠ it is an **operator** act and it is **pack-wide**.
+
+> **Neither the authority nor the granularity of "I edited one room."**
+> ⭐ The template store + go-live is the only **per-row, per-author,
+> no-restart** write path that exists. **The pack-file loop is a dev loop
+> and always was.**
+
+### Scope: content yes, scripts no
+
+⭐ Documents are *"more records than creative"* — wiki, forum, calendar,
+contacts. ⚠ **With one exception: `script` IS code**, and its write
+funnels through `ScriptApi.saveScript` — *"the script chokepoint: gate +
+provenance + AST go-live."*
+
+> ⭐ **So the agent writes content and never scripts, and the chokepoint
+> is already where that line gets drawn.** No new rule — just do not give
+> it that tool.
+
+### ⭐⭐ Authorship needs no special case
+
+`recordAuthoring`'s author is **context-derived**, so an agent writing a
+room under your session makes **you** the author.
+
+> ⭐ **You are the author of what you directed** — as if you had
+> commissioned it from a person — so
+> [labor-standing-slate](./labor-standing-slate.md) needs no
+> agent-shaped exception.
+
+⭐⭐⭐ And **disclosure stays an option rather than a forced question**,
+because the precedent exists: `MediaAsset` already records
+`prompt` / `model` / `size` / `quality` for generated images. Extending
+that record to content rows is the same shape — which lets the polity
+decide later whether it cares.
+
+⚠ **One shape to settle before it is built the other way:**
+`llm-content-slate`'s rule is *the LLM rides the bus, never the client.*
+For the CMS that means the agent is **a command-bus participant with a
+card**, not a chat widget bolted onto Monaco.
 
 ## 8. ⭐ The nightly mirror — and it may already exist
 
