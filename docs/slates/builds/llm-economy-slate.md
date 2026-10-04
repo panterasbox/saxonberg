@@ -159,6 +159,49 @@ the world's voice**, because players ask and NPCs do not.
 ⭐ And the commons needs no special case — `/platform`, the lounge,
 Terminus are **parcels like any other, with shares like any other.**
 
+### ⭐⭐⭐ 5a. Within the production line, BYO splits — text yes, images no
+
+**Added 2026-10-04.** Two LLM surfaces live in the same CMS and want
+**opposite funding answers**, each for a stated reason — which is itself
+evidence the three-lines-by-decider carve was right.
+
+| | **the content agent** (text) | **image generation** |
+|---|---|---|
+| who pays | ⭐ **BYO is clean** | ⭐ **the commons**, on this line |
+| the firewall | ⭐⭐ money buying **your own productivity as a maker** is a carpenter buying a saw — **bounded by whether anyone likes what you made**, where sponsorship was bounded by nothing | ⚠ see below |
+| the caching objection | ⭐⭐⭐ **does not apply** — `llm-content`'s case against BYO-key was that caching is per-organization so N keys mean N cold caches *for one shared prefix*. **Authoring has no shared prefix**; each creator's context is their own content | n/a |
+
+⚠ **What survives for text: custody.** A leaked key is the user's money.
+The encrypted-at-rest pattern exists (`twitch_profiles` /
+`kick_profiles`), so the mechanism is there; whether to hold other
+people's keys at all is a real decision rather than a solved one.
+
+**And four reasons images are different:**
+
+1. ⭐⭐ **The style is a shared asset.** A style row declares a prompt
+   block, palette, avoid list, model floor and supported channels — and
+   **a different provider cannot honour it.** BYO breaks the one
+   mechanism [illustration-slate](./illustration-slate.md)'s gallery
+   depends on.
+2. The output is a **durable shared artifact** — it lands in our bucket
+   and becomes part of the world's look.
+3. ⭐⭐⭐ **BYO tokens convert private money into COMMONS STORAGE
+   PRESSURE.** Every image is a permanent byte liability on the assets
+   appropriation, so BYO would let an author spend unlimited private money
+   to consume a commons ceiling faster — **capital buying a bigger slice**,
+   paying the cheap one-time part while the commons pays the expensive
+   forever part.
+4. ⭐ Generation is **bursty and episodic** — a handful at publish, then
+   never. Operator-plannable and small, so central funding is easy and BYO
+   solves a problem that does not exist.
+
+⭐⭐⭐ **And it needs no new quota line.** Generating an image spends two
+things already on the grant — **bytes** (the `assets` ceiling, permanent
+and ratcheting) and **dollars** (this production line). So the only new
+thing is **a rate limit** so one author cannot drain production in an
+afternoon: **guard A applied to a third consumer**, and the grant stays at
+six lines.
+
 ## 6. ⭐⭐ The loop: declare → review → allocate → meter → report → throttle
 
 The content-declaration doctrine applied to a resource.
