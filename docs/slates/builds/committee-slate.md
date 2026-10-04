@@ -252,6 +252,12 @@ over a row-extensible vocabulary**:
 - [client-parcel-slate.md](./client-parcel-slate.md) § 6 — the client
   committee's three-sentence charter, the **capacity-not-criterion** rule
   for composition, and the mandate reverting to the executive.
+- ⭐⭐ [labor-standing-slate.md](./labor-standing-slate.md) — the
+  **attestation** facade question (b) governs, and why the commons never
+  audits a contributor's declaration.
+- ⭐ [contribution-slate.md](./contribution-slate.md) — an **export binds
+  a group**, which is facade (b)'s first consumer outside the client
+  committee.
 - [feedback-slate.md](./feedback-slate.md) — parcel committees as
   allocators, and the self-endorsement gate that reads title + membership.
 - [governance.md](../../subsystems/governance.md) — the Office substrate,

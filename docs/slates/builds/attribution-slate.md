@@ -1202,6 +1202,12 @@ production heap walk, no per-object measurement.
   on this model: the quota, the cap stack, the breakers § 6 reuses.
 - [feedback-slate.md](./feedback-slate.md) — the ratings § 11 joins, and
   the firewall its mirror image completes.
+- ⭐⭐ [labor-standing-slate.md](./labor-standing-slate.md) — producer
+  credit for collaborative work: the contributor set as a declared fact,
+  role × magnitude, the renewing obligation, and what is reconcilable.
+- ⭐⭐ [contribution-slate.md](./contribution-slate.md) — how work reaches
+  the world from outside, the CMS→pack **export**, and why § 4e's sandbox
+  profile needs landing to run here.
 - ⭐⭐ [committee-slate.md](./committee-slate.md) — who the holder in § 9
   actually **is**: the three-question facade, per-committee seats, the
   model menu, and the `ownerOf` correction.
