@@ -526,6 +526,9 @@ what third-party tools read. Same split as the CMS.
 
 - [scarcity-slate.md](./scarcity-slate.md) — the four channels; tokens as
   an **appropriation**; this slate answers its Q3 and Q4.
+- ⭐⭐⭐ [automata-slate.md](./automata-slate.md) — **the other consumer**:
+  the player's agent, its modes (`{trigger, recipe, voice}`), the trigger
+  test, and the minimum experiment this slate does **not** gate.
 - [llm-content-slate.md](./llm-content-slate.md) — the brain, the parity
   floor, the cost levers; ⚠ **and § 8 above corrects its sponsorship
   model.**
