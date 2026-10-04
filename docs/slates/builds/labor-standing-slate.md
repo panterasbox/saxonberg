@@ -322,6 +322,51 @@ separate features.
 | ⭐⭐ | **appeal has shipped vocabulary** — `chronicle` distinguishes **deed from claim** |
 | ⭐ | **the audit is the COMMITTEE's** — the commons sees the attestation, never the deliberation |
 
+## 9a. ⚠ The work item stays NON-DIEGETIC — and the practitioner does not
+
+**Added 2026-10-04.** A pass after § 5 put the work declaration on
+[contract.md](../../subsystems/contract.md)'s **gig board** — posted,
+taken, completed, verifiable, which solves the self-review problem (you
+are not rating your contribution, you are completing defined work).
+
+> **User: "it's clever but its nondiegetic work riding on a diegetic
+> frame."**
+
+⚠ **Correct, and it is the `compute-is-a-metaresource` error one level
+up.** The board is contracts and escrow; editing the game is not an
+in-world act. ⭐ So the work item **borrows the board's SHAPE** — posted,
+taken, dated, completed, referenceable — **without its fiction**: no
+escrow, no clauses, no custodian, because *"write a good room"* is not a
+verifiable condition anyway.
+
+⭐⭐⭐ **But the PRACTITIONER is diegetic**, and that is
+[wizardry-slate](./wizardry-slate.md): *wizardry admits the author stands
+outside the fiction and gives that outsideness a name inside it.*
+
+> **The fiction names the wizard, not the paperwork.**
+
+⭐⭐ And two things from that slate bear directly here:
+
+1. ⭐ **Declare BEFORE, not after.** *"A session where you set out to fix
+   a specific bug"* — **you set out.** An intent stated at the start is
+   **orientation**; an assessment at the end is **a self-review**, and
+   self-reviews tied to compensation are the single most resented
+   artifact of working life. ⭐⭐ It also kills outcome-tuning for free:
+   you cannot tune a prospective declaration to a result you do not have.
+2. ⭐⭐ **Data, not prose.** The declaration is structured and
+   aggregable; prose rides **inside** it as a human-readable field.
+   *Data for the machine, prose for the reader* — **nobody's logline
+   becomes the credit input.**
+
+⚠ **And the two regimes differ**, per the user: *"work in a sandbox or
+studio is on unpublished content so who knows if it'll ever see the light
+of day… but published is a different story."*
+
+| | earns? | recorded? |
+|---|---|---|
+| **unpublished** | ⛔ nothing — *wages for speculative work, standing for delivered work* | ⭐⭐ **yes**, so publishing is retroactive for **collaborators**, not just the `authorOf` singleton |
+| **published, under revision** | ⭐ **it is earning now** | ⭐⭐⭐ and this is where § 7's renewal question legitimately lives — **recent completed work is what shifts the share** |
+
 ## 10. Open questions
 
 1. ⚠⚠ **Can an omission be appealed after the fact?** A re-split is
@@ -357,5 +402,9 @@ separate features.
   declaration is made, and why landing is the recording act.
 - [feedback-slate.md](./feedback-slate.md) — the share-never-a-transfer
   property § 7 reuses, and template-as-Subject.
+- ⭐⭐ [wizardry-slate.md](./wizardry-slate.md) — the **diegetic**
+  half: authoring as a trade with a Discipline, the rubric that is
+  already written, and `isWizard` as the apex of one spectrum.
 - [contract.md](../../subsystems/contract.md) — wages, for the labor § 6
-  routes away from standing.
+  routes away from standing; and the **shape** § 9a borrows without the
+  fiction.
