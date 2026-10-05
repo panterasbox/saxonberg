@@ -361,25 +361,48 @@ describe('ConditionApi.die — one transition', () => {
   });
 });
 
+
 /**
  * ⭐⭐ Two bodies out of ONE row, dying in the same game-second.
  *
  * ⚠⚠ **This was near-dead code until the carcass chain, and is ordinary
- * now.** `corpseIdentityFor` disambiguates with an ordinal, and before
- * this build the only death that minted a corpse was a player's — two of
- * those in one game-second is a coincidence nobody had seen. Every beast
- * and NPC mints one now, and a beast's `getIdentityPath()` falls back to
- * its TEMPLATE PATH, which a flock shares: slaughter two ewes off one
- * row in the same second, or let a fox through a hen coop, and the
- * ordinal branch is the only thing keeping two bodies apart in the index.
+ * now.** Only a player's death minted a corpse before, and two of those
+ * in one game-second is a coincidence nobody had seen. Every beast and
+ * NPC mints one now — and `getIdentityPath()` is
+ * `#identityPath ?? getTemplatePath()`, so a beast's "identity" IS its
+ * row, which a whole flock shares. Slaughter two ewes off one row in a
+ * second, or let a fox through a hen coop, and two bodies are built from
+ * the same base key.
  *
- * Raised by `build-3` (instance-addressing), who are moving their two
- * probes to a `findByIdentityPath` before they redefine the row read —
- * their change, pinned on their side. This pins OURS: the multiplication
- * is this build's, so the regression would land on this path.
+ * ⚠⚠⚠ **The KEY SCHEME these bodies get is under active review and this
+ * suite must not entrench it.** `corpseIdentityFor` mints
+ * `<corpseRow>/<deceased identity>/<gameSecond>[-n]`, and the case
+ * against it is strong on three axes: the game-second is unrecoverable
+ * and nothing records it (not durable); the key cannot be CONSTRUCTED by
+ * a caller, so it can never be named in an MQL query (not targetable);
+ * and the only honest cardinality for *the corpse of this individual* is
+ * one, which a minted identity like an avatar's already gives — the
+ * timestamp and ordinal exist precisely BECAUSE a beast's identity is a
+ * row shared by its flock. On that reading the stamp is not an identity
+ * at all but a **uniquifier compensating for the identity fallback**: it
+ * cannot say which ewe, only *the Nth body off the ewe row in second T*.
+ * → `build-3`'s decisions 9/9a–9d (`location-graph-requirements.md`) and
+ * `instance-addressing-slate.md`. A cross-cutting identity question is
+ * not a trade build's to settle.
+ *
+ * So the split below is deliberate:
+ *
+ * - **the invariant** survives every candidate resolution — two deaths
+ *   leave two bodies and neither silently replaces the other. Keep it
+ *   whatever decision 9 says.
+ * - **the characterization** pins today's `-2`/`-3` arithmetic. It is a
+ *   description, NOT an endorsement, and it is the block to DELETE if
+ *   decision 9 drops the mint for an unminted deceased (whereupon both
+ *   bodies sit at the corpse row, as every other multi-instance clone
+ *   does, and distinct keys stop being true).
  *
  * ⚠ The suite's own `body()` stamps a UNIQUE path per fixture, so no
- * test here could ever have produced the collision. These two share one.
+ * test here could ever have produced the collision. These share one.
  */
 describe('ConditionApi.die — two bodies off one row', () => {
   let corpses: Corpse[] = [];
@@ -398,8 +421,9 @@ describe('ConditionApi.die — two bodies off one row', () => {
     // ⭐ The identity-honouring mode: the stub files each body under the
     // identity the MINT asked for, so the second death's probe reads the
     // same index the real one would. With the default stub every corpse
-    // sits under `/stub/<n>`, the probe finds nothing, and this suite
-    // would pass while asserting the opposite of production.
+    // sits under `/stub/<n>`, the probe finds nothing, and the
+    // characterization below would pass while asserting the opposite of
+    // production.
     corpses = installCorpseMintStub({ stampRequestedIdentity: true });
     vi.spyOn(AccountabilityApi, 'record').mockImplementation(() => {});
   });
@@ -408,50 +432,63 @@ describe('ConditionApi.die — two bodies off one row', () => {
     StuffApi.clearAll();
   });
 
-  it('⭐ gives the second body its own identity, not the first one again', async () => {
-    const first = head();
-    const second = head();
+  // ── the invariant ────────────────────────────────────────────────────
+  it('⭐ two deaths leave TWO bodies — neither replaces the other', async () => {
+    await ConditionApi.die(head(), 'slaughtered');
+    await ConditionApi.die(head(), 'slaughtered');
 
-    await ConditionApi.die(first, 'slaughtered');
-    await ConditionApi.die(second, 'slaughtered');
-
+    // Scheme-agnostic on purpose: whatever a corpse is keyed on, two
+    // dead ewes must be two distinct objects that both exist. This is
+    // the line that holds under every candidate resolution of decision 9.
     expect(corpses).toHaveLength(2);
-    const paths = corpses.map((c) => c.getTemplatePath());
-    // Two distinct keys, both under the corpse row, both naming the
-    // flock row they came off.
-    expect(new Set(paths).size).toBe(2);
-    for (const p of paths) {
-      expect(p).toContain('/stuff/agent/Corpse/');
-      expect(p).toContain('stuff/agent/test-flock/ewe');
-    }
-    // ⚠ And the disambiguator is the ORDINAL, not the clock: both deaths
-    // land in one game-second, so the second key is the first with `-2`.
-    const [a, b] = paths as [string, string];
-    expect(b).toBe(`${a}-2`);
+    const [a, b] = corpses as [Corpse, Corpse];
+    expect(a.stuffId).not.toBe(b.stuffId);
+    expect(a.isDestroyed()).toBe(false);
+    expect(b.isDestroyed()).toBe(false);
   });
 
-  it('⭐ a third goes to -3 — the walk continues, it does not wrap', async () => {
-    for (let i = 0; i < 3; i += 1) {
+  // ── the characterization of today's scheme — a description ───────────
+  describe('⚠ today\'s key scheme (characterization — see decision 9)', () => {
+    it('gives the second body the first key plus an ordinal', async () => {
       await ConditionApi.die(head(), 'slaughtered');
-    }
-    const paths = corpses.map((c) => c.getTemplatePath()) as string[];
-    expect(new Set(paths).size).toBe(3);
-    expect(paths[1]).toBe(`${paths[0]}-2`);
-    expect(paths[2]).toBe(`${paths[0]}-3`);
-  });
+      await ConditionApi.die(head(), 'slaughtered');
 
-  it('⚠ and the index can still find each body by its own key', async () => {
-    await ConditionApi.die(head(), 'slaughtered');
-    await ConditionApi.die(head(), 'slaughtered');
+      const paths = corpses.map((c) => c.getTemplatePath()) as string[];
+      expect(new Set(paths).size).toBe(2);
+      for (const p of paths) {
+        expect(p).toContain('/stuff/agent/Corpse/');
+        // ⚠ And here is the finding in assertion form: the key names the
+        // ROW the ewe came off, never the ewe.
+        expect(p).toContain(FLOCK_ROW.replace(/^\//, ''));
+      }
+      // The disambiguator is the ORDINAL, not the clock — both deaths
+      // land in one game-second.
+      expect(paths[1]).toBe(`${paths[0]}-2`);
+    });
 
-    // The collision this guards against is SILENT: two corpses filed at
-    // one key leave the bucket holding two, and nothing reads a corpse's
-    // identity today — so `findByTemplatePath` throwing `expected
-    // singleton` is the only way anybody would ever hear about it.
-    for (const corpse of corpses) {
-      const key = corpse.getTemplatePath() as string;
-      expect(() => StuffApi.findByTemplatePath(key)).not.toThrow();
-      expect(StuffApi.findAllByTemplatePath(key)).toHaveLength(1);
-    }
+    it('a third goes to -3 — the walk continues, it does not wrap', async () => {
+      for (let i = 0; i < 3; i += 1) {
+        await ConditionApi.die(head(), 'slaughtered');
+      }
+      const paths = corpses.map((c) => c.getTemplatePath()) as string[];
+      expect(new Set(paths).size).toBe(3);
+      expect(paths[2]).toBe(`${paths[0]}-3`);
+    });
+
+    it('⚠ a collision would be SILENT but for the singleton read', async () => {
+      await ConditionApi.die(head(), 'slaughtered');
+      await ConditionApi.die(head(), 'slaughtered');
+
+      // Nothing reads a corpse's identity today, so two bodies filed at
+      // one key would simply sit there — `findByTemplatePath` throwing
+      // `expected singleton` is the only way anybody would hear about
+      // it. That is an argument about the mint's VALUE, not just a check:
+      // the sole consumer of the uniqueness is the uniqueness machinery.
+      for (const corpse of corpses) {
+        const key = corpse.getTemplatePath() as string;
+        expect(() => StuffApi.findByTemplatePath(key)).not.toThrow();
+        expect(StuffApi.findAllByTemplatePath(key)).toHaveLength(1);
+      }
+    });
   });
 });

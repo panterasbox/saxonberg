@@ -1541,28 +1541,71 @@ No criterion is unmapped.
     this branch does not race.
   → `docs/slates/builds/instance-addressing-slate.md` and decisions 9/9a–9d
   of `location-graph-requirements.md`, both on `origin/reqs/location-graph`.
-  - ⭐⭐ **NOT deferred — the one thing in that exchange that WAS ours is
-    done.** build-3's message had two halves, and only the FINDING was
-    ours to dismiss; the COLLISION half carried a live item. Their probe
-    note said *"nothing for you to do unless you add or move a probe"* and
-    we moved none — but the reason the probe matters at all is this
-    build: `corpseIdentityFor` disambiguates two deaths in one
-    game-second with an ordinal, a beast's `getIdentityPath()` falls back
-    to its **template path**, and a flock shares one. So slaughtering two
-    ewes off one row in a second, or a fox through a hen coop, walks a
-    branch that was **near-dead code** when only players minted corpses.
-    ⚠ Nothing covered it, and the suite's own `body()` fixture stamps a
-    UNIQUE path per body, so no test here could ever have produced the
-    collision. `ConditionLogic.die.test.ts` now has three, over two heads
-    off one row: the second gets `-2`, a third `-3`, and each body is
-    still findable by its own key. ⭐ Proven non-vacuous by sabotage — with
-    the ordinal forced to return `base` all three go red, and the index
-    assertion red too, which is what shows the collision would surface as
-    `findByTemplatePath: expected singleton` rather than silently. The
-    stub helper grew an opt-in `stampRequestedIdentity` for it, because
-    the default stub files every body under `/stub/<n>` where the probe
-    reads nothing — the test would otherwise have passed while asserting
-    the opposite of production.
+  - ⭐⭐ **The actionable half, and a correction to how this entry first
+    read it.** build-3's message had two halves. The FINDING (*nothing
+    reads a corpse's minted identity*) they handed us explicitly; the
+    COLLISION half was a live item, because the probe only matters at all
+    on account of this build. `corpseIdentityFor` disambiguates two deaths
+    in one game-second with an ordinal; `getIdentityPath()` is
+    `#identityPath ?? getTemplatePath()`, so a beast's "identity" IS its
+    row, which a flock shares — two ewes off one row in a second, or a fox
+    through a hen coop, builds two bodies from one base key. That branch
+    was near-dead code when only players minted corpses.
+  - ⚠⚠⚠ **And the case against the stamp is stronger than "no reader."**
+    Run the three axes that decide whether a minted identity earns its
+    keep — durability, MQL targetability, cardinality:
+    - **not durable** — the key is
+      `<corpseRow>/<deceased identity>/<gameSecond>[-n]`; the game-second
+      is unrecoverable and nothing records it.
+    - **not targetable** — a caller cannot CONSTRUCT that key (nothing
+      records the second or the ordinal; the chronicle records the deed,
+      not the corpse), so it can never be named in an MQL query. Unqueryable
+      in principle, not merely unqueried.
+    - **wrong cardinality** — the only honest cardinality for *the corpse
+      of this individual* is one, which `<corpseRow>/<avatar identity>`
+      already gives for a genuinely minted identity. The timestamp and the
+      ordinal exist **because a beast's identity is a row shared by its
+      flock.**
+    ⭐⭐ So the stamp is not an identity; it is a **uniquifier
+    compensating for the identity fallback** — it cannot say *which ewe*,
+    only *the Nth body off the ewe row in second T*. The candidate
+    resolution that follows from the plan's own half-rule (*a body with no
+    identity path gets no minted identity*) is the same sentence one rung
+    up: **a body with no MINTED identity gets no minted identity** — a
+    beast's corpse would then be an ordinary multi-instance clone of the
+    corpse row, as cuts and logs already are.
+  - ⛔ **Not settled here, deliberately.** A cross-cutting identity
+    question is not a trade build's to decide (*never solve a
+    cross-cutting capability in a trade build*), and build-3 owns it as
+    decisions 9/9a–9d. What this build owes is to make the reachability
+    visible and **not entrench the scheme.**
+  - ⭐ **What shipped, therefore, is a two-part suite in
+    `ConditionLogic.die.test.ts`** — the suite's own `body()` fixture
+    stamps a UNIQUE path per body, so no test here could ever have
+    produced the collision:
+    - **the invariant**, scheme-agnostic: two deaths leave two bodies and
+      neither replaces the other. Keep it whatever decision 9 says.
+    - **a labelled characterization** of today's `-2`/`-3` arithmetic — a
+      description, not an endorsement, and the block to DELETE if the mint
+      goes. One of its assertions states the finding directly: the key
+      names the ROW the ewe came off, never the ewe.
+    ⭐⭐ Both proven by sabotage, and the sabotage is what shows the split
+    is real: with the ordinal forced to return `base`, the three
+    characterization tests go red **and the invariant stays green**. The
+    collision test going red is the other useful part — it shows a real
+    collision surfaces only as `findByTemplatePath: expected singleton`,
+    i.e. **the sole consumer of the uniqueness is the uniqueness
+    machinery.**
+  - ⚠ The stub helper grew an opt-in `stampRequestedIdentity`, load-bearing
+    rather than cosmetic: the default stub files every corpse under
+    `/stub/<n>` where the probe reads nothing, so without it the
+    characterization would have passed while asserting the opposite of
+    production.
+  - ⚠ **This suite is NOT the guard for build-3's change.** In the stub a
+    corpse's `templatePath` IS the minted identity; in production it is the
+    corpse row — so their `findAllByTemplatePath(row)` filter would break
+    the probe in production while these stay green. Their probes move to
+    `findByIdentityPath` first, pinned on their side.
 
 ---
 
