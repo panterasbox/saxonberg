@@ -25,8 +25,17 @@ import type { BloodTypeLabel } from '@saxonberg/server/mud/lib/vitals/BloodType'
 const BloodUnitBase = CirculatingMixin(BrandedMixin(Receptacle));
 
 export default class BloodUnit extends BloodUnitBase {
-  static override fieldMeta: FieldMeta = {
-    bloodType: { persistent: true, authorable: true },
+  // ⚠ Plain `static fieldMeta` (NOT `static override fieldMeta`): the
+  // content lints' field resolver (`fieldMetaKeys`) matches `static
+  // fieldMeta` and `static readonly fieldMeta` only — an `override`
+  // modifier makes every field here invisible to it, and the rows that
+  // author them read as orphan data keys.
+  static fieldMeta: FieldMeta = {
+    // ⭐ `bloodType` is the SEED carrier (the `Behaved.dispositions`
+    // precedent): its phase-3 `seedBloodType` applier stamps the whole
+    // payload from the fields, which avoids an `onCreate` (the hook census
+    // is a ratchet, and an authored history belongs on a seed field).
+    bloodType: { persistent: true, authorable: true, seed: true },
     bloodSystem: { persistent: true, authorable: true },
     donorKey: { persistent: true, authorable: true },
     labelled: { persistent: true, authorable: true },
@@ -52,11 +61,15 @@ export default class BloodUnit extends BloodUnitBase {
     this.setPrimaryKeyword('unit');
   }
 
-  public override async onCreate(context?: unknown): Promise<void> {
-    await super.onCreate(context);
-    // Stamp the payload from the authored fields — but only for a FILLED
-    // blood bag that nothing has already stamped (a drawn bag carries its
-    // own unit; an empty row is not a unit).
+  /**
+   * ⭐ Phase-3 seed applier for `bloodType` — stamps the matching
+   * `BulkPayload.blood` from the fields (which phase 1 has already set),
+   * for a FILLED blood bag that nothing has already stamped (a drawn bag
+   * carries its own unit; an empty row is not a unit). The seam the
+   * `onCreate` used to be, moved to where an authored history belongs.
+   */
+  public async seedBloodType(value: BloodTypeLabel): Promise<void> {
+    this.bloodType = value;
     if (this.interiorPayload?.blood) return;
     if (!this.interiorMaterial) return;
     try {

@@ -22,8 +22,19 @@ data:
     # grows its simples; harvest and steep the drug supply.
     north:
       destination: /world/terminus/infirmary/garden
+    # ⭐ The collection room (blood build D13) — Goodkin's kept upstream,
+    # where the units are drawn and the runner carries from.
+    east:
+      destination: /world/terminus/infirmary/collection
+  adornments:
+    # ⭐ The ghost sign (blood build D12): a DEAD Goodkin neon over the
+    # window — the Paramount Decree made literal. Zero light.
+    - { template: /world/terminus/infirmary/thing/goodkin-sign, slot: sign:goodkin }
   props:
     - /world/terminus/infirmary/thing/tariff
+    # ⭐ The blood window (blood build D2) — the registrar's counter, a
+    # priced board that is also the bank register reading the fridge.
+    - /world/terminus/infirmary/thing/blood-window
     - /world/terminus/infirmary/thing/cot
     - /world/terminus/infirmary/thing/dressing-cabinet
     # ⭐ Cold storage (cold-storage build): a powered blood fridge on the
@@ -68,3 +79,7 @@ data:
   cast:
     - /world/terminus/infirmary/agent/physician
     - /world/terminus/infirmary/agent/nurse
+    # ⭐ The blood window's registrars (blood build D11) — spawned here;
+    # their roster stations them at the ward where the window stands.
+    - /world/terminus/infirmary/agent/registrar
+    - /world/terminus/infirmary/agent/night-registrar

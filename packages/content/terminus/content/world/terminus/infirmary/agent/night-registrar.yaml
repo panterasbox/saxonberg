@@ -1,0 +1,26 @@
+# The night registrar — a role, not a name (an Extra). Runs the same
+# `banks` brain as the day registrar but QUIET (blood build D14): she
+# never shouts a shortage at 3 a.m. (no room `say`), though the floor
+# still gets served and the ticker still gets the notice.
+class: /platform/agent/Extra
+extends: /stuff/agent/costume/student
+data:
+  costume:
+    - /stuff/thing/clothes/white-coat
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
+  lifecycleState: alive
+  shortDescription: night registrar
+  keywords: [registrar, night, night-registrar]
+  register: indefinite
+  longDescription: |
+    The night hand at the window — a quiet figure behind the bars, a lamp
+    turned low, who sees to what comes in after dark and says little.
+  dispositions:
+    - { disposition: diligence, valence: 55 }
+    - { disposition: sociability, valence: -30 }
+  behaviors:
+    - brain: /trade/medicine/behavior/banks
+      trigger: candidate
+      config:
+        window: /world/terminus/infirmary/thing/blood-window
+        quiet: true

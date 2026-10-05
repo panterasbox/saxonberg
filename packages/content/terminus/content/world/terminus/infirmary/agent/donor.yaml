@@ -1,0 +1,31 @@
+# The visible donor — the FACE of the supply (blood build D13; the floor
+# stock is the backbone). On a cadence, if it has the marrow to spare and
+# a bag to hand, it really gives: `bleed into bag`, then `put bag on
+# case`. Otherwise it just sits, a sleeve rolled down.
+#
+# ⚠ Known limit: its marrow regrows only while fed, and no feeding is
+# wired, so it gives at most once. That is accepted — the producer floor
+# is the floor; this is the face.
+class: /platform/agent/Extra
+extends: /stuff/agent/costume/student
+data:
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
+  lifecycleState: alive
+  shortDescription: donor on the couch
+  keywords: [donor, couch]
+  register: indefinite
+  longDescription: |
+    Somebody giving blood — a sleeve turned up, a tube taped to the crook
+    of an arm, eyes on the ceiling with the particular patience of a
+    person being slowly drained for a good cause.
+  # ⭐ A sentient Extra that answers to nobody is a crime with no victim
+  # (the terms-free !consented && sentient rule); the party that fields it
+  # is its only attribution. This donor is a Goodkin walk-in — attribute
+  # to the Bloodworks.
+  institution: /world/terminus/infirmary/idea/bloodworks
+  behaviors:
+    - brain: /trade/medicine/behavior/donates
+      trigger: candidate
+      config:
+        bag: bag
+        stock: case

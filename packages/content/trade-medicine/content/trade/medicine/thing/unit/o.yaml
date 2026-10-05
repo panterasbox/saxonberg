@@ -14,6 +14,7 @@ data:
   interiorMaterial: /stuff/idea/material/tissue/blood
   interiorAmount: 0.45
   interiorCapacity: 0.5
+  mass: 0.5
   bloodType: O
   bloodSystem: hominid
   labelled: true

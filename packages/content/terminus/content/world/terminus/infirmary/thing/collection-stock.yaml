@@ -1,0 +1,23 @@
+# The collection cold case — the producer FLOOR the blood units spawn
+# into (blood build D13). Every Terminus unit row names this as its
+# `container:`; the infirmary zone's `stocks:` sets the counts, and the
+# recurring spawn sweep stands them at target (the Veshko-floor shape —
+# the game's sanctioned production abstraction). The runner carries from
+# here to the ward fridge.
+class: /trade/shopkeeping/thing/Stock
+data:
+  shortDescription: collection cold case
+  keywords: [case, stock, collection, cold-case, coldcase]
+  register: proper
+  longDescription: |
+    A steel-doored cold case along the collection-room wall, racked for
+    labelled units. Goodkin's carts fill it; the runner empties it toward
+    the ward.
+  discipline: scrum
+  attendDurationMs: 0
+  staffingPolicy: self-service
+  serverPositionKeys: []
+  businessPath: /world/terminus/infirmary/idea/bloodworks
+  stockLines: []
+  prices: {}
+  mass: 60

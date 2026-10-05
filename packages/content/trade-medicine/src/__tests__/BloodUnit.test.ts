@@ -44,14 +44,13 @@ describe('BloodUnit', () => {
   it('⭐ onCreate stamps the payload from the fields (what getLots counts)', async () => {
     const u = makeStuff(() => new BloodUnit());
     // Stand in for the row's authored data.
-    u.bloodType = 'A';
     u.bloodSystem = 'hominid';
     u.donorKey = '/corpo/goodkin/bloodworks';
     const slot = u.getBulk();
     slot.setMaterial(seedBloodMaterial());
     slot.setAmount(Quantity.of(0.45, 'L'));
 
-    await u.onCreate();
+    await u.seedBloodType('A');
 
     const blood = u.getBulk().getPayload()?.blood;
     expect(blood).toBeTruthy();
@@ -63,7 +62,6 @@ describe('BloodUnit', () => {
 
   it('leaves an already-stamped bag alone (a drawn unit keeps its own)', async () => {
     const u = makeStuff(() => new BloodUnit());
-    u.bloodType = 'A';
     u.bloodSystem = 'hominid';
     const slot = u.getBulk();
     slot.setMaterial(seedBloodMaterial());
@@ -78,7 +76,7 @@ describe('BloodUnit', () => {
       },
     });
 
-    await u.onCreate();
+    await u.seedBloodType('A');
 
     const blood = u.getBulk().getPayload()?.blood;
     expect(blood!.type).toBe('O'); // untouched — the drawn unit's own

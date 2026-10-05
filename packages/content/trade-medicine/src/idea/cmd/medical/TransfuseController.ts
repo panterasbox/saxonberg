@@ -41,6 +41,10 @@ const SALINE_MATERIAL = '/stuff/idea/material/bulk/salt-water';
 interface TransfuseModel extends CommandModel {
   patient?: MqlOneResult;
   vessel?: MqlOneResult;
+  /** The view always binds a `syringe` (default a held phlebotomy tool);
+   * the controller does not read it, but the model must carry every arg
+   * the binder populates (`check-binder-models`). */
+  syringe?: MqlOneResult;
 }
 
 export default class TransfuseController extends CommandController<TransfuseModel> {

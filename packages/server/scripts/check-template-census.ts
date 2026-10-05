@@ -611,6 +611,16 @@ const IGNORED_PATH_FIELDS: readonly string[] = [
   // and it resolves through `ParcelApi.ownerOf`'s longest-prefix walk
   // exactly like `_address` and `servesExtent` above.
   'claimBlocks',
+  // ⭐ A donation bank's vault paths resolve at runtime through
+  // `StuffApi.findByTemplatePath`, and `getVaults()` filters out anything
+  // that is not a live Container — so a dangling vault serves NOTHING
+  // rather than everything, failing closed exactly like the extents above.
+  '_vaultPaths',
+  // ⭐ A blood unit's donor key is a durable PARTY id — an identity path
+  // (a person) for a drawn unit, an organization path for an institutional
+  // one, and '' for an unattributed bag. Like `donorIdentityPath` it keys a
+  // party, never cites a template row, so there is no row for it to dangle.
+  'donorKey',
 ];
 
 /**

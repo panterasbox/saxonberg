@@ -133,6 +133,7 @@ describe('transfuse — the consent ladder', () => {
       {
         patient: { stuff: patient } as unknown as MqlOneResult,
         vessel: undefined,
+        syringe: undefined,
       },
       ctxFor(giver),
     );
@@ -158,6 +159,7 @@ describe('transfuse — the consent ladder', () => {
       {
         patient: { stuff: patient } as unknown as MqlOneResult,
         vessel: { stuff: bag } as unknown as MqlOneResult,
+        syringe: undefined,
       },
       ctxFor(giver),
     );
@@ -182,6 +184,7 @@ describe('transfuse — the consent ladder', () => {
       {
         patient: { stuff: patient } as unknown as MqlOneResult,
         vessel: { stuff: bag } as unknown as MqlOneResult,
+        syringe: undefined,
       },
       ctxFor(giver),
     );

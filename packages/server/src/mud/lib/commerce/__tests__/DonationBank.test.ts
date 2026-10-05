@@ -70,14 +70,14 @@ function bag(type: BloodUnit['type'], litres = 0.45): Stuff {
 
 function window(vault: Stuff): TestWindow {
   const w = makeStuff(() => new TestWindow());
-  stampTemplatePathForTest(w, `/world/x/thing/window-${seq++}`);
+  stampTemplatePathForTest(w, `/test/blood/window-${seq++}`);
   w.setVaultPaths([vault.getTemplatePath()!]);
   return w;
 }
 
 function chest(): Stuff {
   const c = makeStuff(() => new Chest());
-  stampTemplatePathForTest(c, `/world/x/thing/vault-${seq++}`);
+  stampTemplatePathForTest(c, `/test/blood/vault-${seq++}`);
   return c as unknown as Stuff;
 }
 

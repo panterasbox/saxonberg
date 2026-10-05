@@ -1289,7 +1289,24 @@ the band's facts — *tested by reading it*).
 window — BloodWindow, BloodUnit, issue/donate, two readings, three
 brains`.
 
-### W5 — The Terminus content (D11, D12, D13, D17)
+### W5 — The Terminus content (D11, D12, D13, D17) ✅ DONE (pending lint/drive)
+
+> **Done.** The window Business (`idea/window.yaml`, private/entity-auth
+> → registrar, par moved here, publishes) + Bloodworks (`idea/bloodworks.yaml`,
+> corpo-committee auth, parentOrganization goodkin); the collection room
+> (east of the ward); `blood-window` fixture (vault = the blood-fridge,
+> _lotSystem hominid, prices transfusion 10); the dead `goodkin-sign`
+> (intensity 0 — Risk 10 watch); `collection-stock` (Stock, businessPath
+> bloodworks); four Terminus unit rows (extends the trade base + container
+> + censusKey + brand); registrar (Cast + Decree dialogue) + night-registrar
+> (Extra, quiet) + runner (Cast) + donor (Extra). Edits: ward (east exit,
+> window prop, dead-sign adornment, registrar cast), business (par removed),
+> infirmary (stocks O4/A2/B2/AB1), terminus/pack.yaml (4 boot entries),
+> corpo-goodkin (brand + the Paramount Decree wiki page). **Decision:**
+> dropped the phlebotomist position — a position with no roster slot would
+> advertise an open seat, breaking the NPC-only-in-v1 guarantee (drive 6);
+> registrar + night-registrar are both rostered → 0 open. terminus +
+> trade-medicine type-clean; lint + the live boot are W6.
 
 **Goal.** The ward has an independent window under a dead Goodkin sign,
 fed by the corpo's collection room next door, with a registrar who tells
