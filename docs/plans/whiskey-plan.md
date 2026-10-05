@@ -650,6 +650,15 @@ Commit: `build(whiskey W4): the cask — new-make ages to whiskey at the cut's g
 
 ### W5 — malting (one mechanism word + a rows-only pack)
 
+> ⚠⚠ **AMENDED by the lens re-run, 2026-10-04.** W5 must also ship a
+> **`malting` Discipline row**. Lens 1 decided it: a craft rung no
+> Discipline names is *"a fact sheet, not a curriculum"*, and both
+> alternatives assert something false — `fermenting` claims a microbial
+> mechanism (the reason this wave picks `enzymatic` in the first place)
+> and `brewing` makes the maltster a brewer. It is one row in the new
+> pack, `channel: skill`, and the steep/floor/kiln acts credit it.
+> ⚠ Without it this wave adds labour that exercises nothing.
+
 Implements D13. Files: `MaturationProfile.ts` (`enzymatic` in the union,
 `MATURATION_MECHANISMS`, `MATURATION_LINES.enzymatic` — six lines, no
 bubbles, no yeast), `packages/content/trade-malting/` (`package.json`,

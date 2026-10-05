@@ -216,6 +216,11 @@ verified in the tree. A plan must stage them before the cut itself:
   refuel verb exists for any burner in the game (`put <log> in
   <firebox>` works on Container fireboxes; nothing covers a Still). →
   the fire/energy slate.
+- ⚠ **Coopering — making the cask.** Nothing in the game makes a
+  barrel, and the lens re-run surfaced it: this build **buys** a cask as
+  a row. ⭐ A cooper is a real unfilled vocation with a real demand now
+  that something needs barrels. → `vocations-register` + the libations
+  tail.
 - **A carter fulfilling a CATEGORY gig.** `hauls.ts`'s origin-buy is
   template-only, so the carter fallback cannot fulfil any category gig —
   which the whiskey par line is. A player delivers; the fallback is
@@ -395,6 +400,111 @@ would refuse a charge without heat. It would not, and should not — a
 still full of cold wash is an ordinary vessel full of wash.
 
 ## Lens pass
+
+> ⭐⭐ **RE-RUN 2026-10-04 against the widened scope.** The pass below the
+> divider was run against *"the cut"* — a chemistry mechanism. The build
+> is now a six-link vertical with a product at the end, and the user
+> asked the right question: *"did we run a pass with all our lenses?
+> because the last time the lenses were run we may have had a different
+> scope."* It needed re-running, and four entries changed materially.
+
+### ⚠ 1 · Pedagogy — the re-run found a hole, and lens 1 decides it
+
+**Malting is not a Discipline.** `brewing`, `distilling` and `fermenting`
+ship; there is no `malting`. Lens 1 is explicit that *"a skill that no
+Discipline names is a fact sheet, not a curriculum"*, so W5 as planned
+adds a craft rung that exercises nothing.
+
+⭐ **Decided by lens 1: ship a `malting` Discipline row.** It is a row,
+and the alternatives are both false — `fermenting` would assert a
+microbial mechanism (which is exactly why the plan picked `enzymatic` as
+a new mechanism word rather than reuse `microbial`), and `brewing` would
+make the maltster a brewer when the trade is historically and
+mechanically distinct. The limb that chose: **pedagogy**, on the
+no-Discipline-no-curriculum rule.
+
+⚠⚠ **And the harder pedagogy question the widening creates, recorded as
+a GAP rather than answered:** with six rungs, *which one decides the
+outcome?* Lens 1's warning — *"ask which Discipline is dominant, not
+just which are exercised; fake pedagogy lives in the gap"* — now applies
+to the **vertical**, not just the cut. Each rung does carry some
+judgment (kilning can roast the malt, the ferment has temperature bands,
+the mash grades weakest-link, the cut is the cut, the aging has a
+duration choice) but *"carries some judgment"* is not the same as
+*"is interesting"*. ⭐ If the cut decides everything and the other five
+are corridors, then five rungs are ceremony and the build is a chemistry
+demo wearing a supply chain. **This is the question to ask of the drive
+when it runs**, and the drive is built to expose it: step 0b can be done
+badly, and step 15's grade is capped by step 6's cut.
+
+### ⭐⭐ 2 · Creative expression — this is the entry that justifies the scope
+
+CLAUDE.md: *"personalization is a **derivative of supply-chain
+depth**."* The vertical is **six links** — barley → malt → grist → wort
+→ wash → new-make → whiskey — and a player's choices differentiate the
+product at every one of them. That is the deepest authored chain this
+build could have reached for, and it is the strongest argument for the
+wide scope over the narrow one: *the cut alone personalises nothing,
+because `neutral-spirit` is what you already had.*
+
+The ordinary case stays rows throughout (boundaries, characters,
+profiles, the cask). The bespoke case is a different feedstock with a
+different number of boundaries.
+
+### ⭐ 3b · Participation — three holes now, not one
+
+The original pass found the **health inspector**. The vertical adds two
+more institutional gaps with real criteria and no code written for them:
+a **maltster** (the rung is separable and historically was a separate
+trade) and a ⚠ **cooper** — *nothing in the game makes a cask*, so this
+build buys one as a row. Named as a non-goal below rather than quietly
+assumed.
+
+And it adds a *relationship* rather than a hole: a distiller supplying a
+bar is two players with a standing trade between them, which the par
+line and the gig already support.
+
+### ⭐ 4 · Values — a SECOND forced choice the narrow scope did not have
+
+The original pass had one: **your yield against a stranger's safety**.
+Aging adds an independent one: **when to bottle** — longer in the cask
+is better whiskey and later money. ⭐ That is the classic cash-flow
+fork, it is not reducible to the first, and neither is dominant. Two
+real choices in one vertical is what the dairy slate means by *"a real
+trade-off, not a dominant option"*.
+
+### 5 · Continuity — unchanged in substance, wider in reach
+
+The cut still survives the epoch by construction (the same act
+fractionates crude). ⭐ And so does everything the widening added: a
+barrel is a barrel, and malting industrialises from floor to pneumatic
+drum without the mechanism changing. The vertical has an epoch story
+now, not just one rung of it.
+
+### ⭐⭐ 6 · Economy — the one that changed most, and for the better
+
+Before: *"produces a graded spirit, consumes wash"* — and the demand was
+**theoretical**.
+
+Now: **consumes** barley (a farm product, so the chain reaches the
+field), fuel at two stages, a cask, and **time**. **Produces** whiskey,
+spent grain (already an authored feed byproduct) and the slop. And ⭐⭐
+*"was the demand there first?"* is now answerable with evidence rather
+than argument: **the Lounge's par line already wants six litres of
+whiskey and Mara already posts the supply gig** — written before this
+build existed, satisfied by it with no new code.
+
+### 7 · Governance — unchanged
+
+It judges the **maker**; the criterion is a dose above the lowest band
+in something somebody else drank; the appeal is an append-only ledger
+anyone can read; no penalty is imposed by code. Tier B for the row,
+tier C for what a polity does about it.
+
+---
+
+### The original pass, run against "the cut" — kept for the record
+
 
 **1 · Pedagogy.** Dominant Discipline: **distilling** — and the skill
 that decides the outcome is *reading the run*, which is judgment under
