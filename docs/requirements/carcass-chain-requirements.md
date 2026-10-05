@@ -54,29 +54,44 @@ Alongside it sits `dress`, claimed both by *dressing a wound* and *dressing a
 carcass* — the gate's note calls it *"both diegetically correct, which is
 the hard case."*
 
-### Every other death already leaves a carcass
+### Every other death leaves a body — but only a player's leaves a corpse
 
 A single path in the engine takes any body from alive to dead, and
 **death is not destruction**: the body stays in the world, marked dead,
 with the time of death recorded and its temperature already drifting
-toward the room's. A beast killed in a fight, a starved animal, a hunted
-deer — all of them leave something the kitchen's `butcher` can open.
+toward the room's.
 
-⚠ **For an animal the carcass IS the animal** — the same object, still
-carrying its mass, its condition and its place in the book. Only a
-*player* death divides the body in two, because a player's identity
-walks away and the material half needs somewhere to be. That is the
-right shape for this build rather than an obstacle: everything the yield
-needs to read is still on the thing you are cutting up.
+⚠⚠ **But what it leaves depends on who died, and that is the asymmetry
+this build removes.** A *player* death **divides the body**: a corpse
+takes the material half and the identity walks off as a shade. Every
+other death — every beast, every NPC — **flips the same object to dead
+and leaves it standing there**, still composing every capability it had
+in life. A dead ewe is a full animal that can be milked, sheared,
+handled, bred and turned back into the herdbook. A dead shopkeeper is a
+full shopkeeper.
 
-⚠⚠ **And it has a consequence this build must close.** A dead animal
-still answers every verb a live one does — it can be milked, sheared,
-handled, bred and turned back into the book — because nothing has ever
-been able to kill one. Introducing a deliberate way to kill an animal is
-what makes those six refusals necessary.
+Nobody has noticed because **nothing in the realm could deliberately
+kill an animal** — this build is the first thing that can, which is what
+makes the asymmetry visible.
 
-**The stockyard's slaughter is the only killing in the realm that leaves
-no body at all.** It destroys the animal and hands you the parts.
+⚠ And the capabilities are not hidden plumbing. The realm **shows a
+thing's capabilities to the player**, so the two kinds of death would
+read as two different kinds of object: one body with a long list of
+things it can no longer do, and one bare body with nothing. That
+difference would need explaining, and there is no explanation — a corpse
+is a corpse.
+
+⭐⭐ **The corpse machinery was built for this and has only ever been
+reached by players.** Its identity scheme already reasons about NPCs in
+so many words — *"two dead sentries genuinely share the first half"* —
+and a corpse's description is already composed out of the dead thing's
+own name, so it reads *"the body of Odile"* for a person and *"the body
+of a sentry"* for a role. The mechanism that carries the material half
+across is written, gated and used on exactly one path.
+
+**The stockyard's slaughter is worse again: it is the only killing in
+the realm that leaves no body at all.** It destroys the animal and hands
+you the parts.
 
 ### What a carcass gives, and who takes it
 
@@ -196,6 +211,9 @@ a herd mechanism) turned out to be done.
   makeable from the realm's own animals for the first time.
 - One slaughter, not two: every killing in the realm leaves a carcass,
   and one act takes a carcass apart.
+- ⭐ **One kind of death and one kind of body.** Every death that is not
+  a player's leaves a corpse, so a dead thing is never a living thing
+  with its capabilities switched off.
 - What comes off an animal is **the animal's** — its species says which
   parts, and its size and condition say how much, for every species
   rather than for cattle only.
@@ -356,6 +374,40 @@ target is alive. Rejected — it is the same two acts with a hidden seam,
 and the realm has just finished moving acts *onto* animals for precisely
 this reason.
 
+### One kind of death, and one kind of body
+
+**Every death that is not a player's mints a corpse**, and the thing that
+died stops being an object. Animals and NPCs are not distinguished —
+there is no reason a dead man and a dead ewe would be different kinds of
+thing, and drawing the line at *animal* would only move the asymmetry
+rather than remove it.
+
+The line is **a player identity**, not a connected session: a linkdead
+player still divides into a shade, because it is the identity that
+divides and the absent-body doctrine puts the pause on agency rather
+than on the world.
+
+⭐ **The corpse is deliberately lossy**, and that is the decision rather
+than a cost. A corpse keeps what a dead body has — its species, its
+mass, its condition at the moment it died, what killed it and when, and
+the matter it is made of. It drops what belonged to the living thing: a
+place in a herdbook, a tap's standing, a bond with whoever kept it, a
+job. Those are facts about an animal, and it is not one any more.
+⚠ Condition stopping at a stamped number rather than a reserve that
+keeps reconciling is part of the point — **a dead animal's condition
+cannot change**, and the engine should not pretend it might.
+
+⭐⭐ **A corpse's lifecycle is not a beast's with things removed; it is a
+different lifecycle.** It cools, it decays, it is forensic evidence, it
+can be opened for what it is made of — and it is never alive again. The
+engine already makes that last part structural: the mechanism that pours
+the material half into a corpse has no counterpart that pours it back
+out, and *that absence is what makes a corpse un-reanimatable.*
+
+**What this deletes:** six refusals. With a corpse there is nothing to
+guard — a dead thing does not compose the capabilities of a living one,
+so the verbs cannot reach it and nothing has to say no.
+
 ### What comes off is the animal's, and the species says what
 
 Every butcherable species declares the parts it gives, and the animal's
@@ -515,10 +567,14 @@ material rather than authored twice. ⭐ *Grain:* that the cheap light
 stinks is a recommendation, not a law; an author who wants clean tallow
 changes a material.
 
-**3a · Immersion.** The fiction stops betraying itself in two places it
-currently does. A beast that dies in the stockyard will leave a body like
-everything else that dies. And the stockyard's claim to use *"bone and
-horn"* stops being false. ⚠ One honest blemish remains: a tanpit that
+**3a · Immersion.** The fiction stops betraying itself in three places
+it currently does, and this is the lens that carries the corpse decision.
+A beast that dies in the stockyard will leave a body like everything else
+that dies. **A dead thing stops being a living thing with its
+capabilities crossed out** — which matters precisely because the realm
+*shows* capabilities, so the old behaviour was not hidden plumbing but a
+visible claim that a dead shopkeeper is still a shopkeeper. And the
+stockyard's claim to use *"bone and horn"* stops being false. ⚠ One honest blemish remains: a tanpit that
 fouls nothing while sitting on a river is a quieter betrayal than the
 one being fixed, and this build chooses it knowingly — see 6.
 
@@ -685,9 +741,11 @@ Observable from outside the code, by a person playing.
 12. A player can find all three new jobs standing vacant, see what each
     wants, and take one.
 13. `dress` no longer means two incompatible things.
-14. A dead animal cannot be milked, sheared, handled, bred, gathered
-    from or turned back into the book — and each refusal says it is dead
-    rather than failing silently.
+14. A dead animal is **a body, not a disabled animal**: nothing it could
+    do alive is offered on it, and that is true of a dead sheep, a dead
+    shopkeeper and a dead player alike.
+15. Killing something that was mid-anything — a fight, a journey, a
+    brain's errand — leaves a body and no wreckage.
 
 ---
 
