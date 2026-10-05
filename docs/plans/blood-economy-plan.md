@@ -1231,7 +1231,25 @@ class composes `PricedOfferMixin(` beyond `Tariff` as before);
 W3): DonationBankMixin, the transfusion service, and two houses in one
 room`.
 
-### W4 — The trade's half: the window, the unit, the verbs, the readings, the brains (D2, D7, D8, D13, D14, D15)
+### W4 — The trade's half: the window, the unit, the verbs, the readings, the brains (D2, D7, D8, D13, D14, D15) ✅ DONE
+
+> **Done.** `trade-medicine` grew: `BloodWindow` (= `DonationBankMixin(Tariff)`,
+> re-lists menu/order + issue/donate — `getContributions` shadows, so the
+> own static must re-list), `BloodUnit` (= `CirculatingMixin(BrandedMixin(
+> Receptacle))`, `onCreate` stamps the payload, keywords blood/unit/bag);
+> `issue`/`donate` verbs + controllers + rows; `BloodReading`/`BankReading`
+> + rows; `banks`/`supplies`/`donates` brains; four base unit rows.
+> **Build decisions:** (a) the gift credit lives in `DonateController` only
+> — the TransfuseController second mint site (own-blood-to-a-named-other)
+> is NOT in the drive and would duplicate the credit block or need a banned
+> helper, so it is **deferred within the wave** (→ blood-slate); (b) the
+> hook is `onCreate` (not postRegister — cross-field invariants go there);
+> (c) `Character` is ABSTRACT — tests use a concrete subclass; (d) a bag
+> reads empty with no material (isBulkEmpty), so the unit rows author
+> `interiorMaterial` and `onCreate` stamps on top. Tests: BloodWindow (2),
+> BloodUnit (3 — the onCreate stamp), donate (3 — the gift-credit gate via
+> RenownApi.append); pack suite 35 green. The issue seat-gate + the three
+> brains' live behavior are drive-proven (W6).
 
 **Goal.** `trade-medicine` ships everything a locality needs to author a
 blood window.

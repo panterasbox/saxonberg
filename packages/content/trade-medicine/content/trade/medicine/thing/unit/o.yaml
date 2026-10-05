@@ -1,0 +1,19 @@
+# A unit of type O blood — the trade's typed, filled bag (blood build
+# D13). `onCreate` stamps the matching `BulkPayload.blood` from the
+# fields below; a locality's row `extends:` this one and adds the
+# `container:` + `censusKey` that put it on a producer floor, and the
+# `_brandKey` that marks it as the upstream corpo's.
+class: /trade/medicine/thing/BloodUnit
+data:
+  shortDescription: labelled unit of type O blood
+  keywords: [unit, blood, bag, o]
+  register: indefinite
+  longDescription: >-
+    A flat, sealed pouch of waxed cloth, cold to the touch, its label
+    marked O. A unit of donated blood.
+  interiorMaterial: /stuff/idea/material/tissue/blood
+  interiorAmount: 0.45
+  interiorCapacity: 0.5
+  bloodType: O
+  bloodSystem: hominid
+  labelled: true

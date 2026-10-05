@@ -23,6 +23,14 @@ description: >-
   ⚠ It ships no venue. A clinic is rows — a business, a room, a tariff,
   a cot — in whatever locality wants one, which is the second-instance
   test: a second clinic needs ZERO pack code.
+
+  ⭐ It also ships the BLOOD ECONOMY (blood build): a `BloodWindow` (a
+  priced board that is also a donation bank), the typed `BloodUnit`, the
+  `issue`/`donate` verbs, the `analyze blood`/`analyze bank` readings, and
+  the `banks`/`supplies`/`donates` brains — so a locality stands up a
+  civic blood bank, gift-only (the donor is never paid; a patient pays a
+  service fee), as rows. A second blood window is a row; a second KIND of
+  bank (milk) is one small class composing the same `DonationBankMixin`.
 requires:
   # The trade is placeless (economic bootstrap D6/D7): its mechanism is
   # held by the Ministry of Trade — a seat, never a committee. Its

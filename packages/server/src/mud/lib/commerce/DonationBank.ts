@@ -195,6 +195,7 @@ export function DonationBankMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     /** A holder's freshness load — higher = more aged (serve it first). */
     private ageOf(holder: Stuff): number {
+      if (!MixinApi.isBulkable(holder)) return 0;
       try {
         return new Freshness(holder.getBulk()).load();
       } catch {
@@ -239,12 +240,14 @@ export function DonationBankMixin<TBase extends MixinConstructor>(Base: TBase) {
       const { holder, unit } = chosen;
       // The house transfuses you; you do not keep the bag. Empty the holder
       // so the lot's on-hand drops.
-      try {
-        const slot = holder.getBulk();
-        slot.setAmount(Quantity.of(0, "L"));
-        slot.setPayload(null);
-      } catch {
-        /* a holder with no slot cannot be a unit — already filtered */
+      if (MixinApi.isBulkable(holder)) {
+        try {
+          const slot = holder.getBulk();
+          slot.setAmount(Quantity.of(0, "L"));
+          slot.setPayload(null);
+        } catch {
+          /* a holder with no slot cannot be a unit — already filtered */
+        }
       }
       await this.recordCustody("issue", this.lotKeyOf(unit), issuer ?? null, recipient);
       return unit;
@@ -259,10 +262,12 @@ export function DonationBankMixin<TBase extends MixinConstructor>(Base: TBase) {
         ContainmentApi.move(holder, vault);
       }
       let lotKey = "";
-      try {
-        lotKey = holder.getBulk().getPayload()?.blood?.type ?? "";
-      } catch {
-        lotKey = "";
+      if (MixinApi.isBulkable(holder)) {
+        try {
+          lotKey = holder.getBulk().getPayload()?.blood?.type ?? "";
+        } catch {
+          lotKey = "";
+        }
       }
       await this.recordCustody("gift", lotKey, donor ?? null, null);
     }

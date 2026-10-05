@@ -1,0 +1,26 @@
+verbs: [donate]
+controller: /trade/medicine/idea/cmd/medical/DonateController
+description: "Give a bag of blood to a blood window"
+help: |
+  `donate <bag> [at <window>]` gives a bag of blood to the window's bank.
+  The donor is never paid — a gift is a gift. But when YOU give YOUR OWN
+  blood, the deed is remembered: your chronicle records it, it tells in
+  your character, and the window applauds you where it matters.
+
+  Draw a unit first with `bleed` into an empty bag, then donate it.
+examples:
+  - cmd: donate the bag
+    note: Give a unit you are carrying
+args:
+  - name: bag
+    type: object
+    required: false
+    scope: ["inventory", "reachable"]
+    requires: [BulkableMixin]
+  - name: window
+    type: object
+    required: false
+    prepositions: [at, to]
+    default: "reachable:[mixin.DonationBankMixin]"
+    scope: "reachable"
+    requires: [DonationBankMixin]

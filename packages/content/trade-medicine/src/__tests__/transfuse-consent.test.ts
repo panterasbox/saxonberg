@@ -30,6 +30,8 @@ import type { MqlOneResult } from '@saxonberg/server/mud/api/mql';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { BloodUnit } from '@saxonberg/server/mud/lib/vitals/Blood';
 
+// Character is abstract; a concrete subclass is what a Cast/Avatar is.
+class TestCharacter extends Character {}
 class Player extends HasInteractiveMixin(Character) {
   static override _mixinName: string = 'Player';
 }
@@ -56,7 +58,7 @@ const ctxFor = (actor: unknown): CommandContext =>
   ({ commandGiver: actor, location: null, note } as unknown as CommandContext);
 
 function npc(): Character {
-  const c = makeStuff(() => new Character());
+  const c = makeStuff(() => new TestCharacter());
   stampTemplatePathForTest(c, `/platform/agent/Avatar/tx-${seq++}`);
   return c;
 }
