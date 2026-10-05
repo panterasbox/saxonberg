@@ -102,9 +102,17 @@ what makes a zone's interior griddable.
 **The data is in better shape than the absence suggests.** Across 2,544
 rows: 103 declare exits for 197 edges; **197 of 197** carry a literal
 destination; **85 of 197** already carry `edgeMinutes`; **102 of 103**
-carry `coords`. ⚠ `_address` is on 52 of 103 **and is not unique** — two
-rows both claim `terminus/city/campus/duncan-hall`. `content` has only
-`{path}` unique and `{extends}`: no zone index, no exit index.
+carry `coords`. `content` has only `{path}` unique and `{extends}`: no
+zone index, no exit index.
+
+⭐⭐ **And `_address` is not unique — which is the concept working, not a
+defect.** Four rows (Duncan Hall's lobby, corridor, steps and dormroom)
+all author `_address: terminus/city/campus/duncan-hall`. The slate records
+the duplication as a data problem and that reading is wrong: `_address`
+names *where the room is*, and where it is, is the **building**. Four
+rooms agreeing is four rooms correctly declaring membership in one
+structure, by hand, in content. Uniqueness was never promised because it
+was never a room identifier. See surface decision 12.
 
 **The document tree is the right home and its own criteria say why.**
 `/home/<self>` is the personal workspace tier; `owner` is set from
@@ -226,6 +234,18 @@ the disagreement · and publish-state as a queryable property of a place.
   to a derived store that can then lie after a crash. The declared hole is
   honest and cheaper; it stays reflected at query time. **Destination:**
   nowhere, deliberately — recorded as a lean in the slate.
+- **Structures — a building as a thing.** ⚠ Four rooms already declare
+  membership in Duncan Hall by address, so the *declaration* exists and
+  nothing reads it. This build reads it as a grouping key (decision 12)
+  and does **not** mint the concept. **Destination:**
+  `structures-slate`, whose own justification test is *"something must be
+  true of a SET of rooms that no room can decide alone"* — and whose
+  passing candidates are overwhelmingly **fire, weather and vertical
+  space** (a shared roof, a flue serving two hearths, warm air rising from
+  the taproom), which makes a thermal build its natural owner rather than
+  a mapping one. ⭐ One candidate on that list *is* this build's business
+  and is noted for it: *"Entrances — which door is **the** door, for
+  wayfinding."*
 - **Anything else on `ParcelRecord`'s model** — ceilings, covenants,
   obligations, improvement, the allowance meter. ⚠ `published` is in (see
   surface decision 6) and it is **one field, not an opening**.
@@ -464,7 +484,36 @@ and that is the honest answer rather than a gap: indexing a room that will
 not exist after a restart would be a derived store that lies. A player's
 map of a lounge satellite is correctly nothing.
 
-### 12. The graph is derived, so it is never a source
+### 12. `address` is a GROUPING key, not display chrome
+
+**The question.** The slate's key table marks `_address` *"display only —
+52/103, and not unique"*, and therefore unreliable. Should the projection
+carry it as chrome?
+
+**The answer.** No — carry it as a **grouping candidate**. The
+non-uniqueness is the declared answer to *"which building is this room
+in"*, authored deliberately: Duncan Hall's four rooms all claim the same
+address because they are all in Duncan Hall.
+
+⭐ **Why it matters now even though structures do not exist.** A map of a
+locality that lists its interzone exits wants to say *"Duncan Hall"*, not
+six room names. Today a map can group by **zone** and get the right answer
+for most shipped content — the general store says so in its own comment,
+*"Its own zone"* — and the two cases where zone and building come apart
+are the ones `structures-slate` names: a zone holding several buildings,
+and a building carved across sub-zones.
+
+⭐⭐ So treating `address` as a grouping key costs nothing today and means
+a **structure node becomes another grouping key on the node, additively**,
+the day it exists. Reading it as display-only is what would force the
+projection to change later.
+
+⚠ It is still not a node **key** — the node key is the minted identity.
+Address groups; identity identifies. Those are different jobs and the
+slate is right that conflating them is how the shared-bank-account bug
+class happens.
+
+### 13. The graph is derived, so it is never a source
 
 Rebuilt at boot, maintained at the write chokepoint. A disagreement with
 the templates is a **bug, not a state**; it must be droppable and
@@ -620,11 +669,14 @@ Observable from outside the code.
     any other.
 14. A player's map of a generated lot survives that lot being reaped and
     re-minted: *"I have been to lot-7"* still reads true.
-15. A player's map survives the nightly reset. Walk somewhere, let the
+15. A map of a locality can group its rooms by building wherever the
+    content declares one — Duncan Hall's four rooms read as Duncan Hall,
+    not as four unrelated places.
+16. A player's map survives the nightly reset. Walk somewhere, let the
     reset run, and the map still says you were there.
-16. A player's map of a lounge-style procedural room is honestly nothing,
+17. A player's map of a lounge-style procedural room is honestly nothing,
     rather than a stale entry for a room that no longer exists.
-17. ⭐ A second locality and a second player need no engine change for
+18. ⭐ A second locality and a second player need no engine change for
     either to have a map. The build is not done until somebody
     demonstrates it.
 
