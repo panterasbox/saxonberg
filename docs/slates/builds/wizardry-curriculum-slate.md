@@ -465,18 +465,21 @@ entrenchment tier. All three have homes; none is written.
 
 ## 13. Open questions
 
-1. ⭐⭐⭐ **Write the rubric first** — unchanged from
-   [wizardry-slate](./wizardry-slate.md) § 2, and now load-bearing twice:
-   the Discipline's defensibility *and* the crit syllabus. One document,
-   two jobs.
+1. ✅ **CLOSED — [wizardry-rubric.md](../../wizardry-rubric.md)** is
+   written. ⭐⭐ It supplies this slate's progress instrument directly:
+   **every noun in a description is a promise; difficulty is how many you
+   made, outcome is how many you kept** — and it scores the millsite, our
+   best location row, at **four answered of fourteen promised (29%),
+   below the ancestor's 41% mean.**
 2. ⚠ **Who admits to the apex?** If the university teaches the course
    *and* admits to the licence that gates the substrate, that is capture.
    ⭐ Lean: **the university grades, an office admits, the chronicle is
    the appeal** — how every licensed profession works.
-3. **Is the detail-density mirror a course instrument only, or the same
-   instrument the Discipline band later reads?** If both, the firewall
-   between *what the craft says* and *what the polity thinks* runs through
-   one number.
+3. ⚠ **Still open, and sharpened by the rubric** (§ 10.6): the course's
+   mirror and the Discipline's `prose-craft` sub-check would run through
+   **one noisy noun extractor.** ⭐ Lean: the course keeps a **private**
+   mirror that writes no Transcript row, so a student's practice is not
+   also their record.
 4. **Does the `cafe` archetype get authored as course content?** ⭐ Lean
    yes — the single best first assignment in the curriculum, and it ships
    something real.
@@ -507,6 +510,8 @@ entrenchment tier. All three have homes; none is written.
   — verified ground truth; it wins over every other study.com doc.
 - [../../study-com/teachability-boundary.md](../../study-com/teachability-boundary.md)
   — the three modes, and why wizardry is mode 1.
+- [../../wizardry-rubric.md](../../wizardry-rubric.md) — ⭐⭐⭐ what the
+  Discipline measures; § 2 there is this slate's progress instrument.
 - [../../design-lenses.md](../../design-lenses.md) +
   [../../measurement.md](../../measurement.md) — the crit's rubric, and
   the mirror rule.
