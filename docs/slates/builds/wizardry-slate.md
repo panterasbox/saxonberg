@@ -6,9 +6,13 @@
 > `isWizard` / `isArchwizard` ([access.md](../../subsystems/access.md)),
 > the Practicum ([magic.md](../../subsystems/magic.md)), the three land
 > markets ([land-compute](./land-compute-and-license.md)), and
-> ⭐⭐⭐ **the rubric — which turns out to be already written.**
-> **Left:** the rubric as a scored syllabus (⭐ do this first — it costs
-> nothing and tests everything) · the conferral logic · the band's
+> ⭐⭐⭐ **the rubric — ✅ WRITTEN 2026-10-04 →
+> [wizardry-rubric.md](../../wizardry-rubric.md)**, which closes § 10.1
+> and § 10.2.
+> **Left:** ⭐ the **curriculum** →
+> [wizardry-curriculum-slate](./wizardry-curriculum-slate.md) (§ 8a) ·
+> the seven Discipline rows + the noun extractor
+> ([rubric](../../wizardry-rubric.md) § 10) · the conferral logic · the band's
 > disclosure rule · `isWizard` as the apex · the trade's shipped content
 > (venue, instrument, syllabus, lore) · the supply-chain naming
 > **Size:** **a build**, and the lore half is content rather than code.
@@ -220,6 +224,39 @@ that keeps compute out of mana.
 | **lore** | § 6's cosmology |
 | ⚠ **businesses** | open — a scriptorium? a commissioning house? The labour market for authoring is `contract.md`'s, **non-diegetically** (§ 1) |
 
+## 8a. ⭐⭐⭐ The syllabus, and why it is the first curriculum
+
+**Added 2026-10-04.** The Discipline needs teaching, and the teaching
+turns out to be the cheapest thing in the design — so the full treatment
+moved to its own slate:
+[wizardry-curriculum-slate.md](./wizardry-curriculum-slate.md).
+
+The three findings that bear on *this* slate:
+
+> ⭐⭐⭐ **The evaluator is the build.** `lint:family`, `pnpm test`, and
+> *does the row boot*. Every other Discipline's assessment is only as
+> honest as its model; wizardry's answer key is maintained correct for
+> unrelated reasons and **updates itself when the engine changes** — which
+> is § 2's authority argument arriving as an engineering property rather
+> than a philosophical one.
+
+⚠ **But the rubric is NOT the syllabus, and conflating them was an error
+worth recording.** The lenses + `eotl-craft` (§ 2) are what a **crit
+scores**; they are not what a **course teaches**. The course teaches the
+architecture — the capability vocabulary, affordance, persistence, the Api
+surface — and the lenses are upper division, where lens 4 says there is no
+derivable right answer. ⭐ Both documents stay load-bearing; they are
+load-bearing at *different altitudes*.
+
+⭐⭐ **And the band's input problem (§ 10.2) has a measured candidate.**
+`eotl-craft`'s strongest empirical finding is that **detail density is the
+only reliable completeness signal in 45,000 files** — *in every case the
+unfinished room is the one with an empty or absent detail map* — with the
+explicit instruction that the right use is **a mirror, not a gate**. That
+is a real, honest, derivable input. ⚠ Whether the *course's* instrument and
+the *Discipline's* instrument may be the same number is open, because that
+is where the two judges (craft vs polity, § 5) would start to merge.
+
 ## 9. The lens pass
 
 **⭐⭐⭐ 1 — pedagogy.** The strongest limb. It exercises modelling a
@@ -274,12 +311,24 @@ mechanism.
 
 ## 10. Open questions
 
-1. ⭐⭐⭐ **Write the rubric first** (§ 2). It costs nothing, it is
-   dispositive, and everything else is downstream.
-2. ⚠ **What exactly does the band derive from?** Reception is the only
-   honest input (§ 9.2) — but reception is also what standing reads, so
-   the two must be **differently weighted against the rubric** or they
-   collapse into one number with two names.
+1. ✅ **CLOSED — the rubric is written**:
+   [wizardry-rubric.md](../../wizardry-rubric.md). ⭐⭐⭐ It turned out
+   to be **mostly what is left once three existing rules are obeyed** —
+   `measurement.md`'s valuation ban, `advancement.md`'s *difficulty is a
+   world-measurement*, and A3's *derive, don't track*. ⛔ The first of
+   those **forbids a single "wizardry band"** (a cross-domain composite is
+   the banned object), so the Discipline is **a tree of seven
+   single-domain leaves** — which is also what *prefer specializations*
+   independently demanded.
+2. ✅ **CLOSED — and it is not "differently weighted", it is a different
+   POPULATION.** ⭐⭐⭐ **Standing reads CONSUMPTION; wizardry reads
+   PRODUCTION.** The consumer says *"I liked it"*; the peer says *"I
+   depended on it."* So the band reads the build, the artifact's own
+   properties, and **peer reuse** (the mint ledger already tracks who
+   instantiated whose) — and ⛔ **never a rating, a use counter or
+   renown**, which would merge the judges and import the payola problem
+   two firewalls were built to keep out. See
+   [wizardry-rubric.md](../../wizardry-rubric.md) § 4.
 3. ⚠ **Why was this rejected before?** The user recalls it being raised
    and declined. ⭐ The two objections I would guess — *it makes authoring
    special* and *it collides with `isWizard`* — are both answered (§ 4),
@@ -294,6 +343,10 @@ mechanism.
 
 ## Cross-refs
 
+- [wizardry-curriculum-slate.md](./wizardry-curriculum-slate.md) — ⭐⭐⭐
+  how the Discipline is taught, and why it is the first curriculum.
+- [object-taxonomy-slate.md](./object-taxonomy-slate.md) — what a
+  non-wizard may mint, and where the apex licence stops being needed.
 - [labor-standing-slate.md](./labor-standing-slate.md) — the work item
   that stays **non-diegetic**, and the credit this Discipline sits beside
   without duplicating.
@@ -303,8 +356,11 @@ mechanism.
   catalogue, Transcript and derive-on-read bands this would join.
 - [access.md](../../subsystems/access.md) — `isWizard` / `isArchwizard`,
   the code-trust lockdown, and the apex § 4 reinterprets.
+- [wizardry-rubric.md](../../wizardry-rubric.md) — ⭐⭐⭐ **the rubric**,
+  written. Every noun is a promise.
 - [eotl-craft.md](../../eotl-craft.md) +
-  [design-lenses.md](../../design-lenses.md) — ⭐⭐⭐ **the rubric.**
+  [design-lenses.md](../../design-lenses.md) — its criteria and the
+  crit's material.
 - [magic.md](../../subsystems/magic.md) +
   [arcane-science.md](../../arcane-science.md) — the Practicum, and the
   price list § 7.1 must not borrow.
