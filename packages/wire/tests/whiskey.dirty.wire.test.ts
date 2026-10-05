@@ -116,6 +116,22 @@ async function say(s: Session, text: string): Promise<CommandResult> {
   try {
     return await s.cmd(text);
   } catch (err) {
+    // ⚠⚠ **A timed-out command poisons the session, and the harness says
+    // so in one sentence**: *"was sent while another command is still in
+    // flight… correlation is by ORDER, so one command per session at a
+    // time."* On the first full run ONE slow `look` in the dark took
+    // eleven later checkpoints down with it, each reporting the in-flight
+    // error rather than anything about whiskey.
+    //
+    // ⭐ So a stuck session is RECOVERED rather than cascaded: reopen it
+    // and send the command again. The checkpoint that was actually slow
+    // still fails, which is right — what is wrong is the other eleven
+    // failing with it, because a cascade is not diagnostic.
+    if (/still in flight/.test(String(err))) {
+      k.close();
+      k = await Session.open(handle, { startLocation: FLOOR, wizard: true });
+      return await k.cmd(text);
+    }
     if (!/raised a PROMPT/.test(String(err))) throw err;
     const pending = await s.awaitPrompt(5_000);
     const payload = (
@@ -183,6 +199,37 @@ async function advance(duration: string): Promise<void> {
   await new Promise((r) => setTimeout(r, 400));
 }
 
+/**
+ * ⭐⭐ **Wait for daylight, because the still-house has no lamp.**
+ *
+ * Crowsfoot's floor authors no ambient light at all, deliberately — its
+ * own row says so: *"this room is LIT BY SPILL from the yard, through a
+ * doorway that stands open… bright by day and DARK at night, which is
+ * the whole point, and it costs no authored number at all."*
+ *
+ * ⚠⚠ So the first run of this drive opened with `it is pitch dark. you
+ * can…` and every `look` checkpoint failed on a premise that had nothing
+ * to do with whiskey. **A drive that walks into an interior lit by spill
+ * has to know what time it is** — the taps drive never learned this
+ * because a sugarbush is outdoors. Recorded here because the next indoor
+ * drive will hit it too.
+ *
+ * ⭐ Advancing the clock is the honest fix rather than conjuring a
+ * lantern: the house is dark at night because somebody decided it should
+ * be, and a distiller works in the day.
+ */
+async function waitForDaylight(s: Session): Promise<void> {
+  for (let i = 0; i < 8; i++) {
+    const here = await read(s, 'look');
+    if (!/pitch dark|too dark/i.test(here)) return;
+    await advance('4 hours');
+  }
+  throw new Error(
+    'wire: the still-house floor stayed dark across a whole game day — ' +
+      'the spill-lighting walk from the yard is not reaching it',
+  );
+}
+
 beforeAll(async () => {
   handle = uniqueHandle('distiller');
   // ⚠ `reserve override`, not `reserve issue` — the reserve stopped
@@ -205,6 +252,7 @@ beforeAll(async () => {
   expect(Number(bal![1])).toBeGreaterThan(30);
   k.close();
   k = await Session.open(handle, { startLocation: FLOOR, wizard: true });
+  await waitForDaylight(k);
 }, 300_000);
 
 afterAll(() => k?.close());
@@ -251,10 +299,14 @@ suite.skipIf(!isOwnedTestWorld())(
   '⭐⭐⭐ 0b. the clock moves, from OUTSIDE the fiction',
   () => {
     it('the test-clock route moves game time, and by how much', async () => {
-      const before = worldClockNow();
+      // ⚠ `await`. `worldClockNow()` returns a PROMISE, and reading it
+      // unawaited gave `NaN`, so `Number.isFinite(before)` was false and
+      // the checkpoint failed on its own premise rather than on the
+      // clock. The unawaited-promise flake class, in a drive.
+      const before = await worldClockNow();
       expect(Number.isFinite(before)).toBe(true);
       await advance('2 days');
-      const after = worldClockNow();
+      const after = await worldClockNow();
       expect(after - before).toBeGreaterThan(2 * 86_400 - 60);
     }, 300_000);
   },
