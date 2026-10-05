@@ -1326,6 +1326,57 @@ edges). `lint:openings` passes with the vacancies live.
 
 Commit: `drive(carcass): <what driving found>`.
 
+#### ✅ W9 — the drive, and what it found
+
+⭐⭐⭐ **It found a real AC failure that three unit suites and sixty-four
+lint gates were green over**, which is the whole argument for the drive
+being the exit criterion. *Tests build state; they never use it.*
+
+**Run 1 — 6 of 22, and every one of the six was informative.**
+
+1. ⚠⚠⚠ **AC1 was UNMET: the jerkin had no VERB.** `make leather-jerkin`
+   hung. `make` dispatches a recipe **script** — not a catalogue recipe —
+   and `cut` requires `StackableMixin`, a BOLT, which a tanned hide is
+   not and must not become (two hides must never merge; each is a
+   particular skin with its own grade). So a tanned hide had **no path to
+   a worn jerkin**, and W4's commit message had already declared AC1
+   closed. ⭐ `trade-tailoring` ships `tailor [<garment>]` now, defaulting
+   to `leather-jerkin` — `BakeController`'s pattern verbatim.
+   ⭐⭐ **This is the THIRD time in one build** that the plan's
+   reachability table assumed `make` reaches a catalogue recipe (W6's
+   candle, W7's bone meal, now the jerkin). Two were caught by reading
+   and the third needed the drive.
+2. ⚠⚠ **It was NIGHT, and eight checkpoints failed as a CASCADE off one
+   unlit room.** `t = 0` is a moonless midnight and the wire world
+   restores its clock from the database, so `look` at the farmyard read
+   *"It is pitch dark. You can make out nothing."* `ensureDaylight`
+   asserts daylight and moves the clock until there is some — and the
+   character buys a lantern, so darkness is never the failure mode again.
+   *A cascade is not diagnostic.*
+3. ⚠⚠ **`clone … --here` is `access-denied`**, correctly: a player holds
+   no title over a room. ⭐ The fix made the drive better rather than
+   merely working — the requirements' own words are *without anything
+   being conjured*, so the knife, the lantern, the rations and the
+   waterskin are **bought at the general store**, and the clasp knife is
+   `constructionForm: bladed`, which is exactly what `butcher` is
+   afforded by: *an edge, not a class.*
+4. ⚠⚠⚠ **AC14 PASSED VACUOUSLY** — the worst failure a drive has. With
+   `slaughter` unreachable there was no body, so `shear body` answered
+   *"I don't understand"*, which matched the refusal pattern and read as
+   a pass. It now **requires a body to exist** and names what the room
+   actually holds when there is not.
+5. **The body came back shivering from a 25-game-day jump.** A drive that
+   walks a season has to feed and warm its character, so `advance` eats
+   and drinks on any jump of a day or more.
+
+**The two ratchets both fell**, as the plan asked at W9 and deliberately
+not earlier: `unconsumed-seams` 19 → 18 (the build CONSUMED a seam it had
+been counting — `getButcheryYield` had one reader and now has two) and
+`instrument-args` 9 → 1 (nothing here added a bespoke resolution; every
+new instrument arg is declared).
+
+**Run 3's record** is appended below as the drive record.
+
 ---
 
 ## Reachability wiring
@@ -1459,6 +1510,37 @@ No criterion is unmapped.
   tanpit's effluent** — already assigned by the requirements.
 - **The knacker as a collection round.** → `logistics-slate`.
 - **The `BulkPayload` tannin field** — if a third liquor consumer wants concentration.
+- ⚠⚠ **A corpse's MINTED IDENTITY has no reader, and this build multiplied
+  the mint ~50×.** Raised by `build-3` (instance-addressing) mid-build and
+  settled with them across two exchanges; recorded here because the
+  multiplication is ours.
+  - `corpseIdentityFor` mints `<corpseRow>/<deceased identity>/<gameSecond>`
+    and **nothing keys on it.** Checked on both sides: the ledgers key on
+    the DEAD THING (`AccountabilityApi.record` and `recordDeathDeed` take
+    `body.getIdentityPath()`, pinned in `ConditionLogic.die.test.ts`);
+    `Corpse` composes no `PersistableMixin` and neither does `Creature`,
+    so a corpse is a runtime clone gone on restart; and build-3 closed the
+    belief leg — the recognition-name path is gated on `isPersona`, which
+    `Creature` does not compose, and no production caller hands a corpse
+    to `learnIdentity`/`recognizes`. The only reader is the mint's own
+    ordinal probe, which exists *because* it minted. A closed loop.
+  - ⭐ **W0 weakened it again, from our side and independently**: D16's
+    keyword union moves *tell two bodies apart in this room* onto the
+    **presentation** path, which is where it belongs — and that was one
+    of the jobs the identity's own docstring claims.
+  - ⭐⭐ **But it is a reason to keep the mint, not a reader.** A corpse is
+    the one object in the game that is nobody's and everybody's business
+    — forensic, butcherable, lootable, decaying — so if a later build
+    wants *whose body is this, and who moved it*, the identity is the
+    hook that carries it. build-3 is recording that counter-argument
+    under its own heading so nobody reads "no reader" as "delete it".
+  - ⚠ **Nothing to do here**: `corpseIdentityFor` is byte-identical to
+    pre-W0 (zero `findAllByTemplatePath` lines moved across the whole
+    branch), and build-3 is moving its two probes to a new
+    `findByIdentityPath` before they redefine the row read — a change
+    this branch does not race.
+  → `docs/slates/builds/instance-addressing-slate.md` and decisions 9/9a–9d
+  of `location-graph-requirements.md`, both on `origin/reqs/location-graph`.
 
 ---
 
@@ -1499,7 +1581,148 @@ get their stale lines corrected.
 
 ## Drive record
 
-*(appended at build time, not at plan time — the output of running
-`packages/wire/tests/carcass-chain.dirty.wire.test.ts` against the
-running game: the command, the count, and what each failure was.
-Precedent: `farming-plan.md § Checkpoint A`.)*
+`packages/wire/tests/carcass-chain.dirty.wire.test.ts`, run against a
+world of its own:
+
+```
+pnpm --filter @saxonberg/server reset:db
+WIRE_BOOT=1 WIRE_PORT=2014 WIRE_FRAME_TIMEOUT=90000 \
+  pnpm -C packages/wire exec vitest run tests/carcass-chain.dirty.wire.test.ts
+```
+
+⚠⚠ **`WIRE_PORT=2014` is build-1's, and the default is a trap.** The
+default 2012 is unclaimed and `bootOwnedWorld`'s preflight **kills
+whatever holds the port** — so build-1 and build-4 spent three boots
+taking turns killing each other's server, silently. build-2 holds 2013.
+The tell: the log reaches *"world open — the cast may act"* and then the
+port is free and the drive sits in its probe. Written to project memory.
+
+⚠⚠ **Read the table as a UNION across runs, not one clean pass**, and
+that is the honest shape of this record. Nine runs; the chain was
+exercised against two worlds (one warm, one freshly dropped) and the
+targeting is the remaining brittleness — a drafted head answers to `ewe`
+on a warm world and only to `head` on a cold one, because `draft` folds
+the species' common names in and that depends on world state at draft
+time. The drive targets the **authored** keyword now and pins the
+species-name question as its own soft checkpoint, so the next run says
+which world it is on rather than failing six checkpoints about something
+else. **That is a ranching finding, not this build's**, and it is the
+single reason this record is a union.
+
+### ⭐⭐ What was observed green, through the real socket
+
+The **valley half of the chain runs end to end**:
+
+| # | checkpoint | |
+|---|---|---|
+| 1 | the yard has a flock book, a block and two dogs | ✓ |
+| 2 | the flock book names a flock and a tally | ✓ |
+| 3 | `draft 3` takes one head out as a body you can look at | ✓ |
+| 4 | `handle` reads her condition **in words, with no number in it** | ✓ |
+| 5 | `shear` is refused on a fresh head — the taps design | ✓ |
+| 6 | ⭐⭐ **`slaughter` leaves a BODY where the animal stood** | ✓ |
+| 6c | the book says what became of her and the tally fell | ✓ |
+| 7a | `butcher` without an edge is refused, and says so | ✓ |
+| 7b | ⭐⭐ **with an edge it opens into cuts, offal, suet, hide AND bone** | ✓ |
+| 7c | and the carcass is gone — one body, taken apart once | ✓ |
+| 8 | ⭐⭐ `cure` finds the HIDE recipe with no new verb (W3's `recipeFor`) | ✓ |
+| 11 | the three noxious trades: bank → knacker → tannery, on foot | ✓ |
+
+⭐⭐⭐ **And AC14 is green in the WORLD's own words**, which are better
+than anything the file asserts: `handle` on the body answers *"the body
+of a sheep isn't an animal you can work with."* The corpse names itself
+off the dead thing's presentation, and `handle` declines because a
+`Corpse` composes no `HandlingMixin` — **nothing had to be written to say
+no**, which is the whole of W0. The checkpoint failed on the *shape* of
+the refusal (my pattern wanted *cannot|can't|not something*; the prose
+says *isn't*), which is its own small lesson about asserting on prose.
+
+### ⚠ What the drive found — the reason it is the exit criterion
+
+Nine runs. Every finding below was invisible to 64 lint gates and every
+unit suite in the repo.
+
+1. ⚠⚠⚠ **AC1 WAS UNMET.** `make leather-jerkin` hung. `make` dispatches
+   a recipe **script**, not a catalogue recipe — and `cut` requires
+   `StackableMixin`, a BOLT, which a tanned hide is not and must not
+   become. **A hide had no path to a worn jerkin.** Fixed: `tailor`.
+   ⭐ The **third** time in one build the plan's reachability table
+   assumed `make` reaches a catalogue recipe (W6, W7, now this); the
+   first two were caught by reading and this one needed the drive.
+2. ⚠⚠ **A farm with a butcher block has a KNIFE.** `butcher` is afforded
+   by an edge, and the farmyard's only blade was three miles away in a
+   shop — so the most ordinary act in the build was reachable only by
+   going shopping. Content fix; the block with no knife was the odd thing.
+3. ⚠⚠ **A cold world's shops are EMPTY** — a `Stock`'s `par` is topped up
+   by its keeper's own beat, so three game days at the till bought
+   nothing. Honest behaviour, and it is what made (2) the right fix.
+4. ⚠⚠⚠ **AC14 passed VACUOUSLY** in run 1: with `slaughter` unreachable
+   there was no body, so `shear body` answered *"I don't understand"*,
+   which matched the refusal pattern. It now requires a body to exist.
+5. ⚠⚠ **It was NIGHT**, and eight checkpoints failed as a **cascade** off
+   one unlit room. ⭐ And my first `ensureDaylight` was **itself vacuous**
+   — its regex matched *day* inside night prose, so it advanced nothing.
+   The lesson one level down: *a helper that cannot fail is as bad as a
+   checkpoint that cannot.*
+6. ⚠⚠ **An unanswered PROMPT poisons the session**, and the failure lands
+   on the NEXT command: `tan hide` with no hide in hand raised an
+   ambiguity the helper could not answer, and `tailor` then timed out
+   with no dispatch-response — looking exactly like a hang in brand-new
+   code. `say()` now throws where it happens.
+7. ⚠ **The cuts are on the FLOOR.** `butcher` lays them where the beast
+   fell, and the drive walked to the city carrying an implant and a
+   student's shirt. A hide that never left the yard cannot be tanned —
+   and conjuring one at the pit would have made that checkpoint a lie.
+8. ⚠ **The 120-game-day wool jump is cut.** 125 game days per fleece
+   unit, and draining that interval cost 3,000 log lines and minutes of
+   real time — to prove AC8, which belongs to the shipped textile chain
+   this build never touched.
+9. ⚠ **`clone … --here` is `access-denied`**, correctly: a player holds no
+   title over a room. The requirements say *without anything being
+   conjured*, so the fix was the better drive.
+10. ⚠⚠ **A drafted head does not reliably answer to its species' names.**
+    `slaughter ewe` answered *"couldn't resolve 'target'"* on a freshly
+    dropped world while `slaughter head` bound fine. `draft` folds the
+    species' `commonNames` onto the head, so an inert species row leaves
+    a sheep that is only a *head* — the inert-reference trap again, in a
+    place nobody had looked. A finding for `ranching-slate`: not
+    introduced by this build, and the reason the table above is a union
+    across runs.
+11. ⚠⚠ **A new command view does NOT reach a warm world.** On a
+    re-install the tailoring pack reported *"1 kept, 0 command-view
+    document(s)"* and `tailor` was absent, so a drive against a warm DB
+    was testing a world without the verb. Same family as *a `props:`
+    edit never reaches a booted world*. The clean run was the one after
+    `reset:db`, where the pack reported **4 command-view documents** and
+    the command count went 300 → 301.
+
+### ⚠ Deliberately skipped, with reasons
+
+- **Checkpoint 10 (the oak).** Three reasons, all recorded at the site: a
+  session re-open at a `Wood` location does not place the avatar; no shop
+  sells a felling axe; and ⭐ **AC9 is already proven on the ROWS** by the
+  test W5 added to `trade-forestry`'s suite, which reads the shipped Wood
+  rows — better than a drive that fells one tree.
+- **Checkpoint 19 (the knacker working).** Droving is not expressible, so
+  there is no way to get a live animal to the city or a 70 kg carcass off
+  a valley floor. The drive reads the vacancy instead of pretending the
+  collection round exists.
+- **Step 20 (`analyze grid` in both epochs)** — the energy build's drive
+  proves it and nothing here touches it.
+
+### ⚠ Pre-existing, observed and NOT fixed
+
+Both seen in the boot log, neither this build's:
+
+- the electrical feeder's compile warns *no exit joins the bank and the
+  market square* — the bank's `north` exit is byte-identical to eight
+  commits before this branch;
+- `Tootie "sense"` throws `controller-error(details is not iterable)` on
+  a clock drain, and `consigns` throws on a `StuffApi` call.
+
+### ⭐ The dirty reason is a question for a trade
+
+**Nobody charges a tanpit.** A pit ships with its bark and spends it per
+hide, so a tannery run long enough goes quietly flat with no way to
+refill it but `pour` and a bundle. A bark-merchant-shaped hole — for
+`rendering-slate` / a tanning slate, not a defect here.
