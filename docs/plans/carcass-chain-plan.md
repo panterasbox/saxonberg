@@ -1567,6 +1567,46 @@ No criterion is unmapped.
     narrower one: *on the beast path* the stamp is a *uniquifier
     compensating for the identity fallback*, naming only *the Nth body off
     the ewe row in second T*.
+  - ⛔⛔ **AND THE AXES ABOVE ASK THE WRONG QUESTION. Durability is not
+    the test — LEGIBILITY is, and the timestamp fails it on BOTH paths.**
+    The question that settles this is *how does someone actually refer to
+    a thing in our UX*, and the answer is already shipped and documented:
+    **keyword → the `distinguishing` form (+ what they are wearing) → and
+    where that still ties, an ordinal** (`PromptLogic.projectMatches`,
+    fixed 2026-09-27 after the fishing drive rendered two buttons both
+    labelled *a cane rod*; `presentation.md` § the six forms). ⚠ **Nobody
+    ever names a path, and nothing can name a game-second**: a player
+    cannot type it, the disambiguation prompt will not render it, and
+    MQL's own answer to *which of these identical things* is an ordinal
+    (`roses:[2]`), not a key. So "targetable" in the sense that matters —
+    *a person can refer to it* — is FALSE for a player's corpse as well,
+    and the previous entry's "all three axes pass" was testing machine
+    addressability and calling it reference.
+  - ⭐⭐⭐ **Which turns the whole question into a PRESENTATION finding,
+    and exposes a real shipped gap.** Two of one player's corpses at
+    different decay states are, in the UX, indistinguishable: they share
+    their keywords (and D16's union gave them the dead thing's name
+    keywords too), `distinguishing` separates them only if one has been
+    looted, and otherwise they tie and fall to a bare ordinal — the exact
+    *two buttons, same label* failure the fishing drive caught.
+    ⚠⚠ Meanwhile `PostmortemMixin.getDecayStage()` computes
+    `fresh | stale | decomposed | spent` and **has no production reader
+    anywhere in the tree** (only its own test file and its declaration).
+    The one thing a player would actually use to tell two of their own
+    bodies apart — *the bloated one* — exists as data and has never
+    reached a word.
+    ⭐ Same shape as D16, one rung further: **discrimination belongs on
+    the presentation path, not in a key.** The identity mint contributes
+    nothing to it either way, which is the strongest version of the
+    argument against the stamp and does not depend on "no reader" at all.
+  - ⚠ **Not shipped here, and deliberately**: the words are a product
+    choice, and a naive *"the bloated body of X"* would step on
+    `getForensicReadability()` and the instrumentation doctrine that
+    **competence resolves DETAIL and never ACCESS** — whether a passer-by
+    reads decay in bands while a medic reads the stage is a design
+    question, not a one-line description edit. → a finding for
+    `mortality.md` / the forensic seam, and the sharpest input available
+    to build-3's decision 9.
   - ⭐⭐⭐ **Which strengthens the candidate resolution rather than
     weakening it.** It is the plan's own half-rule (*a body with no
     identity path gets no minted identity*) one rung up — **a body with no
