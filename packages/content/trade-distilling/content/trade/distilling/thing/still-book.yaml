@@ -24,7 +24,16 @@ data:
   # floor and the kiln are in the same building. The alternative was a
   # second Menu row for the maltings, which is a board nobody would read
   # — the day's work is one list.
-  # ⛔ `steep-barley` and `kiln-malt` are OFF the board with the maltings
-  # themselves — see the Crowsfoot floor's comment. They go back on the
-  # same day the pack installs.
+  # ⚠⚠ `steep-barley` and `kiln-malt` stay OFF the board even though the
+  # pack installs now, and the reason is `lint:menu-staff`: **nobody at
+  # Crowsfoot is seated to `malting`.** The hand's dossier claims
+  # `distilling`, and a board that offers a line no seat can fulfil is a
+  # promise the venue cannot keep — so the gate counted them as two more
+  # unfulfillable lines and failed at 5 against a ceiling of 3.
+  #
+  # ⭐ The floor and the kiln ARE on the floor, so a player can steep and
+  # kiln by hand; what is missing is the HOUSE offering to do it for you,
+  # which wants a `malting` seat on the hand. A content decision the gate
+  # asked for before the content shipped, and a finding for review rather
+  # than something to guess at here.
   offeredRecipes: [wash-mash, compound-gin]

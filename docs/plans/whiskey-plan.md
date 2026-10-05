@@ -1151,3 +1151,60 @@ here rather than left for review to discover: the malting chain is
 ## Run 2 — appended below
 
 *(the re-run with the boot made safe)*
+
+## Runs 2–4 — ⭐⭐⭐ THE CAUSE, FOUND
+
+**Run 2** got a healthy server (`Saxonberg 2.0 Server - Ready`) but the
+harness gave up at its 420 s readiness window: a cold database installing
+fifty-two packs takes longer than that. Not a defect — a first-boot cost.
+
+**Run 3** reached the file and refused it, with the sentence that found
+the cause:
+
+```
+wire: whiskey.dirty.wire.test.ts needs pack(s) [trade-malting] and the
+world does not have them (read from: boot log).
+```
+
+⭐⭐⭐ **And that corrects something I wrote two commits ago.** I claimed
+*"a pack that ships and does not install is invisible to every check this
+repo has except a boot."* Not quite: **the wire harness's own `packs:`
+declaration is exactly that check**, and it is the only one. `declareFile`
+reads the installed set out of the boot log and refuses a file whose flow
+needs a pack the world does not have — which is why the drive reported
+this in one line where the boot reported it as a crash in an unrelated
+floor.
+
+### The cause: one missing line in the REPO ROOT's `package.json`
+
+`PackLogic.discover` → `packNamesFromDeployment(deploymentRootDir())` →
+`contentDepsOf(<repo root>/package.json)`. **The shipped pack set is the
+deployment manifest's `@saxonberg/content-*` dependencies**, and
+`trade-malting` was not among them.
+
+⚠ Adding the pack as a dependency of **terminus** — which is what names
+its rows — was not enough and could not be: a pack's own `package.json`
+deps drive `dependsOnOf`, which decides install **order**, not whether the
+pack ships at all. Two different jobs, one file shape, and I read the
+wrong one.
+
+⭐ This is not the *"a pack must never need a kernel LIST edit"* rule being
+broken. The deployment manifest is the sanctioned mechanism
+(`content-packs.md` names it), it is not kernel source, and a pack
+appears in a running world by being a dependency of the deployment — which
+is the same graph that lets one pack import another's classes.
+
+Fixed, `pnpm install` confirms it (`+ @saxonberg/content-trade-malting`),
+and the three `props:` entries are restored with the cause recorded at the
+site.
+
+### ⚠ One thing stays off, and it is a content decision
+
+`steep-barley` and `kiln-malt` remain off the still-book even now the pack
+ships, because `lint:menu-staff` is right: **nobody at Crowsfoot is seated
+to `malting`.** A board offering a line no seat can fulfil is a promise
+the venue cannot keep. The floor and the kiln are on the floor, so a
+player can steep and kiln by hand; what is missing is the house offering
+to do it, which wants a `malting` seat on the hand. ⭐ The gate asked for
+that decision before the content shipped, which is the gate working —
+and it is review's call, not a guess for the build to make.

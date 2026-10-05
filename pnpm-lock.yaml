@@ -122,6 +122,9 @@ importers:
       '@saxonberg/content-trade-hospitality':
         specifier: workspace:*
         version: link:packages/content/trade-hospitality
+      '@saxonberg/content-trade-malting':
+        specifier: workspace:*
+        version: link:packages/content/trade-malting
       '@saxonberg/content-trade-medicine':
         specifier: workspace:*
         version: link:packages/content/trade-medicine

@@ -68,30 +68,28 @@ data:
     - /trade/distilling/thing/slop-bucket
     - /trade/distilling/thing/cask
     - /trade/distilling/thing/wash-bucket
-    # ⛔⛔ **The floor maltings are NOT placed yet, and the drive is why.**
+    # ⭐⭐ The floor maltings. A distillery that malts its own barley is
+    # historically the ordinary case rather than the exotic one — most
+    # Scotch houses had a floor and a kiln on site until the maltsters
+    # centralised — and it is what closes the vertical: the barley a
+    # player grew becomes the malt their own mash wants, on this floor,
+    # with no sack bought from anybody.
     #
-    # These three lines were here and they BROKE THE BOOT: the
-    # `trade-malting` pack's templates do not install, so
-    # `StagedMixin.applyProps` found no template at
-    # `/trade/malting/thing/malting-floor` and `BootstrapManager` died
-    # cloning a floor. ⭐ Nothing in the suite could see it — the pack's
-    # rows are read from DISK by `world/__tests__/malting-chain.test.ts`
-    # and they are all correct — and nothing in `lint:census` could
-    # either, because the row the props entry names exists on disk.
-    # **A pack that ships and does not install is invisible to every
-    # check this repo has except a boot.**
+    # ⛔⛔ These three lines BROKE THE BOOT for two drive runs, and the
+    # cause was one missing line in the REPO ROOT's `package.json`. The
+    # shipped pack set is `contentDepsOf(deploymentRoot/package.json)`
+    # (`PackLogic.packNamesFromDeployment`), and a pack absent from it is
+    # never discovered — so `StagedMixin.applyProps` found no template
+    # here and `BootstrapManager` died cloning the floor. Adding the pack
+    # as a dependency of TERMINUS, which is what names these rows, only
+    # affects install ORDER (`dependsOnOf`); it does not ship the pack.
     #
-    # ⚠ The rows stay (they are right); what is unfinished is the pack's
-    # INSTALLATION. Two candidates, neither confirmed: the workspace link
-    # (`pnpm install` reported "Already up to date" for a package that
-    # had just been added) and the `requires.title` grant for the
-    # `/trade/malting` extent held by `/compact/trade`, which
-    # `trade-milling` also declares and which something must actually
-    # grant. Restore these three lines the moment a boot log says the
-    # pack installed.
-    #
-    # - /trade/malting/thing/malting-floor
-    # - /trade/malting/thing/malt-kiln
-    # - /trade/malting/thing/malt-sack
+    # ⭐ Nothing but a boot could see it: the rows are all correct on
+    # disk, so the suite passed and `lint:census` clause (b) passed. The
+    # wire harness's own `packs:` declaration is the one check in the
+    # repo that asserts a pack actually INSTALLED.
+    - /trade/malting/thing/malting-floor
+    - /trade/malting/thing/malt-kiln
+    - /trade/malting/thing/malt-sack
   cast:
     - /world/terminus/goods-yards/crowsfoot/agent/hand
