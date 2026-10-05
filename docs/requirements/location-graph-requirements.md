@@ -323,6 +323,24 @@ the disagreement · and publish-state as a queryable property of a place.
   ⭐⭐ **What ships here instead is a `map` verb reading in prose to
   yourself**, so the map is usable and not merely possible — and the
   renderer, when it comes, reads an index that is already there.
+- **The guest body's mint.** ⚠ It fails decision 9a's test — the path is
+  random, so the name is neither re-derivable nor recorded, and a guest
+  does not persist (`shouldPersist()` false). But it sits on the login
+  path, its stated purpose is to avoid writing a throwaway template row
+  (*"rows are for authored content; a throwaway guest gets none"*), and
+  touching char-gen opportunistically is how a cheap build becomes an
+  expensive one. The census **records** it and the build leaves it alone.
+  **Destination:** `instance-addressing-slate`, as the first entry the
+  ratchet is allowed to fall by.
+- **The corpse's mint.** ⛔ It fails the same test with no mitigating
+  reason — nothing reads it and `reembody` never reads the corpse — but
+  the corpse's lifecycle is being reworked **right now** by the
+  carcass-chain build, which multiplies the mint to every non-player
+  death. ⭐ Carving it out rather than racing it: the finding has been
+  sent to that build with the one piece that collides (its ordinal probe
+  reads an identity through the row read this build redefines).
+  **Destination:** the carcass-chain build, then
+  `instance-addressing-slate` if they keep the mint.
 - **Splitting the registry index.** ⭐ Considered and refused — see
   decision 9b. The keying is correct; a scan needle and a missing read
   were the defect, and splitting it would have broken
