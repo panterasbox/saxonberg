@@ -72,11 +72,27 @@ data:
 
         batch: 12
         buyEvery: 5
-        distills:
-          recipe: distil
-          runs: 3
-          igniteKeyword: still
-          compounds: [compound-gin, grappa]
+        # ⛔⛔ The `distills` leg is GONE, and leaving it would have been
+        # worse than it looks. It named `recipe: distil`, which this
+        # build RETIRED along with `brandy` and `grappa` — a still does
+        # not have one output, which is the whole reason those three
+        # recipes became four fraction schedules.
+        #
+        # ⚠ It was harmless only by accident: the leg never fired because
+        # no still in the world could be lit, so a config pointing at a
+        # dead recipe sat here looking like configuration. **This build
+        # made the still ignitable**, which moves that leg one
+        # precondition closer to running — so a dangling recipe name is
+        # now a thing that could actually be reached.
+        #
+        # ⭐ What replaces it is W6: the leg becomes literal verbs —
+        # charge, ignite, and pour in small steps switching vessel when
+        # `readFraction(hand)` changes, which is the SAME banded read a
+        # player gets, because a brain may not read the true boundary.
+        # The hand's dossier claims `distilling: proficient`, so its cut
+        # is decent; a `novice` hand would poison the counter, and that
+        # is the design rather than a defect. Until that ships the hand
+        # simply does not distil.
         asks:
           spirit: 9
           "house gin": 12
