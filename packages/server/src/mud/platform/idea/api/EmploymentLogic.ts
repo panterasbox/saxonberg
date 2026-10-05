@@ -248,6 +248,11 @@ function mayPublishAsImpl(
 ): boolean {
   if (principal === null) return false;
   if (!MixinApi.isPublisher(publisher)) return false;
+  // ⭐ Fail closed on an empty feed (blood build D14). Every Business now
+  // composes PublisherMixin, but a house that authors no `feedPath` keeps
+  // no masthead and publishes nothing — so composing it on the forty
+  // shipped businesses that author none changes nothing.
+  if (publisher.getFeedPath().length === 0) return false;
   const who = principal.getIdentityPath();
   if (who === null || who.length === 0) return false;
   const allowed = publisher.getPublishingPositions();

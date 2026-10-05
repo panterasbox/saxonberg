@@ -23,6 +23,7 @@ import type { Stuff } from '../../../../lib/stuff/Stuff';
 import type { Container } from '../../../../lib/spatial/Container';
 import { Currency } from "../../../../lib/banking/Currency";
 import Tariff, { type ServiceKind } from '../../../thing/Tariff';
+import { BLOOD_DEFAULTS } from '../../../../lib/vitals/Blood';
 import { MqlApi, type MqlOneResult } from '../../../../api/mql';
 import { ConditionApi } from '../../../../api/condition';
 import { TemplatePaths } from '../../../../lib/paths';
@@ -75,21 +76,33 @@ export default class OrderController extends CraftController<OrderModel> {
     // leaves could not become anybody's paid work.
     // ⭐ Bound by the view, not hunted for here.
     // ⭐ Bound by the view, not hunted for here.
-    const tariff = (model.counter?.stuff ?? null) as Tariff | null;
-    if (tariff) {
-      // ⚠ The service key is the FIRST word and the subject is the rest.
-      // `cocktail` is greedy (menu names are multi-word — "Old
-      // fashioned"), and a greedy arg cannot be followed by a bare one,
-      // so a separate `subject` arg is unparseable. Splitting here costs
-      // nothing and keeps `order repair my sword` reading the way
-      // somebody would say it.
-      const raw = (model.cocktail ?? '').trim();
-      const key = (raw.split(/\s+/)[0] ?? '').toLowerCase();
-      const subjectRaw = raw.slice(key.length).trim();
-      const kind = tariff.serviceFor(key);
-      if (kind) return this.doService(tariff, key, kind, subjectRaw, context);
-      // A tariff is present but this is not one of its services — fall
-      // through to the menu path, so a venue can carry both.
+    // ⚠ The service key is the FIRST word and the subject is the rest.
+    // `cocktail` is greedy (menu names are multi-word — "Old fashioned"),
+    // and a greedy arg cannot be followed by a bare one, so a separate
+    // `subject` arg is unparseable. Splitting here costs nothing and keeps
+    // `order repair my sword` reading the way somebody would say it.
+    const raw = (model.cocktail ?? '').trim();
+    const key = (raw.split(/\s+/)[0] ?? '').toLowerCase();
+    const subjectRaw = raw.slice(key.length).trim();
+    let tariff = (model.counter?.stuff ?? null) as Tariff | null;
+    let kind: ServiceKind | null = tariff ? tariff.serviceFor(key) : null;
+    // ⭐ Two houses in one room (blood build D6): the view binds ONE
+    // reachable Tariff; if it does not price this key, scan every reachable
+    // Tariff for one that does before falling through to the menu. This is
+    // what lets the practice's slate and the blood window's board share the
+    // ward.
+    if (!kind && key) {
+      for (const t of this.reachableTariffs(context)) {
+        const k = t.serviceFor(key);
+        if (k) {
+          tariff = t;
+          kind = k;
+          break;
+        }
+      }
+    }
+    if (tariff && kind) {
+      return this.doService(tariff, key, kind, subjectRaw, context);
     }
 
     const menu = (model.menu?.stuff ?? null) as Menu | null;
@@ -208,7 +221,7 @@ export default class OrderController extends CraftController<OrderModel> {
     const venuePath = context.location?.getTemplatePath();
     if (venuePath) await EmploymentApi.ensureOperatorAt(venuePath);
 
-    const done = await this.performService(kind, subjectRaw, context);
+    const done = await this.performService(tariff, kind, subjectRaw, context);
     if (!done.ok) {
       MessageApi.scene(giver)
         .topic(SERVICE_TOPIC)
@@ -232,6 +245,7 @@ export default class OrderController extends CraftController<OrderModel> {
 
   /** Do the thing. Each arm is an existing capability, wired to a price. */
   private async performService(
+    tariff: Tariff,
     kind: ServiceKind,
     subjectRaw: string,
     context: CommandContext,
@@ -240,6 +254,49 @@ export default class OrderController extends CraftController<OrderModel> {
   > {
     const giver = context.commandGiver;
     switch (kind) {
+      case 'transfusion': {
+        // ⭐ The blood window's product (blood build D6): the house
+        // transfuses the customer from its own bank. Customer and patient
+        // are the same body — the payer rule's only legal shape.
+        if (!MixinApi.isDonationBank(tariff)) {
+          return {
+            ok: false,
+            reason: 'no-bank',
+            detail: 'This house keeps no blood bank.',
+          };
+        }
+        if (!MixinApi.isVitals(giver)) {
+          return {
+            ok: false,
+            reason: 'not-a-body',
+            detail: 'There is nothing here to transfuse.',
+          };
+        }
+        const issuer = this.resolveWindowIssuer(tariff, context);
+        const unit = await tariff.takeCompatibleUnitFor(giver, issuer);
+        if (!unit) {
+          return {
+            ok: false,
+            reason: 'no-compatible-unit',
+            detail: 'Nothing on the shelf will match you.',
+          };
+        }
+        const result = giver.receiveBlood({
+          litres: BLOOD_DEFAULTS.UNIT_LITRES,
+          blood: {
+            speciesPath: unit.speciesPath,
+            system: unit.system,
+            type: unit.type,
+          },
+        });
+        return {
+          ok: true,
+          detail:
+            result.reaction > 0
+              ? 'The transfusion runs — but it does not match, and your body turns against it.'
+              : 'The transfusion runs; your colour comes back.',
+        };
+      }
       case 'repair': {
         const item = this.resolveSubject(subjectRaw, context);
         if (!item) {
@@ -350,6 +407,41 @@ export default class OrderController extends CraftController<OrderModel> {
       ill.pathogenLoad = Math.max(0, (ill.pathogenLoad ?? 0) * 0.4);
       if (ill.pathogenLoad <= 0.01) body.relieve(ill);
       return 'the fever';
+    }
+    return null;
+  }
+
+  /** Every priced Tariff the giver can reach — the two-houses scan (D6). */
+  private reachableTariffs(context: CommandContext): Tariff[] {
+    const giver = context.commandGiver;
+    const found = MqlApi.resolveMany('[class.Tariff]', {
+      commandGiver: giver,
+      scope: 'reachable',
+    }).stuff;
+    return found.filter((s) => MixinApi.isPricedOffer(s)) as unknown as Tariff[];
+  }
+
+  /**
+   * The on-shift person who runs this window, for the custody deed (D16).
+   * Best-effort: the fixture's operating Business, an employee of it
+   * present in the room. Null → the recipient's deed stands alone (an
+   * institutional issue; a Business keeps no chronicle).
+   */
+  private resolveWindowIssuer(
+    tariff: Tariff,
+    context: CommandContext,
+  ): Stuff | null {
+    const self = tariff as unknown as Stuff;
+    const path = self.getIdentityPath() ?? self.getTemplatePath();
+    const business = path ? EmploymentApi.businessAt(path) : null;
+    const orgPath = business?.getTemplatePath();
+    const loc = context.location;
+    if (!orgPath || !loc || !MixinApi.isContainer(loc)) return null;
+    const ids = new Set(EmploymentApi.employeesOf(orgPath));
+    for (const s of (loc as Stuff & Container).getContents()) {
+      const occ = s as unknown as Stuff;
+      const id = occ.getIdentityPath();
+      if (id && ids.has(id)) return occ;
     }
     return null;
   }

@@ -1180,7 +1180,24 @@ none; a non-Dispositioned host is untouched.
 prints a generosity band. Commit `build(blood-economy W2): the trait
 seam connected — creditSignature fans the disposition channel`.
 
-### W3 — The bank mechanism, the fee, and two houses in one room (D2, D6, D14-kernel)
+### W3 — The bank mechanism, the fee, and two houses in one room (D2, D6, D14-kernel) ✅ DONE
+
+> **Done.** `lib/commerce/DonationBank.ts` `DonationBankMixin` (reads the
+> vault by lot, ignoring the door — D1; `takeUnit`/`takeCompatibleUnitFor`/
+> `receiveGift`, custody deeds on persons, FIFO by freshness load);
+> `Mixins.DonationBank` + refusal + `MixinApi.isDonationBank`. `Tariff`
+> `SERVICE_KINDS += 'transfusion'` (+ test). `OrderController`: the
+> `transfusion` arm (bank + customer-is-patient; `no-compatible-unit`
+> refusal; resolves an on-shift issuer for custody) and the reachable-Tariff
+> SCAN (two houses in one room). `PricedOffer.collect` self-first (the
+> fixture's own operating business before its container). `BusinessEntity`
+> composes `PublisherMixin`; `mayPublishAsImpl` fails closed on an empty
+> `feedPath`. Tests: DonationBank (5 — incl. the CLOSED-vault read),
+> Tariff (8). **Build decision:** the collect-self-first / order-transfusion
+> / mayPublishAs *integration* (banking balances, operator standup) is
+> drive-proven in W6, not unit-tested here — the plan's own test strategy
+> assigns the two-houses attribution end-to-end to the drive. Regression
+> surface clean (commerce/retail/press 53, Publisher incl.).
 
 **Goal.** The kernel can hold a bank of typed units behind a priced
 board, sell a transfusion off it, attribute the fee to the board's own
