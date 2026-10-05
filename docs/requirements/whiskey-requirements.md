@@ -1,4 +1,15 @@
-# The cut — requirements
+# Whiskey — requirements
+
+> ⭐⭐ **AMENDED 2026-10-04, and the scope WIDENED.** This began as *"the
+> cut"* — the fraction rung, scoped as a stepping stone toward drilling.
+> The user rejected that framing: *"what I do care about is shipping
+> complete features. so if we're gonna make whiskey first, let's really
+> make whiskey not just build whatever stepping stone you need to get to
+> drilling."* So the feature is the **whiskey vertical, end to end**, and
+> the general fraction mechanism (which two slates are promised) falls
+> out of it as a consequence rather than being the point. The amendment
+> is itemised against `docs/plans/whiskey-plan.md` § *Requirements
+> amendment*.
 
 **Kind:** feature
 **Leads from:** kernel — first consumer is **`trade-distilling`'s still
@@ -138,6 +149,24 @@ verified in the tree. A plan must stage them before the cut itself:
    fuel. ⚠ No shipped furnace holds bulk, so this would be the first;
    it is honest (a still *is* a vessel with a fire under it) but it is a
    composition decision, not a row.
+5. ⛔⛔ **The shipped still CANNOT BE LIT, and has never run.** No still
+   row authors a `reserves.fuel`, `ignite` refuses at zero fuel, and
+   nothing counts an unfuelled burner toward reachable heat — so 351 K is
+   unreachable and `order distil` has answered `insufficient-heat` for
+   the entire life of the distilling trade. The gin at the counter comes
+   from faucet rows. ⭐ The row already *contains* the evidence: a comment
+   from a 2026-09-24 fix cites *"the row carries no fuel reserve"* as the
+   reason a different bug was harmless — harmless because the feature is
+   dead. ⚠ Consequence: retiring `distil`/`brandy`/`grappa` changes no
+   live behaviour.
+6. ⛔ **Malting does not exist.** Nothing turns barley into malt;
+   `malt.yaml` says it is *"a SHARED input whose owning trade does not
+   exist yet"* and the malt sack says *"nobody in the world malts barley
+   yet"*. ⚠ Recorded candidly: this requirements doc previously asserted
+   the grain chain shipped barley → malt → grist. The **milling** ships;
+   the **malting** does not, and the error was mine — a thing verified to
+   exist and the chain through it inferred.
+
 4. ⛔ **A toxin dose writes no accountability row** — see the corrected
    paragraph above. ⚠ And the fix is a **product** question, not a
    mechanical one: the shipped doctrine is *"the dose makes the
@@ -172,13 +201,25 @@ verified in the tree. A plan must stage them before the cut itself:
 - The fraction schedule is **general enough that fractionating crude is
   rows and a different number of boundaries**, with no further kernel
   work.
+- ⭐ **A player can turn barley into malt** — the first arrow of the
+  grain chain, which does not exist today.
+- ⭐ **The hearts can be casked and, after game-time, bottled as
+  whiskey**, carrying the cut's grade and the cut's harm.
+- ⭐⭐ **A bar that already wants whiskey can be supplied with it by the
+  player** — the demand end, which ships.
 
 ## Non-goals
 
-- **A whiskey recipe.** ⚠ Whiskey is consumed by four cocktail recipes
-  and made by nothing — its only faucet is a corpo's yard stock. Closing
-  that loop is a real gap and it is **not this build**. →
-  [libations-slate](../slates/tails/libations-slate.md).
+- ⛔ ~~**A whiskey recipe.**~~ **STRUCK by the amendment** — making
+  whiskey is now the point of the build, not its deferral.
+- **Refuelling a burner.** A still burns its authored reserve once and no
+  refuel verb exists for any burner in the game (`put <log> in
+  <firebox>` works on Container fireboxes; nothing covers a Still). →
+  the fire/energy slate.
+- **A carter fulfilling a CATEGORY gig.** `hauls.ts`'s origin-buy is
+  template-only, so the carter fallback cannot fulfil any category gig —
+  which the whiskey par line is. A player delivers; the fallback is
+  somebody else's bug. → the logistics slate.
 - **Petroleum, refining, or any second feedstock.** The schedule must be
   general; proving it on crude is → [drilling-slate](../slates/builds/drilling-slate.md).
 - **Coal-tar cuts.** → [destructive-distillation-slate](../slates/builds/destructive-distillation-slate.md)
@@ -319,6 +360,40 @@ imply a mid-run interaction the physics does not have.
 
 ---
 
+### Does aging change the harm?
+
+**No.** The cask changes the grade and the material; it never changes the
+dose. Methanol does not age out — and that is not a simplification, it is
+the chemistry: a barrel mellows congeners and oxidises alcohols, it does
+not undo a bad cut.
+
+⭐ The mechanical consequence is a constraint on the aging wave: the
+payload must survive the product swap, so a casked spirit that was cut
+wide is still a poisoned whiskey three years later. ⚠ Which is the same
+shape as *"curing preserves the contamination"* — a cured ham from dirty
+meat is a shelf-stable poison still dangerous next winter.
+
+### Who is the maker on a bottle two people filled?
+
+**The first pour's mark.** A top-up blends the dose and worsens the grade
+to the weakest link; it never re-signs the bottle.
+
+⚠ The alternative — re-signing on each pour — would let a careless
+distiller launder a bad batch by having somebody else top it up, which is
+the pour-to-reset exploit the freshness and contamination blends already
+exist to close. Keeping the first mark means the person who started the
+bottle answers for it.
+
+### What does a cold charged still do?
+
+**It pours its charge back out as what it is.** Nothing refuses the
+charge and nothing refuses the pour; the run simply does not begin until
+the heat does.
+
+⚠ This corrects drive step 3's original wording, which implied the still
+would refuse a charge without heat. It would not, and should not — a
+still full of cold wash is an ordinary vessel full of wash.
+
 ## Lens pass
 
 **1 · Pedagogy.** Dominant Discipline: **distilling** — and the skill
@@ -383,8 +458,17 @@ and is named as out of scope by the build that created the demand.
 
 ## The drive
 
-At **Crowsfoot's distillery floor**, which has the still and the
+⭐ It starts in a field and ends in a cocktail. At **Crowsfoot's
+distillery floor** for the middle, which has the still and the
 still-book.
+
+**0a. Get a sack of barley** — grown, or bought.
+**0b. Steep it, floor it, kiln it.** → it is **malt**, which nothing in
+the game could make before. ⚠ Kiln it too hard and it is roasted, not
+malted.
+**0c. Mill the malt** → grist. (This arrow already shipped.)
+**0d. ⚠ Light the still.** → it needs **fuel**, and the shipped rows
+author none, so this step is the one that proves blocker 5 is fixed.
 
 1. **Order a wash** from the still-book (`wash-mash`: grist and water in
    the mash tun) and let it ferment to finished. → you have a wash with
@@ -421,6 +505,22 @@ still-book.
 13. **Check the blame read.** → the harm is attributed and derived on
     read; nothing notified either of you, and no penalty was applied.
 
+⭐⭐ **And now the half that makes it a trade rather than a chemistry
+demonstration:**
+
+14. **Cask the hearts.** → a cask takes them; `look` says what is in it
+    and that it is working.
+15. **Wait** (the clock is the harness's). → the spirit becomes
+    **whiskey**, and its grade is **no better than the cut you made**.
+16. **Bottle it.** → a marked bottle of whiskey with your name on it.
+17. ⭐ **Claim the Lounge's whiskey gig and deliver.** → the bar's par
+    line already wants six litres and Mara already posts the job; no new
+    code makes this work.
+18. ⭐⭐⭐ **Mara pours a whiskey-sour from your bottle.** → a recipe that
+    shipped long before this build, made from a spirit a player
+    distilled. ⚠ And if you cut it wide, the guest who drinks it is the
+    one who finds out.
+
 ## Acceptance criteria
 
 Observable from outside the code.
@@ -453,6 +553,15 @@ Observable from outside the code.
 12. An author can give a different product a different number of
     boundaries **in rows alone**, and a reviewer can see that a
     non-drink feedstock would need no further engine work.
+13. ⭐ **A player can malt barley**, and the malting rung is rows plus a
+    single new mechanism word — no new engine concept.
+14. A casked spirit **becomes whiskey** after its profile's time, at a
+    grade **no better than the cut that filled it**.
+15. ⚠ A bottled whiskey **carries the still's dose unchanged** — aging
+    changes the grade and the material, never the harm.
+16. ⭐⭐ **The Lounge's existing whiskey par line is satisfied by a
+    player's own bottle, with no new code** — the demand was there
+    first, and this is the proof.
 
 ## Cross-references
 
