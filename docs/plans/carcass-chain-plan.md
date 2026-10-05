@@ -1904,3 +1904,111 @@ suspected leak), and thirty-six vitest instances in parallel is the cliff;
 package is proven green; what no single run has produced on this machine
 is one exit-0 for all thirty-eight at once, and CI's gate job is where
 that lands.
+
+## ⭐⭐⭐ Post-MR, from review: a corpse is MATTER
+
+Raised by the user in review as *"small nit but shouldn't corpses be
+Thing not Agent? they've specifically lost their agency and we've decided
+it never comes back right?"* — and it was not a nit. It cost three
+shipped defects, a 49-error type debt this build had accumulated
+unnoticed, and two gate corrections.
+
+### The principle, which was nowhere written down
+
+⭐⭐⭐ **Agent vs non-Agent is the FIRST question the taxonomy asks** — an
+`Agent` is something capable of acting *on its own behalf*, and the
+branch exists specifically to distinguish those from things that are not.
+**Then, for a non-Agent: Space (`Location`) vs Matter (`Thing`) vs
+Information (`Idea`).** Each branch has operative mixins that say what it
+is for — `Thing` → `Tangible`/`Wet`, `Agent` → `CommandGiver`/`Persona` —
+and ⚠⚠ **everything below a branch is categorization by mixin
+composition, carrying no taxonomic weight.** An Agent is usually matter
+but need not be, and the branch restricts no mixins (`Container`,
+`Exitable`, `CartesianCoordinates` compose on an Agent as readily as on a
+Location — a haunted house).
+
+⚠ **My wrong turn, recorded because the reasoning was seductive.** I
+argued the branch label was cosmetic *because* `Corpse extends Creature`
+already stops below `Actor`, where agency-of-ACTION is cut, and proposed
+instead that the three call sites ask "is this an actor". That reads a
+sub-rung's mixin set as branch evidence. It is not: the branch IS the
+answer to question one and nothing below it can stand in.
+
+### The three defects, each a consumer of `isAgent()`
+
+1. ⚠⚠⚠ **Nothing inside a corpse was reachable.**
+   `MixinApi.isOpenContainer` excludes agents (*you cannot reach into
+   another actor's pockets*), and `mql/scope-walk` plus
+   `PerceptionApi.canReach` both gate on that single rule — so the
+   loadout the mint moves onto the body could not be taken off it,
+   against W0's own comment *"the corpse is where someone has to go to get
+   it."* Measured: `isOpenContainer(corpse)` was `false`, now `true`.
+2. ⚠⚠ **A body in the dark read as "someone"**, not "something" — the
+   same defect as the three cherry trees that offered themselves as
+   *someone (1) · someone (2) · someone (3)*.
+3. ⚠ **`put coin in body` offered no `in` region.**
+
+### And the composition was a lie the docstring told
+
+⚠⚠ The old class listed "Container, Vitals + BodyPlanSlots, Thermal,
+Postmortem, Contaminable" while `extends ContaminableMixin(Creature)`
+granted all of `Creature`. So **W0 retired "a dead ewe that cannot be
+milked" and shipped a corpse that breathes, digests, tires, gets dirty,
+carries a load, holds a posture and can wear a disguise** — the same
+defect one level in. Dropped: `Metabolic`, `Respiration`, `Exerting`,
+`Hygiene`, `LoadBearing`, `Posed`, `Slottable`, `Disguisable`,
+`ThermalRegulation`. ⭐ Not a second body stack — the kept list is a
+strict SUBSET and a different claim, so there is no duplicated list to
+drift (the hazard that once left `Creature` without `Perceptible` while
+48 rows authored `primaryKeyword:` into a void).
+
+### Two gates caught real things, both argued at the site
+
+- **`lint:mass`** 244 vs ceiling 242: the corpse rows stated neither mass
+  nor material, and *"matter made of nothing weighs nothing, silently"*.
+  A corpse's mass is stamped per-instance by the mint, so the row cannot
+  state one — but it can say what it IS. ⭐ `flesh`'s own comment already
+  said why: *"Flesh rots. This is what makes a corpse a clock as well as
+  evidence."* Written for this row and never named by it — and it is what
+  `freshnessLoad()` reads for activation energy and water activity,
+  having got `null` until now.
+- **`lint:perishable`** then fired, correctly. ⭐ A body rots by the other
+  implementation: `PostmortemMixin.freshnessLoad()` calls
+  `Freshness.advance()` with the host's own material and temperature,
+  keyed to `sinceDeath()`. Production already treated them as one law —
+  `ConsignController` calls `item.freshnessLoad()` with the comment
+  *"body, not food, and `Postmortem.freshnessLoad` is the same law"*. The
+  gate now accepts `PostmortemMixin` beside `GrowingMixin`. ⚠ Not an
+  exemption: no row named, no count moved, a class reaching neither still
+  fails.
+
+### ⚠⚠⚠ And `pnpm build` had never been run this build
+
+It exits 0 now for the first time. Before the branch move the tree
+carried **49 type errors in files this branch created**, and CI would
+have failed:
+
+- 25 × `Stuff` not assignable to `ContainableStuff` —
+  `ContainmentApi.move(x as unknown as Stuff, y as never)` in the
+  tanning, slaughter and butcher-dressing tests. ⭐ **The casts were
+  never needed**: deleting them makes the files type-clean. A reflexive
+  cast that silenced nothing and broke the signature.
+- 18 × `ModelData` not assignable to `ButcherModel` — the test helper was
+  typed as the base. `ButcherModel` is exported now (9 controllers
+  already export theirs).
+- 6 × `getHerdId`/`getHeadIndex`/`getHandling` missing on `Stuff &
+  Organism` in `SlaughterController`, guarded by `typeof x.getY ===
+  'function'` — which CLAUDE.md names as an antipattern AND hid the block
+  from `tsc` behind a shape test. Narrowed properly.
+
+### For the sweep
+
+- **`CLAUDE.md` § Instanceable** still names `platform/agent/Corpse` as
+  one of the four real renames; it is `platform/thing/Corpse` now, and
+  the branch-folder list needs it moved. Left to `/finalize` because
+  `CLAUDE.md` is swept, not raced.
+- `avatar-family-slate` had **named this move and scoped it out**; its
+  entry is updated, and its remaining question — anatomy vs a record — is
+  answered here as **anatomy** (`butcher` reads the species yield and the
+  wound map arrives through `adoptMaterialState`). The mint-parameter
+  join is still open there.

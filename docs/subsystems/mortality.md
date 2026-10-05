@@ -242,12 +242,56 @@ design — see [antipatterns.md](../antipatterns.md).
 
 ## The corpse
 
-The corpse is cloned from the authored template `/stuff/agent/Corpse`, backed by
-**`obj/Corpse.ts`** — a thin concrete subclass of `lib/creature/Creature`.
-The template used to name `Creature` itself, but `Creature` is mid-spine
-substrate (`Agent → Creature → Character`) and the lib/obj taxonomy rule
-is that nothing instances `/lib/`. Giving the corpse its own class also
-says the truer thing: a corpse is a game object with a name, not a
+The corpse is cloned from the authored template `/stuff/thing/Corpse`,
+backed by **`platform/thing/Corpse.ts`**.
+
+⭐⭐⭐ **It is a `Thing`, and that is the first question the taxonomy
+asks.** An `Agent` is something capable of acting *on its own behalf* —
+the branch exists to distinguish those from things that are not — and for
+a non-Agent the second question is Space (`Location`) vs Matter (`Thing`)
+vs Information (`Idea`). A corpse cannot act on its own behalf and never
+can again, so it is matter. ⚠ It lived on the Agent branch as
+`class Corpse extends Creature {}` until 2026-10-05, and three shipped
+behaviours were wrong for it the whole time — every consumer of
+`Stuff.isAgent()`: **nothing inside a corpse was reachable** (agents are
+excluded from `MixinApi.isOpenContainer`, which `mql/scope-walk` and
+`PerceptionApi.canReach` both gate on, so the loadout could not be
+taken), a body in the dark read as *"someone"* rather than *"something"*,
+and `put coin in body` offered no region. `avatar-family-slate` had named
+the branch move and scoped it out; its remaining question — whether the
+forensic surface wants Creature **anatomy** or a **record** — is answered
+here as *anatomy*, because `butcher` reads the species' declared yield
+and the wound map arrives through `adoptMaterialState`. A record is a
+different build.
+
+⭐ **The sub-rungs were never the question.** `Corpse extends Creature`
+stopped one rung below `Actor`, which is where agency-of-ACTION is cut (no
+`Mobile`, `Engaged`, `Sensor`, `Perception`, `Combatant`) — but
+`Creature`/`Actor`/`Character` are categorization by mixin composition
+and carry no taxonomic weight.
+
+⚠⚠ **And the composition is now the statement the class always claimed.**
+The old docstring listed "Container, Vitals + BodyPlanSlots, Thermal,
+Postmortem, Contaminable" while `extends Creature` quietly granted all of
+it — so this subsystem retired *"a dead ewe that cannot be milked"* and
+shipped a corpse that **breathed, digested, tired, got dirty, carried a
+load, held a posture and could wear a disguise**. `Metabolic`,
+`Respiration`, `Exerting`, `Hygiene`, `LoadBearing`, `Posed`, `Slottable`,
+`Disguisable` and `ThermalRegulation` are gone; the kept set is a strict
+SUBSET of `Creature`'s, so there is no duplicated list to drift.
+
+⭐ **A corpse is made of `flesh`**, authored on the row — because its
+*mass* is stamped per-instance by the mint but what it IS is not
+per-instance, and `freshnessLoad()` reads `getMaterial()` for the
+spoilage activation energy and water activity (it got `null` before).
+`flesh`'s own authored comment had already said why: *"Flesh rots. This is
+what makes a corpse a clock as well as evidence."* `lint:perishable`
+accordingly accepts `PostmortemMixin` beside `GrowingMixin` — a body rots
+on its own clock, which `ConsignController` already treated as the same
+law.
+
+Giving the corpse its own class also says the truer thing: a corpse is a
+game object with a name, not a
 generic creature. Behavior is unchanged — the forensic-Creature role
 below is exactly as it was.
 
@@ -580,7 +624,7 @@ MINTED identity of its own** — `getIdentityPath()` is `#identityPath ??
 getTemplatePath()`, so when the two are equal nothing was ever minted and
 a key built from it would name a ROW the whole flock shares, meaning only
 *the Nth body off the ewe row in game-second T*. A beast's corpse is
-therefore an ordinary multi-instance clone of `/stuff/agent/Corpse`, as
+therefore an ordinary multi-instance clone of `/stuff/thing/Corpse`, as
 cuts and logs are; nothing reads that row as a singleton.
 
 ⚠ **The mint survives where the identity is genuine**, and that case is
@@ -849,7 +893,7 @@ not here.
 
 `mintCorpseFrom` cloned the authored template and stamped **no
 identity**, so every corpse in the world shared one
-(`/stuff/agent/Corpse`). Per-instance facts survived as hydrated
+(`/stuff/thing/Corpse`). Per-instance facts survived as hydrated
 *fields*, which is exactly why nothing looked broken — but two bodies in
 a room were **one object** to every identity-keyed ledger: to the
 chronicle, to belief, to chattel, to anything that asks *whose is this*.

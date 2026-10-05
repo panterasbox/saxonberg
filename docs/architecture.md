@@ -44,7 +44,7 @@ packages/server/src/
     │   │   ├── api/     the *Logic singletons
     │   │   ├── cmd/     CommandController implementations, by category
     │   │   └── hooks/   persistence around-hooks
-    │   ├── agent/     Avatar, NPC, Corpse, …
+    │   ├── agent/     Avatar, NPC, Extra, Cast, …
     │   └── location/  Room, VoidLocation, …
     └── world/       a locality's own classes (mirrors its content)
                      (the YAML command VIEWS are content —
@@ -847,8 +847,8 @@ Stuff (base — runtime ID, FINAL destroy, construction sentinel)
   │           └── Vessel  a Good that also holds things (Container) —
   │                       matter outside, a place inside
   ├── Location      stationary place — pure space, NOT matter (not Tangible)
-  ├── Agent         runtime active object
-  │     └── Creature        a body (Corpse, Livestock)
+  ├── Agent         runtime active object — ⭐ can act ON ITS OWN BEHALF
+  │     └── Creature        a LIVING body (Livestock, Beast, Character)
   │           └── Actor   a body that ACTS — moves, perceives, fights
   │                 ├── Beast      an animal: it has a brain, it is nobody
   │                 ├── KeptAnimal an animal somebody keeps
@@ -958,10 +958,21 @@ narrower question than *is this a person*:
 `AttackController` refuses a target that is not `Vitals && Engaged`
 (**not** `Combatant`), `Combatant` returns silently for a non-combatant
 host, and `PerceptionLogic` requires a VIEWER to be
-`Sensor && Perception`. ⭐ **A `Corpse` is the proof of the line**: it
-composes the whole of `Creature` — vitals, respiration, postmortem,
-because it is a forensic body — and none of these five, which are
-exactly the five that are false of a corpse.
+`Sensor && Perception`.
+
+⚠⚠ **`Corpse` used to be cited here as the proof of the line, and it is
+not on this spine at all any more.** It composed the whole of `Creature`
+and none of `Actor`'s five, which read as a neat demonstration — but the
+five being false of a corpse is not the reason a corpse is not an
+`Actor`. **`Agent` vs non-Agent is the first question the taxonomy
+asks** — can it act on its own behalf — and a corpse never can again, so
+it is Matter: `platform/thing/Corpse` since 2026-10-05. Being on the
+Agent branch had made three shipped behaviours wrong for it, every one a
+consumer of `isAgent()` (its loadout unreachable, *"someone"* in the
+dark, no `in` region). ⭐ The lesson for this section: a sub-rung's mixin
+set is evidence about COMPOSITION and never about BRANCH, and reading it
+as branch evidence is what let the misfiling look principled for a
+build. See [mortality.md](./subsystems/mortality.md) § The corpse.
 
 ⚠ `HaulerMixin` sits on `Character` and on `DraftAnimal` and on NEITHER
 rung between: `hitch.yaml` gates its target on it and is its only
