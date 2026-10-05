@@ -25,7 +25,9 @@ class: /platform/idea/material/Material
 data:
   name: rawhide
   keywords: [rawhide, hide, skin, green, pelt]
-  appearance: a wet, heavy green skin
+  # ⚠ No `heavy`: it is a reserved descriptor on the wand bank. See the
+  # note on `oak-bark.yaml` — every appearance word is checked.
+  appearance: a wet green skin
   density: 1000
   specificHeat: 3000
   thermalConductivity: 0.35

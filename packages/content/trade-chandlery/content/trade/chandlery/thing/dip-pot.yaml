@@ -1,0 +1,23 @@
+# A dip-pot — ⭐ a deep narrow pot kept hot, which is the whole of a
+# chandlery's equipment.
+#
+# Deep and narrow because a candle is dipped by its full length: the
+# shape of the pot is the length of the candle, which is a nice small
+# true thing. Kept over a low fire all day, because fat that sets in it
+# has to be melted again before anything can be dipped.
+class: /platform/thing/CraftVessel
+data:
+  shortDescription: dip-pot
+  keywords: [pot, "dip-pot", dip, dipping]
+  register: indefinite
+  longDescription: >-
+    A deep, narrow, blackened pot on a trivet, kept just hot enough that
+    what is in it stays liquid. The outside is built up with runs of fat
+    that nobody has ever scraped off.
+  category: dip-pot
+  interiorBulk: true
+  # Two litres — enough for a long afternoon's dipping, which is about
+  # sixteen candles.
+  interiorCapacity: 2
+  _materialPath: /stuff/idea/material/element/iron
+  mass: 4

@@ -1117,6 +1117,65 @@ generic-objects row, the apiculture recipe and its test block. ⚠ Read
 Acceptance: `lint:light-sources`, `lint:census`, `lint:descriptors`, both suites.
 Commit: `build(carcass W6): trade-chandlery — one dip, two fats`.
 
+#### ✅ W6 — DONE, with the wave's premise RE-PLANNED
+
+1. ⚠⚠ **The plan's "no new verb" was wrong, and the correction is worth
+   carrying.** `make <recipe>` dispatches a recipe **script** — a session
+   `def`, or a learned home recipe transcribed by a faithful hand build
+   (`ScriptLogic.invokeImpl`) — **not an authored catalogue recipe**.
+   Every trade in the tree ships its own craft verb for the catalogue
+   (`cook`, `mix`, `forge`, `bake`, `press`, `render`), and `order` needs
+   a `Menu` and a fulfilling bartender, which is the shop path and not a
+   player making their own candle. So the pack ships **two** verbs. The
+   reachability table's *"verb: platform `make`"* row was the kind of
+   entry that looks filled in and is not.
+2. ⭐⭐ **Two verbs rather than one, because the asymmetry is REAL.**
+   Rendered tallow leaves `render-tallow` as bulk in a crock and is
+   `pour`ed into the dip-pot by the shipped platform verb — **no recipe
+   and no code**. Beeswax leaves `crush-comb` as a *cake*, because wax
+   sets hard, so it has to be melted: `melt-wax` is one recipe and
+   `melt` is its verb. That is a fact about the two materials rather
+   than a rule anybody wrote, and D6's `melt-wax` turned out to be
+   exactly half of what the plan implied — there is deliberately no
+   `melt-tallow`, and the test asserts the recipe directory has exactly
+   two files.
+3. ⭐ **`tallow` carries `candle-stock` BESIDE `cooking-fat`**, and that
+   is the interesting thing about it: a crock can be fried in or dipped
+   into, so the chandler and the cook **compete for the same
+   commodity**. That is why tallow had a price worth arguing about and
+   why the carcass's fat line matters at all. ⚠ The recipe matches
+   `candle-stock` and not `fat`, or every cooking fat in the game would
+   admit — and D3 has just finished making sure raw suet does not carry
+   `fat`.
+4. ⭐ **`Candle` DERIVES both descriptions and its smell from the
+   material**, so there is one row and no welds, and a third fat is a
+   material row with no code. The short description guards against
+   *beeswax beeswax candle* by checking the stem first. `SmellSourceMixin`
+   is the one thing a candle has that a lantern does not — a tallow
+   candle stinks, and it stank enough to be why beeswax was worth its
+   price.
+5. ⚠⚠ **Three gates fired on the two new MATERIAL rows, and two of them
+   fire in a direction nobody checks.** `lint:descriptors` reserves a
+   word off **every appearance**, and a new material colliding with a
+   shipped descriptor bank lands there — `inside` (a detail on a ring),
+   then `ridged` and `split`, then `heavy` (the wand bank). Three rounds
+   on two sentences. The note is now at both row sites: *short and plain
+   is the safe register for a material appearance.* `lint:census` also
+   caught `/stuff/idea/material/metal/iron`, which does not exist — iron
+   is at `…/material/element/iron`.
+6. The retired `/stuff/thing/candle` row is **deleted, not shadowed**, and
+   the test asserts its absence: two candle rows would mean the generic
+   one still answers `look candle` somewhere with beeswax welded in.
+   Apiculture's candle test block is rewritten to assert the pack **no
+   longer ships the recipe** — a regression there would be two recipes
+   for one act again.
+
+Pack count 54 → 55.
+
+Tests: chandlery 16 new (and the kernel's `CraftingLogic.dipped` already
+pins the derivation through the real resolve); apiculture 70/70, cooking
+65/65, tanning 17/17, forestry 122/122.
+
 ### W7 — Bone and the dog loaf
 
 Unchanged from the first draft's W6 (with the `content/recipes/` directory

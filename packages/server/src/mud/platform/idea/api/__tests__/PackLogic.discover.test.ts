@@ -75,7 +75,8 @@ describe('the shipped packs (real discovery, no install)', () => {
     // → 55). Two packs rather than one deliberately: tanning and
     // chandlery share a supplier and a LULU zone and nothing else, and
     // 18 of 19 trade packs ship exactly one Discipline. Installed after
-    // ranching, whose hide row names tanning's class.
+    // ranching, whose hide row names tanning's class; chandlery after
+    // apiculture and cooking, whose wax and tallow it dips.
     //
     // ⚠⚠ Worth knowing: each of those builds wrote `49` independently, and
     // git merged the two comment blocks as a CONFLICT while merging the
@@ -84,7 +85,7 @@ describe('the shipped packs (real discovery, no install)', () => {
     // one assertion a three-way merge cannot reconcile. A
     // count, not a claim — what the claims below check is the ORDER,
     // which is where a pack graph actually breaks.
-    expect(ids).toHaveLength(54);
+    expect(ids).toHaveLength(55);
     expect(ids[0]).toBe('platform');    for (const trade of ['trade-smithing', 'trade-cooking', 'trade-hospitality', 'trade-distilling']) {
       expect(ids.indexOf(trade)).toBeGreaterThan(ids.indexOf('generic-objects'));
     }

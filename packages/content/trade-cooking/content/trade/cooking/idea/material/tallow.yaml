@@ -36,6 +36,11 @@ data:
   nutrientAmounts:
     fat: 90000
   toxicity: []
-  tags: [liquid, food, fat, cooking-fat, rendered]
+  # ⭐ `candle-stock` beside `cooking-fat`: rendered tallow is BOTH, and
+  # that is the interesting thing about it. A crock of it can be fried in
+  # or dipped into, so the chandler and the cook compete for the same
+  # commodity — which is why tallow had a price worth arguing about and
+  # why the carcass's fat line matters at all.
+  tags: [liquid, food, fat, cooking-fat, candle-stock, rendered]
   composition: []
   biologicalSource: null

@@ -16,7 +16,13 @@ class: /platform/idea/material/Material
 data:
   name: oak bark
   keywords: [bark, "oak bark", tanbark, tan]
-  appearance: grey, ridged strips, tea-brown inside
+  # ⚠⚠ Every word of an appearance is checked against the DESCRIPTOR
+  # banks, and a collision is a parser-ambiguity bug (`look at <word>`
+  # would have two answers). This sentence has been through
+  # `lint:descriptors` three times: `inside` is a detail on a ring,
+  # `ridged` and `split` are reserved descriptors. Short and plain is the
+  # safe register for a material.
+  appearance: grey bark, tea-brown where it tears
   density: 600
   specificHeat: 1400
   thermalConductivity: 0.11

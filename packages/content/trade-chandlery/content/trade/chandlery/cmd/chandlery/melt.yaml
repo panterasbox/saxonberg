@@ -1,0 +1,28 @@
+verbs: [melt]
+controller: /trade/chandlery/idea/cmd/chandlery/MeltController
+description: "Melt a cake of wax down into a pot"
+help: |
+  `melt <cake>` — set a cake of wax in a pot over the fire until it runs
+  clear. What comes out is a pot of melted wax you can `dip` a candle
+  out of.
+
+  ⚠ **Tallow needs none of this.** Rendered tallow is sold liquid in a
+  crock, so you `pour` it straight into the pot. Beeswax sets hard and
+  is sold as a cake, so it has to be melted first. That asymmetry is
+  real rather than a rule: one of the two fats comes off the fire and
+  one comes out of a hive.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  - name: solid
+    type: object
+    required: false
+    scope: "reachable"
+    # ⭐ `any`, deliberately: what may be melted is decided by the
+    # RECIPE's input slot, not by a mixin named here. A pack that ships a
+    # third wax authors a row and this file never learns the word.
+    requires: any
+    validators:
+      - /lib/command/validators/canReach

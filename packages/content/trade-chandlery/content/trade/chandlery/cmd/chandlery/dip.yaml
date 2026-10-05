@@ -1,0 +1,36 @@
+verbs: [dip]
+controller: /trade/chandlery/idea/cmd/chandlery/DipController
+description: "Dip a candle out of whatever fat is in the pot"
+help: |
+  `dip` — run a wick down into a pot of melted fat and up again, over and
+  over, until a candle has built up on it.
+
+  ⭐ **What the candle is made of is whatever was in the pot.** A pot of
+  beeswax gives a pale taper that smells of honey; a pot of tallow gives
+  a greasy one that smells of mutton and burns just as well. One act,
+  and the decision is which fat you bought — which is the whole of the
+  chandler's trade and the reason it is a trade at all.
+
+  You need a pot with melted fat in it. `melt` a cake of wax into one, or
+  `pour` rendered tallow in out of a crock.
+
+  ⚠ Anybody can do this. There is no skill in dipping a wick, and the
+  game does not pretend otherwise. The skill in this chain is upstream:
+  somebody butchered the animal, somebody rendered the suet, somebody
+  kept the bees.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  # ⭐ Declared so the binder resolves it, though the crafting resolve
+  # claims its own inputs out of reach — naming the pot is courtesy, and
+  # the controller does not read it (`lint:instrument-args` sees a
+  # declared arg rather than a bespoke walk).
+  - name: pot
+    type: objects
+    required: false
+    prepositions: [in, from]
+    default: "reachable:[mixin.BulkableMixin]"
+    scope: ["reachable"]
+    requires: [BulkableMixin]
