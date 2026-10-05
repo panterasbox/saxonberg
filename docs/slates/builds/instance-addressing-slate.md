@@ -2,20 +2,31 @@
 
 > **Status: UNBUILT** — and the headline is a live defect, not a design
 > gap. The registry index keys on `identity ?? template`
-> (`api/stuff.ts:230`), so it answers *"find the thing called X"* and
-> *"find every clone of row Y"* out of one bucket — and ⛔⛔ **the second
-> question silently loses wherever an identity is minted.**
+> (`api/stuff.ts:230`), and ⛔⛔ **the one invariant against two live
+> instances clobbering one record is inert wherever an identity is
+> minted**, because its scan needle is the host's own identity. ⭐ The
+> index is NOT the defect — a reader asking a question the index cannot
+> answer is not the same as an index that answers two (§ 1).
 > `findAllByTemplatePath('/platform/agent/PrimaryAvatar')` returns
 > **nothing**, and `assertUniqueKey` — the one invariant stopping two live
 > instances from clobbering one record — is **vacuous for every stamped
 > keyed host**, because its scan needle is the host's own identity.
-> **Left:** ⛔⛔ split the index, one per question · ⭐⭐⭐ the durability
-> rule (*an identity path exists **iff** it is durable*; `stuffId` is the
-> ephemeral unique id and already ships) · one sanctioned read for a keyed
+> **Left:** ⛔⛔ the SCAN's needle — `assertUniqueKey` and `liveKeyed` key
+> on the ROW, not on the host's own identity (⭐ **no index split**; the
+> keying is correct and the requirements record why) · an honest
+> *every instance of this row* read, plus `findByIdentityPath` for the
+> bare bucket · ⭐⭐⭐ the name-durability rule (*an identity exists **iff
+> THE NAME** is durable — re-derivable from inputs that outlive the
+> instance, or recorded somewhere that does; ⚠ **not** iff the instance
+> persists, which would wrongly condemn a circulation node*; `stuffId`
+> is the ephemeral unique id and already ships) · ⭐⭐ the census question
+> — every mint site names what keys on its identity, and the mint's own
+> uniqueness probe does not count · one sanctioned read for a keyed
 > instance's durable handle (`<row>#<key>`, already computed by
-> `placeIdOf`) · validate `asIdentityPath` for the continuity case (six
-> improvised shapes, no check) · normalize the market stall's key to its
-> manager · the `pinOf`/`capture` scope divergence
+> `placeIdOf`) · validate `asIdentityPath` for the continuity case
+> (**thirteen** production sites in **five** shapes, no check) ·
+> normalize the market stall's key to its pitch · the `pinOf`/`capture`
+> scope divergence
 > **Size:** a build
 
 **Captured 2026-10-04**, in the location-graph plan's grounding, when
@@ -247,6 +258,81 @@ host those differ, so the pin's roll looks for a record written under
 another scope — a pinned pet stood up nowhere.
 
 ---
+
+## 6a. ⭐ The corpse, reconciled with the carcass chain (2026-10-04)
+
+Checked against `reqs/second-tier`'s W0 by that build's own session, and
+the two findings agree.
+
+**Nothing reads a corpse's minted identity, and the leg that was open is
+now closed.** `Corpse extends Creature {}`; neither composes
+`PersistableMixin`, so a corpse is a runtime clone gone on restart.
+Nothing in `Corpse.ts` or `lib/mortality/` reads its identity;
+`mortality.md:508` — *"`reembody` never reads the corpse"*; the ledgers
+key on the **dead thing's** identity, not the corpse's
+(`AccountabilityApi.record`, `recordDeathDeed`, pinned in
+`ConditionLogic.die.test.ts`). ⭐ **And `belief` — the one plausible
+reader nobody had audited — is clear:** `RecognitionLogic`'s three
+referent sites all key on `getIdentityPath()`, but the naming path is
+gated on `isPersona`, which is composed on `Character` and **not** on
+`Creature`; and every production caller of `recognizes` / `learnIdentity`
+passes a person. So the only reader is `corpseIdentityFor`'s own ordinal
+probe, which exists *because* it minted.
+
+⚠⚠ **And the carcass chain multiplies the mint about fiftyfold with no
+new reader.** That build makes *every non-player death* mint a corpse,
+and everything it stamps is read off the live **object** —
+`getConditionAtDeath()`, mass, `bornAt`, merged keywords, per-instance
+contamination — never off the name.
+
+⭐ **One of the identity's own stated jobs moved out from under it,
+independently.** The carcass chain unions the dead thing's keywords onto
+the corpse (`[body, corpse, carcass] ∪ its own`), so `butcher ewe` and
+`look clerk` both find the body. **Telling two bodies apart in a room is
+now a PRESENTATION path** — which `corpseIdentityFor`'s docstring claims
+as a reason for the identity.
+
+⭐ **The `Mobile` nuance, kept because it stops the next grep going
+wrong.** The arrival/departure walk could in principle hand a corpse to
+`recognizes()`, which would read its identity and get nothing back. **A
+read that can only ever answer false is not a reader in the sense that
+matters** — nothing durable keys on it.
+
+⚠ **And `corpseIdentityFor` is byte-identical to its pre-W0 form** on
+`reqs/second-tier` (confirmed by that build: zero
+`findAllByTemplatePath` lines added or removed in `ConditionLogic.ts`
+across the branch), so moving the ordinal probes to
+`findByIdentityPath` races nothing.
+
+### ⭐⭐ The rule's own near-miss, kept beside it
+
+An earlier wording of § 2's rule said *an identity exists iff it is
+durable*, and that sentence would have **condemned the circulation
+node** — which is correct and must keep its stamp. The node is ephemeral
+as an object (minted on demand, reaped when empty) and **durably named**
+(`<parcel extent>/<plan node id>`, both inputs outliving the instance),
+and a parked character's snapshot records it as their container, so
+another record points at it across a restart.
+
+> ⭐⭐⭐ **It is the NAME that must be durable, not the instance.** That a
+> plausible earlier phrasing got a shipped, correct case wrong is the
+> strongest argument for the rule as it now stands — and the reason the
+> wrong version is recorded here rather than quietly replaced.
+
+### ⚠ The counter-argument, recorded so "no reader" is not read as "delete it"
+
+From the carcass-chain build, and the framing is the valuable part:
+
+> *A corpse is the one object in the game that is **nobody's and
+> everybody's business** — forensic, butcherable, lootable, decaying — so
+> if a later build wants "whose body is this, and who moved it", the
+> identity is the hook that would carry it. **That is a reason to keep
+> the mint, not a reader**, and I would not confuse the two.*
+
+⭐ This slate's rule asks a mint to name **what keys on its identity**. *A
+named future consumer* is a weaker answer than a present one, but it is
+an honest one — and it belongs to the build that owns the corpse's
+lifecycle, not to this one. **Recorded, not decided.**
 
 ## 7. Open questions
 
