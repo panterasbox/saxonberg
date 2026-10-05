@@ -1725,3 +1725,28 @@ transfuse chain is driven by `clinical-medicine`.
 - a dialogue BEAT arrives as a choice-wheel card, not main prose, so the
   live assertion is that the conversation ENGAGES (the fishing-drive
   precedent), not the beat text.
+
+### ⚠⚠ Finalize live drive (2026-10-05) — a REAL bug the suite missed
+
+The post-merge-sweep phase added a **live drive through the real
+dispatch** (a `Session` against a running server on 2011 — the browser-
+equivalent, since the chrome-devtools profile was locked by a sibling).
+It FOUND a bug no unit test or wire checkpoint had:
+
+- ⛔ **`order transfusion` threw** `"cannot start a chain — brackets index
+  or filter an existing set"`. The two-houses scan
+  (`OrderController.reachableTariffs`) queried MQL `'[class.Tariff]'` — a
+  bracket FILTER with no seed set. It must be `'reachable:[class.Tariff]'`
+  (the `JobController`/`TipController` shape). The scan had **never been
+  exercised** — the Terminus ward has two tariffs (the clinic + the blood
+  window), so a bare `order transfusion` always falls to the scan, and the
+  scan always threw. Fixed; `order transfusion` now returns `ok` with an
+  `engagement-started` note of `duration: 45000` (the durative body-time
+  fix, live) and *"You settle in; the line goes in… Hold still."*
+- The cut landed live too: `donor` → *"I don't understand 'donor'"*;
+  `analyze bank` shows lots + par with **no donor roll**.
+
+The transfusion body-time cost is proven deterministically in
+`OrderTransfusion.test.ts`; `order transfusion` is deliberately NOT a wire
+checkpoint (a walk-in's blood-system match against the runner-stocked
+shelf is nondeterministic — orthogonal to the behaviour).

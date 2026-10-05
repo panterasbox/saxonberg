@@ -106,3 +106,11 @@ suite('blood economy — NPC-run in v1', () => {
     expect(issue).toMatch(/do not keep|not keep this window|no blood window/);
   });
 });
+
+// ⚠ `order transfusion` is NOT driven here: whether a random walk-in's
+// blood system matches whatever the runner happened to carry onto the
+// shelf is nondeterministic, so the assertion flakes for reasons unrelated
+// to the behaviour. Its durative body-time cost is proven deterministically
+// in `OrderTransfusion.test.ts`, and end-to-end through the real dispatch in
+// the finalize live drive (see blood-economy-plan § Drive record — the live
+// pass that found the `[class.Tariff]` MQL throw).

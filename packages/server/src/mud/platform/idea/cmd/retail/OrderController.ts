@@ -427,7 +427,10 @@ export default class OrderController extends CraftController<OrderModel> {
   /** Every priced Tariff the giver can reach — the two-houses scan (D6). */
   private reachableTariffs(context: CommandContext): Tariff[] {
     const giver = context.commandGiver;
-    const found = MqlApi.resolveMany('[class.Tariff]', {
+    // ⚠ The seed is `reachable:` — a bare `[class.Tariff]` is a filter with
+    // no set to filter and throws "cannot start a chain" (found by the live
+    // drive; the two-houses scan had never been exercised by one).
+    const found = MqlApi.resolveMany('reachable:[class.Tariff]', {
       commandGiver: giver,
       scope: 'reachable',
     }).stuff;
