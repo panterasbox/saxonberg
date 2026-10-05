@@ -18,3 +18,9 @@ data:
     of it that somebody has wedged half-open with a stone. The water
     coming in is river-coloured; the water going out at the far end is
     not.
+  # ⚠ `lint:mass` is a RATCHET and it may only fall: a row whose class is
+  # Tangible must say what it weighs or what it is made of, because
+  # matter made of nothing weighs nothing SILENTLY. A stone channel is
+  # dressed stone and it is not going anywhere.
+  _materialPath: /stuff/idea/material/rock/granite
+  mass: 900

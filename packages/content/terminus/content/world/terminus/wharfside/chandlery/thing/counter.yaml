@@ -15,6 +15,11 @@ data:
   register: definite
   longDescription: |
     A scrubbed counter with a tray of single candles on it and bundles of ten tied with string behind. A rush-light holder stands on the end with a stub in it, lit, which is both a demonstration and the shop's only lamp.
+  # ⚠ `lint:mass` again: eighteen shipped `Stock` rows already state
+  # neither, and the ratchet is what stops a nineteenth. A scrubbed deal
+  # counter is deal and it weighs what a counter weighs.
+  _materialPath: /stuff/idea/material/wood/pine
+  mass: 60
   discipline: scrum
   attendDurationMs: 0
   staffingPolicy: self-service
