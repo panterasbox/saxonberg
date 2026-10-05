@@ -45,7 +45,9 @@ import { makeStuffAtPath } from '../../security/__tests__/test-setup';
  * Call in `beforeEach` (paired with `vi.restoreAllMocks()` and
  * `StuffApi.clearAll()` in `afterEach`).
  */
-export function installCorpseMintStub(): Corpse[] {
+export function installCorpseMintStub(opts?: {
+  stampRequestedIdentity?: boolean;
+}): Corpse[] {
   const minted: Corpse[] = [];
   let seq = 0;
   const realClone = StuffApi.clone.bind(StuffApi);
@@ -56,20 +58,33 @@ export function installCorpseMintStub(): Corpse[] {
     if (path !== TemplatePaths.mortalityCorpse) {
       return realClone(path, ...(rest as []));
     }
-    const opts = rest[1] as
-      | { dataOverlay?: Record<string, unknown> }
+    const cloneOpts = rest[1] as
+      | { dataOverlay?: Record<string, unknown>; asIdentityPath?: string }
       | undefined;
     // ⚠ A distinct path per body, through the sanctioned stamping seam.
     // The real mint stamps a derived identity (`corpseIdentityFor`), and
     // `byTemplatePath` throws on two live objects at one path — so a test
     // that kills twice needs two keys.
+    //
+    // ⭐⭐ `stampRequestedIdentity` files the body under the identity the
+    // MINT ASKED FOR instead of a stub key, and a test that exercises
+    // `corpseIdentityFor`'s own ordinal needs it. The registry indexes on
+    // `_identityStampOf(obj) ?? getTemplatePath()` (`api/stuff.ts:230`),
+    // so stamping the requested identity as the path reproduces the
+    // index state the real mint's probe reads. ⚠ Without it the probe
+    // would find nothing — every stub corpse sits under `/stub/<n>` — and
+    // a collision test would pass VACUOUSLY while asserting the opposite
+    // of what production does.
+    const requested = opts?.stampRequestedIdentity
+      ? cloneOpts?.asIdentityPath
+      : undefined;
     const corpse = makeStuffAtPath(
       () => new Corpse(),
-      `${TemplatePaths.mortalityCorpse}/stub/${++seq}`,
+      requested ?? `${TemplatePaths.mortalityCorpse}/stub/${++seq}`,
     );
     corpse.setKeywords(['body', 'corpse', 'carcass']);
     corpse.setLifecycleState('dead');
-    for (const [field, value] of Object.entries(opts?.dataOverlay ?? {})) {
+    for (const [field, value] of Object.entries(cloneOpts?.dataOverlay ?? {})) {
       if (field === 'mass') {
         corpse.setMass(Quantity.of(value as number, 'kg'));
         continue;

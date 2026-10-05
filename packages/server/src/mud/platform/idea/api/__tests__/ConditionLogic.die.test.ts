@@ -360,3 +360,98 @@ describe('ConditionApi.die — one transition', () => {
     expect(rows).toHaveLength(0);
   });
 });
+
+/**
+ * ⭐⭐ Two bodies out of ONE row, dying in the same game-second.
+ *
+ * ⚠⚠ **This was near-dead code until the carcass chain, and is ordinary
+ * now.** `corpseIdentityFor` disambiguates with an ordinal, and before
+ * this build the only death that minted a corpse was a player's — two of
+ * those in one game-second is a coincidence nobody had seen. Every beast
+ * and NPC mints one now, and a beast's `getIdentityPath()` falls back to
+ * its TEMPLATE PATH, which a flock shares: slaughter two ewes off one
+ * row in the same second, or let a fox through a hen coop, and the
+ * ordinal branch is the only thing keeping two bodies apart in the index.
+ *
+ * Raised by `build-3` (instance-addressing), who are moving their two
+ * probes to a `findByIdentityPath` before they redefine the row read —
+ * their change, pinned on their side. This pins OURS: the multiplication
+ * is this build's, so the regression would land on this path.
+ *
+ * ⚠ The suite's own `body()` stamps a UNIQUE path per fixture, so no
+ * test here could ever have produced the collision. These two share one.
+ */
+describe('ConditionApi.die — two bodies off one row', () => {
+  let corpses: Corpse[] = [];
+
+  /** A head out of a flock: the row is the identity, as for real stock. */
+  const FLOCK_ROW = '/stuff/agent/test-flock/ewe';
+  function head(): Creature {
+    const c = makeStuff(() => new Creature());
+    Stuff._stampTemplatePath(c, FLOCK_ROW);
+    c.setLifecycleState('alive');
+    return c;
+  }
+
+  beforeEach(() => {
+    installV1QuantityMarshallers();
+    // ⭐ The identity-honouring mode: the stub files each body under the
+    // identity the MINT asked for, so the second death's probe reads the
+    // same index the real one would. With the default stub every corpse
+    // sits under `/stub/<n>`, the probe finds nothing, and this suite
+    // would pass while asserting the opposite of production.
+    corpses = installCorpseMintStub({ stampRequestedIdentity: true });
+    vi.spyOn(AccountabilityApi, 'record').mockImplementation(() => {});
+  });
+  afterEach(() => {
+    vi.restoreAllMocks();
+    StuffApi.clearAll();
+  });
+
+  it('⭐ gives the second body its own identity, not the first one again', async () => {
+    const first = head();
+    const second = head();
+
+    await ConditionApi.die(first, 'slaughtered');
+    await ConditionApi.die(second, 'slaughtered');
+
+    expect(corpses).toHaveLength(2);
+    const paths = corpses.map((c) => c.getTemplatePath());
+    // Two distinct keys, both under the corpse row, both naming the
+    // flock row they came off.
+    expect(new Set(paths).size).toBe(2);
+    for (const p of paths) {
+      expect(p).toContain('/stuff/agent/Corpse/');
+      expect(p).toContain('stuff/agent/test-flock/ewe');
+    }
+    // ⚠ And the disambiguator is the ORDINAL, not the clock: both deaths
+    // land in one game-second, so the second key is the first with `-2`.
+    const [a, b] = paths as [string, string];
+    expect(b).toBe(`${a}-2`);
+  });
+
+  it('⭐ a third goes to -3 — the walk continues, it does not wrap', async () => {
+    for (let i = 0; i < 3; i += 1) {
+      await ConditionApi.die(head(), 'slaughtered');
+    }
+    const paths = corpses.map((c) => c.getTemplatePath()) as string[];
+    expect(new Set(paths).size).toBe(3);
+    expect(paths[1]).toBe(`${paths[0]}-2`);
+    expect(paths[2]).toBe(`${paths[0]}-3`);
+  });
+
+  it('⚠ and the index can still find each body by its own key', async () => {
+    await ConditionApi.die(head(), 'slaughtered');
+    await ConditionApi.die(head(), 'slaughtered');
+
+    // The collision this guards against is SILENT: two corpses filed at
+    // one key leave the bucket holding two, and nothing reads a corpse's
+    // identity today — so `findByTemplatePath` throwing `expected
+    // singleton` is the only way anybody would ever hear about it.
+    for (const corpse of corpses) {
+      const key = corpse.getTemplatePath() as string;
+      expect(() => StuffApi.findByTemplatePath(key)).not.toThrow();
+      expect(StuffApi.findAllByTemplatePath(key)).toHaveLength(1);
+    }
+  });
+});

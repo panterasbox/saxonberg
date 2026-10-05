@@ -1541,6 +1541,28 @@ No criterion is unmapped.
     this branch does not race.
   → `docs/slates/builds/instance-addressing-slate.md` and decisions 9/9a–9d
   of `location-graph-requirements.md`, both on `origin/reqs/location-graph`.
+  - ⭐⭐ **NOT deferred — the one thing in that exchange that WAS ours is
+    done.** build-3's message had two halves, and only the FINDING was
+    ours to dismiss; the COLLISION half carried a live item. Their probe
+    note said *"nothing for you to do unless you add or move a probe"* and
+    we moved none — but the reason the probe matters at all is this
+    build: `corpseIdentityFor` disambiguates two deaths in one
+    game-second with an ordinal, a beast's `getIdentityPath()` falls back
+    to its **template path**, and a flock shares one. So slaughtering two
+    ewes off one row in a second, or a fox through a hen coop, walks a
+    branch that was **near-dead code** when only players minted corpses.
+    ⚠ Nothing covered it, and the suite's own `body()` fixture stamps a
+    UNIQUE path per body, so no test here could ever have produced the
+    collision. `ConditionLogic.die.test.ts` now has three, over two heads
+    off one row: the second gets `-2`, a third `-3`, and each body is
+    still findable by its own key. ⭐ Proven non-vacuous by sabotage — with
+    the ordinal forced to return `base` all three go red, and the index
+    assertion red too, which is what shows the collision would surface as
+    `findByTemplatePath: expected singleton` rather than silently. The
+    stub helper grew an opt-in `stampRequestedIdentity` for it, because
+    the default stub files every body under `/stub/<n>` where the probe
+    reads nothing — the test would otherwise have passed while asserting
+    the opposite of production.
 
 ---
 
