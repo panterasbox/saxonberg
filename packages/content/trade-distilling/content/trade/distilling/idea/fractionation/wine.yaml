@@ -1,0 +1,51 @@
+# Wine through the still — brandy. The grape lane's own spirit, and the
+# second feedstock that proves a different product is ROWS: nothing in
+# `lib/fractionation` knows this file exists.
+#
+# ⭐ The shape differs from the wash in the ways a distiller would expect
+# and nowhere else. Wine comes in at about three times the strength of a
+# wash, so the yield is far better and the residue far smaller. There is
+# less to throw away at the front — a ferment on fruit makes less
+# methanol than one on grain — but there is MORE of it than nothing, and
+# the brandy's tails are worth keeping back for the next charge rather
+# than pouring away, which is why they are `fair` and not `poor`.
+class: /platform/idea/fractionation/FractionSchedule
+data:
+  key: wine
+  inputCategory: wine
+  discipline: distilling
+  requiresHeatK: 351
+  productMaterial: /trade/distilling/idea/material/brandy
+  residueMaterial: /trade/distilling/idea/material/stillage
+  readBlur: 0.02
+  gradeStretch: 0.02
+  fractions:
+    - key: foreshots
+      upTo: 0.004
+      character: >-
+        A quick sour sharpness, more vinegar than solvent, and gone
+        almost before you have placed it.
+      gradeBand: poor
+      toxins:
+        - { type: methanol, amount: 6000 }
+    - key: heads
+      upTo: 0.02
+      character: >-
+        Hot and floral at once, with a thinness under the fruit.
+      gradeBand: fair
+      toxins:
+        - { type: methanol, amount: 1200 }
+    - key: hearts
+      upTo: 0.3
+      character: >-
+        The fruit arrives properly now, round and warm, with the wine
+        still recognisable inside the spirit.
+      gradeBand: fine
+      toxins:
+        - { type: methanol, amount: 40 }
+    - key: tails
+      upTo: 0.36
+      character: >-
+        Softening and going a little stewed, the edges rounding off into
+        nothing.
+      gradeBand: fair

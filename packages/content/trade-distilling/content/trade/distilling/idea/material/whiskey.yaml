@@ -11,8 +11,12 @@ data:
   thermalConductivity: 0.17
   specificHeat: 2400
   edibility: true
+  # ⚠ Was 19, against `neutral-spirit`'s 45 and `wash`'s 8 — a
+  # forty-per-cent spirit at half the dose of an eight-per-cent wash,
+  # which made whiskey the safest drink in the house. 40 is the honest
+  # figure beside its neighbours.
   toxicity:
-    - { type: alcohol, amount: 19 }
+    - { type: alcohol, amount: 40 }
   tags: [liquid, beverage, drinkable, alcoholic, spirit, whiskey]
   composition: []
   biologicalSource: null

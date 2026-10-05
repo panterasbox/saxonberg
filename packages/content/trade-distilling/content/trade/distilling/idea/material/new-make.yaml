@@ -1,0 +1,38 @@
+# New-make spirit — ⭐⭐ **what actually comes off a still.**
+#
+# Every fraction of a wash run is THIS material; what differs between
+# the foreshots and the hearts is the payload the draw stamps on them
+# (`dissolvedToxins`, the grade band, the character prose). That is
+# forced rather than chosen: `BulkableApi.transfer` declines a
+# cross-material pour, so fractions that were different materials could
+# never be recombined — and recombining them is most of what a distiller
+# does (the heads back into the next charge, the hearts into one cask).
+#
+# ⚠ It is NOT `neutral-spirit`. That is the rectified product — the gin
+# base, run a second time through a tighter schedule — and the whole
+# point of the whiskey vertical is that this one is not neutral: it
+# carries the grain through, which is what the cask then works on.
+#
+# FLAMMABLE, like every spirit on the roster (P10): the still
+# concentrates the fire along with the alcohol.
+class: /platform/idea/material/ConsumableMaterial
+data:
+  name: new-make spirit
+  keywords: [new-make, "new make", spirit, newmake]
+  appearance: "a raw, water-clear spirit, hot and grain-sweet"
+  density: 935
+  thermalConductivity: 0.17
+  specificHeat: 2400
+  edibility: true
+  # ⚠ The alcohol dose is the MATERIAL's and names nobody in the harm
+  # ledger: being strong is what new-make IS. The methanol a bad cut
+  # carries is per-instance, on the payload, and that one does name the
+  # hand that kept it.
+  toxicity:
+    - { type: alcohol, amount: 45 }
+  nutrients: []
+  tags: ["liquid", "beverage", "drinkable", "alcoholic", "spirit", "new-make"]
+  composition: []
+  biologicalSource: null
+  autoignitionTemperature: 636
+  heatOfCombustion: 27

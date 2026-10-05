@@ -1,0 +1,33 @@
+# ⭐⭐ The whiskey cask — where new-make becomes whiskey, and the
+# distilling trade's own row of the VAT family.
+#
+# The brewing pack already ships a `cask` for conditioning ale, and this
+# is the same object doing the other thing an oak barrel has always done:
+# the profile at `/trade/distilling/idea/maturation/whiskey-aging` keys on
+# `new-make` and turns it into `whiskey` over about forty-five game-days,
+# `sealedOnly` — so it only works once you have bunged it (`close cask`).
+#
+# ⭐ The grade is the CUT's, not the cask's: `MaturingMixin` caps a
+# batch's band at the band the fill carried in, so no amount of waiting
+# turns a bad cut into good whiskey. Nor does the dose change — methanol
+# does not age out, and the payload survives the material swap. Time
+# improves whiskey; it does not absolve a distiller.
+#
+# ⚠ `liquidTight`, not `sealed`, for the brewing cask's reason: oak
+# breathes.
+class: /platform/thing/Vat
+data:
+  shortDescription: "whiskey cask"
+  keywords: [cask, barrel, oak, whiskey, empty]
+  register: indefinite
+  longDescription: >-
+    A charred oak cask on a low stillage, hooped in black iron, the
+    bung-hole sitting up and the head stencilled with a date nobody has
+    filled in.
+  category: cask
+  _materialPath: /stuff/idea/material/wood/oak
+  mass: 40
+  interiorBulk: true
+  interiorCapacity: 25
+  closure: liquidTight
+  open: true

@@ -1,6 +1,18 @@
 # The still book — the still-house's work board (the cellar book's
-# sibling): mash, run, compound — unpriced, `order`-lit. Zero new
-# verbs.
+# sibling): mash and compound — unpriced, `order`-lit. Zero new verbs.
+#
+# ⛔ `distil`, `brandy` and `grappa` are GONE from this list, and they
+# were never really on it: all three named the still's capability and
+# asked for 351 K, and no still in the world authored a fuel reserve, so
+# the burner could not be lit, the heat was never in reach and every
+# `order distil` declined `insufficient-heat` for the whole life of the
+# pack.
+#
+# ⭐ What replaces them is not a recipe at all. A run is `pour` the charge
+# in, `ignite`, and `pour` it off a fraction at a time — the schedule
+# rows at `/trade/distilling/idea/fractionation/` decide what comes over
+# and in what order. A recipe would have had to name one output, which is
+# the one thing a still does not have.
 class: /platform/thing/Menu
 data:
   shortDescription: still book
@@ -8,4 +20,4 @@ data:
   register: definite
   longDescription: |
     A scorched ledger on a chain, the day's runs written in a crabbed hand — grist, charge, take.
-  offeredRecipes: [wash-mash, distil, compound-gin, brandy, grappa]
+  offeredRecipes: [wash-mash, compound-gin]

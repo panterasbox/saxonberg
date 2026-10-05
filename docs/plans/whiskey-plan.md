@@ -888,3 +888,139 @@ Read first, in this order:
 *(appended at build time — the output of
 `packages/wire/tests/whiskey.dirty.wire.test.ts` against the running
 game, and what it found.)*
+
+---
+
+# ⭐ Build record — what actually happened
+
+Appended during the build, wave by wave. Written for the reviewer who
+has forgotten this session, because MR review outlives the context
+window.
+
+## W0 + W1 — landed together, commit `e77ce93e6`
+
+⚠ **One commit, not two.** W0's `routeIntake` change and W1's attribution
+change are both in `Metabolic.ts` and cannot be staged apart without
+`git add -p`, which this environment does not offer. The commit body
+separates them.
+
+**What shipped as planned:** `DissolvedToxins` and its payload field, the
+`getBulkPayloadForDraw` seam, the blend in `transfer`, the ×litres route
+at ingest, `noteConsumptionHarm` as one function with two moments,
+`toxinMakers`, the methanol row.
+
+**Decided here, beyond the plan:**
+
+- **B1 — the maker is `getIdentityPath()`, never `getTemplatePath()`.**
+  The plan did not say; `CraftingLogic` already uses identity and the
+  harm ledger compares `payload.maker` against the drinker's own identity
+  path, so a lineage key would make every bottle name the same person and
+  the self-victim guard would never fire.
+  ⭐ **Finding for review, not fixed:** `MaturingMixin.stampBatchMark`
+  (`Maturing.ts:815-822`) takes `getTemplatePath()`. It is the same defect
+  one subsystem over — every player's ferment stamps the shared Avatar
+  lineage — and it is out of this build's scope. Marked at the site.
+- **B2 — `DissolvedToxins.surviving` is a pure static**, so `routeIntake`
+  calls it directly rather than constructing a fake `BulkSlot`. The first
+  draft cast an object literal to `BulkSlot`; a cast in new code is the
+  smell `/finalize` greps for.
+
+**What surprised:** ⚠ the body's metabolic clock reads `null` — *idle* —
+unless the `WorldClockRegistry` **Stuff** is registered, and
+`StuffApi.clearAll()` removes it. Every toxin burden in the new tests
+stayed at 0, and "no harm row" passed for the wrong reason. Each toxin
+test file now mints the registry per test, and every negative case in
+those files sits beside a positive one that proves the premise.
+
+## W2 — the fraction schedule, kernel
+
+`lib/fractionation/{FractionSchedule,Fractionating}.ts`, the platform
+twin, `FractionScheduleCatalogue` + its row + the `boot:` entry
+(`sync-read`), `Mixins.Fractionating` + its refusal +
+`MixinApi.isFractionating`, the pour's discipline credit,
+`foreshotCharacter` retired.
+
+**Decided here, beyond the plan:**
+
+- ⛔⛔ **B3 — D9 WAS WRONG, and the world test is what caught it.** The
+  plan had the read **lag**: *"the untrained nose notices a boundary late,
+  so it keeps some heads and some tails."* The first half is impossible.
+  You start collecting when you believe the hearts have begun, so a nose
+  that notices boundaries late starts collecting **late** — it throws good
+  spirit away and makes a *cleaner* bottle. The lag taught the opposite of
+  the lesson, and the two world-test distillers (an "expert" and an
+  "untrained") made the identical cut.
+  ⭐ **The fix is one sentence instead of two rules:** `readFraction`
+  reports the **best-graded fraction within ±blur** of where the run
+  actually is — *the nose hears what it wants to hear*. At `expert` the
+  window is zero. Both of an optimistic window's errors enlarge the cut
+  and make it worse (hearts called early ⇒ the heads go in the bottle;
+  hearts called late ⇒ the tails do), which is also the true pressure on a
+  real novice: yield feels like money.
+- **B4 — the run ends on `drawnL`, not on the interior amount.** The floor
+  and the remainder are two float paths to one number (`charge × residue`
+  vs `charge − drawn`) and they do not always land on the same side of it:
+  a pour of exactly `available()` left the still one part in 10⁻¹⁰ above
+  its own floor and the run never ended.
+- **B5 — two ratchet ceilings rose, each by exactly what this build
+  adds**, with the reason recorded in the gate file:
+  - `lint:lib-statics` 337 → **342**. Five statics, each the twin of one
+    already counted: `DissolvedToxins.blend`/`.isClean`/`.surviving` (the
+    fourth member of a family of four beside `Freshness.blendLoads`,
+    `WaterActivity.blend`, `Contamination.blend`) and
+    `FractionSchedule.byKey`/`.forMaterial` (verbatim the
+    `MaturationProfile` pair, with `all()` private).
+  - `lint:on-create` 81 → **82** and 34 → **35**, for ONE roster warm.
+    ⭐ The gate's own docstring is the justification — *"a warming
+    catalogue trips it (that is limb 2, and it is fine)"* — and there is
+    no other seam: `postRegister` was retired 2026-10-01, `onCreate` is
+    the only hook a Stuff has at birth, and all thirteen catalogues in the
+    tree warm there.
+  ⚠ **Both are the shape memory warns about** (*a ratchet over a figure
+  that scales with content refuses an author for doing it right*). Neither
+  is limb 3 or 4; the number worth watching is still the one the
+  hydration build drives down.
+
+## W3 — the still runs, pack + world
+
+`Still` composes `BulkableMixin + CraftedMixin + FractionatingMixin`;
+both still rows author `reserves.fuel`, `burnTemperatureK: 358`,
+`interiorBulk` and a capacity; `new-make` and `stillage` materials; three
+schedule rows; `cask` + `slop-bucket` + `whiskey-aging`; the three
+retired recipes gone from `recipes/` and the still-book; the whiskey
+material's alcohol dose fixed; three vessels onto Crowsfoot's floor.
+
+**Decided here, beyond the plan:**
+
+- ⛔ **B6 — the `pomace` schedule is CUT, and the plan's premise for it
+  was wrong.** It said *"`pomace.yaml` is a Receptacle, so it pours."*
+  The `pomace` **material** is tagged `solid`/`compost`, and bulk is
+  liquid in v1 — a solid in a bulk slot has no honest closure. Grappa
+  therefore needs pomace to become a pourable material first, which is
+  the winemaking trade's call, not this build's. ⭐ Nothing is lost: the
+  `grappa` recipe had never run either (same unlightable still), and the
+  grappa material and its stock rows are untouched. **→ a finding for
+  `libations-slate.md`.**
+- **B7 — `gradeStretch` recalibrated 0.02 → 0.0075**, caught by the world
+  test. The shift is ABSOLUTE and the foreshots are five thousandths of
+  the charge, so 0.02 per band made a merely-`fine` wash nine-tenths
+  foreshots and the grade swamped the schedule entirely. ⭐ *A dial whose
+  smallest step is larger than the thing it adjusts is not a dial.*
+  0.0075 × 4 bands = 0.03, which is exactly the authored head, so a `poor`
+  wash has twice the head of a `masterful` one — D10's own sentence, as
+  arithmetic.
+- **B8 — `lint:unconsumed-seams` falls by one** with
+  `foreshotCharacter`'s retirement, as planned.
+
+**What surprised:**
+
+- ⚠⚠ **A `Creature` composes no `AdvancementMixin`**, so `bandFor` returns
+  `untrained` whatever a stubbed digest says. The world test's "expert"
+  and "untrained" distillers made the same cut and *both cases passed*.
+  The nose is a `Distiller extends AdvancementMixin(Creature)` now, and
+  the trap is recorded at both sites.
+- ⚠ **Methanol arrives late, and a test has to wait for it.** Absorption
+  is 1.5 dose-units a game-minute against 0.01 clearance, so the burden
+  climbs ~0.011/min and does not reach the lowest rung for nearly three
+  game-hours. A two-game-hour settle read as *nobody was harmed* — a
+  timing miss dressed as a design claim. The helper waits six.

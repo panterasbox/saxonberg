@@ -275,13 +275,6 @@ export default class MaturationProfile extends SingletonMixin(Idea) {
    * viability to starve 1 → 0. The cellar slows it; heat speeds it.
    */
   public starveDays = 14;
-  /**
-   * The wash's foreshot character — INERT authored prose in v1 (P10):
-   * the seam the deferred cuts rung reads into metabolism's toxin dose
-   * (kept foreshots become the poison; pouring off the first draw
-   * becomes the skill). Nothing consumes it yet, by design.
-   */
-  public foreshotCharacter = '';
 
   static fieldMeta: FieldMeta = {
     key: { persistent: true, authorable: true },
@@ -306,7 +299,6 @@ export default class MaturationProfile extends SingletonMixin(Idea) {
     leesFraction: { persistent: true, authorable: true },
     leesMaterial: { persistent: true, authorable: true },
     starveDays: { persistent: true, authorable: true },
-    foreshotCharacter: { persistent: true, authorable: true },
   };
 
   // ── the inter-Stuff contract (methods, never fields) ──
@@ -513,12 +505,6 @@ export default class MaturationProfile extends SingletonMixin(Idea) {
     return this.starveDays;
   }
 
-  getForeshotCharacter(): string {
-    return this.foreshotCharacter;
-  }
-  setForeshotCharacter(value: string): void {
-    this.foreshotCharacter = value;
-  }
   setStarveDays(value: number): void {
     if (!Number.isFinite(value) || value <= 0) {
       throw new RangeError(

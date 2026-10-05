@@ -1,0 +1,91 @@
+# ⭐⭐ The wash run — the cut, and the row this whole build exists for.
+#
+# A wash at roughly eight per cent gives up a little under a quarter of
+# itself as spirit, which is why the residue is three quarters of the
+# charge: the rest is water and spent grain and always was. On the
+# still-house's sixty-litre pot that is about three tenths of a litre of
+# foreshots, under two litres of heads, near eleven litres of hearts and
+# three of tails.
+#
+# ⚠⚠ **The methanol figures are calibrated against ONE sentence** from the
+# requirements — *a well-cut bottle harms nobody however much of it they
+# drink* — and against `Condition/metabolism/methanol.yaml`, whose lowest
+# band is a burden of 2 at `potency: 1`. Burden is `mg / bodyMass`, so on
+# a seventy-kilo body:
+#
+#   - hearts alone, a whole bottle: 40 mg/L × 0.75 L = 30 mg ⇒ 0.43. Safe,
+#     and safe at any volume a body can hold.
+#   - keep the heads: the bottle lands near 435 mg/L ⇒ a burden near 5,
+#     which is the middle rung and a customer who is genuinely ill.
+#   - keep the foreshots too and it is past the top rung.
+#
+# ⭐ The hearts are not clean, note. Forty milligrams a litre of trace
+# congeners is what a real good spirit carries, and it is deliberately
+# non-zero: *nothing is pure* is a truer lesson than *good work is
+# perfect*, and the arithmetic above is what makes it harmless.
+#
+# ⚠ `inputCategory: wash` is the WASH MATERIAL's tag, not the ferment
+# profile's — the profile keys on `distillers-wort`. A tag may belong to
+# one matcher of a given kind, or a vessel receiving the wash would try to
+# ferment it again.
+class: /platform/idea/fractionation/FractionSchedule
+data:
+  key: wash
+  inputCategory: wash
+  discipline: distilling
+  # The still's working heat. The same figure the retired `distil` recipe
+  # asked for, which is why the row it replaces had never once run: no
+  # still in the world authored a fuel reserve, so 351 K was never in
+  # reach and `order distil` declined `insufficient-heat` every time.
+  requiresHeatK: 351
+  productMaterial: /trade/distilling/idea/material/new-make
+  residueMaterial: /trade/distilling/idea/material/stillage
+  # A fiftieth of the charge — on the house pot, about a litre and a
+  # fifth of lag for an untrained nose. The foreshots are three tenths of
+  # a litre, so an untrained distiller is told "foreshots" right through
+  # the heads and keeps them. That IS the lesson, and no number appears
+  # anywhere a player can read.
+  readBlur: 0.02
+  # ⭐ Per grade band below masterful, as a fraction of the charge, and
+  # the figure is calibrated to ONE sentence: *a poor wash has roughly
+  # twice the head of a masterful one.* Four bands × 0.0075 is 0.03, and
+  # the masterful head ends at 0.03 — so a `poor` charge's head ends at
+  # 0.06, exactly double, and its hearts start that much later and run
+  # about a fifth shorter.
+  #
+  # ⚠ It was 0.02 for an afternoon, which is what the world test caught:
+  # the shift is ABSOLUTE and the foreshots are five thousandths of the
+  # charge, so 0.02 per band made a merely-`fine` wash nine-tenths
+  # foreshots and the grade swamped the schedule entirely. A dial whose
+  # smallest step is larger than the thing it adjusts is not a dial.
+  gradeStretch: 0.0075
+  fractions:
+    - key: foreshots
+      upTo: 0.005
+      character: >-
+        The first of it comes over sharp and wrong — solvent, nail
+        varnish, something behind the nose rather than in it.
+      gradeBand: poor
+      toxins:
+        - { type: methanol, amount: 12000 }
+    - key: heads
+      upTo: 0.03
+      character: >-
+        Hot and raw, with a thin edge to it that catches at the back of
+        the throat.
+      gradeBand: fair
+      toxins:
+        - { type: methanol, amount: 3000 }
+    - key: hearts
+      upTo: 0.18
+      character: >-
+        Clean and sweet now, the grain showing through, and it sits on the
+        nose instead of climbing up it.
+      gradeBand: fine
+      toxins:
+        - { type: methanol, amount: 40 }
+    - key: tails
+      upTo: 0.23
+      character: >-
+        Going dull and oily, with a wet-cardboard heaviness underneath.
+      gradeBand: poor

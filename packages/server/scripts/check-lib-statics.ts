@@ -91,7 +91,32 @@ const REPO_ROOT = join(MUD, '../../../..');
  * visibility, not about which directory a class sits in. **564.**
  * Lowering it is the sweep's whole job.
  */
-export const LIB_STATICS_CEILING = 337;
+/**
+ * ⚠ **Raised 337 → 342 by the whiskey build (2026-10-04), and the
+ * arithmetic is the whole justification.** Five statics, each one the
+ * twin of a static this census already counts:
+ *
+ *   - `DissolvedToxins.blend` / `.isClean` / `.surviving` — the fourth
+ *     member of a family of four. `Freshness.blendLoads`,
+ *     `WaterActivity.blend` and `Contamination.blend`/`.isClean` are
+ *     already here, and a toxin concentration that blended by a different
+ *     rule from the microbial load riding the same matter would be a bug
+ *     waiting to be found. ⭐ The generalisation this family actually
+ *     wants is the participant hook `bulk.md` and `maturation.md` both
+ *     name — the transfer primitive is at EIGHT domain insertions now —
+ *     and that refactor is filed as a slate entry rather than done
+ *     inside a feature build.
+ *   - `FractionSchedule.byKey` / `.forMaterial` — the roster lookups,
+ *     verbatim the `MaturationProfile` pair two subsystems over, with
+ *     `all()` private for `lint:whole-table`.
+ *
+ * ⭐ This is the shape memory warns about: *a ratchet over a figure that
+ * scales with CONTENT refuses an author for doing it right.* A new
+ * subsystem's value object and row class are growth, not drift, and the
+ * number to watch is whether the family of four becomes a family of five
+ * — which is the hook's job, not a ceiling's.
+ */
+export const LIB_STATICS_CEILING = 342;
 
 const STATIC =
   /^\s*(?:public\s+)?static\s+(?:async\s+)?(?!readonly\b|get\b|set\b|_)([a-zA-Z]\w*)\s*[(<]/;

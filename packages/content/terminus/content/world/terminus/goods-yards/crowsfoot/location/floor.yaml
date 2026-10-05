@@ -61,5 +61,12 @@ data:
     - /trade/distilling/thing/still-book
     - /trade/distilling/thing/vat
     - /trade/distilling/thing/vat
+    # ⭐ The run's three vessels, and the floor is incomplete without
+    # them: the foreshots have to go somewhere that is not the spirit
+    # (the slop bucket), the hearts have to go somewhere (the cask), and
+    # the wash bucket was already here for the mash.
+    - /trade/distilling/thing/slop-bucket
+    - /trade/distilling/thing/cask
+    - /trade/distilling/thing/wash-bucket
   cast:
     - /world/terminus/goods-yards/crowsfoot/agent/hand

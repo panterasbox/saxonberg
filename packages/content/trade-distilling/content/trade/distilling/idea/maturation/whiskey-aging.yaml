@@ -1,0 +1,40 @@
+# ⭐⭐ Aging in oak — new-make becomes whiskey.
+#
+# `mechanism: chemical` and not `microbial`: nothing is alive in a cask.
+# What happens is the spirit working on the wood and the wood on the
+# spirit, plus a slow oxidation through the staves — which is why the
+# cellar lines for `chemical` are deliberately neutral and say nothing
+# about yeast or bubbles.
+#
+# `sealedOnly: true` — the cask has to be bunged (`close cask`). An open
+# cask is a cask you are filling or emptying, not one that is working.
+#
+# ⚠ `ratePerDay: 0.022` is about forty-five game-days to `finished`, which
+# at this world's clock is a handful of real days. That is a TUNING
+# number, chosen so a player who casks a run can come back and find
+# whiskey inside a week of play rather than a season — the fiction's
+# twelve years is not available to us and pretending otherwise would just
+# mean nobody ever saw the end of it. Flagged for the user.
+#
+# ⭐ What the cask does NOT do, and this is the design: it does not make a
+# bad cut good. `MaturingMixin` caps the batch's grade at the band the
+# fill carried in, so a cask of tails comes out as poor whiskey. And it
+# does not touch the dose — methanol does not age out, the payload
+# survives the product swap, and a bottle drawn from this cask carries
+# exactly the dose the distiller put in it.
+#
+# No `turnedMaterial`: whiskey left too long in oak gets woody and dull,
+# which is a grade question rather than a different substance, and
+# `damageAboveK` already says it.
+class: /platform/idea/maturation/MaturationProfile
+data:
+  key: whiskey-aging
+  mechanism: chemical
+  inputCategory: new-make
+  sealedOnly: true
+  productMaterial: /trade/distilling/idea/material/whiskey
+  ratePerDay: 0.022
+  # A cold warehouse does nothing; a hot one over-extracts the wood.
+  stallBelowK: 275
+  happyK: 290
+  damageAboveK: 305

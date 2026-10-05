@@ -72,7 +72,18 @@ import {
  * narrowing build). It may FALL — and when it does, re-pin it here in
  * the same commit — and it may never rise.
  */
-export const MASS_CEILING = 242;
+/**
+ * ⭐ **Lowered 242 → 241 by the whiskey build (2026-10-04)**, and the
+ * gate is the one that asked: the census FELL and this file refuses a
+ * ratchet that does not tighten.
+ *
+ * What left the set is `/trade/distilling/thing/still`, which authored
+ * neither a mass nor a material for the whole life of the pack. It has
+ * one now (240 kg of copper and fieldstone) because the whiskey build
+ * made it a vessel that holds sixty litres, and a thing that holds sixty
+ * litres of anything had better have a weight.
+ */
+export const MASS_CEILING = 241;
 
 /** The high-water mark: what the count was when the gate landed. */
 export const MASS_HIGH_WATER = 242;

@@ -51,14 +51,32 @@ import { MUD, packSources, packSrcFiles } from "./pack-roots";
  * (much more likely) the work belongs on one of the two declarative seams
  * the hydration build added.
  */
-export const ON_CREATE_CEILING = 81;
+/**
+ * ⚠ **Raised 81 → 82 and 34 → 35 by the whiskey build (2026-10-04) for
+ * ONE roster warm**, `FractionScheduleCatalogue` — and this file's own
+ * docstring is the justification: *"a warming catalogue trips it (that is
+ * limb 2, and it is fine)"*, and *"limbs 1 and 2 are why the
+ * implementation ceiling does not go to zero and should not."*
+ *
+ * ⭐ There is no other seam to put it on. `postRegister` was retired on
+ * 2026-10-01 and `onCreate` is now the only hook a Stuff has at birth;
+ * every one of the thirteen catalogues in the tree warms here, and a
+ * schedule roster nothing warms matches nothing — silently, which is the
+ * reference-Ideas-inert-at-boot trap this repo has walked into three
+ * times.
+ *
+ * So the ceiling rises by exactly one, for exactly the limb the gate
+ * declares legitimate. The number worth watching is still limbs 3 and 4,
+ * and this build adds neither.
+ */
+export const ON_CREATE_CEILING = 82;
 
 /**
  * ⭐⭐ **The loading ceiling** — the subset of those bodies that look like
  * limb 3. This is the number the hydration build drives down, and the one
  * worth reading: a fall here is state that moved onto a declared source.
  */
-export const ON_CREATE_LOADING_CEILING = 34;
+export const ON_CREATE_LOADING_CEILING = 35;
 
 /**
  * ⚠ A fact about the past: the census the day the gate landed. Never edit

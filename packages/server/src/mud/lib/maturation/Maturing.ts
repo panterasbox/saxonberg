@@ -441,6 +441,7 @@ export function MaturingMixin<TBase extends MixinConstructor>(Base: TBase) {
       wildLagDays: { persistent: true, runtimeState: true },
       viability: { persistent: true, runtimeState: true },
       leesVolumeL: { persistent: true, runtimeState: true },
+      batchInputBand: { persistent: true, runtimeState: true },
     };
 
     /** Game-seconds stamp of the last reconcile; `0` = never touched. */
@@ -467,6 +468,27 @@ export function MaturingMixin<TBase extends MixinConstructor>(Base: TBase) {
     public viability = 1;
     /** Litres of lees under the rack floor (set at `finished`). */
     public leesVolumeL = 0;
+    /**
+     * ⭐⭐ **The grade the FILL carried in** — the ceiling on what this
+     * batch can become. `null` ⇒ nothing graded was poured in, so there
+     * is no cap.
+     *
+     * ⚠⚠ Without it `applyBatchGrade` wrote `bandFor(_worstStretch)` and
+     * ignored the fill entirely, so **a `poor` must made `fine` wine**
+     * provided the cellar was kept at the right temperature. That is not
+     * a feature of fermentation; it is a laundry, and it contradicted
+     * `Grade.deriveAtFixedControl`'s weakest-link doctrine one folder
+     * over. The whiskey build needed the same rule for a different
+     * reason — no amount of time in oak may turn a bad cut into good
+     * whiskey — and fixing it once fixes both.
+     *
+     * ⚠ Recorded by a WITNESS on `setGrade` while the batch is idle, and
+     * the idle guard is what makes it work: `applyBatchGrade` writes
+     * through the same setter every reconcile, and `GradedMixin`'s
+     * default band is `'fair'`, so reading the host's face at
+     * `startBatch` would cap every ungraded ferment at `fair` for ever.
+     */
+    public batchInputBand: string | null = null;
 
     /** Reentry guard (TS-private; proxy-safe — never `#`). */
     private _reconcilingFerment = false;
@@ -787,6 +809,10 @@ export function MaturingMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     private resetBatch(): void {
+      // ⚠ The input band is NOT cleared here. `resetBatch` runs when the
+      // vessel empties, and the very next thing that happens is a fresh
+      // fill whose `setGrade` witness overwrites it. Clearing would be
+      // harmless; not clearing keeps the one write path.
       this.maturationPhase = 'idle';
       this.maturationProfileKey = '';
       this.batchMaterialPath = null;
@@ -825,11 +851,34 @@ export function MaturingMixin<TBase extends MixinConstructor>(Base: TBase) {
       crafted.setCraftedAt(nowS);
     }
 
-    /** Write the derived band onto the host's Graded face. */
+    /**
+     * ⭐ The witness that records what the fill carried in. A `setGrade`
+     * while the batch is IDLE is somebody pouring graded matter into an
+     * empty vessel (`carryBatchIdentity`, at the transfer seam, which
+     * runs before the next reconcile starts the batch); a `setGrade`
+     * while it is working is this mixin writing its own derived band.
+     */
+    public setGrade(value: Grade): void {
+      if (this.maturationPhase === 'idle') {
+        this.batchInputBand = value.getBand();
+      }
+      super.setGrade(value);
+    }
+
+    /**
+     * Write the derived band onto the host's Graded face — capped at the
+     * band the fill carried in. **Weakest-link**, the same rule a craft's
+     * inputs get from `Grade.deriveAtFixedControl`: a transform cannot be
+     * better than what went into it, however well it was run.
+     */
     private applyBatchGrade(): void {
       const self = this as unknown as Stuff;
       if (!MixinApi.isGraded(self)) return;
-      self.setGrade(Grade.of(bandFor(clamp01(this._worstStretch))));
+      let band = Grade.of(bandFor(clamp01(this._worstStretch)));
+      if (this.batchInputBand !== null && Grade.isBand(this.batchInputBand)) {
+        band = band.min(Grade.of(this.batchInputBand));
+      }
+      self.setGrade(band);
     }
 
     /**
