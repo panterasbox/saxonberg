@@ -7,7 +7,9 @@
 > the Practicum ([magic.md](../../subsystems/magic.md)), the three land
 > markets ([land-compute](./land-compute-and-license.md)), and
 > ⭐⭐⭐ **the rubric — which turns out to be already written.**
-> **Left:** the rubric as a scored syllabus (⭐ do this first — it costs
+> **Left:** ⭐ the **curriculum** →
+> [wizardry-curriculum-slate](./wizardry-curriculum-slate.md) (§ 8a) ·
+> the rubric as a scored syllabus (⭐ do this first — it costs
 > nothing and tests everything) · the conferral logic · the band's
 > disclosure rule · `isWizard` as the apex · the trade's shipped content
 > (venue, instrument, syllabus, lore) · the supply-chain naming
@@ -220,6 +222,39 @@ that keeps compute out of mana.
 | **lore** | § 6's cosmology |
 | ⚠ **businesses** | open — a scriptorium? a commissioning house? The labour market for authoring is `contract.md`'s, **non-diegetically** (§ 1) |
 
+## 8a. ⭐⭐⭐ The syllabus, and why it is the first curriculum
+
+**Added 2026-10-04.** The Discipline needs teaching, and the teaching
+turns out to be the cheapest thing in the design — so the full treatment
+moved to its own slate:
+[wizardry-curriculum-slate.md](./wizardry-curriculum-slate.md).
+
+The three findings that bear on *this* slate:
+
+> ⭐⭐⭐ **The evaluator is the build.** `lint:family`, `pnpm test`, and
+> *does the row boot*. Every other Discipline's assessment is only as
+> honest as its model; wizardry's answer key is maintained correct for
+> unrelated reasons and **updates itself when the engine changes** — which
+> is § 2's authority argument arriving as an engineering property rather
+> than a philosophical one.
+
+⚠ **But the rubric is NOT the syllabus, and conflating them was an error
+worth recording.** The lenses + `eotl-craft` (§ 2) are what a **crit
+scores**; they are not what a **course teaches**. The course teaches the
+architecture — the capability vocabulary, affordance, persistence, the Api
+surface — and the lenses are upper division, where lens 4 says there is no
+derivable right answer. ⭐ Both documents stay load-bearing; they are
+load-bearing at *different altitudes*.
+
+⭐⭐ **And the band's input problem (§ 10.2) has a measured candidate.**
+`eotl-craft`'s strongest empirical finding is that **detail density is the
+only reliable completeness signal in 45,000 files** — *in every case the
+unfinished room is the one with an empty or absent detail map* — with the
+explicit instruction that the right use is **a mirror, not a gate**. That
+is a real, honest, derivable input. ⚠ Whether the *course's* instrument and
+the *Discipline's* instrument may be the same number is open, because that
+is where the two judges (craft vs polity, § 5) would start to merge.
+
 ## 9. The lens pass
 
 **⭐⭐⭐ 1 — pedagogy.** The strongest limb. It exercises modelling a
@@ -294,6 +329,10 @@ mechanism.
 
 ## Cross-refs
 
+- [wizardry-curriculum-slate.md](./wizardry-curriculum-slate.md) — ⭐⭐⭐
+  how the Discipline is taught, and why it is the first curriculum.
+- [object-taxonomy-slate.md](./object-taxonomy-slate.md) — what a
+  non-wizard may mint, and where the apex licence stops being needed.
 - [labor-standing-slate.md](./labor-standing-slate.md) — the work item
   that stays **non-diegetic**, and the credit this Discipline sits beside
   without duplicating.

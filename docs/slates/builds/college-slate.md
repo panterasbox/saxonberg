@@ -38,6 +38,9 @@ See also:
 
 - [eternal-university-slate.md](./eternal-university-slate.md) — the
   **campus**. Buildings, topology, the dorm. This slate furnishes it.
+- [wizardry-curriculum-slate.md](./wizardry-curriculum-slate.md) — the
+  **first curriculum for the world** (Magic 101 stays the first for the
+  pitch), and ⛔ the correction to the taxonomy decision below.
 - [inquiry-slate.md](./inquiry-slate.md) — the **experiential half** of
   assessment. Its `predict` gate is our practical exam.
 - [../../arcane-science.md](../../arcane-science.md) — the first
@@ -100,6 +103,39 @@ sociable, expensive path onto a ladder that already exists.
 ---
 
 ## The load-bearing decision: adopt the study.com taxonomy verbatim
+
+> ⛔⛔ **CORRECTED 2026-10-04 — this section names a tier that does not
+> exist.** `platform-reality.md` (verified against the live stage DB, and
+> authoritative over every other study.com doc by its own declaration)
+> reports the stored hierarchy as **`Program → Course → Topic → Lesson`**;
+> **"chapter" is not an entity** but a derived display index,
+> `Topic.getChapterNumber()`. The CX product additionally presents a
+> **unit** tier that no doc accounts for — plausibly a nested Topic, since
+> the store is a single self-referential `Academy_Asset_Tree`.
+>
+> ⭐⭐⭐ **The fix is not to pick a tier list: it is one ordered,
+> recursive `CourseNode` that may contain nodes or lessons, with
+> assessment attachable to ANY node.** Then *assessment at different
+> layers* needs no tier-specific code and the unit/chapter question costs
+> us nothing — and it is strictly more faithful to their store than a
+> fixed three-tier shape was. Their assessment containers are already
+> this shape (`QuestionBank → Quiz`, `ExamTemplate / Section / Page`,
+> `Exam_Instance` + `AlgorithmType`, `Proctored_Exam`).
+>
+> ⛔ **Two further corrections that change this slate's spine**, both from
+> the same verified doc: **there is no learning-objective entity** (zero
+> hits for `objective` in `academy-services`; the taggable unit is a
+> `Concept` / `ExamTaxonomyNode` id, so the generator's `objective` field
+> is a Discipline node here and the crosswalk is adapter work) — and
+> **items are not MC-only**: ~20 types including `ESSAY` with an authored
+> `llmRubric`, multi-step **`AI_MASTERY`** (`LLM_CHAT /
+> USER_MULTIPLE_CHOICE / USER_CONFIRMATION / USER_TEXT`) and
+> `GradableCourseProject`, all on the **CX** side. ⭐⭐ Those are the
+> sockets the viva and the crit plug into — the human-graded half of this
+> slate is not foreign to their product, it is their newest surface.
+>
+> See [wizardry-curriculum-slate.md](./wizardry-curriculum-slate.md) § 10.
+
 
 **Course → chapter → lesson,** with their metadata fields, their
 lesson types, their objective tagging. Not "inspired by" — the same
