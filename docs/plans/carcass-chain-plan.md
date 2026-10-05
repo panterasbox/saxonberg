@@ -1247,6 +1247,71 @@ Acceptance: `lint:openings`, `lint:dossiers`, `lint:light-sources`,
 `lint:census`, `lint:kept-animals`, `lint:mass`, `lint:menu-staff`.
 Commit: `build(carcass W8): the valley raises a flock; three vacant seats at Wharfside`.
 
+#### ✅ W8 — DONE, and it found a GATE with the wrong host set
+
+1. ⚠⚠⚠ **`lint:identity` refused Moss, and the gate was wrong.** Its
+   census is *a row with a brain* — which was the right correction to an
+   earlier path glob and is still too wide, because **a kept animal has
+   brains too.** Every rule in it speaks the Cast/Extra vocabulary (*the
+   prose says somebody and the class says nobody*), which is about things
+   playing a part; a named dog is not an `Extra` with a proper name, it is
+   not on the identity ladder at all. `pets.md` makes naming **the
+   promotion that makes an animal a pet** and ships `name` as the verb
+   that does it, so the gate was refusing the documented design with a
+   sentence about personhood.
+   **Narrowed to `CostumedMixin`** — what `NPC` itself composes
+   (`CostumedMixin(BehavedMixin(Character))`) and the thing the ladder is
+   for: a role or a person presents an appearance and a dog does not,
+   because a dog is not playing anybody. ⭐ **Not an exemption**: no
+   allowlist, no count moved, and the census still reports all 55 people.
+   The host set was narrowed to what the gate's own prose already said it
+   was about — the same tell as a controller guard that re-narrows its
+   target.
+2. ⚠ **`southup` is not a direction**, and finding that out made the
+   geography better. The ten are the four cardinals, four diagonals, up
+   and down; the bank had seven taken. So the three premises **CHAIN off
+   one exit** instead of three spokes — the knacker is the gate, his
+   hides go down to the tannery and his suet back up to the chandlery —
+   and a player who follows the goods now walks the supply chain in the
+   order it runs. Better than what the plan asked for.
+3. ⭐⭐ **The wages run opposite to the requirements.** Knacker 6 > tanner
+   5 > chandler 4, against requirements of butchery-novice >
+   leatherwork-novice > none. A trade that stinks and that everybody
+   needs is a trade that **pays**, and that is the honest economics of a
+   LULU — the first thing a player notices about the district, and it
+   needed no mechanism.
+4. ⭐ **Risk 14 is DECIDED, not escalated.** The tanner and knacker seats
+   keep `band: novice`; only the chandler's is open. A seat names a
+   Discipline (the requirements doc's own sentence), and **the refusal IS
+   the progression UI** — the verb exists, the sign is readable, and
+   being told *you need a novice's hand at leatherwork* is how a player
+   learns there is such a thing. The pair is what makes it legible: one
+   trade you can walk into and two you have to have done. ⚠ Butchery is
+   also the most reachable, because the kitchen's `butcher` credits it.
+5. ⚠ **`hearts-delight` ships NO `src/`, deliberately**, and its README
+   says why (a pack with a `src/` registers a namespace root and every
+   class path under it would then resolve into the pack and throw). *"This
+   pack's tests are the wire drive."* So the flock has no unit test — the
+   drive is its test, and the README gained the flock's argument instead.
+6. ⭐ **The flock is the bench's answer to the flats**, and the soil rows
+   made the argument: thin dry ground with junior water rights is sheep
+   country, so the farmer who cannot compete on fruit competes on wool
+   and mutton. Twelve ewes because the barn is *"a good deal bigger than
+   the house"*.
+7. ⭐ **The killing place is a BLOCK and a sentence.** A smallholder has
+   no slaughterhouse; he has a scrubbed block against the barn wall and a
+   bad morning twice a year — and the block is **cooking's shipped row**,
+   the same one a kitchen uses, which is the point.
+8. ⚠ One limit recorded rather than worked around: the chandler's counter
+   prices **one** line, because there is one candle row and what a candle
+   is made of is per-instance. `Stock` cannot key a price on an
+   instance's material, so the room's prose does the pricing work the
+   counter cannot.
+
+Tests: terminus 150/150 (13 new on the noxious trades — the three
+vacancies, the boot pairing, the seat ladder, the chain and the lane
+edges). `lint:openings` passes with the vacancies live.
+
 ### W9 — The drive, the suite, the MR
 
 - `packages/wire/tests/carcass-chain.dirty.wire.test.ts` — the

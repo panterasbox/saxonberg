@@ -1,0 +1,32 @@
+# The chandler's counter — ⭐ the only shop front in the district.
+#
+# Two lines, priced apart, and the gap is the trade: a tallow candle is
+# what people buy and a beeswax one is what people buy for a reason. The
+# chandler makes a living on the first and a margin on the second.
+#
+# ⚠ `par` mints fresh clones on the sweep, which makes this a faucet —
+# deliberately, and the honest kind: a shop that never runs out is a
+# simplification everybody can see. The KNACKER is the source node that
+# can run dry.
+class: /trade/shopkeeping/thing/Stock
+data:
+  shortDescription: chandler's counter
+  keywords: [counter, candles, tray, shelf, till]
+  register: definite
+  longDescription: |
+    A scrubbed counter with a tray of single candles on it and bundles of ten tied with string behind. A rush-light holder stands on the end with a stub in it, lit, which is both a demonstration and the shop's only lamp.
+  discipline: scrum
+  attendDurationMs: 0
+  staffingPolicy: self-service
+  serverPositionKeys: [chandler]
+  businessPath: /world/terminus/wharfside/chandlery/idea/outfit
+  stockLines:
+    - { itemTemplatePath: /trade/chandlery/thing/candle, par: 12 }
+  prices:
+    # ⚠ ONE row and ONE price, because there is one candle row — what a
+    # candle is made of is per-instance, so the counter cannot price the
+    # two kinds apart. ⭐ That is a real limit of the Stock shape and it
+    # is recorded rather than worked around: the prose above does the
+    # pricing work the counter cannot, and the day `Stock` can key a
+    # price on an instance's material this becomes two lines.
+    /trade/chandlery/thing/candle: 2

@@ -1,0 +1,33 @@
+# ⭐ The collie — a working animal, and she has no name.
+#
+# ⚠⚠ **The absence of a `name:` is the content**, and it is what makes
+# AC4 and AC5 two different refusals rather than one. A `KeptAnimal` CAN
+# hold a name; naming is the promotion that makes an animal a pet, and it
+# is a player's act. So this dog is refused the knife for having **no
+# butchery yield** — the species' own answer, a fact about dogs — while
+# the dog in the next row is refused for having been **named**, which is
+# a fact about somebody's choice.
+#
+# Two noes, and they do not read alike. One says *there is nothing on her
+# worth the killing*; the other says *that is Moss, and she is not meat*.
+#
+# ⭐ She works UNWATCHED, which is the entire reason to keep one: the
+# `herds` brain is not presence-gated, so she is moving stock on the
+# bench whether or not a player is in the room.
+# ⭐ `extends:` the generic farm dog, so she inherits the four brains
+# (`herds`, `follows`, `feeds`, `homes`) and her handling. A dog authored
+# from scratch would stand in the yard doing nothing — which is exactly
+# what the generic row did for a whole build before anybody noticed.
+extends: /trade/ranching/agent/farm-dog
+class: /trade/ranching/agent/WorkingAnimal
+data:
+  shortDescription: black-and-white collie
+  keywords: [collie, dog, bitch, sheepdog]
+  register: indefinite
+  longDescription: >-
+    A wiry black-and-white collie, low to the ground, with one ear up and
+    one down and an eye on the gate whatever else she is doing. She
+    watches the sheep the way a bored clerk watches a clock.
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/carnivora/canidae/canis/familiaris
+  lifecycleState: alive
+  sex: female

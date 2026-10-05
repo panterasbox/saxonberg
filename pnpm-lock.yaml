@@ -593,6 +593,9 @@ importers:
       '@saxonberg/content-trade-apiculture':
         specifier: workspace:*
         version: link:../trade-apiculture
+      '@saxonberg/content-trade-cooking':
+        specifier: workspace:*
+        version: link:../trade-cooking
       '@saxonberg/content-trade-farming':
         specifier: workspace:*
         version: link:../trade-farming
@@ -605,6 +608,9 @@ importers:
       '@saxonberg/content-trade-milling':
         specifier: workspace:*
         version: link:../trade-milling
+      '@saxonberg/content-trade-ranching':
+        specifier: workspace:*
+        version: link:../trade-ranching
       '@saxonberg/content-trade-shopkeeping':
         specifier: workspace:*
         version: link:../trade-shopkeeping
@@ -844,6 +850,9 @@ importers:
       '@saxonberg/content-trade-brewing':
         specifier: workspace:*
         version: link:../trade-brewing
+      '@saxonberg/content-trade-chandlery':
+        specifier: workspace:*
+        version: link:../trade-chandlery
       '@saxonberg/content-trade-cooking':
         specifier: workspace:*
         version: link:../trade-cooking
@@ -883,6 +892,9 @@ importers:
       '@saxonberg/content-trade-tailoring':
         specifier: workspace:*
         version: link:../trade-tailoring
+      '@saxonberg/content-trade-tanning':
+        specifier: workspace:*
+        version: link:../trade-tanning
       '@saxonberg/content-trade-textiles':
         specifier: workspace:*
         version: link:../trade-textiles
