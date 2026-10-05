@@ -414,12 +414,46 @@ approximate (±10).
 ### Collisions (verified branch state)
 
 `./tools/wt-status`: `build-4` on `design/blood-economy`, clean, nobody
-else holds it; siblings `build-1` (`reqs/second-tier`), `build-2`
-(`design/2026-10-03-cuts`), `build-3` (`reqs/hydration-framework`),
-`master` detached on `design/2026-10-02-client-governance`. The branch
-holds only the requirements doc over `master`; merge `origin/master` into
-the branch before W0 and re-check the files above (the ward and the
-infirmary business are the ones most likely to have moved).
+else holds it. Merge `origin/master` into the branch before W0.
+
+⭐ **Reconciliation against `origin/master` @ `4791a8ab1` (2026-10-04).**
+Master advanced since the grounding (`e978c0b39`) — the **taps build**
+(sap/milk/eggs) + a wave of **design slates** (standing/attribution/
+contribution, committee, llm-economy, wizardry, client-*). Checked
+against this plan; **no semantic conflict**, because:
+- The plan's load-bearing code — `Vitals`, `Persona`, `Advancement`,
+  `lib/commerce`, `Tariff`, `OrderController`, `Business`,
+  `EmploymentLogic`, `lib/trait`, `lib/standing`, `lib/accountability` —
+  **did not change**, and the **Terminus infirmary + corpo-goodkin
+  content did not change** (Risk 11 relaxes: `ward.yaml`/`business.yaml`
+  are as grounded — still merge + re-glance, but they did not move).
+- ⚠ **`mixin.ts` merge-adjacency:** taps added `Producing:
+  'ProducingMixin'` + its refusal to the same `Mixins`/`MixinRefusals`
+  objects the plan edits for `DonationBank`. No conflict (adjacent
+  inserts); add `DonationBank` alongside. `Producing`'s rationale
+  ("kernel because its composers share no pack ancestor") is the same
+  one this plan gives for `DonationBankMixin` — cite it.
+- ⚠ **New gate `lint:test-seams`** (the `@TestOnly` decorator) is now in
+  `lint:family`. This build adds **no** test-only Api statics, so it
+  passes as-is — do **not** introduce an unmarked `_*ForTest` Api static
+  (W2's disposition test reads the public `dispositionEntries()`, no seam
+  needed).
+- ⚠ **`Species.ts` grew +110** (taps' `TapSpec`, unrelated to blood) —
+  the cited `bloodGroups` line (~L571) drifted; `bloodGroups` and
+  `getBloodGroups()` are unchanged, find them by name, D3 is intact.
+- ✅ **`SelfOnly` unchanged** (the `lib/security/decorators.ts` diff only
+  *adds* `@TestOnly`, no policy edit) — D9's self-call reasoning stands.
+  The accountability.md meal-harm fix (payload maker now stamped on the
+  `order` path; toxin doses still unattributed) is adjacent and
+  **validates** D5's choice to append the transfusion `harm` row
+  controller-side rather than via a producer path.
+- **Conceptual overlap, not a conflict:** the standing/attribution/
+  contribution slates design a future standing system the gift-credit
+  (D8–D10) lives near. They are **unbuilt** (slates), so this plan builds
+  against shipped `RenownApi`/`Dispositioned`/chronicle correctly;
+  whoever builds that wave should know blood now mints a renown
+  `reaction` + the first authored `dispositionValence`. Flagged to the
+  user; not a blocker.
 
 ---
 
