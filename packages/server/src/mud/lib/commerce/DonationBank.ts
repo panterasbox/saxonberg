@@ -24,6 +24,7 @@
 import type { MixinConstructor, FieldMeta } from "../mixin";
 import type { Stuff } from "../stuff/Stuff";
 import type { BloodUnit } from "../vitals/Blood";
+import { BLOOD_DEFAULTS } from "../vitals/Blood";
 import { BloodType } from "../vitals/BloodType";
 import { Freshness } from "../material/Freshness";
 import { Quantity } from "../quantity";
@@ -79,6 +80,18 @@ export interface DonationBank {
     recipient: Stuff,
     issuer?: Stuff | null,
   ): Promise<BloodUnit | null>;
+  /**
+   * Transfuse `patient` from the bank's own shelf: take the oldest
+   * compatible unit (draining its holder, recording custody) and give it.
+   * Returns the graded reaction (0 compatible, 1/2 mismatched), or null
+   * when nothing on the shelf matches / the patient is not a body. The
+   * bank owns the whole act because it owns the shelf and the ABO system;
+   * the caller only resolves who issued it and prices it.
+   */
+  transfuseInto(
+    patient: Stuff,
+    issuer?: Stuff | null,
+  ): Promise<{ reaction: 0 | 1 | 2 } | null>;
   /** Accept a gift: move `holder` into the first vault, record custody. */
   receiveGift(holder: Stuff, donor?: Stuff | null): Promise<void>;
 }
@@ -251,6 +264,24 @@ export function DonationBankMixin<TBase extends MixinConstructor>(Base: TBase) {
       }
       await this.recordCustody("issue", this.lotKeyOf(unit), issuer ?? null, recipient);
       return unit;
+    }
+
+    public async transfuseInto(
+      patient: Stuff,
+      issuer?: Stuff | null,
+    ): Promise<{ reaction: 0 | 1 | 2 } | null> {
+      if (!MixinApi.isVitals(patient)) return null;
+      const unit = await this.takeCompatibleUnitFor(patient, issuer);
+      if (!unit) return null;
+      const result = patient.receiveBlood({
+        litres: BLOOD_DEFAULTS.UNIT_LITRES,
+        blood: {
+          speciesPath: unit.speciesPath,
+          system: unit.system,
+          type: unit.type,
+        },
+      });
+      return { reaction: result.reaction };
     }
 
     public async receiveGift(

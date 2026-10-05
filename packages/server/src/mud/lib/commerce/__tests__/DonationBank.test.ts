@@ -168,6 +168,32 @@ describe('DonationBankMixin — taking and receiving', () => {
     expect(w.getLots().get('O')?.units ?? 0).toBe(0);
   });
 
+  it('transfuseInto gives a compatible unit (reaction 0) and drains the lot', async () => {
+    const vault = chest();
+    const w = window(vault);
+    ContainmentApi.move(bag('O'), vault);
+    const recipient = makeStuff(() => new Creature()); // bare body: type O
+    stampTemplatePathForTest(recipient, '/platform/agent/Avatar/recip3');
+    const out = await withRootContext(w as unknown as Stuff, 'issue', () =>
+      w.transfuseInto(recipient as unknown as Stuff, null),
+    );
+    expect(out).not.toBeNull();
+    expect(out!.reaction).toBe(0);
+    // The shelf is spent — the house transfused them.
+    expect(w.getLots().get('O')?.units ?? 0).toBe(0);
+  });
+
+  it('transfuseInto returns null when nothing on the shelf matches', async () => {
+    const vault = chest();
+    const w = window(vault); // empty vault
+    const recipient = makeStuff(() => new Creature());
+    stampTemplatePathForTest(recipient, '/platform/agent/Avatar/recip4');
+    const out = await withRootContext(w as unknown as Stuff, 'issue', () =>
+      w.transfuseInto(recipient as unknown as Stuff, null),
+    );
+    expect(out).toBeNull();
+  });
+
   it('receiveGift moves a bag into the vault', async () => {
     const vault = chest();
     const w = window(vault);

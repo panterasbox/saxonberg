@@ -39,6 +39,7 @@
  */
 
 import type { Stuff } from '../lib/stuff/Stuff';
+import type { Vitals } from '../lib/vitals/Vitals';
 import type { AccountabilityFields } from '../lib/accountability/AccountabilityEvent';
 import type {
   InsultKind,
@@ -249,6 +250,23 @@ export class ConditionApi {
    */
   public static inflict(target: Stuff, spec: InflictSpec): InflictOutcome {
     return logic().inflict(target, spec);
+  }
+
+  /**
+   * Resolve ONE condition on this body — the worst the given `supplies`
+   * can reach — by applying what that condition declares relieves it, at
+   * `efficacy`. The clinic-service primitive: unlike `treat`, there is no
+   * skill check and no per-wound selection; the house "has everything" and
+   * sees to the single worst thing. Returns a short phrase for the scene,
+   * or null when there is nothing it can reach. See
+   * `docs/subsystems/harm.md`.
+   */
+  public static treatWorstResolvable(
+    body: Stuff & Vitals,
+    supplies: ReadonlySet<string>,
+    efficacy: number,
+  ): string | null {
+    return logic().treatWorstResolvable(body, supplies, efficacy);
   }
 
   /**

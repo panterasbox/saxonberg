@@ -692,8 +692,10 @@ restore path).
 — each reads *set / closed / cooled / rewarmed* and knits at a faster
 treated rate, graded by `Trauma.careQuality`. `Vitals.applyTreatment(wound,
 {by, efficacy, treater})` is the ONE primitive every consumer calls
-(`TreatController`, `OrderController.treatWorst`, the instruments, the
-nurse); it runs `resolve`, stamps `careQuality`, and seeds infection.
+(`TreatController`, the instruments, the nurse, and
+`ConditionApi.treatWorstResolvable` — the clinic-service primitive the
+`order treatment` arm delegates to); it runs `resolve`, stamps
+`careQuality`, and seeds infection.
 
 The verbs, and what affords each: **`treat`/`undress`/`dose`/`tend`** on
 `VitalsMixin.self` (the body affords its own first aid); **`cool`** on

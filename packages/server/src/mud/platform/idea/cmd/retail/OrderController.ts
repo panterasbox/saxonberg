@@ -15,21 +15,13 @@ import { MixinApi } from '../../../../api/mixin';
 import { MessageApi } from '../../../../api/message';
 import { Mml } from '../../../../api/mml';
 import Menu from '../../../../lib/commerce/Menu';
-import { BankingApi, Money } from '../../../../api/banking';
-import type { Charge } from '../../../../api/banking';
 import { EmploymentApi } from '../../../../api/employment';
+import { ConditionApi } from '../../../../api/condition';
 import type { Attendant } from '../../../../lib/attendant/Attendant';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import type { Container } from '../../../../lib/spatial/Container';
-import { Currency } from "../../../../lib/banking/Currency";
 import Tariff, { type ServiceKind } from '../../../thing/Tariff';
-import { BLOOD_DEFAULTS } from '../../../../lib/vitals/Blood';
 import { MqlApi, type MqlOneResult } from '../../../../api/mql';
-import { ConditionApi } from '../../../../api/condition';
-import { TemplatePaths } from '../../../../lib/paths';
-import { TRAUMA_BEHAVIOR } from '../../Condition';
-import type { Trauma, AfflictionRecord } from '../../Condition';
-import type { Vitals } from '../../../../lib/vitals/Vitals';
 
 const TOPIC = 'act.deed';
 
@@ -43,8 +35,6 @@ interface OrderModel extends CommandModel {
 }
 
 const SERVICE_TOPIC = 'act.service';
-/** Half of `recovering`'s `atStage` — what a paid revival buys you. */
-const HALF_RECOVERY_STAGE = 6;
 /** What a grave looks like from the outside, for the burial arm. */
 const GRAVE_KEYWORDS = /\bgrave\b|\bplot\b|\bcrypt\b|\bniche\b/i;
 
@@ -176,15 +166,19 @@ export default class OrderController extends CraftController<OrderModel> {
     if (MixinApi.isContainable(drink) && MixinApi.isContainer(giver)) {
       ContainmentApi.move(drink, giver);
     }
-    // The drink purchase: if the menu prices this recipe, settle a presented
-    // Charge from the patron's credential (the bar prices it; silent pay from
-    // the active account — the time-respect valve) and the bar remits demo
-    // tax. Unpriced recipes are served free (backward-compatible). A failed
-    // settlement still serves the drink (the bar eats it / runs a tab later).
+    // The drink purchase: if the menu prices this recipe, the venue takes
+    // payment through the one settle-a-sale path (credential → cash; the
+    // bar remits the demo tax). Unpriced recipes are served free
+    // (backward-compatible). A failed settlement still serves the drink
+    // (the bar eats it / runs a tab later).
     const price = menu.priceFor(recipeId);
-    const paid = price != null ? await this.charge(menu, price, context) : null;
+    const venuePath = context.location?.getTemplatePath() ?? null;
+    const paid =
+      price != null
+        ? await EmploymentApi.settleSale(venuePath, price, price, 'a drink')
+        : null;
 
-    const tail = paid ? ` ${paid}` : '';
+    const tail = paid ? ` ${paid.tail}` : '';
     MessageApi.scene(giver)
       .topic(TOPIC)
       .toSelf(Mml.compose`${Mml.thing(drink)} is set down in front of you.${tail}`)
@@ -257,7 +251,9 @@ export default class OrderController extends CraftController<OrderModel> {
       case 'transfusion': {
         // ⭐ The blood window's product (blood build D6): the house
         // transfuses the customer from its own bank. Customer and patient
-        // are the same body — the payer rule's only legal shape.
+        // are the same body — the payer rule's only legal shape. The bank
+        // owns the whole act (it owns the shelf and the ABO system); we
+        // resolve who issued it (for the custody deed) and price it.
         if (!MixinApi.isDonationBank(tariff)) {
           return {
             ok: false,
@@ -265,34 +261,19 @@ export default class OrderController extends CraftController<OrderModel> {
             detail: 'This house keeps no blood bank.',
           };
         }
-        if (!MixinApi.isVitals(giver)) {
-          return {
-            ok: false,
-            reason: 'not-a-body',
-            detail: 'There is nothing here to transfuse.',
-          };
-        }
         const issuer = this.resolveWindowIssuer(tariff, context);
-        const unit = await tariff.takeCompatibleUnitFor(giver, issuer);
-        if (!unit) {
+        const outcome = await tariff.transfuseInto(giver as unknown as Stuff, issuer);
+        if (!outcome) {
           return {
             ok: false,
             reason: 'no-compatible-unit',
             detail: 'Nothing on the shelf will match you.',
           };
         }
-        const result = giver.receiveBlood({
-          litres: BLOOD_DEFAULTS.UNIT_LITRES,
-          blood: {
-            speciesPath: unit.speciesPath,
-            system: unit.system,
-            type: unit.type,
-          },
-        });
         return {
           ok: true,
           detail:
-            result.reaction > 0
+            outcome.reaction > 0
               ? 'The transfusion runs — but it does not match, and your body turns against it.'
               : 'The transfusion runs; your colour comes back.',
         };
@@ -332,7 +313,11 @@ export default class OrderController extends CraftController<OrderModel> {
             detail: 'There is nothing here to treat.',
           };
         }
-        const treated = this.treatWorst(giver);
+        const treated = ConditionApi.treatWorstResolvable(
+          giver,
+          CLINIC_SUPPLIES,
+          CLINIC_EFFICACY,
+        );
         return treated
           ? { ok: true, detail: `They see to ${treated}.` }
           : {
@@ -368,47 +353,6 @@ export default class OrderController extends CraftController<OrderModel> {
             };
       }
     }
-  }
-
-  /**
-   * ⭐ Resolve ONE condition on this body — the worst the house can
-   * actually do something about — by supplying what that condition
-   * declares it wants. The clinic has the dressing, the water and the
-   * hands; what you buy is that it has them.
-   *
-   * Returns a short phrase for the scene, or null when there is nothing
-   * it can reach.
-   */
-  private treatWorst(body: Stuff & Vitals): string | null {
-    const conditions = [...body.getConditions()];
-    const traumas = conditions
-      .filter((c): c is Trauma => c.kind === 'trauma')
-      .filter((t) => !t.dressed && t.severity > 0)
-      // ⭐ Over every token the house can supply, not just dressings (D5):
-      // the clinic has bandages AND a splint AND a surgeon's kit AND water
-      // AND a fire, so it resolves a fracture, a rupture, a burn or a
-      // frostbite too — through the ONE treatment primitive.
-      .filter((t) => CLINIC_SUPPLIES.has(TRAUMA_BEHAVIOR[t.type]?.resolution ?? ''))
-      .sort((a, b) => b.severity - a.severity);
-    const worst = traumas[0];
-    if (worst) {
-      body.applyTreatment(worst, {
-        by: TRAUMA_BEHAVIOR[worst.type].resolution ?? 'dressing',
-        efficacy: CLINIC_EFFICACY,
-      });
-      return `the ${worst.type}`;
-    }
-    // Then an illness — the load knock a competent hand is worth.
-    const ill = conditions
-      .filter((c): c is AfflictionRecord => c.kind === 'affliction')
-      .filter((a) => (a.pathogenLoad ?? 0) > 0)
-      .sort((a, b) => (b.pathogenLoad ?? 0) - (a.pathogenLoad ?? 0))[0];
-    if (ill) {
-      ill.pathogenLoad = Math.max(0, (ill.pathogenLoad ?? 0) * 0.4);
-      if (ill.pathogenLoad <= 0.01) body.relieve(ill);
-      return 'the fever';
-    }
-    return null;
   }
 
   /** Every priced Tariff the giver can reach — the two-houses scan (D6). */
@@ -480,69 +424,5 @@ export default class OrderController extends CraftController<OrderModel> {
       if (MixinApi.isAttendant(s)) return s as Stuff & Attendant;
     }
     return null;
-  }
-
-  /**
-   * Settle the drink's price as a presented Charge to the venue's account,
-   * then remit the demo sales tax from it. Returns a short "you tap…" tail
-   * for the scene, or null when there's no credential / venue account
-   * (served free / on the house). The venue account is ensured lazily.
-   */
-  private async charge(
-    menu: Menu,
-    price: number,
-    context: CommandContext
-  ): Promise<string | null> {
-    const venuePath = context.location?.getTemplatePath();
-    if (!venuePath) return null;
-    // Income keys on the Business account (the same account shift wages are
-    // paid from), so the P&L reflects both sides. `ensureOperatorAt` stands the
-    // venue's Business up lazily (derived from its `operatingLocations`) on
-    // this first order; falls back to the venue path when none operates here.
-    const business = await EmploymentApi.ensureOperatorAt(venuePath);
-    if (!business) return null; // no operator → served on the house
-    let venueAccount: string;
-    try {
-      // Custody is the business's authored banksAt (never a default).
-      venueAccount = await EmploymentApi.operatingAccountOf(business);
-    } catch {
-      return null; // no authored bank → the venue can't take payment
-    }
-    const charge: Charge = {
-      amount: Money.of(price, BankingApi.compactCurrency()),
-      reason: 'a drink',
-      presented: true,
-      payeeAccountId: venueAccount,
-      category: 'sales',
-    };
-    // Share-of-flow compensation rides the revenue settle as remittance
-    // splits (the consignment-split primitive, nameable on an employment
-    // arrangement). Empty for all shipped content — no authored Position
-    // carries the basis — so this is byte-identical today.
-    if (business) {
-      const splits = await EmploymentApi.flowSplitsFor(business, price);
-      if (splits.length > 0) charge.splits = splits;
-    }
-    // Try credential first, then cash (D12) — a coin-holder pays with coin
-    // (banked on-ledger via the cash bridge to the venue account), and the
-    // float stays the last resort (no funds at all). Both remit the demo tax.
-    let receipt;
-    try {
-      receipt = await BankingApi.settle(charge, { kind: 'credential' });
-    } catch {
-      try {
-        receipt = await BankingApi.settle(charge, { kind: 'cash' });
-      } catch {
-        return null; // no funds at all — the bar floats it
-      }
-    }
-    await BankingApi.remitDemoTax(
-      venueAccount,
-      Money.of(price, BankingApi.compactCurrency()),
-      context.location ?? undefined,
-    );
-    return receipt.corpoKey
-      ? `(${Money.of(price, BankingApi.compactCurrency()).render()}, ${receipt.corpoKey})`
-      : `(${Money.of(price, BankingApi.compactCurrency()).render()})`;
   }
 }

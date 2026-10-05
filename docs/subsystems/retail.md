@@ -30,21 +30,30 @@ could not become anybody's work.
 
 `/platform/thing/Tariff` = `PricedOfferMixin(Thing)` plus
 `services: Record<offerKey, ServiceKind>` over a **closed kernel
-vocabulary** — `repair` · `treatment` · `burial`. `OrderController`
-orchestrates each. Closed and kernel-owned on purpose: a venue that could
-define its own service kinds would need pack code, and then a second
-venue would need pack code too. ⭐ **A second clinic is a `Tariff` row and
-a `Business` row** — the shipped proof is a repair tariff at the
-hearthworks smithy and a second one, at a different price, in the
+vocabulary** — `repair` · `treatment` · `burial` · `transfusion` (the
+blood window's product). `OrderController` resolves the key and collects;
+the DISPATCH is kernel-owned but each **arm delegates to the subsystem
+that owns the capability** and inlines nothing: `repair` →
+`CraftingApi.repair`, `treatment` → `ConditionApi.treatWorstResolvable`,
+`transfusion` → `DonationBankMixin.transfuseInto`, `burial` →
+`Postmortem.interIn`. The closed vocabulary is why a venue is rows and not
+pack code: a venue that could define its own service kinds would need
+pack code, and then a second venue would too. ⭐ **A second clinic is a
+`Tariff` row and a `Business` row** — the shipped proof is a repair tariff
+at the hearthworks smithy and a second one, at a different price, in the
 Rejection provisioning shed.
 
-`PricedOfferMixin.collect(key, reason)` is the one settlement path, lifted
-out of `OrderController.charge` so a `Menu` and a `Tariff` share it.
-Income keys on the **Business** account (the same account shift wages come
-out of); `ensureOperatorAt` stands the business up lazily on the first
-sale; credential first, then cash. ⚠ **Every failure is "on the house",
-never a throw** — no operator, no bank, no funds: the customer is served
-and nothing is taken.
+`PricedOfferMixin.collect(key, reason)` is the one settlement path for a
+SERVICE, so a `Menu` and a `Tariff` share it. A SALE (a stock good, a
+consignment line, a priced menu recipe) settles through
+`EmploymentApi.settleSale(venuePath, amount, taxable, reason, splits?)` —
+the single path `buy` and `order` both run (it replaced a hand-rolled copy
+in each controller). Income keys on the **Business** account (the same
+account shift wages come out of); `ensureOperatorAt` stands the business
+up lazily on the first sale; the venue's share-of-flow splits ride every
+settle; credential first, then cash; the demo tax remits on the taxable
+slice. ⚠ **Every failure is "on the house", never a throw** — no operator,
+no bank, no funds: the customer is served and nothing is taken.
 
 > ⭐⭐ **`Tariff.labourIndexed` — care priced by the labour it restores**
 > (recovery build, D13). When authored true, a `treatment` service's
@@ -160,7 +169,8 @@ the good over, and transfers ownership:
 Unlike the bar — which floats an unpaid drink — a store hands **nothing**
 over unless payment clears. The store account is the **Business** account
 (income + wages on one P&L), ensured lazily off `operatingLocations` via
-`EmploymentApi.ensureOperatorAt` (the `OrderController.charge` shape).
+`EmploymentApi.ensureOperatorAt`, inside the shared
+`EmploymentApi.settleSale`.
 
 ⭐ **A bare shelf is SOLD OUT, not "isn't for sale here"** (the fishing
 build's live browser drive, 2026-09-22). `resolveBuy` only sees what is
