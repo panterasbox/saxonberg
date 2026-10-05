@@ -62,6 +62,33 @@ data:
       windowDays: 0.6
       yieldShape: volume
       window: { kind: event }
+  # ⭐⭐ **What comes off this animal, and it is the ANIMAL's answer.**
+  #
+  # Until the carcass-chain build the game had two `butcher` verbs with two
+  # yield models: the stockyard's read a hardcoded table of five fractions
+  # that was the same for a hen and a bullock, and the kitchen's read this
+  # field, which these five rows did not author. So an animal gave
+  # different things depending on which verb you typed at it, and neither
+  # answer was its own.
+  #
+  # ⭐ `fraction` is a share of LIVE weight, so size pays off; the shares
+  # are roughly the real ones (a carcass dresses out around 60 %, a hide is
+  # about 7 %, fat around 5 %, bone most of the rest). `units` is how many
+  # pieces that mass arrives in. `conditioned: false` says *this line does
+  # not care how fat the beast was* — and it is a real fact: a hide and a
+  # skeleton are the size the animal IS, not the shape it is in.
+  #
+  # ⚠ The missing third is blood and gut contents, which stay unmodelled.
+  butcheryYield:
+  # ⭐ A bullock dresses out heavier on every line for one reason: it is
+  # eight times the animal. Same shares, same verb, same skill — and the
+  # reason to raise cattle rather than sheep falls out of the arithmetic
+  # instead of being authored anywhere.
+  - { cut: /stuff/thing/items/stew-meat, units: 12, fraction: 0.42 }
+  - { cut: /stuff/thing/items/offal,     units: 3,  fraction: 0.12 }
+  - { cut: /trade/ranching/thing/suet,   units: 2,  fraction: 0.05 }
+  - { cut: /trade/ranching/thing/hide,   units: 1,  fraction: 0.07, conditioned: false }
+  - { cut: /trade/ranching/thing/bone,   units: 4,  fraction: 0.12, conditioned: false }
   longDescription: >-
     A deep-bodied cow with a hip bone you could hang a hat on, chewing
     steadily and entirely unbothered by you. Nothing on the farm is

@@ -61,6 +61,15 @@ data:
       yieldShape: count
       broodAfterDays: 4
       window: { kind: photoperiod, daylightFrom: 0.45, daylightTo: 1 }
+  # ⭐⭐ **A hen is COUNTED, not dressed**, and the absence of `fraction` is
+  # the whole statement. Nobody weighs a chicken carcass and takes shares
+  # off it: you get a bird's worth of meat and its giblets, and that is
+  # true of a plump hen and a scrawny one alike. The dressed shape would
+  # have had a 2.5 kg bird yielding grams of suet and a hide — which is
+  # how the old universal fraction table read, and it was nonsense.
+  butcheryYield:
+  - { cut: /stuff/thing/items/stew-meat, units: 2 }
+  - { cut: /stuff/thing/items/offal,     units: 1 }
   longDescription: >-
     A brown hen with a comb flopped over one eye, moving in the short
     decisive bursts of something that has never once thought anything

@@ -60,6 +60,29 @@ data:
       behaviour: continuous
       windowDays: 0
       capUnits: 4
+  # ⭐⭐ **What comes off this animal, and it is the ANIMAL's answer.**
+  #
+  # Until the carcass-chain build the game had two `butcher` verbs with two
+  # yield models: the stockyard's read a hardcoded table of five fractions
+  # that was the same for a hen and a bullock, and the kitchen's read this
+  # field, which these five rows did not author. So an animal gave
+  # different things depending on which verb you typed at it, and neither
+  # answer was its own.
+  #
+  # ⭐ `fraction` is a share of LIVE weight, so size pays off; the shares
+  # are roughly the real ones (a carcass dresses out around 60 %, a hide is
+  # about 7 %, fat around 5 %, bone most of the rest). `units` is how many
+  # pieces that mass arrives in. `conditioned: false` says *this line does
+  # not care how fat the beast was* — and it is a real fact: a hide and a
+  # skeleton are the size the animal IS, not the shape it is in.
+  #
+  # ⚠ The missing third is blood and gut contents, which stay unmodelled.
+  butcheryYield:
+  - { cut: /stuff/thing/items/stew-meat, units: 12, fraction: 0.40 }
+  - { cut: /stuff/thing/items/offal,     units: 2,  fraction: 0.10 }
+  - { cut: /trade/ranching/thing/suet,   units: 1,  fraction: 0.04 }
+  - { cut: /trade/ranching/thing/hide,   units: 1,  fraction: 0.08, conditioned: false }
+  - { cut: /trade/ranching/thing/bone,   units: 2,  fraction: 0.12, conditioned: false }
   longDescription: >-
     A blocky ewe with a fleece gone yellow at the tips and a startlingly
     level stare. She keeps one eye on you and both feet pointed at the

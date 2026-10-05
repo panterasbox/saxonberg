@@ -856,6 +856,57 @@ Under `packages/content/trade-ranching/`:
 Acceptance: `lint:verb-collisions`, `lint:controller-rows`, `lint:census`, pack suite.
 Commit: `build(carcass W2): slaughter is a kill — the corpse is the join, the stockyard's butcher retired`.
 
+#### ✅ W2 — DONE
+
+1. ⭐⭐ **The compounding is real and is shipped behaviour, not a
+   defect.** The corpse stamps the body's *composed* mass, and
+   `Creature.withBodyComposition` already adds what the animal put on —
+   so a 70 kg-framed ewe in 82 % flesh walks around at **78 kg**. The
+   kitchen then multiplies that by `finish`, so condition pays **twice**:
+   once in what the animal weighs and once in what share of it is meat.
+   Both are true of real carcasses, and the retired stockyard controller
+   did exactly the same arithmetic (`getMass()` × fraction × finish), so
+   this preserves shipped behaviour rather than changing it. Range across
+   the condition span is about 3×, which is the dial the design wants
+   (*finish it before you kill it*). Pinned in `slaughter.test.ts` with
+   the reasoning at the assertion.
+2. ⭐ **The `boot:` entries the plan called for are not needed, and adding
+   them would have been the wrong fix.** The reachability link for a
+   species' yield is `SpeciesApi.preloadAnatomy` called by the controller
+   — the shipped answer to the reference-Ideas-inert-at-boot trap, which
+   `mortality.md` states explicitly (*"anything else reading a corpse's
+   species should do the same"*). `SlaughterController` calls it for the
+   same reason the kitchen's `butcher` does: **without it the sentience
+   refusal fails OPEN**, because `isSentient` answers `false` for a
+   species nobody has touched. Five boot producers would have been a
+   second mechanism for a problem the first one already solves. Decided
+   by the build (decision order #5, the nearest existing pattern).
+3. ⚠ **Two shipped assertions in `working-animals.test.ts` had to be
+   rewritten, and they are the ones worth reading.** They pinned that
+   `Livestock` affords `butcher`; it affords `slaughter` now, and
+   `butcher` is NOT afforded by the animal at all — it is conferred by a
+   bladed edge onto a carcass, which is precisely what makes a fox-killed
+   hen and a slaughtered ewe the same job. The ox keeps both facts it
+   ever had: it ploughs all its life and is beef at the end.
+4. ⭐ **`carcass-rows.test.ts` was rewritten to walk the ROWS**, because
+   the paths moved out of TypeScript and into the species. It now checks
+   a new huntable animal on the day it is authored with no file to edit,
+   and it gained three checks the table shape could not have: that a
+   dressed carcass does not sum past the animal (five lines over 1 would
+   dress a 70 kg ewe out at 80 kg of parts), that hide and bone author
+   `conditioned: false`, and that a bird is counted rather than dressed.
+5. ⭐ D3 landed as three edits, and the third is the one that mattered:
+   `animal-fat` **drops the `fat` tag**. `fat` is what `medium: fat`
+   matches, so while raw suet carried it a pail straight off the carcass
+   could be fried in and the render pot was optional — one of the two
+   steps the cook and the chandler both depend on was free. The two
+   frying recipes read rendered tallow's own `fat` tag and are untouched.
+6. The `butcher:` line is out of `KNOWN_COLLISIONS` and the gate agrees:
+   8 known collisions, no new ones. `dress` survives for W3.
+
+Tests: the ranching pack 75/75 — `slaughter` 9 new, `carcass-rows` 8
+(rewritten), `working-animals` 2 rewritten.
+
 ### W3 — Cooking: `butcher` reconciled
 
 Under `packages/content/trade-cooking/`:

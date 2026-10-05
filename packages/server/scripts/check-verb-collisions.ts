@@ -100,7 +100,6 @@ const KNOWN_COLLISIONS: Record<string, string> = {
   drive:
     "platform movement/drive.yaml (a vehicle) vs trade-mining drive.yaml " +
     "(drive a drift) — undiagnosed.",
-  butcher: "trade-cooking vs trade-ranching, both trades — undiagnosed.",
 };
 
 export function claimsIn(files: string[]): Claim[] {
