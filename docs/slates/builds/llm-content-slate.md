@@ -252,6 +252,25 @@ cost and chemistry win for the ~90% case and buys honest fog for the rest.
 
 ## Funding: sponsorship, not player budgets
 
+> ⛔⛔ **SUPERSEDED 2026-10-04 by
+> [llm-economy-slate § 8](./llm-economy-slate.md).** The sponsorship
+> model below was tested against **Art. I §2** (*no player buys
+> advantage*) and passes — but **never against the chamber structure**,
+> and there it fails: the benefit is non-excludable **among players** and
+> fully excludable **among authors.** A dollar buys inference → inference
+> buys engagement → engagement mints **producer** standing, so **the
+> dollar minted producer standing**, which is the cross-chamber
+> conversion the polity register forbids. The rule that applies was
+> already written in `land-compute` Movement 2: ⭐⭐⭐ **capital grows the
+> PIE, never buys a SLICE** — and directed sponsorship is buying a slice.
+> **What replaces it:** undirected patronage into the treasury (capital
+> standing, world credit, no choice of recipient) plus allocation by
+> share. ⭐ Which also deletes the owner-pays problem rather than solving
+> it — the owner never pays, so popularity is *rewarded with more
+> allocation* instead of billed for. **Everything below about the parity
+> floor, graceful narrowing, and the against-BYO-key economics stands
+> unchanged.**
+
 The obvious funding model — each player buys a token budget, or supplies
 their own API key, for smarter NPCs — is **barred by an eternity clause**:
 

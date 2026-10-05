@@ -195,6 +195,24 @@ producers are the harm sources **that know consent**:
   as `(material, litres, payload)` and the eater never sees the bowl, so
   the vessel's own `CraftedMixin` stamp could not answer for it.
 
+  ⚠⚠ **And until 2026-10-03 one of the two producer paths never put it
+  there**, so this row could not fire for anything made by `order`ing a
+  recipe — 22 of 49 bulk-output recipes (every press, mash, crush,
+  dough, vermouth, `render-tallow`, both comb recipes, all three still
+  runs). `CraftingLogic.applyBulkOutput`'s authored-substance branch set
+  material and amount and returned, leaving the payload null; the
+  manual-build path (`mintVessel`) had carried the correct branch all
+  along. ⭐ The vessel WAS marked, which is what hid it: `look` read
+  *"Made by X"* while the ledger, which reads the liquid, saw nothing.
+  ⚠ So existing data predating the fix names no maker — a bought drink's
+  harm was recorded as nobody's. See `Metabolic.mealblame.test.ts`,
+  which drives this row for the first time; nothing had, which is why
+  the gap survived.
+
+  ⚠ Scope worth knowing before relying on it: `noteMealAccountability`
+  is called from inside the **pathogen** loop, so a **toxin** dose
+  writes no row. Microbial harm is attributed; chemical harm is not, yet.
+
 ## Reserved consumers (named, not built)
 
 The mandate is the *record of harm*, not the narrow "culpability" a

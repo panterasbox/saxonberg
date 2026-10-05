@@ -21,6 +21,7 @@ import { CraftingApi } from '../../../../api/crafting';
 import type { CraftRequest } from '../../../../api/crafting';
 import { StuffApi } from '../../../../api/stuff';
 import { ContainmentApi } from '../../../../api/containment';
+import { BulkableApi } from '../../../../api/bulk';
 import { ExecutionContextApi } from '../../../../api/execution-context';
 import { WorldClockApi } from '../../../../api/worldclock';
 import { PersistenceManager } from '../../../../../backend/PersistenceManager';
@@ -226,6 +227,66 @@ describe('matter, not mark — the gather predicate', () => {
     expect(outcome.grade.getBand()).toBe('fine');
     // Consumed — the lime is gone from the room.
     expect(room.getContents().includes(lime)).toBe(false);
+  });
+
+  it('⛔⛔ an ORDERED bulk product names its maker ON THE PAYLOAD', async () => {
+    // ⚠⚠ **The regression.** `applyBulkOutput`'s authored-substance
+    // branch used to `return` after setting material + amount, leaving
+    // the payload NULL — so 22 of 49 bulk-output recipes (every press,
+    // mash, crush, dough, vermouth, render-tallow, spin-comb, and all
+    // three still runs) produced a liquid that named nobody.
+    //
+    // ⭐ The host was always marked, which is what hid it: `look` on the
+    // glass reads "Made by X". But a drink reaches a body as
+    // `(material, litres, payload)` — the eater never sees the glass —
+    // so `Metabolic.noteMealAccountability` reads the PAYLOAD's maker,
+    // found none, and returned on its first line. Harm from something
+    // you were served was indistinguishable from harm you did yourself.
+    const lime = makeStuff(() => new Provision());
+    lime.setShortDescription('a lime');
+    lime.setMaterial(StuffApi.findByTemplatePath<Material>(LIME_MAT)!);
+    lime.setMass(Quantity.of(0.07, 'kg'));
+    ContainmentApi.move(lime, room);
+
+    const outcome = await craftAs(cook, {
+      recipeRef: 'press-lime',
+      makerMode: 'self',
+    });
+    if (!outcome.ok) {
+      throw new Error(`declined: ${outcome.reason}`);
+    }
+
+    const slot = BulkableApi.slotFor(outcome.output, undefined)!;
+    const payload = slot.getPayload();
+    expect(payload, 'an ordered bulk output must carry a payload').not.toBeNull();
+    expect(payload!.maker, 'the LIQUID names its maker, not just the glass').toBe(
+      cook.getTemplatePath(),
+    );
+  });
+
+  it('⭐ and it is IDENTITY only — the authored material still decides what is in it', async () => {
+    // The fix must change who a batch names, never what is in it: no
+    // `composition` is set, so derived toxicity still falls back to the
+    // Material row exactly as before.
+    const lime = makeStuff(() => new Provision());
+    lime.setShortDescription('a lime');
+    lime.setMaterial(StuffApi.findByTemplatePath<Material>(LIME_MAT)!);
+    lime.setMass(Quantity.of(0.07, 'kg'));
+    ContainmentApi.move(lime, room);
+
+    const outcome = await craftAs(cook, {
+      recipeRef: 'press-lime',
+      makerMode: 'self',
+    });
+    if (!outcome.ok) throw new Error(`declined: ${outcome.reason}`);
+
+    const slot = BulkableApi.slotFor(outcome.output, undefined)!;
+    expect(slot.getMaterialPath()).toBe(JUICE_MAT);
+    const payload = slot.getPayload()!;
+    expect(
+      payload.composition ?? [],
+      'no composition — the authored material is the whole answer',
+    ).toHaveLength(0);
   });
 
   it('a marked KNIFE never does — capital stays capital', async () => {
