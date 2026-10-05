@@ -602,6 +602,31 @@ export default abstract class Avatar extends AvatarBase {
    */
   static readonly TEMPLATE_PATH_PREFIX = TemplatePathPrefixes.avatar;
 
+  /**
+   * ⭐⭐ Where this FAMILY's minted identities live. Declared on the
+   * abstract root, so `PrimaryAvatar`, the anonymous guest and the
+   * sandbox wire body all inherit the claim without saying anything,
+   * and `StuffApi.clone` refuses an `asIdentityPath` outside it.
+   *
+   * This is the **continuity** pattern and it points the opposite way
+   * from individuation: many lineages wear ONE identity here, so
+   * nothing about the identity's shape can be derived from the row —
+   * the family has to declare it, and a typo in the prefix would file a
+   * person somewhere no ledger will ever look. `ShadeAvatar` owns a
+   * different prefix and declares its own, shadowing this.
+   *
+   * ⚠ Not the same string as a template row: nothing is cloned FROM
+   * `/platform/agent/Avatar/`, and `findAllByTemplatePath` of it
+   * correctly returns nothing. `PlayerApi`'s roster is what answers
+   * *every avatar*.
+   */
+  // ⚠ Widened to `string`, not left on the inferred literal. A pinned
+  // literal here makes `ShadeAvatar`'s own declaration an incompatible
+  // static override and breaks the class chain — the same failure the
+  // `_mixinName` statics are widened for. A family's namespace is
+  // overridable by definition, so the type has to say so.
+  static readonly identityNamespace: string = TemplatePathPrefixes.avatar;
+
   static getTemplatePath(playerId: string): string {
     return `${this.TEMPLATE_PATH_PREFIX}${playerId}`;
   }
@@ -681,6 +706,14 @@ export default abstract class Avatar extends AvatarBase {
    *
    * Falls through for a guest (`playerId === ''`) to whatever minted
    * path it was given, exactly as before.
+   *
+   * ⭐ This is also what makes the sandbox **wire body**'s projection
+   * work, and it is the only thing that does: `SandboxAvatar` adds no
+   * override of its own, so the ledgers read this. Until 2026-10-04 the
+   * wire body was additionally STAMPED with the player's identity,
+   * which filed it in the player's own registry bucket beside the
+   * parked field body — a collision the index forbids. Removing the
+   * stamp was safe precisely because this override was already here.
    */
   public override getIdentityPath(): string | null {
     return this.playerId
@@ -1595,7 +1628,7 @@ export default abstract class Avatar extends AvatarBase {
   /* ── fork/merge slices (sandbox Decision Q) ── */
 
   /**
-   * Presentation slice: what a projection vessel needs so the person is
+   * Presentation slice: what a wire body needs so the person is
    * recognizably themselves (name; species rides recognition, gear does
    * not travel). Fork-only for the sandbox — the merge allowlist never
    * includes it, so nothing here flows back.

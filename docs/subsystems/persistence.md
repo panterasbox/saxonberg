@@ -916,6 +916,64 @@ imperatively via their context); `onCreate` no longer auto-drives. First
 consumer: the leased dorm room (keyed on its unit parcel). See
 [residence.md](./residence.md).
 
+### ⚠⚠ The uniqueness scan's needle is the ROW, not the record's scope
+
+`assertUniqueKey(scope, key, host)` scans **`host.getTemplatePath()`**,
+and the reason is a defect it carried for its whole life.
+
+A record's `scope` field is `host.getIdentityPath()` — that is what
+`capture`, `materialize` and `restoreOrSeed` all write, and it does not
+change. But the scan was *also* using that string as its needle, and the
+registry files an identity-stamped object **under its identity**. So for
+a stamped keyed host the bucket held exactly one object — the host —
+which the loop then skips. The assertion was **vacuous for every stamped
+keyed host**: the market stall counter was never once covered by it, and
+a second instance standing up on an occupied key wrote into the first
+one's record with no error anywhere.
+
+⭐ The population that can collide is *the row's instances*, so the row
+is what gets scanned. `liveKeyed(scope, key)` needed no change — every
+one of its callers already passes a stored `templatePath` — but it now
+carries a comment saying so, because the two functions look
+interchangeable and are not.
+
+### The three registry reads, and which question each answers
+
+`byTemplatePath` is keyed on `identity ?? templatePath`, so the index
+holds two different kinds of key and one read cannot serve both honestly.
+
+| read | question |
+|---|---|
+| `findByTemplatePath(p)` | *the one instance filed at `p`, or throw* |
+| `findByIdentityPath(p)` | *everything filed at exactly `p`* |
+| `findAllByTemplatePath(row)` | *every instance cloned from `row`*, minted identities included |
+
+The row read is `exact(row)` ∪ `glob(row + '/**')` narrowed to objects
+whose `getTemplatePath()` is `row`. ⚠ **The filter is scoped to the glob
+half only.** An identity passed to the row read must still return its
+exact hit, because a minted instance's `getTemplatePath()` is its ROW and
+never the identity it is filed under — *the row filter is correct for a
+row and wrong for an identity*, which is the whole reason these are two
+names rather than one tolerant function.
+
+⭐⭐ **A continuity family is out of the row read's reach, both ways, and
+deliberately.** Individuation nests identities under the row
+(`/stuff/agent/Corpse/<...>`), so a prefix read finds them. Continuity
+goes the other way: several lineages (`PrimaryAvatar`, `ShadeAvatar`, the
+sandbox wire body) wear ONE identity under a family namespace
+(`/platform/agent/Avatar/<playerId>`) that is not any of their rows.
+Neither string prefixes the other, so asking the index for the family
+returns nothing and asking it for `PrimaryAvatar` returns no avatar
+either. `PlayerApi`'s roster is what answers *every avatar*, and always
+has. Do not widen the read to chase them.
+
+⚠ **The go-live rehydration sites read by identity ON PURPOSE.**
+`PackLogic`'s `rehydrate` and `CmsLogic`'s save both call
+`findByIdentityPath` by name, with the reason at the site: widening them
+to the row would re-hydrate every instance *minted* from a row out of
+that row's seed `data` on a CMS save — the hazard class that reset live
+coin stacks. A stamped clone's state belongs to its own record.
+
 ## Design Decisions
 
 ### Why static `collectionName`?
@@ -1277,6 +1335,18 @@ The **second persistence scope** landed: owned chattel persists with its
 - **New Api surface:** `captureDetached` / `restoreDetached` (one non-host
   good's composed state) and `placeIdOf` (a host's room identity — scope
   plus its per-instance key **only when explicit**).
+
+⭐ `placeIdOf` is the spine's name for **`Stuff.getDurableHandle()`** —
+the durable per-instance handle was invented here, unnamed, and the
+rungs on `Stuff` / `PersistableMixin` / `SingletonMixin` are this
+function's formula given a home every object can be asked for. The `#`
+joiner and the `isPersistenceKeyExplicit()` provenance test are both
+this function's, kept verbatim; `placeIdOf` now forwards to the handle.
+It is byte-identical for every host in the world except one that is both
+identity-stamped AND explicitly keyed, which reads `<row>#<key>` where it
+used to read `<identity>#<key>` — the market stall counter, whose records
+this build re-keys anyway. See [location.md](./location.md) for the
+handle's own contract.
 
 ## History — the residences build (2026-08-31)
 

@@ -36,11 +36,19 @@ corrections are load-bearing: **holding rooms carry no minted identity**
 arrival `sense`** (§ Grounding G-WRITE), **the slate's census of six
 mint sites is thirteen, in five shapes** (§ Grounding G-MINT, with the
 census verdicts), and ⚠⚠ **`SandboxAvatar` does NOT override
-`getIdentityPath()`** — `Stuff.ts:528` and `sandbox.md` describe an
-override that does not exist; the projection works only because the
-wire body is stamped with the identity it projects, which is the one
-thing `Stuff.ts` says the index must never see (§ Grounding G-WIRE,
-DA8, wave A3). None reopens scope.
+`getIdentityPath()`** — `Stuff.ts:528` and `sandbox.md` describe the
+override as if it were this class's, and the wire body is additionally
+stamped with the identity it projects, which is the one thing
+`Stuff.ts` says the index must never see (§ Grounding G-WIRE, DA8,
+wave A3). None reopens scope.
+
+⛔ **CORRECTED AT BUILD TIME (2026-10-05).** The second half of that
+fourth premise is wrong: `lib/character/Avatar:710` **already
+overrides `getIdentityPath()` for the whole family**, so the wire body
+inherits the projection and the stamp was never what carried it. A3's
+note records how the sabotage check found it and why RA4's ordering
+hazard never existed. The class-level claim stands (`SandboxAvatar`
+itself overrides nothing); the causal claim does not.
 
 ⭐⭐ **A2 is a census-and-ratchet, not a shape validator.** The gate's
 question is *every mint site names what keys on its identity* (its own
@@ -1337,12 +1345,50 @@ Checked against the current tree this cycle.
 
 ## Waves
 
+⚠ **Build note on commit granularity (2026-10-04).** A0, A1 and A2 share
+two files — `api/stuff.ts` (A0's two reads, A2's continuity assertion)
+and `platform/idea/api/ConditionLogic.ts` (A0's probe moves, A2's corpse
+marker) — so splitting them into three commits would have required
+staging partial files and produced three commit messages that each
+described work the commit did not contain. They landed as **one commit
+naming all three waves**, verified together (typecheck clean, 70 new
+tests, both sabotage checks, the whole lint family). From A3 on the
+waves touch disjoint files and get a commit each.
+
 Each wave lands alone, ends at one commit, and is gated by
 `pnpm test:near` + the touched pack's vitest + `lint:family`. `pnpm test`
 runs twice: before the MR opens, and at `/finalize`. Stage A (A0–A4)
 lands before Stage B (B0–B4).
 
-### A0 · The scan keys on the row, and a row can be enumerated — `fix(persistence): the uniqueness scan keys on the ROW; findAllByTemplatePath enumerates a row honestly`
+### A0 · The scan keys on the row, and a row can be enumerated — ✅ DONE
+
+> **Note (2026-10-04).** Shipped as planned. Two findings worth carrying:
+>
+> ⭐⭐ **A continuity family is out of the row read's reach in BOTH
+> directions**, not just one. The plan's acceptance predicted
+> `findAllByTemplatePath('/platform/agent/Avatar')` → empty (nothing is
+> cloned from the family path). What the test found is that
+> `findAllByTemplatePath('/platform/agent/PrimaryAvatar')` — the LINEAGE
+> — is **also empty**, because an avatar is filed under
+> `/platform/agent/Avatar/<pid>`, and neither string is a prefix of the
+> other. This is the two patterns pointing opposite ways, met in code:
+> individuation nests under the row so a prefix read finds it;
+> continuity does not and the register is the only answer. The first
+> draft of the test asserted the lineage read returned 2 and was wrong,
+> not the code. Pinned, documented on the read itself, and in
+> `persistence.md` / `antipatterns.md` with *do not widen the read to
+> chase them*.
+>
+> **Sabotage-verified:** reverting the needle to `scope` turns 2 of the
+> 5 uniqueness tests red; the 3 that stay green are the unstamped cases,
+> which is exactly the population the old needle got right — *a vacuous
+> assertion looks like a passing one*.
+>
+> ⚠ `assertUniqueKey`'s throw message now names the ROW, not the record
+> scope; `liveKeyed` gained only a comment (every caller already passed
+> a row). The record's `scope` field is untouched everywhere.
+
+**Original wave spec** — `fix(persistence): the uniqueness scan keys on the ROW; findAllByTemplatePath enumerates a row honestly`
 
 **Implements** DA1, DA2. **Files:** `api/stuff.ts` (`findAllByTemplatePath`
 redefined; `findByIdentityPath` new; doc comments on both and on
@@ -1371,7 +1417,32 @@ existing `findAllByTemplatePath` caller's own test stays green
 (`reseedCast`, the modalities, `BootstrapManager`); MQL `/world/terminus/market/thing/stall`
 in a test resolves every counter. Covers AC3 and AC4's uniqueness half.
 
-### A1 · The durable handle, and a discovery keys on it — `build(stuff): the durable handle is row + decoration; a discovery keys on the handle, not the lineage`
+### A1 · The durable handle, and a discovery keys on it — ✅ DONE
+
+> **Note (2026-10-04).** Shipped as planned, three rungs, no ladder.
+>
+> ⚠ **The one thing the plan got wrong, and it is a trap worth naming.**
+> The `SingletonMixin` rung needs `getTemplatePath()`, and the mixin's
+> `TBase extends MixinConstructor` has instance type `object`, so the
+> obvious fix is to tighten the constraint to `MixinConstructor<Stuff>`.
+> That is wrong: `SingletonMixin` is composed ON TOP of other mixins
+> whose instance type is not yet a full `Stuff` (`lib/npc/Cast.ts`
+> composes it over `NamedMixin(...)`), so the constraint breaks every
+> composition site rather than the mixin — 20 of 22 typecheck errors
+> were that cascade in `Cast`, `Gus`, `Realtor` and `Katie`. The house
+> idiom is the cast (`this as unknown as Stuff`), which
+> `capturesAtShutdown` two methods away already uses. The comment at the
+> site says so, because the tightening looks like an improvement.
+>
+> **Sabotage-verified:** reverting `getDiscoveryKey` to the lineage turns
+> 5 of 7 red, and the 2 that stay green are the singleton regression
+> guard and the unbound clone — i.e. the fix changes exactly the two
+> populations it claims to and nothing else.
+>
+> `placeIdOf` is now a one-liner forwarding to the handle, byte-identical
+> for every host but a stamped-and-keyed one (the stall alone).
+
+**Original wave spec** — `build(stuff): the durable handle is row + decoration; a discovery keys on the handle, not the lineage`
 
 **Implements** DA3, DA4, DA7. **Files:** `lib/stuff/Stuff.ts`
 (`getDurableHandle` base rung, doc'd as the three-rung contract),
@@ -1400,7 +1471,34 @@ unstamped classes, and a stamped keyed fixture shows the two agree).
 `placeIdOf` byte-identical for every host in the existing chattel tests.
 Covers AC1, AC2, AC19's handle half.
 
-### A2 · Every mint names what keys on it — `build(stuff): every identity mint names what keys on it; the unjustified count is a ratchet at two`
+### A2 · Every mint names what keys on it — ✅ DONE
+
+> **Note (2026-10-04).** The census reads exactly what the plan
+> predicted: **13 sites — 8 `own-record`, 2 `referenced`, 1 `lookup`,
+> 2 `none`**, meter at 2 (the guest, the corpse), and **nothing was
+> unminted**, by design.
+>
+> ⚠ **The plan's "thirteen" needed one correction.** There are **14**
+> `asIdentityPath:` sites in the tree; the fourteenth is
+> `src/backend/TestHooks.ts`, which is outside the scan root (the mudlib
+> + pack `src/`, inherited from `check-person-keys`). It mints through
+> the same `PlayerLogic` formula and carries a marker for the reader,
+> uncounted. So thirteen is the right census number and fourteen is the
+> right site count.
+>
+> ⚠⚠ **A pinned literal on `identityNamespace` breaks the class chain.**
+> `static readonly identityNamespace = TemplatePathPrefixes.avatar` infers
+> the literal type, which makes `ShadeAvatar`'s own declaration an
+> incompatible static override (`TS2417`). Widened to `: string` on all
+> three, with the reason at the site — the same failure the `_mixinName`
+> statics are widened for, and a family's namespace is overridable by
+> definition.
+>
+> `PlatPlan.nodeIdentityOf(nodeId, parentExtent)` landed as planned and
+> `OuterWarren.ensureNode` calls it; the string is unchanged, proven by a
+> test that also pins re-derivability across a reap.
+
+**Original wave spec** — `build(stuff): every identity mint names what keys on it; the unjustified count is a ratchet at two`
 
 **Implements** DA5. **Files:** `scripts/check-identity-mints.ts` (+ a
 test beside it on the `check-person-keys` shape) and
@@ -1430,7 +1528,58 @@ shade, wire body, stall, eval, warren); the throw cases red-then-green.
 the count falls per-site by whoever owns the site. The corpse's probe
 move already happened in A0 and races nothing.
 
-### A3 · The wire body projects through the method — `fix(sandbox): the wire body projects the player through getIdentityPath(), and is no longer filed under the identity it projects`
+### A3 · The wire body projects through the method — ✅ DONE
+
+> **Note (2026-10-05). ⚠⚠ The plan's premise was HALF WRONG, and the
+> sabotage check is what caught it.**
+>
+> G-WIRE and DA8 say the projection *"is carried entirely by the raw
+> stamp"* because `SandboxAvatar` has no `getIdentityPath()` override,
+> and prescribe adding one. The first half is true; the second is not.
+> **`lib/character/Avatar:710` already overrides `getIdentityPath()` for
+> the whole family** — its own docblock says *"the identity thread, for
+> the whole family and in one place"*, deriving from `playerId` — so the
+> wire body inherits the projection, exactly as the shade does. The
+> override I added per the plan was a duplicate of the thing that
+> override exists to prevent.
+>
+> ⭐ **How it was caught:** removing my new override and re-running the
+> wave's own test left **all 7 green**. A test that cannot fail when you
+> delete the code it is supposed to be testing is testing something
+> else. Grounding then found the family override two files away.
+>
+> ⭐⭐ **So RA4's ordering hazard never existed.** The plan said *"the
+> override must land BEFORE the stamp is removed, or in-circle acts
+> attribute to the wire body's row for every visitor."* Removing the
+> stamp alone was always safe, because the family override was already
+> there. The wave therefore reduces to **one line deleted** plus the
+> docs that were describing a non-existent override.
+>
+> **What shipped:** the `asIdentityPath` mint is gone from
+> `SandboxLogic` (the wire body is now filed under its own row, so the
+> player's identity bucket holds only the parked field body and
+> `findByTemplatePath('/platform/agent/Avatar/<pid>')` no longer throws
+> *expected singleton, found 2* mid-visit); `SandboxAvatar` carries a
+> comment saying **where the override actually is**, because its absence
+> there reads as a bug; `Stuff.getIdentityPath`'s docblock and
+> `Avatar.getIdentityPath`'s are both corrected — the latter now says
+> out loud that it is what makes the wire body's projection work and
+> why removing the stamp was safe. *projection vessel* → *wire body* at
+> all three sites.
+>
+> ⚠ The census meter is still **2**: one justified site removed, none
+> added.
+>
+> ⚠ A fixture trap found on the way, now commented at the site:
+> `Stuff._stampTemplatePath` does **not** re-key the registry index
+> (only `Stuff.setTemplatePath` does, via `_reindexTemplatePath`). A
+> fixture that stamps after registering leaves the body filed NOWHERE —
+> so an assertion about the player's index bucket passes against an
+> empty bucket for the wrong reason. `stampTemplatePathForTest`
+> unregisters and re-registers, which is what production's
+> stamp-before-register ordering achieves.
+
+**Original wave spec** — `fix(sandbox): the wire body projects the player through getIdentityPath(), and is no longer filed under the identity it projects`
 
 **Implements** DA8. **Files, in this order:** `platform/agent/sandbox/SandboxAvatar.ts`
 (the `getIdentityPath()` override; the header comment → *wire body*),

@@ -564,10 +564,18 @@ function corpseIdentityFor(body: Stuff, nowS: number): string | undefined {
   // reaped corpse leaves the index, so keys are recycled rather than
   // monotonic — which is correct, because identity is about telling live
   // bodies apart, not about an audit trail (that is the chronicle's job).
-  if (StuffApi.findAllByTemplatePath(base).length === 0) return base;
+  //
+  // ⚠⚠ `findByIdentityPath`, and this is MANDATORY, not tidiness. The
+  // probe asks *is this IDENTITY free*, and a corpse's own
+  // `getTemplatePath()` is the corpse ROW — never the identity it was
+  // stamped with. A read that narrowed a row's instances by lineage
+  // would drop the exact hit, report an occupied identity as free, and
+  // collide two deaths in the same game-second. A probe for an identity
+  // must not depend on how a ROW read scopes its filter.
+  if (StuffApi.findByIdentityPath(base).length === 0) return base;
   for (let n = 2; ; n++) {
     const candidate = `${base}-${n}`;
-    if (StuffApi.findAllByTemplatePath(candidate).length === 0) {
+    if (StuffApi.findByIdentityPath(candidate).length === 0) {
       return candidate;
     }
   }
@@ -619,6 +627,18 @@ async function mintCorpseFrom(
       causeOfDeath: cause,
       diedAtGameSec: nowS,
     },
+    // identity-keyed-by: none — nothing reads a corpse by identity.
+    // `reembody` never looks one up, and belief's naming path is gated
+    // on `isPersona` (composed on `Character`, not `Creature`), so the
+    // only consumer of this string is the mint's OWN ordinal probe,
+    // which is circular and cannot justify the mint it serves. You can
+    // die, re-embody and die again, and there are then two corpses for
+    // one playerId — so it is not uniquely findable by identity either.
+    // ⛔ UNJUSTIFIED and deliberately left alone: corpses are being
+    // retooled by the carcass chain on `reqs/second-tier`, which
+    // multiplies this mint to every non-player death and still adds no
+    // reader. That build owns the decision; the slate keeps their
+    // counter-argument as a reason to KEEP, not as a reader.
     asIdentityPath: corpseIdentityFor(body, nowS),
   });
   if (!MixinApi.isVitals(corpse)) {
@@ -678,6 +698,11 @@ async function mintShadeFrom(
     '/platform/agent/ShadeAvatar',
     undefined,
     {
+      // identity-keyed-by: own-record — a shade is the same PERSON, so
+      // it attributes to the same identity-keyed ledgers as the body of
+      // record, and the path is re-derivable from the playerId.
+      // Declares its own `identityNamespace` rather than inheriting the
+      // Avatar family's, because this prefix is its own.
       asIdentityPath: `/platform/agent/ShadeAvatar/${avatar.getPlayerId()}`,
       dataOverlay: {
         playerId: avatar.getPlayerId(),

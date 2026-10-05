@@ -397,17 +397,29 @@ export default class Exit extends ConcealableMixin(Idea) {
   }
 
   /**
-   * Durable discovery key (D3) — an `Exit` is a runtime instance with no
+   * Durable discovery key — an `Exit` is a runtime instance with no
    * `templatePath` of its own, so it keys its `DISCOVERY` belief on a
-   * synthetic `<source-templatePath>#exit:<direction>` handle, stable across
-   * re-clones (the bar's secret north door stays discovered). `undefined`
-   * when the source has no durable templatePath (a shared multi-clone room —
-   * the deferred player-placed-concealment case).
+   * synthetic `<source-handle>#exit:<direction>` string, and `undefined`
+   * when its source has no durable handle at all.
+   *
+   * ⚠⚠ The source's key is its {@link Stuff.getDurableHandle}, **not**
+   * its template path. Keying on lineage was a real defect with two
+   * visible faces: forty provisioned dorm rooms share one row, so a
+   * secret found in one read as found in every one of them; and a
+   * lounge satellite — a fresh clone per landing, named by nothing —
+   * answered with a handle it had no right to, so a find in a room that
+   * no longer exists stayed found forever. The handle answers both: a
+   * keyed room is `<row>#<extent/leaf>`, a minted one its identity, a
+   * singleton place its row (byte-identical to what every DISCOVERY
+   * belief already written used), and an ephemeral clone `undefined`.
+   *
+   * Uniform for an `ExitableVessel` source too — the handle is asked of
+   * the object, so nothing here narrows on being a Location.
    */
   public override getDiscoveryKey(): string | undefined {
     if (!this.source) return undefined; // unbound kind clone
-    const src = this.source.getTemplatePath();
-    return src ? `${src}#exit:${this.direction}` : undefined;
+    const handle = this.source.getDurableHandle();
+    return handle ? `${handle}#exit:${this.direction}` : undefined;
   }
   public isBlocked(): boolean { return this.blocked; }
   public setBlocked(value: boolean): void { this.blocked = value; }

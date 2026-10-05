@@ -945,6 +945,62 @@ above. The broader disease, and the one open half the literal cannot see
 documented at
 [antipatterns.md § Keying a PERSON](./antipatterns.md).
 
+### `lint:identity-mints` — every mint names what keys on it (2026-10)
+
+⭐⭐ `StuffApi.clone(row, …, { asIdentityPath })` is the one channel that
+mints a per-instance identity, and until this gate nothing asked the
+question the requirements settle (9a): *an identity exists iff the NAME
+is durable* — re-derivable from inputs that outlive the instance, or
+recorded somewhere durable. Concretely, **what keys on this identity?**
+
+The closed vocabulary is `own-record | referenced | lookup | none`, and
+⚠ **there is no `probe` word, by design**: a mint's own uniqueness check
+cannot justify the mint it serves. The corpse mints an ordinal by asking
+whether its own candidate identity is free, which is circular — so it
+is marked `none`.
+
+⭐⭐ **A census, not a shape validator.** A validator over the shapes the
+tree actually uses — family-prefixed, row-prefixed, parcel-relative,
+recorded-uuid, projected — would codify five improvisations and hand
+every one of them a passing grade. The shapes are all legitimate on
+their own terms; the mint is what gets questioned.
+
+⭐ **The marker lives AT THE SITE** (`// identity-keyed-by: <word> —
+<what>`), on the `eslint-disable -- reason` precedent, never in a table
+inside the script. That is what lets a capability pack mark its own mint
+with nobody editing a kernel list — the rule that *a pack must never
+need a kernel list edit*, applied here. So the script reads sites and
+holds no paths.
+
+Two outcomes, and only one of them is a ratchet:
+
+- **An unmarked mint is an ERROR**, not a count. A new mint has to
+  answer the question; silence is the whole failure the gate exists for.
+- **A site marked `none` is unjustified** and counted against a ceiling
+  that may fall and never rise.
+
+**First census (2026-10-04): 13 sites — 8 `own-record`, 2 `referenced`,
+1 `lookup`, 2 `none`.** The ceiling is **2**: the anonymous guest
+(`Login.ts`, on the login path, avoiding a throwaway template row) and
+the corpse (`ConditionLogic.ts`, being retooled by the carcass chain).
+⚠ Both are **named non-goals** of the build that added the gate, and
+reading "unjustified" as *go and fix it* is the mistake to avoid —
+unminting is per-site work for whoever owns the site, and each marker
+names its destination. ⚠ `src/backend/TestHooks.ts` mints through the
+same formula and is outside the scan root (the mudlib + pack `src/`,
+the `check-person-keys` root); it carries a marker for the reader and is
+uncounted.
+
+⚠ **What the lint cannot see is a MIS-mark** — `referenced` with nothing
+referencing it. The vocabulary being closed stops a site inventing a new
+justification, but not a wrong one. Review is what catches that, which
+is the marker's other job.
+
+The runtime half is separate and louder: a class that declares
+`static identityNamespace` has every mint asserted against it in the
+clone pipeline. See
+[identity.md § Every mint names what keys on it](./subsystems/identity.md).
+
 ## Domain honesty — the gates that buy a narrowing
 
 These exist because the failure they prevent is **silent and looks

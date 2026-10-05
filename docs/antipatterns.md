@@ -5022,8 +5022,64 @@ fallback `makerPath` in `QuenchController`, `PlateController`,
 `StrainController`, `RepairController` and `SewController` is a
 `getTemplatePath()`. It is dead today — `CraftingLogic` prefers the
 live actor's identity path — but `CraftedMixin.resolveMakerName`
-resolves a mark with `findByTemplatePath`, which cannot resolve an
-identity path at all. A follow-up sweep owns both halves.
+resolves a mark with `findByTemplatePath`, which resolves the bucket an
+object is FILED under — so an identity path resolves and a lineage path
+shared by many avatars throws *expected singleton*. A follow-up sweep
+owns both halves.
+
+---
+
+## Asking the registry for an IDENTITY when you mean every instance of a ROW
+
+⭐ `byTemplatePath` is keyed on **`identity ?? templatePath`**, so one
+index holds two different kinds of key. A read that does not say which
+one it is asking for will be wrong for the other, silently.
+
+```ts
+// WRONG — reads as "every instance of this row" and is not.
+// An identity-stamped clone is filed under its IDENTITY, so the row's
+// bucket holds only its unstamped siblings.
+for (const other of StuffApi.findAllByTemplatePath(host.getIdentityPath())) …
+
+// RIGHT — say which question you are asking.
+StuffApi.findAllByTemplatePath(row);      // every instance cloned from `row`
+StuffApi.findByIdentityPath(path);        // everything filed at exactly `path`
+StuffApi.findByTemplatePath(path);        // the one there, or throw
+```
+
+**What it cost.** `PersistableLogic.assertUniqueKey` — the spine's one
+invariant, *no two live instances share a `(scope, key)`* — scanned the
+host's own identity. For a stamped keyed host that bucket holds exactly
+one object, the host, which the loop then skips. So the assertion was
+**vacuous for every stamped keyed host**: the market stall counter was
+never once covered by it, and a second instance standing up on an
+occupied key wrote into the first keeper's record with no error
+anywhere. `liveKeyed` had the same shape and would have minted
+duplicates; it escaped only because all of its callers happen to pass a
+stored row.
+
+⭐⭐ **The tell is the one worth carrying away: a VACUOUS assertion looks
+exactly like a passing one.** The invariant had tests, and they passed,
+because the fixtures were unstamped — which is the case the needle got
+right.
+
+⚠ And the two reads are two names on purpose, rather than one tolerant
+function: **the row filter is correct for a row and wrong for an
+identity.** The row read is `exact(row) ∪ glob(row + '/**')` narrowed to
+objects whose lineage is `row`, and that narrowing must not touch the
+exact half — a minted instance's `getTemplatePath()` is its row, never
+the identity it is filed under, so filtering the whole union would drop
+an identity's own hit. The corpse's ordinal probe is the case that found
+it: it asks *is this identity free*, and a dropped hit reports an
+occupied identity as free and collides two deaths in one game-second.
+
+⭐⭐ **A continuity family is out of the row read's reach both ways, and
+that is not a gap to work around.** Individuation nests identities under
+the row, so a prefix read finds them. Continuity points the other way:
+several lineages (`PrimaryAvatar`, `ShadeAvatar`, the sandbox wire body)
+wear ONE identity under a family namespace that is none of their rows.
+`PlayerApi`'s roster answers *every avatar*; the index does not and
+should not.
 
 ---
 

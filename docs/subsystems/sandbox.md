@@ -373,6 +373,29 @@ name. `CircleAvatar` was considered and rejected for a subtler reason:
 
 ## The crossing (as built)
 
+- **⭐⭐ The identity thread, and where it actually lives (2026-10-05).**
+  A wire body IS the player while they are in the circle: every
+  identity-keyed reader — the belief viewer key, the chronicle, the
+  transcript, grants, chattel stamps, the snapshot owner — must
+  attribute in-circle acts to the person. That works because
+  **`lib/character/Avatar` overrides `getIdentityPath()` for the whole
+  family, in one place**, deriving from `playerId`; the shade relies on
+  exactly the same inheritance. `SandboxAvatar` overrides nothing of
+  its own, and a comment there says so, because its absence reads as a
+  bug.
+
+  ⚠⚠ **What was wrong until 2026-10-05**: the wire body was ALSO cloned
+  with `asIdentityPath: <the player's identity>`. That is a raw stamp,
+  and the registry's index keys on `identity ?? templatePath` — so the
+  wire body was *filed under the player's own identity*, which is the
+  one thing `Stuff.getIdentityPath`'s docblock forbids (*"a wire body
+  must never index under the identity it projects"*). With a circle
+  open, the wire body and the parked field body shared one exact
+  bucket, and `findByTemplatePath('/platform/agent/Avatar/<pid>')` threw
+  *expected singleton, found 2* for that player mid-visit. The mint no
+  longer stamps; the inherited method was always what the ledgers read,
+  which is why removing the stamp needed nothing to land first.
+
 - **Fork/merge**: `ForkableMixin` (`lib/persistence/Forkable.ts`) —
   per-layer `forkSlice_<Name>()` / `mergeSlice_<Name>(slice)` by
   method-name convention; surfaced on `PersistableApi.

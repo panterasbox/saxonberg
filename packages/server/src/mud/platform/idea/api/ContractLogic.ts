@@ -909,7 +909,9 @@ async function completeImpl(contractId: string): Promise<CompleteResult> {
    * ⚠ Fire-and-forget, and it must stay that way: the money has already
    * moved. A throwing override must not unwind a completed contract.
    */
-  const issuerBusiness = StuffApi.findAllByTemplatePath(
+  // The stored `issuer.templatePath` is a durable identity string, so the
+  // identity read is the honest one — not a row enumeration.
+  const issuerBusiness = StuffApi.findByIdentityPath(
     fresh.issuer.templatePath,
   )[0];
   if (issuerBusiness && MixinApi.isBusiness(issuerBusiness)) {

@@ -116,6 +116,10 @@ export default class StallController extends CommandController<CommandModel> {
         if (!marketAccount) return this.fail(context, "The market keeps no account to pay rent into.", 'no-market-account');
         await BankingApi.transfer(primary, marketAccount, Money.of(rent, BankingApi.compactCurrency()), 'stall rent');
       }
+      // identity-keyed-by: own-record — the counter's own
+      // `holder_snapshots` record (`restoreOrSeed` just below), plus the
+      // house's `operatingLocations` and `counterPath` round-trips,
+      // which resolve this exact string.
       counter = await StuffApi.clone<Stock>(STALL_SEED, undefined, { asIdentityPath: ids.counter });
       const restored = await PersistableApi.restoreOrSeed(counter, renterKey);
       // The counter answers to the renter's house — the closed sign, the
@@ -138,6 +142,9 @@ export default class StallController extends CommandController<CommandModel> {
     let house = StuffApi.findByTemplatePath<Stuff & Business>(ids.house) ?? null;
     if (!house) {
       house = await StuffApi.clone<Stuff & Business>(STALL_BUSINESS_SEED, undefined, {
+        // identity-keyed-by: referenced — the house's operating account
+        // keys on this identity (`Business.getAccountPath()`), and
+        // employment records reference it as `organizationPath`.
         asIdentityPath: ids.house,
         dataOverlay: {
           name: `${giver.getPresentation() ?? 'a keeper'}'s stall`,

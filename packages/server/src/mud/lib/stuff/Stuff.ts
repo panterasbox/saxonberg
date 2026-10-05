@@ -525,17 +525,88 @@ export abstract class Stuff {
    * chattel stamps and snapshot owners attribute to. The stamped
    * instance identity when one was minted (`asIdentityPath` — D17),
    * else `getTemplatePath()` (byte-identical for every ordinary
-   * object); a projection vessel (the sandbox `SandboxAvatar`) overrides
+   * object); the sandbox **wire body** (`SandboxAvatar`) overrides
    * the METHOD to return the real identity's path
    * (`/platform/agent/Avatar/<playerId>`), so in-circle derive-on-read
    * composes the player's real history ∪ scoped appends and PASS rows
-   * attribute to the real identity, never the vessel. (The registry
-   * index deliberately reads the raw SLOT, not this method — a vessel
-   * must never index under the identity it projects.)
+   * attribute to the real identity, never the body. (The registry
+   * index deliberately reads the raw SLOT, not this method — a wire
+   * body must never index under the identity it projects.)
+   *
+   * ⚠ The override lives on the family ROOT (`lib/character/Avatar`),
+   * not on `SandboxAvatar` — one place for every body a player wears,
+   * the shade included, deriving from `playerId`. Looking for it on the
+   * wire body and not finding it is misleading, so that class carries a
+   * comment saying where it is.
+   *
+   * ⚠⚠ Until 2026-10-04 the wire body was ALSO cloned with
+   * `asIdentityPath: <the player's identity>` — a raw stamp, which is
+   * precisely what the parenthesis above forbids. With a circle open
+   * the wire body and the parked field body shared one exact index
+   * bucket, and this read threw *expected singleton, found 2* for that
+   * player mid-visit. The mint no longer stamps; the inherited method
+   * was always what the ledgers read.
    */
   public getIdentityPath(): string | null {
     const raw = ProxyApi.unwrap(this as unknown as Stuff);
     return raw.#identityPath ?? this.getTemplatePath();
+  }
+
+  /**
+   * ⭐⭐ The **durable per-instance handle** — a string that still names
+   * *this* thing after it has been unloaded and stood back up, or
+   * `null` when this object is one of an unbounded many and nothing
+   * durable names it.
+   *
+   * This is what anything that must *remember a particular instance*
+   * keys on: a discovered secret, a claim on a map, a recorded place.
+   * `getTemplatePath()` is the wrong key for it (every provisioned dorm
+   * room shares one row, so a secret found in one would read as found
+   * in all of them) and `stuffId` is the wrong key too (fresh on every
+   * construction, so nothing survives a reload).
+   *
+   * ⭐ The rule the handle encodes (requirements 9a): **an identity
+   * exists iff the NAME is durable** — re-derivable from inputs that
+   * outlive the instance, or recorded somewhere durable. Note the two
+   * durabilities are separate questions and each has its own mechanism
+   * here: *is the NAME durable* decides whether something was minted
+   * (this rung reads it), and *is there a per-instance KEY* decides
+   * whether there is a `<row>#<key>` handle (`PersistableMixin`'s rung
+   * reads that). Conflating them produces a ladder that is wrong at
+   * both ends.
+   *
+   * Three rungs, each contributed by the host that owns the fact and
+   * each deferring to `super` when its own condition is false:
+   *
+   * - **here**: a minted instance identity is a durable name, whether or
+   *   not the instance persists. A warren's circulation node is reaped
+   *   and re-minted and its handle is the same string both times, which
+   *   is exactly what lets a parked character's record find the corridor
+   *   it was standing in.
+   * - **{@link PersistableMixin}**: `` `<row>#<key>` `` for a host whose
+   *   key came from an establishing context — row plus decoration, kept
+   *   separable by the `#` joiner so the substance (the row: how you
+   *   find the hydration content and the backing class) is never lost
+   *   inside the decoration.
+   * - **{@link SingletonMixin}**: the one instance IS the row.
+   *
+   * Precedence falls out of composition order — `Persistable` always
+   * sits above `Stuff`, so a key beats a stamp; `Singleton` only ever
+   * fills in a `null`.
+   *
+   * ⚠ The `id !== row` test is the whole of this rung and is why it
+   * exists: {@link getIdentityPath} deliberately *defaults* to the
+   * template path, so an ephemeral clone's "identity" is its own row.
+   * Read naively that would hand every lounge satellite a handle it has
+   * no right to. A satellite is a fresh clone per landing (not
+   * re-derivable) and is recorded nowhere, so `null` is its honest
+   * answer and `stuffId` is what covers it within one life.
+   */
+  public getDurableHandle(): string | null {
+    const row = this.getTemplatePath();
+    if (!row) return null;
+    const identity = this.getIdentityPath();
+    return identity !== null && identity !== row ? identity : null;
   }
 
   /**

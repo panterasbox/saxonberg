@@ -62,7 +62,15 @@ live owner's estate, all in one call so nothing drifts):
 - **`pin: {scope, key} | null`** — how to stand a good up that persists
   *itself*, stamped when its class answers `pinsResidency()`, it has an
   explicit persistence key, and it is placed in a room (cleared for
-  `storage` / `inventory`). A partial index `{pin.key}` holds exactly
+  `storage` / `inventory`). ⚠ The `scope` is the good's
+  **`getIdentityPath()`** — the same string `captureImpl` files the
+  record under. It read `getTemplatePath()` until 2026-10-04, which is
+  identical for every pinned class today (none is identity-stamped) and
+  would have sent the pin roll looking where no record is, silently, the
+  moment one was. ⚠ A pin on a host that is both stamped and keyed is
+  still unbuilt: `standUpKeyed` needs the ROW to clone a shell and the
+  identity to find the record, so such a pin would have to carry both.
+  Recorded here rather than designed around; no pinned class is stamped. A partial index `{pin.key}` holds exactly
   the pinned set; `ChattelApi.pinned()` is the residency pin roll's one
   read — [residency.md § the load half](./residency.md). The `place`
   column is indexed too: `placedIn` and `evictToStorage` were scans.

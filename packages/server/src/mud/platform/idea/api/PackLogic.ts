@@ -2975,14 +2975,20 @@ async function rehydrate(
   deletedPaths: string[],
 ): Promise<number> {
   let count = 0;
+  // ⚠⚠ `findByIdentityPath`, BY NAME, never the row read. A row read
+  // would widen go-live to every instance MINTED from this row — every
+  // stall counter, every corpse — and re-hydrate each one from the seed
+  // row's `data` on a pack sync, which is the "go-live hydration resets
+  // live coin stacks" hazard class. A stamped clone is deliberately
+  // skipped here: its state is its own record's, not the row's.
   for (const path of changedPaths) {
-    for (const inst of StuffApi.findAllByTemplatePath(path)) {
+    for (const inst of StuffApi.findByIdentityPath(path)) {
       await TemplateApi.restoreFromTemplate(inst);
       count++;
     }
   }
   for (const path of deletedPaths) {
-    for (const inst of StuffApi.findAllByTemplatePath(path)) {
+    for (const inst of StuffApi.findByIdentityPath(path)) {
       StuffApi.destruct(inst);
     }
   }

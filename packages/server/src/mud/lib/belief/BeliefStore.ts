@@ -630,10 +630,14 @@ export function BeliefStoreMixin<TBase extends MixinConstructor>(Base: TBase) {
       // fact worth keeping regardless.
       if (realm === DISCOVERY) return record;
       // Lazy liveness-GC: if nothing in the world carries this referent
-      // anymore, the memory is dead. `findAllByTemplatePath` is the
-      // non-throwing multi-instance lookup (type referents are shared
-      // across clones; the singleton variant would throw on those).
-      if (StuffApi.findAllByTemplatePath(referent).length === 0) {
+      // anymore, the memory is dead. `findByIdentityPath` is the
+      // non-throwing lookup for the bucket filed at exactly this referent
+      // (type referents are shared across clones, so the bucket holds
+      // several; the singleton variant would throw on those). ⚠ Not the
+      // ROW read: a referent is whatever string the belief was recorded
+      // against, and widening it would keep a memory alive on the
+      // strength of some other instance minted under the same lineage.
+      if (StuffApi.findByIdentityPath(referent).length === 0) {
         this._beliefs.delete(k);
         return null;
       }

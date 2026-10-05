@@ -642,7 +642,11 @@ export class CmsLogic extends ApiLogic {
 
     // Go-live: re-hydrate every live clone at this path so the new
     // `data` is observable in the running world.
-    const live = StuffApi.findAllByTemplatePath(path);
+    // ⚠⚠ `findByIdentityPath`, BY NAME: widening this to the row read
+    // would re-hydrate every MINTED instance of the row from the seed's
+    // `data` on a CMS save (the go-live-resets-live-state hazard). A
+    // stamped clone's state belongs to its own record.
+    const live = StuffApi.findByIdentityPath(path);
     for (const instance of live) {
       await TemplateApi.restoreFromTemplate(instance);
     }
