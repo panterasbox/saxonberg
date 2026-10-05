@@ -1208,3 +1208,86 @@ player can steep and kiln by hand; what is missing is the house offering
 to do it, which wants a `malting` seat on the hand. ⭐ The gate asked for
 that decision before the content shipped, which is the gate working —
 and it is review's call, not a guess for the build to make.
+
+---
+
+# ⭐⭐⭐ The LIVE drive — a browser, 2026-10-05
+
+Run against a real server on 2010 with the client on 5173, as a logged-in
+player at Crowsfoot's distillery floor. ⚠ *The wire drive is not the live
+drive* — and this one found six things, four of which no wire test could
+reach.
+
+## What it PROVED about this build
+
+1. ⭐⭐⭐ **`ignite still` → "You set a copper pot still alight."** The
+   defect under everything, fixed and seen. Three recipes named this
+   tool and declined `insufficient-heat` for the whole life of the pack
+   because no still row authored fuel.
+2. ⭐⭐ **The still's own card reads `INTERFACES: Fractionating · Burner ·
+   LightSource` and `MASS 240 kg`** — the composition and the mass this
+   build added, rendered to a player.
+3. ⭐ **`FractionScheduleCatalogue: 3 fraction schedule(s) live`** at
+   boot, and `MaturationProfileCatalogue` at 21. The roster warms — the
+   boot link that kills features silently.
+4. ⭐ **The maltings install and place.** `look malt kiln` offered *"the
+   malt kiln · the malting floor · an empty malt sack"*, and the boot
+   logged **zero `applyProps` errors** with the `props:` entries
+   restored. The deployment-manifest fix holds in a real world.
+5. ⭐⭐ **`@TestOnly` fires correctly, live.** A clock jump against an
+   ordinary dev world was refused with the full guidance — *"this process
+   is not a test environment… a development world is deliberately none of
+   those: it is a world somebody plays in"* — and permitted once the
+   world was booted as one the drive owns (`SAXONBERG_TEST_WORLD=1`,
+   `16847 → 38449`). The decorator the taps build added, doing exactly
+   its job, with the helpful message instead of a vanished method.
+6. ⭐ **`smell still` / `taste still` bind and reach the host**, and the
+   augmenter correctly adds nothing to an idle pot.
+
+## ⚠ What it could NOT prove, and why
+
+**The cut itself.** A run needs a charge; a charge needs a wash; a wash
+needs grist (`order wash-mash` → *"There isn't enough grist to make
+that."* — a clean refusal naming its missing input). Crowsfoot's own
+stock holds finished bottles and empties, and grist is a purchase at a
+distribution counter several hops away. ⭐ The refusal chain is honest at
+every step, which is itself a result: nothing failed closed and silent.
+
+The cut's mechanics — span blend, dose, grade floor, harm row, cask — are
+proved on the REAL rows by `world/__tests__/whiskey-run.test.ts` (10
+cases). What remains unproved by a human at a keyboard is one sentence:
+*a running still's `smell` shows the fraction's character.*
+
+## ⛔ Findings for somebody else
+
+- ⭐⭐ **The Look card leaks a room's description through pitch darkness.**
+  Prose says *"It is pitch dark. You can make out nothing of the place at
+  all."*; the card beside it renders the full `longDescription`. The
+  card's object list IS gated (`something · something▸`), so the card is
+  **half-gated** — description ungated, contents gated. Pre-existing,
+  nothing to do with whiskey, and structurally invisible to the wire tier,
+  which asserts the envelope and never sees a card. → `card-surface` /
+  `light` slate.
+- ⚠ **The client's dev-login button 404s.** `New character →` on the front
+  door fails; a hand-rolled `POST /auth/test-login` works. The dev path's
+  own front door. → a client finding.
+- ⚠ `look <object>` in a DIM room answers with the ROOM's dim line rather
+  than the object, and the card it mints shows the room. Arguably correct
+  (too dim to examine), but the card is then mislabelled with the
+  object's command.
+
+## ⭐ A correction this drive forced
+
+Mid-run I wrote that the malting steps being off the still-book left the
+maltings *"furniture a player can see and cannot use."* **That was
+wrong.** `make steep-barley` answers:
+
+> *"You've heard of Steep barley, but you haven't learned to make it —
+> work it by hand first."*
+
+The recipe is known to the world and reachable through the by-hand
+ladder, and the refusal IS the progression UI. So keeping the steps off
+the board — because `lint:menu-staff` is right that nobody is seated to
+`malting` — does not strand the pack; it means the house will not do it
+*for* you, which is honest. The seat remains a content decision for
+review, not a defect.
