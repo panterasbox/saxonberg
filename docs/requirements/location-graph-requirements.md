@@ -69,14 +69,15 @@ upgrade with no dependency on anything here.
 
 ### Stage A — the addressing half
 
-⛔⛔ **The index conflates two questions.** `api/stuff.ts:230` keys it on
+⛔⛔ **The uniqueness invariant is inert for every host that has an
+identity.** `api/stuff.ts:230` keys the registry on
 `Stuff._identityStampOf(obj) ?? obj.getTemplatePath()` — *"deliberately
-the raw slot, never the overridable method"* — and
-`findAllByTemplatePath` is that one bucket. So a **stamped** instance is
-filed under its identity and not under its row, and three things follow,
-all live:
+the raw slot, never the overridable method"* — and `findAllByTemplatePath`
+reads that bucket with `exact()`. So a **stamped** instance is filed under
+its identity rather than its row, and three things follow, all live:
 
-- you cannot enumerate clones of a row whose instances are stamped;
+- no read enumerates every instance of a row whose instances are stamped
+  (⭐ the index *can* — `PathTrie` ships `glob`; nothing asks it to);
 - ⛔⛔ `assertUniqueKey`'s scan needle is `scope = getIdentityPath()`, so
   for a stamped host the bucket holds only itself — which the scan skips.
   **The market stall counter is both stamped and keyed, so the invariant
@@ -244,10 +245,12 @@ the disagreement · and publish-state as a queryable property of a place.
 
 ### Stage A
 
-- ⛔ **The index answers one question per index.** *Find the thing called
-  X* and *find every clone of row Y* stop sharing a bucket, so clone
-  enumeration works for stamped rows and the uniqueness invariant fires
-  where identity is minted instead of where it is absent.
+- ⛔ **The uniqueness invariant covers the hosts that have an identity.**
+  `assertUniqueKey` scans by the **row**, not by the host's own identity,
+  so it stops being inert for stamped keyed hosts. ⭐ The registry's
+  keying does not change.
+- **The world can enumerate every instance of a row** — a read the index
+  can already serve, because individuation handles are row-prefixed.
 - ⭐⭐ **An identity path exists iff it is DURABLE.** Ephemeral instances
   get `stuffId` and no identity at all — which is what `stuffId` is for.
 - ⭐ **A keyed instance's durable handle has one sanctioned read**, of the
@@ -311,6 +314,11 @@ the disagreement · and publish-state as a queryable property of a place.
   ⭐⭐ **What ships here instead is a `map` verb reading in prose to
   yourself**, so the map is usable and not merely possible — and the
   renderer, when it comes, reads an index that is already there.
+- **Splitting the registry index.** ⭐ Considered and refused — see
+  decision 9b. The keying is correct; a scan needle and a missing read
+  were the defect, and splitting it would have broken
+  `findByTemplatePath`'s singleton guardrail and every stored-key
+  round-trip for nothing. **Destination:** nowhere, deliberately.
 - **Retiring `getIdentityPath()`'s default-to-template.** It answers *who
   do I act as*, which always has an answer; ~200 readers depend on it and
   the ones that matter resolve a stored key through the index. Stage A
@@ -591,24 +599,54 @@ rather than a fallback: if a thing cannot be named, you get **a list of
 matches to choose from**, which already ships as disambiguation. ⛔ The
 build may not invent per-instance addressing to avoid that.
 
-### 9b. The index answers one question per index
+### 9b. The index was fine — the SCAN was asking the wrong question
 
-**The question.** The registry keys on `identity ?? template`, so *find
-the thing called X* and *find every clone of row Y* share a bucket. Which
-one wins?
+**The question.** The registry keys on `identity ?? template`, so a
+stamped instance is filed under its identity and not its row. Does the
+index need splitting?
 
-**The answer.** Neither — they stop sharing. Clone enumeration keys on
-the **row**, so it works for stamped rows; identity lookup becomes its own
-read, so a stored key still resolves to its live object.
+**The answer.** No. ⭐ **Nothing about the registry's keying changes.**
+What changes is one needle and one read.
 
-**Why it cannot wait.** It is not a tidiness argument: `assertUniqueKey`
-scans the index with the host's own identity as the needle, so **the one
-invariant protecting two live instances from clobbering one record is
-inert wherever an identity is minted.** The stall counter has never been
-covered by it. ⚠ `findByTemplatePath`'s *"expected singleton, found N"*
-guardrail is the thing to be careful with — keyed on the row, a stamped
-row legitimately has many instances — and resolving that is the plan's
-shape decision.
+**The needle.** `assertUniqueKey` and `liveKeyed` scan with
+`scope = getIdentityPath()`, so for a stamped host the bucket holds only
+itself — which the scan skips. **They must scan by the ROW.** That single
+change is what makes the invariant cover a stamped keyed host (the stall
+counter, never covered) instead of being inert for exactly the hosts that
+have an identity.
+
+**The read.** An honest *every instance of this row* surface, which the
+index can already serve: `PathTrie` ships `glob` and `longestPrefix`
+beside `exact`. ⭐ And it works because **individuation handles are
+row-prefixed by construction** — decision 9's substance-and-decoration
+rule showing up as an index property:
+
+| | filed under | found by `<row>` prefix |
+|---|---|---|
+| an unstamped clone | the row | ✓ |
+| a warren room (keyed, unstamped) | the row | ✓ — ⭐ which is *why* the invariant works for them today and nowhere else |
+| the stall (keyed **and** stamped `${STALL_SEED}/<leaf>`) | its row-prefixed identity | ✓ |
+| ⛔ an Avatar (continuity) | `/platform/agent/Avatar/<playerId>` | ✗ — the row is not a prefix |
+
+⭐⭐ **And the one case a prefix cannot reach costs nothing, because
+continuity subjects are ROSTERED rather than discovered.** `PlayerApi`
+already keeps the avatar register (`registerAvatar` /
+`unregisterAvatar` / `findAvatarByPlayerId`). *Find every avatar* is a
+register read — a family's membership is a known set, not something you
+discover by prefix — and it was never the index's job.
+
+⭐ **So `findByTemplatePath`'s "expected singleton, found N" guardrail is
+untouched**, and so is every `findByTemplatePath(<stored identity key>)`
+round-trip, which keeps resolving through `exact()` exactly as today.
+And `findByIdentityPath` returning an **array** is free: it is `exact()`
+on the same trie — one hit for a minted identity, N for unstamped clones
+sharing the template fallback.
+
+⚠ **Recorded because it was nearly built:** an earlier pass of this doc
+called for splitting the index into one per question, and handed the
+planner the resulting `findByTemplatePath` contract break as *the* shape
+decision. The index was never the defect. **A reader asking a question the
+index cannot answer is not the same thing as an index that answers two.**
 
 ### 9c. A key is relative to its manager — the stall is the exception to fix
 
@@ -858,7 +896,9 @@ pointing at itself.
 2. A hidden thing found in a room that does not survive a restart does not
    stay found.
 3. Asking the world for every instance of a shared row returns **all of
-   them**, including rows whose instances carry a minted identity.
+   them**, including instances that carry a minted identity — and asking
+   for every member of a continuity family (every avatar) answers from
+   that family's register rather than from the index.
 4. Two players renting stalls from one seed each get their own counter,
    their own stock and their own takings — and a stored key still resolves
    to the right live object.
