@@ -126,6 +126,16 @@ export const RESET_DISPOSITIONS: Readonly<
   [Collections.Groups]: { verb: 'wipe' },
   [Collections.HolderSnapshots]: { verb: 'wipe' },
   [Collections.KickProfiles]: { verb: 'wipe' },
+  [Collections.LocationGraph]: {
+    verb: 'keep',
+    because:
+      'Derived and rebuilt at boot — but the nightly job does NOT restart ' +
+      'the process (see docs/subsystems/record-layer.md), so a wipe would ' +
+      'leave every lint, publish gate and board read blind until the next ' +
+      'boot rather than for a moment. ⭐ "Derived" is an argument for ' +
+      'being droppable, not for being dropped nightly: there is nothing ' +
+      'to gain and a window of blindness to lose.',
+  },
   [Collections.MediaAssets]: {
     verb: 'keep',
     because:

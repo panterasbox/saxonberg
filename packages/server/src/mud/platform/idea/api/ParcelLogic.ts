@@ -189,6 +189,17 @@ export class ParcelLogic extends ApiLogic {
     return reg ? reg.citeReach(extent, reach) : null;
   }
 
+  /** See {@link ParcelApi.isPathPublished}. */
+  @CallSecurity(ParcelApiCallers)
+  public isPathPublished(path: string): boolean {
+    const reg = lookupRegistry();
+    // ⚠ No registry yet (early boot, a unit test with no world) reads
+    // as published: the gate must not seal the world shut because an
+    // index has not warmed.
+    if (!reg) return true;
+    return reg.coveringParcelOf(path)?.isPublished() ?? true;
+  }
+
   /** See {@link ParcelApi.citeFeeder}. */
   @CallSecurity(ParcelApiCallers)
   public async citeFeeder(

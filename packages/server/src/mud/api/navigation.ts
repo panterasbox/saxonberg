@@ -22,6 +22,8 @@ import { HotReloadApi } from './hot-reload';
 import { NavigationLogic } from '../platform/idea/api/NavigationLogic';
 import { fileURLToPath } from 'url';
 import { SecurityApi } from './security';
+import type { PlaceNode } from '../lib/location/PlaceNode';
+import type { GraphFinding } from '../lib/location/GraphInvariants';
 
 /** Canonical direction names (long form). */
 export type CardinalDirection =
@@ -52,6 +54,14 @@ function logic(): NavigationLogic {
       ) as typeof NavigationLogic | null) ?? NavigationLogic)()
   );
 }
+
+export type { PlaceNode, StoredEdge, NodeTravel } from '../lib/location/PlaceNode';
+export type {
+  GraphEdge,
+  GraphFinding,
+  GraphNode,
+  GraphRule,
+} from '../lib/location/GraphInvariants';
 
 export class NavigationApi {
   /**
@@ -99,6 +109,102 @@ export class NavigationApi {
   /** List of canonical cardinal directions (useful for tests / iteration). */
   public static cardinalDirections(): readonly CardinalDirection[] {
     return logic().cardinalDirections();
+  }
+
+  /* ── the location graph ──────────────────────────────────────────────
+   *
+   * The world's shape: every place and every exit out of it, derived
+   * from the content rows, rebuilt at boot and kept current at the
+   * template write chokepoint. See
+   * [docs/subsystems/location-graph.md].
+   *
+   * ⭐⭐ **None of this may reach a client.** A player's knowledge of the
+   * world is their own map document and the two never join — a read
+   * that merged them would hand somebody the shape of places they have
+   * not earned. Every method here is server-side.
+   *
+   * ⭐ Every one is string-keyed. The graph is addressed by node
+   * IDENTITY, which is a string (`Stuff.getDurableHandle()`), so no
+   * method takes a live place.
+   */
+
+  /**
+   * Has the graph been built at least once?
+   *
+   * The write chokepoint reads this to skip per-row projection during
+   * pack install, when thousands of rows land before anything warms.
+   */
+  public static isGraphWarm(): boolean {
+    return logic().isGraphWarm();
+  }
+
+  /**
+   * Rebuild the whole graph from the content rows; returns the node
+   * count. Idempotent by generation rather than by truncation, so there
+   * is no window in which the graph is empty.
+   */
+  public static rebuildGraph(): Promise<number> {
+    return logic().rebuildGraph();
+  }
+
+  /** Re-project one content row (and drop its nodes if it stopped being a place). */
+  public static projectRow(path: string): Promise<void> {
+    return logic().projectRow(path);
+  }
+
+  /** Drop every node a content row produced. */
+  public static removeRow(path: string): Promise<void> {
+    return logic().removeRow(path);
+  }
+
+  /**
+   * Re-read `published` for every node under `extent`; returns how many
+   * changed. The parcel is the source of truth, so a flip calls this.
+   */
+  public static reprojectExtent(extent: string): Promise<number> {
+    return logic().reprojectExtent(extent);
+  }
+
+  /** The one node with this identity, or null. */
+  public static node(identity: string): Promise<PlaceNode | null> {
+    return logic().node(identity);
+  }
+
+  /** Every node in one zone. */
+  public static nodesInZone(zonePath: string): Promise<PlaceNode[]> {
+    return logic().nodesInZone(zonePath);
+  }
+
+  /**
+   * Every node with an edge INTO `identity` — the reverse query.
+   *
+   * ⭐ This is what lets taking content down be honest: it names every
+   * room that just lost a destination, so their authors can be told,
+   * and it is how the tombstone picks the way `out`.
+   */
+  public static pointingAt(identity: string): Promise<PlaceNode[]> {
+    return logic().pointingAt(identity);
+  }
+
+  /** Every node carrying a cross-zone edge — the router's coarse graph. */
+  public static interzoneSkeleton(): Promise<PlaceNode[]> {
+    return logic().interzoneSkeleton();
+  }
+
+  /** Every published node with an edge into unpublished content. */
+  public static edgesIntoUnpublished(): Promise<PlaceNode[]> {
+    return logic().edgesIntoUnpublished();
+  }
+
+  /**
+   * Run the graph invariants over the projected nodes — the same
+   * instance value class `lint:location-graph` runs over the rows on
+   * disk, so a gate and a runtime check cannot disagree about what a
+   * dangling exit is. With `scope`, one row's findings (and no
+   * reachability pass, which is a whole-graph property).
+   */
+  public static checkGraph(scope?: string): Promise<GraphFinding[]> {
+    return logic().checkGraph(scope);
   }
 }
 

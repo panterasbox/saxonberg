@@ -5,7 +5,31 @@
 import { ApiLogic } from '../../../lib/stuff/ApiLogic';
 import { CallSecurity, Unshadowable } from '../../../lib/security/decorators';
 import { SecurityPolicies } from '../../../lib/security/SecurityPolicies';
+import { StuffApi } from '../../../api/stuff';
+import type LocationGraphRegistry from '../LocationGraphRegistry';
+import type { PlaceNode } from '../../../lib/location/PlaceNode';
+import type { GraphFinding } from '../../../lib/location/GraphInvariants';
 import type { CardinalDirection } from '../../../api/navigation';
+
+/** Where the graph registry stands. */
+const GRAPH_REGISTRY_PATH = '/platform/idea/LocationGraphRegistry';
+
+/**
+ * The registry, or null before it has warmed.
+ *
+ * ⚠ `null` is a real answer and every caller treats it as one: the
+ * registry is booted from the platform pack's manifest, and plenty runs
+ * before that — the installer's own 2,500 row writes, every unit test
+ * that never boots a world. A graph read before the warm answers
+ * *nothing yet*, not *no such place*, which is why the projection hook
+ * checks `isGraphWarm()` first rather than relying on these to no-op.
+ */
+function registry(): LocationGraphRegistry | null {
+  return (
+    StuffApi.findByTemplatePath<LocationGraphRegistry>(GRAPH_REGISTRY_PATH) ??
+    null
+  );
+}
 
 /**
  * Offsets keyed by long-form direction name.
@@ -142,5 +166,85 @@ export class NavigationLogic extends ApiLogic {
   @CallSecurity(NavigationApiCallers)
   public cardinalDirections(): readonly CardinalDirection[] {
     return CARDINALS;
+  }
+
+  /* ── the location graph ─────────────────────────────────────────────
+   *
+   * ⭐ Every method here is STRING-KEYED and takes plain data. Nothing
+   * takes a `Stuff`: `NavigationApi` is not on `lint:object-verbs`'s
+   * exempt list, and it should not be — the graph is addressed by
+   * identity, which is a string, and a method that took a live place
+   * would be asking its caller to have stood one up.
+   *
+   * ⚠ The state and the projection live on `LocationGraphRegistry`
+   * (the `AddressRegistry` → `AddressLogic` arrangement): the index
+   * must survive a reload of this file, and a reload of the registry
+   * re-clones it and rebuilds idempotently.
+   */
+
+  /** See {@link NavigationApi.isGraphWarm}. */
+  @CallSecurity(NavigationApiCallers)
+  public isGraphWarm(): boolean {
+    return registry()?.isWarm() ?? false;
+  }
+
+  /** See {@link NavigationApi.rebuildGraph}. */
+  @CallSecurity(NavigationApiCallers)
+  public async rebuildGraph(): Promise<number> {
+    return (await registry()?.rebuild()) ?? 0;
+  }
+
+  /** See {@link NavigationApi.projectRow}. */
+  @CallSecurity(NavigationApiCallers)
+  public async projectRow(path: string): Promise<void> {
+    await registry()?.projectRow(path);
+  }
+
+  /** See {@link NavigationApi.removeRow}. */
+  @CallSecurity(NavigationApiCallers)
+  public async removeRow(path: string): Promise<void> {
+    await registry()?.removeRow(path);
+  }
+
+  /** See {@link NavigationApi.reprojectExtent}. */
+  @CallSecurity(NavigationApiCallers)
+  public async reprojectExtent(extent: string): Promise<number> {
+    return (await registry()?.reprojectExtent(extent)) ?? 0;
+  }
+
+  /** See {@link NavigationApi.node}. */
+  @CallSecurity(NavigationApiCallers)
+  public async node(identity: string): Promise<PlaceNode | null> {
+    return (await registry()?.node(identity)) ?? null;
+  }
+
+  /** See {@link NavigationApi.nodesInZone}. */
+  @CallSecurity(NavigationApiCallers)
+  public async nodesInZone(zonePath: string): Promise<PlaceNode[]> {
+    return (await registry()?.nodesInZone(zonePath)) ?? [];
+  }
+
+  /** See {@link NavigationApi.pointingAt}. */
+  @CallSecurity(NavigationApiCallers)
+  public async pointingAt(identity: string): Promise<PlaceNode[]> {
+    return (await registry()?.pointingAt(identity)) ?? [];
+  }
+
+  /** See {@link NavigationApi.interzoneSkeleton}. */
+  @CallSecurity(NavigationApiCallers)
+  public async interzoneSkeleton(): Promise<PlaceNode[]> {
+    return (await registry()?.interzoneSkeleton()) ?? [];
+  }
+
+  /** See {@link NavigationApi.edgesIntoUnpublished}. */
+  @CallSecurity(NavigationApiCallers)
+  public async edgesIntoUnpublished(): Promise<PlaceNode[]> {
+    return (await registry()?.edgesIntoUnpublished()) ?? [];
+  }
+
+  /** See {@link NavigationApi.checkGraph}. */
+  @CallSecurity(NavigationApiCallers)
+  public async checkGraph(scope?: string): Promise<GraphFinding[]> {
+    return (await registry()?.checkGraph(scope)) ?? [];
   }
 }

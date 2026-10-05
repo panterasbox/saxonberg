@@ -1813,7 +1813,96 @@ a fixture graph; deleting a destination row in a scratch copy makes the
 dangling rule fire naming row + direction. Covers AC5 (the file half),
 AC7.
 
-### B1 · The graph — `build(location-graph B1): the world's shape is a collection, rebuilt at boot and kept at the chokepoint`
+### B1 · The graph — ✅ DONE
+
+> **Note (2026-10-05).** The collection, the record, the registry, the
+> query surface, the write chokepoint and the unbuilt edge. Four
+> departures from the plan, every one of them forced by something real.
+>
+> ⚠⚠ **1. There is NO `onCreate`; the registry warms LAZILY on the
+> first graph read.** `lint:on-create` refused a ninth catalogue
+> `onCreate` (82/81) — and asking the gate's question showed the eager
+> warm was buying nothing: **nothing reads the graph at boot.** The
+> traversal gate's publish check goes through `ParcelApi`, not the
+> graph; the invariant check, the re-projection and the router's
+> queries are all later events. So an eager walk of every content row
+> at boot was work for no reader, which is the *opposite* of the
+> reference-Ideas-inert problem a warm exists to solve.
+> `ReadingCatalogue` is the documented precedent for the lazy half.
+> The boot entry stays so the registry EXISTS for `NavigationLogic` to
+> find; the warm is guarded so a burst of first reads builds once.
+>
+> ⚠⚠ **2. `PlaceNode` carries NO finder statics**, which the plan
+> implied by citing `ParcelRecord`'s shape. `lint:lib-statics` refused
+> seven new statics on a non-Api class (344/337), and the gate's
+> question gave the better placement: the registry is this record's
+> ONLY consumer, so a public finder surface was offering reads nobody
+> outside performs. The queries are private methods on the registry
+> over the inherited `Document.find`; the record keeps only
+> `toGraphNode()`, an instance method because it is a fact about the
+> row rather than a lookup of rows.
+>
+> ⚠⚠ **3. The unbuilt exit is a narrow CATCH, not a pre-check.** The
+> plan's D10 says to check `Template.findByPath(spec.destination)`
+> before `StuffApi.singleton`. Shipped that way first, and it broke six
+> boundary suites on `PersistenceManager.get(...).isConnected is not a
+> function` — because it made exit installation depend on a reachable
+> store, which is the same hazard a live server hits during early boot,
+> and it adds a round-trip per authored exit on the hydration hot path
+> (199 edges). Now it catches the ONE message `StuffApi.clone` throws
+> for a missing row and rethrows everything else: a failure inside a
+> destination's own `onCreate` is a different fault and must stay loud.
+> The happy path costs nothing.
+>
+> ⚠⚠ **4. No slot stubs for plan nodes**, departing from D4. A stub is
+> `{to: null, slot}`: every invariant skips it by definition, the
+> router cannot route over an edge with no destination, and a player's
+> map of lot-7 is carried by the HANDLE (B3), not by a stub. So a stub
+> has **no reader**, and shipping declared data with no consumer is the
+> dead-capability failure this repo keeps paying for. When the router
+> wants frontages it adds them with the thing that reads them. A plan
+> node's `template` is the WARREN's row, not the circulation class —
+> the `plan:` is authored on the warren, so that is what an author
+> would go and edit.
+>
+> ⭐⭐ **A real bug the tests found: `Date.now()` is not a generation
+> counter.** Two rebuilds inside one millisecond — a boot that rebuilds
+> twice, a CMS save storm, a test — collide, and **a colliding
+> generation sweeps NOTHING**, because every stale row's stamp equals
+> the new one. The sweep then silently keeps nodes for rows that have
+> stopped being places, which is precisely what the generation exists
+> to prevent. It is `Math.max(Date.now(), this.generation + 1)` now.
+>
+> ⚠⚠ **Two proxy-boundary traps, both of them CLAUDE.md's written
+> rules, both hit anyway.** (a) `#`-private METHODS are unreachable
+> through the call-security proxy — inside a dispatched method `this`
+> IS the proxy, so `this.#keepGraph(...)` throws *Receiver must be an
+> instance of class DomainHook*. Every `#` method in the registry and
+> the hook is `private` now. (b) An intra-singleton self-call trips the
+> gate: `onCreate` calling the gated `rebuild()` arrives as a call from
+> the registry rather than from `NavigationLogic` and is DENIED.
+> `NavigationLogic`'s own module-private `normalize` exists for exactly
+> this reason and says so; the gated face now forwards to an ungated
+> `rebuildImpl`.
+>
+> ⚠ A test-harness trap worth keeping: the registry's suite had to teach
+> its PM stub to match a **dotted path into an array** (`edges.to`),
+> which is what Mongo does and what that index is for. A flat
+> `d[k] === v` comparison silently returns nothing, which reads as
+> *nobody points here* — a passing-looking test for a query that does
+> not work.
+>
+> ⚠ `published` landed on `ParcelRecord` here rather than in B2, because
+> B1's projection denormalises it. The FIELD is B1's; the verb, the
+> eviction and the tombstone remain B2's.
+>
+> The subsystem doc was written here rather than at B4: `lint:schema`
+> requires it the moment the collection exists, and it was right to.
+>
+> 15 + 8 + 7 tests; 254 across the touched neighbourhood. Typecheck
+> clean, `lint:family` 66/66.
+
+**Original wave spec** — `build(location-graph B1): the world's shape is a collection, rebuilt at boot and kept at the chokepoint`
 
 **Implements** D3, D4, D5, D6, D10's unbuilt half. **Files:**
 `packages/server/src/schema/location_graph.yaml` → `pnpm gen:schema`;

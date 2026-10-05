@@ -54,6 +54,7 @@ import { Mixins, type FieldMeta } from '../mixin';
 import { LocomotionApi } from '../../api/locomotion';
 import { MixinApi } from '../../api/mixin';
 import { GrammarApi } from '../../api/grammar';
+import { ParcelApi } from '../../api/parcel';
 
 /**
  * Discriminator naming which gate failed during `canTraverse`. Backcompat
@@ -73,7 +74,20 @@ export type TraversalGate =
   | 'noConveyance'
   | 'encumbrance'
   | 'terrain'
-  | 'breakaway';
+  | 'breakaway'
+  /**
+   * ⭐ The far side is **not published** — a readiness wall, not a
+   * locked door. Draft content that has never been live, or live
+   * content taken offline; either way the parcel says it is not open.
+   */
+  | 'unpublished'
+  /**
+   * ⭐ The far side **does not exist**: the destination names a row that
+   * is not there. The direction is installed so `look` still names it
+   * and so creating the row heals it, but nothing lies that way yet.
+   * Before this the same situation was a BOOT CRASH.
+   */
+  | 'unbuilt';
 
 /**
  * Result of `Exit.canTraverse()`.
@@ -421,6 +435,47 @@ export default class Exit extends ConcealableMixin(Idea) {
     const handle = this.source.getDurableHandle();
     return handle ? `${handle}#exit:${this.direction}` : undefined;
   }
+  /**
+   * ⚠ **Transient** — set at install when the destination row is
+   * missing, never persisted. It is a fact about the world as loaded,
+   * and the next hydrate re-derives it: create the row the author meant
+   * and the stub is replaced by the real exit. Persisting it would
+   * outlive the defect it describes.
+   */
+  private _unbuilt = false;
+
+  /** Does this exit's destination row not exist? */
+  public isUnbuilt(): boolean {
+    return this._unbuilt;
+  }
+
+  /**
+   * Mark this exit as pointing at a row that is not there. Called only
+   * by `Exitable._installUnbuiltExit`, which is the one place that
+   * knows the row was missing.
+   */
+  public markUnbuilt(): void {
+    this._unbuilt = true;
+  }
+
+  /**
+   * What to call the far side without resolving it — the live
+   * destination's presentation when it is resident, else the path's
+   * leaf read as words. ⭐ The whole point is that it never resolves:
+   * a refusal must be nameable for a place that is not loaded, not
+   * open, or not there.
+   */
+  public farSideName(): string {
+    const path = this._destinationPath;
+    if (path) {
+      const live = StuffApi.findByIdentityPath(path)[0];
+      if (live && MixinApi.isPerceptible(live)) return live.getPresentation();
+      const leaf = path.split('/').filter(Boolean).pop() ?? path;
+      return leaf.replace(/[-_]/g, ' ');
+    }
+    return 'that way';
+  }
+
   public isBlocked(): boolean { return this.blocked; }
   public setBlocked(value: boolean): void { this.blocked = value; }
   public isMuffled(): boolean { return this.muffled; }
@@ -860,6 +915,25 @@ export default class Exit extends ConcealableMixin(Idea) {
         ok: false,
         gate: 'blocked',
         reason: 'The way is blocked.',
+      };
+    }
+    // ⭐ The two far-side gates run BEFORE the lock gate, so a wall
+    // reads as a wall rather than as a locked door — and they follow
+    // the lock gate's own rule: never resolve the destination. One
+    // reads a transient flag, the other a sync parcel read.
+    if (this._unbuilt) {
+      return {
+        ok: false,
+        gate: 'unbuilt',
+        reason: 'Nothing lies that way yet.',
+      };
+    }
+    const farPath = this._destinationPath;
+    if (farPath && !ParcelApi.isPathPublished(farPath)) {
+      return {
+        ok: false,
+        gate: 'unpublished',
+        reason: `${GrammarApi.cap(this.farSideName())} is not open.`,
       };
     }
     // Lock gate runs BEFORE the closed-door gate so a locked door

@@ -100,6 +100,7 @@ export const COLLECTION_POLICIES: Readonly<
   [Collections.Groups]: { verb: 'refuse' },
   [Collections.HolderSnapshots]: { verb: 'pass' },
   [Collections.KickProfiles]: { verb: 'refuse' },
+  [Collections.LocationGraph]: { verb: 'pass' },
   [Collections.MediaAssets]: { verb: 'refuse' },
   [Collections.OfficeHolders]: { verb: 'refuse' },
   [Collections.PackInstalls]: { verb: 'refuse' },
