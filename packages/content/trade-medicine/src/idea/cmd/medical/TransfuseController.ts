@@ -27,6 +27,10 @@ import { Freshness } from '@saxonberg/server/mud/lib/material/Freshness';
 import { BloodType } from '@saxonberg/server/mud/lib/vitals/BloodType';
 import type { BloodTypeLabel } from '@saxonberg/server/mud/lib/vitals/BloodType';
 import { BLOOD_DEFAULTS } from '@saxonberg/server/mud/lib/vitals/Blood';
+import { AccountabilityApi } from '@saxonberg/server/mud/api/accountability';
+import AccountabilityEvent from '@saxonberg/server/mud/lib/accountability/AccountabilityEvent';
+import { SpeciesApi } from '@saxonberg/server/mud/api/species';
+import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import type { CommandContext, CommandModel } from '@saxonberg/server/mud/api/command';
 import type { MqlOneResult } from '@saxonberg/server/mud/api/mql';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
@@ -49,6 +53,34 @@ export default class TransfuseController extends CommandController<TransfuseMode
     if (!MixinApi.isVitals(patient) || patient.bloodType() === null) {
       return this.fail(context, 'There is nothing there to transfuse.', 'no-body');
     }
+
+    // ⭐ The consent ladder (D5), read BEFORE acting. A conscious player
+    // with no standing directive is ASKED — refuse now, prompt them, let
+    // the giver retry; the contemporaneous answer IS the card. A `wont`
+    // directive does NOT block the act (that is a consequence, not a veto —
+    // handled after the effect as a harm row), so only `asked` stops here.
+    const consent = MixinApi.isPersona(patient)
+      ? patient.transfusionConsent(giver as unknown as Stuff)
+      : { verdict: 'implied' as const, consented: true };
+    if (consent.verdict === 'asked') {
+      MessageApi.scene(patient)
+        .topic(TOPIC)
+        .toSelf(
+          Mml.fromMarkup(
+            Mml.escape(
+              `${(giver as unknown as Stuff).getPresentation()} offers you a transfusion — \`donor accept\` to allow it, \`donor refuse\` to decline.`,
+            ),
+          ),
+        )
+        .send();
+      return this.fail(
+        context,
+        `${patient.getPresentation()} has not agreed to a transfusion — they must \`donor accept\` first.`,
+        'consent-pending',
+      );
+    }
+
+    const wasDying = patient.isDying();
     const vessel = model.vessel?.stuff as Stuff | undefined;
     if (!vessel || !MixinApi.isBulkable(vessel)) {
       return this.fail(context, 'You need a vessel to transfuse from.', 'no-vessel');
@@ -114,6 +146,7 @@ export default class TransfuseController extends CommandController<TransfuseMode
     }
 
     // Gates passed. The give lands at completion; a barge-in gives nothing.
+    const donorIdentityPath = unit.donorIdentityPath;
     return this.runOrEngage(context, giver, () => {
       const result = patient.receiveBlood({
         litres,
@@ -126,7 +159,63 @@ export default class TransfuseController extends CommandController<TransfuseMode
       slot.setAmount(Quantity.of(slot.getAmount().rawValue() - litres, 'L'));
       void this.credit(giver);
       this.narrate(context, self, patient, result.reaction, false);
+      // ⭐ The accountability trail (D5): a non-consented administration is
+      // a crime row (`consented: false`); a consented mismatch is a
+      // malpractice trail. Self-use never records (you answer for your own
+      // body). Append when the directive was refused OR the blood reacted.
+      if (!self && (!consent.consented || result.reaction > 0)) {
+        this.recordHarm(giver as unknown as Stuff, patient, consent.consented);
+      }
+      // The revival deed (D8): if the patient was dying and is not now, the
+      // chronicle remembers whose blood brought them back.
+      if (!self && wasDying && !patient.isDying()) {
+        void this.recordRevival(patient, donorIdentityPath);
+      }
     });
+  }
+
+  /** Append a `harm` row for a transfusion — the trap's shape (D5). */
+  private recordHarm(giver: Stuff, patient: Stuff, consented: boolean): void {
+    const victimId = AccountabilityEvent.partyIdOf(patient);
+    const giverId = AccountabilityEvent.partyIdOf(giver);
+    if (!victimId || !giverId) return;
+    let sentient = false;
+    try {
+      sentient = SpeciesApi.isSentient(patient);
+    } catch {
+      sentient = false;
+    }
+    AccountabilityApi.record({
+      kind: 'harm',
+      sessionId: `transfusion:${giver.stuffId}:${Date.now()}`,
+      initiator: giverId,
+      opponent: victimId,
+      victim: victimId,
+      killer: giverId,
+      consented,
+      sentient,
+      victimFor: AccountabilityEvent.partyForOf(patient),
+    });
+  }
+
+  /** The recipient's chronicle remembers a transfusion that revived them. */
+  private async recordRevival(
+    patient: Stuff,
+    donorIdentityPath: string,
+  ): Promise<void> {
+    if (!MixinApi.isPersona(patient)) return;
+    const live = donorIdentityPath
+      ? StuffApi.findAllByTemplatePath(donorIdentityPath)[0]
+      : undefined;
+    const donorName = live ? live.getPresentation() : 'A donor';
+    await patient.recordChronicleOnce(
+      `blood-revival:${donorIdentityPath}:${Date.now()}`,
+      {
+        kind: 'deed',
+        text: `${donorName}'s blood brought you back from the edge.`,
+        tags: ['blood', 'revival'],
+      },
+    );
   }
 
   /**

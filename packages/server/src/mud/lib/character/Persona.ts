@@ -26,6 +26,7 @@
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { CommandContributions } from '../../api/command';
 import type { Stuff } from '../stuff/Stuff';
+import { MixinApi } from '../../api/mixin';
 import { SettingTypes, type SettingsSchemaEntry } from '../shell/Environment';
 import ChronicleEntry from '../chronicle/ChronicleEntry';
 import type {
@@ -37,12 +38,46 @@ import { WorldClockApi } from '../../api/worldclock';
 import { PersistApi } from '../../api/persist';
 import { Final, Unshadowable } from '../security/decorators';
 
+/**
+ * A standing directive about receiving blood, plus whether this person is
+ * a registered donor (blood build D4). Authored on an NPC row for a
+ * conscientious objector; set by the `donor` verb for a player.
+ */
+export interface DonorCard {
+  /** `'will'` = pre-consent to receive; `'wont'` = refuse even unconscious,
+   * even dying; `''` = no standing directive (the ladder decides). */
+  receive: 'will' | 'wont' | '';
+  /** Has this person registered as a willing donor? The readable roll a
+   * shortage is answered from — opt-in, a pull surface, never a push
+   * target (D4/D14). */
+  donor: boolean;
+}
+
+/** The verdict of the consent ladder a transfusion reads before it acts
+ * (blood build D5). `consented` is what the accountability row records. */
+export interface TransfusionConsent {
+  verdict:
+    | 'directive-yes'
+    | 'directive-no'
+    | 'consented'
+    | 'asked'
+    | 'implied'
+    | 'self';
+  consented: boolean;
+}
+
 /** Public shape provided by PersonaMixin. */
 export interface Persona {
   getBio(): string;
   setBio(value: string): void;
   getAspiration(): string | null;
   setAspiration(value: string | null): void;
+  getDonorCard(): DonorCard;
+  setDonorCard(card: DonorCard): void;
+  /** The consent verdict for `giver` transfusing this body (D5). Reads the
+   * card first, then falls to implied (unconscious/dying), then asks a
+   * conscious player, else consents (an NPC's answer is its author's). */
+  transfusionConsent(giver: Stuff): TransfusionConsent;
   recordClaim(fields: ChronicleEntryFields): Promise<void>;
   recordDeed(fields: ChronicleEntryFields): Promise<void>;
   recordChronicleOnce(
@@ -121,6 +156,7 @@ export function PersonaMixin<TBase extends MixinConstructor>(Base: TBase) {
     static fieldMeta: FieldMeta = {
       bio: { persistent: true, authorable: true },
       aspiration: { persistent: true, authorable: true },
+      donorCard: { persistent: true, authorable: true },
     };
 
     /**
@@ -136,6 +172,11 @@ export function PersonaMixin<TBase extends MixinConstructor>(Base: TBase) {
       self: [
         'platform/cmd/charactergen/chronicle.yaml',
         'platform/cmd/charactergen/traits.yaml',
+        // ⭐ The `donor` verb (medical) — your standing directive about
+        // receiving blood, and whether you register as a willing donor.
+        // Self-only, the same surface `chronicle`/`traits` ride: setting a
+        // value about your own body is your own act (blood build D4).
+        'platform/cmd/medical/donor.yaml',
         'platform/cmd/social/standing.yaml',
         'platform/cmd/social/who.yaml',
         'platform/cmd/social/profile.yaml',
@@ -224,6 +265,14 @@ export function PersonaMixin<TBase extends MixinConstructor>(Base: TBase) {
      */
     public aspiration: string | null = null;
 
+    /**
+     * The standing blood directive + donor-roll flag (blood build D4).
+     * `receive: ''` by default — no directive, the ladder decides — so
+     * every existing Character keeps today's behaviour. An author may set
+     * `receive: 'wont'` on an NPC row for a conscientious objector.
+     */
+    public donorCard: DonorCard = { receive: '', donor: false };
+
     public getBio(): string {
       return this.bio;
     }
@@ -238,6 +287,59 @@ export function PersonaMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     public setAspiration(value: string | null): void {
       this.aspiration = value === null ? null : value.trim();
+    }
+
+    public getDonorCard(): DonorCard {
+      return this.donorCard;
+    }
+
+    public setDonorCard(card: DonorCard): void {
+      this.donorCard = {
+        receive: card.receive ?? '',
+        donor: !!card.donor,
+      };
+    }
+
+    /**
+     * ⭐ The consent ladder a transfusion reads before it acts (D5). The
+     * card is the standing directive — it holds even unconscious, even
+     * dying (`'wont'` means *even to death*). With no directive, an
+     * unconscious or dying body is treated (implied consent), a conscious
+     * player is ASKED (the contemporaneous answer IS the card), and any
+     * other conscious body consents — an NPC's answer is its author's, so
+     * author `receive: 'wont'` for an objector.
+     *
+     * ⚠ This NEVER blocks the act — a `directive-no` returns `consented:
+     * false` and the controller proceeds, recording harm. The refusal is a
+     * consequence on the record, not a paternalistic veto.
+     */
+    public transfusionConsent(giver: Stuff): TransfusionConsent {
+      const self = this as unknown as Stuff;
+      const giverId = giver.getIdentityPath();
+      const selfId = self.getIdentityPath();
+      if (giver === self || (giverId !== null && giverId === selfId)) {
+        return { verdict: 'self', consented: true };
+      }
+      const card = this.donorCard;
+      if (card.receive === 'wont') {
+        return { verdict: 'directive-no', consented: false };
+      }
+      if (card.receive === 'will') {
+        return { verdict: 'directive-yes', consented: true };
+      }
+      // No standing directive: the body's state decides.
+      if (
+        MixinApi.isVitals(self) &&
+        (self.isDying() || self.getConsciousness() !== 'conscious')
+      ) {
+        return { verdict: 'implied', consented: true };
+      }
+      // Conscious (or a Persona with no Vitals): a player-driven body is
+      // asked; anyone else's author has already consented for them.
+      if (MixinApi.isHasInteractive(self)) {
+        return { verdict: 'asked', consented: false };
+      }
+      return { verdict: 'consented', consented: true };
     }
 
     /* ────────── the chronicle owner face (the OO sweep) ──────────

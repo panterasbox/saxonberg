@@ -1,0 +1,26 @@
+verbs: [donor]
+controller: /platform/idea/cmd/medical/DonorController
+description: "Your blood card — join the donor roll, or set whether you'll receive"
+help: |
+  `donor` shows your card: your tested blood type (or that you are
+  untested), whether you have registered as a willing donor, and your
+  standing directive about receiving blood.
+
+  - `donor register` / `donor withdraw` — put yourself on, or take
+    yourself off, the donor roll a shortage is read from. Nobody is ever
+    paged; a registrant is someone who chose to be found.
+  - `donor accept` / `donor refuse` — set a STANDING directive about
+    receiving blood. `refuse` holds even if you are unconscious or dying.
+  - `donor clear` — drop the directive; let the moment decide.
+examples:
+  - cmd: donor
+    note: Read your card
+  - cmd: donor register
+    note: Join the donor roll
+  - cmd: donor refuse
+    note: Refuse a transfusion, even unconscious
+args:
+  - name: action
+    type: string
+    required: false
+    greedy: true
