@@ -1074,6 +1074,35 @@ Tests: oak drops four, ash drops none (AC9).
 Acceptance: `lint:census`, `lint:mass`, forestry suite.
 Commit: `build(carcass W5): an oak gives its bark`.
 
+#### ✅ W5 — DONE
+
+1. ⭐ **`barkPath` is normalized to `null` rather than left `undefined`**,
+   the way `seedPath` already is. The felling reads it with `?? null`
+   either way, but a shipped row that authors nothing must not depend on
+   which of the two it gets, and a test that asserted `undefined` would
+   have pinned an implementation detail of `setMix`.
+2. ⭐ **The planted-tree path gets bark too**, which the plan listed and
+   is worth saying why: a player who plants an oak and comes back in
+   twenty game years has grown the tanner's feedstock, and the stand's
+   entry is what knows. A planted tree of a species the ground does not
+   carry gives none, which is honest rather than a gap.
+3. ⭐ **`oak-bark` carries `compost` as well as `tanbark`** — spent bark
+   out of a pit was genuinely spread on fields, so it has a second sink
+   for free with no row and no recipe. ⚠ Deliberately **not** `fuel`:
+   bark burns, and so would a tanner's whole year of work.
+4. ⚠ **The ride's oak entry was authored too, not only the clearing's.**
+   The plan named one row; there are two stands carrying oak in the
+   Hanging Wood, and bark on one of them would have made the feedstock
+   depend on which clearing a player happened to fell in. The test reads
+   the shipped rows rather than restating them, so a second wood that
+   authors an oak with no bark fails on the day it is written.
+5. Merged `origin/master` first per the plan's rebase hazard: two
+   commits, docs-only (the wizardry rubric). No forestry movement after
+   all — the sibling build's tapping work had already landed.
+
+Tests: forestry 122/122, with two new on bark (the round-trip and the
+shipped asymmetry — AC9).
+
 ### W6 — `trade-chandlery`
 
 Unchanged from the first draft's W5: scaffold; `Candle.ts`; the candle
