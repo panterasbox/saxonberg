@@ -2,12 +2,25 @@
  * TestHooks — every backend seam that exists ONLY to support tests, in
  * one module, out of the business logic.
  *
- * The E2E suite needs three things production never does: log in
- * without Google (`authenticate`), start with a ready-to-play character
- * instead of walking char-gen (`provisionCharacter`), and put that
- * character in a known room (`rehomeCharacter`). Each used to live on
- * the class it borrowed from (`Backend`, `Application`); they live here
- * so `backend/` reads as the product and this file reads as the harness.
+ * The suites need four things production never does: log in without
+ * Google (`authenticate`), start with a ready-to-play character instead
+ * of walking char-gen (`provisionCharacter`), put that character in a
+ * known room (`rehomeCharacter`), and ⭐ **move world-time**
+ * (`advanceClock` / `clockNow`). Each used to live on the class it
+ * borrowed from (`Backend`, `Application`); they live here so
+ * `backend/` reads as the product and this file reads as the harness.
+ *
+ * ⭐⭐ **Why the clock is here and not in the game.** A game day is about
+ * two real hours, so nothing a seasonal system does is observable to a
+ * test that finishes — and the taps build first solved that by putting
+ * `WorldClockApi` on the `eval` sandbox's allowlist. That was a category
+ * error: it dressed *scaffolding* as an in-world authoring act, and the
+ * fiction then had to explain a player who can skip a month. ⛔ Nothing
+ * in the game moves the realm's clock. A test harness does, from
+ * outside the fiction, through this module — which is also why the old
+ * route could not work: an in-world `eval` runs inside a sandbox
+ * boundary (a quarantined circle, or a parcel-bound jurisdiction), and a
+ * GLOBAL clock jump is the one thing a bounded context must not do.
  *
  * SAFETY — these are auth and authority bypasses, defended in depth:
  *   1. `TestAuthRoutes` (the only caller) is mounted ONLY when
@@ -40,6 +53,7 @@ import Avatar from '../mud/lib/character/Avatar';
 import PrimaryAvatar from '../mud/platform/agent/PrimaryAvatar';
 import { Template } from '../mud/lib/stuff/Template';
 import { SecurityApi } from '../mud/api/security';
+import { WorldClockApi } from '../mud/api/worldclock';
 
 export class TestHooks {
   /** The one gate every hook runs first. */
@@ -212,6 +226,59 @@ export class TestHooks {
     await avatar.applyStartLocation(startLocation);
     console.info(
       `TestHooks: re-homed test character ${playerId} to ${startLocation}`
+    );
+  }
+
+  /* ──────────────────────── the clock ──────────────────────── */
+
+  /**
+   * TEST-ONLY: move world-time forward by `duration`, draining every
+   * schedule the skipped interval contains.
+   *
+   * ⭐ **Three independent gates, and they ask three different
+   * questions:**
+   *
+   *   1. `AUTH_MODE === 'test'` — this process is a test fixture
+   *      (`#assertTestMode`, below), and `Server` refuses to boot if
+   *      that is ever true while `NODE_ENV === 'production'`.
+   *   2. the ROUTE is mounted only in the same branch, so in an
+   *      ordinary server the endpoint does not exist.
+   *   3. `WorldClockApi.advance` itself carries `@TestOnly`, so outside
+   *      a test environment the method refuses with its own message
+   *      whatever calls it.
+   *
+   * ⭐ `runRoot` for the same reason `authenticate` uses it —
+   * `backend/**` may push call frames and `services/` may not — and it
+   * matters twice here: a root frame carries **no sandbox scope and no
+   * jurisdiction bound**, which is exactly what a global clock jump
+   * needs and exactly what an in-world `eval` can never give it.
+   *
+   * @param duration game-time to skip (`'3 days'`, `'20 days'`) — the
+   *   grammar `WorldClockApi.after()` takes.
+   * @returns game-seconds before and after, so the caller can assert the
+   *   jump landed rather than trusting a 200.
+   */
+  public static async advanceClock(
+    duration: string
+  ): Promise<{ before: number; after: number }> {
+    TestHooks.#assertTestMode('advanceClock');
+    return ExecutionContextApi.runRoot(TestHooks, 'advanceClock', () => {
+      const before = WorldClockApi.getNow().rawValue();
+      WorldClockApi.advance(duration);
+      const after = WorldClockApi.getNow().rawValue();
+      console.info(
+        `TestHooks: advanced world-time '${duration}' ` +
+          `(${Math.round(before)}s → ${Math.round(after)}s)`
+      );
+      return { before, after };
+    });
+  }
+
+  /** TEST-ONLY: game-seconds now. The read half of {@link advanceClock}. */
+  public static clockNow(): number {
+    TestHooks.#assertTestMode('clockNow');
+    return ExecutionContextApi.runRoot(TestHooks, 'clockNow', () =>
+      WorldClockApi.getNow().rawValue()
     );
   }
 

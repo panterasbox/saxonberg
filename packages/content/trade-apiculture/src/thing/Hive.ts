@@ -31,7 +31,14 @@ import { DetailedMixin } from '@saxonberg/server/mud/lib/description/Detailed';
 import { SealableMixin } from '@saxonberg/server/mud/lib/spatial/Sealable';
 import { OrganismMixin } from '@saxonberg/server/mud/lib/species/Organism';
 import { HandlingMixin } from '@saxonberg/server/mud/lib/husbandry/Handling';
-import { ProducingMixin } from '@saxonberg/content-trade-ranching/src/lib/Producing';
+import { ProducingMixin } from '@saxonberg/server/mud/lib/husbandry/Producing';
+import type { TapTake } from '@saxonberg/server/mud/lib/husbandry/Producing';
+import type { WorkDifficulty } from '@saxonberg/server/mud/lib/ground/Workable';
+import type {
+  TapClosedReason,
+  TapSpec,
+} from '@saxonberg/server/mud/platform/idea/species/Species';
+import { Template } from '@saxonberg/server/mud/lib/stuff/Template';
 import { HandledMixin } from '@saxonberg/content-trade-ranching/src/lib/Handled';
 import type { HandleReport } from '@saxonberg/content-trade-ranching/src/lib/Handled';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
@@ -54,6 +61,7 @@ import type { Tooled } from '@saxonberg/server/mud/lib/craft/Tooled';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
+import type { BlendPart } from '@saxonberg/server/mud/lib/bulk/Bulkable';
 import { SWARD_MIXIN } from '@saxonberg/content-trade-farming/src/lib/Sward';
 import type Field from '@saxonberg/content-trade-farming/src/location/Field';
 import { ColonyMixin, APICULTURE } from '../lib/Colony';
@@ -267,11 +275,11 @@ export default class Hive extends HiveBase implements Splittable {
    * that is what makes crushing and spinning genuinely different (AC 11)
    * and it is state, not a rule.
    */
-  public override takeFrom(key: string): number {
+  public override takeFrom(key: string): TapTake {
     if (key !== 'honey') return super.takeFrom(key);
     this.reconcileProduction();
     const state = this.tapState['honey'];
-    if (!state || state.standing <= 0) return 0;
+    if (!state || state.standing <= 0) return { units: 0, worst: 1 };
     const taken = Math.min(state.standing, this.superCapacityKg);
     this.tapState = {
       ...this.tapState,
@@ -282,7 +290,150 @@ export default class Hive extends HiveBase implements Splittable {
       },
     };
     this.combDrawn = 0;
-    return taken;
+    // ⚠ A partial take, so the clutch/brood state a full take would
+    // clear is deliberately left alone — honey authors no
+    // `broodAfterDays` and `worst` is a `continuous` record, so neither
+    // applies to a hive. `worst: 1` is "no quality record", not "best".
+    return { units: taken, worst: 1 };
+  }
+
+  /* ──────────────── the tap, in the hive's voice ──────────────── */
+
+  /**
+   * ⚠ Apiculture, not stockmanship. ⭐ The old `TapController.discipline()`
+   * hook is gone: the HOST names the Discipline on the result, so a
+   * kernel controller credits a trade's competence without knowing the
+   * trade exists.
+   */
+  public override tapCredit(
+    _key: string,
+  ): { discipline: string; difficulty: WorkDifficulty } | null {
+    return { discipline: APICULTURE, difficulty: 'standard' };
+  }
+
+  /**
+   * ⭐⭐ **The window is the forage**, which is the `biome` kind's whole
+   * point: a colony's supply is somebody else's land, so what decides
+   * whether there is anything to take is what is in bloom within range —
+   * not a calendar the hive carries.
+   */
+  public override biomeWindowOpen(): boolean {
+    return this.forageCensus().totalM2 > 0;
+  }
+
+  public override tapRefusal(key: string, reason: TapClosedReason): string {
+    if (reason === 'no-forage') {
+      return 'Nothing is in bloom within range of them. Out of the flow there is simply nothing to take, and the refusal is the season’s rather than the colony’s.';
+    }
+    return super.tapRefusal(key, reason);
+  }
+
+  public override tapEmptyPhrase(_key: string): string {
+    return 'Nothing capped. Out of the flow there is simply nothing to take, and the refusal is the season’s rather than the colony’s.';
+  }
+
+  public override tapBeginPhrase(_key: string): string {
+    return 'You smoke them down and start lifting frames.';
+  }
+
+  public override tapTookPhrase(
+    _key: string,
+    drawn: number,
+    _kept: number,
+    minted?: Stuff[],
+  ): string {
+    const frames = minted?.length ?? 0;
+    return `You lift out frame after frame of sealed comb and set them aside — ${Math.round(drawn * 100) / 100} kilos of it across ${frames} ${frames === 1 ? 'frame' : 'frames'}, dripping where the knife went through.`;
+  }
+
+  /**
+   * ⭐ **Comb, by the frame.** The take is a mass, and what arrives is
+   * that many one-kilo frames rather than one absurd slab — because the
+   * next thing that happens to comb is a recipe with an item slot in it,
+   * and a recipe counts inputs.
+   *
+   * ⭐⭐ **And what the bees foraged rides the comb.** `Comb` is a
+   * `Provision`, so it composes `ComposedMixin`; the crafting core
+   * already sums an item input's composition into a bulk output's
+   * payload, and `taste`, the label and the tags all derive from that on
+   * read. So clover honey and cherry-blossom honey are different honey
+   * with **no row written for either**, and nothing in the recipes knows
+   * there is more than one kind.
+   *
+   * ⚠ This was `RobController.mint` until the taps build. It moved
+   * because the controller had to stash the target on itself in an
+   * `execute` override to reach the forage at all — a controller holding
+   * state about its subject is the tell that the behaviour belongs on the
+   * subject.
+   */
+  protected override async mintTake(
+    tap: TapSpec,
+    take: TapTake,
+    by: Stuff,
+    _shape: 'mass' | 'count',
+  ): Promise<Stuff[]> {
+    const composition = await this.combComposition();
+    const perFrame = 1;
+    const frames = Math.max(1, Math.ceil(take.units / perFrame));
+    const made: Stuff[] = [];
+    for (let i = 0; i < frames; i++) {
+      const mass = Math.min(perFrame, take.units - i * perFrame);
+      let comb: Stuff;
+      try {
+        comb = await StuffApi.clone<Stuff>(tap.yieldRow);
+      } catch {
+        return made;
+      }
+      // ⭐ `setMass` is `TangibleMixin`'s, and the predicate says so —
+      // an optional call would have swallowed a comb row that forgot to
+      // be matter.
+      if (MixinApi.isTangible(comb)) {
+        comb.setMass(Quantity.of(Math.round(mass * 100) / 100, 'kg'));
+      }
+      if (composition.length > 0 && MixinApi.isComposed(comb)) {
+        comb.setComposition(composition);
+      }
+      if (MixinApi.isContainer(by) && MixinApi.isContainable(comb)) {
+        ContainmentApi.move(comb, by);
+      }
+      made.push(comb);
+    }
+    return made;
+  }
+
+  /**
+   * Resolve the hive's forage census into a blend.
+   *
+   * ⭐ The sward's nectar is a Material path already; a plant's key is
+   * its CROP template, which has to be read for the material the crop is
+   * made of. One await, where awaiting is allowed — the census itself is
+   * sync because it runs inside a reconcile.
+   */
+  private async combComposition(): Promise<BlendPart[]> {
+    const out: BlendPart[] = [];
+    for (const { path, share } of this.forageComposition()) {
+      const servings = Math.round(share * 100) / 100;
+      if (servings <= 0) continue;
+      let materialPath = path;
+      if (!path.includes('/idea/material/')) {
+        materialPath = (await this.materialOf(path)) ?? '';
+        if (materialPath === '') continue;
+      }
+      out.push({ materialPath, servings });
+    }
+    return out;
+  }
+
+  /** The Material a crop template is made of, or `null`. */
+  private async materialOf(cropPath: string): Promise<string | null> {
+    try {
+      const template = await Template.findByPath(cropPath);
+      const data = template?.data as Record<string, unknown> | undefined;
+      const material = data?._materialPath;
+      return typeof material === 'string' ? material : null;
+    } catch {
+      return null;
+    }
   }
 
   // ---------- what goes in it ----------

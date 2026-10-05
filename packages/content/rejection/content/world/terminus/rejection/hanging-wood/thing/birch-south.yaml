@@ -1,0 +1,34 @@
+# The birch, south of the six — ⭐ **a tree you can address by name.**
+#
+# ⚠⚠ Six separate ROWS rather than one row propped six times, and the
+# reason is a correction this build had to make: `as:` is the identity
+# key for the by-entry template MERGE (`lib/stuff/Template.ts`), **not a
+# naming keyword**. Three cherries authored as
+# `{ template, as: cherry-north }` all answer to *cherry* and `look
+# cherry` prompts on three matches — which the apiculture wire test's own
+# header records. A tree the drive addresses as `birch-south` needs a row
+# whose KEYWORDS say so.
+#
+# ⭐ `extends:` keeps that from being six copies: the standard row
+# carries the CLASS, the species, the profile and the growth numbers,
+# and this states only what differs. ⚠ Re-stating `class:` here is
+# flagged by `lint:instanceable` — *a child states only what differs* —
+# which is how the first draft of these six rows was corrected.
+#
+# ⭐ `hydratorClass:` used to be on that list and is now RETIRED
+# outright (hydration-framework W3 swept 1,528 rows): a row with `data`
+# has a hydrator applied, full stop. The hazard the old line guarded
+# against is structurally gone, not merely unmentioned.
+#
+# ⭐ `growthStage: mature` — these trees were here before the player
+# was. A mature stem takes two spiles; the scars say it has been tapped
+# before.
+extends: /trade/forestry/thing/plant/birch-standard
+data:
+  shortDescription: south birch
+  keywords: [birch, tree, standard, south, "south birch", birch-south]
+  register: definite
+  longDescription: |
+    The southmost birch, standing a bit clear of the others where it gets the light, and the straightest of the three. Two spiles' worth of trunk, with the old holes healed over at waist height.
+  growthStage: mature
+  mass: 115

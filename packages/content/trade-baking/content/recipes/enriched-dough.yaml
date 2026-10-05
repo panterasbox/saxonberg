@@ -1,0 +1,49 @@
+# Enriched dough — ⭐⭐ **the egg's first sink, and it had none at all.**
+#
+# Eggs shipped with the farmstead build and nothing in the game could
+# consume one. Two separate reasons, both fixed by the taps build and
+# neither of them this file's fault:
+#
+#   1. a take minted `clutch of eggs` at half a kilo, so **nothing could
+#      ask for two** — a recipe counts inputs, and the yield was one
+#      lump. Eggs are `yieldShape: count` now, and the row is one egg.
+#   2. the egg material carried no `egg` tag, so a slot had nothing to
+#      match. ⭐ A recipe slot matches a MATERIAL CLASSIFICATION tag, so
+#      the second consumer of eggs is a tag and never an edit here.
+#
+# ⚠ It is a real distinction and not a reskin: enriched dough is what
+# fat and egg do to a lean bread dough — the crumb goes soft and close
+# and keeps a day longer, which is why every festival bread in every
+# cuisine is enriched and every daily loaf is not. The baker's ratio is
+# the same flour and rather less water, because the egg brings its own.
+recipeId: enriched-dough
+name: Enriched dough
+keywords:
+- enriched dough
+- enriched
+inputSlots:
+- slot: flour
+  category: flour
+  minGrade: poor
+  measureL: 1
+- slot: water
+  category: water
+  minGrade: poor
+  measureL: 0.4
+- slot: egg
+  category: egg
+  minGrade: poor
+  kind: item
+  count: 2
+- slot: salt
+  category: salt
+  minGrade: poor
+  kind: item
+  count: 1
+toolCapabilities: []
+outputTemplate: /trade/baking/thing/dough-trough
+outputAppearance: a rich yellow dough, soft and slack and smelling faintly of egg
+outputApplication: bulk
+outputMaterial: /stuff/idea/material/food/dough
+difficulty: standard
+discipline: baking

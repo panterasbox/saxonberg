@@ -4,8 +4,11 @@
 > `CmsApi` read/write/stat/listTree, the REST data API, the gating table,
 > save go-live) → [cms.md](../../subsystems/cms.md); no connector exists,
 > and no non-session auth path exists anywhere in the backend. Captured
-> as a design conversation, not requirements — explicitly NOT a near-term
-> priority (user, 2026-09-01: *"though it's not a big priority yet"*).
+> as a design conversation, not requirements.
+> ⭐⭐⭐ **PRIORITY RAISED 2026-10-04** (Part 2a): the MCP half is not a
+> convenience for editor preferences — it is **the primary path for any
+> creator who brings an agent**, who *"wont even use the cms UI."* The
+> 2026-09-01 note (*"though it's not a big priority yet"*) is superseded.
 > **Left:** scoped personal access tokens (content-vs-source scope) · the
 > MCP server (`tree`/`read`/`write`/`diagnostics`/`run`) · WebDAV over
 > `source` + `document` · read-only WebDAV over `content` · the
@@ -104,6 +107,123 @@ Two shipped properties make this unusually good:
 
 **Size: small.** The tools are 1:1 with shipped methods; the real work
 is MCP scaffolding, Part 1's token, and tool granularity.
+
+---
+
+## Part 2a — ⭐⭐⭐ Revisited 2026-10-04: this is the PRIMARY creator path
+
+**Captured after the authoring-agent conversation.** Part 2 reads as a
+convenience for people who prefer their own editor. It is more than that:
+
+> **User: "claude users wont even use the cms UI they'll just use the MCP
+> and test drive their own changes via a live browser."**
+
+⭐⭐ Which changes the priority rather than the design — the five tools and
+the token are right as written. Four amendments:
+
+### ⭐⭐⭐ 1. `run` is not optional — it is the loop
+
+Part 2 marks `run` *"optional; the 'try it' loop."* Promote it.
+
+> **`run` + reading the envelope IS the live-drive loop with the creator
+> as the driver** — and live-drive shipped (MR !281) with the finding
+> *the agent is a **participant**, not a feed; the world IS the render.*
+
+⭐⭐ And it splits cleanly from the browser, which matters because the
+user named both:
+
+| | verifies |
+|---|---|
+| ⭐ **`run`** (the agent) | **correctness** — did my edit do what I meant |
+| ⭐ **the browser** (the human) | **taste** — is it any good |
+
+> **An agent without `run` needs a human for every check.** The browser is
+> for judgment, not for verification.
+
+### ⭐⭐⭐ 2. A token may NEVER carry source scope — and it is a RULE, not prudence
+
+Part 1 offers content-vs-source scoping and warns that a token which
+cannot express the distinction *"turns every author connector into a root
+connector."* [agency-slate](./agency-slate.md) has the stronger form:
+
+> ⭐⭐⭐ *"**Code-trust NEVER flows through agency** — if Bob is a wizard,
+> Alice-as-Bob's-agent is **not**. Same class as *no office may inherit
+> code-trust* — **the one axis nothing may launder.**"*
+
+**A PAT is a delegation.** So a source-scoped token is not a dangerous
+option to scope carefully — **it is forbidden by a rule we already hold.**
+
+> ⭐⭐ Which makes the design **simpler**: tokens are **content / document
+> only**, and the root-connector risk **disappears** rather than being
+> managed. ⭐ Source already has a connector and it is called SSH
+> (Part 3), reached by a human with code trust — not by a delegation.
+
+### ⭐ 3. A third scope Part 1 does not name: no image generation
+
+Per [illustration-slate § 2a](./illustration-slate.md) — generation stays
+central because **BYO would convert private money into commons storage
+pressure.** So a creator's own agent must not reach it, and the tool
+surface enforces that **by simply not exposing it as a tool.**
+
+### ⚠ 4. The hazard: a token authors in your name, permanently
+
+A token acts as you, so `recordAuthoring`'s context-derived author **is
+you** — and `authoring_events` is append-only.
+
+> ⚠ **A leaked token authors in your name and the rows persist.**
+> `chronicle`'s **deed vs claim** lets you dispute them and
+> [labor-standing-slate](./labor-standing-slate.md)'s renewal lets you
+> decline the credit share — **but the authorship rows do not go away.**
+
+⭐ The blast radius is at least bounded by **your own grant lines**
+([attribution-slate § 7](./attribution-slate.md)), so a runaway agent
+spends your quota and not the commons' — a dividend of having designed
+the economy first.
+
+### ⭐⭐ And what it means for the CMS UI
+
+If serious creators live in MCP + browser, the UI's audience narrows to
+**the uninitiated** (ships with the game, nothing to install) and to
+**inspection** — seeing what is there, which is a different job from
+editing.
+
+> ⭐⭐⭐ **So resist building a great EDITOR in the CMS; build a great
+> BROWSER-AND-STARTER.** Which is the same conclusion
+> [contribution-slate § 7](./contribution-slate.md) reaches from the other
+> side: *the on-ramp's success criterion is that **leaving is possible**,
+> not that staying is sufficient.*
+
+### ⭐ Why no `eval`, ever — and why that is the better design
+
+The authoring-agent conversation reached for `eval` and rejected it:
+
+| | `eval` | tools |
+|---|---|---|
+| gate | ⛔ `isWizard` — and *any argument ending in a wizard check is wrong by shape* | ⭐ the per-path gates already hold |
+| action space | ⛔ unbounded, unauditable | ⭐ **enforced by the schema** |
+| failures | arbitrary traces | ⭐ **typed refusals**, and *the refusal is the progression UI* |
+
+> ⭐⭐ **An agent with `eval` is strictly worse than one with typed
+> tools** — same finding as the NPC brain, where *its verb list **is** its
+> tool schema.*
+
+⚠ **And the gaps `eval` would have papered over are narrower than they
+look:** bulk edit is [scripting.md](../../subsystems/scripting.md)'s
+command-native interpreter (`def`/`make`, a game-time Coroutine — a
+script in the game's own language, gated by the verbs it may call);
+search is MQL plus the per-owner text index; and running tests is
+genuinely absent in-engine and arguably should be.
+
+> ⭐⭐⭐ **The real gap list is two items, both already slated:**
+> **validation** ([authoring-intelligence-slate](./authoring-intelligence-slate.md))
+> and **export** ([contribution-slate § 3](./contribution-slate.md)).
+
+### ⭐⭐ One property worth keeping
+
+An MCP tool must carry a schema and a description. So **every operation
+afforded to an agent gets documented by construction** — which is
+`callable == visible == cared-about` extending to the agent surface for
+free.
 
 ---
 

@@ -1387,6 +1387,35 @@ async function applyBulkOutput(
       outSlot.getMaterialPath() === authored ? outSlot.getAmount().rawValue() : 0;
     outSlot.setMaterial(material);
     outSlot.setAmount(Quantity.of(held + totalL, 'L'));
+    // ⭐⭐ **An authored substance still had a hand behind it.**
+    //
+    // ⚠⚠ This branch used to `return` here, and the omission broke the
+    // accountability ledger for every `order`ed bulk product in the
+    // game — 22 of 49 bulk-output recipes take this path (every press,
+    // mash, crush, dough, vermouth, `render-tallow`, `spin-comb`, and
+    // all three still runs).
+    //
+    // The host IS marked: `craftImpl` stamps `CraftedMixin` on the
+    // output vessel a few hundred lines below, so `look` reads
+    // *"Made by X"*. But a served drink reaches a body as
+    // `(material, litres, payload)` — **the eater never sees the
+    // bottle** — which is the stated reason `BulkPayload.maker` exists
+    // at all. So `Metabolic.noteMealAccountability` reads the PAYLOAD's
+    // maker, found none, and returned on its first line: harm from a
+    // bought drink was indistinguishable from harm you did to yourself.
+    //
+    // ⭐ The fix is not invented here. `mintVessel` — the MANUAL-build
+    // path in this same file — already carries the identical branch
+    // with the identical comment (*"An authored-substance build still
+    // had a hand behind it"*). Two mint paths, and only one of them
+    // stamped the liquid; this is the other one agreeing.
+    //
+    // ⚠ Identity only. No `composition` is set, so derived toxicity
+    // still falls back to the Material row exactly as before — this
+    // changes who a batch names, never what is in it.
+    if (makerPath) {
+      outSlot.setPayload({ ...(outSlot.getPayload() ?? {}), maker: makerPath });
+    }
     return;
   }
   // The derived default: the generic blend base + a payload computed

@@ -217,3 +217,130 @@ describe('the Hanging Wood', () => {
     expect(existsSync(join(CONTENT, 'rejection', 'src'))).toBe(false);
   });
 });
+
+/* ───────────────────────── the sugarbush ───────────────────────── */
+
+describe('the sugarbush — the taps build\u2019s first consumer', () => {
+  const BUSH = join(WOOD, 'sugarbush.yaml');
+  const PANEL = join(WOOD, 'thing', 'sugarbush-panel.yaml');
+  const NAMES = ['birch-north', 'birch-middle', 'birch-south',
+                 'maple-north', 'maple-middle', 'maple-south'];
+
+  it('⚠⚠ it is NOT a Wood — a stand would read over six real stems', () => {
+    // A `Wood` appends its own derived reading to `look`, and over six
+    // standards a player can see and touch it would say *"nothing
+    // stands here worth the axe"*. The sugarbush is the OTHER
+    // representation: named individual trees in a panel.
+    const bush = row(BUSH);
+    expect(bush.class).toBe('/platform/location/SingletonCartesianLocation');
+    expect(bush.data._biomePath).toBe('/stuff/idea/biome/outdoor/woodland');
+  });
+
+  it('⭐ it hangs off the ride, both ways, and takes its own cell', () => {
+    const bush = row(BUSH);
+    const ride = row(join(WOOD, 'ride.yaml'));
+    expect(ride.data.exits?.east?.destination).toBe(
+      '/world/terminus/rejection/hanging-wood/sugarbush',
+    );
+    expect(bush.data.exits?.west?.destination).toBe(
+      '/world/terminus/rejection/hanging-wood/ride',
+    );
+    // ⚠ Its own cell: two rooms on one coordinate is the failure the
+    // whole-venue plot check exists against.
+    expect(bush.data.coords).toEqual({ x: 1, y: 1, z: 0 });
+    expect(bush.data.coords).not.toEqual(ride.data.coords);
+  });
+
+  it('⭐⭐ six NAMED trees, each addressable by its own keyword', () => {
+    // ⚠⚠ The correction this build had to make: `as:` is the identity
+    // key for the by-entry template MERGE, not a naming keyword. Three
+    // cherries authored with `as:` all answer to *cherry*. A tree the
+    // drive addresses as `birch-north` needs a ROW whose keywords say
+    // so — which is why these are six rows and not one propped six
+    // times.
+    const panel = row(PANEL);
+    expect(panel.data.props?.length).toBe(6);
+    const seen = new Set<string>();
+    for (const name of NAMES) {
+      const f = join(WOOD, 'thing', `${name}.yaml`);
+      expect(existsSync(f), `${name}.yaml must exist`).toBe(true);
+      const tree = row(f) as unknown as {
+        extends: string;
+        data: { keywords: string[]; growthStage: string };
+      };
+      // ⭐ `extends:` carries the class, the hydrator, the species and
+      // the growth numbers; the child states only what differs.
+      expect(tree.extends).toMatch(/\/plant\/(birch|maple)-standard$/);
+      expect((tree as unknown as { class?: string }).class).toBeUndefined();
+      // The distinct keyword is what makes it addressable at all.
+      expect(tree.data.keywords).toContain(name);
+      expect(seen.has(name)).toBe(false);
+      seen.add(name);
+      // ⭐ Mature: these trees were here before the player. A mature
+      // stem takes two spiles.
+      expect(tree.data.growthStage).toBe('mature');
+    }
+  });
+
+  it('⭐⭐ the PANEL does not offer `tap` — the trees do', () => {
+    // Checked structurally here and through `collectContributions` in
+    // `verb-gates.test.ts`. A hazel panel offering `tap` would mean the
+    // controller un-promising it, which is the host-placement tell.
+    const panel = row(PANEL);
+    expect(panel.class).toBe('/trade/forestry/thing/Panel');
+    // Six slots and six trees: the bush is FULL, which is the honest
+    // shape of a bush somebody else established.
+    const slots = panel.data.staticSlots as Array<{ name: string; capacity: number }>;
+    expect(slots.find((s) => s.name === 'plant')?.capacity).toBe(6);
+  });
+
+  it('⭐ the pan and the arch are the TRADE\u2019s rows, propped here', () => {
+    // A second sugarbush anywhere is rows: one panel, N trees, two
+    // vessels. That is the falsifiable line.
+    const bush = row(BUSH);
+    expect(bush.data.props).toContain('/trade/forestry/thing/sap-pan');
+    expect(bush.data.props).toContain('/trade/forestry/thing/evaporator');
+    for (const p of bush.data.props ?? []) expect(shipped(p), p).toBe(true);
+  });
+
+  it('⭐⭐ the store stocks AND PRICES the kit — the found-by-driving bug', () => {
+    // ⚠ A `Stock` with stock lines and no prices holds the goods and
+    // prices none of them: every `buy` answers *"isn't for sale"*. That
+    // was found by DRIVING the apiculture build, and it is why this
+    // asserts both halves.
+    const counter = row(join(REJECTION, 'thing', 'store-counter.yaml')) as unknown as {
+      data: {
+        stockLines: Array<{ itemTemplatePath: string; par: number }>;
+        prices: Record<string, number>;
+      };
+    };
+    const kit = [
+      '/trade/forestry/thing/auger',
+      '/trade/forestry/thing/spile',
+      '/stuff/thing/vessel/pail',
+    ];
+    for (const path of kit) {
+      expect(
+        counter.data.stockLines.some((l) => l.itemTemplatePath === path),
+        `${path} must be stocked`,
+      ).toBe(true);
+      expect(counter.data.prices[path], `${path} must be priced`).toBeGreaterThan(0);
+      expect(shipped(path), path).toBe(true);
+    }
+    // ⭐ And the spile is the cheapest thing on the slate, because it is
+    // CONSUMED by setting a tap — the only recurring cost in the trade
+    // besides fuel.
+    expect(counter.data.prices['/trade/forestry/thing/spile']).toBeLessThan(
+      counter.data.prices['/trade/forestry/thing/auger']!,
+    );
+  });
+
+  it('⚠ the treeline is untouched — no `fell` there and no `tap` either', () => {
+    // The parity the drive asserts: at the treeline both verbs give the
+    // same not-afforded answer, so the design is legible from where the
+    // verbs ARE afforded.
+    const treeline = row(join(WOOD, 'treeline.yaml'));
+    expect(treeline.class).toBe('/platform/location/SingletonCartesianLocation');
+    expect(treeline.data.props ?? []).toEqual([]);
+  });
+});

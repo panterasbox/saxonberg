@@ -27,6 +27,7 @@ import YAML from 'yaml';
 import Wood from '../location/Wood';
 import Bole from '../thing/Bole';
 import Panel from '../thing/Panel';
+import SapStandard from '../thing/SapStandard';
 import Tool from '@saxonberg/server/mud/platform/thing/Tool';
 import SingletonCartesianLocation from '@saxonberg/server/mud/platform/location/SingletonCartesianLocation';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
@@ -79,6 +80,68 @@ describe('fell.yaml — the arg gates', () => {
     expect(verbs(Panel, 'peers')).toContain('fell');
     expect(verbs(Panel, 'peers')).toContain('harvest'); // the copied-in four
     expect(verbs(Bole, 'self')).toContain('fell');
+  });
+});
+
+/* ─────────────────────── tap.yaml ─────────────────────── */
+
+const TAP_VIEW = fileURLToPath(
+  new URL('../../content/trade/forestry/cmd/forestry/tap.yaml', import.meta.url),
+);
+function tapArgs(): ArgSpec[] {
+  return (YAML.parse(readFileSync(TAP_VIEW, 'utf8')) as { args?: ArgSpec[] }).args ?? [];
+}
+
+describe('tap.yaml — the arg gates and the three-way contest', () => {
+  it('`target` is polymorphic: `requires: any`, the `fell.yaml` shape', () => {
+    // Two things stand in this slot and they share no mixin: a
+    // `SapStandard` in a panel, or a bare species word that binds
+    // NOTHING because the stand is the ROOM. A `requires:` would refuse
+    // the second at the binder, which is exactly where the refusal
+    // would teach nothing.
+    const target = tapArgs().find((a) => a.name === 'target')!;
+    expect(target.type).toBe('object');
+    expect(target.required).toBe(false);
+    expect(target.requires).toBe('any');
+  });
+
+  it('`tool` is DECLARED on the boring atom, and the auger composes ToolMixin', () => {
+    const tool = tapArgs().find((a) => a.name === 'tool')!;
+    expect(tool.default).toBe('reachable:[capability.boring]');
+    expect([tool.requires].flat()).toEqual(['ToolMixin']);
+    expect(MixinApi.hasMixin(Tool, Mixins.Tool)).toBe(true);
+  });
+
+  it('⭐ `vessel` is declared with a default — never hunted for', () => {
+    // `lint:instrument-args`: a player must be able to say WHICH pail.
+    const vessel = tapArgs().find((a) => a.name === 'vessel')!;
+    expect(vessel.required).toBe(false);
+    expect(vessel.default).toBe('me:i:[mixin.BulkableMixin]');
+  });
+
+  it('⭐⭐ THE THREE-WAY CONTEST: the tree affords it, the wood refuses it, the treeline has neither', () => {
+    const verbs = (ctor: unknown, bucket: 'self' | 'inventory' | 'environment' | 'peers'): string[] =>
+      CommandApi.collectContributions(ctor, bucket).map((d) => d.verbs).flat();
+
+    // 1. The TREE affords its own verb, outward through the open panel.
+    expect(verbs(SapStandard, 'peers')).toContain('tap');
+
+    // 2. The WOOD affords it too — in order to REFUSE it, which is a
+    // sentence only something that answers the verb can say: *a stand is
+    // a number of trees, not a stem*. ⚠ Not a guard re-narrowing a host
+    // set; `fell` lives there for the same reason.
+    expect(verbs(Wood, 'inventory')).toContain('tap');
+
+    // 3. ⭐ The PANEL does NOT. A hazel panel would otherwise offer
+    // `tap` and the controller would have to un-promise it — which is
+    // the host-placement tell this build keeps citing.
+    expect(verbs(Panel, 'peers')).not.toContain('tap');
+
+    // 4. And a plain room has neither verb, so at the treeline `tap` and
+    // `fell` give the SAME not-afforded answer. That parity is the thing
+    // the drive checks: the design is legible from the refusals.
+    expect(verbs(SingletonCartesianLocation, 'inventory')).not.toContain('tap');
+    expect(verbs(SingletonCartesianLocation, 'inventory')).not.toContain('fell');
   });
 });
 

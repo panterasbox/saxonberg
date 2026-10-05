@@ -32,6 +32,25 @@ conventions](../slates/builds/ranching-slate.md); phase 1 of nine in
 > has the general rule; [thermal.md § The trajectory contract](./thermal.md)
 > has the primitive.
 
+## ⭐ Also in `lib/husbandry/`: the taps
+
+`Producing.ts` + `Tappable.ts` — **a renewable yield off a living
+thing**, promoted into this folder by the taps build (2026-10-01)
+because its composers have no common pack ancestor: a cow
+(`trade-ranching`), a hive (`trade-apiculture`) and a sap-bearing tree
+(`trade-forestry`). It sits beside `Handling`, the gate it pairs with,
+for the same reason `Handling` is here: pets will want it and pets is
+not ranching.
+
+⭐ It shares this folder's own shape in two places worth noting, because
+both were copied deliberately: the window factor is sampled **at the
+read** (the `Stand` growth-factor form), and `TapState.worst` is
+`Growing._worstLimiting` applied to a fleece — the worst stretch over
+the cycle, one scalar, reset at the take.
+
+The mechanism is [taps.md](./taps.md).
+
+
 ## The object model — four things you assemble
 
 | Object | Class | What it is |

@@ -1,0 +1,49 @@
+# A maple standard — ⭐ **a tree kept for its SAP**, which makes it the
+# first plant in the game that is an RGO rather than a crop.
+#
+# It yields nothing to `harvest` (`harvestTemplatePath: null`) and is
+# felled where it stands, exactly like the oak; what it adds is
+# `ProducingMixin` through `/trade/forestry/thing/SapStandard`, so it
+# carries a reservoir with a recharge law and answers `tap`.
+#
+# ⭐ **ten game years to a mature stem** — faster than the oak's
+# fifteen, which is true of a maple and matters: a sugarbush is plantable
+# inside a career where an oak wood is not. An established stem takes one
+# spile and a mature one two.
+#
+# ⚠ The sap is the SPECIES row's fact (`production:` on
+# `/stuff/idea/species/plantae/tracheophyta/magnoliopsida/sapindales/sapindaceae/acer/saccharum`), not this
+# row's — a maple gives sap whether it was planted in a panel or grew
+# where it fell.
+class: /trade/forestry/thing/SapStandard
+data:
+  shortDescription: maple sapling
+  keywords: [sapling, maple, tree, standard, "maple sapling"]
+  register: indefinite
+  longDescription: |
+    A maple sapling, straight and grey-barked, with leaves too big for it.
+  _speciesPath: /stuff/idea/species/plantae/tracheophyta/magnoliopsida/sapindales/sapindaceae/acer/saccharum
+  _materialPath: /stuff/idea/material/tissue/plant-tissue
+  mass: 2
+  lifecycleState: alive
+  harvestTemplatePath: null
+  discipline: silviculture
+  standardMaterialPath: /stuff/idea/material/wood/maple
+  seedTemplatePath: /trade/forestry/thing/seed/maple-seed
+  nutrientDraw: 0
+  spiles: 0
+  profile:
+    moistureHappyAt: 0.25
+    moistureWiltAt: 0.05
+    litresPerGameDay: 0.35
+    luxHappyAt: 20
+    luxDarkAt: 3
+    rootDemand:
+      seedling: 0.5
+      young: 3
+      established: 8
+      mature: 16
+    daysToStage:
+      young: 270
+      established: 1080
+      mature: 3600

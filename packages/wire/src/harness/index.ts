@@ -22,4 +22,9 @@ export {
 } from './assertions';
 export { declareFile } from './registry';
 export type { FileRecord } from './registry';
-export { installedPacks } from './world';
+export {
+  installedPacks,
+  isOwnedTestWorld,
+  advanceWorldClock,
+  worldClockNow,
+} from './world';

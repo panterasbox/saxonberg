@@ -1,8 +1,8 @@
 /**
  * The wood vocabulary — closed, and minted here (forestry.md § The wood vocabulary).
  *
- * Eight woods in the commons (`/stuff/idea/material/wood/…`), eight
- * tree species in this pack, each naming the other: the material's
+ * Ten woods in the commons (`/stuff/idea/material/wood/…`), ten tree
+ * species in this pack, each naming the other: the material's
  * `biologicalSource.speciesPath` resolves to a species row, and every
  * `_materialPath` under `material/wood/` anywhere in the content tree
  * resolves to a material row. Before this build the garden bed named
@@ -19,7 +19,24 @@ import YAML from 'yaml';
 const CONTENT = fileURLToPath(new URL('../../../', import.meta.url));
 const WOOD_DIR = join(CONTENT, 'base-library', 'content', 'stuff', 'idea', 'material', 'wood');
 
-const EIGHT = ['oak', 'ash', 'hazel', 'beech', 'elm', 'willow', 'pine', 'yew'];
+/**
+ * ⭐ TEN since the taps build. Birch and maple joined for their SAP
+ * rather than their timber — both are indoor woods with no decay
+ * resistance worth the name — which is the first time a tree earned its
+ * way into the vocabulary for something other than what it is made of.
+ */
+const TEN = [
+  'oak',
+  'ash',
+  'hazel',
+  'beech',
+  'elm',
+  'willow',
+  'pine',
+  'yew',
+  'birch',
+  'maple',
+];
 
 /** Every `.yaml` under every pack's `content/`, as absolute paths. */
 function everyRow(): string[] {
@@ -48,17 +65,17 @@ function fileFor(templatePath: string): string | null {
   return null;
 }
 
-describe('the wood vocabulary — eight woods, eight trees, each naming the other', () => {
-  it('ships exactly the eight materials', () => {
+describe('the wood vocabulary — ten woods, ten trees, each naming the other', () => {
+  it('ships exactly the ten materials', () => {
     const rows = readdirSync(WOOD_DIR)
       .filter((f) => f.endsWith('.yaml'))
       .map((f) => f.replace(/\.yaml$/, ''))
       .sort();
-    expect(rows).toEqual([...EIGHT].sort());
+    expect(rows).toEqual([...TEN].sort());
   });
 
   it('every wood material names a species that exists, as wood', () => {
-    for (const wood of EIGHT) {
+    for (const wood of TEN) {
       const doc = YAML.parse(readFileSync(join(WOOD_DIR, `${wood}.yaml`), 'utf8')) as {
         data: { biologicalSource: { speciesPath: string; tissueType: string } | null; density: number; tags: string[] };
       };
@@ -82,7 +99,7 @@ describe('the wood vocabulary — eight woods, eight trees, each naming the othe
 
   it('the eight species are distinct trees in this pack', () => {
     const paths = new Set<string>();
-    for (const wood of EIGHT) {
+    for (const wood of TEN) {
       const doc = YAML.parse(readFileSync(join(WOOD_DIR, `${wood}.yaml`), 'utf8')) as {
         data: { biologicalSource: { speciesPath: string } };
       };
@@ -121,7 +138,7 @@ describe('the wood vocabulary — eight woods, eight trees, each naming the othe
     ) as { inputSlots: Array<{ category: string; minGrade: string; count: number }>; toolCapabilities: string[] };
     expect(recipe.inputSlots[0]).toMatchObject({ category: 'wood', minGrade: 'poor', count: 2 });
     expect(recipe.toolCapabilities).toEqual(['cutting']); // the felling axe offers it
-    for (const wood of EIGHT) {
+    for (const wood of TEN) {
       const doc = YAML.parse(readFileSync(join(WOOD_DIR, `${wood}.yaml`), 'utf8')) as { data: { tags: string[] } };
       expect(doc.data.tags, wood).toContain('wood');
     }

@@ -40,11 +40,27 @@ data:
   # roster, and between the three of them the signal is unmistakable.
   breeding: { daylightFrom: 0.5, daylightTo: 1, gestationDays: 3, litter: 6 }
   production:
+    # ⭐⭐⭐ The clutch choice, and the biology that forced it. A hen is
+    # an INDETERMINATE layer: she lays to a clutch and then sits on it.
+    # So the real decision is at the act — take the clutch and she starts
+    # again, or leave it and she stops — and it needs one flag, not a
+    # spoilage clock. ⚠ The old design had eggs rotting in the nest, and
+    # that is simply false: a clean unwashed egg keeps for weeks.
+    #
+    # ⭐ `yieldShape: count` so a take mints EGGS rather than a kilo of
+    # egg, which is what lets a recipe ask for two.
+    #
+    # ⭐ `photoperiod` because laying is a daylength response, which is
+    # why `gather`'s old refusal said "short days will do that" — a
+    # sentence that was true of hens and not true of the code until now.
     - key: eggs
-      yieldRow: /trade/ranching/thing/eggs
-      perGameDay: 0.05
+      yieldRow: /trade/ranching/thing/egg
+      perGameDay: 0.8
       behaviour: accrue
-      windowDays: 12
+      windowDays: 10
+      yieldShape: count
+      broodAfterDays: 4
+      window: { kind: photoperiod, daylightFrom: 0.45, daylightTo: 1 }
   longDescription: >-
     A brown hen with a comb flopped over one eye, moving in the short
     decisive bursts of something that has never once thought anything
