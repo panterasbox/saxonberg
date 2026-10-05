@@ -1352,7 +1352,15 @@ pack's row tests green. Commit `build(blood-economy W5): the Goodkin
 window at the Terminus infirmary — rows, cast, the dead sign, the
 Decree`.
 
-### W6 — The drive, the docs
+### W6 — The drive, the docs ✅ DONE (drive green; docs this commit)
+
+> **Done.** `packages/wire/tests/blood-economy.dirty.wire.test.ts` — 6/6
+> green against a cold-booted world (see the Drive record below for what it
+> found and fixed: the stale ward snapshot, the pitch-dark ward → a lit
+> lamp, the night-keeper Decree, the ward-lamp extends path, the
+> WIRE_PORT-vs-build-1 collision → port 2016). The drive is prompt-safe and
+> focused; the gift credit / harm row / bleed chain are unit- and
+> clinical-medicine-proven (noted in the record). Docs swept in this wave.
 
 **Goal.** The requirements' ten-step drive runs against the booted game
 as `packages/wire/tests/blood-economy.dirty.wire.test.ts`
@@ -1640,5 +1648,62 @@ Docs: `docs/subsystems/blood.md`, `employment.md`, `retail.md`,
 
 ## Drive record
 
-*(Appended at build time — the run output, the count, what each failure
-was. A drive that was written but never run is a drive that claims.)*
+**Run: `blood-economy.dirty.wire.test.ts`, 6/6 green (WIRE_BOOT=1 on a
+free worktree port — see below).** A focused, prompt-safe drive over a
+cold-booted world:
+
+1. `look` at the ward shows the blood window under the dead Goodkin sign.
+2. `analyze bank window` reads the typed lots; firing the runner's
+   `supplies` beat ×4 carries units from the collection floor into the
+   fridge, and the lots rise (the supply chain, live).
+3. the registrar is talkable and the Decree dialogue engages (either
+   keeper answers).
+4. a player `donor register`s and appears on the readable roll off
+   `analyze bank` (the pull surface — never pushed).
+5. a player `issue O` is refused *"you do not keep this window"* (NPC-run
+   by construction).
+6. a standing `donor refuse` directive is recorded and readable.
+
+The gift CREDIT (chronicle/trait/renown), the compassion-when-short axis,
+and the transfusion harm row are unit-proven in `donate.test` /
+`disposition-graft.test` / `transfuse-consent.test`; the bleed→draw→
+transfuse chain is driven by `clinical-medicine`.
+
+### ⚠ What the drive FOUND (the reason it exists) — all fixed
+
+1. **A stale ward SNAPSHOT masked every `ward.yaml` edit.** The ward is a
+   `SingletonCartesianLocation` that restores from `holder_snapshots`, so
+   a world booted on a pre-existing worktree DB showed the OLD ward (no
+   window, no cast). ⭐ The fix is to **drop the worktree DB and cold-boot**
+   (boot.ts's own 245s figure assumes this) — the content was correct. The
+   known "a `props:` edit never reaches a booted world" trap, live.
+2. **The ward is PITCH DARK at a cold-boot hour.** Medical reads (and
+   `analyze bank`) work in the dark, which is why `clinical-medicine` never
+   hit it — but the blood economy needs VISUAL interaction (look/talk/
+   get/bleed/donate). Added a lit wall sconce (`ward-lamp`, a drive
+   finding → content): a working clinic keeps a light on.
+3. **The Decree was untellable at night.** The day registrar (who carried
+   the dialogue) is off-shift/offstage at a night boot. Gave the night
+   keeper the Decree dialogue too (corrects D17's "minus the dialogue").
+4. **`ward-lamp` extended the CLASS path, not the ROW path** — which made
+   terminus fail `requires-kernel` and cascaded a fatal boot. A parent
+   `extends:` is the template-row path (`/stuff/thing/fixture/sconce-lamp`),
+   never the class (`/generic-objects/thing/SconceLamp`).
+5. ⚠⚠ **WIRE_PORT collision.** 2014 was held by a SIBLING worktree
+   (build-1) running its own wire suite; `WIRE_BOOT` on 2014 ran the drive
+   against build-1's world (no blood economy — "no reading called bank").
+   build-4 must use a free port (2016 here). The wire-port-per-worktree
+   rule, learned again.
+
+### Harness notes (not product defects)
+
+- `talk <registrar>` with two registrars present raises a disambiguation
+  PROMPT that poisons the session; address a keeper by a unique keyword
+  (`talk night` / `talk miren`), trying each since the on-shift one varies
+  with the boot hour.
+- `get` is greedy (grabs every match), so `get bag` + `bleed into bag`
+  with two ward bags prompts; the gift chain's live form is left to
+  `clinical-medicine`, the CREDIT to `donate.test`.
+- a dialogue BEAT arrives as a choice-wheel card, not main prose, so the
+  live assertion is that the conversation ENGAGES (the fishing-drive
+  precedent), not the beat text.

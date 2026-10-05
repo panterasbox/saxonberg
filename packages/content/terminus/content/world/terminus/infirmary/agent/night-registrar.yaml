@@ -24,3 +24,29 @@ data:
       config:
         window: /world/terminus/infirmary/thing/blood-window
         quiet: true
+    # ⭐ The night keeper knows the Decree too (W6 drive finding: the day
+    # registrar is off-shift at night, so without this the window's history
+    # is untellable after dark).
+    - brain: /lib/behavior/tree-dialogue
+      trigger: engage
+      config:
+        entry:
+          - node: decree
+        nodes:
+          decree:
+            beat: >-
+              The night keeper sets down her lamp. "We keep the name.
+              Goodkin hasn't run this window since the Decree — they kept
+              the collecting and the carting, where the money was, and left
+              us the giving away. The sign's theirs. The blood's yours."
+            choices:
+              - { line: "So Goodkin runs the blood bank?", to: correction }
+              - { line: "Thanks.", to: end }
+          correction:
+            beat: >-
+              "Goodkin runs the carts. The window is ours. The name over the
+              door is a ghost."
+            choices:
+              - { line: "Understood.", to: end }
+          end:
+            beat: '"Mind how you go."'

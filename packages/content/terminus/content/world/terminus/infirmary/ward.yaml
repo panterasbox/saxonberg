@@ -10,7 +10,7 @@ data:
   alternateNames: [ward, clinic, surgery]
   _address: terminus/city/counting-houses/infirmary
   longDescription: |
-    A low white room that smells of lye and boiled linen. Two cots stand along the far wall under a window with the shutters folded back; between them a scrubbed deal table holds a basin, a jug, and a roll of clean cloth. A tall cabinet by the door is stacked with folded dressings, and beside it a slate lists what the house does and what the house charges, in a small square hand that has written it many times. There is a chair by the near cot, angled for sitting with somebody.
+    A low white room that smells of lye and boiled linen. Two cots stand along the far wall under a window with the shutters folded back; between them a scrubbed deal table holds a basin, a jug, and a roll of clean cloth. A tall cabinet by the door is stacked with folded dressings, and beside it a slate lists what the house does and what the house charges, in a small square hand that has written it many times. There is a chair by the near cot, angled for sitting with somebody. Set into the inner wall is a low barred blood window, cold air sighing off the fridge behind it; over it hangs a dead Goodkin sign, GOODKIN BLOODWORKS in grey unlit tubes, and a door east leads back to the collection room.
   coords:
     x: 0
     y: 0
@@ -30,6 +30,10 @@ data:
     # ⭐ The ghost sign (blood build D12): a DEAD Goodkin neon over the
     # window — the Paramount Decree made literal. Zero light.
     - { template: /world/terminus/infirmary/thing/goodkin-sign, slot: sign:goodkin }
+    # ⭐ A lit wall sconce so the clinic (and its blood window) can be SEEN
+    # after dark — the ward is daylit by day and would be pitch black at
+    # night otherwise.
+    - { template: /world/terminus/infirmary/thing/ward-lamp, slot: lamp:ward }
   props:
     - /world/terminus/infirmary/thing/tariff
     # ⭐ The blood window (blood build D2) — the registrar's counter, a

@@ -359,3 +359,17 @@ multure, a tenth of the grist into the toll bin), which is how it pays
 for premises with no coin changing hands. If a venue ever wants coin for
 a working, the `Tariff` vocabulary is the seam; nothing else needs
 inventing.
+
+## Blood-economy build — the `transfusion` service + two houses in one room
+
+`SERVICE_KINDS` grew a fourth kernel-orchestrated service, `transfusion`:
+`OrderController.performService` draws a compatible unit off a
+`DonationBankMixin` fixture (the blood window) and `receiveBlood`s the
+customer (customer = patient, the only shape the payer rule allows). Two
+kernel fixes let two houses share one room: (a) `PricedOffer.collect`
+resolves the operator **self-first** — the priced fixture's own operating
+business before its container — so a blood window's fee attributes to the
+window's house, not the practice sharing the ward; (b) `OrderController`
+**scans every reachable `Tariff`** when the bound counter does not price
+the key, before falling through to the menu. See `blood.md`,
+`employment.md`.

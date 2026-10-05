@@ -1029,3 +1029,18 @@ Businesses are found the same way: `businessByLocation` and
 `businessByProprietor`, filled by the one enumeration that fills the
 business cache, with today's rebuild-and-retry on a miss for a business
 that post-dates the memo.
+
+## Blood-economy build — a Business may publish; a fixture-operated house
+
+`BusinessEntity` now composes `PublisherMixin`: a business that authors a
+`feedPath` and names `publishingPositions` keeps a notice board (the
+blood window posts shortage notices). `mayPublishAsImpl` fails closed on
+an empty `feedPath`, so the forty shipped businesses that author none
+publish nothing. ⚠ **A business operates its FIXTURE, not the room**: the
+blood window's `operatingLocations` names its counter, and the practice
+keeps the ward — the operator-index is last-writer, so two businesses
+naming one room would make one unreachable. A roster slot's `station:`
+teleports the assignee to the room (the window's registrars station at
+the ward, where the fixture stands). ⚠ The par/perception `stockSheetFor`
+skips a CLOSED sealable, so a bank reads its vault's own contents (not the
+sheet) — see `blood.md` (`DonationBankMixin`).
