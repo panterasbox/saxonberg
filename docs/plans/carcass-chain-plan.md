@@ -37,6 +37,50 @@ Wharfside.
 
 ## Grounding
 
+### Reconciled against master, 2026-10-04
+
+Eight merges landed after this plan was minted. **Seven are docs-only**
+(the wizardry, wizardry-curriculum, mcp-authoring, attribution,
+llm-economy, illustration and client-governance design branches, plus
+seventeen new or rewritten slates). Nothing in them touches this build's
+ground: `object-taxonomy` is blueprints and signatures, `scarcity` is
+metering, `labor-standing` is credit routing, `illustration` is the image
+pipeline. No new slate claims tanning, chandlery, slaughter or feed.
+
+**One merge touched code, and it is in this build's own file** —
+`fix/2026-10-03-ordered-maker`, +29 lines in `CraftingLogic`'s
+`applyBulkOutput`. Three facts about it, each checked:
+
+1. **No conflict.** It is in the *bulk* output arm; W1 changes the
+   *tangible* arm. Different functions.
+2. **W1's premise re-verified on the merged tree.** `applyTangibleOutput`
+   still has `if (!primary && !bulkOnly) throw … "resolved with no
+   matched item input and no 'outputMaterial'"`, with
+   `bulkOnly = !primary && authoredMaterial.length > 0`. So a bulk-only
+   input with no authored material still throws, which is exactly what
+   W1 fixes and what W6's one dip recipe needs.
+3. ⭐ **It is the precedent W1 should cite**, because it is the same class
+   of fix in the same file. Its own comment: *"The fix is not invented
+   here. `mintVessel` — the MANUAL-build path in this same file —
+   already carries the identical branch with the identical comment. Two
+   mint paths, and only one of them stamped the liquid; this is the other
+   one agreeing."* W1 is two paths disagreeing about deriving a
+   material; say so in its commit the same way.
+
+⭐ **And it hands D3 a small gift.** That fix names `render-tallow`
+explicitly as one of the 22 bulk-output recipes on the authored path, so
+a crock of tallow now **names who rendered it**. D3 changes that recipe's
+input from `meat` trimmings to `suet` and is unaffected by the change —
+but the chandler's feedstock now arrives with a maker on it, which is
+worth one line in the drive.
+
+⚠ **One known defect to route around, not fix.** `illustration-slate`
+lists *"the `props:`/`cast:` stable read (a defect fix)"* as outstanding.
+W8 places content with `props:` and `cast:`. If a placement reads
+unstably, that is a known upstream fault with an owner — record it and
+move on rather than chasing it.
+
+
 Everything below was verified by opening the file this cycle. Paths are
 repo-relative from `/home/bobalu/play/saxonberg/build-1`.
 
