@@ -1728,7 +1728,64 @@ message.
 (two sessions rent; each keeper's counter answers for its keeper; the
 hand restart; the first keeper's `stall` reopens pitch 1). Covers AC4.
 
-### B0 · The five invariants are a lint — `build(location-graph B0): the graph invariants are a lint over the rows`
+### B0 · The five invariants are a lint — ✅ DONE
+
+> **Note (2026-10-05).** Shipped as seven rules (the plan's own list was
+> seven; "the five invariants" is the slate's older count).
+> `lib/location/GraphInvariants.ts` is the instance value class both
+> callers share; `scripts/check-location-graph.ts` runs it over the rows.
+>
+> **First run: 124 places, 199 edges.** Errors all 0. Questions, and
+> these ARE the ceilings — measured, not padded, because a ceiling above
+> the real count is a hole in the ratchet: `cross-zone-one-sided` 1 ·
+> `unreachable-from-entrance` 13 · `asymmetric-edge` 4 ·
+> `destination-is-a-kind` 2.
+>
+> ⚠⚠ **A premise correction the first run forced, and it is the wave's
+> main finding.** The requirements' AC7 and this plan's D7 both ask for
+> *"a `bidirectional: true` edge the far side does not reciprocate"* as
+> an **error**. That shape does not exist. `Exitable._applyExitSpec`
+> calls `addBidirectionalExit`, which **installs the reverse** — so such
+> an edge is reciprocal by construction, and the far side declaring
+> nothing is the correct authoring. The rule written the plan's way
+> flagged Duncan Hall's front doors on its first run, whose row says in
+> a comment exactly why it is right: *"authored once with
+> `bidirectional: true` … the steps' back-exit is installed from here
+> rather than duplicated on the steps template."*
+>
+> So the rule is re-aimed at the conflict that genuinely exists —
+> **both sides declaring the same pair bidirectional**, which asks the
+> engine to install the pair twice — and renamed
+> `bidirectional-both-sides`. The one-sided edge AC7 was reaching for is
+> `asymmetric-edge`, a census: a singly-authored exit is `oneWay: true`
+> at runtime by default, so a one-way passage is legitimate content an
+> author must be able to ship. **AC7 is satisfied in substance** (a
+> one-sided edge IS reported to its author) and its wording was wrong
+> about the mechanism.
+>
+> ⚠⚠ **`unreachable-from-entrance` has false positives BY
+> CONSTRUCTION**, recorded at the site rather than worked around: this
+> gate reads rows, and **code-installed exits are not in rows** (a
+> warren's hub exits, `DormDoor`, `FloorStairExit`), so a zone reached
+> only through a code-installed door reads as entrance-less. Eleven of
+> the thirteen are that. The rule still earns its place — the count may
+> not GROW — and the first run's two real findings
+> (`/world/terminus/market/offstage` unreachable, and two exits naming
+> KIND rows that `StuffApi.singleton` would mint a stray instance of)
+> were news.
+>
+> ⭐ `extendsAny` + `normalizeClassPath` **lifted into `pack-roots.ts`**
+> at this second consumer, per the plan, and the dead local copy removed
+> from `check-location-classes` (which still passes).
+>
+> ⚠ A fixture correction: Seznick House's `corridor` LOOKS like a place
+> and is one of the three rows on the permissive `CartesianLocation` —
+> a kind, minted per floor. The first draft of the lint's test asserted
+> it was a place; the fact is pinned the right way round now.
+>
+> 19 + 11 tests. Typecheck clean.
+
+**Original wave spec** — `build(location-graph B0): the graph invariants are a lint over the rows`
 
 **Implements** D7, D8. **Files:** `lib/location/GraphInvariants.ts`
 (+ `__tests__/GraphInvariants.test.ts`), `scripts/check-location-graph.ts`

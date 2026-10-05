@@ -1015,6 +1015,69 @@ The runtime half is separate and louder: a class that declares
 clone pipeline. See
 [identity.md § Every mint names what keys on it](./subsystems/identity.md).
 
+### `lint:location-graph` — is the world's SHAPE sound, before anybody boots it? (2026-10)
+
+⭐⭐ The worst failure in this family is a **dangling exit, which is a
+boot crash**: `Exitable._applyExitSpec` → `StuffApi.singleton` →
+*Template not found*, wrapped as *"failed to clone"*. An author who
+learns about it from a boot crash learns it at the worst possible
+moment, from a stack trace naming the framework rather than their row.
+So the gate reads the ROWS ON DISK and names the row and the direction
+before any process starts.
+
+⭐ **The rules live in `lib/location/GraphInvariants.ts`, not in the
+script.** `NavigationApi.checkGraph` runs the same instance value class
+over the projected nodes at runtime, so a CMS save answers in the same
+request. Two copies would drift — and a gate and a runtime check
+disagreeing about what a dangling exit is reads as *neither* of them
+being wrong.
+
+⚠⚠ **A place is DERIVED, never listed.** A row is a place iff its
+effective class extends a Location root AND composes `SingletonMixin`
+(*one row IS one place*); every other location row is a **kind**, minted
+many times through a warren or a programme. The walk goes through mixin
+calls (`pack-roots.extendsAny`, lifted there at this second consumer),
+so a pack's own room class is found. ⚠ And **place rows are not all
+under a `/location/` segment** — `counting-houses/banking-hall`,
+`general-store/shop-floor` predate the path pattern — so enumerating by
+path infix would skip them. By class, always.
+
+**Three errors, four questions.** The errors have no ceiling because
+they are not questions: a dangling destination; the same pair declared
+`bidirectional` from **both** sides (one declaration installs both, so
+two install the pair twice); an edge from published content into
+unpublished content. ⭐ That last runs **one way only** —
+`published → unpublished` is a dangling edge waiting to happen, while
+`unpublished → published` is how a draft zone attaches to the live world
+when it lands.
+
+The four questions are censused and ratcheted, because a one-way passage
+is legitimate content and an author must be able to ship one. **First
+run (2026-10-05): 124 places, 199 edges** — `cross-zone-one-sided` 1 ·
+`unreachable-from-entrance` 13 · `asymmetric-edge` 4 ·
+`destination-is-a-kind` 2, every error rule at 0. The ceilings are those
+measured numbers, not padded ones: a ceiling above the real count is a
+hole in the ratchet.
+
+⚠⚠ **`unreachable-from-entrance` has false positives BY CONSTRUCTION**,
+and saying so is what keeps it honest. This gate reads rows, and
+**code-installed exits are not in rows** — a warren's hub exits, a
+`DormDoor`, a `FloorStairExit` are wired in TypeScript — so a zone
+reached only through a code-installed door reads as having no entrance.
+Eleven of the thirteen are that (trade venue interiors, locality
+cellars). The rule still earns its place: the count may not GROW, so a
+genuinely orphaned new room shows up as a rise, and the first run's two
+real findings (`market/offstage`, plus both `destination-is-a-kind`
+hits) were news.
+
+⚠ **A premise correction the first run forced.** The requirements' AC7
+asks for *"a non-reciprocal bidirectional edge"* to be reported. That
+shape does not exist: `bidirectional: true` means *install both sides*,
+so such an edge is reciprocal by construction, and the rule written that
+way flagged Duncan Hall's front doors — whose row explains in a comment
+why one declaration is correct. The one-sided edge AC7 was reaching for
+is `asymmetric-edge`, which is a census for the reason above.
+
 ## Domain honesty — the gates that buy a narrowing
 
 These exist because the failure they prevent is **silent and looks

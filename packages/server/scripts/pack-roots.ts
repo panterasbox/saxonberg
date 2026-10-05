@@ -166,6 +166,94 @@ export function composesMixin(
  * Exported for the gate's own tests; the inlining is transitive (a base
  * built from another base) and cycle-guarded by the visited set.
  */
+const ancestryCache = new Map<string, boolean>();
+
+/** `/a/b/../c` → `/a/c`. Shared by the ancestry walk below. */
+export function normalizeClassPath(p: string): string {
+  const out: string[] = [];
+  for (const seg of p.split("/")) {
+    if (seg === "" || seg === ".") continue;
+    if (seg === "..") out.pop();
+    else out.push(seg);
+  }
+  return "/" + out.join("/");
+}
+
+/**
+ * Does `classPath` extend — transitively, and THROUGH MIXIN CALLS — any
+ * of `roots`?
+ *
+ * ⚠⚠ The mixin call is the whole difficulty, and the reason a naive
+ * `extends (\w+)` is useless here: a room class is
+ * `class AuthoredWorking extends WorkingMixin(SingletonCartesianLocation)`,
+ * and the first identifier after `extends` is the MIXIN. Reading it as
+ * the base made every pack room invisible — and a gate that never fires
+ * reads exactly like a gate that passes. So every identifier in the
+ * extends clause is a candidate, each resolved through its own import;
+ * `A(B(C))` answers on `C`.
+ *
+ * ⭐ Lifted here from `check-location-classes.ts` on 2026-10-05, at its
+ * second consumer (`check-location-graph`), which is this repo's own
+ * promote-at-the-third-consumer rule read one short — a class-ancestry
+ * walk is substrate, and two copies of this particular walk would drift
+ * in exactly the way the comment above describes.
+ */
+export function extendsAny(
+  classPath: string,
+  roots: readonly string[],
+  depth = 0,
+  sources: readonly PackSource[] = packSources(),
+): boolean {
+  if (roots.includes(classPath)) return true;
+  if (depth > 6) return false;
+  const key = roots.join("|") + "  " + classPath;
+  const cached = ancestryCache.get(key);
+  if (cached !== undefined) return cached;
+  ancestryCache.set(key, false); // cycle guard
+  let src: string;
+  try {
+    src = readFileSync(classFileOf(classPath, sources), "utf8");
+  } catch {
+    return false;
+  }
+  // The LAST `class X extends …` wins: a module that builds a stack into
+  // a `const Base` and then exports `class X extends Base` names the
+  // composition, and the export is what a row resolves to.
+  const clauses = [...src.matchAll(/class\s+\w+\s+extends\s+([^{]+?)\s*\{/g)];
+  const clause = clauses[clauses.length - 1]?.[1];
+  const consts = [...src.matchAll(/const\s+(\w+)\s*=\s*([^;]+);/g)];
+  const candidates: string[] = [];
+  const collect = (text: string, seen = new Set<string>()): void => {
+    for (const id of text.match(/[A-Za-z_$][\w$]*/g) ?? []) {
+      if (seen.has(id)) continue;
+      seen.add(id);
+      candidates.push(id);
+      // A local `const Base = Mixin(Real)` is one more hop to unwrap.
+      const local = consts.find((c) => c[1] === id);
+      if (local) collect(local[2]!, seen);
+    }
+  };
+  if (clause) collect(clause);
+  for (const name of candidates) {
+    const imp = new RegExp(
+      `import\\s+(?:type\\s+)?(?:${name}\\b|\\{[^}]*\\b${name}\\b[^}]*\\})[^;]*?from\\s+['"]([^'"]+)['"]`,
+    ).exec(src);
+    if (!imp) continue;
+    const spec = imp[1]!;
+    const asMudPath = spec.startsWith("@saxonberg/server/mud/")
+      ? "/" + spec.slice("@saxonberg/server/mud/".length)
+      : spec.startsWith(".")
+        ? classPath.slice(0, classPath.lastIndexOf("/")) + "/" + spec
+        : null;
+    if (asMudPath === null) continue;
+    if (extendsAny(normalizeClassPath(asMudPath), roots, depth + 1, sources)) {
+      ancestryCache.set(key, true);
+      return true;
+    }
+  }
+  return false;
+}
+
 export function extendsExpressions(source: string): string[] {
   const out = [...source.matchAll(/\bclass\s+\w+\s+extends\s+([^{]+)\{/g)]
     .map((m) => (m[1] ?? "").trim())
