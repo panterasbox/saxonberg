@@ -20,20 +20,37 @@ invariants as a lint first and alone**. First consumers: the University
 Avenue crossing, the Duncan Hall dorm warren, the Hinkley Hills plat
 warren and the TPA departures board.
 
-Branch `reqs/location-graph`, worktree `build-3`.
+Branch `reqs/location-graph`, worktree `build-3`. Requirements as of
+commit `1cbda954a` (decision 9a rewritten — *iff THE NAME is durable*;
+the guest and corpse mints carved out as named non-goals).
 
-**Wave numbering:** Stage A is `A0…A3`, Stage B is `B0…B4`. Every A-wave
+**Wave numbering:** Stage A is `A0…A4`, Stage B is `B0…B4`. Every A-wave
 lands before any B-wave. The first draft of this plan numbered Stage B
 `W0…W5`; `W0→B0`, `W2→B1`, `W3→B2`, `W4→B3`, `W5→B4`, and **`W1` is
 deleted** — its work is Stage A's (`A1`), on a different footing (see
 § Plan-level decisions D1/D2, superseded).
 
-⚠ Three premises in the inputs are corrected below by grounding, and the
+⚠ Four premises in the inputs are corrected below by grounding, and the
 corrections are load-bearing: **holding rooms carry no minted identity**
 (§ Grounding G-ID), **the acting author is `null` inside the forced
-arrival `sense`** (§ Grounding G-WRITE), and **the slate's census of six
-mint sites is thirteen, in five shapes, two of which fit no family
-prefix** (§ Grounding G-MINT). None reopens scope.
+arrival `sense`** (§ Grounding G-WRITE), **the slate's census of six
+mint sites is thirteen, in five shapes** (§ Grounding G-MINT, with the
+census verdicts), and ⚠⚠ **`SandboxAvatar` does NOT override
+`getIdentityPath()`** — `Stuff.ts:528` and `sandbox.md` describe an
+override that does not exist; the projection works only because the
+wire body is stamped with the identity it projects, which is the one
+thing `Stuff.ts` says the index must never see (§ Grounding G-WIRE,
+DA8, wave A3). None reopens scope.
+
+⭐⭐ **A2 is a census-and-ratchet, not a shape validator.** The gate's
+question is *every mint site names what keys on its identity* (its own
+durable record · another record that references it · a lookup that must
+resolve to this instance — ⚠ never the mint's own uniqueness probe,
+which is circular). The census is done (G-MINT): **eleven of thirteen
+sites are justified; the guest and the corpse are not, and both are
+named non-goals** this build leaves alone. So A2 installs the rule and
+the meter and **unmints nothing** — the honest outcome; the count falls
+per-site, by whoever owns the site.
 
 ⚠ **The DB cost of this build is the stall's records and nothing else.**
 Stage A re-keys the market stall counter (A3): its `holder_snapshots` rows
@@ -123,24 +140,35 @@ Verified by opening files this cycle (2026-10-04). File paths are
   `getTemplatePath()` is `/platform/agent/PrimaryAvatar` — the family is
   rostered, `PlayerApi.registerAvatar / unregisterAvatar /
   findAvatarByPlayerId`, requirements AC3).
-- **G-MINT — thirteen `asIdentityPath` sites, five shapes.** Every
-  non-test caller (`grep -rn asIdentityPath --include='*.ts'`, 2026-10-04):
+- **G-MINT — thirteen `asIdentityPath` sites, five shapes, and the
+  census verdicts.** Every non-test caller (`grep -rn asIdentityPath
+  --include='*.ts'`, 2026-10-04). The census question (requirements 9a,
+  Stage A goals): *what keys on this identity?* — the instance's own
+  durable record · another record that references it · a lookup that must
+  resolve to this instance. ⚠ The mint's own uniqueness probe does **not**
+  qualify (circular).
 
-  | site | identity shape | row | fits |
-  |---|---|---|---|
-  | `platform/idea/cmd/charactergen/EmbodyController.ts:724` · `platform/idea/api/PlayerLogic.ts:503,581` · `platform/idea/Login.ts:309` (`${Avatar.TEMPLATE_PATH_PREFIX}guest-<uuid>`, `:285`) · `backend/TestHooks.ts:328` | `/platform/agent/Avatar/<pid>` | `/platform/agent/PrimaryAvatar` | **family prefix** — `TemplatePathPrefixes.avatar` (`lib/paths.ts:191`), already `Avatar.TEMPLATE_PATH_PREFIX` (`lib/character/Avatar.ts:603`) |
-  | `platform/idea/api/SandboxLogic.ts:355` | `actor.getIdentityPath()` — the REAL player's path | `/platform/agent/sandbox/SandboxAvatar` (extends `Avatar`) | family prefix, inherited |
-  | `platform/idea/api/ConditionLogic.ts:681` | `/platform/agent/ShadeAvatar/<pid>` | `/platform/agent/ShadeAvatar` | **row-prefixed** |
-  | `ConditionLogic.ts:622` (`corpseIdentityFor:557`) | `${TemplatePaths.mortalityCorpse}/<deceased identity, leading slash stripped>/<gameSecond>[-n]` | `/stuff/agent/Corpse` (`lib/paths.ts:155`) | row-prefixed — ⭐ the nesting precedent |
-  | `platform/idea/api/PartyLogic.ts:226` (`rec.path`) · `:358` | `/platform/idea/party/<uuid>` | `/platform/idea/Party` | **family prefix** (case differs from the row) |
-  | `content/terminus/src/market/idea/cmd/StallController.ts:119` · `:141` | `${STALL_SEED}/<leaf>` · `${STALL_BUSINESS_SEED}/<leaf>` (`identitiesOf:76`, `leaf` = the renter identity's basename) | `/world/terminus/market/thing/stall` · `/trade/shopkeeping/idea/business/stall` | row-prefixed |
-  | `platform/idea/api/ScriptLogic.ts:69` | `${parcel}/_eval` (`EvalController.ts:93`) — *"the identity is the jurisdiction's"* | `/platform/idea/EvalScript` | ⚠ **neither** — the namespace is a titled parcel, and the path is load-bearing for jurisdiction-targeted eval (`api/security.ts:1176`) |
-  | `lib/location/OuterWarren.ts:499` (`ensureNode`) | `${parentExtent}/${nodeId}` | the warren's circulation row (Hinkley `lots/road-segment` on permissive `CartesianLocation`; Duncan's `Corridor`) | ⚠ **neither** — and the class is the kernel's `CartesianLocation`, which cannot declare a namespace for one warren's nodes |
+  | site | identity shape | row | what keys on it | verdict |
+  |---|---|---|---|---|
+  | `platform/idea/cmd/charactergen/EmbodyController.ts:724` · `platform/idea/api/PlayerLogic.ts:503,581` · `backend/TestHooks.ts:328` | `/platform/agent/Avatar/<pid>` — re-derivable from `playerId` | `/platform/agent/PrimaryAvatar` | accounts (`bank_ledger`), chronicle, transcript, grants, the snapshot's owner — the whole identity-keyed ledger set | **justified** (own record + referenced) |
+  | `platform/idea/api/ConditionLogic.ts:681` (the shade) | `/platform/agent/ShadeAvatar/<pid>` — re-derivable | `/platform/agent/ShadeAvatar` | the same ledgers, attributing to the same person | **justified** |
+  | `content/terminus/src/market/idea/cmd/StallController.ts:119` (the counter) | `${STALL_SEED}/<leaf>` | `/world/terminus/market/thing/stall` | its own `holder_snapshots` record (`restoreOrSeed`); `operatingLocations` / `counterPath` round-trips (`findByTemplatePath`) | **justified** (own record + lookup) — re-keyed by A4 |
+  | `StallController.ts:141` (the house) | `${STALL_BUSINESS_SEED}/<leaf>` | `/trade/shopkeeping/idea/business/stall` | its operating account (`getAccountPath()` = identity, `Business.ts:339`); employment records' `organizationPath` | **justified** (referenced) |
+  | `platform/idea/api/PartyLogic.ts:226` (`rec.path`) · `:358` | `/platform/idea/party/<uuid>` — not re-derivable, but **recorded** | `/platform/idea/Party` | its own `PartyRecord.path`; members' `activePartyPath` | **justified** (own record) |
+  | `lib/location/OuterWarren.ts:499` (`ensureNode`) | `${parentExtent}/${nodeId}` — **re-derivable** from the plan + the extent | the warren's circulation row (Hinkley `lots/road-segment`; Duncan's `Corridor`) | a parked character's snapshot records it as `place.container` (`capturePlacement`, `PersistableLogic.ts:221`) | **justified** (referenced) — ⭐ 9a's worked case: ephemeral as an object, durably named; **shape unchanged** |
+  | `platform/idea/api/ScriptLogic.ts:69` | `${parcel}/_eval` (`EvalController.ts:93`) — re-derivable from the jurisdiction | `/platform/idea/EvalScript` | `findByTemplatePath(path)` reads the previous scratch back to destroy it (`:66`) — a genuine lookup, not a mint-time probe | **justified** (lookup) |
+  | `platform/idea/api/SandboxLogic.ts:355` (the wire body) | `actor.getIdentityPath()` — the REAL player's path, re-derivable | `/platform/agent/sandbox/SandboxAvatar` | the identity-keyed ledgers attribute in-circle acts to the player | **justified as a projection, wrong as a stamp** — DA8 / A3 moves the projection to the method and stops the stamp |
+  | `platform/idea/Login.ts:309` (the guest) | `${Avatar.TEMPLATE_PATH_PREFIX}guest-<uuid>` (`:285`) — random | `/platform/agent/PrimaryAvatar` | nothing: unrecorded, `shouldPersist()` false | ⛔ **unjustified — named non-goal.** On the login path; its purpose is avoiding a throwaway template row; touching char-gen opportunistically is how a cheap build becomes expensive. The census RECORDS it; it is the first entry the ratchet is allowed to fall by. |
+  | `ConditionLogic.ts:622` (`corpseIdentityFor:557`) | `${TemplatePaths.mortalityCorpse}/<deceased identity, slash-stripped>/<gameSecond>[-n]` | `/stuff/agent/Corpse` (`lib/paths.ts:155`) | only its own ordinal probe (`findAllByTemplatePath(base).length === 0`, `:567,570`) — circular; `reembody` never reads the corpse; belief's naming path is gated on `isPersona` (composed on `Character`, not `Creature`) | ⛔ **unjustified — named non-goal, reconciled with build-1** (`reqs/second-tier`, the carcass chain, which multiplies the mint to every non-player death and adds no reader). The slate keeps their counter-argument as a *reason to keep*, not a reader. ⭐ `corpseIdentityFor` is **byte-identical** to its pre-W0 form on that branch, so A0's probe move races nothing — the build does not go looking for a conflict. |
 
-  `asIdentityPath` is typed `string` (`api/stuff.ts:438,476`); nothing
-  validates it. ⚠ `Stuff.ts:536`'s comment says the registry *"must never
-  index the vessel under the identity it projects"*, yet `SandboxLogic:355`
-  passes the projected identity AS the raw stamp — see § Risks RA4.
+  Eleven justified, two carved out. `asIdentityPath` is typed `string`
+  (`api/stuff.ts:438,476`); nothing validates it. ⭐ A **row-prefixed**
+  identity (shade, corpse, stall, tombstone) is what requirements 9b
+  calls *individuation handles row-prefixed by construction* — the prefix
+  read finds them; a **family-prefixed** one (the Avatar family, the
+  party) is continuity and is rostered or recorded; the circulation node
+  and the eval scratch are **parcel-relative** and re-derivable. None of
+  the three is a defect; the census question is the gate, not the shape.
 - **G-STALL — the stall's manager and its book.** `content/terminus/src/market/thing/MarketStalls.ts:23`
   `extends Stock` (kernel `lib/retail/Stock.ts:99` composes
   `PersistableMixin`; `fieldMeta` `stockLines`, `purchasing` persistent;
@@ -176,6 +204,27 @@ Verified by opening files this cycle (2026-10-04). File paths are
   `Plant.ts:51`) are unstamped, so identity ≡ row and the divergence is
   latent; ⚠ for a stamped keyed host neither scope alone works —
   `clone()` needs the row, the record needs the identity (§ Risks RA5).
+- **G-WIRE — the wire body is filed under the identity it projects.**
+  `SandboxLogic.ts:340–360` clones `/platform/agent/sandbox/SandboxAvatar`
+  with `asIdentityPath: actor.getIdentityPath()` (*"the REAL identity:
+  every ledger keys on it"*), then `PersistableApi.forkRuntimeState(actor,
+  body)`. Because `SandboxAvatar` has no `getIdentityPath()` override
+  (G2), the projection is carried **entirely by the raw stamp** — so the
+  wire body and the parked field body share one exact bucket while a
+  circle is open, which is exactly what `Stuff.ts:536`'s comment forbids,
+  and `findByTemplatePath('/platform/agent/Avatar/<pid>')` throws
+  *"expected singleton, found 2"* for that player mid-visit unless the
+  field body is unregistered (`SandboxLogic.ts:350`: *"the parked body
+  keeps the slot"* — the `PlayerApi` slot, not the index). ⛔ **Order
+  matters for the fix**: the override must land BEFORE the stamp is
+  removed. Removing the stamp alone attributes in-circle acts to the wire
+  body — the promise `sandbox.md` makes hardest, and the field body's
+  displacement has cost three production failures before (a channel post
+  dying for everyone, the `online` resolver denied, `isConnected` making
+  a player unreachable by entering their own circle). "Vessel" also
+  names `lib/stuff/Vessel.ts` (a bag, a chest, a cart); the sandbox's
+  good name is **wire body** (`sandbox.md:3`); the "projection vessel"
+  wording sits at `Stuff.ts:528`, `SandboxAvatar.ts:2`, `Avatar.ts:1598`.
 - **G-HANDLE — the handle already exists, unnamed.** `PersistableLogic.ts:972`
   `placeIdOf(host)`: `scope = getIdentityPath()`, `key` only when
   `isPersistenceKeyExplicit()`, returns `` key ? `${scope}#${key}` : scope ``
@@ -250,8 +299,12 @@ Verified by opening files this cycle (2026-10-04). File paths are
   test-setup helper and `*.test.ts` only. **It stays gated where it is.**
   *Was an identity minted* needs no new surface:
   `getIdentityPath() !== getTemplatePath()`.
-  `platform/agent/sandbox/SandboxAvatar.ts:16` overrides the METHOD to
-  project the real player. `Stuff.ts` imports `ProxyApi`, `SecurityApi`,
+  ⚠⚠ `platform/agent/sandbox/SandboxAvatar.ts:16`'s doc comment says the
+  class *"overrides `getIdentityPath()`"* to project the real player, and
+  `Stuff.ts:528` repeats it. **It does not**: the class overrides
+  `shouldPersist` (`:46`), `startAutoSave` (`:51`),
+  `announceSessionPresence` (`:63`), `onLinkdead` (`:74`), `toString`
+  (`:83`) and nothing else (G-WIRE). `Stuff.ts` imports `ProxyApi`, `SecurityApi`,
   `ModuleApi` — not `MixinApi`; a handle on `Stuff` must not narrow on
   mixins from the root (DA3 is built as per-mixin rungs for this reason).
 - **G-ID — ⚠⚠ when the slot is stamped, and who has no stamp.**
@@ -259,7 +312,8 @@ Verified by opening files this cycle (2026-10-04). File paths are
   for the singleton guard, and line 629 stamps `#identityPath` **only
   when `asIdentityPath` was passed**. Four populations follow:
   - **Circulation nodes** of an `OuterWarren` are stamped
-    (`lib/location/OuterWarren.ts:499`, G-MINT's last row).
+    (`lib/location/OuterWarren.ts:499`) — ephemeral as objects, durably
+    NAMED (G-MINT; requirements 9a's worked case). Their stamp stays.
   - **Holding rooms** (every Duncan Hall dorm room, every Hinkley house
     room, Seznick House's units) are NOT stamped. The keyed model is the
     persistence spine's: `restoreOrSeedImpl(host, key)` (`:1180`) takes
@@ -642,11 +696,14 @@ duplicate (AC4).
 singleton read is untouched.** *Requirements 9b; the slate's open 1 and
 3 answered.*
 - `findAllByTemplatePath(row): Stuff[]` **becomes what its name says**:
-  `[...exact(row), ...glob(row + '/**')].filter(o => o.getTemplatePath() === row)`,
-  de-duplicated. Unstamped clones, keyed-unstamped warren rooms and
-  row-prefixed stamped clones (the stall, a corpse, a circulation node
-  after DA5) all return; an identity passed in returns its exact hit
-  because nothing nests under an identity; a continuity family's
+  `[...exact(row), ...glob(row + '/**').filter(o => o.getTemplatePath() === row)]`,
+  de-duplicated — ⚠ **the filter is scoped to the glob half only**; an
+  earlier spelling of this line applied it to the whole union, which
+  would have dropped an identity's exact hit (the corpse probe below is
+  the case that found it). Unstamped clones, keyed-unstamped warren rooms
+  and row-prefixed stamped clones (the stall, a corpse, the tombstone)
+  all return; an identity passed in returns its exact hit because nothing
+  nests under an identity; a continuity family's
   namespace (`/platform/agent/Avatar`) returns nothing, by design — the
   family is rostered on `PlayerApi` (AC3's second half; a doc line, no
   code).
@@ -660,15 +717,18 @@ singleton read is untouched.** *Requirements 9b; the slate's open 1 and
   `ContractLogic:912`, `BeliefStore:636`, `ConditionLogic:567,570`) move
   to it — ⚠⚠ **and for `ConditionLogic:567,570` this is MANDATORY, not
   honesty.** The corpse's ordinal probe asks
-  `findAllByTemplatePath(<a minted identity>).length === 0`, and under
-  this wave's redefinition the `.filter(o => o.getTemplatePath() === row)`
-  applies to the whole union — so the exact hit is **dropped**, because a
-  corpse's template path is the corpse ROW and never the identity it was
-  stamped with. The probe would report "free" for a taken identity and
-  **two deaths in one game-second would collide**, which is the precise
-  hazard the `∪ exact` form was added to prevent. A0 therefore moves both
-  probes to `findByIdentityPath` **before** redefining the row read, and a
-  test pins a second death in the same game-second getting its ordinal.
+  `findAllByTemplatePath(<a minted identity>).length === 0`; with the
+  row filter applied to the whole union the exact hit is **dropped**,
+  because a corpse's template path is the corpse ROW and never the
+  identity it was stamped with — the probe reports "free" for a taken
+  identity and **two deaths in one game-second collide**, the precise
+  hazard the `∪ exact` form exists to prevent. Scoping the filter to the
+  glob half (above) removes the hazard by construction, and the probes
+  move anyway: a probe for an IDENTITY must not depend on how a ROW read
+  scopes its filter. A0 moves both probes to `findByIdentityPath`
+  **before** redefining the row read, and a test pins a second death in
+  the same game-second getting its ordinal. ⭐ `corpseIdentityFor` is
+  byte-identical on `reqs/second-tier` (G-MINT), so this races nothing.
   ⭐ The general shape, worth stating because the filter is load-bearing:
   **the row filter is correct for a row and wrong for an identity**, which
   is why the two reads have to be two names rather than one tolerant
@@ -695,9 +755,12 @@ by the host that owns the fact, each deferring with `super` when its
 condition is false:
 - `Stuff.getDurableHandle()` (base): `const row = this.getTemplatePath();
   if (!row) return null; const id = this.getIdentityPath(); return id !==
-  row ? id : null;` — a minted identity is durable by 9a (*an identity
-  exists iff it is durable*); an unstamped instance has no handle unless
-  a mixin says otherwise.
+  row ? id : null;` — a minted identity is a durable NAME by 9a (*an
+  identity exists iff the name is durable — re-derivable or recorded*),
+  whether or not the instance persists: a circulation node is reaped and
+  re-minted and its handle is the same string both times, which is what
+  lets a parked character's record find it again. An unstamped instance
+  has no handle unless a mixin says otherwise.
 - `PersistableMixin` overrides: `this.isPersistenceKeyExplicit() ?
   `${this.getTemplatePath()}#${this.getPersistenceKey()}` :
   super.getDurableHandle()` — **row + decoration**, the `placeIdOf`
@@ -706,7 +769,12 @@ condition is false:
 - `SingletonMixin` overrides: `super.getDurableHandle() ?? this.getTemplatePath()`
   — the one instance IS the row (the bar's door regression guard).
 Precedence falls out of composition: `Persistable` always sits above
-`Stuff`, so keyed beats stamped; `Singleton` fills only a null. ⭐ No
+`Stuff`, so keyed beats stamped; `Singleton` fills only a null. ⭐⭐ The
+two durabilities of 9a each have their own mechanism here and must not
+be conflated — **the NAME decides whether to stamp** (the base rung reads
+it), **the KEY (`isPersistenceKeyExplicit()`) decides whether there is a
+`<row>#<key>` handle** (the Persistable rung reads it). Conflating them is
+what produced the four-rung ladder this plan deleted. ⭐ No
 `MixinApi.isX` in `Stuff.ts` (G2: it does not import `MixinApi`, and a
 root class narrowing on its own mixins is the shape to fear), no
 `if (isLocation)` anywhere. `placeIdOf(host)` becomes
@@ -718,7 +786,10 @@ falls out because an identity exists iff durable"* is only true WITH the
 base rung's `id !== row` test: `getIdentityPath()` keeps defaulting to the
 template (non-goal), so a lounge satellite's identity IS its row and the
 handle must read that as *none* explicitly. That is the whole of the
-base rung, and it is why the rung exists.
+base rung, and it is why the rung exists. The lounge satellite fails 9a
+on both legs (not re-derivable — a fresh clone per landing — and
+recorded nowhere), so `null` is its honest answer and `stuffId` covers
+it.
 
 **DA4 — `Exit.getDiscoveryKey()` keys on the handle.** *Requirements 9.*
 `const h = this.source?.getDurableHandle(); return h ? `${h}#exit:${this.direction}` : undefined;`
@@ -736,49 +807,60 @@ ROW with `restoreOrSeed` / `asIdentityPath`, not from
 individuated by its chattel id, a different question and a different
 build.
 
-**DA5 — A minted identity is validated at the mint against a namespace
-its family declares; two shapes conform, one changes.** *Requirements
-9d; the slate's opens 4, 5, 6.* `StuffApi.#cloneInner` (`:545`), before
-the singleton guard, asserts `asIdentityPath` satisfies ONE of:
-- **(a) a family-declared prefix** — `static readonly identityNamespace:
-  string | readonly string[]` on the resolved class, found by walking the
-  prototype chain (so the family declares once and every body inherits).
-  Declared by: `lib/character/Avatar.ts` (`TemplatePathPrefixes.avatar`
-  — the abstract root, so `PrimaryAvatar`, `SandboxAvatar` and the guest
-  path inherit it; `TEMPLATE_PATH_PREFIX` keeps its name, unchanged),
-  `platform/idea/Party.ts` (`/platform/idea/party/`).
-- **(b) row-prefixed** — `asIdentityPath.startsWith(templatePath + '/')`.
-  Satisfied without a declaration by the shade (`/platform/agent/ShadeAvatar/<pid>`),
-  the corpse (`/stuff/agent/Corpse/<deceased>/<t>`), and the stall's
-  counter and house. ⭐ This is requirements 9b's *"individuation handles
-  are row-prefixed by construction"* made a rule.
-- **(c) parcel-relative** — the class declares
-  `identityNamespace = IdentityNamespace.parcel` (a sentinel exported
-  from `lib/paths.ts` beside `TemplatePathPrefixes`), and the identity
-  lies **strictly inside** a titled extent: `ParcelApi.coveringParcelOfSync(path)`
-  resolves and its extent is a proper prefix. Declared by
-  `platform/idea/EvalScript.ts` alone: the scratch's identity is the
-  jurisdiction's by design (`${parcel}/_eval`) and the path is
-  load-bearing for jurisdiction-targeted eval, so it cannot move.
-Anything else throws `StuffApi.clone('<row>'): identity '<path>' is not
-in a namespace <Class> declares` — loud, at the mint, in tests and at the
-drive. **No ratchet lint** (G-MINT: mint sites scale with content).
-**The one site that changes shape:** `OuterWarren.ensureNode` (`:499`)
-mints `${parentExtent}/${nodeId}` from a row whose class is the kernel's
-permissive `CartesianLocation`, which cannot declare a namespace for one
-warren's nodes. It becomes row-prefixed with the extent nested — the
-corpse's own precedent: `` `${template}/${parentExtent.replace(/^\/+/, '')}/${nodeId}` ``
-(e.g. `/world/terminus/hinkley-hills/location/lots/road-segment/world/terminus/hinkley-hills/lane:3`),
-computed in ONE place, `PlatPlan.nodeIdentityOf(nodeId, template, extent)`
-(an instance method on the kernel value object, which `OuterWarren.ensureNode`
-calls and Stage B's registry calls over parsed plan data — D4). Cost:
-circulation nodes have no records; an avatar snapshot parked on a lane
-carries the old string in `place.container`, which
-`resolvePlacementAnchor` (`:345–355`) already tolerates with a warn
-(*"host left where cloned"*). ⚠ Recorded tension with 9d (*individuation
-never mints*): the row-prefixed sites ARE individuation mints, admitted
-because moving them onto the persistence spine (a record per corpse,
-per circulation node) is a different build — § Deferred seams.
+**DA5 — Every mint site names what keys on its identity: a CENSUS at
+the site and a RATCHET over the unjustified count; continuity's declared
+namespace is asserted at the mint.** *Requirements 9a (the name test),
+9d (continuity declares), the Stage A goals; the slate's opens 4–6.*
+⭐⭐ Not a shape validator: a validator over the five shapes would codify
+thirteen improvisations and give every one of them a passing grade. The
+census QUESTIONS them, and its count is meant to go DOWN.
+- **The marker, at the site.** Every production `asIdentityPath:` carries
+  an adjacent structured comment, the live registry the
+  `eslint-disable -- <reason>` convention already uses:
+  `// identity-keyed-by: own-record | referenced | lookup | none — <what>`
+  (e.g. `// identity-keyed-by: referenced — a parked character's
+  snapshot records this node as its container`). A pack adds its own
+  marker beside its own mint; **no kernel list is edited** when a pack
+  mints (the rule a pack must never need a kernel edit).
+- **The gate.** `scripts/check-identity-mints.ts` (`lint:identity-mints`;
+  `lint:family` derives the roster) walks the kernel tree and every
+  pack's `src/` (`pack-roots.ts`), finds each `asIdentityPath:` outside
+  tests, and reports: a site with no marker is an **error**; a site
+  marked `none` is **unjustified** and counted; the unjustified count is
+  **ceilinged at today's two** (the guest, the corpse — both named
+  non-goals) and may only fall. The vocabulary is closed; `probe` is not
+  in it, by design — a mint's own uniqueness probe (`corpseIdentityFor`)
+  cannot justify the mint it serves. The census table in G-MINT is the
+  first run's output and goes in A2's commit message.
+- **The continuity assertion** (9d, kept from the earlier draft but as
+  the mint-time check, not the gate). A class that declares
+  `static readonly identityNamespace: string | readonly string[]` (found
+  by walking the prototype chain, so a family declares once) has every
+  `asIdentityPath` asserted against it in `StuffApi.#cloneInner`
+  (`:545`, beside the singleton guard that reads the same string) —
+  `StuffApi.clone('<row>'): identity '<path>' is outside <Class>'s
+  declared namespace`. Declared by `lib/character/Avatar.ts`
+  (`TemplatePathPrefixes.avatar` — the abstract root, so `PrimaryAvatar`,
+  `ShadeAvatar`'s shade path does NOT inherit a wrong prefix: `ShadeAvatar`
+  declares its own `/platform/agent/ShadeAvatar/`; `SandboxAvatar` and
+  the guest inherit the family's) and `platform/idea/Party.ts`
+  (`/platform/idea/party/`). A class that declares nothing is not asserted
+  — the census is its gate. `TEMPLATE_PATH_PREFIX` keeps its name.
+- **Nothing changes shape.** The circulation node's `${parentExtent}/${nodeId}`
+  is re-derivable and referenced (9a's worked case) and stays
+  byte-identical; the eval scratch's `${parcel}/_eval` stays; the stall's
+  stamps are re-derived from its new key in A4 (DA6) but the shape class
+  is the same. Stage B's D4 derives the circulation identity through
+  **`PlatPlan.nodeIdentityOf(nodeId, extent)`** (an instance method on
+  the kernel value object, which `OuterWarren.ensureNode` also calls), so
+  there is one computer of the string, not two — the method is a move of
+  the existing formula, not a new shape.
+- **A2 unmints nothing, and says so.** Eleven sites are justified; the
+  two that are not are carved out by the requirements (non-goals) and
+  recorded in the census as the ceiling. Unminting is per-site, by
+  whoever owns the site (the guest → `instance-addressing-slate`; the
+  corpse → the carcass-chain build). The acceptance is *the rule and the
+  meter exist and the meter reads 2*, not a reduction.
 
 **DA6 — The stall is keyed by its PITCH, relative to the square's
 fixture; the discriminator is written once.** *Requirements 9c.* The
@@ -793,7 +875,7 @@ when full → `stall rent` refuses *"The square has no free pitch."*) and
 `/world/terminus/market/stalls/3` — the `HoldingWarren` shape, the
 manager's own durable address as the prefix). The two **identities**
 derive from the same key with its leading slash stripped (the corpse's
-nesting, DA5 (b)): counter `${STALL_SEED}/world/terminus/market/stalls/3`,
+nesting, the corpse precedent): counter `${STALL_SEED}/world/terminus/market/stalls/3`,
 house `${STALL_BUSINESS_SEED}/world/terminus/market/stalls/3`. One
 helper, `StallController.idsFor(fixture, pitch)`, replaces
 `identitiesOf(renterKey)`; `rent` resolves the renter's pitch from the
@@ -817,6 +899,35 @@ For both pinned classes today identity ≡ row, so no pin moves. ⚠
 `cloneHost(scope, key)` still needs a ROW to `clone()` when the host is
 not live; for a stamped keyed host the pin would need to carry both —
 recorded as RA5, not built (no pinned class is stamped).
+
+**DA8 — The wire body projects the player's identity through the
+METHOD and stops stamping it; the override lands first.** *Promoted from
+RA4 (G-WIRE).* Two steps, in this order, in one wave (A3):
+1. `SandboxAvatar.getIdentityPath()` **override** returning the real
+   identity — the parked player's `/platform/agent/Avatar/<playerId>`,
+   derived from the `playerId` the overlay already lands before
+   `onCreate` (`SandboxLogic.ts:357`) via `Avatar.getTemplatePath(playerId)`
+   (the family's identity formula; misnamed, unchanged). This makes the
+   doc comments at `SandboxAvatar.ts:16` and `Stuff.ts:528` TRUE, and
+   every identity-keyed ledger (belief viewer key, chronicle, transcript,
+   grants, chattel stamps, snapshot owner) keeps attributing in-circle
+   acts to the player, because they all read the method.
+2. `SandboxLogic.ts:355` **stops passing `asIdentityPath`**. The wire
+   body is then an unstamped clone of `/platform/agent/sandbox/SandboxAvatar`,
+   filed under its row; the raw slot is empty; `_identityStampOf` returns
+   `null`; the parked field body is the only object in the player's
+   identity bucket. The census marker at the site is removed with the
+   mint.
+⚠ Removing the stamp without step 1 attributes in-circle acts to the
+wire body's ROW — `sandbox.md`'s hardest promise broken for every
+circle visitor, silently. The test pins both halves: with a circle open,
+`findByIdentityPath(playerIdentity).length === 1` and it is the field
+body; `body.getIdentityPath() === actor.getIdentityPath()`;
+`BeliefStore.viewerKey(body)` equals the player's. `forkRuntimeState`
+(`PersistableLogic.ts:1309`) is read in the wave for any raw-slot
+dependence. **The rename rides this wave:** "projection vessel" →
+"wire body" at `Stuff.ts:528`, `SandboxAvatar.ts:2`, `Avatar.ts:1598`
+(the `CLAUDE.md` wording, if any, is the sweep's — worktree rule 5).
 
 ### Stage B
 
@@ -852,9 +963,10 @@ boot"*. Indexes: `{identity: 1}` unique; `{zone: 1}`; `{'edges.to': 1}`;
   `ceil(defaultCapacity / frontagesPerNode)`; `identity` =
   `authoredPathOf(nodeId)` when the node is authored (the authored row
   then IS the node and the plan contributes its edges), else
-  **`plan.nodeIdentityOf(nodeId, circulationTemplate, parentExtent)`** —
-  the same method `OuterWarren.ensureNode` calls (DA5), so the two
-  strings cannot drift. Edges: the spine (`predecessorOf` /
+  **`plan.nodeIdentityOf(nodeId, parentExtent)`** = `` `${parentExtent}/${nodeId}` ``,
+  byte-identical to today's `ensureNode` string and the same method
+  `OuterWarren.ensureNode` now calls (DA5), so the two strings cannot
+  drift. Edges: the spine (`predecessorOf` /
   `onwardDirectionOf` + the inverse), the branch edge
   (`branchesFrom.direction`), and one **slot stub** per frontage
   (`{dir: gateDirectionOfSlot(slot), to: null, slot, label: <programme
@@ -982,7 +1094,8 @@ makes AC6 true**: the boot no longer throws from `applyExits`.
 `CartesianLocation` has — confirm `Exitable` composition when writing it),
 row `packages/content/platform/content/platform/location/tombstone.yaml`
 (a KIND: cloned per offlining with `asIdentityPath: `${TOMBSTONE_ROW}/${extent stripped}``
-— **row-prefixed, DA5 (b)**, so it needs no namespace declaration — and
+— re-derivable from the extent, and `pointingAt`'s diagnostics reference
+it; its census marker reads `identity-keyed-by: referenced` — and
 a `dataOverlay` that writes the long description — *the place that
 stood here, `<extent>`, was taken offline by `<owner>`; tell them if
 you were sent here*). It installs one exit, `out`, by the four-rung
@@ -1112,12 +1225,13 @@ discovery key), `holding.md § Identity` (the sentence *"the registry
 indexes on identity ?? template so every existing lookup is
 byte-identical"* gains *"and a row is enumerated by prefix"*),
 `identity.md` or `architecture.md` (the `identityNamespace`
-declaration), `antipatterns.md` (one entry: *asking the registry for an
-identity when you mean every instance of a row*). Stage B: `boundary.md`
+declaration + the `identity-keyed-by` marker), `antipatterns.md` (one
+entry: *asking the registry for an identity when you mean every instance
+of a row*), `lint-family.md` (`lint:identity-mints`). Stage B: `boundary.md`
 (the two new gates, the unbuilt edge), `parcel.md` (`published`),
 `document-store.md` (`map`), `fasttravel.md` (`publishedStops`),
-`location.md` (the handle; `nodeIdentityOf`), `lint-family.md` (the new
-gate).
+`location.md` (the handle; `nodeIdentityOf`), `lint-family.md` (the two
+new gates), `sandbox.md` (the method override; *wire body* throughout).
 
 ---
 
@@ -1128,8 +1242,11 @@ gate).
 | `getDurableHandle()` base rung | `Stuff` (`lib/stuff/Stuff.ts`) | every object can say whether it has a durable per-instance handle, and honestly says `null` when it is one of an unbounded many. A read, not a capability; it narrows on nothing (G2: `Stuff.ts` does not import `MixinApi`). |
 | `getDurableHandle()` keyed rung | `PersistableMixin` (`lib/persistence/Persistable.ts`) | a keyed host's handle is row + decoration. Composing `Persistable` already claims *this thing has a `(scope, key)` record*; the rung states the same fact as a string. The stall, every dorm room, every plant and named animal get it for free. |
 | `getDurableHandle()` singleton rung | `SingletonMixin` (`lib/stuff/Singleton.ts`) | the one instance IS the row. True of every Singleton by definition — the mixin exists to say so. |
-| `identityNamespace` static | the FAMILY root that owns the namespace: `lib/character/Avatar.ts` (abstract), `platform/idea/Party.ts`, `platform/idea/EvalScript.ts` (the parcel sentinel) | a class that declares one says *my minted identities live here* and every subclass inherits the claim (`SandboxAvatar`, `PrimaryAvatar`, the guest). ⭐ Not on `Stuff` with a default: a default namespace would admit every mint everywhere, which is the improvisation the rule removes. Row-prefixed mints declare nothing — the row is the declaration. |
-| the `asIdentityPath` assertion | `StuffApi.#cloneInner` (`api/stuff.ts`) | the clone pipeline is the only minter (the stamp gate already says so); the check sits beside the singleton guard that reads the same string. |
+| `identityNamespace` static | the FAMILY root that owns a continuity namespace: `lib/character/Avatar.ts` (abstract), `platform/agent/ShadeAvatar.ts`, `platform/idea/Party.ts` | a class that declares one says *my minted identities live here* and every subclass inherits the claim (`SandboxAvatar`, `PrimaryAvatar`, the guest). ⭐ Not on `Stuff` with a default: a default namespace would admit every mint everywhere. A class that declares nothing is gated by the census, not the assertion. |
+| the continuity assertion | `StuffApi.#cloneInner` (`api/stuff.ts`) | the clone pipeline is the only minter (the stamp gate already says so); the check sits beside the singleton guard that reads the same string. |
+| the `identity-keyed-by` marker | each mint SITE (a structured comment) | the site that mints names its reader; a pack's site is the pack's to mark. The lint reads sites, never a kernel list. |
+| `lint:identity-mints` | `scripts/check-identity-mints.ts` | a census-then-ratchet over unjustified mints (ceiling 2, falls only). |
+| `getIdentityPath()` override | `SandboxAvatar` (`platform/agent/sandbox/SandboxAvatar.ts`) | the wire body projects the person it is worn by — the one class whose identity is somebody else's, and the override the docs already claim exists. Nothing else overrides the method. |
 | `findAllByTemplatePath` (row read) · `findByIdentityPath` | `StuffApi` (`api/stuff.ts`) | the registry's two honest reads. Object-verbs-exempt Api; strings first. |
 | the scan's needle | `PersistableLogic.assertUniqueKey` / `liveKeyed` (`platform/idea/api/PersistableLogic.ts`) | module-private functions already; the fix is inside them. |
 | `pitches` · `lets` · `allocatePitch`/`releasePitch`/`pitchOf` | `MarketStalls` (`content/terminus/src/market/thing/MarketStalls.ts`) | the square's fixture is the stall's MANAGER and keeps the book of lets — the `PlatBook` shape one level down. ⚠ Not on kernel `Stock`: a shop counter does not let pitches; not on `StallController`: a controller holds no state. |
@@ -1173,11 +1290,10 @@ Checked against the current tree this cycle.
   `GraphInvariants` (value object, `lib/`), `LocationGraphRegistry`
   (platform/idea registry singleton), `Tombstone` (platform/location
   class), `MapController` (controller), `map.yaml` (command view),
-  `check-location-graph.ts` (lint script); Stage A adds **no file** —
-  every change lands in an existing class, mixin, Api or Logic. **No new
-  category, no free helper, no `eslint-disable`.** `IdentityNamespace`
-  (the parcel sentinel) is a const beside `TemplatePathPrefixes` in
-  `lib/paths.ts` — a vocabulary, the registry file's own category.
+  `check-location-graph.ts` and `check-identity-mints.ts` (lint
+  scripts, the sanctioned category); every other Stage A change lands in
+  an existing class, mixin, Api or Logic. **No new category, no free
+  helper, no `eslint-disable`.**
 - **Module scope declares** — the registry warms in `onCreate`; the
   Api's tail `SecurityApi.decorateApiClass(NavigationApi)` is already
   there; `identityNamespace` is a static field declaration, not a
@@ -1186,8 +1302,7 @@ Checked against the current tree this cycle.
   `src/mud/` (`GraphInvariants` imports nothing; `Exit` adds
   `api/parcel`, `api/diagnostics`; `Exitable` adds `lib/stuff/Template`,
   already a lib import; `Stuff.ts` adds nothing — DA3's base rung uses
-  only its own methods); `api/stuff.ts` adds `api/parcel` for DA5 (c)
-  (an Api importing an Api); the script imports
+  only its own methods); the scripts import
   `lib/location/GraphInvariants` (the `check-schema-docs` precedent);
   packs import the kernel by specifier only (`MarketStalls` already
   does).
@@ -1215,7 +1330,7 @@ Checked against the current tree this cycle.
   `lint:binder-models`, `lint:thin-forwarder`, `lint:test-bootstrap`,
   `lint:drive-scripts`, `lint:person-keys`, `lint:census` (D17's
   `asTemplatePath` stays retired; `asIdentityPath` is the channel) and
-  the new `lint:location-graph` — run as
+  the two new gates `lint:identity-mints` and `lint:location-graph` — run as
   `pnpm -C packages/server lint:family`.
 
 ---
@@ -1224,7 +1339,7 @@ Checked against the current tree this cycle.
 
 Each wave lands alone, ends at one commit, and is gated by
 `pnpm test:near` + the touched pack's vitest + `lint:family`. `pnpm test`
-runs twice: before the MR opens, and at `/finalize`. Stage A (A0–A3)
+runs twice: before the MR opens, and at `/finalize`. Stage A (A0–A4)
 lands before Stage B (B0–B4).
 
 ### A0 · The scan keys on the row, and a row can be enumerated — `fix(persistence): the uniqueness scan keys on the ROW; findAllByTemplatePath enumerates a row honestly`
@@ -1285,33 +1400,58 @@ unstamped classes, and a stamped keyed fixture shows the two agree).
 `placeIdOf` byte-identical for every host in the existing chattel tests.
 Covers AC1, AC2, AC19's handle half.
 
-### A2 · Continuity declares its namespace — `build(stuff): an identity path is minted into a namespace its family declares, or under its row`
+### A2 · Every mint names what keys on it — `build(stuff): every identity mint names what keys on it; the unjustified count is a ratchet at two`
 
-**Implements** DA5. **Files:** `api/stuff.ts` (`#cloneInner` assertion
-+ `#identityNamespaceOf(ctor)` prototype walk), `lib/paths.ts`
-(`IdentityNamespace.parcel` sentinel), `lib/character/Avatar.ts`
-(`static readonly identityNamespace = TemplatePathPrefixes.avatar`),
-`platform/idea/Party.ts` (`/platform/idea/party/`), `platform/idea/EvalScript.ts`
-(the parcel sentinel), `lib/location/PlatPlan.ts` (`nodeIdentityOf`),
-`lib/location/OuterWarren.ts:499` (calls it), `docs/subsystems/identity.md`
-or `architecture.md` (the declaration), `location.md` (the circulation
-identity's shape). Tests: `api/__tests__/stuff.identityNamespace.test.ts`
-— table-driven over every shipped shape in G-MINT (each passes), plus:
-a mint from a class with no declaration and no row prefix **throws**;
-a mint outside the declared prefix throws; a parcel-relative mint AT the
-extent (not strictly inside) throws; `lib/location/__tests__/PlatPlan.nodeIdentityOf.test.ts`
-(the string shape; two warrens sharing a circulation row do not
-collide); `OuterWarren` tests updated for the new identity.
+**Implements** DA5. **Files:** `scripts/check-identity-mints.ts` (+ a
+test beside it on the `check-person-keys` shape) and
+`packages/server/package.json` (`"lint:identity-mints"`); the
+`identity-keyed-by` marker at all thirteen sites in G-MINT (eleven with
+their reader, the guest and the corpse `none —` with the carve-out
+reason and the slate pointer); `api/stuff.ts` (`#cloneInner` continuity
+assertion + `#identityNamespaceOf(ctor)` prototype walk);
+`lib/character/Avatar.ts`, `platform/agent/ShadeAvatar.ts`,
+`platform/idea/Party.ts` (`identityNamespace`); `lib/location/PlatPlan.ts`
+(`nodeIdentityOf(nodeId, extent)`) + `lib/location/OuterWarren.ts:499`
+(calls it; string unchanged); `docs/subsystems/identity.md` or
+`architecture.md`, `lint-family.md`. Tests: the lint's own (a fixture
+tree with a marked site, an unmarked site → error, a `none` site →
+counted, a `probe` word → rejected as not in the vocabulary);
+`api/__tests__/stuff.identityNamespace.test.ts` (each declared family's
+shipped shape passes; a mint outside a declared prefix throws; a class
+with no declaration is not asserted); `PlatPlan.nodeIdentityOf` returns
+today's string.
 
-**Acceptance.** Every existing clone-with-identity test green (embody,
-login guest, party, corpse, shade, sandbox vessel, stall, eval, warren);
-the throw cases red-then-green; a fresh boot with Hinkley Hills and
-Duncan Hall stands their circulation nodes up under the new identities
-and `findAllByTemplatePath(<circulation row>)` returns them. Covers
-the *validated rather than improvised* goal (no AC of its own; proven by
-AC3's drive step).
+**Acceptance.** `pnpm -C packages/server lint:identity-mints` green on
+the tree with the meter reading **2 unjustified (guest, corpse)** —
+recorded in the commit message as the first census; every existing
+clone-with-identity test green (embody, login guest, party, corpse,
+shade, wire body, stall, eval, warren); the throw cases red-then-green.
+⭐ **A2 unmints nothing, by design**: it installs the rule and the meter;
+the count falls per-site by whoever owns the site. The corpse's probe
+move already happened in A0 and races nothing.
 
-### A3 · A stall is keyed by its pitch — `fix(market): a stall is keyed by its PITCH on the square, not by who rents it`
+### A3 · The wire body projects through the method — `fix(sandbox): the wire body projects the player through getIdentityPath(), and is no longer filed under the identity it projects`
+
+**Implements** DA8. **Files, in this order:** `platform/agent/sandbox/SandboxAvatar.ts`
+(the `getIdentityPath()` override; the header comment → *wire body*),
+THEN `platform/idea/api/SandboxLogic.ts:355` (drop `asIdentityPath`;
+drop its census marker), `lib/stuff/Stuff.ts:528` + `lib/character/Avatar.ts:1598`
+(*projection vessel* → *wire body*), `docs/subsystems/sandbox.md` (the
+override is real now; *wire body* throughout). Tests:
+`platform/agent/sandbox/__tests__/SandboxAvatar.identity.test.ts` —
+with a circle open: `findByIdentityPath(playerIdentity)` has exactly one
+member and it is the field body; `body.getIdentityPath() ===
+actor.getIdentityPath()`; `Stuff._identityStampOf(body)` is `null` (a
+`*.test.ts` may call the gated seam); the belief viewer key, a chronicle
+deed and a grant check made from inside the circle all attribute to the
+player. The existing sandbox crossing tests stay green.
+
+**Acceptance.** The test above red-then-green; `lint:identity-mints`
+meter still 2 (one justified site removed, no unjustified added); the
+holodeck wire tests green. No AC of its own — this is the registry
+invariant `Stuff.ts` already states, made true.
+
+### A4 · A stall is keyed by its pitch — `fix(market): a stall is keyed by its PITCH on the square, not by who rents it`
 
 **Implements** DA6. **Files:** `content/terminus/src/market/thing/MarketStalls.ts`
 (`pitches`, `lets`, `fieldMeta`, the three methods, the own-record
@@ -1474,13 +1614,15 @@ and `location-graph-slate` compacted to what is left (`/compact-slate`),
 | the row read · the identity read | — (MQL `/path` seed for a glob-free path) | — | — | — | — (reads) |
 | the uniqueness scan | — | — | — | — | fires inside `restoreOrSeed` / `capture` / `materialize`; its THROW is the observable |
 | the handle · the discovery key | `search` (existing) | existing | — | — | — (a read) |
-| the mint assertion | — | — | `identityNamespace` statics on `Avatar`, `Party`, `EvalScript` | — | ⚠ fires at EVERY `clone` with `asIdentityPath`: a missing declaration is a boot failure for the party warm (`PartyLogic.bootImpl`) and a login failure for avatars — loud by design; A2's table test is what keeps it from being a surprise |
+| the census | `pnpm lint:identity-mints` | `package.json` script (roster derived) | the `identity-keyed-by` marker at each site | — | ⚠ an unmarked site is an ERROR, not a count — a new mint with no marker fails the family |
+| the continuity assertion | — | — | `identityNamespace` statics on `Avatar`, `ShadeAvatar`, `Party` | — | ⚠ fires at every `clone` of a DECLARING class with `asIdentityPath`: a wrong prefix is a boot failure for the party warm and a login failure for avatars — loud by design; A2's table test keeps it from being a surprise |
+| the wire body's identity | `enter` (existing sandbox verb) | existing | — | — | the `getIdentityPath()` override is what the ledgers read; the test pins it |
 | the stall's pitch | `stall rent` / `stall give-up` (existing) | existing (`MarketStalls.commandContributions.peers`) | `stalls.yaml` `pitches:`; `lets` persisted on the fixture's record | the fixture comes up with the square (`props:`) — ⚠ its own record must materialize (RA1) | existing subcommands |
 | the graph | — | — | `location_graph.yaml` → `gen:schema`; `PlaceNode.fieldMeta` | **`boot:` entry in `packages/content/platform/pack.yaml`** for `/platform/idea/LocationGraphRegistry` + its row; `hooks.yaml` already binds `DomainHook` | — |
 | the lint | `pnpm lint:location-graph` | `package.json` script (roster derived) | reads files | — | — |
 | `published` | `title publish` / `title offline` | existing `title` affordance | `TitleClaim.published` parsed by `ParcelRegistry.grant`; `parcel_events` kinds | claims applied at pack install | one required `greedy` string arg each — ⚠ required with no default fails closed and silent; the subcommand help names the shape |
 | the wall | `go <dir>` | — | `ParcelRecord.published` | — | `Exit.canTraverse` |
-| the tombstone | — | — | row `/platform/location/tombstone` (a kind; `lint:instanceable` resolves its `class:`); its identity is row-prefixed (DA5 b) | cloned on demand | — |
+| the tombstone | — | — | row `/platform/location/tombstone` (a kind; `lint:instanceable` resolves its `class:`); its mint carries an `identity-keyed-by: referenced` marker | cloned on demand | — |
 | the map write | — (arrival `sense`, `look`, `teleport` board, traverse) | `Perceiver` hooks implemented on `Avatar`; the three call sites | `DocumentKinds.map` (PM creates no natural-key index; reset keeps it) | — | `saveMap`'s `FromModule` gate — ⚠ the Logic's module id must be exactly `/platform/idea/api/NavigationLogic#NavigationLogic` or every write silently refuses; `lint:gates` checks the string |
 | the map read | `map [locality]` | **`Avatar.commandContributions.self` gains `platform/cmd/perception/map.yaml`** — a view nothing affords is dead silently | — | — | optional greedy string |
 | publication | bare `teleport` | existing | `TravelNode.publishedStops` implemented in `FastTravel` | — | optional method; absent = nothing advertised |
@@ -1496,7 +1638,7 @@ All twenty, from the requirements doc as of commit `6a4560e5a`.
 | 1 secret in one instance not in others | A1 (DA3 + DA4); drive step 1 |
 | 2 ephemeral find does not persist | A1 (null handle); drive step 2 |
 | 3 every instance of a shared row, stamped included; a continuity family answers from its register | A0 (`findAllByTemplatePath`; the MQL seed); `PlayerApi`'s roster unchanged — a doc line; drive step 3 |
-| 4 two stalls → two counters, stock, takings; a stored key resolves | A0 (the needle) + A3 (the pitch); `findByTemplatePath(ids.counter)` untouched; drive step 3 |
+| 4 two stalls → two counters, stock, takings; a stored key resolves | A0 (the needle) + A4 (the pitch); `findByTemplatePath(ids.counter)` untouched; drive step 3 |
 | 5 told which row + direction before restart | B0 (file lint) · B1 (hook → diagnostic → `errors`/CMS) |
 | 6 boots with a dangling exit | B1 (D10 unbuilt); drive step 4's restart |
 | 7 non-reciprocal · unreachable · one-sided cross-zone reported | B0 · B1; drive steps 5, 6 |
@@ -1508,15 +1650,17 @@ All twenty, from the requirements doc as of commit `6a4560e5a`.
 | 13 exit into never-published content refuses, boot survives | B2 (+ B1's unbuilt); drive step 11 |
 | 14 nothing crosses the wire unearned | B3 (structural, D17) + drive step 12 (browser) |
 | 15 copy to another tree, read as own; one locality only | B3 (D13 path) — copied by wizard `eval`; no player verb (non-goal) |
-| 16 lot-7 survives reap and re-mint | B3 — the handle is the slot's `row#<extent/leaf>` (DA3) and the lane's identity is the plan's (`nodeIdentityOf`, stable across boots); the gate edge from `onTraversed` |
+| 16 lot-7 survives reap and re-mint | B3 — the handle is the slot's `row#<extent/leaf>` (DA3) and the lane's identity is re-derivable from plan + extent (`nodeIdentityOf`, 9a's worked case); the gate edge from `onTraversed` |
 | 17 group by building where declared | B3 (`group` = `_address`, D17) |
 | 18 survives the nightly reset | B3 (declared kind → `wipe-except` keeps it; `onVanish: keep`) |
 | 19 lounge room is honestly nothing | A1 (null handle) + B3 (no claim) |
 | 20 second locality + second player need no engine change | B3; demonstrated in the drive with Hinkley Hills + a second session |
 
-Nothing unmapped. A2 (the mint assertion) has no AC of its own: it is
-the *validated rather than improvised* Stage A goal, proven negatively
-(every shipped mint passes; an improvised one throws in a test).
+Nothing unmapped. A2 (the census + the continuity assertion) and A3
+(the wire body) have no AC of their own: A2 is the *every mint site names
+what keys on it* Stage A goal, proven by the meter reading 2 and the
+rule refusing an unmarked site; A3 makes the invariant `Stuff.ts`
+already states true.
 
 ---
 
@@ -1526,10 +1670,13 @@ the *validated rather than improvised* Stage A goal, proven negatively
   (`findAllByTemplatePath` row semantics incl. the identity-passed case;
   `findByIdentityPath`; `findByTemplatePath` still throws on two); the
   needle (stamped keyed collision THROWS — red today); `getDurableHandle`
-  per rung; `Exit.discoveryKey` (fails first); the pin's scope; the mint
-  assertion table (every shipped shape passes, three negatives throw);
-  `PlatPlan.nodeIdentityOf`; `StallController` two renters + book
-  survival + full square + `give-up`. **Stage B:** `GraphInvariants`
+  per rung; `Exit.discoveryKey` (fails first); the pin's scope; the census lint's
+  own tests + the continuity assertion (declared families pass, a wrong
+  prefix throws, an undeclaring class is not asserted);
+  `PlatPlan.nodeIdentityOf`; the wire body (one member in the player's
+  bucket; the method projects; the ledgers attribute to the player);
+  `StallController` two renters + book survival + full square +
+  `give-up`. **Stage B:** `GraphInvariants`
   rules; `LocationGraphRegistry` projection + generation sweep (plan
   node identity == live identity); `DomainHook` re-project + swallow;
   `Exitable.unbuilt`; `ParcelRecord.published` + `grant`;
@@ -1548,7 +1695,7 @@ the *validated rather than improvised* Stage A goal, proven negatively
   inspection (step 12) — ⚠ the wire drive is not the live drive: step 12
   is a browser step, recorded in the plan.
 - **Gates:** `pnpm -C packages/server lint:family` after every wave;
-  `pnpm test:near` + the terminus pack's vitest (A3) per wave;
+  `pnpm test:near` + the terminus pack's vitest (A4) per wave;
   `pnpm test` exactly twice.
 
 ---
@@ -1557,7 +1704,7 @@ the *validated rather than improvised* Stage A goal, proven negatively
 
 ### Stage A
 
-- **RA1 — the pitch book's survival (A3).** G-STALL did not verify how a
+- **RA1 — the pitch book's survival (A4).** G-STALL did not verify how a
   `props:` fixture on a non-Persistable `Street` gets its own record
   back at boot (`persistence.md:914`: `applyProps` is a no-op; holders
   seed). If the fixture comes up bare, the book is empty after a
@@ -1567,32 +1714,31 @@ the *validated rather than improvised* Stage A goal, proven negatively
   first act is to read `seedBornWith`/`applyProps` and the Stock's own
   record path; the fix if needed is `MarketStalls.onCreate` restoring
   its own record under the scope-derived key. The hand restart in drive
-  step 3 is the proof; **A3 does not land without it.**
-- **RA2 — the circulation identity changes shape (A2).** No record
-  moves (circulation nodes are not Persistable), but an avatar snapshot
-  parked on a lane carries the old `place.container`; `resolvePlacementAnchor`
-  tolerates it with a warn and leaves the host where cloned. On the dev
-  DB this is one login's misplacement at most; the build notes it in
-  A2's commit. Stage B's D4 derives the same string, so there is one
-  computer (`PlatPlan.nodeIdentityOf`).
+  step 3 is the proof; **A4 does not land without it.**
+- **RA2 — the census's ceiling is a judgment, and judgments drift.** The
+  `identity-keyed-by` vocabulary is closed (`own-record | referenced |
+  lookup | none`) so a site cannot justify itself with a new word; but a
+  site can MIS-mark (`referenced` with nothing referencing it). The lint
+  cannot see that; review can. The G-MINT table is the audit of record
+  for the thirteen; a fourteenth is a review question, which is the
+  marker's job.
 - **RA3 — two individuation forms coexist, and 9d says one.** Keyed
   individuation is `row#key` (the handle); stamped individuation is
   `row/decoration` (the corpse, the stall, the tombstone, the
   circulation node). The requirements' 9d says *individuation never
   mints*; the shipped sites do, and moving them onto the persistence
-  spine (a record per corpse) is not this build. DA5 (b) admits the
-  row-prefixed form as the requirements' own 9b table does. **Recorded
-  as a lean in `instance-addressing-slate` at compaction, not resolved
-  here.**
-- **RA4 — the sandbox vessel is filed under the identity it projects.**
-  `SandboxLogic.ts:355` passes `actor.getIdentityPath()` as the raw
-  stamp, so the vessel and the parked body share one exact bucket while
-  a circle is open — `Stuff.ts:536`'s own comment says this must not
-  happen, and `findByTemplatePath('/platform/agent/Avatar/<pid>')` would
-  throw *"expected singleton, found 2"* for that player mid-visit unless
-  the parked body is unregistered. **Found by reading, not fixed here**
-  (sandbox is out of scope); A2's table test records the current shape
-  as passing (a) so the finding is visible, and the slate gets the line.
+  spine (a record per corpse) is not this build. Requirements 9a now
+  separates the two mechanisms — the name decides the stamp, the key
+  decides the handle — so a stamped individuation that is re-derivable
+  or recorded is legitimate on its own terms. **Recorded as a lean in
+  `instance-addressing-slate` at compaction, not resolved here.**
+- **RA4 — the wire body (PROMOTED to wave A3; DA8).** The hazard is the
+  ORDER: the method override must land before the stamp is removed, or
+  in-circle acts attribute to the wire body's row for every visitor. A3's
+  file list is ordered and its test pins both halves. ⚠ Any
+  `_identityStampOf`-shaped reader that was relying on the wire body
+  being stamped (grounding found none — the index is the only raw-slot
+  reader) would surface in the holodeck wire tests, which run in A3.
 - **RA5 — `standUpKeyed` cannot mint a stamped keyed host.** `cloneHost(scope, key)`
   needs a ROW to `clone()` and the record's scope is the identity; for a
   stamped keyed host the pin would have to carry both. No pinned class
@@ -1601,6 +1747,11 @@ the *validated rather than improvised* Stage A goal, proven negatively
   move to `findByIdentityPath` BY NAME so a future reader does not
   "fix" them onto the row read and re-hydrate every minted stall from
   its seed on a CMS save. The comment at each site says why.
+- **RA8 — the guest and the corpse are left alone ON PURPOSE.** The
+  census marks both `none` and the ratchet starts at 2. A build agent
+  reading "unjustified" as "fix it" is the risk; the markers' text names
+  the carve-out and the destination (the slate; the carcass-chain
+  build), and A2's acceptance says *unmints nothing*.
 - **RA7 — the `/foo/bar*` spelling.** DA2 routes a glob-free MQL path
   through the row read and leaves `*`'s meaning alone. If the user
   wants a trailing `*` to mean *the row and everything minted under it*,
@@ -1663,8 +1814,10 @@ the *validated rather than improvised* Stage A goal, proven negatively
   Promote at the third consumer → `instance-addressing-slate`.
 - **A pin that can mint a stamped keyed host** (RA5) → `chattel.md`'s
   pin section, when a pinned class is first stamped.
-- **The sandbox vessel's raw stamp** (RA4) → `sandbox.md` /
-  `instance-addressing-slate`.
+- **The guest mint** (unjustified, carved out) → `instance-addressing-slate`,
+  the first entry the ratchet falls by. **The corpse mint** → the
+  carcass-chain build (`reqs/second-tier`), then the slate if they keep
+  it.
 - **`/foo/bar*` as an MQL spelling for a row's instances** (RA7) →
   `mql-grammar.md`.
 - **Routing** — the five queries + `interzoneSkeleton` are the router's
@@ -1705,6 +1858,8 @@ Read first, in this order:
    `materializeImpl:942`, `placeIdOf:972`, `restoreOrSeedImpl:1180`) ·
    `platform/idea/api/ChattelLogic.ts:190–250` · `platform/idea/api/ResidencyLogic.ts:800–830` ·
    `api/mql/resolver.ts:328–340, 772–780` · every G-MINT site ·
+   `platform/agent/sandbox/SandboxAvatar.ts` + `platform/idea/api/SandboxLogic.ts:330–370` ·
+   `scripts/check-person-keys.ts` (the lint shape to copy) ·
    `content/terminus/src/market/thing/MarketStalls.ts` +
    `idea/cmd/StallController.ts` + `content/world/terminus/market/{square,stalls,thing/stall,cmd/stall}.yaml` ·
    `lib/location/OuterWarren.ts:480–520` · `lib/location/PlatPlan.ts`
