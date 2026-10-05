@@ -1551,29 +1551,33 @@ No criterion is unmapped.
     row, which a flock shares — two ewes off one row in a second, or a fox
     through a hen coop, builds two bodies from one base key. That branch
     was near-dead code when only players minted corpses.
-  - ⚠⚠⚠ **And the case against the stamp is stronger than "no reader."**
-    Run the three axes that decide whether a minted identity earns its
-    keep — durability, MQL targetability, cardinality:
-    - **not durable** — the key is
-      `<corpseRow>/<deceased identity>/<gameSecond>[-n]`; the game-second
-      is unrecoverable and nothing records it.
-    - **not targetable** — a caller cannot CONSTRUCT that key (nothing
-      records the second or the ordinal; the chronicle records the deed,
-      not the corpse), so it can never be named in an MQL query. Unqueryable
-      in principle, not merely unqueried.
-    - **wrong cardinality** — the only honest cardinality for *the corpse
-      of this individual* is one, which `<corpseRow>/<avatar identity>`
-      already gives for a genuinely minted identity. The timestamp and the
-      ordinal exist **because a beast's identity is a row shared by its
-      flock.**
-    ⭐⭐ So the stamp is not an identity; it is a **uniquifier
-    compensating for the identity fallback** — it cannot say *which ewe*,
-    only *the Nth body off the ewe row in second T*. The candidate
-    resolution that follows from the plan's own half-rule (*a body with no
-    identity path gets no minted identity*) is the same sentence one rung
-    up: **a body with no MINTED identity gets no minted identity** — a
-    beast's corpse would then be an ordinary multi-instance clone of the
-    corpse row, as cuts and logs already are.
+  - ⚠⚠⚠ **And the three axes that decide whether a minted identity earns
+    its keep — durability, MQL targetability, cardinality — do NOT give
+    one answer. They split by path, and an earlier draft of this entry
+    was wrong because it collapsed them.**
+
+    | axis | a PLAYER (deceased identity genuinely minted) | a BEAST (identity = the shared row) |
+    |---|---|---|
+    | **cardinality** | ⭐⭐ **>1, and coexisting.** You die, leave a body, `reembody`, die again, and the first has not decayed yet — two corpses for one avatar at different states of decay. So `<gameSecond>` names **which death**, and that is real discriminating work. | >1 across the flock *and* across deaths, and the key still cannot say which ewe. |
+    | **durable** | The chronicle writes a `tags: ['death']` deed whose `when` is persistent, and the corpse persists its own `diedAtGameSec` (`PostmortemMixin`, `{ persistent: true }`, supplied by the mint's own `dataOverlay`). | ⚠ `recordDeathDeed` returns early on `!isPersona`, so **no deed is written at all** — and `Creature` composes no `PersistableMixin`, so the body is gone on restart regardless. |
+    | **targetable** | Reconstructible: *the bodies I have left*, discriminated by death time — a sane MQL target with a sane cardinality. | Unconstructible: nothing outside the instance records the second or the ordinal. |
+
+    ⭐⭐ **So the timestamp is not a kludge — it is load-bearing exactly
+    where the identity is genuine**, and the claim to retire is the
+    narrower one: *on the beast path* the stamp is a *uniquifier
+    compensating for the identity fallback*, naming only *the Nth body off
+    the ewe row in second T*.
+  - ⭐⭐⭐ **Which strengthens the candidate resolution rather than
+    weakening it.** It is the plan's own half-rule (*a body with no
+    identity path gets no minted identity*) one rung up — **a body with no
+    MINTED identity gets no minted identity** — and the split above is
+    why: that rule keeps the mint precisely where all three axes pass (a
+    player, several coexisting bodies, a durable deed, a persisted death
+    second) and drops it precisely where all three fail (a beast off a
+    shared row, no deed, non-persistent). ⚠ It also means build-3's own
+    rule — *an identity exists iff the name is durable, re-derivable or
+    recorded* — is **satisfied on the player path**, by the chronicle
+    deed. That is a finding for decision 9 they do not have.
   - ⛔ **Not settled here, deliberately.** A cross-cutting identity
     question is not a trade build's to decide (*never solve a
     cross-cutting capability in a trade build*), and build-3 owns it as

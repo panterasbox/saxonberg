@@ -376,16 +376,23 @@ describe('ConditionApi.die — one transition', () => {
  *
  * ⚠⚠⚠ **The KEY SCHEME these bodies get is under active review and this
  * suite must not entrench it.** `corpseIdentityFor` mints
- * `<corpseRow>/<deceased identity>/<gameSecond>[-n]`, and the case
- * against it is strong on three axes: the game-second is unrecoverable
- * and nothing records it (not durable); the key cannot be CONSTRUCTED by
- * a caller, so it can never be named in an MQL query (not targetable);
- * and the only honest cardinality for *the corpse of this individual* is
- * one, which a minted identity like an avatar's already gives — the
- * timestamp and ordinal exist precisely BECAUSE a beast's identity is a
- * row shared by its flock. On that reading the stamp is not an identity
- * at all but a **uniquifier compensating for the identity fallback**: it
- * cannot say which ewe, only *the Nth body off the ewe row in second T*.
+ * `<corpseRow>/<deceased identity>/<gameSecond>[-n]`, and the three axes
+ * that decide whether a minted identity earns its keep — durability, MQL
+ * targetability, cardinality — **split by path**:
+ *
+ * - **a player**, whose deceased identity is genuinely minted: ⭐⭐ you
+ *   die, leave a body, `reembody`, die again before the first decays, so
+ *   there are **two corpses for one avatar at different states of
+ *   decay**. `<gameSecond>` names WHICH DEATH — real discriminating work
+ *   — the chronicle writes a `['death']` deed with a persistent `when`,
+ *   and the corpse persists its own `diedAtGameSec`. All three axes pass.
+ * - **a beast**, whose `getIdentityPath()` falls back to its row: no deed
+ *   is written at all (`recordDeathDeed` returns early on `!isPersona`),
+ *   `Creature` composes no `PersistableMixin` so the body is gone on
+ *   restart, and the key can only ever mean *the Nth body off the ewe row
+ *   in second T*. All three axes fail — there the stamp is a
+ *   **uniquifier compensating for the identity fallback.**
+ *
  * → `build-3`'s decisions 9/9a–9d (`location-graph-requirements.md`) and
  * `instance-addressing-slate.md`. A cross-cutting identity question is
  * not a trade build's to settle.
@@ -397,9 +404,10 @@ describe('ConditionApi.die — one transition', () => {
  *   whatever decision 9 says.
  * - **the characterization** pins today's `-2`/`-3` arithmetic. It is a
  *   description, NOT an endorsement, and it is the block to DELETE if
- *   decision 9 drops the mint for an unminted deceased (whereupon both
- *   bodies sit at the corpse row, as every other multi-instance clone
- *   does, and distinct keys stop being true).
+ *   decision 9 drops the mint for an unminted deceased (whereupon two
+ *   BEASTS' bodies sit at the corpse row, as every other multi-instance
+ *   clone does, and distinct keys stop being true for them — while a
+ *   player's two coexisting corpses keep theirs).
  *
  * ⚠ The suite's own `body()` stamps a UNIQUE path per fixture, so no
  * test here could ever have produced the collision. These share one.
