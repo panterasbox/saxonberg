@@ -43,12 +43,21 @@ import type { EvictionContext } from '../stuff/Stuff';
  *   solid. What distinguishes it from the other three is that the batch
  *   gets *smaller* as it converts (the water leaves) and that **rain puts
  *   it back** — the only mechanism with a setback that is not a failure.
+ * - `enzymatic` — ⭐⭐ **the thing does it to ITSELF.** A steeped barleycorn
+ *   wakes up and turns its own starch over with its own amylase; nothing
+ *   was added and nothing is living on it. Added by the whiskey build for
+ *   malting, and added rather than reused because both plausible
+ *   alternatives assert something false: `microbial` claims an organism is
+ *   doing it (the exact confusion a maltster spends their life avoiding)
+ *   and `chemical` claims a reagent is. The platform teaches, so the word
+ *   has to be true.
  */
 export type MaturationMechanism =
   | 'microbial'
   | 'photochemical'
   | 'chemical'
-  | 'evaporative';
+  | 'evaporative'
+  | 'enzymatic';
 
 /** Every mechanism, for validation and for the totality check. */
 export const MATURATION_MECHANISMS: readonly MaturationMechanism[] = [
@@ -56,6 +65,7 @@ export const MATURATION_MECHANISMS: readonly MaturationMechanism[] = [
   'photochemical',
   'chemical',
   'evaporative',
+  'enzymatic',
 ];
 
 /** The four things a maturing thing can look like, per mechanism. */
@@ -142,6 +152,20 @@ export const MATURATION_LINES: Record<
     // ⭐ NEVER "rained back" — rain is a setback, not a death. This is the
     // pan boiled dry and burnt, which is the one way to ruin one.
     killed: 'It has been boiled dry and burnt to a bitter scale.',
+  },
+  enzymatic: {
+    // ⚠ No bubbles, no yeasty breath, no smell of anything working on it
+    // — because nothing is. The grain is doing this to itself, and what
+    // you can see is the grain, so every line here is about the CORNS.
+    starting: 'The corns have plumped and split, and a white chit shows at the tip of each.',
+    working: 'Pale rootlets have knitted the bed into a mat, and it is warm to the back of the hand.',
+    finished: 'The acrospire has run the length of the corn. It crushes to a sweet flour between the fingers.',
+    // Reachable: a bed left too long grows past the corn and eats its own
+    // sugar. No shipped profile authors a `turnedMaterial` for it yet, so
+    // this waits with the others — kept so the Record stays total.
+    turned: 'The shoots have pushed out green past the husk and the sweetness has gone out of it.',
+    stalled: 'It lies cold and tight. The chits have stopped where they were.',
+    killed: 'It has cooked in the bed — slack, sour, and nothing growing in it any more.',
   },
 };
 

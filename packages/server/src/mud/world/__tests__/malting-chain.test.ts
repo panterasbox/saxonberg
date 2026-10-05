@@ -1,0 +1,338 @@
+/**
+ * ⭐⭐ **The arrow that was missing** — barley into malt, on the real rows
+ * of a pack that ships no code at all.
+ *
+ * Barley shipped and malt shipped, and nothing in the tree turned one
+ * into the other. Both the brewer and the distiller were drawing malted
+ * barley out of nothing, and both said so in their own headers:
+ * `malt.yaml` — *"a SHARED input whose owning trade does not exist yet"*
+ * — and the distributor's sack — *"nobody in the world malts barley yet,
+ * so the sacks simply arrive."*
+ *
+ * ⚠ Why the rows are checked from DISK here rather than through a live
+ * boot: `trade-malting` has no `src/`, so there is no pack suite for it
+ * to live in. That is the point of the pack and not a gap — a trade whose
+ * whole mechanism is waiting needs no classes — but it means the honest
+ * home for its test is beside the other cross-pack world tests.
+ *
+ * What is proved: the chain JOINS (every slot's category is a tag some
+ * shipped material actually carries), the floor's clock runs on the new
+ * `enzymatic` mechanism, and the kilning's heat band is inside what the
+ * kiln can hold. ⭐ The join is the assertion that matters — a recipe slot
+ * whose category nothing carries fails closed and SILENT, which is how
+ * `hammer` shipped requiring a mixin no metal stock composed.
+ */
+
+import '../../../test-bootstrap';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { parse } from 'yaml';
+import Vat from '../../platform/thing/Vat';
+import MaturationProfile from '../../platform/idea/maturation/MaturationProfile';
+import {
+  MATURATION_MECHANISMS,
+  MATURATION_LINES,
+} from '../../lib/maturation/MaturationProfile';
+import Material from '../../lib/material/Material';
+import { Recipe } from '../../lib/craft/Recipe';
+import { StuffApi } from '../../api/stuff';
+import { WorldClockApi } from '../../api/worldclock';
+import { Quantity } from '../../lib/quantity';
+import { TemplatePaths } from '../../lib/paths';
+import {
+  makeStuff,
+  makeStuffAtPath,
+  stampTemplatePathForTest,
+} from '../../lib/security/__tests__/test-setup';
+import { installV1QuantityMarshallers } from '../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
+import WorldClockRegistry from '../../platform/idea/WorldClockRegistry';
+
+const PACKS = fileURLToPath(new URL('../../../../../content/', import.meta.url));
+const MALTING = join(PACKS, 'trade-malting');
+const FARMING = join(PACKS, 'trade-farming');
+const BASE = join(PACKS, 'base-library');
+const DISTILLING = join(PACKS, 'trade-distilling');
+
+const SCALE = 12;
+let real = 0;
+
+function row(pack: string, rel: string): Record<string, unknown> {
+  const raw = parse(readFileSync(join(pack, rel), 'utf8')) as {
+    data: Record<string, unknown>;
+  };
+  return raw.data;
+}
+
+function recipeOf(pack: string, id: string): Recipe {
+  return Recipe.fromData(
+    parse(
+      readFileSync(join(pack, 'content', 'recipes', `${id}.yaml`), 'utf8'),
+    ) as Record<string, unknown>,
+  );
+}
+
+/** Every tag on every material row this chain touches. */
+function tagsAcrossChain(): Set<string> {
+  const rows: [string, string][] = [
+    [FARMING, 'content/stuff/idea/material/food/barley-grain.yaml'],
+    [MALTING, 'content/trade/malting/idea/material/steeped-barley.yaml'],
+    [MALTING, 'content/trade/malting/idea/material/green-malt.yaml'],
+    [BASE, 'content/stuff/idea/material/food/malt.yaml'],
+    [join(PACKS, 'trade-milling'), 'content/stuff/idea/material/food/grist.yaml'],
+  ];
+  const out = new Set<string>();
+  for (const [pack, rel] of rows) {
+    try {
+      for (const tag of (row(pack, rel).tags as string[]) ?? []) out.add(tag);
+    } catch {
+      // A row that has moved is a finding the join assertion will surface
+      // by failing; swallowing the read keeps the message useful.
+    }
+  }
+  return out;
+}
+
+beforeEach(() => {
+  installV1QuantityMarshallers();
+  stampTemplatePathForTest(
+    makeStuff(() => new WorldClockRegistry()),
+    TemplatePaths.worldClockRegistry,
+  );
+  WorldClockApi._resetForTesting();
+  real = 100_000;
+  WorldClockApi._setNowProviderForTesting(() => real);
+});
+
+afterEach(() => StuffApi.clearAll());
+
+describe('⭐⭐ the chain JOINS — every slot matches a tag something carries', () => {
+  it('steep-barley asks for a tag the barley crop\'s material actually has', () => {
+    // ⭐ Two ways a category is proved to resolve, and the test accepts
+    // either: a material in this chain carries it, or a SHIPPED recipe
+    // already uses it and therefore does. `water` is the second kind —
+    // `wash-mash` has asked for it since the day it shipped, so asserting
+    // against the water pack's own row would only be re-testing somebody
+    // else's content with a path this file has to keep up to date.
+    const tags = tagsAcrossChain();
+    const shipped = new Set(
+      recipeOf(DISTILLING, 'wash-mash')
+        .getInputSlots()
+        .map((s2) => s2.category),
+    );
+    const steep = recipeOf(MALTING, 'steep-barley');
+    for (const slot of steep.getInputSlots()) {
+      expect(
+        tags.has(slot.category) || shipped.has(slot.category),
+        `steep-barley slot '${slot.slot}' wants category '${slot.category}', ` +
+          `which no material in the chain carries and no shipped recipe ` +
+          `uses — the slot would fail closed and SILENT`,
+      ).toBe(true);
+    }
+    // ⭐ And specifically: `barley`, which this build added to
+    // `barley-grain` because its sibling `wheat-grain` carries `wheat`
+    // and this row carried only the purpose tag `brewing`.
+    const barley = row(
+      FARMING,
+      'content/stuff/idea/material/food/barley-grain.yaml',
+    );
+    expect(barley.tags as string[]).toContain('barley');
+  });
+
+  it('kiln-malt consumes what the floor produces, and produces what the mill wants', () => {
+    const profile = row(
+      MALTING,
+      'content/trade/malting/idea/maturation/malting.yaml',
+    );
+    const kiln = recipeOf(MALTING, 'kiln-malt');
+    const greenMalt = row(
+      MALTING,
+      'content/trade/malting/idea/material/green-malt.yaml',
+    );
+
+    // The floor's product is the kilning's input.
+    expect(profile.productMaterial).toBe(
+      '/trade/malting/idea/material/green-malt',
+    );
+    const slot = kiln.getInputSlots()[0]!;
+    expect(greenMalt.tags as string[]).toContain(slot.category);
+
+    // ⭐ And the kilning's output is the material the SHIPPED mash recipes
+    // already wanted — which is what makes this an arrow between two
+    // things that existed rather than a new chain.
+    expect(kiln.getOutputMaterial()).toBe('/stuff/idea/material/food/malt');
+  });
+
+  it('⭐ and the steep\'s product is the floor profile\'s input', () => {
+    const steep = recipeOf(MALTING, 'steep-barley');
+    const profile = row(
+      MALTING,
+      'content/trade/malting/idea/maturation/malting.yaml',
+    );
+    const steeped = row(
+      MALTING,
+      'content/trade/malting/idea/material/steeped-barley.yaml',
+    );
+    expect(steep.getOutputMaterial()).toBe(
+      '/trade/malting/idea/material/steeped-barley',
+    );
+    expect(steeped.tags as string[]).toContain(profile.inputCategory);
+    // The steep lands IN the floor, so the clock has something to tick.
+    expect(steep.getOutputTemplate()).toBe(
+      '/trade/malting/thing/malting-floor',
+    );
+  });
+
+  it('the malting chain feeds the mash the distiller already ships', () => {
+    // malt -> (mill) -> grist -> wash-mash. The mill is trade-milling's
+    // and shipped; what matters here is that the malt we make is the malt
+    // it grinds.
+    const mash = recipeOf(DISTILLING, 'wash-mash');
+    const malt = row(BASE, 'content/stuff/idea/material/food/malt.yaml');
+    expect(malt.tags as string[]).toContain('malt');
+    // The mash wants GRIST, not malt — the grain chain's D16, unchanged.
+    expect(mash.getInputSlots().map((s) => s.category)).toContain('grist');
+  });
+});
+
+describe('⭐ the kiln can hold the band the kilning asks for', () => {
+  it('the recipe\'s window brackets the kiln row\'s burn temperature', () => {
+    const kiln = recipeOf(MALTING, 'kiln-malt');
+    const kilnRow = row(MALTING, 'content/trade/malting/thing/malt-kiln.yaml');
+    const burn = Number(kilnRow.burnTemperatureK);
+    expect(burn).toBeGreaterThanOrEqual(kiln.getRequiresHeatK());
+    expect(burn).toBeLessThanOrEqual(kiln.getMaxHeatK() ?? Infinity);
+    // ⭐⭐ And the number IS the lesson: a limekiln on the same `Oven`
+    // class holds 1500 K and this one holds 340, because heat above about
+    // 350 destroys the enzymes the floor spent five days making. A feeble
+    // fire on purpose.
+    expect(burn).toBeLessThan(400);
+  });
+
+  it('the kiln authors the fuel reserve it needs to light at all', () => {
+    const kilnRow = row(MALTING, 'content/trade/malting/thing/malt-kiln.yaml');
+    const reserves = kilnRow.reserves as Record<
+      string,
+      { currentValue: number }
+    >;
+    // ⚠ The still shipped without one for the life of its pack and could
+    // not be lit; nothing about that failure was visible. Assert it here
+    // rather than discover it in a drive.
+    expect(reserves?.fuel?.currentValue).toBeGreaterThan(0);
+    expect(kilnRow.lit).toBe(false);
+  });
+});
+
+describe('⭐⭐ the floor\'s clock runs on a mechanism that is TRUE', () => {
+  it('`enzymatic` is in the closed union and has its own prose', () => {
+    expect(MATURATION_MECHANISMS).toContain('enzymatic');
+    const lines = MATURATION_LINES.enzymatic;
+    // Every rung present — the Record is total by construction, and a
+    // missing one would be an `undefined` sentence at a vat.
+    for (const rung of [
+      'starting',
+      'working',
+      'finished',
+      'turned',
+      'stalled',
+      'killed',
+    ] as const) {
+      expect(lines[rung], rung).toBeTruthy();
+    }
+    // ⚠⚠ And the prose must not claim an organism or a reagent is doing
+    // it. Nothing is living on a malting bed and nothing was added; the
+    // grain is doing this to itself, and the platform teaches.
+    const all = Object.values(lines).join(' ').toLowerCase();
+    for (const word of ['yeast', 'bubble', 'ferment', 'microb', 'breath']) {
+      expect(all, `enzymatic prose must not say '${word}'`).not.toContain(
+        word,
+      );
+    }
+  });
+
+  it('⭐ a steeped bed on the real profile becomes green malt', () => {
+    const data = row(
+      MALTING,
+      'content/trade/malting/idea/maturation/malting.yaml',
+    );
+    const STEEPED = '/trade/malting/idea/material/steeped-barley';
+    const GREEN = '/trade/malting/idea/material/green-malt';
+    for (const [path, rel] of [
+      [STEEPED, 'content/trade/malting/idea/material/steeped-barley.yaml'],
+      [GREEN, 'content/trade/malting/idea/material/green-malt.yaml'],
+    ] as const) {
+      const m = row(MALTING, rel);
+      makeStuffAtPath(() => {
+        const mat = new Material();
+        mat.setName(String(m.name));
+        mat.setTags((m.tags as string[]) ?? []);
+        return mat;
+      }, path);
+    }
+    makeStuffAtPath(() => {
+      const p = new MaturationProfile();
+      p.setKey(String(data.key));
+      p.setMechanism(data.mechanism as never);
+      p.setInputCategory(String(data.inputCategory));
+      p.setProductMaterial(String(data.productMaterial));
+      p.setRatePerDay(Number(data.ratePerDay));
+      p.setStallBelowK(Number(data.stallBelowK));
+      p.setHappyK(Number(data.happyK));
+      p.setDamageAboveK(Number(data.damageAboveK));
+      p.setKillK(Number(data.killK));
+      return p;
+    }, '/trade/malting/idea/maturation/malting');
+
+    const floorRow = row(
+      MALTING,
+      'content/trade/malting/thing/malting-floor.yaml',
+    );
+    const bed = makeStuff(() => new Vat());
+    (bed as unknown as { interiorBulk: boolean }).interiorBulk = true;
+    bed.setInteriorCapacity(
+      Quantity.of(Number(floorRow.interiorCapacity), 'L'),
+    );
+    // A cold stone floor, which is the traditional answer and the correct
+    // one.
+    bed.lastAmbientK = 288;
+    bed.stampedTemperatureK = 288;
+    bed.setOpen(true);
+    bed.setBulkMaterial(
+      'interior',
+      StuffApi.findByTemplatePath<Material>(STEEPED)!,
+    );
+    bed.setBulkAmount('interior', Quantity.of(40, 'L'));
+
+    // The premise before the claim: the profile matched and the bed is
+    // working. An `idle` bed here would make every later assertion pass
+    // for the wrong reason.
+    expect(bed.getMaturationPhase()).toBe('active');
+
+    // Five game-days on the floor, which is what a real one takes.
+    let remaining = 5 * 86_400;
+    while (remaining > 0) {
+      const step = Math.min(3600, remaining);
+      real += (step / SCALE) * 1000;
+      bed.getMaturationPhase();
+      remaining -= step;
+    }
+
+    expect(bed.getMaturationPhase()).toBe('finished');
+    expect(bed.getBulkMaterialPath('interior')).toBe(GREEN);
+  });
+
+  it('⚠ a WARM floor kills the bed — the maltster\'s one real trade-off', () => {
+    const data = row(
+      MALTING,
+      'content/trade/malting/idea/maturation/malting.yaml',
+    );
+    // A warm floor runs faster, and past `killK` it cooks the bed: slack,
+    // sour, and no malt. That is the choice the trade is built on — speed
+    // against the batch — and it is two authored numbers, not a dial.
+    expect(Number(data.killK)).toBeGreaterThan(Number(data.damageAboveK));
+    expect(Number(data.happyK)).toBeLessThan(Number(data.damageAboveK));
+    // And cold is forgiving: it stalls rather than ruining.
+    expect(Number(data.stallBelowK)).toBeLessThan(Number(data.happyK));
+  });
+});

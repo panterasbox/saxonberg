@@ -1,0 +1,29 @@
+# ⭐ The steep — barley and water into a bed that thinks it is spring.
+#
+# Two days under water in a real malthouse; here it is the recipe plus the
+# floor's own clock, and the recipe's job is only to get the grain wet and
+# into the trough. Nothing is added but water: this is the first of three
+# steps whose entire content is *wait*.
+#
+# ⚠ The barley slot takes the CROP, which is a `Provision` and food, so
+# `isItemCandidate` admits it — verified, because a Crafted non-food sack
+# would have been refused at the slot and the chain would have failed
+# closed and silent.
+recipeId: steep-barley
+name: Steep barley
+keywords: [steep, "steep barley"]
+discipline: malting
+difficulty: easy
+inputSlots:
+- slot: barley
+  category: barley
+  minGrade: poor
+  count: 1
+- slot: water
+  category: water
+  minGrade: poor
+  measureL: 20
+outputApplication: bulk
+outputTemplate: /trade/malting/thing/malting-floor
+outputMaterial: /trade/malting/idea/material/steeped-barley
+outputAppearance: a bed of swollen, water-dark barley

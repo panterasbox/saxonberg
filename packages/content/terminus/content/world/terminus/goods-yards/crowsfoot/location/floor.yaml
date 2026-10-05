@@ -68,5 +68,14 @@ data:
     - /trade/distilling/thing/slop-bucket
     - /trade/distilling/thing/cask
     - /trade/distilling/thing/wash-bucket
+    # ⭐⭐ The floor maltings. A distillery that malts its own barley is
+    # historically the ordinary case rather than the exotic one — most
+    # Scotch houses had a floor and a kiln on site until the maltsters
+    # centralised — and it is what closes the vertical: the barley a
+    # player grew becomes the malt their own mash wants, on this floor,
+    # with no sack bought from anybody.
+    - /trade/malting/thing/malting-floor
+    - /trade/malting/thing/malt-kiln
+    - /trade/malting/thing/malt-sack
   cast:
     - /world/terminus/goods-yards/crowsfoot/agent/hand

@@ -1,0 +1,34 @@
+# ⭐⭐ The kilning — and the ONE decision in the trade.
+#
+# Green malt is alive, wet and converting. Heat stops it. Too early and
+# the starch is not converted; too late and the shoot has eaten the sugar
+# you were waiting for. That moment is what a maltster is paid for, and
+# it is the reason this step is a recipe at all rather than another clock:
+# the player has to choose to do it.
+#
+# ⚠⚠ `requiresHeatK: 330` and `maxHeatK: 360`, and the BAND is the point.
+# Above about 350 K the enzymes the floor spent five days making are
+# destroyed, so the window is narrow in both directions: a cold kiln does
+# not dry the bed and a hot one ruins it. The malt kiln's row holds 340,
+# squarely inside — which is why that row's `burnTemperatureK` reads as
+# feeble next to a limekiln's 1500 and is nothing of the kind.
+#
+# No `toolCapabilities`: the heat gate IS the kiln, and `Oven` offers no
+# capability. A hearth hot enough and gentle enough would do, which is
+# historically true — cottage malting was done over a domestic fire.
+recipeId: kiln-malt
+name: Kiln malt
+keywords: [kiln, "kiln malt"]
+discipline: malting
+difficulty: standard
+inputSlots:
+- slot: green
+  category: green-malt
+  minGrade: poor
+  measureL: 20
+requiresHeatK: 330
+maxHeatK: 360
+outputApplication: bulk
+outputTemplate: /trade/malting/thing/malt-sack
+outputMaterial: /stuff/idea/material/food/malt
+outputAppearance: pale malted barley, dusty and sweet-smelling

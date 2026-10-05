@@ -20,4 +20,8 @@ data:
   register: definite
   longDescription: |
     A scorched ledger on a chain, the day's runs written in a crabbed hand — grist, charge, take.
-  offeredRecipes: [wash-mash, compound-gin]
+  # ⭐ The malting steps are on the still-house's own board, because the
+  # floor and the kiln are in the same building. The alternative was a
+  # second Menu row for the maltings, which is a board nobody would read
+  # — the day's work is one list.
+  offeredRecipes: [steep-barley, kiln-malt, wash-mash, compound-gin]

@@ -1,0 +1,28 @@
+# Steeped barley — barley that has drunk its fill and is about to wake up.
+#
+# ⚠ It is BULK and not a solid, which is what lets the malting floor be an
+# ordinary Vat with a `MaturingMixin` clock on it: steeping is done in
+# water and a bed of wet grain is measured by volume, not counted. The
+# `steeped-barley` tag is the maturation profile's `inputCategory`.
+#
+# ⭐ And it is already perishable in a way dry barley is not: a wet bed at
+# the wrong temperature sours, which is the whole reason a maltster's
+# floor is a cold stone one.
+class: /platform/idea/material/ConsumableMaterial
+data:
+  name: steeped barley
+  keywords: [barley, steeped, "steeped barley", grain]
+  appearance: a bed of swollen, water-dark barley
+  density: 700
+  thermalConductivity: 0.5
+  specificHeat: 2600
+  edibility: true
+  tastes: [bland]
+  spoilActivationEnergy: 55000
+  waterActivity: 0.96
+  nutrients: [carb]
+  nutrientAmounts:
+    carb: 9000
+  tags: [liquid, food, grain, steeped-barley]
+  composition: []
+  biologicalSource: null
