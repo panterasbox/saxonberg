@@ -767,6 +767,54 @@ nine death-touching suites with **zero unhandled errors** — the state
 Acceptance: `lint:family` green; `unconsumed-seams` ≤ 19.
 Commit: `build(carcass W1): the reconciliation slice — yield shape, bulk-made tangibles, bone into the soil`.
 
+#### ✅ W1 — DONE
+
+1. ⚠⚠ **The `feed` ordering had to change, and this is the wave's one
+   real finding.** The plan said *"`FeedController` gains one branch"*. It
+   needed a **reordering**: the headroom check ran before the source was
+   resolved and was keyed on nitrogen, so a field with rich nitrogen and
+   starved organic matter would have refused a sack of bone meal with
+   *"the soil is already rich"* — a true sentence about the wrong reserve,
+   and the most plausible way for this feature to ship dead. The material
+   is now resolved first, the target reserve chosen from its tags, and the
+   headroom read off **that** reserve. Pinned by a test that is the reason
+   the file is worth reading (`⚠ rich nitrogen does NOT refuse an
+   amendment the ground wants`), plus its mirror.
+2. ⭐ **A slow amendment needs ground deep enough to improve**, and the
+   refusal says which thing it cannot take (`no-amendment-reserve`): a
+   `Field` seeds all four soil reserves in code, a garden-bed row authors
+   two. So bone meal works on a field and is honestly refused by a
+   windowsill, which is right.
+3. ⭐ **D10's phosphorus correction holds up in the code**:
+   `Soil.addOrganicMatter` already credits *a little nitrogen now and most
+   of it later*, which is exactly what ground bone does in a field. No
+   fifth reserve, and the shipped face says the true thing.
+4. `Species.dressOut` carries `finishFactor` — the dressing curve lifted
+   verbatim out of the retired stockyard controller, where it was a module
+   constant beside a hardcoded table. ⭐ The tests pin that **the curve
+   saturates**: `finish` clamps at 1, so everything past about flesh 93
+   dresses the same and the dial's real question is *did you get it to
+   finished at all*. `setButcheryYield` now **throws** on a share outside
+   `(0, 1]` — `fraction: 40` would otherwise dress a 70 kg ewe out at
+   2,800 kg of meat and nothing would say a word.
+5. The tangible-from-bulk derivation cites `fix/2026-10-03-ordered-maker`
+   as its precedent, in the same file and in the same words. ⭐ Its test
+   file **also proves D6's premise before W6 needs it**: an ungated recipe
+   (no discipline, no difficulty) with `makerMode: 'self'` resolves a
+   maker and dips a candle, so a player with no trade can make one. An
+   earlier draft of that test passed while every case declined
+   `no-maker`, which is the shape of a test that proves nothing — the
+   refusal case now asserts its reason.
+
+⚠ **`unconsumed-seams` reports 18 against a ceiling of 19 and says the
+ratchet can fall.** Left alone until W9: W3 consumes `dressOut` and
+`getConditionAtDeath`, so the number moves again and ratcheting twice
+would be noise. **W9 must lower `SEAM_CEILING`.**
+
+Tests: 318 green across species, bulk, husbandry and the three
+`CraftingLogic` suites — `Species.dressOut` 15 new, `FeedVerb` 7 new,
+`CraftingLogic.dipped` 5 new.
+
 ### W2 — Ranching: one slaughter
 
 Under `packages/content/trade-ranching/`:

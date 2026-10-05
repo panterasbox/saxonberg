@@ -1488,11 +1488,36 @@ async function applyTangibleOutput(
   // matched, the material is the authored one and the mass is the summed
   // bulk (litres x each source material's density) — conservation exactly
   // as the item arm does it, over the other kind of matter.
+  // ⭐⭐ **And a tangible made of bulk that DERIVES its material.** The
+  // arm above needs `outputMaterial` authored; this one is the case where
+  // authoring it would be a lie. One recipe dips a candle, and what the
+  // candle is made of is **whatever fat was in the pot** — beeswax or
+  // tallow, one act, two materials, and a taper that smells of honey or
+  // of mutton accordingly.
+  //
+  // The rule the recipe doc already states for every other arm:
+  // *`outputMaterial` empty ⇒ the output material comes from the matched
+  // input.* The item arm has always done it (a steel bar makes a steel
+  // knife); the bulk arm threw instead, so the only way to make a candle
+  // was to weld one material onto the recipe and ship a second recipe for
+  // the other feedstock.
+  //
+  // ⭐ The precedent is in this same file, on the other mint path:
+  // `fix/2026-10-03-ordered-maker` found `applyBulkOutput` not stamping a
+  // maker that `mintVessel` already stamped — *"Two mint paths, and only
+  // one of them stamped the liquid; this is the other one agreeing."*
+  // This is two paths disagreeing about deriving a material, and this is
+  // the other one agreeing.
+  const bulkDerived = !primary && authoredMaterial.length === 0;
+  const primaryBulk = bulkDerived
+    ? (matched.find((m) => m.material) ?? null)
+    : null;
   const bulkOnly = !primary && authoredMaterial.length > 0;
-  if (!primary && !bulkOnly) {
+  if (!primary && !bulkOnly && !primaryBulk) {
     throw new Error(
       `CraftingLogic: tangible output '${recipe.getOutputTemplate()}' ` +
-        `resolved with no matched item input and no 'outputMaterial'`,
+        `resolved with no matched item input, no 'outputMaterial', and no ` +
+        `bulk input to take a material from`,
     );
   }
   if (!MixinApi.isTangible(output)) {
@@ -1519,9 +1544,11 @@ async function applyTangibleOutput(
   // The bulk-only arm (a loaf from dough) is the same rule with no item
   // to fall back on: the authored material, and the mass summed over the
   // bulk by each source material's density.
-  if (bulkOnly) {
+  if (bulkOnly || primaryBulk) {
     output.setMaterial(
-      await StuffApi.singleton<Material>(authoredMaterial),
+      primaryBulk
+        ? primaryBulk.material!
+        : await StuffApi.singleton<Material>(authoredMaterial),
     );
     for (const m of matched) {
       const density = m.material?.getDensity().rawValue() ?? 1000;

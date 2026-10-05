@@ -40,12 +40,74 @@ import { SpeciesApi } from '../../../api/species';
 /**
  * One line of a species' butchery yield: a cut template and how many a
  * clean butchering gives. A messy one gives fewer; nothing gives more.
+ *
+ * ⭐⭐ **Two shapes, and the absence of `fraction` is what picks one.**
+ *
+ *  - **Counted** (`fraction` absent) — *this animal gives three cuts*.
+ *    The shipped shape, and the honest one for a species nobody has
+ *    weighed: the six fish, the wolf, the hog, the pony.
+ *  - **Dressed** (`fraction` present) — *this cut is 40 % of live
+ *    weight, in twelve joints*. What a stockman actually knows, and the
+ *    only shape in which **the size and the condition of the animal can
+ *    pay off**: a thin ewe dresses out light, a bullock dresses out
+ *    heavy, and both read off one line.
+ *
+ * A species may mix them line by line. The arithmetic is
+ * {@link Species.dressOut}.
  */
 export interface ButcheryYield {
   /** Template path of the Provision a cut produces. */
   cut: string;
   /** Units a clean butchering yields (a rounded-down share on a poor one). */
   units: number;
+  /**
+   * Share of the animal's LIVE weight this line takes, `(0, 1]`. Absent
+   * ⇒ the counted shape: the units are the whole statement and no mass
+   * is derived.
+   */
+  fraction?: number;
+  /**
+   * Does body condition scale this line? Default **true**, because most
+   * of what comes off an animal is flesh and fat. ⭐ `false` is the
+   * interesting case and it is a real fact: **a hide and a skeleton are
+   * the size the animal is, not the shape it is in.** A starved ewe has
+   * the same bones as a finished one.
+   *
+   * Meaningless without `fraction` (a counted line has no mass to
+   * scale).
+   */
+  conditioned?: boolean;
+}
+
+/**
+ * One line of a dressed-out carcass: what to clone, how many, and what
+ * each piece weighs. `null` mass = the counted shape — the caller clones
+ * `units` of it and leaves the row's own mass alone.
+ */
+export interface DressedLine {
+  /** Template path of the Provision to clone. */
+  cut: string;
+  /** How many pieces. At least 1 whenever the line yields anything. */
+  units: number;
+  /** Kilograms per piece, or `null` for a counted line. */
+  kgEach: number | null;
+}
+
+/**
+ * ⭐ **The dressing percentage, and it is the shipped curve.** Lifted
+ * verbatim out of `trade-ranching`'s retired `ButcherController`, where
+ * it was a module constant beside a hardcoded yield table: *a beast in
+ * poor flesh is bone and hide and not much else.* `flesh` runs `[0,100]`
+ * and sits at 55 for an unremarkable animal, so an unremarkable animal
+ * dresses at ~0.83 and a finished one at ~1.0.
+ *
+ * It lives here rather than in a controller because it is a fact about
+ * carcasses, and because both the kitchen and anything else that ever
+ * weighs a dead animal must agree about it.
+ */
+function finishFactor(fleshPct: number): number {
+  const v = 0.55 + (fleshPct - 30) / 90;
+  return v < 0 ? 0 : v > 1 ? 1 : v;
 }
 
 export interface SuggestedName {
@@ -975,8 +1037,81 @@ export default class Species extends SingletonMixin(
   public getButcheryYield(): readonly ButcheryYield[] {
     return this.butcheryYield;
   }
+  /**
+   * ⚠ **Refuses a nonsense `fraction` rather than dropping it**, for
+   * `setFeedingStyle`'s reason: a line authored `fraction: 40` (percent,
+   * not share) would otherwise dress a 70 kg ewe out at 2,800 kg of meat
+   * and nothing would say a word. A share outside `(0, 1]` is a typo
+   * every time.
+   */
   public setButcheryYield(value: ButcheryYield[]): void {
-    this.butcheryYield = Array.isArray(value) ? value : [];
+    if (!Array.isArray(value)) {
+      this.butcheryYield = [];
+      return;
+    }
+    for (const line of value) {
+      if (line.fraction === undefined) continue;
+      if (
+        !Number.isFinite(line.fraction) ||
+        line.fraction <= 0 ||
+        line.fraction > 1
+      ) {
+        throw new RangeError(
+          `Species.butcheryYield: '${line.cut}' authors fraction ` +
+            `${String(line.fraction)} — a share of live weight in (0, 1], ` +
+            `not a percentage.`,
+        );
+      }
+    }
+    this.butcheryYield = value;
+  }
+
+  /**
+   * ⭐⭐ **Dress a carcass out: what this species gives, at this weight,
+   * in this condition.**
+   *
+   * The one place the arithmetic lives, and the reason the stockyard and
+   * the kitchen cannot disagree about it any more — there used to be two
+   * butcher verbs with two yield models, one reading a hardcoded table of
+   * five fractions and one reading this field's counts, and an animal
+   * gave different things depending on which you typed.
+   *
+   * Per line: `kg = liveKg × fraction × finish`, where `finish` is
+   * {@link finishFactor} of the body's condition for a `conditioned` line
+   * (the default) and 1 for one that is not (a hide, a skeleton). `units`
+   * is how many pieces that mass arrives in, so each piece is `kg/units`.
+   * A line with no `fraction` passes through as a count with no mass.
+   *
+   * ⚠ **It does not apply the butcher's skill**, deliberately: skill is
+   * the hand, not the animal, and it belongs where the band is read. The
+   * floor of one piece belongs there too.
+   */
+  public dressOut(args: { liveKg: number; fleshPct?: number }): DressedLine[] {
+    const liveKg = Number.isFinite(args.liveKg) ? Math.max(0, args.liveKg) : 0;
+    const finish = finishFactor(
+      Number.isFinite(args.fleshPct ?? NaN) ? (args.fleshPct as number) : 55,
+    );
+    const out: DressedLine[] = [];
+    for (const line of this.butcheryYield) {
+      const units = Math.max(1, Math.round(line.units));
+      if (line.fraction === undefined) {
+        out.push({ cut: line.cut, units, kgEach: null });
+        continue;
+      }
+      const scale = line.conditioned === false ? 1 : finish;
+      const kg = liveKg * line.fraction * scale;
+      // ⭐ Below the threshold the line yields NOTHING, which is the
+      // honest answer rather than a gram of suet: there is nothing worth
+      // taking off a animal that small. The retired stockyard controller
+      // used the same figure for the same reason.
+      if (kg < 0.05) continue;
+      out.push({
+        cut: line.cut,
+        units,
+        kgEach: Math.round((kg / units) * 100) / 100,
+      });
+    }
+    return out;
   }
 
   /** See {@link Habitat}. `null` — the species lives in no water. */
