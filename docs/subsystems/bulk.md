@@ -611,3 +611,40 @@ Each lands in a named home later; none is in this slice.
   the `:b` transform home.
 - [response-envelope.md](./response-envelope.md) — note kinds.
 - [bulkable-slate.md](../slates/tails/bulkable-slate.md) — design of record.
+
+---
+
+## History — the whiskey build (2026-10-04)
+
+**A new policy seam.** `getBulkPayloadForDraw(affordance, litres)` on
+`Bulkable`, `payloadForDraw(litres)` on `BulkSlot`. The base impl returns
+the slot's own payload, so nothing changes for any composer; a host whose
+interior is **not homogeneous** overrides it. ⚠ It takes the litres
+because a draw that straddles a boundary is two things at once — see
+[fractionation.md](./fractionation.md).
+
+**A new declared payload field.** `dissolvedToxins`, from
+`lib/metabolism/DissolvedToxins.ts` — the `formedToxins` move, for a dose
+that is a **concentration** (mg/L) rather than a per-serving amount, so it
+blends by volume on every pour and scales with litres drunk at the ingest.
+`lib/bulk` still never learns the word toxin.
+
+**⚠⚠ Two behaviour changes in `transfer`, and both are doctrinal:**
+
+1. **A top-up is weakest-link on the grade.** Identity rides into an
+   empty destination only, as before — but quality is a property of the
+   *matter*, and without this, pouring good into bad left `poor` while
+   pouring bad into good left `fine`: the same mixture with two answers,
+   and the second was a laundry. The maker's mark is untouched either
+   way; a top-up never re-signs somebody else's work.
+2. **The drawn payload comes from `payloadForDraw(applied)`**, read after
+   the clamp, not from `getPayload()`.
+
+**⚠ The insertion count is now EIGHT.** `transfer` carries freshness,
+water activity, pathogens, blood identity, thermal, the payload copy, the
+batch-identity carry and the dissolved blend. `maturation.md` named
+poisons as the moment to generalise to a host-side participant hook, and
+this build made the eighth in the shipped shape and **filed the refactor
+with its count** rather than doing it — per *census then ratchet*, because
+refactoring four shipped blends inside a feature build would have hidden
+the feature.

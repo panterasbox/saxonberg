@@ -25,7 +25,14 @@ data:
     even in summer, with a long-handled shovel and a wooden rake leaning
     at the end of it.
   category: malting-floor
-  _materialPath: /stuff/idea/material/stone/limestone
+  # ⚠ No `_materialPath`. The first draft named
+  # `/stuff/idea/material/stone/limestone`, which resolves to no content
+  # row — `lint:census` clause (b) caught it, which is exactly the class
+  # of silent dead reference that gate exists for. The honest answer is to
+  # state the mass and leave the material to whoever ships a building
+  # stone: a trough's substance is load-bearing for nothing the malting
+  # trade does, and inventing a material row to satisfy a field would be
+  # worse than omitting it.
   mass: 900
   interiorBulk: true
   interiorCapacity: 60

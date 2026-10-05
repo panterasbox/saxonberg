@@ -275,3 +275,31 @@ bug seen from different sides:
 ⚠ Fixed in passing, and worth knowing about: `CombatLogic.safeSideOf`
 keyed a solo side on `getTemplatePath() ?? ''`, so **two unidentified
 combatants read as ALLIES**. It keys on `stuffId` now.
+
+---
+
+## History — the whiskey build (2026-10-04)
+
+**The toxin arm now writes rows.** `noteMealAccountability` was called
+from inside metabolism's **pathogen loop**, so a `harm` row was appended
+for an infection and never for a poisoning — anything harmful chemically
+rather than microbially named nobody. It is one function with two call
+moments now (`Metabolic.noteConsumptionHarm`), and the two differ in
+exactly one way:
+
+| arm | fires at | why there |
+|---|---|---|
+| pathogen | the infection | unchanged; incubation *is* the harm beginning |
+| toxin | the **first band crossing** | a trace dose is not harm, and attributing at the swallow would name a maker for the congeners in every honest bottle |
+
+⭐ **The rule for which doses name anybody**: only the **per-instance**
+toxin shapes (`dissolvedToxins`, `formedToxins`) record a maker. A
+Material's own authored toxicity records nobody, because the ledger names
+the maker for what the *making* put in it and never for what the thing
+*is*. A bartender is not a poisoner for every drunk patron; a distiller
+who kept the foreshots is one, and the difference is a choice they made.
+
+⚠ Nothing acts on the row, as ever: it is derived blame on read, no
+notification to either party, and no penalty. ⭐ Side effect accepted with
+the change: the shipped staph/botulinum `intoxicate` populations are
+attributed now. They never were.

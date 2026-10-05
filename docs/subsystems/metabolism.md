@@ -450,3 +450,43 @@ when it HAS a `floorEffect` — `wind` and tolerance are seeded empty.
 - `platform/idea/cmd/bulk/{Eat,Vomit}Controller.ts` + `cmd/bulk/{eat,vomit}.yaml`.
 - `seeds/lib/metabolism/conditions/*.yaml` (cascade + toxin conditions),
   `seeds/lib/material/{food,drink}/*.yaml` (toxic + alcoholic materials).
+
+---
+
+## History — the whiskey build (2026-10-04)
+
+**A third toxin shape: `BulkPayload.dissolvedToxins`** (declared from
+`lib/metabolism/DissolvedToxins.ts`). The roster had two and neither could
+say what a badly-cut spirit is: `Material.toxicity` is per-serving and per
+*substance* (every bottle of whiskey is equally alcoholic, because that is
+what whiskey IS), and `formedToxins` is per-instance but still per-serving
+and deliberately never blends (a ptomaine dose is a dose).
+
+A cut's methanol is **mg per litre of this matter**, so it blends by
+volume on every pour and the dose is `amount × litres`. ⭐ That one
+multiplication is the whole distinction, and it is why a badly-cut bottle
+hurts the person who finishes it and not the person who tastes it.
+`DissolvedToxins` holds the arithmetic (the `Freshness`/`Contamination`
+value-class shape); `toxicityOf` is untouched.
+
+**`toxinMakers`** — persistent runtime state: who made the doses this
+body is still carrying, per toxin type. Recorded at ingest for the two
+**per-instance** shapes only. ⭐⭐ A Material's own authored toxicity
+records nobody: the ledger names the maker for what the *making* put in
+it, never for what the thing *is*, so a bartender is not a poisoner for
+every drunk patron. Cleared with the burden.
+
+**One harm function, two moments.** `noteMealAccountability` and the new
+`noteToxinAccountability` both delegate to `noteConsumptionHarm(maker,
+sessionIdFor)`. The pathogen arm fires at the infection as it always did;
+the toxin arm fires at the **first band crossing**, because attributing at
+the swallow would name a maker for the trace congeners in every honest
+bottle in the realm. ⭐ Side effect accepted with it: the shipped
+staph/botulinum `intoxicate` arm is attributed now. It never was.
+
+**`Condition/metabolism/methanol.yaml`** — the first toxin on the roster
+that is a *decision* rather than an accident. Slow in and slow out, so the
+illness arrives after the drunkenness has worn off; bands calibrated
+against one sentence (*a well-cut bottle harms nobody however much of it
+they drink*), with the arithmetic asserted in
+`world/__tests__/fermentation-distilling.test.ts`.

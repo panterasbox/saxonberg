@@ -154,18 +154,42 @@ batch run past it goes sterile — the stuck ferment), `stallAboveK`
 (authored dormancy — lager's warm refusal), `requiresStrain`,
 `spontaneousLagDays` (a sterile must in an OPEN vessel catches wild
 flora after the lag; sealed never starts), `wildStrain`,
-`leesFraction`/`leesMaterial`, culture kind: `strain` + `starveDays`,
-and the INERT `foreshotCharacter` (P10 — the deferred cuts rung's
-seam). ⭐⭐ **That rung has a SECOND consumer and it is worth building for
-the first one anyway:** fractionating crude is the same act as making the
-cut — *separate a mixture by boiling point, and the operator decides
-where the boundaries fall*. So the whiskey cut and the refinery are one
-mechanism with different feedstocks and a different number of cuts, and
-building the rung for whiskey (a medieval-epoch build that pays for
-itself in a shipped trade) pre-builds refining for free. See
-[drilling-slate](../slates/builds/drilling-slate.md) § *Refining is the
-distiller's deferred cuts rung*. **A new drink is rows alone** — proven by the cider test
+`leesFraction`/`leesMaterial`, culture kind: `strain` + `starveDays`.
+⛔ **`foreshotCharacter` is RETIRED** (whiskey build, 2026-10-04). It was
+inert authored prose for the life of the field, with exactly one reader —
+a test asserting it was non-empty — and the cuts rung it was waiting for
+has shipped. The character belongs **per fraction**, on a
+`FractionSchedule` row, because there is more than one of them and they
+are not all poison. ⭐ That rung is its own subsystem now:
+[fractionation.md](./fractionation.md) — *a batch that yields in ordered
+fractions as it is drawn*, driven by volume where this one is driven by a
+clock, and generalising the lees split from one boundary to many. The
+refinery is the same mechanism with a different feedstock, which is rows
+(see [drilling-slate](../slates/builds/drilling-slate.md) § *Refining is
+the distiller's deferred cuts rung*). **A new drink is rows alone** —
+proven by the cider test
 (`world/__tests__/fermentation-cider.test.ts`).
+
+⭐⭐ **And the fill now CAPS the batch** (`batchInputBand`). `applyBatchGrade`
+wrote `bandFor(_worstStretch)` and ignored what was poured in, so a
+`poor` must made `fine` wine provided the cellar was kept well — a
+laundry, and a contradiction of `Grade.deriveAtFixedControl`'s
+weakest-link rule one folder over. The band is recorded by a `setGrade`
+**witness while the batch is idle**, which is the part worth copying:
+reading the host's Graded face at `startBatch` would have capped every
+ungraded ferment at `GradedMixin`'s `'fair'` default, for ever, silently.
+Proved both ways in `__tests__/InputBandCap.test.ts` — ⚠ written because
+the fix broke **no** shipped test, which meant either it worked and
+nothing shipped ferments a bad fill, or it never fired.
+
+⭐ A fifth `MaturationMechanism`, **`enzymatic`** — *the thing does it to
+itself*. A steeped barleycorn turns its own starch over with its own
+amylase: nothing was added and nothing is living on it. Added rather than
+reused because `microbial` asserts an organism (the one thing a maltster
+keeps out of the bed) and `chemical` asserts a reagent. Its six lines are
+all about the CORNS, and a world test refuses prose containing *yeast*,
+*bubble*, *ferment*, *microbe* or *breath*. First consumer:
+`trade-malting`'s floor.
 
 `MaturationProfileCatalogue.onCreate` stands the roster up, eager via
 the platform pack's `boot:` manifest (`sync-read`) — the
