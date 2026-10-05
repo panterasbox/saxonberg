@@ -96,11 +96,14 @@ export default class TransfuseController extends CommandController<TransfuseMode
       patientTyped &&
       CompetenceBand.atOrAbove(giverBand, 'competent')
     ) {
-      const patientSpecies = MixinApi.isOrganism(patient)
-        ? (patient.getSpecies()?.getTemplatePath() ?? '')
-        : '';
-      const donor = new BloodType(unit.speciesPath, unit.type as BloodTypeLabel);
-      const me = new BloodType(patientSpecies, patient.bloodType() as BloodTypeLabel);
+      const donor = new BloodType(
+        unit.system || unit.speciesPath,
+        unit.type as BloodTypeLabel,
+      );
+      const me = new BloodType(
+        patient.bloodSystemOf(),
+        patient.bloodType() as BloodTypeLabel,
+      );
       if (donor.mismatchFor(me) > 0) {
         return this.fail(
           context,
@@ -114,7 +117,11 @@ export default class TransfuseController extends CommandController<TransfuseMode
     return this.runOrEngage(context, giver, () => {
       const result = patient.receiveBlood({
         litres,
-        blood: { speciesPath: unit.speciesPath, type: unit.type },
+        blood: {
+          speciesPath: unit.speciesPath,
+          system: unit.system,
+          type: unit.type,
+        },
       });
       slot.setAmount(Quantity.of(slot.getAmount().rawValue() - litres, 'L'));
       void this.credit(giver);

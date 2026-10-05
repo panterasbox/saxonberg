@@ -7,12 +7,12 @@ import { describe, it, expect } from 'vitest';
 import { BloodType } from '../BloodType';
 import type { AboPhenotype } from '../BloodType';
 
-const S = '/stuff/idea/species/test/human';
-const bt = (abo: AboPhenotype | 'mixed', species = S): BloodType =>
-  new BloodType(species, abo);
+const S = 'hominid';
+const bt = (abo: AboPhenotype | 'mixed', system = S): BloodType =>
+  new BloodType(system, abo);
 
 describe('BloodType', () => {
-  it('O is the universal donor within a species', () => {
+  it('O is the universal donor within a blood system', () => {
     for (const r of ['A', 'B', 'AB', 'O'] as AboPhenotype[]) {
       expect(bt('O').isCompatibleDonorFor(bt(r))).toBe(true);
     }
@@ -41,12 +41,27 @@ describe('BloodType', () => {
     }
   });
 
-  it('mismatch grades 0/1/2: compatible, ABO, cross-species', () => {
+  it('mismatch grades 0/1/2: compatible, ABO, cross-system', () => {
     expect(bt('O').mismatchFor(bt('A'))).toBe(0);
     expect(bt('A').mismatchFor(bt('B'))).toBe(1);
-    const other = '/stuff/idea/species/test/wolf';
+    const other = 'fae';
     expect(bt('O').mismatchFor(bt('O', other))).toBe(2);
-    // Species mismatch dominates even an ABO match.
+    // A system mismatch dominates even an ABO match.
     expect(bt('A').mismatchFor(bt('A', other))).toBe(2);
+  });
+
+  it('⭐ compatibility crosses species that share a system (D3)', () => {
+    // Two bodies of DIFFERENT species but the SAME declared blood system
+    // (e.g. a human and a dwarf, both `hominid`): a sapiens O gives to a
+    // khazadicus AB — the BloodType keys on the system, not the taxon.
+    const sapiensO = new BloodType('hominid', 'O');
+    const dwarfAB = new BloodType('hominid', 'AB');
+    expect(sapiensO.isCompatibleDonorFor(dwarfAB)).toBe(true);
+    expect(sapiensO.mismatchFor(dwarfAB)).toBe(0);
+    // But two members of species in different systems always react, even
+    // ABO-matched (a human O and an elf O).
+    const elfO = new BloodType('fae', 'O');
+    expect(sapiensO.isCompatibleDonorFor(elfO)).toBe(false);
+    expect(sapiensO.mismatchFor(elfO)).toBe(2);
   });
 });

@@ -26,8 +26,15 @@ import type { BloodTypeLabel } from "./BloodType";
 
 /** The per-unit facts a blood bag carries beyond its Material. */
 export interface BloodUnit {
-  /** The donor's species — cross-species transfusion is the reaction. */
+  /** The donor's species — provenance only (what body it came out of). */
   speciesPath: string;
+  /** ⭐ The blood SYSTEM this unit belongs to (D3) — what compatibility is
+   * judged on, so a transfusion never needs the donor's species row. A unit
+   * drawn from a species that declares no shared system carries that
+   * species' own path here, which is the flat per-species case. Optional on
+   * the interface for units stamped before the system existed; a reader
+   * falls back to `speciesPath`. */
+  system?: string;
   /** The TRUE ABO phenotype (or `mixed`). Present whether or not labelled. */
   type: BloodTypeLabel;
   /** Has anyone tested/labelled this unit? Only a labelled unit lets a
@@ -88,15 +95,21 @@ export const BLOOD_DEFAULTS = {
 export class Blood {
   constructor(public readonly unit: BloodUnit) {}
 
-  /** Fold `other` into this unit on a transfer into a non-empty slot. */
+  /** Fold `other` into this unit on a transfer into a non-empty slot.
+   * Same blood SYSTEM (D3) and same ABO type → kept; anything else → `mixed`
+   * and unlabelled — a mixed unit matches nobody, which is what stops
+   * decant-to-launder tricks. */
   public blend(other: BloodUnit): BloodUnit {
+    const mySystem = this.unit.system ?? this.unit.speciesPath;
+    const otherSystem = other.system ?? other.speciesPath;
     if (
-      this.unit.speciesPath === other.speciesPath &&
+      mySystem === otherSystem &&
       this.unit.type === other.type &&
       this.unit.type !== "mixed"
     ) {
       return {
         speciesPath: this.unit.speciesPath,
+        system: this.unit.system,
         type: this.unit.type,
         labelled: this.unit.labelled && other.labelled,
         donorIdentityPath: this.unit.donorIdentityPath,
@@ -104,6 +117,7 @@ export class Blood {
     }
     return {
       speciesPath: this.unit.speciesPath,
+      system: this.unit.system,
       type: "mixed",
       labelled: false,
       donorIdentityPath: this.unit.donorIdentityPath,
