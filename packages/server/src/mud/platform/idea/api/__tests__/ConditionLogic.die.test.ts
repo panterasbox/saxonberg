@@ -362,60 +362,33 @@ describe('ConditionApi.die — one transition', () => {
 });
 
 
+
 /**
- * ⭐⭐ Two bodies out of ONE row, dying in the same game-second.
+ * ⭐⭐⭐ Two bodies, and who gets a minted identity.
  *
- * ⚠⚠ **This was near-dead code until the carcass chain, and is ordinary
- * now.** Only a player's death minted a corpse before, and two of those
- * in one game-second is a coincidence nobody had seen. Every beast and
- * NPC mints one now — and `getIdentityPath()` is
- * `#identityPath ?? getTemplatePath()`, so a beast's "identity" IS its
- * row, which a whole flock shares. Slaughter two ewes off one row in a
- * second, or let a fox through a hen coop, and two bodies are built from
- * the same base key.
+ * ⚠⚠ **The rule: a body with no MINTED identity gets no minted identity.**
+ * `getIdentityPath()` is `#identityPath ?? getTemplatePath()`, so a
+ * beast's "identity" is the ROW its whole flock shares — and a key built
+ * from it could only ever mean *the Nth body off the ewe row in
+ * game-second T*. Not durable (no deed is written for a non-persona, and
+ * `Creature` composes no `PersistableMixin`), not constructible, and — the
+ * axis that decides it — **not legible**: the UX refers to things by
+ * keyword, then the `distinguishing` form, then an ordinal, and nothing in
+ * that ladder can name a game-second.
  *
- * ⚠⚠⚠ **The KEY SCHEME these bodies get is under active review and this
- * suite must not entrench it.** `corpseIdentityFor` mints
- * `<corpseRow>/<deceased identity>/<gameSecond>[-n]`, and the three axes
- * that decide whether a minted identity earns its keep — durability, MQL
- * targetability, cardinality — **split by path**:
+ * ⭐ The mint SURVIVES where the identity is genuine, which is the case
+ * that corrected an earlier reading of this: a player can die, `reembody`
+ * and die again before the first body decays, so **one avatar owns two
+ * coexisting corpses at different states of decay** and `<gameSecond>`
+ * names which death. So the ordinal is still live code — on that path.
  *
- * - **a player**, whose deceased identity is genuinely minted: ⭐⭐ you
- *   die, leave a body, `reembody`, die again before the first decays, so
- *   there are **two corpses for one avatar at different states of
- *   decay**. `<gameSecond>` names WHICH DEATH — real discriminating work
- *   — the chronicle writes a `['death']` deed with a persistent `when`,
- *   and the corpse persists its own `diedAtGameSec`. All three axes pass.
- * - **a beast**, whose `getIdentityPath()` falls back to its row: no deed
- *   is written at all (`recordDeathDeed` returns early on `!isPersona`),
- *   `Creature` composes no `PersistableMixin` so the body is gone on
- *   restart, and the key can only ever mean *the Nth body off the ewe row
- *   in second T*. All three axes fail — there the stamp is a
- *   **uniquifier compensating for the identity fallback.**
- *
- * → `build-3`'s decisions 9/9a–9d (`location-graph-requirements.md`) and
- * `instance-addressing-slate.md`. A cross-cutting identity question is
- * not a trade build's to settle.
- *
- * So the split below is deliberate:
- *
- * - **the invariant** survives every candidate resolution — two deaths
- *   leave two bodies and neither silently replaces the other. Keep it
- *   whatever decision 9 says.
- * - **the characterization** pins today's `-2`/`-3` arithmetic. It is a
- *   description, NOT an endorsement, and it is the block to DELETE if
- *   decision 9 drops the mint for an unminted deceased (whereupon two
- *   BEASTS' bodies sit at the corpse row, as every other multi-instance
- *   clone does, and distinct keys stop being true for them — while a
- *   player's two coexisting corpses keep theirs).
- *
- * ⚠ The suite's own `body()` stamps a UNIQUE path per fixture, so no
- * test here could ever have produced the collision. These share one.
+ * ⚠ The suite's own `body()` stamps a UNIQUE path per fixture, so no test
+ * here could ever have produced the shared-row case. These do.
  */
-describe('ConditionApi.die — two bodies off one row', () => {
+describe('ConditionApi.die — two bodies, and who earns an identity', () => {
   let corpses: Corpse[] = [];
 
-  /** A head out of a flock: the row is the identity, as for real stock. */
+  /** A head out of a flock: its identity IS the row, as for real stock. */
   const FLOCK_ROW = '/stuff/agent/test-flock/ewe';
   function head(): Creature {
     const c = makeStuff(() => new Creature());
@@ -424,14 +397,27 @@ describe('ConditionApi.die — two bodies off one row', () => {
     return c;
   }
 
+  /**
+   * A body with a GENUINELY minted identity — an avatar's shape. The
+   * override is how `Avatar` itself does it, and it is the honest fixture
+   * for the one path where the mint earns its keep.
+   */
+  class MintedBody extends Creature {
+    public override getIdentityPath(): string {
+      return '/platform/agent/Avatar/test-player';
+    }
+  }
+  function mintedBody(): MintedBody {
+    const c = makeStuff(() => new MintedBody());
+    Stuff._stampTemplatePath(c, '/stuff/agent/test-avatar-body');
+    c.setLifecycleState('alive');
+    return c;
+  }
+
   beforeEach(() => {
     installV1QuantityMarshallers();
-    // ⭐ The identity-honouring mode: the stub files each body under the
-    // identity the MINT asked for, so the second death's probe reads the
-    // same index the real one would. With the default stub every corpse
-    // sits under `/stub/<n>`, the probe finds nothing, and the
-    // characterization below would pass while asserting the opposite of
-    // production.
+    // Files each body where production would: under the minted identity
+    // when the mint asked for one, under the bare corpse row when not.
     corpses = installCorpseMintStub({ stampRequestedIdentity: true });
     vi.spyOn(AccountabilityApi, 'record').mockImplementation(() => {});
   });
@@ -440,14 +426,11 @@ describe('ConditionApi.die — two bodies off one row', () => {
     StuffApi.clearAll();
   });
 
-  // ── the invariant ────────────────────────────────────────────────────
+  // ── the invariant: true under every resolution ───────────────────────
   it('⭐ two deaths leave TWO bodies — neither replaces the other', async () => {
     await ConditionApi.die(head(), 'slaughtered');
     await ConditionApi.die(head(), 'slaughtered');
 
-    // Scheme-agnostic on purpose: whatever a corpse is keyed on, two
-    // dead ewes must be two distinct objects that both exist. This is
-    // the line that holds under every candidate resolution of decision 9.
     expect(corpses).toHaveLength(2);
     const [a, b] = corpses as [Corpse, Corpse];
     expect(a.stuffId).not.toBe(b.stuffId);
@@ -455,48 +438,39 @@ describe('ConditionApi.die — two bodies off one row', () => {
     expect(b.isDestroyed()).toBe(false);
   });
 
-  // ── the characterization of today's scheme — a description ───────────
-  describe('⚠ today\'s key scheme (characterization — see decision 9)', () => {
-    it('gives the second body the first key plus an ordinal', async () => {
-      await ConditionApi.die(head(), 'slaughtered');
-      await ConditionApi.die(head(), 'slaughtered');
+  // ── the beast: no mint, an ordinary multi-instance clone ─────────────
+  it('⭐⭐ a beast gets NO minted identity — both bodies are the corpse row', async () => {
+    await ConditionApi.die(head(), 'slaughtered');
+    await ConditionApi.die(head(), 'slaughtered');
 
-      const paths = corpses.map((c) => c.getTemplatePath()) as string[];
-      expect(new Set(paths).size).toBe(2);
-      for (const p of paths) {
-        expect(p).toContain('/stuff/agent/Corpse/');
-        // ⚠ And here is the finding in assertion form: the key names the
-        // ROW the ewe came off, never the ewe.
-        expect(p).toContain(FLOCK_ROW.replace(/^\//, ''));
-      }
-      // The disambiguator is the ORDINAL, not the clock — both deaths
-      // land in one game-second.
-      expect(paths[1]).toBe(`${paths[0]}-2`);
-    });
+    // Exactly what cuts and logs already do: many clones of one kind row.
+    for (const corpse of corpses) {
+      expect(corpse.getTemplatePath()).toBe('/stuff/agent/Corpse');
+    }
+    expect(StuffApi.findAllByTemplatePath('/stuff/agent/Corpse')).toHaveLength(
+      2,
+    );
+    // ⚠ And the key that used to be minted here is GONE, not merely
+    // unused: nothing names the flock row or a game-second any more.
+    for (const corpse of corpses) {
+      expect(corpse.getTemplatePath()).not.toContain('test-flock');
+    }
+  });
 
-    it('a third goes to -3 — the walk continues, it does not wrap', async () => {
-      for (let i = 0; i < 3; i += 1) {
-        await ConditionApi.die(head(), 'slaughtered');
-      }
-      const paths = corpses.map((c) => c.getTemplatePath()) as string[];
-      expect(new Set(paths).size).toBe(3);
-      expect(paths[2]).toBe(`${paths[0]}-3`);
-    });
+  // ── the player: the mint survives, and the ordinal with it ───────────
+  it('⭐⭐ a minted identity still earns one, keyed by WHICH DEATH', async () => {
+    await ConditionApi.die(mintedBody(), 'hypothermia');
+    await ConditionApi.die(mintedBody(), 'hypothermia');
 
-    it('⚠ a collision would be SILENT but for the singleton read', async () => {
-      await ConditionApi.die(head(), 'slaughtered');
-      await ConditionApi.die(head(), 'slaughtered');
-
-      // Nothing reads a corpse's identity today, so two bodies filed at
-      // one key would simply sit there — `findByTemplatePath` throwing
-      // `expected singleton` is the only way anybody would hear about
-      // it. That is an argument about the mint's VALUE, not just a check:
-      // the sole consumer of the uniqueness is the uniqueness machinery.
-      for (const corpse of corpses) {
-        const key = corpse.getTemplatePath() as string;
-        expect(() => StuffApi.findByTemplatePath(key)).not.toThrow();
-        expect(StuffApi.findAllByTemplatePath(key)).toHaveLength(1);
-      }
-    });
+    const paths = corpses.map((c) => c.getTemplatePath()) as string[];
+    expect(new Set(paths).size).toBe(2);
+    for (const p of paths) {
+      expect(p).toContain('/stuff/agent/Corpse/');
+      // The avatar identity, not the body's lineage row.
+      expect(p).toContain('platform/agent/Avatar/test-player');
+    }
+    // Two coexisting corpses for one avatar: both deaths land in one
+    // game-second, so the ORDINAL is the disambiguator.
+    expect(paths[1]).toBe(`${paths[0]}-2`);
   });
 });

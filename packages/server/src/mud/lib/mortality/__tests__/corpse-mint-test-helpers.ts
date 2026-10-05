@@ -75,13 +75,22 @@ export function installCorpseMintStub(opts?: {
     // would find nothing — every stub corpse sits under `/stub/<n>` — and
     // a collision test would pass VACUOUSLY while asserting the opposite
     // of what production does.
-    const requested = opts?.stampRequestedIdentity
-      ? cloneOpts?.asIdentityPath
-      : undefined;
-    const corpse = makeStuffAtPath(
-      () => new Corpse(),
-      requested ?? `${TemplatePaths.mortalityCorpse}/stub/${++seq}`,
-    );
+    // ⭐ In `stampRequestedIdentity` mode the body is filed exactly where
+    // production would file it: under the minted identity when the mint
+    // asked for one, and **under the bare corpse ROW when it did not** —
+    // which is now the ordinary case for a beast, whose identity is a row
+    // its flock shares. Two live objects at one row is legal (only
+    // `findByTemplatePath` demands a singleton, and nothing reads this row
+    // that way), so a test can assert the un-minted case directly.
+    const corpse = opts?.stampRequestedIdentity
+      ? makeStuffAtPath(
+          () => new Corpse(),
+          cloneOpts?.asIdentityPath ?? TemplatePaths.mortalityCorpse,
+        )
+      : makeStuffAtPath(
+          () => new Corpse(),
+          `${TemplatePaths.mortalityCorpse}/stub/${++seq}`,
+        );
     corpse.setKeywords(['body', 'corpse', 'carcass']);
     corpse.setLifecycleState('dead');
     for (const [field, value] of Object.entries(cloneOpts?.dataOverlay ?? {})) {

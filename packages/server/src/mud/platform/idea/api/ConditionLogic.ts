@@ -611,6 +611,31 @@ async function divideBody(avatar: PlayerBody, cause: string): Promise<void> {
 function corpseIdentityFor(body: Stuff, nowS: number): string | undefined {
   const deceased = body.getIdentityPath();
   if (!deceased) return undefined;
+  // ⭐⭐⭐ **A body with no MINTED identity gets no minted identity.** This
+  // is the plan's own half-rule (*no identity path, no minted identity*)
+  // one rung up, and `getIdentityPath()` is `#identityPath ??
+  // getTemplatePath()` — so when the two are equal nothing was ever
+  // minted and the "identity" below would be built out of a ROW its whole
+  // flock shares. The key could then only ever mean *the Nth body off the
+  // ewe row in game-second T*: not durable (no deed is written for a
+  // non-persona, and `Creature` composes no `PersistableMixin`), not
+  // constructible by any caller, and — the axis that actually decides it
+  // — **not legible**. A player refers to a thing by keyword, then the
+  // `distinguishing` form, then an ordinal; nothing in that ladder can
+  // name a game-second, so the key is unspeakable by construction.
+  //
+  // A beast's corpse is therefore an ordinary multi-instance clone of the
+  // corpse row, exactly as cuts and logs already are. Nothing reads that
+  // row as a singleton (checked across the tree), and what tells two
+  // bodies apart is the presentation path — see `salientFeaturesImpl`,
+  // which now says a body's decay.
+  //
+  // ⚠ The mint SURVIVES where the identity is genuine: a player can die,
+  // `reembody` and die again before the first body decays, so one avatar
+  // owns two coexisting corpses and `<gameSecond>` names WHICH DEATH.
+  // There the chronicle writes a `['death']` deed and the corpse persists
+  // its own `diedAtGameSec`, so the name is recorded rather than guessed.
+  if (deceased === body.getTemplatePath()) return undefined;
   const base =
     `${TemplatePaths.mortalityCorpse}/` +
     `${deceased.replace(/^\/+/, '')}/${nowS}`;
