@@ -16,6 +16,7 @@ import {
   stampTemplatePathForTest,
 } from "../../../../lib/security/__tests__/test-setup";
 import { installV1QuantityMarshallers } from "../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers";
+import { installCorpseMintStub } from "../../../../lib/mortality/__tests__/corpse-mint-test-helpers";
 import { Idea } from "../../../../lib/stuff/Idea";
 import { Character } from "../../../../lib/character/Character";
 import Species from "../../species/Species";
@@ -367,14 +368,24 @@ beforeAll(async () => {
 
 beforeEach(async () => {
   installV1QuantityMarshallers();
+  // ⭐ A cull mints a corpse now; the mint clones an authored row that a
+  // unit world has no Template store for. See the helper.
+  installCorpseMintStub();
   StuffApi.clearAll();
   SchedulerApi._clearAllForTesting();
   HookSeq.length = 0;
   await bootRegistry();
 });
 
-afterEach(() => {
+afterEach(async () => {
   for (const s of openSessions.splice(0)) s.dissolve();
+  // ⚠ **Let the death tails land before the mocks come down.** A cull is
+  // driven synchronously from a sync `it`, but `ConditionApi.die` is
+  // fire-and-forget and its tail now mints a corpse — so the clone can
+  // still be in flight when the test body returns. Restoring the stub out
+  // from under it surfaces as an unhandled Mongo rejection attributed to
+  // whichever test happened to be running.
+  await new Promise((resolve) => setTimeout(resolve, 0));
   vi.restoreAllMocks();
   StuffApi.clearAll();
 });

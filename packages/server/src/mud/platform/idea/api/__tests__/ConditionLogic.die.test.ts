@@ -12,11 +12,26 @@
  * infers.** Consent, the killer and the terms are supplied by the producer
  * that knows them. Combat knows; hypothermia does not, and the row it
  * writes is structurally incapable of deriving as a crime.
+ *
+ * ⭐⭐ **Rewritten by the carcass-chain build.** These tests used to pin
+ * *"death is NOT destruction — the body persists as a corpse"*, which was
+ * two claims wearing one sentence: the body persisted AND it was the
+ * corpse. The second half is gone. Every death now mints a `Corpse` and
+ * destructs the thing that died, so the body does not persist — what
+ * persists is a body, which is the thing the sentence was actually
+ * promising. A dead ewe is no longer a ewe that cannot be milked.
  */
 
 import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { Creature } from '../../../../lib/creature/Creature';
+import Corpse from '../../../agent/Corpse';
+import { Quantity } from '../../../../lib/quantity';
+import { Reserve } from '../../../../lib/reserve';
+import { ContaminableMixin } from '../../../../lib/material/Contaminable';
+import { ContainmentApi } from '../../../../api/containment';
+import { installCorpseMintStub } from '../../../../lib/mortality/__tests__/corpse-mint-test-helpers';
+import { MixinApi } from '../../../../api/mixin';
 import { PersonaMixin } from '../../../../lib/character/Persona';
 import { ConditionApi } from '../../../../api/condition';
 import { AccountabilityApi } from '../../../../api/accountability';
@@ -28,9 +43,19 @@ import { makeStuff } from '../../../../lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 
 let rows: AccountabilityFields[] = [];
+/** The bodies the stubbed mint has left this test — see the helper. */
+let corpses: Corpse[] = [];
 let deeds: { tags?: string[] }[] = [];
 
 class StoriedCreature extends PersonaMixin(Creature) {}
+
+/**
+ * A body that can carry a silent population — a fish, in the shipped
+ * tree. ⭐ `Creature` itself is NOT `Contaminable` and should not be: a
+ * living animal's gut flora is not a surface load. The CORPSE is, which
+ * is the crossing this fixture exists to pin.
+ */
+class SeededCreature extends ContaminableMixin(Creature) {}
 
 /**
  * ⚠ The fixture is TEMPLATE-STAMPED, and it has to be. The ledger keys
@@ -65,6 +90,9 @@ describe('ConditionApi.die — one transition', () => {
     rows = [];
     deeds = [];
     installV1QuantityMarshallers();
+    // Every death mints a corpse now, so the stand-in is universal rather
+    // than per-test.
+    corpses = installCorpseMintStub();
     vi.spyOn(AccountabilityApi, 'record').mockImplementation((f) => {
       rows.push(f);
     });
@@ -87,14 +115,132 @@ describe('ConditionApi.die — one transition', () => {
     await promise;
   });
 
-  it('death is NOT destruction — the body persists as a corpse', async () => {
+  it('a death leaves A BODY — the dead thing is replaced by its corpse', async () => {
+    const minted = corpses;
     const c = body();
+    const temperatureAtDeath = c.getVitalSign('coreTemperature').rawValue();
+
     await ConditionApi.die(c, 'hypothermia');
 
-    expect(c.isDestroyed()).toBe(false);
-    expect(StuffApi.findById(c.stuffId)).toBe(c);
-    // Body-state survives into the corpse — the forensic record.
-    expect(c.getVitalSign('coreTemperature').rawValue()).toBeGreaterThan(0);
+    // The thing that died is gone; exactly one body stands in its place.
+    expect(c.isDestroyed()).toBe(true);
+    expect(minted).toHaveLength(1);
+    const corpse = minted[0]!;
+    expect(corpse.isDestroyed()).toBe(false);
+    expect(corpse.getCauseOfDeath()).toBe('hypothermia');
+    expect(corpse.getLifecycleState()).toBe('dead');
+    // The forensic record travelled — the vital signs as they stood. This
+    // is the assertion the old test made on the same object.
+    expect(corpse.getVitalSign('coreTemperature').rawValue()).toBe(
+      temperatureAtDeath,
+    );
+  });
+
+  it('the corpse carries the mass the body HAD, not a newborn\'s', async () => {
+    // ⚠ The defect this pins: `Creature.getMass()` derives from
+    // `species.massAt(getAgeDays())` when no mass is stored, and a fresh
+    // clone's `bornAt` is 0 — so an unstamped corpse of a full-grown ewe
+    // would have dressed out as a lamb.
+    const minted = corpses;
+    const c = body();
+    c.setMass(Quantity.of(70, 'kg'));
+    c.setBornAt(1000);
+
+    await ConditionApi.die(c, 'slaughtered');
+
+    const corpse = minted[0]!;
+    expect(corpse.getMass().rawValue()).toBeCloseTo(70, 5);
+    expect(corpse.getBornAt()).toBe(1000);
+  });
+
+  it('the corpse carries the condition the body DIED in, as a number', async () => {
+    const minted = corpses;
+    const c = body();
+    c.setReserve(
+      new Reserve('flesh', Quantity.of(100, '%'), Quantity.of(82, '%'), 'biological', null),
+    );
+
+    await ConditionApi.die(c, 'slaughtered');
+
+    expect(minted[0]!.getConditionAtDeath()).toBe(82);
+  });
+
+  it('the corpse answers to the dead thing\'s own keywords', async () => {
+    const minted = corpses;
+    const c = body();
+    c.setKeywords(['ewe', 'sheep']);
+
+    await ConditionApi.die(c, 'slaughtered');
+
+    const kw = minted[0]!.getKeywords();
+    expect(kw).toContain('ewe');
+    expect(kw).toContain('body');
+  });
+
+  it('a silent contamination load moves onto the corpse', async () => {
+    // The fishing pack's outfall load used to ride a dead `Fish`; a dead
+    // fish is a `Corpse` now, so the load has to make the crossing or the
+    // fillet comes out clean when it should not.
+    const minted = corpses;
+    const c = makeStuff(() => new SeededCreature());
+    Stuff._stampTemplatePath(c, `/stuff/agent/test-seeded/${++bodySeq}`);
+    c.setLifecycleState('alive');
+    expect(MixinApi.isContaminable(c)).toBe(true);
+    // ⚠ `contaminate()` resolves the pathogen's BEHAVIOR off a content
+    // row and no-ops without one, so the load is set directly here. The
+    // roster is content; what this test is about is the crossing.
+    c.setPathogenLoads({ salmonella: 0.4 });
+
+    await ConditionApi.die(c, 'slaughtered');
+
+    const corpse = minted[0]!;
+    expect(MixinApi.isContaminable(corpse)).toBe(true);
+    expect(corpse.getPathogenLoads()['salmonella']).toBeGreaterThan(0);
+  });
+
+  it('the loadout moves to the body, which is where someone has to go for it', async () => {
+    const minted = corpses;
+    const c = body();
+    const held = makeStuff(() => new Creature());
+    Stuff._stampTemplatePath(held, '/stuff/thing/test-held');
+    ContainmentApi.move(held, c);
+
+    await ConditionApi.die(c, 'slaughtered');
+
+    expect([...minted[0]!.getContents()]).toContain(held);
+  });
+
+  it('a body destructed while in the dying window mints nothing and throws nothing', async () => {
+    // ⚠ The fox race. `raids.ts` destructs a hen it has already put in the
+    // dying window; the window's expiry then runs `die` on a hole.
+    const minted = corpses;
+    const c = body();
+    const promise = ConditionApi.die(c, 'mauled');
+    await StuffApi.destruct(c);
+    await expect(promise).resolves.toBeUndefined();
+    expect(minted).toHaveLength(0);
+  });
+
+  it('stops the dead body persisting before anything can capture it', async () => {
+    // Without this a named pet's periodic capture could write a DEAD body
+    // into `holder_snapshots`, and the boot-time vitals backstop would
+    // stand the destructed animal back up alive.
+    const c = body();
+    let persistedAtFirstAwait: boolean | null = null;
+    if (MixinApi.isPersistable(c)) {
+      const real = c.shouldPersist.bind(c);
+      vi.spyOn(c, 'shouldPersist').mockImplementation(() => {
+        const out = real();
+        if (persistedAtFirstAwait === null) persistedAtFirstAwait = out;
+        return out;
+      });
+    }
+
+    await ConditionApi.die(c, 'slaughtered');
+
+    if (MixinApi.isPersistable(c)) {
+      expect(c.shouldPersist()).toBe(false);
+    }
   });
 
   it('is idempotent — a second call does not double-write', async () => {
@@ -102,8 +248,11 @@ describe('ConditionApi.die — one transition', () => {
     await ConditionApi.die(c, 'hypothermia');
     await ConditionApi.die(c, 'exsanguination');
 
-    expect(c.getCauseOfDeath()).toBe('hypothermia'); // the first cause
+    // The second call finds a destroyed body and a `dead` guard, so there
+    // is one ledger row and one corpse carrying the FIRST cause.
     expect(rows).toHaveLength(1);
+    expect(corpses).toHaveLength(1);
+    expect(corpses[0]!.getCauseOfDeath()).toBe('hypothermia');
   });
 
   it('clears the dying record it resolves', async () => {
@@ -113,7 +262,12 @@ describe('ConditionApi.die — one transition', () => {
 
     await ConditionApi.die(c, 'exsanguination');
 
-    expect(c.getConditions().some((x) => x.kind === 'dying')).toBe(false);
+    // The clock is resolved by the transition, so the Trauma slice the
+    // corpse adopts carries the wound map MINUS the dying record: a
+    // corpse is not still dying.
+    expect(
+      corpses[0]!.getConditions().some((x) => x.kind === 'dying'),
+    ).toBe(false);
   });
 
   it('an environmental death is structurally incapable of being a crime', async () => {
@@ -139,11 +293,15 @@ describe('ConditionApi.die — one transition', () => {
     // The gap this closes: only combat used to write here, so eight of the
     // nine ways to die left the ledger empty.
     const c = body();
+    // ⚠ Read the key BEFORE the death: the body is destructed by the
+    // transition now, and a destroyed Stuff answers every question with
+    // `undefined`.
+    const victim = c.getIdentityPath();
     await ConditionApi.die(c, 'starvation');
     expect(rows).toHaveLength(1);
     // And it reaches it under the key a reader will actually ask with:
     // the victim's IDENTITY, not a session-ephemeral stand-in.
-    expect(rows[0]!.victim).toBe(c.getIdentityPath());
+    expect(rows[0]!.victim).toBe(victim);
   });
 
   it('caller-supplied attribution is used verbatim — the ledger never infers', async () => {

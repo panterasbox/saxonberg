@@ -14,7 +14,7 @@
  */
 
 import "../../../../test-bootstrap";
-import { describe, it, expect, beforeAll, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeAll, beforeEach, afterEach, vi } from 'vitest';
 import { Character } from '../../character/Character';
 import Location from '../../stuff/Location';
 import BodyPlan from '../../../platform/idea/species/BodyPlan';
@@ -33,6 +33,7 @@ import {
   makeStuffAtPath,
 } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
+import { installCorpseMintStub } from '../../mortality/__tests__/corpse-mint-test-helpers';
 import { BulkableMixin } from '../../bulk/Bulkable';
 import { ContainerMixin } from '../../spatial/Container';
 import { ContainableMixin } from '../../spatial/Containable';
@@ -138,6 +139,9 @@ describe('RespirationMixin — the crisis core', () => {
 
   beforeEach(() => {
     installV1QuantityMarshallers();
+    // ⭐ Every death mints a corpse now, and the mint clones an authored
+    // row that a unit world has no store for. See the helper.
+    installCorpseMintStub();
     WorldClockApi._resetForTesting();
     WorldClockApi.setScale(1);
     SchedulerApi._clearAllForTesting();
@@ -145,6 +149,7 @@ describe('RespirationMixin — the crisis core', () => {
     // respiration lifecycle classes (the module side-effect ran once).
   });
   afterEach(() => {
+    vi.restoreAllMocks();
     SchedulerApi._clearAllForTesting();
     WorldClockApi._resetForTesting();
   });

@@ -1,4 +1,12 @@
-# The corpse a player's death leaves behind.
+# The body ANY death leaves behind.
+#
+# ⭐⭐ Not only a player's. Since the carcass-chain build every death that
+# is not a player's mints this row too — a slaughtered ewe, a fox-killed
+# hen, a shopkeeper cut down in the street. Before that a beast or an NPC
+# was flipped to `dead` in place and kept every mixin it had, so a dead
+# ewe was a ewe that could not be milked and a dead clerk was a clerk
+# with a job. One body now, however it died; what varies is only whether
+# an identity walks away from it as a shade.
 #
 # A plain `Creature` — the tier whose own doc already names "a corpse" as a
 # valid bare Creature, and which brings Container (the loadout), Vitals +
@@ -23,7 +31,9 @@
 class: /platform/agent/Corpse
 data:
   shortDescription: body
-  keywords: [body]
+  # ⚠ The mint UNIONS the dead thing's own keywords onto these, so
+  # `butcher ewe` and `look clerk` both still find the body.
+  keywords: [body, corpse, carcass]
   register: indefinite
   longDescription: >-
     A body, gone still. Whatever happened to it is still written on it,

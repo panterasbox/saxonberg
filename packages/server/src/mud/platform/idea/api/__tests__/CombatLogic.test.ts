@@ -25,6 +25,7 @@ import {
   stampTemplatePathForTest,
 } from "../../../../lib/security/__tests__/test-setup";
 import { installV1QuantityMarshallers } from "../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers";
+import { installCorpseMintStub } from '../../../../lib/mortality/__tests__/corpse-mint-test-helpers';
 import { Idea } from "../../../../lib/stuff/Idea";
 import { Character } from "../../../../lib/character/Character";
 import Species from "../../species/Species";
@@ -262,15 +263,22 @@ beforeAll(async () => {
 
 beforeEach(async () => {
   installV1QuantityMarshallers();
+  // ⭐ A cull mints a corpse now; the mint clones an authored row that a
+  // unit world has no Template store for. See the helper.
+  installCorpseMintStub();
   StuffApi.clearAll();
   SchedulerApi._clearAllForTesting();
   await bootRegistry();
 });
 
-afterEach(() => {
+afterEach(async () => {
   // Tear down any still-running fight so its recurring tick handle is
   // cancelled (dissolve is idempotent on a resolved session).
   for (const s of openSessions.splice(0)) s.dissolve();
+  // ⚠ Let the death tails land before the mocks come down — a cull is
+  // driven from a sync `it`, and `die` is fire-and-forget.
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  vi.restoreAllMocks();
   StuffApi.clearAll();
 });
 

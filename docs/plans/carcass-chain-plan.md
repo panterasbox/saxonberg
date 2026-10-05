@@ -697,6 +697,59 @@ Acceptance: `lint:family` green; `lint:gates` (the `adoptMaterialState`
 gate still names its one caller); the suite's death tests green.
 Commit: `build(carcass W0): one kind of body — every death that is not a player's mints a corpse`.
 
+#### ✅ W0 — DONE
+
+What landed, and the three things that were not in the plan:
+
+1. ⚠⚠ **A real defect the plan did not predict: the destroyed guard had
+   to come FIRST.** `dieImpl`'s guards ask the host questions, and a
+   destroyed Stuff answers every question with `undefined` rather than
+   throwing (the inert proxy). So `host.isDead()` reads falsy on a body
+   that has already been replaced, the guard falls through, and the next
+   line crashes on `getConditions().find`. It was harmless before this
+   build because the only destructing death was a player's; the
+   idempotency test is what caught it. `if (host.isDestroyed()) return`
+   is now line one of the transition, documented at the site and in
+   `mortality.md`.
+2. ⭐ **The mint is lossy in one more way than D16 listed, and it is
+   fine**: a `Corpse` has no `flesh` reserve of its own, so the corpse's
+   reserves stay at template defaults and nothing re-adds a
+   body-composition delta on top of the stamped mass. Verified by
+   reading `forkSlice_Vitals` — the Vitals slice carries vital signs and
+   blood genotype, **no reserves** — so the stamp survives intact. This
+   is why `conditionAtDeath` is a stamped number rather than a reserve
+   and the two decisions reinforce each other.
+3. ⭐⭐ **The test cost was one shared helper, not eight copies.**
+   `lib/mortality/__tests__/corpse-mint-test-helpers.ts`
+   (`installCorpseMintStub()`) stands in for the corpse template and
+   **applies the `dataOverlay`** — a bare `new Corpse()` stand-in would
+   have made every assertion about what a corpse carries vacuous, which
+   is the whole substance of this wave. Seven files install it
+   (`ConditionLogic.die`, `ConditionLogic.bleed`, `Metabolic.cascade`,
+   `Respiration`, `Vitals.dying-disconnect`, `dying-per-driver`,
+   `CombatLogic` ×2). It stamps a distinct path per body because
+   `byTemplatePath` throws on two live objects at one path, and it goes
+   through `makeStuffAtPath` because `Stuff._stampTemplatePath`'s caller
+   allowlist refuses a helper that is not `test-setup` or a `*.test.ts`.
+4. ⚠ **Two combat `afterEach`es now drain the microtask queue before
+   restoring mocks.** A cull is driven from a *synchronous* `it` while
+   `ConditionApi.die` is fire-and-forget, so the mint can still be in
+   flight when the test body returns — restoring the stub out from under
+   it surfaced as an unhandled Mongo rejection attributed to whichever
+   test happened to be running. `await new Promise(r => setTimeout(r, 0))`
+   is the fix, commented at both sites.
+
+Rewritten, not left: the two `ConditionLogic` comments, `divideBody`'s
+docstring opening (it is now explicitly *the player's specialization of
+the shared mint*), `race.md`'s `death ≠ destruction` passage,
+`mortality.md` § The doctrinal split → **§ One body, two
+choreographies** (with the stamp table and the two ⚠ subsections), and
+the `Corpse.yaml` header.
+
+Tests: `ConditionLogic.die` 17/17 (nine of them new), and 88 across the
+nine death-touching suites with **zero unhandled errors** — the state
+`test:near` was in before this wave was finished.
+
 ### W1 — The reconciliation slice (kernel)
 
 1. `platform/idea/species/Species.ts` — `ButcheryYield` gains

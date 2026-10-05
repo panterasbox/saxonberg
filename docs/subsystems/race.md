@@ -29,17 +29,41 @@ follow-on builds:
   fatal floor opens a rescuable **dying window** rather than killing
   outright.
 
-  **The `death ≠ destruction` rule is amended — one rule, two
-  mechanisms.** It still holds that a body persists as a corpse and is
-  never routed through `StuffApi.destruct` as part of dying. What varies
-  is whether an **identity has to leave**:
+  ⭐⭐ **The `death ≠ destruction` rule, as of the carcass-chain build —
+  ONE BODY, two choreographies.** The rule means what it always promised:
+  a death leaves a persistent, examinable, Creature-tier body in the
+  world. It never meant that the *object that died* is the body. What
+  varies between the two paths is only whether an **identity has to
+  leave**:
 
-  - **NPCs, creatures, beasts** — unchanged: the same Stuff becomes the
-    corpse. Nothing is waiting to re-enter it.
-  - **PCs** — the body *divides*. A corpse takes the material half (the
-    wound map, the cause stamp, the loadout) and persists on its own
-    decay clock; the identity walks away as a shade, and the drained
-    shell is destructed so the shade can hold the identity path.
+  - **NPCs, creatures, beasts** — the body is **replaced by its corpse**:
+    `ConditionApi.die` mints a `Corpse` from the dead thing and then
+    destructs the dead thing. Nothing is waiting to re-enter it.
+  - **PCs** — the body *divides*, over the same mint. A corpse takes the
+    material half (the wound map, the cause stamp, the loadout) and
+    persists on its own decay clock; the identity walks away as a shade,
+    and the drained shell is destructed so the shade can hold the
+    identity path.
+
+  ⚠ **It used to be two mechanisms, and the cheap one was wrong.** A
+  beast or an NPC was flipped to `dead` *in place* and kept every mixin
+  it had — so a dead ewe was a ewe that could no longer be milked,
+  sheared, handled, herded or driven, and a dead clerk was a clerk with a
+  job. The realm shows a thing's capabilities, so the two deaths read as
+  two kinds of object with nothing to explain the asymmetry, and the
+  asymmetry was not a design: it was what fell out of the branch that
+  needed no new machinery. A corpse's lifecycle is genuinely a different
+  lifecycle — it cools, it decays, it is evidence, it is taken apart, and
+  it is **never alive again** — so it is a different object, not a living
+  body minus some verbs.
+
+  ⭐ **The mint is lossy on purpose.** A herd place, a tap's standing, a
+  bond, a job, a brain: none of it survives, because none of it is true
+  of a body. What the corpse carries is the species, the cause, the time,
+  the mass the body actually had, its birthday (so its age is the age it
+  died at), the condition it died in, its own keywords, the material
+  slices and any silent contamination load. See
+  [mortality.md](./mortality.md) § One body, two choreographies.
 
   Both paths end with a persistent Creature-tier body in the world,
   which is the invariant that actually mattered.

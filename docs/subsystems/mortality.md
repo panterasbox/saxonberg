@@ -257,6 +257,11 @@ corpse *is* is authored; whose it *was* is poured in through the gated
 appear where someone died would leave a death with no evidence, no loot and
 nothing to examine, and forensics simply would not work in that world.
 
+⭐⭐ **This row is every death's body, not only a player's.** `Corpse` also
+composes `ContaminableMixin` and carries `conditionAtDeath` — see § One
+body, two choreographies for the full stamp list and why each item is
+stamped rather than derived.
+
 `PostmortemMixin` on **`Creature`** — the tier whose own doc already names
 "a corpse" as a valid bare Creature, and which already brings `Container`
 (the loadout), `Vitals` + `BodyPlanSlots` (the wound map) and `Thermal`
@@ -306,20 +311,84 @@ yet. The live drive is what found it. `ButcherController` calls
 cannot resolve; anything else reading a corpse's species should do the
 same. (The reference-Ideas-inert-at-boot trap, third recurrence.)
 
-## The doctrinal split
+## One body, two choreographies
 
 race.md's **death ≠ destruction** holds, and the axis is whether an
 identity has to leave. Both paths end with a persistent Creature-tier body
-in the world.
+in the world — and since the carcass-chain build, both paths end with the
+**same kind** of body.
 
-- **NPCs, creatures, beasts** — the same Stuff stops. Unchanged, zero new
-  machinery.
-- **PCs** — the body divides, because only a player has an identity waiting
-  to re-enter the world.
+- **NPCs, creatures, beasts** — the body is **replaced by its corpse**:
+  the mint runs, then `StuffApi.destruct` takes the dead thing.
+- **PCs** — the body divides over that same mint, because only a player
+  has an identity waiting to re-enter the world.
 
 `ConditionApi.die` branches on whether the host carries a player identity,
 detected structurally (never `instanceof Avatar` — that would be an import
 cycle, and a future player-bearing class should behave identically).
+
+### ⚠ Why it is no longer two mechanisms
+
+A beast or an NPC used to be flipped to `dead` *in place* and keep every
+mixin it had. It cost nothing and it was wrong: a dead ewe was a ewe that
+could no longer be milked, sheared, handled, herded or driven, and a dead
+clerk was a clerk with a job. **The realm shows a thing's capabilities**,
+so the two deaths read to a player as two kinds of object — one body with
+a long list of things it cannot do, one bare body — with nothing to
+explain the asymmetry. And the asymmetry was not a design: it was what
+fell out of the branch that needed no new machinery.
+
+A corpse's lifecycle is **genuinely a different lifecycle**. It cools, it
+decays, it is evidence, it is taken apart, and it is never alive again.
+That is not a living body minus some verbs; it is `Corpse`.
+
+⭐ **The mint is lossy on purpose.** A herd place, a tap's standing, a
+bond, a job, a brain: none of it survives, because none of it is true of a
+body. *"I'd kinda prefer some continuity there even if it means the corpse
+isn't lossless."*
+
+### What the corpse carries
+
+Stamped by the shared mint (`mintCorpseFrom`), through the clone's
+`dataOverlay`:
+
+| stamped | why it cannot be derived |
+|---|---|
+| `_speciesPath` · `causeOfDeath` · `diedAtGameSec` | per-instance facts about this death |
+| `mass` | ⚠⚠ `Creature.getMass()` falls back to `species.massAt(getAgeDays())`, and a fresh clone's `bornAt` is 0 — an unstamped corpse of a full-grown ewe would dress out as a **newborn lamb** |
+| `bornAt` | so the body's age is the age it **died at** |
+| `conditionAtDeath` | the `flesh` reserve at the kill — a **stamped number, never a reserve**, because a dead animal's condition cannot change. The butcher is reading what the stockman achieved. |
+| `keywords` | the row's `[body, corpse, carcass]` ∪ the dead thing's own, so `butcher ewe` and `look clerk` both find the body |
+
+Plus, outside the overlay: `adoptMaterialState` (the gated pour), the
+loadout, the place it fell, and `transferContaminationTo` — which is what
+keeps the fishing pack's outfall load on the fillet now that a dead fish
+is a `Corpse` rather than a dead `Fish`.
+
+### ⚠ The destroyed guard, and why it is first
+
+Every guard in `dieImpl` asks the host a question, and a **destroyed Stuff
+answers every question with `undefined`** rather than throwing (the inert
+proxy, `api/security.ts`). So `host.isDead()` reads falsy on a body that
+has already been replaced, the guard falls through, and the next line
+crashes on `getConditions().find`. `if (host.isDestroyed()) return` is
+therefore the first line of the transition. Harmless before this build,
+because the only destructing death was a player's; now that every death
+destructs, a second `die` on one body is the ordinary case.
+
+The same reasoning puts an `isDestroyed()` re-check after **every** await
+in the non-player tail: `trade-ranching`'s fox destructs a hen it has
+already put in the dying window, and the window's expiry then runs `die`
+on a hole.
+
+### ⚠ And `markForRevert()` before the first await
+
+A named animal is `Persistable`. Without a revert mark in the sync prefix,
+a periodic capture could write a **dead** body into `holder_snapshots`,
+and the boot-time `resetVitalsToSpeciesBaseline` backstop would stand the
+destructed pet back up alive. The player path does the same thing at steps
+(a) and (g) of `divideBody`; this is the one line that keeps a beast's
+path honest.
 
 ### Ordering is the substance
 
