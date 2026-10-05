@@ -107,17 +107,25 @@ window).
   read (the press ticker) and a room summons for a specific type — and
   the pull to answer it is the value offered (a life, the credit), never
   a badgering nudge.
-- The city's dispensing point is **an independent window that still bears
-  the old corpo's name** — the Goodkin ghost sign over a door Goodkin no
-  longer runs (the Paramount divestiture). A player participates by
-  **donating**, by **working the window** (the divested link is exactly
-  the small, local, holdable one), and the **upstream supply stays the
-  corpo's** — the NPC-backed floor. The *mechanism* is generic (a second
-  bank is rows).
-- A player operator at the window (*above the floor*) runs drives,
-  answers the summons, stocks the rare types, and makes the hard
-  allocation of *scarce* units, building standing by doing it well, but
-  is **never the reason someone bleeds out next to a full fridge**.
+- The city's dispensing point is **an independent, privately-operated
+  window that still bears the old corpo's name** — the Goodkin ghost sign
+  over a door Goodkin no longer runs (the Paramount divestiture). It is
+  **NPC-run** (a private proprietor, bound by the floor as a regulation on
+  a private operator — the EMTALA shape), and the **upstream supply stays
+  the corpo's** — the NPC-backed floor. The *mechanism* is generic (a
+  second bank is rows). ⚠ **Deliberately private, not civic** — mixing a
+  public charter and a private market in one life-or-death good is the
+  messy case (real healthcare); one clean model (private operator +
+  regulatory floor) is chosen instead.
+- ⚠ **Players do not operate the window in v1 — NPC-run, at least for
+  now.** A player participates by **donating** (the gift credit) and by
+  **receiving** (consent, `order transfusion`) — the pure-upside halves.
+  A player does **not** apply/clock the registrar seat, issue units, or
+  make the scarce-unit allocation: handing a player the controls on a
+  good whose failure mode is a *third party's* death is the hazard, and a
+  *private* player operator sharpens it. The floor is honoured by the NPC
+  proprietor. **The player-operator ceiling** (the registrar vocation, the
+  values-lens allocation moment) is **deferred** → `blood-slate`.
 - **The historical failure modes are reachable and self-teaching.** The
   acts never paternalistically block the mistake (transfuse untyped,
   cross-clade in desperation, skip screening, let the cold chain lapse);
@@ -136,6 +144,11 @@ window).
 
 ## Non-goals
 
+- **Player operation of the window** (holding the registrar seat via
+  apply/clock, issuing units, the scarce-unit allocation, running drives
+  for standing) → `blood-slate`, deferred "at least for now" by user
+  decision. The window is NPC-run; players donate and receive. This is
+  the floor/ceiling split's ceiling, deferred.
 - **The paid market and its policy lever** → `blood-slate` (the Titmuss
   lever), deliberately out until the economy can carry
   poverty-correlation; v1 keeps the seam (donation records *why*).
@@ -285,42 +298,35 @@ at once (governance), and keeps the *gift* off the price tag while the
 *service* is honestly charged (values). Raiding the fridge with `get` was
 rejected: "authorized" would have no criterion.
 
-### The floor/ceiling split — players operate above an NPC-guaranteed floor
+### The floor is NPC-run; the player-operator ceiling is deferred
 **Q:** Blood is life-or-death. Do we hand players the controls on a good
-whose failure mode is a *third party's* death — and does the player
-experience differ from the NPC's?
-**A:** **Yes to both, split by altitude.** Blood is a **universal-service
-good**: unlike every luxury trade shipped (a failed gin shop just doesn't
-clear a nice-to-have), a blood bank that fails *kills*, so the economy
-lens forbids a floor the market can withdraw.
-- **Floor — NPC-guaranteed, un-withdrawable:** the emergency case (a
-  dying patient + a compatible unit on hand) is always served, by the NPC
-  attendant if no player acts, bypassing any player-held gate — and
-  **regardless of the patient's ability to pay** the fee (handled after).
-  Supply *and* emergency dispensing have an NPC floor.
-- **Ceiling — player-operable, where the drama is:** everything above
-  "don't die" — donor drives, the named summons, stocking rare types,
-  *elective*-surgery supply, and the allocation of **scarce** (not
-  last-ditch) units. A player registrar makes the bank *good* and earns
-  standing for it.
-- **The player/NPC experience is deliberately asymmetric.** An NPC giving
-  or dispensing is *plumbing* (mints supply, no standing). A player
-  giving or running the Service is a *character act* (the deed, the
-  trait, the standing, the hard allocation call). The engine guarantees
-  the floor; the player participates where it is a choice with a
-  consequence to their character — the measurement doctrine's
-  feed-measures / mirror-shows-you, applied to life and death.
-- **Abuse is a governance story, not a silent death:** a player operator
-  who hoards or mis-issues hits the custody/accountability ledger
-  (mis-issue without consent is already `harm`; hoarding a public good is
-  a legible, standing-destroying, punishable act), never a third party
-  dying beside a full fridge.
-
-**Chosen with the user**, over the alternative (*pure NPC infrastructure
-— players only donate and receive*). That alternative was safest and kept
-the gift (the pedagogical core) intact, but threw away the values-lens
-allocation moment and the registrar vocation; the floor/ceiling split
-keeps both without the "I logged off and three people died" failure mode.
+whose failure mode is a *third party's* death?
+**A:** **No, not in v1.** Blood is a **universal-service good**: unlike
+every luxury trade shipped (a failed gin shop just doesn't clear a
+nice-to-have), a blood bank that fails *kills*. We walked the floor/ceiling
+split (players operate above an NPC floor) and the user chose the **safer
+reading**: the window is **NPC-run**, and players touch only the
+pure-upside halves — **donating** and **receiving**.
+- **The floor — NPC-honoured, un-withdrawable:** the emergency case (a
+  dying patient + a compatible unit on hand) is always served by the NPC
+  proprietor, **regardless of ability to pay** (the fee is on the house
+  for the dying). On a *private* operator this is a **regulation** (the
+  EMTALA shape: a private clinic must stabilise an emergency), which is
+  the one clean model — see *The Paramount divestiture*.
+- **The player/NPC asymmetry holds, downsized:** an NPC giving or
+  dispensing is *plumbing* (supply, no standing); a player **giving** is a
+  *character act* (deed, trait, standing). The measurement doctrine's
+  feed-measures / mirror-shows-you, now only on the donation side.
+- **The ceiling is deferred** → `blood-slate`: the player-registrar
+  vocation, running drives, stocking rare types, and the values-lens
+  **scarce-unit allocation** (a player deciding who gets the last unit —
+  the richest content we found) all wait. ⚠ This is a real loss from the
+  lens pass (lens 4's allocation moment and lens 3b's institution-to-run),
+  taken knowingly: handing a player the kill switch on a life-or-death
+  good — *especially a private operator who could withhold for profit* —
+  is the hazard, and "at least for now" keeps it NPC. When it returns, the
+  abuse-is-a-governance-story guard (the custody/accountability ledger)
+  and the floor are what make a player operator safe to allow.
 
 ### The Paramount divestiture — the ghost on the window
 **Q:** Who runs the city blood trade, and why isn't it the obvious house?
@@ -337,10 +343,14 @@ user**, and it does a lot of work at once:
 - **It answers vertical integration permanently.** Integration *happened*;
   the state broke it; re-integrating is now illegal — a named, forbidden
   ambition if we ever want a menace, not a plot hole.
-- **It produces the floor/ceiling split as structure.** The kept upstream
-  is the NPC-backed, un-withdrawable supply floor; the divested window is
-  exactly the small, local, **player-holdable** link. The Decree carved
-  off the one piece a player can run.
+- **The divested window is a private operator under a regulatory floor.**
+  The kept upstream is the NPC-backed, un-withdrawable supply floor; the
+  divested window is a small, local, **privately-run** operation (an NPC
+  proprietor — the registrar herself, who kept the Goodkin name). It is
+  **not** a civic charter: a public/private hybrid in one life-or-death
+  market is the messy case (real healthcare), so the window is cleanly
+  private, and the floor rides it as a regulation (EMTALA). It is the
+  piece a player *could* one day run — deferred (NPC-run for now).
 - **It uses Goodkin as a ghost, not the operator** — the name everyone
   trusts, over a door the house no longer runs. The misread ("so Goodkin
   runs it?") *is* the history lesson, delivered by the registrar's one
@@ -424,15 +434,16 @@ derivable, not opaque*.)
 Material on the freshness clock, kept by the cold fridge). Noted only
 because it couples supply pressure to `setScale`; the rates are dials.
 
-### The holder — the window is independent, the floor is the corpo's upstream
+### The holder — a private NPC proprietor; the floor is the corpo's upstream
 Two holders, by the divestiture (see *The Paramount divestiture*). The
-**dispensing window** is an **independent** Business — small, local,
-player-holdable, bound by the regulatory floor whoever runs it. The
-**kept upstream** (collection + distribution) is the **corpo's** — the
-NPC-backed, un-withdrawable supply floor behind the window. A player works
-or holds the *window*; the corpo supply behind it is never a player's to
-switch off. (The exact `appointingAuthority` shape for the independent
-window — a founder-default office, a civic trust — is the plan's.)
+**dispensing window** is an **independent, privately-owned** Business run
+by an **NPC proprietor** (the registrar, who kept the Goodkin name),
+bound by the regulatory floor. **Not** a civic charter and **not**
+player-held in v1 — player operation is deferred. The **kept upstream**
+(collection + distribution) is the **corpo's** — the NPC-backed,
+un-withdrawable supply floor behind the window, never a player's to switch
+off. (The exact `appointingAuthority` shape — a private `entity`
+proprietor — is the plan's.)
 
 ## Lens pass
 
@@ -461,25 +472,26 @@ window — a founder-default office, a civic trust — is the plan's.)
    milk/vaccine/seed bank is rows later — *name the substrate, not its
    first consumer.*
 3. **Immersion / participation** — ⭐ fills a real institution-shaped
-   hole: an independent window (the ghost name) with a registrar seat, a
-   summons that makes a
-   specific stranger matter, a donation that is remembered. ⚠ Two
+   hole: an independent NPC-run window (the ghost name), a summons that
+   makes a specific stranger matter, a donation that is remembered. ⚠ Two
    immersion requirements fall out: the **NPC supply needs a visible
    face** (a donor cot / an occasional "someone gives blood" beat — not a
    number that rises by itself), and the floor is **availability, never
-   forced treatment** (a conscious refusal stands). ⭐ The intended
-   emergent (3b): a faction can **corner a rare type as leverage** — in
-   bounds *because* the floor stops it being lethal and the custody record
-   makes the coercion visible and punishable. The floor is what makes
-   player-run blood *politics* playable instead of griefing.
-4. **Values** — two forced choices with no right answer. *Give / don't*,
-   with no scale and no ranking: an **unearned distinction** (your type is
-   just true) that makes universal donors community assets. And, above the
-   floor, *who gets the last scarce unit* — a genuine undecidable this
-   build hands a **player** operator to decide, which is exactly lens 4's
-   home and the richest content here. Standing is conferred by the
-   locality (renown); the deed by the chronicle; gift-only keeps the act
-   an act of character.
+   forced treatment** (a conscious refusal stands). ⚠ **Participation is
+   DOWNSIZED in v1:** the player participates as donor and patient, not as
+   operator — the "institution a player runs" and the emergent
+   corner-the-supply politics are **deferred** with the ceiling (they
+   return when a player may hold the window; the floor + custody record
+   are what will make them safe then).
+4. **Values** — the *give / don't* choice stands: no scale, no ranking,
+   an **unearned distinction** (your type is just true) that makes
+   universal donors community assets; standing by the locality (renown),
+   the deed by the chronicle, gift-only keeps the act an act of character.
+   ⚠ The second values moment — *who gets the last scarce unit* (a genuine
+   undecidable, the richest content we found) — is **deferred with the
+   player-operator ceiling**: in v1 the NPC proprietor allocates by a plain
+   rule (oldest-compatible-first), not a player's judgement. Noted as the
+   lens's biggest deferral.
 5. **Continuity** — the mechanism holds across epochs: a bank that holds
    typed perishable units, issued on authority, answers the same acts
    whether the era is medieval or industrial; only the **dynamics scale**
@@ -539,9 +551,9 @@ Driven at the Terminus infirmary on a live world.
    of O−" — readable on the news ticker and the start-screen press room.
    No push, no toast, no badger: it is on the ticker because someone
    reads the ticker.
-4. **The summons.** In the ward, the registrar (or a player holding the
-   seat) asks the room **"anyone O-negative?"** — a specific kind of
-   stranger is now needed.
+4. **The summons.** In the ward, the NPC registrar asks the room
+   **"anyone O-negative?"** — a specific kind of stranger is now needed.
+   (Pure pull: the room ask + the ticker; no targeted message.)
 5. **A player learns their type, reads the map, sets their card, and
    gives.** An untested player `test`s (a drop, a one-line answer) to
    learn they are O−. They then read the **compatibility surface** (the
@@ -554,14 +566,15 @@ Driven at the Terminus infirmary on a live world.
    named shortage) evidence appends, and local **renown moves** (append +
    recompute). Then the control: a player who `bleed`s into their *own*
    bag for their *own* use earns **none** of the three.
-6. **The registrar issues a unit — and makes a hard call.** An on-shift
-   window attendant `issue`s an O− unit to the clinician/patient — the
-   **unit itself is not sold** (no `buy` of the gift), though the
-   transfusion's service fee still applies — and a **custody record**
-   appends (who issued what, to whom). An unauthorized or off-shift person
-   is refused. Then the scarcity moment: with one compatible unit and two
-   patients wanting it (one elective, one urgent-but-not-dying), the
-   player operator chooses — a values call the record remembers.
+6. **The NPC registrar issues / dispenses a unit.** A patient `order`s a
+   transfusion at the window; the NPC registrar dispenses a compatible
+   unit — the **unit itself is not sold** (no `buy` of the gift), though
+   the transfusion's **service fee** applies — and a **custody record**
+   appends (who issued what, to whom), readable on `analyze bank`. (The
+   issue act is seat-gated to the window's on-shift staff — all NPC in
+   v1; a player cannot issue. The scarce-unit allocation-as-a-player's
+   values-call is **deferred** with the operator ceiling; the NPC
+   allocates oldest-compatible-first.)
 7. **You can make the forebears' mistake.** Transfuse an **untested /
    unlabelled** unit into a typed patient without matching — it is *not*
    blocked (you are Blundell, 1818). On a mismatch the transfusion-reaction
@@ -579,13 +592,13 @@ Driven at the Terminus infirmary on a live world.
    row appends against the administrator (the poisoner's shape).
 9. **The backbone and the floor hold with no players.** With no player
    donating, the window still refills toward par from the upstream on its
-   cadence — the combat supply does not depend on a player. The floor:
-   with **no player operator on shift**, a dying patient with a compatible
-   unit on hand is still served (the NPC attendant, under implied consent),
-   and **a patient who cannot pay the fee is still served** (billed after,
-   not turned away) — nobody bleeds out beside a full fridge. Conversely, a
-   player operator who **refuses/hoards** cannot override the floor for a
-   dying patient, and the refusal is recorded.
+   cadence — the combat supply does not depend on a player. The floor: the
+   NPC registrar serves a dying patient with a compatible unit on hand
+   under implied consent, and **a patient who cannot pay is still served**
+   (free at the point of care, not turned away) — nobody bleeds out beside
+   a full fridge. (The window being NPC-run, the floor is simply the
+   proprietor's regulated behaviour; a hoarding *player* operator is not a
+   v1 case — it returns with the deferred ceiling.)
 10. **A second bank is rows.** (Author-level check) a second window — a
     Business with a typed blood par and an upstream supplier — stands up a
     working typed bank with no new code.
@@ -605,41 +618,38 @@ Driven at the Terminus infirmary on a live world.
 - When a type runs out, a **named shortage for that type** is readable on
   the press ticker without the player being pushed or nagged; and the
   room summons names the type.
-- An **on-shift window attendant can issue a typed unit**; an
-  unauthorized person cannot, and the issue leaves a record a player can
-  read (`chronicle` of the window / the custody trail).
+- The **NPC window dispenses a typed unit** on an `order transfusion`;
+  the issue is seat-gated (NPC staff only in v1 — a player cannot issue),
+  and it leaves a record a player can read (`analyze bank` / the custody
+  trail).
 - **The patient pays for the service, not the gift:** a transfusion lands
   a service fee on the patient's bill (on the shipped treatment rail), the
   donor is never paid, and the donated unit itself is never a priced
   `buy`.
-- **The floor holds regardless of players *or purse*:** a dying patient
-  with a compatible unit on hand is served even with **no player operator
-  on shift** and even if they **cannot pay** (billed after); a player
-  operator **cannot withhold** blood from a dying patient to death — the
-  attempt is recorded, the floor still serves.
+- **The floor holds regardless of purse:** the NPC registrar serves a
+  dying patient with a compatible unit on hand even if they **cannot pay**
+  (free at point of care, not turned away).
 - **A player can make a historical mistake and learn from it:** an
   untyped/cross-clade/tainted transfusion is *not* blocked, it inflicts
   the reaction, and the record shows who gave it (readable post-mortem).
-- Above the floor, a player operator **can choose** who receives a
-  **scarce** (non-last-ditch) unit, and that choice is attributable in
-  the custody record.
 - A player can **set a donor-card directive** in advance; a transfusion
   **reads it first** — a pre-registered refusal holds even when the
   patient is unconscious, and a conscious refusal wins even to death; a
   transfusion against the directive shows up as harm attributable to
-  whoever gave it. The donor-registration box is what the summons reaches
-  — a non-registrant is never nagged.
+  whoever gave it. The donor-registration flag is a **readable roll** (on
+  `analyze bank`), never a push — a non-registrant is never nagged.
 - The **compatibility structure is legible in-world** — a player can
   learn not just *their type* but *whom they can give to / receive from*,
   and see that it crosses species rather than following their own kind.
 - A compatible-across-species, incompatible-within-species donation
   **works** (the clade graph is not a hierarchy) — nobody is ever
   hard-blocked from a donor pool.
-- The city window is an **independent operation wearing the Goodkin
-  name**: asking the registrar yields the divestiture history; the
-  upstream that fills it is the corpo's (the player can never switch that
-  supply off); a player can work/hold the **window** (apply/clock); and a
-  second window elsewhere works off the same mechanism as rows.
+- The city window is an **independent, privately NPC-run operation
+  wearing the Goodkin name**: asking the registrar yields the divestiture
+  history; the upstream that fills it is the corpo's (never a player's to
+  switch off); the window is **not player-operated in v1** (no apply/clock
+  into the registrar seat); and a second window elsewhere works off the
+  same mechanism as rows.
 
 ## Cross-references
 

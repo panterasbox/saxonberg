@@ -618,6 +618,13 @@ refuse `not-on-the-window` (*"you do not keep this window"*). Effect:
 `window.takeUnit(lot, recipient)` → the unit moves to the recipient;
 custody deeds (D16); scene. No money; the unit is never `buy`-able (it
 is not on a Stock). Afforded by `BloodWindow.commandContributions`.
+⭐ **NPC-only in v1 by construction:** the window has no player-fillable
+seat (D11) and the proprietor is the NPC registrar, so the seat gate
+admits only NPC staff — a player never issues. `issue` exists because the
+`banks` brain forces it (the floor beat, D14); it stays a verb (not
+dead) so the deferred ceiling can afford it to players later with no new
+plumbing. The seat gate is already the right gate; only the *roster* keeps
+players out for now.
 
 ### D8 — `donate <bag> [at <window>]` is the gift act; two mint sites (E4b)
 
@@ -674,22 +681,32 @@ Counting-Houses as someone who gives*.
 ### D11 — Two Businesses, two fixtures, one ward (E6, E10)
 
 - **The window** `/world/terminus/infirmary/idea/window` (class
-  `/platform/idea/Business`): `name: "the blood window"`,
-  `appointingAuthority: {kind: committee, parcel: /world/terminus/
-  infirmary}` (the municipality's committee over the infirmary's ground
-  — founder backstop, hand-off-able; independent of Goodkin and of the
-  physician), positions `registrar` (`publishes`; wage 5; `headcount: 1`
-  → a player may `apply`), `night-registrar` (wage 4), `phlebotomist`
-  (`requires: {discipline: nursing, band: novice}`, `headcount: 1`);
-  `rosterSlots` for two NPC registrars covering 24 h, each with
-  `station: /world/terminus/infirmary/ward`; **`operatingLocations:
-  [/world/terminus/infirmary/thing/blood-window]`** (the fixture — never
-  the ward); `parLines: [{category: blood, level: 2, unit: L}]` (moved
-  OFF the practice; **delete the line from `infirmary/business.yaml`**);
-  `banksAt: goodkin`; `publishingPositions: [registrar, night-registrar]`,
-  `realm: world`, `visibility: public`, `feedPath: /world/terminus/
-  infirmary/press`, `label: "the Goodkin window"` (D14). `boot:` producer
-  in `terminus/pack.yaml` (the openings lint + the brains).
+  `/platform/idea/Business`): `name: "the blood window"`. ⭐ **Private,
+  NPC-run** (user decision 2026-10-04 — a private operator under a
+  regulatory floor, not a civic charter; public/private hybrid in one
+  life-or-death market is the messy case): `appointingAuthority: {kind:
+  entity, path: /world/terminus/infirmary/agent/registrar}` — the
+  **registrar NPC is the proprietor** (she kept the divested window and
+  the Goodkin name; `entity` = no founder pass, a specific private owner).
+  Positions `registrar` (`publishes`; wage 5), `night-registrar` (wage 4),
+  `phlebotomist` (`requires: {discipline: nursing, band: novice}`) — **all
+  `headcount` matched by NPC `rosterSlots` so every opening is 0; no
+  player-fillable seat in v1** (player operation is deferred; `apply`
+  finds nothing open, which is the honest refusal). `rosterSlots` for two
+  NPC registrars covering 24 h, each with `station: /world/terminus/
+  infirmary/ward`; **`operatingLocations: [/world/terminus/infirmary/
+  thing/blood-window]`** (the fixture — never the ward); `parLines:
+  [{category: blood, level: 2, unit: L}]` (moved OFF the practice;
+  **delete the line from `infirmary/business.yaml`**); `banksAt: goodkin`;
+  `publishingPositions: [registrar, night-registrar]`, `realm: world`,
+  `visibility: public`, `feedPath: /world/terminus/infirmary/press`,
+  `label: "the Goodkin window"` (D14). `boot:` producer in
+  `terminus/pack.yaml`. ⚠ Because the proprietor is the registrar NPC,
+  she must be spawned for the window to stand up with an owner — the ward
+  is in `boot:` and she is `cast:` there; verify the entity-authority
+  resolves to a live NPC at standup (if a lazy-standup ordering makes the
+  owner absent, fall back to `{kind: committee, parcel: /world/terminus/
+  infirmary}` as the private-trust backstop and note it).
 - **The upstream** `/world/terminus/infirmary/idea/bloodworks`:
   `name: "Goodkin Bloodworks"`, `parentOrganization: /corpo/goodkin`,
   `appointingAuthority: {kind: committee, parcel: /corpo/goodkin}` (the
@@ -1238,11 +1255,14 @@ specific words, never *"the status is defined"*):
    `traits` prints generosity, `eval` `RenownApi.renownOf(id, locality)`
    > 0 after the scheduled fold (await it). The control: a second player
    `bleed`s into a bag and keeps it — no deed, no trait line, renown 0.
-6. A player `apply` + `clock on` at the window (the registrar's
-   `headcount`): `issue O to <patient>` succeeds and the custody deeds
-   appear; an off-shift stranger's `issue` is refused with
-   *"do not keep this window"*; with one O unit and two patients the
-   player issues to one — `analyze bank` expert rung names whom.
+6. The window is **NPC-run** (v1): `apply` at the window finds **no open
+   seat** (every position's headcount is filled by NPC roster); a player's
+   direct `issue O` is refused *"you do not keep this window"* (the seat
+   gate, which no player passes). The NPC registrar's own issue (fired by
+   the floor beat, or the `order transfusion` of step 2) leaves custody
+   deeds that `analyze bank`'s expert rung names — *who issued what to
+   whom*. (The player-operated issue + the scarce-unit allocation are
+   deferred with the ceiling; not driven.)
 7. The player `transfuse`s an unlabelled unit into a typed patient
    (not blocked; the band is below competent, or the unit is
    unlabelled): the reaction line; `eval`
@@ -1305,19 +1325,21 @@ the only thing that proves it; every verb above is exercised there.
 | stock rises toward par over game-time from NPCs, no player | W4 (`supplies`), W5 (`stocks:`, boot), drive 1/9 |
 | a gift (to the bank / a named other) → chronicle + traits + local standing; self-use → none | W2 (graft), W4 (`donate` + transfuse mint), drive 5 |
 | a named shortage on the ticker, no push/nag; the room summons names the type | W3 (Business publishes), W4 (`banks`), drive 3/4 |
-| on-shift attendant can `issue`; unauthorized cannot; a readable record | W4 (`issue`), W3 (custody deeds), drive 6 |
+| the NPC window dispenses on `order`; the seat gate admits no player (none open); a readable custody record | W4 (`issue`, roster), W3 (custody deeds), drive 6 |
 | patient pays for the service, donor never paid, unit never a priced `buy` | W3 (`transfusion`), W5 (prices), drive 2 — the unit is never on a Stock |
-| the floor holds with no operator and no purse; an operator cannot withhold to death; the attempt is recorded | W4 (`banks` floor beat), D6, drive 9 |
+| the floor holds (NPC proprietor serves a dying patient) regardless of purse | W4 (`banks` floor beat), D6, drive 9 |
 | historical mistakes not blocked; the reaction; the record shows who gave it | W1 (harm append), shipped reaction, drive 7 |
-| above the floor a player chooses who gets a scarce unit; attributable | W4 (`issue`), W3 (deeds), drive 6 |
+| ~~a player allocates a scarce unit~~ **deferred with the operator ceiling** → `blood-slate` | — (not in v1) |
 | donor-card directive read first; a pre-registered refusal holds unconscious; a conscious refusal wins; against-directive = harm; the opt-in roll is readable (pull, no push) | W1, W4 (`analyze bank` roll), drive 5/8 |
 | compatibility legible in-world, crossing species | W0, W4 (`analyze blood`), drive 5 |
 | a cross-species compatible / within-species incompatible donation works; nobody hard-blocked | W0, drive 5 (a system-mate recipient) |
-| the window is independent under the Goodkin name; the registrar yields the history; the upstream is the corpo's and unswitchable; a player can apply/clock; a second window is rows | W5 (D11, D12, D17), drive 1/6/10 |
+| the window is independent, privately NPC-run under the Goodkin name; the registrar yields the history; the upstream is the corpo's and unswitchable; not player-operated in v1; a second window is rows | W5 (D11, D12, D17), drive 1/6/10 |
 
-Nothing in the requirements is unmapped. Two criteria are satisfied in a
-weaker form than their wording and are flagged in § Risks: *"billed
-after"* (D6) and *"O−"* (D18).
+Nothing in the requirements (as amended 2026-10-04) is unmapped. The
+player-operator ceiling (the scarce-unit allocation, the registrar
+vocation) is **deferred** by user decision, not unmapped. Two criteria
+are satisfied in a weaker form than their original wording and flagged in
+§ Risks: *"billed after"* (D6) and *"O−"* (D18).
 
 ---
 
@@ -1408,6 +1430,16 @@ mixin/class; a document-tree page; the seat).
 
 These leave as slate material at the sweep (not plan sections):
 
+- **The player-operator ceiling** → `blood-slate` (user decision
+  2026-10-04 — NPC-run for now). The seam is already clean: the `issue`
+  seat gate (D7) admits any on-shift holder; the only thing keeping
+  players out is the window's roster having no open seat (D11). Opening a
+  player-fillable `registrar`/`phlebotomist` seat + the scarce-unit
+  allocation UI (the values moment) is the future build; nothing else
+  changes. ⚠ **A private player operator** who could withhold for profit
+  is the sharpest form of the kill-switch hazard — the floor + the
+  custody/accountability record are the guards that must be proven before
+  it opens.
 - **Rh and a second axis** → `blood-slate` (the lot vocabulary is a
   string; `AboPhenotype` is where it widens).
 - **The paid-donor lever** → `blood-slate` (the `donate` controller's
