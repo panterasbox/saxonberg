@@ -241,10 +241,10 @@ describe('nodeIdentityOf — one computer of the string', () => {
     // computers of one identity is what a single home prevents — the
     // warren that mints the node and anything that must name the same
     // node without standing it up both call this.
-    expect(linear.nodeIdentityOf('main:3', '/world/terminus/campus/duncan-hall'))
-      .toBe('/world/terminus/campus/duncan-hall/main:3');
-    expect(branched.nodeIdentityOf('lane:2', '/world/terminus/hinkley-hills'))
-      .toBe('/world/terminus/hinkley-hills/lane:2');
+    expect(linear.nodeIdentityOf('main:3', '/test/plat/hall'))
+      .toBe('/test/plat/hall/main:3');
+    expect(branched.nodeIdentityOf('lane:2', '/test/plat/hills'))
+      .toBe('/test/plat/hills/lane:2');
   });
 
   it('is durable because it is RE-DERIVABLE, not because the node persists', () => {
@@ -252,8 +252,11 @@ describe('nodeIdentityOf — one computer of the string', () => {
     // re-minted on the next approach. The identity is the same string
     // both times, which is what lets a parked character's snapshot find
     // the corridor it was standing in.
-    const first = branched.nodeIdentityOf('lane:1', '/world/x');
-    const afterReap = PlatPlan.parse(BRANCHED).nodeIdentityOf('lane:1', '/world/x');
+    const first = branched.nodeIdentityOf('lane:1', '/test/plat/hills');
+    const afterReap = PlatPlan.parse(BRANCHED).nodeIdentityOf(
+      'lane:1',
+      '/test/plat/hills',
+    );
     expect(afterReap).toBe(first);
   });
 });

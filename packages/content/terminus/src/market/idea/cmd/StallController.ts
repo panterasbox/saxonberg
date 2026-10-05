@@ -6,10 +6,20 @@
  * their own on the square and a house that trades as them:
  *
  * - the COUNTER, a `Stock` minted from `/world/terminus/market/thing/stall`
- *   with the renter's identity (`…/stall/<their key>`), persisted keyed to
- *   them so what is on it survives a restart and comes back where it stood
+ *   and keyed to the **pitch** it stands on, so what is on it survives a
+ *   restart and comes back where it stood
  *   (`PersistableApi.restoreOrSeed`); `purchasing: terms` from the seed —
  *   rung 0 for a player, day one;
+ *
+ *   ⭐⭐ **The key is the pitch, not the renter.** A key is relative to
+ *   the thing that manages it, and the square's fixture is what manages
+ *   pitches — so a counter is `(scope = the stall seed row, key = <the
+ *   fixture's row>/<pitch>)`, the `HoldingWarren` shape one level down.
+ *   Keying on the renter made their identity the counter's substance,
+ *   let a square hand out unbounded stalls because nothing counted
+ *   pitches, and put the counter in a population the uniqueness
+ *   invariant could not scan. **Who rents it** lives on the house's
+ *   `appointingAuthority`, which is where it belongs.
  * - the HOUSE, a `Business` minted from `/trade/shopkeeping/idea/business/stall`
  *   with the renter's identity and an overlay of what is theirs: the
  *   appointing authority (the renter, as an entity), the bank (wherever
@@ -24,9 +34,18 @@
  * identity path, so two renters are two accounts — the shared-account
  * regression, prevented the other way round.
  *
- * `stall give-up` hands the renter what is on the counter, captures it
- * empty and takes it down; the house stays (its account is theirs) with
- * nothing to operate.
+ * `stall give-up` hands the renter what is on the counter, **deletes the
+ * pitch's record** and takes it down; the house stays (its account is
+ * theirs) with nothing to operate.
+ *
+ * ⚠⚠ Deleting, not capturing-empty, and the reason is the re-keying:
+ * the record is now the PITCH's. Capturing the emptied counter and
+ * leaving the record behind meant the next renter of that pitch was
+ * handed the previous keeper's counter — their short description, their
+ * keywords, their shelf — and `hasRecord` told them the rent was
+ * already paid. That is the same clobber the `(scope, key)` invariant
+ * exists to stop, arriving from the other side. A given-up pitch
+ * remembers nothing; what the keeper had is in their hands.
  *
  * ⚠ The stall stands only while its keeper has opened it since the last
  * boot: nothing pins a rented counter at boot (W9's vacancy states are
@@ -72,10 +91,27 @@ export default class StallController extends CommandController<CommandModel> {
     }
   }
 
-  /** The two identities a renter's stall carries: their counter's and their house's. */
-  protected static identitiesOf(renterKey: string): { counter: string; house: string } {
-    const leaf = renterKey.split('/').filter(Boolean).pop() ?? renterKey;
-    return { counter: `${STALL_SEED}/${leaf}`, house: `${STALL_BUSINESS_SEED}/${leaf}` };
+  /**
+   * The key and the two identities of the stall on `pitch` of `fixture`.
+   *
+   * The **key** is `<the fixture's row>/<pitch>` — the manager's own
+   * durable address as the prefix, exactly as a holding warren keys its
+   * rooms `<extent>/<leaf>`. The two **identities** derive from that
+   * key with its leading slash stripped, so each nests under its own
+   * seed row and a row read finds them all (the corpse's shape).
+   */
+  protected static idsFor(
+    fixture: MarketStalls,
+    pitch: string,
+  ): { key: string; counter: string; house: string } {
+    const row = fixture.getTemplatePath() ?? '';
+    const key = `${row}/${pitch}`;
+    const leaf = key.replace(/^\/+/, '');
+    return {
+      key,
+      counter: `${STALL_SEED}/${leaf}`,
+      house: `${STALL_BUSINESS_SEED}/${leaf}`,
+    };
   }
 
   private async rent(context: CommandContext): Promise<void> {
@@ -95,16 +131,34 @@ export default class StallController extends CommandController<CommandModel> {
       return this.fail(context, 'Open an account first — a stall banks where its keeper does.', 'no-bank');
     }
 
-    const ids = StallController.identitiesOf(renterKey);
+    // Their pitch: the one they already hold, else the lowest free one.
+    // A full square refuses here, before any money moves — the first
+    // thing a square with a fixed number of spots has to be able to say.
+    const pitch = await fixture.allocatePitch(renterKey);
+    if (!pitch) {
+      return this.fail(
+        context,
+        'The square has no free pitch — every stall is let.',
+        'square-full',
+      );
+    }
+
+    const ids = StallController.idsFor(fixture, pitch);
     let counter = StuffApi.findByTemplatePath<Stock>(ids.counter) ?? null;
     let fresh = false;
     if (!counter) {
-      // The rent, before anything is minted — unless they already hold a
-      // record (a stall packed away by a restart is theirs, not a new let).
-      const held = await PersistableApi.hasRecord(ids.counter, renterKey);
+      // The rent, before anything is minted — unless this pitch already
+      // holds a record for them (a stall packed away by a restart is
+      // theirs, not a new let).
+      const held = await PersistableApi.hasRecord(ids.counter, ids.key);
       const rent = held ? 0 : fixture.getRentMinor();
       if (rent > 0) {
+        // ⚠ Every refusal from here on gives the pitch back. The
+        // allocation happens before the money so a full square can
+        // refuse without charging, which means a later refusal would
+        // otherwise leave a pitch let to somebody who holds no stall.
         if (BankingApi.balanceOf(primary).minor < rent) {
+          await fixture.releasePitch(renterKey);
           return this.fail(
             context,
             `A stall on the square is ${Money.of(rent, BankingApi.compactCurrency()).render()} — you haven't that.`,
@@ -113,7 +167,10 @@ export default class StallController extends CommandController<CommandModel> {
         }
         const market = await EmploymentApi.ensureOperatorAt(fixture.getTemplatePath() ?? '');
         const marketAccount = market ? await EmploymentApi.operatingAccountOf(market) : null;
-        if (!marketAccount) return this.fail(context, "The market keeps no account to pay rent into.", 'no-market-account');
+        if (!marketAccount) {
+          await fixture.releasePitch(renterKey);
+          return this.fail(context, "The market keeps no account to pay rent into.", 'no-market-account');
+        }
         await BankingApi.transfer(primary, marketAccount, Money.of(rent, BankingApi.compactCurrency()), 'stall rent');
       }
       // identity-keyed-by: own-record — the counter's own
@@ -121,7 +178,7 @@ export default class StallController extends CommandController<CommandModel> {
       // house's `operatingLocations` and `counterPath` round-trips,
       // which resolve this exact string.
       counter = await StuffApi.clone<Stock>(STALL_SEED, undefined, { asIdentityPath: ids.counter });
-      const restored = await PersistableApi.restoreOrSeed(counter, renterKey);
+      const restored = await PersistableApi.restoreOrSeed(counter, ids.key);
       // The counter answers to the renter's house — the closed sign, the
       // attendance point, the operator a customer meets.
       counter.setBusinessPath(ids.house);
@@ -132,7 +189,7 @@ export default class StallController extends CommandController<CommandModel> {
         counter.setShortDescription(`${who}'s stall`);
         counter.setKeywords(['stall', 'counter', 'trestle', ...(stem ? [stem] : [])]);
         ContainmentApi.move(counter as unknown as Stuff & Containable, square);
-        await PersistableApi.capture(counter, renterKey);
+        await PersistableApi.capture(counter, ids.key);
       } else if (!MixinApi.isContainable(counter) || counter.getContainer() !== square) {
         ContainmentApi.move(counter as unknown as Stuff & Containable, square);
       }
@@ -175,7 +232,17 @@ export default class StallController extends CommandController<CommandModel> {
   private async giveUp(context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
     const renterKey = giver.getIdentityPath() ?? '';
-    const ids = StallController.identitiesOf(renterKey);
+    const here = MixinApi.isContainable(giver) ? giver.getContainer() : null;
+    const square = here && MixinApi.isContainer(here) ? (here as Stuff & Container) : null;
+    const fixture =
+      square?.getContents().find((c): c is MarketStalls => c instanceof MarketStalls) ?? null;
+    if (!fixture) return this.fail(context, 'There is no market here.', 'no-market');
+    // ⭐ The BOOK says which pitch is theirs. Before this the counter's
+    // identity was derived from the renter, so giving up needed only
+    // their key; now the square is what knows, which is the point.
+    const pitch = fixture.pitchOf(renterKey);
+    if (!pitch) return this.fail(context, "You hold no stall here.", 'no-stall');
+    const ids = StallController.idsFor(fixture, pitch);
     const counter = StuffApi.findByTemplatePath<Stock>(ids.counter) ?? null;
     if (!counter) return this.fail(context, "You hold no stall here.", 'no-stall');
     // Everything on the counter comes back to the keeper's hands — custody
@@ -187,10 +254,17 @@ export default class StallController extends CommandController<CommandModel> {
         ContainmentApi.move(good as unknown as Stuff & Containable, giver as Stuff & Container);
       }
     }
-    await PersistableApi.capture(counter, renterKey);
+    // ⚠ DELETE the pitch's record, do not capture it empty. See the
+    // header: a pitch that remembers the last keeper's counter hands it
+    // to the next renter. The owner IS the pitch key, so this is one
+    // record.
+    await PersistableApi.deleteAllFor(ids.key);
     const house = StuffApi.findByTemplatePath<Stuff & Business>(ids.house) ?? null;
     if (house) house.setOperatingLocations([]);
     await StuffApi.destruct(counter as unknown as Stuff);
+    // The pitch is free for the next keeper. Last, so a throw above
+    // leaves the let intact rather than orphaning a standing counter.
+    await fixture.releasePitch(renterKey);
     MessageApi.scene(giver)
       .topic(TOPIC)
       .toSelf(Mml.compose`You pack the stall away; what was on it is in your hands.`)

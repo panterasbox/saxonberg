@@ -37,11 +37,18 @@ import { makeStuff, makeStuffAtPath } from '../../security/__tests__/test-setup'
 import type { Stuff } from '../../stuff/Stuff';
 import type { Container } from '../../spatial/Container';
 
-const DORM_ROW = '/world/terminus/campus/duncan-hall/location/dormroom';
-const BAR_ROW = '/world/terminus/dives/location/bar';
-const LOUNGE_ROW = '/world/lounge/location/satellite';
+const DORM_ROW = '/test/handle/location/keyed-room';
+const BAR_ROW = '/test/handle/location/lone-room';
+const LOUNGE_ROW = '/test/handle/location/satellite';
 
-/** A keyed, multi-instance place — the provisioned dorm room's shape. */
+/* ⚠ Synthetic rows under `/test/**`, deliberately: a KERNEL test
+ * proves the kernel, and naming shipped content here would couple the
+ * handle's contract to one locality's rooms (`lint:test-content`). The
+ * shapes are the real ones — a keyed multi-instance place, a
+ * one-per-row place, an ephemeral clone — which is what the rule is
+ * about. The drive is where the real dorm rooms get walked. */
+
+/** A keyed, multi-instance place — a provisioned holding room's shape. */
 class KeyedRoom extends PersistableMixin(ContainerMixin(Idea)) {}
 
 /** A one-place-per-row place — the bar's shape. */
@@ -77,22 +84,22 @@ describe('a secret found in one instance is not found in all of them', () => {
   it('⭐⭐ two keyed rooms of ONE row do not share a discovery key', () => {
     const roomA = makeStuffAtPath(() => new KeyedRoom(), DORM_ROW);
     const roomB = makeStuffAtPath(() => new KeyedRoom(), DORM_ROW);
-    roomA.setPersistenceKey('duncan/f1-r1');
-    roomB.setPersistenceKey('duncan/f1-r2');
+    roomA.setPersistenceKey('extent-a/f1-r1');
+    roomB.setPersistenceKey('extent-a/f1-r2');
 
     const keyA = hiddenExitFrom(roomA, 'down').getDiscoveryKey();
     const keyB = hiddenExitFrom(roomB, 'down').getDiscoveryKey();
 
-    expect(keyA).toBe(`${DORM_ROW}#duncan/f1-r1#exit:down`);
-    expect(keyB).toBe(`${DORM_ROW}#duncan/f1-r2#exit:down`);
+    expect(keyA).toBe(`${DORM_ROW}#extent-a/f1-r1#exit:down`);
+    expect(keyB).toBe(`${DORM_ROW}#extent-a/f1-r2#exit:down`);
     expect(keyA).not.toBe(keyB);
   });
 
   it('⭐⭐ and the belief does not leak between them', () => {
     const roomA = makeStuffAtPath(() => new KeyedRoom(), DORM_ROW);
     const roomB = makeStuffAtPath(() => new KeyedRoom(), DORM_ROW);
-    roomA.setPersistenceKey('duncan/f1-r1');
-    roomB.setPersistenceKey('duncan/f1-r2');
+    roomA.setPersistenceKey('extent-a/f1-r1');
+    roomB.setPersistenceKey('extent-a/f1-r2');
     const exitA = hiddenExitFrom(roomA, 'down');
     const exitB = hiddenExitFrom(roomB, 'down');
     const viewer = makeStuffAtPath(

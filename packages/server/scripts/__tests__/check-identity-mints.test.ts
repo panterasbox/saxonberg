@@ -5,6 +5,7 @@
  * unjustified meter sitting exactly on its ceiling.
  */
 
+import "../../src/test-bootstrap";
 import { describe, expect, it } from "vitest";
 import {
   KEYED_BY_WORDS,

@@ -28,7 +28,13 @@ import { ContainerMixin } from '../../../../lib/spatial/Container';
 import { makeStuffAtPath } from '../../../../lib/security/__tests__/test-setup';
 import type { FieldMeta } from '../../../../lib/mixin';
 
-const ROW = '/world/terminus/market/thing/stall';
+// ⚠ A synthetic row under `/test/**`: a KERNEL test proves the kernel,
+// and naming the real market stall here would couple the spine's
+// invariant to one locality's content (`lint:test-content`). The SHAPE
+// is the stall's — an identity-stamped, explicitly keyed host — which is
+// the population the needle got wrong. The stall's own suite drives the
+// real one.
+const ROW = '/test/uniquekey/thing/counter';
 
 /** A keyed, multi-instance holder — the stall counter's shape. */
 class Counter extends PersistableMixin(ContainerMixin(Idea)) {

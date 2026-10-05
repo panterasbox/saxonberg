@@ -103,14 +103,31 @@ const STATIC =
  * framework calls them.
  *
  * ⚠ The full set is found by grepping the framework for reflective
- * access (`hasOwnProperty.call(c, '…')`): `fieldMeta` ·
- * `subscribableFields` · `markupAugmenters` · `cleanupOnDestruct` ·
- * `captureSlice` · `restoreSlice` · `settings`. The last three are
- * declared inside mixin factories, which this census already excludes,
- * so only the first four can reach it. ⭐ `cleanupOnDestruct` was being
- * counted as a movable static — making it private would have silently
- * broken destruct cleanup, because `StuffApi` finds it with
+ * access (`hasOwnProperty.call(c, '…')`). ⭐ `cleanupOnDestruct` was
+ * being counted as a movable static — making it private would have
+ * silently broken destruct cleanup, because `StuffApi` finds it with
  * `hasOwnProperty`, not with an import.
+ *
+ * ⚠⚠ **Re-derived from that grep on 2026-10-05, and it had drifted** —
+ * which is this file's own documented failure class (*a ratchet with a
+ * hole in it*, *gates ship broken and silently pass*). The hydration
+ * build added two names the framework reads by name
+ * (`MixinApi.getPersistenceContributors`, `api/mixin.ts`) and the list
+ * was never updated:
+ *
+ *   - **`hydrateFromSource`** — *fill the newborn from what the world
+ *     remembered about it*, run by `StuffApi.#hydrateFromSources`
+ *     between the content step and `onCreate`. It cannot be anything
+ *     but a static read by name, and there is no compliant alternative
+ *     shape to fold it into.
+ *   - **`hydrateSlice`** — the restore half of the persistence slice.
+ *     Note the list said **`restoreSlice`**, which the framework does
+ *     not read by that name at all; the stale entry is kept because
+ *     removing it would be a second change and it exempts nothing.
+ *
+ * `hydrationSource` and `_mixinName` are static FIELDS, and
+ * `__validateComposition__` is `_`-adjacent — none matches the
+ * method-shaped `STATIC` regex, so none can reach the census.
  */
 const FRAMEWORK = new Set([
   'fieldMeta',
@@ -119,6 +136,8 @@ const FRAMEWORK = new Set([
   'cleanupOnDestruct',
   'captureSlice',
   'restoreSlice',
+  'hydrateSlice',
+  'hydrateFromSource',
   'settings',
 ]);
 

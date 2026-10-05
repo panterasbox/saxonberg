@@ -5,11 +5,13 @@ verbs: [stall]
 controller: /world/terminus/market/idea/cmd/StallController
 description: "Rent a market stall of your own, or give it up"
 help: |
-  `stall rent` (or just `stall`) sets up a stall of your own on the
-  square — a counter that is yours, a house that trades as you, an
-  account at your bank. The first time costs the square's rent, paid
-  from your account; after that the same word opens the stall you
-  already hold, packed goods and all.
+  `stall rent` (or just `stall`) takes the next free pitch on the
+  square and sets up a stall of your own there — a counter that is
+  yours, a house that trades as you, an account at your bank. The first
+  time costs the square's rent, paid from your account; after that the
+  same word opens the stall you already hold, on the same pitch, packed
+  goods and all. A square with every pitch let says so and charges you
+  nothing.
 
   Your stall takes goods on SUPPLIER TERMS: a grower who `consign`s a
   crate onto it names their price, you set the ask (`house price

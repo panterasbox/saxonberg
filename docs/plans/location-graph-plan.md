@@ -1600,7 +1600,112 @@ meter still 2 (one justified site removed, no unjustified added); the
 holodeck wire tests green. No AC of its own — this is the registry
 invariant `Stuff.ts` already states, made true.
 
-### A4 · A stall is keyed by its pitch — `fix(market): a stall is keyed by its PITCH on the square, not by who rents it`
+### A4 · A stall is keyed by its pitch — ✅ DONE
+
+> **Note (2026-10-05).**
+>
+> ⚠⚠ **RA1 is ANSWERED, and the hazard was real.** A `props:` fixture on
+> a non-`Persistable` `Street` is established by **nobody**:
+> `Stock.onCreate` only calls `reset()`, and
+> `capturesAtShutdown()` answers false while `_persistenceKey === null`,
+> so such a fixture **neither captures nor restores**. Left alone the
+> lets book would have come up empty after every restart, the next
+> renter would be allocated pitch 1, and `hasRecord` would hand them the
+> first keeper's counter. `MarketStalls.onCreate` now materializes its
+> own keyless record (one fixture per row, so the scope-derived owner is
+> the right key) and every write to the book captures it.
+>
+> ⛔⛔ **A SECOND defect of the same shape, in my own A4 design, found by
+> the test.** Once the record is the PITCH's, `give-up`'s
+> capture-the-emptied-counter became wrong: the record outlived the let,
+> so the next renter of that pitch was handed the previous keeper's
+> counter — their short description, their keywords — and `hasRecord`
+> told them the rent was already paid. The same clobber the invariant
+> exists to stop, arriving from the other side. **`give-up` deletes the
+> pitch's record** (`PersistableApi.deleteAllFor(ids.key)` — the owner
+> IS the pitch key, so it is one record). A given-up pitch remembers
+> nothing; what the keeper had is in their hands.
+>
+> ⭐ **The square now has a fixed number of spots.** `pitches: 12` on
+> `stalls.yaml`, `allocatePitch` lowest-free (so a given-up pitch is
+> re-let before the square grows), and `stall rent` refuses
+> `square-full` **before any money moves** — every later refusal
+> releases the pitch it took, or a refusal would leave a pitch let to
+> somebody holding no stall. Before this a square let out as many
+> stalls as it was asked for.
+>
+> ⚠⚠ **A fixture that models ONE axis cannot test a two-axis rule.** The
+> suite's `stubSeeds` stamped the minted identity *as the template
+> path*, so every counter looked like a clone of its own identity and a
+> read enumerating the seed ROW found nothing. That is why the stall was
+> invisible to the invariant in the test as well as in production. The
+> stub stamps both axes now, and with it the uniqueness test
+> **sabotage-verifies**: reverting A0's needle turns it red, which is
+> the proof that the market stall — never once covered before — is
+> covered.
+>
+> ⭐⭐ **`lint:on-create` refused the first shape, and it was right.**
+> The restore started life in `MarketStalls.onCreate` (what the plan
+> prescribed) and tripped the ceiling at 82/81. The gate's message names
+> the alternative — *state the world remembered goes on a
+> `hydrationSource`* — and so does the clone pipeline's own comment at
+> the call site: sources run between the content step and the hook
+> *"so that nothing has to read a collection from inside a lifecycle
+> hook to get it."* Two gates and a code comment all saying the same
+> thing is not worth arguing with. The fixture declares
+> `hydrationSource { name: 'holder_snapshots', required: false }` and a
+> `hydrateFromSource` that materializes its own record, mapping any
+> failure to `unreachable` rather than throwing (a throw unregisters the
+> half-built object, which would take the market square out of the world
+> rather than leaving it bookless). The `onCreate` is gone and the
+> ceiling is back at 81.
+>
+> ⚠ **`pitches` is authored, NOT persistent** — found while wiring the
+> restore. Persisting it would mean a captured `12` overwriting an
+> author's edit to `20` at the next boot: the
+> `props:`-edit-never-reaches-a-booted-world failure in a new hat. Only
+> `lets` is state.
+>
+> ⭐ **A side effect worth naming:** the restore also brings back
+> whatever was CONSIGNED on the square's own stall, which nothing
+> restored before — the fixture was established by nobody, so the
+> market's produce vanished at every boot. A fix, not a regression, and
+> the reason the record is the whole host's rather than the book's
+> alone.
+>
+> ⚠⚠ **`lint:lib-statics` caught the hydration source too — and the
+> GATE was the thing that was wrong.** `hydrateFromSource` has to be a
+> public static read by name (`StuffApi.#hydrateFromSources` finds it
+> with `hasOwnProperty`), so there is no compliant alternative shape to
+> fold it into. The gate's own doc says its framework allowlist *"is
+> found by grepping the framework for reflective access"* — and that
+> grep yields ten names while the list carried seven, two of them
+> missing (`hydrateFromSource`, `hydrateSlice`, both added by the
+> hydration build) and one of them stale (`restoreSlice`, which the
+> framework never reads by that name). That is this file's own
+> documented failure class: *a ratchet with a hole in it*. The list is
+> re-derived now, with the derivation recorded at the site, and the
+> count came back to **337 — exactly the ceiling**, so nothing rose and
+> the ceiling did not move.
+>
+> ⚠ **Two more gates caught my own tests, both fairly.**
+> `lint:test-content`: three KERNEL tests named `/world/...` paths as
+> fixtures, which couples a kernel contract to one locality's content —
+> they are synthetic `/test/**` rows now, with the reason at the site,
+> and the drive is where the real dorm rooms get walked.
+> `lint:test-bootstrap`: the census lint's own test touches the wired
+> runtime and needed the import.
+>
+> **DB cost, measured rather than assumed:** `0` rows. The targeted
+> delete (`holder_snapshots` scoped under the stall seed, `chattel`
+> placed there) matched nothing in `saxonberg_build3` — nobody has
+> rented a stall in this dev DB — so the re-key cost nothing. The house
+> seed's records were left alone and are also 0; `bank_ledger` is never
+> touched (money is conserved; a write-off is never a silent delete).
+>
+> 10 stall tests green, 142 across the terminus pack.
+
+**Original wave spec** — `fix(market): a stall is keyed by its PITCH on the square, not by who rents it`
 
 **Implements** DA6. **Files:** `content/terminus/src/market/thing/MarketStalls.ts`
 (`pitches`, `lets`, `fieldMeta`, the three methods, the own-record
@@ -1852,6 +1957,14 @@ already states true.
 ## Risks & opens
 
 ### Stage A
+
+- **RA1 — ✅ ANSWERED 2026-10-05, and the hazard was real.** Nothing
+  establishes a `props:` fixture on a non-`Persistable` street, so the
+  book would have come up empty at every boot; `MarketStalls.onCreate`
+  materializes its own keyless record. A second defect of the same
+  shape was found in A4's own design (a pitch-keyed record outliving
+  its let hands the next renter the last keeper's counter) and `give-up`
+  deletes the record now. See A4's note. *Original text:*
 
 - **RA1 — the pitch book's survival (A4).** G-STALL did not verify how a
   `props:` fixture on a non-Persistable `Street` gets its own record

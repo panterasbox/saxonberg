@@ -157,6 +157,20 @@ POSITIVE — a violation is found — not merely that a clean tree is clean.
   different question. See
   [value-object-statics-slate](./slates/builds/value-object-statics-slate.md).
 
+  ⚠⚠ **The framework allowlist had drifted, and that is this gate's own
+  documented failure class** (*a ratchet with a hole in it*; *gates ship
+  broken and silently pass*). Statics the framework reaches **by name**
+  can never move and are not author surface, so they are exempt — and
+  the set is defined by grepping the framework for
+  `hasOwnProperty.call(c, '…')`. On 2026-10-05 that grep yielded ten
+  names while the list carried seven: `hydrateFromSource` and
+  `hydrateSlice` (both added by the hydration build) were **missing**,
+  and `restoreSlice` is **stale** — the framework never reads that name.
+  Re-derived, with the derivation written at the site so the next drift
+  is visible. ⭐ The lesson generalizes past this gate: **an allowlist
+  defined by a grep should carry the grep**, or it decays the moment the
+  thing it mirrors grows.
+
 **So the ~50 world-level statics in Api-less subsystems stay where they
 are**, and the ratchet stops at ≈50 + the type-level population instead
 of at 0. That is a floor with a name and a reason, not a shortfall:
