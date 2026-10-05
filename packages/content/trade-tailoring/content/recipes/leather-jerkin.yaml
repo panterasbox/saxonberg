@@ -7,6 +7,16 @@
 # which is exactly the roster's claim that leatherwork SHARES THE CODE
 # with textiles rather than being a parallel trade.
 #
+# ⚠⚠⚠ **It took a VERB as well, and the live drive is what said so.**
+# The paragraph below was written at W4 and was half right: the material
+# was one blocker and nothing resolved the recipe was the other. `make`
+# dispatches a recipe SCRIPT rather than a catalogue recipe, and `cut`
+# requires `StackableMixin` — a BOLT — which a tanned hide is not and
+# must not become (two hides must never merge; each is a particular skin
+# off a particular animal with its own grade). So a hide had no path to a
+# worn jerkin, and three unit suites and sixty-four lint gates were green
+# over it. `trade-tailoring` ships `tailor` now.
+#
 # ⭐⭐ **It is makeable now, and the recipe did not change by one
 # character.** This header used to read *"its `{category: hide}` input
 # still has NO PRODUCER … this row is here, correct, and unmakeable."*

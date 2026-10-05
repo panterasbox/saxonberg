@@ -1,0 +1,29 @@
+verbs: [tailor]
+controller: /trade/tailoring/idea/cmd/tailoring/TailorController
+description: "Work a hide up into a garment"
+help: |
+  `tailor` makes a leather jerkin out of tanned hide. `tailor <garment>`
+  is the general form for anything else in the tailor's book.
+
+  ⭐ **It is a different act from `cut` and `sew`, and the difference is
+  the cloth.** Cutting a bolt is a 2D solution to a 3D problem and the
+  decision is the seam allowance — `--tight` can never be let out,
+  `--generous` costs cloth against a future you cannot see. Leather has
+  no such decision: you do not cut a hide generous, and a hide is one
+  particular skin off one particular animal rather than a length off a
+  stack.
+
+  ⚠ You need tanned leather. A green hide is not leather and the recipe
+  will tell you so — three weeks in a tanpit is what turns one into the
+  other, and the pit is where the skill in that half of the chain is.
+
+  ⚠ And you need to have learned it. Work the recipe faithfully by hand
+  once, and then you know it.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  - name: what
+    type: string
+    required: false
