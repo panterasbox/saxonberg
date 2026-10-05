@@ -159,6 +159,191 @@ form is how you get a form nobody fills in.
 learns nothing. The thing to design for is therefore the **comment
 rate**, not the axis count — which lands on the menu (§ 8).
 
+## 4a. ⭐⭐⭐ The Reddit model breaks on a PERSISTENT world — and conviction is the fix
+
+**Added 2026-10-04.**
+
+> **User: "the reddit model breaks down for us because reddit constantly
+> gets new content. but our content just sits there serving itself to new
+> and repeat players. so a simple thumbs up probably wont work."**
+
+A Reddit vote does three things and **all three need flow**: it **ranks a
+feed** of competing *new* submissions, it **time-decays** (hot/top/new
+exist because recency is the axis), and it is a **one-shot verdict** cast
+on first encounter before the thing expires.
+
+Ours is **persistent and non-competing** — the crossing will be there in
+five years, competes with no other crossing for a slot, and may be
+visited two hundred times by one player. So:
+
+> ⭐⭐⭐ **A lifetime thumbs-up on a permanent object is a cumulative count
+> of visitors who liked it — an ATTENDANCE measure. And we already have
+> attendance, measured better and for free, by the use counter**
+> ([attribution-slate § 4a](./attribution-slate.md)).
+>
+> **The explicit signal would be measuring the same thing as revealed
+> demand, worse.**
+
+Two further breakages: it **cannot express change** (a room improved in
+2027 carries 2026's votes — Reddit never hits this, because posts are
+immutable), and it **cannot express the repeat relationship**, which is
+the thing you most want to know about a *place*.
+
+### ⭐⭐⭐ So the division of labour
+
+> **Revealed demand measures ATTENDANCE. The explicit signal measures
+> ENDORSEMENT** — *a trace you left by behaving* versus **a claim you are
+> willing to make.**
+
+And an endorsement has one property attendance never can: ⭐⭐ **it can be
+made scarce.**
+
+### ⭐⭐⭐ Scarce, reallocatable, decaying — which is CONVICTION, and it ships
+
+> **User: "can they use it more than once? does it last forever?"**
+
+| option | what you get |
+|---|---|
+| unlimited + permanent (Reddit) | ⛔ a cumulative attendance proxy |
+| once per player, permanent | ⚠ **monotonic** — a room that got worse keeps its score; **old content always wins** |
+| once per player, revocable | ⚠ monotonic in practice; nobody goes back to revoke |
+| ⭐⭐⭐ **scarce + reallocatable + decaying** | **a CURRENT census of who endorses it** |
+
+[influence.md](../../subsystems/influence.md) already has *conviction
+hold/flip/tally*, and `compact-political-science.md`: *"Conviction
+weighting means you feel the build and the decay; **moving an allocation
+costs you something legible.**"*
+
+> **You hold N endorsements at a time and move them.** Spending one on the
+> crossing means taking it off something else.
+
+- **once per thing** — one per player per template. ⚠ Unbounded intensity
+  is noise (Medium's fifty claps proved it);
+- ⭐⭐⭐ **it lasts only while allocated** — so a room that got worse
+  **loses endorsement passively**, with nobody going back to revoke, and
+  **old content must keep earning it**;
+- ⭐⭐ **and a finite pool makes the signal a ranking without asking anyone
+  to rank.** Reddit ranks because of the feed; we rank because the pool is
+  scarce. **Same outcome, no feed.**
+
+⚠ **A SEPARATE pool.** *I like this room* must not spend the same
+currency as *I support this bill*, or the chambers are conflated after
+§ 1 spent its case refusing exactly that.
+
+### Systems that rose and fell — as lessons
+
+| system | what it teaches |
+|---|---|
+| ⭐⭐ **Slashdot** (1997) — mod points **scarce and expiring**, moderators **drawn by lottery**, **metamoderation** rating the moderators | the conviction shape *and* sortition — which the Compact already uses for juries. Weirdly aligned with us |
+| **Digg** (→2010) — unweighted upvote | ⭐ **an unweighted vote concentrates in whoever votes most.** The power-user cartel is the predictable end state |
+| **StackOverflow** | ⭐⭐ keeps the **asker's "accepted"** separate from the crowd's votes — *two channels*. ⚠ But reputation-gated privileges bred a credentialist hierarchy: **never let a content signal become a people hierarchy** (§ 7) |
+| **eBay feedback** | ⭐⭐⭐ **the right to rate is earned by an act.** ⚠ And it collapsed to 99.9% positive through retaliation — beware reciprocity |
+| **Netflix 5-star → thumbs** (2017) | ⭐⭐ granularity invited *aspiration* — five stars for documentaries nobody watched. **Coarse is more honest**, which is § 4's case from a second direction |
+| **YouTube dislikes removed** (2021) | ⚠ a negative on an **identified author's** work is a harassment vector — § 7's firewall, confirmed by somebody else's incident |
+| ⭐ **Steam reviews** | gated on **ownership + playtime**, and **discloses playtime at review** |
+| ⭐⭐⭐ **LittleBigPlanet · Mario Maker · Dreams** | **the closest analogue — player-made persistent levels served indefinitely.** Their failures are ours: incumbent accumulation; and Mario Maker's answers — **you must clear a level before rating it**, and **deleting unplayed levels**, a brutal but honest long-tail policy |
+| **Metacritic review-bombing** | ⚠ a flood in a short window is a campaign, not an opinion. **Time-clustering is the tell** — and a conviction pool rate-limits it for free |
+
+**Three rules taken from the survey:**
+
+⭐⭐ **(a) The counter gates the ballot.** eBay, Steam and Mario Maker all
+converge on *earn the right to rate with an act* — and for us the act is
+**having been there**, which the use counter already knows. So **you
+cannot endorse what you have not visited**, and the two signals couple in
+the right direction.
+
+⭐⭐⭐ **(b) Disclose the rater's EXPOSURE, never their identity.** Steam's
+best move, and it is A15-safe:
+
+> *"Endorsed by 40 people, median 12 visits"* is vastly more informative
+> than *"40"* — it says whether this is loved by **regulars or by
+> passers-by**, naming nobody.
+
+⭐ **(c) Keep a designated channel separate from the popular one**
+(StackOverflow's accepted answer) — a holder's or committee's pick, which
+is the one thing a crowd signal cannot supply: *somebody who knows the
+domain says this is the good one.*
+
+### ⭐⭐⭐ Where the allocation is EARNED — and the odometer conflict
+
+> **User: "I'd want to award more engaged players more endorsements… if we
+> ever built that odometer, endorsements might be the one thing I'd earn
+> with it."**
+
+⚠⚠ **That violates the odometer's own standing rule.**
+[odometer-slate](./odometer-slate.md), the **load-inert rule**: *"no
+system's felt-progression story may DEPEND on the odometer… if removing
+it would break a system's progression feel, that system is underbaked.
+**This is a standing review question for every build.**"*
+
+⭐⭐⭐ **The fix is in that slate's own description:** the odometer holds
+**no counter store** — it *derives over kept ledgers*. So:
+
+> **Award endorsements from the LEDGER the odometer derives over, not from
+> the odometer.** The odometer then becomes **the place you see why you
+> have fourteen endorsements** — legible without being load-bearing, and
+> the rule holds.
+
+**And which ledger — breadth, not volume:**
+
+| ledger | measures |
+|---|---|
+| **participation** | ⚠ decayed engagement — **volume.** Walking in circles earns it |
+| ⭐⭐⭐ **`DISCOVERY`** ([belief.md](../../subsystems/belief.md) realm) | **distinct things discovered — BREADTH.** Circles discover nothing |
+
+> **Endorsement wants breadth**, because the qualification for having a
+> say about content is *having seen content* — and `DISCOVERY` already
+> counts exactly that, per viewer, as a kept ledger.
+
+⭐⭐ **And why weighting by exposure is defensible here when it was NOT for
+the automata** (`automata-slate`'s participation floor):
+
+| | automata allowance | endorsements |
+|---|---|---|
+| what exposure buys | ⛔ **a tool that helps you play better** — a compounding personal advantage | ⭐ **a voice about other people's work** |
+| the claim | *more hours = more capability* | ⭐⭐ *more exposure = more basis to compare* |
+
+> **An endorsement is not a benefit to the endorser.** A critic who has
+> read five hundred books has no more *rights* than one who has read five
+> — they have more **basis**. ⭐⭐⭐ It is the eBay/Steam rule applied as a
+> **gradient instead of a gate.**
+
+**The curve: a floor plus log-saturated headroom.** `renown.md` already
+uses `receptionValence × ln(1 + Σ decayed)`; the same shape gives a new
+player real voice and caps the veteran premium at ~3–4× without anyone
+tuning a cap. ⚠ **A 3× premium is an exposure premium; 40× is
+plutocracy-by-playtime.**
+
+### ⛔ No self-endorsement — and what that does to "gaming"
+
+Same logic that killed self-sponsorship's standing reward in
+[llm-economy § 8](./llm-economy-slate.md) — *why else would you do it?*
+Self-endorsement is allocating resource to yourself, which is what the
+grant already does. `ParcelApi.ownerOf` + group membership answers it at
+exactly the right grain.
+
+> ⭐⭐⭐ **And once self-endorsement is barred, "farming" and "playing a
+> lot" become the same activity** — which is the intended qualification,
+> not an exploit. *If you discovered two hundred places in order to have
+> a bigger say in which of them thrive, you earned it by the system's own
+> logic.*
+
+⭐⭐ **And on gameability at scale**, which is the unusual part:
+
+- endorsements **cannot be sold** — conviction is held, not transferable;
+  no stock, nothing to trade;
+- they drive a **share**, so one farmer's extra endorsements shift
+  allocation by a vanishing amount in a large population;
+- while the cost of farming stays **constant**.
+
+> ⭐⭐⭐ **Endorsement farming is an exploit whose yield is inversely
+> proportional to scale** — decisive at ten players, noise at ten
+> thousand. The **opposite** of most exploits.
+
+⚠ Which is a design note rather than a worry: **the dangerous window is
+LAUNCH, not maturity.** So the gradient should **start flat and open up
+once there is a population to dilute into.**
+
 ## 5. ⭐⭐⭐ Solicit the EXPERIENCE; leave the OBJECT unsolicited
 
 > **User: "as far as prompting, that's a good idea in spirit but it

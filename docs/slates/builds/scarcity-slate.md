@@ -10,6 +10,15 @@
 > the retention schedule as a polity question · the token/egress
 > appropriation + its ceiling · the two committees · the sizing ↔
 > allocation separation written as a rule
+> ⚠⚠ **REVISED 2026-10-04 by [attribution-slate](./attribution-slate.md)**
+> on two points: **storage splits in two** (Mongo *records* are working
+> set and tax RAM + CPU; object *assets* are archive and their reads cost
+> egress — different resources, not different prices), and ⭐ **RAM's
+> measurability is back open**, because a per-**template** heap sample
+> amortised over thousands of instances is affordable where § 4's
+> per-object walk is not. That slate also supplies the attribution model
+> this one assumed: **existence in a state**, rated per template and
+> charged per identity.
 > **Size:** **the meter is a build**; the three economies are each a
 > build of their own and none should start before the meter reports.
 
@@ -104,6 +113,21 @@ past does this world pay to keep?"**, which is a lens-4 values question
 and belongs beside the record-integrity rules, not beside CPU's formula.
 
 ## 4. ⛔⛔ RAM is not political, and the reason is measurement
+
+> ⚠⚠ **Partly superseded.** The concession below is about **per-object**
+> measurement *per sweep*, and that still holds. But
+> [attribution-slate § 3](./attribution-slate.md) observes that **the
+> unaffordable thing was the GRANULARITY, not the measurement** — a
+> sampled heap figure per **template**, amortised over every instance, is
+> affordable, and the count is free because the registry already has it.
+> ⭐⭐⭐ **RESOLVED there: RAM is RATEABLE OFFLINE, not measurable
+> online.** One heap snapshot on a staging box against a representative
+> world, retained size attributed by constructor → template, shipped as a
+> **table of data** — so there is **no production heap walk and no
+> per-object measurement**, and the rating is honest because it *is* a
+> rating, same as weight. **RAM moves into the accounting system on those
+> terms**; the concession below about per-object cost per sweep stands
+> untouched and is simply not the thing that had to be afforded.
 
 Nobody wants anything about RAM. No chamber has an interest, no author has
 a preference, no player has an experience of it. That is not a gap in the
@@ -349,6 +373,10 @@ no channel.
   (a declared standard is never a gauge), the enforcement ladder.
 - [compact-political-science.md](../../compact-political-science.md) § The
   three chambers — and its warning that they are not three groups.
+- ⭐⭐⭐ [attribution-slate.md](./attribution-slate.md) — **the model
+  this slate assumed**: existence not execution, the template/identity
+  key split, what a grant actually says (three forms, five lines), and
+  the capacity read a committee needs instead of a proportion.
 - ⭐⭐⭐ [feedback-slate.md](./feedback-slate.md) — **what DRIVES the
   allocation** these institutions perform: *votes allocate, measurements
   mint*. The two slates are one loop seen from its two ends, and the
