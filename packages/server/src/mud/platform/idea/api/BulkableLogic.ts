@@ -18,6 +18,7 @@ import { Freshness } from '../../../lib/material/Freshness';
 import { WaterActivity } from '../../../lib/material/WaterActivity';
 import { Contamination } from '../../../lib/material/Contaminable';
 import { Blood } from '../../../lib/vitals/Blood';
+import { DissolvedToxins } from '../../../lib/metabolism/DissolvedToxins';
 import type { MqlQuantity } from '../../../api/mql';
 import { Quantity } from '../../../lib/quantity';
 import { MessageApi } from '../../../api/message';
@@ -319,7 +320,18 @@ export class BulkableLogic extends ApiLogic {
     const fromPathogens = new Contamination(from).loads();
     const toPathogensBefore =
       to !== null ? new Contamination(to).loads() : {};
-    const fromPayload = from.getPayload();
+    // ⚠⚠ And the DISSOLVED dose, by the same mass-weighted rule as the
+    // load, the cure and the pathogens — a concentration that did not
+    // blend would make decanting a laundry in the other direction too:
+    // tip a poisoned bottle into a clean cask and read the cask's label.
+    const fromDissolved = new DissolvedToxins(from).raw().map((t) => ({ ...t }));
+    const toDissolvedBefore =
+      to !== null ? new DissolvedToxins(to).raw().map((t) => ({ ...t })) : [];
+    // ⭐ What `applied` litres drawn NOW would carry — host policy, not the
+    // slot's whole payload. Identical to `getPayload()` for every holder
+    // whose interior is homogeneous; a fractionating host answers with the
+    // span it is actually about to give up.
+    const fromPayload = from.payloadForDraw(applied);
     const toWasEmpty = to !== null && to.isEmpty();
     from.debit(applied);
     if (to !== null) {
@@ -388,6 +400,31 @@ export class BulkableLogic extends ApiLogic {
       ) {
         new Contamination(to).stampLoads(withSurface);
       }
+
+      const drawnDissolved =
+        fromPayload?.dissolvedToxins ?? fromDissolved;
+      if (
+        !DissolvedToxins.isClean(drawnDissolved) ||
+        !DissolvedToxins.isClean(toDissolvedBefore)
+      ) {
+        new DissolvedToxins(to).stamp(
+          DissolvedToxins.blend(
+            drawnDissolved,
+            applied,
+            toDissolvedBefore,
+            toAmountBefore,
+          ),
+        );
+      }
+
+      // ⭐⭐ **A top-up is weakest-link on the grade.** Identity rides into
+      // an empty destination only (above) — but quality is not identity,
+      // and a vessel that has had a poor pour added to it holds poorer
+      // matter than it did. Without this, topping a bad bottle up from a
+      // good cask would LAUNDER it: the grade is the destination's and the
+      // matter is the mixture. The maker's mark is untouched either way —
+      // a top-up never re-signs somebody else's work.
+      if (!toWasEmpty) carryTopUpGrade(fromHolder, toHolder);
 
       // ⭐ Blood units blend by IDENTITY, not by mass (blood build D4):
       // two units of the same labelled type stay that type; anything else
@@ -547,6 +584,18 @@ function carryBatchIdentity(
     toHolder.setRecipe(fromHolder.getRecipe());
     toHolder.setCraftedAt(fromHolder.getCraftedAt());
   }
+}
+
+/**
+ * The top-up rule: the destination's grade falls to the lower of the two.
+ * Never raises it — `Grade.min` both ways, which is the same weakest-link
+ * doctrine `Grade.deriveAtFixedControl` applies to a craft's inputs.
+ */
+function carryTopUpGrade(fromHolder: Stuff, toHolder: Stuff | null): void {
+  if (toHolder === null) return;
+  if (!MixinApi.isGraded(fromHolder) || !MixinApi.isGraded(toHolder)) return;
+  const blended = toHolder.getGrade().min(fromHolder.getGrade());
+  toHolder.setGrade(blended);
 }
 
 function computeApplied(

@@ -315,6 +315,23 @@ export class BulkSlot {
     return this.host.getBulkPayload(this.affordance);
   }
 
+  /**
+   * ⭐ The payload that `litres` drawn from this slot RIGHT NOW would
+   * carry — host policy, and for every ordinary slot it is simply
+   * {@link getPayload}. A holder whose interior is not homogeneous
+   * overrides it: a still yields in ordered fractions as it is drawn, so
+   * what comes off in the next 0.75 L is not what the pot as a whole
+   * contains.
+   *
+   * ⚠ It takes the litres because a draw that straddles a boundary is
+   * two things at once. Without the argument a single pour started at
+   * the first drop would be stamped wholly as its first fraction — 0.75 L
+   * of foreshots instead of the honest 30 mL of them.
+   */
+  payloadForDraw(litres: number): BulkPayload | null {
+    return this.host.getBulkPayloadForDraw(this.affordance, litres);
+  }
+
   /** Set / clear the slot's blend payload (a copy is stored). */
   setPayload(payload: BulkPayload | null): void {
     this.host.setBulkPayload(this.affordance, payload);
@@ -380,6 +397,16 @@ export interface Bulkable {
   setBulkMaterial(affordance: BulkAffordance, material: Material | null): void;
   getBulkPayload(affordance: BulkAffordance): BulkPayload | null;
   setBulkPayload(affordance: BulkAffordance, payload: BulkPayload | null): void;
+  /**
+   * Policy seam: the payload `litres` drawn now would carry. Base impl
+   * returns the slot's own payload; a capability mixin whose interior
+   * yields in ordered fractions overrides it. See
+   * {@link BulkSlot.payloadForDraw}.
+   */
+  getBulkPayloadForDraw(
+    affordance: BulkAffordance,
+    litres: number,
+  ): BulkPayload | null;
   getBulkAmount(affordance: BulkAffordance): Quantity<'L'>;
   setBulkAmount(affordance: BulkAffordance, amount: Quantity<'L'>): void;
   getBulkCapacity(affordance: BulkAffordance): Quantity<'L'> | null;
@@ -717,6 +744,18 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
       } else {
         this.surfacePayload = copy;
       }
+    }
+
+    /**
+     * The base is the whole slot's payload: ordinary matter is
+     * homogeneous, so what you draw is what is in there. Overridden by
+     * `FractionatingMixin`.
+     */
+    public getBulkPayloadForDraw(
+      affordance: BulkAffordance,
+      _litres: number,
+    ): BulkPayload | null {
+      return this.getBulkPayload(affordance);
     }
 
     public getBulkAmount(affordance: BulkAffordance): Quantity<'L'> {
