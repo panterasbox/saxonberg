@@ -994,7 +994,12 @@ Two outcomes, and only one of them is a ratchet:
   that may fall and never rise.
 
 **First census (2026-10-04): 13 sites — 8 `own-record`, 2 `referenced`,
-1 `lookup`, 2 `none`.** The ceiling is **2**: the anonymous guest
+1 `lookup`, 2 `none`.** ⚠ The composition moved during the same build
+and the count did not: A3 removed the wire body's mint (`own-record`)
+and B2 added the tombstone's (`referenced`), so it reads 7 / 3 / 1 / 2
+now. Worth noting because the first reading of that shift was *the
+scanner mis-attributed something* — it had not, and checking which site
+changed was what settled it. The ceiling is **2**: the anonymous guest
 (`Login.ts`, on the login path, avoiding a throwaway template row) and
 the corpse (`ConditionLogic.ts`, being retooled by the carcass chain).
 ⚠ Both are **named non-goals** of the build that added the gate, and

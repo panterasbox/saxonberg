@@ -123,6 +123,33 @@
  * the name is `NamedMixin.name` now, already tracked here via the other
  * composers. Both were level 0; nothing is newly surfaced, two lines are
  * simply gone.
+ *
+ * **The location-graph build (+14 fields).** All level 0, and the
+ * question was asked of each:
+ *
+ * - **`PlaceNode` (11)** — `identity` · `template` · `zone` · `address`
+ *   · `coords` · `edges` · `crossesZone` · `published` · `origin` ·
+ *   `travel` · `generation`. ⚠ These ARE the world's shape, and the
+ *   build's hardest rule is that the graph must never reach a client.
+ *   So the honest answer needs saying rather than assuming: a reveal
+ *   level is **not** what confines it, and marking them `spoiler: 3`
+ *   would be exactly the reflexive tagging this file's header warns
+ *   against — a level on a record no wiki page can name does nothing.
+ *   `PlaceNode` is a `Document` record, nothing composes it, and **no
+ *   wiki subject is one**, so the panel has no route to these fields at
+ *   all. The graph's confinement is STRUCTURAL: a player's knowledge is
+ *   a separate `map` document and nothing joins the two. Level 0 is
+ *   correct and inert. ⭐ If a wiki subject ever becomes a place-node,
+ *   this entry is the thing to come back and re-read — that would be a
+ *   new route, and the answer would change.
+ * - **`Tombstone` (2)** — `extent` · `takenDownBy`. The opposite of a
+ *   spoiler: both are printed in the marker's own description, because
+ *   the whole point of a tombstone is telling somebody what used to be
+ *   here and who to ask about it.
+ * - **`ParcelRecord.published` (1)** — not a spoiler. The world already
+ *   says it out loud: every exit into unpublished ground refuses with a
+ *   reason naming the place. A flag whose state is announced at the
+ *   door is not hidden knowledge.
  */
 
 import { describe, it, expect } from 'vitest';

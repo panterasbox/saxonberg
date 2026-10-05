@@ -2433,8 +2433,89 @@ Read first, in this order:
 
 ## Drive record
 
-*(appended at build time, not at plan time)* — the output of running
-the requirements doc's twelve-step drive against the running game
-(`packages/wire/tests/location-graph.dirty.wire.test.ts`), the hand-run
-restarts of steps 3 and 4, the browser inspection of step 12, and what
-each found. Precedent: `farming-plan.md § Checkpoint A — the drive record`.
+`packages/wire/tests/location-graph.dirty.wire.test.ts`, run against a
+live world on `WIRE_PORT=2015`. **11 checkpoints, 11 green** after four
+rounds of fixing what it found.
+
+### ⭐⭐⭐ What the drive found that nothing else could
+
+**1. Governed `eval --parcel <extent>` was WHOLLY BROKEN, and this
+build did not break it.** Every one of the drive's first four steps
+failed with *"sandbox boundary denied `onCreate()` … (jurisdiction
+/world/terminus)"*. The cause is squarely this build's subject:
+`SecurityApi.#inJurisdiction` reads **`getTemplatePath()`** — but the
+eval scratch is cloned with `asIdentityPath: ${parcel}/_eval`, so its
+LINEAGE is the kernel row `/platform/idea/EvalScript` and its IDENTITY
+is the jurisdiction it was minted into. Rule 1 (*you are content of it*)
+therefore answered *no* for the one receiver it most obviously covers.
+
+⚠⚠ And rule 3 (*you are nowhere yet*) used to catch it **by accident**
+and silently stopped: that rung was written when the scratch was
+`create`d and stamped afterwards, so its path was null at `onCreate`.
+The clone channel stamps both axes **before** register — so the newborn
+escape stopped firing the day the scratch moved onto `asIdentityPath`,
+and governed eval has been dead since. `getIdentityPath()` falls back to
+the template path, so rooms and fixtures are unaffected.
+
+⭐ This is the build's own antipattern — *an instance's own path is its
+identity, not its lineage* — found in the security layer by driving.
+Four unit-green waves could not see it; one socket could.
+
+**2. My step 2 was asking the wrong room, and the answer was news.**
+It asked the lounge's BAR and got its row back, which read as a failure
+and was not one: `Bar extends SingletonCartesianLocation`, so it is ONE
+place and its row is exactly the right handle. The ephemeral thing is
+the SATELLITE (`Lounge`, no `SingletonMixin`, cloned per landing). The
+step asks **both** now, because the rule has two sides and getting
+either wrong is a defect — and live, both are right: satellite `null`,
+bar its own row.
+
+**3. `ParcelApi` is not on the eval sandbox's Api allowlist**, which is
+correct (`parcels.yaml` is `sandbox: refuse` — title is field-real and a
+circle may not mint it). So step 11 drives the **verb** instead, which
+is what a player would use and is the better test: it proves the view
+REACHES, that it is gated on **title rather than wizardry**, and that it
+reads the flag.
+
+### What the wire proved
+
+| step | checkpoint |
+|---|---|
+| 1 | two provisioned dorm rooms do not share a discovery key |
+| 2 | a satellite answers `null`; the singleton bar answers its row |
+| 3 | the row read enumerates identity-stamped instances; a stall is keyed by its PITCH and the square keeps the book |
+| 7 | walking the gate → the crossing writes a map of Terminus, and `map <locality>` renders it |
+| 8 | an unvisited locality says *you have no map of it* |
+| 11 | the verb is gated on title; an unheld extent has nothing to take down; the holder reads the flag |
+| 12 | a `map` read names no place the player has not earned |
+
+⭐⭐ **Step 7 is the headline.** The map write happens inside a FORCED
+frame (arrival auto-senses via `forceCommand`), where
+`getActingAuthor()` is `null` — the exact case G-WRITE predicted the
+ordinary context gate would fail closed on. It works live, which is the
+only place that could have been shown.
+
+⭐ **Step 4's second half is witnessed by every step above**: the world
+BOOTED. Before this build one mistyped destination anywhere in content
+was a boot crash wrapped as *"failed to clone"*.
+
+### What the wire deliberately does NOT prove
+
+**Steps 4, 5, 6** are the graph invariants — a dangling destination, a
+one-sided edge, a one-sided cross-zone edge. Those are
+`lint:location-graph` over the rows on disk, proved there over the
+**whole shipped tree on every CI run** (124 places, 199 edges, every
+error rule at 0). Re-asserting them through a socket would test a worse
+instrument against a smaller sample.
+
+**Steps 9, 10** (the published-board channel; the map rendering its own
+disagreement) are unit-proved —
+`FastTravel.publishedStops`, `NavigationLogic.map` and
+`MapController` cover the write, the growth rule and both shapes of
+disagreement — and are the natural **browser** pass, because a
+timetable read and a two-claim render are both about what a person
+sees. ⚠ Recorded as owed rather than claimed: *the wire drive is not
+the live drive*.
+
+**Step 12's other half** is a browser pass for the same reason: the
+wire sees the envelope, a browser sees the render.

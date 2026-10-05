@@ -221,3 +221,43 @@ the two plans.**
 - **`FireLogic` and `LaneCatalogue` as written.** Both work. They are the
   census, and whether they move is decided by question 5 rather than
   assumed at the start.
+
+---
+
+## ⭐ The graph exists now (2026-10-05) — what this slate inherits
+
+The location-graph build shipped the projection, so the *"where does it
+live"* question this slate opens with is answered: `location_graph`, one
+row per place, derived from the content rows and rebuilt on demand.
+
+The router's inputs are already there:
+
+| read | what it gives you |
+|---|---|
+| `NavigationApi.nodesInZone(zone)` | the fine graph, one zone at a time |
+| `NavigationApi.interzoneSkeleton()` | ⭐ the **coarse** graph — every cross-zone edge, and a small set |
+| `NavigationApi.pointingAt(identity)` | the reverse edges |
+| `NavigationApi.node(identity)` | one place and its exits |
+
+⚠ **Three things the router has to decide that the graph deliberately
+did not.**
+
+1. ⭐⭐ **The elastic half is absent, on purpose.** A holding's interior
+   and a lounge satellite are not nodes — they are perceived live and
+   never stored. So a route *into* somebody's house ends at the gate,
+   and whether that is a route is a routing question.
+2. ⭐ **Frontage slot stubs were specified and NOT built**, because an
+   edge with no destination has no reader: every invariant skips it and
+   no router can route over it. If the router wants frontages it adds
+   them **with the thing that reads them** — which is the right order.
+3. **TPA routes are stored as a node's `travel` block, not as edges.**
+   They are there so the offline boundary can tell an Authority its
+   timetable lost a stop. Time-varying edges — a route that opens and
+   closes on a schedule — are this slate's, and they are the reason
+   `departures` is carried on the route.
+
+⭐ And planning over **the player's own map** rather than over the graph
+is a separate problem with a better shape: the map is a claim set with
+holes and disagreements, so a route planned on it can be *wrong*, which
+is a far more interesting mechanic than a correct route. See
+[location-graph.md](../../subsystems/location-graph.md).

@@ -627,18 +627,41 @@ async function mintCorpseFrom(
       causeOfDeath: cause,
       diedAtGameSec: nowS,
     },
-    // identity-keyed-by: none — nothing reads a corpse by identity.
+    // Nothing reads a corpse by identity.
     // `reembody` never looks one up, and belief's naming path is gated
     // on `isPersona` (composed on `Character`, not `Creature`), so the
     // only consumer of this string is the mint's OWN ordinal probe,
-    // which is circular and cannot justify the mint it serves. You can
-    // die, re-embody and die again, and there are then two corpses for
-    // one playerId — so it is not uniquely findable by identity either.
-    // ⛔ UNJUSTIFIED and deliberately left alone: corpses are being
-    // retooled by the carcass chain on `reqs/second-tier`, which
-    // multiplies this mint to every non-player death and still adds no
-    // reader. That build owns the decision; the slate keeps their
-    // counter-argument as a reason to KEEP, not as a reader.
+    // which is circular and cannot justify the mint it serves.
+    //
+    // ⚠⚠ **Two corrections from the carcass-chain build (2026-10-05),
+    // and they sharpen WHY this is unjustified rather than softening
+    // it.** (1) You can die, `reembody`, and die again before the first
+    // body decays, so ONE avatar owns two coexisting corpses — the
+    // `<gameSecond>` is not redundant, it names WHICH DEATH. (2) That
+    // second IS recorded: `diedAtGameSec` is persistent on
+    // `PostmortemMixin`, and `recordDeathDeed` writes a chronicle deed
+    // whose `when` is persistent. So on the player path the name IS
+    // durable, and requirements 9a's two limbs LICENSE this key.
+    //
+    // ⭐⭐ The reason to remove it anyway is a third limb 9a does not
+    // have: **can anyone NAME it?** The way a person refers to a thing
+    // is keyword → the `distinguishing` form → an ordinal where those
+    // tie (`PromptLogic.projectMatches`). Nothing in that ladder can
+    // hold a path or a game-second: a player cannot type it, the
+    // disambiguation prompt will not render it, and MQL's own answer to
+    // *which of these identical things* is an ordinal. The key is
+    // durable and UNSPEAKABLE. ⭐ And the real fix was presentation, not
+    // identity — the carcass build made `getDecayStage()` a salient
+    // feature, so `butcher stale` works and two of one player's corpses
+    // are finally distinguishable in the UX.
+    //
+    // ⛔ UNJUSTIFIED and deliberately left alone: that build owns the
+    // decision and has narrowed the mint on its side (a beast's corpse
+    // no longer mints at all). See
+    // `docs/slates/builds/instance-addressing-slate.md § the third
+    // limb`.
+    // identity-keyed-by: none — nothing durable reads it, and nothing
+    // speakable names it.
     asIdentityPath: corpseIdentityFor(body, nowS),
   });
   if (!MixinApi.isVitals(corpse)) {

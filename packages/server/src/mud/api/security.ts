@@ -1160,10 +1160,28 @@ export class SecurityApi {
    *
    * A jurisdiction is a **place**, and there are three ways to be in one:
    *
-   *   1. **You are content of it** — your `templatePath` sits under the
-   *      bound. Rooms, fixtures, the eval scratch. For path-addressed
-   *      content lineage and location coincide, which is why the first
-   *      cut of this check tested only the path.
+   *   1. **You are content of it** — the path you ANSWER TO sits under
+   *      the bound. Rooms, fixtures, the eval scratch.
+   *
+   *      ⚠⚠ **`getIdentityPath()`, not `getTemplatePath()`**, and the
+   *      difference is the eval scratch. `ScriptApi.mintEvalScratch`
+   *      clones `/platform/idea/EvalScript` with
+   *      `asIdentityPath: ${parcel}/_eval` — so its LINEAGE is the
+   *      kernel row and its IDENTITY is the jurisdiction it was minted
+   *      into. Reading lineage, rule 1 answered *no* for the one
+   *      receiver it most obviously covers, and **every governed
+   *      `eval --parcel <extent>` was denied at the scratch's own
+   *      `onCreate`**. Found by driving the location-graph build, which
+   *      could not run a single step through `eval`.
+   *
+   *      ⚠ Rule 3 below used to catch this by accident and no longer
+   *      can: it was written when the scratch was `create`d and stamped
+   *      AFTERWARDS, so its path was null at `onCreate`. The clone
+   *      channel stamps both axes BEFORE register, so the newborn
+   *      escape stopped firing the day the scratch moved onto it — a
+   *      silent, total loss of governed eval. `getIdentityPath()` falls
+   *      back to the template path, so rooms and fixtures are
+   *      unaffected.
    *   2. **You are standing in it** — an enclosure up your containment
    *      chain is under the bound. An avatar's `templatePath` is
    *      `/platform/agent/Avatar/<id>`: its IDENTITY, which says nothing about where
@@ -1173,15 +1191,17 @@ export class SecurityApi {
    *      Same for every clone: a corpse in the lounge is lineage
    *      `/stuff/agent/Corpse` and location `/world/lounge`.
    *   3. **You are nowhere yet** — unstamped AND unplaced, i.e. minted by
-   *      this very run. `ScriptApi.mintEvalScratch` creates the scratch
-   *      and *then* stamps its path, so at the instant of the stamp rules
-   *      1 and 2 both answer no; without this, `eval <code>` could not
-   *      execute a single statement in a field jurisdiction, because the
-   *      first thing it does is mint. A newborn has no prior existence
-   *      for a jurisdiction to protect.
+   *      this very run. A newborn has no prior existence for a
+   *      jurisdiction to protect.
+   *
+   *      ⚠ This was written for the eval scratch, which used to be
+   *      `create`d and stamped afterwards. It no longer covers it (the
+   *      clone channel stamps before `onCreate`), and rule 1 does
+   *      instead — see the note there. The rung stays for anything else
+   *      genuinely minted unstamped and unplaced mid-run.
    */
   static #inJurisdiction(target: Stuff, bound: string): boolean {
-    const path = target.getTemplatePath();
+    const path = target.getIdentityPath();
     if (path !== null && SecurityApi.#underExtent(path, bound)) return true;
 
     let enclosure = SecurityApi.#enclosureOf(target);

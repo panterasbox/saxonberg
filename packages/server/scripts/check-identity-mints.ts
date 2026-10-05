@@ -98,8 +98,26 @@ const MINT = /\basIdentityPath\s*:/g;
  */
 const MARKER = /identity-keyed-by:\s*([a-z-]+)\s*(?:—|--)?\s*([^\n]*)/;
 
-/** How far above a mint a marker may sit and still count as adjacent. */
-const MARKER_WINDOW = 14;
+/**
+ * How far above a mint a marker may sit and still count as adjacent.
+ *
+ * ⚠⚠ Generous, because a site's justification is often worth several
+ * paragraphs — but **bounded by the comment BLOCK**, not by this number
+ * alone. `scanIdentityMints` stops the upward walk at a blank line and
+ * at any other mint.
+ *
+ * The first version had a 14-line window and no stops, and a long
+ * justification pushed its own marker out of it — reported honestly as
+ * an UNMARKED site, which is the gate working. ⚠ But the same shape
+ * one step further along is the thing to fear: with a wide window and
+ * no stops, the walk reaches past its own block and adopts the marker
+ * of an unrelated site. That would be a MIS-ATTRIBUTION the census
+ * cannot report — the count looks right and names the wrong reason —
+ * and two adjacent mints (the stall's counter and its house) are
+ * exactly the arrangement that produces it. The stops are cheap; the
+ * failure they prevent is silent.
+ */
+const MARKER_WINDOW = 40;
 
 /** Source with `//` and block comments blanked, newlines preserved. */
 function stripComments(source: string): string {
@@ -125,7 +143,12 @@ export function scanIdentityMints(source: string, file: string): MintSite[] {
     let badWord: string | undefined;
     let reason = "";
     for (let i = line - 1; i >= Math.max(1, line - MARKER_WINDOW); i--) {
-      const found = MARKER.exec(rawLines[i - 1] ?? "");
+      const raw = rawLines[i - 1] ?? "";
+      // Stop at the comment block's own top edge, and at any other
+      // mint: a marker further up than that belongs to somebody else.
+      if (raw.trim() === "") break;
+      if (i !== line && /\basIdentityPath\s*:/.test(raw)) break;
+      const found = MARKER.exec(raw);
       if (!found) continue;
       const word = found[1] ?? "";
       if ((KEYED_BY_WORDS as readonly string[]).includes(word)) {

@@ -1,33 +1,92 @@
 # Instance addressing — two questions, one index
 
-> **Status: UNBUILT** — and the headline is a live defect, not a design
-> gap. The registry index keys on `identity ?? template`
-> (`api/stuff.ts:230`), and ⛔⛔ **the one invariant against two live
-> instances clobbering one record is inert wherever an identity is
-> minted**, because its scan needle is the host's own identity. ⭐ The
-> index is NOT the defect — a reader asking a question the index cannot
-> answer is not the same as an index that answers two (§ 1).
-> `findAllByTemplatePath('/platform/agent/PrimaryAvatar')` returns
-> **nothing**, and `assertUniqueKey` — the one invariant stopping two live
-> instances from clobbering one record — is **vacuous for every stamped
-> keyed host**, because its scan needle is the host's own identity.
-> **Left:** ⛔⛔ the SCAN's needle — `assertUniqueKey` and `liveKeyed` key
-> on the ROW, not on the host's own identity (⭐ **no index split**; the
-> keying is correct and the requirements record why) · an honest
-> *every instance of this row* read, plus `findByIdentityPath` for the
-> bare bucket · ⭐⭐⭐ the name-durability rule (*an identity exists **iff
-> THE NAME** is durable — re-derivable from inputs that outlive the
-> instance, or recorded somewhere that does; ⚠ **not** iff the instance
-> persists, which would wrongly condemn a circulation node*; `stuffId`
-> is the ephemeral unique id and already ships) · ⭐⭐ the census question
-> — every mint site names what keys on its identity, and the mint's own
-> uniqueness probe does not count · one sanctioned read for a keyed
-> instance's durable handle (`<row>#<key>`, already computed by
-> `placeIdOf`) · validate `asIdentityPath` for the continuity case
-> (**thirteen** production sites in **five** shapes, no check) ·
-> normalize the market stall's key to its pitch · the `pinOf`/`capture`
-> scope divergence
-> **Size:** a build
+> **Status: BUILT** (MR pending, `reqs/location-graph`, 2026-10-05) —
+> Stage A of the location-graph build shipped every item below. The
+> headline defect is fixed and **sabotage-verified**: `assertUniqueKey`
+> was vacuous for every identity-stamped keyed host, so the market stall
+> counter had never once been covered by it; reverting the needle now
+> turns the stall's own test red.
+>
+> **What shipped:** the scan's needle is the ROW · three honest registry
+> reads (`findAllByTemplatePath` the row, `findByIdentityPath` the
+> bucket, `findByTemplatePath` the one-or-throw) with **no index split**
+> · `Stuff.getDurableHandle()` in three rungs, and `Exit.getDiscoveryKey`
+> on it · `lint:identity-mints` (the census — 13 sites, 8 own-record, 2
+> referenced, 1 lookup, **2 unjustified**) · `identityNamespace` asserted
+> at the mint for continuity families · the market stall re-keyed to its
+> PITCH · the `pinOf`/`capture` scope divergence closed ·
+> `PlatPlan.nodeIdentityOf` as the one computer of a circulation node's
+> identity.
+>
+> **Left — and all of it is somebody else's to spend:**
+>
+> - ⛔ **The GUEST mint** (`Login.ts`) is the census's first unjustified
+>   entry and the first the ceiling may fall by. A random uuid, recorded
+>   nowhere, re-derivable from nothing; its purpose is avoiding a
+>   throwaway template row. On the login path, so touching it
+>   opportunistically is how a cheap build becomes expensive.
+> - ⛔ **The CORPSE mint** (`ConditionLogic.ts`) is the second. Nothing
+>   reads a corpse by identity — the only consumer is the mint's own
+>   ordinal probe, which is circular. ⚠ Two corrections from the
+>   carcass-chain build: the `<gameSecond>` is **not** redundant (one
+>   avatar can own two coexisting corpses, and it names which death),
+>   and that second **is** recorded — so the key passes 9a's two limbs.
+>   The reason to drop it is the third limb above: nobody can say it.
+>   That build has already narrowed the mint on its side (a beast's
+>   corpse no longer mints at all) and owns the rest of the decision.
+> - ⭐⭐⭐ **THE THIRD LIMB — *can anyone NAME it?*** (from the
+>   carcass-chain build, 2026-10-05, and it is a real gap in the rule
+>   this build shipped.) 9a tests two limbs — *re-derivable* or
+>   *recorded* — and **both are machine addressability**. The corpse key
+>   passes them on the player path: you can die, `reembody` and die
+>   again before the first body decays, so `<gameSecond>` names WHICH
+>   DEATH, and that second IS recorded (`diedAtGameSec` is persistent on
+>   `PostmortemMixin`; `recordDeathDeed`'s `when` likewise). So decision
+>   9a as written **licenses a key no player can ever say.**
+>
+>   The missing test is how a person refers to a thing, and that ladder
+>   is **keyword → the `distinguishing` form → an ordinal where those
+>   tie** (`PromptLogic.projectMatches`; `presentation.md` § the six
+>   forms). Nothing in it can hold a path or a game-second: a player
+>   cannot type one, the disambiguation prompt will not render one, and
+>   MQL's own answer to *which of these identical things* is an ordinal
+>   (`roses:[2]`). The corpse key is durable and **unspeakable**.
+>
+>   ⭐⭐ And the remedy generalizes past identity: the carcass build's
+>   real fix was **presentation, not a key**.
+>   `PostmortemMixin.getDecayStage()` had computed
+>   `fresh | stale | decomposed | spent` since the mortality build with
+>   **no production reader anywhere in the tree** — so two of one
+>   player's corpses were genuinely indistinguishable in the UX. Making
+>   the band a salient feature both distinguishes them and makes
+>   `butcher stale` work. *Discrimination belongs on the presentation
+>   path.*
+>
+>   ⚠ This slate is where it is recorded rather than in the
+>   requirements, which retire at the sweep. Whoever next touches 9a
+>   should fold the limb in: **durability is not the test for a
+>   discriminator; legibility is.**
+>
+> - ⭐⭐ **RA3 — two individuation forms coexist, and 9d says one.** Keyed
+>   individuation is `<row>#<key>` (the handle); stamped individuation is
+>   `<row>/<decoration>` (the corpse, the stall's identities, the
+>   tombstone, the circulation node). The requirements' 9d says
+>   *individuation never mints*; the shipped sites do. 9a separates the
+>   two mechanisms (the NAME decides the stamp, the KEY decides the
+>   handle), so a stamped individuation that is re-derivable or recorded
+>   is legitimate on its own terms — but moving them onto the
+>   persistence spine (a record per corpse) would retire the second form.
+>   Promote at the third consumer.
+> - **RA5 — a pin cannot mint a stamped keyed host.** `cloneHost(scope,
+>   key)` needs the ROW to clone a shell and the record's scope is the
+>   identity, so such a pin would have to carry both. No pinned class is
+>   stamped today; `chattel.md` records it.
+> - **`/foo/bar*` as an MQL spelling** for *the row and everything minted
+>   under it* → `mql-grammar.md`. One line in `resolver.ts`; a grammar
+>   decision, not a defect.
+>
+> **Size:** the two unminting jobs are a sitting each, by whoever owns
+> the site
 
 **Captured 2026-10-04**, in the location-graph plan's grounding, when
 answering *"what durable handle does this place have"* needed a four-rung

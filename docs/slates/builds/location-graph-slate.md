@@ -1,29 +1,72 @@
 # Location graph slate — the map you can read without loading the world
 
-> **Status: UNBUILT, design agreed.** A **derived, persisted projection of
-> every location and its exits**, so mapping, pathfinding, discovery and
-> publish-state can all be answered without hydrating content and without
-> a collection scan. ⭐⭐⭐ The decisive finding: **the elastic half is
-> already authored** — `PlatPlan` is persisted topology with stable node
-> ids and `routeOf()` is already implemented, so the warren hole is far
-> smaller than it looks.
-> ⛔⛔⛔ **And it surfaced a live defect by reading: `Exit.getDiscoveryKey()`
-> keys on LINEAGE unconditionally, while three minted-identity schemes exist
-> above it (§5, §16) — the same bug class that cost a shared bank account.
-> Traced, not executed; the test is specified in §16.**
-> **Left:** the node projection + its five indexes · the boot rebuild +
-> write-chokepoint maintenance · `PlatPlan` expansion as a graph source ·
-> occupancy-warren reflection at query time · **TPA routes as time-varying
-> edges** · ⭐ the player's map as a **document-tree artifact** (not a view,
-> not a collection — §6) · **claims carrying modality + awareness band, not
-> one date per document** (§17) · a **disagreement renderer, not a merge
-> algorithm** (§17) · the four **reveal channels** (§9) · `published` on the
-> parcel + the one-directional lint · the eviction path for offlined content
-> · **coverage** as a derived per-locality fact (§11) · ⭐⭐⭐ **the warren
-> `getIdentityPath()` override that fixes the node key and the discovery
-> collision at once** (§5, §16)
-> **Size:** **a build.** The lint is the cheapest wave and worth shipping
-> first on its own.
+> **Status: BUILT** (MR pending, `reqs/location-graph`, 2026-10-05) —
+> the projection, the invariants, `published`, and the player's map all
+> shipped. ⭐⭐⭐ The slate's decisive finding held up: **the elastic half
+> was already authored**, so `PlatPlan` expansion cost a method rather
+> than a design.
+>
+> ⛔⛔⛔ And the defect it found by reading was real:
+> `Exit.getDiscoveryKey()` keyed on LINEAGE, so a secret found in one
+> provisioned dorm room read as found in all forty — for everybody. It
+> keys on `getDurableHandle()` now, and the fix is **sabotage-verified**
+> (reverting it turns 5 of 7 tests red, and the 2 that stay green are
+> the singleton regression guard and the unbound clone).
+>
+> **What shipped:** `location_graph` + `PlaceNode` + the six indexes ·
+> `LocationGraphRegistry` (⭐ warming **lazily on the first read**, not
+> at boot — nothing reads the graph at boot, so an eager walk of every
+> content row was work for no reader) · `DomainHook` maintenance that
+> **never fails a save** · `lint:location-graph` (7 rules; 124 places,
+> 199 edges, every error rule at 0) shipped FIRST and alone, as the
+> slate advised · `PlatPlan.nodeIdentityOf` as a graph source ·
+> `published` on the parcel with the draft-wall / offline-camera split,
+> the `Tombstone`, and the reverse-edge query that tells the authors of
+> every room that lost a destination · the player's map as a
+> **document-tree artifact** with four reveal channels, claims carrying
+> their own channel and band, and a **disagreement renderer rather than
+> a merge**.
+>
+> **Left:**
+>
+> - ⭐⭐ **Occupancy-warren reflection at query time** — deliberately
+>   none. The elastic half of the world is perceived live and never
+>   stored; a lounge satellite is nothing in the graph and nothing on
+>   anybody's map, which is the honest answer. The lean stays here.
+> - ⭐ **TPA routes as TIME-VARYING edges.** What shipped is the
+>   `travel` block on a node (role, label, routes) so the offline
+>   boundary can tell an Authority its timetable lost a stop. Routes
+>   that open and close on a schedule are the router's — →
+>   [pathfinding-slate](./pathfinding-slate.md).
+> - **Coverage as a derived per-locality fact** (§11) — *how much of
+>   this place do I know?* Needs a denominator, and the denominator is
+>   the graph's node count per locality, which now exists. Cheap, and
+>   nobody has asked for it.
+> - ⭐ **The `told` and `bought` channels** are vocabulary with **no
+>   writer**. The claim shape admits them from the start because
+>   retrofitting provenance is the expensive version; `told`'s
+>   attribution (somebody lied to you, and the record should say who)
+>   belongs with [accountability.md](../../subsystems/accountability.md).
+>   The map market, decay and a copy verb are §§ 12, 17.
+> - **Modality on a claim** (§10) — every claim is `vision` today. A
+>   map built by touch in the dark is a real thing the shape already
+>   admits.
+> - **Offlining a warren HOST** migrates the role (open 4). What shipped
+>   offlines extents of template nodes and refuses an extent whose nodes
+>   are all plan nodes, with a reason.
+> - ⚠ **Frontage slot stubs** were specified and deliberately NOT built:
+>   every invariant skips a stub, the router cannot route over an edge
+>   with no destination, and a player's map of lot-7 is carried by the
+>   handle. A stub had no reader, and shipping declared data with no
+>   consumer is the dead-capability failure this repo keeps paying for.
+>   Whoever wants frontages adds them with the thing that reads them.
+> - **The renderer and its card** → [map-slate](./map-slate.md),
+>   unblocked by this build: `map` renders MML to self and opens no
+>   card, because the inspection card is laid out by `StuffKind` and a
+>   map is not a Stuff.
+>
+> **Size:** the remaining items are a sitting each; coverage and modality
+> are the two with an obvious consumer
 
 **Captured 2026-10-01.** Everything in the game is lazy-loaded, so runtime
 state is only *what players have visited and what has not been reaped*.

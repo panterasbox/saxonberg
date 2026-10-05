@@ -636,3 +636,36 @@ This slate boils down to:
 
 3D demo-quality polish, Spherical 3D, and 3D editing wait for their own
 waves.
+
+---
+
+## ⭐ Unblocked (2026-10-05) — the location-graph build shipped
+
+The data this renderer needs now exists, and the dependency correction
+this slate recorded turned out to be the right one: **a map is a
+document, not a view over the graph.**
+
+- `/home/<key>/map/<locality address>`, kind `map`, one document per
+  `(player, finest covering locality)`. The address keeps its slashes,
+  so a coarser read is a **prefix read with no join**.
+- A claim carries its own `channel` (`perception` · `publication` ·
+  `told` · `bought`), `band`, `firstSeen` and `lastSeen` — **not one
+  date per document**.
+- `NavigationApi.readMap(viewerKey, prefix)` is the read, and it
+  resolves under the actor's own home and nowhere else.
+
+⚠ **What is still this slate's.** `map` renders **MML to self and opens
+no card**, deliberately: the inspection card is laid out by `StuffKind`
+and a map is not a Stuff, so a `CardId` for it is a card-surface
+decision rather than a line in a perception build. The two renderings
+worth designing here are **the card** and **the picture** — and the
+second has a real question in it, because a claim graph with holes is
+not a thing a renderer can lay out without deciding what a hole looks
+like.
+
+⭐ And the rot is load-bearing for the renderer: where two claims about
+one `(place, dir)` disagree, BOTH must render with their dates, and a
+claim older than the latest look at its place must read as *not seen
+when you last looked*. A renderer that tidied either away would undo
+the knowledge model. See
+[location-graph.md](../../subsystems/location-graph.md).
