@@ -323,6 +323,7 @@ Corpo.label = 0
 Corpo.rivals = 0
 Corpo.sector = 0
 Corpo.temperament = 0
+Corpse.conditionAtDeath = 0
 CostumedMixin._costumeWorn = 0
 CostumedMixin.costume = 0
 CraftVessel.iceForm = 0

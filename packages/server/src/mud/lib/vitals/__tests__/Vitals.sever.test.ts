@@ -34,6 +34,7 @@ import {
   stampTemplatePathForTest,
 } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
+import { installCorpseMintStub } from '../../mortality/__tests__/corpse-mint-test-helpers';
 
 const SlottableThingBase = SlottableMixin(Good);
 class SlottableThing extends SlottableThingBase {}
@@ -89,7 +90,12 @@ function avulsionAt(site: string, severity: number): Trauma {
 }
 
 describe('VitalsMixin — severPart', () => {
-  beforeEach(() => installV1QuantityMarshallers());
+  beforeEach(() => {
+    installV1QuantityMarshallers();
+    // ⭐ Every death mints a corpse now, and the mint clones an authored
+    // row that a unit world has no store for. See the helper.
+    installCorpseMintStub();
+  });
   afterEach(() => StuffApi.clearAll());
 
   it('takes the part AND every descendant', () => {
@@ -211,7 +217,12 @@ describe('VitalsMixin — severPart', () => {
 });
 
 describe('AVULSION_BEHAVIOR — the sever gate', () => {
-  beforeEach(() => installV1QuantityMarshallers());
+  beforeEach(() => {
+    installV1QuantityMarshallers();
+    // ⭐ Every death mints a corpse now, and the mint clones an authored
+    // row that a unit world has no store for. See the helper.
+    installCorpseMintStub();
+  });
   afterEach(() => StuffApi.clearAll());
 
   it('severs at or above SEVER_SEVERITY on a severable part', () => {
@@ -336,6 +347,9 @@ describe('the anatomy death floor', () => {
   };
   beforeEach(() => {
     installV1QuantityMarshallers();
+    // ⭐ Every death mints a corpse now, and the mint clones an authored
+    // row that a unit world has no store for. See the helper.
+    installCorpseMintStub();
     WorldClockApi._resetForTesting();
     real = 100000;
     WorldClockApi._setNowProviderForTesting(() => real);

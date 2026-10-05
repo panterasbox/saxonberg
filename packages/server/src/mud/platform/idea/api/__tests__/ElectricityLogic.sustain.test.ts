@@ -31,6 +31,7 @@ import {
   stampTemplatePathForTest,
 } from '../../../../lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
+import { installCorpseMintStub } from '../../../../lib/mortality/__tests__/corpse-mint-test-helpers';
 import type { Trauma, SustainedShock } from '../../Condition';
 import requiresConscious from '../../../../lib/command/validators/requiresConscious';
 
@@ -140,6 +141,9 @@ describe('ElectricityLogic — being-shocked sustain + tetany + death', () => {
     // Unique per-test paths keep the accumulating world isolated (the bleed
     // test precedent).
     installV1QuantityMarshallers();
+    // ⭐ Every death mints a corpse now, and the mint clones an authored
+    // row that a unit world has no store for. See the helper.
+    installCorpseMintStub();
     WorldClockApi._resetForTesting();
     real = 1_000_000;
     WorldClockApi._setNowProviderForTesting(() => real);
