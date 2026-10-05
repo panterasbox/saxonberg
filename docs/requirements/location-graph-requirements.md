@@ -251,8 +251,17 @@ the disagreement · and publish-state as a queryable property of a place.
   keying does not change.
 - **The world can enumerate every instance of a row** — a read the index
   can already serve, because individuation handles are row-prefixed.
-- ⭐⭐ **An identity path exists iff it is DURABLE.** Ephemeral instances
-  get `stuffId` and no identity at all — which is what `stuffId` is for.
+- ⭐⭐ **An identity path exists iff THE NAME is durable** — re-derivable
+  from inputs that outlive the instance, or recorded somewhere that does.
+  ⭐ Not *iff the instance persists*: a corridor is reaped and re-minted
+  and still deserves a stable name, because a parked character's record
+  points at it. Everything neither applies to gets `stuffId`, which is
+  what `stuffId` is for.
+- ⭐⭐ **Every mint site can name what keys on its identity**, or it stops
+  minting. Three answers qualify — the instance's own durable record,
+  another record that references it, or a lookup that must resolve to
+  this instance — and ⚠ the mint's own uniqueness probe does **not**,
+  because that is circular.
 - ⭐ **A keyed instance's durable handle has one sanctioned read**, of the
   form *row **plus** decoration*, so nothing has to reach for identity to
   ask *which one*.
@@ -583,21 +592,61 @@ That falls out of *no durable key*, rather than being a special case.
 exit case, and this bug class has escaped the suite twice before — both
 times found *by driving the world*. It gets a test that fails first.
 
-### 9a. An identity exists iff it is durable; `stuffId` covers the rest
+### 9a. An identity exists iff THE NAME is durable — re-derivable or recorded
 
 **The question.** Should an ephemeral instance — a lounge satellite, a
-runtime clone — get an identity that differs from its row?
+runtime clone, a corpse — get an identity that differs from its row?
 
-**The answer.** No. `stuffId` is already *"a fresh `uuid()` per
-construction, not persisted"* — a non-durable unique id for an instance,
-which is exactly the job. Minting an identity that will not survive a
-restart buys nothing and makes two mechanisms mean the same thing.
+⚠⚠ **An earlier wording of this decision said "iff it is durable" and
+that sentence hid an ambiguity**, which the circulation node exposes.
+There are **two** durabilities and they come apart:
 
-⭐ So the lounge Warren's *"no synthetic per-instance paths"* was right
-and changes nothing. And the player-facing consequence **is** the design
-rather than a fallback: if a thing cannot be named, you get **a list of
-matches to choose from**, which already ships as disambiguation. ⛔ The
-build may not invent per-instance addressing to avoid that.
+| | is the INSTANCE persistent? | is the NAME durable? |
+|---|---|---|
+| a circulation node (a corridor, a lane segment) | ⛔ **no** — minted on demand, reaped when empty | ⭐ **yes** — `<parcel extent>/<plan node id>`, both durable inputs |
+| a corpse | no | ⛔ **no** — the second of death is gone and nothing re-mints it |
+
+**The answer.** Stamp an identity when **the name is durable**, which
+means one of two things:
+
+- ⭐ **re-derivable** — the same conceptual thing computes the same name
+  again, from inputs that outlive the instance (a corridor from its plan
+  and its extent; an avatar from its `playerId`; an eval scratch from its
+  parcel); or
+- ⭐ **recorded** — the name is written down somewhere durable, so it
+  stays resolvable even though nothing recomputes it (a party's path,
+  held in its own record).
+
+**And the reason that is the test**: a durable name is what lets *another
+record point at this thing later*. A character parked in a third-floor
+corridor records that corridor as their container. On restart the
+corridor is a brand-new clone, and the only thing that reunites the two
+is a name that survived. ⭐ **So the circulation node is ephemeral as an
+object and durably named, and it is right to stamp.**
+
+⛔ **A corpse has neither.** It is not re-derivable (the game-second of
+death is not recoverable), it is not recorded, nothing reads it, and
+`reembody` never reads the corpse. Its only reader is its own ordinal
+probe — which exists *because* it minted. ⚠ Its lifecycle is being
+reworked by the carcass-chain build, which multiplies the mint to **every
+non-player death**, so the finding is theirs to act on and this build
+only records it.
+
+**Where the instance's own persistence does matter** is the handle, not
+the identity: a durable per-instance **key** (`isPersistenceKeyExplicit()`)
+is what decision 9's `<row>#<key>` reads. ⭐ So the two durabilities each
+have their own mechanism — *the name* decides whether to stamp, *the key*
+decides whether there is a handle — and conflating them is what produced
+the four-rung ladder this build deleted.
+
+**And `stuffId` covers everything neither applies to**: *"a fresh
+`uuid()` per construction, not persisted"* — a non-durable unique id for
+an instance, which is exactly the job. ⭐ So the lounge Warren's *"no
+synthetic per-instance paths"* was right and changes nothing. The
+player-facing consequence **is** the design rather than a fallback: if a
+thing cannot be named, you get **a list of matches to choose from**,
+which already ships as disambiguation. ⛔ The build may not invent
+per-instance addressing to avoid that.
 
 ### 9b. The index was fine — the SCAN was asking the wrong question
 
