@@ -542,7 +542,25 @@ species slate's deliberate note). ⚠ The exact clustering is the build's
 call within that shape; it must satisfy the drive: a sapiens O can give
 to a khazadicus AB; two eldarinus (A, B) cannot share.
 
-### D4 — The donor card is a Persona FIELD with its own verb (E2)
+> ⛔⛔ **D4 + the D5 consent ladder were CUT before merge (2026-10-05).**
+> The standing donor card models a decision that is not one: registration
+> was free and non-binding, and refusing life-saving blood is near-always
+> irrational — so neither `receive` nor `donor` was a weighable choice
+> (lens 4: a gauge converts an *undecidable* choice into a calculable one;
+> the card converted a *non-choice* into a permissions system). **Cut:**
+> `PersonaMixin.donorCard`, `getDonorCard`/`setDonorCard`,
+> `transfusionConsent`, the `donor` verb + its view/controller, the donor
+> roll on `analyze bank`, and the `banks`-brain directive skip.
+> **Kept:** the gift loop (D8/D9/D10), supply (D13), the window (D2/D6),
+> the readings minus the roll (D15), and the harm row (D5) — now
+> unconditional: `transfuse` just works, and a REACTING unit forced into
+> ANOTHER body records a `harm` row `consented: false` (`!self &&
+> reaction > 0`); compatible and self transfusions record nothing.
+> Post-mortem body/organ donation — which DOES have a matrix (death,
+> re-embodiment, the corpse) — is deferred to `blood-slate`. The D4/D5
+> text below is left as the superseded record.
+
+### D4 — The donor card is a Persona FIELD with its own verb (E2) — CUT
 
 **Rejected:** a `PropertiedMixin` prop (CLAUDE.md: a prop is for a
 key *computed at runtime*; this key is fixed and the consent ladder

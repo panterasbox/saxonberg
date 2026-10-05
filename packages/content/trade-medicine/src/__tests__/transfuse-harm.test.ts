@@ -1,10 +1,11 @@
 /**
- * The consent ladder on `transfuse` (blood build D5). A conscious
- * card-less player is ASKED and the act is refused `consent-pending`; a
- * `wont` directive does NOT block — the act proceeds and a `harm` row with
- * `consented: false` is recorded (a consequence, never a veto). The full
- * live flow is W6's wire drive; this proves the controller's own gate +
- * the harm append.
+ * The harm row on `transfuse` (blood build D5, after the donor-card cut).
+ * There is no consent ladder: a transfusion just works. The one thing the
+ * ledger records is HARM — forcing a REACTING unit into someone else's
+ * body is damage done to them, written non-consented. A compatible unit
+ * records nothing, and self-use never records (you may do as you like with
+ * your own body). The full live flow is W6's wire drive; this proves the
+ * controller's own harm gate.
  */
 
 import '@saxonberg/server/test-bootstrap';
@@ -12,7 +13,6 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import TransfuseController from '../idea/cmd/medical/TransfuseController';
 import { Character } from '@saxonberg/server/mud/lib/character/Character';
 import { Creature } from '@saxonberg/server/mud/lib/creature/Creature';
-import { HasInteractiveMixin } from '@saxonberg/server/mud/lib/connection/HasInteractive';
 import Receptacle from '@saxonberg/server/mud/platform/thing/Receptacle';
 import Material from '@saxonberg/server/mud/lib/material/Material';
 import { BulkableApi } from '@saxonberg/server/mud/api/bulk';
@@ -32,9 +32,6 @@ import type { BloodUnit } from '@saxonberg/server/mud/lib/vitals/Blood';
 
 // Character is abstract; a concrete subclass is what a Cast/Avatar is.
 class TestCharacter extends Character {}
-class Player extends HasInteractiveMixin(Character) {
-  static override _mixinName: string = 'Player';
-}
 
 let seq = 0;
 let note: ReturnType<typeof vi.fn>;
@@ -64,14 +61,11 @@ function npc(): Character {
 }
 /** A giver that is NOT Engaged (a Creature, not an Actor), so `transfuse`'s
  * effect runs synchronously in-test rather than deferring to the scheduler
- * (the durative `hands` step the live flow uses — W6 drives that). */
+ * (the durative `hands` step the live flow uses — W6 drives that). Every
+ * bare body (no species) rolls type O, system '', with the universe-default
+ * bloodVolume band. */
 function giverBody(): Creature {
   const c = makeStuff(() => new Creature());
-  stampTemplatePathForTest(c, `/platform/agent/Avatar/tx-${seq++}`);
-  return c;
-}
-function player(): Player {
-  const c = makeStuff(() => new Player());
   stampTemplatePathForTest(c, `/platform/agent/Avatar/tx-${seq++}`);
   return c;
 }
@@ -88,8 +82,11 @@ function seedBloodMaterial(): Material {
   return m;
 }
 
-/** A blood bag holding one compatible unit. */
-function bloodBag(donor: Stuff): Stuff {
+/** A blood bag holding one unit of `type` (unlabelled, so the competence
+ * judgement gate never fires — this isolates the harm gate). A bare body is
+ * O/system-''; a 'B' unit mismatches it (reaction 1), an 'O' unit matches
+ * it (reaction 0). */
+function bloodBag(donor: Stuff, type: BloodUnit['type']): Stuff {
   const bag = makeStuff(() => new Receptacle());
   // Authored on the blood-bag row; set directly here (the slot is gated on
   // this interior-bulk flag — a bare Receptacle holds no slot).
@@ -98,14 +95,10 @@ function bloodBag(donor: Stuff): Stuff {
   const slot = BulkableApi.slotFor(bag, undefined)!;
   slot.setMaterial(seedBloodMaterial());
   slot.setAmount(Quantity.of(0.45, 'L'));
-  // The patients here are bare Characters with no species, so their blood
-  // system reads '' and their type rolls to O; a unit that matches (same
-  // empty system, O) is compatible → no reaction, isolating the consent
-  // rule from the compatibility rule.
   const unit: BloodUnit = {
     speciesPath: '',
     system: '',
-    type: 'O',
+    type,
     labelled: false,
     donorIdentityPath: donor.getIdentityPath() ?? '',
   };
@@ -125,35 +118,12 @@ afterEach(() => {
   StuffApi.clearAll();
 });
 
-describe('transfuse — the consent ladder', () => {
-  it('a conscious card-less PLAYER is asked → `consent-pending`, act refused', async () => {
-    const giver = npc();
-    const patient = player(); // conscious, no card → `asked`
-    await makeStuff(() => new TransfuseController()).execute(
-      {
-        patient: { stuff: patient } as unknown as MqlOneResult,
-        vessel: undefined,
-        syringe: undefined,
-      },
-      ctxFor(giver),
-    );
-    expect(note).toHaveBeenCalledWith(
-      expect.objectContaining({ reason: 'consent-pending' }),
-    );
-    // The patient was prompted to decide.
-    expect(selfLines.some((l) => /donor accept/.test(l))).toBe(true);
-  });
-
-  it('a `wont` directive does NOT block — the act proceeds and records harm', async () => {
+describe('transfuse — the harm row', () => {
+  it('a REACTING unit forced into another body records a non-consented harm', async () => {
     const giver = giverBody();
-    const patient = npc();
-    patient.setDonorCard({ receive: 'wont', donor: false });
-    // Sanity: the ladder sees the directive (isolates a card-read bug from
-    // an effect-not-running bug).
-    expect(patient.getDonorCard().receive).toBe('wont');
-    expect(patient.transfusionConsent(giver as unknown as Stuff).consented).toBe(false);
+    const patient = npc(); // O; a 'B' unit mismatches → reaction 1
     const record = vi.spyOn(AccountabilityApi, 'record').mockImplementation(() => {});
-    const bag = bloodBag(giver);
+    const bag = bloodBag(giver, 'B');
 
     await makeStuff(() => new TransfuseController()).execute(
       {
@@ -164,25 +134,36 @@ describe('transfuse — the consent ladder', () => {
       ctxFor(giver),
     );
 
-    // It was NOT stopped at the consent gate.
-    expect(note).not.toHaveBeenCalledWith(
-      expect.objectContaining({ reason: 'consent-pending' }),
-    );
-    // A harm row was appended, non-consented.
     expect(record).toHaveBeenCalledWith(
       expect.objectContaining({ kind: 'harm', consented: false }),
     );
   });
 
-  it('a willing NPC patient (`consented`) records no harm on a compatible unit', async () => {
+  it('a COMPATIBLE unit into another body records nothing', async () => {
     const giver = giverBody();
-    const patient = npc(); // no card, conscious, NPC → `consented`
+    const patient = npc(); // O; an 'O' unit matches → reaction 0
     const record = vi.spyOn(AccountabilityApi, 'record').mockImplementation(() => {});
-    const bag = bloodBag(giver);
+    const bag = bloodBag(giver, 'O');
 
     await makeStuff(() => new TransfuseController()).execute(
       {
         patient: { stuff: patient } as unknown as MqlOneResult,
+        vessel: { stuff: bag } as unknown as MqlOneResult,
+        syringe: undefined,
+      },
+      ctxFor(giver),
+    );
+    expect(record).not.toHaveBeenCalled();
+  });
+
+  it('self-use records nothing even when the unit reacts', async () => {
+    const giver = giverBody(); // the patient too (no `patient` arg → self)
+    const record = vi.spyOn(AccountabilityApi, 'record').mockImplementation(() => {});
+    const bag = bloodBag(giver, 'B'); // would react, but self → no row
+
+    await makeStuff(() => new TransfuseController()).execute(
+      {
+        patient: undefined,
         vessel: { stuff: bag } as unknown as MqlOneResult,
         syringe: undefined,
       },

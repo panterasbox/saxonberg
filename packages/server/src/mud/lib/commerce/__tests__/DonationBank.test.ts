@@ -30,6 +30,8 @@ import {
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 import type { BloodUnit } from '../../vitals/Blood';
 import type { Stuff } from '../../stuff/Stuff';
+import type { Containable } from '../../spatial/Containable';
+import type { Container } from '../../spatial/Container';
 
 class TestWindow extends DonationBankMixin(Tariff) {
   static override _mixinName = 'TestWindow';
@@ -49,7 +51,7 @@ function seedBloodMaterial(): Material {
   return m;
 }
 
-function bag(type: BloodUnit['type'], litres = 0.45): Stuff {
+function bag(type: BloodUnit['type'], litres = 0.45): Stuff & Containable {
   const b = makeStuff(() => new Receptacle());
   (b as unknown as { interiorBulk: boolean }).interiorBulk = true;
   b.setInteriorCapacity(Quantity.of(0.5, 'L'));
@@ -65,7 +67,7 @@ function bag(type: BloodUnit['type'], litres = 0.45): Stuff {
       donorIdentityPath: `/who/${type}-${seq++}`,
     },
   });
-  return b as unknown as Stuff;
+  return b as unknown as Stuff & Containable;
 }
 
 function window(vault: Stuff): TestWindow {
@@ -75,10 +77,10 @@ function window(vault: Stuff): TestWindow {
   return w;
 }
 
-function chest(): Stuff {
+function chest(): Stuff & Container {
   const c = makeStuff(() => new Chest());
   stampTemplatePathForTest(c, `/test/blood/vault-${seq++}`);
-  return c as unknown as Stuff;
+  return c as unknown as Stuff & Container;
 }
 
 beforeEach(() => {

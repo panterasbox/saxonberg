@@ -5,15 +5,13 @@
  * proves the load-bearing claims only a live drive can: the window stands
  * up and reads its typed bank; the runner stocks it from the collection
  * floor; the window is visible under its dead Goodkin sign; the registrar
- * tells the Decree; the donor roll is a readable pull surface; the window
- * is NPC-run (a player cannot issue); and a standing `wont` directive is a
- * card the body carries. (The gift CREDIT — chronicle/trait/renown — and
- * the transfusion harm row are unit-proven in trade-medicine's
- * `donate.test` / `transfuse-consent.test`; the bleed/get/donate chain
- * itself is driven by `clinical-medicine`.)
+ * tells the Decree; and the window is NPC-run (a player cannot issue). (The
+ * gift CREDIT — chronicle/trait/renown — and the transfusion harm row are
+ * unit-proven in trade-medicine's `donate.test` / `transfuse-harm.test`;
+ * the bleed/get/donate chain itself is driven by `clinical-medicine`.)
  *
  * ⚠ `.dirty.`: it consumes units the spawn sweep regenerates only on its
- * cadence and registers a donor on the roll.
+ * cadence.
  *
  * ⚠ Run it with a world of its own (the ward is dark at a cold-boot hour
  * only until its lamp is lit, which the boot does):
@@ -25,8 +23,7 @@ import { describe as suite, it, expect, beforeAll, afterAll } from 'vitest';
 import { Session, declareFile, uniqueHandle } from '../src/harness';
 
 export const DIRTY_REASON =
-  'consumes blood units the spawn sweep regenerates only on its cadence, ' +
-  'and registers a donor on the window roll';
+  'consumes blood units the spawn sweep regenerates only on its cadence';
 
 declareFile({
   file: 'blood-economy.dirty.wire.test.ts',
@@ -49,7 +46,6 @@ const SUPPLIES = '/trade/medicine/behavior/supplies';
 
 let wiz: Session; // wizard at the ward — eval driver + a proficient reader
 let patient: Session; // plain
-let donorP: Session; // plain — the donor roll
 
 const lc = async (s: Session, text: string): Promise<string> =>
   (await (await s.cmd(text)).said()).toLowerCase();
@@ -66,15 +62,13 @@ async function beat(room: string, keyword: string, brain: string): Promise<void>
 beforeAll(async () => {
   wiz = await Session.open(uniqueHandle('bloodwiz'), { startLocation: WARD, wizard: true });
   patient = await Session.open(uniqueHandle('bloodpt'), { startLocation: WARD });
-  donorP = await Session.open(uniqueHandle('blooddnr'), { startLocation: WARD });
-  // Proficient nursing so `analyze bank` reads the donor roll + custody.
+  // Proficient nursing so `analyze bank` reads the custody trail.
   await practise(wiz, 'nursing', 8);
 }, 420_000);
 
 afterAll(() => {
   void wiz?.close?.();
   void patient?.close?.();
-  void donorP?.close?.();
 });
 
 suite('blood economy — the window, read and stocked', () => {
@@ -106,30 +100,9 @@ suite('blood economy — the window, read and stocked', () => {
   });
 });
 
-suite('blood economy — the donor roll (the pull surface)', () => {
-  it('a player registers and appears on the readable roll', async () => {
-    const reg = await lc(donorP, 'donor register');
-    expect(reg).toMatch(/roll|registered|donor/);
-    const card = await lc(donorP, 'donor');
-    expect(card).toMatch(/roll|registered/);
-    // The roll is read off `analyze bank` (proficient), never pushed.
-    const roll = await lc(wiz, 'analyze bank window');
-    expect(roll).toContain('roll');
-    expect(roll).not.toMatch(/nobody registered is present/);
-  });
-});
-
 suite('blood economy — NPC-run in v1', () => {
   it('a player cannot issue — they do not keep the window', async () => {
     const issue = await lc(patient, 'issue O');
     expect(issue).toMatch(/do not keep|not keep this window|no blood window/);
-  });
-});
-
-suite('blood economy — consent is a card the body carries', () => {
-  it('a standing `wont` directive is recorded and readable', async () => {
-    await patient.cmd('donor refuse');
-    const card = await lc(patient, 'donor');
-    expect(card).toMatch(/refuse|wont|will not/);
   });
 });

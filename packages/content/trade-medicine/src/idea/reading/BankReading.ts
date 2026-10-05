@@ -5,12 +5,7 @@
  * | band | what you read |
  * |---|---|
  * | untrained | each lot's units + litres, the par, which lots are OUT |
- * | proficient | + the donor ROLL (who registered, by type — the pull surface) |
  * | expert | + the custody trail (who issued what to whom, in this room) |
- *
- * ⭐ The donor roll is the pull surface that replaces a push (D14): a
- * shortage is answered by reading who registered as the needed type and
- * asking them in the room — never by paging anyone.
  */
 
 import Reading from '@saxonberg/server/mud/lib/instrument/Reading';
@@ -68,15 +63,6 @@ export default class BankReading extends Reading {
     }
     lines.push(`  par ${par} L; short by ${shortfall.toFixed(2)} L.`);
 
-    if (at(band, 'proficient')) {
-      const roll = this.donorRoll(context);
-      lines.push(
-        roll.length > 0
-          ? `Donor roll (present): ${roll.join(', ')}.`
-          : 'Donor roll: nobody registered is present.',
-      );
-    }
-
     if (at(band, 'expert')) {
       const trail = await this.custodyTrail(window);
       if (trail.length > 0) {
@@ -99,22 +85,6 @@ export default class BankReading extends Reading {
       if (MixinApi.isDonationBank(s)) return s as Stuff & DonationBank;
     }
     return null;
-  }
-
-  /** Registered donors present in the room, by tested type (D14 roll). */
-  private donorRoll(context: CommandContext): string[] {
-    const loc = context.location;
-    if (!loc || !MixinApi.isContainer(loc)) return [];
-    const out: string[] = [];
-    for (const s of (loc as Stuff & Container).getContents()) {
-      const p = s as unknown as Stuff;
-      if (!MixinApi.isPersona(p)) continue;
-      if (!p.getDonorCard().donor) continue;
-      const type =
-        MixinApi.isVitals(p) && p.isBloodTyped() ? p.bloodType() : null;
-      out.push(`${p.getPresentation()} (${type ?? 'untested'})`);
-    }
-    return out.sort();
   }
 
   /** The last custody deeds recorded in this window's room (D16 trail). */

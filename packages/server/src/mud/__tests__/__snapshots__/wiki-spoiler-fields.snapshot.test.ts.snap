@@ -740,7 +740,6 @@ PersistedRecord.state = 0
 PersistedRecord.writtenAt = 0
 PersonaMixin.aspiration = 0
 PersonaMixin.bio = 0
-PersonaMixin.donorCard = 0
 Placement.encloses = 0
 Placement.heading = 0
 Placement.name = 0

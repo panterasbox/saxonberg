@@ -47,16 +47,12 @@ function roomOf(host: Stuff): (Stuff & Container) | null {
   return room && MixinApi.isContainer(room) ? (room as Stuff & Container) : null;
 }
 
-/** A dying body in the room that the host may transfuse (not a refusal). */
+/** A dying body in the room that the host may transfuse. */
 function dyingPatient(host: Stuff, room: Stuff & Container): (Stuff & { bloodType(): string | null; bloodSystemOf(): string }) | null {
   for (const occ of room.getContents()) {
     const s = occ as unknown as Stuff;
     if (s === host) continue;
     if (!MixinApi.isVitals(s) || !s.isDying()) continue;
-    if (MixinApi.isPersona(s)) {
-      const v = s.transfusionConsent(host);
-      if (v.verdict === 'directive-no') continue;
-    }
     return s as never;
   }
   return null;

@@ -58,32 +58,6 @@ export default class TransfuseController extends CommandController<TransfuseMode
       return this.fail(context, 'There is nothing there to transfuse.', 'no-body');
     }
 
-    // ⭐ The consent ladder (D5), read BEFORE acting. A conscious player
-    // with no standing directive is ASKED — refuse now, prompt them, let
-    // the giver retry; the contemporaneous answer IS the card. A `wont`
-    // directive does NOT block the act (that is a consequence, not a veto —
-    // handled after the effect as a harm row), so only `asked` stops here.
-    const consent = MixinApi.isPersona(patient)
-      ? patient.transfusionConsent(giver as unknown as Stuff)
-      : { verdict: 'implied' as const, consented: true };
-    if (consent.verdict === 'asked') {
-      MessageApi.scene(patient)
-        .topic(TOPIC)
-        .toSelf(
-          Mml.fromMarkup(
-            Mml.escape(
-              `${(giver as unknown as Stuff).getPresentation()} offers you a transfusion — \`donor accept\` to allow it, \`donor refuse\` to decline.`,
-            ),
-          ),
-        )
-        .send();
-      return this.fail(
-        context,
-        `${patient.getPresentation()} has not agreed to a transfusion — they must \`donor accept\` first.`,
-        'consent-pending',
-      );
-    }
-
     const wasDying = patient.isDying();
     const vessel = model.vessel?.stuff as Stuff | undefined;
     if (!vessel || !MixinApi.isBulkable(vessel)) {
@@ -163,12 +137,13 @@ export default class TransfuseController extends CommandController<TransfuseMode
       slot.setAmount(Quantity.of(slot.getAmount().rawValue() - litres, 'L'));
       void this.credit(giver);
       this.narrate(context, self, patient, result.reaction, false);
-      // ⭐ The accountability trail (D5): a non-consented administration is
-      // a crime row (`consented: false`); a consented mismatch is a
-      // malpractice trail. Self-use never records (you answer for your own
-      // body). Append when the directive was refused OR the blood reacted.
-      if (!self && (!consent.consented || result.reaction > 0)) {
-        this.recordHarm(giver as unknown as Stuff, patient, consent.consented);
+      // ⭐ The accountability trail: transfusing a REACTING unit into
+      // someone else is harm done to them (the trap's producer shape) —
+      // recorded, non-consented, so forcing bad blood into a body is a
+      // crime on the record. A compatible transfusion (reaction 0) heals
+      // and records nothing; self-use never records.
+      if (!self && result.reaction > 0) {
+        this.recordHarm(giver as unknown as Stuff, patient);
       }
       // The revival deed (D8): if the patient was dying and is not now, the
       // chronicle remembers whose blood brought them back.
@@ -178,8 +153,11 @@ export default class TransfuseController extends CommandController<TransfuseMode
     });
   }
 
-  /** Append a `harm` row for a transfusion — the trap's shape (D5). */
-  private recordHarm(giver: Stuff, patient: Stuff, consented: boolean): void {
+  /** Append a `harm` row for a transfusion — the trap's shape (D5).
+   * A reacting unit forced into another body is NON-consented harm: a
+   * transfusion just works, so there is no consent ladder, and a body
+   * turning against bad blood is damage done to it, on the record. */
+  private recordHarm(giver: Stuff, patient: Stuff): void {
     const victimId = AccountabilityEvent.partyIdOf(patient);
     const giverId = AccountabilityEvent.partyIdOf(giver);
     if (!victimId || !giverId) return;
@@ -196,7 +174,7 @@ export default class TransfuseController extends CommandController<TransfuseMode
       opponent: victimId,
       victim: victimId,
       killer: giverId,
-      consented,
+      consented: false,
       sentient,
       victimFor: AccountabilityEvent.partyForOf(patient),
     });

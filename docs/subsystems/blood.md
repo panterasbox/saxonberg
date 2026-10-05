@@ -105,14 +105,14 @@ A civic bank of donated, typed, perishable units with an un-withdrawable
 floor, over shipped substrate. All in `trade-medicine` + `terminus`; the
 kernel grew five small seams.
 
-- **The donor card + consent ladder (D4/D5)** — `PersonaMixin.donorCard
-  { receive: 'will'|'wont'|'', donor }` + the `donor` verb (register/
-  withdraw/accept/refuse/clear). `transfusionConsent(giver)` is the
-  six-verdict ladder `transfuse` reads FIRST: a `wont` holds even
-  unconscious/dying; a conscious card-less player is ASKED
-  (`consent-pending`); an NPC's answer is its author's. ⚠ It never BLOCKS
-  — a non-consented administration PROCEEDS and the controller appends a
-  `harm` row (the accountability trap's shape); consequence, not veto.
+- **The transfusion harm row (D5)** — a transfusion just WORKS; there is
+  no consent step (nobody rationally refuses life-saving blood, and
+  registration was a non-choice — both were cut from the shipped build,
+  see History). The one thing the ledger records is HARM: forcing a
+  REACTING unit (`reaction > 0`) into ANOTHER body appends a `harm` row,
+  `consented: false` — the accountability trap's producer shape, so bad
+  blood given as a weapon is a crime on the record. A compatible unit
+  records nothing; self-use never records.
 - **`DonationBankMixin` (kernel `lib/commerce`, D2)** — a bank read BY LOT
   over a configured vault (`_vaultPaths`), ignoring the door (a closed
   sealable reads empty through the perception sheet; the registrar knows
@@ -132,9 +132,8 @@ kernel grew five small seams.
   `applaud` reaction folded by a scheduled recompute. An NPC's gift is
   plumbing; giving another's unit earns nothing.
 - **The readings (D15)** — `analyze blood` (the compatibility ladder,
-  crossing species by system) and `analyze bank` (the typed panel + the
-  opt-in donor ROLL — the PULL surface a shortage is answered from, never
-  a push + the custody trail at expert).
+  crossing species by system) and `analyze bank` (the typed panel at
+  untrained + the custody trail at expert).
 - **Supply (D13)** — a producer floor (`Stock` + the spawn sweep) +
   the `supplies` runner brain (floor→fridge through the door dance) + a
   visible donor Extra; the `banks` registrar brain (the floor transfusion,
@@ -153,8 +152,11 @@ same payload), Rh (a second axis — the lot vocabulary is a string),
 player operation of the window (the seat gate is already right; only the
 roster keeps players out), the paid-donor lever (the gift gate is where a
 sale would sever the credit), a receivable for the floor fee
-(→ `credit-slate`), epoch-gated typing. `BulkPayload.blood`,
-`receiveBlood`, and `DonationBankMixin` are the seams.
+(→ `credit-slate`), epoch-gated typing, and **post-mortem body/organ
+donation** — a standing directive that DOES have a decision matrix (death,
+re-embodiment, and the corpse are all real), which the cut donor card did
+not. `BulkPayload.blood`, `receiveBlood`, and `DonationBankMixin` are the
+seams.
 
 ## History
 
@@ -165,10 +167,21 @@ Shipped by the clinical-medicine build (W1/W5). See
 time cost is the honest friction on donation; the completion effect and
 the synchronous gates are unchanged.
 
-**Blood-economy build (2026-10-04):** the full bank economy — the donor
-card + consent ladder, `DonationBankMixin` + the `BloodWindow`, the
-`transfusion` service + two-houses-in-one-room, the gift credit (the
-disposition graft + renown), `analyze blood`/`analyze bank`, the three
-brains, and the Terminus Goodkin window under its dead sign. D3 replaced
-flat cross-species incompatibility with a declared blood `system`. See
-`docs/plans/blood-economy-plan.md`.
+**Blood-economy build (2026-10-04):** the full bank economy —
+`DonationBankMixin` + the `BloodWindow`, the `transfusion` service +
+two-houses-in-one-room, the gift credit (the disposition graft + renown),
+`analyze blood`/`analyze bank`, the three brains, and the Terminus Goodkin
+window under its dead sign. D3 replaced flat cross-species incompatibility
+with a declared blood `system`. See `docs/plans/blood-economy-plan.md`.
+
+**Donor-card cut (2026-10-05):** the standing donor card and its
+consent ladder (`PersonaMixin.donorCard`, `transfusionConsent`, the
+`donor` verb, the donor roll on `analyze bank`) were **cut** before merge.
+They modelled a decision that is not one — registration was free and
+non-binding, and refusing life-saving blood is near-always irrational, so
+neither half was a weighable choice (lens 4: a gauge must convert an
+undecidable choice into a calculable one; this converted a non-choice into
+a permissions system). What remains is the gift loop, the supply, the
+window, the readings, and the harm-on-mismatch row above. Post-mortem
+body/organ donation — which DOES have a matrix — is deferred to
+`blood-slate`.
