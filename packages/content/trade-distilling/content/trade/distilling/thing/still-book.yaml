@@ -24,4 +24,7 @@ data:
   # floor and the kiln are in the same building. The alternative was a
   # second Menu row for the maltings, which is a board nobody would read
   # — the day's work is one list.
-  offeredRecipes: [steep-barley, kiln-malt, wash-mash, compound-gin]
+  # ⛔ `steep-barley` and `kiln-malt` are OFF the board with the maltings
+  # themselves — see the Crowsfoot floor's comment. They go back on the
+  # same day the pack installs.
+  offeredRecipes: [wash-mash, compound-gin]

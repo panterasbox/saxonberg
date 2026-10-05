@@ -1024,3 +1024,130 @@ material's alcohol dose fixed; three vessels onto Crowsfoot's floor.
   climbs ~0.011/min and does not reach the lowest rung for nearly three
   game-hours. A two-game-hour settle read as *nobody was harmed* — a
   timing miss dressed as a design claim. The helper waits six.
+
+## W5 — malting, a rows-only pack
+
+`enzymatic` as a fifth `MaturationMechanism` with its own six lines;
+`packages/content/trade-malting/` (a Discipline, two materials, a
+profile, a Vat, an Oven, a Receptacle, two recipes — **no `src/`**); the
+kit on Crowsfoot's floor and the two steps on the still-book;
+`world/__tests__/malting-chain.test.ts`.
+
+**Decided here, beyond the plan:**
+
+- **B9 — the malting floor is a VAT, not a Location.** A real floor *is* a
+  room, and modelling it as one would mean `MaturingMixin` on a Location,
+  a bed that is "in" the floor rather than in a vessel, and a second
+  answer to *where does bulk live*. The bed is what matures and the bed
+  is measured in litres. (`expression-is-inelastic`: abstract to what a
+  player can act on, which is the bed and not the flagstones.)
+- **B10 — `barley` added to `barley-grain`'s tags**, and the sibling row
+  is the whole argument: `wheat-grain` carries `"wheat"` — its own name —
+  while this one carried only `"brewing"`, a PURPOSE. A recipe slot
+  matches a material tag, so the steep would otherwise have had to ask
+  for `category: brewing`, which reads as *steep one brewing* and would
+  match any future grain somebody tagged for the brewhouse.
+- **B11 — the malting floor authors no `_materialPath`.** The first draft
+  named a limestone row that resolves to nothing; `lint:census` clause
+  (b) caught it. The row states a mass instead — inventing a material row
+  to satisfy a field would be worse than omitting it.
+- **B12 — the `malt` material STAYS in the commons** this build, as
+  planned: two consumers reference its path and moving it is the new
+  pack's own later sweep.
+
+**What surprised:** nothing in the chain had an identity tag for barley,
+and the `lint:census` catch is the second time in this build that a gate
+found a dead reference I had written confidently.
+
+## W6 — the hand runs the still — ⛔ NOT DONE
+
+⚠⚠ **Deferred, and said plainly rather than quietly dropped.** The plan
+marks it severable and it changes no live behaviour — `cellars`' `distills`
+leg is dead code in production today, and this build removed its config
+from `hand.yaml` so the beat does not force retired verbs. But it is
+scope the plan named and this build did not deliver.
+
+What it would be: the leg becomes literal verbs (charge from the finished
+back, `ignite`, pour in small `--amount` steps switching vessel when
+`readFraction(hand)` changes, rectify, `order compound-gin`, consign),
+bounded by `batch`. ⭐ The hand must use the SAME banded read a player
+gets — a brain may not read the true boundary — and its dossier's
+`distilling: proficient` is what makes its cut decent, so a `novice` hand
+would poison the counter. That is the design, and it is why the wave is
+worth doing rather than cutting.
+
+## W7 — docs + the drive
+
+`docs/subsystems/fractionation.md` (new), history notes appended to
+`maturation.md` / `bulk.md` / `metabolism.md` / `accountability.md`, and
+the drive at `packages/wire/tests/whiskey.dirty.wire.test.ts`. ⚠ The
+one-line `CLAUDE.md` map entry is left to the sweep (worktree rule 5).
+
+**B13 — a process failure of mine, recorded because the rule exists for
+it.** The drive commit's message was passed with `git commit -m` and it
+contained backticks, so the shell ran them as command substitutions and
+silently deleted five phrases from the body. Amended from a file and
+force-pushed with lease. *Commit messages always come from a file.*
+
+---
+
+# ⭐⭐⭐ Drive record
+
+## Run 1 — ⛔⛔ THE SERVER DIED DURING BOOT
+
+```
+StagedMixin.applyProps: no template at '/trade/malting/thing/malting-floor'
+FATAL ERROR: Server failed to start
+Error: BootstrapManager: failed to clone
+  '/world/terminus/.../location/floor': …no template at…
+```
+
+**The `trade-malting` pack ships and does not install.** Its rows are on
+disk and all of them are correct; nothing stands them up, so the three
+`props:` entries that place the maltings on Crowsfoot's floor named
+templates that do not exist, and `BootstrapManager` died cloning the
+floor.
+
+⭐⭐⭐ **And this is the whole argument for drives, made again.** Count what
+could not see it:
+
+- **the suite** — `world/__tests__/malting-chain.test.ts` reads the pack's
+  rows from DISK and passes, nine cases, because every row IS right;
+- **`lint:census`** — clause (b) checks that a `props:` entry resolves to
+  a ROW, and the row is there;
+- **`lint:family`** — all 64 gates green;
+- **`tsc`** — nothing to say about YAML.
+
+**A pack that ships and does not install is invisible to every check this
+repo has except a boot.** That is a new entry in the reachability table's
+`boot` column and it is worth adding to `docs/workflow.md` at the sweep:
+the five links are verb · affordance · data · boot · arg gate, and *the
+pack installed* is a precondition of the fourth that nothing was asserting.
+
+### What was done about it, and what is left
+
+The three `props:` entries and the two still-book recipes are **commented
+out with the reason at the site**, so the boot survives and the gap is
+legible. ⚠ **The rows stay** — they are right, and the unfinished thing is
+the pack's INSTALLATION.
+
+Two candidates, neither confirmed (Bash search was unavailable for the
+last stretch of this session, so this is honest uncertainty rather than a
+conclusion):
+
+1. **the workspace link** — `pnpm install` reported *"Already up to
+   date"* for a package that had just been created, while also modifying
+   `pnpm-lock.yaml`;
+2. **the `requires.title` grant** — the pack declares `{ extent:
+   /trade/malting, holder: { organization: /compact/trade } }`, exactly as
+   `trade-milling` does, and something must actually grant that title
+   before `PackApi.reconcile` will install the pack. If so, the fix is a
+   title row rather than anything in this build's code.
+
+⚠⚠ **This is the one piece of W5 that is not delivered**, and it is said
+here rather than left for review to discover: the malting chain is
+*authored, tested and unreachable in a running world.*
+
+## Run 2 — appended below
+
+*(the re-run with the boot made safe)*
