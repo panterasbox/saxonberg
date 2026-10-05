@@ -1,0 +1,36 @@
+id: trade-tanning
+version: 0.1.0
+root: /trade/tanning
+description: >-
+  The tanning trade — ⭐⭐ **a hide becomes leather by standing in
+  something, and the pit is the condition.**
+
+  It exists because the carcass chain had a sinkless source: every
+  butchered animal gave a hide and nothing in the world could do anything
+  with one. The hide row even said so in its own prose — *"it wants to be
+  in a tanpit within the week or it is worth nothing"* — and there was no
+  tanpit.
+
+  ⭐ **It ships ONE verb, and the verb is a judgement rather than a
+  transform.** `tan <hide>` puts a skin in the pit and `get` takes it out;
+  what happens in between is the hide's own clock, reconciled on read
+  against the liquor it is standing in. The decision is *when to pull
+  it* — too early and it is thin, too late and the bark has eaten into
+  the grain — and the pit tells you in words rather than a number.
+
+  ⚠ **Tanning is not rendering**, which is why this is its own pack and
+  not half of one. The two noxious trades at the city's edge share a
+  supplier and a zone and nothing else: one turns skin into leather and
+  one turns fat into light, and there is no honest process word covering
+  both. The economic unity is expressed by PLACEMENT in one LULU zone —
+  trade is the mechanism, locality is the expression — never by package
+  membership.
+
+  ⭐ The etymology is load-bearing: Medieval Latin *tannum* is crushed
+  oak bark, so the chemical is named after the bark and not the other way
+  round. A second tannery needs ZERO pack code.
+requires:
+  # The mechanism is the trade's; the tanneries are the realm's. Held by
+  # the Ministry of Trade, like every other placeless trade.
+  title:
+    - { extent: /trade/tanning, holder: { organization: /compact/trade } }

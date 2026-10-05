@@ -7,15 +7,20 @@
 # which is exactly the roster's claim that leatherwork SHARES THE CODE
 # with textiles rather than being a parallel trade.
 #
-# ⚠⚠ Its `{category: hide}` input still has NO PRODUCER, and that is not
-# this build's to fix. Hide comes from an animal, and nothing in the
-# world produces one — a tannery now would tan imports. **Do not invent
-# a hide faucet**: the gap is leatherwork's, it waits on ranching or a
-# butchery, and closing it with a spawn would be exactly the kind of
-# quiet dishonesty the conservation rule exists to prevent.
+# ⭐⭐ **It is makeable now, and the recipe did not change by one
+# character.** This header used to read *"its `{category: hide}` input
+# still has NO PRODUCER … this row is here, correct, and unmakeable."*
+# Three waves closed it: a butchered carcass gives a skin, a tanpit turns
+# the skin into leather, and `leather`'s own tags carry `hide`.
 #
-# So this row is here, correct, and unmakeable — which is a better state
-# than being makeable in the wrong shop.
+# ⚠⚠ **And the slot was quietly WRONG the whole time it was unmakeable.**
+# `category: hide` matches a MATERIAL's tag, and the shipped green-hide
+# row was made of `leather` — which carries `hide` — so the first hide
+# the game ever produced would have been cuttable into a jerkin straight
+# off the animal, wet. A green skin is `rawhide` now, which deliberately
+# does **not** carry that tag, so the slot means what it always said it
+# meant: *tanned hide*. The recipe is unchanged because it was never the
+# thing that was wrong.
 recipeId: leather-jerkin
 name: Leather Jerkin
 keywords:

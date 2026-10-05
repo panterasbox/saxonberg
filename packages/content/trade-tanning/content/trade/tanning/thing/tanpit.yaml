@@ -1,0 +1,31 @@
+# A tanpit — ⭐ a lined hole in a yard, full of bark liquor and skins.
+#
+# ⚠ `fixedInPlace`, obviously: it is a hole. The reason that matters is
+# the trade's siting — a tannery cannot move to where the hides are, so
+# either the hides travel (salted) or the tannery sits beside the
+# shambles. Both are real historical arrangements and the game lets a
+# realm pick.
+#
+# ⭐ Ships CHARGED (`barkKg`), because an empty pit in a working tannery
+# would read as a derelict one. A player's own pit starts dry and they
+# fill it: `pour` water in, and crushed oak bark goes in as bark.
+class: /trade/tanning/thing/Tanpit
+data:
+  shortDescription: tanpit
+  keywords: [tanpit, pit, tan, liquor, vat]
+  register: indefinite
+  longDescription: >-
+    A deep oblong pit, lined with pitched boards gone black at the
+    waterline. The smell is the smell of the whole district: sour bark,
+    wet hair and something older underneath it.
+  category: tanpit
+  fixedInPlace: true
+  interiorBulk: true
+  # Two thousand litres — enough liquor for a working batch of five or
+  # six hides at full coverage, which is what makes crowding a decision.
+  interiorCapacity: 2000
+  # ⭐ A full charge for that volume is 100 kg of bark
+  # (`BARK_KG_PER_LITRE` × litres). Shipped at strength.
+  barkKg: 100
+  _materialPath: /stuff/idea/material/wood/oak
+  mass: 400

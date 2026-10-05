@@ -70,7 +70,12 @@ describe('the shipped packs (real discovery, no install)', () => {
     // the oil store), installed after the kernel and before the localities that
     // migrate their street lighting onto it. ⚠ energy and apiculture both
     // landed `52` independently off `51`; the real total is 53 — the exact
-    // merge hazard this comment block documents.
+    // merge hazard this comment block documents. ⭐ 53 → 54: the carcass
+    // chain adds `trade-tanning` (and, in its own wave, `trade-chandlery`
+    // → 55). Two packs rather than one deliberately: tanning and
+    // chandlery share a supplier and a LULU zone and nothing else, and
+    // 18 of 19 trade packs ship exactly one Discipline. Installed after
+    // ranching, whose hide row names tanning's class.
     //
     // ⚠⚠ Worth knowing: each of those builds wrote `49` independently, and
     // git merged the two comment blocks as a CONFLICT while merging the
@@ -79,7 +84,7 @@ describe('the shipped packs (real discovery, no install)', () => {
     // one assertion a three-way merge cannot reconcile. A
     // count, not a claim — what the claims below check is the ORDER,
     // which is where a pack graph actually breaks.
-    expect(ids).toHaveLength(53);
+    expect(ids).toHaveLength(54);
     expect(ids[0]).toBe('platform');    for (const trade of ['trade-smithing', 'trade-cooking', 'trade-hospitality', 'trade-distilling']) {
       expect(ids.indexOf(trade)).toBeGreaterThan(ids.indexOf('generic-objects'));
     }

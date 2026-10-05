@@ -9,6 +9,7 @@
     "@saxonberg/content-platform": "workspace:*",
     "@saxonberg/content-species-and-names": "workspace:*",
     "@saxonberg/content-trade-farming": "workspace:*",
+    "@saxonberg/content-trade-tanning": "workspace:*",
     "@saxonberg/content-trade-textiles": "workspace:*",
     "@saxonberg/server": "workspace:*",
     "@saxonberg/types": "workspace:*"

@@ -1006,6 +1006,62 @@ Acceptance: `lint:instanceable`, `lint:perishable`, `lint:mixin-names`,
 `lint:untitled`, `lint:instrument-args`, `lint:controller-rows`, pack suite.
 Commit: `build(carcass W4): trade-tanning — the hide tans against the pit it stands in`.
 
+#### ✅ W4 — DONE
+
+1. ⭐⭐ **The jerkin slot was quietly WRONG the whole time it was
+   unmakeable, and that is the better finding.** The plan framed AC1 as
+   *fix the jerkin to take leather*. The recipe did not change by one
+   character: `category: hide` matches a MATERIAL's tag, and the shipped
+   green-hide row was made of `leather` — which carries `hide` — so the
+   first hide the game ever produced would have been cuttable into a
+   jerkin **straight off the animal, wet**. A green skin is `rawhide`
+   now, which deliberately does not carry that tag, so the slot means
+   what it always said it meant. The acceptance test passes by the
+   material being right rather than the recipe being edited.
+2. ⭐ **The pit's rated capacity is twenty skins, and the first draft of
+   the crowding test found no crowding at all.** 2,000 L at
+   `LITRES_PER_KG: 4` covers 500 kg of hide, which is twenty 25 kg skins
+   at full speed — so the test was wrong about the dial rather than the
+   other way round. It now pins the rating explicitly (the figure a
+   tannery is authored against, and not obvious from the dials) and
+   crowds past it with sixty, which also showed that crowding is **even**:
+   the first skin in is no better off than the last, because they divide
+   the same water.
+3. ⚠⚠ **Two test-harness facts worth carrying forward.** The world clock's
+   test now-provider is read in **milliseconds** and `getNow()` scales it,
+   so a clock test must pin `setScale(1)` and advance in ms — get either
+   half wrong and every clock assertion is off by a factor of twelve,
+   silently, **in the generous direction**. And `_tanWorst` is a raw
+   field: a test must read `getTannage()` first, because that is what runs
+   the reconcile that writes it.
+4. ⚠ **`chemistry: null` is a dead row key on `Material`**, and copying it
+   from `leather.yaml` into `rawhide.yaml` pushed `lint:instanceable`'s
+   orphan-key ratchet from 393 to 394. Dropped rather than ceiling-raised
+   — a ratchet may only fall. Recorded at the site: the shipped rows that
+   carry it are a sweep's business, not this build's.
+5. ⭐ **`Hide` is a `Good` that rots, not a `Provision`.** The shipped row
+   was a `Provision` because that is where `FreshnessMixin` lives — but a
+   `Provision` is *food by construction* (`ThermalDose`, `Composed`,
+   `Sampled`), so a skin was in the pantry and the day somebody writes
+   `eat` against a larder it would have been a silent funny wrong answer.
+   `Provision`'s own comment predicted the split.
+6. ⭐ The **refusals are legible rather than silent**: an empty pit says it
+   is empty and a pit of plain water says there is no bark in it, so a
+   player who cannot tan is told why by the pit itself. The gate on `tan`
+   is intrinsic — strength falls to zero and the hides simply stop.
+7. ⚠ **No `controller-succeeded` note.** The envelope's note kinds are a
+   closed kernel union and none of them means *it worked*; the scene is
+   the outcome. Inventing one for a pack would be a kernel edit for one
+   caller.
+8. `lint:instrument-args` reports **1 bespoke resolution against a ceiling
+   of 9** and says to lower it. Left with the seams ratchet for W9.
+
+Pack count 53 → 54, with the comment block the discover test asks for.
+
+Tests: tanning 17 new (the clock, the two failures, the rating, the
+crowding, the lift, the pit's reads); ranching 75/75 and tailoring 17/17
+unchanged against the repointed hide row.
+
 ### W5 — Forestry: bark
 
 Unchanged from the first draft's W4: `barkPath` on `StandSpecies` +
