@@ -18,6 +18,33 @@
  * claims for itself. The refusal reads as the world having a view, never
  * as a validator saying no.
  *
+ * ## ⭐⭐ The carcass chain — ONE butcher, and it reads the animal
+ *
+ * This used to be one of **two** `butcher` verbs. The stockyard had its
+ * own: it killed the animal and took it apart in one act, out of a module
+ * table of five hardcoded fractions that was the same for a hen and a
+ * bullock, crediting `stockmanship`, with no contamination anywhere. So
+ * an animal gave different things depending on which word you typed at
+ * it, and neither answer was the animal's own.
+ *
+ * Killing and dressing are two acts. `slaughter` kills — and so does a
+ * fight, a fox, a fall and old age — and every one of them leaves the
+ * same `Corpse`. This act takes that body apart, wherever and however it
+ * died, which is what makes the hedgerow and the stockyard the same job.
+ *
+ * ⭐ And the yield is **dressed off the body**: `Species.dressOut` turns
+ * the species' declared shares into kilograms using the mass the animal
+ * actually had and the condition it died in (`Corpse.conditionAtDeath`,
+ * stamped at the kill and frozen — a dead animal's condition cannot
+ * change). A bullock therefore gives eight times a ewe for one reason:
+ * it is eight times the animal. Nothing here knows a species' name.
+ *
+ * ⚠ **A live animal is refused, and it is told which act it wants.**
+ * The order matters: a live target used to be refused *"is not a
+ * carcass"* before anything about it was read, so the person who typed
+ * `butcher ewe` at a live ewe learned nothing. Sentient → named →
+ * no-yield → alive, so each no is the most specific true one.
+ *
  * ## ⭐⭐ D15 — the clock started at the KILL, not at the knife
  *
  * A corpse already runs a decay clock, and it is a *forensic* one on its
@@ -66,9 +93,22 @@ import { Freshness } from '@saxonberg/server/mud/lib/material/Freshness';
 import { Contamination } from '@saxonberg/server/mud/lib/material/Contaminable';
 import { CompetenceBand } from '@saxonberg/server/mud/lib/advancement/CompetenceBand';
 import type { CompetenceBandName } from '@saxonberg/server/mud/lib/advancement/CompetenceBand';
+import { Quantity } from '@saxonberg/server/mud/lib/quantity';
+import Corpse from '@saxonberg/server/mud/platform/agent/Corpse';
 
 const TOPIC = 'act.deed';
 const DISCIPLINE = 'butchery';
+
+/**
+ * The condition a body with no stamp is assumed to have died in — the
+ * middle of the range, which is where an unremarkable animal sits.
+ *
+ * ⚠ It is the fallback for a body that carries no `conditionAtDeath`: a
+ * person's corpse, a fixture, or anything that died without a `flesh`
+ * reserve to read. Not a default for livestock — those always carry one,
+ * because `ConditionLogic` stamps it at the kill.
+ */
+const UNREMARKABLE_FLESH = 55;
 
 /**
  * What a carcass carries into the meat when the gut is opened badly.
@@ -111,7 +151,8 @@ export default class ButcherController extends CraftController<ButcherModel> {
       return;
     }
 
-    if (!MixinApi.isOrganism(body) || !body.isDead()) {
+    // ⚠ Not an organism at all — a chair, a sack. Nothing further to say.
+    if (!MixinApi.isOrganism(body)) {
       return this.decline(
         context,
         Mml.compose`${Mml.thing(body)} is not a carcass.`,
@@ -150,6 +191,25 @@ export default class ButcherController extends CraftController<ButcherModel> {
       );
     }
 
+    // ⭐⭐ **A named animal is refused for being named**, and it is a
+    // different no from every other one here. `Livestock` is not `Named`;
+    // a kept animal is, and a name arrives only when a player gives one
+    // to an animal that chose to follow them. ⚠ It is checked on a LIVE
+    // target only: the mint deliberately carries no name stamp, so a dead
+    // pet's body is not refused — recorded as a deferred seam rather than
+    // pretended away.
+    if (
+      body.isAlive() &&
+      MixinApi.isNamed(body) &&
+      (body.getName() ?? '') !== ''
+    ) {
+      return this.decline(
+        context,
+        Mml.compose`That is ${Mml.thing(body)}. You named it, and it is not meat.`,
+        'named-animal',
+      );
+    }
+
     const blade = this.findBlade(model.blade);
     if (!blade) {
       return this.decline(
@@ -171,6 +231,21 @@ export default class ButcherController extends CraftController<ButcherModel> {
       );
     }
 
+    // ⚠⚠ **LAST, so it is the most specific true refusal.** This used to
+    // be first, phrased *"is not a carcass"*, and it fired before the
+    // species was read — so a player who typed `butcher ewe` at a live ewe
+    // was told the ewe was not a carcass, which is both unhelpful and the
+    // wrong thing to be surprised by. Everything that is permanently true
+    // of this animal is said first; *it is still alive* is said last,
+    // because it is the one thing the player can change.
+    if (body.isAlive()) {
+      return this.decline(
+        context,
+        Mml.compose`${Mml.thing(body)} is alive. If you mean to kill it, say so — a beast is slaughtered, and then it is butchered.`,
+        'still-alive',
+      );
+    }
+
     // ⭐ ONE band read, TWO consequences: how much you get, and how much
     // gut goes on the meat.
     const band: CompetenceBandName = MixinApi.isAdvancing(giver)
@@ -184,9 +259,24 @@ export default class ButcherController extends CraftController<ButcherModel> {
     const agedS = MixinApi.isPostmortem(body) ? (body.sinceDeath() ?? 0) : 0;
     const carcassK = Contamination.hostTemperatureK(body);
 
+    // ⭐⭐ **Dress the carcass out: the animal's own answer, at the weight
+    // it had and the condition it died in.** `liveKg` is the body's
+    // stamped mass — which is the COMPOSED figure, so a finished ewe
+    // really did weigh more than a thin one — and `fleshPct` is the
+    // condition frozen at the kill. Condition therefore pays twice, once
+    // in what the beast weighed and once in what share of it is meat.
+    // Both are true of real carcasses, and it is the arithmetic the
+    // retired stockyard verb already did.
+    const liveKg = MixinApi.isTangible(body) ? body.getMass().rawValue() : 0;
+    const fleshPct =
+      body instanceof Corpse
+        ? (body.getConditionAtDeath() ?? UNREMARKABLE_FLESH)
+        : UNREMARKABLE_FLESH;
+    const dressed = species.dressOut({ liveKg, fleshPct });
+
     const cuts: Stuff[] = [];
     const here = MixinApi.isContainable(giver) ? giver.getContainer() : null;
-    for (const line of yields) {
+    for (const line of dressed) {
       // A clean hand gets every unit; a poor one wastes the carcass. The
       // floor is one — you always get *something* off an animal worth
       // cutting, you just get less of it.
@@ -194,13 +284,29 @@ export default class ButcherController extends CraftController<ButcherModel> {
         1,
         Math.round(line.units * (0.5 + 0.5 * skill)),
       );
+      // ⭐ And the pieces are SMALLER from a poor hand as well as fewer,
+      // because the mass is divided by the units the species declared
+      // rather than by the units this hand got: a clumsy butchering wastes
+      // the carcass rather than producing the same meat in bigger lumps.
+      // `kgEach` is `null` on a counted line (a hen), where the row's own
+      // authored mass stands.
+      const kgEach =
+        line.kgEach === null
+          ? null
+          : (line.kgEach * line.units) / units * (0.5 + 0.5 * skill);
       for (let i = 0; i < units; i++) {
         const cut = await StuffApi.clone<Stuff>(line.cut);
+        if (kgEach !== null && MixinApi.isTangible(cut)) {
+          cut.setMass(Quantity.of(Math.round(kgEach * 100) / 100, 'kg'));
+        }
         this.ageAtKill(cut, agedS, carcassK);
         // ⭐ The body's OWN load rides onto every cut (fishing D20): a
         // fish landed below the outfall carries the city's water onto
-        // its fillet, whatever the hand that cut it. Any Contaminable
-        // carcass; today the only one is a fish.
+        // its fillet, whatever the hand that cut it. ⭐⭐ **Every corpse
+        // is `Contaminable` now** — a carcass in the sun grows a
+        // population nothing reports — so this is no longer the fish's
+        // special case but the ordinary one, and the fish's load survives
+        // the crossing because the mint transfers it.
         if (MixinApi.isContaminable(body)) body.transferContaminationTo(cut);
         this.spillGut(cut, mess);
         if (here && MixinApi.isContainer(here) && MixinApi.isContainable(cut)) {

@@ -930,6 +930,63 @@ Under `packages/content/trade-cooking/`:
 Acceptance: `lint:verb-collisions`, pack suite.
 Commit: `build(carcass W3): butcher takes the animal's own yield off its corpse, and dress is nobody's`.
 
+#### ✅ W3 — DONE
+
+1. ⚠⚠ **`Creature` composes no `NamedMixin`, so the named refusal is
+   STRUCTURAL and the deferred seam is stronger than the plan thought.**
+   Neither a `Corpse` nor a `Livestock` can hold a name at all — only a
+   `KeptAnimal` can, because naming IS the promotion that makes an animal
+   a pet. So the D8 named check cannot fire on a head out of the herdbook
+   (it has nowhere to put a name) and always fires on the dog you called
+   Moss. The plan's *"a corpse does not remember it was named"* deferred
+   seam is therefore not an oversight in the mint but a fact about the
+   class, and the build added the second half of the argument: keeping the
+   name on a corpse would mean **a dead pet could never be dealt with at
+   all**. The refusal lives on the living animal, where the decision is.
+   Both halves are pinned.
+2. ⭐⭐ **The refusal order was inverted, and the old one taught nobody
+   anything.** A live target used to be refused *"is not a carcass"*
+   before the species was read. Now: not-an-organism → sentient → named →
+   no-yield → **alive, last**. Everything permanently true of the animal
+   is said first; *it is still alive* is said last, because it is the one
+   thing the player can change — and it names the act they want
+   (*a beast is slaughtered, and then it is butchered*). A live collie is
+   still refused for having no yield, because that is the more specific
+   truth.
+3. ⭐ **A poor hand makes the pieces SMALLER as well as fewer.** The mass
+   is divided by the units the *species* declared and then scaled by
+   skill, rather than divided by the units this hand got — so a clumsy
+   butchering wastes the carcass instead of producing the same meat in
+   bigger lumps. The plan did not say which, and the other reading would
+   have made skill cosmetic.
+4. ⭐ `UNREMARKABLE_FLESH = 55` is the fallback for a body with no stamp
+   (a person's corpse, a fixture), and the test pins that it reads as
+   *unremarkable* rather than *perfect* — the failure that would quietly
+   hand a free 20 % to anything the kill path did not stamp.
+5. ⭐⭐ **`PreserveController.recipeFor(target)` is keyed on the CURE
+   AXIS**, which is what makes two recipes the same act over different
+   matter: salting raises `solute` whatever it is salting. `CureController`
+   declares `solute`, `SmokeController` `moisture` (it dries as it
+   smokes), and `DryController` was never a `PreserveController` at all —
+   it puts the cut where the air is. The default is checked first and wins
+   ties, so a new row can never silently steer a shipped act somewhere
+   else. Nothing in cooking learns the word *hide*, which is the test the
+   placement had to pass; W4's `salt-hide` is reachable by `cure` with no
+   edit here.
+6. ⭐ `dress` is gone from the kitchen and the collision with it.
+   `medical/treat` dresses a WOUND and this dressed a CARCASS — *both
+   diegetically correct, which is the hard case*. Resolved the only honest
+   way: dressing a wound is what a player reaches for under pressure, and
+   `butcher` was never ambiguous, so the kitchen drops its alias rather
+   than the infirmary dropping a verb somebody is bleeding behind. Gate:
+   **7 known collisions**, down from 9 at the start of the build.
+7. ⚠ **The roster fixture needed the ranching rows seeded**, because
+   `render-tallow` takes suet now. That failure is the honest one — a test
+   that stocked a kitchen with meat and expected tallow out of it.
+
+Tests: cooking 65/65 — `butcher-dressing` 13 new, `roster` fixture
+corrected, the shipped `butchery` suite untouched and green.
+
 ### W4 — `trade-tanning`
 
 Unchanged from the first draft's W3: scaffold from `trade-apiculture`;

@@ -1,9 +1,27 @@
-verbs: [butcher, dress]
+# ⭐ `dress` is gone, and the collision it carried with it. `medical/treat`
+# dresses a WOUND and this dressed a CARCASS — both diegetically correct,
+# which `KNOWN_COLLISIONS` called the hard case. It is resolved the only
+# honest way: one of them gives up the word. Dressing a wound is the act a
+# player reaches for under pressure and `butcher` was never ambiguous, so
+# the kitchen drops its alias rather than the infirmary dropping a verb
+# somebody is bleeding behind.
+verbs: [butcher]
 controller: /trade/cooking/idea/cmd/crafting/ButcherController
 description: "Take a dead animal apart for meat"
 help: |
   `butcher <body>` — open a carcass and work it down to cuts. You need
   something bladed in reach; a clasp knife does.
+
+  ⭐ **A live animal is slaughtered, not butchered.** Killing and dressing
+  are two acts: `slaughter` leaves a body, and this takes the body apart.
+  Any body — a beast killed in a fight, taken by a fox, dead of old age or
+  slaughtered in a yard are all the same job from here.
+
+  ⭐ **What comes off is the ANIMAL's.** Its size and the condition it was
+  in when it died, both. A bullock gives far more than a ewe because it is
+  far more animal, and a beast in poor flesh dresses out light — so
+  *finish it before you kill it* is something you work out rather than
+  read.
 
   Two things answer to your skill at it, and neither is a damage number:
   how much meat you get, and how much of the animal's gut ends up on it.
@@ -13,7 +31,7 @@ help: |
 
   ⚠ **The clock starts at the kill, not at the knife.** A carcass left
   lying is meat that has already been going off; butchering it does not
-  give you back the hours. Dress it promptly and get it cold.
+  give you back the hours. Get on with it, and get it cold.
 
   ⚠ Whatever comes off a carcass is raw, and raw meat has been in contact
   with a gut. Nothing you can see, smell or taste will tell you so.

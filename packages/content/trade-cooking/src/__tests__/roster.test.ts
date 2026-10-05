@@ -153,6 +153,16 @@ function contentRows(): Row[] {
     ...yamlDir('generic-objects', 'stuff/thing/fixture', '/stuff/thing/fixture'),
     ...yamlDir('trade-farming', 'trade/farming/idea/material', '/trade/farming/idea/material'),
     ...yamlDir('trade-farming', 'trade/farming/thing', '/trade/farming/thing'),
+    // ⭐ The ranching rows the fat chain starts from. `render-tallow`
+    // takes SUET now (carcass chain D3) — it used to take `category: meat`
+    // and render tallow out of the stew meat, which is the one thing on a
+    // carcass you actually want to eat.
+    ...yamlDir('trade-ranching', 'trade/ranching/thing', '/trade/ranching/thing'),
+    ...yamlDir(
+      'trade-ranching',
+      'stuff/idea/material/food',
+      '/stuff/idea/material/food',
+    ),
     ...yamlDir('trade-cooking', 'trade/cooking/idea/material', `${ROOT}/idea/material`),
     ...yamlDir('trade-cooking', 'trade/cooking/thing', `${ROOT}/thing`),
   ];
@@ -272,6 +282,11 @@ async function stockKitchen(): Promise<void> {
   // Stock: roots, meat, rations, orchard fruit, olives.
   for (let i = 0; i < 12; i++) await stock('/stuff/thing/items/root-vegetables');
   for (let i = 0; i < 11; i++) await stock('/stuff/thing/items/stew-meat');
+  // ⭐ SUET, and it is a different thing from meat (carcass chain D3).
+  // `render-tallow` used to take `category: meat` — so you rendered your
+  // tallow out of the stew meat, which is the one thing on a carcass you
+  // actually want to eat. A carcass gives suet; suet is what renders.
+  for (let i = 0; i < 3; i++) await stock('/trade/ranching/thing/suet');
   await stock('/stuff/thing/items/prime-cut');
   await stock('/stuff/thing/items/ration-stock');
   for (let i = 0; i < 3; i++) await stock('/trade/farming/thing/cherry');
