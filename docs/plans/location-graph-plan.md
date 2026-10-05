@@ -658,7 +658,21 @@ singleton read is untouched.** *Requirements 9b; the slate's open 1 and
   minted instance from the seed on a CMS save (G-ROW). The identity
   callers in G-ROW (`ChronicleController:206`, `BankingLogic:1892`,
   `ContractLogic:912`, `BeliefStore:636`, `ConditionLogic:567,570`) move
-  to it for honesty; they would be correct either way.
+  to it — ⚠⚠ **and for `ConditionLogic:567,570` this is MANDATORY, not
+  honesty.** The corpse's ordinal probe asks
+  `findAllByTemplatePath(<a minted identity>).length === 0`, and under
+  this wave's redefinition the `.filter(o => o.getTemplatePath() === row)`
+  applies to the whole union — so the exact hit is **dropped**, because a
+  corpse's template path is the corpse ROW and never the identity it was
+  stamped with. The probe would report "free" for a taken identity and
+  **two deaths in one game-second would collide**, which is the precise
+  hazard the `∪ exact` form was added to prevent. A0 therefore moves both
+  probes to `findByIdentityPath` **before** redefining the row read, and a
+  test pins a second death in the same game-second getting its ordinal.
+  ⭐ The general shape, worth stating because the filter is load-bearing:
+  **the row filter is correct for a row and wrong for an identity**, which
+  is why the two reads have to be two names rather than one tolerant
+  function.
 - `findByTemplatePath` (singleton-or-throw), `singleton`, `singletonSync`,
   the clone guard and `findByPathGlob` are **not touched**. The
   requirements record why: splitting or widening them would break the
