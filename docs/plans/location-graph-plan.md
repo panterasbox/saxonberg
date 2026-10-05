@@ -1934,7 +1934,66 @@ row with a dangling exit yields the finding and `errors` lists it; a
 world with a dangling exit in content **boots**. Covers AC5 (the runtime
 half), AC6, AC13's unbuilt case.
 
-### B2 · Draft is a wall, offline is a camera — `build(location-graph B2): published lives on the parcel; a dark place evicts and says who to tell`
+### B2 · Draft is a wall, offline is a camera — ✅ DONE
+
+> **Note (2026-10-05).** `TitleClaim.published` + the `grant` stamp,
+> `ParcelRegistry.setPublished` + the two new chain-of-title event kinds,
+> `ParcelApi.setPublished`, the eviction, `Tombstone` + its row, and
+> `title publish` / `title offline`.
+>
+> ⭐ **R2 is answered: the action is `write-template`.** `TreeAction`'s
+> union was not opened at plan time; `write-template` is the authority
+> to change what the rows at a path SAY, which is exactly what declaring
+> them live is. An author holds title to their extent, so they already
+> hold it. ⛔ No wizard check anywhere.
+>
+> ⭐⭐ **`publish` / `offline` are TITLE EVENTS.** The chain of title is
+> what the register is for — *who held this, and what did they declare
+> about it, when* — and taking content down is one of the louder things
+> a holder can do to ground. A register that recorded a transfer but not
+> that would be telling half the story. For both kinds `from` and `to`
+> are the holder: nothing changed hands, which is the honest record.
+>
+> ⭐ **The eviction lives in `ParcelLogic`, not the registry**, because
+> it needs the graph: `nodesInExtent` to find who is standing there and
+> `pointingAt` (the reverse-edge query, which is why `{'edges.to': 1}`
+> is an index) to find whose content just lost a destination. The
+> registry stays the record's keeper. `NavigationApi.nodesInExtent` was
+> added for it.
+>
+> ⚠ **Only a LIVE extent going dark evicts**, and that is the whole of
+> the difference between the field's two lives: draft content has never
+> been live, so nobody is inside it by construction. Reading the prior
+> value needs the EXACT extent — `coveringParcelOf` is longest-prefix,
+> so a child of an already-dark parcel would otherwise read as *was
+> live* and evict people its parent already evicted.
+>
+> ⭐⭐ **A real robustness bug the tests found**: `AppApi.setting` throws
+> on a cold cache, and the throw was escaping into `standTombstone`'s
+> catch — so with settings unwarmed **no tombstone was minted at all**,
+> and the evicted went nowhere. The exit cascade's settings rungs are a
+> nicety, not a precondition: a tombstone with no way out is far better
+> than no tombstone, because by the time that code runs the people have
+> already been moved. Each rung is now individually defensive.
+>
+> ⚠ **Three gates caught me again, all fairly.** `lint:presentation`:
+> the tombstone row's `shortDescription: "a bare marker"` begins with an
+> article, which is the register's job — stripped. `lint:lib-statics`:
+> `Tombstone.identityFor` was one new static over the ceiling, and the
+> gate's question gave the better placement — *which identity does a
+> tombstone for this extent answer to* is a question the OFFLINING
+> asks, and the offlining is the only asker, so the formula moved to
+> `ParcelLogic` and **the test moved to the guarantee it buys** (offline
+> the same ground twice, one marker stands) rather than the string.
+> `lint:test-content`: two kernel tests named locality paths; synthetic
+> `/test/**` now.
+>
+> ⚠ Slate open 4 (offlining a warren HOST migrates the role) stays open,
+> as the plan said. What shipped offlines extents of template nodes.
+>
+> 13 + 7 + 4 tests. Typecheck clean.
+
+**Original wave spec** — `build(location-graph B2): published lives on the parcel; a dark place evicts and says who to tell`
 
 **Implements** D9, D10 (the unpublished gate), D11, D12. **Files:**
 `lib/parcel/ParcelRecord.ts` (`published`, `TitleClaim.published`),

@@ -176,6 +176,14 @@ export class NavigationApi {
   }
 
   /**
+   * Every node whose identity sits at or under `extent` — the places on
+   * one piece of titled ground. What the publish flip sweeps.
+   */
+  public static nodesInExtent(extent: string): Promise<PlaceNode[]> {
+    return logic().nodesInExtent(extent);
+  }
+
+  /**
    * Every node with an edge INTO `identity` — the reverse query.
    *
    * ⭐ This is what lets taking content down be honest: it names every

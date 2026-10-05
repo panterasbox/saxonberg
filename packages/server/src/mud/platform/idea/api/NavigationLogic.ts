@@ -224,6 +224,12 @@ export class NavigationLogic extends ApiLogic {
     return (await registry()?.nodesInZone(zonePath)) ?? [];
   }
 
+  /** See {@link NavigationApi.nodesInExtent}. */
+  @CallSecurity(NavigationApiCallers)
+  public async nodesInExtent(extent: string): Promise<PlaceNode[]> {
+    return (await registry()?.nodesInExtent(extent)) ?? [];
+  }
+
   /** See {@link NavigationApi.pointingAt}. */
   @CallSecurity(NavigationApiCallers)
   public async pointingAt(identity: string): Promise<PlaceNode[]> {

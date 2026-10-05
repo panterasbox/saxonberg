@@ -270,6 +270,24 @@ export class ParcelApi {
     return logic().isPathPublished(path);
   }
 
+  /**
+   * ⭐⭐ Declare the content on `extent` live, or take it down.
+   *
+   * Writes the flag AND appends a `publish` / `offline` title event, so
+   * the chain of title carries it. When live content goes dark the
+   * people inside are moved out first — *draft is a wall, offline is a
+   * camera*, and which one this is is a fact about whether anybody was
+   * there rather than a second field.
+   *
+   * Returns the updated record, or null when no parcel claims `extent`.
+   */
+  public static async setPublished(
+    extent: string,
+    value: boolean,
+  ): Promise<ParcelRecord | null> {
+    return logic().setPublished(extent, value);
+  }
+
   /** Cite a feeder node for `extent` (the meter). The twin of {@link citeReach}. */
   public static async citeFeeder(
     extent: string,

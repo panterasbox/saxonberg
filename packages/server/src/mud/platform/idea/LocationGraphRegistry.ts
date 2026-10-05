@@ -245,6 +245,13 @@ export default class LocationGraphRegistry extends Idea {
     return PlaceNode.find<PlaceNode>({ zone });
   }
 
+  /** Every node whose identity sits at or under `extent`. */
+  @CallSecurity(NavigationLogicOnly)
+  public async nodesInExtent(extent: string): Promise<PlaceNode[]> {
+    await this.ensureWarm();
+    return this.nodesUnderExtent(extent);
+  }
+
   @CallSecurity(NavigationLogicOnly)
   public async pointingAt(identity: string): Promise<PlaceNode[]> {
     await this.ensureWarm();

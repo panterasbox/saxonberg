@@ -80,6 +80,15 @@ export interface TitleClaim {
   feeder?: string;
   /** The electric posture this premises declares — see {@link ParcelRecord.powerBand}. */
   powerBand?: PowerBand;
+  /**
+   * Is the content on this ground ready to be walked into? Omitted
+   * means `true` — see {@link ParcelRecord.published}.
+   *
+   * ⭐ A claim authored `published: false` is **draft**: content that
+   * has never been live, so nobody is inside it by construction and the
+   * flag is a wall rather than an eviction.
+   */
+  published?: boolean;
 }
 
 /**
