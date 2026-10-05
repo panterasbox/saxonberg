@@ -1,18 +1,37 @@
 # The carcass chain — implementation plan
 
-Executes [carcass-chain-requirements.md](../requirements/carcass-chain-requirements.md).
-**Kind:** content, with one reconciliation slice in the engine.
+Executes [carcass-chain-requirements.md](../requirements/carcass-chain-requirements.md)
+(as revised 2026-10-04: *One kind of death, and one kind of body*).
+**Kind:** content, with one reconciliation slice in the engine — now two
+kernel waves, the first of which is the build's riskiest.
 **Leads from:** content. Two new capability packs (`trade-tanning`,
-`trade-chandlery`), rows in five shipped packs, and a short kernel slice
-whose first consumer is the Hearts Delight flock in this same build.
+`trade-chandlery`), rows in five shipped packs, and a kernel slice whose
+first consumer is the Hearts Delight flock in this same build.
 
-What is being built: one slaughter instead of two (a kill that leaves
-the realm's ordinary carcass, and the kitchen's `butcher` taking it
-apart), species-declared yields that scale with size and condition, a
-hide that rots on the shipped clock and tans in a pit against the bark
-and water it is standing in, bark off a felled oak, one candle recipe
-over two feedstocks, bone meal into the soil and a dog loaf out of the
-oven, a flock in the valley, and three vacant seats at Wharfside.
+What is being built: **every death that is not a player's mints a
+corpse and the dead thing stops being an object**; one slaughter instead
+of two (a kill that leaves that corpse, and the kitchen's `butcher`
+taking it apart); species-declared yields that scale with size and
+condition; a hide that rots on the shipped clock and tans in a pit
+against the bark and water it is standing in; bark off a felled oak;
+one candle recipe over two feedstocks; bone meal into the soil and a
+dog loaf out of the oven; a flock in the valley; three vacant seats at
+Wharfside.
+
+> **Revision 2026-10-04.** The first draft of this plan found that a
+> beast dying through `ConditionApi.die` is flipped to `dead` in place
+> and keeps every mixin it had, and paid for it with six dead-target
+> guards (the retired D14). The user reopened the requirement: *"I didn't
+> mean to imply beasts and humans were different … any NPC, they all
+> mint corpses."* The reasoning the plan records: the realm **shows a
+> thing's capabilities**, so the two kinds of death read as two kinds of
+> object — one body with a long list of things it can no longer do, one
+> bare body — with no explanation for the asymmetry; and a corpse's
+> lifecycle is genuinely a different lifecycle (it cools, decays, is
+> forensic, is never alive again), not a beast's minus some verbs.
+> Lossiness is accepted on purpose: *"I'd kinda prefer some continuity
+> there even if it means the corpse isn't lossless."* D1 and W0 are the
+> result; D14 is gone.
 
 ---
 
@@ -21,25 +40,127 @@ oven, a flock in the valley, and three vacant seats at Wharfside.
 Everything below was verified by opening the file this cycle. Paths are
 repo-relative from `/home/bobalu/play/saxonberg/build-1`.
 
-### The death path, and what a dead beast IS
+### The death path — what it does today, and what the mint already is
 
 - `packages/server/src/mud/api/condition.ts:275` — `ConditionApi.die(host, cause, spec?)`
-  forwards to `ConditionLogic.die`. No visible gate on the Api static.
+  forwards to `ConditionLogic.die`. No visible gate on the Api static;
+  three callers: `lib/vitals/Vitals.ts:929` (`expireDying`, fire-and-forget
+  from a sync reconcile), `lib/species/Organism.ts:339` (old age, from a
+  beat), `platform/idea/api/CombatLogic.ts:3884` (`killImpl` — the cull
+  and the coup).
 - `packages/server/src/mud/platform/idea/api/ConditionLogic.ts:304-420` —
-  `dieImpl`. **For a body with no player identity, no corpse is minted.**
-  The branch at ~line 400 is `host.setCauseOfDeath(cause); host.setLifecycleState('dead'); markDeceasedAt(nowS)`
-  with the comment *"The body stays in the world as a corpse. Never
-  `StuffApi.destruct` here."* The `/stuff/agent/Corpse` clone
-  (`mintCorpseFrom`, line 588) runs only inside `divideBody` for a
-  player. ⭐ So *"the same carcass every other death leaves"* for a beast
-  is **the same object, dead** — it keeps its mass (derived from
-  `Species.massAt(age)` via `Creature.getMass`, `lib/creature/Creature.ts:549-612`),
-  its `flesh` reserve, its `herdId`/`headIndex`, its taps and its
-  handling.
-- `packages/server/src/mud/lib/mortality/Postmortem.ts` — `sinceDeath()`
-  is public; composed on `Creature`. The kitchen's butcher reads it.
+  `dieImpl`. Sync prefix: idempotency guard, `relieve(dying)`,
+  **the split** (`playerBodyOf(host)` — structural, never `instanceof`),
+  the accountability row, the circle branch; then at ~388 the `!player`
+  branch: `setCauseOfDeath` + `setLifecycleState('dead')` +
+  `markDeceasedAt`, under the comments *"nothing to walk away → this Stuff
+  simply stops. Unchanged, zero new machinery, and what every NPC and
+  beast does"* (~366) and *"The body stays in the world as a corpse.
+  Never `StuffApi.destruct` here"* (~389). ⚠ **Both comments become false
+  and are rewritten in W0, not left.** Async tail: `recordDeathDeed`, and
+  `divideBody` for a player.
+- `divideBody` (~445-640) is player-coupled: `stopAutoSave`, the material
+  slices, the arc, the drain, `save`, **the corpse mint**, the shade,
+  `markForRevert` + `destruct`, the sockets. The reusable part is
+  `mintCorpseFrom(body, material, cause, nowS)` (588-650): clones
+  `/stuff/agent/Corpse` with a `dataOverlay` (`shortDescription: body of
+  <presentation>`, `register: definite`, `_speciesPath`, `causeOfDeath`,
+  `diedAtGameSec`) and `asIdentityPath: corpseIdentityFor(body, nowS)`,
+  throws if the clone is not `Vitals`, pours `adoptMaterialState(material)`
+  (gated to this choreography; **no `mergeSlice_` counterpart — that
+  absence is what makes a corpse un-reanimatable**), moves the loadout
+  onto the corpse, lays it where the body fell.
+  `MATERIAL_FORK_SLICES = ['Vitals','Trauma','CauseOfDeath','Anatomy']`
+  (`lib/vitals/Vitals.ts:144`); `forkSlice_<name>()` on `Vitals`.
+- `corpseIdentityFor` (~530-585) already reasons about NPCs: *"under D7
+  an `Extra` keeps its own identity, so two dead sentries genuinely share
+  the first half"*; a body with no identity path gets no minted identity.
 - `packages/content/generic-objects/content/stuff/agent/Corpse.yaml` —
-  the player-corpse row (`class: /platform/agent/Corpse`, `lifecycleState: dead`).
+  `class: /platform/agent/Corpse`, `keywords: [body]`, `lifecycleState: dead`.
+  `platform/agent/Corpse.ts` is `class Corpse extends Creature {}`.
+- `lib/creature/Creature.ts:145+` — `Postmortem(Concealable(LoadBearing(Container(Containable(Disguisable(Perceptible(Visible(Exerting(ThermalRegulation(Thermal(Respiration(…Metabolic…Vitals…Reserved…)))))))))))))`.
+  So a `Corpse` already has `sinceDeath()`, a `Container` for the
+  loadout, `Thermal` (algor mortis), reserves and metabolism machinery.
+  **Not** `Named`, not `Producing`, not `Handling`, not `Bonded`, not
+  `Behaved`, not `Contaminable`.
+- `Creature.getMass()` (`:549-620`) — an authored/stored mass wins; else
+  `species.massAt(getAgeDays())`; `withBodyComposition` adds flesh/lean
+  deltas only when those reserves exist. `Organism.getAgeDays()` =
+  `(diedAt ?? now) − bornAt`; `bornAt` is `persistent, authorable`
+  (`lib/species/Organism.ts:148`); `setLifecycleState('dead')` stamps
+  `diedAt`. ⚠ A fresh `Corpse` clone has `bornAt 0` → `massAt(0)` is a
+  newborn's mass — **the mint must stamp `mass` and `bornAt`**.
+- `lib/persistence/Persistable.ts:150-160, 215, 243, 340-360` —
+  `markForRevert()` is on the mixin (not only on Avatar): it folds into
+  `shouldPersist()`, and `cleanupOnDestruct` (the capture-on-destruct
+  backstop) returns when `shouldPersist()` is false. `PersistableApi`
+  has `deleteAllFor(owner)` and `hasRecord(scope, key)` but no per-host
+  delete.
+- `platform/idea/ChattelRegistry.ts` `release(chattelId)` — **deletes the
+  `ChattelRecord` row** and appends a terminal `released` event;
+  `ChattelMixin.onDestruct` (`lib/chattel/Chattel.ts:282`) calls it.
+  `ResidencyLogic.pinNow()` (`:770-810`) stands pinned animals up from
+  `ChattelApi.pinned()` — the chattel rows. ⭐ So destructing a named pet
+  removes it from the pin roll by shipped machinery; its old snapshot
+  becomes an orphan row, harmless.
+- `platform/idea/SchedulerRegistry.ts:400-418` — every engagement
+  subscribes to `Events.StuffDestructed` for its host and terminates
+  itself `'host-destroyed'` (one of the five framework abort reasons,
+  `lib/activity/Engaged.ts:57-63`).
+- `api/security.ts:1445-1485` — **a destroyed Stuff is INERT**: any
+  method call through the proxy is a no-op returning `undefined`, never a
+  throw (*"an in-flight async that captured it before destruct, a
+  broadcast iterating a set … a scheduled tick that hadn't been
+  cancelled"*). `api/proxy.ts:195-215` — a `ref: 'instance'` slot holding
+  a destroyed Stuff reads `null` and self-heals.
+- `lib/behavior/Behaved.ts:308` — `onDestruct` tears down the brains.
+- Combat: `CombatLogic.ts:3820-3850` — the cull is
+  `killImpl(victim) → endWith(session, "death") → runResolutionConsumers → return`,
+  all synchronous; `endWith` (~3590-3635) narrates and **`session.resolve(outcome)`**
+  — one death resolves the session for every party. `CombatLogic` has
+  zero `isDestroyed()` checks; it has never needed one because the only
+  destructing death (a player's) happens in `die`'s async tail, after
+  combat's synchronous code has returned.
+- `raids.ts:60-115` (the fox) — kills by `ConditionApi.inflict` (the
+  dying window), then `StuffApi.destruct(carried)` on the first bird
+  **while it is still in the window**. ⚠ The one shipped place that
+  destructs a body `die` may later run on; the choreography must
+  re-check `host.isDestroyed()` after every `await`.
+- `platform/idea/api/__tests__/ConditionLogic.die.test.ts:90` pins
+  *"death is NOT destruction — the body persists as a corpse"* and `:198`
+  *"refuses a non-organism and a corpse without throwing"* — both written
+  against the same-object behaviour and **rewritten in W0**.
+- Docs asserting the old behaviour: `docs/subsystems/race.md:32-45`
+  (*"NPCs, creatures, beasts — unchanged: the same Stuff becomes the
+  corpse"*), `docs/subsystems/mortality.md:309-320` (*"The doctrinal
+  split … the same Stuff stops. Unchanged, zero new machinery"*), and
+  `mortality.md:243-260` (the corpse section's framing). W0 rewrites them.
+
+### The lifecycle read sites, walked (the coordinator's 52 → 60 by my grep, 24 files, 16 non-test)
+
+Every non-test file reading `isDead()` / `isAlive()` / `isLivingBody()` /
+`lifecycleState`, and whether W0 changes it:
+
+| file | what it reads | changes? |
+|---|---|---|
+| `lib/respiration/Respiration.ts:389`, `lib/metabolism/Metabolic.ts:649`, `lib/thermal/ThermalRegulation.ts:342` | `isLivingBody()` to stop living processes | **no** — a `Corpse` row is `dead`, so they stop on it exactly as on a flipped body |
+| `lib/vitals/Vitals.ts:2514, 2835, 2855` | `!isDead()` before `beginDying` | **no** — runs on the living body |
+| `lib/mortality/Postmortem.ts:186, 208` | `isDead()` to run the decay clock | **no** — the Corpse is the dead body it runs on; `diedAtGameSec` rides the overlay |
+| `lib/species/Organism.ts:83-88, 332-343` | the predicates; `reconcileSenescence` → `die('old age')` | **no** read change; the old-age caller is a `die` caller and gets the new behaviour free |
+| `lib/husbandry/Growing.ts:1221-1239` | `setLifecycleState('dead')` directly (plants) | **no** — plants have no `Vitals`, `dieImpl` returns at `isVitals`, the plant path stays the explicit exception `mortality.md` already names |
+| `api/species.ts:93` | `isAnimate` by lifecycle | **no** — a Corpse is inanimate |
+| `platform/idea/species/Species.ts` | `lifecycleStates` vocabulary | **no** |
+| `platform/idea/api/CombatLogic.ts:3471-3476, 5214` | skip dead occupants; `coupEligible` | **no** read change; ⚠ see Risks for the destruct timing |
+| `platform/idea/api/ConditionLogic.ts` | the transition | **yes — W0** |
+| `lib/character/Avatar.ts`, `platform/agent/PrimaryAvatar.ts`, `platform/agent/ShadeAvatar.ts`, `lib/mortality/MortalArc.ts` | the player arc | **no** — the player branch is untouched |
+| `trade-cooking/…/ButcherController.ts` | `isOrganism && isDead()` | **no** read change; now always a `Corpse` — W3 confirms `sinceDeath`, species, contamination |
+| `trade-farming/…/PloughController.ts:149` | skips dead occupants | **no** — a corpse in the field is skipped |
+| `trade-ranching/src/behavior/raids.ts:90,97,111` | `isAlive()` prey filter; destructs the carried bird | **no code change in raids**; W0's choreography tolerates the destruct-mid-window race (see W0) |
+| `trade-fishing/…/ReleaseController.ts:45` | `fish.isDead()` | **behaviour change, no edit**: a fish never stays a dead `Fish` now, so the `isDead()` arm is unreachable; `remaining <= 0` still fires; a corpse does not bind as a fish. Record in the pack's doc. |
+| `trade-fishing/src/agent/Fish.ts` (`ContaminableMixin(KeptAnimal)`) | — | **knock-on**: a dead fish becomes a `Corpse`, which was not `Contaminable` — fishing D20 (the outfall's load rides onto the fillet) would be lost. **W0 composes `ContaminableMixin` on `Corpse` and the mint transfers the load.** |
+| `trade-medicine/…/PostmortemReading.ts:81-84` | `isPostmortem && isVitals && isOrganism && isDead` | **no** — a Corpse satisfies all four |
+| `trade-apiculture/src/lib/Colony.ts:525` | deliberately never `'dead'` | **no** — no `Vitals`, never reaches `die` |
+| `transport/src/lib/journey/Journey.ts:387-388` | `driver.isDestroyed()` then `!isAlive()` | **no** — a dead driver is now caught by the first check; passengers are the vehicle's contents, not a held list |
 
 ### The two butcheries
 
@@ -47,452 +168,331 @@ repo-relative from `/home/bobalu/play/saxonberg/build-1`.
   module-level `YIELDS` (stew-meat .42 · offal .12 · tallow .05 · hide .07
   · bone .12), `finish = clamp01(0.55 + (flesh − 30)/90)` on meat only,
   `instanceof Livestock` guard, `HerdRegistry.returnHead` + tally
-  decrement **before** `StuffApi.destruct(animal)`, credits
-  `STOCKMANSHIP` (exported from `HandleController.ts`). Docstring and the
-  view's help both claim *"bone and horn"*; no horn row exists.
-- `packages/content/trade-ranching/content/trade/ranching/cmd/ranching/butcher.yaml` —
-  `verbs: [butcher]`, arg `requires: HandlingMixin` (the binder admits the
-  sheepdog; the controller re-narrows — the exact tell).
-- `packages/content/trade-ranching/content/trade/ranching/idea/cmd/ranching/ButcherController.yaml` — the controller row.
+  decrement, `StuffApi.destruct(animal)`, credits `STOCKMANSHIP`
+  (exported from `HandleController.ts`). Docstring and the view's help
+  claim *"bone and horn"*; no horn row exists.
+- `…/cmd/ranching/butcher.yaml` — arg `requires: HandlingMixin` (admits
+  the sheepdog; the controller re-narrows). `…/idea/cmd/ranching/ButcherController.yaml` — the row.
 - `packages/content/trade-ranching/src/agent/Livestock.ts` —
   `ProducingMixin(HandledMixin(HandlingMixin(ChattelMixin(BrandedMixin(Creature)))))`;
   `commandContributions.peers` = return · butcher · breed · milk · shear ·
-  gather; `bindToHerd(herdId, index)`; `getHerdId()` / `getHeadIndex()`.
-  **Not `Named`** (`Creature` lost `NamedMixin` in the presentation build).
+  gather; `bindToHerd`, `getHerdId()`, `getHeadIndex()`. **Not `Named`.**
 - `packages/content/trade-ranching/src/lib/Handled.ts` —
-  `HandledMixin.workedOver(actor): HandleReport` (self · peers · prelude?
-  · difficulty · discipline?) — the body of `handle` on the animal;
-  `HandleController.ts` is resolve → send → credit. The precedent `slaughter` follows.
+  `workedOver(actor): HandleReport`; `HandleController.ts` is resolve →
+  send → credit. The precedent.
 - `packages/content/trade-cooking/src/idea/cmd/crafting/ButcherController.ts` —
-  extends `CraftController`; gate order today: not-a-carcass
-  (`isOrganism && isDead`) → `SpeciesApi.preloadAnatomy` → sentient →
-  blade (`bladed` construction) → `species.getButcheryYield()`; cuts
-  `ageAtKill(sinceDeath)`; `GUT_FLORA`; `DISCIPLINE = 'butchery'`;
-  `StuffApi.destruct(body)` at the end. ⚠ A **live** animal is refused
-  as *"is not a carcass"* before anything about it is read.
-- `packages/content/trade-cooking/content/trade/cooking/cmd/crafting/butcher.yaml` —
-  `verbs: [butcher, dress]`; `body` arg `requires: any`; `blade` and
-  `block` are declared args with MQL defaults.
-- `packages/server/src/mud/platform/idea/species/Species.ts:44` —
-  `ButcheryYield { cut: string; units: number }`; field `butcheryYield`
-  (line 769, `authorable`); `getButcheryYield()` (975) has **one reader**,
-  the cooking controller. `adultMass` (605) + `massAt(ageDays)` (1188).
-  `feedingStyle` (751), `FEEDING_STYLES` (205), `FEEDER_KINDS` (219).
-- Yield authors: six fish under `trade-fishing`, `species-and-names`'s
-  `wolf.yaml` (3 stew-meat + 1 offal) and `hog.yaml` (6 + 2 prime-cut + 2
-  offal), `trade-mining`'s pony (12 + 3). ⚠ The pony's 12 cuts × 0.4 kg
-  is 4.8 kg off a 200 kg animal — the shipped counts are abstract, not
-  mass-conserving. The five farm species under
-  `packages/content/trade-ranching/content/stuff/idea/species/animalia/chordata/mammalia/…`
+  extends `CraftController`; gate order today: not-a-carcass → `preloadAnatomy`
+  → sentient → blade → `getButcheryYield()`; `ageAtKill(sinceDeath)`;
+  `GUT_FLORA`; `transferContaminationTo` from a `Contaminable` body;
+  `DISCIPLINE = 'butchery'`; `destruct(body)`. ⚠ A **live** animal is
+  refused *"is not a carcass"* before anything about it is read.
+- `…/cmd/crafting/butcher.yaml` — `verbs: [butcher, dress]`; `body` arg `requires: any`.
+- `platform/idea/species/Species.ts:44` — `ButcheryYield { cut; units }`;
+  field `butcheryYield` (769, authorable); `getButcheryYield()` (975) has
+  one reader. `adultMass` (605), `massAt` (1188), `feedingStyle` (751).
+  Yield authors: six fish, `wolf.yaml` (3+1), `hog.yaml` (6+2+2), the
+  pony (12+3) — abstract counts. The five farm species under
+  `trade-ranching/content/stuff/idea/species/animalia/chordata/…`
   (`bovidae/ovis/aries` 70 kg, `bovidae/bos/taurus` 550 kg,
-  `suidae/sus/domesticus` 120 kg, `canidae/canis/familiaris` 20 kg with
-  `feedingStyle: [bowl, ground, hand]`, and `gallus/domesticus`) author
-  **no** `butcheryYield`.
+  `suidae/sus/domesticus` 120 kg, `carnivora/canidae/canis/familiaris` 20 kg
+  with `feedingStyle: [bowl, ground, hand]`, `aves/galliformes/phasianidae/gallus/domesticus`)
+  author **no** yield.
 - `packages/server/scripts/check-verb-collisions.ts` — `KNOWN_COLLISIONS`
-  carries `butcher` and `dress`; the gate fails on a NEW collision and
-  also when a listed collision is **healed and not deleted**. `slaughter`
-  and `tan` are unclaimed. `hide` is the stealth verb; `feed` is the
-  garden verb; `salt` is an alias on cooking's `cure.yaml`.
+  carries `butcher` and `dress`; fails on a NEW collision and on a listed
+  one that is **healed and not deleted**. `slaughter` and `tan` are unclaimed.
 
 ### The carcass products and their rows
 
-- `packages/content/trade-ranching/content/trade/ranching/thing/hide.yaml` —
-  `class: /platform/thing/Provision`, mass 25, **`_materialPath: /stuff/idea/material/organic/leather`**.
-  The `leather` material (`base-library/…/organic/leather.yaml`) carries
-  `tags: [organic, leather, hide, once-living, flexible]` — ⭐ **the
-  `hide` tag is what the jerkin recipe matches**, which is literally why
-  *"one recipe wants tanned leather and gets a raw skin"*.
+- `trade-ranching/content/trade/ranching/thing/hide.yaml` — `Provision`,
+  mass 25, **`_materialPath: …/organic/leather`**; `leather.yaml`
+  tags `[organic, leather, hide, once-living, flexible]` — ⭐ the `hide`
+  tag is what the jerkin matches, which is why it *"gets a raw skin"*.
 - `…/thing/tallow.yaml` — "pail of fat", keywords `[fat, tallow, suet, pail]`,
-  material `/stuff/idea/material/food/animal-fat` (tags
-  `[food, fat, rendering, once-living]` — ⚠ `fat` is also the cooking
-  MEDIUM tag, so raw suet can fry today). `…/thing/bone.yaml` (Provision,
-  material `tissue/bone`, prose claims bone meal is phosphorus).
-- `packages/content/trade-cooking/content/recipes/render-tallow.yaml` —
-  slot `category: meat` ("trimmings"), `outputApplication: bulk` into
-  `/trade/cooking/thing/tallow-crock` (a `CraftVessel`, `category: tallow-crock`),
-  `outputMaterial: /trade/cooking/idea/material/tallow` (tags
-  `[liquid, food, fat, cooking-fat, rendered]`, `smokePoint 478`).
-- `packages/content/trade-tailoring/content/recipes/leather-jerkin.yaml` —
-  slot `{category: hide, kind: item, count: 1, minGrade: fair}`,
-  `toolCapabilities: [mending]`, `outputTemplate: /stuff/thing/armor/hide-jerkin`
-  (a `Garment`, `constructionForm: hide`), `discipline: tailoring`.
-- `packages/content/generic-objects/content/stuff/thing/items/offal.yaml` /
-  `stew-meat.yaml` — Provisions; `offal` material `edibility: true`,
-  spoils faster. `bone` material `edibility: false` → **a dog will not
-  eat bone** (`Feeder.offerings()` / the `feeds` brain use `isEdible()`).
-- `packages/content/trade-dyeing/content/trade/dyeing/idea/material/tannin.yaml` —
-  a mordant, no producer. Untouched by this build.
+  material `animal-fat` (tags `[food, fat, rendering, once-living]` —
+  `fat` is the cooking MEDIUM tag, so raw suet fries today). `…/thing/bone.yaml`.
+- `trade-cooking/content/recipes/render-tallow.yaml` — slot `category: meat`,
+  bulk into `tallow-crock` (`CraftVessel`, `category: tallow-crock`),
+  `outputMaterial: …/material/tallow` (tags `[liquid, food, fat, cooking-fat, rendered]`).
+- `trade-tailoring/content/recipes/leather-jerkin.yaml` — `{category: hide, kind: item, minGrade: fair}`,
+  `toolCapabilities: [mending]`, `discipline: tailoring`.
+- `generic-objects/…/items/offal.yaml` / `stew-meat.yaml` — Provisions;
+  `offal` edible; `bone` material `edibility: false` → **a dog will not eat bone**.
+- `trade-dyeing/…/material/tannin.yaml` — a mordant, no producer. Untouched.
 
 ### The item-side clocks (the tanpit decision rests here)
 
-- `packages/server/src/mud/platform/thing/Provision.ts` —
-  `Sampled(Crafted(Composed(Contaminable(WaterActivity(ThermalDose(Freshness(Thermal(Good))))))))`.
-  Its own comment: *"WaterActivity beside Freshness, NOT folded into it …
-  only one of them is true of a hide or a plank … the split is what lets
-  a tannery dry a skin without claiming it ferments."*
-- `packages/server/src/mud/lib/material/WaterActivity.ts` — per-instance
-  `moisture`/`solute`; `a_w = a_w(material) · moisture · (1 − solute)`;
-  the passive arm reconciles the ITEM against its environment
-  (`BiomeApi.localHumidityFor`, a support's `airExposure`). ⭐ This is the
-  shipped shape for *an item whose state advances against the thing it is
-  sitting in*.
-- `packages/server/src/mud/lib/material/Freshness.ts` — composed on
-  `Provision` only; `lint:perishable` (`scripts/check-perishable.ts`)
-  fails any row whose material tabulates `spoilActivationEnergy` but
-  whose class does not reach `FreshnessMixin`. No exemption list.
-- `packages/content/trade-cooking/src/idea/cmd/crafting/DryController.ts` —
-  `dry` makes nothing; it puts the cut where the air is and narrates a
-  prospect; refusal names the property (*"a hide … qualif[ies] the day
-  somebody ships one"*). `PreserveController.ts` — `cure`/`smoke` resolve
-  ONE fixed `recipeId()` through `CraftingApi.craft`; `cure.yaml` claims
-  `[cure, salt]` with `requires: any`. `salt-cure.yaml` slot is
-  `category: meat`, output `/trade/cooking/thing/treated-cut`,
-  `cure: { solute: 0.55 }`. `smoke-cure.yaml` has `cure: { moisture: 0.55 }`.
-- `packages/server/src/mud/platform/idea/api/CraftingLogic.ts:1570-1600` —
-  the tangible arm carries the inputs' microbial load and applies
-  `recipe.getCure()` to the output's water state.
+- `platform/thing/Provision.ts` — its own comment: *"WaterActivity beside
+  Freshness, NOT folded into it … only one of them is true of a hide or a
+  plank … the split is what lets a tannery dry a skin without claiming
+  it ferments."*
+- `lib/material/WaterActivity.ts` — per-instance `moisture`/`solute`;
+  the passive arm reconciles the ITEM against its environment.
+- `lib/material/Freshness.ts` — composed on `Provision` only;
+  `lint:perishable` fails any row whose material rots on a class that
+  does not reach it. No exemption list.
+- `trade-cooking/…/DryController.ts` — `dry` puts the cut where the air
+  is and narrates a prospect (*"a hide … qualif[ies] the day somebody
+  ships one"*). `PreserveController.ts` resolves ONE fixed `recipeId()`;
+  `cure.yaml` claims `[cure, salt]`, `requires: any`; `salt-cure.yaml`
+  slot `category: meat`, `cure: { solute: 0.55 }`.
+- `CraftingLogic.ts:1570-1600` — the tangible arm carries microbial load
+  and applies `recipe.getCure()`.
 
 ### Maturation — why it is NOT the tanpit's host
 
-- `packages/server/src/mud/lib/maturation/Maturing.ts:421-429` —
-  `__validateComposition__` **throws** without `BulkableMixin`; the
-  transform is `setBulkMaterial('interior', product)` (line 851). One
-  batch state per vessel, keyed to the interior material path.
-- `packages/server/src/mud/lib/maturation/MaturationProfile.ts:47-59` —
-  `MaturationMechanism` closed: `microbial | photochemical | chemical | evaporative`;
-  `chemical` has **zero rows** (14 microbial, 1 photochemical, 3
-  evaporative) and no analogue of `requiresStrain`.
-- `docs/subsystems/maturation.md:300-309` names the gap by itself:
-  *"The gap: ripening a DISCRETE thing. A wheel is a Crafted Thing, and
-  `MaturingMixin` requires a Bulkable interior — months in a cave has no
-  mechanism."*
-- `packages/content/trade-textiles/src/thing/RettingPit.ts` — a 65-line
-  `Vat` subclass; `retting.yaml` matches the MATERIAL's `retting` tag;
-  flax enters as bulk (`flax-bale.yaml` is a `GradedReceptacle`).
-- `packages/server/src/mud/platform/thing/Vat.ts` —
-  `VesselKind(Maturing(Crafted(Sealable(Thermal(Bulkable(Good))))))`;
-  **not a Container**. `packages/server/src/mud/platform/thing/CraftVessel.ts` —
-  `Contaminable(Serviceable(VesselKind(Crafted(Thermal(Bulkable(Container(Good)))))))`
-  — **both a Container and Bulkable**, exported under
-  `@saxonberg/server/mud/platform/thing/*`. `Container.ts` has no
-  size/mass acceptance rule (grep `canAccept|acceptsContainable|fits`
-  returns nothing), so a 25 kg hide goes into a vessel.
-- `packages/server/src/mud/lib/bulk/Bulkable.ts:134` — `BulkPayload` is a
-  declaration-mergeable interface (`lib/vitals/Blood.ts:41` and
-  `lib/material/Contaminable.ts:204` merge fields onto it), but the
-  transfer seam's domain branches are explicit steps in `BulkableLogic`
-  and `bulk.md` says a fourth domain is *"the moment to generalize"*.
+- `lib/maturation/Maturing.ts:421-429` throws without `BulkableMixin`;
+  the transform is `setBulkMaterial('interior', product)`. One batch per
+  vessel keyed to the interior material.
+- `lib/maturation/MaturationProfile.ts:47-59` — `chemical` has zero rows
+  and no `requiresStrain` analogue.
+- `docs/subsystems/maturation.md:300-309` names the gap: *"ripening a
+  DISCRETE thing … has no mechanism."*
+- `platform/thing/Vat.ts` — not a Container. `platform/thing/CraftVessel.ts` —
+  `Contaminable(Serviceable(VesselKind(Crafted(Thermal(Bulkable(Container(Good)))))))`,
+  exported. `Container.ts` has no size/mass acceptance rule.
 
 ### Crafting facts the candle and the salt depend on
 
-- `packages/server/src/mud/platform/idea/api/CraftingLogic.ts:1442-1530`
-  `applyTangibleOutput`: material = authored `outputMaterial`, else the
-  **primary matched ITEM's**; a bulk-only tangible (the loaf) **throws
-  unless `outputMaterial` is authored**. Mass = Σ item kg, or Σ litres ×
-  density for bulk-only.
-- `…CraftingLogic.ts:2256` and `:2885` — a `recipeRef` resolves
-  `catalogue.findByKeyword(ref) ?? catalogue.getRecipe(ref)`;
-  `packages/server/src/mud/platform/idea/RecipeCatalogue.ts` exposes
-  `getRecipe`, `findByKeyword` (one), `allRecipes()`.
-- `resolveMaker` (CraftingLogic ~2300) passes
-  `recipe.getDiscipline() || undefined`; `Employed.isFulfilling(undefined)`
-  (`lib/employment/Employed.ts:426-451`) passes **any on-shift seat
-  holder**. ⭐ An undisciplined recipe is orderable at any counter.
-- `packages/server/src/mud/platform/idea/cmd/crafting/CraftController.ts:46-73`
-  `requireDeed` — a catalogue recipe declines `not-learned` until
-  `CraftingApi.canMake` (a lived deed, or a seeded dossier a player can
-  never hold). `crafting.md:1108-1160`: a recipe with **no `discipline`
-  or no `difficulty` is ungated**. `MakeController.ts:60` calls it.
-- `packages/content/trade-apiculture/content/recipes/candle.yaml` —
-  `discipline: apiculture`, `difficulty: easy`, item slot `category: wax`,
-  `outputMaterial: beeswax`, `outputAppearance`. ⚠ **`grep candle packages/wire/tests/` is empty** —
-  no drive has ever made one, and with the gate above a player cannot.
+- `CraftingLogic.ts:1442-1530` `applyTangibleOutput`: a bulk-only
+  tangible **throws unless `outputMaterial` is authored**.
+- `CraftingLogic.ts:2256, 2885` — `findByKeyword(ref) ?? getRecipe(ref)`;
+  `RecipeCatalogue.ts` — `getRecipe`, `findByKeyword`, `allRecipes()`.
+- `resolveMaker` passes `getDiscipline() || undefined`;
+  `Employed.isFulfilling(undefined)` (`lib/employment/Employed.ts:426-451`)
+  passes any on-shift seat.
+- `CraftController.ts:46-73` `requireDeed`; `crafting.md:1108-1160`: a
+  recipe with no `discipline`/`difficulty` is ungated. `MakeController.ts:60` calls it.
+- `trade-apiculture/content/recipes/candle.yaml` — `discipline: apiculture`,
+  `difficulty: easy`, item slot `category: wax`. ⚠ **`grep candle packages/wire/tests/`
+  is empty** — no drive has ever made one; a player cannot.
   `trade-apiculture/src/__tests__/recipes.test.ts:117-125` asserts the row.
-- `packages/content/trade-apiculture/content/trade/apiculture/thing/beeswax-cake.yaml` —
-  an ITEM (`/platform/thing/Thing`, 0.15 kg, material beeswax); the
-  crush's `outputResidue`. Tallow is BULK in a crock. ⭐ The two
-  feedstocks have different shapes.
-- `packages/content/generic-objects/content/stuff/thing/candle.yaml` —
-  `class: /platform/thing/Lamp`, three beeswax welds, `lit: false`
-  (`lint:light-sources` clause g), `fuel` reserve, 12 lm / 1900 K. Named
-  by exactly one row: the apiculture recipe.
-  ⚠ The task's note about a separate `/platform/thing/Candle` class is
-  **stale**: `grep -rn "class Candle" packages/server/src` finds only
-  three test-local fixtures, and `docs/subsystems/light.md:916-918`
-  records it *"retired unrowed"*. Nothing to delete.
-- `packages/server/src/mud/lib/description/Visible.ts:325-332` —
-  `getShortDescription()` renders `GrammarApi.phrase(this.shortDescription, this.register)`;
-  no templating from material. `Material.appearance` (`getAppearance()`)
-  is read by bulk contents, `Floor`, `EatController`, `BlendIdentity`.
-- `packages/server/src/mud/lib/perception/SmellSource.ts:38-43` —
-  `SmellSourceMixin`: `odorIdentity` + `emittedConcentration`; the
-  platform ships a `smell` verb (`platform/cmd/perception/smell.yaml`).
-- Milling: `packages/content/trade-milling/content/trade/milling/thing/quern.yaml`
-  is a `GristMill` (`ComminutingMixin`) with a FIXED `productMaterial`
-  (wheat-flour) and `capabilities: [millstone]`. It cannot grind bone; a
-  recipe with `toolCapabilities: [millstone]` can be ground beside it.
-  `crush-comb.yaml` proves an item-only input fills a bulk output at
-  `outputPortionL`.
+- `trade-apiculture/…/thing/beeswax-cake.yaml` — an ITEM (0.15 kg).
+  Tallow is BULK. ⭐ The two feedstocks have different shapes.
+- `generic-objects/…/thing/candle.yaml` — `Lamp`, three beeswax welds,
+  `lit: false`, named by exactly one row. The `/platform/thing/Candle`
+  class the task mentioned is **already retired** (`light.md:916-918`;
+  only test-local fixtures bear the name).
+- `lib/description/Visible.ts:325-332` — `getShortDescription()` renders
+  the stored stem; no material templating. `lib/perception/SmellSource.ts:38-43`
+  — `odorIdentity` + concentration; a `smell` verb ships.
+- Milling: `quern.yaml` is a `GristMill` with a fixed `productMaterial`
+  and `capabilities: [millstone]`; `crush-comb.yaml` proves an item-only
+  input fills a bulk output at `outputPortionL`.
 
 ### Forestry
 
-- `packages/content/trade-forestry/src/idea/cmd/forestry/FellController.ts` —
-  `dropStandard(giver, room, woodMaterialPath, seedPath)` mints one
-  `Bole`, `LOGS_PER_STANDARD = 4` logs, a seed; `stamp()` every good to
-  the feller; `capture(stand)` + `capture(giver)`. The planted-tree path
-  reads the stand's mix entry first, else the `Plant`'s own fields.
-- `packages/content/trade-forestry/src/lib/Stand.ts:102-117` —
+- `trade-forestry/src/idea/cmd/forestry/FellController.ts` —
+  `dropStandard(giver, room, woodMaterialPath, seedPath)` mints a bole,
+  four logs, a seed; stamps and captures. `src/lib/Stand.ts:102-117` —
   `StandSpecies { speciesPath, name, woodMaterialPath, seedPath, standing, capacity, incrementPerYear }`;
-  `setMix` (275-281) copies the known keys. The mix is authored per Wood
-  row: `packages/content/rejection/…/hanging-wood/oak-clearing.yaml`
-  (oak: 12/14, `seedPath: /trade/forestry/thing/seed/acorn`; ash). The
-  oak species row (`trade-forestry/content/stuff/idea/species/…/quercus/robur.yaml`)
-  carries no felling facts; they live on the mix entry.
-- `…/thing/timber.yaml` and `log.yaml` — `Good` / `Firewood` rows with
-  material restamped at the mint. No bark material anywhere
-  (`trade-medicine`'s `willow-bark` is a drug, not tanbark).
+  `setMix` (275-281). The mix is authored per Wood row
+  (`rejection/…/hanging-wood/oak-clearing.yaml`). `timber.yaml` is a `Good`.
 
 ### Feeding, soil, pets
 
-- `packages/server/src/mud/platform/idea/cmd/bulk/FeedController.ts` —
-  `feed <bed> [with <source>]`: source must carry the `compost` tag,
-  credits the ground's **nitrogen** at `POINTS_PER_LITRE = 10`.
-  `lib/husbandry/Soil.ts:175-190` has the organic-matter "work in"
-  face beside it. Reserves: moisture · nitrogen · organicMatter ·
-  structure — no phosphorus.
-- `packages/server/src/mud/lib/behavior/feeds.ts` — eats from a `Feeder`
-  of its species' kind, or off the **ground** when `feedsBy('ground')`;
-  below `steady` only when every person present is known
-  (*"it waits until you step back"*); must not read metabolism before
-  finding food.
-- `packages/content/trade-ranching/content/trade/ranching/agent/farm-dog.yaml` —
-  `class: /trade/ranching/agent/WorkingAnimal` (= `HandledMixin(KeptAnimal)`,
-  so `Named`, `Bonded`, `Behaved` with `herds`/`follows`/`feeds`/`homes`).
-  ⚠ **Cast by nobody** (`grep -rn "trade/ranching/agent/farm-dog" packages/content`
-  returns nothing). No authored `KeptAnimal` row anywhere has a `name:`.
-  `NamedMixin.fieldMeta.name` is `persistent, authorable`.
-- `packages/server/src/mud/platform/idea/cmd/social/NameController.ts:61-110` —
-  naming needs `Bonded.hasChosen(actor)` (bond + followed home);
-  `pets.wire.test.ts:133` asserts `name` **refuses** a cat that never
-  followed — a drive cannot name an animal cheaply.
-- `packages/server/src/mud/lib/husbandry/Producing.ts:489-500, 995` —
-  `seedState` starts every tap at `standing: 0`; `DraftController.ts`
-  seeds flesh and handling from `HeadSeed`, never taps. ⚠ A freshly
-  drafted ewe carries no wool until game time passes.
+- `platform/idea/cmd/bulk/FeedController.ts` — source must carry
+  `compost`; credits **nitrogen** at 10 pts/L. `lib/husbandry/Soil.ts:175-190`
+  has the organic-matter work-in face. Reserves: moisture · nitrogen ·
+  organicMatter · structure.
+- `lib/behavior/feeds.ts` — eats off the **ground** when `feedsBy('ground')`;
+  below `steady` only when every person present is known.
+- `trade-ranching/…/agent/farm-dog.yaml` — `WorkingAnimal` (= `HandledMixin(KeptAnimal)`:
+  `Named`, `Bonded`, `Behaved`, `Persistable`, `Chattel`). **Cast by nobody.**
+  No authored `KeptAnimal` row has a `name:`; `NamedMixin.fieldMeta.name`
+  is authorable.
+- `platform/idea/cmd/social/NameController.ts:61-110` — naming needs
+  `hasChosen`; `pets.wire.test.ts:133` asserts `name` refuses a cat that
+  never followed.
+- `lib/husbandry/Producing.ts:489-500, 995` — `seedState` starts every tap
+  at `standing: 0`; `DraftController` seeds flesh and handling, never taps.
 
 ### The world
 
 - Heart's Delight (`packages/content/hearts-delight/`, README forbids
-  code): `location/farmstead-yard.yaml` (prose already says *"Hens"* and
-  *"a slate with prices"*; `props: [farm-shelf]`, `cast: [farmer]`),
-  `idea/farm-business.yaml` (position `farmer`, `fulfills: [cooking]`,
-  `call: rota`, operates the yard + upper bench), `agent/farmer.yaml`
-  (Odell Quist, `archetype: farmer`, dossier). Title claims under
-  `/world/terminus/hearts-delight`, `landUse: agricultural`.
-- Wharfside (`packages/content/terminus/content/world/terminus/wharfside/`):
-  `bank.yaml`, the dyehouse (zone row + `dyehouse/{idea/outfit,agent/dyer,location/floor,thing/counter}`),
-  the mill, `thing/city-outfall.yaml`, `thing/river-edge.yaml` (a water
-  `Shore`). `terminus/pack.yaml:84` claims
-  `/world/terminus/wharfside … landUse: industrial`; `:106-107` boot the
-  dyehouse floor + outfit as producers (the premises rule: a trade's
-  venue rows live with the locality and so do their boot entries). The
-  salt house is at `estuary/salt-house.yaml` (reachable from the lower
-  towpath). A water source row is `trade-brewing/…/standpipe.yaml`
-  (`class: /platform/thing/WaterFixture`).
-- The bakery: `terminus/…/market/bakery.yaml` + `thing/bread-counter.yaml`
-  (a `Stock` with `stockLines` + `prices` — *"two prices chalked on the wall"*).
-- Employment: `Position.requires` is closed to `{gigs, discipline, band}`;
-  bands are `untrained · novice · competent · proficient · expert`
-  (`lib/advancement/CompetenceBand.ts:23-37`); openings derive from
-  `headcount − holders`; `lint:openings` arm 3 requires an advertising
-  house to be a `boot:` producer of its own pack; the tailor's outfit
-  (`mayfield-row/tailor/idea/outfit.yaml:30-33`) is the exemplar
-  (`headcount: 2`, `requires: {discipline: tailoring, band: competent}`).
-- Disciplines are rows at `<root>/idea/Discipline/<key>.yaml`
-  (`trade-ranching/…/Discipline/stockmanship.yaml`, `trade-baking/…/baking.yaml`);
-  `leatherwork` is on the unminted roster (`trade-roster-slate.md:161`, 0723).
-- Packs: a capability pack is `package.json` (deps are the pack graph) +
-  `pack.yaml` (`id`, `root`, `requires.title`, `boot`) + `src/` + `content/`
-  + `vitest.config.ts` + `tsconfig.json`; `trade-apiculture` is the
-  closest shape (src with `lib/`, `thing/`, `idea/cmd/`, `__tests__/`).
-  The server's `exports` map admits `./mud/lib/*`, `./mud/api/*`,
-  `./mud/platform/{thing,idea,agent,location}/*`. The deployment manifest
-  is `packages/server/package.json`'s `@saxonberg/content-*` lines.
+  code, no `boot:` section yet): `location/farmstead-yard.yaml`
+  (`props: [farm-shelf]`, `cast: [farmer]`), `idea/farm-business.yaml`
+  (`farmer` seat, `fulfills: [cooking]`), `agent/farmer.yaml` (Odell Quist).
+- Wharfside (`terminus/content/world/terminus/wharfside/`): `bank.yaml`,
+  the dyehouse (zone + `idea/outfit`, `agent/dyer`, `location/floor`,
+  `thing/counter`), the mill, `thing/city-outfall.yaml`, `thing/river-edge.yaml`.
+  `terminus/pack.yaml:84` claims the district `landUse: industrial`;
+  `:106-107` boot the dyehouse as producers. Water source precedent:
+  `trade-brewing/…/standpipe.yaml` (`WaterFixture`). The bakery:
+  `terminus/…/market/bakery.yaml` + `thing/bread-counter.yaml` (a `Stock`
+  with `stockLines` + `prices`). Rows that exist for the yard and the
+  knacker: `trade-cooking/…/thing/butcher-block.yaml`, `cook-pot.yaml`;
+  `trade-haulage/…/thing/works-board.yaml`.
+- Employment: `Position.requires` closed to `{gigs, discipline, band}`;
+  bands `untrained · novice · competent · proficient · expert`;
+  `lint:openings` arm 3; the tailor's outfit is the exemplar.
+- Disciplines are rows at `<root>/idea/Discipline/<key>.yaml`; `leatherwork`
+  is unminted (`trade-roster-slate.md:161`, 0723).
+- Packs: `trade-apiculture` is the scaffold to copy. The server's
+  `exports` map admits `./mud/lib/*`, `./mud/api/*`,
+  `./mud/platform/{thing,idea,agent,location}/*`. `trade-farming` has
+  **no `content/recipes/` directory** (verified: `archetypes/ stuff/ trade/`).
 - The drive tier: `packages/wire/tests/<feature>.dirty.wire.test.ts`;
-  harness exports `Session`, `declareFile`, `uniqueHandle`, `expectOk`,
-  `expectRefused`, `expectNote`, `advanceWorldClock`, `worldClockNow`,
-  `isOwnedTestWorld` (`packages/wire/src/harness/`). The taps drive is
-  the newest precedent and the first that walks a season.
+  harness (`packages/wire/src/harness/index.ts`) exports `Session`,
+  `declareFile`, `uniqueHandle`, `expectOk`, `expectRefused`, `expectNote`,
+  `advanceWorldClock`, `worldClockNow`, `isOwnedTestWorld`.
 
 ---
 
 ## Plan-level decisions
 
-**D1 — The carcass is the dead animal itself; `slaughter` is a kill.**
-`slaughter <animal>` calls `ConditionApi.die(animal, 'slaughtered')`
-and nothing else lethal. The kernel's non-player branch leaves the same
-`Livestock` object in the room, dead, on the postmortem clock — which
-is exactly what a fight or starvation leaves, so AC2 is met by
-construction. The kitchen's `butcher` already accepts any dead
-`Organism` and destructs it. **Order of operations:** kill first, write
-the book second. A failed book write leaves a dead head still marked
-`drafted` — recoverable, and no animal is lost; the reverse order
-(write, then a failing kill) would leave a live animal out of the book.
-The book write moves ONTO the animal as `Livestock.leaveBook(note)`
-(it owns `herdId`/`headIndex`, exactly as it owns `bindToHerd`), and the
-controller is resolve → refuse → die → leaveBook → scene → credit.
+**D1 — One kind of death, one kind of body; `slaughter` is a kill.**
+`ConditionLogic.die`'s non-player branch mints a `Corpse` exactly as the
+player branch does and **destructs the dead thing**. Animals and NPCs are
+not distinguished; the discriminator stays `playerBodyOf` (a player
+IDENTITY — a linkdead player still divides, per the absent-body
+doctrine). The corpse carries what a dead body has — species, mass, the
+condition it died in, cause, time, the material slices, its load of
+contamination, its keywords — and drops what belonged to the living
+thing (a herd place, a tap's standing, a bond, a job). Lossy on purpose.
+`slaughter <animal>` is then `ConditionApi.die(animal, 'slaughtered')`
+and nothing else lethal; the book write follows (D1's ordering below);
+the kitchen's `butcher` takes the corpse apart. AC2 and AC14 are met by
+construction: a fight, a fox, old age and a slaughter all leave the one
+object, and the one object composes none of a living animal's verbs.
+
+*Ordering inside `die` (the non-player branch):* sync prefix unchanged
+(`setCauseOfDeath`, `setLifecycleState('dead')` — so a read on the same
+tick sees a dead body and `diedAt` is stamped — `markDeceasedAt`, the
+accountability row) **plus `markForRevert()` when the host is
+`Persistable`** (so no capture can write a dead body in the one-await
+window; the player path does the same); async tail: `recordDeathDeed`,
+then take the slices, mint the corpse (D16), then
+`await StuffApi.destruct(host)`. **After every `await`, `if (host.isDestroyed()) return`**
+— the fox destructs a bird it has put in the dying window, and the
+expiry may run `die` on it later.
+
+*Ordering in `slaughter`:* read `herdId`, `headIndex`, flesh and handling
+off the LIVE animal (it will not exist afterwards) → `await die` → write
+the book through the registry (`returnHead(…, { note: 'slaughtered', flesh, handling })`
++ tally − 1). A failed write leaves a dead head still marked `drafted` in
+the book — over-counted by one, recoverable, nothing alive lost; the
+reverse order would leave a live animal out of the book if the kill
+failed. `Livestock.leaveBook()` from the first draft is **dropped**: the
+animal is gone by the time the book is written, and the registry's
+`returnHead` is already a method on the object that owns the book.
 
 **D2 — The yield shape: a fraction line beside the count line.**
-`ButcheryYield` becomes `{ cut; units; fraction?; conditioned? }`.
-A line with no `fraction` is the shipped count shape (fish, wolf, hog,
-pony — no row changes). A line with `fraction` yields
-`liveKg × fraction × finish` kilograms, where `finish` is the shipped
-`clamp01(0.55 + (flesh − 30)/90)` when `conditioned` is true (the
-default) and `1` when false (hide, bone — a thin cow still has a whole
-hide); `units` is then **how many pieces it is cut into**, each
-`kg/units`. The arithmetic lives on `Species` as
-`dressOut({ liveKg, fleshPct }): DressedLine[]` (the species' answer;
-`massAt` is the precedent), and the kitchen's controller applies the
-skill multiplier and the floor-of-one as it does today. Reasoning: the
-product requirement is *size and condition pay off, for every species*;
-a count cannot express a 70 kg ewe against a 550 kg cow, and a
-mass-shaped single object (the stockyard's 231 kg "cut") is unusable by
-a kitchen whose recipes take `count: 2`. Twelve pieces of 19 kg off a cow
-is a primal; twelve of 2.4 kg off a ewe is a joint.
+`ButcheryYield` becomes `{ cut; units; fraction?; conditioned? }`. No
+`fraction` = the shipped count shape (fish, wolf, hog, pony unchanged).
+With `fraction`: `kg = liveKg × fraction × finish`, `finish` the shipped
+`clamp01(0.55 + (flesh − 30)/90)` when `conditioned` (default) else 1
+(hide, bone); `units` is how many pieces, each `kg/units`. The
+arithmetic is `Species.dressOut({ liveKg, fleshPct }): DressedLine[]`;
+the kitchen applies skill and the floor-of-one. The corpse supplies
+`liveKg` (its stamped mass) and `fleshPct` (its stamped
+`conditionAtDeath`, D16).
 
 **D3 — Suet is not tallow, and raw fat does not fry.**
-`/trade/ranching/thing/tallow.yaml` is renamed `suet.yaml`
-("lump of suet", keywords `[suet, fat, leaf, kidney]` — never `tallow`).
-The commons `animal-fat` material drops the `fat` tag (the cooking
-MEDIUM tag) and gains `suet`; `render-tallow.yaml`'s slot becomes
-`category: suet`. Nothing else matches `rendering`/`suet`
-(`grep -rn "category: fat\|medium: fat" packages/content` → two
-frying recipes, which read the rendered tallow's own `fat` tag).
+`tallow.yaml` → `suet.yaml` ("lump of suet", keywords `[suet, fat, leaf, kidney]`);
+`animal-fat` drops the `fat` tag and gains `suet`; `render-tallow`'s
+slot becomes `category: suet`. The two frying recipes read the rendered
+tallow's own `fat` tag and are untouched.
 
 **D4 — The tanpit: the HIDE reconciles against the pit it is in.**
-See Host placement. Candidate (c). Maturation is not used; no
-`MaturationProfile` field is added.
+Unchanged from the first draft; see Host placement. Maturation is not
+used; no `MaturationProfile` field is added.
 
 **D5 — Bark is a felling fact on the stand's mix entry.**
-`StandSpecies.barkPath?: string | null`, authored beside `seedPath`
-on the Wood row — *what a felled one is made of, drops, and sheds*. The
-oak entry at `oak-clearing.yaml` authors `/trade/forestry/thing/bark`;
-ash, birch and maple do not. `dropStandard` mints
-`BARK_BUNDLES_PER_STANDARD = 4` bundles whose mass sums to
-`BARK_FRACTION_OF_BOLE = 0.08` of the bole (≈ 13 kg each — carryable).
-The planted-tree path reads the stand entry (else no bark), as it reads
-`woodMaterialPath` today. Rejected: a `Species` field (a kernel edit for
-one trade's fact, and the shipped pattern already keeps the wood and the
-seed on the mix entry — promoting all three to `Species` is forestry's
-own open design, deferred); a material tag on the wood (a tag cannot
-name a row to mint).
+`StandSpecies.barkPath?: string | null` beside `seedPath`; the oak entry
+at `oak-clearing.yaml` authors `/trade/forestry/thing/bark`; `dropStandard`
+mints `BARK_BUNDLES_PER_STANDARD = 4` bundles summing to
+`BARK_FRACTION_OF_BOLE = 0.08` of the bole (≈ 13 kg each). Rejected: a
+`Species` field (the wood and the seed already live on the mix entry;
+promoting all three is forestry's own open design).
 
 **D6 — One candle: a bulk dip, material derived, no Discipline.**
-The candle recipe takes a **bulk** slot (`category: candle-stock`,
-`measureL: 0.12`, `requiresHeatK: 340` — above both melting points),
-`outputApplication: tangible`, `outputMaterial: ''`, **no `discipline`
-and no `difficulty`** (ungated — the requirements' own finding, and the
-only way a player can make one at all; see Grounding). Beeswax and
-tallow each gain the `candle-stock` tag (two material rows). The wax
-cake becomes bulk through a second recipe, `melt-wax` (item `beeswax`
-→ bulk beeswax into a `dip-pot`, `requiresHeatK: 335`); tallow is
-already bulk from the render. The candle row moves from generic-objects
-to `/trade/chandlery/thing/candle` naming the pack's `Candle` class
-(`extends Lamp`), whose `getShortDescription()` / `getLongDescription()`
-derive from the material (`<material> candle`; *"a hand-dipped taper of
-<appearance>, a linen wick down the middle of it"*) and which composes
-`SmellSourceMixin` with `odorIdentity` = the material's name. The two
-materials' `appearance` strings carry the smell in prose (*"smelling
-faintly of mutton"* / *"smelling of honey"*). Kernel slice: the
-tangible arm derives its material from the **primary bulk input** when
-`outputMaterial` is empty and no item matched (today it throws; a loaf
-keeps authoring its material because bread is not dough). The
-apiculture recipe and its row test are deleted.
+Bulk slot `category: candle-stock` (`measureL: 0.12`, `requiresHeatK: 340`),
+`outputApplication: tangible`, `outputMaterial: ''`, **no `discipline`,
+no `difficulty`** (the only way a player can make one). `beeswax` and
+`tallow` gain `candle-stock`; `melt-wax` turns the cake into bulk in a
+`dip-pot`. The candle row moves to `/trade/chandlery/thing/candle`
+naming the pack's `Candle extends Lamp` (+ `SmellSourceMixin`) whose
+descriptions derive from the material. Kernel slice: the tangible arm
+derives material from the primary bulk input when `outputMaterial` is
+empty and no item matched.
 
-**D7 — Two packs, scaffolded from `trade-apiculture`.**
-`trade-tanning` (root `/trade/tanning`; src `lib/Tanning.ts`,
-`thing/Hide.ts`, `thing/Tanpit.ts`, `idea/cmd/tanning/TanController.ts`)
-and `trade-chandlery` (root `/trade/chandlery`; src `thing/Candle.ts`).
-Each: `pack.yaml` with the forestry-shaped title claim
-(`{ extent: /trade/<x>, holder: { organization: /compact/trade } }`),
-`package.json` depending on `@saxonberg/server`, `-platform`,
-`-base-library`, `-generic-objects` (tanning also `-trade-cooking` for
-nothing at the class level — omit; the salt recipe is rows). Both are
-added to `packages/server/package.json` (the deployment manifest), then
-`pnpm install`. The hide ROW stays ranching's and names tanning's CLASS
-(the fleece precedent, `trade-ranching/pack.yaml` describes it), so
+**D7 — Two packs, scaffolded from `trade-apiculture`.** `trade-tanning`
+(`/trade/tanning`; `lib/Tanning.ts`, `thing/Hide.ts`, `thing/Tanpit.ts`,
+`idea/cmd/tanning/TanController.ts`) and `trade-chandlery`
+(`/trade/chandlery`; `thing/Candle.ts`). Both added to
+`packages/server/package.json`; `pnpm install`. The hide ROW stays
+ranching's and names tanning's CLASS (the fleece precedent), so
 `trade-ranching/package.json` gains `@saxonberg/content-trade-tanning`.
 
 **D8 — The named refusal is a decision in both verbs, before the data.**
-Order in `slaughter` and in the kitchen's `butcher` on a LIVE target:
+Order on a LIVE target in `slaughter` and in the kitchen's `butcher`:
 sentient → **named** (`MixinApi.isNamed(t) && t.getName() !== ''` —
-*"That is <Name>. You named it, and it is not meat."*) → species
-yield empty (*"That is not something you slaughter/butcher."*) →
-(butcher only) alive with a yield (*"It is alive. If you mean to kill it,
-say so."*). `Livestock` is not `Named`, so a head of stock never trips
-it; a `KeptAnimal` is. For the drive, Heart's Delight authors Quist's old
-dog **with a name** (`name: Moss`, via `extends:` of the ranching row)
-and casts the ranching row unnamed — AC4 and AC5 need two animals.
+*"That is <Name>. You named it, and it is not meat."*) → species yield
+empty (*"That is not something you slaughter/butcher."*) → (butcher only)
+alive with a yield (*"It is alive. If you mean to kill it, say so."*).
+`Livestock` is not `Named`; a `KeptAnimal` is. Heart's Delight authors
+Quist's dog **with a name** (Moss) and casts the ranching row unnamed —
+AC4 and AC5 need two animals.
 
-**D9 — Retiring the two collision lines.** W1 deletes the ranching
-`butcher.yaml` and the `butcher:` line together; W2 drops `dress` from
-cooking's view and the `dress:` line together. Each wave heals one
-collision and deletes its row in the same commit, which is the gate's
-own rule.
+**D9 — Retiring the two collision lines.** W2 deletes the ranching
+`butcher.yaml` and the `butcher:` allowlist line together; W3 drops
+`dress` and the `dress:` line together.
 
-**D10 — Bone meal is a ground BULK, made beside a millstone, worked in
-as organic matter.** `trade-farming` ships the `bone-meal` material
-(`/stuff/idea/material/bulk/bone-meal`, tags
+**D10 — Bone meal is a ground BULK, made beside a millstone, worked in as
+organic matter.** `trade-farming` ships `bone-meal` (material, tags
 `[granular, solid, compost, feed, bone-meal, slow-amendment]`) and the
-`bone-meal` recipe (item `category: bone` ×1 → bulk 4 L into an empty
-`sack`-kind vessel, `toolCapabilities: [millstone]`, no discipline).
-`FeedController` gains one branch: a source tagged `slow-amendment`
-credits the ground's **organicMatter** through `Soil`'s work-in face
-instead of nitrogen (*"a slow amendment by the act that works muck
-in"* — honest, and no fifth reserve). The dog loaf
-(`trade-baking`: `dog-bread` recipe — bran 0.5 L · offal ×1 · bone-meal
-0.2 L · `cooking-fat` 0.1 L, oven heat, `discipline: baking`,
-`difficulty: easy`; `dog-loaf` Provision row; `dog-bread` material,
-edible, tags `[food, bread, feed]`) takes bone meal as bulk, so one step
-serves both buyers.
+recipe (item `bone` ×1 → bulk 4 L into an empty `sack`, `toolCapabilities: [millstone]`).
+`FeedController` gains one branch: `slow-amendment` credits
+**organicMatter**. The dog loaf (`trade-baking`: bran 0.5 L · offal ×1 ·
+bone-meal 0.2 L · `cooking-fat` 0.1 L, oven heat, `baking`/`easy`;
+`dog-loaf` Provision; `dog-bread` material) takes it as bulk.
 
 **D11 — The flock is a row, the killing place is prose and a block.**
-`hearts-delight/thing/flock-book.yaml` (`class: /trade/ranching/thing/Herdbook`,
-`herdId: delight-flock`, species `ovis/aries`, `tally: 12`,
-`holderRef: organization:/world/terminus/hearts-delight/idea/farm-business`,
-`homeExtent: /world/terminus/hearts-delight`), on the yard's `props:`
-with a `boot:` entry (the book files on `onCreate`). The yard gains
-cooking's butcher block as a prop and a sentence. The hearts-delight
-`package.json` gains `-trade-ranching` and `-trade-cooking`.
+`hearts-delight/thing/flock-book.yaml` (`Herdbook`, `delight-flock`,
+`ovis/aries`, `tally: 12`, holder the farm business, home the parcel) on
+the yard's `props:` with a `boot:` entry; the yard gains cooking's butcher
+block and a sentence.
 
-**D12 — Three premises, three vacant seats, no new Cast.** Under
-`terminus/content/world/terminus/wharfside/`: `tannery/`
-(yard with two tanpits, a `WaterFixture` leat, a consignment shelf;
-outfit with `tanner` seat, `headcount: 1`, `requires: {discipline:
-leatherwork, band: novice}`), `knackers-yard/` (yard with a butcher
-block, a cook pot, a hearth, a tallow crock, a haulage works-board — the
-knacker COLLECTS by posting a haulage job, the shipped shape at the oil
-works; outfit with `knacker` seat, `requires: {discipline: butchery,
-band: novice}`), `chandlery/` (shop with a hearth, a dip-pot, a counter
-`Stock`; outfit with `chandler` seat and **no requirement**). Each
-zone row + floor + outfit as the dyehouse is; floors and outfits are
-`boot:` producers in `terminus/pack.yaml` (`lint:openings` arm 3). Exits
-from `/world/terminus/wharfside/bank`. All under the existing industrial
-parcel; no new title. The drive takes the chandler's seat (AC12).
+**D12 — Three premises, three vacant seats, no new Cast.** Tannery
+(two tanpits, a `WaterFixture` leat, a shelf; `tanner` seat `requires:
+{discipline: leatherwork, band: novice}`), knacker's yard (butcher
+block, cook pot, hearth, tallow crock, haulage works-board — the knacker
+collects by posting a haulage job; `knacker` seat `requires: {discipline:
+butchery, band: novice}`), chandlery (hearth, dip-pot, a counter `Stock`;
+`chandler` seat, **no requirement**). Zone + floor + outfit as the
+dyehouse; floors and outfits are `boot:` producers; exits from the bank.
 
-**D13 — `leatherwork` is minted by the tanning pack**
-(`/trade/tanning/idea/Discipline/leatherwork.yaml`, skill, iscedf 0723,
-`synergizes: [textiles, tailoring]`). `tan` credits it; the jerkin stays
-`tailoring`.
+**D13 — `leatherwork` is minted by the tanning pack** (skill, iscedf 0723,
+`synergizes: [textiles, tailoring]`). `tan` credits it; the jerkin stays `tailoring`.
 
-**D14 — A dead animal answers no ranching verb.** `handle`, `return`,
-`breed` (ranching controllers) and the kernel `TapActController`
-(`milk`/`shear`/`gather`) refuse an `Organism` that `isDead()` in words.
-This is the price of D1 and the plan pays it explicitly.
+**D14 — DELETED (2026-10-04).** It read *"a dead animal answers no
+ranching verb"* and paid for the same-object death with six guards. A
+`Corpse` composes neither `ProducingMixin`, `HandlingMixin` nor
+`BondedMixin`, so `milk`/`shear`/`gather`/`handle`/`return`/`breed`
+cannot bind it and nothing has to say no. **No guard survives on its own
+merits**: the only one that looked tempting — `TapActController`
+refusing a dead Organism — would be a check against a host set that can
+no longer contain one. The number is kept so earlier citations stay
+readable.
 
-**D15 — The tanning numbers are constants on the mixin**, not a
-profile row: one consumer, and a 1:1 row with a catalogue to warm would
-be the "separate butchery Idea" the species doc already refused.
+**D15 — The tanning numbers are constants on the mixin**, not a profile row.
+
+**D16 — What the corpse carries, and where it lives.** The mint
+(`mintCorpseFrom`, extracted from `divideBody` into the shared tail)
+stamps through the existing `dataOverlay`: `shortDescription` (as today),
+`register`, `_speciesPath`, `causeOfDeath`, `diedAtGameSec`, **`mass`**
+(the body's full `getMass()` — a fresh clone would otherwise derive a
+newborn's), **`bornAt`** (so `getAgeDays()` is the age at death and
+`race.md:735`'s claim stays true), **`conditionAtDeath`** (the `flesh`
+reserve at the moment of death, or `null` — a stamped number, never a
+reserve: *"a dead animal's condition cannot change"*), and **`keywords`**
+(the row's `[body, corpse, carcass]` ∪ the dead thing's own, so `butcher
+ewe` and `look clerk` both find the body). Then `adoptMaterialState`
+(unchanged), the loadout, the place, and
+`body.transferContaminationTo(corpse)` when both are `Contaminable`.
+Two kernel-class edits make that possible: `platform/agent/Corpse` gains
+`conditionAtDeath: number | null` (persistent) with `getConditionAtDeath()`,
+and composes `ContaminableMixin`.
 
 ---
 
@@ -500,75 +500,47 @@ be the "separate butchery Idea" the species doc already refused.
 
 | what | host | what composing it claims about every other composer |
 |---|---|---|
-| `TanningMixin` (`/trade/tanning/lib/Tanning`) — `tannage` 0..1, `tanStamp`, `_tanWorst`, reconcile-on-read | **`/trade/tanning/thing/Hide` only** | Nothing: the class has no other composer. ⚠ NOT `Provision` (would claim every food tans), NOT `Good`. The reconcile asks *"is my container a Tanpit with liquor covering me?"* — a condition read on the environment, never a narrowing of a host set, so no guard is needed anywhere. |
-| `Hide` class = `Tanning(Crafted(WaterActivity(Freshness(Thermal(Good)))))` | pack class, named by ranching's row | Freshness needs Thermal beneath it (the gauge reads host temperature); Crafted carries the grade band the pit writes and the jerkin's `minGrade` reads; WaterActivity is salting (`solute`) and is what AC6 rides. **Not** `Provision`: a hide is not food, so ThermalDose, Composed, Sampled, Contaminable and the edible surface are claims it must not make. `lint:perishable` is satisfied because the new `rawhide` material rots and the class reaches `FreshnessMixin`. |
-| `Tanpit extends CraftVessel` (`/trade/tanning/thing/Tanpit`) — `category: 'tanpit'`, 400 L, `liquidTight`, open; `liquorStrength()`, `covers(hide)`, `consumeBark(kg)`; `getLong()` reads the liquor in words | pack class | Claims a pit is a Container (hides and bark go IN it), Bulkable (water), Thermal (the liquor is as cold as the yard), Crafted/VesselKind/Serviceable/Contaminable (washable — tipping a pit is honest). Rejected `Vat`: composes `MaturingMixin` (a false claim of a batch over plain water) and is not a Container. The `tan` affordance static lives here (content affords the verb). |
-| `ButcheryYield.fraction?` / `.conditioned?` + `Species.dressOut()` | `Species` (kernel data Idea) | Additive and optional: every shipped count row is byte-identical in behaviour. `dressOut` is read by the kitchen's controller, so `lint:unconsumed-seams` does not rise. |
-| `StandSpecies.barkPath?` | the Wood row's `mix` entry (`trade-forestry/src/lib/Stand.ts`) | A stand fact beside `seedPath`; claims nothing about `Species`. |
-| `Candle extends Lamp` + `SmellSourceMixin` (`/trade/chandlery/thing/Candle`) | pack class, one row | Claims only that a candle smells of what it is made of. Lamp's `lit`/fuel/light stay authored on the row. |
-| `Livestock.leaveBook(note)` | `Livestock` | The book binding was already its field; the method is the inter-Stuff contract over it. |
+| the non-player corpse mint | `ConditionLogic.die`'s shared async tail (extracted from `divideBody`) | Claims: every `Vitals` body that dies and carries no player identity becomes a `Corpse` and is destructed. Plants (no `Vitals`) never reach `die`; colonies never flip. The player branch keeps its own choreography above the shared mint. |
+| `Corpse.conditionAtDeath` | `platform/agent/Corpse` (kernel concrete) | A fact about a corpse — the condition a body died in — on the one class that IS a corpse. Not on `PostmortemMixin` (which rides every living `Creature`) and not a reserve (a reserve reconciles; this must not). A player's corpse carries it too, harmlessly. |
+| `ContaminableMixin` on `Corpse` | `platform/agent/Corpse` | Claims every corpse can carry a silent population — true of a carcass in the sun — and is what lets the fish's outfall load survive the species-wide change. `CraftVessel` composes the same mixin for the same reason (a surface load). |
+| `TanningMixin` (`/trade/tanning/lib/Tanning`) | **`/trade/tanning/thing/Hide` only** | Nothing else composes it. NOT `Provision`, NOT `Good`. The reconcile asks *"is my container a Tanpit with liquor covering me?"* — a condition read, never a host narrowing. |
+| `Hide` = `Tanning(Crafted(WaterActivity(Freshness(Thermal(Good)))))` | pack class, named by ranching's row | Freshness needs Thermal beneath; Crafted carries the band the pit writes and the jerkin reads; WaterActivity is salting. **Not** `Provision`: a hide is not food. `lint:perishable` is satisfied because `rawhide` rots and the class reaches `FreshnessMixin`. |
+| `Tanpit extends CraftVessel` | pack class | Container (hides and bark go IN), Bulkable (water), Thermal, Crafted/VesselKind/Serviceable/Contaminable (washable). Rejected `Vat`: `MaturingMixin` is a false claim over plain water, and it is not a Container. The `tan` affordance static lives here. |
+| `ButcheryYield.fraction?` / `.conditioned?` + `Species.dressOut()` | `Species` (kernel data Idea) | Additive and optional; count rows unchanged; `dressOut` is read by the kitchen, so `lint:unconsumed-seams` does not rise. |
+| `StandSpecies.barkPath?` | the Wood row's `mix` entry | A stand fact beside `seedPath`. |
+| `Candle extends Lamp` + `SmellSourceMixin` | pack class, one row | Only candles smell of what they are made of. |
 | the named refusal | **no field** — reads kernel `NamedMixin` on whatever bound | `KeptAnimal` composes `Named`; `Livestock` does not; people are caught by `sentient` first. |
-| `slow-amendment` branch | `platform/idea/cmd/bulk/FeedController.ts` + a material TAG | A universal rule about matter, keyed on the material; no host narrows. |
-| dead-target refusal | `TapActController` (kernel) + three ranching controllers | *"An Organism that is dead gives nothing"* is true of every host; a hive is not an Organism and passes through. |
-| tangible-from-bulk material derivation | `CraftingLogic.applyTangibleOutput` | *"A tangible made only of bulk is made of its primary bulk unless the recipe says otherwise"* — universally true; the loaf still authors bread. |
-| `PreserveController.recipeFor(target)` | `trade-cooking`'s controller base | Among recipes sharing the subclass's cure axis (`solute` for `cure`), prefer the one whose item slot the named target's material satisfies; default unchanged. Cooking learns no tanning word; the tanning pack ships `salt-hide.yaml` with `cure: { solute: 0.55 }`, slot `category: rawhide`, output the hide row. |
+| `slow-amendment` branch | `FeedController` + a material TAG | A universal rule about matter. |
+| tangible-from-bulk material derivation | `CraftingLogic.applyTangibleOutput` | Universally true; the loaf still authors bread. |
+| `PreserveController.recipeFor(target)` | `trade-cooking`'s controller base | Among recipes sharing the subclass's cure axis, prefer the one whose item slot the named target satisfies; default unchanged. Cooking learns no tanning word. |
 
-### The tanpit decision, in full (D4)
+### The tanpit decision, in full (D4) — unchanged
 
 The shipped mechanism with a different feedstock is **not** maturation;
 it is `WaterActivityMixin` — an item's own state advancing against the
-thing it is sitting in, read lazily, with no far-past guard. Tanning is
-per-hide state (two hides put in a week apart are at different
-tannage), driven by a condition the pit holds (bark in water, enough of
-it to cover). The four candidates:
+thing it is sitting in. Tanning is per-hide state driven by a condition
+the pit holds.
 
-- **(a) hides as bulk, retting verbatim** — rejected. Bulk has no
-  identity; a hide is a discrete, graded, marked, carried thing, and
-  *"pour a hide into the pit"* is a sentence the fiction cannot say.
-- **(b) extend maturation to convert contained items** — rejected.
-  Maturation is one batch per vessel keyed to the interior material;
-  what changes here is each item, and what depletes is the liquor. It
-  would also be the cheese-wheel generalization built for the wrong
-  first consumer (a hide is not ripening — the liquor acts on it).
-- **(c) the hide reconciles on read; the pit is the condition** —
-  chosen. `Provision.ts` and `DryController.ts` both already name the
-  hide as this shape's next host.
-- **(d) a durative engagement** — rejected; weeks, and it holds the hands.
+- **(a) hides as bulk** — rejected: bulk has no identity; *"pour a hide"*.
+- **(b) extend maturation to items** — rejected: one batch per vessel
+  keyed to the interior material; what changes is each item, what
+  depletes is the liquor; the cheese-wheel generalization for the wrong
+  first consumer.
+- **(c) the hide reconciles on read; the pit is the condition** — chosen.
+- **(d) an engagement** — rejected; weeks, and it holds the hands.
 
-The mechanism, as the mixin will implement it (dials in one `TANNING`
-table at the top of the file, labelled playtest-tuned):
-
-- `strength = min(1, barkKg / (litres × BARK_KG_PER_L_FULL))` with
-  `BARK_KG_PER_L_FULL = 0.05` (a 400 L pit is full-strength at 20 kg —
-  two bundles); `coverage = min(1, litres / (hideKg × FLOAT_L_PER_KG))`
-  with `FLOAT_L_PER_KG = 4`; the rate is
-  `strength × coverage / TAN_DAYS_AT_FULL` per game day,
-  `TAN_DAYS_AT_FULL = 21`; frozen liquor (`< 275 K`) stalls. No
-  Arrhenius term — the player's dials are bark, water, hides per pit and
-  time, and nothing else is worth a number.
-- Over-strength (`barkKg/litres > 2 × full`) writes `_tanWorst` down
-  (the maturation worst-stretch shape); past `tannage 1.0` an unpulled
-  hide keeps accruing and loses a band per `OVERRUN_PER_BAND = 0.3`
-  (*"an over-tanned one cracks"*). At `tannage ≥ 1` the material swaps
-  `rawhide → leather`, mass × `LEATHER_YIELD = 0.45`, the band written
-  to the Crafted face, and the pit `consumeBark(hideKg × BARK_KG_PER_HIDE_KG)`
-  (`= 1.2`, destructing bundles). A hide pulled early stays `rawhide` at
-  partial tannage: it still rots (`Freshness` reads the rawhide material)
-  and `look` says which — *"the liquor was thin for it"* when its
-  recorded coverage/strength floor was low, else *"it has not been in
-  long enough"*.
-- `tan <hide> [in <pit>]` is `dry`'s twin: it puts the hide in the pit,
-  refuses in words (no bark · no water · not a hide · already leather ·
-  pit too full to cover it), narrates the prospect (*"a fortnight, if
-  the liquor holds"*), and credits `leatherwork` at standard difficulty.
-  `put hide in pit` also tans it — the clock is the hide's, not the
-  verb's. `get hide from pit` is the judgement, shipped.
-- The reagent gate (engineering question 2): **none on
-  `MaturationProfile`**, because maturation is not the host. The gate is
-  intrinsic — no bark, strength 0, nothing happens, and `look pit` says
-  *"clear water, and nothing in it to tan with"*. Recorded for whoever
-  first uses the `chemical` arm (soap's lye): `requiresReagent` would be
-  that arm's missing half, and this build did not need it.
+The mechanism (dials in one `TANNING` table, labelled playtest-tuned):
+`strength = min(1, barkKg / (litres × 0.05))`; `coverage = min(1, litres / (hideKg × 4))`;
+rate `strength × coverage / 21` per game day; frozen (`< 275 K`) stalls;
+no Arrhenius term. Over-strength (`> 2× full`) writes `_tanWorst` down;
+past `tannage 1.0` an unpulled hide loses a band per 0.3. At `≥ 1`:
+material `rawhide → leather`, mass × 0.45, band to the Crafted face,
+`pit.consumeBark(hideKg × 1.2)`. Pulled early it stays rawhide at
+partial tannage, still rots, and `look` says which (*thin* vs *not long
+enough*). `tan <hide> [in <pit>]` is `dry`'s twin; `put hide in pit`
+also tans; `get hide from pit` is the judgement. No reagent gate on
+`MaturationProfile`: maturation is not the host, and the gate is
+intrinsic (no bark → strength 0, and `look pit` says so).
 
 ---
 
@@ -576,32 +548,23 @@ table at the top of the file, labelled playtest-tuned):
 
 Checked at plan time against the current tree:
 
-- `props:` / `cast:` on every room row (the yard uses both already).
-- Locations: `SingletonCartesianLocation` for every new room, inside a
-  `CartesianZone` sub-zone row per premises (the dyehouse shape). No
-  `FurnishableRoom`.
+- `props:` / `cast:` on every room row; `SingletonCartesianLocation`
+  inside a `CartesianZone` sub-zone per premises; no `FurnishableRoom`.
 - Paths: controllers at `<root>/idea/cmd/<category>/<Name>Controller.ts`
-  with a row beside them (`lint:controller-rows`); views at
-  `<root>/cmd/<category>/<verb>.yaml`. New categories: `tanning` (the
-  trade's own step, per the CLAUDE.md verb rule); `slaughter` goes in
-  ranching's existing `ranching` category.
-- Module scope declares; pack `src/` imports the kernel by specifier
-  only (`@saxonberg/server/mud/...`); no pack imports another pack's
-  class — ranching's row names tanning's class by PATH.
-- Verbs on objects: `Livestock.leaveBook`, `Hide.reconcileTanning` /
-  `tanReport()`, `Tanpit.liquorStrength()` / `covers()` / `consumeBark()`,
-  `Species.dressOut()`. No `XApi.verb(host, …)`, no free helpers, no new
-  module category, no new `eslint-disable`.
-- Pack mixin: `static _mixinName = 'TanningMixin'` + `static _mixinRefusal`;
-  the name is nameable in `requires:` (federated registry);
-  `lint:mixin-names` refuses a duplicate.
-- Rows author `mass` + `_materialPath` (`lint:mass`), a `Lamp` row
-  authors `lit:` (`lint:light-sources`), no `\"`-opened scalars
-  (`lint:authored-prose`), every path-valued field resolves
-  (`lint:census`), no `class:` naming `/lib/` (`lint:instanceable`), new
-  roots claimed (`lint:untitled`).
-- Gates this build must pass, by wave, named in § Test & gate strategy.
-  The full family runs at every wave: `pnpm -C packages/server lint:family`.
+  with a row beside them; views at `<root>/cmd/<category>/<verb>.yaml`.
+  New category `tanning` (`tan`); `slaughter` in ranching's `ranching`.
+- Module scope declares; packs import the kernel by specifier only; no
+  pack imports another pack's class (ranching's row names tanning's class by path).
+- Verbs on objects: `Hide.reconcileTanning` / `tanReport()`,
+  `Tanpit.liquorStrength()` / `covers()` / `consumeBark()`,
+  `Species.dressOut()`, `HerdRegistry.returnHead()`,
+  `Corpse.getConditionAtDeath()`. No `XApi.verb(host, …)`, no free
+  helpers, no new module category, no new `eslint-disable`.
+- Pack mixin: `static _mixinName = 'TanningMixin'` + `static _mixinRefusal`.
+- Rows author `mass` + `_materialPath`; a `Lamp` row authors `lit:`; no
+  `\"`-opened scalars; every path-valued field resolves; nothing names
+  `/lib/`; new roots claimed.
+- The whole family runs every wave: `pnpm -C packages/server lint:family`.
 
 ---
 
@@ -610,290 +573,246 @@ Checked at plan time against the current tree:
 Each wave ends at one commit, lands independently, and runs
 `pnpm test:near` + every touched pack's own `vitest run` + `lint:family`.
 
-### W0 — The reconciliation slice (kernel)
+### W0 — One kind of body (kernel) — ⚠ the build's riskiest wave
 
-Goal: the four engine facts every later wave stands on.
+Goal: every non-player death mints a corpse and destructs the dead
+thing; every comment and doc that said otherwise is rewritten.
 
-1. `packages/server/src/mud/platform/idea/species/Species.ts` —
-   `ButcheryYield` gains `fraction?: number` and `conditioned?: boolean`;
-   `setButcheryYield` validates (`fraction ∈ (0,1]`, `units ≥ 1`);
-   `dressOut({ liveKg, fleshPct }): { cut; units; kgEach }[]` (count
-   lines → `kgEach: 0`, meaning "the row's own mass"). Docstring: the two
-   shapes and why both exist.
-2. `packages/server/src/mud/platform/idea/api/CraftingLogic.ts`
-   `applyTangibleOutput` — when `!primary` and `authoredMaterial` is
-   empty, take `matched[0]?.material`; throw only when that is null too.
-3. `packages/server/src/mud/platform/idea/cmd/inventory/TapActController.ts`
-   — after the target narrows to `Producing`, refuse an `Organism` that
-   `isDead()`: *"There is no taking anything off a dead animal."*,
-   reason `target-dead`.
-4. `packages/server/src/mud/platform/idea/cmd/bulk/FeedController.ts` —
-   a source whose material carries `slow-amendment` credits
-   `organicMatter` via the `Soil` work-in face (read
-   `lib/husbandry/Soil.ts:175-190` for the method; do not add a reserve);
-   `compost` behaviour unchanged. Help text gains one sentence.
-5. Tests: `Species.dressOut` (count line untouched; fraction × finish;
-   `conditioned: false` ignores flesh) in `platform/idea/species/__tests__/`;
-   tangible-from-bulk in `CraftingLogic`'s tests (a recipe with one bulk
-   slot and no `outputMaterial` mints the bulk's material, mass = L ×
-   density); TapAct dead refusal; FeedController slow-amendment.
+Files:
+
+1. `packages/server/src/mud/platform/idea/api/ConditionLogic.ts`
+   - Extract from `divideBody` into module-private helpers the two
+     reusable steps: `materialSlicesOf(body)` (the `MATERIAL_FORK_SLICES`
+     loop) and the enlarged `mintCorpseFrom(body, material, cause, nowS)`
+     (D16: `mass`, `bornAt`, `conditionAtDeath`, merged `keywords`,
+     contamination transfer). `divideBody` keeps calling them; its
+     step (b)/(f) comments survive unchanged.
+   - The `!player` branch: sync prefix as today **plus**
+     `if (MixinApi.isPersistable(host)) host.markForRevert()`; async
+     tail: `await recordDeathDeed(host, cause)`; `if (host.isDestroyed()) return`;
+     `const corpse = await mintCorpseFrom(host, materialSlicesOf(host), cause, nowS)`;
+     `if (host.isDestroyed()) return`; `await StuffApi.destruct(host)`.
+   - **Rewrite the two comments** (~366 *"ONE RULE, TWO MECHANISMS …
+     nothing to walk away → this Stuff simply stops"* → the rule is now
+     *one body: a corpse, however it died; what varies is whether an
+     identity walks away*; ~389 *"The body stays in the world as a
+     corpse. Never `StuffApi.destruct` here"* → *the body is replaced by
+     a corpse in the tail; the sync flip is what a same-tick reader
+     sees*). Rewrite `divideBody`'s docstring opening to say it is the
+     player's specialization of the shared mint.
+2. `packages/server/src/mud/platform/agent/Corpse.ts` — compose
+   `ContaminableMixin`; add `conditionAtDeath: number | null = null`
+   (`fieldMeta` persistent) + `getConditionAtDeath()` / `setConditionAtDeath()`.
+   Docstring: what a corpse carries and what it deliberately does not.
+3. `packages/content/generic-objects/content/stuff/agent/Corpse.yaml` —
+   `keywords: [body, corpse, carcass]`; a comment that this row is now
+   every non-player death's body, not only a player's.
+4. Docs in the same commit (they assert the old truth and a reader of
+   the branch must not be misled): `docs/subsystems/race.md:32-45` and
+   `docs/subsystems/mortality.md:243-260, 309-330` — one body, two
+   choreographies; the `ConditionLogic.die.test.ts` names.
+5. Tests (`platform/idea/api/__tests__/ConditionLogic.die.test.ts`
+   rewritten + new cases):
+   - a `Creature` with `Vitals` and no player identity: after `die`, the
+     original is `isDestroyed()`, exactly one `Corpse` stands where it
+     stood, with its `_speciesPath`, `mass` (equal to the body's full
+     `getMass()` at death), `bornAt`, `conditionAtDeath`, `causeOfDeath`,
+     `diedAtGameSec`, the merged keywords, and the body's loadout;
+     `sinceDeath()` runs on the corpse; `adoptMaterialState` carried the
+     wound map (the forensic record — the existing `:96` assertion,
+     moved onto the corpse);
+   - a `Contaminable` body's load is on the corpse;
+   - the sync prefix still flips the lifecycle and stamps the cause on
+     the same tick (`:77` unchanged);
+   - idempotency: a second `die` on the destroyed body is a no-op;
+   - **the fox race**: a body destructed between the sync prefix and the
+     tail (`StuffApi.destruct` racing the awaited clone) mints no corpse
+     and throws nothing;
+   - a `Persistable` + `Chattel` body (a `KeptAnimal` fixture): after
+     `die`, `shouldPersist()` was false before destruct (no capture
+     written), its chattel id is released, and `ChattelApi.pinned()` no
+     longer lists it;
+   - an engaged body: its engagement terminates `host-destroyed` (the
+     `SchedulerRegistry` subscription) — assert the abort note;
+   - a `Behaved` body: `_teardownBehaviors` ran (no beat fires after);
+   - the player branch is byte-for-byte unaffected (the existing player
+     tests pass unchanged).
+   - `CombatLogic` tests: the cull on a non-sentient combatant resolves
+     the session, and the victim is a corpse on the next tick with no
+     error logged (`endWith` runs before the destruct, by construction).
+
+What proves this wave beyond its tests: **W9's drive**, checkpoints for
+AC14 (a dead ewe offers nothing — `shear body` and `handle body` fail to
+bind; `look` at it lists no living affordance) and AC15 (a drafted ewe
+killed in a fight leaves a body and the session ends with no
+`controller-error`; the unnamed collie killed mid-errand leaves a body
+and an `engagement-cancelled` note of `host-destroyed`, not a stuck
+brain).
+
+Acceptance: `lint:family` green; `lint:gates` (the `adoptMaterialState`
+gate still names its one caller); the suite's death tests green.
+Commit: `build(carcass W0): one kind of body — every death that is not a player's mints a corpse`.
+
+### W1 — The reconciliation slice (kernel)
+
+1. `platform/idea/species/Species.ts` — `ButcheryYield` gains
+   `fraction?` / `conditioned?`; `setButcheryYield` validates;
+   `dressOut({ liveKg, fleshPct })`.
+2. `platform/idea/api/CraftingLogic.ts` `applyTangibleOutput` — when
+   `!primary` and `authoredMaterial` is empty, take `matched[0]?.material`;
+   throw only when that is null too.
+3. `platform/idea/cmd/bulk/FeedController.ts` — `slow-amendment` →
+   organicMatter via `Soil`'s work-in face (`Soil.ts:175-190`); `compost`
+   unchanged; help text gains a sentence.
+4. Tests: `dressOut` (count line untouched; fraction × finish;
+   `conditioned: false` ignores flesh); tangible-from-bulk; FeedController slow-amendment.
 
 Acceptance: `lint:family` green; `unconsumed-seams` ≤ 19.
-Commit: `build(carcass W0): the reconciliation slice — yield shape, bulk-made tangibles, a dead animal gives nothing, bone into the soil`.
+Commit: `build(carcass W1): the reconciliation slice — yield shape, bulk-made tangibles, bone into the soil`.
 
-### W1 — Ranching: one slaughter
+### W2 — Ranching: one slaughter
 
-Files under `packages/content/trade-ranching/`:
+Under `packages/content/trade-ranching/`:
 
-- `src/idea/cmd/ranching/SlaughterController.ts` (new) — resolve target
-  (`model.target?.stuff`); refusals in D8 order; `await ConditionApi.die(animal, 'slaughtered')`;
-  if the body is a `Livestock` with a herd, `await animal.leaveBook('slaughtered')`;
-  scene (*"It is quick. <It> goes down where it stood."* / peers);
-  credit `STOCKMANSHIP`, difficulty `standard`. Export nothing but the class.
+- `src/idea/cmd/ranching/SlaughterController.ts` (new) — resolve target;
+  D8 refusals on the live animal; read `herdId`/`headIndex`/flesh/handling
+  **before** the kill; `await ConditionApi.die(animal, 'slaughtered')`;
+  if `herdId` was set, `registry.returnHead(herdId, index, { note: 'slaughtered', flesh, handling })`
+  + tally − 1 (the registry via `StuffApi.singleton<HerdRegistry>(HERD_REGISTRY_PATH)`);
+  scene (*"It is quick. <It> goes down where it stood, and what is left
+  is a body."* / peers); credit `STOCKMANSHIP`, `standard`.
 - `content/trade/ranching/cmd/ranching/slaughter.yaml` (new) —
-  `verbs: [slaughter]`, validators animate/conscious/embodied, `target`
-  `required`, `scope: [reachable]`, `requires: HandlingMixin` (the set
-  of animals you can put hands on — the dog must BIND so the refusal can
-  be said). Help text states: no ceremony; it leaves a carcass; `butcher`
-  it with a blade.
-- `content/trade/ranching/idea/cmd/ranching/SlaughterController.yaml` (new) — `class:` + `data: {}`.
-- **Delete** `src/idea/cmd/ranching/ButcherController.ts`,
-  `content/trade/ranching/cmd/ranching/butcher.yaml`,
-  `content/trade/ranching/idea/cmd/ranching/ButcherController.yaml`.
-- `src/agent/Livestock.ts` — `commandContributions.peers`: replace
-  `butcher.yaml` with `slaughter.yaml`; add `leaveBook(note: string): Promise<void>`
-  (returnHead + tally − 1 through `StuffApi.singleton<HerdRegistry>(HERD_REGISTRY_PATH)`;
-  a no-op when `herdId` is empty).
-- Dead guards (D14): `HandleController.ts`, `ReturnController.ts`,
-  `BreedController.ts` — refuse `MixinApi.isOrganism(t) && t.isDead()`
-  in words before anything else.
-- Species rows (`content/stuff/idea/species/…`): `ovis/aries` — stew-meat
-  `{fraction: .40, units: 12}`, offal `{.10, 2}`, suet `{.04, 1}`, hide
-  `{.08, 1, conditioned: false}`, bone `{.12, 2, conditioned: false}`;
-  `bos/taurus` — .42/12 · .12/3 · .05/2 · .07/1 · .12/4; `sus/domesticus`
-  — .50/12 · .12/3 · suet .08/2 · hide .06/1 · bone .10/2;
-  `gallus/domesticus` — stew-meat `{units: 2}`, offal `{units: 1}` (count
-  shape; no hide); `canis/familiaris` — **none**, with a comment saying
-  the absence is the refusal.
-- `content/trade/ranching/thing/tallow.yaml` → `suet.yaml` (D3);
-  `base-library/…/material/food/animal-fat.yaml` tags (D3);
-  `trade-cooking/content/recipes/render-tallow.yaml` slot `category: suet`.
+  `verbs: [slaughter]`; `target` `requires: HandlingMixin` (the dog must
+  BIND so the refusal can be said); help says it leaves a body and
+  `butcher` takes it apart with a blade.
+- `content/trade/ranching/idea/cmd/ranching/SlaughterController.yaml` (new).
+- **Delete** the ranching `ButcherController.ts`, `butcher.yaml`,
+  `ButcherController.yaml`; `Livestock.commandContributions.peers`
+  swaps `butcher.yaml` → `slaughter.yaml`. **No dead guards anywhere**
+  (D14 deleted); `ReturnController`/`HandleController`/`BreedController` untouched.
+- Species yields (`content/stuff/idea/species/…`): `ovis/aries` —
+  stew-meat `{fraction: .40, units: 12}`, offal `{.10, 2}`, suet `{.04, 1}`,
+  hide `{.08, 1, conditioned: false}`, bone `{.12, 2, conditioned: false}`;
+  `bos/taurus` — .42/12 · .12/3 · .05/2 · .07/1 · .12/4; `sus/domesticus` —
+  .50/12 · .12/3 · suet .08/2 · hide .06/1 · bone .10/2; `gallus/domesticus`
+  — stew-meat `{units: 2}`, offal `{units: 1}`; `canis/familiaris` — **none**,
+  with the comment that the absence is the refusal.
+- `tallow.yaml` → `suet.yaml`; `base-library/…/animal-fat.yaml` tags;
+  `trade-cooking/content/recipes/render-tallow.yaml` slot `category: suet` (D3).
 - `packages/server/scripts/check-verb-collisions.ts` — delete the `butcher:` line.
-- `pack.yaml` — `boot:` sync-read entries for the five farm species
-  (the apiculture lesson: `ProducingMixin.taps()` resolves the species
-  synchronously). Verify first whether `DraftController` already
-  preloads; add the entries regardless — a pack declares its own rows'
-  warmth.
-- Tests: rewrite `src/__tests__/carcass-rows.test.ts` to walk the five
-  species rows' `butcheryYield[].cut` (every path a shipped row, none a
-  material); `slaughter.test.ts` — kill first/book second ordering (a
-  stubbed failing `leaveBook` leaves a dead, still-drafted head), the
-  named refusal, the no-yield refusal, the dog binding; dead guards.
+- `pack.yaml` — `boot:` sync-read entries for the five farm species.
+- Tests: rewrite `carcass-rows.test.ts` to walk the five species rows'
+  `butcheryYield[].cut`; `slaughter.test.ts` — a drafted head dies and a
+  `Corpse` with its herd's species and the head's mass/condition stands in
+  its place; the book says `slaughtered` and the tally fell; a stubbed
+  failing write leaves the corpse standing and the head `drafted`; the
+  named and no-yield refusals; the dog binds.
 
-Acceptance: `lint:verb-collisions` green with the line gone;
-`lint:controller-rows`; `lint:census`; pack suite green.
-Commit: `build(carcass W1): slaughter is a kill — the carcass is the join, the stockyard's butcher retired`.
+Acceptance: `lint:verb-collisions`, `lint:controller-rows`, `lint:census`, pack suite.
+Commit: `build(carcass W2): slaughter is a kill — the corpse is the join, the stockyard's butcher retired`.
 
-### W2 — Cooking: `butcher` reconciled
+### W3 — Cooking: `butcher` reconciled
 
-Files under `packages/content/trade-cooking/`:
+Under `packages/content/trade-cooking/`:
 
-- `src/idea/cmd/crafting/ButcherController.ts` — reorder for a live
-  target (D8); `species.dressOut({ liveKg: body.getMass(), fleshPct })`
-  where `fleshPct = body.getReserve('flesh')?.current ?? 55`; for a
-  fraction line mint `units` clones each `setMass(kgEach × (0.5 + 0.5 skill))`;
-  count lines unchanged. Keep `ageAtKill`, `spillGut`, the block, the
-  destruct. Delete the *"today the only one is a fish"* comment if the
-  Contaminable carry now reaches stock.
-- `content/trade/cooking/cmd/crafting/butcher.yaml` — `verbs: [butcher]`;
-  help: *"A live animal is slaughtered, not butchered."*
-- `src/idea/cmd/crafting/PreserveController.ts` — `recipeFor(target)`
-  (Host placement table); `CureController` names its axis `solute`.
-- `packages/server/scripts/check-verb-collisions.ts` — delete the `dress:` line.
-- Tests: `butchery.test.ts` — a live named animal, a live unyielding
-  animal, a live yielding animal; a 70 kg dead ewe yields twelve joints
-  summing to ≈ 0.40 × 70 × finish; a cow yields more than a ewe (AC3);
-  `PreserveController` picks a target-matching salt recipe when one
-  exists and the default otherwise.
+- `ButcherController.ts` — reorder for a live target (D8); on a dead
+  body: `species.dressOut({ liveKg: body.getMass().rawValue(), fleshPct })`
+  where `fleshPct = body instanceof Corpse ? body.getConditionAtDeath() ?? 55 : 55`
+  (import `Corpse` from `@saxonberg/server/mud/platform/agent/Corpse`);
+  fraction lines mint `units` clones each `setMass(kgEach × (0.5 + 0.5 skill))`.
+  Keep `ageAtKill(sinceDeath)`, `spillGut`, the block, the destruct.
+  Update the *"today the only one is a fish"* comment: every corpse is
+  `Contaminable` now.
+- `butcher.yaml` — `verbs: [butcher]`; help: *"A live animal is slaughtered, not butchered."*
+- `PreserveController.ts` — `recipeFor(target)`; `CureController` names its axis `solute`.
+- `check-verb-collisions.ts` — delete the `dress:` line.
+- Tests: live named / live unyielding / live yielding refusals; a 70 kg
+  ewe's corpse yields twelve joints ≈ 0.40 × 70 × finish; a cow's yields
+  more (AC3); a corpse carrying contamination passes it to the cuts;
+  `recipeFor` picks a target-matching salt recipe.
 
-Acceptance: `lint:verb-collisions` green; pack suite green.
-Commit: `build(carcass W2): butcher takes the animal's own yield, and dress is nobody's`.
+Acceptance: `lint:verb-collisions`, pack suite.
+Commit: `build(carcass W3): butcher takes the animal's own yield off its corpse, and dress is nobody's`.
 
-### W3 — `trade-tanning`
+### W4 — `trade-tanning`
 
-- Scaffold `packages/content/trade-tanning/` from `trade-apiculture`
-  (package.json name `@saxonberg/content-trade-tanning`, pack.yaml
-  `root: /trade/tanning` + title claim, vitest.config.ts, tsconfig.json,
-  README one paragraph). Add to `packages/server/package.json`;
-  `pnpm install`.
-- `base-library/content/stuff/idea/material/organic/rawhide.yaml` (new) —
-  tags `[organic, skin, rawhide, once-living]` (⚠ **not** `hide`),
-  `spoilActivationEnergy: 70000`, `waterActivity: 0.98`, density 1000,
-  `biologicalSource: null`. Edit `leather.yaml`'s comment to say the
-  pit makes it.
-- `src/lib/Tanning.ts`, `src/thing/Hide.ts`, `src/thing/Tanpit.ts` (D4,
-  Host placement). `Tanpit.commandContributions` affords
-  `trade/tanning/cmd/tanning/tan.yaml` to `environment` + `peers`.
-- `src/idea/cmd/tanning/TanController.ts` + row + `content/trade/tanning/cmd/tanning/tan.yaml`
-  (`verbs: [tan]`; `hide` arg `requires: TanningMixin`; `pit` arg
-  `prepositions: [in]`, `default: "reachable:[mixin.BulkableMixin and mixin.ContainerMixin]"`,
-  `requires: [ContainerMixin]`; the controller narrows to `Tanpit` —
-  `lint:instrument-args` holds).
-- Rows: `content/trade/tanning/thing/tanpit.yaml` (`class: /trade/tanning/thing/Tanpit`,
-  mass 60, `fixedInPlace: true`, prose), `content/trade/tanning/idea/Discipline/leatherwork.yaml`
-  (D13), `content/recipes/salt-hide.yaml` (slot `category: rawhide`,
-  salt 0.2 L, `cure: { solute: 0.55 }`, `outputTemplate: /trade/ranching/thing/hide`,
-  `keywords: [salt-hide]`, no discipline).
-- `trade-ranching/content/trade/ranching/thing/hide.yaml` —
-  `class: /trade/tanning/thing/Hide`, `_materialPath: …/organic/rawhide`,
-  prose unchanged (it already says the week and the salt);
-  `trade-ranching/package.json` + `-trade-tanning`.
-- Tests (`src/__tests__/`): the clock (a hide in a full-strength pit at
-  21 days is leather at `fine`+; thin liquor at 21 days is rawhide and
-  the report says "thin"; frozen stalls; an over-run hide drops bands;
-  bark is consumed); the refusals; `salt-hide` lowers `a_w` so the
-  Freshness growth rate falls below the untreated hide's; the row/class
-  walk (every `class:` resolves; the hide row reaches `FreshnessMixin`
-  — `lint:perishable` will say so too).
+Unchanged from the first draft's W3: scaffold from `trade-apiculture`;
+server manifest + `pnpm install`; `base-library/…/organic/rawhide.yaml`
+(tags `[organic, skin, rawhide, once-living]`, **not** `hide`;
+`spoilActivationEnergy: 70000`, `waterActivity: 0.98`); `Tanning.ts`,
+`Hide.ts`, `Tanpit.ts`; `TanController.ts` + row + `tan.yaml` (`hide`
+`requires: TanningMixin`; `pit` declared with an MQL default and
+narrowed to `Tanpit`); `tanpit.yaml`, `Discipline/leatherwork.yaml`,
+`recipes/salt-hide.yaml` (`category: rawhide`, `cure: { solute: 0.55 }`,
+output the hide row, `keywords: [salt-hide]`, no discipline);
+`trade-ranching/…/thing/hide.yaml` → `class: /trade/tanning/thing/Hide`,
+material rawhide; `trade-ranching/package.json` + tanning. Tests: the
+clock, the refusals, `salt-hide` lowers `a_w`, the row/class walk.
 
 Acceptance: `lint:instanceable`, `lint:perishable`, `lint:mixin-names`,
 `lint:untitled`, `lint:instrument-args`, `lint:controller-rows`, pack suite.
-Commit: `build(carcass W3): trade-tanning — the hide tans against the pit it stands in`.
+Commit: `build(carcass W4): trade-tanning — the hide tans against the pit it stands in`.
 
-### W4 — Forestry: bark
+### W5 — Forestry: bark
 
-- `trade-forestry/src/lib/Stand.ts` — `barkPath?: string | null` on
-  `StandSpecies`; `setMix` copies it.
-- `src/idea/cmd/forestry/FellController.ts` — `dropStandard` takes
-  `barkPath`, mints `BARK_BUNDLES_PER_STANDARD = 4` bundles of
-  `boleKg × BARK_FRACTION_OF_BOLE / 4` kg each, stamped and placed; the
-  scene names the bark when there is any. `fellPlantedTree` passes
-  `entry?.barkPath ?? null`.
-- Rows: `content/trade/forestry/thing/bark.yaml` (`Good`, "bundle of
-  bark", keywords `[bark, tanbark, bundle]`, material oak-bark, mass 13);
-  `content/stuff/idea/material/organic/oak-bark.yaml` (tags
-  `[organic, bark, tanbark, once-living]`, `biologicalSource` the oak).
-  `rejection/…/hanging-wood/oak-clearing.yaml` oak entry gains
-  `barkPath: /trade/forestry/thing/bark`. ⚠ The forestry pack is moving
-  in a sibling build — rebase onto master before this wave and keep the
-  diff to these four files.
-- Tests: an oak felling drops four bundles and an ash felling drops none
-  (AC9); the mass sum.
+Unchanged from the first draft's W4: `barkPath` on `StandSpecies` +
+`setMix`; `dropStandard` mints four bundles (and `fellPlantedTree` passes
+`entry?.barkPath ?? null`); `thing/bark.yaml` (`Good`, oak-bark, 13 kg)
++ `stuff/idea/material/organic/oak-bark.yaml`; the oak-clearing entry.
+⚠ Merge master first — the forestry pack is moving in a sibling build.
+Tests: oak drops four, ash drops none (AC9).
 
-Acceptance: `lint:census` (the new path resolves), `lint:mass`, forestry suite.
-Commit: `build(carcass W4): an oak gives its bark`.
+Acceptance: `lint:census`, `lint:mass`, forestry suite.
+Commit: `build(carcass W5): an oak gives its bark`.
 
-### W5 — `trade-chandlery`
+### W6 — `trade-chandlery`
 
-- Scaffold as W3. Add to the server manifest; `pnpm install`.
-- `src/thing/Candle.ts` (D6). Row `content/trade/chandlery/thing/candle.yaml`
-  (the generic-objects row moved: same `lit: false`, fuel reserve, 12 lm,
-  1900 K; `shortDescription: candle` as the fallback stem; material
-  authored tallow as the default a hand-cloned one reads as).
-  `content/trade/chandlery/thing/dip-pot.yaml` (`CraftVessel`,
-  `category: dip-pot`, 2 L, ceramic).
-- Recipes: `content/recipes/candle.yaml` and `melt-wax.yaml` (D6).
-- Tag edits: `base-library/…/organic/beeswax.yaml` tags += `candle-stock`,
-  appearance += *", smelling of honey"*; `trade-cooking/…/material/tallow.yaml`
-  tags += `candle-stock`, appearance += *", smelling faintly of mutton"*.
-- Delete `generic-objects/content/stuff/thing/candle.yaml`,
-  `trade-apiculture/content/recipes/candle.yaml`, and the `the candle`
-  block in `trade-apiculture/src/__tests__/recipes.test.ts`; fix the
-  apiculture README's claim.
-- ⚠ Read `packages/server/src/mud/platform/idea/cmd/crafting/MakeController.ts`
-  in full first: confirm a catalogue recipe with no script runs through
-  `CraftingApi.craft`, and how `with <brand>` steers the bulk pick (the
-  rail rule takes the cheapest `candle-stock` in reach otherwise). If
-  `make` cannot steer, the drive keeps one feedstock in reach at a time.
-- Tests: one row, two materials — `craft` with a tallow crock in reach
-  mints a candle of tallow whose short description is *"tallow candle"*
-  and whose odor is tallow; with a wax pot, beeswax; the recipe is
-  ungated (`canMake` true for a fresh body); `melt-wax` fills a dip-pot.
+Unchanged from the first draft's W5: scaffold; `Candle.ts`; the candle
+row moved (`shortDescription: candle` fallback stem; `lit: false`, fuel,
+12 lm / 1900 K); `dip-pot.yaml`; `recipes/candle.yaml` + `melt-wax.yaml`;
+`candle-stock` + appearance edits on `beeswax` and `tallow`; delete the
+generic-objects row, the apiculture recipe and its test block. ⚠ Read
+`MakeController.ts` in full first (the catalogue path, and how `with
+<brand>` steers the bulk pick). Tests: one row, two materials; ungated;
+`melt-wax` fills a dip-pot.
 
-Acceptance: `lint:light-sources` (the moved row), `lint:census`
-(nothing names the old path), `lint:descriptors`, apiculture + chandlery suites.
-Commit: `build(carcass W5): trade-chandlery — one dip, two fats`.
+Acceptance: `lint:light-sources`, `lint:census`, `lint:descriptors`, both suites.
+Commit: `build(carcass W6): trade-chandlery — one dip, two fats`.
 
-### W6 — Bone and the dog loaf
+### W7 — Bone and the dog loaf
 
-- `trade-farming`: `content/stuff/idea/material/bulk/bone-meal.yaml`,
-  `content/recipes/bone-meal.yaml` (D10). ⚠ `trade-farming` has **no
-  `content/recipes/` directory today** (verified: `archetypes/ stuff/ trade/`)
-  — create it; recipes are the `recipe` document kind the installer
-  reads from `content/recipes/` in every pack that has one, and nothing
-  in a manifest enumerates it. `bone` (`tissue/bone`) carries the `bone`
-  tag (`tags: [tissue, animal, bone, mineral, skeletal]`).
-- `trade-baking`: `content/stuff/idea/material/food/dog-bread.yaml`,
-  `content/trade/baking/thing/dog-loaf.yaml` (Provision),
-  `content/recipes/dog-bread.yaml` (D10).
-- `terminus/…/market/thing/bread-counter.yaml` — a `stockLines` line
-  and a `prices` entry for the dog loaf, priced under the lean loaf.
-- ⚠ Read `trade-baking/src/idea/cmd/baking/BakeController.ts`: if `bake`
-  is deed-gated for a player, the drive `order`s the dog loaf at the
-  counter (the baker's seat fulfils `baking`; the drive's step 18 says
-  "bake" and the plan records which route ran).
-- Tests: the two recipes resolve, their slots name shipped tags, the
-  dog loaf is edible; `feed <field> with <bone-meal sack>` credits
-  organicMatter and not nitrogen (W0's branch, exercised against the
-  real material).
+Unchanged from the first draft's W6 (with the `content/recipes/` directory
+created in `trade-farming`): `bone-meal` material + recipe; `dog-bread`
+material, `dog-loaf` row, `dog-bread` recipe; a bread-counter line and
+price. ⚠ Read `BakeController.ts` first; if `bake` is deed-gated the
+drive `order`s the loaf.
 
-Acceptance: `lint:census`, `lint:perishable` (dog-bread on a Provision), packs' suites.
-Commit: `build(carcass W6): bone goes to the field and the dog gets a loaf`.
+Acceptance: `lint:census`, `lint:perishable`, packs' suites.
+Commit: `build(carcass W7): bone goes to the field and the dog gets a loaf`.
 
-### W7 — The world: the valley and the city's edge
+### W8 — The world: the valley and the city's edge
 
-- Heart's Delight (`packages/content/hearts-delight/`): `thing/flock-book.yaml`
-  (D11); `agent/moss.yaml` (`class: /trade/ranching/agent/WorkingAnimal`,
-  `extends: /trade/ranching/agent/farm-dog`, `name: Moss`, a sentence of
-  its own); `location/farmstead-yard.yaml` — `props:` += flock-book,
-  `/trade/cooking/thing/butcher-block` (confirm the row path under
-  `trade-cooking/content/trade/cooking/thing/`); `cast:` +=
-  `/trade/ranching/agent/farm-dog`, `agent/moss`; prose: a line for the
-  flock on the bench, the block and the hook by the barn door.
-  `pack.yaml` `boot:` += the flock book (producer: files the flock).
-  `package.json` deps += ranching, cooking.
-- Terminus (`packages/content/terminus/content/world/terminus/wharfside/`):
-  `tannery.yaml`, `tannery/{location/yard,idea/outfit,thing/leat,thing/shelf}.yaml`;
-  `knackers-yard.yaml`, `knackers-yard/{location/yard,idea/outfit}.yaml`
-  (props: butcher block, `/trade/cooking/thing/cook-pot` or the shipped
-  pot row, a hearth, a tallow crock, `/trade/haulage/thing/works-board`);
-  `chandlery.yaml`, `chandlery/{location/shop,idea/outfit,thing/counter}.yaml`
-  (props: hearth, dip-pot, a `Stock` counter with a candle price).
-  `bank.yaml` gains the three exits. `pack.yaml` `boot:` += the three
-  floors and three outfits (producers, with reasons). Light: each room
-  lit by spill from the bank or by its hearth — author no ambient.
-  Businesses: `appointingAuthority: { kind: office, office: minister-of-trade }`
-  (the oil works' shape), `banksAt: goodkin`, `operatingLocations` the
-  floor + the counter/shelf, one position each with `headcount: 1` and
-  D12's `requires`, **no `rosterSlots`**.
-  `terminus/package.json` deps += `-trade-tanning`, `-trade-chandlery`, `-trade-cooking` if absent.
-- Tests: the terminus/hearts-delight row tests that exist (if any) extend
-  to the new rows; otherwise rely on the gates.
+Unchanged from the first draft's W7: the flock book, Moss
+(`extends: /trade/ranching/agent/farm-dog`, `name: Moss`), the unnamed
+collie cast, the butcher block, yard prose, hearts-delight `boot:` +
+deps; the three Wharfside premises with vacant seats, boot producers,
+exits from the bank; terminus deps.
 
-Acceptance: `lint:openings` (three advertised houses are boot producers;
-`requires` vocabulary; disciplines resolve — `leatherwork` exists from
-W3), `lint:dossiers` (no new Cast), `lint:light-sources`, `lint:census`,
-`lint:kept-animals` (Moss's species authors both dials), `lint:mass`,
-`lint:menu-staff` (no new menu with a disciplined recipe).
-Commit: `build(carcass W7): the valley raises a flock; three vacant seats at Wharfside`.
+Acceptance: `lint:openings`, `lint:dossiers`, `lint:light-sources`,
+`lint:census`, `lint:kept-animals`, `lint:mass`, `lint:menu-staff`.
+Commit: `build(carcass W8): the valley raises a flock; three vacant seats at Wharfside`.
 
-### W8 — The drive, the suite, the MR
+### W9 — The drive, the suite, the MR
 
 - `packages/wire/tests/carcass-chain.dirty.wire.test.ts` — the
-  requirements' twenty steps as checkpoints, one `it` per step, each
-  able to FAIL (assert the envelope: notes, reasons, the words). Dirty
-  because it slaughters persisted stock and fells a persisted oak.
-  `declareFile` packs: ranching, cooking, tanning, chandlery, forestry,
-  farming, baking, textiles, tailoring, apiculture, generic-objects,
-  base-library, hearts-delight, rejection, terminus. Clock jumps via
-  `advanceWorldClock` under `isOwnedTestWorld()`: ~120 game days after
-  the draft (wool), ~25 game days after `tan`, ~8 game days for the
-  green hide left to rot (AC6's first half, on a second hide).
-- `grep -ln "butcher" packages/wire/tests/*.ts` and update any drive
-  that typed `butcher` at a live head (farmstead, taps, cooking).
-- Run it (`WIRE_BOOT=1 WIRE_PORT=<this worktree's port> …`), fix what it
-  finds, append the record to § Drive record, then `pnpm test` once,
-  push, open the MR.
+  requirements' twenty steps plus **AC14 and AC15 checkpoints** (see
+  W0), each able to FAIL. Clock jumps via `advanceWorldClock` under
+  `isOwnedTestWorld()`: ~120 game days after the draft (wool), ~25 after
+  `tan`, ~8 for the green hide left to rot.
+- `grep -ln "butcher\|isDead\|body of" packages/wire/tests/*.ts` and
+  update any drive that typed `butcher` at a live head or asserted a
+  dead NPC object.
+- Run it, fix what it finds, append the record, `pnpm test` once, push, open the MR.
 
 Commit: `drive(carcass): <what driving found>`.
 
@@ -903,19 +822,18 @@ Commit: `drive(carcass): <what driving found>`.
 
 | capability | verb | affordance | data | boot | arg gate |
 |---|---|---|---|---|---|
-| `slaughter` | `trade/ranching/cmd/ranching/slaughter.yaml` | `Livestock.commandContributions.peers` (a head in the room) | controller row `…/idea/cmd/ranching/SlaughterController.yaml`; species `butcheryYield` rows | farm species resident (ranching `boot:` sync-read) | `requires: HandlingMixin` — stock AND the dog bind; the refusal is spoken |
-| `butcher` (reconciled) | cooking's view, `verbs: [butcher]` | a `bladed` construction in reach (unchanged) | species rows; `Species.dressOut` | `preloadAnatomy` in the controller (unchanged) | `body: requires: any` (unchanged) |
-| `tan` | `trade/tanning/cmd/tanning/tan.yaml` | `Tanpit.commandContributions` (environment + peers) | `TanController.yaml` row; `tanpit.yaml`; `rawhide` material; hide row's class | the tannery yard is a `boot:` producer; the `Tanpit` composes nothing that needs warming | `hide: requires: TanningMixin` (federated pack name); `pit` declared with an MQL default |
-| salting a hide | cooking's `cure`/`salt` (unchanged) | born-with | `salt-hide.yaml` recipe + `PreserveController.recipeFor` | `RecipeCatalogue` warms on create | `requires: any` (unchanged) |
-| the candle | platform `make` (and `order` at the chandler's counter) | `make` is unafforded-by-content (born-with); verify in `MakeController` | `candle.yaml` + `melt-wax.yaml` recipes; `candle-stock` tags; the row | catalogue warm | none — and **no deed gate** (D6) |
-| bark | forestry `fell` (unchanged) | the stand (unchanged) | `barkPath` on the oak's mix entry; `bark.yaml`; `oak-bark` material | the clearing is already live content | none |
-| bone to soil | platform `feed` (unchanged) | born-with | `bone-meal` material tag `compost` + `slow-amendment`; the recipe | — | `source: mustHaveBulkSlot` (a sack) |
-| the dog loaf | `bake` / `order` | the oven / the baker's seat | recipe + rows + counter price | the bakery is live content | — |
-| the flock | `draft` (unchanged) | `Herdbook.commandContributions` | `flock-book.yaml` | hearts-delight `boot:` producer | — |
-| the seats | `apply` (unchanged) | `LookController` prints openings | three outfits with `headcount` | terminus `boot:` producers | `requires` closed vocabulary |
-| the dog eats | none (the `feeds` brain) | `BehavedMixin` on `WorkingAnimal` | species `feedingStyle` includes `ground` | the yard is live | — |
-
-Each of these fails closed and silent; the drive is what proves them.
+| the corpse (every non-player death) | — (the transition) | — | `/stuff/agent/Corpse` row (generic-objects, which every killable pack already depends on) | the clone resolves the row on demand | — |
+| `slaughter` | `trade/ranching/cmd/ranching/slaughter.yaml` | `Livestock.commandContributions.peers` | controller row; species `butcheryYield` rows | farm species resident (ranching `boot:`) | `requires: HandlingMixin` — stock AND the dog bind |
+| `butcher` (reconciled) | cooking's view | a `bladed` construction in reach | species rows; `Species.dressOut`; `Corpse.conditionAtDeath` | `preloadAnatomy` in the controller | `body: requires: any` |
+| `tan` | `trade/tanning/cmd/tanning/tan.yaml` | `Tanpit.commandContributions` | `TanController.yaml`; `tanpit.yaml`; `rawhide`; the hide row's class | the tannery yard is a boot producer | `hide: requires: TanningMixin`; `pit` declared with an MQL default |
+| salting a hide | cooking's `cure`/`salt` | born-with | `salt-hide.yaml` + `recipeFor` | catalogue warm | `requires: any` |
+| the candle | platform `make` / `order` | born-with (verify in `MakeController`) | two recipes; `candle-stock` tags; the row | catalogue warm | none, and no deed gate |
+| bark | forestry `fell` | the stand | `barkPath`; `bark.yaml`; `oak-bark` | the clearing is live content | none |
+| bone to soil | platform `feed` | born-with | `bone-meal` tags | — | `mustHaveBulkSlot` |
+| the dog loaf | `bake` / `order` | the oven / the baker's seat | recipe + rows + price | the bakery is live | — |
+| the flock | `draft` | `Herdbook.commandContributions` | `flock-book.yaml` | hearts-delight `boot:` producer | — |
+| the seats | `apply` | `LookController` prints openings | three outfits with `headcount` | terminus `boot:` producers | closed `requires` vocabulary |
+| the dog eats | the `feeds` brain | `BehavedMixin` on `WorkingAnimal` | `feedingStyle` includes `ground` | the yard is live | — |
 
 ---
 
@@ -923,20 +841,21 @@ Each of these fails closed and silent; the drive is what proves them.
 
 | AC | waves |
 |---|---|
-| 1 alive → worn jerkin | W1 (slaughter) · W2 (butcher) · W3 (salt, tan → leather with the `hide` tag) · shipped tailor at Mayfield Row · W8 proves it |
-| 2 same act, same object, same skill, same clock | W1 + W2 (D1; the dead `Livestock` is the carcass; `sinceDeath` unchanged) |
-| 3 condition and species pay off | W0 (`dressOut`) · W1 (rows) · W2 (consumer) |
-| 4 `butcher` a farm dog refused, the world's view | W1 (no yield on `canis`) · W2 (live-target order) · W7 (the unnamed collie cast) |
-| 5 a named animal refused differently | W1 + W2 (D8) · W7 (Moss) |
-| 6 green hide rots in a week; salted travels | W3 (`rawhide` perishable on a Freshness host; `salt-hide`) |
-| 7 two candles, same command, look/smell different, both light | W5 (+ W0's derivation) |
-| 8 the fleece spins and weaves | W7 (the flock) · shipped `shear` → `TextileStock` · shipped textiles |
-| 9 oak gives bark, birch does not | W4 |
-| 10 the dog eats a baked loaf with no verb | W6 (edible loaf) · W7 (dog, `ground` feeding) · shipped `feeds` |
-| 11 nothing a carcass produces has nowhere to go; no false claim | W1 (horn claim deleted with the controller) · W3 (hide) · W6 (bone, offal) · W2 (meat) · D3 (suet → render) |
-| 12 three jobs vacant, visible, takeable | W7 · W8 takes the chandler's |
-| 13 `dress` means nothing twice | W2 |
-| 14 a dead animal refuses the six live-animal verbs, in words | W0 (the kernel tap guard) · W1 (the three ranching guards, D14) |
+| 1 alive → worn jerkin | W2 · W3 · W4 · shipped tailor · W9 proves |
+| 2 same act, same object, same skill, same clock | **W0** (every death leaves the one `Corpse`) · W2 · W3 |
+| 3 condition and species pay off | W1 (`dressOut`) · W2 (rows) · W3 (reads the corpse's stamp) |
+| 4 `butcher` a farm dog refused | W2 (no yield) · W3 (live-target order) · W8 (the unnamed collie) |
+| 5 a named animal refused differently | W2 + W3 (D8) · W8 (Moss) |
+| 6 green hide rots; salted travels | W4 |
+| 7 two candles, same command | W6 (+ W1's derivation) |
+| 8 the fleece spins and weaves | W8 · shipped `shear` → `TextileStock` · shipped textiles |
+| 9 oak gives bark, birch does not | W5 |
+| 10 the dog eats a baked loaf | W7 · W8 · shipped `feeds` |
+| 11 nothing a carcass produces has nowhere to go; no false claim | W2 (horn claim deleted) · W4 (hide) · W7 (bone, offal) · W3 (meat) · D3 (suet) |
+| 12 three jobs vacant, takeable | W8 · W9 takes the chandler's |
+| 13 `dress` means nothing twice | W3 |
+| **14 a dead animal is a body, not a disabled animal** — sheep, shopkeeper and player alike | **W0** by construction (a `Corpse` composes none of a living thing's verbs; the player's corpse is the same class) · W9's checkpoint |
+| **15 killing something mid-anything leaves a body and no wreckage** | **W0** (the `host-destroyed` abort, the resolved session, the inert destroyed proxy, the fox race test) · W9's two checkpoints (mid-fight, mid-errand); mid-journey by unit test only (a journey's driver check already catches a destroyed driver) |
 
 No criterion is unmapped.
 
@@ -944,104 +863,92 @@ No criterion is unmapped.
 
 ## Test & gate strategy
 
-- **Unit, per wave**: listed inside each wave. New pack suites run under
-  the shared `callSecPlugin` vitest config; kernel changes get tests
-  beside the file. Every test touching the wired runtime imports
-  `@saxonberg/server/test-bootstrap` (`lint:test-bootstrap`).
+- **Unit, per wave**: listed inside each wave. W0's are the ones that
+  matter most and they are enumerated above.
 - **Only the drive can prove**: the five reachability links per
-  capability; that `make candle` is reachable for a player; that the
-  dog eats after the player leaves; that the flock book files on first
-  visit; that the three openings print on `look`.
-- **Gates by wave** (all of `lint:family` runs every wave; these are the
-  ones that will actually move): W0 `lint:unconsumed-seams`,
-  `lint:gates`; W1 `lint:verb-collisions`, `lint:controller-rows`,
-  `lint:census`; W2 `lint:verb-collisions`; W3 `lint:instanceable`,
-  `lint:perishable`, `lint:mixin-names`, `lint:untitled`,
-  `lint:instrument-args`, `lint:imports`; W4 `lint:census`, `lint:mass`;
-  W5 `lint:light-sources`, `lint:descriptors`, `lint:census`; W6
-  `lint:perishable`, `lint:census`; W7 `lint:openings`, `lint:dossiers`,
-  `lint:kept-animals`, `lint:light-sources`, `lint:menu-staff`; W8
-  `lint:drive-scripts` (zero one-off scripts).
-- `pnpm test` runs **twice**: before the MR opens (end of W8) and at
-  `/finalize`. Everything between is `test:near` + pack suites + lints.
-  Never in the background.
+  capability; `make candle` for a player; the dog eating after the
+  player leaves; the flock book filing; the three openings on `look`;
+  **AC14's affordance list on a dead body and AC15's two kills**.
+- **Gates by wave**: W0 `lint:gates`, `lint:field-meta`, `lint:census`
+  (the row edit); W1 `lint:unconsumed-seams`; W2 `lint:verb-collisions`,
+  `lint:controller-rows`, `lint:census`; W3 `lint:verb-collisions`; W4
+  `lint:instanceable`, `lint:perishable`, `lint:mixin-names`,
+  `lint:untitled`, `lint:instrument-args`, `lint:imports`; W5 `lint:census`,
+  `lint:mass`; W6 `lint:light-sources`, `lint:descriptors`; W7
+  `lint:perishable`; W8 `lint:openings`, `lint:dossiers`, `lint:kept-animals`,
+  `lint:menu-staff`; W9 `lint:drive-scripts`.
+- `pnpm test` runs **twice**: before the MR opens and at `/finalize`.
 
 ---
 
 ## Risks & opens
 
-Things the build decides in order (requirements → this plan →
-design-lenses → CLAUDE.md → nearest pattern), recorded here so the
-fresh agent knows they are foreseen:
-
-1. **`make` and the catalogue.** `MakeController` is documented as a
-   recipe-SCRIPT runner; apiculture's README says `make` crushes comb,
-   so a catalogue path exists — but confirm before W5, and confirm how
-   the bulk pick is steered. Fallback: one feedstock in reach per candle
-   in the drive.
-2. **`bake` for a player.** If deed-gated, step 18 runs as `order dog
-   loaf` and the record says so. Not a scope change: the requirement is
-   that the loaf is baked in the bakery and priced on the slate.
-3. **Wool on a fresh draft is zero.** The drive jumps ~120 game days
-   between `draft` and `shear`. Seeding a `continuous` tap's standing
-   from the head's age at draft is the honest fix and is ranching's own
-   follow-on, not this build's.
-4. **A dead sheep still carries `herdId`.** D14's guards close the verbs;
-   `draft` cannot re-issue the head because `leaveBook` wrote
-   `slaughtered`. If the book write failed, the head stays `drafted` and
-   the carcass is butcherable — recorded as the honest failure state.
-5. **The far-past guard and a 120-day jump.** Cast are unowned bodies
-   and guarded; the drafted ewe is `Livestock` and is NOT guarded once
-   stamped. Draft, then jump, then act within one session — the taps
-   drive survived a month this way.
-6. **Hide class move changes what `cook`/`eat` see.** A hide is no
-   longer a `Provision`; anything that enumerated Provisions for food
-   (menus, `isEdibleMatter`) loses a thing that was never food. Expected
-   and correct.
-7. **Rebase hazard on forestry.** W4 touches four forestry files while a
-   sibling build works the pack; merge master before W4.
-8. **The knacker's "bring him" step.** A 70 kg carcass cannot be carried;
-   the yard's works-board is how a knacker collects (a haulage job). The
-   drive proves AC2 on a fought-over animal where it fell and visits the
-   yard for AC12. If the user wants collection driven end to end, that
-   is logistics' drive, not this one.
-9. **`candle-stock` on tallow makes every tallow crock a candle source.**
-   Intended: the chandler buys the same tallow the kitchen fries in.
-10. **`check-mass` ceiling.** Every new Tangible row authors `mass` and
-    `_materialPath`; the ceiling must not rise.
-11. ⚠ **User question, not for the build to guess:** whether the three
-    Wharfside seats should require `band: novice` in a Discipline a new
-    player cannot yet hold (tanner, knacker) — the plan ships them that
-    way because *"a seat names a Discipline"* is the requirements' own
-    sentence, and the chandler's seat is the one the drive takes. If the
-    user wants all three takeable on day one, drop `requires` to
-    `{ gigs: 0 }` — a row edit, no code.
+1. ⚠⚠ **Object identity now changes at every non-player death.** What
+   protects the paths that have never seen it: (a) the inert
+   destroyed-object proxy (`security.ts:1445` — a stale ref's method call
+   returns `undefined`, never throws); (b) `SchedulerRegistry` terminates a
+   destructed host's engagements `host-destroyed`; (c) `Behaved.onDestruct`
+   tears down brains; (d) `Chattel.onDestruct` releases the record, which
+   removes a pet from the pin roll; (e) `Persistable.markForRevert()`
+   stops the dead capture; (f) `endWith` resolves a combat session before
+   `die`'s tail destructs anyone; (g) `Journey` checks `isDestroyed()`
+   before `isAlive()`. **What the build must check**, beyond W0's tests:
+   `grep -rn "isDestroyed()" packages/server/src/mud/platform/idea/api/CombatLogic.ts`
+   is zero — confirm every post-kill read of a victim happens inside the
+   synchronous resolution (it does today by construction; a test pins
+   it); brains that hold a target across beats (`herds`, `raids`,
+   `follows`) re-resolve or null-check their target each beat; the
+   `CombatGraph`'s edges to a destroyed combatant are dropped with the
+   session. **What the drive covers**: AC15's two kills.
+2. **The fox race** (a body destructed while in the dying window; `die`
+   later runs on it): closed by the `isDestroyed()` re-checks after each
+   `await` in the tail, pinned by a W0 test.
+3. **A corpse where a Cast stood**: the room's `cast:` list re-mints the
+   living shopkeeper on its next clone, exactly as it would have replaced
+   a lingering dead object before. Recorded; not this build's.
+4. **Orphan snapshots**: a destructed named pet's `holder_snapshots` row
+   survives (nothing reads it once the chattel record is gone).
+   `PersistableApi.deleteAllFor` exists if the sweep wants tidiness —
+   a deferred seam, not a correctness problem.
+5. **`make` and the catalogue** — confirm before W6 (first draft's risk 1).
+6. **`bake` for a player** — the drive `order`s if gated (risk 2).
+7. **Wool on a fresh draft is zero** — the drive jumps the clock (risk 3).
+8. **The far-past guard and the 120-day jump** — draft, jump, act within
+   one session (risk 5).
+9. **Hide class move**: a hide is no longer a `Provision`; anything
+   enumerating Provisions as food loses a thing that was never food.
+10. **Rebase hazard on forestry** — merge master before W5.
+11. **The knacker's "bring him" step** — a 70 kg carcass cannot be
+    carried; the yard's works-board is how a knacker collects; the drive
+    proves AC2 where the animal fell and visits the yard for AC12.
+12. **`candle-stock` on tallow makes every tallow crock a candle source** — intended.
+13. **`check-mass` ceiling** — every new Tangible row authors mass and material.
+14. ⚠ **User question**: the tanner and knacker seats require `band:
+    novice` in a Discipline a new player cannot yet hold; the chandler's
+    is the one the drive takes. Drop to `{ gigs: 0 }` for day-one
+    takeability — a row edit.
+15. **A corpse's `keywords` merge** (D16) puts a person's name-keywords
+    on their body (`look clerk` finds the body of the clerk). Intended;
+    recorded because it is a visible change on the player path too.
 
 ---
 
 ## Deferred seams
 
-Each leaves as a slate line, never as a plan section:
-
-- **A corpse does not remember it was named.** `mintCorpseFrom` carries
-  no name stamp, so butchering a dead pet's body is not refused.
-  → `pets-slate` (the named body).
-- **Tap standing at draft** (risk 3). → `ranching-slate`.
-- **The pit's liquor as the dyer's tannin.** `tannin.yaml` still has no
-  producer; a `pour pit into vat` as a mordant source is one recipe
-  away. → `dyeing`'s slate / `rendering-slate`.
+- **A corpse does not remember it was named.** The mint carries no name
+  stamp, so a dead pet's body is not refused by D8. → `pets-slate`.
+- **Tap standing at draft.** → `ranching-slate`.
+- **Orphan `holder_snapshots` rows after a pet's death** — a
+  `PersistableApi.retire(host)` or a sweep over records with no chattel
+  row. → the residency/persistence slate.
+- **The pit's liquor as the dyer's tannin.** → `rendering-slate`.
 - **`requiresReagent` on the `chemical` maturation arm** — the first
-  `chemical` consumer (soap's lye) decides. → `rendering-slate § 9`.
-- **Promote `woodMaterialPath` / `seedPath` / `barkPath` onto `Species`.**
-  → `forestry-slate`.
+  `chemical` consumer decides. → `rendering-slate § 9`.
+- **Promote the stand's felling facts onto `Species`.** → `forestry-slate`.
 - **Horn, glue, gelatin, kibble, soap, droving, the shambles, the
-  tanpit's effluent** — already assigned by the requirements to
-  `rendering-slate`, `zoning-slate`, logistics.
-- **The knacker as a collection round** (a standing haulage posting).
-  → `logistics-slate`.
-- **The `BulkPayload` tannin field** — if a third liquor consumer wants
-  concentration rather than coverage, that is the generalization point
-  `bulk.md` names. → `bulk`'s notes.
+  tanpit's effluent** — already assigned by the requirements.
+- **The knacker as a collection round.** → `logistics-slate`.
+- **The `BulkPayload` tannin field** — if a third liquor consumer wants concentration.
 
 ---
 
@@ -1051,29 +958,31 @@ Read these first, in this order:
 
 1. `/home/bobalu/play/saxonberg/build-1/docs/requirements/carcass-chain-requirements.md`
 2. `/home/bobalu/play/saxonberg/build-1/CLAUDE.md`
-3. `/home/bobalu/play/saxonberg/build-1/packages/server/src/mud/platform/idea/api/ConditionLogic.ts` (lines 304–420: the non-player death branch)
-4. `/home/bobalu/play/saxonberg/build-1/packages/content/trade-ranching/src/idea/cmd/ranching/ButcherController.ts` (to delete) and `HandleController.ts` + `src/lib/Handled.ts` (the precedent)
-5. `/home/bobalu/play/saxonberg/build-1/packages/content/trade-ranching/src/agent/Livestock.ts`, `src/idea/HerdRegistry.ts`, `src/thing/Herdbook.ts`
-6. `/home/bobalu/play/saxonberg/build-1/packages/content/trade-cooking/src/idea/cmd/crafting/ButcherController.ts`, `PreserveController.ts`, `DryController.ts`
-7. `/home/bobalu/play/saxonberg/build-1/packages/server/src/mud/platform/idea/species/Species.ts` (lines 36–60, 740–800, 1176–1200)
-8. `/home/bobalu/play/saxonberg/build-1/packages/server/src/mud/platform/thing/Provision.ts`, `CraftVessel.ts`, `Lamp.ts`
-9. `/home/bobalu/play/saxonberg/build-1/packages/server/src/mud/lib/material/WaterActivity.ts` and `Freshness.ts` (the item-side clock shape)
-10. `/home/bobalu/play/saxonberg/build-1/packages/server/src/mud/platform/idea/api/CraftingLogic.ts` (lines 1442–1530, 1560–1600, 2250–2260)
-11. `/home/bobalu/play/saxonberg/build-1/packages/server/src/mud/platform/idea/cmd/crafting/MakeController.ts` and `CraftController.ts`
-12. `/home/bobalu/play/saxonberg/build-1/packages/content/trade-forestry/src/idea/cmd/forestry/FellController.ts`, `src/lib/Stand.ts`
-13. `/home/bobalu/play/saxonberg/build-1/packages/content/trade-apiculture/` (the scaffold to copy; `pack.yaml`, `package.json`, `vitest.config.ts`, `src/`)
-14. `/home/bobalu/play/saxonberg/build-1/packages/content/terminus/content/world/terminus/wharfside/dyehouse/` and `goods-yards/oilworks/` (the premises pattern) + `terminus/pack.yaml`
-15. `/home/bobalu/play/saxonberg/build-1/packages/content/hearts-delight/` (all of it; it is small)
-16. `/home/bobalu/play/saxonberg/build-1/packages/server/scripts/check-verb-collisions.ts`
-17. `/home/bobalu/play/saxonberg/build-1/packages/wire/tests/taps.dirty.wire.test.ts` and `packages/wire/src/harness/index.ts`
-18. `/home/bobalu/play/saxonberg/build-1/docs/subsystems/ranching.md`, `maturation.md` (§ Generalization notes), `spoilage.md` (§ The water state), `content-packs.md` (§ The capability rung, § The boot union), `employment.md` (§ The opening)
+3. `/home/bobalu/play/saxonberg/build-1/packages/server/src/mud/platform/idea/api/ConditionLogic.ts` (304–700: `dieImpl`, `playerBodyOf`, `divideBody`, `corpseIdentityFor`, `mintCorpseFrom`)
+4. `/home/bobalu/play/saxonberg/build-1/packages/server/src/mud/platform/agent/Corpse.ts`, `lib/creature/Creature.ts` (140–180, 536–625), `lib/vitals/Vitals.ts` (144, 400–430), `lib/species/Organism.ts` (140–240, 325–350)
+5. `/home/bobalu/play/saxonberg/build-1/packages/server/src/mud/lib/persistence/Persistable.ts` (150–160, 215, 243, 340–360), `platform/idea/ChattelRegistry.ts` (`release`), `platform/idea/api/ResidencyLogic.ts` (770–810), `platform/idea/SchedulerRegistry.ts` (400–418), `api/security.ts` (1445–1485)
+6. `/home/bobalu/play/saxonberg/build-1/packages/server/src/mud/platform/idea/api/__tests__/ConditionLogic.die.test.ts`
+7. `/home/bobalu/play/saxonberg/build-1/packages/server/src/mud/platform/idea/api/CombatLogic.ts` (3590–3640 `endWith`, 3820–3920 the cull/coup/`killImpl`)
+8. `/home/bobalu/play/saxonberg/build-1/packages/content/trade-ranching/src/behavior/raids.ts` (60–115)
+9. `/home/bobalu/play/saxonberg/build-1/packages/content/trade-ranching/src/idea/cmd/ranching/ButcherController.ts` (to delete), `HandleController.ts` + `src/lib/Handled.ts` (the precedent), `src/agent/Livestock.ts`, `src/idea/HerdRegistry.ts`, `src/thing/Herdbook.ts`
+10. `/home/bobalu/play/saxonberg/build-1/packages/content/trade-cooking/src/idea/cmd/crafting/ButcherController.ts`, `PreserveController.ts`, `DryController.ts`
+11. `/home/bobalu/play/saxonberg/build-1/packages/server/src/mud/platform/idea/species/Species.ts` (36–60, 740–800, 1176–1200)
+12. `/home/bobalu/play/saxonberg/build-1/packages/server/src/mud/platform/thing/Provision.ts`, `CraftVessel.ts`, `Lamp.ts`; `lib/material/WaterActivity.ts`, `Freshness.ts`
+13. `/home/bobalu/play/saxonberg/build-1/packages/server/src/mud/platform/idea/api/CraftingLogic.ts` (1442–1530, 1560–1600, 2250–2260); `platform/idea/cmd/crafting/MakeController.ts`, `CraftController.ts`
+14. `/home/bobalu/play/saxonberg/build-1/packages/content/trade-forestry/src/idea/cmd/forestry/FellController.ts`, `src/lib/Stand.ts`
+15. `/home/bobalu/play/saxonberg/build-1/packages/content/trade-apiculture/` (the scaffold)
+16. `/home/bobalu/play/saxonberg/build-1/packages/content/terminus/content/world/terminus/wharfside/dyehouse/`, `goods-yards/oilworks/`, `terminus/pack.yaml`; `packages/content/hearts-delight/`
+17. `/home/bobalu/play/saxonberg/build-1/packages/server/scripts/check-verb-collisions.ts`
+18. `/home/bobalu/play/saxonberg/build-1/packages/wire/tests/taps.dirty.wire.test.ts`, `packages/wire/src/harness/index.ts`
+19. `/home/bobalu/play/saxonberg/build-1/docs/subsystems/mortality.md`, `race.md` (26–48), `ranching.md`, `maturation.md` (§ Generalization notes), `spoilage.md` (§ The water state), `content-packs.md` (§ The capability rung, § The boot union), `employment.md` (§ The opening)
 
-Docs the sweep will touch: `ranching.md` (slaughter, the carcass, D14),
-`crafting.md` (tangible-from-bulk), `forestry.md` (bark), `spoilage.md`
-(the hide as the second WaterActivity host), `light.md` (the candle's
-home), a new `docs/subsystems/tanning.md`, `content-packs.md`'s pack
-count, and the `CLAUDE.md` verb-category line (`tanning`: `tan`;
-`ranching` gains `slaughter`). `rendering-slate` and `textiles-slate`
+Docs the sweep will touch: `mortality.md` and `race.md` (W0 does the
+load-bearing passages in-commit; the sweep does the rest), `ranching.md`
+(slaughter, the corpse), `crafting.md` (tangible-from-bulk),
+`forestry.md` (bark), `spoilage.md` (the hide), `light.md` (the
+candle's home), `fishing.md` (a dead fish is a corpse), a new
+`docs/subsystems/tanning.md`, `content-packs.md`'s pack count, and the
+`CLAUDE.md` verb-category line. `rendering-slate` and `textiles-slate`
 get their stale lines corrected.
 
 ---
