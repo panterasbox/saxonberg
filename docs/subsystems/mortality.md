@@ -574,6 +574,31 @@ restore is already expressible: banking charges, containment gives and
 takes, a quest gates however it likes. The caller decides **where** (the
 argument), **what you keep** (move the items), and **what it costs**.
 
+⭐⭐⭐ **Who gets a minted identity, and what tells two bodies apart.**
+A corpse is minted with `asIdentityPath` **only when the deceased had a
+MINTED identity of its own** — `getIdentityPath()` is `#identityPath ??
+getTemplatePath()`, so when the two are equal nothing was ever minted and
+a key built from it would name a ROW the whole flock shares, meaning only
+*the Nth body off the ewe row in game-second T*. A beast's corpse is
+therefore an ordinary multi-instance clone of `/stuff/agent/Corpse`, as
+cuts and logs are; nothing reads that row as a singleton.
+
+⚠ **The mint survives where the identity is genuine**, and that case is
+why this is a narrowing rather than a deletion: a player can die,
+`reembody`, and die again before the first body decays, so **one avatar
+owns two coexisting corpses at different states of decay** and
+`<gameSecond>` names which death — recorded there by the chronicle's
+`['death']` deed and the corpse's own persistent `diedAtGameSec`.
+
+⭐⭐ **And the discrimination a PLAYER uses is presentation, not the key.**
+The UX refers to a thing by keyword → the `distinguishing` form → an
+ordinal, and nothing in that ladder can name a timestamp. So the decay
+band is spoken: `salientFeaturesImpl` appends it, which also makes it a
+targeting keyword (`butcher stale`). ⚠⚠ `getDecayStage()` had no
+production reader for its whole life before this — the bands were computed
+and never said. See
+[presentation.md](./presentation.md) § the six forms.
+
 **`reembody` never reads the corpse.** A body decays, can be destroyed, and
 does not survive a restart, so a route that consulted one would strand
 whoever came back too late — the bricking failure mode in a third costume.
