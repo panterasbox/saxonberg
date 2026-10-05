@@ -79,8 +79,8 @@ respect.
 | [household-lifecycle](./builds/household-lifecycle-slate.md) | the household as ordinary content (a template row, unstamped) · the generator as an author · minting parents at char-gen with a residence · **un-gating the estate machine from `Avatar`** … |
 | [hunting](./builds/hunting-slate.md) | the wild population as a record materialized on encounter · `track` + the method ladder · *ferae naturae* + game law + close seasons · poaching enforcement … |
 | [iconography](./builds/iconography-slate.md) | the colour-is-state decision · the four branch marks · the ~12 chrome icons · the direction/elevation set (⭐ the minimap is already blocked on it) … |
-| [identity-schemes](./builds/identity-schemes-slate.md) | ⭐⭐ the two schemes named and declared (**continuity** vs |
 | [implements](./builds/implements-slate.md) | the implement class itself · choosing what it modifies (magnitude / cost / band-reach — and the reach case must not become a key) · wear (default none; else `Durable`, as the conduit did) · BUC on the effect axis … |
+| [instance-addressing](./builds/instance-addressing-slate.md) | ⛔⛔ split the index, one per question · ⭐⭐⭐ the durability rule (*an identity path exists **iff** it is durable*; `stuffId` is the ephemeral unique id and already ships) · one sanctioned read for a keyed instance's durable handle (`<row>#<key>`, already computed by `placeIdOf`) · validate `asIdentityPath` for the continuity case (six improvised shapes, no check) … |
 | [institutions](./builds/institutions-slate.md) | the entity-form ladder over a cap table (sole trader · partnership · company · mutual … |
 | [insurance](./builds/insurance-slate.md) | the policy-as-contract + reserve ratio · cargo underwriting first (fire and crops after) · the mutual as the guild's instrument · prevention priced into the premium … |
 | [intervention](./builds/intervention-slate.md) | the sideless participant · a relation whose object is a |
