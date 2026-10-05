@@ -1187,6 +1187,54 @@ drive `order`s the loaf.
 Acceptance: `lint:census`, `lint:perishable`, packs' suites.
 Commit: `build(carcass W7): bone goes to the field and the dog gets a loaf`.
 
+#### ✅ W7 — DONE, with a second verb the plan did not name
+
+1. ⚠⚠ **Bone meal needed a VERB, and the plan named none.** Same class of
+   gap as W6: a recipe with no verb to resolve it is unreachable. The two
+   tempting routes were both wrong — `mill` gates its input on
+   `GRINDABLE = ['grain', 'malt']`, so either the milling pack learns a
+   carcass word, or `ComminutingMixin` gains an `accepts` list, which is
+   a **cross-cutting kernel change inside a trade build** and precisely
+   the thing that keeps going wrong. So `grind` ships in `trade-milling`,
+   the pack that owns the stones, over a recipe.
+2. ⭐⭐ **`mill` and `grind` are two verbs because they are two acts**, and
+   the difference is whether there is a decision in it: `mill` *separates*
+   and its extraction dial is the whole reason the verb exists; grinding
+   bone has no dial, nothing to bolt out, and no setting that gives a
+   better answer. `model.what ?? 'bone-meal'` is `BakeController`'s
+   pattern verbatim, so a second grindable is a recipe row and nothing in
+   the controller changes.
+3. ⚠⚠ **`fibre` is not a routed nutrient**, and the first draft of
+   `dog-bread` authored it. `NUTRIENT_ROUTING` routes exactly six tags
+   (water · carb · sugar · fat · protein · vitamin-c) and an unrouted one
+   is **silently ignored** — authored nourishment that does nothing,
+   which is this build's recurring defect class wearing a new hat. The
+   fibre is real and it is a material TAG on bran; it is not a thing a
+   body banks. A test now walks the routing list.
+4. ⭐ **D10's phosphorus correction is said at the row**, in the material
+   and in the recipe both, because the bone row's prose is what caused the
+   error in the first place and prose is what will cause it again.
+   `bone-meal` carries `compost` AND `slow-amendment` deliberately —
+   spent meal is genuinely compostable — and `FeedController` checks
+   `slow-amendment` first, so the amendment arm wins.
+5. ⭐⭐ **The dog loaf's fat slot is `cooking-fat`, which makes the
+   chandler a competitor.** The same crock of rendered tallow can be
+   fried in, dipped into, or baked into a dog loaf — and that competition
+   is what gives a carcass's fat line a price worth arguing about. Three
+   chains meet in one loaf.
+6. ⭐ **The bakery sells it, at 1 against the lean loaf's 2 and white's
+   4.** The fourth line is what makes the other three mean something: a
+   board listing dog bread beside white at four times the price is saying
+   something about the town that nobody had to author. ⚠ And it is a real
+   loaf a person can buy and eat — people ate horse-bread when it was the
+   only bread they could afford, and refusing it would be a class
+   judgement the world should be making with a price instead.
+7. ⚠ `bake dog-loaf` is deed-gated (`discipline: baking`), so a fresh
+   player buys it off the counter rather than baking it — which is both
+   the right fiction and what the drive will do.
+
+Tests: milling 34 (12 new across grind and the loaf), baking 34/34.
+
 ### W8 — The world: the valley and the city's edge
 
 Unchanged from the first draft's W7: the flock book, Moss
