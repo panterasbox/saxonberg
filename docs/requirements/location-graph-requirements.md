@@ -1,17 +1,17 @@
-# The location graph — the world's shape, and what a player knows of it
+# The location graph — the world's shape, what a player knows of it, and telling one room from another
 
 **Kind:** feature
-**Leads from:** kernel (first consumers, all shipped content: the
-University Avenue crossing and its two-sided zone boundary, the Duncan
-Hall dorm warren, the Hinkley Hills plat warren, and the TPA departures
-board)
+**Leads from:** kernel — ⭐ and **its first consumer ships in the same
+build**: Stage A's addressing substrate is proved by Stage B's player map,
+over the shipped University Avenue crossing, the Duncan Hall dorm warren,
+the Hinkley Hills plat warren and the TPA departures board.
 
 Everything in Saxonberg is lazy-loaded, so what the server holds at
 runtime is only *what players have visited and what has not been reaped*.
 There is no artifact anywhere that knows the shape of the world. This
 build makes one — **a derived, persisted projection of every location and
-its exits** — and then gives each player **their own copy of what they
-know of it, which may be wrong.**
+its exits** — and gives each player **their own copy of what they know of
+it, which may be wrong.**
 
 ⭐⭐ **The two halves are deliberately different kinds of thing, and the
 absence of a join between them is the mechanic.** The graph is the
@@ -21,13 +21,95 @@ re-reconciled against the truth. *A relational view would be silently
 always-correct and you could never be wrong.* Join on read and **being
 lost is deleted from the game.**
 
-Executes `location-graph-slate` (UNBUILT, design agreed). Unblocks
-`map-slate` (⛔ blocked on this — *"the renderer has nothing to read until
-the index exists"*) and resolves `pathfinding-slate`'s standing question.
+---
+
+## ⭐⭐ Two stages, one build — and why they are not two builds
+
+**Stage A — instance addressing.** The world cannot tell one dorm room
+from another. ⛔ The registry index keys on `identity ?? template`, so it
+answers *"find the thing called X"* and *"find every clone of row Y"* out
+of one bucket and **the second question silently loses wherever an
+identity is minted** — `findAllByTemplatePath('/platform/agent/PrimaryAvatar')`
+returns nothing, and `assertUniqueKey` is **inert for every stamped keyed
+host.** Executes `instance-addressing-slate`.
+
+**Stage B — the graph, and the map you own.** The projection, the
+invariants as a check, publish-state, and a per-player map document that
+can be wrong. Executes `location-graph-slate`.
+
+> ⭐⭐⭐ **Why one build.** Stage A has **no observable acceptance of its
+> own.** *"The index answers two questions"* is not something a player can
+> see, and this project's standing rule is that a kernel-led build must
+> name the consumer that will exercise it or admit it is premature. Stage
+> B is that consumer, and it turns the substrate into something a player
+> can check: *find a secret door in your dorm room, and the one next door
+> is still hidden.* Shipped apart, Stage A's acceptance would be a test
+> pointing at itself.
+
+⭐ And Stage B needs Stage A rather than merely benefiting from it: the
+graph's node key, the discovery key and the map's claim key are all *"the
+durable handle of this instance"*, which is the thing Stage A names.
+
+### What this leaves blocking the rendered map: nothing of ours
+
+The SVG zone-navigation card is **out** (see non-goals), and it is out
+because it waits on the **client's** own debt — an icon set that does not
+exist (*"the minimap is already blocked on it"*) and `CardId` being a
+closed eleven-word union. Neither is addressing and neither is the graph,
+and including the renderer would mean doing two further client builds.
+
+⭐ So when this build lands the map is **usable, not merely possible**: a
+`map` verb that reads in prose to yourself, accumulating, fallible,
+surviving the nightly reset and giftable. The renderer is a presentation
+upgrade with no dependency on anything here.
 
 ---
 
 ## What already exists
+
+### Stage A — the addressing half
+
+⛔⛔ **The index conflates two questions.** `api/stuff.ts:230` keys it on
+`Stuff._identityStampOf(obj) ?? obj.getTemplatePath()` — *"deliberately
+the raw slot, never the overridable method"* — and
+`findAllByTemplatePath` is that one bucket. So a **stamped** instance is
+filed under its identity and not under its row, and three things follow,
+all live:
+
+- you cannot enumerate clones of a row whose instances are stamped;
+- ⛔⛔ `assertUniqueKey`'s scan needle is `scope = getIdentityPath()`, so
+  for a stamped host the bucket holds only itself — which the scan skips.
+  **The market stall counter is both stamped and keyed, so the invariant
+  stopping it from clobbering its own record has never been able to
+  fire.** It works where identity is absent and is inert where it is
+  present, which is backwards;
+- `liveKeyed` fails identically, reporting *"not standing up"* so a caller
+  mints a duplicate.
+
+**`stuffId` already is the non-durable unique instance id** — *"a fresh
+`uuid()` per construction, not persisted"*. **And the durable
+per-instance handle already exists too**, as `placeIdOf`'s
+`` `${scope}#${key}` ``, guarded on `isPersistenceKeyExplicit()`, with
+`Exit`'s own discovery key using the same `#` joiner. ⚠ What is missing is
+that the handle has no sanctioned name, so consumers reach for identity
+instead.
+
+**Identity is minted by six sites in six improvised shapes**, and
+`asIdentityPath` is typed `string` with no assertion, no prefix check and
+no scheme. **Keys come in three shapes**: `<the manager's own key>/<leaf>`
+for warren rooms (⭐ relative, as it should be — the absoluteness is
+inherited from the manager's key being a parcel extent), a bare `uuid()`
+for plants and named animals (honest; no manager), and ⚠ an **Avatar
+identity path** for the market stall, which says *who rents it* rather
+than *which stall it is*.
+
+⚠ **And the obvious fix already shipped once and was reverted.**
+`smallholding.md`: a synthesized `<lotExtent>/<leaf>` path *"made the
+room's `templatePath` resolve to **no row at all**. A rowless path cannot
+be edited by an author, cannot resolve a zone from its ancestry, and
+cannot be hydrated from content… The channel is **deleted**."*
+
+### Stage B — the graph half
 
 **Nothing shows a player more than the room they are standing in** — and
 the survey of all 596 command rows found four partial exceptions, no real
@@ -160,6 +242,27 @@ the disagreement · and publish-state as a queryable property of a place.
 
 ## Goals
 
+### Stage A
+
+- ⛔ **The index answers one question per index.** *Find the thing called
+  X* and *find every clone of row Y* stop sharing a bucket, so clone
+  enumeration works for stamped rows and the uniqueness invariant fires
+  where identity is minted instead of where it is absent.
+- ⭐⭐ **An identity path exists iff it is DURABLE.** Ephemeral instances
+  get `stuffId` and no identity at all — which is what `stuffId` is for.
+- ⭐ **A keyed instance's durable handle has one sanctioned read**, of the
+  form *row **plus** decoration*, so nothing has to reach for identity to
+  ask *which one*.
+- **A continuity identity is minted into a namespace its family declares**,
+  validated rather than improvised.
+- **A key is relative to whatever manages the instance** — including the
+  market stall, which today keys on its renter.
+- **No player can be addressed into existence to resolve ambiguity.** ⭐ If
+  two things match, you get a list and you choose. The design does not get
+  clever here.
+
+### Stage B
+
 - **The world's shape is a thing the server can read** without hydrating
   content and without scanning a collection — sharded by zone, rebuilt at
   boot, maintained at the single write chokepoint, and **droppable and
@@ -193,14 +296,30 @@ the disagreement · and publish-state as a queryable property of a place.
 
 ## Non-goals
 
-- **The map renderer, and the card it lives in.** ⛔ A client build,
-  separately blocked on an icon set the client does not have (measured
-  2026-10-01: no icon library, two client files with inline SVG). ⚠ And
-  `CardId` is a **closed eleven-word union**, so the card is a platform
-  edit on the same footing as a document kind. **Destination:**
-  `map-slate` (which already resolved it as a *zone navigation* card — SVG
-  grid, compass rose, interzone list, honest-state panel) +
-  `iconography-slate` + `client-vocabulary-slate`.
+- **The map RENDERER, and the card it lives in** — ⭐ and this is the
+  only thing standing between this build and a rendered map, which is why
+  it is named precisely. ⛔ It waits on the **client's** own debt, not on
+  ours: the direction/elevation icon set does not exist (`iconography-slate`
+  records that *"the minimap is already blocked on it"*, measured — no icon
+  library, two client files with inline SVG), and `CardId` is a **closed
+  eleven-word union** whose slate calls itself *"the hinge five other
+  things hang off."* Including the renderer means doing both of those
+  builds too. **Destination:** `map-slate` (which already resolved the
+  design — a *zone navigation* card: SVG grid, compass rose, interzone
+  list, honest-state panel) + `iconography-slate` +
+  `client-vocabulary-slate`.
+  ⭐⭐ **What ships here instead is a `map` verb reading in prose to
+  yourself**, so the map is usable and not merely possible — and the
+  renderer, when it comes, reads an index that is already there.
+- **Retiring `getIdentityPath()`'s default-to-template.** It answers *who
+  do I act as*, which always has an answer; ~200 readers depend on it and
+  the ones that matter resolve a stored key through the index. Stage A
+  changes the **index**, not the method. **Destination:**
+  `instance-addressing-slate` open question 3.
+- **A per-instance addressing surface for players** — naming a specific
+  clone on the command line. ⛔ Refused on principle: `stuffId` exists for
+  machine targeting, and ambiguity resolves to a list the player picks
+  from, which already ships. **Destination:** nowhere, deliberately.
 - **A second reveal model.** ⚠⚠ The wiki's two axes are reader
   **permission** and reader **appetite**, and `wiki.md` says plainly that
   *appetite is not epistemics*. A map's channels are character knowledge,
@@ -425,27 +544,103 @@ guarantees a way out, and removes itself once nobody is inside.
 live world is how it attaches when it lands. So the check runs one way,
 and the reverse-edge index serves it directly.
 
-### 9. The discovery key must read identity, and the fix is not one word
+### 9. The discovery key reads the HANDLE, not the identity — and the handle is row-plus-decoration
 
-**The question.** An exit's discovery key currently reads
-`getTemplatePath()` unconditionally, so finding a secret door in one
-instance reads as found in **every** instance for that player — the same
-bug class that cost a shared bank account.
+**The question.** `Exit.getDiscoveryKey()` reads
+`source.getTemplatePath()` unconditionally, so finding a secret door in
+one instance reads as found in **every** instance of that row for that
+viewer — the same bug class that cost a shared bank account. What should
+it read?
 
-**The answer.** Key on the **minted identity**, and `undefined` when there
-isn't one. ⚠ Swapping in `getIdentityPath()` is *not* the fix: it falls
-back to the template path when no identity was minted, so it would hide
-the collision instead of removing it. What is needed is a way to ask for
-*the minted identity specifically, null when absent* — which does not
-exist today, and is plausibly why the original author reached for the
-lineage path and wrote a comment they wished were true.
+**The answer.** The instance's **durable handle**, not its identity. And
+the handle is the **row plus a decoration**, joined so the two stay
+separable: `` `<row>#<key>` `` for a host with an explicit persistence
+key, and `undefined` when there is no durable key at all.
 
-⭐ And `undefined` is the **right** answer for an ephemeral satellite: a
-secret found in a lounge room that is gone on restart should not stick.
+**The reasoning, and it is the build's spine.** The template path is the
+*substance* of a keyed instance's identity — it is how you find the row,
+the backing class and the hydration content. What the warren contributes
+is *decoration*: it says **which one** and nothing about **what it is**.
+⭐ A `/` join pretends the decoration is a path segment and **loses the
+row**, which is exactly why the synthesized-path channel was deleted. A
+`#` keeps them separable — and `placeIdOf` already computes precisely
+this, guarded on an explicit key, with `Exit`'s own key already using that
+joiner.
+
+⭐ And `undefined` is the **right** answer for an ephemeral room: a secret
+found in a lounge satellite that is gone on restart should not stick.
+That falls out of *no durable key*, rather than being a special case.
 
 ⚠⚠ **This is a code trace, not a run.** No test covers the multi-clone
 exit case, and this bug class has escaped the suite twice before — both
 times found *by driving the world*. It gets a test that fails first.
+
+### 9a. An identity exists iff it is durable; `stuffId` covers the rest
+
+**The question.** Should an ephemeral instance — a lounge satellite, a
+runtime clone — get an identity that differs from its row?
+
+**The answer.** No. `stuffId` is already *"a fresh `uuid()` per
+construction, not persisted"* — a non-durable unique id for an instance,
+which is exactly the job. Minting an identity that will not survive a
+restart buys nothing and makes two mechanisms mean the same thing.
+
+⭐ So the lounge Warren's *"no synthetic per-instance paths"* was right
+and changes nothing. And the player-facing consequence **is** the design
+rather than a fallback: if a thing cannot be named, you get **a list of
+matches to choose from**, which already ships as disambiguation. ⛔ The
+build may not invent per-instance addressing to avoid that.
+
+### 9b. The index answers one question per index
+
+**The question.** The registry keys on `identity ?? template`, so *find
+the thing called X* and *find every clone of row Y* share a bucket. Which
+one wins?
+
+**The answer.** Neither — they stop sharing. Clone enumeration keys on
+the **row**, so it works for stamped rows; identity lookup becomes its own
+read, so a stored key still resolves to its live object.
+
+**Why it cannot wait.** It is not a tidiness argument: `assertUniqueKey`
+scans the index with the host's own identity as the needle, so **the one
+invariant protecting two live instances from clobbering one record is
+inert wherever an identity is minted.** The stall counter has never been
+covered by it. ⚠ `findByTemplatePath`'s *"expected singleton, found N"*
+guardrail is the thing to be careful with — keyed on the row, a stamped
+row legitimately has many instances — and resolving that is the plan's
+shape decision.
+
+### 9c. A key is relative to its manager — the stall is the exception to fix
+
+**The question.** Keys ship in three shapes. Which is right?
+
+**The answer.** **Relative to whatever manages the instance.** A warren
+room's `<the manager's own key>/<leaf>` already is — it reads as absolute
+only because the manager's key is a parcel extent. A bare `uuid()` for a
+plant or a named animal is honest, because nothing manages it. ⚠ The
+market stall is wrong: its key is an **Avatar identity path**, so the
+counter records *who rents it* rather than *which stall it is* — and it is
+the only site writing its discriminator twice, since its stamped identity
+is derived from the same renter key.
+
+⚠ Normalizing it re-keys the stall's record. No migration: that one
+fixture's record is dropped and reseeded. Nothing else moves.
+
+### 9d. Continuity declares; individuation derives
+
+**The question.** `asIdentityPath` is typed `string` with no check, and
+six sites mint six shapes. What constrains it?
+
+**The answer.** Only **continuity** mints at all — one subject across
+several templates, where the template is deliberately absent because
+outliving it is the job, and the namespace is declared by the family that
+owns it. **Individuation never mints**: the row plus a durable key already
+individuates, and that is the handle of decision 9.
+
+⚠ The Avatar is why a single rule would have been wrong: three named
+bodies share `/platform/agent/Avatar/<playerId>` on purpose, so a
+template-must-prefix rule would fragment the family and break a shade's
+deeds attributing to the same person.
 
 ### 10. The map is a runtime-written RECORD, so it survives the night
 
@@ -523,6 +718,11 @@ rebuildable at any moment. 2,544 rows is nothing to walk.
 
 ## Lens pass
 
+⚠ **Stage A scores nothing on its own and that is expected** — an index is
+not a design with a pedagogy or an economy. Every heading below is Stage
+B's, which is the honest reading of why the two ship together: Stage A is
+answerable to Stage B's lens pass rather than to one of its own.
+
 1. **Pedagogy** — what it teaches is **the map is not the territory**, and
    it teaches it by letting you be wrong: knowledge has a provenance, an
    age and a channel, and a claim can be stale, second-hand or sold to you
@@ -594,42 +794,54 @@ rebuildable at any moment. 2,544 rows is nothing to walk.
 
 ## The drive
 
-Ten steps, run against the live game before the MR opens.
+12 steps, run against the live game before the MR opens. Steps 1–3
+are Stage A's, and they are the ones that prove the substrate without a
+test pointing at itself.
 
-1. **A broken exit is reported, not fatal.** As a wizard, author an exit
+1. ⭐ **A secret found in one room is not found in all of them.** Discover
+   a hidden exit in one Duncan Hall dorm room. Go to another dorm room
+   provisioned from the same template: its hidden exit is **still
+   hidden**. (Today it reads as found.)
+2. ⭐ **A secret found in an ephemeral room does not follow you.** Find
+   one in a lounge satellite, leave, come back to a fresh instance: it is
+   hidden again, because the room never had a durable handle to remember
+   it by.
+3. **Two of a kind are both addressable, and the world can list them.**
+   As a wizard, ask for every instance of a dorm-room row and get **all of
+   them** — then rent a second market stall and confirm the first keeper's
+   counter still answers for the first keeper. (Today the enumeration is
+   empty for stamped rows and the stall's uniqueness check cannot fire.)
+4. **A broken exit is reported, not fatal.** As a wizard, author an exit
    whose destination does not exist. Run the check: it names the row and
    the direction. Then restart the world — **it boots.** Today this is a
    boot crash an author cannot see coming.
-2. **A one-way exit is surfaced as a question.** Author a `bidirectional`
+5. **A one-way exit is surfaced as a question.** Author a `bidirectional`
    exit the far side does not reciprocate. The check reports the asymmetry
    so an author can say whether they meant it.
-3. **A cross-zone edge authored on one side only is caught** — at the
+6. **A cross-zone edge authored on one side only is caught** — at the
    University Avenue crossing, the exemplar of two zones that touch, which
    `boundary.md` requires and nothing verifies today.
-4. **You have a map of where you walked, and nothing else.** As a new
+7. **You have a map of where you walked, and nothing else.** As a new
    player, walk the arrival gate → the crossing → the campus gate. Open
    your map of Terminus: three places and the edges you used. Nothing you
    did not see.
-5. **An unvisited locality says so.** Open your map of Hinkley Hills,
+8. **An unvisited locality says so.** Open your map of Hinkley Hills,
    having never gone. It tells you that you have no map of it — rather
    than rendering as an empty place.
-6. **Published knowledge reads differently from walked knowledge.** The
+9. **Published knowledge reads differently from walked knowledge.** The
    TPA board lists Hinkley Hills. It appears on your map **marked as
    published**, distinguishable from somewhere you have been.
-7. ⭐ **Your map can be wrong, and the world does not fix it.** Have a
+10. ⭐ **Your map can be wrong, and the world does not fix it.** Have a
    wizard wall up an exit you have walked. Open your map: the old exit is
    still there. Walk it: it is gone. The map was wrong, nothing corrected
    it behind your back, and the disagreement is visible once you look
    again.
-8. ⭐ **A secret found in one room is not found in all of them.** Discover
-   a hidden exit in one Duncan Hall dorm room. Go to another dorm room
-   from the same template: its hidden exit is **still hidden.**
-9. **Taking content down is honest.** Offline a zone with somebody inside:
+11. **Taking content down is honest.** Offline a zone with somebody inside:
    they are moved out, the exits that pointed in refuse with a reason, a
    tombstone names the missing place and who to tell, and the owner of the
    pointing rooms is notified that their content lost a destination. Then
    try to walk into a **draft** zone: refused, not crashed.
-10. **The graph does not leave the server.** Drive the client and inspect
+12. **The graph does not leave the server.** Drive the client and inspect
     what crosses the wire while opening a map: nothing in it names a place
     the player has not earned.
 
@@ -637,46 +849,54 @@ Ten steps, run against the live game before the MR opens.
 
 ## Acceptance criteria
 
-Observable from outside the code.
+Observable from outside the code. The first four are Stage A's, and they
+are what make the substrate checkable by a person rather than by a test
+pointing at itself.
 
-1. An author who writes a destination that does not exist is told which
+1. Finding something hidden in one instance of a multi-instance room does
+   not reveal it in any other instance, for that player or anyone else.
+2. A hidden thing found in a room that does not survive a restart does not
+   stay found.
+3. Asking the world for every instance of a shared row returns **all of
+   them**, including rows whose instances carry a minted identity.
+4. Two players renting stalls from one seed each get their own counter,
+   their own stock and their own takings — and a stored key still resolves
+   to the right live object.
+
+5. An author who writes a destination that does not exist is told which
    row and which direction, **before any restart**.
-2. The world boots with a dangling exit present in content.
-3. A non-reciprocal bidirectional edge, a room unreachable from its zone's
+6. The world boots with a dangling exit present in content.
+7. A non-reciprocal bidirectional edge, a room unreachable from its zone's
    entrance, and a one-sided cross-zone edge are each reported to their
    author.
-4. A player can open a map of a locality and see exactly the places they
+8. A player can open a map of a locality and see exactly the places they
    have been and the edges they used — no more.
-5. A map of a locality the player has never visited tells them so.
-6. A place known only from the departures board appears on the map marked
+9. A map of a locality the player has never visited tells them so.
+10. A place known only from the departures board appears on the map marked
    as published knowledge, distinguishable from a place they walked.
-7. When the world changes under a player's map, **the map keeps the old
+11. When the world changes under a player's map, **the map keeps the old
    claim** until they next perceive the place, and the two can be seen to
    disagree.
-8. Finding something hidden in one instance of a multi-instance room does
-   not reveal it in any other instance, for that player or anyone else.
-9. A hidden thing found in an ephemeral room does not persist past the
-   room.
-10. Offlining content moves the people inside out, refuses the exits that
+12. Offlining content moves the people inside out, refuses the exits that
     pointed in with a reason that names the missing place, and tells the
     owner of those exits.
-11. An exit into never-published content refuses instead of crashing the
+13. An exit into never-published content refuses instead of crashing the
     boot.
-12. Nothing a client receives while reading a map names a place the player
+14. Nothing a client receives while reading a map names a place the player
     has not earned.
-13. A map document can be copied to another player's tree and read by them
+15. A map document can be copied to another player's tree and read by them
     as their own — and copying one locality's map hands over nothing about
     any other.
-14. A player's map of a generated lot survives that lot being reaped and
+16. A player's map of a generated lot survives that lot being reaped and
     re-minted: *"I have been to lot-7"* still reads true.
-15. A map of a locality can group its rooms by building wherever the
+17. A map of a locality can group its rooms by building wherever the
     content declares one — Duncan Hall's four rooms read as Duncan Hall,
     not as four unrelated places.
-16. A player's map survives the nightly reset. Walk somewhere, let the
+18. A player's map survives the nightly reset. Walk somewhere, let the
     reset run, and the map still says you were there.
-17. A player's map of a lounge-style procedural room is honestly nothing,
+19. A player's map of a lounge-style procedural room is honestly nothing,
     rather than a stale entry for a room that no longer exists.
-18. ⭐ A second locality and a second player need no engine change for
+20. ⭐ A second locality and a second player need no engine change for
     either to have a map. The build is not done until somebody
     demonstrates it.
 
@@ -684,8 +904,9 @@ Observable from outside the code.
 
 ## Cross-references
 
-**Seeding slate** — `location-graph-slate` (primary; UNBUILT, design
-agreed)
+**Seeding slates** — `instance-addressing-slate` (⭐ **Stage A**; the
+index defect, the durability rule, the row-plus-decoration handle) ·
+`location-graph-slate` (⭐ **Stage B**; UNBUILT, design agreed)
 
 **Unblocked by this** — `map-slate` (⛔ blocked on the index; then a
 client build, itself blocked on `iconography-slate`) ·
