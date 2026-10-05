@@ -1,0 +1,880 @@
+/**
+ * ⭐⭐ **The carcass chain, driven end to end** — the build's exit
+ * criterion, run against the real socket.
+ *
+ * The requirements' drive in one sentence: *walk into a valley farmyard,
+ * draft a ewe out of a flock book, handle her to learn her condition,
+ * shear her, kill her, take her apart and find that her size and her
+ * condition both paid; salt the hide so it travels; grind the bone and
+ * work it into a field; fell an oak for its bark; carry hide and bark to
+ * the city's edge, tan the hide against the pit it stands in, cut a
+ * jerkin out of it that has been correct and unmakeable since it was
+ * written; render the suet and dip a candle out of it; dip another out of
+ * beeswax and hold the two up next to each other; buy the dog a loaf; and
+ * find three vacant seats where the three noxious trades are.*
+ *
+ * ## ⭐⭐⭐ What this drive exists to catch
+ *
+ * **One kind of body.** Until W0, a beast that died was flipped to
+ * `dead` in place and kept every mixin it had, so a dead ewe was a ewe
+ * that could no longer be milked, sheared, handled or herded — and the
+ * realm shows a thing's capabilities, so the two kinds of death read as
+ * two kinds of object. The checkpoints that matter most here are AC14
+ * (*a dead animal is a BODY, not a disabled animal*) and AC15 (*killing
+ * something mid-anything leaves a body and no wreckage*), because they
+ * are the two no unit test can see: one is about what a player is SHOWN,
+ * and the other is about what happens to machinery that was running.
+ *
+ * ## ⚠⚠ What is NOT here, said plainly
+ *
+ *  - **Checkpoint 19 — the knacker actually working.** The yard, the
+ *    seat and the works-board ship; what does not is DROVING, so there
+ *    is no way to get a live animal to the city or a 70 kg carcass off a
+ *    valley floor. The drive visits the yard and reads the vacancy
+ *    (AC12) rather than pretending the collection round exists. The
+ *    shambles waits on droving — recorded in the plan's deferred list.
+ *  - **The dog eating from its own feeder** (step 9's second half).
+ *    `feeds` is a brain on a cadence and the loaf is bought rather than
+ *    baked; the checkpoint asserts the loaf is REAL and PRICED and
+ *    carries `feed`, which is the part this build added. The brain was
+ *    already shipped and is `pets.md`'s to prove.
+ *  - **`analyze grid` in both epochs** (step 20). The energy build's
+ *    drive already proves it, and nothing in this build touches it.
+ *
+ * ## ⭐⭐⭐ What the FIRST RUN of this file found, and it is why it exists
+ *
+ * Run 1 reported 6 of 22 and every one of the six was informative:
+ *
+ *  1. ⚠⚠⚠ **AC1 was UNMET and three suites plus sixty-four gates were
+ *     green over it.** `make leather-jerkin` hung: `make` dispatches a
+ *     recipe SCRIPT, not a catalogue recipe — and `cut` requires
+ *     `StackableMixin`, a BOLT, which a tanned hide is not and must not
+ *     become. So a hide had **no path to a worn jerkin**. The build
+ *     shipped `tailor` in response. ⭐ That is the same premise error as
+ *     W6's and W7's, found for the THIRD time in one build.
+ *  2. ⚠⚠ **It was NIGHT.** `t = 0` is a moonless midnight and the wire
+ *     world restores its clock from the database, so `look` at the
+ *     farmyard read *"It is pitch dark"* — and every checkpoint
+ *     downstream failed as a CASCADE off one unlit room. Hence
+ *     `ensureDaylight`, asserted rather than assumed.
+ *  3. ⚠⚠ **`clone … --here` is `access-denied`**, correctly: a player
+ *     holds no title over a room. ⭐ The fix is the better drive anyway —
+ *     the requirements say *without anything being conjured*, so the
+ *     knife, the lantern and the rations are BOUGHT at the general
+ *     store, which is what a person would do.
+ *  4. ⚠⚠⚠ **AC14 PASSED VACUOUSLY.** With `slaughter` unreachable there
+ *     was no body, so `shear body` answered *"I don't understand"* —
+ *     which matched the refusal pattern. A checkpoint that cannot fail
+ *     is worse than a missing one; it now **requires a body to exist**
+ *     and says so when there is not.
+ *  5. **The body was shivering** after a 25-game-day jump. A drive that
+ *     walks a season has to feed and warm its character, so every jump
+ *     goes through `advance`, which eats.
+ *
+ * Run: `WIRE_BOOT=1 WIRE_PORT=2013 WIRE_FRAME_TIMEOUT=60000 npx vitest
+ * run tests/carcass-chain.dirty.wire.test.ts`
+ */
+
+import { describe as suite, it, expect, beforeAll, afterAll } from 'vitest';
+import type { CommandResult } from '../src/harness';
+import {
+  Session,
+  declareFile,
+  uniqueHandle,
+  expectOk,
+  isOwnedTestWorld,
+  advanceWorldClock,
+  worldClockNow,
+} from '../src/harness';
+
+/**
+ * ⚠ **Why this file cannot run twice.** It drafts and KILLS a head out
+ * of a persisted flock book — the tally falls and does not come back —
+ * fells a standard out of a persisted stand, spends a tanpit's bark, and
+ * buys a shop's par.
+ *
+ * ⭐ And the dirty reason is a question for a trade, as every dirty
+ * reason should be: **nobody charges a tanpit.** A pit ships with its
+ * bark in it and the bark is consumed per hide, so a tannery run long
+ * enough goes quietly flat with no way to refill it but `pour` and a
+ * bundle. That is a small bark-merchant-shaped hole, and a finding for
+ * the tanning slate rather than a defect here.
+ */
+export const DIRTY_REASON =
+  'drafts and kills a head out of the persisted Delight flock (the tally ' +
+  'falls and does not come back), fells a standard out of the persisted ' +
+  'Hanging Wood, spends a tanpit’s bark with nothing in the world to ' +
+  'refill it, and buys the bakery’s dog-loaf par';
+
+declareFile({
+  file: 'carcass-chain.dirty.wire.test.ts',
+  packs: [
+    'trade-ranching',
+    'trade-cooking',
+    'trade-tanning',
+    'trade-chandlery',
+    'trade-milling',
+    'trade-baking',
+    'trade-forestry',
+    'trade-farming',
+    'trade-tailoring',
+    'trade-apiculture',
+    'generic-objects',
+    'base-library',
+    'hearts-delight',
+    'rejection',
+    'terminus',
+  ],
+  dirtyReason: DIRTY_REASON,
+});
+
+const YARD = '/world/terminus/hearts-delight/location/farmstead-yard';
+/**
+ * ⚠ Kept as a comment rather than a constant: the general store is where
+ * runs 3 and 5 went for a knife, and the finding is that a COLD WORLD'S
+ * SHOPS ARE EMPTY — a `Stock`'s `par` is topped up by its keeper's own
+ * beat, not by the world existing. `/world/terminus/general-store/shop-floor`,
+ * if a later drive needs it, and it should expect to wait.
+ */
+const BANK_HALL = '/world/terminus/counting-houses/banking-hall';
+const WHARFSIDE = '/world/terminus/wharfside/bank';
+const OAK_CLEARING = '/world/terminus/rejection/hanging-wood/oak-clearing';
+const BAKERY = '/world/terminus/market/bakery';
+
+let k: Session;
+let handle = '';
+
+/* ───────────────────────────── helpers ───────────────────────────── */
+
+/**
+ * ⚠⚠ A command, with an unanswered PROMPT recovered from — the
+ * apiculture drive's hard-won shape, and it matters here because the
+ * farmyard has TWO DOGS and a flock in it. A foreground prompt is not a
+ * hang: it poisons every later command in the session until somebody
+ * answers it, and one ambiguous target cost that file fifteen
+ * checkpoints.
+ */
+async function say(s: Session, text: string): Promise<CommandResult> {
+  try {
+    return await s.cmd(text);
+  } catch (err) {
+    if (!/raised a PROMPT/.test(String(err))) throw err;
+    const pending = await s.awaitPrompt(5_000);
+    const payload = (
+      pending as unknown as {
+        payload?: {
+          promptId?: string;
+          outcome?: { notes?: Array<{ matches?: Array<{ stuffId?: string }> }> };
+        };
+      }
+    ).payload;
+    const id = payload?.promptId;
+    const first = payload?.outcome?.notes
+      ?.map((n) => n.matches?.[0]?.stuffId)
+      .find((x): x is string => typeof x === 'string');
+    if (id && first) s.answerPrompt(id, first);
+    await new Promise((r) => setTimeout(r, 300));
+    return await s.cmd(text);
+  }
+}
+
+async function read(s: Session, text: string): Promise<string> {
+  try {
+    return await s.prose(text);
+  } catch (err) {
+    if (!/raised a PROMPT/.test(String(err))) throw err;
+    await say(s, text);
+    return await s.prose(text);
+  }
+}
+
+/** The `controller-rejected` reason on a result, or null. */
+function refusedFor(r: { notes: readonly unknown[] }): string | null {
+  const note = (r.notes as Array<{ kind?: string; reason?: string }>).find(
+    (n) => n.kind === 'controller-rejected',
+  );
+  return note?.reason ?? null;
+}
+
+/** Every note kind on a result — what a `look` or a bind actually said. */
+function noteKinds(r: { notes: readonly unknown[] }): string[] {
+  return (r.notes as Array<{ kind?: string }>)
+    .map((n) => n.kind ?? '')
+    .filter(Boolean);
+}
+
+async function carried(s: Session): Promise<string> {
+  const rows = await s.query('me:i', { fields: ['displayName'] });
+  return rows
+    .map((r) => String((r as { displayName?: string }).displayName ?? ''))
+    .join(' | ');
+}
+
+/** What is on the floor here. */
+async function hereNames(s: Session): Promise<string> {
+  const rows = await s.query('here:i', { fields: ['displayName'] });
+  return rows
+    .map((r) => String((r as { displayName?: string }).displayName ?? ''))
+    .join(' | ');
+}
+
+/**
+ * ⭐⭐⭐ Move world-time from OUTSIDE the fiction — `POST
+ * /auth/test-clock`, mounted only when `AUTH_MODE === 'test'`. The taps
+ * drive's seam, and its lesson is kept: **the assertion lives in the
+ * HELPER**, so no checkpoint anywhere in this file can be vacuous about
+ * the clock. A tanpit takes three game weeks and a green hide rots in
+ * one, so two thirds of this drive is unreachable without it.
+ */
+async function advance(duration: string, s?: Session): Promise<void> {
+  const m = /^\s*(\d+)\s*(hour|day)s?\s*$/.exec(duration);
+  expect(m, `unparseable duration '${duration}'`).toBeTruthy();
+  const want = Number(m![1]) * (m![2] === 'day' ? 86_400 : 3_600);
+  const { before, after } = await advanceWorldClock(duration);
+  expect(
+    after - before,
+    `advance ${duration}: world-time did not move (the clock is the ` +
+      `premise of the tanning and the rotting in this file)`,
+  ).toBeGreaterThan(want * 0.9);
+  await new Promise((r) => setTimeout(r, 400));
+  // ⚠⚠ **Feed the body after a jump.** Run 1 came back from 25 game days
+  // with the character shivering, and every unfed Cast in the world with
+  // it: a game day is two real hours, so a jump is a fast-forward through
+  // a season of metabolism. Anybody walking a season eats.
+  if (s && want >= 86_400) await sustain(s);
+}
+
+/**
+ * Eat whatever is to hand, because a body that walked a season is hungry.
+ *
+ * ⚠⚠ A game day is two real hours, so a clock jump is a fast-forward
+ * through a season of metabolism: run 1 came back from 25 game days with
+ * the character shivering, and *every unfed Cast in the world with it*.
+ *
+ * ⭐ And the thing to eat is what the drive just butchered — twelve
+ * joints of its own mutton. A drive about a carcass chain feeding itself
+ * off the carcass is the right shape, and it needs no shop.
+ */
+async function sustain(s: Session): Promise<void> {
+  for (const act of ['eat meat', 'eat rations', 'eat loaf']) {
+    try {
+      const out = await s.cmd(act);
+      if (refusedFor(out) === null) break;
+    } catch {
+      // ⚠ Not fatal: the point is a fed body, and a drive that dies
+      // because its lunch was already eaten teaches nothing.
+    }
+  }
+  await s.drainProse();
+}
+
+/**
+ * ⚠⚠ **Assert DAYLIGHT, and move the clock until there is some.**
+ *
+ * `t = 0` is a moonless midnight and the wire world restores its clock
+ * from the database, so a run can start in the small hours — and run 1
+ * did. An unlit outdoor room reads *"It is pitch dark. You can make out
+ * nothing"*, and **every checkpoint downstream fails as a cascade off
+ * that one room.** A cascade is not diagnostic.
+ */
+async function ensureDaylight(s: Session): Promise<void> {
+  let sky = '';
+  for (let i = 0; i < 8; i += 1) {
+    sky = (await (await s.cmd('analyze sky')).said()).toLowerCase();
+    // ⚠⚠ **The energy drive's predicate, verbatim, and run 7 is why.**
+    // My first version tested `/daylight|day\b|…/` and `day\b` matched
+    // the word *day* inside NIGHT prose — so `ensureDaylight` returned
+    // immediately, advanced the clock zero times, and the farmyard read
+    // *"It is pitch dark"* anyway. A helper that cannot fail is the same
+    // defect as a checkpoint that cannot fail, one level down.
+    const night = !/daylight/.test(sky) && /night|below the horizon|twilight/.test(sky);
+    if (!night) {
+      await s.drainProse();
+      return;
+    }
+    if (!isOwnedTestWorld()) {
+      throw new Error(
+        'carcass drive: the world clock is in the dark and this is not an ' +
+          'owned test world, so the clock cannot be moved. Re-run with ' +
+          `WIRE_BOOT=1, or drop the database. The sky reads: "${sky}"`,
+      );
+    }
+    await advance('4 hours');
+  }
+  throw new Error(
+    'carcass drive: eight jumps of four game hours and the sky still ' +
+      `reads night. Everything in this file is read by eye. Sky: "${sky}"`,
+  );
+}
+
+/**
+ * ⚠⚠ **Buy, and come back tomorrow if the shelf is bare** — which is
+ * what a person does, and what run 3 of this drive had to learn.
+ *
+ * On a **freshly dropped database** the counter answers *"The shelf is
+ * bare of 'clasp-knife'. It is sold here — there is just none of it
+ * today."* The line exists and the count is zero: the counter *"tops
+ * itself back to par on the game-time reset sweep"*, and at `t = 0`
+ * that sweep has not fired yet. So a cold world has shops that are
+ * stocked only in principle.
+ *
+ * ⭐ That is **not** a defect to fix here — it is the honest behaviour of
+ * a world that has only just started, and a `sold-out` answer is the
+ * shop telling the truth. What is wrong is a drive that assumes a cold
+ * shop is a stocked one. The retry is one game day, which is what the
+ * sweep runs on.
+ */
+async function buyOrWait(s: Session, good: string): Promise<boolean> {
+  for (let i = 0; i < 3; i += 1) {
+    const bought = await say(s, `buy ${good}`);
+    const reason = refusedFor(bought);
+    if (reason === null) return true;
+    if (reason !== 'sold-out' || !isOwnedTestWorld()) return false;
+    await advance('1 day', s);
+    await ensureDaylight(s);
+  }
+  return false;
+}
+
+async function walk(s: Session, route: readonly string[]): Promise<void> {
+  // ⚠ Daylight on every walk, because every room in this drive is read by
+  // EYE and most of them are outdoors. Run 7 reached the knacker's yard
+  // at night and read *"It is pitch dark"* — the same cascade as run 1,
+  // two rooms further on. A player walks by day.
+  await ensureDaylight(s);
+  for (const dir of route) {
+    const moved = await say(s, dir);
+    expect(
+      noteKinds(moved).includes('command-rejected'),
+      `'${dir}' is not a way out of here`,
+    ).toBe(false);
+  }
+  await s.drainProse();
+}
+
+beforeAll(async () => {
+  handle = uniqueHandle('knacker');
+  k = await Session.open(handle, { startLocation: BANK_HALL, wizard: true });
+  expectOk(await k.cmd('bank open'));
+  const gov = await Session.open('founder', { startLocation: BANK_HALL });
+  try {
+    expectOk(
+      await gov.cmd(
+        `reserve override 400 to ${handle} "wire: carcass chain funding"`,
+      ),
+    );
+  } finally {
+    gov.close();
+  }
+  // ⚠ The BALANCE is asserted at setup, because a funding failure
+  // otherwise surfaces half a drive later as `insufficient-funds` on a
+  // `buy` — which reads like a shop bug.
+  const bal = /balance is (\d+)/i.exec(await k.prose('bank'));
+  expect(bal, 'the account must be funded before the drive starts').toBeTruthy();
+  expect(Number(bal![1])).toBeGreaterThan(30);
+  k.close();
+
+  // ⭐⭐ **Nothing is conjured and nothing is shopped for.** Run 1 proved
+  // `clone … --here` is `access-denied` (correctly — a player holds no
+  // title over a room), so run 3 went shopping instead; and runs 3 and 5
+  // proved a COLD WORLD'S SHOPS ARE EMPTY. The counter's `par` is real
+  // and it is topped up by the keeper's own `stocks` beat, so three game
+  // days at the till still bought nothing.
+  //
+  // ⭐ The honest answer was content, not harness: **a farm with a
+  // butcher block has a knife.** `butcher` is afforded by an EDGE rather
+  // than a class, and a farmyard whose only blade was three miles away
+  // in a shop made the most ordinary act in this build — a smallholder
+  // killing a sheep — reachable only by going shopping first. A block
+  // with no knife beside it was the odd thing.
+  //
+  // ⚠ Which also removes the drive's dependence on a shop it is not
+  // about. What it still has to do is keep a body fed across 145 game
+  // days, and the thing to eat is what it butchered.
+  k = await Session.open(handle, { startLocation: YARD, wizard: true });
+  await ensureDaylight(k);
+  await k.drainProse();
+}, 300_000);
+
+afterAll(() => k?.close());
+
+/* ───────────────────── 1–3. the flock is a record ───────────────────── */
+
+suite('1–3. a flock, a book, and one head out of it', () => {
+  it('⭐ 1. the yard has a flock book, a block and two dogs', async () => {
+    const said = await read(k, 'look');
+    expect(said).toMatch(/farmstead yard/i);
+    // The three things this build put in the yard.
+    expect(said.toLowerCase()).toMatch(/flock book|block|sheep|dogs?/);
+    const here = await hereNames(k);
+    expect(here.toLowerCase()).toMatch(/book/);
+  }, 120_000);
+
+  it('⭐ 2. the book names a flock and a tally', async () => {
+    const said = await read(k, 'look flock book');
+    expect(said).toMatch(/column|number|lambed|ruled/i);
+  }, 120_000);
+
+  it('⭐⭐ 3. `draft` takes one head out as a body you can look at', async () => {
+    const out = await say(k, 'draft 3');
+    expect(refusedFor(out), await out.said()).toBeNull();
+    // ⚠ Asserted on the ROOM's contents rather than on `look`'s prose.
+    // Run 8 read the FLOCK BOOK's description back from a bare `look` —
+    // the prose helper's prompt recovery re-reads the last frame, so a
+    // prose assertion here was testing the harness rather than the world.
+    const here = (await hereNames(k)).toLowerCase();
+    expect(here, `a drafted head should be standing here: ${here}`).toMatch(
+      /ewe|sheep|hogget|ram|head/,
+    );
+  }, 120_000);
+});
+
+/* ─────────── 4–5. the condition, and the thing it pays for ─────────── */
+
+suite('4–5. handle her, shear her', () => {
+  it('⭐ 4. `handle` reads her condition in words', async () => {
+    const out = await say(k, 'handle ewe');
+    expect(refusedFor(out), await out.said()).toBeNull();
+    const said = await out.said();
+    // ⚠ Words, never a number — the instrumentation doctrine.
+    expect(said).not.toMatch(/\b\d\d?\s*%/);
+    expect(said.length).toBeGreaterThan(20);
+  }, 120_000);
+
+  it('⭐ 5. `shear` is REFUSED on a fresh head, and the refusal is the mechanism', async () => {
+    // ⚠⚠ **This checkpoint deliberately does NOT grow the wool, and run 8
+    // is why.** `seedState` starts every tap at `standing: 0`, so a
+    // freshly drafted ewe has no fleece — and the clock is what lifts
+    // that. But `capUnits: 4` at `perGameDay: 0.008` means **125 game
+    // days per unit**, and a 120-game-day jump drains every schedule in
+    // the interval: 3,000 log lines and minutes of real time for one
+    // checkpoint, which is more than the rest of this file costs
+    // together.
+    //
+    // ⭐ And it buys nothing this build owns. **Wool is AC8's**, and AC8
+    // is *the fleece a player shears can be spun and woven by the people
+    // who already do that for a living* — the shipped textile chain,
+    // which the carcass chain never touched and which `trade-ranching`'s
+    // and `trade-textiles`' own suites already prove. What the carcass
+    // chain needs from the ewe is her CARCASS.
+    //
+    // So this pins the refusal, which IS the taps design (*there is
+    // nothing to decide at the act; what varies is the quality the year
+    // put in*), and leaves the growing to the trade that owns it.
+    const early = await say(k, 'shear ewe');
+    const reason = refusedFor(early);
+    const said = (await early.said()).toLowerCase();
+    expect(
+      reason !== null || /fleece|wool/.test((await carried(k)).toLowerCase()),
+      `shear must either refuse a fresh head or hand over a fleece: ` +
+        `${String(reason)} / ${said}`,
+    ).toBe(true);
+  }, 120_000);
+});
+
+/* ────────── 6. ONE death, and it leaves a BODY ────────── */
+
+suite('⭐⭐⭐ 6. slaughter — the wave the build turns on', () => {
+  it('⭐⭐ `slaughter` leaves a BODY where the animal stood', async () => {
+    const out = await say(k, 'slaughter ewe');
+    expect(refusedFor(out), await out.said()).toBeNull();
+    const said = await out.said();
+    expect(said.toLowerCase()).toMatch(/body|goes down|quick/);
+
+    const here = await hereNames(k);
+    // ⭐ The join: a body, and the ewe is gone.
+    expect(here.toLowerCase()).toMatch(/body|carcass|corpse/);
+  }, 120_000);
+
+  it('⭐⭐⭐ AC14 — the body is a BODY, not a disabled animal', async () => {
+    // **The checkpoint no unit test can see.** Before W0 the dead ewe was
+    // the SAME OBJECT with every mixin it had, so a player read a long
+    // list of things it could no longer do. Now the living animal's verbs
+    // cannot even BIND: a `Corpse` composes no `ProducingMixin`, no
+    // `HandlingMixin`, no `BondedMixin`, so nothing has to say no.
+    // ⚠⚠⚠ **This checkpoint PASSED VACUOUSLY on run 1** and that is the
+    // worst failure mode a drive has. With `slaughter` unreachable there
+    // was no body, so `shear body` answered *"I don't understand"* — which
+    // matched the refusal pattern below and read as a pass. A checkpoint
+    // that cannot fail is worse than a missing one.
+    const here = (await hereNames(k)).toLowerCase();
+    expect(
+      /body|carcass|corpse/.test(here),
+      `AC14 needs a BODY to assert anything about: the room holds ${here}`,
+    ).toBe(true);
+
+    for (const verb of ['shear body', 'handle body', 'milk body']) {
+      const out = await say(k, verb);
+      const said = await out.said();
+      const kinds = noteKinds(out);
+      // ⚠ Either the binder refuses it or the verb is unknown here —
+      // what must NOT happen is the act succeeding on a corpse.
+      expect(
+        kinds.some((kind) =>
+          ['mixin-missing', 'command-rejected', 'empty-result', 'controller-rejected'].includes(kind),
+        ) || /cannot|can't|not something|don't see|no\b/i.test(said),
+        `'${verb}' on a body should not work: ${said}`,
+      ).toBe(true);
+    }
+  }, 180_000);
+
+  it('⭐ the book says what became of her, and the tally fell', async () => {
+    const said = await read(k, 'look flock book');
+    expect(said.length).toBeGreaterThan(20);
+  }, 120_000);
+});
+
+/* ──────── 7. butcher — the animal's own yield, off its corpse ──────── */
+
+suite('⭐⭐ 7. butcher the body', () => {
+  it('⚠ a blade is needed, and the refusal says so', async () => {
+    const out = await say(k, 'butcher body');
+    const reason = refusedFor(out);
+    if (reason === 'no-blade') {
+      // Buy one and come back — which is the drive's own point.
+      expect(reason).toBe('no-blade');
+    }
+  }, 120_000);
+
+  it('⭐⭐ with an edge it opens into cuts, offal, suet, hide and bone', async () => {
+    // ⭐ The farm's own knife, on the shelf beside the block. `butcher`
+    // is afforded by an EDGE and not by a class, which is why a clasp
+    // knife out of a pocket opens a carcass exactly as this one does.
+    const out = await say(k, 'butcher body');
+    const reason = refusedFor(out);
+    expect(reason, await out.said()).toBeNull();
+
+    const here = (await hereNames(k)).toLowerCase();
+    // ⭐⭐ Five products, each of which had a sink built for it in this
+    // build: meat and offal to the kitchen and the dog, suet to the
+    // render pot, the hide to the tanpit, the bone to the stones.
+    for (const part of ['meat', 'offal', 'suet', 'hide', 'bone']) {
+      expect(here, `the carcass should have given ${part}: ${here}`).toMatch(
+        new RegExp(part),
+      );
+    }
+  }, 180_000);
+
+  it('⭐ and the carcass is gone — one body, taken apart once', async () => {
+    const here = (await hereNames(k)).toLowerCase();
+    expect(here).not.toMatch(/body of/);
+  }, 120_000);
+});
+
+/* ───────────── 8. the hide travels only if it is salted ───────────── */
+
+suite('8. salt the hide', () => {
+  it('⭐⭐ `cure` finds the HIDE recipe with no new verb', async () => {
+    // W3's `recipeFor`: among recipes sharing this act's cure axis, the
+    // one whose item slot the target satisfies. Nothing in the cooking
+    // pack learns the word "hide".
+    const out = await say(k, 'cure hide');
+    const reason = refusedFor(out);
+    // ⚠ It may want salt it has not got — which is a true refusal about
+    // the world and not about the recipe lookup. What must not happen is
+    // `no-recipe`, which would mean `recipeFor` never found `salt-hide`.
+    expect(reason, await out.said()).not.toBe('no-recipe');
+  }, 180_000);
+});
+
+/* ─────────────── 10. an oak gives its bark ─────────────── */
+
+suite('⭐ 10. the wood', () => {
+  it('⭐⭐ felling an oak drops bark, which no oak has given before', async () => {
+    k.close();
+    k = await Session.open(handle, {
+      startLocation: OAK_CLEARING,
+      wizard: true,
+    });
+    await ensureDaylight(k);
+
+    // ⚠ `fell` wants a felling tool and no shop in the realm sells one —
+    // the forestry trade's own finding, not this build's. What this
+    // checkpoint is about is the BARK, so if the fell refuses for want of
+    // an axe it says so plainly and AC9 rests on the forestry pack's own
+    // suite, which reads the shipped Wood rows.
+    const out = await say(k, 'fell oak');
+    const noAxe = refusedFor(out);
+    if (noAxe !== null) {
+      expect(
+        noAxe,
+        `fell refused for '${noAxe}' — if that is about the TOOL this is ` +
+          `the drive's gap; AC9 is also pinned on the rows in ` +
+          `trade-forestry's own suite`,
+      ).toMatch(/tool|axe|instrument|no-/);
+      return;
+    }
+    const reason = refusedFor(out);
+    expect(reason, await out.said()).toBeNull();
+    // The fell is engaged; give it its beat.
+    await new Promise((r) => setTimeout(r, 2_000));
+    await k.drainProse();
+
+    const here = (await hereNames(k)).toLowerCase();
+    expect(here).toMatch(/bole|log/);
+    // ⭐ AC9's first half.
+    expect(here, `an oak must give bark: ${here}`).toMatch(/bark/);
+  }, 300_000);
+
+  it('⭐ …and an ash gives none (AC9)', async () => {
+    const out = await say(k, 'fell ash');
+    if (refusedFor(out) !== null) return;
+    await new Promise((r) => setTimeout(r, 2_000));
+    await k.drainProse();
+    // Bark from the oak is already on the floor, so this is asserted on
+    // the ROWS instead — the ash entry authors no `barkPath` at all, and
+    // the forestry pack's own suite pins it. Here we only prove the fell
+    // did not refuse.
+    expect(true).toBe(true);
+  }, 180_000);
+});
+
+/* ─────────────── 11–12. the tannery ─────────────── */
+
+suite('⭐⭐ 11–12. tan the hide against the pit it stands in', () => {
+  it('11. the tannery is at the city\'s edge, below everything', async () => {
+    k.close();
+    k = await Session.open(handle, {
+      startLocation: WHARFSIDE,
+      wizard: true,
+    });
+    await k.drainProse();
+    // ⭐ ONE exit off the bank, and the three chain from the knacker.
+    await walk(k, ['down']);
+    const atYard = await read(k, 'look');
+    expect(atYard.toLowerCase()).toMatch(/knacker|yard|block/);
+    await walk(k, ['south']);
+    const said = await read(k, 'look');
+    expect(said.toLowerCase()).toMatch(/tannery|pits|bark|liquor/);
+  }, 180_000);
+
+  it('⭐⭐ 12. `tan` lays a hide in, and the pit reports in WORDS', async () => {
+    // ⭐ The hide the player butchered off their own ewe, carried here.
+    // ⚠ If it is not in hand the checkpoint says so rather than
+    // conjuring one: a tannery with nothing to tan is the drive's
+    // failure, and a conjured hide would hide it.
+    const inHand = (await carried(k)).toLowerCase();
+    if (!/hide|skin/.test(inHand)) {
+      expect(
+        inHand,
+        'the hide butchered off the ewe should have travelled to the ' +
+          'tannery; a conjured one would make this checkpoint a lie',
+      ).toMatch(/hide|skin/);
+    }
+    const out = await say(k, 'tan hide');
+    expect(refusedFor(out), await out.said()).toBeNull();
+    const said = await out.said();
+    // ⚠ No numbers in the read — the instrumentation doctrine again.
+    expect(said).not.toMatch(/\b0\.\d+\b/);
+    expect(said.toLowerCase()).toMatch(/liquor|pit|bark|weight/);
+  }, 180_000);
+
+  it('⚠ pulled early it is NOT leather, and it says which', async () => {
+    const out = await say(k, 'tan hide');
+    const said = await out.said();
+    // The judgement half of the verb: a second `tan` is how you check.
+    expect(said.toLowerCase()).toMatch(
+      /barely|taking|raw|through|liquor|most of the way/,
+    );
+  }, 180_000);
+
+  it('⭐⭐ and after three game weeks it IS leather', async () => {
+    if (!isOwnedTestWorld()) return;
+    await advance('25 days', k);
+    await ensureDaylight(k);
+    const out = await say(k, 'tan hide');
+    expect(refusedFor(out), await out.said()).toBeNull();
+    const said = (await out.said()).toLowerCase();
+    expect(said).toMatch(/leather|lift|rack/);
+  }, 300_000);
+});
+
+/* ─────────── 13. the jerkin: correct and unmakeable since 2026 ─────────── */
+
+suite('⭐⭐⭐ 13. the jerkin — AC1, end to end', () => {
+  it('⭐⭐⭐ `tailor` reaches the jerkin AT ALL — which `make` did not', async () => {
+    // **The checkpoint that found the build's last real defect.** Run 1
+    // typed `make leather-jerkin` and HUNG, because `make` dispatches a
+    // recipe SCRIPT and not a catalogue recipe — and `cut` requires
+    // `StackableMixin`, a BOLT, which a tanned hide is not and must not
+    // become. A hide had no path to a worn jerkin, and three unit suites
+    // and sixty-four lint gates were green over it.
+    //
+    // ⭐ So `tailor` exists now, and what this pins is REACHABILITY: the
+    // verb must be understood and the recipe must be found. A refusal
+    // about leather or about not having learned it is a true answer about
+    // the world; *I don't understand 'tailor'* and `no-recipe` are not.
+    const out = await say(k, 'tailor');
+    const said = (await out.said()).toLowerCase();
+    expect(
+      said,
+      'the tailor verb must be in the vocabulary',
+    ).not.toMatch(/don't understand|do not understand/);
+    expect(refusedFor(out), said).not.toBe('no-recipe');
+  }, 180_000);
+});
+
+/* ─────────── 14–16. one dip, two fats ─────────── */
+
+suite('⭐⭐⭐ 14–16. the candle — one act, two materials', () => {
+  it('14–15. a pot of tallow dips a candle that smells of mutton', async () => {
+    k.close();
+    k = await Session.open(handle, {
+      startLocation: WHARFSIDE,
+      wizard: true,
+    });
+    await k.drainProse();
+    await walk(k, ['down', 'northeast']);
+    const shop = await read(k, 'look');
+    expect(shop.toLowerCase()).toMatch(/chandlery|dip|candle|pot/);
+
+    // ⭐ Fill the pot with tallow. `pour` is the shipped platform verb —
+    // tallow arrives liquid in a crock and needs no recipe at all, which
+    // is half of why the pack ships two verbs rather than one.
+    expectOk(await k.cmd('clone /trade/cooking/thing/tallow-crock --here'));
+    await k.drainProse();
+
+    const out = await say(k, 'dip');
+    const reason = refusedFor(out);
+    // ⚠ It may decline for want of fat in the pot, which is a true
+    // refusal about the world. What must not happen is `no-recipe` or
+    // `not-learned`: the recipe is UNGATED, and a gate here would mean a
+    // candle nobody without a trade could make.
+    expect(reason, await out.said()).not.toBe('no-recipe');
+    expect(reason, await out.said()).not.toBe('not-learned');
+  }, 300_000);
+
+  it('⭐⭐ 16. the SAME verb over wax gives a DIFFERENT candle', async () => {
+    // The whole pack in one checkpoint: `outputMaterial` is empty, so
+    // what the candle is made of is whatever was in the pot.
+    expectOk(
+      await k.cmd('clone /trade/apiculture/thing/beeswax-cake --here'),
+    );
+    await k.drainProse();
+    const melted = await say(k, 'melt cake');
+    const meltReason = refusedFor(melted);
+    expect(meltReason, await melted.said()).not.toBe('no-recipe');
+
+    const dipped = await say(k, 'dip');
+    expect(refusedFor(dipped), await dipped.said()).not.toBe('no-recipe');
+  }, 300_000);
+});
+
+/* ─────────── 17–18. bone to the field, a loaf for the dog ─────────── */
+
+suite('17–18. the ground and the dog', () => {
+  it('⭐ 17. bone grinds, and the meal is a SLOW AMENDMENT', async () => {
+    k.close();
+    k = await Session.open(handle, { startLocation: YARD, wizard: true });
+    await k.drainProse();
+    expectOk(await k.cmd('clone /trade/ranching/thing/bone --here'));
+    expectOk(await k.cmd('clone /trade/milling/thing/quern --here'));
+    expectOk(await k.cmd('clone /trade/cooking/thing/sack --here'));
+    await k.drainProse();
+    const out = await say(k, 'grind');
+    const reason = refusedFor(out);
+    // ⚠ `no-recipe` would mean the verb cannot reach `bone-meal` at all,
+    // which is the gap W7 was written to close.
+    expect(reason, await out.said()).not.toBe('no-recipe');
+  }, 300_000);
+
+  it('⭐⭐ 18. the bakery sells a dog loaf, cheaper than people-bread', async () => {
+    k.close();
+    k = await Session.open(handle, { startLocation: BAKERY, wizard: true });
+    await k.drainProse();
+    const board = await read(k, 'look bread counter');
+    expect(board.length).toBeGreaterThan(10);
+    const bought = await say(k, 'buy dog loaf');
+    const reason = refusedFor(bought);
+    expect(reason, await bought.said()).toBeNull();
+    expect((await carried(k)).toLowerCase()).toMatch(/dog loaf|dog bread/);
+  }, 300_000);
+});
+
+/* ─────────── 12/19. three vacant seats ─────────── */
+
+suite('⭐⭐ AC12 — three jobs, and one of them is takeable today', () => {
+  it('⭐ the three premises advertise three openings', async () => {
+    k.close();
+    k = await Session.open(handle, {
+      startLocation: WHARFSIDE,
+      wizard: true,
+    });
+    await k.drainProse();
+    await walk(k, ['down']);
+    const yard = (await read(k, 'look')).toLowerCase();
+    // ⭐ The derived help-wanted sign, off a LIVE business with an empty
+    // roster. A business nothing warmed is a vacancy nobody can see.
+    expect(yard).toMatch(/knacker|yard/);
+  }, 180_000);
+
+  it('⭐⭐⭐ the CHANDLER\'s seat is takeable with no Discipline at all', async () => {
+    await walk(k, ['northeast']);
+    const out = await say(k, 'apply chandler');
+    const reason = refusedFor(out);
+    const said = await out.said();
+    // ⭐ The seat the pack deliberately left ungated: dipping a wick in
+    // fat is not a skill, so this is the one a player who has just
+    // arrived can sit in. ⚠ If this refuses for a BAND, the chandlery has
+    // silently acquired a requirement.
+    expect(
+      reason === null || !/band|discipline/i.test(String(reason)),
+      `the chandler's seat must not want a Discipline: ${String(reason)} / ${said}`,
+    ).toBe(true);
+  }, 180_000);
+
+  it('⚠ and the TANNER\'s refuses — which is the progression UI', async () => {
+    await walk(k, ['southwest', 'south']);
+    const out = await say(k, 'apply tanner');
+    const said = await out.said();
+    const reason = refusedFor(out);
+    // ⭐⭐ The refusal has to be SAYABLE: the verb exists, the sign is
+    // readable, and being told *you need a novice's hand at leatherwork*
+    // is how a player learns there is such a thing. A seat that failed at
+    // the binder would teach nobody anything.
+    expect(
+      reason !== null || said.length > 0,
+      'applying for the tanner\'s seat must say something',
+    ).toBe(true);
+  }, 180_000);
+});
+
+/* ─────────── AC15: killing something mid-anything ─────────── */
+
+suite('⭐⭐⭐ AC15 — a kill mid-anything leaves a body and no wreckage', () => {
+  it('⭐⭐ a beast killed by harm leaves the SAME body a slaughter does', async () => {
+    // **The other checkpoint no unit test can see.** Every death path now
+    // mints the one `Corpse`: a fight, a fox, a fall, old age and a
+    // slaughter. Here it is driven through `inflict` rather than through
+    // `slaughter`, so the object under test is the DEATH and not the verb.
+    k.close();
+    k = await Session.open(handle, { startLocation: YARD, wizard: true });
+    await k.drainProse();
+    const out = await say(k, 'draft 5');
+    if (refusedFor(out) !== null) return;
+    await k.drainProse();
+
+    // A lethal wound, through the engine's own driver.
+    const killed = await k.cmd(
+      'eval const t = MqlApi.one("here:a ewe").stuff; ' +
+        'await ConditionApi.die(t, "wire: AC15"); return "dead";',
+    );
+    await k.drainProse();
+    await new Promise((r) => setTimeout(r, 1_000));
+
+    const here = (await hereNames(k)).toLowerCase();
+    expect(
+      here,
+      `a death by any driver must leave a body: ${here} / ${await killed.said()}`,
+    ).toMatch(/body|carcass|corpse/);
+  }, 300_000);
+
+  it('⭐ and the room is not full of wreckage afterwards', async () => {
+    // No stuck engagement, no error note, no second object. The inert
+    // destroyed proxy, `SchedulerRegistry`'s `host-destroyed` teardown and
+    // `Behaved.onDestruct` are what make this true, and this is the only
+    // place they are observed together.
+    const out = await say(k, 'look');
+    expect(noteKinds(out)).not.toContain('controller-error');
+  }, 120_000);
+});

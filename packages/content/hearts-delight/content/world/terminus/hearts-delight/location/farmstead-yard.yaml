@@ -43,6 +43,14 @@ data:
     # is the point: there is one butchery and this is where it happens on
     # a farm.
     - /trade/cooking/thing/butcher-block
+    # ⭐⭐ **And a KNIFE, because a farm with a butcher block has one.**
+    # The drive found this by not finding it: `butcher` is afforded by an
+    # EDGE rather than a class, and a farmyard where the only blade is
+    # three miles away in a shop made the most ordinary act in the build
+    # — a smallholder killing a sheep — reachable only by going shopping
+    # first. A block with no knife beside it was the odd thing, not the
+    # knife.
+    - /trade/cooking/thing/boning-knife
   cast:
     - /world/terminus/hearts-delight/agent/farmer
     # ⭐⭐ TWO dogs, and the pair is the content: the unnamed collie is
