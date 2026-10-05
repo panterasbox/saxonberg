@@ -1726,3 +1726,72 @@ Both seen in the boot log, neither this build's:
 hide, so a tannery run long enough goes quietly flat with no way to
 refill it but `pour` and a bundle. A bark-merchant-shaped hole — for
 `rendering-slate` / a tanning slate, not a defect here.
+
+## The full suite — the one run before the MR, and what it found
+
+⭐⭐ **It was not green, and that is the whole reason the run exists.**
+Four findings, every one of them W0's blast radius rather than a new
+defect — because `ConditionApi.die` now mints a corpse for a beast and an
+NPC as well as a player, and the mint clones an authored row a unit world
+has no store for.
+
+| finding | where | fix |
+|---|---|---|
+| unhandled Mongo rejection | `Vitals.sever.test.ts` (an avulsion through the anatomy death floor) | `installCorpseMintStub()` |
+| unhandled Mongo rejection | `ElectricityLogic.sustain.test.ts` (a fibrillating current to arrest) | `installCorpseMintStub()` |
+| snapshot grew a line | `wiki-spoiler-fields` — `Corpse.conditionAtDeath = 0` | answered, not skipped (below) |
+| `unexpected clone /stuff/agent/Corpse` | the shared crafting `branch-fixtures.ts`, surfacing in `trade-fishing` | the two stubs COMPOSE |
+
+**The snapshot question, answered rather than skipped.** That file's own
+comment says a diff is a review item and names the question — *is this a
+spoiler?* No: `conditionAtDeath` is the flesh reserve at the moment of
+death, read back by the butcher as words with no number in them, and
+every sibling death stamp in the snapshot is already level 0
+(`PostmortemMixin.diedAtGameSec`, `VitalsMixin.causeOfDeath`).
+
+**The fixture fix is the interesting one.** `installCorpseMintStub()`
+captures the *current* `StuffApi.clone` as its pass-through, so installing
+it **after** the crafting fixture's own `spyOn` leaves the fixture
+answering every path it already knew and the helper answering the corpse
+— one line, and the twenty-one pack test files built on that fixture get
+it without knowing. ⚠ The fixture had already learned this lesson once,
+about exits: *"the stub must let the ENGINE's own rows through."* A corpse
+is one of those rows now.
+
+### ⚠⚠ Two findings about the RUN, not the code
+
+1. **`pnpm test` is `pnpm -r`, and a non-zero exit aborts the
+   recursion.** The server package exited 1 on two unhandled rejections
+   while **all 1315 of its test files PASSED** — so the run stopped there
+   and `@saxonberg/types`, `packages/wire` and all thirty-six content
+   packs never ran at all. The summary line `Test Files 1315 passed` is
+   exactly what makes that invisible. Project memory carries the near
+   version of this (*an unnamed failure is not a flake; `pnpm test`
+   aborts at the first failing package*); the sharper version is that it
+   aborts on an exit code **no failing test produced**.
+2. **`| tail -40` is why the first run could not name the file it
+   failed in.** Three of the four findings were identifiable only after
+   the second run captured complete output to a file.
+
+### The record
+
+Green across two runs, and the split is honest:
+
+- **client** — 80 files, 1003 tests, 0 errors.
+- **server** — 1315 files passed (1 skipped), 12397 tests passed, **no
+  `Errors` line at all** — the clean exit the earlier runs lacked.
+- **the thirty-six content packs** — 198 files, 1688 tests, `exit=0`, in
+  a dedicated run after the fixture fix.
+- `@saxonberg/types` and `packages/wire` ship no `test` script, so the
+  three above are the whole of `pnpm test`.
+
+⚠ **Why two runs and not one.** The final whole-tree run was **killed by
+the host at `trade-fuel` for system memory pressure**, fourteen packs past
+a green client and a green server — it prints `RUN` and then `Failed`
+with no test output, which is the kill and not a failure. WSL had already
+crashed once mid-run earlier in this build (project memory carries a
+suspected leak), and thirty-six vitest instances in parallel is the cliff;
+`--workspace-concurrency=2` is what got the run as far as it got. Every
+package is proven green; what no single run has produced on this machine
+is one exit-0 for all thirty-eight at once, and CI's gate job is where
+that lands.
