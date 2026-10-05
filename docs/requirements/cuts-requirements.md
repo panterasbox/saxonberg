@@ -46,14 +46,31 @@ this exact rung, reading into metabolism's toxin dose. It is **prose**,
 not a number, which turns out to be the right shape: the character is
 the *evidence a distiller judges by*.
 
-**The harm loop ships end to end.** The ledger
-([accountability.md](../subsystems/accountability.md)) appends one `harm`
-row when something consumed carries a maker's mark and the maker is
-**somebody else** — *"eating your own risky food is a private gamble;
-putting it in front of a paying customer is a choice about another
-person."* The maker's mark is per-instance and un-spoofable, it travels
-through a pour into an empty vessel, and a marked bottle already prints
-*"Made by X"* when you look at it.
+**The harm ledger exists, and names the maker when it fires.** It
+appends one `harm` row when something consumed carries a maker's mark
+and the maker is **somebody else**
+([accountability.md](../subsystems/accountability.md)) — *"eating your
+own risky food is a private gamble; putting it in front of a paying
+customer is a choice about another person."* The mark is per-instance
+and un-spoofable, it travels through a pour into an empty vessel, and a
+marked bottle prints *"Made by X"* on `look`.
+
+⚠⚠ **CORRECTED 2026-10-04. This paragraph originally read "the harm loop
+ships end to end" and that was false** — the sentence was written from a
+verification of the ledger *in isolation* rather than of the path
+through it, which is the error class this document now exists to warn
+about. Two things were missing, one fixed and one not:
+
+- ✅ **Fixed by !325.** `CraftingLogic.applyBulkOutput`'s
+  authored-substance branch left the payload null, so no `order`ed bulk
+  product named anybody — 22 of 49 bulk-output recipes, including all
+  three still runs. The vessel was marked and the liquid was not, and
+  the ledger reads the liquid.
+- ⛔ **Still missing.** `noteMealAccountability` is called from inside
+  the **pathogen** loop, so **a toxin dose writes no row at all.**
+  Microbial harm is attributed; chemical harm is not. ⭐ This feature's
+  entire consequence is chemical, so the attribution half of it does not
+  exist yet.
 
 **The toxin substrate ships.** A dose on a substance, a per-body burden
 with authored absorption/clearance/potency, and **one banded condition
@@ -92,7 +109,43 @@ first durative act the operator steers from inside."* **It does not.**
 The draw order *is* the boiling order, so the fraction is a function of
 how much has come off — amount-triggered, exactly like the lees. No
 clock, no mid-flight decision hook, no multi-output recipe, and no new
-verb.
+verb. ⭐ That part held up under the file-level survey and is still true.
+
+### ⛔⛔ What the substrate cannot do yet — CORRECTED 2026-10-04
+
+⚠⚠ **This section did not exist in the first draft, and its absence was
+the document's real defect.** The product goals below are unchanged and
+still right; what was wrong was the claim that they needed no new
+machinery. A file-level survey found **four independent blockers**, each
+verified in the tree. A plan must stage them before the cut itself:
+
+1. ⛔ **Toxicity does not blend on a pour, and cannot.** It is *derived*
+   from `composition` rather than stored, and `transfer` carries a
+   payload whole into an **empty** destination and **discards** the
+   source's on a top-up. Four blend helpers exist (freshness,
+   contamination, water activity, blood), each with a comment about
+   laundering; there is no toxin equivalent. ⭐ `formedToxins` — *doses
+   that AROSE rather than arrived* — is already the right field and is
+   exactly what a foreshot dose is; it simply does not blend.
+2. ⛔ **Cross-material pours are declined outright**
+   (`target-declined / material-mismatch`). So hearts cannot join
+   foreshots in one bottle — which also means **fractions cannot be
+   distinguished by Material** the way the lees split distinguishes
+   lees, or they could never be combined. One material with differing
+   payload, or a `classifyForeignPour`-style escape on the destination.
+3. ⛔ **The still cannot hold a run.** It composes no `BulkableMixin` at
+   all — `ReservedMixin` is a named-scalar gauge for `BurnerMixin`'s
+   fuel. ⚠ No shipped furnace holds bulk, so this would be the first;
+   it is honest (a still *is* a vessel with a fire under it) but it is a
+   composition decision, not a row.
+4. ⛔ **A toxin dose writes no accountability row** — see the corrected
+   paragraph above. ⚠ And the fix is a **product** question, not a
+   mechanical one: the shipped doctrine is *"the dose makes the
+   poison"*, which argues microbial and chemical harm should not be
+   different code paths at all. Deciding whether the call MOVES to
+   cover both or a second call is ADDED is the one open question this
+   document leaves, and it is deliberately left for the plan
+   conversation rather than guessed at here.
 
 ---
 
