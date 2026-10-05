@@ -13,8 +13,11 @@
 # and the cuts come off at the inoculum: this one was hung this morning.
 # A carcass that had been lying in the sun is a different animal, and the
 # arithmetic for it is the same one — see the `butcher` verb's help.
-class: /platform/agent/Corpse
+class: /platform/thing/Corpse
 data:
+  # See `/stuff/thing/Corpse` — a body states what it is made of, since
+  # its mass is stamped per-instance by the mint.
+  _materialPath: /stuff/idea/material/tissue/flesh
   _speciesPath: /stuff/idea/species/hog
   lifecycleState: dead
   shortDescription: hog carcass on a hook

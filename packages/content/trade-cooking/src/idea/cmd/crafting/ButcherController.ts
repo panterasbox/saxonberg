@@ -94,7 +94,7 @@ import { Contamination } from '@saxonberg/server/mud/lib/material/Contaminable';
 import { CompetenceBand } from '@saxonberg/server/mud/lib/advancement/CompetenceBand';
 import type { CompetenceBandName } from '@saxonberg/server/mud/lib/advancement/CompetenceBand';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
-import Corpse from '@saxonberg/server/mud/platform/agent/Corpse';
+import Corpse from '@saxonberg/server/mud/platform/thing/Corpse';
 
 const TOPIC = 'act.deed';
 const DISCIPLINE = 'butchery';
@@ -125,7 +125,7 @@ const GUT_FLORA: readonly string[] = [
   'staph-aureus',
 ];
 
-interface ButcherModel extends CommandModel {
+export interface ButcherModel extends CommandModel {
   body: MqlOneResult;
   blade?: MqlManyResult;
   block?: MqlManyResult;

@@ -581,7 +581,7 @@ async function divideBody(avatar: PlayerBody, cause: string): Promise<void> {
  * ⭐ **A corpse's own identity — issue #40's blocker.**
  *
  * Every corpse used to share ONE identity (the template path
- * `/stuff/agent/Corpse`), because nothing stamped one. Per-instance facts
+ * `/stuff/thing/Corpse`), because nothing stamped one. Per-instance facts
  * survived as hydrated *fields*, which is why nothing looked broken — but
  * every identity-keyed ledger saw one object. Two bodies in a room were
  * one body to the chronicle, to belief, to chattel, to anything that

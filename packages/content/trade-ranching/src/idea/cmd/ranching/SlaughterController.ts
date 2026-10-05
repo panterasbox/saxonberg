@@ -71,6 +71,7 @@ import { SpeciesApi } from '@saxonberg/server/mud/api/species';
 import HerdRegistry from '../../HerdRegistry';
 import { RANCHING_TOPIC, HERD_REGISTRY_PATH } from './DraftController';
 import { STOCKMANSHIP } from './HandleController';
+import Livestock from '../../../agent/Livestock';
 
 interface SlaughterModel extends CommandModel {
   target?: MqlOneResult;
@@ -154,19 +155,23 @@ export default class SlaughterController extends CommandController<SlaughterMode
 
     // ⚠ Read the record's half BEFORE the kill. Afterwards there is no
     // object left to ask.
-    const herdId =
-      typeof animal.getHerdId === 'function' ? (animal.getHerdId() ?? '') : '';
+    // ⚠⚠ These three were `typeof animal.getX === 'function'`, which is
+    // the duck-typing antipattern CLAUDE.md names outright — and it did
+    // not type-check either (`animal` is `Stuff & Organism`), so the
+    // whole block was invisible to `tsc` behind a shape test. Narrow
+    // properly: the herdbook half is `Livestock`'s own (a pack CLASS, so
+    // `instanceof`, exactly as the kitchen reads `body instanceof
+    // Corpse`), and handling is the KERNEL's `HandlingMixin`, which has a
+    // registered predicate.
+    const herdId = animal instanceof Livestock ? (animal.getHerdId() ?? '') : '';
     const index =
-      typeof animal.getHeadIndex === 'function'
-        ? (animal.getHeadIndex() ?? -1)
-        : -1;
+      animal instanceof Livestock ? (animal.getHeadIndex() ?? -1) : -1;
     const flesh = MixinApi.isReserved(animal)
       ? animal.getReserve('flesh')?.current.rawValue()
       : undefined;
-    const handling =
-      typeof animal.getHandling === 'function'
-        ? animal.getHandling()
-        : undefined;
+    const handling = MixinApi.isHandling(animal)
+      ? animal.getHandling()
+      : undefined;
     const presentation = animal.getPresentation();
 
     // ⭐ ONE lethal call, and it is the same one a fight makes. Everything

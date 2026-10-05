@@ -30,8 +30,9 @@ import {
   vi,
 } from 'vitest';
 import ButcherController from '../ButcherController';
+import type { ButcherModel } from '../ButcherController';
 import Species from '@saxonberg/server/mud/platform/idea/species/Species';
-import Corpse from '@saxonberg/server/mud/platform/agent/Corpse';
+import Corpse from '@saxonberg/server/mud/platform/thing/Corpse';
 import Provision from '@saxonberg/server/mud/platform/thing/Provision';
 import Material from '@saxonberg/server/mud/lib/material/Material';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
@@ -103,17 +104,17 @@ let minted: Stuff[];
 function ctx(): CommandContext {
   notes = [];
   return {
-    commandGiver: giver as unknown as Stuff,
+    commandGiver: giver,
     note: (n: { kind: string; reason?: string }) => notes.push(n),
   } as unknown as CommandContext;
 }
 
-function model(body: Stuff | null): ModelData {
+function model(body: Stuff | null): ButcherModel {
   return {
     body: { stuff: body, raw: 'body' } as unknown as MqlOneResult,
     blade: { stuff: [knife] } as unknown as MqlManyResult,
     block: { stuff: [] } as unknown as MqlManyResult,
-  } as unknown as ModelData;
+  } as unknown as ButcherModel;
 }
 
 function reasons(): string[] {
@@ -147,7 +148,7 @@ function body(speciesPath: string, kg: number, flesh: number | null): Corpse {
   c.setMass(Quantity.of(kg, 'kg'));
   c.setConditionAtDeath(flesh);
   c.setSpecies(StuffApi.findByTemplatePath(speciesPath) as unknown as Species);
-  ContainmentApi.move(c as unknown as Stuff, room);
+  ContainmentApi.move(c, room);
   return c;
 }
 
@@ -171,7 +172,7 @@ beforeEach(() => {
   WorldClockApi._resetForTesting();
   WorldClockApi._setNowProviderForTesting(() => 1_000_000);
   vi.spyOn(MessageApi, 'scene').mockReturnValue(sceneStub() as never);
-  vi.spyOn(SpeciesApi, 'preloadAnatomy').mockResolvedValue(undefined as never);
+  vi.spyOn(SpeciesApi, 'preloadAnatomy').mockResolvedValue(undefined);
 
   // A cut material and the two cut rows, stood up as a clone stub: the
   // rows themselves are content and this test is about the arithmetic.
@@ -186,8 +187,8 @@ beforeEach(() => {
     cut.setShortDescription(path.split('/').pop() ?? 'cut');
     cut.setMaterial(flesh);
     cut.setMass(Quantity.of(1, 'kg'));
-    minted.push(cut as unknown as Stuff);
-    return cut as never;
+    minted.push(cut);
+    return cut;
   }) as unknown as typeof StuffApi.clone);
 
   room = makeStuff(() => new TestRoom());
@@ -196,10 +197,10 @@ beforeEach(() => {
     g.setName('Iris');
     return g;
   });
-  ContainmentApi.move(giver as unknown as Stuff, room);
+  ContainmentApi.move(giver, room);
   knife = makeStuff(() => new TestKnife());
   knife.setConstructionForm('bladed');
-  ContainmentApi.move(knife as unknown as Stuff, room);
+  ContainmentApi.move(knife, room);
 });
 
 afterEach(() => {
@@ -214,7 +215,7 @@ describe('the yield is the animal\'s', () => {
     const ewe = body(SHEEP, 70, 55);
 
     const ctrl = makeStuff(() => new ButcherController());
-    await ctrl.execute(model(ewe as unknown as Stuff), ctx());
+    await ctrl.execute(model(ewe), ctx());
 
     expect(minted.length).toBeGreaterThan(0);
     const total = cutMasses().reduce((a, b) => a + b, 0);
@@ -230,11 +231,11 @@ describe('the yield is the animal\'s', () => {
     species(COW, [{ cut: MEAT, units: 12, fraction: 0.42 }]);
 
     const ctrl = makeStuff(() => new ButcherController());
-    await ctrl.execute(model(body(SHEEP, 70, 55) as unknown as Stuff), ctx());
+    await ctrl.execute(model(body(SHEEP, 70, 55)), ctx());
     const ewe = cutMasses().reduce((a, b) => a + b, 0);
 
     minted = [];
-    await ctrl.execute(model(body(COW, 550, 55) as unknown as Stuff), ctx());
+    await ctrl.execute(model(body(COW, 550, 55)), ctx());
     const cow = cutMasses().reduce((a, b) => a + b, 0);
 
     expect(cow).toBeGreaterThan(ewe * 7);
@@ -244,11 +245,11 @@ describe('the yield is the animal\'s', () => {
     species(SHEEP, [{ cut: MEAT, units: 12, fraction: 0.4 }]);
 
     const ctrl = makeStuff(() => new ButcherController());
-    await ctrl.execute(model(body(SHEEP, 70, 20) as unknown as Stuff), ctx());
+    await ctrl.execute(model(body(SHEEP, 70, 20)), ctx());
     const thin = cutMasses().reduce((a, b) => a + b, 0);
 
     minted = [];
-    await ctrl.execute(model(body(SHEEP, 70, 95) as unknown as Stuff), ctx());
+    await ctrl.execute(model(body(SHEEP, 70, 95)), ctx());
     const finished = cutMasses().reduce((a, b) => a + b, 0);
 
     expect(finished).toBeGreaterThan(thin);
@@ -260,15 +261,15 @@ describe('the yield is the animal\'s', () => {
     species(SHEEP, [{ cut: MEAT, units: 12, fraction: 0.4 }]);
 
     const ctrl = makeStuff(() => new ButcherController());
-    await ctrl.execute(model(body(SHEEP, 70, null) as unknown as Stuff), ctx());
+    await ctrl.execute(model(body(SHEEP, 70, null)), ctx());
     const unstamped = cutMasses().reduce((a, b) => a + b, 0);
 
     minted = [];
-    await ctrl.execute(model(body(SHEEP, 70, 55) as unknown as Stuff), ctx());
+    await ctrl.execute(model(body(SHEEP, 70, 55)), ctx());
     const stamped55 = cutMasses().reduce((a, b) => a + b, 0);
 
     minted = [];
-    await ctrl.execute(model(body(SHEEP, 70, 100) as unknown as Stuff), ctx());
+    await ctrl.execute(model(body(SHEEP, 70, 100)), ctx());
     const perfect = cutMasses().reduce((a, b) => a + b, 0);
 
     expect(unstamped).toBeCloseTo(stamped55, 1);
@@ -281,7 +282,7 @@ describe('the yield is the animal\'s', () => {
     species(HEN, [{ cut: MEAT, units: 2 }]);
 
     const ctrl = makeStuff(() => new ButcherController());
-    await ctrl.execute(model(body(HEN, 2.5, 55) as unknown as Stuff), ctx());
+    await ctrl.execute(model(body(HEN, 2.5, 55)), ctx());
 
     expect(minted.length).toBeGreaterThan(0);
     // The row's own authored mass stands: the stub mints 1 kg cuts and
@@ -295,11 +296,11 @@ describe('the yield is the animal\'s', () => {
     ]);
 
     const ctrl = makeStuff(() => new ButcherController());
-    await ctrl.execute(model(body(SHEEP, 70, 10) as unknown as Stuff), ctx());
+    await ctrl.execute(model(body(SHEEP, 70, 10)), ctx());
     const starved = cutMasses().reduce((a, b) => a + b, 0);
 
     minted = [];
-    await ctrl.execute(model(body(SHEEP, 70, 100) as unknown as Stuff), ctx());
+    await ctrl.execute(model(body(SHEEP, 70, 100)), ctx());
     const finished = cutMasses().reduce((a, b) => a + b, 0);
 
     expect(starved).toBeCloseTo(finished, 2);
@@ -315,7 +316,7 @@ describe('the refusals, in the order they are spoken', () => {
     ewe.setLifecycleState('alive');
 
     const ctrl = makeStuff(() => new ButcherController());
-    await ctrl.execute(model(ewe as unknown as Stuff), ctx());
+    await ctrl.execute(model(ewe), ctx());
 
     expect(reasons()).toContain('still-alive');
     expect(minted).toEqual([]);
@@ -329,7 +330,7 @@ describe('the refusals, in the order they are spoken', () => {
     collie.setLifecycleState('alive');
 
     const ctrl = makeStuff(() => new ButcherController());
-    await ctrl.execute(model(collie as unknown as Stuff), ctx());
+    await ctrl.execute(model(collie), ctx());
 
     expect(reasons()).toContain('no-yield');
     expect(reasons()).not.toContain('still-alive');
@@ -341,7 +342,7 @@ describe('the refusals, in the order they are spoken', () => {
     somebody.setLifecycleState('alive');
 
     const ctrl = makeStuff(() => new ButcherController());
-    await ctrl.execute(model(somebody as unknown as Stuff), ctx());
+    await ctrl.execute(model(somebody), ctx());
 
     expect(reasons()).toContain('sentient-corpse');
     expect(reasons()).not.toContain('still-alive');
@@ -356,10 +357,10 @@ describe('the refusals, in the order they are spoken', () => {
       StuffApi.findByTemplatePath(SHEEP) as unknown as Species,
     );
     moss.setName('Moss');
-    ContainmentApi.move(moss as unknown as Stuff, room);
+    ContainmentApi.move(moss, room);
 
     const ctrl = makeStuff(() => new ButcherController());
-    await ctrl.execute(model(moss as unknown as Stuff), ctx());
+    await ctrl.execute(model(moss), ctx());
 
     expect(reasons()).toContain('named-animal');
     expect(reasons()).not.toContain('still-alive');
@@ -373,10 +374,10 @@ describe('the refusals, in the order they are spoken', () => {
     // decision actually is.
     species(SHEEP, [{ cut: MEAT, units: 12, fraction: 0.4 }]);
     const dead = body(SHEEP, 70, 55);
-    expect(MixinApi.isNamed(dead as unknown as Stuff)).toBe(false);
+    expect(MixinApi.isNamed(dead)).toBe(false);
 
     const ctrl = makeStuff(() => new ButcherController());
-    await ctrl.execute(model(dead as unknown as Stuff), ctx());
+    await ctrl.execute(model(dead), ctx());
 
     expect(reasons()).not.toContain('named-animal');
     expect(minted.length).toBeGreaterThan(0);
@@ -394,20 +395,20 @@ describe('the refusals, in the order they are spoken', () => {
       StuffApi.findByTemplatePath(SHEEP) as unknown as Species,
     );
     moss.setName('Moss');
-    ContainmentApi.move(moss as unknown as Stuff, room);
+    ContainmentApi.move(moss, room);
 
     const ctrl = makeStuff(() => new ButcherController());
-    await ctrl.execute(model(moss as unknown as Stuff), ctx());
+    await ctrl.execute(model(moss), ctx());
 
     expect(reasons()).not.toContain('named-animal');
   });
 
   it('a thing that is not an organism at all says so', async () => {
     const chair = makeStuff(() => new Provision());
-    ContainmentApi.move(chair as unknown as Stuff, room);
+    ContainmentApi.move(chair, room);
 
     const ctrl = makeStuff(() => new ButcherController());
-    await ctrl.execute(model(chair as unknown as Stuff), ctx());
+    await ctrl.execute(model(chair), ctx());
 
     expect(reasons()).toContain('not-a-carcass');
   });

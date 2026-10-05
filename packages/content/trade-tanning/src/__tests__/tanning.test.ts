@@ -76,7 +76,7 @@ function pit(litres: number, barkKg: number): Tanpit {
   }
   p.addBark(barkKg);
   p.setContentsTemperature(288);
-  ContainmentApi.move(p as unknown as Stuff, yard as never);
+  ContainmentApi.move(p, yard);
   return p;
 }
 
@@ -89,7 +89,7 @@ function hide(kg = 25): Hide {
     StuffApi.findByTemplatePath(RAWHIDE) as unknown as Material,
   );
   h.setContentsTemperature(288);
-  ContainmentApi.move(h as unknown as Stuff, yard as never);
+  ContainmentApi.move(h, yard);
   return h;
 }
 
@@ -132,12 +132,12 @@ describe('the hide is what tans; the pit is the condition', () => {
     const h = hide();
     // ⚠ NOT a Provision: a hide is not food. These four are what tanning
     // actually rests on.
-    expect(MixinApi.isFresh(h as unknown as Stuff)).toBe(true);
-    expect(MixinApi.isWaterActive(h as unknown as Stuff)).toBe(true);
-    expect(MixinApi.isCrafted(h as unknown as Stuff)).toBe(true);
-    expect(MixinApi.isTangible(h as unknown as Stuff)).toBe(true);
+    expect(MixinApi.isFresh(h)).toBe(true);
+    expect(MixinApi.isWaterActive(h)).toBe(true);
+    expect(MixinApi.isCrafted(h)).toBe(true);
+    expect(MixinApi.isTangible(h)).toBe(true);
     // The food-only machinery is absent.
-    expect(MixinApi.isComposed(h as unknown as Stuff)).toBe(false);
+    expect(MixinApi.isComposed(h)).toBe(false);
   });
 
   it('⭐ a hide on the ground does not tan, and needs no guard to say so', () => {
@@ -150,7 +150,7 @@ describe('the hide is what tans; the pit is the condition', () => {
   it('⭐⭐ a hide in a charged pit tans through in about three weeks', () => {
     const p = pit(2000, 100); // a full charge
     const h = hide(25);
-    ContainmentApi.move(h as unknown as Stuff, p as never);
+    ContainmentApi.move(h, p);
     h.reconcileTanning(); // stamps the clock, as the verb does
 
     advance(TANNING.FULL_DAYS / 2);
@@ -170,17 +170,17 @@ describe('the hide is what tans; the pit is the condition', () => {
     // rewarded with the time it spent on the bench.
     const p = pit(2000, 100);
     const h = hide(25);
-    ContainmentApi.move(h as unknown as Stuff, p as never);
+    ContainmentApi.move(h, p);
     h.reconcileTanning();
     advance(5);
     const atPull = h.getTannage();
 
-    ContainmentApi.move(h as unknown as Stuff, yard as never);
+    ContainmentApi.move(h, yard);
     h.reconcileTanning();
     advance(30);
     expect(h.getTannage()).toBeCloseTo(atPull, 6);
 
-    ContainmentApi.move(h as unknown as Stuff, p as never);
+    ContainmentApi.move(h, p);
     h.reconcileTanning();
     advance(5);
     expect(h.getTannage()).toBeGreaterThan(atPull);
@@ -200,7 +200,7 @@ describe('the hide is what tans; the pit is the condition', () => {
     const batch: Hide[] = [];
     for (let i = 0; i < 20; i++) {
       const h = hide(25);
-      ContainmentApi.move(h as unknown as Stuff, p as never);
+      ContainmentApi.move(h, p);
       h.reconcileTanning();
       batch.push(h);
     }
@@ -216,14 +216,14 @@ describe('the hide is what tans; the pit is the condition', () => {
     // ones that went in last.
     const roomy = pit(2000, 100);
     const alone = hide(25);
-    ContainmentApi.move(alone as unknown as Stuff, roomy as never);
+    ContainmentApi.move(alone, roomy);
     alone.reconcileTanning();
 
     const crowded = pit(2000, 100);
     const packed: Hide[] = [];
     for (let i = 0; i < 60; i++) {
       const h = hide(25);
-      ContainmentApi.move(h as unknown as Stuff, crowded as never);
+      ContainmentApi.move(h, crowded);
       h.reconcileTanning();
       packed.push(h);
     }
@@ -241,7 +241,7 @@ describe('the hide is what tans; the pit is the condition', () => {
   it('⭐ a weak pit works, slowly; a water-only pit does not work at all', () => {
     const weak = pit(2000, 20); // a fifth of a charge
     const h = hide(25);
-    ContainmentApi.move(h as unknown as Stuff, weak as never);
+    ContainmentApi.move(h, weak);
     h.reconcileTanning();
     advance(TANNING.FULL_DAYS);
     expect(h.getTannage()).toBeGreaterThan(0);
@@ -250,7 +250,7 @@ describe('the hide is what tans; the pit is the condition', () => {
 
     const plain = pit(2000, 0);
     const g = hide(25);
-    ContainmentApi.move(g as unknown as Stuff, plain as never);
+    ContainmentApi.move(g, plain);
     g.reconcileTanning();
     advance(TANNING.FULL_DAYS * 3);
     expect(g.getTannage()).toBe(0);
@@ -262,7 +262,7 @@ describe('the hide is what tans; the pit is the condition', () => {
     const p = pit(2000, 100);
     p.setContentsTemperature(TANNING.FROZEN_K - 5);
     const h = hide(25);
-    ContainmentApi.move(h as unknown as Stuff, p as never);
+    ContainmentApi.move(h, p);
     h.reconcileTanning();
     advance(TANNING.FULL_DAYS * 2);
     expect(h.getTannage()).toBe(0);
@@ -271,7 +271,7 @@ describe('the hide is what tans; the pit is the condition', () => {
   it('⚠⚠ left too long it goes hard, and nothing brings it back', () => {
     const p = pit(2000, 100);
     const h = hide(25);
-    ContainmentApi.move(h as unknown as Stuff, p as never);
+    ContainmentApi.move(h, p);
     h.reconcileTanning();
     advance(TANNING.FULL_DAYS * 2);
 
@@ -284,7 +284,7 @@ describe('the hide is what tans; the pit is the condition', () => {
     const harsh = pit(2000, 100 * (TANNING.HARSH_STRENGTH + 1));
     expect(harsh.pitReport().band).toBe('harsh');
     const h = hide(25);
-    ContainmentApi.move(h as unknown as Stuff, harsh as never);
+    ContainmentApi.move(h, harsh);
     h.reconcileTanning();
     advance(2);
     // ⚠ `_tanWorst` is a raw field: read the tannage first, because that
@@ -294,7 +294,7 @@ describe('the hide is what tans; the pit is the condition', () => {
 
     // Move it to good liquor and finish it there: the memory stands.
     const good = pit(2000, 100);
-    ContainmentApi.move(h as unknown as Stuff, good as never);
+    ContainmentApi.move(h, good);
     h.reconcileTanning();
     advance(TANNING.FULL_DAYS);
     h.getTannage();
@@ -307,7 +307,7 @@ describe('the lift is the transform, and it runs once', () => {
   it('⭐⭐ a finished hide becomes leather and loses more than half its weight', async () => {
     const p = pit(2000, 100);
     const h = hide(25);
-    ContainmentApi.move(h as unknown as Stuff, p as never);
+    ContainmentApi.move(h, p);
     h.reconcileTanning();
     advance(TANNING.FULL_DAYS + 1);
 
@@ -323,7 +323,7 @@ describe('the lift is the transform, and it runs once', () => {
   it('⚠ pulled early it stays a green skin at partial tannage — recoverable', async () => {
     const p = pit(2000, 100);
     const h = hide(25);
-    ContainmentApi.move(h as unknown as Stuff, p as never);
+    ContainmentApi.move(h, p);
     h.reconcileTanning();
     advance(3);
 
@@ -336,7 +336,7 @@ describe('the lift is the transform, and it runs once', () => {
 
   it('⭐ a green skin ROTS, which is the clock the whole trade is played under', () => {
     const h = hide(25);
-    expect(MixinApi.isFresh(h as unknown as Stuff)).toBe(true);
+    expect(MixinApi.isFresh(h)).toBe(true);
     // The material's own activation energy is what makes it fast; what
     // this pins is that the class can carry the clock at all, which is
     // what `lint:perishable` gates on.

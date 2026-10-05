@@ -25,7 +25,7 @@
 import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { Creature } from '../../../../lib/creature/Creature';
-import Corpse from '../../../agent/Corpse';
+import Corpse from '../../../thing/Corpse';
 import { Quantity } from '../../../../lib/quantity';
 import { Reserve } from '../../../../lib/reserve';
 import { ContaminableMixin } from '../../../../lib/material/Contaminable';
@@ -445,9 +445,9 @@ describe('ConditionApi.die — two bodies, and who earns an identity', () => {
 
     // Exactly what cuts and logs already do: many clones of one kind row.
     for (const corpse of corpses) {
-      expect(corpse.getTemplatePath()).toBe('/stuff/agent/Corpse');
+      expect(corpse.getTemplatePath()).toBe('/stuff/thing/Corpse');
     }
-    expect(StuffApi.findAllByTemplatePath('/stuff/agent/Corpse')).toHaveLength(
+    expect(StuffApi.findAllByTemplatePath('/stuff/thing/Corpse')).toHaveLength(
       2,
     );
     // ⚠ And the key that used to be minted here is GONE, not merely
@@ -465,7 +465,7 @@ describe('ConditionApi.die — two bodies, and who earns an identity', () => {
     const paths = corpses.map((c) => c.getTemplatePath()) as string[];
     expect(new Set(paths).size).toBe(2);
     for (const p of paths) {
-      expect(p).toContain('/stuff/agent/Corpse/');
+      expect(p).toContain('/stuff/thing/Corpse/');
       // The avatar identity, not the body's lineage row.
       expect(p).toContain('platform/agent/Avatar/test-player');
     }

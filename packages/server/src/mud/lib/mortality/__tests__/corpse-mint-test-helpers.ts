@@ -4,7 +4,7 @@
  * ⭐⭐ **Why every death-touching test needs this now.** Since the
  * carcass-chain build `ConditionApi.die` mints a `Corpse` from the dead
  * thing and destructs it — for a beast and an NPC as well as a player.
- * The mint clones the authored row `/stuff/agent/Corpse` and **throws**
+ * The mint clones the authored row `/stuff/thing/Corpse` and **throws**
  * when it is missing, deliberately: a body failing to appear where
  * somebody died would leave a death with no evidence, no loot and nothing
  * to examine, and forensics simply would not work in that world.
@@ -31,7 +31,7 @@
  */
 
 import { vi } from 'vitest';
-import Corpse from '../../../platform/agent/Corpse';
+import Corpse from '../../../platform/thing/Corpse';
 import { StuffApi } from '../../../api/stuff';
 import { TemplatePaths } from '../../paths';
 import { Quantity } from '../../quantity';

@@ -28,7 +28,7 @@ import HerdRegistry, { type HerdRecord } from '../idea/HerdRegistry';
 import Livestock from '../agent/Livestock';
 import WorkingAnimal from '../agent/WorkingAnimal';
 import Species from '@saxonberg/server/mud/platform/idea/species/Species';
-import Corpse from '@saxonberg/server/mud/platform/agent/Corpse';
+import Corpse from '@saxonberg/server/mud/platform/thing/Corpse';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { SpeciesApi } from '@saxonberg/server/mud/api/species';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
@@ -237,7 +237,7 @@ describe('slaughter', () => {
     vi.spyOn(AccountabilityApi, 'record').mockImplementation(() => undefined);
     // `preloadAnatomy` reaches a Clade walk this fixture has no tree for;
     // the species is already resident, which is the state it ensures.
-    vi.spyOn(SpeciesApi, 'preloadAnatomy').mockResolvedValue(undefined as never);
+    vi.spyOn(SpeciesApi, 'preloadAnatomy').mockResolvedValue(undefined);
     yard = makeStuff(() => new TestYard());
     giver = makeStuff(() => {
       const g = new TestGiver();
@@ -266,7 +266,7 @@ describe('slaughter', () => {
     expect(liveKg).toBeGreaterThan(70);
 
     const ctrl = makeStuff(() => new SlaughterController());
-    await ctrl.execute(model(ewe as unknown as Stuff), ctx(giver));
+    await ctrl.execute(model(ewe), ctx(giver));
 
     // The animal is gone and exactly one body stands in its place.
     expect(ewe.isDestroyed()).toBe(true);
@@ -286,13 +286,13 @@ describe('slaughter', () => {
     ContainmentApi.move(ewe, yard);
 
     const ctrl = makeStuff(() => new SlaughterController());
-    await ctrl.execute(model(ewe as unknown as Stuff), ctx(giver));
+    await ctrl.execute(model(ewe), ctx(giver));
 
     // Nothing but the body. No meat, no hide: a blade and a butcher's
     // hand are what turn a carcass into cuts.
     const contents = [...yard.getContents()];
     const cuts = contents.filter(
-      (c) => c !== (giver as unknown as Stuff) && !(c instanceof Corpse),
+      (c) => c !== (giver) && !(c instanceof Corpse),
     );
     expect(cuts).toEqual([]);
   });
@@ -307,7 +307,7 @@ describe('slaughter', () => {
     ContainmentApi.move(ewe, yard);
 
     const ctrl = makeStuff(() => new SlaughterController());
-    await ctrl.execute(model(ewe as unknown as Stuff), ctx(giver));
+    await ctrl.execute(model(ewe), ctx(giver));
 
     const back = await r.read('delight-flock');
     expect(back?.tally).toBe(11);
@@ -335,7 +335,7 @@ describe('slaughter', () => {
     ContainmentApi.move(ewe, yard);
 
     const ctrl = makeStuff(() => new SlaughterController());
-    await ctrl.execute(model(ewe as unknown as Stuff), ctx(giver));
+    await ctrl.execute(model(ewe), ctx(giver));
 
     expect(corpses).toHaveLength(1);
     expect(reasons()).toContain('book-write-failed');
@@ -348,7 +348,7 @@ describe('slaughter', () => {
     ContainmentApi.move(ewe, yard);
 
     const ctrl = makeStuff(() => new SlaughterController());
-    await ctrl.execute(model(ewe as unknown as Stuff), ctx(giver));
+    await ctrl.execute(model(ewe), ctx(giver));
 
     expect(corpses).toHaveLength(1);
     expect(reasons()).toEqual([]);
@@ -367,7 +367,7 @@ describe('the three refusals do not read alike', () => {
     corpses = installCorpseMintStub();
     vi.spyOn(MessageApi, 'scene').mockReturnValue(sceneStub() as never);
     vi.spyOn(AccountabilityApi, 'record').mockImplementation(() => undefined);
-    vi.spyOn(SpeciesApi, 'preloadAnatomy').mockResolvedValue(undefined as never);
+    vi.spyOn(SpeciesApi, 'preloadAnatomy').mockResolvedValue(undefined);
     yard = makeStuff(() => new TestYard());
     giver = makeStuff(() => {
       const g = new TestGiver();
@@ -393,14 +393,14 @@ describe('the three refusals do not read alike', () => {
     );
     moss.setLifecycleState('alive');
     moss.setName('Moss');
-    ContainmentApi.move(moss as unknown as Stuff, yard);
+    ContainmentApi.move(moss, yard);
 
     const ctrl = makeStuff(() => new SlaughterController());
-    await ctrl.execute(model(moss as unknown as Stuff), ctx(giver));
+    await ctrl.execute(model(moss), ctx(giver));
 
     expect(reasons()).toContain('named-animal');
     expect(corpses).toHaveLength(0);
-    expect((moss as unknown as Stuff).isDestroyed()).toBe(false);
+    expect((moss).isDestroyed()).toBe(false);
   });
 
   it('⭐⭐ an UNNAMED working dog is refused for having no yield', async () => {
@@ -413,10 +413,10 @@ describe('the three refusals do not read alike', () => {
       StuffApi.findByTemplatePath(DOG_PATH) as unknown as Species,
     );
     collie.setLifecycleState('alive');
-    ContainmentApi.move(collie as unknown as Stuff, yard);
+    ContainmentApi.move(collie, yard);
 
     const ctrl = makeStuff(() => new SlaughterController());
-    await ctrl.execute(model(collie as unknown as Stuff), ctx(giver));
+    await ctrl.execute(model(collie), ctx(giver));
 
     expect(reasons()).toContain('no-yield');
     expect(corpses).toHaveLength(0);
@@ -436,7 +436,7 @@ describe('the three refusals do not read alike', () => {
     ContainmentApi.move(somebody, yard);
 
     const ctrl = makeStuff(() => new SlaughterController());
-    await ctrl.execute(model(somebody as unknown as Stuff), ctx(giver));
+    await ctrl.execute(model(somebody), ctx(giver));
 
     expect(reasons()).toContain('sentient');
     expect(corpses).toHaveLength(0);
@@ -449,7 +449,7 @@ describe('the three refusals do not read alike', () => {
     ContainmentApi.move(ewe, yard);
 
     const ctrl = makeStuff(() => new SlaughterController());
-    await ctrl.execute(model(ewe as unknown as Stuff), ctx(giver));
+    await ctrl.execute(model(ewe), ctx(giver));
 
     expect(reasons()).toContain('not-an-animal');
     expect(corpses).toHaveLength(0);

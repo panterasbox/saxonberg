@@ -1171,7 +1171,7 @@ export class SecurityApi {
    *      governed eval the one receiver it most obviously covers — the
    *      wizard's own body, standing in the parcel they hold title to.
    *      Same for every clone: a corpse in the lounge is lineage
-   *      `/stuff/agent/Corpse` and location `/world/lounge`.
+   *      `/stuff/thing/Corpse` and location `/world/lounge`.
    *   3. **You are nowhere yet** — unstamped AND unplaced, i.e. minted by
    *      this very run. `ScriptApi.mintEvalScratch` creates the scratch
    *      and *then* stamps its path, so at the instant of the stamp rules
