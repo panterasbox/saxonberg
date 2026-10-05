@@ -234,8 +234,19 @@ export default class LookController extends CommandController<LookModel> {
     // you cannot see.
     if (band && LIGHT_BANDS_TOO_DARK_TO_DESCRIBE.includes(band)) {
       let dark = Mml.compose`${Mml.fromMarkup(LIGHT_BAND_PHRASE[band] ?? '')}`;
+      // ⭐ The perception moment, in the dark too: you cannot describe
+      // the room, but you have been here and you can feel the ways out.
+      // A map of a pitch-black room you stood in is honest knowledge.
+      const perceivedDark = hasExits
+        ? location.obviousExitsFor(actor)
+        : [];
+      (
+        actor as unknown as {
+          onPerceivedPlace?(l: unknown, p: readonly unknown[]): void;
+        }
+      ).onPerceivedPlace?.(location, perceivedDark);
       if (hasExits) {
-        const exitsLine = this.formatExits(location.obviousExitsFor(actor));
+        const exitsLine = this.formatExits(perceivedDark);
         if (exitsLine) dark = Mml.compose`${dark}\n${exitsLine}`;
       }
       MessageApi.scene(actor).topic('sense.survey').toSelf(dark).send();
@@ -298,8 +309,28 @@ export default class LookController extends CommandController<LookModel> {
     // that renders the prose it was handed, which is the card surface's
     // question, recorded on `docs/slates/tails/carded-prose-slate.md`.
     const notices = EmploymentApi.noticesAt(location);
+    // ⭐⭐ THE PERCEPTION MOMENT — the one place a map may be written
+    // from. `obviousExitsFor(viewer)` has already filtered through the
+    // perception gate, so a hidden exit is ABSENT here rather than
+    // present-and-filtered-later: the hook cannot learn about an exit
+    // the viewer could not see, which is what makes the map's evidence
+    // firewall structural rather than policed.
+    //
+    // ⚠ Fired whether or not there are exits: the PLACE was perceived
+    // either way, and a room with no way out is still somewhere you
+    // have been. Optional-hook idiom (`Mobile.canTraverse?`); the only
+    // implementer is `Avatar`, and it swallows its own errors.
+    // ⚠ The ternary keeps the `isExitable` narrowing: `hasExits` is an
+    // aliased type predicate, and TS only narrows `location` where the
+    // alias is the condition.
+    const perceived = hasExits ? location.obviousExitsFor(actor) : [];
+    (
+      actor as unknown as {
+        onPerceivedPlace?(l: unknown, p: readonly unknown[]): void;
+      }
+    ).onPerceivedPlace?.(location, perceived);
     if (hasExits) {
-      const exitsLine = this.formatExits(location.obviousExitsFor(actor));
+      const exitsLine = this.formatExits(perceived);
       if (exitsLine) {
         body = Mml.compose`${body}\n${exitsLine}`;
       }

@@ -9,6 +9,12 @@ import { StuffApi } from '../../../api/stuff';
 import type LocationGraphRegistry from '../LocationGraphRegistry';
 import type { PlaceNode } from '../../../lib/location/PlaceNode';
 import type { GraphFinding } from '../../../lib/location/GraphInvariants';
+import { DocumentApi } from '../../../api/document';
+import { WorldClockApi } from '../../../api/worldclock';
+import type {
+  MapClaim,
+  MapDocument,
+} from '../../../lib/location/MapClaim';
 import type { CardinalDirection } from '../../../api/navigation';
 
 /** Where the graph registry stands. */
@@ -252,5 +258,148 @@ export class NavigationLogic extends ApiLogic {
   @CallSecurity(NavigationApiCallers)
   public async checkGraph(scope?: string): Promise<GraphFinding[]> {
     return (await registry()?.checkGraph(scope)) ?? [];
+  }
+
+  /* ── a player's map ──────────────────────────────────────────────────
+   *
+   * ⭐⭐ **This half never touches `location_graph`**, and that is the
+   * evidence firewall made structural rather than policed. A map is
+   * written from what the player PERCEIVED — the live room they are
+   * standing in, whose exits `obviousExitsFor(viewer)` has already
+   * filtered through the perception gate — so there is no read here
+   * that could hand somebody the shape of a place they have not
+   * earned.
+   *
+   * ⚠ And the live room is the right source for a second reason: it
+   * carries the ELASTIC nodes the graph deliberately does not store
+   * (a holding's rooms, a corridor minted on approach). A map built
+   * from the graph could not record a dorm room at all.
+   */
+
+  /** See {@link NavigationApi.recordPlace}. */
+  @CallSecurity(NavigationApiCallers)
+  public async recordPlace(
+    viewerKey: string,
+    locality: string,
+    claims: readonly MapClaim[],
+  ): Promise<void> {
+    if (!viewerKey || !locality || claims.length === 0) return;
+    const existing = await this.loadMap(viewerKey, locality);
+    const grown = NavigationLogic.growMap(existing, claims);
+    if (!grown) return; // nothing new and nothing to bump
+    await DocumentApi.saveMap(viewerKey, locality, {
+      locality,
+      claims: grown,
+    } as unknown as Record<string, unknown>);
+  }
+
+  /** See {@link NavigationApi.readMap}. */
+  @CallSecurity(NavigationApiCallers)
+  public async readMap(
+    viewerKey: string,
+    localityPrefix: string,
+  ): Promise<MapDocument[]> {
+    const rows = await DocumentApi.readMaps(viewerKey, localityPrefix);
+    return rows.map((r) => {
+      const data = r.data as unknown as MapDocument;
+      return {
+        locality: typeof data?.locality === 'string' ? data.locality : '',
+        claims: Array.isArray(data?.claims) ? data.claims : [],
+      };
+    });
+  }
+
+  /** See {@link NavigationApi.mapNow}. */
+  @CallSecurity(NavigationApiCallers)
+  public mapNow(): number {
+    try {
+      return Math.floor(WorldClockApi.getNow().value);
+    } catch {
+      // No clock in a bare test harness; a claim with a 0 timestamp is
+      // still a claim, and the alternative is refusing to record one.
+      return 0;
+    }
+  }
+
+  /** This player's map of one locality, or an empty one. */
+  private async loadMap(
+    viewerKey: string,
+    locality: string,
+  ): Promise<MapClaim[]> {
+    const rows = await DocumentApi.readMaps(viewerKey, locality);
+    const exact = rows.find((r) => r.path.endsWith(`/map/${locality}`));
+    const data = exact?.data as unknown as MapDocument | undefined;
+    return Array.isArray(data?.claims) ? [...data.claims] : [];
+  }
+
+  /**
+   * ⭐⭐ **The growth rule, and it is the whole knowledge model.**
+   *
+   * A new observation identical in `(kind, place, dir, to, channel)` to
+   * the **latest** claim for that key bumps its `lastSeen`. A differing
+   * one is **appended**. ⚠ **Nothing is ever removed, and nothing is
+   * ever corrected.**
+   *
+   * That is what makes a map able to be WRONG. Wall up an exit somebody
+   * has walked and their map still shows it; when they next look, the
+   * new observation lands beside the old one and both render — *you
+   * recorded an exit east on <date>; on <later> you saw none*. A merge
+   * would pick a winner and hide that it did, which turns a knowledge
+   * model back into a truth model.
+   *
+   * ⭐ `channel` is part of the key on purpose: *you saw an exit east*
+   * and *somebody told you there is one* are two different claims about
+   * the world, and collapsing them would lose exactly the provenance
+   * the channel exists to carry.
+   *
+   * Returns `null` when nothing changed at all, so a repeated `look`
+   * writes no document — `look` is cheap and frequent, and the dedupe
+   * is what bounds a map's growth to the number of DISTINCT
+   * observations.
+   */
+  private static growMap(
+    existing: MapClaim[],
+    incoming: readonly MapClaim[],
+  ): MapClaim[] | null {
+    // ⭐ `toLabel` is in the key alongside `to`, and it has to be: an
+    // exit whose far side CHANGED is usually only distinguishable by
+    // its label, because `to` is null for anything not resident. With
+    // `to` alone, east→yard and east→cellar keyed the same and the
+    // second silently bumped the first instead of appending — the
+    // disagreement vanished, which is the one thing this model exists
+    // to preserve. Found by a test.
+    const keyOf = (c: MapClaim): string =>
+      [
+        c.kind,
+        c.place,
+        c.dir ?? '',
+        c.to ?? '',
+        c.toLabel ?? '',
+        c.channel,
+      ].join('|');
+    // The LATEST claim per key — a later differing observation appends,
+    // so a key can hold several and only the newest is bumpable.
+    const latest = new Map<string, MapClaim>();
+    for (const claim of existing) {
+      const key = keyOf(claim);
+      const held = latest.get(key);
+      if (!held || claim.lastSeen >= held.lastSeen) latest.set(key, claim);
+    }
+    let changed = false;
+    const out = [...existing];
+    for (const claim of incoming) {
+      const held = latest.get(keyOf(claim));
+      if (held) {
+        if (claim.lastSeen > held.lastSeen) {
+          held.lastSeen = claim.lastSeen;
+          changed = true;
+        }
+        continue;
+      }
+      out.push({ ...claim });
+      latest.set(keyOf(claim), claim);
+      changed = true;
+    }
+    return changed ? out : null;
   }
 }

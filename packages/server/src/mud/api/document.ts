@@ -82,6 +82,30 @@ const INSTRUMENT_TRANSPORT_CALLERS = SecurityPolicies.FromModule(
   "/platform/idea/api/ContractLogic#ContractLogic",
 );
 
+/**
+ * ⚠⚠ **The map transport — the fifth ownership bypass**, and it exists
+ * for a reason the other four do not share: **the writer runs inside a
+ * FORCED frame**.
+ *
+ * A map is written when a player perceives a place, and arrival
+ * auto-senses via `self.forceCommand('sense')`.
+ * `ExecutionContextApi.getActingAuthor()` returns **null** when any
+ * frame in the chain is forced — so the ordinary context gate would
+ * reach `canAtPath(null, …)` and fail closed, every time, for the one
+ * write that matters most. The owner therefore has to be DERIVED from
+ * the viewer key the caller already holds, exactly as `saveInstrument`
+ * derives it from a party key.
+ *
+ * Its rails, all structural: no caller-supplied owner, the path is
+ * pinned under that player's own `/home/<key>/map/`, the `kind` is
+ * pinned to `map`, and it is gated to one calling module — the
+ * navigation logic, which owns the perception seams and is the only
+ * thing that knows what somebody just saw.
+ */
+const MAP_TRANSPORT_CALLERS = SecurityPolicies.FromModule(
+  "/platform/idea/api/NavigationLogic#NavigationLogic",
+);
+
 const REGISTER_TRANSPORT_CALLERS = SecurityPolicies.FromMixin(
   Mixins.Registrar,
   { where: (caller, _target, _method, args) => caller === args[0] },
@@ -227,6 +251,43 @@ export class DocumentApi {
     data: Record<string, unknown>,
   ): Promise<void> {
     return logic().saveInstrument(partyKey, path, data);
+  }
+
+  /**
+   * ⭐⭐ Write one player's map of one locality.
+   *
+   * `ownerKey` is the viewer's identity path; the document lands at
+   * `/home/<its basename>/map/<localityAddress>` and nowhere else. The
+   * address keeps its slashes, so a coarser read is a prefix read with
+   * no join — and copying one locality's map hands over nothing about
+   * any other.
+   *
+   * See {@link MAP_TRANSPORT_CALLERS} for why the owner is derived
+   * rather than taken from context: the writer runs inside a forced
+   * frame, where the acting author is `null` by design.
+   */
+  @CallSecurity(MAP_TRANSPORT_CALLERS)
+  static saveMap(
+    ownerKey: string,
+    localityAddress: string,
+    data: Record<string, unknown>,
+  ): Promise<void> {
+    return logic().saveMap(ownerKey, localityAddress, data);
+  }
+
+  /**
+   * Read one player's maps under a locality prefix — theirs only.
+   *
+   * ⭐ The prefix read is what makes `map terminus` work with no join:
+   * the address tree nests, so every map under Terminus is a path
+   * prefix away.
+   */
+  @CallSecurity(MAP_TRANSPORT_CALLERS)
+  static readMaps(
+    ownerKey: string,
+    localityPrefix: string,
+  ): Promise<Array<{ path: string; data: Record<string, unknown> }>> {
+    return logic().readMaps(ownerKey, localityPrefix);
   }
 
   /**

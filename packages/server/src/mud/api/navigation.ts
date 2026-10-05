@@ -24,6 +24,7 @@ import { fileURLToPath } from 'url';
 import { SecurityApi } from './security';
 import type { PlaceNode } from '../lib/location/PlaceNode';
 import type { GraphFinding } from '../lib/location/GraphInvariants';
+import type { MapClaim, MapDocument } from '../lib/location/MapClaim';
 
 /** Canonical direction names (long form). */
 export type CardinalDirection =
@@ -62,6 +63,13 @@ export type {
   GraphNode,
   GraphRule,
 } from '../lib/location/GraphInvariants';
+export type {
+  MapChannel,
+  MapClaim,
+  MapClaimKind,
+  MapDocument,
+} from '../lib/location/MapClaim';
+export { MAP_CHANNELS } from '../lib/location/MapClaim';
 
 export class NavigationApi {
   /**
@@ -213,6 +221,51 @@ export class NavigationApi {
    */
   public static checkGraph(scope?: string): Promise<GraphFinding[]> {
     return logic().checkGraph(scope);
+  }
+
+  /* ── a player's map ──────────────────────────────────────────────────
+   *
+   * ⭐⭐ The other artifact, and the one that DOES reach a client —
+   * because it is theirs. A map is written from what the player
+   * perceived and **never joins the graph**: nothing here reads
+   * `location_graph`, so no read can hand somebody the shape of a place
+   * they have not earned. See [docs/subsystems/location-graph.md].
+   */
+
+  /**
+   * Record what a viewer just learned about a locality.
+   *
+   * ⭐ The growth rule is the knowledge model: an observation identical
+   * to the latest claim for its key bumps `lastSeen`, a differing one
+   * is APPENDED, and **nothing is ever removed or corrected**. That is
+   * what lets a map be wrong — and lets the disagreement be seen.
+   *
+   * ⚠ Plain data only: the caller converts live Stuff to handles, so
+   * nothing here takes a `Stuff`.
+   */
+  public static recordPlace(
+    viewerKey: string,
+    locality: string,
+    claims: readonly MapClaim[],
+  ): Promise<void> {
+    return logic().recordPlace(viewerKey, locality, claims);
+  }
+
+  /**
+   * One viewer's maps under a locality prefix — theirs only, and a
+   * prefix read with no join (`map terminus` is every map filed under
+   * Terminus).
+   */
+  public static readMap(
+    viewerKey: string,
+    localityPrefix: string,
+  ): Promise<MapDocument[]> {
+    return logic().readMap(viewerKey, localityPrefix);
+  }
+
+  /** The game-second a claim should be stamped with. */
+  public static mapNow(): number {
+    return logic().mapNow();
   }
 }
 

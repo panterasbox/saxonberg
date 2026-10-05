@@ -41,6 +41,7 @@ import type { MixinConstructor, FieldMeta } from "@saxonberg/server/mud/lib/mixi
 import type { Stuff } from "@saxonberg/server/mud/lib/stuff/Stuff";
 import type { Container } from "@saxonberg/server/mud/lib/spatial/Container";
 import type { Sensor } from "@saxonberg/server/mud/lib/message/Sensor";
+import type { PublishedStop } from "@saxonberg/server/mud/lib/travel/TravelNode";
 import type { CommandContributions } from "@saxonberg/server/mud/api/command";
 import type { CronPattern, ClockHandle } from "@saxonberg/server/mud/api/worldclock";
 import { WorldClockApi } from "@saxonberg/server/mud/api/worldclock";
@@ -144,6 +145,8 @@ export interface FastTravel {
   getArrivalRoom(): Promise<Stuff & Container>;
   getDestinationLabel(): Promise<string>;
   renderDepartures(viewer: Stuff & Sensor): Promise<string>;
+  /** See the implementation — the board's facts, with no viewer. */
+  publishedStops(): Promise<PublishedStop[]>;
 
   /**
    * **The whole ride from this node** — the `TravelNode` shape the
@@ -429,6 +432,47 @@ export function FastTravelMixin<TBase extends MixinConstructor<Stuff>>(
     }
 
     /* ── the local departures board (live, viewer-aware) ────────── */
+
+    /**
+     * ⭐ What this stop ADVERTISES, as data — the machine-readable half
+     * of the board `renderDepartures` writes as prose.
+     *
+     * The first consumer is a player's map: reading a public timetable
+     * is knowledge of places you have not been, so each stop lands
+     * marked `publication` and distinguishable from somewhere you
+     * walked to.
+     *
+     * ⚠ Unlike the board, this names **no viewer and no clearance**.
+     * It is what the network has told the world, not what one traveller
+     * may use — a station they are not registered for is still a
+     * station they have heard of.
+     *
+     * A route whose node will not resolve is SKIPPED rather than
+     * throwing: a timetable with a broken entry has still told you
+     * about its other stops, and failing the whole read would make one
+     * bad row erase the board.
+     */
+    async publishedStops(): Promise<PublishedStop[]> {
+      const out: PublishedStop[] = [];
+      for (const route of this._routes.values()) {
+        try {
+          const node = await StuffApi.singleton<Stuff & FastTravel & Sensor>(
+            route.ref,
+          );
+          const room = await node.getArrivalRoom();
+          const arrival = (room as unknown as Stuff).getTemplatePath();
+          if (!arrival) continue;
+          out.push({
+            nodePath: route.ref,
+            arrivalRoomPath: arrival,
+            label: await node.getDestinationLabel(),
+          });
+        } catch {
+          // A broken row must not erase the rest of the board.
+        }
+      }
+      return out;
+    }
 
     async renderDepartures(viewer: Stuff & Sensor): Promise<string> {
       // "— not yet registered" reflects IDENTITY clearance (the viewer's own

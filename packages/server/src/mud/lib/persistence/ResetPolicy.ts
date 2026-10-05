@@ -114,8 +114,11 @@ export const RESET_DISPOSITIONS: Readonly<
       'packs), reference data not player state; wiping it would empty the ' +
       'soul vocabulary at 04:00 until a reboot re-installed it; and the ' +
       'RUNTIME-WRITTEN record kinds (water rights, bills of lading, ' +
-      'warehouse receipts, rate cards) — a record of something that ' +
-      'happened, which nothing may erase because a night went by',
+      'warehouse receipts, rate cards, MAPS) — a record of something that ' +
+      'happened, which nothing may erase because a night went by. ⭐ A map ' +
+      'is one player\'s knowledge of one locality, written from what they ' +
+      'perceived; walk somewhere, let the reset run, and the map still ' +
+      'says you were there',
   },
   [Collections.ForumBoards]: { verb: 'wipe' },
   [Collections.ForumEntries]: { verb: 'wipe' },

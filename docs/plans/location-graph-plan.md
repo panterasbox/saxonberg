@@ -2019,7 +2019,73 @@ when they leave; the pointing row carries a diagnostic naming the lost
 destination; `title publish` reopens it and the graph's `published`
 follows. Covers AC12, AC13.
 
-### B3 · A map you own, and it can be wrong — `build(location-graph B3): a player owns a map of each locality they know, written when they look and never corrected`
+### B3 · A map you own, and it can be wrong — ✅ DONE
+
+> **Note (2026-10-05).** The `map` document kind, the derived-owner
+> writer, the claim shape, the growth rule, the three perception seams,
+> `publishedStops`, and the `map` verb.
+>
+> ⚠⚠ **AC11 needed a second mechanism the plan did not have**, and this
+> is the wave's main finding. D13's growth rule handles *the far side
+> changed* — two claims for one direction, both rendered. But the COMMON
+> case is an exit being **walled up**, and that records **nothing at
+> all**: the player saw no east exit, so there is no second claim to
+> disagree with the first. AC11 would have been unmet for the shape it
+> was actually written about.
+>
+> ⭐ The fix needed no new state. The PLACE claim is the *I looked here
+> at T* record, so **an edge older than the latest look at its place is
+> an edge that was not there last time anybody looked** — and the
+> renderer says so (*"recorded 2d ago; not seen when you last
+> looked"*). Nothing is merged, nothing is deleted, and the staleness is
+> derivable from two timestamps the document already carries.
+>
+> ⚠⚠ **`toLabel` had to join the dedupe key**, also found by a test.
+> D13's key is `(kind, place, dir, to, channel)`, but `to` is **null for
+> anything not resident** — so east→yard and east→cellar keyed the same,
+> and the second observation silently BUMPED the first instead of
+> appending. That erases the disagreement the whole model exists to
+> preserve, which is the one failure mode this build cannot have.
+>
+> ⭐⭐ **The forced frame is why `saveMap` exists at all**, exactly as
+> G-WRITE predicted: arrival auto-senses through `forceCommand`, and
+> `getActingAuthor()` is `null` inside a forced frame, so the ordinary
+> context gate would fail closed for the most important write this kind
+> has. `saveMap` is the fifth ownership bypass, on `saveInstrument`'s
+> rails, gated to `NavigationLogic`.
+>
+> ⭐ **`PublishedStop` is the machine-readable half of a board.**
+> `renderDepartures` is prose for a player; `publishedStops()` is the
+> same facts with **no viewer and no clearance** — a station you are not
+> registered for is still one you have heard of. Optional on the shape,
+> so a network that advertises nothing answers honestly; and a route
+> whose node will not resolve is skipped rather than throwing, because
+> one bad row must not erase the board.
+>
+> ⚠ The place hook fires **in the dark too**: you cannot describe a
+> pitch-black room, but you have been there and can feel the ways out. It
+> also fires when a room has NO exits — the place was perceived either
+> way.
+>
+> ⚠ A TS narrowing trap: hoisting `obviousExitsFor` out of its
+> `if (hasExits)` block lost the aliased type-predicate narrowing. The
+> ternary keeps it.
+>
+> ⚠ `mapClaimKey` was removed from `lib/location/MapClaim.ts` before it
+> shipped — a free exported helper in `lib/` is drift by definition, and
+> the dedupe key is the writer's business anyway.
+>
+> ⚠ `lint:controller-rows` caught the missing `MapController.yaml`: a
+> view whose controller row resolves to nothing answers
+> `controller-error` **every time, for everybody, forever**, while its
+> controller tests stay green because they instantiate the class
+> directly. Exactly the silent-failure class the five reachability links
+> exist for.
+>
+> 12 + 13 tests; 414 across the perception/Avatar neighbourhood.
+> Typecheck clean, `lint:family` 66/66.
+
+**Original wave spec** — `build(location-graph B3): a player owns a map of each locality they know, written when they look and never corrected`
 
 **Implements** D13–D17. **Files:** `lib/document/DocumentKinds.ts` +
 `packages/server/src/schema/documents.yaml` (the `because` line);

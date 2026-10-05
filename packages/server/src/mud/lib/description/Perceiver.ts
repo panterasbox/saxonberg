@@ -30,6 +30,8 @@
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { CommandContributions } from '../../api/command';
 import type { Sensor } from '../message/Sensor';
+import type { Stuff } from '../stuff/Stuff';
+import type { PublishedStop } from '../travel/TravelNode';
 import type { AnyConstructor } from '../../api/mixin';
 import { Mixins } from '../mixin';
 import { MixinApi } from '../../api/mixin';
@@ -96,7 +98,45 @@ export const SENSE_CHANNELS: readonly SenseChannel[] = [
  * type level so consumers narrowing via `MixinApi.isPerceiver`
  * also reach the Sensor surface.
  */
-export interface Perceiver extends Sensor {}
+export interface Perceiver extends Sensor {
+  /**
+   * ⭐⭐ **A place was perceived, and here is what was perceived of it.**
+   * Optional: declaring it claims nothing of a composer that does not
+   * implement it, so an NPC perceiver stays a no-op.
+   *
+   * Called by `look` and `sense` right after `obviousExitsFor(viewer)`
+   * — *the perception moment*, and the list handed over has already
+   * been filtered through the perception gate, so a hidden exit is
+   * absent rather than present-and-filtered-later. That ordering is
+   * what makes the map's evidence firewall structural: the hook cannot
+   * learn about an exit the viewer could not see.
+   *
+   * The only implementer is `Avatar`, which converts the live room and
+   * its exits into plain handles and hands them to
+   * `NavigationApi.recordPlace`. An NPC that ever wants to keep a map
+   * implements this and nothing else changes.
+   *
+   * @hook Override to learn what this perceiver just saw of a place.
+   */
+  onPerceivedPlace?(
+    location: Stuff,
+    perceived: readonly Stuff[],
+  ): void;
+
+  /**
+   * ⭐ **A published timetable was read.** The second reveal channel:
+   * a travel network's board is public, so reading it is knowledge of
+   * places you have not been — marked `publication`, and
+   * distinguishable on the map from somewhere you walked.
+   *
+   * Called by `teleport` right after `renderDepartures`, which is
+   * deliberately before any clearance read: reading the board is
+   * reading a public notice.
+   *
+   * @hook Override to learn what this perceiver just read off a board.
+   */
+  onReadTimetable?(stops: readonly PublishedStop[]): void;
+}
 
 export function PerceiverMixin<TBase extends MixinConstructor>(Base: TBase) {
   class PerceiverMixin extends Base {

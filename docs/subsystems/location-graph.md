@@ -235,6 +235,138 @@ the source of truth; a flip re-projects the extent.
 
 ---
 
+## A player's map
+
+The other artifact, and the one that **does** reach a client — because
+it is theirs.
+
+One document per `(player, finest covering locality)`, at
+`/home/<key>/map/<locality address>`, kind `map`. ⭐ The address keeps
+its slashes, so a coarser read is a **prefix read with no join**
+(`map terminus` is every map filed under Terminus) — and copying one
+locality's map hands over nothing about any other, which is the only way
+map-selling can ever work.
+
+⭐⭐ **It is a CLAIM, not a view.** Nothing joins it to the graph. The
+map writer does not import `PlaceNode`, so no read can hand somebody the
+shape of a place they have not earned.
+
+⚠ And the **live room is the right source** for a second reason: it
+carries the elastic nodes the graph deliberately does not store (a
+holding's rooms, a corridor minted on approach). A map built from the
+graph could not record a dorm room at all.
+
+### Four channels, three of which can be wrong
+
+| channel | revealed by | can be wrong |
+|---|---|---|
+| `perception` | you saw it, or walked it | yes, if it changed |
+| `publication` | a timetable is public | yes, if a station went dark |
+| `told` | somebody said so | ⚠ yes, and they may have **lied** |
+| `bought` | a transaction | yes, and that is the seller's reputation |
+
+⚠ `told` and `bought` are **vocabulary with no writer**. They are in the
+shape from the start because retrofitting provenance onto a store that
+assumed one channel is the expensive version; `told`'s attribution
+(somebody lied to you, and the record should say who) belongs with
+[accountability.md](./accountability.md).
+
+### ⭐⭐ The growth rule, and why rot is the feature
+
+An observation identical in `(kind, place, dir, to, toLabel, channel)`
+to the **latest** claim for that key bumps its `lastSeen`. A differing
+one is **appended**. **Nothing is ever removed and nothing is ever
+corrected.**
+
+That is what lets a map be wrong. A merge would pick a winner and hide
+that it did, which turns a knowledge model back into a truth model — and
+*"who was there more recently"* dissolves anyway once a map is many
+claims rather than one document with one date.
+
+⭐ `channel` is part of the key on purpose: *you saw an exit east* and
+*somebody told you there is one* are two different claims about the
+world. ⚠ So is `toLabel`, and that one was found by a test: an exit
+whose far side CHANGED is usually only distinguishable by its label,
+because `to` is null for anything not resident — with `to` alone,
+east→yard and east→cellar keyed the same and the second silently bumped
+the first, erasing the disagreement this whole model exists to preserve.
+
+⭐ Nothing changed ⇒ **no document write**, which is what bounds a map's
+growth to the number of *distinct* observations rather than to how often
+somebody types `look`.
+
+### Two shapes of disagreement
+
+- **The far side changed** — two claims for one direction, and both
+  render with their dates.
+- **The exit vanished** — and this is the common one, which records
+  *nothing at all*, because the player saw no east exit to write down.
+  The comparison is then against the **place's own latest observation**:
+  the place claim is the *I looked here at T* record, so an edge older
+  than the latest look is an edge that was not there last time anybody
+  looked. ⭐ Which is why nothing has to be merged or deleted to make a
+  map honest — the staleness is derivable from two timestamps the
+  document already carries.
+
+### The seams
+
+Two optional `@hook`s on the `Perceiver` interface —
+`onPerceivedPlace?` and `onReadTimetable?` — plus `Mobile.onTraversed?`.
+Declaring an optional hook claims nothing of a composer that does not
+implement it, so an NPC perceiver stays a no-op.
+
+The only implementer is **`Avatar`**, because players own a
+`/home/<self>` branch, and it is the only place live Stuff becomes
+handles. ⚠ `SandboxAvatar` inherits them and declines through
+`shouldPersist()`: a wire body perceiving circle rooms must not write
+real geography onto the person wearing it, and documents are `pass`
+under the sandbox, so that check is the only thing stopping it. A guest
+declines too.
+
+⭐ `look` and `sense` fire the place hook **right after**
+`obviousExitsFor(viewer)` — *the perception moment*. The list has
+already been filtered through the perception gate, so the hook **cannot
+learn about an exit the viewer could not see**. That is what makes the
+firewall structural rather than policed. It fires in the dark too: you
+cannot describe a pitch-black room, but you have been there and can feel
+the ways out.
+
+⚠⚠ **The writer runs inside a FORCED frame.** Arrival auto-senses via
+`self.forceCommand('sense')`, and `getActingAuthor()` returns `null`
+when any frame in the chain is forced — so the ordinary context gate
+would reach `canAtPath(null, …)` and fail closed for the single most
+important write this kind has. `DocumentApi.saveMap` is therefore a
+**derived-owner writer** (the fifth ownership bypass, on
+`saveInstrument`'s rails): no caller-supplied owner, the path pinned
+under that player's own `/home/<key>/map/`, the `kind` pinned, and the
+face gated to `NavigationLogic`.
+
+⚠ Every writer is fire-and-forget and swallows its own errors. A map is
+a convenience; failing somebody's `look` because a document would not
+save is the wrong trade.
+
+### The read
+
+`map` (the index of localities you hold a map of) and `map <locality>`
+— the places grouped by the address the content declares, each with the
+ways out you know and how you know them.
+
+⭐ **AC14 is structural**: the controller's single read is
+`NavigationApi.readMap(viewerKey, prefix)`, which resolves under the
+actor's own home and nowhere else. Nothing in it touches
+`location_graph`.
+
+⚠ *"You have no map of X"* rather than an empty map of X. An empty
+rendering would read as *there is nothing there*, which is a claim about
+the world; this is a claim about the player. ⚠ An ungrouped place gets
+**no invented heading** — inventing one would be the map asserting a
+building nobody authored.
+
+⚠ No card. The inspection card is laid out by `StuffKind` and a map is
+not a Stuff; the renderer and its card are `map-slate`'s.
+
+---
+
 ## Cross-references
 
 - [location.md](./location.md) — the durable handle's contract; the Warren graph
