@@ -836,7 +836,13 @@ model:
 **Custody is authored + derived, never defaulted.** A Business carries
 `banksAt` (where it banks — a term of its arrangement; missing =
 refused), and every account touchpoint routes through
-`EmploymentApi.operatingAccountOf(business)`. Worker payability is
+`EmploymentApi.operatingAccountOf(business)`. ⭐ **A SALE settles through
+`EmploymentApi.settleSale(venuePath, amount, taxable, reason, splits?)`**
+— the one path `buy` and `order` both run (it stands the operator up,
+resolves the account, appends the venue's share-of-flow splits + any the
+caller carries, settles credential→cash, and remits the demo tax on the
+taxable slice); it replaced a hand-rolled copy in each retail controller
+(retail.md). Worker payability is
 **payer-derived** (`ensurePayableWorker`): an NPC with no account gets
 one opened at the employer's bank ("your first account opens where
 your first money comes from"); a **player is never silently signed
