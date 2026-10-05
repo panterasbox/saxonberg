@@ -354,6 +354,10 @@ export const Mixins = {
   // Commerce — the shared authored price-list (Law 1: worth on the offer,
   // not the good). Composed by the bar's Menu and the store's Stock.
   PricedOffer: 'PricedOfferMixin',
+  // Commerce — a civic bank of donated units read BY LOT over a configured
+  // store (the blood window). Kernel because its composers share no pack
+  // ancestor (the same rationale taps gives ProducingMixin).
+  DonationBank: 'DonationBankMixin',
   // Residency — the game-time reset (repop) sweep's consumer marker: an
   // object that restores itself on the sweep (the shop's Stock tops up).
   Resettable: 'ResettableMixin',
@@ -868,6 +872,7 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
 
   // Storefronts.
   PricedOfferMixin: "{} isn't something with a price list",
+  DonationBankMixin: "{} isn't a bank window",
 
   // Instruments — both of these sit on a slot that names the TOOL, not
   // the subject, so the phrase reads from the actor's side.

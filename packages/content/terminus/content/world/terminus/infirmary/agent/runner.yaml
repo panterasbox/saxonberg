@@ -1,0 +1,35 @@
+# The Goodkin runner — the corpo's hand on the collection floor (blood
+# build D13). On shift, while the window is short, the `supplies` brain
+# carries a unit from the collection cold case to the ward fridge through
+# the honest door dance (west to the ward, open, put, close, back east).
+class: /platform/agent/Cast
+extends: /stuff/agent/costume/student
+data:
+  costume:
+    - /stuff/thing/clothes/field-jacket
+  name: Pell Ortane
+  keywords: [runner, pell, ortane, goodkin]
+  pronouns: he
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
+  lifecycleState: alive
+  alternateNames: [pell, ortane]
+  shortDescription: quick Goodkin runner
+  register: indefinite
+  longDescription: |
+    A wiry young man in a Goodkin-grey field jacket, a carry-cooler
+    slung at his hip, forever half-turned toward the door as though the
+    next errand has already started.
+  dispositions:
+    - { disposition: diligence, valence: 50 }
+  archetype: courier
+  competence:
+    - { discipline: business-administration, asserting: novice }
+  behaviors:
+    - brain: /trade/medicine/behavior/supplies
+      trigger: candidate
+      config:
+        window: /world/terminus/infirmary/thing/blood-window
+        unit: unit
+        fridge: fridge
+        out: west
+        back: east

@@ -34,8 +34,8 @@ import { MixinApi } from "../../../../api/mixin";
 import { MessageApi } from "../../../../api/message";
 import { Mml } from "../../../../api/mml";
 import { ChattelApi } from "../../../../api/chattel";
-import { Currency, BankingApi, Money } from "../../../../api/banking";
-import type { Charge, RemittanceSplit, SettlementReceipt } from "../../../../api/banking";
+import { BankingApi, Money } from "../../../../api/banking";
+import type { RemittanceSplit, SettlementReceipt } from "../../../../api/banking";
 import { StuffApi } from "../../../../api/stuff";
 import { EmploymentApi } from "../../../../api/employment";
 import { AppApi } from "../../../../api/app";
@@ -153,10 +153,9 @@ export default class BuyController extends CommandController<BuyModel> {
       });
       return;
     }
-    const paid = await this.settleSale(
+    const paid = await EmploymentApi.settleSale(
       stock.getIdentityPath(),
       price,
-      [],
       price, // the whole price is the store's taxable revenue
       "a purchase",
     );
@@ -245,7 +244,7 @@ export default class BuyController extends CommandController<BuyModel> {
       // cogs, the supplier's as sales; the ladder's rung-1 gate counts it).
       // Two posts, one command — the `remitDemoTax` precedent.
       const ask = stock.priceFor(item.getTemplatePath() ?? "") ?? listing.askMinor;
-      paid = await this.settleSale(venuePath, ask, [], ask, "a purchase");
+      paid = await EmploymentApi.settleSale(venuePath, ask, ask, "a purchase");
       if (!paid) {
         this.rejectBroke(giver, context, item, model);
         return;
@@ -265,12 +264,12 @@ export default class BuyController extends CommandController<BuyModel> {
               },
             ]
           : [];
-      paid = await this.settleSale(
+      paid = await EmploymentApi.settleSale(
         venuePath,
         ask,
-        splits,
         commission, // only the commission is the store's taxable revenue
         "a purchase",
+        splits,
       );
       if (!paid) {
         this.rejectBroke(giver, context, item, model);
@@ -287,62 +286,6 @@ export default class BuyController extends CommandController<BuyModel> {
       await item.followCustody(); // placed in the buyer's estate, as above
     }
     this.announce(giver, item, paid.tail, buyer);
-  }
-
-  /**
-   * Settle a sale to the store's Business account with optional splits, then
-   * remit the demo tax on the store's taxable slice. Returns the scene tail,
-   * or null when nothing clears (card then cash both fail / no account).
-   */
-  private async settleSale(
-    venuePath: string | null,
-    amount: number,
-    splits: RemittanceSplit[],
-    taxable: number,
-    reason: string,
-  ): Promise<{ tail: string; receipt: SettlementReceipt } | null> {
-    if (!venuePath) return null;
-    const business = await EmploymentApi.ensureOperatorAt(venuePath);
-    if (!business) return null;
-    let account: string;
-    try {
-      // Custody is the business's authored banksAt (never a default).
-      account = await EmploymentApi.operatingAccountOf(business);
-    } catch {
-      return null;
-    }
-    const charge: Charge = {
-      amount: Money.of(amount, BankingApi.compactCurrency()),
-      reason,
-      presented: true,
-      payeeAccountId: account,
-      category: "sales",
-      splits: splits.length > 0 ? splits : undefined,
-    };
-    let receipt: SettlementReceipt;
-    try {
-      receipt = await BankingApi.settle(charge, { kind: "credential" });
-    } catch {
-      try {
-        receipt = await BankingApi.settle(charge, { kind: "cash" });
-      } catch {
-        return null;
-      }
-    }
-    if (taxable > 0) {
-      // ⭐ Pass the venue fixture so the tax splits to the sale's covering
-      // locality (energy build D12) — its budget fills from real trade.
-      const venueFixture = StuffApi.findByTemplatePath(venuePath) ?? undefined;
-      await BankingApi.remitDemoTax(
-        account,
-        Money.of(taxable, BankingApi.compactCurrency()),
-        venueFixture,
-      );
-    }
-    const tail = receipt.corpoKey
-      ? `(${Money.of(amount, BankingApi.compactCurrency()).render()}, ${receipt.corpoKey})`
-      : `(${Money.of(amount, BankingApi.compactCurrency()).render()})`;
-    return { tail, receipt };
   }
 
   /**

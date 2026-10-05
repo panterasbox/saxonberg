@@ -1,0 +1,28 @@
+# Goodkin Bloodworks — the corpo's kept upstream (blood build D11). After
+# the Paramount Decree, Goodkin kept collection and carting (where the
+# money was) and divested the giving-away (the window). This is that
+# upstream: a Goodkin subsidiary whose authority is the corpo's committee,
+# operating the collection room next door.
+#
+# ⭐ The player can never switch it off: nothing in it is player-holdable
+# (its authority is the corpo's committee; a player joins that only
+# through the Registrar of Corporations). No par — it is the supplier, not
+# the buyer.
+class: /platform/idea/Business
+data:
+  name: "Goodkin Bloodworks"
+  parentOrganization: /corpo/goodkin
+  appointingAuthority:
+    kind: committee
+    parcel: /corpo/goodkin
+  positions:
+    - { key: runner, noun: runner, label: running the collection, wageRate: 4 }
+  rosterSlots:
+    - positionKey: runner
+      assignee: /world/terminus/infirmary/agent/runner
+      station: /world/terminus/infirmary/collection
+      schedule:
+        - { days: [0, 1, 2, 3, 4, 5, 6], hours: [0, 24] }
+  banksAt: goodkin
+  operatingLocations:
+    - /world/terminus/infirmary/collection

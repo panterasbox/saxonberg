@@ -1,0 +1,69 @@
+# The blood window's registrar — the private proprietor who kept the
+# Goodkin name but runs the window independently (blood build D11/D17).
+# She runs the `banks` brain (the floor, the summons, the notice) and
+# carries the Decree in her dialogue. Crusty: she has written the slate
+# many times and does not much like being asked whose window this is.
+class: /platform/agent/Cast
+extends: /stuff/agent/costume/student
+data:
+  costume:
+    - /stuff/thing/clothes/white-coat
+  name: Miren Cassady
+  keywords: [registrar, miren, cassady, crusty]
+  pronouns: she
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
+  lifecycleState: alive
+  alternateNames: [miren, cassady, clerk]
+  shortDescription: brisk, close-mouthed registrar
+  register: indefinite
+  longDescription: |
+    A broad, brisk woman behind the window's bars, sleeves pinned, a
+    ledger squared in front of her. She has the look of someone who has
+    explained the same thing more times than she cares to and will
+    explain it once more, shortly.
+  dispositions:
+    - { disposition: diligence, valence: 60 }
+    - { disposition: candor, valence: 45 }
+    - { disposition: sociability, valence: -20 }
+  archetype: registrar
+  competence:
+    - { discipline: business-administration, asserting: competent }
+  behaviors:
+    - brain: /trade/medicine/behavior/banks
+      trigger: candidate
+      config:
+        window: /world/terminus/infirmary/thing/blood-window
+    - brain: /lib/behavior/tree-dialogue
+      trigger: engage
+      config:
+        entry:
+          - node: decree
+        nodes:
+          decree:
+            beat: >-
+              She looks up. "We keep the name, aye. Goodkin hasn't run this
+              window since the Decree — they kept the collecting and the
+              carting, which is where the money was, and left us the giving
+              away. The sign's theirs. The blood's yours."
+            choices:
+              - { line: "So Goodkin runs the blood bank?", to: correction }
+              - { line: "What was the Decree?", to: history }
+              - { line: "Thanks.", to: end }
+          correction:
+            beat: >-
+              "Did you not hear me?" She taps the sill. "Goodkin runs the
+              CARTS. I run the window, and I'll thank you not to confuse
+              the two where the auditors can hear it. The name over the
+              door is a ghost. I am not."
+            choices:
+              - { line: "Understood.", to: end }
+          history:
+            beat: >-
+              "The state made the big houses give up one link of three —
+              collect, carry, give out. Goodkin gave up the giving away;
+              least profit in it. That was in my mother's time, and the
+              sign's been dead since. We never did pay to relight it."
+            choices:
+              - { line: "I see.", to: end }
+          end:
+            beat: '"Mind how you go."'

@@ -1,0 +1,11 @@
+# The ward's lamp — a wall sconce kept LIT (blood build W6 drive finding).
+# The ward is daylit through its window but dark at night; a clinic that
+# keeps hours (7–19) and a blood window somebody must be able to SEE needs
+# a light that does not depend on the sun. Hung as an adornment so it
+# lights the room fixture-side, like the corpo neon does.
+class: /generic-objects/thing/SconceLamp
+extends: /stuff/thing/fixture/sconce-lamp
+data:
+  shortDescription: ward sconce
+  keywords: [sconce, lamp, light, ward]
+  on: true

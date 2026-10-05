@@ -1,0 +1,31 @@
+# The collection room — Goodkin's kept upstream, east of the ward (blood
+# build D13). A donor couch, the runner's cold case (the producer floor
+# the units spawn onto), a crate of empty bags, and the runner's carried
+# cooler. Cross-zone cardinal exit WEST back to the ward, both sides
+# explicit.
+class: /platform/location/SingletonCartesianLocation
+data:
+  shortDescription: collection room
+  keywords: [collection, room]
+  register: definite
+  _address: terminus/city/counting-houses/infirmary/collection
+  longDescription: |
+    A narrow room behind the ward, colder than it is, smelling of iron
+    and antiseptic. A padded couch with a roll of gauze at its head stands
+    under a steel-doored cold case racked with labelled units; a crate of
+    flat empty bags waits beside it, and the runner's carry-cooler sits by
+    the door, lid up.
+  coords:
+    x: 3
+    y: 0
+    z: 0
+  exits:
+    west:
+      destination: /world/terminus/infirmary/ward
+  props:
+    - /world/terminus/infirmary/thing/collection-stock
+    - { template: /trade/medicine/thing/blood-bag, count: 6 }
+    - /stuff/thing/vessel/cooler
+  cast:
+    - /world/terminus/infirmary/agent/runner
+    - /world/terminus/infirmary/agent/donor

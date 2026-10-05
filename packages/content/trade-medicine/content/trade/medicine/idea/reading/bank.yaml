@@ -1,0 +1,23 @@
+# bank — what a blood window holds, in words.
+#
+# ⭐ The typed panel (D15): each lot's units and litres, the par and the
+# shortfall, which lots are OUT. A proficient eye also reads the donor
+# ROLL — who has registered as a willing donor, by type — which is the
+# PULL surface a shortage is answered from (D14: read the roll, ask them in
+# the room; nobody is paged). An expert eye reads the custody trail — who
+# issued what to whom.
+#
+# `record` kind: it reports a standing record, not a momentary fact.
+class: /trade/medicine/idea/reading/BankReading
+data:
+  channel: bank
+  kind: record
+  scope: [subject, here]
+  discipline: nursing
+  instrument: ""
+  eyeCeiling: expert
+  improves: >-
+    which types are short, who is registered to give them, and who has
+    given what
+  stakes: >-
+    a shortage unanswered; a donor who would have given, unasked

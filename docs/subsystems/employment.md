@@ -836,7 +836,13 @@ model:
 **Custody is authored + derived, never defaulted.** A Business carries
 `banksAt` (where it banks — a term of its arrangement; missing =
 refused), and every account touchpoint routes through
-`EmploymentApi.operatingAccountOf(business)`. Worker payability is
+`EmploymentApi.operatingAccountOf(business)`. ⭐ **A SALE settles through
+`EmploymentApi.settleSale(venuePath, amount, taxable, reason, splits?)`**
+— the one path `buy` and `order` both run (it stands the operator up,
+resolves the account, appends the venue's share-of-flow splits + any the
+caller carries, settles credential→cash, and remits the demo tax on the
+taxable slice); it replaced a hand-rolled copy in each retail controller
+(retail.md). Worker payability is
 **payer-derived** (`ensurePayableWorker`): an NPC with no account gets
 one opened at the employer's bank ("your first account opens where
 your first money comes from"); a **player is never silently signed
@@ -1029,3 +1035,18 @@ Businesses are found the same way: `businessByLocation` and
 `businessByProprietor`, filled by the one enumeration that fills the
 business cache, with today's rebuild-and-retry on a miss for a business
 that post-dates the memo.
+
+## Blood-economy build — a Business may publish; a fixture-operated house
+
+`BusinessEntity` now composes `PublisherMixin`: a business that authors a
+`feedPath` and names `publishingPositions` keeps a notice board (the
+blood window posts shortage notices). `mayPublishAsImpl` fails closed on
+an empty `feedPath`, so the forty shipped businesses that author none
+publish nothing. ⚠ **A business operates its FIXTURE, not the room**: the
+blood window's `operatingLocations` names its counter, and the practice
+keeps the ward — the operator-index is last-writer, so two businesses
+naming one room would make one unreachable. A roster slot's `station:`
+teleports the assignee to the room (the window's registrars station at
+the ward, where the fixture stands). ⚠ The par/perception `stockSheetFor`
+skips a CLOSED sealable, so a bank reads its vault's own contents (not the
+sheet) — see `blood.md` (`DonationBankMixin`).

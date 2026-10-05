@@ -190,17 +190,20 @@ disposition-valence authoring (only a starter set rides authored
 `ActSignature`s today); npc-dialogue voice-from-traits (consumes the
 readable trait-position).
 
-⚠ **The starter set is empty (verified 2026-09-18).** `dispositionValence`
-appears in no authored YAML, `imprintSignature` / `imprintDeed` have no
-production call sites (every `recordDeed` in the tree goes to advancement
-or the chronicle), and `Advancement.ts` marks the channel *read-but-
-ignored*. The only live writer is `Behaved._seedDispositions`, stamping
-static `claim` rows on the authored cast — so every **player** derives
-their traits over an empty ledger. The substrate is not broken; it was
-never connected. The intended writer is **authored moments**, not
-reactive inference ([narration-slate](../slates/builds/narration-slate.md)),
-and the first authored `dispositionValence` is also the moment the
-`traits` / `score` self-readouts (⚠ below) begin printing a band.
+⭐ **The channel is CONNECTED (blood-economy build, 2026-10-04).** For a
+year `dispositionValence` was *read-but-ignored* — it appeared in no
+authored YAML and `imprintSignature`/`imprintDeed` had no production
+caller. The blood gift is the first live consumer: `AdvancementMixin.
+creditSignature` now grafts the valence channel onto the host's trait
+ledger (`if (isDispositioned(this) && signature.dispositionValence?.length)
+this.imprintSignature(...)` — a self-call from the host's own frame, which
+`SelfOnly` allows), and `donate` credits a player's own-blood gift with
+`BLOOD_GIFT_SIGNATURE` (generosity always, compassion when the lot was
+short). So a donor's `traits`/`score` now print a generosity band derived
+from deeds, not an empty ledger. The intended writer remains **authored
+moments**, not reactive inference ([narration-slate](../slates/builds/narration-slate.md));
+full-surface valence authoring (beyond the gift) is still the deferred
+work above.
 
 
 ## The standing witness

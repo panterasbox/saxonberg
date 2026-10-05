@@ -145,3 +145,13 @@ boot:
   # carries her seat.
   - { template: /world/terminus/counting-houses/avenue-block, role: producer, reason: "the avenue block — the Gazette's editor stands here and runs the prints beat" }
   - { template: /world/terminus/gazette, role: producer, reason: "the Gazette's roster puts its editor in the seat that may publish as it" }
+  # ⭐ The blood economy (blood build W5): the ward carries the window
+  # fixture + the registrar cast; the collection room's cold case is the
+  # producer floor the unit rows spawn into (the sweep needs a live census)
+  # and carries the runner + donor cast; the two Businesses must be live so
+  # the registrar's seat resolves, the banks brain reads par, and the
+  # runner's employment resolves — a brain on an unspawned NPC never fires.
+  - { template: /world/terminus/infirmary/ward, role: producer, reason: "the ward carries the blood window fixture and the registrar cast whose banks brain runs the floor/summons/notice" }
+  - { template: /world/terminus/infirmary/collection, role: producer, reason: "the collection room's cold case is the home container the blood unit rows spawn into (the zone's stocks: sets the counts), and it carries the runner + donor cast" }
+  - { template: /world/terminus/infirmary/idea/window, role: producer, reason: "the blood window's Business must be live so the registrar's seat resolves, collect attributes to it, and banks reads its par" }
+  - { template: /world/terminus/infirmary/idea/bloodworks, role: producer, reason: "Goodkin Bloodworks (parentOrganization /corpo/goodkin) — the runner's employment is materialized over a live business" }

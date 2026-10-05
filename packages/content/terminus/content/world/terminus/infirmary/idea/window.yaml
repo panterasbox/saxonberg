@@ -1,0 +1,44 @@
+# The blood window — a PRIVATE operator (blood build D11). It kept the
+# Goodkin name over the door after the Paramount Decree but is run
+# independently now: its appointing authority is the registrar herself (an
+# `entity` — a specific private owner, no founder pass), not the corpo's
+# committee. NPC-run in v1 by construction: both seats are filled by NPC
+# roster, so `apply` finds nothing open and no player can issue.
+#
+# It operates its FIXTURE (the blood-window counter), never the ward — the
+# practice keeps the ward (the operator-index last-writer collision the
+# plan warns about). It carries the blood PAR (moved off the practice),
+# banks at Goodkin, and keeps a notice board (publishes).
+class: /platform/idea/Business
+data:
+  name: "the blood window"
+  label: "the Goodkin window"
+  appointingAuthority:
+    kind: entity
+    path: /world/terminus/infirmary/agent/registrar
+  positions:
+    - { key: registrar, noun: registrar, label: keeping the blood window, wageRate: 5 }
+    - { key: night-registrar, noun: registrar, label: keeping the night window, wageRate: 4 }
+  rosterSlots:
+    - positionKey: registrar
+      assignee: /world/terminus/infirmary/agent/registrar
+      station: /world/terminus/infirmary/ward
+      schedule:
+        - { days: [0, 1, 2, 3, 4, 5, 6], hours: [7, 19] }
+    - positionKey: night-registrar
+      assignee: /world/terminus/infirmary/agent/night-registrar
+      station: /world/terminus/infirmary/ward
+      schedule:
+        - { days: [0, 1, 2, 3, 4, 5, 6], hours: [19, 24] }
+        - { days: [0, 1, 2, 3, 4, 5, 6], hours: [0, 7] }
+  # ⭐ The blood bank's par — moved OFF the practice (D11). 2 litres kept.
+  parLines:
+    - { category: blood, level: 2, unit: L }
+  banksAt: goodkin
+  operatingLocations:
+    - /world/terminus/infirmary/thing/blood-window
+  # The window keeps a notice board (D14): a feed + the seats that may post.
+  publishingPositions: [registrar, night-registrar]
+  realm: world
+  visibility: public
+  feedPath: /world/terminus/infirmary/press

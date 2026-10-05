@@ -14,3 +14,13 @@ class: /platform/idea/location/CartesianZone
 data:
   name: The Infirmary
   cellSize: 3.0
+  # ⭐ The blood producer floor (blood build D13): the counts the recurring
+  # spawn sweep stands the collection cold case at — the rarer the type,
+  # the thinner the floor, so a player's rare-type gift matters more. The
+  # unit rows name the case as their `container:` and carry these
+  # `censusKey`s.
+  stocks:
+    blood:O: 4
+    blood:A: 2
+    blood:B: 2
+    blood:AB: 1

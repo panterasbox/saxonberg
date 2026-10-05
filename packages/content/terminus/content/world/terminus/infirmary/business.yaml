@@ -40,11 +40,9 @@ data:
       assignee: /world/terminus/infirmary/agent/nurse
       schedule:
         - { days: [0, 1, 2, 3, 4, 5, 6], hours: [7, 19] }
-  # ⭐ The blood bank — what the house keeps on hand, expressed as a par
-  # line (clinical-medicine): 2 litres of blood, the reorder level the
-  # attendant works toward. Not a new field — the shipped par-line spine.
-  parLines:
-    - { category: blood, level: 2, unit: L }
+  # ⭐ The blood par MOVED to the blood window's own Business (blood build
+  # D11): the bank is a separate private operator now, and the par belongs
+  # to whoever keeps the window — not to the practice that shares the ward.
   banksAt: goodkin
   operatingLocations:
     - /world/terminus/infirmary/ward
