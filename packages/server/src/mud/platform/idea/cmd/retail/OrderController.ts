@@ -17,6 +17,9 @@ import { Mml } from '../../../../api/mml';
 import Menu from '../../../../lib/commerce/Menu';
 import { EmploymentApi } from '../../../../api/employment';
 import { ConditionApi } from '../../../../api/condition';
+import { SchedulerApi } from '../../../../api/scheduler';
+import { ManualBuildStep } from '../../../../lib/craft/ManualBuildStep';
+import { BLOOD_DEFAULTS } from '../../../../lib/vitals/Blood';
 import type { Attendant } from '../../../../lib/attendant/Attendant';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import type { Container } from '../../../../lib/spatial/Container';
@@ -215,6 +218,15 @@ export default class OrderController extends CraftController<OrderModel> {
     const venuePath = context.location?.getTemplatePath();
     if (venuePath) await EmploymentApi.ensureOperatorAt(venuePath);
 
+    // ⭐ A transfusion costs the patient the SAME game-time whether they do
+    // it themselves (`transfuse`, a 45s engaged step) or pay the window —
+    // the blood runs in at the same rate, so paying must not buy out of the
+    // body-time. It is durative on the CUSTOMER (it is their body), and the
+    // take + fee land at completion; a barge-in gives and charges nothing.
+    if (kind === 'transfusion') {
+      return this.doTransfusionService(tariff, key, context);
+    }
+
     const done = await this.performService(tariff, kind, subjectRaw, context);
     if (!done.ok) {
       MessageApi.scene(giver)
@@ -237,10 +249,97 @@ export default class OrderController extends CraftController<OrderModel> {
       .send();
   }
 
+  /**
+   * ⭐ The blood window's product (blood build D6), made durative (the
+   * time-as-expense pass): the house transfuses the customer from its own
+   * bank over `TRANSFUSE_DURATION_S`, engaging the CUSTOMER (it is their
+   * body — customer and patient are the same, the payer rule's only legal
+   * shape). The bank owns the act (the shelf + the ABO system); we check a
+   * match up front (so a no-match refuses at once, not after the wait),
+   * resolve who issued it (the custody deed), run the step, then take +
+   * give + collect at completion. A barge-in gives and charges nothing.
+   */
+  private async doTransfusionService(
+    tariff: Tariff,
+    key: string,
+    context: CommandContext,
+  ): Promise<void> {
+    const giver = context.commandGiver;
+    if (!MixinApi.isDonationBank(tariff)) {
+      return this.serviceFail(context, 'This house keeps no blood bank.', 'no-bank');
+    }
+    if (!MixinApi.isVitals(giver)) {
+      return this.serviceFail(context, 'There is nothing here to transfuse.', 'not-a-body');
+    }
+    // Up-front refusal: do not make a patient sit for 45s to be told no.
+    if (!tariff.hasCompatibleUnitFor(giver as unknown as Stuff)) {
+      return this.serviceFail(context, 'Nothing on the shelf will match you.', 'no-compatible-unit');
+    }
+    const issuer = this.resolveWindowIssuer(tariff, context);
+    const effect = async (): Promise<void> => {
+      const outcome = await tariff.transfuseInto(giver as unknown as Stuff, issuer);
+      if (!outcome) {
+        // The last match went while they waited — honest, and unbilled.
+        return this.serviceFail(context, 'Nothing on the shelf will match you.', 'no-compatible-unit');
+      }
+      const collected = await tariff.collect(key, 'a transfusion');
+      const tail = collected.note ? ` ${collected.note}` : '';
+      const line =
+        outcome.reaction > 0
+          ? 'The transfusion runs — but it does not match, and your body turns against it.'
+          : 'The transfusion runs; your colour comes back.';
+      MessageApi.scene(giver)
+        .topic(SERVICE_TOPIC)
+        .toSelf(Mml.fromMarkup(Mml.escape(`${line}${tail}`)))
+        .toPeers(Mml.compose`${Mml.actor(giver)} is seen to.`)
+        .send();
+    };
+
+    // Not an engageable body (a bare test/NPC body) → run it at once.
+    if (!MixinApi.isEngaged(giver)) {
+      await effect();
+      return;
+    }
+    const step = new ManualBuildStep({
+      actor: giver,
+      slots: ['hands'],
+      durationMs: BLOOD_DEFAULTS.TRANSFUSE_DURATION_S * 1000,
+      onComplete: () => {
+        void effect();
+      },
+      onAbort: () => {},
+    });
+    const result = SchedulerApi.start(step);
+    if (result.ok && (result.status === 'started' || result.status === 'replaced')) {
+      context.note(result.note);
+      MessageApi.scene(giver)
+        .topic(SERVICE_TOPIC)
+        .toSelf(Mml.compose`You settle in; the line goes in and the unit begins to run. Hold still.`)
+        .toPeers(Mml.compose`${Mml.actor(giver)} settles in for a transfusion.`)
+        .send();
+      return;
+    }
+    if (result.ok && result.status === 'completed-sync') return;
+    MessageApi.scene(giver)
+      .topic(SERVICE_TOPIC)
+      .toSelf(Mml.compose`You cannot sit for it just now.`)
+      .send();
+    context.note({ kind: 'controller-rejected', reason: 'engagement-conflict', detail: 'busy' });
+  }
+
+  /** A refused service: the scene line + the matching rejected note. */
+  private serviceFail(context: CommandContext, line: string, reason: string): void {
+    MessageApi.scene(context.commandGiver)
+      .topic(SERVICE_TOPIC)
+      .toSelf(Mml.fromMarkup(Mml.escape(line)))
+      .send();
+    context.note({ kind: 'controller-rejected', reason, detail: line });
+  }
+
   /** Do the thing. Each arm is an existing capability, wired to a price. */
   private async performService(
     tariff: Tariff,
-    kind: ServiceKind,
+    kind: Exclude<ServiceKind, 'transfusion'>,
     subjectRaw: string,
     context: CommandContext,
   ): Promise<
@@ -248,36 +347,6 @@ export default class OrderController extends CraftController<OrderModel> {
   > {
     const giver = context.commandGiver;
     switch (kind) {
-      case 'transfusion': {
-        // ⭐ The blood window's product (blood build D6): the house
-        // transfuses the customer from its own bank. Customer and patient
-        // are the same body — the payer rule's only legal shape. The bank
-        // owns the whole act (it owns the shelf and the ABO system); we
-        // resolve who issued it (for the custody deed) and price it.
-        if (!MixinApi.isDonationBank(tariff)) {
-          return {
-            ok: false,
-            reason: 'no-bank',
-            detail: 'This house keeps no blood bank.',
-          };
-        }
-        const issuer = this.resolveWindowIssuer(tariff, context);
-        const outcome = await tariff.transfuseInto(giver as unknown as Stuff, issuer);
-        if (!outcome) {
-          return {
-            ok: false,
-            reason: 'no-compatible-unit',
-            detail: 'Nothing on the shelf will match you.',
-          };
-        }
-        return {
-          ok: true,
-          detail:
-            outcome.reaction > 0
-              ? 'The transfusion runs — but it does not match, and your body turns against it.'
-              : 'The transfusion runs; your colour comes back.',
-        };
-      }
       case 'repair': {
         const item = this.resolveSubject(subjectRaw, context);
         if (!item) {

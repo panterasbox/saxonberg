@@ -183,6 +183,18 @@ describe('DonationBankMixin — taking and receiving', () => {
     expect(w.getLots().get('O')?.units ?? 0).toBe(0);
   });
 
+  it('hasCompatibleUnitFor reads a match without taking it', () => {
+    const vault = chest();
+    const w = window(vault);
+    const recipient = makeStuff(() => new Creature()); // bare body: type O
+    stampTemplatePathForTest(recipient, '/platform/agent/Avatar/recip5');
+    expect(w.hasCompatibleUnitFor(recipient as unknown as Stuff)).toBe(false);
+    ContainmentApi.move(bag('O'), vault);
+    expect(w.hasCompatibleUnitFor(recipient as unknown as Stuff)).toBe(true);
+    // Non-mutating: the unit is still on the shelf.
+    expect(w.getLots().get('O')?.units).toBe(1);
+  });
+
   it('transfuseInto returns null when nothing on the shelf matches', async () => {
     const vault = chest();
     const w = window(vault); // empty vault

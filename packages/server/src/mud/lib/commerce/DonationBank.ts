@@ -81,6 +81,12 @@ export interface DonationBank {
     issuer?: Stuff | null,
   ): Promise<BloodUnit | null>;
   /**
+   * Is there a unit on the shelf compatible with `recipient`? A
+   * non-mutating read (no take, no custody) — so a durative service can
+   * refuse up front rather than making the patient wait to be told no.
+   */
+  hasCompatibleUnitFor(recipient: Stuff): boolean;
+  /**
    * Transfuse `patient` from the bank's own shelf: take the oldest
    * compatible unit (draining its holder, recording custody) and give it.
    * Returns the graded reaction (0 compatible, 1/2 mismatched), or null
@@ -264,6 +270,20 @@ export function DonationBankMixin<TBase extends MixinConstructor>(Base: TBase) {
       }
       await this.recordCustody("issue", this.lotKeyOf(unit), issuer ?? null, recipient);
       return unit;
+    }
+
+    public hasCompatibleUnitFor(recipient: Stuff): boolean {
+      if (!MixinApi.isVitals(recipient)) return false;
+      const me = new BloodType(
+        recipient.bloodSystemOf(),
+        (recipient.bloodType() ?? "O") as BloodUnit["type"],
+      );
+      return this.unitHolders().some(({ unit }) =>
+        new BloodType(
+          unit.system || unit.speciesPath,
+          unit.type,
+        ).isCompatibleDonorFor(me),
+      );
     }
 
     public async transfuseInto(
