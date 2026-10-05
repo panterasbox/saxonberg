@@ -1058,7 +1058,19 @@ appears anywhere, stop: the mixin has landed on the wrong host.
 
 ## Waves
 
-### W0 — Compatibility crosses species (D3)
+### W0 — Compatibility crosses species (D3) ✅ DONE (6f1498d90)
+
+> **Done.** `BloodType.speciesPath` renamed to `system`; `BloodUnit.system?`
+> added (provenance `speciesPath` kept); `Vitals.bloodSystemOf()` resolves
+> the species' declared system else its own path; `drawBlood`/`receiveBlood`/
+> `Blood.blend` all compare systems. All 16 homo rows clustered (hominid/fae/
+> giant + three own-system). **Surprise:** all 16 rows already authored
+> `alleles` (grounding said ten lacked them) — so only a `system:` key was
+> added, no new allele tables. **Phantom:** the pre-existing
+> `CmsLogic.ts fill` tsc error was a STALE `packages/types/dist` (still had
+> retired `hydratorClass?`); `pnpm -C packages/types build` cleared it — did
+> NOT touch CmsLogic (the stale-types-after-merge trap). Tests 27 green,
+> server build clean, trade-medicine 24 green, lint:family exit 0.
 
 **Goal.** The clade graph is not a hierarchy: a sapiens O can give to a
 khazadicus; two eldarinus of different types cannot share.
@@ -1084,7 +1096,25 @@ bodies of different species in one system.
 clinical-medicine pack suite green. Commit `build(blood-economy W0): the
 blood system — compatibility crosses species by declared cluster`.
 
-### W1 — The donor card and the consent ladder (D4, D5)
+### W1 — The donor card and the consent ladder (D4, D5) ✅ DONE
+
+> **Done.** `PersonaMixin.donorCard {receive, donor}` + `getDonorCard`/
+> `setDonorCard` + `transfusionConsent(giver)` (the six-verdict ladder);
+> `donor` verb (platform `cmd/medical/donor.yaml` + `DonorController` +
+> row) afforded on `PersonaMixin.commandContributions.self`.
+> `TransfuseController`: the consent ladder before the judgement (an
+> `asked` conscious player is refused `consent-pending` + prompted); the
+> harm append after the effect (`!self && (!consented || reaction>0)` →
+> `AccountabilityApi.record` the trap's shape); the revival deed on the
+> recipient. Tests: `Persona.donorCard.test.ts` (8, all verdicts incl.
+> unconscious-`wont`-holds via `beginDying`) + `transfuse-consent.test.ts`
+> (3: consent-pending, directive-no proceeds+harm, consented no-harm).
+> **Fixture notes:** a Character composes Vitals (via Creature) but not
+> HasInteractive — compose `HasInteractiveMixin(Character)` for the
+> `asked`/player path; the transfuse effect defers to the scheduler for an
+> Engaged giver, so the controller test uses a non-Engaged `Creature`
+> giver to run it inline; a blood-bag fixture needs `interiorBulk=true` +
+> a seeded blood Material (a slot reads empty with no material).
 
 **Goal.** A player sets a standing directive in calm; `transfuse` reads it
 first; a conscious no-card player is asked; a non-consented or mismatched
@@ -1113,7 +1143,23 @@ outcomes above. Commit `build(blood-economy W1): the donor card — a
 standing directive on Persona, and the consent ladder transfuse reads
 first`.
 
-### W2 — The disposition graft and the gift signature (D9, D10)
+### W2 — The disposition graft and the gift signature (D9, D10) ✅ DONE
+
+> **Done.** `AdvancementMixin.creditSignature` now fans the act's
+> `dispositionValence` into the host's trait ledger when it keeps one —
+> `if (isDispositioned(self) && valence.length) self.imprintSignature(...)`,
+> a self-call from the host's frame. ⭐ **Risk 6 resolved:** `SelfOnly`
+> ALLOWS the self-call (caller === target) — no `AnyOf(SelfOnly,
+> FromMixin)` loosening needed; the test drives it through
+> `withRootContext(owner, …)` as a controller would. `BLOOD_GIFT_SIGNATURE`
+> (routine `generosity+2`; named `+generosity+2 +compassion+2`) and
+> `BLOOD_GIFT_RENOWN {emote:'applaud'}` added to `lib/vitals/Blood.ts`.
+> The two read-but-ignored docstrings are corrected. Test:
+> `disposition-graft.test.ts` (3: graft fans both axes; no-valence writes
+> none; non-Dispositioned untouched) — the fake PM had to be
+> **collection-aware** (the host writes a transcript AND a disposition row;
+> a collection-agnostic find returns the nursing transcript as a
+> disposition entry). `trait.md`'s Deferred note is now false → W6 doc sweep.
 
 **Goal.** The first live authored valence lands: an act credited with a
 `dispositionValence` writes disposition rows; the gift signature and the

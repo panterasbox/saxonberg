@@ -104,9 +104,11 @@ async function buildAndSave(
 /**
  * Explode one authored act into its Transcript rows: one row per
  * Discipline sub-check, sharing the act-level `kind` / `when` / `tags`.
- * The `dispositionValence` channel is read-but-ignored — the
- * defined-but-empty lane-1 trait seam. No-ops without a durable owner
- * key or an active connection.
+ * This impl fans only the SKILL channel; the `dispositionValence` channel
+ * is fanned by `AdvancementMixin.creditSignature` itself (the D9 graft —
+ * a self-call into `imprintSignature`), because that needs the host and
+ * its `SelfOnly` trait ledger, which this free impl does not hold.
+ * No-ops without a durable owner key or an active connection.
  */
 async function creditSignatureImpl(
   owner: Stuff,
@@ -455,10 +457,11 @@ export function AdvancementMixin<TBase extends MixinConstructor<Stuff>>(
     /**
      * The append primitive: explode one authored act into its
      * Transcript rows (one per Discipline sub-check), sharing the
-     * act-level `kind` / `when` / `tags`. The disposition channel is
-     * ignored (the lane-1 trait seam). Ends by re-evaluating the
-     * conferred affordances — a Transcript append is the only
-     * band-mover.
+     * act-level `kind` / `when` / `tags`. ⭐ Since the blood build it ALSO
+     * fans the act's `dispositionValence` channel into the host's trait
+     * ledger when it keeps one (the D9 graft, below) — the lane-1 seam is
+     * connected. Ends by re-evaluating the conferred affordances — a
+     * Transcript append is the only band-mover.
      */
     @Final
     @Unshadowable
@@ -466,7 +469,24 @@ export function AdvancementMixin<TBase extends MixinConstructor<Stuff>>(
       signature: ActSignature,
       opts: RecordOptions = {}
     ): Promise<void> {
-      await creditSignatureImpl(this as unknown as Stuff, signature, opts);
+      const self = this as unknown as Stuff;
+      await creditSignatureImpl(self, signature, opts);
+      // ⭐ The trait graft (blood build D9): the same authored act whose
+      // skill channel we just fanned ALSO carries a disposition-valence
+      // channel. When the host keeps a disposition ledger, fan it too —
+      // a self-call from the host's own frame, which `imprintSignature`'s
+      // `SelfOnly` gate allows (caller === target). This is what connects
+      // the formerly read-but-ignored lane-1 seam; the first live
+      // consumer is the blood gift.
+      if (
+        MixinApi.isDispositioned(self) &&
+        (signature.dispositionValence?.length ?? 0) > 0
+      ) {
+        await self.imprintSignature(signature, {
+          kind: opts.kind ?? "deed",
+          tags: opts.tags,
+        });
+      }
       await this.refreshConferrals();
     }
 

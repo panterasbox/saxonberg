@@ -87,6 +87,31 @@ export const BLOOD_DEFAULTS = {
 } as const;
 
 /**
+ * ⭐ The disposition valence a gift of blood demonstrates (blood build
+ * D9) — the FIRST live authored `dispositionValence` in the game. Two
+ * variants: `routine` for a gift to the bank with no named beneficiary,
+ * `named` when the gift answers a named person or a named shortage (a
+ * generous AND compassionate act). The magnitudes are dials.
+ *
+ * Consumed by the donate/transfuse gift path, which builds an
+ * `ActSignature` with an empty `discipline` channel and this as the
+ * `dispositionValence`, then calls `creditSignature` — whose graft
+ * (D9) fans the channel into `disposition_events`.
+ */
+export const BLOOD_GIFT_SIGNATURE = {
+  routine: [{ disposition: "generosity", valence: 2 }],
+  named: [
+    { disposition: "generosity", valence: 2 },
+    { disposition: "compassion", valence: 2 },
+  ],
+} as const;
+
+/** The renown signal a public gift of blood mints (D10): an `applaud`
+ * reaction (a shipped `valence: 1` emote) from the window, folded by a
+ * scheduled recompute. The institution applauds the donor. */
+export const BLOOD_GIFT_RENOWN = { emote: "applaud" } as const;
+
+/**
  * A blood unit, wrapped so it can fold another into itself on a pour.
  * Equal type → kept (both must be labelled for the result to be labelled);
  * anything else → `mixed`, unlabelled — a mixed unit is compatible with
