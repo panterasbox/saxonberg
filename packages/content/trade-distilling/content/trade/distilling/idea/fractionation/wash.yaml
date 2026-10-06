@@ -60,12 +60,39 @@ data:
   # smallest step is larger than the thing it adjusts is not a dial.
   gradeStretch: 0.0075
   fractions:
+    # ⭐⭐⭐ `aromaticCarry` — **the row where a choice at the malting rung
+    # changes the right answer at the cut.**
+    #
+    # Phenols are HIGH-BOILING. They come over late, which is a real fact
+    # about the chemistry and the real reason a heavily peated house cuts
+    # lower than a clean one. So a peated wash reads clean through the
+    # foreshots, turns as the hearts run on, and leaves its heaviest
+    # smoke in the tails:
+    #
+    #   - take the hearts short and you have thrown away the character
+    #     you spent a day of turf on;
+    #   - run them long to keep it and you are taking tails into the
+    #     spirit, and the grade falls to the worst band you drew.
+    #
+    # ⚠ Neither answer is right. That is the point — it is a judgement
+    # the malting decision creates, not a number to optimise, and a clean
+    # wash (which carries no aromatics at all) is unaffected by every
+    # figure here.
+    #
+    # Mass balance: 0.005x0 + 0.025x0.5 + 0.15x2.5 + 0.05x6 = 0.6875, so
+    # about seven tenths of the charge's phenol comes over and three
+    # tenths stays in the stillage. Not enforced anywhere, and should not
+    # be: the residue is where a remainder goes.
     - key: foreshots
       upTo: 0.005
       character: >-
         The first of it comes over sharp and wrong — solvent, nail
         varnish, something behind the nose rather than in it.
       gradeBand: poor
+      # Nothing of the peat in the first of it — the smoke has not begun
+      # to come over, so the foreshots of a peated wash smell exactly as
+      # wrong as any other foreshots.
+      aromaticCarry: 0
       toxins:
         - { type: methanol, amount: 12000 }
     - key: heads
@@ -74,6 +101,10 @@ data:
         Hot and raw, with a thin edge to it that catches at the back of
         the throat.
       gradeBand: fair
+      # Beginning, and under strength. A distiller nosing here reads the
+      # smoke "clearly" while the spirit is still unfit to keep — which
+      # is its own small lesson about trusting one sense.
+      aromaticCarry: 0.5
       toxins:
         - { type: methanol, amount: 3000 }
     - key: hearts
@@ -82,6 +113,9 @@ data:
         Clean and sweet now, the grain showing through, and it sits on the
         nose instead of climbing up it.
       gradeBand: fine
+      # ⭐ Where the character is. Two and a half times the charge, so a
+      # 30 mg/L malt gives hearts at 75 mg/L — "strongly of smoke".
+      aromaticCarry: 2.5
       toxins:
         - { type: methanol, amount: 40 }
     - key: tails
@@ -89,3 +123,10 @@ data:
       character: >-
         Going dull and oily, with a wet-cardboard heaviness underneath.
       gradeBand: poor
+      # ⭐⭐ The heaviest smoke of the run, in the worst spirit of the run.
+      # Six times the charge — "overpoweringly". **This is the fork**: the
+      # tails smell more of what you made the malt for than the hearts
+      # do, and they are `poor`. A distiller who follows their nose here
+      # ruins the cut, and one who follows the grade leaves character in
+      # the stillage.
+      aromaticCarry: 6

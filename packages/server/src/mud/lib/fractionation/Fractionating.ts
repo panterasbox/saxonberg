@@ -81,7 +81,11 @@ import type Material from '../material/Material';
 import type { BulkAffordance, BulkPayload } from '../bulk/Bulkable';
 import type { ToxinTag } from '../metabolism/Metabolic';
 import { DissolvedToxins } from '../metabolism/DissolvedToxins';
-import { DissolvedAromatics } from '../metabolism/DissolvedAromatics';
+import {
+  DissolvedAromatics,
+  type AromaTag,
+} from '../metabolism/DissolvedAromatics';
+import { Concentration } from '../bulk/Concentration';
 import { Grade } from '../craft/Grade';
 import FractionSchedule, { type FractionSpec } from './FractionSchedule';
 import type { CompetenceBandName } from '../advancement/CompetenceBand';
@@ -172,6 +176,25 @@ function fractionAugmenter(
   }
   if (!line) return text;
   return text && text.length > 0 ? `${text}\n\n${line}` : line;
+}
+
+/**
+ * The charge's aromatics at a fraction's own carry multiple. A multiple
+ * of 0 returns nothing at all rather than a set of zeroes, so a
+ * foreshot's payload stays byte-identical to one from before aromatics
+ * existed.
+ */
+function scaleAromatics(
+  tags: readonly AromaTag[],
+  carry: number,
+): AromaTag[] {
+  if (!(carry > 0) || tags.length === 0) return [];
+  const out: AromaTag[] = [];
+  for (const tag of tags) {
+    if (!(tag.amount > 0)) continue;
+    out.push({ ...tag, amount: tag.amount * carry });
+  }
+  return out;
 }
 
 /** The viewer's band in one discipline; `untrained` is the floor. */
@@ -624,6 +647,12 @@ export function FractionatingMixin<TBase extends MixinConstructor<Stuff>>(
       const span = Math.max(0, litres);
       const fractions = this.effectiveFractions(schedule);
       let dose: ToxinTag[] = [];
+      // ⭐⭐ The charge's own aromatics, carried over at each fraction's
+      // own multiple. `aromaticCarry` defaults to 1, so a schedule that
+      // authors none passes the charge's character through unchanged and
+      // every shipped run is byte-identical to before.
+      const chargeAromatics = base?.dissolvedAromatics ?? [];
+      let aroma: AromaTag[] = [];
       let covered = 0;
       let worst: Grade | null = null;
       let cursor = this.drawnL;
@@ -634,6 +663,12 @@ export function FractionatingMixin<TBase extends MixinConstructor<Stuff>>(
         const overlap = Math.min(end, endL) - Math.max(cursor, startL);
         if (overlap > 0) {
           dose = DissolvedToxins.blend(spec.toxins, overlap, dose, covered);
+          aroma = Concentration.blend(
+            scaleAromatics(chargeAromatics, spec.aromaticCarry ?? 1),
+            overlap,
+            aroma,
+            covered,
+          );
           covered += overlap;
           const band = Grade.of(spec.gradeBand);
           worst = worst === null ? band : worst.min(band);
@@ -648,6 +683,7 @@ export function FractionatingMixin<TBase extends MixinConstructor<Stuff>>(
         const here = this.fractionAtL(schedule, this.drawnL);
         if (!here) return base;
         dose = DissolvedToxins.surviving(here.toxins, 0);
+        aroma = scaleAromatics(chargeAromatics, here.aromaticCarry ?? 1);
         worst = Grade.of(here.gradeBand);
       }
       const self = this as unknown as Stuff;
@@ -666,6 +702,8 @@ export function FractionatingMixin<TBase extends MixinConstructor<Stuff>>(
       if (this.runMaker) payload.maker = this.runMaker;
       if (dose.length > 0) payload.dissolvedToxins = dose;
       else delete payload.dissolvedToxins;
+      if (aroma.length > 0) payload.dissolvedAromatics = aroma;
+      else delete payload.dissolvedAromatics;
       return payload;
     }
   };

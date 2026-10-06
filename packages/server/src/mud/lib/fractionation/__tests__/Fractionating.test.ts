@@ -650,3 +650,120 @@ describe('the row class refuses an incoherent schedule', () => {
     );
   });
 });
+
+/**
+ * ⭐⭐⭐ `aromaticCarry` — **the row where a choice at one rung changes the
+ * right answer at another.**
+ *
+ * Phenols are high-boiling, so a peated charge comes over clean through
+ * the foreshots and leaves its heaviest smoke in the tails. That single
+ * fact is what makes the six-rung chain a chain rather than six
+ * corridors leading to one decision: a peated wash and a clean one do
+ * not want the same cut, so the maltster's choice has rewritten the
+ * distiller's correct answer.
+ *
+ * ⚠ The dilution across a straddling pour is the load-bearing case. A
+ * draw that spans two fractions must carry the volume-weighted blend of
+ * both carries, exactly as the dose does — anything else would let a
+ * distiller take the tails' smoke at the hearts' grade.
+ */
+describe('aromaticCarry — the charge character comes over unevenly', () => {
+  /** The charge, peated at a round 100 mg/L so every blend is mental. */
+  function peatedColumn(chargeL: number, mgL = 100): TestColumn {
+    const c = column(chargeL, 400);
+    const slot = slotOf(c);
+    slot.setPayload({
+      ...(slot.getPayload() ?? {}),
+      dissolvedAromatics: [{ type: 'smoke', amount: mgL }],
+    });
+    return c;
+  }
+
+  /** Smoke per litre in what has landed in a receiving pail. */
+  function smokeIn(v: unknown): number {
+    return (
+      slotOf(v).getPayload()?.dissolvedAromatics?.find(
+        (t) => t.type === 'smoke',
+      )?.amount ?? 0
+    );
+  }
+
+  const carried: FractionSpec[] = [
+    { ...FRACTIONS[0]!, aromaticCarry: 0 },
+    { ...FRACTIONS[1]!, aromaticCarry: 0.5 },
+    { ...FRACTIONS[2]!, aromaticCarry: 2 },
+    { ...FRACTIONS[3]!, aromaticCarry: 6 },
+  ];
+
+  function smokeOf(c: TestColumn, litres: number): number | undefined {
+    return c
+      .getBulkPayloadForDraw('interior', litres)
+      ?.dissolvedAromatics?.find((t) => t.type === 'smoke')?.amount;
+  }
+
+  it('carries NOTHING of the charge in the foreshots', () => {
+    schedule(carried);
+    const c = peatedColumn(100);
+    // The first tenth is the foreshots, carry 0.
+    expect(smokeOf(c, 10)).toBeUndefined();
+  });
+
+  it('⭐ concentrates it in the hearts and MORE in the tails', () => {
+    schedule(carried);
+    const hearts = peatedColumn(100);
+    draw(hearts, pail(), 30); // past the heads
+    expect(smokeOf(hearts, 10)).toBeCloseTo(200, 6); // 100 × 2
+
+    const tails = peatedColumn(100);
+    draw(tails, pail(), 80); // past the hearts
+    expect(smokeOf(tails, 10)).toBeCloseTo(600, 6); // 100 × 6
+  });
+
+  it('⚠ volume-weights a draw that STRADDLES two fractions', () => {
+    // Drawing 20 L from the 20 L mark: 10 L of heads (carry 0.5 → 50)
+    // and 10 L of hearts (carry 2 → 200). By hand:
+    //   (50 × 10 + 200 × 10) / 20 = 125 mg/L
+    schedule(carried);
+    const c = peatedColumn(100);
+    draw(c, pail(), 20);
+    expect(smokeOf(c, 20)).toBeCloseTo(125, 6);
+  });
+
+  it('⭐⭐ so the tails smell MORE of the peat than the hearts, and are POOR', () => {
+    // The fork, asserted as one fact: following your nose past the
+    // hearts gets you more of the character you made the malt for, and
+    // ruins the spirit doing it. Neither answer is free.
+    schedule(carried);
+    const c = peatedColumn(100);
+    draw(c, pail(), 80);
+    const coming = c.getBulkPayloadForDraw('interior', 10)!;
+    expect(
+      coming.dissolvedAromatics!.find((t) => t.type === 'smoke')!.amount,
+    ).toBeGreaterThan(200);
+    expect(graded(c).getGradeBand()).toBe('poor');
+  });
+
+  it('defaults to 1 — a schedule authoring none passes the charge through', () => {
+    schedule(FRACTIONS); // no aromaticCarry anywhere
+    const c = peatedColumn(100);
+    draw(c, pail(), 30);
+    expect(smokeOf(c, 10)).toBeCloseTo(100, 6);
+  });
+
+  it('⭐ a CLEAN charge is untouched by every figure here', () => {
+    // The whole mechanism is vacuous for an unpeated wash, which is what
+    // makes it safe to put on the shipped schedule.
+    schedule(carried);
+    const c = column(100, 400);
+    draw(c, pail(), 30);
+    expect(
+      c.getBulkPayloadForDraw('interior', 10)?.dissolvedAromatics,
+    ).toBeUndefined();
+  });
+
+  it('refuses a negative carry at the row', () => {
+    expect(() =>
+      schedule([{ ...FRACTIONS[0]!, aromaticCarry: -1 }]),
+    ).toThrow(/aromaticCarry/);
+  });
+});

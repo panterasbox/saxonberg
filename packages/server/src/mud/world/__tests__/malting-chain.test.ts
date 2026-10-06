@@ -37,6 +37,7 @@ import {
 } from '../../lib/maturation/MaturationProfile';
 import Material from '../../lib/material/Material';
 import { Recipe } from '../../lib/craft/Recipe';
+import { DissolvedAromatics } from '../../lib/metabolism/DissolvedAromatics';
 import { StuffApi } from '../../api/stuff';
 import { WorldClockApi } from '../../api/worldclock';
 import { Quantity } from '../../lib/quantity';
@@ -334,5 +335,154 @@ describe('⭐⭐ the floor\'s clock runs on a mechanism that is TRUE', () => {
     expect(Number(data.happyK)).toBeLessThan(Number(data.damageAboveK));
     // And cold is forgiving: it stalls rather than ruining.
     expect(Number(data.stallBelowK)).toBeLessThan(Number(data.happyK));
+  });
+});
+
+/**
+ * ⭐⭐⭐ The PEATED kiln — the same act over a different fire, and the
+ * decision that makes whiskey a product rather than a chemistry demo.
+ *
+ * Everything that distinguishes a peated whisky from a clean one follows
+ * from choosing between two lines on one board. Nothing downstream is
+ * authored twice: the smoke is a concentration, so it survives the mash,
+ * the ferment, the grind and the pour by the same arithmetic that moves
+ * every other concentration, and it comes over the still LATE — which is
+ * what moves the right cut.
+ */
+describe('⭐⭐ the peated kiln — one choice, and the whole product changes', () => {
+  it('⚠ peat carries its own NAME as a tag, or the slot fails closed and silent', () => {
+    // The row named itself in `keywords` and nowhere a slot can read.
+    // `category:` matches MATERIAL TAGS, so `category: peat` would have
+    // matched nothing, the kiln would never have found its fuel, and
+    // nothing anywhere would have said why. `wheat-grain` and
+    // `barley-grain` both carry their own names for exactly this reason.
+    const peat = row(BASE, 'content/stuff/idea/material/organic/peat.yaml');
+    expect(peat.tags as string[]).toContain('peat');
+  });
+
+  it('the peated kiln asks for a tag the turf\'s material actually has', () => {
+    const peated = recipeOf(MALTING, 'kiln-malt-peated');
+    const fuel = peated.getInputSlots().find((s) => s.slot === 'fuel');
+    expect(fuel, 'the peated kiln has no fuel slot').toBeDefined();
+    expect(fuel!.kind).toBe('item');
+    const peat = row(BASE, 'content/stuff/idea/material/organic/peat.yaml');
+    expect(peat.tags as string[]).toContain(fuel!.category);
+    // ⚠ And the turf THING resolves to that material, or the slot has
+    // nothing in the world to bind to.
+    const turf = row(
+      join(PACKS, 'trade-quarrying'),
+      'content/trade/quarrying/thing/turf.yaml',
+    );
+    expect(turf._materialPath).toBe('/stuff/idea/material/organic/peat');
+  });
+
+  it('⭐ makes the SAME malt material as the clean kiln — peating is a quantity', () => {
+    // Not a second material. "Lightly" and "heavily" peated are a
+    // continuum, and a continuum cannot be a row; it is a concentration
+    // on the matter, which is also why it BLENDS when you vat.
+    const clean = recipeOf(MALTING, 'kiln-malt');
+    const peated = recipeOf(MALTING, 'kiln-malt-peated');
+    expect(peated.getOutputMaterial()).toBe(clean.getOutputMaterial());
+    expect(peated.getOutputTemplate()).toBe(clean.getOutputTemplate());
+  });
+
+  it('imparts an aroma that is in the closed vocabulary', () => {
+    const peated = recipeOf(MALTING, 'kiln-malt-peated');
+    const imparts = peated.getImparts();
+    expect(imparts.length).toBeGreaterThan(0);
+    for (const tag of imparts) {
+      expect(DissolvedAromatics.isAroma(tag.type), tag.type).toBe(true);
+      expect(tag.amount).toBeGreaterThan(0);
+    }
+    expect(imparts.find((t) => t.type === 'smoke')).toBeDefined();
+  });
+
+  it('⚠ keeps the enzyme band — a peat fire is COOL, which is why it works', () => {
+    // Above ~350 K the enzymes the floor spent five days making are
+    // destroyed, so the window is not relaxed for the smoky version. A
+    // smouldering peat fire is exactly the gentle heat this needs.
+    const clean = recipeOf(MALTING, 'kiln-malt');
+    const peated = recipeOf(MALTING, 'kiln-malt-peated');
+    expect(peated.getRequiresHeatK()).toBe(clean.getRequiresHeatK());
+    expect(peated.getMaxHeatK()).toBe(clean.getMaxHeatK());
+    const kiln = row(MALTING, 'content/trade/malting/thing/malt-kiln.yaml');
+    expect(Number(kiln.burnTemperatureK)).toBeGreaterThanOrEqual(
+      peated.getRequiresHeatK(),
+    );
+    expect(Number(kiln.burnTemperatureK)).toBeLessThanOrEqual(
+      peated.getMaxHeatK(),
+    );
+  });
+
+  it('⭐⭐ and the smoke comes over LATE — the cut a malting choice moved', () => {
+    // The whole argument, read off the rows. The phenols a peated malt
+    // carries reach the hearts at more than the charge's strength and
+    // the TAILS at more than that — so a peated wash and a clean one do
+    // not want the same cut, and the maltster has rewritten the
+    // distiller's correct answer.
+    const wash = row(
+      DISTILLING,
+      'content/trade/distilling/idea/fractionation/wash.yaml',
+    );
+    const fractions = wash.fractions as {
+      key: string;
+      upTo: number;
+      aromaticCarry?: number;
+    }[];
+    const carry = (key: string) =>
+      fractions.find((f) => f.key === key)?.aromaticCarry ?? 1;
+    expect(carry('foreshots'), 'the foreshots must be clean of it').toBe(0);
+    expect(carry('hearts')).toBeGreaterThan(1);
+    expect(carry('tails')).toBeGreaterThan(carry('hearts'));
+    // ⚠ And the fork is only a fork because the tails are the WORST
+    // spirit: following your nose past the hearts gets you more of the
+    // character and ruins the cut. If the tails were `fine` there would
+    // be no decision here at all.
+    const band = (key: string) =>
+      (fractions.find((f) => f.key === key) as { gradeBand?: string })
+        ?.gradeBand;
+    expect(band('hearts')).toBe('fine');
+    expect(band('tails')).toBe('poor');
+  });
+
+  it('⚠ the still book offers it, and somebody seated can MAKE it', () => {
+    // The reachability pair that `lint:menu-staff` exists to keep
+    // honest, asserted here because the gate is a ceiling and a ceiling
+    // cannot say WHICH lines are covered. The predecessor shipped with
+    // these lines off the board and a wire drive that asserted them on.
+    const book = row(
+      DISTILLING,
+      'content/trade/distilling/thing/still-book.yaml',
+    );
+    const offered = book.offeredRecipes as string[];
+    expect(offered).toContain('kiln-malt-peated');
+    expect(offered).toContain('kiln-malt');
+    expect(offered).toContain('steep-barley');
+
+    const outfit = row(
+      join(PACKS, 'terminus'),
+      'content/world/terminus/goods-yards/crowsfoot/idea/outfit.yaml',
+    );
+    const seats = outfit.positions as { key: string; fulfills?: string[] }[];
+    const hand = seats.find((s) => s.key === 'hand');
+    expect(hand?.fulfills, 'no seat fulfils malting').toContain('malting');
+
+    // ⚠ And the band, not just the trade: both kiln lines are STANDARD,
+    // and only `proficient` licenses standard work. A seat that fulfils
+    // the trade at `competent` refuses with the seat reading as staffed.
+    const hands = row(
+      join(PACKS, 'terminus'),
+      'content/world/terminus/goods-yards/crowsfoot/agent/hand.yaml',
+    );
+    const claims = hands.competence as {
+      discipline: string;
+      asserting: string;
+    }[];
+    expect(
+      claims.find((c) => c.discipline === 'malting')?.asserting,
+    ).toBe('proficient');
+    expect(recipeOf(MALTING, 'kiln-malt-peated').getDifficulty()).toBe(
+      'standard',
+    );
   });
 });

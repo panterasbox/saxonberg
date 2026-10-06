@@ -119,11 +119,43 @@ export const AROMAS: readonly { readonly type: string; readonly thresholdMgL: nu
   { type: "sulphur", thresholdMgL: 0.01 },
 ];
 
-/** The intensity words, by multiple of the detection threshold. */
+/**
+ * The intensity words, by multiple of the detection threshold.
+ *
+ * WARNING: **The steps are LOGARITHMIC, and the plan's linear
+ * 1x / 3x / 10x could not have worked.** Odour detection thresholds are
+ * measured in parts per *billion* while the compounds a drink actually
+ * carries are measured in parts per *million*, so real concentrations
+ * sit three to four orders of magnitude above threshold. Worked against
+ * the shipped figures: a firmly peated malt's hearts carry 75 mg/L of
+ * phenol against a 0.02 mg/L threshold -- **3,750x**. On a 1/3/10 ladder
+ * every whisky in the game reads "strongly of smoke" and the band means
+ * nothing; the gauge is pinned before the first row is authored.
+ *
+ * So the ladder spans the range the product actually uses, and the
+ * shipped figures land across four of its five steps:
+ *
+ *   - the heads at 0.5x carry      ->   750x  ->  clearly
+ *   - the hearts at 2.5x carry     -> 3,750x  ->  strongly
+ *   - the tails at 6x carry        -> 9,000x  ->  overpoweringly
+ *   - a 1:2.5 blend of the hearts  -> 1,250x  ->  clearly
+ *   - a lightly peated malt (3ppm) ->   375x  ->  clearly
+ *
+ * The case that set the top two steps is the one the drive turns on: a
+ * peated malt vatted with grain spirit must read **fainter than the malt
+ * alone**, because that is what a blender is doing and a reading that
+ * could not show it would make blending invisible.
+ *
+ * Human intensity perception really is compressive (Stevens' law, with
+ * an exponent well under 1 for odour), so a log ladder is the honest
+ * shape and not a convenience.
+ */
 const INTENSITIES: readonly { readonly atMultiple: number; readonly word: string }[] = [
-  { atMultiple: 10, word: "strongly" },
-  { atMultiple: 3, word: "clearly" },
-  { atMultiple: 1, word: "faintly" },
+  { atMultiple: 8000, word: "overpoweringly" },
+  { atMultiple: 2000, word: "strongly" },
+  { atMultiple: 300, word: "clearly" },
+  { atMultiple: 30, word: "faintly" },
+  { atMultiple: 1, word: "barely" },
 ];
 
 export class DissolvedAromatics {

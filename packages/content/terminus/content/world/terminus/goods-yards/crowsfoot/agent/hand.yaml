@@ -43,6 +43,24 @@ data:
     # nothing for the still to take. (lint:dossiers rule 6.)
     - { discipline: distilling, asserting: proficient }
     - { discipline: fermenting, asserting: competent }
+    # ⭐⭐ `malting` at PROFICIENT, and the band is forced the same way the
+    # others were: `steep-barley` is easy, but `kiln-malt` and
+    # `kiln-malt-peated` are STANDARD, and only `proficient` licenses
+    # standard work. At `competent` this yard's own hand could not kiln
+    # this yard's own malt, and the refusal would arrive with the seat
+    # reading as staffed — the exact failure the comment above records
+    # for `distilling`.
+    #
+    # ⚠⚠ **One NPC, three trades, and that is a vacancy we are papering
+    # over.** A maltster is a real unfilled seat at Crowsfoot: the floor
+    # has a malting floor, a kiln and now a quern on it, and the person
+    # turning the bed is the same person running the still. Recorded as
+    # a named vacancy in `docs/vocations.md` rather than left as a
+    # convenient silence — *every NPC doing two jobs is a vacancy we
+    # deleted.* The alternative (a second Cast) is more honest to lens
+    # 3b and is the user's call; it was weighed at plan time (Risks 4)
+    # and the seat was chosen for now.
+    - { discipline: malting, asserting: proficient }
   behaviors:
     # The producing beat (fermentation W6): mash bought malt off the
     # still book, ferment the wash, RUN THE STILL when a back finishes

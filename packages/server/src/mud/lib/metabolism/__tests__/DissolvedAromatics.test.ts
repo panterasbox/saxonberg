@@ -95,15 +95,34 @@ describe('DissolvedAromatics.render', () => {
   it('gives a competent nose every aroma over threshold, with intensity', () => {
     const line = DissolvedAromatics.render(
       [
-        { type: 'smoke', amount: SMOKE * 20 },
-        { type: 'oak', amount: OAK * 4 },
-        { type: 'vanilla', amount: (DissolvedAromatics.thresholdFor('vanilla') ?? 0) * 1.5 },
+        { type: 'smoke', amount: SMOKE * 3000 },
+        { type: 'oak', amount: OAK * 400 },
+        { type: 'vanilla', amount: (DissolvedAromatics.thresholdFor('vanilla') ?? 0) * 50 },
       ],
       'competent',
     );
     expect(line).toMatch(/strongly of smoke/);
     expect(line).toMatch(/clearly of oak/);
     expect(line).toMatch(/faintly of vanilla/);
+  });
+
+  it('⭐⭐ the ladder discriminates the figures the TRADE actually uses', () => {
+    // ⚠ This is the test that set the ladder's steps, and it is the
+    // reason they are logarithmic. Odour thresholds are parts per
+    // BILLION; what a drink carries is parts per MILLION. The shipped
+    // wash schedule's carries, against `smoke`'s 0.02 mg/L threshold,
+    // from a 30 mg/L peated malt:
+    const at = (mgL: number, band = 'competent' as const) =>
+      DissolvedAromatics.render([{ type: 'smoke', amount: mgL }], band);
+    expect(at(30 * 0.5), 'the heads').toMatch(/clearly/);
+    expect(at(30 * 2.5), 'the hearts').toMatch(/strongly/);
+    expect(at(30 * 6), 'the tails').toMatch(/overpoweringly/);
+    // ⭐⭐ And the one the drive turns on: a peated malt vatted 1:2.5 with
+    // grain spirit must read FAINTER than the malt alone. On a linear
+    // 1/3/10 ladder both would have read "strongly" and blending would
+    // have been invisible in the only reading that reports it.
+    expect(at((30 * 2.5 * 0.3) / 0.75), 'the blend').toMatch(/clearly/);
+    expect(at(30 * 2.5)).not.toEqual(at((30 * 2.5 * 0.3) / 0.75));
   });
 
   it('leads with the strongest aroma, not the authored order', () => {
@@ -121,7 +140,7 @@ describe('DissolvedAromatics.render', () => {
     // ⭐ The point of per-aroma thresholds. The same absolute figure is
     // "strongly" for a potent compound and below detection for a weak
     // one, which is why a few ppm of phenol reads as heavily peated.
-    const amount = SMOKE * 10;
+    const amount = SMOKE * 3000;
     expect(
       DissolvedAromatics.render([{ type: 'smoke', amount }], 'competent'),
     ).toMatch(/strongly/);

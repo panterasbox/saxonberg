@@ -25,12 +25,22 @@ data:
   readBlur: 0.01
   gradeStretch: 0.01
   fractions:
+    # ⭐ `aromaticCarry` on the SECOND distillation, and the figures are
+    # nearly flat for a reason: a rectification is run to STRIP
+    # character, not to select it. The hearts are the bulk of the charge
+    # (0.72 of it) and carry 0.6 — so running a peated spirit through
+    # here does not concentrate the smoke, it thins it. That is what
+    # "neutral spirit" means, and it is why a gin house buys wash spirit
+    # and a whisky house does not rectify.
+    #
+    # Mass balance: 0.01x1 + 0.04x1 + 0.67x0.6 + 0.08x1.5 = 0.572.
     - key: foreshots
       upTo: 0.01
       character: >-
         A brief sharpness, thinner than the first run's and over almost
         at once.
       gradeBand: poor
+      aromaticCarry: 1
       toxins:
         - { type: methanol, amount: 2000 }
     - key: heads
@@ -38,6 +48,7 @@ data:
       character: >-
         Hot, but clean-hot — the edge is there and it is not foul.
       gradeBand: fair
+      aromaticCarry: 1
       toxins:
         - { type: methanol, amount: 300 }
     - key: hearts
@@ -46,9 +57,11 @@ data:
         Almost nothing on the nose at all: hot, empty and very clean,
         which is exactly what it is supposed to be.
       gradeBand: fine
+      aromaticCarry: 0.6
     - key: feints
       upTo: 0.8
       character: >-
         A faint oiliness creeping back in, and the emptiness gone out of
         it.
       gradeBand: fair
+      aromaticCarry: 1.5

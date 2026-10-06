@@ -86,6 +86,30 @@ export interface FractionSpec {
    * not: naphtha comes over at 350 K and gas oil does not.
    */
   requiresHeatK?: number;
+  /**
+   * ⭐⭐ **How strongly this fraction carries the CHARGE's aromatics** — a
+   * multiplier on each `dissolvedAromatics` concentration in the thing
+   * being distilled. Absent ⇒ 1, which is "comes over unchanged" and is
+   * what every schedule did before this existed.
+   *
+   * ⭐ This is the seam that makes the whole product a product rather
+   * than a chemistry demo. Phenols are **high-boiling**: a peated wash
+   * comes over clean through the foreshots (`0`) and turns, late, as the
+   * hearts run on (`2.5`), with most of what is left in the tails (`6`).
+   * So a peated wash and a clean one **do not want the same cut** — take
+   * the hearts short and you have thrown away the character you spent a
+   * day of turf on; run them long to keep it and you are taking tails
+   * into the spirit. A decision at the malting rung changes the right
+   * answer at the cut, which is the real reason a heavily peated house
+   * cuts lower than a clean one.
+   *
+   * ⚠ There is no mass-balance enforcement across the schedule, and
+   * there should not be: a still is not a closed accounting system to
+   * the author, and the residue in the stillage is where the remainder
+   * goes. The shipped wash figures put roughly 70 % of the charge's
+   * phenol over and leave 30 % behind, which is about right.
+   */
+  aromaticCarry?: number;
 }
 
 export default class FractionSchedule extends SingletonMixin(Idea) {
@@ -296,6 +320,16 @@ export default class FractionSchedule extends SingletonMixin(Idea) {
         throw new RangeError(
           `FractionSchedule.setFractions: '${spec.key}' needs a character — ` +
             `the read is prose, and a fraction nobody can smell is a number`,
+        );
+      }
+      if (
+        spec.aromaticCarry !== undefined &&
+        (!Number.isFinite(spec.aromaticCarry) || spec.aromaticCarry < 0)
+      ) {
+        throw new RangeError(
+          `FractionSchedule.setFractions: '${spec.key}' aromaticCarry ` +
+            `must be a finite number at or above zero; got ` +
+            `${String(spec.aromaticCarry)}`,
         );
       }
       if (/\d/.test(spec.character)) {
