@@ -1564,3 +1564,102 @@ W22b (`dressOut` claims + carcass reduction + volume yield) · W23
 Hearts Delight, and `tissueShares` with its reader) · W25 (the cooking
 law) · W26 (casing/sausage/pudding) · W27 (drive, docs, the one full
 suite).
+
+## Drive record
+
+`packages/wire/tests/butchery.dirty.wire.test.ts`, five runs against
+four worlds:
+
+```
+pnpm --filter @saxonberg/server reset:db
+WIRE_BOOT=1 WIRE_PORT=2014 WIRE_FRAME_TIMEOUT=90000 \
+  pnpm -C packages/wire exec vitest run tests/butchery.dirty.wire.test.ts
+→ Tests 8 passed (8)   exit=0
+```
+
+### ⭐⭐ Green through the socket
+
+| # | checkpoint | |
+|---|---|---|
+| 1 | the yard has a flock book and a block | ✓ |
+| 2 | ⭐⭐ `draft` takes a head out and `slaughter` leaves a **body** | ✓ |
+| 3 | ⚠⚠ a knife-only butchering **names the saw** — the refusal is the UI | ✓ |
+| 4 | ⭐⭐⭐ and the **carcass is still there**, joints on it | ✓ |
+| 5 | ⭐⭐ several named goods on the ground, not one generic lump | ✓ |
+| 6 | ⭐⭐⭐ **a cut says what it wants in the pot, in words with no number** | ✓ |
+| 7 | the flock book still reads and the tally fell | ✓ |
+| 8 | ⭐⭐⭐ `butcher` refuses a person, and the world says why | ✓ |
+
+⭐⭐⭐ **Checkpoint 6 is the build.** A cut off a real carcass, looked at
+through a real socket, reads as *grain · sinew · coarse · firm · will not
+be hurried* — a texture, with no figure anywhere in it. That is the law
+being legible, which is the one thing no unit test can tell you.
+
+⭐⭐⭐ **And checkpoint 8 is better in the world's words than in mine:**
+*"You put the knife away. Whatever else a human is now, it was somebody —
+and there is no cut of meat on this earth worth the road that starts
+here."*
+
+### ⚠ What the drive found — five runs, and it earned its keep twice over
+
+1. ⚠⚠⚠ **`details` is a persistent `Map`, and a Map does not survive a
+   JSON round trip.** A restored `Detailed` host comes back with a plain
+   object, so `getDetailIds` throws *"details.keys is not a function"* and
+   `getDetailEntries` sails past its `details.size === 0` guard (an
+   object's `.size` is `undefined`, which is not `0`) and throws
+   *"details is not iterable"*. ⚠ The thrower is in the **resolve path**,
+   so ONE restored thing in a room breaks `look` and every argument
+   resolution for everybody in it — which is why run 4 could not get past
+   checkpoint 1 on a freshly dropped database.
+   ⭐⭐ **The carcass chain had already recorded this as pre-existing and
+   not chased it** (`Tootie "sense" → controller-error(details is not
+   iterable)`). It stopped being somebody else's problem when it blocked
+   this build's exit criterion. Normalised in `detailRoot()` — the one
+   door every reader goes through — idempotent and in place. ⚠ The deeper
+   fix is a **marshaller** for the field so the Map round-trips instead
+   of being rebuilt on first read; that is a persistence change with its
+   own blast radius and it is a deferred seam, not something to smuggle
+   into a butchery build.
+2. ⚠⚠ **`analyze sky` is broken by the same defect**, which is how it was
+   found: the drive's `ensureDaylight` asked the sky and got *"Couldn't
+   resolve 'tool' (resolve): details.keys is not a function"*.
+3. ⚠⚠⚠ **The carcass drive's `ensureDaylight` was STILL vacuous**, one
+   level below the vacuity it had already fixed. It asked *is it not
+   night*; in a dark room `analyze sky` refuses, the answer matches
+   neither word, `night` reads false, and the helper returns **swearing it
+   is day**. Seven checkpoints then failed as a cascade off one unlit
+   room. ⭐ Fixed twice: first by demanding the word `daylight` (positive
+   evidence), then by asking the **room** instead of the sky — because
+   what this file needs is to be able to SEE, not to know the hour, and
+   *"pitch dark"* is the failure it actually guards against.
+4. ⚠ **`butcher` lays the cuts on the FLOOR**, not in your hands — the
+   carcass drive's finding 7, which my first checkpoint had forgotten and
+   asserted against `inventory`.
+5. ⚠ **A bare `look` renders the room to the CARD** and returns empty
+   prose — the textiles build's recorded finding — so the replacement
+   checkpoint asserted nothing at all until it probed cuts **by name**.
+6. ⚠ **Asserting on the shape of prose rather than its subject**, again:
+   the person-refusal pattern was `/cannot|can't|not/` and the world's
+   actual sentence contains none of them.
+
+### ⚠ Not driven, with reasons
+
+- **The cow half.** The valley has an ox pair now, but droving is still
+  not expressible, so a 700 kg ox cannot reach a block. AC12's arithmetic
+  is proven in `trade-ranching`'s suite off the shares — a better proof
+  than one weighing, since it shows no number is authored twice.
+- **The sausage end to end.** `scrape-casing` → `sausage` is a
+  three-input craft; the drive's hand has the gut but not grain and a
+  second fat in one session. The recipes' slots and the casing's load are
+  pinned in `trade-cooking`'s suite.
+- **The cooking law's outcome through a dish.** `look`'s verdict on a
+  stewed shoulder needs a pot, a fire and a vegetable; the law itself is
+  pinned on both halves (classification and fit) in the kernel suite.
+
+### ⭐ The dirty reason is a question for a trade
+
+**Nothing in the valley sells a saw.** The general store three miles away
+stocks one, but the farm that keeps the sheep has no way to take a joint
+off the bone without a trip to town — either a real constraint worth
+keeping or a missing line on a farmstead's shelf. A finding for
+`ranching-slate`.

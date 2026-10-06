@@ -126,11 +126,15 @@ describe('⭐⭐ a joint costs more than trim', () => {
     const prices = counter.data.prices as Record<string, number>;
     const joint = prices['/trade/cooking/thing/cut-loin'];
     const trim = prices['/stuff/thing/items/stew-meat'];
-    expect(joint).toBeGreaterThan(trim);
+    // ⚠ Asserted present before compared: a missing price would otherwise
+    // read as `undefined > undefined` and pass as a nothing.
+    expect(typeof joint, 'the store must price a joint').toBe('number');
+    expect(typeof trim, 'the store must price trim').toBe('number');
+    expect(joint!).toBeGreaterThan(trim!);
     // ⭐⭐⭐ The butchery chain's whole economic argument in one place: the
     // same animal is worth several times as much cut well, which is why a
     // butcher is worth paying.
-    expect(joint / trim).toBeGreaterThanOrEqual(3);
+    expect(joint! / trim!).toBeGreaterThanOrEqual(3);
   });
 
   it('⭐ and it sells the tools the depth needs', () => {
