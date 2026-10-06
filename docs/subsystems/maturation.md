@@ -141,6 +141,98 @@ to idle, and the mixin's own product/turn/lees swaps re-key so they
 never read as fills. A same-material top-up continues the batch (the
 payload rule).
 
+## ⭐⭐⭐ `imparts` — what the VESSEL gives, written by the clock
+
+A maturing vessel may author `imparts: [{type, amount}]` — aroma
+compounds (`metabolism.md`'s closed vocabulary), mg/L **at full
+conversion** — and the reconcile writes the newly-earned share into the
+interior payload's `dissolvedAromatics` each pass. `impartedFraction`
+marks how much has landed.
+
+```yaml
+# the plain whiskey cask                # the charred one, same wood
+imparts:                                imparts:
+  - { type: oak, amount: 25 }             - { type: vanilla, amount: 40 }
+  - { type: vanilla, amount: 3 }          - { type: char, amount: 120 }
+                                          - { type: oak, amount: 15 }
+```
+
+⭐ **This is what makes a cask a decision.** Two barrels of the same wood
+holding the same spirit for the same time yield two different whiskies,
+and a third is a ROW.
+
+**Why the vessel and not the profile.** A profile keys on the LIQUID
+(`inputCategory`), so an oak cask and a charred cask would be two
+profiles claiming the tag `new-make` — and `forMaterial` resolves a
+double match by taking the lowest key, *silently*. A `vesselCategory`
+requirement on the profile instead enumerates (liquids × vessels) rows.
+
+**Why not the wood Material.** A charred first-fill cask and a plain
+third-fill cask are **both oak**. The difference is this barrel's own
+state and history, which is a fact about the vessel.
+
+⚠ What composing it claims: *a maturing vessel may give its contents a
+character over the course of a batch.* True of every vat — an oak
+fermenter does exactly this — and vacuous when a row authors none, so **no
+guard anywhere re-narrows the host set.**
+
+⚠ Two known coarsenesses, recorded rather than modelled: the figure is
+per litre regardless of **fill level** (a small fill in a big cask ought
+to extract harder), and `imparts` does not **deplete** (a cask's second
+fill reads the same as its first, where a real refill gives less). The
+depleting reservoir is the RGO law's shape and belongs to a coopering
+build.
+
+⚠ **Idempotence is the trap, not the arithmetic.** The write is
+reconcile-on-read, so without the `impartedFraction` marker the oak would
+climb every time anybody so much as *looked* at the cask — a `look` would
+make the whisky woodier, and nothing would say so.
+
+## ⭐⭐ `productAtFraction` — *when to bottle* as a decision
+
+`MaturationProfile.productAtFraction`, in `(0, 1]`, default **1**: the
+conversion at which the interior becomes the product. At 1 the product
+exists only at full conversion, which is what every profile did before
+and what every shipped profile but the two whisky casks still does.
+
+Below 1 it opens a window, and `applyBatchGrade` gains a **third weakest
+link** — a maturity term climbing from `poor` at `productAtFraction` to
+`masterful` at 1:
+
+```
+band = min(damageBand, batchInputBand, maturityBand)
+```
+
+⭐ So bottling early costs quality and bottling late costs time, and the
+fork has a consumer that already shipped: the Lounge's whiskey sour takes
+`minGrade: fair`, so a cask opened too soon yields whiskey the bar will
+not buy. ⚠ **Vacuous at `p = 1`** — the product only exists where the
+maturity term is `masterful` and `min` leaves the other two untouched —
+so it cannot change behaviour nothing opted into.
+
+⚠ It never RAISES a band. A `fair` cut left in oak for a year is still
+fair whisky: time improves whiskey, it does not absolve a distiller.
+
+## ⭐ The age statement
+
+`getBulkPayloadForDraw` stamps `BulkPayload.maturedDays` — game-days the
+batch has been sitting — on anything drawn out of a maturing vessel, and
+`palateAugmenter` renders it at `proficient` **in words, naming
+game-days**.
+
+⚠⚠ **It is `min`-folded on every blend, never averaged.** An age
+statement means *the youngest thing in the bottle* — that is what it
+legally means and what a drinker is entitled to read — so a 90-day malt
+vatted with a 20-day grain reads **twenty**. Averaging to fifty-five
+would be the one way to ship the feature as a lie. A parcel with no age
+at all (water, new spirit) has nothing to say and does not drag the
+statement to zero.
+
+⚠ It counts ELAPSED days, not converting days: a cask that stood too cold
+to work still sat there. The grade is what reports whether the time was
+well spent. And it is a **statement**, not a gauge — no recipe, par line
+or price reads it.
+
 ## Profiles are the whole authoring surface (D1/D4)
 
 `MaturationProfile` rows (any root's `idea/maturation/` subtree; matched by

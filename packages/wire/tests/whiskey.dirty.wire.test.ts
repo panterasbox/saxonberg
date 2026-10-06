@@ -272,7 +272,15 @@ suite('⭐ 0. the still-house floor is reachable and furnished', () => {
       );
     }
     // The three vessels and the maltings this build placed.
-    const names = await k.query('here:c', { fields: ['displayName'] });
+    // ⛔⛔ `here:c` — which this file used and which **is not an
+    // operator**. MQL's descend is `:i` (`mql-grammar.md` § Chain
+    // operator); a bareword in chain position FILTERS BY KEYWORD, so
+    // `here:c` asked for things in this room whose keyword is "c" and
+    // got the room back. Every name this checkpoint claimed to read was
+    // therefore read off one string — the room's own display name — and
+    // the assertion could only ever have passed for words that happen to
+    // appear in it. Found by the styles drive, which copied the idiom.
+    const names = await k.query('here:i', { fields: ['displayName'] });
     const all = names
       .map((r) => String((r as { displayName?: string }).displayName ?? ''))
       .join(' | ')

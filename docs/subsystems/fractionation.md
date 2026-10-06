@@ -78,8 +78,9 @@ data:
   gradeStretch: 0.0075         # how much a poorer charge grows the head
   fractions:
     - { key: foreshots, upTo: 0.005, gradeBand: poor, character: "…",
-        toxins: [{ type: methanol, amount: 12000 }] }
-    - { key: heads,     upTo: 0.03,  gradeBand: fair, character: "…" }
+        toxins: [{ type: methanol, amount: 12000 }], aromaticCarry: 0 }
+    - { key: heads,     upTo: 0.03,  gradeBand: fair, character: "…",
+        aromaticCarry: 0.5 }
     # … strictly ascending in (0, 1]; the last one's complement is residue
 ```
 
@@ -183,6 +184,46 @@ at a running still tells you it is running, not where in the run it is.
 ⚠ Do not copy `maturationAugmenter`, which takes no `opts` and lands on
 every channel; that is how a cellar line came to be read out over a field
 of linen.
+
+## ⭐⭐⭐ `aromaticCarry` — where a choice at ANOTHER rung lands
+
+A fraction may carry the **charge's own aromatics**
+(`BulkPayload.dissolvedAromatics`, `metabolism.md`) at its own multiple.
+Absent ⇒ `1`, which is *comes over unchanged* and is what every schedule
+did before this existed; `0` means none of it reaches this fraction.
+
+⭐ **This is the seam that makes a vertical a vertical rather than six
+corridors into one decision.** Phenols are high-boiling, so a peated wash
+comes over clean at the start and leaves its heaviest smoke at the end.
+The shipped wash schedule:
+
+| fraction | span | carry | a 30 mg/L malt reads |
+|---|---|---|---|
+| foreshots | 0.005 | **0** | nothing |
+| heads | 0.025 | 0.5 | 15 mg/L — *clearly* |
+| hearts | 0.15 | 2.5 | 75 mg/L — *strongly* |
+| tails | 0.05 | **6** | 180 mg/L — *overpoweringly* |
+
+So a peated wash and a clean one **do not want the same cut**:
+
+- take the hearts short and you have thrown away the character you spent
+  a day of turf on;
+- run them long to keep it and you are taking tails into the spirit, and
+  the grade falls to the worst band you drew.
+
+⚠ Neither answer is right, and that is the point — the tails smell more
+of what you made the malt for than the hearts do, and they are `poor`. A
+distiller who follows their nose ruins the cut; one who follows the grade
+leaves character in the stillage. **The maltster's decision has rewritten
+the distiller's correct answer**, which is the thing the cuts build could
+not say about any of its six rungs.
+
+⚠ There is no mass-balance enforcement across a schedule and there should
+not be: the residue is where a remainder goes. The shipped figures put
+about 69 % of the charge's phenol over and leave the rest in the
+stillage. A straddling draw volume-weights the two carries exactly as the
+dose is weighted — anything else would let a distiller take the tails'
+smoke at the hearts' grade.
 
 ## The charge's grade moves the boundaries
 
@@ -308,3 +349,25 @@ code, as the proof that a different product is rows.
   the moment to generalise to a host-side hook. Filed with the count
   rather than done, per *census then ratchet*: refactoring four shipped
   blends inside a feature build would have hidden the feature.
+
+---
+
+## History
+
+**2026-10-05 — `aromaticCarry` (the whiskey-styles build).** The schedule
+gained one optional number per fraction and it is what answers the charge
+the cuts build's own lens pass recorded and left open: *"if the cut
+decides everything and the other five are corridors, then five rungs are
+ceremony."* See the table above.
+
+⭐ The grain line arrived the same day as rows only — a second schedule
+(`grain-wash`) keyed on a second wash material, with a shorter head and a
+longer, more neutral heart. **No code knew there were two kinds of
+whisky.** ⚠ Its `aromaticCarry` is flat at 1 deliberately: unpeated wheat
+carries nothing to redistribute, and authoring a late carry there would
+assert a chemistry that is not in the charge.
+
+⚠ A tag may belong to **one matcher of a given kind**. `grain-wash` must
+not carry `wash` or two schedules claim one charge, and `forMaterial`
+resolves a double match by taking the lowest key — silently. A test now
+scans the whole content tree for that clash.

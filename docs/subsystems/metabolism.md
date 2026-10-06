@@ -490,3 +490,51 @@ illness arrives after the drunkenness has worn off; bands calibrated
 against one sentence (*a well-cut bottle harms nobody however much of it
 they drink*), with the arithmetic asserted in
 `world/__tests__/fermentation-distilling.test.ts`.
+
+---
+
+## ⭐⭐ Aroma — the second closed vocabulary (whiskey-styles, 2026-10-05)
+
+`lib/metabolism/DissolvedAromatics.ts` is the **sibling** of
+`DissolvedToxins`, not a generalisation of it, and the distinction is the
+routing: a dissolved toxin routes to a body's burden at the ingest; a
+dissolved aromatic routes to a **nose**. Nothing is ever harmed by one.
+
+`AROMAS` is a closed list of eleven words — `smoke · vanilla · oak ·
+char · fruit · floral · grain · honey · spice · solvent · sulphur` — each
+with a **detection threshold in mg/L**, on the `BASIC_TASTES` precedent:
+*the physiology's own closed list.* An odour threshold is physiology, not
+content. A row authors a **word and a number**; the sentence is derived.
+
+⚠⚠ **The ladder is LOGARITHMIC, and a linear one could not have worked.**
+Odour thresholds are parts per *billion* while what a drink carries is
+parts per *million*, so real concentrations sit three to four orders of
+magnitude above threshold — a firmly peated malt's hearts are **3,750×**
+their threshold. On a 1/3/10 ladder every whisky in the game reads
+"strongly of smoke" and the gauge is pinned before the first row is
+authored. The steps are `1 · 30 · 300 · 2000 · 8000` →
+`barely · faintly · clearly · strongly · overpoweringly`, which is also
+the honest shape: odour perception really is compressive.
+
+**Competence resolves DETAIL, never access.** Everyone smells the matter;
+`untrained`/`novice` get the dominant aroma with **no intensity word**
+(you know it is smoky, not how smoky), `competent`+ get every aroma over
+threshold with its intensity, and `proficient`+ also get the grade and
+the age statement. ⚠ A **sub-threshold** compound is invisible to
+everyone including an expert — competence does not change physics.
+
+⚠ No digit ever renders, at any band.
+
+**Where it is read.** `palateAugmenter` answers on `smell` as well as
+`taste` (flavour is mostly retronasal), while the basic tastes stay
+`taste`-only — you cannot smell salt. `look` reads neither, which is the
+Palatable host lesson and exactly what a second channel could break.
+`PalatableMixin` still composes on `ServingVessel` **and nowhere else**,
+so `smell cask` reports nothing of the contents: the way to nose a cask
+is to pour a dram into a glass, which is how it is done in the trade.
+
+⚠ **The cost, stated:** a twelfth word is a kernel edit, which rubs
+against the rule that a pack must never need one. Accepted because the
+list is physiology; a pack that genuinely needs its own aroma (a
+smokehouse wanting *tar*) is the signal to move the list to rows rather
+than add the word.
