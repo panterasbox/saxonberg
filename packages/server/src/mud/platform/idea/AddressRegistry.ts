@@ -39,6 +39,7 @@ import { Template } from '../../lib/stuff/Template';
 import { TemplatePathRosters } from '../../lib/paths';
 import type Locality from './Locality';
 
+import type { BoundaryRole } from '../../lib/security/BoundaryRole';
 const AddressRegistryBase = Idea;
 
 /** Only the AddressLogic singleton at `/platform/idea/api/address` may call in. */
@@ -61,6 +62,17 @@ const ADDRESS_ROSTER = TemplatePathRosters.locality;
 const LOCALITY_CLASS = '/platform/idea/Locality';
 
 export default class AddressRegistry extends AddressRegistryBase {
+  /**
+   * engine bookkeeping that happens to be Stuff-shaped: a registry holds the framework's own index, not world state anybody stands in.
+   *
+   * ⭐ Declared, not enumerated. This was one of twenty-seven
+   * template-path strings in `api/security.ts`, listed there
+   * *"because each is a singleton rather than a class of many"* —
+   * which a static on the class makes irrelevant. See
+   * `lib/security/BoundaryRole.ts`.
+   */
+  static boundaryRole: BoundaryRole = 'infrastructure';
+
   /**
    * Coverage index: claimed-address-prefix → Locality. A PathTrie
    * because addresses are path-shaped and longest-prefix is exactly

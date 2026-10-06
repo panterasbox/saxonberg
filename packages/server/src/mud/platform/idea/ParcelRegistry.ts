@@ -50,6 +50,7 @@ import type { Quantity } from "../../lib/quantity";
 import type { VetoResult } from "../../lib/errors";
 import type { Stuff } from "../../lib/stuff/Stuff";
 
+import type { BoundaryRole } from '../../lib/security/BoundaryRole';
 const ParcelRegistryBase = Idea;
 
 // Admit both the Api face module and the logic singleton's template path,
@@ -60,6 +61,17 @@ const ParcelApiCallers = SecurityPolicies.AnyOf(
 );
 
 export default class ParcelRegistry extends ParcelRegistryBase {
+  /**
+   * engine bookkeeping that happens to be Stuff-shaped: a registry holds the framework's own index, not world state anybody stands in.
+   *
+   * ⭐ Declared, not enumerated. This was one of twenty-seven
+   * template-path strings in `api/security.ts`, listed there
+   * *"because each is a singleton rather than a class of many"* —
+   * which a static on the class makes irrelevant. See
+   * `lib/security/BoundaryRole.ts`.
+   */
+  static boundaryRole: BoundaryRole = 'infrastructure';
+
   /**
    * Coverage index: parcel `extent` → its `ParcelRecord`. A PathTrie
    * because extents are path-shaped and longest-prefix is exactly the

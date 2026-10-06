@@ -2,6 +2,7 @@ import { Idea } from './Idea';
 import type { VetoResult } from '../errors';
 import type { EvictionContext } from './Stuff';
 
+import type { BoundaryRole } from '../security/BoundaryRole';
 /**
  * Base class for the `*Logic` singletons behind the `*Api` facades
  * (`obj/api/*Logic.ts`). A thin specialization of {@link Idea} whose
@@ -24,6 +25,16 @@ import type { EvictionContext } from './Stuff';
  * @internal
  */
 export class ApiLogic extends Idea {
+  /**
+   * every logic singleton: a non-HMR engine interface, not a world object.
+   *
+   * See `lib/security/BoundaryRole.ts` — this replaces a
+   * hand-maintained list in `api/security.ts` /
+   * `BootstrapManager`, and `lint:boundary-roles` holds the
+   * `commons` census at its measured ceiling.
+   */
+  static boundaryRole: BoundaryRole = 'infrastructure';
+
   /**
    * Residency veto. See the class doc: logic singletons are never
    * culled. Terminal (does not chain `super`) — the exemption is

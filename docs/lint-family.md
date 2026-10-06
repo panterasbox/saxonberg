@@ -1464,3 +1464,48 @@ It also gates, at ceiling zero: a recipe `difficulty` outside `DIFFICULTIES`,
 a `call:` outside `CALL_POLICIES`, and ⭐ **a house with a `fulfills` seat and
 no `call:`** — which would decline every order it ever received.
 
+## ⭐⭐⭐ When the thing you want to derive *cannot* be derived
+
+`lint:boundary-roles` (2026-10-06) is the pattern's honest edge case,
+and worth reading before reaching for "make it derivable".
+
+The sandbox boundary's class-level exemption was **thirty-nine
+hand-maintained entries** across two mechanisms — twelve
+`_registerBoundaryExemptBase(...)` calls planted from
+`BootstrapManager`, and twenty-seven template-path strings inside
+`api/security.ts` — and by their own comments every one was added
+*after a verb died in production*. The textbook enumeration rot.
+
+⛔ **But the predicate did not exist.** Three candidate derivations
+were checked against the code and all three failed:
+
+| candidate | verdict |
+|---|---|
+| *never mutated at runtime* (scan for public mutators) | `Material` declares **32** public `set*` methods, because the `TemplateApplier` dispatches through them. Every authored reference class needs setters. |
+| *the PM policy table refuses writes to its rows* | ⛔ **false.** `Collections.Content` is `sandbox: pass`, deliberately. The stated justification for nine exemptions did not hold. |
+| *nobody can hold title to it* (`ownerOf(path) === null`) | false — `/platform` and `/stuff` are both claimed extents. |
+
+⭐ **So the fix was not a derivation; it was to move the judgment
+somewhere visible and ratchet its GROWTH.** The axis became one static
+on the class (`static boundaryRole`, prototype-walked like
+`_mixinName`), and the gate asserts three things that *are* derivable:
+
+1. **totality** — every declaration is a value the vocabulary declares,
+   read out of the vocabulary's own source rather than copied;
+2. **the census ceiling** — today's `commons` count, which may fall and
+   never rise, and a **padded** ceiling is a finding too;
+3. **no central list may come back** — the retired registrar has no
+   callers and the deleted sets are absent.
+
+⚠ **The lesson for the pattern**: when a count is rotting, ask whether
+the predicate exists *before* promising to derive it. If it does not,
+the ratchet alone is still most of the value — it converts an
+unbounded list into a reviewed one. What made the old lists dangerous
+was not that they were lists; it was that nothing bounded them.
+
+⭐ And it is worth deriving what you can even then: the roles replaced a
+*path-string* mechanism with a *class* one, which makes a rename
+typechecked for free — and that retired the main invariant of an
+older gate (`lint:boundary`'s *"every exempt path resolves to a real
+seed row"*), whose own header had already identified the string
+coupling as the defect.

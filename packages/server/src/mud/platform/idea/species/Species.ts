@@ -36,6 +36,7 @@ import type { FieldMeta } from '../../../lib/mixin';
 import type { Season } from '../../../lib/time/CelestialProfile';
 import { SpeciesApi } from '../../../api/species';
 
+import type { BoundaryRole } from '../../../lib/security/BoundaryRole';
 /** A suggested character name (given + optional surname). */
 /**
  * One line of a species' butchery yield: a cut template and how many a
@@ -533,6 +534,16 @@ export default class Species extends SingletonMixin(
 // reference singleton.
   VisibleMixin(Idea),
 ) {
+  /**
+   * a body must be able to read its own species or it is not animate.
+   *
+   * See `lib/security/BoundaryRole.ts` — this replaces a
+   * hand-maintained list in `api/security.ts` /
+   * `BootstrapManager`, and `lint:boundary-roles` holds the
+   * `commons` census at its measured ceiling.
+   */
+  static boundaryRole: BoundaryRole = 'commons';
+
   /** Latin binomial nomenclature (e.g. `'Homo sapiens'`). */
   protected binomial: string = '';
 

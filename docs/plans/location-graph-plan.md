@@ -2646,3 +2646,217 @@ clean.
 resolves no Locality, so `localityAddressOf` returns `''` and the
 writer declines. Correct by the design (a claim needs somewhere to
 file) and worth knowing — the lounge is not a mappable place.
+
+---
+
+## W10 — the boundary role ✅ BUILT 2026-10-06
+
+Opened by the browser pass's third finding. The ask: *declarative and
+derivable, not the patchwork there now.*
+
+### What the patchwork actually is
+
+One `pass` expression in `SecurityApi`'s dispatch trap serves **two
+different questions**:
+
+* **circle isolation** — is this receiver on the far side of a circle
+  wall? (`rcvScope !== ctxScope`)
+* **jurisdiction** — is this receiver inside the extent I hold title
+  to? (`bctx.bound !== null`, set only by governed eval)
+
+The second inherits every exemption written for the first. Six
+mechanisms, all central and hand-maintained:
+
+| mechanism | shape |
+|---|---|
+| `#BOUNDARY_EXEMPT_METHODS` | a set of method NAMES |
+| `#MESSAGE_DELIVERY_METHODS` | a set of method NAMES |
+| `#INBOUND_TRANSPORT_METHODS` | a set of method NAMES, circle-only |
+| `#boundaryExemptBases` | a list of CLASSES, filled at boot |
+| `#consumeInspectionBypass()` | a one-shot flag |
+| `#inJurisdiction`'s three rungs | path · containment walk · newborn |
+
+⚠ And the class list is filled by **twelve imperative calls** in
+`BootstrapManager.installFrameworkWiring` — three infrastructure bases
+and nine reference bases — each added, per its own comments, *after
+something broke in production*: **"found live: the wire body was
+refused `go` as 'not currently animate', then refused again on its
+clade's rank"**; **"found live: `eval` in-circle died on
+`lookupField`"**; **"found live: without this, every clone inside a
+circle silently skipped its content step."** The list is a scar record.
+
+### ⛔ Three candidate derivations, all checked, all dead
+
+The reference-base exemption is justified in prose by a three-limb
+test. I tried to turn each limb into a machine check:
+
+| candidate | verdict |
+|---|---|
+| limb 2 — *"seeded, never mutated at runtime"* → scan for public mutators | **not derivable.** `Material` has **32** public `set*` methods, because the `TemplateApplier` dispatches through them. Every authored reference class needs setters. |
+| limb 3 — *"the PM policy table REFUSEs writes to their rows"* | ⛔ **FALSE.** `content` is `sandbox: pass`, and deliberately: *"authored truth. A circle session that may edit a room template edits the real template, and the parcel-title gate is what governs that — not the circle."* So the exemption does **not** widen reads only; it widens dispatch wholesale. **The stated justification for nine exemptions does not hold.** |
+| *"nobody can hold title to it"* → `ParcelApi.ownerOf(path) === null` | **false.** `/platform` and `/stuff` are both claimed extents (`check-untitled-paths`: 90 claims cover 2484 shipped paths, zero untitled). |
+
+⭐ **Therefore `commons` membership is a JUDGMENT, not a derivation**,
+and the honest design is to put the judgment where it is visible and
+hold its growth with a ratchet — not to pretend a predicate exists.
+
+### The design
+
+**One declared axis, on the class, walked up the prototype chain** —
+the `identityNamespace` / `_mixinName` / `fieldMeta` pattern.
+
+```ts
+static boundaryRole: BoundaryRole = 'commons';
+```
+
+| role | the claim it makes | members |
+|---|---|---|
+| `'place'` | *I am where my path says, or where my host is.* **The default; nothing declares it.** | everything else |
+| `'commons'` | *Nobody holds title to me as a thing; I am shared vocabulary every body reads.* | `Species` `BodyPlan` `Clade` `LocomotionMode` `Material` `Modality` `Condition` `CombatFormation` `Zone` + **`Locality`** (new) |
+| `'infrastructure'` | *I am not a world object at all.* | `ApiLogic` `Interactive` `TemplateApplier` |
+
+**And the rungs collapse.** `#inJurisdiction` today is *my path · walk
+`getContainer()` · newborn*, and rung 2 is already **"ask my host."**
+So one hook, with containment as its default:
+
+```ts
+/** @hook The thing whose jurisdiction I share. Default: my container. */
+jurisdictionHost(): Stuff | null;   // Stuff: getContainer?.() ?? null
+                                    // Exit:  getSource()
+```
+
+⭐⭐ **That is the real derivation, and it is why the exit stops being a
+special case.** An exit is not an exception to containment — it is a
+Stuff whose host is reached by a different method. Containment becomes
+*one instance* of hosting rather than the only one, and the fourth role
+I first sketched (`'delegated'`) disappears: there is nothing to
+declare, because every Stuff already has a host hook.
+
+⚠ `getSource()`, not the destination. An exit has two ends and the far
+one may be in somebody else's extent; keying on the source means *you
+own the door on your side of the wall*, and keeps the hook from
+becoming a way to reach into a neighbour's parcel.
+
+### What is actually derivable, then
+
+Not membership — **behaviour, totality, and growth**:
+
+1. **Behaviour** — the trap reads the declared role in ONE place.
+   `#boundaryExemptBases` and the twelve `_registerBoundaryExemptBase`
+   calls are deleted.
+2. **Totality** — every `boundaryRole` declaration is a known value.
+3. ⭐ **Census-then-ratchet on `commons`** — today's count is the
+   measured ceiling. It may fall, never rise without editing the
+   ceiling in the same commit. That makes widening the boundary *a
+   visible reviewed act* instead of a line in a boot function, which is
+   this repo's own answer to a rotting enumeration
+   (`docs/lint-family.md`).
+4. **No central list can come back** — the gate asserts
+   `BootstrapManager` performs no boundary registration at all.
+
+⚠ **What the gate deliberately does NOT claim**: that a `commons`
+declarer is immutable. It cannot be checked (limb 2, above), so it
+stays a review criterion — stated once, beside the role, with the
+ceiling forcing the conversation. ⛔ And limb 3 is **struck**: it is
+false, and leaving it in print would keep justifying exemptions with a
+guarantee the persistence layer does not make.
+
+### The decided cases
+
+* **`Locality` → `commons`.** Seeded, read constantly
+  (`AddressApi.resolveLocalityFor` is on the Cartographer's own write
+  path), and nobody holds title to *"terminus/city"* as a thing. It is
+  the tenth member of a list that already had nine, and the only
+  reason it is not already there is that nothing had driven it yet.
+* **`Exit` → `place` + `jurisdictionHost() → getSource()`.** NOT
+  `commons`: an exit *is* world state, authors change them, and
+  exempting it would let circle code mutate real exits — exactly what
+  the boundary exists to stop.
+* ⭐ **`Watercourse` → neither, and the gate is what says so.** It was
+  denied on **`setKey()`** — a write — and a river's flow and storage
+  are genuine runtime state, so it fails the `commons` criterion. Its
+  reaches sit in several parcels at once, so no single
+  `jurisdictionHost` is honest either. **Left denied, deliberately**, and
+  recorded as the open question the role vocabulary does not yet answer:
+  *what is the jurisdiction of a thing that spans parcels?*
+
+### Waves — all landed
+
+| wave | what | done |
+|---|---|---|
+| W10a | `jurisdictionHost()` on `Stuff` (default `getContainer`), `Exit` overrides with `getSource()`; the walk renamed `#enclosureOf` → `#hostOf` and asks the hook. | ✅ |
+| W10b | `BoundaryRole` vocabulary + `static boundaryRole`, prototype-walked; the trap reads it; **both** central lists deleted — the twelve `_registerBoundaryExemptBase` calls AND the twenty-seven `#BOUNDARY_EXEMPT_TEMPLATE_PATHS` strings; **38 classes declare** (commons 23, infrastructure 15). | ✅ |
+| W10c | `lint:boundary-roles` — totality, the `commons` ceiling (and a refusal of a PADDED ceiling), and *nothing calls the retired registrar*. Roster is 67 gates. | ✅ |
+| W10d | `scopeLabel()`: a `null` scope renders `field(none)`, never the bare word a named scope could also use. Plus `sandbox.md`. | ✅ |
+
+⭐ **W10b came out bigger than specced, and better.** The spec had
+twelve boot registrations to delete; the file also held
+**`#BOUNDARY_EXEMPT_TEMPLATE_PATHS`, twenty-seven template-path
+strings** — a seventh mechanism I had not catalogued, carrying its own
+excuse for existing: *"enumerated here because each is a singleton
+rather than a class of many."* A static reads the same whether there is
+one instance or a thousand, so all twenty-seven collapsed into
+declarations too. **39 hand-maintained entries → 38 class
+declarations + one gate.**
+
+⭐⭐ **And it obsoleted an existing gate's main invariant by
+construction.** `check-boundary-exemptions` (`lint:boundary`) existed
+largely to watch the path list — *"every exempt template path resolves
+to a real seed row"* — because, in its own words, *"three are expressed
+as CLASSES and are therefore typechecked for free: rename or move the
+class and the build breaks. The fourth is a set of template-path
+strings, and nothing checks it."* The fourth kind no longer exists, so
+that invariant is unrepresentable; the gate keeps its live one (the
+symmetric and inbound-only method sets stay disjoint) and its header
+now says why it shrank.
+
+⚠ **The one real risk, and it was checked by booting.** Deleting the
+twelve registrations made twelve value-imports in `BootstrapManager`
+dead, and dropping a value-import from a bootstrap module can mean a
+class is never loaded and its template stops resolving. The world boots
+with **zero** errors in the log, and the live acceptance below exercises
+`Locality`, `HelpCatalogue`, `Material` and the exit path, so all four
+tiers are reached.
+
+### Drive record — the live acceptance
+
+Booted on `PORT=2015`, logged in as a wizard, governed `eval --parcel
+/world/terminus/university-avenue`:
+
+| criterion | result |
+|---|---|
+| 1a — read an **exit** of a room in my extent *(was denied)* | ✅ `"west"` |
+| 1b — the **write**: `removeExit('west')`, the originally blocked action | ✅ `true`, and then `go west` → *"You can't walk that way."* |
+| 1c — a receiver **outside** the bound still denies | ✅ denied, and the message now reads `field(none) vs field(none)` — unambiguously the jurisdiction rung rather than a scope mismatch |
+| 2 — read a **`Locality`** under a bound *(was denied)* | ✅ `"Terminus"` |
+| control — a **catalogue**, formerly a path-list entry | ✅ `/platform/idea/HelpCatalogue` |
+
+⭐ **The acceptance that matters is 1b**: *an author can edit the exits
+of a room they hold title to.* That was impossible before this wave.
+
+⚠ Honest note on 1c: the probe asked for an exit of a room in a
+*different* parcel, so the denial fired one step earlier — on
+`getExit()` against the out-of-bound ROOM, not against the exit. The
+precise case (an exit reachable from here whose **host** is outside the
+bound) is pinned in `sandbox.jurisdiction.test.ts` instead, along with
+*a host hook that throws fails closed* and *an undeclared class in a
+`commons` position is still denied*.
+
+⚠ The drive mutated the live dev world (one exit removed). Exits are an
+instruction field applied from the row, so a reboot restores it; no
+content file was touched.
+
+### Acceptance
+
+1. A governed `eval --parcel <extent>` can read and write the **exits**
+   of a room in that extent, and is still refused an exit whose source
+   is outside it.
+2. A governed eval can read a `Locality` (so anything that resolves an
+   address works under a bound).
+3. `BoundaryRole` is declared on classes only; no registration call
+   exists anywhere.
+4. `lint:boundary-roles` is green, sits on its measured ceiling, and
+   fails if a thirteenth class declares `commons` without the ceiling
+   moving in the same commit.
+5. ⭐ Observable from outside the code: the acceptance that matters is
+   (1) — *an author can edit the exits of a room they hold title to.*

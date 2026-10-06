@@ -81,6 +81,7 @@ import type { Marshaller } from '../../lib/persistence/Marshaller';
 import { TemplatePaths } from '../../lib/paths';
 import { DiagnosticApi } from '../../api/diagnostics';
 
+import type { BoundaryRole } from '../../lib/security/BoundaryRole';
 type Indexable = Record<string, unknown>;
 
 /**
@@ -99,6 +100,16 @@ export type ApplyMode = 'mint' | 'go-live' | 'restore';
  * standard clone integration.
  */
 export default class TemplateApplier extends Idea {
+  /**
+   * a stateless engine singleton used as a pure function BY the clone pipeline.
+   *
+   * See `lib/security/BoundaryRole.ts` — this replaces a
+   * hand-maintained list in `api/security.ts` /
+   * `BootstrapManager`, and `lint:boundary-roles` holds the
+   * `commons` census at its measured ceiling.
+   */
+  static boundaryRole: BoundaryRole = 'infrastructure';
+
   /**
    * The applier's own row. ⭐ Its `data` is empty, which is what
    * terminates the resolution recursion now that a row no longer names

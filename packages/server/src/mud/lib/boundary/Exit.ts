@@ -242,6 +242,30 @@ export default class Exit extends ConcealableMixin(Idea) {
 
   protected source: Stuff & Container;
   public getSource(): Stuff & Container { return this.source; }
+
+  /**
+   * ⭐ **My jurisdiction is my source room's** — see
+   * {@link Stuff.jurisdictionHost}.
+   *
+   * An exit answers to its exit-KIND path
+   * (`/platform/idea/exits/passage`), which names what sort of exit it
+   * is and not where it is, and a room holds its exits in a
+   * `direction → exit` map rather than containing them. So neither
+   * rung of the default jurisdiction walk reaches an exit, and a
+   * governed `eval --parcel <extent>` was refused on every exit of
+   * every room inside its own extent — `getDoor()` included, so not
+   * even a read got through. Found by a browser drive.
+   *
+   * ⚠⚠ **The SOURCE, never the destination.** An exit has two ends and
+   * the far one may sit in somebody else's extent; answering with the
+   * source means *you own the door on your side of the wall*, and
+   * keeps this hook from becoming a way to reach into a neighbouring
+   * parcel. It is also the same end `getDiscoveryKey` already keys on,
+   * for the same reason.
+   */
+  public override jurisdictionHost(): Stuff | null {
+    return this.source as unknown as Stuff;
+  }
   public setSource(value: Stuff & Container): void { this.source = value; }
 
   /**

@@ -56,6 +56,7 @@ import { ModuleApi } from '../../api/module';
 import { WorldClockApi, type ClockHandle } from '../../api/worldclock';
 import { Quantity } from '../../lib/quantity';
 import { SchedulerApi } from '../../api/scheduler';
+import type { BoundaryRole } from '../../lib/security/BoundaryRole';
 import type {
   ActivityClass,
   DurativeActivity,
@@ -108,6 +109,17 @@ function buildActivityUpdate(
 }
 
 export default class SchedulerRegistry extends Idea {
+  /**
+   * engine bookkeeping that happens to be Stuff-shaped: a registry holds the framework's own index, not world state anybody stands in.
+   *
+   * ⭐ Declared, not enumerated. This was one of twenty-seven
+   * template-path strings in `api/security.ts`, listed there
+   * *"because each is a singleton rather than a class of many"* —
+   * which a static on the class makes irrelevant. See
+   * `lib/security/BoundaryRole.ts`.
+   */
+  static boundaryRole: BoundaryRole = 'infrastructure';
+
 
   /**
    * Residency veto - a load-bearing process-lifetime singleton is

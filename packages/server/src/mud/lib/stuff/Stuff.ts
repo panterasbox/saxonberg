@@ -625,6 +625,45 @@ export abstract class Stuff {
    * re-derivable) and is recorded nowhere, so `null` is its honest
    * answer and `stuffId` is what covers it within one life.
    */
+  /**
+   * ⭐⭐ **The thing whose jurisdiction I share** — *whose place am I
+   * in?* — or `null` when nothing answers for me.
+   *
+   * The default is my container, because for almost everything "where
+   * I am" IS "what I am inside". Override when a Stuff **belongs to a
+   * place without being contained by it**.
+   *
+   * ⚠⚠ **This replaces a hardcoded `getContainer()` walk inside the
+   * security layer, and the reason is the exit.** An inline exit is a
+   * clone of its exit-KIND row, so the path it answers to is
+   * `/platform/idea/exits/passage` — the kernel, not the world — and a
+   * room does not *contain* its exits, it holds a `direction → exit`
+   * map. So the jurisdiction walk had nothing to walk, and a governed
+   * `eval --parcel <extent>` could not so much as call `getDoor()` on
+   * an exit of a room inside that extent. Found by a browser drive.
+   *
+   * ⭐ The fix is NOT an exit carve-out. An exit is not an exception to
+   * containment; it is a Stuff whose host is reached by a different
+   * method ({@link Exit.getSource}). Containment is *one instance* of
+   * hosting, and this hook is the general case — which is why
+   * `Exit.jurisdictionHost` is four lines and the security layer knows
+   * nothing about exits.
+   *
+   * ⚠ `getContainer()` may write (R2.3 clears a slot pointing at a
+   * destroyed container). That is an idempotent cleanup the next
+   * ordinary read would do anyway, and it is why this calls the method
+   * rather than reading the field: the self-heal is the contract.
+   *
+   * @hook Override to name the thing whose place is also yours.
+   */
+  public jurisdictionHost(): Stuff | null {
+    const get = (this as unknown as { getContainer?: () => unknown })
+      .getContainer;
+    if (typeof get !== 'function') return null;
+    const next = get.call(this);
+    return next === null || next === undefined ? null : (next as Stuff);
+  }
+
   public getDurableHandle(): string | null {
     const row = this.getTemplatePath();
     if (!row) return null;

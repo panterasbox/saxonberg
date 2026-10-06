@@ -47,6 +47,7 @@ import FolderZone from './FolderZone';
 import Avatar from '../../lib/character/Avatar';
 import { PlayerApi } from '../../api/player';
 
+import type { BoundaryRole } from '../../lib/security/BoundaryRole';
 /**
  * The one office that carries code trust. Named here rather than
  * imported from the governance vocabulary so this module keeps its
@@ -69,6 +70,17 @@ const AccessApiCallers = SecurityPolicies.AnyOf(
 
 
 export default class AccessRegistry extends AccessRegistryBase {
+  /**
+   * engine bookkeeping that happens to be Stuff-shaped: a registry holds the framework's own index, not world state anybody stands in.
+   *
+   * ⭐ Declared, not enumerated. This was one of twenty-seven
+   * template-path strings in `api/security.ts`, listed there
+   * *"because each is a singleton rather than a class of many"* —
+   * which a static on the class makes irrelevant. See
+   * `lib/security/BoundaryRole.ts`.
+   */
+  static boundaryRole: BoundaryRole = 'infrastructure';
+
   private cachedWizardsRef: GroupRef | null = null;
   /** Set of member keys (templatePaths) in `'wizards'` — warmed lazily, invalidated
    *  via the managed provider's onChange callback. */
