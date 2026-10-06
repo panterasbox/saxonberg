@@ -441,7 +441,32 @@ Every wave lands at a commit `build(whiskey-styles W<n>): …`, passes
 suite runs exactly twice (pre-MR, `/finalize`). Kernel/content split is
 stated per wave.
 
-### W0 — concentrations blend everywhere matter moves (kernel)
+### W0 — concentrations blend everywhere matter moves (kernel) ✅ DONE `ac84be667`
+
+> **Built as planned, with three deviations worth knowing.**
+>
+> 1. ⚠ **`lint:lib-statics` is 347, not the ~345 predicted.** Five new
+>    statics, not three: `Concentration.blend`/`.isClean` plus
+>    `DissolvedAromatics.isAroma`/`.thresholdFor`/`.render`. The planned
+>    `blend`/`isClean` **forwarders on `DissolvedAromatics` were dropped**
+>    rather than written — symmetry with `DissolvedToxins` would have read
+>    better, but a static that exists only to forward is precisely what
+>    this ratchet counts down, so callers use `Concentration` directly.
+>    Each of the five is justified in the gate file.
+> 2. ⭐ **`maturedDays` is folded in W4, not here.** The field is declared
+>    from `lib/maturation/`, so a fold referencing it would not compile at
+>    W0. W4 adds the declaration and the one min-fold line together.
+> 3. ⭐⭐ **Risk 11's audit changed the decision.** All 22
+>    authored-material recipes author an `outputAppearance` this branch
+>    ignored, so "stamp when it differs from the material's" would have
+>    *regressed* 15 of them (the material's prose is the better line in
+>    every near-duplicate — `mash`'s material says "still steaming
+>    faintly" where the recipe says nothing). But 7 are real distinctions
+>    the material cannot carry: `crush-comb` vs `spin-comb` are two
+>    recipes for ONE honey material whose whole difference is how the
+>    honey looks, and `flatbread` vs `lean-loaf` likewise for bread. So:
+>    stamp unconditionally, and **delete the 15 redundant keys**. Seven
+>    silent authoring bugs fixed, no prose regressed.
 
 Implements D2, D3, D4, D6 (the `Recipe` field), D13 (the renderers).
 Files: `lib/bulk/Concentration.ts` (new), `lib/metabolism/DissolvedToxins.ts`
@@ -468,7 +493,29 @@ unchanged. Acceptance: a 0.3 L @ 435 mg/L + 0.45 L @ 40 mg/L recipe
 output reads 198 mg/L; `lint:lib-statics` ceiling edited with the reasons.
 Commit: `build(whiskey-styles W0): a concentration blends wherever matter moves — the fold, the aroma vocabulary, and a recipe that imparts`.
 
-### W1 — the mill makes what it is fed (kernel + milling pack + rows)
+### W1 — the mill makes what it is fed (kernel + milling pack + rows) ✅ DONE `5d4e5e758`
+
+> **Built as planned. The grounding understated the damage.**
+>
+> ⛔ Beyond the two findings the plan recorded, the defect had also left
+> `barley-flour.yaml` and `grist-sack.yaml` as **dead rows nothing in the
+> world could produce**, and made the distributor counter's own
+> advertised arbitrage (*"malt at 5 plus your own time at a quern,
+> against grist at 7"*) impossible to perform.
+>
+> ⚠⚠ **A SECOND vacuous assertion**, not just the vertical's link 5:
+> `mill.test.ts` carried a test titled *"⭐ a MALT sack grinds too, and
+> what comes off is grist"* whose body asserted that the malt **material
+> carries a `malt` tag**. It ground nothing, never mentioned grist, and
+> the claim in its title was false. Both are now real grinds, and the
+> vertical's new assertion was **verified to fail** against a
+> deliberately wrong row rather than assumed to.
+>
+> ⭐ One design note the plan did not have: `residueFraction` is per-feed
+> on the table, and malt authors **0** — you grind malt to grist whole,
+> because the husk is the filter bed the mash lauters through. So a
+> brewer's grind and a baker's grind are different acts on one machine,
+> derived from the feed rather than chosen on a dial.
 
 Implements D11. Files: `lib/craft/Comminuting.ts` (`products`, fieldMeta,
 accessor pair, `planFor` selects by the charge material's tags, scalar
