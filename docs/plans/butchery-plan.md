@@ -1428,3 +1428,63 @@ nothing is reported as un-driven.
 - **Duck or goose** as the flying-bird foil that makes the white/dark
   contrast visible on one table → the same tail. The `avian` plan is ready
   for it, which is the point of keeping the two plans apart.
+
+### D17 — Fish: already done, and the law generalises without a special case
+
+Asked during plan review: *"what about fish, do we have to talk about
+cleaning fish or is that already done?"*
+
+**Already done, and it is the precedent the land chain should have
+copied.** `trade-fishing`'s species author real per-species cuts
+(`/trade/fishing/thing/fillet`, `roe`, plus the shipped `offal`), so
+`butcher <fish>` has given named products since the fishing build. The
+land chain was the outlier, not fish.
+
+⭐ **And fish already spoil faster, honestly**: `food/fish-flesh` carries
+`spoilActivationEnergy: 60000` against `tissue/flesh`'s `80000`, so the
+shipped Arrhenius clock makes a fillet go off sooner than mutton with
+nothing special-cased.
+
+⭐⭐ **The work law covers fish with no fish branch.** Fish muscle is
+almost entirely white fast-twitch in myomeres, with very little
+connective tissue, and fish collagen gelatinizes at a far lower
+temperature — which is *why* a fillet cooks in minutes and flakes where a
+shoulder braises for hours. So fish sit at the **tender end of the same
+scale** the ox's worked shoulder anchors at the tough end. One law, two
+ends, and the contrast is the clearest demonstration of it available.
+
+⚠ **The one real gap:** `BodyPlan/fish.yaml`'s torso names generic
+`/stuff/idea/material/tissue/muscle` — the same material cattle name. If
+generic muscle carries a single `work`, a trout and a bullock have
+identical muscle and the contrast collapses. **Decided:** the fish plan
+names a new `tissue/muscles/fish` (white, the lowest `work` in the game);
+the `fillet` row keeps its `food/fish-flesh` material, exactly as a
+mammal cut keeps a food material while its `tissues[]` claim muscles. The
+two layers stay the same two layers.
+
+**Not modelled, deliberately:** *cleaning* (gutting and scaling) as an act
+distinct from filleting. Gutting promptly really does slow spoilage — but
+by the fidelity rule this plan already adopted, **a second verb for it
+earns nothing a player would care about**, and the tool-gated depth model
+already says a fish needs nothing beyond a knife. → the butchery tail, if
+a fishmonger ever wants it.
+
+⚠ **W20 must convert the `fish` and `crustacean` plans too** — their
+masses are absolute like every other plan's (fish torso muscle 0.5 kg).
+With `fowl` added, that is **seven** shipped plans, not six. And AC13
+(*fish still fillet*) holds **by construction** of D4: `fraction` derives
+only where a muscle claim exists and stays authored otherwise, so fish
+keep their authored units and masses untouched.
+
+### D18 — Blood spills silently when nobody brought a vessel
+
+The fork the requirements left unnamed, decided by the user in plan
+review: `butcher` does **not** refuse or warn for want of a vessel. The
+blood line is simply lost when no vessel is present.
+
+⭐ It is the more diegetic answer — blood on the floor is what actually
+happens — and it makes the black pudding **something you only get if you
+came prepared**, which is a choice rather than a chore. ⚠ Deliberately
+*unlike* the milk rule's refusal: milk is a tap on a living animal you
+can come back to, and a carcass is a one-time event, so a refusal there
+would be a nag about something already irreversible.
