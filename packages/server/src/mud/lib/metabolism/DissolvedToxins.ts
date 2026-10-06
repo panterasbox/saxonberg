@@ -40,6 +40,7 @@
  */
 
 import type { BulkPayload, BulkSlot } from '../bulk/Bulkable';
+import { Concentration } from '../bulk/Concentration';
 import type { ToxinTag } from './Metabolic';
 
 /**
@@ -81,44 +82,19 @@ export class DissolvedToxins {
     b: readonly ToxinTag[] | undefined,
     amountB: number,
   ): ToxinTag[] {
-    const left = a ?? [];
-    const right = b ?? [];
-    const total = amountA + amountB;
-    if (!(total > 0)) return left.map((t) => ({ ...t }));
-    const byType = new Map<string, ToxinTag>();
-    const fold = (tags: readonly ToxinTag[], litres: number): void => {
-      for (const tag of tags) {
-        if (!(tag.amount > 0)) continue;
-        const existing = byType.get(tag.type);
-        if (existing) {
-          existing.amount += (tag.amount * litres) / total;
-          // Lability is a fact about the SUBSTANCE, so two sets naming
-          // one type cannot honestly disagree. Keep the first answer and
-          // let a later one fill a gap rather than averaging a physical
-          // constant.
-          if (existing.labileAtK === undefined && tag.labileAtK !== undefined) {
-            existing.labileAtK = tag.labileAtK;
-          }
-        } else {
-          byType.set(tag.type, {
-            ...tag,
-            amount: (tag.amount * litres) / total,
-          });
-        }
-      }
-    };
-    fold(left, amountA);
-    fold(right, amountB);
-    const out: ToxinTag[] = [];
-    for (const tag of byType.values()) if (tag.amount > 0) out.push(tag);
-    return out;
+    // ⭐ The arithmetic moved to `lib/bulk/Concentration` when the dose
+    // got a sibling (`DissolvedAromatics`) and a third call site (the
+    // pour, a recipe's output, a grind). `labileAtK` keeps working
+    // without being named there: the fold reconciles every field but
+    // `amount` by filling gaps and never averaging, which is exactly the
+    // rule lability needs — two sets naming one type cannot honestly
+    // disagree about a physical constant of the substance.
+    return Concentration.blend(a, amountA, b, amountB);
   }
 
   /** Whether a set carries any dose at all. */
   public static isClean(tags: readonly ToxinTag[] | null | undefined): boolean {
-    if (!tags) return true;
-    for (const tag of tags) if (tag.amount > 0) return false;
-    return true;
+    return Concentration.isClean(tags);
   }
 
   /**

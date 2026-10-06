@@ -31,4 +31,3 @@ maxHeatK: 360
 outputApplication: bulk
 outputTemplate: /trade/malting/thing/malt-sack
 outputMaterial: /stuff/idea/material/food/malt
-outputAppearance: pale malted barley, dusty and sweet-smelling

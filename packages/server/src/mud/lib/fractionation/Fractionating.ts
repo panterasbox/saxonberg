@@ -81,6 +81,7 @@ import type Material from '../material/Material';
 import type { BulkAffordance, BulkPayload } from '../bulk/Bulkable';
 import type { ToxinTag } from '../metabolism/Metabolic';
 import { DissolvedToxins } from '../metabolism/DissolvedToxins';
+import { DissolvedAromatics } from '../metabolism/DissolvedAromatics';
 import { Grade } from '../craft/Grade';
 import FractionSchedule, { type FractionSpec } from './FractionSchedule';
 import type { CompetenceBandName } from '../advancement/CompetenceBand';
@@ -151,6 +152,18 @@ function fractionAugmenter(
   let line: string | null = null;
   if (sensory) {
     line = host.readFraction(viewer)?.character ?? null;
+    // ⭐⭐ **The smoke is HEARD ARRIVING.** The fraction's authored
+    // character says where in the run you are; the aromatics say what
+    // the charge is giving up right now — and because phenols are
+    // high-boiling (`FractionSpec.aromaticCarry`), a peated wash reads
+    // clean through the foreshots and then turns, late, as the hearts
+    // run on. That transition is the thing a distiller is listening for,
+    // and nothing announces it: you have to be smelling.
+    const aroma = DissolvedAromatics.render(
+      host.getBulkPayloadForDraw('interior', 0)?.dissolvedAromatics,
+      bandFor(viewer, host.getRunSchedule()?.getDiscipline() ?? ''),
+    );
+    if (aroma) line = line ? `${line} ${aroma}` : aroma;
   } else if (!filter) {
     const phase = host.getRunPhase();
     if (phase === 'charged') line = 'It is charged and cold.';

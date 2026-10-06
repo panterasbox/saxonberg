@@ -68,9 +68,21 @@ import {
   type CompetenceBandName,
 } from "../advancement/CompetenceBand";
 import { CraftingApi } from '../../api/crafting';
+import {
+  DissolvedAromatics,
+  type AromaTag,
+} from "./DissolvedAromatics";
 
 /** The sense channel a palate answers on. */
 const TASTE_CHANNEL = "taste";
+
+/**
+ * ⭐ And the one a NOSE answers on. Aroma reads on both: `smell` because
+ * that is what a nose is for, and `taste` because flavour is mostly
+ * retronasal — a dram you sip tells you what a dram you sniff does. The
+ * basic tastes stay `taste`-only, because you cannot smell salt.
+ */
+const SMELL_CHANNEL = "smell";
 
 /**
  * The ingredients' display names, resolved from the composition.
@@ -138,9 +150,17 @@ function renderPalate(
   parts: readonly string[],
   gradeBand: string | null,
   band: CompetenceBandName,
+  aromatics: readonly AromaTag[] | undefined,
+  tasteChannel: boolean,
 ): string | null {
   const lines: string[] = [];
-  if (tastes.length > 0) lines.push(`It tastes ${joinWords(tastes)}.`);
+  // ⭐ The aroma leads, because it is what reaches you first — and on a
+  // `smell` it is the only thing there is to say.
+  const aroma = DissolvedAromatics.render(aromatics, band);
+  if (aroma) lines.push(aroma);
+  if (tasteChannel && tastes.length > 0) {
+    lines.push(`It tastes ${joinWords(tastes)}.`);
+  }
   const rank = COMPETENCE_BANDS.indexOf(band);
   if (rank >= COMPETENCE_BANDS.indexOf("competent") && parts.length > 0) {
     lines.push(`You pick out ${joinWords(parts)}.`);
@@ -178,8 +198,14 @@ function palateAugmenter(
   viewer: Stuff,
   opts?: { filter?: readonly string[] },
 ): string {
-  // Taste-channel only. A `look` must not read a dish's palate out.
-  if (!opts?.filter || !opts.filter.includes(TASTE_CHANNEL)) return text;
+  // ⚠ Sensory channels only. A `look` must not read a dish's palate out
+  // — see the Palatable lesson in this file's header, and
+  // `maturationAugmenter` reading a cellar line over a field of linen.
+  const filter = opts?.filter;
+  if (!filter) return text;
+  const tasteChannel = filter.includes(TASTE_CHANNEL);
+  const smellChannel = filter.includes(SMELL_CHANNEL);
+  if (!tasteChannel && !smellChannel) return text;
   if (!MixinApi.isBulkable(host) || !host.hasInteriorBulk()) return text;
   if (host.isBulkEmpty("interior")) return text;
 
@@ -191,6 +217,8 @@ function palateAugmenter(
     ingredientNames(ingredients),
     MixinApi.isGraded(host) ? host.getGradeBand() : null,
     bandFor(viewer, CraftingApi.blendDiscipline(payload)),
+    payload?.dissolvedAromatics,
+    tasteChannel,
   );
   if (!line) return text;
   return text && text.length > 0 ? `${text}\n\n${line}` : line;

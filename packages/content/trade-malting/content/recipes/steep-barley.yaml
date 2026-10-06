@@ -26,4 +26,3 @@ inputSlots:
 outputApplication: bulk
 outputTemplate: /trade/malting/thing/malting-floor
 outputMaterial: /trade/malting/idea/material/steeped-barley
-outputAppearance: a bed of swollen, water-dark barley

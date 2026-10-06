@@ -116,7 +116,41 @@ const REPO_ROOT = join(MUD, '../../../..');
  * number to watch is whether the family of four becomes a family of five
  * — which is the hook's job, not a ceiling's.
  */
-export const LIB_STATICS_CEILING = 342;
+/**
+ * ⚠⚠ **Raised 342 → 347 by the whiskey-styles build (2026-10-05) — the
+ * FIFTH rise on this branch, which is itself the finding.** Five
+ * statics, each justified below, but the honest reading is that this
+ * ratchet has only ever gone up and a census that cannot fall is a
+ * budget line, not a gate. The sweep it was built to drive has not
+ * started. ⭐ Flagged to the user at plan time (`whiskey-styles-plan.md`
+ * § Risks 1) and authorised there as part of *promote the arithmetic*;
+ * the thing to do next is the SWEEP, not a sixth rise.
+ *
+ *   - `Concentration.blend` / `.isClean` (new, `lib/bulk/`) — ⭐ this
+ *     pair is a **net reduction in duplication**, not an addition:
+ *     `DissolvedToxins.blend`/`.isClean` are now forwarders onto it and
+ *     `DissolvedAromatics` ships NO forwarders at all precisely because
+ *     this census is a ratchet. The arithmetic earned promotion on its
+ *     third CALL SITE (a pour, a recipe's bulk output, a grind), which
+ *     is the repo's stated test.
+ *   - `DissolvedAromatics.isAroma` / `.thresholdFor` — guards and
+ *     lookups over **the type's own closed vocabulary**, which this
+ *     file's own doctrine says "stay on the value class" and the
+ *     author-surface projection admits as `value-static`. The
+ *     `BASIC_TASTES` precedent, with a threshold attached.
+ *   - `DissolvedAromatics.render` — the competence-banded reading. The
+ *     one of the five with a real alternative home (a logic singleton),
+ *     declined because it is a pure function of a tag set and a band
+ *     with no world state in it, and because its two callers
+ *     (`Palatable`, `Fractionating`) are both `lib/`.
+ *
+ * ⚠ What was deliberately NOT added, and is the pattern to copy: the
+ * additive `imparts` fold lives as a module-local function on
+ * `CraftingLogic` (`addConcentrations`), because domain logic over a
+ * payload is a logic singleton's job. That is one static this build
+ * could have added and did not.
+ */
+export const LIB_STATICS_CEILING = 347;
 
 const STATIC =
   /^\s*(?:public\s+)?static\s+(?:async\s+)?(?!readonly\b|get\b|set\b|_)([a-zA-Z]\w*)\s*[(<]/;
