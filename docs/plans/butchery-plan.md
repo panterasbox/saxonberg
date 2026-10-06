@@ -1314,3 +1314,117 @@ Read first, in this order:
 ## Drive record
 
 *(appended at build time)*
+
+---
+
+## ⭐⭐ Re-planned in place (user, during plan review): hens now, and cattle at Hearts Delight
+
+Two scope items the plan had deferred. Both got **cheaper and better**
+than the deferral assumed, because the tree already held most of it.
+
+### D14 — The hen is on the HUMAN body plan, and that is the real defect
+
+⚠⚠ `gallus/domesticus.yaml` names `_bodyPlanPath:
+/stuff/idea/species/BodyPlan/biped`. So a chicken currently has
+`body.arm.left.hand`, `body.torso.liver`, `body.torso.spine.upper` and
+`.lower` — **and no wings.** "Poultry stays on trim" was never the
+problem; the hen is wearing a person's anatomy.
+
+⭐ `avian.yaml` already exists and is well built (`body.wing.left/right`
+with `serves: [locomotion]`, heart and lungs `governs`), its row path is
+already the commons path, and **its own docstring pre-authorises the
+move**: *"a later build that gives the skeleton a permanent home moves the
+file and edits one title claim, with no path changes and nothing to
+migrate."* It lives in `trade-mining` because the canary needed it.
+
+⭐⭐ **And W20 is what makes it reusable.** `avian`'s masses are
+canary-sized (4 g of torso bone); as **shares** one plan serves a 20 g
+canary and a 2 kg hen, with mass coming from the species. A concrete
+payoff for the share model that the plan had not claimed.
+
+**Decision:** move `avian`'s file to the species commons
+(`species-and-names`, beside `biped`/`quadruped`/`sessile`), editing the
+one title claim its docstring names. Path unchanged, nothing migrates.
+
+### D15 — White meat vs dark meat IS the work law, and it needs no new field
+
+⭐⭐⭐ **The best teaching case in the build, and we were about to ship
+without it.** A chicken's breast is pale because it never flies; a duck's
+is dark because it does. That is `work` → fibre type → colour → cooking
+method, and it is the one instance of this law every player has already
+seen in a kitchen.
+
+⚠ It forces a question D3 did not answer: can two species' same-named
+muscle differ in `work`? A chicken's and a canary's breast must.
+
+**Rejected:** a `Species` tissue-*substitution* map (identity swapping is
+not share overriding, and it is a new mechanism for one case).
+
+**Decided — a second avian plan, because the two birds genuinely have
+different bodies.** `avian` stays the **flying** bird (canary now, duck or
+goose later): red breast, high work. A new **`fowl`** plan is the
+flightless domestic bird: **white breast (low work), dark thigh and
+drumstick (high work)**, wings that do not `serve: [locomotion]`, no
+hands. The hen names `fowl`.
+
+⭐ So the law is expressed **structurally**: the plan that can fly has a
+red breast and the plan that cannot has a white one. No new field, no new
+mechanism, and the fixed-vocabulary doctrine is satisfied on its own test
+— white and red fibre differ in myoglobin, macros and cooking response,
+which is *"kinds that differ in substrate-read properties."*
+
+**Hen cuts** (W24): breast (white, low work), thigh, drumstick, wing,
+plus the shipped offal. ⚠ A hen is a **counted** line — `kgEach: null`,
+the row's authored mass stands — which `dressOut` already handles.
+
+### D16 — Cattle at Hearts Delight: a working ox pair on the flats
+
+⚠ The flock book argues against cattle **on the bench**, in its own prose:
+*"Thin dry ground is sheep country… a dairy cow asks you twice a game day;
+a flock asks for lambing and shearing, twice a year, hard."* Dropping a
+dairy herd on the upper bench would contradict authored reasoning the soil
+rows produced — so the siting needs an argument, not just a row.
+
+⭐ **`trade-ranching/content/trade/ranching/agent/ox.yaml` already
+exists**: a 700 kg `Livestock` of `bos/taurus`, handling 0.8, *"a deep red
+ox with a yoke-worn patch across the shoulders"*, whose docstring says
+draught power **is** body mass and that it eats whether or not it works.
+
+**Decided:** a **pair of working oxen on the flats**, filed as a second
+`Herdbook` row owned by the same farm business, with the plough as the
+reason they are there. ⭐⭐ **The beef is what happens when an ox is
+done working** — which is how pre-modern beef actually happened, feeds
+lens 4's *kill young or old* choice directly, and means the farm does not
+need a beef herd to put a bullock on the block.
+
+⭐⭐⭐ **And the ox is the muscle model's best authored gift.** Its
+*"yoke-worn patch across the shoulders"* was written before any of this:
+the hardest-worked muscle in the game is on the animal whose shoulder the
+prose already describes as worn. So its shoulder is the toughest cut in
+the world and its loin — which does nothing — is the prize. Nobody
+authored that; the ox row did.
+
+This closes the plan's own open item (*"no cattle at Hearts Delight, drive
+step 11 borrows the campus farm"*): the cow half of the drive now runs on
+the valley farm, so **AC1 and AC12 are fully driveable locally** and
+nothing is reported as un-driven.
+
+### Wave changes
+
+- **W21** also moves `avian` to the commons and adds the **`fowl`** plan
+  (white breast / dark leg), and points the hen at it. ⚠ Its acceptance
+  gains: *a hen has wings and no hands.*
+- **W24** also authors the hen's cuts and the **ox pair's herdbook row**
+  at Hearts Delight (flats, plough, same farm business).
+- **W27**'s drive gains: butcher a hen → **a white breast and dark
+  legs**, and the reason stated in words; and the ox's shoulder reads as
+  the toughest thing in the valley.
+- The deferred "poultry → butchery tail" entry is **struck**.
+
+### Still deferred, with destinations
+
+- **Feathers and down** (a hen's other product) → the butchery tail; the
+  plausible sinks are bedding and fletching, and neither is checked yet.
+- **Duck or goose** as the flying-bird foil that makes the white/dark
+  contrast visible on one table → the same tail. The `avian` plan is ready
+  for it, which is the point of keeping the two plans apart.
