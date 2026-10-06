@@ -1,0 +1,24 @@
+# The grain ferment — the malt line's wash profile with one thing
+# changed, and nothing about fermentation differs between the two grains.
+#
+# ⚠⚠ `inputCategory: grain-distillers-wort`, which is why that material
+# does NOT carry the `distillers-wort` tag. A tag may belong to one
+# matcher of a given kind; sharing it would have two profiles claiming
+# one matter, and `forMaterial`'s double match resolves by lowest key —
+# a silent wrong answer rather than an error.
+#
+# ⭐ Slightly faster than the malt wash (0.34 against 0.3): a wheat mash
+# is thinner and the yeast has less to work through. A small figure with
+# a real reason, and the kind of thing an author may tune.
+class: /platform/idea/maturation/MaturationProfile
+data:
+  key: grain-wash
+  mechanism: microbial
+  inputCategory: grain-distillers-wort
+  stallBelowK: 283
+  happyK: 290
+  damageAboveK: 303
+  killK: 310
+  ratePerDay: 0.34
+  productMaterial: /trade/distilling/idea/material/grain-wash
+  turnDays: 6

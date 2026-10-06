@@ -24,7 +24,7 @@
 
 import '../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parse } from 'yaml';
@@ -596,3 +596,227 @@ function methanolRowBehavior(): unknown {
     'content/platform/idea/Condition/metabolism/methanol.yaml',
   ).toxinBehavior;
 }
+
+/**
+ * ⭐⭐ The GRAIN line — the second cereal, run on its own shipped rows.
+ *
+ * Malt whisky and grain whisky are different products because they start
+ * from different grain, and every difference between them is in rows:
+ * four materials, a mash, a ferment profile, a cut schedule and a cask
+ * profile. No code anywhere knows there are two kinds of whisky.
+ */
+describe('⭐ grain whisky — a second line, in rows only', () => {
+  function grainSchedule(): FractionSchedule {
+    const data = row(
+      DISTILLING,
+      'content/trade/distilling/idea/fractionation/grain-wash.yaml',
+    );
+    return makeStuffAtPath(() => {
+      const s = new FractionSchedule();
+      s.setKey(String(data.key));
+      s.setInputCategory(String(data.inputCategory));
+      s.setDiscipline(String(data.discipline));
+      s.setRequiresHeatK(Number(data.requiresHeatK));
+      s.setProductMaterial(String(data.productMaterial));
+      s.setResidueMaterial(String(data.residueMaterial));
+      s.setReadBlur(Number(data.readBlur));
+      s.setGradeStretch(Number(data.gradeStretch));
+      s.setFractions(data.fractions as never);
+      return s;
+    }, '/trade/distilling/idea/fractionation/grain-wash');
+  }
+
+  function grainStill(chargeL: number): Still & { testHeatK: number } {
+    const data = row(DISTILLING, 'content/trade/distilling/thing/still.yaml');
+    const s = makeStuff(() => new Still()) as Still & { testHeatK: number };
+    s.setInteriorCapacity(Quantity.of(Number(data.interiorCapacity), 'L'));
+    s.setClosure('liquidTight');
+    s.testHeatK = 290;
+    (s as unknown as { reachableHeatK(): number }).reachableHeatK = () =>
+      s.testHeatK;
+    (s as unknown as { interiorMaterial: string }).interiorMaterial =
+      '/trade/distilling/idea/material/grain-wash';
+    s.setInteriorAmount(Quantity.of(chargeL, 'L'));
+    return s;
+  }
+
+  beforeEach(() => {
+    for (const leaf of [
+      'grain-distillers-wort',
+      'grain-wash',
+      'grain-new-make',
+      'grain-whisky',
+    ]) {
+      material(
+        `content/trade/distilling/idea/material/${leaf}.yaml`,
+        `/trade/distilling/idea/material/${leaf}`,
+      );
+    }
+    grainSchedule();
+  });
+
+  it('a grain wash charges the still and runs to GRAIN spirit', () => {
+    const still = grainStill(60);
+    expect(still.getRunPhase()).toBe('charged');
+    still.testHeatK = 358;
+    expect(still.getRunPhase()).toBe('running');
+    expect(slotOf(still).getMaterialPath()).toBe(
+      '/trade/distilling/idea/material/grain-new-make',
+    );
+  });
+
+  it('⭐⭐ gives up MORE of the charge than the malt run — the economics', () => {
+    // Not a price and not an assertion: the grain schedule's head is
+    // half as long and its hearts run further, so a grain run yields
+    // more saleable spirit per charge. That is the entire case for grain
+    // whisky and it is four numbers in a row file.
+    const malt = row(
+      DISTILLING,
+      'content/trade/distilling/idea/fractionation/wash.yaml',
+    ).fractions as { key: string; upTo: number }[];
+    const grain = row(
+      DISTILLING,
+      'content/trade/distilling/idea/fractionation/grain-wash.yaml',
+    ).fractions as { key: string; upTo: number }[];
+    const span = (f: typeof malt, key: string) => {
+      const i = f.findIndex((x) => x.key === key);
+      return f[i]!.upTo - (i > 0 ? f[i - 1]!.upTo : 0);
+    };
+    expect(span(grain, 'hearts')).toBeGreaterThan(span(malt, 'hearts'));
+    expect(span(grain, 'heads')).toBeLessThan(span(malt, 'heads'));
+  });
+
+  it('is cleaner at every stage — wheat carries less pectin', () => {
+    const doseOf = (f: Record<string, unknown>[], key: string) =>
+      (
+        (f.find((x) => x.key === key)?.toxins ?? []) as {
+          type: string;
+          amount: number;
+        }[]
+      ).find((t) => t.type === 'methanol')?.amount ?? 0;
+    const malt = row(
+      DISTILLING,
+      'content/trade/distilling/idea/fractionation/wash.yaml',
+    ).fractions as Record<string, unknown>[];
+    const grain = row(
+      DISTILLING,
+      'content/trade/distilling/idea/fractionation/grain-wash.yaml',
+    ).fractions as Record<string, unknown>[];
+    for (const key of ['foreshots', 'heads', 'hearts']) {
+      expect(doseOf(grain, key), key).toBeLessThan(doseOf(malt, key));
+    }
+  });
+
+  it('⚠ the grain hearts still harm NOBODY — the safety sentence holds', () => {
+    // The requirements sentence the malt line was calibrated to: *a
+    // well-cut bottle harms nobody however much of it they drink.* A
+    // cheaper, easier spirit must not be a safer-looking trap.
+    const grain = row(
+      DISTILLING,
+      'content/trade/distilling/idea/fractionation/grain-wash.yaml',
+    ).fractions as Record<string, unknown>[];
+    const hearts = (
+      (grain.find((x) => x.key === 'hearts')!.toxins ?? []) as {
+        type: string;
+        amount: number;
+      }[]
+    ).find((t) => t.type === 'methanol')!.amount;
+    // A whole 0.75 L bottle on a 70 kg body, against methanol's lowest
+    // band of 2: 25 mg/L × 0.75 = 18.75 mg ⇒ a burden of 0.27.
+    expect((hearts * 0.75) / 70).toBeLessThan(2);
+  });
+
+  it('⚠ does NOT carry an aroma it has no reason to carry', () => {
+    // `aromaticCarry` is flat at 1 across the grain schedule, because
+    // unpeated wheat carries nothing to redistribute. Authoring a late
+    // carry here would assert a chemistry that is not in the charge.
+    const grain = row(
+      DISTILLING,
+      'content/trade/distilling/idea/fractionation/grain-wash.yaml',
+    ).fractions as { aromaticCarry?: number }[];
+    for (const f of grain) {
+      expect(f.aromaticCarry ?? 1).toBe(1);
+    }
+  });
+});
+
+/**
+ * ⚠⚠ **The double-match guard, over the WHOLE content tree.**
+ *
+ * `MaturationProfile.forMaterial` and `FractionSchedule.forMaterial` both
+ * match on the charge material's TAGS, and both resolve a double match
+ * by taking the lowest key — a silent wrong answer rather than an error.
+ * So a tag may belong to at most one matcher of a given kind, and the
+ * whole grain line depends on it: `grain-wash` must not carry `wash`,
+ * `grain-new-make` must not carry `new-make`, `grain-distillers-wort`
+ * must not carry `distillers-wort`.
+ *
+ * ⭐ This scans every shipped row rather than the four this build added,
+ * because the next trade to add a second line of anything will hit the
+ * same wall and ought to hit it here.
+ */
+describe('⚠⚠ no material matches two profiles or two schedules', () => {
+  function allRows(infix: string): { key: string; inputCategory: string }[] {
+    const out: { key: string; inputCategory: string }[] = [];
+    const walk = (dir: string): void => {
+      for (const entry of readdirSync(dir, { withFileTypes: true })) {
+        const full = join(dir, entry.name);
+        if (entry.isDirectory()) {
+          if (entry.name !== 'node_modules') walk(full);
+          continue;
+        }
+        if (!entry.name.endsWith('.yaml')) continue;
+        if (!full.includes(infix)) continue;
+        const data = (
+          parse(readFileSync(full, 'utf8')) as {
+            data?: Record<string, unknown>;
+          }
+        ).data;
+        if (!data?.key || !data?.inputCategory) continue;
+        out.push({
+          key: String(data.key),
+          inputCategory: String(data.inputCategory),
+        });
+      }
+    };
+    walk(PACKS);
+    return out;
+  }
+
+  for (const [what, infix] of [
+    ['maturation profile', '/idea/maturation/'],
+    ['fractionation schedule', '/idea/fractionation/'],
+  ] as const) {
+    it(`no tag is claimed by two ${what} rows`, () => {
+      const rows = allRows(infix);
+      expect(rows.length, `found no ${what} rows at all`).toBeGreaterThan(1);
+      const byTag = new Map<string, string[]>();
+      for (const r of rows) {
+        byTag.set(r.inputCategory, [
+          ...(byTag.get(r.inputCategory) ?? []),
+          r.key,
+        ]);
+      }
+      const clashes = [...byTag.entries()].filter(([, keys]) => keys.length > 1);
+      expect(
+        clashes.map(([tag, keys]) => `${tag} ← ${keys.join(', ')}`),
+      ).toEqual([]);
+    });
+  }
+
+  it('⭐ and the grain line shares no tag with the malt line', () => {
+    const tagsOf = (leaf: string) =>
+      (row(
+        DISTILLING,
+        `content/trade/distilling/idea/material/${leaf}.yaml`,
+      ).tags ?? []) as string[];
+    expect(tagsOf('grain-distillers-wort')).not.toContain('distillers-wort');
+    expect(tagsOf('grain-wash')).not.toContain('wash');
+    expect(tagsOf('grain-new-make')).not.toContain('new-make');
+    // ⭐ But it DOES share `whiskey`, deliberately: that is what the bar
+    // buys and the sour takes. The shared tag is the market; the distinct
+    // ones are the process.
+    expect(tagsOf('grain-whisky')).toContain('whiskey');
+    expect(tagsOf('grain-whisky')).not.toContain('malt-whisky');
+  });
+});
