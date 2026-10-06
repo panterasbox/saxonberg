@@ -2512,10 +2512,137 @@ instrument against a smaller sample.
 disagreement) are unit-proved —
 `FastTravel.publishedStops`, `NavigationLogic.map` and
 `MapController` cover the write, the growth rule and both shapes of
-disagreement — and are the natural **browser** pass, because a
+disagreement — and were the natural **browser** pass, because a
 timetable read and a two-claim render are both about what a person
-sees. ⚠ Recorded as owed rather than claimed: *the wire drive is not
-the live drive*.
+sees.
 
-**Step 12's other half** is a browser pass for the same reason: the
+**Step 12's other half** was a browser pass for the same reason: the
 wire sees the envelope, a browser sees the render.
+
+---
+
+## Drive record — the browser pass (2026-10-06)
+
+Steps **9, 10 and 12**, walked in Chrome against a live stack on
+`PORT=2015` + Vite on 5173, on a **warm** `saxonberg_build3` — which
+turned out to be the whole point.
+
+### ⭐⭐⭐ What the browser found that the wire could not
+
+**1. ⛔ Every MQL scope walk was broken in any world booted on an
+existing DB.** The FIRST command of the pass — `teleport` — returned
+*"Something went wrong in TeleportController: details.keys is not a
+function"*, and `find terminal` died identically, which localised it
+to the `reachable` seed rather than to either verb.
+
+`DetailedMixin.details` was declared `persistent: true` with **no
+field marshaller**. Its runtime shape is `Map<DetailId, Detail>`;
+capture put it through `detachValue` (no BSON Map shape) so it landed
+as a plain object, and `restoreState`'s Phase-1 bracket-assign put
+that object straight back. The next `getDetailIds` threw, and the
+detail walk is on the `reachable` seed — so `find`, `teleport` and
+anything else scope-walking died at the resolver. **52 of 77 live
+snapshots were carrying the broken shape**, `/world/lounge/thing/terminal`
+among them.
+
+⭐ The fix is to stop persisting it, not to add a marshaller: nothing
+outside `Detailed.ts` has ever called `setDetail` — the only caller is
+`applyDetails`, the authored-content applier — so there was no instance
+state to keep. It also made an edited `details:` block unable to reach
+a restored host (the *"a `props:` edit never reaches a booted world"*
+trap, in a field nobody suspected was in it). ⭐⭐ And dropping the flag
+is what makes the 52 bad snapshots **self-heal with no migration**:
+the drift guard admits only declared persistent fields, so a stored
+`details` is now ignored and the row supplies the Map every boot.
+
+⚠ Exactly one test asserted the defect (*"should declare details as
+persistent field"*). It is now two tests asserting the opposite, with
+the reason.
+
+**2. ⚠⚠ The map rendered a duplicate edge, and the growth rule's key
+was keying on residency.** The first clean map read showed
+
+```
+north → crossing (recorded just now)
+north → crossing (recorded just now)
+```
+
+The key was `(kind, place, dir, to, toLabel, channel)`. `toLabel` is
+the destination's **template path** — authored, always present. `to` is
+its **durable handle *if the far room happened to be resident when the
+observation was taken***, which is a fact about residency and not a
+claim about the world. So perceiving the gate cold (`to: null`) and
+then walking north (`to` resolved) wrote two claims identical in
+meaning. ⚠ Unbounded, too: residency evicts the cold tail, so a
+corridor walked across a long session appended a claim per flip.
+
+⭐ Dropping `to` from the key keeps the case that put `toLabel` there:
+east→yard then east→cellar still differ by label, so a far side that
+genuinely CHANGED still appends and still renders its disagreement.
+Both halves are now pinned.
+
+**3. ⚠⚠ Governed `eval --parcel` cannot reach a room's EXITS** — a
+finding, deliberately NOT fixed here. `removeExit` on a room inside my
+own jurisdiction was refused: *sandbox boundary denied `getDoor()`*.
+The receipt names the cause exactly:
+
+```
+path="/platform/idea/exits/passage"
+caller /platform/location/Crossing
+```
+
+An inline exit is a clone of its **exit-kind row**, so its path (and
+`getIdentityPath()`, which falls back to it) names
+`/platform/idea/exits/passage` — the kernel, not the world.
+`#inJurisdiction`'s rule 1 (*your path is under the bound*) therefore
+answers no, and rule 2 (*you are inside something that is*) has
+nothing to walk, because **an exit has no enclosure** — it is
+*referenced by* its room, not contained in it. So `return path ===
+null && !placed` falls through to `false`.
+
+⭐ This is the same defect CLASS the build already found once
+(`#inJurisdiction` reading the wrong axis) wearing different clothes,
+and the earlier fix did not cover it: `getIdentityPath()` repaired the
+EvalScript scratch, which is identity-stamped, while an exit never is.
+An exit's jurisdiction is its **source room's**, and nothing asks.
+
+⛔ Left for the user: widening a sandbox jurisdiction rule is not
+something to slip into a browser pass. Two candidate shapes —
+`#enclosureOf` answering `getSource()` for an `Exit`, or
+`#inJurisdiction` consulting it directly. Recorded on the MR.
+
+⚠ Also noted, cosmetic but it cost real diagnosis time: the deny
+message renders a `null` scope as the literal word `field`, so
+*"context scope field vs receiver scope field"* reads as a
+contradiction when it means `null` vs `null`. The Mongo receipt is
+what disambiguated it.
+
+### What the browser proved
+
+| step | checkpoint | result |
+|---|---|---|
+| 9 | the board's stops land on the map marked `publication` | ✅ `Terminus (publication)` — a place never walked to |
+| 9+ | a place known BOTH ways renders both | ✅ `the Terminus arrival gate (walked, also published)` |
+| 10 | the map keeps a claim the world has contradicted | ✅ `south → arrival gate (recorded 1h ago; not seen when you last looked)` |
+| 10 | …and the world really did change | ✅ `go south` → *"You can't walk that way"*; the card lists only `west`, `north` |
+| 12 | nothing crossing the wire names an unearned place | ✅ 13 inbound frames, **zero** `/world/` paths |
+
+⭐⭐ **Step 12 is stronger than the acceptance criterion asked for.**
+The criterion is *no place the player has not earned*; the render names
+no place by PATH at all. The whole of both map reads over the socket is
+display names — `the Terminus arrival gate`, `office`, `crossing`,
+`hall`, `campus gate`, `avenue block` — every one either a place stood
+in or the far side of an exit seen. A `WebSocket` frame recorder
+installed as a navigation init script captured every frame; the
+`/world/` match set came back empty.
+
+⚠ Step 10's instrument: `eval` was blocked (finding 3), so the exit was
+walled by removing `south:` from
+`terminus/.../university-avenue/location/crossing.yaml` and
+restarting — a temporary edit, **reverted**, and the content tree is
+clean.
+
+⚠ Step 10 also showed the lounge files no map at all: `/world/lounge`
+resolves no Locality, so `localityAddressOf` returns `''` and the
+writer declines. Correct by the design (a claim needs somewhere to
+file) and worth knowing — the lounge is not a mappable place.

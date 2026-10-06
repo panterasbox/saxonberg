@@ -113,6 +113,64 @@ describe('⭐⭐ the growth rule', () => {
     expect(saved?.claims.map((c) => c.lastSeen)).toEqual([100, 900]);
   });
 
+  it('⚠⚠ RESIDENCY is not a claim — a resolved `to` does not duplicate the edge', async () => {
+    /*
+     * The defect a browser drive found, and nothing else could: the key
+     * held `to` as well as `toLabel`. `to` is the far side's durable
+     * handle *if it happened to be resident when the observation was
+     * taken*, so perceiving a place cold (`to: null`) and then walking
+     * the same edge (`to` resolved) wrote TWO claims, and the live map
+     * rendered `north → crossing` twice, both "recorded just now".
+     *
+     * ⚠ And unbounded: residency evicts the cold tail, so a corridor
+     * walked across a long session appended a claim per flip.
+     */
+    await NavigationApi.recordPlace(VIEWER, LOCALITY, [
+      claim({
+        kind: 'edge',
+        dir: 'north',
+        to: null,
+        toLabel: '/test/map/zone/crossing',
+      }),
+    ]);
+    await NavigationApi.recordPlace(VIEWER, LOCALITY, [
+      claim({
+        kind: 'edge',
+        dir: 'north',
+        to: '/test/map/zone/crossing',
+        toLabel: '/test/map/zone/crossing',
+        firstSeen: 700,
+        lastSeen: 700,
+      }),
+    ]);
+    expect(saved?.claims).toHaveLength(1);
+    expect(saved?.claims[0]!.firstSeen).toBe(100);
+    expect(saved?.claims[0]!.lastSeen).toBe(700);
+  });
+
+  it('⭐ and the far side CHANGING still appends — the label is the key', async () => {
+    // The case that put `toLabel` in the key in the first place, and it
+    // must survive dropping `to`: east→yard then east→cellar is a real
+    // disagreement about the world and both claims stand.
+    await NavigationApi.recordPlace(VIEWER, LOCALITY, [
+      claim({ kind: 'edge', dir: 'east', toLabel: '/test/map/zone/yard' }),
+    ]);
+    await NavigationApi.recordPlace(VIEWER, LOCALITY, [
+      claim({
+        kind: 'edge',
+        dir: 'east',
+        toLabel: '/test/map/zone/cellar',
+        firstSeen: 800,
+        lastSeen: 800,
+      }),
+    ]);
+    expect(saved?.claims).toHaveLength(2);
+    expect(saved?.claims.map((c) => c.toLabel)).toEqual([
+      '/test/map/zone/yard',
+      '/test/map/zone/cellar',
+    ]);
+  });
+
   it('⭐ the CHANNEL is part of the key — provenance is not collapsible', async () => {
     // "You saw an exit east" and "somebody told you there is one" are
     // two different claims about the world.

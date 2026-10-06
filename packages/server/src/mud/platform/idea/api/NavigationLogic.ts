@@ -335,9 +335,9 @@ export class NavigationLogic extends ApiLogic {
   /**
    * ⭐⭐ **The growth rule, and it is the whole knowledge model.**
    *
-   * A new observation identical in `(kind, place, dir, to, channel)` to
-   * the **latest** claim for that key bumps its `lastSeen`. A differing
-   * one is **appended**. ⚠ **Nothing is ever removed, and nothing is
+   * A new observation identical in `(kind, place, dir, toLabel,
+   * channel)` to the **latest** claim for that key bumps its
+   * `lastSeen`. A differing one is **appended**. ⚠ **Nothing is ever removed, and nothing is
    * ever corrected.**
    *
    * That is what makes a map able to be WRONG. Wall up an exit somebody
@@ -361,22 +361,36 @@ export class NavigationLogic extends ApiLogic {
     existing: MapClaim[],
     incoming: readonly MapClaim[],
   ): MapClaim[] | null {
-    // ⭐ `toLabel` is in the key alongside `to`, and it has to be: an
-    // exit whose far side CHANGED is usually only distinguishable by
-    // its label, because `to` is null for anything not resident. With
-    // `to` alone, east→yard and east→cellar keyed the same and the
-    // second silently bumped the first instead of appending — the
-    // disagreement vanished, which is the one thing this model exists
-    // to preserve. Found by a test.
+    // ⭐⭐ The far side is keyed by `toLabel` and NOT by `to`.
+    //
+    // `toLabel` is the destination's template path: always present,
+    // authored, and the same string whether or not the far room is in
+    // memory. `to` is its durable HANDLE *if it happened to be
+    // resident when the observation was taken* — which is a fact about
+    // residency, not a claim about the world.
+    //
+    // ⚠⚠ With `to` in the key, the same edge observed twice produced
+    // TWO claims whenever the far room's residency flipped between
+    // them: perceive the gate cold (`to: null`), then walk north
+    // (`to: <handle>`), and the map rendered
+    // `north → crossing` **twice**, both "recorded just now". Found by
+    // a browser drive, which is the only instrument that walks a cold
+    // world. It is unbounded, too — residency evicts the cold tail, so
+    // a corridor walked across a long session appends a claim per flip.
+    //
+    // ⭐ Dropping `to` keeps the case that put `toLabel` here in the
+    // first place: east→yard and east→cellar still differ by label, so
+    // a far side that genuinely CHANGED still appends and still
+    // renders its disagreement. What stops appending is the same claim
+    // told twice.
+    //
+    // ⚠ Residual, accepted: two instances of ONE row as the far side
+    // share a label and now bump rather than append. That is the
+    // honest reading — *north leads to a dorm room* did not change —
+    // and `to` could not have distinguished them reliably anyway,
+    // since whether it is populated at all depends on residency.
     const keyOf = (c: MapClaim): string =>
-      [
-        c.kind,
-        c.place,
-        c.dir ?? '',
-        c.to ?? '',
-        c.toLabel ?? '',
-        c.channel,
-      ].join('|');
+      [c.kind, c.place, c.dir ?? '', c.toLabel ?? '', c.channel].join('|');
     // The LATEST claim per key — a later differing observation appends,
     // so a key can hold several and only the newest is bumpable.
     const latest = new Map<string, MapClaim>();

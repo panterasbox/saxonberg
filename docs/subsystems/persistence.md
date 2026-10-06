@@ -32,6 +32,43 @@ is *not* part of that change; they remain Idea-rooted Stuff for HMR.)
 This doc covers the `Document` track and the cross-cutting machinery
 (`PersistenceManager`, around-hooks, `Collections` enum) used by both.
 
+## ⛔⛔ A `Map` field must never be bare-`persistent`
+
+⚠⚠ **Found live, 2026-10-06.** `DetailedMixin.details` is a runtime
+`Map<DetailId, Detail>` and was declared `persistent: true` with no
+`fieldMarshaller`. There is no BSON Map shape, so `captureFields`'
+`detachValue` stored a plain object, and `restoreState`'s Phase-1
+bracket-assign put that object straight back on the field. The next
+`getDetailIds` threw *details.keys is not a function* — and because the
+detail walk sits on MQL's `reachable` seed, **`find` and `teleport`
+both died at the resolver in any world booted on an existing DB**. 52
+of 77 live snapshots were carrying the broken shape.
+
+**The rule, two parts:**
+
+1. A field whose runtime type is a `Map`, a `Set`, or any class
+   instance **either declares a `fieldMarshaller` or is not
+   persistent.** `lib/persistence/Marshaller.ts` already names
+   variable-key maps as its case.
+2. ⭐ But ask the prior question first: **is it state at all?**
+   `details` is authored content — nothing outside `Detailed.ts` has
+   ever called `setDetail`; the only caller is `applyDetails`, the
+   instruction-field applier. So the fix was to **drop the flag**, not
+   to add a marshaller.
+
+⭐⭐ And dropping it is what repaired the existing rows **with no
+migration**: `restoreState`'s drift guard admits only *declared*
+persistent fields, so a stored `details` is now ignored and the row
+supplies the Map on every clone and every boot. A field that should
+never have travelled through persistence self-heals the moment it
+stops.
+
+⚠ The second cost was quieter and is the one to remember: while the
+field was persistent, an **edited `details:` block could not reach a
+restored host** — the *"a `props:` edit never reaches a booted world"*
+trap, in a field nobody suspected was in it.
+
+
 ## `Document`
 
 `Document` lives at `lib/persistence/Document.ts` and is a **plain

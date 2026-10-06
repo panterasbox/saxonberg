@@ -5854,3 +5854,60 @@ candidate list: `Behaved._deliberate` orders on urgency band → task kind →
 hysteresis → declaration order, and **declaration order is the last resort
 there on purpose** — it is the only leg that is a fact about the author
 rather than about the world.
+
+## A `Map`/`Set` field declared bare-`persistent`
+
+```ts
+// WRONG — there is no BSON Map shape
+static fieldMeta: FieldMeta = {
+  details: { persistent: true, instruction: true },  // runtime: Map<K,V>
+};
+```
+
+Capture stores it as a plain object and restore bracket-assigns that
+object back, so the field's runtime type is a lie from the first
+reload and the next method call on it throws. ⚠⚠ It cost `find` and
+`teleport` in every world booted on an existing DB, because the
+`Detailed` walk sits on MQL's `reachable` seed — 52 of 77 live
+snapshots held the broken shape, and the suite could not see it
+because tests build state rather than reloading it.
+
+**Right, in order of preference:**
+
+1. **Is it state at all?** If the field is authored content and the
+   only writer is its own instruction applier, drop `persistent` and
+   let the row supply it every boot. ⭐ This is also the only fix that
+   repairs already-written rows **with no migration** — the restore
+   drift guard admits only declared persistent fields, so a stored
+   value is simply ignored.
+2. **Decompose into named scalars** — the house default
+   (`AmbientLitMixin` stores `ambientIntensity` + `ambientColor` and
+   rebuilds a `Light` on read).
+3. **Declare a `fieldMarshaller`** — the escape hatch, for a genuinely
+   variable-key map that genuinely is state.
+
+See [persistence.md](./subsystems/persistence.md) and
+`lib/persistence/Marshaller.ts`.
+
+## A residency artifact used as part of an identity key
+
+```ts
+// WRONG — `to` is populated only if the far room was resident
+const keyOf = (c: MapClaim) => [c.kind, c.place, c.dir, c.to, c.toLabel, c.channel].join('|');
+```
+
+A map claim's `to` is the far side's durable handle *if that room
+happened to be in memory when the observation was taken*. That is a
+fact about **residency**, not a claim about the world — so the same
+edge observed twice produced two claims whenever residency flipped
+between them, and the player's map rendered the same exit twice, both
+"recorded just now". ⚠ Unbounded: the residency sweep evicts the cold
+tail, so a corridor walked across a long session appended a claim per
+flip.
+
+**Right:** key on the durable, authored identifier — here `toLabel`,
+the destination's template path, which is present whether or not
+anything is loaded. ⭐ The test for any identity key: *would this
+component still be the same if the process had just restarted?* If
+not, it is not part of the identity.
+
