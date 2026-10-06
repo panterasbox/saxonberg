@@ -55,6 +55,20 @@ import { SpeciesApi } from '../../../api/species';
  * A species may mix them line by line. The arithmetic is
  * {@link Species.dressOut}.
  */
+/**
+ * One tissue of one part, as a share of the whole body — the output of
+ * {@link Species.resolvedTissues}. The plan's topology with this
+ * species' proportions applied.
+ */
+export interface ResolvedTissue {
+  /** The `BodyPart.key` this tissue sits in. */
+  partKey: string;
+  /** Material templatePath, e.g. `/stuff/idea/material/tissue/muscles/loin`. */
+  tissuePath: string;
+  /** Share of the whole body's mass, `(0, 1]`. */
+  share: number;
+}
+
 export interface ButcheryYield {
   /** Template path of the Provision a cut produces. */
   cut: string;
@@ -830,6 +844,16 @@ export default class Species extends SingletonMixin(
    */
   protected butcheryYield: ButcheryYield[] = [];
 
+
+
+  /**
+   * Memo for {@link resolvedTissues}. ⚠ Ordinary internal state, so
+   * TypeScript `private` rather than `#`: a `Species` is a Stuff behind
+   * the call-security proxy, and a `#` slot is unreachable from a method
+   * dispatched through it.
+   */
+  private resolvedTissuesCache: ResolvedTissue[] | null = null;
+
   /**
    * What this species needs of a water (fishing D4). `null` — not in
    * any water: the cat, the pig, the collie. See {@link Habitat}.
@@ -1064,6 +1088,76 @@ export default class Species extends SingletonMixin(
       }
     }
     this.butcheryYield = value;
+  }
+
+
+
+  /**
+   * ⭐⭐ **Every tissue of every part of a body of this species, as a
+   * share of the whole body** — the plan's topology with this species'
+   * proportions applied, normalised so the shares sum to 1.
+   *
+   * This is what butchery reads: a cut's mass is the summed share of the
+   * muscles it claims, times the carcass's own mass.
+   *
+   * ⚠ **A per-SPECIES share override is deferred to the wave that reads
+   * it.** The plan had it here, and `lint:unconsumed-seams` was right to
+   * refuse: an authored field whose only reader is a derived method in
+   * its own file is a seam one wave ahead of its consumer, and this repo
+   * has paid for that three times. It lands with the butcher's cut
+   * masses, where a pig being a third fat changes something a player can
+   * see. ⚠ Normalising by the
+   * plan's own total is what lets a one-part test fixture stay honest —
+   * shipped rows sum to 1 already (`lint:anatomy` clause (a)) and the
+   * division is identity there.
+   *
+   * ⚠⚠ **Not `Vitals.bodyPartDeltas`.** That resolver merges a
+   * per-INSTANCE delta (this animal is missing a leg) over the structure;
+   * a share override is a fact about the KIND. Routing species data
+   * through an instance mixin would have every beast and every corpse in
+   * the world carry a copy of a fact about its species.
+   */
+  public resolvedTissues(): ResolvedTissue[] {
+    if (this.resolvedTissuesCache) return this.resolvedTissuesCache;
+    const plan = this.getBodyPlan();
+    const parts = plan?.getBodyParts() ?? [];
+    const raw: ResolvedTissue[] = [];
+    let total = 0;
+    for (const part of parts) {
+      for (const t of part.tissues ?? []) {
+        raw.push({ partKey: part.key, tissuePath: t.tissuePath, share: t.share });
+        total += t.share;
+      }
+    }
+    if (!(total > 0)) {
+      this.resolvedTissuesCache = [];
+      return this.resolvedTissuesCache;
+    }
+    // Normalise to proportions of the plan, then apply this species'
+    // targets and rescale the remainder so the sum is 1 again.
+    const normalised = raw.map((t) => ({ ...t, share: t.share / total }));
+    this.resolvedTissuesCache = normalised;
+    return normalised;
+  }
+
+  /** This species' share of body mass made up of `tissuePath`, over all parts. */
+  public tissueShareOf(tissuePath: string): number {
+    let sum = 0;
+    for (const t of this.resolvedTissues()) {
+      if (t.tissuePath === tissuePath) sum += t.share;
+    }
+    return sum;
+  }
+
+  /** The part keys carrying `tissuePath` on this species' plan. */
+  public partsCarrying(tissuePath: string): string[] {
+    const out: string[] = [];
+    for (const t of this.resolvedTissues()) {
+      if (t.tissuePath === tissuePath && !out.includes(t.partKey)) {
+        out.push(t.partKey);
+      }
+    }
+    return out;
   }
 
   /**

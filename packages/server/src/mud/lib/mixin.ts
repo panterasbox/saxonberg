@@ -339,6 +339,8 @@ export const Mixins = {
   Dressing: 'DressingMixin',
   Reserved: 'ReservedMixin',
   Radioactive: 'RadioactiveMixin',
+  Muscle: 'MuscleMixin',
+  Cut: 'CutMixin',
   // The form axis — a material worked into a Construction (materials-
   // response). Composed by armor (resist profile) and weapons (delivery).
   Constructed: 'ConstructedMixin',

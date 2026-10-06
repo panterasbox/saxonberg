@@ -94,6 +94,43 @@ function bodyPlanRows(): { file: string; parts: unknown[] }[] {
   return rows;
 }
 
+
+/** Every shipped row's `data` block, with the file it came from. */
+function allRows(): { file: string; doc: unknown }[] {
+  if (rowCache) return rowCache;
+  const out: { file: string; doc: unknown }[] = [];
+  if (existsSync(CONTENT)) {
+    for (const pack of readdirSync(CONTENT)) {
+      const root = join(CONTENT, pack, 'content');
+      if (!existsSync(root)) continue;
+      for (const file of walk(root, '.yaml')) {
+        let parsed: unknown;
+        try {
+          parsed = YAML.parse(readFileSync(file, 'utf8'));
+        } catch {
+          continue;
+        }
+        const data = (parsed as { data?: unknown } | null)?.data;
+        if (!data || typeof data !== 'object') continue;
+        out.push({ file: relative(resolve(HERE, '../../..'), file), doc: data });
+      }
+    }
+  }
+  rowCache = out;
+  return out;
+}
+let rowCache: { file: string; doc: unknown }[] | null = null;
+
+/**
+ * The template path a content file ships at — `content/<root>/<rest>`
+ * becomes `/<root>/<rest>` without the extension, which is the path a
+ * `_bodyPlanPath` names.
+ */
+function rowPathOf(file: string): string | null {
+  const m = /content\/[^/]+\/content\/(.+)\.yaml$/.exec(file);
+  return m ? `/${m[1]}` : null;
+}
+
 /** Clause (a) — the shares of a plan sum to the whole body. */
 export function clauseSharesSumToOne(
   rows: { file: string; parts: unknown[] }[],
@@ -136,7 +173,17 @@ export function clauseSharesSumToOne(
   return out;
 }
 
-/** Clause (b) — a species' share overrides name tissues its plan carries. (W21) */
+/**
+ * Clause (b) — a species' share overrides name tissues its plan carries.
+ *
+ * ⚠ A named stub: the `Species.tissueShares` field is DEFERRED to the
+ * wave whose butcher reads it, because `lint:unconsumed-seams` refused an
+ * authored field whose only reader was a derived method in its own file.
+ * The clause is written down here so the list is this gate's contract
+ * rather than its history — and when the field lands, the check is that
+ * every key names a tissue the species' body plan actually carries,
+ * because an override for a tissue the plan lacks is INERT and silent.
+ */
 export function clauseSpeciesOverridesResolve(): Finding[] {
   return [];
 }

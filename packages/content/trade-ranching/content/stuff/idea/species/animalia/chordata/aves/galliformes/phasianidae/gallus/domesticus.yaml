@@ -14,7 +14,18 @@ class: /platform/idea/species/Species
 data:
   binomial: Gallus domesticus
   commonNames: ["hen", "chicken", "fowl", "cockerel", "pullet", "bird"]
-  _bodyPlanPath: /stuff/idea/species/BodyPlan/biped
+  # ⚠⚠ This said `BodyPlan/biped` until 2026-10-05 — the HUMAN plan. A hen
+  # had `body.arm.left.hand`, a liver, an upper and lower spine, and NO
+  # WINGS. Nothing errored, because nothing checked: a body plan is named
+  # by path and a bird wearing a person's anatomy reads like any other
+  # row.
+  #
+  # ⭐ `fowl` is the bird that does not fly, and the distinction is
+  # load-bearing rather than tidy: its breast is
+  # `tissue/muscles/breast-white` where the flying `avian`'s is
+  # `breast-red`, which is how white meat and dark meat are one law about
+  # muscle work rather than two authored facts.
+  _bodyPlanPath: /stuff/idea/species/BodyPlan/fowl
   _parentCladePath: /stuff/idea/species/animalia
   _defaultMaterialPath: /stuff/idea/material/tissue/flesh
   vitalProfile:
