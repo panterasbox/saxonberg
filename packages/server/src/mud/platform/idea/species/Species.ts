@@ -105,6 +105,12 @@ export interface DressedLine {
   units: number;
   /** Kilograms per piece, or `null` for a counted line. */
   kgEach: number | null;
+  /**
+   * ⭐ The tissues this line took off the carcass, so the caller can mark
+   * them as gone. Empty for a line that claims none (a hide, the offal) —
+   * those are taken once and tracked by the line rather than the tissue.
+   */
+  tissues: readonly string[];
 }
 
 /**
@@ -1180,7 +1186,20 @@ export default class Species extends SingletonMixin(
    * the hand, not the animal, and it belongs where the band is read. The
    * floor of one piece belongs there too.
    */
-  public dressOut(args: { liveKg: number; fleshPct?: number }): DressedLine[] {
+  public dressOut(args: {
+    liveKg: number;
+    fleshPct?: number;
+    /**
+     * ⭐⭐ **What each cut row CLAIMS**, keyed by the row's path — supplied
+     * by the caller, which reads it off one cloned exemplar per line.
+     *
+     * ⚠ Passed in rather than resolved here, and deliberately: resolving
+     * a template would make this method async and impure, and it is the
+     * one piece of arithmetic in the chain that a test can call with
+     * numbers and no world. The butcher has the exemplars in hand anyway.
+     */
+    claims?: ReadonlyMap<string, readonly string[]>;
+  }): DressedLine[] {
     const liveKg = Number.isFinite(args.liveKg) ? Math.max(0, args.liveKg) : 0;
     const finish = finishFactor(
       Number.isFinite(args.fleshPct ?? NaN) ? (args.fleshPct as number) : 55,
@@ -1188,12 +1207,25 @@ export default class Species extends SingletonMixin(
     const out: DressedLine[] = [];
     for (const line of this.butcheryYield) {
       const units = Math.max(1, Math.round(line.units));
-      if (line.fraction === undefined) {
-        out.push({ cut: line.cut, units, kgEach: null });
+      const claimed = args.claims?.get(line.cut) ?? [];
+      // ⭐⭐⭐ **A claiming line's share DERIVES from the muscles it
+      // takes**, so `fraction` stops being a second copy of a fact the
+      // body plan already states. A line claiming nothing (a hide, the
+      // offal, the blood) keeps its authored share — those are not
+      // muscles and the plan says nothing about them.
+      const derived = claimed.length
+        ? claimed.reduce((a, t) => a + this.tissueShareOf(t), 0)
+        : undefined;
+      const fraction = derived ?? line.fraction;
+      if (fraction === undefined) {
+        out.push({ cut: line.cut, units, kgEach: null, tissues: claimed });
         continue;
       }
-      const scale = line.conditioned === false ? 1 : finish;
-      const kg = liveKg * line.fraction * scale;
+      // ⚠ A claimed line is never `conditioned: false`: the share came
+      // from muscle, and muscle is exactly what condition moves.
+      const scale =
+        derived === undefined && line.conditioned === false ? 1 : finish;
+      const kg = liveKg * fraction * scale;
       // ⭐ Below the threshold the line yields NOTHING, which is the
       // honest answer rather than a gram of suet: there is nothing worth
       // taking off a animal that small. The retired stockyard controller
@@ -1203,6 +1235,7 @@ export default class Species extends SingletonMixin(
         cut: line.cut,
         units,
         kgEach: Math.round((kg / units) * 100) / 100,
+        tissues: claimed,
       });
     }
     return out;

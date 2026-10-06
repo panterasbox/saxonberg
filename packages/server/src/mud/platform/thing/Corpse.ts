@@ -130,7 +130,60 @@ const CorpseBase = PostmortemMixin(
 export default class Corpse extends CorpseBase {
   static fieldMeta: FieldMeta = {
     conditionAtDeath: { persistent: true, authorable: true },
+    takenTissues: { persistent: true },
+    takenLines: { persistent: true },
   };
+
+  /**
+   * ⭐⭐⭐ **A carcass REDUCES.** Tissue material paths a cut has already
+   * taken off this body, and cut rows whose line has been taken.
+   *
+   * This is what lets a side be worked **to order** — take the loin to
+   * sell and leave the rest hanging — which is how a shop behaves, and it
+   * gives partial breakdown and trimming with no second verb. The body is
+   * destructed only when every line of its species' yield is gone.
+   *
+   * ⚠ **Not persisted in practice, and that is right.** `Corpse`
+   * composes no `PersistableMixin`, so a half-butchered body does not
+   * survive a restart. `fieldMeta` declares the shape for honesty, not
+   * for durability: a body on a hook mid-breakdown is not a thing a
+   * reboot owes anybody.
+   *
+   * ⚠ Two lists rather than one, because the two things are different:
+   * a MUSCLE is gone from the animal (and a cut claiming it can never be
+   * taken again), while a hide or the offal is a LINE that has been taken
+   * (it claims no tissue the plan knows about).
+   */
+  public takenTissues: string[] = [];
+
+  /** See {@link takenTissues}. */
+  public takenLines: string[] = [];
+
+  public getTakenTissues(): readonly string[] {
+    return this.takenTissues;
+  }
+
+  public getTakenLines(): readonly string[] {
+    return this.takenLines;
+  }
+
+  public hasTissue(path: string): boolean {
+    return !this.takenTissues.includes(path);
+  }
+
+  public hasLine(path: string): boolean {
+    return !this.takenLines.includes(path);
+  }
+
+  public markTissuesTaken(paths: readonly string[]): void {
+    for (const p of paths) {
+      if (!this.takenTissues.includes(p)) this.takenTissues.push(p);
+    }
+  }
+
+  public markLineTaken(path: string): void {
+    if (!this.takenLines.includes(path)) this.takenLines.push(path);
+  }
 
   /**
    * ⭐ The body's `flesh` reserve at the moment it died, or `null` when

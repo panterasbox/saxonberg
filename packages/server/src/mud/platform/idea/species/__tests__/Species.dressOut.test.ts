@@ -23,8 +23,9 @@
 import '../../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import Species from '../Species';
+import BodyPlan from '../BodyPlan';
 import { StuffApi } from '../../../../api/stuff';
-import { makeStuff } from '../../../../lib/security/__tests__/test-setup';
+import { makeStuff, makeStuffAtPath } from '../../../../lib/security/__tests__/test-setup';
 
 const MEAT = '/stuff/thing/items/stew-meat';
 const HIDE = '/trade/ranching/thing/hide';
@@ -42,7 +43,10 @@ describe('the counted shape — unchanged', () => {
   it('passes a fraction-less line through with no mass', () => {
     const s = species([{ cut: MEAT, units: 3 }]);
     expect(s.dressOut({ liveKg: 70, fleshPct: 55 })).toEqual([
-      { cut: MEAT, units: 3, kgEach: null },
+      // ⭐ `tissues` is the claim this line took off the carcass, so the
+      // butcher can mark the body. Empty here: a counted line claims no
+      // muscle, and the share model has nothing to say about it.
+      { cut: MEAT, units: 3, kgEach: null, tissues: [] },
     ]);
   });
 
@@ -167,5 +171,81 @@ describe('setButcheryYield refuses a nonsense share', () => {
         { cut: HIDE, units: 1, fraction: 1 },
       ]),
     ).not.toThrow();
+  });
+});
+
+describe('⭐⭐⭐ a CLAIMING line derives its share from the muscles it takes', () => {
+  const LOIN = '/stuff/idea/material/tissue/muscles/loin';
+  const SHANK = '/stuff/idea/material/tissue/muscles/shank';
+
+  /** A body that is 20 % loin and 10 % shank, with a plan to say so. */
+  function claimingSpecies(): Species {
+    const plan = makeStuffAtPath(
+      () => new BodyPlan(),
+      '/stuff/idea/species/BodyPlan/test-claims',
+    );
+    plan.setName('test-claims');
+    plan.setBodyParts([
+      {
+        key: 'body.torso',
+        parent: null,
+        tissues: [
+          { tissuePath: LOIN, share: 0.2 },
+          { tissuePath: SHANK, share: 0.1 },
+          { tissuePath: '/stuff/idea/material/tissue/flesh', share: 0.7 },
+        ],
+      },
+    ]);
+    const s = makeStuff(() => new Species());
+    s._bodyPlanPath = '/stuff/idea/species/BodyPlan/test-claims';
+    s.setButcheryYield([
+      { cut: '/trade/cooking/thing/cut/loin', units: 2 },
+      { cut: '/trade/ranching/thing/hide', units: 1, fraction: 0.08, conditioned: false },
+    ]);
+    return s;
+  }
+
+  it('derives the loin line from the plan, and leaves the hide authored', () => {
+    const s = claimingSpecies();
+    const claims = new Map([['/trade/cooking/thing/cut/loin', [LOIN]]]);
+    const lines = s.dressOut({ liveKg: 100, fleshPct: 100, claims });
+    const loin = lines.find((l) => l.cut.endsWith('/loin'))!;
+    const hide = lines.find((l) => l.cut.endsWith('/hide'))!;
+    // ⭐ 20 % of a 100 kg animal in full flesh, over two pieces. The
+    // yield line authored NO fraction — the body plan said it.
+    expect(loin.kgEach).toBeCloseTo(10, 2);
+    expect(loin.tissues).toEqual([LOIN]);
+    // ⚠ And the hide keeps its authored share: it is not a muscle, so
+    // the plan has nothing to say about it.
+    expect(hide.kgEach).toBeCloseTo(8, 2);
+    expect(hide.tissues).toEqual([]);
+  });
+
+  it('⭐ a cut claiming TWO muscles takes the sum of both shares', () => {
+    const s = claimingSpecies();
+    s.setButcheryYield([{ cut: '/trade/cooking/thing/cut/porterhouse', units: 1 }]);
+    const claims = new Map([
+      ['/trade/cooking/thing/cut/porterhouse', [LOIN, SHANK]],
+    ]);
+    const [line] = s.dressOut({ liveKg: 100, fleshPct: 100, claims });
+    expect(line!.kgEach).toBeCloseTo(30, 2);
+    expect(line!.tissues).toEqual([LOIN, SHANK]);
+  });
+
+  it('⭐⭐ the SAME claim weighs what each animal weighs — no number authored twice', () => {
+    const s = claimingSpecies();
+    const claims = new Map([['/trade/cooking/thing/cut/loin', [LOIN]]]);
+    const ewe = s.dressOut({ liveKg: 78, fleshPct: 100, claims })[0]!;
+    const ox = s.dressOut({ liveKg: 700, fleshPct: 100, claims })[0]!;
+    // The share is the plan's; the scale is the animal's.
+    expect(ox.kgEach! / ewe.kgEach!).toBeCloseTo(700 / 78, 2);
+  });
+
+  it('⚠ condition still scales a derived line — muscle is what condition moves', () => {
+    const s = claimingSpecies();
+    const claims = new Map([['/trade/cooking/thing/cut/loin', [LOIN]]]);
+    const fat = s.dressOut({ liveKg: 100, fleshPct: 100, claims })[0]!;
+    const thin = s.dressOut({ liveKg: 100, fleshPct: 20, claims })[0]!;
+    expect(thin.kgEach!).toBeLessThan(fat.kgEach!);
   });
 });
