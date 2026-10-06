@@ -443,7 +443,23 @@ export function MaturingMixin<TBase extends MixinConstructor>(Base: TBase) {
       viability: { persistent: true, runtimeState: true },
       leesVolumeL: { persistent: true, runtimeState: true },
       batchInputBand: { persistent: true, runtimeState: true },
-      imparts: { persistent: true, authorable: true },
+      // ⭐⭐ **`spoiler: 1`, and this is the one field in the build that
+      // needed it.** The whole cask wave makes a barrel's character
+      // something you learn by NOSING — competence-banded, in words,
+      // with no digit anywhere. A wiki composition panel printing
+      // `{vanilla 40, char 120, oak 15}` hands that over for free, with
+      // numbers, which is exactly what the no-gauge reading rules keep
+      // out of the player-facing read.
+      //
+      // `spoilerName: 0`, like its sibling `Recipe.imparts`: *that a
+      // cask gives its contents something* is open knowledge — a cooper
+      // would say so — and only the FIGURES are trade knowledge.
+      //
+      // ⚠ The reveal model fails OPEN (an untagged field is level 0), so
+      // an untagged spoiler leaks until somebody notices. The enumerating
+      // snapshot in `wiki-spoiler-fields.snapshot.test.ts` is what made
+      // somebody notice; that is the control working.
+      imparts: { persistent: true, authorable: true, spoiler: 1, spoilerName: 0 },
       impartedFraction: { persistent: true, runtimeState: true },
       batchDays: { persistent: true, runtimeState: true },
     };

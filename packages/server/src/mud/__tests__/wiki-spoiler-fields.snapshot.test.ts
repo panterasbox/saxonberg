@@ -123,6 +123,42 @@
  * the name is `NamedMixin.name` now, already tracked here via the other
  * composers. Both were level 0; nothing is newly surfaced, two lines are
  * simply gone.
+ *
+ * **Whiskey styles (6 fields).** ⭐ One of the six is a spoiler, and the
+ * question this file asks is what caught it.
+ *
+ *   - ⭐⭐ `MaturingMixin.imparts` → **1 (name 0)**. What a cask gives
+ *     its contents. The whole cask wave makes a barrel's character
+ *     something you learn by **nosing** — competence-banded, in words,
+ *     and `DissolvedAromatics.render` is tested to emit no digit at any
+ *     band. A composition panel printing `{vanilla 40, char 120, oak
+ *     15}` hands that over for free AND as numbers, which is precisely
+ *     what the no-gauge reading rules keep out of the player-facing
+ *     read. `spoilerName: 0` because *that a cask gives its contents
+ *     something* is open knowledge — a cooper would say so — and only
+ *     the figures are trade knowledge. Its sibling `Recipe.imparts`
+ *     arrived already at 1 (name 0) from that file's own convention,
+ *     which is the consistency argument as well as the right answer.
+ *   - `MaturingMixin.impartedFraction` → 0. Runtime bookkeeping: how
+ *     much of `imparts` has already landed, kept so a
+ *     reconcile-on-read gauge is idempotent. It carries no information
+ *     the figures do not, and without the figures it says nothing.
+ *   - `MaturingMixin.batchDays` → 0, and **deliberately**: this is the
+ *     age statement, and the build's whole point is that a bottle CAN
+ *     tell you how long it sat (at `proficient`, in words). Tagging the
+ *     field a spoiler would be hiding what the feature exists to say.
+ *   - `MaturationProfile.productAtFraction` → 0. A process timing
+ *     number, exactly like the `ratePerDay` / `turnDays` / `killK`
+ *     family beside it, none of which is tagged. It says the earliest a
+ *     product exists; what makes bottling early a bad idea is the
+ *     GRADE, which is openly readable and is the real control.
+ *   - `ComminutingMixin.products` → 0. What a mill makes from each feed.
+ *     Public by nature — a miller's sign says it — and the 13
+ *     `ComminutingMixin` fields already here are all level 0.
+ *
+ * ⚠ Reviewing the diff was the control, not a formality: five of the six
+ * are honestly mundane and the sixth is the one field in the build that
+ * would have leaked a perception the game charges competence for.
  */
 
 import { describe, it, expect } from 'vitest';
