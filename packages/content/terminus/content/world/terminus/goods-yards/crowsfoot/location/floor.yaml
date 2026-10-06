@@ -91,5 +91,22 @@ data:
     - /trade/malting/thing/malting-floor
     - /trade/malting/thing/malt-kiln
     - /trade/malting/thing/malt-sack
+    # ⭐⭐ The quern — and it is the link the vertical was MISSING.
+    #
+    # ⛔ Malt has to be ground to grist before the mash can have it, and
+    # until 2026-10-05 no mill in the realm could make grist: both mill
+    # rows pinned one product material and it was wheat flour, so a malt
+    # sack ground anywhere came out as flour nothing asks for. Every
+    # grain of grist in the world came off the distributor's counter, and
+    # the predecessor's live drive stopped dead at *"There isn't enough
+    # grist."* The fix is the mill's `products:` table; this row is what
+    # puts the act where the malt is.
+    #
+    # ⚠ A quern is the BOTTOM rung and that is deliberate: 0.25 kg a
+    # game-minute, both hands on the handle, no toll and no control band.
+    # A house that grinds its own malt pays in time; the reason to walk a
+    # sack to a water mill is that the mill is faster, and the reason not
+    # to is the multure. Neither is authored — both fall out of the rows.
+    - /trade/milling/thing/quern
   cast:
     - /world/terminus/goods-yards/crowsfoot/agent/hand

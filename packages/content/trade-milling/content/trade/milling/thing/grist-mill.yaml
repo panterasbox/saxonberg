@@ -35,6 +35,34 @@ data:
   extractionMax: 1
   extractionDefault: 0.75
   residueFraction: 0.25
+  # ⭐⭐ **What the stones make depends on what you feed them.** Before
+  # this table there was ONE `productMaterial` per mill row and both rows
+  # pinned it to wheat flour — so a sack of malt ground here came out as
+  # WHEAT FLOUR, and every grain of grist in the realm came off a shop
+  # counter. A mill is not a flour machine; it is a machine that makes
+  # what it is fed, smaller.
+  #
+  # ⚠ First match wins, so author the specific before the general. `malt`
+  # carries no `barley` tag, so these three cannot collide.
+  products:
+  # ⭐ Malt grinds to GRIST, and bolts NOTHING (`residueFraction: 0`).
+  # The husk is the filter bed the mash lauters through — throwing it out
+  # is how you get a stuck mash, not a cleaner wort. That is why a
+  # brewer's grind and a baker's grind are different acts on one machine.
+  - inputTag: malt
+    product: /stuff/idea/material/food/grist
+    residueFraction: 0
+    vessel: /trade/milling/thing/grist-sack
+  - inputTag: wheat
+    product: /stuff/idea/material/food/wheat-flour
+    residue: /stuff/idea/material/food/bran
+    vessel: /trade/milling/thing/flour-sack
+    residueVessel: /trade/milling/thing/bran-sack
+  - inputTag: barley
+    product: /stuff/idea/material/food/barley-flour
+    residue: /stuff/idea/material/food/bran
+    vessel: /trade/milling/thing/flour-sack
+    residueVessel: /trade/milling/thing/bran-sack
   productMaterial: /stuff/idea/material/food/wheat-flour
   residueMaterial: /stuff/idea/material/food/bran
   productVessel: /trade/milling/thing/flour-sack

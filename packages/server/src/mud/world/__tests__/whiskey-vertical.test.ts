@@ -242,9 +242,31 @@ describe('⭐⭐⭐ barley to whiskey, one continuous chain on the shipped rows'
     expect(tags.green).toContain(slotCat(kiln));
     // 4. the kiln → malt (the material two shipped trades already wanted)
     expect(kiln.getOutputMaterial()).toBe(P.malt);
-    // 5. malt → the mill → grist. ⭐ The mill is trade-milling's and
-    //    shipped; what must hold is that its output is what the mash asks
-    //    for, which is the join this build inherits rather than makes.
+    // 5. malt → the mill → grist.
+    //
+    // ⛔⛔ **This assertion could not fail, and the link it claimed to
+    // prove had never run.** It read `tags.grist` against the mash slot
+    // — two rows that agree about the word `grist` — and never touched a
+    // mill. Meanwhile both mill rows pinned `productMaterial` to WHEAT
+    // FLOUR and `ComminutingMixin` had one product per row, so a malt
+    // sack ground anywhere in the realm came out as flour the mash does
+    // not accept. Every grain of grist in the world came off the
+    // distributor's counter, and the predecessor's live drive stopped at
+    // *"There isn't enough grist."*
+    //
+    // ⭐ So the mill is now IN the chain: the row the quern matches for a
+    // feed tagged `malt` must produce the grist the mash asks for. Pin
+    // `productMaterial` again and this fails.
+    const quern = row(MILLING, 'content/trade/milling/thing/quern.yaml');
+    const products = (quern.products ?? []) as {
+      inputTag: string;
+      product: string;
+    }[];
+    expect(products.length, 'the quern authors no products table').toBeGreaterThan(0);
+    const maltGrind = products.find((pr) => tags.malt.includes(pr.inputTag));
+    expect(maltGrind, 'no mill product row matches a tag malt carries').toBeDefined();
+    expect(maltGrind!.product, 'the mill does not make grist from malt')
+      .toBe(P.grist);
     expect(tags.grist).toContain(slotCat(mash));
     // 6. the mash → the ferment
     expect(mash.getOutputMaterial()).toBe(P.wort);
