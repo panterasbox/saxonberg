@@ -125,13 +125,13 @@ function makeBody(room: Location | null): Creature {
     {
       key: 'body.leg.left.foot',
       parent: 'body.leg.left',
-      tissues: [{ tissuePath: '/stuff/idea/material/tissue/flesh', mass: 0.5 }],
+      tissues: [{ tissuePath: '/stuff/idea/material/tissue/flesh', share: 0.5 }],
     },
     { key: 'body.leg.right', parent: 'body.torso', tissues: [] },
     {
       key: 'body.leg.right.foot',
       parent: 'body.leg.right',
-      tissues: [{ tissuePath: '/stuff/idea/material/tissue/flesh', mass: 0.5 }],
+      tissues: [{ tissuePath: '/stuff/idea/material/tissue/flesh', share: 0.5 }],
     },
   ]);
   stampTemplatePathForTest(plan, `/stuff/idea/species/BodyPlan/test-elec-${id}`);

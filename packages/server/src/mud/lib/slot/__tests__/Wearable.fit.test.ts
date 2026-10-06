@@ -46,7 +46,7 @@ function bipedPlan(planMass = 70, planStature = 1.75): BodyPlan {
     {
       key: 'body.torso',
       parent: null,
-      tissues: [{ tissuePath: '/stuff/idea/material/tissue/flesh', mass: 40 }],
+      tissues: [{ tissuePath: '/stuff/idea/material/tissue/flesh', share: 1.0 }],
     },
   ]);
   stampTemplatePathForTest(plan, `/stuff/idea/species/BodyPlan/fit-${seq++}`);

@@ -49,31 +49,31 @@ function walker(): MobileCreature {
     {
       key: 'body.arm.left',
       parent: 'body.torso',
-      tissues: [{ tissuePath: '/stuff/idea/material/tissue/muscle', mass: 3 }],
+      tissues: [{ tissuePath: '/stuff/idea/material/tissue/muscle', share: 0.145631 }],
     },
     {
       key: 'body.leg.left',
       parent: 'body.torso',
       serves: ['locomotion'],
-      tissues: [{ tissuePath: '/stuff/idea/material/tissue/muscle', mass: 8 }],
+      tissues: [{ tissuePath: '/stuff/idea/material/tissue/muscle', share: 0.38835 }],
     },
     {
       key: 'body.leg.left.foot',
       parent: 'body.leg.left',
       serves: ['locomotion'],
-      tissues: [{ tissuePath: '/stuff/idea/material/tissue/bone', mass: 0.8 }],
+      tissues: [{ tissuePath: '/stuff/idea/material/tissue/bone', share: 0.038835 }],
     },
     {
       key: 'body.leg.right',
       parent: 'body.torso',
       serves: ['locomotion'],
-      tissues: [{ tissuePath: '/stuff/idea/material/tissue/muscle', mass: 8 }],
+      tissues: [{ tissuePath: '/stuff/idea/material/tissue/muscle', share: 0.38835 }],
     },
     {
       key: 'body.leg.right.foot',
       parent: 'body.leg.right',
       serves: ['locomotion'],
-      tissues: [{ tissuePath: '/stuff/idea/material/tissue/bone', mass: 0.8 }],
+      tissues: [{ tissuePath: '/stuff/idea/material/tissue/bone', share: 0.038835 }],
     },
   ]);
   const id = planSeq++;

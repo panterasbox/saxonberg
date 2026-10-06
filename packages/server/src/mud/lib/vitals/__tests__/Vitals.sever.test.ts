@@ -53,25 +53,25 @@ function armedCreature(): Creature {
     {
       key: 'body.torso',
       parent: null,
-      tissues: [{ tissuePath: '/stuff/idea/material/tissue/bone', mass: 8 }],
+      tissues: [{ tissuePath: '/stuff/idea/material/tissue/bone', share: 0.186047 }],
     },
     {
       key: 'body.arm.left',
       parent: 'body.torso',
       severable: true,
-      tissues: [{ tissuePath: '/stuff/idea/material/tissue/muscle', mass: 3 }],
+      tissues: [{ tissuePath: '/stuff/idea/material/tissue/muscle', share: 0.069767 }],
     },
     {
       key: 'body.arm.left.hand',
       parent: 'body.arm.left',
       severable: true,
-      tissues: [{ tissuePath: '/stuff/idea/material/tissue/bone', mass: 0.4 }],
+      tissues: [{ tissuePath: '/stuff/idea/material/tissue/bone', share: 0.009302 }],
     },
     {
       key: 'body.torso.heart',
       parent: 'body.torso',
       governs: ['heartRate'],
-      tissues: [{ tissuePath: '/stuff/idea/material/tissue/muscle', mass: 0.3 }],
+      tissues: [{ tissuePath: '/stuff/idea/material/tissue/muscle', share: 0.006977 }],
     },
   ]);
   stampTemplatePathForTest(plan, '/stuff/idea/species/BodyPlan/test-biped');
@@ -178,20 +178,20 @@ describe('VitalsMixin — severPart', () => {
       {
         key: 'body.torso',
         parent: null,
-        tissues: [{ tissuePath: '/stuff/idea/material/tissue/bone', mass: 8 }],
+        tissues: [{ tissuePath: '/stuff/idea/material/tissue/bone', share: 0.186047 }],
       },
       {
         key: 'body.leg.left',
         parent: 'body.torso',
         severable: true,
         serves: ['locomotion'],
-        tissues: [{ tissuePath: '/stuff/idea/material/tissue/muscle', mass: 9 }],
+        tissues: [{ tissuePath: '/stuff/idea/material/tissue/muscle', share: 0.209302 }],
       },
       {
         key: 'body.leg.left.foot',
         parent: 'body.leg.left',
         severable: true,
-        tissues: [{ tissuePath: '/stuff/idea/material/tissue/bone', mass: 1 }],
+        tissues: [{ tissuePath: '/stuff/idea/material/tissue/bone', share: 0.023256 }],
       },
     ]);
     stampTemplatePathForTest(plan, '/stuff/idea/species/BodyPlan/test-walker');
@@ -303,26 +303,26 @@ function headedCreature(): Creature {
     {
       key: 'body.torso',
       parent: null,
-      tissues: [{ tissuePath: '/stuff/idea/material/tissue/bone', mass: 8 }],
+      tissues: [{ tissuePath: '/stuff/idea/material/tissue/bone', share: 0.186047 }],
     },
     {
       key: 'body.head',
       parent: 'body.torso',
       severable: true,
-      tissues: [{ tissuePath: '/stuff/idea/material/tissue/bone', mass: 1 }],
+      tissues: [{ tissuePath: '/stuff/idea/material/tissue/bone', share: 0.023256 }],
     },
     {
       key: 'body.head.brain',
       parent: 'body.head',
       governs: ['consciousness'],
-      tissues: [{ tissuePath: '/stuff/idea/material/tissue/flesh', mass: 1.3 }],
+      tissues: [{ tissuePath: '/stuff/idea/material/tissue/flesh', share: 0.030233 }],
     },
     {
       key: 'body.arm.left',
       parent: 'body.torso',
       severable: true,
       serves: ['manipulation'],
-      tissues: [{ tissuePath: '/stuff/idea/material/tissue/muscle', mass: 3 }],
+      tissues: [{ tissuePath: '/stuff/idea/material/tissue/muscle', share: 0.069767 }],
     },
   ]);
   const id = headedSeq++;

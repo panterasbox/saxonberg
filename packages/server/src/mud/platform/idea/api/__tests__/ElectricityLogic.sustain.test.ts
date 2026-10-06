@@ -93,7 +93,7 @@ function makeBody(room: Location, connected = true): TestBody {
     {
       key: 'body.leg.left.foot',
       parent: 'body.leg.left',
-      tissues: [{ tissuePath: '/stuff/idea/material/tissue/flesh', mass: 0.5 }],
+      tissues: [{ tissuePath: '/stuff/idea/material/tissue/flesh', share: 1.0 }],
     },
   ]);
   stampTemplatePathForTest(plan, `/stuff/idea/species/BodyPlan/test-sustain-${id}`);

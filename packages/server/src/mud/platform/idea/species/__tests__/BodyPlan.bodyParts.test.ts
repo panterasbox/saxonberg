@@ -14,19 +14,19 @@ const VALID: BodyPart[] = [
   {
     key: 'body.torso',
     parent: null,
-    tissues: [{ tissuePath: '/stuff/idea/material/tissue/bone', mass: 8 }],
+    tissues: [{ tissuePath: '/stuff/idea/material/tissue/bone', share: 0.707965 }],
   },
   {
     key: 'body.arm.left',
     parent: 'body.torso',
     severable: true,
-    tissues: [{ tissuePath: '/stuff/idea/material/tissue/muscle', mass: 3 }],
+    tissues: [{ tissuePath: '/stuff/idea/material/tissue/muscle', share: 0.265487 }],
   },
   {
     key: 'body.torso.heart',
     parent: 'body.torso',
     governs: ['heartRate'],
-    tissues: [{ tissuePath: '/stuff/idea/material/tissue/muscle', mass: 0.3 }],
+    tissues: [{ tissuePath: '/stuff/idea/material/tissue/muscle', share: 0.026549 }],
   },
 ];
 

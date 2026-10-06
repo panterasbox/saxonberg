@@ -466,7 +466,7 @@ describe('TreatController — the treatment matches the condition', () => {
         key: 'body.torso.liver',
         parent: 'body.torso',
         governs: ['clearance'],
-        tissues: [{ tissuePath: '/stuff/idea/material/tissue/flesh', mass: 1.5 }],
+        tissues: [{ tissuePath: '/stuff/idea/material/tissue/flesh', share: 1.0 }],
       },
     ]);
     stampTemplatePathForTest(plan, '/stuff/idea/species/BodyPlan/treat-interior');

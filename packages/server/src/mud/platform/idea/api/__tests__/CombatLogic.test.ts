@@ -155,19 +155,19 @@ function makeFighter(room: TestRoom, opts: FighterOpts = {}): TestFighter {
       key: "body.torso",
       parent: null,
       tissues: [
-        { tissuePath: "/stuff/idea/material/tissue/bone", mass: 8 },
-        { tissuePath: "/stuff/idea/material/tissue/flesh", mass: 20 },
+        { tissuePath: "/stuff/idea/material/tissue/bone", share: 0.228571 },
+        { tissuePath: "/stuff/idea/material/tissue/flesh", share: 0.571429 },
       ],
     },
     {
       key: "body.head",
       parent: "body.torso",
-      tissues: [{ tissuePath: "/stuff/idea/material/tissue/flesh", mass: 4 }],
+      tissues: [{ tissuePath: "/stuff/idea/material/tissue/flesh", share: 0.114286 }],
     },
     {
       key: "body.arm.right",
       parent: "body.torso",
-      tissues: [{ tissuePath: "/stuff/idea/material/tissue/flesh", mass: 3 }],
+      tissues: [{ tissuePath: "/stuff/idea/material/tissue/flesh", share: 0.085714 }],
     },
   ]);
   stampTemplatePathForTest(plan, `/stuff/idea/species/BodyPlan/test-fighter-${id}`);

@@ -68,7 +68,7 @@ function wearerWithHead(): { body: Wearer; planPath: string } {
     {
       key: 'body.head',
       parent: null,
-      tissues: [{ tissuePath: '/stuff/idea/material/tissue/flesh', mass: 5 }],
+      tissues: [{ tissuePath: '/stuff/idea/material/tissue/flesh', share: 1.0 }],
     },
   ]);
   const planPath = `/stuff/idea/species/BodyPlan/attn-${n}`;
