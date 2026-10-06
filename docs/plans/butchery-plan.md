@@ -1488,3 +1488,79 @@ came prepared**, which is a choice rather than a chore. ⚠ Deliberately
 *unlike* the milk rule's refusal: milk is a tap on a living animal you
 can come back to, and a carcass is a one-time event, so a refusal there
 would be a nag about something already irreversible.
+
+---
+
+## Wave notes (build time)
+
+### ✅ W20 — DONE (`90218313d`)
+
+Tissue mass is a `share`; `setBodyParts` refuses a `mass` key **by name**;
+`partArea` is `(Σ share)^(2/3)`; new gate `lint:anatomy` clause (a)
+(64 gates → 65, nothing enumerated); `vitals.md` § Anatomy rewritten; dev
+DB dropped.
+
+⚠⚠ **D1's conversion rule was WRONG and is re-planned in place.** It said
+divide by each `tissues: [...]` literal's own total — but the dominant
+fixture shape is ONE TISSUE PER PART, so that makes every part `share: 1`
+and destroys the ratios **between** parts, which is exactly what
+`partArea` and `getPartSurfaceFraction` read.
+`ConditionLogic.limp-coverage`'s 3 : 8 : 0.8 would have become 1 : 1 : 1,
+silently. The rule is **one uniform divisor per file**: a single scale
+factor preserves every ratio — within a part, between parts, and between
+two plans in one file — and the resolver normalises per plan anyway.
+
+⚠ A hazard I made: the first sweep's regex matched only single-quoted
+paths, so a second pass over the double-quoted ones recomputed each file's
+divisor from the REMAINING sites — two divisors in one file. Reverted all
+32 fixtures, one clean pass, 90 sites. Verified the 8/3 ratio is still
+2.667.
+
+⚠ `sessile` has no tissues at all, which D1 did not anticipate: clause (a)
+exempts an EMPTY plan (a plant has nothing to weigh) and not a partial
+one.
+
+### ✅ W21 + W22a — DONE (`7115033a4`), and they land TOGETHER
+
+`MuscleMixin` + eleven rows + `CutMixin` + `Texture` +
+`Species.resolvedTissues()`; `avian` moved to the commons; the new `fowl`
+plan; the hen repointed off `biped`.
+
+⭐ The quadruped's muscle shares total **exactly 0.400**, reproducing the
+`fraction: 0.40` the sheep's yield table had authored by hand — the
+derivation agreeing with the hand-authored number is the best evidence
+the share model is right.
+
+**Three gates moved my hand, all correctly:**
+1. `lint:instanceable` — rows copied `chemistry: null` and
+   `longDescription` from `flesh`; neither is a `Material` field. Keys
+   dropped, no ceiling raised.
+2. `lint:lib-statics` — `Texture`'s four statics would have grown a
+   fall-only ceiling. It is a **constructed value object** now, zero
+   statics, which is the `Light`/`Quantity` shape anyway.
+3. ⚠⚠ `lint:unconsumed-seams` — **`Species.tissueShares` is DEFERRED to
+   the wave whose butcher reads it.** An authored field whose only reader
+   is a derived method in its own file is a seam one wave early, and the
+   gate excludes tests from the consumer walk (correctly). **That is the
+   third time today** this rule has moved my hand — `getDecayStage` had
+   no reader for its whole life, `partArea`'s callers I mis-grepped, now
+   this. The written-and-tested override sits in the scratchpad
+   (`deferred-tissueShares.test.ts.txt`) for **W24**, and clause (b) is a
+   named stub so the clause list stays the gate's contract.
+
+⚠ **This is why W21 and W22a are one commit**: the field and its reader
+ship together or the gate is lying to the next person.
+
+⭐ My test caught a real resolver defect the plan's D2 formula had: a
+target naming a tissue the plan lacks was not inert — it **shrank the
+whole animal by the target's size** (fat 0.06 → 0.048, the body summing to
+0.8), silently breaking sum-to-1. Unresolvable targets are skipped
+entirely now, and that fix travels with the deferred field.
+
+### Remaining
+
+W22b (`dressOut` claims + carcass reduction + volume yield) · W23
+(`butcher` two forms) · W24 (the species: cuts, the hen's, the ox pair at
+Hearts Delight, and `tissueShares` with its reader) · W25 (the cooking
+law) · W26 (casing/sausage/pudding) · W27 (drive, docs, the one full
+suite).
