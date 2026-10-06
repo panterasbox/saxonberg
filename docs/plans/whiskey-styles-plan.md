@@ -223,7 +223,7 @@ twelfth word is the signal to revisit.
 **D4 — One fold, three call sites: `BulkableApi.blendPayloads`.** A new
 `BulkableLogic.blendPayloadsImpl(from: BulkPayload|null, fromL, to: BulkPayload|null, toL) → BulkPayload`
 folds exactly the per-litre payload domains (`dissolvedToxins`,
-`dissolvedAromatics`) and is called from transfer step 5 (replacing the
+`dissolvedAromatics`) and min-folds `maturedDays` (D7) and is called from transfer step 5 (replacing the
 inline toxin block), from `CraftingLogic.applyBulkOutput` over the matched
 bulk inputs (each at its `measureL`; the authored branch ALSO carries
 `recipe.imparts` — D6 — and stamps `payload.appearance` when the recipe
@@ -279,11 +279,19 @@ at `f = 1`, where the term is `masterful`). So a cask bottled early yields
 young, pale, `poor`/`fair` whiskey the Lounge's sour (`minGrade: fair`)
 may refuse, and a cask left to finish yields the cut's grade with full
 wood. That is lens 4's cash-flow fork, made real by a consumer that already
-exists. **The number** ("aged N days") is expressible in two lines —
-`Maturing.getBulkPayloadForDraw` stamping `maturedDays`, min-blended —
-but no recipe, par line or price reads it, and days against this world's
-compressed clock would read as nonsense on a label. It leaves as a slate
-entry with the attach point named (§ Deferred). **Flagged** (§ Risks 3).
+exists. ⭐ **And the number is BUILT** — the user's call, 2026-10-05, over the
+plan's own recommendation to defer it. `Maturing.getBulkPayloadForDraw`
+stamps `maturedDays` (game-days of elapsed conversion for the batch the
+draw comes from); `blendPayloads` (D4) takes the **min** across inputs, so
+a drop of young spirit in a vat of old tells the truth rather than
+averaging it away; `palateAugmenter` renders it at `proficient` as a
+clause, **in game-days, named as game-days** — the compressed clock was
+the only argument for deferring, and saying "nineteen days in the wood"
+is honest about the world it is in. No recipe, par line or price reads it:
+it is a **statement**, and the grade remains what gates the sour. ⚠ A
+blend of a 90-day malt and a 20-day grain therefore reads *twenty* — which
+is exactly what an age statement legally means, and worth checking the
+prose says so plainly.
 
 **D8 (brief c) — A blend's grade is weakest-link; its character and dose
 are volume-weighted; its maker is the BLENDER.** Grade: the shipped
@@ -538,7 +546,9 @@ fieldMeta + `getImparts/setImparts`; `impartedFraction`; the additive
 write in the active branch after the conversion fold; the product swap at
 `productAtFraction`; the maturity term in `applyBatchGrade`; reset in
 `startBatch`), `lib/maturation/MaturationProfile.ts` (`productAtFraction`
-in `(0, 1]`, fieldMeta, accessors), `cask.yaml` (`imparts: [{oak 6}, {vanilla 0.5}]`),
+in `(0, 1]`, fieldMeta, accessors), `getBulkPayloadForDraw` stamping
+`maturedDays` + `BulkPayload.maturedDays?: number` declared from
+`lib/maturation/` + the `proficient` clause in `palateAugmenter` (D7), `cask.yaml` (`imparts: [{oak 6}, {vanilla 0.5}]`),
 `charred-cask.yaml` (new Vat row: oak, charred, 25 L, mass 40,
 `imparts: [{vanilla 2}, {char 4}, {oak 3}]`, prose that says what it is),
 `nosing-glass.yaml` (new ServingVessel row, `category: nosing`, 0.15 L,
@@ -550,12 +560,16 @@ unchanged and green; new `Imparts.test.ts` (aromatics climb with `f`,
 idempotent across repeated reads, a top-up dilutes, the swap keeps them),
 `ProductAtFraction.test.ts` (interior is the product from `p`; grade
 `poor` just past `p`, the cap at 1; a `p = 1` profile is byte-identical to
-before — assert on a shipped profile), `whiskey-run.test.ts` (+ the two
+before — assert on a shipped profile), `MaturedDays.test.ts` (the draw
+carries elapsed game-days; a blend of 90 and 20 reads **20**, not 55; an
+`untrained` nose reads no age clause at all; a cask never opened stamps
+nothing), `whiskey-run.test.ts` (+ the two
 casks from one new-make: the charred cask reads vanilla/char where the
 plain reads oak; bottled at `p` the whiskey is `poor` and the sour refuses
 it; bottled finished it is the cut's grade). `lint:reconcile-chains`
-green. Acceptance: *when to bottle* changes what a bar will buy.
-Commit: `build(whiskey-styles W4): the cask writes its character and the clock is a choice — maturity, imparts, and a charred cask`.
+green. Acceptance: *when to bottle* changes what a bar will buy, **and the
+bottle says how long it sat** — in words, at `proficient`, in game-days.
+Commit: `build(whiskey-styles W4): the cask writes its character and the clock is a choice — maturity, imparts, an age statement, and a charred cask`.
 
 ### W5 — blending (content only)
 
@@ -741,29 +755,33 @@ D14: **a choice at rung one changes the right answer at rung four.**
 
 ## Risks & opens
 
-Numbered so the user can answer by number. 1–4 are the decisions to
-check; the rest are recorded.
+Numbered so the user can answer by number. ⭐ **1–4 were answered by the
+user on 2026-10-05** and are recorded below as settled; the rest stand as
+recorded risks.
 
 1. **D2 — promoting the blend arithmetic now.** `Concentration` in
    `lib/bulk` at the second concentration kind, justified by the third
    call site. `lint:lib-statics` 342 → ~345. The alternative is a copied
    25-line blend in `DissolvedAromatics` (two copies of one sentence).
-   Recommendation: promote.
+   Recommendation: promote. ✅ **SETTLED: promote.**
 2. **D8 — a blend re-signs to the blender.** The distiller whose bad cut
    went into the vat is no longer the person the ledger names. True to how
    liability works, and the blender cannot smell methanol either; but it is
    a product call. The alternative needs `payload.maker` to become a list
    and every reader to change. Recommendation: the blender.
-3. **D7 — no numeric age statement.** Maturity is modelled and load-bearing;
-   the label is deferred to a slate with the two-line attach point. If the
-   user wants the number anyway: `Maturing.getBulkPayloadForDraw` stamps
-   `maturedDays`, `blendPayloads` takes the min, Palatable renders it at
-   `proficient` — half a day, and it reads in game-days.
+   ✅ **SETTLED: the blender re-signs.**
+3. **D7 — the numeric age statement.** The plan recommended deferring it.
+   ⭐ ✅ **SETTLED AGAINST the recommendation: BUILD IT.** `maturedDays` on
+   the draw, min-folded by `blendPayloads`, rendered at `proficient` in
+   game-days. D7, W0 and W4 are updated; the deferred-seams entry is
+   removed. The clock really is compressed — so the prose names the unit
+   rather than hiding it.
 4. **D12 — the `malting` seat on the hand.** One NPC, three trades. The
    alternative is a second Cast at Crowsfoot (a maltster), which is more
    honest to 3b and more content. Recommendation: the seat now, the
    maltster named in `vocations.md` — and this also turns the shipped
-   drive's red checkpoint green.
+   drive's red checkpoint green. ✅ **SETTLED: the seat now, the maltster
+   named as a vacancy.**
 5. ⛔ **The shipped mill makes wheat flour from malt** (Grounding). W1 fixes
    it; it is a defect of MR !336's predecessor chain, not of this scope,
    and it is reported here because the vertical test and the drive both
@@ -797,8 +815,6 @@ check; the rest are recorded.
 
 ## Deferred seams (leave as slates, not plan text)
 
-- **The numeric age statement** → `libations-slate.md` (labels and
-  brands): `maturedDays` on the draw, min-blend, rendered at `proficient`.
 - **A burner that knows its fuel** (and therefore smoke derived from the
   fire, refuelling, and a wet turf refusing) → the fire/energy slate, with
   D6/Risks 6–7 as the forcing facts.
@@ -888,15 +904,21 @@ when run.
     the plain cask; `close` both.** → each `look` says it is working.
 12. Advance ~25 game-days. **`open charred cask`, `fill bottle from charred
     cask`, `look bottle`.** → *whiskey*, your name, a **poor** band (young).
+    A dram in the glass, `smell glass` as a **proficient** distiller → the
+    age clause, *"a few days in the wood"* in game-days; the same glass to
+    an **untrained** nose → no age clause at all.
 13. **Carry it to the Lounge; `order whiskey-sour`** with it on the bench.
     → the sour **refuses** it for grade.
 14. Advance to ~90 game-days. **Fill a second bottle from the charred
     cask, and one from the plain.** → both whiskey at the cut's grade; a
     dram of each in the glass reads **vanilla and char** against **oak**,
-    both with the smoke still there on the peated one.
+    both with the smoke still there on the peated one — and each now reads
+    its age, ~90 game-days.
 15. **`order vat-whisky`** with a malt bottle and a grain bottle reachable.
     → a bottle of **blended whisky**, graded at the lower of the two, your
     name on it; the glass reads the smoke **fainter** than the malt alone.
+    ⭐ Vat a 90-day malt with a 20-day grain → the blend reads **20 days**,
+    not an average. That is what an age statement means.
 16. ⛔ **Do it badly on purpose:** charge a wash, bottle from the first drop,
     cask it, age it, vat it 1:2 with clean grain. → the blend is a blend; a
     second character drinks the whole bottle → ill, later; the ledger
