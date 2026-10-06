@@ -1516,6 +1516,9 @@ importers:
       '@saxonberg/content-species-and-names':
         specifier: workspace:*
         version: link:../species-and-names
+      '@saxonberg/content-trade-cooking':
+        specifier: workspace:*
+        version: link:../trade-cooking
       '@saxonberg/content-trade-farming':
         specifier: workspace:*
         version: link:../trade-farming
