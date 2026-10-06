@@ -533,7 +533,36 @@ assertion that could not fail becomes one that could. Acceptance: the
 distributor's grist faucet is no longer the only grist in the world.
 Commit: `build(whiskey-styles W1): the mill makes what it is fed — malt grinds to grist, and a grind keeps what the sack carried`.
 
-### W2 — peated malt (rows + one schedule field + the seat)
+### W2 — peated malt (rows + one schedule field + the seat) ✅ DONE `6aec1a179`
+
+> **Built as planned, with one calibration the plan got wrong and one
+> row the subsystem refused.**
+>
+> ⚠⚠ **The planned intensity ladder (1× / 3× / 10×) could not have
+> worked**, and finding that out is the wave's main lesson. Odour
+> thresholds are parts per *billion* while what a drink carries is parts
+> per *million*, so a firmly peated malt's hearts sit **3,750×** over
+> threshold. On a linear 1/3/10 ladder every whisky in the game reads
+> *"strongly of smoke"* and the gauge is pinned before the first row is
+> authored. The ladder is logarithmic now — `1 · 30 · 300 · 2000 · 8000`
+> — set by the case the drive turns on: a peated malt vatted 1:2.5 with
+> grain must read **fainter** than the malt alone, or blending is
+> invisible in the only reading that reports it.
+>
+> ⛔ **The `dry-turf` row was written and then deleted.**
+> `WaterActivityMixin._moisture` is `persistent` and deliberately **not
+> `authorable`**; no row in the tree authors it; `lint:instanceable`
+> invariant 12 refused the key as one the applier discards *silently* —
+> the same class as the predecessor's `malt-sack` `category:`. The
+> subsystem is right: water state is RUNTIME state produced by drying
+> and curing, so a dried good is something the world made, not something
+> an author declares. **The plan's mitigation branch was closed**, so the
+> floor stacks as-cut turves and says plainly that an item slot cannot
+> see moisture (Risks 6 stands, unmitigated and honest).
+>
+> ⚠ `count: 4` rather than four lines — `lint:census` clause (e), whose
+> reason is not tidiness: *a repeat with no identity is an entry no child
+> row can ever replace.*
 
 Implements D6, D12, D14. Files: `peat.yaml` (+ `peat` tag),
 `trade-malting/content/recipes/kiln-malt-peated.yaml` (slots `green-malt 20 L`
@@ -560,7 +589,25 @@ peated new-make nosed in a glass reads *clear*; the untrained nose reads
 "smoke" and nothing else.
 Commit: `build(whiskey-styles W2): peated malt — the turf goes in the kiln, the smoke comes over in the tails, and the maltings are on the book`.
 
-### W3 — grain whisky (content only)
+### W3 — grain whisky (content only) ✅ DONE `98199a635`
+
+> **Built as planned.** ⚠ One scope note: `grain-whisky-aging.yaml` was
+> authored here but landed in W4's commit, because W4 edits it to add
+> `productAtFraction`. W3 as committed is self-consistent (nothing
+> matures grain spirit yet) but not *complete* without W4 — the one place
+> in this build where the waves are not cleanly independent.
+>
+> ⭐ The tree-wide double-match test is the piece worth keeping: it scans
+> every shipped profile and schedule for a tag claimed twice, rather than
+> only the four rows this build added. Both `forMaterial` matchers
+> resolve a double match by taking the lowest key *silently*, so the next
+> trade to add a second line of anything hits this wall — and ought to
+> hit it at build time.
+>
+> ⚠ `lint:census` clause (d) caught `data.products` the moment W1 shipped
+> it: a template-path-shaped field `refsOf` did not read, which is
+> exactly how the census goes blind on a rename. Taught it the four paths
+> per table row; field refs 1896 → 1899.
 
 Implements D9. Files in `trade-distilling/content/trade/distilling/`:
 `idea/material/grain-distillers-wort.yaml`, `grain-wash.yaml`,
@@ -586,7 +633,34 @@ at most one schedule and one profile). Acceptance: a wheat wash charged and
 run yields `grain-new-make`; the Lounge par line accepts `grain-whisky`.
 Commit: `build(whiskey-styles W3): grain whisky — wheat is the second cereal, and malt and grain are different products`.
 
-### W4 — the cask matters (kernel + rows)
+### W4 — the cask matters (kernel + rows) ✅ DONE `806eef1ae`
+
+> **Built as planned, plus the age statement the user asked for.**
+>
+> ⚠ **Three shipped tests broke, and all three were the rate change
+> landing rather than a regression.** `ratePerDay` 0.022 → 0.011 (so
+> `productAtFraction: 0.25` opens a real window instead of the whole arc
+> passing in a fortnight) meant a 60-game-day wait no longer finishes a
+> ~91-day cask. ⭐ Two of them also **stood a profile up field by field**
+> and so went stale *silently* the moment the row gained one — they read
+> `productAtFraction` off the row now, which is the general fix.
+>
+> ⛔ `cask.yaml`'s prose said *"A charred oak cask"* while being the
+> **plain** one, and the char lived nowhere at all. The row is a plain
+> cask with pale staves now and `charred-cask.yaml` is the fired one —
+> which is the difference the `imparts` figures actually express.
+>
+> ⚠ The `TastePalate` fixture had to be **hoisted out of its describe**:
+> it was scoped inside the first block, so a second top-level describe
+> got no setup at all. With no catalogue the discipline resolves to `''`,
+> `bandFor` floors at `untrained`, and every reading comes back in its
+> untrained form — a failure that looks like the feature being wrong
+> rather than the fixture being absent.
+>
+> ⭐ The imparts figures are **calibrated against the thresholds**, not
+> picked: the two casks land in different intensity bands on purpose
+> (plain → *clearly* oak, *faintly* vanilla; charred → *clearly* vanilla
+> and char, *faintly* oak).
 
 Implements D5, D7. Files: `lib/maturation/Maturing.ts` (`imparts` +
 fieldMeta + `getImparts/setImparts`; `impartedFraction`; the additive
@@ -618,7 +692,14 @@ green. Acceptance: *when to bottle* changes what a bar will buy, **and the
 bottle says how long it sat** — in words, at `proficient`, in game-days.
 Commit: `build(whiskey-styles W4): the cask writes its character and the clock is a choice — maturity, imparts, an age statement, and a charred cask`.
 
-### W5 — blending (content only)
+### W5 — blending (content only) ✅ DONE `ab63b3b6b`
+
+> **Built as planned.** The arithmetic is proved on the engine in W0's
+> `CraftingLogic.blend-payload.test.ts`; the new tests prove the **join**,
+> which is the half that fails closed and silent — the malt slot accepts
+> malt and refuses grain, the blend is something the sour will take, and
+> the grade is what gates it. ⭐ `blended-whisky` carries neither slot
+> category, so the recipe cannot eat its own output.
 
 Implements D8, D10. Files: `whiskey.yaml` (+ `malt-whisky` tag),
 `idea/material/blended-whisky.yaml` (tags `liquid beverage drinkable alcoholic spirit whiskey blended-whisky`,
