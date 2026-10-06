@@ -468,6 +468,12 @@ describe('⭐⭐ the cask — time improves whiskey; it does not absolve a disti
       p.setStallBelowK(Number(data.stallBelowK));
       p.setHappyK(Number(data.happyK));
       p.setDamageAboveK(Number(data.damageAboveK));
+      // ⚠ Read from the ROW, not defaulted. A helper that stands a
+      // profile up field by field goes stale silently the moment the row
+      // gains one — which is how `productAtFraction` arrived and these
+      // tests started asserting against a profile the world does not
+      // have.
+      p.productAtFraction = Number(data.productAtFraction ?? 1);
       return p;
     }, '/trade/distilling/idea/maturation/whiskey-aging');
   }
@@ -513,7 +519,12 @@ describe('⭐⭐ the cask — time improves whiskey; it does not absolve a disti
 
     // Bung it and wait. `sealedOnly` means an open cask is not working.
     barrel.setOpen(false);
-    age(barrel, 60);
+    // ⚠ 100 game-days, not 60. The styles build halved `ratePerDay`
+    // (0.022 -> 0.011) so that `productAtFraction: 0.25` opens a real
+    // window — drawable at ~23 days, finished at ~91 — instead of the
+    // whole arc passing in a fortnight. This test's claim is about the
+    // END state, so it waits for the end.
+    age(barrel, 100);
 
     expect(barrel.getMaturationPhase()).toBe('finished');
     // ⭐ It IS whiskey now — the material swapped.
@@ -560,7 +571,7 @@ describe('⭐⭐ the cask — time improves whiskey; it does not absolve a disti
     expect(graded(barrel).getGradeBand()).toBe('fine');
 
     barrel.setOpen(false);
-    age(barrel, 60);
+    age(barrel, 100);
 
     expect(slotOf(barrel).getMaterialPath()).toBe(
       '/trade/distilling/idea/material/whiskey',
@@ -583,7 +594,7 @@ describe('⭐⭐ the cask — time improves whiskey; it does not absolve a disti
     const barrel = cask();
     pour(still, barrel, 5);
     // Left open on purpose.
-    age(barrel, 60);
+    age(barrel, 100);
     expect(slotOf(barrel).getMaterialPath()).toBe(
       '/trade/distilling/idea/material/new-make',
     );
@@ -818,5 +829,89 @@ describe('⚠⚠ no material matches two profiles or two schedules', () => {
     // ones are the process.
     expect(tagsOf('grain-whisky')).toContain('whiskey');
     expect(tagsOf('grain-whisky')).not.toContain('malt-whisky');
+  });
+});
+
+/**
+ * ⭐⭐ VATTING — the blend, and the join that makes it mean something.
+ *
+ * The arithmetic (the fold, the dilution, the min-age) is proved on the
+ * engine in `CraftingLogic.blend-payload.test.ts`. What is proved HERE is
+ * that the shipped rows actually wire up — the reachability half, which
+ * is the half that fails closed and silent.
+ */
+describe('⭐⭐ vatting — the blend requires both lines', () => {
+  const tagsOf = (leaf: string) =>
+    (row(DISTILLING, `content/trade/distilling/idea/material/${leaf}.yaml`)
+      .tags ?? []) as string[];
+
+  function vatRecipe(): Record<string, unknown> {
+    return parse(
+      readFileSync(
+        join(DISTILLING, 'content', 'recipes', 'vat-whisky.yaml'),
+        'utf8',
+      ),
+    ) as Record<string, unknown>;
+  }
+
+  it('⭐⭐ the malt slot accepts MALT and refuses GRAIN', () => {
+    // The constraint that stops a blender faking a blend out of the
+    // cheap half alone. A slot matches material TAGS, so this is the
+    // whole of the mechanism.
+    const slots = vatRecipe().inputSlots as { slot: string; category: string }[];
+    const maltSlot = slots.find((s) => s.slot === 'malt')!;
+    expect(tagsOf('whiskey'), 'malt whisky must satisfy the malt slot')
+      .toContain(maltSlot.category);
+    expect(tagsOf('grain-whisky'), 'grain whisky must NOT satisfy it')
+      .not.toContain(maltSlot.category);
+  });
+
+  it('the grain slot accepts GRAIN and refuses MALT', () => {
+    const slots = vatRecipe().inputSlots as { slot: string; category: string }[];
+    const grainSlot = slots.find((s) => s.slot === 'grain')!;
+    expect(tagsOf('grain-whisky')).toContain(grainSlot.category);
+    expect(tagsOf('whiskey')).not.toContain(grainSlot.category);
+  });
+
+  it('⭐ the blend is something the BAR will buy', () => {
+    // The shared `whiskey` tag is the market. Without it the blend is a
+    // product with no customer, which is the commonest way a content
+    // chain dead-ends one row before the end.
+    expect(tagsOf('blended-whisky')).toContain('whiskey');
+    const sour = parse(
+      readFileSync(
+        join(PACKS, 'trade-hospitality', 'content', 'recipes', 'whiskey-sour.yaml'),
+        'utf8',
+      ),
+    ) as { inputSlots: { category: string; minGrade?: string }[] };
+    const spiritSlot = sour.inputSlots.find((s) =>
+      tagsOf('blended-whisky').includes(s.category),
+    );
+    expect(spiritSlot, 'the sour will not take a blend').toBeDefined();
+    // ⭐⭐ And the GRADE is what gates it, which is what makes stretching
+    // a real decision rather than free money: three litres of `fair` is
+    // three litres the bar buys; three litres of `poor` is none.
+    expect(spiritSlot!.minGrade).toBe('fair');
+  });
+
+  it('⚠ a blend cannot be vatted back in as the malt half', () => {
+    // True, and it is also what stops the recipe eating its own output.
+    const slots = vatRecipe().inputSlots as { category: string }[];
+    for (const s of slots) {
+      expect(tagsOf('blended-whisky')).not.toContain(s.category);
+    }
+  });
+
+  it('⚠ it is on the board, and the seat can make it', () => {
+    const book = row(
+      DISTILLING,
+      'content/trade/distilling/thing/still-book.yaml',
+    );
+    expect(book.offeredRecipes as string[]).toContain('vat-whisky');
+    // `standard`, and the hand claims `distilling: proficient` — which is
+    // what licenses standard work. No `blending` discipline: a
+    // distillery vats its own, and it is the same judgement.
+    expect(String(vatRecipe().discipline)).toBe('distilling');
+    expect(String(vatRecipe().difficulty)).toBe('standard');
   });
 });
