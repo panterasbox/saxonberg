@@ -1,7 +1,14 @@
 # Whiskey as a PRODUCT — styles, blending, cask and age
 
-**Status:** grounded, not yet planned · **Left:** the Fable plan, then the build
-**Size:** one build, mostly rows · **Seeds:** the review of MR !336
+> **Status: ABSORBED** — built by MR !336's second wave
+> (`docs/plans/whiskey-styles-plan.md`): peated malt, grain whisky, the
+> vatting recipe, `imparts` on the cask, `productAtFraction` and the age
+> statement all shipped, and the drive is green.
+> **Left:** nothing in this slate's own scope. Two tails went elsewhere —
+> the aroma vocabulary wanting rows → [non-visual-senses-slate](./non-visual-senses-slate.md),
+> and a fuel-aware burner (so smoke is DERIVED from the fire rather than
+> declared by the recipe) → the fire/energy slate.
+> **Size:** a build — done.
 
 ---
 
