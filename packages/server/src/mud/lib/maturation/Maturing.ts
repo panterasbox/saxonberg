@@ -62,6 +62,7 @@ import type { AnyConstructor } from '../../api/mixin';
 import type { MarkupAugmenter } from '../../api/mml';
 import type { Stuff } from '../stuff/Stuff';
 import type Material from '../material/Material';
+import type { BulkAffordance, BulkPayload } from '../bulk/Bulkable';
 import type MaturationProfile from './MaturationProfile';
 import { MATURATION_LINES } from './MaturationProfile';
 import type { Crafted } from '../craft/Crafted';
@@ -442,7 +443,59 @@ export function MaturingMixin<TBase extends MixinConstructor>(Base: TBase) {
       viability: { persistent: true, runtimeState: true },
       leesVolumeL: { persistent: true, runtimeState: true },
       batchInputBand: { persistent: true, runtimeState: true },
+      imparts: { persistent: true, authorable: true },
+      impartedFraction: { persistent: true, runtimeState: true },
+      batchDays: { persistent: true, runtimeState: true },
     };
+
+    /**
+     * ⭐⭐⭐ **What this VESSEL gives its contents over a batch**, mg/L at
+     * full conversion. The cask's character, and the reason a cask is a
+     * decision rather than a timer.
+     *
+     * ⚠ Why it is here and not on the profile. `MaturationProfile` keys
+     * on the LIQUID (`inputCategory`), so expressing "an oak cask and a
+     * charred cask do different things to new-make" as two profiles
+     * means two rows claiming the tag `new-make` — and `forMaterial`
+     * resolves a double match by taking the lowest key, silently. The
+     * alternative, a `vesselCategory` requirement on the profile,
+     * enumerates (liquids × vessels) rows.
+     *
+     * ⚠ And not on the WOOD material either: a charred first-fill cask
+     * and a plain third-fill cask are both oak. The difference is the
+     * vessel's own state and history, which is a fact about this cask.
+     *
+     * ⭐ What composing it CLAIMS: *a maturing vessel may give its
+     * contents a character over the course of a batch.* True of every
+     * vat — an oak fermenter does exactly this — and vacuous when a row
+     * authors none, so no guard anywhere re-narrows the host set.
+     *
+     * ⚠ Known coarseness, recorded rather than modelled: the figure is
+     * per litre regardless of fill level, so a small fill in a big cask
+     * ought to extract harder and does not.
+     */
+    public imparts: { type: string; amount: number }[] = [];
+
+    /**
+     * How much of {@link imparts} has already been written into the
+     * contents, as a fraction of the batch. The write is the DIFFERENCE
+     * each reconcile, so repeated reads are idempotent — the thing a
+     * reconcile-on-read gauge has to get right or the aroma climbs every
+     * time anybody looks at the cask.
+     */
+    public impartedFraction = 0;
+
+    /**
+     * ⭐ Game-days this batch has been in the vessel — the **age
+     * statement**, and the only number here a player ever sees rendered
+     * (as words, at `proficient`, in game-days).
+     *
+     * ⚠ It counts elapsed days, not converting days: a cask that stood
+     * too cold to work still SAT there, and "aged" means time passed,
+     * not work done. The grade is what reports whether the time was
+     * well spent.
+     */
+    public batchDays = 0;
 
     /** Game-seconds stamp of the last reconcile; `0` = never touched. */
     public maturationClockStamp = 0;
@@ -664,7 +717,28 @@ export function MaturingMixin<TBase extends MixinConstructor>(Base: TBase) {
                 reconcileCellarAir(self, days, rateAt(profile, tempK) > 0);
               }
             }
+            // ⭐⭐ **The cask writes its character**, additively and in
+            // step with the conversion. The write is the DIFFERENCE since
+            // the last reconcile, which is what makes a
+            // reconcile-on-read gauge idempotent: without the marker the
+            // oak would climb every time anybody so much as looked at
+            // the cask.
+            this.applyImparts();
+            this.batchDays += days;
             this.applyBatchGrade();
+            // ⭐⭐ **The product may exist BEFORE full conversion** — the
+            // whole of "when to bottle". A profile authoring
+            // `productAtFraction: 0.25` makes whiskey from a quarter of
+            // the way along, young and poor and sellable to nobody
+            // fussy; `applyBatchGrade`'s maturity term is what prices
+            // the impatience. Every shipped profile leaves it at 1, where
+            // this is the old behaviour exactly.
+            if (
+              this.fractionConverted >= profile.getProductAtFraction() &&
+              this.fractionConverted < 1
+            ) {
+              this.ensureInteriorMaterial(profile.getProductMaterial());
+            }
             if (this.fractionConverted >= 1) {
               this.maturationPhase = 'finished';
               this.leesVolumeL = amount * profile.getLeesFraction();
@@ -750,6 +824,8 @@ export function MaturingMixin<TBase extends MixinConstructor>(Base: TBase) {
       this.wildLagDays = 0;
       this.viability = 1;
       this.leesVolumeL = 0;
+      this.impartedFraction = 0;
+      this.batchDays = 0;
       this.maturationClockStamp = nowS;
       const material = StuffApi.findByTemplatePath<Material>(materialPath);
       if (!material) {
@@ -878,7 +954,94 @@ export function MaturingMixin<TBase extends MixinConstructor>(Base: TBase) {
       if (this.batchInputBand !== null && Grade.isBand(this.batchInputBand)) {
         band = band.min(Grade.of(this.batchInputBand));
       }
+      // ⭐⭐ **The maturity term — a third weakest link.** A product drawn
+      // before the batch has finished is graded by how far along it is,
+      // so bottling early costs quality and bottling late costs time.
+      // That is the cash-flow fork, and it has a consumer already: the
+      // Lounge's whiskey sour takes `minGrade: fair`, so a cask opened
+      // too soon yields whiskey the bar will not buy.
+      //
+      // ⚠ **Vacuous for every shipped profile.** At
+      // `productAtFraction: 1` the product only exists at full
+      // conversion, where `maturityBand` is `masterful` and `min` leaves
+      // the other two terms untouched — so this cannot change any
+      // behaviour that was not opted into by a row.
+      const p = this.productAtFractionForBatch();
+      if (p < 1) {
+        const along =
+          (clamp01(this.fractionConverted) - p) / Math.max(1e-9, 1 - p);
+        band = band.min(Grade.of(bandFor(clamp01(along))));
+      }
       self.setGrade(band);
+    }
+
+    /**
+     * ⭐⭐ **The age statement.** Anything drawn out of a maturing vessel
+     * is stamped with how long the batch it came from has been sitting,
+     * in game-days.
+     *
+     * ⚠ The honest reading of the number is the reason it is `min`-folded
+     * by `BulkableApi.blendPayloads` rather than averaged: an age
+     * statement means **the youngest thing in the bottle**, so a 90-day
+     * malt vatted with a 20-day grain reads twenty. Averaging it to
+     * fifty-five would be the one way to ship this feature as a lie.
+     *
+     * ⚠ And it is a STATEMENT, not a gauge: no recipe, par line or price
+     * reads it. The grade is what gates the sour. What this buys is a
+     * bottle that can tell you its own history, which is most of what a
+     * label is for.
+     */
+    public override getBulkPayloadForDraw(
+      affordance: BulkAffordance,
+      litres: number,
+    ): BulkPayload | null {
+      const base = super.getBulkPayloadForDraw(affordance, litres);
+      if (affordance !== 'interior') return base;
+      this.reconcileFerment();
+      if (!(this.batchDays > 0)) return base;
+      return { ...(base ?? {}), maturedDays: this.batchDays };
+    }
+
+    /** This batch's profile's `productAtFraction`, or 1 when there is none. */
+    private productAtFractionForBatch(): number {
+      return (
+        MaturationProfileRef.byKey(this.maturationProfileKey)
+          ?.getProductAtFraction() ?? 1
+      );
+    }
+
+    /**
+     * Write the share of {@link imparts} the batch has newly earned into
+     * the interior payload's aromatics. Idempotent by the marker; a no-op
+     * for a vessel authoring none, which is every shipped row but the
+     * casks.
+     */
+    private applyImparts(): void {
+      if (this.imparts.length === 0) return;
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isBulkable(self)) return;
+      const earned = clamp01(this.fractionConverted) - this.impartedFraction;
+      if (!(earned > 1e-9)) return;
+      if (self.getBulkMaterial('interior') === null) return;
+      const add = this.imparts
+        .filter((i) => i.amount > 0)
+        .map((i) => ({ type: i.type, amount: i.amount * earned }));
+      if (add.length === 0) return;
+      const payload = self.getBulkPayload('interior') ?? {};
+      const byType = new Map<string, { type: string; amount: number }>();
+      for (const tag of payload.dissolvedAromatics ?? []) {
+        byType.set(tag.type, { ...tag });
+      }
+      for (const tag of add) {
+        const existing = byType.get(tag.type);
+        if (existing) existing.amount += tag.amount;
+        else byType.set(tag.type, { ...tag });
+      }
+      self.setBulkPayload('interior', {
+        ...payload,
+        dissolvedAromatics: [...byType.values()],
+      });
+      this.impartedFraction = clamp01(this.fractionConverted);
     }
 
     /**
@@ -1163,4 +1326,21 @@ export function MaturingMixin<TBase extends MixinConstructor>(Base: TBase) {
       return WorldClockApi.getNow().rawValue();
     }
   };
+}
+
+/**
+ * ⭐ Maturation's one field on the blend payload, declared from the
+ * subsystem that owns the word — the `dissolvedToxins` /
+ * `dissolvedAromatics` move, for the same reason: a `BulkPayload` cannot
+ * compose a mixin, and `lib/bulk` must not learn what a batch is.
+ */
+declare module '../bulk/Bulkable' {
+  interface BulkPayload {
+    /**
+     * Game-days the batch this matter came out of had been maturing when
+     * it was drawn. **Min-folded** on every blend: an age statement is
+     * the youngest thing in the bottle. Absent on matter no cask aged.
+     */
+    maturedDays?: number;
+  }
 }

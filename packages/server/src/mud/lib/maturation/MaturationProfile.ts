@@ -224,6 +224,26 @@ export default class MaturationProfile extends SingletonMixin(Idea) {
    */
   public sealedOnly = false;
 
+  /**
+   * ⭐⭐ **The conversion at which the PRODUCT exists**, in `(0, 1]`.
+   * Default `1` — the product appears only at full conversion, which is
+   * what every profile did before this and what every shipped profile
+   * but the two whisky casks still does.
+   *
+   * ⭐ Below 1 it makes *when to bottle* a decision. A whisky cask at
+   * `0.25` holds drawable whiskey from a quarter of the way along —
+   * young, pale, and graded by how far along it is
+   * (`applyBatchGrade`'s maturity term), so the Lounge's sour
+   * (`minGrade: fair`) refuses it and a patient distiller gets the
+   * cut's own band. That is a cash-flow fork with a consumer that
+   * already shipped, rather than a number nobody reads.
+   *
+   * ⚠ It does NOT end the batch. The clock runs on to 1 regardless;
+   * this only decides when what is in the vessel is callable by the
+   * product's name.
+   */
+  public productAtFraction = 1;
+
   // ── yeast, wild and kept (D14/P12) ──
 
   /**
@@ -312,6 +332,7 @@ export default class MaturationProfile extends SingletonMixin(Idea) {
     turnedMaterial: { persistent: true, authorable: true },
     turnDays: { persistent: true, authorable: true },
     sealedOnly: { persistent: true, authorable: true },
+    productAtFraction: { persistent: true, authorable: true },
     kind: { persistent: true, authorable: true },
     mechanism: { persistent: true, authorable: true },
     strain: { persistent: true, authorable: true },
@@ -418,6 +439,13 @@ export default class MaturationProfile extends SingletonMixin(Idea) {
       );
     }
     this.turnDays = value;
+  }
+
+  /** The conversion at which the product exists; `1` = at the end only. */
+  getProductAtFraction(): number {
+    const p = this.productAtFraction;
+    if (!Number.isFinite(p) || p <= 0 || p > 1) return 1;
+    return p;
   }
 
   getSealedOnly(): boolean {

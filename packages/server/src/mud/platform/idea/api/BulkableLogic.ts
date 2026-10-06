@@ -120,6 +120,22 @@ export class BulkableLogic extends ApiLogic {
     if (Concentration.isClean(aromatics)) delete base.dissolvedAromatics;
     else base.dissolvedAromatics = aromatics;
 
+    // ⭐⭐ **The age statement is the MINIMUM, never the average.** An age
+    // statement means the youngest thing in the bottle — that is what it
+    // legally means and what a drinker is entitled to read off a label —
+    // so a 90-day malt vatted with a 20-day grain reads twenty.
+    // Averaging it to fifty-five would be the one way to ship this
+    // feature as a lie.
+    //
+    // ⚠ A side with no age at all (new spirit, water) does not pull the
+    // answer to zero; it simply has nothing to say. Only two aged
+    // parcels can make a blend younger than its oldest half.
+    const ages = [from?.maturedDays, to?.maturedDays].filter(
+      (d): d is number => typeof d === 'number' && d > 0,
+    );
+    if (ages.length > 0) base.maturedDays = Math.min(...ages);
+    else delete base.maturedDays;
+
     return base;
   }
 

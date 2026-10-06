@@ -152,6 +152,7 @@ function renderPalate(
   band: CompetenceBandName,
   aromatics: readonly AromaTag[] | undefined,
   tasteChannel: boolean,
+  maturedDays: number | undefined,
 ): string | null {
   const lines: string[] = [];
   // ⭐ The aroma leads, because it is what reaches you first — and on a
@@ -168,6 +169,18 @@ function renderPalate(
   if (rank >= COMPETENCE_BANDS.indexOf("proficient") && gradeBand) {
     lines.push(`The making of it reads ${gradeBand}.`);
   }
+  // ⭐⭐ **The age statement** — words, not a figure, and only to a nose
+  // that could actually tell. ⚠ It names the unit as GAME-days on
+  // purpose: this world's clock is compressed, and dressing nineteen
+  // days up as "nineteen years" would be the one dishonest thing a
+  // label could do. Saying what it is beats hiding it.
+  if (
+    rank >= COMPETENCE_BANDS.indexOf("proficient") &&
+    maturedDays !== undefined &&
+    maturedDays > 0
+  ) {
+    lines.push(`It has had ${daysInWords(maturedDays)} in the wood.`);
+  }
   return lines.length > 0 ? lines.join(" ") : null;
 }
 
@@ -183,6 +196,22 @@ function bandFor(viewer: Stuff, discipline: string): CompetenceBandName {
   const digest = viewer.competenceDigestCached();
   if (!digest) return "untrained";
   return digest.find((d) => d.discipline === discipline)?.band ?? "untrained";
+}
+
+/**
+ * Game-days as a phrase with no digit in it. ⚠ The no-gauge reading
+ * rules apply to a label exactly as they do to a nose: *a few days* and
+ * *the better part of a season* are what a person says, and a number
+ * would turn the bottle into an instrument.
+ */
+function daysInWords(days: number): string {
+  if (days < 7) return "a few days";
+  if (days < 21) return "a week or two";
+  if (days < 45) return "a month or so";
+  if (days < 100) return "the better part of a season";
+  if (days < 200) return "a season and more";
+  if (days < 400) return "the better part of a year";
+  return "years";
 }
 
 /** `a, b and c` — the ordinary English list, for a derived phrase. */
@@ -219,6 +248,7 @@ function palateAugmenter(
     bandFor(viewer, CraftingApi.blendDiscipline(payload)),
     payload?.dissolvedAromatics,
     tasteChannel,
+    payload?.maturedDays,
   );
   if (!line) return text;
   return text && text.length > 0 ? `${text}\n\n${line}` : line;

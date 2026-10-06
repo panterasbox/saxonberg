@@ -33,7 +33,20 @@ data:
   inputCategory: new-make
   sealedOnly: true
   productMaterial: /trade/distilling/idea/material/whiskey
-  ratePerDay: 0.022
+  # ⭐⭐ `productAtFraction: 0.25` — **when to bottle becomes a
+  # decision.** From a quarter of the way along there is drawable
+  # whiskey in the cask: young, pale, and graded by how far along it is
+  # (the maturity term in `applyBatchGrade`). So an impatient distiller
+  # CAN sell early and will be refused by the Lounge's sour, which takes
+  # `minGrade: fair`; a patient one gets the cut's own band and full
+  # wood. The fork has a consumer that already shipped.
+  #
+  # ⚠ `ratePerDay` drops 0.022 -> 0.011 so the arc is long enough to be
+  # a decision rather than a blink: the product first exists at about 23
+  # game-days and the cask finishes near 90. At the old rate the whole
+  # window was a fortnight.
+  ratePerDay: 0.011
+  productAtFraction: 0.25
   # A cold warehouse does nothing; a hot one over-extracts the wood.
   stallBelowK: 275
   happyK: 290

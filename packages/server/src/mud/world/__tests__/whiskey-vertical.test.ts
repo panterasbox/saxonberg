@@ -118,6 +118,11 @@ function profile(pack: string, rel: string, path: string): MaturationProfile {
     if (d.killK !== undefined) p.setKillK(Number(d.killK));
     if (d.sealedOnly === true) p.setSealedOnly(true);
     if (d.turnDays !== undefined) p.setTurnDays(Number(d.turnDays));
+    // ⚠ Read from the ROW. A helper that stands a profile up field by
+    // field goes stale SILENTLY the moment the row gains one.
+    if (d.productAtFraction !== undefined) {
+      p.productAtFraction = Number(d.productAtFraction);
+    }
     return p;
   }, path);
 }
@@ -369,7 +374,10 @@ describe('⭐⭐⭐ barley to whiskey, one continuous chain on the shipped rows'
     });
     expect(slotOf(cask).getMaterialPath()).toBe(P.newMake);
     cask.setOpen(false); // bung it — the profile is sealedOnly
-    age(cask, 60);
+    // ⚠ 100 game-days: the styles build halved the cask's `ratePerDay`
+    // so `productAtFraction` opens a real window (drawable at ~23 days,
+    // finished at ~91). The chain's claim is about the finished bottle.
+    age(cask, 100);
 
     // ⭐⭐⭐ The end of the chain: barley's descendant is whiskey, it is as
     // good as the cut was and no better, and it carries the cut's dose.
