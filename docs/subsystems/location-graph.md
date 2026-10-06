@@ -315,13 +315,39 @@ Two optional `@hook`s on the `Perceiver` interface —
 Declaring an optional hook claims nothing of a composer that does not
 implement it, so an NPC perceiver stays a no-op.
 
-The only implementer is **`Avatar`**, because players own a
-`/home/<self>` branch, and it is the only place live Stuff becomes
-handles. ⚠ `SandboxAvatar` inherits them and declines through
-`shouldPersist()`: a wire body perceiving circle rooms must not write
-real geography onto the person wearing it, and documents are `pass`
-under the sandbox, so that check is the only thing stopping it. A guest
-declines too.
+⭐⭐ **The implementer is `CartographerMixin`** (`lib/location/`), not
+`Avatar`. It encapsulates one concern with three parts: **the policy**
+(do I keep a map, and under whose key), **the conversion** (live `Stuff`
+into plain claims — the durable handle, the locality address, the
+grouping address), and **the routing** of the three seams into
+`NavigationApi.recordPlace`.
+
+⚠ It lived on `Avatar` first — ~220 lines of it — and the tell that it
+did not belong there was a private `writesMaps()` predicate
+**re-narrowing the host set from inside the class**, which is this
+repo's own signal that the host is wrong. The deeper sign was in this
+very doc, which said *"an NPC that wants a map implements the two
+`Perceiver` hooks"*: true, and under that shape it would have had to
+**reimplement the whole conversion**, because all of it was private to
+`Avatar`. It composes one line now, and a test pins exactly that — a
+host that is not an Avatar keeping a map.
+
+⭐ Eligibility moved to where it is answerable. `keepsMaps()` defaults
+to **true** and the HOST overrides it; a predicate in the mixin that
+went looking at `shouldPersist()` or at guest-ness would be the
+capability deciding who may have it. `Avatar` answers the one fact only
+the family can: a wire body persists nothing (a circle's geography is
+not real geography and must not be written onto the person wearing the
+body) and a guest is a throwaway persona — **both already answer
+`shouldPersist() → false`**, so the override reads an existing honest
+fact rather than inventing a second one. Documents are `pass` under the
+sandbox, so that check is the only thing stopping a circle visit from
+writing real geography.
+
+⚠⚠ **The `map` VERB stays on `Avatar`**, deliberately: *writing* a map
+is a capability, *reading* one is a person's — the document is under
+`/home/<key>` and NPCs do not type. Keeping them apart is what lets an
+NPC guide keep a map without being handed a verb it can never use.
 
 ⭐ `look` and `sense` fire the place hook **right after**
 `obviousExitsFor(viewer)` — *the perception moment*. The list has
