@@ -118,6 +118,15 @@ holders (`Bottle`, `Receptacle`, `UnboundedReceptacle`) do **not** compose
 it; their gauge is the payload field, read through
 `Freshness.loadOf(slot)`.
 
+⭐ **`Cut` is a `Provision`** (the butchery build), so every joint off a
+carcass rots, cures, dries and smokes on the shipped clock and the shipped
+recipes with nothing added here. ⚠ And its clock starts at the KILL, not
+at the knife: `ButcherController` stamps the load the meat has already
+earned lying where it fell, so butchering a stale carcass does not hand
+you back the hours. ⚠⚠ `gut` and `casing` are the fastest-spoiling things
+in the game (50000 / 55000 against flesh's 80000) and a scraped casing is
+**usable, never safe** — see [butchery.md](./butchery.md).
+
 ⚠ **It took two rounds to land there, and both wrong answers had the same
 shape.** First `ThingBase` — all 152 `Thing` classes — which put five
 spoilage methods on the documented author surface of a rock, a lantern and

@@ -1078,3 +1078,17 @@ replacement of singletons.
   flow, DietApi, tissue authoring at the Detail level, sleep,
   polymorph, genetics, character-creation UI). Each will land with
   its own fresh slate when the build starts.
+
+## ⭐ `Muscle` — the Material subclass that is meat
+
+`MuscleMixin` + `platform/idea/material/Muscle` (the `RadioactiveMaterial`
+pattern) carry one field, `work` — *how hard this muscle worked in life*,
+`0..1` — from which a cut's texture derives, and which nothing authors on
+the cut. Rows live at `/stuff/idea/material/tissue/muscles/<name>`, a
+sibling folder because `tissue/muscle` is an existing leaf.
+
+⚠ Not a field on `Material`: granite did not work, and every reader would
+have had to guard on a tag. ⚠ Not a reuse of `toughness`, which is the
+blunt channel's MJ·m⁻³ — reusing it would make a shank harder to *bruise*
+than a loin in a fight. See [butchery.md](./butchery.md).
+

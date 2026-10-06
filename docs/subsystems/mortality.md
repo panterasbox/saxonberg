@@ -280,6 +280,14 @@ load, held a posture and could wear a disguise**. `Metabolic`,
 `Disguisable` and `ThermalRegulation` are gone; the kept set is a strict
 SUBSET of `Creature`'s, so there is no duplicated list to drift.
 
+⭐⭐⭐ **And a carcass REDUCES.** `takenTissues` / `takenLines` mean that
+what a butcher took is gone and what they left is still on the body, so a
+side can be worked **to order** — lift the loin to sell and come back for
+the rest. The body is destructed only when every line of its species'
+yield is off it. ⚠ Not durable: no `PersistableMixin`, and a body on a
+hook mid-breakdown is not something a reboot owes anybody. See
+[butchery.md](./butchery.md).
+
 ⭐ **A corpse is made of `flesh`**, authored on the row — because its
 *mass* is stamped per-instance by the mint but what it IS is not
 per-instance, and `freshnessLoad()` reads `getMaterial()` for the
