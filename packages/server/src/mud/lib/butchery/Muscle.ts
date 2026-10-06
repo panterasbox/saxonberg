@@ -54,7 +54,32 @@ export function MuscleMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class MuscleMixin extends Base {
     static _mixinName: string = 'MuscleMixin';
     static fieldMeta: FieldMeta = {
-      work: { persistent: true, authorable: true },
+      /**
+       * ⭐⭐⭐ **`spoiler: 1`, and the pedagogy lens is why.** `work` is
+       * the engine's number; the player's version of it is a band word
+       * (*coarse-grained and threaded with sinew, and it will not be
+       * hurried*). The whole design is that the law is **derivable from
+       * play** — a player who notices that a leg works harder than a loin
+       * can predict which wants the pot.
+       *
+       * ⚠ A wiki panel printing `work: 0.8` hands them the table instead,
+       * which substitutes RECALL for JUDGMENT — the exact failure
+       * `design-lenses.md` lens 1 names as the sharpest form of fake
+       * pedagogy, *"a designer believes the game is about judgment long
+       * after it has become about recall."*
+       *
+       * ⚠ Not a secret: level 1 is the appetite axis, so a player who
+       * WANTS to be told can be, and one who would rather work it out is
+       * not handed it unasked. `spoilerName: 0` because the field's
+       * EXISTENCE is not the spoiler — knowing that muscles differ in how
+       * hard they worked is the invitation.
+       */
+      work: {
+        persistent: true,
+        authorable: true,
+        spoiler: 1,
+        spoilerName: 0,
+      },
     };
 
     /**
