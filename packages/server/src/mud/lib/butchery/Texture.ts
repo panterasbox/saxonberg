@@ -99,3 +99,43 @@ export class Texture {
     }
   }
 }
+
+/**
+ * ⭐⭐ **What a recipe DOES to meat**, read off the fields a recipe
+ * already has.
+ *
+ * `medium: water` plus a long hold is a braise; anything else is quick
+ * and dry. That vocabulary shipped to model a phase ceiling (water caps
+ * the heat at boiling) and it turns out to describe the method exactly —
+ * so the law needs **no new recipe field anywhere**.
+ *
+ * ⚠ It lives here rather than inside `CraftingLogic` so it can be tested
+ * without exporting a private function or standing up a craft: the
+ * classification is the half most likely to be wrong, and a value object
+ * is the shape this repo already uses for exactly that.
+ */
+export class CookingAttempt {
+  /**
+   * @param medium The recipe's `medium` (`'water'`, `'fat'`, `''`).
+   * @param holdS The recipe's AUTHORED hold, in seconds. ⚠ Authored, not
+   *   effective: a recipe that states nothing is riding a default, and a
+   *   braise has to say it is a braise.
+   */
+  public constructor(
+    private readonly medium: string | null,
+    private readonly holdS: number,
+  ) {}
+
+  /**
+   * ⭐ How long a cook must be before it is a BRAISE rather than a
+   * simmer — two game hours. Below it, water is a poach or a blanch and
+   * does nothing for collagen.
+   */
+  public static readonly LONG_COOK_S = 7200;
+
+  public method(): CookingMethod {
+    return this.medium === 'water' && this.holdS >= CookingAttempt.LONG_COOK_S
+      ? 'long-moist'
+      : 'fast-dry';
+  }
+}

@@ -13,6 +13,11 @@ import { ExecutionContextApi } from '../../../api/execution-context';
 import { WorldClockApi } from '../../../api/worldclock';
 import { Quantity } from '../../../lib/quantity';
 import { Grade } from '../../../lib/craft/Grade';
+import {
+  Texture,
+  CookingAttempt,
+  type CookingMethod,
+} from '../../../lib/butchery/Texture';
 import { RecipeKnowledge } from '../../../lib/script/RecipeKnowledge';
 import { Competence } from '../../../lib/advancement/Competence';
 import type { Organization } from '../../../lib/employment/Organization';
@@ -2013,6 +2018,16 @@ async function mintFromBuildImpl(req: BuildMintRequest): Promise<CraftOutcome> {
     const base = recipe.getBaseGrade();
     if (base) grade = grade.max(base);
   }
+  // ⭐⭐⭐ Did the method suit the meat? One band, either way.
+  //
+  // ⚠ Here, at the ONE place a build's grade is derived, rather than in
+  // the vessel sub-path: a workpiece mint and an edible mint both come
+  // through this line, so a single hook cannot be bypassed by a route.
+  grade = applyMethodFit(
+    grade,
+    recipe,
+    req.contributions.map((c) => c.materialPath),
+  );
 
   // Resolve the maker. Prefer a live acting author (completed-sync /
   // tests); fall back to the dispatch-captured `makerPath` for the normal
@@ -2037,6 +2052,66 @@ async function mintFromBuildImpl(req: BuildMintRequest): Promise<CraftOutcome> {
     if (cap > 0 && cap < effectiveHeatK) effectiveHeatK = cap;
   }
   return mintVessel(req, recipe, grade, makerPath, makerStuff, effectiveHeatK);
+}
+
+/**
+ * ⭐⭐⭐ **The cooking law: does the METHOD suit the MEAT?**
+ *
+ * A muscle that works carries connective tissue; collagen gelatinizes
+ * only under long, moist heat. So a shoulder braises and a loin sears,
+ * and getting it the wrong way round ruins the dish — real food science,
+ * and **predictable without a table**.
+ *
+ * ⭐⭐ **It reads the MATERIAL, not the cut object**, and that is both
+ * simpler and the engine's own law (`response = f(mechanism, material,
+ * construction)`). A cut's `_materialPath` IS its muscle, so this works
+ * on the one-shot craft path (which has the matched items) and on the
+ * by-hand build path (whose contributions are snapshots carrying only a
+ * `materialPath`) — one implementation, both routes, and no laundering
+ * route where a stewed loin comes out ungraded because it went through a
+ * pot.
+ *
+ * The method is read off the recipe with **no new field anywhere**:
+ * `medium: water` plus a long `holdS` is `long-moist`, anything else is
+ * `fast-dry`. That vocabulary already existed to model a phase ceiling,
+ * and it turns out to describe the method exactly.
+ *
+ * ⚠ **One band of grade, and that is the whole consequence.** Not a
+ * refusal and not a destroyed dish: a stewed loin is still dinner, just a
+ * worse one than it should have been. ⭐ And the fit is ASYMMETRIC,
+ * because the mistakes are not — a tough cut cooked fast is inedible
+ * where a tender cut braised is merely wasted (`Texture.fit`).
+ *
+ * ⚠ Anything that is not a muscle is untouched: bread is not graded on
+ * whether you braised it.
+ */
+function applyMethodFit(
+  grade: Grade,
+  recipe: Recipe | null,
+  materialPaths: readonly (string | null | undefined)[],
+): Grade {
+  if (!recipe) return grade;
+  const method: CookingMethod = new CookingAttempt(
+    recipe.getMedium(),
+    recipe.getAuthoredHoldS(),
+  ).method();
+  let net = 0;
+  for (const path of materialPaths) {
+    if (!path) continue;
+    const material = StuffApi.findByTemplatePath(path);
+    if (!material || !MixinApi.isMuscle(material)) continue;
+    net += new Texture(material.getWork()).fit(method);
+  }
+  if (net === 0) return grade;
+  // ⚠ Two cuts of opposite texture in one pot net to nothing, which is
+  // the honest answer: you cooked one well and the other badly.
+  const shifted = Grade.fromOrdinal(
+    Math.max(
+      0,
+      Math.min(Grade.BANDS.length - 1, grade.getOrdinal() + (net > 0 ? 1 : -1)),
+    ),
+  );
+  return shifted;
 }
 
 /**

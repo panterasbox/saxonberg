@@ -346,18 +346,30 @@ describe('trade-cooking — the roster resolves (AC12)', () => {
 });
 
 describe('⭐⭐ requirement 19 — the unauthored hold, and what the grain chain changed about it', () => {
-  it('every recipe that shipped before holds existed still AUTHORS no hold', () => {
+  it('all but ONE of the pre-hold recipes still author no hold', () => {
     const cat = StuffApi.findByTemplatePath<RecipeCatalogue>(
       '/platform/idea/RecipeCatalogue',
     )!;
-    // The ROWS are untouched: none of the fourteen that predate holds has
-    // gained one, so nothing about what these recipes CLAIM has changed.
     const preExisting = ROSTER.filter(
       (id) => id !== 'seared-cut' && id !== 'warmed-through',
     );
     expect(preExisting.length).toBe(14);
     for (const id of preExisting) {
       const r = cat.allRecipes().find((x) => x.getRecipeId() === id)!;
+      // ⭐⭐ **`hearty-stew` AUTHORS a hold now, and the butchery build is
+      // why.** The cooking law reads `medium: water` plus a long hold as
+      // a BRAISE — the thing that rewards a working muscle — and a
+      // recipe riding the universe default was claiming to be a quick
+      // simmer. A braise has to say it is a braise, or a shoulder stewed
+      // in it would be graded no better than a shoulder seared.
+      //
+      // ⚠ This test's older claim ("nothing about what these recipes
+      // CLAIM has changed") was a characterisation of history, and it is
+      // deliberately no longer true of this one row.
+      if (id === 'hearty-stew') {
+        expect(r.getAuthoredHoldS(), id).toBe(7200);
+        continue;
+      }
       expect(r.getAuthoredHoldS(), id).toBe(0);
     }
   });
