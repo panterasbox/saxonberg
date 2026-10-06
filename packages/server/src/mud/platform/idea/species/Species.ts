@@ -852,6 +852,7 @@ export default class Species extends SingletonMixin(
 
 
 
+
   /**
    * Memo for {@link resolvedTissues}. ⚠ Ordinary internal state, so
    * TypeScript `private` rather than `#`: a `Species` is a Stuff behind

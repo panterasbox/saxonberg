@@ -25,12 +25,12 @@
  * The clauses:
  *
  * - **(a)** every shipped `BodyPlan` row's shares sum to `1 ± 1e-3`.
- * - **(b)** every `Species.tissueShares` key names a tissue the species'
- *   body plan actually carries, and resolves to a Material row. *(Arrives
- *   with the field in W21; a named stub until then, so the clause list is
- *   the gate's contract rather than its history.)*
- * - **(c)** every `Cut` row's claimed tissues exist on the species it is
- *   authored for. *(W22.)*
+ * - **(b)** every species that yields anything names a body plan that
+ *   resolves to a shipped row.
+ * - **(c)** no yield line authors a `fraction` beside a claiming cut —
+ *   two sources for one number.
+ * - **(d/e)** every claimed tissue resolves to a Material row, and is
+ *   carried by the body plan of every species whose yield claims it.
  *
  * ⚠ A plan with **no tissues at all** is exempt from (a), and
  * deliberately: `sessile` is a plant — no limbs, no organs, nothing to
@@ -174,31 +174,176 @@ export function clauseSharesSumToOne(
 }
 
 /**
- * Clause (b) — a species' share overrides name tissues its plan carries.
+ * Clause (b) — every species' `_bodyPlanPath` resolves to a shipped
+ * body-plan row.
  *
- * ⚠ A named stub: the `Species.tissueShares` field is DEFERRED to the
- * wave whose butcher reads it, because `lint:unconsumed-seams` refused an
- * authored field whose only reader was a derived method in its own file.
- * The clause is written down here so the list is this gate's contract
- * rather than its history — and when the field lands, the check is that
- * every key names a tissue the species' body plan actually carries,
- * because an override for a tissue the plan lacks is INERT and silent.
+ * ⚠⚠ A species naming a plan that does not exist has **no anatomy at
+ * all**: no parts, no tissues, so every cut derives a share of zero and
+ * the animal butchers to nothing. `SpeciesApi.preloadAnatomy` warms what
+ * it can find and says nothing about what it cannot.
+ *
+ * ⭐ This clause used to check `Species.tissueShares` keys. That field is
+ * gone: a pig's proportions live in `BodyPlan/swine`, which `extends:`
+ * quadruped and restates its shares, so the thing that could have been
+ * authored wrong is now a plan reference — and this is the check for it.
  */
-export function clauseSpeciesOverridesResolve(): Finding[] {
-  return [];
+export function clauseSpeciesPlanResolves(): Finding[] {
+  const out: Finding[] = [];
+  const plans = planTissues();
+  for (const { file, doc } of allRows()) {
+    const data = doc as { butcheryYield?: unknown; _bodyPlanPath?: unknown };
+    // Only a species that yields anything — a plant names no plan.
+    if (!Array.isArray(data.butcheryYield)) continue;
+    const planPath =
+      typeof data._bodyPlanPath === 'string' ? data._bodyPlanPath : '';
+    if (!planPath) {
+      out.push({ file, detail: 'has a butcheryYield but names no _bodyPlanPath' });
+      continue;
+    }
+    if (!plans.has(planPath)) {
+      out.push({
+        file,
+        detail:
+          `names body plan '${planPath}', which resolves to no shipped ` +
+          `row — the animal would have no anatomy and every claiming ` +
+          `cut would derive a share of ZERO`,
+      });
+    }
+  }
+  return out;
 }
 
-/** Clause (c) — a cut's claimed tissues exist on its species. (W22) */
-export function clauseCutClaimsResolve(): Finding[] {
-  return [];
+/**
+ * Clause (c) — a yield line naming a CLAIMING cut must not also author a
+ * `fraction`.
+ *
+ * ⚠ Two sources for one number. The claim derives the share from the body
+ * plan; an authored `fraction` beside it is a second copy that will drift,
+ * and the derivation silently wins — so the author's number would be a
+ * comment that looks like data.
+ */
+export function clauseNoDoubleShare(): Finding[] {
+  const out: Finding[] = [];
+  const claimsFor = cutClaims();
+  for (const { file, doc } of allRows()) {
+    const lines = (doc as { butcheryYield?: unknown }).butcheryYield;
+    if (!Array.isArray(lines)) continue;
+    for (const line of lines) {
+      const l = line as { cut?: string; fraction?: unknown };
+      if (!l.cut || l.fraction === undefined) continue;
+      if ((claimsFor.get(l.cut) ?? []).length > 0) {
+        out.push({
+          file,
+          detail:
+            `yield line '${l.cut}' authors a fraction AND its cut row ` +
+            `claims tissues — the claim derives the share, so the ` +
+            `authored number is a second copy that will drift`,
+        });
+      }
+    }
+  }
+  return out;
+}
+
+/**
+ * Clause (d/e) — every tissue a cut claims resolves to a Material row,
+ * and every tissue a species' yield claims is on that species' own body
+ * plan.
+ *
+ * ⚠⚠ (e) is the closed-and-silent one: a cut claiming a muscle the animal
+ * does not carry derives a share of **zero**, so the line yields nothing
+ * at all and the butchering simply comes up short. Nothing errors.
+ */
+export function clauseClaimsResolve(): Finding[] {
+  const out: Finding[] = [];
+  const materials = materialPaths();
+  const claimsFor = cutClaims();
+  const plans = planTissues();
+  for (const [cutPath, tissues] of claimsFor) {
+    for (const t of tissues) {
+      if (!materials.has(t)) {
+        out.push({
+          file: cutPath,
+          detail: `claims '${t}', which resolves to no Material row`,
+        });
+      }
+    }
+  }
+  for (const { file, doc } of allRows()) {
+    const data = doc as { butcheryYield?: unknown; _bodyPlanPath?: unknown };
+    if (!Array.isArray(data.butcheryYield)) continue;
+    const planPath =
+      typeof data._bodyPlanPath === 'string' ? data._bodyPlanPath : '';
+    const carried = plans.get(planPath);
+    if (!carried) continue;
+    for (const line of data.butcheryYield) {
+      const cut = (line as { cut?: string }).cut;
+      if (!cut) continue;
+      for (const t of claimsFor.get(cut) ?? []) {
+        if (!carried.has(t)) {
+          out.push({
+            file,
+            detail:
+              `yield line '${cut}' claims '${t}', which this species' ` +
+              `body plan '${planPath}' does not carry — the line would ` +
+              `derive a share of ZERO and yield nothing`,
+          });
+        }
+      }
+    }
+  }
+  return out;
+}
+
+/** Tissue paths each shipped body-plan row carries, by row path. */
+function planTissues(): Map<string, Set<string>> {
+  const plans = new Map<string, Set<string>>();
+  for (const { file, doc } of allRows()) {
+    const parts = (doc as { bodyParts?: unknown }).bodyParts;
+    if (!Array.isArray(parts)) continue;
+    const tissues = new Set<string>();
+    for (const part of parts) {
+      for (const t of (part as { tissues?: unknown[] }).tissues ?? []) {
+        const path = (t as { tissuePath?: string }).tissuePath;
+        if (path) tissues.add(path);
+      }
+    }
+    const rowPath = rowPathOf(file);
+    if (rowPath) plans.set(rowPath, tissues);
+  }
+  return plans;
+}
+
+/** What each shipped cut row claims, by row path. */
+function cutClaims(): Map<string, string[]> {
+  const out = new Map<string, string[]>();
+  for (const { file, doc } of allRows()) {
+    const tissues = (doc as { tissues?: unknown }).tissues;
+    if (!Array.isArray(tissues)) continue;
+    const rowPath = rowPathOf(file);
+    if (rowPath) out.set(rowPath, tissues.filter((t): t is string => typeof t === 'string'));
+  }
+  return out;
+}
+
+/** Every shipped Material row's path. */
+function materialPaths(): Set<string> {
+  const out = new Set<string>();
+  for (const { file, doc } of allRows()) {
+    if (!(doc as { name?: unknown }).name) continue;
+    const rowPath = rowPathOf(file);
+    if (rowPath && rowPath.includes('/idea/material/')) out.add(rowPath);
+  }
+  return out;
 }
 
 function main(): void {
   const rows = bodyPlanRows();
   const findings = [
     ...clauseSharesSumToOne(rows),
-    ...clauseSpeciesOverridesResolve(),
-    ...clauseCutClaimsResolve(),
+    ...clauseSpeciesPlanResolves(),
+    ...clauseNoDoubleShare(),
+    ...clauseClaimsResolve(),
   ];
   console.log(
     `check-anatomy: ${rows.length} body-plan row(s) scanned; ` +

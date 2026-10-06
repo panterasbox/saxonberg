@@ -80,15 +80,31 @@ data:
   #
   # ⚠ The missing third is blood and gut contents, which stay unmodelled.
   butcheryYield:
-  # ⭐ A bullock dresses out heavier on every line for one reason: it is
-  # eight times the animal. Same shares, same verb, same skill — and the
-  # reason to raise cattle rather than sheep falls out of the arithmetic
-  # instead of being authored anywhere.
-  - { cut: /stuff/thing/items/stew-meat, units: 12, fraction: 0.42 }
-  - { cut: /stuff/thing/items/offal,     units: 3,  fraction: 0.12 }
-  - { cut: /trade/ranching/thing/suet,   units: 2,  fraction: 0.05 }
-  - { cut: /trade/ranching/thing/hide,   units: 1,  fraction: 0.07, conditioned: false }
-  - { cut: /trade/ranching/thing/bone,   units: 4,  fraction: 0.12, conditioned: false }
+  # ⭐⭐ A bullock names every joint, and the tenderloin among them — on
+  # seven hundred kilos of animal it is a real cut rather than a mouthful.
+  # ⚠ Nothing here states a share for a joint: the SAME rows off a ewe and
+  # an ox weigh what each animal's muscles weigh, which is why AC12 holds
+  # with no number authored twice.
+  #
+  # ⭐⭐⭐ And the ox's own prose is the best evidence the law is right: it
+  # has "a yoke-worn patch across the shoulders", written long before any
+  # of this. The hardest-worked muscle in the game is on the animal whose
+  # shoulder the row already calls worn — so its shoulder is the toughest
+  # cut in the world and its tenderloin the prize.
+  - { cut: /trade/cooking/thing/cut-shoulder,   units: 4 }
+  - { cut: /trade/cooking/thing/cut-leg,        units: 4 }
+  - { cut: /trade/cooking/thing/cut-loin,       units: 4 }
+  - { cut: /trade/cooking/thing/cut-tenderloin, units: 2 }
+  - { cut: /trade/cooking/thing/cut-rib,        units: 4 }
+  - { cut: /trade/cooking/thing/cut-neck,       units: 2 }
+  - { cut: /trade/cooking/thing/cut-belly,      units: 3 }
+  - { cut: /trade/cooking/thing/cut-shank,      units: 4 }
+  - { cut: /trade/cooking/thing/cut-chop,       units: 6 }
+  - { cut: /stuff/thing/items/offal,          units: 3, fraction: 0.12 }
+  - { cut: /trade/ranching/thing/suet,           units: 2, fraction: 0.05 }
+  - { cut: /trade/cooking/thing/gut,            units: 2, fraction: 0.02 }
+  - { cut: /trade/ranching/thing/hide,           units: 1, fraction: 0.07, conditioned: false }
+  - { cut: /trade/ranching/thing/bone,           units: 4, fraction: 0.12, conditioned: false }
   longDescription: >-
     A deep-bodied cow with a hip bone you could hang a hat on, chewing
     steadily and entirely unbothered by you. Nothing on the farm is

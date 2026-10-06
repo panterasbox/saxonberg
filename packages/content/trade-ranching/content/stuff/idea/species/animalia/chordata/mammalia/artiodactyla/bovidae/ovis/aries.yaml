@@ -78,11 +78,22 @@ data:
   #
   # ⚠ The missing third is blood and gut contents, which stay unmodelled.
   butcheryYield:
-  - { cut: /stuff/thing/items/stew-meat, units: 12, fraction: 0.40 }
-  - { cut: /stuff/thing/items/offal,     units: 2,  fraction: 0.10 }
-  - { cut: /trade/ranching/thing/suet,   units: 1,  fraction: 0.04 }
-  - { cut: /trade/ranching/thing/hide,   units: 1,  fraction: 0.08, conditioned: false }
-  - { cut: /trade/ranching/thing/bone,   units: 2,  fraction: 0.12, conditioned: false }
+  # ⭐⭐ The joints a sheep is worth naming. ⚠ NO `tenderloin`: a sheep's is
+  # a mouthful, and a yield line for it would be a cut nobody would ever
+  # ask for twice. The cow names it and the ewe does not — which is the
+  # species deciding, not the mechanism.
+  - { cut: /trade/cooking/thing/cut-shoulder,  units: 2 }
+  - { cut: /trade/cooking/thing/cut-leg,       units: 2 }
+  - { cut: /trade/cooking/thing/cut-loin,      units: 2 }
+  - { cut: /trade/cooking/thing/cut-rib,       units: 2 }
+  - { cut: /trade/cooking/thing/cut-neck,      units: 1 }
+  - { cut: /trade/cooking/thing/cut-belly,     units: 2 }
+  - { cut: /trade/cooking/thing/cut-shank,     units: 4 }
+  - { cut: /stuff/thing/items/offal,         units: 2, fraction: 0.10 }
+  - { cut: /trade/ranching/thing/suet,          units: 1, fraction: 0.04 }
+  - { cut: /trade/cooking/thing/gut,           units: 1, fraction: 0.02 }
+  - { cut: /trade/ranching/thing/hide,          units: 1, fraction: 0.08, conditioned: false }
+  - { cut: /trade/ranching/thing/bone,          units: 2, fraction: 0.12, conditioned: false }
   longDescription: >-
     A blocky ewe with a fleece gone yellow at the tips and a startlingly
     level stare. She keeps one eye on you and both feet pointed at the
