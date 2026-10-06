@@ -456,7 +456,7 @@ would admit every mint everywhere and assert nothing.
 | `RenownApi.seedTo` | `api/renown.ts` | Seed reception evidence to an asserted band, then fold |
 | `RecordControllerBase` | `platform/idea/cmd/charactergen/` | The shared subject resolution behind both readings |
 | `check-{dispositions,identity,dossiers}.ts` | `packages/server/scripts/` | The three gates |
-| `Stuff.getDurableHandle` | `lib/stuff/Stuff.ts` (+ `Persistable`, `Singleton` rungs) | The durable per-instance handle — the rule above as a string ([location.md](./location.md)) |
+| `Stuff.getDurableHandle` | `lib/stuff/Stuff.ts` (+ `Persistable`, `Singleton` rungs) | The durable per-instance handle — the rule above as a string ([location.md](./location.md)). ⭐⭐ Its job is to **resolve a competition**: a Stuff may carry several durable values and only one is its NAME, so each rung DECLARES its precedence rather than inheriting it from composition order, and `ChattelMixin._chattelId` deliberately contributes none — the handle is the name for finding this instance again, not every durable fact about it |
 | `identityNamespace` | `lib/character/Avatar.ts`, `platform/agent/ShadeAvatar.ts`, `platform/idea/Party.ts` | A continuity family's declared namespace, asserted in `StuffApi.clone` |
 | `check-identity-mints.ts` | `packages/server/scripts/` | The mint census — a fourth gate |
 

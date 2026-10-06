@@ -590,9 +590,32 @@ export abstract class Stuff {
    *   inside the decoration.
    * - **{@link SingletonMixin}**: the one instance IS the row.
    *
-   * Precedence falls out of composition order — `Persistable` always
-   * sits above `Stuff`, so a key beats a stamp; `Singleton` only ever
-   * fills in a `null`.
+   * ⭐⭐ **Precedence is DECLARED, not inherited from composition
+   * order.** It happens to agree with it today — `Persistable` always
+   * sits above `Stuff`, so a key beats a stamp, and `Singleton` only
+   * ever fills in a `null` — but a rung that relies on *where it was
+   * composed* to decide whether it names the host is a rung that will
+   * silently change answer when somebody reorders a stack. A new rung
+   * states its own precedence in its own docstring, as these three do,
+   * or it does not get added.
+   *
+   * ⭐⭐⭐ **And this method's whole job is to resolve a competition.**
+   * A Stuff may carry several durable values and only one of them is
+   * its NAME: the row, a minted identity, a persistence key — and, on
+   * a movable good, `ChattelMixin._chattelId`, which is per-instance,
+   * server-minted, registry-backed and survives the persistence
+   * round-trip. **The chattel id deliberately contributes no rung**, so
+   * a stamped sword answers `null` here.
+   *
+   * That is not an oversight, it is the test: *the handle is the name
+   * you would use to FIND THIS INSTANCE AGAIN across lives* — not every
+   * durable fact about it. Nothing addresses a sword by identity; its
+   * ownership does, and `ChattelApi.ownerOf` keys on the chattel id
+   * directly because that is a different question. ⚠ If something ever
+   * *does* need to address a good by instance, chattel contributes a
+   * rung **and states where it sits relative to the keyed rung** —
+   * because for a consigned good the two answers differ and the one
+   * that wins is a decision, not a consequence of a mixin list.
    *
    * ⚠ The `id !== row` test is the whole of this rung and is why it
    * exists: {@link getIdentityPath} deliberately *defaults* to the

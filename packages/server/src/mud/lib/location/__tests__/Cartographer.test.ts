@@ -116,12 +116,49 @@ describe('⭐⭐ a host that is not an Avatar keeps a map', () => {
 });
 
 describe('the policy hooks are the host\'s to answer', () => {
-  it('⭐ `keepsMaps` defaults to TRUE — the mixin does not go looking', () => {
-    // A predicate here that read `shouldPersist()` or guest-ness would
-    // be this capability deciding who may have it, which is the thing
-    // the extraction was for.
+  it('⭐ `keepsMaps` defaults to HAVING A DURABLE HANDLE', () => {
+    // A map-keeper needs a durable handle for the same reason the
+    // places it records do: a map is filed under a name and read back
+    // later. This is one fact the host already answers about itself —
+    // NOT the mixin narrowing its own composers by shape, which is the
+    // thing the extraction was for.
     const guide = makeStuffAtPath(() => new Guide(), GUIDE_ROW, GUIDE_ID);
     expect(guide.keepsMaps()).toBe(true);
+  });
+
+  it('⚠⚠ an UNMINTED host declines — the Extra-pooling hazard', () => {
+    // ⭐ The defect this closes, measured: `mapOwnerKey()` falls back to
+    // the template path for a host with no minted identity, so every
+    // `Extra` cloned from one row filed into ONE SHARED MAP — two
+    // sentries from the same row probed identical owner keys. An
+    // `Extra` is a ROLE, not a person: no `SingletonMixin`, no mint, no
+    // durable handle, and now a clean decline.
+    const extra = makeStuffAtPath(() => new Guide(), GUIDE_ROW);
+    expect((extra as unknown as Stuff).getDurableHandle()).toBeNull();
+    expect(extra.keepsMaps()).toBe(false);
+    // ⚠ And the tell that the old default was wrong rather than merely
+    // permissive: the key it WOULD have filed under is the row every
+    // sibling shares.
+    expect(extra.mapOwnerKey()).toBe(GUIDE_ROW);
+  });
+
+  it('⭐ a SINGLETON host keeps one — the one instance IS the row', () => {
+    // The `Cast` shape (one person per path). Nothing is minted, so the
+    // base rung says null; the singleton rung fills it with the row,
+    // which is a name that outlives the instance.
+    class Person extends CartographerMixin(SingletonMixin(NamedMixin(Idea))) {}
+    const cast = makeStuffAtPath(() => new Person(), GUIDE_ROW);
+    expect((cast as unknown as Stuff).getDurableHandle()).toBe(GUIDE_ROW);
+    expect(cast.keepsMaps()).toBe(true);
+  });
+
+  it('⚠ the handle is the PREDICATE, never the key', () => {
+    // A saved Avatar reads a compound `<row>#<key>` handle, so keying
+    // the map on it would move a player's map the first time they
+    // persisted. `mapOwnerKey` stays the identity path.
+    const guide = makeStuffAtPath(() => new Guide(), GUIDE_ROW, GUIDE_ID);
+    expect(guide.mapOwnerKey()).toBe(GUIDE_ID);
+    expect(guide.mapOwnerKey()).not.toContain('#');
   });
 
   it('`mapOwnerKey` is the identity — so a projecting body files as the person', () => {

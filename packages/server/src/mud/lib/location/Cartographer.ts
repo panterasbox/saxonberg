@@ -90,17 +90,39 @@ export function CartographerMixin<TBase extends MixinConstructor>(
       /**
        * Does this host keep a map at all?
        *
-       * ⭐ Default `true`, and OVERRIDABLE — because the answer is a fact
-       * about the host, not about mapping. A body with nowhere durable to
-       * file one (a throwaway guest, a wire body that persists nothing)
-       * says so for itself; the mixin does not go looking, because a
-       * predicate here that narrowed its own composers would be this
-       * capability deciding who is allowed to have it.
+       * ⭐⭐ **A map-keeper needs a durable handle for the same reason
+       * the places it records do.** A map is filed under a name and
+       * read back later; a host with no name that outlives it has
+       * nowhere to file one, and the claims it wrote would be found by
+       * whoever happens to be the next instance of its row.
        *
-       * @hook Override to decline map-keeping.
+       * So the default is the handle as a PREDICATE — not as the key.
+       * {@link mapOwnerKey} stays `getIdentityPath()`, deliberately: an
+       * `Avatar` that has saved once reads a compound
+       * `` `<row>#<key>` `` handle, so keying on it would silently move
+       * a player's map the first time they persisted.
+       *
+       * What it decides, with nothing enumerated:
+       *
+       * - an **`Extra`** — a role, not a person, no `SingletonMixin`,
+       *   no mint — answers `null` and declines. ⚠ This is the hazard
+       *   it exists for: `mapOwnerKey()` falls back to the template
+       *   path for an unminted host, so every sentry cloned from one
+       *   row was filing into **one shared map**. Two instances of
+       *   `/test/probe/sentry` probed identical owner keys.
+       * - a **`Cast`** — one person per path — gets its row through the
+       *   singleton rung and keeps a map.
+       * - an **`Avatar`** has a minted identity, so it keeps one, and
+       *   the override below still declines guests and wire bodies.
+       *
+       * ⭐ Still OVERRIDABLE, and still not the mixin going looking: it
+       * reads one fact the host already answers about itself rather
+       * than narrowing its own composers by shape.
+       *
+       * @hook Override to decline map-keeping, or to keep one anyway.
        */
       keepsMaps(): boolean {
-        return true;
+        return (this as unknown as Stuff).getDurableHandle() !== null;
       }
 
       /**

@@ -1715,6 +1715,14 @@ export default abstract class Avatar extends AvatarBase {
    * Both already answer `shouldPersist() → false`, so this reads an
    * existing honest fact rather than inventing a second one.
    *
+   * ⚠ `super.keepsMaps()` first, and not because an Avatar could fail
+   * it — every Avatar has a minted identity, so the mixin's floor
+   * (*is there a durable handle to file under*) is always true here.
+   * It is in the chain so the override READS as what it is: the
+   * family's extra condition on top of the capability's own, rather
+   * than a replacement that would silently drop the floor if the
+   * family's answer ever stopped implying it.
+   *
    * ⚠ The `map` VERB stays on this class's `commandContributions`, and
    * deliberately: reading a map is a PLAYER's affordance (the document
    * is under `/home/<key>`, and NPCs do not type), while keeping one is
@@ -1722,7 +1730,9 @@ export default abstract class Avatar extends AvatarBase {
    * could never use.
    */
   public override keepsMaps(): boolean {
-    return this.shouldPersist() && !this.getIsGuest();
+    return (
+      super.keepsMaps() && this.shouldPersist() && !this.getIsGuest()
+    );
   }
 
   public toString(): string {

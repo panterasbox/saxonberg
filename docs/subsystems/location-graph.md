@@ -358,11 +358,30 @@ very doc, which said *"an NPC that wants a map implements the two
 `Avatar`. It composes one line now, and a test pins exactly that — a
 host that is not an Avatar keeping a map.
 
-⭐ Eligibility moved to where it is answerable. `keepsMaps()` defaults
-to **true** and the HOST overrides it; a predicate in the mixin that
-went looking at `shouldPersist()` or at guest-ness would be the
-capability deciding who may have it. `Avatar` answers the one fact only
-the family can: a wire body persists nothing (a circle's geography is
+⭐⭐ Eligibility moved to where it is answerable, and the default is
+**`getDurableHandle() !== null`** — *a map-keeper needs a durable
+handle for the same reason the places it records do.* A map is filed
+under a name and read back later; a host with no name that outlives it
+has nowhere to file one.
+
+⚠⚠ **This closes a real pooling defect, not a theoretical one.** The
+default was `true`, and `mapOwnerKey()` falls back to the template path
+for a host with no minted identity — so every `Extra` cloned from one
+row filed into **one shared map**. Two sentries from the same row probe
+identical owner keys. An `Extra` is a *role*, not a person: no
+`SingletonMixin`, no mint, no handle, and now a clean decline. A `Cast`
+(one person per path) gets its row through the singleton rung and
+keeps one.
+
+⚠ **The handle is the PREDICATE, never the key.** `mapOwnerKey()` stays
+`getIdentityPath()`: an Avatar that has saved once reads a compound
+`` `<row>#<key>` `` handle, so keying the map on it would silently move
+a player's map the first time they persisted.
+
+⭐ It is still not the mixin going looking — it reads one fact the host
+already answers about itself, rather than narrowing its own composers
+by shape. `Avatar` chains through `super` and adds the one fact only
+the family can answer: a wire body persists nothing (a circle's geography is
 not real geography and must not be written onto the person wearing the
 body) and a guest is a throwaway persona — **both already answer
 `shouldPersist() → false`**, so the override reads an existing honest
