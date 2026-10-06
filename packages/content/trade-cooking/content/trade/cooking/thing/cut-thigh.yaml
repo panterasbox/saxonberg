@@ -1,0 +1,22 @@
+# A thigh — one muscle off a carcass.
+#
+# ⚠ `mass` here is a NOMINAL default the mint overwrites: what a cut
+# actually weighs is `Σ(its muscles' body share) × the carcass's own
+# mass`, so the same row off a ewe and an ox weighs what each animal's
+# thigh weighs. Nothing authors that number twice.
+#
+# ⭐ And its TEXTURE is derived from the muscle too — nobody can author a
+# tender shank.
+class: /platform/thing/Cut
+data:
+  shortDescription: thigh
+  keywords: [thigh, cut]
+  register: indefinite
+  longDescription: >-
+    A bird's thigh, darker and looser-grained than the breast.
+  _materialPath: /stuff/idea/material/tissue/muscles/leg
+  tissues:
+    - /stuff/idea/material/tissue/muscles/leg
+  cutting: boneless
+  difficulty: easy
+  mass: 1.0

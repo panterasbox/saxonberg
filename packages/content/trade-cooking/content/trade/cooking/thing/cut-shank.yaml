@@ -1,0 +1,22 @@
+# A shank — one muscle off a carcass.
+#
+# ⚠ `mass` here is a NOMINAL default the mint overwrites: what a cut
+# actually weighs is `Σ(its muscles' body share) × the carcass's own
+# mass`, so the same row off a ewe and an ox weighs what each animal's
+# shank weighs. Nothing authors that number twice.
+#
+# ⭐ And its TEXTURE is derived from the muscle too — nobody can author a
+# tender shank.
+class: /platform/thing/Cut
+data:
+  shortDescription: shank
+  keywords: [shank, cut]
+  register: indefinite
+  longDescription: >-
+    A thick ring of the lower leg, bone in the middle and sinew all through it.
+  _materialPath: /stuff/idea/material/tissue/muscles/shank
+  tissues:
+    - /stuff/idea/material/tissue/muscles/shank
+  cutting: bone-in
+  difficulty: easy
+  mass: 1.0

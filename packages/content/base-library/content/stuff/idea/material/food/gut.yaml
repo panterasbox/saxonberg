@@ -1,0 +1,27 @@
+# Gut — intestine, and what a sausage casing is made of before it is
+# scraped.
+#
+# ⚠⚠ Edible only after work: a casing is gut that has been scraped,
+# turned and rinsed. The `food` and `meat` tags are what let the shipped
+# cures and recipes see it at all; `raw` is the spoilage seam.
+class: /platform/idea/material/ConsumableMaterial
+data:
+  name: gut
+  keywords: [gut, casing, intestine]
+  density: 1050
+  specificHeat: 3500
+  thermalConductivity: 0.4
+  hardness: 1
+  toughness: 2
+  electricalConductivity: 0.2
+  waterAbsorptionCapacity: 30
+  edibility: true
+  tastes: [umami]
+  # ⭐ The fastest-spoiling thing off a carcass, and it is the honest
+  # figure: gut goes off while you are still holding it.
+  spoilActivationEnergy: 50000
+  waterActivity: 0.99
+  nutrients: [protein, water]
+  nutrientAmounts:
+    protein: 18000
+  tags: [food, meat, offal, organic, edible, raw]

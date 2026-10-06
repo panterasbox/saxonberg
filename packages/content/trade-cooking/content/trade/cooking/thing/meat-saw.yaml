@@ -1,0 +1,16 @@
+# A meat saw — what takes a joint off the bone.
+#
+# ⭐⭐ The tool is the DEPTH you can reach. A knife takes the boneless
+# cuts and the offal; a saw is what makes a shoulder or a leg possible at
+# all. ⚠ The capability vocabulary is open, so a later pack's band saw
+# authors `saw` and answers the same gate with no kernel edit.
+class: /trade/cooking/thing/KitchenTool
+data:
+  shortDescription: meat saw
+  keywords: [saw, "meat saw", bonesaw]
+  register: indefinite
+  longDescription: >-
+    A short stiff saw with a coarse blade and a brass-ferruled handle, the teeth set wide to clear bone dust.
+  capabilities: [saw]
+  _materialPath: /stuff/idea/material/element/iron
+  mass: 0.9
