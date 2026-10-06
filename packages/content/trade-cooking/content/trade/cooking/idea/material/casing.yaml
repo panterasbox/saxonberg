@@ -1,0 +1,24 @@
+# Casing — scraped gut, and still not clean.
+#
+# ⚠⚠ `casing` is the tag the sausage slot asks for, and the row carries
+# the gut's spoilage figure unchanged: scraping makes gut USABLE, never
+# safe.
+class: /platform/idea/material/ConsumableMaterial
+data:
+  name: casing
+  keywords: [casing, casings, skin]
+  density: 1050
+  specificHeat: 3500
+  thermalConductivity: 0.4
+  hardness: 1
+  toughness: 3
+  electricalConductivity: 0.2
+  waterAbsorptionCapacity: 25
+  edibility: true
+  tastes: [umami]
+  spoilActivationEnergy: 55000
+  waterActivity: 0.97
+  nutrients: [protein]
+  nutrientAmounts:
+    protein: 15000
+  tags: [food, casing, offal, organic, edible, raw]

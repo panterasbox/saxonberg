@@ -233,6 +233,23 @@ data:
     - { itemTemplatePath: /trade/fishing/thing/spoon, par: 2 }
     - { itemTemplatePath: /trade/fishing/thing/keepnet, par: 1 }
   prices:
+    # ⭐⭐ **A JOINT costs four times TRIM**, and that price gap is the
+    # butchery chain's whole economic argument standing in one place: the
+    # same animal is worth four times as much cut well, which is why a
+    # butcher is worth paying and why an unskilled hand's output is a real
+    # loss rather than a flavour note.
+    #
+    # ⚠ Not a balance claim — the shape is the claim, as with the armour
+    # ladder below. Trim at 3 sits where rations do, because that is what
+    # it is: the cheap protein a poor household eats. A loin at 12 sits
+    # with a hide jerkin, because a prime cut is a luxury.
+    /trade/cooking/thing/cut-loin: 12
+    /stuff/thing/items/stew-meat: 3
+    # ⭐ And the tools the depth needs, so a knife-only butcher has
+    # somewhere to go: a saw is most of a day's wage and a cleaver more,
+    # which is the capital cost of being able to take a joint at all.
+    /trade/cooking/thing/meat-saw: 7
+    /trade/cooking/thing/cleaver: 9
     /world/terminus/general-store/thing/torch: 2
     /world/terminus/general-store/thing/rations: 3
     /world/terminus/general-store/thing/waterskin: 4

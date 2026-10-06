@@ -1,0 +1,11 @@
+# A sausage.
+class: /platform/thing/Provision
+data:
+  # ⚠ A STEM, no article: the article comes from `register`.
+  shortDescription: sausage
+  keywords: [sausage, sausages, banger]
+  register: indefinite
+  longDescription: >-
+    A fat coil of sausage, tied off at both ends, the meat showing coarse and flecked through the skin.
+  _materialPath: /trade/cooking/idea/material/sausage
+  mass: 0.3

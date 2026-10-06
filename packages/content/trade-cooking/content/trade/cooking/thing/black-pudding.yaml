@@ -1,0 +1,11 @@
+# A black pudding.
+class: /platform/thing/Provision
+data:
+  # ⚠ A STEM, no article: the article comes from `register`.
+  shortDescription: black pudding
+  keywords: [pudding, black, blackpudding]
+  register: indefinite
+  longDescription: >-
+    A dark heavy ring of pudding, close-textured and studded with grain, the skin shining where the fat came through.
+  _materialPath: /trade/cooking/idea/material/black-pudding
+  mass: 0.4
