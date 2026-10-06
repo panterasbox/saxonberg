@@ -30,7 +30,21 @@
 class: /platform/thing/Vat
 data:
   shortDescription: "whiskey cask"
-  keywords: [cask, barrel, oak, whiskey, empty]
+  # ⚠⚠ `plain` and the MULTI-WORD `"plain cask"` — added because this
+  # floor now holds TWO casks and the
+  # charred one carries `charred` while this one carried **no unique
+  # keyword at all**. Every other word they share, so `pour into cask`
+  # was ambiguous with no way to mean THIS one; a player got a
+  # disambiguation prompt for an object that was plainly in front of
+  # them and no word that would answer it. Found by the styles drive.
+  #
+  # ⚠ The two-word form is not decoration: a player says *"close plain
+  # cask"*, and `[plain, cask]` is two tokens the binder cannot join
+  # from two single-word keywords — it answered `shape-fall-through`,
+  # i.e. *that is not a command*, for a phrase naming an object in plain
+  # sight. `still-book` and `malt-sack` both carry their two-word form
+  # for the same reason; these rows did not.
+  keywords: [cask, barrel, oak, whiskey, empty, plain, "plain cask"]
   register: indefinite
   longDescription: >-
     A plain oak cask on a low stillage, hooped in black iron, the

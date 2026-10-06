@@ -27,7 +27,7 @@
 class: /platform/thing/Vat
 data:
   shortDescription: "charred cask"
-  keywords: [cask, barrel, oak, charred, whiskey, empty]
+  keywords: [cask, barrel, oak, charred, whiskey, empty, "charred cask"]
   register: indefinite
   longDescription: >-
     An oak cask hooped in black iron, the bung-hole sitting up. Through it

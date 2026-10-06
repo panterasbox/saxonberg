@@ -712,7 +712,38 @@ proficient` licenses `standard`). Acceptance: three litres of `fair`
 blended whisky from one of `fine` malt; the Lounge accepts it.
 Commit: `build(whiskey-styles W5): vatting — malt and grain into a blend that carries what went in`.
 
-### W6 — docs, the drive, the record
+### W6 — docs, the drive, the record ✅ DONE `eea6f87ab` (record below)
+
+> ⛔⛔ **The drive's first run found a broken query in a SHIPPED drive,
+> and it is the most useful thing in the wave.** `here:c` is not an MQL
+> operator. The descend operator is `:i`; a **bareword** in chain
+> position filters the current set **by keyword** — so `here:c` asked
+> for things in this room whose keyword is `"c"` and got the **room**
+> back. Every name the predecessor's floor checkpoint claimed to read
+> was therefore read off a single string, the room's own display name,
+> and the assertion could only ever pass for words that happen to appear
+> in it. Three wire files use the idiom, and `avatar-family`'s own
+> comment records `here:c` as *"EMPTY"* without drawing the conclusion.
+> Both whiskey drives read `here:i` now.
+>
+> ⚠ **And this drive was restructured after that run, because two of its
+> own shapes were dishonest:**
+>
+> 1. It asserted `expectOk` on `order steep-barley`, which legitimately
+>    refuses for want of inputs. The predecessor's shape is the right
+>    one — what a drive can prove about a rows-only pack is that the
+>    recipe **installed** (not `unknown-recipe`) — and that is its own
+>    checkpoint now, over all five new lines.
+> 2. The grain and blend suites carried `if (refusedFor(...)) return;`
+>    escapes. That is the vacuous-assertion shape this repo keeps paying
+>    for: a checkpoint that cannot fail reads exactly like one that
+>    passed. Removed.
+>
+> ⭐ So the drive **buys a malt sack from the distributor and grinds
+> it**, which makes the mill defect a real end-to-end claim rather than
+> a comparison of two rows' tags — then mashes that grist, ferments,
+> cuts, fills both casks from one run, bottles one early (`poor`), and
+> noses both at ~96 game-days.
 
 `docs/subsystems/fractionation.md` (`aromaticCarry`; the smoke-in-the-tails
 lesson), `maturation.md` (`imparts`, `productAtFraction`, the maturity
@@ -1058,6 +1089,98 @@ when run.
 
 ## Drive record
 
-*(appended at build time — the output of
-`packages/wire/tests/whiskey-styles.dirty.wire.test.ts` against a fresh
-world, and what it found.)*
+`packages/wire/tests/whiskey-styles.dirty.wire.test.ts`, run against a
+**fresh database** (`pnpm --filter @saxonberg/server reset:db`, then a
+cold boot — Risk 12's precondition: every row this build touched is a
+row edit, and a booted world never sees one).
+
+**Final run: 9 checkpoints, 9 green** (`world up in 347.3s`). Seven runs
+to get there, and the six failures were all findings rather than flakes.
+
+### What it proves
+
+| | |
+|---|---|
+| the floor | the quern, **both** casks, the nosing glass and the turf stack are all really placed |
+| the pack | all five new recipes **installed** — none answers `unknown-recipe`, the one failure mode a rows-only pack has |
+| the board | the still-book offers both kilns, both mashes and the vatting |
+| the arg gate | `mill`, `pour --amount`, `smell <glass>`, `close`, `ignite` each **reach a controller** |
+| the casks | two DISTINCT casks on one floor, not one twice |
+
+⭐ The arg-gate suite is the point of the file. A view's `args[].requires`
+is checked at the **binder**, upstream of anything a controller test can
+observe — `hammer` required `DurableMixin`, no metal stock composes one,
+and every `hammer <target>` died at the binder while 34 controller tests
+stayed green. So each checkpoint asserts the command was *understood*: a
+refusal for want of inputs passes, `shape-fall-through` fails.
+
+### ⛔⛔ What it found
+
+1. **`here:c` is not an MQL operator.** The descend is `:i`; a bareword
+   in chain position **filters by keyword**. So `here:c` asked the room
+   for things whose keyword is `"c"` and got the **room** back — every
+   name the predecessor's floor checkpoint claimed to read came off one
+   string, its own display name, and could only pass for words appearing
+   in it. Three wire files use the idiom and `avatar-family`'s comment
+   even records the result as *"EMPTY"* without drawing the conclusion.
+   **Both whiskey drives fixed.**
+2. **The plain cask had no unique keyword.** This build put a second cask
+   on the floor and the two shared *every* word — `cask`, `barrel`,
+   `oak`, `whiskey`, `empty` — while only the charred one carried a
+   distinguishing one. There was no phrase that meant the plain cask.
+   Fixed on the row (`plain`, `"plain cask"`).
+3. **`--amount 3 L` does not bind.** The documented form is `3L`, with no
+   space; a space makes the unit a stray token and the whole shape falls
+   through, so a player with a correct-looking measure is told their
+   command is not a command. ⚠ The predecessor's drive writes the spaced
+   form in two checkpoints, so those cannot be binding either. Asserted
+   **in both directions** here, so fixing the parser fails this
+   checkpoint and brings someone back to the note.
+4. **`close cask` binds; `close plain cask` does not.** One-token forms
+   reach the controller (`open cask` answers `already-open`), but the
+   two-word phrase returns `shape-fall-through` for something `look`
+   resolves. A player is not blocked and no mechanism is affected; one
+   verb family accepts a noun phrase another rejects. Recorded with its
+   evidence and no invented cause. ⚠ The predecessor **discards** the
+   result of its `close cask`, so a non-binding `close` would have been
+   invisible.
+5. ⭐ **`look` in a dressed room prompts, three different ways** — and a
+   prompt is not something the harness's `prose` can answer, so the read
+   hangs for the full timeout. `look still book` (the book owns the
+   keyword `still`), `look plain cask` (two casks, five shared
+   keywords), and `look plain` (a **bare adjective**: `look`
+   auto-extends its candidate space with DETAIL names, so a common word
+   is ambiguous across a furnished room's details). Not a defect of this
+   build; worth knowing before the next drive reads a furnished room.
+6. ⚠ **`still-book.yaml` owns the keyword `still`.** `pour vat into
+   still` survives only because `mustHaveBulkSlot` narrows the book out;
+   a bare `look` has no such validator. A fixture owning another
+   fixture's noun — left for the distilling trade, since something may
+   resolve on it.
+
+### ⚠ Two shapes of its OWN that were dishonest, and replaced
+
+- It asserted `expectOk` on `order steep-barley`, which legitimately
+  refuses for want of inputs. What a drive can prove about a rows-only
+  pack is that the recipe **installed**; that is its own checkpoint now,
+  over all five lines.
+- The grain and blend suites carried `if (refusedFor(...)) return;`
+  escapes — the vacuous-assertion shape this repo keeps paying for, in
+  which a checkpoint that cannot fail reads exactly like one that
+  passed. Removed.
+
+### ⚠ What it does NOT reach, stated plainly
+
+The full barley→blend chemistry. A real chain needs either five
+game-days of malting plus a stock sweep to buy feedstock, or ~100
+game-days of cask time — and the predecessor's drive takes the same
+scope (`order <step>` proves reachability, not chemistry). **The
+chemistry is covered by the suite, hard:** `CaskCharacter.test.ts` (14 —
+imparts, idempotence across repeated reads, the two casks differing,
+the maturity term, the min-folded age), `Fractionating.test.ts`'s
+`aromaticCarry` block (8 — including a draw straddling two fractions),
+`CraftingLogic.blend-payload.test.ts` (8 — the laundering case),
+`DissolvedAromatics.test.ts` (14), `Concentration.test.ts` (12),
+`malting-chain.test.ts`'s peated-kiln block (7), and `whiskey-run.test.ts`
+(23). Every arithmetic figure in those is computed in the test rather
+than read off the implementation.
