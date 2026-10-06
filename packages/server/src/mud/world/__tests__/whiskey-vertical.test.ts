@@ -268,7 +268,14 @@ describe('⭐⭐⭐ barley to whiskey, one continuous chain on the shipped rows'
       product: string;
     }[];
     expect(products.length, 'the quern authors no products table').toBeGreaterThan(0);
-    const maltGrind = products.find((pr) => tags.malt.includes(pr.inputTag));
+    // ⚠ `noUncheckedIndexedAccess`: the tag map is built by lookup, so
+    // every entry is possibly undefined. Asserting the premise FIRST is
+    // the honest fix — a missing malt row must fail as "no tags for malt"
+    // rather than as a confusing find() miss below.
+    expect(tags.malt, 'no tags read for the malt material').toBeTruthy();
+    const maltGrind = products.find((pr) =>
+      (tags.malt ?? []).includes(pr.inputTag),
+    );
     expect(maltGrind, 'no mill product row matches a tag malt carries').toBeDefined();
     expect(maltGrind!.product, 'the mill does not make grist from malt')
       .toBe(P.grist);

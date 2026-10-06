@@ -99,7 +99,10 @@ async function sourceBottle(
   slot.setMaterial(material);
   slot.setAmount(Quantity.of(litres, 'L'));
   slot.setPayload(payload as never);
-  v.setGradeBand('fine');
+  // ⚠ The documented `Crafted.ts` cast quirk: `CraftVessel` composes
+  // `CraftedMixin`, which composes `GradedMixin`, but TS drops an inner
+  // mixin's surface through a nested generic mixin. Present at runtime.
+  (v as unknown as { setGradeBand(b: string): void }).setGradeBand('fine');
   ContainmentApi.move(v, room);
   return v;
 }
@@ -109,6 +112,18 @@ async function craftAs(principal: Stuff, recipeRef: string) {
     ExecutionContextApi.tagActingAuthor(principal);
     return CraftingApi.craft({ recipeRef, makerMode: 'self' } as CraftRequest);
   }) as ReturnType<typeof CraftingApi.craft>;
+}
+
+/**
+ * The output vessel of a SUCCESSFUL craft.
+ *
+ * ⚠ `CraftOutcome` is a union and `output` is on the success arm only, so
+ * narrowing is the test's job. Asserting `ok` here means a failure is
+ * reported as a failed craft rather than as `undefined` two lines later.
+ */
+function outputOf(res: Awaited<ReturnType<typeof CraftingApi.craft>>): Stuff {
+  expect(res.ok, JSON.stringify(res)).toBe(true);
+  return (res as { ok: true; output: Stuff }).output;
 }
 
 beforeEach(async () => {
@@ -183,7 +198,6 @@ beforeEach(async () => {
 
 afterEach(() => {
   vi.restoreAllMocks();
-  WorldClockApi._setNowProviderForTesting(null);
 });
 
 describe('a recipe carries its inputs concentrations', () => {
@@ -201,7 +215,7 @@ describe('a recipe carries its inputs concentrations', () => {
     const res = await craftAs(distiller, 'vat-whisky');
     expect(res.ok, JSON.stringify(res)).toBe(true);
 
-    const out = res.output as Stuff;
+    const out = outputOf(res);
     const payload = BulkableApi.slotFor(out, undefined)!.getPayload();
     const dose = payload?.dissolvedToxins?.find((t) => t.type === 'methanol');
     expect(dose, 'the blend must carry a dose').toBeDefined();
@@ -219,7 +233,7 @@ describe('a recipe carries its inputs concentrations', () => {
 
     const res = await craftAs(distiller, 'vat-whisky');
     expect(res.ok).toBe(true);
-    const payload = BulkableApi.slotFor(res.output as Stuff, undefined)!.getPayload();
+    const payload = BulkableApi.slotFor(outputOf(res), undefined)!.getPayload();
     expect(
       payload?.dissolvedToxins?.find((t) => t.type === 'methanol')?.amount,
     ).toBeCloseTo(174, 6);
@@ -236,7 +250,7 @@ describe('a recipe carries its inputs concentrations', () => {
 
     const res = await craftAs(distiller, 'vat-whisky');
     expect(res.ok).toBe(true);
-    const payload = BulkableApi.slotFor(res.output as Stuff, undefined)!.getPayload();
+    const payload = BulkableApi.slotFor(outputOf(res), undefined)!.getPayload();
     expect(
       payload?.dissolvedAromatics?.find((t) => t.type === 'smoke')?.amount,
     ).toBeCloseTo(12, 6);
@@ -249,7 +263,7 @@ describe('a recipe carries its inputs concentrations', () => {
 
     const res = await craftAs(distiller, 'vat-whisky');
     expect(res.ok).toBe(true);
-    const payload = BulkableApi.slotFor(res.output as Stuff, undefined)!.getPayload();
+    const payload = BulkableApi.slotFor(outputOf(res), undefined)!.getPayload();
     expect(payload?.dissolvedToxins).toBeUndefined();
     expect(payload?.dissolvedAromatics).toBeUndefined();
   });
@@ -264,7 +278,7 @@ describe('a recipe carries its inputs concentrations', () => {
 
     const res = await craftAs(distiller, 'vat-whisky');
     expect(res.ok).toBe(true);
-    const payload = BulkableApi.slotFor(res.output as Stuff, undefined)!.getPayload();
+    const payload = BulkableApi.slotFor(outputOf(res), undefined)!.getPayload();
     expect(payload?.appearance).toBe('a deep amber blended whisky');
   });
 
@@ -273,7 +287,7 @@ describe('a recipe carries its inputs concentrations', () => {
     await sourceBottle(GRAIN_MAT, 0.45, {});
     const res = await craftAs(distiller, 'vat-whisky');
     expect(res.ok).toBe(true);
-    const payload = BulkableApi.slotFor(res.output as Stuff, undefined)!.getPayload();
+    const payload = BulkableApi.slotFor(outputOf(res), undefined)!.getPayload();
     expect(payload?.maker).toBeTruthy();
   });
 });
@@ -308,7 +322,7 @@ describe('Recipe.imparts — what the working itself adds', () => {
     await sourceBottle(GRAIN_MAT, 0.45, {});
     const res = await craftAs(distiller, 'vat-smoked');
     expect(res.ok).toBe(true);
-    const payload = BulkableApi.slotFor(res.output as Stuff, undefined)!.getPayload();
+    const payload = BulkableApi.slotFor(outputOf(res), undefined)!.getPayload();
     expect(
       payload?.dissolvedAromatics?.find((t) => t.type === 'smoke')?.amount,
     ).toBeCloseTo(30, 6);
@@ -322,7 +336,7 @@ describe('Recipe.imparts — what the working itself adds', () => {
     await sourceBottle(GRAIN_MAT, 0.45, {});
     const res = await craftAs(distiller, 'vat-smoked');
     expect(res.ok).toBe(true);
-    const payload = BulkableApi.slotFor(res.output as Stuff, undefined)!.getPayload();
+    const payload = BulkableApi.slotFor(outputOf(res), undefined)!.getPayload();
     expect(
       payload?.dissolvedAromatics?.find((t) => t.type === 'smoke')?.amount,
     ).toBeCloseTo(42, 6);

@@ -42,13 +42,44 @@
  * the sentence a player reads is derived — nothing authors prose here,
  * and no digit ever renders.
  *
- * ⚠⚠ **The cost, stated plainly:** adding a twelfth word is a kernel
- * edit, which rubs against the standing rule that a pack must never need
- * one. It is accepted here because the list is physiology rather than
- * content — but a pack arriving that genuinely needs its own aroma (a
- * smokehouse wanting *tar*, a cooper wanting *resin*) is the signal that
- * this should have been rows, and the right response is to move it, not
- * to add the word and move on.
+ * ⚠⚠⚠ **PROVISIONAL. Do not copy this pattern to another sense, and do
+ * not add a twelfth word without reading this.**
+ *
+ * `lint:closed-vocabularies` counts this list, deliberately, and the
+ * ceiling is what will stop the next addition. The reason:
+ *
+ * ⛔ **The `BASIC_TASTES` analogy that justified it does not hold.** Taste
+ * can be a closed kernel list because taste physiology genuinely IS
+ * closed — five receptor classes, which is territory rather than a
+ * modelling choice. Smell is not: ~400 olfactory receptor types, no
+ * agreed basis set, and "primary odors" is a research programme that
+ * failed. So this list is closed for **implementation convenience** — it
+ * needed somewhere to hang thresholds — and was licensed by a precedent
+ * whose closure comes from biology. A true-sounding precedent used to
+ * permit something it does not reach.
+ *
+ * ⭐⭐ **The replacement is already designed and shipped elsewhere:
+ * `instrumentation.md`'s reading channels.** One ROW per aroma carrying
+ * its own threshold, at `<root>/idea/reading/<aroma>.yaml`, warmed by
+ * `ReadingCatalogue` by template-path infix — *"no kernel list, no stanza
+ * in a platform view, no boot-sequencer line"*, 31 channels across the
+ * platform and seven packs today. Then a perfumer's pack brings `tar` and
+ * nothing in the kernel moves. `Placement` made this exact journey from
+ * enum to row.
+ *
+ * ⭐ And lens 5 says the same thing from the other end: a gas
+ * chromatograph in the industrial epoch should read **this same
+ * concentration field** and hand back a NUMBER where a nose hands back a
+ * word. So the field survives the epoch and the word list is only the
+ * medieval reading of it — which is precisely the instrument-ceiling
+ * ladder instrumentation already models. ⚠ The concentration is right;
+ * the vocabulary being kernel is the part that is wrong.
+ *
+ * ⚠ The other half that is missing: `Material` carries `tastes` and
+ * **nothing for smell**, so what a SUBSTANCE smells of cannot be
+ * authored at all — only what a process `imparts`. That is why peat
+ * smelling of smoke is declared by a recipe rather than derivable from
+ * the material, and it is the half that would make lens 1 pass.
  *
  * ⚠ **No `blend` / `isClean` forwarders here, unlike {@link
  * DissolvedToxins}.** Callers use {@link Concentration} directly. The

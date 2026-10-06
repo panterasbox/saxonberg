@@ -1007,7 +1007,10 @@ export function MaturingMixin<TBase extends MixinConstructor>(Base: TBase) {
      * bottle that can tell you its own history, which is most of what a
      * label is for.
      */
-    public override getBulkPayloadForDraw(
+    // ⚠ No `override` keyword: the returned class extends a GENERIC
+    // `Base`, so TS cannot see the member it overrides (TS4112). It does
+    // override `Bulkable`'s at runtime, and `super` resolves.
+    public getBulkPayloadForDraw(
       affordance: BulkAffordance,
       litres: number,
     ): BulkPayload | null {

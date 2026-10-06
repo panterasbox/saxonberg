@@ -159,7 +159,6 @@ beforeEach(() => {
 });
 
 afterEach(() => {
-  WorldClockApi._setNowProviderForTesting(null);
   StuffApi.clearAll();
 });
 

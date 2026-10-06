@@ -163,10 +163,16 @@ function fractionAugmenter(
     // clean through the foreshots and then turns, late, as the hearts
     // run on. That transition is the thing a distiller is listening for,
     // and nothing announces it: you have to be smelling.
-    const aroma = DissolvedAromatics.render(
-      host.getBulkPayloadForDraw('interior', 0)?.dissolvedAromatics,
-      bandFor(viewer, host.getRunSchedule()?.getDiscipline() ?? ''),
-    );
+    // ⚠ `getBulkPayloadForDraw` is `Bulkable`'s seam, not
+    // `Fractionating`'s, so the narrowing has to say so — the host is
+    // both, and widening the Fractionating interface to borrow a bulk
+    // method would be the wrong fix.
+    const aroma = MixinApi.isBulkable(host)
+      ? DissolvedAromatics.render(
+          host.getBulkPayloadForDraw('interior', 0)?.dissolvedAromatics,
+          bandFor(viewer, host.getRunSchedule()?.getDiscipline() ?? ''),
+        )
+      : null;
     if (aroma) line = line ? `${line} ${aroma}` : aroma;
   } else if (!filter) {
     const phase = host.getRunPhase();

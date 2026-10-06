@@ -435,10 +435,23 @@ function main(): void {
     console.error(
       `\n✖ lint:lib-statics — ${total} public static(s) on ${rows.length} ` +
         `non-Api class(es); the ceiling is ${LIB_STATICS_CEILING}.\n\n` +
-        `  Ask of the new one: does it answer a question about the TYPE ` +
-        `or about the WORLD? Type-level (construction, a guard over the ` +
-        `type's own vocabulary, a lookup of it) belongs here and is ` +
-        `documented as a value-static — but the population may not GROW ` +
+        `  ⭐ Ask WHO CALLS IT, not what shape it is. The two places a ` +
+        `person searches are public methods on Stuff/mixin classes and ` +
+        `statics in the Api layer; a static on an arbitrary lib/ class ` +
+        `is in neither, which is the whole injury.\n\n` +
+        `    an author calls it   -> it belongs on an Api (or is already ` +
+        `reachable through one, in which case this static is plumbing)\n` +
+        `    only lib/ + platform/idea/api/ call it -> it is NOT author ` +
+        `surface: give the CLASS a @internal doc tag, which is counted ` +
+        `separately and excluded from this ceiling\n\n` +
+        `  ⛔ Do NOT justify it as "a type-level static, documented as a ` +
+        `value-static". That bucket is the projection's CATCH-ALL ` +
+        `(!isStaticApi && !isStuffMethod && mud/ && !sealed), so it ` +
+        `collects exactly the members nobody classified — citing it as ` +
+        `proof of visibility is circular, and it is what justified five ` +
+        `ceiling rises on one branch.\n\n` +
+        `  ⚠ Being the right shape for the class says the member may ` +
+        `EXIST; it says nothing about whether the population may grow ` +
         `while the sweep runs. World-level logic belongs on a ` +
         `platform/idea/api/<X>Logic.ts logic singleton with the ` +
         `subsystem's Api forwarding. The ceiling may fall; it may never ` +

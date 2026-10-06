@@ -165,6 +165,45 @@ at **339, three below where the build found it.**
   `XApi.verb(host, …)`. Two enumerated lists (`EXEMPT_APIS`,
   `NON_SUBJECT_TYPES`) live in the script so a widening is a visible
   diff.
+- ⭐⭐ **`lint:closed-vocabularies`** — **the census of kernel words
+  content is not allowed to add to.** A closed list in kernel source that
+  stands between a pack author and their row breaks *a pack must never
+  need a kernel list edit*, and until this gate nothing counted them.
+  ⭐ **The question is not "is this list closed?" — plenty are correctly
+  closed. It is: is its closure a fact about the WORLD, or a convenience
+  for the implementation?** A fact about the world stays and is declared
+  in `CLOSED_BY_DESIGN` with the reason written as a **claim**
+  (`BASIC_TASTES` is five words because taste physiology has five
+  receptor classes; a designed ladder's rungs are read positionally by
+  the arithmetic). A convenience wants **ROWS**, and the shape is shipped
+  and proven — `instrumentation.md`'s reading channels, warmed by
+  template-path infix with *"no kernel list, no stanza in a platform
+  view, no boot-sequencer line"*; `Placement` made exactly this journey
+  from enum to row. Census-then-ratchet, **ceiling 5** (+ 6 declared).
+
+  ⚠⚠ **Two receipts it was built on, both from one branch.**
+  `MATURATION_MECHANISMS` grew 4 → 5 so a TRADE BUILD could ship floor
+  malting — a kernel list edited by a content build, uncounted, reading
+  as ordinary work. And `AROMAS` arrived with 11 words whose own site
+  note *conceded* that a pack wanting `tar` would need a kernel MR, then
+  shipped: ⭐ **the author knew the rule, wrote the objection down, and
+  proceeded, because a note is not a force.** That is the gate's whole
+  reason — an agent adapts what it finds unless something opposes it, and
+  a comment opposes nothing.
+
+  ⚠ Three things the classifier had to learn, each from a failure, and
+  each worth copying into the next census: it **missed `AROMAS` itself**
+  at first (`isAroma` walks the list with `for…of`, not `.includes` — a
+  gate blind to its motivating case); the **declaration line** counted
+  whenever a refusal token sat within five lines, so char-gen's
+  `FIELD_ORDER` counted in a fixture and escaped in the real tree *purely
+  by line spacing*; and `(VOCAB as readonly string[]).includes(x)` — this
+  codebase's own idiom — defeated the pattern and silently dropped two
+  vocabularies content certainly names. ⭐ A **stale exemption** (an
+  allowlist entry matching nothing the scanner finds) is an ERROR, not a
+  note: it reads as a considered judgement about live code and is not
+  one, which is the enumeration rot `lint:family` went derived to escape.
+
 - **`lint:lib-statics`** — ⭐ the other half of the same invariant.
   ⭐⭐ **The question is: WHO CALLS IT?** The two places a person searches
   are **public methods on Stuff/mixin classes** (most arriving via a
