@@ -80,6 +80,32 @@ fix and watching it fire, and then pinned with fixtures that assert the
 POSITIVE — a violation is found — not merely that a clean tree is clean.
 ⚠ This repo has shipped broken gates that silently passed before.
 
+**4. ⛔⛔ A ceiling raised on a DOCTRINE QUOTATION instead of a caller
+audit.** `lint:lib-statics` went 342 → 347 for five new statics,
+justified out of the gate's own header — *"type-level statics stay on
+the value class, and the projection admits them as a `value-static`
+kind… they are visible now."* Every clause was quotable and the
+conclusion was false: `value-static` is the projection's **catch-all**
+(`!isStaticApi && !isStuffMethod && mud/ && !sealedSubdir`), so it
+collects precisely the members nobody classified, and offering it as
+proof of visibility is circular. One question settled it — **who calls
+this?** — and the answer was `lib/` and `platform/idea/api/` for all
+five. Three classes took a class-level `@internal` and the count landed
+at **339, three below where the build found it.**
+
+> ⭐⭐ **A ratchet rise wants a CALLER AUDIT, not a doctrine quotation.**
+> Name every caller and ask whether any of them is the surface the gate
+> protects. If none is, the member is not surface and the gate has an
+> escape built for exactly that (`@internal`, counted separately) — so a
+> rise was never needed. ⚠ And when a gate's own prose supplies the
+> justification, **fix the prose**: five rises landed on one branch
+> before anybody asked the question, and the header was why.
+
+> ⚠ A legitimacy argument is not a growth argument. *This member is the
+> right shape for this class* says it may exist; it says nothing about
+> whether the population may grow while a sweep is mid-flight, which is
+> the only thing a ratchet is asserting.
+
 ---
 
 ## Architecture & call security
@@ -140,16 +166,44 @@ POSITIVE — a violation is found — not merely that a clean tree is clean.
   `NON_SUBJECT_TYPES`) live in the script so a widening is a visible
   diff.
 - **`lint:lib-statics`** — ⭐ the other half of the same invariant.
-  ⭐⭐ **The question is: does the static answer something about the TYPE
-  or about the WORLD?** Type-level — construction (`Quantity.of`), a
-  guard over the type's own closed vocabulary (`Construction.isForm`), a
-  lookup of it (`Currency.all`) — **stays on the value class** and is
-  documented: the projection admits it as a `value-static`, its own
-  consumer kind. Those were never the antipattern; being *invisible* was.
+  ⭐⭐ **The question is: WHO CALLS IT?** The two places a person searches
+  are **public methods on Stuff/mixin classes** (most arriving via a
+  mixin) and **statics in the Api layer** — both queryable. A static on
+  an arbitrary `lib/` class is in neither, and that is the whole injury.
+  So: *an author calls it* ⇒ it belongs on an **Api** (or is already
+  reachable through one, in which case the static is plumbing); *only
+  `lib/` and `platform/idea/api/` call it* ⇒ it is not author surface,
+  and the honest disposition is a class-level **`@internal`** — counted
+  separately, excluded from the ceiling, invisible *because its author
+  said so*.
+
+  ⛔⛔ **This bullet used to read "the projection admits it as a
+  `value-static`, its own consumer kind. Those were never the
+  antipattern; being invisible was." DO NOT reason that way — it is the
+  escape hatch, and it is false.** `value-static` is a **catch-all**:
+  `!isStaticApi && !isStuffMethod && mud/ && !sealedSubdir`. Anything
+  left over lands in it, so the label means *this member was not
+  classified*, and citing the bucket that collects the invisible members
+  as proof of visibility is circular. ⚠ The secondary question — does
+  the static answer something about the **TYPE** or about the **WORLD**?
+  — still decides where a legitimate one goes (type-level on the value
+  class, world-level on a logic singleton), but **being type-level makes
+  a static legitimate to exist; it does not make it discoverable, and it
+  is no argument for growing the population.**
+
+  ⭐ Worked example, 2026-10-06: the whiskey-styles build added five
+  statics and raised the ceiling 342 → 347, quoting the sentence above.
+  A caller audit then showed **not one of the five was author surface** —
+  every caller was `lib/` or `platform/idea/api/`, and what an author
+  actually reaches is `BulkableApi.blendPayloads` plus `smell`/`taste` on
+  a mixin. Three classes went `@internal` and the count landed at
+  **339 — three BELOW where the build found it**, because
+  `DissolvedToxins` had never been marked. A rise became a tightening on
+  one question.
   World-level logic (`Freshness.growthRate`, `CombatNarration.narrate`)
   belongs on a `platform/idea/api/<X>Logic.ts` logic singleton with the
   subsystem's Api forwarding — the split `CLAUDE.md` already calls
-  mandatory. Census-then-ratchet, **ceiling 337** (opened at 563; the 2026-09 sweep drove it down — `LIB_STATICS_CEILING`) across the kernel's
+  mandatory. Census-then-ratchet, **ceiling 339** (opened at 563; the 2026-09 sweep drove it down, and see the worked example above — `LIB_STATICS_CEILING`) across the kernel's
   `lib/` and `platform/` plus every pack's `src/`: the population may not
   grow while the sweep moves the world-level half out. ⚠ Statics inside a
   mixin factory's returned class expression are out of scope by

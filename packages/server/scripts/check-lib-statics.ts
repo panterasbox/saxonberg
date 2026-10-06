@@ -8,9 +8,39 @@
  * Type-level statics — construction (`Quantity.of`, `Currency.parse`),
  * guards over the type's own closed vocabulary (`Construction.isForm`)
  * and lookups of it (`Currency.all`) — **stay on the value class**, and
- * as of W2 the author-surface projection admits them as their own
- * `value-static` kind. They were never the problem; being *invisible*
- * was, and they are visible now.
+ * the projection files them under a `value-static` kind.
+ *
+ * ⛔⛔ **That sentence used to end "…and they are visible now", and it is
+ * NOT TRUE. Do not use it to justify a new static.** `value-static` is a
+ * **catch-all**, not a curated admission:
+ *
+ * ```ts
+ * const isValueStatic =
+ *   !isStaticApi && !isStuffMethod && mod.name.startsWith("mud/") && !sealedSubdir;
+ * ```
+ *
+ * Anything that is neither an Api static nor a Stuff instance method and
+ * lives under `mud/` lands in it. So the label means *this member was
+ * left over*, and citing the bucket that collects the invisible members
+ * as proof of visibility is circular. The whiskey-styles build raised the
+ * ceiling on exactly that reasoning before anyone checked (2026-10-06).
+ *
+ * ⭐⭐ **The question to ask instead is WHO CALLS IT.** The two places a
+ * person searches are **public methods on Stuff/mixin classes** (most
+ * arriving via a mixin) and **statics in the Api layer**. Both are
+ * queryable; a static on an arbitrary `lib/` class is in neither, which
+ * is the whole injury. So:
+ *
+ *   - **an author calls it** → it belongs on an **Api** (or is already
+ *     reachable through one, in which case this static is plumbing);
+ *   - **only `lib/` and `platform/idea/api/` call it** → it is not
+ *     author surface at all, and the honest disposition is a class-level
+ *     **`@internal`** — counted separately, excluded from the ceiling,
+ *     invisible *because its author said so*.
+ *
+ * ⚠ **A ratchet rise wants a caller audit, not a doctrine quotation.**
+ * Being type-level makes a static legitimate to EXIST; it does not make
+ * it discoverable, and it is no argument for growing the population.
  *
  * ⭐ World-level statics are the sweep: `Freshness.growthRate`,
  * `Contamination.advance`, `CombatNarration.narrate` compute facts about
@@ -117,40 +147,74 @@ const REPO_ROOT = join(MUD, '../../../..');
  * — which is the hook's job, not a ceiling's.
  */
 /**
- * ⚠⚠ **Raised 342 → 347 by the whiskey-styles build (2026-10-05) — the
- * FIFTH rise on this branch, which is itself the finding.** Five
- * statics, each justified below, but the honest reading is that this
- * ratchet has only ever gone up and a census that cannot fall is a
- * budget line, not a gate. The sweep it was built to drive has not
- * started. ⭐ Flagged to the user at plan time (`whiskey-styles-plan.md`
- * § Risks 1) and authorised there as part of *promote the arithmetic*;
- * the thing to do next is the SWEEP, not a sixth rise.
+ * ⭐⭐ **LOWERED 342 → 339 by the whiskey-styles build (2026-10-06), and
+ * the first draft of that build raised it to 347 instead.** Recording
+ * both numbers because the wrong one is the instructive one.
  *
- *   - `Concentration.blend` / `.isClean` (new, `lib/bulk/`) — ⭐ this
- *     pair is a **net reduction in duplication**, not an addition:
- *     `DissolvedToxins.blend`/`.isClean` are now forwarders onto it and
- *     `DissolvedAromatics` ships NO forwarders at all precisely because
- *     this census is a ratchet. The arithmetic earned promotion on its
- *     third CALL SITE (a pour, a recipe's bulk output, a grind), which
- *     is the repo's stated test.
- *   - `DissolvedAromatics.isAroma` / `.thresholdFor` — guards and
- *     lookups over **the type's own closed vocabulary**, which this
- *     file's own doctrine says "stay on the value class" and the
- *     author-surface projection admits as `value-static`. The
- *     `BASIC_TASTES` precedent, with a threshold attached.
- *   - `DissolvedAromatics.render` — the competence-banded reading. The
- *     one of the five with a real alternative home (a logic singleton),
- *     declined because it is a pure function of a tag set and a band
- *     with no world state in it, and because its two callers
- *     (`Palatable`, `Fractionating`) are both `lib/`.
+ * The build added five statics (`Concentration.blend`/`.isClean`,
+ * `DissolvedAromatics.isAroma`/`.thresholdFor`/`.render`) and raised the
+ * ceiling to fit them, justified as *"type-level statics, which this
+ * file's own doctrine says stay on the value class and which the
+ * projection documents as `value-static`."*
  *
- * ⚠ What was deliberately NOT added, and is the pattern to copy: the
- * additive `imparts` fold lives as a module-local function on
- * `CraftingLogic` (`addConcentrations`), because domain logic over a
- * payload is a logic singleton's job. That is one static this build
- * could have added and did not.
+ * ⚠⚠ **That justification was wrong, and wrong in a way worth writing
+ * down.** The `value-static` kind is a **catch-all**, not a curated
+ * admission:
+ *
+ * ```ts
+ * const isValueStatic =
+ *   !isStaticApi && !isStuffMethod && mod.name.startsWith("mud/") && !sealedSubdir;
+ * ```
+ *
+ * Anything that is neither an Api static nor a Stuff instance method and
+ * lives under `mud/` lands in it. So "the projection documents them" means
+ * *they appear in a JSON file under a residual label* — **not** that
+ * anybody can find them. And finding them is the entire point: the two
+ * places a person searches are **public methods on Stuff/mixin classes**
+ * (most arriving via a mixin) and **statics in the Api layer**. Both are
+ * queryable. A static on an arbitrary `lib/` class is in neither, which is
+ * the invisibility this gate exists to stop — and citing the bucket that
+ * collects the invisible ones as proof of visibility is circular.
+ *
+ * ⭐ **The honest disposition was already here and went unused:
+ * class-level `@internal`** (see `statsOf`). It is counted separately,
+ * excluded from the ceiling, and means *invisible because its author said
+ * so*. So the five were re-examined by CALLER, which is the question that
+ * settles it:
+ *
+ * | class | every caller | author surface? |
+ * |---|---|---|
+ * | `Concentration` | `DissolvedToxins`, `DissolvedAromatics`, `BulkableLogic`, `Fractionating` | no |
+ * | `DissolvedAromatics` | `Recipe` (row validation), `Palatable`, `Fractionating` | no |
+ * | `DissolvedToxins` | `BulkableLogic`, `Fractionating`, `Metabolic` | no |
+ *
+ * Not one is author surface. What an author actually reaches is
+ * `BulkableApi.blendPayloads` — an Api static — and the readings, which
+ * arrive through `smell` / `taste` on a mixin. Both queryable, both
+ * unchanged. All three classes are `@internal` now, which takes the
+ * surface count to **339: three BELOW where this build found it**,
+ * because `DissolvedToxins` predated the sibling and had never been
+ * marked.
+ *
+ * ⚠ Three routes considered and declined, recorded so they are not
+ * re-proposed:
+ *
+ *   - **instance methods instead of statics** — moves them out of this
+ *     count and into the `stuff-method` bucket, but that bucket means
+ *     *an author calls this on an object*, which would be a lie here.
+ *     Gaming the gate rather than answering it.
+ *   - **a new Api** — a per-concept Api, which the project does not mint;
+ *     there is no metabolism Api to host a vocabulary guard.
+ *   - **folding the arithmetic into `BulkableLogic`** — puts a metabolism
+ *     vocabulary inside the bulk logic singleton, restoring the exact
+ *     `lib/bulk` → `lib/metabolism` edge the payload decomposition
+ *     removed.
+ *
+ * ⭐ The standing lesson: **a ratchet rise wants a caller audit, not a
+ * doctrine quotation.** Five rises had landed on this branch before
+ * anybody asked who calls the things.
  */
-export const LIB_STATICS_CEILING = 347;
+export const LIB_STATICS_CEILING = 339;
 
 const STATIC =
   /^\s*(?:public\s+)?static\s+(?:async\s+)?(?!readonly\b|get\b|set\b|_)([a-zA-Z]\w*)\s*[(<]/;

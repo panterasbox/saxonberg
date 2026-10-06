@@ -61,6 +61,18 @@ declare module '../bulk/Bulkable' {
   }
 }
 
+/**
+ * @internal
+ *
+ * ⚠ Not author surface, and ⭐ **this one is a TIGHTENING rather than a
+ * hold**: the class predates the aroma sibling and was never `@internal`,
+ * so the three statics it has always had were sitting in the surface
+ * count. Its callers are `BulkableLogic`, `Fractionating` and `Metabolic`
+ * — all internals. A content author puts a dose on matter with `toxins:`
+ * on a fraction row or `toxicity:` on a material, and never names this
+ * class. Marked here so the twin fields have one disposition between
+ * them rather than two.
+ */
 export class DissolvedToxins {
   /** A gauge bound to the slot whose matter it measures. */
   constructor(private readonly slot: BulkSlot) {}

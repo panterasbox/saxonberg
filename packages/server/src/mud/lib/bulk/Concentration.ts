@@ -46,6 +46,29 @@ export interface Concentrate {
   amount: number;
 }
 
+/**
+ * @internal
+ *
+ * ⚠⚠ **Not author surface, and the ratchet was the thing that said so.**
+ * Every caller is `lib/` or `platform/idea/api/` internals —
+ * `DissolvedToxins`, `DissolvedAromatics`, `BulkableLogic.blendPayloads`,
+ * `Fractionating`. Nothing outside those holds a `Concentration`, and the
+ * author-reachable seam over this arithmetic is
+ * {@link BulkableApi.blendPayloads}, which is an Api static and therefore
+ * queryable where people actually look.
+ *
+ * ⭐ **Why `@internal` rather than a raised ceiling.** `lint:lib-statics`
+ * exists because a static on a `lib/` class is in NEITHER of the two
+ * places a person searches — public methods on Stuff/mixin classes, and
+ * statics in the Api layer — so it is invisible by accident. The
+ * projection does file it under a `value-static` kind, but that bucket is
+ * a **catch-all** (`!isStaticApi && !isStuffMethod && mud/ && !sealed`),
+ * not a judgement that the member is discoverable; leaning on it was
+ * dressing a residual label up as visibility. `@internal` is the gate's
+ * own sanctioned disposition: TypeDoc drops the class whole, so it is
+ * invisible **because its author said so**, it is counted separately, and
+ * the ceiling does not have to move.
+ */
 export class Concentration {
   /**
    * Volume-weighted blend of two concentration sets. `a` is the incoming

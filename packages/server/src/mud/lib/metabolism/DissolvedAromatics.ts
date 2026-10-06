@@ -158,6 +158,16 @@ const INTENSITIES: readonly { readonly atMultiple: number; readonly word: string
   { atMultiple: 1, word: "barely" },
 ];
 
+/**
+ * @internal
+ *
+ * ⚠ Not author surface — see {@link Concentration} for the full reasoning
+ * and why a raised ceiling was the wrong answer. Callers are `Recipe`'s
+ * row validation, `Palatable`'s augmenter and `Fractionating`'s; an author
+ * reaches every one of these readings through `smell` / `taste` on a
+ * mixin, which is queryable, and authors the figures as `imparts:` on a
+ * row.
+ */
 export class DissolvedAromatics {
   /** A gauge bound to the slot whose matter it measures. */
   constructor(private readonly slot: BulkSlot) {}
