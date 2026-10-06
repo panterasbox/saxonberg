@@ -315,6 +315,32 @@ Two optional `@hook`s on the `Perceiver` interface —
 Declaring an optional hook claims nothing of a composer that does not
 implement it, so an NPC perceiver stays a no-op.
 
+⭐⭐⭐ **A hook is the EXTENSION surface and never the call surface.**
+`Perceiver.perceivePlace(location, occupants?)` and
+`perceiveTimetable(stops)` are what a verb calls; the two `on…` hooks
+are what a body implements. The build shipped without that distinction
+and the cost was immediate: `look`, `look`-in-the-dark and `sense` each
+fired `onPerceivedPlace` **through its own structural cast**, each
+carried its own copy of the same ten-line ordering comment, and the
+`Exitable` narrowing and the perception gate were re-assembled at every
+one. An `@hook` is by definition something the framework invokes, and
+*"the framework"* had quietly become three command controllers.
+
+⚠⚠ **And they had already diverged** — which is the finding, not the
+tidiness. `look` also recorded WHO it saw (`learnIdentityOf`, the
+repeat-perception write); `sense` never did. So the one verb an
+arriving body is forced into (`autoSenseOnArrival` →
+`forceCommand('sense')`, for players and NPCs alike) noticed the room
+and nobody in it. Both halves of the perception moment — the place and
+the people — now live in `perceivePlace`, so a fourth verb that
+describes a place gets them by calling one method.
+
+⭐ `Mobile.traverse` is the precedent and was right all along: it fires
+`onTraversed` on the mover from inside the move, through a local
+optional-hook dispatcher, and no controller has ever had to know that
+`CartographerMixin` exists. `Perceiver` now has the same dispatcher for
+the same reason.
+
 ⭐⭐ **The implementer is `CartographerMixin`** (`lib/location/`), not
 `Avatar`. It encapsulates one concern with three parts: **the policy**
 (do I keep a map, and under whose key), **the conversion** (live `Stuff`
@@ -349,13 +375,16 @@ is a capability, *reading* one is a person's — the document is under
 `/home/<key>` and NPCs do not type. Keeping them apart is what lets an
 NPC guide keep a map without being handed a verb it can never use.
 
-⭐ `look` and `sense` fire the place hook **right after**
-`obviousExitsFor(viewer)` — *the perception moment*. The list has
-already been filtered through the perception gate, so the hook **cannot
-learn about an exit the viewer could not see**. That is what makes the
-firewall structural rather than policed. It fires in the dark too: you
-cannot describe a pitch-black room, but you have been there and can feel
-the ways out.
+⭐ `perceivePlace` runs `obviousExitsFor(viewer)` **before** it fires
+the hook — *the perception moment*. The list has already been filtered
+through the perception gate, so the hook **cannot learn about an exit
+the viewer could not see**. That is what makes the firewall structural
+rather than policed, and it is now guaranteed by one method rather than
+by three controllers each remembering the order. The method also
+**returns** that list, because it is the same list the verb renders and
+computing it twice is how the transcript and the map could ever
+disagree. It fires in the dark too: you cannot describe a pitch-black
+room, but you have been there and can feel the ways out.
 
 ⚠⚠ **The writer runs inside a FORCED frame.** Arrival auto-senses via
 `self.forceCommand('sense')`, and `getActingAuthor()` returns `null`

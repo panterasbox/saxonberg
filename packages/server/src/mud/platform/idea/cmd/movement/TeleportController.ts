@@ -128,12 +128,8 @@ export default class TeleportController extends CommandController<TeleportModel>
       // timetable, and nothing about recording what somebody read may
       // become a reason they could not read it.
       const stops = await node.publishedStops?.();
-      if (stops && stops.length > 0) {
-        (
-          giver as unknown as {
-            onReadTimetable?(s: readonly unknown[]): void;
-          }
-        ).onReadTimetable?.(stops);
+      if (stops && MixinApi.isPerceiver(giver)) {
+        giver.perceiveTimetable(stops);
       }
       return;
     }

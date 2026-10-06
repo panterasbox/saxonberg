@@ -189,26 +189,16 @@ export default class SenseController extends CommandController<SenseModel> {
     if (hasVisible) {
       body = Mml.compose`${body}\n${Mml.fromMarkup(longText)}`;
     }
-    // ⭐⭐ THE PERCEPTION MOMENT — the one place a map may be written
-    // from. `obviousExitsFor(viewer)` has already filtered through the
-    // perception gate, so a hidden exit is ABSENT here rather than
-    // present-and-filtered-later: the hook cannot learn about an exit
-    // the viewer could not see, which is what makes the map's evidence
-    // firewall structural rather than policed.
-    //
-    // ⚠ Fired whether or not there are exits: the PLACE was perceived
-    // either way, and a room with no way out is still somewhere you
-    // have been. Optional-hook idiom (`Mobile.canTraverse?`); the only
-    // implementer is `Avatar`, and it swallows its own errors.
-    // ⚠ The ternary keeps the `isExitable` narrowing: `hasExits` is an
-    // aliased type predicate, and TS only narrows `location` where the
-    // alias is the condition.
-    const perceived = hasExits ? location.obviousExitsFor(actor) : [];
-    (
-      actor as unknown as {
-        onPerceivedPlace?(l: unknown, p: readonly unknown[]): void;
-      }
-    ).onPerceivedPlace?.(location, perceived);
+    // ⭐⭐ THE PERCEPTION MOMENT. One call: the body runs the
+    // perception gate, tells whatever it keeps (a map, a memory,
+    // nothing), and hands back the exits this viewer may know about —
+    // which are the same ones rendered below, because computing them
+    // twice is how the transcript and the map could ever disagree.
+    // The verb's business is WHEN a place is perceived; what that
+    // entails is the body's. See `Perceiver.perceivePlace`.
+    const perceived = MixinApi.isPerceiver(actor)
+      ? actor.perceivePlace(location, visibleContents)
+      : [];
     if (hasExits) {
       const exitsLine = this.formatExits(perceived);
       if (exitsLine) {
@@ -294,7 +284,7 @@ export default class SenseController extends CommandController<SenseModel> {
       .send();
   }
 
-  private formatExits(exits: Exit[]): Mml | null {
+  private formatExits(exits: readonly Exit[]): Mml | null {
     if (exits.length === 0) return null;
     const parts = exits.map((exit) => {
       const tagged = Mml.exit(exit);

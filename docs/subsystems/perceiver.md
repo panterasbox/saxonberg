@@ -98,10 +98,36 @@ touch *and* vision) is why the split ships before any literacy.
 
 ## Methods
 
-v1 has none. The mixin's value is verb contributions and the
-compositional marker. Methods may land later — e.g. a
-`perceive(target)` for scripted NPCs to invoke programmatically
-without going through the parser.
+⭐⭐⭐ **The perception moment — and the call/hook distinction.**
+
+| member | kind | who calls it |
+|---|---|---|
+| `perceivePlace(location, occupants?)` | method | a verb that is describing a place |
+| `perceiveTimetable(stops)` | method | a verb that just rendered a public board |
+| `onPerceivedPlace?` | `@hook` | the mixin, on the host |
+| `onReadTimetable?` | `@hook` | the mixin, on the host |
+
+`perceivePlace` runs the perception gate (`obviousExitsFor(viewer)`),
+records who the viewer saw (`learnIdentityOf`, when the host is a
+`BeliefStore`), fires the hook, and **returns the gated exits** — the
+same list the verb renders, so the two cannot disagree.
+
+⚠⚠ **An `@hook` is the extension surface and never the call surface.**
+This method exists because the location-graph build shipped without
+that line: `look`, `look`-in-the-dark and `sense` each fired
+`onPerceivedPlace` through its own structural cast, each re-assembled
+the gate and the `Exitable` narrowing, and *"the framework"* that an
+`@hook` is supposed to be invoked by had become three command
+controllers. They had already diverged — `look` recorded who it saw,
+`sense` did not, so the one verb an arriving body is forced into
+(`autoSenseOnArrival`) noticed the room and nobody in it.
+
+⭐ `Mobile.traverse` is the shape to copy and always was: it fires
+`onTraversed` on the mover from inside the move, via a module-local
+optional-hook dispatcher, and no controller has ever needed to know
+that `CartographerMixin` exists. `Perceiver` has the same dispatcher
+for the same reason. **The verb decides WHEN a place is perceived;
+what perceiving one entails is the body's.**
 
 ## Scryable
 

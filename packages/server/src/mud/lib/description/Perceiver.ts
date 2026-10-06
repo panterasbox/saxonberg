@@ -32,6 +32,7 @@ import type { CommandContributions } from '../../api/command';
 import type { Sensor } from '../message/Sensor';
 import type { Stuff } from '../stuff/Stuff';
 import type { PublishedStop } from '../travel/TravelNode';
+import type Exit from '../boundary/Exit';
 import type { AnyConstructor } from '../../api/mixin';
 import { Mixins } from '../mixin';
 import { MixinApi } from '../../api/mixin';
@@ -100,6 +101,53 @@ export const SENSE_CHANNELS: readonly SenseChannel[] = [
  */
 export interface Perceiver extends Sensor {
   /**
+   * ⭐⭐ **THE PERCEPTION MOMENT** — *a place is being described to me.*
+   * Tell me, and I will decide what that means for me.
+   *
+   * This is the CALL surface; `onPerceivedPlace` below is the
+   * EXTENSION surface. Conflating the two is what put mixin
+   * orchestration in three command controllers: an `@hook` is by
+   * definition something the framework invokes, and "the framework"
+   * had become `look`, `look`-in-the-dark and `sense`, each with its
+   * own structural cast and its own copy of the same ten-line comment.
+   *
+   * A describing verb calls this once, with the place, and renders
+   * what comes back. Everything else — the perception gate, the
+   * `Exitable` narrowing, whether anybody is listening — is the
+   * body's own business. The verb decides WHEN a place is perceived,
+   * because that genuinely is the verb's question; it does not get to
+   * decide what perceiving one entails.
+   *
+   * ⚠ Returns the exits the viewer may know about, because the
+   * gate-filtered list is the same list the verb must render — and
+   * computing it twice is how the two could ever disagree. A place
+   * with no exits (or one that is not `Exitable` at all) returns `[]`
+   * and still counts as perceived: a room with no way out is still
+   * somewhere you have been.
+   *
+   * ⭐⭐ `occupants` is what the verb has already resolved as visible
+   * in the place — gate-filtered, same list it will render. Seeing a
+   * being tracks it, and **that half used to live in `look` alone**:
+   * `sense` recorded the place and never the people, so the one verb
+   * an arriving body is forced into noticed the room and nobody in
+   * it. A divergence between two verbs doing the same thing is the
+   * symptom this whole method exists to cure; omit the argument and
+   * only the place is perceived.
+   */
+  perceivePlace(
+    location: Stuff,
+    occupants?: readonly Stuff[],
+  ): readonly Exit[];
+
+  /**
+   * ⭐ **A published timetable is being read to me.** The call surface
+   * for the second reveal channel, paired with `onReadTimetable`
+   * exactly as `perceivePlace` is paired with `onPerceivedPlace`.
+   * An empty list is a no-op, so the caller never checks.
+   */
+  perceiveTimetable(stops: readonly PublishedStop[]): void;
+
+  /**
    * ⭐⭐ **A place was perceived, and here is what was perceived of it.**
    * Optional: declaring it claims nothing of a composer that does not
    * implement it, so an NPC perceiver stays a no-op.
@@ -146,6 +194,47 @@ export function PerceiverMixin<TBase extends MixinConstructor>(Base: TBase) {
      * No persistent fields. Perception is verb-shape only v1.
      */
     static fieldMeta: FieldMeta = {};
+
+    /**
+     * ⭐⭐ THE PERCEPTION MOMENT. See {@link Perceiver.perceivePlace}.
+     *
+     * The ordering here is the whole evidence firewall:
+     * `obviousExitsFor(viewer)` runs the perception gate FIRST, so a
+     * hidden exit is **absent** from what the hook is handed rather
+     * than present-and-filtered-later. The hook cannot learn about an
+     * exit the viewer could not see — structural, not policed — and
+     * that property is now guaranteed by this method rather than by
+     * three controllers each remembering to do it in the right order.
+     */
+    perceivePlace(
+      location: Stuff,
+      occupants: readonly Stuff[] = [],
+    ): readonly Exit[] {
+      const viewer = this as unknown as Stuff;
+      const perceived = MixinApi.isExitable(location)
+        ? location.obviousExitsFor(viewer)
+        : [];
+      // Repeat-perception: first sight of an unknown opens a
+      // null-`knownAs` stranger record; later sightings coalesce and
+      // advance `lastSeen` rather than writing a row per sighting, and
+      // the null-name write never overwrites a learned name. It belongs
+      // HERE and not in the naming step, which runs on every projection.
+      if (MixinApi.isBeliefStore(viewer)) {
+        for (const occupant of occupants) {
+          if (MixinApi.isOrganism(occupant)) {
+            viewer.learnIdentityOf(occupant, null);
+          }
+        }
+      }
+      callPerceptionHook(this, 'onPerceivedPlace', [location, perceived]);
+      return perceived;
+    }
+
+    /** See {@link Perceiver.perceiveTimetable}. */
+    perceiveTimetable(stops: readonly PublishedStop[]): void {
+      if (stops.length === 0) return;
+      callPerceptionHook(this, 'onReadTimetable', [stops]);
+    }
 
     /**
      * Verbs of perception. `self` only — the perceiver issues these.
@@ -223,4 +312,28 @@ export function PerceiverMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
   }
   return PerceiverMixin;
+}
+
+/**
+ * Optional-hook dispatcher — `typeof === 'function'`, so a SHADOW
+ * defining the hook participates without a `MixinApi.hasMixin`
+ * pre-check on the host. The `callTraverseHook` idiom from
+ * `lib/spatial/Mobile.ts`, which is the precedent this whole seam is
+ * modelled on: `Mobile.traverse` fires `onTraversed` on the mover
+ * from inside the move, and no command controller has ever had to
+ * know that `CartographerMixin` exists.
+ *
+ * ⚠ Swallows nothing and vetoes nothing — a perception hook is a
+ * witness, not a gate. Hosts that write documents from one are
+ * expected to be fire-and-forget themselves (see
+ * `lib/location/Cartographer.ts`).
+ */
+function callPerceptionHook(
+  obj: object,
+  name: string,
+  args: unknown[]
+): void {
+  const fn = (obj as Record<string, unknown>)[name];
+  if (typeof fn !== 'function') return;
+  (fn as (...a: unknown[]) => void).apply(obj, args);
 }

@@ -14,6 +14,11 @@ import { Idea } from '../../stuff/Idea';
 import { SensorMixin } from '../../message/Sensor';
 import { PerceiverMixin } from '../Perceiver';
 import { makeStuff } from '../../security/__tests__/test-setup';
+import type { Perceiver } from '../Perceiver';
+import type { Stuff } from '../../stuff/Stuff';
+
+/** A place that is not `Exitable` — perceiving it must still count. */
+class Nowhere extends Idea {}
 
 describe('PerceiverMixin', () => {
   beforeEach(() => {
@@ -93,6 +98,79 @@ describe('PerceiverMixin', () => {
         static _mixinName = 'WithInterior';
       }
       expect(() => makeStuff(() => new WithInterior())).not.toThrow();
+    });
+  });
+  describe('⭐⭐ the perception moment is a CALL, the hook is an EXTENSION', () => {
+    /*
+     * The seam this suite guards: three command controllers used to
+     * fire `onPerceivedPlace` through their own structural casts, each
+     * re-assembling the gate + the `Exitable` narrowing, and they had
+     * already diverged (`look` recorded who it saw; `sense` did not).
+     * A verb now makes ONE call and the body decides what perceiving
+     * entails.
+     */
+
+    it('fires the hook on a host that implements it, with the gated exits', () => {
+      const seen: Array<{ loc: Stuff; perceived: readonly Stuff[] }> = [];
+      class Keeper extends PerceiverMixin(SensorMixin(Idea)) {
+        onPerceivedPlace(loc: Stuff, perceived: readonly Stuff[]): void {
+          seen.push({ loc, perceived });
+        }
+      }
+      const looker = makeStuff(() => new Keeper());
+      const place = makeStuff(() => new Nowhere());
+
+      const exits = (looker as unknown as Perceiver).perceivePlace(place);
+
+      // A place that is not `Exitable` is still PERCEIVED — a room
+      // with no way out is somewhere you have been.
+      expect(exits).toEqual([]);
+      expect(seen).toHaveLength(1);
+      expect(seen[0]?.loc).toBe(place);
+      expect(seen[0]?.perceived).toEqual([]);
+    });
+
+    it('⭐ a host implementing NOTHING is a clean no-op — no cast, no throw', () => {
+      class Blank extends PerceiverMixin(SensorMixin(Idea)) {}
+      const looker = makeStuff(() => new Blank());
+      const place = makeStuff(() => new Nowhere());
+      expect(() =>
+        (looker as unknown as Perceiver).perceivePlace(place),
+      ).not.toThrow();
+      expect(
+        (looker as unknown as Perceiver).perceivePlace(place),
+      ).toEqual([]);
+    });
+
+    it('an empty timetable never reaches the hook', () => {
+      let calls = 0;
+      class Reader extends PerceiverMixin(SensorMixin(Idea)) {
+        onReadTimetable(): void {
+          calls += 1;
+        }
+      }
+      const reader = makeStuff(() => new Reader());
+      (reader as unknown as Perceiver).perceiveTimetable([]);
+      expect(calls).toBe(0);
+      (reader as unknown as Perceiver).perceiveTimetable([
+        { identity: '/x', address: '', grouping: '' } as never,
+      ]);
+      expect(calls).toBe(1);
+    });
+
+    it('⭐⭐ the call surface is on the INTERFACE — a verb needs no structural cast', () => {
+      // The regression this guards: `perceivePlace` going optional (or
+      // back onto the hook) would put the casts back in the
+      // controllers, which is how `look` and `sense` diverged.
+      class Looker extends PerceiverMixin(SensorMixin(Idea)) {}
+      const obj = makeStuff(() => new Looker());
+      expect(MixinApi.isPerceiver(obj)).toBe(true);
+      if (MixinApi.isPerceiver(obj)) {
+        // No `as unknown as` anywhere in these two lines — that IS the
+        // assertion; the narrowing alone must reach both methods.
+        expect(typeof obj.perceivePlace).toBe('function');
+        expect(typeof obj.perceiveTimetable).toBe('function');
+      }
     });
   });
 });

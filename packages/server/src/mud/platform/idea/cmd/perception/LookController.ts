@@ -237,14 +237,9 @@ export default class LookController extends CommandController<LookModel> {
       // ⭐ The perception moment, in the dark too: you cannot describe
       // the room, but you have been here and you can feel the ways out.
       // A map of a pitch-black room you stood in is honest knowledge.
-      const perceivedDark = hasExits
-        ? location.obviousExitsFor(actor)
+      const perceivedDark = MixinApi.isPerceiver(actor)
+        ? actor.perceivePlace(location)
         : [];
-      (
-        actor as unknown as {
-          onPerceivedPlace?(l: unknown, p: readonly unknown[]): void;
-        }
-      ).onPerceivedPlace?.(location, perceivedDark);
       if (hasExits) {
         const exitsLine = this.formatExits(perceivedDark);
         if (exitsLine) dark = Mml.compose`${dark}\n${exitsLine}`;
@@ -309,26 +304,16 @@ export default class LookController extends CommandController<LookModel> {
     // that renders the prose it was handed, which is the card surface's
     // question, recorded on `docs/slates/tails/carded-prose-slate.md`.
     const notices = EmploymentApi.noticesAt(location);
-    // ⭐⭐ THE PERCEPTION MOMENT — the one place a map may be written
-    // from. `obviousExitsFor(viewer)` has already filtered through the
-    // perception gate, so a hidden exit is ABSENT here rather than
-    // present-and-filtered-later: the hook cannot learn about an exit
-    // the viewer could not see, which is what makes the map's evidence
-    // firewall structural rather than policed.
-    //
-    // ⚠ Fired whether or not there are exits: the PLACE was perceived
-    // either way, and a room with no way out is still somewhere you
-    // have been. Optional-hook idiom (`Mobile.canTraverse?`); the only
-    // implementer is `Avatar`, and it swallows its own errors.
-    // ⚠ The ternary keeps the `isExitable` narrowing: `hasExits` is an
-    // aliased type predicate, and TS only narrows `location` where the
-    // alias is the condition.
-    const perceived = hasExits ? location.obviousExitsFor(actor) : [];
-    (
-      actor as unknown as {
-        onPerceivedPlace?(l: unknown, p: readonly unknown[]): void;
-      }
-    ).onPerceivedPlace?.(location, perceived);
+    // ⭐⭐ THE PERCEPTION MOMENT. One call: the body runs the
+    // perception gate, tells whatever it keeps (a map, a memory,
+    // nothing), and hands back the exits this viewer may know about —
+    // which are the same ones rendered below, because computing them
+    // twice is how the transcript and the map could ever disagree.
+    // The verb's business is WHEN a place is perceived; what that
+    // entails is the body's. See `Perceiver.perceivePlace`.
+    const perceived = MixinApi.isPerceiver(actor)
+      ? actor.perceivePlace(location, visibleContents)
+      : [];
     if (hasExits) {
       const exitsLine = this.formatExits(perceived);
       if (exitsLine) {
@@ -336,17 +321,6 @@ export default class LookController extends CommandController<LookModel> {
       }
     }
     if (visibleContents.length > 0) {
-      // Repeat-perception: seeing a being tracks it. First sight of an
-      // unknown creates a null-`knownAs` stranger record; later sightings
-      // coalesce and advance `lastSeen` (not a record per sighting). The
-      // null-name write never overwrites a learned name. Fired here on
-      // the look *controller*, never inside the naming step (which runs
-      // on every projection) — see `describeFor`.
-      for (const item of visibleContents) {
-        if (MixinApi.isOrganism(item) && MixinApi.isBeliefStore(actor)) {
-          actor.learnIdentityOf(item, null);
-        }
-      }
       // Items placed on a listed host (the bottles on the back-bar) are
       // not loose room contents — they're represented by their host and
       // discovered by examining it (`look back-bar`). Shared with `sense`
@@ -648,7 +622,7 @@ export default class LookController extends CommandController<LookModel> {
     return;
   }
 
-  private formatExits(exits: Exit[]): Mml | null {
+  private formatExits(exits: readonly Exit[]): Mml | null {
     if (exits.length === 0) return null;
     const parts = exits.map((exit) => {
       // `Mml.exit` emits a clickable `<exit dir="X" stuff-id="Y">` —
