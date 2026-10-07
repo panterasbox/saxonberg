@@ -2955,3 +2955,115 @@ requirements made a non-goal. AC 16 (lot-7 survives a reap and
 re-mint) rests on the handle being re-derivable from plan + extent,
 which `Stuff.durableHandle.test.ts` pins as arithmetic. ⚠ Neither is
 observed in play, and neither is claimed to be.
+
+---
+
+## Drive record — the pre-merge re-drive (2026-10-07)
+
+⭐⭐ **Why it was re-run.** The three records above predate the branch's
+last commits. `533fccf88` carried its own live acceptance, so the
+genuinely undriven surface was **two** commits — `e6f0abefc` (the
+`Perceiver` hooks deleted, channels made navigational) and `8d79b9125`
+(`searched`) — and both land on `Cartographer.ts` / `MapClaim.ts` /
+`Perceiver.ts`, which is exactly what the map checkpoints exercise.
+
+Run after merging `origin/master` (`83ce55a71`), on `PORT=2015`.
+
+### Steps 4–6 · the graph invariants — `lint:location-graph`
+
+```
+125 place(s), 201 edge(s)
+dangling-destination 0 · bidirectional-both-sides 0 · published-into-unpublished 0   (errors)
+cross-zone-one-sided 1/1 · unreachable-from-entrance 13/13 · asymmetric-edge 4/4 · destination-is-a-kind 2/2
+```
+
+### Steps 1, 2, 3, 7, 8, 11, 12 · the wire, run TWICE
+
+| run | result |
+|---|---|
+| **cold** (`reset-db`, first boot) | ✅ 11/11, no warnings |
+| **warm** (second boot, same DB) | ✅ 11/11, no warnings |
+
+⚠ **Both, deliberately.** The previous browser pass's worst finding —
+`DetailedMixin.details` persisted with no marshaller, which broke every
+MQL scope walk — appeared *only* in a world booted on an existing DB
+("which turned out to be the whole point"). A cold-only re-drive cannot
+re-verify that fix.
+
+### Steps 9, 10, 12 · the browser, on the warm world
+
+| step | checkpoint | result |
+|---|---|---|
+| — | `find terminal` on a warm world | ✅ `a Teleport Authority terminal (/world/lounge/thing/terminal)` — ⭐ the very object the `details` defect was recorded against |
+| — | `teleport <path>` (the free-form spell) | ✅ refused **diegetically** — *"beyond your command of control"*, not the old `details.keys is not a function` |
+| 9 | the board's stops land on the map | ✅ `Terminus (published)` — a place never walked to |
+| 9+ | a place known both ways renders both | ✅ `the Terminus arrival gate (published, seen)` |
+| 10 | the map keeps a contradicted claim | ✅ `south → arrival gate (recorded just now; not seen when you last looked)` |
+| 10 | …and the world really did change | ✅ `go south` → *"You can't walk that way."* |
+| 8 | an unvisited locality | ✅ `You have no map of Hinkley Hills.` |
+| 12 | nothing crossing the wire names an unearned place | ✅ 8 frames across two `map` reads, **zero** `/world/` paths |
+
+⭐⭐ **The channel rename is VISIBLE, and it is more precise than what it
+replaced.** The previous pass recorded `Terminus (publication)` and `the
+Terminus arrival gate (walked, also published)`. It now reads
+`(published)` and `(published, seen)` — and `seen` rather than `walked`
+is *correct*: this run arrived by teleport and looked, it did not walk.
+The old single axis could not tell those apart, which is why
+`e6f0abefc`'s split exists. First live confirmation of that commit.
+
+⭐ **W10's fix re-verified outside its own acceptance.** Step 10's
+instrument was governed `eval --parcel /world/terminus/university-avenue
+--on here this.removeExit('south')` — receipted as *"governed eval by
+founder against /world/terminus/university-avenue"* and effective. The
+previous pass could not do this at all (finding 3) and walled the exit
+by editing `crossing.yaml` and restarting. ⚠ No content file was touched
+this time; exits are instruction fields applied from the row, so a
+reboot restores it.
+
+### ⚠ A refinement to step 12's method, not a defect
+
+A session-wide grep for `/world/` **now hits**, and the previous pass's
+*"13 inbound frames, zero `/world/` paths"* was a property of its
+conditions rather than of the build. Six frames in this session carried
+one. Every one placed:
+
+- four were **this session's own `eval` echoes and receipts** — a path
+  the driver typed, for an extent the driver holds title to;
+- `shell.control`/`schema:reset` carried them inside **authored help
+  text and command `examples`** (`title publish /world/terminus/market`,
+  `quit /world/lounge/idea/business`) — documentation, not places known;
+- `session.link` carried them in `releaseWindow` (the gazette's
+  publisher identity, public by design) and in **52 frames of
+  `frameBackfill`** — this character's own transcript, replayed by the
+  record layer.
+
+⭐ The previous pass saw none because it used a **fresh** character with
+no history to backfill. So the assertion has to be scoped to the map
+read's own payload — which is what the wire file already does
+structurally, and what the 8-frame check above does in the browser.
+**A whole-session grep will over-report forever; it is not the test.**
+
+### ⚠⚠ One finding, and it is master's — the grain cask was DEAD
+
+The boot log carried one error:
+
+```
+MaturationProfileCatalogue: '/trade/distilling/idea/maturation/grain-whisky-aging'
+  failed to stand up: RangeError: MaturationProfile.setTurnDays: days must be positive, got 0
+MaturationProfileCatalogue: 22 maturation profile(s) live
+```
+
+The row is byte-identical to `origin/master` (`806eef1ae`, whiskey-styles
+W4), so **grain whisky aging has been silently dead on master** — 22 of
+23 profiles standing up, and nothing but this line to say which one was
+missing. The dead-capability class this repo keeps paying for.
+
+⭐ Fixed by **deleting the field**, and the equivalence is provable
+rather than guessed: `turnDays` defaults to `3`, and `Maturing.ts` gates
+turning on **`turnedMaterial`** — which this row does not author, so the
+figure is never read whatever it is. `turnDays: 0` was the author saying
+*whisky does not turn*; omitting it says the same thing without throwing.
+⚠ Deliberately NOT fixed by relaxing `setTurnDays`, which correctly
+rejects a nonsense figure for every row that *does* turn, nor by
+inventing a positive number — that would be a design call for the
+whiskey build. Committed separately.
