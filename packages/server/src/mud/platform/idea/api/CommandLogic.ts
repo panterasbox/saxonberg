@@ -2470,6 +2470,43 @@ function bindPositionals(
           }
         }
       }
+      /**
+       * ⭐⭐⭐ **A greedy span that is exactly ONE QUOTED token binds the
+       * token's value, not the source slice.**
+       *
+       * The branches below build the field from a substring of the
+       * ORIGINAL SOURCE, deliberately, so that interior whitespace and
+       * escapes survive (`press post Some long headline`). The cost is
+       * that a quoted token's quote marks are part of that source — so
+       * `buy "dog loaf"` bound the six-plus-two-character string
+       * `"dog loaf"`, quotes and all, and `Stock.resolveBuy` →
+       * `Perceptible.hasKeyword` is an exact `includes` against
+       * `"dog loaf"` without them. The purchase could never match.
+       *
+       * ⚠⚠ And it was a REGRESSION waiting on the next author to go
+       * greedy: a NON-greedy positional binds `token.value`, which the
+       * tokenizer has already unquoted, so quoting worked perfectly on
+       * every one-token arg in the game. The reachability sweep made
+       * `buy.thing` greedy to fix `buy dog loaf` and would have broken
+       * `buy "dog loaf"` in the same commit — the bare form and the
+       * quoted form trading places, which is worse than either.
+       * `command-parsing.md:84-96` documents `"…"` as *the* way to make
+       * one token out of several, and nothing had ever asserted it
+       * through `assemble`: the only coverage was a lex/format
+       * round-trip.
+       *
+       * ⭐ The rule is narrow on purpose. ONE token that was quoted means
+       * the player used quoting for the thing it is for — *treat this
+       * phrase as a single argument* — so the unquoted value is what they
+       * meant. SEVERAL tokens is free text, where an interior quote is
+       * part of what was written (a headline, a line of dialogue) and the
+       * source slice remains right.
+       */
+      const greedySpan = positionals.slice(pi, stopAt);
+      const loneQuoted =
+        greedySpan.length === 1 && greedySpan[0]!.raw !== greedySpan[0]!.value
+          ? greedySpan[0]!.value
+          : null;
       if (stopAt === pi) {
         // The boundary preposition appeared with nothing before it
         // — the greedy field has no content. Default fills if
@@ -2482,6 +2519,8 @@ function bindPositionals(
             summary: `missing required arg: ${name}`,
           };
         }
+      } else if (loneQuoted !== null) {
+        bound[name] = expand(loneQuoted);
       } else if (stopAt < positionals.length) {
         // Build the substring from the original source to preserve
         // whitespace, but cut it just before the boundary token.

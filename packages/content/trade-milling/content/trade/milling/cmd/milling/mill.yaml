@@ -16,11 +16,25 @@ verbs: [mill, grind]
 controller: /trade/milling/idea/cmd/milling/MillController
 description: "Grind grain or malt, and choose how much of it you keep"
 help: |
-  `mill the sack of wheat` grinds it at whatever stones are in reach, at
-  their usual setting. `grind` is the same verb — reach for whichever
-  word fits what you are putting through. `mill the sack of wheat 0.9` sets the extraction
-  first. Where there is more than one — a quern in your hands and a mill
-  in the room — say which: `mill the wheat at the quern`.
+  `mill wheat` grinds it at whatever stones are in reach, at their usual
+  setting. `grind` is the same verb — reach for whichever word fits what
+  you are putting through. `mill wheat 0.9` sets the extraction first.
+  Where there is more than one — a quern in your hands and a mill in the
+  room — say which: `mill wheat at the quern`.
+
+  ⚠⚠ **A multi-word name needs quotes here**, and this verb is the one
+  place in the trade where that is true: `mill "sack of wheat"`. The
+  number after the grain is the extraction, and a bare number declares
+  no preposition that could mark where the name ends — so the name has
+  to say so itself. (`buy dog loaf` needs no quotes because every slot
+  after the good's name declares a preposition to stop at; `mill` has a
+  naked number in the middle, and that is the whole difference.)
+
+  Say it without the quotes and it does not refuse you — it mills the
+  wrong thing. `mill sack of wheat` reads `sack` as the grain, `of` as
+  the extraction and `wheat` as the stones. That is the one place in this
+  trade where the grammar can take a sentence you did not mean, and the
+  quotes are how you keep it from happening.
 
   ⭐ **The extraction is the decision.** It is how much of the grain you
   keep as flour, and it is not a choice between three options — every
@@ -95,9 +109,18 @@ args:
   # metal chain's stamp mill is its second consumer, in a pack with no
   # ancestor in common — so a class check would silently refuse to find
   # the very thing the mixin was lifted to the kernel for.
+  #
+  # ⭐⭐ `greedy: true` — and this comment's own example is why. `mill
+  # wheat at the hand quern` is the form the paragraph above promises,
+  # and it did not bind: a non-greedy arg takes exactly ONE token, so
+  # `the` and `quern` were two more positionals with nowhere to go and
+  # the answer was *"that doesn't match any known command shape"*. The
+  # `look at the ground` defect, on a verb that invites you to name the
+  # stones. Safe because this arg is LAST.
   - name: mill
     type: object
     required: false
+    greedy: true
     prepositions: [at, with, on]
     default: "reachable:[mixin.ComminutingMixin]"
     scope: ["reachable"]
