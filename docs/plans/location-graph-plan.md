@@ -3067,3 +3067,108 @@ figure is never read whatever it is. `turnDays: 0` was the author saying
 rejects a nonsense figure for every row that *does* turn, nor by
 inventing a positive number — that would be a design call for the
 whiskey build. Committed separately.
+
+---
+
+## Drive record — the POST-MERGE re-drive (2026-10-07)
+
+Re-run after `0d2420d5d` merged 61 commits of master (the carcass chain
+and butchery, tanning, chandlery, ranching, baking). The record above
+tested a tree 61 commits behind this one.
+
+### All three surfaces, green
+
+| surface | result |
+|---|---|
+| steps 4–6 · `lint:location-graph` | ✅ 125 places, 201 edges, every error rule 0 |
+| steps 1,2,3,7,8,11,12 · wire **cold** | ✅ 11/11 |
+| steps 1,2,3,7,8,11,12 · wire **warm** | ✅ 11/11 |
+| step 9 · the board's stop | ✅ `Terminus (published)` — never walked to |
+| step 9+ · known both ways | ✅ `the Terminus arrival gate (published, seen)` |
+| step 10 · a contradicted claim | ✅ `south → hall (recorded just now; not seen when you last looked)` |
+| step 10 · the world really changed | ✅ `go south` → *"You can't walk that way."* |
+| step 8 · an unvisited locality | ✅ `You have no map of Hinkley Hills.` |
+| step 12 · the render | ✅ 10 frames over two `map` reads, **zero** `/world/` paths |
+| W10 · governed eval writes an exit | ✅ receipted against `/world/terminus/terminal` |
+
+⭐ **Why the browser half was re-walked rather than carried forward on
+the diff.** Master's 61 commits touched NONE of the map path —
+`Cartographer.ts`, `MapClaim.ts`, `navigation.ts`, `NavigationLogic.ts`,
+`MapController.ts`, the whole of `lib/location/`: zero commits. That
+would have justified carrying it; it was walked anyway, and the walk is
+what found the one real defect below.
+
+### ⚠ Two measurements that corrected earlier claims in this plan
+
+**Cold boot is ~260s, not ">420s".** A first attempt died on the
+harness's 420s `WIRE_BOOT_TIMEOUT` and was written up as *the default is
+now too small for the shipped world*. Measured on an idle box: boot
+**≈260s cold** (275s run, 14.5s of it tests) and **≈95s warm**. The
+budget is not exceeded — the failing attempt lost to CPU contention from
+a full-suite run that had just been stopped. ⭐ The honest finding is a
+**thin margin**: ~60% headroom cold on a quiet machine and none on a
+loaded one, with a failure that reads like a hang and a server log that
+looks perfectly healthy (11 lines, no errors, still installing packs).
+
+**The front door was MY misconfiguration, not a regression.** An
+authenticated test-login session with a provisioned character landed on
+the marketing front door instead of character select — reproducibly, in
+a clean isolated browser context, with the server log confirming
+`TestHooks: provisioned test character`. It looked like a
+merge-interaction defect and was nearly written up as one. ⛔ The Vite
+process had **no `VITE_` variables in its environment at all**, so the
+client was calling the dead default `localhost:2010`; `/auth/status`
+failed and the front door was the correct response. Restarting Vite with
+the env fixed it first try. ⚠ Recorded because the symptom is so
+convincing: the client looks broken, the server looks fine, and the
+cause is one missing env var on the driver's own stack.
+
+### ⚠⚠ One real finding, and it is MASTER's — a tpa route silently fails
+
+```
+fast-travel cascade: route /world/newbie-wilds/crossroads/terminal failed to load:
+  Organism.setSex: species' sex-determination system rejects all sex values; cannot set 'female'.
+```
+
+**New post-merge**: 0 occurrences across both pre-merge boot logs, 1 in
+the post-merge boot and 1 in the wire server log.
+
+⭐ **Traced, not guessed.** `hearts-delight` **did not exist before this
+merge** (`moss.yaml` is absent at the merge base; master added the pack
+in three commits). Its `sheepdog` and `moss` rows author `sex: female`
+over `canis/familiaris`, whose species row declares
+`sexDeterminationSystem: xy` — so the row and the species are both
+correct. The throw means `getValidSexSet()` was **empty at the moment
+`setSex` ran**: `OrganismMixin` re-resolves `_speciesPath` through
+`findByTemplatePath` on every read, and the fast-travel cascade stands
+these animals up at late boot (log line 410 of 418) **before their
+Species singleton is resident**. Empty set → throw → the cascade's
+tolerant `catch` swallows it → **one tpa route is silently not loaded.**
+
+⚠ Two hypotheses were tested and **disproved** before landing on that,
+and both are recorded because each looked right:
+
+1. **"W10 dropped a boundary entry."** It did not. All 25 paths from the
+   retired hand-maintained list carry a `boundaryRole` declaration (40
+   classes declare one now), and `lint:boundary-roles` cannot catch an
+   under-declaration anyway — its ceiling guards against too MANY
+   `commons`, not a missing one. Worth knowing for the next person who
+   suspects it.
+2. **"Master added an entry to the list this branch deleted"** — the
+   classic silent auto-merge loss. It did not: master's only change to
+   `security.ts` in 61 commits was the single doc-comment path
+   `/stuff/agent/Corpse` → `/stuff/thing/Corpse`, which the merge
+   resolution carried across deliberately.
+
+⛔ **Not fixed here, and deliberately.** The candidate fixes are (a)
+make `setSex` tolerate an unresolved species, (b) warm Species before
+the fast-travel cascade, (c) stop the cascade standing up casts. (a) is
+wrong — Login's guest path already does it and silently leaves a ranch
+dog sexless, which is a content lie. (b) is a bootstrap **ordering**
+change, which is not a drive-by during somebody else's sweep. → the
+ranching/carcass owners.
+
+⭐ **Third master defect this sweep has surfaced**, after the red
+`pnpm lint` (`e6290330c`) and the dead grain-whisky maturation profile
+(`3f509892a`). All three were invisible to the suite and visible at boot
+or at a gate.
