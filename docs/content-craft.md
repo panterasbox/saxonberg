@@ -601,20 +601,21 @@ a shift or routing around a committee. There is no moment.
 right** — the only antagonist a world of good people produces, and the
 one the Compact exists to arbitrate.
 
-⭐⭐⭐ **Which suggests the inversion.** Hannah made the immoral path
-*inviting*. Ours has to make the **lawful path look wrong**: the rule
-obviously stupid in that one case, the chaotic choice plainly correct and
-faster and better for everybody in the room, and the engine declining to
-say which. Following the process has to **cost something real, visibly,
-while nobody thanks you** — because if it is free, choosing it reveals
-nothing and the player has solved an incentive rather than decided who
-they are.
+⚠⚠ **RETRACTED, 2026-10-07.** This section first said the inversion was
+to **make the lawful path look wrong** — the rule obviously stupid in that
+one case, so that following it costs something visible and nobody thanks
+you. That was putting the judgment into the level design, which is the
+thing both of these authors specifically did **not** do.
 
-⚠ That is an uncomfortable thing for us to build, since the Compact is
-the house's own project: a first-contact area that makes the lawful path
-look foolish is the platform publishing an argument against itself, in
-content, where it cannot be mistaken for a rule. Which may be precisely
-the point — it is what Hannah did to alignment.
+⭐⭐⭐ **The better answer is § 8a: leave the rule alone, and let
+somebody in the room have an opinion about what you did with it.** You do
+not need the process to be foolish. You need **Earl to notice you skipped
+it.** That is cheaper, it ports to any axis, and it does not require the
+house to publish an argument against its own Compact in content.
+
+What survives of the original reading: following the process still has to
+**cost something**, or choosing it reveals nothing. The correction is only
+about *who says so* — the cast, never the level.
 
 ## 6. ⭐⭐⭐ The composition is the straight man
 
@@ -765,6 +766,63 @@ was visible to players the whole time. It was simply never costly to
 anybody.
 
 ---
+
+## 8a. ⭐⭐⭐ Where the judgment lives — the engine measures, the cast valuates
+
+Two authors, thirty years apart, made the same move, and it is the most
+transferable thing in this document.
+
+**Minetown.** A player drops something — trivially rude, nothing more. The
+engine imposes **nothing**: no fine, no counter, no message telling them
+they were rude. Instead a child picks it up, carries it to her mother,
+and every other NPC's program is halted so that *"The rest of the room
+stops what they're doing and watches Tina."* Sue keeps it — *"you'd
+better let me keep it 'case someone comes 'round askin for it..."*
+
+**Newbieland.** A player kills Bambi. The engine imposes **nothing** —
+the alignment integer moves, cheerfully, under a sign that says *Have
+fun!* The only judgment anywhere in the area is the fact that the thing
+you killed was named Thumper.
+
+⭐⭐⭐ **In both cases the mechanics decline to judge and the judgment is
+supplied by somebody who lives there.**
+
+Which is [measurement.md](./measurement.md)'s rule with its missing half
+filled in:
+
+> *The engine may read a measurement. It must never read a valuation.*
+
+⭐⭐ **But an NPC may.** A character is allowed to think you are a
+litterbug. The engine is not. So the rule is not a prohibition on moral
+content — it is a statement about **where moral content is allowed to
+live**: not in a rule, not in a counter, **in somebody's reaction.**
+
+### Why this is the cheap version
+
+A judgment in the mechanics has to be designed, balanced, tuned, and
+defended — and the moment it is a number, the player optimises it instead
+of feeling it (§ 5a: *"if it punished you, you would be solving an
+incentive"*).
+
+A judgment in the cast costs **one idle line and one disappointed
+child**, ports to any axis, needs no balancing, and cannot be farmed.
+⭐ And it scales the right way: ten NPCs with opinions give you ten
+judgments; ten rules give you an optimisation problem.
+
+### ⭐ The corollary — a wrong name is content; ignorance is only absence
+
+[rejection-slate](./slates/builds/rejection-slate.md) has the best
+instance: the town calls a life stage *whelps* because it believes they
+are juveniles, and they are not. **A folk taxonomy corrected by
+observation.**
+
+⭐⭐ That is better than having the town simply not know, because *not
+knowing* is a hole and **a wrong name is a thing a player can find the
+edge of.** The same move is available anywhere a cast has to describe
+something it does not understand — a miner's word for a gas, a farmer's
+word for a blight, a shopkeeper's theory about why the price moved. ⚠ It
+also means the correction is content: somebody gets to be the one who
+works it out, which is survey work rather than exposition.
 
 ## 9. ⚠⚠ Cultural content, and why launch cannot have any
 
