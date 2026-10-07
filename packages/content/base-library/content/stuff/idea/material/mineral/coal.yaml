@@ -28,7 +28,14 @@ data:
   edibility: false
   nutrients: []
   toxicity: []
-  tags: ["mineral", "solid", "fuel", "carbon", "sulfurous"]
+  # ⭐ `coal` is its own tag, added by the fire build. A firing matches
+  # its charge by material TAG, and coal shares `fuel` and `carbon` with
+  # charcoal and coke — so without a tag that means *this substance* a
+  # `fire` on a retort could not tell a coal charge from a charcoal one
+  # and would match whichever recipe came first. ⚠ The smelter's two
+  # existing reads (`fuel`+`carbon` for the reducing charge, `sulfurous`
+  # for the hot-short arm) are untouched.
+  tags: ["mineral", "solid", "fuel", "carbon", "sulfurous", "coal"]
   composition: []
   chemistry: null
   biologicalSource: null

@@ -138,6 +138,8 @@ export interface Burner {
   fuelMaterials(): Material[];
   /** The dominant fuel, or `null`. */
   fuelMaterial(): Material | null;
+  /** This material's share of the bed, by mass. */
+  fuelShareOf(material: Material): number;
   /** How fast it is burning right now, in watts. */
   burnPowerW(): number;
   /**
@@ -465,6 +467,22 @@ export function BurnerMixin<TBase extends MixinConstructor<Stuff>>(
 
     public fuelMaterial(): Material | null {
       return this.fuelMaterials()[0] ?? null;
+    }
+
+    /**
+     * What share of the bed, by mass, is this material — ⭐ what a mixed
+     * charge's imparted smoke is weighted by. Half peat and half oak
+     * reads half as smoky, which is both true and the thing a maltster
+     * actually controls.
+     */
+    public fuelShareOf(material: Material): number {
+      for (const entry of this.fuelShares()) {
+        if (entry.material === material) return entry.share;
+        const a = entry.material.getTemplatePath();
+        const b = material.getTemplatePath();
+        if (a !== null && a === b) return entry.share;
+      }
+      return 0;
     }
 
     /**

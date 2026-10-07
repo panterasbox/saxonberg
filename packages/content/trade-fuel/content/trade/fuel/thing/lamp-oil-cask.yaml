@@ -32,7 +32,7 @@ data:
   gradeBand: fair
   censusKey: fuel:lamp-oil
   materialTags: [lamp-oil, fuel]
-  # A week of a gas-lit town's demand as buffer (6 L/night × 7 ≈ one cask a
+  # A week of an oil-lit town's demand as buffer (6 L/night × 7 ≈ one cask a
   # week); the sweep keeps a few on the floor for the public-works buyer.
   regionTarget: 4
   container: /world/terminus/goods-yards/oilworks/thing/stock

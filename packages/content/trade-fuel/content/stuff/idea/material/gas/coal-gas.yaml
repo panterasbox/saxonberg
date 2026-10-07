@@ -1,0 +1,42 @@
+# Coal gas — ⭐⭐ **the gas that lit the nineteenth century**, and the first
+# utility any town ever had.
+#
+# Cook coal in a closed retort and a burnable gas comes off it: mostly
+# hydrogen and methane, with enough carbon monoxide in it to kill you
+# quietly. Pipe it to a bell, pipe the bell to the street, and a town has
+# light after dark for the first time — which is the entire reason the
+# word *gas-lit* exists.
+#
+# ⭐ Two derivations do all the work here and neither is authored twice:
+#
+#  - `boilingPoint: 110` makes it a GAS, so only a sealed vessel holds
+#    it (`requiredClosureFor`), and a pour into a pail escapes into the
+#    room;
+#  - `heatOfCombustion: 50` makes it burn, and burn CLEAN — which under
+#    the fire build's luminosity model means a gas lamp is noticeably
+#    DIM. ⭐⭐ That is the mantle problem arriving by itself: the reason
+#    somebody had to invent a gas mantle is that the flame alone is a
+#    disappointment, and the game now has that problem without anybody
+#    authoring it.
+class: /platform/idea/material/Material
+data:
+  name: coal gas
+  keywords: ["coal gas", gas, "town gas", "illuminating gas"]
+  appearance: nothing you can see
+  density: 0.55
+  specificHeat: 2200
+  thermalConductivity: 0.05
+  boilingPoint: 110
+  heatOfCombustion: 50
+  autoignitionTemperature: 870
+  # ⚠ The quiet killer. Coal gas suicide was common enough to be a
+  # cliché, and it is why natural gas replacing town gas is counted as a
+  # public-health event.
+  toxicity:
+    - type: carbonMonoxide
+      amount: 20
+  edibility: false
+  nutrients: []
+  tags: [gas, fuel, flammable]
+  composition: []
+  biologicalSource: null

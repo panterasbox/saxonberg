@@ -1,0 +1,33 @@
+# ⭐⭐ **Wood in a retort** — the same charge the clamp takes, in a chamber
+# that keeps what the clamp throws away.
+#
+# A clamp and a retort make the same charcoal. The difference is entirely
+# in the by-product: a clamp vents the tar out of its dome (that smoke IS
+# the tar), and a retort hands it to whatever is standing on the head.
+# ⚠ Nothing is removed — the collier keeps the clamp, because a clamp is
+# three days of watched judgement and a retort is a loaded chamber you
+# fire. Two acts, two skills, one output and one by-product.
+#
+# ⚠ `category: wood` and NOT `fuel`: `firingsFor` matches by material
+# tag, and coal is tagged `fuel` too — a `fire` on a retort charged with
+# coal must match the coal recipe and not this one.
+recipeId: retort-wood
+name: Retorted charcoal
+keywords: [retort, charcoal, tar, "wood tar"]
+inputSlots:
+  - { slot: charge, category: wood, minGrade: poor, kind: item, count: 4 }
+toolCapabilities: []
+outputTemplate: /trade/fuel/thing/charcoal
+outputMaterial: ''
+outputApplication: tangible
+requiresHeatK: 650
+difficulty: standard
+discipline: colliery
+# ⭐ 80 litres of tar per kilogram of wood. Generous against the real
+# figure (a tonne of wood gives ~50 L of tar, so ~0.05 L/kg), and
+# deliberately so: a 4-length charge of cordwood at 3.2 kg each is 12.8
+# kg, which at the real rate would fill less than a litre and read as
+# nothing at all. The number that matters is that a condenser fills
+# visibly from one firing.
+volatiles:
+  - { material: /stuff/idea/material/bulk/wood-tar, litresPerKg: 0.08 }

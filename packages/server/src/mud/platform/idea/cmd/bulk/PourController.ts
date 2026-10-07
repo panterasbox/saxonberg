@@ -127,6 +127,22 @@ export default class PourController extends CommandController<PourModel> {
       }
     }
 
+    // ⭐⭐ Escape: a GAS into something that will not hold it. Not a
+    // puddle and not silence — it is in the air of the room now, and the
+    // sentence has to say so, because in a shut room that is dangerous.
+    if (result.status === 'escaped') {
+      MessageApi.scene(giver)
+        .topic(TOPIC)
+        .toSelf(
+          Mml.compose`It will not stay in ${Mml.thing(target)} — it is gone into the air.`,
+        )
+        .toPeers(
+          Mml.compose`${Mml.actor(giver)} loses a charge of gas into the air.`,
+        )
+        .send();
+      return;
+    }
+
     // Drain-through: an open destination didn't retain the liquid.
     if (result.status === 'drained') {
       MessageApi.scene(giver)

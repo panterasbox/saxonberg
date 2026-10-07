@@ -1047,7 +1047,38 @@ trade-distilling, trade-fuel, trade-smelting), AC20.
 
 **Commit.** `build(fire W1): a burner knows its fuel — the bed, stoke, the draught, and heat, light and exhaust derived`
 
-### W2 — A gas is matter only a sealed vessel holds
+### W2 — A gas is matter only a sealed vessel holds ✅ DONE
+
+> **Build note (W2).** D2 and D10, and the three closure defects closed.
+>
+> **B14 — `isGasRetained` asks what a slot ALREADY holds, so the escape
+> check cannot use it.** An empty can holds nothing and therefore answers
+> *retained*, which would have let the arriving gas straight in. The
+> transfer asks the destination's LID directly instead. ⭐ A question
+> about what is arriving is not the same question as a question about
+> what is there — and the public `isGasRetained()` read is still the
+> right answer to the second one.
+>
+> **B15 — ⛔ The lid test was inverted on the first write.** `retained =
+> !isSealable || isOpen()` says a shut bottle leaks. Caught by the test
+> for the case it exists for.
+>
+> **B16 — R7 resolves as "no declaration".** `CLOSURE_ORDER` is a
+> `Record`, and `lint:closed-vocabularies` only sees arrays of literals
+> (its own documented limit 3) — so it does not count the new membership
+> test, and the gate **refuses a stale exemption** by design: *"an
+> exemption for a vocabulary whose consult shape the detector can no
+> longer see reads as a considered judgement about live code and is not
+> one."* Declaring it would be exactly the inert claim the gate exists to
+> prevent. Recorded here instead.
+>
+> **Also:** a gas poured at a SURFACE escapes too (nothing lies on a
+> table); `Thermal.reconcileBulkPhase`'s boil arm skips a gas, without
+> which a lamp filled with coal gas would be destroyed by its own flame
+> on the first tick; both air tanks author `closure: sealed`, which they
+> now need because air has a boiling point; `getAirGauge()` becomes an
+> honest pressure read by reinterpretation, with no new field.
+
 
 **Goal.** D2, D10; the closure defects closed.
 
@@ -1096,7 +1127,56 @@ W3).
 
 **Commit.** `build(fire W2): gas is bulk that only a sealed vessel holds — closure validated, phase derived, the escape branch`
 
-### W3 — The retort, the condenser, the gasometer: tar, pitch, coke, coal gas
+### W3 — The retort, the condenser, the gasometer: tar, pitch, coke, coal gas ✅ DONE
+
+> **Build note (W3).** D3 and D11, and `trade-fuel` grew a second
+> chamber beside the clamp. Four decisions the plan did not make.
+>
+> **B17 — ⭐ `placements: [on]`, not a bespoke `outlet` member.** The
+> plan's own reachability table flagged this as one of the two links most
+> likely to die silently, and it was right: `Placement` is a ROW
+> vocabulary (`on`, `in`, `from` — three rows under
+> `/platform/idea/Placement/`) and a member naming no row makes `place`
+> refuse in the vocabulary's own phrase. A condenser stands ON the
+> retort, which is both true and already expressible. No new row, no new
+> vocabulary.
+>
+> **B18 — The gas bladder needs NO class.** `Flask` is already
+> `Thermal(Sealable(Bulkable(Good)))` — carried, holds bulk, and has a
+> lid whose state matters — so a bladder is that row with `closure:
+> sealed` and `open: false`. Two classes shipped instead of four
+> (`Retort`, `Condenser`, `Gasometer`; `GasBladder` declined).
+>
+> **B19 — ⛔ Coal had no tag meaning COAL.** `firingsFor` matches a
+> charge by material tag, and coal carried `fuel` and `carbon` —
+> which charcoal and coke also carry — so a `fire` on a loaded retort
+> could not tell a coal charge from a charcoal one and would have matched
+> whichever recipe came first. A `coal` tag added; ⚠ the smelter's two
+> existing reads are untouched, which the pack's suite asserts.
+>
+> **B20 — Coal tar authors NO toxicity, deliberately.** Its real hazard
+> is chronic (carcinogenic, over years of contact) and this game models
+> an acute dose and a breath; a dose here would need a new toxin type
+> AND a new `Condition` row to mean anything, and a toxin with no
+> condition behind it is a number nothing reads. The hazard is recorded
+> in the row's prose rather than faked as an acute figure.
+>
+> **The routing, which is what had three silent failure modes:** a
+> receiver that swallows a gas, a condenser that drops an overflow, and a
+> chamber with nothing on it that loses the lot instead of filling the
+> room. `receive()` returns what it TOOK and the caller passes the
+> remainder on, so *retort → condenser → gasometer* composes with no
+> class knowing more than its neighbour, and every leftover litre ends up
+> somewhere a player can measure.
+>
+> **AC9 needed no smelter code**, as the plan predicted: coke is tagged
+> `fuel`+`carbon` and not `sulfurous`, so it passes every gate charcoal
+> passes. The case is asserted in `trade-smelting`'s own suite beside the
+> coal one.
+>
+> **Verified:** `retort.test.ts` 12 green; `trade-smelting` 32 green;
+> `Bulkable` 65 green; the census holds at 47/47 pure repeats.
+
 
 **Goal.** D3, D11, the `trade-fuel` expression; AC7–AC12 reachable.
 
@@ -1276,7 +1356,51 @@ repeated drains and recharges. `Deposit.gas` above/below the band.
 
 **Commit.** `build(fire W4): firedamp — a gas in the seam, the flash, the safety lamp, and drain`
 
-### W5 — The kiln's smoke comes from the fire
+### W5 — The kiln's smoke comes from the fire ✅ DONE
+
+> **Build note (W5).** `Material.combustionImparts` ships, the peated
+> kiln recipe is **deleted**, and one more real defect fell out.
+>
+> **B21 — ⛔⛔ `applyEdibleOutput` handled NEITHER `imparts` nor the
+> fire's — and it is the branch COOKING takes.** The plan said to fix the
+> derived branch of `applyBulkOutput` ("which drops `imparts` entirely");
+> there is a third output branch, it is the one every cooked dish goes
+> through, and it folded no aromatics at all. So a recipe declaring
+> `imparts:` on an **edible** output added nothing, silently, and smoking
+> meat over a peat fire gave clean meat. ⭐ Found by a test written for
+> the fire half: the fire's imparts never arrived, and the reason was
+> that the recipe's own never had either. Fixed with one `addAromasTo`
+> helper called from all three branches, so the next output kind cannot
+> quietly miss it.
+>
+> **B22 — `volatilesFrom` is PRIVATE, and `lint:lib-statics` is why.**
+> It has one caller (`fromData`), so a public static would be a member in
+> neither of the two places a person searches — and the gate caught the
+> +1 (340 against a ceiling of 339). ⭐ Being the same shape as its four
+> sibling validators says it may EXIST, not that the population may
+> grow; and the test is better for it, because asserting through
+> `fromData` exercises the path a pack install actually takes.
+>
+> **The recipe is gone, not deprecated.** `kiln-malt-peated` was
+> `kiln-malt` plus `imparts: [{smoke, 30}]` plus four turves as an ITEM
+> SLOT. Three things that cost: *the same recipe over a different fire*
+> was inexpressible; the turf's own moisture was invisible, because an
+> item slot cannot see it, so an as-cut turf kilned exactly like a dried
+> one; and the fuel was an input to a recipe rather than the thing in the
+> firebox. ⭐ The Crowsfoot floor's own comment recorded the seam and
+> named the fix — *"a burner that knows and dries its own fuel, on the
+> fire/energy slate"* — and that burner shipped, so the comment is
+> replaced by what happened rather than restated.
+>
+> **A mixed bed is weighted by mass** (`Burner.fuelShareOf`): half peat
+> and half oak reads half as smoky, which is what a maltster actually
+> controls and what an item slot could never express.
+>
+> **Verified:** `CraftingLogic.medium` 23 green including four new cases
+> (smoky fuel, clean fuel, mixed bed, and the misspelt-aroma refusal);
+> `malting-chain` rewritten and green; the still book, the hand's
+> competence note and the turf stack's prose all updated.
+
 
 **Goal.** The fourth consumer; AC16. The kiln rows live in
 `trade-malting` (G8), which the requirements call the distiller's
@@ -1314,7 +1438,22 @@ kiln — the plan touches the pack that owns the rows and says so.
 
 **Commit.** `build(fire W5): the peated kiln derives — combustionImparts on the fuel, one kiln recipe, the sodden turf refuses`
 
-### W6 — `oil-lit`
+### W6 — `oil-lit` ✅ DONE
+
+> **Build note (W6).** D15, and it is one returned string plus thirteen
+> comment and doc lines. A `FuelStore` holds lamp OIL — a liquid out of
+> casks — and calling that *gas-lit* named the wrong fuel, the wrong
+> supply chain and the wrong century.
+>
+> ⭐ The reservation is the point: a town is gas-lit when its supply
+> burns a GAS, which W3 has just made possible (coal gas off a retort, a
+> gasometer to hold it) and which wants a gas main and a `FuelStore` that
+> stores gas — the power-utility slate's. Spending the word on oil now
+> would make the real thing unnameable when it arrives, which is recorded
+> in `GridReading.epochOf`'s own comment.
+>
+> The `energy` and `cold-storage` wire drives' assertions follow.
+
 
 **Goal.** D15; AC21.
 

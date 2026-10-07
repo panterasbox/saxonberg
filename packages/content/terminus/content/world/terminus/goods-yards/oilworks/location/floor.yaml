@@ -17,7 +17,7 @@ data:
   keywords: [floor, oil, works, still]
   register: definite
   longDescription: |
-    A flagged floor dark with spilled oil, a squat retort standing cold in the corner (the crafted route is a later build), and racks of casks waiting for the cart.
+    A flagged floor dark with spilled oil, a squat retort standing cold in the corner with a copper coil bent over into its receiver, and racks of casks waiting for the cart.
   exits:
     # The back door onto the goods yards — a hauler comes in this way to
     # collect what the hand crated, and the hand walks out this way to the
@@ -29,5 +29,11 @@ data:
   props:
     - /trade/haulage/thing/works-board
     - /world/terminus/goods-yards/oilworks/thing/stock
+    # ⭐ The retort the prose has described since the oil works shipped,
+    # standing cold in the corner. It was prose and a promise ("the
+    # crafted route is a later build"); it is an object now, with its
+    # condenser, and it works.
+    - /trade/fuel/thing/retort
+    - /trade/fuel/thing/condenser
   cast:
     - /world/terminus/goods-yards/oilworks/agent/hand

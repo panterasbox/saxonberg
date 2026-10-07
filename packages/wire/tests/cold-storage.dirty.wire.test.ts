@@ -101,7 +101,7 @@ suite('⭐⭐ the blood fridge — a powered ColdStore in the ward', () => {
     // eslint-disable-next-line no-console -- the drive's own record
     console.log('  [drive] ward analyze grid:', grid);
     expect(grid).toMatch(/electric/i);
-    expect(grid).not.toMatch(/off-grid|gas-lit/i);
+    expect(grid).not.toMatch(/off-grid|oil-lit/i);
     // The premises is ON the grid — its feeder node is named. (Energization
     // does not settle over the socket; see the header.)
     expect(grid).toMatch(/feeder node/i);

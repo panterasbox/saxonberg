@@ -232,7 +232,7 @@ describe('the shipped packs (real discovery, no install)', () => {
     // parcel meter and the oil store (the `FuelStore`, `ElectricLight`,
     // `LineAccess`, `GridCatalogue` classes). Terminus migrated its street
     // lighting onto the grid and props the poles and the lobby light;
-    // world-seed ships the feeder rows; hearts-delight is gas-lit from a
+    // world-seed ships the feeder rows; hearts-delight is oil-lit from a
     // store — so each names the energy pack's classes and installs after it.
     // The mechanism is the system's; a town's lamps are the realm's.
     for (const namer of ['world-seed', 'terminus', 'hearts-delight']) {

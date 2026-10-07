@@ -1,0 +1,26 @@
+# A gas bladder — ⭐ the carriable gas vessel, and it needs no class.
+#
+# A `Flask` is already `Thermal(Sealable(Bulkable(Good)))`: a thing you
+# pick up, that holds bulk, and that has a lid whose state matters. A
+# bladder is that with `closure: sealed`, which is the one fact that
+# makes it hold a gas — ⭐ and the one fact that makes an OPEN bladder a
+# hole, because closure is construction and the lid is state.
+#
+# ⚠ Ships SHUT. A bladder left open is a bladder full of air, and the
+# fire build's escape branch would lose a whole firing's gas into the
+# room — which is honest, dangerous and not what anybody means to do.
+class: /platform/thing/Flask
+data:
+  shortDescription: oiled-canvas gas bladder
+  keywords: [bladder, bag, gas, canvas]
+  register: indefinite
+  longDescription: >-
+    A limp bag of canvas soaked in linseed oil, with a brass tap and a
+    screw clamp at the neck. Full, it is an awkward pillow of a thing and
+    nobody wants to be carrying it near a flame.
+  _materialPath: /stuff/idea/material/textile/jute
+  mass: 2
+  interiorBulk: true
+  interiorCapacity: 400
+  closure: sealed
+  open: false

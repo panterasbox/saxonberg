@@ -49,6 +49,7 @@ import { Quantity } from '../quantity';
 import { QuantityMarshaller } from '../../platform/idea/persistence/QuantityMarshaller';
 import { StuffApi } from '../../api/stuff';
 import { MixinApi } from '../../api/mixin';
+import { BulkableApi } from '../../api/bulk';
 import { MqlSubscriptionApi } from '../../api/mql-subscription';
 import type { SubscribableFieldDescriptor } from '../../api/mql-subscription';
 import type { MarkupAugmenter } from '../../api/mml';
@@ -422,6 +423,13 @@ export interface Bulkable {
 
   getClosure(): ClosureLevel;
   setClosure(level: ClosureLevel): void;
+  /**
+   * The pressure in a GAS slot, as amount over capacity — `null` when
+   * the slot holds no gas. ⭐ Derived, never stored.
+   */
+  getGasPressureAtm(affordance?: BulkAffordance): number | null;
+  /** Would this slot hold what is in it — construction AND the lid. */
+  isGasRetained(affordance?: BulkAffordance): boolean;
 }
 
 const VOLUME_MARSHALLER = QuantityMarshaller.pathFor(BULK_VOLUME_UNIT);
@@ -627,8 +635,85 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
     public getClosure(): ClosureLevel {
       return this.closure;
     }
+    /**
+     * ⚠⚠ **It took anything, and three rows paid for it.** Three vessels
+     * authored `closure: none` — a sap-pan, a pail and a salt-pan, each
+     * with prose meaning *no lid* — and `none` is not a `ClosureLevel`.
+     * `CLOSURE_ORDER['none']` is `undefined`, the comparison yields
+     * `NaN`, and `NaN < 0` is **false**, so the drain-through arm never
+     * fired and all three **retained liquid as though they were
+     * lidded** — including the salt-pan, whose entire mechanism is that
+     * *a covered pan is a pan that does not work*.
+     *
+     * A throwing setter means the row fails its own hydration and the
+     * pack install names it, which is the fail-loud this wants. ⭐ The
+     * three rows say `open` now, which is what their prose always said.
+     */
     public setClosure(level: ClosureLevel): void {
+      if (!(level in CLOSURE_ORDER)) {
+        throw new TypeError(
+          `setClosure: '${level}' is not a closure level. The scale is a ` +
+            `three-rung PHYSICS ladder — ${Object.keys(CLOSURE_ORDER).join(
+              ' < ',
+            )} — and content never adds a rung to it. An open-topped ` +
+            `vessel is \`open\`.`,
+        );
+      }
       this.closure = level;
+    }
+
+    /**
+     * ⭐⭐ **Pressure is a CONSEQUENCE, not a field.** A gas slot stores
+     * standard litres; how much is in there is the amount, and the
+     * pressure is that over the capacity. `null` when the slot holds no
+     * gas.
+     *
+     * That is the constraint drilling imposes, satisfied up front: gas
+     * is measured per volume and never as a fill fraction, so a bigger
+     * vessel at the same pressure holds more and the arithmetic of
+     * moving it between vessels needs no conversion anywhere.
+     *
+     * ⚠ One atmosphere is the ceiling this build: a gasometer and a
+     * bladder are constant-pressure vessels and that is all the content
+     * has. A cylinder that compresses is an authorable `maxPressureAtm`
+     * later (destructive-distillation Stage A's tail).
+     */
+    public getGasPressureAtm(affordance?: BulkAffordance): number | null {
+      const self = this as unknown as Stuff & Bulkable;
+      const slot = self.getBulk(affordance);
+      const material = slot.getMaterial();
+      if (material === null) return null;
+      if (BulkableApi.requiredClosureFor(material) !== 'sealed') {
+        return null;
+      }
+      const capacity = slot.getCapacity();
+      if (capacity === null) return null;
+      const cap = capacity.rawValue();
+      if (!(cap > 0)) return null;
+      return slot.getAmount().rawValue() / cap;
+    }
+
+    /**
+     * Would this slot HOLD what is in it — closure meets the
+     * requirement, and a lid that exists is shut.
+     *
+     * ⭐ Two facts, deliberately: **closure is construction and the lid
+     * is state** (`bulk.md`). A sealed can is gas-tight because of how
+     * it was made; a sealed can standing open is a hole.
+     */
+    public isGasRetained(affordance?: BulkAffordance): boolean {
+      const self = this as unknown as Stuff & Bulkable;
+      const slot = self.getBulk(affordance);
+      const material = slot.getMaterial();
+      if (material === null) return true;
+      const required = BulkableApi.requiredClosureFor(material);
+      if (BulkableApi.compareClosure(slot.getClosure(), required) < 0) {
+        return false;
+      }
+      // ⚠ Retained when the lid is SHUT. A host with no lid at all is
+      // retained by its construction alone — which is a cylinder, and is
+      // why the test is `isSealable` rather than a cast.
+      return !MixinApi.isSealable(self) || !self.isOpen();
     }
 
     public getBulk(affordance?: BulkAffordance): BulkSlot {
@@ -823,6 +908,19 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
  * learned it. The `viewer` parameter was always on the augmenter
  * contract; identification is the first thing that needed it.
  */
+/**
+ * How full a gas vessel reads, in five words and no numbers. ⭐ The bell
+ * of a gasometer rides on what is in it, which is why a Victorian
+ * gasworks could be read from the street.
+ */
+function gasLevelWord(pressure: number): string {
+  if (pressure >= 0.95) return 'full to the seal';
+  if (pressure >= 0.7) return 'riding high';
+  if (pressure >= 0.4) return 'about half down';
+  if (pressure >= 0.1) return 'low';
+  return 'sitting on its seal';
+}
+
 function bulkContentsAugmenter(
   text: string,
   host: Stuff,
@@ -848,6 +946,16 @@ function bulkContentsAugmenter(
       if (affordance === 'interior' && kind) {
         lines.push(`The ${kind} is empty.`);
       }
+      continue;
+    }
+    // ⭐⭐ A GAS is read as a LEVEL, never a figure. A bell that rides
+    // high and a bell on its seal are the two things a person can
+    // actually see from across a yard, and the pressure is the derived
+    // read behind them — so two viewers always agree and no digit
+    // reaches anybody at any competence.
+    const pressure = host.getGasPressureAtm(affordance);
+    if (pressure !== null) {
+      lines.push(`It holds ${contents}, ${gasLevelWord(pressure)}.`);
       continue;
     }
     lines.push(

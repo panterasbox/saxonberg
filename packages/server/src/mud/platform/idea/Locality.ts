@@ -111,7 +111,7 @@ export interface PublicLightingFunding {
   /**
    * The Business path a money bill is paid to (`null` = none).
    *
-   * ⚠ Now genuinely optional. A gas-lit town pays for its light through the
+   * ⚠ Now genuinely optional. An oil-lit town pays for its light through the
    * **procurement loop** (its public-works department buys casks from a
    * producer), not through this leg, so it sets `costPerStreetNight: 0` and
    * leaves this `null`; an electric town's own lamps cost it nothing. The
@@ -326,7 +326,7 @@ export default class Locality extends Idea {
    *    > 0` and a `supplier` is named — sourced from **this locality's own
    *    treasury** when it declares one, else the realm's ({@link
    *    resolveTreasury}), destination the supplier's primary account, category
-   *    `appropriation`. A gas-lit town sets cost 0 and pays through
+   *    `appropriation`. An oil-lit town sets cost 0 and pays through
    *    procurement instead; an electric town's own lamps cost it nothing.
    */
   public async settleStreetLighting(
@@ -364,7 +364,7 @@ export default class Locality extends Idea {
     }
 
     // ── The money leg (D12): how many can the treasury afford? Only when a
-    // per-night cost is set (a gas-lit town pays through procurement, not
+    // per-night cost is set (an oil-lit town pays through procurement, not
     // here). Sourced from the locality's own treasury, else the realm's.
     let affordable = candidates.length;
     let treasury: { ownerPath: string; accountId: string } | null = null;

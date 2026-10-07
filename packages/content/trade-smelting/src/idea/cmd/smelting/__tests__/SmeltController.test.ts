@@ -55,6 +55,7 @@ const STEEL = '/stuff/idea/material/alloy/steel';
 const CAST_IRON = '/stuff/idea/material/alloy/cast-iron';
 const BLOOM_IRON = '/stuff/idea/material/alloy/bloom-iron';
 const CHARCOAL_M = '/stuff/idea/material/organic/charcoal';
+const COKE_M = '/stuff/idea/material/organic/coke';
 const LIMESTONE_M = '/stuff/idea/material/rock/limestone';
 const COAL_M = '/stuff/idea/material/mineral/coal';
 const SOUR_IRON = '/stuff/idea/material/alloy/sulfurous-iron';
@@ -288,6 +289,19 @@ beforeEach(async () => {
     'fuel',
     'carbon',
     'sulfurous',
+    'coal',
+  ]);
+  // ⭐⭐ …and COKE, which is the same coal with the sulfur cooked out of
+  // it in a retort (the fire build's W3). THE WHOLE DIFFERENCE IS AN
+  // ABSENT TAG: it carries `fuel` and `carbon` like charcoal and not
+  // `sulfurous` like coal, so it passes every gate charcoal passes with
+  // nothing in this pack edited. That is what makes coke the answer to
+  // *one forest per furnace* rather than a second mechanism.
+  makeStuffAtPath(() => new Material(), COKE_M).setTags([
+    'organic',
+    'carbon',
+    'fuel',
+    'porous',
   ]);
 
   room = makeStuff(() => new TestActor());
@@ -691,6 +705,42 @@ describe('⭐⭐ the flux and the sulfur (extraction)', () => {
     expect(
       MixinApi.isTangible(bloom!) && bloom!.hasMaterialTag('brittle'),
     ).toBe(true);
+  });
+
+  /** A basket of coke — fuel AND carbon, and NOT sulfurous. */
+  function cokeBasket(): Good {
+    const c = makeStuff(() => new Good());
+    c.setMass(Quantity.of(6, 'kg'));
+    c.setMaterial(
+      StuffApi.findByTemplatePath<Material>(COKE_M) as unknown as Material,
+    );
+    return c;
+  }
+
+  it('⭐⭐ COKE gives a SOUND bloom where coal gives a sour one — and no code changed', async () => {
+    // ⭐ The point of the whole retort. Coke is coal with the volatiles
+    // cooked out of it, and what leaves with them is the SULFUR — so the
+    // same charge that ruins a bloom as coal makes a good one as coke.
+    //
+    // ⚠ Nothing in `trade-smelting` was edited for this. The smelt reads
+    // its charge by material TAG (`fuel`+`carbon` for the reducing
+    // charge, `sulfurous` for the hot-short arm), so a material that
+    // carries the first two and not the third passes every gate charcoal
+    // passes. That is the tag vocabulary paying out, and it is the
+    // difference between an iron trade capped at one forest per furnace
+    // and one that is not.
+    furnace.setBellowsActive(true);
+    ContainmentApi.move(lump(1.4, 3, 0.12, GOETHITE), furnace);
+    ContainmentApi.move(cokeBasket(), furnace);
+    ContainmentApi.move(cokeBasket(), furnace);
+    await smelt();
+    await tap();
+    const bloom = productOf();
+    expect(bloom).not.toBeNull();
+    expect(bloom!.getMaterial()?.getTemplatePath()).toBe(BLOOM_IRON);
+    expect(
+      MixinApi.isTangible(bloom!) && bloom!.hasMaterialTag('brittle'),
+    ).toBe(false);
   });
 
   it('…and charcoal on the same charge gives sound bloom iron', async () => {

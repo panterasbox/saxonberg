@@ -123,31 +123,32 @@ data:
     # sack to a water mill is that the mill is faster, and the reason not
     # to is the multure. Neither is authored — both fall out of the rows.
     - /trade/milling/thing/quern
-    # ⭐⭐ The turf stack — four bricks, which is exactly what
-    # `kiln-malt-peated` consumes. A player can see what the smoke is
-    # MADE of, which is what keeps the recipe's `imparts` honest: the
-    # figure is declared, but the fact is derivable at the bench.
+    # ⭐⭐⭐ The turf stack — and the fire build closed the seam this note
+    # used to record.
     #
-    # ⚠⚠ **These are as-cut turves, and as-cut turf will not light.** It
-    # sits at full moisture and refuses the flame in the shipped words —
-    # *"It's too wet to catch."* — until the weather has had it a
-    # fortnight. An ITEM SLOT cannot see moisture, so the peated kiln
+    # It said: *"an ITEM SLOT cannot see moisture, so the peated kiln
     # accepts them anyway, which is a seam between the fiction and the
-    # model and is recorded rather than hidden.
+    # model and is recorded rather than hidden"*, and *"the real fix
+    # stays where it belongs: a burner that knows and dries its own
+    # fuel, on the fire/energy slate."*
     #
-    # ⛔ A `dry-turf` row was written to paper over it and then DELETED,
-    # because the subsystem is right and the row was wrong:
-    # `WaterActivityMixin`'s `_moisture` is `persistent` and deliberately
-    # **not `authorable`**, no row in the tree authors it, and
+    # ⭐ That burner shipped. The peated recipe is RETIRED: what the
+    # barley tastes of comes off the fuel in the firebox
+    # (`peat.combustionImparts`), so the turf is a thing somebody
+    # `stoke`s rather than a line in an input list — and a `stoke`
+    # **can** see moisture. An as-cut turf is refused in the shipped
+    # words, *"It is too sodden to catch."*, by the same formula
+    # `ignite` has always used.
+    #
+    # ⛔ The history worth keeping: a `dry-turf` row was written to paper
+    # over the gap and then DELETED, because the subsystem was right and
+    # the row was wrong — `WaterActivityMixin`'s `_moisture` is
+    # `persistent` and deliberately **not `authorable`**, and
     # `lint:instanceable` invariant 12 refused the key as one the applier
     # discards silently. Water state is RUNTIME state produced by drying
-    # and curing — a dried good is something the world made, never
-    # something an author declares. (The same silent-discard class as the
-    # predecessor's `malt-sack` `category:`.)
-    #
-    # ⭐ So the real fix stays where it belongs: a burner that knows and
-    # dries its own fuel, on the fire/energy slate. Meanwhile the stack
-    # is honest about being freshly cut.
+    # and curing; a dried good is something the world made, never
+    # something an author declares. ⭐ Which is why the fix had to be a
+    # fire that asks the turf, and is.
     # ⚠ `count: 4`, not four lines. `lint:census` clause (e) refuses the
     # longhand and the reason is not tidiness: *a repeat with no identity
     # is an entry no child row can ever replace* — four anonymous turves

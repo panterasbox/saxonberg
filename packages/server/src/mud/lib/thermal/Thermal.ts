@@ -50,6 +50,7 @@ import type { Coolbox } from "./Coolbox";
 import type { Atmospheric } from "../biome/Atmospheric";
 import { MixinApi } from "../../api/mixin";
 import { StuffApi } from "../../api/stuff";
+import { BulkableApi } from '../../api/bulk';
 import { BiomeApi } from "../../api/biome";
 import { WorldClockApi } from "../../api/worldclock";
 import { TemplatePaths } from "../paths";
@@ -1287,6 +1288,16 @@ function reconcileBulkPhase(v: Stuff & Bulkable & Thermal): void {
 
   const bp = mat.getBoilingPoint().rawValue();
   if (bp > 0 && temp >= bp) {
+    // ⭐⭐ **A gas does not boil away** — it is ALREADY above its boiling
+    // point everywhere anybody stands, which is what makes it a gas, and
+    // whether it stays put is CLOSURE's job and not temperature's.
+    //
+    // ⚠ Without this arm a lamp filled with coal gas would be destroyed
+    // by its own flame on the first tick, and a gasometer standing in
+    // the sun would empty itself. The derivation is the same comparison
+    // `requiredClosureFor` makes, so there is one definition of "gas"
+    // and it lives on the material.
+    if (BulkableApi.requiredClosureFor(mat) === 'sealed') return;
     // Boil — the liquid flashes to gas (steam); the pool shrinks away.
     v.setBulkAmount(aff, Quantity.of(0, 'L'));
     v.setBulkMaterial(aff, null);

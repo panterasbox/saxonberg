@@ -2,6 +2,7 @@
 // (Doc comment on the class below so @internal lands on the reflection.)
 
 import { ApiLogic } from '../../../lib/stuff/ApiLogic';
+import type { AromaTag } from '../../../lib/metabolism/DissolvedAromatics';
 import { CallSecurity, Unshadowable } from '../../../lib/security/decorators';
 import { SecurityPolicies } from '../../../lib/security/SecurityPolicies';
 import type { Stuff } from '../../../lib/stuff/Stuff';
@@ -1388,6 +1389,38 @@ function addConcentrations(
   return [...byType.values()];
 }
 
+/**
+ * ⭐⭐ **What the FIRE puts into the work** — the fuel's own
+ * `combustionImparts`, weighted by its share of the bed.
+ *
+ * This is what makes peated malt the fire's doing rather than a second
+ * recipe's. The two kiln recipes were identical except that one declared
+ * `imparts: [{smoke, 30}]` and took a turf as an ITEM SLOT — which made
+ * *the same recipe over a different fire* inexpressible, and made the
+ * turf's own moisture invisible, because an item slot cannot see it.
+ *
+ * ⭐ A mixed bed is weighted: half peat and half oak reads half as
+ * smoky, which is both true and the thing a maltster actually controls.
+ */
+function fireImpartsFor(maker: Stuff): AromaTag[] {
+  if (!MixinApi.isThermal(maker)) return [];
+  const fire = maker.reachableHeatSource();
+  if (fire === null) return [];
+  const total = fire.fuelRemaining();
+  if (!(total > 0)) return [];
+  const out: AromaTag[] = [];
+  for (const material of fire.fuelMaterials()) {
+    const tags = material.getCombustionImparts();
+    if (tags.length === 0) continue;
+    const share = fire.fuelShareOf(material);
+    if (!(share > 0)) continue;
+    for (const tag of tags) {
+      out.push({ ...tag, amount: tag.amount * share });
+    }
+  }
+  return out;
+}
+
 async function applyBulkOutput(
   output: Stuff,
   recipe: Recipe,
@@ -1396,6 +1429,7 @@ async function applyBulkOutput(
   effectiveHeatK = 0,
   makerPath = '',
   deliveredHeatK: number = effectiveHeatK,
+  fireImparts: AromaTag[] = [],
 ): Promise<void> {
   const outSlot = BulkableApi.slotFor(output, undefined);
   if (!outSlot) {
@@ -1488,6 +1522,16 @@ async function applyBulkOutput(
         imparts,
       );
     }
+    // ⭐⭐ …and what the FIRE adds, on top of what the working does. The
+    // smoke in peated malt comes from the fuel bed, so the same recipe
+    // over peat and over oak gives two different malts and there is one
+    // recipe row.
+    if (fireImparts.length > 0) {
+      carried.dissolvedAromatics = addConcentrations(
+        carried.dissolvedAromatics,
+        fireImparts,
+      );
+    }
     // ⭐ A recipe's own appearance, which this branch IGNORED — see
     // `applyAuthoredAppearance`.
     const authoredLook = recipe.getOutputAppearance();
@@ -1507,8 +1551,16 @@ async function applyBulkOutput(
   const material = await StuffApi.singleton<Material>(GENERIC_MIXED_MATERIAL);
   outSlot.setMaterial(material);
   outSlot.setAmount(Quantity.of(totalL, 'L'));
-  outSlot.setPayload(
-    deriveBlendPayload(
+  // ⭐⭐ **The derived branch drops `imparts` and always did.** A recipe
+  // with no `outputMaterial` lands here, and until the fire build the
+  // branch computed its payload purely from the inputs — so a recipe that
+  // declared what the WORKING adds silently added nothing, and a derived
+  // blend worked over a peat fire came out clean.
+  //
+  // ⚠ Two sources, and they are different claims: `imparts` is what the
+  // ACT adds (authored per recipe) and the fire's is what the FUEL adds
+  // (authored per material, weighted by its share of the bed).
+  const derived = deriveBlendPayload(
       recipe.getRecipeId(),
       recipe.getOutputAppearance(),
       recipe.getKeywords(),
@@ -1534,8 +1586,15 @@ async function applyBulkOutput(
       ],
       effectiveHeatK,
       makerPath,
-    ),
-  );
+    );
+  const addedAromas = [...recipe.getImparts(), ...fireImparts];
+  if (addedAromas.length > 0) {
+    derived.dissolvedAromatics = addConcentrations(
+      derived.dissolvedAromatics,
+      addedAromas,
+    );
+  }
+  outSlot.setPayload(derived);
   // A cold bar mix carries its inputs' spoilage through unchanged — a
   // daiquiri made with yesterday's lime juice is made with yesterday's
   // lime juice, and nothing about shaking it says otherwise.
@@ -1738,6 +1797,7 @@ async function applyEdibleOutput(
   effectiveHeatK: number,
   makerPath = '',
   deliveredHeatK: number = effectiveHeatK,
+  fireImparts: AromaTag[] = [],
 ): Promise<void> {
   const outSlot = BulkableApi.slotFor(output, undefined);
   if (!outSlot) {
@@ -1768,6 +1828,7 @@ async function applyEdibleOutput(
     if (makerPath) {
       outSlot.setPayload({ ...(outSlot.getPayload() ?? {}), maker: makerPath });
     }
+    addAromasTo(outSlot, recipe, fireImparts);
     applySpoilage(
       outSlot,
       outputMicrobialLoad(effectiveHeatK, recipe.getHoldS(), matched, matchedItems),
@@ -1796,11 +1857,38 @@ async function applyEdibleOutput(
       makerPath,
     ),
   );
+  addAromasTo(outSlot, recipe, fireImparts);
   applySpoilage(
     outSlot,
     outputMicrobialLoad(effectiveHeatK, recipe.getHoldS(), matched, matchedItems),
   );
   applyDoneness(outSlot, recipe, deliveredHeatK);
+}
+
+/**
+ * ⭐⭐ Fold what the ACT adds (`recipe.imparts`) and what the FIRE adds
+ * (the fuel's `combustionImparts`, weighted by its share of the bed) into
+ * a slot's aromatics.
+ *
+ * ⚠ **`applyEdibleOutput` handled NEITHER**, and it is the branch cooking
+ * actually takes — so a recipe declaring `imparts:` on an edible output
+ * added nothing, silently, and smoking meat over a peat fire gave clean
+ * meat. One helper, three branches, so the next output kind cannot
+ * quietly miss it.
+ */
+function addAromasTo(
+  outSlot: BulkSlot,
+  recipe: Recipe,
+  fireImparts: readonly AromaTag[],
+): void {
+  const added = [...recipe.getImparts(), ...fireImparts];
+  if (added.length === 0) return;
+  const payload: BulkPayload = { ...(outSlot.getPayload() ?? {}) };
+  payload.dissolvedAromatics = addConcentrations(
+    payload.dissolvedAromatics,
+    added,
+  );
+  outSlot.setPayload(payload);
 }
 
 /**
@@ -2595,6 +2683,7 @@ async function craftImpl(req: CraftRequest): Promise<CraftOutcome> {
       workingHeatK,
       maker.getTemplatePath() ?? '',
       deliveredHeatK,
+      fireImpartsFor(maker),
     );
   } else {
     await applyBulkOutput(
@@ -2605,6 +2694,7 @@ async function craftImpl(req: CraftRequest): Promise<CraftOutcome> {
       workingHeatK,
       maker.getTemplatePath() ?? '',
       deliveredHeatK,
+      fireImpartsFor(maker),
     );
     const outSlot = BulkableApi.slotFor(output, undefined)!;
     await finishGlass(

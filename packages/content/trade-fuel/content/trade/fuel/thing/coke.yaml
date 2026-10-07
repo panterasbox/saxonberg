@@ -1,0 +1,21 @@
+# A basket of coke — ⭐ the sulfur-free fuel, and the fuel value and
+# ignition point are read off the MATERIAL rather than authored twice
+# (the charcoal row's rule).
+#
+# ⭐⭐ It passes the smelt with NO smelter code changed. The smelt reads
+# its charge by material tag — `fuel` + `carbon` for the reducing charge,
+# `sulfurous` for the hot-short arm — and coke is tagged the first two and
+# not the third, which is the entire difference between a sound bloom and
+# a cracked one.
+class: /platform/thing/Provision
+data:
+  shortDescription: basket of coke
+  keywords: [coke, basket]
+  register: indefinite
+  longDescription: >-
+    Grey, light and full of holes, like a clinker that has been boiled.
+    It rings dull where charcoal rings clear, and it leaves a grey dust
+    on everything it touches.
+  _materialPath: /stuff/idea/material/organic/coke
+  gradeBand: fair
+  mass: 6

@@ -56,6 +56,8 @@ import { PerceptibleMixin } from '../description/Perceptible';
 import { Quantity } from '../quantity';
 import { QuantityMarshaller } from '../../platform/idea/persistence/QuantityMarshaller';
 import type { ToxinTag } from '../metabolism/Metabolic';
+import { DissolvedAromatics } from '../metabolism/DissolvedAromatics';
+import type { AromaTag } from '../metabolism/DissolvedAromatics';
 import type { VetoResult } from '../errors';
 import type { EvictionContext, Stuff } from '../stuff/Stuff';
 import type { FieldMeta } from '../mixin';
@@ -635,6 +637,24 @@ export default class Material extends SingletonMixin(
   protected toxicity: ToxinTag[] = [];
 
   /**
+   * ⭐⭐ **What BURNING this puts into whatever is worked over its fire**
+   * — aroma compounds, mg/L, the same units a recipe's `imparts` uses.
+   *
+   * Peat authors `smoke: 30` and nothing else does. That one line is the
+   * whole of peated malt: the smoke in the barley comes from the FUEL
+   * now, not from a second recipe row that said *peated* in its name.
+   *
+   * ⭐ Why this is the honest home. The two kiln recipes were identical
+   * except that one declared `imparts: [{smoke, 30}]` and took a turf as
+   * an item slot — so the fuel was an INPUT to the recipe, which made
+   * *the same recipe over a different fire* inexpressible, and made a
+   * sodden turf's own moisture invisible (an item slot cannot see it).
+   * Moving the fact onto the material deletes a recipe and makes the
+   * fuel bed answer for itself.
+   */
+  protected combustionImparts: AromaTag[] = [];
+
+  /**
    * ⭐ **The basic tastes this substance carries** — a closed five-word
    * vocabulary (`sweet` · `salty` · `sour` · `bitter` · `umami`), the
    * physiology's own list and not a flavour-note bank.
@@ -818,6 +838,7 @@ export default class Material extends SingletonMixin(
     nutrients: { persistent: true, spoiler: 1, spoilerName: 0 },
     nutrientAmounts: { persistent: true, spoiler: 1, spoilerName: 0 },
     toxicity: { persistent: true, spoiler: 1, spoilerName: 0 },
+    combustionImparts: { persistent: true, spoiler: 1, spoilerName: 0 },
     // ⭐ `spoiler: 1`, matching `toxicity` — they are the same fact seen
     // from two sides. "This water poisons you" and "boiling fixes it"
     // are the two halves of the John Snow lesson, and shipping the
@@ -901,6 +922,13 @@ export default class Material extends SingletonMixin(
   }
 
   public getToxicity(): readonly ToxinTag[] { return this.toxicity; }
+  /** What burning this puts into what is worked over its fire (mg/L). */
+  public getCombustionImparts(): readonly AromaTag[] {
+    return this.combustionImparts;
+  }
+  public setCombustionImparts(value: AromaTag[]): void {
+    this.combustionImparts = validateCombustionImparts(value);
+  }
   public setToxicity(value: ToxinTag[]): void {
     if (!Array.isArray(value)) {
       throw new TypeError('Material.setToxicity: expected a ToxinTag[]');
@@ -1299,4 +1327,32 @@ function materialLogic(): MaterialLogic {
     '/platform/idea/api/material',
     () => new MaterialLogic(),
   );
+}
+
+/**
+ * Validate an authored `combustionImparts` block. ⚠ A misspelt aroma
+ * word must fail at READ: a fuel that quietly imparted nothing would
+ * still kiln the barley and the malt would just be unpeated, which is
+ * the silent-wrong-answer shape the `imparts` validator exists for.
+ */
+function validateCombustionImparts(value: AromaTag[]): AromaTag[] {
+  if (!Array.isArray(value)) {
+    throw new TypeError(
+      `Material.combustionImparts must be a list of { type, amount }`,
+    );
+  }
+  return value.map((tag, i) => {
+    if (!DissolvedAromatics.isAroma(tag?.type)) {
+      throw new TypeError(
+        `Material.combustionImparts[${i}]: '${tag?.type}' is not an aroma`,
+      );
+    }
+    if (!(tag.amount > 0)) {
+      throw new TypeError(
+        `Material.combustionImparts[${i}] ('${tag.type}') needs a ` +
+          `positive amount (mg/L)`,
+      );
+    }
+    return { type: tag.type, amount: tag.amount };
+  });
 }

@@ -353,25 +353,41 @@ describe('⭐⭐ the floor\'s clock runs on a mechanism that is TRUE', () => {
  * what moves the right cut.
  */
 describe('⭐⭐ the peated kiln — one choice, and the whole product changes', () => {
-  it('⚠ peat carries its own NAME as a tag, or the slot fails closed and silent', () => {
-    // The row named itself in `keywords` and nowhere a slot can read.
-    // `category:` matches MATERIAL TAGS, so `category: peat` would have
-    // matched nothing, the kiln would never have found its fuel, and
-    // nothing anywhere would have said why. `wheat-grain` and
-    // `barley-grain` both carry their own names for exactly this reason.
+  it('⚠ peat carries its own NAME as a tag — still true, and still for the slot', () => {
     const peat = row(BASE, 'content/stuff/idea/material/organic/peat.yaml');
     expect(peat.tags as string[]).toContain('peat');
   });
 
-  it('the peated kiln asks for a tag the turf\'s material actually has', () => {
-    const peated = recipeOf(MALTING, 'kiln-malt-peated');
-    const fuel = peated.getInputSlots().find((s) => s.slot === 'fuel');
-    expect(fuel, 'the peated kiln has no fuel slot').toBeDefined();
-    expect(fuel!.kind).toBe('item');
+  it('⭐⭐⭐ ONE kiln recipe, and the smoke is on the MATERIAL', () => {
+    // There were two of these rows: `kiln-malt-peated` was `kiln-malt`
+    // plus `imparts: [{smoke, 30}]` plus four turves as an ITEM SLOT.
+    // The fire build retired it and put the fact where it belongs.
+    //
+    // ⭐ What that buys, and none of it was reachable before: the SAME
+    // recipe over a different fire gives a different malt; a sodden turf
+    // refuses on its own moisture at the `stoke`, because the turf is a
+    // thing in the world and not a line in an input list; and a mixed
+    // bed is weighted by mass.
+    expect(() => recipeOf(MALTING, 'kiln-malt-peated')).toThrow();
+    const clean = recipeOf(MALTING, 'kiln-malt');
+    // ⚠ No fuel slot anywhere: the fuel is in the firebox, not the recipe.
+    expect(clean.getInputSlots().find((s) => s.slot === 'fuel')).toBeUndefined();
+    expect(clean.getImparts()).toEqual([]);
+
     const peat = row(BASE, 'content/stuff/idea/material/organic/peat.yaml');
-    expect(peat.tags as string[]).toContain(fuel!.category);
-    // ⚠ And the turf THING resolves to that material, or the slot has
-    // nothing in the world to bind to.
+    const imparts = peat.combustionImparts as {
+      type: string;
+      amount: number;
+    }[];
+    expect(imparts.length).toBeGreaterThan(0);
+    for (const tag of imparts) {
+      expect(DissolvedAromatics.isAroma(tag.type), tag.type).toBe(true);
+      expect(tag.amount).toBeGreaterThan(0);
+    }
+    expect(imparts.find((t) => t.type === 'smoke')).toBeDefined();
+
+    // ⚠ And the turf THING resolves to that material, or there is
+    // nothing in the world to stoke the kiln WITH.
     const turf = row(
       join(PACKS, 'trade-quarrying'),
       'content/trade/quarrying/thing/turf.yaml',
@@ -379,41 +395,32 @@ describe('⭐⭐ the peated kiln — one choice, and the whole product changes',
     expect(turf._materialPath).toBe('/stuff/idea/material/organic/peat');
   });
 
-  it('⭐ makes the SAME malt material as the clean kiln — peating is a quantity', () => {
-    // Not a second material. "Lightly" and "heavily" peated are a
-    // continuum, and a continuum cannot be a row; it is a concentration
-    // on the matter, which is also why it BLENDS when you vat.
-    const clean = recipeOf(MALTING, 'kiln-malt');
-    const peated = recipeOf(MALTING, 'kiln-malt-peated');
-    expect(peated.getOutputMaterial()).toBe(clean.getOutputMaterial());
-    expect(peated.getOutputTemplate()).toBe(clean.getOutputTemplate());
-  });
-
-  it('imparts an aroma that is in the closed vocabulary', () => {
-    const peated = recipeOf(MALTING, 'kiln-malt-peated');
-    const imparts = peated.getImparts();
-    expect(imparts.length).toBeGreaterThan(0);
-    for (const tag of imparts) {
-      expect(DissolvedAromatics.isAroma(tag.type), tag.type).toBe(true);
-      expect(tag.amount).toBeGreaterThan(0);
+  it('⭐ 25 of the 26 fuels author nothing — only peat is smoky', () => {
+    // The fact belongs to the SUBSTANCE, so it had better be sparse: a
+    // world where every fuel imparted something would mean the choice
+    // of fuel was noise rather than a decision.
+    for (const rel of [
+      'content/stuff/idea/material/wood/oak.yaml',
+      'content/stuff/idea/material/wood/pine.yaml',
+      'content/stuff/idea/material/mineral/coal.yaml',
+    ]) {
+      expect(row(BASE, rel).combustionImparts, rel).toBeUndefined();
     }
-    expect(imparts.find((t) => t.type === 'smoke')).toBeDefined();
   });
 
   it('⚠ keeps the enzyme band — a peat fire is COOL, which is why it works', () => {
     // Above ~350 K the enzymes the floor spent five days making are
-    // destroyed, so the window is not relaxed for the smoky version. A
-    // smouldering peat fire is exactly the gentle heat this needs.
+    // destroyed, so the window is narrow in both directions. A
+    // smouldering peat fire is exactly the gentle heat this needs — and
+    // since the fire build that is ARITHMETIC: peat's 15 MJ/kg derives a
+    // ~1275 K flame, which the kiln's own 340 K ceiling caps hard.
     const clean = recipeOf(MALTING, 'kiln-malt');
-    const peated = recipeOf(MALTING, 'kiln-malt-peated');
-    expect(peated.getRequiresHeatK()).toBe(clean.getRequiresHeatK());
-    expect(peated.getMaxHeatK()).toBe(clean.getMaxHeatK());
     const kiln = row(MALTING, 'content/trade/malting/thing/malt-kiln.yaml');
     expect(Number(kiln.burnTemperatureK)).toBeGreaterThanOrEqual(
-      peated.getRequiresHeatK(),
+      clean.getRequiresHeatK(),
     );
     expect(Number(kiln.burnTemperatureK)).toBeLessThanOrEqual(
-      peated.getMaxHeatK(),
+      clean.getMaxHeatK(),
     );
   });
 
@@ -458,7 +465,9 @@ describe('⭐⭐ the peated kiln — one choice, and the whole product changes',
       'content/trade/distilling/thing/still-book.yaml',
     );
     const offered = book.offeredRecipes as string[];
-    expect(offered).toContain('kiln-malt-peated');
+    // ⭐ ONE kiln line now. `kiln-malt-peated` is retired — what the
+    // barley tastes of is decided at the firebox, not at the board.
+    expect(offered).not.toContain('kiln-malt-peated');
     expect(offered).toContain('kiln-malt');
     expect(offered).toContain('steep-barley');
 
@@ -484,8 +493,6 @@ describe('⭐⭐ the peated kiln — one choice, and the whole product changes',
     expect(
       claims.find((c) => c.discipline === 'malting')?.asserting,
     ).toBe('proficient');
-    expect(recipeOf(MALTING, 'kiln-malt-peated').getDifficulty()).toBe(
-      'standard',
-    );
+    expect(recipeOf(MALTING, 'kiln-malt').getDifficulty()).toBe('standard');
   });
 });
