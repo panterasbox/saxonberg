@@ -622,7 +622,11 @@ function flammableMediumCheck(
     const s = occ as unknown as Stuff;
     if (!s.isDestroyed() && MixinApi.isSensor(s)) {
       MessageApi.scene(s)
-        .topic('sense.sight')
+        // ⚠ `sense.surroundings`, not `sense.sight`: the topic roots are
+        // a CLOSED seven and their leaves are seeded rows, so a topic
+        // nobody seeded is a message nobody can mute —
+        // `lint:topics` catches it, which is how this one was found.
+        .topic('sense.surroundings')
         .toSelf(
           Mml.compose`The air itself catches. A sheet of pale flame goes over you with a sound like a door slamming, and then it is dark again.`,
         )
