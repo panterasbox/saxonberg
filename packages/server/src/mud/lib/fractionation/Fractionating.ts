@@ -661,7 +661,7 @@ export function FractionatingMixin<TBase extends MixinConstructor<Stuff>>(
       let aroma: AromaTag[] = [];
       let covered = 0;
       let worst: Grade | null = null;
-      let cursor = this.drawnL;
+      const cursor = this.drawnL;
       const end = this.drawnL + span;
       let startL = 0;
       for (const spec of fractions) {
