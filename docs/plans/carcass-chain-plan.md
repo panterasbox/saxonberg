@@ -2111,3 +2111,22 @@ was made robust (8/8 alone and together); the carcass file then failed on
 ambiguous. **It cannot be patched probe by probe** — the shared noun
 space is the defect. Three ranked fixes are on the slate; merging the two
 files is probably the right one.
+
+### The full suite — the sweep's run
+
+**1,623 files · 15,380 tests · 38 packages · exit 0** (2026-10-07), on a
+tree with the merge from master in it. Up from the pre-MR run's 1,603 /
+15,170: master's 42 commits brought tests, and this sweep added three
+(the `Cut` setter pair, the shipped tanpit's charge, and the two recipe
+probes that now name their failure instead of asserting it away).
+
+⚠ **The first attempt was NOT a clean read and was not treated as one.**
+Two packs — `residence` and `trade-shopkeeping` — died at **collection**
+with a vitest-worker `fetch` timeout after a 156 s transform, because the
+wire drives were booting worlds alongside it. `pnpm -r` stops short after
+a failing package, so only **1,418 of 1,603** files ran: the number
+looked like a result and was a truncation. Both passed alone (47/47,
+23/23), and both pass in the clean run above. ⭐ *An unnamed failure is
+not a flake* — the way to tell the difference was to re-run the two packs
+by themselves and then the whole suite with nothing competing, not to
+label it and move on.
