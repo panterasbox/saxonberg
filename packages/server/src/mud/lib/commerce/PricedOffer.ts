@@ -115,10 +115,25 @@ export function PricedOfferMixin<TBase extends MixinConstructor>(Base: TBase) {
       const price = this.priceFor(key);
       if (price === null || price <= 0) return { paid: false, note: null };
       const self = this as unknown as Stuff;
-      const venue = MixinApi.isContainable(self) ? self.getContainer() : null;
-      const venuePath = venue?.getTemplatePath();
-      if (!venuePath) return { paid: false, note: null };
-      const business = await EmploymentApi.ensureOperatorAt(venuePath);
+      // ⭐ Self-first (blood build D6): when the priced fixture is ITSELF an
+      // operating location (a blood window whose Business names the fixture,
+      // not the room), the fee attributes to that fixture's house — the same
+      // fixture-first rule `operatorsAt`/`resolveHouse` already use. This is
+      // what lets two houses share one room (the practice keeps the ward;
+      // the window keeps its counter). Fall back to the container otherwise,
+      // byte-identical for every single-house room.
+      const selfPath = self.getIdentityPath() ?? self.getTemplatePath();
+      let business = selfPath
+        ? await EmploymentApi.ensureOperatorAt(selfPath)
+        : null;
+      let venue: Stuff | null = business ? self : null;
+      if (!business) {
+        const container = MixinApi.isContainable(self) ? self.getContainer() : null;
+        const venuePath = container?.getTemplatePath();
+        if (!venuePath) return { paid: false, note: null };
+        business = await EmploymentApi.ensureOperatorAt(venuePath);
+        venue = container;
+      }
       if (!business) return { paid: false, note: null };
       let venueAccount: string;
       try {

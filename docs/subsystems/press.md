@@ -473,3 +473,13 @@ seam), [forums.md](./forums.md) (the `{text, fields}` body side-channel),
 [app-settings.md](./app-settings.md),
 [client-shell.md](./client-shell.md) (the start screen),
 [message-rendering.md](./message-rendering.md).
+
+## Blood-economy build — every Business may keep a masthead
+
+Since the blood-economy build, `BusinessEntity` composes `PublisherMixin`
+(it did not before — only `OrganizationEntity` did). A business publishes
+iff it authors a `feedPath` and the principal holds one of its
+`publishingPositions`; `EmploymentLogic.mayPublishAsImpl` fails closed on
+an empty feed, so a business with no masthead publishes nothing. The blood
+window's registrar posts a shortage `notice` to the window's feed through
+the shipped `press` verb. See `employment.md`, `blood.md`.

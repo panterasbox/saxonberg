@@ -21,8 +21,12 @@ import { installV1QuantityMarshallers } from '../../persistence/__tests__/quanti
 
 let seq = 0;
 
-/** A fresh species singleton with an optional ABO allele table. */
-function makeSpecies(alleles?: Record<string, number> | null): Species {
+/** A fresh species singleton with an optional ABO allele table and an
+ * optional declared blood system (D3). */
+function makeSpecies(
+  alleles?: Record<string, number> | null,
+  system?: string,
+): Species {
   const id = seq++;
   const plan = makeStuff(() => new BodyPlan());
   plan.setName('blood-plan');
@@ -30,7 +34,8 @@ function makeSpecies(alleles?: Record<string, number> | null): Species {
   stampTemplatePathForTest(plan, `/stuff/idea/species/BodyPlan/blood-${id}`);
   const species = makeStuff(() => new Species());
   species.setBodyPlan(plan);
-  if (alleles) species.setBloodGroups({ alleles });
+  if (alleles || system)
+    species.setBloodGroups({ alleles: alleles ?? { O: 1 }, system });
   stampTemplatePathForTest(species, `/stuff/idea/species/test/blood-${id}`);
   return species;
 }
@@ -224,6 +229,37 @@ describe('VitalsMixin — receive', () => {
           BLOOD_DEFAULTS.UNIT_LITRES * BLOOD_DEFAULTS.REACTION_STAGE_PER_L,
         ),
     );
+  });
+});
+
+describe('VitalsMixin — compatibility crosses species sharing a system (D3)', () => {
+  it('a unit from another species in the same system is compatible', () => {
+    // Two DIFFERENT species, both in the `hominid` system; a human O donor
+    // into a dwarf recipient — no reaction (the species differ, the system
+    // does not).
+    const human = makeSpecies({ O: 1 }, 'hominid');
+    const dwarf = makeSpecies({ O: 1 }, 'hominid');
+    const donor = body({ species: human, genotype: 'OO' });
+    const recip = body({ species: dwarf, genotype: 'OO' });
+    expect(recip.bloodSystemOf()).toBe('hominid');
+    const baseline = recip.getVitalBand('bloodVolume').baseline;
+    recip.setVitalSign('bloodVolume', Quantity.of(baseline * 0.6, 'L'));
+    const unit = donor.drawBlood(BLOOD_DEFAULTS.UNIT_LITRES);
+    expect(unit.system).toBe('hominid');
+    const r = recip.receiveBlood({ litres: BLOOD_DEFAULTS.UNIT_LITRES, blood: unit });
+    expect(r.reaction).toBe(0);
+  });
+
+  it('a unit from a species in a different system reacts at grade 2', () => {
+    const human = makeSpecies({ O: 1 }, 'hominid');
+    const elf = makeSpecies({ O: 1 }, 'fae');
+    const donor = body({ species: human, genotype: 'OO' });
+    const recip = body({ species: elf, genotype: 'OO' });
+    const baseline = recip.getVitalBand('bloodVolume').baseline;
+    recip.setVitalSign('bloodVolume', Quantity.of(baseline * 0.6, 'L'));
+    const unit = donor.drawBlood(BLOOD_DEFAULTS.UNIT_LITRES);
+    const r = recip.receiveBlood({ litres: BLOOD_DEFAULTS.UNIT_LITRES, blood: unit });
+    expect(r.reaction).toBe(2);
   });
 });
 

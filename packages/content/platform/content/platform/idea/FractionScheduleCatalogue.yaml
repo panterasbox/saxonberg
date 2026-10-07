@@ -1,0 +1,13 @@
+# FractionScheduleCatalogue — the singleton whose onCreate stands the
+# fraction-schedule roster up as live singletons (the self-warming
+# catalogue shape; eager via this pack's boot list, not an AppBootstrap
+# sequencer line). No field state; the queries are statics on
+# FractionSchedule over the live population.
+#
+# ⚠ Without this warm a charged still would simply never start a run: the
+# schedule match is a SYNC read off the live population, so a row nothing
+# stood up matches nothing — silently. That is the
+# reference-Ideas-inert-at-boot trap, which this repo has now walked into
+# three separate times.
+class: /platform/idea/FractionScheduleCatalogue
+data: {}

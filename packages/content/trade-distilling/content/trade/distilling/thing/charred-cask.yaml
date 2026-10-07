@@ -1,0 +1,50 @@
+# ⭐⭐⭐ The charred cask — **the same spirit, a different whisky.**
+#
+# A cask whose staves have been fired until the inside is black. The heat
+# breaks the lignin down further than raising alone does, so the wood
+# gives up far more vanillin and a layer of its own pyrolysis products on
+# top — vanilla and char where a plain cask gives oak. That is a real
+# cooper's decision with a real consequence in the glass, and it is the
+# reason this row exists: it is the proof that **the cask matters**, and
+# that a second one is a ROW rather than a line of code.
+#
+# ⚠ It is the SAME WOOD. `_materialPath` is oak, exactly as the plain
+# cask's is, which is the whole argument for `imparts` living on the
+# VESSEL: a charred first-fill cask and a plain third-fill cask are both
+# oak, and the difference between them is this barrel's own history. Put
+# the character on the wood material and the two become unexpressible
+# without inventing a `charred-oak` species that no tree ever grew.
+#
+# ⚠ And it is NOT a second maturation profile. The profile keys on the
+# LIQUID (`new-make`), so two profiles for two casks would be two rows
+# claiming one tag — which `forMaterial` resolves by taking the lowest
+# key, silently.
+#
+# ⭐ Nothing about the clock changes: same 25 L, same `sealedOnly`
+# profile, same grade cap at the cut's band. What you choose when you
+# choose a cask is CHARACTER, not quality — and the whiskey-aging
+# profile's `productAtFraction` is where *when to bottle* lives.
+class: /platform/thing/Vat
+data:
+  shortDescription: "charred cask"
+  keywords: [cask, barrel, oak, charred, whiskey, empty, "charred cask"]
+  register: indefinite
+  longDescription: >-
+    An oak cask hooped in black iron, the bung-hole sitting up. Through it
+    the inside of the staves is burnt to a crocodiled black, and the whole
+    thing smells faintly of a bonfire the morning after.
+  category: cask
+  _materialPath: /stuff/idea/material/wood/oak
+  mass: 40
+  interiorBulk: true
+  interiorCapacity: 25
+  closure: liquidTight
+  open: true
+  # Calibrated against the thresholds: vanilla 0.1 mg/L and char
+  # 0.3 mg/L, so 40 and 120 both read *clearly*; oak at 15 against 0.07
+  # reads *faintly*. The firing has taken the plain wood note DOWN and
+  # put vanilla and char in front of it, which is what charring does.
+  imparts:
+    - { type: vanilla, amount: 40 }
+    - { type: char, amount: 120 }
+    - { type: oak, amount: 15 }

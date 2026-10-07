@@ -159,4 +159,47 @@ describe('the grade seam on BulkableApi.transfer', () => {
     expect(marked(bottle).getGradeBand()).toBe('poor');
     expect(bottle.getMaker()).toBe('/stuff/agent/_test/other-maker');
   });
+
+  // ⭐⭐ The whiskey build's half of the rule, and the one that changed
+  // shipped behaviour: identity rides into an empty vessel only, but
+  // QUALITY is a property of the matter, so a top-up is weakest-link both
+  // ways. Before this, pouring a good cask into a bad bottle left the
+  // bottle reading `poor` (above) while pouring a bad cask into a good
+  // bottle left it reading `fine` — the same mixture with two answers,
+  // and the second one was a laundry.
+  it('a POOR top-up drags a fine destination down, and never re-signs it', () => {
+    makeMaterial();
+    const slops = prime(makeStuff(() => new MarkedVessel()), 0.8);
+    slops.stamp({
+      maker: '/stuff/agent/_test/other-maker',
+      grade: Grade.of('poor'),
+      recipe: 'plonk',
+      craftedAt: 99,
+    });
+    const bottle = prime(makeStuff(() => new MarkedVessel()), 0.3);
+    bottle.stamp({
+      maker: MAKER,
+      grade: Grade.of('fine'),
+      recipe: 'test-red-wine',
+      craftedAt: 12345,
+    });
+
+    pour(slops, bottle, 0.2);
+    expect(marked(bottle).getGradeBand()).toBe('poor');
+    // The mark is the destination's still: you cannot make somebody else
+    // answer for what you poured into their bottle.
+    expect(bottle.getMaker()).toBe(MAKER);
+    expect(bottle.getRecipe()).toBe('test-red-wine');
+  });
+
+  it('a top-up never RAISES the destination grade', () => {
+    makeMaterial();
+    const cask = prime(makeStuff(() => new GradedVessel()), 0.8);
+    cask.setGrade(Grade.of('masterful'));
+    const cup = prime(makeStuff(() => new GradedVessel()), 0.3);
+    cup.setGrade(Grade.of('fair'));
+
+    pour(cask, cup, 0.2);
+    expect(cup.getGradeBand()).toBe('fair');
+  });
 });

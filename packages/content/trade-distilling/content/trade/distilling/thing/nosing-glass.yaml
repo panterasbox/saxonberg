@@ -1,0 +1,31 @@
+# ⭐⭐ A nosing glass — **the instrument a distiller actually reads with**,
+# and the row that makes the whole aroma layer reachable.
+#
+# ⚠⚠ `PalatableMixin` composes on `ServingVessel` AND NOWHERE ELSE, and
+# the cooking build fought that placement twice before settling it: on
+# `BulkableMixin` it put a palate on floors, garden beds and air tanks;
+# on `CraftVessel` it put one on a mash tun. The answer that stuck is
+# *what a trade works in stays on the vessel you drink out of.*
+#
+# ⭐ So `smell cask` and `taste bottle` report nothing of the contents —
+# a cask is not a glass — and the way you nose a cask is to **pour a dram
+# into a glass**, which is exactly how it is done in the trade. The
+# mechanism and the practice agree, which is the test lens 3a actually
+# applies.
+#
+# A tulip: narrow at the lip so the volatiles gather. Small, because you
+# are reading it rather than drinking it — and because a distiller nosing
+# a cask at hearts strength does not want 0.4 L of it.
+class: /platform/thing/ServingVessel
+data:
+  shortDescription: nosing glass
+  keywords: [nosing-glass, nosing, glass, copita, dram]
+  register: indefinite
+  longDescription: >-
+    A small stemmed tulip of thin glass, narrow at the lip so whatever is
+    in it gathers in the neck. There is a water-mark ground into the side
+    at barely a mouthful.
+  category: nosing
+  mass: 0.2
+  interiorBulk: true
+  interiorCapacity: 0.05

@@ -1,0 +1,16 @@
+# The ghost sign (blood build D12) — a DEAD Goodkin neon over the window.
+# Zero code: a NeonSign at `emittedIntensity: 0` is an unlit sign, the
+# Paramount Decree made literal. The name stayed on the storefront after
+# Goodkin gave the window up; the tubes did not.
+class: /platform/thing/NeonSign
+data:
+  shortDescription: dead Goodkin sign
+  keywords: [goodkin, sign, bloodworks, neon]
+  register: indefinite
+  longDescription: |
+    A sunrise-lettered sign over the window — GOODKIN BLOODWORKS in the
+    corpo's warm folksy capitals — its neon tubes long dead and grey, the
+    glass filmed with dust. Nobody has paid to light it in years.
+  _brandKey: goodkin-bloodworks
+  emittedIntensity: 0
+  mass: 5

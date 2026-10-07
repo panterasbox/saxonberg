@@ -8,7 +8,10 @@
 > the ice machine and the bar's first socket (the lounge's `mana-main`
 > feeds the terminal, not the bar) · carbonation going flat · a glassware
 > supplier · menu v2's line (dairy / egg / the blender) · the generic
-> drain's remaining direction (Part 7)
+> drain's remaining direction (Part 7) · ⭐ **the whiskey tails** (§ below
+> — salvaged from the two whiskey plans at their sweep, 2026-10-06):
+> coopering · a sherry-seasoned cask · whisky colour · `vat-malts` ·
+> cask-strength and dilution · the grappa/pomace schedule
 > **Size:** a tail
 
 Seeds and neighbours: [daves-bar-slate](../builds/daves-bar-slate.md) (the
@@ -81,3 +84,47 @@ unmetered, honest about being a utility.
 - Menu v2's line: dairy / egg / tropical fruit wait on ranching and a
   produce trade with a climate; the blender, like the ice machine, is a
   powered station and waits on the socket.
+
+---
+
+## ⭐ The whiskey tails (salvaged at the sweep, 2026-10-06)
+
+From the two whiskey plans, both retired at the sweep — their own
+deferred-seams headings said *"leave as slates, not plan text"*, so these
+live here now. The shipped halves are
+[fractionation.md](../../subsystems/fractionation.md) and
+[maturation.md](../../subsystems/maturation.md).
+
+**⭐⭐ Coopering — and it is the biggest of them.** Making, charring and
+seasoning a cask. The styles build made `MaturingMixin.imparts` a
+**vessel-authored** field, which turned "which barrel" into a decision a
+distiller buys — so the cooper's product is now a thing with a market and
+no producer. ⚠ The real prize is **`imparts` as a DEPLETING reservoir**:
+a cask's second fill should give less than its first (first-fill vs
+refill is the whole economics of barrel trading), and that is the RGO
+law's reservoir/recharge shape applied to a vessel instead of to ground.
+Today `imparts` does not deplete and the plan recorded it as a known
+coarseness.
+
+**A sherry-seasoned cask** — vessel *history* writing `imparts`. The same
+mechanism as coopering, one step further: what the cask held last changes
+what it gives next.
+
+**Whisky colour** — appearance as a function of `imparts`. Today a dram's
+colour is the material's and a 90-day charred-cask whisky looks exactly
+like a 23-day plain-cask one, which the nose can tell apart and the eye
+cannot.
+
+**`vat-malts`** — a vatted malt (two malts, peated × unpeated). ⭐ The
+styles build shipped `vat-whisky` and deliberately did NOT ship this:
+*one recipe proves the mechanism, and the second is a row somebody adds
+when they want it.* It is one row.
+
+**Cask-strength and dilution** — ⚠ blocked on a real constraint:
+`BulkableApi.transfer` declines a cross-material pour, so **water cannot
+be poured into whisky**. Reducing to bottling strength therefore needs a
+recipe (the vatting shape) rather than a pour, exactly as blending did.
+
+**The grappa / pomace schedule** — cut from the whiskey build because
+the pomace *material* is tagged `solid` and bulk is liquid in v1. Nothing
+was lost: the grappa recipe had never run either.

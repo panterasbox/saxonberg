@@ -1,6 +1,7 @@
 # Location graph slate — the map you can read without loading the world
 
-> **Status: BUILT** (MR pending, `reqs/location-graph`, 2026-10-05) —
+> **Status: PARTIAL** — shipped in `reqs/location-graph` (MR !335, 2026-10-05)
+> → [location-graph.md](../../subsystems/location-graph.md).
 > the projection, the invariants, `published`, and the player's map all
 > shipped. ⭐⭐⭐ The slate's decisive finding held up: **the elastic half
 > was already authored**, so `PlatPlan` expansion cost a method rather
@@ -42,15 +43,23 @@
 >   this place do I know?* Needs a denominator, and the denominator is
 >   the graph's node count per locality, which now exists. Cheap, and
 >   nobody has asked for it.
-> - ⭐ **The `told` and `bought` channels** are vocabulary with **no
->   writer**. The claim shape admits them from the start because
->   retrofitting provenance is the expensive version; `told`'s
->   attribution (somebody lied to you, and the record should say who)
->   belongs with [accountability.md](../../subsystems/accountability.md).
->   The map market, decay and a copy verb are §§ 12, 17.
-> - **Modality on a claim** (§10) — every claim is `vision` today. A
->   map built by touch in the dark is a real thing the shape already
->   admits.
+> - ⛔ **The `told` and `bought` channels are CUT, not pending.** They
+>   were vocabulary with **no writer**, admitted on the argument that
+>   retrofitting provenance is the expensive version — and an axis with
+>   two live values and two imaginary ones teaches a reader the wrong
+>   shape. The design question survives and belongs with
+>   [accountability.md](../../subsystems/accountability.md): `told`'s
+>   attribution is *somebody lied to you, and the record should say
+>   who*, which is a ledger concern rather than a map one. ⭐ Whoever
+>   wants it adds the channel WITH its writer. The map market, decay
+>   and a copy verb are §§ 12, 17.
+> - ⛔ **Modality on a claim is DELETED, not pending** (§10). It shipped
+>   as a hardcoded `'vision'` that **nothing read**, beside a `band`
+>   that nothing wrote — two fields dressing a navigational record as
+>   sense data. The claim's channels are navigational now (`walked` ·
+>   `seen` · `searched` · `published`). ⭐ *A map built by touch in the
+>   dark* is still a real idea, and the honest way in is a channel with
+>   a writer, not a field on every claim.
 > - **Offlining a warren HOST** migrates the role (open 4). What shipped
 >   offlines extents of template nodes and refuses an extent whose nodes
 >   are all plan nodes, with a reason.
@@ -65,8 +74,11 @@
 >   card, because the inspection card is laid out by `StuffKind` and a
 >   map is not a Stuff.
 >
-> **Size:** the remaining items are a sitting each; coverage and modality
-> are the two with an obvious consumer
+> **Size:** a tail — the remaining items are a sitting each, and
+> coverage is the one with an obvious consumer. ⛔ *Modality on a claim*
+> was the other and is **deleted**, not deferred: it shipped as a
+> hardcoded `'vision'` that nothing read. A map does not know what a
+> modality is.
 
 **Captured 2026-10-01.** Everything in the game is lazy-loaded, so runtime
 state is only *what players have visited and what has not been reaped*.

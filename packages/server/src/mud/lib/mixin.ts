@@ -356,6 +356,10 @@ export const Mixins = {
   // Commerce — the shared authored price-list (Law 1: worth on the offer,
   // not the good). Composed by the bar's Menu and the store's Stock.
   PricedOffer: 'PricedOfferMixin',
+  // Commerce — a civic bank of donated units read BY LOT over a configured
+  // store (the blood window). Kernel because its composers share no pack
+  // ancestor (the same rationale taps gives ProducingMixin).
+  DonationBank: 'DonationBankMixin',
   // Residency — the game-time reset (repop) sweep's consumer marker: an
   // object that restores itself on the sweep (the shop's Stock tops up).
   Resettable: 'ResettableMixin',
@@ -533,6 +537,10 @@ export const Mixins = {
   // The durative ferment — a VESSEL whose contents convert over
   // game-time (growth accretes, fermentation converts).
   Maturing: 'MaturingMixin',
+  // ⭐ The ORDERED yield — a host whose interior is not one liquid and
+  // gives up fractions in sequence as it is drawn. Maturing's sibling,
+  // driven by volume drawn rather than by a clock.
+  Fractionating: 'FractionatingMixin',
   Behaved: 'BehavedMixin',
   Graded: 'GradedMixin',
   // A physical thing that wears out with use (the condition/wear gauge).
@@ -752,6 +760,11 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
   // Reduction & separation — a mill, a stamp battery.
   ComminutingMixin: "{} isn't something that grinds",
 
+  // ⭐ The refusal names what a still IS, not that this thing is not one
+  // — the Launcher lesson. "the bucket doesn't come off in fractions" is
+  // the useful sentence.
+  FractionatingMixin: "{} doesn't come off in fractions",
+
   // Construction & table — a butcher's blade is any EDGE, and cutlery is
   // what you eat with.
   ConstructedMixin: "{} isn't a made thing",
@@ -870,6 +883,7 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
 
   // Storefronts.
   PricedOfferMixin: "{} isn't something with a price list",
+  DonationBankMixin: "{} isn't a bank window",
 
   // Instruments — both of these sit on a slot that names the TOOL, not
   // the subject, so the phrase reads from the actor's side.

@@ -13,8 +13,10 @@ const unit = (
   type: BloodUnit['type'],
   labelled = true,
   speciesPath = S,
+  system?: string,
 ): BloodUnit => ({
   speciesPath,
+  system,
   type,
   labelled,
   donorIdentityPath: '/who/' + type,
@@ -39,9 +41,23 @@ describe('Blood.blend', () => {
     expect(out.labelled).toBe(false);
   });
 
-  it('different species → mixed', () => {
+  it('different species with no declared system → mixed (own-path fallback)', () => {
     const out = new Blood(unit('O')).blend(unit('O', true, '/x/wolf'));
     expect(out.type).toBe('mixed');
+  });
+
+  it('⭐ different species sharing a system + same ABO → kept (D3)', () => {
+    const human = unit('O', true, '/x/human', 'hominid');
+    const dwarf = unit('O', true, '/x/dwarf', 'hominid');
+    const out = new Blood(human).blend(dwarf);
+    expect(out.type).toBe('O');
+    expect(out.labelled).toBe(true);
+  });
+
+  it('different systems → mixed even when ABO matches', () => {
+    const human = unit('O', true, '/x/human', 'hominid');
+    const elf = unit('O', true, '/x/elf', 'fae');
+    expect(new Blood(human).blend(elf).type).toBe('mixed');
   });
 
   it('mixed poured into anything stays mixed', () => {

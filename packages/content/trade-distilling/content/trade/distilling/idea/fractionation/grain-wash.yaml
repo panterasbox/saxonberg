@@ -1,0 +1,64 @@
+# ⭐⭐ The GRAIN run — and the schedule is the product.
+#
+# Everything that makes grain whisky the cheap half of a blend is in
+# these four numbers, and none of it is asserted anywhere:
+#
+#   - the hearts run to 0.20 of the charge against the malt run's 0.18,
+#     and the head is HALF as long (0.02 against 0.03). So more of the
+#     charge is saleable and less of it is thrown away — which is the
+#     entire economic case for grain whisky, falling out of the cut
+#     rather than out of a price;
+#   - the characters are "thin", "clean", "cereal" — there is less to
+#     taste, so there is less to get wrong, and `readBlur` is the same
+#     because a nose is a nose;
+#   - the methanol is LOWER at every stage. Wheat is lower in pectin
+#     than malted barley, so there is less methyl ester to break down,
+#     which is real and is also a teaching point: the easier spirit to
+#     make is the safer one to botch.
+#
+# ⚠⚠ So the fork a blender faces is not "which is better". It is: a
+# narrow cut of malt at `fine`, or a wide cut of grain at `fine`, or
+# three litres of `fair` blend from one litre of the first and two of the
+# second. The bar pays per litre and takes anything at `fair`.
+#
+# ⚠ `aromaticCarry` is flat at 1 and that is deliberate: grain spirit is
+# made from unpeated wheat and carries nothing to redistribute, so the
+# figures would be vacuous — and authoring a late carry here would be
+# asserting a chemistry that is not in the charge.
+class: /platform/idea/fractionation/FractionSchedule
+data:
+  key: grain-wash
+  inputCategory: grain-wash
+  discipline: distilling
+  requiresHeatK: 351
+  productMaterial: /trade/distilling/idea/material/grain-new-make
+  residueMaterial: /trade/distilling/idea/material/stillage
+  readBlur: 0.02
+  gradeStretch: 0.0075
+  fractions:
+    - key: foreshots
+      upTo: 0.004
+      character: >-
+        A thin sharpness comes over first, more a prickle than a smell.
+      gradeBand: poor
+      toxins:
+        - { type: methanol, amount: 8000 }
+    - key: heads
+      upTo: 0.02
+      character: >-
+        Hot and papery, with nothing much behind it.
+      gradeBand: fair
+      toxins:
+        - { type: methanol, amount: 2000 }
+    - key: hearts
+      upTo: 0.2
+      character: >-
+        Clean and thin, a dry cereal sweetness and little else.
+      gradeBand: fine
+      toxins:
+        - { type: methanol, amount: 25 }
+    - key: tails
+      upTo: 0.24
+      character: >-
+        Turning flat and watery, with a faint cardboard edge.
+      gradeBand: poor

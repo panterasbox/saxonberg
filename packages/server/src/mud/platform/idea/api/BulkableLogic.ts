@@ -18,6 +18,9 @@ import { Freshness } from '../../../lib/material/Freshness';
 import { WaterActivity } from '../../../lib/material/WaterActivity';
 import { Contamination } from '../../../lib/material/Contaminable';
 import { Blood } from '../../../lib/vitals/Blood';
+import { DissolvedToxins } from '../../../lib/metabolism/DissolvedToxins';
+import { DissolvedAromatics } from '../../../lib/metabolism/DissolvedAromatics';
+import { Concentration } from '../../../lib/bulk/Concentration';
 import type { MqlQuantity } from '../../../api/mql';
 import { Quantity } from '../../../lib/quantity';
 import { MessageApi } from '../../../api/message';
@@ -82,6 +85,58 @@ export class BulkableLogic extends ApiLogic {
   @CallSecurity(BulkableApiCallers)
   public compareClosure(a: ClosureLevel, b: ClosureLevel): number {
     return CLOSURE_ORDER[a] - CLOSURE_ORDER[b];
+  }
+
+  /** See {@link BulkableApi.blendPayloads}. */
+  @CallSecurity(BulkableApiCallers)
+  public blendPayloads(
+    from: BulkPayload | null,
+    fromL: number,
+    to: BulkPayload | null,
+    toL: number,
+  ): BulkPayload {
+    const base: BulkPayload = { ...(to ?? {}) };
+    // ⭐ Exactly the PER-LITRE domains, and nothing else. Freshness, the
+    // water state, pathogens and blood are blended too, but each of them
+    // needs slot or host context the payload alone cannot supply (the
+    // vessel's surface load, a holder's temperature), so they stay where
+    // they are, in `transfer`. What belongs here is what is a pure
+    // function of two payloads and two volumes.
+    const toxins = DissolvedToxins.blend(
+      from?.dissolvedToxins,
+      fromL,
+      to?.dissolvedToxins,
+      toL,
+    );
+    if (DissolvedToxins.isClean(toxins)) delete base.dissolvedToxins;
+    else base.dissolvedToxins = toxins;
+
+    const aromatics = Concentration.blend(
+      from?.dissolvedAromatics,
+      fromL,
+      to?.dissolvedAromatics,
+      toL,
+    );
+    if (Concentration.isClean(aromatics)) delete base.dissolvedAromatics;
+    else base.dissolvedAromatics = aromatics;
+
+    // ⭐⭐ **The age statement is the MINIMUM, never the average.** An age
+    // statement means the youngest thing in the bottle — that is what it
+    // legally means and what a drinker is entitled to read off a label —
+    // so a 90-day malt vatted with a 20-day grain reads twenty.
+    // Averaging it to fifty-five would be the one way to ship this
+    // feature as a lie.
+    //
+    // ⚠ A side with no age at all (new spirit, water) does not pull the
+    // answer to zero; it simply has nothing to say. Only two aged
+    // parcels can make a blend younger than its oldest half.
+    const ages = [from?.maturedDays, to?.maturedDays].filter(
+      (d): d is number => typeof d === 'number' && d > 0,
+    );
+    if (ages.length > 0) base.maturedDays = Math.min(...ages);
+    else delete base.maturedDays;
+
+    return base;
   }
 
   /** See {@link BulkableApi.requiredClosureFor}. */
@@ -319,7 +374,30 @@ export class BulkableLogic extends ApiLogic {
     const fromPathogens = new Contamination(from).loads();
     const toPathogensBefore =
       to !== null ? new Contamination(to).loads() : {};
-    const fromPayload = from.getPayload();
+    // ⚠⚠ And the DISSOLVED dose, by the same mass-weighted rule as the
+    // load, the cure and the pathogens — a concentration that did not
+    // blend would make decanting a laundry in the other direction too:
+    // tip a poisoned bottle into a clean cask and read the cask's label.
+    const fromDissolved = new DissolvedToxins(from).raw().map((t) => ({ ...t }));
+    const toDissolvedBefore =
+      to !== null ? new DissolvedToxins(to).raw().map((t) => ({ ...t })) : [];
+    // ⭐ And what it SMELLS of, by the same rule. Nothing is harmed by an
+    // aroma, so this one is not an anti-laundering guard — it is the
+    // opposite reading of the same arithmetic: vatting a peated malt into
+    // three times as much grain spirit leaves a third of the smoke, which
+    // is exactly what a blender is doing it for.
+    const fromAromatics = new DissolvedAromatics(from)
+      .raw()
+      .map((t) => ({ ...t }));
+    const toAromaticsBefore =
+      to !== null
+        ? new DissolvedAromatics(to).raw().map((t) => ({ ...t }))
+        : [];
+    // ⭐ What `applied` litres drawn NOW would carry — host policy, not the
+    // slot's whole payload. Identical to `getPayload()` for every holder
+    // whose interior is homogeneous; a fractionating host answers with the
+    // span it is actually about to give up.
+    const fromPayload = from.payloadForDraw(applied);
     const toWasEmpty = to !== null && to.isEmpty();
     from.debit(applied);
     if (to !== null) {
@@ -388,6 +466,47 @@ export class BulkableLogic extends ApiLogic {
       ) {
         new Contamination(to).stampLoads(withSurface);
       }
+
+      // ⭐ The per-litre domains fold in ONE place now — the same call
+      // a recipe's output and a grind make, which is what stops a
+      // vatting recipe laundering a dose. What the SOURCE gives up is
+      // `fromPayload` (host policy: a fractionating still answers with
+      // the span it is about to hand over, not its whole interior), and
+      // `fromDissolved` is the fallback for a host with no draw policy.
+      const drawn: BulkPayload = {
+        ...(fromPayload ?? {}),
+        dissolvedToxins: fromPayload?.dissolvedToxins ?? fromDissolved,
+        dissolvedAromatics:
+          fromPayload?.dissolvedAromatics ?? fromAromatics,
+      };
+      const heldBefore: BulkPayload = {
+        dissolvedToxins: toDissolvedBefore,
+        dissolvedAromatics: toAromaticsBefore,
+      };
+      if (
+        !DissolvedToxins.isClean(drawn.dissolvedToxins) ||
+        !DissolvedToxins.isClean(heldBefore.dissolvedToxins) ||
+        !Concentration.isClean(drawn.dissolvedAromatics) ||
+        !Concentration.isClean(heldBefore.dissolvedAromatics)
+      ) {
+        const folded = this.blendPayloads(
+          drawn,
+          applied,
+          heldBefore,
+          toAmountBefore,
+        );
+        new DissolvedToxins(to).stamp(folded.dissolvedToxins ?? []);
+        new DissolvedAromatics(to).stamp(folded.dissolvedAromatics ?? []);
+      }
+
+      // ⭐⭐ **A top-up is weakest-link on the grade.** Identity rides into
+      // an empty destination only (above) — but quality is not identity,
+      // and a vessel that has had a poor pour added to it holds poorer
+      // matter than it did. Without this, topping a bad bottle up from a
+      // good cask would LAUNDER it: the grade is the destination's and the
+      // matter is the mixture. The maker's mark is untouched either way —
+      // a top-up never re-signs somebody else's work.
+      if (!toWasEmpty) carryTopUpGrade(fromHolder, toHolder);
 
       // ⭐ Blood units blend by IDENTITY, not by mass (blood build D4):
       // two units of the same labelled type stay that type; anything else
@@ -547,6 +666,18 @@ function carryBatchIdentity(
     toHolder.setRecipe(fromHolder.getRecipe());
     toHolder.setCraftedAt(fromHolder.getCraftedAt());
   }
+}
+
+/**
+ * The top-up rule: the destination's grade falls to the lower of the two.
+ * Never raises it — `Grade.min` both ways, which is the same weakest-link
+ * doctrine `Grade.deriveAtFixedControl` applies to a craft's inputs.
+ */
+function carryTopUpGrade(fromHolder: Stuff, toHolder: Stuff | null): void {
+  if (toHolder === null) return;
+  if (!MixinApi.isGraded(fromHolder) || !MixinApi.isGraded(toHolder)) return;
+  const blended = toHolder.getGrade().min(fromHolder.getGrade());
+  toHolder.setGrade(blended);
 }
 
 function computeApplied(

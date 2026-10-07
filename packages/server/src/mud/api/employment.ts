@@ -67,7 +67,7 @@ export type { Employed } from '../lib/employment/Employed';
 import type { Employment } from '../lib/employment/Employment';
 import type { StockSheetLine } from '../platform/idea/api/EmploymentLogic';
 import type { PrincipalRef } from '../lib/employment/Authority';
-import type { RemittanceSplit } from './banking';
+import type { RemittanceSplit, SettlementReceipt } from './banking';
 import { SecurityApi } from './security';
 
 const LOGIC_PATH = '/platform/idea/api/employment';
@@ -332,6 +332,33 @@ export class EmploymentApi {
     employment: Employment,
   ): Promise<void> {
     return logic().settleShiftWage(business, employeeKey, employment);
+  }
+
+  /**
+   * ⭐ Take payment for a sale at a venue — the one settle-a-sale path both
+   * `buy` and `order` run. Stands the venue's operator up, resolves its
+   * authored account, settles a presented Charge (credential → cash),
+   * appends the venue's share-of-flow splits plus any `extraSplits` the
+   * caller carries (a consignment remainder), and remits the demo sales
+   * tax on `taxable`. Returns the `(amount, corpo)` scene tail + the
+   * receipt, or null when there is no operator / account / funds (served
+   * on the house). The customer is the acting principal — `settle` derives
+   * the payer, so a sale is always bought by whoever asks.
+   */
+  public static settleSale(
+    venuePath: string | null,
+    amountMinor: number,
+    taxableMinor: number,
+    reason: string,
+    extraSplits?: RemittanceSplit[],
+  ): Promise<{ tail: string; receipt: SettlementReceipt } | null> {
+    return logic().settleSale(
+      venuePath,
+      amountMinor,
+      taxableMinor,
+      reason,
+      extraSplits ?? [],
+    );
   }
 
 }

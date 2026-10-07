@@ -220,6 +220,30 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
     }
   }
 
+  // ⭐⭐ A mill row's `products:` — the feed → product table (the
+  // whiskey-styles build). Each entry names the matter it makes, the
+  // matter it bolts out and the two sacks they land in, and all four
+  // resolve LIVE at the completion of a grind.
+  //
+  // ⚠ This is the field that replaced the scalar `productMaterial` as
+  // the one that actually decides, and clause (d) caught it the moment
+  // it shipped — which is the gate's own stated purpose: *if this is a
+  // RENAME of a field refsOf used to read, the census has just gone
+  // blind on every ref it carried.* The scalars are still read above
+  // (they remain the fallback for a row with no table), so the two
+  // together cover every path a grind can resolve. A rowless entry here
+  // is a grind that consumes the grain, runs its whole duration and
+  // produces nothing, inside a completion no player is watching.
+  if (Array.isArray(data.products)) {
+    for (const row of data.products as Array<Record<string, unknown>>) {
+      if (!row || typeof row !== 'object') continue;
+      push('products.product', row.product);
+      push('products.residue', row.residue);
+      push('products.vessel', row.vessel);
+      push('products.residueVessel', row.residueVessel);
+    }
+  }
+
   // ⚠ `props:` and `cast:` — the born-with fields. They were ONE field
   // (`populates:`) until the farming build split them by designation,
   // and this census kept reading the retired name: it went on reporting
@@ -611,6 +635,16 @@ const IGNORED_PATH_FIELDS: readonly string[] = [
   // and it resolves through `ParcelApi.ownerOf`'s longest-prefix walk
   // exactly like `_address` and `servesExtent` above.
   'claimBlocks',
+  // ⭐ A donation bank's vault paths resolve at runtime through
+  // `StuffApi.findByTemplatePath`, and `getVaults()` filters out anything
+  // that is not a live Container — so a dangling vault serves NOTHING
+  // rather than everything, failing closed exactly like the extents above.
+  '_vaultPaths',
+  // ⭐ A blood unit's donor key is a durable PARTY id — an identity path
+  // (a person) for a drawn unit, an organization path for an institutional
+  // one, and '' for an unattributed bag. Like `donorIdentityPath` it keys a
+  // party, never cites a template row, so there is no row for it to dangle.
+  'donorKey',
 ];
 
 /**

@@ -108,6 +108,7 @@ import type { Alloyed } from '../lib/material/Alloyed';
 import type { Contaminable } from '../lib/material/Contaminable';
 import type { Growing } from '../lib/husbandry/Growing';
 import type { Maturing } from '../lib/maturation/Maturing';
+import type { Fractionating } from '../lib/fractionation/Fractionating';
 import type { Plantable } from '../lib/husbandry/Plantable';
 import type { Soil } from '../lib/husbandry/Soil';
 import type { Handling } from '../lib/husbandry/Handling';
@@ -198,6 +199,7 @@ import type { Blessable } from '../lib/magic/Blessable';
 import type { Builds } from '../lib/craft/ManualBuild';
 import type { Bank } from '../lib/banking/Bank';
 import type { PricedOffer } from '../lib/commerce/PricedOffer';
+import type { DonationBank } from '../lib/commerce/DonationBank';
 import type { Business } from '../platform/idea/Business';
 import type { Organization } from '../lib/employment/Organization';
 import type { Publisher } from '../lib/press/Publisher';
@@ -1485,6 +1487,15 @@ export class MixinApi {
   }
 
   /**
+   * A host whose interior yields in ordered fractions as it is drawn —
+   * a pot still, a rectifying column. ⭐ Maturing's sibling: that one is
+   * driven by a clock, this one by the volume you have taken out.
+   */
+  public static isFractionating(obj: Stuff): obj is Stuff & Fractionating {
+    return this.hasMixin(obj, Mixins.Fractionating);
+  }
+
+  /**
    * Can this be put in the ground? The `plant` verb's kind gate —
    * the capability, not the `Seed` class, so a future cutting / tuber /
    * bulb is plantable without extending `Seed`.
@@ -1916,6 +1927,12 @@ export class MixinApi {
   /** A fixture that prices and collects — a `Menu`, a `Tariff`, a `Stock` counter. */
   public static isPricedOffer(obj: Stuff): obj is Stuff & PricedOffer {
     return this.hasMixin(obj, Mixins.PricedOffer);
+  }
+
+  /** A civic bank of donated units read by lot over a configured store
+   * (the blood window). */
+  public static isDonationBank(obj: Stuff): obj is Stuff & DonationBank {
+    return this.hasMixin(obj, Mixins.DonationBank);
   }
 
   /**

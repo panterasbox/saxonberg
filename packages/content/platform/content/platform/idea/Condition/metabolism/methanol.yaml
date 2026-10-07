@@ -1,0 +1,53 @@
+# Methanol — ⭐⭐ **the poison that is a decision rather than an accident.**
+#
+# Every other toxin on this roster arrives: a spoiled batch grew it, a
+# snake put it in you, a bean always had it. Methanol is made, by the same
+# act that makes the spirit, and then **poured off or kept**. The
+# distiller who discards the first of the run has no methanol to sell; the
+# one who keeps it for the yield has. That is the whole of the cut, and it
+# is why this row's maker is named in the harm ledger
+# (`Metabolic.noteToxinAccountability`) while alcohol's never is — being
+# drunk is what whiskey does, being blinded is what somebody did.
+#
+# ⚠ **The arc arrives LATE, deliberately.** `absorptionRate: 1.5` against
+# alcohol's much faster one means the ethanol has had its say and worn off
+# before this shows: you drank, you enjoyed it, you went to bed, and the
+# morning is not a hangover. Slow out as well (`clearanceRate: 0.01`), so
+# a bad bottle is a day lost rather than an hour.
+#
+# ⭐ The bands are calibrated against ONE sentence from the requirements —
+# *a well-cut bottle harms nobody however much of it they drink*. Burden
+# is `mg × potency / bodyMass`, so a 0.75 L bottle of hearts at 40 mg/L is
+# 30 mg on a 70 kg body: a burden of 0.43, comfortably below the lowest
+# rung. Keeping the heads instead lands around 435 mg/L — a burden near 5,
+# which is the middle rung and a genuinely ill customer. Keeping the
+# foreshots too is past the top. The dose makes the poison, and the dose
+# is where you stopped pouring.
+#
+# `resolution.by: time` and not `antitoxin`: the real remedy is ethanol,
+# which this world already sells on every counter, and a medic prescribing
+# whiskey for a whiskey poisoning is a joke the fiction has not earned
+# yet. Deferred to the medical slate.
+class: /platform/idea/Condition
+data:
+  name: methanol poisoning
+  # Fluid loss, and the sight that goes first — the clinical signature
+  # everyone knows about this poison and the reason it is feared.
+  signature:
+    - { kind: reserve, reserve: hydration, pctPerHour: -3 }
+    - { kind: expression, bands: 1 }
+  progression:
+    law: burden
+  resolution:
+    by: time
+  observableSigns: [nauseous, dizzy, blurred-sighted]
+  contagion: null
+  toxinBehavior:
+    toxinType: methanol
+    absorptionRate: 1.5
+    clearanceRate: 0.01
+    potency: 1
+    bands:
+      - { threshold: 2, severity: 1 }
+      - { threshold: 5, severity: 2 }
+      - { threshold: 10, severity: 3 }

@@ -153,6 +153,12 @@ const MANIFEST: ReadonlyArray<{ site: string; classification: string }> = [
   // `instanceof MaturationProfile` (the MaterialLogic filter, homed on a
   // self-warming catalogue — the boot()-retirement direction).
   { site: "platform/idea/MaturationProfileCatalogue.ts::loadClassByPath", classification: "gated-direct" },
+  // `FractionScheduleCatalogue.onCreate` keeps a row by
+  // `instanceof FractionSchedule` — the same self-warming shape, for the
+  // fraction-schedule roster the still's charge match reads
+  // synchronously. The filter is the CLASS and never an allowlist of
+  // roots, so a trade pack can ship a schedule.
+  { site: "platform/idea/FractionScheduleCatalogue.ts::loadClassByPath", classification: "gated-direct" },
   // `FabricCatalogue.onCreate` keeps a row by `instanceof Fabric` —
   // the same self-warming shape one row up. ⚠ Its predicate carries an
   // extra `cls === Fabric` clause the siblings do not need: those have a

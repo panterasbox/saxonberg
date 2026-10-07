@@ -30,7 +30,6 @@ toolCapabilities: [mash-tun]
 outputApplication: bulk
 outputTemplate: /trade/brewing/thing/wort-bucket
 outputMaterial: /trade/brewing/idea/material/lager-wort
-outputAppearance: pale clear wort
 outputResidue:
   template: /trade/brewing/thing/spent-grain
   count: 1

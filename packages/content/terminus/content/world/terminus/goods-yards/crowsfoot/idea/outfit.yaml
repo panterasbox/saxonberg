@@ -19,7 +19,14 @@ data:
       noun: hand
       label: running the Crowsfoot outfit's floor
       wageRate: 3
-      fulfills: [distilling, fermenting]
+      # ⭐ `malting` added by the whiskey-styles build. The floor has had
+      # a malting floor and a kiln on it since the predecessor shipped,
+      # and NOBODY SEATED HERE FULFILLED THE TRADE — so `lint:menu-staff`
+      # was keeping `steep-barley` and `kiln-malt` off the still book,
+      # which in turn left the shipped wire drive asserting two lines the
+      # book does not offer. The capability has to exist on the seat
+      # before the board may advertise it.
+      fulfills: [distilling, fermenting, malting]
       purchases: true
   rosterSlots:
     - positionKey: hand

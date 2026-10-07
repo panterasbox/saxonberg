@@ -3,6 +3,10 @@
 > **Status: PARTIAL** — the spoilage engine (Freshness · Contaminable ·
 > Cured), salt, the salt-cure recipe and drying all shipped
 > → [spoilage.md](../../subsystems/spoilage.md)
+> ⭐ **A feedstock for the acid hurdle arrived 2026-10-06:** malt vinegar,
+> in [malting-and-extract-slate](../builds/malting-and-extract-slate.md) —
+> ale + `turnedMaterial`, the wine-vinegar shape. That slate ships the
+> vinegar; `f_pH` stays this one's.
 > **Left:** the acidity term `f_pH` (pickling as a `MaturationProfile` row
 > + one read; ⚠ inherits the fermentation/spoilage `Vat` collision —
 > absorbed from food-safety 2026-09-21) · the sealing decision (binary until a consumer wants a

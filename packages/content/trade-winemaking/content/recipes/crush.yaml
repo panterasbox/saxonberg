@@ -18,7 +18,6 @@ outputApplication: bulk
 outputTemplate: /trade/winemaking/thing/must-bucket
 outputMaterial: /trade/winemaking/idea/material/red-must
 outputPortionL: 2.4
-outputAppearance: dark crushed must, skins and all
 outputResidue:
   template: /trade/winemaking/thing/pomace
   count: 1

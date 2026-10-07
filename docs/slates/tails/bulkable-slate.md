@@ -342,3 +342,31 @@ food-prep content drives them.)
 - [collision-slate.md](./collision-slate.md) — mass/volume capacity,
   displacement.
 - [activity.md](../../subsystems/activity.md) — durative bulk verbs.
+
+---
+
+## ⚠⚠ The transfer participant hook — EIGHT domain insertions (2026-10-06)
+
+Salvaged from the two whiskey plans at their sweep; the live reference is
+[bulk.md § History](../../subsystems/bulk.md).
+
+`BulkableApi.transfer` now carries **eight** domain insertions on every
+pour: freshness, water activity, pathogens, blood identity, thermal, the
+payload copy, the batch-identity carry, and the dissolved-concentration
+fold. Both `bulk.md` and `maturation.md` named poisons as the moment to
+generalise this to a **host-side participant hook**, and two builds in a
+row filed the count rather than doing the refactor — correctly, per
+*census then ratchet*: refactoring four shipped blends inside a feature
+build would have hidden the feature.
+
+⭐ **The first piece is now extracted**, which makes the rest cheaper:
+`BulkableApi.blendPayloads` folds the per-litre payload domains
+(`dissolvedToxins`, `dissolvedAromatics`, and `maturedDays` as a MINIMUM)
+and is called from **three** sites — a pour, a recipe's bulk output, and
+a grind. ⚠ The insertion count did not rise doing it: one inline block
+became one call.
+
+⚠ The remaining five are the ones that need **slot or host context** (a
+vessel's surface pathogen load, a holder's temperature), which is
+precisely what a participant hook would supply and a pure payload fold
+cannot. That is the shape of the work.

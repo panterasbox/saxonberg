@@ -1,0 +1,30 @@
+# Grain whisky — ⭐ matured grain spirit. Legally whisky, and the Lounge's
+# par line takes it.
+#
+# ⚠⚠ It carries `whiskey` and NOT `malt-whisky`, and that pair of
+# decisions is the whole economics of blending:
+#
+#   - `whiskey` means the bar will buy it and the sour will take it, so a
+#     grain house has a market without a malt house's costs;
+#   - the absence of `malt-whisky` means the vatting recipe's malt slot
+#     will not accept it, so a blend genuinely requires both lines and
+#     cannot be faked from the cheap one alone.
+#
+# The sour's `minGrade: fair` is what stops that being a free lunch: a
+# thin spirit badly made is still refused.
+class: /platform/idea/material/ConsumableMaterial
+data:
+  name: grain whisky
+  keywords: ["grain whisky", "grain whiskey", grain, whisky]
+  appearance: "a pale straw whisky, light and a little sweet"
+  density: 940
+  thermalConductivity: 0.17
+  specificHeat: 2400
+  edibility: true
+  toxicity:
+    - { type: alcohol, amount: 40 }
+  tags: [liquid, beverage, drinkable, alcoholic, spirit, whiskey, grain-whisky]
+  composition: []
+  biologicalSource: null
+  autoignitionTemperature: 640
+  heatOfCombustion: 24

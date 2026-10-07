@@ -67,6 +67,7 @@ boot:
   - { template: /platform/idea/DisciplineCatalogue, role: sync-read, reason: the advancement Catalog's descriptor cache }
   - { template: /platform/idea/OperationCatalogue, role: sync-read, reason: "the surgical catalogue operate picks from; warms the Operation rows by class at postRegister" }
   - { template: /platform/idea/MaturationProfileCatalogue, role: sync-read, reason: "stands the maturation-profile roster up for the vat reconcile's sync match (the reference-Ideas-inert-at-boot rule, self-warming — no Api.boot)" }
+  - { template: /platform/idea/FractionScheduleCatalogue, role: sync-read, reason: "stands the fraction-schedule roster up for the still's charge match (the reference-Ideas-inert-at-boot rule, self-warming — no Api.boot)" }
   - { template: /platform/idea/CorpoCatalogue, role: sync-read, reason: the corpo/brand descriptor caches CorpoApi reads }
   - { template: /platform/idea/GovernmentCatalogue, role: sync-read, reason: the diegetic-government roster GovernmentApi reads }
   - { template: /platform/idea/SpellCatalogue, role: sync-read, reason: the authored spell roster MagicApi reads; validates every effect at postRegister }

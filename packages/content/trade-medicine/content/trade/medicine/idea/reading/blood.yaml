@@ -1,0 +1,23 @@
+# blood — a body's blood type and who it is compatible with, in words.
+#
+# ⭐ Competence resolves DETAIL, never access (D15): anyone may read a
+# body's blood, a better eye reads more of the compatibility picture. The
+# lesson it makes legible is D3's — compatibility is of the blood SYSTEM,
+# and it crosses species: a dwarf and a halfling can take a human's blood,
+# an elf cannot.
+#
+# ⚠ Reads a TESTED label only — an untested body reads *untested* at every
+# band. The type is a belief learned by `test`.
+class: /trade/medicine/idea/reading/BloodReading
+data:
+  channel: blood
+  kind: fact
+  scope: [subject, self]
+  discipline: medicine
+  instrument: ""
+  eyeCeiling: expert
+  improves: >-
+    whom this blood can be given to, whom it can receive from, and which
+    peoples share its system
+  stakes: >-
+    a transfusion that reacts; a compatible donor overlooked

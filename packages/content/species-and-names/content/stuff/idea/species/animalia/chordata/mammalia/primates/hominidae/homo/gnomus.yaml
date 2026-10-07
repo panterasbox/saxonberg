@@ -40,6 +40,7 @@ data:
   # ABO allele frequencies (blood build D2) — fiction; the PATTERN is the lesson.
   bloodGroups:
     alleles: { A: 0.1, B: 0.4, O: 0.5 }
+    system: hominid
   lifecycleStates: ["alive", "dead", "undead"]
   sexDeterminationSystem: xy
   reproductiveMode: sexual

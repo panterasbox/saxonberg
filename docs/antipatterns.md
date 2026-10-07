@@ -5855,6 +5855,40 @@ hysteresis → declaration order, and **declaration order is the last resort
 there on purpose** — it is the only leg that is a fact about the author
 rather than about the world.
 
+
+---
+
+## ⛔⛔ `here:c` for a room's contents — a bareword in chain position is a KEYWORD FILTER
+
+| Don't | Do |
+|---|---|
+| `query('here:c', { fields: ['displayName'] })` | `query('here:i', …)` |
+
+**`:c` is not an operator.** MQL's descend is `:i` (one level) and `:I`
+(the whole subtree) — see [mql-grammar.md § Chain operator](./mql-grammar.md).
+A **bareword** in chain position *filters the current set by that
+keyword*, so `here:c` asks the room for things whose keyword is `"c"`.
+
+⚠⚠ **And it fails in the worst possible way: it returns the ROOM.** Not
+an error, not an empty set — one row, whose `displayName` is the room's
+own. So a checkpoint that reads contents and asserts a name against them
+is really asserting against a single string, and **it can only ever pass
+for words that happen to appear in the room's name.**
+
+⭐ Three wire files carried it. The whiskey vertical's drive used it to
+prove its floor was furnished — *"the floor holds the still, the book, the
+maltings and the cask"* — and could not have. `avatar-family`'s own
+comment even records the result as *"`here:c` is EMPTY"* without drawing
+the conclusion. Found 2026-10-06 when the styles drive copied the idiom
+and its first checkpoint failed; with `:i` the same checkpoint passed and
+confirmed the rows had been right all along. **The query was blind, not
+the content.**
+
+⚠ The general shape is worth more than the fix: **a query DSL that
+degrades to a plausible non-empty answer is one an assertion cannot
+distinguish from a working one.** If a read is the premise of a test,
+assert something only the real answer could satisfy — a count, or a name
+that is not the container's.
 ## A `Map`/`Set` field declared bare-`persistent`
 
 ```ts

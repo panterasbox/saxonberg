@@ -1,6 +1,7 @@
 # Instance addressing — two questions, one index
 
-> **Status: BUILT** (MR pending, `reqs/location-graph`, 2026-10-05) —
+> **Status: PARTIAL** — Stage A shipped in `reqs/location-graph`
+> (MR !335, 2026-10-05) → [identity.md](../../subsystems/identity.md).
 > Stage A of the location-graph build shipped every item below. The
 > headline defect is fixed and **sabotage-verified**: `assertUniqueKey`
 > was vacuous for every identity-stamped keyed host, so the market stall
@@ -85,8 +86,8 @@
 >   under it* → `mql-grammar.md`. One line in `resolver.ts`; a grammar
 >   decision, not a defect.
 >
-> **Size:** the two unminting jobs are a sitting each, by whoever owns
-> the site
+> **Size:** a tail — the two unminting jobs are a sitting each, by
+> whoever owns the site
 
 **Captured 2026-10-04**, in the location-graph plan's grounding, when
 answering *"what durable handle does this place have"* needed a four-rung

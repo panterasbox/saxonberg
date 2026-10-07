@@ -68,9 +68,21 @@ import {
   type CompetenceBandName,
 } from "../advancement/CompetenceBand";
 import { CraftingApi } from '../../api/crafting';
+import {
+  DissolvedAromatics,
+  type AromaTag,
+} from "./DissolvedAromatics";
 
 /** The sense channel a palate answers on. */
 const TASTE_CHANNEL = "taste";
+
+/**
+ * ⭐ And the one a NOSE answers on. Aroma reads on both: `smell` because
+ * that is what a nose is for, and `taste` because flavour is mostly
+ * retronasal — a dram you sip tells you what a dram you sniff does. The
+ * basic tastes stay `taste`-only, because you cannot smell salt.
+ */
+const SMELL_CHANNEL = "smell";
 
 /**
  * The ingredients' display names, resolved from the composition.
@@ -138,15 +150,36 @@ function renderPalate(
   parts: readonly string[],
   gradeBand: string | null,
   band: CompetenceBandName,
+  aromatics: readonly AromaTag[] | undefined,
+  tasteChannel: boolean,
+  maturedDays: number | undefined,
 ): string | null {
   const lines: string[] = [];
-  if (tastes.length > 0) lines.push(`It tastes ${joinWords(tastes)}.`);
+  // ⭐ The aroma leads, because it is what reaches you first — and on a
+  // `smell` it is the only thing there is to say.
+  const aroma = DissolvedAromatics.render(aromatics, band);
+  if (aroma) lines.push(aroma);
+  if (tasteChannel && tastes.length > 0) {
+    lines.push(`It tastes ${joinWords(tastes)}.`);
+  }
   const rank = COMPETENCE_BANDS.indexOf(band);
   if (rank >= COMPETENCE_BANDS.indexOf("competent") && parts.length > 0) {
     lines.push(`You pick out ${joinWords(parts)}.`);
   }
   if (rank >= COMPETENCE_BANDS.indexOf("proficient") && gradeBand) {
     lines.push(`The making of it reads ${gradeBand}.`);
+  }
+  // ⭐⭐ **The age statement** — words, not a figure, and only to a nose
+  // that could actually tell. ⚠ It names the unit as GAME-days on
+  // purpose: this world's clock is compressed, and dressing nineteen
+  // days up as "nineteen years" would be the one dishonest thing a
+  // label could do. Saying what it is beats hiding it.
+  if (
+    rank >= COMPETENCE_BANDS.indexOf("proficient") &&
+    maturedDays !== undefined &&
+    maturedDays > 0
+  ) {
+    lines.push(`It has had ${daysInWords(maturedDays)} in the wood.`);
   }
   return lines.length > 0 ? lines.join(" ") : null;
 }
@@ -165,6 +198,22 @@ function bandFor(viewer: Stuff, discipline: string): CompetenceBandName {
   return digest.find((d) => d.discipline === discipline)?.band ?? "untrained";
 }
 
+/**
+ * Game-days as a phrase with no digit in it. ⚠ The no-gauge reading
+ * rules apply to a label exactly as they do to a nose: *a few days* and
+ * *the better part of a season* are what a person says, and a number
+ * would turn the bottle into an instrument.
+ */
+function daysInWords(days: number): string {
+  if (days < 7) return "a few days";
+  if (days < 21) return "a week or two";
+  if (days < 45) return "a month or so";
+  if (days < 100) return "the better part of a season";
+  if (days < 200) return "a season and more";
+  if (days < 400) return "the better part of a year";
+  return "years";
+}
+
 /** `a, b and c` — the ordinary English list, for a derived phrase. */
 function joinWords(words: readonly string[]): string {
   if (words.length <= 1) return words[0] ?? "";
@@ -178,8 +227,14 @@ function palateAugmenter(
   viewer: Stuff,
   opts?: { filter?: readonly string[] },
 ): string {
-  // Taste-channel only. A `look` must not read a dish's palate out.
-  if (!opts?.filter || !opts.filter.includes(TASTE_CHANNEL)) return text;
+  // ⚠ Sensory channels only. A `look` must not read a dish's palate out
+  // — see the Palatable lesson in this file's header, and
+  // `maturationAugmenter` reading a cellar line over a field of linen.
+  const filter = opts?.filter;
+  if (!filter) return text;
+  const tasteChannel = filter.includes(TASTE_CHANNEL);
+  const smellChannel = filter.includes(SMELL_CHANNEL);
+  if (!tasteChannel && !smellChannel) return text;
   if (!MixinApi.isBulkable(host) || !host.hasInteriorBulk()) return text;
   if (host.isBulkEmpty("interior")) return text;
 
@@ -191,6 +246,9 @@ function palateAugmenter(
     ingredientNames(ingredients),
     MixinApi.isGraded(host) ? host.getGradeBand() : null,
     bandFor(viewer, CraftingApi.blendDiscipline(payload)),
+    payload?.dissolvedAromatics,
+    tasteChannel,
+    payload?.maturedDays,
   );
   if (!line) return text;
   return text && text.length > 0 ? `${text}\n\n${line}` : line;

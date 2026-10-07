@@ -141,6 +141,38 @@ export class BulkableApi {
   }
 
   /**
+   * ⭐⭐ **Fold the per-litre payload domains of two bodies of matter** —
+   * `from` at `fromL` litres joining `to` at `toL` litres. Returns a new
+   * payload based on `to` with the dissolved toxin dose and the dissolved
+   * aromatics blended by volume; every other field is `to`'s, untouched.
+   *
+   * ⭐ **One fold, three call sites**, which is the point of it existing:
+   *
+   *   - a **pour** (`transfer` step 5) — the shipped behaviour;
+   *   - a **recipe's bulk output** (`CraftingLogic.applyBulkOutput`) —
+   *     which carried NO input payload before this, so a vatting recipe
+   *     **laundered the dose**: two badly-cut bottles blended came out
+   *     clean. That is the defect that made this a shared seam rather
+   *     than a second copy of the arithmetic;
+   *   - a **grind** (`MillController.fill`), which dropped the source
+   *     sack's payload on the floor, so smoke in a peated malt vanished
+   *     at the millstones.
+   *
+   * ⚠ It folds **only** what is a pure function of two payloads and two
+   * volumes. Freshness, water activity, pathogens and blood blend on a
+   * pour too, but each needs slot or host context (a vessel's surface
+   * load, a holder's temperature) and stays in `transfer`.
+   */
+  static blendPayloads(
+    from: BulkPayload | null,
+    fromL: number,
+    to: BulkPayload | null,
+    toL: number,
+  ): BulkPayload {
+    return logic().blendPayloads(from, fromL, to, toL);
+  }
+
+  /**
    * Hand consumed matter to an actor's `ingest` seam (a `Creature`
    * method; v1 no-op). Used by `drink` / `sip`. Duck-typed so a
    * non-Creature giver can't crash the verb; `null` material is a

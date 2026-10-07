@@ -11,9 +11,18 @@ data:
   thermalConductivity: 0.17
   specificHeat: 2400
   edibility: true
+  # ⚠ Was 19, against `neutral-spirit`'s 45 and `wash`'s 8 — a
+  # forty-per-cent spirit at half the dose of an eight-per-cent wash,
+  # which made whiskey the safest drink in the house. 40 is the honest
+  # figure beside its neighbours.
   toxicity:
-    - { type: alcohol, amount: 19 }
-  tags: [liquid, beverage, drinkable, alcoholic, spirit, whiskey]
+    - { type: alcohol, amount: 40 }
+  # ⭐⭐ `malt-whisky` — the slot constraint that makes a blend require
+  # both lines. `grain-whisky.yaml` carries `whiskey` but NOT this, so
+  # `vat-whisky`'s malt slot will not accept grain spirit and a blender
+  # cannot fake a blend out of the cheap half alone. The shared tag is
+  # the MARKET; the distinct one is the process.
+  tags: [liquid, beverage, drinkable, alcoholic, spirit, whiskey, malt-whisky]
   composition: []
   biologicalSource: null
   # Flammable (P10): the combustion substrate reads these off the
