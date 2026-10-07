@@ -1,9 +1,24 @@
-verbs: [mill]
+# ⭐⭐⭐ **`grind` is an ALIAS, not a second verb**, and that is the point.
+# It shipped as its own verb for one build on the argument that milling
+# grain has a decision in it (how much of the coat you keep) and grinding
+# bone does not. True — and not enough: they are the same act on the same
+# stones, which is exactly the case the verb-collision ladder exists for,
+# and its FIRST rung is *unify behind an interface*. A trade does not get
+# a second verb because one of its inputs has no dial.
+#
+# ⚠ `mill` is the survivor rather than `grind` for three reasons, in
+# order: the trade, the Discipline and the instrument are all *mill* (a
+# quern IS a hand-mill); `mill` carries the extraction dial, which is the
+# pedagogically rich half and the thing lens 1 cares about; and a player
+# reaching for *grind* still gets it. Precedent for the alias:
+# `pick`→`harvest`, `examine`→`look`.
+verbs: [mill, grind]
 controller: /trade/milling/idea/cmd/milling/MillController
 description: "Grind grain or malt, and choose how much of it you keep"
 help: |
   `mill the sack of wheat` grinds it at whatever stones are in reach, at
-  their usual setting. `mill the sack of wheat 0.9` sets the extraction
+  their usual setting. `grind` is the same verb — reach for whichever
+  word fits what you are putting through. `mill the sack of wheat 0.9` sets the extraction
   first. Where there is more than one — a quern in your hands and a mill
   in the room — say which: `mill the wheat at the quern`.
 
@@ -34,10 +49,21 @@ help: |
 
   Malt grinds too, and what comes off is grist — which is what a mash
   actually wants, since whole malt does not mash at all.
+
+  ⭐ **And the stones take more than grain.** Put a bone through them and
+  you get bone meal: there is no extraction to set, because there is
+  nothing to bolt out of it — bone ground is bone meal. `feed` the meal
+  into a field and it goes in as organic matter rather than nitrogen, so
+  a little of it feeds the crop this year and most of it over the next
+  several. Which is why a well-amended field is still paying you in
+  three.
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresConscious
 args:
+  # ⚠ Named `grain` for the arm that reads it that way; the non-grain arm
+  # takes the same object and matches a recipe from its MATERIAL, so
+  # `grind the bone` binds here too and nobody has to know a recipe id.
   - name: grain
     type: object
     required: true

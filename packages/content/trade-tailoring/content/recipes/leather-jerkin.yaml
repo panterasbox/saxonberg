@@ -7,17 +7,32 @@
 # which is exactly the roster's claim that leatherwork SHARES THE CODE
 # with textiles rather than being a parallel trade.
 #
-# ⚠⚠⚠ **It took a VERB as well, and the live drive is what said so.**
-# The paragraph below was written at W4 and was half right: the material
-# was one blocker and nothing resolved the recipe was the other. `make`
-# dispatches a recipe SCRIPT rather than a catalogue recipe, and `cut`
-# requires `StackableMixin` — a BOLT — which a tanned hide is not and
-# must not become (two hides must never merge; each is a particular skin
-# off a particular animal with its own grade). So a hide had no path to a
-# worn jerkin, and three unit suites and sixty-four lint gates were green
-# over it. `trade-tailoring` ships `tailor` now.
+# ⚠⚠⚠ **STILL UNMAKEABLE, and now for a reason that is written down.**
+# The material was one blocker and this build fixed it. The other is that
+# nothing RESOLVES this recipe: `make` dispatches a recipe SCRIPT rather
+# than a catalogue recipe, and `cut` requires `StackableMixin` — a BOLT —
+# which a tanned hide is not and must not become (two hides must never
+# merge; each is a particular skin off a particular animal with its own
+# grade). So a hide has no path to a worn jerkin, and three unit suites
+# and sixty-five lint gates are green over it.
 #
-# ⭐⭐ **It is makeable now, and the recipe did not change by one
+# ⚠⚠ **A `tailor` verb was added here and then REVERTED**, because it was
+# the wrong way to answer that. It shipped out of a drive finding with no
+# design pass and no lens pass, into a trade that already had a designed
+# act ladder (`cut` · `sew` · `alter`) — and it contradicted a decision
+# this trade's own seeding slate had already taken:
+# `textiles-slate.md` says *"`trade-tailoring` already holds the
+# `leather-jerkin` recipe, correct and unmakeable. **`cut`/`sew` take
+# hide the day it exists**"*. A commit message is not a design
+# conversation, and shipping a verb to turn an acceptance criterion green
+# is the tail wagging the dog.
+#
+# ⭐ So the open question is the slate's: how does the PATTERN PATH take a
+# whole skin rather than a length off a roll? That wants a tailoring
+# design session — the hide chain's terminus is the thing it has to
+# answer.
+#
+# ⚠ **It is NOT makeable, and the recipe never changed by one
 # character.** This header used to read *"its `{category: hide}` input
 # still has NO PRODUCER … this row is here, correct, and unmakeable."*
 # Three waves closed it: a butchered carcass gives a skin, a tanpit turns

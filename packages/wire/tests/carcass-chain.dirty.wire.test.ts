@@ -50,8 +50,13 @@
  *     recipe SCRIPT, not a catalogue recipe — and `cut` requires
  *     `StackableMixin`, a BOLT, which a tanned hide is not and must not
  *     become. So a hide had **no path to a worn jerkin**. The build
- *     shipped `tailor` in response. ⭐ That is the same premise error as
- *     W6's and W7's, found for the THIRD time in one build.
+ *     shipped `tailor` in response — ⚠⚠⚠ **and that verb has since been
+ *     REVERTED**, because it was an undesigned answer that contradicted
+ *     `textiles-slate.md`'s own decision (*"`cut`/`sew` take hide the day
+ *     it exists"*). **AC1 is UNMET**, recorded, and the hide chain's
+ *     terminus is a tailoring design session's question. ⭐ The premise
+ *     error was still real and is the same one as W6's and W7's, found
+ *     for the THIRD time in one build.
  *  2. ⚠⚠ **It was NIGHT.** `t = 0` is a moonless midnight and the wire
  *     world restores its clock from the database, so `look` at the
  *     farmyard read *"It is pitch dark"* — and every checkpoint
@@ -780,28 +785,41 @@ suite('⭐⭐ 11–12. tan the hide against the pit it stands in', () => {
   }, 300_000);
 });
 
-/* ─────────── 13. the jerkin: correct and unmakeable since 2026 ─────────── */
+/* ─────────── 13. the jerkin: AC1, and it is UNMET ─────────── */
 
-suite('⭐⭐⭐ 13. the jerkin — AC1, end to end', () => {
-  it('⭐⭐⭐ `tailor` reaches the jerkin AT ALL — which `make` did not', async () => {
-    // **The checkpoint that found the build's last real defect.** Run 1
-    // typed `make leather-jerkin` and HUNG, because `make` dispatches a
-    // recipe SCRIPT and not a catalogue recipe — and `cut` requires
-    // `StackableMixin`, a BOLT, which a tanned hide is not and must not
-    // become. A hide had no path to a worn jerkin, and three unit suites
-    // and sixty-four lint gates were green over it.
+suite('⚠⚠⚠ 13. the jerkin — AC1 is UNMET, and that is the honest answer', () => {
+  it('a hide still has NO PATH to a worn jerkin, and the drive says so', async () => {
+    // **The checkpoint that found the build's last real defect, and then
+    // found a second one in the fix.** Run 1 typed `make leather-jerkin`
+    // and HUNG, because `make` dispatches a recipe SCRIPT and not a
+    // catalogue recipe — and `cut` requires `StackableMixin`, a BOLT,
+    // which a tanned hide is not and must not become. A hide had no path
+    // to a worn jerkin, and three unit suites and sixty-four lint gates
+    // were green over it.
     //
-    // ⭐ So `tailor` exists now, and what this pins is REACHABILITY: the
-    // verb must be understood and the recipe must be found. A refusal
-    // about leather or about not having learned it is a true answer about
-    // the world; *I don't understand 'tailor'* and `no-recipe` are not.
+    // ⚠⚠⚠ **The build shipped a `tailor` verb in response and it has
+    // been REVERTED.** It went in out of a drive finding with no design
+    // pass and no lens pass, into a trade that already had a designed act
+    // ladder (`cut` · `sew` · `alter`) — and it contradicted a decision
+    // this trade's own seeding slate had already taken:
+    // `textiles-slate.md` says *"`trade-tailoring` already holds the
+    // `leather-jerkin` recipe, correct and unmakeable. **`cut`/`sew` take
+    // hide the day it exists**"*. A commit message is not a design
+    // conversation, and shipping a verb to turn an acceptance criterion
+    // green is the tail wagging the dog.
+    //
+    // ⭐⭐ So this checkpoint now pins the GAP rather than papering over
+    // it: `tailor` must NOT be in the vocabulary, and the jerkin must
+    // still be unreachable. A drive finding is information, and an
+    // unmet acceptance criterion that everybody can see beats a verb
+    // nobody designed. The hide chain's terminus is the open question a
+    // tailoring design session has to answer.
     const out = await say(k, 'tailor');
     const said = (await out.said()).toLowerCase();
     expect(
       said,
-      'the tailor verb must be in the vocabulary',
-    ).not.toMatch(/don't understand|do not understand/);
-    expect(refusedFor(out), said).not.toBe('no-recipe');
+      'the reverted `tailor` verb must NOT be in the vocabulary',
+    ).toMatch(/don't understand|do not understand/);
   }, 180_000);
 });
 
@@ -862,7 +880,12 @@ suite('17–18. the ground and the dog', () => {
     expectOk(await k.cmd('clone /trade/milling/thing/quern --here'));
     expectOk(await k.cmd('clone /trade/cooking/thing/sack --here'));
     await k.drainProse();
-    const out = await say(k, 'grind');
+    // ⚠⚠ `grind` is an ALIAS on the `mill` view now, not its own verb —
+    // so it takes the OBJECT the stones are to eat, like every other
+    // thing you put through them. A bare `grind` used to work because
+    // the reverted second verb took an optional string; a bare one now
+    // is a missing required arg, which is the binder doing its job.
+    const out = await say(k, 'grind the bone');
     const reason = refusedFor(out);
     // ⚠ `no-recipe` would mean the verb cannot reach `bone-meal` at all,
     // which is the gap W7 was written to close.
