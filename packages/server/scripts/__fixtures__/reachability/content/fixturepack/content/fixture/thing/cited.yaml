@@ -1,0 +1,4 @@
+# VIOLATION — named only by a CITATION field. Being cited is not being
+# placed: the Feeder/aqueduct-house case that forced the split.
+class: /fixture/thing/Plain
+data: { shortDescription: cited widget }

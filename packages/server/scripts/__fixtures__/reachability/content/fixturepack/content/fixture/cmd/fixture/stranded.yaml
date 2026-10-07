@@ -1,0 +1,4 @@
+# VIOLATION: the slate named here does not exist.
+unreachable: awaiting:no-such-slate
+verbs: [stranded]
+controller: /fixture/idea/cmd/fixture/StrandedController

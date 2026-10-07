@@ -1,0 +1,7 @@
+# Mechanism 3 — the zone's `stocks:` override supplies the target the
+# row's own baseline does not.
+class: /fixture/thing/Widget
+data:
+  shortDescription: zone-drawn widget
+  censusKey: fixture:zoned
+  regionTarget: 0

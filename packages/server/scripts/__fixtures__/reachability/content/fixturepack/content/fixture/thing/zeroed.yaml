@@ -1,0 +1,7 @@
+# VIOLATION — a key, a Circulating class, and a target of ZERO with no
+# zone override. The row is never drawn and nothing says so.
+class: /fixture/thing/Widget
+data:
+  shortDescription: zeroed widget
+  censusKey: fixture:zeroed
+  regionTarget: 0

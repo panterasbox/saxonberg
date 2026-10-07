@@ -1,0 +1,3 @@
+# Mechanism 5 — a source literal names it outright.
+class: /fixture/thing/Plain
+data: { shortDescription: code-named widget }
