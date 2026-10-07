@@ -662,7 +662,37 @@ answers the shape, which is how the test exercises it.
 extraction wire test still passes (its won rows compose no `Alloyed` and
 are stamped nothing).
 
-#### W4 — The pack: matter, recipes, the Discipline, dials, archetypes, the reading · `build(glass W4): trade-glass — sand, melt, gather, bottle, sheet; the batch and the remelt; glasswork`
+#### W4 — The pack: matter, recipes, the Discipline, dials, archetypes, the reading · `build(glass W4): trade-glass — sand, melt, gather, bottle, sheet; the batch and the remelt; glasswork` ✅ DONE
+
+> **Built.** The `trade-glass` pack: skeleton (pack.yaml/package.json/
+> tsconfig/vitest/README), enlisted in the root deployment manifest.
+> `src/lib/Tinted.ts` (`TintedMixin` — colour derived from iron/carbon by
+> Beer–Lambert, `colourBand`, the gated augmenter); thing classes `Sand`,
+> `Melt` (isFluid/takeGather), `Gather` (isWorkable/workingFloorK/
+> `effectiveR` ×dial), `Blowpipe`, `GlassBottle`, `Sheet` (form/scribed/
+> thin), `ScribingWheel`, `GrozingPliers`; `IronReading` + row. Rows:
+> sand/melt/amber-melt/gather/blowpipe/bottle/cylinder/pane/scribing-wheel/
+> grozing-pliers/marver; recipes glass-batch (0.72)/amber/remelt-cullet
+> (1.0); `glasswork` Discipline; `glass.yaml` dials; glasshouse + cold-bench
+> archetypes. Content tag edit: `charcoal` on trade-fuel's charcoal (the
+> amber colourant, specific so coal doesn't stand in).
+> **Decisions:** (a) the affordance `commandContributions` on Blowpipe/
+> Sheet/wheel/pliers are deferred to W5/W6 (when their views exist) so W4
+> lands with no dangling view refs — the archetype slots satisfy
+> `lint:capabilities` for `blowpipe`/`scribing`/`grozing` meanwhile, as
+> the plan anticipated. (b) `fieldMeta` is declared plain `static` (NOT
+> `static override`): the `check-instanceable-placement` parser's regex
+> matches `static [readonly] fieldMeta` only, so `override` hid `form`
+> and tripped the orphan-key ratchet (393) — found and fixed. (c) No
+> standalone IronReading unit test — its behavior (`analyze iron` band +
+> figure) is the W8 drive's step 2 over the same code path, and the row
+> is lint-validated; a stubbed Reading-dispatch unit would test the same
+> path. Pack suite 14 green (Tinted colour arithmetic, Melt fluid/
+> takeGather, Gather τ≈10× + workable floor, recipes parse/shape); pack
+> tsc clean; `lint:family` green (instanceable/capabilities/mass/
+> mixin-names/field-meta all pass).
+
+
 
 **Files (all under `packages/content/trade-glass/`).**
 - `pack.yaml` (`id: trade-glass`, `root: /trade/glass`, `requires.title:

@@ -1,0 +1,18 @@
+# Amber melt — the batch with charcoal in it (glass build D15). The carbon
+# absorbs blue hard, so the glass comes out brown — the beer bottle that
+# protects what it holds from light-strike. A second batch, not a second
+# mechanism: the only difference from `melt` is a carbon term in the alloy.
+class: /trade/glass/thing/Melt
+data:
+  keywords: [melt, "molten glass", "amber melt", pot, metal]
+  shortDescription: pot of amber glass melt
+  register: indefinite
+  longDescription: >-
+    A crucible of glass with a brown cast to the glow, the charcoal in the
+    batch burning its colour deep into it.
+  _materialPath: /stuff/idea/material/glass/glass
+  mass: 5
+  stampedTemperatureK: 1450
+  alloying:
+    - { materialPath: /stuff/idea/material/element/carbon, fraction: 0.003 }
+    - { materialPath: /stuff/idea/material/element/iron, fraction: 0.0005 }
