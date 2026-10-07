@@ -852,7 +852,25 @@ consumers).
 **Acceptance.** Pack suite + `lint:family` (verb-collisions, capabilities,
 instrument-args, arg-kinds, binder-models, controller-rows) green.
 
-#### W6 — The cold shop · `build(glass W6): the cold shop — scribe, snap, groze, flatten, glaze; salvage on the bench`
+#### W6 — The cold shop · `build(glass W6): the cold shop — scribe, snap, groze, flatten, glaze; salvage on the bench` ✅ DONE
+
+> **Built.** Controllers `Scribe` (sets scribed), `Snap` (refuses
+> unscribed; two half-mass panes, colour carried), `Groze` (nibbles
+> `grozeKg` off as dust, sets grozed), `Flatten` (a durative furnace step:
+> scribed cylinder ≥ `flattenK` → a pane of the same glass), `Glaze` (a
+> pane's DERIVED colour → `window.setGlazing`, pane consumed). Views +
+> controller rows; affordance statics on `ScribingWheel` (scribe/snap/
+> flatten), `GrozingPliers` (groze + platform salvage), `Sheet` (glaze);
+> `Sheet.grozed` field. ⭐ The glaze act is the W0 Light seam meeting the
+> W4 Tinted seam: a green pane colours the room green, derived from its
+> iron. **Decision:** the mint-then-narrate controllers (snap/glaze)
+> narrate BEFORE destructing the consumed thing — a destroyed Stuff has no
+> name to render (found by the pack test). Pack suite 21 green (coldwork:
+> scribe/snap half-mass+colour/groze/glaze-green-window); flatten + bench
+> `salvage` are the W8 drive's / W1's (same path). Pack tsc clean;
+> `lint:family` green.
+
+
 
 **Files.**
 - Controllers: `ScribeController` (`scribe <sheet> [with <wheel>]` —
