@@ -8,5 +8,20 @@
 
 import Tool from "@saxonberg/server/mud/platform/thing/Tool";
 import { ContainerMixin } from "@saxonberg/server/mud/lib/spatial/Container";
+import type { CommandContributions } from "@saxonberg/server/mud/api/command";
 
-export default class Blowpipe extends ContainerMixin(Tool) {}
+const HOT_SHOP = [
+  "trade/glass/cmd/glass/dip.yaml",
+  "trade/glass/cmd/glass/shape.yaml",
+  "trade/glass/cmd/glass/reheat.yaml",
+  "trade/glass/cmd/glass/crack.yaml",
+];
+
+export default class Blowpipe extends ContainerMixin(Tool) {
+  // ⭐ A verb an object affords is a static on the class — the pipe
+  // affords the hot shop to whoever holds it (environment = the carrier).
+  static commandContributions: CommandContributions = {
+    environment: HOT_SHOP,
+  };
+}
+

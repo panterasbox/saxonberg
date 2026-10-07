@@ -1,0 +1,32 @@
+verbs: [dip]
+controller: /trade/glass/idea/cmd/glass/DipController
+description: "Gather hot glass on a blowpipe from the pot"
+help: |
+  `dip` (or `dip from melt with pipe`) turns a glowing gather of glass up
+  on the end of a blowpipe. Glassmakers call it a gather; `dip` because
+  the egg verb has `gather`. From the moment you lift it the glass is
+  COOLING — you have seconds to `shape` and `crack` it before it sets, or
+  `reheat` it at the glory hole to buy more time. A stiff pot refuses the
+  pipe; fire it again.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  # ⭐ WHICH POT — declared, the binder resolves it (lint:instrument-args).
+  # Narrowed to a Melt in the controller; the arg gate keeps non-glass out.
+  - name: melt
+    type: object
+    required: false
+    prepositions: [from, in]
+    default: "reachable:[class.Melt]"
+    scope: ["reachable"]
+    requires: AlloyedMixin
+  # ⭐ WHICH PIPE — the empty blowpipe in hand.
+  - name: pipe
+    type: objects
+    required: false
+    prepositions: [with, using, on]
+    default: "reachable:[capability.blowpipe]"
+    scope: ["reachable"]
+    requires: [ToolMixin]

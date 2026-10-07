@@ -784,7 +784,34 @@ declared-never-consumed ceiling is checked in CI**, or the archetype
 need alone satisfies it (it does: the gate counts archetype slots as
 consumers).
 
-#### W5 — The hot shop · `build(glass W5): the hot shop — dip, shape, reheat, crack, and the window that closes`
+#### W5 — The hot shop · `build(glass W5): the hot shop — dip, shape, reheat, crack, and the window that closes` ✅ DONE
+
+> **Built.** `HotWorkWatch` (SustainedEngagement on `attention`, hosted by
+> the pipe, one tick per `tickGameS`, narrating glow-band crossings and
+> losing the piece when it goes cold, self-completing when the gather is
+> gone; `onAbort` does NOT lose — cancel stops watching, not cooling).
+> Controllers `Dip`/`Shape`/`Reheat`/`Crack` (ManualBuildController steps
+> on `hands`; shape/crack re-validate `isWorkable` at the commit point —
+> lazy revalidation of a decaying precondition; crack mints the product
+> at mass − moil with the gather's alloying and STAMPS the maker, mints
+> the moil as cullet). Views + controller template rows + Blowpipe's
+> `commandContributions`.
+> **Decisions:** (a) `glowBand` and the loss logic moved onto `Gather` as
+> instance methods (`glowBand()`, `loseToCullet()`) — a pack `lib/` may
+> not export a free function (instanceable invariant 8), and the verb
+> belongs on the object anyway (OO convention); no new lib statics. (b)
+> Each controller needs a trivial template row (`class:`/`data: {}`) —
+> `controller:` is a template path, and a controller with no row dies on
+> dispatch (`lint:controller-rows`). (c) The `reheat` furnace arg declares
+> `requires: [BurnerMixin]` (arg-kinds: every object arg declares a
+> constraint; the `fire` precedent). (d) `loseToCullet`/the watch guard
+> their narration on `isSensor` so an NPC glassblower loses silently
+> rather than crashing. Pack suite 17 green (hotwork: glow bands, cullet
+> conversion keeps mass+iron); pack tsc clean; `lint:family` green
+> (controller-rows, arg-kinds, verb-collisions, capabilities,
+> instrument-args, binder-models all pass).
+
+
 
 **Files.**
 - `src/lib/HotWork.ts` — `HotWorkWatch` (D10): constructor
