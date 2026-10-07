@@ -80,7 +80,11 @@ describe('the draught', () => {
   async function setDraught(setting: string): Promise<CommandContext> {
     const c = ctx('draught');
     await makeStuff(() => new DraughtController()).execute(
-      { fire: one(forge, 'forge'), setting } as CommandModel,
+      // ⭐ The setting is the SUBCOMMAND now: a bare positional word was
+      // consumed by the object arg and never arrived, which three drive
+      // runs found and no controller test could (a controller test skips
+      // the binder, which is exactly where the defect lived).
+      { fire: one(forge, 'forge'), subcommand: setting } as CommandModel,
       c,
     );
     return c;
@@ -139,17 +143,22 @@ describe('the draught', () => {
     expect(forge.completeness()).toBeLessThan(1);
   });
 
-  it('takes a figure as well as a word', async () => {
-    await setDraught('0.4');
-    expect(forge.getDraught()).toBeCloseTo(0.4);
+  it('⭐ five words, and `half` is the middle one', async () => {
+    await setDraught('half');
+    expect(forge.getDraught()).toBeCloseTo(0.5);
+    await setDraught('open');
+    expect(forge.getDraught()).toBeCloseTo(1);
   });
 
-  it('refuses a setting that is neither', async () => {
-    await setDraught('sideways');
+  it('⚠ a word the view does not offer still cannot set NaN', async () => {
+    // Unreachable through the view (it offers exactly five subcommands),
+    // and asserted anyway: a controller that trusted its matcher and was
+    // wrong would put `NaN` in a fire's draught.
     const c = await setDraught('sideways');
     expect(c.getNotes().some((n) => n.kind === 'controller-rejected')).toBe(
       true,
     );
+    expect(Number.isFinite(forge.getDraught())).toBe(true);
   });
 
   it('⭐ bare `draught` READS it — asking where a dial stands is not a mistake', async () => {

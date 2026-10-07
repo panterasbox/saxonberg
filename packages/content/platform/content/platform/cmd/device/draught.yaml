@@ -13,12 +13,14 @@ verbs: [draught]
 controller: /platform/idea/cmd/device/DraughtController
 description: "Set how much air a fire draws"
 help: |
-  Set a fire's air — `draught wide`, `draught low`, `draught 0.4`, or
-  bare `draught` to be told where it stands. Name the fire with a
-  preposition when there is more than one: `draught wide at forge`.
+  Set a fire's air — `draught wide`, `draught half`, `draught low`,
+  `draught banked` — or bare `draught` to be told where it stands.
 
-  The settings are `wide` (or `open`), `half`, `low`, and `banked`, or
-  any number from 0 to 1.
+  Name the fire when there is more than one: `draught wide at forge`.
+
+  ⭐ For a figure rather than a word, the fuel trade's own `char <n>`
+  sets the same dial on a clamp, which is where a number is worth having
+  — the charring band is narrow and a collier works in tenths.
 
   Wide open, a fire runs as hot and as clean as its fuel allows — and
   shrinks to a pale flame that sheds surprisingly little light. Shut
@@ -29,23 +31,42 @@ help: |
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresEmbodied
-args:
-  # ⚠⚠ NOT `greedy: true`, and the shape is `char`'s for the same reason:
-  # a greedy arg may only be followed by PREPOSITIONAL args, because
-  # otherwise it swallows the boundary token. A greedy `fire` in front of
-  # a bare `setting` makes the whole view fail to load — ⭐ which is the
-  # arg-gate link of the reachability chain failing closed and silent, and
-  # it is exactly how this was caught: a controller test dispatched the
-  # verb, the view would not parse, and the command answered nothing.
-  - name: fire
-    type: object
-    required: false
-    prepositions: [on, at, in]
-    scope: "reachable"
-    default: "reachable:[mixin.BurnerMixin]"
-    requires: BurnerMixin
-    validators:
-      - /lib/command/validators/canReach
-  - name: setting
-    type: string
-    required: false
+subcommands:
+  # ⭐⭐ **SUBCOMMANDS, and the drive is why.**
+  #
+  # This was a positional `setting` arg three times over, and it bound
+  # NOTHING each time: the binder is type-directed, so a bare WORD is
+  # consumed by the object arg (an unresolved selector is still a
+  # structural match) and the value never arrives — the verb silently
+  # became a read and the draught never moved. ⚠ `char 0.45` works on
+  # the identical shape because a NUMBER cannot bind to an object arg and
+  # falls through; a word can.
+  #
+  # ⭐ A closed set of words after a verb is what subcommands ARE
+  # (`bank statement`, `house par`), and the matcher binds them rather
+  # than the type system guessing. Rung 4 of the verb-collision ladder,
+  # applied to argument shape.
+  wide:
+    description: "Vents wide: as hot and as clean as the fuel allows — and dimmer than you expect"
+    args: &fire
+      - name: fire
+        type: object
+        required: false
+        prepositions: [on, at, in]
+        scope: "reachable"
+        default: "reachable:[mixin.BurnerMixin]"
+        requires: BurnerMixin
+        validators:
+          - /lib/command/validators/canReach
+  open:
+    description: "The same as `wide`"
+    args: *fire
+  half:
+    description: "Halfway: a steady yellow burn"
+    args: *fire
+  low:
+    description: "Choked down: cooler, sootier, and it glares"
+    args: *fire
+  banked:
+    description: "Banked under its own ash — a twentieth of the rate, and it keeps"
+    args: *fire

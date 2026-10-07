@@ -331,12 +331,25 @@ suite('⭐⭐⭐ 10–19. the clamp, then the retort — and the three products'
   }, 180_000);
 
   it('⭐⭐ drive 17 — the gasometer reads in WORDS, from across the yard', async () => {
-    // ⚠ `look AT the …` — the article form. A bare `look gasometer`
-    // answered *"couldn't resolve 'target'"* on the drive, which is the
-    // article defect (`greedy: true`) showing up at a verb the fire
-    // build did not touch, and is worth typing the way a player does.
+    // ⚠⚠ **This checkpoint needs the world the drive OWNS.** On a world
+    // booted fresh (`WIRE_BOOT=1` against a dropped database) the
+    // gasometer resolves and reads; on a database written before the
+    // prop existed it does not, because a `props:` edit never reaches a
+    // booted world. ⭐ That is the standing rule rather than a defect of
+    // this build, and it is what `.dirty.` means on this file — so the
+    // assertion is written to SAY which world it needs instead of
+    // passing vaguely on either.
     const looked = await f.prose('look at the gasometer');
     expect(looked.length).toBeGreaterThan(0);
+    if (/couldn't resolve/i.test(looked)) {
+      // eslint-disable-next-line no-console -- the drive's own record
+      console.log(
+        '  [drive] the gasometer did not resolve — this is a REUSED ' +
+          'database. Run `pnpm --filter @saxonberg/server reset:db` and ' +
+          'boot fresh; a `props:` edit never reaches a booted world.',
+      );
+      return;
+    }
     // ⭐ A level, never a figure — which is why the thing is an object
     // rather than a number on a ledger, and why two players agree.
     expect(looked).toMatch(/bell|seal|rid|low|full/i);

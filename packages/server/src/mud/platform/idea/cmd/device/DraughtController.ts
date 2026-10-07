@@ -18,22 +18,39 @@ import type { Burner } from '../../../../lib/fire/Burner';
 
 interface DraughtModel extends CommandModel {
   fire?: MqlOneResult;
-  setting?: string;
+  /**
+   * ⭐⭐ The setting arrives as the SUBCOMMAND, not as a positional
+   * string — and three drive runs are why.
+   *
+   * A bare word never bound: the binder is type-directed, so `low` was
+   * consumed by the object arg (an unresolved selector is still a
+   * structural match), `setting` stayed empty, and the verb silently
+   * became a read while the draught never moved. ⚠ `char 0.45` works on
+   * the identical shape because a NUMBER cannot bind to an object arg
+   * and falls through to the number; a word cannot.
+   *
+   * A closed set of words after a verb is what subcommands ARE, and the
+   * matcher binds them instead of the type system guessing.
+   */
+  subcommand?: string;
 }
 
 /**
- * The named settings. ⭐ A closed vocabulary beside a free number,
- * because *wide* and *banked* are what a person says and 0.63 is what a
- * collier watching a charring band says.
+ * What each named setting is worth. ⭐ A closed vocabulary, and the words
+ * are the ones a person says — *wide*, *half*, *low*, *banked*. The fuel
+ * trade's `char <n>` is where a FIGURE is worth having, because the
+ * charring band is narrow and a collier works in tenths.
+ *
+ * ⚠ The keys mirror the view's subcommands exactly; a word here that the
+ * view does not offer is unreachable, and one the view offers and this
+ * does not falls through to the read.
  */
 const NAMED: Readonly<Record<string, number>> = {
   wide: 1,
   open: 1,
-  full: 1,
   half: 0.5,
   low: 0.2,
   banked: 0.05,
-  shut: 0.05,
 };
 
 /** How a fire at this draught reads, in words. */
@@ -73,7 +90,7 @@ export default class DraughtController extends CommandController<DraughtModel> {
     }
     const burner = fire as Stuff & Burner;
 
-    const raw = (model.setting ?? '').trim().toLowerCase();
+    const raw = (model.subcommand ?? '').trim().toLowerCase();
     if (raw === '') {
       // ⭐ Bare `draught` is a READ, not a refusal. Asking where a dial
       // stands is not a mistake.
@@ -87,14 +104,12 @@ export default class DraughtController extends CommandController<DraughtModel> {
       return;
     }
 
-    let value: number | null = NAMED[raw] ?? null;
+    const value: number | null = NAMED[raw] ?? null;
     if (value === null) {
-      const n = Number.parseFloat(raw);
-      if (Number.isFinite(n) && n >= 0 && n <= 1) value = n;
-    }
-    if (value === null) {
-      const detail =
-        'Set it wide, half, low or banked — or give a figure from 0 to 1.';
+      // ⚠ Unreachable through the view, which offers exactly these five
+      // words — kept because a controller that trusted its matcher and
+      // was wrong would set a fire's draught to `NaN`.
+      const detail = 'Set it wide, half, low or banked.';
       MessageApi.scene(commandGiver)
         .topic('act.deed')
         .toSelf(Mml.compose`${detail}`)
