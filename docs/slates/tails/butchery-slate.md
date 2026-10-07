@@ -517,3 +517,45 @@ of ownership over placement, and two claims on one row is a duplicate the
 schema cannot see. A `lint:` census of rows named by more than one
 `props:` would close the whole class.
 → `trade-shopkeeping` / the retail slate.
+
+---
+
+## ⭐ Two seams salvaged out of the retired plans
+
+The carcass-chain plan carried these and nothing else did; they are kept
+here so the plan can be deleted.
+
+### ⚠⚠ A corpse's MINTED IDENTITY has no reader, and this build multiplied the mint ~50×
+
+Raised by `build-3` (instance-addressing) mid-build and settled across
+two exchanges; recorded because **the multiplication is ours** — every
+death now mints a corpse where only a handful used to.
+
+`corpseIdentityFor` mints `<corpseRow>/<deceased identity>/<gameSecond>`
+and **nothing keys on it.** Checked on both sides at the time:
+
+- the ledgers key on the DEAD THING — `AccountabilityApi.record` and
+  `recordDeathDeed` take `body.getIdentityPath()`, pinned in
+  `ConditionLogic.die.test.ts`;
+- `Corpse` composes no `PersistableMixin` and neither does `Creature`, so
+  a corpse is a runtime clone and gone on restart;
+- the belief leg is closed — the recognition-name path is gated on
+  `isPersona`, which a corpse does not compose, and no production caller
+  hands one to `learnIdentity`/`recognizes`.
+
+⭐ So the only reader is the mint's own ordinal probe, which exists
+*because* it minted. A closed loop. ⚠ The question worth keeping is
+whether the mint should happen at all: **durability is not the test for a
+discriminator, legibility is**, and nothing in the UX reference ladder
+(keyword → the `distinguishing` form → an ordinal) can hold a path or a
+timestamp. → `recognition-slate` owns the reference ladder; this line is
+the carcass chain's evidence for it.
+
+### ⚠ The `BulkPayload` tannin field
+
+The tanpit's liquor carries bark concentration as pit state rather than
+on the payload. If a **third** liquor consumer wants concentration to
+travel with the bulk itself, that is the moment to put it on
+`BulkPayload` — the subsystem-declares-its-own-fields rule in
+[bulk.md](../../subsystems/bulk.md). Two consumers do not earn it.
+→ `rendering-slate` (the tanning chain's), promote at the third.
