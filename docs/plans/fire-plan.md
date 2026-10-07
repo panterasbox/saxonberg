@@ -2006,6 +2006,90 @@ the forge.
 ⚠ Ten runs. The first nine each found something, and the table below is
 why the drive is the build's exit criterion rather than its victory lap.
 
+### ⭐⭐⭐ The LIVE drive — a real browser, and it found four more
+
+⚠ **The wire drive is not the live drive.** The wire file asserts the
+ENVELOPE over a socket; this was Chromium against the Vite client
+against the server, typing into the client's own input and reading what
+the RENDERER put on screen. 23/23 green, and then:
+
+**L1 — ⛔⛔ `drain` COULD NEVER WORK.** `DrainController` read
+`model.vessel?.stuff`, and ⚠⚠⚠ *a bound arg is an `MqlOneResult`, never
+a `Stuff`*: `.stuff` is populated only for an ALREADY-RESOLVED match, so
+a vessel that arrived as a raw word (`drain bladder`) or out of the
+arg's own `default:` was still an unresolved selector and came through
+as `null`. Every `drain`, by every player, carrying anything, answered
+*"You have nothing that would hold it."* — the one act in the trade that
+inverts a hazard rather than surviving it. `MqlApi.effectiveTarget` is
+the accessor that RESOLVES the selector, and it is what every other
+controller in this build already used.
+⭐ This is the antipattern that once shipped **eighteen** verbs
+permanently declining, and nothing in the repo could see it: the wire
+checkpoint accepted `no-vessel` as one of the reasons a refusal was
+allowed to carry, and a controller test builds its model by hand, so it
+asserts nothing about the shape that produced it.
+⭐ Fixed, and verified in the browser — *"You set the pipe into the face
+and work the pump."* `drain-binder.test.ts` now pins the missing half:
+the view loads, the word binds, the bare form fills from the default.
+
+**L2 — `cover` named the wrong noun.** `Mml.thing` is LAZY, and banking
+a fire takes the light out of the room, so the sentence about the act a
+player had just performed read *"You rake something down"* one command
+after the same forge read *"a stone forge"*. The same hazard as a verb
+that destroys its target (B-note: `StokeController`), arriving by a
+different route — the act consumes not the thing but the light you were
+seeing it by. `DraughtController`'s peers line had it too, for
+`draught banked`. Both capture the name as a STRING before the mutation.
+⚠ The wire checkpoint matched /banked/i; the noun was never in question.
+
+**L3 — ⚠ the sealed cellar's lesson is an ORDER OF MAGNITUDE slower than
+its row claims, and the row is what is wrong.** The cellar's comment
+says a 3 kW brazier "spends it in tens of ticks, which is what makes the
+lesson land inside a session". Driven live, the air read *"ordinary
+enough"* after 48 game-minutes — correctly, and the arithmetic says why:
+
+- 27 m³ (cell 3.0) = 27,000 L, no openings, so ACH is `achLeak` 0.1 —
+  **a time constant of ten game-hours.** Nothing in that room can happen
+  in minutes, whatever the fire is.
+- 3 kW on oak (16 MJ/kg) burns 0.675 kg/h. Complete, that is 950 L/kg;
+  once `airShare` falls under `completeAirShare` the burn goes incomplete
+  and it is 1250 L/kg — ⭐ the fire's own exhaust making it dirtier is
+  what tips the room over, which is the thesis doing exactly what it
+  says.
+- Steady state is therefore ≈0.31 displaced, `airShare` ≈0.687 — under
+  `smotherAirShare` 0.70, so **it does smother**, at about 32
+  game-hours. The untrained nose notices (`OBVIOUS_FRACTION` 0.08) at
+  ~3 game-hours; the medium passes `breathableAirShare` at ~15.
+
+So the mechanism is right and the *claim* is false. The knob is the
+room, not the dials: a cellar at cell 1.5 (3.4 m³) has the same steady
+state and reaches it eight times sooner. ⚠ Deliberately NOT changed
+here — it is a pedagogy-vs-honesty call (lens 1 against 3a) about how
+fast a sealed room should kill, and it belongs to whoever answers that,
+not to a drive fix at the end of a build.
+
+**L4 — ⚠ two gas bladders exist in the realm, and nothing makes more.**
+Both at the fuel yard; the first character to walk off with them leaves
+the next with an honest *"You don't see any 'bladder' here."* The RGO
+harvest `drain` depends on a vessel with no producer — a one-line
+finding for `trade-fuel`'s slate, which is what this drive file's
+`.dirty` reason is for.
+
+**L5 — ⛔ NOT this build: `details` is a bare-`persistent` Map.** On a
+warm database, `get bladder` answers *"Couldn't resolve 'targets'
+(resolve): details.keys is not a function"* — and from then on no
+keyword in that scope resolves. `DetailedMixin.fieldMeta.details` marks
+a `Map` field `persistent: true`, and a persistent Map has no BSON
+shape: it hydrates as a plain object and `details.keys()` throws. A
+fresh world is clean; the same room breaks after a restart.
+⚠ Recorded, not fixed — it is a kernel defect in the description
+subsystem, and *a cross-cutting capability is never solved inside a
+trade build*. The documented remedy is the one this repo has applied to
+this exact class before: **drop the flag** (authored details come from
+the template on every boot, so nothing is lost and no migration is
+needed). It blocks the firedamp leg in any warm world, so it wants
+somebody's attention before it bites a dev session.
+
 **D6 — ⛔⛔ THE BINDER IS TYPE-DIRECTED, so a bare word after a verb can
 never be a value.** D3's "the value is positional now" was wrong, and two
 further runs proved it: an unresolved selector is still a *structural*
