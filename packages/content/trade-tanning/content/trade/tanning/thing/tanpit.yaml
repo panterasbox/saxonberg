@@ -6,9 +6,23 @@
 # shambles. Both are real historical arrangements and the game lets a
 # realm pick.
 #
-# ⭐ Ships CHARGED (`barkKg`), because an empty pit in a working tannery
-# would read as a derelict one. A player's own pit starts dry and they
-# fill it: `pour` water in, and crushed oak bark goes in as bark.
+# ⭐ Ships CHARGED, because an empty pit in a working tannery would read
+# as a derelict one. A player's own pit starts dry and they fill it:
+# `pour` water in, and crushed oak bark goes in as bark.
+#
+# ⚠⚠ **CHARGED means BOTH, and for one build it meant only the bark.**
+# The row authored `barkKg: 100` and no liquor, so `liquorLitres()` read
+# the empty bulk slot, `tanLiquorFor` returned `null` and every `tan` in
+# the realm refused `pit-dry` — *"the pit is empty, bare boards and a
+# smell that has soaked into them"*, in the one working tannery the game
+# has. **The solute without the solvent**: a hundred kilos of bark in no
+# water is not a charge, and the comment above claimed it was.
+#
+# ⭐ It failed closed and SILENT in the way this repo keeps paying for —
+# nothing threw, the pit described itself beautifully, and the refusal
+# was a true sentence about a world nobody meant to author. Found by the
+# drive at the sweep, on a freshly dropped database; a warm world had
+# been hand-filled at some point and hid it.
 class: /trade/tanning/thing/Tanpit
 data:
   shortDescription: tanpit
@@ -25,7 +39,11 @@ data:
   # six hides at full coverage, which is what makes crowding a decision.
   interiorCapacity: 2000
   # ⭐ A full charge for that volume is 100 kg of bark
-  # (`BARK_KG_PER_LITRE` × litres). Shipped at strength.
+  # (`BARK_KG_PER_LITRE` × litres). Shipped at strength — and shipped
+  # with the water it is dissolved in, or the strength is a ratio over
+  # zero.
   barkKg: 100
+  interiorMaterial: /stuff/idea/material/bulk/water
+  interiorAmount: 2000
   _materialPath: /stuff/idea/material/wood/oak
   mass: 400

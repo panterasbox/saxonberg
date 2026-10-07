@@ -413,13 +413,12 @@ export default class ButcherController extends CraftController<ButcherModel> {
         // ⭐ What animal it is OF, so the cut can weight its own texture
         // by how much of THIS species each muscle is.
         if (MixinApi.isCut(cut)) {
-          (cut as unknown as { _speciesPath: string | null })._speciesPath =
-            species.getTemplatePath();
+          cut.setSpeciesPath(species.getTemplatePath());
           // ⭐⭐ A wound where this cut came from damages the cut — off
           // the Trauma slice the corpse already adopted, with no new
           // plumbing anywhere.
           if (this.woundedAt(body, line.tissues, species)) {
-            (cut as unknown as { damaged: boolean }).damaged = true;
+            cut.setDamaged(true);
           }
         }
         this.ageAtKill(cut, agedS, carcassK);
@@ -543,12 +542,14 @@ export default class ButcherController extends CraftController<ButcherModel> {
     const parts = new Set<string>();
     for (const t of tissues) for (const k of species.partsCarrying(t)) parts.add(k);
     if (!parts.size) return false;
-    // ⚠ Wounds are CONDITIONS carrying a `site` — the same shape the
-    // dying check reads. No new surface: the Trauma slice the corpse
-    // adopted brought them across.
+    // ⚠ Wounds are CONDITIONS, and `site` belongs to the `trauma` arm of
+    // the union rather than to every kind — so NARROW on the
+    // discriminator rather than casting the site out of whatever arrived.
+    // No new surface: the Trauma slice the corpse adopted brought them
+    // across.
     for (const condition of body.getConditions()) {
-      const site = (condition as unknown as { site?: string }).site ?? '';
-      if (site && parts.has(site)) return true;
+      if (condition.kind !== 'trauma') continue;
+      if (parts.has(condition.site)) return true;
     }
     return false;
   }

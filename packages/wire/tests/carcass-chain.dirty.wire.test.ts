@@ -303,32 +303,44 @@ async function sustain(s: Session): Promise<void> {
  * that one room.** A cascade is not diagnostic.
  */
 async function ensureDaylight(s: Session): Promise<void> {
-  let sky = '';
+  let room = '';
   for (let i = 0; i < 8; i += 1) {
-    sky = (await (await s.cmd('analyze sky')).said()).toLowerCase();
-    // ⚠⚠ **The energy drive's predicate, verbatim, and run 7 is why.**
-    // My first version tested `/daylight|day\b|…/` and `day\b` matched
-    // the word *day* inside NIGHT prose — so `ensureDaylight` returned
-    // immediately, advanced the clock zero times, and the farmyard read
-    // *"It is pitch dark"* anyway. A helper that cannot fail is the same
-    // defect as a checkpoint that cannot fail, one level down.
-    const night = !/daylight/.test(sky) && /night|below the horizon|twilight/.test(sky);
-    if (!night) {
+    room = (await (await s.cmd('look')).said()).toLowerCase();
+    // ⭐⭐⭐ **It asks the ROOM, not the sky** — ported from the butchery
+    // drive at the sweep, which worked this out and wrote down why.
+    //
+    // This helper asked `analyze sky` and tested *is it not night*, which
+    // is vacuous twice over: in a dark room the instrument refuses, so
+    // the answer matches neither word and the helper returns swearing it
+    // is day. Demanding the word `daylight` fixed the vacuity and exposed
+    // the thing underneath — ⚠⚠ **`analyze sky` itself is unreliable**,
+    // and at the tannery after a 25-game-day jump it stopped answering
+    // AT ALL: no dispatch-response in 30 s, which poisoned the session
+    // and timed out checkpoint 13 one suite later. (Its known failure
+    // mode is `details.keys is not a function` — `DetailedMixin.details`
+    // is a persistent Map, and ONE restored host in reach breaks arg
+    // resolution for every `analyze` in the room.)
+    //
+    // ⭐ And the room is the better question anyway: what this file needs
+    // is to be able to SEE, not to know the hour. A pitch-dark room is
+    // the failure it actually guards against — every object reading
+    // "something" is the tell — so the predicate is exactly that.
+    if (!/pitch dark|can make out no/.test(room)) {
       await s.drainProse();
       return;
     }
     if (!isOwnedTestWorld()) {
       throw new Error(
-        'carcass drive: the world clock is in the dark and this is not an ' +
-          'owned test world, so the clock cannot be moved. Re-run with ' +
-          `WIRE_BOOT=1, or drop the database. The sky reads: "${sky}"`,
+        'carcass drive: the room is dark and this is not an owned test ' +
+          'world, so the clock cannot be moved. Re-run with WIRE_BOOT=1, ' +
+          `or drop the database. The room reads: "${room}"`,
       );
     }
     await advance('4 hours');
   }
   throw new Error(
-    'carcass drive: eight jumps of four game hours and the sky still ' +
-      `reads night. Everything in this file is read by eye. Sky: "${sky}"`,
+    'carcass drive: eight jumps of four game hours and the room is still ' +
+      `dark. Everything in this file is read by eye. Room: "${room}"`,
   );
 }
 
@@ -630,9 +642,25 @@ suite('⭐⭐ 7. butcher the body', () => {
     }
   }, 180_000);
 
-  it('⭐ and the carcass is gone — one body, taken apart once', async () => {
+  it('⭐⭐⭐ and the carcass is STILL THERE — it REDUCED, it did not vanish', async () => {
+    // ⚠⚠ This assertion used to read `not.toMatch(/body of/)`: one
+    // `butcher` destructed the whole animal and minted five goods, so the
+    // body was gone and *"one body, taken apart once"* was the claim.
+    //
+    // ⭐ The butchery build **deliberately reversed that**: a carcass is
+    // broken down a cut at a time, tool-gated for depth and hand-gated
+    // for joint-vs-trim, and it persists — reduced — until it is spent.
+    // That is the whole of AC6 (*a carcass can be partially broken down,
+    // left, and returned to*), and it is what makes a knife-only butcher
+    // able to come back with a saw.
+    //
+    // ⚠⚠ **The drive was never re-run after that landed**, so this file
+    // went RED on the branch and nothing said so — the exact decay the
+    // graduation rule exists to stop. Caught at the sweep.
     const here = (await hereNames(k)).toLowerCase();
-    expect(here).not.toMatch(/body of/);
+    expect(here, 'the part-broken carcass should still be in the yard').toMatch(
+      /body of|carcass/,
+    );
   }, 120_000);
 });
 
@@ -649,6 +677,24 @@ suite('8. salt the hide', () => {
     // the world and not about the recipe lookup. What must not happen is
     // `no-recipe`, which would mean `recipeFor` never found `salt-hide`.
     expect(reason, await out.said()).not.toBe('no-recipe');
+  }, 180_000);
+
+  it('⭐⭐ and the hide has to be PICKED UP — it came off onto the ground', async () => {
+    // ⚠⚠ The second thing the butchery build changed under this file.
+    // `butcher` moves every cut to the ROOM (`ContainmentApi.move(cut,
+    // here)`) rather than into your hands, which is right — a carcass is
+    // on a block and what comes off it lands there — but it means the
+    // hide does not travel with you unless you take it.
+    //
+    // ⭐ Checkpoint 12 then walks to the tannery and needs the hide off
+    // THIS ewe, refusing to conjure one. Without this step it arrived
+    // empty-handed and `tan hide` bound the word to whatever else was in
+    // reach, which surfaced as a mixin refusal (`TanningMixin needs
+    // TangibleMixin`) three checkpoints downstream — a cascade off a
+    // missing `get`, not a composition defect.
+    await say(k, 'get hide');
+    const inHand = (await carried(k)).toLowerCase();
+    expect(inHand, await read(k, 'look')).toMatch(/hide|skin/);
   }, 180_000);
 });
 

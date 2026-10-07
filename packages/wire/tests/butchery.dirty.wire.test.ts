@@ -397,9 +397,37 @@ suite('⭐⭐⭐ 3–5. the tool is the depth, and the carcass REDUCES', () => {
     // all. Naming the things is the only form that can fail honestly.
     const words = ['neck', 'belly', 'trim', 'offal', 'gut', 'suet', 'hide', 'bone'];
     const found: string[] = [];
+    // ⚠⚠⚠ **A probe may hit an AMBIGUITY, and that is positive evidence.**
+    // `look gut` raising *"which gut?"* means at least one gut is there,
+    // which is precisely what this checkpoint measures — so the word
+    // counts as found. ⚠ But an unanswered prompt POISONS the session
+    // (see `say` above), so the session is re-opened afterwards rather
+    // than carried into the next suite with a prompt hanging off it.
+    //
+    // ⭐⭐ Why this can happen at all: the wire suite boots ONE world and
+    // runs every file in it, dirty files last in ALPHABETICAL order — so
+    // `butchery` runs before `carcass-chain` and both break a sheep down
+    // in the SAME yard off the SAME flock. Two `.dirty.` files consuming
+    // the same unregenerated thing is a case the sequencer cannot order
+    // its way out of; the collision is recorded in `butchery-slate.md`
+    // with three fixes, and this is the cheap half — a file that does not
+    // care what a neighbour left lying about.
+    let poisoned = false;
     for (const word of words) {
-      const text = await read(k, `look ${word}`);
-      if (!/don't see|do not see|couldn't resolve/i.test(text)) found.push(word);
+      try {
+        const text = await read(k, `look ${word}`);
+        if (!/don't see|do not see|couldn't resolve/i.test(text)) found.push(word);
+      } catch (err) {
+        if (!/raised a prompt|raised a PROMPT/.test(String(err))) throw err;
+        found.push(word);
+        poisoned = true;
+      }
+    }
+    if (poisoned) {
+      k.close();
+      k = await Session.open(handle, { startLocation: YARD, wizard: true });
+      await ensureDaylight(k);
+      await k.drainProse();
     }
     // ⭐ A sheep is not one thing: the whole point of the build is that a
     // carcass comes apart into several named goods.

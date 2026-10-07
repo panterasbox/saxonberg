@@ -118,7 +118,13 @@ describe('one recipe, and the empty outputMaterial IS the feature', () => {
   });
 
   it('takes bulk, not an item — the pot is where the two fats meet', () => {
-    const slot = candle.inputSlots?.[0]!;
+    // ⚠ Asserted, not asserted-away: `?.[0]!` tells the compiler to stop
+    // worrying and tells a reader nothing. If the recipe has no slots
+    // this test should SAY so rather than fail on a property of
+    // undefined two lines down.
+    const [slot] = candle.inputSlots ?? [];
+    expect(slot, 'the candle recipe must declare an input slot').toBeDefined();
+    if (!slot) return;
     expect(slot.kind ?? 'bulk').toBe('bulk');
     expect(slot.measureL).toBeGreaterThan(0);
   });

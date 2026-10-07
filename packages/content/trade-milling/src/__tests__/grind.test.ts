@@ -77,7 +77,11 @@ describe('bone grinds, and what comes out feeds the ground', () => {
   const meal = recipeIn('trade-milling', 'bone-meal');
 
   it('⭐ takes BONE, matched on the material\'s own tag', () => {
-    const slot = meal.inputSlots?.[0]!;
+    // ⚠ See the chandlery's twin: a missing slot should be a NAMED
+    // failure, not a non-null assertion that defers the crash.
+    const [slot] = meal.inputSlots ?? [];
+    expect(slot, 'the bone-meal recipe must declare an input slot').toBeDefined();
+    if (!slot) return;
     expect(slot.kind).toBe('item');
     expect(slot.category).toBe('bone');
     expect(tags('/stuff/idea/material/tissue/bone')).toContain('bone');

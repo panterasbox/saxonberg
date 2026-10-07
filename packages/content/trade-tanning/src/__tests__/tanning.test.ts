@@ -29,6 +29,13 @@ import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import { Idea } from '@saxonberg/server/mud/lib/stuff/Idea';
+import { readFileSync } from 'fs';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+import YAML from 'yaml';
+
+/** This pack's root, for the shipped-row assertion at the foot of the file. */
+const PACK = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 import { ContainerMixin } from '@saxonberg/server/mud/lib/spatial/Container';
 import { installV1QuantityMarshallers } from '@saxonberg/server/mud/lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import {
@@ -369,5 +376,40 @@ describe('the pit', () => {
     expect(Tanpit.commandContributions.peers).toContain(
       'trade/tanning/cmd/tanning/tan.yaml',
     );
+  });
+
+  it('⭐⭐⭐ the SHIPPED row is charged with BOTH — bark AND the water it is in', () => {
+    // ⚠⚠ The row authored `barkKg: 100` and no liquor for one build, so
+    // the one working tannery in the game had a DRY pit: `liquorLitres()`
+    // read an empty bulk slot, `tanLiquorFor` returned `null`, and every
+    // `tan` in the realm refused `pit-dry`. **The solute without the
+    // solvent** — a hundred kilos of bark in no water is not a charge,
+    // and the row's own comment claimed it was.
+    //
+    // ⭐ It failed closed and SILENT: nothing threw, the pit described
+    // itself beautifully, and the refusal was a true sentence about a
+    // world nobody meant to author. A warm world that had been
+    // hand-filled once hid it; the sweep's drive, on a freshly dropped
+    // database, found it. A row assertion is the cheap guard, because
+    // what broke was content agreeing with its own prose.
+    const row = YAML.parse(
+      readFileSync(
+        join(PACK, 'content', 'trade', 'tanning', 'thing', 'tanpit.yaml'),
+        'utf8',
+      ),
+    ) as { data?: Record<string, unknown> };
+    const data = row.data ?? {};
+    expect(data['barkKg']).toBeGreaterThan(0);
+    // The liquor the bark is dissolved IN, without which the strength is
+    // a ratio over zero.
+    expect(data['interiorMaterial']).toBe('/stuff/idea/material/bulk/water');
+    expect(data['interiorAmount']).toBe(data['interiorCapacity']);
+
+    // ⭐ And the arithmetic the two numbers have to satisfy together: a
+    // full charge is `BARK_KG_PER_LITRE × litres`, so the shipped pit
+    // reads at full strength rather than merely non-dry.
+    const litres = Number(data['interiorAmount']);
+    const bark = Number(data['barkKg']);
+    expect(bark / (litres * TANNING.BARK_KG_PER_LITRE)).toBeCloseTo(1, 2);
   });
 });

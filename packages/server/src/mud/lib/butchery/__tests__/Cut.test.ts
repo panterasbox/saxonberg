@@ -38,6 +38,28 @@ describe('CutMixin — the claim', () => {
     expect(MixinApi.isCut(cut([]))).toBe(true);
   });
 
+  it('⭐⭐ the mint STAMPS through methods — a field write is not the contract', () => {
+    // ⚠ `ButcherController` used to set these two by cast:
+    // `(cut as unknown as {_speciesPath})._speciesPath = p` and
+    // `.damaged = true`. Both are inter-Stuff writes from the butcher to
+    // the cut, and the shadow framework dispatches **methods only** — so
+    // a field-shaped write runs no gate, finds no shadow and is invisible
+    // to every interceptor. The pair exists so the mint has a contract to
+    // call. ⭐ Noun on the setter, predicate on the getter, per the
+    // boolean convention.
+    const c = cut([]);
+    expect(c.getSpeciesPath()).toBeNull();
+    expect(c.isDamaged()).toBe(false);
+    c.setSpeciesPath('/stuff/idea/species/ovis');
+    c.setDamaged(true);
+    expect(c.getSpeciesPath()).toBe('/stuff/idea/species/ovis');
+    expect(c.isDamaged()).toBe(true);
+    // And a cut off an unwounded part is settable back — the mint writes
+    // once, but the surface is not a latch.
+    c.setDamaged(false);
+    expect(c.isDamaged()).toBe(false);
+  });
+
   it('⭐⭐ derives toughness from the muscle it claims', () => {
     muscle(SHANK, 0.95);
     muscle(LOIN, 0.25);

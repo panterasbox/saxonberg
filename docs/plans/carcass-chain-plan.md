@@ -2059,3 +2059,55 @@ have failed:
   answered here as **anatomy** (`butcher` reads the species yield and the
   wound map arrives through `adoptMaterialState`). The mint-parameter
   join is still open there.
+
+---
+
+## ⚠⚠ Drive record — the pre-merge sweep (2026-10-06)
+
+Re-run because three verbs were reverted in review and 42 commits of
+master were merged in. **It was not green, and it had not been since the
+butchery waves landed** — the carcass file had gone red on the branch
+with nothing able to say so, which is the decay the drive-graduation rule
+exists to stop.
+
+**Result: 17 of 20 checkpoints**, from 17 of 24. Four defects found and
+fixed, one open.
+
+1. ⭐⭐⭐ **The one working tannery's pit was DRY, so nothing in the realm
+   could tan.** `tanpit.yaml` authored `barkKg: 100` and no liquor, so
+   `liquorLitres()` read an empty bulk slot, `tanLiquorFor` returned
+   `null`, and every `tan` refused `pit-dry`. The solute without the
+   solvent — and the row's own comment said *"ships CHARGED"*. Fixed with
+   `interiorMaterial` + `interiorAmount`, pinned by a row assertion that
+   checks the two numbers satisfy `BARK_KG_PER_LITRE × litres`
+   **together**. ⚠ A warm hand-filled database hid it; a freshly dropped
+   one found it.
+2. ⚠⚠ **Checkpoint 7 asserted the opposite of what this branch decided.**
+   *"The carcass is gone — one body, taken apart once"* was true before
+   the butchery waves made a carcass REDUCE and persist (AC6). The
+   assertion is inverted now and says why.
+3. ⚠ **A cut comes off onto the GROUND, not into hand**, so the drive
+   walked to the tannery empty-handed and `tan hide` bound the word to
+   something else — surfacing as `TanningMixin needs TangibleMixin` three
+   checkpoints downstream. A missing `get`, not a composition defect.
+4. ⚠ **`analyze sky` is unreliable and here stopped answering entirely.**
+   `ensureDaylight` now asks the **room** — the butchery drive's version,
+   ported, with its reasoning: *what the file needs is to be able to SEE,
+   not to know the hour.*
+
+⛔⛔ **Open, and the gate on merging:** after `advance('25 days')` at the
+tannery the session stops answering anything — a bare `look` gets no
+dispatch-response in 30 s — which times out the last two checkpoints.
+Only reachable now that the pit works. `reconcileTanning` is O(1) and
+innocent; what does not come back is not established. Diagnosis and the
+two experiments that would separate slow-from-wedged are in
+[butchery-slate](../slates/tails/butchery-slate.md).
+
+⭐⭐ **And the two drive files cannot run in one world.** Both draft from
+the same persisted flock into the same yard, and the wire suite boots ONE
+world for every file, dirty last in alphabetical order. The butchery file
+was made robust (8/8 alone and together); the carcass file then failed on
+`look ewe`, because with two ewes in the yard every shared noun is
+ambiguous. **It cannot be patched probe by probe** — the shared noun
+space is the defect. Three ranked fixes are on the slate; merging the two
+files is probably the right one.

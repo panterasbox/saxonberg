@@ -166,12 +166,19 @@ export interface Tanning {
   _tanWorst: number;
 }
 
+/** The name this pack's mixin registers under, used for its own reads. */
+const TANNING_MIXIN: string = 'TanningMixin';
+
 /** Append the tanning line to a hide's long description. */
 function tanAugmenter(text: string, host: Stuff): string {
   if (host.isDestroyed()) return text;
-  if (!MixinApi.hasMixin(host.constructor as never, 'TanningMixin' as never)) {
-    return text;
-  }
+  // ⭐ `isActive` rather than `hasMixin`, and for the reason the mining
+  // pack wrote down at `MiningActController.workingOf`: `MixinName` is a
+  // closed union of KERNEL mixin names, so `hasMixin` forced a pack name
+  // through it with a double `as never`. **A pack must never need a
+  // kernel list edit.** `isActive` takes a plain string and, for an
+  // ungated mixin, is equivalent.
+  if (!MixinApi.isActive(host, TANNING_MIXIN)) return text;
   const report = (host as unknown as Tanning).tanReport();
   return text && text.length > 0 ? `${text}\n\n${report.line}` : report.line;
 }
@@ -180,7 +187,9 @@ export function TanningMixin<TBase extends MixinConstructor<Stuff>>(
   Base: TBase,
 ) {
   return class TanningMixin extends Base implements Tanning {
-    static _mixinName = 'TanningMixin';
+    // ⚠⚠ Annotated `string`, never left to infer: a pinned literal type
+    // on `_mixinName` collapses the mixin CHAIN hundreds of files away.
+    static _mixinName: string = TANNING_MIXIN;
 
     /**
      * ⚠ The refusal names what a hide needs beneath it and why. Tanning

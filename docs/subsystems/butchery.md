@@ -256,3 +256,65 @@ with nothing saying a word.
 - [materials-response.md](./materials-response.md) —
   `response = f(mechanism, material, construction)`
 - [ranching.md](./ranching.md) · [taps.md](./taps.md) — upstream
+
+---
+
+## History — the pre-merge sweep (2026-10-06)
+
+Three things the sweep's drive found, recorded because each failed closed
+and **silent**, and two of them had been red on the branch with nothing
+able to say so.
+
+⭐⭐⭐ **The one working tannery's pit was DRY.** `tanpit.yaml` authored
+`barkKg: 100` and no liquor, so `liquorLitres()` read an empty bulk slot,
+`tanLiquorFor` returned `null`, and **every `tan` in the realm refused
+`pit-dry`** — *"the pit is empty, bare boards and a smell that has soaked
+into them."* The solute without the solvent: a hundred kilos of bark in
+no water is not a charge, and the row's own comment said *"ships
+CHARGED"*. Nothing threw; the pit described itself beautifully; the
+refusal was a true sentence about a world nobody meant to author. ⚠ A
+warm database that had been hand-filled once hid it, which is why it took
+a freshly dropped one. Fixed by authoring `interiorMaterial` +
+`interiorAmount` beside the bark, and pinned by a row assertion that
+checks the two numbers satisfy `BARK_KG_PER_LITRE × litres` **together**
+rather than either alone.
+
+⚠⚠ **The carcass drive asserted the opposite of what this build decided.**
+Its checkpoint 7 read *"and the carcass is gone — one body, taken apart
+once"*, which was true when one `butcher` destructed the animal and
+minted five goods. This build **deliberately reversed that** — a carcass
+reduces a cut at a time and persists until spent, which is the whole of
+AC6 and what lets a knife-only butcher come back with a saw. ⭐ The drive
+was never re-run after that landed, so the file went red on the branch
+and nothing said so. It asserts the new truth now.
+
+⚠ **A cut comes off onto the GROUND, not into your hands**
+(`ContainmentApi.move(cut, here)`), which is right — a carcass is on a
+block and what comes off it lands there — but the drive had walked to the
+tannery empty-handed and `tan hide` then bound the word to whatever else
+was in reach, surfacing as a `TanningMixin needs TangibleMixin` refusal
+three checkpoints downstream. A missing `get`, not a composition defect.
+⭐ Worth keeping as a reading lesson: a mixin-composition refusal is what
+an arg gate says when the *target* is wrong, so it points at the binding
+rather than at the class.
+
+⚠ **`analyze sky` stopped answering at all**, at the tannery after a
+25-game-day jump: no dispatch-response in 30 s, which poisoned the
+session and timed out the checkpoint a suite later. The carcass drive's
+`ensureDaylight` used it; the butchery drive had already replaced the
+same helper with one that asks the **room** — *what the file needs is to
+be able to SEE, not to know the hour* — so that version is now in both.
+⚠⚠ The instrument's own defect is NOT this build's: its known failure
+mode is `details.keys is not a function`, because `DetailedMixin.details`
+is a persistent Map and one restored host in reach breaks arg resolution
+for every `analyze` in the room. ⭐ Worth noting *why the sweep found it
+and nine build-time runs did not*: the dry pit had been blocking the
+tanning leg, so the drive had never reached this far in a working state.
+**Fixing one defect is what buys the next one.**
+
+⭐⭐ **And the two drive files collide in one world.** Both draft from the
+same persisted flock into the same yard, and the wire suite boots one
+world for every file. Recorded with its three fixes in
+[butchery-slate](../slates/tails/butchery-slate.md); it cannot be patched
+probe by probe, because with two ewes in the yard every noun the files
+share is ambiguous.

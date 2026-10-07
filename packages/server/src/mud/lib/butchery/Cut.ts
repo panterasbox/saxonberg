@@ -41,7 +41,9 @@ export interface Cut {
   getCutting(): CutDepth;
   getDifficulty(): Difficulty;
   getSpeciesPath(): string | null;
+  setSpeciesPath(path: string | null): void;
   isDamaged(): boolean;
+  setDamaged(damaged: boolean): void;
   /** Share-weighted mean of the claimed muscles' `work`, or `null`. */
   getToughness(): number | null;
   /** The band that toughness reads as, or `null` when there is no muscle. */
@@ -93,8 +95,24 @@ export function CutMixin<TBase extends MixinConstructor>(Base: TBase) {
       return this._speciesPath;
     }
 
+    /**
+     * ⭐ Stamped at the mint by whoever cut it off the carcass. A method
+     * rather than a field write because the butcher is another `Stuff`:
+     * the shadow framework dispatches methods only, so
+     * `(cut as unknown as {_speciesPath})._speciesPath = p` was both a
+     * contract break and invisible to every interceptor.
+     */
+    public setSpeciesPath(path: string | null): void {
+      this._speciesPath = path;
+    }
+
     public isDamaged(): boolean {
       return this.damaged;
+    }
+
+    /** Noun on the setter, predicate on the getter — the boolean convention. */
+    public setDamaged(damaged: boolean): void {
+      this.damaged = damaged;
     }
 
     /**
