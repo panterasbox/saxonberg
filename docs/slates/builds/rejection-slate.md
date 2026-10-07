@@ -26,9 +26,9 @@
 > BobCode, and a handyman shop with no handymen in it) · **residents
 > decided — yes, but not the miners**, and Val and Earl may be the whole
 > local cast · **the graboids are TERRAIN, not a boss**, which hands the
-> town *the only safe place is the one that is killing you* · ⛔ the
-> juvenile-graboid-in-the-workings idea refused · ⚑ one open question left:
-> does the town know what they are?
+> town its tactical game (⭐ § Dirt dragons states it best: **the mine
+> manufactures its own threat** and **the industry is the dinner bell**) ·
+> ⭐ the two eras are a **synthesis**, settled, not a tension to resolve.
 > **Size:** a build
 
 Mechanics: [mining-slate](./mining-slate.md) — the four play layers, the
@@ -231,6 +231,31 @@ parse as a command verb and fail — and nobody noticed in thirty years,
 because reaching it requires dropping *an item Tina herself owns* in
 front of her mother.
 
+## ⭐ The two eras are a SYNTHESIS — settled, do not re-litigate
+
+The name is the prequel's. *Tremors 4* (1889) is set in **Rejection,
+Nevada**, an active silver mining town that renames itself **Perfection**
+at the end — so the two films are the same place a century apart, and
+⭐⭐ **the rename is the resource town's obituary**: Rejection while the
+silver is coming out, Perfection once there is nothing left to be rejected
+from. `settlement-model`'s *"they die when the seam runs out"* is the
+hundred years between them.
+
+⭐ Rejection's cast draws on **both**, deliberately — Val, Earl and Rhonda
+from 1990 (the dead-mine town of handymen and a diner), the name, the
+active workings and *dirt dragons* from 1889. **Decided 2026-10-07: it is
+a synthesis and all of it is in bounds.** A drafting note that treated the
+era mismatch as a tension to resolve was wrong; there is nothing to
+resolve.
+
+⭐ Loose hooks the prequel leaves, take or leave: an **absentee mine owner
+who has to show up** (Hiram Gummer, Burt's great-grandfather — and the
+Veshko buyout arc is already shaped like him); a **store proprietor** with
+a counter rather than a diner; a **hired gun who dies almost immediately**,
+which is *"nobody wins a fight with one"* delivered as genre subversion;
+and **silver**, which `rgo-unification-slate` lists under *missing
+entirely*.
+
 ## ⭐⭐ Residents — yes, but not the miners
 
 **Decided 2026-10-07.** The town has residents; **the miners are not
@@ -255,65 +280,30 @@ comes out of the character sheet rather than in spite of it.
 is the settlement model as character. **The people still here are the
 ones who have not left yet, and the town's dying is what keeps them.**
 
-## ⭐⭐⭐ The graboids are terrain, not a boss
+## ⭐⭐ The adult is not a boss — the source says so twice
 
-The threat the cast is aware of, and the shape it has to take.
+⭐ [§ Dirt dragons](#dirt-dragons) below is the primary treatment. This is
+only the reading from the source, kept because it arrives independently at
+the same place.
 
 ⚠ **Nobody in *Tremors* wins a fight.** Burt and Heather kill one because
 they were **already prepared and everybody thought they were paranoid** —
-the rec room full of guns is a joke until it isn't. Everything else in
-that film is traps, terrain, and somebody having an idea: the pipe, the
-bulldozer, the pole vault, the cliff.
+the rec room full of guns is a joke until it isn't. Everything else is
+traps, terrain, and somebody having an idea: the pipe, the bulldozer, the
+pole vault, the cliff. ⭐ And the prequel hires a **gunfighter who dies
+almost immediately**, which is the same argument delivered as genre
+subversion: the western's answer fails.
 
-⭐⭐ So the encounter is not a boss fight. It is **a situation that pays
-off having prepared and having an idea**, and reaching for a boss is the
-same mis-borrow as reaching for environmental storytelling in a world
-that runs (see [content-craft.md § 5](../../content-craft.md)).
+⭐⭐ So the encounter is **a situation that pays off having prepared and
+having an idea.** Reaching for a boss fight is the same mis-borrow as
+reaching for environmental storytelling in a world that runs — see
+[content-craft.md § 5](../../content-craft.md).
 
-And the grammar underneath it is: **they hunt by vibration, and they
-cannot move through rock.**
-
-### ⭐⭐⭐ Which hands the town its central tension for free
-
-**The only safe place is the one that is killing you.**
-
-The mine is rock, so it is graboid-proof — and it is also where the
-rockfall and the damps and the water table are. The surface is safe from
-the mine and lethal from below. ⭐ That explains why anybody lives in a
-town nobody should live in, it costs nothing (rock versus loose ground is
-already what a floor knows about itself — see
-[ground.md](../../subsystems/ground.md)), and it is honest.
-
-⛔ **So the juvenile-graboid-in-the-workings idea is refused.** If they
-can get into the mine, the rock/surface distinction collapses — and that
-distinction is the only thing holding the setting together. It would
-trade the premise for one encounter. ⭐ The honest version of the same
-itch is to make the mine feel less safe **without breaking the rule**:
-a seam thinning toward drift, a working that breaks into loose ground, a
-shaft collar everybody hurries through.
-
-### ⚑ Open — does the town know what they are?
-
-In *Tremors* nobody does, and that is the first forty minutes; Rhonda's
-instruments are the only honest evidence anyone has.
-
-- If the cast **names** them, Rejection is a monster town.
-- If they do not, it is **a town with a problem nobody has explained
-  yet** — and then Val and Earl's idle lines get to be about the dog that
-  went missing and the fence that fell over, which is a far better use of
-  them, and it makes Rhonda's seismograph rows the only thing in the
-  valley that is actually *about* it.
-
-⭐ Lean: they do not know. It costs nothing, it is what the source does,
-and it puts the knowledge asymmetry the cast table already wants
-(Rhonda's private instrument rows) at the centre of the town's one real
-question rather than at the edge of it.
-
-⚠ And the traps are already shipped and unused
+⚠ And the traps are **shipped and unused**
 ([hazard.md](../../subsystems/hazard.md), `TrapKit` in
 [stealth.md](../../subsystems/stealth.md)). The content question is
-whether a player can **set** one, not whether they can find one — because
-an improvised trap is the only version that reproduces the source.
+whether a player can **set** one, not whether they can find one — an
+improvised trap is the only version that reproduces the source.
 
 ---
 
@@ -359,7 +349,9 @@ invisible to a dragon.
 the mining slate's danger list — a miner's word for a thing that flies and
 burns. And *whelps* is **wrong**: the town thinks they are juvenile dragons;
 they are a separate life stage. A folk taxonomy corrected by observation is
-exactly the epistemics the prospecting layer is built on.
+exactly the epistemics the prospecting layer is built on — ⭐⭐ and the
+general form is [content-craft.md § 8a](../../content-craft.md): **a wrong
+name is content; ignorance is only absence.**
 
 ⭐ **Whelps reproduce by eating** — eat enough, split, exponential. An
 unchecked outbreak has a doubling time, so the town either responds together
