@@ -721,6 +721,11 @@ export default class EmbodyController extends CommandController<EmbodyModel> {
     const avatar = await StuffApi.clone<Avatar>(
       TemplatePaths.primaryAvatar,
       { user, playerId },
+      // identity-keyed-by: own-record — this is where a person's
+      // identity begins. Every identity-keyed ledger (bank_ledger,
+      // chronicle, transcript, grants, the snapshot owner) names it, and
+      // it is re-derivable from the playerId. The CONTINUITY family's
+      // namespace, asserted at the mint by `identityNamespace`.
       { dataOverlay: overlay, asIdentityPath: path },
     );
 

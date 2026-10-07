@@ -350,9 +350,15 @@ async function enterImpl(
         // and a vessel never is (the parked body keeps the slot).
         { wire: true },
         {
-          // The REAL identity: every ledger keys on it, and the vessel
-          // is a projection of the person, not a person of its own.
-          asIdentityPath: actor.getIdentityPath() ?? undefined,
+          // ⭐⭐ NO `asIdentityPath`, deliberately. The wire body
+          // projects the player through `SandboxAvatar.getIdentityPath()`
+          // — the METHOD — so every identity-keyed ledger attributes
+          // in-circle acts to the person, while the body stays filed in
+          // the registry under its OWN row. A stamp here put it in the
+          // player's exact index bucket alongside the parked field body,
+          // which is the collision `Stuff.ts` says must never happen
+          // (`findByTemplatePath('/platform/agent/Avatar/<pid>')` threw
+          // *expected singleton, found 2* for a player mid-visit).
           dataOverlay: {
             playerId,
             ...(actorSpecies?.getTemplatePath()

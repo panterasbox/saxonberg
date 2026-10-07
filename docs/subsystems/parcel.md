@@ -624,3 +624,39 @@ manifest (`/expression` by the `soul` group, `/platform` by the
 executive); a player's `/home/<self>/` is rung 2; an unclaimed path is
 `null` and the write is refused. See
 [document-store.md](./document-store.md) and [access.md](./access.md).
+
+
+## ⭐⭐ `published` — is the content on this ground ready to be walked into? (2026-10)
+
+One boolean on `ParcelRecord`, defaulting to `true`, with
+`isPublished()` / `setPublished()`.
+
+**Why here.** Readiness is a declaration *about content on ground*, and
+this is the register of who may declare things about ground. An author
+holds title to their extent, so they already hold the authority the flag
+needs; a separate register would mean a second thing to get the
+permissions of right.
+
+⭐⭐ **One field, two lives.** *Draft* is content that has never been
+live: nobody is inside it by construction, so the flag is a **wall** —
+every exit into it refuses with a reason. *Offline* is live content
+being taken down, which is a **camera**: the people inside are moved out
+first. Both are `published: false`; what differs is whether anybody was
+there, and that is a fact rather than a second field.
+
+`ParcelApi.isPathPublished(path)` is the read the traversal gate uses —
+**synchronous, longest-prefix, and it resolves nothing at `path`**,
+which is the whole requirement: `Exit.canTraverse` is sync and must be
+able to refuse a far side it has not loaded.
+
+⚠ An **untitled** path reads as published, deliberately. There is no
+parcel there to be a wall, and `lint:untitled` already forbids shipping
+an untitled path — so the honest default for *nobody has said* is *not a
+wall*, rather than silently sealing ground whose title somebody forgot
+to declare. Same for a missing registry during early boot: the gate must
+not seal the world shut because an index has not warmed.
+
+⚠ Denormalised onto each `PlaceNode` so the sync gate can read it
+without a parcel lookup per traverse. **This record stays the source of
+truth** and a flip re-projects the extent — see
+[location-graph.md](./location-graph.md).

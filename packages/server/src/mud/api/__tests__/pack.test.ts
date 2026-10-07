@@ -123,7 +123,7 @@ describe('PackApi.sync', () => {
 
     // A live singleton at the path; spy the re-hydrate seam.
     const liveGin = { stuffId: 'live-gin' } as unknown as Stuff;
-    vi.spyOn(StuffApi, 'findAllByTemplatePath').mockReturnValue([liveGin]);
+    vi.spyOn(StuffApi, 'findByIdentityPath').mockReturnValue([liveGin]);
     const restore = vi
       .spyOn(TemplateApi, 'restoreFromTemplate')
       .mockResolvedValue(undefined);

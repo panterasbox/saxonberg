@@ -64,9 +64,38 @@ describe('DetailedMixin', () => {
       expect(MixinApi.hasMixin(DetailedThing, 'DetailedMixin')).toBe(true);
     });
 
-    it('should declare details as persistent field', () => {
+    it('⛔⛔ does NOT declare details persistent — it is authored content', () => {
+      // This test asserted the opposite until 2026-10-06, and the
+      // assertion was the defect. `details` is a runtime
+      // `Map<DetailId, Detail>` with no `fieldMarshaller`, so capture
+      // stored it as a plain object and restore bracket-assigned that
+      // object straight back — after which `getDetailIds` threw
+      // *details.keys is not a function*. The detail walk sits on the
+      // MQL `reachable` seed, so in a world booted on an existing DB
+      // `find` and `teleport` BOTH died at the resolver, and 52 of 77
+      // live snapshots were carrying the broken shape.
+      //
+      // ⭐ Nothing outside `Detailed.ts` has ever called `setDetail` —
+      // the only caller is `applyDetails`, the authored-content
+      // applier — so there was no instance state to keep. Dropping the
+      // flag is also what makes the bad snapshots self-heal with no
+      // migration: `restoreState`'s drift guard admits only declared
+      // persistent fields, so a stored `details` is simply ignored and
+      // the row supplies the Map on every clone and every boot.
       const fields = MixinApi.getAllPersistentFields(DetailedThing);
-      expect(fields).toContain('details');
+      expect(fields).not.toContain('details');
+    });
+
+    it('⚠ the runtime shape is a Map, which is WHY it must not persist', () => {
+      // The one-line statement of the incompatibility. If a runtime
+      // detail mutator ever gains a real caller and this field has to
+      // travel, it needs a `Marshaller` (see
+      // `lib/persistence/Marshaller.ts`, which names variable-key maps
+      // as its case) — never a bare `persistent: true`.
+      obj.setDetail(['handle'], 'A brass handle.');
+      expect(obj.peekDetails() instanceof Map).toBe(true);
+      expect(typeof obj.getDetailIds).toBe('function');
+      expect(obj.getDetailIds()).toContain('handle');
     });
   });
 

@@ -6,7 +6,7 @@
 > [logistics.md § Routing](../../subsystems/logistics.md) holds the
 > standing decision *no general pathfinding Api yet — promote the walk
 > when a second edge set needs search*.
-> ⭐ **Partly superseded 2026-10-01** — [location-graph-slate](./location-graph-slate.md)
+> ⭐ **Partly superseded 2026-10-01** — [location-graph-slate](../tails/location-graph-slate.md)
 > answers question 3 (*where it lives*) and supplies the graph, the cost
 > field (`edgeMinutes`, already on 85 edges) and a third consumer.
 > **Left:** ⭐⭐ decide whether a shared pathfinder should exist at all
@@ -137,7 +137,7 @@ Three things this adds to the questions below:
 So this slate is no longer *"should a shared pathfinder exist"* — one of the
 three census entries is being rewritten regardless. What the read turned up,
 in full at
-[location-graph-slate § 18](./location-graph-slate.md):
+[location-graph-slate § 18](../tails/location-graph-slate.md):
 
 **⛔ Why it needs replacing:**
 
@@ -190,7 +190,7 @@ the two plans.**
    `lint:lib-statics` ceiling.
 
    > ⭐⭐⭐ **ANSWERED, 2026-10-01, by
-   > [location-graph-slate](./location-graph-slate.md).** A persisted exit
+   > [location-graph-slate](../tails/location-graph-slate.md).** A persisted exit
    > index is keyed on **paths — strings, not Stuff** — so
    > `NavigationApi.routeBetween(a, b)` is **not subject-first and the lint
    > never fires.** `NavigationApi` is already the string-keyed direction
@@ -221,3 +221,43 @@ the two plans.**
 - **`FireLogic` and `LaneCatalogue` as written.** Both work. They are the
   census, and whether they move is decided by question 5 rather than
   assumed at the start.
+
+---
+
+## ⭐ The graph exists now (2026-10-05) — what this slate inherits
+
+The location-graph build shipped the projection, so the *"where does it
+live"* question this slate opens with is answered: `location_graph`, one
+row per place, derived from the content rows and rebuilt on demand.
+
+The router's inputs are already there:
+
+| read | what it gives you |
+|---|---|
+| `NavigationApi.nodesInZone(zone)` | the fine graph, one zone at a time |
+| `NavigationApi.interzoneSkeleton()` | ⭐ the **coarse** graph — every cross-zone edge, and a small set |
+| `NavigationApi.pointingAt(identity)` | the reverse edges |
+| `NavigationApi.node(identity)` | one place and its exits |
+
+⚠ **Three things the router has to decide that the graph deliberately
+did not.**
+
+1. ⭐⭐ **The elastic half is absent, on purpose.** A holding's interior
+   and a lounge satellite are not nodes — they are perceived live and
+   never stored. So a route *into* somebody's house ends at the gate,
+   and whether that is a route is a routing question.
+2. ⭐ **Frontage slot stubs were specified and NOT built**, because an
+   edge with no destination has no reader: every invariant skips it and
+   no router can route over it. If the router wants frontages it adds
+   them **with the thing that reads them** — which is the right order.
+3. **TPA routes are stored as a node's `travel` block, not as edges.**
+   They are there so the offline boundary can tell an Authority its
+   timetable lost a stop. Time-varying edges — a route that opens and
+   closes on a schedule — are this slate's, and they are the reason
+   `departures` is carried on the route.
+
+⭐ And planning over **the player's own map** rather than over the graph
+is a separate problem with a better shape: the map is a claim set with
+holes and disagreements, so a route planned on it can be *wrong*, which
+is a far more interesting mechanic than a correct route. See
+[location-graph.md](../../subsystems/location-graph.md).

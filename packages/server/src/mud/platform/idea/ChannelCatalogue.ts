@@ -59,6 +59,7 @@ import type { MessageFrame } from '@saxonberg/types';
 import type { VetoResult } from '../../lib/errors';
 import type { EvictionContext } from '../../lib/stuff/Stuff';
 
+import type { BoundaryRole } from '../../lib/security/BoundaryRole';
 /** Fallback when app-settings is unread (pre-warm / tests); the seeded
  * `chat.historyCap` is authoritative at runtime. */
 const DEFAULT_HISTORY_CAP = 200;
@@ -108,6 +109,17 @@ const DEFAULT_SUBSCRIPTION: ChannelSubscription = {
 const ChannelCatalogueBase = Idea;
 
 export default class ChannelCatalogue extends ChannelCatalogueBase {
+  /**
+   * a seeded reference catalogue the engine reads to answer *what exists in the world* — every one of these was a verb that simply died inside a circle (`help`, `spells`, `recipes`/`craft`, `studio`, `competence`, `government`): a player standing in their own circle could not read the rulebook.
+   *
+   * ⭐ Declared, not enumerated. This was one of twenty-seven
+   * template-path strings in `api/security.ts`, listed there
+   * *"because each is a singleton rather than a class of many"* —
+   * which a static on the class makes irrelevant. See
+   * `lib/security/BoundaryRole.ts`.
+   */
+  static boundaryRole: BoundaryRole = 'commons';
+
 
   /**
    * Residency veto - a load-bearing process-lifetime singleton is

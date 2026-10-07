@@ -52,6 +52,7 @@ import ForumSubscriptionRegistry from './ForumSubscriptionRegistry';
 import { Final, Unshadowable } from '../../lib/security/decorators';
 import { TemplatePaths } from '../../lib/paths';
 
+import type { BoundaryRole } from '../../lib/security/BoundaryRole';
 /*
  * Logic-singleton resolvers (the `Energized` precedent): the instance
  * methods below forward into the same HMR-able singletons the Api
@@ -98,6 +99,16 @@ function reactionRegistry(): ReactionRegistry {
 }
 
 export default class Interactive extends Idea {
+  /**
+   * the connection transport — sockets attach to holders on either side of the boundary and no domain state rides the surface.
+   *
+   * See `lib/security/BoundaryRole.ts` — this replaces a
+   * hand-maintained list in `api/security.ts` /
+   * `BootstrapManager`, and `lint:boundary-roles` holds the
+   * `commons` census at its measured ceiling.
+   */
+  static boundaryRole: BoundaryRole = 'infrastructure';
+
 
   /**
    * Residency veto - a load-bearing process-lifetime singleton is

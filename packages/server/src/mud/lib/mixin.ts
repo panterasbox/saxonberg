@@ -254,6 +254,8 @@ export const Mixins = {
   Named: 'NamedMixin',
   Gendered: 'GenderedMixin',
   Persona: 'PersonaMixin',
+  /** ⭐ Keeps a map of the places it perceives (location-graph B3). */
+  Cartographer: 'CartographerMixin',
   Dispositioned: 'DispositionedMixin',
   Advancement: 'AdvancementMixin',
   Container: 'ContainerMixin',

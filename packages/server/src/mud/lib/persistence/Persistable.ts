@@ -180,6 +180,16 @@ export interface Persistable {
    * when no `cast:` was declared.
    */
   reseedCast(): Promise<void>;
+
+  /**
+   * A keyed host's durable handle: `` `<row>#<key>` `` once an
+   * establishing context has supplied a real per-instance key, and
+   * otherwise whatever the rung below answers.
+   *
+   * See {@link Stuff.getDurableHandle} for the contract and why the two
+   * durabilities are read by two different predicates.
+   */
+  getDurableHandle(): string | null;
 }
 
 export function PersistableMixin<
@@ -234,6 +244,35 @@ export function PersistableMixin<
 
     isPersistenceKeyExplicit(): boolean {
       return this._persistenceKeyExplicit;
+    }
+
+    /**
+     * The keyed rung of the durable-handle contract
+     * ({@link Stuff.getDurableHandle}): **row plus decoration**, joined
+     * with `#`.
+     *
+     * ⭐ The row is the SUBSTANCE of a keyed instance's identity — it is
+     * how you find the hydration content, the backing class and
+     * everything else that matters about the thing; what the manager
+     * contributes is decoration. So the join must keep them separable,
+     * and a `/` join would not: it pretends the decoration is a path
+     * segment and loses the row. (`smallholding.md`'s synthesized
+     * `<lotExtent>/<leaf>` channel shipped that way and was deleted.)
+     *
+     * ⚠ Gated on `isPersistenceKeyExplicit()`, not on the key being
+     * non-null. A keyless host gets a *scope-derived* owner stashed on
+     * its first capture, so folding that in would give one room two
+     * different handles either side of a capture it never asked for —
+     * the same provenance distinction `placeIdOf` has always made.
+     */
+    getDurableHandle(): string | null {
+      const self = this as unknown as Stuff;
+      if (this.isPersistenceKeyExplicit()) {
+        const row = self.getTemplatePath();
+        const key = this.getPersistenceKey();
+        if (row && key) return `${row}#${key}`;
+      }
+      return super.getDurableHandle();
     }
 
     pinsResidency(): boolean {

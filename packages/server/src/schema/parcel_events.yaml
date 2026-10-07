@@ -11,6 +11,14 @@ purpose: |
 
   A dispute about who owns something is answerable here, which is the only
   reason a current-state row can be trusted.
+
+  ⭐ `publish` / `offline` join `subdivide` / `transfer` / `grant`
+  (2026-10). Taking content down is one of the louder things a holder
+  can do to ground, and a chain of title that recorded a transfer but
+  not that would be telling half the story. For those two `from` and
+  `to` are both the holder: nothing changed hands, which is the honest
+  record.
+
 invariants:
   - >-
     Append-only. A transfer is a new event, never an edit to the old one.

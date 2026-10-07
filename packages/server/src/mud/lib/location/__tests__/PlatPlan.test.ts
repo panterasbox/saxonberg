@@ -231,3 +231,32 @@ describe('the fork direction', () => {
     ).toThrow(/at most 6/);
   });
 });
+
+describe('nodeIdentityOf — one computer of the string', () => {
+  const linear = PlatPlan.parse({ shape: 'linear', frontagesPerNode: 3 });
+  const branched = PlatPlan.parse(BRANCHED);
+
+  it('⭐ returns exactly the string OuterWarren.ensureNode already minted', () => {
+    // A move, not a new shape: `${parentExtent}/${nodeId}`. Two
+    // computers of one identity is what a single home prevents — the
+    // warren that mints the node and anything that must name the same
+    // node without standing it up both call this.
+    expect(linear.nodeIdentityOf('main:3', '/test/plat/hall'))
+      .toBe('/test/plat/hall/main:3');
+    expect(branched.nodeIdentityOf('lane:2', '/test/plat/hills'))
+      .toBe('/test/plat/hills/lane:2');
+  });
+
+  it('is durable because it is RE-DERIVABLE, not because the node persists', () => {
+    // A circulation node is reaped when nothing routes through it and
+    // re-minted on the next approach. The identity is the same string
+    // both times, which is what lets a parked character's snapshot find
+    // the corridor it was standing in.
+    const first = branched.nodeIdentityOf('lane:1', '/test/plat/hills');
+    const afterReap = PlatPlan.parse(BRANCHED).nodeIdentityOf(
+      'lane:1',
+      '/test/plat/hills',
+    );
+    expect(afterReap).toBe(first);
+  });
+});

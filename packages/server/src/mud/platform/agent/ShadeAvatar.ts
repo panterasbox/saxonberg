@@ -46,6 +46,15 @@ export interface ShadeAvatarInitContext extends AvatarInitContext {
 
 export default class ShadeAvatar extends IncorporealMixin(Avatar) {
   /**
+   * A shade's identities live under its own prefix, not the Avatar
+   * family's — so this shadows the ancestor's declaration rather than
+   * inheriting a prefix that would be wrong. The person is the same;
+   * the namespace is this class's.
+   */
+  static override readonly identityNamespace: string =
+    '/platform/agent/ShadeAvatar/';
+
+  /**
    * ⭐ The whole override, and all it says is *a shade is undead*.
    *
    * It used to strip `playerId` from the context, because the shared

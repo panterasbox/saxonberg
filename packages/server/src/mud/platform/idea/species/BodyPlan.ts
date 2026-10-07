@@ -49,6 +49,7 @@ const GOVERNABLE: ReadonlySet<string> = new Set<string>([
 import type { SenseChannel } from '../../../lib/description/Perceiver';
 import type { FieldMeta } from '../../../lib/mixin';
 
+import type { BoundaryRole } from '../../../lib/security/BoundaryRole';
 /**
  * Anatomy descriptor for a sensory apparatus. Capability (range,
  * acuity) does NOT belong here — that's species-side. Decomposes as
@@ -206,6 +207,16 @@ export interface BodyPart {
 // slot occupant (`Drivable`) or `EventRegistry` itself. None is a
 // reference singleton.
 export default class BodyPlan extends SingletonMixin(Idea) {
+  /**
+   * the anatomy vocabulary every body reads.
+   *
+   * See `lib/security/BoundaryRole.ts` — this replaces a
+   * hand-maintained list in `api/security.ts` /
+   * `BootstrapManager`, and `lint:boundary-roles` holds the
+   * `commons` census at its measured ceiling.
+   */
+  static boundaryRole: BoundaryRole = 'commons';
+
   /** Display name (e.g. `'biped'`, `'quadruped'`). */
   protected name: string = '';
 

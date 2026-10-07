@@ -47,6 +47,7 @@ import type { StreetLightingSupply } from '../../lib/supply/SupplyState';
 import type { Business } from './Business';
 import type { Stuff } from '../../lib/stuff/Stuff';
 
+import type { BoundaryRole } from '../../lib/security/BoundaryRole';
 /** Seconds in a game day — the night index `settleStreetLighting` keys on. */
 const DAY_SECONDS = 86_400;
 
@@ -124,6 +125,16 @@ export interface PublicLightingFunding {
 }
 
 export default class Locality extends Idea {
+  /**
+   * ⭐ NEW: nobody holds title to *terminus/city* as a thing, and `AddressApi.resolveLocalityFor` is on the Cartographer's own write path — a governed eval was denied reading it.
+   *
+   * See `lib/security/BoundaryRole.ts` — this replaces a
+   * hand-maintained list in `api/security.ts` /
+   * `BootstrapManager`, and `lint:boundary-roles` holds the
+   * `commons` census at its measured ceiling.
+   */
+  static boundaryRole: BoundaryRole = 'commons';
+
   /** Display name (e.g. `'Narnia'`, `'Cair Paravel'`). */
   protected name: string = '';
 

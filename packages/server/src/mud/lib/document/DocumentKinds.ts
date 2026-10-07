@@ -84,6 +84,39 @@ export const DOCUMENT_KINDS = {
    */
   'water-right': { kind: 'water-right', naturalKey: null, contentDir: 'water-rights', ext: 'yaml', onVanish: 'keep' },
   /**
+   * A **map** — one player's knowledge of one locality: the places they
+   * have been, and the edges they used (location-graph B3).
+   *
+   * ⭐⭐ **It is a CLAIM, not a view.** The server's own knowledge of the
+   * world's shape lives in `location_graph`, and **the two never join**:
+   * a map is written from what the player perceived, and nothing
+   * reconciles it against the truth afterwards. ⭐ **Rot is the
+   * feature** — wall up an exit somebody has walked and their map still
+   * shows it until they next look, at which point both claims render and
+   * the disagreement is visible. A map that corrected itself behind
+   * your back would be the server telling you what you know.
+   *
+   * One document per `(player, finest covering locality)`, at
+   * `/home/<key>/map/<locality address>`. ⭐ The address keeps its
+   * slashes, so a coarser read is a PREFIX read with no join
+   * (`map terminus` lists every map under it) — and copying one
+   * locality's map hands over nothing about any other.
+   *
+   * `naturalKey: null` because a map is not named by its content; it is
+   * named by whose it is and where it is of.
+   *
+   * ⚠ `onVanish: 'keep'`, for `water-right`'s reason exactly: a map is a
+   * record of where somebody went, and no absent pack file should be
+   * able to erase one. The nightly reset keeps every declared kind, so
+   * both axes are satisfied — walk somewhere, let the reset run, and the
+   * map still says you were there.
+   *
+   * The KIND is the platform's and so is the writer: unlike a water
+   * right, nothing authors a map by hand. It is written by the
+   * perception seams and read by one verb.
+   */
+  map: { kind: 'map', naturalKey: null, contentDir: 'maps', ext: 'yaml', onVanish: 'keep' },
+  /**
    * A **herd** — a register naming these head, this composition, this
    * age structure, on this ground (farmstead D20).
    *

@@ -189,8 +189,18 @@ export default class SenseController extends CommandController<SenseModel> {
     if (hasVisible) {
       body = Mml.compose`${body}\n${Mml.fromMarkup(longText)}`;
     }
+    // ⭐⭐ THE PERCEPTION MOMENT. One call: the body runs the
+    // perception gate, tells whatever it keeps (a map, a memory,
+    // nothing), and hands back the exits this viewer may know about —
+    // which are the same ones rendered below, because computing them
+    // twice is how the transcript and the map could ever disagree.
+    // The verb's business is WHEN a place is perceived; what that
+    // entails is the body's. See `Perceiver.learnSurroundings`.
+    const perceived = MixinApi.isPerceiver(actor)
+      ? actor.learnSurroundings(location, visibleContents)
+      : [];
     if (hasExits) {
-      const exitsLine = this.formatExits(location.obviousExitsFor(actor));
+      const exitsLine = this.formatExits(perceived);
       if (exitsLine) {
         body = Mml.compose`${body}\n${exitsLine}`;
       }
@@ -274,7 +284,7 @@ export default class SenseController extends CommandController<SenseModel> {
       .send();
   }
 
-  private formatExits(exits: Exit[]): Mml | null {
+  private formatExits(exits: readonly Exit[]): Mml | null {
     if (exits.length === 0) return null;
     const parts = exits.map((exit) => {
       const tagged = Mml.exit(exit);

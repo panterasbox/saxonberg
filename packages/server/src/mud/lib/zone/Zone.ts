@@ -32,6 +32,7 @@ import { MixinApi } from '../../api/mixin';
 import { ZoneApi } from '../../api/zone';
 import type { FieldMeta } from '../mixin';
 
+import type { BoundaryRole } from '../security/BoundaryRole';
 // `ZoneApi` is statically imported because it owns the field-walk
 // orchestration (`ZoneApi.getEnclosingZone`) that `lookupAncestorField`
 // delegates to. The api side breaks its end of the would-be cycle by
@@ -47,6 +48,16 @@ import type { FieldMeta } from '../mixin';
  * `lookupAncestorField`).
  */
 export abstract class Zone extends Idea {
+  /**
+   * the template tree's CLASSIFICATION of a path, not anything that happens at it — and the question *am I inside a circle?* is itself a Zone field read.
+   *
+   * See `lib/security/BoundaryRole.ts` — this replaces a
+   * hand-maintained list in `api/security.ts` /
+   * `BootstrapManager`, and `lint:boundary-roles` holds the
+   * `commons` census at its measured ceiling.
+   */
+  static boundaryRole: BoundaryRole = 'commons';
+
   /** The two fields Zone itself owns (subclasses declare their own on
    *  top). `wire` HAS to be here: it's a declared field with an
    *  accessor pair, so the applier only reaches it by name — and a

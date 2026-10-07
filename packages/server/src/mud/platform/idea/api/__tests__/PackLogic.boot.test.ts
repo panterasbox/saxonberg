@@ -70,7 +70,7 @@ describe('the boot union', () => {
       calls.push(p);
       return { templatePath: p } as unknown as Stuff;
     });
-    vi.spyOn(StuffApi, 'findAllByTemplatePath').mockReturnValue([]);
+    vi.spyOn(StuffApi, 'findByIdentityPath').mockReturnValue([]);
     await BootstrapManager.run([union[2]!, union[0]!, union[1]!]);
     expect(calls.indexOf('/platform/idea/GroupRegistry')).toBeLessThan(calls.indexOf('/studio/lounge/terminal'));
   });

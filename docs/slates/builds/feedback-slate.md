@@ -444,7 +444,7 @@ Two readings, and both have an answer:
 
 > **The rule: collect at identity, aggregate to template, and never report
 > an identity-keyed aggregate for anything a player occupies.** Same key
-> discipline as [location-graph-slate](./location-graph-slate.md) —
+> discipline as [location-graph-slate](../tails/location-graph-slate.md) —
 > identity vs lineage vs `stuffId`.
 
 ## 8. ⭐⭐⭐ A template is a SUBJECT — the comment engine is not a stretch

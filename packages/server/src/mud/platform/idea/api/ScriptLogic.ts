@@ -66,6 +66,9 @@ async function mintEvalScratchImpl(
   const scratch = await StuffApi.clone<EvalScript>(
     '/platform/idea/EvalScript',
     undefined,
+    // identity-keyed-by: lookup — `findByTemplatePath(path)` above reads
+    // the previous scratch back to destroy it. The path is
+    // `${parcel}/_eval`, re-derivable from the jurisdiction.
     { asIdentityPath: path },
   );
   scratch.setCode(code);

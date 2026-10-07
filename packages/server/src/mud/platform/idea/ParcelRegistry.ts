@@ -43,12 +43,14 @@ import {
   type TitleGrantOutcome,
 } from "../../lib/parcel/ParcelRecord";
 import { ParcelEvent } from "../../lib/parcel/ParcelEvent";
+import type { ParcelEventKind } from "../../lib/parcel/ParcelEvent";
 import { LandUses, type LandUse } from "../../lib/parcel/LandUse";
 import type { PowerBand } from "../../lib/parcel/PowerBand";
 import type { Quantity } from "../../lib/quantity";
 import type { VetoResult } from "../../lib/errors";
 import type { Stuff } from "../../lib/stuff/Stuff";
 
+import type { BoundaryRole } from '../../lib/security/BoundaryRole';
 const ParcelRegistryBase = Idea;
 
 // Admit both the Api face module and the logic singleton's template path,
@@ -59,6 +61,17 @@ const ParcelApiCallers = SecurityPolicies.AnyOf(
 );
 
 export default class ParcelRegistry extends ParcelRegistryBase {
+  /**
+   * engine bookkeeping that happens to be Stuff-shaped: a registry holds the framework's own index, not world state anybody stands in.
+   *
+   * ⭐ Declared, not enumerated. This was one of twenty-seven
+   * template-path strings in `api/security.ts`, listed there
+   * *"because each is a singleton rather than a class of many"* —
+   * which a static on the class makes irrelevant. See
+   * `lib/security/BoundaryRole.ts`.
+   */
+  static boundaryRole: BoundaryRole = 'infrastructure';
+
   /**
    * Coverage index: parcel `extent` → its `ParcelRecord`. A PathTrie
    * because extents are path-shaped and longest-prefix is exactly the
@@ -388,11 +401,56 @@ export default class ParcelRegistry extends ParcelRegistryBase {
     record.setReach(claim.reach ?? "");
     record.setFeeder(claim.feeder ?? "");
     record.setPowerBand(claim.powerBand ?? null);
+    // ⭐ A claim that says nothing about publication is LIVE content.
+    // Authoring `published: false` is the draft wall.
+    record.setPublished(claim.published ?? true);
     record.area = typeof claim.areaM2 === "number" ? claim.areaM2 : 0;
     await record.save();
     await this.appendEvent("grant", claim.extent, null, claim.holder);
     this.reindex(claim.extent, record);
     return { outcome: "granted", holder: claim.holder };
+  }
+
+  /**
+   * ⭐⭐ Declare the content on `extent` live, or take it down.
+   *
+   * Writes the record AND appends a `publish` / `offline` event, so the
+   * chain of title carries the flip: taking content down is one of the
+   * louder things a holder can do to ground, and a register that
+   * recorded a transfer but not that would be telling half the story.
+   *
+   * ⭐ **One field, two lives**, and the difference is a FACT rather
+   * than a second field: *draft* has never been live, so nobody is
+   * inside it and the flag is only a wall; *offline* is live content
+   * coming down, so the people inside are moved out first. This method
+   * does the eviction when the record was live and is going dark —
+   * which is exactly the case where somebody might be standing there.
+   *
+   * Returns the updated record, or null when no parcel claims `extent`.
+   */
+  @CallSecurity(ParcelApiCallers)
+  public async setPublished(
+    extent: string,
+    value: boolean,
+  ): Promise<ParcelRecord | null> {
+    // Field-visible shared state; denied under circle scope with a
+    // receipt, exactly as `transfer` is.
+    SecurityApi.assertFieldMutation(this, 'setPublished');
+    const record = await this.recordFor(extent);
+    if (!record) return null;
+    const wasLive = record.isPublished();
+    if (wasLive === value) return record;
+    record.setPublished(value);
+    await record.save();
+    const holder = record.getOwner();
+    await this.appendEvent(
+      value ? 'publish' : 'offline',
+      extent,
+      holder,
+      holder ?? { kind: 'group', name: '' },
+    );
+    this.reindex(extent, record);
+    return record;
   }
 
   /** See {@link ParcelApi.citeReach}. */
@@ -762,7 +820,7 @@ export default class ParcelRegistry extends ParcelRegistryBase {
   }
 
   private async appendEvent(
-    kind: "subdivide" | "transfer" | "grant",
+    kind: ParcelEventKind,
     extent: string,
     from: ParcelOwner | null,
     to: ParcelOwner,
