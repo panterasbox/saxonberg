@@ -44,33 +44,33 @@ function torsoWithOrgans(): Creature {
       key: 'body.torso',
       parent: null,
       tissues: [
-        { tissuePath: '/stuff/idea/material/tissue/bone', mass: 8 },
-        { tissuePath: '/stuff/idea/material/tissue/flesh', mass: 20 },
+        { tissuePath: '/stuff/idea/material/tissue/bone', share: 0.229885 },
+        { tissuePath: '/stuff/idea/material/tissue/flesh', share: 0.574713 },
       ],
     },
     {
       key: 'body.torso.liver',
       parent: 'body.torso',
       governs: ['clearance'],
-      tissues: [{ tissuePath: '/stuff/idea/material/tissue/flesh', mass: 1.5 }],
+      tissues: [{ tissuePath: '/stuff/idea/material/tissue/flesh', share: 0.043103 }],
     },
     {
       key: 'body.torso.lungs',
       parent: 'body.torso',
       governs: ['respiration'],
-      tissues: [{ tissuePath: '/stuff/idea/material/tissue/flesh', mass: 1 }],
+      tissues: [{ tissuePath: '/stuff/idea/material/tissue/flesh', share: 0.028736 }],
     },
     {
       key: 'body.torso.heart',
       parent: 'body.torso',
       governs: ['circulation'],
-      tissues: [{ tissuePath: '/stuff/idea/material/tissue/muscle', mass: 0.3 }],
+      tissues: [{ tissuePath: '/stuff/idea/material/tissue/muscle', share: 0.008621 }],
     },
     // An EXTERIOR child, to prove the ladder ignores it.
     {
       key: 'body.torso.skin',
       parent: 'body.torso',
-      tissues: [{ tissuePath: '/stuff/idea/material/tissue/flesh', mass: 4 }],
+      tissues: [{ tissuePath: '/stuff/idea/material/tissue/flesh', share: 0.114943 }],
     },
   ]);
   stampTemplatePathForTest(plan, `/stuff/idea/species/BodyPlan/organs-${id}`);

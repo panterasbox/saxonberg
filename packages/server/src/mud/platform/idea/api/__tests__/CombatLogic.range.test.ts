@@ -78,14 +78,14 @@ function makeFighter(
       key: "body.torso",
       parent: null,
       tissues: [
-        { tissuePath: "/stuff/idea/material/tissue/bone", mass: 8 },
-        { tissuePath: "/stuff/idea/material/tissue/flesh", mass: 20 },
+        { tissuePath: "/stuff/idea/material/tissue/bone", share: 0.258065 },
+        { tissuePath: "/stuff/idea/material/tissue/flesh", share: 0.645161 },
       ],
     },
     {
       key: "body.arm.right",
       parent: "body.torso",
-      tissues: [{ tissuePath: "/stuff/idea/material/tissue/flesh", mass: 3 }],
+      tissues: [{ tissuePath: "/stuff/idea/material/tissue/flesh", share: 0.096774 }],
     },
   ]);
   stampTemplatePathForTest(plan, `/stuff/idea/species/BodyPlan/range-${id}`);

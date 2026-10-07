@@ -13,7 +13,9 @@ data:
 
     The ground here is the colour of the road — pale, dry and full of small stones. It is not the flats and nobody here pretends it is.
 
-    A shelf under the barn eaves has sacks on it and a slate with prices chalked up.
+    A shelf under the barn eaves has sacks on it and a slate with prices chalked up, and the flock book lying open beside them. A scrubbed block stands against the barn wall with a gutter cut round three sides of it and a drain under the fourth.
+
+    There are sheep somewhere up the hill — you can hear them before you see them — and two dogs in the yard, one of them working and one of them asleep in the sun.
   coords: { x: -20, y: 0, z: 7 }
   exits:
     east:
@@ -30,9 +32,38 @@ data:
       edgeMinutes: 4
   props:
     - /world/terminus/hearts-delight/thing/farm-shelf
+    # ⭐ The flock book — on the shelf with the price slate, because that
+    # is where a farmer keeps the paperwork he actually uses. `draft` and
+    # `return` are afforded by it, so the flock is reachable from here.
+    - /world/terminus/hearts-delight/thing/flock-book
+    # ⭐⭐ **The killing place is a BLOCK and a sentence**, not a premises.
+    # A smallholder does not have a slaughterhouse; he has a scrubbed
+    # block against the barn wall and a bad morning twice a year. The
+    # block is cooking's shipped row — the same one a kitchen uses — which
+    # is the point: there is one butchery and this is where it happens on
+    # a farm.
+    - /trade/cooking/thing/butcher-block
+    # ⭐⭐ **And a KNIFE, because a farm with a butcher block has one.**
+    # The drive found this by not finding it: `butcher` is afforded by an
+    # EDGE rather than a class, and a farmyard where the only blade is
+    # three miles away in a shop made the most ordinary act in the build
+    # — a smallholder killing a sheep — reachable only by going shopping
+    # first. A block with no knife beside it was the odd thing, not the
+    # knife.
+    - /trade/cooking/thing/boning-knife
   cast:
     - /world/terminus/hearts-delight/agent/farmer
+    # ⭐⭐ TWO dogs, and the pair is the content: the unnamed collie is
+    # refused the knife for having no butchery yield (a fact about dogs);
+    # Moss is refused for having been named (a fact about somebody's
+    # choice). AC4 and AC5 need both, and they must not read alike.
+    - /world/terminus/hearts-delight/agent/sheepdog
+    - /world/terminus/hearts-delight/agent/moss
   details:
+    block:
+      keywords: [block, butcher-block, gutter, drain]
+      description: |
+        A section of elm trunk, waist high, scrubbed pale and dished in the middle from years of use. A gutter is cut round three sides and the fourth runs out to a drain in the yard. It is the cleanest thing in the yard by a long way, and nobody has to be told why.
     slate:
       keywords: [slate, prices, board, chalk]
       description: |

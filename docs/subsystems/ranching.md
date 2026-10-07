@@ -606,3 +606,55 @@ What ranching keeps, and what apiculture reaches back for:
   overrides it with bands, because a colony has no spine to read and no
   number to give you. `lint:verb-collisions` refuses a second `handle`
   view, correctly, so there was never a second-verb way out.
+
+---
+
+## History — the carcass chain and the butchery build (2026-10-05)
+
+⚠⚠ **Two claims above are now false, and the sections that make them are
+kept because the reasoning in them is why the change happened.**
+
+**1. `butcher` is not this trade's verb any more.** The yield table
+(`YIELDS`, five hardcoded fractions) and the `ButcherController` that
+destructed the animal and minted five goods are **retired**. There is
+**one death path**: `ConditionApi.die` mints a `Corpse` stamped with
+`_speciesPath`, `causeOfDeath` and `diedAtGameSec`, and `slaughter
+<animal>` calls it exactly like a fight, a fall or starvation does, then
+writes the herdbook. Breaking the body down is `trade-cooking`'s
+`butcher <carcass>`, because **butchery specializes cooking**. Three
+things fall out of it that no amount of guarding the old verb could buy:
+a beast killed in a fight is butcherable on the same path as one you
+slaughtered; the recorded `butcher` collision between two trades
+(*"undiagnosed"* in `KNOWN_COLLISIONS`) is retired rather than
+documented; and the *"guard that re-narrows the host set"* argument above
+reaches its conclusion — the affordance moved to the object the act is
+actually performed on, which is a body, not an animal.
+
+**2. The yield is the SPECIES', not this pack's.** `Species.butcheryYield`
+is kernel and authored per species, so a ewe and a cow no longer share
+five fractions. What survives from here is the **condition scaling** —
+`finish` off the `flesh` reserve — as a multiplier *on* the species
+yield, which is the half of the old table that was a real idea. ⭐ And
+the two silent failures recorded in *"What the carcass opens onto"* are
+structurally unrepeatable now rather than fixed: a cut is a row claiming
+tissues the body plan carries, and `lint:anatomy` refuses a species whose
+yield claims a tissue its plan does not have.
+
+⭐ **`slaughter` is unchanged in spirit and that matters**: sober, no
+minigame, no guilt meter, waste rather than killing being the thing that
+feels bad. It is the same act with the join moved one object along.
+
+⚠ **The hide's "stated seam" above is CLOSED.** Tanning exists —
+`trade-tanning`, a pack of its own, with a tanpit whose liquor the hide
+reconciles against. Bark is a fourth `fell` yield declared per species
+(oak tans, birch does not), which is where the tannin comes from. See
+[butchery.md](./butchery.md) and
+[forestry.md](./forestry.md).
+
+⚠ **Bone is organic matter, not phosphorus.** The sentence above says
+phosphorus and the soil has no such reserve; `bone-meal` carries
+`slow-amendment`, which credits organic matter — see
+[soil.md](./soil.md). The fiction ("the animal that ate the field feeds
+it back at both ends") is intact; the nutrient named was wrong.
+
+Full model: [butchery.md](./butchery.md).

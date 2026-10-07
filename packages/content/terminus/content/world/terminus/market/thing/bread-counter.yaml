@@ -34,7 +34,21 @@ data:
     # The wholemeal — same wheat, more of it kept, cheaper than white
     # because nothing was thrown away to make it.
     - { itemTemplatePath: /trade/baking/thing/wholemeal-loaf, par: 4 }
+    # ⭐⭐ **The dog loaf, and it is the fourth line that makes the other
+    # three mean something.** Horse-bread: bran, offal, bone meal and
+    # fat. Historically the cheapest thing on a baker's board, and a
+    # board that lists it beside white bread at twice the price is saying
+    # something about the town that nobody had to author.
+    #
+    # ⚠ It is a REAL loaf a person can buy and eat. The game does not
+    # refuse it and does not label anybody who buys it; the price is what
+    # says what it is.
+    - { itemTemplatePath: /trade/baking/thing/dog-loaf, par: 4 }
   prices:
     /trade/baking/thing/lean-loaf: 2
     /trade/baking/thing/white-loaf: 4
     /trade/baking/thing/wholemeal-loaf: 3
+    # ⭐ Half the cheapest people-bread. Made of what nobody else wanted,
+    # and priced accordingly — which is also what makes keeping a dog
+    # affordable to somebody who is not rich.
+    /trade/baking/thing/dog-loaf: 1

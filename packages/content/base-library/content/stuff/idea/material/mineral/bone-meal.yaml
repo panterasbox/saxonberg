@@ -1,0 +1,39 @@
+# Bone meal — ⭐ ground bone, and the carcass chain's one way back into
+# the ground.
+#
+# ⚠⚠ **It is a SLOW AMENDMENT, not a fertiliser, and not phosphorus.**
+# The bone row it comes from claimed phosphorus, and soil has no such
+# reserve: it holds moisture, nitrogen, organic matter and structure, and
+# nitrogen is the limiting nutrient the farming build is built around. A
+# fifth reserve with one producer and one consumer would be a mechanism
+# serving a single row.
+#
+# The `slow-amendment` tag is what `feed` reads: it credits ORGANIC
+# MATTER rather than nitrogen, and `Soil.addOrganicMatter` already passes
+# a little of it straight to nitrogen and leaves the rest to mineralise
+# over years. Which is exactly what ground bone does in a field, said
+# through a face that already existed.
+#
+# ⭐ `feed` as well, because bone meal genuinely was fed to stock — it is
+# in the dog loaf for that reason, and the tag means a row that wants it
+# as fodder needs nothing new.
+class: /platform/idea/material/Material
+data:
+  name: bone meal
+  keywords: ["bone meal", bonemeal, meal, bone]
+  appearance: a fine grey-white meal
+  density: 1100
+  specificHeat: 900
+  thermalConductivity: 0.3
+  hardness: 30
+  toughness: 1
+  electricalConductivity: 1.0e-10
+  waterAbsorptionCapacity: 20
+  # ⚠ Not edible to a PERSON. It goes into a dog loaf as one input among
+  # four and is baked; a sack of it is not food.
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: ["granular", "solid", "compost", "feed", "bone-meal", "slow-amendment"]
+  composition: []
+  biologicalSource: null

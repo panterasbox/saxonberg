@@ -105,7 +105,7 @@ viewer.
 | `handle` | article + the short handle | chat, when anonymity is on |
 | `concise` | the ordinary identity | act lines, emotes — most prose |
 | `presence` | + what they are doing | the room survey |
-| `distinguishing` | + what they are wearing | targeting, disambiguation |
+| `distinguishing` | + what they are wearing, + a body's **decay band** | targeting, disambiguation |
 <!-- ✅ FIXED 2026-09-27. The disambiguation prompt used to render its
      choices with `getPresentation()` — which is what a thing calls
      ITSELF, so it was neither viewer-aware nor distinguishing: the
@@ -119,6 +119,30 @@ viewer.
      (`roses:[2]`). Only a tie gets an ordinal. Covered by
      `api/__tests__/command.disambiguation.test.ts`. -->
 | `formal` | the full name, honorific and suffix | profiles, documents |
+
+⭐⭐ **A body's decay band rides this form, and that is the general
+lesson.** `PostmortemMixin.getDecayStage()` had computed
+`fresh | stale | decomposed | spent` since the mortality build and had
+**no production reader at all**, so two of one player's corpses at
+different states of decay were indistinguishable: identical keywords,
+nothing here but a worn item, then a bare ordinal — the same *two buttons,
+one label* failure fixed above. `salientFeaturesImpl` appends the band in
+the trailing-clause shape `presence` already uses (*"the body of a sheep,
+decomposed"*).
+
+⭐ **Why this form and not a key.** It is how the UX refers to things at
+all: this form is what `PromptLogic.projectMatches` renders every
+disambiguation choice in, and what `perceivedKeywords` tokenizes into
+targeting keywords — so a player both READS the word and can TYPE it
+(`butcher stale`). The alternative on offer was a minted per-corpse
+identity carrying a death timestamp; it was durable and **unspeakable** —
+a player cannot type it, the prompt will not render it, and MQL's own
+answer to *which of these identical things* is an ordinal (`roses:[2]`),
+not a key. ⚠⚠ **Durability is not the test for a discriminator;
+legibility is.** The stage name IS the player's word (one vocabulary, not
+a prose translation that can drift from the enum), `fresh` is silent for
+the same reason only a tie gets an ordinal, and there is no competence
+gate because *competence resolves DETAIL and never ACCESS*.
 
 An emitter asks for one: `Mml.actor(speaker, { form: 'presence' })`. The
 seam resolves `stuff.describeFor(viewer, form)` at

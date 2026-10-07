@@ -1,0 +1,35 @@
+# ⭐⭐ **Moss** — and the name is the whole of her.
+#
+# She `extends:` the generic farm dog and adds one field. That one field
+# is what AC5 turns on: *a number in the herdbook is easy to cull and an
+# animal you named is not*, and the game's position on killing is that it
+# will refuse the named one by name.
+#
+# ⚠ The refusal says *"That is Moss. You named it, and it is not meat."*
+# — which is a different sentence from the one the unnamed collie gets,
+# and deliberately so. The unnamed dog is refused because dogs have no
+# butchery yield; Moss is refused because somebody chose her.
+#
+# ⭐ Authored with a name rather than earning one, because the drive has
+# to be able to find a named animal without first befriending one — and
+# because a working farm plausibly has one dog that is *the* dog and
+# several that are just dogs. ⚠ The naming VERB still requires the animal
+# to have chosen you (`hasChosen`); this row is the authored case, not a
+# way round the gate.
+extends: /trade/ranching/agent/farm-dog
+class: /trade/ranching/agent/WorkingAnimal
+data:
+  name: Moss
+  shortDescription: old collie
+  keywords: [moss, collie, dog, bitch, sheepdog, old]
+  register: definite
+  longDescription: >-
+    A grizzled collie going white around the muzzle, lying in the one
+    patch of sun with her chin on her paws. She gets up for the gate and
+    for nothing else any more, and she gets up slowly.
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/carnivora/canidae/canis/familiaris
+  lifecycleState: alive
+  sex: female
+  # ⭐ A long-worked dog. She is the one the farmer trusts, which is also
+  # why she is the one he named.
+  handling: 0.85

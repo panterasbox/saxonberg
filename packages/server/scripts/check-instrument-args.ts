@@ -171,7 +171,15 @@ const SKIP = new Set(['node_modules', '.git', 'dist', 'build', 'coverage']);
  * build replaces all nine with a declared `tool` arg narrowed by
  * capability, and lowers this to 0.
  */
-const BESPOKE_RESOLUTION_CEILING = 9;
+/*
+ * ⭐ 9 → 1 (the carcass chain, 2026-10-04). Nothing in this build created
+ * a bespoke resolution — the gate has simply been below its ceiling since
+ * the instrumentation build landed and said so on every run, and a
+ * ratchet that nobody lowers stops being a ratchet. Every new instrument
+ * arg in this build is DECLARED (`tan`'s pit, `grind`'s stones, `dip`'s
+ * pot), which is what kept it there.
+ */
+const BESPOKE_RESOLUTION_CEILING = 1;
 
 /**
  * Receivers that mean *the actor, or the world around them*. A walk over

@@ -16,6 +16,7 @@ import {
   stampTemplatePathForTest,
 } from "../../../../lib/security/__tests__/test-setup";
 import { installV1QuantityMarshallers } from "../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers";
+import { installCorpseMintStub } from "../../../../lib/mortality/__tests__/corpse-mint-test-helpers";
 import { Idea } from "../../../../lib/stuff/Idea";
 import { Character } from "../../../../lib/character/Character";
 import Species from "../../species/Species";
@@ -240,19 +241,19 @@ function makeFighter(
       key: "body.torso",
       parent: null,
       tissues: [
-        { tissuePath: "/stuff/idea/material/tissue/bone", mass: 8 },
-        { tissuePath: "/stuff/idea/material/tissue/flesh", mass: 20 },
+        { tissuePath: "/stuff/idea/material/tissue/bone", share: 0.228571 },
+        { tissuePath: "/stuff/idea/material/tissue/flesh", share: 0.571429 },
       ],
     },
     {
       key: "body.head",
       parent: "body.torso",
-      tissues: [{ tissuePath: "/stuff/idea/material/tissue/flesh", mass: 4 }],
+      tissues: [{ tissuePath: "/stuff/idea/material/tissue/flesh", share: 0.114286 }],
     },
     {
       key: "body.arm.right",
       parent: "body.torso",
-      tissues: [{ tissuePath: "/stuff/idea/material/tissue/flesh", mass: 3 }],
+      tissues: [{ tissuePath: "/stuff/idea/material/tissue/flesh", share: 0.085714 }],
     },
   ]);
   stampTemplatePathForTest(plan, `/stuff/idea/species/BodyPlan/test-fighter-${id}`);
@@ -367,14 +368,24 @@ beforeAll(async () => {
 
 beforeEach(async () => {
   installV1QuantityMarshallers();
+  // ⭐ A cull mints a corpse now; the mint clones an authored row that a
+  // unit world has no Template store for. See the helper.
+  installCorpseMintStub();
   StuffApi.clearAll();
   SchedulerApi._clearAllForTesting();
   HookSeq.length = 0;
   await bootRegistry();
 });
 
-afterEach(() => {
+afterEach(async () => {
   for (const s of openSessions.splice(0)) s.dissolve();
+  // ⚠ **Let the death tails land before the mocks come down.** A cull is
+  // driven synchronously from a sync `it`, but `ConditionApi.die` is
+  // fire-and-forget and its tail now mints a corpse — so the clone can
+  // still be in flight when the test body returns. Restoring the stub out
+  // from under it surfaces as an unhandled Mongo rejection attributed to
+  // whichever test happened to be running.
+  await new Promise((resolve) => setTimeout(resolve, 0));
   vi.restoreAllMocks();
   StuffApi.clearAll();
 });

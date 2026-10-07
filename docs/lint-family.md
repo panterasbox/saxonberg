@@ -1083,6 +1083,35 @@ configured**.
   rots — which is right, and is not spoilage: a LIVING thing's tissue is
   not yet dead matter, so a class composing `GrowingMixin` is exempt by
   rule, not by list. The clock starts at the harvest, which is a `Crop`.
+- **`lint:anatomy`** — ⭐ **a body plan's tissue shares must sum to the
+  whole body, and every share must name something real** (the butchery
+  build, 2026-10-05). A `TissueComposition` states the **share of the
+  whole body's mass** a tissue of a part carries, so part mass is
+  `share × the instance's own mass` — which is what lets ONE plan serve a
+  20 g canary and a 700 kg ox. It replaced absolute kilograms that were
+  **already a lie**: the `quadruped` plan authored a 28 kg torso and a
+  bullock claimed the same one as a ewe, and nothing errored because
+  nothing checked — the masses fed only `partArea`, whose two readers are
+  ratio-only, so the fiction was invisible by construction.
+  ⚠ Shares can carry the same lie unless something adds them up: a plan
+  summing to 0.6 describes a body that is 40 % nothing — every part
+  under-massed, every surface fraction wrong, silent. **The setter cannot
+  catch it**, because it sees one tissue at a time and fixtures author
+  one-part bodies on purpose. Only a whole-row check can.
+  Five clauses: **(a)** every shipped `BodyPlan` row sums to `1 ± 1e-3`;
+  **(b)** every species that yields anything names a plan that resolves;
+  **(c)** no yield line authors a `fraction` beside a claiming cut (two
+  sources for one number); **(d/e)** every claimed tissue resolves to a
+  Material row and is carried by the plan of every species claiming it.
+  **Exempt:** a plan with **no tissues at all** — `sessile` is a plant,
+  and zero is the honest answer there. ⚠ The exemption is for an EMPTY
+  plan, not a partial one: a plan that states some tissues must state all
+  of them.
+  ⚠⚠ **Not a ratchet**, and the distinction is worth keeping: the sum is
+  an *invariant*, not a population to burn down. There is no honest count
+  of bodies that are 40 % nothing, so there is no ceiling to lower —
+  compare `lint:mass` below, which caps a census. See
+  [butchery.md](./subsystems/butchery.md).
 - **`lint:mass`** — ⭐ **a thing made of nothing, counted and capped**
   (base-class narrowing, 2026-09-29). Every row whose class reaches
   `TangibleMixin` is matter, and mass drives carry capacity, thermal

@@ -12,6 +12,14 @@
  * from*, at the granularity of **kinds that differ in substrate-read
  * properties** — eggs and steak are different rows (different macros);
  * ribeye and sirloin are NOT (that's `Grade` + prose on the instance).
+ *
+ * ⭐⭐ **The butchery build's muscle rows SATISFY that test rather than
+ * bending it, and the example above is why.** A loin and a shoulder
+ * differ in `work` — a substrate-read property, from which texture and
+ * cooking response derive — where ribeye and sirloin are sections of
+ * largely the same muscle and remain correctly excluded. Growing the
+ * catalogue is still a vocabulary decision; this one was made
+ * deliberately. See docs/subsystems/butchery.md.
  * Per-dish/per-drink substances are **never** material rows: a mixture
  * (a plated stew, a mixed cocktail) is a *derived blend* — its slot
  * points at one generic ConsumableMaterial and its identity + macros

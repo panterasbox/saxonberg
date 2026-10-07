@@ -637,6 +637,47 @@ export function DetailedMixin<TBase extends MixinConstructor>(Base: TBase) {
           if (lensed) return lensed;
         }
       }
+      // ⚠⚠⚠ **A persistent `Map` does not survive a JSON round trip.**
+      // `details` is declared `persistent: true`, so a host restored from
+      // storage comes back with a plain OBJECT here — and every reader
+      // below then breaks in a different way: `getDetailIds` throws
+      // *"details.keys is not a function"*, `getDetailEntries` sails past
+      // its `details.size === 0` guard (an object's `.size` is
+      // `undefined`, which is not `0`) and throws *"details is not
+      // iterable"*.
+      //
+      // ⚠ The consequence is far worse than a missing description,
+      // because the thrower is in the RESOLVE path: one restored
+      // `Detailed` thing in a room breaks `look` and every argument
+      // resolution for everybody in it. It shipped as
+      // `Tootie "sense" → controller-error(details is not iterable)`,
+      // which the carcass chain recorded as pre-existing and did not
+      // chase; the butchery drive could not get past its first
+      // checkpoint until it was fixed, which is how a drive earns its
+      // keep.
+      //
+      // ⭐ Normalised HERE because this is the one door every reader goes
+      // through — `resolveParent`, `getParentDetails` and the augmenters
+      // all call it — so there is exactly one place to be right. The
+      // repair is idempotent and in-place, so a host pays for it once.
+      //
+      // ⚠ The deeper fix is a MARSHALLER for the field (the
+      // `QuantityMarshaller` shape), so the Map round-trips instead of
+      // being rebuilt on first read. That is a persistence change with
+      // its own blast radius and it is recorded as a deferred seam rather
+      // than smuggled into a butchery build.
+      if (!(this.details instanceof Map)) {
+        const raw = this.details as unknown;
+        const rebuilt: DetailMap = new Map();
+        if (raw && typeof raw === 'object') {
+          for (const [id, detail] of Object.entries(
+            raw as Record<string, Detail>,
+          )) {
+            rebuilt.set(id, detail);
+          }
+        }
+        this.details = rebuilt;
+      }
       return this.details;
     }
 

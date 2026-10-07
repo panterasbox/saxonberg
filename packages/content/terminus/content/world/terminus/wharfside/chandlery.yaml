@@ -1,0 +1,18 @@
+# The Chandlery — ⭐ the third of the three, and the one that smells of
+# something you would not mind.
+#
+# Fat in, light out. It is in this district because its feedstock is
+# here — the knacker's crock is forty feet away — and not because
+# anybody minds a chandlery: boiling fat is unpleasant and a long way
+# from a tanpit.
+#
+# ⭐⭐ **A counter, because a chandler SELLS.** Of the three premises this
+# is the only one with a shop front, and that is the whole argument for
+# why it mints no Discipline: the tanner and the knacker are tradesmen,
+# and the chandler is a trader who happens to dip. What is hard here is
+# which fat you bought at what price against what the parish will pay
+# for its lamp oil.
+class: /platform/idea/location/CartesianZone
+data:
+  name: The Chandlery
+  cellSize: 4.0

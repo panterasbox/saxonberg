@@ -1,5 +1,13 @@
-# Animal fat — ⭐ what the cooking chain's `render-tallow` has been
-# waiting for, and what a candle and a bar of soap are made of.
+# Animal fat — ⭐ **RAW** fat, as it comes off a carcass, and what the
+# cooking chain's `render-tallow` has been waiting for.
+#
+# ⚠⚠ **It is deliberately not tagged `fat`, and that is D3.** `fat` is
+# the tag a recipe's `medium: fat` matches, so while this material carried
+# it a pail of raw suet could be fried in and the render pot was optional:
+# one of the two steps the cook and the chandler both depend on was free.
+# `rendered` tallow carries `fat`, `cooking-fat` and a smoke point. This
+# carries `suet`, which is what `render-tallow` matches on — and nothing
+# else wants.
 #
 # ⚠ It lives in the COMMONS: fat is a fact about animals.
 class: /platform/idea/material/Material
@@ -14,12 +22,14 @@ data:
   waterAbsorptionCapacity: 0
   hardness: 1
   toughness: 1
-  # ⭐ The smoke point is what makes it a cooking MEDIUM rather than a
-  # calorie: fat fries because it goes far above water's ceiling.
+  # ⚠ The smoke point stays — it is a true property of the matter — but
+  # nothing reads it off this row, because raw fat is not a cooking medium.
+  # What makes something a medium is the `fat` tag, and rendering is what
+  # confers it.
   smokePoint: 478
   edibility: true
   nutrients: ["fat"]
   nutrientAmounts: { fat: 900000 }
   toxicity: []
-  tags: ["food", "fat", "rendering", "once-living"]
+  tags: ["food", "suet", "rendering", "once-living"]
   composition: []

@@ -316,6 +316,27 @@ function main(): void {
     const classPath = typeof row.raw.class === 'string' ? row.raw.class : null;
     if (!classPath) continue;
 
+    // ⚠⚠ **…and then by the NPC LADDER, because a brain is not a
+    // person.** A brain was the right correction to a path glob and it is
+    // still too wide: a kept animal has brains too, and every rule below
+    // speaks the Cast/Extra vocabulary — *the prose says somebody and the
+    // class says nobody* — which is about things that are playing a part.
+    //
+    // A named dog is not an `Extra` with a proper name; it is not on the
+    // identity ladder at all. `pets.md` makes naming **the promotion that
+    // makes an animal a pet** and ships `name` as the verb that does it,
+    // so a farm collie called Moss is the documented design and this gate
+    // was refusing it with a sentence about personhood.
+    //
+    // `CostumedMixin` is the discriminator because it is what `NPC` itself
+    // composes (`CostumedMixin(BehavedMixin(Character))`) and the thing
+    // the ladder is for: a role or a person presents an appearance, and a
+    // dog does not, because a dog is not playing anybody. ⭐ Nothing is
+    // exempted and no count moves — the host set is narrowed to what the
+    // gate's own prose already said it was about, which is the same tell
+    // as a controller guard that re-narrows its target.
+    if (!composes(classPath, 'CostumedMixin')) continue;
+
     const cast = isCastClass(classPath);
     const name = typeof row.data.name === 'string' ? row.data.name.trim() : '';
     const short =

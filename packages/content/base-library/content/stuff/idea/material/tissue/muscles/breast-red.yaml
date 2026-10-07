@@ -1,0 +1,29 @@
+# breast-red — work 0.7
+#
+# ⭐⭐ The flying bird's breast: worked constantly, so dark with myoglobin
+# and far richer than its flightless twin `breast-white`. The pair IS the
+# white-meat/dark-meat law, carried by which body plan names which row.
+#
+# ⚠ Texture is DERIVED from `work`, never authored on the cut.
+class: /platform/idea/material/Muscle
+data:
+  name: breast-red
+  keywords: [breast, red]
+  work: 0.7
+  density: 1060
+  specificHeat: 3500
+  thermalConductivity: 0.4
+  hardness: 1
+  toughness: 1
+  electricalConductivity: 0.2
+  waterAbsorptionCapacity: 25
+  edibility: true
+  tastes: [umami]
+  spoilActivationEnergy: 80000
+  waterActivity: 0.99
+  nutrients: [protein, water, fat]
+  nutrientAmounts:
+    protein: 26000
+  composition:
+    - { materialPath: /stuff/idea/material/food/animal-fat, fraction: 0.08 }
+  tags: [tissue, animal, muscle, organic, edible, food, meat, raw]

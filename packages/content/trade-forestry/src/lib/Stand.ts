@@ -108,6 +108,22 @@ export interface StandSpecies {
   woodMaterialPath: string;
   /** What a felled one drops, or null. */
   seedPath: string | null;
+  /**
+   * ⭐⭐ **What a felled one's BARK is worth, or `null`.**
+   *
+   * Beside `seedPath` because it is the same kind of fact: a thing a
+   * felled standard of this species leaves on the ground. And it is
+   * per-species because **oak tans and ash does not** — the tannin is in
+   * oak bark and almost nowhere else useful, which is why Medieval Latin
+   * *tannum* means *crushed oak bark* and the chemical is named after the
+   * bark rather than the other way round.
+   *
+   * ⚠ `null` is the ordinary case and means *this tree's bark is not
+   * worth stripping*, which is true of most of them. A species that
+   * authors none simply drops no bark, and nothing anywhere has to say
+   * so.
+   */
+  barkPath?: string | null;
   /** Whole standards, true at `standStamp`. */
   standing: number;
   /** What this ground carries. */
@@ -279,6 +295,7 @@ export function StandMixin<TBase extends MixinConstructor<Stuff & Reserved>>(
             name: String(sp.name ?? ''),
             woodMaterialPath: String(sp.woodMaterialPath ?? ''),
             seedPath: sp.seedPath ? String(sp.seedPath) : null,
+            barkPath: sp.barkPath ? String(sp.barkPath) : null,
             standing: Math.max(0, Number(sp.standing) || 0),
             capacity: Math.max(0, Number(sp.capacity) || 0),
             incrementPerYear: Math.max(0, Number(sp.incrementPerYear) || 0),

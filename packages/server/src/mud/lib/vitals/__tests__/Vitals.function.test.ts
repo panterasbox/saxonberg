@@ -43,7 +43,7 @@ function person(): Creature {
       key: 'body.head.brain',
       parent: 'body.head',
       governs: ['consciousness'],
-      tissues: [{ tissuePath: '/stuff/idea/material/tissue/flesh', mass: 1.3 }],
+      tissues: [{ tissuePath: '/stuff/idea/material/tissue/flesh', share: 1.0 }],
     },
     { key: 'body.torso.spine.upper', parent: 'body.torso', tissues: [] },
     { key: 'body.torso.spine.lower', parent: 'body.torso.spine.upper', tissues: [] },

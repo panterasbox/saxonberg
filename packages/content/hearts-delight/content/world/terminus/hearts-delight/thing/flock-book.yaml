@@ -1,0 +1,78 @@
+# ⭐⭐ **The Delight flock** — twelve ewes, and the book that says so.
+#
+# `trade-ranching` ships the `Herdbook` CLASS and no animals. A herd is a
+# thing about somewhere, so it belongs to the venue: the college herd is
+# the university's and this is Quist's, exactly as the Ferrow orebody is
+# Rejection's and not `trade-mining`'s.
+#
+# ## Why SHEEP on this ground, and why it is the whole point
+#
+# The valley's bench is thin dry soil with junior water rights, which is
+# why it grows the low-value dryland crop and why the grain here is the
+# poor relation of the peaches on the flats. **Thin dry ground is sheep
+# country**, and that is not a flavour note: a flock grazes land that
+# would not pay to plough, which is precisely what the bench is. The
+# farmer who cannot compete with the flats on fruit can compete on wool
+# and mutton, and nobody had to author that argument — the soil rows did.
+#
+# ⭐ And the commitment is SEASONAL rather than daily. A dairy cow asks
+# you twice a game day; a flock asks for lambing and shearing, twice a
+# year, hard. That is a genuinely different demand on a player's own real
+# cadence, which is the ladder `taps.md` is built on.
+#
+# ## What is authored and what is not
+#
+# ⚠ Twelve numbers and nothing else. Every head's sex, frame, age and
+# condition is a deterministic function of `(herdId, index)` — head 7 is
+# the same animal every time anybody looks at it, and the answer was true
+# before anybody asked. Nobody authored the thin one; the thin one is
+# what number 7 turned out to be, and finding it is stockmanship rather
+# than reading.
+#
+# ## ⭐ You fill in the form; the society keeps the book
+#
+# Registering this row FILES the flock onto `/trade/ranching/herds`, a
+# branch titled to the ranching group — so Quist can found a flock and
+# cannot afterwards edit his own record. A herdbook is a sales document,
+# and a record whose subject holds the pen is worth nothing to a buyer.
+#
+# ## Twelve, because the barn says so
+#
+# The barn is *"a good deal bigger than the house"*. Twelve ewes and
+# their lambs is what a barn that size winters, and the building was
+# written first.
+class: /trade/ranching/thing/Herdbook
+data:
+  shortDescription: flock book
+  keywords: [flockbook, "flock book", book, register, ledger, flock]
+  register: definite
+  longDescription: >-
+    A thin limp-bound book on the shelf under the eaves, the cover gone
+    soft and grey with handling. Ruled columns: number, dam, born,
+    served, lambed. Twelve numbers are written in, in one hand, and the
+    LAMBED column is filled in a long way further than the college's
+    ever was.
+  mass: 0.6
+  herdId: delight-flock
+  herdName: the Delight flock
+  speciesPath: /stuff/idea/species/animalia/chordata/mammalia/artiodactyla/bovidae/ovis/aries
+  tally: 12
+  # ⭐ Two-year-olds in full fleece — a working flock rather than a flock
+  # of lambs. Ages DERIVE from this plus the game time since founding, so
+  # they get older the way everything else does.
+  foundingMeanAgeDays: 730
+  # The flock is the farm's, so the same business that appoints the hand
+  # on the bench holds the book.
+  holderRef: organization:/world/terminus/hearts-delight/idea/farm-business
+  # ⭐ The thin upper bench, which is where sheep belong and where the
+  # flats' fruit cannot go. ⚠ A LOCATION row rather than a bare path
+  # prefix: `bench-field` is only a namespace here (the college's
+  # `campus-field` has a row of its own and this does not), and
+  # `lint:census` is what says so. Title walks up to the locality by
+  # longest prefix either way.
+  homeExtent: /world/terminus/hearts-delight/bench-field/location/upper-bench
+  details:
+    lambed:
+      keywords: [lambed, column, columns, entries, numbers]
+      description: |
+        Somebody has kept this up. Every ewe has a year against her and most have two, and three of them have a second figure in the same box — twins. Number 7 has nothing after the first year and a small dash, which is somebody deciding not to write down what happened.

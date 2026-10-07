@@ -146,7 +146,10 @@ export default class Livestock extends LivestockBase {
     self: [],
     peers: [
       'trade/ranching/cmd/ranching/return.yaml',
-      'trade/ranching/cmd/ranching/butcher.yaml',
+      // ⭐ `slaughter`, not `butcher`. Killing and dressing are two acts
+      // and the corpse is the join: the kitchen's `butcher` takes the
+      // body apart, wherever and however it died.
+      'trade/ranching/cmd/ranching/slaughter.yaml',
       'trade/ranching/cmd/ranching/breed.yaml',
       // ⭐ The three tap verbs are back here, and `Producing`'s header
       // says why: a mixin static is still a CLASS answer, and a hive

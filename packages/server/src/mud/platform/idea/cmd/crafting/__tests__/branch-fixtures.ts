@@ -24,6 +24,7 @@ import { EventApi } from '../../../../../api/event';
 import EventRegistry from '../../../EventRegistry';
 import { PersistenceManager } from '../../../../../../backend/PersistenceManager';
 import { KERNEL_CONTENT_ROWS } from '../../../../../../test-bootstrap';
+import { installCorpseMintStub } from '../../../../../lib/mortality/__tests__/corpse-mint-test-helpers';
 import { Quantity } from '../../../../../lib/quantity';
 import Material from '../../../../../lib/material/Material';
 import Forge from '../../../../thing/Forge';
@@ -382,6 +383,11 @@ export async function standUpBranchHarness(): Promise<BranchHarness> {
     }
     throw new Error(`unexpected clone ${path}`);
   });
+  // ⭐ Every death mints a corpse now, so a fixture world where anything
+  // can die needs the corpse row too. Installed AFTER the mock above so
+  // the helper's pass-through captures THIS mock as its real clone — the
+  // two stubs compose instead of racing for the same spy.
+  installCorpseMintStub();
 
   const catalogue = makeStuffAtPath(
     () => new RecipeCatalogue(),

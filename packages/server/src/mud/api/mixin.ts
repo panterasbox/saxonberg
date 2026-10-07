@@ -122,6 +122,8 @@ import type { SpaceHeating } from '../lib/thermal/SpaceHeating';
 import type { PublicLighting } from '../lib/perception/PublicLighting';
 import type { Respiration } from '../lib/respiration/Respiration';
 import type { Radioactive } from '../lib/material/Radioactive';
+import type { Muscle } from '../lib/butchery/Muscle';
+import type { Cut } from '../lib/butchery/Cut';
 import type { Workspace } from '../lib/shell/Workspace';
 import type { Author } from '../lib/shell/Author';
 import type { Perceiver } from '../lib/description/Perceiver';
@@ -1591,6 +1593,27 @@ export class MixinApi {
 
   public static isRadioactive(obj: Stuff): obj is Stuff & Radioactive {
     return this.hasMixin(obj, Mixins.Radioactive);
+  }
+
+  /**
+   * ⭐ Is this Material MEAT — a muscle that worked, and therefore
+   * carries the `work` a cut's texture derives from?
+   *
+   * The generic `tissue/muscle` row is NOT one: it is a plain `Material`
+   * used by organs and by the plans that name no cuts, so a narrowing
+   * here is the difference between "there is muscle here" and "this is
+   * the loin".
+   */
+  public static isMuscle(obj: Stuff): obj is Stuff & Muscle {
+    return this.hasMixin(obj, Mixins.Muscle);
+  }
+
+  /**
+   * ⭐ Is this a CUT — a piece of meat that knows which muscles it is,
+   * and therefore what it weighs and how it wants cooking?
+   */
+  public static isCut(obj: Stuff): obj is Stuff & Cut {
+    return this.hasMixin(obj, Mixins.Cut);
   }
 
   public static isPersistable(obj: Stuff): obj is Stuff & Persistable {

@@ -1,0 +1,41 @@
+# Oak bark — ⭐⭐ **where the tannin is**, and almost the only place it is
+# worth getting.
+#
+# The tanning trade's whole feedstock. Crushed and steeped it makes the
+# liquor a hide stands in for three weeks, and Medieval Latin *tannum* —
+# crushed oak bark — is where the word *tannin* comes from: the chemical
+# is named after this, rather than this being named after the chemical.
+#
+# ⭐ The `tanbark` tag is what a tanpit matches on. ⚠ It is deliberately
+# NOT `fuel`: bark burns, and so would a tanner's whole year of work. A
+# bark-as-fuel row is a different thing with a different tag and nobody
+# has asked for one.
+#
+# ⚠ Lives in the COMMONS: an oak has bark whether or not anybody tans.
+class: /platform/idea/material/Material
+data:
+  name: oak bark
+  keywords: [bark, "oak bark", tanbark, tan]
+  # ⚠⚠ Every word of an appearance is checked against the DESCRIPTOR
+  # banks, and a collision is a parser-ambiguity bug (`look at <word>`
+  # would have two answers). This sentence has been through
+  # `lint:descriptors` three times: `inside` is a detail on a ring,
+  # `ridged` and `split` are reserved descriptors. Short and plain is the
+  # safe register for a material.
+  appearance: grey bark, tea-brown where it tears
+  density: 600
+  specificHeat: 1400
+  thermalConductivity: 0.11
+  hardness: 15
+  toughness: 3
+  electricalConductivity: 1.0e-10
+  waterAbsorptionCapacity: 80
+  edibility: false
+  nutrients: []
+  toxicity: []
+  # ⭐ `tanbark` is the tag the trade matches. `granular` because what
+  # goes in a pit is crushed, and `compost` because bark spent in a pit
+  # was genuinely spread on fields — a second sink, free, with no row.
+  tags: ["organic", "bark", "tanbark", "granular", "compost", "once-living"]
+  composition: []
+  biologicalSource: null

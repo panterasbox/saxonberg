@@ -81,6 +81,22 @@ export const CROSSCUT_MS = 15_000;
 export const CROSSCUT_COST = 5;
 /** Logs off the crown of a standard. */
 export const LOGS_PER_STANDARD = 4;
+
+/**
+ * ⭐⭐ **Bark, and it is a FOURTH yield off a felling rather than a verb.**
+ *
+ * A standard already drops a bole, four logs and a seed. Bark is the same
+ * kind of thing: it comes off the tree you have just put on the ground,
+ * by the same act, and a `strip` verb would be ceremony for a step nobody
+ * would ever decline. ⚠ Per-species, because **oak tans and ash does
+ * not** — the whole point of the tanning trade's feedstock.
+ *
+ * Four bundles summing to 8 % of the bole's mass, which is roughly the
+ * real share of a trunk that is bark, and bundles rather than one heap
+ * because a bundle is a thing one person carries.
+ */
+export const BARK_BUNDLES_PER_STANDARD = 4;
+export const BARK_FRACTION_OF_BOLE = 0.08;
 /** Mass of a whole felled tree, by stage — the carryable case. */
 export const FELLED_TREE_KG: Record<string, number> = { young: 8, established: 30 };
 
@@ -279,6 +295,7 @@ async function dropStandard(
   room: Stuff & Container,
   woodMaterialPath: string,
   seedPath: string | null,
+  barkPath: string | null = null,
 ): Promise<Bole | null> {
   const wood = await materialAt(woodMaterialPath);
   const density = wood ? wood.getDensity().rawValue() : 750;
@@ -295,6 +312,29 @@ async function dropStandard(
     if (wood && MixinApi.isTangible(log)) log.setMaterial(wood);
     ContainmentApi.move(log, room);
     await stamp(log, giver);
+  }
+
+  // ⭐ The bark comes off onto the ground beside the trunk, not into your
+  // arms: a bundle of oak bark is 13 kg and four of them is a cartload.
+  if (barkPath) {
+    const boleKg = bole.getMass().rawValue();
+    const each =
+      (boleKg * BARK_FRACTION_OF_BOLE) / BARK_BUNDLES_PER_STANDARD;
+    for (let i = 0; i < BARK_BUNDLES_PER_STANDARD; i += 1) {
+      try {
+        const bundle = await StuffApi.clone<Stuff & Containable>(barkPath);
+        if (MixinApi.isTangible(bundle)) {
+          bundle.setMass(Quantity.of(Math.round(each * 100) / 100, 'kg'));
+        }
+        ContainmentApi.move(bundle, room);
+        await stamp(bundle, giver);
+      } catch (err) {
+        // ⚠ A missing bark row is a content gap, not a reason to lose the
+        // timber — the bole and the logs are already down.
+        console.warn(`FellController: no bark at '${barkPath}':`, err);
+        break;
+      }
+    }
   }
 
   if (seedPath && MixinApi.isContainer(giver)) {
@@ -365,7 +405,13 @@ async function fellStandard(
       .send();
     return;
   }
-  const bole = await dropStandard(giver, room, sp.woodMaterialPath, sp.seedPath);
+  const bole = await dropStandard(
+    giver,
+    room,
+    sp.woodMaterialPath,
+    sp.seedPath,
+    sp.barkPath ?? null,
+  );
   await capture(stand);
   // ⚠ And the FELLER. The room's record never carries a player's goods
   // (the skip rule); they ride the owner's estate, which a live player
@@ -450,7 +496,10 @@ async function fellPlantedTree(
   await StuffApi.destruct(plant);
 
   if (stage === 'mature') {
-    await dropStandard(giver, room, woodPath, seedPath);
+    // ⭐ A planted oak that has grown to a standard gives its bark too —
+    // the stand's entry knows, and a planted tree of a species this
+    // ground does not carry gives none, which is honest.
+    await dropStandard(giver, room, woodPath, seedPath, entry?.barkPath ?? null);
     MessageApi.scene(giver)
       .topic(FORESTRY_TOPIC)
       .toSelf(

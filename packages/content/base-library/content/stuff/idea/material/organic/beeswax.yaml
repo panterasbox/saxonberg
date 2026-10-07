@@ -33,6 +33,10 @@ data:
   edibility: false
   nutrients: []
   toxicity: []
-  tags: ["organic", "wax", "beeswax", "once-living"]
+  # ⭐ `candle-stock` is what the ONE dip recipe matches — carried by
+  # beeswax and by rendered tallow and by nothing else. ⚠ Not `fat`:
+  # that is the cooking MEDIUM tag, and a recipe matching it would let a
+  # candle be dipped out of the frying pan.
+  tags: ["organic", "wax", "beeswax", "candle-stock", "once-living"]
   composition: []
   biologicalSource: null

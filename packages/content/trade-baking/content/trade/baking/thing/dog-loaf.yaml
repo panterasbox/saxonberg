@@ -1,0 +1,17 @@
+# A dog loaf — ⭐ horse-bread, and the one loaf in the game that is not
+# for you.
+#
+# ⚠ It is a `Provision` and it IS edible — a person can eat this, and
+# people did when it was the only bread they could afford. It is not
+# poison and the game does not refuse it; it is simply bad bread, and the
+# board's price is what says so.
+class: /trade/baking/thing/Loaf
+data:
+  shortDescription: dog loaf
+  keywords: [loaf, "dog loaf", "dog bread", "horse bread", dogbread]
+  register: indefinite
+  longDescription: >-
+    A dense dark loaf, flat-topped and heavy for its size, with bits in
+    it. It smells faintly of liver and more strongly of bran.
+  _materialPath: /stuff/idea/material/food/dog-bread
+  mass: 1.1

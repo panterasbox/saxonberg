@@ -148,7 +148,7 @@ function makeBodiedTarget(): Creature {
     {
       key: "body.torso",
       parent: null,
-      tissues: [{ tissuePath: "/stuff/idea/material/tissue/flesh", mass: 20 }],
+      tissues: [{ tissuePath: "/stuff/idea/material/tissue/flesh", share: 1.0 }],
     },
   ]);
   stampTemplatePathForTest(plan, `/stuff/idea/species/BodyPlan/mg-${n}`);

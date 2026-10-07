@@ -1,0 +1,36 @@
+id: trade-chandlery
+version: 0.1.0
+root: /trade/chandlery
+description: >-
+  The chandlery — ⭐⭐ **one dip, two fats, and the candle is made of
+  whichever one was in the pot.**
+
+  It exists because the candle had shipped twice over: a recipe in
+  `trade-apiculture` with beeswax welded onto its output, under the
+  BEEKEEPER's Discipline, and a thing row whose every description said
+  *pale wax* and *smelling of honey*. Tallow candles are the ordinary
+  kind — the cheap light the whole medieval world burned — and there was
+  no way to make one that did not mean a second recipe, a second row and
+  a beekeeper's skill at rendering mutton fat.
+
+  So there is one recipe. `outputMaterial` is **empty**, and the engine's
+  own rule — *empty ⇒ the output material comes from the matched input* —
+  does the rest: a pot of beeswax dips a taper that smells of honey and a
+  pot of tallow dips one that smells of mutton, out of the same act.
+
+  ⚠ **It mints no Discipline, and that is a decision rather than an
+  omission.** The dipping is trivial; what is hard is the *buying* —
+  which fat, at what price, against what the parish will pay for the
+  light. That is a market judgement, not a craft one, so a chandler is
+  a trader who happens to dip rather than a practitioner of chandlery.
+  The skill in the chain is upstream: `butchery` got the suet,
+  `apiculture` got the wax, `cooking` rendered the tallow.
+
+  ⚠ **Tanning is not rendering**, which is why this is its own pack and
+  not half of `trade-tanning`. The two noxious trades at the city's edge
+  share a supplier and a zone and nothing else: one turns skin into
+  leather and one turns fat into light. The economic unity is expressed
+  by PLACEMENT in one LULU zone, never by package membership.
+requires:
+  title:
+    - { extent: /trade/chandlery, holder: { organization: /compact/trade } }

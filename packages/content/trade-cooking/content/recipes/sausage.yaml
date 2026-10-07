@@ -1,0 +1,41 @@
+# Sausage — the act that makes a whole animal worth killing.
+#
+# ⭐⭐⭐ **This is nose-to-tail made real.** A sausage takes the trim a
+# good hand's offcuts leave, the fat nobody wants on a plate, and a casing
+# scraped out of the gut — three things that were waste a build ago — and
+# turns them into the dearest thing on a butcher's counter. ⚠ That is why
+# it was the one addition the user put in scope without hesitating: it
+# closes the chain rather than extending it.
+#
+# ⚠ It asks for TRIM and not for a joint, deliberately: a loin in a
+# sausage is a waste of a loin, and the recipe saying so is the economics
+# teaching itself. (Nothing stops a player stuffing a loin into one — the
+# slot takes any `meat` — it is just a poor trade, which is the right kind
+# of freedom.)
+#
+# ⚠⚠ And it does NOT match `offal`: the dog loaf's line is safe, because
+# the two goods want different things off the same animal.
+recipeId: sausage
+name: Sausage
+keywords: [sausage, sausages, banger]
+discipline: butchery
+difficulty: standard
+inputSlots:
+- slot: meat
+  category: meat
+  minGrade: poor
+  kind: item
+  count: 2
+- slot: fat
+  category: fat
+  minGrade: poor
+  kind: item
+  count: 1
+- slot: casing
+  category: casing
+  minGrade: poor
+  kind: item
+  count: 1
+toolCapabilities: []
+outputApplication: tangible
+outputTemplate: /trade/cooking/thing/sausage

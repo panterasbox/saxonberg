@@ -63,31 +63,31 @@ function dressableBody(): Creature {
       key: 'body.torso',
       parent: null,
       tissues: [
-        { tissuePath: '/stuff/idea/material/tissue/bone', mass: 8 },
-        { tissuePath: '/stuff/idea/material/tissue/flesh', mass: 32 },
+        { tissuePath: '/stuff/idea/material/tissue/bone', share: 0.169133 },
+        { tissuePath: '/stuff/idea/material/tissue/flesh', share: 0.676533 },
       ],
     },
     {
       key: 'body.head',
       parent: 'body.torso',
-      tissues: [{ tissuePath: '/stuff/idea/material/tissue/flesh', mass: 5 }],
+      tissues: [{ tissuePath: '/stuff/idea/material/tissue/flesh', share: 0.105708 }],
     },
     {
       key: 'body.arm.left.hand',
       parent: 'body.torso',
-      tissues: [{ tissuePath: '/stuff/idea/material/tissue/flesh', mass: 1 }],
+      tissues: [{ tissuePath: '/stuff/idea/material/tissue/flesh', share: 0.021142 }],
     },
     {
       key: 'body.arm.right.hand',
       parent: 'body.torso',
-      tissues: [{ tissuePath: '/stuff/idea/material/tissue/flesh', mass: 1 }],
+      tissues: [{ tissuePath: '/stuff/idea/material/tissue/flesh', share: 0.021142 }],
     },
     // ⚠ An ORGAN — no external surface, and excluded from the weighting.
     {
       key: 'body.torso.heart',
       parent: 'body.torso',
       governs: ['heartRate'],
-      tissues: [{ tissuePath: '/stuff/idea/material/tissue/muscle', mass: 0.3 }],
+      tissues: [{ tissuePath: '/stuff/idea/material/tissue/muscle', share: 0.006342 }],
     },
   ]);
   planPath = `/stuff/idea/species/BodyPlan/cover-${n}`;
