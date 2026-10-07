@@ -64,9 +64,30 @@ describe('DetailedMixin', () => {
       expect(MixinApi.hasMixin(DetailedThing, 'DetailedMixin')).toBe(true);
     });
 
-    it('should declare details as persistent field', () => {
+    it('⛔⛔ does NOT declare details persistent — a Map has no BSON shape', () => {
+      // The live drive found this: `details` is a `Map`, it stored as
+      // `{}` and hydrated as a plain OBJECT, and the first
+      // `details.keys()` after a reboot threw. That throw lands inside
+      // MQL resolution, so every verb taking an object target died in
+      // any scope the player had already visited — `get bladder` in the
+      // room you are standing in answering *"Couldn't resolve
+      // 'targets'"*. A fresh database is always clean, which is what
+      // made it so late to surface, and it is the SECOND time a
+      // bare-persistent Map has done this (it broke `find` + `teleport`
+      // once before).
+      //
+      // ⭐ Nothing is lost by dropping it: `instruction: true` carries
+      // the authored `details:` block through `applyDetails` on every
+      // hydrate, and nothing in the tree mutates a detail at runtime —
+      // there is not one `setDetail`/`removeDetail` caller outside the
+      // mixin. Details are authored content, not instance state.
       const fields = MixinApi.getAllPersistentFields(DetailedThing);
-      expect(fields).toContain('details');
+      expect(fields).not.toContain('details');
+      // …and it is still an INSTRUCTION field, which is what makes a
+      // row's `details:` arrive at all.
+      expect(MixinApi.getAllInstructionFields(DetailedThing)).toContain(
+        'details',
+      );
     });
   });
 

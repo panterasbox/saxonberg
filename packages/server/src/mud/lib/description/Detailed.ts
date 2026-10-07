@@ -232,8 +232,29 @@ export function DetailedMixin<TBase extends MixinConstructor>(Base: TBase) {
       // ⭐ `by-key`: a child adds or overrides ONE detail without
       // restating the parent's whole map. The map is keyed by detail
       // name, so the merge rule writes itself.
+      // ⛔⛔ **NOT `persistent`, and a live drive is why.** `details` is
+      // a `Map`, and a Map has no BSON shape: it stores as `{}` and
+      // hydrates as a plain OBJECT, so the first `details.keys()` after
+      // a restart throws `details.keys is not a function`. That throw
+      // lands inside MQL resolution, so from then on **no keyword in
+      // that scope resolves at all** — `get bladder` in a room the
+      // player is standing in answers *"Couldn't resolve 'targets'"*,
+      // and every verb that takes an object target is dead there. A
+      // fresh world is clean; the same room breaks after a reboot.
+      //
+      // ⭐ Dropping the flag loses NOTHING and needs no migration:
+      // `instruction: true` is what carries the authored `details:`
+      // block (phase 2, `applyDetails`), which runs on every hydrate, and
+      // **nothing in the tree mutates a detail at runtime** — there is
+      // not one `setDetail`/`removeDetail` caller outside this file.
+      // Details are authored content re-applied from the template, so
+      // they had no business in the persistence slice.
+      //
+      // ⚠ This is the SECOND time a bare-persistent Map has done this:
+      // it broke `find` + `teleport` in every warm-DB world once before.
+      // `check-field-meta --lint` now refuses the shape (ceiling 0) so
+      // there is no third time.
       details: {
-        persistent: true,
         instruction: true,
         authorable: true,
         inherit: 'by-key',

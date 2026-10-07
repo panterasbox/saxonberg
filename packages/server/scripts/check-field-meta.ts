@@ -740,6 +740,71 @@ function lint(): void {
             // see the whole chain. The checks kept above are the ones
             // that are wrong no matter what any other layer says.
             void lifeText;
+
+            // 5. ⛔⛔ A `persistent` Map/Set with no marshaller.
+            //
+            // A Map has no BSON shape. It stores as `{}` and hydrates as
+            // a plain OBJECT, so the first `.keys()` / `.get()` on it
+            // throws — and when that throw lands inside MQL resolution,
+            // every verb that takes an object target dies in that scope
+            // until the world is rebuilt. A fresh database is always
+            // clean, which is what makes it so late to surface.
+            //
+            // This has happened twice: it broke `find` + `teleport` in
+            // every warm-DB world, and then (found by the fire build's
+            // LIVE drive) `DetailedMixin.details` broke keyword
+            // resolution in any room a player had already been in.
+            //
+            // The escape is either a `marshaller` that converts to and
+            // from a stored shape, or — usually right — dropping
+            // `persistent`, because a field nothing mutates at runtime
+            // has no business in the persistence slice.
+            if (seen.has("persistent") && !seen.has("marshaller")) {
+              const cls = (() => {
+                let n: ts.Node | undefined = p;
+                while (n && !ts.isClassLike(n)) n = n.parent;
+                return n as ts.ClassLikeDeclaration | undefined;
+              })();
+              const decl = cls?.members.find(
+                (mem) =>
+                  ts.isPropertyDeclaration(mem) &&
+                  !mem.modifiers?.some(
+                    (x) => x.kind === ts.SyntaxKind.StaticKeyword
+                  ) &&
+                  memberName(mem.name) === field
+              ) as ts.PropertyDeclaration | undefined;
+              const typeText = decl?.type ? decl.type.getText() : "";
+              const initText = decl?.initializer
+                ? decl.initializer.getText()
+                : "";
+              const COLLECTION = /^(Map|Set|WeakMap|WeakSet)\s*</;
+              const bare = typeText.replace(/^readonly\s+/, "").trim();
+              // ⚠ One level of ALIAS, because the type is usually named:
+              // `details: DetailMap`, and `type DetailMap = Map<…>` sits
+              // in the same file. Without this the rule would only catch
+              // a field that happens to carry a `new Map()` initializer,
+              // which is the weaker half of the same mistake.
+              const aliased = /^\w+$/.test(bare)
+                ? (new RegExp(`type\\s+${bare}\\s*=\\s*([^;\\n]+)`).exec(
+                    source
+                  )?.[1] ?? "").trim()
+                : "";
+              const isCollection =
+                COLLECTION.test(bare) ||
+                COLLECTION.test(aliased) ||
+                /^new\s+(Map|Set|WeakMap|WeakSet)\s*[(<]/.test(initText);
+              if (isCollection) {
+                problems.push(
+                  `${at(p)}  \`${field}\` is \`persistent\` and its ` +
+                    `declared type is a ${typeText || initText} — a Map or ` +
+                    `Set has NO BSON shape: it stores as \`{}\` and ` +
+                    `hydrates as a plain object, so the first \`.keys()\` ` +
+                    `after a reboot throws. Give it a \`marshaller\`, or ` +
+                    `drop \`persistent\` (a field nothing mutates at ` +
+                    `runtime does not belong in the persistence slice).`
+                );
+              }
+            }
           }
         }
       }
