@@ -129,6 +129,12 @@ data:
     # ⭐ The river's edge — the water pack's `Shore`, and what makes the
     # bank fishable: the city's Locality declares no reach (fishing D15).
     - /world/terminus/wharfside/thing/river-edge
+    # ⭐ The deeps — the city's `down` exit to the lower towpath carries
+    # `media: [ground, water]`, and until this row nothing made the
+    # water half of it usable. Three water objects stand on this quay
+    # and each answers to its own name: the edge is what you FISH, the
+    # intake and outfall are the city's plumbing, this is what you SWIM.
+    - /world/terminus/estuary/thing/open-water
   cast:
     - /world/terminus/wharfside/agent/fisher
   details:

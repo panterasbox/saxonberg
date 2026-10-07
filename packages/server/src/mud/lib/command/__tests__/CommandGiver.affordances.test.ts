@@ -30,6 +30,12 @@ import { ContainerMixin } from "../../spatial/Container";
 import { ContainableMixin } from "../../spatial/Containable";
 import { CommandGiverMixin } from "../CommandGiver";
 import { ToolMixin } from "../../craft/Tooled";
+import { MobileMixin } from "../../spatial/Mobile";
+import { PosedMixin } from "../../character/Posed";
+import { FoldableMixin } from "../../slot/Foldable";
+import { HasInteractiveMixin } from "../../connection/HasInteractive";
+import { DrivableMixin } from "../../slot/Drivable";
+import { SlottedMixin } from "../../slot/Slotted";
 import { DurableMixin } from "../../material/Durable";
 import { ContainmentApi } from "../../../api/containment";
 import { CommandApi, type CommandContributions } from "../../../api/command";
@@ -64,6 +70,24 @@ class Player extends ContainerMixin(
   CommandGiverMixin(ContainableMixin(Idea)),
 ) {}
 
+/**
+ * ⭐⭐ The mixins the reachability sweep made confer, each with the verbs
+ * it is now responsible for. One actor composing all of them is the
+ * cheapest honest assertion that the walk SEES the new statics — a
+ * literal in a source file is what `lint:reachability` reads, and this
+ * is what proves the runtime agrees with it.
+ */
+class Walker extends ContainerMixin(
+  PosedMixin(MobileMixin(CommandGiverMixin(ContainableMixin(Idea)))),
+) {}
+
+/** A thing that folds, and a thing that drives. */
+class CampChair extends FoldableMixin(ContainableMixin(Idea)) {}
+class Cart extends DrivableMixin(SlottedMixin(ContainableMixin(Idea))) {}
+
+/** Anything with a human on the other side. */
+class Connected extends HasInteractiveMixin(CommandGiverMixin(Idea)) {}
+
 function affords(player: Player, verb: string): boolean {
   return player.getAvailableCommands().some((c) => c.verbs.includes(verb));
 }
@@ -72,6 +96,68 @@ beforeAll(() => {
   // The contributions reference these views — ensure they resolve.
   CommandApi.getCommand("platform/cmd/crafting/repair.yaml");
   CommandApi.getCommand("trade/smithing/cmd/crafting/sharpen.yaml");
+});
+
+/**
+ * ⭐⭐⭐ The nine verbs the reachability sweep conferred, asserted through
+ * the affordance WALK rather than through the census that found them.
+ *
+ * Every one of these shipped with a view, a controller and (where it has
+ * one) an arg gate, and was named by no static anywhere — so it answered
+ * *"I don't understand"* for every player alive. ⚠⚠ A controller test
+ * cannot see that: it is handed a pre-built model, so it passes happily
+ * over a verb the game does not have. These are the assertions that can
+ * fail.
+ */
+describe("the verbs the reachability sweep conferred", () => {
+  const affordsOn = (giver: { getAvailableCommands(): Array<{ verbs: string[] }> }, verb: string) =>
+    giver.getAvailableCommands().some((c) => c.verbs.includes(verb));
+
+  it("⭐ `walk` — the third ground pace — is MobileMixin's, beside run and sneak", () => {
+    const walker = makeStuff(() => new Walker());
+    expect(affordsOn(walker, "walk")).toBe(true);
+    // The two that always worked, as the control.
+    expect(affordsOn(walker, "run")).toBe(true);
+    expect(affordsOn(walker, "sneak")).toBe(true);
+  });
+
+  it("⭐ `dismount` is PosedMixin's — the state is the RIDER's", () => {
+    const walker = makeStuff(() => new Walker());
+    expect(affordsOn(walker, "dismount")).toBe(true);
+    // Beside the four posture verbs it belongs with.
+    expect(affordsOn(walker, "stand")).toBe(true);
+  });
+
+  it("⭐ `fold`/`unfold` come from the foldable THING, carried or in the room", () => {
+    const room = makeStuff(() => new Room());
+    const walker = makeStuff(() => new Walker());
+    const chair = makeStuff(() => new CampChair());
+    ContainmentApi.move(walker, room);
+    expect(affordsOn(walker, "fold")).toBe(false);
+
+    ContainmentApi.move(chair, room);
+    expect(affordsOn(walker, "fold")).toBe(true);
+    expect(affordsOn(walker, "unfold")).toBe(true);
+  });
+
+  it("⭐ `drive` comes from the drivable vehicle beside you", () => {
+    const room = makeStuff(() => new Room());
+    const walker = makeStuff(() => new Walker());
+    ContainmentApi.move(walker, room);
+    expect(affordsOn(walker, "drive")).toBe(false);
+
+    const cart = makeStuff(() => new Cart());
+    ContainmentApi.move(cart, room);
+    expect(affordsOn(walker, "drive")).toBe(true);
+  });
+
+  it("⭐ `prompt` is HasInteractiveMixin's — a prompt is a CONNECTION's", () => {
+    const connected = makeStuff(() => new Connected());
+    expect(affordsOn(connected, "prompt")).toBe(true);
+    // And a body with no human behind it does not get it.
+    const walker = makeStuff(() => new Walker());
+    expect(affordsOn(walker, "prompt")).toBe(false);
+  });
 });
 
 beforeEach(() => {

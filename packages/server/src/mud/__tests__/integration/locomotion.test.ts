@@ -34,6 +34,27 @@ import { buildAllModes, buildMode } from '../../lib/locomotion/__tests__/test-he
 const ClimbableLoc = ClimbableMixin(CartesianLocation);
 class ClimbZoneLocation extends ClimbableLoc {}
 
+/**
+ * ⚠⚠⚠ **These two hosts are MANUFACTURED HERE, and for three builds they
+ * were the only composition of either mixin in the entire repo.**
+ *
+ * That is why nobody noticed that no water and no air existed anywhere
+ * in the realm: this file proved the MECHANISM over a host it built
+ * itself, every night, and the absence of any such host in the world was
+ * an assertion nowhere. `biped.yaml` listed `swim` among a person's
+ * modes, six exits carried `media: [ground, water]`, `swim.yaml` and
+ * `SwimController` shipped — and `swim` was reachable by nobody.
+ *
+ * ⭐ A test that manufactures what the world lacks HIDES the lack. These
+ * cases stay, because a unit test of the enablement walk is a legitimate
+ * thing to have and a synthetic host is the right way to write one — but
+ * they are relabelled so nobody reads them as evidence about the realm
+ * again. `swim` has a real host now (`platform/thing/OpenWater`, propped
+ * in four estuary and wharfside rooms) and the live proof is the
+ * reachability drive. `fly` still has none, declared
+ * `unreachable: awaiting:base-class-narrowing-slate` on its view, and
+ * `lint:reachability` is what will notice if that stops being true.
+ */
 const SwimmableLoc = SwimmableMixin(CartesianLocation);
 class SwimZoneLocation extends SwimmableLoc {}
 
@@ -121,7 +142,7 @@ describe('Locomotion integration — § 16 compositions', () => {
     expect(guard.gate).toBe('exitMode');
   });
 
-  it('swims a pond Location: Swimmable Location + swim-allowed exit → success', async () => {
+  it('swims a SYNTHETIC Swimmable host + swim-allowed exit → success (the realm\'s host is platform/thing/OpenWater; see the note above)', async () => {
     const swim = buildMode('swim');
     const zone = makeStuff(() => new CartesianZone());
     const pond = makeStuff(() => new SwimZoneLocation());
@@ -276,7 +297,7 @@ describe('Locomotion integration — § 16 compositions', () => {
     expect(guard.ok).toBe(true);
   });
 
-  it('fly mode finds a Flyable Location', () => {
+  it('fly mode finds a SYNTHETIC Flyable host — the realm has none, by declaration (see the note above)', () => {
     const fly = buildMode('fly');
     const sky = makeStuff(() => new FlyZoneLocation());
     sky.setAxes(['*']);

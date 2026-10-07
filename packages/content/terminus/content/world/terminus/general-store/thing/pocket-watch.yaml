@@ -1,0 +1,31 @@
+# ⭐⭐ A pocket watch you can BUY — and the reason the row exists is that
+# two shipped verbs had exactly one target in the whole realm, and it was
+# in somebody else's pocket.
+#
+# `wind` and `adjust` are University Avenue's domain-local verbs and
+# `CLAUDE.md` names the `blow`/`tally`/`wind`/`adjust` bundle as THE
+# exemplar for the pattern. Nothing conferred half of it (fixed this
+# build — the static is on `Watch` now), and even conferred, the only
+# `Watch` in the game was Gus's, equipped on Gus at standup. A verb whose
+# only instrument belongs to an NPC is reachable in theory and unreachable
+# in fact.
+#
+# ⚠ A standalone row rather than `extends:` Gus's, deliberately: his
+# carries the AUGUSTUS engraving in `details:`, which is the one place he
+# lets the full name show. Inheriting it would put his inscription in
+# every watch on the shelf and quietly make a private thing generic.
+#
+# ⭐ It drifts and it is unset, like his — because a watch that keeps
+# perfect time has nothing to teach and nothing to `adjust`. The drift is
+# what makes the clock tower across the avenue worth walking to.
+class: /world/terminus/university-avenue/thing/Watch
+data:
+  shortDescription: plain brass pocket-watch
+  keywords: [watch, pocketwatch, "pocket watch", brass, hunter, pocket-watch]
+  register: indefinite
+  longDescription: |
+    A plain brass hunter-cased watch, new enough that the lid still takes a thumbnail to open. The dial is honest about what it is: a clean face, no maker's name, and a hand that will not keep the hour unless somebody tells it what the hour is.
+  # 11:12 — not the civic time, and nobody on the shelf has set it.
+  setTo: 672
+  rate: 0.997
+  mass: 0.12

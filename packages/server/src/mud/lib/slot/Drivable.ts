@@ -19,6 +19,7 @@
  */
 
 import type { MixinConstructor, FieldMeta } from '../mixin';
+import type { CommandContributions } from '../../api/command';
 import type { Stuff } from '../stuff/Stuff';
 import type { Container } from '../spatial/Container';
 import type { Slottable } from './Slottable';
@@ -60,6 +61,32 @@ export function DrivableMixin<TBase extends MixinConstructor<Stuff & Slotted>>(
 ) {
   return class DrivableMixin extends Base {
     static _mixinName = 'DrivableMixin';
+
+    /**
+     * ⭐⭐ `drive` — **afforded by nothing**, and the third instance of
+     * one bug. `MountableMixin` one file over confers `mount` and `ride`
+     * and its own comment records the pair being found in the
+     * nutrition-fitness drive: *"view, controller and arg gate all
+     * shipped; nothing named the files."* `drive` is the vehicular
+     * sibling of that pair and was missed on the same pass, so
+     * `drive north` has answered *"I don't understand 'drive'"* since
+     * conveyance shipped. The reachability census found it; nothing else
+     * could, because a controller test is handed a model.
+     *
+     * ⭐ BOTH buckets, unlike `Mountable`'s `peers`-only, and the view
+     * says why: *"you have to be aboard a drivable vehicle first."* A
+     * vehicle you are aboard is your CONTAINER, which is the
+     * `environment` bucket; `peers` additionally covers the coach
+     * standing beside you before you board. The arg's
+     * `requires: DrivableMixin` narrows the target either way, so
+     * neither bucket claims anything about what is not drivable.
+     */
+    static commandContributions: CommandContributions = {
+      self: [],
+      inventory: [],
+      environment: ['platform/cmd/movement/drive.yaml'],
+      peers: ['platform/cmd/movement/drive.yaml'],
+    };
     static fieldMeta: FieldMeta = {
       controllerSlot: { persistent: true, authorable: true },
       _vehicularModePath: { persistent: true, authorable: true, authorPicker: 'Template' },

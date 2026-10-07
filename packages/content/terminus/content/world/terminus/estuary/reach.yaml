@@ -18,6 +18,10 @@ data:
     x: 2
     y: 0
     z: 0
+  # ⭐ The deeps — what makes this reach's `water`-medium exits usable
+  # by a swimmer. One row, four rooms; see the row's own header.
+  props:
+    - /world/terminus/estuary/thing/open-water
   exits:
     west:
       destination: /world/terminus/estuary/lower-towpath

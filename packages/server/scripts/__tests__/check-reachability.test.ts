@@ -15,7 +15,14 @@
 import { describe, expect, it } from "vitest";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
-import { SERVER_SRC, run, phraseShapeOf, viewKey, isThingPath } from "../check-reachability";
+import {
+  SERVER_SRC,
+  run,
+  phraseShapeOf,
+  articleShapesOf,
+  viewKey,
+  isThingPath,
+} from "../check-reachability";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const FIXTURES = join(HERE, "..", "__fixtures__", "reachability");
@@ -93,6 +100,30 @@ describe("arm G — the phrase-shape census", () => {
     expect(report.phrase.map((p) => p.key)).not.toContain(
       "fixture/cmd/fixture/safe-phrase.yaml",
     );
+  });
+
+  it("finds a prepositional object arg that is not greedy (the article shape)", () => {
+    expect(report.article.map((a) => `${a.key}:${a.arg}`)).toContain(
+      "fixture/cmd/fixture/phrase.yaml:counter",
+    );
+  });
+
+  it("does NOT flag a prepositional object arg that IS greedy", () => {
+    expect(
+      articleShapesOf({
+        args: [{ name: "kit", type: "object", prepositions: ["with"], greedy: true }],
+      }),
+    ).toEqual([]);
+  });
+
+  it("⭐ reads a SUBCOMMAND's args too — they bind the same way", () => {
+    expect(
+      articleShapesOf({
+        subcommands: {
+          post: { args: [{ name: "board", type: "object", prepositions: ["to"] }] },
+        },
+      }),
+    ).toEqual(["post.board"]);
   });
 
   it("ignores a trailing object with no default — there is no bare form to break", () => {

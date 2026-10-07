@@ -1,3 +1,25 @@
+# ⛔ HELD, deliberately — and this one is held on the WORLD, not on code.
+#
+# `FlyableMixin` exists and is composed by nothing. No exit anywhere
+# carries `media: ['air']`. No playable species has a flying locomotion
+# mode — the only bird row in the realm is the mine canary
+# (`/trade/mining/agent/canary`), which is a kept animal and not a body
+# anybody drives. So there is nothing to fly, nowhere to fly it, and no
+# exit that would accept the attempt.
+#
+# ⚠ Conferring it would afford a verb whose every invocation is refused
+# by the media gate before anything else runs, which is the one case
+# where *afford statically, decline diegetically* does NOT apply: the
+# refusal would teach nothing, because the thing it points at does not
+# exist in any form. `swim` was the opposite case and is conferred now —
+# the exits were already there, the body plan already listed the mode,
+# and only the enablement host was missing (`platform/thing/OpenWater`).
+#
+# ⭐ What lifts this: a flying species with the mode on its body plan,
+# and one `media: ['air']` exit. Then the host follows `OpenWater`'s
+# shape exactly — a thing in the room composing `FlyableMixin` and naming
+# this view — and this key comes off.
+unreachable: awaiting:base-class-narrowing-slate
 verbs: [fly]
 controller: /platform/idea/cmd/movement/FlyController
 description: "Fly through a named exit (must be Flyable-enabled)."

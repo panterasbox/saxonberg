@@ -186,18 +186,45 @@ suite('the plumbing', () => {
     expectOk(await player.cmd('look'));
   });
 
+  /**
+   * ⚠⚠⚠ **This checkpoint could not fail, and it hid a dead verb for
+   * three builds.**
+   *
+   * It used to read `const moved = await player.cmd('walk out'); if
+   * (moved.status === 'ok') { …assert… }` — and `walk` was afforded by
+   * NOTHING, so `moved.status` was never `ok`, the `if` never opened,
+   * and the only assertion in the test never ran. The companion loop
+   * asserted `.not.toBe('error')`, which an unknown verb satisfies by
+   * DECLINING. A test titled *"walking, running and sneaking all move
+   * you"* passed every night over a verb the game did not understand.
+   *
+   * ⭐ The two assertions that would have caught it, and which every
+   * checkpoint in this file owes: **the verb is UNDERSTOOD**, and **the
+   * state CHANGED**. "Not an error" is neither.
+   */
   it('8. walking, running and sneaking all move you', async () => {
     const before = await player.queryOne('here', ['displayName']);
     const moved = await player.cmd('walk out');
-    if (moved.status === 'ok') {
-      const after = await player.queryOne('here', ['displayName']);
-      expect(after).not.toEqual(before);
-    }
-    // The mode roster (`allModes`) is a path glob now; a broken read
-    // would make every mode unknown rather than making movement fail.
+    // ⭐ Unconditional. `walk` is `MobileMixin.self`'s since the
+    // reachability sweep; an unknown verb fails HERE now.
+    expectOk(moved);
+    const after = await player.queryOne('here', ['displayName']);
+    expect(after, 'walk out did not move the player').not.toEqual(before);
+
+    // The mode roster (`allModes`) is a path glob; a broken read would
+    // make every mode unknown rather than making movement fail.
+    //
+    // ⚠ `command-rejected` is the note an UNKNOWN VERB earns, and it is
+    // not `status: 'error'` — which is precisely why the old assertion
+    // could not see one. Assert the verb was understood, per mode, by
+    // name.
     for (const mode of ['run', 'sneak', 'walk']) {
       const r = await player.cmd(mode);
       expect(r.status, why(r)).not.toBe('error');
+      expect(
+        (r.notes ?? []).some((n) => n.kind === 'command-rejected'),
+        `'${mode}' is not a verb this game understands: ${why(r)}`,
+      ).toBe(false);
     }
   });
 

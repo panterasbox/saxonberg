@@ -56,11 +56,29 @@
  *   `commandContributions` static somewhere, or declares `unreachable:`.
  *   A **zero invariant**: a new view costs its author one static or one
  *   key, and the figure does not scale with content.
- * - **Arm G — grammar.** The `string`-then-optional-`object`-with-a-
- *   `default` shape, in which the binder gives word two of a two-word
- *   name to the trailing slot and discards that slot's default
- *   (`CommandLogic.bindPositionals`). A **ratchet**: a verb's phrase
- *   shape is a per-view authoring decision, not content volume.
+ * - **Arm G — grammar.** TWO shapes, two ratchets, one arm — both are
+ *   the binder cutting a phrase a player typed into pieces:
+ *   - the **phrase shape**: a `string` positional followed by an
+ *     optional `object` carrying a `default`, in which the binder gives
+ *     word two of a two-word name to the trailing slot and discards
+ *     that slot's default (`CommandLogic.bindPositionals`). `buy dog
+ *     loaf` bound `thing = "dog"` and then refused in the name of a
+ *     counter the player never mentioned.
+ *   - the **article shape**: an `object`/`objects` arg that declares
+ *     `prepositions:` and is NOT greedy.
+ *     `docs/subsystems/command-spec.md:507-515` already calls this
+ *     *"THE ARTICLE DEFECT — every object arg a player may put an
+ *     article in front of needs this, INCLUDING plural and
+ *     prepositional ones"*, and 45 shipped views carry `greedy` for
+ *     exactly that reason. The other hundred-odd do not, so `buy torch
+ *     from the counter`, `bake at the brick oven` and `mill wheat at
+ *     the quern` were all shape errors — each of them a form the
+ *     view's OWN help text promises.
+ *
+ *   Both are **ratchets**: a verb's phrase shape is a per-view
+ *   authoring decision, not content volume, and a new prepositional
+ *   object arg should be born greedy — so neither ceiling ever needs
+ *   to rise.
  * - **Arm R — rows.** Every `thing`-branch row is reachable by one of
  *   five mechanisms, or declares `unreachable:`. A **zero invariant**
  *   for the same reason as arm A.
@@ -457,6 +475,38 @@ export function phraseShapeOf(doc: {
   return null;
 }
 
+/**
+ * The article shape: an object-ish arg that declares `prepositions:` and
+ * is not greedy, so it takes exactly one token and an article or an
+ * ordinary noun phrase after the preposition is *"too many arguments"*.
+ *
+ * Reads subcommand arg lists as well as the flat ones — a subcommanded
+ * verb's args are just as bindable and were being missed.
+ */
+export function articleShapesOf(doc: {
+  args?: unknown;
+  subcommands?: unknown;
+}): string[] {
+  const out: string[] = [];
+  const scan = (args: unknown, label: string): void => {
+    if (!Array.isArray(args)) return;
+    for (const a of args as ArgSpec[]) {
+      if (!a || typeof a !== "object") continue;
+      if (a.type !== "object" && a.type !== "objects") continue;
+      if (!Array.isArray(a.prepositions) || a.prepositions.length === 0) continue;
+      if (a.greedy === true) continue;
+      out.push(label ? `${label}.${String(a.name)}` : String(a.name));
+    }
+  };
+  scan(doc.args, "");
+  if (doc.subcommands && typeof doc.subcommands === "object") {
+    for (const [sub, spec] of Object.entries(doc.subcommands as Record<string, unknown>)) {
+      scan((spec as { args?: unknown } | null)?.args, sub);
+    }
+  }
+  return out;
+}
+
 // ──────────────────────────────────────────────────────────────────────
 // Arm R — the row census
 // ──────────────────────────────────────────────────────────────────────
@@ -657,14 +707,40 @@ export interface RowVerdict {
  * name the binder will cut in half? — never a bumped number
  * (`docs/lint-family.md` ratchet lesson 4).
  */
-export const PHRASE_SHAPE_CEILING = 9;
+export const PHRASE_SHAPE_CEILING = 6;
 
 /**
- * ⭐ Arms A and R are ZERO invariants as of W2/W3. These constants are
- * the burn-down ceilings the sweep opened at, and the waves that drove
- * each to zero deleted it. If either reappears, something regressed.
+ * ⭐ Arm G's second ratchet — the article shape. Opened at the figure
+ * measured after this build's four views were fixed, so it is already
+ * four below what master carried. Every one of these is a form a player
+ * may reasonably type with an article in it; `command-spec.md:507-515`
+ * says they all want `greedy: true`, and the only reason this is a
+ * ceiling rather than a zero is that fixing a hundred views' grammar in
+ * one commit is a blast radius nobody should take on the way past.
+ *
+ * ⚠ Lower it, never raise it. A NEW prepositional object arg declaring
+ * no `greedy` is an author about to ship `at the brick oven` as a shape
+ * error, which is the defect, not a style.
  */
-export const UNCONFERRED_CEILING = 15;
+export const ARTICLE_SHAPE_CEILING = 106;
+
+/**
+ * ⭐⭐ **Arm A is a ZERO INVARIANT.** There is no ceiling: every command
+ * view in the game is named by a `commandContributions` static, or
+ * carries `unreachable:` saying why not. The sweep opened at 15 and W2
+ * drove it to 0, so the constant that held the burn-down is gone — a
+ * single unconferred, undeclared view fails this gate now.
+ *
+ * ⭐ That it CAN be zero is the whole argument for the carrier. A
+ * ceiling over a population nobody can finish is a figure that drifts
+ * up; a zero over a declaration costs an author one line and cannot.
+ */
+export const UNCONFERRED_CEILING = 0;
+
+/**
+ * ⭐ Arm R's burn-down ceiling, opened at the sweep's census. W3 drives
+ * it to zero and deletes it, the same way W2 did arm A's.
+ */
 export const UNDECLARED_ROW_CEILING = 45;
 
 export interface Report {
@@ -672,6 +748,7 @@ export interface Report {
   views: Array<{ key: string; conferred: boolean; disposition: string | null }>;
   rows: RowVerdict[];
   phrase: Array<{ key: string; string: string; object: string }>;
+  article: Array<{ key: string; arg: string }>;
 }
 
 export function run(
@@ -687,6 +764,7 @@ export function run(
   // ── Arm A + Arm G ────────────────────────────────────────────────
   const views: Report["views"] = [];
   const phrase: Report["phrase"] = [];
+  const article: Report["article"] = [];
   for (const file of commandViewFiles(contentDir)) {
     const key = viewKey(file, contentDir);
     let doc: Record<string, unknown> | null = null;
@@ -731,6 +809,7 @@ export function run(
     }
     const shape = phraseShapeOf(doc);
     if (shape) phrase.push({ key, ...shape });
+    for (const arg of articleShapesOf(doc)) article.push({ key, arg });
   }
 
   // ── Arm R ────────────────────────────────────────────────────────
@@ -867,7 +946,7 @@ export function run(
     });
   }
 
-  return { findings, views, rows, phrase };
+  return { findings, views, rows, phrase, article };
 }
 
 // ──────────────────────────────────────────────────────────────────────
@@ -892,6 +971,12 @@ function main(): void {
     for (const p of report.phrase.slice().sort((a, b) => a.key.localeCompare(b.key))) {
       console.info(`  ${p.string} then ${p.object} (optional, defaulted)  ${p.key}`);
     }
+    console.info("\n── arm G — article-shape args ────────────────────────");
+    for (const a of report.article
+      .slice()
+      .sort((x, y) => (x.key + x.arg).localeCompare(y.key + y.arg))) {
+      console.info(`  ${a.arg.padEnd(24)} ${a.key}`);
+    }
     console.info("\n── arm R — thing rows ────────────────────────────────");
     for (const r of report.rows) {
       const how = r.how === null ? "⚠ UNREACHED" : r.how;
@@ -905,6 +990,7 @@ function main(): void {
   ).length;
   const undeclared = report.rows.filter((r) => r.how === null).length;
   const phrase = report.phrase.length;
+  const article = report.article.length;
 
   const over: string[] = [];
   if (unconferred > UNCONFERRED_CEILING) {
@@ -920,6 +1006,13 @@ function main(): void {
   if (phrase > PHRASE_SHAPE_CEILING) {
     over.push(`arm G: ${phrase} phrase-shape view(s), ceiling ${PHRASE_SHAPE_CEILING}`);
   }
+  if (article > ARTICLE_SHAPE_CEILING) {
+    over.push(
+      `arm G: ${article} article-shape arg(s) — a prepositional object arg ` +
+        `that is not greedy takes ONE token, so 'at the brick oven' is a ` +
+        `shape error. Ceiling ${ARTICLE_SHAPE_CEILING}`,
+    );
+  }
   // ⭐ The ratchet's other direction: a ceiling that is now slack is a
   // ceiling nobody lowered, and it stops meaning anything.
   const slack: string[] = [];
@@ -931,6 +1024,9 @@ function main(): void {
   }
   if (phrase < PHRASE_SHAPE_CEILING) {
     slack.push(`arm G is at ${phrase} — lower PHRASE_SHAPE_CEILING to it`);
+  }
+  if (article < ARTICLE_SHAPE_CEILING) {
+    slack.push(`arm G is at ${article} article shape(s) — lower ARTICLE_SHAPE_CEILING to it`);
   }
 
   // Findings that are NOT the per-item census lines (those are counted by
@@ -947,7 +1043,8 @@ function main(): void {
         `(${unconferred} unconferred, ceiling ${UNCONFERRED_CEILING}); ` +
         `${report.rows.length} thing row(s) (${undeclared} unreached, ceiling ` +
         `${UNDECLARED_ROW_CEILING}); ${phrase} phrase-shape view(s), ceiling ` +
-        `${PHRASE_SHAPE_CEILING}.`,
+        `${PHRASE_SHAPE_CEILING}; ${article} article-shape arg(s), ceiling ` +
+        `${ARTICLE_SHAPE_CEILING}.`,
     );
     return;
   }

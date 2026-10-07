@@ -1,3 +1,25 @@
+# ⛔ HELD, deliberately — `unreachable:` below is the disposition, not an
+# oversight, and this comment is where the next person looks.
+#
+# `base-class-narrowing-slate.md` § I9 is explicit: *"until that lands
+# the two views stay unafforded ON PURPOSE."* The real lock model is
+# `lib/lock/Lock.ts` + `Key` + the credential wallet, and this view's arg
+# says `requires: LockableMixin` — the boolean mixin whose own header
+# (`lib/boundary/Locked.ts:15-24`) says in terms *"Do NOT grow this into
+# a second lock system."* The Exit subclasses that actually hold the real
+# locks (`residence/src/idea/KeyedDoorExit.ts`,
+# `eternal-university/src/duncan-hall/idea/DormDoor.ts`) compose NO
+# `LockableMixin`, so this arg gate could never match them: conferring
+# the verb today would afford a verb that can only ever refuse, against
+# the only doors in the realm worth locking. `platform/thing/Key.ts` says
+# of itself *"it affords no verbs."*
+#
+# ⚠ So the honest state is a verb that is not there YET, with the reason
+# written down and gated — rather than one that is there and lies. The
+# reconciliation retires `LockableMixin` and renames the file; the
+# affordance goes on `Mobile.self` beside `open`/`close` in the same
+# commit (§ I10).
+unreachable: awaiting:base-class-narrowing-slate
 verbs: [lock]
 controller: /platform/idea/cmd/boundary/LockController
 description: "Lock a door (by direction or by name)"

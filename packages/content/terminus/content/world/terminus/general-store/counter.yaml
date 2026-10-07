@@ -137,6 +137,13 @@ data:
     # at par 1 rather than a par on every product, it is in a shop where
     # importing belongs, and this comment is what it is.
     - { itemTemplatePath: /trade/apiculture/thing/nuc, par: 1 }
+    # ⭐⭐ A watch, par 2 — and it is here because two shipped verbs had
+    # no instrument a player could own. `wind` and `adjust` are the
+    # avenue's verbs and the only `Watch` in the realm was in Gus's
+    # pocket; a verb whose one instrument belongs to an NPC is reachable
+    # in theory and not in fact. The general store is where a townsman
+    # buys a watch.
+    - { itemTemplatePath: /world/terminus/general-store/thing/pocket-watch, par: 2 }
     - { itemTemplatePath: /trade/farming/thing/seed/juniper, par: 2 }
     # ⭐ The fibre and dye line (textiles B1). Flax is the chain's whole
     # left edge; the three dyestuffs are what makes cloth worth
@@ -394,3 +401,7 @@ data:
     # ⚠ The one faucet, and the dearest thing on the shelf under the
     # musket. Bees are cheap to keep and expensive to start.
     /trade/apiculture/thing/nuc: 45
+    # ⚠ Dearer than the hive and cheaper than the bees: brass, a spring
+    # and a jewel, made by somebody who knew how. It does not keep time
+    # properly, which is the point and not a discount.
+    /world/terminus/general-store/thing/pocket-watch: 18

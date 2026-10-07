@@ -226,6 +226,15 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
         'platform/cmd/movement/go.yaml',
         'platform/cmd/movement/sneak.yaml',
         'platform/cmd/movement/run.yaml',
+        // ⭐⭐ `walk` — **the third ground pace, and it was afforded by
+        // nothing.** `locomotion.md:39-41` calls sneak/walk/run *"the
+        // three ground paces"*; two of the three were here and the
+        // middle one was not, so a player who followed `sneak.yaml`'s
+        // own advice (`set movement.defaultMode sneak`) had no verb to
+        // walk a single exit back. `walk.yaml`'s mode row carries
+        // `enablementMixin: null` — nothing gates it, nothing conferred
+        // it, and `go` was the only way out.
+        'platform/cmd/movement/walk.yaml',
         'platform/cmd/boundary/open.yaml',
         'platform/cmd/boundary/close.yaml',
         'platform/cmd/author/goto.yaml',
