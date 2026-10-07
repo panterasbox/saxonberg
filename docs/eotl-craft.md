@@ -3,9 +3,10 @@
 > **Status: reference, written 2026-10-01; ⭐ Part 4 added 2026-10-07.**
 > The companion to [eotl-census.md](./eotl-census.md), which counts the
 > corpus. This one reads it. **Part 4 reads two areas closely** —
-> Gnomelands and newbieland — the only two the owner recalls directly, so
-> the only two where a reading can be checked against a memory of playing
-> it. ⚠ Part 4 also carries a finding that reframes the census: **detail
+> Gnomelands, newbieland, and ⚠ **Minetown** — the owner's own
+> unpublished *Tremors* homage, which is self-evidence rather than
+> ancestor-evidence and is the seed of
+> [rejection-slate](./slates/builds/rejection-slate.md). ⚠ Part 4 also carries a finding that reframes the census: **detail
 > density is a revisit, not a draft.**
 >
 > Roughly twenty areas across fifteen cabals, chosen by the owner's
@@ -540,12 +541,15 @@ the behaviour of everything in it. Not rooms. Not NPCs. Commerce.
 
 ---
 
-# Part 4 — Two areas read closely
+# Part 4 — Three areas read closely
 
-Added 2026-10-07. The owner can recall these two directly, which makes
-them the only places in the corpus where a reading can be checked against
-somebody's memory of playing it. They are also the two ends of what the
-corpus can do: the densest area in it, and the first one anybody sees.
+Added 2026-10-07. **Gnomelands** and **newbieland** the owner can recall
+directly, which makes them the only places in the corpus where a reading
+can be checked against somebody's memory of playing it — and they are the
+two ends of what the corpus can do: the densest area in it, and the first
+one anybody sees. ⚠ **Minetown** is a different kind of evidence: the
+owner's own unpublished work, read here because it is the only place that
+taste can be checked against their own hand rather than their recollection.
 
 ## ⭐⭐⭐ Gnomelands (`fantasy/miscellany/gnomelands`) — 439 files, 89 % density
 
@@ -954,6 +958,191 @@ content, and it is expressed in every choice. What ports:
    literally and stock it with the most uncomfortable valid instance.
 6. **Be the premiere content on purpose.**
 7. **Accept that nobody comes back.** The value is what they carry out.
+
+---
+
+## ⭐⭐⭐ Minetown (`null/spiffy/areas/minetown`) — ⚠ the owner's own, unpublished
+
+⚠ **This one is self-evidence, not ancestor-evidence.** It is the owner's
+own unpublished work, built around 1996 as a setting homage to
+*Tremors* — a mining town, a diner, a handyman's shop — and partly as a
+demonstrator for **BobCode**, their programmable-NPC language
+(`doc/mudlib/bobcode.doc`, adopted by Gnomelands, nargolia, krynn and
+perko). It is read here because it is the only place in the corpus where
+somebody's taste can be checked against their own hand rather than their
+recollection.
+
+```
+room/   diner.c  handy.c  trailer.c  plant.c  road1-4.c
+mon/    sue.c  suecc.c  tina.c
+obj/    pogostick.c
+mov/    tinapogo.mov  tinadiner.mov  tinafind.mov  tinanewguy.mov
+        suediner.mov  suemoney.mov
+```
+
+### ⭐⭐ What a demo needs, and what this is
+
+The confound is real and it is separable. A BobCode demonstrator needs an
+NPC on a route, an arrival trigger, a predicate call, `LOOP`, and one NPC
+driving another. ⭐ **It does not need:**
+
+- a husband killed in a freak mining accident
+- the plant owner paying the widow monthly, off the books
+- ⭐⭐⭐ **a five-branch switch on item ownership.** One branch
+  demonstrates a switch. Five is somebody enjoying themselves.
+- an aside timed to land three seconds *after* the child leaves the room
+- a pogo stick stored behind one specific door, with the **room**
+  switching the NPC's mode on the way out
+
+**So the demo explains the architecture and none of the writing.**
+
+### ⭐⭐⭐ Tina — persistent per-player memory in 199x
+
+```c
+string *friends, *foes;
+...
+if(searcha(friends,PRNAME)!=-1)
+  command("say hey you're back again!",THISO);
+else if(searcha(foes,PRNAME)==-1) {
+  command("say wow, we never seen YOU 'round here before...",THISO);
+  command("say wait till I tell momma 'bout THIS!!!",THISO);
+  friends += ({PRNAME}); ... }
+```
+
+`save_object` / `restore_object`, so she **remembers you across
+reboots** — three-tier recognition (stranger · known · attacked), and
+`attacked_by` also records `set("place", ENV(THISO)->short())`: she
+remembers *where* you did it.
+
+⭐⭐ Her presentation changes with her mode. In pogo mode the short is
+*"Tina is bouncing around on her pogostick"* and the movement messages
+become **`"pogoes in"` / `"pogoes out"`**; in diner mode she is *"Tina,
+Sue's daughter"* and she *"tosses her pogostick behind the door."* **The
+verb the room sees is a fact about who she is being.**
+
+⭐ And the mode switch belongs to the **threshold**, not to her —
+`diner.c`'s `query_leave_ok` calls `item->pogosetup()` on the way out,
+which is why the stick lives behind that particular door.
+
+### ⭐⭐⭐ The littering scene — the whole room stops to watch
+
+Her patrol interleaves a predicate between every single move:
+
+```
+0##tell devo IF YOU SEE THIS IT'S A MIRICLE
+10##@groundcheck
+5##north
+10##@groundcheck
+5##south
+...
+10##LOOP
+```
+
+⭐ The first line is the author messaging themselves, misspelled, not
+believing the thing would run. **Left in.**
+
+`groundcheck` picks up anything dropped — *"oooh...%s! Wait till momma
+sees this!"* — and `giveitem` then **halts every other NPC's program in
+the room** so that:
+
+> *"The rest of the room stops what they're doing and watches Tina."*
+
+⭐⭐⭐ **So the cost of littering in that town is a small public
+humiliation, staged, with an audience.** That is *what does this ask of
+you* (Part 2's reading of the applicant answers) implemented by a child
+with a pogo stick.
+
+### ⭐⭐⭐ Sue — the economy as biography, and five characterized branches
+
+> *"This is Sue, owner of the diner. Her husband died some years back in
+> a freak mining accident, so now she runs this place to support her
+> daughter, Tina. It's not much, but **the owner of the plant kicks in
+> money to help 'em out once a month** too. The town likes 'em here, so
+> they have **fairly little problem paying the bills.**"*
+
+Three economic facts, all personal: **the industry killed her husband**,
+so the diner exists; **the plant owner pays her off the books**, so the
+town's welfare is a man rather than an institution; and **she is solvent
+because the town likes her** — regard as revenue.
+
+⭐⭐⭐ **The character's circumstances ARE the economy.** Not a business
+with a person attached; a business that is the consequence of what
+happened to somebody.
+
+`lookitem()` switches on the item's `owner` property, and every branch is
+written in voice:
+
+| `owner` | Sue |
+|---|---|
+| **sue** | *"Hey where'd you find this??? I been lookin all over for it!"* |
+| **tina** | *"Now why Tina this is the same [item] you lost last week. Heaven forbid you learn to keep track of yer stuff..."* → `sigh` → gives it back |
+| **money** | halts the program and runs a separate one |
+| **none** | ⭐ *"You'd better let me keep it 'case someone comes 'round askin for it..."* — **she confiscates it**; Tina: *"but Mommmmm......."* |
+| *someone else* | *"well now this looks like it belongs to [Name]…"* |
+
+⭐⭐ **The `tina` branch is blocked like a screenwriter would block it.**
+Tina exits east at t=9; the line *"I swear that girl'd lose her head if it
+weren't attached..."* is scheduled for **t=12** — delivered to the adults,
+after the child has gone. And every branch closes with *"The rest
+suppresses their chuckles and goes back to what they were doing,"* timed
+per case.
+
+⚠⚠ **And that line has never fired.** It is
+`call_out(#'command,12,"I swear that girl'd…")` with **no `say`**, so it
+parses as a command verb and fails. Thirty years unnoticed, because
+reaching it requires dropping *an item Tina herself owns* in front of her
+mother. **The funniest beat in the area is dead behind a branch too
+specific to exercise** — the content version of *gates ship broken and
+silently pass.*
+
+### ⚠⚠⚠ And `diner.c`'s description is three lines
+
+```c
+set("short","Diner");
+set("day_long","a diner");
+set("exits", ([ "east" : ROOM "road2" ]) );
+```
+
+**Eighty-five lines of characterized behaviour in Sue. "A diner" for the
+room she lives in.**
+
+⭐⭐⭐ Which makes five instances of one failure, in five orientations,
+across everything read in this document:
+
+| | built | stubbed |
+|---|---|---|
+| Gnomelands `rooms/palace/` | 23 rooms | no story |
+| newbieland Heaven's Gate | the door | no afterlife |
+| Minetown `handy.c` | the shop | **no Val, no Earl** |
+| Minetown `diner.c` | **Sue and Tina**, 85 lines | the room — *"a diner"* |
+| the millsite (ours) | the mechanism | the prose |
+
+⭐⭐ **It is not laziness. The halves get built independently, and
+whichever one the author enjoys gets finished.** Malifax finished
+descriptions and abandoned a quest. The owner finished *people* and left
+the rooms at *"a diner."*
+
+### What is borrowed and what is not
+
+Perfection is the reference. **Sue the widow, the plant owner's handout,
+the confiscation, the kleptomaniac daughter — none of that is in
+*Tremors*.** The film has no diner and no widow.
+
+⭐⭐⭐ **Borrowed settings age better than borrowed characters.** This
+setting held for thirty years; the *Moonlighting* joke on Dave the Barkeep
+died with its show and then moved again under its actor. **A setting is a
+premise you build on. A character is a dependency you carry.**
+
+⚠ The one choice that reads as the engine's doing rather than the
+author's: `set_toughness(5)` and `set_defensive_level(1)`. **Tina is a
+killable child with combat stats**, and the persistent `foes` list exists
+because players would. Content conceding to a game where everything had
+hitpoints.
+
+⭐ And the most durable thing in it is the smallest: **she tells her
+mother.** A child whose reaction to a stranger is *social* rather than
+hostile, in a corpus where almost every other NPC's reaction was combat.
+No demo asked for that.
 
 ---
 

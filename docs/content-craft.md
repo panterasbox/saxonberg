@@ -305,6 +305,30 @@ no invention. The asymmetry resolves the same way: **a place stood up for
 economic reasons can carry invention, but only if the economy belongs to
 somebody.**
 
+#### ⭐⭐⭐ And the stronger version — the economy as biography
+
+Sue, in Minetown (`null/spiffy/areas/minetown/mon/sue.c`, the owner's own
+unpublished work, c. 1996):
+
+> *"Her husband died some years back in a freak mining accident, so now
+> she runs this place to support her daughter, Tina. It's not much, but
+> **the owner of the plant kicks in money to help 'em out once a month**
+> too. The town likes 'em here, so they have **fairly little problem
+> paying the bills.**"*
+
+Three economic facts and every one of them is personal: **the industry
+killed her husband**, which is why the diner exists at all; **the plant
+owner pays her monthly, off the books**, so the town's welfare is a man
+rather than an institution; and **she is solvent because the town likes
+her** — regard as revenue.
+
+⭐⭐⭐ So *"give the business a proprietor with an opinion"* is the weak
+form. The strong form is: **the character's circumstances ARE the
+economy.** Not a business with a person attached — **a business that is
+the consequence of what happened to somebody.** Nothing in that paragraph
+is decoration and nothing in it is a mechanism; it is one woman's history
+read as a balance sheet.
+
 ---
 
 ## 4. ⭐ Homage goes in the details, never the description
@@ -348,6 +372,21 @@ of the joke was discarded — hollowness operating at the scale of a gag.
   anybody else** — the reward for being old is recognition, not access.
 
 ⭐⭐ **The past is findable, never required.**
+
+### ⭐⭐⭐ And the positive half: borrow the place, write the people
+
+Minetown is the owner's own c. 1996 homage to *Tremors* — the setting is
+Perfection, NV, lifted entire. **But Sue the widow, the plant owner's
+handout, the confiscated litter and the kleptomaniac daughter are not in
+the film.** It has no diner and no widow. The place is borrowed; every
+person in it is invented.
+
+That setting held for thirty years. ⚠ Compare Dave, where the *person*
+was inherited and his joke came with him: *Moonlighting* died, and then
+its actor's retirement moved underneath the sentence a second time.
+
+⭐⭐⭐ **Borrowed settings age better than borrowed characters. A setting
+is a premise you build on; a character is a dependency you carry.**
 
 And the better option the platform opens, which EotL could not: **make
 the show diegetic.** We ship publishers, releases, a wiki of typed
@@ -773,6 +812,37 @@ the ancestor's 41 % corpus mean.
 
 ⭐⭐⭐ **The millsite is a treatment that never got a scene pass.** A
 lobby people walk through to reach the storage object.
+
+### ⚠⚠ Except the evidence says the halves fail in both directions
+
+Five instances of one failure, in five orientations, across everything
+read in [eotl-craft.md Part 4](./eotl-craft.md):
+
+| | built | stubbed |
+|---|---|---|
+| Gnomelands `rooms/palace/` | 23 finished rooms | no story — *"the story never really made sense"* |
+| newbieland Heaven's Gate | the door | no afterlife behind it |
+| Minetown `handy.c` | the shop | **no Val, no Earl** — only a `present("val")` hook |
+| Minetown `diner.c` | **85 lines of Sue and Tina** | *"a diner"* |
+| the millsite (ours) | the mechanism | the prose |
+
+⭐⭐ **It is not laziness, and it is not a method problem. The halves get
+built independently, and whichever one the author enjoys gets finished.**
+Malifax finished descriptions and abandoned a quest. Hannah finished a
+moral argument and left a door to nowhere.
+
+⚠⚠ **And this corrects the self-assessment above, for the second time.**
+The stated method is treatment-and-setting first with dialogue and
+character handed to a partner. But the bus advertisements are pure voice;
+Sue and Tina are among the most characterized NPCs in forty-five thousand
+files, with persistent per-player memory and a beat timed to land after a
+child leaves the room; and the room Sue lives in is *"a diner."*
+
+**The half being called somebody else's is the half that demonstrably
+gets finished.** Which inverts the risk: the thing to watch for is not
+*will the scene pass happen* — it is **will the setting ever get past a
+stub.** Terminus's function-named districts, below, are what that looks
+like at map scale.
 
 ⚠ A related map-scale symptom: nearly every district in Terminus is named
 for its **function** — counting-houses, general-store, market, registry,
