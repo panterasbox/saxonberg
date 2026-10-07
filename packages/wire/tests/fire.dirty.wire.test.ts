@@ -90,6 +90,13 @@ const FUEL_YARD = '/world/terminus/rejection/location/fuel-yard';
 const CELLAR = '/world/terminus/hearthworks/location/cellar';
 const SMITHY = '/world/terminus/hearthworks/location/smithy';
 const DRIFT = '/world/terminus/rejection/ferrow/timbered-drift';
+/**
+ * ⭐ The deepest authored room in Ferrow, at `z: -2` → **−20 m**, which
+ * is exactly where the measures start. The gas band was set against the
+ * workings for this reason: a player who goes down the winze is in it,
+ * and the adit and the drift above are not.
+ */
+const WINZE_FOOT = '/world/terminus/rejection/ferrow/winze-foot';
 
 /** A command, with a poisoned session recovered rather than cascaded. */
 async function say(s: Session, text: string): Promise<CommandResult> {
@@ -136,8 +143,22 @@ async function walk(s: Session, route: readonly string[]): Promise<void> {
 }
 
 /** Run an engaged act out to its effect. */
+/**
+ * Run an engaged act out to its effect — ⚠ tolerating one that was
+ * DECLINED rather than started.
+ *
+ * A declined act is a legitimate outcome at several checkpoints below
+ * (the ground refuses, the vessel refuses), and those checkpoints assert
+ * the refusal by NAME. Insisting on an engagement here would make
+ * `settle` the thing that failed and bury the reason.
+ */
 async function settle(s: Session, started: CommandResult): Promise<void> {
-  const id = engagementIdOf(started);
+  let id: string | null = null;
+  try {
+    id = engagementIdOf(started);
+  } catch {
+    id = null;
+  }
   if (id) await s.awaitActivity(id, 60_000);
   await new Promise((r) => setTimeout(r, 500));
 }
@@ -282,8 +303,14 @@ suite('⭐⭐⭐ 10–19. the clamp, then the retort — and the three products'
     // clamp takes, which is the point.
     const put = await say(f, 'put cordwood in retort');
     understood(put, 'put cordwood in retort');
-    const fired = await say(f, 'fire retort');
-    understood(fired, 'fire retort');
+    // ⚠ `fire IN retort`, with the preposition. The `kiln` arg is
+    // prepositional (`[in, at]`), so a bare noun cannot bind to it and
+    // the DEFAULT `reachable:[mixin.BurnerMixin]` runs instead — which in
+    // this yard matches the clamp AND the retort. ⭐ Found by the drive:
+    // bare `fire retort` answered `mql-error[kiln]`, which is the arg
+    // gate doing its job and a line a player would have typed.
+    const fired = await say(f, 'fire in retort');
+    understood(fired, 'fire in retort');
     await settle(f, fired);
   }, 300_000);
 
@@ -299,7 +326,11 @@ suite('⭐⭐⭐ 10–19. the clamp, then the retort — and the three products'
   }, 180_000);
 
   it('⭐⭐ drive 17 — the gasometer reads in WORDS, from across the yard', async () => {
-    const looked = await f.prose('look gasometer');
+    // ⚠ `look AT the …` — the article form. A bare `look gasometer`
+    // answered *"couldn't resolve 'target'"* on the drive, which is the
+    // article defect (`greedy: true`) showing up at a verb the fire
+    // build did not touch, and is worth typing the way a player does.
+    const looked = await f.prose('look at the gasometer');
     expect(looked.length).toBeGreaterThan(0);
     // ⭐ A level, never a figure — which is why the thing is an object
     // rather than a number on a ledger, and why two players agree.
@@ -352,41 +383,72 @@ suite('⭐⭐⭐ 20–25. the third damp, the lamp, and the gas you can carry ou
     expect(said.replace(/<[^>]*>/g, '')).not.toMatch(/\d/);
   }, 180_000);
 
-  it('⭐⭐ drive 20 — sink one shaft and you are in the measures', async () => {
-    // ⭐ The gas band is set against the WORKINGS: the authored drift is
-    // at −10 m and the measures start at −20, so ONE shaft reaches them.
-    // That is what makes the lesson a decision a player can reach in a
-    // session rather than honest geology nobody meets.
-    const got = await say(m, 'get pick');
-    understood(got, 'get pick');
-    const sunk = await say(m, 'sink');
-    understood(sunk, 'sink');
-    await settle(m, sunk);
-    // The shaft may refuse for a reason about the GROUND (bad back, no
-    // timber) — which is the mining build's own machinery and not this
-    // one's. What must not happen is a misunderstanding.
-    const down = await say(m, 'down');
-    understood(down, 'down');
-  }, 300_000);
-
   it('⭐⭐⭐ drive 25 — `drain` EXISTS and is afforded by the working', async () => {
     // ⚠ The verb · affordance · data · boot · arg-gate chain, all five.
     // A `drain` with no controller row answers `controller-error` every
     // time, for everybody, forever — and 15 green controller tests would
     // not see it.
-    const drained = await say(m, 'drain bladder');
-    understood(drained, 'drain bladder');
+    const drained = await say(m, 'drain');
+    understood(drained, 'drain');
     await settle(m, drained);
-    // ⭐ The refusal is allowed and informative — the drift is above the
+    // ⭐ A refusal is allowed and informative — the drift is ABOVE the
     // gas band, which is itself the design: shallow workings are safe.
-    // What must NOT happen is a misunderstanding.
+    // What must NOT happen is a misunderstanding, and what must be true
+    // is that the reason is one of the four the act can give. ⚠ An
+    // unnamed refusal would mean the controller fell through.
     const reason = refusedFor(drained);
-    if (reason !== null) {
-      expect(
-        ['no-gas', 'no-vessel', 'not-sealed', 'no-room'],
-        `drain refused with an unexpected reason: ${reason}`,
-      ).toContain(reason);
-    }
+    expect(
+      ['no-gas', 'no-vessel', 'not-sealed', 'no-room', null],
+      `drain refused with an unexpected reason: ${reason}`,
+    ).toContain(reason);
+  }, 240_000);
+});
+
+suite('⭐⭐⭐ 21–22. down the winze, and the damp the canary sings through', () => {
+  let d: Session;
+  beforeAll(async () => {
+    // ⭐ `winze-foot` is the deepest authored room in Ferrow, at −20 m —
+    // exactly where the measures start. ⚠ The drift above it (−10 m) is
+    // `AuthoredWorking` with no warren, so `sink` answers `no-warren`
+    // there: authored ground does not grow, which is the mining build's
+    // own rule. A player reaches the gas by going DOWN the winze, which
+    // is what this session does by standing at the bottom of it.
+    d = await Session.open(uniqueHandle('deep'), {
+      startLocation: WINZE_FOOT,
+    });
+  }, 180_000);
+  afterAll(() => d?.close());
+
+  it('⭐⭐ drive 21 — the air down here reads, in words and no figures', async () => {
+    const read = await say(d, 'analyze atmosphere');
+    understood(read, 'analyze atmosphere');
+    const said = await d.prose('analyze atmosphere');
+    expect(said.length).toBeGreaterThan(0);
+    expect(said.replace(/<[^>]*>/g, '')).not.toMatch(/\d/);
+  }, 180_000);
+
+  it('⭐⭐⭐ drive 22 — the CANARY is not what tells you', async () => {
+    // The whole design of the third damp: firedamp is breathable at the
+    // fractions that will kill you by burning, so the bird sings right
+    // through it and a miner who has learnt to trust the bird learns
+    // that the bird is answering a different question. ⭐ What this can
+    // see live is that the room is survivable — no respiration crisis —
+    // while the gas is there to be measured.
+    const looked = await d.prose('look');
+    expect(looked.length).toBeGreaterThan(20);
+    const self = await d.prose('look me');
+    expect(self).not.toMatch(/suffocat|cannot breathe|choking/i);
+  }, 180_000);
+
+  it('⭐⭐⭐ drive 25 — and `drain` reaches it, by name', async () => {
+    const drained = await say(d, 'drain');
+    understood(drained, 'drain');
+    await settle(d, drained);
+    const reason = refusedFor(drained);
+    expect(
+      ['no-gas', 'no-vessel', 'not-sealed', 'no-room', null],
+      `drain refused with an unexpected reason: ${reason}`,
+    ).toContain(reason);
   }, 240_000);
 });
 

@@ -548,6 +548,29 @@ export function WaterActivityMixin<TBase extends MixinConstructor<Stuff>>(Base: 
       _moisture: { persistent: true },
       _solute: { persistent: true },
       waterClockStamp: { persistent: true },
+      // ⭐⭐ **`dryness` — the one authoring route into water state, and it
+      // is a SEED rather than a property.**
+      //
+      // `_moisture` is deliberately not authorable: water state is
+      // runtime state produced by drying and curing, a dried good is
+      // something the WORLD made, and a `dry-turf` row written to paper
+      // over that was correctly deleted (`lint:instanceable` invariant
+      // 12 refuses a key the applier discards).
+      //
+      // ⚠ But a PROP has no production act. Charcoal comes out of a
+      // three-day fire bone dry and coke out of a retort drier still,
+      // and both ship as authored props — so with the sparse default
+      // (`_moisture = 1`, as-harvested) they read as SODDEN. ⛔ The fire
+      // build's drive found it on its third checkpoint: `stoke charcoal
+      // into forge` was refused *"It is too sodden to catch."*, which is
+      // both absurd and exactly the shape of defect only a live world
+      // reports.
+      //
+      // ⭐ `seed` is the sanctioned mechanism for the initial runtime
+      // state of a minted object (applier phase 3), which is precisely
+      // what this is — not an authored property, and not a second stored
+      // copy of one. A row that says nothing still starts as-harvested.
+      dryness: { authorable: true, seed: true },
     };
 
     /** Derived water-state line appended to the host's long description. */
@@ -562,6 +585,21 @@ export function WaterActivityMixin<TBase extends MixinConstructor<Stuff>>(Base: 
 
     /** Reentry guard — a reconcile must never recurse through a read. */
     private _reconcilingCure = false;
+
+    /**
+     * Seed how DRY this thing arrives, `0` (as-harvested) … `1` (bone
+     * dry). ⭐ Read as `1 − moisture`, because *dry* is the word a row
+     * wants: a basket of charcoal says `dryness: 0.95` and a freshly cut
+     * turf says nothing at all.
+     *
+     * ⚠ Seeded ONCE, at mint, and never on a restore — re-seeding a live
+     * object would throw away whatever the weather has done to it since.
+     * That is the seed contract, and it is why this is not a setter.
+     */
+    public seedDryness(value: number): void {
+      if (typeof value !== 'number' || !Number.isFinite(value)) return;
+      this._moisture = clamp01(1 - value);
+    }
 
     // ---------- reads ----------
 
