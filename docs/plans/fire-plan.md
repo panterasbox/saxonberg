@@ -465,9 +465,10 @@ lamp and still: no guard re-narrows. `CharcoalPit.draught` moves up
 stay the clamp's — a trade's reading of the kernel dial, as they are
 today. One platform verb, `draught [<fire>] <0..1 | wide | open | low |
 banked>`, afforded by `BurnerMixin` (environment + peers); `banked`
-sets the floor. ⚠ **`bank` is not shipped as a verb** — the banking
-view owns it and `lint:verb-collisions` refuses a second claim. See
-Risks R1.
+sets the floor. ⭐ **The banking act ships as `cover [<fire>]`** — a
+separate one-word verb on the same affordance, chosen by working the
+verb-collision ladder rather than conceding the word (R1); `banked`
+survives as the draught scale's floor value.
 
 **D10 — A gas in a vessel is standard litres; pressure derives as amount over capacity.**
 A `Bulkable` interior holding a gas material stores the slot's `amount`
@@ -1288,15 +1289,28 @@ reaches outside the requirements' placement table (R2).
 
 ## Risks & opens
 
-**R1 — The word `bank`.** The requirements say *"`bank` it"* and AC5
-says *"A player can bank a fire"*; the banking verb owns the word and
-`lint:verb-collisions` refuses a second view (its own prose: the
-allowlist is a to-do, not an amnesty). The plan ships the mechanism as
-`draught <fire> banked`. ⚠ **The user's eye:** accept the phrasing;
-or choose a one-word alias the plan can add to `draught.yaml`'s
-`verbs:` — `cover` is free and is literally *couvre-feu*, the lens pass's
-own example; `rake` and `damp` are free too. The build should not invent
-this; it should pick `draught … banked` and note the open word in the MR.
+**R1 — RESOLVED: the word is `cover`, on the merits.** ⛔ An earlier
+draft of this section said *"the banking verb owns the word"* and offered
+fallback aliases. **That is first-come-first-served, which is not one of
+the seven solutions to a verb collision.** The collision was re-evaluated
+against the full ladder, both sides:
+
+| rung | verdict |
+|---|---|
+| 1 synonym | ⭐⭐ **the answer, and applied to the CHALLENGER.** `cover` is free, and *curfew is `couvre-feu`, "cover the fire"* — this game's locality fire ordinance is **already called a curfew** (fire-combustion-slate). Not a consolation prize: the better word for this world. (`rake`, `damp`, `smother`, `slake`, `bed` are also free; `douse` is taken.) |
+| 2 unify behind an interface | ⛔ inapplicable — banking money and banking a fire share an etymology and no mechanism. |
+| 3 options | ⛔ options add expressiveness to one verb; they do not disambiguate two senses. |
+| 4 subcommands | — `bank` is **already** a subcommand dispatcher (8 names). Adding a fire sense there would put a hearth inside the banking view. |
+| 5 never co-afforded | ⛔ **FAILS, and not for the obvious reason: a LAMP is a `Burner`.** `bank` is afforded by `lib/banking/Bank.ts` → `peers: [bank.yaml]`; the fire sense would be afforded by `BurnerMixin`. Every lit interior has a lamp, so a branch and a burner are routinely co-present. |
+| 6 `keyword::verb` | ⏳ slated, not built. |
+| 7 syntax fall-through | ⭐ **genuinely live** — `bank` bare, `bank <one of 8 subcommand names>`, and `bank <a Burner>` are disjoint shapes, and `shape-fall-through` already exists as a binder refusal. Rejected only because it couples two unrelated subsystems' views and would need the dispatcher to let a view *declare* the fall-through. Recorded as the alternative if `cover` is ever regretted. |
+
+**So:** ship `cover [<fire>]` as the verb (afforded by `BurnerMixin`,
+`device` category), keeping `banked` as the **value** on the draught
+scale so the vocabulary survives in the prose and the help. AC5's
+observable — *bank a fire, leave, come back to it still in* — is met;
+only the word the player types changes. ⚠ Update AC5's wording in the
+requirements doc at the sweep.
 
 **R2 — AC17 and `arcane-library`.** No conjured fire exists; the Fire
 school is a non-goal; AC17 is observable only with W8. The plan ships
