@@ -38,15 +38,18 @@ import type { CompetenceBandName } from '../../../lib/advancement/CompetenceBand
  * firedamp at an ignitable fraction says nothing to a labourer, which is
  * the whole historical point of the canary and the lamp.
  *
- * ⚠ Small, because the fractions are small: these are the fire's actual
- * exhaust, and 4 % of a room being smoke is a room you can see is smoky.
+ * ⚠ The scale is the DISPLACEMENT one: a fire starves at a sixth of its
+ * scope being exhaust, so 8 % is visibly smoky and 20 % is a room you
+ * would not walk into. ⭐ And the floor matters more than the ceiling —
+ * firedamp burns at 5 %, which has to sit BELOW what an untrained person
+ * notices, or the lamp and the canary would both be redundant.
  */
-const OBVIOUS_FRACTION = 0.04;
+const OBVIOUS_FRACTION = 0.08;
 
 /** Thick with it — a room you would not walk into. */
-const THICK_FRACTION = 0.08;
+const THICK_FRACTION = 0.2;
 /** Enough to tell, if you know what you are smelling. */
-const TELLING_FRACTION = 0.015;
+const TELLING_FRACTION = 0.03;
 
 export default class AtmosphereReading extends Reading {
   protected override async measure(

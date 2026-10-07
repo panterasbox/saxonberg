@@ -343,7 +343,17 @@ suite('⛔⛔ 1. the still can be LIT — the defect under everything', () => {
     // ⚠ The still's firebox is NOT its interior — a still's interior is
     // the WASH. `stoke` goes to the bed; `fill` goes to the charge.
     const fed = await say(k, 'stoke log into still');
-    understood(fed, 'stoke log into still');
+    // ⚠ The verb has to be UNDERSTOOD, which is a different claim from
+    // the act succeeding: a verb with no view, no controller row or no
+    // affording class answers "I don't understand" — closed, silent, and
+    // green in every controller test.
+    expect(
+      fed.notes.find(
+        (n) =>
+          n.kind === 'command-rejected' || n.kind === 'controller-error',
+      ),
+      '`stoke` was not understood at the still',
+    ).toBeUndefined();
     const lit = await say(k, 'ignite still');
     expect(
       refusedFor(lit),

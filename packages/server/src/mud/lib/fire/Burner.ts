@@ -159,6 +159,8 @@ export interface Burner {
   setDraught(value: number): void;
   /** Is the flame behind gauze — a safety lamp. */
   isFlameEnclosed(): boolean;
+  /** How much of the medium here would BURN, 0..1 — the flame-cap read. */
+  flammableShare(): number;
   /** Put matter in the fuel bed. */
   stoke(item: Stuff): StokeOutcome;
   /** Spend `kg` of fuel across the bed, heaviest-share first. */
@@ -245,6 +247,20 @@ function burnerAugmenter(
     );
     if (host.getDraught() <= BANKED_LOOK_THRESHOLD) {
       lines.push('It is banked down under its own ash, and will keep.');
+    }
+    // ⭐⭐⭐ **The flame cap** — the tell the canary cannot give you.
+    //
+    // Firedamp is breathable at the fractions that will kill you by
+    // burning, so the bird sings right through it. What changes is the
+    // FLAME: it stands tall and wears a pale blue cap, which is the
+    // reading a Davy lamp exists to let you take safely. ⚠ It arrives at
+    // a fifth of the explosive limit, because a tell that arrived at the
+    // same fraction as the flash would be an epitaph rather than a
+    // warning.
+    if (host.flammableShare() >= burnerDial(AppSettingKeys.fireFlammableCapAt, 0.01)) {
+      lines.push(
+        'The flame stands tall and wears a faint blue cap above it.',
+      );
     }
   }
   if (lines.length === 0) return text;
@@ -538,6 +554,31 @@ export function BurnerMixin<TBase extends MixinConstructor<Stuff>>(
       return null;
     }
 
+    /**
+     * ⭐ How much of the medium here is something that would BURN — the
+     * biggest flammable content's fraction, 0..1.
+     *
+     * A content is flammable when its material has a heat of combustion,
+     * which is the same number that gives a fuel its flame temperature.
+     * So firedamp is flammable because it is a fuel, and the `look` line
+     * and the flash read one fact.
+     */
+    public flammableShare(): number {
+      const scope = this.airScope();
+      if (scope === null) return 0;
+      let worst = 0;
+      for (const c of BiomeApi.resolveAtmosphereContentsFor(
+        scope as unknown as Stuff & Container,
+      )) {
+        if (!(c.amount > worst)) continue;
+        const material = StuffApi.findByTemplatePath<Material>(c.type);
+        if (!material) continue;
+        if (!(material.getHeatOfCombustion().rawValue() > 0)) continue;
+        worst = c.amount;
+      }
+      return worst;
+    }
+
     public completeness(): number {
       const scope = this.airScope();
       const airShare =
@@ -548,7 +589,7 @@ export function BurnerMixin<TBase extends MixinConstructor<Stuff>>(
                 scope as unknown as Stuff & Container,
               ),
             );
-      const needed = burnerDial(AppSettingKeys.fireAirCompleteAirShare, 0.93);
+      const needed = burnerDial(AppSettingKeys.fireAirCompleteAirShare, 0.85);
       if (!(needed > 0)) return 1;
       // ⭐⭐ The draught and the room's air are the SAME lever from two
       // sides: a fire gets the air it is allowed to draw, and it is

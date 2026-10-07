@@ -220,6 +220,17 @@ export interface GroundSample {
   water: number;
   /** An authored or seeded feature key, or `null`. */
   feature: string | null;
+  /**
+   * ⭐⭐ **The gas in the seam at this cell**, or `null`. A Material path
+   * and how strongly the ground gives it off, 0–1.
+   *
+   * It is a GROUND fact in a depth band, which is what firedamp actually
+   * is: methane adsorbed in coal measures, released when you cut into
+   * them, and absent in the shallow workings. ⚠ Not a hazard authored on
+   * a room — a room is where you happen to be standing, and the gas is a
+   * property of the rock you are standing in.
+   */
+  gas: { materialPath: string; strength: number } | null;
 }
 
 /**
@@ -286,6 +297,22 @@ export default class Deposit extends GroundSourceMixin(Idea) {
   /** Authored pins and seeded pocket rules. */
   protected features: DepositFeatures = {};
 
+  /**
+   * ⭐ The gas this ground gives off below a depth, or `null`.
+   *
+   * `belowZ` is where the measures that hold it start — above it the
+   * ground gives off nothing, which is why a shallow adit is safe and a
+   * deep heading is not. `strength` is how much it gives off into dead
+   * air, 0–1.
+   *
+   * ⚠ Authored per DEPOSIT and not per room: a coal-measure gas in an
+   * iron mine is the venue's claim about its own geology, and a second
+   * mine authors none. A room-level hazard would make the gas a thing
+   * somebody placed rather than a thing the rock does.
+   */
+  protected gas: { material: string; belowZ: number; strength: number } | null =
+    null;
+
   static fieldMeta: FieldMeta = {
     name: { persistent: true, authorable: true },
     // ⭐ Level-1 spoiler, `spoilerName: 0` — the `Biome` cut, and for the
@@ -299,6 +326,7 @@ export default class Deposit extends GroundSourceMixin(Idea) {
     zones: { persistent: true, authorable: true, spoiler: 1, spoilerName: 0 },
     depletion: { persistent: true, authorable: true, spoiler: 1, spoilerName: 0 },
     features: { persistent: true, authorable: true, spoiler: 1, spoilerName: 0 },
+    gas: { persistent: true, authorable: true, spoiler: 1, spoilerName: 0 },
   };
 
   // ---------- authored surface ----------
@@ -413,7 +441,21 @@ export default class Deposit extends GroundSourceMixin(Idea) {
       grade,
       water,
       feature: pin?.feature ?? this.seededFeatureAt(at, seed, inLode),
+      gas: this.gasAt(at[2]),
     };
+  }
+
+  /**
+   * The gas at depth `z`, or `null` above the band. ⭐ A step and not a
+   * gradient, because the band IS the measures: you are either in the
+   * rock that holds it or you are not.
+   */
+  protected gasAt(z: number): { materialPath: string; strength: number } | null {
+    const g = this.gas;
+    if (g === null) return null;
+    if (z > g.belowZ) return null;
+    if (!(g.strength > 0)) return null;
+    return { materialPath: g.material, strength: g.strength };
   }
 
   /**

@@ -425,7 +425,7 @@ export class BiomeLogic extends ApiLogic {
     let sum = 0;
     for (const c of contents) sum += Math.max(0, c.amount);
     const share = Math.max(0, Math.min(1, 1 - sum));
-    return share >= biomeDial(AppSettingKeys.atmosphereBreathableAirShare, 0.95);
+    return share >= biomeDial(AppSettingKeys.atmosphereBreathableAirShare, 0.76);
   }
 
   /** See {@link BiomeApi.isBreathableMixture}. */

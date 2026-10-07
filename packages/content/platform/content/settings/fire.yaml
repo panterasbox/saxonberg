@@ -33,22 +33,36 @@ settings:
   # rooms — four of which never even composed the mixin to hold it. These
   # are shares of the scope's medium, not percentages of a budget.
   #
-  # ⚠ Why the numbers are so close to 1. The contents are the fire's actual
-  # EXHAUST, not "spent air" — a kg of wood makes about 950 L of carbon
-  # dioxide — so the fractions that matter are small: CO2 is dangerous to
-  # breathe at 5 % of the air and lethal near 10 %, and a fire is starving
-  # well before it is standing in a tenth of its own smoke. Setting these
-  # at 0.85/0.70 (where a plan's first guess put them) would mean a room
-  # had to be a QUARTER exhaust before anyone noticed, which is both
-  # unphysical and so slow the lesson never lands in a session.
+  # ⚠⚠ **These are DISPLACEMENT shares, and that is what fixes their
+  # magnitude.** The question a fire asks is *how much of what is around
+  # me is still air I can draw oxygen out of* — so 0.85 means a fire
+  # starves once a sixth of its scope is its own exhaust, which is where
+  # a real fire in a real closed room starves.
+  #
+  # ⭐ A first pass set these near 1 (0.93/0.88) by reasoning from CO2's
+  # TOXICITY — dangerous to breathe at 5 % — and that conflates two
+  # different hazards. Displacement is about the oxygen left; toxicity is
+  # the material's own `toxicity` tag and is what makes smoke dangerous
+  # long before it is suffocating. ⛔ And the conflation broke firedamp:
+  # at 0.95 a heading holding 14 % methane read as unbreathable, so the
+  # canary would have reacted to it — which is the one thing the third
+  # damp must NOT do, because its whole design is that the bird is honest
+  # and is answering a different question.
+  #
+  # ⚠ Recorded seam: carbon dioxide genuinely is toxic near 5 %, and it
+  # authors no `toxicity` because that would need a `carbonDioxide` toxin
+  # type and a `Condition` row behind it to mean anything. So a shut
+  # cellar today warns you by displacement rather than by poisoning, a
+  # little later than it should. The metabolism tail owns the fix.
   - key: fire.air.completeAirShare
-    value: "0.93"
+    value: "0.85"
 
-  # Strictly below atmosphere.breathableAirShare (0.95), which is the whole
-  # point: a person in a shut room is told the air is going bad BEFORE the
-  # fire smothers itself.
+  # Strictly below atmosphere.breathableAirShare (0.76)? No — ABOVE it, and
+  # on purpose: a body stops coping at 0.76 and a fire starves at 0.70, so
+  # the person in the room is in trouble BEFORE the fire goes out. A fire
+  # dying in the dark is not an alarm.
   - key: fire.air.smotherAirShare
-    value: "0.88"
+    value: "0.70"
 
   - key: fire.air.achPerOpening
     value: "4"
@@ -132,3 +146,26 @@ settings:
   # burning wood. Conservation needs a figure; this is the honest one.
   - key: fire.workedFlame.mjPerKg
     value: "16"
+
+  # ── the air itself as fuel (firedamp) ──
+  #
+  # ⭐ 5 % is methane's real lower explosive limit, and Ferrow's measures
+  # give off ~14 % into dead air — so a deep, dead-ended heading is
+  # genuinely dangerous and the adit is not. ⚠ And both numbers sit well
+  # under the share that would stop a canary singing, which is the design:
+  # the bird is honest and the bird is answering a different question.
+  - key: fire.flammable.ignitesAt
+    value: "0.05"
+
+  # The flash, at exactly the explosive limit, scaled by how rich the
+  # mixture was. Enough to hurt badly and not reliably enough to kill,
+  # which is what a firedamp flash mostly did — into the one HEAT channel,
+  # so a wet coat helps and a mail shirt does not.
+  - key: fire.flammable.flashEnergy
+    value: "90000"
+
+  # ⭐⭐ 1 %, a fifth of the ignition limit: the flame wears its blue cap
+  # long before the air will go off. A tell that arrived at the same
+  # fraction as the flash would not be a warning, it would be an epitaph.
+  - key: fire.flammable.capAt
+    value: "0.01"

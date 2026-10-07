@@ -1,0 +1,24 @@
+# The worked flame — the `conjure flame` spell's locus, the row its
+# `emit-field` effect names.
+#
+# ⭐ A row and a 20-line class, on the glowlight mote's exact shape. The
+# executor clones whatever `locus:` the row says — no default, no
+# fallback — so a `Burner`-composing locus needs no kernel magic edit.
+#
+# ⚠ `emittedIntensity` is a CEILING, like every burner's. A worked flame
+# has no matter in it, so it burns at the CLEAN floor (0.15) and reads
+# noticeably dim — which is how a player tells a worked fire from a real
+# one by looking, and is the whole observable of the thing.
+class: /arcane-library/thing/WorkedFlame
+data:
+  shortDescription: worked flame
+  keywords: [flame, fire, working, "worked flame"]
+  register: definite
+  longDescription: >-
+    A hand's-breadth of pale fire standing on nothing at all, perfectly
+    steady, with no fuel under it and no smoke above it. It is warm — too
+    warm to hold a hand in — and it throws much less light than a fire
+    that size has any right to.
+  lit: true
+  emittedIntensity: 180
+  emittedColorTemperature: 2200

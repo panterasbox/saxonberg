@@ -1678,6 +1678,19 @@ export const AppSettingKeys = {
   /** Fire — the fuel-bed capacity (kg) a burner row that authors none falls
    * back to. */
   fireBurnerDefaultCapacityKg: "fire.burner.defaultCapacityKg",
+  /** Fire — the fraction of a scope's medium at which a flammable gas in
+   * it is an explosive mixture. ⭐ Below it a naked flame is merely a
+   * naked flame; at or above it the air itself is fuel. */
+  fireFlammableIgnitesAt: "fire.flammable.ignitesAt",
+  /** Fire — joules a flash delivers to everything in the scope at exactly
+   * the ignition fraction; it scales with how rich the mixture was. ⭐ Into
+   * the one HEAT channel, so armour inversion applies and a mail shirt is
+   * no help. */
+  fireFlammableFlashEnergy: "fire.flammable.flashEnergy",
+  /** Fire — the fraction at which a lit flame visibly wears a cap in a
+   * flammable atmosphere. ⚠ Well BELOW the ignition fraction: the tell
+   * has to arrive before the flash or it is not a warning. */
+  fireFlammableCapAt: "fire.flammable.capAt",
   /** Fire — the energy density (MJ/kg) a WORKED flame's exhaust is priced
    * at. It burns no matter, but its power still comes out of the room's
    * air, so conservation needs a figure and this is the one it uses. */

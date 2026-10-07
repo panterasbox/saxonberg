@@ -1276,7 +1276,77 @@ recipe intends.
 
 **Commit.** `build(fire W3): the retort beside the clamp — tar, pitch, coke, coal gas, the condenser and the gasometer`
 
-### W4 — Firedamp: the gas that kills you, the lamp that lets you work, the gas you drain
+### W4 — Firedamp: the gas that kills you, the lamp that lets you work, the gas you drain ✅ DONE
+
+> **Build note (W4).** D12 and D13. ⛔ **And one correction that
+> invalidates W0's B2**, found by the test that exists for exactly this.
+>
+> **B23 — ⛔⛔ The breathable share is a DISPLACEMENT figure, not a
+> toxicity one, and conflating them broke firedamp.** W0's B2 reset the
+> shares to 0.95 / 0.93 / 0.88 by reasoning from carbon dioxide being
+> dangerous to breathe at 5 %. Those are two different hazards:
+> displacement is about how much oxygen is left, toxicity is the
+> material's own `toxicity` tag. At 0.95 a heading holding 14 % methane
+> read as **unbreathable** — so the canary would have reacted to it, and
+> ⭐ the one thing the third damp must not do is be a third copy of
+> blackdamp. Methane genuinely is breathable at the fractions that will
+> kill you by burning; that is *why* its tell is a flame and not a bird,
+> and why a Davy lamp exists.
+>
+> **Shipped: the plan's original numbers.** `atmosphere.breathable
+> AirShare` **0.76** (≈16 % oxygen, where a person starts labouring),
+> `fire.air.completeAirShare` **0.85**, `fire.air.smotherAirShare`
+> **0.70**. The ordering the requirements demand holds: sooty → in
+> trouble → out. ⚠ **Recorded seam:** carbon dioxide really is toxic near
+> 5 % and authors no `toxicity`, because a dose would need a
+> `carbonDioxide` toxin type AND a `Condition` row behind it to mean
+> anything. So a shut cellar warns by displacement rather than by
+> poisoning, later than it should. The metabolism tail owns it; faking an
+> acute dose would be worse than saying so.
+>
+> **B24 — ⭐ The flash runs at `ignite` as well as on the tick, with the
+> igniting object passed as the flame.** The tick's check finds a flame
+> that is already burning; the case that actually kills people is a miner
+> walking into a gassy heading with a COLD lamp and striking it. Without
+> passing `stuff`, `nakedFlameIn` would find nothing (it is not lit yet)
+> and striking a light in firedamp would be safe — the opposite of true
+> and the opposite of the lesson.
+>
+> **B25 — The flame cap arrives at a FIFTH of the explosive limit**
+> (`fire.flammable.capAt` 0.01 against `ignitesAt` 0.05). A tell that
+> arrived at the same fraction as the flash would be an epitaph rather
+> than a warning.
+>
+> **The hazard has no field.** `Deposit.gas` is a Material path, a depth
+> band and a strength; everything else derives. A content is flammable
+> because its material has a `heatOfCombustion` — the same number that
+> gives a fuel its flame temperature — so one fact has two readers and
+> there is no `flammable: true` anywhere. ⭐ And the remedy is therefore
+> an OBJECT rather than a rule: a safety lamp's flame is enclosed, so the
+> check does not find a naked flame, so a player with a gauze lamp works
+> ground a player with a torch cannot, and nothing is told to make that
+> true.
+>
+> **The safety lamp is a ROW** over `/platform/thing/Lamp` with one
+> authored field (`flameEnclosed: true`), propped at the timbered drift —
+> the lamp station, where a miner historically drew one on the way in.
+> ⚠ Without the prop the hazard would ship with no counter but *do not go
+> in there*, which is not a mechanic.
+>
+> **`drain` is the RGO law applied to a hazard**: reservoir (20× the
+> cell's volume), recharge (a six-game-hour half-life), act (`drain
+> <vessel>`), credit (a `mining` deed). ⭐ It is the one hazard in the
+> trade you can HARVEST rather than merely survive — and at scale it is
+> exactly how a town got its gas supply, so the act that makes a heading
+> safe is the act the industrial epoch is built on. Only a sealed vessel
+> holds it, and that refusal is the VESSEL's: a gas's required closure
+> derives from its boiling point.
+>
+> **Verified:** `firedamp.test.ts` 9 green against the SHIPPED rows (a
+> synthetic fixture would pass identically while Ferrow's own band was a
+> typo); biome, respiration, reading, hearthworks suites green after the
+> share correction.
+
 
 **Goal.** D12, D13; AC13–AC15.
 
@@ -1468,7 +1538,30 @@ the utility slate owns.
 
 **Commit.** `build(fire W6): an oil-burning town is oil-lit — gas-lit reserved for gas`
 
-### W7 — The drive
+### W7 — The drive ✅ WRITTEN (record below)
+
+> **Build note (W7).** `packages/wire/tests/fire.dirty.wire.test.ts` —
+> the requirements' 28 steps as checkpoints that CAN fail, with the
+> `understood()` helper carrying the assertion no controller test can
+> make: *the verb exists, something affords it here, its row resolves,
+> its catalogue is warm, and the binder bound.*
+>
+> ⚠ **Three acceptance criteria are time-dependent at the clock's shipped
+> scale and are named as such in the file's header** rather than asserted
+> vacuously: AC3's tail (a 12 kg charge outlasting a 1 kg one is hours of
+> burning — pinned as `fuelEnergyJ / burnPowerW` arithmetic in
+> `StokeController.test.ts`), AC5's middle (the twenty-times ratio, in
+> `DraughtController.test.ts`), and AC12's *burns until doused or empty*
+> (16 game hours, walked in `Lamp.test.ts`). ⭐ What only the drive can
+> see is everything else about them, and it does.
+>
+> `DIRTY_REASON` names four consumptions and ⭐ each is a question for
+> the trade that owns it: the yard's cordwood wants the collier's
+> producer brain (already a recorded seam), its coal wants a hauler from
+> Ferrow (the logistics build's), the Ferrow measures recharge on their
+> own half-life, and the cellar's firewood wants nothing — a demonstrator
+> is allowed to be consumable.
+
 
 `packages/wire/tests/fire.dirty.wire.test.ts` (dirty: it burns the yard's
 coal and cordwood, chars, fires, drains the seam) — the requirements'
@@ -1482,7 +1575,37 @@ corrected in this wave because the drive reads them.
 
 **Commit.** `drive(fire): <what driving found>`
 
-### W8 — The worked flame (R2: ships; `fuelSource()`'s second implementer)
+### W8 — The worked flame (R2: ships; `fuelSource()`'s second implementer) ✅ DONE
+
+> **Build note (W8).** D14's content half: a 20-line class and two rows,
+> on `GlowlightMote`'s exact shape. ⭐ No kernel magic edit — the
+> emit-field executor clones whatever `locus:` a row names and asks only
+> `isLightSource` of it, so a `Burner`-composing locus is valid as it
+> stands.
+>
+> **It completes a carve the sim already made.** The glowlight's own
+> docstring: *"Light only, deliberately no heat — the sim decouples them
+> (the Light-split-from-Fire carve), so a glowlight warms nothing and
+> never ignites anything."* That is the light side. This is the heat
+> side, and it takes **no exemption from the physics a hearth obeys**: no
+> fuel so nothing to stoke, no soot so noticeably dim (a player tells a
+> worked fire from a real one by looking), and ⭐⭐ it still spends the
+> room's air, because conservation is not something magic is exempt from.
+>
+> ⚠ Its flame is NAKED, so it sets off firedamp. Honest — it is a flame —
+> and it teaches: a caster who thinks magic exempts them from the gas
+> finds out in the one place it matters.
+>
+> **The test asserts the pair**, which is what makes R2's argument real:
+> `isBurner(workedFlame)` is true and `isBurner(glowlightMote)` is false,
+> in one case, so the carve is a fact about two shipped objects rather
+> than a sentence in a docstring.
+>
+> **Verified:** `worked-flame.test.ts` 8 green; `lint:spell-cost` passes
+> at the ceiling; the locus row's class path resolves (⚠ it was written
+> as `/stuff/thing/magic/WorkedFlame` first — the pack's class root is
+> `/arcane-library`, which the glowlight mote's own row shows).
+
 
 **Goal.** D14's content half; AC17 observable.
 

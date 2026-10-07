@@ -241,18 +241,27 @@ describe('AtmosphericMixin — what the medium carries', () => {
   it('⭐ breathability is the tag AND the share', () => {
     expect(BiomeApi.isBreathableMixture('air', [])).toBe(true);
     expect(BiomeApi.isBreathableMixture('water', [])).toBe(false);
-    // 4 % exhaust is still breathable; 6 % is not.
+    // ⚠ The threshold is a DISPLACEMENT figure: 0.76 air share leaves
+    // about 16 % oxygen, which is where a person starts labouring. 20 %
+    // exhaust is still breathable; 30 % is not.
+    //
+    // ⭐ It is NOT a toxicity figure, and the difference is load-bearing:
+    // a first pass set it near 0.95 by reasoning from CO2 being dangerous
+    // at 5 %, and that broke firedamp — a heading holding 14 % methane
+    // read as unbreathable, so the canary would have reacted to the one
+    // damp whose whole design is that the bird is answering a different
+    // question.
     expect(
-      BiomeApi.isBreathableMixture('air', [{ type: CO2, amount: 0.04 }]),
+      BiomeApi.isBreathableMixture('air', [{ type: CO2, amount: 0.2 }]),
     ).toBe(true);
     expect(
-      BiomeApi.isBreathableMixture('air', [{ type: CO2, amount: 0.06 }]),
+      BiomeApi.isBreathableMixture('air', [{ type: CO2, amount: 0.3 }]),
     ).toBe(false);
     // ⚠ The share-only read does NOT consult the air-breather table —
     // asking it again would tell a fish it cannot breathe water.
     expect(BiomeApi.hasBreathableShare([])).toBe(true);
     expect(
-      BiomeApi.hasBreathableShare([{ type: CO2, amount: 0.06 }]),
+      BiomeApi.hasBreathableShare([{ type: CO2, amount: 0.3 }]),
     ).toBe(false);
   });
 });
