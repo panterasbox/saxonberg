@@ -3,7 +3,8 @@
 > **Status: PARTIAL** — malting shipped as a **distillery capability**, not
 > as a trade: `trade-malting` (rows only), a `malting` Discipline, the
 > steep/floor/kiln chain, and a `malting` seat on Crowsfoot's hand
-> → [whiskey-styles-plan.md](../../plans/whiskey-styles-plan.md). ⛔ Every
+> → [maturation.md](../../subsystems/maturation.md) (the `enzymatic`
+> mechanism the floor runs on). ⛔ Every
 > product of the chain is **alcoholic**, and malt's real footprint is
 > about half non-alcoholic.
 > **Left:** malt **extract** (the hinge — it rides the shipped

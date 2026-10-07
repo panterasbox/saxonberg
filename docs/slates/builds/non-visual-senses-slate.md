@@ -224,5 +224,6 @@ properly; the others should move toward it, not it toward them.
 - `docs/subsystems/light.md` — what a properly modelled sense looks like
 - `docs/lint-family.md` § `lint:closed-vocabularies` — the opposing force
   holding this question open
-- `docs/plans/whiskey-styles-plan.md` D2/D3 — where `AROMAS` was decided,
-  and the reasoning that did not hold
+- [metabolism.md § Aroma — the second closed vocabulary](../../subsystems/metabolism.md)
+  — where `AROMAS` landed, including ⚠ why the `BASIC_TASTES` analogy that
+  licensed it does not hold

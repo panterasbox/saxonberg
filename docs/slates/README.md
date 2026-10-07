@@ -35,9 +35,9 @@ materials-response all shipped, which made the name actively misleading.
 
 <!-- BEGIN GENERATED — ./tools/slate-index -->
 
-**277 slates.** 70 greenfield · 96 continuations · 58 waves · 53 tails.
+**278 slates.** 71 greenfield · 96 continuations · 58 waves · 53 tails.
 
-## ⭐ Greenfield — nothing shipped yet (70)
+## ⭐ Greenfield — nothing shipped yet (71)
 
 Pick from here for a clean cycle with no existing substrate to
 respect.
@@ -75,6 +75,7 @@ respect.
 | [eternal-university-narrative](./builds/eternal-university-narrative-slate.md) | the whole arc — the three-tier serial crime, Dunny and Wren, the killer + the panic · the census mechanic (roll · enumerator · count → conviction-voting) … |
 | [faith](./builds/faith-slate.md) | the deed-tag vocabulary + the four tags Part 1 needs (`aid.treat`, `aid.attend-dying`, `harm.nonconsented`, `ritual.attend`, honouring `since`) · `liturgy`/`transgressions` on `Tradition` · the derive-on-read fall with NO readable fidelity · the surprising-write narration … |
 | [flowers](./builds/flowers-slate.md) | the act record (who gave what, to whom, publicly) · the wiki floriography with NO shipped meanings table · the lawn as a land use (D69 — pasture whose yield is discarded, the cheapest entry point) · ornamental breeding on parentage-seeding … |
+| [glass](./builds/glass-slate.md) | a sand deposit row + two material tags · the `meltingPoint` glass has never had · the glass-batch recipe · ⚠ `Colour` on `Light` (the one kernel change) … |
 | [guild](./builds/guild-slate.md) | the `Guild` Idea + charter schema (+ the charter validation pass) · the `guild:` GroupProvider + ranks · the three membership tiers + the witnessed rank exam · focus-tagged `TranscriptEntry` + charter-weighted `Competence` … |
 | [household-lifecycle](./builds/household-lifecycle-slate.md) | the household as ordinary content (a template row, unstamped) · the generator as an author · minting parents at char-gen with a residence · **un-gating the estate machine from `Avatar`** … |
 | [hunting](./builds/hunting-slate.md) | the wild population as a record materialized on encounter · `track` + the method ladder · *ferae naturae* + game law + close seasons · poaching enforcement … |

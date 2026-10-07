@@ -23,6 +23,14 @@
 > teaching unit, the external-mastery adapter) · a farming district at
 > scale (Stage B1's hectare-band plat) · per-locality season (weather's
 > seam)
+> · ⭐ **three cereals the distillers want and the fields do not grow**
+> (salvaged from the whiskey plans, 2026-10-06): **corn, rye and oats**
+> exist nowhere — no crop row, no plant row, no material. ⚠ So bourbon,
+> rye whisky and Canadian whisky are **unreachable**, and the whiskey
+> build said so plainly rather than faking any of them with a renamed
+> barley: *"a renamed barley would be a lie on a platform that
+> teaches."* Each is a crop + a plant + a material, after which the
+> whisky itself is the shipped grain-whisky shape in rows.
 > **Size:** a build
 
 Working slate for **farming** — how a player grows crops, breeds

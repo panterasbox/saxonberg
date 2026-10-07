@@ -1,7 +1,9 @@
 # Whiskey as a PRODUCT — styles, blending, cask and age
 
 > **Status: ABSORBED** — built by MR !336's second wave
-> (`docs/plans/whiskey-styles-plan.md`): peated malt, grain whisky, the
+> (→ [fractionation.md](../../subsystems/fractionation.md) ·
+> [maturation.md](../../subsystems/maturation.md) ·
+> [bulk.md](../../subsystems/bulk.md)): peated malt, grain whisky, the
 > vatting recipe, `imparts` on the cask, `productAtFraction` and the age
 > statement all shipped, and the drive is green.
 > **Left:** nothing in this slate's own scope. Two tails went elsewhere —
@@ -26,8 +28,9 @@ profile, ONE oak cask**. A bottle differentiates by **grade and dose, and
 nothing else**. No peat, no grain whisky, no vatting, no cask character,
 no age statement.
 
-⭐ And the lens re-run in `whiskey-requirements.md` had already written the
-charge down, unanswered:
+⭐ And the whiskey vertical's own lens pass (in its requirements doc,
+retired at the sweep) had already written the charge down, unanswered —
+quoted here because the quotation is the only part that still matters:
 
 > *"with six rungs, which one decides the outcome? …If the cut decides
 > everything and the other five are corridors, then five rungs are
@@ -188,39 +191,30 @@ rather than faking it with a renamed barley.
 
 ---
 
-## ⭐ The planner brief — paste this to the `planner` agent (Fable)
+## ⚠ The planner brief — SPENT, and cut at the sweep
 
-> Author `docs/plans/whiskey-styles-plan.md` for the Saxonberg monorepo at
-> `/home/bobalu/play/saxonberg/build-2`. Read `CLAUDE.md`,
-> `docs/workflow.md`, `docs/plans/whiskey-plan.md` (the completed
-> predecessor, with its build record), and
-> **`docs/slates/builds/whiskey-styles-slate.md` — which carries the
-> verified grounding; use it rather than re-deriving.**
->
-> Branch `design/2026-10-03-cuts` with MR !336 already open; this extends
-> that branch rather than starting a new one.
->
-> Plan the six scope items in the slate. Follow the plan doc shape in
-> `.claude/skills/plan/SKILL.md`: Grounding · Plan-level decisions (D1…) ·
-> ⭐⭐ Host placement · Convention conformance · Waves (each independently
-> landable, each ending at a commit) · Reachability wiring (verb ·
-> affordance · data · boot · arg gate) · Acceptance-criteria coverage ·
-> Test & gate strategy · Risks & opens · Deferred seams · Critical files.
->
-> Resolve explicitly: (a) how cask character is expressed and whether it
-> is a kernel change; (b) whether peat phenols generalise
-> `dissolvedToxins` or get a sibling field; (c) what a blend's grade and
-> character derive from; (d) whether an age statement is expressible.
->
-> Report back: the wave list one line each, every decision I should check,
-> and anything under-specified or wrong in the scope.
+This slate carried a verbatim brief for the Fable planner. The plan it
+asked for was written, built to a green drive, and retired at this sweep,
+so the brief is a set of instructions for work that is finished. ⭐ It is
+cut rather than kept: a slate's job after absorption is to record what was
+decided and why, and a stale instruction reads as outstanding work.
 
----
+What the brief asked to be resolved, and where the answers live now:
+
+| it asked | answer |
+|---|---|
+| how cask character is expressed, and whether it is kernel | [maturation.md § `imparts`](../../subsystems/maturation.md) — a kernel field on the VESSEL, not the profile and not the wood |
+| whether peat phenols generalise `dissolvedToxins` | [metabolism.md § Aroma](../../subsystems/metabolism.md) — a sibling field; the *arithmetic* was promoted, not the field |
+| what a blend's grade and character derive from | [bulk.md § History](../../subsystems/bulk.md) — weakest-link grade, volume-weighted character, **min**-folded age |
+| whether an age statement is expressible | ✅ built, at the user's direction over the plan's recommendation to defer |
 
 ## Cross-references
 
-- `docs/plans/whiskey-plan.md` — the predecessor, with the build record
-- `docs/requirements/whiskey-requirements.md` — the lens pass and its gap
+- [fractionation.md](../../subsystems/fractionation.md) — the cut's
+  substrate, and where the predecessor's build record graduated to
+- ⚠ the vertical's requirements doc is retired; its unanswered lens gap is
+  quoted in full above, and the answer is `aromaticCarry`
+  ([fractionation.md](../../subsystems/fractionation.md))
 - `docs/subsystems/fractionation.md` — the cut's substrate
 - `docs/subsystems/maturation.md` — profiles, the input-band cap
 - `libations-slate.md` — holds the grappa/pomace finding from !336
