@@ -21,6 +21,14 @@
 > drive walks between them. Deliberately deferred by the user to a dedicated
 > content pass that builds out what 1.0 ships for real; this is that pass's
 > work.
+> ⭐⭐ **Added 2026-10-07 (content pass):** the **1996 prototype** is on
+> disk (`zone/null/spiffy/areas/minetown/` — Sue, Tina, the pogo stick,
+> BobCode, and a handyman shop with no handymen in it) · **residents
+> decided — yes, but not the miners**, and Val and Earl may be the whole
+> local cast · **the graboids are TERRAIN, not a boss**, which hands the
+> town *the only safe place is the one that is killing you* · ⛔ the
+> juvenile-graboid-in-the-workings idea refused · ⚑ one open question left:
+> does the town know what they are?
 > **Size:** a build
 
 Mechanics: [mining-slate](./mining-slate.md) — the four play layers, the
@@ -142,6 +150,170 @@ won't risk the tools or the partner. Three numbers, not a script.
 Rhonda is also the [knowledge-asymmetry](./llm-content-slate.md) case — her
 instrument rows are private to her, so she is the first consumer of the
 **isolated per-character call** rather than the shared director context.
+
+---
+
+## ⭐⭐⭐ The 1996 prototype — and it survives
+
+Added 2026-10-07. Rejection's cast is not a fresh invention: a version of
+it was built for EotL and never published, and **it is still on disk** at
+`zone/null/spiffy/areas/minetown/`.
+
+```
+room/   diner.c  handy.c  trailer.c  plant.c  road1-4.c
+mon/    sue.c  suecc.c  tina.c
+obj/    pogostick.c
+mov/    tinapogo.mov  tinadiner.mov  tinafind.mov  tinanewguy.mov
+        suediner.mov  suemoney.mov
+```
+
+⚠ **`room/handy.c` is seven lines — *"a handymans shop"* — and there is no
+`val.c` or `earl.c`.** But Val existed concretely enough to be read:
+
+```c
+// tina.c, fixcheck()
+if( objectp(val=present("val",ENV(THISO))) && val->query("working") ) {
+    mp_setup(MOV "tinabother");
+```
+
+⭐ A `working` property on Val, and a program for a child pestering him
+while he is busy. **`tinabother.mov` was never written.** The hook
+survives and the handymen do not — which is the same scar as the shop.
+
+### What the prototype already had, and where it now lives
+
+The NPCs were written in **BobCode** (`doc/mudlib/bobcode.doc`), whose
+opening sentence is this project's thesis stated thirty years early:
+
+> *"This allows you to have your monsters **take on activities and
+> interaction when alone, rather than just sit around and wait to be
+> killed.**"*
+
+`tina.c` carries, in 199x LPC:
+
+| what she has | where it lives now |
+|---|---|
+| `friends` / `foes` string arrays, `save_object` across reboots | [belief.md](../../subsystems/belief.md) — per-viewer identity memory |
+| three-tier recognition (stranger / known / attacked) | regard + the auto-introduce feature |
+| `set_msgin("pogoes in")` by mode; short changes with her state | [presentation.md](../../subsystems/presentation.md) — the late-bound forms |
+| a route program with `@groundcheck` between every move | [behavior.md](../../subsystems/behavior.md) — brains with `candidate` triggers |
+| halting every other NPC's program to stage one scene | `StagedMixin`'s troupe, and nothing else yet |
+
+⭐⭐ **So the cast table above is a re-derivation of something that
+already ran.** Tina is a working prototype of the belief and presentation
+layers, and the only thing she lacked was a platform willing to
+generalize her.
+
+### ⭐⭐ Sue is the model for how a business should be written
+
+`sue.c`'s description is three economic facts, all of them personal:
+
+> *"Her husband died some years back in a freak mining accident, so now
+> she runs this place to support her daughter, Tina. It's not much, but
+> **the owner of the plant kicks in money to help 'em out once a month**
+> too. The town likes 'em here, so they have **fairly little problem
+> paying the bills.**"*
+
+The industry killed her husband, which is why the diner exists; the plant
+owner pays her monthly **off the books**, so the town's welfare is a man
+rather than an institution; and **she is solvent because the town likes
+her** — her regard *is* her revenue.
+
+⭐⭐⭐ **The character's circumstances ARE the economy.** Not a business
+with a person attached — a business that is the consequence of what
+happened to somebody. That is the standard for every premises in
+Rejection. See [content-craft.md § 3](../../content-craft.md).
+
+⚠ And one defect worth keeping as a warning: the best line in Minetown
+has **never fired.** `call_out(#'command,12,"I swear that girl'd lose her
+head if it weren't attached...",THISO)` is missing its `say`, so it would
+parse as a command verb and fail — and nobody noticed in thirty years,
+because reaching it requires dropping *an item Tina herself owns* in
+front of her mother.
+
+## ⭐⭐ Residents — yes, but not the miners
+
+**Decided 2026-10-07.** The town has residents; **the miners are not
+among them.** What locals staff is the *supporting* economy, and for a
+town of this type that is very small — ⭐ **Val and Earl may be all it
+needs.**
+
+That is not a shortfall against the settlement model, it is the model
+being honest: Perfection, NV has a population of fourteen and that is the
+point of it. Rejection is a resource town under this document's own death
+sentence, so ⚠ **it should feel underpopulated.**
+
+⭐⭐⭐ **And the handyman is a content-coverage solution that is also a
+character.** A generalist can plausibly fill any economic hole, and a
+dying town can only *afford* generalists — the specialist left years ago.
+So Rejection does not want a general store and a realty office and a
+registry; it wants **two men who do all of it, badly, and resent it.**
+Being underemployed and taking any job is who they are, so the coverage
+comes out of the character sheet rather than in spite of it.
+
+⭐ And Val's existing `Wants` cell — *the fare out, a money threshold* —
+is the settlement model as character. **The people still here are the
+ones who have not left yet, and the town's dying is what keeps them.**
+
+## ⭐⭐⭐ The graboids are terrain, not a boss
+
+The threat the cast is aware of, and the shape it has to take.
+
+⚠ **Nobody in *Tremors* wins a fight.** Burt and Heather kill one because
+they were **already prepared and everybody thought they were paranoid** —
+the rec room full of guns is a joke until it isn't. Everything else in
+that film is traps, terrain, and somebody having an idea: the pipe, the
+bulldozer, the pole vault, the cliff.
+
+⭐⭐ So the encounter is not a boss fight. It is **a situation that pays
+off having prepared and having an idea**, and reaching for a boss is the
+same mis-borrow as reaching for environmental storytelling in a world
+that runs (see [content-craft.md § 5](../../content-craft.md)).
+
+And the grammar underneath it is: **they hunt by vibration, and they
+cannot move through rock.**
+
+### ⭐⭐⭐ Which hands the town its central tension for free
+
+**The only safe place is the one that is killing you.**
+
+The mine is rock, so it is graboid-proof — and it is also where the
+rockfall and the damps and the water table are. The surface is safe from
+the mine and lethal from below. ⭐ That explains why anybody lives in a
+town nobody should live in, it costs nothing (rock versus loose ground is
+already what a floor knows about itself — see
+[ground.md](../../subsystems/ground.md)), and it is honest.
+
+⛔ **So the juvenile-graboid-in-the-workings idea is refused.** If they
+can get into the mine, the rock/surface distinction collapses — and that
+distinction is the only thing holding the setting together. It would
+trade the premise for one encounter. ⭐ The honest version of the same
+itch is to make the mine feel less safe **without breaking the rule**:
+a seam thinning toward drift, a working that breaks into loose ground, a
+shaft collar everybody hurries through.
+
+### ⚑ Open — does the town know what they are?
+
+In *Tremors* nobody does, and that is the first forty minutes; Rhonda's
+instruments are the only honest evidence anyone has.
+
+- If the cast **names** them, Rejection is a monster town.
+- If they do not, it is **a town with a problem nobody has explained
+  yet** — and then Val and Earl's idle lines get to be about the dog that
+  went missing and the fence that fell over, which is a far better use of
+  them, and it makes Rhonda's seismograph rows the only thing in the
+  valley that is actually *about* it.
+
+⭐ Lean: they do not know. It costs nothing, it is what the source does,
+and it puts the knowledge asymmetry the cast table already wants
+(Rhonda's private instrument rows) at the centre of the town's one real
+question rather than at the edge of it.
+
+⚠ And the traps are already shipped and unused
+([hazard.md](../../subsystems/hazard.md), `TrapKit` in
+[stealth.md](../../subsystems/stealth.md)). The content question is
+whether a player can **set** one, not whether they can find one — because
+an improvised trap is the only version that reproduces the source.
 
 ---
 
