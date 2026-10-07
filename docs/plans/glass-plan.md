@@ -187,6 +187,22 @@ is not melting" is physically true of glass and wax alike, and the
 one-way sink the doctrine protects is kept by D9. `crafting.md` gets the
 sentence.
 
+> ⚠ **W1 re-plan — the `doMelt` floor-guard sub-item was DROPPED.** The
+> guard (hold a Meltable at its melting point when its container has no
+> floor, rather than destruct) *broke the shipped Coolbox abstraction* —
+> ice in an icebox is meant to melt away over its computed budget, the
+> meltwater abstracted, not freeze forever at 273 K. And the premise was
+> false: the glass build never trips passive `doMelt`. Cullet re-melts
+> through the **`fire` recipe** (`remelt-cullet` consumes the cullet item
+> and mints a `Melt`), not through thermal melting; and that recipe's
+> kiln holds **1200 K, below glass's 1300 K melting point**, so a cullet
+> `Casting` never passively melts in the first place. So the one-line
+> `doMelt` change was reverted and its test removed; D6 (the carry) and
+> the D7 salvage branch stand unchanged. The conservation ceiling for
+> salvage is `massKg × the best branch rate used` (not Σ fraction×rate),
+> which keeps the rigged-composition guard that a naïve per-constituent
+> sum would have lost.
+
 **D8 — Light-strike is an additive term on the spoilage rate, by tag.**
 *Choice:* a material tagged `light-sensitive` (ale, lager — content tags
 on `trade-brewing`'s rows; wine and oil may follow) gains a second rate
@@ -497,9 +513,28 @@ through one. No content row changed. Nothing in the world is yet tinted
 its first exerciser and the venue rows as its first *authored* consumer,
 both inside this build.
 
-#### W1 — The firing carries its charge; salvage returns a meltable whole (kernel) · `build(glass W1): a firing carries its charge; a meltable non-metal salvages whole`
+#### W1 — The firing carries its charge; salvage returns a meltable whole (kernel) · `build(glass W1): a firing carries its charge; a meltable non-metal salvages whole` ✅ DONE
 
-**Goal.** D6, D7, and the `doMelt` floor guard.
+> **Built.** `Recipe.massYield` (field + `getMassYield` + fromData
+> `[0,1]` validation + toData); `FireController.runFiring` carries the
+> charge — sets the output mass from `Σ consumed × yield ÷ batches`
+> when `massYield > 0 && isTangible`, and merges the charge's `alloying`
+> (mass-weighted) onto an `isAlloyed` output on top of the row's own; the
+> dead "first slot material" read is gone. `CraftingLogic.salvageImpl`
+> gains the meltable-non-metal branch (melting point > 0, no `metal` tag
+> → a whole `Casting` at rate 1.0 carrying the piece's alloying), and the
+> conservation ceiling is now `massKg × max branch rate used` (keeps the
+> rigged-fraction guard). `crafting.md` updated.
+> **Re-plan:** the `doMelt` floor-guard sub-item was dropped (see D7
+> note above) — it broke the Coolbox melt-away abstraction and the glass
+> build never trips passive `doMelt`. Tests: Recipe.schema (massYield
+> default/validate/round-trip), FireController carry (mass override,
+> mass-weighted alloying merge, unauthored keeps template mass),
+> salvage (glass comes back whole + remembers iron). 41 thermal/craft/
+> salvage tests green; server tsc clean.
+
+**Goal.** D6 and the D7 salvage branch. *(The `doMelt` floor guard was
+dropped in W1 — see the D7 re-plan note.)*
 
 **Files.**
 - `packages/server/src/mud/lib/craft/Recipe.ts` — `massYield: number =

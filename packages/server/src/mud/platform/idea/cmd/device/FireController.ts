@@ -64,6 +64,8 @@ import { StuffApi } from '../../../../api/stuff';
 import { ContainmentApi } from '../../../../api/containment';
 import { SchedulerApi } from '../../../../api/scheduler';
 import { ManualBuildStep } from '../../../../lib/craft/ManualBuildStep';
+import { Quantity } from '../../../../lib/quantity';
+import type { CompositionEntry } from '../../../../lib/material/Material';
 
 const TOPIC = 'act.deed';
 
@@ -293,14 +295,49 @@ async function runFiring(
     const per = Math.max(1, m.slot.count ?? 1);
     consumed.push(...m.items.slice(0, per * firing.batches));
   }
-  // ⭐ The material the output inherits, taken from the FIRST slot's first
-  // item — the recipe's `outputTemplate` carries its own material for a row
-  // that means one (a pot is ceramic whatever the clay was), and nothing
-  // here overrides it. The read is kept because a later recipe may want it.
+  // ⭐ The firing CARRIES its charge (D6). Two intensive/extensive facts
+  // the output inherits when the recipe authors them, and nothing more:
+  //   - under a `massYield > 0`, the output's mass is the consumed
+  //     charge's summed mass × yield ÷ batches (a remelt mints no glass
+  //     from nothing; a batch loses the gall and the gases);
+  //   - an Alloyed output inherits the charge's minor constituents,
+  //     mass-weighted, ON TOP of whatever the output row authored (the
+  //     pot's own iron pickup) — `setAlloying` sums a repeated material.
+  // A recipe that authors neither (burn-lime, every shipped firing) is
+  // byte-identical to before: the clone keeps its template mass and its
+  // own alloying.
+  const massYield = firing.recipe.getMassYield();
+  const totalConsumedKg = consumed.reduce(
+    (n, c) => n + (MixinApi.isTangible(c) ? c.getMass().rawValue() : 0),
+    0,
+  );
+  const mergedCharge: CompositionEntry[] = [];
+  if (totalConsumedKg > 0) {
+    const acc = new Map<string, number>();
+    for (const c of consumed) {
+      if (!MixinApi.isAlloyed(c) || !MixinApi.isTangible(c)) continue;
+      const weight = c.getMass().rawValue() / totalConsumedKg;
+      for (const e of c.getAlloying()) {
+        acc.set(e.materialPath, (acc.get(e.materialPath) ?? 0) + e.fraction * weight);
+      }
+    }
+    for (const [materialPath, fraction] of acc) {
+      mergedCharge.push({ materialPath, fraction });
+    }
+  }
+
   const outputs: Stuff[] = [];
   for (let i = 0; i < firing.batches; i += 1) {
     try {
       const made = await StuffApi.clone<Stuff>(firing.recipe.getOutputTemplate());
+      if (massYield > 0 && MixinApi.isTangible(made)) {
+        made.setMass(
+          Quantity.of((totalConsumedKg * massYield) / firing.batches, 'kg'),
+        );
+      }
+      if (MixinApi.isAlloyed(made) && mergedCharge.length > 0) {
+        made.setAlloying([...made.getAlloying(), ...mergedCharge]);
+      }
       if (MixinApi.isContainable(made)) {
         ContainmentApi.move(made as Stuff & Containable, kiln);
       }
