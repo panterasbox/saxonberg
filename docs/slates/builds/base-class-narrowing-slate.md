@@ -446,10 +446,41 @@ real objection rather than the plausible one.
   reads; it did not unify them.)
 - **A spherical venue cannot author `props:`** (L7) — `SphericalLocation`
   composes no `Staged`; 0 rows want it; a one-line addition when one does.
-- **Ten verbs still afforded by nothing** (L9) — `fold`/`unfold`
-  ([slot.md](../../subsystems/slot.md)), `walk`/`swim`/`fly`/`dismount`
-  ([locomotion.md](../../subsystems/locomotion.md)). This build afforded
-  `hitch`/`unhitch` and `mount`/`ride`; the rest are their subsystems'.
+- ✅ **The unafforded verbs (L9) — CLOSED by the reachability sweep
+  (2026-10-07), and the real count was FIFTEEN, not ten.** That build
+  censused all 301 command views against every `commandContributions`
+  static in the kernel and every pack, and **arm A of
+  `lint:reachability` is a zero invariant now**: every view is conferred
+  or declares `unreachable:` saying why not.
+  - **Conferred (11):** `walk` → `MobileMixin.self` (the third ground
+    pace; `sneak` and `run` beside it always worked) · `dismount` →
+    `PosedMixin.self` (the state is the RIDER's — `requiresMounted` reads
+    the giver's posture, so you dismount a horse that walked out from
+    under you) · `fold`/`unfold` → `FoldableMixin` · `prompt` →
+    `HasInteractiveMixin.self` · `transfer`/`subdivide` →
+    `PersonaMixin.self` (universal, on `title`'s doctrine: *the gate is
+    the authority, not the affordance*) · `wind`/`adjust` → the pack's
+    `Watch` class · `drive` → `DrivableMixin` and `flourish` →
+    `BarStation`, the two this list did not know about.
+  - **`swim` conferred** by a new `platform/thing/OpenWater`
+    (`SwimmableMixin(Thing)`), one row propped in four estuary and
+    wharfside rooms — the Ladder shape, because the enablement walk looks
+    in the actor's container and its contents. ⚠ Until then the only
+    composition of `Swimmable` or `Flyable` in the repo was an
+    integration test that manufactures its own hosts.
+  - **`lock`/`unlock` still held, per § I9 below**, and `fly` with them —
+    but all three now carry `unreachable:
+    awaiting:base-class-narrowing-slate` on the view, so the disposition
+    is a gated field rather than an absence. ⭐ `fly` is the one case
+    where *afford statically, decline diegetically* does not apply: with
+    no `media: ['air']` exit, no flying species and no composer, the
+    refusal would point at nothing. **What lifts it** is a flying species
+    with the mode on its body plan plus one air exit; then the host
+    follows `OpenWater`'s shape exactly.
+  - ⚠⚠ **Eleven of the fifteen had PASSING controller unit tests**, which
+    is the finding worth carrying forward: a controller test is handed a
+    pre-built model, so it passes over a verb that does not exist.
+  This build afforded `hitch`/`unhitch` and `mount`/`ride`.
 - **`alternateNames` × 45** — the next dead-key burn-down;
   `turf-bank.yaml` is one of them.
 - **The lounge on plain `Location`** — D14-honest today. If

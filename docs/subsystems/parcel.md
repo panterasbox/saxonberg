@@ -343,6 +343,18 @@ Not modelled, declared or special-cased — two calls that already exist,
 and every downstream gate follows because they all read the same trie
 (graduated from the content-packs slate, 2026-09).
 
+⚠⚠ **Two calls that existed, and two VERBS that did not — until the
+reachability sweep.** `SubdivideController` and `TransferController` and
+both views shipped; no static named either file, so every doc sentence
+like the one above described an **Api** from the player's side of a verb
+the game answered *"I don't understand"* to. The Api always worked; the
+verb was unsayable. ⭐ Both are `PersonaMixin.self` now — universal, for
+the reason `title` already gives in its own comment: *your own holdings
+are a self-read, and the gate is the authority, not the affordance.* The
+controllers refuse through `AccessApi.can`, which is where the authority
+lives, so a player who holds nothing is TOLD so rather than meeting a
+verb the game claims not to understand.
+
 Real property **bottoms out at the zone**. Every interior is already its
 own zone (a non-cardinal `enter` is a zone break), so the things a player
 holds as real property — a house, a shop in a district, an apartment, a

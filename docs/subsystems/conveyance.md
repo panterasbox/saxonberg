@@ -166,6 +166,24 @@ mode's `conveyanceMixin`. The witness invocation lives inside
 | `mount <X>` | `transferOccupancy` from any current posture-bearing slot to `X.mountSlot`; set `Postures.Mounted` |
 | `dismount` | Vacate the mount slot the actor occupies; set `Postures.Stand` |
 
+⚠⚠ **`dismount` was afforded by nothing until the reachability sweep: you
+could get on a horse and never get off it.** `MountableMixin` confers
+`mount` and `ride` on its `peers` — and its own comment records that pair
+being found the same way, in the nutrition-fitness drive — but nothing
+conferred the way back off, and `drive` was missed on the same pass
+(`DrivableMixin` had no static at all).
+
+⭐ `dismount` belongs to **`PosedMixin.self`**, not to `Mountable`, and
+the reason is a fact about the mechanism rather than a preference: the
+state it reads is the RIDER's. `requiresMounted` gates on
+`giver.getPosture() !== Postures.Mounted`, so you dismount a horse that
+has walked out from under you, and a body that is mounted can always try
+to stop being — exactly as a body that is sitting can always try to
+`stand`. It sits beside `lie`/`sit`/`stand`/`kneel`, which were
+themselves afforded by nothing until a browser walk found them.
+`drive` went to `DrivableMixin` (`environment` + `peers`), because the
+vehicle you are aboard is your container.
+
 `mount horse` finds the horse's mountSlot; `mount back` resolves
 `back` as a Detail keyword via the § 5.5 Detail-targeted pathway.
 

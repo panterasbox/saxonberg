@@ -491,6 +491,27 @@ lock gate fires **before** the closed-door gate, reads only `this.door`
 north`, door fetched from `via.exit.getDoor()`) via
 `MqlApi.effectiveTarget`.
 
+**⛔⛔ AND THE TWO VERBS ARE AFFORDED BY NOTHING, ON PURPOSE.** Since the
+reachability sweep both views carry `unreachable:
+awaiting:base-class-narrowing-slate` — a top-level key `lint:reachability`
+reads and the runtime does not — so the disposition is written where the
+next person looks rather than being an absence anybody could mistake for
+an oversight.
+
+The reason is `base-class-narrowing-slate.md` § I9, and it is the stopgap
+below: this view's arg says `requires: LockableMixin`, and the Exit
+subclasses that actually hold the REAL locks
+(`residence/src/idea/KeyedDoorExit.ts`,
+`eternal-university/src/duncan-hall/idea/DormDoor.ts`) compose no
+`LockableMixin` at all. So conferring `lock` today would afford a verb
+that can only ever refuse, against the only doors in the realm worth
+locking — and `platform/thing/Key.ts` says of itself *"it affords no
+verbs."* ⭐ The reconciliation retires `LockableMixin`, renames this file's
+mixin, and puts the affordance on `Mobile.self` beside `open`/`close` in
+the same commit. **The census is the census; the disposition is per
+verb** — nine other dead verbs were conferred in that same sweep, and
+these two were held.
+
 **⚠ STOPGAP.** `LockableMixin` carries **no key/credential model** — the
 crossing's north gate is seeded permanently locked and soft-walled in
 dialogue (Gus), so `lock` / `unlock` are minimal admin / no-key verbs. It

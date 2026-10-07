@@ -102,6 +102,34 @@ ambiguity model** — it reuses `CommandApi.applyCardinalityPolicy` (the
   cardinality many → apply to each; fed by MQL's existing `all X` / `:{*}`.
 - **zero**: not-found error.
 
+## ⭐⭐⭐ The affordance link is GATED now (2026-10-07)
+
+`lint:reachability` arm A: **every command view in the game is named by a
+`commandContributions` static somewhere, or carries a top-level
+`unreachable:` key saying why not.** A zero invariant, opened at fifteen
+dead views and driven to nought by the reachability sweep. Discovery is
+one thing; *existing at all* is the one underneath it, and this slate had
+no gate for it.
+
+⚠ Of the fifteen, **the timepiece verbs are the ones this slate recorded
+the shape of** — `wind` and `adjust`, the `blow`/`tally`/`wind`/`adjust`
+bundle `CLAUDE.md` names as THE exemplar for domain-local commands. Half
+of it had never run. `Watch.ts` reasoned correctly that the capability
+gate belongs on `MechanicalMovementMixin` and then concluded *"so Watch
+contributes none"* — which picks the right GATE and forgets to pick a
+CONFERRER. Its two siblings in the same directory (`Whistle.ts:36`,
+`CrossingLog.ts:41`) got it right, which is exactly what made the
+omission invisible. ⭐ The rule both docstrings carry now: **the mixin is
+the gate, the concrete class in the pack that owns the verbs is the
+conferrer** — a kernel mixin may never name a locality's view.
+
+⭐ A **singleton-claimed-once** gate is the honest general form of a
+related bug this sweep met and did not fix (the distributor's counter
+read as a singleton and found two). It needs constant resolution, and
+most duplicate `props:` claims are legitimate — a works-board in twelve
+yards is the intended shape — so it is an open question rather than a
+gate. One paragraph, here, deliberately.
+
 **Command provenance (help) — shipped.** The `affordances` verb
 (`AffordancesController`) lists a giver's available commands annotated
 by affording source, and the underlying attribution record is

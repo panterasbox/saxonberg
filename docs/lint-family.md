@@ -852,6 +852,171 @@ game, which is why "just rename one" is not automatically the answer. The
 alternatives are one view with subcommands, or a rename; **never a new
 line in the allowlist.**
 
+### ⭐⭐⭐ `lint:reachability` — a verb nothing confers, a row nothing reaches (2026-10)
+
+**`lint:verb-collisions` above asks whether two views claim one verb.
+This asks whether ANYBODY claims it at all** — the other half of the same
+question, and the bigger population by an order of magnitude.
+
+The failure it exists for shipped a whole trade. The carcass-chain build
+gave `trade-chandlery` a `dip` verb, a view, a controller, a recipe and a
+shop that sells the wax, and **nothing anywhere conferred the verb**: the
+pack's row named the kernel's `CraftVessel`, and a kernel class cannot
+know a pack's view exists. A player standing in the chandlery with a wick
+in hand got *"I don't understand."* ⚠⚠ And the drive had been PASSING it —
+its checkpoint asserted only that the refusal was not `no-recipe` and not
+`not-learned`, and an unknown verb is neither.
+
+Generalized, that is a population: **fifteen dead views and forty-five
+unreachable rows**, found in an afternoon.
+
+#### Three arms, two corpora, and NO allowlist anywhere
+
+The disposition for a view or a row is a field **on that view or row**
+(below), so there is no list in the script for a build to append itself
+to — which is the one structural thing this gate does differently from
+`lint:verb-collisions`.
+
+- **Arm A — affordance.** Every command view is named by a
+  `commandContributions` static, or declares `unreachable:`. A **zero
+  invariant**. Opened at 15; W2 of the sweep drove it to 0 and deleted the
+  constant.
+- **Arm G — grammar.** Two shapes, two ratchets:
+  - the **phrase shape** — a `string` positional followed by an optional
+    `object` carrying a `default`, where the binder gives word two of a
+    two-word name to the trailing slot and throws that slot's default
+    away. `buy dog loaf` bound `thing = "dog"` and then refused the
+    player in the name of a counter they had never mentioned. 9 → 6.
+  - the **article shape** — an `object`/`objects` arg declaring
+    `prepositions:` and not greedy, so it takes exactly one token and
+    `from the second counter` is *"too many arguments"*.
+    `command-spec.md:507-515` already called this *"THE ARTICLE DEFECT…
+    every object arg a player may put an article in front of needs
+    [greedy], INCLUDING plural and prepositional ones"*, with 45 views
+    carrying it for that reason — and **106** that do not. Ceiling 106.
+- **Arm R — rows.** Every `thing`-branch row is reached by one of five
+  mechanisms, or declares `unreachable:`. A **zero invariant**. Opened at
+  45; W3 drove it to 0.
+
+⭐ Why none of the four is a bare count: a view's affordance and a view's
+phrase shape are **per-view authoring decisions**, and a row is reachable
+for free or declared in one line. None of the figures scales with content
+volume, which is the rule § *a ratchet over a content-scaling figure*
+sets. Arms A and R can be ZERO precisely because a declaration costs an
+author one line; a ceiling over a population nobody can finish is the
+thing that drifts up.
+
+#### The carrier: `unreachable:`, a top-level YAML key
+
+Closed vocabulary — `exemplar` · `parent` · `awaiting:<slate-basename>`,
+the last checked against `docs/slates/**` so a **stranded** reason is a
+finding. (`wand-of-firebolt-cursed` sat at `regionTarget: 0` *"until
+generation odds land"* long after they had landed.)
+
+Verified end to end before it was chosen: `PackLogic` reads only
+`class`/`extends`/`data` off a row and hashes only those three, so on a
+ROW the key never reaches Mongo, never changes a content hash and never
+reaches the runtime. ⚠ A `data:`-level carrier was rejected on a stronger
+reason than the obvious one — the `TemplateApplier` iterates the host's
+DECLARED fields and lights a `reportUnapplied` diagnostic for anything
+left over, so `data.unreachable` would raise an author-visible diagnostic
+on **every clone**.
+
+⚠⚠ **A command VIEW has a CLOSED schema**, which the plan got wrong and a
+unit test caught: `additionalProperties: false`, so an undeclared
+top-level key throws at load. `unreachable` is a declared property of
+`command.schema.json` now, pattern-validated — which is strictly stronger
+than the undeclared version, because a typo fails at boot rather than at
+the next lint run. `CommandDefinition.unreachableKey.test.ts` pins the
+inertness: same verbs, same controller, same bound model, neither arg nor
+option.
+
+#### Arm A reads STATICS ON DISK, and never the resolver
+
+`command-routing.md:1763` says of the **runtime affordance resolver** —
+the probe behind the radial menu — *"not a gate, and it must never become
+one."* That still holds. This gate boots nothing, instantiates nothing,
+resolves no affordance for any target, and carries no table of which
+verbs suit which targets (`:1756` refused that twice). It runs the
+TypeScript scanner over every non-test `.ts` and collects every string
+literal ending `.yaml` that contains `/cmd/`.
+
+⚠ The file-wide literal scan is deliberate: `MarketStalls.ts` builds its
+list by spreading `Stock.commandContributions.peers`, so a scan confined
+to the initializer would read that as unconferred. The cost is that a
+view path appearing anywhere in a file counts. **Residual risk, stated:**
+a path assembled at runtime would be *undercounted* — reported as
+unconferred when it is reachable — which fails LOUD, so the first such
+entry is a finding a human adjudicates rather than a hole. The gate also
+REPORTS any contributions initializer whose elements are not literals,
+identifiers or spreads.
+
+#### Arm R's five mechanisms, and the faucet/citation split
+
+faucet-named · self-placed (`container:`/`seatIn:`) · census-drawn
+(`censusKey` + `CirculatingMixin` + a positive target, including a zone's
+`stocks:` override) · parent-of-a-reachable-child · code-named.
+
+⭐ **Code-named counts a DIRECTORY PREFIX too.** `platform/agent/Gus.ts`
+holds `const ROOT = '/world/terminus/university-avenue/thing'` and places
+six rows by concatenation; a full-path scan misses every one. `--list`
+labels a prefix hit `prefix`, because it is the weaker evidence.
+
+⭐⭐ **The faucet/citation split, and the case that forced it.**
+`Feeder/terminus-main.yaml` names
+`/world/terminus/wharfside/thing/aqueduct-house` as its `source:` — the
+`ControlStructure` whose `isGenerating()` powers the city's whole feeder
+tree, read live at every grid compile. And **nothing placed the house**,
+so the grid cited a building that was not standing. *Being NAMED by a
+field is not reachability; the field has to MINT or PLACE.* So the script
+carries two enumerated lists — FAUCETS (props, cast, `outputTemplate`,
+`stockLines[].itemTemplatePath`, `butcheryYield[].cut`, a working's
+`oreRow`, a rack's `toolRows`, an archetype fitting's `default`, …) and
+CITATIONS (`source`, `mainsRef`, `operatingLocations`, a brain's
+`shelf`/`stock`/`counter`, a par line's `exemplar`, …) — each entry with
+its reason, **classified from a census of every field in every content
+YAML whose value is a `thing` path (54 of them), not from memory.**
+
+⚠⚠ A path-valued field in NEITHER list is a **finding**, and the finding
+quotes the disaster it prevents: `populates: → props:/cast:` cost
+`check-template-census` **322 of its 462 refs while still reporting
+green**, because the field it looked for no longer existed anywhere. The
+only way to add a faucet is to name it.
+
+⚠ A `__tests__` reference never counts, and a `.md` never counts. A test
+that manufactures what the world lacks HIDES the lack — the only
+composition of `SwimmableMixin` or `FlyableMixin` in the repo was an
+integration test that built its own `SwimZoneLocation`, and it passed
+nightly for three builds while no water existed in the realm and `swim`
+was afforded by nobody.
+
+#### It was seen to fail before it was trusted
+
+§ *Four ways a census lies* demands it. `scripts/__tests__/check-reachability.test.ts`
+runs all three arms over `scripts/__fixtures__/reachability/` — a
+synthetic pack tree holding one of each violation class — and every one
+of its 29 assertions is a **POSITIVE**: the arm FINDS it. ⚠ One finding
+came from the fixtures themselves: naming a fixture file `widget.test.ts`
+made vitest collect it, and `lint:test-bootstrap:verify` compares its own
+walk against vitest's roster, so a fixture wearing the test suffix reads
+as a real test file with no tests in it.
+
+#### ⭐ What the burn-down looked like, and why a deletion is a smell
+
+Of arm R's 45: **19 went on a shop shelf · 10 were placed where the world
+already described them · 5 declared `exemplar` · 6 parked against a slate
+· 4 resolved by `extends:` or `container:` · ONE was deleted.** The plan
+nominated five for deletion and **four of those were wrong** — in each
+case the row's own header said where it belonged, and three of them were
+cited by a doc. A gate that produces deletions is a gate being read
+carelessly: the rule that worked was *if a player would plausibly own
+one it is stock; if it exists only so a doc can point at it, declare it.*
+
+⚠ And the rule still had to meet a mechanism it did not know about: a
+`Hearth` is not chattel-stampable, and a shop good must be, so the
+brazier and the stove could not be stock however plainly ownable they
+look. The store's own standup test is what said so.
+
 ### The identity build's three (2026-09)
 
 Each guards a failure that is **closed and silent** — the family's

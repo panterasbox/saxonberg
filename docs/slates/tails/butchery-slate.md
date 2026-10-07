@@ -2,14 +2,17 @@
 
 > **Status: PARTIAL** — the carcass chain and the butchery build both
 > shipped → [butchery.md](../../subsystems/butchery.md)
-> **Left:** ⛔⛔ **BEESWAX has no supply in the realm** — the chandlery's
-> prose sells wax candles the world cannot make (see below) · poultry cuts
-> (the biped plan names no muscles) ·
-> dry-aging on the hook · trimming as its own verb · species-adjusted
+> **Left:** dry-aging on the hook · trimming as its own verb · species-adjusted
 > `partArea` · horn, glue and gelatin — three sinkless products with
 > named buyers · soap · the shambles ordinance (the governance limb) ·
 > `Material.toughness` vs `Muscle.work` · ⭐⭐⭐ **AC1 of the carcass chain
 > is UNMET — leather still has no path to a worn garment**
+> ✅ **RETRACTED by the reachability sweep (2026-10-07): BEESWAX HAS A
+> SUPPLY** — the chain is whole and this slate was wrong (see below).
+> ✅ **SHIPPED by the reachability sweep: POULTRY CUTS** — the three cut
+> rows are the hen's `butcheryYield` now, and there is a hen; the claim
+> about the biped plan was about the wrong plan (`fowl` names the
+> muscles).
 > ✅ **FIXED in the sweep:** the two drives' collision (they are one file
 > now) and the "25-day wedge" (never a wedge — a compressed-clock
 > thundering herd the drive manufactured; see below).
@@ -141,37 +144,51 @@ accumulates sheep-shaped things by design.
 
 ---
 
-## ⛔⛤ BEESWAX is obtainable NOWHERE in the realm — the shop sells what the world cannot make
+## ⛔⛔ RETRACTED — BEESWAX HAS A SUPPLY, and this section was wrong
 
-Found while removing the last conjured input from the drive, and it is
-worth more than the checkpoint that was hiding it.
+**The claim this slate carried, in its own status block and at length
+below, was that beeswax is obtainable nowhere in the realm. It is
+false.** Retracted 2026-10-07 by the reachability sweep, which went
+looking for unreachable content systematically and found the opposite
+here.
 
-The chandlery's own floor describes its stock:
+The chain is whole, end to end, and every link is a shipped row:
 
-> *"Wicks hung in rows from a rod … The pale **beeswax** ones are a tenth
-> of the number and the whole of the front row, which tells you exactly
-> what each kind is worth without anybody saying."*
+> **nucleus** (`/trade/apiculture/thing/nuc`, a general-store line at par
+> 1 for **45 coin** — `general-store/counter.yaml:139` and `:396`, the
+> dearest thing on the shelf under the musket) → **hive**
+> (`/trade/apiculture/thing/hive`, par 2 at 12) → `rob` → **comb** →
+> `crush-comb` (whose `outputResidue` IS the cake) → **beeswax-cake** →
+> `melt-wax` → the chandler's **dip-pot** → `dip`.
 
-And `beeswax` appears in **no props list, no stock line and no counter**
-anywhere in `content/*/content/world`. The only way the drive could get a
-cake was to conjure one, which is why the conjuring went unnoticed: it
-was papering over a missing supply chain.
+⚠⚠ **How the error was made, and it is the instructive part.** The
+original search was for `colony|swarm` and never for **`nuc`**. The
+beekeeper's word for a starter colony is a nucleus, the counter's own
+comment calls it *"ONE labelled faucet: the bees themselves"* and explains
+in four lines why it is one line at par 1 rather than a par on every
+product — and the search that produced *"beeswax has no supply"* could not
+see the word. An absence found by grep is only as good as the vocabulary
+of the grep.
 
-⚠⚠ **This is exactly the dead end the carcass chain existed to close** —
-a product with a sink and no source — surviving in the one half of the
-pack nobody drove. The tallow leg is whole (carcass → suet →
-`render-tallow` → the knacker's crock → the chandler's pot), and the wax
-leg stops at a hive nobody can reach from here.
+⛔⛔ **Worse: a drive checkpoint PINNED the falsehood.** `carcass-chain.dirty.wire.test.ts`
+step 16 was titled *"the WAX half has no supply in the realm"* and
+asserted it, so the suite was enforcing the mistake nightly and this
+slate inherited it from the test rather than the other way round. The
+step is rewritten.
 
-⭐ The fix is **apiculture's**, not butchery's: `crush-comb` already makes
-a cake, and what is missing is a counter that sells one, or a hive in
-reach of the valley. → `apiculture-slate` / `rendering-slate`.
+⭐ What was genuinely missing — and the sweep fixed it — was the
+**reachability of the tail, not the supply of the wax**: the apiculture
+drive stopped at `rob`, so nothing had ever walked comb → `crush-comb` →
+cake → `melt-wax` → `dip`. That tail is a drive checkpoint now. And the
+claim *one recipe, two fats* remains unit-proven in
+`CraftingLogic.dipped.test.ts` through the real resolve.
 
-⭐⭐ Meanwhile the CLAIM is not untested: *one recipe, two fats* is
-unit-proven in `CraftingLogic.dipped.test.ts` (*a pot of WAX dips a candle
-made of beeswax* beside *the SAME recipe over a pot of tallow*), through
-the real resolve. The drive owns reachability, and it now proves the
-reachable half end to end and says plainly why the other half stops.
+⭐⭐ **The lesson worth keeping from the whole episode** is not about bees.
+It is that *a premise stated once gets cited* — this one travelled from a
+grep, into a test title, into a slate's status block, and was quoted back
+in planning for two builds before anybody checked the counter. Three
+documents agreeing is not evidence when all three descend from one
+search.
 
 ---
 

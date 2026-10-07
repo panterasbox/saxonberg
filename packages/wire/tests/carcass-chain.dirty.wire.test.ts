@@ -1126,29 +1126,45 @@ suite('⭐⭐⭐ 14–16. the candle — one act, and the fat decides', () => {
     expect(reason, said).not.toBe('not-learned');
   }, 300_000);
 
-  it('⚠⚠ 16. `melt` is an ALIAS, and the WAX half has no supply in the realm', async () => {
-    // ⭐⭐⭐ **A finding, not a checkpoint I could make pass.**
+  it('⭐ 16. `melt` is an ALIAS — the one thing this step owns', async () => {
+    // ⛔⛔ **THIS STEP USED TO ASSERT A FALSEHOOD, and it is the reason
+    // the falsehood survived two builds.**
     //
-    // This step used to `clone /trade/apiculture/thing/beeswax-cake
-    // --here` and die on `access-denied`. Looking for the honest route
-    // instead turned up something worth more than the checkpoint:
-    // **beeswax is obtainable NOWHERE in the realm.** It appears in the
-    // chandlery's own prose — *"the pale beeswax ones are a tenth of the
-    // number and the whole of the front row"* — and in no props list, no
-    // stock line and no counter. The shop advertises a candle the world
-    // cannot supply.
+    // Its title was *"the WAX half has no supply in the realm"* and its
+    // comment said beeswax appears *"in no props list, no stock line and
+    // no counter."* **That is wrong.** The chain is whole and every link
+    // is a shipped row: the general store sells a NUCLEUS of bees
+    // (`counter.yaml:139`, par 1, 45 coin — the dearest thing on the
+    // shelf under the musket) → a hive at 12 → `rob` → comb →
+    // `crush-comb`, whose `outputResidue` IS the cake → `melt-wax` → the
+    // chandler's pot → `dip`.
     //
-    // ⚠ That is precisely the sinkless/sourceless dead end the carcass
-    // chain existed to close, surviving in the half nobody drove. It is
-    // recorded on `butchery-slate.md`; the fix is apiculture's
-    // `crush-comb` reaching a counter, not a clone here.
+    // ⚠⚠ The original search was for `colony|swarm` and never for
+    // **`nuc`** — a beekeeper's word for a starter colony — so the grep
+    // that produced *"no supply"* could not see the one line that
+    // supplies it, under a comment calling itself *"ONE labelled faucet:
+    // the bees themselves."* An absence found by grep is only as good as
+    // the vocabulary of the grep.
     //
-    // ⭐⭐ And the two-fats CLAIM is not going untested: it is unit-proven
-    // in `CraftingLogic.dipped.test.ts` — *a pot of WAX dips a candle
-    // made of beeswax* beside *the SAME recipe over a pot of tallow dips
-    // a tallow candle*, through the real resolve. What this file owns is
-    // reachability, and what it can still prove here is the ALIAS: that
-    // `melt` reaches the dip controller rather than being a second verb.
+    // ⚠⚠⚠ And then the claim became LOAD-BEARING because it was written
+    // here. `butchery-slate.md` carried it in its status block, quoted
+    // from this test rather than from the content; planning cited the
+    // slate. Three documents agreed and all three descended from one
+    // search. The reachability sweep retracted it in the slate and
+    // rewrote this step in the same commit — *a premise stated once gets
+    // cited.*
+    //
+    // ⭐ What WAS genuinely missing is the reachability of the TAIL, not
+    // the supply of the wax: nothing had ever walked comb → `crush-comb`
+    // → cake → `melt-wax` → `dip`. That is a checkpoint on the
+    // apiculture drive now, where the bees are.
+    //
+    // ⭐⭐ The two-fats CLAIM stays unit-proven in
+    // `CraftingLogic.dipped.test.ts` — *a pot of WAX dips a candle made
+    // of beeswax* beside *the SAME recipe over a pot of tallow* — through
+    // the real resolve. What THIS step owns, and all it owns, is the
+    // ALIAS: that `melt` reaches the dip controller rather than being a
+    // second verb.
     const melted = await say(k, 'melt');
     const reason = refusedFor(melted);
     const said = (await melted.said()).toLowerCase();
