@@ -1,10 +1,16 @@
 # EotL — what the ancestor teaches about writing content
 
-> **Status: reference, written 2026-10-01.** The companion to
-> [eotl-census.md](./eotl-census.md), which counts the corpus. This one
-> reads it. Roughly twenty areas across fifteen cabals, chosen by the
-> owner's thirty-year recall rather than by any metric — *"not all the
-> content is equally memorable to me."*
+> **Status: reference, written 2026-10-01; ⭐ Part 4 added 2026-10-07.**
+> The companion to [eotl-census.md](./eotl-census.md), which counts the
+> corpus. This one reads it. **Part 4 reads two areas closely** —
+> Gnomelands and newbieland — the only two the owner recalls directly, so
+> the only two where a reading can be checked against a memory of playing
+> it. ⚠ Part 4 also carries a finding that reframes the census: **detail
+> density is a revisit, not a draft.**
+>
+> Roughly twenty areas across fifteen cabals, chosen by the owner's
+> thirty-year recall rather than by any metric — *"not all the content is
+> equally memorable to me."*
 >
 > ⚠ **EotL is a frame, not an authority.** It is thirty years old, much
 > of it is bad, and its answers were shaped by an engine that offered
@@ -531,6 +537,423 @@ someday..** )"*.
 week apiece, which includes coding up the items to be sold."* **The
 expensive unit of content is a shop** — a building plus an inventory plus
 the behaviour of everything in it. Not rooms. Not NPCs. Commerce.
+
+---
+
+# Part 4 — Two areas read closely
+
+Added 2026-10-07. The owner can recall these two directly, which makes
+them the only places in the corpus where a reading can be checked against
+somebody's memory of playing it. They are also the two ends of what the
+corpus can do: the densest area in it, and the first one anybody sees.
+
+## ⭐⭐⭐ Gnomelands (`fantasy/miscellany/gnomelands`) — 439 files, 89 % density
+
+The top of the detail-density range, against a 41 % corpus mean. And it
+has a README, which is the only place an author in this corpus explains
+themselves:
+
+> *"This area was originally written by me when I first started on this
+> MUD, back around '92. **I knew nothing about programming then.**"*
+>
+> *"I had a boring lab job a couple of years later, and I spent a bunch
+> of time **ignoring my work and updating the area to include more
+> descriptions**, a few new areas, and some little details like ANSI
+> colors."*
+>
+> *"had some plans to create a second quest that revolved around Bubo
+> Sparkytoes and an underground palace and some wind-up items, but **the
+> story never really made sense** and I didn't really know how to make it
+> all work so I ended up leaving it half-finished."*
+>
+> *"I've been away focused on other things for a few years, but **the
+> area has never really left my mind.**"*
+
+### ⭐⭐⭐ Density is a revisit, not a draft
+
+The corpus's densest area got that way because its author was bored at a
+lab job **years later** and went back to add descriptions. Culhaven's
+8 % is what one pass looks like.
+
+**So detail density does not measure care at authoring time. It measures
+whether anybody ever came back.** Every other reading of the density
+numbers in this document should be adjusted by that.
+
+⭐ Two other things the README settles: the best-detailed area in 45,380
+files was written by somebody who *"knew nothing about programming"* —
+and when the author names what blocked the abandoned quest, **the story
+comes first and the skill second.**
+
+### The shape: 12 subdivisions, each a different KIND of place
+
+> town · factory · mines · earthworks · parliament · palace · castle ·
+> clock_tower · lighthouse · island · airship · leviathan
+
+Not big, not small. The variety is what makes it explorable rather than
+consumable — and ⭐ **parliament** does the most work: gnomes with a
+legislature they take seriously is funnier *and* more respectful than
+gnomes being zany. You also go **inside a leviathan**.
+
+The town adds a vertical axis — `falling1` · `falling2` · `mid_air` ·
+`floating` · `descending` — so **falling is a traversable state**, plus
+`inside_cannon` · `inside_statue` · `inside_windmill`, and
+`gullivers_way1–4` putting scale into the street names.
+
+And the factory is a **candy** factory: `candy_garden` · `taffy_pond` ·
+`sody_pop` · `vat` · `barrel_room` · `catwalk` · `lab01–03`. Which is
+what makes the clockwork read as whimsy rather than steampunk — ⭐ the
+industry being industrialised is *sweets*.
+
+### ⭐⭐⭐ The shared pulse — tone is TEMPO, not just register
+
+`rooms/tick_tock.h`, credited `/* Tick Tock Thing :: Gunthar :: Miscellany
+Clock */`. **One heartbeat every 10 seconds drives the entire area, and
+every location takes a different divisor of it:**
+
+| cadence | where | the line |
+|---|---|---|
+| **every tick** | the clock tower, 10 rooms | `"Tick!"` → `"Tock!"`, alternating |
+| **÷3** | waterwheel · waterworks · windmill | *"The waterwheel turns, splashing water as it goes."* · *"The mechanical works turns, dripping water."* · *"The windmill squeaks."* |
+| **÷5** | lighthouse · observatory | *"The massive brass lamp revolves."* · *"The huge orrery finishes another complete cycle."* |
+| **÷3**, gated | the leviathan, 3 rooms | *"The leviathan rocks violently to one side…"* — only `if (engine_room->query("engine_on"))` |
+| **÷20** | three beaches + the island | *"A wave thunders its way onto the beach, erasing your tracks."* |
+
+That is not a per-room timer. It is a **shared pulse**, with the clock
+tower as the fundamental and every other place a multiple of it. ⭐⭐
+**The whole realm beats in one time signature, and that — not only the
+prose register — is why the area reads tonally consistent.** An area can
+have a tempo.
+
+⭐ The divisors are physically honest without anybody being told: a clock
+ticks fastest, machinery turns slower, a lighthouse lamp slower still, a
+wave slowest of all.
+
+⭐⭐⭐ **And it answers uniform repetition.** The beach gets one line
+every ~200 seconds and the clock tower gets one every 10, and **both are
+right**: a clock tower *should* be relentless — there the repetition IS
+the content, and Tick/Tock alternating is a two-beat cycle rather than a
+repeated string — while the beach's rarity is what makes its line land.
+**The mistake was never repetition. It is uniform repetition.** Match the
+cadence to what the place is.
+
+⭐⭐ The wave line is the best ambient sentence in the corpus. It gives
+the beach its slow pulse, **implies you left tracks** — which the game
+never modelled and never needed to — and then **takes something away.**
+An ambient message whose content is a deletion: refrain-plus-absence
+(technique 2) in one sentence, on the slowest clock in the area.
+
+⭐ And the clock is a **cross-cutting layer by a second author**: the
+rooms are Malifax's (`// by Malifax` on each), the heartbeat is
+Gunthar's, and it names locations across six subdivisions.
+**Collaboration by layer rather than by territory** — the only instance
+of it found in this corpus.
+
+### The promise rule, scored perfectly — `clock_tower/clockworks1.c`
+
+The description names six nouns — axles, sprockets, springs, teeth,
+gears, cogs — and `descs` answers **all six**, each with something
+mechanically true (*"The huge springs provide the tension that drives the
+clockworks"*). ⭐ **Six promised, six kept**, and the detail set is
+enough to reconstruct how a clock works.
+
+⭐⭐ And the prose warns you about its own mechanism: *"Your efforts
+don't seem to be able to keep you in one place for long, however."* Ten
+seconds later a `call_out` has a gear carry you to `clockworks2`. **The
+description is an honest advance notice and the mechanism keeps the
+promise on a timer.**
+
+⚠ Dropped objects get the other branch — they *fall*, arriving below as
+*"comes tumbling into the room from somewhere up in the clockworks."* A
+person can grab a tooth; a sword can't. The room's physics tells you and
+your belongings apart, correctly.
+
+⭐ The authored exit is `down`; the mechanism takes you *up*. **The exit
+list is the way back and the machine is the way forward** — technique 10
+implemented as physics.
+
+### ⭐⭐ Whimsy in the frame, sincerity inside it — `monsters/bubo.c`
+
+```
+add_phrase("Bubo jumps up and down excitedly.");
+add_phrase("Bubo shouts:  Eureka!!!\nBubo says:  Oh, wait, sorry"...);
+add_phrase("Bubo's eyes go wide with wonder.");
+add_phrase("Bubo shouts:  Slaptoad, come quickly!!");
+```
+
+*"Eureka!!! …Oh, wait, sorry"* is the area's whole thesis in one line.
+**The writing is laughing at him and he is not in on it** — he genuinely
+believes he has it, every time, and will again in thirty seconds.
+
+⭐⭐⭐ **And the last phrase names another NPC.** `monsters/slaptoad.c`
+exists. An idle that calls a specific colleague by name costs nothing, is
+not interactive, requires no response — and **turns a monster directory
+into a community.** Then you meet Slaptoad later and remember being
+shouted past: reincorporation at the lowest possible price.
+
+### ⭐⭐ The clockwork bestiary are strays, not monsters
+
+`walking_cog` · `walking_spring` · `walking_sprocket` · `clock_dragon` ·
+`clock_keeper` · `mech_dragon` · `mech_dragonfly` · `mech_knight` ·
+`mech_shark` · `mech_spider` · `velocipede`
+
+> *"This little cog seems to have found his way out of the…"*
+> *"The walking cog walks into the wall with a CLANG!"*
+> *"The walking cog falls over and struggles to get up."*
+
+⭐ It is a *he*, he is incompetent, and you feel sorry for him — because
+**a cog would in fact be terrible at walking.** A fantasy bestiary is
+creatures-as-species; this is **parts with a problem**, which is why the
+register comes out *factory* with no steam-pipe adjectives anywhere.
+
+### ⭐⭐⭐ The joke is four integers — `rooms/town/bakery.c`
+
+```
+// Snappy Whipplecrust's Bakery
+
+"Ahh....nothing in the world can compare to the smells which waft out of
+ a gnomish bakery, and among gnomish bakeries, Snappy's is one of the best!
+
+ An enormous sign hangs over the counter."
+
+descs: sign →   blueberry muffins..... 8 coins
+                cherry torte..........14 coins
+                apple strudel.........20 coins
+                gnomish bread.........48 coins
+```
+
+**Plain bread costs 48** — six times a muffin, more than twice the
+strudel, the most expensive thing in the shop. Because it is *gnomish*
+bread: the local specialty, Snappy is proud of it, and he charges
+accordingly. ⭐⭐⭐ **There is no prose making that joke. It is in the
+price list**, and Snappy is entirely sincere about it.
+
+Three more moves in a handful of words:
+
+- ⭐⭐ *"among gnomish bakeries"* presupposes **enough gnomish bakeries
+  to rank.** A whole competitive scene, never shown, free.
+- ⭐ *"one of the best"* — not *the* best. Enthusiastic and still
+  **hedging**, which is funnier and more trustworthy than a boast.
+- ⭐ The description promises **one** noun (*an enormous sign*) and the
+  detail behind it is the largest piece of content in the room —
+  describe-then-wonder with an outsized payoff.
+
+⭐⭐⭐ **And the room is named for its proprietor.** *Snappy
+Whipplecrust's Bakery*, in the short description, every time it scrolls
+past. The business is a person's project, so his pride can be a price and
+the price can be the joke. ⚠ A business named for its **function** has no
+author, and a business with no author has no opinion.
+
+⚠ It is also a working shop — `add_action("get_order","buy")`, four
+priced items, Snappy placed by `reset_data`. And `set("exiits", …)` is a
+typo that has sat in the corpus's best area for thirty years; the room
+works because `add_door` does the real job.
+
+### ⭐ Whimsical premise, honest mechanism — the Snipe Hunt
+
+`quest_info`, in full:
+
+> *"Princess Flaxena Flailthighs in the Gnomelands is looking for a VERY
+> elusive prize. Ask her about it."*
+
+A snipe hunt is the proverbial fool's errand — you send the new kid out
+with a sack after a bird that isn't real. ⭐⭐ **`monsters/snipe.c`
+exists.** Malifax made the bird real. The frame is a prank and nobody
+inside it is kidding, which is the same structure as Bubo's retracted
+Eureka and Snappy's 48-coin bread.
+
+⭐ The quest's shape is worth naming: **a named person wants an absurd
+thing, and the absurd thing is real.** The content is the gap between how
+ridiculous the request sounds and the fact that it isn't.
+
+### ⚠⚠ And the abandoned quest left its setting behind
+
+The README calls the Bubo quest abandoned — *"the story never really made
+sense."* But `rooms/palace/` is **23 finished rooms**: ballroom, garden,
+glass_observatory, grotto, laboratory, library, mirror_room, crevasse,
+ledge, `upsdown.c`.
+
+⭐⭐⭐ **The setting shipped and the story never arrived.** Twenty-three
+rooms of good content with no reason to go there — the exact inverse of a
+mechanism that ships without its prose. Same failure, opposite half.
+(Newbieland has the same scar: see Heaven's Gate, below.)
+
+### ⭐⭐ The naming is a learnable system
+
+`babblebobbin` · `barblesnag` · `biddlybladtt` · `cacklecuck` ·
+`crankytooth` · `dweezleheim` · `gwidulsmirch` · `shoomdiby` ·
+`thimblethumbs` · `twiddlescum` · `woogerswill`
+
+All invented, all plainly **the same language** — doubled consonants,
+`-le`/`-y` endings, compound nonsense nouns. **You could add a gnome
+tomorrow and know what to call him.** That is enhanceability of a kind
+nothing else in the corpus has: the next author can learn the rules by
+reading.
+
+Same for the costume department, which coheres into one argument without
+the word *gnome* ever appearing: `aviator_cap` `goggles` `parachute` ·
+`labcoat` `battery` `magnetic_armor` `steam_armor` `toolbelt` ·
+`denim_overalls` `plaid_overalls` `wafflestompers` · `taffy_armor`
+`stew_pot` `cone` `veil` `tux`. Flight, tinkering, working clothes,
+whimsy. ⭐ A **stew pot** as armour is technique 5 at full strength.
+
+### ⚠ What it lacks, and why that matters
+
+Gnomelands has a *sense* of its industries — a bakery, a bank, an antique
+shop, an inn, a windmill, a factory, mines — and **no economic engine to
+run any of them.** And it still got the Snipe Hunt and the clockworks and
+the leviathan built in the same town as the shops.
+
+⭐ That asymmetry is the one to steal. A place stood up for *economic*
+reasons can still carry invention — **but only if the economy belongs to
+somebody.** Snappy's pride is expressible because the bakery is Snappy's.
+
+---
+
+## ⭐⭐⭐ Newbieland (`fantasy/genious/newbie`) — the first-contact area
+
+The first RPG content most players ever saw, reached by leaving Eternal
+City through the library. ⚠ **It is not a tutorial.** It is simply
+content an eval-1 can survive — and it teaches the game's *philosophy*
+through what it chooses to contain.
+
+### The statement is made twice, and the first time is at chargen
+
+Before newbieland a player has met the lounge (social structure, basic
+UI), Eternal City (an economy, no quests, no beginning-middle-end), and
+**character generation** — six stats (`str dex chr con int wil`, D&D's
+with willpower swapped for wisdom) and `obj/races`:
+
+> human · elf · drow_elf · dwarf · gnome · goblin · troll · centaur ·
+> nymph · pixie · imp · **kender** · **draconian** · **skaven** ·
+> spriggan · merfolk · lich · zombie · android
+>
+> …and **beer_elf** · **chicken** · **pig** · **squid** · **teddybear**
+> · **lobstarbear**
+
+⭐⭐⭐ **Alphabetically adjacent to `centaur` is `chicken`.** The full
+Tolkien-via-Dragonlance contract is offered and broken in the same list,
+before the player has agency over anything. `beer_elf` is the sharpest —
+an elf, the most po-faced race in the genre, with beer bolted on.
+
+**The thesis: irreverent about genre, serious about consequence.** The
+races are a joke. The villains are not.
+
+### The structure: 15 rooms each, one crossroads
+
+`crossroads.c`, *written by Hannah on 11/92*:
+
+```
+:  <-W----- Rainbow Village        :
+:      Bewitched Forest -----E->  :
+
+Note: The newbie area is divided into good monsters and evil monsters,
+so this is a good place to work on your alignment.  There are freebies
+to be had, but most of them depend on how high or low your alignment
+is, and how well you look around.  Have fun!
+```
+
+| **west — "Rainbow Village"** | **east — "Bewitched Forest"** |
+|---|---|
+| bambi · thumper · lassie · bunny · butterfly | slime · leech · rabid_dog · insect_race |
+| child · father · priest · doctor · villager | drug_dealer · terrorist · **jackripper** |
+| **g_angel** | incubus · witch |
+
+### ⭐⭐⭐ The good side is where you go to become evil
+
+Alignment moves by what you kill, on a single int (roughly −4000…4000,
+0 neutral). So `good01`–`good15` is **not** where good players go — it is
+**a nursery you massacre to drive your alignment down.** Bambi. Thumper.
+Lassie. A butterfly. A child. A father. A priest. A doctor. **An angel.**
+
+A list assembled to be maximally wrong to kill — and the signpost calls
+it *"a good place to work on your alignment."* **Have fun!**
+
+The aesthetic signals are inverted on purpose:
+
+> *"the west path looks **green and inviting**, while the east path
+> appears **dark and foreboding**"*
+
+**The inviting path is the atrocity.** The foreboding one is where you
+kill a terrorist and Jack the Ripper and do, mechanically, good. Nobody
+points this out.
+
+⭐⭐⭐ And the detail key is the tell that Hannah knew exactly what she
+had built:
+
+> `"west path": "It seems to lead to a happier place."`
+
+**Happier. Not good.** Rainbow Village *is* happy, and you are walking
+west to end that. The room never calls the west good — it states a fact
+about the villagers, which is not a recommendation.
+
+### ⭐⭐⭐ It is `measurement.md`'s doctrine as level design, thirty years early
+
+> *The engine may read a measurement. It must never read a valuation.*
+
+That signpost is the engine's voice: it explains precisely how the number
+works, mentions the freebies, wishes you well, and **says nothing
+whatever about what you ought to do.** The counter moves either way
+without comment.
+
+⭐⭐ **So the reluctance has to come from the player, and that is what
+makes it a choice instead of a puzzle.** The game declines to punish you
+for Bambi. If it punished you, you would be solving an incentive. Because
+it doesn't, you decide something — and you find out what you are about
+ninety seconds into the RPG.
+
+⭐ It is also an argument **about** its own mechanic. Alignment here is a
+signed integer. Newbieland demonstrates that shallowness by taking it
+absolutely literally and stocking it with Thumper. **The content is a
+critique of the system it teaches** — a thing only content can do to a
+mechanic, and the sharpest available use of being the first area anybody
+sees.
+
+### The villains are phobias, and they are of their decade
+
+slime → leech → rabid dog → insects → drug dealer → **terrorist** →
+**Jack the Ripper**. Vermin, then animal, then social menace, then
+political menace, then the unknowable murderer who could target anyone
+and was never caught.
+
+⚠ *Terrorist* as a menace is **pre-9/11** and reads in the register of
+*Hot Shots* or *Back to the Future* rather than of anything after 2001. A
+reference to a real category of fear is a dependency that drifts, exactly
+as a reference to a living person is.
+
+⚠ From `NOTES`: *"Make a working pistol for the terrorist to carry."*
+And: *"Later on, if someone is up to it, someone can write an area behind
+Heaven's Gate that a dead player (of good alignment) can enter."* ⭐ So
+the good side has a literal Heaven's Gate with an **unbuilt afterlife**
+behind it — Gnomelands' orphaned palace again, from the other direction:
+**the door shipped and the room never did.**
+
+⚠ And one line is in a different register entirely: *"Player killing is
+now banned in the areas to the east and west. Please consider this to be
+a safe haven from aggressive players."* A later retrofit in
+administrative voice, bolted to the bottom of a diegetic signpost — **the
+only place the sign stops being the world and becomes management.** The
+seam is audible.
+
+### ⭐⭐⭐ Hannah's seven moves, stripped of the mechanic
+
+Almost every player in the game has a memory of this area, and most never
+returned after levelling. Its creative mandate *was* being the premiere
+content, and it is expressed in every choice. What ports:
+
+1. **Put the player's own values under load in the first ninety
+   seconds**, with content rather than rules.
+2. ⭐ **Keep the mechanics neutral.** Do not punish, do not differentially
+   reward the "right" answer. The engine measures; the player valuates.
+3. **Make the aesthetic signals honest about the world and silent about
+   the player.** *Green and inviting* is true of Rainbow Village. It is
+   not advice.
+4. **Make the choice legible and symmetrical.** One crossroads, two
+   signposted directions, fifteen rooms each. Nothing hidden, nothing
+   missable.
+5. ⭐ **Let the content critique the mechanic** — take the system
+   literally and stock it with the most uncomfortable valid instance.
+6. **Be the premiere content on purpose.**
+7. **Accept that nobody comes back.** The value is what they carry out.
 
 ---
 
