@@ -2106,6 +2106,61 @@ the alias branch catches it alone.
 both still work, and `details.keys` appears nowhere in the boot. Drive
 re-run after the fix: 23/23.
 
+### ⭐⭐ The SECOND live browser pass — on the merged tree, after the location-graph build
+
+Re-proved green: the forge leg end to end (`look` · the unstoked refusal
+by name · `stoke` · `ignite` · all four `draught` readings · `cover`),
+with **L2's fix holding live** — *"You rake a stone forge down…"*, named;
+`drain bladder` — *"You set the pipe into the face and work the pump."*
+(L1); and warm-DB keyword resolution after a restart, with zero
+`details.keys` in the boot (L5).
+
+⭐ And the retort chain driven to **completion for the first time**:
+`stoke charcoal` → `ignite retort` → `put cordwood` ×4 → `fire in
+retort` → *"You seal the chamber down and settle in to hold it at
+heat."* The retort's own card is W1's thesis in a sentence a player
+reads: *"It is burning charcoal. The flame burns clean and pale, and
+sheds little light."*
+
+⚠ Reading `look` at all needed the driver taught to read the **card
+feed** — `look` renders there, not to the transcript, so a browser pass
+that reads only the terminal is blind to most of what it asked for.
+
+**M1 — ⛔ `stoke charcoal into retort` binds the CLAMP.** The clamp is a
+*turfed charcoal clamp* and its keywords include `charcoal`, so with
+nothing in hand MQL picks the **immovable kiln** over four baskets of
+actual charcoal standing on the ground — and the refusal, *"That will
+not burn."*, blames the player's fuel for the game's mis-pick. `get
+charcoal` first and the same command works.
+⚠ The wire checkpoint asserts only `understood` (the verb PARSED), so it
+passes either way — the same vacuous shape as L1's.
+⚠ Not fixed here: the clamp's keyword is honestly part of its name, so
+the answer is candidate PREFERENCE (a fuel arg should prefer what is
+carried, and a thing that cannot be lifted is a poor fuel), which is
+MQL's scorer and not a trade build's business.
+
+**M2 — ⚠ the wire step that never fired anything.** `put cordwood in
+retort` requires it in HAND (*"You don't have any 'cordwood'"*), and
+`retort-wood` wants **four** lengths. The wire drive puts ONE and
+asserts only `understood`, so the suite has never actually fired a
+retort; `fire` refuses an undersized charge honestly. Driven properly,
+it fires.
+
+**M3 — ⚠ the gasometer checkpoint cannot fail.** It matches
+`/bell|seal|rid|low|full/i` against the read — and the row's own static
+prose contains *"bell"* and *"rides"*. It would pass against a
+gasometer that reports nothing at all, which is what an empty bell does.
+A checkpoint for a WORD-valued gauge has to read the gauge, not the
+scenery around it.
+
+**M4 — ⚠ supply, again.** The yard ships 8 cordwood and a firing burns
+4: two firings, ever. Unlike L4's bladders this one has a producer
+(`fell`, in the Hanging Wood above the yard), so it is a stocking
+question rather than a hole.
+
+⭐ Incidental, and the sim being honest without being asked: `get
+cordwood` beside the lit retort answers *"It scalds your hand!"*
+
 **D6 — ⛔⛔ THE BINDER IS TYPE-DIRECTED, so a bare word after a verb can
 never be a value.** D3's "the value is positional now" was wrong, and two
 further runs proved it: an unresolved selector is still a *structural*
