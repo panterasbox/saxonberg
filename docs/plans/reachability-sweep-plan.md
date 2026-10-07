@@ -222,8 +222,10 @@ only through a `__tests__` file or through a concatenated path in code
   no `Herdbook` row and no `cast:` entry (the three herdbooks are the
   campus herd, the flock book and the ox book; the only bird row is the
   mine canary). Drive step 19 and AC 7's *"a hen yields poultry cuts"*
-  cannot be observed by a player as the realm stands. See **Risks &
-  opens — the hen** (needs the user's eye).
+  cannot be observed by a player as the realm stands. ✅ **AUTHORIZED
+  2026-10-07** — the user approved the hen and the birdseed, so the
+  `hen-book` row is in scope (D22) and this is no longer an open
+  question.
 - The canary: `/trade/mining/agent/canary` (`KeptAnimal`,
   `feedingStyle: [hopper]` on `serinus/canaria.yaml:52`, `diet:
   herbivore`) is cast in Rejection's `ferrow/timbered-drift.yaml:34`.
@@ -669,6 +671,40 @@ awaiting:magic-items-slate`.
 the path once more (content, src, docs) and fixes any doc that cites
 it. `mana-main` is NOT deleted (D8).
 
+**D22 — The hen and the birdseed ship. AUTHORIZED by the user
+2026-10-07**, in answer to this plan's one open question.
+
+*The question.* No hen exists in the realm — `gallus/domesticus` is
+named by no `Herdbook` and no `cast:`, and the only bird row is the
+mine canary. So the requirements' drive step 19 and AC 7's *"a hen
+yields poultry cuts"* were unobservable, and `trade-cooking`'s three
+authored poultry-cut rows had no path into the world even after D14
+fixed the yield. The requirements also say *"Nothing else moves"* at
+Heart's Delight, so adding a bird there needed the user's word.
+
+*The choice.* A `/world/terminus/hearts-delight/thing/hen-book`
+(`Herdbook`, `speciesPath` `gallus/domesticus`, tally 6, `homeExtent`
+the farmstead yard), propped in the farmstead yard and carrying a
+`pack.yaml` warm line — **the ox-book shape exactly** (D16): a row and
+no code. Plus, if and only if no reachable herbivore-acceptable food
+already satisfies a hopper, a `/world/terminus/general-store/thing/
+birdseed` row with a counter line and a price (D18).
+
+*The reasoning.* A farm that keeps sheep, dogs and oxen and no
+chickens is a stranger thing than the row is expensive, and without it
+three authored cut rows stay dead content — which is the exact defect
+class this build exists to close. ⭐ It also makes the build's own
+medicine consistent: a fix that leaves a row unreachable is the thing
+the gate would flag.
+
+*Consequences.* Drive step 19 is a live checkpoint, not a
+`trade-ranching` unit test. AC 7's hen clause is met rather than
+recorded unmet. The hen is a `Herdbook` row, so `draft`/`return` and
+`slaughter` reach it on the one shipped path — **no new verb, no new
+class, and `Species.ts` is untouched** (the yield is a row edit in
+`trade-ranching`, which keeps this build clear of the location-graph
+build's file).
+
 ---
 
 ## ⭐⭐ Host placement
@@ -922,15 +958,15 @@ declared, the estuary swims, the store sells a watch`.
 gone; arm R flips to zero.
 
 **Implements.** D5 (the data side), D8, D13 (the jar), D14, D15, D17,
-D18, D19, D20, D21.
+D18, D19, D20, D21, D22.
 
 **Files, by pack.**
 - `hearts-delight`: `location/farmstead-yard.yaml:34-38` props
   `/world/terminus/hearts-delight/thing/ox-book` after the flock book;
   `pack.yaml:63` a second warm line (`role: producer`, reason: *the ox
-  book is the only thing affording `draft` on the team*). **The hen —
-  see Risks & opens; default: a `hen-book` row + props + warm line,
-  same shape.**
+  book is the only thing affording `draft` on the team*). **The hen
+  (D22, authorized): a `hen-book` row + props + warm line, the same
+  shape as the ox book — not optional, not a default.**
 - `terminus`: `wharfside/bank.yaml` props + details (D17); the
   `jar-of-honey` row + counter line/price swap (D13); `general-store/thing/saucer`
   stock line (par 3) + price (1); counter lines + prices for
@@ -1118,14 +1154,14 @@ new capability. This build's own subject, so it is exhaustive.
 | 4 — buy a dog loaf, an orange seed, a mana cell bare | W1 (+W5). *mana cell* is a general-store line (`counter.yaml:184`, price `:329`) and `mana-cell.yaml:16` carries the two-word keyword `"mana cell"` — the drive buys it bare in step 9's company |
 | 5 — where quoting is the answer the help says so | W1 (`mill.yaml`, and the three converted views say both forms work) |
 | 6 — no refusal names an unmentioned counter/shelf/instrument | W1 (the default is no longer discarded) + W5 step 13 |
-| 7 — oxen draftable; canary eats; dye at home; spin by hand; hen → cuts; aqueduct standing; jar has honey | W3 (+W5). ⚠ the hen clause depends on Risks & opens |
+| 7 — oxen draftable; canary eats; dye at home; spin by hand; hen → cuts; aqueduct standing; jar has honey | W3 (+W5). ✅ the hen clause is covered — the `hen-book` row is authorized (D22) |
 | 8 — the apiculture chain end to end | W5 (apiculture file, the appended tail) |
 | 9 — every thing reachable, declared or gone; a reviewer can tell by reading the row | W0 (arm R) + W3 (zero) |
 | 10 — a dead view, a second claimant, a one-token phrase slot cannot merge silently | W0 (arms A, G) + `lint:verb-collisions` (existing) |
 | 11 — no doc asserts a dead verb works; the locomotion recipe includes the step | W4 |
 
-Unmapped: nothing — but AC 7's hen clause is only coverable if a hen
-exists (Risks & opens).
+Unmapped: **nothing.** Every clause of every criterion maps to a wave.
+AC 7's hen clause was the one gap at plan time and D22 closed it.
 
 ---
 
@@ -1162,18 +1198,16 @@ exists (Risks & opens).
 
 ## Risks & opens
 
-- **⚠⚠ The hen (needs the user's eye before the build runs).** No hen
-  exists in the realm. Drive step 19 and AC 7's hen clause need one.
-  The plan's default: a `/world/terminus/hearts-delight/thing/hen-book`
-  (`Herdbook`, species `gallus/domesticus`, tally 6, `homeExtent` the
-  farmstead yard) propped and warmed beside the flock book — the exact
-  shape the ox-book fix uses, a row and no code, on a farm that already
-  keeps sheep, dogs and oxen. It is new content the requirements did
-  not name (*"Nothing else moves"* at Heart's Delight). If the user
-  declines, step 19 becomes a `trade-ranching` unit test of the yield
-  and AC 7's hen clause is recorded unmet in the MR.
-- **The canary's food (D18).** If no herbivore-acceptable seed food is
-  reachable, the general store gains a `birdseed` row. Content only.
+- **✅ The hen — RESOLVED, authorized 2026-10-07.** See **D22**. No
+  longer a risk: the `hen-book` row ships, drive step 19 is a live
+  checkpoint rather than a unit test, and AC 7's hen clause is met
+  rather than recorded unmet.
+- **✅ The canary's food — authorized 2026-10-07** alongside the hen.
+  D18's conditional branch is now unconditional if no reachable seed
+  food exists: the general store gains the `birdseed` row. Content
+  only. ⚠ Still verify first whether an existing reachable food already
+  satisfies a herbivore from a hopper — if one does, stock nothing and
+  say so in the commit.
 - **The distributor counter (D15).** The survey's cause is wrong; the
   plan names two suspects and the boot log decides. If neither is it,
   the build records what the log says and does not guess.
