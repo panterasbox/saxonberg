@@ -15,7 +15,7 @@ description: "Set how much air a fire draws"
 help: |
   Set a fire's air — `draught wide`, `draught low`, `draught 0.4`, or
   bare `draught` to be told where it stands. Name the fire with a
-  preposition when there is more than one: `draught at forge wide`.
+  preposition when there is more than one: `draught wide at forge`.
 
   The settings are `wide` (or `open`), `half`, `low`, and `banked`, or
   any number from 0 to 1.

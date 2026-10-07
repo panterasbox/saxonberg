@@ -206,15 +206,20 @@ suite('⭐⭐ 1–2. a fire is its fuel, its air and its vessel', () => {
   }, 180_000);
 
   it('⭐⭐ drive 6–7 — the draught moves heat, soot and LIGHT together', async () => {
+    // ⚠⚠ **Start it LOW and open it, not the other way round.** A forge
+    // ships at draught 1, so setting it wide and reading "wide" back
+    // proves nothing — and that is how the first drive run passed this
+    // checkpoint while the verb was binding no setting at all. ⭐ Read
+    // the state you did NOT start in.
+    const low = await say(h, 'draught low');
+    understood(low, 'draught low');
+    const lowProse = await h.prose('draught');
+    expect(lowProse, 'the draught did not move').toMatch(/shut|nearly/i);
+
     const wide = await say(h, 'draught wide');
     understood(wide, 'draught wide');
     const wideProse = await h.prose('draught');
     expect(wideProse).toMatch(/wide/i);
-
-    const low = await say(h, 'draught low');
-    understood(low, 'draught low');
-    const lowProse = await h.prose('draught');
-    expect(lowProse).toMatch(/shut|nearly/i);
     // ⚠ And no FIGURE in the read: a dial is read in words.
     expect(lowProse.replace(/<[^>]*>/g, '')).not.toMatch(/\d/);
   }, 180_000);

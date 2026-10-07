@@ -1932,4 +1932,59 @@ counted offender, correctly: light really is massless.
 
 ## Drive record
 
-*(appended at build time, not at plan time)*
+`packages/wire/tests/fire.dirty.wire.test.ts`, run with `WIRE_BOOT=1
+WIRE_PORT=2013` against a world of its own.
+
+### ⭐⭐⭐ What the drive found that ~12,600 tests could not
+
+**D1 — ⛔⛔ EVERY `Provision` FUEL READ AS SODDEN.** Refused on the third
+checkpoint: `stoke charcoal into forge` → *"It is too sodden to catch."*
+`WaterActivityMixin`'s sparse default is `_moisture = 1` (as harvested),
+right for food and catastrophically wrong for a product of a three-day
+fire — for charcoal's 30 % water capacity that is a ~680 K ignition
+penalty against a hand-flame's 150 K of drying. ⚠ Invisible to the whole
+suite for a precise reason: `Combustible` reads the water for `ignite`,
+and **no shipped `Combustible` composes `WaterActivityMixin`** — only
+`Provision` does, and no `Provision` had ever been fuel. `stoke` is the
+first thing in the game to ask the question.
+⭐ Fixed with a **seed**, not a property: `_moisture` is deliberately not
+authorable (a `dry-turf` row written to paper over this exact gap was
+correctly deleted), but a PROP has no production act, and `seed` is the
+sanctioned mechanism for the initial runtime state of a minted object.
+Charcoal and coke seed `dryness: 0.95`; a freshly cut turf still seeds
+nothing and still refuses the flame.
+
+**D2 — ⛔ A SPLIT OAK LOG WEIGHED NOTHING.** `lint:mass` accepts a row
+that states `_materialPath` **instead of** a mass, and
+`Tangible.getMass()` derives nothing from a material — so a row that took
+the material branch weighed zero and `stoke` refused it as *"There is
+nothing of it to burn."* Both log rows state a mass now. ⚠ The systemic
+half — the gate's material branch is not honoured by the engine — is a
+finding for the sweep, not something a row can fix.
+
+**D3 — ⛔ `draught <setting>` BOUND NOTHING, and the verb silently became
+a read.** Two arg-gate defects in sequence: first a greedy `fire` in
+front of a bare `setting` made the whole view fail to LOAD (a greedy arg
+must be last or followed only by prepositional args); then, with `fire`
+first and merely prepositional, a bare `low` went to the first unfilled
+arg, failed to resolve as an object, the default supplied a fire anyway,
+and `setting` stayed empty. The value is positional now and the fire sits
+behind a preposition.
+⚠⚠ **And the first drive run PASSED this checkpoint while it was
+broken**, because it set the draught *wide* and read *wide* back — and a
+forge ships wide. ⭐ The lesson is the checkpoint's: **read the state you
+did not start in.**
+
+**D4 — three of the drive's own steps were wrong**, and are corrected
+rather than worked around: `fire IN retort` with the preposition the
+`kiln` arg requires (a bare noun fell through to the default, which
+matches the clamp as well); `look AT the gasometer`, the article form;
+and the firedamp half moved to the **winze foot at −20 m**, because the
+drift above it is an `AuthoredWorking` with no warren and `sink` answers
+`no-warren` there — authored ground does not grow, which is the mining
+build's own rule.
+
+**D5 — ⚠ the warm DB.** A `props:` edit never reaches a booted world, so
+the yard's retort, condenser and gasometer were absent from a database
+written before they existed. `pnpm --filter @saxonberg/server reset:db`
+and a fresh boot; the standing rule held and cost one run.
