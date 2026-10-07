@@ -265,6 +265,46 @@ sign it is the real one.
 
 **So: be specific, about things we own.**
 
+### ⭐⭐⭐ Name the business after the proprietor, not the function
+
+**Snappy Whipplecrust's Bakery.** Every time the room name scrolls past
+you see the man who owns it — so his pride can be a **price**, and the
+price can be the joke. Gnomelands' bakery charges 8 coins for a muffin,
+20 for a strudel, and **48 for plain gnomish bread**, because it is the
+local specialty and Snappy is sincerely proud of it. No prose anywhere in
+that room makes the joke; it is four integers on a sign.
+
+Our map: `general-store` · `market` · `bottling` · `counting-houses` ·
+`realty` · `registry`.
+
+⭐⭐ **You cannot put whimsy in "bottling." You can put it in
+Veshko's.** A function name does not only foreclose the fiction — it
+removes the business's **author**, and a business with no author has no
+opinion, and whimsy is an opinion. (`hollis` · `veshko` · `crowsfoot`
+already exist as firms with surnames; the city has departments instead.)
+
+⭐ So the lever is not *add invention on top of the economy.* It is
+**give every economic premise somebody with an opinion**, and the
+invention arrives as their opinion expressed *through* the economy — a
+price, a refusal, a stock choice, a sign, what they will not sell you.
+
+⭐⭐⭐ **And we can do this better than Gnomelands could, because our
+prices are real.** Snappy's 48-coin bread is a number on an ASCII sign, a
+claim. A miller taking his cut **in kind** out of your grain is an actual
+transaction against an actual ledger — **an opinion expressed as a price
+is a joke the economy enforces**, and it keeps telling itself after its
+author has gone. Heart's Delight already holds the best instance of this
+and has not used it: the suspicion that the miller is cheating you is the
+most durable grievance in European peasant life, and we can make it
+*checkable*.
+
+⚠ Note what this is answering. Gnomelands had a *sense* of its
+industries and **no engine to run them**, and still built the Snipe Hunt
+and the clockworks in the same town as the shops. We have the engine and
+no invention. The asymmetry resolves the same way: **a place stood up for
+economic reasons can carry invention, but only if the economy belongs to
+somebody.**
+
 ---
 
 ## 4. ⭐ Homage goes in the details, never the description
@@ -344,9 +384,44 @@ partition is traffic:
   somewhere. **This is the only category where repetition is a design
   problem**, and it is a small, nameable set.
 
-⭐ And the likely answer for that set is **stability, not variation.** A
-terminal's job is to be passed through; it should be legible and boring
-on reading three hundred. Trying to make it fresh is the mistake.
+- ⭐⭐⭐ **First contact** — read **once, by everybody, early**, and
+  never again. The premiere content. See § 5a; it is the
+  highest-leverage category and the only one whose value is entirely in
+  what the reader carries out.
+
+⭐ For transit and utility, the likely answer is **stability, not
+variation.** A terminal's job is to be passed through; it should be
+legible and boring on reading three hundred. Trying to make it fresh is
+the mistake.
+
+### ⭐⭐⭐ Tone is TEMPO, not only register
+
+Gnomelands is the proof and it is mechanical. **One heartbeat every ten
+seconds drives the whole area, and every location takes a different
+divisor of it** — the clock tower every tick (`"Tick!"` → `"Tock!"`,
+alternating), the waterwheel and the windmill every third, the lighthouse
+lamp and the orrery every fifth, the beaches every **twentieth**. The
+leviathan's lurch is gated on its engine actually being on.
+
+So the whole realm beats in one time signature, and the divisors are
+physically honest without anybody being told: a clock ticks fastest,
+machinery turns slower, a lamp revolves slower still, a wave is slowest
+of all.
+
+⭐⭐ **Which settles the repetition problem properly: match the cadence
+to what the place IS.** The beach gets one line every ~200 seconds and
+the clock tower one every ten, and **both are right** — a clock tower
+*should* be relentless, and there the repetition **is** the content,
+while the beach's rarity is what makes its one line land. **The mistake
+was never repetition. It is uniform repetition**, which is also why
+EotL Dave's `set_chat_chance(80)` was wrong: a bartender is not a clock.
+
+⚠ And the slowest line in that area is the best ambient sentence in the
+corpus — *"A wave thunders its way onto the beach, erasing your
+tracks."* It implies tracks the game never modelled, and then **takes
+something away.**
+
+See [eotl-craft.md § Part 4](./eotl-craft.md) for the full table.
 
 The ancestor measured its own failure at the second reading anyway:
 **16,609 `day_long`s and night prose on roughly 11 % of them.** Authors
@@ -418,6 +493,90 @@ routine.**
 
 ---
 
+## 5a. ⭐⭐⭐ First contact — the content everybody reads once
+
+Newbieland was the first RPG content most EotL players ever saw, and
+**almost none of them ever went back after levelling.** That is not a
+defect. ⭐⭐⭐ **Content whose whole value lives in the player who
+engaged once and carried the experience into everything else does not
+need repeat-engagement value at all.**
+
+⚠ It was **not a tutorial.** It was simply content an eval-1 could
+survive — *"game content that leans into the fact that it's the premiere
+content as its whole creative mandate, and expresses it in every way it
+can."* That distinction is the whole thing: a tutorial teaches the
+mechanics, and first-contact content teaches **what kinds of question
+this world's authors ask, and how one area answers them.**
+
+### ⭐⭐ And it is the one kind of content a launch CAN build
+
+§ 9 says cultural content cannot exist at launch, because there is no
+accumulated opinion to reflect. **First contact is the exact inverse:**
+its job is to *set* expectations rather than report them, so it works
+best with no playerbase at all.
+
+⭐⭐⭐ **So the highest-value target for a one-author launch corpus is
+the first-contact path**, not the deep content — and the path is already
+identifiable: `enroll` and character generation, the lounge, then
+whatever the first real area turns out to be.
+
+EotL made its statement **twice before the player had any agency**:
+first at chargen, where the six D&D stats and a full
+Tolkien-via-Dragonlance race list sat **alphabetically adjacent to
+`chicken`, `teddybear`, `lobstarbear` and `beer_elf`** — *irreverent
+about genre, serious about consequence* — and then at the crossroads,
+where the villains turned out not to be jokes at all.
+
+### Hannah's seven moves, and ⚠ why ours is harder
+
+The crossroads is `measurement.md`'s rule as level design, thirty years
+early: the signpost explains exactly how the alignment number works,
+mentions the freebies, says *"Have fun!"*, and **offers no opinion
+whatever** — while the inviting green path west leads to Bambi, Thumper,
+Lassie, a child, a priest and an angel. ⭐⭐ **The game declines to
+punish you, which is what makes it a choice instead of a puzzle.** The
+reluctance has to be the player's.
+
+What ports, stripped of the mechanic:
+
+1. **Put the player's own values under load in the first ninety
+   seconds**, with content rather than rules.
+2. ⭐ **Keep the mechanics neutral.** The engine measures; the player
+   valuates.
+3. **Aesthetic signals honest about the world, silent about the player.**
+4. **Legible and symmetrical.** Nothing hidden, nothing missable.
+5. ⭐ **Let the content critique the mechanic** — take the system
+   literally and stock it with the most uncomfortable valid instance.
+6. **Be the premiere content on purpose.**
+7. **Accept that nobody comes back.**
+
+⚠⚠ **And the Bambi problem is much harder for us.** Hannah had one
+enormous advantage: killing is instant, unambiguous and legible to a
+stranger. Our axis is **lawful/chaotic** inside a polity with real law
+and a real economy — and ⚠ procedural and economic harm is **slow,
+deniable and diffuse.** Nobody feels like Jack the Ripper for underpaying
+a shift or routing around a committee. There is no moment.
+
+⭐ And *everyone here is good*, so the uncomfortable choice cannot be
+**be a monster.** It has to be **be a person who is certain they are
+right** — the only antagonist a world of good people produces, and the
+one the Compact exists to arbitrate.
+
+⭐⭐⭐ **Which suggests the inversion.** Hannah made the immoral path
+*inviting*. Ours has to make the **lawful path look wrong**: the rule
+obviously stupid in that one case, the chaotic choice plainly correct and
+faster and better for everybody in the room, and the engine declining to
+say which. Following the process has to **cost something real, visibly,
+while nobody thanks you** — because if it is free, choosing it reveals
+nothing and the player has solved an incentive rather than decided who
+they are.
+
+⚠ That is an uncomfortable thing for us to build, since the Compact is
+the house's own project: a first-contact area that makes the lawful path
+look foolish is the platform publishing an argument against itself, in
+content, where it cannot be mistaken for a rule. Which may be precisely
+the point — it is what Hannah did to alignment.
+
 ## 6. ⭐⭐⭐ The composition is the straight man
 
 A player inspecting an object sees its mixin composition. We are
@@ -468,6 +627,11 @@ Three things in this project are that claim wearing different clothes:
   heat"*
 - and a mixin noticed on inspection in one room, paying off three rooms
   later (§ 6)
+- ⭐⭐⭐ **an idle line that names another NPC.** Bubo Sparkytoes shouts
+  *"Slaptoad, come quickly!!"* and `slaptoad.c` is a real object
+  elsewhere in the area. It costs nothing, is not interactive, needs no
+  response — and **turns a monster directory into a community.** Then you
+  meet Slaptoad later and remember being shouted past.
 
 ⭐ Two of those were derived from a corpus and one was learned in a
 ComedySportz room. Same technique. Worth trusting.
@@ -632,6 +796,14 @@ there.**
    `Offstage`, `Extra` / `Cast`) is the frame to lean into, and the
    allocation rule inside it is not written yet. ⚠ Every attempt in
    drafting to turn it into a tiering got cut.
+   ⭐⭐⭐ **And a finding that reframes every density number in
+   `eotl-census`: density is a REVISIT, not a draft.** The corpus's
+   densest area reached 89 % because its author was bored at a lab job
+   *years later* and went back to add descriptions; Culhaven's 8 % is
+   what one pass looks like. **Detail density does not measure care at
+   authoring time — it measures whether anybody came back.** So the
+   practical question is not how dense to write, it is **how the second
+   pass gets planned.**
 2. ⚑ **State the personality, derive the performance** — proposed in
    § 2, unratified. `converses` reads exactly **1 of 19** disposition
    axes and is used by nobody; Dave would be its first consumer.
@@ -641,7 +813,15 @@ there.**
    `set_quest` calls in 45,380 files — 0.1 %.** Essentially all everyday.
 4. ⚑ **Personal style** — how to frame it at all. The reference sample
    is § 2's narrator voice, not the bus ads.
-5. ⚑ **Which of these are secretly tier 2** (§ 0) and should become
+5. ⚑ **The rule that is obviously stupid in one specific case** (§ 5a).
+   Not a category — one case. Hannah's whole move was finding the single
+   most uncomfortable thing a shallow system permitted and putting it
+   ninety seconds from the entrance under a cheerful sign.
+6. ⚑ **What does a place look like before anyone has opinions about
+   it?** The launch corpus is the setup (§ 9) and first contact is the
+   highest-leverage part of it (§ 5a), but the ordinary low-traffic
+   middle — most of Terminus — has no answer yet.
+7. ⚑ **Which of these are secretly tier 2** (§ 0) and should become
    subsystem doctrine with a gate behind it.
 
 ---
