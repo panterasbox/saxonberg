@@ -27,6 +27,10 @@ import { Freshness } from '@saxonberg/server/mud/lib/material/Freshness';
 import { BloodType } from '@saxonberg/server/mud/lib/vitals/BloodType';
 import type { BloodTypeLabel } from '@saxonberg/server/mud/lib/vitals/BloodType';
 import { BLOOD_DEFAULTS } from '@saxonberg/server/mud/lib/vitals/Blood';
+import { AccountabilityApi } from '@saxonberg/server/mud/api/accountability';
+import AccountabilityEvent from '@saxonberg/server/mud/lib/accountability/AccountabilityEvent';
+import { SpeciesApi } from '@saxonberg/server/mud/api/species';
+import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import type { CommandContext, CommandModel } from '@saxonberg/server/mud/api/command';
 import type { MqlOneResult } from '@saxonberg/server/mud/api/mql';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
@@ -37,6 +41,10 @@ const SALINE_MATERIAL = '/stuff/idea/material/bulk/salt-water';
 interface TransfuseModel extends CommandModel {
   patient?: MqlOneResult;
   vessel?: MqlOneResult;
+  /** The view always binds a `syringe` (default a held phlebotomy tool);
+   * the controller does not read it, but the model must carry every arg
+   * the binder populates (`check-binder-models`). */
+  syringe?: MqlOneResult;
 }
 
 export default class TransfuseController extends CommandController<TransfuseModel> {
@@ -49,6 +57,8 @@ export default class TransfuseController extends CommandController<TransfuseMode
     if (!MixinApi.isVitals(patient) || patient.bloodType() === null) {
       return this.fail(context, 'There is nothing there to transfuse.', 'no-body');
     }
+
+    const wasDying = patient.isDying();
     const vessel = model.vessel?.stuff as Stuff | undefined;
     if (!vessel || !MixinApi.isBulkable(vessel)) {
       return this.fail(context, 'You need a vessel to transfuse from.', 'no-vessel');
@@ -96,11 +106,14 @@ export default class TransfuseController extends CommandController<TransfuseMode
       patientTyped &&
       CompetenceBand.atOrAbove(giverBand, 'competent')
     ) {
-      const patientSpecies = MixinApi.isOrganism(patient)
-        ? (patient.getSpecies()?.getTemplatePath() ?? '')
-        : '';
-      const donor = new BloodType(unit.speciesPath, unit.type as BloodTypeLabel);
-      const me = new BloodType(patientSpecies, patient.bloodType() as BloodTypeLabel);
+      const donor = new BloodType(
+        unit.system || unit.speciesPath,
+        unit.type as BloodTypeLabel,
+      );
+      const me = new BloodType(
+        patient.bloodSystemOf(),
+        patient.bloodType() as BloodTypeLabel,
+      );
       if (donor.mismatchFor(me) > 0) {
         return this.fail(
           context,
@@ -111,15 +124,80 @@ export default class TransfuseController extends CommandController<TransfuseMode
     }
 
     // Gates passed. The give lands at completion; a barge-in gives nothing.
+    const donorIdentityPath = unit.donorIdentityPath;
     return this.runOrEngage(context, giver, () => {
       const result = patient.receiveBlood({
         litres,
-        blood: { speciesPath: unit.speciesPath, type: unit.type },
+        blood: {
+          speciesPath: unit.speciesPath,
+          system: unit.system,
+          type: unit.type,
+        },
       });
       slot.setAmount(Quantity.of(slot.getAmount().rawValue() - litres, 'L'));
       void this.credit(giver);
       this.narrate(context, self, patient, result.reaction, false);
+      // ⭐ The accountability trail: transfusing a REACTING unit into
+      // someone else is harm done to them (the trap's producer shape) —
+      // recorded, non-consented, so forcing bad blood into a body is a
+      // crime on the record. A compatible transfusion (reaction 0) heals
+      // and records nothing; self-use never records.
+      if (!self && result.reaction > 0) {
+        this.recordHarm(giver as unknown as Stuff, patient);
+      }
+      // The revival deed (D8): if the patient was dying and is not now, the
+      // chronicle remembers whose blood brought them back.
+      if (!self && wasDying && !patient.isDying()) {
+        void this.recordRevival(patient, donorIdentityPath);
+      }
     });
+  }
+
+  /** Append a `harm` row for a transfusion — the trap's shape (D5).
+   * A reacting unit forced into another body is NON-consented harm: a
+   * transfusion just works, so there is no consent ladder, and a body
+   * turning against bad blood is damage done to it, on the record. */
+  private recordHarm(giver: Stuff, patient: Stuff): void {
+    const victimId = AccountabilityEvent.partyIdOf(patient);
+    const giverId = AccountabilityEvent.partyIdOf(giver);
+    if (!victimId || !giverId) return;
+    let sentient = false;
+    try {
+      sentient = SpeciesApi.isSentient(patient);
+    } catch {
+      sentient = false;
+    }
+    AccountabilityApi.record({
+      kind: 'harm',
+      sessionId: `transfusion:${giver.stuffId}:${Date.now()}`,
+      initiator: giverId,
+      opponent: victimId,
+      victim: victimId,
+      killer: giverId,
+      consented: false,
+      sentient,
+      victimFor: AccountabilityEvent.partyForOf(patient),
+    });
+  }
+
+  /** The recipient's chronicle remembers a transfusion that revived them. */
+  private async recordRevival(
+    patient: Stuff,
+    donorIdentityPath: string,
+  ): Promise<void> {
+    if (!MixinApi.isPersona(patient)) return;
+    const live = donorIdentityPath
+      ? StuffApi.findAllByTemplatePath(donorIdentityPath)[0]
+      : undefined;
+    const donorName = live ? live.getPresentation() : 'A donor';
+    await patient.recordChronicleOnce(
+      `blood-revival:${donorIdentityPath}:${Date.now()}`,
+      {
+        kind: 'deed',
+        text: `${donorName}'s blood brought you back from the edge.`,
+        tags: ['blood', 'revival'],
+      },
+    );
   }
 
   /**

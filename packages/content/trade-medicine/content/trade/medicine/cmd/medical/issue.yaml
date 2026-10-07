@@ -1,0 +1,32 @@
+verbs: [issue]
+controller: /trade/medicine/idea/cmd/medical/IssueController
+description: "Hand a unit of blood from the window's bank to someone (window staff only)"
+help: |
+  `issue <type> [to <someone>]` hands a unit of blood of the named type
+  (O, A, B, or AB) from the window's bank to a recipient — or to your own
+  hands if you name no one.
+
+  Only the window's own staff may issue. The unit is a GIFT: it is never
+  sold and never a stock line you can `buy`. The window records who got
+  what — a custody trail anyone can read with `analyze bank`.
+examples:
+  - cmd: issue O to the patient
+    note: Hand a unit of type O to someone
+  - cmd: issue AB
+    note: Take a unit into your own hands
+args:
+  - name: lot
+    type: string
+    required: true
+  - name: recipient
+    type: object
+    required: false
+    prepositions: [to]
+    scope: "reachable"
+    requires: VitalsMixin
+  - name: window
+    type: object
+    required: false
+    default: "reachable:[mixin.DonationBankMixin]"
+    scope: "reachable"
+    requires: [DonationBankMixin]

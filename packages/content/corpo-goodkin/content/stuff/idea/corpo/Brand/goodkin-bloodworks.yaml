@@ -1,0 +1,13 @@
+# Goodkin Bloodworks — the mark the corpo's kept upstream stamps on every
+# unit it collects and carts (blood build D12). "A product of Goodkin"
+# renders for free on a branded unit (BrandedMixin); a player's donated
+# bag is a plain Receptacle and never branded — the gift is legibly not
+# the corpo's.
+class: /platform/idea/corpo/Brand
+data:
+  key: goodkin-bloodworks
+  name: Goodkin Bloodworks
+  owner: goodkin
+  category: blood
+  positioning: the carts that keep the city supplied
+  descriptor: A product of Goodkin Bloodworks — collected, carried, kept cold.

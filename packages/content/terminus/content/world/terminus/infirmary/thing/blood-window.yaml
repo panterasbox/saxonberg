@@ -1,0 +1,23 @@
+# The blood window — the registrar's counter in the ward (blood build
+# D2). A priced board that is also the bank register: it reads its units
+# out of the ward's blood fridge (its `_vaultPaths`), prices a
+# transfusion, and the fee attributes to the window's own business (not
+# the practice's — `collect` self-first).
+class: /trade/medicine/thing/BloodWindow
+data:
+  shortDescription: blood window
+  keywords: [window, register, counter, blood-window, bloodwindow]
+  register: definite
+  longDescription: |
+    A low barred counter set into the ward's inner wall, a cold draught
+    off the fridge behind it. A ledger lies open on the sill, and a slate
+    beside it lists what the window asks for a transfusion — and, in a
+    smaller hand, that it never asks a donor for a thing.
+  prices:
+    transfusion: 10
+  services:
+    transfusion: transfusion
+  _vaultPaths:
+    - /world/terminus/infirmary/thing/blood-fridge
+  _lotSystem: hominid
+  mass: 40

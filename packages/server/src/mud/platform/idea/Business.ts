@@ -42,6 +42,7 @@ import {
 } from '../../lib/employment/Organization';
 import { ParLine, type ParLineData } from '../../lib/employment/ParLine';
 import type { ContractRecord } from '../../lib/employment/ContractRecord';
+import { PublisherMixin } from '../../lib/press/Publisher';
 
 /**
  * The trading half of the surface — what a Business adds to the chart
@@ -355,7 +356,7 @@ export function BusinessMixin<
  * class into a recursive base type).
  */
 class BusinessEntity extends BusinessMixin(
-  OrganizationMixin(Idea),
+  PublisherMixin(OrganizationMixin(Idea)),
 ) {
   /** Singleton refusal (mirrors the catalogue singletons). */
   public canDestruct(): VetoResult {

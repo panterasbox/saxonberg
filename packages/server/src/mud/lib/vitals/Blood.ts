@@ -26,8 +26,15 @@ import type { BloodTypeLabel } from "./BloodType";
 
 /** The per-unit facts a blood bag carries beyond its Material. */
 export interface BloodUnit {
-  /** The donor's species — cross-species transfusion is the reaction. */
+  /** The donor's species — provenance only (what body it came out of). */
   speciesPath: string;
+  /** ⭐ The blood SYSTEM this unit belongs to (D3) — what compatibility is
+   * judged on, so a transfusion never needs the donor's species row. A unit
+   * drawn from a species that declares no shared system carries that
+   * species' own path here, which is the flat per-species case. Optional on
+   * the interface for units stamped before the system existed; a reader
+   * falls back to `speciesPath`. */
+  system?: string;
   /** The TRUE ABO phenotype (or `mixed`). Present whether or not labelled. */
   type: BloodTypeLabel;
   /** Has anyone tested/labelled this unit? Only a labelled unit lets a
@@ -80,6 +87,31 @@ export const BLOOD_DEFAULTS = {
 } as const;
 
 /**
+ * ⭐ The disposition valence a gift of blood demonstrates (blood build
+ * D9) — the FIRST live authored `dispositionValence` in the game. Two
+ * variants: `routine` for a gift to the bank with no named beneficiary,
+ * `named` when the gift answers a named person or a named shortage (a
+ * generous AND compassionate act). The magnitudes are dials.
+ *
+ * Consumed by the donate/transfuse gift path, which builds an
+ * `ActSignature` with an empty `discipline` channel and this as the
+ * `dispositionValence`, then calls `creditSignature` — whose graft
+ * (D9) fans the channel into `disposition_events`.
+ */
+export const BLOOD_GIFT_SIGNATURE = {
+  routine: [{ disposition: "generosity", valence: 2 }],
+  named: [
+    { disposition: "generosity", valence: 2 },
+    { disposition: "compassion", valence: 2 },
+  ],
+} as const;
+
+/** The renown signal a public gift of blood mints (D10): an `applaud`
+ * reaction (a shipped `valence: 1` emote) from the window, folded by a
+ * scheduled recompute. The institution applauds the donor. */
+export const BLOOD_GIFT_RENOWN = { emote: "applaud" } as const;
+
+/**
  * A blood unit, wrapped so it can fold another into itself on a pour.
  * Equal type → kept (both must be labelled for the result to be labelled);
  * anything else → `mixed`, unlabelled — a mixed unit is compatible with
@@ -88,15 +120,21 @@ export const BLOOD_DEFAULTS = {
 export class Blood {
   constructor(public readonly unit: BloodUnit) {}
 
-  /** Fold `other` into this unit on a transfer into a non-empty slot. */
+  /** Fold `other` into this unit on a transfer into a non-empty slot.
+   * Same blood SYSTEM (D3) and same ABO type → kept; anything else → `mixed`
+   * and unlabelled — a mixed unit matches nobody, which is what stops
+   * decant-to-launder tricks. */
   public blend(other: BloodUnit): BloodUnit {
+    const mySystem = this.unit.system ?? this.unit.speciesPath;
+    const otherSystem = other.system ?? other.speciesPath;
     if (
-      this.unit.speciesPath === other.speciesPath &&
+      mySystem === otherSystem &&
       this.unit.type === other.type &&
       this.unit.type !== "mixed"
     ) {
       return {
         speciesPath: this.unit.speciesPath,
+        system: this.unit.system,
         type: this.unit.type,
         labelled: this.unit.labelled && other.labelled,
         donorIdentityPath: this.unit.donorIdentityPath,
@@ -104,6 +142,7 @@ export class Blood {
     }
     return {
       speciesPath: this.unit.speciesPath,
+      system: this.unit.system,
       type: "mixed",
       labelled: false,
       donorIdentityPath: this.unit.donorIdentityPath,

@@ -22,7 +22,12 @@ import { AppApi } from '../../../api/app';
 import { AppSettingKeys } from '../../../lib/config/AppSettings';
 import { PerceptionApi } from '../../../api/perception';
 import { BankingApi, Money } from '../../../api/banking';
-import type { RemittanceSplit, PnlCategory as PnlCategoryArg } from '../../../api/banking';
+import type {
+  RemittanceSplit,
+  PnlCategory as PnlCategoryArg,
+  Charge,
+  SettlementReceipt,
+} from '../../../api/banking';
 import { WorldClockApi } from '../../../api/worldclock';
 import { ContractApi } from '../../../api/contract';
 import { MessageApi } from '../../../api/message';
@@ -248,6 +253,11 @@ function mayPublishAsImpl(
 ): boolean {
   if (principal === null) return false;
   if (!MixinApi.isPublisher(publisher)) return false;
+  // ⭐ Fail closed on an empty feed (blood build D14). Every Business now
+  // composes PublisherMixin, but a house that authors no `feedPath` keeps
+  // no masthead and publishes nothing — so composing it on the forty
+  // shipped businesses that author none changes nothing.
+  if (publisher.getFeedPath().length === 0) return false;
   const who = principal.getIdentityPath();
   if (who === null || who.length === 0) return false;
   const allowed = publisher.getPublishingPositions();
@@ -1858,6 +1868,18 @@ export class EmploymentLogic extends ApiLogic {
   public async ensureOperatorAt(
     locationPath: string,
   ): Promise<BusinessStuff | null> {
+    return this.ensureOperatorAtInternal(locationPath);
+  }
+
+  /**
+   * The standup, ungated — so a sibling logic method (`settleSale`) can run
+   * it without tripping the `FromModule(EmploymentApi)` gate (a logic→logic
+   * self-call is not the face; the same reason the body below reaches for
+   * the ungated `businessByKey` rather than `this.businessAt`).
+   */
+  private async ensureOperatorAtInternal(
+    locationPath: string,
+  ): Promise<BusinessStuff | null> {
     // Call the ungated private finder, not `this.businessAt` — a gated
     // intra-singleton self-call would be denied (the caller is the logic, not
     // the face).
@@ -1991,6 +2013,68 @@ export class EmploymentLogic extends ApiLogic {
       employment,
       WorldClockApi.getNow().rawValue(),
     );
+  }
+
+  /** See {@link EmploymentApi.settleSale}. */
+  @CallSecurity(EmploymentApiCallers)
+  public async settleSale(
+    venuePath: string | null,
+    amountMinor: number,
+    taxableMinor: number,
+    reason: string,
+    extraSplits: RemittanceSplit[],
+  ): Promise<{ tail: string; receipt: SettlementReceipt } | null> {
+    if (!venuePath) return null;
+    const business = await this.ensureOperatorAtInternal(venuePath);
+    if (!business) return null; // no operator → served on the house
+    let account: string;
+    try {
+      // Custody is the business's authored banksAt (never a default).
+      account = await operatingAccountOfImpl(business);
+    } catch {
+      return null; // no authored bank → the venue can't take payment
+    }
+    const currency = BankingApi.compactCurrency();
+    // The venue's own share-of-flow splits ride every revenue moment;
+    // `extraSplits` (a consignment remainder) are appended. Empty for all
+    // shipped content, so this is byte-identical today.
+    const flow = await flowSplitsForImpl(business, amountMinor);
+    const splits = [...flow, ...extraSplits];
+    const charge: Charge = {
+      amount: Money.of(amountMinor, currency),
+      reason,
+      presented: true,
+      payeeAccountId: account,
+      category: 'sales',
+      splits: splits.length > 0 ? splits : undefined,
+    };
+    // Credential first, then cash — a coin-holder pays with coin; the float
+    // is the last resort (no funds → the venue floats it).
+    let receipt: SettlementReceipt;
+    try {
+      receipt = await BankingApi.settle(charge, { kind: 'credential' });
+    } catch {
+      try {
+        receipt = await BankingApi.settle(charge, { kind: 'cash' });
+      } catch {
+        return null;
+      }
+    }
+    if (taxableMinor > 0) {
+      // ⭐ Pass the venue fixture so the tax splits to the sale's covering
+      // locality (energy build D12) — its budget fills from real trade.
+      const venueFixture = StuffApi.findByTemplatePath(venuePath) ?? undefined;
+      await BankingApi.remitDemoTax(
+        account,
+        Money.of(taxableMinor, currency),
+        venueFixture,
+      );
+    }
+    const rendered = Money.of(amountMinor, currency).render();
+    const tail = receipt.corpoKey
+      ? `(${rendered}, ${receipt.corpoKey})`
+      : `(${rendered})`;
+    return { tail, receipt };
   }
 
 }

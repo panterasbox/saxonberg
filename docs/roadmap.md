@@ -306,12 +306,15 @@ remains in the near-term Track A queue:
 >   (type/draw/store/transfuse + the `marrow` reserve,
 >   [blood.md](./subsystems/blood.md)) with the `medicine`/`nursing`
 >   Discipline split and a personal `calendar`
->   ([calendar.md](./subsystems/calendar.md)). Still deferred: the
+>   ([calendar.md](./subsystems/calendar.md)). The **blood-BANK economy**
+>   — the civic donated-blood window, the gift credit, NPC restock, and the
+>   `transfusion` service — SHIPPED in the **blood-economy build**
+>   (2026-10-05, MR !333; → [blood-slate](./slates/builds/blood-slate.md)
+>   for the deferred tail). Still deferred: the
 >   *general* / instrument-mediated assess + measure-on-patient, the
 >   diagnostic **labs** vertical (→
 >   [sampling-and-labs-slate](./slates/builds/sampling-and-labs-slate.md)),
->   the blood-BANK economy (→
->   [blood-slate](./slates/builds/blood-slate.md)), the preindustrial
+>   the preindustrial
 >   **ice trade** (cold storage's powered rung SHIPPED 2026-10-01, MR !320
 >   — a powered blood fridge now keeps units cold, the freezer makes ice,
 >   and a cooler carries it; only the harvest/ice-house trade is left →

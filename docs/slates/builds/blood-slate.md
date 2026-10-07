@@ -463,6 +463,26 @@ poisoner's vocation, mechanically.**
 > malpractice trail and a credential** — same record; which one it is
 > depends entirely on outcomes.
 
+> ⛔ **The standing donor CARD was built and then CUT (2026-10-05).** The
+> blood-economy build shipped `PersonaMixin.donorCard` + a `transfusionConsent`
+> ladder + a `donor` verb, and we cut the whole apparatus before merge: it
+> modelled a decision that is not one. Registration was free and
+> non-binding (so being "a donor" was not a weighable choice), and a
+> standing `wont` directive against life-saving blood is a near-universally
+> irrational pre-commitment — lens 4 wants a gauge that turns an
+> *undecidable* choice calculable, and this turned a *non-choice* into a
+> permissions system. What survives is the right half: **in-the-moment
+> implied consent** (above) and the **harm-on-mismatch row**, which need no
+> card. The card just works: `transfuse` proceeds, and a reacting unit into
+> another body records `harm`, `consented: false`.
+>
+> ⭐ **Where a standing directive DOES belong — a future slate.** The
+> original ask was **post-mortem body/organ donorship**, and *that* has a
+> real matrix: death, re-embodiment, and the corpse (a forensic Creature)
+> are all modelled, so "what happens to my body when I die" is a genuine,
+> consequential pre-commitment a person cannot make in the moment. Design
+> it against `mortality.md`'s corpse + `reembody`, not against transfusion.
+
 ### ⭐⭐⭐ The sequencing insight
 
 Exsanguination's window is **120 s**; real transfusion takes longer. So
@@ -511,10 +531,12 @@ disease transmission, and any cross-instance concern.
 3. **Who holds the inventory?** A Business, a civic office, or a
    `FurnishableRoom` fixture. This decides whether a blood bank can be
    privately owned, which is most of the politics.
-4. **Can you refuse a transfusion?** Consent while unconscious is a
-   genuinely hard and genuinely interesting problem, and
-   [accountability.md](../../subsystems/accountability.md) is the ledger
-   that would care.
+4. ✅ *Q4 (can you refuse a transfusion?) resolved by the donor-card cut
+   (2026-10-05): there is NO standing refusal — it was a non-choice. What
+   remains is in-the-moment implied consent + the harm-on-mismatch row
+   ([accountability.md](../../subsystems/accountability.md)). A standing
+   directive belongs to post-mortem body donation, not to blood — see the
+   cut note under § Where CONSENT finally lands.*
 5. **Do NPCs donate on their own?** The trait-driven answer says yes and
    gives the supply an emergent baseline; it also means NPC transcripts
    and standings start moving without a player involved.
