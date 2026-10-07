@@ -169,7 +169,7 @@ function casterIn(room: CartesianLocation): MagicTester {
     {
       key: "body.leg.left.foot",
       parent: "body.leg.left",
-      tissues: [{ tissuePath: "/stuff/idea/material/tissue/flesh", mass: 0.5 }],
+      tissues: [{ tissuePath: "/stuff/idea/material/tissue/flesh", share: 1.0 }],
     },
   ]);
   stampTemplatePathForTest(plan, `/stuff/idea/species/BodyPlan/practicum-${id}`);

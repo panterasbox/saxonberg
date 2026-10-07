@@ -13,6 +13,11 @@ import { ExecutionContextApi } from '../../../api/execution-context';
 import { WorldClockApi } from '../../../api/worldclock';
 import { Quantity } from '../../../lib/quantity';
 import { Grade } from '../../../lib/craft/Grade';
+import {
+  Texture,
+  CookingAttempt,
+  type CookingMethod,
+} from '../../../lib/butchery/Texture';
 import { RecipeKnowledge } from '../../../lib/script/RecipeKnowledge';
 import { Competence } from '../../../lib/advancement/Competence';
 import type { Organization } from '../../../lib/employment/Organization';
@@ -1572,11 +1577,36 @@ async function applyTangibleOutput(
   // matched, the material is the authored one and the mass is the summed
   // bulk (litres x each source material's density) — conservation exactly
   // as the item arm does it, over the other kind of matter.
+  // ⭐⭐ **And a tangible made of bulk that DERIVES its material.** The
+  // arm above needs `outputMaterial` authored; this one is the case where
+  // authoring it would be a lie. One recipe dips a candle, and what the
+  // candle is made of is **whatever fat was in the pot** — beeswax or
+  // tallow, one act, two materials, and a taper that smells of honey or
+  // of mutton accordingly.
+  //
+  // The rule the recipe doc already states for every other arm:
+  // *`outputMaterial` empty ⇒ the output material comes from the matched
+  // input.* The item arm has always done it (a steel bar makes a steel
+  // knife); the bulk arm threw instead, so the only way to make a candle
+  // was to weld one material onto the recipe and ship a second recipe for
+  // the other feedstock.
+  //
+  // ⭐ The precedent is in this same file, on the other mint path:
+  // `fix/2026-10-03-ordered-maker` found `applyBulkOutput` not stamping a
+  // maker that `mintVessel` already stamped — *"Two mint paths, and only
+  // one of them stamped the liquid; this is the other one agreeing."*
+  // This is two paths disagreeing about deriving a material, and this is
+  // the other one agreeing.
+  const bulkDerived = !primary && authoredMaterial.length === 0;
+  const primaryBulk = bulkDerived
+    ? (matched.find((m) => m.material) ?? null)
+    : null;
   const bulkOnly = !primary && authoredMaterial.length > 0;
-  if (!primary && !bulkOnly) {
+  if (!primary && !bulkOnly && !primaryBulk) {
     throw new Error(
       `CraftingLogic: tangible output '${recipe.getOutputTemplate()}' ` +
-        `resolved with no matched item input and no 'outputMaterial'`,
+        `resolved with no matched item input, no 'outputMaterial', and no ` +
+        `bulk input to take a material from`,
     );
   }
   if (!MixinApi.isTangible(output)) {
@@ -1603,9 +1633,11 @@ async function applyTangibleOutput(
   // The bulk-only arm (a loaf from dough) is the same rule with no item
   // to fall back on: the authored material, and the mass summed over the
   // bulk by each source material's density.
-  if (bulkOnly) {
+  if (bulkOnly || primaryBulk) {
     output.setMaterial(
-      await StuffApi.singleton<Material>(authoredMaterial),
+      primaryBulk
+        ? primaryBulk.material!
+        : await StuffApi.singleton<Material>(authoredMaterial),
     );
     for (const m of matched) {
       const density = m.material?.getDensity().rawValue() ?? 1000;
@@ -2070,6 +2102,16 @@ async function mintFromBuildImpl(req: BuildMintRequest): Promise<CraftOutcome> {
     const base = recipe.getBaseGrade();
     if (base) grade = grade.max(base);
   }
+  // ⭐⭐⭐ Did the method suit the meat? One band, either way.
+  //
+  // ⚠ Here, at the ONE place a build's grade is derived, rather than in
+  // the vessel sub-path: a workpiece mint and an edible mint both come
+  // through this line, so a single hook cannot be bypassed by a route.
+  grade = applyMethodFit(
+    grade,
+    recipe,
+    req.contributions.map((c) => c.materialPath),
+  );
 
   // Resolve the maker. Prefer a live acting author (completed-sync /
   // tests); fall back to the dispatch-captured `makerPath` for the normal
@@ -2094,6 +2136,66 @@ async function mintFromBuildImpl(req: BuildMintRequest): Promise<CraftOutcome> {
     if (cap > 0 && cap < effectiveHeatK) effectiveHeatK = cap;
   }
   return mintVessel(req, recipe, grade, makerPath, makerStuff, effectiveHeatK);
+}
+
+/**
+ * ⭐⭐⭐ **The cooking law: does the METHOD suit the MEAT?**
+ *
+ * A muscle that works carries connective tissue; collagen gelatinizes
+ * only under long, moist heat. So a shoulder braises and a loin sears,
+ * and getting it the wrong way round ruins the dish — real food science,
+ * and **predictable without a table**.
+ *
+ * ⭐⭐ **It reads the MATERIAL, not the cut object**, and that is both
+ * simpler and the engine's own law (`response = f(mechanism, material,
+ * construction)`). A cut's `_materialPath` IS its muscle, so this works
+ * on the one-shot craft path (which has the matched items) and on the
+ * by-hand build path (whose contributions are snapshots carrying only a
+ * `materialPath`) — one implementation, both routes, and no laundering
+ * route where a stewed loin comes out ungraded because it went through a
+ * pot.
+ *
+ * The method is read off the recipe with **no new field anywhere**:
+ * `medium: water` plus a long `holdS` is `long-moist`, anything else is
+ * `fast-dry`. That vocabulary already existed to model a phase ceiling,
+ * and it turns out to describe the method exactly.
+ *
+ * ⚠ **One band of grade, and that is the whole consequence.** Not a
+ * refusal and not a destroyed dish: a stewed loin is still dinner, just a
+ * worse one than it should have been. ⭐ And the fit is ASYMMETRIC,
+ * because the mistakes are not — a tough cut cooked fast is inedible
+ * where a tender cut braised is merely wasted (`Texture.fit`).
+ *
+ * ⚠ Anything that is not a muscle is untouched: bread is not graded on
+ * whether you braised it.
+ */
+function applyMethodFit(
+  grade: Grade,
+  recipe: Recipe | null,
+  materialPaths: readonly (string | null | undefined)[],
+): Grade {
+  if (!recipe) return grade;
+  const method: CookingMethod = new CookingAttempt(
+    recipe.getMedium(),
+    recipe.getAuthoredHoldS(),
+  ).method();
+  let net = 0;
+  for (const path of materialPaths) {
+    if (!path) continue;
+    const material = StuffApi.findByTemplatePath(path);
+    if (!material || !MixinApi.isMuscle(material)) continue;
+    net += new Texture(material.getWork()).fit(method);
+  }
+  if (net === 0) return grade;
+  // ⚠ Two cuts of opposite texture in one pot net to nothing, which is
+  // the honest answer: you cooked one well and the other badly.
+  const shifted = Grade.fromOrdinal(
+    Math.max(
+      0,
+      Math.min(Grade.BANDS.length - 1, grade.getOrdinal() + (net > 0 ? 1 : -1)),
+    ),
+  );
+  return shifted;
 }
 
 /**

@@ -1,0 +1,27 @@
+# The Wharfside chandlery — ⭐ a hearth, a pot, and a counter.
+class: /platform/location/SingletonCartesianLocation
+data:
+  coords:
+    x: 0
+    y: 0
+    z: 0
+  shortDescription: "chandlery"
+  keywords: [chandlery, chandler, candleworks, shop]
+  register: definite
+  longDescription: |
+    A low room with a hearth at the back and a deep narrow pot on a trivet over it, kept just hot enough that what is in it stays liquid. Rods of dipped candles hang from the rafters to set, in two colours — the pale ones at the front where they can be seen and the yellow-grey ones at the back in far greater numbers.
+
+    A counter across the front has a tray of singles on it and, behind, bundles tied with string. The smell is mutton with honey somewhere underneath it, and the honey is losing.
+  exits:
+    southwest:
+      destination: /world/terminus/wharfside/knackers/location/yard
+      media: [ground]
+      edgeMinutes: 2
+  props:
+    - /trade/chandlery/thing/dip-pot
+    - /world/terminus/wharfside/chandlery/thing/counter
+  details:
+    rods:
+      keywords: [rods, rod, candles, rafters, bundles]
+      description: |
+        Wicks hung in rows from a rod, a dozen to a rod, each one thickened by however many times it has been down into the pot. The pale beeswax ones are a tenth of the number and the whole of the front row, which tells you exactly what each kind is worth without anybody saying.

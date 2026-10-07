@@ -1,0 +1,26 @@
+# The tannery leat — running water, which is the other half of why a
+# tannery is here.
+#
+# ⭐ A `WaterFixture`: inexhaustible water in reach, the shipped shape
+# (`trade-brewing`'s standpipe is the precedent). A pit has to be filled
+# and a skin has to be washed, and both want more water than anybody
+# carries.
+#
+# ⚠ It runs OUT again, and the outflow is the unpriced externality this
+# yard is built on. See the zone's header.
+class: /platform/thing/WaterFixture
+data:
+  shortDescription: leat
+  keywords: [leat, channel, sluice, water, race]
+  register: definite
+  longDescription: >-
+    A stone channel cut in off the river, with a plank sluice at the head
+    of it that somebody has wedged half-open with a stone. The water
+    coming in is river-coloured; the water going out at the far end is
+    not.
+  # ⚠ `lint:mass` is a RATCHET and it may only fall: a row whose class is
+  # Tangible must say what it weighs or what it is made of, because
+  # matter made of nothing weighs nothing SILENTLY. A stone channel is
+  # dressed stone and it is not going anywhere.
+  _materialPath: /stuff/idea/material/rock/granite
+  mass: 900

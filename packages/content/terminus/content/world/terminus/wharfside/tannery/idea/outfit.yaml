@@ -1,0 +1,39 @@
+# The Wharfside tannery — a Business with ⭐⭐ **a VACANT seat.**
+#
+# No `rosterSlots`. That is the content: the premises exist, the pits are
+# charged, the work is there, and **nobody is doing it.** A player walks
+# into a tannery whose owner has given up and reads the opening off
+# `look`, which is the derived help-wanted sign doing its job.
+#
+# ⚠⚠ **The seat requires a Discipline a new player cannot hold**, and
+# that is deliberate rather than an oversight. A seat names a Discipline
+# — that is the requirements doc's own sentence — and a tannery that
+# would hire somebody who has never seen a hide is not a tannery. ⭐ The
+# refusal IS the progression UI: the verb exists, the sign is readable,
+# and being told *you need a novice's hand at leatherwork* is how a
+# player learns that there is such a thing. Tan a few hides at somebody
+# else's pit (or your own) and come back.
+#
+# The chandler's seat two doors down has no requirement at all, which is
+# what makes the pair legible: one trade you can walk into and one you
+# have to have done.
+class: /platform/idea/Business
+data:
+  name: "the Wharfside tannery"
+  appointingAuthority:
+    kind: office
+    office: prime-minister
+  call: rota
+  positions:
+    - key: tanner
+      noun: tanner
+      label: at the pits
+      wageRate: 5
+      purchases: true
+      # ⭐ A novice's hand. Not expertise — the trade's own Discipline at
+      # its lowest real band, which is what *has done this before* means.
+      requires: { discipline: leatherwork, band: novice }
+  rosterSlots: []
+  banksAt: goodkin
+  operatingLocations:
+    - /world/terminus/wharfside/tannery/location/yard

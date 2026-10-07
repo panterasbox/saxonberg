@@ -1,0 +1,22 @@
+# Sausage — trim, fat and a casing, which is to say the parts of an animal
+# nobody would pay for separately.
+class: /platform/idea/material/ConsumableMaterial
+data:
+  name: sausage
+  keywords: [sausage, sausages]
+  density: 1040
+  specificHeat: 3200
+  thermalConductivity: 0.4
+  hardness: 1
+  toughness: 1
+  electricalConductivity: 0.2
+  waterAbsorptionCapacity: 20
+  edibility: true
+  tastes: [umami, salty]
+  spoilActivationEnergy: 70000
+  waterActivity: 0.96
+  nutrients: [protein, fat, water]
+  nutrientAmounts:
+    protein: 22000
+    fat: 25000
+  tags: [food, meat, sausage, organic, edible, raw]

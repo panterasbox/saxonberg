@@ -27,7 +27,7 @@ import { Mixins } from '../../mixin';
 import { Creature } from '../Creature';
 import { KeptAnimal } from '../KeptAnimal';
 import { Character } from '../../character/Character';
-import Corpse from '../../../platform/agent/Corpse';
+import Corpse from '../../../platform/thing/Corpse';
 import Cast from '../../../platform/agent/Cast';
 import Extra from '../../../platform/agent/Extra';
 

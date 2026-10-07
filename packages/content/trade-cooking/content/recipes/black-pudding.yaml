@@ -1,0 +1,42 @@
+# Black pudding — blood, fat, grain and a casing.
+#
+# ⭐⭐ The line that makes the blood worth catching. ⚠ And the blood is
+# the one yield a butchering SPILLS when nobody brought a vessel — no
+# refusal, no warning, because blood on the floor is what actually
+# happens. So a pudding is something you only get if you came prepared,
+# which is a choice rather than a chore.
+recipeId: black-pudding
+name: Black pudding
+keywords: ["black-pudding", pudding, "blood pudding", black]
+discipline: butchery
+difficulty: standard
+inputSlots:
+- slot: blood
+  category: blood
+  minGrade: poor
+  kind: bulk
+  measureL: 0.5
+- slot: fat
+  category: fat
+  minGrade: poor
+  kind: item
+  count: 1
+- slot: grain
+  category: grain
+  minGrade: poor
+  kind: item
+  count: 1
+- slot: casing
+  category: casing
+  minGrade: poor
+  kind: item
+  count: 1
+# ⭐ It is COOKED, and long: a pudding is simmered until it sets. Which
+# also means the cooking law applies to whatever meat went in — stewing a
+# loin in a pudding is as wasteful as stewing it anywhere else.
+medium: water
+requiresHeatK: 360
+holdS: 5400
+toolCapabilities: [pot]
+outputApplication: tangible
+outputTemplate: /trade/cooking/thing/black-pudding

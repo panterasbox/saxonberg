@@ -75,6 +75,7 @@
     "lint:openings": "tsx scripts/check-openings.ts",
     "lint:pathogens": "tsx scripts/check-pathogens.ts",
     "lint:mass": "tsx scripts/check-mass.ts",
+    "lint:anatomy": "tsx scripts/check-anatomy.ts",
     "lint:perishable": "tsx scripts/check-perishable.ts",
     "lint:power-posture": "tsx scripts/check-power-posture.ts",
     "lint:person-keys": "tsx scripts/check-person-keys.ts",

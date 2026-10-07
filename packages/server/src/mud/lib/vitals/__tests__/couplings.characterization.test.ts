@@ -43,6 +43,7 @@ import {
 } from '../../security/__tests__/test-setup';
 import Species from '../../../platform/idea/species/Species';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
+import { installCorpseMintStub } from '../../mortality/__tests__/corpse-mint-test-helpers';
 import '../../../platform/idea/WorldClockRegistry';
 
 const HOUR = 3600;
@@ -85,6 +86,9 @@ function endurancePct(body: Creature): number {
 describe('vitals couplings — characterization', () => {
   beforeAll(() => {
     installV1QuantityMarshallers();
+    // ⭐ Every death mints a corpse now, and the mint clones an authored
+    // row that a unit world has no store for. See the helper.
+    installCorpseMintStub();
     makeStuffAtPath(() => {
       const c = new Condition();
       c.setName('a declared effect');
@@ -103,6 +107,9 @@ describe('vitals couplings — characterization', () => {
 
   beforeEach(() => {
     installV1QuantityMarshallers();
+    // ⭐ Every death mints a corpse now, and the mint clones an authored
+    // row that a unit world has no store for. See the helper.
+    installCorpseMintStub();
     WorldClockApi._resetForTesting();
     setNow(0);
     WorldClockApi._setNowProviderForTesting(() => now);
@@ -273,7 +280,15 @@ describe('vitals couplings — characterization', () => {
 /* ─────────── W7: who did this — the poisoner's name on the record ─────────── */
 
 describe('vitals — the affliction inflicter', () => {
-  beforeEach(() => installV1QuantityMarshallers());
+  beforeEach(() => {
+    installV1QuantityMarshallers();
+    // ⭐ Every death mints a corpse now, and the mint clones an authored
+    // row that a unit world has no store for. See the helper.
+    installCorpseMintStub();
+    // ⭐ Every death mints a corpse now, and the mint clones an authored
+    // row that a unit world has no store for. See the helper.
+    installCorpseMintStub();
+  });
 
   it('⭐ an affliction landed by an actor records who did it', () => {
     // A wound has always known who dealt it (`Trauma.inflictedBy`); an
@@ -354,6 +369,9 @@ describe('plasma restoration — the ceiling is a SHAPE decision', () => {
 
   beforeEach(() => {
     installV1QuantityMarshallers();
+    // ⭐ Every death mints a corpse now, and the mint clones an authored
+    // row that a unit world has no store for. See the helper.
+    installCorpseMintStub();
     WorldClockApi._resetForTesting();
     setNow(0);
     WorldClockApi._setNowProviderForTesting(() => now);

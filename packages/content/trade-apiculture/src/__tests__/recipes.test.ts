@@ -114,14 +114,35 @@ describe('crush or spin', () => {
   });
 });
 
-describe('the candle', () => {
-  const candle = recipe('self', 'candle');
-
-  it('⭐ AC 12 — wax makes a light, and the tag is what carries it', () => {
-    expect(candle.inputSlots[0]!.category).toBe('wax');
+describe('the candle, which is no longer this pack\'s', () => {
+  /**
+   * ⭐⭐ **The recipe MOVED, and this test moved with it.**
+   *
+   * It used to assert this pack's own `candle` recipe — `category: wax`,
+   * `outputMaterial: beeswax`, `discipline: apiculture`. All three were
+   * the problem: a beekeeper's Discipline was what made a candle, and
+   * with beeswax welded onto the output a TALLOW candle (the ordinary
+   * kind, the cheap light the whole medieval world burned) was
+   * unauthorable without a second recipe and a second row.
+   *
+   * `trade-chandlery` owns the dip now, over one recipe with an empty
+   * `outputMaterial`. What apiculture keeps is the WAX, which is
+   * correctly its product — the same split as the leather jerkin leaving
+   * `trade-smithing`.
+   */
+  it('⭐ AC 12 still holds — wax makes a light, by carrying the tag', () => {
+    // The pack's job is to produce something a chandler can use, and
+    // this is the whole of the claim now: the material carries the tag
+    // the dip matches.
     expect(rowTags('/stuff/idea/material/organic/beeswax')).toContain('wax');
-    expect(candle.outputTemplate).toBe('/stuff/thing/candle');
-    expect(candle.outputApplication).toBe('tangible');
+    expect(rowTags('/stuff/idea/material/organic/beeswax')).toContain(
+      'candle-stock',
+    );
+  });
+
+  it('⚠ and this pack no longer ships a candle recipe', () => {
+    // A regression here would mean two recipes for one act again.
+    expect(() => recipe('self', 'candle')).toThrow();
   });
 });
 

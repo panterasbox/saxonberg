@@ -1,0 +1,32 @@
+# Melt wax — ⭐ the step that gets a beekeeper's product into a chandler's
+# pot.
+#
+# ⚠ **Tallow needs no equivalent.** Rendered tallow leaves
+# `render-tallow` as bulk in a crock and is `pour`ed into the dip-pot by
+# the shipped platform verb — no recipe, no code. Beeswax leaves
+# `crush-comb` as a CAKE, because wax sets hard, so it has to be melted.
+# The asymmetry is a fact about the two materials rather than a rule
+# anybody wrote, and it is why the chandlery ships two verbs.
+#
+# ⭐ `outputMaterial` is authored here and that is right: melting does not
+# change what the wax IS. Only the dip derives, because only the dip has
+# two possible feedstocks.
+recipeId: melt-wax
+name: Melted wax
+keywords: ["melt-wax", "melt", "wax"]
+inputSlots:
+- slot: cake
+  kind: item
+  # The cake's own material tag.
+  category: beeswax
+  minGrade: poor
+  count: 1
+toolCapabilities: []
+outputApplication: bulk
+outputTemplate: /trade/chandlery/thing/dip-pot
+outputMaterial: /stuff/idea/material/organic/beeswax
+# A 0.15 kg cake at 960 kg/m³ is about 0.16 L.
+outputPortionL: 0.16
+# Beeswax melts at 335 K; the pot has to get there.
+requiresHeatK: 340
+maxHeatK: 480

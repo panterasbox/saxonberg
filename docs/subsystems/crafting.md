@@ -1609,6 +1609,26 @@ pieces that attach at the same place and should land together:
   on the script-shaped verbs; npc-behavior wraps the serve-on-order
   reflex.
 
+### ⭐⭐⭐ `applyMethodFit` — did the method suit the meat?
+
+Beside `applyControlFloor`, at the one place a build's grade is derived. A
+muscle that works carries connective tissue, and collagen gelatinizes only
+under long moist heat — so a shoulder braises and a loin sears, and getting
+it backwards costs **one band of grade**.
+
+The method is read off fields a recipe already had: `medium: water` plus a
+hold of two game hours is `long-moist`, anything else `fast-dry`
+(`CookingAttempt`). ⭐ **No recipe schema change** — that vocabulary
+shipped to model a phase ceiling and describes the method exactly.
+
+⚠ It reads the **material**, not the cut object, so it covers the by-hand
+build whose contributions are snapshots carrying only a `materialPath`;
+reading the object would have left that route a laundering path where a
+stewed loin came out ungraded because it went through a pot. ⭐ And the
+fit is asymmetric: a tough cut cooked fast is inedible where a tender cut
+braised is merely wasted. Full model:
+[butchery.md](./butchery.md).
+
 ---
 
 ## History — the whiskey-styles build (2026-10-05)

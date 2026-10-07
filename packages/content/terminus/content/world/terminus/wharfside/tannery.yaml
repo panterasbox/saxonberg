@@ -1,0 +1,25 @@
+# The Tannery — ⭐⭐ **a LULU, and the first one the realm ships on
+# purpose.**
+#
+# A locally unwanted land use: the thing everybody needs and nobody wants
+# near them. Tanning is the canonical one — it stinks, it needs running
+# water, and the water it gives back is not the water it took. So it sits
+# at the city's edge on the industrial district's ground, downstream of
+# the intake and beside the outfall, which is where every real tannery
+# in history sat and for exactly these reasons.
+#
+# ⚠⚠ **The effluent is an UNPRICED EXTERNALITY, and that is recorded
+# rather than hidden.** The water pack ships contamination by kind and
+# Rejection already fouls a river upstream of everyone, so wiring the
+# liquor into the watercourse is wiring rather than mechanism — but
+# `settlement-model` is explicit that waste is a need only as an
+# externality, *"a spill that already costs somebody, never a chore"*,
+# and nothing downstream of here costs anybody anything yet. The siting
+# is honest; the consequence is a seam. See the plan's deferred list.
+#
+# A sub-zone of its own so the yard keeps authored coords — the dyehouse
+# shape, and the district zone is its parent.
+class: /platform/idea/location/CartesianZone
+data:
+  name: The Tannery
+  cellSize: 4.0

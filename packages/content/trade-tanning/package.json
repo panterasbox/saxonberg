@@ -1,0 +1,24 @@
+{
+  "name": "@saxonberg/content-trade-tanning",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "The tanning trade — a hide becomes leather in a pit of bark and water, on its own clock, and the pit is the condition.",
+  "dependencies": {
+    "@saxonberg/content-base-library": "workspace:*",
+    "@saxonberg/content-generic-objects": "workspace:*",
+    "@saxonberg/content-platform": "workspace:*",
+    "@saxonberg/server": "workspace:*",
+    "@saxonberg/types": "workspace:*"
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0",
+    "vitest": "^2.0.0",
+    "yaml": "^2.8.2"
+  }
+}

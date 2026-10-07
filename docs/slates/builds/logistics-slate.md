@@ -24,7 +24,7 @@
 > reality; mass as the metric) · Heart's Delight the town (a farm and a
 > mill ship; the crossroads depot, packing house and co-op do not) · the
 > demo-content purge (Moor · Practicum · Substation · Hearthworks) · the
-> Delight/Kestrel inconsistency
+> Delight/Kestrel inconsistency · ⚠ **the knacker as a collection round** (handed over by the carcass chain, 2026-10-05: dead stock has to get from wherever it died to the LULU zone, and nothing collects it — the one shipped trade whose input is somebody else's problem to deliver)
 > **Size:** a build
 
 **Captured 2026-09-03**, out of *"I wanna start designing and building

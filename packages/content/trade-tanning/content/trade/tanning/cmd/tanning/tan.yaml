@@ -1,0 +1,47 @@
+verbs: [tan]
+controller: /trade/tanning/idea/cmd/tanning/TanController
+description: "Lay a hide into a tanpit, or lift a finished one out"
+help: |
+  `tan <hide>` — lay a green skin into a tanpit, and `tan` it again to
+  see how it is coming on. When it is through, `tan` lifts it out as
+  leather; so does `get <hide> from <pit>`.
+
+  ⭐ **The work is not the act, it is the waiting and the judging.** A
+  skin is in the pit for weeks. What the pit does to it depends on two
+  things you control: how much bark is in the liquor, and how many skins
+  are sharing it. A crowded pit tans all of them badly.
+
+  ⚠ **Pull it too early and it is thin.** Put it back; nothing is lost.
+
+  ⚠⚠ **Leave it too long and the liquor eats into the grain.** It goes
+  hard and dark and cracks instead of folding, and nothing will bring it
+  back. The same happens, faster, in liquor you over-barked to save time.
+
+  `look` at the pit and at the skin. Neither gives you a number, and
+  neither needs to.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+args:
+  - name: hide
+    type: object
+    required: true
+    scope: ["reachable"]
+    # ⭐ The hide is the host set: only a thing that can tan is a thing
+    # you can tan. A sack of flour fails at the binder, and correctly —
+    # there is nothing useful to say to somebody tanning flour.
+    requires: TanningMixin
+    validators:
+      - /lib/command/validators/canReach
+  # ⭐ WHICH PIT — declared, not hunted for (`lint:instrument-args`). The
+  # binder hands over every reachable container and the controller reads
+  # the class; with no pit named it falls back to the one the hide is
+  # already standing in, which is what makes `tan hide` read as "check on
+  # it".
+  - name: pit
+    type: objects
+    required: false
+    prepositions: [in, into]
+    default: "reachable:[mixin.ContainerMixin]"
+    scope: ["reachable"]
+    requires: [ContainerMixin]

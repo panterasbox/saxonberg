@@ -53,6 +53,18 @@ data:
   biddability: 0.9
   breeding: { daylightFrom: 0, daylightTo: 1, gestationDays: 25, litter: 5 }
   production: []
+  # ⭐⭐ **It authors NO yield, and the absence IS the refusal.**
+  #
+  # An empty `butcheryYield` is not a gap and not a TODO: it says *there is
+  # nothing here worth cutting*, and the kitchen's `butcher` already says
+  # so in the world's own voice. This is why no verb anywhere needs a
+  # `instanceof Livestock` guard or a list of animals you may not eat — the
+  # species answers, and the answer is a fact about the animal rather than
+  # a rule somebody wrote down.
+  #
+  # ⚠ Which also means a working dog is refused for a DIFFERENT reason
+  # from a named one. The collie in the yard has no yield; Moss has a
+  # name. Two refusals, and they do not read alike.
   longDescription: >-
     A rough-coated collie with one ear up, lying flat with its chin on
     its paws and its eyes on the stock. It has not blinked in a while.

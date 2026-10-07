@@ -32,25 +32,25 @@ function anatomicalCreature(): Creature {
     {
       key: 'body.torso',
       parent: null,
-      tissues: [{ tissuePath: '/stuff/idea/material/tissue/bone', mass: 8 }],
+      tissues: [{ tissuePath: '/stuff/idea/material/tissue/bone', share: 0.529801 }],
     },
     {
       key: 'body.arm.left',
       parent: 'body.torso',
       severable: true,
-      tissues: [{ tissuePath: '/stuff/idea/material/tissue/muscle', mass: 3 }],
+      tissues: [{ tissuePath: '/stuff/idea/material/tissue/muscle', share: 0.198675 }],
     },
     {
       key: 'body.arm.left.hand',
       parent: 'body.arm.left',
       severable: true,
-      tissues: [{ tissuePath: '/stuff/idea/material/tissue/bone', mass: 0.4 }],
+      tissues: [{ tissuePath: '/stuff/idea/material/tissue/bone', share: 0.02649 }],
     },
     {
       key: 'body.torso.heart',
       parent: 'body.torso',
       governs: ['heartRate'],
-      tissues: [{ tissuePath: '/stuff/idea/material/tissue/muscle', mass: 0.3 }],
+      tissues: [{ tissuePath: '/stuff/idea/material/tissue/muscle', share: 0.019868 }],
     },
   ]);
   stampTemplatePathForTest(plan, '/stuff/idea/species/BodyPlan/test-biped');
@@ -82,7 +82,7 @@ describe('VitalsMixin — anatomy resolver', () => {
     const creature = anatomicalCreature();
     const arm = creature.getPart('body.arm.left');
     expect(arm?.tissues).toEqual([
-      { tissuePath: '/stuff/idea/material/tissue/muscle', mass: 3 },
+      { tissuePath: '/stuff/idea/material/tissue/muscle', share: 0.198675 },
     ]);
   });
 
@@ -188,7 +188,7 @@ describe('VitalsMixin — anatomy resolver', () => {
         key: 'body.arm.left.hand',
         parent: 'body.torso',
         serves: ['manipulation'],
-        tissues: [{ tissuePath: '/stuff/idea/material/tissue/bone', mass: 0.4 }],
+        tissues: [{ tissuePath: '/stuff/idea/material/tissue/bone', share: 0.02649 }],
       },
     ]);
     expect(plan.isInterior('body.arm.left.hand')).toBe(false);

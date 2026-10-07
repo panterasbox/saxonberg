@@ -6,8 +6,17 @@
 > textiles · baking · brewing · butchery; `smelting` shipped too but closes
 > no roster row)
 > → [advancement.md § Disciplines the trade packs seeded](../../subsystems/advancement.md)
-> **Left:** the 14 unminted Disciplines (foraging · metallurgy-as-knowledge
-> · electrical-work · carpentry · masonry · leatherwork · ceramics ·
+> ⭐ **`leatherwork` is minted** (2026-10-05, `trade-tanning` — the
+> carcass chain) and comes OFF the roster, closing the **tanner** row
+> below → [butchery.md](../../subsystems/butchery.md). ⚠ Its sibling
+> trade mints nothing on purpose: `chandlery` was NOT on this roster and
+> was considered and declined, because the dipping is trivial and what is
+> hard is *which fat you bought* — a market judgement, not a craft one.
+> ⭐⭐ **That is a precedent worth keeping: a trade can be real without a
+> Discipline**, and this roster is a list of skills rather than of
+> livelihoods.
+> **Left:** the 13 unminted Disciplines (foraging · metallurgy-as-knowledge
+> · electrical-work · carpentry · masonry · ceramics ·
 > glasswork · bookkeeping · apothecary · midwifery · letters · wayfinding ·
 > mechanisms) · the trade × locality × `Means` grid itself · the lineage
 > gallery that consumes it
@@ -88,7 +97,7 @@ Localities are real seeds except where marked ⏳ (designed, unbuilt).
 | **carpenter** | terminus, hinkley-hills | ⭐carpentry | tools | holding, apprenticeship | Goibniu |
 | **mason** | terminus, eternal-campus | ⭐masonry | tools | debt, holding | Goibniu |
 | **tailor** | terminus | ⭐textiles — **SHIPPED 2026-09-03** | stock | favour, debt | Vesta |
-| **tanner** | terminus, moor | ⭐leatherwork | stock | feud, debt | — |
+| **tanner** | terminus, moor | ✅leatherwork (MINTED) | stock | feud, debt | — |
 | **potter** | hinkley-hills, terminus | ⭐ceramics | stock | apprenticeship | Vesta |
 | **glazier** | terminus, hearthworks | ⭐glasswork | tools | favour | Goibniu |
 

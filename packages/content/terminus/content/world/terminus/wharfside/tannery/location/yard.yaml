@@ -1,0 +1,45 @@
+# The Wharfside tannery — ⭐ **the pits are the premises.**
+#
+# Two pits, a leat off the river, and a shelf. That is the whole of a
+# tannery's capital, and it is why a tanner is poor for the first three
+# weeks of every batch: everything is in the ground, working, and worth
+# nothing until it comes out.
+#
+# ⚠ Lit by spill from the bank, like the dyehouse — bright by day and
+# DARK at night, which costs no authored number and is the honest answer
+# for a yard.
+class: /platform/location/SingletonCartesianLocation
+data:
+  coords:
+    x: 0
+    y: 0
+    z: 0
+  shortDescription: "tannery"
+  keywords: [tannery, tanyard, yard, pits, tanning]
+  register: definite
+  longDescription: |
+    Two long pits sunk in the ground with boards laid over the gaps between them, and the smell arrives a good while before you do — sour bark, wet hair, and something underneath that you decide not to think about. A leat runs in off the river at one end and out at the other, and what goes out is not the colour of what came in.
+
+    Skins hang on a rail along the wall in every condition from wet grey to dark brown. A shelf holds bundles of bark, split and stacked, and a scraping beam leans against it.
+
+    Nobody here is in a hurry. Everything in this yard is waiting for something.
+  exits:
+    # ⚠ The way back is through the knacker's yard, which is honest: the
+    # tannery is the furthest thing out, past the outfall, and the only
+    # road to it is the one the hides come down.
+    north:
+      destination: /world/terminus/wharfside/knackers/location/yard
+      media: [ground]
+      edgeMinutes: 2
+  props:
+    - /trade/tanning/thing/tanpit
+    - /world/terminus/wharfside/tannery/thing/leat
+  details:
+    pits:
+      keywords: [pits, pit, liquor, boards]
+      description: |
+        Oblong, deeper than they look, lined with pitched boards gone black at the waterline. The liquor in them is the colour of strong tea and perfectly still. Hides are weighted down under it, out of sight, and there is no way to tell what is happening to them except to pull one out and look.
+    rail:
+      keywords: [rail, skins, hides, hooks]
+      description: |
+        A dozen skins on hooks, and you can read the whole process along the rail from left to right: wet grey, then pale and stiffening, then the brown of a saddle. The far end is a skin somebody left too long — dark, hard, and cracked across the middle where it was folded.

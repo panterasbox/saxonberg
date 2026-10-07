@@ -33,6 +33,12 @@ data:
       name: oak
       woodMaterialPath: /stuff/idea/material/wood/oak
       seedPath: /trade/forestry/thing/seed/acorn
+      # ⭐⭐ **Oak tans and ash does not** — the tannin is in oak bark and
+      # almost nowhere else useful, which is why the ash entry below
+      # authors none and why felling an ash gives you timber and nothing
+      # for a tanpit. The tanning trade's whole feedstock comes off this
+      # one line.
+      barkPath: /trade/forestry/thing/bark
       standing: 8
       capacity: 10
       incrementPerYear: 1

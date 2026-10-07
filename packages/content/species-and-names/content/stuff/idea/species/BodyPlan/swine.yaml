@@ -1,0 +1,105 @@
+# Swine — a pig's body, which is not a sheep's with a dial on it.
+#
+# ⭐⭐ **A pig is a third fat and has twice a sheep's belly**, and that is
+# the whole reason a poor household keeps one: the lard is as much the
+# point as the meat. The quadruped plan carries 6 % separable fat, which
+# is a sheep's figure — so a pig needs its own proportions.
+#
+# ⭐ `extends:` is how: the TOPOLOGY is quadruped's (a pig has the same
+# muscles in the same places) and only the shares differ. The parent is
+# resolved at read and never flattened, so a change to quadruped's
+# topology reaches here.
+#
+# ⚠⚠ **It was nearly a `Species.tissueShares` override instead**, and
+# `lint:unconsumed-seams` refused it twice — an authored field whose only
+# reader was a derived method in its own file. The gate was right, and the
+# second look was better: a pig's body IS a different body, so saying so
+# in a row beats scaling a sheep's at read time. No new field, no new
+# mechanism, and the sum-to-1 invariant stays gate-checked by
+# `lint:anatomy` clause (a) exactly as it is for every other plan.
+extends: /stuff/idea/species/BodyPlan/quadruped
+class: /platform/idea/species/BodyPlan
+data:
+  name: swine
+  bodyParts:
+    - key: body.torso
+      parent: null
+      tissues:
+      - { tissuePath: /stuff/idea/material/tissue/bone, share: 0.0348 }
+      - { tissuePath: /stuff/idea/material/tissue/muscles/neck, share: 0.0244 }
+      - { tissuePath: /stuff/idea/material/tissue/muscles/rib, share: 0.0348 }
+      - { tissuePath: /stuff/idea/material/tissue/muscles/loin, share: 0.0348 }
+      - { tissuePath: /stuff/idea/material/tissue/muscles/tenderloin, share: 0.0077 }
+      - { tissuePath: /stuff/idea/material/tissue/muscles/belly, share: 0.1 }
+      - { tissuePath: /stuff/idea/material/food/animal-fat, share: 0.28 }
+      - { tissuePath: /stuff/idea/material/tissue/flesh, share: 0.2173 }
+    - key: body.head
+      parent: body.torso
+      severable: true
+      tissues:
+      - { tissuePath: /stuff/idea/material/tissue/bone, share: 0.0084 }
+      - { tissuePath: /stuff/idea/material/tissue/flesh, share: 0.0209 }
+    - key: body.leg.frontLeft
+      parent: body.torso
+      severable: true
+      serves: [locomotion]
+      tissues:
+      - { tissuePath: /stuff/idea/material/tissue/bone, share: 0.0084 }
+      - { tissuePath: /stuff/idea/material/tissue/muscles/shoulder, share: 0.0244 }
+      - { tissuePath: /stuff/idea/material/tissue/muscles/shank, share: 0.0077 }
+      - { tissuePath: /stuff/idea/material/tissue/flesh, share: 0.007 }
+    - key: body.leg.frontRight
+      parent: body.torso
+      severable: true
+      serves: [locomotion]
+      tissues:
+      - { tissuePath: /stuff/idea/material/tissue/bone, share: 0.0084 }
+      - { tissuePath: /stuff/idea/material/tissue/muscles/shoulder, share: 0.0244 }
+      - { tissuePath: /stuff/idea/material/tissue/muscles/shank, share: 0.0077 }
+      - { tissuePath: /stuff/idea/material/tissue/flesh, share: 0.007 }
+    - key: body.leg.rearLeft
+      parent: body.torso
+      severable: true
+      serves: [locomotion]
+      tissues:
+      - { tissuePath: /stuff/idea/material/tissue/bone, share: 0.0118 }
+      - { tissuePath: /stuff/idea/material/tissue/muscles/leg, share: 0.0293 }
+      - { tissuePath: /stuff/idea/material/tissue/muscles/shank, share: 0.0098 }
+      - { tissuePath: /stuff/idea/material/tissue/flesh, share: 0.007 }
+    - key: body.leg.rearRight
+      parent: body.torso
+      severable: true
+      serves: [locomotion]
+      tissues:
+      - { tissuePath: /stuff/idea/material/tissue/bone, share: 0.0118 }
+      - { tissuePath: /stuff/idea/material/tissue/muscles/leg, share: 0.0293 }
+      - { tissuePath: /stuff/idea/material/tissue/muscles/shank, share: 0.0098 }
+      - { tissuePath: /stuff/idea/material/tissue/flesh, share: 0.007 }
+    - key: body.torso.heart
+      parent: body.torso
+      governs: [heartRate, circulation]
+      tissues:
+      - { tissuePath: /stuff/idea/material/tissue/muscle, share: 0.0014 }
+    - key: body.torso.lungs
+      parent: body.torso
+      governs: [respiratoryRate, respiration]
+      tissues:
+      - { tissuePath: /stuff/idea/material/tissue/flesh, share: 0.007 }
+    - key: body.head.brain
+      parent: body.head
+      governs: [consciousness]
+      tissues:
+      - { tissuePath: /stuff/idea/material/tissue/flesh, share: 0.0021 }
+    - key: body.torso.spine.upper
+      parent: body.torso
+      tissues:
+      - { tissuePath: /stuff/idea/material/tissue/bone, share: 0.0042 }
+    - key: body.torso.spine.lower
+      parent: body.torso.spine.upper
+      tissues:
+      - { tissuePath: /stuff/idea/material/tissue/bone, share: 0.0035 }
+    - key: body.torso.liver
+      parent: body.torso
+      governs: [clearance]
+      tissues:
+      - { tissuePath: /stuff/idea/material/tissue/flesh, share: 0.0084 }

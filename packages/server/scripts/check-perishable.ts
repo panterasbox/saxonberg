@@ -68,6 +68,35 @@ const SKIP = new Set(['node_modules', '.git', 'dist', 'build', 'coverage']);
 const REQUIRED_MIXIN = 'FreshnessMixin';
 /** …unless it is alive: a growing plant's tissue is not yet dead matter. */
 const ALIVE_MIXIN = 'GrowingMixin';
+/**
+ * ⭐⭐ …or unless it is a BODY, which rots on its own clock.
+ *
+ * `PostmortemMixin.freshnessLoad()` is the second implementation of this
+ * capability, not an exception to it: it calls `Freshness.advance()`
+ * directly with the host's own material and temperature, keyed to
+ * `sinceDeath()` rather than to a generic start — because a corpse is the
+ * one perishable whose clock begins at a known event. It also publishes
+ * `getDecayStage()` and `getForensicReadability()` off the same elapsed
+ * time.
+ *
+ * ⭐ Production already treats the two as one law, and said so before this
+ * gate knew: `ConsignController` calls `item.freshnessLoad()` with the
+ * comment *"body, not food, and `Postmortem.freshnessLoad` is the same
+ * law"*, and `Consignment.test.ts` asserts a dead thing's band is not
+ * `fresh`.
+ *
+ * ⚠ So the failure this gate exists to prevent — *a perishable material
+ * on a class that silently never rots* — does not occur on a body: the
+ * material IS read. Composing `FreshnessMixin` as well would be the worse
+ * outcome, two spoilage clocks on one object.
+ *
+ * ⚠⚠ **This is not an exemption**: no row is named, no count moved, and a
+ * class reaching neither mixin still fails. It is the gate's rule
+ * becoming correct about a second implementor — the same shape as
+ * `ALIVE_MIXIN` above, which is also "that class answers a different
+ * question than this gate asks".
+ */
+const POSTMORTEM_MIXIN = 'PostmortemMixin';
 
 interface Row {
   path: string;
@@ -158,6 +187,8 @@ function reachesFreshness(
   // (a `Crop`, which is a `Provision`). So a class that composes the
   // growth gauge is answering a different question than this gate asks.
   if (src.includes(ALIVE_MIXIN)) return true;
+  // A body rots on its own clock — see POSTMORTEM_MIXIN above.
+  if (src.includes(POSTMORTEM_MIXIN)) return true;
   /*
    * Follow the base this module extends, wherever it lives.
    *
@@ -192,7 +223,11 @@ function reachesFreshness(
       `(?:const|let|var)\\s+${n}\\s*=\\s*([\\s\\S]*?);`,
     ).exec(src);
     if (!local) continue;
-    if (local[1]!.includes(REQUIRED_MIXIN) || local[1]!.includes(ALIVE_MIXIN)) {
+    if (
+      local[1]!.includes(REQUIRED_MIXIN) ||
+      local[1]!.includes(ALIVE_MIXIN) ||
+      local[1]!.includes(POSTMORTEM_MIXIN)
+    ) {
       return true;
     }
     for (const m of local[1]!.match(/[A-Za-z_$][\w$]*/g) ?? []) names.add(m);

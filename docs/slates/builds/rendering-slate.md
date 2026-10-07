@@ -1,21 +1,31 @@
 # Rendering slate — the knacker, the tanner, the chandler
 
-> **Status: UNBUILT** — leather ships as a sink with no source; no soap
-> or candle exists. Code-verified 2026-09-19: no rendering / tanning /
-> chandling pack; no `soap` or `candle` row anywhere (candle survives
-> only as a lumen threshold in `light.md`); nothing tans a hide. ⚠ The
-> ranching build shipped the seam this slate asked it to leave open —
-> `butcher` yields tallow (a pail of fat), a green hide and bone, and
-> `tallow` is now a material (`trade-cooking`'s `render-tallow` recipe +
-> `material/tallow.yaml`, *the medieval kitchen's cooking fat and its
-> candle stock*) — so the chain's front end exists for slaughtered stock;
-> the knacker's dead-stock half, the tanner and the chandler do not.
-> **Left:** the knacker (dead stock — a `Corpse` yields nothing) · the
-> tanner (tannin is the dyeing trade's) · the chandler · `soap` /
-> `candle` · bone → glue · buttons · the one-pack-or-three cut · where
-> soap goes · leather: this pack makes it, textiles' venues sell it (and
-> `leather-jerkin` currently takes a raw hide) · does the knacker collect
-> **Size:** a build
+> **Status: PARTIAL** — ⭐⭐ **the carcass chain and the butchery build
+> shipped most of this slate** (2026-10-05) →
+> [butchery.md](../../subsystems/butchery.md). The tanner is
+> `trade-tanning`, the chandler is `trade-chandlery`, the candle is ONE
+> recipe over both fats, bone goes to the field, offal goes into a dog
+> loaf, and the knacker is a VENUE AND A SEAT in the LULU zone rather
+> than a third pack.
+> ⚠⚠ **This slate was STALE on candles and said so wrongly**: it claimed
+> *"no soap or candle row anywhere (candle survives only as a lumen
+> threshold in `light.md`)"*, code-verified 2026-09-19 and **overtaken by
+> the apiculture build**, which shipped a working candle (a real
+> `/platform/thing/Lamp`, 12 lumens at 1900 K, burning itself down) plus
+> the crush-vs-spin fork that pays for it. ⭐ The lesson is the one this
+> backlog keeps relearning: a code-verified negative has a shelf life,
+> and the verification date is the most important line in it.
+> **Left:** **soap** (needs lye + a hygiene mechanism; `dairy-slate` owns
+> hygiene-as-criterion) · **horn** — cut deliberately, with its buyers
+> named (combs, cups, lantern panes, buttons; it is the pre-plastic
+> thermoplastic, so an epoch ladder rather than a row) · **glue and
+> gelatin from bone** — nothing demands them · **kibble** as the
+> INDUSTRIAL rung of the dog loaf (an extruder, keeping, fortification) ·
+> the tanpit's **effluent** reaching the watershed · the pit's liquor as
+> the dyer's **tannin** · `requiresReagent` on the `chemical` maturation
+> arm (the first `chemical` consumer decides) · does the knacker **collect**
+> (a round → `logistics-slate`)
+> **Size:** a wave
 
 > **Captured 2026-09-03**, out of the settlement-model pass, in answer to
 > *"are there new trades to be chartered here?"*

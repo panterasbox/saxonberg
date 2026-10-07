@@ -79,15 +79,15 @@ function bodied(): Creature {
       key: 'body.torso',
       parent: null,
       tissues: [
-        { tissuePath: '/stuff/idea/material/tissue/bone', mass: 8 },
-        { tissuePath: '/stuff/idea/material/tissue/flesh', mass: 20 },
+        { tissuePath: '/stuff/idea/material/tissue/bone', share: 0.280702 },
+        { tissuePath: '/stuff/idea/material/tissue/flesh', share: 0.701754 },
       ],
     },
     { key: 'body.leg.left', parent: 'body.torso', tissues: [] },
     {
       key: 'body.leg.left.foot',
       parent: 'body.leg.left',
-      tissues: [{ tissuePath: '/stuff/idea/material/tissue/flesh', mass: 0.5 }],
+      tissues: [{ tissuePath: '/stuff/idea/material/tissue/flesh', share: 0.017544 }],
     },
     { key: 'body.leg.right', parent: 'body.torso', tissues: [] },
     { key: 'body.leg.right.foot', parent: 'body.leg.right', tissues: [] },

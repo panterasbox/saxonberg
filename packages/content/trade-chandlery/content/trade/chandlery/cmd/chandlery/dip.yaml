@@ -1,0 +1,78 @@
+# ⭐⭐⭐ **`melt` is an ALIAS, not a second verb** — the same call the
+# milling trade's `grind` lost, for the same reason.
+#
+# The chandlery shipped two verbs on the argument that the pot has to be
+# filled before anything can be dipped out of it, and that beeswax
+# arrives as a *cake* where tallow arrives liquid in a crock. The
+# asymmetry is real. It is not a second verb: it is the FIRST step of the
+# only act this pack has, and the verb-collision ladder's first rung is
+# *unify behind an interface*. A trade does not get a second verb because
+# one of its two feedstocks needs warming up.
+#
+# ⚠ `dip` is the survivor rather than `melt` for three reasons, in order:
+# the trade is a dip (a dipped candle is what a chandler sells, and the
+# word names the finished thing); the dip carries the derived output —
+# the empty `outputMaterial` that is the entire pack — where the melt
+# merely moves wax from a cake into a pot; and a player holding a cake of
+# wax still reaches for *melt* and still gets it. Precedent for the
+# alias: `mill`→`grind`, `pick`→`harvest`, `examine`→`look`.
+#
+# ⭐ And the melt is NARRATED, not skipped. `melt the cake` reads *it
+# softens, slumps and goes clear* and then *a candle builds up on the
+# wick* — two sentences for one act, so the alias never silently
+# overshoots the word the player typed.
+verbs: [dip, melt]
+controller: /trade/chandlery/idea/cmd/chandlery/DipController
+description: "Dip a candle out of whatever fat is in the pot"
+help: |
+  `dip` — run a wick down into a pot of melted fat and up again, over and
+  over, until a candle has built up on it.
+
+  ⭐ **What the candle is made of is whatever was in the pot.** A pot of
+  beeswax gives a pale taper that smells of honey; a pot of tallow gives
+  a greasy one that smells of mutton and burns just as well. One act,
+  and the decision is which fat you bought — which is the whole of the
+  chandler's trade and the reason it is a trade at all.
+
+  You need fat in the pot. Rendered tallow is sold liquid in a crock, so
+  you `pour` it straight in. Beeswax sets hard and is sold as a cake, so
+  it has to be melted down first — and `dip the cake` does that for you,
+  in the same act: the wax goes clear, and then the candle builds up.
+  `melt` is the same verb if that is the word that fits what is in your
+  hands.
+
+  ⚠ Anybody can do this. There is no skill in dipping a wick, and the
+  game does not pretend otherwise. The skill in this chain is upstream:
+  somebody butchered the animal, somebody rendered the suet, somebody
+  kept the bees.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  # ⚠⚠ DECLARED FIRST, and that is load-bearing: positionals bind in
+  # declared order, so with the pot declared ahead of it `dip the cake`
+  # handed the cake to the pot. A later field's PREPOSITION still wins
+  # the lookahead, so `dip in the pot` skips this one. (The milling
+  # trade paid for this lesson with `mill wheat 0.72`.)
+  - name: solid
+    type: object
+    required: false
+    scope: "reachable"
+    # ⭐ `any`, deliberately: what may be melted is decided by the
+    # RECIPE's input slot, not by a mixin named here. A pack that ships a
+    # third wax authors a row and this file never learns the word.
+    requires: any
+    validators:
+      - /lib/command/validators/canReach
+  # ⭐ Declared so the binder resolves it, though the crafting resolve
+  # claims its own inputs out of reach — naming the pot is courtesy, and
+  # the controller does not read it (`lint:instrument-args` sees a
+  # declared arg rather than a bespoke walk).
+  - name: pot
+    type: objects
+    required: false
+    prepositions: [in, from]
+    default: "reachable:[mixin.BulkableMixin]"
+    scope: ["reachable"]
+    requires: [BulkableMixin]

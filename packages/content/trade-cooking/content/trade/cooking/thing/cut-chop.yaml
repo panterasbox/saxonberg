@@ -1,0 +1,23 @@
+# A chop — two muscles off a carcass.
+#
+# ⚠ `mass` here is a NOMINAL default the mint overwrites: what a cut
+# actually weighs is `Σ(its muscles' body share) × the carcass's own
+# mass`, so the same row off a ewe and an ox weighs what each animal's
+# chop weighs. Nothing authors that number twice.
+#
+# ⭐ And its TEXTURE is derived from the muscle too — nobody can author a
+# tender shank.
+class: /platform/thing/Cut
+data:
+  shortDescription: chop
+  keywords: [chop, chops, cutlet, cut]
+  register: indefinite
+  longDescription: >-
+    A chop cut straight through the backbone: a round of loin, a piece of rib, and a rib bone holding them together.
+  _materialPath: /stuff/idea/material/tissue/muscles/loin
+  tissues:
+    - /stuff/idea/material/tissue/muscles/loin
+    - /stuff/idea/material/tissue/muscles/rib
+  cutting: chop
+  difficulty: standard
+  mass: 1.0

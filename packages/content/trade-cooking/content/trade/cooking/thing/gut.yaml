@@ -1,0 +1,15 @@
+# The gut — what a casing is made of, and the dirtiest thing in the game.
+#
+# ⚠⚠ Gut is contaminated at FULL severity whatever the hand that took it,
+# and that is not a skill failure: the gut is where the contamination
+# lives. A spotless butcher still hands you a gut full of what a gut is
+# full of. Scraping it is what makes it a casing.
+class: /platform/thing/Provision
+data:
+  shortDescription: length of gut
+  keywords: [gut, guts, intestine, casing, length]
+  register: indefinite
+  longDescription: >-
+    A slithering coil of intestine, rinsed but not clean, still smelling of what it carried.
+  _materialPath: /stuff/idea/material/food/gut
+  mass: 0.4

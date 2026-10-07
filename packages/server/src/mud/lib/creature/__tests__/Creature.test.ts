@@ -12,7 +12,7 @@ import { Creature } from '../Creature';
 import { Character } from '../../character/Character';
 import Cast from '../../../platform/agent/Cast';
 import Extra from '../../../platform/agent/Extra';
-import Corpse from '../../../platform/agent/Corpse';
+import Corpse from '../../../platform/thing/Corpse';
 import { MixinApi } from '../../../api/mixin';
 import { Mixins } from '../../mixin';
 import { StuffApi } from '../../../api/stuff';

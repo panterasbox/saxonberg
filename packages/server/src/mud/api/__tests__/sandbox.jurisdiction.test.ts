@@ -6,7 +6,7 @@
  * touch almost nothing. The bound asked each receiver for its
  * `templatePath` and required it to sit under the parcel — but a
  * templatePath is LINEAGE, not location. An avatar's is
- * `/platform/agent/Avatar/<id>` and a cloned corpse's is `/stuff/agent/Corpse`,
+ * `/platform/agent/Avatar/<id>` and a cloned corpse's is `/stuff/thing/Corpse`,
  * wherever either happens to be standing, so a governed eval was denied
  * the wizard's own body in the very parcel they hold title to. Worse,
  * the eval scratch is minted and *then* stamped, so at the instant of
@@ -95,7 +95,7 @@ describe('governed eval — the jurisdiction bound', () => {
 
   it('admits a clone standing in the parcel (a corpse, say)', async () => {
     const corpse = probeAt(
-      '/stuff/agent/Corpse',
+      '/stuff/thing/Corpse',
       roomAt('/world/lounge/location/bar'),
     );
     await SandboxApi.runGoverned(BOUND, async () => {

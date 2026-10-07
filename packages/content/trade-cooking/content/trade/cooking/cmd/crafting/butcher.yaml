@@ -1,9 +1,50 @@
-verbs: [butcher, dress]
+# ⭐ `dress` is gone, and the collision it carried with it. `medical/treat`
+# dresses a WOUND and this dressed a CARCASS — both diegetically correct,
+# which `KNOWN_COLLISIONS` called the hard case. It is resolved the only
+# honest way: one of them gives up the word. Dressing a wound is the act a
+# player reaches for under pressure and `butcher` was never ambiguous, so
+# the kitchen drops its alias rather than the infirmary dropping a verb
+# somebody is bleeding behind.
+verbs: [butcher]
 controller: /trade/cooking/idea/cmd/crafting/ButcherController
 description: "Take a dead animal apart for meat"
 help: |
-  `butcher <body>` — open a carcass and work it down to cuts. You need
-  something bladed in reach; a clasp knife does.
+  `butcher <body>` — open a carcass and work it down to every cut your
+  tools can reach. `butcher <body> for <cut>` takes one named cut and
+  leaves the rest of the animal hanging.
+
+  ⭐⭐ **The tool is the depth.** A knife takes the boneless cuts, the
+  offal, the hide and the fat; a **saw** takes a joint off the bone — a
+  shoulder, a leg, a rack of ribs; a **cleaver** and a **block** together
+  take chops, because you cannot chop through a backbone against nothing.
+  Work with a knife alone and the joints stay on the carcass, and the
+  refusal says which tool they want.
+
+  ⭐⭐ **And the carcass REDUCES.** What you take is gone and what you
+  leave is still there — so you can lift the loin to sell and come back
+  for the rest, which is what a shop does all day. `look` at a worked
+  carcass and it says what is left on it.
+
+  ⭐⭐⭐ **Which cut you get is the hand that holds the knife.** A good
+  butcher lifts a whole loin where a poor one leaves trim, and the cut
+  itself tells you what it wants in the pot: a working muscle — a
+  shoulder, a shank, a neck — is coarse and sinewy and needs hours in
+  liquid, while a loin or a tenderloin is fine-grained and wants to be
+  quick and hot. Get that backwards and you will know.
+
+  ⚠ Bring something to catch the blood in if you want it. Nobody will
+  remind you, and it does not wait.
+
+  ⭐ **A live animal is slaughtered, not butchered.** Killing and dressing
+  are two acts: `slaughter` leaves a body, and this takes the body apart.
+  Any body — a beast killed in a fight, taken by a fox, dead of old age or
+  slaughtered in a yard are all the same job from here.
+
+  ⭐ **What comes off is the ANIMAL's.** Its size and the condition it was
+  in when it died, both. A bullock gives far more than a ewe because it is
+  far more animal, and a beast in poor flesh dresses out light — so
+  *finish it before you kill it* is something you work out rather than
+  read.
 
   Two things answer to your skill at it, and neither is a damage number:
   how much meat you get, and how much of the animal's gut ends up on it.
@@ -13,7 +54,7 @@ help: |
 
   ⚠ **The clock starts at the kill, not at the knife.** A carcass left
   lying is meat that has already been going off; butchering it does not
-  give you back the hours. Dress it promptly and get it cold.
+  give you back the hours. Get on with it, and get it cold.
 
   ⚠ Whatever comes off a carcass is raw, and raw meat has been in contact
   with a gut. Nothing you can see, smell or taste will tell you so.
@@ -50,3 +91,32 @@ args:
     default: "reachable:[mixin.PlacingMixin and mixin.ContaminableMixin]"
     scope: ["reachable"]
     requires: [PlacingMixin]
+  # ⭐⭐ WHICH CUT, as a WORD rather than a thing in reach — a cut is
+  # something you ask for, and the carcass is the only object involved.
+  # Matched by the controller against each yield line's cut row keywords.
+  - name: cut
+    type: string
+    required: false
+    prepositions: [for]
+  # ⭐ WHICH TOOLS — declared, not hunted for (`lint:instrument-args`).
+  # The controller reads `hasCapability('saw')` / `('cleaver')` across the
+  # bound set, so the open vocabulary means a later pack's band saw
+  # answers with no kernel edit.
+  - name: tools
+    type: objects
+    required: false
+    prepositions: [with, using]
+    default: "reachable:[mixin.ToolMixin]"
+    scope: ["reachable"]
+    requires: [ToolMixin]
+  # ⭐ WHAT TO CATCH THE BLOOD IN. ⚠ No refusal when it is absent: blood
+  # SPILLS, which is what actually happens, and the pudding becomes
+  # something you only get if you came prepared. Deliberately unlike the
+  # milk rule — milk is a tap you can return to, and a carcass is once.
+  - name: vessel
+    type: objects
+    required: false
+    prepositions: [into, in]
+    default: "reachable:[mixin.BulkableMixin]"
+    scope: ["reachable"]
+    requires: [BulkableMixin]
