@@ -232,3 +232,62 @@ subcommands:
     }
   });
 });
+
+describe('CommandApi.assemble — the ZERO-TOKEN fallthrough case', () => {
+  // ⭐⭐ The fire drive's find. Phase 3a only fires when there IS a first
+  // word to fall through WITH, so a bare `draught` matched no
+  // subcommand, fell past the fallthrough branch, and bound NOTHING —
+  // not even its top-level args' `default:`. The verb's read answered
+  // "There is no fire here." in a room with a lit forge, while
+  // `draught wide` worked, which is the hardest shape of this failure
+  // to see.
+  const DEFAULTED_YAML = `
+verbs: [draughtish]
+controller: DraughtishController
+description: a fallthrough verb whose top-level arg carries a default
+fallthrough: true
+args:
+  - name: fire
+    type: object
+    required: false
+    prepositions: [at]
+    scope: "reachable"
+    default: "reachable:[mixin.BurnerMixin]"
+subcommands:
+  wide:
+    description: wide
+  banked:
+    description: banked
+`;
+
+  it('a bare invocation fills the top-level default', () => {
+    const def = defOf(DEFAULTED_YAML);
+    const r = assembleText('draughtish', def);
+    expect('error' in r).toBe(false);
+    if (!('error' in r)) {
+      // The expansion is the selector; what matters is that the slot
+      // was bound at all rather than left undefined.
+      expect(r.model.fire).toBeDefined();
+      expect(r.model.subcommand).toBeUndefined();
+    }
+  });
+
+  it('a subcommand still wins over the flat path', () => {
+    const def = defOf(DEFAULTED_YAML);
+    const r = assembleText('draughtish banked', def);
+    expect('error' in r).toBe(false);
+    if (!('error' in r)) {
+      expect(r.model.subcommand).toBe('banked');
+    }
+  });
+
+  it('and the prepositional flat form still binds through Phase 3a', () => {
+    const def = defOf(DEFAULTED_YAML);
+    const r = assembleText('draughtish at forge', def);
+    expect('error' in r).toBe(false);
+    if (!('error' in r)) {
+      expect(r.model.subcommand).toBeUndefined();
+      expect(r.model.fire).toBeDefined();
+    }
+  });
+});

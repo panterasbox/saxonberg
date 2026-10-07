@@ -1988,3 +1988,57 @@ build's own rule.
 the yard's retort, condenser and gasometer were absent from a database
 written before they existed. `pnpm --filter @saxonberg/server reset:db`
 and a fresh boot; the standing rule held and cost one run.
+
+### ⭐⭐⭐ The record — 23 of 23
+
+`Tests 23 passed (23)`, against a world booted from a **dropped
+database** (`WIRE_BOOT=1 WIRE_PORT=2013`, 2008 content rows installed
+from the packs). Every step of the requirements doc's 28-step script is
+covered by the file's eight suites: the forge's fuel read in words, the
+unstoked refusal by name, `stoke`/`draught`/`cover`, the sealed cellar's
+warning with no figure in it at any band, the clamp and then the retort
+with all three products, a gas refusing an open vessel and saying why,
+the gasometer read from across the yard, the safety lamp, the winze
+foot's firedamp with the canary answering a different question, `drain`,
+and the shipped flows — `douse`, `pump`, `heat`, `boil` — still reaching
+the forge.
+
+⚠ Ten runs. The first nine each found something, and the table below is
+why the drive is the build's exit criterion rather than its victory lap.
+
+**D6 — ⛔⛔ THE BINDER IS TYPE-DIRECTED, so a bare word after a verb can
+never be a value.** D3's "the value is positional now" was wrong, and two
+further runs proved it: an unresolved selector is still a *structural*
+match for an object arg, so `low` was consumed by `fire` every time and
+`setting` stayed empty through four view shapes. ⚠ `char 0.45` works on
+the identical shape only because a NUMBER cannot bind to an object arg
+and falls through.
+⭐ The fix is the shape a closed word set after a verb already has:
+**subcommands**, which the matcher binds rather than the type system
+guessing. Rung 4 of the verb-collision ladder, applied to argument shape.
+
+**D7 — and the subcommand fix broke the READ.** With `args:` declared
+only inside each subcommand, a bare `draught` had no top-level
+positional, so its `default: reachable:[mixin.BurnerMixin]` never
+resolved and the controller answered *"There is no fire here."* in a room
+with a lit forge. `fallthrough: true` is the schema's own opt-in for
+top-level `args:` beside `subcommands:` (`equip` is the precedent) — and
+declaring it was **not enough**, which is the second half of the find:
+
+⛔⛔ **A subcommanded verb invoked with ZERO tokens bound nothing at
+all.** Phase 3a only fires when there IS a first word to fall through
+*with*, so a bare `draught` fell past the fallthrough branch into *"a
+subcommanded verb without a subcommand"*, which binds no positionals —
+and therefore applies no `default:`. The flat read could not work no
+matter how the view was authored. ⭐ Fixed in the binder
+(`CommandLogic.assemble`): when a verb opted into fallthrough and no
+subcommand matched, the flat path owns the invocation, empty positional
+list included. Inert for every other fallthrough verb today (`equip`,
+`forum`, `git`, `help`, `errors`, `watch`) — none declares a top-level
+`default:`, so an empty bind adds nothing. Three cases added to
+`CommandDefinition.fallthrough.test.ts`.
+
+⚠ The set working while the read did not is the hardest shape of this
+failure to see, and nothing but the drive reports it — the nine
+controller tests construct the model directly and never reach the
+binder.
