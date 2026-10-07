@@ -72,7 +72,12 @@ describe("Tariff — what a priced key MEANS", () => {
     // revival needs either a third-party payer (which `settle` cannot
     // express) or an option on `passage` — both real design, neither
     // this build's.
-    expect([...SERVICE_KINDS]).toEqual(["repair", "treatment", "burial"]);
+    expect([...SERVICE_KINDS]).toEqual([
+      "repair",
+      "treatment",
+      "burial",
+      "transfusion",
+    ]);
   });
 });
 

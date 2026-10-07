@@ -508,6 +508,10 @@ export interface Vitals {
   isBloodTyped(): boolean;
   /** Record that this body's blood has been tested. */
   markBloodTyped(): void;
+  /** ⭐ The blood SYSTEM this body belongs to (D3) — the species' declared
+   * shared system, or (unauthored) the species' own path. Compatibility is
+   * judged on this, not the species. */
+  bloodSystemOf(): string;
   /** Draw a unit of blood: spend volume + marrow reserve; return the
    * stored unit's payload (true type + whether labelled + donor). */
   drawBlood(litres: number): BloodUnit;
@@ -516,7 +520,7 @@ export interface Vitals {
    * plasma only and inflicts the graded transfusion reaction. */
   receiveBlood(spec: {
     litres: number;
-    blood: { speciesPath: string; type: string } | null;
+    blood: { speciesPath: string; system?: string; type: string } | null;
     expander?: boolean;
   }): { accepted: number; reaction: 0 | 1 | 2 };
   /** Is the body under anaesthesia (an active `sedation` effect)? (D10) */
@@ -997,6 +1001,12 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
         : '';
     }
 
+    public bloodSystemOf(): string {
+      const self = this as unknown as Stuff;
+      const species = MixinApi.isOrganism(self) ? self.getSpecies() : null;
+      return species?.getBloodGroups()?.system || this.speciesPathOf();
+    }
+
     public drawBlood(litres: number): BloodUnit {
       const self = this as unknown as Stuff;
       const bv = this._bloodVolume.rawValue();
@@ -1009,6 +1019,7 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
       }
       return {
         speciesPath: this.speciesPathOf(),
+        system: this.bloodSystemOf(),
         type: (this.bloodType() ?? 'O') as BloodTypeLabel,
         labelled: this.isBloodTyped(),
         donorIdentityPath:
@@ -1018,7 +1029,7 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     public receiveBlood(spec: {
       litres: number;
-      blood: { speciesPath: string; type: string } | null;
+      blood: { speciesPath: string; system?: string; type: string } | null;
       expander?: boolean;
     }): { accepted: number; reaction: 0 | 1 | 2 } {
       if (!this.hasVitalSign('bloodVolume')) return { accepted: 0, reaction: 0 };
@@ -1037,9 +1048,12 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
       const blood = spec.blood;
       if (!blood) return { accepted: 0, reaction: 0 };
 
-      const donor = new BloodType(blood.speciesPath, blood.type as BloodTypeLabel);
+      const donor = new BloodType(
+        blood.system || blood.speciesPath,
+        blood.type as BloodTypeLabel,
+      );
       const me = new BloodType(
-        this.speciesPathOf(),
+        this.bloodSystemOf(),
         (this.bloodType() ?? 'O') as BloodTypeLabel,
       );
       const mismatch = donor.mismatchFor(me);

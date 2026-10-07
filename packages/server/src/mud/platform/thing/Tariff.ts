@@ -59,6 +59,10 @@ const REFERENCE_WAGE = 6;
  * - `repair` — mend a damaged thing the customer is carrying.
  * - `treatment` — the house treats what is wrong with the customer.
  * - `burial` — inter a corpse (the necropolis).
+ * - `transfusion` — the house transfuses the customer from its own blood
+ *   bank (the clinic's blood window; the fixture also composes
+ *   `DonationBankMixin`). Customer and patient are the same body, so the
+ *   payer rule is satisfied exactly as `treatment`'s is.
  *
  * ⚠⚠ **`revive` is deliberately NOT here, and the reason is doctrine
  * rather than an oversight.** A paid revival was the obvious third
@@ -79,7 +83,12 @@ const REFERENCE_WAGE = 6;
  * `treatment`, where the customer and the patient are the same body,
  * which is exactly the shape the payer rule allows.
  */
-export const SERVICE_KINDS = ['repair', 'treatment', 'burial'] as const;
+export const SERVICE_KINDS = [
+  'repair',
+  'treatment',
+  'burial',
+  'transfusion',
+] as const;
 export type ServiceKind = (typeof SERVICE_KINDS)[number];
 
 const TariffBase = PricedOfferMixin(Thing);

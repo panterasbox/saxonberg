@@ -759,8 +759,19 @@ export default class Species extends SingletonMixin(
    * learned by testing it, not printed in a field guide. The frequencies
    * are pure fiction; the ABO PATTERN is the transferable clinical
    * judgment (D14).
+   *
+   * ⭐ **`system` (D3)** — an optional blood-system key this species shares
+   * with others. Two bodies are ABO-comparable iff their systems match, so
+   * authoring the same `system` on several species lets their members
+   * cross-transfuse (a `hominid` cluster over dwarf/halfling/human), while
+   * two members of species in different systems always react. Unauthored
+   * (`undefined`) = the species is its own system (its own path), which is
+   * the flat per-species behaviour every shipped species keeps.
    */
-  protected bloodGroups: { alleles: Record<string, number> } | null = null;
+  protected bloodGroups: {
+    alleles: Record<string, number>;
+    system?: string;
+  } | null = null;
 
   /**
    * References to one or more `NameBank` Documents by key (e.g.
@@ -1585,11 +1596,14 @@ export default class Species extends SingletonMixin(
 
   /** The ABO allele frequency table, or `null` (unauthored → the engine
    * default single-allele `O` species). See {@link bloodGroups}. */
-  public getBloodGroups(): { alleles: Record<string, number> } | null {
+  public getBloodGroups(): {
+    alleles: Record<string, number>;
+    system?: string;
+  } | null {
     return this.bloodGroups;
   }
   public setBloodGroups(
-    value: { alleles: Record<string, number> } | null,
+    value: { alleles: Record<string, number>; system?: string } | null,
   ): void {
     this.bloodGroups = value;
   }

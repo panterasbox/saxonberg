@@ -1,0 +1,13 @@
+# A Goodkin unit of type b blood on the collection floor (blood build
+# D13). Extends the trade's base unit; adds the `container:` + `censusKey`
+# that put it on the producer floor (the sweep stands it at target), and
+# the `_brandKey` that marks it a product of Goodkin Bloodworks — so the
+# upstream's units carry the corpo mark, while a player's donated bag is
+# unbranded (the gift is legibly not the corpo's).
+class: /trade/medicine/thing/BloodUnit
+extends: /trade/medicine/thing/unit/b
+data:
+  container: /world/terminus/infirmary/thing/collection-stock
+  censusKey: blood:b
+  donorKey: /world/terminus/infirmary/idea/bloodworks
+  _brandKey: goodkin-bloodworks

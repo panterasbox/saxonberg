@@ -15,20 +15,16 @@ import { MixinApi } from '../../../../api/mixin';
 import { MessageApi } from '../../../../api/message';
 import { Mml } from '../../../../api/mml';
 import Menu from '../../../../lib/commerce/Menu';
-import { BankingApi, Money } from '../../../../api/banking';
-import type { Charge } from '../../../../api/banking';
 import { EmploymentApi } from '../../../../api/employment';
+import { ConditionApi } from '../../../../api/condition';
+import { SchedulerApi } from '../../../../api/scheduler';
+import { ManualBuildStep } from '../../../../lib/craft/ManualBuildStep';
+import { BLOOD_DEFAULTS } from '../../../../lib/vitals/Blood';
 import type { Attendant } from '../../../../lib/attendant/Attendant';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import type { Container } from '../../../../lib/spatial/Container';
-import { Currency } from "../../../../lib/banking/Currency";
 import Tariff, { type ServiceKind } from '../../../thing/Tariff';
 import { MqlApi, type MqlOneResult } from '../../../../api/mql';
-import { ConditionApi } from '../../../../api/condition';
-import { TemplatePaths } from '../../../../lib/paths';
-import { TRAUMA_BEHAVIOR } from '../../Condition';
-import type { Trauma, AfflictionRecord } from '../../Condition';
-import type { Vitals } from '../../../../lib/vitals/Vitals';
 
 const TOPIC = 'act.deed';
 
@@ -42,8 +38,6 @@ interface OrderModel extends CommandModel {
 }
 
 const SERVICE_TOPIC = 'act.service';
-/** Half of `recovering`'s `atStage` — what a paid revival buys you. */
-const HALF_RECOVERY_STAGE = 6;
 /** What a grave looks like from the outside, for the burial arm. */
 const GRAVE_KEYWORDS = /\bgrave\b|\bplot\b|\bcrypt\b|\bniche\b/i;
 
@@ -75,21 +69,33 @@ export default class OrderController extends CraftController<OrderModel> {
     // leaves could not become anybody's paid work.
     // ⭐ Bound by the view, not hunted for here.
     // ⭐ Bound by the view, not hunted for here.
-    const tariff = (model.counter?.stuff ?? null) as Tariff | null;
-    if (tariff) {
-      // ⚠ The service key is the FIRST word and the subject is the rest.
-      // `cocktail` is greedy (menu names are multi-word — "Old
-      // fashioned"), and a greedy arg cannot be followed by a bare one,
-      // so a separate `subject` arg is unparseable. Splitting here costs
-      // nothing and keeps `order repair my sword` reading the way
-      // somebody would say it.
-      const raw = (model.cocktail ?? '').trim();
-      const key = (raw.split(/\s+/)[0] ?? '').toLowerCase();
-      const subjectRaw = raw.slice(key.length).trim();
-      const kind = tariff.serviceFor(key);
-      if (kind) return this.doService(tariff, key, kind, subjectRaw, context);
-      // A tariff is present but this is not one of its services — fall
-      // through to the menu path, so a venue can carry both.
+    // ⚠ The service key is the FIRST word and the subject is the rest.
+    // `cocktail` is greedy (menu names are multi-word — "Old fashioned"),
+    // and a greedy arg cannot be followed by a bare one, so a separate
+    // `subject` arg is unparseable. Splitting here costs nothing and keeps
+    // `order repair my sword` reading the way somebody would say it.
+    const raw = (model.cocktail ?? '').trim();
+    const key = (raw.split(/\s+/)[0] ?? '').toLowerCase();
+    const subjectRaw = raw.slice(key.length).trim();
+    let tariff = (model.counter?.stuff ?? null) as Tariff | null;
+    let kind: ServiceKind | null = tariff ? tariff.serviceFor(key) : null;
+    // ⭐ Two houses in one room (blood build D6): the view binds ONE
+    // reachable Tariff; if it does not price this key, scan every reachable
+    // Tariff for one that does before falling through to the menu. This is
+    // what lets the practice's slate and the blood window's board share the
+    // ward.
+    if (!kind && key) {
+      for (const t of this.reachableTariffs(context)) {
+        const k = t.serviceFor(key);
+        if (k) {
+          tariff = t;
+          kind = k;
+          break;
+        }
+      }
+    }
+    if (tariff && kind) {
+      return this.doService(tariff, key, kind, subjectRaw, context);
     }
 
     const menu = (model.menu?.stuff ?? null) as Menu | null;
@@ -163,15 +169,19 @@ export default class OrderController extends CraftController<OrderModel> {
     if (MixinApi.isContainable(drink) && MixinApi.isContainer(giver)) {
       ContainmentApi.move(drink, giver);
     }
-    // The drink purchase: if the menu prices this recipe, settle a presented
-    // Charge from the patron's credential (the bar prices it; silent pay from
-    // the active account — the time-respect valve) and the bar remits demo
-    // tax. Unpriced recipes are served free (backward-compatible). A failed
-    // settlement still serves the drink (the bar eats it / runs a tab later).
+    // The drink purchase: if the menu prices this recipe, the venue takes
+    // payment through the one settle-a-sale path (credential → cash; the
+    // bar remits the demo tax). Unpriced recipes are served free
+    // (backward-compatible). A failed settlement still serves the drink
+    // (the bar eats it / runs a tab later).
     const price = menu.priceFor(recipeId);
-    const paid = price != null ? await this.charge(menu, price, context) : null;
+    const venuePath = context.location?.getTemplatePath() ?? null;
+    const paid =
+      price != null
+        ? await EmploymentApi.settleSale(venuePath, price, price, 'a drink')
+        : null;
 
-    const tail = paid ? ` ${paid}` : '';
+    const tail = paid ? ` ${paid.tail}` : '';
     MessageApi.scene(giver)
       .topic(TOPIC)
       .toSelf(Mml.compose`${Mml.thing(drink)} is set down in front of you.${tail}`)
@@ -208,7 +218,16 @@ export default class OrderController extends CraftController<OrderModel> {
     const venuePath = context.location?.getTemplatePath();
     if (venuePath) await EmploymentApi.ensureOperatorAt(venuePath);
 
-    const done = await this.performService(kind, subjectRaw, context);
+    // ⭐ A transfusion costs the patient the SAME game-time whether they do
+    // it themselves (`transfuse`, a 45s engaged step) or pay the window —
+    // the blood runs in at the same rate, so paying must not buy out of the
+    // body-time. It is durative on the CUSTOMER (it is their body), and the
+    // take + fee land at completion; a barge-in gives and charges nothing.
+    if (kind === 'transfusion') {
+      return this.doTransfusionService(tariff, key, context);
+    }
+
+    const done = await this.performService(tariff, kind, subjectRaw, context);
     if (!done.ok) {
       MessageApi.scene(giver)
         .topic(SERVICE_TOPIC)
@@ -230,9 +249,97 @@ export default class OrderController extends CraftController<OrderModel> {
       .send();
   }
 
+  /**
+   * ⭐ The blood window's product (blood build D6), made durative (the
+   * time-as-expense pass): the house transfuses the customer from its own
+   * bank over `TRANSFUSE_DURATION_S`, engaging the CUSTOMER (it is their
+   * body — customer and patient are the same, the payer rule's only legal
+   * shape). The bank owns the act (the shelf + the ABO system); we check a
+   * match up front (so a no-match refuses at once, not after the wait),
+   * resolve who issued it (the custody deed), run the step, then take +
+   * give + collect at completion. A barge-in gives and charges nothing.
+   */
+  private async doTransfusionService(
+    tariff: Tariff,
+    key: string,
+    context: CommandContext,
+  ): Promise<void> {
+    const giver = context.commandGiver;
+    if (!MixinApi.isDonationBank(tariff)) {
+      return this.serviceFail(context, 'This house keeps no blood bank.', 'no-bank');
+    }
+    if (!MixinApi.isVitals(giver)) {
+      return this.serviceFail(context, 'There is nothing here to transfuse.', 'not-a-body');
+    }
+    // Up-front refusal: do not make a patient sit for 45s to be told no.
+    if (!tariff.hasCompatibleUnitFor(giver as unknown as Stuff)) {
+      return this.serviceFail(context, 'Nothing on the shelf will match you.', 'no-compatible-unit');
+    }
+    const issuer = this.resolveWindowIssuer(tariff, context);
+    const effect = async (): Promise<void> => {
+      const outcome = await tariff.transfuseInto(giver as unknown as Stuff, issuer);
+      if (!outcome) {
+        // The last match went while they waited — honest, and unbilled.
+        return this.serviceFail(context, 'Nothing on the shelf will match you.', 'no-compatible-unit');
+      }
+      const collected = await tariff.collect(key, 'a transfusion');
+      const tail = collected.note ? ` ${collected.note}` : '';
+      const line =
+        outcome.reaction > 0
+          ? 'The transfusion runs — but it does not match, and your body turns against it.'
+          : 'The transfusion runs; your colour comes back.';
+      MessageApi.scene(giver)
+        .topic(SERVICE_TOPIC)
+        .toSelf(Mml.fromMarkup(Mml.escape(`${line}${tail}`)))
+        .toPeers(Mml.compose`${Mml.actor(giver)} is seen to.`)
+        .send();
+    };
+
+    // Not an engageable body (a bare test/NPC body) → run it at once.
+    if (!MixinApi.isEngaged(giver)) {
+      await effect();
+      return;
+    }
+    const step = new ManualBuildStep({
+      actor: giver,
+      slots: ['hands'],
+      durationMs: BLOOD_DEFAULTS.TRANSFUSE_DURATION_S * 1000,
+      onComplete: () => {
+        void effect();
+      },
+      onAbort: () => {},
+    });
+    const result = SchedulerApi.start(step);
+    if (result.ok && (result.status === 'started' || result.status === 'replaced')) {
+      context.note(result.note);
+      MessageApi.scene(giver)
+        .topic(SERVICE_TOPIC)
+        .toSelf(Mml.compose`You settle in; the line goes in and the unit begins to run. Hold still.`)
+        .toPeers(Mml.compose`${Mml.actor(giver)} settles in for a transfusion.`)
+        .send();
+      return;
+    }
+    if (result.ok && result.status === 'completed-sync') return;
+    MessageApi.scene(giver)
+      .topic(SERVICE_TOPIC)
+      .toSelf(Mml.compose`You cannot sit for it just now.`)
+      .send();
+    context.note({ kind: 'controller-rejected', reason: 'engagement-conflict', detail: 'busy' });
+  }
+
+  /** A refused service: the scene line + the matching rejected note. */
+  private serviceFail(context: CommandContext, line: string, reason: string): void {
+    MessageApi.scene(context.commandGiver)
+      .topic(SERVICE_TOPIC)
+      .toSelf(Mml.fromMarkup(Mml.escape(line)))
+      .send();
+    context.note({ kind: 'controller-rejected', reason, detail: line });
+  }
+
   /** Do the thing. Each arm is an existing capability, wired to a price. */
   private async performService(
-    kind: ServiceKind,
+    tariff: Tariff,
+    kind: Exclude<ServiceKind, 'transfusion'>,
     subjectRaw: string,
     context: CommandContext,
   ): Promise<
@@ -275,7 +382,11 @@ export default class OrderController extends CraftController<OrderModel> {
             detail: 'There is nothing here to treat.',
           };
         }
-        const treated = this.treatWorst(giver);
+        const treated = ConditionApi.treatWorstResolvable(
+          giver,
+          CLINIC_SUPPLIES,
+          CLINIC_EFFICACY,
+        );
         return treated
           ? { ok: true, detail: `They see to ${treated}.` }
           : {
@@ -313,43 +424,40 @@ export default class OrderController extends CraftController<OrderModel> {
     }
   }
 
+  /** Every priced Tariff the giver can reach — the two-houses scan (D6). */
+  private reachableTariffs(context: CommandContext): Tariff[] {
+    const giver = context.commandGiver;
+    // ⚠ The seed is `reachable:` — a bare `[class.Tariff]` is a filter with
+    // no set to filter and throws "cannot start a chain" (found by the live
+    // drive; the two-houses scan had never been exercised by one).
+    const found = MqlApi.resolveMany('reachable:[class.Tariff]', {
+      commandGiver: giver,
+      scope: 'reachable',
+    }).stuff;
+    return found.filter((s) => MixinApi.isPricedOffer(s)) as unknown as Tariff[];
+  }
+
   /**
-   * ⭐ Resolve ONE condition on this body — the worst the house can
-   * actually do something about — by supplying what that condition
-   * declares it wants. The clinic has the dressing, the water and the
-   * hands; what you buy is that it has them.
-   *
-   * Returns a short phrase for the scene, or null when there is nothing
-   * it can reach.
+   * The on-shift person who runs this window, for the custody deed (D16).
+   * Best-effort: the fixture's operating Business, an employee of it
+   * present in the room. Null → the recipient's deed stands alone (an
+   * institutional issue; a Business keeps no chronicle).
    */
-  private treatWorst(body: Stuff & Vitals): string | null {
-    const conditions = [...body.getConditions()];
-    const traumas = conditions
-      .filter((c): c is Trauma => c.kind === 'trauma')
-      .filter((t) => !t.dressed && t.severity > 0)
-      // ⭐ Over every token the house can supply, not just dressings (D5):
-      // the clinic has bandages AND a splint AND a surgeon's kit AND water
-      // AND a fire, so it resolves a fracture, a rupture, a burn or a
-      // frostbite too — through the ONE treatment primitive.
-      .filter((t) => CLINIC_SUPPLIES.has(TRAUMA_BEHAVIOR[t.type]?.resolution ?? ''))
-      .sort((a, b) => b.severity - a.severity);
-    const worst = traumas[0];
-    if (worst) {
-      body.applyTreatment(worst, {
-        by: TRAUMA_BEHAVIOR[worst.type].resolution ?? 'dressing',
-        efficacy: CLINIC_EFFICACY,
-      });
-      return `the ${worst.type}`;
-    }
-    // Then an illness — the load knock a competent hand is worth.
-    const ill = conditions
-      .filter((c): c is AfflictionRecord => c.kind === 'affliction')
-      .filter((a) => (a.pathogenLoad ?? 0) > 0)
-      .sort((a, b) => (b.pathogenLoad ?? 0) - (a.pathogenLoad ?? 0))[0];
-    if (ill) {
-      ill.pathogenLoad = Math.max(0, (ill.pathogenLoad ?? 0) * 0.4);
-      if (ill.pathogenLoad <= 0.01) body.relieve(ill);
-      return 'the fever';
+  private resolveWindowIssuer(
+    tariff: Tariff,
+    context: CommandContext,
+  ): Stuff | null {
+    const self = tariff as unknown as Stuff;
+    const path = self.getIdentityPath() ?? self.getTemplatePath();
+    const business = path ? EmploymentApi.businessAt(path) : null;
+    const orgPath = business?.getTemplatePath();
+    const loc = context.location;
+    if (!orgPath || !loc || !MixinApi.isContainer(loc)) return null;
+    const ids = new Set(EmploymentApi.employeesOf(orgPath));
+    for (const s of (loc as Stuff & Container).getContents()) {
+      const occ = s as unknown as Stuff;
+      const id = occ.getIdentityPath();
+      if (id && ids.has(id)) return occ;
     }
     return null;
   }
@@ -388,69 +496,5 @@ export default class OrderController extends CraftController<OrderModel> {
       if (MixinApi.isAttendant(s)) return s as Stuff & Attendant;
     }
     return null;
-  }
-
-  /**
-   * Settle the drink's price as a presented Charge to the venue's account,
-   * then remit the demo sales tax from it. Returns a short "you tap…" tail
-   * for the scene, or null when there's no credential / venue account
-   * (served free / on the house). The venue account is ensured lazily.
-   */
-  private async charge(
-    menu: Menu,
-    price: number,
-    context: CommandContext
-  ): Promise<string | null> {
-    const venuePath = context.location?.getTemplatePath();
-    if (!venuePath) return null;
-    // Income keys on the Business account (the same account shift wages are
-    // paid from), so the P&L reflects both sides. `ensureOperatorAt` stands the
-    // venue's Business up lazily (derived from its `operatingLocations`) on
-    // this first order; falls back to the venue path when none operates here.
-    const business = await EmploymentApi.ensureOperatorAt(venuePath);
-    if (!business) return null; // no operator → served on the house
-    let venueAccount: string;
-    try {
-      // Custody is the business's authored banksAt (never a default).
-      venueAccount = await EmploymentApi.operatingAccountOf(business);
-    } catch {
-      return null; // no authored bank → the venue can't take payment
-    }
-    const charge: Charge = {
-      amount: Money.of(price, BankingApi.compactCurrency()),
-      reason: 'a drink',
-      presented: true,
-      payeeAccountId: venueAccount,
-      category: 'sales',
-    };
-    // Share-of-flow compensation rides the revenue settle as remittance
-    // splits (the consignment-split primitive, nameable on an employment
-    // arrangement). Empty for all shipped content — no authored Position
-    // carries the basis — so this is byte-identical today.
-    if (business) {
-      const splits = await EmploymentApi.flowSplitsFor(business, price);
-      if (splits.length > 0) charge.splits = splits;
-    }
-    // Try credential first, then cash (D12) — a coin-holder pays with coin
-    // (banked on-ledger via the cash bridge to the venue account), and the
-    // float stays the last resort (no funds at all). Both remit the demo tax.
-    let receipt;
-    try {
-      receipt = await BankingApi.settle(charge, { kind: 'credential' });
-    } catch {
-      try {
-        receipt = await BankingApi.settle(charge, { kind: 'cash' });
-      } catch {
-        return null; // no funds at all — the bar floats it
-      }
-    }
-    await BankingApi.remitDemoTax(
-      venueAccount,
-      Money.of(price, BankingApi.compactCurrency()),
-      context.location ?? undefined,
-    );
-    return receipt.corpoKey
-      ? `(${Money.of(price, BankingApi.compactCurrency()).render()}, ${receipt.corpoKey})`
-      : `(${Money.of(price, BankingApi.compactCurrency()).render()})`;
   }
 }

@@ -37,6 +37,7 @@ import type Material from '../../../lib/material/Material';
 import type {
   Trauma,
   TraumaType,
+  AfflictionRecord,
 } from '../Condition';
 import type {
   InflictSpec,
@@ -252,6 +253,45 @@ export class ConditionLogic extends ApiLogic {
       ? inflictThroughStack(target, spec, spec.mechanism, inflicter)
       : inflictPassthrough(target, spec, inflicter);
   }
+
+  /** See {@link ConditionApi.treatWorstResolvable}. */
+  @CallSecurity(ConditionApiCallers)
+  public treatWorstResolvable(
+    body: Stuff & Vitals,
+    supplies: ReadonlySet<string>,
+    efficacy: number,
+  ): string | null {
+    const conditions = [...body.getConditions()];
+    // Over every token the caller can supply: a fully-stocked clinic
+    // resolves a fracture, a rupture, a burn or a frostbite too — through
+    // the ONE treatment primitive, not a skilled per-wound check (that is
+    // `treat`'s job). We take the single worst dressable trauma whose
+    // resolution the supplies cover.
+    const worst = conditions
+      .filter((c): c is Trauma => c.kind === 'trauma')
+      .filter((t) => !t.dressed && t.severity > 0)
+      .filter((t) => supplies.has(TRAUMA_BEHAVIOR[t.type]?.resolution ?? ''))
+      .sort((a, b) => b.severity - a.severity)[0];
+    if (worst) {
+      body.applyTreatment(worst, {
+        by: TRAUMA_BEHAVIOR[worst.type].resolution ?? 'dressing',
+        efficacy,
+      });
+      return `the ${worst.type}`;
+    }
+    // Then an illness — the load knock a competent hand is worth.
+    const ill = conditions
+      .filter((c): c is AfflictionRecord => c.kind === 'affliction')
+      .filter((a) => (a.pathogenLoad ?? 0) > 0)
+      .sort((a, b) => (b.pathogenLoad ?? 0) - (a.pathogenLoad ?? 0))[0];
+    if (ill) {
+      ill.pathogenLoad = Math.max(0, (ill.pathogenLoad ?? 0) * 0.4);
+      if (ill.pathogenLoad <= 0.01) body.relieve(ill);
+      return 'the fever';
+    }
+    return null;
+  }
+
   /** See {@link ConditionApi.die}. */
   @CallSecurity(ConditionApiCallers)
   public die(host: Stuff, cause: string, spec?: DeathSpec): Promise<void> {
