@@ -122,12 +122,18 @@ export default class DraughtController extends CommandController<DraughtModel> {
       return;
     }
 
+    // ⭐⭐ Captured BEFORE the set, and as a STRING. `draught banked`
+    // takes the light out of the room, and `Mml.thing` is LAZY — it
+    // resolves when the scene is sent, so the peers' line named a forge
+    // nobody could see any more. Same hazard as `cover`, and the live
+    // drive is what showed it.
+    const fireName = fire.getPresentation();
     burner.setDraught(value);
     MessageApi.scene(commandGiver)
       .topic('act.deed')
       .toSelf(Mml.compose`${describe(value)}`)
       .toPeers(
-        Mml.compose`${Mml.actor(commandGiver)} works the vents on ${Mml.thing(fire)}.`,
+        Mml.compose`${Mml.actor(commandGiver)} works the vents on ${fireName}.`,
       )
       .send();
   }
