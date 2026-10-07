@@ -23,7 +23,23 @@
  * |---|---|---|
  * | `walked` | you went that way | yes, if it changed since |
  * | `seen` | you made it out from where you stood | yes, and sooner |
+ * | `searched` | you went over the place deliberately | yes, and this is the one whose ABSENCES mean something |
  * | `published` | a public timetable said so | yes, if a station went dark |
+ *
+ * ⭐⭐⭐ **`searched` exists because non-obvious is not permanently
+ * absent.** A concealed exit is filtered out of `obviousExitsFor` until
+ * the viewer **discovers** it — *"once found, always seen (the
+ * per-viewer discovery belief sticks)"* — and the lounge ships one:
+ * Dave's Bar's north door to the office is `concealment: hidden` with
+ * an authored hint, revealed by `search`.
+ *
+ * ⚠⚠ So a missing edge has **two meanings** and the map used to
+ * conflate them: *there is no exit east* and *I never noticed the exit
+ * east*. The staleness render asserted the first — *"not seen when you
+ * last looked"* — off a glance, which is not evidence when a door can
+ * be hiding. A deliberate search is the observation whose absences DO
+ * carry information, so it gets its own channel and the render says two
+ * different, true things depending on which one is latest.
  *
  * ⭐⭐ **These are NAVIGATIONAL channels, and they used to be
  * perceptual ones.** The vocabulary was `perception` · `publication` ·
@@ -58,7 +74,12 @@
  */
 
 /** How a player came to know something about a place. */
-export const MAP_CHANNELS = ['walked', 'seen', 'published'] as const;
+export const MAP_CHANNELS = [
+  'walked',
+  'seen',
+  'searched',
+  'published',
+] as const;
 
 export type MapChannel = (typeof MAP_CHANNELS)[number];
 

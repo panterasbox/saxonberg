@@ -198,6 +198,29 @@ export default class SearchController extends CommandController<SearchModel> {
     }
 
     MessageApi.scene(actor).topic(TOPIC).toSelf(body).send();
+
+    // ⭐⭐⭐ **A search is an observation of the PLACE, and the only one
+    // whose absences mean anything.** *Non-obvious is not permanently
+    // absent*: a concealed exit sits out of `obviousExitsFor` until the
+    // viewer DISCOVERS it (a sticky per-viewer belief), and the lounge
+    // ships one — Dave's Bar's north door to the office,
+    // `concealment: hidden` with an authored hint.
+    //
+    // ⚠⚠ So without this call, a player could find the secret door and
+    // their own map would not know: the discovery landed in the belief
+    // store and nothing wrote it down until they happened to `look`
+    // again. Recorded as `searched`, which is what lets the map render
+    // *"not there when you searched"* for a real absence and only
+    // *"not seen when you last looked"* for a glance.
+    //
+    // ⭐ The exits are NOT taken from `found` — `learnSurroundings`
+    // re-runs `obviousExitsFor`, which now includes whatever was just
+    // discovered. One gate, one source of truth; a second list here
+    // could disagree with it.
+    const room = MixinApi.isContainable(actor) ? actor.getContainer() : null;
+    if (room && MixinApi.isPerceiver(actor)) {
+      actor.learnSurroundings(room, [], 'searched');
+    }
   }
 
   /** Render one discovered thing — an exit by its direction, else by name. */

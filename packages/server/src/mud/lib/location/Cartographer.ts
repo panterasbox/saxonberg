@@ -49,7 +49,7 @@ import { AddressApi } from '../../api/address';
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import type { Container } from '../spatial/Container';
-import type { MapClaim } from './MapClaim';
+import type { MapClaim, MapChannel } from './MapClaim';
 import type { PublishedStop } from '../travel/TravelNode';
 import type Exit from '../boundary/Exit';
 
@@ -60,7 +60,11 @@ export interface Cartographer {
   /** The key a claim is filed under — the person, not the body. */
   mapOwnerKey(): string;
   /** Write down what was just made out of a place. */
-  recordSurroundings(location: Stuff, perceived: readonly Stuff[]): void;
+  recordSurroundings(
+    location: Stuff,
+    perceived: readonly Stuff[],
+    how?: MapChannel,
+  ): void;
   /** Write down the stops a public board just gave up. */
   recordTimetableRead(stops: readonly PublishedStop[]): void;
 }
@@ -102,8 +106,9 @@ export function CartographerMixin<TBase extends MixinConstructor>(
     public recordSurroundings(
       location: Stuff,
       perceived: readonly Stuff[],
+      how: MapChannel = 'seen',
     ): void {
-      void this.recordPerceived(location, perceived);
+      void this.recordPerceived(location, perceived, how);
     }
 
     /**
@@ -181,6 +186,7 @@ export function CartographerMixin<TBase extends MixinConstructor>(
     private async recordPerceived(
       location: Stuff,
       perceived: readonly Stuff[],
+      how: MapChannel,
     ): Promise<void> {
       try {
         if (!this.keepsMaps()) return;
@@ -202,7 +208,7 @@ export function CartographerMixin<TBase extends MixinConstructor>(
             label: location.getTemplatePath() ?? undefined,
             name: location.getPresentation(),
             group: this.groupingAddressOf(location),
-            channel: 'seen',
+            channel: how,
             firstSeen: now,
             lastSeen: now,
             recordedBy: viewerKey,
@@ -226,7 +232,7 @@ export function CartographerMixin<TBase extends MixinConstructor>(
             // they did not learn.
             to: null,
             toLabel: far ?? null,
-            channel: 'seen',
+            channel: how,
             firstSeen: now,
             lastSeen: now,
             recordedBy: viewerKey,

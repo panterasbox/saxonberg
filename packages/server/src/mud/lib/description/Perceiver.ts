@@ -127,13 +127,28 @@ export interface Perceiver extends Sensor {
    *
    * ⛔ And what gets recorded is **navigational**, not perceptual: *I
    * was here* and *this way leads there*. The claim's channels say so
-   * now (`walked` · `seen` · `published`), and the two fields that
-   * dressed it as sense data — a hardcoded `modality: 'vision'` nothing
-   * read, and a `band` nothing wrote — are gone.
+   * (`walked` · `seen` · `searched` · `published`), and the two fields
+   * that dressed it as sense data — a hardcoded `modality: 'vision'`
+   * nothing read, and a `band` nothing wrote — are gone.
+   *
+   * ⭐⭐⭐ **`how` is the one place perception genuinely decides the
+   * record, and it is why this lives on `Perceiver`.** *Non-obvious is
+   * not permanently absent*: a concealed exit is filtered out of
+   * `obviousExitsFor` until the viewer DISCOVERS it, and discovery is a
+   * sticky per-viewer belief resolved against their `awareness`
+   * competence. So **what you may write down is decided by perception,
+   * even though what you write is navigation.**
+   *
+   * `search` passes `'searched'` — a deliberate going-over, and the
+   * only observation whose ABSENCES are evidence. A glance that turns
+   * up no east exit says nothing about whether one is there; a search
+   * that turns up none says quite a lot. The map renders the two
+   * differently because they mean different things.
    */
   learnSurroundings(
     location: Stuff,
     occupants?: readonly Stuff[],
+    how?: 'seen' | 'searched',
   ): readonly Exit[];
 
   /**
@@ -167,6 +182,7 @@ export function PerceiverMixin<TBase extends MixinConstructor>(Base: TBase) {
     learnSurroundings(
       location: Stuff,
       occupants: readonly Stuff[] = [],
+      how: 'seen' | 'searched' = 'seen',
     ): readonly Exit[] {
       const viewer = this as unknown as Stuff;
       const exits = MixinApi.isExitable(location)
@@ -185,7 +201,7 @@ export function PerceiverMixin<TBase extends MixinConstructor>(Base: TBase) {
       }
       // Where you are and the ways out — if you keep a map at all.
       if (MixinApi.isCartographer(viewer)) {
-        viewer.recordSurroundings(location, exits);
+        viewer.recordSurroundings(location, exits, how);
       }
       return exits;
     }

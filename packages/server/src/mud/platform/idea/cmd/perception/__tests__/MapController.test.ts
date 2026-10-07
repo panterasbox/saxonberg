@@ -158,6 +158,48 @@ describe('one locality', () => {
     expect(said.join('\n')).toMatch(/the hall \(seen\)/);
   });
 
+  it('⭐⭐⭐ a glance that missed an exit says so about the LOOKING', async () => {
+    /*
+     * *Non-obvious is not permanently absent.* A concealed exit sits out
+     * of `obviousExitsFor` until the viewer discovers it — the lounge
+     * ships one (Dave's Bar north → the office, `concealment: hidden`).
+     * So "I looked and recorded no east exit" is NOT evidence that there
+     * is none, and the render used to assert that it was.
+     */
+    vi.spyOn(NavigationApi, 'readMap').mockResolvedValue([
+      docOf([
+        claim({ name: 'the hall', channel: 'seen', lastSeen: 500 }),
+        claim({
+          kind: 'edge',
+          dir: 'east',
+          toLabel: '/test/map/zone/yard',
+          lastSeen: 100,
+        }),
+      ]),
+    ]);
+    await run(reader(), 'test/mapville');
+    expect(said.join('\n')).toMatch(/not seen when you last looked/);
+    expect(said.join('\n')).not.toMatch(/not there when you searched/);
+  });
+
+  it('⭐⭐⭐ but a SEARCH that missed it says so about the WORLD', async () => {
+    // A deliberate going-over is the one observation whose absences
+    // carry information. Same two claims, one channel different.
+    vi.spyOn(NavigationApi, 'readMap').mockResolvedValue([
+      docOf([
+        claim({ name: 'the hall', channel: 'searched', lastSeen: 500 }),
+        claim({
+          kind: 'edge',
+          dir: 'east',
+          toLabel: '/test/map/zone/yard',
+          lastSeen: 100,
+        }),
+      ]),
+    ]);
+    await run(reader(), 'test/mapville');
+    expect(said.join('\n')).toMatch(/not there when you searched/);
+  });
+
   it('⚠⚠ one edge known TWO WAYS renders ONCE — channel is not disagreement', async () => {
     /*
      * The live regression that splitting `perception` into `walked` and

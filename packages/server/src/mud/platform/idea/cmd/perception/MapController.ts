@@ -40,6 +40,11 @@ interface PlaceView {
   channels: Set<string>;
   edges: MapClaim[];
   lastSeen: number;
+  /**
+   * ⭐ The channel of the NEWEST place observation — which decides what
+   * a missing edge means. See the staleness branch in `renderEdges`.
+   */
+  latestHow: string;
 }
 
 export default class MapController extends CommandController<MapModel> {
@@ -122,11 +127,13 @@ export default class MapController extends CommandController<MapModel> {
           channels: new Set<string>(),
           edges: [],
           lastSeen: 0,
+          latestHow: '',
         };
         if (claim.kind === 'place') {
           if (claim.name) view.name = claim.name;
           if (claim.group) view.group = claim.group;
           view.channels.add(claim.channel);
+          if (claim.lastSeen >= view.lastSeen) view.latestHow = claim.channel;
           view.lastSeen = Math.max(view.lastSeen, claim.lastSeen);
         } else {
           view.edges.push(claim);
@@ -236,11 +243,27 @@ export default class MapController extends CommandController<MapModel> {
         // honest: the stale claim stays, and the staleness is derivable
         // from two timestamps the document already carries.
         const stale = view.lastSeen > 0 && only.lastSeen < view.lastSeen;
+        // ⭐⭐⭐ **What a missing edge MEANS depends on how hard you
+        // looked, and the old render asserted the strong reading off a
+        // glance.** *Non-obvious is not permanently absent*: a
+        // concealed exit is filtered out of `obviousExitsFor` until the
+        // viewer discovers it, so "I looked and saw no east exit" is
+        // NOT evidence that there is none — it may be a door that is
+        // pretending to be a wall, and the lounge ships exactly that.
+        //
+        // A deliberate `search` is the one observation whose absences
+        // carry information. So the wording follows the newest place
+        // observation's channel: *not there when you searched* is a
+        // claim about the world; *not seen when you last looked* is a
+        // claim about the looking.
+        const searched = view.latestHow === 'searched';
+        const note = searched
+          ? `not there when you searched`
+          : `not seen when you last looked`;
         out.push(
           stale
             ? `${indent}${dir} → ${MapController.farName(only)} ` +
-                `(recorded ${MapController.when(only.lastSeen)}; not seen ` +
-                `when you last looked)`
+                `(recorded ${MapController.when(only.lastSeen)}; ${note})`
             : `${indent}${dir} → ${MapController.farName(only)}`,
         );
         continue;
