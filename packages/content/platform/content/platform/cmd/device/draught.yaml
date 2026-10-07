@@ -31,6 +31,27 @@ help: |
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresEmbodied
+# ⭐⭐ **Both shapes, and `fallthrough: true` is the opt-in the schema
+# requires for it.** The five settings are SUBCOMMANDS (below); bare
+# `draught` and `draught at forge` are the FLAT path, and they are a
+# READ — asking where a dial stands is not a mistake.
+#
+# ⛔ The drive is why this block exists. With the args declared only
+# under the subcommands, a bare `draught` bound nothing at all — not
+# even its default fire — and the read answered *"There is no fire
+# here."* in a room with a lit forge. The set worked and the read did
+# not, which is the hardest shape of this failure to see.
+fallthrough: true
+args: &fire
+  - name: fire
+    type: object
+    required: false
+    prepositions: [on, at, in]
+    scope: "reachable"
+    default: "reachable:[mixin.BurnerMixin]"
+    requires: BurnerMixin
+    validators:
+      - /lib/command/validators/canReach
 subcommands:
   # ⭐⭐ **SUBCOMMANDS, and the drive is why.**
   #
@@ -48,16 +69,7 @@ subcommands:
   # applied to argument shape.
   wide:
     description: "Vents wide: as hot and as clean as the fuel allows — and dimmer than you expect"
-    args: &fire
-      - name: fire
-        type: object
-        required: false
-        prepositions: [on, at, in]
-        scope: "reachable"
-        default: "reachable:[mixin.BurnerMixin]"
-        requires: BurnerMixin
-        validators:
-          - /lib/command/validators/canReach
+    args: *fire
   open:
     description: "The same as `wide`"
     args: *fire
