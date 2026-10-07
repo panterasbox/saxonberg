@@ -68,3 +68,20 @@ settings:
   # (700 mg), which sits deliberately below a fully rotten dose.
   - key: freshness.dose.scaleMg
     value: "900"
+
+  # ⭐ Light-strike (glass build D8) — a PHOTOCHEMICAL spoilage term, not a
+  # microbial one: a `light-sensitive` material (beer) goes off under the
+  # light its vessel lets in, fastest in a clear bottle and slowest in a
+  # brown one, because photochemistry lives in the blue. Additive on the
+  # same gauge, so it bites even on a material with no microbial clock.
+  #
+  # The rate per hour at the reference illuminance through a fully
+  # blue-transparent holder. 30/h drives a clear bottle in full sun from
+  # fresh to tainted in minutes — the "light-struck in the sun" fact.
+  - key: freshness.lightStrike.ratePerHour
+    value: "30"
+
+  # The illuminance (lux) at which that full rate is reached; brighter is
+  # clamped to it. 50000 ≈ a clear sky at midday.
+  - key: freshness.lightStrike.referenceLux
+    value: "50000"

@@ -566,7 +566,29 @@ dropped in W1 — see the D7 re-plan note.)*
 seams` sees `massYield` read; the extraction wire test's lime step is
 unaffected (its row authors no yield).
 
-#### W2 — Light-strike (kernel + two content tags) · `build(glass W2): light-strike — a light-sensitive material spoils under the light its vessel lets in`
+#### W2 — Light-strike (kernel + two content tags) · `build(glass W2): light-strike — a light-sensitive material spoils under the light its vessel lets in` ✅ DONE
+
+> **Built.** `Freshness.advance` gains `extraRatePerHour` (added to a
+> non-negative μ; the kill curve ignores it), so a `light-sensitive`
+> material with no `Ea` still spoils under light. The module function
+> `lightStrikeRatePerHour(holder, material)` computes
+> `ratePerHour × min(lux/refLux, 1) × blueTransmittance`, gated on the
+> material's `light-sensitive` tag AND the holder answering the
+> `LightFilter` duck-probe (opaque holders → 0); lux is `vision.signalAt`
+> at the holder's enclosing container scope. `advanceFreshnessOverHost`
+> samples it ONCE per reconcile and applies it across every thermal
+> sub-step. Two dials + two `AppSettingKeys`; `light-sensitive` tag on
+> `ale`/`lager` (no `Ea` added → `lint:perishable` untouched). `spoilage.md`
+> documents the third driver + the once-per-reconcile limit.
+> **Decision (follows the plan's own precedent):** `lightStrikeRatePerHour`
+> is a MODULE FUNCTION, not the `static` D8 named — the `lint:lib-statics`
+> ceiling is held (the `advanceFreshnessOverHost` pattern), so W0's +2 is
+> the only rise. Tests: `advance` drives an inert material via the extra
+> rate, a brown holder (b≈0.17) spoils far slower than a clear one, and
+> the thermal-death curve is untouched. 26 freshness tests green.
+> The full tag·filter·lux·blue gating integration lands with `GlassBottle`
+> in W4 and the beer-in-the-yard drive step in W8 (per the plan's
+> first-consumer staging).
 
 **Goal.** D8.
 

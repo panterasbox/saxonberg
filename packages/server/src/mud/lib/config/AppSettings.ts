@@ -1388,6 +1388,13 @@ export const AppSettingKeys = {
   freshnessInoculum: "freshness.inoculum",
   /** Spoilage — the ambient temperature (K) a gauge on a non-Thermal host reads. */
   freshnessAmbientK: "freshness.ambientK",
+  /** Spoilage — light-strike (glass build D8): the photochemical spoilage
+   * rate per hour a `light-sensitive` material accrues at the reference
+   * illuminance through a fully blue-transparent holder. */
+  freshnessLightStrikeRatePerHour: "freshness.lightStrike.ratePerHour",
+  /** Spoilage — light-strike: the illuminance (lux) at which the rate above
+   * is reached; brighter is clamped to it. */
+  freshnessLightStrikeReferenceLux: "freshness.lightStrike.referenceLux",
   /** Spoilage — load at/above which the band reads `tainted`. */
   freshnessBandTaintedAt: "freshness.band.taintedAt",
   /** Spoilage — load at/above which the band reads `spoiled`. */
