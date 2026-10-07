@@ -89,12 +89,31 @@
  * jurisdiction from the room it sits in.
  *
  * ⛔ **A thing with real runtime state is not `commons`, however
- * shared.** `Watercourse` is the case that proves the line: its rows
- * are seeded and read widely, but a river's flow and storage are state,
- * and a governed eval was denied on its **`setKey()`** — a write. It
- * declares nothing, stays denied, and is recorded as the open question
- * this vocabulary does not answer: *what is the jurisdiction of a thing
- * that spans parcels?*
+ * shared** — and the water pack is the worked example of getting that
+ * split right. `Watercourse` holds authored topology only (key, basin,
+ * the source-first node list, baseline chemistry) and so declares
+ * `commons`; a river's *state* lives elsewhere — flow and direction are
+ * derived, storage is a `StorageNode`, which is a `Thing` in a place
+ * and therefore `place`, taking its jurisdiction from the room it sits
+ * in. **Split the record from the state and each half gets an honest
+ * role.**
+ *
+ * ⚠ `Watercourse` was withheld for one round on the reasoning that *"a
+ * river's flow and storage are genuine runtime state"*. That
+ * attributed to this class state that lives on other objects: nothing
+ * calls its five setters but the `TemplateApplier`, and the denial that
+ * prompted the doubt was `setKey()` — read as a write, and in fact the
+ * applier hydrating an authored field, which is what every `commons`
+ * member does (`Material` does it 32 times).
+ *
+ * ⛔ **And the question it was parked under did not exist.** *"What is
+ * the jurisdiction of a thing that spans parcels?"* — nothing spans
+ * parcels. `ParcelRegistry`'s coverage index is a `PathTrie` and
+ * `ownerOf` is **longest-prefix**, so every path resolves to exactly
+ * one holder by construction. A Watercourse is not in two parcels; it
+ * is in **none**, because it has no location at all — a parcel CITES a
+ * reach (`parcels.reach`) rather than containing a river, and that is
+ * precisely what makes it vocabulary.
  */
 export type BoundaryRole = 'place' | 'commons' | 'infrastructure';
 

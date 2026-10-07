@@ -46,6 +46,7 @@ import { Idea } from '@saxonberg/server/mud/lib/stuff/Idea';
 import { NamedMixin } from '@saxonberg/server/mud/lib/description/Named';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 
+import type { BoundaryRole } from '@saxonberg/server/mud/lib/security/BoundaryRole';
 /**
  * Template-path prefix every authored watercourse ROW lives under.
  *
@@ -168,6 +169,31 @@ export interface WatercourseDescriptor {
  * mixin's `name` meta with the block below property-by-property.
  */
 export default class Watercourse extends NamedMixin(Idea) {
+  /**
+   * ⭐ Shared vocabulary: a watercourse row is **authored topology** —
+   * key, basin, the source-first node list, the branch point, and the
+   * baseline water chemistry. Nobody holds title to *the Kestrel* as a
+   * thing; parcels only CITE a reach (`parcels.reach`), and the
+   * riparian right derives from that citation.
+   *
+   * ⭐⭐ It qualifies because **the water pack already split the record
+   * from the state.** Flow and direction are derived, storage lives on
+   * `StorageNode` — a `Thing` in a place, which is `place` and takes
+   * its jurisdiction from the room it sits in. So this class has no
+   * runtime state to protect: its five setters have no caller but the
+   * `TemplateApplier`.
+   *
+   * ⚠ It was left undeclared for one round on the reasoning that *"a
+   * river's flow and storage are genuine runtime state"* — which
+   * attributed to this class state that lives on other objects. The
+   * denial that prompted it was `setKey()`, read as a write; it is the
+   * applier hydrating an authored field, which is what every `commons`
+   * member does (`Material` does it 32 times).
+   *
+   * See `@saxonberg/server/mud/lib/security/BoundaryRole`.
+   */
+  static boundaryRole: BoundaryRole = 'commons';
+
   /** See {@link WATERCOURSE_PATH_PREFIX}. */
   static readonly TEMPLATE_PATH_PREFIX = WATERCOURSE_PATH_PREFIX;
 

@@ -2772,13 +2772,41 @@ guarantee the persistence layer does not make.
   `commons`: an exit *is* world state, authors change them, and
   exempting it would let circle code mutate real exits — exactly what
   the boundary exists to stop.
-* ⭐ **`Watercourse` → neither, and the gate is what says so.** It was
-  denied on **`setKey()`** — a write — and a river's flow and storage
-  are genuine runtime state, so it fails the `commons` criterion. Its
-  reaches sit in several parcels at once, so no single
-  `jurisdictionHost` is honest either. **Left denied, deliberately**, and
-  recorded as the open question the role vocabulary does not yet answer:
-  *what is the jurisdiction of a thing that spans parcels?*
+* ⭐⭐ **`Watercourse` → `commons`** — corrected on review, and the
+  correction is instructive. It was withheld for one round on the
+  reasoning that *"a river's flow and storage are genuine runtime
+  state"*, which **attributed to this class state that lives on other
+  objects**: flow and direction are derived, storage is a `StorageNode`
+  (a `Thing` in a place, therefore `place`), and nothing calls
+  `Watercourse`'s five setters but the `TemplateApplier`. The denial
+  that prompted the doubt was `setKey()` — read as a write, and in fact
+  the applier hydrating an authored field, which is what every `commons`
+  member does (`Material` does it 32 times).
+
+  ⭐ So the water pack is the **worked example of the right split**:
+  the authored record is vocabulary, the stateful object beside it is a
+  thing in a place, and each half gets an honest role. It is also the
+  first PACK class to declare, which exercises the gate's pack walk.
+  Ceiling 23 → 24.
+
+  ⛔ **And the open question it was parked under does not exist.**
+  *"What is the jurisdiction of a thing that spans parcels?"* — nothing
+  spans parcels. `ParcelRegistry`'s coverage index is a `PathTrie` and
+  `ownerOf` is **longest-prefix**, so every path resolves to exactly
+  one holder by construction. A Watercourse is in **no** parcel rather
+  than in two: it has no location at all, and a parcel CITES a reach
+  (`parcels.reach`) rather than containing a river — which is precisely
+  what makes it vocabulary.
+
+  ⚠ *Spanning parcels* IS a real phrase in this design, which is
+  probably where it got borrowed from, and it belongs to two other
+  problems: a **physical field** under several extents
+  (`drilling-slate` § *"who owns a field under two parcels"* — leaning
+  *do not decide it in code, ship the physical fact and let the polity
+  fight about it*) and an **act** touching two
+  (`balance-slate` § *"where does a ledger write land when the act
+  spans parcels?"*). Neither is an object with two owners, which is why
+  importing the phrase here produced a question with no referent.
 
 ### Waves — all landed
 

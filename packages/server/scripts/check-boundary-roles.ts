@@ -70,7 +70,7 @@ const VOCAB = fileURLToPath(
  * in the same commit, which is the whole point: the diff shows somebody
  * widened the sandbox boundary.
  */
-export const COMMONS_CEILING = 23;
+export const COMMONS_CEILING = 24;
 
 export interface RoleDeclaration {
   file: string;

@@ -357,12 +357,20 @@ of this be absurd?* A Terminus `iron` and a Hinkley `iron` would fork a
 closed vocabulary; a Terminus **torch** would not — which is why a
 torch is `place` and takes its jurisdiction from the room it sits in.
 
-⛔ **A thing with real runtime state is not `commons`, however shared.**
-`Watercourse` is the case that draws the line: seeded and widely read,
-but a governed eval was denied on its **`setKey()`**, and a river's flow
-and storage are state. It declares nothing and stays denied, leaving
-the open question this vocabulary does not answer: *what is the
-jurisdiction of a thing that spans parcels?*
+⛔ **A thing with real runtime state is not `commons`, however
+shared** — and the water pack is the worked example of the split.
+`Watercourse` holds authored topology only, so it declares `commons`; a
+river's *state* lives elsewhere (flow derived, storage on a
+`StorageNode`, which is a `Thing` in a place and therefore `place`).
+**Split the record from the state and each half gets an honest role.**
+
+⛔ ⚠ **And a question this doc floated for one round does not exist**:
+*"what is the jurisdiction of a thing that spans parcels?"* Nothing
+spans parcels — `ParcelRegistry`'s coverage index is a `PathTrie` and
+`ownerOf` is **longest-prefix**, so every path resolves to exactly one
+holder by construction. A Watercourse is in no parcel at all rather
+than in two: it has no location, and a parcel CITES a reach
+(`parcels.reach`) rather than containing a river.
 
 ### The reference-data tier, and why it exists at all
 
