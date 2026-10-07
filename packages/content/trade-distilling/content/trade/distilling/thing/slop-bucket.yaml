@@ -1,0 +1,25 @@
+# The slop bucket — ⭐ where the foreshots go, and the most important
+# object on the floor.
+#
+# A still-house keeps one of these under the worm because the first of
+# every run has to go somewhere, and it must not be somewhere you would
+# later mistake for the spirit. It is a separate vessel from the wash
+# bucket for exactly that reason: *the thing you throw away needs its own
+# home*, or sooner or later somebody bottles it.
+#
+# ⚠ The heads are not slops, though, and this row does not pretend
+# otherwise — they go back into the next charge. Only the foreshots are
+# genuinely waste.
+class: /platform/thing/CraftVessel
+data:
+  shortDescription: slop bucket
+  keywords: [bucket, pail, "slop bucket", slop, slops]
+  register: definite
+  longDescription: >-
+    A galvanised pail with a scratched line scored round the inside, kept
+    under the worm and emptied into the drain without anybody looking at
+    it twice.
+  category: slop-bucket
+  mass: 2
+  interiorBulk: true
+  interiorCapacity: 10

@@ -8,7 +8,9 @@
 > (bucket-brigade → volunteer → paid-service ladder) · fire-code /
 > prevention / inspection · fire insurance (incl. the moral-hazard /
 > arson tie) · map-scale wildfire · arson-as-crime + investigation ·
-> the Tiebout risk-tolerance framing
+> the Tiebout risk-tolerance framing · ⭐⭐ **a REFUELLABLE burner, and a
+> burner that knows WHAT it is burning** (§ below — offered by the
+> whiskey drives, 2026-10-06)
 > **Size:** a build
 
 ---
@@ -128,3 +130,38 @@ with none is **cheap and dangerous**.
 > **You choose your risk tolerance by choosing where to live** — the
 > best possible answer to *"this might suck for me"*: **there is
 > somewhere it does not.**
+
+---
+
+## ⭐⭐ Offered by the whiskey drives (2026-10-06): fuel is anonymous, and one-shot
+
+Two findings from the two whiskey wire drives, which are both `.dirty.`
+*because of this*. Neither is a defect of those builds; both are the
+combustion substrate's.
+
+**1. No burner in the game can be refuelled.** `BurnerMixin`'s fuel is a
+`%` `Reserve`, a furnace burns its authored fuel once, and **there is no
+verb anywhere that puts more in.** So the still at Crowsfoot is a
+one-shot object: a drive lights it, runs a charge, and the floor can
+never distil again. ⚠ It is the single reason
+`whiskey.dirty.wire.test.ts` and `whiskey-styles.dirty.wire.test.ts`
+cannot run twice, and it is named in both of their `DIRTY_REASON`s.
+
+**2. ⭐⭐⭐ Fuel is ANONYMOUS, and that one costs a lesson.**
+`reachableHeatForImpl` returns a *temperature*, never a source — nothing
+in the engine knows what a kiln is burning. So when the whiskey-styles
+build needed *"kiln the malt over peat and the smoke is in the barley"*,
+it could not derive the smoke from the fire; it had to declare it as
+`Recipe.imparts` with the turf as an item slot.
+
+⚠ **Two fires in the fiction, one in the model**: the kiln's reserve
+supplies the heat while the turf in the slot supplies the flavour, and a
+player cannot tell. What keeps it honest meanwhile is that the turf is
+visibly consumed, so the fact stays derivable at the bench even though
+the mechanism is declared.
+
+⭐ A burner that knows its fuel would make that derivation real — and it
+is the same seam that would let an as-cut turf **refuse** (it already
+refuses `ignite` on its own moisture; an item slot cannot see moisture,
+so the peated kiln accepts a sodden one and says nothing). See [crafting.md § History — the whiskey-styles build](../../subsystems/crafting.md),
+which carries `Recipe.imparts` and the fuel-anonymity reasoning.

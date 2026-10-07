@@ -27,8 +27,15 @@ describe('the cellars brain — bounded, literal, home in finally', () => {
       '`pour bucket into vat`',
       '`pour jar into vat`',
       '`buy ${kw}`',
-      '`ignite ${distills.igniteKeyword}`',
-      '`order ${distills.recipe}`',
+      // ⭐ The still leg (W6). `order ${distills.recipe}` USED to be here
+      // and is gone with the recipe it named: `distil` retired when the
+      // still became a fractionating host, because a still does not have
+      // one output. The leg runs the pot with literal verbs now — charge,
+      // light, and pour a measured step at a time into whichever vessel
+      // the hand's own nose says this is.
+      '`pour ${charge} into ${stillKey}`',
+      '`ignite ${stillKey}`',
+      '`pour ${stillKey} into ${target} --amount ${stepL}L`',
     ]) {
       expect(SRC).toContain(verb);
     }

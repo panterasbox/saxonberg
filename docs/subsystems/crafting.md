@@ -1629,3 +1629,55 @@ fit is asymmetric: a tough cut cooked fast is inedible where a tender cut
 braised is merely wasted. Full model:
 [butchery.md](./butchery.md).
 
+---
+
+## History — the whiskey-styles build (2026-10-05)
+
+**`Recipe.imparts: [{type, amount}]`** — aroma compounds the WORKING puts
+into its output, mg/L (`metabolism.md`'s closed vocabulary). Read by
+`applyBulkOutput`, **additively**: `imparts` is the concentration in the
+output, so a kiln that puts 30 mg/L of smoke into malt does that however
+much malt you made — a kiln does not dilute its own smoke. Validated at
+`fromData`, where an unknown aroma word or a non-positive amount
+**throws** rather than being dropped: either would fail closed and
+silent, and the output would simply never smell of anything.
+
+⭐ Why it is on the recipe and not the fuel: `BurnerMixin`'s fuel is a
+bare `%` reserve and `reachableHeatForImpl` returns a temperature, never
+a source — **nothing in the engine knows what a kiln is burning.** So the
+peated kiln takes the turf as an item slot and declares what the turf
+does, which keeps the fact derivable by the player (they watch four
+turves be consumed) while leaving a fuel-aware burner to the fire/energy
+slate. ⚠ Two fires in the fiction, one in the model.
+
+**⛔⛔ `ComminutingMixin.products[]` — the mill makes what it is fed.**
+`productMaterial` was ONE path per instrument row and both shipped mill
+rows pinned it to **wheat flour**, while `MillController.chargeFrom`
+accepted anything tagged `grain` or `malt`. So a sack of malt ground on
+the quern came out as wheat flour, which no mash slot asks for.
+Consequences, all silent: every grain of grist in the realm came off the
+distributor's counter (whose own comment advertised an arbitrage the
+quern could not perform); `barley-flour.yaml` and `grist-sack.yaml` were
+dead rows nothing could produce; and the whiskey vertical's "malt becomes
+grist" link **had never once run** — the test claiming to prove it
+compared two rows' tags and ground nothing.
+
+```yaml
+products:
+  - { inputTag: malt,  product: …/grist, residueFraction: 0, vessel: …/grist-sack }
+  - { inputTag: wheat, product: …/wheat-flour, residue: …/bran, … }
+  - { inputTag: barley, product: …/barley-flour, residue: …/bran, … }
+```
+
+First match wins (author the specific before the general), and the scalar
+fields remain the fallback so **every shipped row behaves exactly as it
+did** until it authors a table. ⭐ `residueFraction` is per-feed and malt
+authors **0**: you grind malt to grist whole, because the husk is the
+filter bed the mash lauters through — bolting it out is how you get a
+stuck mash. So a brewer's grind and a baker's grind are different acts on
+one machine, derived from the feed rather than chosen on a dial.
+
+⚠ A grind also **kept nothing**: `fill()` cloned a fresh sack and stamped
+only the plan's composition and water, so any per-litre concentration on
+the feed was dropped. It folds the source payload through
+`BulkableApi.blendPayloads` now.

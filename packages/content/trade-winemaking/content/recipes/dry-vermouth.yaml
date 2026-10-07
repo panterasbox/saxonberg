@@ -25,4 +25,3 @@ toolCapabilities: []
 outputApplication: bulk
 outputTemplate: /trade/winemaking/thing/wine-bottle
 outputMaterial: /trade/winemaking/idea/material/dry-vermouth
-outputAppearance: a pale, herbal dry vermouth

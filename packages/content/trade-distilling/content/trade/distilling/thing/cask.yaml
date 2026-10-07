@@ -1,0 +1,65 @@
+# ⭐⭐ The whiskey cask — where new-make becomes whiskey, and the
+# distilling trade's own row of the VAT family.
+#
+# The brewing pack already ships a `cask` for conditioning ale, and this
+# is the same object doing the other thing an oak barrel has always done:
+# the profile at `/trade/distilling/idea/maturation/whiskey-aging` keys on
+# `new-make` and turns it into `whiskey` over about forty-five game-days,
+# `sealedOnly` — so it only works once you have bunged it (`close cask`).
+#
+# ⭐ The grade is the CUT's, not the cask's: `MaturingMixin` caps a
+# batch's band at the band the fill carried in, so no amount of waiting
+# turns a bad cut into good whiskey. Nor does the dose change — methanol
+# does not age out, and the payload survives the material swap. Time
+# improves whiskey; it does not absolve a distiller.
+#
+# ⚠ `liquidTight`, not `sealed`, for the brewing cask's reason: oak
+# breathes.
+#
+# ⭐⭐ **`imparts:` — what the wood GIVES, added by the styles build.**
+# The oak lactones and a little vanillin off the lignin, written into the
+# contents in step with the conversion, so a dram out of this cask reads
+# *clearly of oak, faintly of vanilla* and one out of the charred cask
+# next to it reads of vanilla and char instead. Two casks, one spirit,
+# two whiskies — and a second wood is a row, not code.
+#
+# ⚠ The prose said *"A charred oak cask"* while this is the PLAIN one and
+# the char lived nowhere at all. Fixed here: this row is a plain cask and
+# `charred-cask.yaml` is the toasted one, which is the difference the
+# `imparts` figures now actually express.
+class: /platform/thing/Vat
+data:
+  shortDescription: "whiskey cask"
+  # ⚠⚠ `plain` and the MULTI-WORD `"plain cask"` — added because this
+  # floor now holds TWO casks and the
+  # charred one carries `charred` while this one carried **no unique
+  # keyword at all**. Every other word they share, so `pour into cask`
+  # was ambiguous with no way to mean THIS one; a player got a
+  # disambiguation prompt for an object that was plainly in front of
+  # them and no word that would answer it. Found by the styles drive.
+  #
+  # ⚠ The two-word form is not decoration: a player says *"close plain
+  # cask"*, and `[plain, cask]` is two tokens the binder cannot join
+  # from two single-word keywords — it answered `shape-fall-through`,
+  # i.e. *that is not a command*, for a phrase naming an object in plain
+  # sight. `still-book` and `malt-sack` both carry their two-word form
+  # for the same reason; these rows did not.
+  keywords: [cask, barrel, oak, whiskey, empty, plain, "plain cask"]
+  register: indefinite
+  longDescription: >-
+    A plain oak cask on a low stillage, hooped in black iron, the
+    bung-hole sitting up and the head stencilled with a date nobody has
+    filled in. The staves are pale inside, raised but never fired.
+  category: cask
+  _materialPath: /stuff/idea/material/wood/oak
+  mass: 40
+  interiorBulk: true
+  interiorCapacity: 25
+  closure: liquidTight
+  open: true
+  # Calibrated against the aroma thresholds, not picked: oak's is
+  # 0.07 mg/L, so 25 reads *clearly*; vanilla's is 0.1, so 3 reads
+  # *faintly*. The plain cask is a wood note with a hint behind it.
+  imparts:
+    - { type: oak, amount: 25 }
+    - { type: vanilla, amount: 3 }

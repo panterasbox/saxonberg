@@ -18,3 +18,35 @@ data:
   # `lint:light-sources` clause (g), 2026-09-24.
   lit: false
   mass: 14
+  # The kit's pot: a twelve-litre charge, so a little over two litres of
+  # hearts. Enough to learn on and not enough to supply a bar.
+  interiorBulk: true
+  interiorCapacity: 12
+  closure: liquidTight
+  # ⚠ `burnTemperatureK: 358` and NOT the 800 K default. The pot's working
+  # heat is a little over ethanol's boiling point and a long way under
+  # spirit's autoignition at 636 K; the default would have landed every
+  # bottle at eight hundred Kelvin, which is a fire rather than a run.
+  # ⭐⭐ **The fuel reserve, without which none of this exists.** `FireLogic`
+  # refuses to ignite a burner whose `fuelRemaining()` is zero (reason
+  # `not-flammable`), and `reachableHeatForImpl` counts only burners that
+  # are lit AND fuelled — so a still with no reserve could not be lit, and
+  # 351 K was never in reach. Three recipes named this tool and declined
+  # `insufficient-heat` for the whole life of the pack, invisibly, because
+  # the counter's spirit came off the faucet rows instead.
+  #
+  # ⚠ No refuel verb exists for ANY burner in the game (the drain is
+  # `Burner.ts`'s and nothing puts fuel back). A still burns its authored
+  # reserve down once, which at this rate is a long working day. Recorded
+  # as a finding, not fixed here — it belongs to the fire/energy slate.
+  burnTemperatureK: 358
+  bellowsMultiplier: 1
+  fuelBurnRatePerMin: 0.1
+  reserves:
+    fuel:
+      capacityValue: 100
+      currentValue: 100
+      unit: "%"
+      theme: combustion
+      floorEffect: null
+

@@ -51,6 +51,7 @@ import type { MqlOneResult } from '@saxonberg/server/mud/api/mql';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
 import type Material from '@saxonberg/server/mud/lib/material/Material';
+import type { BulkPayload } from '@saxonberg/server/mud/lib/bulk/Bulkable';
 import type {
   Comminuting,
   ComminutionPlan,
@@ -395,6 +396,21 @@ async function finishGrind(
     const landing =
       room !== null && MixinApi.isContainer(room) ? room : null;
 
+    // ⭐⭐ **What the sack CARRIED, read before it is consumed.** A grind
+    // used to drop the source payload on the floor: `fill` cloned a
+    // fresh sack and stamped only the plan's composition and water, so
+    // any per-litre concentration on the feed vanished at the
+    // millstones. Smoke in a peated malt is the case that found it —
+    // the whole point of peating is that the phenols survive to the
+    // glass, and they could not survive the mill.
+    //
+    // ⚠ Read BEFORE the debit: a full drain clears the payload with the
+    // material, exactly as `transfer` step 5 has to.
+    const sourcePayload =
+      MixinApi.isBulkable(source) && source.hasInteriorBulk()
+        ? (BulkableApi.slotFor(source, undefined)?.getPayload() ?? null)
+        : null;
+
     // Consume the input first — conservation before creation, so a
     // failure leaves the grain rather than doubling it.
     if (!source.isDestroyed()) {
@@ -408,27 +424,29 @@ async function finishGrind(
 
     // The product, less the toll.
     const keptL = plan.productL - plan.tollL;
-    if (keptL > 0 && mill.productVessel) {
+    if (keptL > 0 && plan.productVessel) {
       await fill(
-        mill.productVessel,
+        plan.productVessel,
         plan.productMaterial,
         keptL,
         plan,
         makerPath,
         landing,
         (plan.productKg - plan.tollKg),
+        sourcePayload,
       );
     }
     // The residue — bran is a real good, not waste.
-    if (plan.residueL > 0 && mill.residueVessel) {
+    if (plan.residueL > 0 && plan.residueVessel) {
       await fill(
-        mill.residueVessel,
+        plan.residueVessel,
         plan.residueMaterial,
         plan.residueL,
         null,
         makerPath,
         landing,
         plan.residueKg,
+        sourcePayload,
       );
     }
     // ⭐ The multure. A tenth stays here and the miller sells it.
@@ -473,6 +491,7 @@ async function fill(
   makerPath: string,
   landing: (Stuff & Container) | null,
   kg: number,
+  sourcePayload: BulkPayload | null = null,
 ): Promise<void> {
   const sack = await StuffApi.clone<Stuff>(vesselPath);
   const slot = BulkableApi.slotFor(sack, undefined);
@@ -482,6 +501,25 @@ async function fill(
       slot.setMaterial(material);
     }
     slot.setAmount(Quantity.of(litres, 'L'));
+    // ⭐ The per-litre domains ride the matter through the stones. A fold
+    // against an empty destination carries them at strength — grinding
+    // is not a dilution.
+    if (sourcePayload) {
+      const carried = BulkableApi.blendPayloads(
+        sourcePayload,
+        litres > 0 ? litres : 1,
+        null,
+        0,
+      );
+      const next: BulkPayload = { ...(slot.getPayload() ?? {}) };
+      if (carried.dissolvedToxins) {
+        next.dissolvedToxins = carried.dissolvedToxins;
+      }
+      if (carried.dissolvedAromatics) {
+        next.dissolvedAromatics = carried.dissolvedAromatics;
+      }
+      if (Object.keys(next).length > 0) slot.setPayload(next);
+    }
     if (plan !== null) {
       // ⭐ The extraction, stamped continuously: the composition says
       // what this flour is made of and `water.moisture` says how well it

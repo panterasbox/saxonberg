@@ -1,0 +1,35 @@
+# ⭐⭐ The floor — and the reason this build added a fifth mechanism word.
+#
+# `mechanism: enzymatic` is new, and it was added rather than reused
+# because the two plausible alternatives both assert something false.
+# `microbial` says an organism is doing this, which is the single most
+# important thing a maltster does NOT want happening in their bed.
+# `chemical` says a reagent is. What is actually happening is that a
+# steeped barleycorn has woken up and is turning its own starch over with
+# its own amylase: nothing was added, and nothing is living on it. The
+# platform teaches, so the word has to be true.
+#
+# ⭐ `killK: 308` is the whole decision this profile exists to price. A
+# warm floor runs faster and a floor over about thirty-five degrees cooks
+# the bed — slack, sour, and no malt. So the maltster's choice is between
+# speed and the batch, which is a real trade-off and not a dial.
+#
+# ⚠ No `turnedMaterial` yet. A bed left past `finished` really does grow
+# past the corn and eat its own sugar, and the honest row for that is
+# over-grown malt — a material nobody consumes, so it waits for a
+# consumer rather than shipping inert.
+class: /platform/idea/maturation/MaturationProfile
+data:
+  key: malting
+  mechanism: enzymatic
+  inputCategory: steeped-barley
+  productMaterial: /trade/malting/idea/material/green-malt
+  # Four or five game-days on a cold floor, which is about right: a real
+  # floor malting is four to six days and the whole of its difficulty is
+  # that you cannot hurry it.
+  ratePerDay: 0.22
+  # A cold stone floor is the traditional answer and the correct one.
+  stallBelowK: 278
+  happyK: 288
+  damageAboveK: 298
+  killK: 308

@@ -1,0 +1,59 @@
+# ⭐⭐⭐ Vatting — **a blend, and the reason there are two lines at all.**
+#
+# A litre of `fine` malt stretched with two of `fair` grain is three
+# litres the bar will buy. Not at `fine` — at `fair`, because a blend is
+# weakest-link on the grade like every other transform in this game — but
+# the bar pays by the litre and takes anything at `fair`. That is the
+# whole economics of blending, and nothing here asserts it: it falls out
+# of `Grade.deriveAtFixedControl` meeting the Lounge's par line.
+#
+# ⚠⚠ **Blending HAS to be a recipe.** `BulkableApi.transfer` declines a
+# cross-material pour, so two different whiskies can never be combined by
+# pouring one into the other. The vermouth shape (two bulk inputs plus an
+# item, one bulk output) was already shipped and is what makes this a row
+# instead of a mechanism.
+#
+# ⛔ But it would have LAUNDERED the dose until this build:
+# `applyBulkOutput` carried no input payload to the output at all, so
+# vatting two badly-cut bottles produced one that read clean. The fold is
+# `BulkableApi.blendPayloads` now, and the blend carries:
+#
+#   - the DOSE, volume-weighted — a bad cut vatted is diluted, never
+#     gone, and the drinker is still harmed in proportion;
+#   - the SMOKE, volume-weighted — which is what a blender is doing it
+#     for: 0.3 L of peated malt into 0.45 L of grain reads *clearly* of
+#     smoke where the malt alone read *strongly*;
+#   - the AGE, as the MINIMUM — a 90-day malt vatted with a 20-day grain
+#     is a twenty-day whisky, because that is what an age statement
+#     means.
+#
+# ⭐ No `blending` Discipline, deliberately. A distillery vats its own,
+# and the judgement is the same judgement: `distilling`. Inventing a
+# discipline for the second act of one trade is how a skill tree grows
+# rungs nobody can tell apart.
+#
+# ⭐ `vat-malts` — two malts, peated and unpeated — is this same shape
+# with one slot changed, and is NOT shipped. One recipe proves the
+# mechanism; the second is a row somebody adds when they want it.
+recipeId: vat-whisky
+name: Blended whisky
+keywords: [vat-whisky, vat, blend, "blended whisky"]
+discipline: distilling
+difficulty: standard
+inputSlots:
+# ⚠ `category: malt-whisky` is a tag `whiskey.yaml` carries and
+# `grain-whisky.yaml` deliberately does NOT — so a blend genuinely
+# requires both lines and cannot be faked out of the cheap one.
+- slot: malt
+  category: malt-whisky
+  minGrade: poor
+  measureL: 0.3
+- slot: grain
+  category: grain-whisky
+  minGrade: poor
+  measureL: 0.45
+toolCapabilities: []
+outputApplication: bulk
+outputTemplate: /trade/distilling/thing/spirit-bottle
+outputMaterial: /trade/distilling/idea/material/blended-whisky
+outputAppearance: a deep amber blended whisky

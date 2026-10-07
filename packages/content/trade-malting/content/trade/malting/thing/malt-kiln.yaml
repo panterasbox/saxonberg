@@ -1,0 +1,36 @@
+# ⭐⭐ The malt kiln — a ROW over the platform's `Oven`, and the number IS
+# the lesson.
+#
+# A limekiln on the same class holds 1500 K and a bread oven 500; this one
+# holds 340, which is barely warm. That is not a weak kiln — it is the
+# whole craft. Heat above about 350 K destroys the enzymes the floor spent
+# five days making, so a maltster's fire is deliberately feeble and
+# deliberately long. A player who has read the limekiln's row and this one
+# can predict which chamber does which job without being told, which is
+# lens 1 paying out for the second time on one class.
+#
+# ⚠ `fuelBurnRatePerMin` is low to match: a kilning is a day and a half of
+# gentle heat, not a burn.
+class: /platform/thing/Oven
+data:
+  shortDescription: malt kiln
+  keywords: [kiln, "malt kiln", oast, furnace, malt]
+  register: definite
+  longDescription: >-
+    A low brick chamber under a perforated tile floor, the tiles worn
+    smooth and sweet-smelling, with a damper on a chain to hold the heat
+    down rather than up.
+  burnTemperatureK: 340
+  bellowsMultiplier: 1
+  fuelBurnRatePerMin: 0.08
+  lit: false
+  mass: 1200
+  reserves:
+    fuel:
+      capacityValue: 100
+      currentValue: 100
+      unit: "%"
+      theme: combustion
+      floorEffect: null
+  emittedIntensity: 20
+  emittedColorTemperature: 1700

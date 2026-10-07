@@ -61,5 +61,95 @@ data:
     - /trade/distilling/thing/still-book
     - /trade/distilling/thing/vat
     - /trade/distilling/thing/vat
+    # ⭐ The run's three vessels, and the floor is incomplete without
+    # them: the foreshots have to go somewhere that is not the spirit
+    # (the slop bucket), the hearts have to go somewhere (the cask), and
+    # the wash bucket was already here for the mash.
+    - /trade/distilling/thing/slop-bucket
+    - /trade/distilling/thing/cask
+    - /trade/distilling/thing/wash-bucket
+    # ⭐⭐ The floor maltings. A distillery that malts its own barley is
+    # historically the ordinary case rather than the exotic one — most
+    # Scotch houses had a floor and a kiln on site until the maltsters
+    # centralised — and it is what closes the vertical: the barley a
+    # player grew becomes the malt their own mash wants, on this floor,
+    # with no sack bought from anybody.
+    #
+    # ⛔⛔ These three lines BROKE THE BOOT for two drive runs, and the
+    # cause was one missing line in the REPO ROOT's `package.json`. The
+    # shipped pack set is `contentDepsOf(deploymentRoot/package.json)`
+    # (`PackLogic.packNamesFromDeployment`), and a pack absent from it is
+    # never discovered — so `StagedMixin.applyProps` found no template
+    # here and `BootstrapManager` died cloning the floor. Adding the pack
+    # as a dependency of TERMINUS, which is what names these rows, only
+    # affects install ORDER (`dependsOnOf`); it does not ship the pack.
+    #
+    # ⭐ Nothing but a boot could see it: the rows are all correct on
+    # disk, so the suite passed and `lint:census` clause (b) passed. The
+    # wire harness's own `packs:` declaration is the one check in the
+    # repo that asserts a pack actually INSTALLED.
+    - /trade/malting/thing/malting-floor
+    - /trade/malting/thing/malt-kiln
+    - /trade/malting/thing/malt-sack
+    # ⭐⭐ The quern — and it is the link the vertical was MISSING.
+    #
+    # ⛔ Malt has to be ground to grist before the mash can have it, and
+    # until 2026-10-05 no mill in the realm could make grist: both mill
+    # rows pinned one product material and it was wheat flour, so a malt
+    # sack ground anywhere came out as flour nothing asks for. Every
+    # grain of grist in the world came off the distributor's counter, and
+    # the predecessor's live drive stopped dead at *"There isn't enough
+    # grist."* The fix is the mill's `products:` table; this row is what
+    # puts the act where the malt is.
+    #
+    # ⚠ A quern is the BOTTOM rung and that is deliberate: 0.25 kg a
+    # game-minute, both hands on the handle, no toll and no control band.
+    # A house that grinds its own malt pays in time; the reason to walk a
+    # sack to a water mill is that the mill is faster, and the reason not
+    # to is the multure. Neither is authored — both fall out of the rows.
+    - /trade/milling/thing/quern
+    # ⭐⭐ The turf stack — four bricks, which is exactly what
+    # `kiln-malt-peated` consumes. A player can see what the smoke is
+    # MADE of, which is what keeps the recipe's `imparts` honest: the
+    # figure is declared, but the fact is derivable at the bench.
+    #
+    # ⚠⚠ **These are as-cut turves, and as-cut turf will not light.** It
+    # sits at full moisture and refuses the flame in the shipped words —
+    # *"It's too wet to catch."* — until the weather has had it a
+    # fortnight. An ITEM SLOT cannot see moisture, so the peated kiln
+    # accepts them anyway, which is a seam between the fiction and the
+    # model and is recorded rather than hidden.
+    #
+    # ⛔ A `dry-turf` row was written to paper over it and then DELETED,
+    # because the subsystem is right and the row was wrong:
+    # `WaterActivityMixin`'s `_moisture` is `persistent` and deliberately
+    # **not `authorable`**, no row in the tree authors it, and
+    # `lint:instanceable` invariant 12 refused the key as one the applier
+    # discards silently. Water state is RUNTIME state produced by drying
+    # and curing — a dried good is something the world made, never
+    # something an author declares. (The same silent-discard class as the
+    # predecessor's `malt-sack` `category:`.)
+    #
+    # ⭐ So the real fix stays where it belongs: a burner that knows and
+    # dries its own fuel, on the fire/energy slate. Meanwhile the stack
+    # is honest about being freshly cut.
+    # ⚠ `count: 4`, not four lines. `lint:census` clause (e) refuses the
+    # longhand and the reason is not tidiness: *a repeat with no identity
+    # is an entry no child row can ever replace* — four anonymous turves
+    # cannot be overridden or removed one at a time by a locality that
+    # extends this floor.
+    - { template: /trade/quarrying/thing/turf, count: 4 }
+    # ⭐⭐ The SECOND cask, and it is the whole point of the cask wave:
+    # same wood, same clock, same grade cap — a different character. Two
+    # casks standing side by side is what makes "which cask" a decision
+    # a player can see rather than a field in a row file.
+    - /trade/distilling/thing/charred-cask
+    # ⭐ And the glass to read them with. `PalatableMixin` is on
+    # `ServingVessel` and nowhere else, so `smell cask` reports nothing
+    # of the contents — the way to nose a cask is to pour a dram, which
+    # is how it is done in the trade. Without this row the entire aroma
+    # layer is unreachable at Crowsfoot: the smoke would be in the
+    # spirit and nobody could smell it.
+    - /trade/distilling/thing/nosing-glass
   cast:
     - /world/terminus/goods-yards/crowsfoot/agent/hand

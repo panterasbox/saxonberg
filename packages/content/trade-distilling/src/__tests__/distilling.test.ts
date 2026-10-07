@@ -268,6 +268,21 @@ describe('trade-distilling — the classes', () => {
     expect(MixinApi.isTool(s)).toBe(true);
     expect(MixinApi.isThermal(s)).toBe(true);
     expect(s.getCapabilities()).toEqual(expect.arrayContaining(['still']));
+    // ⭐⭐ The whiskey build made the pot real. A still was a furnace and a
+    // tool and held nothing, which is why the three recipes naming it had
+    // never run: `pour <vat> into still` failed closed at the binder with
+    // "You can't pour anything into the still."
+    expect(MixinApi.isBulkable(s)).toBe(true);
+    expect(s.hasInteriorBulk(), 'a still with no pot is not a still').toBe(
+      true,
+    );
+    // Crafted so the charge's grade and the charging hand ride through the
+    // transfer seam and out again on the draw (the Vat's reason).
+    expect(MixinApi.isCrafted(s)).toBe(true);
+    // And Fractionating, which is the whole build: the interior is not one
+    // liquid and gives up fractions in order as it is drawn.
+    expect(MixinApi.isFractionating(s)).toBe(true);
+    expect(MixinApi.isBurner(s), 'still a furnace').toBe(true);
   });
 
   it('the classes are stamped with their /trade/distilling module ids (the loader reaches the pack src/)', () => {

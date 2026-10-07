@@ -19,4 +19,3 @@ toolCapabilities: [still]
 outputApplication: bulk
 outputTemplate: /trade/distilling/thing/spirit-bottle
 outputMaterial: /trade/distilling/idea/material/gin
-outputAppearance: clear, juniper-scented gin

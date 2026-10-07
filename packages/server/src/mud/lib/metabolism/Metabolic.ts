@@ -51,6 +51,7 @@ import { StuffApi } from "../../api/stuff";
 import { WorldClockApi } from "../../api/worldclock";
 import { TemplatePaths, TemplatePathPrefixes } from "../paths";
 import { BlendLabel } from './BlendLabel';
+import { DissolvedToxins } from './DissolvedToxins';
 import { AccountabilityApi } from '../../api/accountability';
 import AccountabilityEvent from '../accountability/AccountabilityEvent';
 import { SpeciesApi } from '../../api/species';
@@ -525,6 +526,7 @@ export function MetabolicMixin<TBase extends MixinConstructor>(Base: TBase) {
       toxinBurdens: { persistent: true, runtimeState: true },
       metabolicClockStamp: { persistent: true, runtimeState: true },
       lastMealLabel: { persistent: true, runtimeState: true },
+      toxinMakers: { persistent: true, runtimeState: true },
     };
 
     public digestionPools: Record<string, number> = {};
@@ -533,6 +535,25 @@ export function MetabolicMixin<TBase extends MixinConstructor>(Base: TBase) {
     public toxinBurdens: Record<string, number> = {};
     public metabolicClockStamp = 0;
     public lastMealLabel: string | null = null;
+
+    /**
+     * ⭐⭐ **Who made the doses this body is still carrying** — toxin type
+     * → the durable ids of the hands whose MAKING put a dose there, in the
+     * order the doses arrived.
+     *
+     * ⚠ It records the making, never the substance. A bartender who pours
+     * you whiskey is not a poisoner because whiskey is alcoholic; a
+     * distiller who kept the foreshots is one because the methanol is a
+     * fact about how they worked, carried on the payload as a
+     * concentration they chose. So only `dissolvedToxins` and
+     * `formedToxins` — the per-instance fields — record a maker, and a
+     * Material's own authored `toxicity` records nobody.
+     *
+     * Cleared with the burden (`clearBurdens`): the ledger row is written
+     * once at the band crossing, and after the body is clean there is
+     * nobody left to name.
+     */
+    public toxinMakers: Record<string, string[]> = {};
 
     /**
      * Reentry guard for the reconcile. Case-1 (`#`-private would be
@@ -1053,8 +1074,13 @@ export function MetabolicMixin<TBase extends MixinConstructor>(Base: TBase) {
         if (!behavior) continue;
         const next =
           (this.toxinBurdens[type] ?? 0) - behavior.clearanceRate * stepMin;
-        if (next <= 0) delete this.toxinBurdens[type];
-        else this.toxinBurdens[type] = next;
+        if (next <= 0) {
+          delete this.toxinBurdens[type];
+          // The makers go with the burden: once the body is clean there
+          // is nobody left to name, and the row for this episode has
+          // already been written.
+          delete this.toxinMakers[type];
+        } else this.toxinBurdens[type] = next;
       }
     }
 
@@ -1339,13 +1365,20 @@ export function MetabolicMixin<TBase extends MixinConstructor>(Base: TBase) {
           // still live here — this gave up the STAGE, and only the stage.
           // The seeded severity below is the initial value the arm then
           // owns.
-          if (!existing)
+          if (!existing) {
             self.afflict({
               kind: "affliction",
               templatePath: path,
               stage: severity,
               elapsed: 0,
             });
+            // ⭐ The FIRST crossing is where the chemical harm row goes —
+            // this body has become ill, and the maker who put the dose
+            // there is named for it. A second bad bottle worsens the same
+            // condition rather than starting a second illness, and writes
+            // no second row (the `!existing` gate).
+            this.noteToxinAccountability(type);
+          }
           // Involuntary vomit: reaching a toxin's top (acute) band while
           // un-absorbed dose remains dumps the pools — the body purges
           // what it can, capping further absorption. The purge mechanic,
@@ -1483,6 +1516,29 @@ export function MetabolicMixin<TBase extends MixinConstructor>(Base: TBase) {
         if (tox.amount <= 0) continue;
         pools[tox.type] = (pools[tox.type] ?? 0) + tox.amount;
       }
+      // ⭐⭐ **And the dissolved half, which scales with how much you
+      // drank.** An authored or formed tag is a dose per serving, so one
+      // ingest adds it once however large the sip. A dissolved tag is a
+      // CONCENTRATION, so the dose is the concentration times the litres —
+      // which is the whole reason a badly-cut bottle hurts the person who
+      // finishes it and not the person who tastes it.
+      for (const tox of DissolvedToxins.surviving(
+        payload?.dissolvedToxins,
+        payload?.cookedAtK ?? 0,
+      )) {
+        if (tox.amount <= 0) continue;
+        pools[tox.type] = (pools[tox.type] ?? 0) + tox.amount * litres;
+        this.recordToxinMaker(tox.type, payload?.maker);
+      }
+      // ⭐ The formed arm records a maker too — a cook who served a
+      // spoiled batch that had already made its poison. It never did
+      // before: `noteMealAccountability` is called from inside the
+      // PATHOGEN loop, so the `intoxicate` organisms (staph, botulinum)
+      // harmed people and the ledger named nobody.
+      for (const tox of payload?.formedToxins ?? []) {
+        if (tox.amount <= 0) continue;
+        this.recordToxinMaker(tox.type, payload?.maker);
+      }
       // ⚠⚠ **And the living half.** A toxin is a dose that routes into a
       // pool; a pathogen is a population that has to be handed to the body
       // as something that GROWS. Same seam, one line apart, because this
@@ -1562,6 +1618,55 @@ export function MetabolicMixin<TBase extends MixinConstructor>(Base: TBase) {
     protected noteMealAccountability(payload: BulkPayload | null): void {
       const maker = payload?.maker;
       if (!maker) return;
+      this.noteConsumptionHarm(maker, (stuffId) => `meal:${stuffId}:${maker}`);
+    }
+
+    /**
+     * Remember the hand behind a per-instance dose, so the row can be
+     * written at the moment the harm actually begins rather than at the
+     * swallow. Sparse: nothing is stored for an unmarked payload, and a
+     * maker is never recorded twice for one type.
+     */
+    protected recordToxinMaker(type: string, maker: string | undefined): void {
+      if (!maker) return;
+      const makers = this.toxinMakers[type] ?? [];
+      if (makers.includes(maker)) return;
+      this.toxinMakers[type] = [...makers, maker];
+    }
+
+    /**
+     * ⭐⭐ **The chemical row, written where the pathogen row is written:
+     * at the moment the harm begins.**
+     *
+     * The alternative was a row at every ingest carrying a non-zero dose,
+     * and it fails the requirements outright (AC8): a well-cut bottle
+     * carries trace congeners, so every honest distiller in the realm
+     * would be accruing harm rows for selling good whiskey. A band
+     * crossing is the first moment somebody is actually ill — which is
+     * where the pathogen arm effectively sits too, incubation being the
+     * harm beginning rather than the meal.
+     */
+    protected noteToxinAccountability(type: string): void {
+      const makers = this.toxinMakers[type];
+      if (!makers || makers.length === 0) return;
+      for (const maker of makers) {
+        this.noteConsumptionHarm(
+          maker,
+          (stuffId) => `toxin:${stuffId}:${type}:${maker}`,
+        );
+      }
+    }
+
+    /**
+     * ⭐ **One function for harm that came out of somebody's hands**,
+     * whatever the mechanism — a microbe they let grow, a poison they
+     * failed to cut off. Both arms call it; the only difference is the
+     * moment and the session key.
+     */
+    protected noteConsumptionHarm(
+      maker: string,
+      sessionIdFor: (stuffId: string) => string,
+    ): void {
       const self = this as unknown as Stuff;
       // `partyIdOf` IS `getIdentityPath()`; the second half of the old
       // expression was dead (identity already falls back to the template
@@ -1576,7 +1681,7 @@ export function MetabolicMixin<TBase extends MixinConstructor>(Base: TBase) {
       }
       AccountabilityApi.record({
         kind: 'harm',
-        sessionId: `meal:${self.stuffId}:${maker}`,
+        sessionId: sessionIdFor(self.stuffId),
         initiator: maker,
         opponent: victimId,
         victim: victimId,

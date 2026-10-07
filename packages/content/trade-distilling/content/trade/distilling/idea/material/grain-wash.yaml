@@ -1,0 +1,22 @@
+# Grain wash — the fermented grain wort, and the grain still's charge.
+#
+# ⚠ Tagged `grain-wash` and deliberately NOT `wash`: the malt line's
+# fractionation schedule keys on `wash`, and a shared tag would put a
+# grain charge on the malt schedule. Two schedules claiming one matter is
+# the double-match rule's warning case, and the lowest key wins
+# arbitrarily — which is a silent wrong answer rather than an error.
+class: /platform/idea/material/ConsumableMaterial
+data:
+  name: grain wash
+  keywords: [wash, grain, "grain wash"]
+  appearance: "a pale, sharply sour wash"
+  density: 1008
+  thermalConductivity: 0.5
+  specificHeat: 3900
+  edibility: true
+  toxicity:
+    - { type: alcohol, amount: 8 }
+  nutrients: ["water"]
+  tags: ["liquid", "grain-wash"]
+  composition: []
+  biologicalSource: null

@@ -1,0 +1,40 @@
+# ⭐⭐ The malting floor — **a ROW, not a class.** An ordinary Vat with a
+# stone bottom and a wide mouth, and the `MaturingMixin` clock the
+# platform already ships does the rest.
+#
+# ⚠ It is a VAT and not a Location, and that is the shape decision worth
+# recording. A real malting floor IS a room — you walk on it, you turn the
+# bed with a shovel — and modelling it as one would have meant a
+# `MaturingMixin` on a Location, a bed that is "in" the floor rather than
+# in a vessel, and a second answer to *where does bulk live*. The bed is
+# the thing that matures, the bed is measured in litres, and a vessel is
+# what holds litres. `expression-is-inelastic`: abstract the lifecycle to
+# what a player can act on, which here is the bed and not the flagstones.
+#
+# ⭐ Open and wide — `closure: liquidTight` would be a lie about a floor,
+# but the steeped bed is wet enough that an `open` vessel drains it to the
+# ground. `liquidTight` is the honest compromise and the prose says why:
+# it is a trough sunk in the stone, not the stone itself.
+class: /platform/thing/Vat
+data:
+  shortDescription: malting floor
+  keywords: [floor, "malting floor", bed, trough, malting]
+  register: definite
+  longDescription: >-
+    A shallow stone trough sunk the length of the room, cold to the touch
+    even in summer, with a long-handled shovel and a wooden rake leaning
+    at the end of it.
+  category: malting-floor
+  # ⚠ No `_materialPath`. The first draft named
+  # `/stuff/idea/material/stone/limestone`, which resolves to no content
+  # row — `lint:census` clause (b) caught it, which is exactly the class
+  # of silent dead reference that gate exists for. The honest answer is to
+  # state the mass and leave the material to whoever ships a building
+  # stone: a trough's substance is load-bearing for nothing the malting
+  # trade does, and inventing a material row to satisfy a field would be
+  # worse than omitting it.
+  mass: 900
+  interiorBulk: true
+  interiorCapacity: 60
+  closure: liquidTight
+  open: true

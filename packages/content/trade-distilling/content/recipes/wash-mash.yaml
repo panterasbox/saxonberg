@@ -30,7 +30,6 @@ toolCapabilities: [mash-tun]
 outputApplication: bulk
 outputTemplate: /trade/distilling/thing/wash-bucket
 outputMaterial: /trade/distilling/idea/material/distillers-wort
-outputAppearance: rough grey-amber wort
 outputResidue:
   template: /trade/distilling/thing/spent-grain
   count: 1

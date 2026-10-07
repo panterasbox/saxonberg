@@ -1,0 +1,42 @@
+# ⭐⭐ The GRAIN mash — the second cereal, and the cheap half of a blend.
+#
+# Mostly wheat flour, with a little malt grist in it, and the ratio is
+# the lesson: wheat carries no enzymes of its own, so starch that is not
+# converted is starch the yeast cannot eat. A grain distiller still buys
+# malt — just a quarter of what a malt distiller does, which is exactly
+# why grain whisky is cheaper and why a grain house cannot escape the
+# maltings altogether.
+#
+# ⚠ `easy`, like `wash-mash`. The decision in this trade is the CUT, and
+# a mash that was hard as well would be two gates in front of one
+# teaching moment.
+#
+# ⭐ `category: wheat-flour` is what the MILL now makes from wheat, so the
+# whole line runs off the quern on the floor: grind wheat for the bulk,
+# grind malt for the enzymes, mash the two. Both grinds were impossible
+# until the mill learned to make what it is fed.
+recipeId: grain-wash-mash
+name: Grain mash
+keywords: [grain-wash-mash, "grain mash"]
+discipline: fermenting
+difficulty: easy
+inputSlots:
+- slot: flour
+  category: wheat-flour
+  minGrade: poor
+  measureL: 3
+- slot: malt
+  category: grist
+  minGrade: poor
+  measureL: 1
+- slot: water
+  category: water
+  minGrade: poor
+  measureL: 16
+toolCapabilities: [mash-tun]
+outputApplication: bulk
+outputTemplate: /trade/distilling/thing/wash-bucket
+outputMaterial: /trade/distilling/idea/material/grain-distillers-wort
+outputResidue:
+  template: /trade/distilling/thing/spent-grain
+  count: 1

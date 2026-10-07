@@ -77,12 +77,18 @@ afterEach(() => {
 });
 
 describe('the wash (real rows)', () => {
-  it("ferments the still-house's rough wort, foreshot character authored and inert", () => {
+  it("ferments the still-house's rough wort", () => {
     const profileData = rowData(
       DISTILLING,
       'content/trade/distilling/idea/maturation/wash.yaml',
     );
-    expect(String(profileData.foreshotCharacter).length).toBeGreaterThan(0);
+    // ⛔ This used to assert `foreshotCharacter` was non-empty — the one
+    // reader of an inert seam. The whiskey build shipped the cuts rung,
+    // so the character is per FRACTION on the fraction schedule and this
+    // field no longer exists. What matters about the profile here is that
+    // it keys on the WORT and not on the wash, or the still would try to
+    // ferment its own charge.
+    expect(profileData.inputCategory).toBe('distillers-wort');
 
     const root = `/stuff/idea/distilling-w6-${seq}/idea`;
     const wortData = rowData(
@@ -128,12 +134,98 @@ describe('the wash (real rows)', () => {
 });
 
 describe('the still recipes (real rows)', () => {
-  it("distil, brandy and grappa carry ethanol's boiling point as their gate", () => {
-    for (const id of ['distil', 'brandy', 'grappa']) {
-      const r = recipeOf(DISTILLING, id);
-      expect(r.getRequiresHeatK(), id).toBe(351);
-      expect(r.getToolCapabilities(), id).toContain('still');
+  // ⛔ `distil`, `brandy` and `grappa` are RETIRED. They asked for 351 K
+  // and named the still's capability, and no still in the world authored
+  // a fuel reserve — so `FireLogic` refused to ignite the burner,
+  // `reachableHeatForImpl` counted no heat, and all three declined
+  // `insufficient-heat` for the whole life of the pack. ⭐ What replaced
+  // them is the fraction SCHEDULE, which keeps the same number and spends
+  // it on four outputs instead of one.
+  it("the SCHEDULES carry ethanol's boiling point, which the retired recipes could never reach", () => {
+    for (const key of ['wash', 'rectify', 'wine']) {
+      const row = rowData(
+        DISTILLING,
+        `content/trade/distilling/idea/fractionation/${key}.yaml`,
+      );
+      expect(row.requiresHeatK, key).toBe(351);
+      expect(row.discipline, key).toBe('distilling');
     }
+    // And the stills can now actually get there: both rows author the
+    // fuel reserve whose absence was the whole defect.
+    for (const row of ['still', 'small-still']) {
+      const data = rowData(
+        DISTILLING,
+        `content/trade/distilling/thing/${row}.yaml`,
+      );
+      const reserves = data.reserves as Record<
+        string,
+        { currentValue: number }
+      >;
+      expect(reserves?.fuel?.currentValue, row).toBeGreaterThan(0);
+      expect(data.burnTemperatureK, row).toBeGreaterThan(351);
+      expect(data.interiorBulk, row).toBe(true);
+    }
+  });
+
+  it('⭐ the wash schedule is calibrated so a good cut harms nobody', () => {
+    const schedule = rowData(
+      DISTILLING,
+      'content/trade/distilling/idea/fractionation/wash.yaml',
+    );
+    const methanol = rowData(
+      join(PACKS, 'platform'),
+      'content/platform/idea/Condition/metabolism/methanol.yaml',
+    );
+    const behavior = methanol.toxinBehavior as {
+      potency: number;
+      bands: { threshold: number }[];
+    };
+    const lowest = Math.min(...behavior.bands.map((b) => b.threshold));
+    const fractions = schedule.fractions as {
+      key: string;
+      toxins?: { type: string; amount: number }[];
+    }[];
+    const hearts = fractions.find((f) => f.key === 'hearts')!;
+    const dose =
+      hearts.toxins?.find((t) => t.type === 'methanol')?.amount ?? 0;
+    // ⚠ The claim, as arithmetic rather than as prose: a WHOLE BOTTLE of
+    // nothing but hearts stays under the lowest rung on a reference body.
+    // If somebody retunes either row, this is what notices.
+    const BOTTLE_L = 0.75;
+    const REFERENCE_KG = 70;
+    const burden = (dose * BOTTLE_L * behavior.potency) / REFERENCE_KG;
+    expect(burden).toBeLessThan(lowest);
+    // And it is NOT zero: a good spirit carries trace congeners, and
+    // "nothing is pure" is a truer lesson than "good work is perfect".
+    expect(dose).toBeGreaterThan(0);
+
+    // Keeping the heads crosses it. Worked on the house pot's 60 L
+    // charge: the heads span 0.005→0.03, so 1.5 L at 3000 mg/L, and the
+    // rest of a 0.75 L bottle filled from that span is heads too.
+    const heads = fractions.find((f) => f.key === 'heads')!;
+    const headsDose =
+      heads.toxins?.find((t) => t.type === 'methanol')?.amount ?? 0;
+    const headsBurden =
+      (headsDose * BOTTLE_L * behavior.potency) / REFERENCE_KG;
+    expect(headsBurden).toBeGreaterThan(lowest);
+  });
+
+  it('⚠ whiskey is no longer the safest drink in the house', () => {
+    // It authored `alcohol: 19` against neutral-spirit's 45 and the
+    // wash's 8 — a 40 % spirit at half the dose of an 8 % wash.
+    const whiskey = rowData(
+      DISTILLING,
+      'content/trade/distilling/idea/material/whiskey.yaml',
+    );
+    const wash = rowData(
+      DISTILLING,
+      'content/trade/distilling/idea/material/wash.yaml',
+    );
+    const doseOf = (d: Record<string, unknown>): number =>
+      ((d.toxicity as { type: string; amount: number }[]) ?? []).find(
+        (t) => t.type === 'alcohol',
+      )?.amount ?? 0;
+    expect(doseOf(whiskey)).toBeGreaterThan(doseOf(wash) * 2);
   });
 
   it("compounding and fortification consume the SAME neutral spirit (the B2B, D7)", () => {

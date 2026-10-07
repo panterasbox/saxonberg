@@ -51,7 +51,15 @@ data:
   # (`metal-chain-slate` owns the energy transition), and the `carbon` tag
   # is what a reduction reads. So a turf heats a hearth and a kiln, and iron
   # still needs charcoal.
-  tags: ["organic", "earth", "solid", "fibrous", "fuel"]
+  #
+  # ⭐⭐ **`peat` — the identity tag, added by the whiskey-styles build.**
+  # The row named itself in `keywords` and nowhere a SLOT can read, so a
+  # recipe asking for `category: peat` matched nothing and **failed closed
+  # and silent** — the peated kiln would simply never have found its fuel,
+  # with no error anywhere. `wheat-grain` and `barley-grain` both carry
+  # their own names for exactly this reason; this row did not, and the
+  # omission is invisible until something asks.
+  tags: ["organic", "earth", "solid", "fibrous", "fuel", "peat"]
   composition: []
   chemistry: null
   biologicalSource: null

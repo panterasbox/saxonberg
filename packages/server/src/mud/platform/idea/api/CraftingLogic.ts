@@ -1362,6 +1362,37 @@ async function finishGlass(
  * (flow material onto the Tangible), assembly an `applyComposedOutput` —
  * each a new branch, never an edit to the craft skeleton.
  */
+/**
+ * Sum two concentration sets per type — NOT a volume-weighted blend.
+ *
+ * ⚠ The distinction is the whole of `imparts`. Blending answers *two
+ * bodies of matter met*; this answers *a process added something to this
+ * matter*, where there is no second volume to weigh against. A kiln that
+ * imparts 30 mg/L of smoke means the malt reads 30, whether you kilned
+ * one litre or twenty.
+ *
+ * Local to this logic singleton on purpose: it is domain logic over the
+ * payload, which is what a logic singleton is for, and
+ * `lint:lib-statics` is counting down statics on value classes rather
+ * than up.
+ */
+function addConcentrations(
+  base: readonly { type: string; amount: number }[] | undefined,
+  extra: readonly { type: string; amount: number }[],
+): { type: string; amount: number }[] {
+  const byType = new Map<string, { type: string; amount: number }>();
+  for (const tag of base ?? []) {
+    if (tag.amount > 0) byType.set(tag.type, { ...tag });
+  }
+  for (const tag of extra) {
+    if (!(tag.amount > 0)) continue;
+    const existing = byType.get(tag.type);
+    if (existing) existing.amount += tag.amount;
+    else byType.set(tag.type, { ...tag });
+  }
+  return [...byType.values()];
+}
+
 async function applyBulkOutput(
   output: Stuff,
   recipe: Recipe,
@@ -1418,8 +1449,61 @@ async function applyBulkOutput(
     // ⚠ Identity only. No `composition` is set, so derived toxicity
     // still falls back to the Material row exactly as before — this
     // changes who a batch names, never what is in it.
-    if (makerPath) {
-      outSlot.setPayload({ ...(outSlot.getPayload() ?? {}), maker: makerPath });
+    //
+    // ⭐⭐ **And what the inputs CARRIED comes with them.** This branch
+    // used to set the maker and nothing else, which meant a recipe was
+    // the one way matter could move in this game **without its
+    // concentrations moving with it** — so a vatting recipe would have
+    // LAUNDERED the dose: two badly-cut bottles blended into one would
+    // come out reading clean, and the whole point of the cut being a
+    // skill with it. `BulkableApi.blendPayloads` is the same fold a pour
+    // runs; see its doc for the three call sites.
+    //
+    // ⚠ The destination's own held litres take part too, so topping up a
+    // vessel that already holds the material blends rather than
+    // replacing — the `held` arithmetic two lines up already said that
+    // about the VOLUME, and the payload has to agree.
+    let folded: BulkPayload | null =
+      held > 0 ? (outSlot.getPayload() ?? null) : null;
+    let foldedL = held;
+    for (const m of matched) {
+      folded = BulkableApi.blendPayloads(
+        m.slot.getPayload() ?? null,
+        m.measureL,
+        folded,
+        foldedL,
+      );
+      foldedL += m.measureL;
+    }
+    const carried: BulkPayload = { ...(outSlot.getPayload() ?? {}) };
+    if (folded?.dissolvedToxins) {
+      carried.dissolvedToxins = folded.dissolvedToxins;
+    } else delete carried.dissolvedToxins;
+    if (folded?.dissolvedAromatics) {
+      carried.dissolvedAromatics = folded.dissolvedAromatics;
+    } else delete carried.dissolvedAromatics;
+    // ⭐ What the WORKING itself adds, on top of what came in — the kiln's
+    // smoke. Additive, not volume-weighted: `imparts` is authored as the
+    // concentration in the OUTPUT, so 30 mg/L of smoke means the malt
+    // smells of smoke at 30 mg/L however much of it you made.
+    const imparts = recipe.getImparts();
+    if (imparts.length > 0) {
+      carried.dissolvedAromatics = addConcentrations(
+        carried.dissolvedAromatics,
+        imparts,
+      );
+    }
+    // ⭐ A recipe's own appearance, which this branch IGNORED — see
+    // `applyAuthoredAppearance`.
+    const authoredLook = recipe.getOutputAppearance();
+    if (authoredLook) carried.appearance = authoredLook;
+    else delete carried.appearance;
+    if (makerPath) carried.maker = makerPath;
+    // Keep a payload-free output byte-identical to one from before this
+    // existed: a recipe that carries nothing, imparts nothing, authors no
+    // appearance and has no maker should not leave an empty object behind.
+    if (Object.keys(carried).length > 0 || outSlot.getPayload()) {
+      outSlot.setPayload(carried);
     }
     return;
   }

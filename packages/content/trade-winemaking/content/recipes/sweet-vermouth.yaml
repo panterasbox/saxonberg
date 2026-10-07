@@ -26,4 +26,3 @@ toolCapabilities: []
 outputApplication: bulk
 outputTemplate: /trade/winemaking/thing/wine-bottle
 outputMaterial: /trade/winemaking/idea/material/sweet-vermouth
-outputAppearance: a dark, bittersweet vermouth

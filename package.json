@@ -42,6 +42,7 @@
     "@saxonberg/content-trade-haulage": "workspace:*",
     "@saxonberg/content-trade-hospitality": "workspace:*",
     "@saxonberg/content-trade-medicine": "workspace:*",
+    "@saxonberg/content-trade-malting": "workspace:*",
     "@saxonberg/content-trade-milling": "workspace:*",
     "@saxonberg/content-trade-mining": "workspace:*",
     "@saxonberg/content-trade-ranching": "workspace:*",

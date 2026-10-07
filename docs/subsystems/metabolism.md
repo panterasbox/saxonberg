@@ -450,3 +450,91 @@ when it HAS a `floorEffect` — `wind` and tolerance are seeded empty.
 - `platform/idea/cmd/bulk/{Eat,Vomit}Controller.ts` + `cmd/bulk/{eat,vomit}.yaml`.
 - `seeds/lib/metabolism/conditions/*.yaml` (cascade + toxin conditions),
   `seeds/lib/material/{food,drink}/*.yaml` (toxic + alcoholic materials).
+
+---
+
+## History — the whiskey build (2026-10-04)
+
+**A third toxin shape: `BulkPayload.dissolvedToxins`** (declared from
+`lib/metabolism/DissolvedToxins.ts`). The roster had two and neither could
+say what a badly-cut spirit is: `Material.toxicity` is per-serving and per
+*substance* (every bottle of whiskey is equally alcoholic, because that is
+what whiskey IS), and `formedToxins` is per-instance but still per-serving
+and deliberately never blends (a ptomaine dose is a dose).
+
+A cut's methanol is **mg per litre of this matter**, so it blends by
+volume on every pour and the dose is `amount × litres`. ⭐ That one
+multiplication is the whole distinction, and it is why a badly-cut bottle
+hurts the person who finishes it and not the person who tastes it.
+`DissolvedToxins` holds the arithmetic (the `Freshness`/`Contamination`
+value-class shape); `toxicityOf` is untouched.
+
+**`toxinMakers`** — persistent runtime state: who made the doses this
+body is still carrying, per toxin type. Recorded at ingest for the two
+**per-instance** shapes only. ⭐⭐ A Material's own authored toxicity
+records nobody: the ledger names the maker for what the *making* put in
+it, never for what the thing *is*, so a bartender is not a poisoner for
+every drunk patron. Cleared with the burden.
+
+**One harm function, two moments.** `noteMealAccountability` and the new
+`noteToxinAccountability` both delegate to `noteConsumptionHarm(maker,
+sessionIdFor)`. The pathogen arm fires at the infection as it always did;
+the toxin arm fires at the **first band crossing**, because attributing at
+the swallow would name a maker for the trace congeners in every honest
+bottle in the realm. ⭐ Side effect accepted with it: the shipped
+staph/botulinum `intoxicate` arm is attributed now. It never was.
+
+**`Condition/metabolism/methanol.yaml`** — the first toxin on the roster
+that is a *decision* rather than an accident. Slow in and slow out, so the
+illness arrives after the drunkenness has worn off; bands calibrated
+against one sentence (*a well-cut bottle harms nobody however much of it
+they drink*), with the arithmetic asserted in
+`world/__tests__/fermentation-distilling.test.ts`.
+
+---
+
+## ⭐⭐ Aroma — the second closed vocabulary (whiskey-styles, 2026-10-05)
+
+`lib/metabolism/DissolvedAromatics.ts` is the **sibling** of
+`DissolvedToxins`, not a generalisation of it, and the distinction is the
+routing: a dissolved toxin routes to a body's burden at the ingest; a
+dissolved aromatic routes to a **nose**. Nothing is ever harmed by one.
+
+`AROMAS` is a closed list of eleven words — `smoke · vanilla · oak ·
+char · fruit · floral · grain · honey · spice · solvent · sulphur` — each
+with a **detection threshold in mg/L**, on the `BASIC_TASTES` precedent:
+*the physiology's own closed list.* An odour threshold is physiology, not
+content. A row authors a **word and a number**; the sentence is derived.
+
+⚠⚠ **The ladder is LOGARITHMIC, and a linear one could not have worked.**
+Odour thresholds are parts per *billion* while what a drink carries is
+parts per *million*, so real concentrations sit three to four orders of
+magnitude above threshold — a firmly peated malt's hearts are **3,750×**
+their threshold. On a 1/3/10 ladder every whisky in the game reads
+"strongly of smoke" and the gauge is pinned before the first row is
+authored. The steps are `1 · 30 · 300 · 2000 · 8000` →
+`barely · faintly · clearly · strongly · overpoweringly`, which is also
+the honest shape: odour perception really is compressive.
+
+**Competence resolves DETAIL, never access.** Everyone smells the matter;
+`untrained`/`novice` get the dominant aroma with **no intensity word**
+(you know it is smoky, not how smoky), `competent`+ get every aroma over
+threshold with its intensity, and `proficient`+ also get the grade and
+the age statement. ⚠ A **sub-threshold** compound is invisible to
+everyone including an expert — competence does not change physics.
+
+⚠ No digit ever renders, at any band.
+
+**Where it is read.** `palateAugmenter` answers on `smell` as well as
+`taste` (flavour is mostly retronasal), while the basic tastes stay
+`taste`-only — you cannot smell salt. `look` reads neither, which is the
+Palatable host lesson and exactly what a second channel could break.
+`PalatableMixin` still composes on `ServingVessel` **and nowhere else**,
+so `smell cask` reports nothing of the contents: the way to nose a cask
+is to pour a dram into a glass, which is how it is done in the trade.
+
+⚠ **The cost, stated:** a twelfth word is a kernel edit, which rubs
+against the rule that a pack must never need one. Accepted because the
+list is physiology; a pack that genuinely needs its own aroma (a
+smokehouse wanting *tar*) is the signal to move the list to rows rather
+than add the word.
