@@ -152,7 +152,7 @@ export const TemplatePaths = {
    */
   metabolismScurvy: "/platform/idea/Condition/metabolism/scurvy",
   /** The body a player's death leaves behind (mortality.md). */
-  mortalityCorpse: "/stuff/agent/Corpse",
+  mortalityCorpse: "/stuff/thing/Corpse",
   /** What coming back the cheap way costs you (mortality.md). */
   mortalityRecovering: "/platform/idea/Condition/mortality/recovering",
 

@@ -81,7 +81,16 @@ const REPO = join(here, "..", "..", "..");
  * same shape as `signature`/`resolution`/`contagion`, at four times the
  * size, and it is why this gate counts hooks as well as fields.
  */
-const SEAM_CEILING = 19;
+/*
+ * ⭐ 19 → 18 (the carcass chain, 2026-10-04). A ratchet may only fall,
+ * and the gate said it could: the build consumed a seam it had been
+ * counting. `Species.getButcheryYield` had exactly one reader and now
+ * has two — the kitchen reads `dressOut` off it — and the build's own
+ * two new seams (`Corpse.conditionAtDeath`, `StandSpecies.barkPath`)
+ * both shipped with their consumers in the same branch, which is the
+ * whole point of the gate.
+ */
+const SEAM_CEILING = 18;
 
 /**
  * Seams that are deliberately extension-only: shipped for an author or a

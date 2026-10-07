@@ -17,7 +17,7 @@
  */
 
 import "../../../../../test-bootstrap";
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { ConditionApi } from '../../../../api/condition';
 import { Creature } from '../../../../lib/creature/Creature';
 import { HasInteractiveMixin } from '../../../../lib/connection/HasInteractive';
@@ -26,6 +26,7 @@ import { WorldClockApi } from '../../../../api/worldclock';
 import '../../WorldClockRegistry';
 import { makeStuff } from '../../../../lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
+import { installCorpseMintStub } from '../../../../lib/mortality/__tests__/corpse-mint-test-helpers';
 import {
   HARM_DEFAULTS,
   TRAUMA_BEHAVIOR,
@@ -66,11 +67,15 @@ function tick(b: TestBody, times = 1): void {
 describe('VitalsMixin wound reconcile — bleed → death', () => {
   beforeEach(() => {
     installV1QuantityMarshallers();
+    // ⭐ Every death mints a corpse now, and the mint clones an authored
+    // row that a unit world has no store for. See the helper.
+    installCorpseMintStub();
     WorldClockApi._resetForTesting();
     real = 100_000;
     WorldClockApi._setNowProviderForTesting(() => real);
   });
   afterEach(() => {
+    vi.restoreAllMocks();
     WorldClockApi._resetForTesting();
   });
 

@@ -1,0 +1,48 @@
+# Salt a hide — ⭐⭐ **how a skin travels.**
+#
+# A green hide rots in about a week, which is the pressure the whole trade
+# is played under. Salting it drops the water activity and the rot stops
+# where it stopped — so a salted hide can go on a cart to a tannery three
+# counties away, and a green one cannot leave the yard.
+#
+# ⚠ **That is an EPOCH DIAL, not a right answer.** With salting, a
+# tannery can buy from anywhere and sits where the bark and the water
+# are; without it, the tannery must be next to the shambles. Both
+# arrangements existed. The game ships the mechanism and lets a realm's
+# geography decide, which is what the carcass-chain requirements mean by
+# the siting question having a price rather than an answer.
+#
+# ⭐ **It needs no new verb.** `cure <hide>` finds this row the same way
+# `cure <cut>` finds `salt-cure`: `PreserveController.recipeFor` picks,
+# among the recipes that move this act's cure axis (`solute`), the one
+# whose item slot the named target satisfies. Nothing in the cooking pack
+# learns the word "hide".
+#
+# ⚠ No `discipline` and no `difficulty`: rubbing salt into a skin is not
+# a skilled act and gating it would put a lock on a door with no key —
+# the skill in this trade is the pit, and `leatherwork` is credited there.
+recipeId: salt-hide
+name: Salted hide
+keywords: ["salt-hide", "salt-skin"]
+inputSlots:
+- slot: hide
+  # ⭐ `rawhide`, which is the material's own tag. A tanned skin does not
+  # match it and does not need to — leather does not rot.
+  category: rawhide
+  minGrade: poor
+  kind: item
+  count: 1
+- slot: salt
+  category: salt
+  minGrade: fair
+  # A whole hide takes a great deal more salt than a cut of meat does.
+  measureL: 1.5
+toolCapabilities: []
+outputApplication: tangible
+# ⭐ The same row back: a salted hide is a hide. What changed is its water
+# state, which the `cure` block writes onto the output.
+outputTemplate: /trade/ranching/thing/hide
+# The salting hurdle, at the same strength as a salt-cured cut — it is the
+# same act with the same salt.
+cure:
+  solute: 0.55

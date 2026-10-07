@@ -59,7 +59,7 @@ describe('⭐⭐ draught power is body mass, and nothing else', () => {
     expect(raw).toContain('class: /trade/ranching/agent/Livestock');
   });
 
-  it('⭐ the ox is livestock AND a working animal, and keeps `butcher`', () => {
+  it('⭐ the ox is livestock AND a working animal, and keeps `slaughter`', () => {
     // ⚠⚠ The roles OVERLAP, which is why they are not a taxonomy: the ox
     // ploughs all its life and is beef at the end. If livestock / working
     // animal / pet were exclusive classes, this row would need a fourth
@@ -67,10 +67,20 @@ describe('⭐⭐ draught power is body mass, and nothing else', () => {
     // and `plough` reads the mass rather than the class.
     const raw = readFileSync(fileURLToPath(new URL('agent/ox.yaml', CONTENT)), 'utf8');
     expect(raw).toContain('class: /trade/ranching/agent/Livestock');
-    const butcher = CommandApi.collectContributions(Livestock, 'peers')
+    // ⭐ `slaughter`, not `butcher`, since the carcass chain: killing and
+    // dressing are two acts and the corpse is the join. The stockyard
+    // kills; the kitchen's `butcher` takes the body apart with a blade,
+    // wherever and however it died. The ox still ploughs all its life and
+    // is beef at the end, which is the unsentimental fact this test is
+    // actually about.
+    const verbs = CommandApi.collectContributions(Livestock, 'peers')
       .map((d) => d.verbs)
       .flat();
-    expect(butcher).toContain('butcher');
+    expect(verbs).toContain('slaughter');
+    // ⚠ And `butcher` is NOT afforded by the animal. It is the kitchen's
+    // verb, conferred by a bladed edge onto a carcass — so a live beast
+    // cannot be butchered and a dead one can, by anybody with a knife.
+    expect(verbs).not.toContain('butcher');
   });
 });
 
@@ -94,10 +104,11 @@ describe('⭐⭐ a working animal is not livestock', () => {
     expect(raw).not.toContain('agent/Livestock');
   });
 
-  it('⚠⚠ and it is NOT butcherable — the old guard admitted any handled beast', () => {
+  it('⚠⚠ and it is NOT slaughterable from its own affordance', () => {
     const verbs = CommandApi.collectContributions(WorkingAnimal, 'peers')
       .map((d) => d.verbs)
       .flat();
+    expect(verbs).not.toContain('slaughter');
     expect(verbs).not.toContain('butcher');
     // …nor the acts that need a herd behind them.
     expect(verbs).not.toContain('return');
@@ -148,7 +159,19 @@ describe('⭐⭐ a working animal is not livestock', () => {
     const verbs = CommandApi.collectContributions(Livestock, 'peers')
       .map((d) => d.verbs)
       .flat();
-    for (const v of ['milk', 'shear', 'gather', 'handle', 'return', 'breed', 'butcher']) {
+    for (const v of [
+      'milk',
+      'shear',
+      'gather',
+      'handle',
+      'return',
+      'breed',
+      // ⭐ `butcher` was here until the carcass chain. It is the kitchen's
+      // verb now, afforded by a bladed edge rather than by the animal —
+      // which is what makes a fox-killed hen and a slaughtered ewe the
+      // same job.
+      'slaughter',
+    ]) {
       expect(verbs).toContain(v);
     }
   });

@@ -1,0 +1,34 @@
+# breast-white — work 0.1
+#
+# ⭐⭐⭐ **This is why white meat is white.** A chicken's breast is the
+# flight muscle of a bird that has given up flying, so it carries almost
+# no myoglobin and almost no connective tissue. ⚠ Its twin `breast-red`
+# is the SAME muscle on a bird that still flies, and the two rows are how
+# the law is expressed structurally: the body plan that can fly
+# (`avian`) names the red one, the plan that cannot (`fowl`) names this.
+# A player who learns why a chicken breast is pale has learned why a
+# duck's is not.
+#
+# ⚠ Texture is DERIVED from `work`, never authored on the cut.
+class: /platform/idea/material/Muscle
+data:
+  name: breast-white
+  keywords: [breast, white]
+  work: 0.1
+  density: 1060
+  specificHeat: 3500
+  thermalConductivity: 0.4
+  hardness: 1
+  toughness: 1
+  electricalConductivity: 0.2
+  waterAbsorptionCapacity: 25
+  edibility: true
+  tastes: [umami]
+  spoilActivationEnergy: 80000
+  waterActivity: 0.99
+  nutrients: [protein, water, fat]
+  nutrientAmounts:
+    protein: 26000
+  composition:
+    - { materialPath: /stuff/idea/material/food/animal-fat, fraction: 0.03 }
+  tags: [tissue, animal, muscle, organic, edible, food, meat, raw]

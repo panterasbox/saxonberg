@@ -26,27 +26,27 @@ data:
     - key: body.torso
       parent: null
       tissues:
-        - { tissuePath: /stuff/idea/material/tissue/bone, mass: 0.15 }
-        - { tissuePath: /stuff/idea/material/tissue/muscle, mass: 0.5 }
-        - { tissuePath: /stuff/idea/material/tissue/flesh, mass: 0.25 }
+        - { tissuePath: /stuff/idea/material/tissue/bone, share: 0.1449 }
+        - { tissuePath: /stuff/idea/material/tissue/muscle, share: 0.4832 }
+        - { tissuePath: /stuff/idea/material/tissue/flesh, share: 0.2415 }
     - key: body.head
       parent: body.torso
       severable: true
       tissues:
-        - { tissuePath: /stuff/idea/material/tissue/bone, mass: 0.04 }
-        - { tissuePath: /stuff/idea/material/tissue/flesh, mass: 0.03 }
+        - { tissuePath: /stuff/idea/material/tissue/bone, share: 0.0386 }
+        - { tissuePath: /stuff/idea/material/tissue/flesh, share: 0.029 }
     - key: body.tail
       parent: body.torso
       severable: true
       tissues:
-        - { tissuePath: /stuff/idea/material/tissue/muscle, mass: 0.05 }
+        - { tissuePath: /stuff/idea/material/tissue/muscle, share: 0.0483 }
     - key: body.torso.heart
       parent: body.torso
       governs: [heartRate]
       tissues:
-        - { tissuePath: /stuff/idea/material/tissue/muscle, mass: 0.005 }
+        - { tissuePath: /stuff/idea/material/tissue/muscle, share: 0.0048 }
     - key: body.torso.gills
       parent: body.torso
       governs: [respiratoryRate]
       tissues:
-        - { tissuePath: /stuff/idea/material/tissue/flesh, mass: 0.01 }
+        - { tissuePath: /stuff/idea/material/tissue/flesh, share: 0.0097 }

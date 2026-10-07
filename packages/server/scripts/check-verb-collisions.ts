@@ -94,13 +94,9 @@ const KNOWN_COLLISIONS: Record<string, string> = {
   pour: "platform: bulk/pour.yaml vs crafting/pour.yaml — undiagnosed.",
   hang: "platform inventory/hang.yaml vs trade-cooking dry.yaml — undiagnosed.",
   mount: "platform: inventory/hang.yaml vs movement/mount.yaml — undiagnosed.",
-  dress:
-    "medical/treat.yaml (dress a wound) vs trade-cooking butcher.yaml " +
-    "(dress a carcass) — ⭐ both diegetically correct, which is the hard case.",
   drive:
     "platform movement/drive.yaml (a vehicle) vs trade-mining drive.yaml " +
     "(drive a drift) — undiagnosed.",
-  butcher: "trade-cooking vs trade-ranching, both trades — undiagnosed.",
 };
 
 export function claimsIn(files: string[]): Claim[] {

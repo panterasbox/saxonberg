@@ -1,0 +1,43 @@
+# A candle — ⭐⭐ **the end of two chains, and it burns itself down.**
+#
+# Bees → comb → crushed for wax → melted → dipped. Or: a beast → suet →
+# rendered to tallow → poured → dipped. **One row for both**, because
+# `Candle` builds its descriptions off the material and the recipe
+# derives the material from whatever was in the pot.
+#
+# ⚠ It moved here from `/stuff/thing/candle` in `generic-objects`, where
+# it had **beeswax welded into three fields** — `shortDescription:
+# beeswax candle`, `_materialPath: …/beeswax`, and a long description
+# that said *pale wax* and *smelling of honey*. A tallow candle was
+# therefore unauthorable without a second row.
+#
+# ⚠ A `Lamp` with no refill: what it burns is itself, which is why the
+# fuel reserve IS the candle. Dimmer and warmer than a lantern, and that
+# difference is what a player sees when they light one.
+#
+# ⚠ The stem is the bare noun. `Candle.getShortDescription` puts the
+# material in front of it (*tallow candle*), so authoring one here would
+# render *beeswax beeswax candle*.
+class: /trade/chandlery/thing/Candle
+data:
+  keywords: [candle, taper, wick]
+  shortDescription: candle
+  register: indefinite
+  longDescription: ""
+  # ⚠ No `_materialPath`. The dip stamps it, and a candle that arrived
+  # any other way is honestly made of nothing in particular.
+  mass: 0.12
+  # ⚠ Ships cold and out (`lint:light-sources` refuses a Burner row that
+  # omits `lit:`, and a candle that arrives already burning is a candle
+  # nobody decided to light).
+  lit: false
+  reserves:
+    fuel:
+      capacityValue: 100
+      currentValue: 100
+      unit: "%"
+      theme: combustion
+      floorEffect: null
+  # Dim and very warm — a tenth of a lantern and a good deal yellower.
+  emittedIntensity: 12
+  emittedColorTemperature: 1900

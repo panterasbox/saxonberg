@@ -1,0 +1,63 @@
+# Dog bread — ⭐⭐ **horse-bread, and it is the baker's cheapest line.**
+#
+# A real thing, baked commercially, for hounds and for horses: coarse
+# bran, beans, scraps and fat, in a loaf nobody would choose to eat and
+# everybody's dogs did. The medieval rung of kibble.
+#
+# ⭐ **It is here and not in a feed shop because the BAKER made it.**
+# Historically the cheapest loaf on the board, and the baker already has
+# the game's only modelled customer in the `eats` brain — so the price gap
+# between a people-loaf and a dog-loaf is a free class signal that nobody
+# had to author. A board that lists both is saying something about the
+# town.
+#
+# ⭐⭐ And it is why OFFAL has a sink. A butchered animal gives twelve
+# percent of itself as offal, which is edible and which nobody much wants
+# to eat; this is where it goes. ⚠ A manufactured good with a producer is
+# a vocation and a thrown scrap is not — which is why the chain does not
+# stop at *give the dog the offal*. The consumer side is already shipped:
+# `pets.md`'s `feeds` brain, the feeding ladder, bowl|trough|hopper.
+#
+# ⚠ `difficulty: easy` and `discipline: baking`. Anybody who can bake can
+# bake this; it is the one loaf that forgives everything, which is rather
+# the point of it.
+recipeId: dog-loaf
+name: Dog bread
+keywords: ["dog-loaf", "dog-bread", "horse-bread", "dogbread"]
+inputSlots:
+# Bran by the measure — the bulk of it, and it comes off every milling
+# as the thing the bolting cloth threw out.
+- slot: bran
+  category: bran
+  minGrade: poor
+  measureL: 0.5
+# ⭐ The offal. One pluck, chopped in.
+- slot: offal
+  kind: item
+  category: offal
+  minGrade: poor
+  count: 1
+# Bone meal — the mineral, and the carcass chain's second appearance in
+# one loaf.
+- slot: meal
+  category: bone-meal
+  minGrade: poor
+  measureL: 0.2
+# Fat to bind it. ⭐ `cooking-fat`, so rendered tallow does it — the same
+# crock the chandler is buying from, which is the competition the fat
+# line of a carcass is supposed to create.
+- slot: fat
+  category: cooking-fat
+  minGrade: poor
+  measureL: 0.1
+toolCapabilities: []
+outputApplication: tangible
+outputTemplate: /trade/baking/thing/dog-loaf
+outputMaterial: /stuff/idea/material/food/dog-bread
+outputAppearance: a dense dark loaf, close-grained and heavy for its size
+# A bread oven, and a wide window: nobody is judging this one.
+requiresHeatK: 450
+maxHeatK: 600
+holdS: 1800
+difficulty: easy
+discipline: baking

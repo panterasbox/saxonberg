@@ -1,0 +1,33 @@
+# The knacker's yard — a Business with ⭐ **a vacant seat and a real
+# wage.**
+#
+# ⚠ Wage 6, above the tanner's and the dyer's, and that is the design
+# speaking: this is work nobody wants and the pay is how the world says
+# so. A trade that stinks and that everybody needs is a trade that pays
+# — which is the honest economics of a LULU and the thing a player
+# notices before they notice anything else about the district.
+#
+# ⚠⚠ The seat requires `butchery` at novice, for the tanner's reason: a
+# seat names a Discipline, and the refusal is the progression UI. ⭐
+# Butchery is also the EASIEST of the three to come by — the kitchen's
+# `butcher` credits it, so anybody who has ever dressed a rabbit has
+# begun — which makes this the first of the two gated seats a player can
+# actually reach.
+class: /platform/idea/Business
+data:
+  name: "the knacker's yard"
+  appointingAuthority:
+    kind: office
+    office: prime-minister
+  call: rota
+  positions:
+    - key: knacker
+      noun: knacker
+      label: at the block
+      wageRate: 6
+      purchases: true
+      requires: { discipline: butchery, band: novice }
+  rosterSlots: []
+  banksAt: goodkin
+  operatingLocations:
+    - /world/terminus/wharfside/knackers/location/yard

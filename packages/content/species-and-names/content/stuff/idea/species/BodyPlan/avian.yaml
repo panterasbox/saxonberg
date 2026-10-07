@@ -1,0 +1,98 @@
+# Avian — a small perching bird. Two legs, two wings, and the reason it
+# exists in a MINING pack: the canary.
+#
+# ⭐ It shipped in `trade-mining` because nothing in the world needed a
+# bird until a mine needed something that stops singing, and its own
+# docstring predicted this: *"a later build that gives the skeleton a
+# permanent home moves the file, with no path changes and nothing to
+# migrate."* ✅ **Moved to the species commons 2026-10-05** by the
+# butchery build, which needed a second bird. The path never changed —
+# pack ownership is a review unit, not a namespace — and no title claim
+# named it (`trade-mining`'s claim is on `/trade/mining`), so the move
+# was the file and this paragraph.
+#
+# ⭐⭐⭐ **This is the bird that FLIES, and that is now load-bearing.** Its
+# breast names `tissue/muscles/breast-red` — the flight muscle of a bird
+# that uses it, dark with the myoglobin that sustained flying. Its
+# flightless twin is `fowl`, whose breast is `breast-white`. The pair IS
+# the white-meat/dark-meat law, carried by which plan names which row
+# rather than by any field: *a chicken's breast is pale because it never
+# flies; a duck's is dark because it does.*
+#
+# ⚠ `respiring: true` and the species' own high blood-oxygen floor are
+# what make the canary the instrument it is. A bird's air sacs give it a
+# far more efficient exchange than a mammal's tidal lungs — which is why
+# it takes up a bad atmosphere sooner, not because anything here treats
+# it as special.
+class: /platform/idea/species/BodyPlan
+data:
+  name: avian
+  slots:
+    - { name: 'perch:1', accepts: SlottableMixin, userFacingDetail: perch }
+  locomotionModes:
+    - walk
+    - fly
+  defaultLocomotionMode: walk
+  sensoryPorts:
+    - { modality: vision, count: 2, position: lateral }
+    - { modality: hearing, count: 2, position: lateral }
+    - { modality: touch, count: 1, position: circumferential }
+  # ⭐ `serves: [locomotion]` on BOTH pairs, and it is not decorative: a
+  # bird gets about on its wings as much as its legs, so the locomotion
+  # capacity is the MEAN over all four. A broken wing costs a bird a
+  # quarter of its ability to get anywhere, which is about right.
+  #
+  # ⚠ Without this the avian plan would have silently lost the limp
+  # entirely when the limp moved off a `body.leg.*` string match and onto
+  # the capacity — the exact closed-and-silent failure this build exists
+  # to stop shipping.
+  bodyParts:
+    - key: body.torso
+      parent: null
+      tissues:
+        # ⚠ Bone FIRST — trauma reads the first resolvable tissue.
+        - { tissuePath: /stuff/idea/material/tissue/bone, share: 0.1351 }
+        - { tissuePath: /stuff/idea/material/tissue/muscles/breast-red, share: 0.2702 }
+        - { tissuePath: /stuff/idea/material/tissue/flesh, share: 0.2027 }
+    - key: body.head
+      parent: body.torso
+      severable: true
+      tissues:
+        - { tissuePath: /stuff/idea/material/tissue/bone, share: 0.0338 }
+        - { tissuePath: /stuff/idea/material/tissue/flesh, share: 0.0676 }
+    - key: body.wing.left
+      parent: body.torso
+      severable: true
+      serves: [locomotion]
+      tissues:
+        - { tissuePath: /stuff/idea/material/tissue/bone, share: 0.0338 }
+        - { tissuePath: /stuff/idea/material/tissue/muscle, share: 0.0676 }
+    - key: body.wing.right
+      parent: body.torso
+      severable: true
+      serves: [locomotion]
+      tissues:
+        - { tissuePath: /stuff/idea/material/tissue/bone, share: 0.0338 }
+        - { tissuePath: /stuff/idea/material/tissue/muscle, share: 0.0676 }
+    - key: body.leg.left
+      parent: body.torso
+      severable: true
+      serves: [locomotion]
+      tissues:
+        - { tissuePath: /stuff/idea/material/tissue/bone, share: 0.027 }
+    - key: body.leg.right
+      parent: body.torso
+      severable: true
+      serves: [locomotion]
+      tissues:
+        - { tissuePath: /stuff/idea/material/tissue/bone, share: 0.027 }
+    - key: body.torso.heart
+      parent: body.torso
+      governs: [heartRate]
+      tissues:
+        - { tissuePath: /stuff/idea/material/tissue/muscle, share: 0.0135 }
+    - key: body.torso.lungs
+      parent: body.torso
+      governs: [respiratoryRate]
+      tissues:
+        - { tissuePath: /stuff/idea/material/tissue/flesh, share: 0.0203 }

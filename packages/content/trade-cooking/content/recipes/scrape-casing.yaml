@@ -1,0 +1,28 @@
+# Scrape a casing — gut turned, scraped and rinsed until it is a skin you
+# can stuff.
+#
+# ⚠⚠ **It does NOT clean the gut.** Scraping makes gut usable, not safe:
+# the microbial load and the pathogen loads ride straight through onto the
+# casing, which is the whole point of the dirtiest input in the game
+# having a step of its own. A sausage made in a scraped casing is a
+# sausage made in something that was full of what a gut is full of, and
+# cooking is the only answer.
+recipeId: scrape-casing
+name: Scraped casing
+keywords: ["scrape-casing", "casing", "scrape", "casings"]
+discipline: butchery
+difficulty: easy
+inputSlots:
+- slot: gut
+  category: offal
+  minGrade: poor
+  kind: item
+  count: 1
+- slot: water
+  category: water
+  minGrade: poor
+  kind: bulk
+  measureL: 0.5
+toolCapabilities: []
+outputApplication: tangible
+outputTemplate: /trade/cooking/thing/casing

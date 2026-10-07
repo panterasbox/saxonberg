@@ -6,7 +6,16 @@
 > a moment the animal decides, the ask, naming as the promotion, the
 > residency pin. The substrate under it landed with ranching →
 > [ranching.md](../../subsystems/ranching.md).
-> **Left:** ⚠ **an animal whose keeper's estate passes** (handed over by
+> **Left:** ⚠⚠ **a dead pet's body is butcherable, twice over** (handed
+> over by the carcass chain + the butchery build, 2026-10-05) — the mint
+> carries no name stamp, so a named animal's corpse is not refused by the
+> name check; and `ButcherController`'s name check sits behind an
+> `isAlive()` guard, so the refusal that protects a named animal stops
+> protecting it the moment it is one. ⭐ Both are *who may take this
+> apart* questions, which is this slate's axis rather than butchery's ·
+> ⚠ **orphan `holder_snapshots` rows after a pet's death** — a
+> `PersistableApi.retire(host)` or a sweep over records with no chattel
+> row · ⚠ **an animal whose keeper's estate passes** (handed over by
 > the economic bootstrap, 2026-09-23 — escheat moves titles, balances and
 > a kept house's counters, and says nothing about a living thing that was
 > being fed; the pound keeper is the shape, and it is a *who feeds it

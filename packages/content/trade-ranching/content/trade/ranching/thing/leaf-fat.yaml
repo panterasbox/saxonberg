@@ -1,0 +1,15 @@
+# Leaf fat off a pig — what lard comes from.
+#
+# ⚠ The sow's fat line, where a ewe and a cow give suet. A pig carries
+# nearly thirty per cent fat against a sheep's six, which is why a poor
+# household keeps a pig: the lard is as much the point as the meat.
+class: /platform/thing/Provision
+data:
+  shortDescription: leaf fat
+  keywords: ["leaf fat", leaf, fat, flare]
+  register: indefinite
+  longDescription: >-
+    A pale dense sheet of fat peeled off from around the kidneys, firm
+    and faintly waxy to the touch.
+  _materialPath: /stuff/idea/material/food/leaf-fat
+  mass: 1.5

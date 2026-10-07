@@ -1169,7 +1169,7 @@ export class SecurityApi {
    *      their lineage denied a governed eval the one receiver it most
    *      obviously covers — the wizard's own body, standing in the
    *      parcel they hold title to. Same for every clone: a corpse in
-   *      the lounge is lineage `/stuff/agent/Corpse` and location
+   *      the lounge is lineage `/stuff/thing/Corpse` and location
    *      `/world/lounge`.
    *
    *      ⭐⭐ **The hook, not `getContainer()` — and that is the whole

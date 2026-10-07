@@ -86,6 +86,43 @@ data:
       destination: /world/terminus/wharfside/dyehouse/location/floor
       media: [ground]
       edgeMinutes: 5
+    # ⭐⭐ **The three noxious trades, and they are DOWNSTREAM.** The
+    # carcass chain's premises: a knacker, a tannery and a chandlery, in
+    # that order along the bank, because each one's product is the next
+    # one's feedstock — the knacker's hides go to the tannery and his
+    # suet goes to the chandlery, and the whole arrangement is forty feet
+    # end to end.
+    #
+    # ⚠⚠ **DOWN, past the outfall**, not up. The header above already
+    # names the textile chain as the nuisance-trade chain and puts it
+    # downwind and downstream of the market; the tannery is the one that
+    # stank worst and it goes furthest out. A tanyard upstream of a city's
+    # intake is a thing a real municipality would hang somebody for.
+    #
+    # ⚠ The effluent that argument is built on is an UNPRICED
+    # EXTERNALITY: the siting is honest and nothing downstream costs
+    # anybody anything yet. Recorded at the tannery zone and in the
+    # plan's deferred list rather than papered over.
+    #
+    # ⭐⭐ **ONE exit off the bank, and the three CHAIN**, which is better
+    # geography than three spokes: the knacker is the gate, his hides go
+    # on down to the tannery and his suet goes back up to the chandlery,
+    # and the whole arrangement is a few minutes end to end. A player
+    # walks the supply chain in the order the supply chain runs.
+    #
+    # ⚠ And it is `down`, because the four diagonals are taken (the
+    # logistics build's two roads and the textile chain's two floors) and
+    # because the bank genuinely drops to the water here. The remaining
+    # cardinal was `northeast` and the chandlery has it — pointing back
+    # toward the market, which is where its customers are.
+    #
+    # ⭐ `media`/`edgeMinutes` like every other edge: a floor the lane
+    # graph cannot see is a floor no hauler can be routed to, and a
+    # knacker who cannot be reached by a cart is a knacker with no trade.
+    down:
+      destination: /world/terminus/wharfside/knackers/location/yard
+      media: [ground]
+      edgeMinutes: 7
   props:
     - /world/terminus/wharfside/thing/city-intake
     - /world/terminus/wharfside/thing/city-outfall

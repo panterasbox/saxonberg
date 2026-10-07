@@ -302,7 +302,51 @@ function salientFeaturesImpl(
     if (worn) stem = `${stem} wearing ${worn}`;
   }
 
+  // ⭐⭐ A body's DECAY, which is the one thing that tells two of them
+  // apart. `getDecayStage()` had computed `fresh | stale | decomposed |
+  // spent` since the mortality build and **had no production reader at
+  // all** — so two of one player's corpses at different decay states were
+  // indistinguishable in the UX: the same keywords (the carcass chain's
+  // keyword union gave them the dead thing's name keywords too), nothing
+  // in this form but a worn item, and then a bare ordinal — the exact
+  // *two buttons both labelled "a cane rod"* failure the fishing drive
+  // caught.
+  //
+  // ⭐ It belongs HERE and not in a key, because this is the form the UX
+  // actually refers to things by: `PromptLogic.projectMatches` renders
+  // every disambiguation choice in it, and `perceivedKeywordsImpl`
+  // tokenizes it into targeting keywords — so a player both READS the
+  // word and can TYPE it (`butcher decomposed`). A durable timestamp can
+  // do neither.
+  //
+  // ⚠ No competence gate, deliberately: *competence resolves DETAIL and
+  // never ACCESS* (`instrumentation.md`), so anyone who can see the body
+  // gets the band and `getForensicReadability()` remains what a
+  // practitioner's examination resolves further.
+  const decay = decayWord(target);
+  if (decay) stem = `${stem}, ${decay}`;
+
   return stem;
+}
+
+/**
+ * The decay band as the word a player sees AND types, or `null` when
+ * there is nothing to say.
+ *
+ * ⭐ The stage name IS the player's word — one vocabulary, not a prose
+ * translation of an engine enum that could drift out of step with it.
+ *
+ * ⚠ `fresh` is deliberately silent, for the same reason only a TIE gets
+ * an ordinal: a word every corpse carries tells you nothing and would
+ * make `fresh` a targeting keyword that matches every body in the room.
+ * **Every living creature composes `PostmortemMixin`** (it wraps
+ * `CreatureBase`), so the silence is also what keeps this off the living
+ * — `getDecayStage()` answers `fresh` while `diedAtGameSec` is 0.
+ */
+function decayWord(target: Stuff): string | null {
+  if (!MixinApi.isPostmortem(target)) return null;
+  const stage = target.getDecayStage();
+  return stage === 'fresh' ? null : stage;
 }
 
 /**

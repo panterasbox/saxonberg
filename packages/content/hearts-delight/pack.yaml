@@ -48,3 +48,30 @@ requires:
       holder: { organization: /world/terminus/hearts-delight/idea/farm-business }
       landUse: agricultural
       areaM2: 1200
+
+# ⭐⭐ **What has to be RESIDENT before a player can reach the flock.**
+#
+# The boot union is the fifth of the five reachability links and the one
+# that fails closed and silent. Three entries, each for a reason that has
+# already cost this codebase a build:
+boot:
+  # ⚠ A `props:` edit NEVER reaches a booted world, and a room nothing has
+  # touched is a room whose props have not been minted. `draft` is
+  # afforded by the flock book, so a flock book nobody has stood up is a
+  # flock that does not exist — and the refusal would be `unknown-target`
+  # on a book the room's own prose describes.
+  - { template: /world/terminus/hearts-delight/thing/flock-book, role: producer, reason: "the flock book affords draft/return — the only way into the twelve head, and a prop nothing warms is a prop that is not there" }
+  # ⚠⚠ The SPECIES, synchronously. `ProducingMixin.taps()` is a sync read
+  # of the host's species and `getSpecies()` is a `findByTemplatePath` —
+  # so a drafted ewe whose species nothing stood up has no wool tap and
+  # `shear` declines "the sheep does not give that", about the one product
+  # the flock exists for. Apiculture learned this the hard way with the
+  # honeybee; this is the same line for the sheep.
+  #
+  # ⭐ And it is now load-bearing twice: `Species.butcheryYield` is read
+  # the same synchronous way, and `SpeciesApi.isSentient` answers FALSE
+  # for a species that is not resident — so an inert sheep row would make
+  # the "you cannot butcher a person" gate fail OPEN on anything sharing
+  # its clade walk.
+  - { template: /stuff/idea/species/animalia/chordata/mammalia/artiodactyla/bovidae/ovis/aries, role: sync-read, reason: "the ewe's wool tap and butchery yield are both synchronous species reads — an inert row is a flock with no fleece and no carcass" }
+  - { template: /stuff/idea/species/animalia/chordata/mammalia/carnivora/canidae/canis/familiaris, role: sync-read, reason: "the collie's EMPTY butchery yield is what refuses the knife — an inert row reads as no species at all, and the refusal changes to 'you cannot make out what it was'" }

@@ -116,7 +116,7 @@ function standUp(): { body: Wearer; loc: Location; plan: string } {
     {
       key: 'body.torso',
       parent: null,
-      tissues: [{ tissuePath: '/stuff/idea/material/tissue/flesh', mass: 40 }],
+      tissues: [{ tissuePath: '/stuff/idea/material/tissue/flesh', share: 1.0 }],
     },
   ]);
   const planPath = `/stuff/idea/species/BodyPlan/kit-${n}`;

@@ -14,7 +14,18 @@ class: /platform/idea/species/Species
 data:
   binomial: Gallus domesticus
   commonNames: ["hen", "chicken", "fowl", "cockerel", "pullet", "bird"]
-  _bodyPlanPath: /stuff/idea/species/BodyPlan/biped
+  # ⚠⚠ This said `BodyPlan/biped` until 2026-10-05 — the HUMAN plan. A hen
+  # had `body.arm.left.hand`, a liver, an upper and lower spine, and NO
+  # WINGS. Nothing errored, because nothing checked: a body plan is named
+  # by path and a bird wearing a person's anatomy reads like any other
+  # row.
+  #
+  # ⭐ `fowl` is the bird that does not fly, and the distinction is
+  # load-bearing rather than tidy: its breast is
+  # `tissue/muscles/breast-white` where the flying `avian`'s is
+  # `breast-red`, which is how white meat and dark meat are one law about
+  # muscle work rather than two authored facts.
+  _bodyPlanPath: /stuff/idea/species/BodyPlan/fowl
   _parentCladePath: /stuff/idea/species/animalia
   _defaultMaterialPath: /stuff/idea/material/tissue/flesh
   vitalProfile:
@@ -61,6 +72,15 @@ data:
       yieldShape: count
       broodAfterDays: 4
       window: { kind: photoperiod, daylightFrom: 0.45, daylightTo: 1 }
+  # ⭐⭐ **A hen is COUNTED, not dressed**, and the absence of `fraction` is
+  # the whole statement. Nobody weighs a chicken carcass and takes shares
+  # off it: you get a bird's worth of meat and its giblets, and that is
+  # true of a plump hen and a scrawny one alike. The dressed shape would
+  # have had a 2.5 kg bird yielding grams of suet and a hide — which is
+  # how the old universal fraction table read, and it was nonsense.
+  butcheryYield:
+  - { cut: /stuff/thing/items/stew-meat, units: 2 }
+  - { cut: /stuff/thing/items/offal,     units: 1 }
   longDescription: >-
     A brown hen with a comb flopped over one eye, moving in the short
     decisive bursts of something that has never once thought anything

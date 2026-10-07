@@ -1,0 +1,30 @@
+# Leaf fat — the hard fat from around a pig's kidneys, and what lard is
+# rendered from.
+#
+# ⭐⭐ NOT suet, and the difference is the whole reason it is a second row:
+# a ruminant's suet is harder, higher-melting and takes a candle; a pig's
+# leaf fat is softer and renders to lard, which is a cooking fat and a
+# poor candle. ⚠ The chandler can use one of them and not the other, and
+# that falls out of the tags rather than out of a check anywhere.
+class: /platform/idea/material/ConsumableMaterial
+data:
+  name: leaf fat
+  keywords: ["leaf fat", lard, fat, leaf]
+  density: 920
+  specificHeat: 2000
+  thermalConductivity: 0.18
+  hardness: 1
+  toughness: 1
+  electricalConductivity: 0.0
+  waterAbsorptionCapacity: 2
+  edibility: true
+  tastes: [umami]
+  spoilActivationEnergy: 90000
+  waterActivity: 0.6
+  nutrients: [fat]
+  nutrientAmounts:
+    fat: 90000
+  # ⭐ `cooking-fat` and NOT `tallow`: the chandler's dip asks for tallow,
+  # so a pig's fat is refused there by tag arithmetic and nothing has to
+  # check for a pig.
+  tags: [food, fat, cooking-fat, animal, organic, edible, raw]

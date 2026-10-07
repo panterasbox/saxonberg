@@ -24,6 +24,7 @@ import '../../../platform/idea/WorldClockRegistry';
 import { MixinApi } from '../../../api/mixin';
 import { makeStuff } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
+import { installCorpseMintStub } from '../../mortality/__tests__/corpse-mint-test-helpers';
 
 const SCALE = 12;
 let real = 0;
@@ -43,6 +44,9 @@ function body(): Creature {
 describe('the dying clock runs while disconnected', () => {
   beforeEach(() => {
     installV1QuantityMarshallers();
+    // ⭐ Every death mints a corpse now, and the mint clones an authored
+    // row that a unit world has no store for. See the helper.
+    installCorpseMintStub();
     WorldClockApi._resetForTesting();
     real = 100000;
     WorldClockApi._setNowProviderForTesting(() => real);

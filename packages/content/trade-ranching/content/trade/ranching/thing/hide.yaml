@@ -1,18 +1,36 @@
-# A green hide — ⚠ and it is a SEAM rather than a product.
+# A green hide — ⭐⭐ **and the tannery has arrived.**
 #
-# Hide becomes leather by tanning, and tanning wants tannin, which is the
-# dyeing trade's. That trade is not in this tree yet, so the hide ships
-# and nothing tans it — which is honest: it is a real thing off a real
-# animal, it stores, it sells, and the day the tannery arrives it is
-# already waiting. ⚠ What must NOT happen is a `leather` row minted here
-# out of nothing, which would close the loop with a faucet.
-class: /platform/thing/Provision
+# This row shipped as a SEAM: *"hide becomes leather by tanning … that
+# trade is not in this tree yet, so the hide ships and nothing tans it …
+# the day the tannery arrives it is already waiting."* It was waiting
+# correctly, and two things about it were wrong in the meantime.
+#
+# 1. ⚠⚠ Its material was `leather`. A skin straight off a carcass was
+#    already the finished material, so the three weeks in the pit would
+#    have bought nothing — and the tailor's jerkin, which matches the
+#    `hide` tag, was being cut out of a wet green skin. It is `rawhide`
+#    now, which does not carry that tag.
+# 2. ⚠ It was a `Provision`, because that is where `FreshnessMixin` lives
+#    and a green hide has to rot. But a `Provision` is **food by
+#    construction** — its own docstring says so — so a skin was in the
+#    pantry. The tanning pack's `Hide` is a `Good` that rots, which is
+#    the honest shape and the one `Provision`'s own comment predicted.
+#
+# ⭐ **The ROW stays ranching's and names TANNING's class** — the fleece
+# precedent exactly: the producer owns the yield row and the consumer
+# owns the class, because the consumer is the one who knows what can be
+# done with it. A second ranching locality still needs zero pack code.
+class: /trade/tanning/thing/Hide
 data:
   shortDescription: green hide
   keywords: [hide, skin, pelt, green]
   register: indefinite
   longDescription: >-
-    A whole hide, flesh side up and still warm, salted along the edges.
-    It wants to be in a tanpit within the week or it is worth nothing.
-  _materialPath: /stuff/idea/material/organic/leather
+    A whole hide, flesh side up and still warm. It wants to be in a
+    tanpit within the week or it is worth nothing — and if it has to
+    travel to get there, it wants salting first.
+  # ⚠ RAWHIDE, not leather. See the header: the pit is what makes leather,
+  # and a row that shipped already made of it was the loop closed with a
+  # faucet in the other direction.
+  _materialPath: /stuff/idea/material/organic/rawhide
   mass: 25

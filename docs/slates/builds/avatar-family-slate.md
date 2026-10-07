@@ -361,12 +361,27 @@ recovers from it, **autopsy** reads it. That satisfies *promote at the
 third consumer* on its own. It also retires `ShadeAvatar.shadeSpecies` and
 `SandboxAvatar.wireSpecies`, which are the same object stashed twice by hand.
 
-⚠ **Out of scope, named:** whether `Corpse` should move from the Agent
-branch to Thing. It is `class Corpse extends Creature {}` today and
-`mortality.md` calls it *"the corpse as a forensic Creature"* deliberately.
-The real question is whether the forensic surface needs Creature
-**anatomy** or a **record** — and a branch move belongs to the narrowing
-pass, not here.
+✅ **DONE 2026-10-05, by the carcass chain (MR !334) rather than the
+narrowing pass.** `Corpse` is `platform/thing/Corpse` now, and the
+trigger was not tidiness: being on the Agent branch made three shipped
+behaviours wrong for it, all consumers of `isAgent()` — **nothing inside
+a corpse was reachable** (agents are excluded from `isOpenContainer`, so
+the loadout could not be taken), a body in the dark read as *"someone"*,
+and `put coin in body` offered no region.
+
+⭐ **This slate's real question is answered: ANATOMY, not a record.**
+`butcher` reads the species' declared yield and the wound map arrives
+through `adoptMaterialState`, so the forensic surface wants the body
+mixins; a record is a different build. The kept set is a strict SUBSET of
+`Creature`'s — `Metabolic`, `Respiration`, `Exerting`, `Hygiene`,
+`LoadBearing`, `Posed`, `Slottable`, `Disguisable` and
+`ThermalRegulation` are gone, because the carcass chain had retired *"a
+dead ewe that cannot be milked"* and then shipped a corpse that breathed
+and digested.
+
+⚠ Still open here: the **mint-parameter join** above (one anatomy spec,
+three readers: corpse · reembody · autopsy). The branch move did not
+touch it.
 
 ---
 

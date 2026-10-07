@@ -9,7 +9,7 @@
  */
 
 import "../../../../test-bootstrap";
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { Creature } from "../../creature/Creature";
 import { METABOLIC_DEFAULTS } from "../Metabolic";
 import { Quantity } from "../../quantity";
@@ -17,6 +17,7 @@ import { WorldClockApi } from "../../../api/worldclock";
 import "../../../platform/idea/WorldClockRegistry";
 import { makeStuff } from "../../security/__tests__/test-setup";
 import { installV1QuantityMarshallers } from "../../persistence/__tests__/quantity-marshaller-test-helpers";
+import { installCorpseMintStub } from "../../mortality/__tests__/corpse-mint-test-helpers";
 import { TemplatePaths } from "../../paths";
 import requiresConscious from "../../command/validators/requiresConscious";
 import type { CommandContext } from "../../../api/command";
@@ -53,11 +54,15 @@ const STARVATION = "/platform/idea/Condition/metabolism/starvation";
 describe("MetabolicMixin cascade — reserves → conditions", () => {
   beforeEach(() => {
     installV1QuantityMarshallers();
+    // ⭐ Every death mints a corpse now, and the mint clones an authored
+    // row that a unit world has no store for. See the helper.
+    installCorpseMintStub();
     WorldClockApi._resetForTesting();
     real = 100000;
     WorldClockApi._setNowProviderForTesting(() => real);
   });
   afterEach(() => {
+    vi.restoreAllMocks();
     WorldClockApi._resetForTesting();
   });
 

@@ -254,6 +254,21 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
   // ⭐ The tool rack's roster: the template paths of the tools it is
   // responsible for putting back. A plain array of paths, like `props:`,
   // and flagged by clause (d) the moment it shipped.
+  // ⭐⭐ A `Cut` row's `tissues:` — the muscle materials the cut takes off
+  // a carcass. Every one is resolved live, twice: `CutMixin.getToughness`
+  // looks each up to read its `work` (which is the cut's whole texture),
+  // and `ButcherController` hands them to `dressOut` as the claim its MASS
+  // derives from.
+  //
+  // ⚠⚠ So a rowless or misspelt entry is not a missing adjective — it is a
+  // cut with **no texture and no weight**, minted happily, and nothing
+  // anywhere says a word. Read here rather than added to
+  // `UNREAD_PATH_FIELDS`, because that list only ever shrinks and this is
+  // exactly the live-resolved citation the clause exists for.
+  if (Array.isArray(data.tissues)) {
+    for (const t of data.tissues as unknown[]) push('tissues', t);
+  }
+
   if (Array.isArray(data.toolRows)) {
     for (const row of data.toolRows) push('toolRows', row);
   }

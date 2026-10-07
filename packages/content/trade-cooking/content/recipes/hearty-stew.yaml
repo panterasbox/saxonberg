@@ -23,6 +23,11 @@ inputSlots:
   minGrade: fair
   kind: item
   count: 1
+# ⭐⭐ Two game hours in the pot, stated rather than defaulted. ⚠ It was
+# ABSENT, so the recipe silently rode the universe default — which read as
+# a quick simmer and would have made this stew no better for a shoulder
+# than a sear. A braise has to say it is a braise.
+holdS: 7200
 toolCapabilities:
 - pot
 outputTemplate: /stuff/thing/items/bowl

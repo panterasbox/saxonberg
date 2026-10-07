@@ -27,6 +27,7 @@ import {
   SOIL_MOISTURE_RESERVE_KEY,
   SOIL_NITROGEN_RESERVE_KEY,
 } from '../../../../../lib/husbandry/Cultivable';
+import { SOIL_ORGANIC_MATTER_RESERVE_KEY } from '../../../../../lib/husbandry/Soil';
 import { execSync } from 'node:child_process';
 import { Quantity } from '../../../../../lib/quantity';
 import { CommandGiverMixin } from '../../../../../lib/command/CommandGiver';
@@ -105,6 +106,24 @@ function compost(): Material {
   }, freshPath('/stuff/idea/material/_test/compost')) as unknown as Material;
 }
 
+/**
+ * ⭐ Ground bone — a `slow-amendment`, which is the OTHER kind of matter
+ * you work into ground. Deliberately **not** tagged `compost`: a sack of
+ * bone meal and a sack of muck are poured by the same act and feed
+ * different reserves.
+ */
+function boneMeal(): Material {
+  return makeStuffAtPath(() => {
+    const m = new Material();
+    m.setName('bone meal');
+    m.setAppearance('fine grey bone meal');
+    m.setTags(['granular', 'solid', 'feed', 'bone-meal', 'slow-amendment']);
+    m.setSpecificHeat(Quantity.of(1400, 'J/(kg·K)'));
+    m.setThermalConductivity(Quantity.of(0.2, 'W/(m·K)'));
+    return m;
+  }, freshPath('/stuff/idea/material/_test/bone-meal')) as unknown as Material;
+}
+
 function tissue(): Material {
   return makeStuffAtPath(() => {
     const m = new Material();
@@ -162,6 +181,26 @@ function makeBed(nitrogen = 100): GardenBed {
   }, freshPath('/trade/farming/thing/bed/_feed'));
 }
 
+/**
+ * ⭐ Ground deep enough to be worth IMPROVING — a `Field` seeds all four
+ * soil reserves in code, and the garden bed above authors only two. The
+ * difference is the content fact the slow-amendment branch turns on, and
+ * this fixture is the field end of it.
+ */
+function makeAmendableBed(nitrogen = 0, organicMatter = 0): GardenBed {
+  const bed = makeBed(nitrogen);
+  bed.setReserve(
+    new Reserve(
+      SOIL_ORGANIC_MATTER_RESERVE_KEY,
+      Quantity.of(100, '%'),
+      Quantity.of(organicMatter, '%'),
+      'cultivation',
+      null,
+    ),
+  );
+  return bed;
+}
+
 /** A pot — moisture only, NO nitrogen. */
 function makePot(): PlantPot {
   return makeStuffAtPath(() => {
@@ -196,6 +235,19 @@ function makeSack(litres: number): Receptacle {
     sack.setInteriorAmount(Quantity.of(litres, 'L'));
     return sack;
   }, freshPath('/stuff/thing/vessel/_compost-sack'));
+}
+
+/** A sack of ground bone rather than of muck. */
+function makeBoneSack(litres: number): Receptacle {
+  return makeStuffAtPath(() => {
+    const sack = new Receptacle();
+    sack.setShortDescription('a sack of bone meal');
+    sack.interiorBulk = true;
+    sack.setInteriorCapacity(Quantity.of(20, 'L'));
+    sack.setBulkMaterial('interior', boneMeal());
+    sack.setInteriorAmount(Quantity.of(litres, 'L'));
+    return sack;
+  }, freshPath('/stuff/thing/vessel/_bone-sack'));
 }
 
 function stubCommand(verb: string): CommandDefinition {
@@ -426,5 +478,170 @@ describe('feed <bed>', () => {
 
     expect(named.getBulkAmount('interior').rawValue()).toBeCloseTo(10, 3);
     expect(carried.getBulkAmount('interior').rawValue()).toBe(20);
+  });
+});
+
+/**
+ * ⭐⭐ **`feed` takes a second kind of matter**, and which reserve it
+ * credits is a fact about the matter rather than about the verb. This is
+ * bone meal's only sink in the game: the carcass chain grinds bone and the
+ * field is where it goes.
+ *
+ * ⚠ The important test here is the last one. Keyed on nitrogen the way the
+ * headroom check used to be, a field with rich nitrogen and starved
+ * organic matter would have refused a sack of bone meal with *"the soil is
+ * already rich"* — a true sentence about the wrong reserve, and the most
+ * plausible way for this to ship dead.
+ */
+describe('feed <ground> with a slow amendment', () => {
+  beforeEach(() => {
+    ShadowApi._clearAllForTesting();
+    installV1QuantityMarshallers();
+    installV1QuantityTagTables();
+    buildAllModalities();
+    WorldClockApi._resetForTesting();
+    now = BASE;
+    WorldClockApi._setNowProviderForTesting(() => now);
+    WorldClockApi.setScale(1000);
+    captured = [];
+    vi.spyOn(PersistableApi, 'captureHostOf').mockImplementation(
+      (async (s: Stuff) => {
+        captured.push(s);
+      }) as unknown as typeof PersistableApi.captureHostOf,
+    );
+    deeds = [];
+  });
+  afterEach(() => {
+    vi.restoreAllMocks();
+    WorldClockApi._resetForTesting();
+  });
+
+  function amendScene(nitrogen = 0, organicMatter = 0): {
+    giver: TestGiver;
+    room: LitRoom;
+    bed: GardenBed;
+  } {
+    const room = makeStuff(() => new LitRoom());
+    room.setAmbientFlux(300);
+    const giver = makeStuff(() => {
+      const g = new TestGiver();
+      g.setName('Alice');
+      return g;
+    });
+    vi.spyOn(
+      giver as unknown as {
+        creditDeed(sub: {
+          discipline: string;
+          difficulty: string;
+          outcome: string;
+        }): Promise<void>;
+      },
+      'creditDeed',
+    ).mockImplementation(async (subcheck) => {
+      deeds.push(subcheck);
+    });
+    ContainmentApi.move(giver, room);
+    const bed = makeAmendableBed(nitrogen, organicMatter);
+    ContainmentApi.move(bed, room);
+    return { giver, room, bed };
+  }
+
+  it('⭐ works ground bone in as ORGANIC MATTER, not as nitrogen', async () => {
+    const { giver, room, bed } = amendScene(0, 0);
+    const sack = makeBoneSack(20);
+    ContainmentApi.move(sack, giver);
+
+    const ctrl = makeStuff(() => new FeedController());
+    await ctrl.execute(model(one(bed, 'bed')), makeContext(giver, room));
+
+    expect(bed.organicMatterFraction()).toBeGreaterThan(0);
+    expect(sack.getBulkAmount('interior').rawValue()).toBeLessThan(20);
+  });
+
+  it('⭐ and a little of it IS available now — the mineralisation line', async () => {
+    // `addOrganicMatter` credits a fraction of what went in to nitrogen
+    // immediately and leaves the rest to mineralise over years. That one
+    // line is why an amendment is a long investment rather than a
+    // fertiliser.
+    const { giver, room, bed } = amendScene(0, 0);
+    ContainmentApi.move(makeBoneSack(20), giver);
+
+    const ctrl = makeStuff(() => new FeedController());
+    await ctrl.execute(model(one(bed, 'bed')), makeContext(giver, room));
+
+    const nitrogen = bed.nutrientFraction()!;
+    expect(nitrogen).toBeGreaterThan(0);
+    expect(nitrogen).toBeLessThan(bed.organicMatterFraction()!);
+  });
+
+  it('compost still credits NITROGEN and not organic matter', async () => {
+    const { giver, room, bed } = amendScene(0, 0);
+    ContainmentApi.move(makeSack(20), giver);
+
+    const ctrl = makeStuff(() => new FeedController());
+    await ctrl.execute(model(one(bed, 'bed')), makeContext(giver, room));
+
+    expect(bed.nutrientFraction()).toBe(1);
+    expect(bed.organicMatterFraction()).toBe(0);
+  });
+
+  it('a carried sack of bone meal is found with no `with` clause', async () => {
+    const { giver, room, bed } = amendScene(0, 0);
+    ContainmentApi.move(makeBoneSack(20), giver);
+
+    const ctrl = makeStuff(() => new FeedController());
+    const ctx = makeContext(giver, room);
+    await ctrl.execute(model(one(bed, 'bed')), ctx);
+
+    expect(noteReasons(ctx)).not.toContain('no-compost-source');
+  });
+
+  it('⚠ rich nitrogen does NOT refuse an amendment the ground wants', async () => {
+    const { giver, room, bed } = amendScene(100, 0);
+    const sack = makeBoneSack(20);
+    ContainmentApi.move(sack, giver);
+
+    const ctrl = makeStuff(() => new FeedController());
+    const ctx = makeContext(giver, room);
+    await ctrl.execute(model(one(bed, 'bed')), ctx);
+
+    expect(noteReasons(ctx)).not.toContain('already-fed');
+    expect(bed.organicMatterFraction()).toBeGreaterThan(0);
+    expect(sack.getBulkAmount('interior').rawValue()).toBeLessThan(20);
+  });
+
+  it('…and starved nitrogen does not let compost into full ground', async () => {
+    // The mirror: the headroom that matters is the one the MATTER feeds.
+    const { giver, room, bed } = amendScene(100, 0);
+    const sack = makeSack(20);
+    ContainmentApi.move(sack, giver);
+
+    const ctrl = makeStuff(() => new FeedController());
+    const ctx = makeContext(giver, room);
+    await ctrl.execute(model(one(bed, 'bed')), ctx);
+
+    expect(noteReasons(ctx)).toContain('already-fed');
+    expect(sack.getBulkAmount('interior').rawValue()).toBe(20);
+  });
+
+  it('ground too shallow to amend says which thing it cannot take', async () => {
+    const room = makeStuff(() => new LitRoom());
+    room.setAmbientFlux(300);
+    const giver = makeStuff(() => {
+      const g = new TestGiver();
+      g.setName('Alice');
+      return g;
+    });
+    ContainmentApi.move(giver, room);
+    // A plain bed: nitrogen, no organic matter.
+    const bed = makeBed(0);
+    ContainmentApi.move(bed, room);
+    ContainmentApi.move(makeBoneSack(20), giver);
+
+    const ctrl = makeStuff(() => new FeedController());
+    const ctx = makeContext(giver, room);
+    await ctrl.execute(model(one(bed, 'bed')), ctx);
+
+    expect(noteReasons(ctx)).toContain('no-amendment-reserve');
   });
 });

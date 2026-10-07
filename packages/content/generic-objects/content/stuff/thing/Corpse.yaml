@@ -1,0 +1,71 @@
+# The body ANY death leaves behind.
+#
+# ⭐⭐ Not only a player's. Since the carcass-chain build every death that
+# is not a player's mints this row too — a slaughtered ewe, a fox-killed
+# hen, a shopkeeper cut down in the street. Before that a beast or an NPC
+# was flipped to `dead` in place and kept every mixin it had, so a dead
+# ewe was a ewe that could not be milked and a dead clerk was a clerk
+# with a job. One body now, however it died; what varies is only whether
+# an identity walks away from it as a shade.
+#
+# ⭐⭐⭐ A `Thing`, not an Agent, and that is the first question the
+# taxonomy asks: an Agent is something capable of acting on its OWN
+# BEHALF, and a corpse cannot — nor can it ever again, because
+# `adoptMaterialState` has no `mergeSlice_` counterpart. For a non-Agent
+# the second question is Space vs Matter vs Information, and a body is
+# matter.
+#
+# ⚠⚠ It was `/platform/thing/Corpse` until 2026-10-05, and being on the
+# Agent branch made three things wrong — all consumers of `isAgent()`:
+# nothing inside a corpse was REACHABLE (agents are excluded from
+# `isOpenContainer`, because you cannot reach into another actor's
+# pockets — so the loadout could not be taken), a body in the dark read
+# as "someone" rather than "something", and `put coin in body` had
+# nowhere to put it.
+#
+# The class composes exactly what a dead body still does — Container (the
+# loadout), Vitals + BodyPlanSlots (the wound map), Thermal (algor mortis
+# as passive drift), Postmortem (the decay clock), Contaminable — and no
+# longer breathes, digests, tires or wears a disguise, all of which it
+# inherited while it was a `Creature`.
+#
+# Everything AUTHORED about a corpse lives here. The per-instance ordinary
+# fields — the name, the species, the cause, the time of death — arrive
+# through the clone's `dataOverlay`, merged over this block at hydration:
+# hydration is state injection, and nothing in its contract says the state
+# has to be authored.
+#
+# The one thing that does NOT ride hydration is the material record (the
+# vital signs as they stood, the wound map, the anatomy). That is poured by
+# the gated `adoptMaterialState`, which has no `mergeSlice_` counterpart —
+# and that absence is what makes a corpse un-reanimatable. Routing it
+# through the hydrator would mean widening the gate to a component any
+# template can name.
+#
+# So: the template says what a corpse IS, the overlay says whose it is, and
+# the pour says what happened to it.
+class: /platform/thing/Corpse
+data:
+  # ⭐⭐ What a body is MADE OF, and the gate that asked for it was
+  # right: `lint:mass` says matter stating neither mass nor material
+  # "weighs nothing, silently". A corpse's MASS is stamped per-instance by
+  # the mint (the body's real mass at death), so the row cannot state one
+  # — but it can say what the thing is, and flesh's own authored comment
+  # already says why: *"Flesh rots. This is what makes a corpse a clock as
+  # well as evidence."* It was written for this row and this row never
+  # named it. ⚠ It is also what the decay clock READS: `freshnessLoad()`
+  # asks `getMaterial()` for the spoilage activation energy and water
+  # activity, and got null here.
+  _materialPath: /stuff/idea/material/tissue/flesh
+  shortDescription: body
+  # ⚠ The mint UNIONS the dead thing's own keywords onto these, so
+  # `butcher ewe` and `look clerk` both still find the body.
+  keywords: [body, corpse, carcass]
+  register: indefinite
+  longDescription: >-
+    A body, gone still. Whatever happened to it is still written on it,
+    for as long as anyone cares to look.
+  # Dead on arrival — this template is only ever cloned by the death
+  # transition, and a corpse that had to be flipped after minting would be
+  # briefly alive in the world.
+  lifecycleState: dead

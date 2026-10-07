@@ -51,76 +51,85 @@ data:
     - key: body.torso
       parent: null
       tissues:
-        - { tissuePath: /stuff/idea/material/tissue/bone, mass: 6 }
-        - { tissuePath: /stuff/idea/material/tissue/muscle, mass: 10 }
-        - { tissuePath: /stuff/idea/material/tissue/flesh, mass: 12 }
+        - { tissuePath: /stuff/idea/material/tissue/bone, share: 0.05 }
+        - { tissuePath: /stuff/idea/material/tissue/muscles/neck, share: 0.035 }
+        - { tissuePath: /stuff/idea/material/tissue/muscles/rib, share: 0.05 }
+        - { tissuePath: /stuff/idea/material/tissue/muscles/loin, share: 0.05 }
+        - { tissuePath: /stuff/idea/material/tissue/muscles/tenderloin, share: 0.011 }
+        - { tissuePath: /stuff/idea/material/tissue/muscles/belly, share: 0.05 }
+        - { tissuePath: /stuff/idea/material/food/animal-fat, share: 0.06 }
+        - { tissuePath: /stuff/idea/material/tissue/flesh, share: 0.312 }
     - key: body.head
       parent: body.torso
       severable: true
       tissues:
-        - { tissuePath: /stuff/idea/material/tissue/bone, mass: 0.8 }
-        - { tissuePath: /stuff/idea/material/tissue/flesh, mass: 2 }
+        - { tissuePath: /stuff/idea/material/tissue/bone, share: 0.012 }
+        - { tissuePath: /stuff/idea/material/tissue/flesh, share: 0.03 }
     - key: body.leg.frontLeft
       parent: body.torso
       severable: true
       serves: [locomotion]
       innervatedBy: [body.torso.spine.lower]
       tissues:
-        - { tissuePath: /stuff/idea/material/tissue/bone, mass: 1 }
-        - { tissuePath: /stuff/idea/material/tissue/muscle, mass: 2 }
-        - { tissuePath: /stuff/idea/material/tissue/flesh, mass: 1 }
+        - { tissuePath: /stuff/idea/material/tissue/bone, share: 0.012 }
+        - { tissuePath: /stuff/idea/material/tissue/muscles/shoulder, share: 0.035 }
+        - { tissuePath: /stuff/idea/material/tissue/muscles/shank, share: 0.011 }
+        - { tissuePath: /stuff/idea/material/tissue/flesh, share: 0.01 }
     - key: body.leg.frontRight
       parent: body.torso
       severable: true
       serves: [locomotion]
       innervatedBy: [body.torso.spine.lower]
       tissues:
-        - { tissuePath: /stuff/idea/material/tissue/bone, mass: 1 }
-        - { tissuePath: /stuff/idea/material/tissue/muscle, mass: 2 }
-        - { tissuePath: /stuff/idea/material/tissue/flesh, mass: 1 }
+        - { tissuePath: /stuff/idea/material/tissue/bone, share: 0.012 }
+        - { tissuePath: /stuff/idea/material/tissue/muscles/shoulder, share: 0.035 }
+        - { tissuePath: /stuff/idea/material/tissue/muscles/shank, share: 0.011 }
+        - { tissuePath: /stuff/idea/material/tissue/flesh, share: 0.01 }
     - key: body.leg.rearLeft
       parent: body.torso
       severable: true
       serves: [locomotion]
       innervatedBy: [body.torso.spine.lower]
       tissues:
-        - { tissuePath: /stuff/idea/material/tissue/bone, mass: 1.2 }
-        - { tissuePath: /stuff/idea/material/tissue/muscle, mass: 2.5 }
-        - { tissuePath: /stuff/idea/material/tissue/flesh, mass: 1 }
+        - { tissuePath: /stuff/idea/material/tissue/bone, share: 0.017 }
+        - { tissuePath: /stuff/idea/material/tissue/muscles/leg, share: 0.042 }
+        - { tissuePath: /stuff/idea/material/tissue/muscles/shank, share: 0.014 }
+        - { tissuePath: /stuff/idea/material/tissue/flesh, share: 0.01 }
     - key: body.leg.rearRight
       parent: body.torso
       severable: true
       serves: [locomotion]
       innervatedBy: [body.torso.spine.lower]
       tissues:
-        - { tissuePath: /stuff/idea/material/tissue/bone, mass: 1.2 }
-        - { tissuePath: /stuff/idea/material/tissue/muscle, mass: 2.5 }
-        - { tissuePath: /stuff/idea/material/tissue/flesh, mass: 1 }
+        - { tissuePath: /stuff/idea/material/tissue/bone, share: 0.017 }
+        - { tissuePath: /stuff/idea/material/tissue/muscles/leg, share: 0.042 }
+        - { tissuePath: /stuff/idea/material/tissue/muscles/shank, share: 0.014 }
+        - { tissuePath: /stuff/idea/material/tissue/flesh, share: 0.01 }
     - key: body.torso.heart
       parent: body.torso
       governs: [heartRate, circulation]
       tissues:
-        - { tissuePath: /stuff/idea/material/tissue/muscle, mass: 0.1 }
+        - { tissuePath: /stuff/idea/material/tissue/muscle, share: 0.002 }
     - key: body.torso.lungs
       parent: body.torso
       governs: [respiratoryRate, respiration]
       tissues:
-        - { tissuePath: /stuff/idea/material/tissue/flesh, mass: 0.5 }
+        - { tissuePath: /stuff/idea/material/tissue/flesh, share: 0.01 }
     - key: body.head.brain
       parent: body.head
       governs: [consciousness]
       tissues:
-        - { tissuePath: /stuff/idea/material/tissue/flesh, mass: 0.15 }
+        - { tissuePath: /stuff/idea/material/tissue/flesh, share: 0.003 }
     - key: body.torso.spine.upper
       parent: body.torso
       tissues:
-        - { tissuePath: /stuff/idea/material/tissue/bone, mass: 0.3 }
+        - { tissuePath: /stuff/idea/material/tissue/bone, share: 0.006 }
     - key: body.torso.spine.lower
       parent: body.torso.spine.upper
       tissues:
-        - { tissuePath: /stuff/idea/material/tissue/bone, mass: 0.25 }
+        - { tissuePath: /stuff/idea/material/tissue/bone, share: 0.005 }
     - key: body.torso.liver
       parent: body.torso
       governs: [clearance]
       tissues:
-        - { tissuePath: /stuff/idea/material/tissue/flesh, mass: 0.6 }
+        - { tissuePath: /stuff/idea/material/tissue/flesh, share: 0.012 }

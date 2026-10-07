@@ -18,6 +18,33 @@
  * claims for itself. The refusal reads as the world having a view, never
  * as a validator saying no.
  *
+ * ## ⭐⭐ The carcass chain — ONE butcher, and it reads the animal
+ *
+ * This used to be one of **two** `butcher` verbs. The stockyard had its
+ * own: it killed the animal and took it apart in one act, out of a module
+ * table of five hardcoded fractions that was the same for a hen and a
+ * bullock, crediting `stockmanship`, with no contamination anywhere. So
+ * an animal gave different things depending on which word you typed at
+ * it, and neither answer was the animal's own.
+ *
+ * Killing and dressing are two acts. `slaughter` kills — and so does a
+ * fight, a fox, a fall and old age — and every one of them leaves the
+ * same `Corpse`. This act takes that body apart, wherever and however it
+ * died, which is what makes the hedgerow and the stockyard the same job.
+ *
+ * ⭐ And the yield is **dressed off the body**: `Species.dressOut` turns
+ * the species' declared shares into kilograms using the mass the animal
+ * actually had and the condition it died in (`Corpse.conditionAtDeath`,
+ * stamped at the kill and frozen — a dead animal's condition cannot
+ * change). A bullock therefore gives eight times a ewe for one reason:
+ * it is eight times the animal. Nothing here knows a species' name.
+ *
+ * ⚠ **A live animal is refused, and it is told which act it wants.**
+ * The order matters: a live target used to be refused *"is not a
+ * carcass"* before anything about it was read, so the person who typed
+ * `butcher ewe` at a live ewe learned nothing. Sentient → named →
+ * no-yield → alive, so each no is the most specific true one.
+ *
  * ## ⭐⭐ D15 — the clock started at the KILL, not at the knife
  *
  * A corpse already runs a decay clock, and it is a *forensic* one on its
@@ -65,10 +92,25 @@ import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { Freshness } from '@saxonberg/server/mud/lib/material/Freshness';
 import { Contamination } from '@saxonberg/server/mud/lib/material/Contaminable';
 import { CompetenceBand } from '@saxonberg/server/mud/lib/advancement/CompetenceBand';
+import type { Difficulty } from '@saxonberg/server/mud/lib/advancement/ActSignature';
+import type Species from '@saxonberg/server/mud/platform/idea/species/Species';
 import type { CompetenceBandName } from '@saxonberg/server/mud/lib/advancement/CompetenceBand';
+import { Quantity } from '@saxonberg/server/mud/lib/quantity';
+import Corpse from '@saxonberg/server/mud/platform/thing/Corpse';
 
 const TOPIC = 'act.deed';
 const DISCIPLINE = 'butchery';
+
+/**
+ * The condition a body with no stamp is assumed to have died in — the
+ * middle of the range, which is where an unremarkable animal sits.
+ *
+ * ⚠ It is the fallback for a body that carries no `conditionAtDeath`: a
+ * person's corpse, a fixture, or anything that died without a `flesh`
+ * reserve to read. Not a default for livestock — those always carry one,
+ * because `ConditionLogic` stamps it at the kill.
+ */
+const UNREMARKABLE_FLESH = 55;
 
 /**
  * What a carcass carries into the meat when the gut is opened badly.
@@ -85,11 +127,24 @@ const GUT_FLORA: readonly string[] = [
   'staph-aureus',
 ];
 
-interface ButcherModel extends CommandModel {
+export interface ButcherModel extends CommandModel {
   body: MqlOneResult;
   blade?: MqlManyResult;
   block?: MqlManyResult;
+  /** A WORD — which cut to take (`butcher ewe for loin`). */
+  cut?: string;
+  /** The saw / cleaver that decide how deep the breakdown can go. */
+  tools?: MqlManyResult;
+  /** What to catch the blood in. ⚠ Absent means it spills. */
+  vessel?: MqlManyResult;
 }
+
+/**
+ * ⭐ Trim — what a poor hand produces where a joint should have been, and
+ * what a good hand's offcuts are. It was `stew-meat` and pretending to be
+ * the whole animal.
+ */
+const TRIM_ROW = '/stuff/thing/items/stew-meat';
 
 export default class ButcherController extends CraftController<ButcherModel> {
   async execute(model: ButcherModel, context: CommandContext): Promise<void> {
@@ -111,7 +166,8 @@ export default class ButcherController extends CraftController<ButcherModel> {
       return;
     }
 
-    if (!MixinApi.isOrganism(body) || !body.isDead()) {
+    // ⚠ Not an organism at all — a chair, a sack. Nothing further to say.
+    if (!MixinApi.isOrganism(body)) {
       return this.decline(
         context,
         Mml.compose`${Mml.thing(body)} is not a carcass.`,
@@ -150,6 +206,25 @@ export default class ButcherController extends CraftController<ButcherModel> {
       );
     }
 
+    // ⭐⭐ **A named animal is refused for being named**, and it is a
+    // different no from every other one here. `Livestock` is not `Named`;
+    // a kept animal is, and a name arrives only when a player gives one
+    // to an animal that chose to follow them. ⚠ It is checked on a LIVE
+    // target only: the mint deliberately carries no name stamp, so a dead
+    // pet's body is not refused — recorded as a deferred seam rather than
+    // pretended away.
+    if (
+      body.isAlive() &&
+      MixinApi.isNamed(body) &&
+      (body.getName() ?? '') !== ''
+    ) {
+      return this.decline(
+        context,
+        Mml.compose`That is ${Mml.thing(body)}. You named it, and it is not meat.`,
+        'named-animal',
+      );
+    }
+
     const blade = this.findBlade(model.blade);
     if (!blade) {
       return this.decline(
@@ -171,6 +246,21 @@ export default class ButcherController extends CraftController<ButcherModel> {
       );
     }
 
+    // ⚠⚠ **LAST, so it is the most specific true refusal.** This used to
+    // be first, phrased *"is not a carcass"*, and it fired before the
+    // species was read — so a player who typed `butcher ewe` at a live ewe
+    // was told the ewe was not a carcass, which is both unhelpful and the
+    // wrong thing to be surprised by. Everything that is permanently true
+    // of this animal is said first; *it is still alive* is said last,
+    // because it is the one thing the player can change.
+    if (body.isAlive()) {
+      return this.decline(
+        context,
+        Mml.compose`${Mml.thing(body)} is alive. If you mean to kill it, say so — a beast is slaughtered, and then it is butchered.`,
+        'still-alive',
+      );
+    }
+
     // ⭐ ONE band read, TWO consequences: how much you get, and how much
     // gut goes on the meat.
     const band: CompetenceBandName = MixinApi.isAdvancing(giver)
@@ -184,30 +274,175 @@ export default class ButcherController extends CraftController<ButcherModel> {
     const agedS = MixinApi.isPostmortem(body) ? (body.sinceDeath() ?? 0) : 0;
     const carcassK = Contamination.hostTemperatureK(body);
 
+    // ⭐⭐ **Dress the carcass out: the animal's own answer, at the weight
+    // it had and the condition it died in.** `liveKg` is the body's
+    // stamped mass — which is the COMPOSED figure, so a finished ewe
+    // really did weigh more than a thin one — and `fleshPct` is the
+    // condition frozen at the kill. Condition therefore pays twice, once
+    // in what the beast weighed and once in what share of it is meat.
+    // Both are true of real carcasses, and it is the arithmetic the
+    // retired stockyard verb already did.
+    const liveKg = MixinApi.isTangible(body) ? body.getMass().rawValue() : 0;
+    const fleshPct =
+      body instanceof Corpse
+        ? (body.getConditionAtDeath() ?? UNREMARKABLE_FLESH)
+        : UNREMARKABLE_FLESH;
+    // ⭐⭐⭐ **Read what each line CLAIMS off one exemplar per line.** A
+    // cut row states its muscles, its depth and its difficulty; the
+    // species states what share of the body each muscle is. Cloning one
+    // of each is how the controller learns the first without the
+    // arithmetic having to resolve templates — `dressOut` stays sync and
+    // pure over its arguments, which is what lets a test call it with
+    // numbers and no world.
+    const claims = new Map<string, readonly string[]>();
+    const spec = new Map<string, { cutting: string; difficulty: Difficulty }>();
+    const exemplars: Stuff[] = [];
+    const exemplarFor = new Map<string, Stuff>();
+    /** Lines whose exemplar was kept as unit 1 rather than destructed. */
+    const spent = new Set<string>();
+    for (const line of species.getButcheryYield()) {
+      const exemplar = await StuffApi.clone<Stuff>(line.cut);
+      exemplars.push(exemplar);
+      exemplarFor.set(line.cut, exemplar);
+      if (MixinApi.isCut(exemplar)) {
+        claims.set(line.cut, exemplar.getTissues());
+        spec.set(line.cut, {
+          cutting: exemplar.getCutting(),
+          difficulty: exemplar.getDifficulty(),
+        });
+      }
+    }
+
+    const dressed = species.dressOut({ liveKg, fleshPct, claims });
+
+    // ⭐ What the tools in hand can reach. A knife is the floor (the verb
+    // already gated on an edge); a saw opens the bone-in joints; a
+    // cleaver AND a block together make chops.
+    const tools = model.tools?.stuff ?? [];
+    const hasSaw = tools.some(
+      (t) => MixinApi.isTool(t) && t.hasCapability('saw'),
+    );
+    const hasCleaver = tools.some(
+      (t) => MixinApi.isTool(t) && t.hasCapability('cleaver'),
+    );
+    const blockForChops = this.findBlock(model.block);
+    const depthAllowed = (cutting: string): boolean =>
+      cutting === 'boneless' ||
+      (cutting === 'bone-in' && hasSaw) ||
+      (cutting === 'chop' && hasCleaver && !!blockForChops);
+
+    // ⭐⭐ `for <cut>`: one line, named by a WORD matched against the cut
+    // row's own keywords — a cut is something you ask for, not a thing in
+    // reach.
+    const asked = (model.cut ?? '').trim().toLowerCase();
+    let wanted: typeof dressed | null = null;
+    if (asked) {
+      wanted = dressed.filter((line, i) => {
+        const ex = exemplars[i];
+        if (!ex || !MixinApi.isPerceptible(ex)) return false;
+        return ex.getKeywords().some((k) => k.toLowerCase() === asked);
+      });
+      if (wanted.length === 0) {
+        for (const ex of exemplars) await StuffApi.destruct(ex);
+        return this.decline(
+          context,
+          Mml.compose`There is no such cut on ${Mml.thing(body)}.`,
+          'no-such-cut',
+        );
+      }
+    }
+
+    const carcass = body instanceof Corpse ? body : null;
+    const lines = wanted ?? dressed;
     const cuts: Stuff[] = [];
+    const wantedTool: string[] = [];
+    const alreadyGone: string[] = [];
     const here = MixinApi.isContainable(giver) ? giver.getContainer() : null;
-    for (const line of yields) {
-      // A clean hand gets every unit; a poor one wastes the carcass. The
-      // floor is one — you always get *something* off an animal worth
-      // cutting, you just get less of it.
-      const units = Math.max(
-        1,
-        Math.round(line.units * (0.5 + 0.5 * skill)),
-      );
+
+    for (const line of lines) {
+      const stem = this.stemOf(exemplars[dressed.indexOf(line)]);
+      const depth = spec.get(line.cut)?.cutting ?? 'boneless';
+
+      // ⚠ Already off this body — a carcass reduces, so a second
+      // butchering cannot take the same muscle twice.
+      const taken = line.tissues.length
+        ? line.tissues.some((t) => carcass && !carcass.hasTissue(t))
+        : !!carcass && !carcass.hasLine(line.cut);
+      if (taken) {
+        alreadyGone.push(stem);
+        continue;
+      }
+
+      // ⭐ The tool is the depth. A line the tools cannot reach stays ON
+      // the carcass and is named in the refusal, rather than silently
+      // vanishing.
+      if (!depthAllowed(depth)) {
+        wantedTool.push(
+          `${stem} (${depth === 'chop' ? 'a cleaver and a block' : 'a saw'})`,
+        );
+        continue;
+      }
+
+      // ⭐⭐⭐ **The hand decides JOINT or TRIM.** A good butcher lifts a
+      // whole loin where a poor one leaves trim — which is the
+      // Discipline's own sentence ("which cut is which") made true, and
+      // it puts skill in the OUTPUT where a player can see it rather
+      // than in a mass multiplier nobody can read.
+      const difficulty = spec.get(line.cut)?.difficulty ?? 'standard';
+      const clean =
+        !line.tissues.length ||
+        CompetenceBand.rank(band) >= this.handFor(difficulty);
+      const rowPath = clean ? line.cut : TRIM_ROW;
+
+      const units = Math.max(1, Math.round(line.units * (0.5 + 0.5 * skill)));
+      const kgEach =
+        line.kgEach === null
+          ? null
+          : ((line.kgEach * line.units) / units) * (0.5 + 0.5 * skill);
+      // ⭐ The exemplar IS unit 1 when the line is taken as-authored, so
+      // nothing is cloned twice; a trimmed line cannot reuse it (it is
+      // the wrong row) and a skipped line's exemplar is destructed below.
+      const reuse = clean ? exemplarFor.get(line.cut) : undefined;
+      if (reuse) spent.add(line.cut);
       for (let i = 0; i < units; i++) {
-        const cut = await StuffApi.clone<Stuff>(line.cut);
+        const cut =
+          i === 0 && reuse ? reuse : await StuffApi.clone<Stuff>(rowPath);
+        if (kgEach !== null && MixinApi.isTangible(cut)) {
+          cut.setMass(Quantity.of(Math.round(kgEach * 100) / 100, 'kg'));
+        }
+        // ⭐ What animal it is OF, so the cut can weight its own texture
+        // by how much of THIS species each muscle is.
+        if (MixinApi.isCut(cut)) {
+          cut.setSpeciesPath(species.getTemplatePath());
+          // ⭐⭐ A wound where this cut came from damages the cut — off
+          // the Trauma slice the corpse already adopted, with no new
+          // plumbing anywhere.
+          if (this.woundedAt(body, line.tissues, species)) {
+            cut.setDamaged(true);
+          }
+        }
         this.ageAtKill(cut, agedS, carcassK);
-        // ⭐ The body's OWN load rides onto every cut (fishing D20): a
-        // fish landed below the outfall carries the city's water onto
-        // its fillet, whatever the hand that cut it. Any Contaminable
-        // carcass; today the only one is a fish.
         if (MixinApi.isContaminable(body)) body.transferContaminationTo(cut);
-        this.spillGut(cut, mess);
+        // ⚠⚠ Gut is contaminated at FULL severity whatever the hand: the
+        // gut is where the contamination lives, and a spotless butcher
+        // still hands you a gut full of what a gut is full of.
+        this.spillGut(cut, rowPath.endsWith('/gut') ? 1 : mess);
         if (here && MixinApi.isContainer(here) && MixinApi.isContainable(cut)) {
           ContainmentApi.move(cut, here);
         }
         cuts.push(cut);
       }
+
+      if (carcass) {
+        if (line.tissues.length) carcass.markTissuesTaken(line.tissues);
+        else carcass.markLineTaken(line.cut);
+      }
+    }
+
+    // ⚠ Only the exemplars NOT kept as a unit — a line that was taken
+    // reused its own, so nothing is cloned and thrown away.
+    for (const [path, ex] of exemplarFor) {
+      if (!spent.has(path)) await StuffApi.destruct(ex);
     }
 
     // ⚠⚠ **The BLOCK carries it away, not the blade.** A board is the
@@ -236,17 +471,97 @@ export default class ButcherController extends CraftController<ButcherModel> {
       });
     }
 
+    // ⭐⭐ What is left, in words. A line the tools could not reach is
+    // still ON the carcass and says which tool it wants; a line already
+    // taken says so. Both are the refusal doing the teaching.
+    const notes: string[] = [];
+    if (wantedTool.length) {
+      notes.push(`Still on it, for want of a tool: ${wantedTool.join(', ')}.`);
+    }
+    if (alreadyGone.length) {
+      notes.push(`Already off it: ${alreadyGone.join(', ')}.`);
+    }
+
     MessageApi.scene(giver)
       .topic(TOPIC)
       .toSelf(
-        Mml.compose`You open ${Mml.thing(body)} with ${Mml.thing(blade)} and work it down to ${String(cuts.length)} cuts.`,
+        Mml.compose`You open ${Mml.thing(body)} with ${Mml.thing(blade)} and work it down to ${String(cuts.length)} piece(s). ${notes.join(' ')}`,
       )
-      .toPeers(
-        Mml.compose`${Mml.actor(giver)} butchers ${Mml.thing(body)}.`,
-      )
+      .toPeers(Mml.compose`${Mml.actor(giver)} butchers ${Mml.thing(body)}.`)
       .send();
 
-    await StuffApi.destruct(body);
+    // ⭐⭐⭐ **The body stays until every line is off it.** That is what
+    // makes a side something you work to order — lift the loin to sell and
+    // come back for the rest — and it gives partial breakdown with no
+    // second verb.
+    if (!carcass || this.isSpent(carcass, species, claims)) {
+      await StuffApi.destruct(body);
+    }
+  }
+
+  /** The competence rank a difficulty needs for the joint rather than trim. */
+  private handFor(difficulty: Difficulty): number {
+    if (difficulty === 'easy' || difficulty === 'trivial') return 0;
+    if (difficulty === 'hard' || difficulty === 'formidable') {
+      return CompetenceBand.rank('proficient');
+    }
+    return CompetenceBand.rank('competent');
+  }
+
+  /** Every line of the species' yield is off this body. */
+  private isSpent(
+    carcass: Corpse,
+    species: Species,
+    claims: ReadonlyMap<string, readonly string[]>,
+  ): boolean {
+    for (const line of species.getButcheryYield()) {
+      const tissues = claims.get(line.cut) ?? [];
+      if (tissues.length) {
+        if (tissues.some((t) => carcass.hasTissue(t))) return false;
+      } else if (carcass.hasLine(line.cut)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /**
+   * ⭐⭐ Was this body wounded where this cut came from?
+   *
+   * Off the **Trauma slice the corpse already adopted** — wounds site on
+   * anatomy parts, and a muscle names the part it sits in, so the join is
+   * a lookup rather than new plumbing. A spear through the shoulder
+   * damages the shoulder and nothing else.
+   */
+  private woundedAt(
+    body: Stuff,
+    tissues: readonly string[],
+    species: Species,
+  ): boolean {
+    if (!tissues.length || !MixinApi.isVitals(body)) return false;
+    const parts = new Set<string>();
+    for (const t of tissues) for (const k of species.partsCarrying(t)) parts.add(k);
+    if (!parts.size) return false;
+    // ⚠ Wounds are CONDITIONS, and `site` belongs to the `trauma` arm of
+    // the union rather than to every kind — so NARROW on the
+    // discriminator rather than casting the site out of whatever arrived.
+    // No new surface: the Trauma slice the corpse adopted brought them
+    // across.
+    for (const condition of body.getConditions()) {
+      if (condition.kind !== 'trauma') continue;
+      if (parts.has(condition.site)) return true;
+    }
+    return false;
+  }
+
+  /** The cut row's own first keyword — what to call it in a sentence. */
+  private stemOf(exemplar: Stuff | undefined): string {
+    if (!exemplar) return 'a cut';
+    if (MixinApi.isPerceptible(exemplar)) {
+      const kw = exemplar.getKeywords();
+      if (kw.length) return kw[0]!;
+    }
+    return 'a cut';
   }
 
   /**

@@ -26,6 +26,18 @@ import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import { makeStuff, makeStuffAtPath } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
 import WorldClockRegistry from '@saxonberg/server/mud/platform/idea/WorldClockRegistry';
+import { readFileSync } from 'fs';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+import YAML from 'yaml';
+
+/** The packs directory — the shipped Wood rows live under siblings. */
+const PACK_ROOT = join(
+  dirname(fileURLToPath(import.meta.url)),
+  '..',
+  '..',
+  '..',
+);
 
 const DAY = 86_400;
 const YEAR = 360 * DAY;
@@ -242,5 +254,64 @@ describe('the stand', () => {
       c.recordPlanting({ plantKey: 'k', name: 'an oak sapling', planter: 'p', planterName: 'Tam', speciesPath: OAK, gameDay: 0 });
       expect(c.standPhrase()).toMatch(/^Nothing stands here that is worth the axe — stumps, brash, and the saplings somebody planted\. An oak sapling/);
     });
+  });
+});
+
+/**
+ * ⭐⭐ Bark — **the fourth yield off a felling, and it is per-species.**
+ *
+ * The tanning trade's whole feedstock comes off one authored line. What
+ * these pin is the asymmetry: **oak tans and ash does not**, because the
+ * tannin is in oak bark and almost nowhere else worth getting — which is
+ * also why Medieval Latin *tannum* means *crushed oak bark* and the
+ * chemical is named after the bark.
+ *
+ * ⚠ `barkPath` absent is the ORDINARY case and means *this tree's bark is
+ * not worth stripping*. Most trees are that, and nothing anywhere has to
+ * say so.
+ */
+describe('bark is a felling fact on the stand entry', () => {
+  it('⭐ `setMix` round-trips `barkPath`, and absent reads as null', () => {
+    const stand = makeStuff(() => new TestClearing());
+    stand.setMix([
+      oak({ barkPath: '/trade/forestry/thing/bark' }),
+      // ⚠ The ash fixture authors NO `barkPath` at all, which is the
+      // ordinary case.
+      ash(),
+    ]);
+
+    const oakEntry = stand.speciesNamed('oak');
+    const ashEntry = stand.speciesNamed('ash');
+    expect(oakEntry?.barkPath).toBe('/trade/forestry/thing/bark');
+    // ⚠ Normalized to `null`, not left `undefined`: the felling reads it
+    // with `?? null` and a shipped row that authors nothing must not
+    // depend on which of the two it gets.
+    expect(ashEntry?.barkPath).toBeNull();
+  });
+
+  it('⭐⭐ the SHIPPED oak entries author bark and the ash entries do not (AC9)', () => {
+    // Read off the rows rather than restated here: a second wood that
+    // authors an oak with no bark fails this on the day it is written.
+    const woods = [
+      'rejection/content/world/terminus/rejection/hanging-wood/oak-clearing.yaml',
+      'rejection/content/world/terminus/rejection/hanging-wood/ride.yaml',
+    ];
+    const PACKS = PACK_ROOT;
+    let oaks = 0;
+    for (const rel of woods) {
+      const doc = YAML.parse(readFileSync(join(PACKS, rel), 'utf8')) as {
+        data?: { mix?: { name: string; barkPath?: string | null }[] };
+      };
+      for (const sp of doc.data?.mix ?? []) {
+        if (sp.name === 'oak') {
+          expect(sp.barkPath, `${rel}: oak`).toBe('/trade/forestry/thing/bark');
+          oaks += 1;
+        }
+        if (sp.name === 'ash') {
+          expect(sp.barkPath ?? null, `${rel}: ash`).toBeNull();
+        }
+      }
+    }
+    expect(oaks).toBeGreaterThan(0);
   });
 });

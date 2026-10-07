@@ -13,6 +13,15 @@ import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import { Mml } from '@saxonberg/server/mud/api/mml';
 
 export default class SmokeController extends PreserveController {
+  /**
+   * Smoking dries as it smokes: the smoke is flavour and a little phenol,
+   * and the keeping is the water it took out — so the axis is `moisture`,
+   * the same one `dry` moves.
+   */
+  protected cureAxis(): 'moisture' | 'solute' {
+    return 'moisture';
+  }
+
   protected recipeId(): string {
     return 'smoke-cure';
   }

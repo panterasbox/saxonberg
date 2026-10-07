@@ -356,6 +356,17 @@ async function dieImpl(
   spec?: DeathSpec,
 ): Promise<void> {
   // ── synchronous prefix ────────────────────────────────────────────
+  // ⚠⚠ **The destroyed check comes FIRST, and it has to.** Every guard
+  // below asks the host a question, and a destroyed Stuff answers every
+  // question with `undefined` rather than throwing (`api/security.ts` —
+  // the inert proxy). So `host.isDead()` reads falsy on a body that has
+  // already been replaced by its corpse, the guard falls through, and the
+  // next line crashes on `getConditions().find`. Harmless before this
+  // build, because the only destructing death was a player's; now that
+  // every death destructs, a second `die` on the same body is the
+  // ordinary case — the dying window's expiry firing after a kill, or
+  // anything holding a ref across the await.
+  if (host.isDestroyed()) return;
   if (dying.has(host.stuffId)) return;
   if (!MixinApi.isOrganism(host) || host.isDead()) return;
   if (!MixinApi.isVitals(host)) return;
@@ -374,14 +385,25 @@ async function dieImpl(
     if (record) host.relieve(record);
 
     // ── the split ───────────────────────────────────────────────────
-    // ONE RULE, TWO MECHANISMS, and the axis is whether an identity has
-    // to leave. race.md's "death is not destruction" holds either way:
-    // both paths end with a persistent Creature-tier body in the world.
+    // ⭐⭐ **ONE BODY, TWO CHOREOGRAPHIES**, and the axis is whether an
+    // identity has to leave. race.md's "death is not destruction" holds
+    // either way, and now holds in the same sentence for both: every
+    // death mints a `Corpse` and destructs the thing that died.
     //
-    //  - nothing to walk away  → this Stuff simply stops. Unchanged,
-    //    zero new machinery, and what every NPC and beast does.
-    //  - a player identity     → the body divides: a corpse takes the
+    //  - nothing to walk away  → the body is replaced by its corpse.
+    //  - a player identity     → the body DIVIDES: the corpse takes the
     //    material half, and the identity walks off as a shade.
+    //
+    // ⚠ It used to be two mechanisms, and the cheap one was wrong. A
+    // beast or an NPC was flipped to `dead` in place and kept every mixin
+    // it had, so a dead ewe was a ewe that could no longer be milked,
+    // sheared, handled or herded, and the realm showed every one of those
+    // disabled capabilities to the player. Two kinds of death read as two
+    // kinds of object with nothing to explain the asymmetry. A corpse's
+    // lifecycle is genuinely a different lifecycle — it cools, it decays,
+    // it is evidence, it is never alive again — so it is a different
+    // object. The mint is lossy on purpose (a herd place, a bond, a job,
+    // a brain: none of it is true of a body).
     const player = playerBodyOf(host);
 
     // The accountability row is a SYNCHRONOUS fire-and-forget append, and
@@ -421,8 +443,13 @@ async function dieImpl(
 
     if (!player) {
       host.setCauseOfDeath(cause);
-      // The body stays in the world as a corpse. Never
-      // `StuffApi.destruct` here.
+      // ⭐ The flip is still SYNCHRONOUS, and it is what a same-tick
+      // reader sees. Combat's cull narrates and resolves its session
+      // inside this very turn, before the tail below has replaced
+      // anything — so `isDead()` is already true for every consumer that
+      // runs between the killing blow and the next await. The flip also
+      // stamps `diedAt`, which is what makes the corpse's age the age it
+      // died at rather than its age now.
       host.setLifecycleState('dead');
       // Start the postmortem clock. Algor mortis needs no code: a body
       // that stops regulating drifts toward ambient through the shipped
@@ -431,11 +458,35 @@ async function dieImpl(
         const nowS = conditionNowSeconds();
         if (nowS !== null) host.markDeceasedAt(nowS);
       }
+      // ⚠⚠ **Before the first await**, or a periodic capture can write a
+      // DEAD body into `holder_snapshots` and the boot-time
+      // `resetVitalsToSpeciesBaseline` backstop would stand a destructed
+      // pet back up alive. The player path does exactly this at step (a)
+      // / (g) of `divideBody`; a named animal is `Persistable` too, and
+      // this is the one line that keeps it from becoming a zombie.
+      if (MixinApi.isPersistable(host)) host.markForRevert();
     }
 
     // ── async tail ──────────────────────────────────────────────────
     await recordDeathDeed(host, cause);
-    if (player) await divideBody(player, cause);
+    if (player) {
+      await divideBody(player, cause);
+      return;
+    }
+
+    // ⚠ **Re-check after every await.** A body can be destructed while
+    // it sits in the dying window by something that is not this
+    // transition — the fox eats the hen it has just mauled
+    // (`trade-ranching/src/behavior/raids.ts`) — and the window's expiry
+    // then runs `die` on a corpse-shaped hole. A destroyed Stuff is
+    // INERT rather than throwing (`api/security.ts`), so without these
+    // the mint would clone a body out of `undefined` reads and lay it in
+    // nowhere.
+    if (host.isDestroyed()) return;
+    const nowS = conditionNowSeconds() ?? 0;
+    await mintCorpseFrom(host, materialSlicesOf(host), cause, nowS);
+    if (host.isDestroyed()) return;
+    await StuffApi.destruct(host);
   } finally {
     dying.delete(host.stuffId);
   }
@@ -462,6 +513,15 @@ function playerBodyOf(host: Stuff): PlayerBody | null {
  * Divide a player's body: the corpse takes the material half and the
  * loadout, the identity takes the arc, and the drained shell is destructed
  * so a shade can hold the identity path.
+ *
+ * ⭐ **This is the PLAYER'S specialization of the shared mint**, not a
+ * second kind of death. `materialSlicesOf` and `mintCorpseFrom` below are
+ * called by both paths and are where "what a corpse carries" is decided
+ * once. What is player-only is everything around them: an autosave to
+ * stop, an arc to record on an identity, a body to drain back to a living
+ * baseline so nothing dead ever reaches `holder_snapshots`, a snapshot to
+ * take, and a shade to hand the sockets to. A beast has none of those, so
+ * its tail is the mint and a destruct.
  *
  * **The ordering here IS the substance.** Each step is placed against a
  * specific failure:
@@ -493,13 +553,7 @@ async function divideBody(avatar: PlayerBody, cause: string): Promise<void> {
   avatar.stopAutoSave();
 
   // (b) — before the drain destroys them
-  const material: Record<string, unknown> = {};
-  for (const name of MATERIAL_FORK_SLICES) {
-    const fn = (body as unknown as Record<string, () => unknown>)[
-      `forkSlice_${name}`
-    ];
-    if (typeof fn === 'function') material[name] = fn.call(body);
-  }
+  const material = materialSlicesOf(body);
 
   // (c) — the room is captured as BOTH a durable path (for a shade that
   // comes back at a later login) and a live ref (for the shade minted in
@@ -567,7 +621,7 @@ async function divideBody(avatar: PlayerBody, cause: string): Promise<void> {
  * ⭐ **A corpse's own identity — issue #40's blocker.**
  *
  * Every corpse used to share ONE identity (the template path
- * `/stuff/agent/Corpse`), because nothing stamped one. Per-instance facts
+ * `/stuff/thing/Corpse`), because nothing stamped one. Per-instance facts
  * survived as hydrated *fields*, which is why nothing looked broken — but
  * every identity-keyed ledger saw one object. Two bodies in a room were
  * one body to the chronicle, to belief, to chattel, to anything that
@@ -597,6 +651,31 @@ async function divideBody(avatar: PlayerBody, cause: string): Promise<void> {
 function corpseIdentityFor(body: Stuff, nowS: number): string | undefined {
   const deceased = body.getIdentityPath();
   if (!deceased) return undefined;
+  // ⭐⭐⭐ **A body with no MINTED identity gets no minted identity.** This
+  // is the plan's own half-rule (*no identity path, no minted identity*)
+  // one rung up, and `getIdentityPath()` is `#identityPath ??
+  // getTemplatePath()` — so when the two are equal nothing was ever
+  // minted and the "identity" below would be built out of a ROW its whole
+  // flock shares. The key could then only ever mean *the Nth body off the
+  // ewe row in game-second T*: not durable (no deed is written for a
+  // non-persona, and `Creature` composes no `PersistableMixin`), not
+  // constructible by any caller, and — the axis that actually decides it
+  // — **not legible**. A player refers to a thing by keyword, then the
+  // `distinguishing` form, then an ordinal; nothing in that ladder can
+  // name a game-second, so the key is unspeakable by construction.
+  //
+  // A beast's corpse is therefore an ordinary multi-instance clone of the
+  // corpse row, exactly as cuts and logs already are. Nothing reads that
+  // row as a singleton (checked across the tree), and what tells two
+  // bodies apart is the presentation path — see `salientFeaturesImpl`,
+  // which now says a body's decay.
+  //
+  // ⚠ The mint SURVIVES where the identity is genuine: a player can die,
+  // `reembody` and die again before the first body decays, so one avatar
+  // owns two coexisting corpses and `<gameSecond>` names WHICH DEATH.
+  // There the chronicle writes a `['death']` deed and the corpse persists
+  // its own `diedAtGameSec`, so the name is recorded rather than guessed.
+  if (deceased === body.getTemplatePath()) return undefined;
   const base =
     `${TemplatePaths.mortalityCorpse}/` +
     `${deceased.replace(/^\/+/, '')}/${nowS}`;
@@ -622,6 +701,28 @@ function corpseIdentityFor(body: Stuff, nowS: number): string | undefined {
 }
 
 /**
+ * Take the material slices off a body — the forensic half of what it was.
+ *
+ * ⚠ **Order matters for the player path and not for the other one.** On a
+ * player's body this MUST run before the drain, because draining is what
+ * destroys the thing being copied; on a beast's there is no drain, so it
+ * runs in the tail. Extracted here so the two paths cannot disagree about
+ * what a corpse is made of: the list is `MATERIAL_FORK_SLICES`, and the
+ * apply side (`adoptMaterialState`) has no `mergeSlice_` counterpart,
+ * which is what makes a corpse un-reanimatable by protocol.
+ */
+function materialSlicesOf(body: Stuff): Record<string, unknown> {
+  const material: Record<string, unknown> = {};
+  for (const name of MATERIAL_FORK_SLICES) {
+    const fn = (body as unknown as Record<string, () => unknown>)[
+      `forkSlice_${name}`
+    ];
+    if (typeof fn === 'function') material[name] = fn.call(body);
+  }
+  return material;
+}
+
+/**
  * Mint a corpse carrying a body's material state and its loadout.
  *
  * Cloned from the authored corpse template, then configured from the body
@@ -634,7 +735,7 @@ function corpseIdentityFor(body: Stuff, nowS: number): string | undefined {
  * nothing to examine, and forensics would simply not work in that world.
  */
 async function mintCorpseFrom(
-  body: Stuff & Vitals,
+  body: Stuff,
   material: Record<string, unknown>,
   cause: string,
   nowS: number,
@@ -653,6 +754,51 @@ async function mintCorpseFrom(
     ? (body.getSpecies()?.getTemplatePath() ?? null)
     : null;
 
+  /*
+   * ⚠⚠ **The mass has to be STAMPED, and this is why.**
+   *
+   * `Creature.getMass()` prefers a stored mass and otherwise derives one
+   * from `species.massAt(getAgeDays())`. A fresh clone's `bornAt` is 0,
+   * so a derived corpse masses a NEWBORN: a full-grown ewe would have
+   * dressed out as a lamb, and every downstream reader of a carcass's
+   * weight — the butcher's yield, carry capacity, thermal mass — would
+   * have been quietly wrong. So the body's own figure is copied, which is
+   * also the honest one (it already includes what the animal had put on).
+   * `bornAt` rides along beside it so the corpse's AGE is the age it died
+   * at rather than its age now, which is what `race.md` promises a
+   * forensic body reports. The slices carry no reserves, so nothing
+   * re-adds a body-composition delta on top of the stamp.
+   */
+  const stampedMass = MixinApi.isTangible(body)
+    ? body.getMass().rawValue()
+    : undefined;
+  const bornAt = MixinApi.isOrganism(body) ? body.getBornAt() : undefined;
+
+  /*
+   * ⭐ **The condition it died in — a number, never a reserve.** The
+   * butcher is reading what the stockman achieved before the kill, and a
+   * dead animal's condition cannot change. `flesh` is the ranching stock
+   * (`ranching.md`); a body that carries none (a person, a fixture)
+   * stamps `null` and the kitchen falls back to its own default.
+   */
+  const conditionAtDeath = MixinApi.isReserved(body)
+    ? (body.getReserve('flesh')?.current.rawValue() ?? null)
+    : null;
+
+  /*
+   * ⭐ **A body answers to the dead thing's own words.** The row's
+   * `[body, corpse, carcass]` plus whatever the thing was called, so
+   * `butcher ewe` finds the carcass and `look clerk` finds the body of
+   * the clerk. Deliberate on the player path too: a name-keyword now
+   * binds to the body its owner left.
+   */
+  const keywords = [
+    'body',
+    'corpse',
+    'carcass',
+    ...(MixinApi.isPerceptible(body) ? body.getKeywords() : []),
+  ];
+
   const corpse = await StuffApi.clone(TemplatePaths.mortalityCorpse, undefined, {
     dataOverlay: {
       // ⚠ A STEM plus its register, not a string with "the" welded on.
@@ -666,6 +812,10 @@ async function mintCorpseFrom(
       _speciesPath: speciesPath,
       causeOfDeath: cause,
       diedAtGameSec: nowS,
+      conditionAtDeath,
+      keywords,
+      ...(stampedMass !== undefined ? { mass: stampedMass } : {}),
+      ...(bornAt !== undefined ? { bornAt } : {}),
     },
     // Nothing reads a corpse by identity.
     // `reembody` never looks one up, and belief's naming path is gated
@@ -727,6 +877,15 @@ async function mintCorpseFrom(
     for (const item of [...body.getContents()]) {
       if (MixinApi.isContainable(item)) ContainmentApi.move(item, corpse);
     }
+  }
+
+  // ⭐ The silent population moves with the meat. A carcass in the sun is
+  // growing something nothing reports, and this is what keeps the fishing
+  // pack's outfall load on the fillet now that a dead fish is a Corpse
+  // rather than a dead `Fish` — the load was on the animal, and the
+  // animal is gone.
+  if (MixinApi.isContaminable(body) && MixinApi.isContaminable(corpse)) {
+    body.transferContaminationTo(corpse);
   }
 
   // Lay it where the body fell.

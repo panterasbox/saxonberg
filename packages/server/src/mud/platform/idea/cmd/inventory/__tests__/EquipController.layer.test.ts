@@ -103,7 +103,7 @@ function bodyAndPlanPath(): { body: Wearer; planPath: string } {
     {
       key: 'body.torso',
       parent: null,
-      tissues: [{ tissuePath: '/stuff/idea/material/tissue/flesh', mass: 40 }],
+      tissues: [{ tissuePath: '/stuff/idea/material/tissue/flesh', share: 0.5 }],
     },
   ]);
   const planPath = `/stuff/idea/species/BodyPlan/ladder-${n}`;
@@ -266,7 +266,7 @@ describe('the impossible fit', () => {
       {
         key: 'body.torso',
         parent: null,
-        tissues: [{ tissuePath: '/stuff/idea/material/tissue/flesh', mass: 40 }],
+        tissues: [{ tissuePath: '/stuff/idea/material/tissue/flesh', share: 0.5 }],
       },
     ]);
     const planPath = `/stuff/idea/species/BodyPlan/refuse-${n}`;

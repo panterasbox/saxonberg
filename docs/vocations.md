@@ -159,14 +159,14 @@ Per entry: **what gates it**, **who pays**, **which subsystem it rides**.
 |---|---|---|---|
 | crafter (many branches) | **shipped** | Discipline + tools | buyers |
 | bartender / cook | **shipped** | on-shift `fulfills` seat | the house |
-| slaughterer / butcher | designed | premises + skill | trade |
+| slaughterer / butcher | **shipped** ([butchery](./subsystems/butchery.md) · `trade-ranching` kills, `trade-cooking` breaks down) | premises + skill + **the tool ladder** | trade — ⭐⭐ *the hand decides joint-vs-trim, so an unskilled butcher visibly wastes a carcass and the waste is the lesson; and ⭐ there is ONE death path, so a beast killed in a fight breaks down exactly like one you slaughtered* |
 | **victualler** (preserving) | designed ([preservation](./slates/tails/preservation-slate.md) · [hearth & larder](./slates/tails/hearth-and-larder-design-pack.md)) | premises + competence | trade — ⚠ *the vocation the icebox eventually devalues; that is the point* |
 | **mana refiner** | designed ([mana economy](./slates/builds/mana-economy-design-pack.md)) | premises (industrial zoning) + cheap power | trade — ⭐ *concentration, never creation; needs the energy economy as its input* |
 | **salvager** | designed | **assay** + yard | materials buyers |
 | **smelter** | **shipped** ([mining](./subsystems/mining.md)) | premises (industrial zoning) + charcoal | ingot buyers — ⭐ *buys its ore out of REVENUE, which is what removed the deferred CB-lending dependency* |
 | **miller** | **shipped** ([crafting](./subsystems/crafting.md) · `trade-milling`) | premises + a FALL of water | trade — ⭐⭐ *the capital ladder that buys back your TIME rather than a rate: a quern holds your `hands` for the whole grind and a water mill holds nothing of yours. Paid in KIND (the multure), which is how a mill pays for premises with no coin changing hands* |
 | **baker** | **shipped** ([crafting](./subsystems/crafting.md) · `trade-baking`) | premises + an oven + a leaven | ⭐ *the first shopfront to come off the general store — and the first trade with a modelled CUSTOMER: the `eats` brain buys bread every morning and its purse chooses which loaf* |
-| tanner | **GAP** | premises (industrial zoning) | trade |
+| tanner | **shipped** ([butchery](./subsystems/butchery.md) · `trade-tanning`) | premises (industrial zoning) + `leatherwork` | trade — ⭐⭐ *one verb, and it is a JUDGEMENT rather than a transform: the decision is when to pull the hide out, too early and it is thin, too late and the bark has eaten the grain. The pit tells you in words, never a number* |
 
 ### Tertiary — move, store, sell
 
@@ -302,7 +302,7 @@ right per row is most of the civic design.
 | **carpenter · joiner** | **GAP** — after sawing | Discipline + tools | ⭐⭐ *the trade most of the world's furniture, doors and rigs are waiting on: a haft on a pick-head is the same assembly shape as a chair* — column three of `forestry → sawing → carpentry`, and the `wood` tag is what every one of its recipes matches on |
 | **stevedore / docker** | **GAP** | employment | ⭐ **Wharfside already has a dockers' hall**; the labour half of the depot |
 | **icehouse keeper / ice cutter** | **GAP** | premises + thermal read | ⭐⭐ **THIS IS THERMAL'S MISSING VOCATION** — and it is what makes the refrigeration arc possible before machines |
-| tanner | **GAP** | premises (industrial zoning) | the classic nuisance trade (⭐ the smelter and the **miller** both SHIPPED — see § Secondary) |
+| tanner | **shipped** — see § Secondary | premises (industrial zoning) | the classic nuisance trade, and ⭐ the LULU zone is what expresses its unity with the chandler rather than a shared package |
 | **charcoal burner / collier** | **shipped** ([mining](./subsystems/mining.md)) | skill | ⭐⭐ *a judgment craft with a real downside — too much air and the charge goes to ash, too little and you draw half-burnt brands, and you can lose a whole burn.* Fuel for everything above, and the mine's timber comes off the same stand — *which is the FORESTER's since the forestry build; the collier is its customer* |
 | **gunsmith · powder maker** | designed ([ranged](./slates/builds/ranged-slate.md)) | licence | credential-gated |
 | **shipwright · ship-breaker** | **GAP** | premises | the breaker is a LULU |
@@ -310,7 +310,7 @@ right per row is most of the civic design.
 | **almanac-maker / weather-reader** | **designed** ([insurance § the almanac-maker](./slates/builds/insurance-slate.md)) | ⭐ **a TIME SERIES** (years of records — not skill or capital) | farmers — *a tighter planting window*; ⭐⭐ **owns DATA where the ratings agency owns a METHOD** |
 | **herald / identifier** | **GAP** | competence | ⭐ **belief's missing vocation** — identity verification as a trade |
 | **monument mason** | **GAP** | Discipline | ⭐ the **necropolis**; the chronicle made physical |
-| ⭐⭐ **knacker · chandler** | **GAP — newly identified 2026-09-03** | premises (industrial) + Discipline | ⭐⭐⭐ **the only genuinely new trade the settlement pass produced.** `organic/leather` ships as a material and so do `hide-stock` / `hide-jerkin` / `leather-boots` / `leather-whip` — **and nothing makes leather**; there is no `soap`, no `candle` (⚠ `tallow` has since shipped — `trade-cooking`'s `render-tallow` + `material/tallow.yaml`, and the pail of fat off `butcher`; corrected 2026-09), while Rejection's whole culture section is built on the candle. One input, three outputs: carcass → tallow → **candles (the light need)** + soap; → hide → **the tanner** → leather; → bone → glue. ⚠ Gated on **ranching**. See [rendering-slate](./slates/builds/rendering-slate.md). |
+| ⭐⭐ **knacker · chandler** | **shipped** ([butchery](./subsystems/butchery.md) · `trade-chandlery`; the knacker is a VENUE AND A SEAT in the LULU zone, not a pack) | premises (industrial) — ⚠ **and NO Discipline**, deliberately | ⭐⭐⭐ *the only genuinely new trade the settlement pass produced, and it shipped as the carcass chain's fat leg.* One input, three outputs: carcass → suet → **tallow** → candles + (soap, deferred); → hide → **the tanner** → leather; → bone → the field. ⭐⭐ The candle is **one recipe with an empty `outputMaterial`**, so beeswax and tallow dip two different candles out of the same command — which is what retired the old beeswax-welded row squatting under the beekeeper's Discipline. ⚠ `chandlery` is **not minted as a Discipline**: dipping is trivial and what is hard is *which fat you bought*, a market judgement rather than a craft one — so a chandler is a trader who dips. Glue from bone and soap stay GAPS with destinations ([rendering-slate](./slates/builds/rendering-slate.md)) |
 
 ### Maintain & dispose
 

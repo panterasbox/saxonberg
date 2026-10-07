@@ -172,3 +172,86 @@ describe('PostmortemMixin — the corpse clock', () => {
     expect(StuffApi.findById(c.stuffId)).toBe(c);
   });
 });
+
+/**
+ * ⭐⭐⭐ The decay band reaches the UX — the half that was missing.
+ *
+ * ⚠⚠ `getDecayStage()` computed four bands from the mortality build
+ * onward and **had no production reader anywhere in the tree.** So two
+ * of one player's corpses at different states of decay were
+ * indistinguishable to a player: the same keywords (the carcass chain's
+ * keyword union gave them the dead thing's name keywords too), nothing in
+ * the `distinguishing` form but a worn item, and then a bare ordinal —
+ * the exact *two buttons both labelled "a cane rod"* failure the fishing
+ * drive caught.
+ *
+ * ⭐ It had to land on the PRESENTATION path rather than in a key, because
+ * that is how the UX refers to things at all: keyword → the
+ * `distinguishing` form → an ordinal. `PromptLogic.projectMatches` renders
+ * every disambiguation choice in that form and `perceivedKeywords`
+ * tokenizes it, so a player both READS the word and can TYPE it. A durable
+ * timestamp can do neither, which is the whole argument.
+ */
+describe('⭐ the decay band is legible — and targetable', () => {
+  beforeEach(() => {
+    installV1QuantityMarshallers();
+    WorldClockApi._resetForTesting();
+    real = 100000;
+    WorldClockApi._setNowProviderForTesting(() => real);
+  });
+  afterEach(() => WorldClockApi._resetForTesting());
+
+  it('says nothing while the body is fresh', () => {
+    const c = corpse();
+    // ⚠ Silence is deliberate, for the same reason only a TIE gets an
+    // ordinal: a word every corpse carries tells you nothing, and would
+    // make `fresh` match every body in the room.
+    expect(c.describeFor(undefined, 'distinguishing')).not.toMatch(/fresh/);
+  });
+
+  it('⭐⭐ names the band once the body has turned', () => {
+    const c = corpse();
+    advance(STAGE + 1);
+    expect(c.getDecayStage()).toBe('stale');
+    expect(c.describeFor(undefined, 'distinguishing')).toMatch(/stale/);
+
+    advance(STAGE);
+    expect(c.getDecayStage()).toBe('decomposed');
+    expect(c.describeFor(undefined, 'distinguishing')).toMatch(/decomposed/);
+  });
+
+  it('⭐⭐ two bodies at different bands are told apart IN WORDS', () => {
+    const older = corpse();
+    advance(STAGE * 2 + 1);
+    const fresher = corpse();
+
+    const a = older.describeFor(undefined, 'distinguishing');
+    const b = fresher.describeFor(undefined, 'distinguishing');
+    // The point of the whole exercise: a player can see which is which,
+    // without a path, a timestamp or an ordinal.
+    expect(a).not.toBe(b);
+    expect(a).toMatch(/decomposed/);
+    expect(b).not.toMatch(/decomposed/);
+  });
+
+  it('⭐⭐ and the band is a TARGETING keyword, so it can be typed', () => {
+    const c = corpse();
+    advance(STAGE + 1);
+    const viewer = makeStuff(() => new Creature());
+    // `perceivedKeywords` tokenizes the distinguishing form — this is what
+    // makes `butcher stale` reach the body a player is looking at.
+    expect(c.perceivedKeywordsFor(viewer)).toContain('stale');
+  });
+
+  it('⚠ a LIVING creature says nothing — every creature is Postmortem', () => {
+    // `PostmortemMixin` wraps `CreatureBase`, so the guard cannot be "does
+    // it compose the mixin". It is `diedAtGameSec === 0` answering `fresh`,
+    // and `fresh` being silent.
+    const alive = makeStuff(() => new Creature());
+    alive.setLifecycleState('alive');
+    advance(STAGE * 3);
+    expect(alive.describeFor(undefined, 'distinguishing')).not.toMatch(
+      /stale|decomposed|spent/,
+    );
+  });
+});

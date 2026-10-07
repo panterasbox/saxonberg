@@ -83,6 +83,22 @@ requires:
     # city's civic ground.
     - { extent: /world/terminus/wharfside,   parentParcel: /world/terminus, holder: { group: terminus }, landUse: industrial, powerBand: industrial, feeder: terminus-main:bank }
     - { extent: /world/terminus/goods-yards, parentParcel: /world/terminus, holder: { group: terminus }, landUse: industrial, powerBand: industrial, feeder: terminus-main:bank }
+    # ⭐⭐ **The three noxious trades, each titled as its own parcel inside
+    # the industrial district.** `landUse: industrial` is the honest word
+    # — `settlement-model`'s own test is *what LEAVES* — and the three of
+    # them are the realm's first LULU cluster shipped on purpose: a
+    # knacker, a tannery and a chandlery, chained so each one's product is
+    # the next one's feedstock.
+    #
+    # ⚠ `powerBand: off-grid` on the tannery and the knacker, and it is
+    # not an oversight. Both run on a fire and a pit; neither has anything
+    # to plug in, and the estuary and the necropolis are already authored
+    # the same way. The chandlery takes `industrial` with its neighbours
+    # because it has a shop front and will want a lamp over the counter
+    # the day anybody wires one.
+    - { extent: /world/terminus/wharfside/knackers,  parentParcel: /world/terminus/wharfside, holder: { group: terminus }, landUse: industrial, powerBand: off-grid }
+    - { extent: /world/terminus/wharfside/tannery,   parentParcel: /world/terminus/wharfside, holder: { group: terminus }, landUse: industrial, powerBand: off-grid }
+    - { extent: /world/terminus/wharfside/chandlery, parentParcel: /world/terminus/wharfside, holder: { group: terminus }, landUse: industrial, powerBand: industrial, feeder: terminus-main:bank }
     - { extent: /world/terminus/infirmary,   parentParcel: /world/terminus, holder: { group: terminus }, landUse: civic, feeder: terminus-main:avenue }
     - { extent: /world/terminus/necropolis,  parentParcel: /world/terminus, holder: { group: terminus }, landUse: civic, powerBand: off-grid }
 boot:
@@ -105,6 +121,21 @@ boot:
   - { template: /world/terminus/wharfside/mill/idea/outfit, role: producer, reason: "the weaver's `purchases` position is materialized over a live business; the consigns beat trades as it" }
   - { template: /world/terminus/wharfside/dyehouse/location/floor, role: producer, reason: "the dyehouse floor — its counter is the attendance point customers queue at" }
   - { template: /world/terminus/wharfside/dyehouse/idea/outfit, role: producer, reason: "the dyer's position is materialized over a live business" }
+  # ⭐⭐ **The three carcass-chain premises, and the reason each needs TWO
+  # entries is the one `lint:openings` holds.** A business advertises into
+  # a ROOM; the derived help-wanted sign reads LIVE businesses only (a
+  # `look` may not stand a house up), and a room nothing has reached is a
+  # room the sign cannot be read in. Both halves, or the vacancy is
+  # invisible — which is the shape that cost the campus farm a build.
+  #
+  # ⚠ All three roster EMPTY on purpose: the premises exist, the work is
+  # there, and nobody is doing it. That is the content.
+  - { template: /world/terminus/wharfside/knackers/location/yard, role: producer, reason: "the knacker's yard — the room the knacker vacancy is advertised in, and where a carcass arrives off the works-board" }
+  - { template: /world/terminus/wharfside/knackers/idea/outfit, role: producer, reason: "the knacker's vacant seat — requires butchery at novice, and the refusal is only readable off a live business" }
+  - { template: /world/terminus/wharfside/tannery/location/yard, role: producer, reason: "the tanyard — its pits are the premises, and a prop nothing warms is a pit that is not there" }
+  - { template: /world/terminus/wharfside/tannery/idea/outfit, role: producer, reason: "the tanner's vacant seat — requires leatherwork at novice, the one Discipline this build mints" }
+  - { template: /world/terminus/wharfside/chandlery/location/floor, role: producer, reason: "the chandlery floor — its counter is the only shop front in the district, and the dip-pot is the trade" }
+  - { template: /world/terminus/wharfside/chandlery/idea/outfit, role: producer, reason: "the chandler's vacant seat — the ONE of the three with no requirement at all, and the one a new player can actually take" }
   - { template: /world/terminus/goods-yards/crowsfoot/location/floor, role: producer, reason: "the Crowsfoot outfit's yard — same shape as the floor's, one small-batch label" }
   - { template: /world/terminus/goods-yards/veshko/location/distillery, role: producer, reason: "Veshko's yard — its Stock is the home container the Volk and unbranded rows spawn into (the zone's stocks: sets the counts), and its hand runs the consigns brain" }
   - { template: /world/terminus/goods-yards/hollis/location/floor, role: producer, reason: "Hollis's bottling floor — its Stock is the home container the private-label rows spawn into, and its hand runs the consigns brain" }

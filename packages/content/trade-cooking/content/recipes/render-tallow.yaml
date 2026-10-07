@@ -15,9 +15,14 @@ keywords:
 - render-tallow
 - render
 - tallow
+# ⭐⭐ **SUET, not trimmings** (D3). The slot used to read `category:
+# meat`, which meant you rendered tallow out of the stew meat — the one
+# thing on a carcass you actually want to eat, and the one line that made
+# the fat line of the yield pointless. A carcass gives suet; suet is what
+# renders.
 inputSlots:
-- slot: trimmings
-  category: meat
+- slot: suet
+  category: suet
   minGrade: poor
   kind: item
   count: 2

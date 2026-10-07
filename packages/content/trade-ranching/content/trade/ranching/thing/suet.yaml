@@ -1,0 +1,27 @@
+# Suet — ⭐⭐ **raw hard fat, and it is NOT tallow.**
+#
+# The distinction is the whole of D3, and it was collapsed: this row was
+# called `tallow.yaml`, its material was tagged `fat`, and `fat` is the
+# tag a recipe's `medium: fat` matches — so **a pail of raw suet straight
+# off a carcass could be used to fry in**, and the render pot it was
+# supposed to feed was optional. One of the two steps the chandler and the
+# cook both depend on was free.
+#
+# So: a carcass gives SUET. Rendering gives TALLOW
+# (`/trade/cooking/idea/material/tallow`, which carries `fat` and
+# `cooking-fat` and a smoke point). You cannot fry in this, you cannot dip
+# a candle in it, and both of those are one pot away.
+#
+# ⚠ The mass is the carcass's — `Species.dressOut` sets it — rather than
+# a number anybody typed.
+class: /platform/thing/Provision
+data:
+  shortDescription: lump of suet
+  keywords: [suet, fat, leaf, kidney, lump]
+  register: indefinite
+  longDescription: >-
+    Hard white fat off the kidneys and the loin, cut away clean. Raw, and
+    not much use as it is. It will render down to something that keeps for
+    a year and burns for longer.
+  _materialPath: /stuff/idea/material/food/animal-fat
+  mass: 3

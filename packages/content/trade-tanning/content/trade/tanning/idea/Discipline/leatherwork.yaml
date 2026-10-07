@@ -1,0 +1,35 @@
+# Leatherwork — ⭐ the discipline of turning a skin into a material.
+#
+# ⚠⚠ **What competence buys is JUDGEMENT, not yield.** A master tanner
+# does not get more leather out of a hide — there is one hide and it is
+# the size the animal was. What a master gets is *the moment*: pulling a
+# skin when it is through rather than a week thin or a week burnt, and
+# reading a liquor that is about to go harsh. That is why `tan` credits
+# `easy` for laying a skin down and `standard` for lifting one out.
+#
+# ⭐ It was on the unminted roster (`trade-roster-slate`) before this
+# build, under this exact ISCED-F code, which is the strongest available
+# argument that it is a real vocation rather than one invented to justify
+# a pack: the demand was recorded before the producer existed.
+#
+# ⚠ `conferrals` stays empty — competence GRADES, it does not gate. A
+# first-day tanner can tan; they will just make poor leather and not know
+# why for a while.
+class: /platform/idea/Discipline
+data:
+  key: leatherwork
+  channel: skill
+  label: Leatherwork
+  iscedf: "0723"  # ISCED-F 2013: textiles (clothes, footwear and LEATHER)
+  description: >-
+    Reading a skin and a pit. Judging when a hide has taken the liquor
+    all the way through and when it has had too much, charging a pit so
+    it works without burning the grain, and knowing how many skins one
+    pit will carry. It makes no more leather than the animal had; what it
+    buys is leather that is worth cutting.
+  requires: [recipe-knowledge]
+  specializes: []
+  # ⭐ It sits beside the cloth trades rather than beneath them: a tanner
+  # supplies a tailor, and both of them are reading a material by hand.
+  synergizes: [textiles, tailoring]
+  conferrals: []

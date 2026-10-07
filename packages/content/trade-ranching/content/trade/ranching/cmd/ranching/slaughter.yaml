@@ -1,0 +1,31 @@
+verbs: [slaughter]
+controller: /trade/ranching/idea/cmd/ranching/SlaughterController
+description: "Kill a beast cleanly; it leaves a body"
+help: |
+  Quick, and then there is a body on the ground.
+
+  ⭐ **Killing and dressing are two acts.** This one kills. `butcher` is
+  what takes the carcass apart, with a blade, and what comes off it is
+  the animal's own — its size and the condition you got it into. So
+  *finish it before you kill it*, and have somewhere to put the meat.
+
+  ⭐ It is the same death a fight or a fox leaves, so a beast killed in a
+  hedgerow is butchered exactly as one killed in the yard. The clock on
+  the meat starts here, not at the knife.
+
+  ⚠ There is no confirmation and no ceremony. A number in the herdbook is
+  easy to cull and an animal you named is not, and that is a fact about
+  you rather than a rule — though the game will refuse the one you named.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+args:
+  - name: target
+    type: object
+    required: true
+    scope: ["reachable"]
+    # ⚠ `HandlingMixin`, which admits the farm dog deliberately: it must
+    # BIND so the refusal can be spoken. A target that fails at the binder
+    # is refused silently, and a refusal you cannot hear is not a refusal.
+    # The species' empty yield is what says no, and it says which no.
+    requires: HandlingMixin

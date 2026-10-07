@@ -1,0 +1,43 @@
+# Dip a candle — ⭐⭐ **ONE recipe, two fats, and the empty
+# `outputMaterial` is the feature.**
+#
+# ⚠⚠ **Do not author `outputMaterial` or `outputAppearance` here.** That
+# is what the retired `trade-apiculture` version did, and it is the whole
+# reason a tallow candle was unauthorable: with beeswax welded onto the
+# output, the only way to ship the ordinary kind of candle — the cheap
+# light the whole medieval world actually burned — was a second recipe
+# and a second thing row saying *greasy* where the first said *pale*.
+#
+# The engine's own rule does it instead: `outputMaterial` empty ⇒ the
+# output's material comes from the matched input. So a pot of beeswax
+# dips a pale taper that smells of honey, a pot of tallow dips a greasy
+# one that smells of mutton, and `Candle` builds both descriptions off
+# the material. A third fat is a material row and no code.
+#
+# ⚠ NO `discipline` and NO `difficulty`, deliberately. A candle is the
+# one made thing in the game a person with no trade at all can produce,
+# which is correct: dipping a wick in fat is not a skill, and a gate
+# whose key does not exist is a lock. What is hard is buying the right
+# fat at the right price — a market judgement, which is why the
+# chandlery mints no Discipline.
+recipeId: candle
+name: Dip a candle
+keywords: [candle, dip, taper]
+inputSlots:
+- slot: stock
+  # ⭐ `candle-stock` is carried by beeswax AND by rendered tallow, and by
+  # nothing else. ⚠ NOT `fat`: that is the cooking MEDIUM tag, and a
+  # recipe matching it would let you dip a candle out of the frying pan.
+  category: candle-stock
+  minGrade: poor
+  measureL: 0.12
+toolCapabilities: []
+outputApplication: tangible
+outputTemplate: /trade/chandlery/thing/candle
+# ⚠⚠ EMPTY. See the header. This single empty string is the pack.
+outputMaterial: ''
+# The pot has to be hot enough to have melted the fat in the first place,
+# which is the honest gate: you cannot dip a candle out of a cold pot of
+# set tallow. Beeswax melts at 335 K and tallow at 320 K, so 340 K clears
+# both with a little margin.
+requiresHeatK: 340

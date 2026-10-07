@@ -15,7 +15,7 @@ import { Mixins } from '../../mixin';
 import { Actor } from '../Actor';
 import { Creature } from '../Creature';
 import { Character } from '../../character/Character';
-import Corpse from '../../../platform/agent/Corpse';
+import Corpse from '../../../platform/thing/Corpse';
 import { KeptAnimal } from '../KeptAnimal';
 
 const ACTS = [

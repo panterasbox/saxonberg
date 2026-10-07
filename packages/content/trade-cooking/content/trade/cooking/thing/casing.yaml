@@ -1,0 +1,11 @@
+# A length of scraped casing.
+class: /platform/thing/Provision
+data:
+  # ⚠ A STEM, no article: the article comes from `register`.
+  shortDescription: length of scraped casing
+  keywords: [casing, casings, skin]
+  register: indefinite
+  longDescription: >-
+    A translucent length of gut, turned inside out, scraped thin and rinsed until it squeaks. It smells faintly of nothing much, which is as good as it gets.
+  _materialPath: /trade/cooking/idea/material/casing
+  mass: 0.2

@@ -1,0 +1,59 @@
+# Rawhide — ⭐⭐ **a green skin, and it is NOT leather.**
+#
+# The distinction the tanning trade exists on, and it was collapsed: the
+# hide row shipped made of `leather`, so a skin straight off a carcass was
+# already the finished material and the three weeks in the pit bought
+# nothing but a prettier description. The jerkin recipe matched the `hide`
+# tag and got a raw green skin.
+#
+# So: a carcass gives RAWHIDE. The pit gives LEATHER. ⚠ This row is
+# deliberately **not** tagged `hide` — that tag is what the tailor's
+# jerkin matches, and the whole point is that you cannot cut a jerkin out
+# of a wet skin.
+#
+# ⚠⚠ It ROTS, and fast. `spoilActivationEnergy` is low and
+# `waterActivity` is near saturation, which together say what the hide
+# row has said in prose since the day it was authored: *it wants to be in
+# a tanpit within the week or it is worth nothing*. Salting it (`cure`)
+# drops the water activity and is how a hide travels — which is the
+# difference between a tannery that must sit beside the shambles and one
+# that can buy from three counties.
+#
+# ⭐ It lives in the COMMONS: a green skin is a fact about animals, not
+# about the tanning trade. The trade is what does something with it.
+class: /platform/idea/material/Material
+data:
+  name: rawhide
+  keywords: [rawhide, hide, skin, green, pelt]
+  # ⚠ No `heavy`: it is a reserved descriptor on the wand bank. See the
+  # note on `oak-bark.yaml` — every appearance word is checked.
+  appearance: a wet green skin
+  density: 1000
+  specificHeat: 3000
+  thermalConductivity: 0.35
+  # Soft and tough — it has not been tanned, so it is limp rather than
+  # supple, and an edge goes straight through it.
+  hardness: 5
+  toughness: 4
+  electricalConductivity: 1.0e-4
+  # A wet skin takes up a great deal more water, which is also why it
+  # weighs what it does.
+  waterAbsorptionCapacity: 60
+  edibility: false
+  nutrients: []
+  toxicity: []
+  # ⚠ NO `hide` tag: the tailor's jerkin matches that, and a jerkin cut
+  # from a green skin is the defect this build came to fix. `rawhide` is
+  # what the pit and the salt-cure match.
+  tags: ["organic", "skin", "rawhide", "once-living"]
+  # ⚠⚠ The rot clock. Low activation energy = it goes off at ordinary
+  # temperatures, which is the pressure the whole trade is played under.
+  spoilActivationEnergy: 70000
+  waterActivity: 0.98
+  composition: []
+  # ⚠ No `chemistry:` key. `leather.yaml` beside this one authors one and
+  # `Material` declares no such field, so it is one of the 393 orphan data
+  # keys `lint:instanceable` holds a ratchet over — a key the applier
+  # discards SILENTLY. Copying it here would have raised the ceiling,
+  # which is the one direction a ratchet may not move.
+  biologicalSource: null

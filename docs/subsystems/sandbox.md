@@ -684,7 +684,7 @@ name. `CircleAvatar` was considered and rejected for a subtler reason:
   "is this receiver inside the bound?" by requiring the receiver's own
   `templatePath` to sit under the parcel. But a template path is *clone
   lineage*: an avatar's is `/platform/agent/Avatar/<id>` and a cloned corpse's is
-  `/stuff/agent/Corpse`, wherever either happens to be standing. So a
+  `/stuff/thing/Corpse`, wherever either happens to be standing. So a
   governed eval was denied the one receiver it most obviously covers —
   the wizard's own body, in the parcel they hold title to — and every
   runtime instance besides. Worse, the eval scratch is minted and *then*

@@ -1,0 +1,26 @@
+# A bundle of oak bark — ⭐⭐ **the tanner's feedstock, and the reason the
+# etymology is load-bearing.**
+#
+# Medieval Latin *tannum* is crushed oak bark. The chemical is named after
+# the bark, not the bark after the chemical, and a tanpit is a pit of this
+# in water. So the oak coppice has a customer that is not the sawmill, and
+# the forestry trade has a second product off the same felling.
+#
+# ⭐ A BUNDLE rather than a heap, because a bundle is a thing one person
+# carries. Four come off a standard and they sum to about 8 % of the
+# trunk, which is roughly the real share.
+#
+# ⚠ The mass is the TREE's — `dropStandard` sets it off the bole, so bark
+# off a great oak is heavier than bark off a small one. The figure here is
+# the typical case, for a bundle that arrives any other way.
+class: /platform/thing/Good
+data:
+  shortDescription: bundle of oak bark
+  keywords: [bark, bundle, oak, tan, tanbark]
+  register: indefinite
+  longDescription: >-
+    A faggot of bark strips, bound with a withy. The outer face is grey
+    and ridged and the inner is the colour of strong tea, and it smells
+    of exactly that.
+  _materialPath: /stuff/idea/material/organic/oak-bark
+  mass: 13
