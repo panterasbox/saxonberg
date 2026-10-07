@@ -1061,6 +1061,7 @@ WardrobeMixin.wardrobes = 0
 WarrenMemberMixin._warren = 0
 WaterActivityMixin._moisture = 0
 WaterActivityMixin._solute = 0
+WaterActivityMixin.dryness = 0
 WaterActivityMixin.waterClockStamp = 0
 Weapon.balanceFactor = 0
 Weapon.exercises = 0
