@@ -12,7 +12,19 @@
 # (`closed: true`) and every gate on it reports `cut` or `off` — which
 # is the whole difference between a thing somebody can fix by opening a
 # valve and a thing somebody has to repair.
-class: /system/arcana/thing/ManaMain
+#
+# ⭐⭐ `extends:` the generic row since the reachability sweep, and the
+# generic row's own header is what asked for it: *"this is the GENERIC
+# row — a locality that wants a line seats its own copy with its own
+# `seatIn`."* Two localities did exactly that by COPYING it, so the
+# generic sat in the arcana pack named by nothing at all — a parent with
+# no children, which arm R reads as unreachable because that is what it
+# was.
+#
+# ⚠ Nothing the runtime reads changes: `capacityTau`, `severed` and
+# `closed` are inherited identically, and what this row still states is
+# only what differs — where it is seated, and what it looks like.
+extends: /system/arcana/thing/mana-main
 data:
   seatIn: /world/terminus/terminal/location/arrival-gate
   shortDescription: district mana line
@@ -22,6 +34,3 @@ data:
     A brass trunk the thickness of a thigh runs the length of the gate
     hall a foot below the ceiling, dropping a spur to each terminal.
     Somebody has chalked a maintenance date on it that is well past.
-  capacityTau: 100000
-  severed: false
-  closed: false

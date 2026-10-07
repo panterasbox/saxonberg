@@ -738,10 +738,25 @@ export const ARTICLE_SHAPE_CEILING = 106;
 export const UNCONFERRED_CEILING = 0;
 
 /**
- * ⭐ Arm R's burn-down ceiling, opened at the sweep's census. W3 drives
- * it to zero and deletes it, the same way W2 did arm A's.
+ * ⭐⭐ **Arm R is a ZERO INVARIANT**, like arm A. Every `thing`-branch row
+ * in the game is reached by one of the five mechanisms or carries
+ * `unreachable:` saying why not. The sweep opened at 45 and W3 drove it
+ * to 0.
+ *
+ * ⭐ What the burn-down actually looked like, because the shape is the
+ * argument for the gate: of the 45, **nineteen went on a shop shelf**
+ * (the rule: if a player would plausibly own one it is stock), **eight
+ * were placed where the world already described them**, **five were
+ * declared `exemplar`** (they exist so a doc can point at them), **six
+ * were parked against `magic-items-slate`** (distribution is its
+ * question, and a shopkeeper's par would answer it by accident),
+ * **three were resolved by `extends:` or `container:`**, and **exactly
+ * ONE was deleted.** ⚠ The plan listed five for deletion and four of
+ * those turned out to be wrong on inspection — each row's own header
+ * said where it belonged, and a gate that produces deletions is a gate
+ * being read carelessly.
  */
-export const UNDECLARED_ROW_CEILING = 45;
+export const UNDECLARED_ROW_CEILING = 0;
 
 export interface Report {
   findings: Finding[];

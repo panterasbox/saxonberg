@@ -53,6 +53,15 @@ data:
     # ⭐ The deeps — what makes this room's `water`-medium exit(s)
     # usable. One row, four rooms; see the row's own header.
     - /world/terminus/estuary/thing/open-water
+    # ⭐ A closed stove in the depot hut — `fire.md`'s best of the three: a
+    # firebox with a door loses less up the chimney, so it puts MORE heat
+    # into the room off the same fuel and gives almost no light for it.
+    # ⭐⭐ Zero new code: `Hearth` is the class, and what makes this a stove
+    # is three numbers and some prose. It stood nowhere until the
+    # reachability sweep, which left that claim being made about a row
+    # nobody could warm their hands at. (Propped, not sold — see the
+    # brazier's note in the goods yard.)
+    - /stuff/thing/stove
   cast:
     - /trade/haulage/agent/warehouseman
     - /trade/haulage/agent/dispatcher

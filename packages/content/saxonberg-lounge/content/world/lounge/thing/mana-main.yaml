@@ -3,7 +3,19 @@
 # The lounge is not a frontier post: somebody pays a line bill here, so
 # the ride out is cheap and the gate is never dark. That is the same
 # fact the fare shows, from the other end.
-class: /system/arcana/thing/ManaMain
+#
+# ⭐⭐ `extends:` the generic row since the reachability sweep, and the
+# generic row's own header is what asked for it: *"this is the GENERIC
+# row — a locality that wants a line seats its own copy with its own
+# `seatIn`."* Two localities did exactly that by COPYING it, so the
+# generic sat in the arcana pack named by nothing at all — a parent with
+# no children, which arm R reads as unreachable because that is what it
+# was.
+#
+# ⚠ Nothing the runtime reads changes: `capacityTau`, `severed` and
+# `closed` are inherited identically, and what this row still states is
+# only what differs — where it is seated, and what it looks like.
+extends: /system/arcana/thing/mana-main
 data:
   seatIn: /world/lounge/idea/warren
   shortDescription: mana line
@@ -12,6 +24,3 @@ data:
   longDescription: >
     A slim brass conduit runs down the wall beside the terminal and
     disappears into the floor, warm to the back of a hand.
-  capacityTau: 100000
-  severed: false
-  closed: false

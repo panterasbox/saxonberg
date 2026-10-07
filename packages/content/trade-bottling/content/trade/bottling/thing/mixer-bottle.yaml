@@ -1,6 +1,22 @@
 # The mixer bottle — the EMPTY vessel; the standard a bottled mixer is
 # built against (see `cola.yaml` and its siblings). `sealed` because a
 # screw cap holds gas: an uncapped mixer goes flat, a capped one keeps.
+#
+# ⭐⭐ `container:` since the reachability sweep — the bottling floor's own
+# stock, where every one of its filled siblings already stands. It was
+# named by nothing at all: a row whose stated job is to be *the standard
+# the others are built against* and which no player could ever hold, on a
+# floor whose whole business is filling it.
+#
+# ⚠ `extends:` was the obvious-looking fix and is the WRONG one here, for
+# a reason worth writing down: the four filled siblings would inherit
+# this row's `open: true` along with everything else, and a capped bottle
+# of cola that reads as open is a bottle that goes flat. The parent of a
+# filled thing is not always the empty version of it — `can-of-cola`
+# extends `can` because a can's parent states nothing about being open.
+# A crate of empties on the bottling floor says the same thing the
+# inheritance would have, and says it about the world instead of about
+# the rows.
 class: /platform/thing/Bottle
 data:
   shortDescription: "mixer bottle"
@@ -14,3 +30,4 @@ data:
   interiorCapacity: 1
   closure: sealed
   open: true
+  container: /world/terminus/goods-yards/bottling/thing/stock

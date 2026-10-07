@@ -53,13 +53,26 @@ describe('lamp oil rows', () => {
     );
   });
 
-  it('both casks are Bottle presets and state _materialPath (the mass guard)', () => {
-    const empty = row('trade/fuel/thing/oil-cask.yaml');
+  /**
+   * ⚠ There is ONE cask now. `trade/fuel/thing/oil-cask.yaml` — the
+   * separate EMPTY row — was deleted by the reachability sweep, and it is
+   * the only row in that whole pass that was.
+   *
+   * Its header claimed it was *"what ties it to the filled
+   * `lamp-oil-cask` — buy the oil, burn or pour it, and the same cask is
+   * left, empty, ready to refill."* That describes a mechanism that does
+   * not exist: `lamp-oil-cask` does not `extends:` it, nothing clones it,
+   * and emptying the filled cask leaves the SAME object empty rather than
+   * swapping it for a different row. `category: oil-cask` ties the two
+   * for `CategoryMeasure`'s tally, which is a read over a tag and not a
+   * faucet. So it was a second empty-cask row whose stated purpose the
+   * filled row already served by emptying — reachable by nothing, and
+   * nothing lost by its going.
+   */
+  it('the cask is a Bottle preset and states _materialPath (the mass guard)', () => {
     const filled = row('trade/fuel/thing/lamp-oil-cask.yaml');
-    expect(empty.class).toBe('/platform/thing/Bottle');
     expect(filled.class).toBe('/platform/thing/Bottle');
-    // lint:mass: neither may inherit the SpiritBottle gap.
-    expect(empty.data._materialPath).toBe('/stuff/idea/material/wood/oak');
+    // lint:mass: it may not inherit the SpiritBottle gap.
     expect(filled.data._materialPath).toBe('/stuff/idea/material/wood/oak');
   });
 

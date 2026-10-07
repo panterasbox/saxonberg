@@ -705,6 +705,72 @@ class, and `Species.ts` is untouched** (the yield is a row edit in
 `trade-ranching`, which keeps this build clear of the location-graph
 build's file).
 
+**⚠ D2 AMENDED AT BUILD TIME (W0) — a command VIEW has a CLOSED schema.**
+The plan's Grounding said *"nothing rejects an unknown top-level key"*
+and told W0 to pin that with a unit test. The test found the opposite for
+half the corpus: `CommandDefinition.fromView` validates every view
+against `src/mud/lib/command/command.schema.json`, which carries
+`"additionalProperties": false`, so a view with `unreachable:` **throws at
+load** — *"/ must NOT have additional properties"*. The row half of D2 is
+correct as written (`PackLogic` reads only `class`/`extends`/`data`).
+
+The fix, and it is better than what was planned: `unreachable` is now a
+**declared property of the command-view schema**, with a
+`^(exemplar|awaiting:[a-z0-9-]+)$` pattern and its reason in the schema's
+own `description`. A row's carrier stays an undeclared top-level key
+(rows have no closed schema); a view's is part of the view vocabulary.
+⭐ That is strictly stronger than the plan's version — on a view the
+disposition is now schema-validated as well as gated, so a typo fails at
+boot rather than at the next lint run. `CommandDefinition.unreachableKey.test.ts`
+pins the inertness: same verbs, same controller, same bound model, and
+the key is neither an arg nor an option.
+
+**D23 — `drive` and `flourish`: two dead views the Phase-1 census
+missed, decided at build time.** Arm A's first run reported **15**
+unconferred views, not fourteen. The two extra are real, and each was
+verified by grep: no `commandContributions` names either path, and the
+only other references are a trade-mining test and a kernel test fixture.
+
+*`platform/cmd/movement/drive.yaml` → `DrivableMixin`, `environment` +
+`peers`.* `MountableMixin` (`lib/slot/Mountable.ts:41-46`) confers
+`mount` and `ride`, and its own comment records this exact bug class
+found in the nutrition-fitness drive — *"view, controller and arg gate
+all shipped; nothing named the files"*. `drive` is the sibling of that
+pair and was missed on the same pass: `DrivableMixin`
+(`lib/slot/Drivable.ts`) has no static at all, so `drive north` has
+answered *"I don't understand"* since conveyance shipped. BOTH buckets,
+unlike Mountable's `peers`-only: the view's own help says *"you have to
+be aboard first"*, and a vehicle you are aboard is your CONTAINER, which
+is the `environment` bucket — `peers` additionally covers the coach you
+walk up to, and the arg's `requires: DrivableMixin` narrows the target
+either way.
+
+*`platform/cmd/social/flourish.yaml` → `BarStation` (trade-hospitality),
+plus a competence refusal in the controller, plus `mixology.yaml`'s dead
+`conferrals:` entry emptied.* ⚠ This one is the **residue of a retired
+mechanism**. `FlourishController`'s docstring says the verb *"is afforded
+only through competence conferral (it is in no static
+`commandContributions`)"*, and `platform/idea/Discipline/mixology.yaml:12-15`
+still carries `conferrals: [{band: competent, verbs: [social/flourish.yaml]}]`
+— but **band-gated verb conferral was retired in MR !285**, and
+`refreshConferrals`, which `Discipline/wind.yaml`'s own prose still cites,
+no longer exists in the source. So `flourish` is a verb whose only
+conferrer was deliberately deleted, and nothing noticed.
+
+The retirement's doctrine decides the disposition outright: *a band must
+never confer verbs — **the refusal IS the progression UI**, so if
+something lifts a verb, the verb must EXIST in order for you to be told.*
+Therefore: the **rail** affords it (`BarStation` already confers
+`muddle`/`strain`/`mix`/`serve` — *the instrument affords the verb*), and
+**Mixology competence lifts it**, as a refusal in the controller on the
+shape `DoseController.ts:139-142` already ships
+(`giver.competenceBandFor('mixology')` + `CompetenceBand.atOrAbove(…,
+'competent')`). Conferring it with no gate would have deleted the
+pedagogy the view's own help text promises; leaving it unafforded would
+have kept a shipped verb unsayable. ⚠ The conferral MACHINERY
+(`Advancement.conferredVerbs`, `Discipline.conferrals`) is left standing
+and unconsumed — retiring it is a separate cut, recorded in the MR.
+
 ---
 
 ## ⭐⭐ Host placement
@@ -822,10 +888,50 @@ suggested rung. Exit 1 on: any arm over its ceiling; any
 slate file; a path-valued field in neither list; a non-literal
 contributions initializer.
 
-**Ceilings opened.** `UNCONFERRED_CEILING = 14`, `PHRASE_SHAPE_CEILING
-= 16`, `UNDECLARED_ROW_CEILING = <the W0 figure — expected ~40 after the
-five mechanisms and the prefix rule are applied; record the real
-number in the commit>`.
+**Ceilings opened — the REAL figures, measured at W0's first run:**
+`UNCONFERRED_CEILING = 15`, `PHRASE_SHAPE_CEILING = 9`,
+`UNDECLARED_ROW_CEILING = 45`. Corpus: **301 command views, 668 `thing`
+rows.**
+
+### ✅ W0 DONE — what the first run changed
+
+- **Arm A found 15, not 14.** The two extra are `drive` and `flourish`
+  (D23). The plan's fourteen were themselves a miscount — the
+  requirements enumerate thirteen.
+- **Arm G found 9, not 16.** The detection is deliberately narrower than
+  the Phase-1 survey's *"vulnerable"* count: it requires the trailing
+  object arg to be **optional AND carry a `default:`**, because that is
+  precisely the case where the bare form OUGHT to work and silently does
+  not. A trailing *required* object has no bare form to break — the
+  grammar demands two tokens, so a two-word name there is genuinely
+  ambiguous and belongs at rung 4 (quote it), not in a ratchet. The nine:
+  `buy`, `order`, `reclaim`, `bake`, `issue`, `operate`, `prescribe`,
+  `hew`, `stake`. ⭐ `mill` is correctly absent — its `grain` arg is
+  object-typed, as the Grounding noted.
+- **Arm R found 45, not 79.** The difference is the five mechanisms
+  working: the nine `crate-of-*` rows, the blood units and the magic
+  census rows all resolve, and the `Gus.ts` prefix rule reaches the six
+  avenue rows. ⚠ **Six rows the Grounding does not list**, each triaged
+  by the same three dispositions in W3: `/stuff/thing/Campfire`,
+  `/stuff/thing/clothes/hood`, `/stuff/thing/clothes/lab-hoodie`,
+  `/stuff/thing/gear/backpack`, and — the ones that matter —
+  **`/trade/cooking/thing/cleaver` and `/trade/cooking/thing/meat-saw`.**
+  Those two are the BUTCHERY TOOLS the carcass-chain build shipped last
+  week, and neither is purchasable anywhere: `butcher` has a tool gate on
+  depth and no reachable tool to satisfy it. They are a PLACE, not a
+  declare.
+- **The faucet/citation lists were classified from a census, not from
+  memory**: a throwaway walk over every content YAML collecting every
+  field whose value is a `thing`-row path found **54 fields**, each of
+  which is now in `FAUCETS` or `CITATIONS` with a reason. The gate
+  reports an unlisted one as a finding, and the finding quotes the
+  `populates:` disaster so the next person knows what a rename costs.
+- **D2 was wrong about views** — see the amendment above. The key is a
+  declared schema property now.
+- **The ratchet runs in BOTH directions.** A ceiling that has gone slack
+  fails too, with the number to lower it to. That is what makes the
+  per-wave burn-down self-proving rather than a thing someone remembers
+  to do.
 
 **Acceptance.** `pnpm -C packages/server lint:family` green; the
 fixture test fails the gate on every violation class; `--list` names
@@ -872,6 +978,80 @@ the three views out of arm G; `lint:family` green.
 
 **Commit.** `build(reachability W1): buy, reclaim and bake take a
 phrase; mill says to quote`.
+
+### ✅ W1 DONE — the binder tests found THREE defects, not zero
+
+The plan said *"a quoted multi-word positional through `assemble` has
+never been tested; this is where it is."* It was, and it paid.
+
+**1. Quoting a GREEDY arg kept the quote marks** — and this build would
+have shipped the regression. `buy "dog loaf"` bound the string
+`"dog loaf"`, punctuation included, against a `hasKeyword` that does an
+exact `includes` on `dog loaf` without them. ⚠⚠ The reason it had never
+been seen: a NON-greedy positional binds `token.value`, which the
+tokenizer has already unquoted, so quoting worked perfectly on every
+one-token arg in the game — and W1's whole job was to make `buy.thing`
+greedy. The bare form and the quoted form would have **traded places** in
+one commit, which is worse than either.
+
+The fix is in `CommandLogic.bindPositionals` and is deliberately narrow:
+a greedy span of **exactly one token whose `raw` differs from its
+`value`** binds the value. One quoted token means the player used quoting
+for the thing it is for — *treat this phrase as one argument*. SEVERAL
+tokens is free text, where an interior quote is part of what was written
+(a headline, a line of dialogue) and the source slice stays verbatim.
+`CommandLogic.greedyQuoting.test.ts` pins both halves. ⚠ This is a
+binder change, which the plan said not to make — but the plan's
+prohibition is about **positional overflow**, which is documented grammar
+and is untouched. Making greedy honour quoting is a different thing and
+was a precondition for W1 being correct rather than a trade.
+
+**2. `buy torch from the counter` was a shape error** — and so were
+`bake at the brick oven` and `mill wheat at the quern`. A non-greedy arg
+takes one token, so the article and the noun had nowhere to go. ⚠⚠ **All
+three forms are promised by the view's own help text or its own arg
+comment** — `bake`'s help has said *"where there is more than one fire in
+reach, say which: `bake at the brick oven`"* since the oven arg shipped,
+and `mill`'s arg comment calls a second set of stones being ADDRESSABLE
+the whole point of declaring it. A help text documenting a form the
+binder refuses is the same failure class as a verb nothing confers.
+
+The remedy was already doctrine:
+`docs/subsystems/command-spec.md:507-515` — *"THE ARTICLE DEFECT — every
+object arg a player may put an article in front of needs this,
+INCLUDING plural and prepositional ones"* — with 45 shipped views
+carrying `greedy` for exactly that reason. So the four trailing args
+(`buy.counter`, `reclaim.shelf`, `bake.oven`, `mill.mill`) are greedy
+too. Every form the four help texts promise now binds.
+
+**3. D25 — and it is a POPULATION: 106 more.** A census of every
+`object`/`objects` arg declaring `prepositions:` without `greedy:` found
+**106** across the view corpus (after this build's four), in medicine,
+mining, smithing, textiles, tailoring, tanning, smelting, ranching… every
+one of them a verb that invites you to name an instrument and then
+refuses the article. ⭐ So arm G grew a **second ratchet**,
+`ARTICLE_SHAPE_CEILING = 106`, rather than this build sweeping a hundred
+views' grammar on the way past — `lint-family.md`'s own rule: *gate
+today's count as the ceiling; step 2 is what makes stopping the growth
+affordable before anyone has time to fix it.* It is a legitimate ratchet
+and not a bare count: a prepositional object arg is a per-view authoring
+decision and a new one should be born greedy, so the ceiling never needs
+to rise. The detector reads **subcommand** arg lists as well as flat ones.
+
+**4. `mill`'s help was rewritten twice.** The first draft said the
+unquoted form gives *"that doesn't match any known command shape"*. It
+does not: `mill sack of wheat` binds `grain = sack`, `extraction = of`,
+`mill = wheat`, because the binder applies **no type gate to a
+positional** — a `number` arg accepts the word `of` without complaint. So
+the help now says the true thing, which is worse and more useful: *it does
+not refuse you, it mills the wrong thing.* ⚠ A type gate on numeric
+positionals is a real missing check and is NOT in this build's scope; the
+binder test pins the current behaviour so that whoever adds it is told the
+help text needs rewriting with it. Recorded for the MR.
+
+**Ceilings after W1:** `PHRASE_SHAPE_CEILING` 9 → **6**;
+`ARTICLE_SHAPE_CEILING` opened at **106**.
+
 
 ### W2 — the verbs
 
@@ -952,6 +1132,86 @@ never the ceiling); `lint:family` green; `pnpm test:near` green;
 **Commit.** `build(reachability W2): nine verbs conferred, five
 declared, the estuary swims, the store sells a watch`.
 
+### ✅ W2 DONE — **arm A is a ZERO INVARIANT**
+
+Eleven verbs conferred, three declared. `UNCONFERRED_CEILING` is gone:
+the constant is `0` and the comment says why a zero is possible here
+where a ceiling was not — *a ceiling over a population nobody can finish
+drifts up; a zero over a declaration costs an author one line and
+cannot.*
+
+**Conferred (11, two more than planned):** `walk` → `MobileMixin.self` ·
+`dismount` → `PosedMixin.self` · `fold`/`unfold` → `FoldableMixin`
+(inventory + environment + peers) · `prompt` →
+`HasInteractiveMixin.self` · `transfer`/`subdivide` →
+`PersonaMixin.self` · `wind`/`adjust` → `Watch` (inventory +
+environment) · **`drive` → `DrivableMixin`** (environment + peers, D23) ·
+**`flourish` → `BarStation`** (D23).
+
+**Declared held (3):** `lock`, `unlock`, `fly`, each with a multi-line
+comment above the key explaining what is held and what lifts it. ⭐ The
+`fly` reason is worth reading: it is the one case where *afford
+statically, decline diegetically* does NOT apply, because the thing the
+refusal would point at does not exist in any form — no `media: ['air']`
+exit, no flying species, no composer of the mixin. `swim` was the
+opposite case and is conferred, because everything but the host was
+already there.
+
+**The water host.** `platform/thing/OpenWater` = `SwimmableMixin(Thing)`,
+one row at `/world/terminus/estuary/thing/open-water`, propped in four
+rooms (estuary mouth, reach, lower towpath, and the wharfside bank).
+`OpenWater.test.ts` asserts the thing that makes a Thing the right host:
+**water in the room makes a water exit swimmable, and the same room
+without it does not** — and that the MEDIA gate runs first, which is why
+`axes: ['*']` on the row claims every axis without claiming every exit.
+Keywords deliberately avoid the tide's and the river edge's: three water
+objects stand in these rooms and each answers to its own name.
+
+**The two tests that could not fail, fixed.**
+- `world-scan.dirty.wire.test.ts` step 8 was `if (moved.status === 'ok')
+  { …assert… }` over a verb afforded by nothing, so the `if` never opened
+  and the only assertion never ran — and the companion loop's
+  `.not.toBe('error')` is satisfied by an unknown verb DECLINING. It is
+  unconditional now and asserts, per mode, that no `command-rejected`
+  note came back. A test titled *"walking, running and sneaking all move
+  you"* had been passing nightly over a verb the game did not understand.
+- `__tests__/integration/locomotion.test.ts` keeps its manufactured
+  `SwimZoneLocation`/`FlyZoneLocation` — a synthetic host is the right
+  way to unit-test an enablement walk — but both cases are **relabelled**
+  to say they test the mechanism over a host the test built itself, with
+  a header explaining that being the only composition in the repo is
+  exactly why nobody noticed the realm had no water. *A test that
+  manufactures what the world lacks hides the lack.*
+
+**`CommandGiver.affordances.test.ts` grew five cases** over the affordance
+WALK, not the census: a `Mobile`+`Posed` actor affords `walk` and
+`dismount`; a camp chair in the room lights up `fold`/`unfold` and an
+empty room does not; a cart lights up `drive`; a connection affords
+`prompt` and a body with no human behind it does not.
+
+**Two docstrings rewritten, because the prose is what shipped the bug.**
+`Watch.ts` used to end *"so Watch contributes none"* — every clause true
+except the conclusion, which picks the right GATE and forgets to pick a
+CONFERRER. `MechanicalMovement.ts` gained the missing half: **the mixin
+is the gate, the concrete timepiece in the pack that owns the verbs is
+the conferrer.** Saying only the first is what cost the locality its two
+verbs for its whole life.
+
+**D13, the watch.** `/world/terminus/general-store/thing/pocket-watch`,
+par 2 at 18 coin — a standalone row, not an `extends:` of Gus's, because
+his carries the AUGUSTUS engraving in `details:` and inheriting it would
+put a private inscription on every watch on the shelf. Reason for the row
+in one line: *a verb whose only instrument belongs to an NPC is reachable
+in theory and unreachable in fact.*
+
+⚠ **One finding the gate's own fixtures produced:** naming a fixture file
+`widget.test.ts` made vitest collect it, and
+`lint:test-bootstrap:verify` compares its walk against vitest's roster —
+so a fixture wearing the test suffix reads as a real test file with no
+tests in it. Renamed `names-a-row.ts`; it only has to live inside a
+`__tests__` directory, which is what `packSrcFiles` skips.
+
+
 ### W3 — the rows
 
 **Goal.** Every `thing` row is reachable by a mechanism, declared, or
@@ -1013,6 +1273,156 @@ green; a boot of a fresh DB shows no `expected singleton, found 2`.
 
 **Commit.** `build(reachability W3): every thing reachable, declared or
 gone — arm R at zero`.
+
+### ✅ W3 DONE — **arm R is a ZERO INVARIANT**, and the plan was wrong five times
+
+45 → 0. The shape of the burn-down, because the shape is the argument:
+**19 went on a shop shelf · 10 were placed where the world already
+described them · 5 declared `exemplar` · 6 parked against
+`magic-items-slate` · 4 resolved by `extends:` or `container:` · 1
+deleted.**
+
+**D26 — the rule that decided between a shelf and a declaration**, since
+the plan did not state one: *if a player would plausibly own one it is
+stock; if it exists only so a doc can point at it, it is declared
+`unreachable: exemplar`.* It is written into the counter's own comment so
+the next author inherits it rather than re-deriving it.
+
+**⚠ D21 WAS WRONG ABOUT FOUR OF ITS FIVE DELETIONS.** Each row's own
+header said where it belonged, and reading them is what caught it:
+
+- `/world/lounge/thing/bandage` — its header says it is *"stocked in the
+  glass alley (where you get cut) so the treat loop is playable
+  in-world."* It was stocked nowhere and there is no glass alley. It is
+  the ONLY dressing in the realm and `treat`/`bind`/`dress` CONSUMES one,
+  so deleting it would have taken the treat loop with it. **Two of them
+  are propped behind the lounge's rail now** — a bar is where the broken
+  glass is, and two because one is a demonstration and two is a supply.
+- `/stuff/thing/Kiln` — the plan said *"stood nowhere for its whole
+  life"*, which its header does say, but the header's POINT is that the
+  row is the standing proof the `Kiln` CLASS was unnecessary (the dials
+  are all there is now, on the right parent). Deleting it deletes the
+  evidence for a decision already made. **`unreachable: exemplar`.**
+- `/stuff/thing/vessel/saucer` — the plan nominated the wrong twin. The
+  commons' saucer is the documented AC-26 proof; the general store's was
+  the near-duplicate with no price and no par. **The store's `extends:`
+  the commons' now**, which makes the parent reachable by rule 4, keeps
+  the exemplar where the doc points, and picks up the `mass` the store's
+  row never stated.
+- `/stuff/thing/magic/wand-of-firebolt-cursed` — the plan's reasoning was
+  right (the odds DID land: `wand-of-firebolt` carries `blessingOdds` and
+  `ResidencyLogic.rollBlessing` stamps the band on each minted instance,
+  so cursed wands enter from the ordinary row and the row's *"until
+  generation odds land"* comment is stale). But `arcane-library/README.md`
+  lists it and `plans/slate-compaction/magic-items.md:88` cites it as the
+  code evidence for *a cursed identify plants a false identification*.
+  ⭐ **Deleting content two docs point at to satisfy a gate is the gate
+  wagging the dog**, and whether a hand-authored cursed exemplar should
+  outlive a mechanism that mints the same object is a DISTRIBUTION
+  question — the slate's. **Parked with its five siblings.**
+
+**The ONE deletion:** `/trade/fuel/thing/oil-cask`. Its header claims it
+is *"what ties it to the filled `lamp-oil-cask` — burn or pour the oil and
+the same cask is left, empty, ready to refill"*, and that describes a
+mechanism that does not exist: nothing clones it, `lamp-oil-cask` does not
+`extends:` it, and emptying the filled cask leaves the SAME object empty.
+`category: oil-cask` ties them for `CategoryMeasure`'s tally, which is a
+read over a tag and not a faucet. A second empty-cask row whose stated
+purpose the filled row already serves. `lamp-oil.test.ts` named it and was
+rewritten with the diagnosis.
+
+**D14 resolved, and better than the plan expected.** `Species.dressOut`:
+*"a CLAIMING line's share DERIVES from the muscles it takes, so `fraction`
+stops being a second copy of a fact the body plan already states."* The
+three poultry cuts declare `tissues:`, `BodyPlan/fowl` states their
+shares, so **no `fraction:` is authored at all** — a plump hen dresses
+heavy and a scrawny one light off four lines nobody tuned. The old comment
+(*"a hen is COUNTED, not dressed, and the absence of `fraction` is the
+whole statement"*) was half right for the wrong reason: the absence of
+`fraction` is not what makes a line counted, **claiming nothing is.** The
+giblets are genuinely counted; the meat is claiming. No mass test was
+needed — the arithmetic decided it.
+
+**D18 resolved: the birdseed does NOT ship**, and the plan's own
+conditional is why. `Feeder.offerings()` accepts any edible Tangible and
+`diet` gates nothing (it is a dossier field — `SpeciesLogic` only
+DISPLAYS it). The store sells rations, which are a `Provision` and *"real,
+edible food"*. So a reachable food already satisfies a hopper, the
+condition for the row is not met, and adding it would have been the same
+defect in the other direction. The hopper itself IS now stocked, which
+was the actual gap.
+
+**D15 deferred to the drive.** The distributor counter needs a boot log to
+say which call clones the second instance, and the plan says not to guess
+between its two suspects. Carried to W5.
+
+**⚠⚠ Three things the tests found that no amount of reading would have:**
+
+1. **A `Hearth` is not chattel-stampable**, so the brazier and the stove
+   **cannot be shop stock** — `Stock` stamps title on the sale and
+   consignment rides chattel, so stocking one sells somebody a thing they
+   cannot own. D26's rule met a mechanism it did not know about, and the
+   store's own standup test is what said so. Both are PROPPED instead (the
+   goods yard and the depot hut), which is how every other `Hearth` and
+   `Forge` in the realm already stands — including the one on this shop's
+   own floor. The counter carries the reason where the next author will
+   look.
+2. **A duplicate price key.** The first counter edit added prices for the
+   cleaver and the saw — which were ALREADY priced at `:258-259` by the
+   carcass-chain build, with a careful comment about *"the capital cost of
+   being able to take a joint at all"*, and given no `stockLines` entry.
+   So par was 0, the sweep cloned none, and `buy cleaver` answered
+   *"there's nothing to buy here."* ⭐ **A price with no par is a shop
+   that has decided what it charges for something it never has** — and
+   `ButcherController:320-326` gates the deepest breakdown on a `saw` and
+   chops on a `cleaver` AND a block, so **the carcass chain's hardest step
+   was unreachable by anybody from the day it merged.** See D27.
+3. **Two tests that read `raw.class`**, and a third that enumerated what
+   it should derive. See the test notes below.
+
+**D27 — priced-with-no-par is NOT gated, and the census is why.** Four
+instances exist, all on this counter, and only two are defects: the other
+two (`cut-loin`, `stew-meat`) are the shop's BUY-side price for meat a
+player brings in, which is legitimate and has no par by design. Nothing in
+the authoring vocabulary distinguishes *"I sell this"* from *"I buy
+this"*, so a gate would need a field that does not exist. Recorded for
+`retail-slate` as a one-paragraph finding; the two real ones are fixed.
+
+**Three tests fixed, each for the same reason in a different costume:**
+- `general-store-content.test.ts` read `good.class ?? ""` and went red the
+  moment a shelf good became an `extends:` child. ⚠ That is the go-blind
+  failure `pack-roots.effectiveDoc` exists for and which **fifteen lint
+  gates had to be fixed the same way** — *a reader selecting on
+  `raw.class` skips a class-less child silently, which reads exactly like
+  a pass.* Here it failed loudly instead, which is the better of two bad
+  outcomes and still not right. It resolves the parent chain now.
+- `general-store-standup.integration.test.ts` enumerated its shelf in
+  **eight hand-written groups**, and the sweep's nineteen lines belonged
+  to none of them. The list is DERIVED from the counter's own
+  `stockLines` now: the counter already states its roster and a second
+  copy beside the test can only drift. Its `seedDoc`/`objDoc` fold the
+  parent chain too.
+- The same file registered **one** fabric construction form by hand,
+  `woven`, under a comment naming all three — so the knit hoodie killed
+  the standup on `unknown form 'knit'`. It reads `base-library`'s fabric
+  rows now, so a fourth form is a row and nothing else.
+
+Also in: the aqueduct and its house stand on the wharfside bank with a
+`details:` entry and a sentence of prose (D17), and `watershed.test.ts`
+gained the assertion it never had — **the bank's `props:` must NAME both
+rows**, because every other assertion in that file builds the conduit from
+its FILE, which is the right way to test arithmetic and the wrong way to
+learn whether a thing exists. A barge at the city wharf (the general
+store's own rig comment says *"a boat in a general store is silly, and the
+depot at Wharfside is where those belong"*). The table fork in the
+cookhouse, whose own comment said a kitchen that hands you nothing to eat
+with is a worse lie. The generic anvil beside the goods-yard wagon (D19).
+`mana-main`: both locality copies `extends:` the generic row, which its own
+header asked for and which nothing had ever done. `mixer-bottle` gets a
+`container:` on the bottling floor — ⚠ **not** `extends:`, because the four
+filled siblings would have inherited its `open: true` and every capped
+bottle of cola would read as open and go flat.
+
 
 ### W4 — docs, slates, and the test that pinned a falsehood
 
