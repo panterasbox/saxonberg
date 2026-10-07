@@ -306,6 +306,13 @@ export default class Login extends LoginBase {
     const avatar = await StuffApi.clone<Avatar>(
       TemplatePaths.primaryAvatar,
       { user, isGuest: true },
+      // identity-keyed-by: none — a guest identity is a random uuid,
+      // recorded nowhere and re-derivable from nothing; `shouldPersist()`
+      // is false and no ledger ever names it. ⛔ UNJUSTIFIED and
+      // deliberately left alone: this is the login path, and its purpose
+      // (avoiding a throwaway template row) is real. It is the first
+      // entry the census ceiling is allowed to fall by —
+      // docs/slates/builds/instance-addressing-slate.md owns the fix.
       { dataOverlay: data, asIdentityPath: path },
     );
 

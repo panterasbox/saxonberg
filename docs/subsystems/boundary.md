@@ -990,3 +990,60 @@ check.** Found live: the light walk followed the wardrobe's
 `getContents` — and `look` threw for everyone in the room.
 
 See [sandbox.md](./sandbox.md).
+
+## ⭐⭐ The two far-side gates — `unpublished` and `unbuilt` (2026-10)
+
+`TraversalGate` gains two words for facts about the FAR side, and both
+run **before the lock gate** so a wall reads as a wall rather than as a
+locked door. Both follow the lock gate's own stated rule: **they never
+resolve the destination.**
+
+| gate | what it means | read from |
+|---|---|---|
+| `unbuilt` | the destination names a row that does not exist | a transient flag on the `Exit` |
+| `unpublished` | the far side's parcel says its content is not open | `ParcelApi.isPathPublished` — sync, longest-prefix |
+
+### A dangling exit is a DIAGNOSTIC, not a boot crash
+
+`StuffApi.singleton` throws *Template not found* for a missing row, and
+eager rooms come from each pack's `boot:` list — so **one mistyped
+destination anywhere in content took the whole world down**, wrapped as
+*"failed to clone"*, from a stack trace naming the framework rather than
+the row. An author could not see it coming and could not read it when it
+arrived.
+
+`_applyExitSpec` now installs the direction **unbuilt** instead: `look`
+still names it (the room reads as authored), `_destinationPath` is kept,
+`canTraverse` answers *"Nothing lies that way yet."*, and
+`DiagnosticApi` tells the author which row and which direction on their
+own channel.
+
+⭐ **It heals.** An existing unbuilt stub is **replaceable**: create the
+row the author meant, re-hydrate, and the real exit lands where the stub
+was. Without that the idempotency check would compare the stub's
+now-resolvable destination against the incoming one, find them equal,
+return a no-op — and the fix would look like it had not worked, which is
+worse than the original defect. ⚠ The reverse is refused: a **working**
+exit is never traded for a stub.
+
+⚠ Unhook from the exits map **before** destructing the stub.
+`StuffApi.destruct` does not remove it, so the map would keep handing
+out an inert exit and every read of it would no-op to `undefined`.
+
+⚠⚠ Caught **narrowly** — by the one message `StuffApi.clone` throws for
+a missing row, with everything else rethrown. A failure inside a
+destination's own `onCreate` is a different fault and must stay loud;
+swallowing it would turn a broken room into a mysteriously unreachable
+one. And by a **catch rather than a pre-check**: a `Template.findByPath`
+before every `singleton` adds a store round-trip per authored exit on
+the hydration hot path (199 edges at boot) and makes exit installation
+depend on a reachable store — which took six suites red on
+`isConnected is not a function`, the same hazard a live server hits
+during early boot.
+
+⚠ `Exit._unbuilt` is **transient**: a fact about the world as loaded,
+re-derived by the next hydrate. Persisting it would outlive the defect
+it describes.
+
+See [location-graph.md](./location-graph.md) and
+[parcel.md](./parcel.md).

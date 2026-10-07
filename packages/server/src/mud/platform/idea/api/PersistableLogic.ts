@@ -142,6 +142,16 @@ function optedOutOfPersistence(host: Stuff): boolean {
  * because a keyed host's identity IS the pair, so "is it already
  * standing up" and "would this collide" are one question asked from two
  * directions.
+ *
+ * ⚠ **`scope` here is a ROW.** Every caller passes a stored scope that
+ * is a template path — `cloneHost` passes a captured `{ref}` (written
+ * as `good.getTemplatePath()`) and `overlayOwnedGoods` passes
+ * `keyed.templatePath` — which is what makes the scan see the row's
+ * other instances. `StuffApi.findAllByTemplatePath` enumerates a row
+ * including its identity-stamped clones, so a stamped keyed host is
+ * found here; passing an identity would narrow the scan to that one
+ * object and find nothing. {@link assertUniqueKey} derives the row
+ * from the host for exactly that reason.
  */
 function liveKeyed(scope: string, key: string): Stuff | null {
   for (const other of StuffApi.findAllByTemplatePath<Stuff>(scope)) {
@@ -152,12 +162,26 @@ function liveKeyed(scope: string, key: string): Stuff | null {
   return null;
 }
 
+/**
+ * Throw when another live instance of the same ROW already claims `key`.
+ *
+ * ⚠⚠ **The needle is the host's ROW, never the `scope` the record is
+ * filed under.** The record's scope is `host.getIdentityPath()`
+ * (`captureImpl` / `materializeImpl` / `restoreOrSeedImpl` all write
+ * it), and for an identity-stamped host that string names a bucket
+ * holding only the host itself — which the loop then skips, so the
+ * assertion was **vacuous for every stamped keyed host** and a second
+ * instance on an occupied key stood up silently. The market stall
+ * counter was never covered by it. The row is the population that can
+ * collide, so the row is what gets scanned.
+ */
 function assertUniqueKey(scope: string, key: string, host: Stuff): void {
-  for (const other of StuffApi.findAllByTemplatePath(scope)) {
+  const row = host.getTemplatePath() ?? scope;
+  for (const other of StuffApi.findAllByTemplatePath(row)) {
     if ((other as unknown) === (host as unknown)) continue;
     if (MixinApi.isPersistable(other) && other.getPersistenceKey() === key) {
       throw new Error(
-        `PersistableLogic: two live instances of '${scope}' both keyed ` +
+        `PersistableLogic: two live instances of '${row}' both keyed ` +
           `'${key}' — they would clobber one record. A persistable host must ` +
           `resolve to a unique (scope, key): a singleton derives its key from ` +
           `its scope (so it must be singleton-identifiable), a multi-instance ` +
@@ -968,20 +992,22 @@ async function materializeImpl(host: Stuff, key?: string): Promise<void> {
  * The **room identity** an owned good's `place` names — a host's persistence
  * scope, plus its per-instance key when it has one (many leased units share
  * one `DormRoom` template, so the scope alone would collapse them).
+ *
+ * ⭐ This is the spine's name for {@link Stuff.getDurableHandle} — the
+ * handle was here first, unnamed, and the rungs on `Stuff` /
+ * `PersistableMixin` / `SingletonMixin` are that formula given a home
+ * every object can be asked for. The `#` joiner and the
+ * `isPersistenceKeyExplicit()` provenance test are both this function's,
+ * kept verbatim.
+ *
+ * Byte-identical to its pre-handle form for every host in the world
+ * except one: a host that is BOTH identity-stamped AND explicitly keyed
+ * now reads `<row>#<key>` where it used to read `<identity>#<key>`. The
+ * market stall counter is the only such host, and its records are
+ * re-keyed by this build anyway.
  */
 function placeIdOf(host: Stuff): string {
-  const scope = host.getIdentityPath() ?? "";
-  // Only an EXPLICIT key qualifies — the same rule `captureItem` applies to
-  // a nested host ref. A keyless host's stashed key is scope-DERIVED (the
-  // singleton's self/parcel owner), so folding it in would give one room two
-  // different identities either side of its first capture: the place written
-  // when it was fresh would never match the place looked up after it had
-  // been materialized once.
-  const key =
-    MixinApi.isPersistable(host) && host.isPersistenceKeyExplicit()
-      ? host.getPersistenceKey()
-      : null;
-  return key ? `${scope}#${key}` : scope;
+  return host.getDurableHandle() ?? host.getIdentityPath() ?? "";
 }
 
 /**

@@ -65,6 +65,7 @@ import { Money } from '../../../../lib/banking/Money';
 import { Quantity } from '../../../../lib/quantity';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import { AppApi } from '../../../../api/app';
+import { AccessApi } from '../../../../api/access';
 import { Lock } from '../../../../lib/lock/Lock';
 import { OuterWarren } from '../../../../lib/location/OuterWarren';
 import { Currency } from "../../../../lib/banking/Currency";
@@ -126,6 +127,10 @@ export default class TitleController extends CommandController<TitleModel> {
         return this.executeList(context);
       case 'buy':
         return this.executeBuy(model, context);
+      case 'publish':
+        return this.executePublish(model, context, true);
+      case 'offline':
+        return this.executePublish(model, context, false);
       default:
         return this.executeHoldings(context);
     }
@@ -545,6 +550,96 @@ export default class TitleController extends CommandController<TitleModel> {
         return false;
       }
     }
+  }
+
+  /**
+   * ⭐⭐ `title publish <extent>` / `title offline <extent>` — declare
+   * the content on ground you hold ready to be walked into, or take it
+   * down.
+   *
+   * On the `title` verb because **the flag lives on the parcel**, and
+   * the parcel's verb is `title`. An author holds title to their
+   * extent, so they already hold the authority this needs: the gate is
+   * `write-template` at the extent — the authority to change what the
+   * rows there SAY, which is exactly what declaring them live is.
+   * ⛔ Never a wizard check.
+   *
+   * ⭐ Taking live content down evicts the people inside to a tombstone
+   * that names the extent and its holder, and tells the author of every
+   * room that pointed in. `ParcelApi.setPublished` owns both halves;
+   * this controller is the authority check and the prose.
+   */
+  private async executePublish(
+    model: TitleModel,
+    context: CommandContext,
+    live: boolean,
+  ): Promise<void> {
+    const giver = context.commandGiver;
+    const word = live ? 'publish' : 'offline';
+    const extent = (model.lot ?? '').trim();
+    if (!extent) {
+      return this.reject(
+        context,
+        giver,
+        Mml.compose`Which ground? \`title ${word} <extent>\`.`,
+        'no-extent',
+        `title ${word} needs an extent`,
+      );
+    }
+    if (!extent.startsWith('/')) {
+      return this.reject(
+        context,
+        giver,
+        Mml.compose`An extent is a path, like \`/world/terminus/market\`.`,
+        'not-an-extent',
+        `'${extent}' is not a path`,
+      );
+    }
+    const record = ParcelApi.coveringParcelOfSync(extent);
+    if (!record || record.extent !== extent) {
+      return this.reject(
+        context,
+        giver,
+        Mml.compose`Nobody holds title to ${extent}, so there is nothing to ${word}.`,
+        'untitled',
+        `no parcel claims ${extent}`,
+      );
+    }
+    if (!(await AccessApi.canAtPath(giver, 'write-template', extent))) {
+      return this.reject(
+        context,
+        giver,
+        Mml.compose`${extent} is not yours to ${word}.`,
+        'not-yours',
+        `${word} refused at ${extent}`,
+      );
+    }
+    if (record.isPublished() === live) {
+      return this.reject(
+        context,
+        giver,
+        live
+          ? Mml.compose`${extent} is already open.`
+          : Mml.compose`${extent} is already dark.`,
+        'no-change',
+        `${extent} is already ${live ? 'published' : 'offline'}`,
+      );
+    }
+
+    await ParcelApi.setPublished(extent, live);
+
+    MessageApi.scene(giver)
+      .topic(TOPIC)
+      .toSelf(
+        live
+          ? Mml.compose`${extent} is open. Exits into it no longer refuse.`
+          : Mml.compose`${extent} is dark. Anyone inside has been moved out, every exit into it refuses, and the authors of the rooms that pointed there have been told.`,
+      )
+      .send();
+    context.note({
+      kind: 'info',
+      detail: `title:${word}:${extent}`,
+    } as never);
   }
 
   private reject(

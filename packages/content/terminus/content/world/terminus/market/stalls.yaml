@@ -11,15 +11,23 @@
 # global raise.
 #
 # ⭐ `MarketStalls` (economic bootstrap D15): the same counter, plus the
-# square's one fact — `rentMinor`, what a stall of your own costs — and
-# the `stall` verb it affords to whoever stands here. A rented stall is a
-# plain `Stock` minted from `thing/stall` with the renter's identity.
+# square's own facts — `rentMinor`, what a stall of your own costs, and
+# `pitches`, how many there are to let — and the `stall` verb it affords
+# to whoever stands here. A rented stall is a plain `Stock` minted from
+# `thing/stall`, keyed to the PITCH it stands on; the fixture keeps the
+# book of who is on which.
 class: /world/terminus/market/thing/MarketStalls
 data:
   # Against the ladder (stipend 20; a lantern 10, a bed 45): a week's
   # pitch on the square is an evening's wages — the lowest rung of
   # owning a shop has to be reachable on day one.
   rentMinor: 5
+  # ⭐ How many stalls this square has room for. A square is a PLACE
+  # with a fixed number of spots, and saying so is what lets `stall
+  # rent` honestly refuse a full market — before this, the square let
+  # out as many stalls as asked. Twelve fits the trestle line in the
+  # long description without crowding the crossing.
+  pitches: 12
   shortDescription: produce stalls
   keywords: [stall, stalls, produce, trestle, counter]
   register: definite

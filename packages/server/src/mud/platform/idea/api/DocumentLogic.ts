@@ -301,6 +301,75 @@ async function saveInstrumentImpl(
   await doc.save();
 }
 
+/** The directory a player's maps live under, inside their own home. */
+const MAPS_DIR = 'map';
+
+/** The `/home/<key>` branch an identity path owns. */
+function homeBranchOf(ownerKey: string): string {
+  const key = ownerKey.split('/').filter(Boolean).pop() ?? '';
+  return key ? `/home/${key}` : '';
+}
+
+/**
+ * ⚠⚠ **The map transport** — the fifth ownership bypass, and the only
+ * one whose reason is the EXECUTION CONTEXT rather than the filing.
+ *
+ * A map is written when a player perceives a place, and arrival
+ * auto-senses through `self.forceCommand('sense')`.
+ * `getActingAuthor()` answers **null** inside a forced frame, so the
+ * ordinary context gate would reach `canAtPath(null, …)` and fail
+ * closed for the single most important write this kind has. The owner
+ * is therefore derived from the viewer key the caller already holds.
+ *
+ * Rails, all structural: no caller-supplied owner, the path pinned
+ * under that player's own `/home/<key>/map/`, the `kind` pinned, and
+ * the Api face gated to `NavigationLogic`.
+ */
+async function saveMapImpl(
+  ownerKey: string,
+  localityAddress: string,
+  data: Record<string, unknown>,
+): Promise<void> {
+  const owner = homeBranchOf(ownerKey);
+  if (owner.length === 0) {
+    throw new Error('DocumentApi.saveMap: no home branch to file under');
+  }
+  const locality = localityAddress.replace(/^\/+|\/+$/g, '');
+  if (locality.length === 0) {
+    throw new Error('DocumentApi.saveMap: no locality to file under');
+  }
+  const path = `${owner}/${MAPS_DIR}/${locality}`;
+  const doc = (await StoredDocument.findByPath(path)) ?? new StoredDocument();
+  doc.path = path;
+  doc.owner = owner;
+  doc.kind = 'map';
+  doc.data = data;
+  await doc.save();
+}
+
+/**
+ * One player's maps under a locality prefix — theirs only.
+ *
+ * ⭐ A prefix read with NO JOIN is the whole reason the address keeps
+ * its slashes in the path: the address tree nests, so `map terminus`
+ * is every map filed under Terminus and nothing else.
+ */
+async function readMapsImpl(
+  ownerKey: string,
+  localityPrefix: string,
+): Promise<Array<{ path: string; data: Record<string, unknown> }>> {
+  const owner = homeBranchOf(ownerKey);
+  if (owner.length === 0) return [];
+  const prefix = localityPrefix.replace(/^\/+|\/+$/g, '');
+  const base = prefix.length > 0
+    ? `${owner}/${MAPS_DIR}/${prefix}`
+    : `${owner}/${MAPS_DIR}`;
+  const rows = await StoredDocument.findByPrefix(base);
+  return rows
+    .filter((d) => d.kind === 'map')
+    .map((d) => ({ path: d.path, data: d.data as Record<string, unknown> }));
+}
+
 /**
  * The gate strings of a command view — everything that names TypeScript:
  * the verb-level and per-subcommand `controller:` values, and every
@@ -584,6 +653,25 @@ export class DocumentLogic extends ApiLogic {
     data: Record<string, unknown>,
   ): Promise<void> {
     return saveAsBusinessImpl(business, path, kind, data);
+  }
+
+  /** See {@link DocumentApi.saveMap}. Rails in `saveMapImpl`. */
+  @CallSecurity(DocumentApiCallers)
+  public async saveMap(
+    ownerKey: string,
+    localityAddress: string,
+    data: Record<string, unknown>,
+  ): Promise<void> {
+    return saveMapImpl(ownerKey, localityAddress, data);
+  }
+
+  /** See {@link DocumentApi.readMaps}. */
+  @CallSecurity(DocumentApiCallers)
+  public async readMaps(
+    ownerKey: string,
+    localityPrefix: string,
+  ): Promise<Array<{ path: string; data: Record<string, unknown> }>> {
+    return readMapsImpl(ownerKey, localityPrefix);
   }
 
   /** See {@link DocumentApi.saveInstrument}. Rails in `saveInstrumentImpl`. */

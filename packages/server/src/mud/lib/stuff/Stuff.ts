@@ -525,17 +525,150 @@ export abstract class Stuff {
    * chattel stamps and snapshot owners attribute to. The stamped
    * instance identity when one was minted (`asIdentityPath` — D17),
    * else `getTemplatePath()` (byte-identical for every ordinary
-   * object); a projection vessel (the sandbox `SandboxAvatar`) overrides
+   * object); the sandbox **wire body** (`SandboxAvatar`) overrides
    * the METHOD to return the real identity's path
    * (`/platform/agent/Avatar/<playerId>`), so in-circle derive-on-read
    * composes the player's real history ∪ scoped appends and PASS rows
-   * attribute to the real identity, never the vessel. (The registry
-   * index deliberately reads the raw SLOT, not this method — a vessel
-   * must never index under the identity it projects.)
+   * attribute to the real identity, never the body. (The registry
+   * index deliberately reads the raw SLOT, not this method — a wire
+   * body must never index under the identity it projects.)
+   *
+   * ⚠ The override lives on the family ROOT (`lib/character/Avatar`),
+   * not on `SandboxAvatar` — one place for every body a player wears,
+   * the shade included, deriving from `playerId`. Looking for it on the
+   * wire body and not finding it is misleading, so that class carries a
+   * comment saying where it is.
+   *
+   * ⚠⚠ Until 2026-10-04 the wire body was ALSO cloned with
+   * `asIdentityPath: <the player's identity>` — a raw stamp, which is
+   * precisely what the parenthesis above forbids. With a circle open
+   * the wire body and the parked field body shared one exact index
+   * bucket, and this read threw *expected singleton, found 2* for that
+   * player mid-visit. The mint no longer stamps; the inherited method
+   * was always what the ledgers read.
    */
   public getIdentityPath(): string | null {
     const raw = ProxyApi.unwrap(this as unknown as Stuff);
     return raw.#identityPath ?? this.getTemplatePath();
+  }
+
+  /**
+   * ⭐⭐ The **durable per-instance handle** — a string that still names
+   * *this* thing after it has been unloaded and stood back up, or
+   * `null` when this object is one of an unbounded many and nothing
+   * durable names it.
+   *
+   * This is what anything that must *remember a particular instance*
+   * keys on: a discovered secret, a claim on a map, a recorded place.
+   * `getTemplatePath()` is the wrong key for it (every provisioned dorm
+   * room shares one row, so a secret found in one would read as found
+   * in all of them) and `stuffId` is the wrong key too (fresh on every
+   * construction, so nothing survives a reload).
+   *
+   * ⭐ The rule the handle encodes (requirements 9a): **an identity
+   * exists iff the NAME is durable** — re-derivable from inputs that
+   * outlive the instance, or recorded somewhere durable. Note the two
+   * durabilities are separate questions and each has its own mechanism
+   * here: *is the NAME durable* decides whether something was minted
+   * (this rung reads it), and *is there a per-instance KEY* decides
+   * whether there is a `<row>#<key>` handle (`PersistableMixin`'s rung
+   * reads that). Conflating them produces a ladder that is wrong at
+   * both ends.
+   *
+   * Three rungs, each contributed by the host that owns the fact and
+   * each deferring to `super` when its own condition is false:
+   *
+   * - **here**: a minted instance identity is a durable name, whether or
+   *   not the instance persists. A warren's circulation node is reaped
+   *   and re-minted and its handle is the same string both times, which
+   *   is exactly what lets a parked character's record find the corridor
+   *   it was standing in.
+   * - **{@link PersistableMixin}**: `` `<row>#<key>` `` for a host whose
+   *   key came from an establishing context — row plus decoration, kept
+   *   separable by the `#` joiner so the substance (the row: how you
+   *   find the hydration content and the backing class) is never lost
+   *   inside the decoration.
+   * - **{@link SingletonMixin}**: the one instance IS the row.
+   *
+   * ⭐⭐ **Precedence is DECLARED, not inherited from composition
+   * order.** It happens to agree with it today — `Persistable` always
+   * sits above `Stuff`, so a key beats a stamp, and `Singleton` only
+   * ever fills in a `null` — but a rung that relies on *where it was
+   * composed* to decide whether it names the host is a rung that will
+   * silently change answer when somebody reorders a stack. A new rung
+   * states its own precedence in its own docstring, as these three do,
+   * or it does not get added.
+   *
+   * ⭐⭐⭐ **And this method's whole job is to resolve a competition.**
+   * A Stuff may carry several durable values and only one of them is
+   * its NAME: the row, a minted identity, a persistence key — and, on
+   * a movable good, `ChattelMixin._chattelId`, which is per-instance,
+   * server-minted, registry-backed and survives the persistence
+   * round-trip. **The chattel id deliberately contributes no rung**, so
+   * a stamped sword answers `null` here.
+   *
+   * That is not an oversight, it is the test: *the handle is the name
+   * you would use to FIND THIS INSTANCE AGAIN across lives* — not every
+   * durable fact about it. Nothing addresses a sword by identity; its
+   * ownership does, and `ChattelApi.ownerOf` keys on the chattel id
+   * directly because that is a different question. ⚠ If something ever
+   * *does* need to address a good by instance, chattel contributes a
+   * rung **and states where it sits relative to the keyed rung** —
+   * because for a consigned good the two answers differ and the one
+   * that wins is a decision, not a consequence of a mixin list.
+   *
+   * ⚠ The `id !== row` test is the whole of this rung and is why it
+   * exists: {@link getIdentityPath} deliberately *defaults* to the
+   * template path, so an ephemeral clone's "identity" is its own row.
+   * Read naively that would hand every lounge satellite a handle it has
+   * no right to. A satellite is a fresh clone per landing (not
+   * re-derivable) and is recorded nowhere, so `null` is its honest
+   * answer and `stuffId` is what covers it within one life.
+   */
+  /**
+   * ⭐⭐ **The thing whose jurisdiction I share** — *whose place am I
+   * in?* — or `null` when nothing answers for me.
+   *
+   * The default is my container, because for almost everything "where
+   * I am" IS "what I am inside". Override when a Stuff **belongs to a
+   * place without being contained by it**.
+   *
+   * ⚠⚠ **This replaces a hardcoded `getContainer()` walk inside the
+   * security layer, and the reason is the exit.** An inline exit is a
+   * clone of its exit-KIND row, so the path it answers to is
+   * `/platform/idea/exits/passage` — the kernel, not the world — and a
+   * room does not *contain* its exits, it holds a `direction → exit`
+   * map. So the jurisdiction walk had nothing to walk, and a governed
+   * `eval --parcel <extent>` could not so much as call `getDoor()` on
+   * an exit of a room inside that extent. Found by a browser drive.
+   *
+   * ⭐ The fix is NOT an exit carve-out. An exit is not an exception to
+   * containment; it is a Stuff whose host is reached by a different
+   * method ({@link Exit.getSource}). Containment is *one instance* of
+   * hosting, and this hook is the general case — which is why
+   * `Exit.jurisdictionHost` is four lines and the security layer knows
+   * nothing about exits.
+   *
+   * ⚠ `getContainer()` may write (R2.3 clears a slot pointing at a
+   * destroyed container). That is an idempotent cleanup the next
+   * ordinary read would do anyway, and it is why this calls the method
+   * rather than reading the field: the self-heal is the contract.
+   *
+   * @hook Override to name the thing whose place is also yours.
+   */
+  public jurisdictionHost(): Stuff | null {
+    const get = (this as unknown as { getContainer?: () => unknown })
+      .getContainer;
+    if (typeof get !== 'function') return null;
+    const next = get.call(this);
+    return next === null || next === undefined ? null : (next as Stuff);
+  }
+
+  public getDurableHandle(): string | null {
+    const row = this.getTemplatePath();
+    if (!row) return null;
+    const identity = this.getIdentityPath();
+    return identity !== null && identity !== row ? identity : null;
   }
 
   /**

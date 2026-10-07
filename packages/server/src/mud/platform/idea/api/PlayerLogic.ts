@@ -500,6 +500,11 @@ export class PlayerLogic extends ApiLogic {
       return await StuffApi.clone<Avatar>(
         (AvatarClass as unknown as AvatarClassRef).ROW_TEMPLATE_PATH,
         { playerId },
+        // identity-keyed-by: own-record — an avatar's whole
+        // identity-keyed ledger set (bank_ledger, chronicle, transcript,
+        // grants, its holder_snapshots owner) names this path, and it is
+        // re-derivable from the playerId. The CONTINUITY family's
+        // namespace, asserted at the mint by `identityNamespace`.
         { asIdentityPath: identityPath },
       );
     } catch (err) {
@@ -578,6 +583,8 @@ export class PlayerLogic extends ApiLogic {
     return StuffApi.clone<Avatar>(
       AvatarClass.ROW_TEMPLATE_PATH,
       { user, playerId },
+      // identity-keyed-by: own-record — as above: the family identity
+      // every ledger keys on, re-derivable from the playerId.
       { asIdentityPath: identityPath }
     );
   }

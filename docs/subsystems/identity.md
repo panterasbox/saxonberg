@@ -362,6 +362,88 @@ the competence check worth having is unavailable. Its vocabulary is
 checked at build time; its arithmetic at seed time, where `seedTo` writes
 nothing at all if it cannot reach the band.
 
+## ⭐⭐ Every mint names what keys on it — and continuity declares
+
+`StuffApi.clone(row, …, { asIdentityPath })` is the one channel that
+mints a per-instance identity. Two things hold it honest, and they are
+deliberately different mechanisms because they answer different
+questions.
+
+### The rule
+
+⭐ **An identity exists iff the NAME is durable** — re-derivable from
+inputs that outlive the instance, or recorded somewhere durable.
+
+⚠ Note what the rule is *not* about: whether the INSTANCE persists. A
+warren's circulation node is reaped when nothing routes through it and
+re-minted on the next approach, and it rightly has an identity, because
+`${parentExtent}/${nodeId}` is re-derivable and a parked character's
+snapshot records it. The two durabilities are separate questions —
+*is the name durable* and *does the instance survive* — and conflating
+them is how a four-rung ladder got built and deleted.
+
+⭐ **Giving everything a unique identity path is the mistake on the other
+side.** If the name is not durable, `stuffId` is already the
+non-durable unique instance id, and if a player needs to target one of
+several, what they want is the disambiguation list — which ships. The
+design must not get clever about either.
+
+### Two patterns, pointing opposite ways
+
+| | individuation | continuity |
+|---|---|---|
+| shape | **one row → many identities**, nested under the row | **many lineages → one identity**, under a family namespace |
+| example | a corpse, a stall counter, a tombstone | `/platform/agent/Avatar/<playerId>` |
+| worn by | one instance each | `PrimaryAvatar`, `ShadeAvatar`, the sandbox wire body |
+| the row | **required**, as the prefix | **deliberately absent** — nothing is cloned from it |
+| found by | `findAllByTemplatePath(row)`, by prefix | the **register** (`PlayerApi`), never the index |
+| gated by | the census | the declaration, asserted at the mint |
+
+⚠ Neither string prefixes the other in the continuity case, so
+`findAllByTemplatePath('/platform/agent/Avatar')` and
+`findAllByTemplatePath('/platform/agent/PrimaryAvatar')` both correctly
+return nothing. That is not a gap to work around — see
+[persistence.md § The three registry reads](./persistence.md).
+
+### The census, at the site
+
+Every production mint carries an adjacent structured comment:
+
+```ts
+// identity-keyed-by: own-record | referenced | lookup | none — <what>
+```
+
+`own-record` (its own durable record is filed under it) · `referenced`
+(another durable record names it) · `lookup` (a read that must resolve
+to this instance performs it) · `none`. ⚠ A mint's own uniqueness probe
+does **not** qualify, which is why there is no `probe` word — the corpse
+asks whether its own candidate identity is free, and that is circular.
+
+The marker is at the site, not in a kernel table, so **a pack marks its
+own mint and no kernel list is edited**. `lint:identity-mints` reads the
+sites: an unmarked mint is an error, and the `none` count is a ratchet.
+See [lint-family.md](../lint-family.md) for the first census and the
+ceiling.
+
+### The declaration, at the mint
+
+A class that declares `static identityNamespace` has every
+`asIdentityPath` asserted against it in `StuffApi.clone`, beside the
+singleton guard that reads the same string. The declaration is walked up
+the prototype chain, so a FAMILY declares once:
+`lib/character/Avatar` (the abstract root) declares
+`/platform/agent/Avatar/` and `PrimaryAvatar`, the guest and the wire
+body inherit the claim; `ShadeAvatar` owns a different prefix and
+shadows it; `Party` declares the branch its record is read from.
+
+⭐ The assertion exists for continuity specifically: nothing about a
+continuity identity's shape can be derived from the row, so a typo in
+the prefix would file a person somewhere no ledger will ever look, and
+nothing would say so. **A class that declares nothing is not asserted** —
+individuation derives its identity from its own row and the census is
+its gate. Deliberately not a default on `Stuff`: a default namespace
+would admit every mint everywhere and assert nothing.
+
 ## The cast
 
 | Element | Lives in | Role |
@@ -374,6 +456,9 @@ nothing at all if it cannot reach the band.
 | `RenownApi.seedTo` | `api/renown.ts` | Seed reception evidence to an asserted band, then fold |
 | `RecordControllerBase` | `platform/idea/cmd/charactergen/` | The shared subject resolution behind both readings |
 | `check-{dispositions,identity,dossiers}.ts` | `packages/server/scripts/` | The three gates |
+| `Stuff.getDurableHandle` | `lib/stuff/Stuff.ts` (+ `Persistable`, `Singleton` rungs) | The durable per-instance handle — the rule above as a string ([location.md](./location.md)). ⭐⭐ Its job is to **resolve a competition**: a Stuff may carry several durable values and only one is its NAME, so each rung DECLARES its precedence rather than inheriting it from composition order, and `ChattelMixin._chattelId` deliberately contributes none — the handle is the name for finding this instance again, not every durable fact about it |
+| `identityNamespace` | `lib/character/Avatar.ts`, `platform/agent/ShadeAvatar.ts`, `platform/idea/Party.ts` | A continuity family's declared namespace, asserted in `StuffApi.clone` |
+| `check-identity-mints.ts` | `packages/server/scripts/` | The mint census — a fourth gate |
 
 ## Cross-references
 

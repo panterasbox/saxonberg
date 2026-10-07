@@ -28,6 +28,29 @@ purpose: |
   parcel's feeder node is energized; it never walks the interior. Same
   reasoning as `reach`: title-gated field data, not derivable content.
   See docs/subsystems/energy.md.
+
+  ⭐⭐ `published` (2026-10) — is the content on this ground ready to be
+  walked into? One boolean, defaulting to true, on the record that
+  already carries title: readiness is a declaration ABOUT CONTENT ON
+  GROUND, and this is the register of who may declare things about
+  ground. An author holds title to their extent, so they already hold
+  the authority the flag needs.
+
+  One field, two lives. DRAFT is content that has never been live:
+  nobody is inside it by construction, so the flag is a WALL and every
+  exit into it refuses with a reason. OFFLINE is live content coming
+  down, which is a CAMERA: the people inside are moved out to a
+  tombstone naming the extent and its holder, and the authors of every
+  room that pointed in are told. Both are `published: false`; what
+  differs is whether anybody was there, and that is a fact rather than
+  a second field.
+
+  ⚠ Denormalised onto each `location_graph` node so `Exit.canTraverse`
+  can read it synchronously without resolving a destination. THIS
+  RECORD STAYS THE SOURCE OF TRUTH; a flip re-projects the extent.
+  See docs/subsystems/location-graph.md.
+
+
 invariants:
   - >-
     Title is stored apart from the content it gates — never in the same

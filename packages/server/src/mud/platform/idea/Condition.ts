@@ -34,6 +34,7 @@ import type { MagicProvenance } from '../../lib/magic/Grid';
 import type { ResistBand } from '../../lib/magic/Resist';
 import type { FieldMeta } from '../../lib/mixin';
 
+import type { BoundaryRole } from '../../lib/security/BoundaryRole';
 // ---------- the active-condition vocabulary ----------
 
 /** Kind A — affliction instance record; behavior resolves from a template. */
@@ -1625,6 +1626,16 @@ export default class Condition extends SingletonMixin(
 // reference singleton.
   Idea,
 ) {
+  /**
+   * the condition vocabulary.
+   *
+   * See `lib/security/BoundaryRole.ts` — this replaces a
+   * hand-maintained list in `api/security.ts` /
+   * `BootstrapManager`, and `lint:boundary-roles` holds the
+   * `commons` census at its measured ceiling.
+   */
+  static boundaryRole: BoundaryRole = 'commons';
+
   /** Affliction name (e.g. `'influenza'`). */
   protected name: string = '';
   /** How it perturbs vital signs. */

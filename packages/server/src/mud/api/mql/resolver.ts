@@ -331,16 +331,21 @@ function resolveSeed(node: ChainElement, ctx: MqlContext): MqlMatch[] {
     case 'literal':
       return resolveLiteralSeed(node.value, ctx);
     case 'path': {
-      // First: live clones whose `templatePath` matches under glob
-      // semantics. Existing pre-Phase behavior.
-      const clones = StuffApi.findByPathGlob(node.pattern);
+      // A glob-free path names a ROW, so it resolves to every instance
+      // cloned from it — identity-stamped ones included. That is what
+      // makes `/world/terminus/market/thing/stall` name every counter
+      // and `/.../dormroom` every provisioned room. A pattern carrying
+      // glob characters keeps the trie's glob semantics unchanged.
+      const isGlob = /[*?]/.test(node.pattern);
+      const clones = isGlob
+        ? StuffApi.findByPathGlob(node.pattern)
+        : StuffApi.findAllByTemplatePath(node.pattern);
       if (clones.length > 0) return matchesFromStuff(clones);
       // Fallback for non-glob paths: the addressable Template record
       // itself, so verbs can act on a template that has no live
       // clones (e.g., `destruct /platform/agent/Avatar/foo`). Glob patterns
       // (`*`, `**`, `?`) skip this — they're search-shaped queries
       // and the empty-result is meaningful.
-      const isGlob = /[*?]/.test(node.pattern);
       if (isGlob) return [];
       return matchesFromStuff(StuffApi.findTemplatesByPath(node.pattern));
     }
@@ -775,7 +780,12 @@ function candidatesForScopePart(
     ];
   }
   if (part.startsWith('/')) {
-    return candidatesForFlat(StuffApi.findByPathGlob(part), ctx.commandGiver, ctx.attention);
+    // Same rule as the path seed: glob-free means the row and every
+    // instance cloned from it; a glob keeps trie semantics.
+    const found = /[*?]/.test(part)
+      ? StuffApi.findByPathGlob(part)
+      : StuffApi.findAllByTemplatePath(part);
+    return candidatesForFlat(found, ctx.commandGiver, ctx.attention);
   }
   if (part.startsWith('#') && part.length > 1) {
     const found = StuffApi.findById(part.slice(1));

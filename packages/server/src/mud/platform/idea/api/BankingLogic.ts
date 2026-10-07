@@ -1884,12 +1884,15 @@ async function snapshotCoinOf(currency: string): Promise<number> {
   // counting the snapshot too would double them — found by driving, when the
   // audit reported a bottom-up exceeding supply. Only a holder that is NOT
   // materialized is represented solely by its record.
-  // ⚠ `findAllByTemplatePath`, not the singleton read: a keyed scope
+  // ⚠ Not the singleton read: a keyed scope
   // (`/trade/farming/thing/plant/wheat`, one row, many instances) made the
   // singleton read THROW inside the audit, which took `reserve supply`
-  // down with it — found by driving the bootstrap.
+  // down with it — found by driving the bootstrap. And
+  // `findByIdentityPath`, not the row read: `scope` is a RECORD's scope,
+  // written as the holder's `getIdentityPath()`, so the question is
+  // "is anything filed under this exact string standing up".
   const isResident = (scope: string): boolean =>
-    scope !== "" && StuffApi.findAllByTemplatePath(scope).length > 0;
+    scope !== "" && StuffApi.findByIdentityPath(scope).length > 0;
   const visit = (node: unknown): void => {
     if (Array.isArray(node)) {
       for (const child of node) visit(child);

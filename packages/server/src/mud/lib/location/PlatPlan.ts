@@ -334,6 +334,30 @@ export class PlatPlan {
     return this.authoredPathOf(nodeId) !== null;
   }
 
+  /**
+   * ⭐ The **minted identity** of a non-authored circulation node —
+   * `` `${parentExtent}/${nodeId}` ``.
+   *
+   * The plan already owns every other node-derived string (`nodeOfSlot`,
+   * `authoredPathOf`, `routeOf`), and this one has two readers: the
+   * warren that mints the node, and anything that has to name the same
+   * node without standing it up. Two computers of one string is exactly
+   * what a single home prevents, so the formula lives here — it is a
+   * MOVE of the string `OuterWarren.ensureNode` already built, not a
+   * new shape.
+   *
+   * ⭐ It is a durable name even though the node is ephemeral as an
+   * object: re-derivable from the plan plus the extent, so a corridor
+   * reaped and re-minted answers to the same string, which is what lets
+   * a parked character's snapshot find the place it was standing.
+   *
+   * An instance method, not a static — `lib/` statics are ratcheted and
+   * a shared rule in `lib/` is an instance value class.
+   */
+  nodeIdentityOf(nodeId: string, parentExtent: string): string {
+    return `${parentExtent}/${nodeId}`;
+  }
+
   /** The authored circulation room's template path for a node, or null
    *  (a minted node). */
   authoredPathOf(nodeId: string): string | null {

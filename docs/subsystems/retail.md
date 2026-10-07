@@ -351,8 +351,41 @@ coinage-clean ladder (2..10) against the 20-credit stipend. **Independent**
   `consigns` brain honors the shelf's own cap, as `consign` does.
 - **A player shop is a rented stall** — `stall rent` / `stall give-up`
   on the market square (`MarketStalls`, the terminus pack): a counter
-  minted with the renter's identity, a house re-minted from them, an
-  account of their own. `Business.getAccountPath()` is the identity path.
+  keyed to the **pitch** it stands on, a house re-minted from the
+  renter, an account of their own. `Business.getAccountPath()` is the
+  identity path.
+
+  ⭐⭐ **The key is the PITCH, not the renter (2026-10-05).** A key is
+  relative to the thing that MANAGES it — a holding warren keys its
+  rooms `<extent>/<leaf>` off its own durable address — and the square's
+  fixture is what manages pitches. So the counter is `(scope = the stall
+  seed row, key = <the fixture's row>/<pitch>)`, and **who rents it**
+  lives on the house's `appointingAuthority`, where it belongs. The
+  fixture keeps the book of lets (`pitches` authored, `lets` runtime),
+  allocates lowest-free, and `stall rent` refuses a full square before
+  any money moves.
+
+  Keying on the renter was wrong three ways: it made the renter's
+  identity the counter's substance; it let a square hand out unbounded
+  stalls, because nothing counted pitches; and it put the counter in a
+  population the `(scope, key)` uniqueness invariant **could not scan at
+  all** — the scan's needle was the host's own identity, so for an
+  identity-stamped keyed host it read a bucket holding one object and
+  passed (see [persistence.md](./persistence.md)).
+
+  ⚠⚠ Two things the re-key forced, both of them the same clobber from
+  opposite sides:
+
+  - **The fixture must establish its own record.** A `props:` fixture on
+    a non-`Persistable` street is established by nobody —
+    `Stock.onCreate` only resets, and `capturesAtShutdown()` is false
+    while the persistence key is null — so the book would come up empty
+    at every boot and the next renter would be allocated an occupied
+    pitch. `MarketStalls.onCreate` materializes its keyless record.
+  - **`give-up` DELETES the pitch's record** rather than capturing the
+    emptied counter. A pitch-keyed record that outlives its let hands
+    the next renter the previous keeper's counter, rent apparently
+    already paid. A given-up pitch remembers nothing.
 
 ## Deferred
 

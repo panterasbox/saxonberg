@@ -217,7 +217,7 @@ describe('CmsApi — content backend', () => {
     vi.spyOn(AccessApi, 'canMutateZone').mockResolvedValue(true);
     // A live clone at the path: spy restoreFromTemplate to observe go-live.
     const fakeInstance = { stuffId: 'x' };
-    vi.spyOn(StuffApi, 'findAllByTemplatePath').mockReturnValue([
+    vi.spyOn(StuffApi, 'findByIdentityPath').mockReturnValue([
       fakeInstance as never,
     ]);
     const restore = vi
@@ -264,7 +264,7 @@ describe('CmsApi — content backend', () => {
   it('write accepts a resolvable brain path', async () => {
     vi.spyOn(AccessApi, 'can').mockResolvedValue(true);
     vi.spyOn(AccessApi, 'canMutateZone').mockResolvedValue(true);
-    vi.spyOn(StuffApi, 'findAllByTemplatePath').mockReturnValue([]);
+    vi.spyOn(StuffApi, 'findByIdentityPath').mockReturnValue([]);
     const out = await CmsApi.write(
       'content',
       '/cmstest/alpha',
@@ -333,7 +333,7 @@ describe('CmsApi — content backend', () => {
   it('write accepts a valid dialogue tree', async () => {
     vi.spyOn(AccessApi, 'can').mockResolvedValue(true);
     vi.spyOn(AccessApi, 'canMutateZone').mockResolvedValue(true);
-    vi.spyOn(StuffApi, 'findAllByTemplatePath').mockReturnValue([]);
+    vi.spyOn(StuffApi, 'findByIdentityPath').mockReturnValue([]);
     const out = await CmsApi.write(
       'content',
       '/cmstest/alpha',

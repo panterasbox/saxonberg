@@ -683,10 +683,18 @@ function corpseIdentityFor(body: Stuff, nowS: number): string | undefined {
   // reaped corpse leaves the index, so keys are recycled rather than
   // monotonic — which is correct, because identity is about telling live
   // bodies apart, not about an audit trail (that is the chronicle's job).
-  if (StuffApi.findAllByTemplatePath(base).length === 0) return base;
+  //
+  // ⚠⚠ `findByIdentityPath`, and this is MANDATORY, not tidiness. The
+  // probe asks *is this IDENTITY free*, and a corpse's own
+  // `getTemplatePath()` is the corpse ROW — never the identity it was
+  // stamped with. A read that narrowed a row's instances by lineage
+  // would drop the exact hit, report an occupied identity as free, and
+  // collide two deaths in the same game-second. A probe for an identity
+  // must not depend on how a ROW read scopes its filter.
+  if (StuffApi.findByIdentityPath(base).length === 0) return base;
   for (let n = 2; ; n++) {
     const candidate = `${base}-${n}`;
-    if (StuffApi.findAllByTemplatePath(candidate).length === 0) {
+    if (StuffApi.findByIdentityPath(candidate).length === 0) {
       return candidate;
     }
   }
@@ -809,6 +817,41 @@ async function mintCorpseFrom(
       ...(stampedMass !== undefined ? { mass: stampedMass } : {}),
       ...(bornAt !== undefined ? { bornAt } : {}),
     },
+    // Nothing reads a corpse by identity.
+    // `reembody` never looks one up, and belief's naming path is gated
+    // on `isPersona` (composed on `Character`, not `Creature`), so the
+    // only consumer of this string is the mint's OWN ordinal probe,
+    // which is circular and cannot justify the mint it serves.
+    //
+    // ⚠⚠ **Two corrections from the carcass-chain build (2026-10-05),
+    // and they sharpen WHY this is unjustified rather than softening
+    // it.** (1) You can die, `reembody`, and die again before the first
+    // body decays, so ONE avatar owns two coexisting corpses — the
+    // `<gameSecond>` is not redundant, it names WHICH DEATH. (2) That
+    // second IS recorded: `diedAtGameSec` is persistent on
+    // `PostmortemMixin`, and `recordDeathDeed` writes a chronicle deed
+    // whose `when` is persistent. So on the player path the name IS
+    // durable, and requirements 9a's two limbs LICENSE this key.
+    //
+    // ⭐⭐ The reason to remove it anyway is a third limb 9a does not
+    // have: **can anyone NAME it?** The way a person refers to a thing
+    // is keyword → the `distinguishing` form → an ordinal where those
+    // tie (`PromptLogic.projectMatches`). Nothing in that ladder can
+    // hold a path or a game-second: a player cannot type it, the
+    // disambiguation prompt will not render it, and MQL's own answer to
+    // *which of these identical things* is an ordinal. The key is
+    // durable and UNSPEAKABLE. ⭐ And the real fix was presentation, not
+    // identity — the carcass build made `getDecayStage()` a salient
+    // feature, so `butcher stale` works and two of one player's corpses
+    // are finally distinguishable in the UX.
+    //
+    // ⛔ UNJUSTIFIED and deliberately left alone: that build owns the
+    // decision and has narrowed the mint on its side (a beast's corpse
+    // no longer mints at all). See
+    // `docs/slates/builds/instance-addressing-slate.md § the third
+    // limb`.
+    // identity-keyed-by: none — nothing durable reads it, and nothing
+    // speakable names it.
     asIdentityPath: corpseIdentityFor(body, nowS),
   });
   if (!MixinApi.isVitals(corpse)) {
@@ -877,6 +920,11 @@ async function mintShadeFrom(
     '/platform/agent/ShadeAvatar',
     undefined,
     {
+      // identity-keyed-by: own-record — a shade is the same PERSON, so
+      // it attributes to the same identity-keyed ledgers as the body of
+      // record, and the path is re-derivable from the playerId.
+      // Declares its own `identityNamespace` rather than inheriting the
+      // Avatar family's, because this prefix is its own.
       asIdentityPath: `/platform/agent/ShadeAvatar/${avatar.getPlayerId()}`,
       dataOverlay: {
         playerId: avatar.getPlayerId(),
