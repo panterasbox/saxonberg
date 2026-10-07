@@ -1585,6 +1585,10 @@ export const AppSettingKeys = {
    * room's noon flux is this times its own floor area, so a row that
    * authors nothing is lit correctly for its size. */
   lightSkyNoonLux: "light.sky.noonLux",
+  /** Light — the minimum colour DEPTH (0..1) at which `look` says a room's
+   * light is tinted. Below this a faint cast is not worth a sentence; a
+   * stained pane clears it easily. Read by `LookController`. */
+  lightTintLegibleAt: "light.tintLegibleAt",
 
   /* ────────────────────────── weather (Wave 2 light / sky) ────────────────────────── */
   /** Weather — the maximum ambient-light dimming at full cloud (cloud=1);

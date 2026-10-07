@@ -49,6 +49,8 @@ import {
   type LightBand,
 } from '../../../../lib/perception/Light';
 import type { VisionModality } from '../../modalities/VisionModality';
+import { AppApi } from '../../../../api/app';
+import { AppSettingKeys } from '../../../../lib/config/AppSettings';
 import type { Sensor } from '../../../../lib/message/Sensor';
 import type { Perception } from '../../../../lib/perception/Perception';
 import type { Container } from '../../../../lib/spatial/Container';
@@ -426,6 +428,18 @@ export default class LookController extends CommandController<LookModel> {
         .send();
     }
 
+    // ⭐ The light is TINTED — a stained window on the far side colours
+    // what reaches the floor (W0). Its own uncarded scene, like the band
+    // phrase and for the same reason: a room's light is not one of its
+    // authored fields, so folding it into `body` would reach the card
+    // (which never renders handed prose) and vanish from a browser.
+    // Only when the cast is deep enough to be worth a sentence, and only
+    // when the place is light enough to describe at all.
+    const tintLine = this.tintLineAt(location, band);
+    if (tintLine) {
+      MessageApi.scene(actor).topic('sense.survey').toSelf(tintLine).send();
+    }
+
     const scene = MessageApi.scene(actor).topic('sense.survey');
     // ⭐ Says *this content is also on a card*, so `shell.result` can
     // filter it. A topic key could not: `sense.survey` is shared by
@@ -467,6 +481,48 @@ export default class LookController extends CommandController<LookModel> {
       );
     } catch {
       return null;
+    }
+  }
+
+  /**
+   * One sentence when the light in `location` carries a legible colour
+   * cast — a stained window colouring the floor — or `null`. Reads the
+   * raw vision signal (colour is not viewer-dependent), gates on the
+   * `light.tintLegibleAt` dial and on the room being light enough to
+   * describe, and names the cast with the palette's nearest word. Any
+   * perception gap degrades to `null` — a missing tint never takes
+   * `look` down.
+   */
+  private tintLineAt(
+    location: Stuff,
+    band: LightBand | null,
+  ): Mml | null {
+    if (band && LIGHT_BANDS_TOO_DARK_TO_DESCRIBE.includes(band)) return null;
+    if (!MixinApi.isContainer(location)) return null;
+    try {
+      const vision = PerceptionApi.modalityByName('vision') as VisionModality;
+      const signal = vision.signalAt(
+        location as unknown as Stuff & Container,
+      );
+      if (signal.intensity.rawValue() <= 0) return null;
+      const colour = signal.colour;
+      if (colour.depth() < this.tintLegibleAt()) return null;
+      const word = colour.nearestTag();
+      return Mml.compose`The light here comes ${word}-tinted through the glass, and lies ${word} on the floor.`;
+    } catch {
+      return null;
+    }
+  }
+
+  /** The `light.tintLegibleAt` dial, with a seeded-literal fallback. */
+  private tintLegibleAt(): number {
+    try {
+      const raw = AppApi.setting(AppSettingKeys.lightTintLegibleAt);
+      if (raw === '' || raw == null) return 0.25;
+      const n = Number.parseFloat(raw);
+      return Number.isFinite(n) ? n : 0.25;
+    } catch {
+      return 0.25;
     }
   }
 

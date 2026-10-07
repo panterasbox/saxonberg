@@ -299,6 +299,19 @@ and outputs `/trade/glass/thing/amber-melt`, whose row authors
 term that absorbs blue hard. Brown bottles for the beer step come from
 the batch, never from a colour word.
 
+**D16 — The `lint:lib-statics` ceiling rises by 2 (build-time).** W0
+adds two statics to the `Colour` value object — `fromTag` (palette word
+→ transmittance position) and `normalised` (a Colour from raw, unclamped
+channel sums). *Caller audit:* both are construction/lookup OF the type
+(the gate's own documented "belongs here as a value-static" category),
+not world logic — `fromTag` serves `Window.lightTransmittance`,
+`normalised` serves the light walk and `Light.add`. A `*Logic` singleton
+or an Api would be the wrong home for a value-object factory. So the
+ceiling moves 337 → 339 with the audit written at the constant, and the
+ratchet still only falls from there. *(Decided per the build contract,
+lens-free: a convention adjustment with a recorded audit, not a scope
+change.)*
+
 ---
 
 ## ⭐⭐ Host placement
@@ -400,7 +413,27 @@ Stage B is the pack, the venue, the drive.
 
 ### Stage A
 
-#### W0 — Colour on Light (kernel) · `build(glass W0): Colour on Light — a pane colours what passes through it`
+#### W0 — Colour on Light (kernel) · `build(glass W0): Colour on Light — a pane colours what passes through it` ✅ DONE
+
+> **Built.** `Colour.fromTag`/`normalised`/`normalise` + `LightFilter`
+> interface; `Light.colour` (ctor/of/from/toJSON), `filter` (multiply),
+> `add` (flux-weighted colour mix), `attenuate`/`withColour` keep hue;
+> `LightConduit.transmittanceColour?`; `Window.glazeR/G/B` +
+> `setGlazing`/`getGlazing`/`lightTransmittance` + the conduit wrapper;
+> the vision walk threads `chroma` (flux-weighted per-channel sums,
+> white-direct, multiplied through a coloured pane), `walkLight`
+> normalises it onto the Light; `LookController` emits the tint line
+> gated on `light.tintLegibleAt` (dial added, default 0.25).
+> Tests: Colour (fromTag/normalise), Light (filter/add/attenuate/ZERO/
+> toJSON), Window (glaze wins over tint, shut = white, conduit colour),
+> and two walk tests in `Window.integration` (a red pane MULTIPLIES, a
+> red + a blue window ADD to magenta). 69 perception/window tests + 55
+> modality tests green; server tsc clean; `lint:family` green.
+> **Decision recorded (D16):** `lint:lib-statics` ceiling 337 → 339 for
+> the two type-level `Colour` statics (`fromTag`, `normalised`) — a
+> caller-audited value-object factory/lookup, the category the gate
+> documents as belonging on the value object; an Api home would be
+> wrong. Rationale written inline at the ceiling constant.
 
 **Goal.** Light carries a hue; a boundary may colour what it passes; the
 walk multiplies through a pane and adds across panes; `look` says so.

@@ -90,8 +90,20 @@ const REPO_ROOT = join(MUD, '../../../..');
  * `VisionModality.canSee` among them — and the invariant is about
  * visibility, not about which directory a class sits in. **564.**
  * Lowering it is the sweep's whole job.
+ *
+ * ⭐ Glass build (W0) +2 → 337 → 339: two TYPE-level statics on the
+ * `Colour` value object — `fromTag` (a palette WORD → its transmittance
+ * position, the inverse of `nearestTag`) and `normalised` (a Colour from
+ * raw, unclamped channel sums, scaled so the largest is 1). Both are
+ * construction/lookup OF the type — the category this gate's own body
+ * documents as belonging here as a value-static, not world logic that
+ * wants a `*Logic` singleton. Caller audit: `fromTag` is called by
+ * `Window.lightTransmittance` (author word → filter) and the colour
+ * tests; `normalised` by the light walk and `Light.add` (chroma →
+ * hue). An Api home would be wrong for a value-object factory. The
+ * ratchet still only falls from here.
  */
-export const LIB_STATICS_CEILING = 337;
+export const LIB_STATICS_CEILING = 339;
 
 const STATIC =
   /^\s*(?:public\s+)?static\s+(?:async\s+)?(?!readonly\b|get\b|set\b|_)([a-zA-Z]\w*)\s*[(<]/;

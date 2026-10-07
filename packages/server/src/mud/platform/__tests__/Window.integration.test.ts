@@ -2,6 +2,7 @@ import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach  } from 'vitest';
 import Window from '../thing/Window';
 import { Light } from '../../lib/perception/Light';
+import { Colour } from '../../lib/perception/Colour';
 import { LightSourceMixin } from '../../lib/perception/LightSource';
 import CartesianLocation from '../../lib/location/CartesianLocation';
 import CartesianZone from '../idea/location/CartesianZone';
@@ -215,6 +216,79 @@ describe('Window — multi-room propagation integration', () => {
     // contribute (we don't need a further hop), but D requires a
     // further hop — depth 3 — which truncates to ZERO.
     expect(vision().lightAt(roomA).intensity.rawValue()).toBe(0);
+  });
+
+  it('coloured pane MULTIPLIES: white light through a red window lands red in B, dimmer', async () => {
+    const { roomA, roomB } = setupTwoRoomsAcrossZones();
+    const window = await StuffApi.create(() => new Window());
+    window.setBaseTransmissivity(1);
+    window.setGlazing(Colour.of(1, 0.1, 0.1)); // red glass
+    window.open();
+    BoundaryApi.attachExistingBoundary({
+      boundary: window,
+      hostA: roomA,
+      hostB: roomB,
+    });
+
+    const candle = makeStuff(() => new Candle());
+    candle.setEmittedFlux(40);
+    ContainmentApi.move(candle, roomA);
+
+    // A reads white at full strength.
+    const a = vision().lightAt(roomA);
+    expect(a.intensity.rawValue()).toBe(40);
+    expect(a.colour.r).toBe(1);
+
+    // B reads RED, and LESS light than A (the pane subtracts g + b).
+    const b = vision().lightAt(roomB);
+    expect(b.colour.r).toBeCloseTo(1, 5);
+    expect(b.colour.g).toBeLessThan(0.3);
+    expect(b.colour.b).toBeLessThan(0.3);
+    expect(b.intensity.rawValue()).toBeGreaterThan(0);
+    expect(b.intensity.rawValue()).toBeLessThan(40);
+  });
+
+  it('two coloured windows ADD: a red and a blue window onto one room give magenta', async () => {
+    // Three source-free zones: A (lit, red window to B), C (lit, blue
+    // window to B), B (dark, reads the sum). Distinct zones isolate the
+    // boundary path from cardinal exits.
+    const zoneA = makeStuff(() => new CartesianZone());
+    zoneA.setCellSize(1);
+    const zoneB = makeStuff(() => new CartesianZone());
+    zoneB.setCellSize(1);
+    const zoneC = makeStuff(() => new CartesianZone());
+    zoneC.setCellSize(1);
+    const roomA = makeStuff(() => new CartesianLocation());
+    const roomB = makeStuff(() => new CartesianLocation());
+    const roomC = makeStuff(() => new CartesianLocation());
+    zoneA.addLocation(roomA, 0, 0, 0);
+    zoneB.addLocation(roomB, 0, 0, 0);
+    zoneC.addLocation(roomC, 0, 0, 0);
+
+    const red = await StuffApi.create(() => new Window());
+    red.setBaseTransmissivity(1);
+    red.setGlazing(Colour.of(1, 0.1, 0.1));
+    red.open();
+    BoundaryApi.attachExistingBoundary({ boundary: red, hostA: roomA, hostB: roomB });
+
+    const blue = await StuffApi.create(() => new Window());
+    blue.setBaseTransmissivity(1);
+    blue.setGlazing(Colour.of(0.1, 0.1, 1));
+    blue.open();
+    BoundaryApi.attachExistingBoundary({ boundary: blue, hostA: roomC, hostB: roomB });
+
+    const lampA = makeStuff(() => new Candle());
+    lampA.setEmittedFlux(40);
+    ContainmentApi.move(lampA, roomA);
+    const lampC = makeStuff(() => new Candle());
+    lampC.setEmittedFlux(40);
+    ContainmentApi.move(lampC, roomC);
+
+    const b = vision().lightAt(roomB);
+    // The two hues ADD across panes — high-r, high-b, low-g.
+    expect(b.colour.r).toBeGreaterThan(0.8);
+    expect(b.colour.b).toBeGreaterThan(0.8);
+    expect(b.colour.g).toBeLessThan(0.3);
   });
 
   it('BoundaryApi.destruct cleanly removes the leak', async () => {
