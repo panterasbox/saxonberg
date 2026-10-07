@@ -2075,20 +2075,36 @@ harvest `drain` depends on a vessel with no producer — a one-line
 finding for `trade-fuel`'s slate, which is what this drive file's
 `.dirty` reason is for.
 
-**L5 — ⛔ NOT this build: `details` is a bare-`persistent` Map.** On a
+**L5 — ⛔ `details` is a bare-`persistent` Map — FIXED, with a gate.** On a
 warm database, `get bladder` answers *"Couldn't resolve 'targets'
 (resolve): details.keys is not a function"* — and from then on no
 keyword in that scope resolves. `DetailedMixin.fieldMeta.details` marks
 a `Map` field `persistent: true`, and a persistent Map has no BSON
 shape: it hydrates as a plain object and `details.keys()` throws. A
 fresh world is clean; the same room breaks after a restart.
-⚠ Recorded, not fixed — it is a kernel defect in the description
-subsystem, and *a cross-cutting capability is never solved inside a
-trade build*. The documented remedy is the one this repo has applied to
-this exact class before: **drop the flag** (authored details come from
-the template on every boot, so nothing is lost and no migration is
-needed). It blocks the firedamp leg in any warm world, so it wants
-somebody's attention before it bites a dev session.
+⭐ Dropping the flag loses nothing and needs no migration:
+`instruction: true` is what carries a row's authored `details:` block
+through `applyDetails`, which runs on every hydrate, and **nothing in
+the tree mutates a detail at runtime** — not one `setDetail` /
+`removeDetail` caller exists outside the mixin. Details are authored
+content re-applied from the template; they had no business in the
+persistence slice.
+
+⚠ This is the SECOND time a bare-persistent Map has done this (it broke
+`find` + `teleport` in every warm-DB world once), so the fix ships with
+the gate that makes a third impossible: `check-field-meta --lint` rule 5
+refuses a `persistent` Map/Set with no `marshaller`, resolving one level
+of type alias so the rule does not depend on a `new Map()` initializer
+being present. ⭐ Census FIRST — **one** offender in 3,044 files — so it
+lands as a ratchet at zero rather than a burn-down. And the gate was
+watched FIRING before being trusted: `persistent` re-added (it named the
+file, the field and the type), then the initializer stripped to prove
+the alias branch catches it alone.
+
+⭐ Proved in a browser, in the shape that failed: fresh world →
+`get bladder` + `drop bladder` work → restart onto the SAME database →
+both still work, and `details.keys` appears nowhere in the boot. Drive
+re-run after the fix: 23/23.
 
 **D6 — ⛔⛔ THE BINDER IS TYPE-DIRECTED, so a bare word after a verb can
 never be a value.** D3's "the value is positional now" was wrong, and two
