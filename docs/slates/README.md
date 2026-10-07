@@ -35,7 +35,7 @@ materials-response all shipped, which made the name actively misleading.
 
 <!-- BEGIN GENERATED — ./tools/slate-index -->
 
-**276 slates.** 70 greenfield · 95 continuations · 58 waves · 53 tails.
+**277 slates.** 70 greenfield · 96 continuations · 58 waves · 53 tails.
 
 ## ⭐ Greenfield — nothing shipped yet (70)
 
@@ -115,7 +115,7 @@ respect.
 | [wizardry](./builds/wizardry-slate.md) | ⭐ the **curriculum** → wizardry-curriculum-slate (§ 8a) · the seven Discipline rows + the noun extractor (rubric § 10) · the conferral logic · the band's disclosure rule … |
 | [wizardry-curriculum](./builds/wizardry-curriculum-slate.md) | the kind-of-content intake · the eight topics of W101 as lessons · the exemplar set (one per kind) · the detail-density mirror … |
 
-## ⭐ Continuations — substrate shipped, a build's worth remains (95)
+## ⭐ Continuations — substrate shipped, a build's worth remains (96)
 
 The subsystem doc is the reference for what already ships; these
 are the named remainders.
@@ -177,6 +177,7 @@ are the named remainders.
 | [livelihood](./builds/livelihood-slate.md) | §1's death salience-by-place + the lethal-cost debt, and old age/succession · §2's whole adjudication stack (target standing × authorization legitimacy, institutions, liability-laundering, frontier law) + illicit arrangements · §3's systemic need-generator + NPC claiming, and the board's pricing + gating · §4's CB allocation + insolvency backstop for business credit, and a capital market … |
 | [logistics](./builds/logistics-slate.md) | piracy + turmoil (a road is safe if help arrives) · live cargo and drovers (the steer walks, the carcass rides) · infrastructure politics — tollgate, turnpike trust, the barricade on a lane edge, banditry, congestion, road wear · rail and the ore train (a data addition on the lane substrate; the train robbery is its integration test; ship with trains or arrive as a shock) … |
 | [lounge](./builds/lounge-slate.md) | the flavor tag-set + `route` matchmaking + `seedMember` (the pizza-as-consensus toy: the served pie, the ordered slice, the standing order, the robot last mile + the pass + the pizza line, the published menu) · start-a-table growth · the departure ceremony · the lounge furniture (the contested screen + the remote as a standing signal, the info screen, the derived channel lineup + broadcasting as a business, the notice board, the window, the lost-and-found + the bin, unbuckling) … |
+| [malting-and-extract](./builds/malting-and-extract-slate.md) | malt **extract** (the hinge — it rides the shipped `evaporative` mechanism) · **specialty malts + diastatic power** (the range that makes malt a product rather than an ingredient) · malted milk, which gives dairy its first sink · malt vinegar as a feedstock for the acid hurdle preservation already owns … |
 | [mana-economy-design-pack](./builds/mana-economy-design-pack.md) | the two Material fields (mana density · mana conductivity — canon in arcane-science.md, no field on `Material` yet) · mana deposits + prospecting/refining (partition + volatility, purity as a `Grade`) · ambient mana density of place driving recovery … |
 | [medic-judgment](./builds/medic-judgment-slate.md) | stop auto-selecting (player picks target + modality) · cues without names on `assess`/`analyze` · triage under the deterioration clocks · decision-graded `ActSignature` sub-checks … |
 | [metal-chain](./builds/metal-chain-slate.md) | Stage B, below the water table — shaft/hoist/pump · the drainage commons, the district as an Organization + the hoist toll · sulfides, roasting and flux · beneficiation (the dressing floor + tailings) … |
