@@ -6,7 +6,7 @@
 > [logistics.md § Routing](../../subsystems/logistics.md) holds the
 > standing decision *no general pathfinding Api yet — promote the walk
 > when a second edge set needs search*.
-> ⭐ **Partly superseded 2026-10-01** — [location-graph-slate](./location-graph-slate.md)
+> ⭐ **Partly superseded 2026-10-01** — [location-graph-slate](../tails/location-graph-slate.md)
 > answers question 3 (*where it lives*) and supplies the graph, the cost
 > field (`edgeMinutes`, already on 85 edges) and a third consumer.
 > **Left:** ⭐⭐ decide whether a shared pathfinder should exist at all
@@ -137,7 +137,7 @@ Three things this adds to the questions below:
 So this slate is no longer *"should a shared pathfinder exist"* — one of the
 three census entries is being rewritten regardless. What the read turned up,
 in full at
-[location-graph-slate § 18](./location-graph-slate.md):
+[location-graph-slate § 18](../tails/location-graph-slate.md):
 
 **⛔ Why it needs replacing:**
 
@@ -190,7 +190,7 @@ the two plans.**
    `lint:lib-statics` ceiling.
 
    > ⭐⭐⭐ **ANSWERED, 2026-10-01, by
-   > [location-graph-slate](./location-graph-slate.md).** A persisted exit
+   > [location-graph-slate](../tails/location-graph-slate.md).** A persisted exit
    > index is keyed on **paths — strings, not Stuff** — so
    > `NavigationApi.routeBetween(a, b)` is **not subject-first and the lint
    > never fires.** `NavigationApi` is already the string-keyed direction

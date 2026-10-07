@@ -1,7 +1,7 @@
 # Map / spatial-visualization slate (working doc)
 
 > **Status: UNBUILT — design resolved 2026-10-01, ⛔ BLOCKED on
-> [location-graph-slate](./location-graph-slate.md).** The renderer has
+> [location-graph-slate](../tails/location-graph-slate.md).** The renderer has
 > nothing to read until the index exists; once it does, **this is 100% a
 > client build.**
 > ⭐⭐⭐ **Resolved: SVG for 2D, not canvas and not the box model** — the
@@ -121,7 +121,7 @@ See also:
 ### Data sources, one renderer
 
 ⚠⚠ **Corrected 2026-10-01 — this said TWO sources and both were wrong in
-part.** See [location-graph-slate](./location-graph-slate.md).
+part.** See [location-graph-slate](../tails/location-graph-slate.md).
 
 - ⛔⛔ **There is no draft overlay.** `cms.md`'s deferral boundary:
   *"Drafts / staging / changeset overlay + atomic publish → later (depends
@@ -144,7 +144,7 @@ whole-world modes possible:**
   `getIdentityPath()`, indexed by zone and by reverse edge, with a
   `PlatPlan` expansion for the elastic half. This is what a zone view, a
   route, a reachability check and the offline boundary read. See
-  [location-graph-slate](./location-graph-slate.md).
+  [location-graph-slate](../tails/location-graph-slate.md).
 
 What the renderer draws differs by source; how it draws is one component.
 
@@ -315,7 +315,7 @@ from its own `(0,0,0)`, and `cellSize` varies per zone.
 
 So the zone view **is** the node-graph mode: `{crossesZone: true}` (the
 level-1 skeleton from
-[location-graph-slate § 3](./location-graph-slate.md)) laid out by dagre,
+[location-graph-slate § 3](../tails/location-graph-slate.md)) laid out by dagre,
 with crossing directions as edge labels.
 
 ⭐⭐⭐ **But a global frame could be *derived* by composing cross-zone edges —
@@ -362,7 +362,7 @@ Two kinds of editing, and they separate cleanly:
 | **the map as an authoring tool** for rooms and content (the CMS zone builder) | **deferred** |
 
 > ⭐⭐⭐ **Which makes this a bigger build than "a minimap."**
-> [location-graph-slate § 17](./location-graph-slate.md) concludes that a
+> [location-graph-slate § 17](../tails/location-graph-slate.md) concludes that a
 > map's value is its **annotations**, not its geometry — so **the client is
 > where the tradeable good actually gets made.** The renderer is
 > infrastructure; the annotation surface is the feature.
@@ -460,7 +460,7 @@ surface."*
 > ⭐⭐⭐ **So the rose's geometry is free today, and it is already
 > perception-gated** — a concealed exit is not in the list, so the rose
 > inherits the x-ray guard
-> ([location-graph-slate § 8](./location-graph-slate.md)) **without anyone
+> ([location-graph-slate § 8](../tails/location-graph-slate.md)) **without anyone
 > adding a check.**
 
 ⚠ **What the state vocabulary needs added:** the destination (so an arm can
@@ -516,7 +516,7 @@ undetected for a whole build with five green tests over it.
    — the lounge's satellites, which exist because somebody is standing in
    them — is genuinely shapeless, and there the honest render is *"a space
    through this door, shape unknown."* See
-   [location-graph-slate § 4](./location-graph-slate.md).
+   [location-graph-slate § 4](../tails/location-graph-slate.md).
 7. **3D editing, ever?** — or permanently 2D-edit / 3D-view. *Lean: never.*
 8. ~~**Up/down in the 2D grid**~~ ⭐ **DECIDED** — a **corner glyph per
    cell** (`▲`/`▼`/both). The stacked isometric still lands in wave 3 as the
@@ -537,7 +537,7 @@ undetected for a whole build with five green tests over it.
 ## Build order
 
 ⛔ **Wave 0 — not this build.** The
-[location-graph index](./location-graph-slate.md) has to exist. There is
+[location-graph index](../tails/location-graph-slate.md) has to exist. There is
 nothing to render until it does, and the data contract above is its API.
 
 **Wave 1 — the zone navigation card.** `viewBox` in cell units, rects +
@@ -609,7 +609,7 @@ This slate boils down to:
 - ⚠ **Three data-source adapters** — live templates (editor; **there is no
   draft overlay** — see above), live-Stuff-discovery-filtered (game
   minimap), and the **persisted location-graph index**
-  ([location-graph-slate](./location-graph-slate.md)) for every whole-world
+  ([location-graph-slate](../tails/location-graph-slate.md)) for every whole-world
   mode — one renderer.
 - **Three consumers** — game minimap/spatial-view, zone-editor canvas/view,
   demo flythrough.

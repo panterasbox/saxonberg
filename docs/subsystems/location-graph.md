@@ -484,3 +484,53 @@ not a Stuff; the renderer and its card are `map-slate`'s.
 - [identity.md](./identity.md) — the two identity patterns; the mint census
 - [parcel.md](./parcel.md) — title, and `published`
 - [lint-family.md](../lint-family.md) — `lint:location-graph`'s counts and ceilings
+
+---
+
+## History
+
+The build landed on `reqs/location-graph` (MR !335) across ten waves —
+A0–A4 (instance addressing) then B0–B4 (the graph, `published`, the
+map) — between `288691af3` and the sweep. The requirements doc retired
+at the sweep; the plan is **kept** for its deferred-seams section, and
+both slates moved `builds/` → `tails/` once their substrate shipped
+(the folder derives from `Size`).
+
+⭐⭐ **Four things in this doc are the shape review argued it into, not
+the shape it was built in.** Each is worth knowing before changing it
+back:
+
+1. **Map-keeping is `CartographerMixin`, not `Avatar`.** ~220 lines
+   lived on `Avatar` behind a private predicate that re-narrowed the
+   host set — this repo's own signal that a host is wrong.
+2. ⛔ **The two `Perceiver` hooks were deleted.** `onPerceivedPlace` /
+   `onReadTimetable` had ONE implementer between them, and an optional
+   hook forces a structural cast at every call site — which is where
+   three controllers' casts came from. The perceiver calls the recorder
+   **directly** (`MixinApi.isCartographer`), the shape
+   `BeliefStore.learnIdentityOf` already used. *A hook earns its keep
+   by having more than one implementer*; `Mobile.onTraversed` does, so
+   it stays one.
+3. ⛔ **The claim is NAVIGATIONAL.** Channels went
+   `perception`/`publication`/`told`/`bought` → `walked` · `seen` ·
+   `searched` · `published`. The old axis covered looking AND walking
+   with a comment apologizing for it, `told`/`bought` had no writer,
+   and `modality` was a hardcoded `'vision'` nothing read beside a
+   `band` nothing wrote. ⚠ The tell was in the renderer:
+   `MapController` translated `channel === 'perception'` into the
+   literal word *"walked"*. **A view layer compensating for a stored
+   value means the vocabulary is wrong.**
+4. ⭐⭐ **`searched` exists because non-obvious is not permanently
+   absent.** A concealed exit is filtered out of `obviousExitsFor`
+   until the viewer discovers it, so a glance that records no east exit
+   is **not** evidence that there is none — and the staleness render
+   had been asserting that it was. A deliberate search is the one
+   observation whose absences carry information.
+
+⚠ Two things recorded as owed rather than claimed: `search`'s
+completion does not fire in a dev world (upstream of this build — the
+completion's own message never appears, and `search.test.ts` cannot see
+it because it force-advances the clock), and the only shipped concealed
+exit is in `/world/lounge`, which resolves no Locality and so cannot be
+mapped at all. So `searched` has a writer but no live end-to-end
+consumer yet.

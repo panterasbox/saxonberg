@@ -1,9 +1,9 @@
 # The location graph — implementation plan
 
-Executes [location-graph-requirements.md](../requirements/location-graph-requirements.md)
+Executes `location-graph-requirements.md` (⚠ **retired at the sweep**, per `workflow.md` — read it at `6a4560e5a` if the reasoning is wanted)
 (**kind: feature · leads from: kernel**; **one build in two stages**).
 **Stage A — instance addressing** (executes
-[instance-addressing-slate](../slates/builds/instance-addressing-slate.md)):
+[instance-addressing-slate](../slates/tails/instance-addressing-slate.md)):
 the uniqueness invariant scans by the ROW so it covers stamped keyed
 hosts, a row can be enumerated honestly, the durable per-instance handle
 gets its sanctioned name (`<row>#<key>`) and `Exit.getDiscoveryKey()`
@@ -2179,7 +2179,7 @@ All twenty, from the requirements doc as of commit `6a4560e5a`.
 | 17 group by building where declared | B3 (`group` = `_address`, D17) |
 | 18 survives the nightly reset | B3 (declared kind → `wipe-except` keeps it; `onVanish: keep`) |
 | 19 lounge room is honestly nothing | A1 (null handle) + B3 (no claim) |
-| 20 second locality + second player need no engine change | B3; demonstrated in the drive with Hinkley Hills + a second session |
+| 20 second locality + second player need no engine change | B3; ⭐ **demonstrated at the sweep** — see below. ⚠ The plan claimed *"demonstrated in the drive with Hinkley Hills + a second session"* and the drive record's own table has no such step; the claim was unsupported until the sweep ran it. |
 
 Nothing unmapped. A2 (the census + the continuity assertion) and A3
 (the wire body) have no AC of their own: A2 is the *every mint site names
@@ -2356,10 +2356,17 @@ already states true.
 - **Routing** — the five queries + `interzoneSkeleton` are the router's
   inputs; time-varying TPA edges and planning on the player's map →
   `pathfinding-slate` (with slate § 18 attached).
-- **`told` / `bought` channels** — vocabulary on `Claim.channel`, no
-  writer; attribution of a lie → `location-graph-slate § 9` +
-  `accountability.md`.
-- **Modality on a claim, coverage, epoch ceiling** → slate §§ 10, 11, 16
+- ⛔ **`told` / `bought` channels — CUT in review, not deferred.** They
+  were vocabulary on `Claim.channel` with no writer, kept on the
+  argument that retrofitting provenance is expensive; an axis with two
+  live values and two imaginary ones teaches a reader the wrong shape.
+  The design question survives → `location-graph-slate § 9` +
+  `accountability.md`, where `told`'s attribution-of-a-lie belongs.
+- ⛔ **Modality on a claim — DELETED in review, not deferred.** It
+  shipped as a hardcoded `'vision'` that nothing read, beside a `band`
+  that nothing wrote. A map does not know what a modality is; the
+  claim's channels are navigational (`walked` · `seen` · `searched` ·
+  `published`). Coverage + the epoch ceiling remain → slate §§ 11, 16
   (open 10, open 6).
 - **The map market, decay, a copy verb** → slate §§ 12, 17.
 - **The renderer and its card** → `map-slate` (unblocked by this build).
@@ -2368,8 +2375,13 @@ already states true.
 - **Offlining a warren host / whole warren** → slate open 4.
 - **Occupancy-warren live indexing** — deliberately none; the lean stays
   in the slate.
-- **An NPC that keeps a map** — implement the two `Perceiver` hooks on
-  the NPC class; nothing else changes.
+- **An NPC that keeps a map** — compose `CartographerMixin` on the NPC
+  class; nothing else changes. ⚠ This said *"implement the two
+  `Perceiver` hooks"* until review deleted them: they had one
+  implementer between them, and the perceiver now calls the recorder
+  directly through `MixinApi.isCartographer`. ⭐ Which makes the
+  deferred work SMALLER — one line of composition, no hooks to
+  implement.
 
 ---
 
@@ -2377,9 +2389,9 @@ already states true.
 
 Read first, in this order:
 
-1. `docs/requirements/location-graph-requirements.md` (as of
-   `6a4560e5a`) · `docs/slates/builds/instance-addressing-slate.md` ·
-   `docs/slates/builds/location-graph-slate.md` §§ 3–6, 9, 13–16
+1. ⚠ `docs/requirements/location-graph-requirements.md` is **retired**
+   — read it at `6a4560e5a`. Live: `docs/slates/tails/instance-addressing-slate.md` ·
+   `docs/slates/tails/location-graph-slate.md` §§ 3–6, 9, 13–16
 2. **Stage A:** `api/stuff.ts` (`#updateIndexes:230`, `#cloneInner:545–631`,
    `singleton:698`, `findByTemplatePath:1438`, `findAllByTemplatePath:1456`,
    `_reindexTemplatePath:1474`, `findByPathGlob:1497`) ·
@@ -2888,3 +2900,58 @@ content file was touched.
    moving in the same commit.
 5. ⭐ Observable from outside the code: the acceptance that matters is
    (1) — *an author can edit the exits of a room they hold title to.*
+
+---
+
+## Sweep audit — the ACs that rested on reasoning (2026-10-07)
+
+⭐⭐ `/finalize`'s rule is that an acceptance criterion is satisfied by
+**observing**, not by pointing at a test or an argument. Walking the
+twenty against that standard found three that had not been observed,
+and one of them was an unsupported claim.
+
+### ⭐ AC 20, demonstrated — *"the build is not done until somebody demonstrates it"*
+
+Two players, live, on one world. Player **B was a non-wizard** (no
+`wizard: true`), teleported in, walked the avenue and then west into
+the counting-houses; player A stayed in the terminal half. Read out of
+`documents`:
+
+```
+  player GBFBLqkbMeW87xsvwiCu9
+      terminus/city
+  player kVhszAGa9fibqdgGkMGjv
+      terminus/city
+      terminus/city/counting-houses
+      terminus/city/university-avenue
+
+  players with their own map tree: 2
+  distinct localities mapped:       3
+  claims recorded by a DIFFERENT player: 0 (must be 0)
+```
+
+⭐ **Three localities and two independent trees, with no engine change
+of any kind** — the sweep added no code to get this. The locality tier
+resolves `terminus/city/counting-houses` on its own because
+`localityAddressOf` asks the address tree, and the second player gets a
+tree because `mapOwnerKey()` is their identity. The zero on the last
+line is the per-player firewall as data rather than as an argument.
+
+### AC 18, config-verified and gate-enforced
+
+`schema/documents.yaml` is `reset: verb: wipe-except` with
+`keep: declared-document-kinds`, and its `because:` names **MAPS**
+explicitly: *"a record of something that happened, which nothing may
+erase because a night went by."* `lint:schema` gates that the doc, the
+generated table, the record class and the subsystem doc agree. ⚠ Short
+of running a 04:00 reset that is the whole available observation, and
+it is recorded as config-verified rather than as played.
+
+### AC 15 / AC 16, reasoning only — and left that way
+
+AC 15 (a map copied into another player's tree reads as theirs) is
+reachable only by wizard `eval`; there is no player verb, which the
+requirements made a non-goal. AC 16 (lot-7 survives a reap and
+re-mint) rests on the handle being re-derivable from plan + extent,
+which `Stuff.durableHandle.test.ts` pins as arithmetic. ⚠ Neither is
+observed in play, and neither is claimed to be.

@@ -44,7 +44,7 @@ That is the reusable shape for any antipattern worth removing:
 Step 2 is the affordable part: a new antipattern can be stopped from
 growing the day it is noticed, without being fixed first.
 
-### ⚠⚠ Three ways a census lies, all three paid for in 2026-09
+### ⚠⚠ Four ways a census lies, every one of them paid for in 2026-09
 
 **1. A classifier that reads the NAME instead of the thing.** The
 `lib/` statics sweep filed 40 rows as *"inline and delete"* from their

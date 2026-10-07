@@ -187,6 +187,7 @@ behavior. Read the relevant doc before editing in its area.
   - [spatial.md](./docs/subsystems/spatial.md) — containment/movement substrate: Container/Containable/Mobile/Placing/Sealable, vessels; **Placement** — where inside its container a thing sits (`on`·`in`·`from`, a row-extensible vocabulary), and the two composition refusals
   - [location.md](./docs/subsystems/location.md) — room/coordinate/zone geometry, the Warren elastic graph, lounge content, `startLocation`
   - [boundary.md](./docs/subsystems/boundary.md) — exits/doors/Adornable, exit-kind templates, DeferredDestinationExit, Switchable/Lockable/Bistate, locks & keys
+  - [location-graph.md](./docs/subsystems/location-graph.md) — the world's shape as a collection, and what a player knows of it: the `location_graph` projection + its invariant lint, `published` on the parcel (draft = a wall, offline = a camera), ⭐⭐ the per-player **map** document (channels `walked` · `seen` · `searched` · `published`, claims append and nothing is corrected) and the evidence firewall — ⛔ the index must never reach a client
   - [bulk.md](./docs/subsystems/bulk.md) — continuous matter and NOTHING else: Bulkable slots, transfer/drain-through, measure grammar, fill/pour/drink; the vessel kind is `VesselKindMixin`, and `BulkPayload` carries only what cannot derive (subsystems declare their own fields onto it)
   - [light.md](./docs/subsystems/light.md) — Light value object, `signalAt`, AmbientLit, LightSource, per-viewer perception
   - [augmentation.md](./docs/subsystems/augmentation.md) — augment-confers-mixin, getActiveMixins, @RequiresActive, the three-base capability model
@@ -229,6 +230,7 @@ behavior. Read the relevant doc before editing in its area.
   - [electricity.md](./docs/subsystems/electricity.md) — the shock channel + conduction spread: the Ohm's-law core, the ElectricityApi walk, SustainedShock, FloodedCell
   - [energy.md](./docs/subsystems/energy.md) — the `/system/energy` power economy, both epochs: lamp-oil street lighting (a producer + a depleting FuelStore + a civic bill) and the electric grid (a Feeder row → GridCatalogue compiled reachability, the parcel meter — feeder+powerBand, GridPoweredMixin, the sever/splice cut as the one state, `analyze grid`'s derived epoch); the meter is the boundary, poles are sparse LineAccess access points
   - [maturation.md](./docs/subsystems/maturation.md) — the durative transform: MaturingMixin on the VESSEL, MaturationProfile rows + the boot-warmed roster, the grade/mark/strain transfer seam, cultures + the lees split, the cellar CO₂, the cellars brain, the work boards; zero new verbs
+  - [fractionation.md](./docs/subsystems/fractionation.md) — ⭐ the sibling of maturation, driven by the VOLUME DRAWN rather than the clock: FractionSchedule rows (ordered spans, each with a character, a grade band, a toxin dose and an `aromaticCarry`), FractionatingMixin's four policy-seam overrides, the blurred optimistic read (*the nose hears what it wants to hear*), and the cut as the skill
   - [fire.md](./docs/subsystems/fire.md) — combustion + high heat: the heat channel, FireApi/Combustible, the ignition balance, phase change, furnaces, Hearthworks
   - [magic.md](./docs/subsystems/magic.md) — effect substrate + casting: Effect-iff-gated-Api, the grid as Disciplines, CasterMixin faculty, suppression, the Practicum
   - [magic-items.md](./docs/subsystems/magic-items.md) — using a thing as a way to act: the EffectContext split (origin/actor/source), Arcane grid footprint, the three item classes + `S* = inflow/d` charge economy denominated in **τ**, `ManaPowered` as ChargedMixin's second consumer (the wall socket), BUC + the `canAfflict` veto, derived appearance + descriptor banks, the fade/defective-copy memory loop, census-gated distribution
@@ -551,6 +553,19 @@ any antipattern worth removing: write the census, **gate today's count
 as the ceiling** (it may fall, never rise), and a later refactor flips
 it to zero. Step 2 is what makes stopping the growth affordable before
 anyone has time to fix it.
+
+⛔⛔ **A ceiling RISE wants a CALLER AUDIT, not a doctrine quotation.**
+Name every caller of the thing and ask whether any of them is the
+surface the gate protects; if none is, it is not surface and the gate
+has an escape built for that (`@internal`, counted separately) — so no
+rise was needed. ⚠ A legitimacy argument is not a growth argument: *this
+member is the right shape for this class* says it may EXIST, and says
+nothing about whether the population may grow while the sweep runs.
+⭐ And when a gate's own prose supplies the justification, **fix the
+prose** — five `lint:lib-statics` rises landed on one branch out of a
+sentence in its own header that turned out to be false. Worked example
+and the general lesson: [lint-family.md](./docs/lint-family.md)
+§ ratchet lesson 4.
 
 ⚠ **CI's validate stage is behind a manual `gate` job** — the pipeline
 starts blocked and lint/test/build do not run until someone clicks ▶.
