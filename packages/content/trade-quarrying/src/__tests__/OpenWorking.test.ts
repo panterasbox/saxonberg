@@ -31,6 +31,7 @@ import CartesianZone from '@saxonberg/server/mud/platform/idea/location/Cartesia
 import Material from '@saxonberg/server/mud/platform/idea/material/Material';
 import Tool from '@saxonberg/server/mud/platform/thing/Tool';
 import Good from '@saxonberg/server/mud/lib/stuff/Good';
+import { AlloyedMixin } from '@saxonberg/server/mud/lib/material/Alloyed';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { CommandApi } from '@saxonberg/server/mud/api/command';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
@@ -366,5 +367,71 @@ describe('the shape the kernel talks to', () => {
     for (const verb of ['quarry', 'strip', 'win', 'pare']) {
       expect(contributed, verb).not.toContain(verb);
     }
+  });
+});
+
+describe('a won load remembers its assay (glass W3)', () => {
+  const SAND_ROW = '/trade/glass/thing/sand';
+  const SANDMAT = '/stuff/idea/material/earth/glass-sand';
+  const IRON = '/stuff/idea/material/element/iron';
+
+  class AssayAlloyedGood extends AlloyedMixin(Good) {
+    static override _mixinName = 'AssayTestAlloyed';
+  }
+
+  let lastWon: Stuff | null;
+
+  beforeEach(() => {
+    const m = makeStuffAtPath(
+      () => new Material(),
+      SANDMAT,
+    ) as unknown as Material;
+    m.setName('glass sand');
+    m.setTags(['earth', 'granular', 'silica']);
+    // A thick sand band, a flat iron lode co-extensive with it, one grade
+    // zone. Spread 0 ⇒ sampleAt returns the mean exactly, seed-free.
+    column.setStratigraphy([
+      { toZ: -1, host: DRIFT, wins: SPOIL_ROW },
+      { toZ: -6, host: SANDMAT, wins: SAND_ROW },
+      { toZ: -400, host: GRANITE },
+    ]);
+    column.setLode({
+      through: [0, 0, -3],
+      strike: 0,
+      dip: 0,
+      thickness: 6,
+      strikeExtent: 100,
+      dipExtent: 100,
+      gangue: SANDMAT,
+    });
+    column.setZones([{ toZ: -6, mineral: IRON, meanGrade: 0.012, spread: 0 }]);
+    lastWon = null;
+    vi.spyOn(StuffApi, 'clone').mockImplementation((async () => {
+      const g = makeStuff(() => new AssayAlloyedGood());
+      lastWon = g as unknown as Stuff;
+      return g;
+    }) as never);
+  });
+
+  it('stamps the deposit’s iron grade onto the Alloyed won sand', async () => {
+    const pit = working({ floorDepthM: 3 }); // sand exposed as a wall band
+    const plan = (await pit.planWork(actor, spade(), 'sand')) as WorkPlan;
+    expect(plan.kind).toBe('plan');
+    await pit.completeWork(actor, spade(), plan.token);
+    expect(lastWon).not.toBeNull();
+    const won = lastWon as unknown as { fractionOf(p: string): number };
+    // The deposit's own figure at this face — the sand carries the iron
+    // that will make a bottle green or leave it clear.
+    expect(won.fractionOf(IRON)).toBeCloseTo(0.012, 6);
+  });
+
+  it('stamps nothing when the ground carries no iron (grade 0)', async () => {
+    column.setZones([{ toZ: -6, mineral: IRON, meanGrade: 0, spread: 0 }]);
+    const pit = working({ floorDepthM: 3 });
+    const plan = (await pit.planWork(actor, spade(), 'sand')) as WorkPlan;
+    await pit.completeWork(actor, spade(), plan.token);
+    expect(lastWon).not.toBeNull();
+    const won = lastWon as unknown as { getAlloying(): readonly unknown[] };
+    expect(won.getAlloying()).toHaveLength(0);
   });
 });

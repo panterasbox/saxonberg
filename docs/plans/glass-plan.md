@@ -624,7 +624,21 @@ answers the shape, which is how the test exercises it.
 
 ### Stage B
 
-#### W3 — Content fields and the quarry's assay stamp · `build(glass W3): glass melts; sand and ash answer the batch; a won load remembers its assay`
+#### W3 — Content fields and the quarry's assay stamp · `build(glass W3): glass melts; sand and ash answer the batch; a won load remembers its assay` ✅ DONE
+
+> **Built.** `glass.yaml` gains `meltingPoint: 1300` + `latentHeatOfFusion:
+> 150000` (with the soda-lime comment); `sand.yaml` tagged `silica`;
+> `organic/ash.yaml` tagged `potash` (the collier's residue, not the ash
+> tree's timber). `trade-quarrying`'s `OpenWorkingMixin.mintWinnings`
+> stamps the deposit's `sampleAt` mineral+grade onto any `isAlloyed` won
+> good (a new `stampAssay` instance method — not a static, ceiling held),
+> seeded by the covering locality's address with a try/catch fallback to
+> the base seed so the win never fails on an unaddressed/unmocked ground.
+> `mining.md` documents it. Tests: two in `OpenWorking.test.ts` — a won
+> Alloyed sand carries the deposit's iron grade; grade-0 ground stamps
+> nothing. 72 quarrying tests green.
+
+
 
 **Files.**
 - `packages/content/base-library/content/stuff/idea/material/glass/glass.yaml`

@@ -20,6 +20,14 @@ data:
   # values are the honest ones, not ones tuned to make a flask break.
   hardness: 550
   toughness: 0.5
+  # ⭐ Soda-lime glass MELTS far below any of its parts — pure silica
+  # softens near 1900 K, but the soda (the ash's flux) and the lime drop
+  # the working liquidus to ~1300 K; that collapse IS the batch, and it is
+  # why a wood fire with a bellows can make glass at all. The latent heat
+  # is the soda-lime figure (~150 kJ/kg). Consumed by the Thermal melt
+  # layer and the glass trade's remelt (glass build D5).
+  meltingPoint: 1300
+  latentHeatOfFusion: 150000
   edibility: false
   nutrients: []
   toxicity: []
