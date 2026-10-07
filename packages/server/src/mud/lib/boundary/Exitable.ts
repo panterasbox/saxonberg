@@ -31,6 +31,23 @@ import { StuffApi } from '../../api/stuff';
 import { MixinApi } from '../../api/mixin';
 import { PerceptionApi } from '../../api/perception';
 import { BoundaryApi } from '../../api/boundary';
+import { DiagnosticApi } from '../../api/diagnostics';
+
+/**
+ * Is this the one error `StuffApi.clone` throws for a row that is not
+ * there (`Template not found: <path>`)?
+ *
+ * ⚠ Deliberately narrow, and matched against the path we asked for:
+ * anything else — a throw from the destination's own `onCreate`, a
+ * circular-template guard, a store failure — is a different fault and
+ * is rethrown. A broad catch here would turn a broken room into a
+ * mysteriously unreachable one.
+ */
+function isTemplateNotFound(err: unknown, path: string): boolean {
+  return (
+    err instanceof Error && err.message === `Template not found: ${path}`
+  );
+}
 import type { SubscribableFieldDescriptor } from '../../api/mql-subscription';
 
 /**
@@ -614,14 +631,76 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
       spec: ExitInstruction
     ): Promise<void> {
       const existing = this.exits.get(direction);
-      const destStuff = await StuffApi.singleton<
-        Stuff & Container & Exitable
-      >(spec.destination);
+
+      /*
+       * ⭐⭐ **A destination that does not exist is a DIAGNOSTIC, not a
+       * boot crash.**
+       *
+       * `StuffApi.singleton` throws *Template not found* for a missing
+       * row, and eager rooms come from each pack's `boot:` list — so one
+       * mistyped destination anywhere in content took the whole world
+       * down, wrapped as *"failed to clone"*, from a stack trace naming
+       * the framework rather than the row. An author could not see it
+       * coming and could not read it when it arrived.
+       *
+       * So a missing row installs the exit **unbuilt** instead: the
+       * direction still exists (so `look` names it and the room reads
+       * as authored), the destination path is kept (so creating the row
+       * later heals it on the next hydrate), `canTraverse` refuses with
+       * `gate: 'unbuilt'`, and the author is told which row and which
+       * direction through `DiagnosticApi` — their own channel, on the
+       * live stream and in `errors`.
+       *
+       * ⚠⚠ Caught NARROWLY, by the one message `StuffApi.clone` throws
+       * for a missing row, and everything else is RETHROWN. A genuine
+       * failure inside a destination's own `onCreate` is a different
+       * fault and must stay loud — swallowing it would turn a broken
+       * room into a mysteriously unreachable one.
+       *
+       * ⚠ And by a catch rather than a pre-check, which the first
+       * version of this did: a `Template.findByPath` before every
+       * `singleton` adds a store round-trip per authored exit on the
+       * hydration hot path (199 edges at boot), and it made exit
+       * installation depend on a reachable store — six suites with a
+       * partial PM stub went red on `isConnected is not a function`,
+       * which is the same hazard a live server hits during early boot.
+       * The happy path now costs nothing.
+       */
+      let destStuff: Stuff & Container & Exitable;
+      try {
+        destStuff = await StuffApi.singleton<Stuff & Container & Exitable>(
+          spec.destination,
+        );
+      } catch (err) {
+        if (!isTemplateNotFound(err, spec.destination)) throw err;
+        await this._installUnbuiltExit(direction, spec);
+        return;
+      }
       let doorStuff: Door | undefined;
       if (spec.door) {
         doorStuff = await StuffApi.singleton<Door>(spec.door);
       }
-      if (existing) {
+      if (existing && existing.isUnbuilt()) {
+        /*
+         * ⭐⭐ An UNBUILT stub is REPLACEABLE, and this is the half that
+         * makes the defect self-healing. We are here because the
+         * destination row now resolves, so the author created the room
+         * they meant: destruct the stub and install the real exit
+         * below.
+         *
+         * ⚠ Without this the idempotency check one branch down would
+         * compare the stub's now-resolvable destination against the
+         * incoming one, find them EQUAL, and return a no-op — leaving
+         * the stub (and its refusal) in place forever. The fix would
+         * look like it had not worked, which is worse than the
+         * original defect.
+         */
+        // ⚠ Unhook it from the map FIRST: `destruct` does not, so the
+        // map would keep handing out an inert stub and every read of it
+        // would no-op to `undefined`.
+        this.removeExit(direction);
+        await StuffApi.destruct(existing as unknown as Stuff);
+      } else if (existing) {
         // Idempotency vs conflict. Compare by reference — `singleton`
         // is the canonical resolver, so equal templatePaths yield the
         // same proxy.
@@ -693,6 +772,70 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
       const exit = await StuffApi.clone<Exit>(kindPath);
       exit.bind(oneWayOpts);
       await this.addExit(exit);
+    }
+
+    /**
+     * Install a path-only exit whose destination row does not exist, and
+     * tell the author.
+     *
+     * ⭐ The IDEMPOTENCY branch treats an existing unbuilt exit as
+     * replaceable (destruct, then reinstall), which is what makes the
+     * defect self-healing: create the row the author meant, re-hydrate,
+     * and the real exit lands where the stub was. Without that the stub
+     * would win forever and the fix would look like it had not worked.
+     */
+    private async _installUnbuiltExit(
+      direction: string,
+      spec: ExitInstruction
+    ): Promise<void> {
+      const here = this as unknown as Stuff;
+      const row = here.getTemplatePath() ?? here.stuffId;
+      const existing = this.exits.get(direction);
+      if (existing) {
+        if (existing.isUnbuilt()) {
+          // Same stub, same hole: nothing to do.
+          if (existing.getDestinationTemplatePath() === spec.destination) {
+            return;
+          }
+          this.removeExit(direction);
+          await StuffApi.destruct(existing as unknown as Stuff);
+        } else {
+          // A real exit already stands here. The author's new spec names
+          // a row that does not exist, so refusing to replace a working
+          // passage with a stub is the only sane answer.
+          return;
+        }
+      }
+      const kindPath = spec.kind ?? TemplatePaths.defaultExitKind;
+      const exit = await StuffApi.clone<Exit>(kindPath);
+      exit.bind({
+        direction,
+        source: this as unknown as Stuff & Container,
+        destinationPath: spec.destination,
+        hidden: spec.hidden,
+        concealment: spec.concealment,
+        concealmentHint: spec.hint,
+        blocked: spec.blocked,
+        muffled: spec.muffled,
+        noFollow: spec.noFollow,
+        oneWay: true,
+        messageIn: spec.messageIn,
+        messageOut: spec.messageOut,
+        media: spec.media,
+        wheelPassable: spec.wheelPassable,
+        edgeMinutes: spec.edgeMinutes,
+      });
+      exit.markUnbuilt();
+      await this.addExit(exit);
+      await DiagnosticApi.record({
+        path: row,
+        severity: 'error',
+        message:
+          `exit ${direction} names ${spec.destination}, which does not ` +
+          `exist. The direction is installed but refuses; create the row ` +
+          `and it heals on the next hydrate.`,
+        channel: 'location-graph',
+      });
     }
 
     /**

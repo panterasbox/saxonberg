@@ -14,6 +14,11 @@ import { Idea } from '../../stuff/Idea';
 import { SensorMixin } from '../../message/Sensor';
 import { PerceiverMixin } from '../Perceiver';
 import { makeStuff } from '../../security/__tests__/test-setup';
+import type { Perceiver } from '../Perceiver';
+import type { Stuff } from '../../stuff/Stuff';
+
+/** A place that is not `Exitable` — perceiving it must still count. */
+class Nowhere extends Idea {}
 
 describe('PerceiverMixin', () => {
   beforeEach(() => {
@@ -93,6 +98,72 @@ describe('PerceiverMixin', () => {
         static _mixinName = 'WithInterior';
       }
       expect(() => makeStuff(() => new WithInterior())).not.toThrow();
+    });
+  });
+  describe('⭐⭐ learnSurroundings — one call, recorders reached directly', () => {
+    /*
+     * The seam this suite guards: three command controllers used to
+     * fire `onPerceivedPlace` through their own structural casts, each
+     * re-assembling the gate + the `Exitable` narrowing, and they had
+     * already diverged (`look` recorded who it saw; `sense` did not).
+     * A verb now makes ONE call and the body decides what perceiving
+     * entails.
+     */
+
+    it('⚠ a place that is not `Exitable` is still LEARNED, and returns []', () => {
+      // A room with no way out is still somewhere you have been. There
+      // is no hook to observe any more — the host would have to compose
+      // `CartographerMixin`, which `Cartographer.test.ts` covers. What
+      // this pins is the degenerate return.
+      class Looker extends PerceiverMixin(SensorMixin(Idea)) {}
+      const looker = makeStuff(() => new Looker());
+      const place = makeStuff(() => new Nowhere());
+      expect(
+        (looker as unknown as Perceiver).learnSurroundings(place),
+      ).toEqual([]);
+    });
+
+    it('⭐ a host implementing NOTHING is a clean no-op — no cast, no throw', () => {
+      class Blank extends PerceiverMixin(SensorMixin(Idea)) {}
+      const looker = makeStuff(() => new Blank());
+      const place = makeStuff(() => new Nowhere());
+      expect(() =>
+        (looker as unknown as Perceiver).learnSurroundings(place),
+      ).not.toThrow();
+      expect(
+        (looker as unknown as Perceiver).learnSurroundings(place),
+      ).toEqual([]);
+    });
+
+    it('⚠ a host that keeps nothing is a clean no-op, both ways', () => {
+      // No hook to miss and no cast to make: the recorders are reached
+      // through `MixinApi.isCartographer` / `isBeliefStore`, so a host
+      // composing neither simply records nothing.
+      class Looker extends PerceiverMixin(SensorMixin(Idea)) {}
+      const looker = makeStuff(() => new Looker());
+      const place = makeStuff(() => new Nowhere());
+      expect(() => {
+        (looker as unknown as Perceiver).learnSurroundings(place, []);
+        (looker as unknown as Perceiver).learnTimetable([]);
+        (looker as unknown as Perceiver).learnTimetable([
+          { identity: '/x', address: '', grouping: '' } as never,
+        ]);
+      }).not.toThrow();
+    });
+
+    it('⭐⭐ both calls are on the INTERFACE — a verb needs no structural cast', () => {
+      // The regression this guards: `learnSurroundings` going optional (or
+      // back onto the hook) would put the casts back in the
+      // controllers, which is how `look` and `sense` diverged.
+      class Looker extends PerceiverMixin(SensorMixin(Idea)) {}
+      const obj = makeStuff(() => new Looker());
+      expect(MixinApi.isPerceiver(obj)).toBe(true);
+      if (MixinApi.isPerceiver(obj)) {
+        // No `as unknown as` anywhere in these two lines — that IS the
+        // assertion; the narrowing alone must reach both methods.
+        expect(typeof obj.learnSurroundings).toBe('function');
+        expect(typeof obj.learnTimetable).toBe('function');
+      }
     });
   });
 });

@@ -5022,8 +5022,64 @@ fallback `makerPath` in `QuenchController`, `PlateController`,
 `StrainController`, `RepairController` and `SewController` is a
 `getTemplatePath()`. It is dead today — `CraftingLogic` prefers the
 live actor's identity path — but `CraftedMixin.resolveMakerName`
-resolves a mark with `findByTemplatePath`, which cannot resolve an
-identity path at all. A follow-up sweep owns both halves.
+resolves a mark with `findByTemplatePath`, which resolves the bucket an
+object is FILED under — so an identity path resolves and a lineage path
+shared by many avatars throws *expected singleton*. A follow-up sweep
+owns both halves.
+
+---
+
+## Asking the registry for an IDENTITY when you mean every instance of a ROW
+
+⭐ `byTemplatePath` is keyed on **`identity ?? templatePath`**, so one
+index holds two different kinds of key. A read that does not say which
+one it is asking for will be wrong for the other, silently.
+
+```ts
+// WRONG — reads as "every instance of this row" and is not.
+// An identity-stamped clone is filed under its IDENTITY, so the row's
+// bucket holds only its unstamped siblings.
+for (const other of StuffApi.findAllByTemplatePath(host.getIdentityPath())) …
+
+// RIGHT — say which question you are asking.
+StuffApi.findAllByTemplatePath(row);      // every instance cloned from `row`
+StuffApi.findByIdentityPath(path);        // everything filed at exactly `path`
+StuffApi.findByTemplatePath(path);        // the one there, or throw
+```
+
+**What it cost.** `PersistableLogic.assertUniqueKey` — the spine's one
+invariant, *no two live instances share a `(scope, key)`* — scanned the
+host's own identity. For a stamped keyed host that bucket holds exactly
+one object, the host, which the loop then skips. So the assertion was
+**vacuous for every stamped keyed host**: the market stall counter was
+never once covered by it, and a second instance standing up on an
+occupied key wrote into the first keeper's record with no error
+anywhere. `liveKeyed` had the same shape and would have minted
+duplicates; it escaped only because all of its callers happen to pass a
+stored row.
+
+⭐⭐ **The tell is the one worth carrying away: a VACUOUS assertion looks
+exactly like a passing one.** The invariant had tests, and they passed,
+because the fixtures were unstamped — which is the case the needle got
+right.
+
+⚠ And the two reads are two names on purpose, rather than one tolerant
+function: **the row filter is correct for a row and wrong for an
+identity.** The row read is `exact(row) ∪ glob(row + '/**')` narrowed to
+objects whose lineage is `row`, and that narrowing must not touch the
+exact half — a minted instance's `getTemplatePath()` is its row, never
+the identity it is filed under, so filtering the whole union would drop
+an identity's own hit. The corpse's ordinal probe is the case that found
+it: it asks *is this identity free*, and a dropped hit reports an
+occupied identity as free and collides two deaths in one game-second.
+
+⭐⭐ **A continuity family is out of the row read's reach both ways, and
+that is not a gap to work around.** Individuation nests identities under
+the row, so a prefix read finds them. Continuity points the other way:
+several lineages (`PrimaryAvatar`, `ShadeAvatar`, the sandbox wire body)
+wear ONE identity under a family namespace that is none of their rows.
+`PlayerApi`'s roster answers *every avatar*; the index does not and
+should not.
 
 ---
 
@@ -5799,6 +5855,7 @@ hysteresis → declaration order, and **declaration order is the last resort
 there on purpose** — it is the only leg that is a fact about the author
 rather than about the world.
 
+
 ---
 
 ## ⛔⛔ `here:c` for a room's contents — a bareword in chain position is a KEYWORD FILTER
@@ -5832,3 +5889,59 @@ degrades to a plausible non-empty answer is one an assertion cannot
 distinguish from a working one.** If a read is the premise of a test,
 assert something only the real answer could satisfy — a count, or a name
 that is not the container's.
+## A `Map`/`Set` field declared bare-`persistent`
+
+```ts
+// WRONG — there is no BSON Map shape
+static fieldMeta: FieldMeta = {
+  details: { persistent: true, instruction: true },  // runtime: Map<K,V>
+};
+```
+
+Capture stores it as a plain object and restore bracket-assigns that
+object back, so the field's runtime type is a lie from the first
+reload and the next method call on it throws. ⚠⚠ It cost `find` and
+`teleport` in every world booted on an existing DB, because the
+`Detailed` walk sits on MQL's `reachable` seed — 52 of 77 live
+snapshots held the broken shape, and the suite could not see it
+because tests build state rather than reloading it.
+
+**Right, in order of preference:**
+
+1. **Is it state at all?** If the field is authored content and the
+   only writer is its own instruction applier, drop `persistent` and
+   let the row supply it every boot. ⭐ This is also the only fix that
+   repairs already-written rows **with no migration** — the restore
+   drift guard admits only declared persistent fields, so a stored
+   value is simply ignored.
+2. **Decompose into named scalars** — the house default
+   (`AmbientLitMixin` stores `ambientIntensity` + `ambientColor` and
+   rebuilds a `Light` on read).
+3. **Declare a `fieldMarshaller`** — the escape hatch, for a genuinely
+   variable-key map that genuinely is state.
+
+See [persistence.md](./subsystems/persistence.md) and
+`lib/persistence/Marshaller.ts`.
+
+## A residency artifact used as part of an identity key
+
+```ts
+// WRONG — `to` is populated only if the far room was resident
+const keyOf = (c: MapClaim) => [c.kind, c.place, c.dir, c.to, c.toLabel, c.channel].join('|');
+```
+
+A map claim's `to` is the far side's durable handle *if that room
+happened to be in memory when the observation was taken*. That is a
+fact about **residency**, not a claim about the world — so the same
+edge observed twice produced two claims whenever residency flipped
+between them, and the player's map rendered the same exit twice, both
+"recorded just now". ⚠ Unbounded: the residency sweep evicts the cold
+tail, so a corridor walked across a long session appended a claim per
+flip.
+
+**Right:** key on the durable, authored identifier — here `toLabel`,
+the destination's template path, which is present whether or not
+anything is loaded. ⭐ The test for any identity key: *would this
+component still be the same if the process had just restarted?* If
+not, it is not part of the identity.
+

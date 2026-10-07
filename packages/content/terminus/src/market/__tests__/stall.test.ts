@@ -1,12 +1,17 @@
 /**
  * A player shop is a rented market stall (economic bootstrap D15).
  *
- * `stall rent` mints, for the renter, a counter and a house keyed by
- * their IDENTITY — two renters are two counters, two houses, two
- * accounts (the shared-account regression, the other way round); a
- * second `rent` is idempotent and costs nothing; the stall takes goods
- * on supplier terms and its keeper prices them with `house price`;
- * `give-up` hands the goods back and takes the counter down.
+ * `stall rent` takes the next free **pitch** on the square and mints a
+ * counter and a house keyed to it — two renters are two counters, two
+ * houses, two accounts (the shared-account regression, the other way
+ * round); a second `rent` is idempotent, costs nothing and returns the
+ * same pitch; the stall takes goods on supplier terms and its keeper
+ * prices them with `house price`; `give-up` hands the goods back, takes
+ * the counter down and frees the pitch.
+ *
+ * ⭐⭐ The key is the PITCH, not the renter — a key is relative to the
+ * thing that manages it, and the square's fixture is what manages
+ * pitches. Who rents it lives on the house's `appointingAuthority`.
  *
  * The seeds are stubbed at `StuffApi.clone` (the retail suites' shape):
  * a Stock for the counter, a Business with the overlay `rent` supplies.
@@ -83,10 +88,19 @@ function ctx(giver: Stuff, loc: Stuff, source: Stuff | null, text: string, subco
   return c;
 }
 
-/** The two identities a renter's stall carries (the controller's rule: the seed, then the renter's key leaf). */
-function identitiesOf(renterKey: string): { counter: string; house: string } {
-  const leaf = renterKey.split('/').filter(Boolean).pop() ?? renterKey;
-  return { counter: `${STALL_SEED}/${leaf}`, house: `${STALL_BUSINESS_SEED}/${leaf}` };
+/**
+ * The key and the two identities of the stall on a pitch (the
+ * controller's rule: the fixture's row as the key prefix, and each
+ * identity nesting the key, slash-stripped, under its own seed row).
+ */
+function idsFor(pitch: string | number): { key: string; counter: string; house: string } {
+  const key = `${STALLS}/${pitch}`;
+  const leaf = key.replace(/^\/+/, '');
+  return {
+    key,
+    counter: `${STALL_SEED}/${leaf}`,
+    house: `${STALL_BUSINESS_SEED}/${leaf}`,
+  };
 }
 
 function rejections(c: CommandContext): string[] {
@@ -123,7 +137,15 @@ function stubSeeds(): void {
     _ctx: unknown,
     opts?: { dataOverlay?: Record<string, unknown>; asIdentityPath?: string },
   ) => {
-    const id = opts?.asIdentityPath ?? path;
+    // ⚠⚠ Stamp the TWO AXES the way the real pipeline does: the
+    // template path is the seed ROW, the minted identity rides the
+    // identity slot. Stamping the identity AS the template path (which
+    // this stub did until 2026-10-05) makes every counter look like a
+    // clone of its own identity, so a read that enumerates the seed
+    // row finds nothing — and the uniqueness invariant, whose needle is
+    // the row, cannot see the population it is meant to guard. A
+    // fixture that models one axis cannot test a two-axis rule.
+    const id = opts?.asIdentityPath;
     if (path === STALL_SEED) {
       return makeStuffAtPath(() => {
         const s = new Stock();
@@ -136,7 +158,7 @@ function stubSeeds(): void {
         s.setKeywords(['stall', 'counter']);
         s.setPurchasing('terms');
         return s;
-      }, id);
+      }, path, id);
     }
     if (path === STALL_BUSINESS_SEED) {
       return makeStuffAtPath(() => {
@@ -148,7 +170,7 @@ function stubSeeds(): void {
         b.banksAt = String(o.banksAt ?? '');
         b.operatingLocations = [...((o.operatingLocations as string[]) ?? [])];
         return b;
-      }, id);
+      }, path, id);
     }
     const c = makeStuffAtPath(() => {
       const coin = new Coin();
@@ -199,6 +221,7 @@ describe('a player shop is a rented market stall', () => {
       s.staffingPolicy = 'self-service';
       s.serverPositionKeys = [];
       s.setRentMinor(5);
+      s.setPitches(12);
       return s;
     }, STALLS);
     ContainmentApi.move(stalls as never, square as never);
@@ -221,7 +244,7 @@ describe('a player shop is a rented market stall', () => {
 
     const c = await stall(alice, 'rent');
     expect(rejections(c)).toEqual([]);
-    const ids = identitiesOf('/platform/agent/Avatar/alice');
+    const ids = idsFor(1);
     const counter = StuffApi.findByTemplatePath<Stock>(ids.counter)!;
     expect(counter).toBeTruthy();
     expect(counter.getContainer()).toBe(square);
@@ -248,8 +271,8 @@ describe('a player shop is a rented market stall', () => {
     const bob = await fundedGiver('/platform/agent/Avatar/bob', 20);
     expect(rejections(await stall(alice, 'rent'))).toEqual([]);
     expect(rejections(await stall(bob, 'rent'))).toEqual([]);
-    const a = identitiesOf('/platform/agent/Avatar/alice');
-    const b = identitiesOf('/platform/agent/Avatar/bob');
+    const a = idsFor(1);
+    const b = idsFor(2);
     expect(a.counter).not.toBe(b.counter);
     const houseA = StuffApi.findByTemplatePath(a.house) as never as BusinessEntity;
     const houseB = StuffApi.findByTemplatePath(b.house) as never as BusinessEntity;
@@ -266,13 +289,18 @@ describe('a player shop is a rented market stall', () => {
     expect(rejections(await stall(broke, 'rent'))).toEqual(['no-bank']);
     const thin = await fundedGiver('/platform/agent/Avatar/thin', 2);
     expect(rejections(await stall(thin, 'rent'))).toEqual(['cant-afford']);
-    expect(StuffApi.findByTemplatePath(identitiesOf('/platform/agent/Avatar/thin').counter)).toBeUndefined();
+    expect(StuffApi.findByTemplatePath(idsFor(1).counter)).toBeUndefined();
+    // ⚠ And the pitch it took before the refusal is given BACK — a
+    // refusal after allocation would otherwise let a square to somebody
+    // who holds no stall.
+    expect(stalls.pitchOf('/platform/agent/Avatar/thin')).toBeNull();
+    expect(stalls.holderOfPitch('1')).toBeNull();
   });
 
   it('the stall takes goods on supplier terms, and its keeper prices them with `house price`', async () => {
     const alice = await fundedGiver('/platform/agent/Avatar/alice', 20);
     expect(rejections(await stall(alice, 'rent'))).toEqual([]);
-    const ids = identitiesOf('/platform/agent/Avatar/alice');
+    const ids = idsFor(1);
     const counter = StuffApi.findByTemplatePath<Stock>(ids.counter)!;
 
     // A grower leaves a torch on Alice's terms at 8 — their PRICE.
@@ -310,7 +338,7 @@ describe('a player shop is a rented market stall', () => {
   it('give-up hands back what is on the counter and takes it down; the house operates nothing', async () => {
     const alice = await fundedGiver('/platform/agent/Avatar/alice', 20);
     expect(rejections(await stall(alice, 'rent'))).toEqual([]);
-    const ids = identitiesOf('/platform/agent/Avatar/alice');
+    const ids = idsFor(1);
     const counter = StuffApi.findByTemplatePath<Stock>(ids.counter)!;
     const torch = makeStuffAtPath(() => {
       const t = new Torch();
@@ -327,5 +355,95 @@ describe('a player shop is a rented market stall', () => {
     expect(house.getOperatingLocations()).toEqual([]);
     // Nobody else's stall to give up.
     expect(rejections(await stall(alice, 'give-up'))).toEqual(['no-stall']);
+  });
+
+  it('⭐⭐ the pitch is the key, and the BOOK is what remembers whose it is', async () => {
+    const alice = await fundedGiver('/platform/agent/Avatar/alice', 20);
+    const bob = await fundedGiver('/platform/agent/Avatar/bob', 20);
+    expect(rejections(await stall(alice, 'rent'))).toEqual([]);
+    expect(rejections(await stall(bob, 'rent'))).toEqual([]);
+
+    // Pitches go out lowest-free, and the square knows who is on each.
+    expect(stalls.pitchOf('/platform/agent/Avatar/alice')).toBe('1');
+    expect(stalls.pitchOf('/platform/agent/Avatar/bob')).toBe('2');
+    expect(stalls.holderOfPitch('1')).toBe('/platform/agent/Avatar/alice');
+
+    // ⭐ The counter's name says WHERE it is, not WHO holds it. Who
+    // holds it is the house's appointing authority.
+    const a = idsFor(1);
+    expect(a.counter).toBe(`${STALL_SEED}/${STALLS.replace(/^\//, '')}/1`);
+    expect(a.counter).not.toContain('alice');
+    const houseA = StuffApi.findByTemplatePath(a.house) as never as {
+      getAppointingAuthority(): { kind: string; path: string } | null;
+    };
+    expect(houseA.getAppointingAuthority()?.path).toBe('/platform/agent/Avatar/alice');
+  });
+
+  it('⭐ a second rent returns the SAME pitch — no second stall, no second let', async () => {
+    const alice = await fundedGiver('/platform/agent/Avatar/alice', 20);
+    expect(rejections(await stall(alice, 'rent'))).toEqual([]);
+    expect(rejections(await stall(alice, 'rent'))).toEqual([]);
+    expect(stalls.pitchOf('/platform/agent/Avatar/alice')).toBe('1');
+    expect(Object.keys(stalls.lets)).toEqual(['1']);
+    expect(
+      square.getContents().filter((c) => c instanceof Stock && !(c instanceof MarketStalls)),
+    ).toHaveLength(1);
+  });
+
+  it('⭐ a FULL square refuses, and charges nothing', async () => {
+    stalls.setPitches(1);
+    const alice = await fundedGiver('/platform/agent/Avatar/alice', 20);
+    const bob = await fundedGiver('/platform/agent/Avatar/bob', 20);
+    expect(rejections(await stall(alice, 'rent'))).toEqual([]);
+
+    const bobAcct = (await BankingApi.primaryAccountIdOf('/platform/agent/Avatar/bob'))!;
+    const before = BankingApi.balanceOf(bobAcct).minor;
+    expect(rejections(await stall(bob, 'rent'))).toEqual(['square-full']);
+    expect(BankingApi.balanceOf(bobAcct).minor).toBe(before);
+    expect(stalls.pitchOf('/platform/agent/Avatar/bob')).toBeNull();
+  });
+
+  it('give-up frees the pitch, and the next renter takes it', async () => {
+    stalls.setPitches(1);
+    const alice = await fundedGiver('/platform/agent/Avatar/alice', 20);
+    const bob = await fundedGiver('/platform/agent/Avatar/bob', 20);
+    expect(rejections(await stall(alice, 'rent'))).toEqual([]);
+    expect(rejections(await stall(bob, 'rent'))).toEqual(['square-full']);
+
+    expect(rejections(await stall(alice, 'give-up'))).toEqual([]);
+    expect(stalls.pitchOf('/platform/agent/Avatar/alice')).toBeNull();
+
+    // ⭐ Lowest-free, so the given-up pitch is re-let rather than the
+    // square growing a new one.
+    expect(rejections(await stall(bob, 'rent'))).toEqual([]);
+    expect(stalls.pitchOf('/platform/agent/Avatar/bob')).toBe('1');
+  });
+
+  it('⭐⭐ two instances of one row cannot share a pitch — the invariant FIRES now', async () => {
+    // The uniqueness scan's needle is the ROW, so a second counter
+    // standing up on an occupied pitch throws instead of silently
+    // writing into the first keeper's record. Before 2026-10-04 the
+    // stall counter was in a population the scan could not see at all.
+    const alice = await fundedGiver('/platform/agent/Avatar/alice', 20);
+    expect(rejections(await stall(alice, 'rent'))).toEqual([]);
+    const ids = idsFor(1);
+
+    const interloper = makeStuffAtPath(
+      () => {
+        const s = new Stock();
+        s.stockLines = [];
+        s.prices = {};
+        return s;
+      },
+      STALL_SEED,
+      `${STALL_SEED}/an-interloper`,
+    );
+    await expect(
+      asOwner(interloper as never, () =>
+        import('@saxonberg/server/mud/api/persistable').then(({ PersistableApi }) =>
+          PersistableApi.restoreOrSeed(interloper as never, ids.key),
+        ),
+      ),
+    ).rejects.toThrow(/both keyed/);
   });
 });

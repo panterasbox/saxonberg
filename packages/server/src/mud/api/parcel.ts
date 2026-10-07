@@ -251,6 +251,43 @@ export class ParcelApi {
     return logic().citeReach(extent, reach);
   }
 
+  /**
+   * ⭐ Is the content at `path` **published** — ready to be walked into?
+   *
+   * Reads the covering parcel's flag by longest prefix, **synchronously
+   * and without resolving anything at `path`**. That is the whole
+   * requirement: `Exit.canTraverse` is sync and must be able to refuse a
+   * far side it has not loaded, which is the rule the lock gate already
+   * follows.
+   *
+   * ⚠ An **untitled** path reads as published, deliberately. There is no
+   * parcel there to be a wall, and `lint:untitled` already forbids
+   * shipping an untitled path — so the honest default for *nobody has
+   * said* is *not a wall*, rather than silently sealing ground whose
+   * title somebody forgot to declare.
+   */
+  public static isPathPublished(path: string): boolean {
+    return logic().isPathPublished(path);
+  }
+
+  /**
+   * ⭐⭐ Declare the content on `extent` live, or take it down.
+   *
+   * Writes the flag AND appends a `publish` / `offline` title event, so
+   * the chain of title carries it. When live content goes dark the
+   * people inside are moved out first — *draft is a wall, offline is a
+   * camera*, and which one this is is a fact about whether anybody was
+   * there rather than a second field.
+   *
+   * Returns the updated record, or null when no parcel claims `extent`.
+   */
+  public static async setPublished(
+    extent: string,
+    value: boolean,
+  ): Promise<ParcelRecord | null> {
+    return logic().setPublished(extent, value);
+  }
+
   /** Cite a feeder node for `extent` (the meter). The twin of {@link citeReach}. */
   public static async citeFeeder(
     extent: string,

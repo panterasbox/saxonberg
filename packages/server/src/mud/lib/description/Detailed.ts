@@ -215,18 +215,46 @@ export function DetailedMixin<TBase extends MixinConstructor>(Base: TBase) {
     static _mixinName = 'DetailedMixin';
 
     /**
-     * Persistent fields declared by this mixin.
-     * Used by PersistApi for automatic synchronization.
-     *
      * Instruction-field applier roster. `details` is consumed by
-     * `applyDetails` (Phase 2 of TemplateApplier). The
-     * declarative YAML shape (a plain object keyed by detail name)
-     * differs from the runtime `Map<DetailId, Detail>` shape, so
-     * the applier sits between them — it owns the conversion. The
-     * applier runs AFTER the persistent bracket-assign in Phase 1
-     * (which would otherwise leave `this.details` as a plain object
-     * and break `getDetailEntries`); the applier resets the Map up
-     * front to undo that.
+     * `applyDetails` (Phase 2 of TemplateApplier). The declarative
+     * YAML shape (a plain object keyed by detail name) differs from
+     * the runtime `Map<DetailId, Detail>` shape, so the applier sits
+     * between them — it owns the conversion.
+     *
+     * ⛔⛔ **NOT `persistent`, and it was until 2026-10-06.** Details
+     * are AUTHORED CONTENT: nothing outside this file has ever called
+     * `setDetail`, so there was no instance state to keep — and
+     * keeping it broke three things at once.
+     *
+     * 1. ⚠⚠ **It broke every MQL scope walk that reached the host.**
+     *    Capture stored the `Map` through `detachValue`, which has no
+     *    BSON Map shape, so it landed as a plain object; restore's
+     *    Phase-1 bracket-assign put that object straight back on
+     *    `this.details` (no `fieldMarshaller` was ever declared). The
+     *    next `getDetailIds` threw *details.keys is not a function* —
+     *    and the detail walk is on the `reachable` seed, so in a world
+     *    booted on an existing DB **`find` and `teleport` both died at
+     *    the resolver**. Found by a browser drive; 52 of 77 live
+     *    snapshots were carrying the broken shape.
+     * 2. It made an edited `details:` block unable to reach a restored
+     *    host — the *"a `props:` edit never reaches a booted world"*
+     *    trap, in a field nobody suspected was in it.
+     * 3. It stored content as state, which is the line packs are not
+     *    supposed to cross in the other direction either.
+     *
+     * ⭐ Dropping the flag is what makes the bad snapshots **self-heal
+     * with no migration**: `restoreState`'s drift guard admits only
+     * declared persistent fields, so a stored `details` is now ignored
+     * and the applier supplies the Map from the row on every clone and
+     * every boot — which is the honest source of truth for authored
+     * content. (A `Marshaller` would also have worked; the doc on
+     * `lib/persistence/Marshaller.ts` names variable-key maps as its
+     * case. It is the wrong fix here because the field should not have
+     * been travelling through persistence at all.)
+     *
+     * ⚠ If a runtime detail mutator ever gains a real caller, this
+     * decision reverses — and then it needs a `Marshaller`, not a bare
+     * `persistent: true`.
      */
     static fieldMeta: FieldMeta = {
       // ⭐ `by-key`: a child adds or overrides ONE detail without

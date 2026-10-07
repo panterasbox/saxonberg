@@ -120,6 +120,8 @@ export enum Collections {
    * store.
    */
   KickProfiles = 'kick_profiles',
+  /** The world's shape: one row per PLACE and the exits leading out of it. */
+  LocationGraph = 'location_graph',
   /**
    * Provenance for every generated illustration: prompt, model, and where the
    * bytes went.

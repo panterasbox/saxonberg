@@ -203,7 +203,7 @@ export default class ChronicleController extends RecordControllerBase<ChronicleM
      */
     const nameOf = (id: string): string => {
       if (!id) return 'nobody';
-      const live = StuffApi.findAllByTemplatePath(id)[0];
+      const live = StuffApi.findByIdentityPath(id)[0];
       if (live) return live.getPresentation();
       const leaf = id.split('/').filter(Boolean).pop() ?? id;
       return leaf.replace(/[-_]/g, ' ');

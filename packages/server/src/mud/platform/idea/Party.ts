@@ -67,6 +67,14 @@ const PartySurface = SecurityPolicies.AnyOf(
 export const DEFAULT_FORMATION_PATH = "/platform/idea/CombatFormation/default";
 
 export class Party extends Idea {
+  /**
+   * Where a party's minted identities live. A party's name is a uuid —
+   * not re-derivable from anything — so it is durable only because
+   * `PartyRecord.path` RECORDS it; declaring the namespace is what
+   * keeps a mint from landing outside the branch the record reads.
+   */
+  static readonly identityNamespace: string = '/platform/idea/party/';
+
   static fieldMeta: FieldMeta = {
     name: { persistent: true, authorable: true },
     founderId: { persistent: true, authorable: true },

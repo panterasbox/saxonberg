@@ -31,18 +31,6 @@ import {
   OMNI_SCOPE,
 } from '../mud/api/execution-context';
 import { PersistenceManager } from './PersistenceManager';
-import { ApiLogic } from '../mud/lib/stuff/ApiLogic';
-import Interactive from '../mud/platform/idea/Interactive';
-import TemplateApplier from '../mud/platform/idea/TemplateApplier';
-import Species from '../mud/platform/idea/species/Species';
-import BodyPlan from '../mud/platform/idea/species/BodyPlan';
-import Clade from '../mud/platform/idea/species/Clade';
-import Material from '../mud/lib/material/Material';
-import Condition from '../mud/platform/idea/Condition';
-import { Modality } from '../mud/lib/perception/Modality';
-import { CombatFormation } from '../mud/platform/idea/CombatFormation';
-import { LocomotionMode } from '../mud/platform/idea/LocomotionMode';
-import { Zone } from '../mud/lib/zone/Zone';
 import { ShadowApi } from '../mud/api/shadow';
 import { CommandApi } from '../mud/api/command';
 import { StackableApi } from '../mud/api/stackable';
@@ -140,57 +128,19 @@ export class BootstrapManager {
       const scope = ExecutionContextApi.getCircleScope();
       return scope === OMNI_SCOPE ? null : scope;
     });
-    // The sandbox boundary's infrastructure exemption (Decision J):
-    // every ApiLogic singleton is boundary-exempt by base-class
-    // identity (spoof-proof instanceof, late-bound here to keep
-    // security.ts import-clean of the mud class graph). Interactive is
-    // exempt too: the connection transport is out-of-world plumbing —
-    // sockets attach to holders on either side of the boundary, and no
-    // domain state rides an Interactive's surface.
-    SecurityApi._registerBoundaryExemptBase(ApiLogic);
-    SecurityApi._registerBoundaryExemptBase(Interactive);
-    // The template applier is a shared, stateless engine singleton used
-    // as a pure function BY the clone pipeline — a circle-context clone
-    // must be able to call the one field-resident instance. (Found live:
-    // without this, every clone inside a circle silently skipped its
-    // content step, so a wire body minted with no default loadout.)
-    SecurityApi._registerBoundaryExemptBase(TemplateApplier);
-    // REFERENCE DATA — the closed, shared vocabularies every body reads
-    // to know what it is, what it's made of, and how it moves. These
-    // are commons, not world state: they are seeded, never mutated at
-    // runtime, and the PM policy table REFUSEs writes to their rows, so
-    // exempting them widens reads only.
+    // ⭐⭐ **The sandbox boundary's class exemption is DECLARED now, not
+    // registered here** (Decision J, reworked 2026-10-06). Twelve
+    // `SecurityApi._registerBoundaryExemptBase(...)` calls used to sit
+    // at this spot — three infrastructure bases and nine reference
+    // bases — beside twenty-seven template-path strings inside
+    // `api/security.ts`. Thirty-nine entries, and by their own comments
+    // every one was added after a verb died in production.
     //
-    // A body inside a circle must be able to read its own species or it
-    // isn't animate — it can't walk, act, or leave (found live: the
-    // wire body was refused `go` as "not currently animate", then
-    // refused again on its clade's rank). This is the same category as
-    // the enumerated catalogues above, expressed as base classes
-    // because the instances are many and seeded, not enumerable by
-    // hand. Keep the list to genuine vocabulary: anything a player can
-    // change is world state and does not belong here.
-    // Zone belongs to the same tier, for the same reason one step up:
-    // a zone is the template tree's *classification* of a path, not
-    // anything that happens at it. The circle's own wire-ness is a
-    // Zone field (`/home`'s `wire: true`, inherited down the walk), so
-    // the very question "am I inside a circle?" is a read of a
-    // field-resident Zone — un-exempt, code inside a circle can't ask
-    // it (found live: `eval` in-circle died on `lookupField`). Zone
-    // rows are seeded, and the PM policy table governs writes to them
-    // independently, so this widens reads only.
-    for (const referenceBase of [
-      Species,
-      BodyPlan,
-      Clade,
-      LocomotionMode,
-      Material,
-      Modality,
-      Condition,
-      CombatFormation,
-      Zone,
-    ]) {
-      SecurityApi._registerBoundaryExemptBase(referenceBase);
-    }
+    // Each class now carries `static boundaryRole` (see
+    // `mud/lib/security/BoundaryRole.ts`), which arrives down the
+    // prototype chain exactly as the base-`instanceof` list did, and
+    // `lint:boundary-roles` asserts that no registration call comes
+    // back and that the `commons` census stays on its ceiling.
   }
 
   /**

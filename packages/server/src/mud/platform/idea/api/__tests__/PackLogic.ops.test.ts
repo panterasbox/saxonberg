@@ -146,7 +146,7 @@ describe('resolve', () => {
   it('take-pack: writes the file row, rebaselines, clears, re-hydrates', async () => {
     const root = await conflicted();
     const inst = { fake: true };
-    vi.spyOn(StuffApi, 'findAllByTemplatePath').mockReturnValue([inst] as never);
+    vi.spyOn(StuffApi, 'findByIdentityPath').mockReturnValue([inst] as never);
     const restore = vi.spyOn(TemplateApi, 'restoreFromTemplate').mockResolvedValue(undefined as never);
     const r = await PackApi.resolve('p', GIN, 'take-pack', root);
     expect(r!.updated).toEqual([GIN]);

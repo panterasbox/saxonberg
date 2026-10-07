@@ -1,0 +1,27 @@
+# The marker that stands where a place stood (location-graph B2).
+#
+# ⭐⭐ Offline is a CAMERA, not a wall. Draft content has never been
+# live, so nobody is inside it and the flag alone is enough. Live
+# content coming down is different — somebody may be standing in it —
+# and the honest thing is to move them somewhere that tells them what
+# happened and who to ask, rather than to a void room or to a refusal
+# with no fiction behind it.
+#
+# ⚠ A KIND, not a place: cloned per offlined extent with an identity of
+# `/platform/location/tombstone/<extent stripped>`, which is
+# re-derivable from the extent — so a second offlining of the same
+# ground finds the tombstone already standing instead of minting a
+# second one. It reaps itself once the last reader leaves; a message
+# nobody is reading is litter.
+#
+# The description is written by the overlay at mint (it names the extent
+# and its holder, which the row cannot know); what is authored here is
+# the part that is the same every time.
+class: /platform/location/Tombstone
+data:
+  shortDescription: bare marker
+  primaryKeyword: marker
+  keywords: [marker, tombstone, stone, nothing]
+  register: indefinite
+  longDescription: |
+    Bare ground, and a marker standing in it. Whatever was here has been taken down.

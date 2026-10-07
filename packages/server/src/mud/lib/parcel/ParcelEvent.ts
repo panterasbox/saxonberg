@@ -20,8 +20,21 @@ import type { ParcelOwner } from "./ParcelRecord";
 import type { FieldMeta } from "../mixin";
 import { Collections } from '../persistence/Collections';
 
-/** The kind of title event a row records. */
-export type ParcelEventKind = "subdivide" | "transfer" | "grant";
+/**
+ * The kind of title event a row records.
+ *
+ * ⭐ `publish` / `offline` are title events because the chain of title
+ * is what the register is FOR: *who held this, and what did they
+ * declare about it, when*. Taking content down is one of the louder
+ * things a holder can do to ground, and it would be strange for the
+ * chain to record a transfer and not that.
+ */
+export type ParcelEventKind =
+  | "subdivide"
+  | "transfer"
+  | "grant"
+  | "publish"
+  | "offline";
 
 export class ParcelEvent extends Document {
   static collectionName = Collections.ParcelEvents;
@@ -37,7 +50,13 @@ export class ParcelEvent extends Document {
   /** The parcel's `extent` (the title this event concerns). */
   extent: string = "";
 
-  /** `subdivide` (genesis), `transfer` (handoff) or `grant` (a pack's declared claim, the installer's genesis). */
+  /**
+   * `subdivide` (genesis), `transfer` (handoff), `grant` (a pack's
+   * declared claim, the installer's genesis), or `publish`/`offline`
+   * (the holder declaring the content on this ground live, or taking it
+   * down). For the last two `from`/`to` are both the holder: nothing
+   * changed hands, which is the honest record.
+   */
   event: ParcelEventKind = "transfer";
 
   /** The prior owner (null at genesis / when unheld). */

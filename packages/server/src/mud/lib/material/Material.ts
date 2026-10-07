@@ -68,6 +68,7 @@ import type { MaterialComposition } from '../../api/material';
 // eslint-disable-next-line no-restricted-imports -- the F4 material face: a material's composition()/containsElement() forward into the material logic singleton exactly as the api/material facade does (the Combustible/Energized precedent)
 import { MaterialLogic } from '../../platform/idea/api/MaterialLogic';
 
+import type { BoundaryRole } from '../security/BoundaryRole';
 /**
  * One constituent in a mixture / alloy. `materialPath` is the
  * templatePath of the contained Material; `fraction` is the weight
@@ -156,6 +157,16 @@ export default class Material extends SingletonMixin(
 // reference singleton.
   PerceptibleMixin(Idea),
 ) {
+  /**
+   * what things are MADE of: a closed vocabulary, so a per-parcel `iron` would fork it.
+   *
+   * See `lib/security/BoundaryRole.ts` — this replaces a
+   * hand-maintained list in `api/security.ts` /
+   * `BootstrapManager`, and `lint:boundary-roles` holds the
+   * `commons` census at its measured ceiling.
+   */
+  static boundaryRole: BoundaryRole = 'commons';
+
   /**
    * The body site a substance-contact corrosion lands at when the caller
    * names none — a splash or a spill reaches the exposed front. A caller

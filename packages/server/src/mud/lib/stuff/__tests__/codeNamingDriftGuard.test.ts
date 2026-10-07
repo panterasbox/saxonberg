@@ -118,6 +118,16 @@ const MANIFEST: ReadonlyArray<{ site: string; classification: string }> = [
   // `MaterialCatalogue.onCreate` keeps a row by `instanceof Material` — resolving
   // the class wherever it lives (a capability pack's src/ included).
   { site: "platform/idea/MaterialCatalogue.ts::loadClassByPath", classification: "gated-direct" },
+  // ⭐ `LocationGraphRegistry`'s projection decides what is a PLACE by
+  // resolving each row's class and asking two questions of it — does it
+  // extend `Location`, and does it compose `SingletonMixin` (*one row
+  // IS one place*). Same shape and same reason as the catalogue above:
+  // the answer is a fact about the CODE, and a pack's own room class
+  // has to be found wherever it lives. ⚠ Enumerating places by path
+  // infix instead would skip every row that predates the
+  // `<root>/<branch>/` pattern — silently, which is how a gate becomes
+  // a gate-shaped comment.
+  { site: "platform/idea/LocationGraphRegistry.ts::loadClassByPath", classification: "gated-direct" },
   // `BiomeCatalogue.onCreate` keeps a row by `instanceof Biome` — the
   // MaterialCatalogue filter exactly, added by the ground build because
   // `Atmospheric.getBiome()` is a registry read and NOTHING stood the biome

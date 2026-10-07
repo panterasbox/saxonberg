@@ -44,6 +44,7 @@ import { RecordApi } from "../../api/record";
 import { PersistableMixin } from "../persistence/Persistable";
 import { ForkableMixin } from "../persistence/Forkable";
 import { PersistableApi } from "../../api/persistable";
+import { CartographerMixin } from "../location/Cartographer";
 import { HasInteractiveMixin } from "../connection/HasInteractive";
 import { ClientStateMixin } from "../connection/ClientState";
 import { SaxonbergClientMixin } from "../connection/SaxonbergClient";
@@ -162,6 +163,13 @@ export interface AvatarInitContext {
 // they sit, which is what lets furniture stay in a room the avatar is not in.
 // `shouldPersist()` (below) gates guests out.
 const AvatarBase = PersistableMixin(
+  // ⭐ A played person KEEPS A MAP of the places they perceive
+  // (location-graph B3). Outermost of the epistemic layers because it
+  // reads `getIdentityPath()` and `shouldPersist()` — both of which the
+  // composition below supplies — and because what it writes is a
+  // DOCUMENT rather than host state, so it adds nothing to the
+  // snapshot this stack captures.
+  CartographerMixin(
   EstateMixin(
     ForkableMixin(
       SaxonbergClientMixin(
@@ -204,6 +212,7 @@ const AvatarBase = PersistableMixin(
       ),
     ),
   ),
+  ),
 );
 
 /**
@@ -241,6 +250,11 @@ export default abstract class Avatar extends AvatarBase {
    */
   static commandContributions: CommandContributions = {
     self: [
+      // ⭐ The map read is the PLAYER's: it resolves under
+      // `/home/<self>`, and `Perceiver` is composed on NPCs too, so the
+      // verb belongs on `Avatar` beside `help`/`wiki`/`press` rather
+      // than on the perception mixin that writes it.
+      'platform/cmd/perception/map.yaml',
       "platform/cmd/system/ping.yaml",
       "platform/cmd/system/help.yaml",
       // The wiki sits beside `help` deliberately. Both are reference
@@ -602,6 +616,31 @@ export default abstract class Avatar extends AvatarBase {
    */
   static readonly TEMPLATE_PATH_PREFIX = TemplatePathPrefixes.avatar;
 
+  /**
+   * ⭐⭐ Where this FAMILY's minted identities live. Declared on the
+   * abstract root, so `PrimaryAvatar`, the anonymous guest and the
+   * sandbox wire body all inherit the claim without saying anything,
+   * and `StuffApi.clone` refuses an `asIdentityPath` outside it.
+   *
+   * This is the **continuity** pattern and it points the opposite way
+   * from individuation: many lineages wear ONE identity here, so
+   * nothing about the identity's shape can be derived from the row —
+   * the family has to declare it, and a typo in the prefix would file a
+   * person somewhere no ledger will ever look. `ShadeAvatar` owns a
+   * different prefix and declares its own, shadowing this.
+   *
+   * ⚠ Not the same string as a template row: nothing is cloned FROM
+   * `/platform/agent/Avatar/`, and `findAllByTemplatePath` of it
+   * correctly returns nothing. `PlayerApi`'s roster is what answers
+   * *every avatar*.
+   */
+  // ⚠ Widened to `string`, not left on the inferred literal. A pinned
+  // literal here makes `ShadeAvatar`'s own declaration an incompatible
+  // static override and breaks the class chain — the same failure the
+  // `_mixinName` statics are widened for. A family's namespace is
+  // overridable by definition, so the type has to say so.
+  static readonly identityNamespace: string = TemplatePathPrefixes.avatar;
+
   static getTemplatePath(playerId: string): string {
     return `${this.TEMPLATE_PATH_PREFIX}${playerId}`;
   }
@@ -681,6 +720,14 @@ export default abstract class Avatar extends AvatarBase {
    *
    * Falls through for a guest (`playerId === ''`) to whatever minted
    * path it was given, exactly as before.
+   *
+   * ⭐ This is also what makes the sandbox **wire body**'s projection
+   * work, and it is the only thing that does: `SandboxAvatar` adds no
+   * override of its own, so the ledgers read this. Until 2026-10-04 the
+   * wire body was additionally STAMPED with the player's identity,
+   * which filed it in the player's own registry bucket beside the
+   * parked field body — a collision the index forbids. Removing the
+   * stamp was safe precisely because this override was already here.
    */
   public override getIdentityPath(): string | null {
     return this.playerId
@@ -1595,7 +1642,7 @@ export default abstract class Avatar extends AvatarBase {
   /* ── fork/merge slices (sandbox Decision Q) ── */
 
   /**
-   * Presentation slice: what a projection vessel needs so the person is
+   * Presentation slice: what a wire body needs so the person is
    * recognizably themselves (name; species rides recognition, gear does
    * not travel). Fork-only for the sandbox — the merge allowlist never
    * includes it, so nothing here flows back.
@@ -1654,6 +1701,38 @@ export default abstract class Avatar extends AvatarBase {
     this.setHonorific(s?.honorific);
     this.setSurname(s?.surname);
     this.setNameSuffix(s?.nameSuffix);
+  }
+
+  /**
+   * ⭐ Map-keeping is {@link CartographerMixin}'s, not this class's —
+   * ~220 lines of conversion lived here and did not belong. What stays
+   * is the one fact only the Avatar family can answer: **whether this
+   * body has anywhere durable to file a map.**
+   *
+   * A wire body persists nothing (a circle's geography is not real
+   * geography, and must not be written onto the person wearing the
+   * body), and a guest is a throwaway persona with no `/home` branch.
+   * Both already answer `shouldPersist() → false`, so this reads an
+   * existing honest fact rather than inventing a second one.
+   *
+   * ⚠ `super.keepsMaps()` first, and not because an Avatar could fail
+   * it — every Avatar has a minted identity, so the mixin's floor
+   * (*is there a durable handle to file under*) is always true here.
+   * It is in the chain so the override READS as what it is: the
+   * family's extra condition on top of the capability's own, rather
+   * than a replacement that would silently drop the floor if the
+   * family's answer ever stopped implying it.
+   *
+   * ⚠ The `map` VERB stays on this class's `commandContributions`, and
+   * deliberately: reading a map is a PLAYER's affordance (the document
+   * is under `/home/<key>`, and NPCs do not type), while keeping one is
+   * a capability. An NPC guide composes the mixin and gets no verb it
+   * could never use.
+   */
+  public override keepsMaps(): boolean {
+    return (
+      super.keepsMaps() && this.shouldPersist() && !this.getIsGuest()
+    );
   }
 
   public toString(): string {

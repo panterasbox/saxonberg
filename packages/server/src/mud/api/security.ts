@@ -40,6 +40,10 @@ import { SecurityError } from '../lib/security/errors';
 // Type-only: erased at compile, so it adds no runtime edge to the
 // bootstrap cycle this module otherwise keeps clear of.
 import type { Stuff } from '../lib/stuff/Stuff';
+import {
+  BOUNDARY_ROLES,
+  BOUNDARY_ROLE_DEFAULT,
+} from '../lib/security/BoundaryRole';
 
 /**
  * Late-binding handle to ShadowApi. We deliberately do NOT
@@ -133,6 +137,31 @@ const PUBLIC_FALLBACK: SecurityPolicy = {
   name: 'Public',
   allows: () => true,
 };
+
+/**
+ * ⚠⚠ Render a circle scope for a DENIAL MESSAGE, unambiguously.
+ *
+ * `null` is field scope — "the ordinary world" — and the old rendering
+ * was `scope ?? 'field'`, so a `null` printed as the bare word `field`
+ * and so did a scope literally named `field`. A governed-eval denial
+ * therefore read:
+ *
+ *     context scope field vs receiver scope field
+ *
+ * which looks like a contradiction (the rule denies when the two
+ * DIFFER) and is in fact `null` vs `null` being refused on the
+ * jurisdiction rung, a different question entirely. ⭐ It cost real
+ * diagnosis time during the location-graph drive: the message sent me
+ * looking for a scope mismatch that was not there, and only the Mongo
+ * receipt — which carries the receiver's path — disambiguated it.
+ *
+ * So `null` renders as `field(none)` and a named scope renders as
+ * itself. The one job of a denial message is to name the decision that
+ * was actually made.
+ */
+function scopeLabel(scope: string | null): string {
+  return scope ?? 'field(none)';
+}
 
 export class SecurityApi {
   private constructor() {}
@@ -920,78 +949,6 @@ export class SecurityApi {
    */
 
   /**
-   * Base classes whose instances are boundary-exempt infrastructure
-   * (Decision J) — registered by `BootstrapManager.installFrameworkWiring`
-   * (`ApiLogic` today). Late-bound like `#shadowApi` so this
-   * bootstrap-special module never imports the mud class graph.
-   * `instanceof` against a registered base is spoof-proof (prototype
-   * chain), unlike a duck-typed marker method.
-   */
-  static #boundaryExemptBases: Array<abstract new (...a: never[]) => unknown> =
-    [];
-
-  /** @internal — boot wiring only; idempotent per class. */
-  public static _registerBoundaryExemptBase(
-    cls: abstract new (...a: never[]) => unknown
-  ): void {
-    if (!SecurityApi.#boundaryExemptBases.includes(cls)) {
-      SecurityApi.#boundaryExemptBases.push(cls);
-    }
-  }
-
-  /**
-   * Non-`ApiLogic` singletons (registries, catalogues, vocabulary
-   * holders) exempted by ENUMERATION, never inference — anything
-   * unmarked and unscoped is subject to the ordinary compare, so a new
-   * module category fails closed. Classified holder-by-holder in
-   * docs/subsystems/sandbox.md; the needs-a-guard members additionally
-   * carry per-mutator scope checks.
-   */
-  static readonly #BOUNDARY_EXEMPT_TEMPLATE_PATHS: ReadonlySet<string> =
-    new Set([
-      '/platform/idea/EventRegistry',
-      '/platform/idea/AccessRegistry',
-      '/platform/idea/ParcelRegistry',
-      '/platform/idea/OfficeRegistry',
-      '/platform/idea/ChattelRegistry',
-      '/platform/idea/GroupRegistry',
-      '/platform/idea/ReactionRegistry',
-      '/platform/idea/MqlSubscriptionRegistry',
-      '/platform/idea/SchedulerRegistry',
-      '/platform/idea/WorldClockRegistry',
-      '/platform/idea/EventSubscriptions',
-      '/platform/idea/AddressRegistry',
-      '/platform/idea/TopicCatalogue',
-      // The staff→player news window. Read-only presentation content
-      // (writes are REFUSE'd at the PM layer), and the session
-      // ceremony reads it to build a client's bootstrap payload — so a
-      // player crossing into a circle must be able to reach it, or the
-      // whole ceremony throws and they arrive to a blank screen.
-      '/platform/idea/PressBoard',
-      '/platform/idea/SoulCatalogue',
-      '/platform/idea/SubjectCatalogue',
-      '/platform/idea/ChannelCatalogue',
-      '/platform/idea/CorpoCatalogue',
-      // Seeded reference catalogues — authored content the engine reads
-      // to answer "what exists in the world": never player-mutable at
-      // runtime, and REFUSE'd at the PM layer besides. Same tier as the
-      // reference-data BASES (Species, Material, Zone …), enumerated
-      // here because each is a singleton rather than a class of many.
-      //
-      // Every one of these was a verb that simply died inside a circle
-      // — `help`, `spells`, `recipes`/`craft`, `studio`, `competence`,
-      // `government`. A player standing in their own circle could not
-      // read the rulebook.
-      '/platform/idea/HelpCatalogue',
-      '/platform/idea/SpellCatalogue',
-      '/platform/idea/RecipeCatalogue',
-      '/platform/idea/BlueprintCatalogue',
-      '/platform/idea/DisciplineCatalogue',
-      '/platform/idea/MaturationProfileCatalogue',
-      '/platform/idea/GovernmentCatalogue',
-    ]);
-
-  /**
    * The Sensor delivery pipeline — the ONE allowlisted cross-boundary
    * dispatch channel (comms are seamless; Decision N). Narrow by
    * construction: the frame body is rendered MML materialized
@@ -1125,31 +1082,54 @@ export class SecurityApi {
   }
 
   /**
-   * One enclosure hop, on the RAW object.
+   * One HOST hop, on the RAW object — *whose place is this receiver
+   * in?* — via {@link Stuff.jurisdictionHost}.
+   *
+   * ⭐⭐ **Containment used to be hardcoded here, and that is what made
+   * an exit unreachable.** This walk asked `getContainer()` directly,
+   * so a Stuff that belongs to a place *without being contained by
+   * it* had no way to say so: an inline exit answers to its
+   * exit-KIND path and a room holds a `direction → exit` map rather
+   * than containing its exits, so a governed `eval --parcel <extent>`
+   * was refused on every exit of every room in its own extent. Asking
+   * the receiver instead makes containment the DEFAULT answer rather
+   * than the only one, and the security layer needs to know nothing
+   * about exits (`Exit.jurisdictionHost` returns its source).
    *
    * Two deliberate departures from house style, both forced by where this
    * code sits — inside the gate itself:
    *
    *   - **Duck-typed**, not `MixinApi.isContainable`: `api/mixin.ts`
    *     imports THIS module, so the boundary sits below the mixin
-   *     registry and cannot ask it anything.
-   *   - **Unwrapped**, not called through the proxy: dispatching
-   *     `getContainer()` on a proxy would re-enter the gate we are
-   *     currently deciding, and the enclosure of an out-of-extent
-   *     receiver is exactly the call that would be denied. The walk has
-   *     to read the world without asking permission to.
+   *     registry and cannot ask it anything. The same reason applies to
+   *     the hook: it is read off the raw object by name.
+   *   - **Unwrapped**, not called through the proxy: dispatching on a
+   *     proxy would re-enter the gate we are currently deciding, and
+   *     the host of an out-of-extent receiver is exactly the call that
+   *     would be denied. The walk has to read the world without asking
+   *     permission to.
    *
-   * `getContainer()` may write (`R2.3` clears a slot pointing at a
-   * destroyed container). That is an idempotent cleanup the next
-   * ordinary read would do anyway, and it touches a plain field rather
-   * than re-entering dispatch — but it is why this calls the method
-   * instead of reading `environment`: the self-heal is the contract.
+   * `getContainer()` — the hook's default — may write (`R2.3` clears a
+   * slot pointing at a destroyed container). That is an idempotent
+   * cleanup the next ordinary read would do anyway, and it touches a
+   * plain field rather than re-entering dispatch — but it is why this
+   * calls the method instead of reading `environment`: the self-heal is
+   * the contract.
+   *
+   * ⚠ A host that throws is treated as absent. The walk is one rung of
+   * an authorization decision, and a hook that cannot answer must fail
+   * CLOSED rather than take the gate down with it.
    */
-  static #enclosureOf(raw: Stuff): Stuff | null {
-    const get = (raw as unknown as { getContainer?: () => unknown })
-      .getContainer;
-    if (typeof get !== 'function') return null;
-    const next = get.call(raw);
+  static #hostOf(raw: Stuff): Stuff | null {
+    const hook = (raw as unknown as { jurisdictionHost?: () => unknown })
+      .jurisdictionHost;
+    if (typeof hook !== 'function') return null;
+    let next: unknown;
+    try {
+      next = hook.call(raw);
+    } catch {
+      return null;
+    }
     return next === null || next === undefined
       ? null
       : ProxyApi.unwrap(next as Stuff);
@@ -1160,44 +1140,79 @@ export class SecurityApi {
    *
    * A jurisdiction is a **place**, and there are three ways to be in one:
    *
-   *   1. **You are content of it** — your `templatePath` sits under the
-   *      bound. Rooms, fixtures, the eval scratch. For path-addressed
-   *      content lineage and location coincide, which is why the first
-   *      cut of this check tested only the path.
-   *   2. **You are standing in it** — an enclosure up your containment
-   *      chain is under the bound. An avatar's `templatePath` is
-   *      `/platform/agent/Avatar/<id>`: its IDENTITY, which says nothing about where
-   *      it is. Judging a person's whereabouts by their lineage denied a
-   *      governed eval the one receiver it most obviously covers — the
-   *      wizard's own body, standing in the parcel they hold title to.
-   *      Same for every clone: a corpse in the lounge is lineage
-   *      `/stuff/thing/Corpse` and location `/world/lounge`.
-   *   3. **You are nowhere yet** — unstamped AND unplaced, i.e. minted by
-   *      this very run. `ScriptApi.mintEvalScratch` creates the scratch
-   *      and *then* stamps its path, so at the instant of the stamp rules
-   *      1 and 2 both answer no; without this, `eval <code>` could not
-   *      execute a single statement in a field jurisdiction, because the
-   *      first thing it does is mint. A newborn has no prior existence
-   *      for a jurisdiction to protect.
+   *   1. **You are content of it** — the path you ANSWER TO sits under
+   *      the bound. Rooms, fixtures, the eval scratch.
+   *
+   *      ⚠⚠ **`getIdentityPath()`, not `getTemplatePath()`**, and the
+   *      difference is the eval scratch. `ScriptApi.mintEvalScratch`
+   *      clones `/platform/idea/EvalScript` with
+   *      `asIdentityPath: ${parcel}/_eval` — so its LINEAGE is the
+   *      kernel row and its IDENTITY is the jurisdiction it was minted
+   *      into. Reading lineage, rule 1 answered *no* for the one
+   *      receiver it most obviously covers, and **every governed
+   *      `eval --parcel <extent>` was denied at the scratch's own
+   *      `onCreate`**. Found by driving the location-graph build, which
+   *      could not run a single step through `eval`.
+   *
+   *      ⚠ Rule 3 below used to catch this by accident and no longer
+   *      can: it was written when the scratch was `create`d and stamped
+   *      AFTERWARDS, so its path was null at `onCreate`. The clone
+   *      channel stamps both axes BEFORE register, so the newborn
+   *      escape stopped firing the day the scratch moved onto it — a
+   *      silent, total loss of governed eval. `getIdentityPath()` falls
+   *      back to the template path, so rooms and fixtures are
+   *      unaffected.
+   *   2. **Your HOST is in it** — some {@link Stuff.jurisdictionHost}
+   *      up your chain is under the bound. An avatar's `templatePath`
+   *      is `/platform/agent/Avatar/<id>`: its IDENTITY, which says
+   *      nothing about where it is. Judging a person's whereabouts by
+   *      their lineage denied a governed eval the one receiver it most
+   *      obviously covers — the wizard's own body, standing in the
+   *      parcel they hold title to. Same for every clone: a corpse in
+   *      the lounge is lineage `/stuff/thing/Corpse` and location
+   *      `/world/lounge`.
+   *
+   *      ⭐⭐ **The hook, not `getContainer()` — and that is the whole
+   *      of the exit fix.** This rung hardcoded containment, so a
+   *      Stuff that belongs to a place *without being contained by
+   *      it* could not say so. An inline exit answers to its
+   *      exit-KIND path (`/platform/idea/exits/passage` — the kernel,
+   *      not the world) and a room holds a `direction → exit` map
+   *      rather than containing its exits, so rule 1 said *no*, this
+   *      rung had nothing to walk, and **a governed
+   *      `eval --parcel <extent>` was refused on every exit of every
+   *      room inside its own extent** — `getDoor()` included, so not
+   *      even a read. Found by a browser drive.
+   *
+   *      ⭐ Asking the receiver makes containment the DEFAULT answer
+   *      rather than the only one, so the exit is not a carve-out:
+   *      `Exit.jurisdictionHost()` returns its source, and this layer
+   *      knows nothing about exits.
+   *   3. **You are nowhere yet** — unstamped AND unhosted, i.e. minted
+   *      by this very run. A newborn has no prior existence for a
+   *      jurisdiction to protect.
+   *
+   *      ⚠ This was written for the eval scratch, which used to be
+   *      `create`d and stamped afterwards. It no longer covers it (the
+   *      clone channel stamps before `onCreate`), and rule 1 does
+   *      instead — see the note there. The rung stays for anything else
+   *      genuinely minted unstamped and unplaced mid-run.
    */
   static #inJurisdiction(target: Stuff, bound: string): boolean {
-    const path = target.getTemplatePath();
+    const path = target.getIdentityPath();
     if (path !== null && SecurityApi.#underExtent(path, bound)) return true;
 
-    let enclosure = SecurityApi.#enclosureOf(target);
-    const placed = enclosure !== null;
-    for (let hop = 0; enclosure !== null; hop++) {
+    let host = SecurityApi.#hostOf(target);
+    const hosted = host !== null;
+    for (let hop = 0; host !== null; hop++) {
       if (hop >= SecurityApi.#JURISDICTION_WALK_CAP) return false;
-      const enclosingPath = enclosure.getTemplatePath();
-      if (
-        enclosingPath !== null &&
-        SecurityApi.#underExtent(enclosingPath, bound)
-      ) {
+      const hostPath = host.getTemplatePath();
+      if (hostPath !== null && SecurityApi.#underExtent(hostPath, bound)) {
         return true;
       }
-      enclosure = SecurityApi.#enclosureOf(enclosure);
+      host = SecurityApi.#hostOf(host);
     }
-    return path === null && !placed;
+    return path === null && !hosted;
   }
 
   /**
@@ -1278,10 +1293,33 @@ export class SecurityApi {
   }
 
   /**
-   * Is `target` boundary-exempt infrastructure? Registered-base
-   * `instanceof` OR enumerated template path; the verdict is cached on
-   * the raw target (a lazily-stamped slot) so the steady-state cost is
-   * one property read.
+   * Is `target` boundary-exempt? Reads the class's **declared**
+   * {@link BoundaryRole} — see `lib/security/BoundaryRole.ts` for the
+   * vocabulary and for why this is declared rather than derived.
+   *
+   * ⭐⭐ **This used to be two hand-maintained enumerations**: twelve
+   * `_registerBoundaryExemptBase` calls planted from
+   * `BootstrapManager.installFrameworkWiring`, plus twenty-seven
+   * template-path strings sitting in this file. Thirty-nine entries,
+   * each — by its own comments — added after a verb died in
+   * production. Both are gone; the classes say what they are, and
+   * `lint:boundary-roles` gates that no central list comes back and
+   * that the `commons` count does not drift upward unreviewed.
+   *
+   * ⚠ Read off the raw object **by name**, not via the mixin registry:
+   * `api/mixin.ts` imports this module, so the boundary sits below the
+   * registry and cannot ask it anything. The declaration is a static,
+   * so it arrives down the prototype chain for free — which is what
+   * made the old base-`instanceof` list work, and is why declaring on
+   * `Material` covers every material and declaring on `ApiLogic`
+   * covers every logic singleton.
+   *
+   * ⚠ Anything unmarked, or marked with a value the gate refuses,
+   * resolves to `place` and is subject to the ordinary compare. A new
+   * module category fails CLOSED, exactly as before.
+   *
+   * The verdict is cached on the raw target (a lazily-stamped slot) so
+   * the steady-state cost is one property read.
    */
   static #isBoundaryExempt(target: {
     getTemplatePath(): string | null;
@@ -1289,18 +1327,13 @@ export class SecurityApi {
     const slot = target as unknown as { _boundaryExemptCache?: boolean };
     const cached = slot._boundaryExemptCache;
     if (cached !== undefined) return cached;
-    let exempt = false;
-    for (const base of SecurityApi.#boundaryExemptBases) {
-      if (target instanceof (base as new (...a: unknown[]) => object)) {
-        exempt = true;
-        break;
-      }
-    }
-    if (!exempt) {
-      const path = target.getTemplatePath();
-      exempt =
-        path !== null && SecurityApi.#BOUNDARY_EXEMPT_TEMPLATE_PATHS.has(path);
-    }
+    const declared = (
+      target as unknown as { constructor?: { boundaryRole?: unknown } }
+    ).constructor?.boundaryRole;
+    const exempt =
+      typeof declared === 'string' &&
+      declared !== BOUNDARY_ROLE_DEFAULT &&
+      (BOUNDARY_ROLES as readonly string[]).includes(declared);
     slot._boundaryExemptCache = exempt;
     return exempt;
   }
@@ -1342,8 +1375,8 @@ export class SecurityApi {
           message:
             `sandbox boundary denied ${kind}: ${method}() on ` +
             `${receiver.stuffId ?? '<unknown>'} (${receiverPath ?? 'no path'}) — ` +
-            `context scope ${ctxScope ?? 'field'} vs receiver scope ` +
-            `${rcvScope ?? 'field'}; caller ${callerModule ?? '<unresolved>'}`,
+            `context scope ${scopeLabel(ctxScope)} vs receiver scope ` +
+            `${scopeLabel(rcvScope)}; caller ${callerModule ?? '<unresolved>'}`,
           stack: denyStack,
         });
       } catch {
@@ -1379,8 +1412,8 @@ export class SecurityApi {
     );
     throw new SecurityError(
       `sandbox boundary denied shadow ${op} on ${host.stuffId}: ` +
-        `context scope ${ctxScope ?? 'field'} vs host scope ` +
-        `${rcvScope ?? 'field'}`,
+        `context scope ${scopeLabel(ctxScope)} vs host scope ` +
+        `${scopeLabel(rcvScope)}`,
       { stuffId: host.stuffId, methodName: op, policyName: 'SandboxBoundary' }
     );
   }
@@ -1527,8 +1560,8 @@ export class SecurityApi {
         );
         throw new SecurityError(
           `sandbox boundary denied ${ctx.prop}() on Stuff ${ctx.target.stuffId}: ` +
-            `context scope ${ctxScope ?? 'field'} vs receiver scope ` +
-            `${rcvScope ?? 'field'}` +
+            `context scope ${scopeLabel(ctxScope)} vs receiver scope ` +
+            `${scopeLabel(rcvScope)}` +
             (bctx.bound !== null ? ` (jurisdiction ${bctx.bound})` : ''),
           {
             stuffId: ctx.target.stuffId,

@@ -118,6 +118,19 @@ export default class TeleportController extends CommandController<TeleportModel>
         return this.fail(context, "you can't read the board", 'cannot-read');
       }
       this.tell(context, await node.renderDepartures(giver));
+      // ⭐ Reading a public notice IS learning something. The board's
+      // stops land on the reader's map marked `publication`, so a place
+      // known only from a timetable is distinguishable from one they
+      // walked to — and can be wrong in its own way, when a station
+      // goes dark.
+      //
+      // ⚠ After the render and never before it: the board is a public
+      // timetable, and nothing about recording what somebody read may
+      // become a reason they could not read it.
+      const stops = await node.publishedStops?.();
+      if (stops && MixinApi.isPerceiver(giver)) {
+        giver.learnTimetable(stops);
+      }
       return;
     }
 

@@ -44,7 +44,7 @@ That is the reusable shape for any antipattern worth removing:
 Step 2 is the affordable part: a new antipattern can be stopped from
 growing the day it is noticed, without being fixed first.
 
-### ⚠⚠ Three ways a census lies, all three paid for in 2026-09
+### ⚠⚠ Four ways a census lies, every one of them paid for in 2026-09
 
 **1. A classifier that reads the NAME instead of the thing.** The
 `lib/` statics sweep filed 40 rows as *"inline and delete"* from their
@@ -249,6 +249,20 @@ at **339, three below where the build found it.**
   definition — they are reached through the composed host, which is a
   different question. See
   [value-object-statics-slate](./slates/builds/value-object-statics-slate.md).
+
+  ⚠⚠ **The framework allowlist had drifted, and that is this gate's own
+  documented failure class** (*a ratchet with a hole in it*; *gates ship
+  broken and silently pass*). Statics the framework reaches **by name**
+  can never move and are not author surface, so they are exempt — and
+  the set is defined by grepping the framework for
+  `hasOwnProperty.call(c, '…')`. On 2026-10-05 that grep yielded ten
+  names while the list carried seven: `hydrateFromSource` and
+  `hydrateSlice` (both added by the hydration build) were **missing**,
+  and `restoreSlice` is **stale** — the framework never reads that name.
+  Re-derived, with the derivation written at the site so the next drift
+  is visible. ⭐ The lesson generalizes past this gate: **an allowlist
+  defined by a grep should carry the grep**, or it decays the moment the
+  thing it mirrors grows.
 
 **So the ~50 world-level statics in Api-less subsystems stay where they
 are**, and the ratchet stops at ≈50 + the type-level population instead
@@ -1038,6 +1052,130 @@ above. The broader disease, and the one open half the literal cannot see
 documented at
 [antipatterns.md § Keying a PERSON](./antipatterns.md).
 
+### `lint:identity-mints` — every mint names what keys on it (2026-10)
+
+⭐⭐ `StuffApi.clone(row, …, { asIdentityPath })` is the one channel that
+mints a per-instance identity, and until this gate nothing asked the
+question the requirements settle (9a): *an identity exists iff the NAME
+is durable* — re-derivable from inputs that outlive the instance, or
+recorded somewhere durable. Concretely, **what keys on this identity?**
+
+The closed vocabulary is `own-record | referenced | lookup | none`, and
+⚠ **there is no `probe` word, by design**: a mint's own uniqueness check
+cannot justify the mint it serves. The corpse mints an ordinal by asking
+whether its own candidate identity is free, which is circular — so it
+is marked `none`.
+
+⭐⭐ **A census, not a shape validator.** A validator over the shapes the
+tree actually uses — family-prefixed, row-prefixed, parcel-relative,
+recorded-uuid, projected — would codify five improvisations and hand
+every one of them a passing grade. The shapes are all legitimate on
+their own terms; the mint is what gets questioned.
+
+⭐ **The marker lives AT THE SITE** (`// identity-keyed-by: <word> —
+<what>`), on the `eslint-disable -- reason` precedent, never in a table
+inside the script. That is what lets a capability pack mark its own mint
+with nobody editing a kernel list — the rule that *a pack must never
+need a kernel list edit*, applied here. So the script reads sites and
+holds no paths.
+
+Two outcomes, and only one of them is a ratchet:
+
+- **An unmarked mint is an ERROR**, not a count. A new mint has to
+  answer the question; silence is the whole failure the gate exists for.
+- **A site marked `none` is unjustified** and counted against a ceiling
+  that may fall and never rise.
+
+**First census (2026-10-04): 13 sites — 8 `own-record`, 2 `referenced`,
+1 `lookup`, 2 `none`.** ⚠ The composition moved during the same build
+and the count did not: A3 removed the wire body's mint (`own-record`)
+and B2 added the tombstone's (`referenced`), so it reads 7 / 3 / 1 / 2
+now. Worth noting because the first reading of that shift was *the
+scanner mis-attributed something* — it had not, and checking which site
+changed was what settled it. The ceiling is **2**: the anonymous guest
+(`Login.ts`, on the login path, avoiding a throwaway template row) and
+the corpse (`ConditionLogic.ts`, being retooled by the carcass chain).
+⚠ Both are **named non-goals** of the build that added the gate, and
+reading "unjustified" as *go and fix it* is the mistake to avoid —
+unminting is per-site work for whoever owns the site, and each marker
+names its destination. ⚠ `src/backend/TestHooks.ts` mints through the
+same formula and is outside the scan root (the mudlib + pack `src/`,
+the `check-person-keys` root); it carries a marker for the reader and is
+uncounted.
+
+⚠ **What the lint cannot see is a MIS-mark** — `referenced` with nothing
+referencing it. The vocabulary being closed stops a site inventing a new
+justification, but not a wrong one. Review is what catches that, which
+is the marker's other job.
+
+The runtime half is separate and louder: a class that declares
+`static identityNamespace` has every mint asserted against it in the
+clone pipeline. See
+[identity.md § Every mint names what keys on it](./subsystems/identity.md).
+
+### `lint:location-graph` — is the world's SHAPE sound, before anybody boots it? (2026-10)
+
+⭐⭐ The worst failure in this family is a **dangling exit, which is a
+boot crash**: `Exitable._applyExitSpec` → `StuffApi.singleton` →
+*Template not found*, wrapped as *"failed to clone"*. An author who
+learns about it from a boot crash learns it at the worst possible
+moment, from a stack trace naming the framework rather than their row.
+So the gate reads the ROWS ON DISK and names the row and the direction
+before any process starts.
+
+⭐ **The rules live in `lib/location/GraphInvariants.ts`, not in the
+script.** `NavigationApi.checkGraph` runs the same instance value class
+over the projected nodes at runtime, so a CMS save answers in the same
+request. Two copies would drift — and a gate and a runtime check
+disagreeing about what a dangling exit is reads as *neither* of them
+being wrong.
+
+⚠⚠ **A place is DERIVED, never listed.** A row is a place iff its
+effective class extends a Location root AND composes `SingletonMixin`
+(*one row IS one place*); every other location row is a **kind**, minted
+many times through a warren or a programme. The walk goes through mixin
+calls (`pack-roots.extendsAny`, lifted there at this second consumer),
+so a pack's own room class is found. ⚠ And **place rows are not all
+under a `/location/` segment** — `counting-houses/banking-hall`,
+`general-store/shop-floor` predate the path pattern — so enumerating by
+path infix would skip them. By class, always.
+
+**Three errors, four questions.** The errors have no ceiling because
+they are not questions: a dangling destination; the same pair declared
+`bidirectional` from **both** sides (one declaration installs both, so
+two install the pair twice); an edge from published content into
+unpublished content. ⭐ That last runs **one way only** —
+`published → unpublished` is a dangling edge waiting to happen, while
+`unpublished → published` is how a draft zone attaches to the live world
+when it lands.
+
+The four questions are censused and ratcheted, because a one-way passage
+is legitimate content and an author must be able to ship one. **First
+run (2026-10-05): 124 places, 199 edges** — `cross-zone-one-sided` 1 ·
+`unreachable-from-entrance` 13 · `asymmetric-edge` 4 ·
+`destination-is-a-kind` 2, every error rule at 0. The ceilings are those
+measured numbers, not padded ones: a ceiling above the real count is a
+hole in the ratchet.
+
+⚠⚠ **`unreachable-from-entrance` has false positives BY CONSTRUCTION**,
+and saying so is what keeps it honest. This gate reads rows, and
+**code-installed exits are not in rows** — a warren's hub exits, a
+`DormDoor`, a `FloorStairExit` are wired in TypeScript — so a zone
+reached only through a code-installed door reads as having no entrance.
+Eleven of the thirteen are that (trade venue interiors, locality
+cellars). The rule still earns its place: the count may not GROW, so a
+genuinely orphaned new room shows up as a rise, and the first run's two
+real findings (`market/offstage`, plus both `destination-is-a-kind`
+hits) were news.
+
+⚠ **A premise correction the first run forced.** The requirements' AC7
+asks for *"a non-reciprocal bidirectional edge"* to be reported. That
+shape does not exist: `bidirectional: true` means *install both sides*,
+so such an edge is reciprocal by construction, and the rule written that
+way flagged Duncan Hall's front doors — whose row explains in a comment
+why one declaration is correct. The one-sided edge AC7 was reaching for
+is `asymmetric-edge`, which is a census for the reason above.
+
 ## Domain honesty — the gates that buy a narrowing
 
 These exist because the failure they prevent is **silent and looks
@@ -1448,3 +1586,48 @@ It also gates, at ceiling zero: a recipe `difficulty` outside `DIFFICULTIES`,
 a `call:` outside `CALL_POLICIES`, and ⭐ **a house with a `fulfills` seat and
 no `call:`** — which would decline every order it ever received.
 
+## ⭐⭐⭐ When the thing you want to derive *cannot* be derived
+
+`lint:boundary-roles` (2026-10-06) is the pattern's honest edge case,
+and worth reading before reaching for "make it derivable".
+
+The sandbox boundary's class-level exemption was **thirty-nine
+hand-maintained entries** across two mechanisms — twelve
+`_registerBoundaryExemptBase(...)` calls planted from
+`BootstrapManager`, and twenty-seven template-path strings inside
+`api/security.ts` — and by their own comments every one was added
+*after a verb died in production*. The textbook enumeration rot.
+
+⛔ **But the predicate did not exist.** Three candidate derivations
+were checked against the code and all three failed:
+
+| candidate | verdict |
+|---|---|
+| *never mutated at runtime* (scan for public mutators) | `Material` declares **32** public `set*` methods, because the `TemplateApplier` dispatches through them. Every authored reference class needs setters. |
+| *the PM policy table refuses writes to its rows* | ⛔ **false.** `Collections.Content` is `sandbox: pass`, deliberately. The stated justification for nine exemptions did not hold. |
+| *nobody can hold title to it* (`ownerOf(path) === null`) | false — `/platform` and `/stuff` are both claimed extents. |
+
+⭐ **So the fix was not a derivation; it was to move the judgment
+somewhere visible and ratchet its GROWTH.** The axis became one static
+on the class (`static boundaryRole`, prototype-walked like
+`_mixinName`), and the gate asserts three things that *are* derivable:
+
+1. **totality** — every declaration is a value the vocabulary declares,
+   read out of the vocabulary's own source rather than copied;
+2. **the census ceiling** — today's `commons` count, which may fall and
+   never rise, and a **padded** ceiling is a finding too;
+3. **no central list may come back** — the retired registrar has no
+   callers and the deleted sets are absent.
+
+⚠ **The lesson for the pattern**: when a count is rotting, ask whether
+the predicate exists *before* promising to derive it. If it does not,
+the ratchet alone is still most of the value — it converts an
+unbounded list into a reviewed one. What made the old lists dangerous
+was not that they were lists; it was that nothing bounded them.
+
+⭐ And it is worth deriving what you can even then: the roles replaced a
+*path-string* mechanism with a *class* one, which makes a rename
+typechecked for free — and that retired the main invariant of an
+older gate (`lint:boundary`'s *"every exempt path resolves to a real
+seed row"*), whose own header had already identified the string
+coupling as the defect.

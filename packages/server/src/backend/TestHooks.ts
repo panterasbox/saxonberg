@@ -325,6 +325,11 @@ export class TestHooks {
     const avatar = await StuffApi.clone<Avatar>(
       PrimaryAvatar.ROW_TEMPLATE_PATH,
       { user, playerId },
+      // identity-keyed-by: own-record — the avatar family identity, the
+      // same formula `PlayerLogic.materializeAvatar` uses, so a wire
+      // test's body is a person like any other. ⚠ This file is in
+      // `src/backend/`, outside `lint:identity-mints`'s scan root (the
+      // mudlib + pack `src/`); the marker is here for the reader.
       { dataOverlay: data, asIdentityPath: path }
     );
     await TestHooks.#dress(avatar);

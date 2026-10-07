@@ -454,7 +454,18 @@ The D17 split, shipped in this build and now an invariant the
   every existing lookup (`findByTemplatePath('/platform/agent/Avatar/<pid>')`)
   is byte-identical, and principal readers (grants, group membership,
   chattel stamps, snapshot owners, the domicile stamp) moved to
-  `getIdentityPath()` with their VALUES unchanged.
+  `getIdentityPath()` with their VALUES unchanged — **and a row is
+  enumerated by prefix**, so `findAllByTemplatePath(row)` returns the
+  row's unstamped clones *and* the instances minted under it. Asking the
+  index for an identity when you mean every instance of a row is the
+  mistake the two read names now prevent; see
+  [persistence.md § The three registry reads](./persistence.md).
+- ⭐ A holding room's durable per-instance handle is **row + key**, not a
+  minted identity: `restoreOrSeedImpl` takes `scope = getIdentityPath()`
+  (the row, since nothing was stamped) and keys the room on
+  `<extent>/<leaf>`. Nothing about a holding room is stamped, so nothing
+  about it moved in the addressing build; what it gained is a NAME for
+  the pair — `getDurableHandle()` → `<row>#<extent/leaf>`.
 - `StuffApi.clone`'s `asTemplatePath` option is **gone**, replaced by
   `asIdentityPath`. The lint proves the channel stays retired and that
   every template-path-valued field in every shipped row resolves.

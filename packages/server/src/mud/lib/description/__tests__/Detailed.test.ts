@@ -64,30 +64,46 @@ describe('DetailedMixin', () => {
       expect(MixinApi.hasMixin(DetailedThing, 'DetailedMixin')).toBe(true);
     });
 
-    it('⛔⛔ does NOT declare details persistent — a Map has no BSON shape', () => {
-      // The live drive found this: `details` is a `Map`, it stored as
-      // `{}` and hydrated as a plain OBJECT, and the first
-      // `details.keys()` after a reboot threw. That throw lands inside
-      // MQL resolution, so every verb taking an object target died in
-      // any scope the player had already visited — `get bladder` in the
-      // room you are standing in answering *"Couldn't resolve
-      // 'targets'"*. A fresh database is always clean, which is what
-      // made it so late to surface, and it is the SECOND time a
-      // bare-persistent Map has done this (it broke `find` + `teleport`
-      // once before).
+    it('⛔⛔ does NOT declare details persistent — it is authored content', () => {
+      // This test asserted the opposite until 2026-10-06, and the
+      // assertion was the defect. `details` is a runtime
+      // `Map<DetailId, Detail>` with no `fieldMarshaller`, so capture
+      // stored it as a plain object and restore bracket-assigned that
+      // object straight back — after which `getDetailIds` threw
+      // *details.keys is not a function*. The detail walk sits on the
+      // MQL `reachable` seed, so in a world booted on an existing DB
+      // `find` and `teleport` BOTH died at the resolver, and 52 of 77
+      // live snapshots were carrying the broken shape.
       //
-      // ⭐ Nothing is lost by dropping it: `instruction: true` carries
-      // the authored `details:` block through `applyDetails` on every
-      // hydrate, and nothing in the tree mutates a detail at runtime —
-      // there is not one `setDetail`/`removeDetail` caller outside the
-      // mixin. Details are authored content, not instance state.
+      // ⭐ Nothing outside `Detailed.ts` has ever called `setDetail` —
+      // the only caller is `applyDetails`, the authored-content
+      // applier — so there was no instance state to keep. Dropping the
+      // flag is also what makes the bad snapshots self-heal with no
+      // migration: `restoreState`'s drift guard admits only declared
+      // persistent fields, so a stored `details` is simply ignored and
+      // the row supplies the Map on every clone and every boot.
       const fields = MixinApi.getAllPersistentFields(DetailedThing);
       expect(fields).not.toContain('details');
-      // …and it is still an INSTRUCTION field, which is what makes a
-      // row's `details:` arrive at all.
+      // ⭐ …and it is still an INSTRUCTION field, which is what makes a
+      // row's authored `details:` arrive at all. Dropping `persistent`
+      // had to leave AUTHORING untouched, and this is the line that
+      // says so — the two flags are independent, and only one of them
+      // was the defect.
       expect(MixinApi.getAllInstructionFields(DetailedThing)).toContain(
         'details',
       );
+    });
+
+    it('⚠ the runtime shape is a Map, which is WHY it must not persist', () => {
+      // The one-line statement of the incompatibility. If a runtime
+      // detail mutator ever gains a real caller and this field has to
+      // travel, it needs a `Marshaller` (see
+      // `lib/persistence/Marshaller.ts`, which names variable-key maps
+      // as its case) — never a bare `persistent: true`.
+      obj.setDetail(['handle'], 'A brass handle.');
+      expect(obj.peekDetails() instanceof Map).toBe(true);
+      expect(typeof obj.getDetailIds).toBe('function');
+      expect(obj.getDetailIds()).toContain('handle');
     });
   });
 

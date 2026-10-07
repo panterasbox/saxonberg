@@ -23,4 +23,10 @@ data:
   ratePerDay: 0.015
   productAtFraction: 0.25
   productMaterial: /trade/distilling/idea/material/grain-whisky
-  turnDays: 0
+  # ⚠ No `turnDays`, and deliberately: whisky in a sealed cask does not
+  # turn. It authored `turnDays: 0` to say so, and that KILLED the whole
+  # profile — `setTurnDays` rejects a non-positive figure, so the row
+  # threw at standup and `MaturationProfileCatalogue` stood up 22 of 23.
+  # Omitting it is exactly equivalent to the intent: turning is gated on
+  # `turnedMaterial` (`Maturing.ts`), this row authors none, so the
+  # figure is never read whatever it is.

@@ -219,6 +219,40 @@ export class StuffApi {
    * `templatePath` field stamped by `clone()` (`undefined` when the
    * object was constructed via `create*` and never gets a template).
    */
+  /**
+   * The identity namespace(s) a class declares for its minted
+   * identities, walked up the prototype chain so a FAMILY declares once
+   * and every member inherits the claim.
+   *
+   * ⭐ The walk is what makes the declaration a family's rather than a
+   * class's: `lib/character/Avatar` (the abstract root) declares
+   * `/platform/agent/Avatar/`, and `PrimaryAvatar`, the anonymous guest
+   * and the sandbox wire body are all held to it without saying
+   * anything. A member that owns a different prefix — `ShadeAvatar` —
+   * declares its own and shadows the ancestor.
+   *
+   * Empty when nothing in the chain declares one, which means *not
+   * asserted*: see `#cloneInner` step 4c.
+   */
+  static #identityNamespaceOf(ctor: unknown): readonly string[] {
+    for (
+      let cls = ctor as { identityNamespace?: unknown } | null;
+      cls;
+      cls = Object.getPrototypeOf(cls) as { identityNamespace?: unknown } | null
+    ) {
+      // `Object.hasOwn`, not a plain read: an inherited value is found
+      // by the walk itself, and reading through would make every
+      // subclass look like a declarer and stop a member shadowing.
+      if (!Object.hasOwn(cls as object, 'identityNamespace')) continue;
+      const declared = cls.identityNamespace;
+      if (typeof declared === 'string') return [declared];
+      if (Array.isArray(declared)) {
+        return declared.filter((p): p is string => typeof p === 'string');
+      }
+    }
+    return [];
+  }
+
   static #updateIndexes(obj: Stuff, action: 'add' | 'remove'): void {
     const id = obj.stuffId;
     // The index keys on IDENTITY (the raw stamped slot) falling back to
@@ -552,6 +586,33 @@ export class StuffApi {
           `SingletonMixin and an instance already exists. Use ` +
           `StuffApi.singleton('${templatePath}') instead.`
       );
+    }
+
+    // 4c. ⭐⭐ CONTINUITY declares its namespace; the mint is asserted
+    //     against it. A continuity identity is one that several
+    //     lineages wear — the Avatar family's
+    //     `/platform/agent/Avatar/<playerId>` is worn by
+    //     `PrimaryAvatar`, by the shade's own family and by the sandbox
+    //     wire body — so nothing about the identity's SHAPE can be
+    //     derived from the row, and a typo in the prefix files a person
+    //     somewhere no ledger will ever look. A family that declares
+    //     where its identities live gets that checked here, beside the
+    //     singleton guard that reads the same string.
+    //
+    //     A class that declares nothing is NOT asserted: individuation
+    //     derives its identity from its own row and the census
+    //     (`lint:identity-mints`) is its gate. Deliberately not a
+    //     default on `Stuff` — a default namespace would admit every
+    //     mint everywhere and assert nothing.
+    if (opts?.asIdentityPath) {
+      const declared = this.#identityNamespaceOf(ClassConstructor);
+      if (declared.length > 0 && !declared.some((p) => identityPath.startsWith(p))) {
+        throw new Error(
+          `StuffApi.clone('${templatePath}'): identity ` +
+            `'${identityPath}' is outside ${className}'s declared ` +
+            `namespace (${declared.join(', ')})`
+        );
+      }
     }
 
     // 5. Resolve the template's zone from its path. Stamped before hydrate /
@@ -1429,8 +1490,12 @@ export class StuffApi {
    * none, throws when multiple share the path. Throwing on multi is
    * deliberate — if a caller treats the result as a singleton and
    * silently picks an arbitrary one, bugs become non-deterministic.
-   * Use {@link findAllByTemplatePath} when multiple instances are
-   * legitimate.
+   * ⭐ Which question each read answers: **this one** — *the one
+   * instance filed at this path, or throw* (the string is usually a
+   * minted identity or a singleton row); {@link findByIdentityPath} —
+   * *everything filed at exactly this path*;
+   * {@link findAllByTemplatePath} — *every instance cloned from this
+   * ROW, minted identities included*.
    *
    * O(1) via the `byTemplatePath` index maintained in
    * {@link #updateIndexes}.
@@ -1449,13 +1514,70 @@ export class StuffApi {
   }
 
   /**
-   * Find every runtime instance cloned from `templatePath`. Always
-   * returns an array (possibly empty). Companion to
-   * {@link findByTemplatePath} for the multi-instance case.
+   * Find every runtime instance **cloned from the row `path`** —
+   * including instances that carry a minted identity, which are filed
+   * in the index under that identity rather than under their lineage
+   * (see {@link #updateIndexes}).
+   *
+   * The read is `exact(path)` ∪ `glob(path + '/**')` narrowed to
+   * objects whose `getTemplatePath()` is `path`. ⚠ **The filter is
+   * scoped to the glob half only** — an identity passed in must still
+   * return its exact hit, because a minted identity's
+   * `getTemplatePath()` is its ROW and never the identity it was
+   * stamped with. (An earlier spelling applied the filter to the whole
+   * union; the corpse's ordinal probe is the case that caught it, and
+   * that probe now asks {@link findByIdentityPath} anyway.)
+   *
+   * So: unstamped clones, keyed-but-unstamped warren rooms and
+   * row-prefixed stamped clones (a stall counter, a corpse, a
+   * tombstone) all come back.
+   *
+   * ⭐⭐ **A CONTINUITY family is out of this read's reach, both ways,
+   * and deliberately.** Individuation nests its identities under the
+   * row, so a prefix read finds them. Continuity goes the other way:
+   * several lineages (`PrimaryAvatar`, `ShadeAvatar`, the wire body)
+   * wear ONE identity under a family namespace
+   * (`/platform/agent/Avatar/<playerId>`) that is not any of their
+   * rows — neither string prefixes the other, so asking for the family
+   * returns nothing (nothing is cloned from it) and asking for
+   * `PrimaryAvatar` returns no avatar either. The register is the
+   * answer for a family: `PlayerApi.registerAvatar` /
+   * `findAvatarByPlayerId`. Do not widen this read to chase them.
+   *
+   * Use {@link findByIdentityPath} when you mean *the bucket filed at
+   * exactly this path*, and {@link findByTemplatePath} when you mean
+   * *the one instance, or throw*.
    */
   public static findAllByTemplatePath<T extends Stuff = Stuff>(
     path: string
   ): T[] {
+    const exact = this.#indexes.byTemplatePath.exact(path) as T[];
+    const nested = (this.#indexes.byTemplatePath.glob(`${path}/**`) as T[]).filter(
+      (o) => (o as Stuff).getTemplatePath() === path
+    );
+    if (nested.length === 0) return exact;
+    const seen = new Set<T>(exact);
+    for (const o of nested) seen.add(o);
+    return [...seen];
+  }
+
+  /**
+   * Find every runtime instance filed in the index at **exactly**
+   * `path` — the honest name for the bare `exact()` bucket.
+   *
+   * One hit for a minted identity (`/platform/agent/Avatar/<playerId>`,
+   * a stall counter, a corpse); N for the unstamped clones of a row,
+   * which fall back to their template path as their index key.
+   *
+   * ⭐ The distinction from {@link findAllByTemplatePath} is the whole
+   * point: *the row filter is correct for a row and wrong for an
+   * identity*, which is why these are two names rather than one
+   * tolerant function. Ask this one when the string you hold is an
+   * identity — a stored `scope`, a recorded owner key, a mint-time
+   * collision probe — or when widening to a row's minted instances
+   * would be a hazard (the go-live rehydration sites).
+   */
+  public static findByIdentityPath<T extends Stuff = Stuff>(path: string): T[] {
     return this.#indexes.byTemplatePath.exact(path) as T[];
   }
 

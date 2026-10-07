@@ -65,6 +65,25 @@ export interface TravelRideOutcome {
 }
 
 /**
+ * ⭐ A stop this network ADVERTISES — the machine-readable half of a
+ * departures board.
+ *
+ * `renderDepartures` is prose for a player; this is the same facts for
+ * anything that needs to reason about them. The first consumer is a
+ * player's map: reading a public timetable is knowledge of places you
+ * have not been, and it lands on the map marked `publication` and
+ * distinguishable from somewhere you walked.
+ */
+export interface PublishedStop {
+  /** The stop's own node — the thing that would take you there. */
+  readonly nodePath: string;
+  /** The room you would arrive in. The place a map records. */
+  readonly arrivalRoomPath: string;
+  /** What the board calls it. */
+  readonly label: string;
+}
+
+/**
  * A stop on some travel network. The two things a front door needs: the
  * timetable, and the ride.
  */
@@ -76,6 +95,13 @@ export interface TravelNode {
   renderDepartures(viewer: Stuff & Sensor): Promise<string>;
   /** Take `traveller` to the stop they named. */
   ride(traveller: Stuff, spec: TravelRideSpec): Promise<TravelRideOutcome>;
+  /**
+   * ⭐ What this network advertises, as data. **Optional**, and a node
+   * without it advertises nothing — which is an honest answer rather
+   * than a gap: a network that publishes no timetable has not told
+   * anybody anything, and a map should not claim it did.
+   */
+  publishedStops?(): Promise<PublishedStop[]>;
 }
 
 /** Thin static holder — the shape's one operation. */

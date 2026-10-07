@@ -1,6 +1,12 @@
 /**
- * SandboxAvatar — the disposable projection vessel a player wears inside a
+ * SandboxAvatar — the disposable **wire body** a player wears inside a
  * circle (docs/subsystems/sandbox.md, Decision C).
+ *
+ * ⚠ The name matters: "vessel" already means `lib/stuff/Vessel.ts` — a
+ * bag, a chest, a cart — so calling this one a *projection vessel* read
+ * as a claim about containment and sent at least one reader looking for
+ * special behaviour from everything in a circle. `sandbox.md` has
+ * always called it the wire body; so does this file now.
  *
  * An Avatar SUBCLASS, deliberately: the crossing must preserve the
  * whole verb surface (author shell, comms, combat, advancement) and the
@@ -42,6 +48,32 @@ export interface SandboxAvatarInitContext extends AvatarInitContext {
 }
 
 export default class SandboxAvatar extends Avatar {
+  /*
+   * ⚠⚠ **There is deliberately NO `getIdentityPath()` override here**,
+   * and this comment exists because its absence looks like a bug.
+   *
+   * The projection is real — a wire body answers with the player's
+   * `/platform/agent/Avatar/<playerId>`, so every identity-keyed reader
+   * attributes in-circle acts to the person — but it is inherited.
+   * `lib/character/Avatar` overrides the method for the WHOLE FAMILY in
+   * one place (*"the identity thread, for the whole family and in one
+   * place"*), deriving from `playerId`, and the shade relies on exactly
+   * the same inheritance. Adding a copy here would be the duplication
+   * that override was written to remove.
+   *
+   * ⚠ What WAS wrong until 2026-10-04 is a different thing: this body
+   * was also CLONED with `asIdentityPath: <the player's identity>`, a
+   * raw stamp that files it in the registry under the player's own
+   * identity. That is the one thing `Stuff.getIdentityPath`'s docblock
+   * forbids (*"a wire body must never index under the identity it
+   * projects"*), and with a circle open the wire body and the parked
+   * field body shared one exact bucket —
+   * `findByTemplatePath('/platform/agent/Avatar/<pid>')` threw
+   * *expected singleton, found 2* for that player mid-visit. The mint
+   * no longer stamps; the inherited method was always what the ledgers
+   * read.
+   */
+
   /** A vessel persists nothing — the guest gate, verbatim. */
   public override shouldPersist(): boolean {
     return false;

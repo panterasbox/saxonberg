@@ -30,6 +30,9 @@
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { CommandContributions } from '../../api/command';
 import type { Sensor } from '../message/Sensor';
+import type { Stuff } from '../stuff/Stuff';
+import type { PublishedStop } from '../travel/TravelNode';
+import type Exit from '../boundary/Exit';
 import type { AnyConstructor } from '../../api/mixin';
 import { Mixins } from '../mixin';
 import { MixinApi } from '../../api/mixin';
@@ -96,7 +99,65 @@ export const SENSE_CHANNELS: readonly SenseChannel[] = [
  * type level so consumers narrowing via `MixinApi.isPerceiver`
  * also reach the Sensor surface.
  */
-export interface Perceiver extends Sensor {}
+export interface Perceiver extends Sensor {
+  /**
+   * ⭐⭐ **A place is being described to me — work out what I can
+   * actually make out of it, and remember it.**
+   *
+   * Returns the exits this viewer may know about, because the
+   * gate-filtered list is the same list the verb must render, and
+   * computing it twice is how the two could ever disagree. A place
+   * with no exits (or one that is not `Exitable`) returns `[]` and
+   * still counts: a room with no way out is still somewhere you have
+   * been. `occupants` is what the verb already resolved as visible
+   * there — seeing a being tracks it.
+   *
+   * ⭐ Named `learn*` to sit beside `BeliefStore.learnIdentityOf`,
+   * which is the same job for a person and predates this. **The
+   * recorders are called directly**, narrowed by `MixinApi.isX` — one
+   * shape for *record what you perceived*, not three.
+   *
+   * ⚠⚠ This was `perceivePlace`, paired with two optional `@hook`s
+   * (`onPerceivedPlace`, `onReadTimetable`) that had exactly ONE
+   * implementer between them. Deleting them removed a structural cast
+   * from three controllers and a hook dispatcher from this file. ⭐ *A
+   * hook earns its keep by having more than one implementer* —
+   * `Mobile.onTraversed` does (the cartographer and
+   * `RespirationMixin`), so it stays a hook; these did not.
+   *
+   * ⛔ And what gets recorded is **navigational**, not perceptual: *I
+   * was here* and *this way leads there*. The claim's channels say so
+   * (`walked` · `seen` · `searched` · `published`), and the two fields
+   * that dressed it as sense data — a hardcoded `modality: 'vision'`
+   * nothing read, and a `band` nothing wrote — are gone.
+   *
+   * ⭐⭐⭐ **`how` is the one place perception genuinely decides the
+   * record, and it is why this lives on `Perceiver`.** *Non-obvious is
+   * not permanently absent*: a concealed exit is filtered out of
+   * `obviousExitsFor` until the viewer DISCOVERS it, and discovery is a
+   * sticky per-viewer belief resolved against their `awareness`
+   * competence. So **what you may write down is decided by perception,
+   * even though what you write is navigation.**
+   *
+   * `search` passes `'searched'` — a deliberate going-over, and the
+   * only observation whose ABSENCES are evidence. A glance that turns
+   * up no east exit says nothing about whether one is there; a search
+   * that turns up none says quite a lot. The map renders the two
+   * differently because they mean different things.
+   */
+  learnSurroundings(
+    location: Stuff,
+    occupants?: readonly Stuff[],
+    how?: 'seen' | 'searched',
+  ): readonly Exit[];
+
+  /**
+   * ⭐ **A published timetable is being read to me** — the second way
+   * to come to know a place, and the one that needs no eyes on it. An
+   * empty list is a no-op, so the caller never checks.
+   */
+  learnTimetable(stops: readonly PublishedStop[]): void;
+}
 
 export function PerceiverMixin<TBase extends MixinConstructor>(Base: TBase) {
   class PerceiverMixin extends Base {
@@ -106,6 +167,53 @@ export function PerceiverMixin<TBase extends MixinConstructor>(Base: TBase) {
      * No persistent fields. Perception is verb-shape only v1.
      */
     static fieldMeta: FieldMeta = {};
+
+    /**
+     * See {@link Perceiver.learnSurroundings}.
+     *
+     * The ordering is the whole evidence firewall:
+     * `obviousExitsFor(viewer)` runs the perception gate FIRST, so a
+     * hidden exit is **absent** from what the recorders are handed
+     * rather than present-and-filtered-later. A map cannot learn about
+     * an exit the viewer could not see — structural, not policed — and
+     * that is guaranteed here rather than by three controllers each
+     * remembering the order.
+     */
+    learnSurroundings(
+      location: Stuff,
+      occupants: readonly Stuff[] = [],
+      how: 'seen' | 'searched' = 'seen',
+    ): readonly Exit[] {
+      const viewer = this as unknown as Stuff;
+      const exits = MixinApi.isExitable(location)
+        ? location.obviousExitsFor(viewer)
+        : [];
+      // Who you saw. First sight of an unknown opens a null-`knownAs`
+      // stranger record; later sightings coalesce and advance
+      // `lastSeen` rather than writing a row per sighting, and the
+      // null-name write never overwrites a learned name.
+      if (MixinApi.isBeliefStore(viewer)) {
+        for (const occupant of occupants) {
+          if (MixinApi.isOrganism(occupant)) {
+            viewer.learnIdentityOf(occupant, null);
+          }
+        }
+      }
+      // Where you are and the ways out — if you keep a map at all.
+      if (MixinApi.isCartographer(viewer)) {
+        viewer.recordSurroundings(location, exits, how);
+      }
+      return exits;
+    }
+
+    /** See {@link Perceiver.learnTimetable}. */
+    learnTimetable(stops: readonly PublishedStop[]): void {
+      if (stops.length === 0) return;
+      const viewer = this as unknown as Stuff;
+      if (MixinApi.isCartographer(viewer)) {
+        viewer.recordTimetableRead(stops);
+      }
+    }
 
     /**
      * Verbs of perception. `self` only — the perceiver issues these.

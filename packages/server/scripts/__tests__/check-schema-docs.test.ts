@@ -281,6 +281,7 @@ describe('the real tree', () => {
 
   it('describes every collection in the vocabulary', () => {
     expect(audit()).toEqual([]);
-    expect(Object.values(Collections).length).toBe(48);
+    // 49 since the location-graph build added `location_graph`.
+    expect(Object.values(Collections).length).toBe(49);
   });
 });
