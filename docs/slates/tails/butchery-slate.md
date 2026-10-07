@@ -2,15 +2,17 @@
 
 > **Status: PARTIAL** — the carcass chain and the butchery build both
 > shipped → [butchery.md](../../subsystems/butchery.md)
-> **Left:** ⛔⛔ **the session wedges after a 25-game-day jump at the
-> tannery** — the one thing the sweep found and did not fix (see below) ·
-> poultry cuts (the biped plan names no muscles) · dry-aging on
-> the hook · trimming as its own verb · species-adjusted `partArea` ·
-> horn, glue and gelatin — three sinkless products with named buyers ·
-> soap · the shambles ordinance (the governance limb) ·
-> `Material.toughness` vs `Muscle.work` · ⭐⭐ **the two drives collide in
-> one world** (see below) · ⭐⭐⭐ **AC1 of the carcass chain is UNMET —
-> leather still has no path to a worn garment**
+> **Left:** ⛔ **three drive checkpoints CONJURE their inputs** (see
+> below — the build's own finding 9, never fully applied) · poultry cuts
+> (the biped plan names no muscles) ·
+> dry-aging on the hook · trimming as its own verb · species-adjusted
+> `partArea` · horn, glue and gelatin — three sinkless products with
+> named buyers · soap · the shambles ordinance (the governance limb) ·
+> `Material.toughness` vs `Muscle.work` · ⭐⭐⭐ **AC1 of the carcass chain
+> is UNMET — leather still has no path to a worn garment**
+> ✅ **FIXED in the sweep:** the two drives' collision (they are one file
+> now) and the "25-day wedge" (never a wedge — a compressed-clock
+> thundering herd the drive manufactured; see below).
 > **Size:** a wave
 
 See also — the chain: [ranching](../builds/ranching-slate.md) (the
@@ -55,46 +57,137 @@ is absent, so the gap is stated aloud rather than silent.
 
 ---
 
-## ⛔⛔ The session stops answering after 25 game days at the tannery
+## ⛔ Five red checkpoints in the merged drive — ALL pre-existing, none from the merge
 
-The last two checkpoints of the carcass drive fail, and the symptom is
-not an assertion: **the session stops answering anything.** After
-`advance('25 days')` at the tannery, a bare `look` gets no
-dispatch-response in 30 s, and `tailor` one suite later gets none either.
+**27 passed · 5 failed · 2 skipped (34).** Every failure predates the
+merge and each has a named fix. Two of them are worth more than the rest:
 
-What is known:
+⚠⚠⚠ **AC15 has never killed anything.** The checkpoint drives a death
+through `ConditionApi.die` rather than through `slaughter`, to prove there
+is one death path — the build's central claim — and it does it with:
 
-- It is **not** `analyze sky`. That was the first suspect, and replacing
-  the daylight helper with the room-reading one (which the butchery drive
-  had already worked out) moved the timeout onto `look`.
-- It is **only reachable now.** The dry pit had been blocking the tanning
-  leg, so neither this checkpoint nor the nine build-time runs had ever
-  got here in a working state. ⭐ Fixing one defect is what buys the next.
-- `reconcileTanning` is **O(1)** — no stepwise loop, no far-past walk —
-  so the obvious suspect is innocent. Something else in a 25-game-day
-  jump, at a room that now holds 2000 L of liquor with a hide standing in
-  it, does not come back.
-- The preceding checkpoint spends ~38 s in the advance before the 30 s
-  timeout, so the advance itself completes.
+```
+eval const t = MqlApi.one("here:a ewe").stuff; await ConditionApi.die(t, …)
+```
 
-⚠ Whether this is the tanning pack's, the clock's, or the bulk/thermal
-reconcile's is **not established**, and guessing from a 9-minute
-iteration is how the wrong thing gets fixed. The honest next step is to
-run that one checkpoint with the frame timeout raised
-(`WIRE_FRAME_TIMEOUT`) to find out whether it is slow or wedged — those
-are different bugs — and to try the same 25-day jump at a room with a
-charged pit and NO hide in it, which separates the liquor from the hide.
+**`MqlApi.one` does not exist and never has.** The surface is
+`resolveOne(query, ctx)`. So the eval throws, nothing dies, no body
+appears, and the checkpoint fails on the assertion *after* the one that
+mattered. ⭐ The room listing in the failure message proves the sheep was
+standing right there — *"a sheep"* — so the drive had everything it
+needed and reached for a method name nobody checked. A checkpoint whose
+setup silently throws is the vacuous-assertion hazard with the halves
+swapped: it cannot pass, so nobody mistook it for green, but it has also
+never tested AC15.
 
-⚠⚠ **The branch's drive is therefore 17 of 20, not green**, and this is
-the gate on merging it.
+⚠⚠ **Checkpoint 18 hits the same ambiguity class as the cut probe.**
+`look bread counter` raises a prompt the helper cannot answer, poisons the
+session and burns 181 s. Same root as the deleted probe: the harness
+recovers from a prompt by re-sending, and replies correlate by order.
+→ a less ambiguous target, or the harness learns to answer.
+
+### And three that conjure their inputs
+
+All three are the same line:
+
+```
+'clone /trade/cooking/thing/tallow-crock --here' → declined (access-denied)
+'clone /trade/apiculture/thing/beeswax-cake --here' → declined (access-denied)
+'clone /trade/ranching/thing/bone --here' → declined (access-denied)
+```
+
+⚠⚠ **This is the carcass build's OWN drive finding 9**, in its own words:
+
+> `clone … --here` is `access-denied`, correctly: a player holds no title
+> over a room. The requirements say *without anything being conjured*, so
+> the fix was the better drive.
+
+That fix was applied to the knife, the lantern and the rations — which
+are **bought** at the general store — and never to the candle and bone
+legs, which still conjure. ⭐ And the drive record says its own table was
+*"a union across runs"*, which is the tell: **this drive never had one
+clean pass**, and the greens were assembled from runs where different
+checkpoints happened to work.
+
+⭐⭐ **The fix is the one the requirements already demand, and the chain
+already produces two of the three inputs:**
+
+- **bone** — the butchering at the yard yields it. Carry it, don't clone
+  it. The honest version is strictly better, because it proves the bone
+  came off *this* animal, which is the AC.
+- **suet → tallow** — likewise: the butchering yields suet, `cook
+  render-tallow` makes the crock. That is the chain this build shipped,
+  and driving it would prove the fat leg end to end rather than starting
+  from a conjured crock.
+- **beeswax cake** — genuinely foreign to this chain; it comes off
+  apiculture's `crush-comb`. Either buy it, or let the candle checkpoint
+  prove the two-fats claim with tallow alone and leave the wax half to
+  `apiculture.dirty.wire.test.ts`.
+
+⚠ Worth saying plainly: fixing these would make the drive prove *more*
+than it does today, not less. A conjured input skips exactly the links
+the build exists to have built.
 
 ---
 
-## ⭐⭐ The two drives cannot run in one world
+## ✅ "The session wedges after 25 game days" — DIAGNOSED, and it was not a wedge
 
-`butchery.dirty.wire.test.ts` and `carcass-chain.dirty.wire.test.ts` both
-draft a head out of the **same persisted Delight flock** and work in the
-**same yard** (`/world/terminus/hearts-delight/location/farmstead-yard`).
+Recorded here because the first diagnosis was **wrong**, and the way it
+was wrong is the useful part.
+
+The symptom: after `advance('25 days')` at the tannery, the next command —
+a bare `look` — got no dispatch-response in 30 s, then still none at 90 s.
+It was written up as a possible player-facing bug on the reasoning that
+the tanning arc *is* ~25 days, so a player laying a hide in the pit and
+coming back three weeks later walks this path.
+
+⭐⭐⭐ **The server log settled it: the world was never hung, it was
+SATURATED.**
+
+```
+TestHooks: advanced world-time '25 days' (31697s → 2191968s)
+[Behaved:…] brain 'stocks' threw …
+[Behaved:…] brain 'consigns' threw …
+```
+
+It kept printing the whole time. One jump of 2.16 million seconds makes
+**every behaved agent in the realm deliberate and every roster tick fire
+at once**, and the `look` queues behind the herd. Raising the frame
+timeout did not help because the work is simply longer than the window —
+which is the tell that it is throughput, not a deadlock.
+
+⚠⚠ **So it is a DRIVE artifact, not a game defect, and the distinction is
+the whole finding.** A live world never jumps three weeks in one step: it
+advances continuously and the catch-up is spread over thousands of small
+reads. The drive manufactured a thundering herd that the game never
+produces. Fixed by walking any jump over two days in day-sized steps with
+a beat between — faster in wall-clock *and* a truer model of the clock.
+
+⭐ Two lessons worth keeping:
+
+- **"No dispatch-response" is not a synonym for "hung."** It says only
+  that nothing came back inside the window. Reading the SERVER's log
+  rather than the client's timeout is what told hung from busy apart, and
+  nothing else would have.
+- ⚠ **A compressed clock is a test instrument, and instruments lie.**
+  Three separate findings in this sweep turned out to be the harness
+  rather than the game (this, the cut probe's in-flight collision, and
+  `analyze sky`). *Validate the instrument first* — the project already
+  had that rule written down.
+
+⭐ And it is amplified by real content defects: the duplicate-counter rows
+below make three brains throw on **every** deliberation beat, which is
+wasted work piled on top of the catch-up.
+
+---
+
+## ✅ The two drives could not run in one world — FIXED by merging them
+
+`butchery.dirty.wire.test.ts` and `carcass-chain.dirty.wire.test.ts` each
+drafted a head out of the **same persisted Delight flock** and worked in
+the **same yard** (`/world/terminus/hearts-delight/location/farmstead-yard`).
+There is one file now — `carcass-chain.dirty.wire.test.ts` — and this
+section is kept because the reasoning is why.
 
 The wire suite boots **one world** and runs every file in it, dirty files
 last in **alphabetical** order — so `butchery` runs first, leaves a
@@ -124,13 +217,21 @@ Three honest fixes, in preference order:
 1. **Give the butchery drive its own yard and its own flock.** The
    cheapest, and it is what the second instance claim is for — a second
    farmstead needs no pack code.
-2. ⭐⭐ **Merge the two files — probably the right answer.** They drive one
-   subsystem and one chain over one farmyard, they duplicate the same
-   `say`/`read`/`refusedFor` harness, and the butchery file's comments
-   already cite *"the carcass drive's finding 7"*. They are one document
-   that was split by having been two builds, not by anything in the
-   fiction — and one file has one session sequence, so the collision
-   becomes unrepresentable rather than guarded against.
+2. ⭐⭐ **Merge the two files — THIS IS WHAT WAS DONE.** They drive one
+   subsystem and one chain over one farmyard, they duplicated the same
+   `say`/`read`/`refusedFor` harness under the same names, and the
+   butchery file's comments already cited *"the carcass drive's finding
+   7"*. They were one document split by having been two builds, not by
+   anything in the fiction.
+   ⭐⭐⭐ **And the fix is the one the build itself argues for: ONE BODY,
+   taken apart in stages.** Merging the files alone would not have helped
+   — the ambiguity came from two ewes down in one yard, not from the file
+   boundary. A carcass reduces and persists until spent (AC6), which is
+   precisely what lets a knife-only butchering and everything downstream
+   of it be the *same animal*. The merged drive drafts one ewe and asserts
+   in a single act that the five products came off, that the sentence
+   NAMES the saw it could not reach, that the carcass is still there, and
+   that a cut reads as a texture. Nothing was dropped.
 3. **Make the sequencer aware of what a file consumes** — `DIRTY_REASON`
    is already the declaration; it would have to become structured. ⚠ The
    most work and the least value: two files are the problem, not the
@@ -247,3 +348,54 @@ with real money behind it. → the governance limb.
   check is behind an `isAlive()` guard, so the refusal that protects a
   named animal stops protecting it the moment it is a corpse. Shipped
   seam, unchanged by this build. → [pets](../builds/pets-slate.md).
+
+---
+
+## ⭐ Two defects the sweep's server log handed over — NEITHER is this build's
+
+Both found by reading `packages/wire/.wire/server.log` while chasing a
+drive hang, both verified as **master's and untouched by this branch**,
+and both offered to their owning trade rather than fixed here.
+
+### ⛔⛔ `grain-whisky-aging` fails to stand up at boot — the grain half of a blend does not mature
+
+```
+MaturationProfileCatalogue: '/trade/distilling/idea/maturation/grain-whisky-aging'
+  failed to stand up: RangeError: MaturationProfile.setTurnDays: days must be
+  positive, got 0
+```
+
+`grain-whisky-aging.yaml` authors **`turnDays: 0`** and the setter demands
+a positive number, so the profile **never joins the roster.** Shipped by
+the whiskey-styles build (`806eef1ae`, W4). ⚠ The row's own prose
+describes the maturation it is supposed to drive — *"it comes good sooner,
+~17 game-days to drawable"* — so the feature reads as built and is inert:
+this repo's recurring failure class, caught here only because a boot log
+was being read for another reason.
+
+⭐ **And it is a design question, not a typo.** `turnDays: 0` most likely
+means *this cask never needs turning*, which is a legitimate thing to say
+about a grain cask — in which case the **setter's contract is wrong** (0
+should mean never, or the field should be optional) rather than the row.
+Deciding that belongs to whoever owns the cask model.
+→ `trade-distilling` / the whiskey slate.
+
+### ⚠ The distributor's counter is instanced TWICE, and a brain throws on every beat
+
+```
+[Behaved:Dez Okoro] brain '/trade/shopkeeping/behavior/consigns' threw:
+  StuffApi.findByTemplatePath('…/distributor/thing/counter'): expected
+  singleton, found 2
+```
+
+**Two `props:` lists name the same row** —
+`counting-houses/distributor/idea/business.yaml:37` and
+`counting-houses/cash-and-carry.yaml:55` — so it is placed twice and the
+singleton read fails. Pre-existing (`457998d0f`). It fires for **every
+floor hand running `consigns`**, observed for three NPCs in one boot, so
+the distributor's consignment leg is silently dead for all of them.
+⭐ The lesson is the general one about `props:`: a designation is a claim
+of ownership over placement, and two claims on one row is a duplicate the
+schema cannot see. A `lint:` census of rows named by more than one
+`props:` would close the whole class.
+→ `trade-shopkeeping` / the retail slate.

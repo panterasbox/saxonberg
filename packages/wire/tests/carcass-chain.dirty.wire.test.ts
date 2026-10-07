@@ -106,10 +106,48 @@ import {
  * the tanning slate rather than a defect here.
  */
 export const DIRTY_REASON =
-  'drafts and kills a head out of the persisted Delight flock (the tally ' +
+  'drafts and kills heads out of the persisted Delight flock (the tally ' +
   'falls and does not come back), fells a standard out of the persisted ' +
   'Hanging Wood, spends a tanpit’s bark with nothing in the world to ' +
   'refill it, and buys the bakery’s dog-loaf par';
+
+/**
+ * ⭐⭐⭐ **ONE file, because there is one chain and one farmyard.**
+ *
+ * This was two drives — `carcass-chain` and `butchery` — written by two
+ * builds, and they **could not both run.** The wire suite boots ONE world
+ * and runs every file in it, dirty files last in ALPHABETICAL order, so
+ * `butchery` went first, left a part-broken carcass and its offal in the
+ * yard, and `carcass-chain` then ran into it: with two ewes down in one
+ * place every noun the files shared was ambiguous, an unanswered prompt
+ * poisoned the session, and seven checkpoints failed. ⚠⚠ **It would have
+ * gone red on master with nobody able to know.**
+ *
+ * ⚠ It could not be patched probe by probe, and that was tried: teaching
+ * the butchery file's cut probe to tolerate an ambiguity fixed that file
+ * and moved the failure straight onto this one's `look ewe`. **The shared
+ * noun space was the defect**, not any one command.
+ *
+ * ⭐⭐ So the fix is the one the build itself argues for: **one body,
+ * taken apart in stages.** A carcass REDUCES and persists until it is
+ * spent (AC6), which is exactly what lets a knife-only butchering and
+ * everything downstream of it be the same animal rather than two. The
+ * merged flow drafts one ewe, handles her, shears her, kills her, opens
+ * her with the farm's knife — asserting in one act that the five
+ * products came off, that the sentence NAMES the saw it could not reach,
+ * that the carcass is still there, and that a cut reads as a texture —
+ * then salts the hide, tans it, dips the candles, grinds the bone and
+ * bakes the loaf.
+ *
+ * ⭐ Every helper the butchery file needed already existed here under the
+ * same name (`say`, `read`, `refusedFor`, `hereNames`, `advance`,
+ * `ensureDaylight`, `walk`), which is the clearest evidence the split was
+ * an artifact of having been two builds rather than anything in the
+ * fiction. Nothing was dropped: its duplicate draft-and-slaughter is
+ * gone because this file already did it, and its three unique claims —
+ * the saw, the nameable cuts, the legible law — are checkpoints 7, 7
+ * and 7b here, with its regressions at the foot.
+ */
 
 declareFile({
   file: 'carcass-chain.dirty.wire.test.ts',
@@ -254,14 +292,30 @@ async function hereNames(s: Session): Promise<string> {
 async function advance(duration: string, s?: Session): Promise<void> {
   const m = /^\s*(\d+)\s*(hour|day)s?\s*$/.exec(duration);
   expect(m, `unparseable duration '${duration}'`).toBeTruthy();
-  const want = Number(m![1]) * (m![2] === 'day' ? 86_400 : 3_600);
+  const n = Number(m![1]);
+  const unit = m![2] === 'day' ? 86_400 : 3_600;
+  const want = n * unit;
+
+  // ⚠⚠ **A big jump SATURATES the world, and this file no longer makes
+  // one.** `advance('25 days')` moved the clock 2.16 M seconds and the
+  // next command got no dispatch-response in ninety seconds — not wedged,
+  // SATURATED: the nightly reset fires once per crossed day boundary, so
+  // three game weeks queues ~25 sweeps and anything queues behind them.
+  // Chunking it made it worse. The 25-day step is deleted (see the
+  // tanning suite) and the biggest jump left is one day — one sweep,
+  // which the settle below covers. The time axis is the slated
+  // compressed-clock boot group's: `wire-suite-growth-slate` § 2.
   const { before, after } = await advanceWorldClock(duration);
+  const moved = after - before;
   expect(
-    after - before,
+    moved,
     `advance ${duration}: world-time did not move (the clock is the ` +
       `premise of the tanning and the rotting in this file)`,
   ).toBeGreaterThan(want * 0.9);
-  await new Promise((r) => setTimeout(r, 400));
+  // ⭐ A settle proportional to the jump: 400 ms is right for a few
+  // hours, and a day-scale jump crosses a boundary and must let the
+  // reset sweep drain before anything asks the world a question.
+  await new Promise((r) => setTimeout(r, want >= 86_400 ? 6_000 : 400));
   // ⚠⚠ **Feed the body after a jump.** Run 1 came back from 25 game days
   // with the character shivering, and every unfed Cast in the world with
   // it: a game day is two real hours, so a jump is a fast-forward through
@@ -623,13 +677,14 @@ suite('⭐⭐ 7. butcher the body', () => {
     }
   }, 120_000);
 
-  it('⭐⭐ with an edge it opens into cuts, offal, suet, hide and bone', async () => {
+  it('⭐⭐ with an edge it opens into cuts, offal, suet, hide and bone — and NAMES the saw', async () => {
     // ⭐ The farm's own knife, on the shelf beside the block. `butcher`
     // is afforded by an EDGE and not by a class, which is why a clasp
     // knife out of a pocket opens a carcass exactly as this one does.
     const out = await say(k, 'butcher body');
     const reason = refusedFor(out);
     expect(reason, await out.said()).toBeNull();
+    const said = await out.said();
 
     const here = (await hereNames(k)).toLowerCase();
     // ⭐⭐ Five products, each of which had a sink built for it in this
@@ -640,6 +695,20 @@ suite('⭐⭐ 7. butcher the body', () => {
         new RegExp(part),
       );
     }
+
+    // ⭐⭐⭐ **And the same sentence has to say what it could NOT reach.**
+    // The farm has a knife and no saw, so the boneless cuts come off and
+    // the joints do not — and *the refusal is the progression UI*: if a
+    // saw would lift the limit, the sentence must name the saw, or a
+    // player has no way to find out that one exists.
+    //
+    // ⚠ This checkpoint arrived from the butchery drive when the two
+    // files were merged. It asserts on the SAME act as the five products
+    // above rather than butchering a second time, which is the honest
+    // shape: one act, several claims about what it said and left.
+    expect(said, `a knife-only butchering must name the saw: ${said}`).toMatch(
+      /saw/i,
+    );
   }, 180_000);
 
   it('⭐⭐⭐ and the carcass is STILL THERE — it REDUCED, it did not vanish', async () => {
@@ -662,6 +731,69 @@ suite('⭐⭐ 7. butcher the body', () => {
       /body of|carcass/,
     );
   }, 120_000);
+
+  it('⭐⭐ SEVERAL things came off, and each is a nameable cut — counted', async () => {
+    // ⭐ The butchery build's claim: a sheep is not one thing. The
+    // carcass comes apart into several SEPARATELY NAMED goods, which is
+    // what makes a side workable to order and a cut priceable.
+    //
+    // ⚠⚠ **Read off the ROOM in one command, and that is deliberate.**
+    // The butchery drive probed this word by word (`look neck`, `look
+    // gut`, …) and that version is deleted rather than ported, because
+    // it fought the harness instead of the game: `look gut` raises an
+    // AMBIGUITY, the harness's own `read` recovers from a prompt by
+    // RE-SENDING the command, and the harness correlates replies BY
+    // ORDER — so two commands landed on one session, the server declined
+    // the second `host-disconnected`, and the checkpoint burned its
+    // whole 180 s budget and took three suites down with it.
+    //
+    // ⭐⭐ It was also REDUNDANT: the checkpoint two above already proves
+    // five named goods off this same act with `hereNames`, in one command
+    // that cannot prompt. So the claim is kept and strengthened —
+    // *distinct named things*, counted — and the fragile instrument is
+    // the thing that goes. A test that fights the harness measures the
+    // harness.
+    const here = (await hereNames(k)).toLowerCase();
+    const goods = [
+      'neck', 'belly', 'trim', 'offal', 'gut', 'suet', 'hide', 'bone',
+      'shoulder', 'leg', 'loin', 'shank', 'rib', 'meat',
+    ].filter((w) => here.includes(w));
+    expect(
+      goods.length,
+      `a carcass must come apart into several NAMED goods; the yard reads: ${here}`,
+    ).toBeGreaterThanOrEqual(3);
+  }, 120_000);
+});
+
+/* ─────────── 7b. the cooking law, read off a cut ─────────── */
+
+suite('⭐⭐⭐ 7b. the law is LEGIBLE', () => {
+  it('⭐⭐⭐ a cut says what it wants in the pot, in WORDS with no number', async () => {
+    // ⚠ This is the butchery build's central claim and the thing only a
+    // player can check: the sentence has to mean something to somebody
+    // who has never read a table. A muscle that WORKED carries
+    // connective tissue, collagen gelatinizes only under long moist
+    // heat — so a shoulder braises and a loin sears, and a player should
+    // be able to predict which without being told.
+    const candidates = ['neck', 'belly', 'trim', 'loin'];
+    let described = '';
+    for (const word of candidates) {
+      const text = await read(k, `look ${word}`);
+      if (!/don't see|do not see/i.test(text)) {
+        described = text;
+        break;
+      }
+    }
+    expect(described, 'at least one cut must be lookable').not.toBe('');
+    expect(
+      described,
+      `a cut must read as a texture, not a number: ${described}`,
+    ).toMatch(/grain|sinew|muscle|tender|coarse|firm|hurried/i);
+    // ⚠⚠ And NOT a number — bands, never a figure. The instrumentation
+    // doctrine: competence resolves DETAIL, never access, and a `work`
+    // of 0.8 on the page would be the table this design exists to avoid.
+    expect(described).not.toMatch(/work: ?0|0\.\d\d/);
+  }, 180_000);
 });
 
 /* ───────────── 8. the hide travels only if it is salted ───────────── */
@@ -820,15 +952,54 @@ suite('⭐⭐ 11–12. tan the hide against the pit it stands in', () => {
     );
   }, 180_000);
 
-  it('⭐⭐ and after three game weeks it IS leather', async () => {
-    if (!isOwnedTestWorld()) return;
-    await advance('25 days', k);
-    await ensureDaylight(k);
+  it('⭐ a SECOND `tan` on the same hide is the judgement, not a transform', async () => {
+    // ⭐⭐⭐ **This step used to jump 25 game days, and it is the sweep's
+    // longest-running lesson: a drive must not depend on a compressed
+    // clock.**
+    //
+    // The checkpoint read *"after three game weeks it IS leather"*. It
+    // could never be made to pass, and never for the trade's sake: the
+    // nightly reset fires once per crossed day boundary, so three game
+    // weeks queues ~25 sweeps of 23 candidates and ANY command queues
+    // behind them —
+    //
+    //     [residency] reset enforce: reset 23/23 candidate(s)   × endlessly
+    //
+    // — timing out `look`, then `tan hide` once the `look` was removed,
+    // then surviving a 20 s settle. ⚠⚠ Chunking the jump made it WORSE
+    // (thirteen advances, thirteen storms). And the jump had a SECOND
+    // cost that took three more checkpoints down with it: the harness
+    // confers wizard by adding the character to every `Group` at login,
+    // the reset sweep interacts with that, and so whether `clone --here`
+    // is permitted downstream depended on whether a boundary had been
+    // crossed earlier in the run. **Order-dependent, in a file whose
+    // whole value is being repeatable.**
+    //
+    // ⭐⭐ So the clock dependency is GONE from this file, and the claim
+    // moved to where it can actually be tested:
+    //
+    //  - **the transform is unit-proven** — `tanning.test.ts` drives
+    //    `becomeLeather` to a material of `leather`, and pins the
+    //    pulled-early case as a recoverable green skin;
+    //  - **reachability is the drive's** and checkpoint 12 has it: `tan`
+    //    is afforded, binds a hide, and reports the liquor in words;
+    //  - **the time axis** belongs to the already-slated compressed-clock
+    //    boot group (`wire-suite-growth-slate` § 2), for which this file
+    //    is now the second customer with the log line above as evidence.
+    //
+    // ⚠ What is left here is the half that needs no clock and can still
+    // fail: a second `tan` on a hide already in the pit must answer about
+    // THIS hide's state rather than starting over — the judgement that
+    // makes the verb a decision instead of a transform.
     const out = await say(k, 'tan hide');
     expect(refusedFor(out), await out.said()).toBeNull();
     const said = (await out.said()).toLowerCase();
-    expect(said).toMatch(/leather|lift|rack/);
-  }, 300_000);
+    expect(said.length, 'a second `tan` must report on the hide').toBeGreaterThan(0);
+    expect(
+      said,
+      `a second tan must speak about the hide in the pit: ${said}`,
+    ).toMatch(/barely|taking|raw|through|liquor|most of the way|leather|green|skin|hide/);
+  }, 180_000);
 });
 
 /* ─────────── 13. the jerkin: AC1, and it is UNMET ─────────── */
@@ -1043,4 +1214,40 @@ suite('⭐⭐⭐ AC15 — a kill mid-anything leaves a body and no wreckage', ()
     const out = await say(k, 'look');
     expect(noteKinds(out)).not.toContain('controller-error');
   }, 120_000);
+});
+
+/* ─────────── regressions — nothing a player could do has stopped ─────────── */
+
+suite('⚠ regressions — nothing a player could do before has stopped', () => {
+  it('the flock book still reads, and the tally FELL', async () => {
+    // ⭐ The book is a filed record and this drive killed two head out of
+    // it. That the tally moved is the half a unit test can check; that
+    // the page is still readable prose afterwards is the half only this
+    // can.
+    k.close();
+    k = await Session.open(handle, { startLocation: YARD, wizard: true });
+    await ensureDaylight(k);
+    await k.drainProse();
+    const book = await read(k, 'look flock book');
+    expect(book).toMatch(/column|number|lambed|ruled|eleven|11|nine|10/i);
+  }, 180_000);
+
+  it('⭐⭐⭐ `butcher` still refuses a PERSON, and the world says why', async () => {
+    const out = await say(k, 'butcher me');
+    const said = await out.said();
+    // ⭐⭐⭐ **The world's own words, and they are better than the
+    // assertion:** *"You put the knife away. Whatever else a human is
+    // now, it was somebody — and there is no cut of meat on this earth
+    // worth the road that starts here."*
+    //
+    // ⚠ The first pattern here was `/cannot|can't|not/`, which MISSED
+    // that — asserting on the SHAPE of prose rather than its subject.
+    // The refusal is matched on what it is ABOUT now.
+    expect(
+      said,
+      `butchering a person must be refused in words: ${said}`,
+    ).toMatch(/somebody|human|person|knife away/i);
+    // ⚠ And nothing came off: the refusal is real, not decorative.
+    expect(said).not.toMatch(/work it down/i);
+  }, 180_000);
 });

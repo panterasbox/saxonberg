@@ -1113,7 +1113,17 @@ knowledge; prove the tree once.
 
 **Files.**
 - `packages/wire/tests/butchery.dirty.wire.test.ts` (dirty: it drafts and
-  kills out of two persisted herdbooks and buys the store's saw). Sixteen
+  kills out of two persisted herdbooks and buys the store's saw).
+  ⛔ **RETIRED at the pre-merge sweep — it was MERGED into
+  `carcass-chain.dirty.wire.test.ts`.** The two files could not both run:
+  the wire suite boots one world for every file, dirty last in
+  alphabetical order, so this one went first and the carcass drive ran
+  into its leavings — two ewes down in one yard, every shared noun
+  ambiguous, seven checkpoints red on a branch with nothing able to say
+  so. ⭐ The fix is the one this build argues for: ONE BODY, taken apart
+  in stages (AC6). Its three unique claims — the saw, the nameable cuts,
+  the legible law — survive as checkpoints 7 and 7b there, with its
+  regressions at the foot. Sixteen
   checkpoints mapping the drive 1:1, each **able to fail** (a body must
   exist before `look body` is asserted; a refusal must name `saw`). The
   cow is drafted at the campus farm
@@ -1568,7 +1578,10 @@ suite).
 ## Drive record
 
 `packages/wire/tests/butchery.dirty.wire.test.ts`, five runs against
-four worlds:
+four worlds. ⚠ **This record is historical**: the file was merged into
+`carcass-chain.dirty.wire.test.ts` at the sweep, so the invocation below
+no longer resolves — run the carcass drive instead. The 8/8 it reports
+was true of this file ALONE, which turned out to be the whole problem.
 
 ```
 pnpm --filter @saxonberg/server reset:db

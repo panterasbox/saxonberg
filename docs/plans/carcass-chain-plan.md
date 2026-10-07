@@ -2095,13 +2095,32 @@ fixed, one open.
    ported, with its reasoning: *what the file needs is to be able to SEE,
    not to know the hour.*
 
-⛔⛔ **Open, and the gate on merging:** after `advance('25 days')` at the
-tannery the session stops answering anything — a bare `look` gets no
-dispatch-response in 30 s — which times out the last two checkpoints.
-Only reachable now that the pit works. `reconcileTanning` is O(1) and
-innocent; what does not come back is not established. Diagnosis and the
-two experiments that would separate slow-from-wedged are in
-[butchery-slate](../slates/tails/butchery-slate.md).
+5. ✅ **"The session wedges after 25 game days" — DIAGNOSED, and it was
+   NOT a wedge.** Written up first as a possible player-facing bug, since
+   the tanning arc *is* ~25 days. The server log settled it: it kept
+   printing throughout, so the world was **saturated, not hung** — one
+   jump of 2.16 M seconds makes every behaved agent deliberate and every
+   roster tick fire at once, and the `look` queues behind the herd.
+   Raising the frame timeout did not help, which is the tell that it is
+   throughput and not a deadlock. ⚠⚠ A **drive artifact**: a live world
+   advances continuously and spreads the catch-up; the drive manufactured
+   a herd the game never produces. Fixed by walking any jump over two
+   days in day-sized steps.
+6. ⚠ **The ported cut probe collided with the harness, not the game.**
+   `look gut` raises an ambiguity; the harness's `read` recovers from a
+   prompt by RE-SENDING, and replies correlate BY ORDER — so two commands
+   landed on one session, the server declined the second
+   `host-disconnected`, and the checkpoint burned its 180 s budget and
+   took three suites with it. ⭐ It was also **redundant**: `hereNames`
+   two checkpoints above already proves the named goods in one command
+   that cannot prompt. The fragile instrument went; the claim stayed and
+   got stronger (distinct named things, counted).
+
+⭐⭐⭐ **Three of this sweep's findings were the INSTRUMENT, not the game** —
+the compressed clock, the probe's in-flight collision, and `analyze sky`.
+*Validate the instrument first* was already written down; the cost of not
+doing it here was two wasted runs and one wrong write-up that said a
+shipped trade might be broken when it was not.
 
 ⭐⭐ **And the two drive files cannot run in one world.** Both draft from
 the same persisted flock into the same yard, and the wire suite boots ONE
@@ -2130,3 +2149,35 @@ looked like a result and was a truncation. Both passed alone (47/47,
 not a flake* — the way to tell the difference was to re-run the two packs
 by themselves and then the whole suite with nothing competing, not to
 label it and move on.
+
+### The merged drive — the sweep's final run
+
+**27 passed · 5 failed · 2 skipped (34 checkpoints), exit 1.**
+
+⚠ The "17 of 20" above was never a reliable figure and is superseded: the
+two files are one now, and the merged file has 34 checkpoints.
+
+What the merge bought, verified: the collision is gone (one body, taken
+apart in stages); the butchery drive's three unique claims survive — the
+saw asserted on the **same act** as the five products, the named goods
+counted off `hereNames`, and the legible-law read; the compressed-clock
+dependency is deleted from the file entirely.
+
+⛔ **The five reds all predate the merge**, each with a named fix on
+[butchery-slate](../slates/tails/butchery-slate.md):
+
+| # | checkpoint | why |
+|---|---|---|
+| 14–15 | the tallow candle | `clone --here` → `access-denied` — the build's OWN finding 9, applied to the knife and rations and never to this leg |
+| 16 | the wax candle | same |
+| 17 | the bone | same; ⭐ and the butchering already yields bone, so carrying it would prove MORE |
+| 18 | the dog loaf | `look bread counter` raises an unanswerable ambiguity → poisoned session → 181 s |
+| AC15 | a kill by any driver | ⚠⚠⚠ **`MqlApi.one` does not exist** (the surface is `resolveOne`), so the eval throws and nothing ever dies — this checkpoint has never tested AC15 |
+
+⭐⭐ **The honest summary of this sweep's drive work:** the drive was red
+when the sweep started and is less red now, and **every single finding
+turned out to be the instrument rather than the game** — the compressed
+clock, the cut probe, `analyze sky`, the conjured inputs, the ambiguity
+prompts, and a method name that was never real. The game defects the
+sweep found came from somewhere else entirely: a dry tanpit, and two of
+master's rows.
