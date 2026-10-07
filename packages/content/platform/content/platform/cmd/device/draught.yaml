@@ -1,0 +1,51 @@
+# draught — ⭐⭐ the air control, which every fire has.
+#
+# A damper, a wick, a tuyère, the ash you rake over a hearth: the thing
+# that decides how much air a fire draws, and therefore — through ONE
+# number — how hot it runs, how completely it burns, how much light it
+# sheds and what it puts into the room. Open the vents and a fire gets
+# hotter, cleaner and *dimmer*, because luminosity is incandescent soot.
+#
+# ⭐ `char <n>` in the fuel trade is this same number read by the
+# collier's charring band. The trade kept its word and its band; the
+# dial turned out to be the kernel's.
+verbs: [draught]
+controller: /platform/idea/cmd/device/DraughtController
+description: "Set how much air a fire draws"
+help: |
+  Set a fire's air — `draught wide`, `draught low`, `draught 0.4`, or
+  bare `draught` to be told where it stands. Name the fire with a
+  preposition when there is more than one: `draught at forge wide`.
+
+  The settings are `wide` (or `open`), `half`, `low`, and `banked`, or
+  any number from 0 to 1.
+
+  Wide open, a fire runs as hot and as clean as its fuel allows — and
+  shrinks to a pale flame that sheds surprisingly little light. Shut
+  down, it cools, smokes, glares yellow and starts filling the room with
+  what it is not finishing.
+
+  See also `cover`, which banks a fire in one word.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresEmbodied
+args:
+  # ⚠⚠ NOT `greedy: true`, and the shape is `char`'s for the same reason:
+  # a greedy arg may only be followed by PREPOSITIONAL args, because
+  # otherwise it swallows the boundary token. A greedy `fire` in front of
+  # a bare `setting` makes the whole view fail to load — ⭐ which is the
+  # arg-gate link of the reachability chain failing closed and silent, and
+  # it is exactly how this was caught: a controller test dispatched the
+  # verb, the view would not parse, and the command answered nothing.
+  - name: fire
+    type: object
+    required: false
+    prepositions: [on, at, in]
+    scope: "reachable"
+    default: "reachable:[mixin.BurnerMixin]"
+    requires: BurnerMixin
+    validators:
+      - /lib/command/validators/canReach
+  - name: setting
+    type: string
+    required: false

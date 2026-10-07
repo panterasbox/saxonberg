@@ -211,16 +211,19 @@ describe('⭐ the kiln can hold the band the kilning asks for', () => {
     expect(burn).toBeLessThan(400);
   });
 
-  it('the kiln authors the fuel reserve it needs to light at all', () => {
+  it('⭐ the kiln ships COLD and EMPTY, and `stoke` is how it gets fuel', () => {
     const kilnRow = row(MALTING, 'content/trade/malting/thing/malt-kiln.yaml');
-    const reserves = kilnRow.reserves as Record<
-      string,
-      { currentValue: number }
-    >;
-    // ⚠ The still shipped without one for the life of its pack and could
-    // not be lit; nothing about that failure was visible. Assert it here
-    // rather than discover it in a drive.
-    expect(reserves?.fuel?.currentValue).toBeGreaterThan(0);
+    // ⚠ This used to assert a `%` `'fuel'` Reserve, because a burner that
+    // did not author one could not be lit AT ALL and the still shipped
+    // that way for the life of its pack with nothing visible about the
+    // failure. The fire build made fuel a BED somebody puts matter in, so
+    // the row authors a CAPACITY and a POWER and no fuel — and the
+    // refusal a player meets is `no-fuel`, which names the act that lifts
+    // it. ⭐ A row that ships pre-fuelled is now the odd one out (the
+    // campfire, the practicum brazier), not the norm.
+    expect(kilnRow.reserves).toBeUndefined();
+    expect(kilnRow.fuelCapacityKg).toBeGreaterThan(0);
+    expect(kilnRow.maxBurnPowerW).toBeGreaterThan(0);
     expect(kilnRow.lit).toBe(false);
   });
 });

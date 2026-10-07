@@ -2,9 +2,15 @@
  * Firebox — a **built-in fire**: a chamber that holds one, burns fuel to
  * keep it and throws light while it does.
  *
- * Composition: `BurnerMixin(LightSourceMixin(ReservedMixin(ThermalMixin(Thing))))`.
+ * Composition: `BurnerMixin(LightSourceMixin(ThermalMixin(Thing)))`.
  *
- * ⭐⭐ **Four mixins in one order, written six times.** A forge, an oven,
+ * ⚠ **`ReservedMixin` left the chain in the fire build.** The `'fuel'`
+ * Reserve was a percentage of nothing — it could not say what the fuel
+ * WAS, so a fire could not be told what it was burning and could not be
+ * given more, and no fire in the game could run twice. Fuel is a BED now:
+ * kilograms, by material, on `BurnerMixin`, filled by `stoke`.
+ *
+ * ⭐⭐ **Three mixins in one order, written six times.** A forge, an oven,
  * a hearth, a campfire, a smelting furnace and a charcoal clamp each
  * declared this exact chain and then added their own two or three: the
  * oven encloses (`Container` + `Placing`), the hearth and the campfire
@@ -15,8 +21,8 @@
  * ⚠ **The order is load-bearing and the tests know it.** `Burner`
  * outermost, because igniting and dousing must see the composed answers
  * of everything under them through `super`; `LightSource` next, so a
- * doused lamp goes dark; `Reserved` for the fuel; `Thermal` innermost,
- * because the fuel's heat is what the thermal model integrates. A lit
+ * doused lamp goes dark; `Thermal` innermost, because the fuel's heat is
+ * what the thermal model integrates. A lit
  * forge does not warm the room and a lit hearth does — that difference
  * is `SpaceHeating` composed OUTSIDE this chain, not a dial inside it.
  *
@@ -37,15 +43,12 @@
  */
 
 import Thing from '../stuff/Thing';
-import { ReservedMixin } from '../reserve';
 import { LightSourceMixin } from '../perception/LightSource';
 import { ThermalMixin } from '../thermal/Thermal';
 import { BurnerMixin } from './Burner';
 import type { FieldMeta } from '../mixin';
 
-const FireboxBase = BurnerMixin(
-  LightSourceMixin(ReservedMixin(ThermalMixin(Thing))),
-);
+const FireboxBase = BurnerMixin(LightSourceMixin(ThermalMixin(Thing)));
 
 export default class Firebox extends FireboxBase {
   static fieldMeta: FieldMeta = {};

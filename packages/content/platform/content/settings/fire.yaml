@@ -77,3 +77,58 @@ settings:
 
   - key: fire.exhaust.carbonDioxideMaterial
     value: "/stuff/idea/material/gas/carbon-dioxide"
+
+  # ── the burner (the fire build): fuel, draught, power, heat, light ──
+
+  # ⭐ The duration term. 1500 W/kg means a 6 kg oak charge in an 8 kW
+  # hearth burns at the hearth's rate for most of its life and tails off;
+  # a 1 kg stick cannot feed the hearth at all and is gone in minutes.
+  - key: fire.power.perKgW
+    value: "1500"
+
+  # Flame temperature from the fuel's heat of combustion. At 300 + 65×MJ/kg:
+  # oak (16) → 1340 K, peat (15) → 1275, coal (28) → 2120, charcoal (30) →
+  # 2250. ⭐ The smelting furnace's 1590 K ceiling is reachable with
+  # charcoal and NOT with wood, so its own sentence "this fuel does not
+  # burn hot enough" is arithmetic now.
+  - key: fire.flame.baseK
+    value: "300"
+
+  - key: fire.flame.kPerMJkg
+    value: "65"
+
+  # The 1000/750 continuity: a fully starved fire holds three quarters of
+  # the temperature it could reach.
+  - key: fire.incompleteTemperatureFactor
+    value: "0.75"
+
+  # ⭐⭐ Luminosity is incandescent soot. A clean gas flame is dim (0.15 of
+  # its vessel's authored ceiling) — that is the mantle problem, arriving
+  # by itself. A solid fuel's flame carries particles and stays luminous
+  # (0.6) even running well, which is why opening a hearth's vents makes it
+  # noticeably dimmer without putting the room in the dark.
+  - key: fire.light.cleanFloor
+    value: "0.15"
+
+  - key: fire.light.sootyFloor
+    value: "0.6"
+
+  - key: fire.light.fullSizeFraction
+    value: "0.25"
+
+  # ⭐⭐ Banking. The floor you cannot shut a fire below — 5 % of its
+  # draught, so a banked hearth burns at a twentieth of its rate and keeps
+  # for twenty times as long. "Bank it and come back" needs no mechanism.
+  - key: fire.draught.banked
+    value: "0.05"
+
+  - key: fire.burner.defaultMaxPowerW
+    value: "8000"
+
+  - key: fire.burner.defaultCapacityKg
+    value: "10"
+
+  # A worked flame burns nothing, so its exhaust is priced as if it were
+  # burning wood. Conservation needs a figure; this is the honest one.
+  - key: fire.workedFlame.mjPerKg
+    value: "16"

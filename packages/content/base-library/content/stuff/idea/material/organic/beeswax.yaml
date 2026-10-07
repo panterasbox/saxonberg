@@ -17,6 +17,11 @@ data:
   appearance: pale yellow wax, slightly translucent at the edges
   density: 960
   specificHeat: 3400
+  # ⭐ 42 MJ/kg — a hydrocarbon, and a candle is a Burner whose fuel is
+  # itself. Without this the flame temperature derives to zero and a lit
+  # candle is a cold candle.
+  heatOfCombustion: 42
+  autoignitionTemperature: 520
   thermalConductivity: 0.25
   meltingPoint: 335
   # Mechanical response (MPa / MJ·m⁻³): soft enough to mark with a nail,

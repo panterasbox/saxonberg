@@ -14,6 +14,8 @@
  */
 
 import "../../../../test-bootstrap";
+import { chargeHot } from '../../../lib/fire/__tests__/burner-fuel';
+import type { Burner } from '../../../lib/fire/Burner';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import CartesianZone from '../../../platform/idea/location/CartesianZone';
 import CartesianLocation from '../../../lib/location/CartesianLocation';
@@ -85,6 +87,8 @@ function firewood(where: CartesianLocation, massKg: number, wet = false): Firewo
     const f = new Firewood();
     f.setMass(Quantity.of(massKg, 'kg'));
     f.setMaterial(oak());
+    // ⚠ A `Firewood` is a COMBUSTIBLE, not a Burner: the object IS the
+    // fuel, so its own `%` reserve stays (fire plan D16).
     f.setReserve(
       new Reserve('fuel', Quantity.of(100, '%'), Quantity.of(100, '%'), 'combustion', null),
     );
@@ -145,9 +149,8 @@ describe('The Hearthworks — the fire demonstrators', () => {
       const f = new Forge();
       f.setBurnTemperatureK(1300);
       f.setBellowsMultiplier(1.6);
-      f.setReserve(
-        new Reserve('fuel', Quantity.of(100, '%'), Quantity.of(100, '%'), 'combustion', null),
-      );
+      // ⭐ A charge in the bed, not a percentage of nothing.
+      chargeHot(f as unknown as Stuff & Burner, 40);
       f._setLit(false);
       return f;
     });

@@ -41,7 +41,6 @@
  */
 
 import Good from '@saxonberg/server/mud/lib/stuff/Good';
-import { ReservedMixin } from '@saxonberg/server/mud/lib/reserve';
 import { LightSourceMixin } from '@saxonberg/server/mud/lib/perception/LightSource';
 import { ThermalMixin } from '@saxonberg/server/mud/lib/thermal/Thermal';
 import { BurnerMixin } from '@saxonberg/server/mud/lib/fire/Burner';
@@ -53,7 +52,7 @@ import { FractionatingMixin } from '@saxonberg/server/mud/lib/fractionation/Frac
 const StillBase = FractionatingMixin(
   BurnerMixin(
     LightSourceMixin(
-      ReservedMixin(ThermalMixin(CraftedMixin(BulkableMixin(ToolMixin(Good))))),
+      ThermalMixin(CraftedMixin(BulkableMixin(ToolMixin(Good)))),
     ),
   ),
 );

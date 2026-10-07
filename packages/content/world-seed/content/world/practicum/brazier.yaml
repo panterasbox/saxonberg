@@ -8,17 +8,26 @@ data:
   longDescription: >
     A waist-high bronze brazier on three claw feet, its coals banked to
     burn all day.
-  reserves:
-    fuel:
-      capacityValue: 100
-      currentValue: 100
-      unit: "%"
-      theme: combustion
-      floorEffect: null
   # Alight, and deliberately: "its coals banked to burn all day" is the
   # whole point of the warded cell — a mundane fire suppression never
   # touches. Explicit since the envelope build; the behaviour is
   # unchanged.
   lit: true
-  emittedIntensity: 120
+  # ⭐⭐ "Banked to burn all day" is now the MECHANISM and not just the
+  # prose: `draught: 0.05` is the floor the `cover` verb sets, so this
+  # brazier burns at a twentieth of its rate and twelve kilos of charcoal
+  # genuinely last the day. The row says what the sentence always said.
+  draught: 0.05
+  fuelBed:
+    /stuff/idea/material/organic/charcoal: 12
+  maxBurnPowerW: 3000
+  fuelCapacityKg: 20
+  # ⭐⭐ The darkness sweep (fire build). `emittedIntensity` is a CEILING
+  # now, not the reading: luminosity is incandescent soot, so a solid-fuel
+  # flame at full draught sheds `fire.light.sootyFloor` (0.6) of it and a
+  # starved one climbs back toward it. Every burner's authored figure is
+  # scaled by 1/0.6 so a well-run fire lights its room exactly as brightly
+  # as it did before — and a badly-run one now lights it MORE, which is
+  # the lesson. ⚠ No room lit only by a fire has gone dark (AC20).
+  emittedIntensity: 200
   emittedColorTemperature: 1800

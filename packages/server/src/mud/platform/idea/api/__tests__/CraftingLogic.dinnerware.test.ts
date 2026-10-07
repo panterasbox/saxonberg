@@ -14,6 +14,8 @@
  */
 
 import '../../../../../test-bootstrap';
+import { chargeHot } from '../../../../lib/fire/__tests__/burner-fuel';
+import type { Burner } from '../../../../lib/fire/Burner';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { CraftingApi } from '../../../../api/crafting';
 import type { CraftRequest } from '../../../../api/crafting';
@@ -87,9 +89,8 @@ function hearth(): Oven {
   return makeStuff(() => {
     const o = new Oven();
     o.setBurnTemperatureK(600);
-    o.setReserve(
-      new Reserve('fuel', Quantity.of(100, '%'), Quantity.of(100, '%'), 'combustion', null),
-    );
+    // ⭐ A charge in the bed, not a percentage of nothing.
+    chargeHot(o as unknown as Stuff & Burner, 40);
     o._setLit(true);
     return o;
   });

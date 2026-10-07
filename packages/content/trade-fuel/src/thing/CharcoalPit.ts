@@ -63,20 +63,23 @@ export default class CharcoalPit extends CharcoalPitBase {
   };
 
   static fieldMeta: FieldMeta = {
-    draught: { persistent: true, authorable: true },
-    charMaterialPath: { persistent: true, authorable: true },
     charcoalTemplate: { persistent: true, authorable: true },
     brandsTemplate: { persistent: true, authorable: true },
     ashTemplate: { persistent: true, authorable: true },
     yieldRatio: { persistent: true, authorable: true },
   };
 
-  /**
-   * How far the vents are open, 0 (sealed) … 1 (wide). ⭐ The ONE dial,
-   * and the whole craft. Set with `char <n>` and adjusted while the burn
-   * runs.
-   */
-  protected draught: number = 0.45;
+  // ⭐⭐ `draught` has RISEN to `BurnerMixin` (the fire build). Every fire
+  // has an air control — a damper, a wick, a tuyère, the ash you bank a
+  // hearth down under — so the clamp's one dial turned out to be the
+  // kernel's, and `char <n>` is now one of three ways to set the same
+  // number (`draught <n>` and `cover` are the others). What stays here is
+  // the TRADE's reading of it: the charring BAND, which is a fact about
+  // what charcoal is, not about what a fire is.
+  //
+  // ⚠ `charMaterialPath` went with it, for a different reason: this class
+  // declared it in `fieldMeta` and implemented nothing behind it, so a
+  // row authoring it was authoring into a hole.
 
   /** The rows a burn yields, supplied by the LOCALITY that owns the yard. */
   protected charcoalTemplate: string = '';
@@ -90,11 +93,6 @@ export default class CharcoalPit extends CharcoalPitBase {
    * coppice rather than next to the smelter.
    */
   protected yieldRatio: number = 0.35;
-
-  public getDraught(): number { return this.draught; }
-  public setDraught(value: number): void {
-    this.draught = value < 0 ? 0 : value > 1 ? 1 : value;
-  }
 
   public getCharcoalTemplate(): string { return this.charcoalTemplate; }
   public setCharcoalTemplate(v: string): void { this.charcoalTemplate = v; }

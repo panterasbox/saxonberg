@@ -60,16 +60,19 @@ import {
 
 /**
  * ⚠ **Why this file cannot run twice.** It consumes the still-house's
- * authored charge vessels and burns down the still's one-shot fuel
- * reserve — ⭐ and that reserve is a finding rather than a nuisance:
- * **no refuel verb exists for any burner in the game.** A furnace burns
- * its authored fuel once and there is nothing anywhere that puts more in.
- * A question for the fire/energy slate, not a defect of this build.
+ * authored charge vessels: the wash, the barley, the casks. Nothing in
+ * the world puts those back within a run.
+ *
+ * ⭐ **The fuel clause is GONE.** It used to read *"burns the still's
+ * one-shot fuel reserve down — no refuel verb exists for any burner"*,
+ * and that was a finding rather than a nuisance: a furnace burnt its
+ * authored fuel once and nothing anywhere put more in. The fire build
+ * shipped `stoke`, so the still is refuelled below like any other fire
+ * and the file is dirty for its FEEDSTOCK alone.
  */
 export const DIRTY_REASON =
-  'steeps and kilns the still-house’s barley, ferments and distils a ' +
-  'charge that nothing puts back within a run, and burns the still’s ' +
-  'one-shot fuel reserve down — no refuel verb exists for any burner';
+  'steeps and kilns the still-house’s barley and ferments and distils a ' +
+  'charge that nothing puts back within a run';
 
 declareFile({
   file: 'whiskey.dirty.wire.test.ts',
@@ -323,19 +326,29 @@ suite.skipIf(!isOwnedTestWorld())(
 /* ─────────────────────── 1. the still can be LIT ─────────────────────── */
 
 suite('⛔⛔ 1. the still can be LIT — the defect under everything', () => {
-  it('⭐⭐ `ignite still` does not answer `not-flammable`', async () => {
-    const lit = await say(k, 'ignite still');
-    const reason = refusedFor(lit);
-    // ⚠ The ONE assertion this whole build rests on. `FireLogic` refuses a
-    // burner whose `fuelRemaining()` is zero with exactly this reason, and
-    // both still rows shipped without a fuel reserve — so this refusal was
-    // the state of the world for the life of the pack, and nothing
-    // anywhere said so.
+  it('⭐⭐ an unstoked still refuses by NAME, and the name is the act', async () => {
+    const cold = await say(k, 'ignite still');
+    // ⭐ `no-fuel`, not `not-flammable`. The distinction is the whole
+    // progression UI: a still with an empty firebox is a fire waiting for
+    // somebody to stoke it, and the refusal has to say which or the
+    // player has no way to find out what lifts it.
     expect(
-      reason,
-      'the still still has no fuel: FireLogic refuses the burner and ' +
-        '351 K is unreachable, which is the defect this build exists to fix',
-    ).not.toBe('not-flammable');
+      refusedFor(cold),
+      'an empty firebox must refuse as `no-fuel` — `not-flammable` would ' +
+        'tell the player the still cannot burn at all',
+    ).toBe('no-fuel');
+  }, 120_000);
+
+  it('⭐⭐ `stoke still` lifts it, and then it lights', async () => {
+    // ⚠ The still's firebox is NOT its interior — a still's interior is
+    // the WASH. `stoke` goes to the bed; `fill` goes to the charge.
+    const fed = await say(k, 'stoke log into still');
+    understood(fed, 'stoke log into still');
+    const lit = await say(k, 'ignite still');
+    expect(
+      refusedFor(lit),
+      'a stoked still lights: this is the assertion the whole build rests on',
+    ).not.toBe('no-fuel');
   }, 120_000);
 });
 

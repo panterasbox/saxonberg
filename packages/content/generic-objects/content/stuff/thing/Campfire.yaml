@@ -12,14 +12,6 @@ data:
   longDescription: >
     A ring of stones cradles a crackling campfire, its flames licking at
     split logs. Heat rolls off it in waves.
-  # Fuel reserve — the combustion layer. Decomposed-scalar stored form.
-  reserves:
-    fuel:
-      capacityValue: 100
-      currentValue: 100
-      unit: "%"
-      theme: combustion
-      floorEffect: null
   # Light — authored glow (flicker comes for free from the light layer).
   # ⭐ A campfire row ships ALIGHT, and now says so. `BurnerMixin.lit`
   # defaults true, so this was the shipped behaviour already — the
@@ -28,7 +20,14 @@ data:
   # right here: the prose says "crackling", "flames licking at split
   # logs". A campfire you have to light is a `lit: false` row.
   lit: true
-  emittedIntensity: 120
+  # ⭐⭐ The darkness sweep (fire build). `emittedIntensity` is a CEILING
+  # now, not the reading: luminosity is incandescent soot, so a solid-fuel
+  # flame at full draught sheds `fire.light.sootyFloor` (0.6) of it and a
+  # starved one climbs back toward it. Every burner's authored figure is
+  # scaled by 1/0.6 so a well-run fire lights its room exactly as brightly
+  # as it did before — and a badly-run one now lights it MORE, which is
+  # the lesson. ⚠ No room lit only by a fire has gone dark (AC20).
+  emittedIntensity: 200
   emittedColorTemperature: 1800
   # Warming bonus + recovery for a body in the log-seat (outdoor radiant
   # warmth reaches only slot-occupants; an indoor fire would warm the room).
@@ -44,3 +43,14 @@ data:
     logs:
       keywords: [log, logs, seat, stone, stones]
       description: Split logs and flat stones ring the fire — somewhere to sit.
+  # ⭐ The fire build: fuel is a BED (kilograms, by material) that
+  # `stoke` fills, and the vessel's size is a POWER rather than a
+  # percentage-per-minute of nothing. What it reaches depends on what
+  # is in it.
+  # ⭐ It ships ALIGHT, so it ships with a charge in it — eight kilos of
+  # split oak, which at 8 kW is about four and a half game hours. A
+  # campfire nobody feeds goes out, which it could not do before.
+  maxBurnPowerW: 8000
+  fuelCapacityKg: 20
+  fuelBed:
+    /stuff/idea/material/wood/oak: 8

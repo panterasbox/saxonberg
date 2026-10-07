@@ -30,11 +30,13 @@ export interface IgniteOutcome {
   /** Did it catch? */
   lit: boolean;
   /**
-   * Why it didn't, when `lit` is false: `'not-flammable'` (no fuel / material
-   * autoignition), `'already-burning'`, or `'too-wet'` (a hand-flame can't dry
-   * it). Absent on success.
+   * Why it didn't, when `lit` is false: `'not-flammable'` (the material
+   * will not burn), `'no-fuel'` (⭐ a burner with an empty bed — the
+   * refusal that `stoke` lifts, and the reason a fire can be run twice),
+   * `'already-burning'`, or `'too-wet'` (a hand-flame can't dry it).
+   * Absent on success.
    */
-  reason?: 'not-flammable' | 'already-burning' | 'too-wet';
+  reason?: 'not-flammable' | 'no-fuel' | 'already-burning' | 'too-wet';
 }
 
 const LOGIC_PATH = '/platform/idea/api/fire';

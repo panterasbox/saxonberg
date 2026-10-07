@@ -1,0 +1,55 @@
+# cover — ⭐⭐ bank a fire down for the night.
+#
+# ## The word, and why it is this one
+#
+# The act is historically *banking*: raking a fire down under its own
+# ash so it holds overnight. `bank` is taken — it is the banking verb, a
+# subcommand dispatcher over eight names — and "it got there first" is
+# not one of the ways to resolve a verb collision. Working the ladder on
+# BOTH sides:
+#
+#   - **A synonym, asked of the CHALLENGER** — and this is the answer.
+#     A curfew is *couvre-feu*, "cover the fire": the word for the bell
+#     that told a medieval town to bank its hearths for the night. ⭐
+#     This game's locality fire ordinance is **already called a
+#     curfew**, so `cover` is not a consolation prize — it is the better
+#     word for this world, and it was sitting in the fiction already.
+#   - **Never co-afforded** FAILS, and not for the obvious reason: ⚠ a
+#     LAMP is a `Burner`. Every lit interior has one, so a bank branch
+#     and a burner are routinely in the same room.
+#   - **Syntax fall-through** was genuinely live (`bank`, `bank <one of
+#     eight subcommands>` and `bank <a Burner>` are disjoint shapes, and
+#     `shape-fall-through` already exists as a binder refusal) and is
+#     recorded as the fallback if `cover` is ever regretted. It was
+#     rejected only because it couples two unrelated subsystems' views.
+#
+# `banked` survives as the value on the draught scale, so the vocabulary
+# stays in the prose and the help.
+verbs: [cover]
+controller: /platform/idea/cmd/device/CoverController
+description: "Bank a fire down so it keeps"
+help: |
+  Bank a fire down so it keeps — `cover hearth`, or bare `cover` when
+  there is one fire standing by.
+
+  A covered fire draws almost no air: it burns at a twentieth of its
+  rate, sheds embers instead of light, and is still in when you come
+  back. That is all banking is — the air control at its floor — so
+  `draught banked` does the same thing in two words.
+
+  The name is the curfew bell's: *couvre-feu*, cover the fire.
+
+  Use `draught wide` to bring it back up.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresEmbodied
+args:
+  - name: fire
+    type: object
+    required: false
+    greedy: true
+    scope: "reachable"
+    default: "reachable:[mixin.BurnerMixin]"
+    requires: BurnerMixin
+    validators:
+      - /lib/command/validators/canReach

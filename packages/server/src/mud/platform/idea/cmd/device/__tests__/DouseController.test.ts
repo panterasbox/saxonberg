@@ -17,6 +17,9 @@
  */
 
 import '../../../../../../test-bootstrap';
+import { chargeHot } from '../../../../../lib/fire/__tests__/burner-fuel';
+import type { Burner } from '../../../../../lib/fire/Burner';
+import type { Stuff } from '../../../../../lib/stuff/Stuff';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import DouseController from '../DouseController';
 import Lamp from '../../../../thing/Lamp';
@@ -81,15 +84,8 @@ describe('DouseController — a furnace', () => {
     lamp = makeStuff(() => {
       const l = new Lamp();
       l.setEmittedFlux(220);
-      l.setReserve(
-        new Reserve(
-          'fuel',
-          Quantity.of(100, '%'),
-          Quantity.of(100, '%'),
-          'combustion',
-          null,
-        ),
-      );
+      // ⭐ A charge in the bed, not a percentage of nothing.
+      chargeHot(l as unknown as Stuff & Burner, 40);
       return l;
     }) as Lamp;
     ContainmentApi.move(lamp as never, room as never);

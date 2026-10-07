@@ -20,7 +20,6 @@
 import Good from '@saxonberg/server/mud/lib/stuff/Good';
 import { DetailedMixin } from '@saxonberg/server/mud/lib/description/Detailed';
 import { BurnerMixin } from '@saxonberg/server/mud/lib/fire/Burner';
-import { ReservedMixin } from '@saxonberg/server/mud/lib/reserve';
 import { ThermalMixin } from '@saxonberg/server/mud/lib/thermal/Thermal';
 import { WieldableMixin } from '@saxonberg/server/mud/lib/slot/Wieldable';
 import { SlottableMixin } from '@saxonberg/server/mud/lib/slot/Slottable';
@@ -33,7 +32,7 @@ import { SlottableMixin } from '@saxonberg/server/mud/lib/slot/Slottable';
 // sting test refusing to put one in a hand.
 const SmokerBase = BurnerMixin(
   WieldableMixin(
-    SlottableMixin(ReservedMixin(ThermalMixin(DetailedMixin(Good)))),
+    SlottableMixin(ThermalMixin(DetailedMixin(Good))),
   ),
 );
 

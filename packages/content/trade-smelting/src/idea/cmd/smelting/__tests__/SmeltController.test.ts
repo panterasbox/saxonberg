@@ -14,6 +14,8 @@
  */
 
 import '@saxonberg/server/test-bootstrap';
+import { chargeHot } from '@saxonberg/server/mud/lib/fire/__tests__/burner-fuel';
+import type { Burner } from '@saxonberg/server/mud/lib/fire/Burner';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import SmeltController from '../SmeltController';
 import SmeltingFurnace from '../../../../thing/SmeltingFurnace';
@@ -136,9 +138,8 @@ function makeBurner(bellows: boolean): SmeltingFurnace {
     const f = new SmeltingFurnace();
     f.setBurnTemperatureK(1420);
     f.setBellowsMultiplier(1.12);
-    f.setReserve(
-      new Reserve('fuel', Quantity.of(100, '%'), Quantity.of(100, '%'), 'combustion', null),
-    );
+    // ⭐ A charge in the bed, not a percentage of nothing.
+    chargeHot(f as unknown as Stuff & Burner, 40);
     f.setBellowsActive(bellows);
     return f;
   });

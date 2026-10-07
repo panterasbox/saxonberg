@@ -14,6 +14,9 @@
  */
 
 import "../../../test-bootstrap";
+import { chargeHot } from '../../lib/fire/__tests__/burner-fuel';
+import type { Burner } from '../../lib/fire/Burner';
+import type { Stuff } from '../../lib/stuff/Stuff';
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import Lamp from "../thing/Lamp";
 import { MixinApi } from "../../api/mixin";
@@ -38,21 +41,21 @@ function advance(gameSec: number): void {
   real += (gameSec / SCALE) * 1000;
 }
 
-function lamp(opts: { fuel?: number; flux?: number } = {}): Lamp {
-  return makeStuff(() => {
-    const l = new Lamp();
-    l.setEmittedFlux(opts.flux ?? 220);
-    l.setReserve(
-      new Reserve(
-        "fuel",
-        Quantity.of(100, "%"),
-        Quantity.of(opts.fuel ?? 100, "%"),
-        "combustion",
-        null,
-      ),
-    );
-    return l;
+/**
+ * A lamp with `fuelKg` in its bed. ⭐ Kilograms of a named material now,
+ * not a percentage of nothing — half a kilo is a full lantern, and at
+ * 300 W that is about a game night, which is what the class's prose has
+ * always promised and could not previously deliver.
+ */
+function lamp(opts: { fuelKg?: number; flux?: number } = {}): Lamp {
+  const l = makeStuff(() => {
+    const x = new Lamp();
+    x.setEmittedFlux(opts.flux ?? 220);
+    return x;
   }) as Lamp;
+  const kg = opts.fuelKg ?? 0.5;
+  if (kg > 0) chargeHot(l as unknown as Stuff & Burner, kg);
+  return l;
 }
 
 describe("Lamp — a small furnace with a light on it", () => {
@@ -88,17 +91,24 @@ describe("Lamp — a small furnace with a light on it", () => {
     expect(l.getEmittedFlux().rawValue()).toBe(0);
   });
 
-  it("lights, casts its authored flux, and goes dark when doused", () => {
+  it("⭐⭐ lights, sheds a FRACTION of its authored ceiling, goes dark when doused", () => {
     const l = lamp({ flux: 220 });
     l.ignite();
     expect(l.isLit()).toBe(true);
-    expect(l.getEmittedFlux().rawValue()).toBe(220);
+    // The authored number is a CEILING. Luminosity is incandescent soot:
+    // a solid or liquid fuel's flame is luminous (`sootyFloor`, 0.6) and
+    // a clean-burning gas flame is not (`cleanFloor`, 0.15) — ⭐ which is
+    // the mantle problem arriving by itself rather than being authored,
+    // and the reason a gas lamp is a disappointment until somebody
+    // invents one.
+    expect(l.getEmittedFlux().rawValue()).toBeCloseTo(132);
+    expect(l.getEmittedFlux().rawValue()).toBeLessThan(220);
     l.douse();
     expect(l.isLit()).toBe(false);
     expect(l.getEmittedFlux().rawValue()).toBe(0);
   });
 
-  it("⭐ burns down over a game night, unattended, and then is dark", () => {
+  it("⭐ burns down over a game night, GUTTERS, and only then is dark", () => {
     const l = lamp();
     l.ignite();
     l.reconcileBurnerFuel(); // seed the clock stamp
@@ -119,17 +129,34 @@ describe("Lamp — a small furnace with a light on it", () => {
     // Half a night: burning, and visibly down on fuel.
     for (let h = 0; h < 6; h++) burnAnHour();
     expect(l.isLit()).toBe(true);
-    expect(l.fuelRemaining()).toBeLessThan(100);
+    expect(l.fuelRemaining()).toBeLessThan(0.5);
     expect(l.fuelRemaining()).toBeGreaterThan(0);
 
+    const halfNight = l.getEmittedFlux().rawValue();
+
+    // ⭐⭐ A full night, and it is GUTTERING rather than out — which is
+    // what the class's own prose has always said and could not deliver.
+    // Once the bed's mass stops binding against `maxBurnPowerW` the power
+    // is proportional to what is left, so the last of the oil burns ever
+    // more slowly and ever more dimly. A lamp filled at dusk is a bad
+    // lamp by dawn; it is not a dark one.
     for (let h = 0; h < 12; h++) burnAnHour();
+    expect(l.isLit()).toBe(true);
+    expect(l.fuelRemaining()).toBeLessThan(0.05);
+    expect(l.getEmittedFlux().rawValue()).toBeLessThan(halfNight * 0.75);
+
+    // ⚠ And it does eventually go out, which needs a FLOOR: the drain is
+    // asymptotic, so without one the burnout edge would never fire and
+    // a lamp would stay faintly lit forever on a milligram of oil. This
+    // is what caught it.
+    for (let h = 0; h < 30; h++) burnAnHour();
     expect(l.fuelRemaining()).toBe(0);
     expect(l.isLit()).toBe(false); // the burnout edge put it out
     expect(l.getEmittedFlux().rawValue()).toBe(0); // and the dark returns
   });
 
   it("⚠ an empty lamp refuses to light — there is nothing to burn", () => {
-    const l = lamp({ fuel: 0 });
+    const l = lamp({ fuelKg: 0 });
     l.ignite();
     expect(l.isLit()).toBe(false);
     expect(l.getEmittedFlux().rawValue()).toBe(0);

@@ -37,4 +37,15 @@ data:
   # The `%` Reserve this row used to author said the same thing by hand,
   # and said it only here.
   props:
-    - /stuff/thing/items/dry-log
+    # ⭐⭐ **A brazier, and the fire build is why it has to be here.** The
+    # cellar's whole job is the ventilation lesson — light a fire in a
+    # sealed room, be warned, watch it smother — and a single split log
+    # smouldering at a half-percent a minute takes most of a game DAY to
+    # spend 27 m³ of air. That is honest arithmetic and a useless
+    # demonstrator. A 3 kW brazier spends it in tens of ticks, which is
+    # what makes the lesson land inside a session.
+    #
+    # ⚠ It ships COLD and EMPTY, which is the point: a player stokes it,
+    # lights it, and the room does the rest.
+    - /stuff/thing/brazier
+    - { template: /stuff/thing/items/dry-log, count: 3 }

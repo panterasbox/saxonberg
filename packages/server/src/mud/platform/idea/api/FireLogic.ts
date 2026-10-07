@@ -100,6 +100,30 @@ export class FireLogic extends ApiLogic {
     emitExhaustInto(room, kgBurnt, complete);
   }
 
+  /**
+   * ⭐ Is this too wet to catch — the ONE wetness formula, in one place.
+   *
+   * ⚠ Two waters, one arithmetic: the surface wetness of a log left in
+   * the rain and the matter's OWN water (a turf cut out of a bog is
+   * nearly all water) raise the ignition threshold in exactly the same
+   * way, so they add. That is what makes `stoke`'s *"It is too sodden to
+   * catch."* and `ignite`'s shipped refusal the same sentence about the
+   * same number, with no peat-specific branch anywhere.
+   */
+  @CallSecurity(FireExhaustCallers)
+  public tooWetToCatch(item: Stuff): boolean {
+    return (
+      wetPenaltyKOf(item) >
+      dial(AppSettingKeys.fireIgnitionMaxManualDryingK, 150)
+    );
+  }
+
+  /** The held-water ignition penalty (K) — see {@link wetPenaltyKOf}. */
+  @CallSecurity(FireExhaustCallers)
+  public wetPenaltyK(item: Stuff): number {
+    return wetPenaltyKOf(item);
+  }
+
   /** See {@link Combustible.tryAutoignite}. */
   @CallSecurity(FireCallers)
   public tryAutoignite(stuff: Stuff): boolean {
@@ -150,6 +174,44 @@ function dial(key: string, fallback: number): number {
   }
 }
 
+/**
+ * The extra temperature (K) an object's held water raises its ignition
+ * threshold by — mass-independent, because the fuel mass cancels between
+ * the water-boil energy and the thermal capacity. A soaked log resists
+ * ignition regardless of its size.
+ *
+ * ⭐ The single home for the formula. `CombustibleMixin.wetPenaltyK`
+ * forwards here, and `stoke` asks the same question of an object that
+ * may not be a Combustible at all.
+ */
+function wetPenaltyKOf(item: Stuff): number {
+  const mat = MixinApi.isTangible(item) ? item.getMaterial() : null;
+  if (!mat) return 0;
+  const capacityFraction = mat.getWaterAbsorptionCapacity().rawValue() / 100;
+  if (capacityFraction <= 0) return 0;
+  const c = mat.getSpecificHeat().rawValue();
+  if (c <= 0) return 0;
+
+  let held = 0;
+  if (MixinApi.isWet(item)) {
+    const saturation = item.getWetness();
+    if (saturation > 0) held += saturation;
+  }
+  if (MixinApi.isWaterActive(item)) {
+    // Above the `dried` band the fuel still carries its own water; at or
+    // below it, it is dry fuel and contributes nothing.
+    const driedAt = dial(AppSettingKeys.cureBandDriedAt, 0.5);
+    const span = 1 - driedAt;
+    if (span > 0) {
+      const own = (item.getMoisture() - driedAt) / span;
+      if (own > 0) held += own > 1 ? 1 : own;
+    }
+  }
+  if (held <= 0) return 0;
+  const lVap = dial(AppSettingKeys.fireIgnitionWaterLatentHeatJPerKg, 2260000);
+  return (held * capacityFraction * lVap) / c;
+}
+
 /** One string dial read, falling back to the literal when unseeded. */
 function dialStr(key: string, fallback: string): string {
   try {
@@ -180,7 +242,12 @@ function igniteImpl(stuff: Stuff): IgniteOutcome {
   // toggling its lit state — it holds a fuel-driven pin, not a Burning object.
   if (MixinApi.isBurner(stuff)) {
     if (stuff.isLit()) return { lit: false, reason: 'already-burning' };
-    if (stuff.fuelRemaining() <= 0) return { lit: false, reason: 'not-flammable' };
+    // ⭐ `no-fuel`, not `not-flammable`. A forge with an empty bed is not
+    // an unburnable object — it is a fire waiting for somebody to stoke
+    // it, and the refusal has to say which so the verb can tell them.
+    // ⭐⭐ THE REFUSAL IS THE PROGRESSION UI: if something lifts it, the
+    // player has to be able to be told what.
+    if (stuff.fuelRemaining() <= 0) return { lit: false, reason: 'no-fuel' };
     stuff._setLit(true);
     return { lit: true };
   }
@@ -291,12 +358,28 @@ function onFireTickImpl(): void {
 function advanceFireInRoom(room: Stuff & Container): void {
   // Lit furnaces heat the Meltables in the scope toward their held temperature
   // (the forge melting an ingot) — independent of any Burning objects.
+  //
+  // ⭐⭐ …and they BREATHE. Until the fire build a `Burner` was outside
+  // the chemistry entirely: only `Combustible`s got a completeness
+  // verdict and only they put anything into the air, so the one fire a
+  // player actually lights — a hearth, a forge, a lamp — could run in a
+  // sealed cellar forever and poison nobody. A burner's exhaust is what
+  // the oxygen leg reads on the next tick, which is what closes the
+  // loop: the fire fills the room, the room starves the fire.
+  const tickS = dial(AppSettingKeys.fireTickIntervalSeconds, 30);
   for (const occ of room.getContents()) {
     const s = occ as unknown as Stuff;
-    if (!s.isDestroyed() && MixinApi.isBurner(s) && s.isLit()) {
-      s.heatContents();
-    }
+    if (s.isDestroyed() || !MixinApi.isBurner(s)) continue;
+    if (!s.isLit()) continue;
+    s.heatContents();
+    s.exhaustTick(tickS);
   }
+
+  // ⭐ A burner smothers on the same share, and it is checked BEFORE the
+  // `burning.length === 0` early return below — a lamp in a sealed box is
+  // the only fire in the room, and a room with no `Combustible` in it was
+  // returning before anything looked at it.
+  smotherStarvedBurners(room);
 
   const combustibles = liveCombustiblesIn(room);
   // Advance the fires first (fuel drain → char / destruct at exhaustion).
@@ -420,6 +503,29 @@ function emitExhaustInto(
     smoke,
     dial(AppSettingKeys.fireExhaustSmokeLitresPerKg, 300) * kgBurnt,
   );
+}
+
+/**
+ * Put out every lit burner in `room` whose air has run out.
+ *
+ * ⚠ Separate from the `Combustible` arm because the two have different
+ * *writers*: a `Combustible`'s burning state is `_extinguishState`, a
+ * burner's lit state is `_setLit`, and only `FireApi` may call the
+ * latter. Same threshold, same reason, two mechanisms — which is the
+ * shipped split between *an object that is on fire* and *an appliance
+ * that holds one*.
+ */
+function smotherStarvedBurners(room: Stuff & Container): void {
+  const share = BiomeApi.airShareOf(
+    BiomeApi.resolveAtmosphereContentsFor(room),
+  );
+  if (share > dial(AppSettingKeys.fireAirSmotherAirShare, 0.88)) return;
+  for (const occ of room.getContents()) {
+    const s = occ as unknown as Stuff;
+    if (s.isDestroyed() || !MixinApi.isBurner(s)) continue;
+    if (!s.isLit()) continue;
+    s._setLit(false);
+  }
 }
 
 /** The live (non-destroyed) Combustibles directly in `room`. */

@@ -808,7 +808,121 @@ atmosphere reading).
 
 **Commit.** `build(fire W0): the medium carries amounts; air derives from enclosure, the air Reserve retired`
 
-### W1 — The burner derives: fuel bed, draught, power, heat, light, exhaust
+### W1 — The burner derives: fuel bed, draught, power, heat, light, exhaust ✅ DONE
+
+> **Build note (W1).** `Burner.ts`'s header is true. Seven decisions the
+> plan did not make, and **five real defects found** — four of them by
+> tests written for this wave and one by a pack's own suite.
+>
+> **B5 — ⭐⭐ Completeness is `clamp01(draught × airShare / completeAirShare)`.**
+> The plan had completeness from AIR alone (D4/D6) and the requirements
+> demand that *starving the draught* makes a fire sooty and bright (AC4,
+> drive step 7). Those are inconsistent: a draught that only scales power
+> cannot make soot. The product is the fix, and it is better than either
+> half — the draught and the room's air are **the same lever seen from
+> two sides**, so closing the damper in a clean room and opening it in a
+> foul one starve the fire identically. AC4 and AC7 become one mechanism
+> instead of two, and ⭐ the charcoal clamp's smoking dome stops being
+> prose: at its authored 0.45 draught its completeness is ~0.5, so it
+> smokes because of what it IS.
+>
+> **B6 — ⭐⭐ Two luminosity floors, not one `clean` constant.** D6's
+> single `fire.light.cleanFraction` 0.3 made *every* fire 30 % of its
+> authored flux at full draught, which is wrong twice: a wood fire is
+> always yellow (its flame is a cloud of particles, whatever the draught),
+> and a gas flame is far dimmer than 0.3. Sootiness is a property of the
+> **fuel**, and the build already derives gas-ness from the boiling point
+> (D2) — so `fire.light.sootyFloor` 0.6 for a solid or liquid and
+> `fire.light.cleanFloor` 0.15 for a gas or a worked flame. The gas lamp's
+> mantle problem lands harder (0.15, unmistakable) and no room loses 70 %
+> of its light.
+>
+> **B7 — "Fire size" is `burnPowerW / (0.25 × maxBurnPowerW)`**, dialled
+> as `fire.light.fullSizeFraction`, so a banked fire is EMBERS rather
+> than a dim bonfire.
+>
+> **B8 — Lamp power recalibrated to 300 W** (lantern), 80 W (candle — the
+> classic figure for a candle), 1200 W (torch). The plan's 80 W for a
+> lantern was two orders out: half a litre of lamp oil is 17.6 MJ, and at
+> 80 W that is sixty game hours, so the class's own promise — *a lamp you
+> fill at dusk is guttering by dawn* — could not hold. At 300 W it is ~16
+> game hours.
+>
+> **B9 — ⛔ The guttering tail never reaches zero.** Once the bed's mass
+> stops binding against `maxBurnPowerW` the power is proportional to what
+> is left, so the drain is exponential and asymptotic: the burnout edge
+> would never fire and a lamp would stay faintly lit forever on a
+> milligram of oil. `FUEL_FLOOR_KG` (a gram) closes it. **Found by a test
+> that expected a lamp to be dark after eighteen game hours and found 29 g
+> left.**
+>
+> **B10 — ⛔⛔ `draught.yaml` did not load, and the verb was dead.** A
+> greedy arg may only be followed by PREPOSITIONAL args (otherwise it
+> swallows the boundary token), and the plan's view had a greedy `fire` in
+> front of a bare `setting`. The whole view failed to parse — ⭐ the
+> **arg-gate** link failing closed and silent, exactly as the plan's own
+> reachability table warns. Fixed to `char`'s shipped shape: a
+> prepositional non-greedy object, then the value.
+>
+> **B11 — ⛔ `Mml.thing` is LAZY.** `StokeController` destructs the fuel
+> and then sends its scene; `Mml.thing` resolves its subject at SEND, a
+> destroyed Stuff's `describeFor` is an inert no-op returning `undefined`,
+> and the composer throws escaping it. ⚠ **Any verb that consumes its own
+> target must capture the WORDS, not a reference** — `getPresentation()`
+> before the destruct.
+>
+> **B12 — ⛔⛔ `isClamp` duck-typed on `getDraught`, and D9 made that
+> universal.** `draught` rose onto `BurnerMixin`, so every furnace in the
+> game answered to it and `smelt` declined *"that is a charcoal clamp"* at
+> a smelting furnace. **Caught by `trade-smelting`'s own suite** — the
+> whole case for a trade keeping tests over its own content. It
+> discriminates on `outcomeFor` now (the charring BAND, which is the
+> trade's and stays the trade's). ⭐ The general lesson: *duck-typing on a
+> field is only honest while the field is the thing's own*, and a trade's
+> reading of a shared dial is exactly what does not generalise.
+>
+> **B13 — ⛔ Two authored-key defects in material rows.**
+> `charcoal.yaml` authored **`autoignitionPoint`**, which is not a field
+> (`autoignitionTemperature` is), so charcoal's autoignition read ZERO for
+> the life of the pack and `tryAutoignite` would never have caught it from
+> a neighbouring fire; and it authored **no `heatOfCombustion` at all**,
+> which under the new model would have made charcoal burn COLDER than oak
+> — the exact opposite of the reason the material exists. ⚠ `burn.test.ts`
+> *asserted the misspelling*, pinning the defect in place: an
+> authored-key test written off the ROW rather than off the FIELD will do
+> that. `beeswax` also gained its 42 MJ/kg, without which a lit candle is
+> a cold candle.
+>
+> **The darkness sweep (AC20, R3).** Every burner row's
+> `emittedIntensity` is scaled by `1/0.6`, so a well-run fire lights its
+> room exactly as brightly as before and a badly-run one lights it MORE.
+> Sixteen rows: torch 80→133, lantern 220→367, smelting furnace 120→200,
+> Kiln 60→100, stove 8→13, Campfire 120→200, Oven 30→50, Forge 90→150,
+> range 30→50, candle 12→20, brazier 60→100, Hearth 90→150, malt-kiln
+> 20→33, practicum brazier 120→200, brine-hearth 40→67, limekiln 80→133.
+>
+> **The whiskey drives (AC2).** Both lose the fuel clause from
+> `DIRTY_REASON` and now `stoke log into still` before igniting; the
+> Crowsfoot floor props four split oak logs by the firebox (⚠
+> deliberately `generic-objects`' row rather than the forestry pack's
+> cordwood — a prop naming a pack this locality does not ship would not
+> install and the boot would die cloning the floor). They stay `.dirty.`
+> for their FEEDSTOCK, which is honest and is all the requirements asked.
+>
+> **Also:** `ReservedMixin` left `Firebox`, `Lamp`, `Still` and `Smoker`;
+> `Lamp` composes `BulkableMixin` and is the one `fuelSlot()` override;
+> `SpaceHeating` floors its authored watts at the fire's actual power (a
+> banked hearth warms the room at a twentieth of its rate, and no row
+> changed); `Thermal.reachableHeatSource()` ships for W5; a `look`
+> augmenter says what a fire is burning, how cleanly, and whether it is
+> banked; `ignite` gained the `no-fuel` reason and the sentence that names
+> the act lifting it.
+>
+> **Verified:** 1607 kernel tests green across fire/thermal/biome/device/
+> crafting/medical/platform/world; trade-fuel 14, trade-smelting 31,
+> trade-distilling 10, trade-apiculture 69, trade-cooking 52,
+> trade-quarrying 70, trade-forestry 120 green; `lint:family` green.
+
 
 **Goal.** D4, D5, D6, D8, D9, D16. `Burner.ts`'s header becomes true.
 

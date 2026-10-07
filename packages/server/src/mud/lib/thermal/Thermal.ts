@@ -34,6 +34,7 @@
  */
 
 import { Final, Unshadowable } from '../security/decorators';
+import type { Burner } from '../fire/Burner';
 import type Material from '../material/Material';
 import type { BulkAffordance } from '../bulk/Bulkable';
 import type { Meltable } from './Meltable';
@@ -277,6 +278,8 @@ type ThermalHost = Stuff & Tangible & Containable;
 export interface Thermal {
   reconcilePhase(): void;
   reachableHeatK(): number;
+  /** The hottest lit burner in reach, or `null` — the fire, not its heat. */
+  reachableHeatSource(): (Stuff & Burner) | null;
   /** Stamped temperature T0 (raw K) — the decomposed scalar. */
   stampedTemperatureK: number;
   /** Game-time (seconds) of the last reconcile / re-stamp; 0 = unseeded. */
@@ -718,6 +721,19 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     /**
+     * ⭐ **The fire itself, not just its temperature.** The hottest lit
+     * burner in reach, or `null`.
+     *
+     * `reachableHeatK` answers a number, which was all a recipe needed
+     * while a fire was a number. A fire knows what it is BURNING now, so
+     * the thing worked over it can be peated by the peat — and the fuel
+     * stops being anonymous the moment anything wants to ask.
+     */
+    public reachableHeatSource(): (Stuff & Burner) | null {
+      return reachableHeatSourceImpl(this as unknown as Stuff);
+    }
+
+    /**
      * The dominant series conductivity (`W/(m·K)`): the barrier medium
      * when sealed (a `Sealable` host that is closed → `vacuum`), else
      * the `barrier` override, else `air` (the default surrounding
@@ -1136,6 +1152,25 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
  * `CraftingLogic`'s heat gate (`recipe.requiresHeatK`) — the smithing/cooking
  * temperature-control read.
  */
+function reachableHeatSourceImpl(position: Stuff): (Stuff & Burner) | null {
+  const scope = (position as unknown as { getContainer(): Stuff | null })
+    .getContainer();
+  if (scope === null || !MixinApi.isContainer(scope)) return null;
+  let best: (Stuff & Burner) | null = null;
+  let hottest = 0;
+  for (const occ of (scope as Stuff & Container).getContents()) {
+    const s = occ as unknown as Stuff;
+    if (s.isDestroyed() || !MixinApi.isBurner(s)) continue;
+    if (!s.isLit() || s.fuelRemaining() <= 0) continue;
+    const t = s.getHeldTemperatureK();
+    if (t > hottest) {
+      hottest = t;
+      best = s as unknown as Stuff & Burner;
+    }
+  }
+  return best;
+}
+
 function reachableHeatForImpl(position: Stuff): number {
   const scope = (position as unknown as { getContainer(): Stuff | null })
     .getContainer();

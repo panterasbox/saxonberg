@@ -1640,6 +1640,49 @@ export const AppSettingKeys = {
   /** Fire — the temperature (K) an air-starved (incomplete) fire holds;
    * cooler than complete combustion (the ventilation lesson). */
   fireFlameTemperatureIncompleteK: "fire.flameTemperatureIncompleteK",
+  /* ── the burner: fuel, draught, power, heat, light (the fire build) ── */
+  /** Fire — watts a kilogram of fuel can deliver. ⭐ The DURATION term: a
+   * small charge in a big forge burns at the charge's rate, so a heavy log
+   * outlasts kindling of the same wood with no "fire size" field anywhere. */
+  firePowerPerKgW: "fire.power.perKgW",
+  /** Fire — the flame-temperature intercept (K) at zero heat of combustion. */
+  fireFlameBaseK: "fire.flame.baseK",
+  /** Fire — K of flame temperature per MJ/kg of the fuel's heat of
+   * combustion. ⭐ This is what makes `heatOfCombustion` — authored on 26
+   * material rows and read by NOTHING before the fire build — decide
+   * whether a fuel reaches a vessel's ceiling. */
+  fireFlameKPerMJkg: "fire.flame.kPerMJkg",
+  /** Fire — the fraction of its reachable temperature a fully starved fire
+   * holds. The 1000 K / 750 K pair, made continuous. */
+  fireIncompleteTemperatureFactor: "fire.incompleteTemperatureFactor",
+  /** Fire — how luminous a GAS flame (or a worked one, which has no matter
+   * in it at all) is at its cleanest. ⭐⭐ Small, because luminosity IS
+   * incandescent soot: a clean flame is nearly invisible, which is why a
+   * gas lamp is a disappointment until somebody invents a mantle. */
+  fireLightCleanFloor: "fire.light.cleanFloor",
+  /** Fire — the same for a SOLID or LIQUID fuel, whose flame is a cloud of
+   * particles and is luminous even burning well. A wood fire is always
+   * yellow; only how yellow is up to the draught. */
+  fireLightSootyFloor: "fire.light.sootyFloor",
+  /** Fire — the fraction of a vessel's maximum power at which it is
+   * throwing its full authored light. ⭐ Below it a fire is EMBERS: how
+   * much light there is depends on how much fire there is. */
+  fireLightFullSizeFraction: "fire.light.fullSizeFraction",
+  /** Fire — the draught floor. ⭐⭐ BANKING IS THIS NUMBER: you can shut a
+   * fire down but not off, so *bank it, leave, come back to it still in* is
+   * arithmetic rather than a mechanism. */
+  fireDraughtBanked: "fire.draught.banked",
+  /** Fire — the power ceiling (W) a burner row that authors none falls back
+   * to. */
+  fireBurnerDefaultMaxPowerW: "fire.burner.defaultMaxPowerW",
+  /** Fire — the fuel-bed capacity (kg) a burner row that authors none falls
+   * back to. */
+  fireBurnerDefaultCapacityKg: "fire.burner.defaultCapacityKg",
+  /** Fire — the energy density (MJ/kg) a WORKED flame's exhaust is priced
+   * at. It burns no matter, but its power still comes out of the room's
+   * air, so conservation needs a figure and this is the one it uses. */
+  fireWorkedFlameMJPerKg: "fire.workedFlame.mjPerKg",
+
   /** Fire — the share of a scope's medium that must still be plain air for
    * combustion to be complete (hot, clean); below it the fire starves to
    * incomplete (cooler, soot + CO). ⭐ Replaced the `'air'` Reserve's

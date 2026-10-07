@@ -14,13 +14,23 @@ data:
     A punched-tin lantern with a little glass door and a hook to hang it by. Lit, it throws a steady patterned light where a torch only gutters. It costs more than a fistful of torches and is worth it the first time you need both hands and still want to see — and unlike a torch you can fill it again.
   # ⚠ `BurnerMixin.lit` defaults TRUE. A lantern on a shop shelf is out.
   lit: false
-  reserves:
-    fuel:
-      capacityValue: 100
-      currentValue: 100
-      unit: "%"
-      theme: combustion
-      floorEffect: null
   # Steady and bright — the reason it costs more than a torch.
-  emittedIntensity: 220
+  # ⭐⭐ The darkness sweep (fire build). `emittedIntensity` is a CEILING
+  # now, not the reading: luminosity is incandescent soot, so a solid-fuel
+  # flame at full draught sheds `fire.light.sootyFloor` (0.6) of it and a
+  # starved one climbs back toward it. Every burner's authored figure is
+  # scaled by 1/0.6 so a well-run fire lights its room exactly as brightly
+  # as it did before — and a badly-run one now lights it MORE, which is
+  # the lesson. ⚠ No room lit only by a fire has gone dark (AC20).
+  emittedIntensity: 367
   emittedColorTemperature: 2700
+  # ⭐ The fire build: fuel is a BED (kilograms, by material) that
+  # `stoke` fills, and the vessel's size is a POWER rather than a
+  # percentage-per-minute of nothing. What it reaches depends on what
+  # is in it.
+  # ⭐⭐ A lantern is FILLED, not stoked: `Lamp.fuelSlot()` answers with
+  # this interior, so `fill lantern from cask` is the act and `stoke
+  # lantern` is refused. Sold dry — the oil is a separate purchase, which
+  # is the point of selling a lamp in a shop that also sells oil.
+  maxBurnPowerW: 300
+  fuelCapacityKg: 0

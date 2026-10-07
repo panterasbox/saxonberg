@@ -65,6 +65,24 @@ data:
     - /trade/distilling/thing/slop-bucket
     - /trade/distilling/thing/cask
     - /trade/distilling/thing/wash-bucket
+    # ⭐⭐ **The wood by the firebox**, and the fire build is why it has to
+    # be here. A still is a pot with a FIRE under it, and until `stoke`
+    # existed that fire ran on a `%` reserve the row authored once and
+    # nothing could refill — so a still-house needed no fuel on the floor
+    # and had none. Now the first thing a distiller does is feed the
+    # firebox, and the wood has to be somewhere they can reach.
+    #
+    # ⚠ Deliberately `generic-objects`' split oak log rather than the
+    # forestry pack's cordwood: a prop that names a pack this locality
+    # does not already ship would not install, and the boot would die
+    # cloning this floor (see the malting note below — same failure, one
+    # missing dependency line, two drive runs lost to it).
+    #
+    # ⚠ `count:` and not four lines: `lint:census` clause (e) is a falling
+    # ratchet on pure repeats, and four identical entries with no `as` are
+    # `count: 4` written longhand — plus a repeat with no identity is an
+    # entry no child row can ever address.
+    - { template: /stuff/thing/items/dry-log, count: 4 }
     # ⭐⭐ The floor maltings. A distillery that malts its own barley is
     # historically the ordinary case rather than the exotic one — most
     # Scotch houses had a floor and a kiln on site until the maltsters

@@ -202,52 +202,14 @@ export function CombustibleMixin<TBase extends MixinConstructor<Stuff>>(
     }
 
     /**
-     * The extra temperature (K) the held water raises the ignition threshold
-     * by. Mass-independent: `ΔT = saturation × capacity% × L_vap / c` (the fuel
-     * mass cancels between the water-boil energy and the thermal capacity), so
-     * a soaked log resists ignition regardless of its size — the wet-firewood
-     * the weather tail deferred, now derived.
-     *
-     * ⭐ **Two waters, one formula.** Surface wetness (rain on a log) and
-     * the matter's **own** water ({@link WaterActivityMixin} — a turf cut out of a
-     * bog is nearly all water) resist ignition in exactly the same way, so
-     * they are two terms of the same shape and they **add**. That is what
-     * makes an as-cut turf refuse the flame in the shipped words *"It's too
-     * wet to catch."* and a dried one light, with no new refusal and no
-     * peat-specific branch anywhere.
+     * The extra temperature (K) the held water raises the ignition
+     * threshold by. ⭐ **Forwards to the one implementation**, in
+     * `FireLogic`, because `stoke` asks the same question of an object
+     * that may not be a Combustible at all — a turf, a basket of coal —
+     * and two copies of a formula is a seam that is wrong.
      */
     private wetPenaltyK(): number {
-      const self = this as unknown as Stuff;
-      const mat = MixinApi.isTangible(self) ? self.getMaterial() : null;
-      if (!mat) return 0;
-      const capacityFraction = mat.getWaterAbsorptionCapacity().rawValue() / 100;
-      if (capacityFraction <= 0) return 0;
-      const c = mat.getSpecificHeat().rawValue();
-      if (c <= 0) return 0;
-
-      // Surface water, and the matter's own — the same arithmetic twice.
-      let held = 0;
-      if (MixinApi.isWet(self)) {
-        const saturation = self.getWetness();
-        if (saturation > 0) held += saturation;
-      }
-      if (MixinApi.isWaterActive(self)) {
-        // Above the `dried` band the fuel still carries its own water;
-        // at or below it, it is dry fuel and contributes nothing.
-        const driedAt = dial(AppSettingKeys.cureBandDriedAt, 0.5);
-        const span = 1 - driedAt;
-        if (span > 0) {
-          const own = (self.getMoisture() - driedAt) / span;
-          if (own > 0) held += own > 1 ? 1 : own;
-        }
-      }
-      if (held <= 0) return 0;
-
-      const lVap = dial(
-        AppSettingKeys.fireIgnitionWaterLatentHeatJPerKg,
-        2260000,
-      );
-      return (held * capacityFraction * lVap) / c;
+      return fireLogic().wetPenaltyK(this as unknown as Stuff);
     }
 
     public getFlameTemperatureK(): number {

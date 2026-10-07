@@ -13,6 +13,9 @@
  */
 
 import "../../../../test-bootstrap";
+import { chargeHot } from '../../../lib/fire/__tests__/burner-fuel';
+import type { Burner } from '../../../lib/fire/Burner';
+import type { Stuff } from '../../../lib/stuff/Stuff';
 import type { CompetenceBandName } from "../../../lib/advancement/CompetenceBand";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { readFileSync, readdirSync } from "fs";
@@ -135,8 +138,11 @@ function dummyIn(room: CartesianLocation): Firewood {
     const f = new Firewood();
     f.setMass(Quantity.of(1.5, "kg"));
     f.setMaterial(oak());
+    // ⚠ A `Firewood` is a COMBUSTIBLE, not a Burner: the object IS the
+    // fuel, so its own `%` reserve stays (fire plan D16). Only an
+    // appliance that HOLDS a fire got a fuel bed.
     f.setReserve(
-      new Reserve("fuel", Quantity.of(100, "%"), Quantity.of(100, "%"), "combustion", null),
+      new Reserve('fuel', Quantity.of(100, '%'), Quantity.of(100, '%'), 'combustion', null),
     );
     return f;
   });
@@ -197,8 +203,11 @@ function tinderIn(room: CartesianLocation): Firewood {
     const f = new Firewood();
     f.setMass(Quantity.of(0.04, "kg"));
     f.setMaterial(oak());
+    // ⚠ A `Firewood` is a COMBUSTIBLE, not a Burner: the object IS the
+    // fuel, so its own `%` reserve stays (fire plan D16). Only an
+    // appliance that HOLDS a fire got a fuel bed.
     f.setReserve(
-      new Reserve("fuel", Quantity.of(100, "%"), Quantity.of(100, "%"), "combustion", null),
+      new Reserve('fuel', Quantity.of(100, '%'), Quantity.of(100, '%'), 'combustion', null),
     );
     return f;
   });

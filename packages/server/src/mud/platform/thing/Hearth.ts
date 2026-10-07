@@ -42,13 +42,21 @@ import { SpaceHeatingMixin } from '../../lib/thermal/SpaceHeating';
  * Hearth dials. Playtest-tuned, not plan decisions.
  *
  * 700 K is a domestic wood fire rather than a forge's 1300 — hot enough
- * to cook over and to scald a hand, nowhere near working iron. The burn
- * rate empties a full fuel load over about a game evening, which is what
- * makes feeding it a thing somebody has to do.
+ * to cook over and to scald a hand, nowhere near working iron. The power
+ * empties a full charge over about a game evening, which is what makes
+ * feeding it a thing somebody has to do — and ⭐ since the fire build
+ * `stoke` is how.
  */
 const HEARTH = {
   BURN_TEMPERATURE_K: 700,
-  BURN_RATE_PER_MIN: 0.25,
+  /**
+   * ⭐ 6 kW — a domestic fireplace, and the figure replaces a
+   * `%`-per-minute rate that could not say how big the fire was. A 6 kg
+   * oak charge at 6 kW lasts about four and a half game hours at full
+   * draught and twenty times that banked, which is exactly the evening-
+   * and-overnight shape the prose below already described.
+   */
+  MAX_BURN_POWER_W: 6000,
 } as const;
 
 // ⭐ A firebox that warms the ROOM — `SpaceHeating` composed OUTSIDE
@@ -66,5 +74,5 @@ export default class Hearth extends HearthBase {
    */
   public override lit = false;
   public override burnTemperatureK: number = HEARTH.BURN_TEMPERATURE_K;
-  public override fuelBurnRatePerMin: number = HEARTH.BURN_RATE_PER_MIN;
+  public override maxBurnPowerW: number = HEARTH.MAX_BURN_POWER_W;
 }
