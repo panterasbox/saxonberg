@@ -28,6 +28,9 @@ data:
       destination: /world/terminus/rejection/location/pithead-yard
     east:
       destination: /world/terminus/rejection/location/smelter
+    # The glazier's hut, added by the glass build — the cold shop, in town.
+    northeast:
+      destination: /world/terminus/rejection/location/glaziers-hut
   props:
     - /trade/fuel/thing/clamp
     # ⚠⚠ Was a loose `hazel-stool`, which afforded NOTHING: `harvest` is

@@ -1,0 +1,25 @@
+# ⭐⭐ The glazier's hut's west window — the GAME'S FIRST AUTHORED WINDOW,
+# and the first that does something. It connects the hut to the sunlit
+# fuel yard, so daylight comes through it into the hut. Glaze a coloured
+# pane into it (`glaze pane in window`) and the light it lets in takes
+# that colour — the W0 Colour-on-Light seam, finally lit through.
+#
+# `attachedHosts` names the two rooms it joins; the applier resolves both
+# and wires the per-side anchors at clone time (the declarative-content
+# pattern). Open, clear until glazed.
+class: /platform/thing/Window
+data:
+  shortDescription: west window
+  keywords: [window, west, light]
+  register: definite
+  longDescription: >-
+    A plain window in the west wall, looking out over the fuel yard. The
+    light that comes through it is whatever the day is — until there is
+    coloured glass in it.
+  _materialPath: /stuff/idea/material/glass/glass
+  mass: 3
+  baseTransmissivity: 0.9
+  open: true
+  attachedHosts:
+    - /world/terminus/rejection/location/glaziers-hut
+    - /world/terminus/rejection/location/fuel-yard

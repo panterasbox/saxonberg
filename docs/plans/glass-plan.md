@@ -898,7 +898,30 @@ instrument-args, arg-kinds, binder-models, controller-rows) green.
 
 **Acceptance.** Pack suite + `lint:family` green.
 
-#### W7 — The venue · `build(glass W7): the glasshouse in the Hanging Wood, the sand pit, the glazier's hut, the first windows`
+#### W7 — The venue · `build(glass W7): the glasshouse in the Hanging Wood, the sand pit, the glazier's hut, the first windows` ✅ DONE
+
+> **Built (content).** Rejection gains: the **sand pit** zone + deposit
+> (sand at surface; iron pinned per face via `features.pins` at exactly
+> the point the quarry mint samples — clean 0.0003, dirty 0.012, so
+> clean→clear and dirty→green deterministically) + clean/dirty OpenWorking
+> faces; the **glasshouse** in the Hanging Wood (Kiln + blowpipe + marver +
+> bounded charcoal/lime/ash props, glassblower cast); the **glazier's hut**
+> in town (scribing wheel + pliers, no authored ambient — lit through its
+> windows); the **first two authored `Window` rows** (attached to the
+> sunlit yards); the glasshouse business; exits wired (ride→glasshouse→
+> sand pit; yards→hut). `glass.md` written; `light.md` updated (the first
+> windows). **Fixes found by the lint gates:** a duplicate `northeast`
+> key on pithead-yard (my exit collided with the existing one → used
+> `southeast`); `alternateNames` dropped from the two faces (orphan key);
+> glass material + mass on the windows (`lint:mass`); the hut given
+> `coords` (`lint:locations`); repeated glasshouse props given `as`
+> identities instead of pure repeats (`lint:census` — the sanctioned
+> form, no ratchet bump); `attachedHosts` added to the census
+> `IGNORED_PATH_FIELDS` (it resolves via singleton lazy-clone, the
+> anchors are the wiring). All five venue gates + `lint:family` green.
+> Boot + the live walk are W8's.
+
+
 
 **Files (all under `packages/content/rejection/`).**
 - `package.json` — add `@saxonberg/content-trade-glass`; `pack.yaml`

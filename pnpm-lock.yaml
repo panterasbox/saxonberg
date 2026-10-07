@@ -699,6 +699,9 @@ importers:
       '@saxonberg/content-trade-fuel':
         specifier: workspace:*
         version: link:../trade-fuel
+      '@saxonberg/content-trade-glass':
+        specifier: workspace:*
+        version: link:../trade-glass
       '@saxonberg/content-trade-mining':
         specifier: workspace:*
         version: link:../trade-mining

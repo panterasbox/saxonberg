@@ -1,0 +1,23 @@
+# The dirty face — the iron-stained fringe of the pit. `dig sand` here
+# wins a load rusty with iron: green bottles, and no clearer. Same
+# material, same verb, a different grade — the sand pit's whole lesson.
+class: /trade/quarrying/location/OpenWorking
+data:
+  shortDescription: iron-stained sand face
+  keywords: [face, pit, sand, working, dirty, rusty]
+  register: definite
+  _address: terminus/rejection/sand-pit
+  _biomePath: /stuff/idea/biome/outdoor/baseline
+  ambientIntensity: 8000
+  ambientColorTemperature: 5800
+  longDescription: |
+    The eastern end of the pit, where the sand runs ochre and rust-streaked, iron all through it. It digs the same as the clean sand and melts the same — but what it makes comes out green, and nothing you do at the furnace will take the colour out.
+  coords: { x: 2, y: 0, z: 0 }
+  faceRunM: 20
+  spoilTo: /world/terminus/rejection/kestrel-road/tips
+  props:
+    - /trade/quarrying/thing/spade
+  exits:
+    west:
+      destination: /world/terminus/rejection/sand-pit/clean-face
+      edgeMinutes: 2
