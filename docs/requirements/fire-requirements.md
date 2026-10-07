@@ -650,11 +650,14 @@ build phase, before the MR opens.
 
 **Part 2 — a fire is its air**
 
-6. On an open fire, set the draught wide. It is hot and burns clean —
-   and ⭐ **sheds less light than you expect**, and the description says
-   so.
-7. Starve the draught. It cools, goes sooty and **bright**, and the room
-   starts to take smoke.
+6. On an open fire, `draught wide`. It is hot and burns clean — and ⭐
+   **sheds less light than you expect**, and the description says so.
+7. `draught low`. It cools, goes sooty and **bright**, and the room
+   starts to take smoke. (⚠ The settings are the verb's *subcommands* —
+   `wide · open · half · low · banked` — because a bare positional word
+   is consumed by the object arg and never arrives. Found by driving,
+   three view shapes in. A figure belongs to the fuel trade's `char
+   <n>`, where the band is narrow enough to want one.)
 8. `cover` it and walk away. Come back later: ⭐ still in, barely
    consumed. (⚠ The verb is `cover`, not `bank` — a curfew is
    *couvre-feu*, and `banked` survives as the draught scale's floor
