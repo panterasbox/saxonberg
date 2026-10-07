@@ -352,6 +352,23 @@ suite('⭐⭐⭐ 20–25. the third damp, the lamp, and the gas you can carry ou
     expect(said.replace(/<[^>]*>/g, '')).not.toMatch(/\d/);
   }, 180_000);
 
+  it('⭐⭐ drive 20 — sink one shaft and you are in the measures', async () => {
+    // ⭐ The gas band is set against the WORKINGS: the authored drift is
+    // at −10 m and the measures start at −20, so ONE shaft reaches them.
+    // That is what makes the lesson a decision a player can reach in a
+    // session rather than honest geology nobody meets.
+    const got = await say(m, 'get pick');
+    understood(got, 'get pick');
+    const sunk = await say(m, 'sink');
+    understood(sunk, 'sink');
+    await settle(m, sunk);
+    // The shaft may refuse for a reason about the GROUND (bad back, no
+    // timber) — which is the mining build's own machinery and not this
+    // one's. What must not happen is a misunderstanding.
+    const down = await say(m, 'down');
+    understood(down, 'down');
+  }, 300_000);
+
   it('⭐⭐⭐ drive 25 — `drain` EXISTS and is afforded by the working', async () => {
     // ⚠ The verb · affordance · data · boot · arg-gate chain, all five.
     // A `drain` with no controller row answers `controller-error` every

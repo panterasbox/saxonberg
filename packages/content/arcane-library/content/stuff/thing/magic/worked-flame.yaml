@@ -22,3 +22,15 @@ data:
   lit: true
   emittedIntensity: 180
   emittedColorTemperature: 2200
+  # ⭐⭐ A gram, and it is the honest figure rather than a dodge past
+  # `lint:mass`. **A flame is incandescent GAS, and hot gas weighs
+  # something** — a hand's-breadth of it at 900 K is about this. ⚠ The
+  # thing a worked flame has no matter in is its FUEL: nothing is being
+  # consumed, which is why there is nothing to stoke and no soot. That is
+  # a different claim from the flame itself being nothing, and the
+  # distinction is exactly what the gate asks a row to make.
+  #
+  # ⭐ The glowlight mote is the contrast and stays a counted offender,
+  # correctly: light really is massless, and the gate's verdict on it is
+  # right rather than something to paper over.
+  mass: 0.001

@@ -146,6 +146,15 @@ describe("the kitchen — BUNDLE (D12)", () => {
       "/stuff/thing/items/plated-dish",
       "/stuff/thing/cutlery/horn-spoon",
       "/stuff/thing/cutlery/table-knife",
+      // ⭐⭐ **Firewood, and the fire build is why it has to be here.** A
+      // burner's fuel is a BED somebody fills now — before it, a `%`
+      // Reserve the row authored once meant a range arrived pre-fuelled
+      // and could never be fed again. So every room with a fire somebody
+      // is expected to light needs fuel they can pick up, and nine rooms
+      // did not. ⚠ LAST in the list: order matters here (the counter is
+      // populated before anything that could rest on it), and a bounded
+      // prop is a starting condition rather than a supply.
+      { template: "/stuff/thing/items/dry-log", count: 3 },
     ]);
   });
 

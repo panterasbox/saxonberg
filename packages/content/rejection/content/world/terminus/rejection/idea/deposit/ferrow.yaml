@@ -114,16 +114,24 @@ data:
   # second mine authors none, and a quarry's ground answers `null`: the
   # gas is a property of the rock, not a hazard somebody placed.
   #
-  # `belowZ: -30` is where the measures start. Above it the ground gives
-  # off nothing, which is why the adit and the shallow headings are safe
-  # and why going deep is the decision it should be. `strength: 0.14`
+  # `belowZ: -20` is where the measures start, and the number is chosen
+  # against the WORKINGS rather than in the abstract: the authored
+  # timbered drift sits at −10 m, so the gas is exactly ONE level below
+  # the deepest room anybody is handed. ⭐ That makes the lesson a
+  # decision a player can reach in a session — sink one shaft and you are
+  # in it — while keeping the adit and the drift safe, which is what
+  # makes going down mean anything. A band at −30 would have been equally
+  # honest geology and unreachable in practice, which is the same as not
+  # shipping it.
+  #
+  # `strength: 0.14`
   # means dead air at depth fills to ~14 % firedamp — well above the 5 %
   # that burns, and ⭐ **well below the share that would stop a canary
   # singing**, which is the whole design: the bird is honest and the bird
   # is answering a different question.
   gas:
     material: /stuff/idea/material/gas/firedamp
-    belowZ: -30
+    belowZ: -20
     strength: 0.14
   features:
     # ⚠ An authored PIN, and it is indistinguishable downstream from a

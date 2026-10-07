@@ -35,5 +35,17 @@ data:
     # condenser, and it works.
     - /trade/fuel/thing/retort
     - /trade/fuel/thing/condenser
+    # ⭐⭐ **Fuel, in reach of the fire.** The fire build made a burner's
+    # fuel a BED somebody fills — before it, a `%` Reserve the row
+    # authored once meant a forge arrived pre-fuelled and could never be
+    # fed again. The consequence is systemic and this is its content
+    # half: **every room with a fire somebody is expected to light needs
+    # fuel they can pick up.** Nine rooms did not.
+    #
+    # ⚠ Bounded props, never a faucet (the fuel yard's own four baskets
+    # are the precedent): a starting condition, not a supply. What
+    # restocks it is the trade that makes it.
+    - { template: /trade/quarrying/thing/coal, count: 4 }
+    - { template: /trade/fuel/thing/charcoal, count: 2 }
   cast:
     - /world/terminus/goods-yards/oilworks/agent/hand

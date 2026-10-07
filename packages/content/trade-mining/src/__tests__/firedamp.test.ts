@@ -121,11 +121,17 @@ beforeEach(() => {
 describe('the gas is a GROUND fact in a depth band', () => {
   it('⭐⭐ Ferrow gives it off below the measures and NOT above them', () => {
     const d = ferrow();
-    // ⭐ The shallow workings are safe, which is why going deep is the
-    // decision it should be rather than a flat tax on the trade.
+    // ⭐ The adit and the authored drift (−10 m) are safe, which is why
+    // going deeper is a decision rather than a flat tax on the trade.
+    expect(d.sampleAt([0, 20, 0], SEED).gas).toBeNull();
     expect(d.sampleAt([0, 20, -10], SEED).gas).toBeNull();
-    expect(d.sampleAt([0, 20, -20], SEED).gas).toBeNull();
-    const deep = d.sampleAt([0, 20, -40], SEED).gas;
+    // ⭐⭐ …and ONE level below the drift you are in it. The band is set
+    // against the WORKINGS, not in the abstract: a player sinks one
+    // shaft and meets the gas, which is what makes the lesson reachable
+    // inside a session. A band two levels down would be equally honest
+    // geology and unreachable in practice, which is the same as not
+    // shipping it.
+    const deep = d.sampleAt([0, 20, -20], SEED).gas;
     expect(deep).not.toBeNull();
     expect(deep!.materialPath).toBe(FIREDAMP);
     expect(deep!.strength).toBeGreaterThan(0);
@@ -136,7 +142,7 @@ describe('the gas is a GROUND fact in a depth band', () => {
     // A quarry's ground, or a second mine's, says nothing.
     const d = ferrow();
     (d as unknown as { gas: unknown }).gas = null;
-    for (const z of [-10, -40, -80]) {
+    for (const z of [-10, -20, -40, -80]) {
       expect(d.sampleAt([0, 20, z], SEED).gas).toBeNull();
     }
   });

@@ -1899,6 +1899,37 @@ Read first, in this order.
 
 ---
 
+## Build findings after the waves
+
+Three things the waves themselves did not cover, found while preparing
+the drive.
+
+**B26 — ⛔⛔ NINE rooms had a fire somebody is expected to light and NO
+FUEL IN REACH.** The smithy, the cookhouse, both kitchens, the smelter,
+the quarry pit, the shop floor, the bakery and the oil works. ⭐ This is
+the systemic consequence of D8 arriving as content: a `%` Reserve the
+row authored once meant a forge *arrived pre-fuelled and could never be
+fed again*, so nobody had ever had to ask where the fuel was. Making
+fuel a bed somebody fills makes that question load-bearing in every room
+with a fire. Each got a **bounded** prop (the fuel yard's own four
+baskets are the precedent) at the END of its props list — ⚠ order
+matters in the kitchen archetype, whose own comment says so.
+
+**B27 — The Ferrow gas band moved from −30 m to −20 m**, and the number
+is now set against the WORKINGS rather than in the abstract: the authored
+timbered drift sits at −10 m, so the measures are exactly one level
+below the deepest room anybody is handed. ⭐ A band at −30 is equally
+honest geology and unreachable in a session, which is the same as not
+shipping it — R6's own standard applied to a depth instead of a dial.
+
+**B28 — `lint:mass` refused the worked flame, and was right to.** A
+`mass: 0` does not satisfy it (`mass > 0`), deliberately: *matter made of
+nothing weighs nothing, silently*. ⭐ The honest answer is that a flame
+is incandescent GAS and hot gas weighs something — a gram for a
+hand's-breadth of it — and that *the thing a worked flame has no matter
+in is its FUEL*, which is a different claim. The glowlight mote stays a
+counted offender, correctly: light really is massless.
+
 ## Drive record
 
 *(appended at build time, not at plan time)*

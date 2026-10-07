@@ -655,8 +655,11 @@ build phase, before the MR opens.
    so.
 7. Starve the draught. It cools, goes sooty and **bright**, and the room
    starts to take smoke.
-8. `bank` it and walk away. Come back later: ⭐ still in, barely
-   consumed.
+8. `cover` it and walk away. Come back later: ⭐ still in, barely
+   consumed. (⚠ The verb is `cover`, not `bank` — a curfew is
+   *couvre-feu*, and `banked` survives as the draught scale's floor
+   value. The collision was worked through the ladder rather than
+   conceded; see `cover.yaml`'s header.)
 9. Light a fire in a **sealed** interior and stay with it. The air
    warns you in bands before anything lethal happens; the fire
    eventually **smothers itself**. ⭐ Do the same outdoors and neither
@@ -737,7 +740,10 @@ Observable from outside the code, by a person playing.
 4. Opening the draught makes a fire hotter, cleaner and **dimmer**;
    starving it makes it cooler, sootier and **brighter**, and the words
    say so both times.
-5. A player can **bank** a fire, leave, and come back to it still in.
+5. A player can **cover** a fire (bank it), leave, and come back to it
+   still in. ⚠ The word is `cover` because `bank` is the banking verb and
+   *it got there first* is not one of the ways to settle a verb
+   collision; `banked` stays as the value on the draught scale.
 6. A fire in a sealed interior **starves**, having warned the player in
    bands first; the same fire outdoors does not.
 7. A player firing a loaded retort with no condenser can **smell and
