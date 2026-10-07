@@ -55,10 +55,14 @@ import type Exit from '../boundary/Exit';
 
 /** The public surface of {@link CartographerMixin}. */
 export interface Cartographer {
-  /** Does this host keep a map at all? Default true; override to decline. */
+  /** Does this host keep a map at all? See the mixin's `keepsMaps`. */
   keepsMaps(): boolean;
   /** The key a claim is filed under — the person, not the body. */
   mapOwnerKey(): string;
+  /** Write down what was just made out of a place. */
+  recordSurroundings(location: Stuff, perceived: readonly Stuff[]): void;
+  /** Write down the stops a public board just gave up. */
+  recordTimetableRead(stops: readonly PublishedStop[]): void;
 }
 
 export function CartographerMixin<TBase extends MixinConstructor>(
@@ -72,17 +76,51 @@ export function CartographerMixin<TBase extends MixinConstructor>(
     /** No persistent fields. A map is a DOCUMENT, not host state. */
     static fieldMeta: FieldMeta = {};
 
-    /** @hook See {@link Perceiver.onPerceivedPlace}. */
-    public onPerceivedPlace(location: Stuff, perceived: readonly Stuff[]): void {
+    /**
+     * ⭐ **Write down what I just made out of a place** — called by
+     * {@link Perceiver.learnSurroundings}, directly, through
+     * `MixinApi.isCartographer`.
+     *
+     * ⚠⚠ **This was an optional `@hook` on `Perceiver` and should not
+     * have been.** `onPerceivedPlace` had exactly ONE implementer —
+     * this class — and the generality claimed for it was a hypothetical
+     * second map-keeper, which is the same use case. Worse, an optional
+     * hook cannot be invoked without a structural cast, so three
+     * command controllers each carried one.
+     *
+     * ⭐ The project already had a settled shape for *record what you
+     * perceived*, used twice before this build: **the perceiver calls
+     * the recorder directly** (`BeliefStore.learnIdentityOf`,
+     * `PerceptionApi.recordDiscovery`). A hook was a third shape for
+     * the same job. Now there is one.
+     *
+     * ⚠ Contrast `onTraversed` below, which STAYS a hook and deserves
+     * to: `Mobile.traverse` fires it on the mover, and it has real
+     * multiple implementers (`RespirationMixin` reassesses breathing on
+     * it). *A hook earns its keep by having more than one implementer.*
+     */
+    public recordSurroundings(
+      location: Stuff,
+      perceived: readonly Stuff[],
+    ): void {
       void this.recordPerceived(location, perceived);
     }
 
-    /** @hook See {@link Perceiver.onReadTimetable}. */
-    public onReadTimetable(stops: readonly PublishedStop[]): void {
+    /**
+     * ⭐ **Write down the stops a public board just told me about** —
+     * called by {@link Perceiver.learnTimetable}. Same story as
+     * `recordSurroundings`: this was `onReadTimetable`, a one-implementer
+     * hook.
+     */
+    public recordTimetableRead(stops: readonly PublishedStop[]): void {
       void this.recordTimetable(stops);
     }
 
-    /** @hook See {@link Mobile.onTraversed} — the edge you actually used. */
+    /**
+     * @hook See {@link Mobile.onTraversed} — the edge you actually
+     * used. ⭐ Stays a hook, unlike the two recorders above: the mover
+     * fires it from inside the move and it has other implementers.
+     */
     public onTraversed(via: Exit): void {
       void this.recordTraversal(via);
     }
@@ -157,7 +195,6 @@ export function CartographerMixin<TBase extends MixinConstructor>(
         const locality = await this.localityAddressOf(location);
         if (!locality) return;
         const now = NavigationApi.mapNow();
-        const band = 'vision';
         const claims: MapClaim[] = [
           {
             kind: 'place',
@@ -165,8 +202,7 @@ export function CartographerMixin<TBase extends MixinConstructor>(
             label: location.getTemplatePath() ?? undefined,
             name: location.getPresentation(),
             group: this.groupingAddressOf(location),
-            channel: 'perception',
-            modality: band,
+            channel: 'seen',
             firstSeen: now,
             lastSeen: now,
             recordedBy: viewerKey,
@@ -190,8 +226,7 @@ export function CartographerMixin<TBase extends MixinConstructor>(
             // they did not learn.
             to: null,
             toLabel: far ?? null,
-            channel: 'perception',
-            modality: band,
+            channel: 'seen',
             firstSeen: now,
             lastSeen: now,
             recordedBy: viewerKey,
@@ -230,7 +265,7 @@ export function CartographerMixin<TBase extends MixinConstructor>(
               place,
               label: stop.arrivalRoomPath,
               name: stop.label,
-              channel: 'publication',
+              channel: 'published',
               firstSeen: now,
               lastSeen: now,
               recordedBy: viewerKey,
@@ -268,9 +303,12 @@ export function CartographerMixin<TBase extends MixinConstructor>(
             dir: via.getDirection(),
             to,
             toLabel: via.getDestinationTemplatePath(),
-            // ⭐ Still `perception`: you walked it, which is the strongest
-            // form of having seen it.
-            channel: 'perception',
+            // ⭐⭐ `walked`, and this line used to read `perception` with
+            // a comment arguing that *"you walked it, which is the
+            // strongest form of having seen it."* You learn the hall is
+            // north by GOING north; the knowledge is navigational and
+            // the channel says so now.
+            channel: 'walked',
             firstSeen: now,
             lastSeen: now,
             recordedBy: viewerKey,

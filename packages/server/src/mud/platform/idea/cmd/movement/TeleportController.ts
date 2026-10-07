@@ -129,7 +129,7 @@ export default class TeleportController extends CommandController<TeleportModel>
       // become a reason they could not read it.
       const stops = await node.publishedStops?.();
       if (stops && MixinApi.isPerceiver(giver)) {
-        giver.perceiveTimetable(stops);
+        giver.learnTimetable(stops);
       }
       return;
     }

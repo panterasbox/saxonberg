@@ -16,34 +16,49 @@
  * dissolves anyway once a map is many claims rather than one document
  * with one date.
  *
- * So a claim carries **its own channel and band**, not one date for the
- * whole document. Three of the four channels can be wrong, and one of
- * them can lie:
+ * So a claim carries **its own channel**, not one date for the whole
+ * document — and every channel can be wrong:
  *
- * | channel | revealed by | can be wrong |
+ * | channel | how you came to know it | can be wrong |
  * |---|---|---|
- * | `perception` | you saw it | yes, if it changed |
- * | `publication` | a timetable is public | yes, if a station went dark |
- * | `told` | somebody said so | ⚠ yes, and they may have LIED |
- * | `bought` | a transaction | yes, and that is the seller's reputation |
+ * | `walked` | you went that way | yes, if it changed since |
+ * | `seen` | you made it out from where you stood | yes, and sooner |
+ * | `published` | a public timetable said so | yes, if a station went dark |
  *
- * ⚠ `told` and `bought` are **vocabulary with no writer** in this
- * build. They are here because the claim shape has to admit them from
- * the start — retrofitting provenance onto a store that assumed one
- * channel is the expensive version — and because `told`'s attribution
- * (somebody lied to you, and the record should say who) belongs with
- * the accountability ledger rather than here.
+ * ⭐⭐ **These are NAVIGATIONAL channels, and they used to be
+ * perceptual ones.** The vocabulary was `perception` · `publication` ·
+ * `told` · `bought`, and three things were wrong with it at once:
+ *
+ *   - ⚠⚠ **`perception` covered BOTH looking and walking**, with the
+ *     writer apologizing for it in a comment — *"still `perception`:
+ *     you walked it, which is the strongest form of having seen it."* A
+ *     comment arguing that walking is a kind of seeing is the tell. You
+ *     learn the hall is north by **going** north.
+ *   - ⭐ **The renderer was already compensating**: `MapController`
+ *     mapped `channel === 'perception'` to the literal word
+ *     *"walked"*. The view layer had been quietly translating a wrong
+ *     model, which is the strongest evidence it was wrong.
+ *   - ⛔ **`told` and `bought` had no writer** — speculative vocabulary
+ *     admitted on the argument that retrofitting provenance is
+ *     expensive. Cut: an axis with two live values and two imaginary
+ *     ones teaches a reader the wrong shape, and the retrofit argument
+ *     is cheaper to make again later than a wrong vocabulary is to
+ *     unlearn. `told`'s attribution (somebody lied to you, and the
+ *     record should say who) belongs with the accountability ledger
+ *     anyway.
+ *
+ * ⛔ **And two fields are gone with it.** `modality` was written as the
+ * hardcoded literal `'vision'` — from a local variable misleadingly
+ * named `band` — and read by **nothing**; `band` itself was declared
+ * and never written at all. They were there to make a navigational
+ * record look like it participated in the sense system. A map does not
+ * know what a modality is.
  *
  * A value-object module: the shape and the vocabulary, no behaviour.
  */
 
-/** How a player came to believe something about a place. */
-export const MAP_CHANNELS = [
-  'perception',
-  'publication',
-  'told',
-  'bought',
-] as const;
+/** How a player came to know something about a place. */
+export const MAP_CHANNELS = ['walked', 'seen', 'published'] as const;
 
 export type MapChannel = (typeof MAP_CHANNELS)[number];
 
@@ -81,10 +96,6 @@ export interface MapClaim {
   /** For an edge: what the far side was called, when `to` is unknown. */
   toLabel?: string | null;
   channel: MapChannel;
-  /** Which sense carried it. `vision` for everything in this build. */
-  modality?: string;
-  /** The awareness band at the moment of the observation. */
-  band?: string;
   /** Game-second of the first observation of this exact claim. */
   firstSeen: number;
   /** Game-second of the most recent one. Bumped, never replaced. */

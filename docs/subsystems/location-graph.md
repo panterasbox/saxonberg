@@ -315,10 +315,45 @@ Two optional `@hook`s on the `Perceiver` interface —
 Declaring an optional hook claims nothing of a composer that does not
 implement it, so an NPC perceiver stays a no-op.
 
-⭐⭐⭐ **A hook is the EXTENSION surface and never the call surface.**
-`Perceiver.perceivePlace(location, occupants?)` and
-`perceiveTimetable(stops)` are what a verb calls; the two `on…` hooks
-are what a body implements. The build shipped without that distinction
+⭐⭐⭐ **And then both hooks were deleted, because neither earned its
+keep.** `Perceiver.learnSurroundings(location, occupants?)` and
+`learnTimetable(stops)` are what a verb calls, and they reach each
+recorder **directly** through `MixinApi.isCartographer` /
+`isBeliefStore` — the same shape as the two recorders that predate this
+build (`BeliefStore.learnIdentityOf`, `PerceptionApi.recordDiscovery`).
+
+⚠⚠ `onPerceivedPlace` and `onReadTimetable` had **one implementer
+between them** (`CartographerMixin`), and the generality claimed for
+them was a hypothetical second map-keeper — the same use case wearing a
+different hat. An optional hook also cannot be invoked without a
+structural cast, which is where the three controller casts came from.
+⭐ **A hook earns its keep by having more than one implementer**:
+`Mobile.onTraversed` does (the cartographer and `RespirationMixin`), so
+it stays a hook; these did not.
+
+⛔ **And the names were wrong.** What is recorded is **navigational** —
+*I was here*, *this way leads there* — not perceptual. The method is
+`learn*` to sit beside `learnIdentityOf`; *"surroundings"* is the
+game's own word for the room-level read (*"Your surroundings are
+indistinct."*). The claim's channels are `walked` · `seen` ·
+`published`, and the two fields that dressed the record as sense data
+are gone: `modality` was the hardcoded literal `'vision'` (from a local
+variable misleadingly named `band`) that **nothing read**, and `band`
+itself was declared and **never written**.
+
+⚠⚠ The tell that the old vocabulary was wrong: `MapController` mapped
+`channel === 'perception'` to the literal word **"walked"** — the view
+layer had been translating a model that called walking a kind of
+seeing, and the writer apologized for it in a comment. The translation
+is deleted; the channels are the words, so a new channel needs no edit
+in the renderer. ⭐ *Walked* and *seen* are now different claims that
+both render — previously unrepresentable, since one channel covered
+both and printed "walked" either way.
+
+⛔ `told` and `bought` are **cut**. They were vocabulary with no
+writer, kept on the argument that retrofitting provenance is expensive;
+an axis with two live values and two imaginary ones teaches the wrong
+shape, and `told`'s attribution belongs with the accountability ledger. The build shipped without that distinction
 and the cost was immediate: `look`, `look`-in-the-dark and `sense` each
 fired `onPerceivedPlace` **through its own structural cast**, each
 carried its own copy of the same ten-line ordering comment, and the
@@ -332,7 +367,7 @@ repeat-perception write); `sense` never did. So the one verb an
 arriving body is forced into (`autoSenseOnArrival` →
 `forceCommand('sense')`, for players and NPCs alike) noticed the room
 and nobody in it. Both halves of the perception moment — the place and
-the people — now live in `perceivePlace`, so a fourth verb that
+the people — now live in `learnSurroundings`, so a fourth verb that
 describes a place gets them by calling one method.
 
 ⭐ `Mobile.traverse` is the precedent and was right all along: it fires
@@ -394,12 +429,12 @@ is a capability, *reading* one is a person's — the document is under
 `/home/<key>` and NPCs do not type. Keeping them apart is what lets an
 NPC guide keep a map without being handed a verb it can never use.
 
-⭐ `perceivePlace` runs `obviousExitsFor(viewer)` **before** it fires
-the hook — *the perception moment*. The list has already been filtered
+⭐ `learnSurroundings` runs `obviousExitsFor(viewer)` **before** it
+calls any recorder — *the perception moment*. The list has already been filtered
 through the perception gate, so the hook **cannot learn about an exit
 the viewer could not see**. That is what makes the firewall structural
 rather than policed, and it is now guaranteed by one method rather than
-by three controllers each remembering the order. The method also
+by three controllers each remembering the order. It also
 **returns** that list, because it is the same list the verb renders and
 computing it twice is how the transcript and the map could ever
 disagree. It fires in the dark too: you cannot describe a pitch-black

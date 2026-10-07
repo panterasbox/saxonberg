@@ -86,7 +86,7 @@ describe('⭐⭐ a host that is not an Avatar keeps a map', () => {
   it('composing the mixin is the whole of it', async () => {
     const guide = makeStuffAtPath(() => new Guide(), GUIDE_ROW, GUIDE_ID);
 
-    guide.onPerceivedPlace(hall() as unknown as Stuff, []);
+    guide.recordSurroundings(hall() as unknown as Stuff, []);
     await new Promise((r) => setTimeout(r, 0));
 
     expect(recorded).toHaveLength(1);
@@ -98,13 +98,18 @@ describe('⭐⭐ a host that is not an Avatar keeps a map', () => {
     // its handle, and the conversion is the mixin's.
     expect(place.place).toBe(HALL);
     expect(place.name).toBe('the hall');
-    expect(place.channel).toBe('perception');
+    // ⭐ `seen`, not `perception`: this claim came from LOOKING. The
+    // channel vocabulary is navigational now — `walked` · `seen` ·
+    // `published` — because the old `perception` covered both looking
+    // and walking and the renderer was translating it to the word
+    // "walked" regardless.
+    expect(place.channel).toBe('seen');
     expect(place.recordedBy).toBe(GUIDE_ID);
   });
 
   it('⭐ declines in one override, and nothing is written', async () => {
     const dull = makeStuffAtPath(() => new Incurious(), GUIDE_ROW, GUIDE_ID);
-    dull.onPerceivedPlace(hall() as unknown as Stuff, []);
+    dull.recordSurroundings(hall() as unknown as Stuff, []);
     await new Promise((r) => setTimeout(r, 0));
     expect(recorded).toEqual([]);
   });
@@ -170,7 +175,7 @@ describe('the policy hooks are the host\'s to answer', () => {
     // Nowhere to file is not an error; it is an answer.
     const loose = makeStuffAtPath(() => new Guide(), GUIDE_ROW);
     vi.spyOn(loose, 'mapOwnerKey').mockReturnValue('');
-    loose.onPerceivedPlace(hall() as unknown as Stuff, []);
+    loose.recordSurroundings(hall() as unknown as Stuff, []);
     await new Promise((r) => setTimeout(r, 0));
     expect(recorded).toEqual([]);
   });
@@ -186,7 +191,7 @@ describe('⚠ a place with no durable handle writes NO claim', () => {
     const sat = makeStuffAtPath(() => new Satellite(), '/test/carto/sat');
     expect((sat as unknown as Stuff).getDurableHandle()).toBeNull();
 
-    guide.onPerceivedPlace(sat as unknown as Stuff, []);
+    guide.recordSurroundings(sat as unknown as Stuff, []);
     await new Promise((r) => setTimeout(r, 0));
     expect(recorded).toEqual([]);
   });
@@ -202,7 +207,7 @@ describe('⚠ a map is a convenience — it never fails the act', () => {
     // to report an error to; failing somebody's `look` for a map would
     // be the wrong trade.
     expect(() =>
-      guide.onPerceivedPlace(hall() as unknown as Stuff, []),
+      guide.recordSurroundings(hall() as unknown as Stuff, []),
     ).not.toThrow();
     await new Promise((r) => setTimeout(r, 0));
   });

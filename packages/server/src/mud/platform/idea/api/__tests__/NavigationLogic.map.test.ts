@@ -31,7 +31,7 @@ function claim(over: Partial<MapClaim> = {}): MapClaim {
   return {
     kind: 'place',
     place: HALL,
-    channel: 'perception',
+    channel: 'seen',
     firstSeen: 100,
     lastSeen: 100,
     recordedBy: VIEWER,
@@ -172,18 +172,18 @@ describe('⭐⭐ the growth rule', () => {
   });
 
   it('⭐ the CHANNEL is part of the key — provenance is not collapsible', async () => {
-    // "You saw an exit east" and "somebody told you there is one" are
-    // two different claims about the world.
+    // "You saw it from the doorway" and "a board said so" are two
+    // different claims about the world, and both stand.
     await NavigationApi.recordPlace(VIEWER, LOCALITY, [
-      claim({ channel: 'perception' }),
+      claim({ channel: 'seen' }),
     ]);
     await NavigationApi.recordPlace(VIEWER, LOCALITY, [
-      claim({ channel: 'publication', firstSeen: 200, lastSeen: 200 }),
+      claim({ channel: 'published', firstSeen: 200, lastSeen: 200 }),
     ]);
     expect(saved?.claims).toHaveLength(2);
     expect(saved?.claims.map((c) => c.channel).sort()).toEqual([
-      'perception',
-      'publication',
+      'published',
+      'seen',
     ]);
   });
 

@@ -156,11 +156,14 @@ export default class MapController extends CommandController<MapModel> {
       for (const view of byGroup.get(group)!.sort((a, b) =>
         (a.name || a.place).localeCompare(b.name || b.place),
       )) {
-        const how = view.channels.has('perception')
-          ? view.channels.size > 1
-            ? 'walked, also published'
-            : 'walked'
-          : [...view.channels].join(', ');
+        // ⭐ The channels ARE the words now. This used to translate
+        // `perception` into the literal string "walked" and hardcode
+        // `'walked, also published'` for the two-channel case — a view
+        // layer quietly compensating for a data model that called
+        // walking a kind of perception. The claim's vocabulary is
+        // navigational (`walked` · `seen` · `published`), so the render
+        // is a join and a new channel needs no edit here.
+        const how = [...view.channels].sort().join(', ');
         lines.push(`${indent}${view.name || view.place} (${how})`);
         lines.push(...MapController.renderEdges(view, `${indent}  `));
       }
@@ -192,9 +195,32 @@ export default class MapController extends CommandController<MapModel> {
       const claims = byDir
         .get(dir)!
         .sort((a, b) => a.lastSeen - b.lastSeen);
+      // ⚠⚠ Keyed on `toLabel` ALONE, and that matters twice over.
+      //
+      // `toLabel` is the destination's template path — authored, always
+      // present. `to` is its durable handle *if the far room happened
+      // to be resident when the observation was taken*, which is a fact
+      // about residency, not a claim about the world. With `to` in this
+      // key, one edge known two ways rendered as TWO IDENTICAL LINES
+      // (`north → crossing` twice, both "recorded just now") whenever
+      // the two observations straddled an eviction.
+      //
+      // ⭐ The same defect was fixed in `NavigationLogic.growMap`'s key
+      // and MISSED here — and splitting `perception` into `walked` and
+      // `seen` is what exposed it, because the channel is part of the
+      // growth key, so one edge now legitimately stores two claims and
+      // the renderer had to decide what they mean.
+      //
+      // ⭐⭐ **A disagreement is a different FAR SIDE, never a different
+      // channel.** *I saw it* and *I walked it* are two ways of knowing
+      // one edge; east→yard and east→cellar are two claims about the
+      // world. So same label collapses (newest wins for staleness) and
+      // a differing label still appends its own line.
       const distinct = new Map<string, MapClaim>();
       for (const claim of claims) {
-        distinct.set(`${claim.to ?? ''}|${claim.toLabel ?? ''}`, claim);
+        const key = claim.toLabel ?? '';
+        const held = distinct.get(key);
+        if (!held || claim.lastSeen >= held.lastSeen) distinct.set(key, claim);
       }
       if (distinct.size === 1) {
         const only = [...distinct.values()][0]!;

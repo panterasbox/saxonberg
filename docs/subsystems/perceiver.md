@@ -98,36 +98,54 @@ touch *and* vision) is why the split ships before any literacy.
 
 ## Methods
 
-⭐⭐⭐ **The perception moment — and the call/hook distinction.**
+⭐⭐⭐ **The surroundings read — and why it is not a hook.**
 
 | member | kind | who calls it |
 |---|---|---|
-| `perceivePlace(location, occupants?)` | method | a verb that is describing a place |
-| `perceiveTimetable(stops)` | method | a verb that just rendered a public board |
-| `onPerceivedPlace?` | `@hook` | the mixin, on the host |
-| `onReadTimetable?` | `@hook` | the mixin, on the host |
+| `learnSurroundings(location, occupants?)` | method | a verb that is describing a place |
+| `learnTimetable(stops)` | method | a verb that just rendered a public board |
 
-`perceivePlace` runs the perception gate (`obviousExitsFor(viewer)`),
-records who the viewer saw (`learnIdentityOf`, when the host is a
-`BeliefStore`), fires the hook, and **returns the gated exits** — the
-same list the verb renders, so the two cannot disagree.
+`learnSurroundings` runs the perception gate
+(`obviousExitsFor(viewer)`), records who the viewer saw
+(`learnIdentityOf`, when the host is a `BeliefStore`), records where
+they are and the ways out (`recordSurroundings`, when the host is a
+`Cartographer`), and **returns the gated exits** — the same list the
+verb renders, so the two cannot disagree.
 
-⚠⚠ **An `@hook` is the extension surface and never the call surface.**
-This method exists because the location-graph build shipped without
-that line: `look`, `look`-in-the-dark and `sense` each fired
-`onPerceivedPlace` through its own structural cast, each re-assembled
-the gate and the `Exitable` narrowing, and *"the framework"* that an
-`@hook` is supposed to be invoked by had become three command
-controllers. They had already diverged — `look` recorded who it saw,
-`sense` did not, so the one verb an arriving body is forced into
-(`autoSenseOnArrival`) noticed the room and nobody in it.
+⚠⚠ **It reaches each recorder DIRECTLY, narrowed by `MixinApi.isX`**,
+and that is the project's settled shape for *record what you
+perceived*: `BeliefStore.learnIdentityOf` and
+`PerceptionApi.recordDiscovery` both predate this and both work that
+way.
 
-⭐ `Mobile.traverse` is the shape to copy and always was: it fires
-`onTraversed` on the mover from inside the move, via a module-local
-optional-hook dispatcher, and no controller has ever needed to know
-that `CartographerMixin` exists. `Perceiver` has the same dispatcher
-for the same reason. **The verb decides WHEN a place is perceived;
-what perceiving one entails is the body's.**
+⛔ **There were two optional `@hook`s here and they are gone.**
+`onPerceivedPlace` and `onReadTimetable` had **one implementer between
+them** (`CartographerMixin`), and the generality claimed for them was a
+hypothetical second map-keeper — the same use case. An optional hook
+also cannot be invoked without a structural cast, which is where three
+controllers' casts came from: `look`, `look`-in-the-dark and `sense`
+each fired the hook through its own, each re-assembled the gate and the
+`Exitable` narrowing, and they had **already diverged** (`look`
+recorded who it saw, `sense` did not — so the one verb an arriving body
+is forced into noticed the room and nobody in it).
+
+⭐⭐ **A hook earns its keep by having more than one implementer.**
+`Mobile.onTraversed` does — the cartographer and `RespirationMixin`
+both implement it — so it stays a hook, fired on the mover from inside
+the move, and no controller has ever needed to know the cartographer
+exists. These two did not, so they became calls.
+
+⛔ **And the naming was wrong.** This was `perceivePlace`. What gets
+recorded is **navigational** — *I was here*, *this way leads there* —
+not perceptual, so the method is `learn*` to sit beside
+`learnIdentityOf`, and *"surroundings"* is the game's own word for the
+room-level read (`"Your surroundings are indistinct."`). The gate
+itself genuinely is perception, which is why this lives on `Perceiver`:
+a hidden exit is **absent** from the list rather than filtered out
+later, and that is what makes the map's evidence firewall structural.
+See [location-graph.md](./location-graph.md) for the claim channels
+(`walked` · `seen` · `published`) and the two sense-shaped fields that
+were deleted with the old vocabulary.
 
 ## Scryable
 

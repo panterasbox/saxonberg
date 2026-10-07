@@ -169,6 +169,7 @@ import type { Soul } from '../lib/social/Soul';
 import type { WarrenMember } from '../lib/location/WarrenMember';
 import type { Offstage } from '../lib/employment/Offstage';
 import type { BeliefStore } from '../lib/belief/BeliefStore';
+import type { Cartographer } from '../lib/location/Cartographer';
 import type { Disguisable } from '../lib/disguise/Disguisable';
 import type { DisguiseBearing } from '../lib/disguise/Disguise';
 import type { Status } from '../lib/status/Status';
@@ -1745,6 +1746,18 @@ export class MixinApi {
 
   public static isBeliefStore(obj: Stuff): obj is Stuff & BeliefStore {
     return this.hasMixin(obj, Mixins.BeliefStore);
+  }
+
+  /**
+   * ⭐ A host that keeps a map of the places it comes to know. The
+   * perceiver narrows with this and calls `recordSurroundings` /
+   * `recordTimetableRead` directly — the same shape as
+   * `isBeliefStore` + `learnIdentityOf` beside it, which is the point:
+   * map-keeping used to be reached through a one-implementer optional
+   * `@hook` and a structural cast instead.
+   */
+  public static isCartographer(obj: Stuff): obj is Stuff & Cartographer {
+    return this.hasMixin(obj, Mixins.Cartographer);
   }
 
   public static isDisguisable(obj: Stuff): obj is Stuff & Disguisable {

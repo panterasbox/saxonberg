@@ -238,7 +238,7 @@ export default class LookController extends CommandController<LookModel> {
       // the room, but you have been here and you can feel the ways out.
       // A map of a pitch-black room you stood in is honest knowledge.
       const perceivedDark = MixinApi.isPerceiver(actor)
-        ? actor.perceivePlace(location)
+        ? actor.learnSurroundings(location)
         : [];
       if (hasExits) {
         const exitsLine = this.formatExits(perceivedDark);
@@ -310,9 +310,9 @@ export default class LookController extends CommandController<LookModel> {
     // which are the same ones rendered below, because computing them
     // twice is how the transcript and the map could ever disagree.
     // The verb's business is WHEN a place is perceived; what that
-    // entails is the body's. See `Perceiver.perceivePlace`.
+    // entails is the body's. See `Perceiver.learnSurroundings`.
     const perceived = MixinApi.isPerceiver(actor)
-      ? actor.perceivePlace(location, visibleContents)
+      ? actor.learnSurroundings(location, visibleContents)
       : [];
     if (hasExits) {
       const exitsLine = this.formatExits(perceived);

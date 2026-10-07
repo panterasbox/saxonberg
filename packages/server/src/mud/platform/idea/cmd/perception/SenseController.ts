@@ -195,9 +195,9 @@ export default class SenseController extends CommandController<SenseModel> {
     // which are the same ones rendered below, because computing them
     // twice is how the transcript and the map could ever disagree.
     // The verb's business is WHEN a place is perceived; what that
-    // entails is the body's. See `Perceiver.perceivePlace`.
+    // entails is the body's. See `Perceiver.learnSurroundings`.
     const perceived = MixinApi.isPerceiver(actor)
-      ? actor.perceivePlace(location, visibleContents)
+      ? actor.learnSurroundings(location, visibleContents)
       : [];
     if (hasExits) {
       const exitsLine = this.formatExits(perceived);

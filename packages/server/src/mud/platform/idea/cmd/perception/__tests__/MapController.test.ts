@@ -72,7 +72,7 @@ function claim(over: Partial<MapClaim> = {}): MapClaim {
   return {
     kind: 'place',
     place: HALL,
-    channel: 'perception',
+    channel: 'seen',
     firstSeen: 100,
     lastSeen: 100,
     recordedBy: VIEWER_ID,
@@ -155,7 +155,82 @@ describe('one locality', () => {
       docOf([claim({ name: 'the hall' })]),
     ]);
     await run(reader(), 'test/mapville');
-    expect(said.join('\n')).toMatch(/the hall \(walked\)/);
+    expect(said.join('\n')).toMatch(/the hall \(seen\)/);
+  });
+
+  it('⚠⚠ one edge known TWO WAYS renders ONCE — channel is not disagreement', async () => {
+    /*
+     * The live regression that splitting `perception` into `walked` and
+     * `seen` exposed. The channel is part of the growth key, so one
+     * edge legitimately stores two claims — and the renderer keyed
+     * `distinct` on `to|toLabel`, where `to` is populated only if the
+     * far room was resident. Straddle an eviction and the map printed
+     * `north → crossing` TWICE, both "recorded just now".
+     *
+     * ⭐ Same `to`-is-a-residency-artifact defect as `growMap`'s key,
+     * fixed there and missed here. A disagreement is a different FAR
+     * SIDE, never a different channel.
+     */
+    vi.spyOn(NavigationApi, 'readMap').mockResolvedValue([
+      docOf([
+        claim({ name: 'the hall' }),
+        claim({
+          kind: 'edge',
+          dir: 'north',
+          channel: 'seen',
+          to: null,
+          toLabel: '/test/map/zone/crossing',
+        }),
+        claim({
+          kind: 'edge',
+          dir: 'north',
+          channel: 'walked',
+          to: '/test/map/zone/crossing',
+          toLabel: '/test/map/zone/crossing',
+          lastSeen: 300,
+        }),
+      ]),
+    ]);
+    await run(reader(), 'test/mapville');
+    const lines = said.join('\n').split('\n').filter((l) => l.includes('north'));
+    expect(lines).toHaveLength(1);
+  });
+
+  it('⭐ but a differing FAR SIDE still appends its own line', async () => {
+    vi.spyOn(NavigationApi, 'readMap').mockResolvedValue([
+      docOf([
+        claim({ name: 'the hall' }),
+        claim({
+          kind: 'edge',
+          dir: 'east',
+          toLabel: '/test/map/zone/yard',
+        }),
+        claim({
+          kind: 'edge',
+          dir: 'east',
+          toLabel: '/test/map/zone/cellar',
+          lastSeen: 400,
+        }),
+      ]),
+    ]);
+    await run(reader(), 'test/mapville');
+    const lines = said.join('\n').split('\n').filter((l) => l.includes('east'));
+    expect(lines).toHaveLength(2);
+  });
+
+  it('⭐⭐ WALKED and SEEN are different claims, and both render', async () => {
+    // Previously unrepresentable: one `perception` channel covered
+    // both, and the renderer printed "walked" either way — so a place
+    // you had only glimpsed from a doorway read as one you had been
+    // inside. Two claims, two words, joined.
+    vi.spyOn(NavigationApi, 'readMap').mockResolvedValue([
+      docOf([
+        claim({ name: 'the hall', channel: 'walked' }),
+        claim({ name: 'the hall', channel: 'seen', lastSeen: 200 }),
+      ]),
+    ]);
+    await run(reader(), 'test/mapville');
+    expect(said.join('\n')).toMatch(/the hall \(seen, walked\)/);
   });
 
   it('⭐ a PUBLISHED place reads differently from a walked one', async () => {
@@ -165,14 +240,18 @@ describe('one locality', () => {
         claim({
           place: '/test/map/far',
           name: 'somewhere far',
-          channel: 'publication',
+          channel: 'published',
         }),
       ]),
     ]);
     await run(reader(), 'test/mapville');
     const text = said.join('\n');
-    expect(text).toMatch(/the hall \(walked\)/);
-    expect(text).toMatch(/somewhere far \(publication\)/);
+    // ⭐ The channels ARE the words. This asserted `(walked)` for a
+    // claim whose channel was `perception` — the renderer translated
+    // it — and `(publication)` for the other, so the two halves of one
+    // render disagreed about whether channels were display strings.
+    expect(text).toMatch(/the hall \(seen\)/);
+    expect(text).toMatch(/somewhere far \(published\)/);
   });
 
   it('⭐ groups by the address the CONTENT declares', async () => {
