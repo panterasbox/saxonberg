@@ -2,8 +2,8 @@
 
 > **Status: PARTIAL** — the carcass chain and the butchery build both
 > shipped → [butchery.md](../../subsystems/butchery.md)
-> **Left:** ⛔ **three drive checkpoints CONJURE their inputs** (see
-> below — the build's own finding 9, never fully applied) · poultry cuts
+> **Left:** ⛔⛔ **BEESWAX has no supply in the realm** — the chandlery's
+> prose sells wax candles the world cannot make (see below) · poultry cuts
 > (the biped plan names no muscles) ·
 > dry-aging on the hook · trimming as its own verb · species-adjusted
 > `partArea` · horn, glue and gelatin — three sinkless products with
@@ -54,6 +54,124 @@ So the work is **a tailoring design session**, not a verb: how `cut` and
 when a cloth pattern is a bolt and a measurement. Until then the recipe
 header says it is unmakeable and the carcass drive **asserts** `tailor`
 is absent, so the gap is stated aloud rather than silent.
+
+---
+
+## ⛔⛔ `buy <two-word good>` is BROKEN — and it is not this build's
+
+A product defect, found by the drive, owned by retail.
+
+```
+buy dog loaf
+→ "a loaf of bread isn't a shelf you can trade from"   [validator-failed]
+```
+
+`buy.yaml` declares **`thing` (a string)** and then **`counter` (an
+optional object, `prepositions: [from]`, with a default)**. Positionals
+bind in declared order and nothing stops `counter` binding positionally
+when no `from` is present — so `thing` took *"dog"*, `counter` took
+*"loaf"*, that resolved to a loaf on the counter, and the shelf validator
+refused it.
+
+⚠⚠ **Every multi-word good in the game is affected.** This one bakery
+sells *dog loaf* and *lean loaf*; the refusal a player gets names a shelf
+they never mentioned, which is the worst kind of wrong answer — it
+describes a mechanism the player was not using.
+
+⭐ It is the same failure class CLAUDE.md records for the mill (*"`mill
+wheat 0.72` handed the number to the instrument"*), and the same remedy
+applies: a later positional that can swallow part of an earlier one needs
+either a required preposition or a greedy first arg. `harvest`/`buy`-shaped
+verbs with a trailing optional object are the population to check.
+
+⚠ The drive works around it with `dogbread` — one of the row's own
+keywords, which the binder cannot split — because a drive should not be
+the thing that fixes a kernel verb's grammar.
+→ `retail` / the retail slate.
+
+### ⚠ And a third note kind `refusedFor` cannot see
+
+`validator-failed` joins `command-rejected` in the set of outcomes the
+drive's `refusedFor()` helper reads as *success*, because it only looks
+for `controller-rejected`. That is how `buyOrWait` reported *bought* while
+inventory went 6 → 6. ⭐ The helper answers a reason string now and the
+checkpoint asserts on the note kinds AND the prose, which is what turned
+three runs of guessing into one decisive message.
+
+---
+
+## ⚠ Two different prompt failures, and I conflated them
+
+⚠⚠ **Recorded with a correction, because the first write-up of this was
+wrong.** There are TWO distinct failures behind the drive's prompt
+errors, and treating them as one cost several runs.
+
+**1. A genuine ambiguity.** With the payload visible, the prompt is real:
+
+```
+"label":"which target?","matches":[
+  {"displayName":"the body of a sheep"},
+  {"displayName":"a sheep"}]
+```
+
+A bare `look` in a yard holding both a live drafted sheep and an earlier
+carcass has two candidates, and the harness reports that correctly —
+*"raised a PROMPT and is waiting for an answer, not hanging"*. Nothing
+is wrong with the harness here; the drive simply put two sheep in one
+room and then used an unqualified target.
+
+**2. A misleading message when there is NO prompt.** The other shape is
+`(promptId=undefined, match=undefined)`, which means `awaitPrompt(5_000)`
+**timed out** — there was no prompt at all — and the helper nevertheless
+throws *"raised a prompt this helper cannot answer … give the command a
+less ambiguous target."* That advice is wrong for this case and sent the
+sweep hunting ambiguity that did not exist.
+
+⭐ **The lesson is mine, not the harness's:** I generalised from the
+second shape to the first and wrote down that the harness lies. It does
+not, in the case that actually recurs most — it lies only when
+`awaitPrompt` times out, and distinguishing *no prompt* from *an
+unanswerable prompt* is the narrow fix worth making.
+→ `wire-suite-growth-slate`.
+
+⭐⭐ And the drive-side discipline that falls out of it: **name targets
+that cannot be ambiguous, and read notes with `cmd` rather than prose**
+when the claim is about notes. A room this drive has been butchering in
+accumulates sheep-shaped things by design.
+
+---
+
+## ⛔⛤ BEESWAX is obtainable NOWHERE in the realm — the shop sells what the world cannot make
+
+Found while removing the last conjured input from the drive, and it is
+worth more than the checkpoint that was hiding it.
+
+The chandlery's own floor describes its stock:
+
+> *"Wicks hung in rows from a rod … The pale **beeswax** ones are a tenth
+> of the number and the whole of the front row, which tells you exactly
+> what each kind is worth without anybody saying."*
+
+And `beeswax` appears in **no props list, no stock line and no counter**
+anywhere in `content/*/content/world`. The only way the drive could get a
+cake was to conjure one, which is why the conjuring went unnoticed: it
+was papering over a missing supply chain.
+
+⚠⚠ **This is exactly the dead end the carcass chain existed to close** —
+a product with a sink and no source — surviving in the one half of the
+pack nobody drove. The tallow leg is whole (carcass → suet →
+`render-tallow` → the knacker's crock → the chandler's pot), and the wax
+leg stops at a hive nobody can reach from here.
+
+⭐ The fix is **apiculture's**, not butchery's: `crush-comb` already makes
+a cake, and what is missing is a counter that sells one, or a hive in
+reach of the valley. → `apiculture-slate` / `rendering-slate`.
+
+⭐⭐ Meanwhile the CLAIM is not untested: *one recipe, two fats* is
+unit-proven in `CraftingLogic.dipped.test.ts` (*a pot of WAX dips a candle
+made of beeswax* beside *the SAME recipe over a pot of tallow*), through
+the real resolve. The drive owns reachability, and it now proves the
+reachable half end to end and says plainly why the other half stops.
 
 ---
 

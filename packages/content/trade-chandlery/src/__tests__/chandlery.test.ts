@@ -20,6 +20,7 @@ import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import YAML from 'yaml';
 import Candle from '../thing/Candle';
+import DipPot from '../thing/DipPot';
 import Lamp from '@saxonberg/server/mud/platform/thing/Lamp';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { makeStuff } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
@@ -138,6 +139,36 @@ describe('one recipe, and the empty outputMaterial IS the feature', () => {
 
 describe('melt-wax — a STEP of the dip, not a verb of its own', () => {
   const melt = recipe('melt-wax');
+
+  it('⭐⭐⭐ something AFFORDS the view — the pack was unreachable without it', () => {
+    // ⚠⚠⚠ **The chandlery shipped a verb nothing conferred.** The
+    // `dip-pot` row named the kernel's `CraftVessel`, and a kernel class
+    // cannot know a pack's view exists — so `dip` was an UNKNOWN VERB
+    // and no player could make a candle. The **affordance** link of the
+    // five, failing closed and silent.
+    //
+    // ⚠ And the drive passed it: checkpoint 14–15 asserted only that the
+    // refusal was not `no-recipe` and not `not-learned`, and an unknown
+    // verb is neither. *A vacuous assertion looks like a passing one.*
+    //
+    // ⭐ A static on the class, never a row key — a row's
+    // `commandContributions:` is dead silently. One entry carries BOTH
+    // words, because `melt` is an alias on the view rather than a second
+    // verb: conferring the VIEW is what makes both sayable.
+    const view = 'trade/chandlery/cmd/chandlery/dip.yaml';
+    expect(DipPot.commandContributions.environment).toContain(view);
+    expect(DipPot.commandContributions.peers).toContain(view);
+
+    // ⚠ And the ROW must name this class, or the static is unreachable
+    // substrate — the half of the bug that a class alone does not fix.
+    const row = YAML.parse(
+      readFileSync(
+        join(PACK, 'content', 'trade', 'chandlery', 'thing', 'dip-pot.yaml'),
+        'utf8',
+      ),
+    ) as { class?: string };
+    expect(row.class).toBe('/trade/chandlery/thing/DipPot');
+  });
 
   it('⭐⭐⭐ `melt` is an ALIAS on `dip`, and ships no view of its own', () => {
     // It shipped as a second verb for one build, on the argument that the

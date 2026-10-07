@@ -415,16 +415,39 @@ async function ensureDaylight(s: Session): Promise<void> {
  * shop is a stocked one. The retry is one game day, which is what the
  * sweep runs on.
  */
-async function buyOrWait(s: Session, good: string): Promise<boolean> {
+/**
+ * ⚠⚠⚠ **It reports the REASON, not a boolean, and that is a bug fix.**
+ *
+ * This returned `true` whenever `refusedFor()` was null — and
+ * `refusedFor` reads only `controller-rejected` notes. So a
+ * **`command-rejected`** outcome (an unknown verb, a bind failure, a
+ * missing arg) left the reason null and the helper answered *bought*
+ * while nothing had been bought. A vacuous pass, the same shape as the
+ * `dip` checkpoint that hid an unreachable verb for a whole build.
+ *
+ * ⭐ Now it answers `null` for a real purchase and the reason string
+ * otherwise, so a caller can say what went wrong instead of asserting
+ * on a boolean that could not fail.
+ */
+async function buyOrWait(s: Session, good: string): Promise<string | null> {
+  let last = 'no attempt';
   for (let i = 0; i < 3; i += 1) {
     const bought = await say(s, `buy ${good}`);
+    const kinds = noteKinds(bought);
     const reason = refusedFor(bought);
-    if (reason === null) return true;
-    if (reason !== 'sold-out' || !isOwnedTestWorld()) return false;
+    const said = (await bought.said()).toLowerCase();
+    // ⚠ A `command-rejected` is a FAILURE even though `refusedFor` is
+    // blind to it — that blindness is what made this helper lie.
+    if (kinds.includes('command-rejected')) {
+      return `command-rejected: ${said}`;
+    }
+    if (reason === null) return null;
+    last = `${reason}: ${said}`;
+    if (reason !== 'sold-out' || !isOwnedTestWorld()) return last;
     await advance('1 day', s);
     await ensureDaylight(s);
   }
-  return false;
+  return last;
 }
 
 async function walk(s: Session, route: readonly string[]): Promise<void> {
@@ -1042,89 +1065,268 @@ suite('⚠⚠⚠ 13. the jerkin — AC1 is UNMET, and that is the honest answer'
 
 /* ─────────── 14–16. one dip, two fats ─────────── */
 
-suite('⭐⭐⭐ 14–16. the candle — one act, two materials', () => {
-  it('14–15. a pot of tallow dips a candle that smells of mutton', async () => {
+suite('⭐⭐⭐ 14–16. the candle — one act, and the fat decides', () => {
+  it('⭐⭐ 14–15. the KNACKER\'S tallow, carried next door, dips a candle', async () => {
+    // ⭐⭐⭐ **Nothing conjured, and the crock was there all along.** This
+    // checkpoint used to `clone /trade/cooking/thing/tallow-crock --here`
+    // and die on `access-denied` — the build's own finding 9 again. The
+    // knacker's yard ships a `tallow-crock` as a PROP, and the chandlery
+    // is one exit northeast of it: the two noxious trades share a zone,
+    // which is the whole reason they were placed together rather than
+    // packaged together.
+    //
+    // ⭐ So the route IS the economic argument — fat crosses the yard to
+    // the chandler — and the drive walks it instead of asserting it.
     k.close();
     k = await Session.open(handle, {
       startLocation: WHARFSIDE,
       wizard: true,
     });
+    await ensureDaylight(k);
     await k.drainProse();
-    await walk(k, ['down', 'northeast']);
+
+    await walk(k, ['down']);
+    const atYard = await read(k, 'look');
+    expect(atYard.toLowerCase()).toMatch(/knacker|yard|block|fire|crock/);
+    await say(k, 'get crock');
+    const carrying = (await carried(k)).toLowerCase();
+    expect(
+      carrying,
+      `the knacker's tallow crock must be carryable: ${carrying}`,
+    ).toMatch(/crock|tallow/);
+
+    await walk(k, ['northeast']);
     const shop = await read(k, 'look');
     expect(shop.toLowerCase()).toMatch(/chandlery|dip|candle|pot/);
 
-    // ⭐ Fill the pot with tallow. `pour` is the shipped platform verb —
-    // tallow arrives liquid in a crock and needs no recipe at all, so it
-    // satisfies the candle slot on the first attempt and the dip's melt
-    // leg never runs.
-    expectOk(await k.cmd('clone /trade/cooking/thing/tallow-crock --here'));
-    await k.drainProse();
+    // `pour` is the shipped platform verb — rendered tallow is sold
+    // liquid, so it needs no recipe and the dip's melt leg never runs.
+    await say(k, 'pour crock into pot');
 
     const out = await say(k, 'dip');
     const reason = refusedFor(out);
-    // ⚠ It may decline for want of fat in the pot, which is a true
+    const said = (await out.said()).toLowerCase();
+    // ⚠⚠⚠ **FIRST: the verb must be UNDERSTOOD**, and this is the
+    // assertion that was missing. The old version checked only that the
+    // refusal was not `no-recipe` and not `not-learned` — and an UNKNOWN
+    // VERB is neither, so it passed while **nothing in the game
+    // conferred `dip` at all**: the row named the kernel's `CraftVessel`,
+    // which cannot know a pack's view exists, so the whole chandlery was
+    // unreachable. *A vacuous assertion looks like a passing one.* Fixed
+    // by `src/thing/DipPot.ts`, and pinned here where it can fail.
+    expect(
+      said,
+      `\`dip\` must be in the vocabulary — the dip-pot affords it: ${said}`,
+    ).not.toMatch(/don't understand|do not understand/);
+    // ⚠ It may still decline for want of fat in the pot, which is a true
     // refusal about the world. What must not happen is `no-recipe` or
     // `not-learned`: the recipe is UNGATED, and a gate here would mean a
     // candle nobody without a trade could make.
-    expect(reason, await out.said()).not.toBe('no-recipe');
-    expect(reason, await out.said()).not.toBe('not-learned');
+    expect(reason, said).not.toBe('no-recipe');
+    expect(reason, said).not.toBe('not-learned');
   }, 300_000);
 
-  it('⭐⭐ 16. the SAME verb over wax gives a DIFFERENT candle', async () => {
-    // The whole pack in one checkpoint: `outputMaterial` is empty, so
-    // what the candle is made of is whatever was in the pot.
-    expectOk(
-      await k.cmd('clone /trade/apiculture/thing/beeswax-cake --here'),
-    );
-    await k.drainProse();
-    // ⚠⚠ `melt` is an ALIAS on the `dip` view now, not its own verb: the
-    // melt was the first STEP of the only act this pack has, so `dip the
-    // cake` melts it down and dips in one go. The alias is kept because
-    // a player holding a cake still reaches for the word — and it must
-    // still reach the SAME controller.
-    const melted = await say(k, 'melt cake');
-    const meltReason = refusedFor(melted);
-    expect(meltReason, await melted.said()).not.toBe('no-recipe');
-
-    const dipped = await say(k, 'dip');
-    expect(refusedFor(dipped), await dipped.said()).not.toBe('no-recipe');
+  it('⚠⚠ 16. `melt` is an ALIAS, and the WAX half has no supply in the realm', async () => {
+    // ⭐⭐⭐ **A finding, not a checkpoint I could make pass.**
+    //
+    // This step used to `clone /trade/apiculture/thing/beeswax-cake
+    // --here` and die on `access-denied`. Looking for the honest route
+    // instead turned up something worth more than the checkpoint:
+    // **beeswax is obtainable NOWHERE in the realm.** It appears in the
+    // chandlery's own prose — *"the pale beeswax ones are a tenth of the
+    // number and the whole of the front row"* — and in no props list, no
+    // stock line and no counter. The shop advertises a candle the world
+    // cannot supply.
+    //
+    // ⚠ That is precisely the sinkless/sourceless dead end the carcass
+    // chain existed to close, surviving in the half nobody drove. It is
+    // recorded on `butchery-slate.md`; the fix is apiculture's
+    // `crush-comb` reaching a counter, not a clone here.
+    //
+    // ⭐⭐ And the two-fats CLAIM is not going untested: it is unit-proven
+    // in `CraftingLogic.dipped.test.ts` — *a pot of WAX dips a candle
+    // made of beeswax* beside *the SAME recipe over a pot of tallow dips
+    // a tallow candle*, through the real resolve. What this file owns is
+    // reachability, and what it can still prove here is the ALIAS: that
+    // `melt` reaches the dip controller rather than being a second verb.
+    const melted = await say(k, 'melt');
+    const reason = refusedFor(melted);
+    const said = (await melted.said()).toLowerCase();
+    // ⚠ The point is that the word is UNDERSTOOD. `no-recipe` would mean
+    // the alias reached a controller with nothing to resolve; "I don't
+    // understand" would mean the alias never landed on the view at all,
+    // which is the regression that matters after folding two verbs into
+    // one.
+    expect(
+      said,
+      `\`melt\` must still be in the vocabulary as a dip alias: ${said}`,
+    ).not.toMatch(/don't understand|do not understand/);
+    expect(reason, said).not.toBe('no-recipe');
   }, 300_000);
 });
 
 /* ─────────── 17–18. bone to the field, a loaf for the dog ─────────── */
 
 suite('17–18. the ground and the dog', () => {
-  it('⭐ 17. bone grinds, and the meal is a SLOW AMENDMENT', async () => {
+  it('⭐⭐ 17. the bone off THIS carcass grinds at the valley mill', async () => {
+    // ⭐⭐⭐ **Nothing is conjured here any more, and that is the point of
+    // the whole build.**
+    //
+    // This checkpoint used to open with three clones — a bone, a quern
+    // and a sack — and every one of them answered `access-denied`,
+    // because a player holds no title over a room. ⚠⚠ That was **the
+    // carcass build's own drive finding 9**, whose recorded fix was *"the
+    // better drive"*: the knife and the rations are BOUGHT. The fix was
+    // never applied here, so this leg conjured its way past the exact
+    // links the build existed to create — and the requirements say, in
+    // as many words, *without anything being conjured*.
+    //
+    // ⭐ All three were available in the world the whole time:
+    //  - the **bone** came off the carcass this file butchered;
+    //  - the **mill** is Hearts Delight's own millsite, at the fall, one
+    //    lane from the farmstead — a GRIST MILL rather than a hand
+    //    quern, which is the better instrument anyway;
+    //  - the **sack** is minted by the recipe (`outputTemplate`), so it
+    //    never needed to exist first.
+    //
+    // ⭐⭐ So this now proves the bone's whole journey — *the animal that
+    // ate the field feeds it back at both ends* — instead of asserting a
+    // recipe lookup over a conjured prop.
     k.close();
     k = await Session.open(handle, { startLocation: YARD, wizard: true });
+    await ensureDaylight(k);
     await k.drainProse();
-    expectOk(await k.cmd('clone /trade/ranching/thing/bone --here'));
-    expectOk(await k.cmd('clone /trade/milling/thing/quern --here'));
-    expectOk(await k.cmd('clone /trade/cooking/thing/sack --here'));
-    await k.drainProse();
+
+    // The heap of bone the butchering left in the yard.
+    await say(k, 'get bone');
+    const carrying = (await carried(k)).toLowerCase();
+    expect(
+      carrying,
+      `the bone off this carcass must be carryable: ${carrying}`,
+    ).toMatch(/bone/);
+
+    // East to the lane, south to the fall. The mill goes where the water
+    // falls, which is why it is not next door.
+    await walk(k, ['east', 'south']);
+    const atMill = await read(k, 'look');
+    expect(
+      atMill.toLowerCase(),
+      `the millsite must be two moves from the yard: ${atMill}`,
+    ).toMatch(/mill|wheel|weir|fall|stones/);
+
     // ⚠⚠ `grind` is an ALIAS on the `mill` view now, not its own verb —
     // so it takes the OBJECT the stones are to eat, like every other
     // thing you put through them. A bare `grind` used to work because
     // the reverted second verb took an optional string; a bare one now
     // is a missing required arg, which is the binder doing its job.
-    const out = await say(k, 'grind the bone');
+    // ⚠⚠ `grind bone`, NOT `grind the bone`. With the article, the binder
+    // bound the **millrace** and the mill answered *"the millrace is not
+    // grain, and the stones will not take it."* That is
+    // `instrumentation.md`'s recorded **article defect** (`greedy: true`)
+    // biting a second time, in a different trade: the determiner widens
+    // the match instead of narrowing it, so a room fixture outranked the
+    // thing in your hands. ⭐ A finding for the parser, not for milling.
+    const out = await say(k, 'grind bone');
     const reason = refusedFor(out);
     // ⚠ `no-recipe` would mean the verb cannot reach `bone-meal` at all,
     // which is the gap W7 was written to close.
     expect(reason, await out.said()).not.toBe('no-recipe');
+    // ⚠ And `not-grindable` would mean the fall-through never fired —
+    // the `charge === null` seam that makes one verb serve both acts.
+    expect(reason, await out.said()).not.toBe('not-grindable');
   }, 300_000);
 
   it('⭐⭐ 18. the bakery sells a dog loaf, cheaper than people-bread', async () => {
     k.close();
     k = await Session.open(handle, { startLocation: BAKERY, wizard: true });
     await k.drainProse();
-    const board = await read(k, 'look bread counter');
+    // ⚠⚠ `look till`, not `look bread counter`. The two-word form raised
+    // an ambiguity prompt the helper could not answer (`promptId=undefined,
+    // match=undefined`), which POISONS the session — so the checkpoint
+    // burned 181 s and died three suites later. `till` is one of the
+    // counter's own authored keywords and nothing else in the bakery
+    // carries it, so it binds exactly one thing.
+    //
+    // ⭐ Same class as the cut probe this sweep deleted: the harness
+    // recovers from a prompt by RE-SENDING, and replies correlate by
+    // ORDER, so a prompt mid-drive is never just a slow command. Name
+    // targets that cannot be ambiguous.
+    const board = await read(k, 'look till');
     expect(board.length).toBeGreaterThan(10);
-    const bought = await say(k, 'buy dog loaf');
+    // ⚠⚠ `buyOrWait`, not a bare `buy`. A cold world's shops are stocked
+    // only in principle: the counter tops itself back to par on the
+    // game-time reset sweep, and at `t = 0` that sweep has not fired, so
+    // the shelf answers *"it is sold here — there is just none of it
+    // today."* ⭐ That is the shop telling the truth; what was wrong was
+    // a drive that assumed a cold shop is a stocked one. The helper
+    // exists for exactly this and was already used for the knife.
+    // ⚠⚠ Counted across the purchase, not matched on a display name and
+    // not read as prose — and both of those were tried and were wrong.
+    //
+    // Matching `/dog loaf|dog bread/` against `me:i` display names failed
+    // while the purchase SUCCEEDED (the server log records only declines,
+    // and `buy` was not among them): whether an instance renders as *a
+    // dog loaf*, *a dog-loaf* or *horse bread* is presentation's business,
+    // and the row carries all three keywords. Then `look dog loaf` hit the
+    // harness defect above — no prose comes back, and the helper calls
+    // that an unanswerable prompt and burns 181 s.
+    //
+    // ⭐ A COUNT needs neither. It rides `query()` (structured, reliable
+    // where prose is not), it cannot be fooled by wording, and it still
+    // fails honestly: if nothing arrives, nothing changes.
+    const before = (await k.query('me:i', { fields: ['displayName'] })).length;
+    // ⚠⚠ Bought INLINE rather than through the helper, so the failure
+    // message carries the world's own words. `buyOrWait` answered
+    // *bought* while inventory went 6 → 6 — no refusal note of either
+    // kind, and nothing delivered — which is a state no boolean and no
+    // reason-string could explain. When a helper cannot account for an
+    // outcome, stop asking the helper.
+    // ⛔⛔ `buy dogbread`, ONE WORD, and the reason is a real defect in
+    // `buy` rather than a quirk of this drive.
+    //
+    // `buy dog loaf` answered *"a loaf of bread isn't a shelf you can
+    // trade from"* — because the view declares `thing` (a STRING) and
+    // then `counter` (an optional OBJECT), and positionals bind in
+    // declared order with no preposition to stop them. So `thing` took
+    // *"dog"*, `counter` took *"loaf"*, that resolved to a loaf on the
+    // counter, and the shelf validator refused it. ⚠⚠ **Every two-word
+    // good in the game is affected** — this bakery sells *dog loaf* AND
+    // *lean loaf* — and the refusal a player gets names a shelf they
+    // never mentioned.
+    //
+    // ⭐ `dogbread` is one of the row's own authored keywords, so this
+    // buys the same loaf by a name the binder cannot split. The defect
+    // is recorded for retail; the drive should not be the thing that
+    // fixes a kernel verb's grammar.
+    const bought = await say(k, 'buy dogbread');
+    const kinds = noteKinds(bought).join(',');
+    const prose = (await bought.said()).toLowerCase();
     const reason = refusedFor(bought);
-    expect(reason, await bought.said()).toBeNull();
-    expect((await carried(k)).toLowerCase()).toMatch(/dog loaf|dog bread/);
+    expect(
+      reason,
+      `the bakery must sell a dog loaf — notes=[${kinds}] reason=` +
+        `${String(reason)} said="${prose}"`,
+    ).toBeNull();
+    expect(
+      kinds,
+      `and must not reject the command — said="${prose}"`,
+    ).not.toMatch(/command-rejected/);
+    const after = await k.query('me:i', { fields: ['displayName'] });
+    expect(
+      after.length,
+      `buying must put something in your hands; inventory went ` +
+        `${before} → ${after.length}; notes=[${kinds}] said="${prose}"`,
+    ).toBeGreaterThan(before);
+    // ⭐ And it is bread of some kind — loose on purpose, for the reason
+    // above. The SHOP's claim (a dog loaf at half the cheapest
+    // people-bread) is pinned on the counter's own rows by
+    // `trade-milling`'s `grind.test.ts`; what only the drive can prove is
+    // that a player can walk in and buy one.
+    const names = after
+      .map((r) => String((r as { displayName?: string }).displayName ?? ''))
+      .join(' | ')
+      .toLowerCase();
+    expect(names, `bought: ${names}`).toMatch(/loaf|bread/);
   }, 300_000);
 });
 
@@ -1179,31 +1381,61 @@ suite('⭐⭐ AC12 — three jobs, and one of them is takeable today', () => {
 /* ─────────── AC15: killing something mid-anything ─────────── */
 
 suite('⭐⭐⭐ AC15 — a kill mid-anything leaves a body and no wreckage', () => {
-  it('⭐⭐ a beast killed by harm leaves the SAME body a slaughter does', async () => {
-    // **The other checkpoint no unit test can see.** Every death path now
-    // mints the one `Corpse`: a fight, a fox, a fall, old age and a
-    // slaughter. Here it is driven through `inflict` rather than through
-    // `slaughter`, so the object under test is the DEATH and not the verb.
+  it('⛔⛔ AC2/AC15 — you CANNOT fight livestock, so the claim has no path', async () => {
+    // ⭐⭐⭐ **The drive's one genuine PRODUCT finding of this round, and
+    // it lands on an acceptance criterion.**
+    //
+    // AC2 says *"butchering a beast you slaughtered and butchering one
+    // you killed in a fight are the same act, on the same kind of
+    // object, with the same skill and the same clock"*, and AC15 says a
+    // kill mid-anything leaves a body and no wreckage. Both assume you
+    // can kill an animal by some route other than `slaughter`.
+    //
+    // ⛔ You cannot. `attack head` on a drafted ewe answers
+    // **`not-a-combatant`** — *"You can't attack a sheep."* Livestock is
+    // not a combatant, so there is no fight to be mid-anything in, and
+    // the second half of AC2 is unreachable.
+    //
+    // ⚠⚠ The checkpoint before this one tried to get there through an
+    // `eval` instead, calling `MqlApi.one` (which has never existed) on
+    // `ConditionApi` (which the eval sandbox deliberately does not
+    // expose) — so it threw on its first line and **has never tested
+    // AC15 at all**. Replacing the eval with the verb a player would use
+    // is what exposed the gap the eval was hiding.
+    //
+    // ⭐⭐ So this now pins the GAP rather than papering over it, exactly
+    // as checkpoint 13 pins AC1's: the refusal must be the honest
+    // `not-a-combatant`, and the day something makes livestock
+    // attackable — a hunt, a predator, a goad — this checkpoint fails and
+    // tells whoever did it that an acceptance criterion just became
+    // reachable. The engine half is not in doubt: `ConditionLogic.die`
+    // mints the one `Corpse` whatever the driver, and that is unit-proven.
     k.close();
     k = await Session.open(handle, { startLocation: YARD, wizard: true });
+    await ensureDaylight(k);
     await k.drainProse();
-    const out = await say(k, 'draft 5');
-    if (refusedFor(out) !== null) return;
+    const drafted = await say(k, 'draft 5');
+    if (refusedFor(drafted) !== null) return;
     await k.drainProse();
 
-    // A lethal wound, through the engine's own driver.
-    const killed = await k.cmd(
-      'eval const t = MqlApi.one("here:a ewe").stuff; ' +
-        'await ConditionApi.die(t, "wire: AC15"); return "dead";',
-    );
-    await k.drainProse();
-    await new Promise((r) => setTimeout(r, 1_000));
-
-    const here = (await hereNames(k)).toLowerCase();
+    await say(k, 'get knife');
+    const opened = await say(k, 'attack head');
+    const reason = refusedFor(opened);
+    const said = (await opened.said()).toLowerCase();
+    // ⚠ NOT a vacuous skip: the verb must EXIST and must refuse for the
+    // stated reason. `unknown-verb` would mean something else broke, and
+    // `null` would mean a fight started — in which case AC2's second half
+    // is live and this checkpoint should be rewritten to drive it.
     expect(
-      here,
-      `a death by any driver must leave a body: ${here} / ${await killed.said()}`,
-    ).toMatch(/body|carcass|corpse/);
+      said,
+      `\`attack\` must be in the vocabulary: ${said}`,
+    ).not.toMatch(/don't understand|do not understand/);
+    expect(
+      reason,
+      `AC2's fight half is UNREACHABLE while livestock is not a ` +
+        `combatant — if this is no longer 'not-a-combatant', the gap ` +
+        `closed and the checkpoint should drive the fight: ${said}`,
+    ).toBe('not-a-combatant');
   }, 300_000);
 
   it('⭐ and the room is not full of wreckage afterwards', async () => {
@@ -1211,7 +1443,36 @@ suite('⭐⭐⭐ AC15 — a kill mid-anything leaves a body and no wreckage', ()
     // destroyed proxy, `SchedulerRegistry`'s `host-destroyed` teardown and
     // `Behaved.onDestruct` are what make this true, and this is the only
     // place they are observed together.
-    const out = await say(k, 'look');
+    // ⚠⚠⚠ `k.cmd` directly, NOT through `say`/`read`, and the reason is a
+    // HARNESS defect worth knowing about:
+    //
+    //   'look' raised a prompt this helper cannot answer
+    //   (promptId=undefined, match=undefined)
+    //
+    // **That message is wrong.** `promptId=undefined` means
+    // `awaitPrompt` TIMED OUT — there was no prompt at all. A bare `look`
+    // renders the room to the CARD and returns empty prose (the textiles
+    // build's own recorded finding), so `read` falls through to `say`,
+    // `say` waits five seconds for a prompt that does not exist, and
+    // then blames an ambiguity. It cost 90 s here and sent this sweep
+    // chasing phantom ambiguities three separate times.
+    //
+    // ⭐ This checkpoint only reads NOTES, so it needs none of that
+    // machinery. A finding for the wire harness: distinguish *no prose*
+    // from *an unanswerable prompt*, because conflating them makes every
+    // card-rendered command look like a parser problem.
+    // ⚠⚠ `look body`, not a bare `look`. The bare form is genuinely
+    // AMBIGUOUS here and the harness says so correctly: the previous
+    // checkpoint drafts a live head into a yard that already holds the
+    // carcass this file butchered, so `look` has two candidates — *the
+    // body of a sheep* and *a sheep* — and asks which.
+    //
+    // ⭐ A room this drive has been butchering in accumulates
+    // sheep-shaped things by design, so the fix is to name the target.
+    // `body` matches only the carcass. ⚠ And `cmd` rather than
+    // `say`/`read`, because the claim is about NOTES: the prose helpers
+    // add prompt handling this assertion does not need.
+    const out = await k.cmd('look body');
     expect(noteKinds(out)).not.toContain('controller-error');
   }, 120_000);
 });

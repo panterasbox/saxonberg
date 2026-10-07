@@ -5,7 +5,11 @@
 # shape of the pot is the length of the candle, which is a nice small
 # true thing. Kept over a low fire all day, because fat that sets in it
 # has to be melted again before anything can be dipped.
-class: /platform/thing/CraftVessel
+# ⭐⭐⭐ The pack's OWN class, because the instrument affords the verb.
+# This row named the kernel's `CraftVessel` for one build, and a kernel
+# class cannot know a pack's view exists — so NOTHING conferred `dip` and
+# the whole chandlery was unreachable. See `src/thing/DipPot.ts`.
+class: /trade/chandlery/thing/DipPot
 data:
   shortDescription: dip-pot
   keywords: [pot, "dip-pot", dip, dipping]
