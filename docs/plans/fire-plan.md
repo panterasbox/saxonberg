@@ -1174,7 +1174,7 @@ corrected in this wave because the drive reads them.
 
 **Commit.** `drive(fire): <what driving found>`
 
-### W8 — The worked flame (⚠ the user may cut this wave — R2)
+### W8 — The worked flame (R2: ships; `fuelSource()`'s second implementer)
 
 **Goal.** D14's content half; AC17 observable.
 
@@ -1312,11 +1312,35 @@ observable — *bank a fire, leave, come back to it still in* — is met;
 only the word the player types changes. ⚠ Update AC5's wording in the
 requirements doc at the sweep.
 
-**R2 — AC17 and `arcane-library`.** No conjured fire exists; the Fire
-school is a non-goal; AC17 is observable only with W8. The plan ships
-W8 (three files, no kernel magic edit) and marks it cuttable. ⚠ **The
-user's eye.** If cut, AC17 is met by the kernel test alone and the
-requirements doc should say so before the sweep retires it.
+**R2 — RESOLVED: W8 ships and is NOT cuttable.** An earlier draft marked
+it so. Interrogated, both cut-arguments fail and the keep-argument is
+decisive:
+
+- ⛔ **The non-goal is the Fire SCHOOL** — a spell grid, casting
+  profiles, faculty, suppression, the discipline leaves. One conjured
+  flame is not a school, and the requirements' own wording for that
+  non-goal (*"this build decides how a worked fire behaves so the school
+  inherits an answer instead of inventing one"*) presupposes the answer
+  is **demonstrated**.
+- ⚠ **`arcane-library` missing from the placement table was a gap in the
+  requirements doc**, now filled. Not a reason to drop a wave.
+- ⭐⭐⭐ **The decisive one: D14 puts `fuelSource()` on `BurnerMixin`
+  whether or not W8 ships.** Cutting it ships a kernel hook with a
+  `worked` branch and nothing exercising it — this repo's most-repeated
+  failure (`feel`/`taste` shipped and never ran; reference Ideas went
+  inert three times), and the exact thing the requirements phase's
+  first-consumer rule exists to catch. It also leaves the hook with ONE
+  implementer plus a dead branch, which means it should not be a hook at
+  all.
+- ⭐ **Cost is three files on an exact precedent.** `GlowlightMote` is a
+  22-line `LightSourceMixin(Good)` with an empty body; `emit-field`
+  already clones whatever `locus:` a row names, with no default and no
+  fallback. The worked flame is that shape with `BurnerMixin`.
+- ⭐⭐ **And it completes a carve the sim already made.** The glowlight's
+  docstring: *"Light, not heat — the sim decouples them (the
+  Light-split-from-Fire carve), so a glowlight warms nothing and never
+  ignites anything."* The glowlight proves the decoupling on the light
+  side; the worked flame proves it on the heat side.
 
 **R3 — Darkness.** D6 dims every well-run fire to ~30 % of its authored
 flux. The sweep is mechanical (`lint:light-sources --report` before and

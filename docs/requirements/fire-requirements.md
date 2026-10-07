@@ -302,6 +302,7 @@ depend on one another.
 | firedamp in a working, draining it, the safety lamp | `trade-mining` |
 | coke as a charge that does not ruin iron | `trade-smelting` (a row; its refusal path already waits for it) |
 | the peat kiln's derived smoke | `trade-distilling` — a row change, and a hack removed |
+| the worked flame (a conjured fire that makes no exhaust) | `arcane-library` — a spell row, a locus thing row and a 20-line class on the shipped `GlowlightMote` pattern. ⭐ It is what EXERCISES the kernel's worked-fire answer; without it that answer ships unreachable |
 
 ⭐ **The second-instance test passes:** a second retort, a second
 gasometer, a second gassy mine is a row. A second **gasworks** — a town
