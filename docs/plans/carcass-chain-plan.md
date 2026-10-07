@@ -1126,19 +1126,35 @@ Commit: `build(carcass W6): trade-chandlery — one dip, two fats`.
    Every trade in the tree ships its own craft verb for the catalogue
    (`cook`, `mix`, `forge`, `bake`, `press`, `render`), and `order` needs
    a `Menu` and a fulfilling bartender, which is the shop path and not a
-   player making their own candle. So the pack ships **two** verbs. The
-   reachability table's *"verb: platform `make`"* row was the kind of
-   entry that looks filled in and is not.
-2. ⭐⭐ **Two verbs rather than one, because the asymmetry is REAL.**
-   Rendered tallow leaves `render-tallow` as bulk in a crock and is
-   `pour`ed into the dip-pot by the shipped platform verb — **no recipe
-   and no code**. Beeswax leaves `crush-comb` as a *cake*, because wax
-   sets hard, so it has to be melted: `melt-wax` is one recipe and
-   `melt` is its verb. That is a fact about the two materials rather
-   than a rule anybody wrote, and D6's `melt-wax` turned out to be
-   exactly half of what the plan implied — there is deliberately no
-   `melt-tallow`, and the test asserts the recipe directory has exactly
-   two files.
+   player making their own candle. So the pack ships a verb of its own —
+   **one**, after review reversed D-W6-2 below. The reachability table's
+   *"verb: platform `make`"* row was the kind of entry that looks filled
+   in and is not.
+2. ⛔ **REVERSED IN REVIEW — `melt` is an ALIAS on `dip`, not a second
+   verb.** The decision as taken read: *two verbs rather than one,
+   because the asymmetry is REAL* — rendered tallow leaves
+   `render-tallow` as bulk in a crock and is `pour`ed into the dip-pot by
+   the shipped platform verb (no recipe, no code), while beeswax leaves
+   `crush-comb` as a *cake*, because wax sets hard, so it has to be
+   melted.
+
+   The asymmetry is real and is still modelled; what was wrong was
+   **spending a verb on it**, and the user caught it beside the `tailor`
+   and `grind` verbs in the same review. Melting is the first STEP of the
+   only act this pack has, and the verb-collision ladder's first rung is
+   *unify behind an interface*. `DipController` now attempts the candle
+   first and, only on `insufficient-input`, reaches for something solid,
+   melts it (narrating the melt so the alias never silently overshoots
+   the word the player typed) and tries again. Tallow satisfies the
+   candle slot on the first attempt, so it never takes that path — the
+   asymmetry expressed as a code path that is simply not taken.
+
+   ⚠ `melt-wax` the RECIPE stays, and there is still deliberately no
+   `melt-tallow`; the test asserts the recipe directory has exactly two
+   files, and now also that the pack ships exactly one view. ⭐ The
+   `solid` arg is declared BEFORE `pot`: positionals bind in declared
+   order, so with the pot first `dip the cake` handed the cake to the pot
+   — the same defect W7 paid for with `mill wheat 0.72`.
 3. ⭐ **`tallow` carries `candle-stock` BESIDE `cooking-fat`**, and that
    is the interesting thing about it: a crock can be fried in or dipped
    into, so the chandler and the cook **compete for the same
@@ -1197,13 +1213,26 @@ Commit: `build(carcass W7): bone goes to the field and the dog gets a loaf`.
    a **cross-cutting kernel change inside a trade build** and precisely
    the thing that keeps going wrong. So `grind` ships in `trade-milling`,
    the pack that owns the stones, over a recipe.
-2. ⭐⭐ **`mill` and `grind` are two verbs because they are two acts**, and
-   the difference is whether there is a decision in it: `mill` *separates*
-   and its extraction dial is the whole reason the verb exists; grinding
-   bone has no dial, nothing to bolt out, and no setting that gives a
-   better answer. `model.what ?? 'bone-meal'` is `BakeController`'s
-   pattern verbatim, so a second grindable is a recipe row and nothing in
-   the controller changes.
+2. ⛔ **REVERSED IN REVIEW — `grind` is an ALIAS on `mill`.** The
+   decision as taken read: *`mill` and `grind` are two verbs because they
+   are two acts*, the difference being whether there is a decision in it
+   — `mill` *separates* and its extraction dial is the whole reason the
+   verb exists, where grinding bone has no dial, nothing to bolt out and
+   no setting that gives a better answer.
+
+   True, and not enough: it is the same act on the same stones, which is
+   the case the verb-collision ladder exists for, and its first rung is
+   *unify*. A trade does not get a second verb because one of its inputs
+   has no dial. `mill` is the survivor for three reasons in order — the
+   trade, the Discipline and the instrument are all *mill* (a quern IS a
+   hand-mill); `mill` carries the extraction dial, the pedagogically rich
+   half; and a player reaching for *grind* still gets it. At
+   `MillController`'s single `charge === null` seam, `grindThrough`
+   resolves a recipe from the MATERIAL's own tags instead of declining
+   `not-grindable`, so a second grindable is still a recipe row and
+   nothing in the controller changes. ⚠ The alias rides `mill`'s
+   REQUIRED object arg where the reverted verb took an optional string,
+   so the drive's checkpoint 17 says `grind the bone`.
 3. ⚠⚠ **`fibre` is not a routed nutrient**, and the first draft of
    `dog-bread` authored it. `NUTRIENT_ROUTING` routes exactly six tags
    (water · carb · sugar · fat · protein · vitamin-c) and an unrouted one
@@ -1340,12 +1369,27 @@ being the exit criterion. *Tests build state; they never use it.*
    not and must not become (two hides must never merge; each is a
    particular skin with its own grade). So a tanned hide had **no path to
    a worn jerkin**, and W4's commit message had already declared AC1
-   closed. ⭐ `trade-tailoring` ships `tailor [<garment>]` now, defaulting
-   to `leather-jerkin` — `BakeController`'s pattern verbatim.
+   closed. The build's answer was to ship `tailor [<garment>]` in
+   `trade-tailoring`, defaulting to `leather-jerkin` —
+   `BakeController`'s pattern verbatim.
    ⭐⭐ **This is the THIRD time in one build** that the plan's
    reachability table assumed `make` reaches a catalogue recipe (W6's
    candle, W7's bone meal, now the jerkin). Two were caught by reading
    and the third needed the drive.
+
+   ⛔⛔ **REVERTED IN REVIEW — and AC1 IS UNMET.** Tailoring is a
+   discipline with its own designed surface
+   ([textiles.md](../subsystems/textiles.md) + the textiles slate), and
+   that design had already made this exact call: *"`cut`/`sew` take hide
+   the day it exists."* A butchery build does not get to mint a tailoring
+   verb to close its own acceptance criterion, and this one was never run
+   through the lenses. The view, the controller row and the controller
+   are deleted; `leather-jerkin.yaml`'s header now states that it is
+   STILL UNMAKEABLE and quotes the slate's decision; and ⭐ drive
+   checkpoint 13 is **INVERTED** — it asserts `tailor` is *not* in the
+   vocabulary, which makes the unmet state something the suite says out
+   loud instead of a gap nobody can see. The real fix is a tailoring
+   design session; it is slated, not built.
 2. ⚠⚠ **It was NIGHT, and eight checkpoints failed as a CASCADE off one
    unlit room.** `t = 0` is a moonless midnight and the wire world
    restores its clock from the database, so `look` at the farmyard read
@@ -1402,7 +1446,7 @@ new instrument arg is declared).
 
 | AC | waves |
 |---|---|
-| 1 alive → worn jerkin | W2 · W3 · W4 · shipped tailor · W9 proves |
+| 1 alive → worn jerkin | ⛔ **UNMET** — W2 · W3 · W4 land the hide and the leather; the last step is a TAILORING verb this build must not mint (see the W9 finding), so `leather-jerkin` stays unmakeable and the drive asserts it |
 | 2 same act, same object, same skill, same clock | **W0** (every death leaves the one `Corpse`) · W2 · W3 |
 | 3 condition and species pay off | W1 (`dressOut`) · W2 (rows) · W3 (reads the corpse's stamp) |
 | 4 `butcher` a farm dog refused | W2 (no yield) · W3 (live-target order) · W8 (the unnamed collie) |
@@ -1754,7 +1798,10 @@ unit suite in the repo.
 1. ⚠⚠⚠ **AC1 WAS UNMET.** `make leather-jerkin` hung. `make` dispatches
    a recipe **script**, not a catalogue recipe — and `cut` requires
    `StackableMixin`, a BOLT, which a tanned hide is not and must not
-   become. **A hide had no path to a worn jerkin.** Fixed: `tailor`.
+   become. **A hide had no path to a worn jerkin.** Fixed with a `tailor`
+   verb — ⛔ **and that fix was REVERTED in review**: minting a tailoring
+   verb inside a butchery build contradicted the textiles slate's own
+   decision in print. AC1 is unmet and the drive now says so.
    ⭐ The **third** time in one build the plan's reachability table
    assumed `make` reaches a catalogue recipe (W6, W7, now this); the
    first two were caught by reading and this one needed the drive.

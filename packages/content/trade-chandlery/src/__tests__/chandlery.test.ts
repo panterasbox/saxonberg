@@ -130,8 +130,33 @@ describe('one recipe, and the empty outputMaterial IS the feature', () => {
   });
 });
 
-describe('melt-wax — the asymmetry is a fact, not a rule', () => {
+describe('melt-wax — a STEP of the dip, not a verb of its own', () => {
   const melt = recipe('melt-wax');
+
+  it('⭐⭐⭐ `melt` is an ALIAS on `dip`, and ships no view of its own', () => {
+    // It shipped as a second verb for one build, on the argument that the
+    // pot has to be filled before anything can be dipped out of it. The
+    // asymmetry between a liquid crock and a hard cake is real; the
+    // second verb was not — it was the first STEP of the only act this
+    // pack has, and the collision ladder's first rung is *unify*.
+    const views = readdirSync(
+      join(PACK, 'content', 'trade', 'chandlery', 'cmd', 'chandlery'),
+    );
+    expect(views).toEqual(['dip.yaml']);
+
+    const dip = YAML.parse(
+      readFileSync(
+        join(PACK, 'content', 'trade', 'chandlery', 'cmd', 'chandlery', 'dip.yaml'),
+        'utf8',
+      ),
+    ) as { verbs: string[]; args: { name: string }[] };
+    expect(dip.verbs).toEqual(['dip', 'melt']);
+    // ⚠ And the solid is declared FIRST. Positionals bind in declared
+    // order, so with the pot ahead of it `dip the cake` hands the cake to
+    // the pot — the defect the milling trade paid for with `mill wheat
+    // 0.72`.
+    expect(dip.args.map((a) => a.name)).toEqual(['solid', 'pot']);
+  });
 
   it('⭐ authors its material, because melting changes nothing', () => {
     // Only the DIP derives, because only the dip has two possible
@@ -146,8 +171,11 @@ describe('melt-wax — the asymmetry is a fact, not a rule', () => {
 
   it('⚠ and TALLOW has no equivalent, deliberately', () => {
     // Rendered tallow leaves `render-tallow` as bulk in a crock and is
-    // `pour`ed in by the shipped platform verb. Shipping a `melt-tallow`
-    // row would be a recipe for a step that is already a verb.
+    // `pour`ed in by the shipped platform verb — so it satisfies the
+    // candle slot on the first attempt and the melt leg never runs. The
+    // asymmetry the two verbs were claiming is a code path that is simply
+    // not taken. Shipping a `melt-tallow` row would be a recipe for a
+    // step that is already a verb.
     const ids = readdirSync(join(PACK, 'content', 'recipes'));
     expect(ids).not.toContain('melt-tallow.yaml');
     expect(ids).toHaveLength(2);

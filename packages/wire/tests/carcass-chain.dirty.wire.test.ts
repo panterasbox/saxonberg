@@ -838,8 +838,9 @@ suite('⭐⭐⭐ 14–16. the candle — one act, two materials', () => {
     expect(shop.toLowerCase()).toMatch(/chandlery|dip|candle|pot/);
 
     // ⭐ Fill the pot with tallow. `pour` is the shipped platform verb —
-    // tallow arrives liquid in a crock and needs no recipe at all, which
-    // is half of why the pack ships two verbs rather than one.
+    // tallow arrives liquid in a crock and needs no recipe at all, so it
+    // satisfies the candle slot on the first attempt and the dip's melt
+    // leg never runs.
     expectOk(await k.cmd('clone /trade/cooking/thing/tallow-crock --here'));
     await k.drainProse();
 
@@ -860,6 +861,11 @@ suite('⭐⭐⭐ 14–16. the candle — one act, two materials', () => {
       await k.cmd('clone /trade/apiculture/thing/beeswax-cake --here'),
     );
     await k.drainProse();
+    // ⚠⚠ `melt` is an ALIAS on the `dip` view now, not its own verb: the
+    // melt was the first STEP of the only act this pack has, so `dip the
+    // cake` melts it down and dips in one go. The alias is kept because
+    // a player holding a cake still reaches for the word — and it must
+    // still reach the SAME controller.
     const melted = await say(k, 'melt cake');
     const meltReason = refusedFor(melted);
     expect(meltReason, await melted.said()).not.toBe('no-recipe');
