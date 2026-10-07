@@ -1,0 +1,34 @@
+# atmosphere — what the medium IS and what it CARRIES.
+#
+# ⭐ The identity tag (`air`, `water`, `blackdamp`) is the medium's own
+# physics and lives in a closed table in code. These dials govern the
+# amounts carried IN it, which is content's business: a pack adds a gas by
+# adding a Material row, and nothing here changes.
+settings:
+  # ⭐⭐ Above fire.air.completeAirShare on purpose. A body stops exchanging
+  # gas at 0.95, a fire goes sooty at 0.93 and smothers at 0.88, so the
+  # order of events in a shut cellar is: you are told, the fire starts
+  # smoking, you are in trouble, THEN the fire dies. Reversing these would
+  # make the fire the alarm, and a fire going out in the dark is not an
+  # alarm — it is the last thing that happens to you.
+  #
+  # 5 % carbon dioxide is where a person stops coping with the air. That is
+  # what this number IS; it is not a tuning knob dressed as physics.
+  - key: atmosphere.breathableAirShare
+    value: "0.95"
+
+  # Standard ambient. A material boiling at or below this is a gas, which
+  # is why there is no `phase` field anywhere: phase is a consequence of
+  # the boiling point and where you are standing.
+  - key: atmosphere.standardK
+    value: "293"
+
+  # Two game-hours for a drained working to fill again — long enough that
+  # draining is worth doing, short enough that it is not a one-time act.
+  - key: atmosphere.standingRebuildS
+    value: "7200"
+
+  # Two parts in a thousand. An analyser finds what a nose cannot, which
+  # is what it is for.
+  - key: atmosphere.noticeableFraction
+    value: "0.002"

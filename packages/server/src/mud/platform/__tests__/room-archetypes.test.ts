@@ -156,22 +156,22 @@ describe("the kitchen — BUNDLE (D12)", () => {
     expect(read("stuff/thing/fixture/larder.yaml").data?.open).toBe(true);
   });
 
-  it("authors an `air` reserve — the one decision with teeth", () => {
-    // The only room in the build where you deliberately run a fire indoors.
-    // A finite budget + a lit fire + no ventilation = incomplete burn, smoke
-    // and CO, self-smother. Any open neighbour ventilates, so it is
-    // forgiving; deleting this block restores open air with nothing else
-    // touched.
-    const reserves = read("kitchen").data?.reserves as Record<
-      string,
-      { capacityValue?: number; theme?: string }
-    >;
-    expect(reserves?.air?.theme).toBe("atmosphere");
-    expect(reserves?.air?.capacityValue).toBe(100);
+  it("⭐⭐ authors NO air reserve — because no room does, and that is the point", () => {
+    // It used to author a `%` `'air'` Reserve, and that made the kitchen
+    // *the only room in the game where you deliberately run a fire
+    // indoors* — not because anyone decided it, but because it was the
+    // one row somebody remembered. Seven rows authored one; four of them
+    // composed no `ReservedMixin`, so the applier dropped the key and the
+    // budget was inert, invisibly, for a year.
+    //
+    // The fire build derives a scope's air from its own OPENINGS. Every
+    // room with a volume starves a fire if it is shut, and none does if
+    // it is not. There is nothing left to author here.
+    expect(read("kitchen").data?.reserves).toBeUndefined();
   });
 
-  it("no OTHER archetype authors one — a bedroom is open air", () => {
-    for (const name of ["bedroom", "bathroom", "living"] as const) {
+  it("no archetype authors one, kitchen included", () => {
+    for (const name of ["kitchen", "bedroom", "bathroom", "living"] as const) {
       expect(read(name).data?.reserves).toBeUndefined();
     }
   });

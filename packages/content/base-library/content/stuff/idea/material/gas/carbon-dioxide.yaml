@@ -1,0 +1,25 @@
+# Carbon dioxide — what a fire makes when it is running WELL, and what a
+# ferment breathes out.
+#
+# ⭐ The conservation leg: every fire emits this for the fuel it burns,
+# complete or not, so the air in a shut room really does go. It poisons
+# nobody — there is no `toxicity` — and that is the point. It kills by
+# displacement, quietly, which is why the cellar needs a trapdoor and the
+# brewer needs to be told.
+class: /platform/idea/material/Material
+data:
+  name: carbon dioxide
+  keywords: [carbon dioxide, fixed air, choke damp]
+  appearance: nothing you can see
+  density: 1.98
+  # Sublimation point. Honest within the only comparison it is put to:
+  # is this a gas where you are standing.
+  boilingPoint: 195
+  thermalConductivity: 0.0166
+  electricalConductivity: 1.0e-14
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: [gas, exhaust]
+  composition: []
+  biologicalSource: null

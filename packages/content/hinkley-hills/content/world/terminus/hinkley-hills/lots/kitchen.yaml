@@ -20,11 +20,8 @@ data:
   ambientColorTemperature: 4800
   longDescription: |
     A farmhouse kitchen with the range set into the old chimney breast, a scrubbed counter under the window, and a larder cupboard built into the cool of the south wall. The window looks over the yard; the light comes in over the counter most of the afternoon.
-  reserves:
-    air:
-      capacityValue: 100
-      currentValue: 100
-      unit: "%"
+  # ⭐ No air budget. The window over the counter is the ventilation, and
+  # it is the same opening that lights the room.
   props:
     - /stuff/thing/fixture/range
     - /stuff/thing/fixture/counter

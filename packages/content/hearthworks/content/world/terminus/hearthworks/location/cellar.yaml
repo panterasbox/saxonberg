@@ -30,12 +30,11 @@ data:
     x: 2
     y: 0
     z: 0
-  reserves:
-    air:
-      capacityValue: 100
-      currentValue: 100
-      unit: "%"
-      theme: atmosphere
-      floorEffect: null
+  # ⭐⭐ The cellar's lesson — run a fire in here and it kills you — needs
+  # no authored air budget. A shut stone room has almost no openings, so
+  # the derived air change is the leak rate and nothing else: the fire
+  # fills it with its own exhaust, you are warned, and then it smothers.
+  # The `%` Reserve this row used to author said the same thing by hand,
+  # and said it only here.
   props:
     - /stuff/thing/items/dry-log

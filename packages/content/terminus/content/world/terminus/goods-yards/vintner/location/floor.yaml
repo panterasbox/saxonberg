@@ -32,13 +32,13 @@ data:
   # The cellar IS the cold storage (the hospitality-cellar precedent):
   # 285 K holds the ferment in the happy band and slows a kept culture.
   _temperature: 285
-  # A working cellar displaces its own air (P11): the reserve is what
-  # the active ferments drain; the trapdoor is the recovery.
-  reserves:
-    air:
-      capacityValue: 100
-      currentValue: 100
-      unit: "%"
+  # ⭐ A working cellar displaces its own air (P11) — and it does so with
+  # no authored budget now. The fire build derives a scope's air from its
+  # OPENINGS: the ferments put carbon dioxide into the room, the trapdoor
+  # is what carries it away, and this row says neither. ⚠ It used to
+  # author a `%` air Reserve that the applier silently DROPPED, because
+  # `SingletonCartesianLocation` never composed `ReservedMixin` — so this
+  # cellar has had unlimited air for its whole life. It behaves now.
   props:
     - /world/terminus/goods-yards/vintner/thing/stock
     - /trade/winemaking/thing/press

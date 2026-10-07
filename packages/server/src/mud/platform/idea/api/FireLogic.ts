@@ -7,7 +7,6 @@ import { SecurityPolicies } from '../../../lib/security/SecurityPolicies';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import type { Container } from '../../../lib/spatial/Container';
 import type { Containable } from '../../../lib/spatial/Containable';
-import type { Reserved } from '../../../lib/reserve';
 import type { Atmospheric } from '../../../lib/biome/Atmospheric';
 import { MixinApi } from '../../../api/mixin';
 import { StuffApi } from '../../../api/stuff';
@@ -16,7 +15,6 @@ import { ConnectionApi } from '../../../api/connection';
 import { WorldClockApi } from '../../../api/worldclock';
 import { AppApi } from '../../../api/app';
 import { AppSettingKeys } from '../../../lib/config/AppSettings';
-import { Quantity } from '../../../lib/quantity';
 import { TemplatePaths } from '../../../lib/paths';
 import type { Combustible } from '../../../lib/fire/Combustible';
 import type { IgniteOutcome } from '../../../api/fire';
@@ -36,6 +34,19 @@ const selfSubject = {
     (caller as { stuffId?: string }).stuffId ===
       (args[0] as { stuffId?: string } | undefined)?.stuffId,
 };
+/**
+ * The exhaust face's callers. ⚠ Deliberately NOT {@link FireCallers}: its
+ * `where` clause asserts `args[0]` IS the caller, which is true of every
+ * `advance(self)`-shaped forward and false here — the first argument is
+ * the ROOM. A burner emitting into its scope is the legitimate caller and
+ * the subject is somewhere else entirely.
+ */
+const FireExhaustCallers = SecurityPolicies.AnyOf(
+  SecurityPolicies.FromModule('/api/fire#FireApi'),
+  SecurityPolicies.FromMixin('BurnerMixin'),
+  SecurityPolicies.FromMixin('CombustibleMixin'),
+);
+
 const FireCallers = SecurityPolicies.AnyOf(
   FireApiCallers,
   SecurityPolicies.FromMixin('BurnerMixin', selfSubject),
@@ -73,6 +84,20 @@ export class FireLogic extends ApiLogic {
   @CallSecurity(FireCallers)
   public ignite(stuff: Stuff): IgniteOutcome {
     return igniteImpl(stuff);
+  }
+
+  /**
+   * Put one fire's exhaust for `kgBurnt` of fuel into a scope's medium —
+   * the `Burner` face of {@link emitExhaustInto}. A burner's own tick
+   * forwards here the way its `ignite`/`douse` do.
+   */
+  @CallSecurity(FireExhaustCallers)
+  public emitExhaust(
+    room: Stuff & Container,
+    kgBurnt: number,
+    complete: boolean,
+  ): void {
+    emitExhaustInto(room, kgBurnt, complete);
   }
 
   /** See {@link Combustible.tryAutoignite}. */
@@ -120,6 +145,16 @@ function dial(key: string, fallback: number): number {
     if (raw === '' || raw == null) return fallback;
     const n = Number.parseFloat(raw);
     return Number.isFinite(n) ? n : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+/** One string dial read, falling back to the literal when unseeded. */
+function dialStr(key: string, fallback: string): string {
+  try {
+    const raw = AppApi.setting(key);
+    return raw == null || raw === '' ? fallback : raw;
   } catch {
     return fallback;
   }
@@ -271,64 +306,41 @@ function advanceFireInRoom(room: Stuff & Container): void {
   const burning = liveCombustiblesIn(room).filter((c) => c.isBurning());
 
   // ── Combustion chemistry: the oxygen leg + complete/incomplete verdict ──
-  const airHolder = airReserveOf(room);
-  const ventilated =
-    BiomeApi.isSkyExposed(room) || openNeighboursOf(room).length > 0;
+  //
+  // ⭐⭐ The air is DERIVED. There is no `'air'` Reserve and no authored
+  // oxygen budget: the scope's medium carries what the fires have put into
+  // it, decaying at the rate the scope's own openings imply, and the air
+  // share is what is left. A room that authors nothing at all starves a
+  // fire correctly if it is shut, and never does if it is not — which is
+  // why four of the seven rows that authored a budget could be inert for
+  // a year without anyone noticing.
+  const airShare = BiomeApi.airShareOf(
+    BiomeApi.resolveAtmosphereContentsFor(room),
+  );
 
   if (burning.length === 0) {
-    // No fire: a ventilated scope recovers its air, and any fire-set smoke
-    // clears (the room breathes again).
-    if (airHolder && ventilated) {
-      airHolder.adjustReserve(
-        'air',
-        Quantity.of(dial(AppSettingKeys.fireAirReplenishPerTick, 30), '%'),
-      );
-    }
-    clearFireSmoke(room);
+    // No fire: nothing to emit. The scope's own decay clears what is in it.
     return;
   }
 
-  if (airHolder) {
-    // Enclosed scope with a finite air budget: burning consumes it; a
-    // ventilated boundary (open door / sky) replenishes.
-    const consume =
-      dial(AppSettingKeys.fireAirConsumePerTick, 8) * burning.length;
-    airHolder.adjustReserve('air', Quantity.of(-consume, '%'));
-    if (ventilated) {
-      airHolder.adjustReserve(
-        'air',
-        Quantity.of(dial(AppSettingKeys.fireAirReplenishPerTick, 30), '%'),
-      );
-    }
-  }
-
-  const airPct = airHolder
-    ? (airHolder.getReserve('air')?.current.rawValue() ?? 0)
-    : 100; // no air budget = open air (unlimited)
-
-  // The oxygen leg: air floored → the fire smothers (self-extinguish).
-  if (airHolder && airPct <= 0) {
+  // The oxygen leg: too little air left → the fire smothers.
+  if (airShare <= dial(AppSettingKeys.fireAirSmotherAirShare, 0.88)) {
     for (const b of burning) (b as unknown as Combustible)._extinguishState();
-    clearFireSmoke(room);
     return;
   }
 
-  // Complete (hot, clean) with enough air / ventilation; incomplete (cooler,
-  // soot + CO) when a sealed scope starves.
+  // Complete (hot, clean) with enough air; incomplete (cooler, soot + CO)
+  // once a shut scope has filled with its own exhaust.
   const complete =
-    ventilated ||
-    !airHolder ||
-    airPct >= dial(AppSettingKeys.fireAirCompleteThresholdPct, 40);
+    airShare >= dial(AppSettingKeys.fireAirCompleteAirShare, 0.93);
   for (const b of burning) (b as unknown as Combustible)._setComplete(complete);
 
-  // Incomplete combustion in an enclosed scope fills it with smoke + CO — the
-  // scope's medium becomes un-breathable (asphyxiation) and carries the
-  // carbon-monoxide contaminant (poisoning). Ventilation clears it.
-  if (!complete && airHolder) {
-    markFireSmoke(room);
-  } else {
-    clearFireSmoke(room);
-  }
+  // ⭐ Exhaust: every fire puts carbon dioxide into the scope for the fuel
+  // it burnt (conservation — the air really does go), and an incomplete
+  // one adds soot on top. A sky-exposed scope accepts neither, because
+  // that is where it goes. Nothing writes the atmosphere TAG any more:
+  // smoke is a thing in the air, not a different air.
+  for (const b of burning) emitCombustibleExhaust(b, room, complete);
 
   // ── Spread — radiate to co-located + open-boundary combustibles ──
   const radiant = dial(AppSettingKeys.fireRadiantJoulesPerTick, 700000);
@@ -349,32 +361,65 @@ function advanceFireInRoom(room: Stuff & Container): void {
   }
 }
 
-/** The scope's finite air budget — an `'air'` Reserve authored on an enclosed
- * room, or null (open air = unlimited combustion oxygen). */
-function airReserveOf(room: Stuff & Container): (Stuff & Reserved) | null {
-  const s = room as unknown as Stuff;
-  if (MixinApi.isReserved(s) && s.hasReserve('air')) {
-    return s as Stuff & Reserved;
-  }
-  return null;
+/**
+ * ⭐⭐ **What a fire puts into the air** — the third product of
+ * combustion, which until this build was a string.
+ *
+ * Carbon dioxide always, for the mass burnt; soot additionally while
+ * combustion is incomplete. The emission goes into the scope's medium as
+ * litres of a MATERIAL, so the same mechanism serves a hearth, a retort
+ * driving tar off a charge, and a ferment breathing in a cellar — and a
+ * pack adds a new exhaust by adding a material row.
+ *
+ * ⚠ A Combustible's fuel is still its own `%` Reserve this build (the
+ * object IS the fuel: a burning door, a bale), so the kg burnt is read as
+ * a fraction of its mass. {@link burnPowerFor} is where the mass-and-
+ * heat-of-combustion swap lands — see `fire-combustion-slate`.
+ */
+function emitCombustibleExhaust(
+  burning: Stuff & Combustible,
+  room: Stuff & Container,
+  complete: boolean,
+): void {
+  const s = burning as unknown as Stuff;
+  if (!MixinApi.isTangible(s)) return;
+  const massKg = s.getMass().rawValue();
+  if (!(massKg > 0)) return;
+  const tickS = dial(AppSettingKeys.fireTickIntervalSeconds, 30);
+  const ratePerMin = dial(AppSettingKeys.fireBurnRatePerMin, 0.5) / 100;
+  const kgBurnt = ratePerMin * massKg * (tickS / 60);
+  emitExhaustInto(room, kgBurnt, complete);
 }
 
-/** Fill `room` with smoke — the fire-driver's atmosphere override, cleared
- * back to null when the fire goes out / ventilates. Only stamps a scope that
- * isn't already smoky (idempotent) and never clobbers a non-air authored
- * atmosphere it didn't set. */
-function markFireSmoke(room: Stuff & Container): void {
-  const atm = room as unknown as Atmospheric;
-  if (atm._atmosphere === 'smoke') return;
-  // Only overlay smoke onto a default (null) scope — respect an authored one.
-  if (atm._atmosphere === null) atm.setAtmosphere('smoke');
-}
-
-/** Clear fire-set smoke (only if the fire set it — the raw override reads
- * 'smoke'), restoring the scope's default atmosphere. */
-function clearFireSmoke(room: Stuff & Container): void {
-  const atm = room as unknown as Atmospheric;
-  if (atm._atmosphere === 'smoke') atm.setAtmosphere(null);
+/**
+ * Put one fire's exhaust for `kgBurnt` of fuel into `room`'s medium.
+ * Shared by the Combustible arm above and a `Burner`'s own tick.
+ */
+function emitExhaustInto(
+  room: Stuff & Container,
+  kgBurnt: number,
+  complete: boolean,
+): void {
+  if (!(kgBurnt > 0)) return;
+  if (!MixinApi.isAtmospheric(room)) return;
+  const atm = room as unknown as Stuff & Container & Atmospheric;
+  const co2 = dialStr(
+    AppSettingKeys.fireExhaustCarbonDioxideMaterial,
+    '/stuff/idea/material/gas/carbon-dioxide',
+  );
+  atm.addAtmosphereContent(
+    co2,
+    dial(AppSettingKeys.fireExhaustLitresPerKg, 950) * kgBurnt,
+  );
+  if (complete) return;
+  const smoke = dialStr(
+    AppSettingKeys.fireExhaustSmokeMaterial,
+    '/stuff/idea/material/gas/smoke',
+  );
+  atm.addAtmosphereContent(
+    smoke,
+    dial(AppSettingKeys.fireExhaustSmokeLitresPerKg, 300) * kgBurnt,
+  );
 }
 
 /** The live (non-destroyed) Combustibles directly in `room`. */

@@ -46,13 +46,12 @@ data:
     A working kitchen — a range against one wall, a counter down the other, a larder in the corner and a basin under the window. It smells of woodsmoke and yesterday's cooking.
   ambientIntensity: 35
   ambientColorTemperature: 4500
-  reserves:
-    air:
-      capacityValue: 100
-      currentValue: 100
-      unit: "%"
-      theme: atmosphere
-      floorEffect: null
+  # ⭐⭐ No air budget, and the archetype is the reason this matters. A
+  # kitchen used to be *the only room in the game where you deliberately
+  # run a fire indoors* — because it was the only room that authored an
+  # air Reserve. That was never a decision anybody made; it was the one
+  # row somebody remembered. Every scope with a volume starves a fire now,
+  # and every scope with a doorway does not.
   # Order matters: the counter is populated before anything that could rest
   # on it (the dorm's desk-then-pot precedent).
   props:

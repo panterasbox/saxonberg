@@ -29,12 +29,9 @@ data:
   # costs no authored number at all.
   # A working still-house: the wash's happy middle.
   _temperature: 289
-  # It displaces its own air while the backs work (P11).
-  reserves:
-    air:
-      capacityValue: 100
-      currentValue: 100
-      unit: "%"
+  # ⭐ It displaces its own air while the backs work (P11) — and the
+  # doorway that stands open (the one that lights the room) is also what
+  # carries it away. Both facts come off the same exit now.
   exits:
     # ⭐ The back door onto the goods yards — the one room the D11
     # switchover cost. The hand does not travel; a HAULER comes in this

@@ -24,15 +24,17 @@ import Ingot from '../../../platform/thing/Ingot';
 import Forge from '../../../platform/thing/Forge';
 import Floor from '../../../platform/thing/Floor';
 import SingletonCartesianLocation from '../../../lib/location/SingletonCartesianLocation';
-import { Reserve, ReservedMixin } from '../../../lib/reserve';
+import { Reserve } from '../../../lib/reserve';
 import { HasInteractiveMixin } from '../../../lib/connection/HasInteractive';
 import type { HasInteractive } from '../../../lib/connection/HasInteractive';
 import { FireApi } from '../../../api/fire';
+import { BiomeApi } from '../../../api/biome';
 import { ContainmentApi } from '../../../api/containment';
 import { ConnectionManager } from '../../../../backend/ConnectionManager';
 import { StuffApi } from '../../../api/stuff';
 import { Quantity } from '../../../lib/quantity';
 import type { Stuff } from '../../../lib/stuff/Stuff';
+import type { Container } from '../../../lib/spatial/Container';
 import type { Atmospheric } from '../../../lib/biome/Atmospheric';
 import type { User } from '../../../lib/identity/User';
 import { makeStuff, makeStuffAtPath } from '../../../lib/security/__tests__/test-setup';
@@ -40,6 +42,14 @@ import { installV1QuantityMarshallers } from '../../../lib/persistence/__tests__
 
 class TestOccupant extends HasInteractiveMixin(Good) {
   static _mixinName = 'TestOccupantHearth';
+}
+
+/** How much soot is in a scope's medium — the fire's incomplete output. */
+function sootIn(scope: CartesianLocation): number {
+  const hit = BiomeApi.resolveAtmosphereContentsFor(
+    scope as unknown as Stuff & Container,
+  ).find((c) => c.type === '/stuff/idea/material/gas/smoke');
+  return hit?.amount ?? 0;
 }
 
 let seq = 0;
@@ -166,26 +176,36 @@ describe('The Hearthworks — the fire demonstrators', () => {
     expect(floor.getBulkMaterial('surface')?.getName()).toBe('iron');
   });
 
-  it('the sealed cellar: an enclosed fire smokes and self-smothers', async () => {
+  it('the sealed cellar: an enclosed fire fills it, goes sooty, and smothers', async () => {
     const zone = makeStuff(() => new CartesianZone());
-    class SealedCellar extends ReservedMixin(SingletonCartesianLocation) {}
+    // ⭐⭐ No `ReservedMixin`, no authored air budget. `SealedCellar` is a
+    // plain `SingletonCartesianLocation` now: the room starves a fire
+    // because it is a 27 m³ stone box with no openings, which is what the
+    // `%` Reserve was standing in for. Four Terminus cellars authored the
+    // same budget and silently dropped it (no `ReservedMixin` in their
+    // chain) — they behave identically to this one now.
+    class SealedCellar extends SingletonCartesianLocation {}
     const cellar = makeStuff(() => new SealedCellar());
     zone.addLocation(cellar, 2, 0, 0);
-    cellar.setReserve(
-      new Reserve('air', Quantity.of(100, '%'), Quantity.of(100, '%'), 'atmosphere', null),
-    );
-    const fire = firewood(cellar, 1);
+    expect(cellar.airChangesPerHour()).toBeCloseTo(0.1); // the leak, and nothing else
+
+    // ⚠ A proper fire, not an ember. A single split log in a 27 m³ cellar
+    // takes most of a day to spend the air, which is honest — and is why
+    // the venue's lesson is a LIT HEARTH rather than a log on the floor.
+    const fire = firewood(cellar, 25);
     await occupy(cellar);
     fire.ignite();
 
-    // Starve → incomplete → smoke; keep burning → self-smother.
-    let sawSmoke = false;
-    for (let i = 0; i < 15; i++) {
+    let sawSoot = false;
+    let ticks = 0;
+    for (; ticks < 400; ticks++) {
       FireApi.onFireTick();
-      if ((cellar as unknown as Atmospheric)._atmosphere === 'smoke') sawSmoke = true;
+      if (sootIn(cellar) > 0) sawSoot = true;
       if (!fire.isBurning()) break;
     }
-    expect(sawSmoke).toBe(true); // it filled with smoke + CO
-    expect(fire.isBurning()).toBe(false); // and smothered itself
+    expect(sawSoot).toBe(true); // ⭐ it went sooty BEFORE it went out
+    expect(fire.isBurning()).toBe(false); // and then smothered itself
+    // ⭐ and it never wrote the atmosphere tag doing any of it.
+    expect((cellar as unknown as Atmospheric)._atmosphere).toBeNull();
   });
 });

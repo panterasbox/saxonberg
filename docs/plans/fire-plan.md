@@ -625,7 +625,62 @@ Each wave: goal · decisions · files · acceptance · commit. `test:near`
 lint:family` at every wave; `pnpm test` exactly twice (before the MR,
 at `/finalize`).
 
-### W0 — The medium carries amounts, and air derives from enclosure
+### W0 — The medium carries amounts, and air derives from enclosure ✅ DONE
+
+> **Build note (W0).** Landed as planned, with four decisions the plan
+> did not make and one real defect found.
+>
+> **B1 — The contents walk is "the innermost scope that IS a place", not
+> a sum across ancestors.** The plan said *`syncChainWalk` over step c,
+> summed by type*. Summing across the chain double-counts: a coach
+> standing in a smoky street would breathe the street's litres as well
+> as its own, and a sealed vessel would breathe the room. So
+> `resolveContentsFor` walks outward and the first `Atmospheric` ancestor
+> with a derivable **volume** answers — the SAME discriminator
+> `addAtmosphereContent` uses to decide where litres may go, so contents
+> can only be read from a scope they could have been put into. Summing
+> by type still happens, within one scope, folding its accumulated and
+> standing lists.
+>
+> **B2 — ⭐⭐ The thresholds and the exhaust are recalibrated on physics,
+> and R6 asked for exactly this.** The plan's 0.85 / 0.76 / 0.70 shares
+> with 1800 L/kg read as *spent air*, but the contents are the fire's
+> actual **exhaust** — a kg of wood burns to ~950 L of CO₂ — so the
+> fractions that matter are small: CO₂ is dangerous to breathe at 5 % of
+> the air and lethal near 10 %. At 0.85/0.70 a room had to be a QUARTER
+> exhaust before anyone noticed, which is both unphysical and so slow
+> the lesson never lands in a session. Shipped:
+> `atmosphere.breathableAirShare` **0.95**, `fire.air.completeAirShare`
+> **0.93**, `fire.air.smotherAirShare` **0.88**,
+> `fire.exhaust.litresPerKg` **950**, `smokeLitresPerKg` **300**. The
+> ordering the requirements demand is preserved and tightened: told →
+> sooty → in trouble → out.
+>
+> **B3 — ⛔ A real defect, found by a test that should have passed:
+> `stamp === 0` is not "unseeded".** Game-time zero is a legal instant —
+> it is the first instant of a fresh world — so a `0` sentinel makes the
+> decay silently never run there, because every read re-seeds the stamp
+> it is comparing against. `_atmosphereContentsStamp` uses `-1`. ⚠ **The
+> shipped `Burner.burnerFuelClockStamp` has the same `0` sentinel and
+> the same hole**; W1 fixes it there.
+>
+> **B4 — R5 is resolved in the permissive direction.** `lint:imports`
+> only polices escapes from `src/mud/`, and the sealed-subdir ESLint rule
+> covers `api/mql` and `api/mml` only — so `lib/biome` may type-import
+> `Concentrate` from `lib/bulk/Concentration`. No local shape needed.
+>
+> **Also:** `BiomeApi.hasBreathableShare(contents)` had to be split out
+> of `isBreathableMixture(tag, contents)`. Respiration asks the question
+> *after* the body's own `breathableMedia` set has already accepted the
+> medium, so re-consulting the air-breather table told a FISH it could
+> not breathe water. The displacement half has no opinion about what the
+> medium is.
+>
+> **Verified:** `lint:family` 65/65; the biome, respiration, maturation,
+> fire, reading, platform and hearthworks suites green; zero rows author
+> an `air` Reserve (a ratchet test in `terminus` holds it there);
+> `check-light-sources --report` baseline saved for W1 to diff.
+
 
 **Goal.** D1, D7. The wide wave: every interior in the game can starve a
 fire, and nothing authored resolves differently.

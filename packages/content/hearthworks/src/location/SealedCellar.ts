@@ -1,13 +1,18 @@
 /**
  * SealedCellar — the sealed-room CO-death demonstrator (the ventilation
- * lesson). A `CartesianLocation` carrying a finite combustion-`air` Reserve
- * (`ReservedMixin`), so a fire lit inside it starves: it burns incomplete
- * (cooler + soot), fills the room with smoke + carbon monoxide (the medium
- * turns un-breathable and poisonous), and finally self-smothers as the air
- * floors — an enclosed fire kills by CO, not flame. Crack the door (an open
- * boundary) and it burns clean. The **only** bespoke thing here is composing
- * `ReservedMixin` for the authored air budget; the whole behaviour is the
- * shipped `FireApi` air model reading it. See docs/subsystems/fire.md.
+ * lesson). A fire lit inside it starves: it burns incomplete (cooler +
+ * soot), fills the room with its own smoke and carbon dioxide until the
+ * mixture will not keep a body alive, and finally self-smothers — an
+ * enclosed fire kills by CO, not flame. Crack the door and it burns clean.
+ *
+ * ⭐⭐ **There is nothing bespoke left in this class.** It used to compose
+ * `ReservedMixin` to carry an authored `%` air budget, and that was the
+ * one thing it was for. The fire build derives a scope's air from its own
+ * OPENINGS, so a shut stone room starves a fire because it is a shut
+ * stone room — and the four Terminus cellars that authored the same
+ * budget and silently dropped it (no `ReservedMixin` in their chain)
+ * behave identically now. What remains is the granite, which is a fact
+ * about cellars. See docs/subsystems/fire.md.
  *
  * ⭐ The Hearthworks' one class, shipped in the venue pack (the capability
  * rung) since the venue re-rooted under `/world/terminus` — a class path
@@ -16,12 +21,9 @@
  */
 
 import SingletonCartesianLocation from '@saxonberg/server/mud/lib/location/SingletonCartesianLocation';
-import { ReservedMixin } from '@saxonberg/server/mud/lib/reserve';
 import type { EnclosureDefaults } from '@saxonberg/server/mud/lib/spatial/Enclosed';
 
-export default class SealedCellar extends ReservedMixin(
-  SingletonCartesianLocation,
-) {
+export default class SealedCellar extends SingletonCartesianLocation {
   /**
    * ⭐ **A cellar is cut into the rock, and the rock is thick.**
    *

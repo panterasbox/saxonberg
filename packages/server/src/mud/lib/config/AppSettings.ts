@@ -1640,18 +1640,54 @@ export const AppSettingKeys = {
   /** Fire — the temperature (K) an air-starved (incomplete) fire holds;
    * cooler than complete combustion (the ventilation lesson). */
   fireFlameTemperatureIncompleteK: "fire.flameTemperatureIncompleteK",
-  /** Fire — scope-air (`%` of the room's `'air'` Reserve) each burning object
-   * consumes per tick in an enclosed scope. */
-  fireAirConsumePerTick: "fire.air.consumePerTick",
-  /** Fire — scope-air (`%`) a VENTILATED scope (sky-exposed or an open
-   * boundary) regains per tick — the bellows / cracked-door replenishment. */
-  fireAirReplenishPerTick: "fire.air.replenishPerTick",
-  /** Fire — scope-air level (`%`) at/above which combustion is complete
-   * (hot, clean); below it starves to incomplete (cooler, soot + CO). */
-  fireAirCompleteThresholdPct: "fire.air.completeThresholdPct",
+  /** Fire — the share of a scope's medium that must still be plain air for
+   * combustion to be complete (hot, clean); below it the fire starves to
+   * incomplete (cooler, soot + CO). ⭐ Replaced the `'air'` Reserve's
+   * `%` threshold: air is DERIVED from the enclosure now, not authored. */
+  fireAirCompleteAirShare: "fire.air.completeAirShare",
+  /** Fire — the air share at/below which a fire smothers itself. Strictly
+   * BELOW {@link fireAirCompleteAirShare} and below
+   * {@link atmosphereBreathableAirShare}, so a person in the room is warned
+   * before the fire goes out. */
+  fireAirSmotherAirShare: "fire.air.smotherAirShare",
+  /** Fire — air changes per hour a scope gets per open EXTERIOR opening (a
+   * doorway onto the outside). */
+  fireAirAchPerOpening: "fire.air.achPerOpening",
+  /** Fire — air changes per hour per open INTERIOR opening (a doorway into
+   * another room). Smaller: the next room's air is not fresh air. */
+  fireAirAchInterior: "fire.air.achInterior",
+  /** Fire — air changes per hour a shut scope leaks anyway. Nothing is
+   * airtight; a cellar with the trapdoor down still breathes, slowly. */
+  fireAirAchLeak: "fire.air.achLeak",
+  /** Fire — litres of carbon dioxide a fire puts into its scope per kg of
+   * fuel burnt (every fire, complete or not — this is the conservation leg). */
+  fireExhaustLitresPerKg: "fire.exhaust.litresPerKg",
+  /** Fire — litres of SMOKE per kg burnt, additionally, while combustion is
+   * incomplete. ⭐ Soot is what an air-starved fire makes instead of heat. */
+  fireExhaustSmokeLitresPerKg: "fire.exhaust.smokeLitresPerKg",
+  /** Fire — the Material a fire's soot is made of. */
+  fireExhaustSmokeMaterial: "fire.exhaust.smokeMaterial",
+  /** Fire — the Material a fire's clean exhaust is made of. */
+  fireExhaustCarbonDioxideMaterial: "fire.exhaust.carbonDioxideMaterial",
   /** Respiration — carbon-monoxide (contaminant) toxin burden a breather
    * takes on per reassess while in a contaminated (smoke) medium. */
   respirationContaminantBurdenPerBreath: "respiration.contaminantBurdenPerBreath",
+
+  /* ────────────────────────── atmosphere (what the medium carries) ────────────────────────── */
+  /** Atmosphere — the share of a scope's medium that must still be plain
+   * medium for a body to go on exchanging gas. Above the fire's smother
+   * share on purpose: ⭐ **the person is warned before the fire dies.** */
+  atmosphereBreathableAirShare: "atmosphere.breathableAirShare",
+  /** Atmosphere — standard ambient (K). A material whose boiling point is at
+   * or below this is a GAS, which is how phase stays derived rather than
+   * authored. */
+  atmosphereStandardK: "atmosphere.standardK",
+  /** Atmosphere — how long (game-seconds) a DERIVED standing amount takes to
+   * ramp back after it has been drawn off (the drained firedamp heading). */
+  atmosphereStandingRebuildS: "atmosphere.standingRebuildS",
+  /** Atmosphere — the fraction of the medium below which a content is not
+   * worth mentioning in a reading. */
+  atmosphereNoticeableFraction: "atmosphere.noticeableFraction",
 
   /* ────────────────────────── magic (casting core) ────────────────────────── */
   /** Magic — default cast time (game-seconds) when a spell seed omits one. */
