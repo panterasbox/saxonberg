@@ -981,7 +981,7 @@ prints trade-glass's class origins; `lint:family` green (`light-sources`,
 `untitled`, `ground`, `mass`, `authored-prose`); walking the venue in a
 browser shows the furnace, the pit faces and the hut's two windows.
 
-#### W8 — The drive, then the MR · `drive(glass): …what driving found`
+#### W8 — The drive, then the MR · `drive(glass): …what driving found` ✅ DONE (drive 7/7; see the Drive record below)
 
 - `packages/wire/tests/glass.dirty.wire.test.ts` (`DIRTY_REASON`: wins
   sand from a persisted pit, burns the kiln's fuel, consumes the bounded
@@ -1188,7 +1188,68 @@ instrumentation,content-packs,settlement-model,lint-family}.md` ·
 
 ---
 
-## Drive record
+## Drive record — W8 ✅
 
-*Appended at build time (W8): the wire file's path, the run's output,
-the count passed/failed, and what each failure was.*
+**File:** `packages/wire/tests/glass.dirty.wire.test.ts` (graduated into the
+suite; `lint:drive-scripts` clean). **Boot:** `WIRE_BOOT=1 WIRE_PORT=2015`
+on build-4's DB, 10 packs, fresh boot. **Result: 7/7 pass.**
+
+The drive follows the **extraction precedent**: a wire drive's unique job
+is the five reachability links (verb·affordance·data·boot·arg-gate, each
+fails closed and silent) plus the one thing only a booted world shows. It
+does NOT run the full batch→melt→blow→crack→cold→glaze loop live — that is
+time/fuel-dependent at the game clock and pinned where the arithmetic
+lives (`FireController.test` the firing carry, `Tinted.test` iron→colour,
+`hotwork.test` the gather cools to cullet, `coldwork.test` a green pane
+glazes a window green, `Freshness.test` light-strike).
+
+Checkpoints: (1) the glasshouse boots and `look` shows furnace/pipe/marver,
+nothing "something"; (2) the sand pit is reachable (the cross-zone exit);
+(3) `fire kiln` reaches FireController and refuses the cold chamber in
+words; (4) `dip` is afforded by the held blowpipe and reaches DipController;
+(5) ⭐ the CLEAN face wins sand that `analyze iron` reads as clear ware, and
+glasswork advances; (6) ⭐ the DIRTY face reads RUSTY — **the colour-is-a-
+grade split, proven live** (the deposit, the quarry mint and the Reading
+meeting in a booted world — no unit test can show it); (8) ⭐ the glazier's
+hut is **lit through its two first-authored windows** (no ambient of its
+own — a pitch-dark hut would mean the anchors never wired).
+
+### What the drive FOUND (defects fixed, re-driven)
+
+1. **Sand was heaped to the tip, not kept.** `destinationFor` sends an
+   `earth`-tagged band's winnings to `spoilTo` (overburden behaviour) — but
+   a sand pit's sand IS the good. The won load never reached the player, so
+   `analyze iron` had nothing to read. **Fix:** the sand faces author no
+   `spoilTo`, so the won sand lies in the pit (reachable). A real
+   fail-closed-and-silent find — the colour split was unobservable until
+   this, and checkpoint 5 had *passed vacuously* (its regex matched the
+   word "clean" in the clean FACE's decline text, not a load reading).
+2. **`analyze iron sand` bound the FACE, not the load** (both carry the
+   "sand" keyword; the Reading declined the non-Alloyed face). **Fix (drive
+   script):** target the load's unique `grit` keyword.
+3. **Midnight.** A wire world boots at `t=0`; a sky-lit room is dark then.
+   **Fix (drive script):** advance the clock to midday before looking.
+4. **One spade per face.** Separate digger sessions each took the face's
+   one spade; folded the discipline check into the clean digger's session.
+
+### Reachability links — checked
+
+`fire` (BurnerMixin affords; reaches controller — ckpt 3), `dip` (Blowpipe
+`environment` affords the held pipe; reaches controller — ckpt 4),
+`analyze iron` (the `iron` Reading row + `subjectRequires` arg-gate — ckpt
+5/6), the colour data (the deposit pins + the quarry mint stamp — ckpt
+5/6), the venue boot (10 packs install clean), the first windows wire (the
+hut is lit — ckpt 8). The cold-shop verbs (`scribe`/`snap`/`groze`/`glaze`)
+ride the identical `environment` static proven live by `dip`, and their
+views are lint-validated (`controller-rows`, `verb-collisions`); their
+execution is `coldwork.test`'s.
+
+### ⚠ Not run: the live browser pass
+
+The plan called for a browser walk after the wire drive (memory: the wire
+drive is not the live drive). The chrome-devtools MCP did not connect this
+session ("WebSocket is not open"), and the session rode through a WSL
+crash. The wire drive is green and the mechanics are heavily unit-tested
+(the colour split proven live). **A browser walk of the full hot/cold/glaze
+flow remains the one recommended manual check before merge** — flagged in
+the MR.

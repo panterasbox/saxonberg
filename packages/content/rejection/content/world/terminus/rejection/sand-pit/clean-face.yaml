@@ -17,7 +17,6 @@ data:
     The worked-out fringe lies off to the east, redder with iron.
   coords: { x: 0, y: 0, z: 0 }
   faceRunM: 20
-  spoilTo: /world/terminus/rejection/kestrel-road/tips
   props:
     - /trade/quarrying/thing/spade
   exits:
