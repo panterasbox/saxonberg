@@ -9,6 +9,5 @@ inputSlots:
 toolCapabilities: [juicer]
 outputApplication: bulk
 outputTemplate: /trade/hospitality/thing/juice-bottle
-outputAppearance: fresh grapefruit juice, cloudy
 outputMaterial: /trade/hospitality/idea/material/grapefruit-juice
 outputPortionL: 0.1

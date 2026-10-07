@@ -611,3 +611,102 @@ Each lands in a named home later; none is in this slice.
   the `:b` transform home.
 - [response-envelope.md](./response-envelope.md) — note kinds.
 - [bulkable-slate.md](../slates/tails/bulkable-slate.md) — design of record.
+
+---
+
+## History — the whiskey build (2026-10-04)
+
+**A new policy seam.** `getBulkPayloadForDraw(affordance, litres)` on
+`Bulkable`, `payloadForDraw(litres)` on `BulkSlot`. The base impl returns
+the slot's own payload, so nothing changes for any composer; a host whose
+interior is **not homogeneous** overrides it. ⚠ It takes the litres
+because a draw that straddles a boundary is two things at once — see
+[fractionation.md](./fractionation.md).
+
+**A new declared payload field.** `dissolvedToxins`, from
+`lib/metabolism/DissolvedToxins.ts` — the `formedToxins` move, for a dose
+that is a **concentration** (mg/L) rather than a per-serving amount, so it
+blends by volume on every pour and scales with litres drunk at the ingest.
+`lib/bulk` still never learns the word toxin.
+
+**⚠⚠ Two behaviour changes in `transfer`, and both are doctrinal:**
+
+1. **A top-up is weakest-link on the grade.** Identity rides into an
+   empty destination only, as before — but quality is a property of the
+   *matter*, and without this, pouring good into bad left `poor` while
+   pouring bad into good left `fine`: the same mixture with two answers,
+   and the second was a laundry. The maker's mark is untouched either
+   way; a top-up never re-signs somebody else's work.
+2. **The drawn payload comes from `payloadForDraw(applied)`**, read after
+   the clamp, not from `getPayload()`.
+
+**⚠ The insertion count is now EIGHT.** `transfer` carries freshness,
+water activity, pathogens, blood identity, thermal, the payload copy, the
+batch-identity carry and the dissolved blend. `maturation.md` named
+poisons as the moment to generalise to a host-side participant hook, and
+this build made the eighth in the shipped shape and **filed the refactor
+with its count** rather than doing it — per *census then ratchet*, because
+refactoring four shipped blends inside a feature build would have hidden
+the feature.
+
+---
+
+## History — the whiskey-STYLES build (2026-10-05)
+
+**⭐⭐ One fold, three call sites: `BulkableApi.blendPayloads`.** A new
+Api static (logic on `BulkableLogic`) folds exactly the **per-litre
+payload domains** of two bodies of matter — `dissolvedToxins`,
+`dissolvedAromatics`, and `maturedDays` as a MINIMUM — and returns a
+payload based on the destination with every other field untouched.
+
+⛔⛔ **It exists because a RECIPE did not blend.**
+`CraftingLogic.applyBulkOutput`'s authored-material branch set the output
+material, the amount and the maker, and **carried no input payload at
+all**. So a recipe was the one way matter could move in this game without
+its concentrations moving with it: vatting two badly-cut bottles produced
+one that read clean, and every pour-side anti-laundering guard
+(`DissolvedToxins`, `Contamination`, `Freshness`) could be walked around
+by anybody with a recipe. The slate's *"blending needs no new mechanism"*
+was true of the SLOTS and false of the payload.
+
+The three sites: a **pour** (`transfer` step 5, replacing the inline
+toxin block), a **recipe's bulk output**, and a **grind**
+(`MillController.fill`, which cloned a fresh sack and dropped the source
+payload on the floor — so smoke in a peated malt vanished at the
+millstones).
+
+⚠ The insertion count in `transfer` stays at **EIGHT**: one block became
+one call. This is the first piece of the participant-hook refactor
+actually extracted, taken only as far as the facts forced.
+
+**⭐ The arithmetic was promoted, not the field.**
+`lib/bulk/Concentration.ts` holds the volume-weighted blend for both
+concentration kinds; `DissolvedToxins.blend`/`.isClean` forward onto it
+and `DissolvedAromatics` ships **no forwarders at all**, because
+`lint:lib-statics` is a ratchet and a static that only forwards is what
+it counts down. `labileAtK` keeps working without `Concentration` naming
+it: the fold reconciles every non-`amount` field by **filling gaps and
+never averaging**, which is exactly the rule a physical constant of a
+substance needs.
+
+**Two new declared payload fields**, each from the subsystem that owns
+the word (`lib/bulk` still learns neither):
+
+| field | from | folds by |
+|---|---|---|
+| `dissolvedAromatics` | `lib/metabolism/DissolvedAromatics` | volume |
+| `maturedDays` | `lib/maturation/Maturing` | **minimum** |
+
+⚠ `maturedDays` is the one domain on the payload that is not a weighted
+mean, and deliberately: an age statement means the youngest thing in the
+bottle.
+
+**⚠ One behaviour change.** `applyBulkOutput` now stamps
+`payload.appearance` from the recipe's `outputAppearance` on an
+authored-material output, which that branch had **ignored** — so 22
+shipped recipes authored prose that never rendered. Seven of them say
+something the material cannot (`crush-comb` and `spin-comb` are two
+recipes for ONE honey material whose whole difference is how the honey
+looks; `flatbread` and `lean-loaf` likewise for bread); the other fifteen
+were duplicates or weaker restatements of the material's own line and
+their keys were **deleted**, so no shipped prose regressed.

@@ -20,5 +20,13 @@ data:
   # same number seen twice.
   nutrientAmounts: { carb: 730000, protein: 105000 }
   toxicity: []
-  tags: ["food", "grain", "cereal", "brewing", "feed"]
+  # ⭐ `barley` added by the whiskey build, and the sibling row is the
+  # argument: `wheat-grain` carries `"wheat"` — its own name — while this
+  # one carried only `"brewing"`, which is a PURPOSE and not an identity.
+  # A recipe slot matches a material tag, so without the identity tag the
+  # maltster's steep had to ask for `category: brewing`, which reads as
+  # *steep one brewing* and would have matched any future grain somebody
+  # tagged for the brewhouse. The purpose tag stays: it is still true, and
+  # something may yet want to ask for it.
+  tags: ["food", "grain", "cereal", "barley", "brewing", "feed"]
   composition: []

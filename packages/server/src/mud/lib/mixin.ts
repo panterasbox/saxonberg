@@ -535,6 +535,10 @@ export const Mixins = {
   // The durative ferment — a VESSEL whose contents convert over
   // game-time (growth accretes, fermentation converts).
   Maturing: 'MaturingMixin',
+  // ⭐ The ORDERED yield — a host whose interior is not one liquid and
+  // gives up fractions in sequence as it is drawn. Maturing's sibling,
+  // driven by volume drawn rather than by a clock.
+  Fractionating: 'FractionatingMixin',
   Behaved: 'BehavedMixin',
   Graded: 'GradedMixin',
   // A physical thing that wears out with use (the condition/wear gauge).
@@ -753,6 +757,11 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
 
   // Reduction & separation — a mill, a stamp battery.
   ComminutingMixin: "{} isn't something that grinds",
+
+  // ⭐ The refusal names what a still IS, not that this thing is not one
+  // — the Launcher lesson. "the bucket doesn't come off in fractions" is
+  // the useful sentence.
+  FractionatingMixin: "{} doesn't come off in fractions",
 
   // Construction & table — a butcher's blade is any EDGE, and cutlery is
   // what you eat with.

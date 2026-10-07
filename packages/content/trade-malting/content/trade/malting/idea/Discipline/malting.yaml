@@ -1,0 +1,25 @@
+# ⭐⭐ Malting — and the Discipline row is the point of shipping it as a
+# trade rather than as two loose recipes.
+#
+# Lens 1 decided this during the requirements re-run: *a skill that no
+# Discipline names is a fact sheet, not a curriculum.* A malting rung with
+# no Discipline would add labour that exercises nothing, and both
+# alternatives assert something false — `fermenting` claims a microbial
+# mechanism (the exact confusion a maltster spends their life avoiding,
+# and the reason this trade's maturation profile needed a new mechanism
+# word) and `brewing` makes the maltster a brewer, which is a different
+# trade with a different customer.
+#
+# ⭐ What it measures is patience with a judgement in it: the steep is a
+# clock, the floor is a clock, and the one act that decides the outcome is
+# knowing when to stop them. Improves by doing, where there is a bed to do
+# it on.
+class: /platform/idea/Discipline
+data:
+  key: malting
+  channel: skill
+  label: Malting
+  iscedf: "0721"  # ISCED-F 2013: food processing
+  description: Waking a grain and stopping it — the steep, the floor, and the moment to kiln. Improves by doing, where there is a malting floor to do it on.
+  requires:
+    - recipe-knowledge

@@ -122,6 +122,9 @@ importers:
       '@saxonberg/content-trade-hospitality':
         specifier: workspace:*
         version: link:packages/content/trade-hospitality
+      '@saxonberg/content-trade-malting':
+        specifier: workspace:*
+        version: link:packages/content/trade-malting
       '@saxonberg/content-trade-medicine':
         specifier: workspace:*
         version: link:packages/content/trade-medicine
@@ -856,6 +859,9 @@ importers:
       '@saxonberg/content-trade-haulage':
         specifier: workspace:*
         version: link:../trade-haulage
+      '@saxonberg/content-trade-malting':
+        specifier: workspace:*
+        version: link:../trade-malting
       '@saxonberg/content-trade-medicine':
         specifier: workspace:*
         version: link:../trade-medicine
@@ -1343,6 +1349,24 @@ importers:
       yaml:
         specifier: ^2.8.2
         version: 2.9.0
+
+  packages/content/trade-malting:
+    dependencies:
+      '@saxonberg/content-base-library':
+        specifier: workspace:*
+        version: link:../base-library
+      '@saxonberg/content-generic-objects':
+        specifier: workspace:*
+        version: link:../generic-objects
+      '@saxonberg/content-platform':
+        specifier: workspace:*
+        version: link:../platform
+      '@saxonberg/content-trade-farming':
+        specifier: workspace:*
+        version: link:../trade-farming
+      '@saxonberg/content-water':
+        specifier: workspace:*
+        version: link:../water
 
   packages/content/trade-medicine:
     dependencies:

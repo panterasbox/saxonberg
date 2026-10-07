@@ -1,0 +1,67 @@
+# The rectification — ⭐ running new-make a second time, tighter, to get
+# the neutral spirit the compounder's gin starts from.
+#
+# This row is the one that proves the mechanism is general without
+# leaving the trade: same code, same verbs, different numbers. The
+# schedule is tighter in every direction — less to throw away at the
+# front because most of it went in the first run, a much narrower heart,
+# and the product is NEUTRAL, which is the whole definition of a
+# rectification: you are taking the character out, not leaving it in.
+#
+# ⚠ The gin was always honest content and never honestly made: the
+# compound-gin recipe takes `neutral-spirit`, and until this build the
+# only neutral spirit in the world came off Veshko's stock rows. Now it
+# can be run.
+class: /platform/idea/fractionation/FractionSchedule
+data:
+  key: rectify
+  inputCategory: new-make
+  discipline: distilling
+  requiresHeatK: 351
+  productMaterial: /trade/distilling/idea/material/neutral-spirit
+  residueMaterial: /trade/distilling/idea/material/stillage
+  # A second run is easier to read — the feints are a smaller share of a
+  # charge that is already spirit — so the lag costs less.
+  readBlur: 0.01
+  gradeStretch: 0.01
+  fractions:
+    # ⭐ `aromaticCarry` on the SECOND distillation, and the figures are
+    # nearly flat for a reason: a rectification is run to STRIP
+    # character, not to select it. The hearts are the bulk of the charge
+    # (0.72 of it) and carry 0.6 — so running a peated spirit through
+    # here does not concentrate the smoke, it thins it. That is what
+    # "neutral spirit" means, and it is why a gin house buys wash spirit
+    # and a whisky house does not rectify.
+    #
+    # Mass balance: 0.01x1 + 0.04x1 + 0.67x0.6 + 0.08x1.5 = 0.572.
+    - key: foreshots
+      upTo: 0.01
+      character: >-
+        A brief sharpness, thinner than the first run's and over almost
+        at once.
+      gradeBand: poor
+      aromaticCarry: 1
+      toxins:
+        - { type: methanol, amount: 2000 }
+    - key: heads
+      upTo: 0.05
+      character: >-
+        Hot, but clean-hot — the edge is there and it is not foul.
+      gradeBand: fair
+      aromaticCarry: 1
+      toxins:
+        - { type: methanol, amount: 300 }
+    - key: hearts
+      upTo: 0.72
+      character: >-
+        Almost nothing on the nose at all: hot, empty and very clean,
+        which is exactly what it is supposed to be.
+      gradeBand: fine
+      aromaticCarry: 0.6
+    - key: feints
+      upTo: 0.8
+      character: >-
+        A faint oiliness creeping back in, and the emptiness gone out of
+        it.
+      gradeBand: fair
+      aromaticCarry: 1.5

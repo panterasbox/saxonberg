@@ -220,6 +220,30 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
     }
   }
 
+  // ⭐⭐ A mill row's `products:` — the feed → product table (the
+  // whiskey-styles build). Each entry names the matter it makes, the
+  // matter it bolts out and the two sacks they land in, and all four
+  // resolve LIVE at the completion of a grind.
+  //
+  // ⚠ This is the field that replaced the scalar `productMaterial` as
+  // the one that actually decides, and clause (d) caught it the moment
+  // it shipped — which is the gate's own stated purpose: *if this is a
+  // RENAME of a field refsOf used to read, the census has just gone
+  // blind on every ref it carried.* The scalars are still read above
+  // (they remain the fallback for a row with no table), so the two
+  // together cover every path a grind can resolve. A rowless entry here
+  // is a grind that consumes the grain, runs its whole duration and
+  // produces nothing, inside a completion no player is watching.
+  if (Array.isArray(data.products)) {
+    for (const row of data.products as Array<Record<string, unknown>>) {
+      if (!row || typeof row !== 'object') continue;
+      push('products.product', row.product);
+      push('products.residue', row.residue);
+      push('products.vessel', row.vessel);
+      push('products.residueVessel', row.residueVessel);
+    }
+  }
+
   // ⚠ `props:` and `cast:` — the born-with fields. They were ONE field
   // (`populates:`) until the farming build split them by designation,
   // and this census kept reading the retired name: it went on reporting

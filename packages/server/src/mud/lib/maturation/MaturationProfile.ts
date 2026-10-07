@@ -43,12 +43,21 @@ import type { EvictionContext } from '../stuff/Stuff';
  *   solid. What distinguishes it from the other three is that the batch
  *   gets *smaller* as it converts (the water leaves) and that **rain puts
  *   it back** — the only mechanism with a setback that is not a failure.
+ * - `enzymatic` — ⭐⭐ **the thing does it to ITSELF.** A steeped barleycorn
+ *   wakes up and turns its own starch over with its own amylase; nothing
+ *   was added and nothing is living on it. Added by the whiskey build for
+ *   malting, and added rather than reused because both plausible
+ *   alternatives assert something false: `microbial` claims an organism is
+ *   doing it (the exact confusion a maltster spends their life avoiding)
+ *   and `chemical` claims a reagent is. The platform teaches, so the word
+ *   has to be true.
  */
 export type MaturationMechanism =
   | 'microbial'
   | 'photochemical'
   | 'chemical'
-  | 'evaporative';
+  | 'evaporative'
+  | 'enzymatic';
 
 /** Every mechanism, for validation and for the totality check. */
 export const MATURATION_MECHANISMS: readonly MaturationMechanism[] = [
@@ -56,6 +65,7 @@ export const MATURATION_MECHANISMS: readonly MaturationMechanism[] = [
   'photochemical',
   'chemical',
   'evaporative',
+  'enzymatic',
 ];
 
 /** The four things a maturing thing can look like, per mechanism. */
@@ -143,6 +153,20 @@ export const MATURATION_LINES: Record<
     // pan boiled dry and burnt, which is the one way to ruin one.
     killed: 'It has been boiled dry and burnt to a bitter scale.',
   },
+  enzymatic: {
+    // ⚠ No bubbles, no yeasty breath, no smell of anything working on it
+    // — because nothing is. The grain is doing this to itself, and what
+    // you can see is the grain, so every line here is about the CORNS.
+    starting: 'The corns have plumped and split, and a white chit shows at the tip of each.',
+    working: 'Pale rootlets have knitted the bed into a mat, and it is warm to the back of the hand.',
+    finished: 'The acrospire has run the length of the corn. It crushes to a sweet flour between the fingers.',
+    // Reachable: a bed left too long grows past the corn and eats its own
+    // sugar. No shipped profile authors a `turnedMaterial` for it yet, so
+    // this waits with the others — kept so the Record stays total.
+    turned: 'The shoots have pushed out green past the husk and the sweetness has gone out of it.',
+    stalled: 'It lies cold and tight. The chits have stopped where they were.',
+    killed: 'It has cooked in the bed — slack, sour, and nothing growing in it any more.',
+  },
 };
 
 export default class MaturationProfile extends SingletonMixin(Idea) {
@@ -199,6 +223,26 @@ export default class MaturationProfile extends SingletonMixin(Idea) {
    * ferment converts open or closed (the CO₂ blanket protects it).
    */
   public sealedOnly = false;
+
+  /**
+   * ⭐⭐ **The conversion at which the PRODUCT exists**, in `(0, 1]`.
+   * Default `1` — the product appears only at full conversion, which is
+   * what every profile did before this and what every shipped profile
+   * but the two whisky casks still does.
+   *
+   * ⭐ Below 1 it makes *when to bottle* a decision. A whisky cask at
+   * `0.25` holds drawable whiskey from a quarter of the way along —
+   * young, pale, and graded by how far along it is
+   * (`applyBatchGrade`'s maturity term), so the Lounge's sour
+   * (`minGrade: fair`) refuses it and a patient distiller gets the
+   * cut's own band. That is a cash-flow fork with a consumer that
+   * already shipped, rather than a number nobody reads.
+   *
+   * ⚠ It does NOT end the batch. The clock runs on to 1 regardless;
+   * this only decides when what is in the vessel is callable by the
+   * product's name.
+   */
+  public productAtFraction = 1;
 
   // ── yeast, wild and kept (D14/P12) ──
 
@@ -275,13 +319,6 @@ export default class MaturationProfile extends SingletonMixin(Idea) {
    * viability to starve 1 → 0. The cellar slows it; heat speeds it.
    */
   public starveDays = 14;
-  /**
-   * The wash's foreshot character — INERT authored prose in v1 (P10):
-   * the seam the deferred cuts rung reads into metabolism's toxin dose
-   * (kept foreshots become the poison; pouring off the first draw
-   * becomes the skill). Nothing consumes it yet, by design.
-   */
-  public foreshotCharacter = '';
 
   static fieldMeta: FieldMeta = {
     key: { persistent: true, authorable: true },
@@ -295,6 +332,7 @@ export default class MaturationProfile extends SingletonMixin(Idea) {
     turnedMaterial: { persistent: true, authorable: true },
     turnDays: { persistent: true, authorable: true },
     sealedOnly: { persistent: true, authorable: true },
+    productAtFraction: { persistent: true, authorable: true },
     kind: { persistent: true, authorable: true },
     mechanism: { persistent: true, authorable: true },
     strain: { persistent: true, authorable: true },
@@ -306,7 +344,6 @@ export default class MaturationProfile extends SingletonMixin(Idea) {
     leesFraction: { persistent: true, authorable: true },
     leesMaterial: { persistent: true, authorable: true },
     starveDays: { persistent: true, authorable: true },
-    foreshotCharacter: { persistent: true, authorable: true },
   };
 
   // ── the inter-Stuff contract (methods, never fields) ──
@@ -402,6 +439,13 @@ export default class MaturationProfile extends SingletonMixin(Idea) {
       );
     }
     this.turnDays = value;
+  }
+
+  /** The conversion at which the product exists; `1` = at the end only. */
+  getProductAtFraction(): number {
+    const p = this.productAtFraction;
+    if (!Number.isFinite(p) || p <= 0 || p > 1) return 1;
+    return p;
   }
 
   getSealedOnly(): boolean {
@@ -513,12 +557,6 @@ export default class MaturationProfile extends SingletonMixin(Idea) {
     return this.starveDays;
   }
 
-  getForeshotCharacter(): string {
-    return this.foreshotCharacter;
-  }
-  setForeshotCharacter(value: string): void {
-    this.foreshotCharacter = value;
-  }
   setStarveDays(value: number): void {
     if (!Number.isFinite(value) || value <= 0) {
       throw new RangeError(

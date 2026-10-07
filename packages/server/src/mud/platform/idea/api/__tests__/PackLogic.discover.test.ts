@@ -79,7 +79,12 @@ describe('the shipped packs (real discovery, no install)', () => {
     // one assertion a three-way merge cannot reconcile. A
     // count, not a claim — what the claims below check is the ORDER,
     // which is where a pack graph actually breaks.
-    expect(ids).toHaveLength(53);
+    // 54 since the whiskey build added `trade-malting` — ⭐ and the pack
+    // had to be added to the REPO ROOT's `package.json` to be discovered
+    // at all, because `PackLogic.discover` reads the shipped set out of
+    // `contentDepsOf(deploymentRoot/package.json)`. A pack's own deps
+    // drive install ORDER, not whether it ships.
+    expect(ids).toHaveLength(54);
     expect(ids[0]).toBe('platform');    for (const trade of ['trade-smithing', 'trade-cooking', 'trade-hospitality', 'trade-distilling']) {
       expect(ids.indexOf(trade)).toBeGreaterThan(ids.indexOf('generic-objects'));
     }

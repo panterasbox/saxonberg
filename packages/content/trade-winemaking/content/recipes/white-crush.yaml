@@ -16,7 +16,6 @@ outputApplication: bulk
 outputTemplate: /trade/winemaking/thing/must-bucket
 outputMaterial: /trade/winemaking/idea/material/white-must
 outputPortionL: 2.2
-outputAppearance: pale pressed juice, green-gold
 outputResidue:
   template: /trade/winemaking/thing/pomace
   count: 1

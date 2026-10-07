@@ -4,6 +4,9 @@
 > milk material and its expire-behaviour lactation
 > ([ranching.md § The taps](../../subsystems/ranching.md)). **Nothing
 > consumes milk** — verified, zero recipes take it.
+> ⭐ **A sink arrived 2026-10-06 that needs no cheese:** malted milk, in
+> [malting-and-extract-slate](./malting-and-extract-slate.md) — extract +
+> milk, so this slate's premise can be answered before its own build runs.
 > **Left:** the dairy as a business (the hourly tap and the hired hand) ·
 > pasteurization on the shipped kill curve · cheese as a maturation profile
 > with whey as the lees · butter and cream as mechanical process · the

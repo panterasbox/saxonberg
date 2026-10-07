@@ -106,6 +106,27 @@ export default class PourController extends CommandController<PourModel> {
       }
     }
 
+    // ⭐ The cut's credit, the same shape one block up: drawing from a
+    // RUNNING fractionating host is the distiller's timing act, and the
+    // schedule names which Discipline it exercises — so a schedule any
+    // pack ships credits its own trade with no controller edit.
+    if (result.applied > 0 && MixinApi.isFractionating(source)) {
+      const schedule = source.isRunning() ? source.getRunSchedule() : null;
+      const discipline = schedule?.getDiscipline() ?? '';
+      if (discipline) {
+        try {
+          if (MixinApi.isAdvancing(giver))
+            await giver.creditDeed({
+              discipline,
+              difficulty: 'easy',
+              outcome: 'success',
+            });
+        } catch (err) {
+          console.warn('PourController: recording the deed failed:', err);
+        }
+      }
+    }
+
     // Drain-through: an open destination didn't retain the liquid.
     if (result.status === 'drained') {
       MessageApi.scene(giver)

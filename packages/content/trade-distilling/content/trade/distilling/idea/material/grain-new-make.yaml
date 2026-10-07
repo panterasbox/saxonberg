@@ -1,0 +1,29 @@
+# Grain new-make — ⭐ what comes off a grain still, and it is NOT the
+# malt line's new-make.
+#
+# Thinner, cleaner, far less to it. A grain spirit is run to a longer,
+# more neutral heart than a malt one, which is exactly why it is the
+# cheap half of a blend: more of the charge is saleable and less of it is
+# character.
+#
+# ⚠ Tagged `grain-new-make`, NOT `new-make` — the whiskey-aging profile
+# keys on `new-make`, and the grain line has its own aging profile. Share
+# the tag and a cask of grain spirit would mature into malt whisky.
+class: /platform/idea/material/ConsumableMaterial
+data:
+  name: grain spirit
+  keywords: ["grain spirit", "grain new-make", grain, spirit]
+  appearance: "a thin, water-clear spirit with little smell to it"
+  density: 930
+  thermalConductivity: 0.17
+  specificHeat: 2400
+  edibility: true
+  toxicity:
+    - { type: alcohol, amount: 45 }
+  nutrients: []
+  tags:
+    ["liquid", "beverage", "drinkable", "alcoholic", "spirit", "grain-new-make"]
+  composition: []
+  biologicalSource: null
+  autoignitionTemperature: 636
+  heatOfCombustion: 27

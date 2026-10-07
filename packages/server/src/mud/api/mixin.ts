@@ -108,6 +108,7 @@ import type { Alloyed } from '../lib/material/Alloyed';
 import type { Contaminable } from '../lib/material/Contaminable';
 import type { Growing } from '../lib/husbandry/Growing';
 import type { Maturing } from '../lib/maturation/Maturing';
+import type { Fractionating } from '../lib/fractionation/Fractionating';
 import type { Plantable } from '../lib/husbandry/Plantable';
 import type { Soil } from '../lib/husbandry/Soil';
 import type { Handling } from '../lib/husbandry/Handling';
@@ -1482,6 +1483,15 @@ export class MixinApi {
    */
   public static isMaturing(obj: Stuff): obj is Stuff & Maturing {
     return this.hasMixin(obj, Mixins.Maturing);
+  }
+
+  /**
+   * A host whose interior yields in ordered fractions as it is drawn —
+   * a pot still, a rectifying column. ⭐ Maturing's sibling: that one is
+   * driven by a clock, this one by the volume you have taken out.
+   */
+  public static isFractionating(obj: Stuff): obj is Stuff & Fractionating {
+    return this.hasMixin(obj, Mixins.Fractionating);
   }
 
   /**
