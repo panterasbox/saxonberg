@@ -32,5 +32,19 @@ data:
   # this interior, so `fill lantern from cask` is the act and `stoke
   # lantern` is refused. Sold dry — the oil is a separate purchase, which
   # is the point of selling a lamp in a shop that also sells oil.
+  #
+  # ⛔ And it had NO TANK, which is the defect the pack suite caught:
+  # `fuelSlot()` answers with this interior and returns `null` when there
+  # is no interior capacity, so a lantern with neither a bed nor a slot
+  # could be neither stoked nor filled — a light that could never be lit,
+  # on a shelf, for sale. The four keys below are the safety lamp's
+  # shape, which is the one that works.
+  interiorBulk: true
+  interiorCapacity: 0.5
+  interiorMaterial: /stuff/idea/material/bulk/lamp-oil
+  # ⭐ Sold DRY — no `interiorAmount`. The oil is a separate purchase,
+  # which is the point of selling a lamp in a shop that also sells oil,
+  # and the refusal when you light it is the thing that tells you so.
+  closure: liquidTight
   maxBurnPowerW: 300
   fuelCapacityKg: 0
