@@ -53,7 +53,7 @@ export default class IronReading extends Reading {
     const fePct = fe * 100;
     const trained = band === "proficient" || band === "expert";
 
-    let line = Mml.compose`You look the ${Mml.thing(target)} over: ${Mml.fromMarkup(floorBand(fePct))}.`;
+    let line = Mml.compose`You look over ${Mml.thing(target)}: ${Mml.fromMarkup(floorBand(fePct))}.`;
     if (trained) {
       // ⭐ The trained eye reads the FIGURE — the detail competence buys.
       line = Mml.compose`${line} Iron, about ${fePct.toFixed(2)}% by mass.`;

@@ -1269,12 +1269,42 @@ ride the identical `environment` static proven live by `dip`, and their
 views are lint-validated (`controller-rows`, `verb-collisions`); their
 execution is `coldwork.test`'s.
 
-### ⚠ Not run: the live browser pass
+### The live browser pass — ✅ done (2026-10-08, post-master-merge)
 
-The plan called for a browser walk after the wire drive (memory: the wire
-drive is not the live drive). The chrome-devtools MCP did not connect this
-session ("WebSocket is not open"), and the session rode through a WSL
-crash. The wire drive is green and the mechanics are heavily unit-tested
-(the colour split proven live). **A browser walk of the full hot/cold/glaze
-flow remains the one recommended manual check before merge** — flagged in
-the MR.
+Run in a real browser (chrome-devtools) against a fresh-DB server on the
+MERGED code (`SAXONBERG_TEST_WORLD=1`, a test-login wizard character
+teleported in with `goto`). Confirmed LIVE, and this is the pass that
+matters because it exercises the merged world the wire drive's fixtures
+do not:
+
+- ⭐ **`gob` works end to end** — the merge's rename proven in a browser:
+  `get blowpipe` picks it up, `gob` is understood, afforded by the held
+  pipe, and reaches `GobController`, refusing the cold furnace in words
+  (*"Gather from what? You need a pot of molten glass."*). The
+  `dip`→`gob` resolution (D17) is live.
+- ⭐⭐ **The colour-is-a-grade split, both faces** — `dig face with spade`
+  wins a load; `analyze iron grit` reads the clean face *"pale and clean
+  — this will take clear ware"* and the dirty face *"rusty with iron —
+  green bottles, and no clearer."* The deposit, the quarry mint and the
+  Reading meeting in a booted, merged world.
+- **The venue** — the glasshouse boots and its card renders the furnace,
+  brick kiln, blowpipe and marver by name; the glazier's hut renders its
+  two authored windows (`the west window`, `the south window`) and the
+  cold-bench tools, with the *"a different colour in here, through the
+  glass"* prose.
+
+**What the browser FOUND (fixed):** the `analyze iron` reading composed
+*"You look **the a** load of glass sand over"* — a double article
+(`Mml.thing` already supplies one). Fixed in `IronReading.ts` →
+*"You look over a load of glass sand: …"*. (The band words the wire drive
+asserts were unaffected.)
+
+**Noted, not glass's to fix:** bare `dig` defaults to a pick over a held
+spade (*"A pick will not shift sand — take a spade to it"*); `dig face
+with spade` works. A quarrying `dig` tool-selection nicety — offered to
+`trade-quarrying`'s slate, not fixed here.
+
+**Not walked live (by design):** the full fire→gob→shape→crack hot loop
+needs a fired batch (fuel + time), deferred to the unit tests
+(`FireController`/`hotwork`/`coldwork`) exactly as the wire drive defers
+it — the browser confirmed every reachability link up to the hot melt.
