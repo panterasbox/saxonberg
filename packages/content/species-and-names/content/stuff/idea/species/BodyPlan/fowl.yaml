@@ -1,0 +1,108 @@
+# Fowl — a domestic bird that does not fly. The hen, and whatever else a
+# yard keeps.
+#
+# ⭐⭐⭐ **This plan exists so that white meat can be white.** A chicken's
+# breast is the flight muscle of a bird that has given up flying: pale,
+# close-grained, almost no myoglobin and almost no connective tissue. Its
+# legs, which carry it around the yard all day, are dark and tougher.
+# That is the SAME law the ox's worn shoulder obeys — a muscle's work
+# decides its texture — and it is the one instance of it every player has
+# already met in a kitchen.
+#
+# ⚠⚠ **So the law is structural, not a field.** `avian` is the bird that
+# flies and its breast names `tissue/muscles/breast-red`; this plan's
+# names `breast-white`. Nothing anywhere has to special-case poultry, and
+# a duck or a goose later is `avian` plus a species row — which is why the
+# two plans are kept apart.
+#
+# ⚠ It is NOT `avian` with a flag. A fowl's wings do not `serve:
+# [locomotion]` — a hen's wings get it onto a perch and no further, so a
+# broken wing must not cost it a quarter of its ability to get about the
+# way it costs a canary. That difference is the whole reason for a second
+# plan and it would be invisible as a boolean.
+#
+# ⚠⚠ **And the hen named `biped` until 2026-10-05** — the HUMAN plan. A
+# chicken had `body.arm.left.hand`, a liver, an upper and lower spine, and
+# no wings at all. Nothing errored, because nothing checked.
+class: /platform/idea/species/BodyPlan
+data:
+  name: fowl
+  slots:
+    - { name: 'perch:1', accepts: SlottableMixin, userFacingDetail: perch }
+  locomotionModes:
+    - walk
+  defaultLocomotionMode: walk
+  sensoryPorts:
+    - { modality: vision, count: 2, position: lateral }
+    - { modality: hearing, count: 2, position: lateral }
+    - { modality: smell, count: 1, position: forward }
+    - { modality: touch, count: 1, position: circumferential }
+    - { modality: taste, count: 1, position: forward }
+  # ⚠ Bone FIRST in every list: trauma's two readers are
+  # `primaryTissueMaterial` (the first resolvable tissue) and
+  # `partHasBoneTissue` (tags), so the order is load-bearing.
+  #
+  # Shares of the whole body, summing to 1. The breast is the single
+  # biggest muscle on a table bird — which is the point of a table bird.
+  bodyParts:
+    - key: body.torso
+      parent: null
+      tissues:
+        - { tissuePath: /stuff/idea/material/tissue/bone, share: 0.1 }
+        - { tissuePath: /stuff/idea/material/tissue/muscles/breast-white, share: 0.24 }
+        - { tissuePath: /stuff/idea/material/food/animal-fat, share: 0.05 }
+        - { tissuePath: /stuff/idea/material/tissue/flesh, share: 0.318 }
+    - key: body.head
+      parent: body.torso
+      severable: true
+      tissues:
+        - { tissuePath: /stuff/idea/material/tissue/bone, share: 0.02 }
+        - { tissuePath: /stuff/idea/material/tissue/flesh, share: 0.02 }
+    # ⚠ No `serves: [locomotion]` — see the header. A hen's wing is not
+    # how it gets anywhere.
+    - key: body.wing.left
+      parent: body.torso
+      severable: true
+      tissues:
+        - { tissuePath: /stuff/idea/material/tissue/bone, share: 0.012 }
+        - { tissuePath: /stuff/idea/material/tissue/muscles/breast-white, share: 0.018 }
+    - key: body.wing.right
+      parent: body.torso
+      severable: true
+      tissues:
+        - { tissuePath: /stuff/idea/material/tissue/bone, share: 0.012 }
+        - { tissuePath: /stuff/idea/material/tissue/muscles/breast-white, share: 0.018 }
+    # ⭐ The dark half: a yard bird walks all day, so thigh and drumstick
+    # carry the work — and `leg`/`shank` are the same rows the ox's
+    # hindquarter names, because it is the same fact about muscle.
+    - key: body.leg.left
+      parent: body.torso
+      severable: true
+      serves: [locomotion]
+      tissues:
+        - { tissuePath: /stuff/idea/material/tissue/bone, share: 0.018 }
+        - { tissuePath: /stuff/idea/material/tissue/muscles/leg, share: 0.045 }
+        - { tissuePath: /stuff/idea/material/tissue/muscles/shank, share: 0.025 }
+    - key: body.leg.right
+      parent: body.torso
+      severable: true
+      serves: [locomotion]
+      tissues:
+        - { tissuePath: /stuff/idea/material/tissue/bone, share: 0.018 }
+        - { tissuePath: /stuff/idea/material/tissue/muscles/leg, share: 0.045 }
+        - { tissuePath: /stuff/idea/material/tissue/muscles/shank, share: 0.025 }
+    - key: body.torso.heart
+      parent: body.torso
+      governs: [heartRate]
+      tissues:
+        - { tissuePath: /stuff/idea/material/tissue/muscle, share: 0.003 }
+    - key: body.torso.lungs
+      parent: body.torso
+      governs: [respiratoryRate]
+      tissues:
+        - { tissuePath: /stuff/idea/material/tissue/flesh, share: 0.005 }
+    - key: body.torso.liver
+      parent: body.torso
+      governs: [clearance]
+      tissues:
+        - { tissuePath: /stuff/idea/material/tissue/flesh, share: 0.008 }

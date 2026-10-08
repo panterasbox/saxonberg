@@ -1,0 +1,15 @@
+# A cleaver — what makes chops, and only over a block.
+#
+# ⭐ A cleaver without a block is a refusal that teaches: you cannot chop
+# through a backbone against nothing. The block is a separate argument and
+# the controller says which one is missing.
+class: /trade/cooking/thing/KitchenTool
+data:
+  shortDescription: cleaver
+  keywords: [cleaver, chopper]
+  register: indefinite
+  longDescription: >-
+    A heavy rectangle of steel with a short handle, the edge dulled in the middle where it has met bone a thousand times.
+  capabilities: [cleaver]
+  _materialPath: /stuff/idea/material/element/iron
+  mass: 1.1

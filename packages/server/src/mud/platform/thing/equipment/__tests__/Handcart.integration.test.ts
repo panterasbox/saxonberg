@@ -53,7 +53,7 @@ function bearer<T extends Creature>(factory: () => T, baseMass: number): T {
     {
       key: 'body.torso',
       parent: null,
-      tissues: [{ tissuePath: '/stuff/idea/material/tissue/bone', mass: 8 }],
+      tissues: [{ tissuePath: '/stuff/idea/material/tissue/bone', share: 1.0 }],
     },
   ]);
   plan.setSlots([

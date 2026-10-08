@@ -1,0 +1,58 @@
+# ⭐⭐ **The Delight oxen** — a working pair, and the book that says so.
+#
+# ## Why cattle HERE and not on the bench
+#
+# ⚠ The flock book argues against cattle on the upper bench in its own
+# words: *"thin dry ground is sheep country… a dairy cow asks you twice a
+# game day; a flock asks for lambing and shearing, twice a year, hard."*
+# Dropping a dairy herd up there would contradict reasoning the soil rows
+# produced, so this is not a herd and it is not on the bench.
+#
+# ⭐ **It is a plough team on the flats**, which is what cattle are for on
+# a farm this size. `ox.yaml`'s own docstring already says the economics:
+# draught power IS body mass, so an ox is worth about ten people in the
+# traces — and it eats whether or not it works, which is the honest cost
+# of a depreciating asset that consumes.
+#
+# ## ⭐⭐⭐ And the beef is what happens when an ox is DONE WORKING
+#
+# Which is how pre-modern beef actually happened: nobody raised cattle to
+# eat, they ate the worn-out ox. So the farm needs no beef herd to put a
+# bullock on the block, and the choice of WHEN — another season in the
+# traces, or the block while there is still flesh on it — is a real one
+# with no right answer.
+#
+# ⭐ The oxen are also the muscle model's best authored gift, and nobody
+# planned it: `ox.yaml` has *"a yoke-worn patch across the shoulders"*,
+# written long before any of this. The hardest-working muscle in the game
+# is on the animal whose shoulder the row already calls worn — so a
+# Delight ox's shoulder is the toughest cut in the valley and its
+# tenderloin the prize.
+#
+# ## Two, because that is what a plough takes
+#
+# A single ox pulls nothing a farm needs pulling; a yoke is a PAIR. Two is
+# not a dial, it is what the implement requires.
+class: /trade/ranching/thing/Herdbook
+data:
+  shortDescription: ox book
+  keywords: [oxbook, "ox book", book, register, oxen, team]
+  register: definite
+  longDescription: >-
+    A single stiff page sewn into a board cover, hanging by the harness
+    pegs. Two animals on it, each with a name, a year and a column of
+    seasons worked. The second column is longer than the first.
+  mass: 0.3
+  herdId: delight-oxen
+  herdName: the Delight team
+  speciesPath: /stuff/idea/species/animalia/chordata/mammalia/artiodactyla/bovidae/bos/taurus
+  tally: 2
+  # ⭐ Eight years old: a pair most of the way through a working life,
+  # which is what makes the "another season or the block" question live
+  # rather than hypothetical.
+  foundingMeanAgeDays: 2920
+  holderRef: organization:/world/terminus/hearts-delight/idea/farm-business
+  # ⚠ The FLATS, not the bench — the ground with the water rights and the
+  # ploughing to do. The bench is sheep country and the flock book says
+  # why.
+  homeExtent: /world/terminus/hearts-delight/location/farmstead-yard

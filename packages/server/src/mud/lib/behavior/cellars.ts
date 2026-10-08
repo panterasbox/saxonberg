@@ -34,11 +34,19 @@
  * inputMin?: number, crushes?: string[], compounds?: string[],
  * vesselCategory?: string, vesselKeyword?: string, pitchJar?: boolean,
  * lagerLeg?: { recipe: string, room: string },
- * distills?: { recipe: string, runs?: number, igniteKeyword?: string,
- * compounds?: string[] } }`
+ * distills?: { igniteKeyword?: string, chargeKeyword?: string,
+ * slopKeyword?: string, vesselKeyword?: string, stepL?: number,
+ * maxDraws?: number, compounds?: string[] } }`
+ *
+ * ⚠⚠ `distills.recipe` is GONE. It named `distil`, retired with
+ * `brandy` and `grappa` when the still became a fractionating host: a
+ * still does not have ONE output, which is the whole reason those three
+ * recipes became four {@link FractionSchedule} rows. The leg runs the
+ * still with literal verbs now — see {@link distilAndConsign}.
  */
 
 import type { BrainContext, BrainStatics } from './brain';
+import type { Fractionating } from '../fractionation/Fractionating';
 import type { Stuff } from '../stuff/Stuff';
 import type { Container } from '../spatial/Container';
 import type { Containable } from '../spatial/Containable';
@@ -53,6 +61,65 @@ import type { TaskKind } from './Urgency';
 import { Urgency } from './Urgency';
 
 const DEFAULT_BATCH = 4;
+/**
+ * The still leg's configuration. No `recipe` and no `runs`: a still does
+ * not have one output and a run is not a recipe. What an author tunes is
+ * the VESSELS and the step size — how boldly the hand pours — which
+ * together with its `distilling` band decides how good its cut is.
+ */
+interface DistillsConfig {
+  /** Keyword of the finished back to charge from. Default `vat`. */
+  chargeKeyword?: string;
+  /** Keyword of the still itself. Default `still`. */
+  igniteKeyword?: string;
+  /** Where the foreshots and heads go. Default `slop bucket`. */
+  slopKeyword?: string;
+  /** Where the hearts go. Default `bottle`. */
+  vesselKeyword?: string;
+  /** Litres per draw — the hand's caution. Default 0.5. */
+  stepL?: number;
+  /**
+   * ⭐⭐⭐ **The hand's RULE OF THUMB about its own pot**, as a fraction of
+   * the charge: stop collecting hearts once this much of the charge has
+   * been drawn, whatever the nose still says.
+   *
+   * ⚠⚠ Without it the leg can never make a good bottle, and the reason
+   * is worth stating because it is a real property of the design rather
+   * than a quirk. The loop READS and then POURS, so the step that
+   * finally reads `tails` has already crossed the boundary — and a
+   * top-up is weakest-link on grade, so that one slug drags the whole
+   * bottle to `poor`. **With a nose alone, every cut overshoots.** A
+   * real distiller knows this and stops short, sacrificing the last of
+   * the hearts rather than risking the tails.
+   *
+   * ⭐ And this is NOT the oracle the design forbids. Knowing *"on this
+   * pot I take about a sixth of the charge"* is knowing your own work;
+   * reading the schedule's `upTo` would be knowing the answer. A hand
+   * authored with the wrong figure makes bad spirit, which is exactly
+   * the dial an author should have.
+   */
+  takeUpTo?: number;
+  /**
+   * The other half of the same caution: how many draws to throw away
+   * after the nose FIRST says hearts. Default 1.
+   *
+   * The blur is optimistic in both directions — the hand believes the
+   * hearts have started while the heads are still running, exactly as it
+   * believes they are still running once the tails begin. `takeUpTo`
+   * handles the far end; this handles the near one. A careful distiller
+   * starts late and stops early, and pays for both in yield.
+   *
+   * Set it below the hand's own blur and the bottle catches heads; set
+   * it far above and the hand throws good spirit down the drain. That is
+   * the dial, and it is the same dial a person has.
+   */
+  startAfter?: number;
+  /** Safety bound on the loop. Default 60. */
+  maxDraws?: number;
+  /** Board lines to compound once the run is done. */
+  compounds?: string[];
+}
+
 const DEFAULT_ASK = 10;
 const DEFAULT_BUY_EVERY = 6;
 const DEFAULT_BUY_COUNT = 2;
@@ -168,11 +235,9 @@ export const brain = class {
       return bulk.getBulkAvailable('interior') > 0.7;
     });
     if (ready) {
-      const distills = ctx.config.distills as
-        | { recipe?: string; runs?: number; igniteKeyword?: string; compounds?: string[] }
-        | undefined;
-      if (distills?.recipe) {
-        await this.distilAndConsign(ctx, hand, home, counterRoomPath, distills as { recipe: string; runs?: number; igniteKeyword?: string; compounds?: string[] });
+      const distills = ctx.config.distills as DistillsConfig | undefined;
+      if (distills) {
+        await this.distilAndConsign(ctx, hand, home, counterRoomPath, distills);
       } else {
         await this.bottleAndConsign(ctx, hand, home, counterRoomPath);
       }
@@ -297,29 +362,120 @@ export const brain = class {
   }
 
   /**
-   * The still leg (W6): light the still (its own furnace — 351 K is
-   * the recipe's lesson), run the finished wash through it, compound
-   * off the board, and consign the take — spirit included, the
-   * intermediate good the vintner's fortification buys (the B2B leg).
+   * ⭐⭐ **The still leg — the hand makes the CUT, with the read it has.**
+   *
+   * It used to be `order distil` three times, and that could never have
+   * worked: `distil` named one output, a still has four, and no still in
+   * the world could be lit anyway. The leg is literal verbs now, and the
+   * shape is the whole point.
+   *
+   * ⭐⭐⭐ **The hand cuts by `readFraction(hand)` — the SAME banded read a
+   * player gets — and may not consult the schedule's true boundary.** A
+   * brain that read `drawnL` against `upTo` would cut perfectly every
+   * time and the competence model would be decoration: the NPC would be
+   * an oracle and the player a guesser at the same still. So the hand's
+   * `distilling` band is what makes its cut decent, and ⚠ a `novice`
+   * hand really would poison the counter. That is the design, not a
+   * defect — the dossier is the dial.
+   *
+   * The run, in the order a distiller works:
+   *   1. charge the pot from the finished back;
+   *   2. light it (its own furnace);
+   *   3. pour in small steps into the SLOP bucket while the nose says
+   *      this is not the hearts yet;
+   *   4. switch to a bottle the moment it says hearts, and keep going
+   *      while it still does;
+   *   5. stop. ⭐ Whatever is left is left — the hand does not drain the
+   *      tails into the good spirit to improve the yield, which is
+   *      exactly the mistake the band model lets a worse hand make.
+   *
+   * ⚠ Every step is a `forceCommand`, so the hand is subject to every
+   * refusal a player is: an unlit still declines, a wrong vessel
+   * declines, and the leg simply ends early rather than asserting its
+   * way through.
    */
   private static async distilAndConsign(
     ctx: BrainContext,
     hand: Hand,
     home: Stuff & Container,
     counterRoomPath: string,
-    distills: { recipe: string; runs?: number; igniteKeyword?: string; compounds?: string[] },
+    distills: DistillsConfig,
   ): Promise<void> {
-    if (distills.igniteKeyword) {
-      await hand.forceCommand(`ignite ${distills.igniteKeyword}`);
+    const charge = str(distills.chargeKeyword, 'vat');
+    const stillKey = str(distills.igniteKeyword, 'still');
+    const slop = str(distills.slopKeyword, 'slop bucket');
+    const vessel = str(distills.vesselKeyword, 'bottle');
+    const stepL = Math.max(0.05, Number(distills.stepL) || 0.5);
+    const maxDraws = positiveInt(distills.maxDraws, 60);
+
+    // 1–2. Charge the pot and light it. A still that will not take the
+    // charge, or will not light, ends the leg here.
+    await hand.forceCommand(`pour ${charge} into ${stillKey}`);
+    await hand.forceCommand(`ignite ${stillKey}`);
+
+    const still = this.fractionatingIn(home);
+    if (!still) {
+      await this.consignHeld(ctx, hand, home, counterRoomPath);
+      return;
     }
-    const runs = positiveInt(distills.runs, 2);
-    for (let i = 0; i < runs; i++) {
-      await hand.forceCommand(`order ${distills.recipe}`);
+
+    // 3–4. The cut: the nose says WHEN the hearts start, the rule of
+    // thumb says when to stop. Both are needed — see `takeUpTo`.
+    const takeUpTo = Math.min(1, Math.max(0, Number(distills.takeUpTo) || 0));
+    const startAfter = Math.max(
+      0,
+      distills.startAfter === undefined ? 1 : Number(distills.startAfter) || 0,
+    );
+    let intoHearts = false;
+    let heartsReads = 0;
+    for (let draw = 0; draw < maxDraws; draw++) {
+      if (!still.isRunning()) break;
+      const here = still.readFraction(hand as unknown as Stuff);
+      if (!here) break;
+      const hearts =
+        here.gradeBand === 'fine' ||
+        here.gradeBand === 'exceptional' ||
+        here.gradeBand === 'masterful';
+      // ⭐ Past the hearts by the nose: stop rather than chase the yield.
+      if (!hearts && intoHearts) break;
+      // ⭐⭐ Or past them by the rule of thumb, which is what actually
+      // saves the bottle: stop a little early and leave the last of the
+      // hearts in the pot.
+      const charge = still.getChargeL();
+      if (
+        intoHearts &&
+        takeUpTo > 0 &&
+        charge > 0 &&
+        still.getDrawnL() + stepL > takeUpTo * charge
+      ) {
+        break;
+      }
+      if (hearts) heartsReads += 1;
+      // Start LATE: the first `startAfter` draws after the nose calls the
+      // hearts go to the slops, because an optimistic nose calls them
+      // early and those draws are still heads.
+      const collecting = hearts && heartsReads > startAfter;
+      intoHearts = intoHearts || collecting;
+      const target = collecting ? vessel : slop;
+      await hand.forceCommand(
+        `pour ${stillKey} into ${target} --amount ${stepL}L`,
+      );
     }
+
+    // 5. Compound off the board and consign the take — spirit included,
+    // the intermediate good the vintner's fortification buys.
     for (const c of distills.compounds ?? []) {
       await hand.forceCommand(`order ${c}`);
     }
     await this.consignHeld(ctx, hand, home, counterRoomPath);
+  }
+
+  /** The first fractionating host standing in `home`, or null. */
+  private static fractionatingIn(home: Stuff & Container): Fractionating | null {
+    for (const item of home.getContents()) {
+      if (MixinApi.isFractionating(item)) return item;
+    }
+    return null;
   }
 
   /** The compounding leg: order each board line once, consign the take. */

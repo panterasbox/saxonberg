@@ -57,6 +57,7 @@ import type { Containable } from '../../../../lib/spatial/Containable';
 import type { Burner } from '../../../../lib/fire/Burner';
 import type { Recipe, RecipeInputSlot } from '../../../../lib/craft/Recipe';
 import type RecipeCatalogue from '../../RecipeCatalogue';
+import type { Atmospheric } from '../../../../lib/biome/Atmospheric';
 import { MixinApi } from '../../../../api/mixin';
 import { MessageApi } from '../../../../api/message';
 import { Mml } from '../../../../api/mml';
@@ -279,6 +280,27 @@ export default class FireController extends CommandController<FireModel> {
  * because a kiln does not stop because somebody left; only the telling of it
  * needs a listener.
  */
+/**
+ * Put `litres` of a substance into the air of whatever place `from` is
+ * standing in. The outward walk to the first `Atmospheric` ancestor with
+ * a volume — the same one a fire's exhaust takes.
+ */
+function emitIntoScope(from: Stuff, materialPath: string, litres: number): void {
+  let at: Stuff | null = from;
+  let depth = 32;
+  while (at !== null && depth-- > 0) {
+    if (
+      MixinApi.isAtmospheric(at) &&
+      MixinApi.isContainer(at) &&
+      (at as unknown as Atmospheric).getVolume() !== null
+    ) {
+      (at as unknown as Atmospheric).addAtmosphereContent(materialPath, litres);
+      return;
+    }
+    at = MixinApi.isContainable(at) ? at.getContainer() : null;
+  }
+}
+
 async function runFiring(
   context: CommandContext,
   kiln: Stuff & Container & Burner,
@@ -360,6 +382,40 @@ async function runFiring(
       return;
     }
   }
+  // ⭐⭐ **The volatiles — the third product of a firing.** What leaves
+  // the charge is as valuable as what stays: wood gives tar, coal gives
+  // tar and a gas. The litres are computed off the mass actually
+  // consumed, and then **the CHAMBER routes them** — the platform never
+  // names a trade's receiver.
+  //
+  // ⚠ A structural probe (`receiveVolatiles` on the host), not a mixin
+  // narrowing: the `analyze water` shape-not-mixin rule. The kernel
+  // cannot import `trade-fuel`'s Retort, and it does not need to — it
+  // needs to know whether this chamber knows what to do with vapour.
+  // A chamber that does not emits into its own scope, which is why
+  // firing a retort with no condenser makes the room smell of tar.
+  const volatiles = firing.recipe.getVolatiles();
+  if (volatiles.length > 0) {
+    let chargeKg = 0;
+    for (const item of consumed) {
+      if (MixinApi.isTangible(item)) chargeKg += item.getMass().rawValue();
+    }
+    if (chargeKg > 0) {
+      const receiver = kiln as unknown as {
+        receiveVolatiles?: (materialPath: string, litres: number) => void;
+      };
+      for (const v of volatiles) {
+        const litres = v.litresPerKg * chargeKg;
+        if (!(litres > 0)) continue;
+        if (typeof receiver.receiveVolatiles === 'function') {
+          receiver.receiveVolatiles(v.material, litres);
+        } else {
+          emitIntoScope(kiln, v.material, litres);
+        }
+      }
+    }
+  }
+
   for (const item of consumed) await StuffApi.destruct(item);
 
   if (MixinApi.isAdvancing(giver) && !giver.isDestroyed()) {

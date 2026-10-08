@@ -26,6 +26,7 @@ import { CallSecurity } from '../../lib/security/decorators';
 import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
 import { EventApi } from '../../api/event';
 
+import type { BoundaryRole } from '../../lib/security/BoundaryRole';
 /** See WorldClockRegistry — same gate shape, same rationale. */
 const EventApiCallers = SecurityPolicies.AnyOf(
   SecurityPolicies.FromModule('/api/event#EventApi'),
@@ -55,6 +56,17 @@ export interface HistoryRecord {
 }
 
 export default class EventSubscriptions extends Idea {
+  /**
+   * engine bookkeeping that happens to be Stuff-shaped: a registry holds the framework's own index, not world state anybody stands in.
+   *
+   * ⭐ Declared, not enumerated. This was one of twenty-seven
+   * template-path strings in `api/security.ts`, listed there
+   * *"because each is a singleton rather than a class of many"* —
+   * which a static on the class makes irrelevant. See
+   * `lib/security/BoundaryRole.ts`.
+   */
+  static boundaryRole: BoundaryRole = 'infrastructure';
+
 
   /**
    * Residency veto - a load-bearing process-lifetime singleton is

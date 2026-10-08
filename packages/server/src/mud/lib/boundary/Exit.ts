@@ -54,6 +54,7 @@ import { Mixins, type FieldMeta } from '../mixin';
 import { LocomotionApi } from '../../api/locomotion';
 import { MixinApi } from '../../api/mixin';
 import { GrammarApi } from '../../api/grammar';
+import { ParcelApi } from '../../api/parcel';
 
 /**
  * Discriminator naming which gate failed during `canTraverse`. Backcompat
@@ -73,7 +74,20 @@ export type TraversalGate =
   | 'noConveyance'
   | 'encumbrance'
   | 'terrain'
-  | 'breakaway';
+  | 'breakaway'
+  /**
+   * ⭐ The far side is **not published** — a readiness wall, not a
+   * locked door. Draft content that has never been live, or live
+   * content taken offline; either way the parcel says it is not open.
+   */
+  | 'unpublished'
+  /**
+   * ⭐ The far side **does not exist**: the destination names a row that
+   * is not there. The direction is installed so `look` still names it
+   * and so creating the row heals it, but nothing lies that way yet.
+   * Before this the same situation was a BOOT CRASH.
+   */
+  | 'unbuilt';
 
 /**
  * Result of `Exit.canTraverse()`.
@@ -228,6 +242,30 @@ export default class Exit extends ConcealableMixin(Idea) {
 
   protected source: Stuff & Container;
   public getSource(): Stuff & Container { return this.source; }
+
+  /**
+   * ⭐ **My jurisdiction is my source room's** — see
+   * {@link Stuff.jurisdictionHost}.
+   *
+   * An exit answers to its exit-KIND path
+   * (`/platform/idea/exits/passage`), which names what sort of exit it
+   * is and not where it is, and a room holds its exits in a
+   * `direction → exit` map rather than containing them. So neither
+   * rung of the default jurisdiction walk reaches an exit, and a
+   * governed `eval --parcel <extent>` was refused on every exit of
+   * every room inside its own extent — `getDoor()` included, so not
+   * even a read got through. Found by a browser drive.
+   *
+   * ⚠⚠ **The SOURCE, never the destination.** An exit has two ends and
+   * the far one may sit in somebody else's extent; answering with the
+   * source means *you own the door on your side of the wall*, and
+   * keeps this hook from becoming a way to reach into a neighbouring
+   * parcel. It is also the same end `getDiscoveryKey` already keys on,
+   * for the same reason.
+   */
+  public override jurisdictionHost(): Stuff | null {
+    return this.source as unknown as Stuff;
+  }
   public setSource(value: Stuff & Container): void { this.source = value; }
 
   /**
@@ -397,18 +435,71 @@ export default class Exit extends ConcealableMixin(Idea) {
   }
 
   /**
-   * Durable discovery key (D3) — an `Exit` is a runtime instance with no
+   * Durable discovery key — an `Exit` is a runtime instance with no
    * `templatePath` of its own, so it keys its `DISCOVERY` belief on a
-   * synthetic `<source-templatePath>#exit:<direction>` handle, stable across
-   * re-clones (the bar's secret north door stays discovered). `undefined`
-   * when the source has no durable templatePath (a shared multi-clone room —
-   * the deferred player-placed-concealment case).
+   * synthetic `<source-handle>#exit:<direction>` string, and `undefined`
+   * when its source has no durable handle at all.
+   *
+   * ⚠⚠ The source's key is its {@link Stuff.getDurableHandle}, **not**
+   * its template path. Keying on lineage was a real defect with two
+   * visible faces: forty provisioned dorm rooms share one row, so a
+   * secret found in one read as found in every one of them; and a
+   * lounge satellite — a fresh clone per landing, named by nothing —
+   * answered with a handle it had no right to, so a find in a room that
+   * no longer exists stayed found forever. The handle answers both: a
+   * keyed room is `<row>#<extent/leaf>`, a minted one its identity, a
+   * singleton place its row (byte-identical to what every DISCOVERY
+   * belief already written used), and an ephemeral clone `undefined`.
+   *
+   * Uniform for an `ExitableVessel` source too — the handle is asked of
+   * the object, so nothing here narrows on being a Location.
    */
   public override getDiscoveryKey(): string | undefined {
     if (!this.source) return undefined; // unbound kind clone
-    const src = this.source.getTemplatePath();
-    return src ? `${src}#exit:${this.direction}` : undefined;
+    const handle = this.source.getDurableHandle();
+    return handle ? `${handle}#exit:${this.direction}` : undefined;
   }
+  /**
+   * ⚠ **Transient** — set at install when the destination row is
+   * missing, never persisted. It is a fact about the world as loaded,
+   * and the next hydrate re-derives it: create the row the author meant
+   * and the stub is replaced by the real exit. Persisting it would
+   * outlive the defect it describes.
+   */
+  private _unbuilt = false;
+
+  /** Does this exit's destination row not exist? */
+  public isUnbuilt(): boolean {
+    return this._unbuilt;
+  }
+
+  /**
+   * Mark this exit as pointing at a row that is not there. Called only
+   * by `Exitable._installUnbuiltExit`, which is the one place that
+   * knows the row was missing.
+   */
+  public markUnbuilt(): void {
+    this._unbuilt = true;
+  }
+
+  /**
+   * What to call the far side without resolving it — the live
+   * destination's presentation when it is resident, else the path's
+   * leaf read as words. ⭐ The whole point is that it never resolves:
+   * a refusal must be nameable for a place that is not loaded, not
+   * open, or not there.
+   */
+  public farSideName(): string {
+    const path = this._destinationPath;
+    if (path) {
+      const live = StuffApi.findByIdentityPath(path)[0];
+      if (live && MixinApi.isPerceptible(live)) return live.getPresentation();
+      const leaf = path.split('/').filter(Boolean).pop() ?? path;
+      return leaf.replace(/[-_]/g, ' ');
+    }
+    return 'that way';
+  }
+
   public isBlocked(): boolean { return this.blocked; }
   public setBlocked(value: boolean): void { this.blocked = value; }
   public isMuffled(): boolean { return this.muffled; }
@@ -848,6 +939,25 @@ export default class Exit extends ConcealableMixin(Idea) {
         ok: false,
         gate: 'blocked',
         reason: 'The way is blocked.',
+      };
+    }
+    // ⭐ The two far-side gates run BEFORE the lock gate, so a wall
+    // reads as a wall rather than as a locked door — and they follow
+    // the lock gate's own rule: never resolve the destination. One
+    // reads a transient flag, the other a sync parcel read.
+    if (this._unbuilt) {
+      return {
+        ok: false,
+        gate: 'unbuilt',
+        reason: 'Nothing lies that way yet.',
+      };
+    }
+    const farPath = this._destinationPath;
+    if (farPath && !ParcelApi.isPathPublished(farPath)) {
+      return {
+        ok: false,
+        gate: 'unpublished',
+        reason: `${GrammarApi.cap(this.farSideName())} is not open.`,
       };
     }
     // Lock gate runs BEFORE the closed-door gate so a locked door

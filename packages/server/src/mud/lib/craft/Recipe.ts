@@ -31,6 +31,10 @@
 
 import { Grade } from './Grade';
 import { DIFFICULTIES } from '../advancement/ActSignature';
+import {
+  AROMAS,
+  DissolvedAromatics,
+} from '../metabolism/DissolvedAromatics';
 import { ThermalDose } from '../thermal/ThermalDose';
 import type { FieldMeta } from '../mixin';
 import type { StoredDocument } from '../document/StoredDocument';
@@ -100,6 +104,17 @@ export const RECIPE_MEDIA: readonly RecipeMedium[] = ['water', 'fat'];
  * the maker's location; unsold residue stands where it was left (the
  * ambient-burden rule, never a silent vanish).
  */
+/**
+ * One substance a firing drives off its charge: a Material path and how
+ * many litres of it per kilogram consumed.
+ */
+export interface RecipeVolatile {
+  /** The Material template path of what comes off. */
+  material: string;
+  /** Litres of it per kg of charge consumed. */
+  litresPerKg: number;
+}
+
 export interface RecipeResidue {
   /** Template path of the residue item. */
   template: string;
@@ -188,6 +203,8 @@ export class Recipe {
     garnish: { persistent: true, spoiler: 1, spoilerName: 0 },
     ice: { persistent: true, spoiler: 1, spoilerName: 0 },
     cure: { persistent: true, spoiler: 1, spoilerName: 0 },
+    imparts: { persistent: true, spoiler: 1, spoilerName: 0 },
+    volatiles: { persistent: true, spoiler: 1, spoilerName: 0 },
   };
 
   /** The document's path (`/generic-objects/recipes/martini`). */
@@ -283,6 +300,29 @@ export class Recipe {
   /** The residue output beside the main one, or null (P11). */
   outputResidue: RecipeResidue | null = null;
 
+  /**
+   * ⭐⭐ **What a FIRING drives off the charge** — bulk matter per kg of
+   * what is consumed, in litres.
+   *
+   * Destructive distillation is the mechanism: cook a charge in a closed
+   * chamber and what leaves is as valuable as what stays. Wood gives tar;
+   * coal gives tar AND a gas; the solid that remains is the
+   * `outputTemplate`.
+   *
+   * ⚠ Not a second `outputTemplate` and not an `outputResidue[]`: it
+   * mints nothing. The firing hands the litres to the CHAMBER and the
+   * chamber routes them — to a condenser seated on it, or into the air
+   * of the room, which is why a retort fired with no condenser makes the
+   * room smell of tar and poisons whoever stays.
+   *
+   * ⭐ Why the recipe and not the material: a `Material` row saying what
+   * burning it gives off would put a trade's good's path on a commons
+   * row, and a table on the retort would mean a second feedstock edits
+   * the retort instead of adding a recipe. The firing row is the one
+   * place that already knows this charge's chemistry.
+   */
+  volatiles: RecipeVolatile[] = [];
+
   /** Output-application kind word; empty = `'bulk'` (the bar's default). */
   outputApplication: string = '';
 
@@ -297,6 +337,31 @@ export class Recipe {
    * the generic blend material's own appearance shows.
    */
   outputAppearance: string = '';
+
+  /**
+   * ⭐⭐ **Aroma compounds the WORKING puts into its output**, mg/L — the
+   * kiln's smoke, the smokehouse's, anything a process adds that is not
+   * a function of what went in.
+   *
+   * ⭐ Why it is on the recipe and not on the fuel. The honest model
+   * would read the flame: a turf fire leaves phenols and a wood fire
+   * does not. But `BurnerMixin`'s fuel is a bare `%` reserve and
+   * `reachableHeatForImpl` returns a temperature, never a source —
+   * **nothing in the engine knows what a kiln is burning.** So the
+   * authored shape the substrate allows is a recipe that takes the turf
+   * as an item slot and declares what the turf does, which keeps the
+   * fact derivable by the player (the turf is consumed in front of them)
+   * while leaving the fuel-aware burner to the fire/energy slate.
+   *
+   * ⚠ Two fires in the fiction, one in the model: the kiln's reserve
+   * still supplies the heat. Recorded rather than hidden.
+   *
+   * Validated against the closed aroma vocabulary at `fromData` — an
+   * unknown word throws rather than failing closed and silent, which is
+   * what an unvalidated aroma would do (the matter would simply never
+   * smell of anything and nothing would say why).
+   */
+  imparts: { type: string; amount: number }[] = [];
 
   /**
    * Authored ladder placement — a `Difficulty` word the craft-resolve
@@ -329,6 +394,51 @@ export class Recipe {
   }
 
   /** The same validation over a bare `data` object (the pack reader's use). */
+  /**
+   * Parse and validate `imparts:` — a list of `{type, amount}` over the
+   * closed aroma vocabulary. Absent ⇒ `[]`, which is every shipped row.
+   *
+   * ⚠ Both checks throw rather than dropping the entry. An unknown aroma
+   * word and a non-positive amount each fail CLOSED AND SILENT if
+   * tolerated: the output simply never smells of anything, and no reading
+   * anywhere says why. A pack that misspells `smoke` should not install.
+   */
+  private static impartsFrom(
+    value: unknown,
+    recipeId: string,
+  ): { type: string; amount: number }[] {
+    if (value === undefined || value === null) return [];
+    if (!Array.isArray(value)) {
+      throw new Error(`Recipe '${recipeId}': 'imparts' must be a list`);
+    }
+    const out: { type: string; amount: number }[] = [];
+    for (const raw of value) {
+      if (typeof raw !== 'object' || raw === null) {
+        throw new Error(
+          `Recipe '${recipeId}': each 'imparts' entry must be a mapping ` +
+            `with 'type' and 'amount'`,
+        );
+      }
+      const entry = raw as { type?: unknown; amount?: unknown };
+      const type = typeof entry.type === 'string' ? entry.type : '';
+      const amount = typeof entry.amount === 'number' ? entry.amount : NaN;
+      if (!DissolvedAromatics.isAroma(type)) {
+        throw new Error(
+          `Recipe '${recipeId}': 'imparts' names '${type}', which is not ` +
+            `an aroma (${AROMAS.map((a) => a.type).join(' · ')}).`,
+        );
+      }
+      if (!(amount > 0)) {
+        throw new Error(
+          `Recipe '${recipeId}': 'imparts' entry '${type}' needs a ` +
+            `positive 'amount' (mg/L); got ${String(entry.amount)}.`,
+        );
+      }
+      out.push({ type, amount });
+    }
+    return out;
+  }
+
   static fromData(data: Record<string, unknown>): Recipe {
     if (typeof data.recipeId !== 'string' || data.recipeId.length === 0) {
       throw new Error(`Recipe: document is missing a string 'recipeId'`);
@@ -395,7 +505,68 @@ export class Recipe {
     r.ice = Recipe.iceFrom(data.ice, r.recipeId);
     r.outputResidue = Recipe.residueFrom(data.outputResidue, r.recipeId);
     r.cure = Recipe.cureFrom(data.cure, r.recipeId);
+    r.imparts = Recipe.impartsFrom(data.imparts, r.recipeId);
+    r.volatiles = Recipe.volatilesFrom(data.volatiles, r.recipeId);
     return r;
+  }
+
+  /** What this firing drives off the charge. */
+  public getVolatiles(): readonly RecipeVolatile[] {
+    return this.volatiles;
+  }
+
+  /**
+   * Validate an authored `volatiles` block. ⚠ A typo must fail at READ:
+   * an ignored `litresPerKG:` would ship a retort that quietly made no
+   * tar, and nothing about that failure would be visible — the char
+   * would still come out and the recipe would still look right.
+   *
+   * ⚠ `private`, unlike its four sibling validators, and
+   * `lint:lib-statics` is why: it has exactly ONE caller (`fromData`),
+   * so a public static would be a member in neither of the two places a
+   * person searches. ⭐ Being the same shape as its siblings says it may
+   * EXIST, not that the population may grow — and the test is better for
+   * it, because asserting through `fromData` exercises the path a pack
+   * install actually takes.
+   */
+  private static volatilesFrom(
+    value: unknown,
+    recipeId: string,
+  ): RecipeVolatile[] {
+    if (value === undefined || value === null) return [];
+    if (!Array.isArray(value)) {
+      throw new Error(
+        `Recipe '${recipeId}': 'volatiles' must be a list of ` +
+          `{ material, litresPerKg }`,
+      );
+    }
+    return value.map((entry, i) => {
+      const e = entry as Record<string, unknown>;
+      const material = e?.material;
+      const litresPerKg = e?.litresPerKg;
+      if (typeof material !== 'string' || material.length === 0) {
+        throw new Error(
+          `Recipe '${recipeId}': volatiles[${i}] needs a 'material' path`,
+        );
+      }
+      if (typeof litresPerKg !== 'number' || !(litresPerKg > 0)) {
+        throw new Error(
+          `Recipe '${recipeId}': volatiles[${i}] ('${material}') needs a ` +
+            `positive 'litresPerKg'`,
+        );
+      }
+      const extra = Object.keys(e).filter(
+        (k) => k !== 'material' && k !== 'litresPerKg',
+      );
+      if (extra.length > 0) {
+        throw new Error(
+          `Recipe '${recipeId}': volatiles[${i}] has unknown key(s) ` +
+            `${extra.join(', ')} — a misspelt key is a retort that ` +
+            `quietly makes no tar`,
+        );
+      }
+      return { material, litresPerKg };
+    });
   }
 
   /**
@@ -517,6 +688,7 @@ export class Recipe {
       garnish: this.garnish ? { ...this.garnish } : null,
       ice: this.ice,
       cure: this.cure ? { ...this.cure } : null,
+      imparts: this.imparts.map((i) => ({ ...i })),
     };
   }
 
@@ -605,6 +777,11 @@ export class Recipe {
   getOutputPortionL(): number {
     return this.outputPortionL;
   }
+  /** The aroma compounds this working adds to its output, mg/L. */
+  getImparts(): readonly { type: string; amount: number }[] {
+    return this.imparts;
+  }
+
   getOutputAppearance(): string {
     return this.outputAppearance;
   }

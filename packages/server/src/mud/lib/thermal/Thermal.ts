@@ -34,6 +34,7 @@
  */
 
 import { Final, Unshadowable } from '../security/decorators';
+import type { Burner } from '../fire/Burner';
 import type Material from '../material/Material';
 import type { BulkAffordance } from '../bulk/Bulkable';
 import type { Meltable } from './Meltable';
@@ -49,6 +50,7 @@ import type { Coolbox } from "./Coolbox";
 import type { Atmospheric } from "../biome/Atmospheric";
 import { MixinApi } from "../../api/mixin";
 import { StuffApi } from "../../api/stuff";
+import { BulkableApi } from '../../api/bulk';
 import { BiomeApi } from "../../api/biome";
 import { WorldClockApi } from "../../api/worldclock";
 import { TemplatePaths } from "../paths";
@@ -277,6 +279,8 @@ type ThermalHost = Stuff & Tangible & Containable;
 export interface Thermal {
   reconcilePhase(): void;
   reachableHeatK(): number;
+  /** The hottest lit burner in reach, or `null` — the fire, not its heat. */
+  reachableHeatSource(): (Stuff & Burner) | null;
   /** Stamped temperature T0 (raw K) — the decomposed scalar. */
   stampedTemperatureK: number;
   /** Game-time (seconds) of the last reconcile / re-stamp; 0 = unseeded. */
@@ -718,6 +722,19 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     /**
+     * ⭐ **The fire itself, not just its temperature.** The hottest lit
+     * burner in reach, or `null`.
+     *
+     * `reachableHeatK` answers a number, which was all a recipe needed
+     * while a fire was a number. A fire knows what it is BURNING now, so
+     * the thing worked over it can be peated by the peat — and the fuel
+     * stops being anonymous the moment anything wants to ask.
+     */
+    public reachableHeatSource(): (Stuff & Burner) | null {
+      return reachableHeatSourceImpl(this as unknown as Stuff);
+    }
+
+    /**
      * The dominant series conductivity (`W/(m·K)`): the barrier medium
      * when sealed (a `Sealable` host that is closed → `vacuum`), else
      * the `barrier` override, else `air` (the default surrounding
@@ -1136,6 +1153,25 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
  * `CraftingLogic`'s heat gate (`recipe.requiresHeatK`) — the smithing/cooking
  * temperature-control read.
  */
+function reachableHeatSourceImpl(position: Stuff): (Stuff & Burner) | null {
+  const scope = (position as unknown as { getContainer(): Stuff | null })
+    .getContainer();
+  if (scope === null || !MixinApi.isContainer(scope)) return null;
+  let best: (Stuff & Burner) | null = null;
+  let hottest = 0;
+  for (const occ of (scope as Stuff & Container).getContents()) {
+    const s = occ as unknown as Stuff;
+    if (s.isDestroyed() || !MixinApi.isBurner(s)) continue;
+    if (!s.isLit() || s.fuelRemaining() <= 0) continue;
+    const t = s.getHeldTemperatureK();
+    if (t > hottest) {
+      hottest = t;
+      best = s as unknown as Stuff & Burner;
+    }
+  }
+  return best;
+}
+
 function reachableHeatForImpl(position: Stuff): number {
   const scope = (position as unknown as { getContainer(): Stuff | null })
     .getContainer();
@@ -1252,6 +1288,16 @@ function reconcileBulkPhase(v: Stuff & Bulkable & Thermal): void {
 
   const bp = mat.getBoilingPoint().rawValue();
   if (bp > 0 && temp >= bp) {
+    // ⭐⭐ **A gas does not boil away** — it is ALREADY above its boiling
+    // point everywhere anybody stands, which is what makes it a gas, and
+    // whether it stays put is CLOSURE's job and not temperature's.
+    //
+    // ⚠ Without this arm a lamp filled with coal gas would be destroyed
+    // by its own flame on the first tick, and a gasometer standing in
+    // the sun would empty itself. The derivation is the same comparison
+    // `requiredClosureFor` makes, so there is one definition of "gas"
+    // and it lives on the material.
+    if (BulkableApi.requiredClosureFor(mat) === 'sealed') return;
     // Boil — the liquid flashes to gas (steam); the pool shrinks away.
     v.setBulkAmount(aff, Quantity.of(0, 'L'));
     v.setBulkMaterial(aff, null);

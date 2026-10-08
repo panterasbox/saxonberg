@@ -39,6 +39,7 @@ import { MixinApi, type AnyConstructor } from '../../api/mixin';
 import { SchemaDoc } from '../../lib/persistence/SchemaDoc';
 import type { FieldMeta } from '../../lib/mixin';
 
+import type { BoundaryRole } from '../../lib/security/BoundaryRole';
 // ── The parsed shape of `author-surface.json` (the build artifact the
 //    projection script emits). Declared locally because the script lives
 //    outside `src/` (rootDir) — a type-only re-import would break the
@@ -141,6 +142,17 @@ function loadAuthorSurfaceFromDisk(): AuthorSurface | null {
 const HelpCatalogueBase = Idea;
 
 export default class HelpCatalogue extends HelpCatalogueBase {
+  /**
+   * a seeded reference catalogue the engine reads to answer *what exists in the world* — every one of these was a verb that simply died inside a circle (`help`, `spells`, `recipes`/`craft`, `studio`, `competence`, `government`): a player standing in their own circle could not read the rulebook.
+   *
+   * ⭐ Declared, not enumerated. This was one of twenty-seven
+   * template-path strings in `api/security.ts`, listed there
+   * *"because each is a singleton rather than a class of many"* —
+   * which a static on the class makes irrelevant. See
+   * `lib/security/BoundaryRole.ts`.
+   */
+  static boundaryRole: BoundaryRole = 'commons';
+
 
   /**
    * Residency veto - a load-bearing process-lifetime singleton is

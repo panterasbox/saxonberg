@@ -1,0 +1,23 @@
+# Black pudding — set blood, grain and fat.
+class: /platform/idea/material/ConsumableMaterial
+data:
+  name: black pudding
+  keywords: ["black pudding", pudding, blood]
+  density: 1060
+  specificHeat: 3200
+  thermalConductivity: 0.4
+  hardness: 1
+  toughness: 1
+  electricalConductivity: 0.2
+  waterAbsorptionCapacity: 18
+  edibility: true
+  tastes: [umami]
+  # ⭐ Cooked, so it keeps better than anything it was made of — which is
+  # the point of a pudding.
+  spoilActivationEnergy: 85000
+  waterActivity: 0.93
+  nutrients: [protein, fat, water]
+  nutrientAmounts:
+    protein: 14000
+    fat: 20000
+  tags: [food, meat, pudding, organic, edible, cooked]

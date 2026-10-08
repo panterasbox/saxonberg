@@ -24,6 +24,21 @@ data:
   props:
     - /world/terminus/rejection/thing/glowcap-fixture
     - /trade/mining/thing/timber-set
+    # ⭐⭐⭐ **The safety lamp, at the lamp station.** The drift is the last
+    # room before the deep headings, which is exactly where a lamp house
+    # belongs — historically you drew your lamp on the way in and gave it
+    # back on the way out.
+    #
+    # ⚠ It is the one remedy for the one hazard the bird cannot report.
+    # Firedamp is breathable at the fractions that will kill you by
+    # burning, so the canary sings right through it; the tell is a flame,
+    # and the lamp that can show it to you safely is this one. Without
+    # this prop the hazard would ship with no counter but *do not go in
+    # there*, which is not a mechanic.
+    #
+    # ⭐ It ships UNLIT and there is one. It is not sold anywhere this
+    # build; a lamp room with a rack of them is the mining trade's.
+    - /trade/mining/thing/safety-lamp
   # ⭐ The archetype's `haulage` and `air` slots, BOUND — and both are
   # `presence` needs, so what satisfies them is simply a thing of that
   # kind standing here. The bird's silence is the only free reading of

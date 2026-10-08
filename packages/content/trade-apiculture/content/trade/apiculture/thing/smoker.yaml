@@ -26,12 +26,14 @@ data:
   # omits it, and rightly — a thing that arrives already alight is a thing
   # nobody decided to light).
   lit: false
-  reserves:
-    fuel:
-      capacityValue: 100
-      currentValue: 100
-      unit: "%"
-      theme: combustion
-      floorEffect: null
   # It smoulders rather than burns — that is the whole point of it.
   burnTemperatureK: 330
+  # ⭐ The fire build: fuel is a BED (kilograms, by material) that
+  # `stoke` fills, and the vessel's size is a POWER rather than a
+  # percentage-per-minute of nothing. What it reaches depends on what
+  # is in it.
+  # ⭐ A smoker WANTS to run badly. 200 W through a nearly-shut draught
+  # is a smoulder, which is what makes smoke — the one fire in the game
+  # whose purpose is incomplete combustion.
+  maxBurnPowerW: 200
+  fuelCapacityKg: 1

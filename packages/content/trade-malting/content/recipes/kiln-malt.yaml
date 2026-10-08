@@ -1,0 +1,65 @@
+# ⭐⭐ The kilning — and the ONE decision in the trade.
+#
+# Green malt is alive, wet and converting. Heat stops it. Too early and
+# the starch is not converted; too late and the shoot has eaten the sugar
+# you were waiting for. That moment is what a maltster is paid for, and
+# it is the reason this step is a recipe at all rather than another clock:
+# the player has to choose to do it.
+#
+# ⚠⚠ `requiresHeatK: 330` and `maxHeatK: 360`, and the BAND is the point.
+# Above about 350 K the enzymes the floor spent five days making are
+# destroyed, so the window is narrow in both directions: a cold kiln does
+# not dry the bed and a hot one ruins it. The malt kiln's row holds 340,
+# squarely inside — which is why that row's `burnTemperatureK` reads as
+# feeble next to a limekiln's 1500 and is nothing of the kind.
+#
+# No `toolCapabilities`: the heat gate IS the kiln, and `Oven` offers no
+# capability. A hearth hot enough and gentle enough would do, which is
+# historically true — cottage malting was done over a domestic fire.
+#
+# ## ⭐⭐⭐ ONE recipe, and the smoke comes from the FIRE
+#
+# There were two of these rows. `kiln-malt-peated` was this recipe plus
+# `imparts: [{smoke, 30}]` plus four turves as an ITEM SLOT — and it is
+# retired, because the fire build put the fact where it belongs: on the
+# MATERIAL (`peat.combustionImparts`), weighted by its share of the
+# burner's bed.
+#
+# What that buys, and every bit of it was unreachable before:
+#
+#   - **the same recipe over a different fire gives a different malt.**
+#     Stoke the kiln with peat and the barley is peated; stoke it with
+#     oak and it is not. One row, two outcomes, decided by an act.
+#   - **a sodden turf refuses on its own moisture**, at the `stoke`,
+#     because the turf is a thing in the world now and not a line in an
+#     input list. An item slot could never see that.
+#   - **a mixed bed is weighted.** Half peat and half oak reads half as
+#     smoky, which is what a maltster actually controls.
+#
+# Everything downstream is unchanged and still follows for free: the
+# phenols survive the mash and the ferment (a concentration rides the
+# matter through every pour), they come over the still LATE because
+# phenols are high-boiling (`FractionSpec.aromaticCarry`), and ⭐⭐ so the
+# right CUT moves — a peated wash and a clean one do not want the same
+# cut, which is a decision at the cut that a decision at the kiln
+# changed.
+#
+# ⚠ The heat band is unchanged and for the same reason: above ~350 K the
+# enzymes the floor spent five days making are destroyed. A peat fire is
+# a COOL, smoky, smouldering fire, which is precisely why it works for
+# this and why the band is not relaxed.
+recipeId: kiln-malt
+name: Kiln malt
+keywords: [kiln, "kiln malt"]
+discipline: malting
+difficulty: standard
+inputSlots:
+- slot: green
+  category: green-malt
+  minGrade: poor
+  measureL: 20
+requiresHeatK: 330
+maxHeatK: 360
+outputApplication: bulk
+outputTemplate: /trade/malting/thing/malt-sack
+outputMaterial: /stuff/idea/material/food/malt

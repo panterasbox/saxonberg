@@ -34,9 +34,21 @@ import Government, {
 import type { VetoResult } from "../../lib/errors";
 import type { EvictionContext } from "../../lib/stuff/Stuff";
 
+import type { BoundaryRole } from '../../lib/security/BoundaryRole';
 const GovernmentCatalogueBase = Idea;
 
 export default class GovernmentCatalogue extends GovernmentCatalogueBase {
+  /**
+   * a seeded reference catalogue the engine reads to answer *what exists in the world* — every one of these was a verb that simply died inside a circle (`help`, `spells`, `recipes`/`craft`, `studio`, `competence`, `government`): a player standing in their own circle could not read the rulebook.
+   *
+   * ⭐ Declared, not enumerated. This was one of twenty-seven
+   * template-path strings in `api/security.ts`, listed there
+   * *"because each is a singleton rather than a class of many"* —
+   * which a static on the class makes irrelevant. See
+   * `lib/security/BoundaryRole.ts`.
+   */
+  static boundaryRole: BoundaryRole = 'commons';
+
   /**
    * Residency veto - a load-bearing process-lifetime singleton is
    * never culled by the self-eviction sweep.

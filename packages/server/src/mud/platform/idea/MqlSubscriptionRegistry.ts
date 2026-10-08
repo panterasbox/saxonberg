@@ -56,6 +56,7 @@ import { PerceptionApi } from '../../api/perception';
 import { EventApi } from '../../api/event';
 import { ShellApi } from '../../api/shell';
 import { FieldChangedEvent } from '../../lib/events/FieldChangedEvent';
+import type { BoundaryRole } from '../../lib/security/BoundaryRole';
 import {
   collectSubscribableFields,
   projectFocus,
@@ -238,6 +239,17 @@ function resolveByQuery(
 }
 
 export default class MqlSubscriptionRegistry extends Idea {
+  /**
+   * engine bookkeeping that happens to be Stuff-shaped: a registry holds the framework's own index, not world state anybody stands in.
+   *
+   * ⭐ Declared, not enumerated. This was one of twenty-seven
+   * template-path strings in `api/security.ts`, listed there
+   * *"because each is a singleton rather than a class of many"* —
+   * which a static on the class makes irrelevant. See
+   * `lib/security/BoundaryRole.ts`.
+   */
+  static boundaryRole: BoundaryRole = 'infrastructure';
+
 
   /**
    * Residency veto - a load-bearing process-lifetime singleton is

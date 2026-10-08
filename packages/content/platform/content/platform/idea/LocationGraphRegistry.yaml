@@ -1,0 +1,22 @@
+# LocationGraphRegistry — the singleton whose onCreate projects the
+# world's SHAPE into `location_graph`: every place, and every exit out
+# of it (the self-warming catalogue shape; eager via this pack's boot
+# list, not an AppBootstrap sequencer line).
+#
+# ⭐ Derived, never a source: the whole collection is reconstructible
+# from the content rows plus the parcel register, and droppable at any
+# moment. `rebuild()` is idempotent by GENERATION rather than by
+# truncation, so there is no window in which the graph is empty — and
+# the traversal gate reads the graph, so a window would be a window in
+# which every door answers wrongly.
+#
+# ⭐ Warms LAZILY, on the first graph read — there is no `onCreate`.
+# Nothing reads the graph at boot (the traversal gate's publish check
+# goes through the parcel register, not through here), so an eager walk
+# of every content row would be work for no reader. This row exists so
+# the registry EXISTS for `NavigationLogic` to find; the first read
+# builds the graph, by which time the whole content tree and every
+# title claim are installed — which the projection needs.
+# See docs/subsystems/location-graph.md.
+class: /platform/idea/LocationGraphRegistry
+data: {}

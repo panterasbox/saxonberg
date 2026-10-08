@@ -36,7 +36,7 @@
 import { readFileSync, readdirSync, statSync, existsSync } from "fs";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
-import { classFileOf, packSources } from "./pack-roots";
+import { extendsAny, packSources } from "./pack-roots";
 import { reaches } from "./check-mass";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -86,72 +86,13 @@ const CARTESIAN_ROOTS = [
   "/lib/location/CartesianLocation",
 ];
 
-const ancestryCache = new Map<string, boolean>();
-
-/**
- * Does `classPath` extend — transitively, and THROUGH MIXIN CALLS — any
- * of `roots`?
- *
- * ⚠⚠ The mixin call is the whole difficulty and the reason a naive
- * `extends (\w+)` is useless here: a room class is
- * `class AuthoredWorking extends WorkingMixin(SingletonCartesianLocation)`,
- * and the first identifier after `extends` is the MIXIN. Reading it as
- * the base made every pack room invisible to these checks — a gate that
- * never fires reads exactly like a gate that passes.
- *
- * So every identifier in the extends clause is a candidate, and each is
- * resolved through its own import. `A(B(C))` answers on `C`.
+/*
+ * ⭐ `extendsAny` and `normalizePath` LIFTED to `pack-roots.ts`
+ * (2026-10-05), at their second consumer (`check-location-graph`). The
+ * walk is substrate — resolve the class file, read what it extends,
+ * recurse through mixin calls — and two copies of it would drift in
+ * exactly the way its own comment warns about.
  */
-function extendsAny(classPath: string, roots: readonly string[], depth = 0): boolean {
-  if (roots.includes(classPath)) return true;
-  if (depth > 6) return false;
-  const key = roots.join("|") + "  " + classPath;
-  const cached = ancestryCache.get(key);
-  if (cached !== undefined) return cached;
-  ancestryCache.set(key, false); // cycle guard
-  let src: string;
-  try {
-    src = readFileSync(classFileOf(classPath, packSources()), "utf8");
-  } catch {
-    return false;
-  }
-  // The LAST `class X extends …` wins: a module that builds a stack into
-  // a `const Base` and then exports `class X extends Base` names the
-  // composition, and the export is what a row resolves to.
-  const clauses = [...src.matchAll(/class\s+\w+\s+extends\s+([^{]+?)\s*\{/g)];
-  const clause = clauses[clauses.length - 1]?.[1];
-  const consts = [...src.matchAll(/const\s+(\w+)\s*=\s*([^;]+);/g)];
-  const candidates: string[] = [];
-  const collect = (text: string, seen = new Set<string>()): void => {
-    for (const id of text.match(/[A-Za-z_$][\w$]*/g) ?? []) {
-      if (seen.has(id)) continue;
-      seen.add(id);
-      candidates.push(id);
-      // A local `const Base = Mixin(Real)` is one more hop to unwrap.
-      const local = consts.find((c) => c[1] === id);
-      if (local) collect(local[2]!, seen);
-    }
-  };
-  if (clause) collect(clause);
-  for (const name of candidates) {
-    const imp = new RegExp(
-      `import\\s+(?:type\\s+)?(?:${name}\\b|\\{[^}]*\\b${name}\\b[^}]*\\})[^;]*?from\\s+['"]([^'"]+)['"]`,
-    ).exec(src);
-    if (!imp) continue;
-    const spec = imp[1]!;
-    const asMudPath = spec.startsWith("@saxonberg/server/mud/")
-      ? "/" + spec.slice("@saxonberg/server/mud/".length)
-      : spec.startsWith(".")
-        ? classPath.slice(0, classPath.lastIndexOf("/")) + "/" + spec
-        : null;
-    if (asMudPath === null) continue;
-    if (extendsAny(normalizePath(asMudPath), roots, depth + 1)) {
-      ancestryCache.set(key, true);
-      return true;
-    }
-  }
-  return false;
-}
 
 /** A spatial zone — kernel or a pack's own. */
 function isZoneClass(classPath: string): boolean {
@@ -161,17 +102,6 @@ function isZoneClass(classPath: string): boolean {
 /** A cartesian room — kernel or a pack's own. */
 function isCartesianClass(classPath: string): boolean {
   return extendsAny(classPath, CARTESIAN_ROOTS);
-}
-
-/** Collapse `a/b/../c` and a trailing `./`. */
-function normalizePath(p: string): string {
-  const out: string[] = [];
-  for (const seg of p.split("/")) {
-    if (seg === "" || seg === ".") continue;
-    if (seg === "..") out.pop();
-    else out.push(seg);
-  }
-  return "/" + out.join("/");
 }
 
 /**

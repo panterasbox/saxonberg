@@ -290,20 +290,20 @@ function anatomical(path: string): Creature {
     {
       key: 'body.torso',
       parent: null,
-      tissues: [{ tissuePath: '/stuff/idea/material/tissue/flesh', mass: 20 }],
+      tissues: [{ tissuePath: '/stuff/idea/material/tissue/flesh', share: 0.913242 }],
     },
     {
       key: 'body.torso.liver',
       parent: 'body.torso',
       governs: ['clearance'],
-      tissues: [{ tissuePath: '/stuff/idea/material/tissue/flesh', mass: 1.5 }],
+      tissues: [{ tissuePath: '/stuff/idea/material/tissue/flesh', share: 0.068493 }],
     },
     {
       key: 'body.arm.left.hand',
       parent: 'body.torso',
       serves: ['manipulation'],
       severable: true,
-      tissues: [{ tissuePath: '/stuff/idea/material/tissue/bone', mass: 0.4 }],
+      tissues: [{ tissuePath: '/stuff/idea/material/tissue/bone', share: 0.018265 }],
     },
   ]);
   stampTemplatePathForTest(plan, `/stuff/idea/species/BodyPlan/assess-${path}`);

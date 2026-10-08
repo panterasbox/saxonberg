@@ -70,10 +70,19 @@ describe('the shipped packs (real discovery, no install)', () => {
     // the oil store), installed after the kernel and before the localities that
     // migrate their street lighting onto it. ⚠ energy and apiculture both
     // landed `52` independently off `51`; the real total is 53 — the exact
-    // merge hazard this comment block documents. 53 → 54: the glass build
-    // adds `trade-glass` (the batch, the hot-work window, the first windows),
-    // ordered after generic-objects and its leftover-suppliers (quarrying,
-    // fuel).
+    // merge hazard this comment block documents. ⭐ 53 → 55: the carcass
+    // chain adds `trade-tanning` and, in its own wave, `trade-chandlery`.
+    // Two packs rather than one deliberately: tanning and
+    // chandlery share a supplier and a LULU zone and nothing else, and
+    // 18 of 19 trade packs ship exactly one Discipline. Installed after
+    // ranching, whose hide row names tanning's class; chandlery after
+    // apiculture and cooking, whose wax and tallow it dips.
+    // 55 → 56: the whiskey build adds `trade-malting` (see the note at the
+    // length assertion). ⭐ 56 → 57: the glass build adds `trade-glass`
+    // (the batch, the hot-work window, the first windows), ordered after
+    // generic-objects and its leftover-suppliers (quarrying, fuel) — this
+    // very hazard arriving a FOURTH time: three branches each counted
+    // correctly off 53 and only the sum (57) is right.
     //
     // ⚠⚠ Worth knowing: each of those builds wrote `49` independently, and
     // git merged the two comment blocks as a CONFLICT while merging the
@@ -82,7 +91,15 @@ describe('the shipped packs (real discovery, no install)', () => {
     // one assertion a three-way merge cannot reconcile. A
     // count, not a claim — what the claims below check is the ORDER,
     // which is where a pack graph actually breaks.
-    expect(ids).toHaveLength(54);
+    // ⭐ And `trade-malting` off the whiskey build makes 56, then
+    // `trade-glass` makes 57 — ⭐⭐ this very comment block's point arriving
+    // for the FOURTH time: three branches each counted correctly off 53
+    // (55 carcass, 56 whiskey, 54 glass) and only the sum is right. ⚠ Each
+    // pack had to be added to the REPO ROOT's `package.json` to be
+    // discovered at all, because `PackLogic.discover` reads the shipped set
+    // out of `contentDepsOf(deploymentRoot/package.json)`. A pack's own
+    // deps drive install ORDER, not whether it ships.
+    expect(ids).toHaveLength(57);
     expect(ids[0]).toBe('platform');
     // ⭐ The glass pack orders after generic-objects and the trades whose
     // leftovers it consumes (quarrying's sand/lime, fuel's ash).
@@ -236,7 +253,7 @@ describe('the shipped packs (real discovery, no install)', () => {
     // parcel meter and the oil store (the `FuelStore`, `ElectricLight`,
     // `LineAccess`, `GridCatalogue` classes). Terminus migrated its street
     // lighting onto the grid and props the poles and the lobby light;
-    // world-seed ships the feeder rows; hearts-delight is gas-lit from a
+    // world-seed ships the feeder rows; hearts-delight is oil-lit from a
     // store — so each names the energy pack's classes and installs after it.
     // The mechanism is the system's; a town's lamps are the realm's.
     for (const namer of ['world-seed', 'terminus', 'hearts-delight']) {

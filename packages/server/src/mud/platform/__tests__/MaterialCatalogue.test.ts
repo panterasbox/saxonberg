@@ -29,6 +29,12 @@ describe("the roster warm", () => {
       { path: "/stuff/idea/material/wood", class: "/platform/idea/FolderZone" },
       { path: "/stuff/idea/material/wood/oak", class: "/platform/idea/material/Material" },
       { path: "/stuff/idea/material/element/uranium", class: "/platform/idea/material/RadioactiveMaterial" },
+      // ⭐ A `Muscle` row warms for the same reason uranium does: the
+      // filter is "its class extends `Material`", never a list of classes
+      // or of roots. ⚠ Asserted because the reference-Idea roster has gone
+      // inert THREE times in this repo — a muscle nothing warms is a cut
+      // with no texture, silently.
+      { path: "/stuff/idea/material/tissue/muscles/loin", class: "/platform/idea/material/Muscle" },
     ] as unknown as Template[]);
     const stood: string[] = [];
     vi.spyOn(StuffApi, "singleton").mockImplementation(async (path: string) => {
@@ -41,6 +47,7 @@ describe("the roster warm", () => {
     expect(stood).toEqual([
       "/stuff/idea/material/wood/oak",
       "/stuff/idea/material/element/uranium",
+      "/stuff/idea/material/tissue/muscles/loin",
     ]);
     expect(Template.findByPathInfix).toHaveBeenCalledWith("/idea/material/");
   });

@@ -496,7 +496,13 @@ export abstract class OuterWarren extends Warren {
       const template = this.circulationTemplateFor(nodeId);
       if (!template) return null;
       room = await StuffApi.clone<MemberStuff>(template, undefined, {
-        asIdentityPath: `${this.getParentExtent()}/${nodeId}`,
+        // identity-keyed-by: referenced — a parked character's snapshot
+        // records this node as its `place.container`, so the string has
+        // to name the same corridor after the node is reaped and
+        // re-minted. ⭐ The worked case for the rule: ephemeral as an
+        // OBJECT, durably NAMED — re-derivable from the plan plus the
+        // parent extent, which is why the identity survives the reap.
+        asIdentityPath: plan.nodeIdentityOf(nodeId, this.getParentExtent()),
       });
     }
     this._circulationByNode.set(nodeId, room);

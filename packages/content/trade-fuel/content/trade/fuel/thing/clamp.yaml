@@ -26,12 +26,14 @@ data:
   # needs and wood cannot reach.
   burnTemperatureK: 1420
   bellowsMultiplier: 1.0
-  fuelBurnRatePerMin: 0.05
   lit: false
-  reserves:
-    fuel:
-      capacityValue: 100
-      currentValue: 100
-      unit: "%"
-      theme: combustion
-      floorEffect: null
+  # ⭐ The fire build: fuel is a BED (kilograms, by material) that
+  # `stoke` fills, and the vessel's size is a POWER rather than a
+  # percentage-per-minute of nothing. What it reaches depends on what
+  # is in it.
+  # ⚠⚠ 2 kW against a four-tonne bed, and the ratio is deliberate: a
+  # clamp is a fire that must NOT burn its own charge — it cooks the
+  # volatiles out of it over three days. Low power keeps the heat and the
+  # charge distinct in practice, which is what the charring band assumes.
+  maxBurnPowerW: 2000
+  fuelCapacityKg: 4000

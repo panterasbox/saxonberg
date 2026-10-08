@@ -35,6 +35,7 @@
  */
 
 import type { Stuff } from '../lib/stuff/Stuff';
+import type { Concentrate } from '../lib/bulk/Concentration';
 import type { Container } from '../lib/spatial/Container';
 import type Biome from '../lib/biome/Biome';
 import type { Evaporation } from '../lib/material/Evaporation';
@@ -267,6 +268,64 @@ export class BiomeApi {
     detailKey?: string
   ): Promise<string> {
     return logic().resolveAtmosphereFor(scope, detailKey);
+  }
+
+  /**
+   * Whether `tag` is an atmosphere the medium's physics tables know.
+   * `setAtmosphere` gates on it so an unknown tag fails the ROW rather
+   * than the first thermal read taken in the room.
+   */
+  public static isKnownAtmosphere(tag: string): boolean {
+    return logic().isKnownAtmosphere(tag);
+  }
+
+  /**
+   * ⭐⭐ What the medium at `scope` CARRIES — litres per litre, keyed by
+   * Material template path.
+   *
+   * Sync, because every consumer is on a hot path (the fire tick, a
+   * burner's completeness read, a breath) and because the answer needs
+   * no zone or biome rung: a quantity in a volume is the scope's own.
+   * The innermost ancestor that has a derivable volume answers.
+   */
+  public static resolveAtmosphereContentsFor(
+    scope: Stuff & Container,
+  ): Concentrate[] {
+    return logic().resolveAtmosphereContentsFor(scope);
+  }
+
+  /** The share of a medium that is still plain medium: `1 − Σ amount`. */
+  public static airShareOf(contents: readonly Concentrate[]): number {
+    return logic().airShareOf(contents);
+  }
+
+  /**
+   * ⭐⭐ Whether there is enough unoccupied medium left here to breathe —
+   * the DISPLACEMENT half, with no opinion about what the medium is.
+   *
+   * ⚠ Separate from {@link isBreathableMixture} on purpose. A body
+   * already knows which media it breathes (`breathableMedia`); asking
+   * the air-breather table again would tell a FISH it cannot breathe
+   * water. The question a body needs answered once it is in a medium it
+   * can use is only *is there room left in it*.
+   */
+  public static hasBreathableShare(
+    contents: readonly Concentrate[],
+  ): boolean {
+    return logic().hasBreathableShare(contents);
+  }
+
+  /**
+   * Whether a default air-breather exchanges gas in this medium — the
+   * tag's own breathability AND enough of the medium left unoccupied.
+   * ⭐ The second half is what makes a smoky room dangerous without the
+   * tag ever having to change.
+   */
+  public static isBreathableMixture(
+    tag: string,
+    contents: readonly Concentrate[],
+  ): boolean {
+    return logic().isBreathableMixture(tag, contents);
   }
 
   // ---------- trace variants ----------

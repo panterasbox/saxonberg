@@ -1,0 +1,52 @@
+# stoke — ⭐⭐ put fuel in a fire.
+#
+# The act no fire in this game could accept before the fire build, which
+# is why no fire in this game could run twice: fuel was a `%` Reserve
+# nothing could refill, so every forge, oven, hearth, still and lamp was
+# a one-shot object that went out and stayed out. Both whiskey wire
+# drives carry a `DIRTY_REASON` ending *"no refuel verb exists for any
+# burner"*.
+#
+# ⭐ `fuel` is an alias because that is what a player types, and because
+# the noun and the verb are the same word in English for exactly the
+# reason they are the same act here.
+verbs: [stoke, fuel]
+controller: /platform/idea/cmd/device/StokeController
+description: "Put fuel in a fire"
+help: |
+  Put fuel in a fire — `stoke forge with charcoal`, `stoke hearth oak`,
+  or just `stoke log` when there is only one fire standing by.
+
+  What you put in matters. A fire burns what it is given: charcoal runs
+  hot enough to work iron, oak does not, and peat puts its own smoke
+  into whatever is being cured over it. `look` at a lit fire and it will
+  tell you what it is burning.
+
+  A heavier charge lasts longer — the same fire, more of it. And you can
+  stoke a fire that has gone out and light it again, which is the point.
+
+  It will refuse a stone (nothing to burn), something still sodden (it
+  will not catch), and a bed that is already full.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresEmbodied
+args:
+  - name: fuel
+    type: object
+    required: true
+    scope: "reachable"
+    greedy: true
+    updates_focus: extend
+    requires: TangibleMixin
+    validators:
+      - /lib/command/validators/canReach
+  - name: burner
+    type: object
+    required: false
+    greedy: true
+    prepositions: [into, in, on, with]
+    scope: "reachable"
+    default: "reachable:[mixin.BurnerMixin]"
+    requires: BurnerMixin
+    validators:
+      - /lib/command/validators/canReach

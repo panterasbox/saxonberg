@@ -29,6 +29,7 @@ import type Species from './Species';
 import type { VetoResult } from '../../../lib/errors';
 import type { FieldMeta } from '../../../lib/mixin';
 
+import type { BoundaryRole } from '../../../lib/security/BoundaryRole';
 /** Taxonomic ranks the v1 build recognizes. */
 export type CladeRank =
   | 'kingdom'
@@ -60,6 +61,16 @@ export type CladeRank =
 // slot occupant (`Drivable`) or `EventRegistry` itself. None is a
 // reference singleton.
 export default class Clade extends SingletonMixin(Zone) {
+  /**
+   * the clade vocabulary — a body was refused its own clade's rank.
+   *
+   * See `lib/security/BoundaryRole.ts` — this replaces a
+   * hand-maintained list in `api/security.ts` /
+   * `BootstrapManager`, and `lint:boundary-roles` holds the
+   * `commons` census at its measured ceiling.
+   */
+  static boundaryRole: BoundaryRole = 'commons';
+
   /**
    * Taxonomic rank. v1 only seeds `'kingdom'`; sub-rank Clades land
    * with the family/order trees.

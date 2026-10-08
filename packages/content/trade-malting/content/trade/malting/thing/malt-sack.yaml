@@ -1,0 +1,29 @@
+# An empty malt sack — what a kilning lands in, and the vessel kind the
+# distributor's filled `malt-sack` already names.
+#
+# ⚠ The distribution pack ships a FULL sack (`/trade/distribution/thing/
+# malt-sack`) whose header says *"nobody in the world malts barley yet, so
+# the sacks simply arrive"*. This is the empty one, so that a maltster's
+# own output goes into the same kind of thing the trade already buys and
+# sells — the vessel-kind tie, which is what makes a sack you filled and a
+# sack you bought the same good at the counter.
+class: /platform/thing/Receptacle
+data:
+  shortDescription: empty malt sack
+  keywords: [sack, "malt sack", empty, malt]
+  register: indefinite
+  longDescription: A coarse hemp sack, folded flat, with a faded mill stamp across the belly.
+  # ⛔ **No `category:`, and the gate is why.** `category` is
+  # `VesselKindMixin`'s field and `/platform/thing/Receptacle` does not
+  # compose it, so the vessel-kind tie this row's header described would
+  # have been **discarded silently by the applier** —
+  # `lint:instanceable` invariant 12 caught it, which is exactly the
+  # orphan-key class that gate exists for.
+  #
+  # ⚠ Which means the tie between a sack you filled and a sack you bought
+  # needs `VesselKindMixin` on `Receptacle` — a kernel composition
+  # question, not this build's, and one the distribution pack's own filled
+  # `malt-sack` may already be silently failing. A finding for review.
+  mass: 1
+  interiorBulk: true
+  interiorCapacity: 25

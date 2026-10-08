@@ -43,6 +43,25 @@ data:
     # nothing for the still to take. (lint:dossiers rule 6.)
     - { discipline: distilling, asserting: proficient }
     - { discipline: fermenting, asserting: competent }
+    # ⭐⭐ `malting` at PROFICIENT, and the band is forced the same way the
+    # others were: `steep-barley` is easy, but `kiln-malt` is STANDARD,
+    # and only `proficient` licenses standard work. (There were two kiln
+    # lines; the fire build retired the peated one — the smoke comes off
+    # the fuel bed, so one recipe covers both.) At `competent` this yard's own hand could not kiln
+    # this yard's own malt, and the refusal would arrive with the seat
+    # reading as staffed — the exact failure the comment above records
+    # for `distilling`.
+    #
+    # ⚠⚠ **One NPC, three trades, and that is a vacancy we are papering
+    # over.** A maltster is a real unfilled seat at Crowsfoot: the floor
+    # has a malting floor, a kiln and now a quern on it, and the person
+    # turning the bed is the same person running the still. Recorded as
+    # a named vacancy in `docs/vocations.md` rather than left as a
+    # convenient silence — *every NPC doing two jobs is a vacancy we
+    # deleted.* The alternative (a second Cast) is more honest to lens
+    # 3b and is the user's call; it was weighed at plan time (Risks 4)
+    # and the seat was chosen for now.
+    - { discipline: malting, asserting: proficient }
   behaviors:
     # The producing beat (fermentation W6): mash bought malt off the
     # still book, ferment the wash, RUN THE STILL when a back finishes
@@ -72,11 +91,45 @@ data:
 
         batch: 12
         buyEvery: 5
+        # The still leg — the hand makes the CUT, with the read it has.
+        # No `recipe:` and no `runs:`: a still does not have one output,
+        # which is why `distil` retired for four fraction schedules, and
+        # a run is not a recipe.
+        #
+        # What the hand tunes is its CAUTION. `stepL` is how big a pour
+        # it takes between sniffs, and the schedule's boundaries do not
+        # move for it — so a bold hand overshoots the hearts and a
+        # careful one wastes a little. Combined with its `distilling`
+        # band, which blurs where it thinks it is, that is the entire
+        # difference between this hand's whiskey and a novice's.
+        #
+        # The hand may NOT read the schedule's true boundary: it goes
+        # through `readFraction(hand)`, the same banded read a player
+        # gets. A brain reading the real number would cut perfectly every
+        # time and the competence model would be decoration.
         distills:
-          recipe: distil
-          runs: 3
+          chargeKeyword: vat
           igniteKeyword: still
-          compounds: [compound-gin, grappa]
+          slopKeyword: slop
+          vesselKeyword: bottle
+          stepL: 0.4
+          # The two caution dials, calibrated against the wash schedule
+          # on this house's sixty-litre pot, where the hearts run from
+          # 0.03 to 0.18 of the charge:
+          #
+          #   startAfter 1 — throw away one 0.4 L draw after the nose
+          #     first calls the hearts. A proficient nose is about 0.3 L
+          #     early on this pot, so one draw covers it.
+          #   takeUpTo 0.16 — stop at 9.6 L of 60, leaving the last of
+          #     the hearts (they end at 10.8 L) in the pot rather than
+          #     risking the tails.
+          #
+          # Both cost yield and both are the point: a hand that cut to
+          # the last drop would ruin the bottle on its final pour,
+          # because a top-up is weakest-link on grade.
+          startAfter: 1
+          takeUpTo: 0.16
+          compounds: [compound-gin]
         asks:
           spirit: 9
           "house gin": 12

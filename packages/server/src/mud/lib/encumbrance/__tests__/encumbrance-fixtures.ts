@@ -73,17 +73,17 @@ export function bearerOf<T extends Creature>(
     {
       key: 'body.torso',
       parent: null,
-      tissues: [{ tissuePath: '/stuff/idea/material/tissue/bone', mass: 8 }],
+      tissues: [{ tissuePath: '/stuff/idea/material/tissue/bone', share: 0.701754 }],
     },
     {
       key: 'body.arm.left',
       parent: 'body.torso',
-      tissues: [{ tissuePath: '/stuff/idea/material/tissue/muscle', mass: 3 }],
+      tissues: [{ tissuePath: '/stuff/idea/material/tissue/muscle', share: 0.263158 }],
     },
     {
       key: 'body.arm.left.hand',
       parent: 'body.arm.left',
-      tissues: [{ tissuePath: '/stuff/idea/material/tissue/bone', mass: 0.4 }],
+      tissues: [{ tissuePath: '/stuff/idea/material/tissue/bone', share: 0.035088 }],
     },
   ]);
   plan.setSlots([

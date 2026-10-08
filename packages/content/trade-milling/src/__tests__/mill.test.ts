@@ -77,6 +77,8 @@ const FLOUR = '/stuff/idea/material/food/wheat-flour';
 const BRAN = '/stuff/idea/material/food/bran';
 const FLOUR_SACK = '/trade/milling/thing/flour-sack';
 const BRAN_SACK = '/trade/milling/thing/bran-sack';
+const GRIST = '/stuff/idea/material/food/grist';
+const GRIST_SACK = '/trade/milling/thing/grist-sack';
 
 class TestActor extends CommandGiverMixin(
   SensorMixin(EngagedMixin(ContainerMixin(ContainableMixin(Idea)))),
@@ -263,6 +265,10 @@ beforeEach(async () => {
   await bootstrapEvents();
   material(WHEAT, 'wheat grain', ['food', 'grain', 'cereal', 'wheat'], 780);
   material(MALT, 'malt', ['food', 'malt', 'brewing'], 560);
+  // ⭐ The grist the malt grind makes — a real row in this pack
+  // (`content/stuff/idea/material/food/grist.yaml`) that nothing could
+  // produce until the mill got a products table.
+  material(GRIST, 'grist', ['food', 'grist', 'brewing', 'feed'], 560);
   material(FLOUR, 'wheat flour', ['food', 'flour', 'gluten'], 570, {
     carb: 810000,
     protein: 92000,
@@ -467,12 +473,83 @@ describe('the grind itself', () => {
     expect(flour!.getGradeBand()).toBe('poor');
   });
 
-  it('⭐ a MALT sack grinds too, and what comes off is grist', () => {
-    // The retrofit's premise: the mash wants milled malt, and nothing in
-    // the tree ground it. Matching is by material TAG, which is why this
-    // pack needs no dependency on brewing or on farming.
-    const m = StuffApi.findByTemplatePath<Material>(MALT)!;
-    expect((m as unknown as Material).hasTag('malt')).toBe(true);
+  it('⭐⭐ a MALT sack grinds, and what comes off is GRIST', async () => {
+    // ⛔⛔ **This test used to assert that the malt material carries a
+    // `malt` tag, under this exact title.** It ground nothing and never
+    // mentioned grist — and the thing it claimed was FALSE: both mill
+    // rows pinned `productMaterial` to wheat flour and the mixin had one
+    // product per row, so a malt sack ground here came out as flour no
+    // mash accepts. A vacuous assertion looks exactly like a passing
+    // one, and this one covered for the defect it was named after.
+    const q = quern();
+    q.products = [
+      {
+        inputTag: 'malt',
+        product: GRIST,
+        residueFraction: 0,
+        vessel: GRIST_SACK,
+      },
+      {
+        inputTag: 'wheat',
+        product: FLOUR,
+        residue: BRAN,
+        vessel: FLOUR_SACK,
+        residueVessel: BRAN_SACK,
+      },
+    ];
+    await ContainmentApi.move(q as never, room as never);
+    const sack = cropSack(MALT, 20, 'fine');
+    await ContainmentApi.move(sack as never, room as never);
+
+    await mill(sack, 1, q);
+    SchedulerApi.complete(actor.getEngagements()[0]!);
+    await new Promise((r) => setTimeout(r, 0));
+
+    const out = sacksIn(room);
+    const grist = out.find(
+      (x) =>
+        BulkableApi.slotFor(x, undefined)!.getMaterial()?.getTemplatePath() ===
+        GRIST,
+    );
+    expect(grist, 'the mill produced no grist').toBeDefined();
+    expect(
+      out.some(
+        (x) =>
+          BulkableApi.slotFor(x, undefined)!
+            .getMaterial()
+            ?.getTemplatePath() === FLOUR,
+      ),
+      'the mill made FLOUR out of malt',
+    ).toBe(false);
+    // ⭐ The husk stays in: `residueFraction: 0`, so there is one sack
+    // and no bran. The mash lauters through that husk.
+    expect(out.length).toBe(1);
+    expect(sack.isDestroyed()).toBe(true);
+  });
+
+  it('⭐ a grind KEEPS what the sack carried — smoke survives the stones', async () => {
+    // ⛔ `fill()` cloned a fresh sack and stamped only the plan's own
+    // composition and water, so any per-litre concentration on the feed
+    // was dropped on the floor. Peated malt is the case that found it:
+    // the entire point of kilning over turf is that the phenols reach
+    // the glass, and they could not get past the millstones.
+    const q = quern();
+    q.products = [
+      { inputTag: 'malt', product: GRIST, residueFraction: 0, vessel: GRIST_SACK },
+    ];
+    await ContainmentApi.move(q as never, room as never);
+
+    const sack = cropSack(MALT, 20, 'fine');
+    await ContainmentApi.move(sack as never, room as never);
+    await mill(sack, 1, q);
+    SchedulerApi.complete(actor.getEngagements()[0]!);
+    await new Promise((r) => setTimeout(r, 0));
+    const plainGrist = sacksIn(room)[0]!;
+    expect(
+      BulkableApi.slotFor(plainGrist, undefined)!.getPayload()
+        ?.dissolvedAromatics,
+      'unpeated malt must not acquire an aroma from nowhere',
+    ).toBeUndefined();
   });
 
   it('a thing that is not grain is refused in its own words', async () => {

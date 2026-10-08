@@ -262,3 +262,142 @@ describe("throughput — the power seam is a hole the kernel does not fill", () 
     expect(Object.keys(TestMill.fieldMeta)).not.toContain("_grinding");
   });
 });
+
+/**
+ * ⛔⛔ **The mill made one thing, and it was the wrong thing.**
+ *
+ * `productMaterial` was ONE path per instrument row and both shipped
+ * mill rows pinned it to wheat flour, while `MillController.chargeFrom`
+ * accepted anything tagged `grain` or `malt`. So a sack of malt ground
+ * on the quern came out as **wheat flour** — a material no mash slot
+ * asks for — and the whiskey vertical's "malt becomes grist" link had
+ * therefore never once run. Every grain of grist in the realm came off
+ * the distributor's counter.
+ *
+ * The table is the fix: a mill makes what it is FED, smaller.
+ */
+describe("the products table — a mill makes what it is fed", () => {
+  const GRIST = "/stuff/idea/material/food/test-grist";
+  const MALT = "/stuff/idea/material/food/test-malt";
+  const WHEAT = "/stuff/idea/material/food/test-wheat";
+
+  function tagged(path: string, name: string, tags: string[]): void {
+    makeStuffAtPath(() => {
+      const m = new Material();
+      m.setName(name);
+      m.setTags(tags);
+      m.setDensity(Quantity.of(600, "kg/m³"));
+      return m;
+    }, path);
+  }
+
+  function tabled(): TestMill {
+    return mill({
+      products: [
+        {
+          inputTag: "malt",
+          product: GRIST,
+          residueFraction: 0,
+          vessel: "/test/grist-sack",
+        },
+        {
+          inputTag: "wheat",
+          product: FLOUR,
+          residue: BRAN,
+          vessel: "/test/flour-sack",
+          residueVessel: "/test/bran-sack",
+        },
+      ],
+    });
+  }
+
+  beforeEach(() => {
+    tagged(GRIST, "grist", ["food", "grist", "brewing"]);
+    tagged(MALT, "malt", ["solid", "food", "grain", "malt"]);
+    tagged(WHEAT, "wheat grain", ["food", "grain", "cereal", "wheat"]);
+  });
+
+  it("⛔ grinds MALT to grist — not to wheat flour", () => {
+    const p = tabled().planComminution(
+      { kg: 20, materialPath: MALT, gradeBand: "fine" },
+      0.8,
+    );
+    expect(p.productMaterial).toBe(GRIST);
+    expect(p.productMaterial).not.toBe(FLOUR);
+  });
+
+  it("grinds wheat to flour, as it always did", () => {
+    const p = tabled().planComminution(
+      { kg: 20, materialPath: WHEAT, gradeBand: "fine" },
+      0.8,
+    );
+    expect(p.productMaterial).toBe(FLOUR);
+    expect(p.residueMaterial).toBe(BRAN);
+  });
+
+  it("bolts nothing from malt — the husk IS the filter bed", () => {
+    // ⭐ `residueFraction: 0` on the malt row. A brewer's grind keeps the
+    // husk because the mash lauters through it; bolting it out is how
+    // you get a stuck mash. So the whole charge is product, there is no
+    // residue material at all, and the grist is pure inner stock.
+    const p = tabled().planComminution(
+      { kg: 20, materialPath: MALT, gradeBand: "fine" },
+      1,
+    );
+    expect(p.productKg).toBeCloseTo(20, 9);
+    expect(p.residueKg).toBeCloseTo(0, 9);
+    expect(p.residueMaterial).toBe("");
+    expect(p.outerShare).toBeCloseTo(0, 9);
+  });
+
+  it("routes each product to its own vessel", () => {
+    const m = tabled();
+    expect(
+      m.planComminution({ kg: 5, materialPath: MALT, gradeBand: "" }, 0.8)
+        .productVessel,
+    ).toBe("/test/grist-sack");
+    expect(
+      m.planComminution({ kg: 5, materialPath: WHEAT, gradeBand: "" }, 0.8)
+        .productVessel,
+    ).toBe("/test/flour-sack");
+  });
+
+  it("falls back to the scalar fields for a feed the table does not name", () => {
+    // ⚠ Falls back rather than refusing: a refusal here would fail
+    // closed and silent at the charge, which is the failure class the
+    // table exists to remove.
+    const BARLEY = "/stuff/idea/material/food/test-barley";
+    tagged(BARLEY, "barley", ["food", "grain", "cereal", "barley"]);
+    const p = tabled().planComminution(
+      { kg: 10, materialPath: BARLEY, gradeBand: "" },
+      0.8,
+    );
+    expect(p.productMaterial).toBe(FLOUR);
+    expect(p.residueMaterial).toBe(BRAN);
+  });
+
+  it("⭐ leaves a row with NO table behaving exactly as before", () => {
+    // Every shipped mill row, until it authors a table.
+    const plain = mill();
+    const p = plain.planComminution(
+      { kg: 20, materialPath: MALT, gradeBand: "fine" },
+      0.8,
+    );
+    expect(p.productMaterial).toBe(FLOUR);
+    expect(plain.productFor(MALT)).toBeNull();
+  });
+
+  it("matches on the FIRST row whose tag the feed carries", () => {
+    const m = mill({
+      products: [
+        { inputTag: "grain", product: FLOUR },
+        { inputTag: "malt", product: GRIST },
+      ],
+    });
+    // Malt carries both `grain` and `malt`; `grain` is authored first and
+    // therefore wins. This is the documented rule and the reason the
+    // shipped rows author the specific tags, never `grain`.
+    expect(m.planComminution({ kg: 1, materialPath: MALT, gradeBand: "" }, 1)
+      .productMaterial).toBe(FLOUR);
+  });
+});

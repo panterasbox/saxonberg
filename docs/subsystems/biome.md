@@ -227,6 +227,36 @@ Composed onto **`Location`** and **`ExitableVessel`**. Pure containers
 (Box, Backpack, treasure chest) do NOT compose it and are atmospherically
 transparent — skipped by the chain walk.
 
+> ⭐⭐⭐ **The medium carries AMOUNTS, not just an identity (the fire
+> build, 2026-10).** An atmosphere used to be a single tag, so *smoke* had
+> to be **a different air** — a tag swap that replaced the room's
+> atmosphere wholesale. It carries **contents** now: `Concentrate[]`,
+> litres per litre, keyed by `Material` path, beside the tag. Smoke and
+> CO₂ and firedamp are things *in* the air, the tag is untouched, and the
+> two questions a breather asks come apart cleanly
+> ([respiration.md](./respiration.md)).
+>
+> Three derived reads follow, and none of them is authored:
+> **`airShare()`** = `1 − contentsSum` (a displacement figure);
+> **`airChangesPerHour()`** = `Infinity` under the sky, else
+> `exterior × achPerOpening + interior × achInterior + achLeak`; and the
+> standing ramp, which is how a long-undisturbed scope settles.
+>
+> ⚠ **Only a scope with a VOLUME accumulates.** `resolveContentsFor`
+> answers from the innermost `Atmospheric` ancestor **that has one** —
+> never a sum across ancestors — so a plain `Location` and `Offstage`
+> accumulate nothing, which is right: an off-stage parking room is not a
+> place, and the geometry already says so.
+>
+> ⚠ **The stamp sentinel is `-1`, not `0`.** `_atmosphereContentsStamp`
+> starts `UNSTAMPED = -1` because game-time **zero is a legal instant**
+> (the first moment of a fresh world); a `0` sentinel made every read
+> re-seed the stamp it was comparing against, so the decay never ran in a
+> fresh world at all. `Burner`'s fuel clock had the identical hole.
+>
+> ⚠ `setAtmosphere` **throws on an unknown tag** now. It used to accept
+> anything, which is how a typo'd medium could sit in a row forever.
+
 > ⭐⭐ **A bag is not a place.** It composed on `Vessel` until the
 > base-class narrowing build, which meant a backpack, a till, a jar, a
 > rack, a footlocker, a handcart, a bank counter and a barge each had a

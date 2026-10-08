@@ -15,6 +15,9 @@
  */
 
 import "../../../../test-bootstrap";
+import type { Burner } from '../../fire/Burner';
+import { chargeHot } from '../../fire/__tests__/burner-fuel';
+import type { Stuff } from '../../stuff/Stuff';
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import Good from "../../stuff/Good";
 import Location from "../../stuff/Location";
@@ -92,15 +95,8 @@ function loaf(stampedK = 293): ThermalThing {
 }
 
 function fuelled<T extends TestOven | TestCampfire>(f: T, heldK: number): T {
-  f.setReserve(
-    new Reserve(
-      "fuel",
-      Quantity.of(100, "%"),
-      Quantity.of(100, "%"),
-      "combustion",
-      null,
-    ),
-  );
+  // ⭐ A charge in the bed, not a percentage of nothing.
+  chargeHot(f as unknown as Stuff & Burner, 40);
   f.setBurnTemperatureK(heldK);
   f.setStampedTemperatureK(293);
   f.setLastAmbientK(293);

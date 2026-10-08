@@ -1,0 +1,31 @@
+# ⭐ Green malt — the floor's finished bed, and the most perishable thing
+# in the chain.
+#
+# The corns have chitted, the rootlets have knitted the bed into a mat and
+# the acrospire has run the length of the grain: the starch is converted
+# and the enzymes are at their peak. And it is still ALIVE and still wet,
+# so it keeps for hours rather than months — which is the whole reason the
+# kiln exists and the whole reason a maltster cannot stop halfway and go
+# home.
+#
+# ⚠ `waterActivity` far above the 0.60 growth floor, against kilned
+# malt's 0.45. The difference between those two numbers is the trade.
+class: /platform/idea/material/ConsumableMaterial
+data:
+  name: green malt
+  keywords: [malt, green, "green malt", grain]
+  appearance: a warm, rooty mat of chitted barley, sweet-smelling
+  density: 650
+  thermalConductivity: 0.45
+  specificHeat: 2400
+  edibility: true
+  tastes: [sweet]
+  spoilActivationEnergy: 58000
+  waterActivity: 0.94
+  nutrients: [carb, sugar]
+  nutrientAmounts:
+    carb: 12000
+    sugar: 60
+  tags: [liquid, food, grain, green-malt]
+  composition: []
+  biologicalSource: null

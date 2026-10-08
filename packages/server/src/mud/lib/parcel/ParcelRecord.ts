@@ -80,6 +80,15 @@ export interface TitleClaim {
   feeder?: string;
   /** The electric posture this premises declares — see {@link ParcelRecord.powerBand}. */
   powerBand?: PowerBand;
+  /**
+   * Is the content on this ground ready to be walked into? Omitted
+   * means `true` — see {@link ParcelRecord.published}.
+   *
+   * ⭐ A claim authored `published: false` is **draft**: content that
+   * has never been live, so nobody is inside it by construction and the
+   * flag is a wall rather than an eviction.
+   */
+  published?: boolean;
 }
 
 /**
@@ -148,10 +157,36 @@ export class ParcelRecord extends Document {
     reach: { persistent: true },
     feeder: { persistent: true },
     powerBand: { persistent: true },
+    published: { persistent: true },
   };
 
   /** The path this parcel claims — the coverage-index key (longest-prefix). */
   extent: string = "";
+
+  /**
+   * ⭐ Is the content on this ground **ready to be walked into**?
+   *
+   * One boolean, defaulting to `true`, on the record that already
+   * carries title, chain-of-title and the path gate — because readiness
+   * is a declaration *about content on ground*, and this is the register
+   * of who may declare things about ground. An author holds title to
+   * their extent, so they already hold the authority this flag needs; a
+   * separate register would mean a second thing to get the permissions
+   * of right.
+   *
+   * ⭐⭐ **One field, two lives.** *Draft* is content that has never been
+   * live: nobody is inside it by construction, so the flag is a WALL —
+   * every exit into it refuses with a reason. *Offline* is live content
+   * being taken down, which is a CAMERA: the people inside are moved
+   * out first. Both are `published: false`; what differs is whether
+   * anybody was there, and that is a fact rather than a second field.
+   *
+   * ⚠ Denormalised onto each `PlaceNode` so `Exit.canTraverse` can read
+   * it synchronously without resolving a destination (the rule the lock
+   * gate already follows). **This record stays the source of truth** and
+   * a flip re-projects the extent.
+   */
+  published: boolean = true;
 
   /** The backing Zone's templatePath (== `extent` in 0a). */
   zonePath: string = "";
@@ -436,6 +471,16 @@ export class ParcelRecord extends Document {
    */
   getGrossFloorArea(): number {
     return this.getArea() * this.getStoreys();
+  }
+
+  /** Is the content on this ground ready to be walked into? */
+  isPublished(): boolean {
+    return this.published;
+  }
+
+  /** Declare this ground's content live, or take it down. */
+  setPublished(value: boolean): void {
+    this.published = value;
   }
 
   /** The one parcel claiming exactly `extent`, or null. */

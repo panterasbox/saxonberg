@@ -1,0 +1,31 @@
+# Grain wort — ⭐ the SECOND cereal's mash, and the reason blending means
+# anything.
+#
+# Malt whisky and grain whisky are different products because they start
+# from different grain: this one is mostly wheat, with a little malted
+# barley in it for the enzymes, because wheat has none of its own and
+# starch that is not converted is starch the yeast cannot eat. That is
+# real mashing practice and it is also why the grain line cannot escape
+# the maltings entirely — a grain distiller still buys malt, just much
+# less of it.
+#
+# ⚠ Its own tag (`grain-distillers-wort`), NOT `distillers-wort`. A tag
+# may belong to one matcher of a given kind, and the malt line's wash
+# profile keys on `distillers-wort` — so sharing the tag would have a
+# grain wort fermenting on the malt schedule and both profiles claiming
+# the same matter (the double-match rule's warning case).
+class: /platform/idea/material/ConsumableMaterial
+data:
+  name: grain wort
+  keywords: [wort, grain, "grain wort"]
+  appearance: "a pale, thin wort, almost milky with starch"
+  density: 1038
+  thermalConductivity: 0.5
+  specificHeat: 3900
+  edibility: true
+  nutrients: ["water", "sugar"]
+  nutrientAmounts:
+    sugar: 92
+  tags: ["liquid", "grain-distillers-wort"]
+  composition: []
+  biologicalSource: null

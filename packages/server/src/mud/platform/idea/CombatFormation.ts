@@ -28,6 +28,7 @@ import { Idea } from "../../lib/stuff/Idea";
 import { SingletonMixin } from "../../lib/stuff/Singleton";
 import type { FieldMeta } from "../../lib/mixin";
 
+import type { BoundaryRole } from '../../lib/security/BoundaryRole';
 /** How a member under this formation picks its exchange target. */
 export type AllocationKind = "sustain" | "called" | "primary";
 
@@ -79,6 +80,16 @@ export interface FormationPolicy {
 }
 
 export class CombatFormation extends SingletonMixin(Idea) {
+  /**
+   * the formation presets.
+   *
+   * See `lib/security/BoundaryRole.ts` — this replaces a
+   * hand-maintained list in `api/security.ts` /
+   * `BootstrapManager`, and `lint:boundary-roles` holds the
+   * `commons` census at its measured ceiling.
+   */
+  static boundaryRole: BoundaryRole = 'commons';
+
   /**
    * The built-in fallback policy — value-equal to the seeded `default`
    * preset (a test pins the equivalence), consumed when the Idea is not

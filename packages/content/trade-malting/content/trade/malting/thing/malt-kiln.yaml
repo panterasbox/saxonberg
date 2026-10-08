@@ -1,0 +1,45 @@
+# ⭐⭐ The malt kiln — a ROW over the platform's `Oven`, and the number IS
+# the lesson.
+#
+# A limekiln on the same class holds 1500 K and a bread oven 500; this one
+# holds 340, which is barely warm. That is not a weak kiln — it is the
+# whole craft. Heat above about 350 K destroys the enzymes the floor spent
+# five days making, so a maltster's fire is deliberately feeble and
+# deliberately long. A player who has read the limekiln's row and this one
+# can predict which chamber does which job without being told, which is
+# lens 1 paying out for the second time on one class.
+#
+# ⚠ `maxBurnPowerW` is low against a big bed to match: a kilning is a day
+# and a half of gentle heat, not a burn.
+class: /platform/thing/Oven
+data:
+  shortDescription: malt kiln
+  keywords: [kiln, "malt kiln", oast, furnace, malt]
+  register: definite
+  longDescription: >-
+    A low brick chamber under a perforated tile floor, the tiles worn
+    smooth and sweet-smelling, with a damper on a chain to hold the heat
+    down rather than up.
+  burnTemperatureK: 340
+  bellowsMultiplier: 1
+  lit: false
+  mass: 1200
+  # ⭐⭐ The darkness sweep (fire build). `emittedIntensity` is a CEILING
+  # now, not the reading: luminosity is incandescent soot, so a solid-fuel
+  # flame at full draught sheds `fire.light.sootyFloor` (0.6) of it and a
+  # starved one climbs back toward it. Every burner's authored figure is
+  # scaled by 1/0.6 so a well-run fire lights its room exactly as brightly
+  # as it did before — and a badly-run one now lights it MORE, which is
+  # the lesson. ⚠ No room lit only by a fire has gone dark (AC20).
+  emittedIntensity: 33
+  emittedColorTemperature: 1700
+  # ⭐ The fire build: fuel is a BED (kilograms, by material) that
+  # `stoke` fills, and the vessel's size is a POWER rather than a
+  # percentage-per-minute of nothing. What it reaches depends on what
+  # is in it.
+  # ⚠ Low power against a big bed, and that is the craft: a kilning is a
+  # day and a half of gentle heat, so the fire must be fed and not run
+  # hard. ⭐⭐ And WHAT it is fed now decides the malt — peat puts its own
+  # smoke into the barley through the fuel, not through a second recipe.
+  maxBurnPowerW: 8000
+  fuelCapacityKg: 60

@@ -8,6 +8,8 @@
  */
 
 import { vi } from 'vitest';
+import { chargeHot } from '../../../../../lib/fire/__tests__/burner-fuel';
+import type { Burner } from '../../../../../lib/fire/Burner';
 import { ThermalMixin } from '../../../../../lib/thermal/Thermal';
 import { AdvancementMixin } from '../../../../../lib/advancement/Advancement';
 import { PersonaMixin } from '../../../../../lib/character/Persona';
@@ -22,6 +24,7 @@ import { EventApi } from '../../../../../api/event';
 import EventRegistry from '../../../EventRegistry';
 import { PersistenceManager } from '../../../../../../backend/PersistenceManager';
 import { KERNEL_CONTENT_ROWS } from '../../../../../../test-bootstrap';
+import { installCorpseMintStub } from '../../../../../lib/mortality/__tests__/corpse-mint-test-helpers';
 import { Quantity } from '../../../../../lib/quantity';
 import Material from '../../../../../lib/material/Material';
 import Forge from '../../../../thing/Forge';
@@ -180,15 +183,8 @@ export function makeLitForge(bellows: boolean): Forge {
     const f = new Forge();
     f.setBurnTemperatureK(1300);
     f.setBellowsMultiplier(1.6);
-    f.setReserve(
-      new Reserve(
-        'fuel',
-        Quantity.of(100, '%'),
-        Quantity.of(100, '%'),
-        'combustion',
-        null,
-      ),
-    );
+    // ⭐ A charge in the bed, not a percentage of nothing.
+    chargeHot(f as unknown as Stuff & Burner, 40);
     f.setBellowsActive(bellows);
     return f;
   });
@@ -198,15 +194,8 @@ export function makeLitOven(): Oven {
   return makeStuff(() => {
     const o = new Oven();
     o.setBurnTemperatureK(500);
-    o.setReserve(
-      new Reserve(
-        'fuel',
-        Quantity.of(100, '%'),
-        Quantity.of(100, '%'),
-        'combustion',
-        null,
-      ),
-    );
+    // ⭐ A charge in the bed, not a percentage of nothing.
+    chargeHot(o as unknown as Stuff & Burner, 40);
     return o;
   });
 }
@@ -394,6 +383,11 @@ export async function standUpBranchHarness(): Promise<BranchHarness> {
     }
     throw new Error(`unexpected clone ${path}`);
   });
+  // ⭐ Every death mints a corpse now, so a fixture world where anything
+  // can die needs the corpse row too. Installed AFTER the mock above so
+  // the helper's pass-through captures THIS mock as its real clone — the
+  // two stubs compose instead of racing for the same spy.
+  installCorpseMintStub();
 
   const catalogue = makeStuffAtPath(
     () => new RecipeCatalogue(),

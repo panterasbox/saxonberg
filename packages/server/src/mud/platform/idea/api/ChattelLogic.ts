@@ -244,7 +244,12 @@ export class ChattelLogic extends ApiLogic {
     if (place === ESTATE_STORAGE || place === ESTATE_INVENTORY) return null;
     if (!MixinApi.isPersistable(good)) return null;
     if (!good.pinsResidency() || !good.isPersistenceKeyExplicit()) return null;
-    const scope = good.getTemplatePath();
+    // ⚠ The scope must be the one the RECORD was written under, which
+    // `captureImpl` takes from `getIdentityPath()`. Reading the template
+    // path here made the pin roll look where no record is as soon as a
+    // pinned class became identity-stamped — latent today (no pinned
+    // class is stamped), and silent when it fires.
+    const scope = good.getIdentityPath();
     const key = good.getPersistenceKey();
     return scope && key ? { scope, key } : null;
   }

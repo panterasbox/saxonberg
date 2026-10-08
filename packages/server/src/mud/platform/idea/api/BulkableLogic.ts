@@ -3,6 +3,10 @@
 // @internal lands on the reflection TypeDoc emits, not on the module.)
 
 import { ApiLogic } from '../../../lib/stuff/ApiLogic';
+import { AppApi } from '../../../api/app';
+import { AppSettingKeys } from '../../../lib/config/AppSettings';
+import { BiomeApi } from '../../../api/biome';
+import type { Atmospheric } from '../../../lib/biome/Atmospheric';
 import { CallSecurity, Unshadowable } from '../../../lib/security/decorators';
 import { SecurityPolicies } from '../../../lib/security/SecurityPolicies';
 import type { Stuff } from '../../../lib/stuff/Stuff';
@@ -18,6 +22,9 @@ import { Freshness } from '../../../lib/material/Freshness';
 import { WaterActivity } from '../../../lib/material/WaterActivity';
 import { Contamination } from '../../../lib/material/Contaminable';
 import { Blood } from '../../../lib/vitals/Blood';
+import { DissolvedToxins } from '../../../lib/metabolism/DissolvedToxins';
+import { DissolvedAromatics } from '../../../lib/metabolism/DissolvedAromatics';
+import { Concentration } from '../../../lib/bulk/Concentration';
 import type { MqlQuantity } from '../../../api/mql';
 import { Quantity } from '../../../lib/quantity';
 import { MessageApi } from '../../../api/message';
@@ -84,11 +91,79 @@ export class BulkableLogic extends ApiLogic {
     return CLOSURE_ORDER[a] - CLOSURE_ORDER[b];
   }
 
-  /** See {@link BulkableApi.requiredClosureFor}. */
+  /** See {@link BulkableApi.blendPayloads}. */
   @CallSecurity(BulkableApiCallers)
-  public requiredClosureFor(_material: Material | null): ClosureLevel {
-    // Gas extension point: when a Material carries a 'gas' phase, return
-    // 'sealed'; 'granular' → 'open'. v1 has only liquid.
+  public blendPayloads(
+    from: BulkPayload | null,
+    fromL: number,
+    to: BulkPayload | null,
+    toL: number,
+  ): BulkPayload {
+    const base: BulkPayload = { ...(to ?? {}) };
+    // ⭐ Exactly the PER-LITRE domains, and nothing else. Freshness, the
+    // water state, pathogens and blood are blended too, but each of them
+    // needs slot or host context the payload alone cannot supply (the
+    // vessel's surface load, a holder's temperature), so they stay where
+    // they are, in `transfer`. What belongs here is what is a pure
+    // function of two payloads and two volumes.
+    const toxins = DissolvedToxins.blend(
+      from?.dissolvedToxins,
+      fromL,
+      to?.dissolvedToxins,
+      toL,
+    );
+    if (DissolvedToxins.isClean(toxins)) delete base.dissolvedToxins;
+    else base.dissolvedToxins = toxins;
+
+    const aromatics = Concentration.blend(
+      from?.dissolvedAromatics,
+      fromL,
+      to?.dissolvedAromatics,
+      toL,
+    );
+    if (Concentration.isClean(aromatics)) delete base.dissolvedAromatics;
+    else base.dissolvedAromatics = aromatics;
+
+    // ⭐⭐ **The age statement is the MINIMUM, never the average.** An age
+    // statement means the youngest thing in the bottle — that is what it
+    // legally means and what a drinker is entitled to read off a label —
+    // so a 90-day malt vatted with a 20-day grain reads twenty.
+    // Averaging it to fifty-five would be the one way to ship this
+    // feature as a lie.
+    //
+    // ⚠ A side with no age at all (new spirit, water) does not pull the
+    // answer to zero; it simply has nothing to say. Only two aged
+    // parcels can make a blend younger than its oldest half.
+    const ages = [from?.maturedDays, to?.maturedDays].filter(
+      (d): d is number => typeof d === 'number' && d > 0,
+    );
+    if (ages.length > 0) base.maturedDays = Math.min(...ages);
+    else delete base.maturedDays;
+
+    return base;
+  }
+
+  /**
+   * ⭐⭐ **Phase is a CONSEQUENCE of the material and where you are
+   * standing** — there is no `phase` field and no `gas` tag read.
+   *
+   * A material is a gas when it boils at or below the standard ambient,
+   * which is one comparison between two numbers the row already carries
+   * (or, until the fire build, did not: `air.yaml` had no boiling point
+   * at all). So a pack ships a gas by authoring `boilingPoint`, the
+   * authored surface stays closed, and the same arithmetic that makes
+   * water a liquid makes coal gas a gas.
+   *
+   * ⚠ Granular (`'open'`) stays a deferred tail — flour and grist are
+   * stacks rather than bulk today, so nothing would read it.
+   */
+  @CallSecurity(BulkableApiCallers)
+  public requiredClosureFor(material: Material | null): ClosureLevel {
+    if (material === null) return 'liquidTight';
+    const boiling = material.getBoilingPoint().rawValue();
+    if (boiling > 0 && boiling <= bulkDial(AppSettingKeys.atmosphereStandardK, 293)) {
+      return 'sealed';
+    }
     return 'liquidTight';
   }
 
@@ -248,13 +323,44 @@ export class BulkableLogic extends ApiLogic {
       }
     }
 
-    // 3. Closure on an interior destination — drain through when open.
-    if (
+    // 3. Closure on the destination — ⭐ three outcomes now, not two.
+    const required = this.requiredClosureFor(material);
+    const underClosed =
       to !== null &&
       to.affordance === 'interior' &&
-      this.compareClosure(to.getClosure(), this.requiredClosureFor(material)) <
-        0
-    ) {
+      this.compareClosure(to.getClosure(), required) < 0;
+    // ⭐⭐ A GAS does not become a floor puddle. The under-closed arm
+    // below redirects liquid to the floor, which is right for a pail of
+    // water and absurd for coal gas — and a gas poured at a SURFACE is
+    // the same absurdity (nothing lies on a table). It escapes instead,
+    // into the air of whatever place the destination is standing in, so
+    // a failed pour in a shut room poisons it. ⚠ That is the honest
+    // answer and it is also the dangerous one, which is the point.
+    // ⚠ The lid test is asked of the DESTINATION directly and not through
+    // `isGasRetained`, which reads what a slot ALREADY holds — and an
+    // empty can holds nothing, so it answers "retained" and the arriving
+    // gas would have been let in. A question about what is arriving is
+    // not the same question as a question about what is there.
+    const lidHost = to === null ? null : (to.getHolder() as unknown as Stuff);
+    const lidStandsOpen =
+      lidHost !== null && MixinApi.isSealable(lidHost) && lidHost.isOpen();
+    const gasEscapes =
+      required === 'sealed' &&
+      (underClosed ||
+        (to !== null && to.affordance === 'surface') ||
+        lidStandsOpen);
+    if (gasEscapes && to !== null) {
+      const applied = computeApplied(from, null, amount, notes);
+      if (applied > 0) from.debit(applied);
+      emitEscapedGas(to.getHolder(), material, applied);
+      notes.push({
+        kind: 'target-declined',
+        target: MessageApi.refOf(to.getHolder()),
+        reason: 'gas-escapes',
+      });
+      return { applied, status: 'escaped', notes };
+    }
+    if (underClosed && to !== null) {
       const floor = this.floorSurfaceNear(to.getHolder());
       if (floor === null) {
         // Defensive no-floor guard (never exercised by the demo, where
@@ -319,7 +425,30 @@ export class BulkableLogic extends ApiLogic {
     const fromPathogens = new Contamination(from).loads();
     const toPathogensBefore =
       to !== null ? new Contamination(to).loads() : {};
-    const fromPayload = from.getPayload();
+    // ⚠⚠ And the DISSOLVED dose, by the same mass-weighted rule as the
+    // load, the cure and the pathogens — a concentration that did not
+    // blend would make decanting a laundry in the other direction too:
+    // tip a poisoned bottle into a clean cask and read the cask's label.
+    const fromDissolved = new DissolvedToxins(from).raw().map((t) => ({ ...t }));
+    const toDissolvedBefore =
+      to !== null ? new DissolvedToxins(to).raw().map((t) => ({ ...t })) : [];
+    // ⭐ And what it SMELLS of, by the same rule. Nothing is harmed by an
+    // aroma, so this one is not an anti-laundering guard — it is the
+    // opposite reading of the same arithmetic: vatting a peated malt into
+    // three times as much grain spirit leaves a third of the smoke, which
+    // is exactly what a blender is doing it for.
+    const fromAromatics = new DissolvedAromatics(from)
+      .raw()
+      .map((t) => ({ ...t }));
+    const toAromaticsBefore =
+      to !== null
+        ? new DissolvedAromatics(to).raw().map((t) => ({ ...t }))
+        : [];
+    // ⭐ What `applied` litres drawn NOW would carry — host policy, not the
+    // slot's whole payload. Identical to `getPayload()` for every holder
+    // whose interior is homogeneous; a fractionating host answers with the
+    // span it is actually about to give up.
+    const fromPayload = from.payloadForDraw(applied);
     const toWasEmpty = to !== null && to.isEmpty();
     from.debit(applied);
     if (to !== null) {
@@ -388,6 +517,47 @@ export class BulkableLogic extends ApiLogic {
       ) {
         new Contamination(to).stampLoads(withSurface);
       }
+
+      // ⭐ The per-litre domains fold in ONE place now — the same call
+      // a recipe's output and a grind make, which is what stops a
+      // vatting recipe laundering a dose. What the SOURCE gives up is
+      // `fromPayload` (host policy: a fractionating still answers with
+      // the span it is about to hand over, not its whole interior), and
+      // `fromDissolved` is the fallback for a host with no draw policy.
+      const drawn: BulkPayload = {
+        ...(fromPayload ?? {}),
+        dissolvedToxins: fromPayload?.dissolvedToxins ?? fromDissolved,
+        dissolvedAromatics:
+          fromPayload?.dissolvedAromatics ?? fromAromatics,
+      };
+      const heldBefore: BulkPayload = {
+        dissolvedToxins: toDissolvedBefore,
+        dissolvedAromatics: toAromaticsBefore,
+      };
+      if (
+        !DissolvedToxins.isClean(drawn.dissolvedToxins) ||
+        !DissolvedToxins.isClean(heldBefore.dissolvedToxins) ||
+        !Concentration.isClean(drawn.dissolvedAromatics) ||
+        !Concentration.isClean(heldBefore.dissolvedAromatics)
+      ) {
+        const folded = this.blendPayloads(
+          drawn,
+          applied,
+          heldBefore,
+          toAmountBefore,
+        );
+        new DissolvedToxins(to).stamp(folded.dissolvedToxins ?? []);
+        new DissolvedAromatics(to).stamp(folded.dissolvedAromatics ?? []);
+      }
+
+      // ⭐⭐ **A top-up is weakest-link on the grade.** Identity rides into
+      // an empty destination only (above) — but quality is not identity,
+      // and a vessel that has had a poor pour added to it holds poorer
+      // matter than it did. Without this, topping a bad bottle up from a
+      // good cask would LAUNDER it: the grade is the destination's and the
+      // matter is the mixture. The maker's mark is untouched either way —
+      // a top-up never re-signs somebody else's work.
+      if (!toWasEmpty) carryTopUpGrade(fromHolder, toHolder);
 
       // ⭐ Blood units blend by IDENTITY, not by mass (blood build D4):
       // two units of the same labelled type stay that type; anything else
@@ -549,6 +719,18 @@ function carryBatchIdentity(
   }
 }
 
+/**
+ * The top-up rule: the destination's grade falls to the lower of the two.
+ * Never raises it — `Grade.min` both ways, which is the same weakest-link
+ * doctrine `Grade.deriveAtFixedControl` applies to a craft's inputs.
+ */
+function carryTopUpGrade(fromHolder: Stuff, toHolder: Stuff | null): void {
+  if (toHolder === null) return;
+  if (!MixinApi.isGraded(fromHolder) || !MixinApi.isGraded(toHolder)) return;
+  const blended = toHolder.getGrade().min(fromHolder.getGrade());
+  toHolder.setGrade(blended);
+}
+
 function computeApplied(
   from: BulkSlot,
   to: BulkSlot | null,
@@ -581,4 +763,51 @@ function computeApplied(
     applied: fittable,
   });
   return fittable;
+}
+
+/** One numeric dial read, falling back to the literal when unseeded. */
+function bulkDial(key: string, fallback: number): number {
+  try {
+    const raw = AppApi.setting(key);
+    if (raw == null || raw === '') return fallback;
+    const n = Number.parseFloat(raw);
+    return Number.isFinite(n) ? n : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+/**
+ * ⭐ Put escaped gas into the AIR of the place the vessel is standing in.
+ *
+ * Not lost, and not a puddle: the litres go where they actually go. The
+ * walk is outward to the first `Atmospheric` ancestor with a volume —
+ * the same one a fire's exhaust uses — so a bungled pour in a shut room
+ * is exactly as dangerous as a fire in one, by the same mechanism.
+ *
+ * ⚠ Nothing in the chain (a vessel held by nobody, in no room) means the
+ * litres really are lost. That is the honest answer for matter outside
+ * the world.
+ */
+function emitEscapedGas(
+  holder: Stuff,
+  material: Material,
+  litres: number,
+): void {
+  if (!(litres > 0)) return;
+  const path = material.getTemplatePath();
+  if (path === null) return;
+  let at: Stuff | null = holder;
+  let depth = 32;
+  while (at !== null && depth-- > 0) {
+    if (
+      MixinApi.isAtmospheric(at) &&
+      MixinApi.isContainer(at) &&
+      (at as unknown as Atmospheric).getVolume() !== null
+    ) {
+      (at as unknown as Atmospheric).addAtmosphereContent(path, litres);
+      return;
+    }
+    at = MixinApi.isContainable(at) ? at.getContainer() : null;
+  }
 }

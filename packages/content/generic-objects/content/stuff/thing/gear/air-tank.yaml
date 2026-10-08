@@ -15,6 +15,14 @@ data:
   interiorBulk: true
   interiorMaterial: /stuff/idea/material/bulk/air
   interiorCapacity: 6
+  # ⭐⭐ `sealed`, and it has to be said now. Air has a boiling point
+  # (79 K) since the fire build, so `requiredClosureFor` classes it as a
+  # GAS — and a gas is held only by a vessel built gas-tight. ⚠ The
+  # default is `liquidTight`, which this row relied on and which would
+  # now let the tank's charge escape into the room on every fill. ⭐ The
+  # happy consequence: `getAirGauge()` (amount over capacity) becomes an
+  # honest PRESSURE read by reinterpretation, with no new field.
+  closure: sealed
   interiorAmount: 6
   slotClaims:
     "/stuff/idea/species/BodyPlan/biped": [torso]

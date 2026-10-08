@@ -215,25 +215,74 @@ export function DetailedMixin<TBase extends MixinConstructor>(Base: TBase) {
     static _mixinName = 'DetailedMixin';
 
     /**
-     * Persistent fields declared by this mixin.
-     * Used by PersistApi for automatic synchronization.
-     *
      * Instruction-field applier roster. `details` is consumed by
-     * `applyDetails` (Phase 2 of TemplateApplier). The
-     * declarative YAML shape (a plain object keyed by detail name)
-     * differs from the runtime `Map<DetailId, Detail>` shape, so
-     * the applier sits between them — it owns the conversion. The
-     * applier runs AFTER the persistent bracket-assign in Phase 1
-     * (which would otherwise leave `this.details` as a plain object
-     * and break `getDetailEntries`); the applier resets the Map up
-     * front to undo that.
+     * `applyDetails` (Phase 2 of TemplateApplier). The declarative
+     * YAML shape (a plain object keyed by detail name) differs from
+     * the runtime `Map<DetailId, Detail>` shape, so the applier sits
+     * between them — it owns the conversion.
+     *
+     * ⛔⛔ **NOT `persistent`, and it was until 2026-10-06.** Details
+     * are AUTHORED CONTENT: nothing outside this file has ever called
+     * `setDetail`, so there was no instance state to keep — and
+     * keeping it broke three things at once.
+     *
+     * 1. ⚠⚠ **It broke every MQL scope walk that reached the host.**
+     *    Capture stored the `Map` through `detachValue`, which has no
+     *    BSON Map shape, so it landed as a plain object; restore's
+     *    Phase-1 bracket-assign put that object straight back on
+     *    `this.details` (no `fieldMarshaller` was ever declared). The
+     *    next `getDetailIds` threw *details.keys is not a function* —
+     *    and the detail walk is on the `reachable` seed, so in a world
+     *    booted on an existing DB **`find` and `teleport` both died at
+     *    the resolver**. Found by a browser drive; 52 of 77 live
+     *    snapshots were carrying the broken shape.
+     * 2. It made an edited `details:` block unable to reach a restored
+     *    host — the *"a `props:` edit never reaches a booted world"*
+     *    trap, in a field nobody suspected was in it.
+     * 3. It stored content as state, which is the line packs are not
+     *    supposed to cross in the other direction either.
+     *
+     * ⭐ Dropping the flag is what makes the bad snapshots **self-heal
+     * with no migration**: `restoreState`'s drift guard admits only
+     * declared persistent fields, so a stored `details` is now ignored
+     * and the applier supplies the Map from the row on every clone and
+     * every boot — which is the honest source of truth for authored
+     * content. (A `Marshaller` would also have worked; the doc on
+     * `lib/persistence/Marshaller.ts` names variable-key maps as its
+     * case. It is the wrong fix here because the field should not have
+     * been travelling through persistence at all.)
+     *
+     * ⚠ If a runtime detail mutator ever gains a real caller, this
+     * decision reverses — and then it needs a `Marshaller`, not a bare
+     * `persistent: true`.
      */
     static fieldMeta: FieldMeta = {
       // ⭐ `by-key`: a child adds or overrides ONE detail without
       // restating the parent's whole map. The map is keyed by detail
       // name, so the merge rule writes itself.
+      // ⛔⛔ **NOT `persistent`, and a live drive is why.** `details` is
+      // a `Map`, and a Map has no BSON shape: it stores as `{}` and
+      // hydrates as a plain OBJECT, so the first `details.keys()` after
+      // a restart throws `details.keys is not a function`. That throw
+      // lands inside MQL resolution, so from then on **no keyword in
+      // that scope resolves at all** — `get bladder` in a room the
+      // player is standing in answers *"Couldn't resolve 'targets'"*,
+      // and every verb that takes an object target is dead there. A
+      // fresh world is clean; the same room breaks after a reboot.
+      //
+      // ⭐ Dropping the flag loses NOTHING and needs no migration:
+      // `instruction: true` is what carries the authored `details:`
+      // block (phase 2, `applyDetails`), which runs on every hydrate, and
+      // **nothing in the tree mutates a detail at runtime** — there is
+      // not one `setDetail`/`removeDetail` caller outside this file.
+      // Details are authored content re-applied from the template, so
+      // they had no business in the persistence slice.
+      //
+      // ⚠ This is the SECOND time a bare-persistent Map has done this:
+      // it broke `find` + `teleport` in every warm-DB world once before.
+      // `check-field-meta --lint` now refuses the shape (ceiling 0) so
+      // there is no third time.
       details: {
-        persistent: true,
         instruction: true,
         authorable: true,
         inherit: 'by-key',
@@ -636,6 +685,47 @@ export function DetailedMixin<TBase extends MixinConstructor>(Base: TBase) {
           const lensed = self.unidentifiedDetailRootFor(viewer);
           if (lensed) return lensed;
         }
+      }
+      // ⚠⚠⚠ **A persistent `Map` does not survive a JSON round trip.**
+      // `details` is declared `persistent: true`, so a host restored from
+      // storage comes back with a plain OBJECT here — and every reader
+      // below then breaks in a different way: `getDetailIds` throws
+      // *"details.keys is not a function"*, `getDetailEntries` sails past
+      // its `details.size === 0` guard (an object's `.size` is
+      // `undefined`, which is not `0`) and throws *"details is not
+      // iterable"*.
+      //
+      // ⚠ The consequence is far worse than a missing description,
+      // because the thrower is in the RESOLVE path: one restored
+      // `Detailed` thing in a room breaks `look` and every argument
+      // resolution for everybody in it. It shipped as
+      // `Tootie "sense" → controller-error(details is not iterable)`,
+      // which the carcass chain recorded as pre-existing and did not
+      // chase; the butchery drive could not get past its first
+      // checkpoint until it was fixed, which is how a drive earns its
+      // keep.
+      //
+      // ⭐ Normalised HERE because this is the one door every reader goes
+      // through — `resolveParent`, `getParentDetails` and the augmenters
+      // all call it — so there is exactly one place to be right. The
+      // repair is idempotent and in-place, so a host pays for it once.
+      //
+      // ⚠ The deeper fix is a MARSHALLER for the field (the
+      // `QuantityMarshaller` shape), so the Map round-trips instead of
+      // being rebuilt on first read. That is a persistence change with
+      // its own blast radius and it is recorded as a deferred seam rather
+      // than smuggled into a butchery build.
+      if (!(this.details instanceof Map)) {
+        const raw = this.details as unknown;
+        const rebuilt: DetailMap = new Map();
+        if (raw && typeof raw === 'object') {
+          for (const [id, detail] of Object.entries(
+            raw as Record<string, Detail>,
+          )) {
+            rebuilt.set(id, detail);
+          }
+        }
+        this.details = rebuilt;
       }
       return this.details;
     }

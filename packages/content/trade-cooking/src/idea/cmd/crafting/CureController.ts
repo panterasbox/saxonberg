@@ -18,6 +18,11 @@ import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import { Mml } from '@saxonberg/server/mud/api/mml';
 
 export default class CureController extends PreserveController {
+  /** Salting raises `solute` — it binds up the water a microbe needs. */
+  protected cureAxis(): 'moisture' | 'solute' {
+    return 'solute';
+  }
+
   protected recipeId(): string {
     return 'salt-cure';
   }

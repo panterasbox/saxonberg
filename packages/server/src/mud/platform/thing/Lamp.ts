@@ -3,17 +3,36 @@
  *
  * ⭐ A lamp is a small furnace with a light on it, and composing it that
  * way is the whole design. `BurnerMixin` already owns everything a
- * fuelled light needs and owns it once: a `'fuel'` Reserve that drains
- * against game time, reconcile-on-read so an unattended lamp burns down
+ * fuelled light needs and owns it once: the fuel that drains against
+ * game time, reconcile-on-read so an unattended lamp burns down
  * correctly with nobody watching, the burnout edge that sets `lit=false`
- * and restamps, `ignite`/`douse` through `FireApi`, and — since the
- * envelope build — the gate that makes `getEmittedFlux()` answer zero
- * while it is out. None of that is written here.
+ * and restamps, `ignite`/`douse` through `FireApi`, and the gate that
+ * makes `getEmittedFlux()` answer zero while it is out. None of that is
+ * written here.
  *
- * Composition: `Burner + LightSource + Detailed + Reserved + Thermal`
- * over a `Thing`. **Order is load-bearing**: `BurnerMixin` outermost,
- * so its `getEmittedFlux` override wraps `LightSourceMixin`'s and a
- * doused lamp is dark.
+ * Composition: `Burner + LightSource + Bulkable + Thermal` over a
+ * `Good`. **Order is load-bearing**: `BurnerMixin` outermost, so its
+ * `getEmittedFlux` override wraps `LightSourceMixin`'s and a doused lamp
+ * is dark.
+ *
+ * ## ⭐⭐ Its interior IS its tank — the one `fuelSlot()` override
+ *
+ * A lantern is filled, not stoked. `BurnerMixin.fuelSlot()` is a
+ * protected hook that answers `null` by default — matter goes on a grate
+ * — and this class answers with its own bulk interior, so `fill lantern
+ * from cask` is the whole fuelling act and `stoke lantern` is refused as
+ * `no-bed`.
+ *
+ * ⚠ It is a HOOK and not an `isBulkable` test at the call site, because
+ * `trade-distilling`'s `Still` is also a `Bulkable` `Burner` and its
+ * interior is the **wash**. A runtime test would have made every still
+ * drink its own charge as fuel; a class-level declaration lets each
+ * vessel say what it IS. The `Still` does not override it.
+ *
+ * ⭐ And the same override is what lets a lamp burn GAS: fill it from a
+ * gasometer and it runs on coal gas, dim — because a clean flame sheds
+ * little light, which is the mantle problem arriving by itself rather
+ * than being authored.
  *
  * ## What this replaces
  *
@@ -41,30 +60,37 @@
  */
 
 import Good from '../../lib/stuff/Good';
-import { ReservedMixin } from '../../lib/reserve';
+import { BulkableMixin } from '../../lib/bulk/Bulkable';
+import type { BulkSlot } from '../../lib/bulk/Bulkable';
 import { LightSourceMixin } from '../../lib/perception/LightSource';
 import { ThermalMixin } from '../../lib/thermal/Thermal';
 import { BurnerMixin } from '../../lib/fire/Burner';
+import { MixinApi } from '../../api/mixin';
 
 /**
  * Lamp dials. Playtest-tuned, not plan decisions.
  *
- * `BURN_RATE_PER_MIN` is sized so a full lantern burns roughly a game
- * night: the `'fuel'` Reserve is 0..100 %, a game night is ~12 game
- * hours = 720 game minutes, and 0.15 %/min empties it in ~11 hours. A
- * lamp you fill at dusk is guttering by dawn, which is the point — it
- * is the reason a town buys street lighting rather than handing
- * everybody a lantern.
+ * ⭐ `MAX_BURN_POWER_W` is sized so a full lantern burns roughly a game
+ * night, which is what the prose below has always promised: half a litre
+ * of lamp oil is 410 g at 43 MJ/kg ≈ 17.6 MJ, and 300 W spends that in
+ * ~16 game hours at full wick. A lamp filled at dusk is guttering by
+ * dawn — which is the reason a town buys street lighting rather than
+ * handing everybody a lantern.
+ *
+ * ⚠ The figure that matters is that it is **two orders of magnitude**
+ * below a forge's 20 kW, which is what makes a lamp a lamp: the same
+ * mechanism, the same verbs, one number. A candle's row drops it to 80 W
+ * (the classic figure for a candle) and a torch's raises it.
  */
 const LAMP = {
   /** Case temperature (K) while lit — below the scalding hook. */
   BURN_TEMPERATURE_K: 330,
-  /** Fuel burn rate (`%`/game-min) — a full lamp lasts a game night. */
-  BURN_RATE_PER_MIN: 0.15,
+  /** The wick's power at full draught (W). */
+  MAX_BURN_POWER_W: 300,
 } as const;
 
 const LampBase = BurnerMixin(
-  LightSourceMixin(ReservedMixin(ThermalMixin(Good))),
+  LightSourceMixin(BulkableMixin(ThermalMixin(Good))),
 );
 
 export default class Lamp extends LampBase {
@@ -79,5 +105,19 @@ export default class Lamp extends LampBase {
    */
   public override lit = false;
   public override burnTemperatureK: number = LAMP.BURN_TEMPERATURE_K;
-  public override fuelBurnRatePerMin: number = LAMP.BURN_RATE_PER_MIN;
+  public override maxBurnPowerW: number = LAMP.MAX_BURN_POWER_W;
+
+  /**
+   * ⭐⭐ **This vessel's interior is its fuel tank.** A lantern is filled
+   * from a cask or a gasometer; a torch is not (it is a bundle of pitchy
+   * wood, so its row seeds a `fuelBed` and leaves `interiorBulk` off).
+   * The hook answers for both off the same class, which is why a torch
+   * and a lantern are one class and two rows.
+   */
+  protected override fuelSlot(): BulkSlot | null {
+    const self = this as unknown as Lamp;
+    if (!MixinApi.isBulkable(self)) return null;
+    if (self.getBulkCapacity('interior') === null) return null;
+    return self.getBulk('interior');
+  }
 }

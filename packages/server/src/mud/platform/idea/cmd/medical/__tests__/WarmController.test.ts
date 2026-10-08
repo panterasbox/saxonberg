@@ -4,6 +4,8 @@
  */
 
 import '../../../../../../test-bootstrap';
+import { chargeHot } from '../../../../../lib/fire/__tests__/burner-fuel';
+import type { Burner } from '../../../../../lib/fire/Burner';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import WarmController from '../WarmController';
 import { Creature } from '../../../../../lib/creature/Creature';
@@ -68,6 +70,9 @@ function burningLog(): Firewood {
     w.setMaterial(mat);
     w.setStampedTemperatureK(600); // > 570 K → auto-ignites
     w.setLastAmbientK(295);
+    // ⚠ A `Firewood` is a COMBUSTIBLE, not a Burner: the object IS the
+    // fuel, so its own `%` reserve stays (fire plan D16). Only an
+    // appliance that HOLDS a fire got a fuel bed.
     w.setReserve(
       new Reserve('fuel', Quantity.of(100, '%'), Quantity.of(100, '%'), 'combustion', null),
     );

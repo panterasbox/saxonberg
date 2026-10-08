@@ -80,7 +80,12 @@ export type TransferAmount =
  *     drained through to the floor's surface puddle.
  * Absent on a clean full transfer.
  */
-export type TransferStatus = 'partial' | 'declined' | 'drained';
+/**
+ * How a transfer ended. ⭐ `'escaped'` is the fire build's: a GAS poured
+ * into something that will not hold it is gone into the air of the room
+ * — not retained, not a floor puddle, and not silently lost.
+ */
+export type TransferStatus = 'partial' | 'declined' | 'drained' | 'escaped';
 
 export interface TransferResult {
   /** Litres actually moved into the final destination. */
@@ -138,6 +143,38 @@ export class BulkableApi {
    */
   static requiredClosureFor(material: Material | null): ClosureLevel {
     return logic().requiredClosureFor(material);
+  }
+
+  /**
+   * ⭐⭐ **Fold the per-litre payload domains of two bodies of matter** —
+   * `from` at `fromL` litres joining `to` at `toL` litres. Returns a new
+   * payload based on `to` with the dissolved toxin dose and the dissolved
+   * aromatics blended by volume; every other field is `to`'s, untouched.
+   *
+   * ⭐ **One fold, three call sites**, which is the point of it existing:
+   *
+   *   - a **pour** (`transfer` step 5) — the shipped behaviour;
+   *   - a **recipe's bulk output** (`CraftingLogic.applyBulkOutput`) —
+   *     which carried NO input payload before this, so a vatting recipe
+   *     **laundered the dose**: two badly-cut bottles blended came out
+   *     clean. That is the defect that made this a shared seam rather
+   *     than a second copy of the arithmetic;
+   *   - a **grind** (`MillController.fill`), which dropped the source
+   *     sack's payload on the floor, so smoke in a peated malt vanished
+   *     at the millstones.
+   *
+   * ⚠ It folds **only** what is a pure function of two payloads and two
+   * volumes. Freshness, water activity, pathogens and blood blend on a
+   * pour too, but each needs slot or host context (a vessel's surface
+   * load, a holder's temperature) and stays in `transfer`.
+   */
+  static blendPayloads(
+    from: BulkPayload | null,
+    fromL: number,
+    to: BulkPayload | null,
+    toL: number,
+  ): BulkPayload {
+    return logic().blendPayloads(from, fromL, to, toL);
   }
 
   /**

@@ -13,6 +13,8 @@
  */
 
 import "../../../../test-bootstrap";
+import { chargeHot } from '../../../lib/fire/__tests__/burner-fuel';
+import type { Burner } from '../../../lib/fire/Burner';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { readFileSync, readdirSync } from 'fs';
 import { fileURLToPath } from 'url';
@@ -183,15 +185,8 @@ function makeForge(lit: boolean, bellows = false): Forge {
     const f = new Forge();
     f.setBurnTemperatureK(1300);
     f.setBellowsMultiplier(1.6);
-    f.setReserve(
-      new Reserve(
-        'fuel',
-        Quantity.of(100, '%'),
-        Quantity.of(100, '%'),
-        'combustion',
-        null,
-      ),
-    );
+    // ⭐ A charge in the bed, not a percentage of nothing.
+    chargeHot(f as unknown as Stuff & Burner, 40);
     f._setLit(lit);
     f.setBellowsActive(bellows);
     return f;
@@ -202,15 +197,8 @@ function makeOven(lit: boolean): Oven {
   return makeStuff(() => {
     const o = new Oven();
     o.setBurnTemperatureK(500);
-    o.setReserve(
-      new Reserve(
-        'fuel',
-        Quantity.of(100, '%'),
-        Quantity.of(100, '%'),
-        'combustion',
-        null,
-      ),
-    );
+    // ⭐ A charge in the bed, not a percentage of nothing.
+    chargeHot(o as unknown as Stuff & Burner, 40);
     o._setLit(lit);
     return o;
   });

@@ -1,0 +1,50 @@
+# The knacker's yard — ⭐ a block, a pot, a fire, and a board.
+#
+# Everything here is somebody else's problem arriving. The board by the
+# gate is how it arrives: a haulage job posted, a hauler paid, and a
+# carcass on the cobbles by morning.
+class: /platform/location/SingletonCartesianLocation
+data:
+  coords:
+    x: 0
+    y: 0
+    z: 0
+  shortDescription: "knacker's yard"
+  keywords: [knackers, "knacker's", knacker, yard, shambles]
+  register: definite
+  longDescription: |
+    A cobbled yard with a drain down the middle of it and a gate wide enough for a cart. A block stands under the lean-to, scrubbed, with a gutter cut round it; beside it a crock and a cauldron over a banked fire that is never quite out.
+
+    Hides are stacked on a pallet, salted, waiting to go next door. A barrow of bone stands by the gate waiting to go the other way. What is left is in the crock.
+
+    A board by the gate has three slips nailed to it and a stub of pencil on a string.
+  exits:
+    up:
+      destination: /world/terminus/wharfside/bank
+      media: [ground]
+      edgeMinutes: 7
+    # ⭐ The hides go DOWN to the tannery and the suet goes back UP to
+    # the chandlery, and the exits say so: a player who follows the goods
+    # walks the chain in the order it runs.
+    south:
+      destination: /world/terminus/wharfside/tannery/location/yard
+      media: [ground]
+      edgeMinutes: 2
+    northeast:
+      destination: /world/terminus/wharfside/chandlery/location/floor
+      media: [ground]
+      edgeMinutes: 2
+  props:
+    - /trade/cooking/thing/butcher-block
+    - /trade/cooking/thing/cook-pot
+    - /trade/cooking/thing/tallow-crock
+    - /trade/haulage/thing/works-board
+  details:
+    board:
+      keywords: [board, slips, slip, notices, pencil]
+      description: |
+        Three slips, in three hands. *"Mare, Delight road, past the second bridge. Dead two days. Will pay."* *"Cow. Come today."* And one in a neater hand that just says *"collect as usual"*, which means somebody has an arrangement.
+    fire:
+      keywords: [fire, cauldron, crock, pot]
+      description: |
+        The cauldron is half full of something pale and slow-moving, and there is a crock beside it with a lid weighted down. It is fat, rendering, and it will keep for a year once it has. The fire under it is banked rather than burning — this is a job that wants low heat and a long time, like most of the jobs in this district.

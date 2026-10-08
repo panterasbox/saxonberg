@@ -187,6 +187,7 @@ behavior. Read the relevant doc before editing in its area.
   - [spatial.md](./docs/subsystems/spatial.md) — containment/movement substrate: Container/Containable/Mobile/Placing/Sealable, vessels; **Placement** — where inside its container a thing sits (`on`·`in`·`from`, a row-extensible vocabulary), and the two composition refusals
   - [location.md](./docs/subsystems/location.md) — room/coordinate/zone geometry, the Warren elastic graph, lounge content, `startLocation`
   - [boundary.md](./docs/subsystems/boundary.md) — exits/doors/Adornable, exit-kind templates, DeferredDestinationExit, Switchable/Lockable/Bistate, locks & keys
+  - [location-graph.md](./docs/subsystems/location-graph.md) — the world's shape as a collection, and what a player knows of it: the `location_graph` projection + its invariant lint, `published` on the parcel (draft = a wall, offline = a camera), ⭐⭐ the per-player **map** document (channels `walked` · `seen` · `searched` · `published`, claims append and nothing is corrected) and the evidence firewall — ⛔ the index must never reach a client
   - [bulk.md](./docs/subsystems/bulk.md) — continuous matter and NOTHING else: Bulkable slots, transfer/drain-through, measure grammar, fill/pour/drink; the vessel kind is `VesselKindMixin`, and `BulkPayload` carries only what cannot derive (subsystems declare their own fields onto it)
   - [light.md](./docs/subsystems/light.md) — Light value object, `signalAt`, AmbientLit, LightSource, per-viewer perception
   - [augmentation.md](./docs/subsystems/augmentation.md) — augment-confers-mixin, getActiveMixins, @RequiresActive, the three-base capability model
@@ -216,12 +217,13 @@ behavior. Read the relevant doc before editing in its area.
   - [credit.md](./docs/subsystems/credit.md) — money that is owed: the three-rung ladder (terms → inventory finance → working capital) gated on the borrower's own ledger, the reserve's window and the two rules, the Arrival Note, rates as the lender's posted Terms, default revealed-not-scheduled and cured by trading, and the estate — dormant · escheated · reclaimed
   - [collections.md](./docs/subsystems/collections.md) — canonical surfaces for collection-shaped mixins, naming axes
   - [hot-reload.md](./docs/subsystems/hot-reload.md) — HotReloadApi state machine, clone integration, controller dispatch
-  - [content-packs.md](./docs/subsystems/content-packs.md) — versioned content packages: the PackApi reconcile installer, the contribution kinds (domain / document over `DocumentKinds` / settings / subject / wiki / command-view) and their policies, `sourcePack` stamps, the manifest's `requires` (groups + title claims) / `boot` / `maintainers`, the boot union, `SAXONBERG_PACKS`, the **capability rung** (a pack ships `src/`; the class-source table, `resolveClassFile`, the server's `exports` map as the pack import profile, the deployment manifest, the rung check), the fifty-one shipped packs (the platform is pack zero; arcana, trade-distilling and trade-hospitality the capability packs; trade-shopkeeping the first carved OUT of the kernel; distribution the decoupler; the metal chain's trade-mining/trade-fuel/trade-smelting over rejection, a venue pack with no `src/` at all — and trade-forestry, whose pack-owned LOCATION class that venue's rows name, so a second wood is rows; tpa the teleport network's works behind the kernel's `TravelNode` shape; brains in packs via `src/behavior/`; a pack's own `src/lib/` for inherited substrate; the `archetype` kind; the stub trades; no seeders)
+  - [content-packs.md](./docs/subsystems/content-packs.md) — versioned content packages: the PackApi reconcile installer, the contribution kinds (domain / document over `DocumentKinds` / settings / subject / wiki / command-view) and their policies, `sourcePack` stamps, the manifest's `requires` (groups + title claims) / `boot` / `maintainers`, the boot union, `SAXONBERG_PACKS`, the **capability rung** (a pack ships `src/`; the class-source table, `resolveClassFile`, the server's `exports` map as the pack import profile, the deployment manifest, the rung check), the fifty-six shipped packs (the platform is pack zero; arcana, trade-distilling and trade-hospitality the capability packs; trade-shopkeeping the first carved OUT of the kernel; distribution the decoupler; the metal chain's trade-mining/trade-fuel/trade-smelting over rejection, a venue pack with no `src/` at all — and trade-forestry, whose pack-owned LOCATION class that venue's rows name, so a second wood is rows; tpa the teleport network's works behind the kernel's `TravelNode` shape; brains in packs via `src/behavior/`; a pack's own `src/lib/` for inherited substrate; the `archetype` kind; the stub trades; no seeders)
   - [race.md](./docs/subsystems/race.md) — Material substrate, Clade scope, BodyPlan + Species templates, OrganismMixin, animacy gating
   - [vitals.md](./docs/subsystems/vitals.md) — body-state substrate: the Agent/Creature/Character split, VitalsMixin, BodyPlan anatomy, death seams
   - [harm.md](./docs/subsystems/harm.md) — the injury driver: `ConditionApi.inflict`, five trauma behaviors, reconcile-on-read wounds, the medic vertical
   - [blood.md](./docs/subsystems/blood.md) — the blood loop: ABO type seeded on identity, the drawn unit's payload + freshness, the durative `bleed`/`transfuse` engaged acts and the `marrow` reserve, the transfusion-reaction condition, the operation catalogue + `Prescription` slip
-  - [mortality.md](./docs/subsystems/mortality.md) — the dying arc: the rescuable `dying` clock (which does NOT freeze on linkdead), the single `ConditionApi.die` transition, the corpse as a forensic Creature, the shade (`undead`, `requiresEmbodied`), `reembody` + the `passage` floor
+  - [mortality.md](./docs/subsystems/mortality.md) — the dying arc: the rescuable `dying` clock (which does NOT freeze on linkdead), the single `ConditionApi.die` transition, the corpse as a forensic body on the **Thing** branch, the shade (`undead`, `requiresEmbodied`), `reembody` + the `passage` floor
+  - [butchery.md](./docs/subsystems/butchery.md) — breaking a carcass down: ⭐⭐ a muscle's `work` → connective tissue → cooking method (collagen gelatinizes only under long moist heat, so a shoulder braises and a loin sears — derivable without a table), tissue mass as a **share** of the whole body so one plan serves a canary and an ox, cuts that CLAIM muscles, the tool gate on depth and the hand on joint-vs-trim, and `lint:anatomy`
   - [materials-response.md](./docs/subsystems/materials-response.md) — `response = f(mechanism, material, construction)`: Channel vocab, resist/deliver grids, emergent layered armor
   - [combat.md](./docs/subsystems/combat.md) — the fight: sessions, poise, gambits, terms, narration; multi-party CombatGraph; feint + fog; weapon playstyle; the gym
   - [ranged.md](./docs/subsystems/ranged.md) — the `close·reach·near·far` band ladder, the arena cap from real room extent, aim×answer placement, the Delivery Profile, `energySource` readiness, splash-as-relationship + its consent gate, `throw`
@@ -229,6 +231,7 @@ behavior. Read the relevant doc before editing in its area.
   - [electricity.md](./docs/subsystems/electricity.md) — the shock channel + conduction spread: the Ohm's-law core, the ElectricityApi walk, SustainedShock, FloodedCell
   - [energy.md](./docs/subsystems/energy.md) — the `/system/energy` power economy, both epochs: lamp-oil street lighting (a producer + a depleting FuelStore + a civic bill) and the electric grid (a Feeder row → GridCatalogue compiled reachability, the parcel meter — feeder+powerBand, GridPoweredMixin, the sever/splice cut as the one state, `analyze grid`'s derived epoch); the meter is the boundary, poles are sparse LineAccess access points
   - [maturation.md](./docs/subsystems/maturation.md) — the durative transform: MaturingMixin on the VESSEL, MaturationProfile rows + the boot-warmed roster, the grade/mark/strain transfer seam, cultures + the lees split, the cellar CO₂, the cellars brain, the work boards; zero new verbs
+  - [fractionation.md](./docs/subsystems/fractionation.md) — ⭐ the sibling of maturation, driven by the VOLUME DRAWN rather than the clock: FractionSchedule rows (ordered spans, each with a character, a grade band, a toxin dose and an `aromaticCarry`), FractionatingMixin's four policy-seam overrides, the blurred optimistic read (*the nose hears what it wants to hear*), and the cut as the skill
   - [fire.md](./docs/subsystems/fire.md) — combustion + high heat: the heat channel, FireApi/Combustible, the ignition balance, phase change, furnaces, Hearthworks
   - [magic.md](./docs/subsystems/magic.md) — effect substrate + casting: Effect-iff-gated-Api, the grid as Disciplines, CasterMixin faculty, suppression, the Practicum
   - [magic-items.md](./docs/subsystems/magic-items.md) — using a thing as a way to act: the EffectContext split (origin/actor/source), Arcane grid footprint, the three item classes + `S* = inflow/d` charge economy denominated in **τ**, `ManaPowered` as ChargedMixin's second consumer (the wall socket), BUC + the `canAfflict` veto, derived appearance + descriptor banks, the fade/defective-copy memory loop, census-gated distribution
@@ -552,6 +555,19 @@ as the ceiling** (it may fall, never rise), and a later refactor flips
 it to zero. Step 2 is what makes stopping the growth affordable before
 anyone has time to fix it.
 
+⛔⛔ **A ceiling RISE wants a CALLER AUDIT, not a doctrine quotation.**
+Name every caller of the thing and ask whether any of them is the
+surface the gate protects; if none is, it is not surface and the gate
+has an escape built for that (`@internal`, counted separately) — so no
+rise was needed. ⚠ A legitimacy argument is not a growth argument: *this
+member is the right shape for this class* says it may EXIST, and says
+nothing about whether the population may grow while the sweep runs.
+⭐ And when a gate's own prose supplies the justification, **fix the
+prose** — five `lint:lib-statics` rises landed on one branch out of a
+sentence in its own header that turned out to be false. Worked example
+and the general lesson: [lint-family.md](./docs/lint-family.md)
+§ ratchet lesson 4.
+
 ⚠ **CI's validate stage is behind a manual `gate` job** — the pipeline
 starts blocked and lint/test/build do not run until someone clicks ▶.
 That is deliberate (intermediate pushes burn no minutes) but it means
@@ -783,7 +799,15 @@ reason.
   plant). The concealment build added `search` (perception),
   `sneak`/`run` (movement), and `disarm` (device); `examine` is now a
   `look` alias, not its own verb; the farming build made `pick` a
-  `harvest` alias (inventory). ⭐ **A verb lives with the pack whose content
+  `harvest` alias (inventory). ⭐⭐ The carcass chain added two more
+  aliases and the reason is the ladder, not taste: `grind` rides `mill`
+  and `melt` rides `dip`, because each was a second verb for an act the
+  first already covers (the same stones; the pot you are about to dip out
+  of) — **the ladder's first rung is unify behind an interface**, and a
+  trade does not get a second verb because one of its inputs has no dial
+  or needs warming up. ⛔ A third, `tailor`, was reverted outright rather
+  than aliased: it belonged to a discipline whose own design had already
+  decided the question. ⭐ **A verb lives with the pack whose content
   affords it**: platform keeps the verbs any trade's instrument confers
   (`pour`/`stir`/`heat`/`repair`/`salvage`/`wash`/`make`) and
   `retail/menu`+`order`; a trade's own steps ship in its capability pack
@@ -792,7 +816,8 @@ reason.
   `trade-smithing`:
   `forge`/`hammer`/`quench`/`sharpen`; `trade-mining`:
   `hew`/`drive`(`drift`)/`sink`/`raise`/`shore`/`stake`; `trade-fuel`:
-  `char`; `trade-smelting`: `smelt`; `trade-forestry`: `fell`) under `content/<root>/cmd/` +
+  `char`; `trade-smelting`: `smelt`; `trade-forestry`: `fell`;
+  `trade-tanning`: `tan`; `trade-chandlery`: `dip`) under `content/<root>/cmd/` +
   `src/idea/cmd/`. The libations build added `wash`/`muddle`
   (crafting), `quit` (employment), `house par`/`house stock` (banking) and
   `watch … on <screen>` (stream). ⚠ The metal chain's acts are a `mining`
@@ -907,8 +932,10 @@ deliberately share their base's name** (the import aliases it as
 `platform/location/CartesianLocation`,
 `platform/location/SingletonCartesianLocation`, `platform/idea/Exit`,
 `platform/idea/material/Material`, `platform/idea/Biome`. **Four are
-real renames because they are real concepts**: `platform/agent/Corpse`
-(← `Creature`); ⭐ `platform/agent/Extra` + `platform/agent/Cast`,
+real renames because they are real concepts**: ⭐ `platform/thing/Corpse`
+(← `Creature`), which is also the one twin that changed BRANCH — a corpse
+has lost its agency and never gets it back, so it is Matter, not an Agent
+(2026-10-05); ⭐ `platform/agent/Extra` + `platform/agent/Cast`,
 where the concrete twin **split into two things** — `lib/npc/NPC`'s two
 identity rungs, a role and a person (`platform/agent/NPC` retired; see
 [docs/subsystems/identity.md](./docs/subsystems/identity.md)); and

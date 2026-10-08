@@ -99,9 +99,55 @@ export interface ComminutionPlan {
   productMaterial: string;
   /** Template path of the residue material. */
   residueMaterial: string;
+  /** Template path of the vessel the product lands in. */
+  productVessel: string;
+  /** Template path of the vessel the residue lands in. */
+  residueVessel: string;
 }
 
 /** What a grind is asked to work on. */
+/**
+ * ⭐⭐ **What this instrument makes FROM a given feed** — one row per kind
+ * of thing you can put in it.
+ *
+ * ⛔ The defect this fixes, and it had shipped: `productMaterial` was ONE
+ * path per instrument row, and both mill rows pinned it to wheat flour,
+ * while `MillController.chargeFrom` accepted anything tagged `grain` or
+ * `malt`. **So a sack of malt ground on a quern came out as wheat
+ * flour** — tagged `wheat-flour`, which no mash slot asks for. Every
+ * grain of grist in the world came from a shop counter, the whiskey
+ * vertical's "malt → grist" link had never once run, and the test that
+ * claimed to prove it compared the grist ROW's tags to the mash slot
+ * without grinding anything.
+ *
+ * A mill is not a machine that makes flour. It is a machine that makes
+ * *what it is fed, smaller* — and the cloth decides what to bolt out.
+ * That is one table, not one path.
+ */
+export interface ComminutionProduct {
+  /**
+   * The Material tag on the FEED that selects this row (`wheat`,
+   * `barley`, `malt`). The first row whose tag the charge carries wins,
+   * so author the specific before the general.
+   */
+  inputTag: string;
+  /** Template path of the product matter. */
+  product: string;
+  /** Template path of the residue matter; empty = this feed bolts nothing. */
+  residue?: string;
+  /**
+   * The bolting's `b` for THIS feed, overriding the instrument's own.
+   * ⭐ Malt authors 0: you grind malt to grist whole, because the husk is
+   * the filter bed the mash needs — throwing it away is how you get a
+   * stuck mash, not a cleaner wort.
+   */
+  residueFraction?: number;
+  /** Template path of the vessel the product lands in. */
+  vessel?: string;
+  /** Template path of the vessel the residue lands in. */
+  residueVessel?: string;
+}
+
 export interface ComminutionInput {
   /** Kilograms going in. */
   kg: number;
@@ -150,6 +196,10 @@ export interface Comminuting {
   residueVessel: string;
   tollFraction: number;
   tollBinPath: string;
+  products: ComminutionProduct[];
+
+  /** The table row matching a feed, or `null` for the scalar fallback. */
+  productFor(materialPath: string): ComminutionProduct | null;
 }
 
 export function ComminutingMixin<TBase extends MixinConstructor<Stuff>>(
@@ -172,6 +222,7 @@ export function ComminutingMixin<TBase extends MixinConstructor<Stuff>>(
       residueVessel: { persistent: true, authorable: true },
       tollFraction: { persistent: true, authorable: true },
       tollBinPath: { persistent: true, authorable: true },
+      products: { persistent: true, authorable: true },
     };
 
     /** Kilograms per game-minute with no power at all — the hand rung. */
@@ -201,6 +252,31 @@ export function ComminutingMixin<TBase extends MixinConstructor<Stuff>>(
     public residueMaterial = '';
     public productVessel = '';
     public residueVessel = '';
+
+    /**
+     * ⭐ The feed → product table. Empty ⇒ the scalar fields above are
+     * used for every feed, so **every shipped row behaves exactly as it
+     * did** until it authors a table.
+     */
+    public products: ComminutionProduct[] = [];
+
+    /**
+     * The row matching a feed, or `null` for the scalar fallback. First
+     * match wins; a feed the table does not name falls back rather than
+     * being refused, because refusing here would fail closed and silent
+     * at the charge.
+     */
+    public productFor(materialPath: string): ComminutionProduct | null {
+      if (this.products.length === 0) return null;
+      const material = materialPath
+        ? StuffApi.findByTemplatePath<Material>(materialPath)
+        : null;
+      const tags = material?.getTags() ?? [];
+      for (const row of this.products) {
+        if (row.inputTag && tags.includes(row.inputTag)) return row;
+      }
+      return null;
+    }
 
     /** The multure: product withheld in kind. 0 = no toll (a hand quern). */
     public tollFraction = 0;
@@ -256,6 +332,15 @@ export function ComminutingMixin<TBase extends MixinConstructor<Stuff>>(
         this.extractionMin,
         this.extractionMax,
       );
+      // ⭐ Which product this feed makes, before any arithmetic — the
+      // bolting fraction is the feed's when the table names one.
+      const row = this.productFor(input.materialPath);
+      const productMaterial = row?.product ?? this.productMaterial;
+      const residueMaterial = row
+        ? (row.residue ?? '')
+        : this.residueMaterial;
+      const boltFraction =
+        row?.residueFraction ?? this.residueFraction;
       const kg = input.kg > 0 ? input.kg : 0;
       const productKg = kg * e;
       const residueKg = kg - productKg;
@@ -267,21 +352,21 @@ export function ComminutingMixin<TBase extends MixinConstructor<Stuff>>(
       // keeping outer matter, in exactly the proportion by which you
       // overshot. No bands, no ladder — every extraction is its own
       // answer, which is what makes it a decision instead of a menu.
-      const b = clamp(this.residueFraction, 0, 1);
+      const b = clamp(boltFraction, 0, 1);
       const outerShare = e > 0 ? Math.max(0, e - (1 - b)) / e : 0;
 
       const composition: BlendPart[] = [];
       const servings = productKg / COMMINUTION_DEFAULTS.SERVING_KG;
       if (servings > 0) {
-        if (this.productMaterial) {
+        if (productMaterial) {
           composition.push({
-            materialPath: this.productMaterial,
+            materialPath: productMaterial,
             servings: servings * (1 - outerShare),
           });
         }
-        if (this.residueMaterial && outerShare > 0) {
+        if (residueMaterial && outerShare > 0) {
           composition.push({
-            materialPath: this.residueMaterial,
+            materialPath: residueMaterial,
             servings: servings * outerShare,
           });
         }
@@ -317,17 +402,19 @@ export function ComminutingMixin<TBase extends MixinConstructor<Stuff>>(
       return {
         extraction: e,
         productKg,
-        productL: litresOf(productKg, this.productMaterial),
+        productL: litresOf(productKg, productMaterial),
         residueKg,
-        residueL: litresOf(residueKg, this.residueMaterial),
+        residueL: litresOf(residueKg, residueMaterial),
         tollKg,
-        tollL: litresOf(tollKg, this.productMaterial),
+        tollL: litresOf(tollKg, productMaterial),
         outerShare,
         composition,
         water,
         grade,
-        productMaterial: this.productMaterial,
-        residueMaterial: this.residueMaterial,
+        productMaterial,
+        residueMaterial,
+        productVessel: row?.vessel ?? this.productVessel,
+        residueVessel: row?.residueVessel ?? this.residueVessel,
       };
     }
   };

@@ -25,4 +25,3 @@ outputApplication: bulk
 outputTemplate: /trade/winemaking/thing/must-bucket
 outputMaterial: /trade/winemaking/idea/material/honey-must
 outputPortionL: 4
-outputAppearance: pale cloudy must smelling of flowers

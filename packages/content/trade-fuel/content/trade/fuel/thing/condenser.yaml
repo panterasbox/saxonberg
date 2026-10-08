@@ -1,0 +1,28 @@
+# The condenser — ⭐ a coil of copper pipe in a water jacket, standing on
+# the retort's head.
+#
+# What comes off the charge goes through it, and what can be a liquid at
+# yard temperature becomes one in the receiver beneath. What cannot — the
+# gas — carries on to whatever is standing on the condenser in turn.
+#
+# ⭐⭐ That split is DERIVED from the material's boiling point, so the
+# condenser knows nothing about tar and a new fraction is one number on
+# one material row.
+class: /trade/fuel/thing/Condenser
+data:
+  shortDescription: copper condenser
+  keywords: [condenser, coil, pipe, copper, receiver]
+  register: definite
+  longDescription: >-
+    A coil of copper pipe in a wooden jacket of standing water, sweating
+    along its whole length, ending in a tar-black receiver with a tap in
+    the bottom of it.
+  _materialPath: /stuff/idea/material/element/copper
+  mass: 90
+  interiorBulk: true
+  interiorCapacity: 40
+  # Liquid-tight and no more: a condenser is open to the air by design —
+  # it has to be, or the gas could not leave. ⭐ Which is why a gas
+  # arriving here is PASSED ON rather than held.
+  closure: liquidTight
+  placements: [on]

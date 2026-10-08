@@ -1,13 +1,24 @@
 # Ranching slate (working doc) — livestock, husbandry, and the animal economy
 
 > **Status: PARTIAL** — the farmstead build shipped the keeping: the
-> herdbook, pasture-as-field, boundary acts, handling, the taps, the
-> carcass yield (tallow · hide · bone · meat) and the hazards (hay fire ·
-> slurry pit · fox) → [ranching.md](../../subsystems/ranching.md).
+> herdbook, pasture-as-field, boundary acts, handling, the taps and the
+> hazards (hay fire · slurry pit · fox) →
+> [ranching.md](../../subsystems/ranching.md).
+> ⭐⭐ **The carcass yield has LEFT this trade** (2026-10-05): `slaughter`
+> is a kill through the one `ConditionApi.die` path and breaking the body
+> down is `trade-cooking`'s `butcher <carcass>`, so a beast killed in a
+> fight is butcherable exactly like one you slaughtered. The yield is
+> `Species.butcheryYield` and this pack's five hardcoded fractions are
+> retired; its condition scaling survives as a multiplier on top →
+> [butchery.md](../../subsystems/butchery.md) +
+> [butchery-slate](../tails/butchery-slate.md).
 > ⚠ The intake side is unwired — nothing grazes (no class declares
 > `grazingDemandPerGameDay`) and nothing feeds a head (compacted
 > 2026-09-19; ledger `docs/plans/slate-compaction/ranching.md`)
-> **Left:** the feed loop — grazing demand on the animal, a way to feed a
+> **Left:** ⚠ **tap standing at the draft** (handed over by the carcass
+> chain: a head drafted out of the flock carries no record of what it has
+> already given, so nothing prices a ewe that was shorn last week) · the
+> feed loop — grazing demand on the animal, a way to feed a
 > head, hay as the stored form, the winter-feed budget · the paddock move
 > — `move herd`, paddocks as subdivided fields, the open gate resolved at
 > reconcile, fencing as a bound, the hired-hand cadence with its

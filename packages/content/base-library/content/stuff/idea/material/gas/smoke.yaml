@@ -1,0 +1,35 @@
+# Smoke — ⭐⭐ the third product of combustion, and the one that used to be
+# a STRING.
+#
+# Before the fire build a smoky room was a room whose atmosphere TAG read
+# `smoke`: a different air, overlaid on the room and cleared again, with a
+# sentinel idiom (*only overlay a null, only clear my own tag*) that broke
+# the moment anything else wanted to say what was in the air. Smoke is a
+# substance now, carried IN the air, at an amount — so a little of it is
+# a little of it, two fires make more, and the room clears at the rate its
+# own doorways imply.
+#
+# ⭐ `toxicity` here is read as **burden per breath at unit fraction**: a
+# room one-tenth full of smoke poisons at a tenth of this rate. That is
+# what makes smoke dangerous before it is suffocating, which is the
+# carbon-monoxide lesson and the reason the fiction has chimneys.
+class: /platform/idea/material/Material
+data:
+  name: smoke
+  keywords: [smoke, soot, reek]
+  appearance: a grey, greasy haze
+  density: 1.1
+  # Condenses as soot well above any ambient, so it is a gas wherever
+  # anyone stands — `requiredClosureFor` reads this, there is no phase
+  # field.
+  boilingPoint: 100
+  thermalConductivity: 0.03
+  electricalConductivity: 1.0e-12
+  edibility: false
+  nutrients: []
+  toxicity:
+    - type: carbonMonoxide
+      amount: 50
+  tags: [gas, exhaust]
+  composition: []
+  biologicalSource: null

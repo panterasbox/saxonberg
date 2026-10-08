@@ -236,8 +236,14 @@ export default class LookController extends CommandController<LookModel> {
     // you cannot see.
     if (band && LIGHT_BANDS_TOO_DARK_TO_DESCRIBE.includes(band)) {
       let dark = Mml.compose`${Mml.fromMarkup(LIGHT_BAND_PHRASE[band] ?? '')}`;
+      // ⭐ The perception moment, in the dark too: you cannot describe
+      // the room, but you have been here and you can feel the ways out.
+      // A map of a pitch-black room you stood in is honest knowledge.
+      const perceivedDark = MixinApi.isPerceiver(actor)
+        ? actor.learnSurroundings(location)
+        : [];
       if (hasExits) {
-        const exitsLine = this.formatExits(location.obviousExitsFor(actor));
+        const exitsLine = this.formatExits(perceivedDark);
         if (exitsLine) dark = Mml.compose`${dark}\n${exitsLine}`;
       }
       MessageApi.scene(actor).topic('sense.survey').toSelf(dark).send();
@@ -300,24 +306,23 @@ export default class LookController extends CommandController<LookModel> {
     // that renders the prose it was handed, which is the card surface's
     // question, recorded on `docs/slates/tails/carded-prose-slate.md`.
     const notices = EmploymentApi.noticesAt(location);
+    // ⭐⭐ THE PERCEPTION MOMENT. One call: the body runs the
+    // perception gate, tells whatever it keeps (a map, a memory,
+    // nothing), and hands back the exits this viewer may know about —
+    // which are the same ones rendered below, because computing them
+    // twice is how the transcript and the map could ever disagree.
+    // The verb's business is WHEN a place is perceived; what that
+    // entails is the body's. See `Perceiver.learnSurroundings`.
+    const perceived = MixinApi.isPerceiver(actor)
+      ? actor.learnSurroundings(location, visibleContents)
+      : [];
     if (hasExits) {
-      const exitsLine = this.formatExits(location.obviousExitsFor(actor));
+      const exitsLine = this.formatExits(perceived);
       if (exitsLine) {
         body = Mml.compose`${body}\n${exitsLine}`;
       }
     }
     if (visibleContents.length > 0) {
-      // Repeat-perception: seeing a being tracks it. First sight of an
-      // unknown creates a null-`knownAs` stranger record; later sightings
-      // coalesce and advance `lastSeen` (not a record per sighting). The
-      // null-name write never overwrites a learned name. Fired here on
-      // the look *controller*, never inside the naming step (which runs
-      // on every projection) — see `describeFor`.
-      for (const item of visibleContents) {
-        if (MixinApi.isOrganism(item) && MixinApi.isBeliefStore(actor)) {
-          actor.learnIdentityOf(item, null);
-        }
-      }
       // Items placed on a listed host (the bottles on the back-bar) are
       // not loose room contents — they're represented by their host and
       // discovered by examining it (`look back-bar`). Shared with `sense`
@@ -673,7 +678,7 @@ export default class LookController extends CommandController<LookModel> {
     return;
   }
 
-  private formatExits(exits: Exit[]): Mml | null {
+  private formatExits(exits: readonly Exit[]): Mml | null {
     if (exits.length === 0) return null;
     const parts = exits.map((exit) => {
       // `Mml.exit` emits a clickable `<exit dir="X" stuff-id="Y">` —

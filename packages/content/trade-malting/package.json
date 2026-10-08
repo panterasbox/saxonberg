@@ -1,0 +1,14 @@
+{
+  "name": "@saxonberg/content-trade-malting",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "The malting trade — steep, floor, kiln: barley into malt, and the grain doing it to itself.",
+  "dependencies": {
+    "@saxonberg/content-base-library": "workspace:*",
+    "@saxonberg/content-generic-objects": "workspace:*",
+    "@saxonberg/content-platform": "workspace:*",
+    "@saxonberg/content-trade-farming": "workspace:*",
+    "@saxonberg/content-water": "workspace:*"
+  }
+}

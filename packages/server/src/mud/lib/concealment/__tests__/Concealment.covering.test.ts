@@ -54,12 +54,12 @@ function wearer(): Creature {
     {
       key: 'body.torso',
       parent: null,
-      tissues: [{ tissuePath: '/stuff/idea/material/tissue/flesh', mass: 40 }],
+      tissues: [{ tissuePath: '/stuff/idea/material/tissue/flesh', share: 0.888889 }],
     },
     {
       key: 'body.head',
       parent: 'body.torso',
-      tissues: [{ tissuePath: '/stuff/idea/material/tissue/flesh', mass: 5 }],
+      tissues: [{ tissuePath: '/stuff/idea/material/tissue/flesh', share: 0.111111 }],
     },
   ]);
   planPath = `/stuff/idea/species/BodyPlan/conceal-${n}`;

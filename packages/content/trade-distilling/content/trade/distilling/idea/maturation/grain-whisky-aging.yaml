@@ -1,0 +1,32 @@
+# ⭐ The grain cask — faster than the malt line's, because there is less
+# in the spirit for the wood to work on.
+#
+# ⚠ `inputCategory: grain-new-make`, which is why that material does not
+# carry the `new-make` tag. Share it and a cask of grain spirit would
+# mature into malt whiskey.
+#
+# `productAtFraction` is set by the age wave; it lands at 1 here so this
+# row behaves exactly like the malt line's until then.
+class: /platform/idea/maturation/MaturationProfile
+data:
+  key: grain-whisky-aging
+  mechanism: chemical
+  inputCategory: grain-new-make
+  sealedOnly: true
+  stallBelowK: 275
+  happyK: 290
+  damageAboveK: 305
+  # ⭐ The same fork, faster: there is less in a grain spirit for the
+  # wood to work on, so it comes good sooner (~17 game-days to drawable,
+  # ~67 to finished). Another reason the grain line is the cheap half of
+  # a blend — the money comes back quicker.
+  ratePerDay: 0.015
+  productAtFraction: 0.25
+  productMaterial: /trade/distilling/idea/material/grain-whisky
+  # ⚠ No `turnDays`, and deliberately: whisky in a sealed cask does not
+  # turn. It authored `turnDays: 0` to say so, and that KILLED the whole
+  # profile — `setTurnDays` rejects a non-positive figure, so the row
+  # threw at standup and `MaturationProfileCatalogue` stood up 22 of 23.
+  # Omitting it is exactly equivalent to the intent: turning is gated on
+  # `turnedMaterial` (`Maturing.ts`), this row authors none, so the
+  # figure is never read whatever it is.

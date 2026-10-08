@@ -246,10 +246,12 @@ null scope, which PM treats as field/system default; nothing to plant.
   (boot-only latches/handles, playerId-keyed registries, cadence
   limiters, wizard-gated memos). `ApiLogic` carries the
   `isBoundaryExempt` flag (Decision J).
-- **Non-Logic singletons**: exempted only via the enumerated
-  `BOUNDARY_EXEMPT_TEMPLATE_PATHS` allowlist in `security.ts`; anything
-  unmarked and unscoped is subject to the ordinary compare (fails
-  closed).
+- **Non-Logic singletons**: each **declares** `static boundaryRole`
+  (`infrastructure` for the registries, `commons` for the seeded
+  catalogues); anything unmarked and unscoped is subject to the
+  ordinary compare (fails closed). ⚠ These were twenty-seven
+  template-path strings in an allowlist until 2026-10-06 — see
+  **The boundary role** below.
 
 **Needs-a-guard set** (mutation methods reachable from gameplay that
 would write field-visible shared state; each gets the two-line scope
@@ -294,13 +296,85 @@ This is NOT a read allowlist: it is the same fixed set the
 destroyed-object guard exempts, grown by the transport seam, and it
 answers only "what is this / who holds the socket."
 
-**The reference-data tier (added during the live pass).** A third
-exemption arm registers whole BASE CLASSES whose instances are shared,
-seeded vocabulary rather than world state: `Species`, `BodyPlan`,
-`Clade`, `LocomotionMode`, `Material`, `Modality`, `Condition`,
-`CombatFormation`, and `Zone`. These are commons — never mutated at
-runtime, and the PM policy table REFUSEs writes to their rows
-independently — so exempting them widens **reads** only.
+### ⭐⭐⭐ The boundary role — declared, not enumerated
+
+Class-level exemption is **one static on the class**, walked up the
+prototype chain like `_mixinName` and `identityNamespace`:
+
+```ts
+static boundaryRole: BoundaryRole = 'commons';
+```
+
+| role | the claim it makes | members |
+|---|---|---|
+| `place` | *I am where my path says, or where my `jurisdictionHost()` is.* **The default — nothing declares it.** | rooms, goods, bodies, **exits** |
+| `commons` | *Nobody holds title to me as a thing; I am shared vocabulary every body reads.* | `Species` `BodyPlan` `Clade` `LocomotionMode` `Material` `Modality` `Condition` `CombatFormation` `Zone` `Locality` + the 13 seeded catalogues |
+| `infrastructure` | *I am not a world object at all.* | `ApiLogic` `Interactive` `TemplateApplier` + the 12 registries |
+
+⚠⚠ **This replaced thirty-nine hand-maintained entries** — twelve
+`SecurityApi._registerBoundaryExemptBase(...)` calls planted from
+`BootstrapManager`, and twenty-seven template-path strings inside
+`security.ts` — and by their own comments **every one was added after a
+verb died in production**: *"the wire body was refused `go` as 'not
+currently animate', then refused again on its clade's rank"* · *"`eval`
+in-circle died on `lookupField`"* · *"every clone inside a circle
+silently skipped its content step"* · *"every one of these was a verb
+that simply died inside a circle — `help`, `spells`, `recipes`/`craft`,
+`studio`, `competence`, `government`. A player standing in their own
+circle could not read the rulebook."*
+
+⭐ The path list even carried its own excuse: *"enumerated here because
+each is a singleton rather than a class of many."* A static reads the
+same whether there is one instance or a thousand; the list existed
+because there was no declaration to make.
+
+#### ⛔ Why DECLARED and not derived
+
+The reference tier was justified by a three-limb prose test. All three
+were checked against the code, and none is a usable predicate:
+
+| limb | verdict |
+|---|---|
+| *seeded* | true, and says nothing — half the world is seeded. |
+| *never mutated at runtime* | **not derivable.** `Material` declares **32** public `set*` methods, because the `TemplateApplier` dispatches through them. Every authored reference class needs setters. |
+| *the PM policy table REFUSEs writes to their rows* | ⛔ **FALSE, and struck.** `Collections.Content` is `sandbox: pass`, deliberately: *"authored truth … the parcel-title gate is what governs that — not the circle."* The exemption never widened reads only. |
+
+A fourth candidate — *nobody can hold title to it*,
+`ParcelApi.ownerOf(path) === null` — is false too: `/platform` and
+`/stuff` are both claimed extents.
+
+⭐⭐ **So membership is a JUDGMENT**, and the design puts the judgment
+where it is visible rather than pretending a predicate exists. What is
+derived is the *behaviour* (one read site), the *totality*, and the
+*growth*: `lint:boundary-roles` holds today's `commons` count as a
+measured ceiling and refuses a padded one, so widening the boundary is
+a visible reviewed act instead of a line in a boot function. The gate
+also asserts that no central list comes back — the lists were not
+wrong, they were **unbounded**.
+
+⚠ The review criterion, in one line: *would minting a per-parcel copy
+of this be absurd?* A Terminus `iron` and a Hinkley `iron` would fork a
+closed vocabulary; a Terminus **torch** would not — which is why a
+torch is `place` and takes its jurisdiction from the room it sits in.
+
+⛔ **A thing with real runtime state is not `commons`, however
+shared** — and the water pack is the worked example of the split.
+`Watercourse` holds authored topology only, so it declares `commons`; a
+river's *state* lives elsewhere (flow derived, storage on a
+`StorageNode`, which is a `Thing` in a place and therefore `place`).
+**Split the record from the state and each half gets an honest role.**
+
+⛔ ⚠ **And a question this doc floated for one round does not exist**:
+*"what is the jurisdiction of a thing that spans parcels?"* Nothing
+spans parcels — `ParcelRegistry`'s coverage index is a `PathTrie` and
+`ownerOf` is **longest-prefix**, so every path resolves to exactly one
+holder by construction. A Watercourse is in no parcel at all rather
+than in two: it has no location, and a parcel CITES a reach
+(`parcels.reach`) rather than containing a river.
+
+### The reference-data tier, and why it exists at all
+
+These are commons: shared, seeded vocabulary rather than world state.
 
 They are not a convenience. A body inside a circle that cannot read
 its own species is not animate: it can't walk, act, or leave (the
@@ -314,8 +388,43 @@ used as pure functions BY the clone pipeline, and without the
 exemption every clone inside a circle silently skipped hydration, so
 the vessel minted with no default loadout.
 
-**The rule of thumb**: keep the list to genuine vocabulary. Anything a
+**The rule of thumb**: keep it to genuine vocabulary. Anything a
 player can change is world state and does not belong here.
+
+### ⭐⭐ The jurisdiction host — *whose place am I in?*
+
+A governed `eval --parcel <extent>` asks of each receiver: *are you
+inside the extent I hold title to?* Three ways in:
+
+1. **your own path** is under the bound (`getIdentityPath()`);
+2. **your HOST** is, transitively — `Stuff.jurisdictionHost()`;
+3. **you are newborn** — unstamped and unhosted, minted by this run.
+
+⚠⚠ Rung 2 hardcoded `getContainer()` until 2026-10-06, and that is what
+made **an exit unreachable**. An inline exit is a clone of its
+exit-KIND row, so the path it answers to is
+`/platform/idea/exits/passage` — the kernel, not the world — and a room
+does not *contain* its exits, it holds a `direction → exit` map. Rule 1
+said no, rule 2 had nothing to walk, rule 3 did not apply (it is
+stamped), so **a governed eval was refused on every exit of every room
+inside its own extent** — `getDoor()` included, so not even a read.
+Found by a browser drive; a chair in the same room was fine, because
+containment caught it.
+
+⭐ The fix is **not an exit carve-out**. An exit is not an exception to
+containment; it is a Stuff whose host is reached by a different method.
+`jurisdictionHost()` defaults to `getContainer()` and `Exit` overrides
+it with `getSource()`, so containment becomes *one instance* of hosting
+and the security layer knows nothing about exits.
+
+⚠ **The source, never the destination.** An exit has two ends and the
+far one may sit in somebody else's extent; the source means *you own
+the door on your side of the wall*, and keeps the hook from becoming a
+way to reach into a neighbouring parcel. It is the same end
+`getDiscoveryKey` already keys on.
+
+⚠ A host that throws is treated as absent — one rung of an
+authorization decision must fail **closed**, not propagate.
 
 **Transport writes are INBOUND-only.** The connection lifecycle splits
 in two. Its reads (`getHolder`, `getInteractives`, `isConnected`,
@@ -372,6 +481,29 @@ name. `CircleAvatar` was considered and rejected for a subtler reason:
 *circle* names **the fence, not the workshop**.
 
 ## The crossing (as built)
+
+- **⭐⭐ The identity thread, and where it actually lives (2026-10-05).**
+  A wire body IS the player while they are in the circle: every
+  identity-keyed reader — the belief viewer key, the chronicle, the
+  transcript, grants, chattel stamps, the snapshot owner — must
+  attribute in-circle acts to the person. That works because
+  **`lib/character/Avatar` overrides `getIdentityPath()` for the whole
+  family, in one place**, deriving from `playerId`; the shade relies on
+  exactly the same inheritance. `SandboxAvatar` overrides nothing of
+  its own, and a comment there says so, because its absence reads as a
+  bug.
+
+  ⚠⚠ **What was wrong until 2026-10-05**: the wire body was ALSO cloned
+  with `asIdentityPath: <the player's identity>`. That is a raw stamp,
+  and the registry's index keys on `identity ?? templatePath` — so the
+  wire body was *filed under the player's own identity*, which is the
+  one thing `Stuff.getIdentityPath`'s docblock forbids (*"a wire body
+  must never index under the identity it projects"*). With a circle
+  open, the wire body and the parked field body shared one exact
+  bucket, and `findByTemplatePath('/platform/agent/Avatar/<pid>')` threw
+  *expected singleton, found 2* for that player mid-visit. The mint no
+  longer stamps; the inherited method was always what the ledgers read,
+  which is why removing the stamp needed nothing to land first.
 
 - **Fork/merge**: `ForkableMixin` (`lib/persistence/Forkable.ts`) —
   per-layer `forkSlice_<Name>()` / `mergeSlice_<Name>(slice)` by
@@ -552,7 +684,7 @@ name. `CircleAvatar` was considered and rejected for a subtler reason:
   "is this receiver inside the bound?" by requiring the receiver's own
   `templatePath` to sit under the parcel. But a template path is *clone
   lineage*: an avatar's is `/platform/agent/Avatar/<id>` and a cloned corpse's is
-  `/stuff/agent/Corpse`, wherever either happens to be standing. So a
+  `/stuff/thing/Corpse`, wherever either happens to be standing. So a
   governed eval was denied the one receiver it most obviously covers —
   the wizard's own body, in the parcel they hold title to — and every
   runtime instance besides. Worse, the eval scratch is minted and *then*

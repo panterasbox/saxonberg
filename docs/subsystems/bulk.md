@@ -254,8 +254,26 @@ open < liquidTight < sealed        (default: liquidTight)
 A holder retains matter when `closure ≥ requiredClosureFor(material)`.
 v1 bulk is all liquid (`requiredClosureFor → 'liquidTight'`), so an
 `open` vessel doesn't retain it — it **drains through** (below).
-`sealed` (gas) and the phase→required-level mapping are defined on the
-scale but unexercised until gas content lands.
+⭐⭐ **`sealed` is exercised now (the fire build, 2026-10)**, and the
+phase→required-level mapping is no longer a mapping: `requiredClosureFor`
+**derives** from the material's `boilingPoint` against
+`atmosphere.standardK`. There is no `phase` field and no `gas` tag read —
+a material that boils below room temperature wants `sealed`, and that is
+the whole rule.
+
+⛔ Exercising it found that three shipped rows authored **`closure:
+none`**, which is not a `ClosureLevel`. The comparison was `NaN`, `NaN <
+0` is false, and so the sap-pan, the pail and the salt-pan **retained
+liquid as though lidded** — including the salt-pan whose entire mechanism
+is that a covered pan does not work. `setClosure` throws on a rung
+outside `CLOSURE_ORDER` now, so the next one cannot be silent.
+
+⚠ The retention check is also not quite `closure ≥ required` for a gas:
+a sealed vessel **standing open is a hole**, so the transfer step asks
+the DESTINATION for its lid directly (`lidHost` / `lidStandsOpen`) and
+answers `'escaped'` with the vessel's own words. ⚠ `isGasRetained` cannot
+serve that check — it answers about what a slot HOLDS, not about where
+matter is going.
 
 > ⭐⭐ **That rung has named consumers now (2026-09-25), and it turns out
 > to be an ECONOMY rather than a detail.** Gas cannot be held by anything
@@ -269,12 +287,20 @@ scale but unexercised until gas content lands.
 > water seal whose height is visible across a city — is the rung's natural
 > exemplar and a non-gauge readout of a shared resource.
 >
-> ⚠ **One thing to decide deliberately when it lands:** `AirTank`
-> (→ [respiration.md](./respiration.md)) treats gas as **incompressible
-> bulk** — an interior fill *fraction*. Real gas storage is a **pressure**
-> question. The abstraction is defensible while it still costs somebody
-> the vessel and the labour, but once gas is **traded**, *"how much is in
-> there"* is asked in a way a fill fraction cannot answer honestly.
+> ⭐⭐ **DECIDED (the fire build, 2026-10): gas is measured per VOLUME,
+> and pressure DERIVES.** The question above was the right one and the
+> answer is the one it points at — `getGasPressureAtm()` is amount over
+> capacity, so *"how much is in there"* is a real quantity and the
+> pressure is a reading of it rather than a second stored number. ⚠ The
+> constraint came from a trade that does not exist yet: drilling will
+> have gas at pressures a fill fraction cannot express, so the model was
+> built to its requirement before it shipped. `AirTank`'s own fraction is
+> unchanged and still defensible — it costs somebody the vessel.
+>
+> ⭐ And the read has **no figure in it**: `gasLevelWord` answers in five
+> words (*full to the seal* · *riding high* · *about half down* · *low* ·
+> empty), which is what makes a gasometer's bell a thing the whole yard
+> can see rather than a number on a card.
 
 ### `Container` + `Bulkable` — orthogonal slots
 
@@ -611,3 +637,102 @@ Each lands in a named home later; none is in this slice.
   the `:b` transform home.
 - [response-envelope.md](./response-envelope.md) — note kinds.
 - [bulkable-slate.md](../slates/tails/bulkable-slate.md) — design of record.
+
+---
+
+## History — the whiskey build (2026-10-04)
+
+**A new policy seam.** `getBulkPayloadForDraw(affordance, litres)` on
+`Bulkable`, `payloadForDraw(litres)` on `BulkSlot`. The base impl returns
+the slot's own payload, so nothing changes for any composer; a host whose
+interior is **not homogeneous** overrides it. ⚠ It takes the litres
+because a draw that straddles a boundary is two things at once — see
+[fractionation.md](./fractionation.md).
+
+**A new declared payload field.** `dissolvedToxins`, from
+`lib/metabolism/DissolvedToxins.ts` — the `formedToxins` move, for a dose
+that is a **concentration** (mg/L) rather than a per-serving amount, so it
+blends by volume on every pour and scales with litres drunk at the ingest.
+`lib/bulk` still never learns the word toxin.
+
+**⚠⚠ Two behaviour changes in `transfer`, and both are doctrinal:**
+
+1. **A top-up is weakest-link on the grade.** Identity rides into an
+   empty destination only, as before — but quality is a property of the
+   *matter*, and without this, pouring good into bad left `poor` while
+   pouring bad into good left `fine`: the same mixture with two answers,
+   and the second was a laundry. The maker's mark is untouched either
+   way; a top-up never re-signs somebody else's work.
+2. **The drawn payload comes from `payloadForDraw(applied)`**, read after
+   the clamp, not from `getPayload()`.
+
+**⚠ The insertion count is now EIGHT.** `transfer` carries freshness,
+water activity, pathogens, blood identity, thermal, the payload copy, the
+batch-identity carry and the dissolved blend. `maturation.md` named
+poisons as the moment to generalise to a host-side participant hook, and
+this build made the eighth in the shipped shape and **filed the refactor
+with its count** rather than doing it — per *census then ratchet*, because
+refactoring four shipped blends inside a feature build would have hidden
+the feature.
+
+---
+
+## History — the whiskey-STYLES build (2026-10-05)
+
+**⭐⭐ One fold, three call sites: `BulkableApi.blendPayloads`.** A new
+Api static (logic on `BulkableLogic`) folds exactly the **per-litre
+payload domains** of two bodies of matter — `dissolvedToxins`,
+`dissolvedAromatics`, and `maturedDays` as a MINIMUM — and returns a
+payload based on the destination with every other field untouched.
+
+⛔⛔ **It exists because a RECIPE did not blend.**
+`CraftingLogic.applyBulkOutput`'s authored-material branch set the output
+material, the amount and the maker, and **carried no input payload at
+all**. So a recipe was the one way matter could move in this game without
+its concentrations moving with it: vatting two badly-cut bottles produced
+one that read clean, and every pour-side anti-laundering guard
+(`DissolvedToxins`, `Contamination`, `Freshness`) could be walked around
+by anybody with a recipe. The slate's *"blending needs no new mechanism"*
+was true of the SLOTS and false of the payload.
+
+The three sites: a **pour** (`transfer` step 5, replacing the inline
+toxin block), a **recipe's bulk output**, and a **grind**
+(`MillController.fill`, which cloned a fresh sack and dropped the source
+payload on the floor — so smoke in a peated malt vanished at the
+millstones).
+
+⚠ The insertion count in `transfer` stays at **EIGHT**: one block became
+one call. This is the first piece of the participant-hook refactor
+actually extracted, taken only as far as the facts forced.
+
+**⭐ The arithmetic was promoted, not the field.**
+`lib/bulk/Concentration.ts` holds the volume-weighted blend for both
+concentration kinds; `DissolvedToxins.blend`/`.isClean` forward onto it
+and `DissolvedAromatics` ships **no forwarders at all**, because
+`lint:lib-statics` is a ratchet and a static that only forwards is what
+it counts down. `labileAtK` keeps working without `Concentration` naming
+it: the fold reconciles every non-`amount` field by **filling gaps and
+never averaging**, which is exactly the rule a physical constant of a
+substance needs.
+
+**Two new declared payload fields**, each from the subsystem that owns
+the word (`lib/bulk` still learns neither):
+
+| field | from | folds by |
+|---|---|---|
+| `dissolvedAromatics` | `lib/metabolism/DissolvedAromatics` | volume |
+| `maturedDays` | `lib/maturation/Maturing` | **minimum** |
+
+⚠ `maturedDays` is the one domain on the payload that is not a weighted
+mean, and deliberately: an age statement means the youngest thing in the
+bottle.
+
+**⚠ One behaviour change.** `applyBulkOutput` now stamps
+`payload.appearance` from the recipe's `outputAppearance` on an
+authored-material output, which that branch had **ignored** — so 22
+shipped recipes authored prose that never rendered. Seven of them say
+something the material cannot (`crush-comb` and `spin-comb` are two
+recipes for ONE honey material whose whole difference is how the honey
+looks; `flatbread` and `lean-loaf` likewise for bread); the other fifteen
+were duplicates or weaker restatements of the material's own line and
+their keys were **deleted**, so no shipped prose regressed.

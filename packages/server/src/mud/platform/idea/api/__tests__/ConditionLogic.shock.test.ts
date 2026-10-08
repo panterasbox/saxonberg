@@ -49,8 +49,8 @@ function bodied(): Creature {
       key: 'body.torso',
       parent: null,
       tissues: [
-        { tissuePath: '/stuff/idea/material/tissue/bone', mass: 8 },
-        { tissuePath: '/stuff/idea/material/tissue/flesh', mass: 20 },
+        { tissuePath: '/stuff/idea/material/tissue/bone', share: 0.285714 },
+        { tissuePath: '/stuff/idea/material/tissue/flesh', share: 0.714286 },
       ],
     },
   ]);

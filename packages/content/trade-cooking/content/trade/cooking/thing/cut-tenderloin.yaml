@@ -1,0 +1,22 @@
+# A tenderloin — one muscle off a carcass.
+#
+# ⚠ `mass` here is a NOMINAL default the mint overwrites: what a cut
+# actually weighs is `Σ(its muscles' body share) × the carcass's own
+# mass`, so the same row off a ewe and an ox weighs what each animal's
+# tenderloin weighs. Nothing authors that number twice.
+#
+# ⭐ And its TEXTURE is derived from the muscle too — nobody can author a
+# tender shank.
+class: /platform/thing/Cut
+data:
+  shortDescription: tenderloin
+  keywords: [tenderloin, fillet, cut]
+  register: indefinite
+  longDescription: >-
+    A tapering strip the length of a forearm, taken from inside the loin. There is one on each side of an animal and no more.
+  _materialPath: /stuff/idea/material/tissue/muscles/tenderloin
+  tissues:
+    - /stuff/idea/material/tissue/muscles/tenderloin
+  cutting: boneless
+  difficulty: hard
+  mass: 1.0

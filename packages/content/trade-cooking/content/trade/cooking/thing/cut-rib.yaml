@@ -1,0 +1,22 @@
+# A rib — one muscle off a carcass.
+#
+# ⚠ `mass` here is a NOMINAL default the mint overwrites: what a cut
+# actually weighs is `Σ(its muscles' body share) × the carcass's own
+# mass`, so the same row off a ewe and an ox weighs what each animal's
+# rib weighs. Nothing authors that number twice.
+#
+# ⭐ And its TEXTURE is derived from the muscle too — nobody can author a
+# tender shank.
+class: /platform/thing/Cut
+data:
+  shortDescription: rib
+  keywords: [rib, ribs, cut]
+  register: indefinite
+  longDescription: >-
+    A rack of ribs with the meat between them, fine-grained and threaded with fat.
+  _materialPath: /stuff/idea/material/tissue/muscles/rib
+  tissues:
+    - /stuff/idea/material/tissue/muscles/rib
+  cutting: bone-in
+  difficulty: standard
+  mass: 1.0

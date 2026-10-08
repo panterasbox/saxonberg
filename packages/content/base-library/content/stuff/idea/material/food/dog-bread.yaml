@@ -1,0 +1,45 @@
+# Dog bread — ⭐ what horse-bread is made of: bran, offal, bone meal and
+# fat, baked hard.
+#
+# ⚠ **Edible, and that is deliberate.** A person can eat this. People did,
+# when it was the only bread they could afford, and a game that refused it
+# would be making a class judgement the world should be making with a
+# price instead. It is poor food rather than not-food: plenty of protein
+# and fibre, very little of what makes bread pleasant.
+#
+# ⭐ The `feed` tag is what the pets chain reads, and it is what makes
+# this a *manufactured* feed rather than a scrap thrown on the ground.
+class: /platform/idea/material/ConsumableMaterial
+data:
+  name: dog bread
+  keywords: ["dog bread", "horse bread", dogbread, loaf]
+  appearance: a dense dark crumb with bits in it
+  density: 700
+  specificHeat: 1800
+  thermalConductivity: 0.2
+  hardness: 5
+  toughness: 2
+  electricalConductivity: 1.0e-10
+  waterAbsorptionCapacity: 40
+  # Baked hard and dry — it keeps, which is most of why it was made in
+  # loaves at all.
+  spoilActivationEnergy: 60000
+  waterActivity: 0.55
+  edibility: true
+  # Coarse and savoury, and nothing about it is sweet.
+  tastes: [umami, bitter]
+  # ⚠ **No `fibre`**, and the absence is checked rather than assumed.
+  # `NUTRIENT_ROUTING` in `lib/metabolism/Metabolic.ts` routes exactly
+  # six tags — water, carb, sugar, fat, protein, vitamin-c — and an
+  # unrouted nutrient is **silently ignored**, which would have read as
+  # authored nourishment that does nothing. The fibre is real and it is a
+  # material TAG on bran; it is not a thing a body banks.
+  nutrients: [protein, fat, carb]
+  nutrientAmounts:
+    protein: 90000
+    fat: 60000
+    carb: 110000
+  toxicity: []
+  tags: ["food", "bread", "feed", "dog-bread"]
+  composition: []
+  biologicalSource: null

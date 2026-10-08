@@ -36,16 +36,99 @@ import type { FieldMeta } from '../../../lib/mixin';
 import type { Season } from '../../../lib/time/CelestialProfile';
 import { SpeciesApi } from '../../../api/species';
 
+import type { BoundaryRole } from '../../../lib/security/BoundaryRole';
 /** A suggested character name (given + optional surname). */
 /**
  * One line of a species' butchery yield: a cut template and how many a
  * clean butchering gives. A messy one gives fewer; nothing gives more.
+ *
+ * ⭐⭐ **Two shapes, and the absence of `fraction` is what picks one.**
+ *
+ *  - **Counted** (`fraction` absent) — *this animal gives three cuts*.
+ *    The shipped shape, and the honest one for a species nobody has
+ *    weighed: the six fish, the wolf, the hog, the pony.
+ *  - **Dressed** (`fraction` present) — *this cut is 40 % of live
+ *    weight, in twelve joints*. What a stockman actually knows, and the
+ *    only shape in which **the size and the condition of the animal can
+ *    pay off**: a thin ewe dresses out light, a bullock dresses out
+ *    heavy, and both read off one line.
+ *
+ * A species may mix them line by line. The arithmetic is
+ * {@link Species.dressOut}.
  */
+/**
+ * One tissue of one part, as a share of the whole body — the output of
+ * {@link Species.resolvedTissues}. The plan's topology with this
+ * species' proportions applied.
+ */
+export interface ResolvedTissue {
+  /** The `BodyPart.key` this tissue sits in. */
+  partKey: string;
+  /** Material templatePath, e.g. `/stuff/idea/material/tissue/muscles/loin`. */
+  tissuePath: string;
+  /** Share of the whole body's mass, `(0, 1]`. */
+  share: number;
+}
+
 export interface ButcheryYield {
   /** Template path of the Provision a cut produces. */
   cut: string;
   /** Units a clean butchering yields (a rounded-down share on a poor one). */
   units: number;
+  /**
+   * Share of the animal's LIVE weight this line takes, `(0, 1]`. Absent
+   * ⇒ the counted shape: the units are the whole statement and no mass
+   * is derived.
+   */
+  fraction?: number;
+  /**
+   * Does body condition scale this line? Default **true**, because most
+   * of what comes off an animal is flesh and fat. ⭐ `false` is the
+   * interesting case and it is a real fact: **a hide and a skeleton are
+   * the size the animal is, not the shape it is in.** A starved ewe has
+   * the same bones as a finished one.
+   *
+   * Meaningless without `fraction` (a counted line has no mass to
+   * scale).
+   */
+  conditioned?: boolean;
+}
+
+/**
+ * One line of a dressed-out carcass: what to clone, how many, and what
+ * each piece weighs. `null` mass = the counted shape — the caller clones
+ * `units` of it and leaves the row's own mass alone.
+ */
+export interface DressedLine {
+  /** Template path of the Provision to clone. */
+  cut: string;
+  /** How many pieces. At least 1 whenever the line yields anything. */
+  units: number;
+  /** Kilograms per piece, or `null` for a counted line. */
+  kgEach: number | null;
+  /**
+   * ⭐ The tissues this line took off the carcass, so the caller can mark
+   * them as gone. Empty for a line that claims none (a hide, the offal) —
+   * those are taken once and tracked by the line rather than the tissue.
+   */
+  tissues: readonly string[];
+}
+
+/**
+ * ⭐ **The dressing percentage, and it is the shipped curve.** Lifted
+ * verbatim out of `trade-ranching`'s retired `ButcherController`, where
+ * it was a module constant beside a hardcoded yield table: *a beast in
+ * poor flesh is bone and hide and not much else.* `flesh` runs `[0,100]`
+ * and sits at 55 for an unremarkable animal, so an unremarkable animal
+ * dresses at ~0.83 and a finished one at ~1.0.
+ *
+ * It lives here rather than in a controller because it is a fact about
+ * carcasses, and because both the kitchen and anything else that ever
+ * weighs a dead animal must agree about it.
+ */
+function finishFactor(fleshPct: number): number {
+  const v = 0.55 + (fleshPct - 30) / 90;
+  return v < 0 ? 0 : v > 1 ? 1 : v;
 }
 
 export interface SuggestedName {
@@ -533,6 +616,16 @@ export default class Species extends SingletonMixin(
 // reference singleton.
   VisibleMixin(Idea),
 ) {
+  /**
+   * a body must be able to read its own species or it is not animate.
+   *
+   * See `lib/security/BoundaryRole.ts` — this replaces a
+   * hand-maintained list in `api/security.ts` /
+   * `BootstrapManager`, and `lint:boundary-roles` holds the
+   * `commons` census at its measured ceiling.
+   */
+  static boundaryRole: BoundaryRole = 'commons';
+
   /** Latin binomial nomenclature (e.g. `'Homo sapiens'`). */
   protected binomial: string = '';
 
@@ -779,6 +872,17 @@ export default class Species extends SingletonMixin(
    */
   protected butcheryYield: ButcheryYield[] = [];
 
+
+
+
+  /**
+   * Memo for {@link resolvedTissues}. ⚠ Ordinary internal state, so
+   * TypeScript `private` rather than `#`: a `Species` is a Stuff behind
+   * the call-security proxy, and a `#` slot is unreachable from a method
+   * dispatched through it.
+   */
+  private resolvedTissuesCache: ResolvedTissue[] | null = null;
+
   /**
    * What this species needs of a water (fishing D4). `null` — not in
    * any water: the cat, the pig, the collie. See {@link Habitat}.
@@ -986,8 +1090,178 @@ export default class Species extends SingletonMixin(
   public getButcheryYield(): readonly ButcheryYield[] {
     return this.butcheryYield;
   }
+  /**
+   * ⚠ **Refuses a nonsense `fraction` rather than dropping it**, for
+   * `setFeedingStyle`'s reason: a line authored `fraction: 40` (percent,
+   * not share) would otherwise dress a 70 kg ewe out at 2,800 kg of meat
+   * and nothing would say a word. A share outside `(0, 1]` is a typo
+   * every time.
+   */
   public setButcheryYield(value: ButcheryYield[]): void {
-    this.butcheryYield = Array.isArray(value) ? value : [];
+    if (!Array.isArray(value)) {
+      this.butcheryYield = [];
+      return;
+    }
+    for (const line of value) {
+      if (line.fraction === undefined) continue;
+      if (
+        !Number.isFinite(line.fraction) ||
+        line.fraction <= 0 ||
+        line.fraction > 1
+      ) {
+        throw new RangeError(
+          `Species.butcheryYield: '${line.cut}' authors fraction ` +
+            `${String(line.fraction)} — a share of live weight in (0, 1], ` +
+            `not a percentage.`,
+        );
+      }
+    }
+    this.butcheryYield = value;
+  }
+
+
+
+  /**
+   * ⭐⭐ **Every tissue of every part of a body of this species, as a
+   * share of the whole body** — the plan's topology with this species'
+   * proportions applied, normalised so the shares sum to 1.
+   *
+   * This is what butchery reads: a cut's mass is the summed share of the
+   * muscles it claims, times the carcass's own mass.
+   *
+   * ⚠ **A per-SPECIES share override is deferred to the wave that reads
+   * it.** The plan had it here, and `lint:unconsumed-seams` was right to
+   * refuse: an authored field whose only reader is a derived method in
+   * its own file is a seam one wave ahead of its consumer, and this repo
+   * has paid for that three times. It lands with the butcher's cut
+   * masses, where a pig being a third fat changes something a player can
+   * see. ⚠ Normalising by the
+   * plan's own total is what lets a one-part test fixture stay honest —
+   * shipped rows sum to 1 already (`lint:anatomy` clause (a)) and the
+   * division is identity there.
+   *
+   * ⚠⚠ **Not `Vitals.bodyPartDeltas`.** That resolver merges a
+   * per-INSTANCE delta (this animal is missing a leg) over the structure;
+   * a share override is a fact about the KIND. Routing species data
+   * through an instance mixin would have every beast and every corpse in
+   * the world carry a copy of a fact about its species.
+   */
+  public resolvedTissues(): ResolvedTissue[] {
+    if (this.resolvedTissuesCache) return this.resolvedTissuesCache;
+    const plan = this.getBodyPlan();
+    const parts = plan?.getBodyParts() ?? [];
+    const raw: ResolvedTissue[] = [];
+    let total = 0;
+    for (const part of parts) {
+      for (const t of part.tissues ?? []) {
+        raw.push({ partKey: part.key, tissuePath: t.tissuePath, share: t.share });
+        total += t.share;
+      }
+    }
+    if (!(total > 0)) {
+      this.resolvedTissuesCache = [];
+      return this.resolvedTissuesCache;
+    }
+    // Normalise to proportions of the plan, then apply this species'
+    // targets and rescale the remainder so the sum is 1 again.
+    const normalised = raw.map((t) => ({ ...t, share: t.share / total }));
+    this.resolvedTissuesCache = normalised;
+    return normalised;
+  }
+
+  /** This species' share of body mass made up of `tissuePath`, over all parts. */
+  public tissueShareOf(tissuePath: string): number {
+    let sum = 0;
+    for (const t of this.resolvedTissues()) {
+      if (t.tissuePath === tissuePath) sum += t.share;
+    }
+    return sum;
+  }
+
+  /** The part keys carrying `tissuePath` on this species' plan. */
+  public partsCarrying(tissuePath: string): string[] {
+    const out: string[] = [];
+    for (const t of this.resolvedTissues()) {
+      if (t.tissuePath === tissuePath && !out.includes(t.partKey)) {
+        out.push(t.partKey);
+      }
+    }
+    return out;
+  }
+
+  /**
+   * ⭐⭐ **Dress a carcass out: what this species gives, at this weight,
+   * in this condition.**
+   *
+   * The one place the arithmetic lives, and the reason the stockyard and
+   * the kitchen cannot disagree about it any more — there used to be two
+   * butcher verbs with two yield models, one reading a hardcoded table of
+   * five fractions and one reading this field's counts, and an animal
+   * gave different things depending on which you typed.
+   *
+   * Per line: `kg = liveKg × fraction × finish`, where `finish` is
+   * {@link finishFactor} of the body's condition for a `conditioned` line
+   * (the default) and 1 for one that is not (a hide, a skeleton). `units`
+   * is how many pieces that mass arrives in, so each piece is `kg/units`.
+   * A line with no `fraction` passes through as a count with no mass.
+   *
+   * ⚠ **It does not apply the butcher's skill**, deliberately: skill is
+   * the hand, not the animal, and it belongs where the band is read. The
+   * floor of one piece belongs there too.
+   */
+  public dressOut(args: {
+    liveKg: number;
+    fleshPct?: number;
+    /**
+     * ⭐⭐ **What each cut row CLAIMS**, keyed by the row's path — supplied
+     * by the caller, which reads it off one cloned exemplar per line.
+     *
+     * ⚠ Passed in rather than resolved here, and deliberately: resolving
+     * a template would make this method async and impure, and it is the
+     * one piece of arithmetic in the chain that a test can call with
+     * numbers and no world. The butcher has the exemplars in hand anyway.
+     */
+    claims?: ReadonlyMap<string, readonly string[]>;
+  }): DressedLine[] {
+    const liveKg = Number.isFinite(args.liveKg) ? Math.max(0, args.liveKg) : 0;
+    const finish = finishFactor(
+      Number.isFinite(args.fleshPct ?? NaN) ? (args.fleshPct as number) : 55,
+    );
+    const out: DressedLine[] = [];
+    for (const line of this.butcheryYield) {
+      const units = Math.max(1, Math.round(line.units));
+      const claimed = args.claims?.get(line.cut) ?? [];
+      // ⭐⭐⭐ **A claiming line's share DERIVES from the muscles it
+      // takes**, so `fraction` stops being a second copy of a fact the
+      // body plan already states. A line claiming nothing (a hide, the
+      // offal, the blood) keeps its authored share — those are not
+      // muscles and the plan says nothing about them.
+      const derived = claimed.length
+        ? claimed.reduce((a, t) => a + this.tissueShareOf(t), 0)
+        : undefined;
+      const fraction = derived ?? line.fraction;
+      if (fraction === undefined) {
+        out.push({ cut: line.cut, units, kgEach: null, tissues: claimed });
+        continue;
+      }
+      // ⚠ A claimed line is never `conditioned: false`: the share came
+      // from muscle, and muscle is exactly what condition moves.
+      const scale =
+        derived === undefined && line.conditioned === false ? 1 : finish;
+      const kg = liveKg * fraction * scale;
+      // ⭐ Below the threshold the line yields NOTHING, which is the
+      // honest answer rather than a gram of suet: there is nothing worth
+      // taking off a animal that small. The retired stockyard controller
+      // used the same figure for the same reason.
+      if (kg < 0.05) continue;
+      out.push({
+        cut: line.cut,
+        units,
+        kgEach: Math.round((kg / units) * 100) / 100,
+        tissues: claimed,
+      });
+    }
+    return out;
   }
 
   /** See {@link Habitat}. `null` — the species lives in no water. */

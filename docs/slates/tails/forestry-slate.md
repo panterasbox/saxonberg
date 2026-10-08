@@ -12,8 +12,14 @@
 > the Cover seam (Sward + Stand → a kernel `lib/husbandry/Cover`; the
 > stand's moisture factor integrated stepwise) · a planted standard
 > folding into `mix[].standing` at maturity — plus this slate's own open
-> design: multi-product wood (oak bark → the tanner, mast → pannage, the
-> spring spike) · the silviculture curriculum (species by site, thinning,
+> design: multi-product wood — ⭐ **bark SHIPPED 2026-10-05** as a fourth
+> `fell` yield declared per species (oak tans, birch does not), because
+> the carcass chain needed the tannin and a yield with no sink is the dead
+> end that build existed to close → [butchery.md](../../subsystems/butchery.md);
+> mast → pannage and the spring spike remain · ⚠ **promote the stand's
+> felling facts onto `Species`** — `barkPath` lives on the stand entry and
+> `butcheryYield` lives on the species, which are the same kind of fact in
+> two places (handed over by the carcass chain) · the silviculture curriculum (species by site, thinning,
 > regeneration, browse, stool longevity) · conversion + seasoning ·
 > forest law — estovers, the woodward · the seeded half of the seeded ×
 > derived model (the site character for a Wood, soil.md's third-consumer

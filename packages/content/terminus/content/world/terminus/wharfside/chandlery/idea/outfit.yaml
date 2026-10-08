@@ -1,0 +1,36 @@
+# The Wharfside chandlery — a Business with ⭐⭐ **a seat anybody can
+# take.**
+#
+# ⚠⚠ **No `requires:` at all**, and the contrast with its two neighbours
+# is the point. The tanner needs `leatherwork` at novice and the knacker
+# needs `butchery` at novice, because those are trades you have to have
+# done. Dipping a wick in fat is not, and the pack mints no Discipline to
+# pretend otherwise — so this is the seat a player who has just arrived
+# in the realm can actually sit in.
+#
+# ⭐ Which also makes it the seat the build's drive takes: it is the one
+# that proves `apply` works end to end without first proving a
+# Discipline. The other two prove the refusal, which is the other half of
+# the same mechanism.
+#
+# ⚠ Wage 4 — under the tanner's 5 and the knacker's 6. Less unpleasant
+# work for less money, which is the market saying the same thing three
+# times in one district.
+class: /platform/idea/Business
+data:
+  name: "the Wharfside chandlery"
+  appointingAuthority:
+    kind: office
+    office: prime-minister
+  call: rota
+  positions:
+    - key: chandler
+      noun: chandler
+      label: at the dip-pot
+      wageRate: 4
+      purchases: true
+  rosterSlots: []
+  banksAt: goodkin
+  operatingLocations:
+    - /world/terminus/wharfside/chandlery/location/floor
+    - /world/terminus/wharfside/chandlery/thing/counter

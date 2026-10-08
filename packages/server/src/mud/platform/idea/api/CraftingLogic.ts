@@ -2,6 +2,7 @@
 // (Doc comment on the class below so @internal lands on the reflection.)
 
 import { ApiLogic } from '../../../lib/stuff/ApiLogic';
+import type { AromaTag } from '../../../lib/metabolism/DissolvedAromatics';
 import { CallSecurity, Unshadowable } from '../../../lib/security/decorators';
 import { SecurityPolicies } from '../../../lib/security/SecurityPolicies';
 import type { Stuff } from '../../../lib/stuff/Stuff';
@@ -13,6 +14,11 @@ import { ExecutionContextApi } from '../../../api/execution-context';
 import { WorldClockApi } from '../../../api/worldclock';
 import { Quantity } from '../../../lib/quantity';
 import { Grade } from '../../../lib/craft/Grade';
+import {
+  Texture,
+  CookingAttempt,
+  type CookingMethod,
+} from '../../../lib/butchery/Texture';
 import { RecipeKnowledge } from '../../../lib/script/RecipeKnowledge';
 import { Competence } from '../../../lib/advancement/Competence';
 import type { Organization } from '../../../lib/employment/Organization';
@@ -1357,6 +1363,69 @@ async function finishGlass(
  * (flow material onto the Tangible), assembly an `applyComposedOutput` —
  * each a new branch, never an edit to the craft skeleton.
  */
+/**
+ * Sum two concentration sets per type — NOT a volume-weighted blend.
+ *
+ * ⚠ The distinction is the whole of `imparts`. Blending answers *two
+ * bodies of matter met*; this answers *a process added something to this
+ * matter*, where there is no second volume to weigh against. A kiln that
+ * imparts 30 mg/L of smoke means the malt reads 30, whether you kilned
+ * one litre or twenty.
+ *
+ * Local to this logic singleton on purpose: it is domain logic over the
+ * payload, which is what a logic singleton is for, and
+ * `lint:lib-statics` is counting down statics on value classes rather
+ * than up.
+ */
+function addConcentrations(
+  base: readonly { type: string; amount: number }[] | undefined,
+  extra: readonly { type: string; amount: number }[],
+): { type: string; amount: number }[] {
+  const byType = new Map<string, { type: string; amount: number }>();
+  for (const tag of base ?? []) {
+    if (tag.amount > 0) byType.set(tag.type, { ...tag });
+  }
+  for (const tag of extra) {
+    if (!(tag.amount > 0)) continue;
+    const existing = byType.get(tag.type);
+    if (existing) existing.amount += tag.amount;
+    else byType.set(tag.type, { ...tag });
+  }
+  return [...byType.values()];
+}
+
+/**
+ * ⭐⭐ **What the FIRE puts into the work** — the fuel's own
+ * `combustionImparts`, weighted by its share of the bed.
+ *
+ * This is what makes peated malt the fire's doing rather than a second
+ * recipe's. The two kiln recipes were identical except that one declared
+ * `imparts: [{smoke, 30}]` and took a turf as an ITEM SLOT — which made
+ * *the same recipe over a different fire* inexpressible, and made the
+ * turf's own moisture invisible, because an item slot cannot see it.
+ *
+ * ⭐ A mixed bed is weighted: half peat and half oak reads half as
+ * smoky, which is both true and the thing a maltster actually controls.
+ */
+function fireImpartsFor(maker: Stuff): AromaTag[] {
+  if (!MixinApi.isThermal(maker)) return [];
+  const fire = maker.reachableHeatSource();
+  if (fire === null) return [];
+  const total = fire.fuelRemaining();
+  if (!(total > 0)) return [];
+  const out: AromaTag[] = [];
+  for (const material of fire.fuelMaterials()) {
+    const tags = material.getCombustionImparts();
+    if (tags.length === 0) continue;
+    const share = fire.fuelShareOf(material);
+    if (!(share > 0)) continue;
+    for (const tag of tags) {
+      out.push({ ...tag, amount: tag.amount * share });
+    }
+  }
+  return out;
+}
+
 async function applyBulkOutput(
   output: Stuff,
   recipe: Recipe,
@@ -1365,6 +1434,7 @@ async function applyBulkOutput(
   effectiveHeatK = 0,
   makerPath = '',
   deliveredHeatK: number = effectiveHeatK,
+  fireImparts: AromaTag[] = [],
 ): Promise<void> {
   const outSlot = BulkableApi.slotFor(output, undefined);
   if (!outSlot) {
@@ -1413,8 +1483,71 @@ async function applyBulkOutput(
     // ⚠ Identity only. No `composition` is set, so derived toxicity
     // still falls back to the Material row exactly as before — this
     // changes who a batch names, never what is in it.
-    if (makerPath) {
-      outSlot.setPayload({ ...(outSlot.getPayload() ?? {}), maker: makerPath });
+    //
+    // ⭐⭐ **And what the inputs CARRIED comes with them.** This branch
+    // used to set the maker and nothing else, which meant a recipe was
+    // the one way matter could move in this game **without its
+    // concentrations moving with it** — so a vatting recipe would have
+    // LAUNDERED the dose: two badly-cut bottles blended into one would
+    // come out reading clean, and the whole point of the cut being a
+    // skill with it. `BulkableApi.blendPayloads` is the same fold a pour
+    // runs; see its doc for the three call sites.
+    //
+    // ⚠ The destination's own held litres take part too, so topping up a
+    // vessel that already holds the material blends rather than
+    // replacing — the `held` arithmetic two lines up already said that
+    // about the VOLUME, and the payload has to agree.
+    let folded: BulkPayload | null =
+      held > 0 ? (outSlot.getPayload() ?? null) : null;
+    let foldedL = held;
+    for (const m of matched) {
+      folded = BulkableApi.blendPayloads(
+        m.slot.getPayload() ?? null,
+        m.measureL,
+        folded,
+        foldedL,
+      );
+      foldedL += m.measureL;
+    }
+    const carried: BulkPayload = { ...(outSlot.getPayload() ?? {}) };
+    if (folded?.dissolvedToxins) {
+      carried.dissolvedToxins = folded.dissolvedToxins;
+    } else delete carried.dissolvedToxins;
+    if (folded?.dissolvedAromatics) {
+      carried.dissolvedAromatics = folded.dissolvedAromatics;
+    } else delete carried.dissolvedAromatics;
+    // ⭐ What the WORKING itself adds, on top of what came in — the kiln's
+    // smoke. Additive, not volume-weighted: `imparts` is authored as the
+    // concentration in the OUTPUT, so 30 mg/L of smoke means the malt
+    // smells of smoke at 30 mg/L however much of it you made.
+    const imparts = recipe.getImparts();
+    if (imparts.length > 0) {
+      carried.dissolvedAromatics = addConcentrations(
+        carried.dissolvedAromatics,
+        imparts,
+      );
+    }
+    // ⭐⭐ …and what the FIRE adds, on top of what the working does. The
+    // smoke in peated malt comes from the fuel bed, so the same recipe
+    // over peat and over oak gives two different malts and there is one
+    // recipe row.
+    if (fireImparts.length > 0) {
+      carried.dissolvedAromatics = addConcentrations(
+        carried.dissolvedAromatics,
+        fireImparts,
+      );
+    }
+    // ⭐ A recipe's own appearance, which this branch IGNORED — see
+    // `applyAuthoredAppearance`.
+    const authoredLook = recipe.getOutputAppearance();
+    if (authoredLook) carried.appearance = authoredLook;
+    else delete carried.appearance;
+    if (makerPath) carried.maker = makerPath;
+    // Keep a payload-free output byte-identical to one from before this
+    // existed: a recipe that carries nothing, imparts nothing, authors no
+    // appearance and has no maker should not leave an empty object behind.
+    if (Object.keys(carried).length > 0 || outSlot.getPayload()) {
+      outSlot.setPayload(carried);
     }
     return;
   }
@@ -1423,8 +1556,16 @@ async function applyBulkOutput(
   const material = await StuffApi.singleton<Material>(GENERIC_MIXED_MATERIAL);
   outSlot.setMaterial(material);
   outSlot.setAmount(Quantity.of(totalL, 'L'));
-  outSlot.setPayload(
-    deriveBlendPayload(
+  // ⭐⭐ **The derived branch drops `imparts` and always did.** A recipe
+  // with no `outputMaterial` lands here, and until the fire build the
+  // branch computed its payload purely from the inputs — so a recipe that
+  // declared what the WORKING adds silently added nothing, and a derived
+  // blend worked over a peat fire came out clean.
+  //
+  // ⚠ Two sources, and they are different claims: `imparts` is what the
+  // ACT adds (authored per recipe) and the fire's is what the FUEL adds
+  // (authored per material, weighted by its share of the bed).
+  const derived = deriveBlendPayload(
       recipe.getRecipeId(),
       recipe.getOutputAppearance(),
       recipe.getKeywords(),
@@ -1450,8 +1591,15 @@ async function applyBulkOutput(
       ],
       effectiveHeatK,
       makerPath,
-    ),
-  );
+    );
+  const addedAromas = [...recipe.getImparts(), ...fireImparts];
+  if (addedAromas.length > 0) {
+    derived.dissolvedAromatics = addConcentrations(
+      derived.dissolvedAromatics,
+      addedAromas,
+    );
+  }
+  outSlot.setPayload(derived);
   // A cold bar mix carries its inputs' spoilage through unchanged — a
   // daiquiri made with yesterday's lime juice is made with yesterday's
   // lime juice, and nothing about shaking it says otherwise.
@@ -1488,11 +1636,36 @@ async function applyTangibleOutput(
   // matched, the material is the authored one and the mass is the summed
   // bulk (litres x each source material's density) — conservation exactly
   // as the item arm does it, over the other kind of matter.
+  // ⭐⭐ **And a tangible made of bulk that DERIVES its material.** The
+  // arm above needs `outputMaterial` authored; this one is the case where
+  // authoring it would be a lie. One recipe dips a candle, and what the
+  // candle is made of is **whatever fat was in the pot** — beeswax or
+  // tallow, one act, two materials, and a taper that smells of honey or
+  // of mutton accordingly.
+  //
+  // The rule the recipe doc already states for every other arm:
+  // *`outputMaterial` empty ⇒ the output material comes from the matched
+  // input.* The item arm has always done it (a steel bar makes a steel
+  // knife); the bulk arm threw instead, so the only way to make a candle
+  // was to weld one material onto the recipe and ship a second recipe for
+  // the other feedstock.
+  //
+  // ⭐ The precedent is in this same file, on the other mint path:
+  // `fix/2026-10-03-ordered-maker` found `applyBulkOutput` not stamping a
+  // maker that `mintVessel` already stamped — *"Two mint paths, and only
+  // one of them stamped the liquid; this is the other one agreeing."*
+  // This is two paths disagreeing about deriving a material, and this is
+  // the other one agreeing.
+  const bulkDerived = !primary && authoredMaterial.length === 0;
+  const primaryBulk = bulkDerived
+    ? (matched.find((m) => m.material) ?? null)
+    : null;
   const bulkOnly = !primary && authoredMaterial.length > 0;
-  if (!primary && !bulkOnly) {
+  if (!primary && !bulkOnly && !primaryBulk) {
     throw new Error(
       `CraftingLogic: tangible output '${recipe.getOutputTemplate()}' ` +
-        `resolved with no matched item input and no 'outputMaterial'`,
+        `resolved with no matched item input, no 'outputMaterial', and no ` +
+        `bulk input to take a material from`,
     );
   }
   if (!MixinApi.isTangible(output)) {
@@ -1519,9 +1692,11 @@ async function applyTangibleOutput(
   // The bulk-only arm (a loaf from dough) is the same rule with no item
   // to fall back on: the authored material, and the mass summed over the
   // bulk by each source material's density.
-  if (bulkOnly) {
+  if (bulkOnly || primaryBulk) {
     output.setMaterial(
-      await StuffApi.singleton<Material>(authoredMaterial),
+      primaryBulk
+        ? primaryBulk.material!
+        : await StuffApi.singleton<Material>(authoredMaterial),
     );
     for (const m of matched) {
       const density = m.material?.getDensity().rawValue() ?? 1000;
@@ -1654,6 +1829,7 @@ async function applyEdibleOutput(
   effectiveHeatK: number,
   makerPath = '',
   deliveredHeatK: number = effectiveHeatK,
+  fireImparts: AromaTag[] = [],
 ): Promise<void> {
   const outSlot = BulkableApi.slotFor(output, undefined);
   if (!outSlot) {
@@ -1684,6 +1860,7 @@ async function applyEdibleOutput(
     if (makerPath) {
       outSlot.setPayload({ ...(outSlot.getPayload() ?? {}), maker: makerPath });
     }
+    addAromasTo(outSlot, recipe, fireImparts);
     applySpoilage(
       outSlot,
       outputMicrobialLoad(effectiveHeatK, recipe.getHoldS(), matched, matchedItems),
@@ -1712,11 +1889,38 @@ async function applyEdibleOutput(
       makerPath,
     ),
   );
+  addAromasTo(outSlot, recipe, fireImparts);
   applySpoilage(
     outSlot,
     outputMicrobialLoad(effectiveHeatK, recipe.getHoldS(), matched, matchedItems),
   );
   applyDoneness(outSlot, recipe, deliveredHeatK);
+}
+
+/**
+ * ⭐⭐ Fold what the ACT adds (`recipe.imparts`) and what the FIRE adds
+ * (the fuel's `combustionImparts`, weighted by its share of the bed) into
+ * a slot's aromatics.
+ *
+ * ⚠ **`applyEdibleOutput` handled NEITHER**, and it is the branch cooking
+ * actually takes — so a recipe declaring `imparts:` on an edible output
+ * added nothing, silently, and smoking meat over a peat fire gave clean
+ * meat. One helper, three branches, so the next output kind cannot
+ * quietly miss it.
+ */
+function addAromasTo(
+  outSlot: BulkSlot,
+  recipe: Recipe,
+  fireImparts: readonly AromaTag[],
+): void {
+  const added = [...recipe.getImparts(), ...fireImparts];
+  if (added.length === 0) return;
+  const payload: BulkPayload = { ...(outSlot.getPayload() ?? {}) };
+  payload.dissolvedAromatics = addConcentrations(
+    payload.dissolvedAromatics,
+    added,
+  );
+  outSlot.setPayload(payload);
 }
 
 /**
@@ -1986,6 +2190,16 @@ async function mintFromBuildImpl(req: BuildMintRequest): Promise<CraftOutcome> {
     const base = recipe.getBaseGrade();
     if (base) grade = grade.max(base);
   }
+  // ⭐⭐⭐ Did the method suit the meat? One band, either way.
+  //
+  // ⚠ Here, at the ONE place a build's grade is derived, rather than in
+  // the vessel sub-path: a workpiece mint and an edible mint both come
+  // through this line, so a single hook cannot be bypassed by a route.
+  grade = applyMethodFit(
+    grade,
+    recipe,
+    req.contributions.map((c) => c.materialPath),
+  );
 
   // Resolve the maker. Prefer a live acting author (completed-sync /
   // tests); fall back to the dispatch-captured `makerPath` for the normal
@@ -2010,6 +2224,66 @@ async function mintFromBuildImpl(req: BuildMintRequest): Promise<CraftOutcome> {
     if (cap > 0 && cap < effectiveHeatK) effectiveHeatK = cap;
   }
   return mintVessel(req, recipe, grade, makerPath, makerStuff, effectiveHeatK);
+}
+
+/**
+ * ⭐⭐⭐ **The cooking law: does the METHOD suit the MEAT?**
+ *
+ * A muscle that works carries connective tissue; collagen gelatinizes
+ * only under long, moist heat. So a shoulder braises and a loin sears,
+ * and getting it the wrong way round ruins the dish — real food science,
+ * and **predictable without a table**.
+ *
+ * ⭐⭐ **It reads the MATERIAL, not the cut object**, and that is both
+ * simpler and the engine's own law (`response = f(mechanism, material,
+ * construction)`). A cut's `_materialPath` IS its muscle, so this works
+ * on the one-shot craft path (which has the matched items) and on the
+ * by-hand build path (whose contributions are snapshots carrying only a
+ * `materialPath`) — one implementation, both routes, and no laundering
+ * route where a stewed loin comes out ungraded because it went through a
+ * pot.
+ *
+ * The method is read off the recipe with **no new field anywhere**:
+ * `medium: water` plus a long `holdS` is `long-moist`, anything else is
+ * `fast-dry`. That vocabulary already existed to model a phase ceiling,
+ * and it turns out to describe the method exactly.
+ *
+ * ⚠ **One band of grade, and that is the whole consequence.** Not a
+ * refusal and not a destroyed dish: a stewed loin is still dinner, just a
+ * worse one than it should have been. ⭐ And the fit is ASYMMETRIC,
+ * because the mistakes are not — a tough cut cooked fast is inedible
+ * where a tender cut braised is merely wasted (`Texture.fit`).
+ *
+ * ⚠ Anything that is not a muscle is untouched: bread is not graded on
+ * whether you braised it.
+ */
+function applyMethodFit(
+  grade: Grade,
+  recipe: Recipe | null,
+  materialPaths: readonly (string | null | undefined)[],
+): Grade {
+  if (!recipe) return grade;
+  const method: CookingMethod = new CookingAttempt(
+    recipe.getMedium(),
+    recipe.getAuthoredHoldS(),
+  ).method();
+  let net = 0;
+  for (const path of materialPaths) {
+    if (!path) continue;
+    const material = StuffApi.findByTemplatePath(path);
+    if (!material || !MixinApi.isMuscle(material)) continue;
+    net += new Texture(material.getWork()).fit(method);
+  }
+  if (net === 0) return grade;
+  // ⚠ Two cuts of opposite texture in one pot net to nothing, which is
+  // the honest answer: you cooked one well and the other badly.
+  const shifted = Grade.fromOrdinal(
+    Math.max(
+      0,
+      Math.min(Grade.BANDS.length - 1, grade.getOrdinal() + (net > 0 ? 1 : -1)),
+    ),
+  );
+  return shifted;
 }
 
 /**
@@ -2511,6 +2785,7 @@ async function craftImpl(req: CraftRequest): Promise<CraftOutcome> {
       workingHeatK,
       maker.getTemplatePath() ?? '',
       deliveredHeatK,
+      fireImpartsFor(maker),
     );
   } else {
     await applyBulkOutput(
@@ -2521,6 +2796,7 @@ async function craftImpl(req: CraftRequest): Promise<CraftOutcome> {
       workingHeatK,
       maker.getTemplatePath() ?? '',
       deliveredHeatK,
+      fireImpartsFor(maker),
     );
     const outSlot = BulkableApi.slotFor(output, undefined)!;
     await finishGlass(

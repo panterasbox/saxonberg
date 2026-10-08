@@ -225,6 +225,27 @@ persist) and never found by the room's overlay (`placedIn` had no row).
 Found by restarting the server; with it a bole and its logs survive a
 cold restart on the floor where they fell.
 
+### ⭐⭐ Bark — the fourth yield, and it is PER-SPECIES (2026-10-05)
+
+A felling drops bark beside the bole when the stand's entry for that
+species authors `barkPath`, and nothing when it does not.
+
+⭐ **The point is that it is a species fact, not a felling fact.**
+Tannin is in oak bark and almost nowhere else worth getting — which is
+why Medieval Latin *tannum* means *crushed oak bark* and the chemical is
+**named after the bark** rather than the other way round. So an oak gives
+bark and a birch gives none, and the asymmetry is authored in the one
+place that knows which tree this is. ⚠ `barkPath` absent is the
+**ordinary** case: a species that authors none simply drops no bark, and
+nothing anywhere has to say *"this tree has no useful bark"*.
+
+⚠ It is declared exactly as `butcheryYield` is, and for the same reason —
+a yield that varies by the organism belongs on the organism. Its consumer
+is the tanpit (`trade-tanning`), which is why bark shipped with the
+carcass chain rather than with this trade: ⭐ **a yield with no sink is
+the dead end that build existed to close**, so the bark and the tannery
+had to arrive together. See [butchery.md](./butchery.md).
+
 Refusals (`controller-rejected`): `no-axe`, `wrong-tool`, `no-stand`,
 `no-such-species`, `stand-empty` (*"There is nothing left here that is
 worth the axe"*), `not-a-tree`, `not-a-standard`, `not-yet-a-tree`,

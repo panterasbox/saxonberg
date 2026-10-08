@@ -38,13 +38,13 @@ data:
     and the ground either side is beaten flat and black with ash.
   burnTemperatureK: 390
   bellowsMultiplier: 1
-  fuelBurnRatePerMin: 0.8
   lit: false
   mass: 1600
-  reserves:
-    fuel:
-      capacityValue: 100
-      currentValue: 100
-      unit: "%"
-      theme: combustion
-      floorEffect: null
+  # ⭐ The fire build: fuel is a BED (kilograms, by material) that
+  # `stoke` fills, and the vessel's size is a POWER rather than a
+  # percentage-per-minute of nothing. What it reaches depends on what
+  # is in it.
+  # 12 kW and a long bed: an arch is built to boil forty gallons down,
+  # which is why it takes cordwood by the armful.
+  maxBurnPowerW: 12000
+  fuelCapacityKg: 80

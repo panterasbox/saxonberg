@@ -25,6 +25,12 @@ data:
   _materialPath: /stuff/idea/material/alloy/steel
   interiorBulk: true
   interiorCapacity: 40
-  closure: none
+  # ⚠⚠ `open`, and it said `none` until the fire build — which is not a
+  # `ClosureLevel`. `CLOSURE_ORDER['none']` is `undefined`, the comparison
+  # yields `NaN`, and `NaN < 0` is **false**, so the drain-through arm
+  # never fired and this vessel RETAINED LIQUID AS THOUGH IT WERE LIDDED.
+  # ⭐ `setClosure` throws on an unknown rung now, so a row like that
+  # fails its own hydration instead of quietly inverting its own prose.
+  closure: open
   open: true
   mass: 60

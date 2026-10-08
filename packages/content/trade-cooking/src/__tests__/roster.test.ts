@@ -16,6 +16,8 @@
  */
 
 import '@saxonberg/server/test-bootstrap';
+import { chargeHot } from '@saxonberg/server/mud/lib/fire/__tests__/burner-fuel';
+import type { Burner } from '@saxonberg/server/mud/lib/fire/Burner';
 import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest';
 import { readdirSync, readFileSync, existsSync } from 'fs';
 import { fileURLToPath } from 'url';
@@ -153,6 +155,16 @@ function contentRows(): Row[] {
     ...yamlDir('generic-objects', 'stuff/thing/fixture', '/stuff/thing/fixture'),
     ...yamlDir('trade-farming', 'trade/farming/idea/material', '/trade/farming/idea/material'),
     ...yamlDir('trade-farming', 'trade/farming/thing', '/trade/farming/thing'),
+    // ⭐ The ranching rows the fat chain starts from. `render-tallow`
+    // takes SUET now (carcass chain D3) — it used to take `category: meat`
+    // and render tallow out of the stew meat, which is the one thing on a
+    // carcass you actually want to eat.
+    ...yamlDir('trade-ranching', 'trade/ranching/thing', '/trade/ranching/thing'),
+    ...yamlDir(
+      'trade-ranching',
+      'stuff/idea/material/food',
+      '/stuff/idea/material/food',
+    ),
     ...yamlDir('trade-cooking', 'trade/cooking/idea/material', `${ROOT}/idea/material`),
     ...yamlDir('trade-cooking', 'trade/cooking/thing', `${ROOT}/thing`),
   ];
@@ -211,15 +223,8 @@ function hearth(): Oven {
   return makeStuff(() => {
     const o = new Oven();
     o.setBurnTemperatureK(900);
-    o.setReserve(
-      new Reserve(
-        'fuel',
-        Quantity.of(100, '%'),
-        Quantity.of(100, '%'),
-        'combustion',
-        null,
-      ),
-    );
+    // ⭐ A charge in the bed, not a percentage of nothing.
+    chargeHot(o as unknown as Stuff & Burner, 40);
     o._setLit(true);
     return o;
   });
@@ -272,6 +277,11 @@ async function stockKitchen(): Promise<void> {
   // Stock: roots, meat, rations, orchard fruit, olives.
   for (let i = 0; i < 12; i++) await stock('/stuff/thing/items/root-vegetables');
   for (let i = 0; i < 11; i++) await stock('/stuff/thing/items/stew-meat');
+  // ⭐ SUET, and it is a different thing from meat (carcass chain D3).
+  // `render-tallow` used to take `category: meat` — so you rendered your
+  // tallow out of the stew meat, which is the one thing on a carcass you
+  // actually want to eat. A carcass gives suet; suet is what renders.
+  for (let i = 0; i < 3; i++) await stock('/trade/ranching/thing/suet');
   await stock('/stuff/thing/items/prime-cut');
   await stock('/stuff/thing/items/ration-stock');
   for (let i = 0; i < 3; i++) await stock('/trade/farming/thing/cherry');
@@ -331,18 +341,30 @@ describe('trade-cooking — the roster resolves (AC12)', () => {
 });
 
 describe('⭐⭐ requirement 19 — the unauthored hold, and what the grain chain changed about it', () => {
-  it('every recipe that shipped before holds existed still AUTHORS no hold', () => {
+  it('all but ONE of the pre-hold recipes still author no hold', () => {
     const cat = StuffApi.findByTemplatePath<RecipeCatalogue>(
       '/platform/idea/RecipeCatalogue',
     )!;
-    // The ROWS are untouched: none of the fourteen that predate holds has
-    // gained one, so nothing about what these recipes CLAIM has changed.
     const preExisting = ROSTER.filter(
       (id) => id !== 'seared-cut' && id !== 'warmed-through',
     );
     expect(preExisting.length).toBe(14);
     for (const id of preExisting) {
       const r = cat.allRecipes().find((x) => x.getRecipeId() === id)!;
+      // ⭐⭐ **`hearty-stew` AUTHORS a hold now, and the butchery build is
+      // why.** The cooking law reads `medium: water` plus a long hold as
+      // a BRAISE — the thing that rewards a working muscle — and a
+      // recipe riding the universe default was claiming to be a quick
+      // simmer. A braise has to say it is a braise, or a shoulder stewed
+      // in it would be graded no better than a shoulder seared.
+      //
+      // ⚠ This test's older claim ("nothing about what these recipes
+      // CLAIM has changed") was a characterisation of history, and it is
+      // deliberately no longer true of this one row.
+      if (id === 'hearty-stew') {
+        expect(r.getAuthoredHoldS(), id).toBe(7200);
+        continue;
+      }
       expect(r.getAuthoredHoldS(), id).toBe(0);
     }
   });

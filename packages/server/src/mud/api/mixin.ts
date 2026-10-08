@@ -108,6 +108,7 @@ import type { Alloyed } from '../lib/material/Alloyed';
 import type { Contaminable } from '../lib/material/Contaminable';
 import type { Growing } from '../lib/husbandry/Growing';
 import type { Maturing } from '../lib/maturation/Maturing';
+import type { Fractionating } from '../lib/fractionation/Fractionating';
 import type { Plantable } from '../lib/husbandry/Plantable';
 import type { Soil } from '../lib/husbandry/Soil';
 import type { Handling } from '../lib/husbandry/Handling';
@@ -121,6 +122,8 @@ import type { SpaceHeating } from '../lib/thermal/SpaceHeating';
 import type { PublicLighting } from '../lib/perception/PublicLighting';
 import type { Respiration } from '../lib/respiration/Respiration';
 import type { Radioactive } from '../lib/material/Radioactive';
+import type { Muscle } from '../lib/butchery/Muscle';
+import type { Cut } from '../lib/butchery/Cut';
 import type { Workspace } from '../lib/shell/Workspace';
 import type { Author } from '../lib/shell/Author';
 import type { Perceiver } from '../lib/description/Perceiver';
@@ -169,6 +172,7 @@ import type { Soul } from '../lib/social/Soul';
 import type { WarrenMember } from '../lib/location/WarrenMember';
 import type { Offstage } from '../lib/employment/Offstage';
 import type { BeliefStore } from '../lib/belief/BeliefStore';
+import type { Cartographer } from '../lib/location/Cartographer';
 import type { Disguisable } from '../lib/disguise/Disguisable';
 import type { DisguiseBearing } from '../lib/disguise/Disguise';
 import type { Status } from '../lib/status/Status';
@@ -1485,6 +1489,15 @@ export class MixinApi {
   }
 
   /**
+   * A host whose interior yields in ordered fractions as it is drawn —
+   * a pot still, a rectifying column. ⭐ Maturing's sibling: that one is
+   * driven by a clock, this one by the volume you have taken out.
+   */
+  public static isFractionating(obj: Stuff): obj is Stuff & Fractionating {
+    return this.hasMixin(obj, Mixins.Fractionating);
+  }
+
+  /**
    * Can this be put in the ground? The `plant` verb's kind gate —
    * the capability, not the `Seed` class, so a future cutting / tuber /
    * bulb is plantable without extending `Seed`.
@@ -1581,6 +1594,27 @@ export class MixinApi {
 
   public static isRadioactive(obj: Stuff): obj is Stuff & Radioactive {
     return this.hasMixin(obj, Mixins.Radioactive);
+  }
+
+  /**
+   * ⭐ Is this Material MEAT — a muscle that worked, and therefore
+   * carries the `work` a cut's texture derives from?
+   *
+   * The generic `tissue/muscle` row is NOT one: it is a plain `Material`
+   * used by organs and by the plans that name no cuts, so a narrowing
+   * here is the difference between "there is muscle here" and "this is
+   * the loin".
+   */
+  public static isMuscle(obj: Stuff): obj is Stuff & Muscle {
+    return this.hasMixin(obj, Mixins.Muscle);
+  }
+
+  /**
+   * ⭐ Is this a CUT — a piece of meat that knows which muscles it is,
+   * and therefore what it weighs and how it wants cooking?
+   */
+  public static isCut(obj: Stuff): obj is Stuff & Cut {
+    return this.hasMixin(obj, Mixins.Cut);
   }
 
   public static isPersistable(obj: Stuff): obj is Stuff & Persistable {
@@ -1746,6 +1780,18 @@ export class MixinApi {
 
   public static isBeliefStore(obj: Stuff): obj is Stuff & BeliefStore {
     return this.hasMixin(obj, Mixins.BeliefStore);
+  }
+
+  /**
+   * ⭐ A host that keeps a map of the places it comes to know. The
+   * perceiver narrows with this and calls `recordSurroundings` /
+   * `recordTimetableRead` directly — the same shape as
+   * `isBeliefStore` + `learnIdentityOf` beside it, which is the point:
+   * map-keeping used to be reached through a one-implementer optional
+   * `@hook` and a structural cast instead.
+   */
+  public static isCartographer(obj: Stuff): obj is Stuff & Cartographer {
+    return this.hasMixin(obj, Mixins.Cartographer);
   }
 
   public static isDisguisable(obj: Stuff): obj is Stuff & Disguisable {

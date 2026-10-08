@@ -8,9 +8,39 @@
  * Type-level statics — construction (`Quantity.of`, `Currency.parse`),
  * guards over the type's own closed vocabulary (`Construction.isForm`)
  * and lookups of it (`Currency.all`) — **stay on the value class**, and
- * as of W2 the author-surface projection admits them as their own
- * `value-static` kind. They were never the problem; being *invisible*
- * was, and they are visible now.
+ * the projection files them under a `value-static` kind.
+ *
+ * ⛔⛔ **That sentence used to end "…and they are visible now", and it is
+ * NOT TRUE. Do not use it to justify a new static.** `value-static` is a
+ * **catch-all**, not a curated admission:
+ *
+ * ```ts
+ * const isValueStatic =
+ *   !isStaticApi && !isStuffMethod && mod.name.startsWith("mud/") && !sealedSubdir;
+ * ```
+ *
+ * Anything that is neither an Api static nor a Stuff instance method and
+ * lives under `mud/` lands in it. So the label means *this member was
+ * left over*, and citing the bucket that collects the invisible members
+ * as proof of visibility is circular. The whiskey-styles build raised the
+ * ceiling on exactly that reasoning before anyone checked (2026-10-06).
+ *
+ * ⭐⭐ **The question to ask instead is WHO CALLS IT.** The two places a
+ * person searches are **public methods on Stuff/mixin classes** (most
+ * arriving via a mixin) and **statics in the Api layer**. Both are
+ * queryable; a static on an arbitrary `lib/` class is in neither, which
+ * is the whole injury. So:
+ *
+ *   - **an author calls it** → it belongs on an **Api** (or is already
+ *     reachable through one, in which case this static is plumbing);
+ *   - **only `lib/` and `platform/idea/api/` call it** → it is not
+ *     author surface at all, and the honest disposition is a class-level
+ *     **`@internal`** — counted separately, excluded from the ceiling,
+ *     invisible *because its author said so*.
+ *
+ * ⚠ **A ratchet rise wants a caller audit, not a doctrine quotation.**
+ * Being type-level makes a static legitimate to EXIST; it does not make
+ * it discoverable, and it is no argument for growing the population.
  *
  * ⭐ World-level statics are the sweep: `Freshness.growthRate`,
  * `Contamination.advance`, `CombatNarration.narrate` compute facts about
@@ -103,7 +133,111 @@ const REPO_ROOT = join(MUD, '../../../..');
  * hue). An Api home would be wrong for a value-object factory. The
  * ratchet still only falls from here.
  */
-export const LIB_STATICS_CEILING = 339;
+/**
+ * ⚠ **Raised 337 → 342 by the whiskey build (2026-10-04), and the
+ * arithmetic is the whole justification.** Five statics, each one the
+ * twin of a static this census already counts:
+ *
+ *   - `DissolvedToxins.blend` / `.isClean` / `.surviving` — the fourth
+ *     member of a family of four. `Freshness.blendLoads`,
+ *     `WaterActivity.blend` and `Contamination.blend`/`.isClean` are
+ *     already here, and a toxin concentration that blended by a different
+ *     rule from the microbial load riding the same matter would be a bug
+ *     waiting to be found. ⭐ The generalisation this family actually
+ *     wants is the participant hook `bulk.md` and `maturation.md` both
+ *     name — the transfer primitive is at EIGHT domain insertions now —
+ *     and that refactor is filed as a slate entry rather than done
+ *     inside a feature build.
+ *   - `FractionSchedule.byKey` / `.forMaterial` — the roster lookups,
+ *     verbatim the `MaturationProfile` pair two subsystems over, with
+ *     `all()` private for `lint:whole-table`.
+ *
+ * ⭐ This is the shape memory warns about: *a ratchet over a figure that
+ * scales with CONTENT refuses an author for doing it right.* A new
+ * subsystem's value object and row class are growth, not drift, and the
+ * number to watch is whether the family of four becomes a family of five
+ * — which is the hook's job, not a ceiling's.
+ */
+/**
+ * ⭐⭐ **LOWERED 342 → 339 by the whiskey-styles build (2026-10-06), and
+ * the first draft of that build raised it to 347 instead.** Recording
+ * both numbers because the wrong one is the instructive one.
+ *
+ * The build added five statics (`Concentration.blend`/`.isClean`,
+ * `DissolvedAromatics.isAroma`/`.thresholdFor`/`.render`) and raised the
+ * ceiling to fit them, justified as *"type-level statics, which this
+ * file's own doctrine says stay on the value class and which the
+ * projection documents as `value-static`."*
+ *
+ * ⚠⚠ **That justification was wrong, and wrong in a way worth writing
+ * down.** The `value-static` kind is a **catch-all**, not a curated
+ * admission:
+ *
+ * ```ts
+ * const isValueStatic =
+ *   !isStaticApi && !isStuffMethod && mod.name.startsWith("mud/") && !sealedSubdir;
+ * ```
+ *
+ * Anything that is neither an Api static nor a Stuff instance method and
+ * lives under `mud/` lands in it. So "the projection documents them" means
+ * *they appear in a JSON file under a residual label* — **not** that
+ * anybody can find them. And finding them is the entire point: the two
+ * places a person searches are **public methods on Stuff/mixin classes**
+ * (most arriving via a mixin) and **statics in the Api layer**. Both are
+ * queryable. A static on an arbitrary `lib/` class is in neither, which is
+ * the invisibility this gate exists to stop — and citing the bucket that
+ * collects the invisible ones as proof of visibility is circular.
+ *
+ * ⭐ **The honest disposition was already here and went unused:
+ * class-level `@internal`** (see `statsOf`). It is counted separately,
+ * excluded from the ceiling, and means *invisible because its author said
+ * so*. So the five were re-examined by CALLER, which is the question that
+ * settles it:
+ *
+ * | class | every caller | author surface? |
+ * |---|---|---|
+ * | `Concentration` | `DissolvedToxins`, `DissolvedAromatics`, `BulkableLogic`, `Fractionating` | no |
+ * | `DissolvedAromatics` | `Recipe` (row validation), `Palatable`, `Fractionating` | no |
+ * | `DissolvedToxins` | `BulkableLogic`, `Fractionating`, `Metabolic` | no |
+ *
+ * Not one is author surface. What an author actually reaches is
+ * `BulkableApi.blendPayloads` — an Api static — and the readings, which
+ * arrive through `smell` / `taste` on a mixin. Both queryable, both
+ * unchanged. All three classes are `@internal` now, which takes the
+ * surface count to **339: three BELOW where this build found it**,
+ * because `DissolvedToxins` predated the sibling and had never been
+ * marked.
+ *
+ * ⚠ Three routes considered and declined, recorded so they are not
+ * re-proposed:
+ *
+ *   - **instance methods instead of statics** — moves them out of this
+ *     count and into the `stuff-method` bucket, but that bucket means
+ *     *an author calls this on an object*, which would be a lie here.
+ *     Gaming the gate rather than answering it.
+ *   - **a new Api** — a per-concept Api, which the project does not mint;
+ *     there is no metabolism Api to host a vocabulary guard.
+ *   - **folding the arithmetic into `BulkableLogic`** — puts a metabolism
+ *     vocabulary inside the bulk logic singleton, restoring the exact
+ *     `lib/bulk` → `lib/metabolism` edge the payload decomposition
+ *     removed.
+ *
+ * ⭐ The standing lesson: **a ratchet rise wants a caller audit, not a
+ * doctrine quotation.** Five rises had landed on this branch before
+ * anybody asked who calls the things.
+ */
+/**
+ * ⭐ **Glass build, merged onto the whiskey-styles 339 (2026-10-08): +2 →
+ * 341.** The two `Colour` TYPE-level statics (`fromTag`, `normalised`)
+ * were authored against the pre-whiskey 337 (see the glass note above),
+ * so on this branch the rise read 337 → 339; rebased over master's
+ * independent 342 → 339 lowering, the same two statics now sit on top of
+ * 339 and take it to 341. The caller audit stands: `fromTag` is reached
+ * by `Window.lightTransmittance` + the colour tests, `normalised` by the
+ * light walk + `Light.add` — a value-object factory/lookup, the category
+ * this file's own doctrine admits, not world logic wanting a `*Logic`.
+ */
+export const LIB_STATICS_CEILING = 341;
 
 const STATIC =
   /^\s*(?:public\s+)?static\s+(?:async\s+)?(?!readonly\b|get\b|set\b|_)([a-zA-Z]\w*)\s*[(<]/;
@@ -115,14 +249,31 @@ const STATIC =
  * framework calls them.
  *
  * ⚠ The full set is found by grepping the framework for reflective
- * access (`hasOwnProperty.call(c, '…')`): `fieldMeta` ·
- * `subscribableFields` · `markupAugmenters` · `cleanupOnDestruct` ·
- * `captureSlice` · `restoreSlice` · `settings`. The last three are
- * declared inside mixin factories, which this census already excludes,
- * so only the first four can reach it. ⭐ `cleanupOnDestruct` was being
- * counted as a movable static — making it private would have silently
- * broken destruct cleanup, because `StuffApi` finds it with
+ * access (`hasOwnProperty.call(c, '…')`). ⭐ `cleanupOnDestruct` was
+ * being counted as a movable static — making it private would have
+ * silently broken destruct cleanup, because `StuffApi` finds it with
  * `hasOwnProperty`, not with an import.
+ *
+ * ⚠⚠ **Re-derived from that grep on 2026-10-05, and it had drifted** —
+ * which is this file's own documented failure class (*a ratchet with a
+ * hole in it*, *gates ship broken and silently pass*). The hydration
+ * build added two names the framework reads by name
+ * (`MixinApi.getPersistenceContributors`, `api/mixin.ts`) and the list
+ * was never updated:
+ *
+ *   - **`hydrateFromSource`** — *fill the newborn from what the world
+ *     remembered about it*, run by `StuffApi.#hydrateFromSources`
+ *     between the content step and `onCreate`. It cannot be anything
+ *     but a static read by name, and there is no compliant alternative
+ *     shape to fold it into.
+ *   - **`hydrateSlice`** — the restore half of the persistence slice.
+ *     Note the list said **`restoreSlice`**, which the framework does
+ *     not read by that name at all; the stale entry is kept because
+ *     removing it would be a second change and it exempts nothing.
+ *
+ * `hydrationSource` and `_mixinName` are static FIELDS, and
+ * `__validateComposition__` is `_`-adjacent — none matches the
+ * method-shaped `STATIC` regex, so none can reach the census.
  */
 const FRAMEWORK = new Set([
   'fieldMeta',
@@ -131,6 +282,8 @@ const FRAMEWORK = new Set([
   'cleanupOnDestruct',
   'captureSlice',
   'restoreSlice',
+  'hydrateSlice',
+  'hydrateFromSource',
   'settings',
 ]);
 
@@ -324,10 +477,23 @@ function main(): void {
     console.error(
       `\n✖ lint:lib-statics — ${total} public static(s) on ${rows.length} ` +
         `non-Api class(es); the ceiling is ${LIB_STATICS_CEILING}.\n\n` +
-        `  Ask of the new one: does it answer a question about the TYPE ` +
-        `or about the WORLD? Type-level (construction, a guard over the ` +
-        `type's own vocabulary, a lookup of it) belongs here and is ` +
-        `documented as a value-static — but the population may not GROW ` +
+        `  ⭐ Ask WHO CALLS IT, not what shape it is. The two places a ` +
+        `person searches are public methods on Stuff/mixin classes and ` +
+        `statics in the Api layer; a static on an arbitrary lib/ class ` +
+        `is in neither, which is the whole injury.\n\n` +
+        `    an author calls it   -> it belongs on an Api (or is already ` +
+        `reachable through one, in which case this static is plumbing)\n` +
+        `    only lib/ + platform/idea/api/ call it -> it is NOT author ` +
+        `surface: give the CLASS a @internal doc tag, which is counted ` +
+        `separately and excluded from this ceiling\n\n` +
+        `  ⛔ Do NOT justify it as "a type-level static, documented as a ` +
+        `value-static". That bucket is the projection's CATCH-ALL ` +
+        `(!isStaticApi && !isStuffMethod && mud/ && !sealed), so it ` +
+        `collects exactly the members nobody classified — citing it as ` +
+        `proof of visibility is circular, and it is what justified five ` +
+        `ceiling rises on one branch.\n\n` +
+        `  ⚠ Being the right shape for the class says the member may ` +
+        `EXIST; it says nothing about whether the population may grow ` +
         `while the sweep runs. World-level logic belongs on a ` +
         `platform/idea/api/<X>Logic.ts logic singleton with the ` +
         `subsystem's Api forwarding. The ceiling may fall; it may never ` +

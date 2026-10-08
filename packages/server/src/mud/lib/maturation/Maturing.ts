@@ -62,6 +62,7 @@ import type { AnyConstructor } from '../../api/mixin';
 import type { MarkupAugmenter } from '../../api/mml';
 import type { Stuff } from '../stuff/Stuff';
 import type Material from '../material/Material';
+import type { BulkAffordance, BulkPayload } from '../bulk/Bulkable';
 import type MaturationProfile from './MaturationProfile';
 import { MATURATION_LINES } from './MaturationProfile';
 import type { Crafted } from '../craft/Crafted';
@@ -121,70 +122,41 @@ const CULTURE_HOT_FACTOR = 3;
 const DEFAULT_PITCH_KILL_K = 313;
 
 // ── the cellar CO₂ (P11/D12): a working ferment displaces air ──
-/** Air-reserve percentage points a converting batch displaces per day. */
-const CO2_AIR_DRAIN_PCT_PER_DAY = 30;
-/** Percentage points a ventilated room recovers per day. */
-const CO2_AIR_RECOVER_PCT_PER_DAY = 400;
-/** Below this air %, the room's atmosphere flips to carbon dioxide. */
-const CO2_UNBREATHABLE_AT_PCT = 40;
+/**
+ * Litres of carbon dioxide a converting batch breathes into the room per
+ * day. ⭐ Was three `%`-of-a-Reserve constants and a sentinel write onto
+ * the room's atmosphere TAG; it is one emission now, into the same medium
+ * a fire fills, cleared by the same derived ventilation. The ferment and
+ * the fire were always doing the same thing to the same air — they just
+ * had two copies of the idiom, both of which encoded *"only overlay null,
+ * only clear my own tag"* and both of which broke the moment the tag was
+ * not the sole source of truth.
+ */
+const CO2_LITRES_PER_DAY = 5000;
+
+/** The gas a ferment breathes out. The fire's dial names the same row. */
+const CO2_MATERIAL_PATH = '/stuff/idea/material/gas/carbon-dioxide';
 
 /**
- * The cellar's CO₂ (P11): a converting batch displaces the room's
- * authored air reserve (the closed-kitchen mechanism, second consumer —
- * a room that authors no `air` reserve is open air and skips all of
- * this); a VENTILATED room (sky-exposed, or any unblocked exit whose
- * door stands open) recovers fast. Below the threshold the room's
- * atmosphere flips to `carbon-dioxide` (unbreathable — respiration's
- * medium crisis does the rest); recovery flips it back. Only ever
- * overlays a default (null) atmosphere and only clears its own — the
- * fire driver's idempotence rules.
+ * The cellar's CO₂ (P11): a converting batch puts carbon dioxide into the
+ * room it stands in, and the room's own openings carry it away. A
+ * sky-exposed scope accepts none; a shut cellar fills, and respiration's
+ * mixture check does the rest with no atmosphere tag written anywhere.
  */
 function reconcileCellarAir(
   vessel: Stuff,
   days: number,
   producing: boolean,
 ): void {
+  if (!producing || !(days > 0)) return;
   if (!MixinApi.isContainable(vessel)) return;
   const room = vessel.getContainer();
   if (room === null || !MixinApi.isContainer(room)) return;
-  if (!MixinApi.isReserved(room) || !room.hasReserve('air')) return;
-  const ventilated = roomVentilated(room);
-  const deltaPct =
-    (ventilated ? CO2_AIR_RECOVER_PCT_PER_DAY : 0) * days -
-    (producing ? CO2_AIR_DRAIN_PCT_PER_DAY * days : 0);
-  if (deltaPct !== 0) {
-    room.adjustReserve('air', Quantity.of(deltaPct, '%'));
-  }
-  const reserve = room.getReserve('air');
-  if (!reserve) return;
-  const capacity = reserve.capacity.rawValue();
-  if (capacity <= 0) return;
-  const pct = (reserve.current.rawValue() / capacity) * 100;
   if (!MixinApi.isAtmospheric(room)) return;
-  if (pct <= CO2_UNBREATHABLE_AT_PCT) {
-    if (room._atmosphere === null) room.setAtmosphere('carbon-dioxide');
-  } else if (room._atmosphere === 'carbon-dioxide') {
-    room.setAtmosphere(null);
-  }
-}
-
-/**
- * Is `room` ventilated — sky-exposed, or any unblocked exit whose door
- * (if any) stands open? The fire driver's ventilation rule, applied at
- * the ferment's own read (the fire tick only runs where fires burn).
- */
-function roomVentilated(room: Stuff): boolean {
-  if (MixinApi.isContainer(room) && BiomeApi.isSkyExposed(room)) return true;
-  if (!MixinApi.isExitable(room)) return false;
-  for (const exit of room.getExits().values()) {
-    if (exit.isBlocked()) continue;
-    const door = exit.getDoor();
-    if (door !== null && MixinApi.isSealable(door) && !door.isOpen()) {
-      continue;
-    }
-    return true;
-  }
-  return false;
+  room.addAtmosphereContent(
+    CO2_MATERIAL_PATH,
+    CO2_LITRES_PER_DAY * days,
+  );
 }
 
 /**
@@ -441,7 +413,76 @@ export function MaturingMixin<TBase extends MixinConstructor>(Base: TBase) {
       wildLagDays: { persistent: true, runtimeState: true },
       viability: { persistent: true, runtimeState: true },
       leesVolumeL: { persistent: true, runtimeState: true },
+      batchInputBand: { persistent: true, runtimeState: true },
+      // ⭐⭐ **`spoiler: 1`, and this is the one field in the build that
+      // needed it.** The whole cask wave makes a barrel's character
+      // something you learn by NOSING — competence-banded, in words,
+      // with no digit anywhere. A wiki composition panel printing
+      // `{vanilla 40, char 120, oak 15}` hands that over for free, with
+      // numbers, which is exactly what the no-gauge reading rules keep
+      // out of the player-facing read.
+      //
+      // `spoilerName: 0`, like its sibling `Recipe.imparts`: *that a
+      // cask gives its contents something* is open knowledge — a cooper
+      // would say so — and only the FIGURES are trade knowledge.
+      //
+      // ⚠ The reveal model fails OPEN (an untagged field is level 0), so
+      // an untagged spoiler leaks until somebody notices. The enumerating
+      // snapshot in `wiki-spoiler-fields.snapshot.test.ts` is what made
+      // somebody notice; that is the control working.
+      imparts: { persistent: true, authorable: true, spoiler: 1, spoilerName: 0 },
+      impartedFraction: { persistent: true, runtimeState: true },
+      batchDays: { persistent: true, runtimeState: true },
     };
+
+    /**
+     * ⭐⭐⭐ **What this VESSEL gives its contents over a batch**, mg/L at
+     * full conversion. The cask's character, and the reason a cask is a
+     * decision rather than a timer.
+     *
+     * ⚠ Why it is here and not on the profile. `MaturationProfile` keys
+     * on the LIQUID (`inputCategory`), so expressing "an oak cask and a
+     * charred cask do different things to new-make" as two profiles
+     * means two rows claiming the tag `new-make` — and `forMaterial`
+     * resolves a double match by taking the lowest key, silently. The
+     * alternative, a `vesselCategory` requirement on the profile,
+     * enumerates (liquids × vessels) rows.
+     *
+     * ⚠ And not on the WOOD material either: a charred first-fill cask
+     * and a plain third-fill cask are both oak. The difference is the
+     * vessel's own state and history, which is a fact about this cask.
+     *
+     * ⭐ What composing it CLAIMS: *a maturing vessel may give its
+     * contents a character over the course of a batch.* True of every
+     * vat — an oak fermenter does exactly this — and vacuous when a row
+     * authors none, so no guard anywhere re-narrows the host set.
+     *
+     * ⚠ Known coarseness, recorded rather than modelled: the figure is
+     * per litre regardless of fill level, so a small fill in a big cask
+     * ought to extract harder and does not.
+     */
+    public imparts: { type: string; amount: number }[] = [];
+
+    /**
+     * How much of {@link imparts} has already been written into the
+     * contents, as a fraction of the batch. The write is the DIFFERENCE
+     * each reconcile, so repeated reads are idempotent — the thing a
+     * reconcile-on-read gauge has to get right or the aroma climbs every
+     * time anybody looks at the cask.
+     */
+    public impartedFraction = 0;
+
+    /**
+     * ⭐ Game-days this batch has been in the vessel — the **age
+     * statement**, and the only number here a player ever sees rendered
+     * (as words, at `proficient`, in game-days).
+     *
+     * ⚠ It counts elapsed days, not converting days: a cask that stood
+     * too cold to work still SAT there, and "aged" means time passed,
+     * not work done. The grade is what reports whether the time was
+     * well spent.
+     */
+    public batchDays = 0;
 
     /** Game-seconds stamp of the last reconcile; `0` = never touched. */
     public maturationClockStamp = 0;
@@ -467,6 +508,27 @@ export function MaturingMixin<TBase extends MixinConstructor>(Base: TBase) {
     public viability = 1;
     /** Litres of lees under the rack floor (set at `finished`). */
     public leesVolumeL = 0;
+    /**
+     * ⭐⭐ **The grade the FILL carried in** — the ceiling on what this
+     * batch can become. `null` ⇒ nothing graded was poured in, so there
+     * is no cap.
+     *
+     * ⚠⚠ Without it `applyBatchGrade` wrote `bandFor(_worstStretch)` and
+     * ignored the fill entirely, so **a `poor` must made `fine` wine**
+     * provided the cellar was kept at the right temperature. That is not
+     * a feature of fermentation; it is a laundry, and it contradicted
+     * `Grade.deriveAtFixedControl`'s weakest-link doctrine one folder
+     * over. The whiskey build needed the same rule for a different
+     * reason — no amount of time in oak may turn a bad cut into good
+     * whiskey — and fixing it once fixes both.
+     *
+     * ⚠ Recorded by a WITNESS on `setGrade` while the batch is idle, and
+     * the idle guard is what makes it work: `applyBatchGrade` writes
+     * through the same setter every reconcile, and `GradedMixin`'s
+     * default band is `'fair'`, so reading the host's face at
+     * `startBatch` would cap every ungraded ferment at `fair` for ever.
+     */
+    public batchInputBand: string | null = null;
 
     /** Reentry guard (TS-private; proxy-safe — never `#`). */
     private _reconcilingFerment = false;
@@ -642,7 +704,28 @@ export function MaturingMixin<TBase extends MixinConstructor>(Base: TBase) {
                 reconcileCellarAir(self, days, rateAt(profile, tempK) > 0);
               }
             }
+            // ⭐⭐ **The cask writes its character**, additively and in
+            // step with the conversion. The write is the DIFFERENCE since
+            // the last reconcile, which is what makes a
+            // reconcile-on-read gauge idempotent: without the marker the
+            // oak would climb every time anybody so much as looked at
+            // the cask.
+            this.applyImparts();
+            this.batchDays += days;
             this.applyBatchGrade();
+            // ⭐⭐ **The product may exist BEFORE full conversion** — the
+            // whole of "when to bottle". A profile authoring
+            // `productAtFraction: 0.25` makes whiskey from a quarter of
+            // the way along, young and poor and sellable to nobody
+            // fussy; `applyBatchGrade`'s maturity term is what prices
+            // the impatience. Every shipped profile leaves it at 1, where
+            // this is the old behaviour exactly.
+            if (
+              this.fractionConverted >= profile.getProductAtFraction() &&
+              this.fractionConverted < 1
+            ) {
+              this.ensureInteriorMaterial(profile.getProductMaterial());
+            }
             if (this.fractionConverted >= 1) {
               this.maturationPhase = 'finished';
               this.leesVolumeL = amount * profile.getLeesFraction();
@@ -728,6 +811,8 @@ export function MaturingMixin<TBase extends MixinConstructor>(Base: TBase) {
       this.wildLagDays = 0;
       this.viability = 1;
       this.leesVolumeL = 0;
+      this.impartedFraction = 0;
+      this.batchDays = 0;
       this.maturationClockStamp = nowS;
       const material = StuffApi.findByTemplatePath<Material>(materialPath);
       if (!material) {
@@ -787,6 +872,10 @@ export function MaturingMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     private resetBatch(): void {
+      // ⚠ The input band is NOT cleared here. `resetBatch` runs when the
+      // vessel empties, and the very next thing that happens is a fresh
+      // fill whose `setGrade` witness overwrites it. Clearing would be
+      // harmless; not clearing keeps the one write path.
       this.maturationPhase = 'idle';
       this.maturationProfileKey = '';
       this.batchMaterialPath = null;
@@ -825,11 +914,124 @@ export function MaturingMixin<TBase extends MixinConstructor>(Base: TBase) {
       crafted.setCraftedAt(nowS);
     }
 
-    /** Write the derived band onto the host's Graded face. */
+    /**
+     * ⭐ The witness that records what the fill carried in. A `setGrade`
+     * while the batch is IDLE is somebody pouring graded matter into an
+     * empty vessel (`carryBatchIdentity`, at the transfer seam, which
+     * runs before the next reconcile starts the batch); a `setGrade`
+     * while it is working is this mixin writing its own derived band.
+     */
+    public setGrade(value: Grade): void {
+      if (this.maturationPhase === 'idle') {
+        this.batchInputBand = value.getBand();
+      }
+      super.setGrade(value);
+    }
+
+    /**
+     * Write the derived band onto the host's Graded face — capped at the
+     * band the fill carried in. **Weakest-link**, the same rule a craft's
+     * inputs get from `Grade.deriveAtFixedControl`: a transform cannot be
+     * better than what went into it, however well it was run.
+     */
     private applyBatchGrade(): void {
       const self = this as unknown as Stuff;
       if (!MixinApi.isGraded(self)) return;
-      self.setGrade(Grade.of(bandFor(clamp01(this._worstStretch))));
+      let band = Grade.of(bandFor(clamp01(this._worstStretch)));
+      if (this.batchInputBand !== null && Grade.isBand(this.batchInputBand)) {
+        band = band.min(Grade.of(this.batchInputBand));
+      }
+      // ⭐⭐ **The maturity term — a third weakest link.** A product drawn
+      // before the batch has finished is graded by how far along it is,
+      // so bottling early costs quality and bottling late costs time.
+      // That is the cash-flow fork, and it has a consumer already: the
+      // Lounge's whiskey sour takes `minGrade: fair`, so a cask opened
+      // too soon yields whiskey the bar will not buy.
+      //
+      // ⚠ **Vacuous for every shipped profile.** At
+      // `productAtFraction: 1` the product only exists at full
+      // conversion, where `maturityBand` is `masterful` and `min` leaves
+      // the other two terms untouched — so this cannot change any
+      // behaviour that was not opted into by a row.
+      const p = this.productAtFractionForBatch();
+      if (p < 1) {
+        const along =
+          (clamp01(this.fractionConverted) - p) / Math.max(1e-9, 1 - p);
+        band = band.min(Grade.of(bandFor(clamp01(along))));
+      }
+      self.setGrade(band);
+    }
+
+    /**
+     * ⭐⭐ **The age statement.** Anything drawn out of a maturing vessel
+     * is stamped with how long the batch it came from has been sitting,
+     * in game-days.
+     *
+     * ⚠ The honest reading of the number is the reason it is `min`-folded
+     * by `BulkableApi.blendPayloads` rather than averaged: an age
+     * statement means **the youngest thing in the bottle**, so a 90-day
+     * malt vatted with a 20-day grain reads twenty. Averaging it to
+     * fifty-five would be the one way to ship this feature as a lie.
+     *
+     * ⚠ And it is a STATEMENT, not a gauge: no recipe, par line or price
+     * reads it. The grade is what gates the sour. What this buys is a
+     * bottle that can tell you its own history, which is most of what a
+     * label is for.
+     */
+    // ⚠ No `override` keyword: the returned class extends a GENERIC
+    // `Base`, so TS cannot see the member it overrides (TS4112). It does
+    // override `Bulkable`'s at runtime, and `super` resolves.
+    public getBulkPayloadForDraw(
+      affordance: BulkAffordance,
+      litres: number,
+    ): BulkPayload | null {
+      const base = super.getBulkPayloadForDraw(affordance, litres);
+      if (affordance !== 'interior') return base;
+      this.reconcileFerment();
+      if (!(this.batchDays > 0)) return base;
+      return { ...(base ?? {}), maturedDays: this.batchDays };
+    }
+
+    /** This batch's profile's `productAtFraction`, or 1 when there is none. */
+    private productAtFractionForBatch(): number {
+      return (
+        MaturationProfileRef.byKey(this.maturationProfileKey)
+          ?.getProductAtFraction() ?? 1
+      );
+    }
+
+    /**
+     * Write the share of {@link imparts} the batch has newly earned into
+     * the interior payload's aromatics. Idempotent by the marker; a no-op
+     * for a vessel authoring none, which is every shipped row but the
+     * casks.
+     */
+    private applyImparts(): void {
+      if (this.imparts.length === 0) return;
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isBulkable(self)) return;
+      const earned = clamp01(this.fractionConverted) - this.impartedFraction;
+      if (!(earned > 1e-9)) return;
+      if (self.getBulkMaterial('interior') === null) return;
+      const add = this.imparts
+        .filter((i) => i.amount > 0)
+        .map((i) => ({ type: i.type, amount: i.amount * earned }));
+      if (add.length === 0) return;
+      const payload = self.getBulkPayload('interior') ?? {};
+      const byType = new Map<string, { type: string; amount: number }>();
+      for (const tag of payload.dissolvedAromatics ?? []) {
+        byType.set(tag.type, { ...tag });
+      }
+      for (const tag of add) {
+        const existing = byType.get(tag.type);
+        if (existing) existing.amount += tag.amount;
+        else byType.set(tag.type, { ...tag });
+      }
+      self.setBulkPayload('interior', {
+        ...payload,
+        dissolvedAromatics: [...byType.values()],
+      });
+      this.impartedFraction = clamp01(this.fractionConverted);
     }
 
     /**
@@ -1114,4 +1316,21 @@ export function MaturingMixin<TBase extends MixinConstructor>(Base: TBase) {
       return WorldClockApi.getNow().rawValue();
     }
   };
+}
+
+/**
+ * ⭐ Maturation's one field on the blend payload, declared from the
+ * subsystem that owns the word — the `dissolvedToxins` /
+ * `dissolvedAromatics` move, for the same reason: a `BulkPayload` cannot
+ * compose a mixin, and `lib/bulk` must not learn what a batch is.
+ */
+declare module '../bulk/Bulkable' {
+  interface BulkPayload {
+    /**
+     * Game-days the batch this matter came out of had been maturing when
+     * it was drawn. **Min-folded** on every blend: an age statement is
+     * the youngest thing in the bottle. Absent on matter no cask aged.
+     */
+    maturedDays?: number;
+  }
 }

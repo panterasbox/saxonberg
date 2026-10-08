@@ -25,6 +25,7 @@ import { Idea } from '../../lib/stuff/Idea';
 import { SingletonMixin } from '../../lib/stuff/Singleton';
 import type { FieldMeta } from '../../lib/mixin';
 
+import type { BoundaryRole } from '../../lib/security/BoundaryRole';
 export type NoiseLevel = 'silent' | 'quiet' | 'normal' | 'loud';
 
 /**
@@ -94,6 +95,16 @@ const GROUND_CONTACTS: readonly GroundContact[] = ['none', 'partial', 'full'];
 // slot occupant (`Drivable`) or `EventRegistry` itself. None is a
 // reference singleton.
 export class LocomotionMode extends SingletonMixin(Idea) {
+  /**
+   * how bodies move — read to answer whether you can walk at all.
+   *
+   * See `lib/security/BoundaryRole.ts` — this replaces a
+   * hand-maintained list in `api/security.ts` /
+   * `BootstrapManager`, and `lint:boundary-roles` holds the
+   * `commons` census at its measured ceiling.
+   */
+  static boundaryRole: BoundaryRole = 'commons';
+
   /** Short name (e.g. `'walk'`). The full templatePath is `/platform/idea/LocomotionMode/<name>`. */
   protected name: string = '';
 

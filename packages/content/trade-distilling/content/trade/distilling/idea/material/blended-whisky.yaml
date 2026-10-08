@@ -1,0 +1,31 @@
+# Blended whisky — ⭐ malt and grain vatted together, and the product a
+# bar actually sells most of.
+#
+# ⚠ It carries `whiskey` (so the Lounge's par line and the sour take it)
+# and its own `blended-whisky` tag for anything that wants to tell the
+# difference. It does NOT carry `malt-whisky`: a blend cannot be vatted
+# back into another blend as the malt half, which is both true and the
+# thing that stops the recipe eating its own output.
+#
+# ⭐ Nothing here says what it tastes of or how old it is. Both are on
+# the INSTANCE — the smoke and the wood are concentrations the vatting
+# folded by volume, and the age is the minimum of what went in. Two
+# bottles of this material can be entirely different whiskies, which is
+# the whole point of the styles build.
+class: /platform/idea/material/ConsumableMaterial
+data:
+  name: blended whisky
+  keywords: ["blended whisky", "blended whiskey", blend, blended, whisky]
+  appearance: a deep amber blended whisky
+  density: 940
+  thermalConductivity: 0.17
+  specificHeat: 2400
+  edibility: true
+  toxicity:
+    - { type: alcohol, amount: 40 }
+  tags:
+    [liquid, beverage, drinkable, alcoholic, spirit, whiskey, blended-whisky]
+  composition: []
+  biologicalSource: null
+  autoignitionTemperature: 640
+  heatOfCombustion: 24

@@ -539,6 +539,61 @@ home of the recall logic the retired `TemplateApi.snapshotToTemplate` once
 wrote to the avatar template — see
 [persistence.md](./persistence.md#the-self-persistence-spine-persistable).)
 
+## ⭐⭐ The durable per-instance handle — `getDurableHandle()`
+
+The string that still names *this* place after it has been unloaded and
+stood back up, or `null` when the place is one of an unbounded many and
+nothing durable names it. Anything that must remember a particular
+instance keys on it: a discovered secret, a claim on a player's map, a
+recorded place.
+
+Neither obvious candidate works. `getTemplatePath()` is **too wide** —
+forty provisioned dorm rooms share one row, so a secret found in one
+reads as found in all of them. `stuffId` is **too narrow** — fresh on
+every construction, so nothing survives a reload.
+
+⭐ The rule the handle encodes: **an identity exists iff the NAME is
+durable** — re-derivable from inputs that outlive the instance, or
+recorded somewhere durable. ⚠ Note the two durabilities are separate
+questions, and each has its own mechanism: *is the NAME durable* decides
+whether anything was minted, and *is there a per-instance KEY* decides
+whether there is a `<row>#<key>` handle. Conflating them produces a
+ladder that is wrong at both ends.
+
+Three rungs, each contributed by the host that owns the fact, each
+deferring to `super` when its own condition is false:
+
+| rung | host | answer |
+|---|---|---|
+| minted | `Stuff` | the stamped identity, when it differs from the row |
+| keyed | `PersistableMixin` | `` `<row>#<key>` `` once the key is **explicit** |
+| singleton | `SingletonMixin` | the row — the one instance IS it |
+
+Precedence falls out of composition order: `Persistable` always sits
+above `Stuff`, so a key beats a stamp; `Singleton` only ever fills in a
+`null`. Nothing narrows on a mixin from `Stuff`, and nothing anywhere
+asks `if (isLocation(x))` — the handle is every object's question, and
+`Stuff` answers it honestly with `null`.
+
+⭐ **The `#` joiner is load-bearing.** The row is the *substance* of a
+keyed instance's identity — it is how you find the hydration content,
+the backing class and everything else that matters — and what the
+manager contributes is decoration. A `/` join pretends the decoration is
+a path segment and loses the row;
+[smallholding.md](./smallholding.md)'s synthesized `<lotExtent>/<leaf>`
+channel shipped that way and was deleted.
+
+⚠ The `identity !== row` test in the base rung is the whole of that
+rung. `getIdentityPath()` deliberately *defaults* to the template path,
+so an ephemeral clone's "identity" is its own row; read naively that
+would hand every lounge satellite a handle. A satellite is a fresh clone
+per landing (not re-derivable) and is recorded nowhere, so `null` is its
+honest answer and `stuffId` is what covers it within one life.
+
+The spine's `PersistableApi.placeIdOf(host)` is this formula's original,
+unnamed home and forwards to the handle now — see
+[persistence.md](./persistence.md).
+
 ## Instance identity — live-ref hub exits
 
 Many lounge instances are clones of one template, so they **share** a

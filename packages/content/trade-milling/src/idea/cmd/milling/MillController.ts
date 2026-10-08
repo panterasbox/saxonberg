@@ -45,10 +45,13 @@ import type {
   CommandModel,
 } from '@saxonberg/server/mud/api/command';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
+import { CraftingApi } from '@saxonberg/server/mud/api/crafting';
+import { CraftingDecline } from '@saxonberg/server/mud/lib/craft/CraftingDecline';
 import type { MqlOneResult } from '@saxonberg/server/mud/api/mql';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
 import type Material from '@saxonberg/server/mud/lib/material/Material';
+import type { BulkPayload } from '@saxonberg/server/mud/lib/bulk/Bulkable';
 import type {
   Comminuting,
   ComminutionPlan,
@@ -125,12 +128,25 @@ export default class MillController extends CommandController<MillModel> {
     }
     const charge = this.chargeFrom(source);
     if (charge === null) {
-      this.decline(
-        context,
-        Mml.compose`${Mml.thing(source)} is not grain, and the stones will not take it.`,
-        'not-grindable',
-      );
-      return;
+      // ⭐⭐⭐ **NOT GRAIN — so the stones take it the other way.** One
+      // verb, two arms, and the INPUT chooses: grain goes through the
+      // extraction path below (reduce, then bolt, and the dial is the
+      // decision), while anything else is a plain recipe resolve over
+      // whatever these stones will accept.
+      //
+      // ⚠⚠ This was a SECOND VERB (`grind`) for one build, and reverting
+      // it is the point. The argument for splitting was that the two acts
+      // differ in whether there is a decision in them — true, and not
+      // enough: they are the same act on the same instrument, which is
+      // exactly the case the verb-collision ladder exists for, and its
+      // FIRST rung is *unify behind an interface*, not *add a verb*. A
+      // trade does not get a second verb because one of its inputs has no
+      // dial.
+      //
+      // ⭐ `grind` survives as an ALIAS on the view (the `pick`→`harvest`
+      // and `examine`→`look` precedent), so a player still reaches for
+      // the natural word for bone and gets this.
+      return this.grindThrough(source, context);
     }
 
     // ⭐ A mill with no water. It has no rate of its own, so there is
@@ -235,6 +251,83 @@ export default class MillController extends CommandController<MillModel> {
    * discrete `Crop` sack off a field, and bulk in a holder (the malt
    * sack off the distribution counter).
    */
+  /**
+   * The non-grain arm: a plain recipe resolve over whatever the stones
+   * will take.
+   *
+   * ⭐ No dial, and that is the honest difference from the extraction
+   * path rather than a reason for a second verb: bone ground is bone
+   * meal, there is no bolting cloth and no setting that gives a better
+   * answer. A recipe says it with no mechanism — these stones, that
+   * input, this output — so a second grindable is a recipe row and
+   * nothing here changes.
+   *
+   * ⚠ The recipe is matched from the INPUT rather than named by the
+   * player: `mill the bone` and `grind the bone` both work, and neither
+   * asks anybody to know a recipe id. That is also why this arm takes an
+   * object where the reverted `grind` verb took a string — the bone is a
+   * thing in reach, not a word.
+   */
+  private async grindThrough(
+    source: Stuff,
+    context: CommandContext,
+  ): Promise<void> {
+    const giver = context.commandGiver;
+    const material = MixinApi.isTangible(source) ? source.getMaterial() : null;
+    const recipeRef = this.recipeForStock(material);
+    if (recipeRef === null) {
+      this.decline(
+        context,
+        Mml.compose`${Mml.thing(source)} is not grain, and the stones will not take it.`,
+        'not-grindable',
+      );
+      return;
+    }
+    const outcome = await CraftingApi.craft({ recipeRef, makerMode: 'self' });
+    if (!outcome.ok) {
+      // ⚠ `CraftController.declineToScene`'s behaviour, inlined rather
+      // than inherited: `MillController` is a `CommandController` and
+      // changing its base class to reach one helper would be a wider
+      // change than the one this revert is making.
+      MessageApi.scene(giver)
+        .topic(TOPIC)
+        .toSelf(Mml.compose`${CraftingDecline.messageFor(outcome)}`)
+        .send();
+      context.note({
+        kind: 'controller-rejected',
+        reason: outcome.reason,
+        detail: outcome.detail ?? '',
+      });
+      return;
+    }
+    const output = outcome.output;
+    if (output === null) return;
+    if (MixinApi.isContainable(output) && MixinApi.isContainer(giver)) {
+      ContainmentApi.move(output, giver);
+    }
+    MessageApi.scene(giver)
+      .topic(TOPIC)
+      .toSelf(
+        Mml.compose`You put ${Mml.thing(source)} through the stones and sweep ${Mml.thing(output)} up off the bed.`,
+      )
+      .toPeers(
+        Mml.compose`${Mml.actor(giver)} grinds something down at the stones.`,
+      )
+      .send();
+  }
+
+  /**
+   * Which recipe these stones would run for a given stock, or `null`.
+   *
+   * ⚠ A tag read rather than a list of classes, so a second grindable is
+   * a material tag and a recipe row with nothing in this file changed.
+   */
+  private recipeForStock(material: Material | null): string | null {
+    if (!material) return null;
+    if (material.hasTag('bone')) return 'bone-meal';
+    return null;
+  }
+
   private chargeFrom(source: Stuff): Charge | null {
     // Bulk first — a Sack of malt is also Tangible, and its interior is
     // what we want rather than its tare.
@@ -303,6 +396,21 @@ async function finishGrind(
     const landing =
       room !== null && MixinApi.isContainer(room) ? room : null;
 
+    // ⭐⭐ **What the sack CARRIED, read before it is consumed.** A grind
+    // used to drop the source payload on the floor: `fill` cloned a
+    // fresh sack and stamped only the plan's composition and water, so
+    // any per-litre concentration on the feed vanished at the
+    // millstones. Smoke in a peated malt is the case that found it —
+    // the whole point of peating is that the phenols survive to the
+    // glass, and they could not survive the mill.
+    //
+    // ⚠ Read BEFORE the debit: a full drain clears the payload with the
+    // material, exactly as `transfer` step 5 has to.
+    const sourcePayload =
+      MixinApi.isBulkable(source) && source.hasInteriorBulk()
+        ? (BulkableApi.slotFor(source, undefined)?.getPayload() ?? null)
+        : null;
+
     // Consume the input first — conservation before creation, so a
     // failure leaves the grain rather than doubling it.
     if (!source.isDestroyed()) {
@@ -316,27 +424,29 @@ async function finishGrind(
 
     // The product, less the toll.
     const keptL = plan.productL - plan.tollL;
-    if (keptL > 0 && mill.productVessel) {
+    if (keptL > 0 && plan.productVessel) {
       await fill(
-        mill.productVessel,
+        plan.productVessel,
         plan.productMaterial,
         keptL,
         plan,
         makerPath,
         landing,
         (plan.productKg - plan.tollKg),
+        sourcePayload,
       );
     }
     // The residue — bran is a real good, not waste.
-    if (plan.residueL > 0 && mill.residueVessel) {
+    if (plan.residueL > 0 && plan.residueVessel) {
       await fill(
-        mill.residueVessel,
+        plan.residueVessel,
         plan.residueMaterial,
         plan.residueL,
         null,
         makerPath,
         landing,
         plan.residueKg,
+        sourcePayload,
       );
     }
     // ⭐ The multure. A tenth stays here and the miller sells it.
@@ -381,6 +491,7 @@ async function fill(
   makerPath: string,
   landing: (Stuff & Container) | null,
   kg: number,
+  sourcePayload: BulkPayload | null = null,
 ): Promise<void> {
   const sack = await StuffApi.clone<Stuff>(vesselPath);
   const slot = BulkableApi.slotFor(sack, undefined);
@@ -390,6 +501,25 @@ async function fill(
       slot.setMaterial(material);
     }
     slot.setAmount(Quantity.of(litres, 'L'));
+    // ⭐ The per-litre domains ride the matter through the stones. A fold
+    // against an empty destination carries them at strength — grinding
+    // is not a dilution.
+    if (sourcePayload) {
+      const carried = BulkableApi.blendPayloads(
+        sourcePayload,
+        litres > 0 ? litres : 1,
+        null,
+        0,
+      );
+      const next: BulkPayload = { ...(slot.getPayload() ?? {}) };
+      if (carried.dissolvedToxins) {
+        next.dissolvedToxins = carried.dissolvedToxins;
+      }
+      if (carried.dissolvedAromatics) {
+        next.dissolvedAromatics = carried.dissolvedAromatics;
+      }
+      if (Object.keys(next).length > 0) slot.setPayload(next);
+    }
     if (plan !== null) {
       // ⭐ The extraction, stamped continuously: the composition says
       // what this flour is made of and `water.moisture` says how well it

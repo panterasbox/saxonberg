@@ -61,6 +61,7 @@ import { CAMPUS_LATITUDE } from './api/CelestialLogic';
 import { EARTH_LIKE } from '../../lib/time/CelestialProfile';
 import { WEATHER_DEFAULTS } from '../../lib/weather/WeatherType';
 
+import type { BoundaryRole } from '../../lib/security/BoundaryRole';
 /**
  * Gate every public Registry method to the Api facade, the
  * `WorldClockLogic` singleton (caller template path `/platform/idea/api/worldclock`,
@@ -116,6 +117,17 @@ interface Schedule {
 const WorldClockRegistryBase = Idea;
 
 export default class WorldClockRegistry extends WorldClockRegistryBase {
+  /**
+   * engine bookkeeping that happens to be Stuff-shaped: a registry holds the framework's own index, not world state anybody stands in.
+   *
+   * ⭐ Declared, not enumerated. This was one of twenty-seven
+   * template-path strings in `api/security.ts`, listed there
+   * *"because each is a singleton rather than a class of many"* —
+   * which a static on the class makes irrelevant. See
+   * `lib/security/BoundaryRole.ts`.
+   */
+  static boundaryRole: BoundaryRole = 'infrastructure';
+
 
   /**
    * Self-warming boot (the MaturationProfileCatalogue shape; no

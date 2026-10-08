@@ -44,6 +44,23 @@ data:
   # MJ/kg, air-dried. Poor stuff next to coal's 28 and charcoal's 30, which
   # is exactly why peat is what you burn when you have nothing else.
   heatOfCombustion: 15
+  # ⭐⭐⭐ **What burning it puts into what is worked over its fire.** This
+  # one line is the whole of peated malt.
+  #
+  # Before the fire build there were TWO kiln recipes — identical except
+  # that one declared `imparts: [{smoke, 30}]` and took four turves as an
+  # ITEM SLOT. That had three consequences, all bad: *the same recipe over
+  # a different fire* was inexpressible; the turf's own moisture was
+  # invisible (an item slot cannot see it), so a turf cut out of a bog
+  # that morning kilned exactly like one dried for a week; and the fuel
+  # was an input to a recipe rather than the thing in the firebox.
+  #
+  # ⭐ The fact belongs to the SUBSTANCE. A peat fire is smoky because
+  # peat is smoky, wherever it is burning — a kiln, a hearth, a smoker —
+  # and 25 of the 26 fuel materials author nothing here.
+  combustionImparts:
+    - type: smoke
+      amount: 30
   edibility: false
   nutrients: []
   toxicity: []
@@ -51,7 +68,15 @@ data:
   # (`metal-chain-slate` owns the energy transition), and the `carbon` tag
   # is what a reduction reads. So a turf heats a hearth and a kiln, and iron
   # still needs charcoal.
-  tags: ["organic", "earth", "solid", "fibrous", "fuel"]
+  #
+  # ⭐⭐ **`peat` — the identity tag, added by the whiskey-styles build.**
+  # The row named itself in `keywords` and nowhere a SLOT can read, so a
+  # recipe asking for `category: peat` matched nothing and **failed closed
+  # and silent** — the peated kiln would simply never have found its fuel,
+  # with no error anywhere. `wheat-grain` and `barley-grain` both carry
+  # their own names for exactly this reason; this row did not, and the
+  # omission is invisible until something asks.
+  tags: ["organic", "earth", "solid", "fibrous", "fuel", "peat"]
   composition: []
   chemistry: null
   biologicalSource: null

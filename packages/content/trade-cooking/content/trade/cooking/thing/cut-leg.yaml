@@ -1,0 +1,22 @@
+# A leg — one muscle off a carcass.
+#
+# ⚠ `mass` here is a NOMINAL default the mint overwrites: what a cut
+# actually weighs is `Σ(its muscles' body share) × the carcass's own
+# mass`, so the same row off a ewe and an ox weighs what each animal's
+# leg weighs. Nothing authors that number twice.
+#
+# ⭐ And its TEXTURE is derived from the muscle too — nobody can author a
+# tender shank.
+class: /platform/thing/Cut
+data:
+  shortDescription: leg
+  keywords: [leg, haunch, joint, cut]
+  register: indefinite
+  longDescription: >-
+    A whole hind leg, the bone running through it, the shank left on.
+  _materialPath: /stuff/idea/material/tissue/muscles/leg
+  tissues:
+    - /stuff/idea/material/tissue/muscles/leg
+  cutting: bone-in
+  difficulty: standard
+  mass: 1.0

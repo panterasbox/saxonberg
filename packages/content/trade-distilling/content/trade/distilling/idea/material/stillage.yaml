@@ -1,0 +1,22 @@
+# Stillage — what is left in the pot when the run is over. The spirit is
+# gone out of it; what remains is hot, sour, protein-rich liquor that a
+# still-house has always sold back to whoever keeps cattle.
+#
+# ⭐ The `feed` and `compost` tags are the point: the residue of a run is
+# not waste, it is somebody else's input. The `spent-grain` row is the
+# MASH's residue and this is the RUN's — two different by-products from
+# two different steps, and both have a buyer.
+class: /platform/idea/material/ConsumableMaterial
+data:
+  name: stillage
+  keywords: [stillage, pot-ale, dregs, burnt-ale]
+  appearance: "a cloudy, sour-smelling stillage with grain settled through it"
+  density: 1020
+  thermalConductivity: 0.5
+  specificHeat: 3900
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: ["liquid", "compost", "feed", "stillage"]
+  composition: []
+  biologicalSource: null

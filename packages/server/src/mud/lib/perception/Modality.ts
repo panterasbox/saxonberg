@@ -33,6 +33,7 @@ import type { Container } from '../spatial/Container';
 import type { Sensor } from '../message/Sensor';
 import type { FieldMeta } from '../mixin';
 
+import type { BoundaryRole } from '../security/BoundaryRole';
 /**
  * Propagation physics shape. `'field'` = walks containment + Boundary
  * conduits + exits (vision, smell, sound, future ESP local field).
@@ -110,6 +111,16 @@ export const EXIT_TAU = 1.0;
 // slot occupant (`Drivable`) or `EventRegistry` itself. None is a
 // reference singleton.
 export class Modality extends SingletonMixin(Idea) {
+  /**
+   * the sense-channel singletons.
+   *
+   * See `lib/security/BoundaryRole.ts` — this replaces a
+   * hand-maintained list in `api/security.ts` /
+   * `BootstrapManager`, and `lint:boundary-roles` holds the
+   * `commons` census at its measured ceiling.
+   */
+  static boundaryRole: BoundaryRole = 'commons';
+
   /** Canonical modality name (e.g. `'vision'`, `'sound'`). */
   protected name: string = '';
 

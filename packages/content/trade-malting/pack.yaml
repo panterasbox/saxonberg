@@ -1,0 +1,38 @@
+id: trade-malting
+version: 0.1.0
+root: /trade/malting
+description: >-
+  The malting trade — ⭐⭐ **the arrow that was missing.** Barley ships and
+  malt ships; the step between them did not, and both the brewer and the
+  distiller were quietly drawing malted barley out of nothing. (The malt
+  material's own header says so: *"a SHARED input whose owning trade does
+  not exist yet"*, and the distributor's sack says *"nobody in the world
+  malts barley yet, so the sacks simply arrive"*.)
+
+  ⭐ What a maltster actually does is wake a seed up and then stop it. You
+  steep the corns until they think it is spring, you let them chit on a
+  floor while they turn their own starch to sugar with their own enzymes,
+  and then you kill them with heat at the exact moment they have done the
+  work and not yet eaten the results. **The decision is WHEN TO KILN** —
+  too early and the starch is not converted, too late and the shoot has
+  spent the sugar growing. Nothing is added at any point: this is a trade
+  whose whole mechanism is waiting, and whose whole skill is knowing how
+  long.
+
+  ⭐⭐ And the KILN is the second decision, because heat does two things at
+  once: it stops the growth and it colours the grain. A gentle kiln makes
+  pale malt that keeps its enzymes; a hot one makes dark malt that has
+  lost them and tastes of toast. The same object, the same verb, a
+  different number — which is why `kiln-malt` reads a heat band rather
+  than a yes-or-no.
+
+  ⚠ A ROWS-ONLY pack: no `src/`, no classes, no verbs. Every step is an
+  `order` over a shipped recipe, a shipped Vat, a shipped Oven and the
+  platform's `MaturingMixin` — which is the test the whole content-pack
+  architecture exists to pass.
+requires:
+  # The trade is placeless (economic bootstrap D6/D7): its mechanism is
+  # held by the Ministry of Trade — a seat, never a committee. Its
+  # premises, if any, sit in the world under a locality's committee.
+  title:
+    - { extent: /trade/malting, holder: { organization: /compact/trade } }

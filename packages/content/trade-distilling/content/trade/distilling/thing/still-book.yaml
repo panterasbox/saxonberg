@@ -1,6 +1,18 @@
 # The still book — the still-house's work board (the cellar book's
-# sibling): mash, run, compound — unpriced, `order`-lit. Zero new
-# verbs.
+# sibling): mash and compound — unpriced, `order`-lit. Zero new verbs.
+#
+# ⛔ `distil`, `brandy` and `grappa` are GONE from this list, and they
+# were never really on it: all three named the still's capability and
+# asked for 351 K, and no still in the world authored a fuel reserve, so
+# the burner could not be lit, the heat was never in reach and every
+# `order distil` declined `insufficient-heat` for the whole life of the
+# pack.
+#
+# ⭐ What replaces them is not a recipe at all. A run is `pour` the charge
+# in, `ignite`, and `pour` it off a fraction at a time — the schedule
+# rows at `/trade/distilling/idea/fractionation/` decide what comes over
+# and in what order. A recipe would have had to name one output, which is
+# the one thing a still does not have.
 class: /platform/thing/Menu
 data:
   shortDescription: still book
@@ -8,4 +20,44 @@ data:
   register: definite
   longDescription: |
     A scorched ledger on a chain, the day's runs written in a crabbed hand — grist, charge, take.
-  offeredRecipes: [wash-mash, distil, compound-gin, brandy, grappa]
+  # ⭐ The malting steps are on the still-house's own board, because the
+  # floor and the kiln are in the same building. The alternative was a
+  # second Menu row for the maltings, which is a board nobody would read
+  # — the day's work is one list.
+  # ⭐⭐ **The maltings are ON the board now** — `lint:menu-staff`'s
+  # complaint is answered rather than worked around.
+  #
+  # ⚠⚠ The predecessor left `steep-barley` and `kiln-malt` OFF with this
+  # note: *"nobody at Crowsfoot is seated to `malting`"*. That was the
+  # gate doing its job — a board offering a line no seat can fulfil is a
+  # promise the venue cannot keep — and it left the shipped wire drive
+  # asserting two lines the book did not offer, i.e. RED, for a build.
+  #
+  # The fix is the capability, not the advertisement: the outfit's `hand`
+  # seat now `fulfills: [distilling, fermenting, malting]` and the hand's
+  # dossier claims `malting: proficient`, which is what the two STANDARD
+  # kiln lines need. ⚠ One NPC doing three trades is a maltster-shaped
+  # vacancy, named as one in `docs/vocations.md`.
+  #
+  # ⭐⭐ There is ONE kiln line now, and that is the fire build's doing.
+  # `kiln-malt-peated` is retired: the clean kiln and the peated kiln
+  # were the same act over a different fire, and the model says so
+  # directly — the smoke comes off the FUEL BED. So the choice that makes
+  # the two whiskies different has moved off this board and onto the
+  # firebox, where somebody stokes peat or stokes wood. ⭐ The board got
+  # shorter and the decision got realer.
+  #
+  # ⭐ `grain-wash-mash` is the second CEREAL's line, and the board is
+  # where the two products become a choice: malt is dearer to make and
+  # worth more in the glass, grain is cheap and gives up more of the
+  # charge, and a blend of the two is what a bar actually buys by the
+  # litre. The still book does not say any of that — it just offers both.
+  offeredRecipes:
+    [
+      steep-barley,
+      kiln-malt,
+      wash-mash,
+      grain-wash-mash,
+      compound-gin,
+      vat-whisky,
+    ]

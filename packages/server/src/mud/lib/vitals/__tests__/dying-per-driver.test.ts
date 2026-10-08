@@ -23,7 +23,7 @@
  */
 
 import "../../../../test-bootstrap";
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { Creature } from '../../creature/Creature';
 import { Quantity } from '../../quantity';
 import { HARM_DEFAULTS } from '../../../platform/idea/Condition';
@@ -34,6 +34,7 @@ import { WorldClockApi } from '../../../api/worldclock';
 import '../../../platform/idea/WorldClockRegistry';
 import { makeStuff } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
+import { installCorpseMintStub } from '../../mortality/__tests__/corpse-mint-test-helpers';
 
 const SCALE = 12;
 let real = 0;
@@ -52,11 +53,17 @@ function body(): Creature {
 describe('each driver opens a window rather than ending the story', () => {
   beforeEach(() => {
     installV1QuantityMarshallers();
+    // ⭐ Every death mints a corpse now, and the mint clones an authored
+    // row that a unit world has no store for. See the helper.
+    installCorpseMintStub();
     WorldClockApi._resetForTesting();
     real = 100000;
     WorldClockApi._setNowProviderForTesting(() => real);
   });
-  afterEach(() => WorldClockApi._resetForTesting());
+  afterEach(() => {
+    vi.restoreAllMocks();
+    WorldClockApi._resetForTesting();
+  });
 
   it('exsanguination — a bleed to the floor opens the window, does not kill', () => {
     const c = body();

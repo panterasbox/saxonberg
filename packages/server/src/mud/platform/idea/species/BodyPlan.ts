@@ -49,6 +49,7 @@ const GOVERNABLE: ReadonlySet<string> = new Set<string>([
 import type { SenseChannel } from '../../../lib/description/Perceiver';
 import type { FieldMeta } from '../../../lib/mixin';
 
+import type { BoundaryRole } from '../../../lib/security/BoundaryRole';
 /**
  * Anatomy descriptor for a sensory apparatus. Capability (range,
  * acuity) does NOT belong here — that's species-side. Decomposes as
@@ -71,15 +72,39 @@ export interface SensoryPort {
 }
 
 /**
- * Named tissue + its mass (kg) within a body part. The per-part
- * substrate a future physical-attribute reading (strength = force over
- * muscle mass) aggregates. v1 authors muscle / bone / flesh.
+ * Named tissue + the **share of the whole body's mass** this tissue of
+ * this part carries. The per-part substrate butchery reads (which muscle,
+ * and how much of the animal it is) and a future physical-attribute
+ * reading aggregates.
+ *
+ * ⭐⭐⭐ **A SHARE, not kilograms, and the reason is that one plan serves
+ * every size of animal.** `quadruped` is named by sheep, cattle, dogs,
+ * cats and horses; `avian` by a canary and a hen. Absolute masses made
+ * that a lie — a bullock claimed the same 28 kg torso as a ewe, and
+ * `avian`'s canary-sized 4 g of torso bone is why nothing else could
+ * reuse it. A share is scale-free: part mass is `share × the
+ * instance's own mass`, so the same topology serves a 20 g canary and a
+ * 700 kg ox and neither figure is authored twice.
+ *
+ * ⚠ **Whole-body mass is NOT affected by this**, and that is deliberate:
+ * `Creature.bodyMassIndex()` is `getMass() / stature²` and `getMass()` is
+ * the species frame plus the flesh/lean reserve deltas. Fitness and BMI
+ * never read part masses, so the share model cannot disturb them.
+ *
+ * **The invariant:** the shares of every tissue of every part sum to
+ * **1** across a plan. Enforced on shipped rows by `lint:anatomy`
+ * clause (a); the setter checks only the per-field range, because test
+ * fixtures author one-part bodies on purpose and the resolver
+ * normalises.
  */
 export interface TissueComposition {
   /** Material templatePath, e.g. `/stuff/idea/material/tissue/muscle`. */
   tissuePath: string;
-  /** Mass in kg (plain number; no Quantity to keep the descriptor flat). */
-  mass: number;
+  /**
+   * Share of the whole body's mass, in `(0, 1]`. Plain number, no
+   * `Quantity` — it is dimensionless, and the descriptor stays flat.
+   */
+  share: number;
 }
 
 /**
@@ -182,6 +207,16 @@ export interface BodyPart {
 // slot occupant (`Drivable`) or `EventRegistry` itself. None is a
 // reference singleton.
 export default class BodyPlan extends SingletonMixin(Idea) {
+  /**
+   * the anatomy vocabulary every body reads.
+   *
+   * See `lib/security/BoundaryRole.ts` — this replaces a
+   * hand-maintained list in `api/security.ts` /
+   * `BootstrapManager`, and `lint:boundary-roles` holds the
+   * `commons` census at its measured ceiling.
+   */
+  static boundaryRole: BoundaryRole = 'commons';
+
   /** Display name (e.g. `'biped'`, `'quadruped'`). */
   protected name: string = '';
 
@@ -240,9 +275,18 @@ export default class BodyPlan extends SingletonMixin(Idea) {
   public bodyParts: BodyPart[] = [];
 
   /**
-   * Default whole-body mass in kg (plain number — mirrors
-   * `TissueComposition.mass`, keeping `BodyPlan` a flat authoring
-   * flyweight free of any `Quantity` / `lib/material` import). A
+   * Default whole-body mass in kg (plain number, keeping `BodyPlan` a
+   * flat authoring flyweight free of any `Quantity` / `lib/material`
+   * import).
+   *
+   * ⭐⭐ **This is the ONE absolute mass on the plan, and it is what makes
+   * the tissue shares work.** A tissue states a share of the body
+   * (`TissueComposition.share`); this states what a body of this plan
+   * weighs by default, which a species' `massAt` or an instance's own
+   * mass then overrides. Part mass is the product of the two, so the
+   * topology is reusable and the scale is the animal's own. ⚠ It used to
+   * be documented as *"mirroring `TissueComposition.mass`"*, which is
+   * exactly backwards now: the shares mirror nothing, they divide this. A
    * `Creature` of this plan seeds its `getMass()` from this default
    * unless the instance authors its own mass deviation (see
    * `Creature.getMass`). `0` means "no body-grounded default" (the
@@ -466,6 +510,30 @@ export default class BodyPlan extends SingletonMixin(Idea) {
           `BodyPlan.setBodyParts: part '${part.key}' missing 'tissues' array`,
         );
       }
+      // ⭐⭐ **A tissue states a SHARE of the body, and a `mass` key is
+      // refused BY NAME.** Same reasoning as the `governs` typo below: a
+      // row still authoring kilograms would otherwise be read as a share
+      // of 6 or 12 — silently enormous — and a plan that looked authored
+      // would be wrong everywhere it was read. Naming the dead key in the
+      // error is what turns a mystifying range failure into a one-line
+      // fix.
+      for (const tissue of part.tissues) {
+        if ('mass' in (tissue as object)) {
+          throw new Error(
+            `BodyPlan.setBodyParts: part '${part.key}' tissue ` +
+              `'${tissue.tissuePath}' authors 'mass' — tissues state a ` +
+              `'share' of the whole body's mass now (0,1]; absolute ` +
+              `kilograms cannot serve one plan across species sizes`,
+          );
+        }
+        if (!Number.isFinite(tissue.share) || tissue.share <= 0 || tissue.share > 1) {
+          throw new Error(
+            `BodyPlan.setBodyParts: part '${part.key}' tissue ` +
+              `'${tissue.tissuePath}' share '${tissue.share}' is not a ` +
+              `finite number in (0, 1]`,
+          );
+        }
+      }
       // ⭐⭐ **A typo in `governs` is a throw at registration, not an inert
       // organ.** Before this, `governs: [hartRate]` produced a part that
       // ran nothing, looked authored, and failed silently forever — the
@@ -628,8 +696,16 @@ export default class BodyPlan extends SingletonMixin(Idea) {
   }
 
   /**
-   * ⭐⭐ **A part's cross-sectional area**, by Meeh's law — `mass^(2/3)`
-   * over its authored tissue masses. `0` for an unknown or massless part.
+   * ⭐⭐ **A part's cross-sectional area**, by Meeh's law —
+   * `(Σ share)^(2/3)` over its authored tissue shares. `0` for an unknown
+   * or shareless part.
+   *
+   * ⭐ **A proportion, and that changes nothing here.** Both readers
+   * below are ratio-only — one divides by the exterior total, the other
+   * only ORDERS parts — so taking the law over shares instead of
+   * kilograms leaves every shipped answer identical (the hand's 2.7 % of
+   * a biped, liver before heart on the depth ladder) while making the
+   * number mean the same thing on a canary and an ox.
    *
    * Two readers, and they want the same number for different reasons:
    * {@link getPartSurfaceFraction} normalises it across the exterior to
@@ -650,10 +726,10 @@ export default class BodyPlan extends SingletonMixin(Idea) {
   public partArea(partKey: string): number {
     const part = this.bodyParts.find((p) => p.key === partKey);
     if (!part) return 0;
-    let mass = 0;
-    for (const t of part.tissues ?? []) mass += t.mass;
-    if (!(mass > 0)) return 0;
-    return Math.pow(mass, 2 / 3);
+    let share = 0;
+    for (const t of part.tissues ?? []) share += t.share;
+    if (!(share > 0)) return 0;
+    return Math.pow(share, 2 / 3);
   }
 
   /**

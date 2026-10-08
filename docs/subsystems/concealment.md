@@ -167,10 +167,28 @@ non-test callers) — is now a thin view over the band:
 
 Because an `Exit` is a runtime instance with **no `templatePath` of its
 own**, it overrides `getDiscoveryKey()` to a durable synthetic handle —
-`` `${source.templatePath}#exit:${direction}` `` — so a discovered secret
-door stays discovered across re-clones. It returns `undefined` when the
-source room has no durable templatePath (a shared multi-clone room — the
-deferred player-placed-concealment case).
+`` `${source.getDurableHandle()}#exit:${direction}` `` — so a discovered
+secret door stays discovered across re-clones. It returns `undefined`
+when the source has **no durable handle at all**.
+
+⚠⚠ **The source's key is its handle, never its template path**, and the
+difference was a live defect with two faces. *Too wide*: forty
+provisioned dorm rooms share one row, so a hidden door keyed on lineage
+gave every one of them the same referent — find the secret in your room
+and it read as found in all of them, for everybody. *Too generous*: a
+lounge satellite is a fresh clone per landing, named by nothing durable,
+and keyed on its row it answered with a handle it had no right to, so a
+find in a room that no longer exists stayed found forever.
+
+The handle answers both, and the rule it encodes is **an identity exists
+iff the NAME is durable** (re-derivable or recorded) — see
+[location.md](./location.md) for the three rungs. A keyed room reads
+`<row>#<extent/leaf>`, a minted one its identity, **a singleton place its
+row — byte-identical to what every `DISCOVERY` belief already written
+used**, which is the regression guard the bar's secret door depends on,
+and an ephemeral clone reads `undefined`. Uniform for an
+`ExitableVessel` source too: the handle is asked of the object, so
+nothing in `Exit` narrows on being a Location.
 
 ## The detection surface — on `PerceptionApi`, not a new Api
 
@@ -231,7 +249,8 @@ new realm alongside recognition / identification / regard — see
 DISCOVERY, referent, { found: true })`; `hasDiscovered` reads
 `viewer.recall(DISCOVERY, referent)?.payload.found`. The referent key comes
 from `target.getDiscoveryKey()` (default = `templatePath`; the `Exit`
-synthetic handle above). Per-viewer isolation, no-inherit, and persistence
+synthetic handle above, which is built on the source's **durable
+handle**). Per-viewer isolation, no-inherit, and persistence
 (`beliefs` collection) fall out unchanged. **The `DISCOVERY` realm is exempt
 from the liveness-GC** — its referent can be an `Exit`'s synthetic key with
 no live Stuff to reach, so the GC must never reap a valid discovery.

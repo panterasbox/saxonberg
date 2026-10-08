@@ -1,0 +1,90 @@
+collection: location_graph
+owner: PlaceNode
+ownerModule: /lib/location/PlaceNode
+subsystem: location-graph.md
+summary: >-
+  The world's shape: one row per PLACE and the exits leading out of it.
+purpose: |
+  A **derived, persisted projection** of every place in the realm and
+  every edge between them — the thing the router will plan over, the
+  publish gate reads, the invariant check runs on, and the survey act
+  asks. It is rebuilt from the content rows at boot and kept current at
+  the template write chokepoint (`DomainHook`), so it is never a source
+  of truth about anything: drop the whole collection and the next boot
+  rebuilds it.
+
+  ⭐⭐ **This is a SERVER-SIDE index and it must never reach a client.**
+  That is the evidence firewall, and it is structural rather than
+  policed: a player's knowledge of the world is their own **map
+  document** (`/home/<key>/map/<locality>`), written from what they
+  perceived, and **the two never join**. A read that merged them would
+  hand somebody the shape of places they have not earned — which is the
+  whole reason the map is a separate artifact rather than a filter over
+  this.
+
+  ⭐ A node is a place, and *one row is one place*: a content row whose
+  effective class composes `SingletonMixin`, plus every circulation node
+  a warren's `PlatPlan` declares. Every other location row describes a
+  KIND of place, minted many times through a warren or a programme, and
+  is deliberately absent — the elastic half of the world is perceived
+  live and never stored.
+
+  `published` is denormalised from the covering parcel so the traversal
+  gate can read it synchronously without resolving a destination. The
+  parcel remains the source of truth; a flip re-projects the extent.
+invariants:
+  - >-
+    DERIVED, never a source: every row is reconstructible from the
+    content rows plus the parcel register, and the whole collection is
+    droppable at any moment.
+  - >-
+    One row per node identity.
+  - >-
+    ⭐ It never reaches a client. A player's knowledge of the world is
+    their own map document, and the two never join.
+  - >-
+    A node is a place; a KIND row is not a node.
+  - >-
+    `published` mirrors the covering parcel and is re-projected on every
+    flip — the parcel is the source of truth.
+sandbox: pass
+reset:
+  verb: keep
+  because: >-
+    Derived and rebuilt at boot — but the nightly job does NOT restart
+    the process (see docs/subsystems/record-layer.md), so a wipe would
+    leave every lint, publish gate and board read blind until the next
+    boot rather than for a moment. ⭐ "Derived" is an argument for being
+    droppable, not for being dropped nightly: there is nothing to gain
+    and a window of blindness to lose.
+indexes:
+  - keys: { identity: 1 }
+    unique: true
+    why: |
+      The node read (`NavigationApi.node`) and the projection's upsert
+      key. Unique because a node identity names exactly one place —
+      which is the same claim `getDurableHandle()` makes.
+  - keys: { zone: 1 }
+    why: |
+      The per-zone read the reachability walk and the interzone skeleton
+      are built from.
+  - keys: { 'edges.to': 1 }
+    why: |
+      The REVERSE edge query: who points AT this place. It is what lets
+      offlining an extent tell the owner of every room that just lost a
+      destination, and what the tombstone's `out` exit is chosen with.
+  - keys: { crossesZone: 1 }
+    partial: { crossesZone: true }
+    why: |
+      The interzone skeleton — a small set, and the router's coarse
+      graph. Partial because the overwhelming majority of edges stay
+      inside one zone.
+  - keys: { published: 1 }
+    why: |
+      The publish gate's sweep: every node under an extent being taken
+      offline or brought live.
+  - keys: { generation: 1 }
+    why: |
+      The rebuild's sweep. `rebuild()` stamps every projected node with a
+      fresh generation and deletes the rows carrying any other — which
+      is what "droppable and rebuildable at any moment" means in code.

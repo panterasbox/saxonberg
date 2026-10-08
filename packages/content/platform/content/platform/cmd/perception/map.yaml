@@ -1,0 +1,43 @@
+# `map` — what you know of the world, and it can be wrong.
+#
+# ⭐⭐ A map is a CLAIM, not a view. The server's own knowledge of the
+# world's shape never reaches you; what you read here is what you
+# perceived, written down when you perceived it and never corrected
+# afterwards. Wall up an exit you have walked and your map still shows
+# it until you next look — at which point both claims render and you can
+# see them disagree.
+verbs: [map]
+controller: /platform/idea/cmd/perception/MapController
+description: "What you know of a place, and when you learned it"
+help: |
+  `map` on its own lists the localities you have a map of.
+
+  `map <locality>` shows what you know of one: the places you have been,
+  grouped by building where the place says which one it is in, and the
+  ways out you have used. Nothing you have not seen.
+
+  Each line says how you know it. A place you WALKED to and a place you
+  only read off a departures board are different kinds of knowledge, and
+  the second can go stale in its own way — a station can go dark.
+
+  ⭐ Your map is not corrected behind your back. If the world changes
+  under it, the old claim stays until you perceive the place again; then
+  both are shown with their dates, and you can see that they disagree.
+  A map that quietly fixed itself would be the world telling you what
+  you know.
+examples:
+  - cmd: map
+    note: Which localities do I have a map of?
+  - cmd: map terminus
+    note: Everything I know of Terminus and the places under it
+validators:
+  - /lib/command/validators/requiresAnimate
+args:
+  # GREEDY: a locality address has slashes and may be typed with spaces
+  # ("hinkley hills"); a single-token string arg would refuse the shape.
+  # ⚠ NOT required — bare `map` is the index, which is the first thing
+  # somebody types.
+  - name: locality
+    type: string
+    required: false
+    greedy: true

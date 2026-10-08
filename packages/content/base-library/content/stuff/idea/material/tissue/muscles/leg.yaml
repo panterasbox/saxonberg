@@ -1,0 +1,36 @@
+# leg — a muscle that worked in bursts
+#
+# ⭐ `work: 0.6` is the whole of it: The driving muscle of the hindquarter.
+#
+# ⚠ Texture is DERIVED from this, never authored on the cut. A cut claims
+# the muscles it is made of and its toughness is their share-weighted
+# `work`, so nobody can author a tender shank.
+class: /platform/idea/material/Muscle
+data:
+  name: leg
+  keywords: [leg, haunch]
+  work: 0.6
+  density: 1060
+  specificHeat: 3500
+  thermalConductivity: 0.4
+  hardness: 1
+  toughness: 1
+  electricalConductivity: 0.2
+  waterAbsorptionCapacity: 25
+  edibility: true
+  tastes: [umami]
+  # Spoilage, as `tissue/flesh`: flesh rots, and a cut is a clock as well
+  # as a dinner.
+  spoilActivationEnergy: 80000
+  waterActivity: 0.99
+  nutrients: [protein, water, fat]
+  nutrientAmounts:
+    protein: 26000
+  # ⭐ Intramuscular fat as `composition`, not a field — the existing
+  # readers (`NutritionLabel`, `BlendLabel`) then derive a belly's fat
+  # against a loin's for free.
+  composition:
+    - { materialPath: /stuff/idea/material/food/animal-fat, fraction: 0.05 }
+  # ⭐ `meat` so every shipped `category: meat` recipe slot matches a cut;
+  # `raw` for the spoilage seam.
+  tags: [tissue, animal, muscle, organic, edible, food, meat, raw]

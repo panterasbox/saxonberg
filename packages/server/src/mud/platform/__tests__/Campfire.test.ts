@@ -8,10 +8,13 @@
  */
 
 import "../../../test-bootstrap";
+import type { Stuff } from "../../lib/stuff/Stuff";
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import Campfire from "../thing/Campfire";
 import Material from "../../lib/material/Material";
 import { Reserve } from "../../lib/reserve";
+import { chargeWood } from "../../lib/fire/__tests__/burner-fuel";
+import type { Burner } from "../../lib/fire/Burner";
 import { Touch } from "../../lib/perception/Touch";
 import { Quantity } from "../../lib/quantity";
 import { MixinApi } from "../../api/mixin";
@@ -48,15 +51,9 @@ function campfire(fuelPct: number): Campfire {
     f.setMass(Quantity.of(5, "kg"));
     f.setMaterial(wood());
     f.setLastAmbientK(290);
-    f.setReserve(
-      new Reserve(
-        "fuel",
-        Quantity.of(100, "%"),
-        Quantity.of(fuelPct, "%"),
-        "combustion",
-        null,
-      ),
-    );
+    // ⭐ `fuelPct` is now kilograms in the bed rather than a percentage
+    // of nothing: 20 kg is a full campfire, 0 is a cold ring of stones.
+    chargeWood(f as unknown as Stuff & Burner, (fuelPct / 100) * 20);
     return f;
   });
 }
@@ -72,12 +69,18 @@ describe("Campfire — combustion + embers", () => {
     WorldClockApi._resetForTesting();
   });
 
-  it("composes LightSource, Postured, Reserved, Thermal", () => {
+  it("composes LightSource, Postured, Thermal — and NOT Reserved", () => {
     const f = campfire(100);
     expect(MixinApi.isLightSource(f)).toBe(true);
     expect(MixinApi.isThermal(f)).toBe(true);
     expect(MixinApi.hasMixin(f, Mixins.Postured)).toBe(true);
-    expect(MixinApi.hasMixin(f, Mixins.Reserved)).toBe(true);
+    // ⭐⭐ `ReservedMixin` left the `Firebox` chain in the fire build. The
+    // `'fuel'` Reserve was a percentage of nothing: it could not say what
+    // the fire was burning, so a fire could not be told what it held or
+    // given any more, and no fire in the game could run twice. Fuel is a
+    // BED now — kilograms, by material, on `BurnerMixin`.
+    expect(MixinApi.hasMixin(f, Mixins.Reserved)).toBe(false);
+    expect(MixinApi.isBurner(f)).toBe(true);
   });
 
   it("a fed fire stays hot (pinned while fuel remains)", () => {
@@ -96,16 +99,30 @@ describe("Campfire — combustion + embers", () => {
     );
   });
 
-  it("fuel depletes and floors → temperature falls toward ambient", () => {
+  it("fuel runs out, the pin releases, and the embers cool", () => {
     const f = campfire(100);
     f.getTemperature();
-    tick(13000); // > 200 game-min at 0.5%/min → fuel exhausted
-    // Reading temperature reconciles the fuel burn and releases the pin
-    // at the burn temperature (no elapsed yet, so still ~hot this instant).
-    const released = f.getTemperature().rawValue();
+    // ⭐ 20 kg of 30 MJ/kg fuel is 600 MJ; a campfire's 8 kW spends that
+    // in ~75,000 game-seconds. ⚠ In steps under the four-hour far-past
+    // guard, which drops a longer gap as a logout rather than
+    // integrating it — a campfire does not burn down while the server is
+    // off, and a single long jump would measure nothing.
+    let steps = 0;
+    while (f.fuelRemaining() > 0 && steps < 40) {
+      tick(10_000);
+      f.getTemperature(); // the read is what reconciles the burn
+      steps += 1;
+    }
     expect(f.fuelRemaining()).toBe(0);
+    expect(f.isLit()).toBe(false); // the burnout edge put it out
+
+    // ⭐ The burnout edge stamps the contents at the held temperature and
+    // releases the pin, so this instant reads hot and everything after it
+    // is the passive Thermal cooling. ⚠ The loop above has to BREAK at
+    // burnout for that to be observable: running it a fixed number of
+    // steps past the edge reads the embers, not the release.
+    const released = f.getTemperature().rawValue();
     expect(released).toBeCloseTo(800, 0);
-    // The embers now cool as a passive Thermal object toward ambient.
     tick(3000);
     expect(f.getTemperature().rawValue()).toBeLessThan(800);
   });

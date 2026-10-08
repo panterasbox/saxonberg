@@ -139,3 +139,9 @@ able to; if it is the engine talking to itself, a loop is fine.**
   that raised this (MR !302); its slate retired into that doc.
 - [perception.md](../../subsystems/perception.md) — owns the orphan
   guard question.
+
+## ⬅ From the fire build (2026-10)
+
+Left as a line here rather than in a retired plan.
+
+- ⚠ **Candidate preference: MQL picked an immovable machine over the thing the player meant** (the fire build's live drive). At the fuel yard `stoke charcoal into retort` binds the **clamp** — a *turfed charcoal clamp*, so `charcoal` is honestly in its keywords — over four baskets of actual charcoal on the ground, and the refusal (*"That will not burn."*) blames the player's fuel for the game's mis-pick. `get charcoal` first and the same command works. ⭐ The shape of an answer: a FUEL arg should prefer what is carried, and a thing that cannot be lifted is a poor candidate for one. ⚠ Not a keyword bug — the clamp's name really does contain the word.

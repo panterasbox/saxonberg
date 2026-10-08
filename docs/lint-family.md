@@ -44,7 +44,7 @@ That is the reusable shape for any antipattern worth removing:
 Step 2 is the affordable part: a new antipattern can be stopped from
 growing the day it is noticed, without being fixed first.
 
-### ⚠⚠ Three ways a census lies, all three paid for in 2026-09
+### ⚠⚠ Four ways a census lies, every one of them paid for in 2026-09
 
 **1. A classifier that reads the NAME instead of the thing.** The
 `lib/` statics sweep filed 40 rows as *"inline and delete"* from their
@@ -79,6 +79,32 @@ a gate that cannot report anything. It was proved by reverting a real
 fix and watching it fire, and then pinned with fixtures that assert the
 POSITIVE — a violation is found — not merely that a clean tree is clean.
 ⚠ This repo has shipped broken gates that silently passed before.
+
+**4. ⛔⛔ A ceiling raised on a DOCTRINE QUOTATION instead of a caller
+audit.** `lint:lib-statics` went 342 → 347 for five new statics,
+justified out of the gate's own header — *"type-level statics stay on
+the value class, and the projection admits them as a `value-static`
+kind… they are visible now."* Every clause was quotable and the
+conclusion was false: `value-static` is the projection's **catch-all**
+(`!isStaticApi && !isStuffMethod && mud/ && !sealedSubdir`), so it
+collects precisely the members nobody classified, and offering it as
+proof of visibility is circular. One question settled it — **who calls
+this?** — and the answer was `lib/` and `platform/idea/api/` for all
+five. Three classes took a class-level `@internal` and the count landed
+at **339, three below where the build found it.**
+
+> ⭐⭐ **A ratchet rise wants a CALLER AUDIT, not a doctrine quotation.**
+> Name every caller and ask whether any of them is the surface the gate
+> protects. If none is, the member is not surface and the gate has an
+> escape built for exactly that (`@internal`, counted separately) — so a
+> rise was never needed. ⚠ And when a gate's own prose supplies the
+> justification, **fix the prose**: five rises landed on one branch
+> before anybody asked the question, and the header was why.
+
+> ⚠ A legitimacy argument is not a growth argument. *This member is the
+> right shape for this class* says it may exist; it says nothing about
+> whether the population may grow while a sweep is mid-flight, which is
+> the only thing a ratchet is asserting.
 
 ---
 
@@ -139,23 +165,104 @@ POSITIVE — a violation is found — not merely that a clean tree is clean.
   `XApi.verb(host, …)`. Two enumerated lists (`EXEMPT_APIS`,
   `NON_SUBJECT_TYPES`) live in the script so a widening is a visible
   diff.
+- ⭐⭐ **`lint:closed-vocabularies`** — **the census of kernel words
+  content is not allowed to add to.** A closed list in kernel source that
+  stands between a pack author and their row breaks *a pack must never
+  need a kernel list edit*, and until this gate nothing counted them.
+  ⭐ **The question is not "is this list closed?" — plenty are correctly
+  closed. It is: is its closure a fact about the WORLD, or a convenience
+  for the implementation?** A fact about the world stays and is declared
+  in `CLOSED_BY_DESIGN` with the reason written as a **claim**
+  (`BASIC_TASTES` is five words because taste physiology has five
+  receptor classes; a designed ladder's rungs are read positionally by
+  the arithmetic). A convenience wants **ROWS**, and the shape is shipped
+  and proven — `instrumentation.md`'s reading channels, warmed by
+  template-path infix with *"no kernel list, no stanza in a platform
+  view, no boot-sequencer line"*; `Placement` made exactly this journey
+  from enum to row. Census-then-ratchet, **ceiling 5** (+ 6 declared).
+
+  ⚠⚠ **Two receipts it was built on, both from one branch.**
+  `MATURATION_MECHANISMS` grew 4 → 5 so a TRADE BUILD could ship floor
+  malting — a kernel list edited by a content build, uncounted, reading
+  as ordinary work. And `AROMAS` arrived with 11 words whose own site
+  note *conceded* that a pack wanting `tar` would need a kernel MR, then
+  shipped: ⭐ **the author knew the rule, wrote the objection down, and
+  proceeded, because a note is not a force.** That is the gate's whole
+  reason — an agent adapts what it finds unless something opposes it, and
+  a comment opposes nothing.
+
+  ⚠ Three things the classifier had to learn, each from a failure, and
+  each worth copying into the next census: it **missed `AROMAS` itself**
+  at first (`isAroma` walks the list with `for…of`, not `.includes` — a
+  gate blind to its motivating case); the **declaration line** counted
+  whenever a refusal token sat within five lines, so char-gen's
+  `FIELD_ORDER` counted in a fixture and escaped in the real tree *purely
+  by line spacing*; and `(VOCAB as readonly string[]).includes(x)` — this
+  codebase's own idiom — defeated the pattern and silently dropped two
+  vocabularies content certainly names. ⭐ A **stale exemption** (an
+  allowlist entry matching nothing the scanner finds) is an ERROR, not a
+  note: it reads as a considered judgement about live code and is not
+  one, which is the enumeration rot `lint:family` went derived to escape.
+
 - **`lint:lib-statics`** — ⭐ the other half of the same invariant.
-  ⭐⭐ **The question is: does the static answer something about the TYPE
-  or about the WORLD?** Type-level — construction (`Quantity.of`), a
-  guard over the type's own closed vocabulary (`Construction.isForm`), a
-  lookup of it (`Currency.all`) — **stays on the value class** and is
-  documented: the projection admits it as a `value-static`, its own
-  consumer kind. Those were never the antipattern; being *invisible* was.
+  ⭐⭐ **The question is: WHO CALLS IT?** The two places a person searches
+  are **public methods on Stuff/mixin classes** (most arriving via a
+  mixin) and **statics in the Api layer** — both queryable. A static on
+  an arbitrary `lib/` class is in neither, and that is the whole injury.
+  So: *an author calls it* ⇒ it belongs on an **Api** (or is already
+  reachable through one, in which case the static is plumbing); *only
+  `lib/` and `platform/idea/api/` call it* ⇒ it is not author surface,
+  and the honest disposition is a class-level **`@internal`** — counted
+  separately, excluded from the ceiling, invisible *because its author
+  said so*.
+
+  ⛔⛔ **This bullet used to read "the projection admits it as a
+  `value-static`, its own consumer kind. Those were never the
+  antipattern; being invisible was." DO NOT reason that way — it is the
+  escape hatch, and it is false.** `value-static` is a **catch-all**:
+  `!isStaticApi && !isStuffMethod && mud/ && !sealedSubdir`. Anything
+  left over lands in it, so the label means *this member was not
+  classified*, and citing the bucket that collects the invisible members
+  as proof of visibility is circular. ⚠ The secondary question — does
+  the static answer something about the **TYPE** or about the **WORLD**?
+  — still decides where a legitimate one goes (type-level on the value
+  class, world-level on a logic singleton), but **being type-level makes
+  a static legitimate to exist; it does not make it discoverable, and it
+  is no argument for growing the population.**
+
+  ⭐ Worked example, 2026-10-06: the whiskey-styles build added five
+  statics and raised the ceiling 342 → 347, quoting the sentence above.
+  A caller audit then showed **not one of the five was author surface** —
+  every caller was `lib/` or `platform/idea/api/`, and what an author
+  actually reaches is `BulkableApi.blendPayloads` plus `smell`/`taste` on
+  a mixin. Three classes went `@internal` and the count landed at
+  **339 — three BELOW where the build found it**, because
+  `DissolvedToxins` had never been marked. A rise became a tightening on
+  one question.
   World-level logic (`Freshness.growthRate`, `CombatNarration.narrate`)
   belongs on a `platform/idea/api/<X>Logic.ts` logic singleton with the
   subsystem's Api forwarding — the split `CLAUDE.md` already calls
-  mandatory. Census-then-ratchet, **ceiling 337** (opened at 563; the 2026-09 sweep drove it down — `LIB_STATICS_CEILING`) across the kernel's
+  mandatory. Census-then-ratchet, **ceiling 339** (opened at 563; the 2026-09 sweep drove it down, and see the worked example above — `LIB_STATICS_CEILING`) across the kernel's
   `lib/` and `platform/` plus every pack's `src/`: the population may not
   grow while the sweep moves the world-level half out. ⚠ Statics inside a
   mixin factory's returned class expression are out of scope by
   definition — they are reached through the composed host, which is a
   different question. See
   [value-object-statics-slate](./slates/builds/value-object-statics-slate.md).
+
+  ⚠⚠ **The framework allowlist had drifted, and that is this gate's own
+  documented failure class** (*a ratchet with a hole in it*; *gates ship
+  broken and silently pass*). Statics the framework reaches **by name**
+  can never move and are not author surface, so they are exempt — and
+  the set is defined by grepping the framework for
+  `hasOwnProperty.call(c, '…')`. On 2026-10-05 that grep yielded ten
+  names while the list carried seven: `hydrateFromSource` and
+  `hydrateSlice` (both added by the hydration build) were **missing**,
+  and `restoreSlice` is **stale** — the framework never reads that name.
+  Re-derived, with the derivation written at the site so the next drift
+  is visible. ⭐ The lesson generalizes past this gate: **an allowlist
+  defined by a grep should carry the grep**, or it decays the moment the
+  thing it mirrors grows.
 
 **So the ~50 world-level statics in Api-less subsystems stay where they
 are**, and the ratchet stops at ≈50 + the type-level population instead
@@ -945,6 +1052,130 @@ above. The broader disease, and the one open half the literal cannot see
 documented at
 [antipatterns.md § Keying a PERSON](./antipatterns.md).
 
+### `lint:identity-mints` — every mint names what keys on it (2026-10)
+
+⭐⭐ `StuffApi.clone(row, …, { asIdentityPath })` is the one channel that
+mints a per-instance identity, and until this gate nothing asked the
+question the requirements settle (9a): *an identity exists iff the NAME
+is durable* — re-derivable from inputs that outlive the instance, or
+recorded somewhere durable. Concretely, **what keys on this identity?**
+
+The closed vocabulary is `own-record | referenced | lookup | none`, and
+⚠ **there is no `probe` word, by design**: a mint's own uniqueness check
+cannot justify the mint it serves. The corpse mints an ordinal by asking
+whether its own candidate identity is free, which is circular — so it
+is marked `none`.
+
+⭐⭐ **A census, not a shape validator.** A validator over the shapes the
+tree actually uses — family-prefixed, row-prefixed, parcel-relative,
+recorded-uuid, projected — would codify five improvisations and hand
+every one of them a passing grade. The shapes are all legitimate on
+their own terms; the mint is what gets questioned.
+
+⭐ **The marker lives AT THE SITE** (`// identity-keyed-by: <word> —
+<what>`), on the `eslint-disable -- reason` precedent, never in a table
+inside the script. That is what lets a capability pack mark its own mint
+with nobody editing a kernel list — the rule that *a pack must never
+need a kernel list edit*, applied here. So the script reads sites and
+holds no paths.
+
+Two outcomes, and only one of them is a ratchet:
+
+- **An unmarked mint is an ERROR**, not a count. A new mint has to
+  answer the question; silence is the whole failure the gate exists for.
+- **A site marked `none` is unjustified** and counted against a ceiling
+  that may fall and never rise.
+
+**First census (2026-10-04): 13 sites — 8 `own-record`, 2 `referenced`,
+1 `lookup`, 2 `none`.** ⚠ The composition moved during the same build
+and the count did not: A3 removed the wire body's mint (`own-record`)
+and B2 added the tombstone's (`referenced`), so it reads 7 / 3 / 1 / 2
+now. Worth noting because the first reading of that shift was *the
+scanner mis-attributed something* — it had not, and checking which site
+changed was what settled it. The ceiling is **2**: the anonymous guest
+(`Login.ts`, on the login path, avoiding a throwaway template row) and
+the corpse (`ConditionLogic.ts`, being retooled by the carcass chain).
+⚠ Both are **named non-goals** of the build that added the gate, and
+reading "unjustified" as *go and fix it* is the mistake to avoid —
+unminting is per-site work for whoever owns the site, and each marker
+names its destination. ⚠ `src/backend/TestHooks.ts` mints through the
+same formula and is outside the scan root (the mudlib + pack `src/`,
+the `check-person-keys` root); it carries a marker for the reader and is
+uncounted.
+
+⚠ **What the lint cannot see is a MIS-mark** — `referenced` with nothing
+referencing it. The vocabulary being closed stops a site inventing a new
+justification, but not a wrong one. Review is what catches that, which
+is the marker's other job.
+
+The runtime half is separate and louder: a class that declares
+`static identityNamespace` has every mint asserted against it in the
+clone pipeline. See
+[identity.md § Every mint names what keys on it](./subsystems/identity.md).
+
+### `lint:location-graph` — is the world's SHAPE sound, before anybody boots it? (2026-10)
+
+⭐⭐ The worst failure in this family is a **dangling exit, which is a
+boot crash**: `Exitable._applyExitSpec` → `StuffApi.singleton` →
+*Template not found*, wrapped as *"failed to clone"*. An author who
+learns about it from a boot crash learns it at the worst possible
+moment, from a stack trace naming the framework rather than their row.
+So the gate reads the ROWS ON DISK and names the row and the direction
+before any process starts.
+
+⭐ **The rules live in `lib/location/GraphInvariants.ts`, not in the
+script.** `NavigationApi.checkGraph` runs the same instance value class
+over the projected nodes at runtime, so a CMS save answers in the same
+request. Two copies would drift — and a gate and a runtime check
+disagreeing about what a dangling exit is reads as *neither* of them
+being wrong.
+
+⚠⚠ **A place is DERIVED, never listed.** A row is a place iff its
+effective class extends a Location root AND composes `SingletonMixin`
+(*one row IS one place*); every other location row is a **kind**, minted
+many times through a warren or a programme. The walk goes through mixin
+calls (`pack-roots.extendsAny`, lifted there at this second consumer),
+so a pack's own room class is found. ⚠ And **place rows are not all
+under a `/location/` segment** — `counting-houses/banking-hall`,
+`general-store/shop-floor` predate the path pattern — so enumerating by
+path infix would skip them. By class, always.
+
+**Three errors, four questions.** The errors have no ceiling because
+they are not questions: a dangling destination; the same pair declared
+`bidirectional` from **both** sides (one declaration installs both, so
+two install the pair twice); an edge from published content into
+unpublished content. ⭐ That last runs **one way only** —
+`published → unpublished` is a dangling edge waiting to happen, while
+`unpublished → published` is how a draft zone attaches to the live world
+when it lands.
+
+The four questions are censused and ratcheted, because a one-way passage
+is legitimate content and an author must be able to ship one. **First
+run (2026-10-05): 124 places, 199 edges** — `cross-zone-one-sided` 1 ·
+`unreachable-from-entrance` 13 · `asymmetric-edge` 4 ·
+`destination-is-a-kind` 2, every error rule at 0. The ceilings are those
+measured numbers, not padded ones: a ceiling above the real count is a
+hole in the ratchet.
+
+⚠⚠ **`unreachable-from-entrance` has false positives BY CONSTRUCTION**,
+and saying so is what keeps it honest. This gate reads rows, and
+**code-installed exits are not in rows** — a warren's hub exits, a
+`DormDoor`, a `FloorStairExit` are wired in TypeScript — so a zone
+reached only through a code-installed door reads as having no entrance.
+Eleven of the thirteen are that (trade venue interiors, locality
+cellars). The rule still earns its place: the count may not GROW, so a
+genuinely orphaned new room shows up as a rise, and the first run's two
+real findings (`market/offstage`, plus both `destination-is-a-kind`
+hits) were news.
+
+⚠ **A premise correction the first run forced.** The requirements' AC7
+asks for *"a non-reciprocal bidirectional edge"* to be reported. That
+shape does not exist: `bidirectional: true` means *install both sides*,
+so such an edge is reciprocal by construction, and the rule written that
+way flagged Duncan Hall's front doors — whose row explains in a comment
+why one declaration is correct. The one-sided edge AC7 was reaching for
+is `asymmetric-edge`, which is a census for the reason above.
+
 ## Domain honesty — the gates that buy a narrowing
 
 These exist because the failure they prevent is **silent and looks
@@ -990,6 +1221,35 @@ configured**.
   rots — which is right, and is not spoilage: a LIVING thing's tissue is
   not yet dead matter, so a class composing `GrowingMixin` is exempt by
   rule, not by list. The clock starts at the harvest, which is a `Crop`.
+- **`lint:anatomy`** — ⭐ **a body plan's tissue shares must sum to the
+  whole body, and every share must name something real** (the butchery
+  build, 2026-10-05). A `TissueComposition` states the **share of the
+  whole body's mass** a tissue of a part carries, so part mass is
+  `share × the instance's own mass` — which is what lets ONE plan serve a
+  20 g canary and a 700 kg ox. It replaced absolute kilograms that were
+  **already a lie**: the `quadruped` plan authored a 28 kg torso and a
+  bullock claimed the same one as a ewe, and nothing errored because
+  nothing checked — the masses fed only `partArea`, whose two readers are
+  ratio-only, so the fiction was invisible by construction.
+  ⚠ Shares can carry the same lie unless something adds them up: a plan
+  summing to 0.6 describes a body that is 40 % nothing — every part
+  under-massed, every surface fraction wrong, silent. **The setter cannot
+  catch it**, because it sees one tissue at a time and fixtures author
+  one-part bodies on purpose. Only a whole-row check can.
+  Five clauses: **(a)** every shipped `BodyPlan` row sums to `1 ± 1e-3`;
+  **(b)** every species that yields anything names a plan that resolves;
+  **(c)** no yield line authors a `fraction` beside a claiming cut (two
+  sources for one number); **(d/e)** every claimed tissue resolves to a
+  Material row and is carried by the plan of every species claiming it.
+  **Exempt:** a plan with **no tissues at all** — `sessile` is a plant,
+  and zero is the honest answer there. ⚠ The exemption is for an EMPTY
+  plan, not a partial one: a plan that states some tissues must state all
+  of them.
+  ⚠⚠ **Not a ratchet**, and the distinction is worth keeping: the sum is
+  an *invariant*, not a population to burn down. There is no honest count
+  of bodies that are 40 % nothing, so there is no ceiling to lower —
+  compare `lint:mass` below, which caps a census. See
+  [butchery.md](./subsystems/butchery.md).
 - **`lint:mass`** — ⭐ **a thing made of nothing, counted and capped**
   (base-class narrowing, 2026-09-29). Every row whose class reaches
   `TangibleMixin` is matter, and mass drives carry capacity, thermal
@@ -1131,7 +1391,7 @@ rather than a bug.
 
 ⭐ So the gate is **not a census of light** — the common case is derived
 and needs no row. It is a **census of EXCEPTIONS**, and every exception
-is a line somebody had to write in the script. Seven clauses; the debt
+is a line somebody had to write in the script. Eight clauses; the debt
 list (`UNDECLARED_INTERIOR_AMBIENT`) opened at **50** and reached
 **zero** in the same build.
 
@@ -1149,6 +1409,28 @@ Two clauses paid for the gate on their first runs:
   `src/`. The town's lamps are a property of the street; the gate is
   what keeps that decision from quietly eroding into forty-one minted
   fuel reserves.
+- **(h)** — ⛔⛔ a burner row must carry **a fuel path and a power**
+  (the fire build, 2026-10). `maxBurnPowerW` and `fuelCapacityKg` both
+  default to **0**, which is not dangerous — it is **inert**, and that
+  is worse: an inert object reads as fine in every test and is dead in a
+  player's hands. A fuel path is an authored `fuelBed` (a torch, which
+  IS its fuel), a `fuelCapacityKg` a `stoke` can fill, or an
+  `interiorBulk` interior a `fill` can pour into (`Lamp.fuelSlot()`
+  answers with the last).
+  ⚠ **It shipped twice in one week**, which is the argument for the
+  clause: the general store's LANTERN (no bed, no slot, no tank) and —
+  independently, arriving from master — the chandlery CANDLE, carrying
+  the retired `reserves: { fuel: … }` instead. Both were lights for
+  sale, on a shelf, that could never be lit, and both were found by a
+  LIVE browser pass rather than by a test.
+  ⭐ Census first: 24 burner rows, **23 already compliant**, so the
+  clause lands as a **ratchet at zero** rather than a burn-down. One
+  declared exemption (`NO_FUEL_OF_ITS_OWN`): the worked flame, whose
+  power comes from the caster and which carries no matter at all — ⚠ and
+  which is NOT exempt from the physics, since it still spends the room's
+  air and still smothers in a sealed cellar.
+  ⭐ The pair is worth reading together: **(g)** catches a default that
+  is *wrong*, **(h)** catches two that are *empty*.
 
 ### `lint:envelope` — the heat half's twin (2026-09)
 
@@ -1326,3 +1608,48 @@ It also gates, at ceiling zero: a recipe `difficulty` outside `DIFFICULTIES`,
 a `call:` outside `CALL_POLICIES`, and ⭐ **a house with a `fulfills` seat and
 no `call:`** — which would decline every order it ever received.
 
+## ⭐⭐⭐ When the thing you want to derive *cannot* be derived
+
+`lint:boundary-roles` (2026-10-06) is the pattern's honest edge case,
+and worth reading before reaching for "make it derivable".
+
+The sandbox boundary's class-level exemption was **thirty-nine
+hand-maintained entries** across two mechanisms — twelve
+`_registerBoundaryExemptBase(...)` calls planted from
+`BootstrapManager`, and twenty-seven template-path strings inside
+`api/security.ts` — and by their own comments every one was added
+*after a verb died in production*. The textbook enumeration rot.
+
+⛔ **But the predicate did not exist.** Three candidate derivations
+were checked against the code and all three failed:
+
+| candidate | verdict |
+|---|---|
+| *never mutated at runtime* (scan for public mutators) | `Material` declares **32** public `set*` methods, because the `TemplateApplier` dispatches through them. Every authored reference class needs setters. |
+| *the PM policy table refuses writes to its rows* | ⛔ **false.** `Collections.Content` is `sandbox: pass`, deliberately. The stated justification for nine exemptions did not hold. |
+| *nobody can hold title to it* (`ownerOf(path) === null`) | false — `/platform` and `/stuff` are both claimed extents. |
+
+⭐ **So the fix was not a derivation; it was to move the judgment
+somewhere visible and ratchet its GROWTH.** The axis became one static
+on the class (`static boundaryRole`, prototype-walked like
+`_mixinName`), and the gate asserts three things that *are* derivable:
+
+1. **totality** — every declaration is a value the vocabulary declares,
+   read out of the vocabulary's own source rather than copied;
+2. **the census ceiling** — today's `commons` count, which may fall and
+   never rise, and a **padded** ceiling is a finding too;
+3. **no central list may come back** — the retired registrar has no
+   callers and the deleted sets are absent.
+
+⚠ **The lesson for the pattern**: when a count is rotting, ask whether
+the predicate exists *before* promising to derive it. If it does not,
+the ratchet alone is still most of the value — it converts an
+unbounded list into a reviewed one. What made the old lists dangerous
+was not that they were lists; it was that nothing bounded them.
+
+⭐ And it is worth deriving what you can even then: the roles replaced a
+*path-string* mechanism with a *class* one, which makes a rename
+typechecked for free — and that retired the main invariant of an
+older gate (`lint:boundary`'s *"every exempt path resolves to a real
+seed row"*), whose own header had already identified the string
+coupling as the defect.

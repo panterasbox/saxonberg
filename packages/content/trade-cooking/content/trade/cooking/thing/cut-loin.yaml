@@ -1,0 +1,22 @@
+# A loin — one muscle off a carcass.
+#
+# ⚠ `mass` here is a NOMINAL default the mint overwrites: what a cut
+# actually weighs is `Σ(its muscles' body share) × the carcass's own
+# mass`, so the same row off a ewe and an ox weighs what each animal's
+# loin weighs. Nothing authors that number twice.
+#
+# ⭐ And its TEXTURE is derived from the muscle too — nobody can author a
+# tender shank.
+class: /platform/thing/Cut
+data:
+  shortDescription: loin
+  keywords: [loin, cut]
+  register: indefinite
+  longDescription: >-
+    A long clean muscle off the back, trimmed of its sinew. Fine-grained and pale.
+  _materialPath: /stuff/idea/material/tissue/muscles/loin
+  tissues:
+    - /stuff/idea/material/tissue/muscles/loin
+  cutting: boneless
+  difficulty: standard
+  mass: 1.0

@@ -1,0 +1,40 @@
+# Bone meal — ⭐⭐ **bone's one sink, and it closes the carcass chain into
+# the ground.**
+#
+# A butchered animal gives bone, and nothing in the world could do
+# anything with it: the row's own prose promised *"ground it goes back on
+# the land"* and there was no way to grind it. The animal that ate the
+# field now feeds it back at both ends — the muck while it lived and the
+# bone when it did not — which is as complete as a cycle gets.
+#
+# ⚠⚠ **It is NOT phosphorus**, and the bone row said it was. Soil holds
+# moisture, nitrogen, organic matter and structure, and nitrogen is the
+# limiting nutrient the whole farming build is built around. A fifth
+# reserve with one producer and one consumer would be a mechanism serving
+# one row. `slow-amendment` goes in as ORGANIC MATTER through the shipped
+# `feed`, and `Soil.addOrganicMatter` already credits *a little nitrogen
+# now and most of it later* — which is exactly what ground bone does in a
+# field, said by a face that already existed.
+#
+# ⭐ No `discipline` and no `difficulty`: turning a handle is not a skill.
+# The skill in this chain was the butchering.
+recipeId: bone-meal
+name: Bone meal
+keywords: ["bone-meal", "bonemeal", "bone", "grind-bone"]
+inputSlots:
+- slot: bone
+  kind: item
+  category: bone
+  minGrade: poor
+  count: 1
+# ⭐ The stones. A hand quern carries `millstone` and so does a mill, so
+# the capital decides your TIME and not your access — which is the
+# milling trade's own claim, applied to a second input.
+toolCapabilities:
+- millstone
+outputApplication: bulk
+outputTemplate: /trade/cooking/thing/sack
+outputMaterial: /stuff/idea/material/mineral/bone-meal
+# An 8 kg heap of bone at ~1,100 kg/m³ dry-ground is a bit over 7 L.
+outputPortionL: 7
+outputAppearance: a fine grey-white meal, gritty between the fingers

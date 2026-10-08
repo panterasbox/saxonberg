@@ -223,6 +223,10 @@ async function materializeParty(rec: PartyRecord): Promise<Party> {
   const party = await StuffApi.clone<Party>(
     '/platform/idea/Party',
     undefined,
+    // identity-keyed-by: own-record — `PartyRecord.path` IS this string
+    // (we are standing the party up FROM that record), and every
+    // member's `activePartyPath` references it. Not re-derivable (a
+    // uuid), but recorded, which is the other half of the rule.
     { asIdentityPath: rec.path },
   );
   party.applyRecord(rec);
@@ -355,6 +359,9 @@ async function formImpl(
   const party = await StuffApi.clone<Party>(
     '/platform/idea/Party',
     undefined,
+    // identity-keyed-by: own-record — the record written just below
+    // carries this path, and members reference it by
+    // `activePartyPath`. Recorded, not re-derivable.
     { asIdentityPath: `/platform/idea/party/${SecurityApi.uuid()}` },
   );
   party.setName(trimmed);

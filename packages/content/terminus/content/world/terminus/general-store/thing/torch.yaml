@@ -16,14 +16,23 @@ data:
     A stout length of pitch-pine, one end bound in oil-soaked rag. Struck alight it throws a guttering, ruddy glow good enough to light a dark passage — the cheapest light a delver ever bought, and the one they never regret carrying until it burns down to their hand.
   # ⚠ `BurnerMixin.lit` defaults TRUE. A torch on a shop shelf is out.
   lit: false
-  reserves:
-    fuel:
-      capacityValue: 100
-      currentValue: 100
-      unit: "%"
-      theme: combustion
-      floorEffect: null
-  # ⭐ Burns twice as fast as a lantern: half a game night, not a whole one.
-  fuelBurnRatePerMin: 0.3
-  emittedIntensity: 80
+  # ⭐⭐ The darkness sweep (fire build). `emittedIntensity` is a CEILING
+  # now, not the reading: luminosity is incandescent soot, so a solid-fuel
+  # flame at full draught sheds `fire.light.sootyFloor` (0.6) of it and a
+  # starved one climbs back toward it. Every burner's authored figure is
+  # scaled by 1/0.6 so a well-run fire lights its room exactly as brightly
+  # as it did before — and a badly-run one now lights it MORE, which is
+  # the lesson. ⚠ No room lit only by a fire has gone dark (AC20).
+  emittedIntensity: 133
   emittedColorTemperature: 1900
+  # ⭐ The fire build: fuel is a BED (kilograms, by material) that
+  # `stoke` fills, and the vessel's size is a POWER rather than a
+  # percentage-per-minute of nothing. What it reaches depends on what
+  # is in it.
+  # ⭐ A torch IS its fuel, so its bed ships charged with half a kilo of
+  # pitch pine and there is nothing to refill — when it is gone it is gone,
+  # which is the whole difference from a lantern.
+  maxBurnPowerW: 1200
+  fuelCapacityKg: 1
+  fuelBed:
+    /stuff/idea/material/wood/pine: 0.5

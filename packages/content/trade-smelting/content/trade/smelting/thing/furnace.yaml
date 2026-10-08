@@ -38,14 +38,23 @@ data:
   mass: 2400
   burnTemperatureK: 1420
   bellowsMultiplier: 1.12
-  fuelBurnRatePerMin: 0.4
   lit: false
-  reserves:
-    fuel:
-      capacityValue: 100
-      currentValue: 100
-      unit: "%"
-      theme: combustion
-      floorEffect: null
-  emittedIntensity: 120
+  # ⭐⭐ The darkness sweep (fire build). `emittedIntensity` is a CEILING
+  # now, not the reading: luminosity is incandescent soot, so a solid-fuel
+  # flame at full draught sheds `fire.light.sootyFloor` (0.6) of it and a
+  # starved one climbs back toward it. Every burner's authored figure is
+  # scaled by 1/0.6 so a well-run fire lights its room exactly as brightly
+  # as it did before — and a badly-run one now lights it MORE, which is
+  # the lesson. ⚠ No room lit only by a fire has gone dark (AC20).
+  emittedIntensity: 200
   emittedColorTemperature: 2000
+  # ⭐ The fire build: fuel is a BED (kilograms, by material) that
+  # `stoke` fills, and the vessel's size is a POWER rather than a
+  # percentage-per-minute of nothing. What it reaches depends on what
+  # is in it.
+  # ⭐⭐ 40 kW, and the fuel is what decides whether it gets there:
+  # charcoal (30 MJ/kg → ~2250 K) clears the 1420 K ceiling and oak
+  # (16 → ~1340 K) does NOT, so the smelter's own sentence about a fuel
+  # that does not burn hot enough is arithmetic now.
+  maxBurnPowerW: 40000
+  fuelCapacityKg: 120

@@ -179,15 +179,38 @@ capability-magic-slate) — so it is modeled in full.
     path DIVERGES from the tree.** For a limb the parent chain already is
     it; the function walk recurses, so naming the spine once at the arm
     carries to the hand.
-- **Tissue composition** — each part carries named tissues with masses
-  (`{ tissuePath, mass }`), not a single material. Tissues are authored
-  Materials under `/stuff/idea/material/tissue/` (`flesh`, `muscle`, `bone`).
-  The mass-per-tissue is the substrate a future strength reading
-  aggregates — and, since the injury build, a LIVE input:
-  `BodyPlan.partArea(key)` is Meeh's `mass^(2/3)`, which both the
-  surface-fraction walk and the **depth ladder's ordering** read. An
-  author tunes which organ a deep wound reaches first by authoring its
-  mass, which is a physical fact they would author anyway.
+- **Tissue composition** — each part carries named tissues with **shares
+  of the whole body's mass** (`{ tissuePath, share }`), not a single
+  material and not kilograms. Tissues are authored Materials under
+  `/stuff/idea/material/tissue/` (`flesh`, `muscle`, `bone`). A part's
+  mass is `share × the instance's own mass`, and the shares of a plan sum
+  to **1** — an invariant `lint:anatomy` holds over shipped rows (an empty
+  plan like `sessile` is exempt; a partial one is not).
+
+  ⭐⭐⭐ **It is a share because ONE plan serves every size of animal.**
+  `quadruped` is named by sheep, cattle, dogs, cats and horses, and
+  `avian` by a canary and a hen. ⚠⚠ Absolute masses made that a lie and
+  nothing caught it: the quadruped plan authored a 28 kg torso, so **a
+  bullock claimed the same torso as a ewe**, and `avian`'s canary-sized
+  4 g of torso bone is why nothing else could reuse it. The masses fed
+  only `partArea`, whose readers are ratio-only, so the fiction was
+  invisible by construction — until butchery needed to know what a cut
+  weighed.
+
+  ⚠ **Whole-body mass is untouched by this.**
+  `Creature.bodyMassIndex()` is `getMass() / stature²`, and `getMass()`
+  is the species frame plus the flesh/lean reserve deltas; fitness and
+  BMI never read part masses.
+
+  The share-per-tissue is the substrate butchery reads (which muscle, and
+  how much of the animal it is) and a future strength reading aggregates
+  — and, since the injury build, a LIVE input:
+  `BodyPlan.partArea(key)` is Meeh's law over the part's shares,
+  `(Σ share)^(2/3)`, which both the surface-fraction walk and the **depth
+  ladder's ordering** read. Both are ratio-only, so every shipped answer
+  survived the change. An author tunes which organ a deep wound reaches
+  first by authoring its share, which is a physical fact they would
+  author anyway.
 - **Instance-delta resolution** — the instance carries only deltas
   (`VitalsMixin.bodyPartDeltas: Record<key, { missing? }>`); structure
   lives on the shared `BodyPlan`. `getParts()` walks

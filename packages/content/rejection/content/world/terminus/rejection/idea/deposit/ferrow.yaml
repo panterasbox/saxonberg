@@ -105,6 +105,34 @@ data:
       to: [60, 60, 0]
       scale: 0.55
       reason: "the old men had this ground first, and they were not stupid"
+  # ⭐⭐⭐ **The gas in the measures, and the venue is making a claim about
+  # its own geology by authoring it.**
+  #
+  # Firedamp is methane adsorbed in coal measures, and Ferrow is an IRON
+  # mine — so this says *there is coal in this hill under the iron*,
+  # which is both common in reality and this locality's own decision. ⚠ A
+  # second mine authors none, and a quarry's ground answers `null`: the
+  # gas is a property of the rock, not a hazard somebody placed.
+  #
+  # `belowZ: -20` is where the measures start, and the number is chosen
+  # against the WORKINGS rather than in the abstract: the authored
+  # timbered drift sits at −10 m, so the gas is exactly ONE level below
+  # the deepest room anybody is handed. ⭐ That makes the lesson a
+  # decision a player can reach in a session — sink one shaft and you are
+  # in it — while keeping the adit and the drift safe, which is what
+  # makes going down mean anything. A band at −30 would have been equally
+  # honest geology and unreachable in practice, which is the same as not
+  # shipping it.
+  #
+  # `strength: 0.14`
+  # means dead air at depth fills to ~14 % firedamp — well above the 5 %
+  # that burns, and ⭐ **well below the share that would stop a canary
+  # singing**, which is the whole design: the bird is honest and the bird
+  # is answering a different question.
+  gas:
+    material: /stuff/idea/material/gas/firedamp
+    belowZ: -20
+    strength: 0.14
   features:
     # ⚠ An authored PIN, and it is indistinguishable downstream from a
     # computed cell — the spine invariant. This one is the mouth of the

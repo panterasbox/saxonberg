@@ -6,7 +6,7 @@
  * touch almost nothing. The bound asked each receiver for its
  * `templatePath` and required it to sit under the parcel — but a
  * templatePath is LINEAGE, not location. An avatar's is
- * `/platform/agent/Avatar/<id>` and a cloned corpse's is `/stuff/agent/Corpse`,
+ * `/platform/agent/Avatar/<id>` and a cloned corpse's is `/stuff/thing/Corpse`,
  * wherever either happens to be standing, so a governed eval was denied
  * the wizard's own body in the very parcel they hold title to. Worse,
  * the eval scratch is minted and *then* stamped, so at the instant of
@@ -27,6 +27,8 @@ import { Idea } from '../../lib/stuff/Idea';
 import { NamedMixin } from '../../lib/description/Named';
 import { ContainableMixin } from '../../lib/spatial/Containable';
 import { ContainerMixin } from '../../lib/spatial/Container';
+import type { Stuff } from '../../lib/stuff/Stuff';
+import type { BoundaryRole } from '../../lib/security/BoundaryRole';
 import {
 
 
@@ -55,6 +57,34 @@ class Probe extends ContainableMixin(NamedMixin(Idea)) {
 /** A probe that also holds things — for the nesting case. */
 class Bag extends ContainerMixin(ContainableMixin(NamedMixin(Idea))) {
   static _mixinName = 'Bag';
+}
+
+/**
+ * ⭐ A Stuff that belongs to a place without being CONTAINED by it —
+ * the exit's shape. It is not `Containable`; it names its host.
+ */
+class Hosted extends NamedMixin(Idea) {
+  static _mixinName = 'Hosted';
+  constructor(private readonly host: Location) {
+    super();
+  }
+  public override jurisdictionHost(): Stuff | null {
+    return this.host as unknown as Stuff;
+  }
+}
+
+/** A host hook that throws — the gate must deny, not propagate. */
+class Breaks extends NamedMixin(Idea) {
+  static _mixinName = 'Breaks';
+  public override jurisdictionHost(): Stuff | null {
+    throw new Error('host hook exploded');
+  }
+}
+
+/** Declares `commons`: shared vocabulary nobody holds title to. */
+class Vocabulary extends NamedMixin(Idea) {
+  static _mixinName = 'Vocabulary';
+  static boundaryRole: BoundaryRole = 'commons';
 }
 
 function roomAt(path: string): Location {
@@ -95,7 +125,7 @@ describe('governed eval — the jurisdiction bound', () => {
 
   it('admits a clone standing in the parcel (a corpse, say)', async () => {
     const corpse = probeAt(
-      '/stuff/agent/Corpse',
+      '/stuff/thing/Corpse',
       roomAt('/world/lounge/location/bar'),
     );
     await SandboxApi.runGoverned(BOUND, async () => {
@@ -154,6 +184,82 @@ describe('governed eval — the jurisdiction bound', () => {
       coin.setName('counted');
     });
     expect(coin.getName()).toBe('counted');
+  });
+
+  /*
+   * ⭐⭐ THE HOST HOOK — the rung that used to hardcode containment.
+   *
+   * `jurisdictionHost()` defaults to `getContainer()`, which is why
+   * every case above still passes. What it ADDS is a Stuff that
+   * belongs to a place **without being contained by it** — the exit.
+   * An inline exit answers to its exit-KIND path
+   * (`/platform/idea/exits/passage`: the kernel, not the world) and a
+   * room holds a `direction → exit` map rather than containing its
+   * exits, so rule 1 said no and rule 2 had nothing to walk. A
+   * governed `eval --parcel <extent>` was refused on every exit of
+   * every room in its own extent — `getDoor()` included, so not even
+   * a read got through. Found by a browser drive.
+   */
+
+  it('⭐⭐ admits a HOSTED thing — the exit shape, pathed by KIND', async () => {
+    const room = roomAt('/world/lounge/location/bar');
+    const hosted = makeStuff(() => new Hosted(room));
+    // The defect in one line: its own path is the kernel's.
+    stampTemplatePathForTest(hosted, '/platform/idea/exits/passage');
+    await SandboxApi.runGoverned(BOUND, async () => {
+      hosted.setName('removed');
+    });
+    expect(hosted.getName()).toBe('removed');
+  });
+
+  it('⚠ and DENIES one whose host is outside the parcel', async () => {
+    // The reason the hook answers the SOURCE and never the destination:
+    // an exit has two ends and the far one may be somebody else's.
+    const far = roomAt('/world/moor/location/heath');
+    const hosted = makeStuff(() => new Hosted(far));
+    stampTemplatePathForTest(hosted, '/platform/idea/exits/passage');
+    await expect(
+      SandboxApi.runGoverned(BOUND, async () => {
+        hosted.setName('reached');
+      }),
+    ).rejects.toThrow(/sandbox boundary denied/);
+    expect(hosted.getName()).not.toBe('reached');
+  });
+
+  it('⚠ a host that THROWS fails closed, it does not take the gate down', async () => {
+    // One rung of an authorization decision. A hook that cannot answer
+    // must deny, never propagate.
+    const broken = makeStuff(() => new Breaks());
+    stampTemplatePathForTest(broken, '/platform/idea/exits/passage');
+    await expect(
+      SandboxApi.runGoverned(BOUND, async () => {
+        broken.setName('reached');
+      }),
+    ).rejects.toThrow(/sandbox boundary denied/);
+  });
+
+  it('⭐ a COMMONS class is reachable under any bound — declared, not listed', async () => {
+    // `Locality` was the tenth member of a nine-member list, and the
+    // only reason it was not there is that nothing had driven it:
+    // `AddressApi.resolveLocalityFor` sits on the Cartographer's own
+    // write path, so a governed eval could not resolve an address.
+    const vocab = makeStuff(() => new Vocabulary());
+    stampTemplatePathForTest(vocab, '/platform/idea/Locality/somewhere-else');
+    await SandboxApi.runGoverned(BOUND, async () => {
+      vocab.setName('read');
+    });
+    expect(vocab.getName()).toBe('read');
+  });
+
+  it('⚠ and an UNDECLARED class in the same position is denied', async () => {
+    // The default is `place` and it fails closed — a new module
+    // category, or a misspelled role, gets the ordinary compare.
+    const plain = probeAt('/platform/idea/Locality/somewhere-else', null);
+    await expect(
+      SandboxApi.runGoverned(BOUND, async () => {
+        plain.setName('read');
+      }),
+    ).rejects.toThrow(/sandbox boundary denied/);
   });
 
   it('leaves the unbounded world alone (no bound ⇒ no check)', async () => {

@@ -1,0 +1,26 @@
+# The Knacker's Yard — ⭐⭐ **the end of every animal, and the other half
+# of the LULU.**
+#
+# A knacker takes the animals nobody else will: the fallen horse, the
+# beast that died in the night, the old cow the farmer cannot sell. What
+# comes out is hide for the tannery next door, suet for the chandler two
+# doors down, bone for the mill and meat for the dogs — and the reason
+# the three of them are neighbours is that each one's product is the
+# next one's feedstock.
+#
+# ⚠ **It is NOT a third pack**, and the restraint is the design: a
+# knacker is a VENUE and a SEAT. The mechanism is already shipped —
+# `slaughter` kills, `butcher` dresses, `render-tallow` renders, `grind`
+# grinds — so what a knacker's yard needs is a block, a pot, a hearth
+# and somebody to pay. *Trade is the mechanism; locality is the
+# expression.*
+#
+# ⭐ And it needs no transport verb either. A 70 kg carcass cannot be
+# carried, so a knacker does not fetch: he posts a haulage job and
+# somebody brings it. The works-board is how that is said, and droving
+# live animals through streets is not expressible yet — recorded in the
+# plan, and the shambles waits on it.
+class: /platform/idea/location/CartesianZone
+data:
+  name: The Knacker's Yard
+  cellSize: 4.0
