@@ -1,0 +1,5286 @@
+[
+  {
+    "place": "/platform/location/void",
+    "lux": 0,
+    "lightSources": 0,
+    "colourTemperature": null,
+    "peakLux": 0,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/platform/location/void",
+        "db": 100,
+        "direction": null
+      }
+    ]
+  },
+  {
+    "place": "/trade/distilling/location/warehouse",
+    "lux": 2.078,
+    "lightSources": 1,
+    "colourTemperature": 4200,
+    "peakLux": 2.191,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/trade/distilling/location/warehouse",
+        "db": 100,
+        "direction": null
+      }
+    ]
+  },
+  {
+    "place": "/trade/hospitality/location/bar",
+    "lux": 0,
+    "lightSources": 0,
+    "colourTemperature": null,
+    "peakLux": 0,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/trade/hospitality/location/bar",
+        "db": 100,
+        "direction": null
+      }
+    ]
+  },
+  {
+    "place": "/trade/hospitality/location/cellar",
+    "lux": 0,
+    "lightSources": 0,
+    "colourTemperature": null,
+    "peakLux": 0,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/trade/hospitality/location/cellar",
+        "db": 100,
+        "direction": null
+      }
+    ]
+  },
+  {
+    "place": "/world/lounge/location/bar",
+    "lux": 11.563,
+    "lightSources": 2,
+    "colourTemperature": 4189.189,
+    "peakLux": 11.563,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/lounge/location/bar",
+        "db": 100,
+        "direction": null
+      }
+    ]
+  },
+  {
+    "place": "/world/lounge/location/office",
+    "lux": 11.563,
+    "lightSources": 2,
+    "colourTemperature": 4189.189,
+    "peakLux": 11.563,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/lounge/location/office",
+        "db": 100,
+        "direction": null
+      },
+      {
+        "at": "/world/lounge/location/bar",
+        "db": 80,
+        "direction": "south"
+      }
+    ]
+  },
+  {
+    "place": "/world/lounge/location/offstage",
+    "lux": 0,
+    "lightSources": 0,
+    "colourTemperature": null,
+    "peakLux": 0,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/lounge/location/offstage",
+        "db": 100,
+        "direction": null
+      }
+    ]
+  },
+  {
+    "place": "/world/moor/stormy-heath",
+    "lux": 118.016,
+    "lightSources": 2,
+    "colourTemperature": 5900,
+    "peakLux": 124.423,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/moor/stormy-heath",
+        "db": 100,
+        "direction": null
+      },
+      {
+        "at": "/world/moor/turf-bank",
+        "db": 80,
+        "direction": "east"
+      }
+    ]
+  },
+  {
+    "place": "/world/moor/turf-bank",
+    "lux": 118.016,
+    "lightSources": 2,
+    "colourTemperature": 5900,
+    "peakLux": 124.423,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/moor/turf-bank",
+        "db": 100,
+        "direction": null
+      },
+      {
+        "at": "/world/moor/stormy-heath",
+        "db": 80,
+        "direction": "west"
+      }
+    ]
+  },
+  {
+    "place": "/world/moor/weeping-chamber",
+    "lux": 0,
+    "lightSources": 0,
+    "colourTemperature": null,
+    "peakLux": 0,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/moor/weeping-chamber",
+        "db": 100,
+        "direction": null
+      }
+    ]
+  },
+  {
+    "place": "/world/newbie-wilds/crossroads/hollow",
+    "lux": 0,
+    "lightSources": 0,
+    "colourTemperature": null,
+    "peakLux": 0,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/newbie-wilds/crossroads/hollow",
+        "db": 100,
+        "direction": null
+      },
+      {
+        "at": "/world/newbie-wilds/crossroads/treeline",
+        "db": 80,
+        "direction": "east"
+      },
+      {
+        "at": "/world/newbie-wilds/crossroads/hub",
+        "db": 60,
+        "direction": "east"
+      },
+      {
+        "at": "/world/newbie-wilds/delve/vestibule",
+        "db": 60,
+        "direction": "east"
+      },
+      {
+        "at": "/world/newbie-wilds/crossroads/watchpost",
+        "db": 60,
+        "direction": "east"
+      },
+      {
+        "at": "/world/newbie-wilds/crossroads/longmeadow",
+        "db": 60,
+        "direction": "east"
+      }
+    ]
+  },
+  {
+    "place": "/world/newbie-wilds/crossroads/hub",
+    "lux": 104.718,
+    "lightSources": 3,
+    "colourTemperature": 5650,
+    "peakLux": 110.404,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/newbie-wilds/crossroads/hub",
+        "db": 100,
+        "direction": null
+      },
+      {
+        "at": "/world/terminus/rejection/kestrel-road/yard-gate",
+        "db": 80,
+        "direction": "south"
+      },
+      {
+        "at": "/world/terminus/rejection/kestrel-road/tips",
+        "db": 60,
+        "direction": "south"
+      },
+      {
+        "at": "/world/terminus/rejection/location/pithead-yard",
+        "db": 60,
+        "direction": "south"
+      }
+    ]
+  },
+  {
+    "place": "/world/newbie-wilds/crossroads/longmeadow",
+    "lux": 0,
+    "lightSources": 0,
+    "colourTemperature": null,
+    "peakLux": 0,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/newbie-wilds/crossroads/longmeadow",
+        "db": 100,
+        "direction": null
+      },
+      {
+        "at": "/world/newbie-wilds/crossroads/treeline",
+        "db": 80,
+        "direction": "southwest"
+      },
+      {
+        "at": "/world/newbie-wilds/crossroads/hub",
+        "db": 60,
+        "direction": "southwest"
+      },
+      {
+        "at": "/world/newbie-wilds/crossroads/hollow",
+        "db": 60,
+        "direction": "southwest"
+      },
+      {
+        "at": "/world/newbie-wilds/delve/vestibule",
+        "db": 60,
+        "direction": "southwest"
+      },
+      {
+        "at": "/world/newbie-wilds/crossroads/watchpost",
+        "db": 60,
+        "direction": "southwest"
+      }
+    ]
+  },
+  {
+    "place": "/world/newbie-wilds/crossroads/treeline",
+    "lux": 44.879,
+    "lightSources": 1,
+    "colourTemperature": 5700,
+    "peakLux": 47.316,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/newbie-wilds/crossroads/treeline",
+        "db": 100,
+        "direction": null
+      },
+      {
+        "at": "/world/newbie-wilds/crossroads/hub",
+        "db": 80,
+        "direction": "south"
+      },
+      {
+        "at": "/world/terminus/rejection/kestrel-road/yard-gate",
+        "db": 60,
+        "direction": "south"
+      },
+      {
+        "at": "/world/newbie-wilds/crossroads/hollow",
+        "db": 80,
+        "direction": "west"
+      },
+      {
+        "at": "/world/newbie-wilds/delve/vestibule",
+        "db": 80,
+        "direction": "north"
+      },
+      {
+        "at": "/world/newbie-wilds/delve/corridor-1",
+        "db": 60,
+        "direction": "north"
+      },
+      {
+        "at": "/world/newbie-wilds/crossroads/watchpost",
+        "db": 80,
+        "direction": "east"
+      },
+      {
+        "at": "/world/newbie-wilds/crossroads/longmeadow",
+        "db": 80,
+        "direction": "northeast"
+      }
+    ]
+  },
+  {
+    "place": "/world/newbie-wilds/crossroads/watchpost",
+    "lux": 0,
+    "lightSources": 0,
+    "colourTemperature": null,
+    "peakLux": 0,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/newbie-wilds/crossroads/watchpost",
+        "db": 100,
+        "direction": null
+      },
+      {
+        "at": "/world/newbie-wilds/crossroads/treeline",
+        "db": 80,
+        "direction": "east"
+      },
+      {
+        "at": "/world/newbie-wilds/crossroads/hub",
+        "db": 60,
+        "direction": "east"
+      },
+      {
+        "at": "/world/newbie-wilds/crossroads/hollow",
+        "db": 60,
+        "direction": "east"
+      },
+      {
+        "at": "/world/newbie-wilds/delve/vestibule",
+        "db": 60,
+        "direction": "east"
+      },
+      {
+        "at": "/world/newbie-wilds/crossroads/longmeadow",
+        "db": 60,
+        "direction": "east"
+      }
+    ]
+  },
+  {
+    "place": "/world/newbie-wilds/delve/corridor-1",
+    "lux": 0,
+    "lightSources": 0,
+    "colourTemperature": null,
+    "peakLux": 0,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/newbie-wilds/delve/corridor-1",
+        "db": 100,
+        "direction": null
+      },
+      {
+        "at": "/world/newbie-wilds/delve/corridor-2",
+        "db": 80,
+        "direction": "north"
+      },
+      {
+        "at": "/world/newbie-wilds/delve/corridor-3",
+        "db": 60,
+        "direction": "north"
+      },
+      {
+        "at": "/world/newbie-wilds/delve/vestibule",
+        "db": 80,
+        "direction": "south"
+      },
+      {
+        "at": "/world/newbie-wilds/crossroads/treeline",
+        "db": 60,
+        "direction": "south"
+      }
+    ]
+  },
+  {
+    "place": "/world/newbie-wilds/delve/corridor-2",
+    "lux": 0,
+    "lightSources": 0,
+    "colourTemperature": null,
+    "peakLux": 0,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/newbie-wilds/delve/corridor-2",
+        "db": 100,
+        "direction": null
+      },
+      {
+        "at": "/world/newbie-wilds/delve/corridor-3",
+        "db": 80,
+        "direction": "north"
+      },
+      {
+        "at": "/world/newbie-wilds/delve/vault",
+        "db": 60,
+        "direction": "north"
+      },
+      {
+        "at": "/world/newbie-wilds/delve/corridor-1",
+        "db": 80,
+        "direction": "south"
+      },
+      {
+        "at": "/world/newbie-wilds/delve/vestibule",
+        "db": 60,
+        "direction": "south"
+      }
+    ]
+  },
+  {
+    "place": "/world/newbie-wilds/delve/corridor-3",
+    "lux": 0,
+    "lightSources": 0,
+    "colourTemperature": null,
+    "peakLux": 0,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/newbie-wilds/delve/corridor-3",
+        "db": 100,
+        "direction": null
+      },
+      {
+        "at": "/world/newbie-wilds/delve/vault",
+        "db": 80,
+        "direction": "north"
+      },
+      {
+        "at": "/world/newbie-wilds/delve/corridor-2",
+        "db": 80,
+        "direction": "south"
+      },
+      {
+        "at": "/world/newbie-wilds/delve/corridor-1",
+        "db": 60,
+        "direction": "south"
+      }
+    ]
+  },
+  {
+    "place": "/world/newbie-wilds/delve/pit-below",
+    "lux": 0,
+    "lightSources": 0,
+    "colourTemperature": null,
+    "peakLux": 0,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/newbie-wilds/delve/pit-below",
+        "db": 100,
+        "direction": null
+      },
+      {
+        "at": "/world/newbie-wilds/delve/corridor-2",
+        "db": 80,
+        "direction": "up"
+      },
+      {
+        "at": "/world/newbie-wilds/delve/corridor-3",
+        "db": 60,
+        "direction": "up"
+      },
+      {
+        "at": "/world/newbie-wilds/delve/corridor-1",
+        "db": 60,
+        "direction": "up"
+      }
+    ]
+  },
+  {
+    "place": "/world/newbie-wilds/delve/vault",
+    "lux": 0,
+    "lightSources": 0,
+    "colourTemperature": null,
+    "peakLux": 0,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/newbie-wilds/delve/vault",
+        "db": 100,
+        "direction": null
+      },
+      {
+        "at": "/world/newbie-wilds/delve/corridor-3",
+        "db": 80,
+        "direction": "south"
+      },
+      {
+        "at": "/world/newbie-wilds/delve/corridor-2",
+        "db": 60,
+        "direction": "south"
+      }
+    ]
+  },
+  {
+    "place": "/world/newbie-wilds/delve/vestibule",
+    "lux": 0,
+    "lightSources": 0,
+    "colourTemperature": null,
+    "peakLux": 0,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/newbie-wilds/delve/vestibule",
+        "db": 100,
+        "direction": null
+      },
+      {
+        "at": "/world/newbie-wilds/delve/corridor-1",
+        "db": 80,
+        "direction": "north"
+      },
+      {
+        "at": "/world/newbie-wilds/delve/corridor-2",
+        "db": 60,
+        "direction": "north"
+      },
+      {
+        "at": "/world/newbie-wilds/crossroads/treeline",
+        "db": 80,
+        "direction": "south"
+      },
+      {
+        "at": "/world/newbie-wilds/crossroads/hub",
+        "db": 60,
+        "direction": "south"
+      },
+      {
+        "at": "/world/newbie-wilds/crossroads/hollow",
+        "db": 60,
+        "direction": "south"
+      },
+      {
+        "at": "/world/newbie-wilds/crossroads/watchpost",
+        "db": 60,
+        "direction": "south"
+      },
+      {
+        "at": "/world/newbie-wilds/crossroads/longmeadow",
+        "db": 60,
+        "direction": "south"
+      }
+    ]
+  },
+  {
+    "place": "/world/practicum/casting-yard",
+    "lux": 0,
+    "lightSources": 0,
+    "colourTemperature": null,
+    "peakLux": 0,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/practicum/casting-yard",
+        "db": 100,
+        "direction": null
+      }
+    ]
+  },
+  {
+    "place": "/world/practicum/conductive-gallery",
+    "lux": 0,
+    "lightSources": 0,
+    "colourTemperature": null,
+    "peakLux": 0,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/practicum/conductive-gallery",
+        "db": 100,
+        "direction": null
+      }
+    ]
+  },
+  {
+    "place": "/world/practicum/warded-cell",
+    "lux": 4.34,
+    "lightSources": 1,
+    "colourTemperature": 1800,
+    "peakLux": 4.34,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/practicum/warded-cell",
+        "db": 100,
+        "direction": null
+      }
+    ]
+  },
+  {
+    "place": "/world/substation/flooded-cell",
+    "lux": 0,
+    "lightSources": 0,
+    "colourTemperature": null,
+    "peakLux": 0,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/substation/flooded-cell",
+        "db": 100,
+        "direction": null
+      }
+    ]
+  },
+  {
+    "place": "/world/terminus/counting-houses/avenue-block",
+    "lux": 147.727,
+    "lightSources": 3,
+    "colourTemperature": null,
+    "peakLux": 155.748,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/terminus/counting-houses/avenue-block",
+        "db": 100,
+        "direction": null
+      },
+      {
+        "at": "/world/terminus/university-avenue/location/crossing",
+        "db": 80,
+        "direction": "east"
+      },
+      {
+        "at": "/world/terminus/terminal/location/arrival-gate",
+        "db": 60,
+        "direction": "east"
+      },
+      {
+        "at": "/world/terminus/counting-houses/banking-hall",
+        "db": 80,
+        "direction": "west"
+      },
+      {
+        "at": "/world/terminus/counting-houses/circle-parlor",
+        "db": 60,
+        "direction": "west"
+      },
+      {
+        "at": "/world/terminus/general-store/shop-floor",
+        "db": 80,
+        "direction": "north"
+      },
+      {
+        "at": "/world/terminus/general-store/cold-room",
+        "db": 60,
+        "direction": "north"
+      },
+      {
+        "at": "/world/terminus/infirmary/ward",
+        "db": 80,
+        "direction": "northeast"
+      },
+      {
+        "at": "/world/terminus/infirmary/garden",
+        "db": 60,
+        "direction": "northeast"
+      },
+      {
+        "at": "/world/terminus/infirmary/collection",
+        "db": 60,
+        "direction": "northeast"
+      },
+      {
+        "at": "/world/terminus/counting-houses/cash-and-carry",
+        "db": 80,
+        "direction": "south"
+      },
+      {
+        "at": "/world/terminus/market/square",
+        "db": 80,
+        "direction": "southwest"
+      },
+      {
+        "at": "/world/terminus/wharfside/bank",
+        "db": 60,
+        "direction": "southwest"
+      },
+      {
+        "at": "/world/terminus/market/bakery",
+        "db": 60,
+        "direction": "southwest"
+      },
+      {
+        "at": "/world/terminus/mayfield-row/street",
+        "db": 80,
+        "direction": "mayfield"
+      },
+      {
+        "at": "/world/terminus/mayfield-row/seznick-house/lobby",
+        "db": 60,
+        "direction": "mayfield"
+      },
+      {
+        "at": "/world/terminus/realty/office",
+        "db": 60,
+        "direction": "mayfield"
+      },
+      {
+        "at": "/world/terminus/necropolis/ground",
+        "db": 60,
+        "direction": "mayfield"
+      },
+      {
+        "at": "/world/terminus/mayfield-row/tailor/location/shop",
+        "db": 60,
+        "direction": "mayfield"
+      }
+    ]
+  },
+  {
+    "place": "/world/terminus/counting-houses/banking-hall",
+    "lux": 119.678,
+    "lightSources": 3,
+    "colourTemperature": null,
+    "peakLux": 126.176,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/terminus/counting-houses/banking-hall",
+        "db": 100,
+        "direction": null
+      },
+      {
+        "at": "/world/terminus/counting-houses/avenue-block",
+        "db": 80,
+        "direction": "east"
+      },
+      {
+        "at": "/world/terminus/university-avenue/location/crossing",
+        "db": 60,
+        "direction": "east"
+      },
+      {
+        "at": "/world/terminus/general-store/shop-floor",
+        "db": 60,
+        "direction": "east"
+      },
+      {
+        "at": "/world/terminus/infirmary/ward",
+        "db": 60,
+        "direction": "east"
+      },
+      {
+        "at": "/world/terminus/counting-houses/cash-and-carry",
+        "db": 60,
+        "direction": "east"
+      },
+      {
+        "at": "/world/terminus/market/square",
+        "db": 60,
+        "direction": "east"
+      },
+      {
+        "at": "/world/terminus/mayfield-row/street",
+        "db": 60,
+        "direction": "east"
+      },
+      {
+        "at": "/world/terminus/counting-houses/circle-parlor",
+        "db": 80,
+        "direction": "north"
+      }
+    ]
+  },
+  {
+    "place": "/world/terminus/counting-houses/cash-and-carry",
+    "lux": 119.678,
+    "lightSources": 3,
+    "colourTemperature": null,
+    "peakLux": 126.176,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/terminus/counting-houses/cash-and-carry",
+        "db": 100,
+        "direction": null
+      },
+      {
+        "at": "/world/terminus/counting-houses/avenue-block",
+        "db": 80,
+        "direction": "north"
+      },
+      {
+        "at": "/world/terminus/university-avenue/location/crossing",
+        "db": 60,
+        "direction": "north"
+      },
+      {
+        "at": "/world/terminus/counting-houses/banking-hall",
+        "db": 60,
+        "direction": "north"
+      },
+      {
+        "at": "/world/terminus/general-store/shop-floor",
+        "db": 60,
+        "direction": "north"
+      },
+      {
+        "at": "/world/terminus/infirmary/ward",
+        "db": 60,
+        "direction": "north"
+      },
+      {
+        "at": "/world/terminus/market/square",
+        "db": 60,
+        "direction": "north"
+      },
+      {
+        "at": "/world/terminus/mayfield-row/street",
+        "db": 60,
+        "direction": "north"
+      }
+    ]
+  },
+  {
+    "place": "/world/terminus/counting-houses/circle-parlor",
+    "lux": 59.839,
+    "lightSources": 1,
+    "colourTemperature": null,
+    "peakLux": 63.088,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/terminus/counting-houses/circle-parlor",
+        "db": 100,
+        "direction": null
+      },
+      {
+        "at": "/world/terminus/counting-houses/banking-hall",
+        "db": 80,
+        "direction": "south"
+      },
+      {
+        "at": "/world/terminus/counting-houses/avenue-block",
+        "db": 60,
+        "direction": "south"
+      }
+    ]
+  },
+  {
+    "place": "/world/terminus/delight-road/crossroads",
+    "lux": 150.719,
+    "lightSources": 3,
+    "colourTemperature": 5772.727,
+    "peakLux": 158.903,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/terminus/delight-road/crossroads",
+        "db": 100,
+        "direction": null
+      },
+      {
+        "at": "/world/terminus/delight-road/flats",
+        "db": 80,
+        "direction": "north"
+      },
+      {
+        "at": "/world/terminus/delight-road/drove",
+        "db": 60,
+        "direction": "north"
+      },
+      {
+        "at": "/world/terminus/rejection/kestrel-road/lower-climb",
+        "db": 80,
+        "direction": "west"
+      },
+      {
+        "at": "/world/terminus/rejection/kestrel-road/upper-climb",
+        "db": 60,
+        "direction": "west"
+      },
+      {
+        "at": "/world/terminus/hearts-delight/location/valley-gate",
+        "db": 80,
+        "direction": "south"
+      },
+      {
+        "at": "/world/terminus/hearts-delight/location/bench-lane",
+        "db": 60,
+        "direction": "south"
+      },
+      {
+        "at": "/world/terminus/hearts-delight/public-works/location/yard",
+        "db": 60,
+        "direction": "south"
+      }
+    ]
+  },
+  {
+    "place": "/world/terminus/delight-road/drove",
+    "lux": 3.553,
+    "lightSources": 3,
+    "colourTemperature": 5762.206,
+    "peakLux": 3.746,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/terminus/delight-road/drove",
+        "db": 100,
+        "direction": null
+      },
+      {
+        "at": "/world/terminus/delight-road/milestone",
+        "db": 80,
+        "direction": "north"
+      },
+      {
+        "at": "/world/terminus/delight-road/ford",
+        "db": 60,
+        "direction": "north"
+      },
+      {
+        "at": "/world/terminus/delight-road/flats",
+        "db": 80,
+        "direction": "south"
+      },
+      {
+        "at": "/world/terminus/delight-road/crossroads",
+        "db": 60,
+        "direction": "south"
+      }
+    ]
+  },
+  {
+    "place": "/world/terminus/delight-road/flats",
+    "lux": 77.155,
+    "lightSources": 3,
+    "colourTemperature": 5799.164,
+    "peakLux": 81.344,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/terminus/delight-road/flats",
+        "db": 100,
+        "direction": null
+      },
+      {
+        "at": "/world/terminus/delight-road/drove",
+        "db": 80,
+        "direction": "north"
+      },
+      {
+        "at": "/world/terminus/delight-road/milestone",
+        "db": 60,
+        "direction": "north"
+      },
+      {
+        "at": "/world/terminus/delight-road/crossroads",
+        "db": 80,
+        "direction": "south"
+      },
+      {
+        "at": "/world/terminus/rejection/kestrel-road/lower-climb",
+        "db": 60,
+        "direction": "south"
+      },
+      {
+        "at": "/world/terminus/hearts-delight/location/valley-gate",
+        "db": 60,
+        "direction": "south"
+      }
+    ]
+  },
+  {
+    "place": "/world/terminus/delight-road/ford",
+    "lux": 6.994,
+    "lightSources": 3,
+    "colourTemperature": 5782.796,
+    "peakLux": 7.373,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/terminus/delight-road/ford",
+        "db": 100,
+        "direction": null
+      },
+      {
+        "at": "/world/terminus/wharfside/bank",
+        "db": 80,
+        "direction": "north"
+      },
+      {
+        "at": "/world/terminus/market/square",
+        "db": 60,
+        "direction": "north"
+      },
+      {
+        "at": "/world/terminus/valley-road/towpath",
+        "db": 60,
+        "direction": "north"
+      },
+      {
+        "at": "/world/terminus/estuary/lower-towpath",
+        "db": 60,
+        "direction": "north"
+      },
+      {
+        "at": "/world/terminus/goods-yards/yard",
+        "db": 60,
+        "direction": "north"
+      },
+      {
+        "at": "/world/terminus/wharfside/mill/location/floor",
+        "db": 60,
+        "direction": "north"
+      },
+      {
+        "at": "/world/terminus/wharfside/dyehouse/location/floor",
+        "db": 60,
+        "direction": "north"
+      },
+      {
+        "at": "/world/terminus/wharfside/knackers/location/yard",
+        "db": 60,
+        "direction": "north"
+      },
+      {
+        "at": "/world/terminus/delight-road/milestone",
+        "db": 80,
+        "direction": "south"
+      },
+      {
+        "at": "/world/terminus/delight-road/drove",
+        "db": 60,
+        "direction": "south"
+      }
+    ]
+  },
+  {
+    "place": "/world/terminus/delight-road/milestone",
+    "lux": 3.59,
+    "lightSources": 3,
+    "colourTemperature": 5773.92,
+    "peakLux": 3.785,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/terminus/delight-road/milestone",
+        "db": 100,
+        "direction": null
+      },
+      {
+        "at": "/world/terminus/delight-road/ford",
+        "db": 80,
+        "direction": "north"
+      },
+      {
+        "at": "/world/terminus/wharfside/bank",
+        "db": 60,
+        "direction": "north"
+      },
+      {
+        "at": "/world/terminus/delight-road/drove",
+        "db": 80,
+        "direction": "south"
+      },
+      {
+        "at": "/world/terminus/delight-road/flats",
+        "db": 60,
+        "direction": "south"
+      }
+    ]
+  },
+  {
+    "place": "/world/terminus/estuary/estuary-mouth",
+    "lux": 3.572,
+    "lightSources": 3,
+    "colourTemperature": 5836.649,
+    "peakLux": 3.766,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/terminus/estuary/estuary-mouth",
+        "db": 100,
+        "direction": null
+      },
+      {
+        "at": "/world/terminus/estuary/reach",
+        "db": 80,
+        "direction": "west"
+      },
+      {
+        "at": "/world/terminus/estuary/lower-towpath",
+        "db": 60,
+        "direction": "west"
+      }
+    ]
+  },
+  {
+    "place": "/world/terminus/estuary/lower-towpath",
+    "lux": 7.087,
+    "lightSources": 3,
+    "colourTemperature": 5836.458,
+    "peakLux": 7.472,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/terminus/estuary/lower-towpath",
+        "db": 100,
+        "direction": null
+      },
+      {
+        "at": "/world/terminus/estuary/salt-house",
+        "db": 80,
+        "direction": "south"
+      },
+      {
+        "at": "/world/terminus/wharfside/bank",
+        "db": 80,
+        "direction": "west"
+      },
+      {
+        "at": "/world/terminus/market/square",
+        "db": 60,
+        "direction": "west"
+      },
+      {
+        "at": "/world/terminus/valley-road/towpath",
+        "db": 60,
+        "direction": "west"
+      },
+      {
+        "at": "/world/terminus/delight-road/ford",
+        "db": 60,
+        "direction": "west"
+      },
+      {
+        "at": "/world/terminus/goods-yards/yard",
+        "db": 60,
+        "direction": "west"
+      },
+      {
+        "at": "/world/terminus/wharfside/mill/location/floor",
+        "db": 60,
+        "direction": "west"
+      },
+      {
+        "at": "/world/terminus/wharfside/dyehouse/location/floor",
+        "db": 60,
+        "direction": "west"
+      },
+      {
+        "at": "/world/terminus/wharfside/knackers/location/yard",
+        "db": 60,
+        "direction": "west"
+      },
+      {
+        "at": "/world/terminus/estuary/reach",
+        "db": 80,
+        "direction": "east"
+      },
+      {
+        "at": "/world/terminus/estuary/estuary-mouth",
+        "db": 60,
+        "direction": "east"
+      }
+    ]
+  },
+  {
+    "place": "/world/terminus/estuary/reach",
+    "lux": 3.385,
+    "lightSources": 3,
+    "colourTemperature": 5830.639,
+    "peakLux": 3.568,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/terminus/estuary/reach",
+        "db": 100,
+        "direction": null
+      },
+      {
+        "at": "/world/terminus/estuary/lower-towpath",
+        "db": 80,
+        "direction": "west"
+      },
+      {
+        "at": "/world/terminus/estuary/salt-house",
+        "db": 60,
+        "direction": "west"
+      },
+      {
+        "at": "/world/terminus/wharfside/bank",
+        "db": 60,
+        "direction": "west"
+      },
+      {
+        "at": "/world/terminus/estuary/estuary-mouth",
+        "db": 80,
+        "direction": "east"
+      }
+    ]
+  },
+  {
+    "place": "/world/terminus/estuary/salt-house",
+    "lux": 3.385,
+    "lightSources": 3,
+    "colourTemperature": 5800,
+    "peakLux": 3.568,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/terminus/estuary/salt-house",
+        "db": 100,
+        "direction": null
+      },
+      {
+        "at": "/world/terminus/estuary/lower-towpath",
+        "db": 80,
+        "direction": "north"
+      },
+      {
+        "at": "/world/terminus/wharfside/bank",
+        "db": 60,
+        "direction": "north"
+      },
+      {
+        "at": "/world/terminus/estuary/reach",
+        "db": 60,
+        "direction": "north"
+      }
+    ]
+  },
+  {
+    "place": "/world/terminus/eternal/campus-farm/location/pit",
+    "lux": 149.597,
+    "lightSources": 2,
+    "colourTemperature": 5800,
+    "peakLux": 157.72,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/terminus/eternal/campus-farm/location/pit",
+        "db": 100,
+        "direction": null
+      },
+      {
+        "at": "/world/terminus/eternal/campus-farm/location/yard",
+        "db": 80,
+        "direction": "up"
+      }
+    ]
+  },
+  {
+    "place": "/world/terminus/eternal/campus-farm/location/yard",
+    "lux": 149.597,
+    "lightSources": 2,
+    "colourTemperature": 5800,
+    "peakLux": 157.72,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/terminus/eternal/campus-farm/location/yard",
+        "db": 100,
+        "direction": null
+      },
+      {
+        "at": "/world/terminus/eternal/campus-farm/location/pit",
+        "db": 80,
+        "direction": "down"
+      }
+    ]
+  },
+  {
+    "place": "/world/terminus/eternal/duncan-hall/location/cistern",
+    "lux": 66.488,
+    "lightSources": 2,
+    "colourTemperature": 5500,
+    "peakLux": 70.098,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/terminus/eternal/duncan-hall/location/cistern",
+        "db": 100,
+        "direction": null
+      },
+      {
+        "at": "/world/terminus/eternal/duncan-hall/location/steps",
+        "db": 80,
+        "direction": "up"
+      },
+      {
+        "at": "/world/terminus/eternal/duncan-hall/location/lobby",
+        "db": 60,
+        "direction": "up"
+      }
+    ]
+  },
+  {
+    "place": "/world/terminus/eternal/duncan-hall/location/lobby",
+    "lux": 66.488,
+    "lightSources": 2,
+    "colourTemperature": 5500,
+    "peakLux": 70.098,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/terminus/eternal/duncan-hall/location/lobby",
+        "db": 100,
+        "direction": null
+      },
+      {
+        "at": "/world/terminus/eternal/duncan-hall/location/steps",
+        "db": 80,
+        "direction": "south"
+      },
+      {
+        "at": "/world/terminus/eternal/duncan-hall/location/cistern",
+        "db": 60,
+        "direction": "south"
+      }
+    ]
+  },
+  {
+    "place": "/world/terminus/eternal/duncan-hall/location/steps",
+    "lux": 66.488,
+    "lightSources": 2,
+    "colourTemperature": 5500,
+    "peakLux": 70.098,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/terminus/eternal/duncan-hall/location/steps",
+        "db": 100,
+        "direction": null
+      },
+      {
+        "at": "/world/terminus/eternal/duncan-hall/location/lobby",
+        "db": 80,
+        "direction": "north"
+      },
+      {
+        "at": "/world/terminus/eternal/duncan-hall/location/cistern",
+        "db": 80,
+        "direction": "down"
+      }
+    ]
+  },
+  {
+    "place": "/world/terminus/general-store/cold-room",
+    "lux": 59.839,
+    "lightSources": 1,
+    "colourTemperature": null,
+    "peakLux": 63.088,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/terminus/general-store/cold-room",
+        "db": 100,
+        "direction": null
+      },
+      {
+        "at": "/world/terminus/general-store/shop-floor",
+        "db": 80,
+        "direction": "south"
+      },
+      {
+        "at": "/world/terminus/counting-houses/avenue-block",
+        "db": 60,
+        "direction": "south"
+      }
+    ]
+  },
+  {
+    "place": "/world/terminus/general-store/shop-floor",
+    "lux": 119.678,
+    "lightSources": 3,
+    "colourTemperature": null,
+    "peakLux": 126.176,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/terminus/general-store/shop-floor",
+        "db": 100,
+        "direction": null
+      },
+      {
+        "at": "/world/terminus/counting-houses/avenue-block",
+        "db": 80,
+        "direction": "south"
+      },
+      {
+        "at": "/world/terminus/university-avenue/location/crossing",
+        "db": 60,
+        "direction": "south"
+      },
+      {
+        "at": "/world/terminus/counting-houses/banking-hall",
+        "db": 60,
+        "direction": "south"
+      },
+      {
+        "at": "/world/terminus/infirmary/ward",
+        "db": 60,
+        "direction": "south"
+      },
+      {
+        "at": "/world/terminus/counting-houses/cash-and-carry",
+        "db": 60,
+        "direction": "south"
+      },
+      {
+        "at": "/world/terminus/market/square",
+        "db": 60,
+        "direction": "south"
+      },
+      {
+        "at": "/world/terminus/mayfield-row/street",
+        "db": 60,
+        "direction": "south"
+      },
+      {
+        "at": "/world/terminus/general-store/cold-room",
+        "db": 80,
+        "direction": "north"
+      }
+    ]
+  },
+  {
+    "place": "/world/terminus/goods-yards/bottling/location/floor",
+    "lux": 9.558,
+    "lightSources": 3,
+    "colourTemperature": 5707.143,
+    "peakLux": 10.077,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/terminus/goods-yards/bottling/location/floor",
+        "db": 100,
+        "direction": null
+      },
+      {
+        "at": "/world/terminus/goods-yards/yard",
+        "db": 80,
+        "direction": "southeast"
+      },
+      {
+        "at": "/world/terminus/wharfside/bank",
+        "db": 60,
+        "direction": "southeast"
+      },
+      {
+        "at": "/world/terminus/goods-yards/pantry/location/floor",
+        "db": 60,
+        "direction": "southeast"
+      },
+      {
+        "at": "/world/terminus/goods-yards/crowsfoot/location/floor",
+        "db": 60,
+        "direction": "southeast"
+      },
+      {
+        "at": "/world/terminus/goods-yards/hollis/location/floor",
+        "db": 60,
+        "direction": "southeast"
+      },
+      {
+        "at": "/world/terminus/goods-yards/veshko/location/distillery",
+        "db": 60,
+        "direction": "southeast"
+      },
+      {
+        "at": "/world/terminus/goods-yards/farm/location/yard",
+        "db": 60,
+        "direction": "southeast"
+      }
+    ]
+  },
+  {
+    "place": "/world/terminus/goods-yards/brewing/location/cold-store",
+    "lux": 0,
+    "lightSources": 0,
+    "colourTemperature": null,
+    "peakLux": 0,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/terminus/goods-yards/brewing/location/cold-store",
+        "db": 100,
+        "direction": null
+      }
+    ]
+  },
+  {
+    "place": "/world/terminus/goods-yards/brewing/location/floor",
+    "lux": 2.078,
+    "lightSources": 1,
+    "colourTemperature": 4200,
+    "peakLux": 2.191,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/terminus/goods-yards/brewing/location/floor",
+        "db": 100,
+        "direction": null
+      }
+    ]
+  },
+  {
+    "place": "/world/terminus/goods-yards/crowsfoot/location/floor",
+    "lux": 9.558,
+    "lightSources": 3,
+    "colourTemperature": 5707.143,
+    "peakLux": 10.077,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/terminus/goods-yards/crowsfoot/location/floor",
+        "db": 100,
+        "direction": null
+      },
+      {
+        "at": "/world/terminus/goods-yards/yard",
+        "db": 80,
+        "direction": "southwest"
+      },
+      {
+        "at": "/world/terminus/wharfside/bank",
+        "db": 60,
+        "direction": "southwest"
+      },
+      {
+        "at": "/world/terminus/goods-yards/bottling/location/floor",
+        "db": 60,
+        "direction": "southwest"
+      },
+      {
+        "at": "/world/terminus/goods-yards/pantry/location/floor",
+        "db": 60,
+        "direction": "southwest"
+      },
+      {
+        "at": "/world/terminus/goods-yards/hollis/location/floor",
+        "db": 60,
+        "direction": "southwest"
+      },
+      {
+        "at": "/world/terminus/goods-yards/veshko/location/distillery",
+        "db": 60,
+        "direction": "southwest"
+      },
+      {
+        "at": "/world/terminus/goods-yards/farm/location/yard",
+        "db": 60,
+        "direction": "southwest"
+      }
+    ]
+  },
+  {
+    "place": "/world/terminus/goods-yards/farm/location/yard",
+    "lux": 65.657,
+    "lightSources": 3,
+    "colourTemperature": 5707.143,
+    "peakLux": 69.221,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/terminus/goods-yards/farm/location/yard",
+        "db": 100,
+        "direction": null
+      },
+      {
+        "at": "/world/terminus/goods-yards/yard",
+        "db": 80,
+        "direction": "northeast"
+      },
+      {
+        "at": "/world/terminus/wharfside/bank",
+        "db": 60,
+        "direction": "northeast"
+      },
+      {
+        "at": "/world/terminus/goods-yards/bottling/location/floor",
+        "db": 60,
+        "direction": "northeast"
+      },
+      {
+        "at": "/world/terminus/goods-yards/pantry/location/floor",
+        "db": 60,
+        "direction": "northeast"
+      },
+      {
+        "at": "/world/terminus/goods-yards/crowsfoot/location/floor",
+        "db": 60,
+        "direction": "northeast"
+      },
+      {
+        "at": "/world/terminus/goods-yards/hollis/location/floor",
+        "db": 60,
+        "direction": "northeast"
+      },
+      {
+        "at": "/world/terminus/goods-yards/veshko/location/distillery",
+        "db": 60,
+        "direction": "northeast"
+      }
+    ]
+  },
+  {
+    "place": "/world/terminus/goods-yards/hollis/location/floor",
+    "lux": 9.558,
+    "lightSources": 3,
+    "colourTemperature": 5707.143,
+    "peakLux": 10.077,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/terminus/goods-yards/hollis/location/floor",
+        "db": 100,
+        "direction": null
+      },
+      {
+        "at": "/world/terminus/goods-yards/yard",
+        "db": 80,
+        "direction": "northwest"
+      },
+      {
+        "at": "/world/terminus/wharfside/bank",
+        "db": 60,
+        "direction": "northwest"
+      },
+      {
+        "at": "/world/terminus/goods-yards/bottling/location/floor",
+        "db": 60,
+        "direction": "northwest"
+      },
+      {
+        "at": "/world/terminus/goods-yards/pantry/location/floor",
+        "db": 60,
+        "direction": "northwest"
+      },
+      {
+        "at": "/world/terminus/goods-yards/crowsfoot/location/floor",
+        "db": 60,
+        "direction": "northwest"
+      },
+      {
+        "at": "/world/terminus/goods-yards/veshko/location/distillery",
+        "db": 60,
+        "direction": "northwest"
+      },
+      {
+        "at": "/world/terminus/goods-yards/farm/location/yard",
+        "db": 60,
+        "direction": "northwest"
+      }
+    ]
+  },
+  {
+    "place": "/world/terminus/goods-yards/oilworks/location/floor",
+    "lux": 9.558,
+    "lightSources": 3,
+    "colourTemperature": 5707.143,
+    "peakLux": 10.077,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/terminus/goods-yards/oilworks/location/floor",
+        "db": 100,
+        "direction": null
+      },
+      {
+        "at": "/world/terminus/goods-yards/yard",
+        "db": 80,
+        "direction": "southeast"
+      },
+      {
+        "at": "/world/terminus/wharfside/bank",
+        "db": 60,
+        "direction": "southeast"
+      },
+      {
+        "at": "/world/terminus/goods-yards/bottling/location/floor",
+        "db": 60,
+        "direction": "southeast"
+      },
+      {
+        "at": "/world/terminus/goods-yards/pantry/location/floor",
+        "db": 60,
+        "direction": "southeast"
+      },
+      {
+        "at": "/world/terminus/goods-yards/crowsfoot/location/floor",
+        "db": 60,
+        "direction": "southeast"
+      },
+      {
+        "at": "/world/terminus/goods-yards/hollis/location/floor",
+        "db": 60,
+        "direction": "southeast"
+      },
+      {
+        "at": "/world/terminus/goods-yards/veshko/location/distillery",
+        "db": 60,
+        "direction": "southeast"
+      },
+      {
+        "at": "/world/terminus/goods-yards/farm/location/yard",
+        "db": 60,
+        "direction": "southeast"
+      }
+    ]
+  },
+  {
+    "place": "/world/terminus/goods-yards/pantry/location/floor",
+    "lux": 9.558,
+    "lightSources": 3,
+    "colourTemperature": 5707.143,
+    "peakLux": 10.077,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/terminus/goods-yards/pantry/location/floor",
+        "db": 100,
+        "direction": null
+      },
+      {
+        "at": "/world/terminus/goods-yards/yard",
+        "db": 80,
+        "direction": "south"
+      },
+      {
+        "at": "/world/terminus/wharfside/bank",
+        "db": 60,
+        "direction": "south"
+      },
+      {
+        "at": "/world/terminus/goods-yards/bottling/location/floor",
+        "db": 60,
+        "direction": "south"
+      },
+      {
+        "at": "/world/terminus/goods-yards/crowsfoot/location/floor",
+        "db": 60,
+        "direction": "south"
+      },
+      {
+        "at": "/world/terminus/goods-yards/hollis/location/floor",
+        "db": 60,
+        "direction": "south"
+      },
+      {
+        "at": "/world/terminus/goods-yards/veshko/location/distillery",
+        "db": 60,
+        "direction": "south"
+      },
+      {
+        "at": "/world/terminus/goods-yards/farm/location/yard",
+        "db": 60,
+        "direction": "south"
+      }
+    ]
+  },
+  {
+    "place": "/world/terminus/goods-yards/veshko/location/distillery",
+    "lux": 9.558,
+    "lightSources": 3,
+    "colourTemperature": 5707.143,
+    "peakLux": 10.077,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/terminus/goods-yards/veshko/location/distillery",
+        "db": 100,
+        "direction": null
+      },
+      {
+        "at": "/world/terminus/goods-yards/yard",
+        "db": 80,
+        "direction": "north"
+      },
+      {
+        "at": "/world/terminus/wharfside/bank",
+        "db": 60,
+        "direction": "north"
+      },
+      {
+        "at": "/world/terminus/goods-yards/bottling/location/floor",
+        "db": 60,
+        "direction": "north"
+      },
+      {
+        "at": "/world/terminus/goods-yards/pantry/location/floor",
+        "db": 60,
+        "direction": "north"
+      },
+      {
+        "at": "/world/terminus/goods-yards/crowsfoot/location/floor",
+        "db": 60,
+        "direction": "north"
+      },
+      {
+        "at": "/world/terminus/goods-yards/hollis/location/floor",
+        "db": 60,
+        "direction": "north"
+      },
+      {
+        "at": "/world/terminus/goods-yards/farm/location/yard",
+        "db": 60,
+        "direction": "north"
+      }
+    ]
+  },
+  {
+    "place": "/world/terminus/goods-yards/vintner/location/floor",
+    "lux": 2.078,
+    "lightSources": 1,
+    "colourTemperature": 4200,
+    "peakLux": 2.191,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/terminus/goods-yards/vintner/location/floor",
+        "db": 100,
+        "direction": null
+      }
+    ]
+  },
+  {
+    "place": "/world/terminus/goods-yards/yard",
+    "lux": 16.206,
+    "lightSources": 3,
+    "colourTemperature": 5707.143,
+    "peakLux": 17.086,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/terminus/goods-yards/yard",
+        "db": 100,
+        "direction": null
+      },
+      {
+        "at": "/world/terminus/wharfside/bank",
+        "db": 80,
+        "direction": "east"
+      },
+      {
+        "at": "/world/terminus/market/square",
+        "db": 60,
+        "direction": "east"
+      },
+      {
+        "at": "/world/terminus/valley-road/towpath",
+        "db": 60,
+        "direction": "east"
+      },
+      {
+        "at": "/world/terminus/delight-road/ford",
+        "db": 60,
+        "direction": "east"
+      },
+      {
+        "at": "/world/terminus/estuary/lower-towpath",
+        "db": 60,
+        "direction": "east"
+      },
+      {
+        "at": "/world/terminus/wharfside/mill/location/floor",
+        "db": 60,
+        "direction": "east"
+      },
+      {
+        "at": "/world/terminus/wharfside/dyehouse/location/floor",
+        "db": 60,
+        "direction": "east"
+      },
+      {
+        "at": "/world/terminus/wharfside/knackers/location/yard",
+        "db": 60,
+        "direction": "east"
+      },
+      {
+        "at": "/world/terminus/goods-yards/bottling/location/floor",
+        "db": 80,
+        "direction": "northwest"
+      },
+      {
+        "at": "/world/terminus/goods-yards/pantry/location/floor",
+        "db": 80,
+        "direction": "north"
+      },
+      {
+        "at": "/world/terminus/goods-yards/crowsfoot/location/floor",
+        "db": 80,
+        "direction": "northeast"
+      },
+      {
+        "at": "/world/terminus/goods-yards/hollis/location/floor",
+        "db": 80,
+        "direction": "southeast"
+      },
+      {
+        "at": "/world/terminus/goods-yards/veshko/location/distillery",
+        "db": 80,
+        "direction": "south"
+      },
+      {
+        "at": "/world/terminus/goods-yards/farm/location/yard",
+        "db": 80,
+        "direction": "southwest"
+      }
+    ]
+  },
+  {
+    "place": "/world/terminus/hearthworks/location/cellar",
+    "lux": 0,
+    "lightSources": 0,
+    "colourTemperature": null,
+    "peakLux": 0,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/terminus/hearthworks/location/cellar",
+        "db": 100,
+        "direction": null
+      }
+    ]
+  },
+  {
+    "place": "/world/terminus/hearthworks/location/cookhouse",
+    "lux": 2.909,
+    "lightSources": 1,
+    "colourTemperature": 2700,
+    "peakLux": 3.067,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/terminus/hearthworks/location/cookhouse",
+        "db": 100,
+        "direction": null
+      }
+    ]
+  },
+  {
+    "place": "/world/terminus/hearthworks/location/offstage",
+    "lux": 0,
+    "lightSources": 0,
+    "colourTemperature": null,
+    "peakLux": 0,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/terminus/hearthworks/location/offstage",
+        "db": 100,
+        "direction": null
+      }
+    ]
+  },
+  {
+    "place": "/world/terminus/hearthworks/location/smithy",
+    "lux": 3.324,
+    "lightSources": 1,
+    "colourTemperature": 3000,
+    "peakLux": 3.505,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/terminus/hearthworks/location/smithy",
+        "db": 100,
+        "direction": null
+      }
+    ]
+  },
+  {
+    "place": "/world/terminus/hearthworks/location/woodshed",
+    "lux": 3.74,
+    "lightSources": 1,
+    "colourTemperature": 5000,
+    "peakLux": 3.943,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/terminus/hearthworks/location/woodshed",
+        "db": 100,
+        "direction": null
+      }
+    ]
+  },
+  {
+    "place": "/world/terminus/hearts-delight/location/barn",
+    "lux": 149.597,
+    "lightSources": 3,
+    "colourTemperature": 5800,
+    "peakLux": 157.72,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/terminus/hearts-delight/location/barn",
+        "db": 100,
+        "direction": null
+      },
+      {
+        "at": "/world/terminus/hearts-delight/location/farmstead-yard",
+        "db": 80,
+        "direction": "south"
+      },
+      {
+        "at": "/world/terminus/hearts-delight/location/bench-lane",
+        "db": 60,
+        "direction": "south"
+      }
+    ]
+  },
+  {
+    "place": "/world/terminus/hearts-delight/location/bench-lane",
+    "lux": 224.396,
+    "lightSources": 3,
+    "colourTemperature": 5800,
+    "peakLux": 236.58,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/terminus/hearts-delight/location/bench-lane",
+        "db": 100,
+        "direction": null
+      },
+      {
+        "at": "/world/terminus/hearts-delight/location/valley-gate",
+        "db": 80,
+        "direction": "east"
+      },
+      {
+        "at": "/world/terminus/delight-road/crossroads",
+        "db": 60,
+        "direction": "east"
+      },
+      {
+        "at": "/world/terminus/hearts-delight/public-works/location/yard",
+        "db": 60,
+        "direction": "east"
+      },
+      {
+        "at": "/world/terminus/hearts-delight/location/farmstead-yard",
+        "db": 80,
+        "direction": "west"
+      },
+      {
+        "at": "/world/terminus/hearts-delight/location/barn",
+        "db": 60,
+        "direction": "west"
+      },
+      {
+        "at": "/world/terminus/hearts-delight/location/millsite",
+        "db": 80,
+        "direction": "south"
+      }
+    ]
+  },
+  {
+    "place": "/world/terminus/hearts-delight/location/farmstead-yard",
+    "lux": 224.396,
+    "lightSources": 3,
+    "colourTemperature": 5800,
+    "peakLux": 236.58,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/terminus/hearts-delight/location/farmstead-yard",
+        "db": 100,
+        "direction": null
+      },
+      {
+        "at": "/world/terminus/hearts-delight/location/bench-lane",
+        "db": 80,
+        "direction": "east"
+      },
+      {
+        "at": "/world/terminus/hearts-delight/location/valley-gate",
+        "db": 60,
+        "direction": "east"
+      },
+      {
+        "at": "/world/terminus/hearts-delight/location/millsite",
+        "db": 60,
+        "direction": "east"
+      },
+      {
+        "at": "/world/terminus/hearts-delight/location/barn",
+        "db": 80,
+        "direction": "north"
+      }
+    ]
+  },
+  {
+    "place": "/world/terminus/hearts-delight/location/millsite",
+    "lux": 186.997,
+    "lightSources": 3,
+    "colourTemperature": 5700,
+    "peakLux": 197.15,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/terminus/hearts-delight/location/millsite",
+        "db": 100,
+        "direction": null
+      },
+      {
+        "at": "/world/terminus/hearts-delight/location/bench-lane",
+        "db": 80,
+        "direction": "north"
+      },
+      {
+        "at": "/world/terminus/hearts-delight/location/valley-gate",
+        "db": 60,
+        "direction": "north"
+      },
+      {
+        "at": "/world/terminus/hearts-delight/location/farmstead-yard",
+        "db": 60,
+        "direction": "north"
+      }
+    ]
+  },
+  {
+    "place": "/world/terminus/hearts-delight/location/valley-gate",
+    "lux": 224.396,
+    "lightSources": 3,
+    "colourTemperature": 5800,
+    "peakLux": 236.58,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/terminus/hearts-delight/location/valley-gate",
+        "db": 100,
+        "direction": null
+      },
+      {
+        "at": "/world/terminus/delight-road/crossroads",
+        "db": 80,
+        "direction": "north"
+      },
+      {
+        "at": "/world/terminus/delight-road/flats",
+        "db": 60,
+        "direction": "north"
+      },
+      {
+        "at": "/world/terminus/rejection/kestrel-road/lower-climb",
+        "db": 60,
+        "direction": "north"
+      },
+      {
+        "at": "/world/terminus/hearts-delight/location/bench-lane",
+        "db": 80,
+        "direction": "west"
+      },
+      {
+        "at": "/world/terminus/hearts-delight/location/farmstead-yard",
+        "db": 60,
+        "direction": "west"
+      },
+      {
+        "at": "/world/terminus/hearts-delight/location/millsite",
+        "db": 60,
+        "direction": "west"
+      },
+      {
+        "at": "/world/terminus/hearts-delight/public-works/location/yard",
+        "db": 80,
+        "direction": "east"
+      }
+    ]
+  },
+  {
+    "place": "/world/terminus/hearts-delight/public-works/location/yard",
+    "lux": 224.396,
+    "lightSources": 3,
+    "colourTemperature": 5800,
+    "peakLux": 236.58,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/terminus/hearts-delight/public-works/location/yard",
+        "db": 100,
+        "direction": null
+      },
+      {
+        "at": "/world/terminus/hearts-delight/location/valley-gate",
+        "db": 80,
+        "direction": "west"
+      },
+      {
+        "at": "/world/terminus/delight-road/crossroads",
+        "db": 60,
+        "direction": "west"
+      },
+      {
+        "at": "/world/terminus/hearts-delight/location/bench-lane",
+        "db": 60,
+        "direction": "west"
+      }
+    ]
+  },
+  {
+    "place": "/world/terminus/hinkley-hills/location/arrival",
+    "lux": 37.399,
+    "lightSources": 3,
+    "colourTemperature": 5800,
+    "peakLux": 39.43,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/terminus/hinkley-hills/location/arrival",
+        "db": 100,
+        "direction": null
+      },
+      {
+        "at": "/world/terminus/hinkley-hills/location/lane",
+        "db": 80,
+        "direction": "west"
+      },
+      {
+        "at": "/world/terminus/valley-road/the-shoulder",
+        "db": 80,
+        "direction": "east"
+      },
+      {
+        "at": "/world/terminus/valley-road/the-narrows",
+        "db": 60,
+        "direction": "east"
+      }
+    ]
+  },
+  {
+    "place": "/world/terminus/hinkley-hills/location/lane",
+    "lux": 38.438,
+    "lightSources": 3,
+    "colourTemperature": 5800,
+    "peakLux": 40.525,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/terminus/hinkley-hills/location/lane",
+        "db": 100,
+        "direction": null
+      },
+      {
+        "at": "/world/terminus/hinkley-hills/location/arrival",
+        "db": 80,
+        "direction": "east"
+      },
+      {
+        "at": "/world/terminus/valley-road/the-shoulder",
+        "db": 60,
+        "direction": "east"
+      }
+    ]
+  },
+  {
+    "place": "/world/terminus/infirmary/collection",
+    "lux": 77.617,
+    "lightSources": 3,
+    "colourTemperature": 4273.037,
+    "peakLux": 80.866,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/terminus/infirmary/collection",
+        "db": 100,
+        "direction": null
+      },
+      {
+        "at": "/world/terminus/infirmary/ward",
+        "db": 80,
+        "direction": "west"
+      },
+      {
+        "at": "/world/terminus/counting-houses/avenue-block",
+        "db": 60,
+        "direction": "west"
+      },
+      {
+        "at": "/world/terminus/infirmary/garden",
+        "db": 60,
+        "direction": "west"
+      }
+    ]
+  },
+  {
+    "place": "/world/terminus/infirmary/garden",
+    "lux": 120.834,
+    "lightSources": 3,
+    "colourTemperature": 4667.315,
+    "peakLux": 126.429,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/terminus/infirmary/garden",
+        "db": 100,
+        "direction": null
+      },
+      {
+        "at": "/world/terminus/infirmary/ward",
+        "db": 80,
+        "direction": "south"
+      },
+      {
+        "at": "/world/terminus/counting-houses/avenue-block",
+        "db": 60,
+        "direction": "south"
+      },
+      {
+        "at": "/world/terminus/infirmary/collection",
+        "db": 60,
+        "direction": "south"
+      }
+    ]
+  },
+  {
+    "place": "/world/terminus/infirmary/ward",
+    "lux": 137.456,
+    "lightSources": 3,
+    "colourTemperature": 4451.403,
+    "peakLux": 143.954,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/terminus/infirmary/ward",
+        "db": 100,
+        "direction": null
+      },
+      {
+        "at": "/world/terminus/counting-houses/avenue-block",
+        "db": 80,
+        "direction": "southwest"
+      },
+      {
+        "at": "/world/terminus/university-avenue/location/crossing",
+        "db": 60,
+        "direction": "southwest"
+      },
+      {
+        "at": "/world/terminus/counting-houses/banking-hall",
+        "db": 60,
+        "direction": "southwest"
+      },
+      {
+        "at": "/world/terminus/general-store/shop-floor",
+        "db": 60,
+        "direction": "southwest"
+      },
+      {
+        "at": "/world/terminus/counting-houses/cash-and-carry",
+        "db": 60,
+        "direction": "southwest"
+      },
+      {
+        "at": "/world/terminus/market/square",
+        "db": 60,
+        "direction": "southwest"
+      },
+      {
+        "at": "/world/terminus/mayfield-row/street",
+        "db": 60,
+        "direction": "southwest"
+      },
+      {
+        "at": "/world/terminus/infirmary/garden",
+        "db": 80,
+        "direction": "north"
+      },
+      {
+        "at": "/world/terminus/infirmary/collection",
+        "db": 80,
+        "direction": "east"
+      }
+    ]
+  },
+  {
+    "place": "/world/terminus/market/bakery",
+    "lux": 119.678,
+    "lightSources": 3,
+    "colourTemperature": 5800,
+    "peakLux": 126.176,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/terminus/market/bakery",
+        "db": 100,
+        "direction": null
+      },
+      {
+        "at": "/world/terminus/market/square",
+        "db": 80,
+        "direction": "east"
+      },
+      {
+        "at": "/world/terminus/counting-houses/avenue-block",
+        "db": 60,
+        "direction": "east"
+      },
+      {
+        "at": "/world/terminus/wharfside/bank",
+        "db": 60,
+        "direction": "east"
+      }
+    ]
+  },
+  {
+    "place": "/world/terminus/market/offstage",
+    "lux": 0,
+    "lightSources": 0,
+    "colourTemperature": null,
+    "peakLux": 0,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/terminus/market/offstage",
+        "db": 100,
+        "direction": null
+      }
+    ]
+  },
+  {
+    "place": "/world/terminus/market/square",
+    "lux": 179.517,
+    "lightSources": 3,
+    "colourTemperature": 5800,
+    "peakLux": 189.264,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/terminus/market/square",
+        "db": 100,
+        "direction": null
+      },
+      {
+        "at": "/world/terminus/counting-houses/avenue-block",
+        "db": 80,
+        "direction": "northeast"
+      },
+      {
+        "at": "/world/terminus/university-avenue/location/crossing",
+        "db": 60,
+        "direction": "northeast"
+      },
+      {
+        "at": "/world/terminus/counting-houses/banking-hall",
+        "db": 60,
+        "direction": "northeast"
+      },
+      {
+        "at": "/world/terminus/general-store/shop-floor",
+        "db": 60,
+        "direction": "northeast"
+      },
+      {
+        "at": "/world/terminus/infirmary/ward",
+        "db": 60,
+        "direction": "northeast"
+      },
+      {
+        "at": "/world/terminus/counting-houses/cash-and-carry",
+        "db": 60,
+        "direction": "northeast"
+      },
+      {
+        "at": "/world/terminus/mayfield-row/street",
+        "db": 60,
+        "direction": "northeast"
+      },
+      {
+        "at": "/world/terminus/wharfside/bank",
+        "db": 80,
+        "direction": "south"
+      },
+      {
+        "at": "/world/terminus/valley-road/towpath",
+        "db": 60,
+        "direction": "south"
+      },
+      {
+        "at": "/world/terminus/delight-road/ford",
+        "db": 60,
+        "direction": "south"
+      },
+      {
+        "at": "/world/terminus/estuary/lower-towpath",
+        "db": 60,
+        "direction": "south"
+      },
+      {
+        "at": "/world/terminus/goods-yards/yard",
+        "db": 60,
+        "direction": "south"
+      },
+      {
+        "at": "/world/terminus/wharfside/mill/location/floor",
+        "db": 60,
+        "direction": "south"
+      },
+      {
+        "at": "/world/terminus/wharfside/dyehouse/location/floor",
+        "db": 60,
+        "direction": "south"
+      },
+      {
+        "at": "/world/terminus/wharfside/knackers/location/yard",
+        "db": 60,
+        "direction": "south"
+      },
+      {
+        "at": "/world/terminus/market/bakery",
+        "db": 80,
+        "direction": "west"
+      }
+    ]
+  },
+  {
+    "place": "/world/terminus/mayfield-row/seznick-house/lobby",
+    "lux": 101.394,
+    "lightSources": 2,
+    "colourTemperature": 5600,
+    "peakLux": 106.899,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/terminus/mayfield-row/seznick-house/lobby",
+        "db": 100,
+        "direction": null
+      },
+      {
+        "at": "/world/terminus/mayfield-row/street",
+        "db": 80,
+        "direction": "out"
+      },
+      {
+        "at": "/world/terminus/counting-houses/avenue-block",
+        "db": 60,
+        "direction": "out"
+      },
+      {
+        "at": "/world/terminus/realty/office",
+        "db": 60,
+        "direction": "out"
+      },
+      {
+        "at": "/world/terminus/necropolis/ground",
+        "db": 60,
+        "direction": "out"
+      },
+      {
+        "at": "/world/terminus/mayfield-row/tailor/location/shop",
+        "db": 60,
+        "direction": "out"
+      }
+    ]
+  },
+  {
+    "place": "/world/terminus/mayfield-row/street",
+    "lux": 161.233,
+    "lightSources": 3,
+    "colourTemperature": 5600,
+    "peakLux": 169.987,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/terminus/mayfield-row/street",
+        "db": 100,
+        "direction": null
+      },
+      {
+        "at": "/world/terminus/counting-houses/avenue-block",
+        "db": 80,
+        "direction": "avenue"
+      },
+      {
+        "at": "/world/terminus/university-avenue/location/crossing",
+        "db": 60,
+        "direction": "avenue"
+      },
+      {
+        "at": "/world/terminus/counting-houses/banking-hall",
+        "db": 60,
+        "direction": "avenue"
+      },
+      {
+        "at": "/world/terminus/general-store/shop-floor",
+        "db": 60,
+        "direction": "avenue"
+      },
+      {
+        "at": "/world/terminus/infirmary/ward",
+        "db": 60,
+        "direction": "avenue"
+      },
+      {
+        "at": "/world/terminus/counting-houses/cash-and-carry",
+        "db": 60,
+        "direction": "avenue"
+      },
+      {
+        "at": "/world/terminus/market/square",
+        "db": 60,
+        "direction": "avenue"
+      },
+      {
+        "at": "/world/terminus/mayfield-row/seznick-house/lobby",
+        "db": 80,
+        "direction": "house"
+      },
+      {
+        "at": "/world/terminus/realty/office",
+        "db": 80,
+        "direction": "realty"
+      },
+      {
+        "at": "/world/terminus/necropolis/ground",
+        "db": 80,
+        "direction": "graves"
+      },
+      {
+        "at": "/world/terminus/mayfield-row/tailor/location/shop",
+        "db": 80,
+        "direction": "tailor"
+      }
+    ]
+  },
+  {
+    "place": "/world/terminus/mayfield-row/tailor/location/shop",
+    "lux": 101.394,
+    "lightSources": 2,
+    "colourTemperature": 5600,
+    "peakLux": 106.899,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/terminus/mayfield-row/tailor/location/shop",
+        "db": 100,
+        "direction": null
+      },
+      {
+        "at": "/world/terminus/mayfield-row/street",
+        "db": 80,
+        "direction": "row"
+      },
+      {
+        "at": "/world/terminus/counting-houses/avenue-block",
+        "db": 60,
+        "direction": "row"
+      },
+      {
+        "at": "/world/terminus/mayfield-row/seznick-house/lobby",
+        "db": 60,
+        "direction": "row"
+      },
+      {
+        "at": "/world/terminus/realty/office",
+        "db": 60,
+        "direction": "row"
+      },
+      {
+        "at": "/world/terminus/necropolis/ground",
+        "db": 60,
+        "direction": "row"
+      }
+    ]
+  },
+  {
+    "place": "/world/terminus/necropolis/ground",
+    "lux": 57.034,
+    "lightSources": 2,
+    "colourTemperature": 5600,
+    "peakLux": 60.131,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/terminus/necropolis/ground",
+        "db": 100,
+        "direction": null
+      },
+      {
+        "at": "/world/terminus/mayfield-row/street",
+        "db": 80,
+        "direction": "northwest"
+      },
+      {
+        "at": "/world/terminus/counting-houses/avenue-block",
+        "db": 60,
+        "direction": "northwest"
+      },
+      {
+        "at": "/world/terminus/mayfield-row/seznick-house/lobby",
+        "db": 60,
+        "direction": "northwest"
+      },
+      {
+        "at": "/world/terminus/realty/office",
+        "db": 60,
+        "direction": "northwest"
+      },
+      {
+        "at": "/world/terminus/mayfield-row/tailor/location/shop",
+        "db": 60,
+        "direction": "northwest"
+      }
+    ]
+  },
+  {
+    "place": "/world/terminus/realty/office",
+    "lux": 101.394,
+    "lightSources": 2,
+    "colourTemperature": 5600,
+    "peakLux": 106.899,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/terminus/realty/office",
+        "db": 100,
+        "direction": null
+      },
+      {
+        "at": "/world/terminus/mayfield-row/street",
+        "db": 80,
+        "direction": "row"
+      },
+      {
+        "at": "/world/terminus/counting-houses/avenue-block",
+        "db": 60,
+        "direction": "row"
+      },
+      {
+        "at": "/world/terminus/mayfield-row/seznick-house/lobby",
+        "db": 60,
+        "direction": "row"
+      },
+      {
+        "at": "/world/terminus/necropolis/ground",
+        "db": 60,
+        "direction": "row"
+      },
+      {
+        "at": "/world/terminus/mayfield-row/tailor/location/shop",
+        "db": 60,
+        "direction": "row"
+      }
+    ]
+  },
+  {
+    "place": "/world/terminus/registry/office",
+    "lux": 59.839,
+    "lightSources": 1,
+    "colourTemperature": null,
+    "peakLux": 63.088,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/terminus/registry/office",
+        "db": 100,
+        "direction": null
+      },
+      {
+        "at": "/world/terminus/terminal/location/arrival-gate",
+        "db": 80,
+        "direction": "west"
+      },
+      {
+        "at": "/world/terminus/terminal/location/hall",
+        "db": 60,
+        "direction": "west"
+      },
+      {
+        "at": "/world/terminus/university-avenue/location/crossing",
+        "db": 60,
+        "direction": "west"
+      }
+    ]
+  },
+  {
+    "place": "/world/terminus/rejection/ferrow/cage-bottom",
+    "lux": 60.239,
+    "lightSources": 3,
+    "colourTemperature": 5200,
+    "peakLux": 63.488,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/terminus/rejection/ferrow/cage-bottom",
+        "db": 100,
+        "direction": null
+      },
+      {
+        "at": "/world/terminus/rejection/location/adit",
+        "db": 80,
+        "direction": "north"
+      },
+      {
+        "at": "/world/terminus/rejection/location/pithead-yard",
+        "db": 60,
+        "direction": "north"
+      },
+      {
+        "at": "/world/terminus/rejection/ferrow/timbered-drift",
+        "db": 80,
+        "direction": "west"
+      },
+      {
+        "at": "/world/terminus/rejection/ferrow/winze-head",
+        "db": 60,
+        "direction": "west"
+      }
+    ]
+  },
+  {
+    "place": "/world/terminus/rejection/ferrow/hush-mouth",
+    "lux": 0.8,
+    "lightSources": 3,
+    "colourTemperature": 5200,
+    "peakLux": 0.8,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/terminus/rejection/ferrow/hush-mouth",
+        "db": 100,
+        "direction": null
+      },
+      {
+        "at": "/world/terminus/rejection/hush/gallery",
+        "db": 80,
+        "direction": "in"
+      },
+      {
+        "at": "/world/terminus/rejection/ferrow/winze-head",
+        "db": 80,
+        "direction": "east"
+      },
+      {
+        "at": "/world/terminus/rejection/ferrow/timbered-drift",
+        "db": 60,
+        "direction": "east"
+      },
+      {
+        "at": "/world/terminus/rejection/ferrow/winze-foot",
+        "db": 60,
+        "direction": "east"
+      }
+    ]
+  },
+  {
+    "place": "/world/terminus/rejection/ferrow/timbered-drift",
+    "lux": 1.2,
+    "lightSources": 3,
+    "colourTemperature": 5200,
+    "peakLux": 1.2,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/terminus/rejection/ferrow/timbered-drift",
+        "db": 100,
+        "direction": null
+      },
+      {
+        "at": "/world/terminus/rejection/ferrow/cage-bottom",
+        "db": 80,
+        "direction": "east"
+      },
+      {
+        "at": "/world/terminus/rejection/location/adit",
+        "db": 60,
+        "direction": "east"
+      },
+      {
+        "at": "/world/terminus/rejection/ferrow/winze-head",
+        "db": 80,
+        "direction": "west"
+      },
+      {
+        "at": "/world/terminus/rejection/ferrow/hush-mouth",
+        "db": 60,
+        "direction": "west"
+      },
+      {
+        "at": "/world/terminus/rejection/ferrow/winze-foot",
+        "db": 60,
+        "direction": "west"
+      }
+    ]
+  },
+  {
+    "place": "/world/terminus/rejection/ferrow/winze-foot",
+    "lux": 1.2,
+    "lightSources": 3,
+    "colourTemperature": 5200,
+    "peakLux": 1.2,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/terminus/rejection/ferrow/winze-foot",
+        "db": 100,
+        "direction": null
+      },
+      {
+        "at": "/world/terminus/rejection/ferrow/winze-head",
+        "db": 80,
+        "direction": "up"
+      },
+      {
+        "at": "/world/terminus/rejection/ferrow/timbered-drift",
+        "db": 60,
+        "direction": "up"
+      },
+      {
+        "at": "/world/terminus/rejection/ferrow/hush-mouth",
+        "db": 60,
+        "direction": "up"
+      }
+    ]
+  },
+  {
+    "place": "/world/terminus/rejection/ferrow/winze-head",
+    "lux": 1.2,
+    "lightSources": 3,
+    "colourTemperature": 5200,
+    "peakLux": 1.2,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/terminus/rejection/ferrow/winze-head",
+        "db": 100,
+        "direction": null
+      },
+      {
+        "at": "/world/terminus/rejection/ferrow/timbered-drift",
+        "db": 80,
+        "direction": "east"
+      },
+      {
+        "at": "/world/terminus/rejection/ferrow/cage-bottom",
+        "db": 60,
+        "direction": "east"
+      },
+      {
+        "at": "/world/terminus/rejection/ferrow/hush-mouth",
+        "db": 80,
+        "direction": "west"
+      },
+      {
+        "at": "/world/terminus/rejection/hush/gallery",
+        "db": 60,
+        "direction": "west"
+      },
+      {
+        "at": "/world/terminus/rejection/ferrow/winze-foot",
+        "db": 80,
+        "direction": "down"
+      }
+    ]
+  },
+  {
+    "place": "/world/terminus/rejection/hanging-wood/hazel-cant",
+    "lux": 74.799,
+    "lightSources": 3,
+    "colourTemperature": 5800,
+    "peakLux": 78.86,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/terminus/rejection/hanging-wood/hazel-cant",
+        "db": 100,
+        "direction": null
+      },
+      {
+        "at": "/world/terminus/rejection/hanging-wood/ride",
+        "db": 80,
+        "direction": "east"
+      },
+      {
+        "at": "/world/terminus/rejection/hanging-wood/treeline",
+        "db": 60,
+        "direction": "east"
+      },
+      {
+        "at": "/world/terminus/rejection/hanging-wood/oak-clearing",
+        "db": 60,
+        "direction": "east"
+      },
+      {
+        "at": "/world/terminus/rejection/hanging-wood/sugarbush",
+        "db": 60,
+        "direction": "east"
+      }
+    ]
+  },
+  {
+    "place": "/world/terminus/rejection/hanging-wood/oak-clearing",
+    "lux": 74.799,
+    "lightSources": 3,
+    "colourTemperature": 5800,
+    "peakLux": 78.86,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/terminus/rejection/hanging-wood/oak-clearing",
+        "db": 100,
+        "direction": null
+      },
+      {
+        "at": "/world/terminus/rejection/hanging-wood/ride",
+        "db": 80,
+        "direction": "south"
+      },
+      {
+        "at": "/world/terminus/rejection/hanging-wood/treeline",
+        "db": 60,
+        "direction": "south"
+      },
+      {
+        "at": "/world/terminus/rejection/hanging-wood/hazel-cant",
+        "db": 60,
+        "direction": "south"
+      },
+      {
+        "at": "/world/terminus/rejection/hanging-wood/sugarbush",
+        "db": 60,
+        "direction": "south"
+      }
+    ]
+  },
+  {
+    "place": "/world/terminus/rejection/hanging-wood/ride",
+    "lux": 108.458,
+    "lightSources": 3,
+    "colourTemperature": 5800,
+    "peakLux": 114.347,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/terminus/rejection/hanging-wood/ride",
+        "db": 100,
+        "direction": null
+      },
+      {
+        "at": "/world/terminus/rejection/hanging-wood/treeline",
+        "db": 80,
+        "direction": "south"
+      },
+      {
+        "at": "/world/terminus/rejection/location/hillside",
+        "db": 60,
+        "direction": "south"
+      },
+      {
+        "at": "/world/terminus/rejection/hanging-wood/oak-clearing",
+        "db": 80,
+        "direction": "north"
+      },
+      {
+        "at": "/world/terminus/rejection/hanging-wood/hazel-cant",
+        "db": 80,
+        "direction": "west"
+      },
+      {
+        "at": "/world/terminus/rejection/hanging-wood/sugarbush",
+        "db": 80,
+        "direction": "east"
+      }
+    ]
+  },
+  {
+    "place": "/world/terminus/rejection/hanging-wood/sugarbush",
+    "lux": 71.059,
+    "lightSources": 3,
+    "colourTemperature": 5663.291,
+    "peakLux": 74.917,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/terminus/rejection/hanging-wood/sugarbush",
+        "db": 100,
+        "direction": null
+      },
+      {
+        "at": "/world/terminus/rejection/hanging-wood/ride",
+        "db": 80,
+        "direction": "west"
+      },
+      {
+        "at": "/world/terminus/rejection/hanging-wood/treeline",
+        "db": 60,
+        "direction": "west"
+      },
+      {
+        "at": "/world/terminus/rejection/hanging-wood/oak-clearing",
+        "db": 60,
+        "direction": "west"
+      },
+      {
+        "at": "/world/terminus/rejection/hanging-wood/hazel-cant",
+        "db": 60,
+        "direction": "west"
+      }
+    ]
+  },
+  {
+    "place": "/world/terminus/rejection/hanging-wood/treeline",
+    "lux": 157.077,
+    "lightSources": 3,
+    "colourTemperature": 5800,
+    "peakLux": 165.606,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/terminus/rejection/hanging-wood/treeline",
+        "db": 100,
+        "direction": null
+      },
+      {
+        "at": "/world/terminus/rejection/location/hillside",
+        "db": 80,
+        "direction": "south"
+      },
+      {
+        "at": "/world/terminus/rejection/location/claims-office",
+        "db": 60,
+        "direction": "south"
+      },
+      {
+        "at": "/world/terminus/rejection/location/old-workings",
+        "db": 60,
+        "direction": "south"
+      },
+      {
+        "at": "/world/terminus/rejection/hanging-wood/ride",
+        "db": 80,
+        "direction": "north"
+      },
+      {
+        "at": "/world/terminus/rejection/hanging-wood/oak-clearing",
+        "db": 60,
+        "direction": "north"
+      },
+      {
+        "at": "/world/terminus/rejection/hanging-wood/hazel-cant",
+        "db": 60,
+        "direction": "north"
+      },
+      {
+        "at": "/world/terminus/rejection/hanging-wood/sugarbush",
+        "db": 60,
+        "direction": "north"
+      }
+    ]
+  },
+  {
+    "place": "/world/terminus/rejection/hush/gallery",
+    "lux": 0.4,
+    "lightSources": 1,
+    "colourTemperature": 5200,
+    "peakLux": 0.4,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/terminus/rejection/hush/gallery",
+        "db": 100,
+        "direction": null
+      },
+      {
+        "at": "/world/terminus/rejection/ferrow/hush-mouth",
+        "db": 80,
+        "direction": "out"
+      },
+      {
+        "at": "/world/terminus/rejection/ferrow/winze-head",
+        "db": 60,
+        "direction": "out"
+      }
+    ]
+  },
+  {
+    "place": "/world/terminus/rejection/kestrel-road/lower-climb",
+    "lux": 134.638,
+    "lightSources": 3,
+    "colourTemperature": 5777.706,
+    "peakLux": 141.948,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/terminus/rejection/kestrel-road/lower-climb",
+        "db": 100,
+        "direction": null
+      },
+      {
+        "at": "/world/terminus/delight-road/crossroads",
+        "db": 80,
+        "direction": "east"
+      },
+      {
+        "at": "/world/terminus/delight-road/flats",
+        "db": 60,
+        "direction": "east"
+      },
+      {
+        "at": "/world/terminus/hearts-delight/location/valley-gate",
+        "db": 60,
+        "direction": "east"
+      },
+      {
+        "at": "/world/terminus/rejection/kestrel-road/upper-climb",
+        "db": 80,
+        "direction": "west"
+      },
+      {
+        "at": "/world/terminus/rejection/kestrel-road/the-pass",
+        "db": 60,
+        "direction": "west"
+      }
+    ]
+  },
+  {
+    "place": "/world/terminus/rejection/kestrel-road/the-pass",
+    "lux": 134.638,
+    "lightSources": 3,
+    "colourTemperature": 5975,
+    "peakLux": 141.948,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/terminus/rejection/kestrel-road/the-pass",
+        "db": 100,
+        "direction": null
+      },
+      {
+        "at": "/world/terminus/rejection/kestrel-road/upper-climb",
+        "db": 80,
+        "direction": "east"
+      },
+      {
+        "at": "/world/terminus/rejection/kestrel-road/lower-climb",
+        "db": 60,
+        "direction": "east"
+      },
+      {
+        "at": "/world/terminus/rejection/kestrel-road/tips",
+        "db": 80,
+        "direction": "west"
+      },
+      {
+        "at": "/world/terminus/rejection/kestrel-road/yard-gate",
+        "db": 60,
+        "direction": "west"
+      }
+    ]
+  },
+  {
+    "place": "/world/terminus/rejection/kestrel-road/tips",
+    "lux": 134.638,
+    "lightSources": 3,
+    "colourTemperature": 5790.909,
+    "peakLux": 141.948,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/terminus/rejection/kestrel-road/tips",
+        "db": 100,
+        "direction": null
+      },
+      {
+        "at": "/world/terminus/rejection/kestrel-road/the-pass",
+        "db": 80,
+        "direction": "east"
+      },
+      {
+        "at": "/world/terminus/rejection/kestrel-road/upper-climb",
+        "db": 60,
+        "direction": "east"
+      },
+      {
+        "at": "/world/terminus/rejection/kestrel-road/yard-gate",
+        "db": 80,
+        "direction": "west"
+      },
+      {
+        "at": "/world/terminus/rejection/location/pithead-yard",
+        "db": 60,
+        "direction": "west"
+      },
+      {
+        "at": "/world/newbie-wilds/crossroads/hub",
+        "db": 60,
+        "direction": "west"
+      }
+    ]
+  },
+  {
+    "place": "/world/terminus/rejection/kestrel-road/upper-climb",
+    "lux": 134.638,
+    "lightSources": 3,
+    "colourTemperature": 5870.819,
+    "peakLux": 141.948,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/terminus/rejection/kestrel-road/upper-climb",
+        "db": 100,
+        "direction": null
+      },
+      {
+        "at": "/world/terminus/rejection/kestrel-road/lower-climb",
+        "db": 80,
+        "direction": "east"
+      },
+      {
+        "at": "/world/terminus/delight-road/crossroads",
+        "db": 60,
+        "direction": "east"
+      },
+      {
+        "at": "/world/terminus/rejection/kestrel-road/the-pass",
+        "db": 80,
+        "direction": "west"
+      },
+      {
+        "at": "/world/terminus/rejection/kestrel-road/tips",
+        "db": 60,
+        "direction": "west"
+      }
+    ]
+  },
+  {
+    "place": "/world/terminus/rejection/kestrel-road/yard-gate",
+    "lux": 164.557,
+    "lightSources": 3,
+    "colourTemperature": 5833.333,
+    "peakLux": 173.492,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/terminus/rejection/kestrel-road/yard-gate",
+        "db": 100,
+        "direction": null
+      },
+      {
+        "at": "/world/terminus/rejection/kestrel-road/tips",
+        "db": 80,
+        "direction": "east"
+      },
+      {
+        "at": "/world/terminus/rejection/kestrel-road/the-pass",
+        "db": 60,
+        "direction": "east"
+      },
+      {
+        "at": "/world/terminus/rejection/location/pithead-yard",
+        "db": 80,
+        "direction": "northeast"
+      },
+      {
+        "at": "/world/terminus/rejection/location/claims-office",
+        "db": 60,
+        "direction": "northeast"
+      },
+      {
+        "at": "/world/terminus/rejection/location/assay-shed",
+        "db": 60,
+        "direction": "northeast"
+      },
+      {
+        "at": "/world/terminus/rejection/location/provisioning",
+        "db": 60,
+        "direction": "northeast"
+      },
+      {
+        "at": "/world/terminus/rejection/location/the-dry",
+        "db": 60,
+        "direction": "northeast"
+      },
+      {
+        "at": "/world/terminus/rejection/location/adit",
+        "db": 60,
+        "direction": "northeast"
+      },
+      {
+        "at": "/world/terminus/rejection/location/fuel-yard",
+        "db": 60,
+        "direction": "northeast"
+      },
+      {
+        "at": "/world/newbie-wilds/crossroads/hub",
+        "db": 80,
+        "direction": "north"
+      }
+    ]
+  },
+  {
+    "place": "/world/terminus/rejection/location/adit",
+    "lux": 119.678,
+    "lightSources": 3,
+    "colourTemperature": 5700,
+    "peakLux": 126.176,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/terminus/rejection/location/adit",
+        "db": 100,
+        "direction": null
+      },
+      {
+        "at": "/world/terminus/rejection/location/pithead-yard",
+        "db": 80,
+        "direction": "north"
+      },
+      {
+        "at": "/world/terminus/rejection/location/claims-office",
+        "db": 60,
+        "direction": "north"
+      },
+      {
+        "at": "/world/terminus/rejection/location/assay-shed",
+        "db": 60,
+        "direction": "north"
+      },
+      {
+        "at": "/world/terminus/rejection/location/provisioning",
+        "db": 60,
+        "direction": "north"
+      },
+      {
+        "at": "/world/terminus/rejection/location/the-dry",
+        "db": 60,
+        "direction": "north"
+      },
+      {
+        "at": "/world/terminus/rejection/location/fuel-yard",
+        "db": 60,
+        "direction": "north"
+      },
+      {
+        "at": "/world/terminus/rejection/kestrel-road/yard-gate",
+        "db": 60,
+        "direction": "north"
+      },
+      {
+        "at": "/world/terminus/rejection/ferrow/cage-bottom",
+        "db": 80,
+        "direction": "south"
+      },
+      {
+        "at": "/world/terminus/rejection/ferrow/timbered-drift",
+        "db": 60,
+        "direction": "south"
+      }
+    ]
+  },
+  {
+    "place": "/world/terminus/rejection/location/assay-shed",
+    "lux": 119.678,
+    "lightSources": 3,
+    "colourTemperature": 5700,
+    "peakLux": 126.176,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/terminus/rejection/location/assay-shed",
+        "db": 100,
+        "direction": null
+      },
+      {
+        "at": "/world/terminus/rejection/location/pithead-yard",
+        "db": 80,
+        "direction": "west"
+      },
+      {
+        "at": "/world/terminus/rejection/location/claims-office",
+        "db": 60,
+        "direction": "west"
+      },
+      {
+        "at": "/world/terminus/rejection/location/provisioning",
+        "db": 60,
+        "direction": "west"
+      },
+      {
+        "at": "/world/terminus/rejection/location/the-dry",
+        "db": 60,
+        "direction": "west"
+      },
+      {
+        "at": "/world/terminus/rejection/location/adit",
+        "db": 60,
+        "direction": "west"
+      },
+      {
+        "at": "/world/terminus/rejection/location/fuel-yard",
+        "db": 60,
+        "direction": "west"
+      },
+      {
+        "at": "/world/terminus/rejection/kestrel-road/yard-gate",
+        "db": 60,
+        "direction": "west"
+      }
+    ]
+  },
+  {
+    "place": "/world/terminus/rejection/location/claims-office",
+    "lux": 119.678,
+    "lightSources": 3,
+    "colourTemperature": 5700,
+    "peakLux": 126.176,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/terminus/rejection/location/claims-office",
+        "db": 100,
+        "direction": null
+      },
+      {
+        "at": "/world/terminus/rejection/location/pithead-yard",
+        "db": 80,
+        "direction": "south"
+      },
+      {
+        "at": "/world/terminus/rejection/location/assay-shed",
+        "db": 60,
+        "direction": "south"
+      },
+      {
+        "at": "/world/terminus/rejection/location/provisioning",
+        "db": 60,
+        "direction": "south"
+      },
+      {
+        "at": "/world/terminus/rejection/location/the-dry",
+        "db": 60,
+        "direction": "south"
+      },
+      {
+        "at": "/world/terminus/rejection/location/adit",
+        "db": 60,
+        "direction": "south"
+      },
+      {
+        "at": "/world/terminus/rejection/location/fuel-yard",
+        "db": 60,
+        "direction": "south"
+      },
+      {
+        "at": "/world/terminus/rejection/kestrel-road/yard-gate",
+        "db": 60,
+        "direction": "south"
+      },
+      {
+        "at": "/world/terminus/rejection/location/hillside",
+        "db": 80,
+        "direction": "north"
+      },
+      {
+        "at": "/world/terminus/rejection/location/old-workings",
+        "db": 60,
+        "direction": "north"
+      },
+      {
+        "at": "/world/terminus/rejection/hanging-wood/treeline",
+        "db": 60,
+        "direction": "north"
+      }
+    ]
+  },
+  {
+    "place": "/world/terminus/rejection/location/far-fringe",
+    "lux": 179.517,
+    "lightSources": 3,
+    "colourTemperature": null,
+    "peakLux": 189.264,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/terminus/rejection/location/far-fringe",
+        "db": 100,
+        "direction": null
+      },
+      {
+        "at": "/world/terminus/rejection/location/fringe-claim",
+        "db": 80,
+        "direction": "southwest"
+      },
+      {
+        "at": "/world/terminus/rejection/location/old-workings",
+        "db": 60,
+        "direction": "southwest"
+      }
+    ]
+  },
+  {
+    "place": "/world/terminus/rejection/location/fringe-claim",
+    "lux": 179.517,
+    "lightSources": 3,
+    "colourTemperature": null,
+    "peakLux": 189.264,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/terminus/rejection/location/fringe-claim",
+        "db": 100,
+        "direction": null
+      },
+      {
+        "at": "/world/terminus/rejection/location/old-workings",
+        "db": 80,
+        "direction": "southwest"
+      },
+      {
+        "at": "/world/terminus/rejection/location/hillside",
+        "db": 60,
+        "direction": "southwest"
+      },
+      {
+        "at": "/world/terminus/rejection/quarry/pit",
+        "db": 60,
+        "direction": "southwest"
+      },
+      {
+        "at": "/world/terminus/rejection/location/far-fringe",
+        "db": 80,
+        "direction": "northeast"
+      }
+    ]
+  },
+  {
+    "place": "/world/terminus/rejection/location/fuel-yard",
+    "lux": 164.557,
+    "lightSources": 3,
+    "colourTemperature": 5700,
+    "peakLux": 173.492,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/terminus/rejection/location/fuel-yard",
+        "db": 100,
+        "direction": null
+      },
+      {
+        "at": "/world/terminus/rejection/location/pithead-yard",
+        "db": 80,
+        "direction": "southwest"
+      },
+      {
+        "at": "/world/terminus/rejection/location/claims-office",
+        "db": 60,
+        "direction": "southwest"
+      },
+      {
+        "at": "/world/terminus/rejection/location/assay-shed",
+        "db": 60,
+        "direction": "southwest"
+      },
+      {
+        "at": "/world/terminus/rejection/location/provisioning",
+        "db": 60,
+        "direction": "southwest"
+      },
+      {
+        "at": "/world/terminus/rejection/location/the-dry",
+        "db": 60,
+        "direction": "southwest"
+      },
+      {
+        "at": "/world/terminus/rejection/location/adit",
+        "db": 60,
+        "direction": "southwest"
+      },
+      {
+        "at": "/world/terminus/rejection/kestrel-road/yard-gate",
+        "db": 60,
+        "direction": "southwest"
+      },
+      {
+        "at": "/world/terminus/rejection/location/smelter",
+        "db": 80,
+        "direction": "east"
+      }
+    ]
+  },
+  {
+    "place": "/world/terminus/rejection/location/hillside",
+    "lux": 179.517,
+    "lightSources": 3,
+    "colourTemperature": null,
+    "peakLux": 189.264,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/terminus/rejection/location/hillside",
+        "db": 100,
+        "direction": null
+      },
+      {
+        "at": "/world/terminus/rejection/location/claims-office",
+        "db": 80,
+        "direction": "southwest"
+      },
+      {
+        "at": "/world/terminus/rejection/location/pithead-yard",
+        "db": 60,
+        "direction": "southwest"
+      },
+      {
+        "at": "/world/terminus/rejection/location/old-workings",
+        "db": 80,
+        "direction": "northeast"
+      },
+      {
+        "at": "/world/terminus/rejection/location/fringe-claim",
+        "db": 60,
+        "direction": "northeast"
+      },
+      {
+        "at": "/world/terminus/rejection/quarry/pit",
+        "db": 60,
+        "direction": "northeast"
+      },
+      {
+        "at": "/world/terminus/rejection/hanging-wood/treeline",
+        "db": 80,
+        "direction": "north"
+      },
+      {
+        "at": "/world/terminus/rejection/hanging-wood/ride",
+        "db": 60,
+        "direction": "north"
+      }
+    ]
+  },
+  {
+    "place": "/world/terminus/rejection/location/old-workings",
+    "lux": 179.517,
+    "lightSources": 3,
+    "colourTemperature": null,
+    "peakLux": 189.264,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/terminus/rejection/location/old-workings",
+        "db": 100,
+        "direction": null
+      },
+      {
+        "at": "/world/terminus/rejection/location/hillside",
+        "db": 80,
+        "direction": "southwest"
+      },
+      {
+        "at": "/world/terminus/rejection/location/claims-office",
+        "db": 60,
+        "direction": "southwest"
+      },
+      {
+        "at": "/world/terminus/rejection/hanging-wood/treeline",
+        "db": 60,
+        "direction": "southwest"
+      },
+      {
+        "at": "/world/terminus/rejection/location/fringe-claim",
+        "db": 80,
+        "direction": "northeast"
+      },
+      {
+        "at": "/world/terminus/rejection/location/far-fringe",
+        "db": 60,
+        "direction": "northeast"
+      },
+      {
+        "at": "/world/terminus/rejection/quarry/pit",
+        "db": 80,
+        "direction": "north"
+      },
+      {
+        "at": "/world/terminus/rejection/quarry/worked-out",
+        "db": 60,
+        "direction": "north"
+      }
+    ]
+  },
+  {
+    "place": "/world/terminus/rejection/location/pithead-yard",
+    "lux": 149.597,
+    "lightSources": 3,
+    "colourTemperature": 5650,
+    "peakLux": 157.72,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/terminus/rejection/location/pithead-yard",
+        "db": 100,
+        "direction": null
+      },
+      {
+        "at": "/world/terminus/rejection/location/claims-office",
+        "db": 80,
+        "direction": "north"
+      },
+      {
+        "at": "/world/terminus/rejection/location/hillside",
+        "db": 60,
+        "direction": "north"
+      },
+      {
+        "at": "/world/terminus/rejection/location/assay-shed",
+        "db": 80,
+        "direction": "east"
+      },
+      {
+        "at": "/world/terminus/rejection/location/provisioning",
+        "db": 80,
+        "direction": "west"
+      },
+      {
+        "at": "/world/terminus/rejection/location/the-dry",
+        "db": 80,
+        "direction": "northwest"
+      },
+      {
+        "at": "/world/terminus/rejection/location/adit",
+        "db": 80,
+        "direction": "south"
+      },
+      {
+        "at": "/world/terminus/rejection/ferrow/cage-bottom",
+        "db": 60,
+        "direction": "south"
+      },
+      {
+        "at": "/world/terminus/rejection/location/fuel-yard",
+        "db": 80,
+        "direction": "northeast"
+      },
+      {
+        "at": "/world/terminus/rejection/location/smelter",
+        "db": 60,
+        "direction": "northeast"
+      },
+      {
+        "at": "/world/terminus/rejection/kestrel-road/yard-gate",
+        "db": 80,
+        "direction": "southwest"
+      },
+      {
+        "at": "/world/terminus/rejection/kestrel-road/tips",
+        "db": 60,
+        "direction": "southwest"
+      },
+      {
+        "at": "/world/newbie-wilds/crossroads/hub",
+        "db": 60,
+        "direction": "southwest"
+      }
+    ]
+  },
+  {
+    "place": "/world/terminus/rejection/location/provisioning",
+    "lux": 121.178,
+    "lightSources": 3,
+    "colourTemperature": 5700,
+    "peakLux": 127.676,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/terminus/rejection/location/provisioning",
+        "db": 100,
+        "direction": null
+      },
+      {
+        "at": "/world/terminus/rejection/location/pithead-yard",
+        "db": 80,
+        "direction": "east"
+      },
+      {
+        "at": "/world/terminus/rejection/location/claims-office",
+        "db": 60,
+        "direction": "east"
+      },
+      {
+        "at": "/world/terminus/rejection/location/assay-shed",
+        "db": 60,
+        "direction": "east"
+      },
+      {
+        "at": "/world/terminus/rejection/location/the-dry",
+        "db": 60,
+        "direction": "east"
+      },
+      {
+        "at": "/world/terminus/rejection/location/adit",
+        "db": 60,
+        "direction": "east"
+      },
+      {
+        "at": "/world/terminus/rejection/location/fuel-yard",
+        "db": 60,
+        "direction": "east"
+      },
+      {
+        "at": "/world/terminus/rejection/kestrel-road/yard-gate",
+        "db": 60,
+        "direction": "east"
+      }
+    ]
+  },
+  {
+    "place": "/world/terminus/rejection/location/smelter",
+    "lux": 119.678,
+    "lightSources": 2,
+    "colourTemperature": null,
+    "peakLux": 126.176,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/terminus/rejection/location/smelter",
+        "db": 100,
+        "direction": null
+      },
+      {
+        "at": "/world/terminus/rejection/location/fuel-yard",
+        "db": 80,
+        "direction": "west"
+      },
+      {
+        "at": "/world/terminus/rejection/location/pithead-yard",
+        "db": 60,
+        "direction": "west"
+      }
+    ]
+  },
+  {
+    "place": "/world/terminus/rejection/location/the-dry",
+    "lux": 119.678,
+    "lightSources": 3,
+    "colourTemperature": 5700,
+    "peakLux": 126.176,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/terminus/rejection/location/the-dry",
+        "db": 100,
+        "direction": null
+      },
+      {
+        "at": "/world/terminus/rejection/location/pithead-yard",
+        "db": 80,
+        "direction": "southeast"
+      },
+      {
+        "at": "/world/terminus/rejection/location/claims-office",
+        "db": 60,
+        "direction": "southeast"
+      },
+      {
+        "at": "/world/terminus/rejection/location/assay-shed",
+        "db": 60,
+        "direction": "southeast"
+      },
+      {
+        "at": "/world/terminus/rejection/location/provisioning",
+        "db": 60,
+        "direction": "southeast"
+      },
+      {
+        "at": "/world/terminus/rejection/location/adit",
+        "db": 60,
+        "direction": "southeast"
+      },
+      {
+        "at": "/world/terminus/rejection/location/fuel-yard",
+        "db": 60,
+        "direction": "southeast"
+      },
+      {
+        "at": "/world/terminus/rejection/kestrel-road/yard-gate",
+        "db": 60,
+        "direction": "southeast"
+      }
+    ]
+  },
+  {
+    "place": "/world/terminus/rejection/quarry/pit",
+    "lux": 179.517,
+    "lightSources": 3,
+    "colourTemperature": 5800,
+    "peakLux": 189.264,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/terminus/rejection/quarry/pit",
+        "db": 100,
+        "direction": null
+      },
+      {
+        "at": "/world/terminus/rejection/location/old-workings",
+        "db": 80,
+        "direction": "south"
+      },
+      {
+        "at": "/world/terminus/rejection/location/hillside",
+        "db": 60,
+        "direction": "south"
+      },
+      {
+        "at": "/world/terminus/rejection/location/fringe-claim",
+        "db": 60,
+        "direction": "south"
+      },
+      {
+        "at": "/world/terminus/rejection/quarry/worked-out",
+        "db": 80,
+        "direction": "north"
+      }
+    ]
+  },
+  {
+    "place": "/world/terminus/rejection/quarry/worked-out",
+    "lux": 179.517,
+    "lightSources": 3,
+    "colourTemperature": 5800,
+    "peakLux": 189.264,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/terminus/rejection/quarry/worked-out",
+        "db": 100,
+        "direction": null
+      },
+      {
+        "at": "/world/terminus/rejection/quarry/pit",
+        "db": 80,
+        "direction": "south"
+      },
+      {
+        "at": "/world/terminus/rejection/location/old-workings",
+        "db": 60,
+        "direction": "south"
+      }
+    ]
+  },
+  {
+    "place": "/world/terminus/terminal/location/arrival-gate",
+    "lux": 119.678,
+    "lightSources": 2,
+    "colourTemperature": null,
+    "peakLux": 126.176,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/terminus/terminal/location/arrival-gate",
+        "db": 100,
+        "direction": null
+      },
+      {
+        "at": "/world/terminus/terminal/location/hall",
+        "db": 80,
+        "direction": "south"
+      },
+      {
+        "at": "/world/terminus/terminal/location/departure-gate-a",
+        "db": 60,
+        "direction": "south"
+      },
+      {
+        "at": "/world/terminus/terminal/location/departure-gate-b",
+        "db": 60,
+        "direction": "south"
+      },
+      {
+        "at": "/world/terminus/terminal/location/departure-gate-c",
+        "db": 60,
+        "direction": "south"
+      },
+      {
+        "at": "/world/terminus/terminal/location/office",
+        "db": 60,
+        "direction": "south"
+      },
+      {
+        "at": "/world/terminus/university-avenue/location/crossing",
+        "db": 80,
+        "direction": "north"
+      },
+      {
+        "at": "/world/terminus/counting-houses/avenue-block",
+        "db": 60,
+        "direction": "north"
+      },
+      {
+        "at": "/world/terminus/registry/office",
+        "db": 80,
+        "direction": "east"
+      }
+    ]
+  },
+  {
+    "place": "/world/terminus/terminal/location/departure-gate-a",
+    "lux": 0,
+    "lightSources": 0,
+    "colourTemperature": null,
+    "peakLux": 0,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/terminus/terminal/location/departure-gate-a",
+        "db": 100,
+        "direction": null
+      },
+      {
+        "at": "/world/terminus/terminal/location/hall",
+        "db": 80,
+        "direction": "west"
+      },
+      {
+        "at": "/world/terminus/terminal/location/arrival-gate",
+        "db": 60,
+        "direction": "west"
+      },
+      {
+        "at": "/world/terminus/terminal/location/departure-gate-b",
+        "db": 60,
+        "direction": "west"
+      },
+      {
+        "at": "/world/terminus/terminal/location/departure-gate-c",
+        "db": 60,
+        "direction": "west"
+      },
+      {
+        "at": "/world/terminus/terminal/location/office",
+        "db": 60,
+        "direction": "west"
+      }
+    ]
+  },
+  {
+    "place": "/world/terminus/terminal/location/departure-gate-b",
+    "lux": 0,
+    "lightSources": 0,
+    "colourTemperature": null,
+    "peakLux": 0,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/terminus/terminal/location/departure-gate-b",
+        "db": 100,
+        "direction": null
+      },
+      {
+        "at": "/world/terminus/terminal/location/hall",
+        "db": 80,
+        "direction": "east"
+      },
+      {
+        "at": "/world/terminus/terminal/location/arrival-gate",
+        "db": 60,
+        "direction": "east"
+      },
+      {
+        "at": "/world/terminus/terminal/location/departure-gate-a",
+        "db": 60,
+        "direction": "east"
+      },
+      {
+        "at": "/world/terminus/terminal/location/departure-gate-c",
+        "db": 60,
+        "direction": "east"
+      },
+      {
+        "at": "/world/terminus/terminal/location/office",
+        "db": 60,
+        "direction": "east"
+      }
+    ]
+  },
+  {
+    "place": "/world/terminus/terminal/location/departure-gate-c",
+    "lux": 0,
+    "lightSources": 0,
+    "colourTemperature": null,
+    "peakLux": 0,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/terminus/terminal/location/departure-gate-c",
+        "db": 100,
+        "direction": null
+      },
+      {
+        "at": "/world/terminus/terminal/location/hall",
+        "db": 80,
+        "direction": "north"
+      },
+      {
+        "at": "/world/terminus/terminal/location/arrival-gate",
+        "db": 60,
+        "direction": "north"
+      },
+      {
+        "at": "/world/terminus/terminal/location/departure-gate-a",
+        "db": 60,
+        "direction": "north"
+      },
+      {
+        "at": "/world/terminus/terminal/location/departure-gate-b",
+        "db": 60,
+        "direction": "north"
+      },
+      {
+        "at": "/world/terminus/terminal/location/office",
+        "db": 60,
+        "direction": "north"
+      }
+    ]
+  },
+  {
+    "place": "/world/terminus/terminal/location/hall",
+    "lux": 59.839,
+    "lightSources": 1,
+    "colourTemperature": null,
+    "peakLux": 63.088,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/terminus/terminal/location/hall",
+        "db": 100,
+        "direction": null
+      },
+      {
+        "at": "/world/terminus/terminal/location/arrival-gate",
+        "db": 80,
+        "direction": "north"
+      },
+      {
+        "at": "/world/terminus/university-avenue/location/crossing",
+        "db": 60,
+        "direction": "north"
+      },
+      {
+        "at": "/world/terminus/registry/office",
+        "db": 60,
+        "direction": "north"
+      },
+      {
+        "at": "/world/terminus/terminal/location/departure-gate-a",
+        "db": 80,
+        "direction": "east"
+      },
+      {
+        "at": "/world/terminus/terminal/location/departure-gate-b",
+        "db": 80,
+        "direction": "west"
+      },
+      {
+        "at": "/world/terminus/terminal/location/departure-gate-c",
+        "db": 80,
+        "direction": "south"
+      },
+      {
+        "at": "/world/terminus/terminal/location/office",
+        "db": 80,
+        "direction": "up"
+      }
+    ]
+  },
+  {
+    "place": "/world/terminus/terminal/location/office",
+    "lux": 0,
+    "lightSources": 0,
+    "colourTemperature": null,
+    "peakLux": 0,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/terminus/terminal/location/office",
+        "db": 100,
+        "direction": null
+      },
+      {
+        "at": "/world/terminus/terminal/location/hall",
+        "db": 80,
+        "direction": "down"
+      },
+      {
+        "at": "/world/terminus/terminal/location/arrival-gate",
+        "db": 60,
+        "direction": "down"
+      },
+      {
+        "at": "/world/terminus/terminal/location/departure-gate-a",
+        "db": 60,
+        "direction": "down"
+      },
+      {
+        "at": "/world/terminus/terminal/location/departure-gate-b",
+        "db": 60,
+        "direction": "down"
+      },
+      {
+        "at": "/world/terminus/terminal/location/departure-gate-c",
+        "db": 60,
+        "direction": "down"
+      }
+    ]
+  },
+  {
+    "place": "/world/terminus/university-avenue/location/campus-gate",
+    "lux": 0,
+    "lightSources": 0,
+    "colourTemperature": null,
+    "peakLux": 0,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/terminus/university-avenue/location/campus-gate",
+        "db": 100,
+        "direction": null
+      }
+    ]
+  },
+  {
+    "place": "/world/terminus/university-avenue/location/crossing",
+    "lux": 179.517,
+    "lightSources": 3,
+    "colourTemperature": null,
+    "peakLux": 189.264,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/terminus/university-avenue/location/crossing",
+        "db": 100,
+        "direction": null
+      },
+      {
+        "at": "/world/terminus/terminal/location/arrival-gate",
+        "db": 80,
+        "direction": "south"
+      },
+      {
+        "at": "/world/terminus/terminal/location/hall",
+        "db": 60,
+        "direction": "south"
+      },
+      {
+        "at": "/world/terminus/registry/office",
+        "db": 60,
+        "direction": "south"
+      },
+      {
+        "at": "/world/terminus/counting-houses/avenue-block",
+        "db": 80,
+        "direction": "west"
+      },
+      {
+        "at": "/world/terminus/counting-houses/banking-hall",
+        "db": 60,
+        "direction": "west"
+      },
+      {
+        "at": "/world/terminus/general-store/shop-floor",
+        "db": 60,
+        "direction": "west"
+      },
+      {
+        "at": "/world/terminus/infirmary/ward",
+        "db": 60,
+        "direction": "west"
+      },
+      {
+        "at": "/world/terminus/counting-houses/cash-and-carry",
+        "db": 60,
+        "direction": "west"
+      },
+      {
+        "at": "/world/terminus/market/square",
+        "db": 60,
+        "direction": "west"
+      },
+      {
+        "at": "/world/terminus/mayfield-row/street",
+        "db": 60,
+        "direction": "west"
+      }
+    ]
+  },
+  {
+    "place": "/world/terminus/valley-road/the-narrows",
+    "lux": 37.399,
+    "lightSources": 3,
+    "colourTemperature": 5800,
+    "peakLux": 39.43,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/terminus/valley-road/the-narrows",
+        "db": 100,
+        "direction": null
+      },
+      {
+        "at": "/world/terminus/valley-road/towpath",
+        "db": 80,
+        "direction": "east"
+      },
+      {
+        "at": "/world/terminus/wharfside/bank",
+        "db": 60,
+        "direction": "east"
+      },
+      {
+        "at": "/world/terminus/valley-road/the-shoulder",
+        "db": 80,
+        "direction": "west"
+      },
+      {
+        "at": "/world/terminus/hinkley-hills/location/arrival",
+        "db": 60,
+        "direction": "west"
+      }
+    ]
+  },
+  {
+    "place": "/world/terminus/valley-road/the-shoulder",
+    "lux": 38.438,
+    "lightSources": 3,
+    "colourTemperature": 5800,
+    "peakLux": 40.525,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/terminus/valley-road/the-shoulder",
+        "db": 100,
+        "direction": null
+      },
+      {
+        "at": "/world/terminus/valley-road/the-narrows",
+        "db": 80,
+        "direction": "east"
+      },
+      {
+        "at": "/world/terminus/valley-road/towpath",
+        "db": 60,
+        "direction": "east"
+      },
+      {
+        "at": "/world/terminus/hinkley-hills/location/arrival",
+        "db": 80,
+        "direction": "west"
+      },
+      {
+        "at": "/world/terminus/hinkley-hills/location/lane",
+        "db": 60,
+        "direction": "west"
+      }
+    ]
+  },
+  {
+    "place": "/world/terminus/valley-road/towpath",
+    "lux": 76.461,
+    "lightSources": 3,
+    "colourTemperature": 5800,
+    "peakLux": 80.612,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/terminus/valley-road/towpath",
+        "db": 100,
+        "direction": null
+      },
+      {
+        "at": "/world/terminus/wharfside/bank",
+        "db": 80,
+        "direction": "east"
+      },
+      {
+        "at": "/world/terminus/market/square",
+        "db": 60,
+        "direction": "east"
+      },
+      {
+        "at": "/world/terminus/delight-road/ford",
+        "db": 60,
+        "direction": "east"
+      },
+      {
+        "at": "/world/terminus/estuary/lower-towpath",
+        "db": 60,
+        "direction": "east"
+      },
+      {
+        "at": "/world/terminus/goods-yards/yard",
+        "db": 60,
+        "direction": "east"
+      },
+      {
+        "at": "/world/terminus/wharfside/mill/location/floor",
+        "db": 60,
+        "direction": "east"
+      },
+      {
+        "at": "/world/terminus/wharfside/dyehouse/location/floor",
+        "db": 60,
+        "direction": "east"
+      },
+      {
+        "at": "/world/terminus/wharfside/knackers/location/yard",
+        "db": 60,
+        "direction": "east"
+      },
+      {
+        "at": "/world/terminus/valley-road/the-narrows",
+        "db": 80,
+        "direction": "west"
+      },
+      {
+        "at": "/world/terminus/valley-road/the-shoulder",
+        "db": 60,
+        "direction": "west"
+      }
+    ]
+  },
+  {
+    "place": "/world/terminus/wharfside/bank",
+    "lux": 147.727,
+    "lightSources": 3,
+    "colourTemperature": 5800,
+    "peakLux": 155.748,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/terminus/wharfside/bank",
+        "db": 100,
+        "direction": null
+      },
+      {
+        "at": "/world/terminus/market/square",
+        "db": 80,
+        "direction": "north"
+      },
+      {
+        "at": "/world/terminus/counting-houses/avenue-block",
+        "db": 60,
+        "direction": "north"
+      },
+      {
+        "at": "/world/terminus/market/bakery",
+        "db": 60,
+        "direction": "north"
+      },
+      {
+        "at": "/world/terminus/valley-road/towpath",
+        "db": 80,
+        "direction": "west"
+      },
+      {
+        "at": "/world/terminus/valley-road/the-narrows",
+        "db": 60,
+        "direction": "west"
+      },
+      {
+        "at": "/world/terminus/delight-road/ford",
+        "db": 80,
+        "direction": "south"
+      },
+      {
+        "at": "/world/terminus/delight-road/milestone",
+        "db": 60,
+        "direction": "south"
+      },
+      {
+        "at": "/world/terminus/estuary/lower-towpath",
+        "db": 80,
+        "direction": "east"
+      },
+      {
+        "at": "/world/terminus/estuary/salt-house",
+        "db": 60,
+        "direction": "east"
+      },
+      {
+        "at": "/world/terminus/estuary/reach",
+        "db": 60,
+        "direction": "east"
+      },
+      {
+        "at": "/world/terminus/goods-yards/yard",
+        "db": 80,
+        "direction": "northwest"
+      },
+      {
+        "at": "/world/terminus/goods-yards/bottling/location/floor",
+        "db": 60,
+        "direction": "northwest"
+      },
+      {
+        "at": "/world/terminus/goods-yards/pantry/location/floor",
+        "db": 60,
+        "direction": "northwest"
+      },
+      {
+        "at": "/world/terminus/goods-yards/crowsfoot/location/floor",
+        "db": 60,
+        "direction": "northwest"
+      },
+      {
+        "at": "/world/terminus/goods-yards/hollis/location/floor",
+        "db": 60,
+        "direction": "northwest"
+      },
+      {
+        "at": "/world/terminus/goods-yards/veshko/location/distillery",
+        "db": 60,
+        "direction": "northwest"
+      },
+      {
+        "at": "/world/terminus/goods-yards/farm/location/yard",
+        "db": 60,
+        "direction": "northwest"
+      },
+      {
+        "at": "/world/terminus/wharfside/mill/location/floor",
+        "db": 80,
+        "direction": "southeast"
+      },
+      {
+        "at": "/world/terminus/wharfside/dyehouse/location/floor",
+        "db": 80,
+        "direction": "southwest"
+      },
+      {
+        "at": "/world/terminus/wharfside/knackers/location/yard",
+        "db": 80,
+        "direction": "down"
+      },
+      {
+        "at": "/world/terminus/wharfside/tannery/location/yard",
+        "db": 60,
+        "direction": "down"
+      },
+      {
+        "at": "/world/terminus/wharfside/chandlery/location/floor",
+        "db": 60,
+        "direction": "down"
+      }
+    ]
+  },
+  {
+    "place": "/world/terminus/wharfside/chandlery/location/floor",
+    "lux": 28.049,
+    "lightSources": 1,
+    "colourTemperature": 5800,
+    "peakLux": 29.572,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/terminus/wharfside/chandlery/location/floor",
+        "db": 100,
+        "direction": null
+      },
+      {
+        "at": "/world/terminus/wharfside/knackers/location/yard",
+        "db": 80,
+        "direction": "southwest"
+      },
+      {
+        "at": "/world/terminus/wharfside/bank",
+        "db": 60,
+        "direction": "southwest"
+      },
+      {
+        "at": "/world/terminus/wharfside/tannery/location/yard",
+        "db": 60,
+        "direction": "southwest"
+      }
+    ]
+  },
+  {
+    "place": "/world/terminus/wharfside/dyehouse/location/floor",
+    "lux": 87.888,
+    "lightSources": 3,
+    "colourTemperature": 5800,
+    "peakLux": 92.66,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/terminus/wharfside/dyehouse/location/floor",
+        "db": 100,
+        "direction": null
+      },
+      {
+        "at": "/world/terminus/wharfside/bank",
+        "db": 80,
+        "direction": "north"
+      },
+      {
+        "at": "/world/terminus/market/square",
+        "db": 60,
+        "direction": "north"
+      },
+      {
+        "at": "/world/terminus/valley-road/towpath",
+        "db": 60,
+        "direction": "north"
+      },
+      {
+        "at": "/world/terminus/delight-road/ford",
+        "db": 60,
+        "direction": "north"
+      },
+      {
+        "at": "/world/terminus/estuary/lower-towpath",
+        "db": 60,
+        "direction": "north"
+      },
+      {
+        "at": "/world/terminus/goods-yards/yard",
+        "db": 60,
+        "direction": "north"
+      },
+      {
+        "at": "/world/terminus/wharfside/mill/location/floor",
+        "db": 60,
+        "direction": "north"
+      },
+      {
+        "at": "/world/terminus/wharfside/knackers/location/yard",
+        "db": 60,
+        "direction": "north"
+      }
+    ]
+  },
+  {
+    "place": "/world/terminus/wharfside/knackers/location/yard",
+    "lux": 87.888,
+    "lightSources": 3,
+    "colourTemperature": 5800,
+    "peakLux": 92.66,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/terminus/wharfside/knackers/location/yard",
+        "db": 100,
+        "direction": null
+      },
+      {
+        "at": "/world/terminus/wharfside/bank",
+        "db": 80,
+        "direction": "up"
+      },
+      {
+        "at": "/world/terminus/market/square",
+        "db": 60,
+        "direction": "up"
+      },
+      {
+        "at": "/world/terminus/valley-road/towpath",
+        "db": 60,
+        "direction": "up"
+      },
+      {
+        "at": "/world/terminus/delight-road/ford",
+        "db": 60,
+        "direction": "up"
+      },
+      {
+        "at": "/world/terminus/estuary/lower-towpath",
+        "db": 60,
+        "direction": "up"
+      },
+      {
+        "at": "/world/terminus/goods-yards/yard",
+        "db": 60,
+        "direction": "up"
+      },
+      {
+        "at": "/world/terminus/wharfside/mill/location/floor",
+        "db": 60,
+        "direction": "up"
+      },
+      {
+        "at": "/world/terminus/wharfside/dyehouse/location/floor",
+        "db": 60,
+        "direction": "up"
+      },
+      {
+        "at": "/world/terminus/wharfside/tannery/location/yard",
+        "db": 80,
+        "direction": "south"
+      },
+      {
+        "at": "/world/terminus/wharfside/chandlery/location/floor",
+        "db": 80,
+        "direction": "northeast"
+      }
+    ]
+  },
+  {
+    "place": "/world/terminus/wharfside/mill/location/floor",
+    "lux": 87.888,
+    "lightSources": 3,
+    "colourTemperature": 5800,
+    "peakLux": 92.66,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/terminus/wharfside/mill/location/floor",
+        "db": 100,
+        "direction": null
+      },
+      {
+        "at": "/world/terminus/wharfside/bank",
+        "db": 80,
+        "direction": "north"
+      },
+      {
+        "at": "/world/terminus/market/square",
+        "db": 60,
+        "direction": "north"
+      },
+      {
+        "at": "/world/terminus/valley-road/towpath",
+        "db": 60,
+        "direction": "north"
+      },
+      {
+        "at": "/world/terminus/delight-road/ford",
+        "db": 60,
+        "direction": "north"
+      },
+      {
+        "at": "/world/terminus/estuary/lower-towpath",
+        "db": 60,
+        "direction": "north"
+      },
+      {
+        "at": "/world/terminus/goods-yards/yard",
+        "db": 60,
+        "direction": "north"
+      },
+      {
+        "at": "/world/terminus/wharfside/dyehouse/location/floor",
+        "db": 60,
+        "direction": "north"
+      },
+      {
+        "at": "/world/terminus/wharfside/knackers/location/yard",
+        "db": 60,
+        "direction": "north"
+      }
+    ]
+  },
+  {
+    "place": "/world/terminus/wharfside/tannery/location/yard",
+    "lux": 28.049,
+    "lightSources": 1,
+    "colourTemperature": 5800,
+    "peakLux": 29.572,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/terminus/wharfside/tannery/location/yard",
+        "db": 100,
+        "direction": null
+      },
+      {
+        "at": "/world/terminus/wharfside/knackers/location/yard",
+        "db": 80,
+        "direction": "north"
+      },
+      {
+        "at": "/world/terminus/wharfside/bank",
+        "db": 60,
+        "direction": "north"
+      },
+      {
+        "at": "/world/terminus/wharfside/chandlery/location/floor",
+        "db": 60,
+        "direction": "north"
+      }
+    ]
+  }
+]
