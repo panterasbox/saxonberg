@@ -591,3 +591,67 @@ attach, so the hunting slate's material needs no second mechanism.
 4. The **graduate-to-doctrine** call on the RGO law is still the user's,
    and this section is the strongest argument yet for taking it — the law
    now has a second slot and an author contract hanging off it.
+
+## ⭐⭐⭐ The other two legs — the act, and the credit (2026-10-08)
+
+⛔ **The spine above only did half the law.** The RGO law is *"a reservoir
+with a **recharge law**, drawn by an **act**, crediting a **Discipline**"* —
+four legs. The `(capacity field, recharge law)` pair unified the first two
+and **silently dropped the act and the credit**, and the drilling design
+pass then broke the fourth. Patched here.
+
+### The act — who may perform it
+
+Every shipped RGO assumes the answer is **you**: one axe, one rod, one hoe,
+one hand in the hive. Drilling cannot be done alone (a derrick raised, a
+beam worked continuously, weeks of cut-and-bail before anybody knows
+anything), and modelling that as **collaboration** would gate the content
+on how many players are online.
+
+> ⭐⭐⭐ **The act's slot is not "who performs it" but "whose time is
+> spent" — and time is purchasable.** Drilling is **employing**, not
+> collaborative: the crew may be NPCs, and what made oil different was
+> never that you needed friends but that you needed a **payroll**.
+
+So the slot takes two values: **your own time** (every RGO so far) or
+**bought time** (drilling, and latently many others). ⭐ The cost shape
+follows: an RGO drawn with bought time has its whole cost **front-loaded**
+as wages, paid before the reservoir is known.
+
+### ⭐⭐⭐ The credit — a bought act has TWO acts
+
+If a hired crew drills, who earns the Discipline? Decided by the user,
+2026-10-08, and the chosen limb is the **derivable** one:
+
+| who | earns | because |
+|---|---|---|
+| **the owner** | the **survey / geology** competence | siting the well *is* an act — reading the structure, placing the bet, and **eating the dry hole** |
+| **the crew** | the **labour** Discipline | bailing, working the beam, running the casing |
+
+> ⭐⭐ **Credit follows the act that was actually exercised — and a
+> reservoir drawn with bought time has two acts, not one.** Judgment under
+> uncertainty is a skill; hauling is a different skill; neither is a gift.
+
+That is what keeps the lens-4 trap shut. **The owner earns the skill they
+USED, never the skill they BOUGHT** — so capital is not a route to
+competence, and an investor is still learning something real rather than
+either learning nothing or being handed the crew's craft.
+
+⭐ Alternatives, both rejected: *actor-only* (purest reading of
+competence-is-earned-by-doing, but the build's central player role would
+then advance **no Discipline at all**, which makes the vertical's main
+seat a dead end); and *credit-to-the-payer* (simplest, but it states that
+money buys competence, which is a claim about the world and not a
+mechanic).
+
+### ⚠⚠ This is latent in the whole roster, not a drilling special case
+
+A farm with hired hands, a mine with a crew, a fishery with a boat and a
+deckhand, a brine hearth somebody else is feeding — **the split is already
+possible everywhere** and nothing reads it today, because every shipped
+RGO quietly assumes the actor and the beneficiary are the same person.
+Drilling is merely the first place where the assumption is **impossible**.
+
+> So the act/credit legs belong to **this spine**, not to the drilling
+> build — and whoever implements them should expect existing RGOs to want
+> the same read the moment employment touches them.
