@@ -24,6 +24,14 @@
 > **not gated on foraging** — see
 > [rgo-unification-slate](./rgo-unification-slate.md) § *The 09-25 priority
 > vs. the 10-08 direction*.
+> ⭐⭐⭐ **DESIGNED 2026-10-08 (§ end) — the four opens are closed.** The
+> survey has **two factors and only one is readable**: structure reads off
+> the shipped `Deposit.surfaceReadingAt` (whose `errorDeg` argument *is*
+> the how-wrong-may-it-be knob, widening with depth), while **charge has
+> no channel at all** — so the dry hole survives any instrument
+> improvement, and the free counter-signal is a **seep**. Depletion is a
+> derived pressure read; field ownership ships as physics for the polity
+> to argue about.
 > **Size:** a build — and the larger of the two, because the borehole is
 > a genuinely new extraction shape.
 
@@ -358,3 +366,177 @@ law) · [inquiry-slate](./inquiry-slate.md) (the epoch on-ramp) ·
 [instrumentation-slate](./instrumentation-slate.md) (the survey) ·
 [mining-slate](./mining-slate.md) (the pump, and everything below the
 water table)
+
+---
+
+# ⭐⭐⭐ Design pass — the four opens closed (2026-10-08)
+
+Taken after the fire/DD merge cleared both blockers, alongside
+[the RGO spine](../tails/field-substrate-slate.md). The seven **Decided**
+items above stand untouched. This closes the four **Open** ones — and
+three of the four were already answered by code or by the spine, so the
+design work was mostly finding that out.
+
+## ⭐⭐⭐ Open 1 — the survey: TWO factors, and only one of them is readable
+
+*"What instrument reads the deep field, and how wrong is it allowed to be.
+The whole game lives here — too accurate and the dry hole vanishes; too
+vague and it is a coin flip wearing a lab coat."*
+
+The dilemma dissolves, because **the question assumed one factor and
+petroleum has two.**
+
+> ⭐⭐⭐ **The instrument can tell you there is a TRAP. Nothing but the
+> drill can tell you the trap is FULL.**
+
+Real exploration needs five things to coincide — source rock, migration,
+trap, seal, timing — and surface geology reads **structure** while saying
+almost nothing about **charge**. That is why dry holes happen to good
+geologists on good structures, and it is the honest mechanism this build
+should sit on:
+
+| factor | readable? | how | cost |
+|---|---|---|---|
+| **structure** — is there a trap | ✅ **yes**, with a bracket | instrumented surface readings projected down | labour, instruments, competence, travel |
+| **charge** — is the trap full | ⛔ **no channel exists** | only the hole | the whole well |
+
+### ⭐⭐ Why this permanently fixes the dilemma
+
+**The dry hole survives any amount of instrument improvement.** A better
+dial, a better surveyor, a better theory all sharpen the *structure* read
+and none of them touches charge — so the bet stays a bet forever, without
+anybody having to keep the instruments deliberately bad. That was the
+trap the original open was worried about and it is now structurally
+impossible.
+
+⚠ And both factors stay **SEEDED**, so Decided #3 is untouched: the charge
+was fixed at world-gen, the player's ignorance is **epistemic**, and
+nothing rolls at `completeWork`. ⭐ There is also **no refusal** on charge
+— not a gated reading, simply *no channel* — which is the correct
+treatment, because a refusal is the progression UI only when something can
+lift it. Nothing lifts this one, so nothing should promise it can.
+
+### The mechanism is shipped, including the error knob
+
+`packages/content/ground/src/idea/Deposit.ts` already carries the model
+half, and its **second read is the one this build wants**:
+
+```ts
+surfaceReadingAt(x: number, y: number, errorDeg: number, seed: number): SurfaceReading | null
+```
+
+It intersects the lode's plane with `z = 0` and reports the surface trace
+and the perpendicular distance to it. ⭐ **That is anticlinal theory** —
+inferring a subsurface trap from the dip and strike you can measure at an
+outcrop — which is precisely the 1860s technique that found the first
+fields. And `errorDeg` is literally the *"how wrong is it allowed to be"*
+parameter, already a function argument.
+
+So drilling's structural survey adds **a `Reading` row, not a mechanism**:
+a channel at `/trade/drilling/idea/reading/structure`, with `errorDeg`
+resolved from the instrument **ceiling** × the surveyor's **competence**
+(detail, never access — the instrumentation law). Mining's shipped
+`measure strike` / `measure dip` are the same family and need no change.
+
+> ⚠ **The bracket widens with DEPTH.** That is the one law to author:
+> a shallow structure is nearly certain, a deep one is a shrug, and the
+> cost of being wrong rises with the same variable. One number does both
+> jobs.
+
+### ⭐⭐ And the free signal is a SEEP
+
+The second evidence channel, and it is the one that makes this a deduction
+rather than a measurement:
+
+> **A seep is evidence of CHARGE** — hydrocarbons were generated and did
+> migrate — and it is free, visible to anybody, and **non-quantitative**.
+> It tells you the region is charged and **not where to drill**.
+
+Which gives two independent channels, neither sufficient:
+
+- the **seep** says *there is oil in this country*, and costs nothing;
+- the **structure** says *drill here*, and costs a survey;
+- **you need both**, and plenty of charged country has no seep.
+
+⭐ Perfectly consistent with the spine's sample-price law: the seep is free
+to read, so it is **scenery** and nobody specialises in it; the structure
+is expensive, so it is a **career** — the surveyor. Nothing had to be
+tuned to make that come out right.
+
+## Open 2 — yes, a well depletes visibly, and the spine says how
+
+Confirming the lean. Under the `(capacity field, recharge law)` pair:
+**capacity** is the seeded reservoir volume, **recharge is zero** (the
+RGO law's own depletion case, and this is the first reservoir where zero
+is enormous rather than a band somebody cuts out in an afternoon).
+
+**Pressure is a derived read of remaining-over-initial** — nothing stored
+but the withdrawals, per the field pattern's rule 4. That makes it the
+tier-C legibility answer the slate asked for: ⭐ *the engine's job is to
+make depletion legible before it is irreversible*, and a falling pressure
+gauge does it with no new concept.
+
+⚠ **It inverts the sample-price law, deliberately.** Reading your own
+wellhead is **free** — because you already paid for the hole. Drilling's
+whole cost is front-loaded, which is Decided's capital-shape point showing
+up in the instrumentation as well as the economics.
+
+## Open 3 — confirmed: ship the physics, let the polity invent the law
+
+The lean was right and the ownership correction sharpens it. *Rule of
+capture* versus *correlative rights* is not a rule to implement — it is
+what **happens** when two straws share one glass:
+
+> **The engine ships one reservoir under two extents. The polity discovers
+> that draining is competitive and argues about it.** That is the best
+> governance content this vertical generates, and writing a doctrine into
+> the code would delete it.
+
+⚠ And it is the **in-fiction** owners who argue — not the maintaining
+committee (see the spine's § *the conflation to refuse*). The code reports
+that a reservoir spans extents; who may drain it is a question for the
+courts this platform already has.
+
+## Open 4 — confirmed out of scope
+
+Kerosene-first is what makes deferring a vehicle safe, and it still is.
+Lamps ship; nothing is waiting on an engine.
+
+---
+
+## The spine, applied
+
+| slot | drilling's answer |
+|---|---|
+| **capacity field** | **seeded** — `(position, seed)`, two factors (structure readable, charge not) |
+| **recharge law** | **zero** — and the first reservoir where that is enormous |
+| **author contract** | ⭐ the shipped three rungs — **pin over lean over procedural**. Expect **nothing**; allow a **lean** (this basin is oily) and a **pin** (this structure holds the authored field a quest wants) |
+| **where the career sits** | the **survey** → the surveyor |
+
+⭐ **The author writes a `Deposit`-shaped row and gets the whole field.**
+Which is the reuse worth protecting: *the substrate is ahead of the
+content* for the fourth time in this vertical, and the first three all
+paid.
+
+## ⚠ What requirements must still settle
+
+Not design questions — two code checks and one content question, flagged
+so the requirements pass starts with them rather than discovering them:
+
+1. ⚠⚠ **Does `Deposit` generalise to a FLUID reservoir, or does a
+   reservoir want its own row kind?** The class already carries a **water
+   table**, so a fluid horizon is represented — but a lode is a *plane
+   with grade bands* and a reservoir is *a volume with a contact and a
+   pressure*. Reusing `Deposit` is the big win and it may be the wrong
+   host; ⭐ the test is the usual one — if a guard is needed to re-narrow
+   which fields mean anything, the host is wrong.
+2. **Is the borehole a `Thing` on a parcel?** Decided #2 says it is not a
+   Location; the positive statement is that a wellhead is **operated, not
+   entered** — the same shape the fire build landed on when it split the
+   `Burner` from the `Firebox`. The mixin call is the plan's.
+3. ⭐ **Which locality gets the first well** — the collision question, and
+   it has a real constraint now: the first field wants a **seep**, which
+   is surface content somebody has to place. Rejection is the mining
+   locality and the obvious candidate; whether an oil field belongs beside
+   a mine or wants its own site is a worldcrafting call, not a mechanism
+   one.
