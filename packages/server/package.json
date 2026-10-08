@@ -59,6 +59,7 @@
     "lint:imports": "tsx scripts/check-mud-imports.ts",
     "lint:inert-weapon": "tsx scripts/check-inert-weapon.ts",
     "lint:instanceable": "tsx scripts/check-instanceable-placement.ts",
+    "lint:graph-walks": "tsx scripts/check-graph-walks.ts",
     "lint:instrument-args": "tsx scripts/check-instrument-args.ts",
     "lint:kept-animals": "tsx scripts/check-kept-animals.ts",
     "lint:light-sources": "tsx scripts/check-light-sources.ts",
