@@ -809,8 +809,15 @@ constant introduced. Cheap, honest physics, but not zero. → [inquiry-slate](./
    lift pump are the same object (a piston moving a fluid, and air *is* a
    fluid), so one verb over two devices is likely the honest answer rather
    than a second word.
-3. **The pump is not this build's to write.** The mine's dewatering pump
-   and drilling's lift pump are one machine; § *Sequencing* point 3 already
-   says mine-first so drilling inherits a built one, and the mine fluid
-   pass is explicitly **not** blocked behind drilling. **The pump belongs
-   to the mine fluid pass; this build consumes it.**
+3. **The pump is not this build's to write** — and it is **not a
+   prerequisite either.** It has been promoted to its own slate
+   ([pump-slate](./pump-slate.md), four customers and four lenses at
+   ⭐⭐⭐). ⭐⭐⭐ **The rung below it is the BAILER, which this build already
+   needs**: a tube with a leather foot valve on a windlass, used to clear
+   cuttings from the hole — and the same tool lifts the product. Sichuan
+   lifted brine from 300 m that way and early oil wells were produced by
+   bailing before anyone fitted a pump. So the decline curve is **flowing
+   → bailed → pumped → stripper → abandoned**, drilling ships complete
+   without a pump, and the pump is a **throughput upgrade** that extends a
+   well's economic life. ⚠ A pump-before-drilling recommendation was made
+   and withdrawn inside one exchange on exactly this point.
