@@ -114,6 +114,9 @@ holding it there. **Everything else named above already ships.**
   against the world, with no read-time join between the two.
 - **A plan says what it assumed**, derived from the planner's own
   evidence rather than from anything they have not earned.
+- **The map-planning path cannot reach the index.** It takes its graph
+  as data and has no access to the world's, so the evidence firewall
+  holds by construction rather than by the planner's good manners.
 - **A plan is a hypothesis and the traverse is the verdict** — the live
   admission gate remains the final word, and a leg that fails halts
   where it failed.
@@ -156,6 +159,13 @@ holding it there. **Everything else named above already ships.**
   when the geography earns one. `logistics.md`'s refusal stands.
 - **The map's renderer, its card and the annotation surface** →
   [map-slate](../slates/builds/map-slate.md), unblocked but not ours.
+- **Client-side planning over a cached map** →
+  [map-slate](../slates/builds/map-slate.md) or a tail beside it.
+  Nothing here forecloses it, and ⭐ it is the **stronger form of this
+  build's own firewall guarantee** rather than a performance idea: a
+  server router *declines* to read the world, a client router *cannot*.
+  See *Surface decisions* for the one thing this build does to keep it
+  cheap.
 - **The containment-graph walks** → a named later wave. The primitive
   takes the edge set as a parameter so containment *can* ride it; this
   build migrates location adjacency only, because "one solution" must
@@ -404,6 +414,50 @@ passable — you walked it forty days ago* is the same useful sentence,
 leaks nothing, and makes better intel produce better routes, which is
 what makes map annotation mechanically load-bearing at all.
 
+### The map-planning path cannot reach the index
+
+**The question:** the decision above says the planner must not consult
+the world. Is honouring that enough?
+
+**The answer:** no. ⭐⭐ **It must be unable to.** The map-planning path
+takes its graph as data and has no reach into the index at all — the
+same move the map *writer* already makes, applied to the reader.
+
+**The reasoning, and it is the most important sentence in this
+document:** ⚠ **nobody decided the placeholder should be omniscient.**
+*"It plans against the world's current conditions"* is simply what you
+get when a router has the world in reach and nothing prevents it. A
+firewall that depends on every future edit choosing not to *"improve"* a
+route by peeking at the graph is the failure we are replacing,
+reintroduced with better manners. The location-graph build already drew
+this conclusion for the writer — *"the evidence firewall is structural,
+not policed… the map writer does not import `PlaceNode`"* — and the
+reader needs it for exactly the same reason.
+
+⭐ **This is also why client-side planning is the eventual stronger
+form.** A server-side router declines to read the world; a client-side
+one *cannot*, and every seam opened over the wire is an explicit,
+enumerable, reviewable decision rather than ambient access. So the
+boundary drawn here is not a stopgap — it is the same guarantee in the
+softer of its two available forms, and keeping the primitive's core free
+of server-only dependencies is what lets the harder form arrive later
+without a second router.
+
+⚠ **The server path never goes away**, which is precisely why this
+matters: an author may legitimately grant an NPC every road, and a
+freight optimizer needs the real network. Knowledge is already a
+parameter; the isolation is what keeps the *attended* case honest while
+the unattended one reads the world by design.
+
+⭐⭐ And note where the line fell: **attended** search is a person's own,
+over their own claims, structurally unable to cheat; **unattended**
+search is authored, reads the world, and carries the budget. That is the
+same seam the compute allowance landed on, reached from entirely
+different reasoning — which is usually the sign of a real joint rather
+than a convenience.
+
+⛔ *How* the isolation is enforced is the plan's, not this doc's.
+
 ### Several routes, not one answer
 
 **The question:** cost is a parameter — but a hauler cares about minutes
@@ -562,23 +616,28 @@ Observable from outside the code.
    succeeds after they walk there.
 3. A plan over old ground **names what it assumes and how the planner
    knows it**, and contains nothing the planner could not have earned.
-4. A route that needs a mode change **tells the traveller where the
+4. ⭐ **Changing what a traveller knows changes their route** — the same
+   request, on a fuller map, plans differently. If it does not, the map
+   is not being read, and the firewall claim is unproven rather than
+   satisfied. (Drive steps 3–4 are this check in the form a player can
+   see it.)
+5. A route that needs a mode change **tells the traveller where the
    change is**, instead of failing silently.
-5. A search that exhausts its budget says so, in words distinguishable
+6. A search that exhausts its budget says so, in words distinguishable
    from *no way exists*.
-6. A journey whose next leg is blocked **stops at the previous place**
+7. A journey whose next leg is blocked **stops at the previous place**
    and explains; the traveller re-plans by choosing to.
-7. `map` shows exactly what it showed before — the player's own claims,
+8. `map` shows exactly what it showed before — the player's own claims,
    disagreements intact — and asking for routes adds nothing to it.
-8. **Nothing a player can perceive about sound, sight, smell, a
+9. **Nothing a player can perceive about sound, sight, smell, a
    colony's forage or a mine's air changes.**
-9. A traveller asking the cost between several stops gets the costs and
+10. A traveller asking the cost between several stops gets the costs and
    **is not given an order**.
-10. Where two routes are incomparable, the traveller sees both with
+11. Where two routes are incomparable, the traveller sees both with
     their costs.
-11. A departures board still renders for everyone, and no route is
+12. A departures board still renders for everyone, and no route is
     planned through a timetable.
-12. An author can make an opening admit a new mode, or declare what an
+13. An author can make an opening admit a new mode, or declare what an
     NPC knows, **without writing code**.
 
 ---
