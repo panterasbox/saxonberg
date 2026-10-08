@@ -1926,6 +1926,30 @@ shopkeeper inside the till, and a 71-row content census. **That ratio is
 the argument for driving:** the suite was green through every one of
 them.
 
+### ⚠ W6's fourth: `bar-affordances.test.ts` asserts the station's set EXACTLY
+
+Same shape as the Login one, and found one package later — because
+⭐ **`pnpm test` ABORTS at the first failing package**, so each run only
+reveals the next one. Three full runs surfaced four failures, one package
+at a time.
+
+`trade-hospitality`'s `the bar affords each verb from exactly one place`
+asserts `BarStation.commandContributions.peers` equals `[mix, serve,
+garnish]`, so `flourish` arriving failed it. The expectation moved and now
+carries the whole reason: why the verb was dead (conferral retired in
+!285 and nothing came back for it), why the RAIL affords it (the
+instrument affords the verb), why competence LIFTS it rather than hiding
+it (*the refusal is the progression UI*), and why a pack class naming a
+PLATFORM view is the shipped direction.
+
+⭐⭐ **And then the right move was to stop guessing.** Rather than spend
+another 25-minute run discovering the next package, a grep found every
+test in the repo that both mentions `commandContributions` and touches one
+of the changed hosts — twelve files — and all of them ran directly: the
+kernel's 409 and the three remaining packs' 202, green. ⚠ *An abort-first
+runner turns a full-suite run into a binary search; a targeted census
+turns it back into one question.*
+
 ### ⛔⛔⛔ W6 — the suite's THIRD finding, and the best one: a tripwire caught a reviewer-grade mistake
 
 `trade-mining/src/idea/cmd/mining/__tests__/acts.test.ts > the drive
