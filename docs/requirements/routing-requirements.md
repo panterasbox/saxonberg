@@ -86,19 +86,49 @@ act better"*; `awareness` grades perception and active search. **There is
 no navigation, wayfinding or cartography Discipline, and its absence is
 a recorded decision.**
 
-**The nine walks.** `planRoute` (lanes, legs, single-lane); four
-near-identical attenuating walks in the kernel (vision, sound, smell,
-and the audience gather) each with its own `MAX_HOPS`, `visited`,
-blocked-predicate and falloff accumulator; a bee's forage radius; a
-mine's air reach; a power grid's feeder reachability; and the location
-graph's own invariant walk.
+**The walks — ten, in four families.** ⚠ An earlier draft of this
+document called them *"nine near-identical walks"* and that was wrong in
+a way that mattered; the corrected census is below, and the families are
+not interchangeable.
 
-**Therefore what is genuinely new here is** one traversal primitive and
-its three accumulators; `media` denormalised onto the stored edge so a
-lane is derivable from the index; planning against a traveller's
-knowledge rather than the world; a stated search budget; all-pairs cost
-over a stop set; and nine call sites collapsed into one with a ratchet
-holding it there. **Everything else named above already ships.**
+| family | members | shape |
+|---|---|---|
+| **A · graph search over strings** | `planRoute` · the lane compile's `induce` · the location graph's invariant reachability · the power grid's feeder walk | BFS over paths or a compiled adjacency. ⭐ Genuinely one shape |
+| **B · local propagation over live places** | vision · sound · smell · the audience gather | ⚠ `MAX_HOPS = 2`. Same skeleton, **four different accumulator semantics**, all order-dependent |
+| **C · mine air** | `airAt` · `refreshAir` | Level BFS, the same walk twice in one file with different bounds. ⭐ Order-**in**dependent |
+| **D · forage radius** | a colony's census | ⭐ The only **cost**-bounded walk — minutes off the edge, with a minutes cap |
+
+⚠⚠ **Family B is not pathfinding.** Two hops is local propagation, and
+the four differ in ways the word "near-identical" hid: vision clamps its
+cross-scope sum to the brightest neighbour (a fix for a live bug) and is
+area-aware; the audience gather is the **inverse direction**, pushing a
+running attenuation down rather than folding one up; sound carries an
+ambient floor at depth 0; and vision applies five hazard guards on an
+exit where the others apply three. All four are **order-dependent**,
+because `visited` is one mutable set threaded through a DFS — so
+changing the enumeration order changes the reported lux, dB, ppm and
+compass direction.
+
+⚠ **And a prior build decided against a generic walker on purpose** —
+*"per the requirements doc's 'Per-modality walks, not a generic walker'
+decision, the modalities each implement their own walk body."* This
+build does not overturn that conclusion so much as narrow it: see
+*Surface decisions § The skeleton is shared; the accumulators are not*.
+
+**What is genuinely duplicated**, measured rather than asserted: sound
+and smell are *the same walk twice*, with their atmosphere predicate
+duplicated verbatim; that predicate exists in **three** copies; vision's
+hazard-guard block exists in **four**; and `airAt`/`refreshAir` are one
+walk written twice in one file.
+
+**Therefore what is genuinely new here is** one traversal skeleton with
+pluggable accumulators and both accumulation directions; `media`,
+`wheelPassable` and a `conditional` marker denormalised onto the stored
+edge so a lane is derivable from the index; planning against a
+traveller's knowledge rather than the world; a stated search budget;
+all-pairs cost over a stop set; a verb that plans without committing;
+and ten call sites collapsed onto one skeleton with a ratchet holding it
+there. **Everything else named above already ships.**
 
 ---
 
@@ -108,8 +138,15 @@ holding it there. **Everything else named above already ships.**
   the tree**, parameterized on the edge set, the admission rule, the
   bound, the accumulator and the knowledge source — and a gate holds the
   count at one.
-- **A traveller can plan a way somewhere without naming the lane.** The
-  plan may cross any number of lanes of the same mode.
+- **A traveller can plan a way somewhere without naming the lane**, and
+  ⭐ **across more than one lane of the same mode** — which is the thing
+  that genuinely cannot be done today. ⚠ Omitting the lane already
+  works when a *single* lane spans both ends; what is missing is a
+  multi-lane plan, and a lane choice that is not *"the first match in
+  compile order."*
+- **A traveller can ask what way there is without committing to it** —
+  a plan that can be read, refused, budgeted and questioned without
+  owning a vehicle or starting a trip.
 - **A plan can be made against what a traveller knows** rather than
   against the world, with no read-time join between the two.
 - **A plan says what it assumed**, derived from the planner's own
@@ -130,9 +167,11 @@ holding it there. **Everything else named above already ships.**
 - **Where several routes are genuinely incomparable, the traveller is
   offered them** rather than handed one answer computed from weights
   nobody chose.
-- **The six outward walks behave exactly as they do today**, observably:
-  sound carries as far, a colony forages the same radius, a mine's air
-  reaches the same depth.
+- **Every migrated walk behaves exactly as it does today**, observably —
+  sound carries as far, light reads the same band, a colony forages the
+  same radius, a mine's air reaches the same depth — and for the four
+  propagation walks this is **pinned by a characterization fixture over
+  every place in the shipped world**, not left to inspection.
 
 ---
 
@@ -152,6 +191,10 @@ holding it there. **Everything else named above already ships.**
 - **The land-derived compute allowance** → the parcel/governance
   conversation, with two questions named and unresolved in *Surface
   decisions*. The per-search ceiling ships; the allowance does not.
+- ⛔ **Normalizing family B's traversal semantics** — one order, one
+  guard set, one attenuation discipline → **nowhere, deliberately.** It
+  would change what players perceive, invisibly. See *Surface
+  decisions*.
 - **Epoch gating of routes** (a medieval zone having directions rather
   than routes) → a later call; the authored-signs half is
   [onboarding-slate](../slates/builds/onboarding-slate.md)'s and unbuilt.
@@ -222,13 +265,24 @@ the *search*.
   realm's only pathfinder. The compile stays; `planRoute` retires. Its
   three callers are `journey`, the `hauls` brain, and `consigns` —
   which duck-types the shape rather than importing it.
-- **`consigns`** (trade-shopkeeping) walks two doors down its own street
-  and should keep walking its authored `ways:` list. It is the worked
-  example of *ask how far the consumer is going* and must not become a
-  router caller again. ⚠ **Two subsystem docs are wrong about it** —
-  `retail.md` and `behavior.md` both say the hand *teleports* to the
-  counter; the code says otherwise. Corrected in this pass, since we are
-  in its caller already.
+- ⚠⚠ **`consigns` and `stocks` are two different brains, and an earlier
+  draft of this document confused them.** `stocks` (the shop keeper) is
+  the one that walks **authored `ways:`** and must stay that way — it is
+  the worked example of *ask how far the consumer is going*.
+  **`consigns` (the producer's floor hand) still calls the router
+  today**, twice a beat, with a hard-coded path literal, a hard-coded
+  lane, and a duck that reads only the node list. So it is a
+  **migration target**, not an exclusion. ⭐ It also **re-derives every
+  direction by scanning the room's exits**, because a plan carries no
+  directions — which tells us a plan should.
+- ⚠ **Two subsystem docs are wrong about `consigns`** — `retail.md` and
+  `behavior.md` both say the hand *teleports* to the counter; the code
+  says it walks. Corrected in this pass, since we are in its caller.
+- ⚠⚠ **Two tests pin the thing being replaced.** A source-text test
+  asserts the brain's code literally matches `/planRoute/`, and a
+  distilling test stands up a **stub catalogue by shape** implementing
+  `planRoute`. Retiring the name breaks both, in two packs, for a reason
+  that will look unrelated. They move in the same wave as the rename.
 - **The four perception walks** are hosted by perception and will keep
   perception's semantics exactly. The attenuation, the atmosphere
   refusal and the per-room emission are theirs; only the frontier is
@@ -306,9 +360,98 @@ the index.
 *why* no-auto-replan is right rather than merely preferred. The plan was
 always provisional; a leg failing is the world answering.
 
-And conditions reach the router by **graph recompilation**, never by
-in-search checks. An unweighted search over a *current* graph is
-correct; a condition-checking search is the wrong shape.
+### ⚠ Runtime conditions are not in the index, and cannot be
+
+**The question:** the governing slate says conditions reach the router
+by **graph recompilation**, crediting the by-shape crossing-refresh
+protocol as a seam that already works. An earlier draft of this document
+repeated that. Does it hold?
+
+**The answer: no, and the correction matters.** Verified at plan time:
+the refresh protocol is called by the **lane compile** and by a ford's
+own traversal, and **nowhere under the server**. It could not be called
+by the projection, because the projection never sees a live exit — it
+reads the **authored row**:
+
+```ts
+private async writeTemplateNode(row: Template, …)
+/** Project a row's authored `exits:` map. */
+private edgesOf(data: Record<string, unknown>): StoredEdge[] {
+  const raw = data.exits;            // ← authored content, not live exits
+```
+
+⭐ So the index is a projection of **authored content**. A ford in spring
+flood, a road blocked an hour ago — none of it is in there, and no
+recompilation can put it there.
+
+**What follows, and it is a decision already taken for other reasons:**
+runtime conditions are discovered at the **traverse**. A plan is a
+hypothesis; a leg that fails halts where it failed. That is the same
+answer this document already gives the landslide — *you find out when you
+get there* — and it needs no new machinery.
+
+⚠ **The behaviour change to price:** the lane compile asks the *live*
+exit today and refreshes fords, so a `journey` plan currently **will
+not** route over a flooded ford. Planning over the index, it **will**,
+and the traveller discovers it at the leg. The design argument stands on
+its own — *"it changes shipped behaviour"* is not a lens — but this is
+the swap, stated rather than met in review.
+
+⭐ **And a middle that costs almost nothing:** the authored row knows a
+ford is a ford. So the projection carries **`conditional`** — that this
+edge is *the kind that closes* — and the route states it as an
+assumption: *"this way crosses the ford at Kestrel; it is not always
+passable."* The index still cannot know **whether** it is flooded, which
+is correct. A silent surprise becomes a stated caveat.
+
+### The skeleton is shared; the accumulators are not
+
+**The question:** family B's four walks are order-dependent, and a prior
+build decided deliberately against a generic walker. Drain them or not?
+
+**The answer:** drain them, by sharing the **skeleton** — the frontier,
+the visited set, the bound and the admission rule — while every walk
+keeps **its own accumulator, its own guards and its own traversal
+order**. The primitive therefore supports both accumulation directions
+(fold-up with attenuation, and push-down with a running product) and
+supports a shared-mutable-visited depth-first order, because four
+shipped consumers depend on it.
+
+⭐ **This is not a weaker drain than normalizing them — it is the
+correct one.** What was duplicated was the skeleton and the helpers, and
+those go. What differs between the four is *physics*, and a shared
+primitive has no business flattening it.
+
+⛔ **Normalizing the semantics is explicitly out** — one order, one
+guard set, one attenuation discipline. It would change reported lux, dB,
+ppm and compass direction, no test would catch it, and nobody asked for
+it.
+
+**And the migration is made provable rather than hoped:** a
+characterization fixture captures light, sound, smell and reported
+direction for **every place in the shipped world**, before and after,
+and asserts equality. Order-dependence stops being a risk once it is
+pinned.
+
+⚠ **The honest cost:** the primitive carries a traversal order that
+exists because of a quirk in four consumers rather than because of a
+design. That is the price of one skeleton, and it is cheaper than four.
+
+### A verb that plans without committing
+
+**The question:** this document originally deferred a `route` verb — and
+then wrote five acceptance criteria and five drive steps that need one.
+
+**The answer: it is in scope.** `journey` cannot serve them: it requires
+a **vehicle** and only reaches lane stops, so there is no way to ask
+*what way is there* without owning a wagon and committing to the trip.
+Planning and executing are different acts (above), and only the planning
+one can be read, refused, budgeted or questioned.
+
+⚠ Without it the assumption list ships with **no reader**, which is the
+dead-capability failure this repo has paid for repeatedly — and the
+build's own exit criterion would be unrunnable. It is a controller and a
+view.
 
 ### `media` on the stored edge — required, not deferred
 
@@ -556,46 +699,56 @@ parcel/governance rather than in a routing build.
 
 Run in the live game, by hand, before the MR opens.
 
-1. **Stand on the Delight road and plan without naming a lane.**
-   `journey to <a stop two lanes away, same mode>` with **no `via`**.
-   It plans and departs. *Today this is impossible: the lane argument is
-   required, so you must already know the answer to ask the question.*
+1. **Plan a trip that needs two lanes.** From the Delight road,
+   `journey to <a stop reachable only by changing lanes, same mode>`.
+   It plans and departs. ⚠ *Today this fails with `via` and without it:*
+   omitting the lane already works when **one** lane spans both ends,
+   but the controller takes the first lane in compile order and answers
+   nothing when no single lane spans the trip. Confirm also that the
+   lane chosen is the **same one on every run** — the current pick is an
+   arbitrary first match.
 2. **Watch the legs run.** The journey advances leg by leg and arrives;
    the trip reads back while in progress.
-3. **Ask for somewhere you have never been.** Route to a place absent
+3. **Ask without committing.** `route to <the same place>` on foot,
+   owning no vehicle. It answers with the way, the cost and its
+   assumptions, and **starts nothing**.
+4. **Ask for somewhere you have never been.** Route to a place absent
    from your map. **Refused, and the refusal says you do not know a way
    there** — not that no way exists.
-4. **Earn it and ask again.** Walk the corridor, then repeat step 3's
+5. **Earn it and ask again.** Walk the corridor, then repeat step 4's
    request. **It now plans.** ⭐ This is the whole thesis in two
    commands: better intel, better route.
-5. **Read the assumptions.** A plan over ground you learned a while ago
+6. **Read the assumptions.** A plan over ground you learned a while ago
    states what it rests on and how you know it — *assumes the ford is
    passable; you walked it N days ago.* Confirm the sentence cites
    **your claim**, and that nothing in it could only be known from the
    world.
-6. **Hit a mode break.** Plan a route whose far end needs a different
+7. **Hit a mode break.** Plan a route whose far end needs a different
    mode. It **stops at the break and names it**, rather than returning
    nothing. Breaking bulk stays the lesson; it becomes legible.
-7. **Exhaust a budget.** With a deliberately tiny ceiling, ask for a far
+8. **Exhaust a budget.** With a deliberately tiny ceiling, ask for a far
    route. **The refusal says the search gave up** — and it reads
    differently from step 3's and from *no way exists*.
-8. **Block a leg mid-journey**, then let the journey reach it. It
+9. **Block a leg mid-journey**, then let the journey reach it. It
    **halts at the place before** and says why. Nothing re-plans.
-9. **Confirm the firewall.** `map <locality>` still shows only your own
+10. **Confirm the firewall.** `map <locality>` still shows only your own
    claims, with disagreements rendered rather than merged, and nothing
    that appeared only because you asked for a route.
-10. **Confirm the perception walks are unchanged.** Speak in a room and
+11. **Confirm the perception walks are unchanged.** Speak in a room and
     confirm it is heard the same number of rooms away as before, through
     the same doors, with the same attenuation; walk into an unlit place
     and confirm the sight walk behaves as it did. ⚠ Any observable
-    change here is a defect.
-11. **Confirm the pack walks are unchanged.** A colony forages the same
+    change here is a defect — and the drive is the **spot check**, not
+    the proof: the proof is the characterization fixture over every
+    place in the world, because four of these walks are order-dependent
+    and a drive can only sample.
+12. **Confirm the pack walks are unchanged.** A colony forages the same
     radius and reports the same forage; a mine's air reaches the same
     depth and the damps read the same.
-12. **Confirm the terminal still works.** `teleport` at a TPA terminal
+13. **Confirm the terminal still works.** `teleport` at a TPA terminal
     reads the departures board for everyone, and riding a route still
     arrives. No route was planned *through* it.
-13. **Multi-stop cost.** Ask for the cost between several stops and get
+14. **Multi-stop cost.** Ask for the cost between several stops and get
     a figure per pair. Confirm **nothing orders them for you**.
 
 ⚠ Steps needing a fourth corridor cannot run; the realm has three. Any
@@ -609,35 +762,38 @@ understood.
 
 Observable from outside the code.
 
-1. A player reaches a stop two lanes away by typing a destination and
-   **no lane name**.
-2. A player is refused a route to a place they have never been, in a
+1. A player reaches a stop that **needs two lanes** by typing a
+   destination and no lane name — and the lane chosen is deterministic
+   rather than whichever compiled first.
+2. A player can ask **what way there is, on foot, owning nothing**, and
+   get the way, its cost and its assumptions without starting a trip.
+3. A player is refused a route to a place they have never been, in a
    sentence that says *you do not know the way* — and the same request
    succeeds after they walk there.
-3. A plan over old ground **names what it assumes and how the planner
+4. A plan over old ground **names what it assumes and how the planner
    knows it**, and contains nothing the planner could not have earned.
-4. ⭐ **Changing what a traveller knows changes their route** — the same
+5. ⭐ **Changing what a traveller knows changes their route** — the same
    request, on a fuller map, plans differently. If it does not, the map
    is not being read, and the firewall claim is unproven rather than
-   satisfied. (Drive steps 3–4 are this check in the form a player can
+   satisfied. (Drive steps 4–5 are this check in the form a player can
    see it.)
-5. A route that needs a mode change **tells the traveller where the
+6. A route that needs a mode change **tells the traveller where the
    change is**, instead of failing silently.
-6. A search that exhausts its budget says so, in words distinguishable
+7. A search that exhausts its budget says so, in words distinguishable
    from *no way exists*.
-7. A journey whose next leg is blocked **stops at the previous place**
+8. A journey whose next leg is blocked **stops at the previous place**
    and explains; the traveller re-plans by choosing to.
-8. `map` shows exactly what it showed before — the player's own claims,
+9. `map` shows exactly what it showed before — the player's own claims,
    disagreements intact — and asking for routes adds nothing to it.
-9. **Nothing a player can perceive about sound, sight, smell, a
+10. **Nothing a player can perceive about sound, sight, smell, a
    colony's forage or a mine's air changes.**
-10. A traveller asking the cost between several stops gets the costs and
+11. A traveller asking the cost between several stops gets the costs and
    **is not given an order**.
-11. Where two routes are incomparable, the traveller sees both with
+12. Where two routes are incomparable, the traveller sees both with
     their costs.
-12. A departures board still renders for everyone, and no route is
+13. A departures board still renders for everyone, and no route is
     planned through a timetable.
-13. An author can make an opening admit a new mode, or declare what an
+14. An author can make an opening admit a new mode, or declare what an
     NPC knows, **without writing code**.
 
 ---
