@@ -123,9 +123,27 @@ export const brain = class {
     const stock = StuffApi.findByTemplatePath(stockPath);
     if (!stock || !MixinApi.isContainer(stock)) return;
     // The host's counter, and the room it stands in.
-    const shelf =
-      StuffApi.findByTemplatePath(shelfPath) ??
-      (await StuffApi.singletonOrClone(shelfPath));
+    // ⚠⚠⚠ **LIVE ONLY — never `singletonOrClone`**, and this line used
+    // to end `?? (await StuffApi.singletonOrClone(shelfPath))`.
+    //
+    // A brain beat that fires BEFORE the shelf's own room has minted
+    // its `props:` found nothing live and cloned a second counter at
+    // the same template path. From then on every
+    // `findByTemplatePath` of that path THREW `expected singleton,
+    // found N` — including `BuyController`'s. ⭐ The reachability
+    // sweep's drive caught it at the general store, where the count
+    // was **THREE** and `buy torch` answered *"Something went wrong
+    // in BuyController"* for every player on a fresh boot. Two
+    // different brains aimed at that one counter (this one, from the
+    // wharfside weaver, and `trade-farming`'s `farms`) and the roster
+    // tick made the third.
+    //
+    // ⭐ A shelf that is not live is **nothing to carry this beat** —
+    // which is exactly how this function already treats the floor
+    // stock a few lines up. A brain must never mint a fixture that a
+    // room's `props:` owns: the room is the authority on what stands
+    // in it, and a beat is just a thing that happens later.
+    const shelf = StuffApi.findByTemplatePath(shelfPath);
     if (!shelf || !MixinApi.isConsignmentShelf(shelf) || !MixinApi.isContainable(shelf)) return;
 
     // The hand consigns AS its outfit, so the shelf's per-consignor cap

@@ -906,6 +906,58 @@ sets. Arms A and R can be ZERO precisely because a declaration costs an
 author one line; a ceiling over a population nobody can finish is the
 thing that drifts up.
 
+#### ⭐⭐⭐ The fourth ratchet: a good that cannot be NAMED
+
+Found by the drive, after arm G had already fixed the binder half, and it
+is the better half of the lesson.
+
+A counter prints its stock as `shortDescription (price)`, and
+`Stock.resolveBuy` → `Perceptible.hasKeyword` is an exact `includes`
+against the row's `keywords`. So `buy drop spindle` — which arm G's
+greedy fix made bind correctly — came back **"The shelf is bare of 'drop
+spindle'."** The shelf was not bare. The row's keywords are `[spindle,
+drop-spindle, whorl, drop]`, with no spaced form in them.
+
+⚠⚠ **Arm G traded one misleading refusal for another, and the second is
+worse.** The first said something irrelevant about a counter the player
+never mentioned; the second asserts something FALSE about the world. A
+census found **71 stocked goods** across every counter in the realm
+printing a phrase their keywords do not contain — the dyeing pot, the
+supply crate, the bronze breastplate, the crate of limes, nine fishing
+lines. The 34 that DO carry the spaced form (`"dog loaf"`, `"orange
+seed"`, `"mana cell"`) work, and were the ones anybody had tested.
+
+`UNNAMEABLE_GOOD_CEILING = 71`, scoped to rows on a counter's
+`stockLines`: only a good with a printed price has a name a player reads
+and types back. A prop may be called what it likes.
+
+⭐ The general lesson for this family: **two ratchets over one defect
+class can be each other's cover.** Fixing the binder made the phrase
+arrive whole and thereby made the keyword gap reachable for the first
+time — so the second census only became possible because the first was
+already paid for. A gate family gets deeper, not just wider.
+
+#### ⛔ And the SIXTH link the five do not cover: a recipe no verb resolves
+
+The drive's last finding, recorded here because it is a gap in this gate
+and not only in a pack. `trade-apiculture` ships `recipes/crush-comb.yaml`
+and `spin-comb.yaml` — input slots, a tool capability, outputs, a
+residue, written up as a table in `apiculture.md` and called *the epoch
+ladder* — and **no act in the game resolves either.** Every trade
+resolves its own catalogue recipes through its own verb's controller
+(`Bake`, `Mill`, `Dip`, `Cook`, `Forge`, each calling
+`CraftingApi.craft`), and apiculture ships exactly one verb.
+
+⚠ All five gated links pass it: the verb exists (`rob`), it is afforded,
+the data is there, the catalogue is warm, the arg gate matches. And
+`lint:reachability` cannot see it — a recipe is a `recipe` DocumentKind,
+not a `thing` row, so arm R's corpus excludes it by design. **A
+recipe-arm would be the honest extension**, and it wants the same
+faucet/citation discipline: which verb's controller names which
+`recipeRef`, enumerated, with anything unnamed a finding. Not built here;
+→ `apiculture-slate` carries the instance and this paragraph carries the
+shape.
+
 #### The carrier: `unreachable:`, a top-level YAML key
 
 Closed vocabulary — `exemplar` · `parent` · `awaiting:<slate-basename>`,

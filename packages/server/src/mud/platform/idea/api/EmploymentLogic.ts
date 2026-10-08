@@ -837,6 +837,31 @@ function beginCoverImpl(
  * 30 s on eleven rows to notice an HOURLY flip — 22 timer fires a minute
  * to catch up with something that changes at most once per game hour. The
  * flip itself is the event; a poll in front of it was only ever latency.
+ *
+ * ⚠⚠⚠ **A SHIFT DESTINATION IS A PLACE**, and this function used to take
+ * whatever the first operating location happened to be and
+ * `singletonOrClone` it.
+ *
+ * `operatingLocations` is a list of *where a house trades*, and the
+ * general store's first entry is its **COUNTER** — deliberately, because
+ * a house that listed only the room was unfindable as a supplier. So on
+ * every off→on flip this cloned a second general-store counter at the
+ * same template path and then teleported the shopkeeper **inside the
+ * till**, a `Stock` being a Container. From then on every
+ * `findByTemplatePath` of that path threw `expected singleton, found N`,
+ * which is what `BuyController` does on every purchase: the realm's main
+ * shop answered *"Something went wrong"* to `buy torch` on a fresh boot.
+ * The reachability sweep's drive found the count at **three** — this,
+ * plus two consignment brains with the same `?? singletonOrClone`
+ * fallback.
+ *
+ * Two changes, and the first is the one that matters: a station must
+ * resolve to a **Location**, so a fixture in the list is skipped rather
+ * than stood in; and the lookup for an operating location is **live
+ * only**, because a room that is not standing is not a place to send
+ * somebody. ⭐ `offstage` KEEPS its clone and that is correct — an
+ * offstage room is materialized on demand by design
+ * (`lib/employment/Offstage.ts`), and nothing else owns it.
  */
 async function moveForShift(
   business: BusinessStuff,
@@ -845,13 +870,67 @@ async function moveForShift(
   onShift: boolean,
 ): Promise<void> {
   if (!MixinApi.isMobile(actor) || !MixinApi.isContainable(actor)) return;
-  const targetPath = onShift
-    ? (assignment.station ?? business.getOperatingLocations()[0] ?? '')
-    : business.getOffstage();
-  if (!targetPath) return;
+  if (!onShift) {
+    const offstage = business.getOffstage();
+    if (!offstage) return;
+    try {
+      // ⭐ The one legitimate clone here: an offstage room is
+      // materialized on demand and nothing else owns it.
+      const dest = await StuffApi.singletonOrClone(offstage);
+      if (!MixinApi.isContainer(dest)) return;
+      const current = actor.getContainer();
+      if (current && current.stuffId === dest.stuffId) return;
+      actor.teleport(dest as Stuff & Container);
+    } catch (err) {
+      console.error(
+        `EmploymentLogic: shift move offstage to '${offstage}' failed`,
+        err,
+      );
+    }
+    return;
+  }
+
+  /**
+   * On shift: the seat's own station if it names one, else the first
+   * operating location **that is not a FIXTURE**. ⚠ Live only — see the
+   * header.
+   *
+   * ⭐ `!isThing()` is the discriminator rather than `isLocation()`, and
+   * the branch taxonomy is why: what has to be excluded here is a piece
+   * of furniture — the general store's `Stock` counter is a `Thing` that
+   * happens to be a `Container`, so a Container test alone put the
+   * shopkeeper inside the till. A place to stand is a Location (or, in a
+   * test, an Idea standing in for one); it is never Matter. Asking
+   * `isLocation()` would also have been true of the real world and false
+   * of every stand-in, which is a gate that only fails for the people
+   * writing tests.
+   */
+  const candidates = [
+    ...(assignment.station ? [assignment.station] : []),
+    ...business.getOperatingLocations(),
+  ];
+  let targetPath = '';
+  let place: Stuff | null = null;
+  for (const path of candidates) {
+    let found: Stuff | null = null;
+    try {
+      found = StuffApi.findByTemplatePath(path) ?? null;
+    } catch {
+      // ⚠ `findByTemplatePath` THROWS on a duplicated path. A house whose
+      // station is ambiguous is not a reason to abandon the shift move —
+      // try the next candidate, and let the gate that cares about
+      // duplicates be the one that complains.
+      continue;
+    }
+    if (found && !found.isThing() && MixinApi.isContainer(found)) {
+      targetPath = path;
+      place = found;
+      break;
+    }
+  }
+  if (!place) return;
   try {
-    const dest = await StuffApi.singletonOrClone(targetPath);
-    if (!MixinApi.isContainer(dest)) return;
+    const dest = place;
     const current = actor.getContainer();
     if (current && current.stuffId === dest.stuffId) return;
     actor.teleport(dest as Stuff & Container);

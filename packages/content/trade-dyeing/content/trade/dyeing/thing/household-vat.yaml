@@ -7,7 +7,14 @@
 class: /trade/dyeing/thing/DyeVat
 data:
   shortDescription: dyeing pot
-  keywords: [pot, dyeing-pot, household, dyeing]
+  # ⭐ `"dyeing pot"` and `"household vat"` — the SPACED forms, and the
+  # reachability sweep is why. The shelf prints *"dyeing pot (6)"* and
+  # `Stock.resolveBuy` → `hasKeyword` is an exact `includes`, so a
+  # hyphen-only keyword answers *"the shelf is bare"* about a thing
+  # standing right there. ⚠ `"household vat"` is here too because that is
+  # the name the row's own path and half the trade's prose use, and a
+  # player reading either should be able to type it.
+  keywords: [pot, "dyeing pot", dyeing-pot, "household vat", household, dyeing]
   register: indefinite
   longDescription: |
     A blackened iron pot that has plainly cooked as many dinners as it has dyed shirts, and which will now do neither without reminding you of the other.

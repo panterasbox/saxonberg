@@ -152,14 +152,40 @@ false.** Retracted 2026-10-07 by the reachability sweep, which went
 looking for unreachable content systematically and found the opposite
 here.
 
-The chain is whole, end to end, and every link is a shipped row:
+The SUPPLY exists, and every link of it is a shipped row:
 
 > **nucleus** (`/trade/apiculture/thing/nuc`, a general-store line at par
 > 1 for **45 coin** — `general-store/counter.yaml:139` and `:396`, the
 > dearest thing on the shelf under the musket) → **hive**
-> (`/trade/apiculture/thing/hive`, par 2 at 12) → `rob` → **comb** →
-> `crush-comb` (whose `outputResidue` IS the cake) → **beeswax-cake** →
-> `melt-wax` → the chandler's **dip-pot** → `dip`.
+> (`/trade/apiculture/thing/hive`, par 2 at 12) → `rob` → **comb**.
+
+⚠⚠ **And then it stops, for a different reason than this slate gave.**
+The reachability sweep's drive typed `crush` and got *"I don't
+understand."* `crush` is a KEYWORD on `recipes/crush-comb.yaml`, not a
+verb — and every trade in the game resolves its own catalogue recipes
+through its OWN verb's controller (`BakeController`, `MillController`,
+`DipController`, `ForgeController`, each calling `CraftingApi.craft`).
+Apiculture ships exactly one verb, and `apiculture.md` says so in terms:
+*"`rob` is the trade's ONE verb."* `make` is not the answer either — it
+dispatches a recipe SCRIPT, which is the same wall AC 1 hits with
+`make leather-jerkin`.
+
+⭐ So `crush-comb` and `spin-comb` — two authored recipes with input
+slots, a tool capability, a portion, an output and a residue, written up
+as a TABLE in `apiculture.md § What comes out is comb` and called *the
+epoch ladder* — **are resolved by nothing.** The far end is reachable:
+`melt-wax` and `dip` both work, which is the carcass chain's own fix
+(`DipPot.ts`). It is the comb→honey rung in the middle that was never
+built. → **`apiculture-slate`**, because whether crushing is a verb, a
+`rob` subcommand, or the second rung of an epoch ladder is a question
+about what the trade teaches, and the verb-collision ladder's first rung
+is *unify behind an interface*.
+
+⚠ This correction is itself the lesson repeating. The retraction above
+was first written claiming the chain was whole END TO END — because
+the rows were all there and nobody typed the verb. **Rows being present
+is not a chain being walkable**, which is the entire thesis of the sweep
+that found it, applied to the sweep's own prose.
 
 ⚠⚠ **How the error was made, and it is the instructive part.** The
 original search was for `colony|swarm` and never for **`nuc`**. The
@@ -176,12 +202,15 @@ asserted it, so the suite was enforcing the mistake nightly and this
 slate inherited it from the test rather than the other way round. The
 step is rewritten.
 
-⭐ What was genuinely missing — and the sweep fixed it — was the
-**reachability of the tail, not the supply of the wax**: the apiculture
-drive stopped at `rob`, so nothing had ever walked comb → `crush-comb` →
-cake → `melt-wax` → `dip`. That tail is a drive checkpoint now. And the
-claim *one recipe, two fats* remains unit-proven in
-`CraftingLogic.dipped.test.ts` through the real resolve.
+⭐ What the sweep DID fix is the reachability of the far end: the
+apiculture drive stopped at `rob` and nothing had ever walked the tail at
+all, so the missing crush act had never been noticed. The tail is a drive
+checkpoint now — asserting that `melt` and `dip` are understood at the
+pot, and asserting as a POSITIVE that `crush` is not a word the game
+knows, so the day apiculture ships the act that checkpoint fails and
+tells whoever shipped it to come and finish the chain. The claim *one
+recipe, two fats* remains unit-proven in `CraftingLogic.dipped.test.ts`
+through the real resolve.
 
 ⭐⭐ **The lesson worth keeping from the whole episode** is not about bees.
 It is that *a premise stated once gets cited* — this one travelled from a

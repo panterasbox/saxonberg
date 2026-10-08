@@ -525,7 +525,27 @@ suite('1–3. a flock, a book, and one head out of it', () => {
   }, 120_000);
 
   it('⭐ 2. the book names a flock and a tally', async () => {
-    const said = await read(k, 'look flock book');
+    // ⚠⚠ `here:i:flockbook` — SCOPED, and the reachability sweep is why.
+    // That sweep hung two more herdbooks on this shelf (the ox register,
+    // which `draft` is afforded by and which was propped nowhere, and the
+    // hen tally, because the realm had no chicken at all). `look`'s
+    // target is greedy and its matcher scores loosely across three
+    // near-identical records, so `look flock book` now raises a
+    // disambiguation prompt — ⭐ correctly: three registers in one room is
+    // a question the game should ask, and a player answers it.
+    //
+    // ⚠⚠⚠ A wire session cannot. An unanswered foreground prompt lands on
+    // its own frame, `cmd` waits out the whole timeout, and **it poisons
+    // every later command on the session** — twenty-two checkpoints of
+    // this file went down in one cascade before the read was narrowed.
+    // The harness's prompt recovery does not catch this shape either: it
+    // triggers on a *raised a PROMPT* error and what arrives is a plain
+    // timeout.
+    //
+    // ⭐ The lesson, which is the whole drive discipline in one line:
+    // **name what you mean.** A unique keyword costs nothing and a loose
+    // read costs the next person who adds an object to the room.
+    const said = await read(k, 'look here:i:flockbook');
     expect(said).toMatch(/column|number|lambed|ruled/i);
   }, 120_000);
 
@@ -683,7 +703,11 @@ suite('⭐⭐⭐ 6. slaughter — the wave the build turns on', () => {
   }, 180_000);
 
   it('⭐ the book says what became of her, and the tally fell', async () => {
-    const said = await read(k, 'look flock book');
+    // ⚠ Scoped, for the reason checkpoint 2 gives at length: three
+    // herdbooks hang on that shelf since the reachability sweep, and a
+    // loose `look flock book` raises a disambiguation prompt a wire
+    // session cannot answer.
+    const said = await read(k, 'look here:i:flockbook');
     expect(said.length).toBeGreaterThan(20);
   }, 120_000);
 });
@@ -1154,10 +1178,20 @@ suite('⭐⭐⭐ 14–16. the candle — one act, and the fat decides', () => {
     // rewrote this step in the same commit — *a premise stated once gets
     // cited.*
     //
-    // ⭐ What WAS genuinely missing is the reachability of the TAIL, not
-    // the supply of the wax: nothing had ever walked comb → `crush-comb`
-    // → cake → `melt-wax` → `dip`. That is a checkpoint on the
-    // apiculture drive now, where the bees are.
+    // ⚠⚠ **But the chain is not whole either, and for a different reason
+    // than the slate gave.** Walking the tail for the first time found
+    // that `crush` is not a VERB — it is a keyword on
+    // `recipes/crush-comb.yaml`, and every trade resolves its own
+    // catalogue recipes through its own verb's controller. Apiculture
+    // ships exactly one verb (`rob`). So the comb→honey rung was never
+    // built, and `crush-comb`/`spin-comb` are resolved by nothing. →
+    // `apiculture-slate`. The FAR end works, which is this file's
+    // business: `melt-wax` and `dip` both run, over a pot the carcass
+    // chain had to confer the verb for.
+    //
+    // ⭐ Two corrections in one place, then: the supply was never
+    // missing, and the chain was never whole. Rows being present is not
+    // a chain being walkable.
     //
     // ⭐⭐ The two-fats CLAIM stays unit-proven in
     // `CraftingLogic.dipped.test.ts` — *a pot of WAX dips a candle made
@@ -1505,7 +1539,8 @@ suite('⚠ regressions — nothing a player could do before has stopped', () => 
     k = await Session.open(handle, { startLocation: YARD, wizard: true });
     await ensureDaylight(k);
     await k.drainProse();
-    const book = await read(k, 'look flock book');
+    // ⚠ Scoped — the third of three in this file. See checkpoint 2.
+    const book = await read(k, 'look here:i:flockbook');
     expect(book).toMatch(/column|number|lambed|ruled|eleven|11|nine|10/i);
   }, 180_000);
 

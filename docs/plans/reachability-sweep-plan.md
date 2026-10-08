@@ -1526,6 +1526,164 @@ count and what each failure was on the way there.
 
 **Commit.** `drive(reachability): 23 checkpoints — <what driving found>`.
 
+### ✅ W5 DONE — the drive found a **kernel defect that broke the realm's main shop**
+
+Seven runs. 22/22 on `reachability.dirty.wire.test.ts` and 21/21 on the
+apiculture file with its appended tail, both on a fresh DB.
+
+#### ⛔⛔⛔ What it found, and nothing else could have
+
+**`buy` was broken for EVERY good at the general store.** Every purchase
+answered *"Something went wrong in BuyController:
+`StuffApi.findByTemplatePath('/world/terminus/general-store/counter')`:
+expected singleton, found **3**."* On a fresh boot. For every player.
+
+This is D15's bug — and the plan had it at the DISTRIBUTOR's counter with
+two suspects and "the boot log decides". The log decided: it is the
+general store too, the count is three, and there are **three different
+cloners** for that one path:
+
+1. `trade-shopkeeping/src/behavior/consigns.ts` — `findByTemplatePath(shelf)
+   ?? singletonOrClone(shelf)`. A beat that fires before the room has
+   minted its `props:` finds nothing live and clones a second counter.
+   The wharfside weaver's `consigns` config points at this counter.
+2. `trade-farming/src/behavior/farms.ts` — the identical `??` fallback,
+   found by grepping for the shape rather than the file.
+3. ⭐⭐ `EmploymentLogic.moveForShift` — and this one is worse than a
+   duplicate. It took `business.getOperatingLocations()[0]`, which for
+   the general store is **the COUNTER** (deliberately: a house that
+   listed only the room was unfindable as a supplier),
+   `singletonOrClone`d it, and **teleported the shopkeeper inside the
+   till**, a `Stock` being a `Container`.
+
+⭐ The fixes. The two brains drop the fallback: *a shelf that is not live
+is nothing to carry this beat*, which is exactly how `consigns` already
+treats the floor stock three lines above it — **a brain must never mint a
+fixture a room's `props:` owns.** `moveForShift` splits its two cases
+(offstage keeps its clone, which is correct and documented — an offstage
+room is materialized on demand), and a station must now resolve LIVE and
+**not be a Thing**. ⚠ `!isThing()` rather than `isLocation()`, and the
+branch taxonomy is the reason: what has to be excluded is furniture, and
+asking `isLocation()` would be true of the real world and false of every
+test stand-in — a gate that only fails for the people writing tests.
+`EmploymentLogic.shiftMove.test.ts` gained the regression, through the
+real roster tick: the worker stands in the room, and
+`findByTemplatePath` of the counter still resolves to one thing.
+
+⚠⚠ **And the counter duplication was ALSO killing the keeper's stocking
+beat** — its `stocks` brain reads the same path — so the two `sold-out`
+answers the drive got were a consequence, not a second bug.
+
+#### ⭐⭐⭐ D28 — the NAMING ratchet: 71 goods print a name they cannot answer to
+
+`buy drop spindle` bound correctly after W1 and came back *"The shelf is
+bare of 'drop spindle'."* The shelf was not bare. The row's keywords are
+`[spindle, drop-spindle, whorl, drop]` — **no spaced form** — and
+`Stock.resolveBuy` → `hasKeyword` is an exact `includes`.
+
+⭐ So W1 traded one misleading refusal for another, and **the second is
+worse**: the first said something irrelevant about a counter, the second
+asserts something FALSE about the world. A census found **71 stocked
+goods across every counter in the realm** whose printed
+`shortDescription` is a phrase their keywords do not contain — the dyeing
+pot, the supply crate, the bronze breastplate, the canvas backpack, the
+crate of limes, nine fishing lines. The 34 that DO carry the spaced form
+(`"dog loaf"`, `"orange seed"`, `"mana cell"`) are the ones the
+requirements named, and those work.
+
+A fourth ratchet, `UNNAMEABLE_GOOD_CEILING = 71`, scoped to rows on a
+counter's `stockLines` — only a good with a printed price has a name a
+player reads and types; a prop may be called what it likes. The two this
+build put on a shelf itself are fixed (the spindle and the vat), because
+finishing your own work is not scope creep.
+
+#### ⛔⛔ And the apiculture chain does NOT close — the crush rung was never built
+
+W4's retraction said the beeswax chain was whole end to end. **That was
+wrong, and the drive is what caught it.** Typing `crush` gets *"I don't
+understand."* `crush` is a KEYWORD on `recipes/crush-comb.yaml`, and
+every trade in the game resolves its own catalogue recipes through its
+OWN verb's controller — `Bake`, `Mill`, `Dip`, `Cook`, `Forge`, each
+calling `CraftingApi.craft`. Apiculture ships exactly one verb and
+`apiculture.md` says so: *"`rob` is the trade's ONE verb."* `make` is no
+fallback — it dispatches a recipe SCRIPT, the same wall AC 1 hits with
+`make leather-jerkin`.
+
+So `crush-comb` and `spin-comb` — two authored recipes with slots, a tool
+capability, outputs and a residue, written up as a table and called *the
+epoch ladder* — are **resolved by nothing.** ⭐ A sixth reachability link
+wearing a familiar shape: not a verb nothing confers, but a RECIPE no
+verb resolves. All five gated links pass it, and `lint:reachability`
+cannot see it either (a recipe is a `recipe` DocumentKind, not a `thing`
+row).
+
+⚠ **This build does not ship a `crush` verb**, and the reason is the
+collision ladder: a second verb for a trade is a laddered decision, the
+first rung is *unify behind an interface*, and whether crushing is a
+verb, a `rob` subcommand, or one verb whose TOOL selects the recipe is a
+question about what the trade teaches. The third shape looks right on the
+doc's own words (*"nothing in the code branches on the tool"*) and is one
+view and one controller. → `apiculture-slate`, with all three shapes
+written out. The drive asserts as a POSITIVE that `crush` is unknown, so
+it FAILS the day the act lands and asks for the real walk in its place.
+
+⚠⚠ **The correction is the sweep's own thesis turned on its own prose:**
+the rows were all present, so the chain read as whole, and nobody had
+typed the verb. *Rows being present is not a chain being walkable.* The
+butchery slate, the carcass test comment and the apiculture slate all
+say the accurate thing now.
+
+#### What the drive taught about drives
+
+- **`validator-failed` is NOT a dead verb.** `dismount` came back
+  `{validator: 'verb', detail: "you aren't mounted"}` — heard, bound and
+  gated, which is *afford statically, decline diegetically* working. Only
+  `command-rejected` means nothing can hear the word. The file's
+  `expectUnderstood` draws that line and says why.
+- **A verb unknown in the WRONG ROOM is the doctrine working.** `bake`
+  answered `unknown-verb` at the hearthworks cookhouse (an oven, no dough
+  trough) and `mill` at the wharfside mill (which is a TEXTILE mill).
+  Both correct; the drive was standing in the wrong place. *The
+  instrument affords the verb* means a drive has to go where the
+  instrument is.
+- **`feed` is the COMPOST verb**, conferred by `CultivableMixin`. The
+  requirements' English ("feed the canary") is not the game's vocabulary
+  — the acts are `offer <food> to <animal>` and putting food in a
+  `Feeder` for the `feeds` brain to find.
+- ⚠⚠ **An unanswered prompt poisons the whole session**, and this file
+  learned it TWICE, at a cost of 13 checkpoints and then 4. A bare noun
+  target can raise a disambiguation prompt; `me:i:watch` cannot. Every
+  object target is scoped now and every state read is a QUERY rather than
+  prose.
+- **Three apiculture checkpoints failed on a second run and passed on a
+  fresh DB** — the file's own `.dirty.` reason says it cannot run twice.
+  Verified by dropping the DB rather than assumed.
+- ⚠⚠ **And the drive caught a regression THIS BUILD caused**, which is
+  the collision question arriving as a wedged test instead of as a
+  paragraph. W3 hung the ox book and the hen book in the farmstead yard
+  beside the shipped flock book, and all three carried `book` and
+  `register` — and the hen book carried **`flock`**, because a flock of
+  hens is perfectly good English. So `look flock book` matched two
+  things, raised a disambiguation prompt, and wedged the carcass-chain
+  drive's session: **22 of its checkpoints failed to one cascade.**
+  Narrowed to `[henbook, "hen book", hens, chickens, poultry]` and
+  `[oxbook, "ox book", oxen, team]`, with the reason in both rows.
+
+  ⭐ Stated honestly: in PLAY this was never a defect. A disambiguation
+  prompt is a designed feature — the game asks which one and the player
+  answers. What it breaks is a test, which cannot answer. ⚠ But the
+  content polish is real either way: a hen book should not answer to
+  *flock* while the sheep register is hanging next to it, and *"which
+  existing objects does this touch, and who already lives there?"* is the
+  question the requirements phase asks for exactly this.
+
+  ⭐ A gate is tempting and is NOT built: *two props in one room sharing a
+  keyword* is derivable from the rows, but it would flag a designed
+  behaviour, and the realm is full of legitimate shared keywords (every
+  room with two chairs). The honest finding is the test hazard, and it
+  belongs with the drive discipline above.
+
+
 Then: `pnpm test` once; push; open the MR against `master`.
 
 ---
@@ -1710,9 +1868,56 @@ Read first, in this order:
 
 ## Drive record
 
-*(appended at build time, not at plan time)* — the output of
-`reachability.dirty.wire.test.ts` and the apiculture file's appended
-tail against the running game on `WIRE_PORT=2014`: the count, each
-failure met on the way to green and what it was, and the
-`lint:reachability --list` output naming `lock`, `unlock` and `fly`
-with their reasons.
+Run on `WIRE_PORT=2014`, each on a **freshly dropped DB** (these files are
+`.dirty.` and say so):
+
+```
+tests/reachability.dirty.wire.test.ts       22 passed (22)
+tests/apiculture.dirty.wire.test.ts         21 passed (21)   [+ the step-23 tail]
+tests/carcass-chain.dirty.wire.test.ts      32 passed | 2 skipped (34)
+```
+
+`lint:reachability` on the same tree:
+
+```
+check-reachability: ok — 301 view(s) (0 unconferred, ceiling 0);
+  670 thing row(s) (0 unreached, ceiling 0);
+  6 phrase-shape view(s), ceiling 6;
+  106 article-shape arg(s), ceiling 106;
+  71 unnameable good(s), ceiling 71.
+```
+
+⚠ `lock`, `unlock` and `fly` are named by `--list` as
+`declared awaiting:base-class-narrowing-slate`, and drive step 8 asserts
+as a POSITIVE that all three still answer *"I don't understand"* — an
+absence nobody records reads as somebody's oversight.
+
+### The ledger of runs — and what each one bought
+
+| run | result | what it found |
+|---|---|---|
+| 1 | 9/22 | ⛔⛔⛔ **`buy` broken for every good at the general store** — `expected singleton, found 3` out of `BuyController`, on a fresh boot. Three different cloners of one counter path. |
+| 2 | 9/22 | A wedged session: `look watch` raised a disambiguation prompt (`watch` is also a verb), and the unanswered prompt poisoned **13** later checkpoints. Also: `subdivide` takes a NAME, not a path. |
+| 3 | 19/22 | The counter fix cleared every buy. `feed` is the COMPOST verb; `bake` and `mill` were being typed in rooms without their instruments. `buy drop spindle` → *"the shelf is bare"*, falsely. |
+| 4 | 18/22 | `look hopper` wedged the session — the same lesson, a second time, 4 checkpoints. |
+| 5 | — | A shadowed `const` broke the file's transform. |
+| 6 | 21/22 | An assertion of mine: the vat PRINTS as *"dyeing pot"*. |
+| 7 | **22/22** | — |
+| 8 | **22/22** | After the herdbook work: two farmstead reads were light-dependent, and one was **vacuous** — it matched the FLOCK book's name while claiming to prove the ox book's. Both are queries by the row's own name now. |
+
+⭐ Three of the eight runs went on the drive's own instrument rather than
+on the game. The two that did not — runs 1 and 3 — between them found a
+kernel defect, two brain defects, a roster-tick defect that put the
+shopkeeper inside the till, and a 71-row content census. **That ratio is
+the argument for driving:** the suite was green through every one of
+them.
+
+⚠⚠ And the carcass-chain file had to be run four times before it was
+green, for a reason that is this build's doing: W3 hung two more
+herdbooks on the farmstead shelf, and three of that file's reads said
+`look flock book`. `look`'s matcher scores loosely across near-identical
+records, so the read raised a prompt and 22 of its checkpoints went down
+in one cascade. ⭐ Narrowing the keywords did not fix it and renaming the
+display names did not fix it — **measured, with the props removed as the
+counterfactual.** The prompt is correct behaviour; the loose read was
+the defect, and all three are scoped to `here:i:flockbook` now.

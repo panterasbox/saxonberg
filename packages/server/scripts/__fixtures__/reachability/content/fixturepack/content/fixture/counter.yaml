@@ -1,0 +1,11 @@
+# A counter, so the naming check has stock lines to read.
+class: /fixture/thing/Counter
+data:
+  shortDescription: fixture counter
+  props: []
+  stockLines:
+    - { itemTemplatePath: /fixture/thing/unnameable, par: 1 }
+    - { itemTemplatePath: /fixture/thing/nameable, par: 1 }
+  prices:
+    /fixture/thing/unnameable: 1
+    /fixture/thing/nameable: 1

@@ -35,8 +35,32 @@
 # not a dial, it is what the implement requires.
 class: /trade/ranching/thing/Herdbook
 data:
-  shortDescription: ox book
-  keywords: [oxbook, "ox book", book, register, oxen, team]
+  # ⭐ **"ox register", not "ox book"** — a farmer keeps a flock BOOK, an ox
+  # REGISTER and a hen TALLY, because they are three different kinds of
+  # record and he never confused them either. The keywords keep
+  # `"ox book"` so anybody who types that is still understood.
+  #
+  # ⚠⚠ The rename is better WRITING and it did **not** fix what it was
+  # first reached for. Three herdbooks hang on this shelf now, and
+  # `look flock book` raises a disambiguation prompt whichever way they
+  # are named: `look`'s target is greedy and its matcher scores loosely
+  # across three near-identical records, so narrowing keywords and
+  # renaming display names both left the prompt exactly where it was.
+  # Measured, twice, with the props removed as the counterfactual.
+  #
+  # ⭐ And the prompt is CORRECT. Three similar records in one room is a
+  # question the game is right to ask, and a player answers it. What it
+  # broke was a TEST — the carcass-chain drive's `look flock book` is a
+  # loose read, an unanswered foreground prompt poisons a wire session,
+  # and twenty-two of its checkpoints went down in one cascade. The fix
+  # is in that drive's read, not in this yard. ⚠ The honest summary: the
+  # content is right, the engine is right, and the instrument needed to
+  # name what it meant.
+  shortDescription: ox register
+  # ⚠ No bare `book` or `register` — the flock book in this same yard
+  # claims both, and three herdbooks on one shelf is a disambiguation
+  # prompt waiting to wedge somebody's session. See the hen book's note.
+  keywords: [oxbook, "ox register", "ox book", oxen, team]
   register: definite
   longDescription: >-
     A single stiff page sewn into a board cover, hanging by the harness

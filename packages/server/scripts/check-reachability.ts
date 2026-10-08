@@ -689,6 +689,66 @@ export function collectFaucets(
   return { named, stocks };
 }
 
+
+/**
+ * ⭐⭐⭐ The NAMING check — **a good you cannot say the name of is a good you
+ * cannot buy.**
+ *
+ * A counter prints its stock as `shortDescription (price)`, and
+ * `Stock.resolveBuy` → `Perceptible.hasKeyword` is an exact `includes`
+ * against the row's `keywords`. So a good whose printed name is a PHRASE
+ * and whose keywords hold no matching phrase answers *"the shelf is bare
+ * of X"* — about a thing standing right there, to a player who typed the
+ * name off the shelf.
+ *
+ * ⚠⚠ **This only became visible when `buy.thing` went greedy**, and that
+ * is the honest history. Before, the binder cut `buy drop spindle` to
+ * `thing = "drop"` and the player got a misleading refusal about a
+ * counter. After, the phrase arrives whole — and meets a keyword list
+ * with only `drop-spindle` in it. One misleading refusal replaced
+ * another, and the second is worse because it asserts something false
+ * about the world.
+ *
+ * ⭐ Thirty-four of the store's goods DO carry the spaced form (the dog
+ * loaf's `"dog loaf"`, the seed packets' `"orange seed"`, the cell's
+ * `"mana cell"`) — those are the ones the requirements named and they
+ * work. The rest print a phrase and answer to single words.
+ *
+ * Scope is deliberately narrow: only rows on a counter's `stockLines`,
+ * because only those have a printed name a player reads and types. A prop
+ * nobody buys can be called what it likes.
+ */
+export function unnameableGoodsIn(
+  rows: ReadonlyMap<string, TemplateRow>,
+  idx: InheritanceIndex,
+): Array<{ path: string; name: string }> {
+  const stocked = new Set<string>();
+  for (const row of rows.values()) {
+    const data = (row.raw.data ?? {}) as Record<string, unknown>;
+    const lines = data.stockLines;
+    if (!Array.isArray(lines)) continue;
+    for (const line of lines as Array<Record<string, unknown>>) {
+      const path = line?.itemTemplatePath;
+      if (typeof path === "string") stocked.add(path);
+    }
+  }
+
+  const out: Array<{ path: string; name: string }> = [];
+  for (const path of [...stocked].sort()) {
+    const eff = effectiveRow(path, idx.rows, idx.rules);
+    if (eff.error) continue;
+    const name = String(eff.data.shortDescription ?? "").trim();
+    if (!name || !name.includes(" ")) continue;
+    const kws = (Array.isArray(eff.data.keywords) ? eff.data.keywords : [])
+      .map((k) => String(k).toLowerCase());
+    const lower = name.toLowerCase();
+    const lastTwo = lower.split(/\s+/).slice(-2).join(" ");
+    if (kws.includes(lower) || kws.includes(lastTwo)) continue;
+    out.push({ path, name });
+  }
+  return out;
+}
+
 /** The reachability verdict for one row. */
 export interface RowVerdict {
   path: string;
@@ -723,6 +783,20 @@ export const PHRASE_SHAPE_CEILING = 6;
  * error, which is the defect, not a style.
  */
 export const ARTICLE_SHAPE_CEILING = 106;
+
+/**
+ * ⭐ The naming ratchet — stocked goods whose printed name is a phrase
+ * they do not answer to. Opened at the figure after this build fixed the
+ * two it put on a shelf itself — 71 across EVERY counter in the realm,
+ * not just the general store's.
+ *
+ * ⚠ Lower it, never raise it. A NEW stock line whose good is called one
+ * thing and answers to another is a player being told the shelf is bare
+ * of something they can see, and a shop lying about its own stock is
+ * worse than a verb nobody can say: the verb teaches you it is not there,
+ * and this teaches you something false.
+ */
+export const UNNAMEABLE_GOOD_CEILING = 71;
 
 /**
  * ⭐⭐ **Arm A is a ZERO INVARIANT.** There is no ceiling: every command
@@ -764,6 +838,7 @@ export interface Report {
   rows: RowVerdict[];
   phrase: Array<{ key: string; string: string; object: string }>;
   article: Array<{ key: string; arg: string }>;
+  unnameable: Array<{ path: string; name: string }>;
 }
 
 export function run(
@@ -961,7 +1036,8 @@ export function run(
     });
   }
 
-  return { findings, views, rows, phrase, article };
+  const unnameable = unnameableGoodsIn(idx.rows, idx);
+  return { findings, views, rows, phrase, article, unnameable };
 }
 
 // ──────────────────────────────────────────────────────────────────────
@@ -992,6 +1068,10 @@ function main(): void {
       .sort((x, y) => (x.key + x.arg).localeCompare(y.key + y.arg))) {
       console.info(`  ${a.arg.padEnd(24)} ${a.key}`);
     }
+    console.info("\n── stocked goods that cannot be named ────────────────");
+    for (const g of report.unnameable) {
+      console.info(`  ${JSON.stringify(g.name).padEnd(28)} ${g.path}`);
+    }
     console.info("\n── arm R — thing rows ────────────────────────────────");
     for (const r of report.rows) {
       const how = r.how === null ? "⚠ UNREACHED" : r.how;
@@ -1006,6 +1086,7 @@ function main(): void {
   const undeclared = report.rows.filter((r) => r.how === null).length;
   const phrase = report.phrase.length;
   const article = report.article.length;
+  const unnameable = report.unnameable.length;
 
   const over: string[] = [];
   if (unconferred > UNCONFERRED_CEILING) {
@@ -1020,6 +1101,13 @@ function main(): void {
   }
   if (phrase > PHRASE_SHAPE_CEILING) {
     over.push(`arm G: ${phrase} phrase-shape view(s), ceiling ${PHRASE_SHAPE_CEILING}`);
+  }
+  if (unnameable > UNNAMEABLE_GOOD_CEILING) {
+    over.push(
+      `naming: ${unnameable} stocked good(s) print a multi-word name they ` +
+        `do not answer to, so \`buy <that name>\` says the shelf is bare ` +
+        `of a thing standing right there. Ceiling ${UNNAMEABLE_GOOD_CEILING}`,
+    );
   }
   if (article > ARTICLE_SHAPE_CEILING) {
     over.push(
@@ -1040,6 +1128,11 @@ function main(): void {
   if (phrase < PHRASE_SHAPE_CEILING) {
     slack.push(`arm G is at ${phrase} — lower PHRASE_SHAPE_CEILING to it`);
   }
+  if (unnameable < UNNAMEABLE_GOOD_CEILING) {
+    slack.push(
+      `naming is at ${unnameable} — lower UNNAMEABLE_GOOD_CEILING to it`,
+    );
+  }
   if (article < ARTICLE_SHAPE_CEILING) {
     slack.push(`arm G is at ${article} article shape(s) — lower ARTICLE_SHAPE_CEILING to it`);
   }
@@ -1059,7 +1152,8 @@ function main(): void {
         `${report.rows.length} thing row(s) (${undeclared} unreached, ceiling ` +
         `${UNDECLARED_ROW_CEILING}); ${phrase} phrase-shape view(s), ceiling ` +
         `${PHRASE_SHAPE_CEILING}; ${article} article-shape arg(s), ceiling ` +
-        `${ARTICLE_SHAPE_CEILING}.`,
+        `${ARTICLE_SHAPE_CEILING}; ${unnameable} unnameable good(s), ceiling ` +
+        `${UNNAMEABLE_GOOD_CEILING}.`,
     );
     return;
   }

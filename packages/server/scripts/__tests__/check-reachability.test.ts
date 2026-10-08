@@ -20,6 +20,7 @@ import {
   run,
   phraseShapeOf,
   articleShapesOf,
+  unnameableGoodsIn,
   viewKey,
   isThingPath,
 } from "../check-reachability";
@@ -211,6 +212,28 @@ describe("arm R — the row census", () => {
     );
     expect(f).toHaveLength(1);
     expect(f[0]!.detail).toContain("gone blind");
+  });
+
+  it("⭐ finds a stocked good whose printed name is a phrase it cannot answer to", () => {
+    expect(
+      report.unnameable.map((g) => g.path),
+    ).toContain("/fixture/thing/unnameable");
+  });
+
+  it("does NOT flag a stocked good that carries the spaced form", () => {
+    expect(report.unnameable.map((g) => g.path)).not.toContain(
+      "/fixture/thing/nameable",
+    );
+  });
+
+  it("⚠ ignores a row nobody stocks — a prop may be called what it likes", () => {
+    expect(report.unnameable.map((g) => g.path)).not.toContain(
+      "/fixture/thing/propped",
+    );
+  });
+
+  it("is exported for its own sake", () => {
+    expect(typeof unnameableGoodsIn).toBe("function");
   });
 
   it("recognizes a thing path by its branch segment", () => {

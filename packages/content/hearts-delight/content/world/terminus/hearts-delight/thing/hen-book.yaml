@@ -39,8 +39,23 @@
 # which is the whole of what keeping hens teaches.
 class: /trade/ranching/thing/Herdbook
 data:
-  shortDescription: hen book
-  keywords: [henbook, "hen book", book, register, hens, chickens, flock, poultry]
+  # ⭐ **"hen tally", not "hen book"** — a tally is what this actually is:
+  # six birds and a count of eggs by the week. See the ox register's note
+  # for why the rename is writing rather than a fix, and where the fix
+  # went.
+  shortDescription: hen tally
+  # ⚠⚠ **No `flock`, and no bare `book` or `register`.** Three herdbooks
+  # hang in this yard now — the flock book, the ox book and this — and the
+  # shipped one already claims `flock`, `book`, `register` and `ledger`.
+  # Putting `flock` here (a flock of hens is perfectly good English) made
+  # `look flock book` match TWO things, which raises a disambiguation
+  # prompt, and an unanswered foreground prompt poisons every later
+  # command on the session: it cost the carcass-chain drive twenty-two
+  # checkpoints to a cascade. ⭐ This is the collision question the
+  # requirements phase asks — *which existing objects does this touch, and
+  # who already lives there?* — arriving as a wedged test rather than as a
+  # paragraph.
+  keywords: [hentally, "hen tally", henbook, "hen book", hens, chickens, poultry]
   register: definite
   longDescription: >-
     A half-sheet of paper folded into the back of the ox book's cover,
