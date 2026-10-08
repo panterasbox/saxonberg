@@ -2161,6 +2161,55 @@ question rather than a hole.
 ⭐ Incidental, and the sim being honest without being asked: `get
 cordwood` beside the lit retort answers *"It scalds your hand!"*
 
+### ⚠ Review finding — THE TWO SMOKERS (raised in MR review)
+
+Both changed, and one of them is a **regression this build introduced**.
+
+**The food smoker — changed, and this is W5's principle reaching its
+second consumer.** `smoke-cure` is unchanged as a row, but defect 8's fix
+means `applyEdibleOutput` now folds `fireImpartsFor(maker)` — the
+reachable heat source's fuel materials' `combustionImparts`, weighted by
+each one's share of the bed. So smoke-curing takes the character of the
+wood actually burning under it, with no per-fuel recipe, exactly as the
+malt kiln does. ⚠ Only `peat` authors `combustionImparts` today
+(`smoke: 30`), so smoking over oak imparts nothing yet — applewood or
+hickory is a MATERIAL ROW and no code, which is the shape W5 was for.
+
+**⛔ The bee smoker — changed, and it can no longer be lit.** W1 dropped
+`ReservedMixin` and replaced its `100 %` fuel reserve with
+`maxBurnPowerW: 200` + `fuelCapacityKg: 1`. The principle is right — a
+smoker is a fire and a fire needs fuel, and *"a smoker WANTS to run
+badly"* is the one fire whose purpose is incomplete combustion. But:
+
+- `stoke` is **all-or-nothing** (`fuelRemaining + kg > capacity` →
+  `bed-full`), so a 1 kg bed can only take an item of 1 kg or less;
+- a census of every burnable item row finds **16 that fit, and not one
+  of them is fuel**: an arrow, a spile, a needle case, a drop spindle, a
+  splint, a pick haft, a hunting bow, a fishing rod, a bee frame. The
+  only fuel-shaped item under a kilo is the practicum's tinder bundle at
+  0.04 kg, which is in the magic school and is not a beekeeper's.
+- the smoker is sold at the general store, whose own fuel is the B26
+  sweep's `dry-log` — **4 kg**, four times the bed.
+
+So a beekeeper buys a smoker, and the only way to light it is to burn
+another trade's tools. ⚠ Before this build it arrived at 100 % and
+worked out of the box, so this is a regression and not a pre-existing
+hole — B26 swept ROOMS for fuel in reach and never asked the question of
+a CARRIED fire.
+
+⭐ Nor does clause (h) catch it: the row declares both a power and a
+capacity, so it is well-formed. It is dead because its capacity is
+smaller than the smallest fuel in the world — a *calibration* mismatch
+between a vessel and the supply, which no per-row gate can see.
+
+**The fix is one content row**: a small, cheap, explicitly-fuel item
+(dry grass, kindling, a burlap scrap — real smoker fuel) of ~0.3 kg,
+stocked where smokers are sold. ⚠ Left for the owning trade rather than
+done here: `trade-apiculture` is master's, the item is a *supply*
+decision (what a beekeeper's fuel IS), and ⛔ a cross-cutting supply
+question is not a trade build's to settle unilaterally — but the
+regression is this build's, so it should not merge unflagged.
+
 **D6 — ⛔⛔ THE BINDER IS TYPE-DIRECTED, so a bare word after a verb can
 never be a value.** D3's "the value is positional now" was wrong, and two
 further runs proved it: an unresolved selector is still a *structural*
