@@ -5,8 +5,10 @@
 > reaches the industrial epoch without it.
 > **Left:** the borehole as a **point, not a place** · the derrick and the
 > string · the seeded deep field and the **dry hole** · the survey as the
-> game (instruments → a model → a bet) · the lift (a pump, and ⭐ a pump
-> needs a rubber gasket) · the fractions and their consumers · ⭐⭐ **the
+> game (instruments → a model → a bet) · the lift (a pump — ⚠⚠ whose
+> gasket is **LEATHER**, not rubber, so this slate is **not** gated on
+> rubber; corrected 2026-10-08, and the pump belongs to the **mine fluid
+> pass** anyway) · the fractions and their consumers · ⭐⭐ **the
 > GAS well** (pressure not lift; `bulk.md`'s inert `sealed` rung as the
 > whole economy; the gasometer).
 > ✅ **The cuts rung is BUILT** — refining is rows now
@@ -145,17 +147,26 @@ the oil industry before engines existed, it has a shipped consumer
 
 ## ⭐ The loop that closes
 
-Lifting oil needs a **pump**. A pump needs a **seal**. A seal is
-**rubber** ([rubber-slate](./rubber-slate.md)) — and mining's Left already
-owns *"everything below the water table — shaft/hoist/pump,"* so the pump
-has two waiting customers before oil exists.
+Lifting oil needs a **pump**. A pump needs a **seal**. And mining's Left
+already owns *"everything below the water table — shaft/hoist/pump,"* so
+the pump has two waiting customers before oil exists.
+
+⚠⚠ **CORRECTED 2026-10-08 — a seal is LEATHER before it is rubber.** This
+section read *"a seal is **rubber**"* and built a dependency on it; every
+pre-industrial pump used **leather packing**, and `trade-tanning` ships
+`tanpit`, `tan` and `leatherwork`. ⛔ So **drilling is NOT gated on
+rubber** — tanning is in the supply chain and rubber is the **upgrade**
+(a leather gland weeps and wants repacking; a rubber one does not).
+⚠ A premise stated once got cited: it became a starred section with a
+quotable aphorism before anybody checked it.
 
 Then oil eventually makes rubber **cheaper** (synthetic elastomer, the
-same `Law` with a petroleum feedstock — see
+same law with a petroleum feedstock — see
 [design-lenses § 5](../../design-lenses.md)).
 
-> **Rubber bootstraps the machine that obsoletes rubber's own feedstock.**
-> Nobody has to author that irony; it is just what the chain does.
+> **Rubber improves the machine that eventually cheapens rubber's own
+> feedstock.** The loop still closes; it is a loop of **degree, not of
+> dependency**, and nobody has to author the irony.
 
 ---
 
@@ -184,7 +195,7 @@ which is the one that is also a fuel.
 | | **oil** | **gas** |
 |---|---|---|
 | what moves it | reservoir pressure to the bore, then **you lift it** | pressure alone — **it comes up by itself** |
-| the machine | a **pump** (and a pump needs a rubber seal) | none — the problem is *stopping* it |
+| the machine | a **pump** (whose seal is **leather**; rubber is the upgrade) | none — the problem is *stopping* it |
 | storage | a barrel; an open vessel works | ⭐ **nothing below `sealed`** — no vessel, no product |
 | depletion signal | falling level | **pressure decline only** — you cannot dip a gas well |
 | failure | a spill — messy, recoverable | a blowout; [fire.md](../../subsystems/fire.md) ships the rest |
@@ -713,3 +724,93 @@ the oil and gas failure and brine has no pressure to speak of. The same
 hole, drilled the same way, fails differently depending on what is down
 there — which is what makes the brine rung a *rung* rather than a
 re-skin.
+
+## ⭐⭐⭐ Drilling is EMPLOYING, not collaborative (2026-10-08)
+
+User, having read the walkthrough: *"it sounds like drilling is
+necessarily collaborative, for setting up the drill and then running the
+pump afterwards."* Structurally true, and the framing matters enormously.
+
+Every other RGO is one person converting **their own time**: one axe, one
+rod, one hoe, one hand in the hive. Drilling needs a derrick raised, a
+beam worked continuously and a cut/bail cycle running for weeks **before
+anybody knows anything.**
+
+⛔ But modelled as **collaboration** that is dead content — gated on how
+many players are online simultaneously, which on a small server means
+nobody ever drills. (The same hazard the inquiry slate names as its risk
+2.) So:
+
+> ⭐⭐⭐ **Drilling is not collaborative, it is EMPLOYING — and NPCs satisfy
+> it.** What made oil different was never that you needed friends. It was
+> that you needed a **payroll**.
+
+That is historically exact *and* it is the capital shape this slate already
+names: *"the whole cost is paid before you know anything"* — **the cost IS
+the payroll.** It rides shipped machinery entirely: positions, shifts,
+wages, `apply`, `clock on/off`, and the CALL (`call: regulars | rota`,
+`callFor` over capability → your regular → the freest → rotation) with the
+roster tick that relocates and covers.
+
+- ⭐ **The first RGO where the act is somebody else's.** Every other
+  converts *your* time into goods; drilling converts **money** into goods
+  via **other people's** time. A genuinely new economic shape, and what
+  makes drilling the right **capstone** to the roster rather than merely
+  its last entry.
+- ⭐⭐ **It mirrors foraging exactly.** Foraging: no capital, your own time,
+  alone. Drilling: all capital, other people's time, a crew. **The two ends
+  of the RGO ladder are the two ends of the labour axis** — which
+  retroactively justifies designing the pair together.
+- ⭐ **It gives the firm a reason to exist.** A partnership to spread the
+  risk of a dry hole is why oil produced corporate forms, and Business
+  Ideas + corpos ship.
+
+## ⭐⭐ The pump — its own history, and three corrections
+
+The pump was under-treated above and it is its own object (user). The
+ladder: shadoof and screw → bucket chain and noria → the **suction pump**.
+
+> ⭐⭐⭐ **A suction pump cannot lift water more than ~10 m.** It works by
+> atmospheric pressure pushing water into a vacuum, and a 10.3 m water
+> column is one atmosphere. Miners knew it empirically for centuries and it
+> was a **hard ceiling on mine depth.**
+
+That ceiling is why Torricelli and Pascal went after the vacuum in the
+1640s, which ran through Boyle to **Newcomen's 1712 atmospheric engine — a
+steam engine invented specifically to pump mines dry.** The thing that
+could not be pumped produced the science that produced the engine that
+pumped it. The mechanical answer is the **force pump**: piston at the
+bottom, pushing rather than sucking, limited only by the cylinder and the
+power — for oil, sucker rods to a plunger.
+
+⭐⭐ **Candidate: the suction limit is a better first case for the discovery
+loop than vulcanization.** The limit is *felt* before it is understood
+(the pump simply stops working at depth), it is a number you can measure,
+and understanding it unlocks **a different machine** rather than a recipe.
+⚠ Not free: **atmospheric pressure is modelled nowhere** — it needs one
+constant introduced. Cheap, honest physics, but not zero. → [inquiry-slate](./inquiry-slate.md).
+
+### Three corrections
+
+1. ⛔⛔ **The gasket is LEATHER, not rubber, so drilling is NOT gated on
+   rubber.** Leather packing is what every pre-industrial pump used, and
+   `trade-tanning` ships `tanpit`, `tan` and `leatherwork`. ⚠ This slate
+   asserted the rubber dependency in **three** places, all now fixed: the
+   header, the oil-vs-gas table's *machine* row, and § *The loop that
+   closes*, which was built on it end to end. ⭐ The loop survives as a
+   loop of **degree, not dependency** — rubber *improves* the pump (a
+   leather gland weeps and wants repacking) rather than enabling it.
+   **Tanning is in the supply chain; rubber is the upgrade path.**
+2. ⚠⚠ **`pump` the verb is already taken** —
+   `platform/cmd/device/pump.yaml` is **bellows only** (*"Work a furnace's
+   bellows"*, `requires: BurnerMixin`). A fluid pump is therefore a **verb
+   collision**, and first-come is not one of the seven answers. ⭐ Lean:
+   the ladder's **first rung — unify behind an interface.** A bellows and a
+   lift pump are the same object (a piston moving a fluid, and air *is* a
+   fluid), so one verb over two devices is likely the honest answer rather
+   than a second word.
+3. **The pump is not this build's to write.** The mine's dewatering pump
+   and drilling's lift pump are one machine; § *Sequencing* point 3 already
+   says mine-first so drilling inherits a built one, and the mine fluid
+   pass is explicitly **not** blocked behind drilling. **The pump belongs
+   to the mine fluid pass; this build consumes it.**
