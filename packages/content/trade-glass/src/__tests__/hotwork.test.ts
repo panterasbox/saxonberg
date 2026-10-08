@@ -2,7 +2,7 @@
  * The hot-work window — the glow bands a cooling gather reads through, and
  * the loss when it goes cold: converted to cullet (full mass, its iron
  * kept — the glass comes back one step greener, a bad blow costs fuel not
- * material). The dip → shape → crack orchestration and the live window
+ * material). The gob → shape → crack orchestration and the live window
  * feel are the W8 drive's (the controllers go through the binder + the
  * scheduler + the clock, which a controller unit test cannot).
  */

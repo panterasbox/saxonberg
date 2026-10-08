@@ -1,13 +1,14 @@
-verbs: [dip]
-controller: /trade/glass/idea/cmd/glass/DipController
+verbs: [gob]
+controller: /trade/glass/idea/cmd/glass/GobController
 description: "Gather hot glass on a blowpipe from the pot"
 help: |
-  `dip` (or `dip from melt with pipe`) turns a glowing gather of glass up
-  on the end of a blowpipe. Glassmakers call it a gather; `dip` because
-  the egg verb has `gather`. From the moment you lift it the glass is
-  COOLING — you have seconds to `shape` and `crack` it before it sets, or
-  `reheat` it at the glory hole to buy more time. A stiff pot refuses the
-  pipe; fire it again.
+  `gob` (or `gob from melt with pipe`) turns a glowing gather of glass up
+  on the end of a blowpipe. Glassmakers call the quantity a gob and the
+  act a gather; the verb is `gob` because `gather` is the egg verb and
+  `dip` is the chandler's (a dipped candle). From the moment you lift it
+  the glass is COOLING — you have seconds to `shape` and `crack` it before
+  it sets, or `reheat` it at the glory hole to buy more time. A stiff pot
+  refuses the pipe; fire it again.
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresConscious

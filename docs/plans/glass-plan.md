@@ -270,7 +270,8 @@ fact "you have seconds" is one dial.
 
 **D11 — The verb names, after the collision gate.** `gather`, `blow`,
 `score` and `cut` are claimed. The trade's eight views are: hot shop
-**`dip`** (a gather; help says glassmakers call it a gather) ·
+**`gob`** (⚠ shipped as `dip`, renamed at the master merge — see D17;
+a gather, the glassblower's word for the quantity) ·
 **`shape <bottle|cylinder>`** (the blow and the jacks in one durative
 step) · **`reheat`** · **`crack`** (crack off the pipe — a formed hot
 gather becomes its product, anything else becomes cullet); cold shop
@@ -326,7 +327,31 @@ or an Api would be the wrong home for a value-object factory. So the
 ceiling moves 337 → 339 with the audit written at the constant, and the
 ratchet still only falls from there. *(Decided per the build contract,
 lens-free: a convention adjustment with a recorded audit, not a scope
-change.)*
+change.)* ⚠ **At the master merge (2026-10-08) the ceiling rebased to
+341** — master's whiskey builds independently lowered it 342 → 339 by
+marking three value classes `@internal`, so glass's same +2 now sits on
+339. The caller audit is unchanged; the arithmetic is recorded at the
+constant and in `PackLogic.discover.test` (57 packs, three branches
+counting off 53).
+
+**D17 — `dip` → `gob`, forced by the master merge (2026-10-08).** The
+carcass chain's `trade-chandlery` landed on master claiming `dip` for
+dipping a wick into molten fat, and `lint:verb-collisions` caught the
+clash (D11's anticipated "something lands on master first"). *Choice:*
+glass yields; chandlery keeps `dip`. ⭐ **The basis is which definition
+of "dippable" generalises, not who was first.** Chandlery's `dip` is
+*dip-coating* — immerse to accrete a layer whose material is **derived
+from the bath**, the bath chosen by a recipe row (`requires: any`,
+derived `outputMaterial`, authored to be extended: *"a pack that ships a
+third wax authors a row and this file never learns the word"*). That is
+a manufacturing primitive future trades build on (hot-dip galvanising,
+wax sealing, lacquer dipping, confection enrobing, dip-moulding).
+Glass's act is *gather a gob of one molten material on a tool* — narrow,
+glass-specific, and its true word is `gather` (taken by eggs). So glass
+takes the glassblower's word **`gob`**. Renamed across the view
+(`gob.yaml`), `GobController`(+row), the `Blowpipe` affordance, the wire
+drive (ckpt 4), README and this doc. *(Decided with the user, who set
+the generativity criterion; `lint:verb-collisions` re-run green.)*
 
 ---
 

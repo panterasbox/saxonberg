@@ -1,9 +1,9 @@
 /**
  * Blowpipe — the glassmaker's iron: a `Tool` that HOLDS one gather
- * (`ContainerMixin`). It affords the hot shop (`dip`/`shape`/`reheat`/
+ * (`ContainerMixin`). It affords the hot shop (`gob`/`shape`/`reheat`/
  * `crack`) to whoever holds it — the affordance static lands in W5 with
  * those views. The capability `blowpipe` is authored on the row and is
- * what the `dip`/`shape`/`reheat`/`crack` views bind their `pipe` arg to.
+ * what the `gob`/`shape`/`reheat`/`crack` views bind their `pipe` arg to.
  */
 
 import Tool from "@saxonberg/server/mud/platform/thing/Tool";
@@ -11,7 +11,7 @@ import { ContainerMixin } from "@saxonberg/server/mud/lib/spatial/Container";
 import type { CommandContributions } from "@saxonberg/server/mud/api/command";
 
 const HOT_SHOP = [
-  "trade/glass/cmd/glass/dip.yaml",
+  "trade/glass/cmd/glass/gob.yaml",
   "trade/glass/cmd/glass/shape.yaml",
   "trade/glass/cmd/glass/reheat.yaml",
   "trade/glass/cmd/glass/crack.yaml",

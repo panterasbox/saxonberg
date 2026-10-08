@@ -8,7 +8,7 @@
  * `Bulkable`: the firing path is item-only and clones cold, so making the
  * melt a liquid pool would need a seam the firing path does not have.
  *
- * `dip` draws gathers from it by mass (`takeGather`); a melt that has
+ * `gob` draws gathers from it by mass (`takeGather`); a melt that has
  * stiffened below its working heat refuses the pipe and is simply fired
  * again.
  */

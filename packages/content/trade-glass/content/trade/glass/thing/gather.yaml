@@ -1,8 +1,8 @@
-# A gather — a blob of hot glass on the pipe (glass build D10). `dip` mints
+# A gather — a blob of hot glass on the pipe (glass build D10). `gob` mints
 # it into the blowpipe at the melt's temperature and alloying; it cools by
 # the kernel's own Newton drift from that moment, and the hot-work window
 # is the time before it falls below working heat. The mass and alloying
-# here are nominal — `dip` sets them from the melt it is drawn from.
+# here are nominal — `gob` sets them from the melt it is drawn from.
 class: /trade/glass/thing/Gather
 data:
   keywords: [gather, gob, "hot glass", blob]

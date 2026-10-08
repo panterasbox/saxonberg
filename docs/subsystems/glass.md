@@ -26,7 +26,7 @@ second glasshouse is rows.
    (beer) glass; `remelt-cullet` returns broken glass at 1200 K and full
    mass.
 3. **Work it hot** on a blowpipe through the **hot-work window** — the one
-   new mechanism (see § The hot-work window): `dip` a gather, `shape` it
+   new mechanism (see § The hot-work window): `gob` a gather, `shape` it
    (bottle or cylinder), `reheat` to buy time, `crack` it off. Dawdle and
    the gather cools past working and is lost to cullet.
 4. **Work it cold** at the bench: `scribe` a line, `snap` a scored sheet,

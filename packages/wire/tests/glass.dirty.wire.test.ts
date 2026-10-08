@@ -19,7 +19,7 @@
  *     (clear ware) from dirty (green) — the colour-is-a-grade headline, the
  *     one thing no unit test can show because it is the deposit, the mint
  *     and the Reading meeting in a booted world;
- *   - every new verb REACHES its controller (`fire`, `dip`, `scribe`,
+ *   - every new verb REACHES its controller (`fire`, `gob`, `scribe`,
  *     `glaze` …), refusing an empty/cold/wrong state in its own words
  *     rather than `command-rejected` — the affordance + arg-gate links;
  *   - the glasswork Discipline advances with practice.
@@ -134,9 +134,12 @@ suite('⭐ glass — the glasshouse in the woods', () => {
     expect(out.status === 'declined' || out.status === 'ok').toBe(true);
   }, 60_000);
 
-  it('4. ⭐ `dip` is AFFORDED by the blowpipe and reaches its controller', async () => {
+  it('4. ⭐ `gob` is AFFORDED by the blowpipe and reaches its controller', async () => {
+    // ⚠ The hot-shop gather is `gob`, not `dip`: the chandlery trade (on
+    // master) owns `dip` for dip-coating a wick, the generative definition;
+    // glass's act is a gather, so it takes the glassblower's word `gob`.
     expectOk(await g.cmd('get blowpipe'));
-    const out = await g.cmd('dip');
+    const out = await g.cmd('gob');
     expect(verbUnderstood(out)).toBe(true);
     // No fluid melt in a cold glasshouse → the controller refuses in words
     // (`no-melt` / `melt-cold`), proving the hot-shop verb is wired.
@@ -203,7 +206,7 @@ suite('⭐ glass — the cold bench, in town', () => {
     // two windows from the sunlit yards. A pitch-dark hut would mean the
     // boundary anchors never wired — the one thing only a booted world
     // shows. (The cold-shop AFFORDANCE rides the same `environment` static
-    // as the hot shop's `dip`, proven live in checkpoint 4; the cold-shop
+    // as the hot shop's `gob`, proven live in checkpoint 4; the cold-shop
     // EXECUTION is `coldwork.test`'s, and the views are lint-validated.)
     expect(said).not.toMatch(/pitch dark/i);
     expect(said).toMatch(/wheel|pliers|bench/i);

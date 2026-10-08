@@ -1,9 +1,10 @@
 /**
- * DipController — `dip [from <melt>] [with <pipe>]`: gather hot glass on
- * the blowpipe. (Glassmakers call it a gather; `dip` because `gather` is
- * taken by the egg verb.) Mints a `Gather` into the pipe at the melt's
- * heat and composition, and starts the hot-work watch — from this moment
- * the glass is cooling and the window is open.
+ * GobController — `gob [from <melt>] [with <pipe>]`: gather hot glass on
+ * the blowpipe. (Glassmakers call the quantity a gob and the act a
+ * gather; the verb is `gob` because `gather` is the egg verb and `dip`
+ * is the chandler's.) Mints a `Gather` into the pipe at the melt's heat
+ * and composition, and starts the hot-work watch — from this moment the
+ * glass is cooling and the window is open.
  */
 
 import { ManualBuildController } from "@saxonberg/server/mud/platform/idea/cmd/crafting/ManualBuildController";
@@ -38,7 +39,7 @@ function dial(key: string, fallback: number): number {
   }
 }
 
-interface DipModel extends CommandModel {
+interface GobModel extends CommandModel {
   melt?: MqlOneResult;
   pipe?: MqlManyResult;
 }
@@ -53,8 +54,8 @@ function emptyPipe(bound: MqlManyResult | undefined): (Stuff & Container) | null
   return null;
 }
 
-export default class DipController extends ManualBuildController<DipModel> {
-  async execute(model: DipModel, context: CommandContext): Promise<void> {
+export default class GobController extends ManualBuildController<GobModel> {
+  async execute(model: GobModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
     const melt = model.melt?.stuff ?? null;
 
@@ -112,7 +113,7 @@ export default class DipController extends ManualBuildController<DipModel> {
 
     MessageApi.scene(giver)
       .topic(GLASSWORK_TOPIC)
-      .toSelf(Mml.compose`You dip the pipe into ${Mml.thing(melt)} and turn up a glowing gather. Work it while it is hot.`)
+      .toSelf(Mml.compose`You lower the pipe into ${Mml.thing(melt)} and turn up a glowing gather. Work it while it is hot.`)
       .toPeers(Mml.compose`${Mml.actor(giver)} gathers a blob of hot glass on a blowpipe.`)
       .send();
   }

@@ -1,5 +1,5 @@
 # The blowpipe — the glassmaker's iron. A hollow rod that holds one gather
-# and affords the hot shop (dip/shape/reheat/crack) to whoever carries it.
+# and affords the hot shop (gob/shape/reheat/crack) to whoever carries it.
 # The `blowpipe` capability is what those views bind their `pipe` arg to.
 class: /trade/glass/thing/Blowpipe
 data:

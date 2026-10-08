@@ -63,7 +63,7 @@ export default class Gather extends GatherBase {
   // ⚠ Own-property only — the framework merges the mixin chain's own
   // fieldMeta up the prototype chain (MixinApi.getAllFieldMeta), so this
   // declares only Gather's new field. `authorable` because the row seeds
-  // `form: gather` and `dip` resets it.
+  // `form: gather` and `gob` resets it.
   static fieldMeta: FieldMeta = {
     form: { persistent: true, authorable: true },
   };
