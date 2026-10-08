@@ -484,13 +484,26 @@ projection reads `spec.conditional === true` **or** the named kind
 row's effective `data.conditional === true` (`Template.findByPath(kind)`
 — one read per kinded edge; kinds are few) and stores
 `StoredEdge.conditional`. `lint:location-graph` gains an **error** (not
-a ceiling): a kind row whose `class:` extends `FordExit` — or, generally,
-whose class file overrides `applyTraversal` *and* names `blocked` —
-must declare `conditional: true`; `FordExit`'s own doc says so. ⚠ The
-honest residue, stated: a future conditional exit class whose author
-forgets the row flag plans silently without the caveat until the lint
-is widened to its class. That is a content rule with a gate, which is
-the shape this repo accepts for authored facts.
+a ceiling), and it is phrased **by shape only**: a kind row whose class
+file overrides `applyTraversal` *and* names `blocked` must declare
+`conditional: true`.
+
+⚠⚠ **Deliberately NOT "extends `FordExit`".** An earlier draft named
+that class as the primary test with the by-shape rule as a fallback.
+`check-location-graph.ts` is a **kernel** gate and `FordExit` is the
+**transport pack's** class; a kernel gate enumerating pack classes is
+the coupling this repo refuses everywhere else, and the lane compile
+already demonstrates the alternative by asking for the refresh protocol
+**by shape**. If the by-shape test is sufficient — and it is, because
+that is exactly what a conditional exit does — the class name is
+redundant as well as coupled. ⭐ A tidal causeway is then caught with no
+kernel edit at all, which was the point of putting `conditional` on the
+base `Exit` in the first place.
+
+⚠ The honest residue, stated: a conditional exit class that closes by
+some other means than `blocked` plans without the caveat until the
+shape test is widened. That is a content rule with a gate, which is the
+shape this repo accepts for authored facts.
 
 The lane compile's `refreshCrossing` call goes away with `induce` (W7);
 `applyTraversal` keeps the ford current for every traverse, which is
@@ -608,22 +621,47 @@ budget); if *that* finds a way, the first leg the profile does not
 admit is `breakAt`, and the refusal reads *"the way stops at <node>:
 <dir> needs <media>"*. Otherwise `no-way`.
 
-### D9 · A `walked` claim records `minutes` and `conditional` — earned at the exit, nothing more
+### D9 · A `walked` claim records `conditional` only — a free walk teaches no duration
 
-A map plan has no cost unless the claim carries one. The walker stood
-at the exit: the exit's own `edgeMinutes` and `isConditional()` are
-facts it answers about itself, read by the same structural shape the
-Cartographer already uses for `getDirection`. `recordTraversal` records
-both on `walked` claims; `recordPerceived` records **neither** (a
-glance does not measure a road). `growMap`'s key is unchanged (the two
-fields are attributes, not identity); a later `walked` claim with a
-differing `minutes` bumps rather than appends. The plan's cost then
-reports `unmeasured` legs honestly (*"at least 12 minutes; two legs
-you have only seen"*), and `stale` assumptions cite `channel` +
+⚠⚠ **Revised after the lens pass** (requirements § *A route reports cost
+in the currency that traveller will pay*). An earlier version recorded
+`minutes` too, on the argument that the walker stood at the exit. The
+argument does not survive lens 1: ordinary movement is **instantaneous
+and free** by deliberate design, so a walker who crossed in zero game
+time **did not learn how long the way takes**. `edgeMinutes` is what a
+Journey spends, and recording it from a free walk would write a number
+the world never charged.
+
+So `recordTraversal` records **`conditional`** on `walked` claims — you
+saw that it was a ford — and no duration. `recordPerceived` records
+neither (a glance measures nothing). `growMap`'s key is unchanged (the
+field is an attribute, not identity).
+
+A map plan therefore costs in **legs**, and every leg is `unmeasured`
+for minutes — which is honest and is exactly what a pedestrian is
+answered in anyway (D4a). `stale` assumptions cite `channel` +
 `lastSeen` (*"assumes the ford is passable — you walked it 40 days
 ago"*). ⛔ Nothing in an assumption comes from the index; the unit test
 for `routeOnMap` asserts the assumption text is derivable from the
-claims alone (registry absent).
+claims alone, with the registry absent.
+
+### D4a · A plan quotes cost in the currency the traveller pays
+
+⭐⭐ The lens pass's one code-changing finding. `logistics.md` keeps
+ordinary movement instantaneous and free — *"a player who types `go
+north` eleven times crosses the same ground in zero game time"* — and
+`edgeMinutes` is spent **only** by a Journey. A plan that answers
+*"about forty minutes"* and is then walked for nothing has taught the
+player a figure the world declines to collect, and *distance is
+duration* is the pedagogy this build rests on.
+
+`RoutePlan` therefore carries every axis it measured, and the
+**renderer selects by profile**: a `walk`-profile traveller is answered
+in **legs and what is in the way**; a conveyance profile is answered in
+**minutes**, because a conveyance pays them. No new field — the plan
+already carries cost per axis (D8) — one branch in the `route`
+controller and in `journey`'s readout. ⚠ A pedestrian must never be
+shown a minutes figure; that is a drive failure, not a cosmetic one.
 
 ### D10 · `planRoute` retires outright; both pinning tests move in the same wave (E7)
 
@@ -747,10 +785,26 @@ same refusal as a known name with no claimed path (drive step 4), and
 `by boat` ⇒ `sailed` (a small word table in the controller; the mode
 roster is `LocomotionApi.loadMode`'s to validate). Budget from
 `navigation.attendedSearchBudget`. Renders to self the plan(s): the
-way as directions with leaf names, the cost line, each assumption; a
-`budget` refusal says *"I could not work out a way that far"*; starts
-nothing. No card (a plan is not a Stuff; `map-slate`'s renderer owns
-that).
+way as directions, the cost line **selected by profile** (D4a), each
+assumption; a `budget` refusal says *"I could not work out a way that
+far"*; starts nothing. No card (a plan is not a Stuff; `map-slate`'s
+renderer owns that).
+
+⚠⚠ **Every place in player-facing output is named by what it calls
+itself**, resolved through the registry with the path leaf only as a
+fallback — never a template path and **not the bare leaf** either. This
+verb consumes template paths and durable handles end to end, which is
+precisely the shape that shipped a casualty list printing
+`/world/terminus/...` at a player in the identity build. A path or a
+raw leaf appearing in `route`'s output is a **drive failure**, not a
+cosmetic one.
+
+⭐ **A second form, `route between <a> and <b>`**, answers the cost per
+pair and nothing else — it is the typed reader for `costMatrix`
+(requirements AC11). It offers **no way to ask for an order**, because
+deciding the order is the activity (requirements § *A tour is not
+ours*). Without this form the matrix would ship as declared capability
+with no reader, which is the failure mode this repo keeps paying for.
 
 ### D15 · Scheduled and service legs are refused; the seam is the leg vocabulary, unproduced
 
@@ -947,7 +1001,12 @@ vitest + `pnpm -C packages/server lint:family`, and ends at a commit.
   both naming edges; a `blocked: true` spec projects no edge (test);
   `lint:location-graph` fails on a copy of the ford kind with the flag
   removed (test of the lint, in `scripts/__tests__`); corridors test
-  green with its mirror gone; `lint:unconsumed-seams` sees a reader for
+  green with its mirror gone; ⚠ `check-location-graph`'s
+  `unreachable-from-entrance` count is **re-pinned at 13** after the
+  drop (W2 pinned it before the edge set changed — measured, not
+  assumed: there are **zero** authored `blocked: true` specs in all of
+  content, so the rule ships exercised only by its own fixture and a
+  regression in it would be invisible outside that test); `lint:unconsumed-seams` sees a reader for
   `conditional` (the projection).
 - **Commit:** `feat(location-graph): media, wheelPassable and conditional on the stored edge; blocked drops`
 
@@ -1063,7 +1122,7 @@ vitest + `pnpm -C packages/server lint:family`, and ends at a commit.
 
 | AC | satisfied by | wave |
 |---|---|---|
-| 1 · two lanes, no lane name, deterministic choice | D13: planning by mode over the index; label by sorted key. ⚠ *Two lanes of one mode* exists in no shipped content — proven in a fixture, not the drive (§ Risks) | W7 |
+| 1 · no way named, planned by the conveyance, deterministic label, never a sailed wagon | D13: plan by `travelMode` over the mode graph; label by sorted covering key. ⭐ Requirements restated — *two lanes of one mode* exists nowhere and the criterion no longer asks for it | W7 |
 | 2 · what way there is, on foot, owning nothing | `route` over the map | W8 |
 | 3 · refused where never been; succeeds after walking | map-only name resolution + `walked` claims | W8 (+ W6) |
 | 4 · assumptions from the planner's own evidence | `RouteAssumption.claim` derived from claims; the registry-absent test | W6, W8 |
@@ -1073,7 +1132,8 @@ vitest + `pnpm -C packages/server lint:family`, and ends at a commit.
 | 8 · a blocked leg halts at the previous place; no replan | unchanged `Journey.advance`; drive step 9 | — (pinned by `Journey.test.ts` :242) |
 | 9 · `map` shows exactly what it showed | `MapController` untouched; `growMap` key unchanged; drive step 10 | W8 |
 | 10 · nothing perceivable changes | the W1 golden matched in W3; pack suites in W4 | W1, W3, W4 |
-| 11 · costs between stops, no order | `costMatrix` returns pairs only; the `route` verb does not expose it this build — ⚠ see Risks (a reader for `costMatrix`) | W6 |
+| 11 · costs between stops, typed, no order offered | `costMatrix` + the `route between <a> and <b>` form (D14) — the typed reader, so the criterion is not Api-only | W6, W8 |
+| 12 · cost in the currency the traveller pays | D4a: the plan carries every axis, the renderer selects by profile; a pedestrian is never quoted minutes | W6, W8 |
 | 12 · incomparable routes both shown | the per-axis non-dominated set; the diamond test; `route` renders each | W6, W8 |
 | 13 · the board renders; no route through a timetable | D15; `travel` is not an edge; drive step 13 | W6 |
 | 14 · a new mode / NPC knowledge without code | `media:` on the row (existing) + `knows:` in brain config | W5, W7 |
@@ -1113,25 +1173,19 @@ vitest + `pnpm -C packages/server lint:family`, and ends at a commit.
 
 ## Risks & opens
 
-1. ⚠⚠ **AC1 / drive step 1 cannot run as written, and the premise is
-   softer than the requirements state.** The four lanes have four
-   modes; an induced lane is its mode's whole component from the seed.
-   *"A stop reachable only by changing lanes, same mode"* has no
-   referent in shipped content and, after `media` is on the index, no
-   structural referent at all — same-mode lanes are either one graph or
-   disjoint graphs no plan could join. The plan reads AC1 as *"plan by
-   mode over the whole index, choose the label deterministically"*
-   (D13) and proves the two-lane shape in a fixture with authored-edge
-   lanes. **This should be said back to the user**: if they meant
-   something else by "two lanes", the requirements doc is wrong, not
-   this reading.
-2. ⚠ **AC11 has no player-facing reader in scope.** `costMatrix` ships
-   as an Api read with tests; the `route` verb does not take several
-   stops (that would be the tour verb cargo owns). Drive step 14 can
-   only be run through the Api from the wire harness's eval seam, or
-   `route` grows a `between A, B, C` form. **Decide:** the plan ships
-   the Api only and names the gap; a one-line `route between <a> and
-   <b>` form is cheap if the user wants the drive step typed.
+1. ✅ **AC1 / drive step 1 — RESOLVED in the requirements.** The four
+   lanes have four modes and an induced lane is its mode's whole
+   component, so *"two lanes of the same mode"* had no referent. The
+   criterion now reads *"no way named, planned by the conveyance,
+   deterministic label, never a sailed wagon"* and the drive runs at
+   Wharfside bank, where `spine` and `estuary` both seed. ⚠ Residue:
+   the player-visible gain in **today's** content is smaller than the
+   requirements originally implied — the real wins are `route` on foot
+   (impossible before), the refuse-then-earn pair, determinism, and the
+   mode break being named. That is consistent with this being an infra
+   build and is stated in the requirements' lens 6.
+2. ✅ **AC11 — RESOLVED.** `route between <a> and <b>` (D14) is the
+   typed reader, so the matrix does not ship as an Api-only read.
 3. **Vehicles gain a declared mode** (`travelMode`). Today the lane
    knows and the vehicle does not; this moves a fact to where it is
    true. Three rows change. If the user prefers the vehicle to stay
@@ -1139,14 +1193,18 @@ vitest + `pnpm -C packages/server lint:family`, and ends at a commit.
    at `here` in sorted order — workable but it re-introduces "first in
    some order".
 4. **`conditional` is a row flag on the kind** (D5), gated by a lint
-   that knows `FordExit`. A second conditional class needs the lint
-   widened. Alternative rejected: deriving from the class at projection
-   time (the projection would have to resolve class files).
-5. **The map claim grows two fields** (`minutes`, `conditional`) on
-   `walked` claims only (D9). Argument that it is earned: the walker
-   stood at the exit. If the user judges `edgeMinutes` to be something a
-   walker could *not* know (the walk is instantaneous), the map plan's
-   cost becomes legs only and every leg is `unmeasured`.
+   phrased **by shape** — a kind row whose class overrides
+   `applyTraversal` and names `blocked`. ✅ The earlier draft named
+   `FordExit` in a kernel gate; cut, because a kernel gate must not
+   enumerate pack classes. Residue: a conditional class that closes by
+   some other means needs the shape test widened. Alternative rejected:
+   deriving from the class at projection time (the projection would
+   have to resolve class files).
+5. ✅ **The map claim grows ONE field — RESOLVED by the lens pass.**
+   `minutes` is cut: ordinary movement is free, so a walker who crossed
+   in zero game time learned no duration (D9, D4a). `conditional`
+   stays — you saw the ford. The map plan costs in legs, which is also
+   what a pedestrian is answered in.
 6. **The non-dominated set is a per-axis subset** (D8), not a Pareto
    search. Honest for three corridors; a later build with real
    alternatives may want the full front.
@@ -1173,6 +1231,26 @@ vitest + `pnpm -C packages/server lint:family`, and ends at a commit.
 12. **Order-dependence remains**, by decision. The fixture pins it;
     anyone later "tidying" neighbour order in a modality breaks the
     golden, which is the point.
+
+---
+
+## The lens pass over the planned scope
+
+Re-run after the plan was written, because the plan moved the scope
+enough to be worth a third pass (the requirements' own pass predates
+the grounding). Full entries in
+[routing-requirements.md § Lens pass](../requirements/routing-requirements.md).
+What it changed, for a build agent who should know which decisions came
+from it rather than from the survey:
+
+| finding | lens | lands as |
+|---|---|---|
+| ⭐⭐ a plan must not quote a walker a duration the world will not charge | 1 pedagogy | **D4a** (new), and **D9** revised to drop `minutes` |
+| ⭐ a place is named by what it calls itself, never a path or a bare leaf | 3a immersion | **D14** |
+| the build creates a **guide** vacancy (`knows:` makes knowing the way authorable) | 3b participation | recorded for `vocations.md`; nothing built |
+| ⭐⭐ `conditional` as a cost axis is a **risk** axis — the first fast-uncertain vs slow-sure choice in the game | 4 values | already in **D8**; named rather than added |
+| `published` now severs ways for everybody, not just the owner's doors | 7 governance | recorded; the reverse-edge notification is the only appeal |
+| the demand is thin, and the answer is that this consolidates **ten existing callers** rather than seeking new ones | 6 economy | the build's legitimacy argument, written down |
 
 ---
 

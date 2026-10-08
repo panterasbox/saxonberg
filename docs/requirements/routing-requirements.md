@@ -248,10 +248,13 @@ could own it without five others depending on that pack.
 ⭐ **Does a second instance need code? No.** A new pack with a graph
 question calls the Api. A new edge set is an argument, not a subclass. A
 new admission rule is a declared requirement on an edge compared against
-a declared traveller profile — content, not code. A conditional edge
-already plugs in by shape through the refresh protocol the lane compile
-calls on *any* exit that has one, which is why a seasonal pass or a
-tidal causeway needs no routing change.
+a declared traveller profile — content, not code. ⚠ **Corrected:** an
+earlier draft said a conditional edge *"already plugs in by shape
+through the refresh protocol the lane compile calls"* — which
+contradicts § *Runtime conditions* below, where that live walk is
+retired. A conditional edge plugs in by **declaring itself on its kind
+row**; a tidal causeway needs no routing change because the flag is
+content, not because anything refreshes it at plan time.
 
 ⚠ **The compiles stay with their owners.** Transport keeps compiling its
 lanes and energy keeps compiling its feeders; what they stop owning is
@@ -601,6 +604,35 @@ than a convenience.
 
 ⛔ *How* the isolation is enforced is the plan's, not this doc's.
 
+### ⭐⭐ A route reports cost in the currency that traveller will pay
+
+**The question:** `edgeMinutes` is the cost field, so should a plan
+report minutes?
+
+**The answer: only to a traveller who will be charged them.** Found by
+re-running the lens pass over the planned scope, and it is a lens-1
+defect in everything written above it.
+
+`logistics.md` keeps ordinary movement **instantaneous and free** on
+purpose — *"a player who types `go north` eleven times crosses the same
+ground in **zero game time**"* — and `edgeMinutes` is spent **only** by
+a Journey. So a plan that answers *"about forty minutes"* and is then
+walked for free has told the player something the world declines to
+charge. ⛔ And the pedagogy this build rests on is *distance is
+duration*: teaching that with a figure the world refuses to collect is
+worse than teaching nothing.
+
+So the cost is **per profile**, which costs nothing because the profile
+already exists: a walker is answered in **legs and what is in the way**
+(*eleven ways, three of them through doors*); a conveyance is answered
+in **minutes**, because a conveyance pays them. One plan object, the
+cost labelled by who asked.
+
+⭐ It also settles a related question from the other direction: a
+`walked` claim records **no duration**, because a walk that cost nothing
+taught the walker nothing about how long the way takes. It records that
+the way is **conditional**, because you saw the ford.
+
 ### Several routes, not one answer
 
 **The question:** cost is a parameter — but a hauler cares about minutes
@@ -659,14 +691,25 @@ and a timetable is read rather than solved. ⛔ The one way to betray it
 is leaking the world's plan into the assumption list, which is why that
 decision went the other way.
 
-**3b · Participation.** Thin, honestly. The polity can do little new
-here. The nearest thing is that better intel makes better routes, so
-map-sharing and map-selling acquire a mechanical point they did not
-have — but the market for them is `map-slate`'s and not built. **Recorded
-as a gap.**
+**3b · Participation.** Narrower than the gap an earlier pass recorded.
+Better intel makes better routes, so map-sharing and map-selling acquire
+a mechanical point they did not have — the market is `map-slate`'s and
+unbuilt. ⭐ **And the build creates a vacancy:** declaring what an NPC
+*knows* makes knowledge of the way an authorable, differentiating fact,
+so a **guide** becomes an economically coherent role that was previously
+unexpressible. We are not building it; it belongs on
+[vocations.md](../vocations.md)'s gap list, because the demand test now
+passes for it — somebody needs something they cannot do themselves.
 
 **4 · Values.** The forced choice is *fast versus safe versus cheap*,
-and the design refuses to make it for you. The deferred allowance is
+and the design refuses to make it for you. ⭐⭐ And the plan turned one
+of those three into a real axis without anybody designing it: because a
+conditional edge is projected, *how much of this way depends on
+something that might be shut* is a cost dimension of its own. **It is
+the first time this game lets you choose a fast uncertain way over a
+slow sure one**, and it fell out of the ford flag rather than being
+asked for. Keep it and name it; it is the most interesting thing in the
+build's player surface. The deferred allowance is
 where the real values question sits, and it is deferred precisely
 because *attended* and *unattended* turned out to be the morally
 relevant axis rather than player-and-NPC.
@@ -680,7 +723,15 @@ gating itself is a non-goal here, so the ladder is designed and
 unbuilt.
 
 **6 · Economy.** It consumes authored openings and produces plans and
-costs. ⚠⚠ **The demand is not there yet and this is the lens that says
+costs. ⭐⭐ **And this is the lens that supplies the strongest objection
+to the build, so it is answered rather than deflected.** By this
+project's own demand test, infrastructure ahead of demand is exactly
+what gets refused for a vocation — and the demand here is thin. The
+resolution is that **this is not a new capability seeking consumers; it
+is a consolidation of ten that already exist.** The demand is the
+callers in the tree today. That distinction is what makes the build
+legitimate, and it is written down so the next reader does not have to
+reconstruct it. ⚠⚠ **The demand is not there yet and this is the lens that says
 so**: one distributor, no wholesale purchase, and producer stock arriving
 by a spawn faucet rather than from anywhere. Routing makes goods movement
 *cheaper*, never *possible* — freight is the optimization, not the
@@ -693,20 +744,37 @@ reasoning the rubber slate got caught by.
 entrenchment tier — and that is a second reason it belongs with
 parcel/governance rather than in a routing build.
 
+⚠ **But one existing power gets sharper teeth.** `published` is a
+knowledge fact the router reads, so a parcel owner taking ground offline
+now **severs ways for everybody else** rather than only closing their
+own doors. The location-graph build half-anticipated this and shipped
+the reverse-edge query that tells the authors of every room that lost a
+destination — which is a notification, and the beginning of an appeal.
+There is no criterion and no tier. ⭐ Recorded, not solved: routing did
+not create the power, it made it consequential.
+
 ---
 
 ## The drive
 
 Run in the live game, by hand, before the MR opens.
 
-1. **Plan a trip that needs two lanes.** From the Delight road,
-   `journey to <a stop reachable only by changing lanes, same mode>`.
-   It plans and departs. ⚠ *Today this fails with `via` and without it:*
-   omitting the lane already works when **one** lane spans both ends,
-   but the controller takes the first lane in compile order and answers
-   nothing when no single lane spans the trip. Confirm also that the
-   lane chosen is the **same one on every run** — the current pick is an
-   arbitrary first match.
+1. **Plan by what you are travelling in, not by a named way.** From
+   Wharfside bank — where **two** lanes seed, `spine` (wheeled) and
+   `estuary` (sailed) — take a wagon and `journey to <a place both
+   components reach>`. It plans over the **wheeled** graph because that
+   is what a wagon is, and the way it names is the **same on every
+   run**.
+   ⚠⚠ *Corrected for the third time, and this is why:* the four shipped
+   lanes have four **different** modes (`walk` · `wheeled` · `sailed` ·
+   one authored tram), and an induced lane is its mode's whole component
+   from its seed. **"Two lanes of the same mode" exists nowhere** — not
+   in content and not structurally. Twice this step was restated by
+   reasoning about lanes as an abstraction instead of opening the four
+   rows. What is actually broken is that the lane is picked by *"the
+   first match in compile order"* and the journey's **mode comes from
+   the lane rather than the vehicle** — so `journey … via estuary` in a
+   wagon runs as `sailed` and dies at the first leg.
 2. **Watch the legs run.** The journey advances leg by leg and arrives;
    the trip reads back while in progress.
 3. **Ask without committing.** `route to <the same place>` on foot,
@@ -748,8 +816,12 @@ Run in the live game, by hand, before the MR opens.
 13. **Confirm the terminal still works.** `teleport` at a TPA terminal
     reads the departures board for everyone, and riding a route still
     arrives. No route was planned *through* it.
-14. **Multi-stop cost.** Ask for the cost between several stops and get
-    a figure per pair. Confirm **nothing orders them for you**.
+14. **Multi-stop cost, typed.** `route between <a> and <b>` returns a
+    cost per pair. ⭐ Confirm **nothing orders them for you** — and that
+    the verb offers no way to ask for an order, because deciding one is
+    the activity. (This form exists so the criterion is *typable*: an
+    Api-only read would be declared capability with no reader, which is
+    the failure this repo keeps paying for.)
 
 ⚠ Steps needing a fourth corridor cannot run; the realm has three. Any
 step that silently degrades into *not refused* rather than *succeeded*
@@ -761,10 +833,10 @@ understood.
 ## Acceptance criteria
 
 Observable from outside the code.
-
-1. A player reaches a stop that **needs two lanes** by typing a
-   destination and no lane name — and the lane chosen is deterministic
-   rather than whichever compiled first.
+1. A player reaches a destination by naming **no way at all**, planned
+   by what they are travelling in; the way named back is **the same on
+   every run**; and a wagon is never planned a sailed route. ⚠ Not
+   *"two lanes of one mode"* — no such thing exists; see the drive.
 2. A player can ask **what way there is, on foot, owning nothing**, and
    get the way, its cost and its assumptions without starting a trip.
 3. A player is refused a route to a place they have never been, in a
@@ -787,13 +859,17 @@ Observable from outside the code.
    disagreements intact — and asking for routes adds nothing to it.
 10. **Nothing a player can perceive about sound, sight, smell, a
    colony's forage or a mine's air changes.**
-11. A traveller asking the cost between several stops gets the costs and
-   **is not given an order**.
-12. Where two routes are incomparable, the traveller sees both with
+11. A traveller asking the cost between several stops **gets the costs
+    by typing a verb**, is not given an order, and is offered no way to
+    ask for one.
+12. ⭐ A plan quotes its cost in the currency that traveller will pay —
+    **legs on foot, minutes under a conveyance** — and never quotes a
+    walker a duration the world will not charge.
+13. Where two routes are incomparable, the traveller sees both with
     their costs.
-13. A departures board still renders for everyone, and no route is
+14. A departures board still renders for everyone, and no route is
     planned through a timetable.
-14. An author can make an opening admit a new mode, or declare what an
+15. An author can make an opening admit a new mode, or declare what an
     NPC knows, **without writing code**.
 
 ---
