@@ -468,12 +468,22 @@ describe('the mine’s four labour acts', () => {
     // affordance ORDER decides. Nothing in the repo affords the movement
     // view today; if that changes, `drift` becomes primary — one line.
     expect(rival.args.length).toBe(ours.args.length);
+    // ⚠⚠ Matches a DECLARATION, not any mention of the word — and the
+    // reachability sweep is why. That sweep conferred the movement view
+    // on `DrivableMixin`, this tripwire caught it (which is the whole
+    // point of the tripwire, and eleven thousand other tests did not),
+    // and the fix was to revert the static and leave a long comment in
+    // `Drivable.ts` explaining the collision and what lifts it. ⭐ A
+    // bare-word match then failed on the EXPLANATION, which is the one
+    // thing a tripwire should never forbid: it would make the file
+    // unable to say why it is the way it is. The assertion is about a
+    // `static commandContributions = …` declaration.
     expect(
       readFileSync(
         fileURLToPath(new URL('../../../../../../../server/src/mud/lib/slot/Drivable.ts', import.meta.url)),
         'utf8',
       ),
-    ).not.toMatch(/commandContributions/);
+    ).not.toMatch(/static\s+commandContributions/);
   });
 });
 

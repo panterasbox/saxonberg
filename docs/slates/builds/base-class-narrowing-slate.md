@@ -452,7 +452,7 @@ real objection rather than the plausible one.
   static in the kernel and every pack, and **arm A of
   `lint:reachability` is a zero invariant now**: every view is conferred
   or declares `unreachable:` saying why not.
-  - **Conferred (11):** `walk` → `MobileMixin.self` (the third ground
+  - **Conferred (10):** `walk` → `MobileMixin.self` (the third ground
     pace; `sneak` and `run` beside it always worked) · `dismount` →
     `PosedMixin.self` (the state is the RIDER's — `requiresMounted` reads
     the giver's posture, so you dismount a horse that walked out from
@@ -460,14 +460,25 @@ real objection rather than the plausible one.
     `HasInteractiveMixin.self` · `transfer`/`subdivide` →
     `PersonaMixin.self` (universal, on `title`'s doctrine: *the gate is
     the authority, not the affordance*) · `wind`/`adjust` → the pack's
-    `Watch` class · `drive` → `DrivableMixin` and `flourish` →
-    `BarStation`, the two this list did not know about.
+    `Watch` class · `flourish` → `BarStation`, which this list did not
+    know about.
   - **`swim` conferred** by a new `platform/thing/OpenWater`
     (`SwimmableMixin(Thing)`), one row propped in four estuary and
     wharfside rooms — the Ladder shape, because the enablement walk looks
     in the actor's container and its contents. ⚠ Until then the only
     composition of `Swimmable` or `Flyable` in the repo was an
     integration test that manufactures its own hosts.
+  - ⛔⛔ **`drive` is HELD on a COLLISION**, and it is the one worth
+    reading. The sweep conferred it on `DrivableMixin` — correct on its
+    own reasoning — and the full suite refused it:
+    `trade/mining/cmd/mining/drive.yaml` also claims `drive`, the two
+    views have the same arity so `requires:` cannot separate them, and
+    `trade-mining`'s acts test asserts `Drivable.ts` carries no
+    contributions static for exactly that reason. ⭐ Conferring one side of
+    an undiagnosed collision is ADJUDICATING it, and first-come is not one
+    of the ladder's seven. What lifts it is one line on each side
+    (`verbs: [drift, drive]` there, the static here) by somebody who owns
+    both. → `affordance-verb-slate`.
   - **`lock`/`unlock` still held, per § I9 below**, and `fly` with them —
     but all three now carry `unreachable:
     awaiting:base-class-narrowing-slate` on the view, so the disposition

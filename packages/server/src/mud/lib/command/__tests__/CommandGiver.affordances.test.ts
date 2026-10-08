@@ -140,15 +140,25 @@ describe("the verbs the reachability sweep conferred", () => {
     expect(affordsOn(walker, "unfold")).toBe(true);
   });
 
-  it("⭐ `drive` comes from the drivable vehicle beside you", () => {
+  it("⛔ `drive` is NOT conferred — it is held on a live COLLISION", () => {
+    // ⚠⚠ The sweep conferred this and the full suite refused it.
+    // `trade/mining/cmd/mining/drive.yaml` also claims `drive`, the two
+    // views have the same arity so `requires:` cannot separate them, and
+    // only affordance ORDER would decide which one a miner gets —
+    // `trade-mining`'s acts test asserts `lib/slot/Drivable.ts` carries
+    // no contributions for exactly that reason. ⭐ Conferring one side of
+    // an undiagnosed collision is adjudicating it, and first-come is not
+    // one of the ladder's seven solutions.
     const room = makeStuff(() => new Room());
     const walker = makeStuff(() => new Walker());
-    ContainmentApi.move(walker, room);
-    expect(affordsOn(walker, "drive")).toBe(false);
-
     const cart = makeStuff(() => new Cart());
+    ContainmentApi.move(walker, room);
     ContainmentApi.move(cart, room);
-    expect(affordsOn(walker, "drive")).toBe(true);
+    expect(
+      affordsOn(walker, "drive"),
+      "a drivable vehicle beside you must NOT light up `drive` until the " +
+        "collision with trade-mining's drift is adjudicated",
+    ).toBe(false);
   });
 
   it("⭐ `prompt` is HasInteractiveMixin's — a prompt is a CONNECTION's", () => {

@@ -63,30 +63,41 @@ export function DrivableMixin<TBase extends MixinConstructor<Stuff & Slotted>>(
     static _mixinName = 'DrivableMixin';
 
     /**
-     * ⭐⭐ `drive` — **afforded by nothing**, and the third instance of
-     * one bug. `MountableMixin` one file over confers `mount` and `ride`
-     * and its own comment records the pair being found in the
-     * nutrition-fitness drive: *"view, controller and arg gate all
-     * shipped; nothing named the files."* `drive` is the vehicular
-     * sibling of that pair and was missed on the same pass, so
-     * `drive north` has answered *"I don't understand 'drive'"* since
-     * conveyance shipped. The reachability census found it; nothing else
-     * could, because a controller test is handed a model.
+     * ⛔⛔ **`drive` is NOT conferred here, and that is a decision with a
+     * tripwire guarding it.**
      *
-     * ⭐ BOTH buckets, unlike `Mountable`'s `peers`-only, and the view
-     * says why: *"you have to be aboard a drivable vehicle first."* A
-     * vehicle you are aboard is your CONTAINER, which is the
-     * `environment` bucket; `peers` additionally covers the coach
-     * standing beside you before you board. The arg's
-     * `requires: DrivableMixin` narrows the target either way, so
-     * neither bucket claims anything about what is not drivable.
+     * `platform/cmd/movement/drive.yaml` is afforded by nothing, and the
+     * reachability sweep conferred it here — correctly on its own
+     * reasoning (`Mountable` one file over confers `mount`/`ride` and its
+     * comment records that pair being found dead in the nutrition-fitness
+     * drive; `drive` is their vehicular sibling and was missed on the
+     * same pass) — and then **the full suite refused it.**
+     *
+     * `trade-mining/src/idea/cmd/mining/__tests__/acts.test.ts` asserts
+     * that this file contains no `commandContributions`, and its comment
+     * says exactly why: `trade/mining/cmd/mining/drive.yaml` ALSO claims
+     * `drive` (driving a drift), the two views have the **same arity** so
+     * `requires:` cannot separate them at shape, and only affordance
+     * ORDER would decide which one a miner gets. *"Nothing in the repo
+     * affords the movement view today; if that changes, `drift` becomes
+     * primary — one line."*
+     *
+     * ⭐⭐ So conferring it is **adjudicating a live collision**, and the
+     * verb-collision ladder's first rule is that first-come is not one of
+     * the seven solutions and that BOTH sides get evaluated.
+     * `lint:verb-collisions` lists `drive` among its undiagnosed pairs.
+     * The sweep that found this had already told the glass build that its
+     * `dip` collision was the glass build's to resolve; taking this one
+     * unilaterally would have been the same mistake with the roles
+     * reversed.
+     *
+     * ⭐ The view carries `unreachable: awaiting:affordance-verb-slate`
+     * instead, so the absence is a gated declaration rather than an
+     * oversight — and the adjudication is one line of `verbs:` reordering
+     * away whenever somebody owns both sides. ⚠ Leave this comment and
+     * that tripwire alone together: the tripwire is what caught a
+     * reviewer-grade mistake that eleven thousand other tests did not.
      */
-    static commandContributions: CommandContributions = {
-      self: [],
-      inventory: [],
-      environment: ['platform/cmd/movement/drive.yaml'],
-      peers: ['platform/cmd/movement/drive.yaml'],
-    };
     static fieldMeta: FieldMeta = {
       controllerSlot: { persistent: true, authorable: true },
       _vehicularModePath: { persistent: true, authorable: true, authorPicker: 'Template' },

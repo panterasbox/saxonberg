@@ -731,8 +731,21 @@ unconferred views, not fourteen. The two extra are real, and each was
 verified by grep: no `commandContributions` names either path, and the
 only other references are a trade-mining test and a kernel test fixture.
 
-*`platform/cmd/movement/drive.yaml` → `DrivableMixin`, `environment` +
-`peers`.* `MountableMixin` (`lib/slot/Mountable.ts:41-46`) confers
+*`platform/cmd/movement/drive.yaml` → ⛔⛔ **REVERSED at W6. HELD, not
+conferred.** The reasoning below is sound and the full suite refused the
+conclusion: `trade/mining/cmd/mining/drive.yaml` also claims `drive`, the
+two views have the **same arity** so `requires:` cannot separate them at
+shape, and `trade-mining`'s own acts test asserts `lib/slot/Drivable.ts`
+carries no contributions static for exactly that reason — with the remedy
+written in it (*"if that changes, `drift` becomes primary — one line"*).
+⭐ Conferring one side of an undiagnosed collision IS adjudicating it, and
+the ladder's first rule is that first-come is not one of the seven
+solutions and that both sides get evaluated. This build had already told
+the glass build that its `dip` collision was the glass build's to resolve.
+The view carries `unreachable: awaiting:affordance-verb-slate`, which now
+owns the adjudication with all three shapes written out. The original
+reasoning, kept because it is still right about everything except who
+decides:* `MountableMixin` (`lib/slot/Mountable.ts:41-46`) confers
 `mount` and `ride`, and its own comment records this exact bug class
 found in the nutrition-fitness drive — *"view, controller and arg gate
 all shipped; nothing named the files"*. `drive` is the sibling of that
@@ -1140,15 +1153,16 @@ where a ceiling was not — *a ceiling over a population nobody can finish
 drifts up; a zero over a declaration costs an author one line and
 cannot.*
 
-**Conferred (11, two more than planned):** `walk` → `MobileMixin.self` ·
+**Conferred (10):** `walk` → `MobileMixin.self` ·
 `dismount` → `PosedMixin.self` · `fold`/`unfold` → `FoldableMixin`
 (inventory + environment + peers) · `prompt` →
 `HasInteractiveMixin.self` · `transfer`/`subdivide` →
 `PersonaMixin.self` · `wind`/`adjust` → `Watch` (inventory +
-environment) · **`drive` → `DrivableMixin`** (environment + peers, D23) ·
-**`flourish` → `BarStation`** (D23).
+environment) · **`flourish` → `BarStation`** (D23). ⛔ `drive` was
+conferred here and REVERSED at W6 — see the amendment to D23.
 
-**Declared held (3):** `lock`, `unlock`, `fly`, each with a multi-line
+**Declared held (4, after W6):** `lock`, `unlock`, `fly` and **`drive`**,
+each with a multi-line
 comment above the key explaining what is held and what lifts it. ⭐ The
 `fly` reason is worth reading: it is the one case where *afford
 statically, decline diegetically* does NOT apply, because the thing the
@@ -1911,6 +1925,51 @@ kernel defect, two brain defects, a roster-tick defect that put the
 shopkeeper inside the till, and a 71-row content census. **That ratio is
 the argument for driving:** the suite was green through every one of
 them.
+
+### ⛔⛔⛔ W6 — the suite's THIRD finding, and the best one: a tripwire caught a reviewer-grade mistake
+
+`trade-mining/src/idea/cmd/mining/__tests__/acts.test.ts > the drive
+collision tripwire` failed, and it is the most instructive failure of the
+whole build.
+
+It asserts that `lib/slot/Drivable.ts` contains no contributions static,
+and its comment says why: `trade/mining/cmd/mining/drive.yaml` ALSO
+claims `drive` (driving a drift), the two views have the **same arity** so
+`requires:` cannot separate them at shape, and only affordance ORDER
+would decide which one a miner gets. *"Nothing in the repo affords the
+movement view today; if that changes, `drift` becomes primary — one
+line."*
+
+⚠⚠ **D23 conferred `drive` without knowing there was a live rival**, and
+`lint:verb-collisions` had the pair listed as undiagnosed the whole time.
+Conferring one side of an undiagnosed collision **is adjudicating it**,
+and the verb-collision ladder's first rule is that first-come is not one
+of the seven solutions and that both sides get evaluated. ⭐ This build
+had already told the glass build that its `dip` collision was the glass
+build's to resolve — taking this one unilaterally would have been that
+mistake with the roles reversed.
+
+**Reversed.** The static is gone, the view carries `unreachable:
+awaiting:affordance-verb-slate`, and that slate now owns the
+adjudication with all three shapes written out and a preference (flip the
+mining view to `verbs: [drift, drive]`, which its own test already half
+did on purpose, then confer the movement view — one line each, by
+somebody who owns both sides). The affordance test asserts the NEGATIVE
+now, with the reason.
+
+⚠ One concession taken on another pack's test, deliberately: the tripwire
+matched the bare word `commandContributions` anywhere in the file, so it
+failed on the long comment explaining *why there is no static*. It matches
+`static\s+commandContributions` now. ⭐ A tripwire that forbids naming the
+thing it guards makes the file unable to say why it is the way it is,
+which is the one thing a tripwire should never do — the intent is
+preserved exactly and the explanation survives.
+
+⭐⭐ **The lesson, and it is about this build's own medicine.** Arm A can
+prove a view is afforded or declared. It cannot tell you whether
+conferring one was *yours to decide* — and the thing that could was a
+hand-written test in another pack, by the people who had already thought
+about it. *A gate proves a property; it does not confer authority.*
 
 ### ⚠⚠ What the FULL SUITE then found — two of mine, both load-bearing
 

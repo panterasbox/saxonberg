@@ -1,3 +1,34 @@
+# ⛔⛔ HELD — and this one is held on a COLLISION, which makes it the most
+# interesting of the four.
+#
+# `trade/mining/cmd/mining/drive.yaml` also claims `drive` (driving a
+# drift), the two views have the **same arity** so `requires:` cannot
+# separate them at shape, and only affordance ORDER would decide which
+# one a miner gets. `lint:verb-collisions` lists the pair among its
+# undiagnosed ones.
+#
+# ⚠⚠ The reachability sweep CONFERRED this view — `DrivableMixin` has no
+# static, `Mountable` one file over confers `mount`/`ride`, and `drive` is
+# plainly their vehicular sibling — and the full suite refused it.
+# `trade-mining`'s own acts test asserts that `lib/slot/Drivable.ts`
+# contains no `commandContributions`, and spells out the remedy if that
+# ever changes: *"nothing in the repo affords the movement view today; if
+# that changes, `drift` becomes primary — one line."*
+#
+# ⭐⭐ Conferring it is therefore ADJUDICATING a live collision, and the
+# ladder's first rule is that first-come is not one of the seven
+# solutions and that both sides get evaluated. The same sweep had already
+# told the glass build that its `dip` collision was the glass build's to
+# resolve; taking this one unilaterally would be that mistake with the
+# roles reversed.
+#
+# ⭐ What lifts this, and it is cheap: somebody owning both sides flips
+# `trade-mining`'s view to `verbs: [drift, drive]` so a miner always has
+# an unambiguous word, then confers this one on `DrivableMixin`
+# (`environment` + `peers` — a vehicle you are aboard is your CONTAINER,
+# which is the environment bucket). One line each, and a drive checkpoint
+# to prove the miner still gets a drift.
+unreachable: awaiting:affordance-verb-slate
 verbs: [drive]
 controller: /platform/idea/cmd/movement/DriveController
 description: "Drive your vehicle through a named exit (passthrough to the Drivable host)."

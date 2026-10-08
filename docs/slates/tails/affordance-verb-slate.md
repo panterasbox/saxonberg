@@ -123,6 +123,52 @@ omission invisible. ⭐ The rule both docstrings carry now: **the mixin is
 the gate, the concrete class in the pack that owns the verbs is the
 conferrer** — a kernel mixin may never name a locality's view.
 
+## ⛔⛔ `drive` vs `drift` — an undiagnosed collision this slate now owns (2026-10-07)
+
+`platform/cmd/movement/drive.yaml` (take a vehicle through an exit) and
+`trade/mining/cmd/mining/drive.yaml` (drive a drift) both claim **`drive`**,
+and `lint:verb-collisions` has listed the pair as undiagnosed since that
+gate landed.
+
+⚠⚠ The reachability sweep conferred the movement view on `DrivableMixin`
+— correctly on its own reasoning: `MountableMixin` one file over confers
+`mount`/`ride`, its comment records that pair being found dead in the
+nutrition-fitness drive, and `drive` is their vehicular sibling missed on
+the same pass. **The full suite refused it.**
+`trade-mining/src/idea/cmd/mining/__tests__/acts.test.ts` asserts that
+`lib/slot/Drivable.ts` carries no contributions static, and says why: the
+two views have the **same arity**, so `requires:` cannot separate them at
+shape and only affordance ORDER decides which one a miner gets.
+
+⭐ So the movement view carries `unreachable: awaiting:affordance-verb-slate`
+and the decision is here. The tripwire's own suggestion is the cheap
+answer and probably the right one:
+
+> *"Nothing in the repo affords the movement view today; if that changes,
+> `drift` becomes primary — one line."*
+
+**The adjudication, in full**, because the ladder wants both sides
+evaluated and first-come is not one of its seven solutions:
+
+1. ⭐ **`verbs: [drift, drive]` on the mining view, then confer the
+   movement view.** A miner always has an unambiguous word; a driver gets
+   `drive`. Two lines, and the mining view already declares both words
+   *"so a miner always has an unambiguous one"* — its own test says so,
+   which means half the work is done and was done deliberately.
+2. **Rename the movement verb.** `pilot`? ⚠ Worse: `drive` is the
+   ordinary English for taking a cart somewhere, and the mining sense is
+   the jargon. Renaming the common word to protect the specialist one is
+   backwards.
+3. **One view with subcommands.** ⛔ They are not one act — a drift is cut
+   and a cart is steered — so the ladder's first rung does not apply.
+
+⭐ Shape 1 on the ladder's own reasoning. ⚠ What it needs is somebody who
+owns BOTH sides: the sweep that found it had already told the glass build
+that its `dip` collision was the glass build's to resolve, and taking
+this one unilaterally would have been that mistake with the roles
+reversed. The drive checkpoint to add with the fix: a miner in a drift
+gets `drift`, and a driver on a cart gets `drive`.
+
 ⭐ A **singleton-claimed-once** gate is the honest general form of a
 related bug this sweep met and did not fix (the distributor's counter
 read as a singleton and found two). It needs constant resolution, and
