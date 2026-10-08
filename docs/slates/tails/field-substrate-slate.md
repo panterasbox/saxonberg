@@ -13,6 +13,13 @@
 > crediting a Discipline; depletion is recharge = 0* — stated in
 > [tapping-slate](../builds/tapping-slate.md), which is the first
 > build required to land ON it rather than beside it
+> ⭐⭐⭐ **The RGO SPINE is designed (2026-10-08, § end)** — an RGO is a
+> `(capacity field, recharge law)` pair, so **seeded/derived describes the
+> CAPACITY, not the RGO**; capacity is a **call** (which is the whole
+> content of the held interface, and needs foraging *designed* not
+> *built*); recharge has four forms, ice supplying **window-gated**; and
+> the author contract is the shipped **pin over lean over procedural** —
+> expect **nothing**, allow a lean and a pin.
 > **Size:** a wave
 
 
@@ -307,3 +314,280 @@ surplus). Milk, eggs, wool, maple sap, rubber latex and honey are all taps.
 It belongs to [rgo-unification-slate](../builds/rgo-unification-slate.md),
 noted here only so a reader of this slate does not conclude the field is the
 only thing the RGOs share.
+
+---
+
+# ⭐⭐⭐ The RGO spine (2026-10-08)
+
+The design pass taken before drilling, ice and foraging, so that build
+order between them stops mattering. It lands here rather than in a new
+slate because this one already owns the ground: the seeded × derived
+composition seam, foraging-stock-as-the-first-derived-field, the RGO law,
+and the graduate-to-top-level-doctrine call.
+
+## ⭐⭐⭐ The thesis: seeded vs derived describes the CAPACITY, not the RGO
+
+The two-kinds-of-field table above is right and is **filed under the wrong
+noun**. Run the whole shipped roster through it and the split stops being
+a taxonomy of RGOs and becomes one slot of two:
+
+> **An RGO is a `(capacity field, recharge law)` pair.** *Seeded* and
+> *derived* describe the **capacity field**. They say nothing about the
+> RGO, which is why no RGO ever sat cleanly in one column.
+
+| RGO | capacity comes from | recharge law |
+|---|---|---|
+| mining `Deposit` | position + seed | **zero** — a lode is emplaced once |
+| fishery | Liebig habitat fit × abundance × length | half-life |
+| stand (forestry) | its own soil, derive-on-read | rate, stamped by the axe |
+| soil reserves | position, then what you grew | rate |
+| taps (milk · sap · honey) | the animal or plant | rate, **window-gated** |
+| drilling | position + seed | **zero** |
+| foraging | ⭐ **recorded history** — traffic, remoteness | rate |
+| ice | ⭐⭐ **another field** (weather) | ⭐⭐ **a field read, zero for half the year** |
+
+### Slot 1 · capacity is a CALL, not a number
+
+That is the whole content of the ⏸ held *derived-field interface*. What
+foraging contributes is not a new field **shape** — it is a capacity
+function whose inputs are **events rather than coordinates**. A signature
+question, not a structural one:
+
+> ⭐⭐ **Make `capacity` a call and both columns satisfy the same
+> interface.** A seeded field's call reads `(position, seed)`; a derived
+> field's reads the event record. No consumer can tell.
+
+⭐ **And that is what frees build order.** The interface needs foraging
+**DESIGNED**, not **BUILT** — which this section is. The promotion can
+land on schedule with foraging's stock as its declared second consumer.
+
+### Slot 2 · the recharge law has FOUR forms, and ice supplies the fourth
+
+| form | members | shape |
+|---|---|---|
+| **zero** | a lode, a well | depletion — the RGO law's own zero case |
+| **rate** | soil, a stand, foraging | per-tick inflow toward capacity |
+| **half-life** | a fishery | proportional recovery of the drawn share |
+| ⭐⭐ **window-gated** | taps; **ice** | a rate that is OFF outside a declared window |
+
+Every shipped recharge is a **scalar**. Ice's is **a read of another
+field** that goes to zero for half the year, so fixing this interface
+without ice present would bake in *recharge is a number*.
+
+⭐ **It needs no new substrate.** `TapWindowSpec` already ships the window
+kinds (`always · event · photoperiod · biome · weather`, with `rising`
+splitting spring from autumn) — the fourth form was built for maple syrup.
+Ice's window is a `weather` predicate; its capacity is the pool's volume.
+⚠ So **ice is the RGO whose absence would get this wrong, and drilling is
+not** — which is why drilling may be built before the unification lands
+and ice may not.
+
+## ⭐⭐⭐ The author-facing contract — three rungs, already shipped twice
+
+The question that decides everything downstream is **not** what an RGO is
+made of; it is *what do we **expect** and what do we **allow** a
+worldcrafter to author, so their content is compatible?* (user,
+2026-10-08). The answer already exists, in `mining.md` § *The geology
+field*:
+
+> `sampleAt(at, seed)` folds authored **pin** over authored **lean** over
+> the **procedural** value and returns one shape, **so an authored pocket
+> and a computed cell are indistinguishable to every consumer.** Nothing
+> may reach past it.
+
+| rung | what the author writes | when |
+|---|---|---|
+| **procedural** | ⭐ **nothing** | always — the default |
+| **lean** | a declared bias over a region | the *character* of a place |
+| **pin** | an exact value at a point | the bespoke case |
+
+- ⭐⭐ **Expect: nothing.** A locality that authors no forage data still
+  forages, off its biome. That is lens 2's *ordinary case with no code*,
+  and the **indistinguishability clause** is what stops unauthored content
+  being visibly poorer. It is also the only answer that scales: expecting
+  a table per locality would silently break every shipped pack, and ⛔ a
+  ratchet over a content-scaling figure refuses an author for doing it
+  right.
+- **Allow: a lean and a pin.** The lean is where the worldcrafter's intent
+  actually lives — *this wood is rich in mushrooms, poor in berries* —
+  and it is the same affordance `GroundCharacter` gives soil. ⭐ Copy its
+  rule too: **character prices IMPROVEMENT, never yield.**
+- ⚠ **A lean must be authored-and-STABLE.** A bias that shifts under the
+  player's feet destroys the learnability the next section rests on.
+  Seasonality rides the **window**, which is declared and therefore
+  learnable; it never rides the lean.
+
+### ⭐⭐ Predictable vs RNG is a fact about the VIEWER, not the engine
+
+The player's experience and the engine's determinism genuinely differ
+here, and the difference is the design rather than a compromise:
+
+> **Foraging feels like RNG to a stranger and like a routine to a local —
+> and nothing in the engine changed between those two experiences.**
+
+The procedural layer is seeded off the locality's address, so a new wood
+is opaque — legitimately, as **epistemic** uncertainty
+([uncertainty.md](../../uncertainty.md) provenance 1, legal). But the same
+place gives the same answer, so **the opacity resolves into knowledge with
+repetition**: your own patch is perfectly predictable; a stranger's valley
+is not. Three consequences:
+
+1. ⭐ **It is the almanac's job description.** The almanac is the written
+   form of learned predictability — which is why it is publishable,
+   teachable and sellable, and why foraging's career ladder is there
+   rather than in the picking.
+2. **"No" stays legible** (rule 6 — *a field that always rewards sampling
+   is a dispenser*). A barren wood is information, not a failed roll.
+3. **Nothing rolls at the act.** The yield was true before anybody asked,
+   which keeps the resolutional provenance banned the way it should be.
+
+### Therefore: a forage patch is a FIELD READ, not a Stuff
+
+Settled as a **consequence** of the contract rather than on its own
+merits, which is the right order (user: *"it kinda depends on what
+foraging/hunting are to the content developers"*). The contract forbids a
+row per point — `mining.md` says exactly this of procedurally-discovered
+chambers, *"the rowless mint D17 forbids"* — so:
+
+- the **patch** survives as how a field read is **described**, the way
+  forestry's stand is derive-on-read and reported by `look` in words;
+- a row is minted **only where play changed something** (rule 4, store only
+  mutation): a patch somebody picked over;
+- ⭐ **the discoverability cost is paid by the PIN.** A field has nothing
+  to click, and that matters more at the bottom of the economy than in a
+  wood — so an author who wants a findable, targetable, card-able patch
+  **authors one**. The engine never mints them; authors do, where they
+  mean it.
+
+## ⭐⭐⭐ The sample-price law generalised — the career sits where the COST is
+
+This slate's own law (*a field you read for free is scenery; a field you
+pay to read is a career*) extends past surveying once three RGOs are laid
+beside each other:
+
+| RGO | what is expensive | therefore the profession is |
+|---|---|---|
+| **drilling** | the **survey** — you cannot look at the reservoir | the surveyor; float, assay, the seismograph |
+| **ice** | the **storage** — the lake is visibly frozen for free, holding it to July is not | ⭐ the **ice house**, which is what the real trade was |
+| **foraging** | **knowing where and when** | the almanac, and identification that publishes |
+
+> ⭐⭐ **None of the three professions is "the person who performs the
+> act."** Decide what is expensive and you have decided what the trade is.
+
+### ⛔ The sharp prediction: foraging cannot be a vocation
+
+Foraging's *reading* is free — you walk and you look — so by this slate's
+own law it is scenery, not a trade. **That is the feature.** Nobody in a
+developed economy forages for a living, and a model that predicts it
+without being told is the model working. Foraging is the **participation
+floor**, not the eleventh trade — which makes its build *smaller* and the
+weight land in the almanac.
+
+## ⭐⭐ Foraging's economic job: a price ceiling on necessities
+
+User, 2026-10-08, and it replaces the framing this slate's
+[discovery](../builds/discovery-slate.md) half carried:
+
+> *"you can't cultivate everything, this game forces you to specialize.
+> so foraging isn't a backstop against **capability**, it's a backstop
+> against the **market**. when I can't afford carrots can I find them in
+> the wild?"*
+
+> **Foraging is a price ceiling on staples.** If carrots cost more than
+> the walk, people walk — which caps what a grocer can charge, permanently,
+> with no authored price control. ⭐ So the foraging build is pedagogy
+> about the **grocer**, not about the forager. And it is *measurable*: the
+> ceiling works when a forageable staple's price sits below the cost of
+> the walk and does not stay above it.
+
+### The knife-edge, and the single lever
+
+Two failure modes, both named by the user, and they are one variable from
+opposite ends:
+
+| failure | shape |
+|---|---|
+| **never foraged** | it is always cheaper to buy, so the backstop is dead content |
+| **the lottery** | the market prices wild procurement as the most lucrative route, the reservoir is camped, and it is a lottery between the few who engage |
+
+> **The lever is: can wild yield be aggregated into LOTS?** A market
+> trades in lots — a predictable quantity of a uniform good on a schedule.
+> Subsistence trades in **singles** — one person, one meal, now.
+
+Five properties, every one an already-shipped mechanism, make wild yield
+structurally unlot-able: **sparse + dispersed** (rule 6), **seasonal**
+(the window), **non-excludable** (*excludability is physics*),
+**perishable** (`FreshnessMixin` + a high `a_w` on fresh greens), and
+**variable grade** (weakest-link harvest grade; `minGrade` on a recipe
+slot). ⚠ Any one alone is a nerf and reads as one. All five together is a
+**shape** — the real shape of a common-pool resource, which is why the
+arithmetic comes out right with nobody tuning it.
+
+### ⭐⭐⭐ Both failure modes are DEMAND-side
+
+The inversion worth building on:
+
+> **Foraging's only honest customer is your own metabolism.** The moment
+> it has a **wholesale** customer it becomes the lottery; while its
+> customer is the body of the person who picked it, it is a backstop.
+
+- **Never-foraged** is fixed by making the body a real buyer — the five
+  slow stocks are what it pays in — not by buffing yields. One wild carrot
+  in season is exactly subsistence-shaped.
+- **The lottery** needs a *bidder*. No bidder, nothing to camp. So the
+  build's constraint is concrete and checkable rather than a balance dial:
+  **no retail `par` line names a forageable · `consign` has no route for
+  wild singles · no recipe slot absorbs them at scale.** ⭐ Three greps,
+  and a candidate census-and-ratchet with a ceiling of zero.
+- ⭐ **And if it is lucrative anyway, that is the content.** A valuable
+  commons gets **enclosed** — game law, close seasons, licences, poaching
+  — which [hunting-slate](../builds/hunting-slate.md) already owns. So the
+  lottery is not prevented, it is **answered**, and the answer is the
+  polity noticing. A non-excludable reservoir with a recharge law *is* the
+  commons problem; lens 1 pays rent for free.
+
+## ⚠⚠ Where foraging may happen — and the conflation to refuse
+
+⛔ **Corrected in conversation, having been got wrong twice.** Parcel title
+and in-fiction land ownership are **unconnected axes**:
+
+| axis | answers | mechanism |
+|---|---|---|
+| **code / content** | who may **edit, broadcast over, teleport within, CMS** an extent — the committee of authors who maintain the code | `parcels` → `ownerOf` → `can` / `canAtPath` / `heldExtents`; a pack's `requires.title[]` |
+| **the fiction** | who holds the **deed in the story** — trespass, rent, consent | a different question, satisfiable by **any agent: a player, an NPC, or an in-world organization** |
+
+⚠ `pnpm lint:untitled` proving every shipped path sits under a claim proves
+**maintenance coverage**. Its own header gives the axis away — an untitled
+row is one *"nobody can edit, broadcast over, or teleport within."* It is
+**not** *"every acre has a landlord"*, and reading it that way produced an
+invented inalienable gathering right for a problem that does not exist.
+
+> **The rule: foraging happens on land no fictional party claims, or with
+> that party's consent.** The committee's consent is needed for **all** of
+> it — they write the code the content runs on — which makes it a
+> **constant, not a design variable**: it never discriminates between two
+> in-fiction designs.
+
+⭐ Refusing *without* consent is where game law, close seasons and poaching
+attach, so the hunting slate's material needs no second mechanism.
+
+## Open
+
+1. ⚠ **Is every in-fiction holder representable?** A code check, not a
+   design question: `ParcelOwner`'s `player` / `organization` kinds appear
+   to make the two axes coincide deliberately for player-held property
+   (*ownership unlocks authoring*), while tenure (`grants[]`, the lease)
+   may carry some of it. Verify before the foraging requirements.
+2. **Ice's climate fork** — a colder winter realm-wide (touches every
+   thermal consumer at once) vs ⭐ **a cold PLACE** whose climate lean
+   crosses 273 while Terminus does not. The second is recommended: small
+   blast radius, it rides the shipped lean, and it gives the ice trade a
+   **cartage** problem, which is the trade. →
+   [cold-chain-slate](../builds/cold-chain-slate.md).
+3. **Does the capacity call want the event record, or a projection of
+   it?** Foraging's inputs (traffic, remoteness) are a read over history;
+   whether that is a live walk or a maintained projection is the one
+   performance question in this spine.
+4. The **graduate-to-doctrine** call on the RGO law is still the user's,
+   and this section is the strongest argument yet for taking it — the law
+   now has a second slot and an author contract hanging off it.
