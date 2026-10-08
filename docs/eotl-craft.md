@@ -410,6 +410,89 @@ four rarest institutions in the corpus.
 > is distinctive in proportion to how many of its institutions appear
 > nowhere else.**
 
+### ⭐⭐⭐ Africa — the clinching case, from its own documents (added 2026-10-07)
+
+The strongest evidence for this failure mode is a cabal whose content is
+gone and whose **design documents survive** (`zone/.attic/africa/doc/`, 20
+files, the rooms deleted). It is worth reading because **it shows the
+cause rather than the symptom.**
+
+`doc/GeneralPlan`, in full, is six lines apologising for a missing map,
+plus:
+
+> *"Africa is about the many adventures that you can have in a vast range
+> of land. From lions and monkeys, to a castle and a fabled land of
+> dinosaurs, **Africa is not for the weak or incompetent.**"* — Rodex,
+> April '98
+
+⚠⚠ **A general plan containing no plan.** What is there instead is **a
+list of nouns**, plus exactly one value statement, and the value statement
+is **difficulty**. ⭐ Hold it against Gnomelands' README — *"the story
+never really made sense… the area has never really left my mind."*
+**Africa's plan is a brochure; Gnomelands' README is a confession.**
+
+And the build matches the plan precisely. **Room directories:**
+
+```
+canyon · grass · stone · swamp · peaks · ravine ·
+cavern · jungle · city · village · castle · castle1
+```
+
+**Eleven of twelve are terrain or generic.** There is a `grass`. There is
+a `stone`. There is a `castle` **and a `castle1`.** And the alt-Eternal-City
+is an unnamed directory called `city`. (Compare Gnomelands: *town,
+factory, mines, earthworks, parliament, palace, clock_tower, lighthouse,
+island, airship, leviathan* — **premises, every one.**)
+
+**Monster directories:** `beach · beast · castle · celtic · city · dino ·
+human · magic · modules · parthan · pet · plants · races · toons ·
+undead · tour · valvil`
+
+⚠ Celtic monsters, cartoon monsters, undead, dinosaurs and parthans, in
+Africa. ⭐⭐ **The area absorbed content with no relationship to itself**,
+and the plan had *announced* that as the pitch.
+
+⭐⭐⭐ **So breadth is the symptom and the missing thesis is the cause.**
+You cannot decide to go deep on something you cannot name. Africa's one
+genuinely additive contribution — **pets**, one of seventeen monster
+directories, roughly 5 % — got buried not because anybody chose breadth
+over depth but because **there was no premise for depth to be of.** ⭐ And
+the counterfactual is stark: *if Africa had been only the pets it would be
+remembered.* Gnomelands is one area with one quest.
+
+#### ⚠ And `doc/CabalReport` is an honest death certificate
+
+It belongs beside [§ Nobody lied in a status
+file](#-nobody-lied-in-a-status-file--and-the-reason-is-structural). Five
+staff, written down plainly: **Panthea — Idle** · **Rodex —** *"Looking at
+this and that, thinking of any possible good things to do to reduce
+supposed lag"* · **Diagnosis — Idle** · **Valentino —** *"Slowly working
+on a new area (village). I'm not gonna hardpress though"* · **Zylle —**
+*"Africa's sweetheart, helping with report logs and spelling, grammar."*
+
+Opening line: *"To be honest, I don't think IC want the area back up and
+that is out of my hands."* ⭐ And the diff against the earlier revision
+shows the report got **more** honest over time, which is the opposite of
+the usual drift.
+
+Two lines worth keeping for what they say about the content/systems
+relationship:
+
+- ⚠⚠ *"trying to make sure things are current with other mud things
+  (**like this economy bs**)"* — an area maintainer calling the game's
+  economy *bs* and treating integration with it as compliance work.
+- ⚠⚠ *"Who made what: Gunthar, Panthea, Marius, Kutulu … but this is an
+  old cabal and **I do not know specifics.**"* **The maintainer does not
+  know who wrote the area he maintains** — the connective-tissue rot at
+  the authorship level. (And Gunthar is on that list: the same author who
+  wrote Gnomelands' shared clock. One author, two cabals, one
+  remembered.)
+
+⭐ The general form of all of this is
+[content-craft.md § 8c](./content-craft.md): **can you say what this place
+is about in a sentence that is not a list and not a difficulty tier?** If
+not, more rooms will not fix it — and they are what you will build anyway.
+
 ## ⚠ Content whose function is social, not experiential
 
 `castles/lugerquest` — complete design document: *"this quest am win!@ /

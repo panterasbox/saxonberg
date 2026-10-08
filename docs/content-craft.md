@@ -1058,6 +1058,80 @@ Which unifies § 8a's corollary with this one: a wrong name is not only
 content, it is **proof of an author**, and a player feels the difference
 without being able to name it.
 
+## 8c. ⭐⭐⭐ An honest model means you LOCATE conflict, not invent it
+
+> *Because the systems are modelled honestly, the stories we tell about
+> them can't help but be honest. At least that's the pitch.*
+
+That is [design-lenses](./design-lenses.md) lens 1 doing the job it was
+put there for. And the sharper form is: **you do not invent conflict, you
+locate it.** Every honestly modelled mechanism has a place where it costs
+somebody something, and that place is a story with nobody's thumb on it.
+
+⚠ **The caveat, and it is the same one as § 8b: an honest model generates
+SITUATIONS, not STORIES.** It finds the premise; a person still has to
+write the scene. The pitch holds at the level of premises and not at the
+level of beats.
+
+### What locating looks like, worked
+
+Three found in a single reading of one room (the millsite —
+[towns-slate](./slates/builds/towns-slate.md) § Heart's Delight):
+
+- ⭐⭐⭐ **A quern costs you time; a mill costs you a tenth — and the
+  answer flips with how much grain you have.** Nobody authors a position
+  on the manorial-mill question. The arithmetic hands every household a
+  different one, and the historical ban on hand querns becomes a quarrel
+  worth having *because* the sums are real.
+- ⭐⭐ **The extraction dial throws a third of the weight into the bran
+  sack at 0.6.** So a farmer can be genuinely short, genuinely aggrieved,
+  and genuinely wrong about the cause — and the honest answer is a number
+  the engine already computes. **The quest is knowledge-gated rather than
+  execution-gated**, which is the one quest shape lens 1 produces for
+  free.
+- ⚠⚠ **A room described as *"everything in it is dusted white"*, with a
+  gaslamp at the door, in an engine where ignition is a derivable energy
+  balance.** Nobody designed a dramatic event. One is sitting there as a
+  consequence of two true facts, and it had been sitting there unnoticed.
+
+⭐ **None of those three were invented.** They are what the model already
+says, read by somebody looking for where it pinches.
+
+### ⭐⭐ Which is why breadth is a symptom
+
+The ancestor's clearest failure case is the Africa cabal, and the cause is
+legible in its own documents.
+
+Its `doc/GeneralPlan`, in full, is six lines apologising for a missing map
+plus: *"Africa is about the many adventures that you can have in a vast
+range of land. From lions and monkeys, to a castle and a fabled land of
+dinosaurs, **Africa is not for the weak or incompetent.**"*
+
+⚠ **A general plan containing no plan** — a list of nouns, and one value
+statement, and the value statement is **difficulty.** And the build matches
+it exactly: twelve room directories of which eleven are terrain or generic
+(`canyon · grass · stone · swamp · peaks · ravine · cavern · jungle ·
+city · village · castle · castle1`), and a bestiary that absorbed
+**celtic, toons, undead, dino and parthan** monsters because nothing about
+the premise excluded them.
+
+⭐⭐⭐ **When an area has no thesis, breadth is the only thing left to
+produce.** You cannot decide to go deep on something you cannot name — so
+the breadth is the *symptom* and the missing thesis is the cause. Africa's
+one genuinely additive contribution (**pets**, one of seventeen monster
+directories — about 5 %) got buried not because somebody chose breadth
+over depth, but because there was no premise for depth to be *of*.
+
+⭐⭐ And the counterfactual is stark. **If Africa had been only the pets it
+would be remembered.** Gnomelands is one area with one quest and people
+recall it thirty years on; Africa is a continent, and what anybody
+remembers is 5 % of it and a security incident.
+
+⭐ So the test to apply before authoring volume: **can you say what this
+place is about in a sentence that is not a list and not a difficulty
+tier?** If not, more rooms will not fix it, and they are what you will
+build anyway.
+
 ## 9. ⚠⚠ Cultural content, and why launch cannot have any
 
 **Cultural content is what the players know that the text never said.**
