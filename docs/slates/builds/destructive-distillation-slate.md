@@ -301,3 +301,11 @@ polymer) · [drilling-slate](./drilling-slate.md) (the sibling vertical) ·
 Stage B only**, not this slate) · [tapping-slate](./tapping-slate.md) (the vocation this
 disrupts) · [maturation.md](../../subsystems/maturation.md) (the cuts
 rung)
+
+## ⬅ From the fire build (2026-10)
+
+Left as a line here rather than in a retired plan.
+
+- **A compressed cylinder (`maxPressureAtm`), and gas leaking from an open sealed vessel over time** — Stage A tail. The fire build shipped pressure as a DERIVED read (amount over capacity) and a binary escape at transfer; a cylinder rated for a pressure, and a slow leak rather than an instant one, are both still open.
+- ⚠ **Supply, from the fire build's drive (the `.dirty` reason).** Exactly **two** gas bladders exist in the realm, both at the fuel yard, and nothing makes more — so the RGO harvest `drain` depends on a vessel with no producer. The first character to carry them off leaves the next with an honest *"You don't see any 'bladder' here."* ⭐ Cordwood is the same shape but has a producer (`fell`), so it is a stocking question; the bladder is a hole.
+- ⚠ **Supply, from the fire build's drive (the `.dirty` reason).** Exactly **two** gas bladders exist in the realm, both at the fuel yard, and nothing makes more — so the RGO harvest `drain` depends on a vessel with no producer. The first character to carry them off leaves the next with an honest *"You don't see any 'bladder' here."* ⭐ Cordwood is the same shape but has a producer (`fell`), so it is a stocking question; the bladder is a hole.

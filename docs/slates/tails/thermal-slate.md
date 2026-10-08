@@ -278,3 +278,10 @@ campfire/heat-source model; living-body thermoregulation). See
 - **Consumable effects** (warmth/alertness *on drinking*) → `vitals-slate.md`.
 - **Ambient temperature** → `biome.md`.
 - **The `K` thermal scale** → `quantities.md`.
+
+## ⬅ From the fire build (2026-10)
+
+Left as a line here rather than in a retired plan.
+
+- **Boil-down that reduces volume** (the fire build's D11), and `purifiedByBoiling` wants renaming — boil-as-a-plateau is already here.
+- **Mixture density and conductivity, and the thermal restamp on an atmosphere change.** The fire build gave a medium CONTENTS; a scope whose air is a quarter smoke still conducts and stores heat as though it were air.

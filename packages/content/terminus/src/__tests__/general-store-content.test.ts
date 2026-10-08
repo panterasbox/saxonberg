@@ -177,6 +177,15 @@ describe("general-store content integrity", () => {
   // the standup integration test (which clones the goods for real).
   const DISCRETE_ITEM_CLASSES = new Set([
     "/platform/thing/Thing",
+    // ⭐⭐ `Good` — and it was MISSING, which is the wrong way round:
+    // `GoodBase = ChattelMixin(ConcealableMixin(Thing))`, so `Good` is
+    // THE discrete-chattel class and `Thing` above it is the one that is
+    // not chattel. ⚠ The omission is a trap, not a gap: an author adding
+    // a plain saleable good hits this list, "fixes" it by dropping to
+    // `Thing` — and the standup test then fails on the real runtime
+    // check (*is not chattel*) one layer down. Found by the fire build's
+    // sweep adding the smoker's sacking.
+    "/platform/thing/Good",
     // A `Provision` is the food class — discrete, `Crafted` (so it carries a
     // maker's mark and a grade), and no more Stackable than a bare `Thing`. The
     // ration pack is one: perishable matter belongs on the class that says

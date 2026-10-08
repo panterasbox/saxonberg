@@ -227,3 +227,9 @@ properly; the others should move toward it, not it toward them.
 - [metabolism.md § Aroma — the second closed vocabulary](../../subsystems/metabolism.md)
   — where `AROMAS` landed, including ⚠ why the `BASIC_TASTES` analogy that
   licensed it does not hold
+
+## ⬅ From the fire build (2026-10)
+
+Left as a line here rather than in a retired plan.
+
+- **`Material` has nothing for smell, and `tar` is not an aroma word.** The fire build reports tar reek by material NAME in the air reading rather than as an aroma tag, which is honest and is not a smell model.

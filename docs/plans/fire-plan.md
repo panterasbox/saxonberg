@@ -2013,24 +2013,42 @@ ENVELOPE over a socket; this was Chromium against the Vite client
 against the server, typing into the client's own input and reading what
 the RENDERER put on screen. 23/23 green, and then:
 
-**L1 — ⛔⛔ `drain` COULD NEVER WORK.** `DrainController` read
-`model.vessel?.stuff`, and ⚠⚠⚠ *a bound arg is an `MqlOneResult`, never
-a `Stuff`*: `.stuff` is populated only for an ALREADY-RESOLVED match, so
-a vessel that arrived as a raw word (`drain bladder`) or out of the
-arg's own `default:` was still an unresolved selector and came through
-as `null`. Every `drain`, by every player, carrying anything, answered
-*"You have nothing that would hold it."* — the one act in the trade that
-inverts a hazard rather than surviving it. `MqlApi.effectiveTarget` is
-the accessor that RESOLVES the selector, and it is what every other
-controller in this build already used.
-⭐ This is the antipattern that once shipped **eighteen** verbs
-permanently declining, and nothing in the repo could see it: the wire
-checkpoint accepted `no-vessel` as one of the reasons a refusal was
-allowed to carry, and a controller test builds its model by hand, so it
-asserts nothing about the shape that produced it.
-⭐ Fixed, and verified in the browser — *"You set the pipe into the face
-and work the pump."* `drain-binder.test.ts` now pins the missing half:
-the view loads, the word binds, the bare form fills from the default.
+**L1 — ⛔⛔ `drain` COULD NEVER WORK — and ⚠⚠ MY FIRST DIAGNOSIS OF IT
+WAS WRONG.** The symptom was real: `drain bladder`, with two gas
+bladders in hand, answered *"You have nothing that would hold it."* —
+the one act in the trade that inverts a hazard rather than surviving it.
+
+⚠ I blamed `DrainController`'s `model.vessel?.stuff` and swapped in
+`MqlApi.effectiveTarget`, writing it up as the bound-arg antipattern.
+**Read the code rather than the symptom and that cannot be the fix:**
+`effectiveTarget` returns `value.stuff` when it satisfies the predicate
+and otherwise a DOOR reached via an exit, so for a vessel the two reads
+are *equivalent* — where `.stuff` is a bulkable bladder both succeed,
+where it is null both refuse, and a bladder is never a door. The change
+was behaviourally inert.
+
+⭐ **The real cause was L5**, the bare-`persistent` `details` Map: on a
+warm database it hydrated as a plain object and threw inside MQL
+resolution, so the vessel never bound at all. What actually changed
+between the failing and the succeeding run was **the database being
+dropped**, which I had attributed to the code edit sitting in the same
+window. `drain` has been correct all along.
+
+⭐ So the controller is reverted to `.stuff` — which is the house style
+for a plain object arg and what `antipatterns.md`'s own GOOD example
+shows — with a comment at the site recording the misdiagnosis so the
+next reader does not redo it. ⚠ `effectiveTarget` earns its place where
+a DIRECTION may stand for a door (`open north`), not here.
+
+⭐ What survives and was worth the trip: **`drain-binder.test.ts`**. The
+wire checkpoint accepted `no-vessel` as one of the reasons a refusal was
+allowed to carry, and a controller test builds its model by hand — so
+nothing in the repo asserted that the view loads, that the word binds,
+or that the bare form fills from the default. Now something does.
+
+⚠⚠ The lesson is the one this repo keeps relearning: **a cascade is not
+diagnostic, and neither is a coincidence.** Two things changed in one
+window and I credited the one I had just written.
 
 **L2 — `cover` named the wrong noun.** `Mml.thing` is LAZY, and banking
 a fire takes the light out of the room, so the sentence about the act a

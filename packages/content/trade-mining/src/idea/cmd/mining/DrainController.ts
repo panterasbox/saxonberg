@@ -14,7 +14,7 @@
 
 import { MiningActController } from './MiningActController';
 import type { CommandContext, CommandModel } from '@saxonberg/server/mud/api/command';
-import { MqlApi, type MqlOneResult } from '@saxonberg/server/mud/api/mql';
+import type { MqlOneResult } from '@saxonberg/server/mud/api/mql';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
@@ -57,27 +57,20 @@ export default class DrainController extends MiningActController<DrainModel> {
       );
       return;
     }
-    // ⚠⚠⚠ **A bound arg is an `MqlOneResult`, never a `Stuff`.** This
-    // read `model.vessel?.stuff`, and the LIVE drive is what caught it:
-    // `.stuff` is populated only for an ALREADY-RESOLVED match, so a
-    // vessel that arrived as a raw word (`drain bladder`) or out of the
-    // arg's own `default:` (`me:i:[mixin.BulkableMixin]`, what bare
-    // `drain` uses) was still an unresolved selector and came through as
-    // `null`. `drain` therefore declined *"You have nothing that would
-    // hold it."* for every player, carrying anything, always — the one
-    // act in the trade that inverts a hazard could not be performed.
-    //
-    // `MqlApi.effectiveTarget` is the accessor that RESOLVES the
-    // selector and narrows in one step, and it is what every other
-    // controller in this build uses. This is the antipattern that once
-    // shipped eighteen verbs permanently declining; the wire checkpoint
-    // could not see it because it accepted `no-vessel` as one of the
-    // reasons a refusal was allowed to carry.
-    const vessel = model.vessel
-      ? MqlApi.effectiveTarget(model.vessel, (s): s is Stuff =>
-          MixinApi.isBulkable(s),
-        )
-      : null;
+    // ⚠ `.stuff` is the right read here, and the fire build's sweep is
+    // why this comment exists. The live drive saw `drain` refuse *"You
+    // have nothing that would hold it."* with two bladders in hand and
+    // blamed THIS line, swapping in `MqlApi.effectiveTarget`. That was a
+    // misdiagnosis: `effectiveTarget` returns `value.stuff` when it
+    // satisfies the predicate and otherwise a DOOR reached via an exit,
+    // so for a vessel the two reads are equivalent — it could not have
+    // been the fix. The real cause was `DetailedMixin.details`, a
+    // bare-`persistent` Map that hydrated as a plain object on a warm
+    // database and threw inside MQL resolution, so the vessel never
+    // bound at all. ⭐ `effectiveTarget` earns its place where a
+    // DIRECTION may stand for a door (`open north`); a bladder is never
+    // a door, and `.stuff` is the house style for a plain object arg.
+    const vessel = model.vessel?.stuff ?? null;
     if (vessel === null || !MixinApi.isBulkable(vessel)) {
       this.decline(
         context,

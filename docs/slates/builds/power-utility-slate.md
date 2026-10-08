@@ -242,3 +242,9 @@ proposal** (a locality treasury from use-based tax → a public-works **seat** �
 private supply **contract** replacing the general-store placeholder). The
 **kitchen/fridge is Tier A's residential consumer**; **street lighting is the
 first consumer**, migrating gaslight → electric when the grid lands.
+
+## ⬅ From the fire build (2026-10)
+
+Left as a line here rather than in a retired plan.
+
+- **A `FuelStore` that burns a gas, and the gas main.** The fire build reserved the word (`gas-lit` names a supply that burns a gas, not a lamp that happens to glow) and made coal gas a real product; nothing yet pipes it.
