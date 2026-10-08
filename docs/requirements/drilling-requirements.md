@@ -30,9 +30,12 @@ prerequisite.
 
 **Verbs a player already has.** The mining five (`hew` · `drive`/`drift` ·
 `sink` · `raise` · `shore`) plus `stake` (*"Stake a mining claim on the
-ground you are standing over"*) and `assay`. ⭐⭐ And `drain` — *"Draw the
-gas out of a working into a sealed vessel"* — which is **already the gas
-wellhead act**. For reading ground: `survey`, `measure`, `analyze`,
+ground you are standing over"*) and `assay`. ⚠ And `drain` — *"Draw the gas
+out of a working into a sealed vessel"* — which is **the nearest shipped
+act and NOT the wellhead one** (corrected at plan grounding): it is
+room-bound twice over and its gas is mediated by the room's atmosphere,
+so what transfers is its **vessel-seal contract** and its four-reason
+refusal vocabulary, not the act. For reading ground: `survey`, `measure`, `analyze`,
 `readings`, `sample`. For fluid: `fill`, `pour`, `spill`, `boil`. For
 moving product: `ship`, `journey`, `hitch`/`unhitch`. For drawing a yield
 off a reservoir into a vessel: `tap`.
@@ -189,6 +192,26 @@ both and neither is sufficient.
 Both factors were fixed before anyone looked. A player's ignorance is
 **what they have not measured**, never what the world has not decided.
 
+### The act is bought, and the hiring DRIVER is this build's
+⚠ Checked at plan grounding, because a subagent reported this as
+unbuildable and the user's recollection was right instead. The runtime
+transitions all ship — taking somebody on, starting and ending a shift,
+the wage settled when the shift ends, choosing a hand by what they are
+capable of, and moving them to where the work is.
+What is **authored** with no runtime setter is the *schedule* — which a
+bore does not need, because a shift can be begun directly.
+
+⭐ So the gap is the one the employment doc already names in its own
+deferred list — *"the `hire`/`fire` Api **exists**; v1 driver is seed
+authoring + the tick's cover"* — and **the driver is this build's to
+write**, not a cross-cutting capability to go and build first.
+⭐⭐ And no autonomy is needed: depth accrues from a hand being **present**
+at the derrick, on the shipped doctrine that *the engine measures presence,
+not virtue*. Nothing wizard-gated is involved.
+⚠ One thing the build must decide rather than inherit: what a player
+**types** to take somebody on, since the shipped appointment verb reaches
+only online targets.
+
 ### The act is bought, not performed
 A bore cannot be sunk alone, and modelling that as *collaboration* would
 gate the content on who is online. It is a **payroll**: the crew may be
@@ -216,6 +239,32 @@ only the saleable one** — draw a crude and the light ends come out
 regardless. So the refinery's margin is *the fraction it can sell minus
 the cost of getting rid of the rest*, and the remainder must be stored
 (it burns), dumped (it poisons a reach, with no sensory tell) or flared.
+
+### ⭐⭐⭐ The fractions are DISTINCT MATERIALS, and a schedule says so
+A refining run yields **different substances**, not one substance in
+several grades. The shipped rule is the opposite — one product material
+per schedule, every fraction made of it, differing only in dose, grade and
+prose — and it exists because **a distiller recombines heads, hearts and
+tails**, which a cross-material pour would forbid.
+
+> ⭐ **That argument is about a POT STILL and stays true for one.** Nobody
+> pours kerosene back into gas oil. A still separates *more or less of one
+> thing*; a column separates *different compounds*. So the kind of
+> separation is a property the **trade declares on its own schedule**, not
+> a law of the substrate.
+
+**Decided by the economy lens, confirmed by pedagogy and expression.** If
+every fraction were one material, **there would be no fraction nobody
+buys** — and *the barrel is mostly waste* is this build's central lesson,
+which a single material cannot express. Pedagogy agrees: still-versus-
+column *is* the lesson, and it is derivable from the chemistry rather than
+authored. And expression rules out the alternative on its own — if a lamp
+had to read a per-instance tag to know it burns, every future consumer
+would have to know about drilling, against the shipped invariant that *a
+lamp burns lamp oil because of what lamp oil is*.
+
+⚠ **Altitude:** that a pot still's fractions recombine is **invariant**.
+Which kind a given schedule is, is **grain** — the trade's to declare.
 
 ### Who owns a body that spans two holdings
 Not decided in code. The world ships **one reservoir under two
