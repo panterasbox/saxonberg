@@ -305,6 +305,30 @@ no invention. The asymmetry resolves the same way: **a place stood up for
 economic reasons can carry invention, but only if the economy belongs to
 somebody.**
 
+#### ⭐⭐⭐ And the stronger version — the economy as biography
+
+Sue, in Minetown (`null/spiffy/areas/minetown/mon/sue.c`, the owner's own
+unpublished work, c. 1996):
+
+> *"Her husband died some years back in a freak mining accident, so now
+> she runs this place to support her daughter, Tina. It's not much, but
+> **the owner of the plant kicks in money to help 'em out once a month**
+> too. The town likes 'em here, so they have **fairly little problem
+> paying the bills.**"*
+
+Three economic facts and every one of them is personal: **the industry
+killed her husband**, which is why the diner exists at all; **the plant
+owner pays her monthly, off the books**, so the town's welfare is a man
+rather than an institution; and **she is solvent because the town likes
+her** — regard as revenue.
+
+⭐⭐⭐ So *"give the business a proprietor with an opinion"* is the weak
+form. The strong form is: **the character's circumstances ARE the
+economy.** Not a business with a person attached — **a business that is
+the consequence of what happened to somebody.** Nothing in that paragraph
+is decoration and nothing in it is a mechanism; it is one woman's history
+read as a balance sheet.
+
 ---
 
 ## 4. ⭐ Homage goes in the details, never the description
@@ -348,6 +372,21 @@ of the joke was discarded — hollowness operating at the scale of a gag.
   anybody else** — the reward for being old is recognition, not access.
 
 ⭐⭐ **The past is findable, never required.**
+
+### ⭐⭐⭐ And the positive half: borrow the place, write the people
+
+Minetown is the owner's own c. 1996 homage to *Tremors* — the setting is
+Perfection, NV, lifted entire. **But Sue the widow, the plant owner's
+handout, the confiscated litter and the kleptomaniac daughter are not in
+the film.** It has no diner and no widow. The place is borrowed; every
+person in it is invented.
+
+That setting held for thirty years. ⚠ Compare Dave, where the *person*
+was inherited and his joke came with him: *Moonlighting* died, and then
+its actor's retirement moved underneath the sentence a second time.
+
+⭐⭐⭐ **Borrowed settings age better than borrowed characters. A setting
+is a premise you build on; a character is a dependency you carry.**
 
 And the better option the platform opens, which EotL could not: **make
 the show diegetic.** We ship publishers, releases, a wiki of typed
@@ -562,20 +601,21 @@ a shift or routing around a committee. There is no moment.
 right** — the only antagonist a world of good people produces, and the
 one the Compact exists to arbitrate.
 
-⭐⭐⭐ **Which suggests the inversion.** Hannah made the immoral path
-*inviting*. Ours has to make the **lawful path look wrong**: the rule
-obviously stupid in that one case, the chaotic choice plainly correct and
-faster and better for everybody in the room, and the engine declining to
-say which. Following the process has to **cost something real, visibly,
-while nobody thanks you** — because if it is free, choosing it reveals
-nothing and the player has solved an incentive rather than decided who
-they are.
+⚠⚠ **RETRACTED, 2026-10-07.** This section first said the inversion was
+to **make the lawful path look wrong** — the rule obviously stupid in that
+one case, so that following it costs something visible and nobody thanks
+you. That was putting the judgment into the level design, which is the
+thing both of these authors specifically did **not** do.
 
-⚠ That is an uncomfortable thing for us to build, since the Compact is
-the house's own project: a first-contact area that makes the lawful path
-look foolish is the platform publishing an argument against itself, in
-content, where it cannot be mistaken for a rule. Which may be precisely
-the point — it is what Hannah did to alignment.
+⭐⭐⭐ **The better answer is § 8a: leave the rule alone, and let
+somebody in the room have an opinion about what you did with it.** You do
+not need the process to be foolish. You need **Earl to notice you skipped
+it.** That is cheaper, it ports to any axis, and it does not require the
+house to publish an argument against its own Compact in content.
+
+What survives of the original reading: following the process still has to
+**cost something**, or choosing it reveals nothing. The correction is only
+about *who says so* — the cast, never the level.
 
 ## 6. ⭐⭐⭐ The composition is the straight man
 
@@ -727,6 +767,297 @@ anybody.
 
 ---
 
+## 8a. ⭐⭐⭐ Where the judgment lives — the engine measures, the cast valuates
+
+Two authors, thirty years apart, made the same move, and it is the most
+transferable thing in this document.
+
+**Minetown.** A player drops something — trivially rude, nothing more. The
+engine imposes **nothing**: no fine, no counter, no message telling them
+they were rude. Instead a child picks it up, carries it to her mother,
+and every other NPC's program is halted so that *"The rest of the room
+stops what they're doing and watches Tina."* Sue keeps it — *"you'd
+better let me keep it 'case someone comes 'round askin for it..."*
+
+**Newbieland.** A player kills Bambi. The engine imposes **nothing** —
+the alignment integer moves, cheerfully, under a sign that says *Have
+fun!* The only judgment anywhere in the area is the fact that the thing
+you killed was named Thumper.
+
+⭐⭐⭐ **In both cases the mechanics decline to judge and the judgment is
+supplied by somebody who lives there.**
+
+Which is [measurement.md](./measurement.md)'s rule with its missing half
+filled in:
+
+> *The engine may read a measurement. It must never read a valuation.*
+
+⭐⭐ **But an NPC may.** A character is allowed to think you are a
+litterbug. The engine is not. So the rule is not a prohibition on moral
+content — it is a statement about **where moral content is allowed to
+live**: not in a rule, not in a counter, **in somebody's reaction.**
+
+### Why this is the cheap version
+
+A judgment in the mechanics has to be designed, balanced, tuned, and
+defended — and the moment it is a number, the player optimises it instead
+of feeling it (§ 5a: *"if it punished you, you would be solving an
+incentive"*).
+
+A judgment in the cast costs **one idle line and one disappointed
+child**, ports to any axis, needs no balancing, and cannot be farmed.
+⭐ And it scales the right way: ten NPCs with opinions give you ten
+judgments; ten rules give you an optimisation problem.
+
+### ⭐ The corollary — a wrong name is content; ignorance is only absence
+
+[rejection-slate](./slates/builds/rejection-slate.md) has the best
+instance: the town calls a life stage *whelps* because it believes they
+are juveniles, and they are not. **A folk taxonomy corrected by
+observation.**
+
+⭐⭐ That is better than having the town simply not know, because *not
+knowing* is a hole and **a wrong name is a thing a player can find the
+edge of.** The same move is available anywhere a cast has to describe
+something it does not understand — a miner's word for a gas, a farmer's
+word for a blight, a shopkeeper's theory about why the price moved. ⚠ It
+also means the correction is content: somebody gets to be the one who
+works it out, which is survey work rather than exposition.
+
+## 8b. ⭐⭐⭐ Plot — what a quest is an abstraction FOR
+
+Narrative has four elements: **setting · plot · character · style.** This
+document has done setting (§ 5), character (§ 2), and style (§§ 2–3).
+⚠ **Plot is the one it had not touched, and Aristotle ranks it first** —
+the soul of the thing.
+
+⭐ **A quest is simply the game's abstraction for narrative**, and
+narrative is a thing with a beginning, a middle and an end, carrying a
+dramatic arc, composed of those four elements. That framing comes from
+screenwriting and the *Poetics*, not from any MUD. ⚠ **Solving the
+abstraction is system design and out of scope here.** What we are
+abstracting *for* is not.
+
+### ⚠ Aristotle sets one condition a persistent world structurally cannot meet
+
+> *A beginning is that which does not itself necessarily follow anything
+> else.*
+
+**A persistent world is nothing but things that follow something else.**
+You do not arrive at a scene; you arrive at hour 340 of your own life, in
+a town that has been running without you. There are no beginnings
+available — which is why the standard MUD quest fakes one by having a
+stranger recite exposition to somebody who already lives there.
+
+⭐⭐⭐ **The resolution is also in the Poetics: the world supplies the
+beginning, and the quest supplies the turn.** The arc did not start when
+the quest did. It started when you took the job, borrowed the money,
+annoyed Earl. The quest is the **peripeteia** — the reversal in a story
+the world has been writing since you logged in. So a quest's opening beat
+is never *"let me tell you about this valley."* It is **something changing
+in a situation that was already yours.**
+
+### ⭐⭐ And Aristotle's unity test is immediately usable
+
+> *Remove any part and the whole is destroyed.*
+
+**Sue passes it.** Take out the dead husband and the diner has no reason
+to exist. ⚠ **The ancestor's 48 `set_quest` files do not** — remove any
+one and the town is exactly as it was, which is why nobody remembered a
+single one of them. Of 36 applicants naming their favourite object across
+eighteen years, **not one named a quest.**
+
+⭐ What they named instead, repeatedly, was *extended ordinary
+engagement*: *"I found new things for many months after first going
+through it"* · *"I can return again and again and not feel that it is
+trite"* · and the best of them, ⭐⭐ *"I remembered spending hours in the
+desert searching around by the stone tablet because I was convinced this
+was the spot to join the assassins guild. **I was clearly mistaken.**"*
+**No author wrote that quest. The player wrote it, and the place let
+them.**
+
+### Optimise for the first run
+
+⭐ Some quests may repeat, and **there are genuine second runs** — more
+than one character per player, concurrently if they like. ⭐⭐ That makes
+an alt a *better* comparison class than another player, because the same
+person is behind both and can deliberately probe a branch rather than
+hearing about it secondhand. (It also means the second character knows
+things the first did not, which is its own content problem.)
+
+**But the first experience is the real one, and that is what to optimise
+for** even where more is allowed.
+
+### The models, by where the drama lives
+
+Different models have genuinely different strengths; there is no winner.
+The axis that separates them is **where the drama is kept.**
+
+| model | exemplars | drama lives in | ⚠ its weakness |
+|---|---|---|---|
+| **authored branch** | Witcher 3, Disco Elysium | the written node | combinatorial cost; most content unseen; **the world must freeze so branches stay valid** |
+| **checklist** | WoW and its children | nowhere | a progress bar wearing a story |
+| **emergent** | Dwarf Fortress, RimWorld, CK3 | the simulation, unnarrated | **no arc** — simulations make incidents, and the player must do the authorship |
+| **archaeological** | Dark Souls, Gone Home | the past | past tense; and § 5 says it is the tradition we are worst suited for |
+| **knowledge-only** | Outer Wilds | what you understand | once only; spoilers destroy it |
+| **faction framing** | New Vegas, STALKER | who you did it for | forces the world into camps; collapses into "pick your ending" |
+| **nemesis** | Shadow of Mordor | **a relationship that remembers** | one register — it only does enmity. ⚠ **And no third act:** it escalates forever and nothing is authored to end |
+| **assessment** | Obra Dinn, Her Story | the player's understanding | once only; anti-social |
+| **contract** | EVE, Elite, and our [contract.md](./subsystems/contract.md) | the player's trajectory | looks arc-less — ⚠ **see below, this was wrong** |
+
+⭐⭐ **Two of these converge on § 8a.** If judgment lives in the cast and
+never in a rule, then drama probably lives there too — which points at
+**nemesis**, not at a branch tree. And we built it once already: Tina's
+`friends`/`foes`, persistent across reboots, recording *where* you
+attacked her. Nemesis for a child with a pogo stick, in 1996 — and its one
+documented weakness, *it only does enmity*, is the weakness she does not
+have, because her friend branch is *"hey you're back again!"*
+
+### ⭐⭐⭐ Contract and nemesis are complements, not rivals
+
+A first draft of this section waved contracts off as having no dramatic
+arc. **That was exactly backwards.** Nemesis has no third act; ⭐⭐⭐ **a
+contract is nothing *but* a third act.** It settles or it does not. That
+is Aristotle's *end*, structurally, for free — and it is the one thing a
+relationship model can never supply on its own.
+
+So: **the relationship supplies the recurring party, and the contract
+supplies the arc that closes.** Not every quest wants a contract and not
+every contract should be a quest, but the relationship between the two is
+load-bearing, and it is load-bearing *because* of the role economics
+plays here.
+
+### ⭐⭐⭐ The middle, and why it is ours
+
+Nearly all dramatic and comedic content sits at one of two poles:
+
+- **the ordinary** — the family sitcom, the workplace sitcom
+- **the extraordinary** — doctors, lawyers, cops
+
+**And the middle gets edged out.** Nobody makes a show about a surveyor
+or a millwright. The cause is specific: the ordinary pole works because
+**the characters carry it** (you watch Cheers for Sam and Diane, not for
+bartending); the extraordinary pole works because **the stakes carry it**
+(you watch ER for the trauma, not for Dr. Greene); ⚠ and the middle has
+neither — stakes too low to carry it, a job too specific to be about
+character. So it is about surveying, and nobody watches.
+
+⭐⭐⭐ **But that is a fact about being *watched*.** You have no stake in
+the survey. In a game **you did the survey**, and participation
+substitutes for stakes. Nobody would watch a show about running a small
+farm; millions play one. Nobody would watch a man drive a lorry across
+Europe; that is a genre.
+
+**So the middle is not a gap to be clever about. It is the register games
+own outright and television had to abandon — and it is what the quest
+layer has to capture.**
+
+### The eight ways an ordinary contract turns
+
+⭐ *"An ordinary contract can turn out to be anything but."*
+
+| | the turn | who supplies it |
+|---|---|---|
+| 1 | **the job is not what it said** — you are hauling crates; the crates are something else | an author |
+| 2 | **the client is not who they said** | an author |
+| 3 | ⭐ **the counterparty becomes a person** | regard and belief, nearly free |
+| 4 | ⭐⭐ **two obligations that cannot both be honoured** | **the world** — real contracts, real parties |
+| 5 | **completion costs more than the fee** — finishing is worse than defaulting | either |
+| 6 | ⭐⭐ **somebody wants it *not* done** — and here that somebody is a player | **the world** |
+| 7 | **the deadline collides with the world** — winter, a flood, a death | the world |
+| 8 | ⭐⭐ **you cannot be paid** — insolvent, dead, or gone | **the world**; [credit.md](./subsystems/credit.md)'s estate already models it |
+
+⭐⭐⭐ **Four, six and eight do not exist in single-player games.** They
+must be faked there with authored antagonists and scripted betrayals. We
+get them as a consequence of there being an economy with other people in
+it — so *staging it in a persistent multiplayer setting* inverts: **that
+setting is where the turns get cheap.**
+
+⚠⚠ **And most contracts must not turn.** If a meaningful fraction do, the
+ordinary ones stop reading as ordinary and the instrument is spent. ⭐ The
+authored thing is therefore not the turn — **it is the appearance of
+ordinariness.** A contract that turns should have looked like the last
+forty you took. That is the bus-ad structure one layer up: *Savings and
+Loan* was read five hundred times before it was a joke (§ 5).
+
+### ⭐⭐⭐ Mostly authored — and the control experiment exists
+
+**The quests players most like are the most personal ones: the ones that
+come off as the most hand drawn.** Some of that can be faked with rich
+systems capturing a lot of state, ⚠ **but even those systems need a
+creative mind to give them narrative weight.**
+
+⚠⚠ **Skyrim's Radiant Story is the control experiment, and it failed.**
+The most ambitious procedural quest system shipped in AAA — it reads your
+state, finds a nearby dungeon, a nearby enemy, a nearby NPC who wants
+something there. *"Radiant quest"* is now a byword for worthless. Rich
+state, infinite generation, **no creative mind giving it weight.**
+
+⭐⭐⭐ **And in every case where a system did produce memorable narrative,
+a person wrote it:**
+
+- **Nemesis** — the weight is your own history with that orc; the taunts
+  are hand-written lines. The system assembled, a writer supplied the
+  voice.
+- **Dwarf Fortress** — the legendary stories are legendary because **a
+  player wrote them down.** Boatmurdered is a document a human composed
+  *about* a simulation. The system made events; a person made the
+  narrative.
+- **CK3 · RimWorld** — hand-written events, systemic *ordering*.
+- **Levine's "narrative legos"** are the explicit statement of this, and
+  the legos are **hand-carved** — which is why it has taken twelve years
+  and not shipped.
+
+**Nobody has ever shipped a system that writes.** In every success the
+system does **selection and assembly** and a person does the
+**composition**.
+
+⚠ Which corrects a claim this section made first: *branch on
+circumstances, not on choices* implied that the content varies with state.
+⭐ The honest version is smaller and buildable: **circumstances decide
+which hand-drawn piece fires, and to whom, and when. State ADDRESSES the
+content; it does not generate it.**
+
+### ⭐⭐ What makes a quest read as hand-drawn
+
+Five tells, and the last is the one worth building on.
+
+1. **Specificity.** It names a person, a place, an object, an amount. A
+   generated one says *"a nearby bandit camp."* Costco, not big box
+   stores (§ 3).
+2. ⭐ **It knows something only a person would have noticed.** *"The owner
+   of the plant kicks in money to help 'em out once a month."* Nobody
+   systematises that. **An irrelevant true detail is a human signature.**
+3. **Somebody has an opinion about it** (§ 8a). A generated quest has no
+   attitude; Snappy's bread costs 48 because he is *proud* of it.
+4. **It is one person's problem, not a category.** *Earl will not
+   re-timber the north drift* — that Earl, that drift, this week.
+5. ⭐⭐⭐ **It contains somebody's error.**
+
+That last is the tell no generator can produce. **A generated quest is
+always factually correct about its own world**, because it reads the same
+state the engine does. It *cannot* be wrong.
+
+A hand-drawn one is full of error, and the error is where the person is:
+
+- the town calls a separate life stage **whelps** and is wrong about it
+- **Bubo** shouts *Eureka* and retracts it, and will again in thirty
+  seconds
+- an applicant spent *hours* convinced the stone tablet was the assassins'
+  guild entrance, **was clearly mistaken**, and remembered that area
+  fondly for thirty years *because of it*
+- **Sue** says *"I'm sure **he'll** be glad to get it back"* regardless of
+  who actually owns the thing
+
+⭐⭐ **Error is the signature of authorship, and it is free.** It costs
+nothing for a character to be confidently wrong, no system can accidentally
+produce it, and it is the cheapest way to make a quest feel drawn by hand —
+because **only a person can be mistaken about a world they made up.**
+
+Which unifies § 8a's corollary with this one: a wrong name is not only
+content, it is **proof of an author**, and a player feels the difference
+without being able to name it.
+
 ## 9. ⚠⚠ Cultural content, and why launch cannot have any
 
 **Cultural content is what the players know that the text never said.**
@@ -774,6 +1105,37 @@ the ancestor's 41 % corpus mean.
 ⭐⭐⭐ **The millsite is a treatment that never got a scene pass.** A
 lobby people walk through to reach the storage object.
 
+### ⚠⚠ Except the evidence says the halves fail in both directions
+
+Five instances of one failure, in five orientations, across everything
+read in [eotl-craft.md Part 4](./eotl-craft.md):
+
+| | built | stubbed |
+|---|---|---|
+| Gnomelands `rooms/palace/` | 23 finished rooms | no story — *"the story never really made sense"* |
+| newbieland Heaven's Gate | the door | no afterlife behind it |
+| Minetown `handy.c` | the shop | **no Val, no Earl** — only a `present("val")` hook |
+| Minetown `diner.c` | **85 lines of Sue and Tina** | *"a diner"* |
+| the millsite (ours) | the mechanism | the prose |
+
+⭐⭐ **It is not laziness, and it is not a method problem. The halves get
+built independently, and whichever one the author enjoys gets finished.**
+Malifax finished descriptions and abandoned a quest. Hannah finished a
+moral argument and left a door to nowhere.
+
+⚠⚠ **And this corrects the self-assessment above, for the second time.**
+The stated method is treatment-and-setting first with dialogue and
+character handed to a partner. But the bus advertisements are pure voice;
+Sue and Tina are among the most characterized NPCs in forty-five thousand
+files, with persistent per-player memory and a beat timed to land after a
+child leaves the room; and the room Sue lives in is *"a diner."*
+
+**The half being called somebody else's is the half that demonstrably
+gets finished.** Which inverts the risk: the thing to watch for is not
+*will the scene pass happen* — it is **will the setting ever get past a
+stub.** Terminus's function-named districts, below, are what that looks
+like at map scale.
+
 ⚠ A related map-scale symptom: nearly every district in Terminus is named
 for its **function** — counting-houses, general-store, market, registry,
 realty, gazette, infirmary, terminal, public-works. A function name
@@ -807,10 +1169,15 @@ there.**
 2. ⚑ **State the personality, derive the performance** — proposed in
    § 2, unratified. `converses` reads exactly **1 of 19** disposition
    axes and is used by nobody; Dave would be its first consumer.
-3. ⚑ **Everyday versus exceptional.** *What are the everyday stories
-   these areas tell, and what are the exceptional events we build quests
-   around?* The ancestor answered emphatically and by accident: **48
-   `set_quest` calls in 45,380 files — 0.1 %.** Essentially all everyday.
+3. ✅ **Everyday versus exceptional — largely answered in § 8b.** The
+   ancestor's ratio was **48 `set_quest` in 45,380 files, 0.1 %**, and of
+   36 applicants naming a favourite object **not one named a quest.** The
+   answer is not a ratio, it is a relationship: ⭐ **the world supplies
+   the beginning and the quest supplies the turn**, so the exceptional is
+   the ordinary machinery pointed at one moment. ⚑ **What is left open is
+   the ratio of turns** — most contracts must not turn or the instrument
+   is spent, and the honest figure is probably closer to 0.1 % than to
+   anything a quest log would imply.
 4. ⚑ **Personal style** — how to frame it at all. The reference sample
    is § 2's narrator voice, not the bus ads.
 5. ⚑ **The rule that is obviously stupid in one specific case** (§ 5a).
@@ -821,7 +1188,17 @@ there.**
    it?** The launch corpus is the setup (§ 9) and first contact is the
    highest-leverage part of it (§ 5a), but the ordinary low-traffic
    middle — most of Terminus — has no answer yet.
-7. ⚑ **Which of these are secretly tier 2** (§ 0) and should become
+7. ⚑ **The contract taxonomy, against the quest taxonomy** (§ 8b).
+   Contract-quests may be one class among a fixed set — but contracts have
+   a taxonomy of their own, and how the two sets relate is undecided. ⚠ The
+   abstraction itself is system design; what belongs here is **which turns
+   an author authors and which the world produces.**
+8. ⚑ **Nemesis has no third act, and a contract has nothing else.**
+   Pairing them is the proposal; nobody has built it. The open risk is
+   that a relationship which escalates forever is a *great character with
+   no ending* — Shadow of Mordor's real flaw — and a contract that closes
+   may not be enough to resolve one.
+9. ⚑ **Which of these are secretly tier 2** (§ 0) and should become
    subsystem doctrine with a gate behind it.
 
 ---
