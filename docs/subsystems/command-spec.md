@@ -641,10 +641,24 @@ makes rung 2 work. The consequence is that a quoted token's quote marks
 are part of that source, so until the reachability sweep a greedy field
 fed `"dog loaf"` bound the quotes along with it. The rule now:
 
-- **one token, and it was quoted** → the unquoted value. The player used
-  quoting for what it is for.
-- **several tokens** → the source slice, verbatim. An interior quote is
-  part of what was written (a headline, a line of dialogue).
+- **a BOUNDED greedy field** (rung 1 — one the grammar stops with a later
+  field's `prepositions:`) fed exactly **one quoted token** → the unquoted
+  value. That field holds a NAME to be matched, and a player who quotes it
+  is using quoting for precisely what it is for: *treat this phrase as one
+  argument.*
+- **a TRAILING greedy field** (rung 2 — the rest of the line: `say`,
+  `tell`, `press post`) → the source slice, **verbatim, quotes and all.**
+  That is free text and the quotes are content: if you say *she said
+  "no"* you want them in your speech.
+- **several tokens**, either way → the source slice. An interior quote in
+  a phrase is part of what was written.
+
+⚠⚠ The first cut of this rule unquoted a lone quoted token on ANY greedy
+field, and the full suite caught it on `say` —
+`command-assembly.test.ts > keeps quotes literal inside the greedy slice`
+had pinned the behaviour, correctly, and `collectLaterPrepositions` is
+what tells the two rungs apart. ⭐ The test is whether the grammar CAN
+bound the field, never whether the player used the boundary.
 
 ### `default:` — fill-in when the player typed nothing
 

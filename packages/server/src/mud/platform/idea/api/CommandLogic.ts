@@ -2471,8 +2471,8 @@ function bindPositionals(
         }
       }
       /**
-       * ⭐⭐⭐ **A greedy span that is exactly ONE QUOTED token binds the
-       * token's value, not the source slice.**
+       * ⭐⭐⭐ **A BOUNDED greedy span of exactly one quoted token binds the
+       * token's value; a TRAILING one keeps the source slice verbatim.**
        *
        * The branches below build the field from a substring of the
        * ORIGINAL SOURCE, deliberately, so that interior whitespace and
@@ -2495,16 +2495,39 @@ function bindPositionals(
        * through `assemble`: the only coverage was a lex/format
        * round-trip.
        *
-       * ⭐ The rule is narrow on purpose. ONE token that was quoted means
-       * the player used quoting for the thing it is for — *treat this
-       * phrase as a single argument* — so the unquoted value is what they
-       * meant. SEVERAL tokens is free text, where an interior quote is
-       * part of what was written (a headline, a line of dialogue) and the
-       * source slice remains right.
+       * ⚠⚠ **The first cut of this rule was too broad and the suite said
+       * so.** It unquoted a lone quoted token on ANY greedy field, which
+       * broke `say "hello world"` — a shipped, documented, tested
+       * behaviour where the quotes are the point: if you say *she said
+       * "no"* you want the quotes in your speech.
+       * `command-assembly.test.ts` pins it, correctly.
+       *
+       * ⭐⭐ The discriminator is the one `command-spec.md § The phrase
+       * ladder` already draws, and it is structural rather than a taste:
+       *
+       *  - **rung 1 — a BOUNDED greedy field**, one the grammar stops with
+       *    a later field's `prepositions:` (`buy … from`, `bake … at`,
+       *    `ship … to`). That field holds a NAME, something to be matched
+       *    against a keyword, and a player who quotes it is using quoting
+       *    for exactly what it is for: *treat this phrase as one
+       *    argument.* So the unquoted value is what they meant.
+       *  - **rung 2 — a TRAILING greedy field**, which is the rest of the
+       *    line (`say`, `tell`, `press post`, `focus`). That is FREE TEXT,
+       *    the quotes are content, and the verbatim source slice is right.
+       *
+       * ⭐ `collectLaterPrepositions` is the test, not `stopAt`: whether
+       * the grammar CAN bound this field, never whether the player
+       * happened to use the boundary. `buy "dog loaf"` unquotes with or
+       * without a `from` clause; `say "hello"` never does.
+       *
+       * ⚠ And SEVERAL tokens is free text either way — an interior quote
+       * in a phrase is part of what was written, so the slice stands.
        */
       const greedySpan = positionals.slice(pi, stopAt);
       const loneQuoted =
-        greedySpan.length === 1 && greedySpan[0]!.raw !== greedySpan[0]!.value
+        laterPreps.size > 0 &&
+        greedySpan.length === 1 &&
+        greedySpan[0]!.raw !== greedySpan[0]!.value
           ? greedySpan[0]!.value
           : null;
       if (stopAt === pi) {

@@ -1912,6 +1912,41 @@ shopkeeper inside the till, and a 71-row content census. **That ratio is
 the argument for driving:** the suite was green through every one of
 them.
 
+### ⚠⚠ What the FULL SUITE then found — two of mine, both load-bearing
+
+The suite runs once before the MR, and it earned it.
+
+**1. `say "hello world"` must keep its quotes, and my binder rule broke
+it.** `command-assembly.test.ts > keeps quotes literal inside the greedy
+slice` asserts `say "hello world"` → `"hello world"`, **with the
+punctuation** — and that test is right: if you say *she said "no"* you
+want the quotes in your speech. W1's rule unquoted a lone quoted token on
+ANY greedy field, which is too broad.
+
+⭐ The discriminator is the phrase ladder's own, and it is structural:
+a **BOUNDED** greedy field (rung 1 — one the grammar stops with a later
+field's `prepositions:`) holds a NAME, and quoting it means *treat this
+phrase as one argument*; a **TRAILING** greedy field (rung 2 — `say`,
+`tell`, `press post`) is free text and the quotes are content.
+`collectLaterPrepositions` is the test, and deliberately so: whether the
+grammar CAN bound the field, never whether the player used the boundary.
+⚠ My own greedy-quoting test had asserted the trailing case; it asserts
+the correct rule now, with the `say` behaviour pinned beside it.
+
+**2. `Login.verbs.test.ts` asserts its `self` bucket EXACTLY** — *"and
+nothing else"* — so `prompt` arriving via `HasInteractiveMixin` failed
+it. ⭐ The addition is right and the test's expectation moved: the enroll
+machine is built out of prompts, and the one moment a player most needs
+to dismiss a stuck question is before they have a body. A `prompt cancel`
+that worked only after `embody` would be the hatch locked on the inside.
+The test now carries that reasoning, because it is the record of what the
+pre-world phase may say.
+
+⭐ Both failures are a test doing exactly the job the file was written
+for, and neither was reachable from `test:near`. 12,918 server tests,
+1,003 client; two failures, both mine, both fixed with the reason written
+down.
+
 ⚠⚠ And the carcass-chain file had to be run four times before it was
 green, for a reason that is this build's doing: W3 hung two more
 herdbooks on the farmstead shelf, and three of that file's reads said

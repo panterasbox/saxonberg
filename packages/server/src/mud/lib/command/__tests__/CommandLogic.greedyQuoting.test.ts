@@ -77,16 +77,41 @@ describe('a greedy field fed exactly one quoted token', () => {
     expect(bind('post "dog loaf" to board').line).toBe('dog loaf');
   });
 
-  it('⭐ and does so when the greedy field runs to end-of-input', () => {
-    expect(bind('post "dog loaf"', TRAILING).line).toBe('dog loaf');
+  it('⭐ and does so with or without the boundary actually being used', () => {
+    // The test is whether the grammar CAN bound the field, never whether
+    // the player reached the boundary.
+    expect(bind('post "dog loaf"').line).toBe('dog loaf');
   });
 
   it('strips an escape the same way', () => {
-    expect(bind('post dog\\ loaf', TRAILING).line).toBe('dog loaf');
+    expect(bind('post dog\\ loaf').line).toBe('dog loaf');
   });
 
   it('leaves an ordinary single token alone', () => {
-    expect(bind('post torch', TRAILING).line).toBe('torch');
+    expect(bind('post torch').line).toBe('torch');
+  });
+});
+
+describe('⭐⭐ a TRAILING greedy field is free text, quotes and all', () => {
+  /**
+   * ⚠⚠ The first cut of this rule unquoted a lone quoted token on ANY
+   * greedy field, and the suite caught it:
+   * `command-assembly.test.ts > keeps quotes literal inside the greedy
+   * slice` asserts `say "hello world"` → `"hello world"`, **with the
+   * punctuation**, and that test is right. If you say *she said "no"* you
+   * want the quotes in your speech.
+   *
+   * ⭐ So the discriminator is the phrase ladder's own: a field the
+   * grammar can BOUND with a later preposition holds a NAME (rung 1, and
+   * quoting it means *one argument*); a TRAILING field is the rest of the
+   * line (rung 2, and the quotes are content).
+   */
+  it('keeps a lone quoted token verbatim — this is `say`', () => {
+    expect(bind('post "hello world"', TRAILING).line).toBe('"hello world"');
+  });
+
+  it('and an escape is still processed, because that is not quoting', () => {
+    expect(bind('post a\\ b', TRAILING).line).toBe('a b');
   });
 });
 

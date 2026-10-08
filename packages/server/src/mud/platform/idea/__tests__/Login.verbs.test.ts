@@ -22,9 +22,31 @@ describe('⭐ Login affords exactly the pre-world verb set', () => {
       .flatMap((d) => d.verbs)
       .sort();
 
-  it('the self bucket is embody, play and cockpit — and nothing else', () => {
-    expect(selfVerbs()).toEqual(['cockpit', 'embody', 'play']);
+  it('the self bucket is embody, play, cockpit and prompt — and nothing else', () => {
+    expect(selfVerbs()).toEqual(['cockpit', 'embody', 'play', 'prompt']);
   });
+
+  /**
+   * ⭐ Why `prompt` belongs here, since this test is the record of what
+   * the pre-world phase may say.
+   *
+   * The reachability sweep found `prompt` afforded by NOTHING — view and
+   * controller shipped, no static named the file — and put it on
+   * `HasInteractiveMixin.self`, because *a prompt is addressed to a
+   * CONNECTION* and whoever has a human on the other side is who can
+   * clear it. `Login` composes that mixin, so it arrives here.
+   *
+   * ⭐⭐ And it is RIGHT rather than collateral: the enroll machine is
+   * built out of prompts, and the one moment a player most needs to
+   * dismiss a stuck question is before they have a body. A `prompt
+   * cancel` that worked only after `embody` would be the hatch locked on
+   * the inside.
+   *
+   * ⚠ It is not a world verb — the test below still refuses
+   * `go`/`say`/`take`/`look`/`who` — and it reaches no world state: the
+   * controller cancels pending prompts on this connection and nothing
+   * else.
+   */
 
   it('no world verbs leak into the pre-world phase', () => {
     const verbs = selfVerbs();
