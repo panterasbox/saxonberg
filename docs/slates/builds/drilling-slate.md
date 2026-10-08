@@ -646,3 +646,70 @@ Three consequences worth building on:
   substance, same recipe, opposite value, one era later. Lens 5 with teeth
   rather than as an assertion — and the strongest argument this vertical
   makes for keeping `epoch` a derived read rather than a gate.
+
+## ⭐⭐ The physical walkthrough — stage by stage, and what each rides (2026-10-08)
+
+Walked end to end in conversation (*"its underground, how do you even
+know where to drill… all the way to waste and consumer goods"*). Recorded
+as the stage list with its attach point, because the striking result is
+how little of it is new: the technique is new and almost every **mechanism
+it needs already ships for something else.**
+
+| stage | the act | rides |
+|---|---|---|
+| **know where** | outcrop dip/strike projected down | `Deposit.surfaceReadingAt(x, y, errorDeg, seed)` |
+| | seeps · gas vents · burning springs · ⭐ **salt springs** | surface content; the charge channel |
+| | ⭐⭐⭐ **other people's logs** | the per-player **map** document — see below |
+| | the **dowser** | `uncertainty.md` — mysticism as a correlation with no mechanism, legal |
+| **make the hole** | raise a derrick of local timber | forestry's bole + lengths |
+| | cut: a heavy bit dropped on a cable, lifted by a walking beam | ⭐ the power ladder — men (`LoadDevice`) → draft animal (hitch/unhitch) → water → steam |
+| | **bail** out cuttings and water, then go back in | ⭐ the dominant time cost; a durative engaged cycle with an employed crew |
+| | **case** it, to hold the hole and keep water out | smithing demand; the `sealed` rung as a physical necessity |
+| | the rate itself | ⭐⭐ `hardnessMPa` — the strata's own number, documented as *"what carve cost is priced on"* |
+| **the failures** | lost tools (the real term is **fishing**) · caving · water ingress · blowout | ⭐ the driller's craft, and the discipline split proved |
+| **run it** | depth accumulates per cycle; a crew on shifts | employment — positions, shifts, wages, the roster tick |
+| **it dies** | ⭐⭐ flowing → pumped → stripper → abandoned, as a **CURVE** | the pressure read; and ⚠ an uncapped hole is a **liability** |
+| **containment** | separate: oil + gas + water + sand, settled by standing | bulk + vessels |
+| | the oil | ⭐ `oil-cask` / `lamp-oil-cask` **already ship** |
+| | the gas | the **gasometer**, shipped by the fire build |
+| | the brine, piped to the pan | ⭐ `watershed.md`'s **`Conduit`** ladder. ⚠ Three unrelated things are already called `Conduit` — name with care |
+| **transport** | barrels on wagons | ⭐ `teamstering` ships; induced lanes, Route/Journey, the depot, the cost surface |
+| | then the **pipeline** | `Conduit` again — and see below |
+| **waste** | the fractions nobody buys; **produced water** | the fire risk · `contaminationAt` · the flare |
+
+### The four findings worth building on
+
+1. ⭐⭐⭐ **A drilling log is a map CLAIM.** Every hole ever drilled is a
+   data point about the column, and a surveyor's real asset is *other
+   people's logs*. The per-player map document already has the exact
+   semantics: channels `walked` · `seen` · `searched` · **`published`**,
+   where **claims append and nothing is corrected.** So a false log stays
+   on the record for ever, publishing is a choice, and a kept secret has
+   value — the surveyor's whole reputation economy, with no new substrate.
+   ⚠ Candidate reuse, not verified: the map doc is per-player and about
+   *place* knowledge. Check the fit before the requirements commit to it.
+2. ⭐⭐ **Decline is a curve, not an event.** No *"depleted!"* notice ever
+   fires. The player watches a pressure gauge fall and decides **when to
+   stop paying for the well** — a business judgment rather than a
+   notification, and the honest form of *legible before irreversible*.
+3. ⭐⭐ **The pipeline obsoletes a shipped player trade.** Barrels leaked
+   and cost more than the oil, so the pipeline wins — and the teamsters
+   fought the real ones, with sabotage. `teamstering` is a shipped
+   Discipline, so this is the first vertical where **an investment
+   destroys a vocation whose practitioners have standing to object.** Same
+   shape as kerosene ending the whale fishery; both land in a polity that
+   has courts. ⚠ Price it deliberately at requirements — it is strong
+   pedagogy and a real loss to whoever invested in the cart.
+4. ⭐⭐⭐ **The same fluid is one well's product and another's poison.**
+   Produced water rises as a well ages; dump it and it salts the soil and
+   kills the reach. Brine is **money** at a salt well and a **disposal
+   cost** at an oil well — identical material, opposite sign, decided
+   entirely by what else came up the hole. The best teaching object in the
+   vertical, and nobody authors a lesson about it.
+
+⭐ **Two products, two failure modes, one technique.** Water ingress ruins
+a brine well's concentration and an oil well does not care; a blowout is
+the oil and gas failure and brine has no pressure to speak of. The same
+hole, drilled the same way, fails differently depending on what is down
+there — which is what makes the brine rung a *rung* rather than a
+re-skin.
