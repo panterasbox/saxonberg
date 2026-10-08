@@ -27,6 +27,9 @@ const ZONE = '/test/graph/zone';
 const HALL = '/test/graph/zone/hall';
 const YARD = '/test/graph/zone/yard';
 const KIND = '/test/graph/zone/dormroom';
+const STAIR_KIND = '/test/graph/exits/stair';
+const FORD_KIND = '/test/graph/exits/ford';
+const BANK = '/test/graph/zone/bank';
 
 /** The in-memory `location_graph` store. */
 let graph: Array<Record<string, unknown>>;
@@ -56,6 +59,37 @@ beforeEach(() => {
     },
     // A KIND: a plain CartesianLocation, minted many times.
     { path: KIND, class: '/platform/location/CartesianLocation', data: {} },
+    /*
+     * ⭐ Two exit KINDS and a place that names them. The kind rows are
+     * what carry `media` / `wheelPassable` / `conditional` in real
+     * content — a stair declares its refusal ONCE and every stair
+     * installed from it inherits — so a projection that read only the
+     * edge spec would stamp an empty media list on every kinded exit
+     * in the realm, which reads as *admits everything*.
+     */
+    {
+      path: STAIR_KIND,
+      class: '/platform/idea/Exit',
+      data: { media: ['ground'], wheelPassable: false },
+    },
+    {
+      path: FORD_KIND,
+      class: '/platform/idea/Exit',
+      data: { media: ['ground'], wheelPassable: true, conditional: true },
+    },
+    {
+      path: BANK,
+      class: '/platform/location/SingletonCartesianLocation',
+      data: {
+        exits: {
+          up: { destination: HALL, kind: STAIR_KIND },
+          east: { destination: YARD, kind: FORD_KIND },
+          west: { destination: HALL, media: ['water'] },
+          // ⛔ An authored block is a way that is NOT THERE.
+          down: { destination: YARD, blocked: true },
+        },
+      },
+    },
   ]);
 
   /**
@@ -187,6 +221,64 @@ describe('what becomes a node', () => {
     expect(edges[0]!.bidirectional).toBe(true);
   });
 
+  describe('the edge carries what a lane needs (routing W5)', () => {
+    const edgesOfBank = (): Array<Record<string, unknown>> => {
+      const bank = nodeRows().find((n) => n.identity === BANK)!;
+      return bank.edges as Array<Record<string, unknown>>;
+    };
+    const byDir = (dir: string): Record<string, unknown> =>
+      edgesOfBank().find((e) => e.dir === dir)!;
+
+    it('⭐⭐ reads media and wheelPassable off the exit KIND row', async () => {
+      // Before this, the index could COST a wagon's route but not say
+      // whether a wagon may take it — which is the whole reason a lane
+      // had to be compiled by walking live exits one at a time.
+      await standRegistry();
+      expect(byDir('up').media).toEqual(['ground']);
+      expect(byDir('up').wheelPassable).toBe(false);
+    });
+
+    it('lets the edge spec override the kind', async () => {
+      await standRegistry();
+      expect(byDir('west').media).toEqual(['water']);
+    });
+
+    it('⭐⭐ stamps `conditional` from the kind — the way that CLOSES', async () => {
+      await standRegistry();
+      expect(byDir('east').conditional).toBe(true);
+      // ⚠ And only there: an ordinary stair is not a ford.
+      expect(byDir('up').conditional).toBeUndefined();
+    });
+
+    it('⛔ an authored `blocked: true` spec projects NO EDGE at all', async () => {
+      // A blocked edge is a way that is not there, not a way the
+      // search has to refuse — leaving it in would make every consumer
+      // re-derive the same exclusion.
+      //
+      // ⚠ Measured at W5: there are ZERO authored `blocked: true`
+      // specs in all of content, so this rule ships exercised ONLY by
+      // this test. A regression in it would be invisible anywhere else.
+      await standRegistry();
+      expect(edgesOfBank().map((e) => e.dir).sort()).toEqual([
+        'east',
+        'up',
+        'west',
+      ]);
+    });
+
+    it('omits all three on a plain edge, which is what absent MEANS', async () => {
+      await standRegistry();
+      const hall = nodeRows().find((n) => n.identity === HALL)!;
+      const north = (hall.edges as Array<Record<string, unknown>>)[0]!;
+      // Absent media = the ground pace family; absent wheelPassable =
+      // admits wheels; absent conditional = always there. Writing the
+      // defaults in would bloat every node for no reader.
+      expect(north.media).toBeUndefined();
+      expect(north.wheelPassable).toBeUndefined();
+      expect(north.conditional).toBeUndefined();
+    });
+  });
+
   it('⭐ everything reads PUBLISHED when no parcel covers it', async () => {
     // An untitled path is not a wall: there is no parcel there to be
     // one, and `lint:untitled` already forbids shipping one.
@@ -277,8 +369,10 @@ describe('the reads, through the Api', () => {
       NavigationApi.nodesInZone(ZONE),
       NavigationApi.interzoneSkeleton(),
     ]);
-    // One node per place, not four copies of each.
-    expect(nodeRows()).toHaveLength(2);
+    // One node per place, not four copies of each. ⚠ Three places:
+    // the two exit KINDS added for the edge-field tests are kinds, not
+    // places, and must not appear here.
+    expect(nodeRows()).toHaveLength(3);
     expect(new Set(nodeRows().map((n) => n.generation)).size).toBe(1);
   });
 
@@ -288,13 +382,18 @@ describe('the reads, through the Api', () => {
     const hall = await NavigationApi.node(HALL);
     expect(hall?.identity).toBe(HALL);
     const inZone = await NavigationApi.nodesInZone(ZONE);
-    expect(inZone.map((n) => n.identity).sort()).toEqual([HALL, YARD].sort());
+    expect(inZone.map((n) => n.identity).sort()).toEqual(
+      [HALL, YARD, BANK].sort(),
+    );
   });
 
   it('⭐ the REVERSE query names who points at a place', async () => {
     await standRegistry();
     const pointing = await NavigationApi.pointingAt(YARD);
-    expect(pointing.map((n) => n.identity)).toEqual([HALL]);
+    // ⚠ The bank points at the yard through its FORD edge; its
+    // `blocked` one is not in the index at all, which is why there is
+    // one entry for the bank and not two.
+    expect(pointing.map((n) => n.identity).sort()).toEqual([BANK, HALL].sort());
   });
 
   it('removing a row un-projects its node', async () => {

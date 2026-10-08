@@ -407,7 +407,7 @@ export default class LocationGraphRegistry extends Idea {
     node.zone = await this.zonePathOf(row.path);
     node.address = typeof data._address === 'string' ? data._address : '';
     node.coords = this.coordsOf(data);
-    node.edges = this.edgesOf(data);
+    node.edges = await this.edgesOf(data);
     node.published = this.publishedAt(row.path);
     node.travel = this.travelOf(data);
     node.crossesZone = await this.crossesZone(node);
@@ -511,15 +511,64 @@ export default class LocationGraphRegistry extends Idea {
     return [n(c.x), n(c.y), n(c.z)];
   }
 
-  /** Project a row's authored `exits:` map. */
-  private edgesOf(data: Record<string, unknown>): StoredEdge[] {
+  /**
+   * Project a row's authored `exits:` map.
+   *
+   * ⭐⭐ **Three fields were added here, and they are what makes a lane
+   * DERIVABLE from the index.** Before them the projection could cost
+   * a wagon's route but not say whether a wagon may take it, so the
+   * only way to compile a lane was to walk live exits one at a time —
+   * which is exactly what `LaneCatalogue.induce` did, and why.
+   *
+   * - `media` + `wheelPassable` come off the edge spec **or the kind
+   *   row**, because a stair declares `media: ['ground'],
+   *   wheelPassable: false` once on the kind and every stair installed
+   *   from it inherits that. Reading only the edge spec would have
+   *   projected an empty media list for every kinded exit in the
+   *   realm, which reads as *admits everything*.
+   * - `conditional` is the kind's alone (⭐ a ford is a ford wherever
+   *   it is laid), and it is the honest middle between pretending the
+   *   index knows the river's level and saying nothing about the ford
+   *   at all.
+   *
+   * ⛔ **A `blocked: true` spec projects NO EDGE.** An authored block
+   * is a way that is not there — not a way the search has to refuse —
+   * and leaving it in the index would make every consumer re-derive
+   * the same exclusion. ⚠ Measured: there are ZERO authored
+   * `blocked: true` specs in all of content, so this rule ships
+   * exercised only by its own test.
+   *
+   * Async now, for one `Template.findByPath` per KINDED edge. Kinds
+   * are few and the read is cached by the template layer; the
+   * alternative was resolving class files from the projection, which
+   * is a boundary this must not cross.
+   */
+  private async edgesOf(data: Record<string, unknown>): Promise<StoredEdge[]> {
     const raw = data.exits;
     if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return [];
     const out: StoredEdge[] = [];
     for (const [dir, spec] of Object.entries(raw as Record<string, unknown>)) {
       if (!spec || typeof spec !== 'object') continue;
       const s = spec as Record<string, unknown>;
+      if (s.blocked === true) continue;
       const dest = typeof s.destination === 'string' ? s.destination : null;
+      const kind = typeof s.kind === 'string' ? s.kind : null;
+      const kindData = kind ? await this.kindDataOf(kind) : null;
+      const media = Array.isArray(s.media)
+        ? (s.media as unknown[]).filter((m): m is string => typeof m === 'string')
+        : Array.isArray(kindData?.media)
+          ? (kindData.media as unknown[]).filter(
+              (m): m is string => typeof m === 'string',
+            )
+          : null;
+      const wheels =
+        typeof s.wheelPassable === 'boolean'
+          ? s.wheelPassable
+          : typeof kindData?.wheelPassable === 'boolean'
+            ? (kindData.wheelPassable as boolean)
+            : null;
+      const conditional =
+        s.conditional === true || kindData?.conditional === true;
       out.push({
         dir,
         to: dest,
@@ -528,10 +577,29 @@ export default class LocationGraphRegistry extends Idea {
         ...(s.oneWay === true ? { oneWay: true } : {}),
         ...(typeof s.door === 'string' ? { door: s.door } : {}),
         ...(typeof s.edgeMinutes === 'number' ? { minutes: s.edgeMinutes } : {}),
-        ...(typeof s.kind === 'string' ? { kind: s.kind } : {}),
+        ...(kind !== null ? { kind } : {}),
+        ...(media !== null && media.length > 0 ? { media } : {}),
+        ...(wheels === false ? { wheelPassable: false } : {}),
+        ...(conditional ? { conditional: true } : {}),
       });
     }
     return out;
+  }
+
+  /**
+   * The `data:` of an exit-KIND row, or null. ⚠ Reads the row as DATA
+   * and never resolves its `class:` — the projection's standing rule
+   * (it is a projection of authored content, not of live objects).
+   */
+  private async kindDataOf(
+    kind: string,
+  ): Promise<Record<string, unknown> | null> {
+    const row = await Template.findByPath(kind);
+    if (!row) return null;
+    const data = row.data;
+    return data && typeof data === 'object' && !Array.isArray(data)
+      ? (data as Record<string, unknown>)
+      : null;
   }
 
   /**
