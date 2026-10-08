@@ -46,6 +46,7 @@ import type Biome from './Biome';
 import type { WeatherPin } from '../weather/WeatherType';
 
 import type Material from '../material/Material';
+import type { Concentrate } from '../bulk/Concentration';
 import type {
   Enclosed,
   EnclosureSpec,
@@ -97,6 +98,40 @@ export interface Atmospheric {
 
   getAtmosphere(detailKey?: string): Promise<string>;
   setAtmosphere(value: string | null, detailKey?: string): void;
+
+  // ---------- what the medium CARRIES (the fire build) ----------
+
+  /**
+   * ⭐⭐ What is IN the medium here, resolved outward — a list of
+   * `{type: <Material template path>, amount: <litres per litre>}`.
+   *
+   * The identity tag (`getAtmosphere`) says what the medium IS; this
+   * says what it carries beside the air. Reading it reconciles the
+   * decay first, so a room that has been left alone has already
+   * aired out by the time anyone looks.
+   */
+  getAtmosphereContents(): Concentrate[];
+  /**
+   * Put `litres` of a substance into this scope's medium. Returns the
+   * litres actually accepted — zero for a scope with no derivable
+   * volume (a plain `Location`, `Offstage`) and zero when open to the
+   * sky, because the sky is where it goes.
+   */
+  addAtmosphereContent(materialPath: string, litres: number): number;
+  /** Take `litres` of a substance out of the medium; returns what was there. */
+  drawAtmosphereContent(materialPath: string, litres: number): number;
+  /**
+   * Write through a DERIVED standing amount (the mine's firedamp): a
+   * fraction some other mechanism recomputes every read. Standing
+   * amounts never decay — the thing feeding them is still feeding them.
+   */
+  setAtmosphereStanding(materialPath: string, fraction: number): void;
+  /** Decay the accumulated contents forward to now (reconcile-on-read). */
+  reconcileAtmosphereContents(): void;
+  /** Air changes per hour — `Infinity` under the sky. */
+  airChangesPerHour(): number;
+  /** The share of this scope's medium that is still plain medium. */
+  airShare(): number;
 
   // ---------- weather pin (scope tier) ----------
 
@@ -190,6 +225,10 @@ export interface Atmospheric {
   _wind: Quantity<'m/s'> | null;
   _gravity: Quantity<'m/s²'> | null;
   _atmosphere: string | null;
+  _atmosphereContents: Concentrate[];
+  _atmosphereStanding: Concentrate[];
+  _atmosphereContentsStamp: number;
+  _atmosphereStandingSuppressed: Record<string, number>;
   _detailTemperatures: Record<string, Quantity<'K'>>;
   _detailPressures: Record<string, Quantity<'Pa'>>;
   _detailHumidities: Record<string, Quantity<'%'>>;
@@ -325,6 +364,10 @@ export function AtmosphericMixin<
       _wind: { persistent: true, marshaller: QuantityMarshaller.pathFor('m/s'), authorable: true },
       _gravity: { persistent: true, marshaller: QuantityMarshaller.pathFor('m/s²'), authorable: true },
       _atmosphere: { persistent: true, authorable: true },
+      _atmosphereContents: { persistent: true, runtimeState: true },
+      _atmosphereStanding: { persistent: true, runtimeState: true },
+      _atmosphereContentsStamp: { persistent: true, runtimeState: true },
+      _atmosphereStandingSuppressed: { persistent: true, runtimeState: true },
       _detailTemperatures: { persistent: true, authorable: true },
       _detailPressures: { persistent: true, authorable: true },
       _detailHumidities: { persistent: true, authorable: true },
@@ -355,6 +398,26 @@ export function AtmosphericMixin<
     public _gravity: Quantity<'m/s²'> | null = null;
     /** Local room-scope atmosphere override; `null` falls through the chain. */
     public _atmosphere: string | null = null;
+
+    /**
+     * ⭐ What this scope's medium carries, as litres per litre. Keyed by
+     * **Material template path** — never a kernel tag, so a pack adds a
+     * gas by adding a material row.
+     */
+    public _atmosphereContents: Concentrate[] = [];
+    /** Derived standing amounts (a seam's write-through); never decay. */
+    public _atmosphereStanding: Concentrate[] = [];
+    /**
+     * Game-time (s) of the last contents decay. ⚠ `-1` is unseeded, NOT
+     * `0`: game-time zero is a legal instant — it is the first instant of
+     * a fresh world — and a `0` sentinel makes the decay silently never
+     * run there, because every read re-seeds the stamp it is comparing
+     * against. The shipped `Burner` fuel clock has the same `0` sentinel
+     * and the same latent hole; this one is written right.
+     */
+    public _atmosphereContentsStamp = UNSTAMPED;
+    /** Per-material game-time (s) a drawn-off standing amount ramps back by. */
+    public _atmosphereStandingSuppressed: Record<string, number> = {};
 
     /** Per-detail temperature overrides. */
     public _detailTemperatures: Record<string, Quantity<'K'>> = {};
@@ -617,7 +680,24 @@ export function AtmosphericMixin<
       const self = this as unknown as Stuff & Container;
       return BiomeApi.resolveAtmosphereFor(self, detailKey);
     }
+    /**
+     * ⚠ **Fails loud on an unknown tag.** The four per-tag tables in
+     * `BiomeLogic` are the medium's physics, and `densityOf` /
+     * `conductivityOf` / `breathableOf` all THROW on a tag they do not
+     * know — so a row authoring `atmosphere: mythium` used to install
+     * fine and then take the thermal read down at the first person who
+     * walked in. The applier does not catch a setter's throw, so the
+     * row now fails its own hydration and the pack install names it.
+     */
     public setAtmosphere(value: string | null, detailKey?: string): void {
+      if (value !== null && !BiomeApi.isKnownAtmosphere(value)) {
+        throw new TypeError(
+          `setAtmosphere: unknown atmosphere tag '${value}'. The medium's ` +
+            `physics (density, conductivity, breathability, contaminant) is ` +
+            `a closed per-tag table in BiomeLogic; add the tag there, or ` +
+            `author what the air CARRIES as a material instead.`,
+        );
+      }
       if (detailKey !== undefined) {
         if (value === null) {
           delete this._detailAtmospheres[detailKey];
@@ -627,6 +707,220 @@ export function AtmosphericMixin<
         return;
       }
       this._atmosphere = value;
+    }
+
+    // ---------- what the medium carries (the fire build) ----------
+
+    public getAtmosphereContents(): Concentrate[] {
+      const self = this as unknown as Stuff & Container;
+      return BiomeApi.resolveAtmosphereContentsFor(self);
+    }
+
+    /**
+     * ⭐ The volume this scope's medium occupies, in litres, or `null`
+     * when it has none. The SAME discriminator the envelope uses
+     * (`getVolume()`): a plain `Location` and `Offstage` derive no
+     * volume, so nothing accumulates in them — an off-stage parking
+     * room is not a place, and the geometry already says so.
+     */
+    private mediumLitres(): number | null {
+      const v = this.getVolume();
+      if (v === null) return null;
+      const m3 = v.rawValue();
+      return m3 > 0 ? m3 * 1000 : null;
+    }
+
+    public addAtmosphereContent(materialPath: string, litres: number): number {
+      if (!(litres > 0)) return 0;
+      const volumeL = this.mediumLitres();
+      if (volumeL === null) return 0;
+      const self = this as unknown as Stuff & Container;
+      // Open to the sky: it goes up, and that is the whole lesson of
+      // running a fire outdoors.
+      if (BiomeApi.isSkyExposed(self)) return 0;
+      this.reconcileAtmosphereContents();
+      const headroom = Math.max(0, 1 - this.contentsSum());
+      const wanted = litres / volumeL;
+      const applied = Math.min(wanted, headroom);
+      if (!(applied > 0)) return 0;
+      const existing = this._atmosphereContents.find(
+        (c) => c.type === materialPath,
+      );
+      if (existing) existing.amount += applied;
+      else this._atmosphereContents.push({ type: materialPath, amount: applied });
+      return applied * volumeL;
+    }
+
+    public drawAtmosphereContent(materialPath: string, litres: number): number {
+      const volumeL = this.mediumLitres();
+      if (volumeL === null || !(litres > 0)) return 0;
+      this.reconcileAtmosphereContents();
+      let remaining = litres / volumeL;
+      let taken = 0;
+      const accumulated = this._atmosphereContents.find(
+        (c) => c.type === materialPath,
+      );
+      if (accumulated) {
+        const t = Math.min(accumulated.amount, remaining);
+        accumulated.amount -= t;
+        remaining -= t;
+        taken += t;
+      }
+      const standing = this._atmosphereStanding.find(
+        (c) => c.type === materialPath,
+      );
+      if (standing && remaining > 0) {
+        const t = Math.min(standing.amount, remaining);
+        standing.amount -= t;
+        taken += t;
+        // A drawn-off standing amount is suppressed and ramps back —
+        // the reservoir is still there, the heading in front of you is
+        // not full of it any more.
+        const now = atmosphereNowSeconds();
+        if (now !== null) this._atmosphereStandingSuppressed[materialPath] = now;
+      }
+      this._atmosphereContents = this._atmosphereContents.filter(
+        (c) => c.amount > CONTENT_EPSILON,
+      );
+      return taken * volumeL;
+    }
+
+    public setAtmosphereStanding(materialPath: string, fraction: number): void {
+      if (this.mediumLitres() === null) return;
+      const wanted = Math.max(0, Math.min(1, fraction));
+      const scaled = wanted * this.standingRamp(materialPath);
+      const existing = this._atmosphereStanding.find(
+        (c) => c.type === materialPath,
+      );
+      if (scaled <= CONTENT_EPSILON) {
+        if (existing) {
+          this._atmosphereStanding = this._atmosphereStanding.filter(
+            (c) => c.type !== materialPath,
+          );
+        }
+        return;
+      }
+      if (existing) existing.amount = scaled;
+      else this._atmosphereStanding.push({ type: materialPath, amount: scaled });
+    }
+
+    /**
+     * How much of a standing amount is back, 0..1 — a linear ramp over
+     * `atmosphere.standingRebuildS` since it was last drawn off.
+     */
+    private standingRamp(materialPath: string): number {
+      const drawnAt = this._atmosphereStandingSuppressed[materialPath];
+      if (drawnAt === undefined) return 1;
+      const now = atmosphereNowSeconds();
+      if (now === null) return 1;
+      const window = envelopeDial(
+        AppSettingKeys.atmosphereStandingRebuildS,
+        7200,
+      );
+      if (!(window > 0)) return 1;
+      const elapsed = now - drawnAt;
+      if (elapsed <= 0) return 0;
+      if (elapsed >= window) {
+        delete this._atmosphereStandingSuppressed[materialPath];
+        return 1;
+      }
+      return elapsed / window;
+    }
+
+    /** Everything the medium carries, accumulated + standing, as a fraction. */
+    private contentsSum(): number {
+      let sum = 0;
+      for (const c of this._atmosphereContents) sum += Math.max(0, c.amount);
+      for (const c of this._atmosphereStanding) sum += Math.max(0, c.amount);
+      return sum;
+    }
+
+    public reconcileAtmosphereContents(): void {
+      const now = atmosphereNowSeconds();
+      if (now === null) return;
+      if (this._atmosphereContentsStamp === UNSTAMPED) {
+        this._atmosphereContentsStamp = now;
+        return;
+      }
+      const elapsed = now - this._atmosphereContentsStamp;
+      if (elapsed <= 0) return;
+      this._atmosphereContentsStamp = now;
+      if (this._atmosphereContents.length === 0) return;
+      const ach = this.airChangesPerHour();
+      if (!Number.isFinite(ach)) {
+        this._atmosphereContents = [];
+        return;
+      }
+      if (!(ach > 0)) return;
+      // Exponential: one air change replaces 1/e of what is in here.
+      const factor = Math.exp(-(ach * elapsed) / 3600);
+      for (const c of this._atmosphereContents) c.amount *= factor;
+      this._atmosphereContents = this._atmosphereContents.filter(
+        (c) => c.amount > CONTENT_EPSILON,
+      );
+    }
+
+    /**
+     * ⭐⭐ **Air changes per hour, derived from the enclosure** — the
+     * replacement for the authored `'air'` Reserve, which was on eight
+     * rows and inert on four of them.
+     *
+     * Under the sky it is `Infinity`: nothing accumulates outdoors.
+     * Otherwise each exterior opening is worth `achPerOpening`, each
+     * open INTERIOR opening a quarter of that, and a shut box still
+     * leaks at `achLeak` — so a sealed cellar smothers a fire slowly
+     * and a room with the door open never does.
+     *
+     * ⚠ Interior openings count here and NOT in `openExteriorOpenings`
+     * (the envelope's, which is deliberately room-to-outside only). A
+     * room's air mixes with the next room's long before its heat does.
+     */
+    public airChangesPerHour(): number {
+      const self = this as unknown as Stuff & Container;
+      if (BiomeApi.isSkyExposed(self)) return Infinity;
+      const { exterior, interior } = this.openingsByKind();
+      const perOpening = envelopeDial(AppSettingKeys.fireAirAchPerOpening, 4);
+      const perInterior = envelopeDial(AppSettingKeys.fireAirAchInterior, 1);
+      const leak = envelopeDial(AppSettingKeys.fireAirAchLeak, 0.1);
+      return exterior * perOpening + interior * perInterior + leak;
+    }
+
+    /**
+     * The open doorways out of here, split by whether the far side is
+     * outside this scope's envelope. The generalisation of
+     * `openExteriorOpenings`, which keeps its own narrow contract
+     * because the envelope's non-goal is still room-to-outside only.
+     */
+    private openingsByKind(): { exterior: number; interior: number } {
+      const self = this as unknown as Stuff & Container;
+      if (!MixinApi.isExitable(self)) return { exterior: 0, interior: 0 };
+      let exterior = 0;
+      let interior = 0;
+      for (const exit of self.getObviousExits()) {
+        // The light walk's four hazard guards, for the same reasons.
+        if (!exit.hasSpatialDestination()) continue;
+        const door = exit.getDoor();
+        if (door && !door.isOpen()) continue;
+        let dest: Stuff & Container;
+        try {
+          dest = exit.getDestination();
+        } catch {
+          continue;
+        }
+        if (!MixinApi.isContainer(dest) || (dest as Stuff).isDestroyed()) {
+          continue;
+        }
+        if (this.isThreshold(dest)) exterior += 1;
+        else interior += 1;
+      }
+      return { exterior, interior };
+    }
+
+    public airShare(): number {
+      const self = this as unknown as Stuff & Container;
+      return BiomeApi.airShareOf(
+        BiomeApi.resolveAtmosphereContentsFor(self),
+      );
     }
 
     // ---------- weather pin (scope tier) ----------
@@ -1252,6 +1546,20 @@ export function AtmosphericMixin<
       return null;
     }
   };
+}
+
+/** Below this fraction a content is gone — the air has cleared. */
+const CONTENT_EPSILON = 1e-6;
+
+/** The never-reconciled stamp. ⚠ Not `0` — see `_atmosphereContentsStamp`. */
+const UNSTAMPED = -1;
+
+/** In-session game-time (seconds), or null when no world clock runs. */
+function atmosphereNowSeconds(): number | null {
+  if (!StuffApi.findByTemplatePath(TemplatePaths.worldClockRegistry)) {
+    return null;
+  }
+  return WorldClockApi.getNow().rawValue();
 }
 
 /**

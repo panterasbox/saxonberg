@@ -2,7 +2,7 @@
  * Energy — ⭐⭐ **the drive**: the same street-lighting service, two epochs.
  *
  * Driven against the running game. Stage A is the combustion half: Heart's
- * Delight is gas-lit, and — unlike Terminus in the envelope drive, which
+ * Delight is oil-lit, and — unlike Terminus in the envelope drive, which
  * needed a treasury nobody had funded — the valley lights from its **own oil
  * store at cost 0**, so its lamps burn at boot on a fresh realm with no money
  * moved. That is the one thing this harness can show live that envelope could
@@ -119,9 +119,9 @@ afterAll(() => {
   for (const s of open) s?.close();
 });
 
-// ───────────── the valley is gas-lit, and it burns its own oil ─────────────
+// ───────────── the valley is oil-lit, and it burns its own oil ─────────────
 
-suite('⭐⭐ Heart\'s Delight is gas-lit — burning real oil, at boot', () => {
+suite('⭐⭐ Heart\'s Delight is oil-lit — burning real oil, at boot', () => {
   let gate: Session;
   let mill: Session;
 
@@ -207,7 +207,7 @@ suite("⭐⭐ Terminus is electric — the grid reaches a home, a cut darkens it
     // true at boot.
     expect(grid).toMatch(/electric/i);
     expect(grid).toMatch(/live|domestic/i);
-    expect(grid).not.toMatch(/off-grid|gas-lit/i);
+    expect(grid).not.toMatch(/off-grid|oil-lit/i);
   });
 
   it("⭐ drive 5 — sever the avenue, and the lobby's feeder goes dark; splice brings it back", async () => {
@@ -251,7 +251,11 @@ suite("⭐ the epoch is derived from what reaches a place — no tech level", ()
     const grid = await say(valley, 'analyze grid');
     // eslint-disable-next-line no-console -- the drive's own record
     console.log('  [drive] HD analyze grid:', grid);
-    expect(grid).toMatch(/gas-lit/i);
+    // ⭐ `oil-lit` since the fire build: a `FuelStore` holds lamp OIL, and
+    // calling that gas-lit named the wrong fuel and the wrong century.
+    // `gas-lit` is reserved for a supply that burns a GAS, which the
+    // retort and the gasometer have just made possible.
+    expect(grid).toMatch(/oil-lit/i);
     expect(grid).not.toMatch(/electric/i);
   });
 });

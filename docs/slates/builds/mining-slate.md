@@ -1151,3 +1151,9 @@ design the halves apart but to anchor each on the right thing:
 > both — so ⭐ **this pass is not blocked behind drilling** and can go much
 > sooner.
 
+
+## ⬅ From the fire build (2026-10)
+
+Left as a line here rather than in a retired plan.
+
+- **Blackdamp and stinkdamp should be air CARRYING something**, as firedamp now is (the fire build). They are still identity tags, so a heading is either foul or not rather than progressively foul — the requirements' own sentence, and the fluid pass is where it belongs.

@@ -124,9 +124,21 @@ describe('AtmosphericMixin — setters', () => {
     ).toThrow(TypeError);
   });
 
-  it('setAtmosphere accepts arbitrary strings silently', () => {
+  it('⭐ setAtmosphere REFUSES a tag the medium physics does not know', () => {
     const room = makeStuff(() => new TestLocation());
-    room.setAtmosphere('mythium');
-    expect(room._atmosphere).toBe('mythium');
+    // It used to take anything. The four per-tag tables that answer
+    // density, conductivity, breathability and contaminant all THROW on
+    // an unknown tag, so `atmosphere: mythium` installed fine and then
+    // took the thermal read down at the first person to walk in. The row
+    // fails its own hydration now, and the pack install names it.
+    expect(() => room.setAtmosphere('mythium')).toThrow(TypeError);
+    expect(room._atmosphere).toBeNull();
+    // ⭐ And the shipped tags all still pass — including the ones a trade
+    // writes (the mine's damps, a ferment's CO₂).
+    for (const tag of ['air', 'water', 'vacuum', 'smoke', 'blackdamp', 'stinkdamp', 'carbon-dioxide']) {
+      expect(() => room.setAtmosphere(tag)).not.toThrow();
+    }
+    room.setAtmosphere(null);
+    expect(room._atmosphere).toBeNull();
   });
 });

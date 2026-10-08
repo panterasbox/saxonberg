@@ -33,6 +33,12 @@ data:
     - { itemTemplatePath: /world/terminus/general-store/thing/waterskin, par: 3 }
     - { itemTemplatePath: /world/terminus/general-store/thing/clasp-knife, par: 2 }
     - { itemTemplatePath: /world/terminus/general-store/thing/lantern, par: 2 }
+    # ⭐⭐ Sacking, and it is here because the SMOKER is here. The fire
+    # build made the bee smoker a real burner with a 1 kg bed, and
+    # `stoke` is all-or-nothing — so the shop that sells the smoker had
+    # to start selling something under a kilo that burns, or the smoker
+    # was a tin nobody could light. See the row's own header.
+    - { itemTemplatePath: /trade/apiculture/thing/sacking, par: 4 }
     - { itemTemplatePath: /world/terminus/general-store/thing/whetstone, par: 2 }
     # ⭐⭐ **Armour, finally BUYABLE.** Six armour rows shipped months ago
     # and not one was referenced by any `props:`, `cast:` or stock line —
@@ -255,6 +261,10 @@ data:
     /world/terminus/general-store/thing/waterskin: 4
     /world/terminus/general-store/thing/clasp-knife: 6
     /world/terminus/general-store/thing/lantern: 10
+    # ⭐ 1 — the cheapest thing on the slate, and it should be: it is a
+    # rag that burns. Against the ladder (rations 3, lantern 10) a
+    # beekeeper's consumable has to cost less than the honey it saves.
+    /trade/apiculture/thing/sacking: 1
     /world/terminus/general-store/thing/whetstone: 3
     # ⚠ Priced against the shipped ladder (stipend 20, wages 4-6 per
     # game-hour, bed 45, wagon 95), not as a balance claim. The shape is

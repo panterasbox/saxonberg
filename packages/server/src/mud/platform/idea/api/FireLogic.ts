@@ -7,7 +7,6 @@ import { SecurityPolicies } from '../../../lib/security/SecurityPolicies';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import type { Container } from '../../../lib/spatial/Container';
 import type { Containable } from '../../../lib/spatial/Containable';
-import type { Reserved } from '../../../lib/reserve';
 import type { Atmospheric } from '../../../lib/biome/Atmospheric';
 import { MixinApi } from '../../../api/mixin';
 import { StuffApi } from '../../../api/stuff';
@@ -15,8 +14,11 @@ import { BiomeApi } from '../../../api/biome';
 import { ConnectionApi } from '../../../api/connection';
 import { WorldClockApi } from '../../../api/worldclock';
 import { AppApi } from '../../../api/app';
+import { ConditionApi } from '../../../api/condition';
+import { MessageApi } from '../../../api/message';
+import { Mml } from '../../../api/mml';
+import type Material from '../../../lib/material/Material';
 import { AppSettingKeys } from '../../../lib/config/AppSettings';
-import { Quantity } from '../../../lib/quantity';
 import { TemplatePaths } from '../../../lib/paths';
 import type { Combustible } from '../../../lib/fire/Combustible';
 import type { IgniteOutcome } from '../../../api/fire';
@@ -36,6 +38,19 @@ const selfSubject = {
     (caller as { stuffId?: string }).stuffId ===
       (args[0] as { stuffId?: string } | undefined)?.stuffId,
 };
+/**
+ * The exhaust face's callers. ⚠ Deliberately NOT {@link FireCallers}: its
+ * `where` clause asserts `args[0]` IS the caller, which is true of every
+ * `advance(self)`-shaped forward and false here — the first argument is
+ * the ROOM. A burner emitting into its scope is the legitimate caller and
+ * the subject is somewhere else entirely.
+ */
+const FireExhaustCallers = SecurityPolicies.AnyOf(
+  SecurityPolicies.FromModule('/api/fire#FireApi'),
+  SecurityPolicies.FromMixin('BurnerMixin'),
+  SecurityPolicies.FromMixin('CombustibleMixin'),
+);
+
 const FireCallers = SecurityPolicies.AnyOf(
   FireApiCallers,
   SecurityPolicies.FromMixin('BurnerMixin', selfSubject),
@@ -73,6 +88,44 @@ export class FireLogic extends ApiLogic {
   @CallSecurity(FireCallers)
   public ignite(stuff: Stuff): IgniteOutcome {
     return igniteImpl(stuff);
+  }
+
+  /**
+   * Put one fire's exhaust for `kgBurnt` of fuel into a scope's medium —
+   * the `Burner` face of {@link emitExhaustInto}. A burner's own tick
+   * forwards here the way its `ignite`/`douse` do.
+   */
+  @CallSecurity(FireExhaustCallers)
+  public emitExhaust(
+    room: Stuff & Container,
+    kgBurnt: number,
+    complete: boolean,
+  ): void {
+    emitExhaustInto(room, kgBurnt, complete);
+  }
+
+  /**
+   * ⭐ Is this too wet to catch — the ONE wetness formula, in one place.
+   *
+   * ⚠ Two waters, one arithmetic: the surface wetness of a log left in
+   * the rain and the matter's OWN water (a turf cut out of a bog is
+   * nearly all water) raise the ignition threshold in exactly the same
+   * way, so they add. That is what makes `stoke`'s *"It is too sodden to
+   * catch."* and `ignite`'s shipped refusal the same sentence about the
+   * same number, with no peat-specific branch anywhere.
+   */
+  @CallSecurity(FireExhaustCallers)
+  public tooWetToCatch(item: Stuff): boolean {
+    return (
+      wetPenaltyKOf(item) >
+      dial(AppSettingKeys.fireIgnitionMaxManualDryingK, 150)
+    );
+  }
+
+  /** The held-water ignition penalty (K) — see {@link wetPenaltyKOf}. */
+  @CallSecurity(FireExhaustCallers)
+  public wetPenaltyK(item: Stuff): number {
+    return wetPenaltyKOf(item);
   }
 
   /** See {@link Combustible.tryAutoignite}. */
@@ -125,6 +178,54 @@ function dial(key: string, fallback: number): number {
   }
 }
 
+/**
+ * The extra temperature (K) an object's held water raises its ignition
+ * threshold by — mass-independent, because the fuel mass cancels between
+ * the water-boil energy and the thermal capacity. A soaked log resists
+ * ignition regardless of its size.
+ *
+ * ⭐ The single home for the formula. `CombustibleMixin.wetPenaltyK`
+ * forwards here, and `stoke` asks the same question of an object that
+ * may not be a Combustible at all.
+ */
+function wetPenaltyKOf(item: Stuff): number {
+  const mat = MixinApi.isTangible(item) ? item.getMaterial() : null;
+  if (!mat) return 0;
+  const capacityFraction = mat.getWaterAbsorptionCapacity().rawValue() / 100;
+  if (capacityFraction <= 0) return 0;
+  const c = mat.getSpecificHeat().rawValue();
+  if (c <= 0) return 0;
+
+  let held = 0;
+  if (MixinApi.isWet(item)) {
+    const saturation = item.getWetness();
+    if (saturation > 0) held += saturation;
+  }
+  if (MixinApi.isWaterActive(item)) {
+    // Above the `dried` band the fuel still carries its own water; at or
+    // below it, it is dry fuel and contributes nothing.
+    const driedAt = dial(AppSettingKeys.cureBandDriedAt, 0.5);
+    const span = 1 - driedAt;
+    if (span > 0) {
+      const own = (item.getMoisture() - driedAt) / span;
+      if (own > 0) held += own > 1 ? 1 : own;
+    }
+  }
+  if (held <= 0) return 0;
+  const lVap = dial(AppSettingKeys.fireIgnitionWaterLatentHeatJPerKg, 2260000);
+  return (held * capacityFraction * lVap) / c;
+}
+
+/** One string dial read, falling back to the literal when unseeded. */
+function dialStr(key: string, fallback: string): string {
+  try {
+    const raw = AppApi.setting(key);
+    return raw == null || raw === '' ? fallback : raw;
+  } catch {
+    return fallback;
+  }
+}
+
 /** In-session game-time (seconds), or 0 when no world clock runs. */
 function fireNowSeconds(): number {
   if (!StuffApi.findByTemplatePath(TemplatePaths.worldClockRegistry)) {
@@ -141,11 +242,29 @@ function fireNowSeconds(): number {
  * addition; a Phase-3 fire assumes air.
  */
 function igniteImpl(stuff: Stuff): IgniteOutcome {
+  // ⭐⭐⭐ **Striking a light is how you find out.** The tick's flash check
+  // runs where a fire already burns; this is the other half, and it is
+  // the one that actually kills people — a miner walks into a gassy
+  // heading with a cold lamp, lights it, and the heading goes off.
+  //
+  // ⚠ It runs BEFORE the lit state changes, so the flash is caused by
+  // the striking rather than by a fire that was already there. The
+  // refusal is not a refusal: the act happens, and then the room does.
+  // ⚠ `stuff` is passed as the flame: it is not lit YET, so the walk
+  // would find nothing and striking a light in a gassy heading would be
+  // safe — which is the opposite of true and the opposite of the lesson.
+  const scope = igniteScopeOf(stuff);
+  if (scope !== null) flammableMediumCheck(scope, stuff);
   // A furnace appliance (forge / kiln / oven / campfire): lighting it is
   // toggling its lit state — it holds a fuel-driven pin, not a Burning object.
   if (MixinApi.isBurner(stuff)) {
     if (stuff.isLit()) return { lit: false, reason: 'already-burning' };
-    if (stuff.fuelRemaining() <= 0) return { lit: false, reason: 'not-flammable' };
+    // ⭐ `no-fuel`, not `not-flammable`. A forge with an empty bed is not
+    // an unburnable object — it is a fire waiting for somebody to stoke
+    // it, and the refusal has to say which so the verb can tell them.
+    // ⭐⭐ THE REFUSAL IS THE PROGRESSION UI: if something lifts it, the
+    // player has to be able to be told what.
+    if (stuff.fuelRemaining() <= 0) return { lit: false, reason: 'no-fuel' };
     stuff._setLit(true);
     return { lit: true };
   }
@@ -256,12 +375,33 @@ function onFireTickImpl(): void {
 function advanceFireInRoom(room: Stuff & Container): void {
   // Lit furnaces heat the Meltables in the scope toward their held temperature
   // (the forge melting an ingot) — independent of any Burning objects.
+  //
+  // ⭐⭐ …and they BREATHE. Until the fire build a `Burner` was outside
+  // the chemistry entirely: only `Combustible`s got a completeness
+  // verdict and only they put anything into the air, so the one fire a
+  // player actually lights — a hearth, a forge, a lamp — could run in a
+  // sealed cellar forever and poison nobody. A burner's exhaust is what
+  // the oxygen leg reads on the next tick, which is what closes the
+  // loop: the fire fills the room, the room starves the fire.
+  const tickS = dial(AppSettingKeys.fireTickIntervalSeconds, 30);
   for (const occ of room.getContents()) {
     const s = occ as unknown as Stuff;
-    if (!s.isDestroyed() && MixinApi.isBurner(s) && s.isLit()) {
-      s.heatContents();
-    }
+    if (s.isDestroyed() || !MixinApi.isBurner(s)) continue;
+    if (!s.isLit()) continue;
+    s.heatContents();
+    s.exhaustTick(tickS);
   }
+
+  // ⭐ A burner smothers on the same share, and it is checked BEFORE the
+  // `burning.length === 0` early return below — a lamp in a sealed box is
+  // the only fire in the room, and a room with no `Combustible` in it was
+  // returning before anything looked at it.
+  smotherStarvedBurners(room);
+
+  // ⭐⭐⭐ …and so does the FLASH, for the same reason: the dangerous room
+  // is the one with gas in the air and ONE naked flame carried into it,
+  // and there is nothing burning in it at all until the moment there is.
+  flammableMediumCheck(room);
 
   const combustibles = liveCombustiblesIn(room);
   // Advance the fires first (fuel drain → char / destruct at exhaustion).
@@ -271,64 +411,41 @@ function advanceFireInRoom(room: Stuff & Container): void {
   const burning = liveCombustiblesIn(room).filter((c) => c.isBurning());
 
   // ── Combustion chemistry: the oxygen leg + complete/incomplete verdict ──
-  const airHolder = airReserveOf(room);
-  const ventilated =
-    BiomeApi.isSkyExposed(room) || openNeighboursOf(room).length > 0;
+  //
+  // ⭐⭐ The air is DERIVED. There is no `'air'` Reserve and no authored
+  // oxygen budget: the scope's medium carries what the fires have put into
+  // it, decaying at the rate the scope's own openings imply, and the air
+  // share is what is left. A room that authors nothing at all starves a
+  // fire correctly if it is shut, and never does if it is not — which is
+  // why four of the seven rows that authored a budget could be inert for
+  // a year without anyone noticing.
+  const airShare = BiomeApi.airShareOf(
+    BiomeApi.resolveAtmosphereContentsFor(room),
+  );
 
   if (burning.length === 0) {
-    // No fire: a ventilated scope recovers its air, and any fire-set smoke
-    // clears (the room breathes again).
-    if (airHolder && ventilated) {
-      airHolder.adjustReserve(
-        'air',
-        Quantity.of(dial(AppSettingKeys.fireAirReplenishPerTick, 30), '%'),
-      );
-    }
-    clearFireSmoke(room);
+    // No fire: nothing to emit. The scope's own decay clears what is in it.
     return;
   }
 
-  if (airHolder) {
-    // Enclosed scope with a finite air budget: burning consumes it; a
-    // ventilated boundary (open door / sky) replenishes.
-    const consume =
-      dial(AppSettingKeys.fireAirConsumePerTick, 8) * burning.length;
-    airHolder.adjustReserve('air', Quantity.of(-consume, '%'));
-    if (ventilated) {
-      airHolder.adjustReserve(
-        'air',
-        Quantity.of(dial(AppSettingKeys.fireAirReplenishPerTick, 30), '%'),
-      );
-    }
-  }
-
-  const airPct = airHolder
-    ? (airHolder.getReserve('air')?.current.rawValue() ?? 0)
-    : 100; // no air budget = open air (unlimited)
-
-  // The oxygen leg: air floored → the fire smothers (self-extinguish).
-  if (airHolder && airPct <= 0) {
+  // The oxygen leg: too little air left → the fire smothers.
+  if (airShare <= dial(AppSettingKeys.fireAirSmotherAirShare, 0.7)) {
     for (const b of burning) (b as unknown as Combustible)._extinguishState();
-    clearFireSmoke(room);
     return;
   }
 
-  // Complete (hot, clean) with enough air / ventilation; incomplete (cooler,
-  // soot + CO) when a sealed scope starves.
+  // Complete (hot, clean) with enough air; incomplete (cooler, soot + CO)
+  // once a shut scope has filled with its own exhaust.
   const complete =
-    ventilated ||
-    !airHolder ||
-    airPct >= dial(AppSettingKeys.fireAirCompleteThresholdPct, 40);
+    airShare >= dial(AppSettingKeys.fireAirCompleteAirShare, 0.85);
   for (const b of burning) (b as unknown as Combustible)._setComplete(complete);
 
-  // Incomplete combustion in an enclosed scope fills it with smoke + CO — the
-  // scope's medium becomes un-breathable (asphyxiation) and carries the
-  // carbon-monoxide contaminant (poisoning). Ventilation clears it.
-  if (!complete && airHolder) {
-    markFireSmoke(room);
-  } else {
-    clearFireSmoke(room);
-  }
+  // ⭐ Exhaust: every fire puts carbon dioxide into the scope for the fuel
+  // it burnt (conservation — the air really does go), and an incomplete
+  // one adds soot on top. A sky-exposed scope accepts neither, because
+  // that is where it goes. Nothing writes the atmosphere TAG any more:
+  // smoke is a thing in the air, not a different air.
+  for (const b of burning) emitCombustibleExhaust(b, room, complete);
 
   // ── Spread — radiate to co-located + open-boundary combustibles ──
   const radiant = dial(AppSettingKeys.fireRadiantJoulesPerTick, 700000);
@@ -349,32 +466,224 @@ function advanceFireInRoom(room: Stuff & Container): void {
   }
 }
 
-/** The scope's finite air budget — an `'air'` Reserve authored on an enclosed
- * room, or null (open air = unlimited combustion oxygen). */
-function airReserveOf(room: Stuff & Container): (Stuff & Reserved) | null {
-  const s = room as unknown as Stuff;
-  if (MixinApi.isReserved(s) && s.hasReserve('air')) {
-    return s as Stuff & Reserved;
+/**
+ * ⭐⭐ **What a fire puts into the air** — the third product of
+ * combustion, which until this build was a string.
+ *
+ * Carbon dioxide always, for the mass burnt; soot additionally while
+ * combustion is incomplete. The emission goes into the scope's medium as
+ * litres of a MATERIAL, so the same mechanism serves a hearth, a retort
+ * driving tar off a charge, and a ferment breathing in a cellar — and a
+ * pack adds a new exhaust by adding a material row.
+ *
+ * ⚠ A Combustible's fuel is still its own `%` Reserve this build (the
+ * object IS the fuel: a burning door, a bale), so the kg burnt is read as
+ * a fraction of its mass. {@link burnPowerFor} is where the mass-and-
+ * heat-of-combustion swap lands — see `fire-combustion-slate`.
+ */
+function emitCombustibleExhaust(
+  burning: Stuff & Combustible,
+  room: Stuff & Container,
+  complete: boolean,
+): void {
+  const s = burning as unknown as Stuff;
+  if (!MixinApi.isTangible(s)) return;
+  const massKg = s.getMass().rawValue();
+  if (!(massKg > 0)) return;
+  const tickS = dial(AppSettingKeys.fireTickIntervalSeconds, 30);
+  const ratePerMin = dial(AppSettingKeys.fireBurnRatePerMin, 0.5) / 100;
+  const kgBurnt = ratePerMin * massKg * (tickS / 60);
+  emitExhaustInto(room, kgBurnt, complete);
+}
+
+/**
+ * Put one fire's exhaust for `kgBurnt` of fuel into `room`'s medium.
+ * Shared by the Combustible arm above and a `Burner`'s own tick.
+ */
+function emitExhaustInto(
+  room: Stuff & Container,
+  kgBurnt: number,
+  complete: boolean,
+): void {
+  if (!(kgBurnt > 0)) return;
+  if (!MixinApi.isAtmospheric(room)) return;
+  const atm = room as unknown as Stuff & Container & Atmospheric;
+  const co2 = dialStr(
+    AppSettingKeys.fireExhaustCarbonDioxideMaterial,
+    '/stuff/idea/material/gas/carbon-dioxide',
+  );
+  atm.addAtmosphereContent(
+    co2,
+    dial(AppSettingKeys.fireExhaustLitresPerKg, 950) * kgBurnt,
+  );
+  if (complete) return;
+  const smoke = dialStr(
+    AppSettingKeys.fireExhaustSmokeMaterial,
+    '/stuff/idea/material/gas/smoke',
+  );
+  atm.addAtmosphereContent(
+    smoke,
+    dial(AppSettingKeys.fireExhaustSmokeLitresPerKg, 300) * kgBurnt,
+  );
+}
+
+/**
+ * The scope an ignition happens in — the first `Atmospheric` ancestor
+ * with a volume, which is the same walk a fire's exhaust takes.
+ */
+function igniteScopeOf(stuff: Stuff): (Stuff & Container) | null {
+  let at: Stuff | null = stuff;
+  let depth = 32;
+  while (at !== null && depth-- > 0) {
+    if (
+      MixinApi.isAtmospheric(at) &&
+      MixinApi.isContainer(at) &&
+      (at as unknown as Atmospheric).getVolume() !== null
+    ) {
+      return at as unknown as Stuff & Container;
+    }
+    at = MixinApi.isContainable(at) ? at.getContainer() : null;
   }
   return null;
 }
 
-/** Fill `room` with smoke — the fire-driver's atmosphere override, cleared
- * back to null when the fire goes out / ventilates. Only stamps a scope that
- * isn't already smoky (idempotent) and never clobbers a non-air authored
- * atmosphere it didn't set. */
-function markFireSmoke(room: Stuff & Container): void {
+/**
+ * ⭐⭐⭐ **The air itself is fuel** — and the moment a naked flame meets
+ * it, the room goes off.
+ *
+ * This is the whole of firedamp, and every term in it is already true of
+ * something else: a content whose MATERIAL has a heat of combustion is
+ * flammable (the same number that gives a fuel its flame temperature), a
+ * fraction above `ignitesAt` is an explosive mixture, and a naked flame
+ * is a lit `Burner` that is not gauzed or a `Combustible` that is
+ * burning. ⚠ No `hazard:` field, no authored trap, no room marked
+ * dangerous: the danger is that the stuff in the air will burn.
+ *
+ * ⭐ And the remedy is therefore an OBJECT rather than a rule. A safety
+ * lamp's flame is enclosed, so it is not a naked flame, so the check
+ * does not find one — which means a player with a gauze lamp can work
+ * ground a player with a torch cannot, and nothing anywhere is told to
+ * make that true.
+ *
+ * ⚠ The flame walk goes **one level deep through a person**: a torch in
+ * somebody's hand is in the room for this purpose, which is the
+ * `VisionModality` leg (b′) applied to heat. A flame nobody is carrying
+ * is still a flame.
+ */
+function flammableMediumCheck(
+  room: Stuff & Container,
+  strikingNow: Stuff | null = null,
+): void {
+  const contents = BiomeApi.resolveAtmosphereContentsFor(room);
+  if (contents.length === 0) return;
+  const ignitesAt = dial(AppSettingKeys.fireFlammableIgnitesAt, 0.05);
+  let worst: { type: string; amount: number } | null = null;
+  for (const c of contents) {
+    if (c.amount < ignitesAt) continue;
+    const material = StuffApi.findByTemplatePath<Material>(c.type);
+    if (!material) continue;
+    if (!(material.getHeatOfCombustion().rawValue() > 0)) continue;
+    if (worst === null || c.amount > worst.amount) worst = c;
+  }
+  if (worst === null) return;
+  const striking =
+    strikingNow !== null &&
+    MixinApi.isBurner(strikingNow) &&
+    !strikingNow.isFlameEnclosed();
+  if (!striking && nakedFlameIn(room) === null) return;
+
+  // The flash. ⭐ It burns what is there and leaves the air clear, which
+  // is why a heading that has gone off once is safe for a while and then
+  // is not — the measures are still giving it off.
   const atm = room as unknown as Atmospheric;
-  if (atm._atmosphere === 'smoke') return;
-  // Only overlay smoke onto a default (null) scope — respect an authored one.
-  if (atm._atmosphere === null) atm.setAtmosphere('smoke');
+  const volume = atm.getVolume?.() ?? null;
+  const litres = volume === null ? 0 : worst.amount * volume.rawValue() * 1000;
+  atm.drawAtmosphereContent(worst.type, litres > 0 ? litres : Infinity);
+
+  const energy =
+    dial(AppSettingKeys.fireFlammableFlashEnergy, 90000) *
+    (worst.amount / ignitesAt);
+  for (const occ of room.getContents()) {
+    const s = occ as unknown as Stuff;
+    if (s.isDestroyed()) continue;
+    if (MixinApi.isVitals(s)) {
+      // ⭐ The one heat channel, so armour inversion applies for free: a
+      // mail shirt is no help against a flash and a wet coat is.
+      void ConditionApi.inflict(s, {
+        mechanism: 'heat',
+        energy,
+        site: 'torso',
+      });
+    }
+    if (MixinApi.isThermal(s)) s.depositHeat(energy);
+    tryAutoigniteImpl(s);
+  }
+  for (const occ of room.getContents()) {
+    const s = occ as unknown as Stuff;
+    if (!s.isDestroyed() && MixinApi.isSensor(s)) {
+      MessageApi.scene(s)
+        // ⚠ `sense.surroundings`, not `sense.sight`: the topic roots are
+        // a CLOSED seven and their leaves are seeded rows, so a topic
+        // nobody seeded is a message nobody can mute —
+        // `lint:topics` catches it, which is how this one was found.
+        .topic('sense.surroundings')
+        .toSelf(
+          Mml.compose`The air itself catches. A sheet of pale flame goes over you with a sound like a door slamming, and then it is dark again.`,
+        )
+        .send();
+      break;
+    }
+  }
 }
 
-/** Clear fire-set smoke (only if the fire set it — the raw override reads
- * 'smoke'), restoring the scope's default atmosphere. */
-function clearFireSmoke(room: Stuff & Container): void {
-  const atm = room as unknown as Atmospheric;
-  if (atm._atmosphere === 'smoke') atm.setAtmosphere(null);
+/**
+ * A naked flame in `room`, or `null` — ⚠ walking **one level deep
+ * through a person**, because a torch in somebody's hand is in the room
+ * for this purpose.
+ */
+function nakedFlameIn(room: Stuff & Container): Stuff | null {
+  const check = (s: Stuff): Stuff | null => {
+    if (s.isDestroyed()) return null;
+    if (MixinApi.isBurner(s) && s.isLit() && !s.isFlameEnclosed()) return s;
+    if (MixinApi.isCombustible(s) && s.isBurning()) return s;
+    return null;
+  };
+  for (const occ of room.getContents()) {
+    const s = occ as unknown as Stuff;
+    const hit = check(s);
+    if (hit !== null) return hit;
+    // One level deep, and no further: a lamp in a bag in a cart is not
+    // an open flame in the room.
+    if (!MixinApi.isContainer(s)) continue;
+    for (const held of s.getContents()) {
+      const inner = check(held as unknown as Stuff);
+      if (inner !== null) return inner;
+    }
+  }
+  return null;
+}
+
+/**
+ * Put out every lit burner in `room` whose air has run out.
+ *
+ * ⚠ Separate from the `Combustible` arm because the two have different
+ * *writers*: a `Combustible`'s burning state is `_extinguishState`, a
+ * burner's lit state is `_setLit`, and only `FireApi` may call the
+ * latter. Same threshold, same reason, two mechanisms — which is the
+ * shipped split between *an object that is on fire* and *an appliance
+ * that holds one*.
+ */
+function smotherStarvedBurners(room: Stuff & Container): void {
+  const share = BiomeApi.airShareOf(
+    BiomeApi.resolveAtmosphereContentsFor(room),
+  );
+  if (share > dial(AppSettingKeys.fireAirSmotherAirShare, 0.7)) return;
+  for (const occ of room.getContents()) {
+    const s = occ as unknown as Stuff;
+    if (s.isDestroyed() || !MixinApi.isBurner(s)) continue;
+    if (!s.isLit()) continue;
+    s._setLit(false);
+  }
 }
 
 /** The live (non-destroyed) Combustibles directly in `room`. */

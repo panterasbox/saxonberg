@@ -6,6 +6,7 @@
  */
 
 import "../../../../test-bootstrap";
+import type { Stuff } from '../../stuff/Stuff';
 import { ThermalMixin } from '../Thermal';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import Good from '../../stuff/Good';
@@ -15,6 +16,8 @@ import { FireApi } from '../../../api/fire';
 import { StuffApi } from '../../../api/stuff';
 import { ContainmentApi } from '../../../api/containment';
 import { Reserve } from '../../reserve';
+import { chargeHot } from '../../fire/__tests__/burner-fuel';
+import type { Burner } from '../../fire/Burner';
 import { Quantity } from '../../quantity';
 import { makeStuff } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
@@ -32,9 +35,7 @@ describe('reachableHeatK — the inert crafting seam', () => {
     return makeStuff(() => {
       const f = new Forge();
       f.setBurnTemperatureK(heldK);
-      f.setReserve(
-        new Reserve('fuel', Quantity.of(100, '%'), Quantity.of(100, '%'), 'combustion', null),
-      );
+      chargeHot(f as unknown as Stuff & Burner, 40);
       return f;
     });
   }

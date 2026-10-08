@@ -39,8 +39,14 @@ data:
   interiorCapacity: 10
   # ⚠ No `category:` and no `open:` — a `Receptacle` declares neither
   # (they are the `Vat`/`VesselKind` rung's, which is why the salt-pan
-  # has them), and `closure: none` already says a pail has no lid. The
+  # has them), and `closure: open` already says a pail has no lid. The
   # `milk` verb's vessel default matches `mixin.BulkableMixin`, not a
   # kind, so nothing needed them.
-  closure: none
+  # ⚠⚠ `open`, and it said `none` until the fire build — which is not a
+  # `ClosureLevel`. `CLOSURE_ORDER['none']` is `undefined`, the comparison
+  # yields `NaN`, and `NaN < 0` is **false**, so the drain-through arm
+  # never fired and this vessel RETAINED LIQUID AS THOUGH IT WERE LIDDED.
+  # ⭐ `setClosure` throws on an unknown rung now, so a row like that
+  # fails its own hydration instead of quietly inverting its own prose.
+  closure: open
   mass: 1.2

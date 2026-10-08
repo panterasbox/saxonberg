@@ -89,7 +89,11 @@ same bad answer: **a number somebody typed.**
 - **A room's warmth is derived** from what it is built of, what stands
   open, and what is burning in it. The 21 °C indoor decree is gone.
 - **Fire is answerable for what it consumes** — a lantern you light goes
-  out, and a hearth you stop feeding stops warming.
+  out, and a hearth you stop feeding stops warming. ✅ **And it can be
+  FED** (the fire build, 2026-10): fuel is a bed somebody stokes, so a
+  forge no longer arrives pre-fuelled and unfeedable, and what is in the
+  bed decides the heat, the light, the smoke and what the smoke tastes
+  of. → [fire.md](./subsystems/fire.md)
 - **Cold is a cost, not a death sentence** — the body's cold branch was
   retuned against measurement, and capped at what shivering can actually
   do.

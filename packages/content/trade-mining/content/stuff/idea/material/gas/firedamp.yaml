@@ -1,0 +1,50 @@
+# Firedamp — ⭐⭐⭐ **the third damp, and the opposite hazard from the other
+# two.**
+#
+# Methane, adsorbed in coal measures and released when you cut into them.
+# The two damps that shipped kill by DISPLACEMENT: blackdamp is air with
+# nothing left in it, odourless, and the only free reading of it is a bird
+# that stops singing; stinkdamp reeks, which is why smell and the canary
+# are complementary rather than redundant.
+#
+# Firedamp is neither. ⭐ **It is breathable at the fractions that
+# matter** — so the canary SINGS, and a miner who has learnt to trust the
+# bird learns that the bird is answering a different question. What it
+# does is BURN: carry a naked flame into a gassy heading and the heading
+# goes off.
+#
+# ⭐⭐ Which is why its tell is a FLAME, and why the Davy lamp exists at
+# all: a lamp burns a tall blue cap in firedamp, so the instrument that
+# warns you is the instrument that would have killed you, made safe by a
+# cylinder of wire gauze. The gauze conducts the heat away faster than
+# the flame can cross it — one of the very few pieces of nineteenth
+# century safety engineering that is a pure physical trick.
+#
+# ⭐ Two derivations and no authored hazard anywhere:
+#
+#  - `boilingPoint: 112` makes it a GAS, so only a sealed vessel holds
+#    it — which is what makes `drain` into a bladder a real act;
+#  - `heatOfCombustion: 55` makes it BURN, which is what the flash check
+#    reads. No `hazard:` field, no authored trap, no room that is marked
+#    dangerous: the danger is that the stuff in the air is fuel.
+#
+# ⚠ No `toxicity`. Methane poisons nobody; it suffocates in quantity and
+# explodes in the right mixture, and both of those are consequences of
+# facts already here.
+class: /platform/idea/material/Material
+data:
+  name: firedamp
+  keywords: [firedamp, damp, gas, methane, "marsh gas"]
+  appearance: nothing you can see
+  density: 0.72
+  specificHeat: 2200
+  thermalConductivity: 0.034
+  boilingPoint: 112
+  heatOfCombustion: 55
+  autoignitionTemperature: 810
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: [gas, fuel, flammable, damp]
+  composition: []
+  biologicalSource: null

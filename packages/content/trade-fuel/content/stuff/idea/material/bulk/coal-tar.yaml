@@ -1,0 +1,42 @@
+# Coal tar — ⭐⭐ **the most historically loaded substance in this pack.**
+#
+# It was the waste of the gasworks: a filthy by-product the works paid to
+# get rid of, poured into rivers by the thousands of gallons. Then
+# somebody fractionated it, and out came benzene, phenol, aniline, the
+# first synthetic dyes, the first antiseptics, and — through the dye
+# industry's chemists — organic chemistry itself as a discipline.
+#
+# ⭐ That is why the retort FEEDS the knowledge ladder rather than waiting
+# on it: coal tar is the feedstock the laws were theorised FROM. A player
+# makes it by a medieval act (cook coal in a pot) and what it unlocks is
+# the industrial epoch.
+#
+# ⚠ Nothing refines it yet. The cuts rung — heads, hearts, tails over a
+# `FractionSchedule` — is the distiller's, and refining coal tar is the
+# same mechanism with a different feedstock. Said here so the gap is a
+# recorded seam and not a silence.
+class: /platform/idea/material/Material
+data:
+  name: coal tar
+  keywords: ["coal tar", tar, "gas tar"]
+  appearance: a thick black liquid that smells of creosote
+  density: 1200
+  specificHeat: 1600
+  thermalConductivity: 0.15
+  boilingPoint: 540
+  heatOfCombustion: 37
+  autoignitionTemperature: 650
+  edibility: false
+  nutrients: []
+  # ⚠ **No `toxicity`, deliberately.** Coal tar is genuinely nasty — it is
+  # what the dye works poisoned their own workers with — but the harm is
+  # CHRONIC (carcinogenic, over years of skin contact), and this game
+  # models an acute toxin dose and a breath. Authoring a dose here would
+  # need a new toxin type and a new `Condition` row to mean anything, and
+  # a toxin with no condition behind it is a number nothing reads. ⭐ The
+  # honest record: the hazard is real, the mechanism for it is not built,
+  # and inventing a fake acute dose would be worse than saying so.
+  toxicity: []
+  tags: [bulk, organic, flammable, tar, sulfurous]
+  composition: []
+  biologicalSource: null

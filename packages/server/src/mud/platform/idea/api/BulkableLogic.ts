@@ -3,6 +3,10 @@
 // @internal lands on the reflection TypeDoc emits, not on the module.)
 
 import { ApiLogic } from '../../../lib/stuff/ApiLogic';
+import { AppApi } from '../../../api/app';
+import { AppSettingKeys } from '../../../lib/config/AppSettings';
+import { BiomeApi } from '../../../api/biome';
+import type { Atmospheric } from '../../../lib/biome/Atmospheric';
 import { CallSecurity, Unshadowable } from '../../../lib/security/decorators';
 import { SecurityPolicies } from '../../../lib/security/SecurityPolicies';
 import type { Stuff } from '../../../lib/stuff/Stuff';
@@ -139,11 +143,27 @@ export class BulkableLogic extends ApiLogic {
     return base;
   }
 
-  /** See {@link BulkableApi.requiredClosureFor}. */
+  /**
+   * ⭐⭐ **Phase is a CONSEQUENCE of the material and where you are
+   * standing** — there is no `phase` field and no `gas` tag read.
+   *
+   * A material is a gas when it boils at or below the standard ambient,
+   * which is one comparison between two numbers the row already carries
+   * (or, until the fire build, did not: `air.yaml` had no boiling point
+   * at all). So a pack ships a gas by authoring `boilingPoint`, the
+   * authored surface stays closed, and the same arithmetic that makes
+   * water a liquid makes coal gas a gas.
+   *
+   * ⚠ Granular (`'open'`) stays a deferred tail — flour and grist are
+   * stacks rather than bulk today, so nothing would read it.
+   */
   @CallSecurity(BulkableApiCallers)
-  public requiredClosureFor(_material: Material | null): ClosureLevel {
-    // Gas extension point: when a Material carries a 'gas' phase, return
-    // 'sealed'; 'granular' → 'open'. v1 has only liquid.
+  public requiredClosureFor(material: Material | null): ClosureLevel {
+    if (material === null) return 'liquidTight';
+    const boiling = material.getBoilingPoint().rawValue();
+    if (boiling > 0 && boiling <= bulkDial(AppSettingKeys.atmosphereStandardK, 293)) {
+      return 'sealed';
+    }
     return 'liquidTight';
   }
 
@@ -303,13 +323,44 @@ export class BulkableLogic extends ApiLogic {
       }
     }
 
-    // 3. Closure on an interior destination — drain through when open.
-    if (
+    // 3. Closure on the destination — ⭐ three outcomes now, not two.
+    const required = this.requiredClosureFor(material);
+    const underClosed =
       to !== null &&
       to.affordance === 'interior' &&
-      this.compareClosure(to.getClosure(), this.requiredClosureFor(material)) <
-        0
-    ) {
+      this.compareClosure(to.getClosure(), required) < 0;
+    // ⭐⭐ A GAS does not become a floor puddle. The under-closed arm
+    // below redirects liquid to the floor, which is right for a pail of
+    // water and absurd for coal gas — and a gas poured at a SURFACE is
+    // the same absurdity (nothing lies on a table). It escapes instead,
+    // into the air of whatever place the destination is standing in, so
+    // a failed pour in a shut room poisons it. ⚠ That is the honest
+    // answer and it is also the dangerous one, which is the point.
+    // ⚠ The lid test is asked of the DESTINATION directly and not through
+    // `isGasRetained`, which reads what a slot ALREADY holds — and an
+    // empty can holds nothing, so it answers "retained" and the arriving
+    // gas would have been let in. A question about what is arriving is
+    // not the same question as a question about what is there.
+    const lidHost = to === null ? null : (to.getHolder() as unknown as Stuff);
+    const lidStandsOpen =
+      lidHost !== null && MixinApi.isSealable(lidHost) && lidHost.isOpen();
+    const gasEscapes =
+      required === 'sealed' &&
+      (underClosed ||
+        (to !== null && to.affordance === 'surface') ||
+        lidStandsOpen);
+    if (gasEscapes && to !== null) {
+      const applied = computeApplied(from, null, amount, notes);
+      if (applied > 0) from.debit(applied);
+      emitEscapedGas(to.getHolder(), material, applied);
+      notes.push({
+        kind: 'target-declined',
+        target: MessageApi.refOf(to.getHolder()),
+        reason: 'gas-escapes',
+      });
+      return { applied, status: 'escaped', notes };
+    }
+    if (underClosed && to !== null) {
       const floor = this.floorSurfaceNear(to.getHolder());
       if (floor === null) {
         // Defensive no-floor guard (never exercised by the demo, where
@@ -712,4 +763,51 @@ function computeApplied(
     applied: fittable,
   });
   return fittable;
+}
+
+/** One numeric dial read, falling back to the literal when unseeded. */
+function bulkDial(key: string, fallback: number): number {
+  try {
+    const raw = AppApi.setting(key);
+    if (raw == null || raw === '') return fallback;
+    const n = Number.parseFloat(raw);
+    return Number.isFinite(n) ? n : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+/**
+ * ⭐ Put escaped gas into the AIR of the place the vessel is standing in.
+ *
+ * Not lost, and not a puddle: the litres go where they actually go. The
+ * walk is outward to the first `Atmospheric` ancestor with a volume —
+ * the same one a fire's exhaust uses — so a bungled pour in a shut room
+ * is exactly as dangerous as a fire in one, by the same mechanism.
+ *
+ * ⚠ Nothing in the chain (a vessel held by nobody, in no room) means the
+ * litres really are lost. That is the honest answer for matter outside
+ * the world.
+ */
+function emitEscapedGas(
+  holder: Stuff,
+  material: Material,
+  litres: number,
+): void {
+  if (!(litres > 0)) return;
+  const path = material.getTemplatePath();
+  if (path === null) return;
+  let at: Stuff | null = holder;
+  let depth = 32;
+  while (at !== null && depth-- > 0) {
+    if (
+      MixinApi.isAtmospheric(at) &&
+      MixinApi.isContainer(at) &&
+      (at as unknown as Atmospheric).getVolume() !== null
+    ) {
+      (at as unknown as Atmospheric).addAtmosphereContent(path, litres);
+      return;
+    }
+    at = MixinApi.isContainable(at) ? at.getContainer() : null;
+  }
 }

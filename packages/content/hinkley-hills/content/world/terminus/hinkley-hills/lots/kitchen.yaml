@@ -20,11 +20,8 @@ data:
   ambientColorTemperature: 4800
   longDescription: |
     A farmhouse kitchen with the range set into the old chimney breast, a scrubbed counter under the window, and a larder cupboard built into the cool of the south wall. The window looks over the yard; the light comes in over the counter most of the afternoon.
-  reserves:
-    air:
-      capacityValue: 100
-      currentValue: 100
-      unit: "%"
+  # ⭐ No air budget. The window over the counter is the ventilation, and
+  # it is the same opening that lights the room.
   props:
     - /stuff/thing/fixture/range
     - /stuff/thing/fixture/counter
@@ -34,6 +31,17 @@ data:
     # arrives warm and empty, and a survey says so until somebody puts
     # a block in it.
     - /stuff/thing/fixture/icebox
+    # ⭐⭐ **Fuel, in reach of the fire.** The fire build made a burner's
+    # fuel a BED somebody fills — before it, a `%` Reserve the row
+    # authored once meant a forge arrived pre-fuelled and could never be
+    # fed again. The consequence is systemic and this is its content
+    # half: **every room with a fire somebody is expected to light needs
+    # fuel they can pick up.** Nine rooms did not.
+    #
+    # ⚠ Bounded props, never a faucet (the fuel yard's own four baskets
+    # are the precedent): a starting condition, not a supply. What
+    # restocks it is the trade that makes it.
+    - { template: /stuff/thing/items/dry-log, count: 3 }
   details:
     window:
       keywords: [window, glass, light]

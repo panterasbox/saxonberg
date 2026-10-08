@@ -17,18 +17,27 @@ data:
     point of the whole arrangement.
   # ⚠ `BurnerMixin.lit` defaults TRUE. A hearth in an empty room is out.
   lit: false
-  reserves:
-    fuel:
-      capacityValue: 100
-      currentValue: 100
-      unit: "%"
-      theme: combustion
-      floorEffect: null
   # ⭐ What it puts into the ROOM, in watts. Against the envelope this is
   # about +9 K over outside in a shut stone cell and around +4 K with the
   # street door standing open — "a heated room with the door open is
   # expensive" falling out of the arithmetic rather than being asserted.
   heatOutputW: 1500
   # Firelight: not much of it, and warm.
-  emittedIntensity: 90
+  # ⭐⭐ The darkness sweep (fire build). `emittedIntensity` is a CEILING
+  # now, not the reading: luminosity is incandescent soot, so a solid-fuel
+  # flame at full draught sheds `fire.light.sootyFloor` (0.6) of it and a
+  # starved one climbs back toward it. Every burner's authored figure is
+  # scaled by 1/0.6 so a well-run fire lights its room exactly as brightly
+  # as it did before — and a badly-run one now lights it MORE, which is
+  # the lesson. ⚠ No room lit only by a fire has gone dark (AC20).
+  emittedIntensity: 150
   emittedColorTemperature: 1900
+  # ⭐ The fire build: fuel is a BED (kilograms, by material) that
+  # `stoke` fills, and the vessel's size is a POWER rather than a
+  # percentage-per-minute of nothing. What it reaches depends on what
+  # is in it.
+  # Ships COLD with a charge laid in it: somebody still has to light it.
+  maxBurnPowerW: 6000
+  fuelCapacityKg: 20
+  fuelBed:
+    /stuff/idea/material/wood/oak: 6

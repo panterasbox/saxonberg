@@ -32,6 +32,19 @@ data:
   nutrients: []
   toxicity: []
   tags: ["textile", "fibre", "organic", "plant", "cellulose", "once-living"]
+  # ⭐⭐ 16 MJ/kg — dry plant cellulose, and the FIRE BUILD is why a
+  # textile authors one. Burlap is jute, and burning sacking is how a
+  # beekeeper makes smoke: the bee smoker is a `Burner` now, and a
+  # burner's flame temperature derives from its fuel's heat of
+  # combustion, so without this a sack is not fuel and the smoker's bed
+  # refuses it as *"That will not burn."*
+  heatOfCombustion: 16
+  # ⭐ And what it imparts IS smoke, which is the only fuel in the game
+  # whose PURPOSE is the exhaust rather than the heat. The smoker's own
+  # prose already said so — *"smelling permanently of burnt sacking"*.
+  combustionImparts:
+    - type: smoke
+      amount: 40
   composition: []
   chemistry: null
   biologicalSource: null

@@ -4,10 +4,15 @@
 # when the outfit fails. The MECHANISM — the lamp-oil material and the cask —
 # stays with the fuel trade (`/trade/fuel`); these rows name it by path.
 # ⭐ This is the PRODUCER the street-lighting market was missing: it makes lamp
-# oil (spawned floor stock in this build; the crafted retort route is the
-# destructive-distillation build) and consigns casks to the cash-and-carry,
+# oil (spawned floor stock) and consigns casks to the cash-and-carry,
 # where a town's public-works department buys them. A sub-zone of its own so
 # the floor keeps its authored coords; the district zone is its parent.
+#
+# ⭐ The retort in the corner is REAL since the fire build: the chamber
+# fires, and what leaves the charge goes to a condenser. Lamp oil off the
+# light fraction is the distiller's deferred cuts rung (heads, hearts,
+# tails over a `FractionSchedule`) and is named there — so this row's old
+# *"the crafted route is a later build"* is retired rather than restated.
 class: /platform/idea/location/CartesianZone
 data:
   name: The Oil Works

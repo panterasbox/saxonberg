@@ -45,6 +45,11 @@ const ACTS = [
   'trade/mining/cmd/mining/sink.yaml',
   'trade/mining/cmd/mining/raise.yaml',
   'trade/mining/cmd/mining/shore.yaml',
+  // ⭐⭐ `drain` from the fire build — the one act here that HARVESTS a
+  // hazard instead of surviving it. It is afforded by the working like
+  // every other act, because the gas is a fact about the ground you are
+  // standing in and not about anything you are carrying.
+  'trade/mining/cmd/mining/drain.yaml',
 ];
 
 let zone: CartesianZone;
@@ -120,7 +125,7 @@ describe('a hand-authored working', () => {
     expect(MixinApi.isPersistable(makeStuff(() => new MineRoom()) as unknown as Stuff)).toBe(true);
   });
 
-  it('⭐⭐ BOTH working classes afford the five acts — the affordance is a class STATIC', () => {
+  it('⭐⭐ BOTH working classes afford the six acts — the affordance is a class STATIC', () => {
     for (const Cls of [AuthoredWorking, MineRoom]) {
       const contributions = (Cls as unknown as {
         commandContributions: { self: string[]; inventory: string[] };

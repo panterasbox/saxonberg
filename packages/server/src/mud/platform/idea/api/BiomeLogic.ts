@@ -28,6 +28,9 @@ import {
 import { Evaporation } from '../../../lib/material/Evaporation';
 import type { AirSegment } from '../../../api/biome';
 import type Locality from '../Locality';
+import type { Concentrate } from '../../../lib/bulk/Concentration';
+import { AppApi } from '../../../api/app';
+import { AppSettingKeys } from '../../../lib/config/AppSettings';
 
 /**
  * The four atmospheric fields weather deviates (D5). Gravity / atmosphere
@@ -196,7 +199,7 @@ export class BiomeLogic extends ApiLogic {
     if (!d) {
       throw new Error(
         `BiomeApi.densityOf: unknown atmosphere tag '${tag}' ` +
-          `(known: air, water, vacuum)`
+          `(known: ${knownAtmospheres().join(', ')})`
       );
     }
     return d;
@@ -209,7 +212,7 @@ export class BiomeLogic extends ApiLogic {
     if (!k) {
       throw new Error(
         `BiomeApi.conductivityOf: unknown atmosphere tag '${tag}' ` +
-          `(known: air, water, vacuum)`
+          `(known: ${knownAtmospheres().join(', ')})`
       );
     }
     return k;
@@ -222,7 +225,7 @@ export class BiomeLogic extends ApiLogic {
     if (b === undefined) {
       throw new Error(
         `BiomeApi.breathableOf: unknown atmosphere tag '${tag}' ` +
-          `(known: air, water, vacuum)`
+          `(known: ${knownAtmospheres().join(', ')})`
       );
     }
     return b;
@@ -394,6 +397,45 @@ export class BiomeLogic extends ApiLogic {
       (a, k) => readDetailMap<string>(a._detailAtmospheres, k),
       (a) => a._atmosphere,
     );
+  }
+
+  /** See {@link BiomeApi.isKnownAtmosphere}. */
+  @CallSecurity(BiomeApiCallers)
+  public isKnownAtmosphere(tag: string): boolean {
+    return ATMOSPHERE_BREATHABLE[tag] !== undefined;
+  }
+
+  /** See {@link BiomeApi.resolveAtmosphereContentsFor}. */
+  @CallSecurity(BiomeApiCallers)
+  public resolveAtmosphereContentsFor(scope: Stuff & Container): Concentrate[] {
+    return resolveContentsFor(scope);
+  }
+
+  /** See {@link BiomeApi.airShareOf}. */
+  @CallSecurity(BiomeApiCallers)
+  public airShareOf(contents: readonly Concentrate[]): number {
+    let sum = 0;
+    for (const c of contents) sum += Math.max(0, c.amount);
+    return Math.max(0, Math.min(1, 1 - sum));
+  }
+
+  /** See {@link BiomeApi.hasBreathableShare}. */
+  @CallSecurity(BiomeApiCallers)
+  public hasBreathableShare(contents: readonly Concentrate[]): boolean {
+    let sum = 0;
+    for (const c of contents) sum += Math.max(0, c.amount);
+    const share = Math.max(0, Math.min(1, 1 - sum));
+    return share >= biomeDial(AppSettingKeys.atmosphereBreathableAirShare, 0.76);
+  }
+
+  /** See {@link BiomeApi.isBreathableMixture}. */
+  @CallSecurity(BiomeApiCallers)
+  public isBreathableMixture(
+    tag: string,
+    contents: readonly Concentrate[],
+  ): boolean {
+    if (ATMOSPHERE_BREATHABLE[tag] !== true) return false;
+    return this.hasBreathableShare(contents);
   }
 
   // ---------- trace variants ----------
@@ -1304,6 +1346,76 @@ async function runChainWalk<V>(
 
 function capitalize(s: string): string {
   return s.length === 0 ? s : s[0]!.toUpperCase() + s.substring(1);
+}
+
+/** Every atmosphere tag the per-tag physics tables know. */
+function knownAtmospheres(): string[] {
+  return Object.keys(ATMOSPHERE_BREATHABLE);
+}
+
+/** One numeric dial read, falling back to the literal when unseeded. */
+function biomeDial(key: string, fallback: number): number {
+  try {
+    const raw = AppApi.setting(key);
+    if (raw == null || raw === '') return fallback;
+    const n = Number.parseFloat(raw);
+    return Number.isFinite(n) ? n : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+/**
+ * ⭐⭐ **The contents walk — the innermost scope that IS a place answers.**
+ *
+ * Deliberately not the six-step chain, and deliberately not a sum across
+ * ancestors. The identity tag walks outward because *the air over a place*
+ * is inherited from the place around it; what the air CARRIES is a
+ * quantity in a volume, and a quantity cannot be inherited — summing a
+ * coach's smoke with the smoke of the street it stands in would count the
+ * same litres twice and let a sealed vessel breathe the room.
+ *
+ * So: walk outward, and the first `Atmospheric` ancestor with a derivable
+ * VOLUME is the medium you are in. That is the same discriminator
+ * `addAtmosphereContent` uses to decide where litres may go, so contents
+ * can only ever be read from a scope they could have been put into.
+ * A scope with no volume (a plain `Location`, `Offstage`) is not a place
+ * and passes through; nothing in the chain means `[]`, the plain air of a
+ * world with nothing in it.
+ */
+function resolveContentsFor(scope: Stuff & Container): Concentrate[] {
+  let cursor: (Stuff & Container) | null = scope;
+  let depth = CONTAINMENT_DEPTH_CAP;
+  while (cursor !== null && depth-- > 0) {
+    if (MixinApi.isAtmospheric(cursor)) {
+      const a = cursor as Stuff & Container & Atmospheric;
+      if (a.getVolume() !== null) {
+        a.reconcileAtmosphereContents();
+        return sumByType(a._atmosphereContents, a._atmosphereStanding);
+      }
+    }
+    const next = stepOutward(cursor);
+    if (next === null) break;
+    cursor = next;
+  }
+  return [];
+}
+
+/** The two lists folded into one, summed by material path. */
+function sumByType(
+  accumulated: readonly Concentrate[],
+  standing: readonly Concentrate[],
+): Concentrate[] {
+  const byType = new Map<string, number>();
+  for (const list of [accumulated, standing]) {
+    for (const c of list) {
+      if (!(c.amount > 0)) continue;
+      byType.set(c.type, (byType.get(c.type) ?? 0) + c.amount);
+    }
+  }
+  const out: Concentrate[] = [];
+  for (const [type, amount] of byType) out.push({ type, amount });
+  return out;
 }
 
 // ---------- the evaporation walk (module-private) ----------

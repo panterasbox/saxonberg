@@ -1,0 +1,51 @@
+# Conjure flame — create·fire, and ⭐⭐⭐ **the honest answer the Fire school
+# inherits instead of inventing one.**
+#
+# The glowlight proved the Light-split-from-Fire carve on the LIGHT side:
+# light with no heat, warming nothing, igniting nothing. This is the heat
+# side, and it takes no exemption from the physics a hearth obeys:
+#
+#   - it has no FUEL, so there is nothing to stoke and nothing to run out
+#     of (the working is paying);
+#   - it makes no SOOT, because nothing is incompletely burning — ⭐ so it
+#     is DIM, and a player can tell a worked fire from a real one by
+#     looking;
+#   - ⭐⭐ it still spends the ROOM'S AIR, because conservation is not
+#     something magic is exempt from. A worked fire in a sealed cellar is
+#     as dangerous as a real one and smothers itself the same way;
+#   - its flame is NAKED, so it will set off firedamp. A caster who
+#     thinks magic exempts them from the gas finds out in the one place
+#     it matters.
+#
+# ⚠ This is not the Fire SCHOOL. A school is a spell grid, casting
+# profiles, faculty, suppression and discipline leaves; this is one
+# flame, and it exists so the kernel's worked-fire answer is EXERCISED
+# rather than shipped as a dead branch behind a hook with one
+# implementer.
+class: /platform/idea/magic/Spell
+data:
+  spellId: conjure-flame
+  name: Conjure Flame
+  verb: create
+  noun: fire
+  # Dearer than a glowlight, and the reason is in the physics: a
+  # glowlight is a field, and this is a fire that heats a room and
+  # breathes its air.
+  cost: 20
+  castingProfile:
+    requiredBand: competent
+    castSeconds: 3
+  targeting: none
+  durationSeconds: 1800
+  effects:
+    # ⭐ The executor requires only `isLightSource` of a locus, so a
+    # `Burner`-composing one is valid with no kernel magic edit. The
+    # locus is this pack's own class, because only this row names it.
+    - kind: emit-field
+      field: light
+      locus: /stuff/thing/magic/worked-flame
+  description: >-
+    A standing flame with nothing under it, called up and held. It cooks,
+    it warms, it burns what it touches and it breathes the air of the
+    room it is in — all the things a fire does, except consume anything.
+    It is also strangely dim, which is the price of its being clean.

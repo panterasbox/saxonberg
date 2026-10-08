@@ -125,7 +125,14 @@ describe('the two apparatuses are ROWS, and neither is a class', () => {
     expect(pan.class).toBe('/platform/thing/Vat');
     const d = (pan.data ?? {}) as Record<string, unknown>;
     expect(d.open).toBe(true);
-    expect(d.closure).toBe('none');
+    // ⛔ This asserted `'none'`, which is not a `ClosureLevel` — and the
+    // fire build is what caught it. `setClosure` compared an unknown
+    // rung against `CLOSURE_ORDER`, got `NaN`, and `NaN < 0` is false,
+    // so **the pan retained its brine as though lidded** — in a row
+    // whose entire mechanism is that a covered pan does not work. The
+    // rung that means "standing open" is `open`, and `setClosure` throws
+    // on anything outside the vocabulary now.
+    expect(d.closure).toBe('open');
     expect(d.interiorBulk).toBe(true);
   });
 

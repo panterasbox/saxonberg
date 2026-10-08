@@ -109,7 +109,7 @@
  *     meters a parcel and what electric posture it holds (off-grid /
  *     domestic / commercial / industrial). This is the opposite of a
  *     secret: `analyze grid` prints both to anyone standing in the
- *     premises, and the whole epoch read (electric vs gas-lit) is built
+ *     premises, and the whole epoch read (electric vs oil-lit) is built
  *     to be derivable, never hidden. A line reaching your ground is a
  *     thing you can see.
  *   - `Locality._lightingSourceLabel` — the plain-words label for where a

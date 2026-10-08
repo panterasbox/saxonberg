@@ -26,7 +26,19 @@ data:
   waterAbsorptionCapacity: 30
   # Autoignition well below wood's: charcoal catches from an ember where
   # a log wants a flame.
-  autoignitionPoint: 620
+  #
+  # ⚠ This key was `autoignitionPoint` until the fire build, and there is
+  # no such field — the real one is `autoignitionTemperature`, so charcoal
+  # has had an autoignition of ZERO for the life of the pack and
+  # `tryAutoignite` would never have caught it from a neighbouring fire.
+  autoignitionTemperature: 620
+  # ⭐⭐ 30 MJ/kg, and this row did not author it at all. `heatOfCombustion`
+  # is what the fire build derives a flame's temperature from — nearly pure
+  # carbon burns at ~2250 K, which is how charcoal reaches a smelting
+  # furnace's ceiling and oak (16 MJ/kg → ~1340 K) does not. Without the
+  # number charcoal would have burnt COLDER than wood, which is the exact
+  # opposite of the reason the material exists.
+  heatOfCombustion: 30
   edibility: false
   nutrients: []
   toxicity: []

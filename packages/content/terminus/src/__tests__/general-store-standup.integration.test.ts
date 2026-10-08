@@ -123,6 +123,15 @@ const APIARY_LINES = [
   "/trade/apiculture/thing/super",
   "/trade/apiculture/thing/frame",
   "/trade/apiculture/thing/smoker",
+  // ⭐⭐ Sacking — the smoker's FUEL, and the fire build is why the line
+  // needs it. A smoker is a real `Burner` now with a 1 kg bed that
+  // `stoke` fills, and `stoke` is all-or-nothing, so the smallest
+  // burnable item in the realm has to be smaller than the bed. Nothing
+  // was: a census found sixteen items that FIT and not one that was
+  // fuel (an arrow, a spile, a drop spindle, a fishing rod). A smoker
+  // you cannot light is a tin, so the shop that sells the smoker sells
+  // what it eats.
+  "/trade/apiculture/thing/sacking",
   "/trade/apiculture/thing/extractor",
   "/trade/apiculture/thing/honey-jar",
   "/stuff/thing/clothes/bee-veil",

@@ -545,3 +545,9 @@ is by construction; the risk is a new spell inventing a side path. Guilds
 (a fire guild, an earth guild, an acid/alchemy guild) teach and gate a
 *family* of these workings — which is why the roster breadth is the raw
 material for the next social/economic layer, not polish.
+
+## ⬅ From the fire build (2026-10)
+
+Left as a line here rather than in a retired plan.
+
+- **Where `conjure-flame` sits in the Fire school's grammar.** The fire build ships the minimal row (a worked flame that takes no exemption from the physics a hearth obeys — it spends the room's air and smothers in a sealed cellar); the school's own structure inherits it.

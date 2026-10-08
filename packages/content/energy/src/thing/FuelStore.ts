@@ -1,5 +1,5 @@
 /**
- * FuelStore — ⭐⭐ **a gas-lit town's oil, and the goods leg of its
+ * FuelStore — ⭐⭐ **an oil-lit town's oil, and the goods leg of its
  * street-lighting bill.**
  *
  * A `Holder` (matter that holds matter, and is itself held — a warehouse,

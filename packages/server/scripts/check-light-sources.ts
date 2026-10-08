@@ -207,6 +207,20 @@ export const INHERENT_GLOWS: readonly string[] = [
 ];
 
 /**
+ * ⭐ Burners that carry no fuel of their own, and are right not to —
+ * clause (h) skips these.
+ *
+ * A `fuelSource()` of `'worked'` is a fire with no matter in it at all:
+ * the power comes from the caster, not from a bed, which is why it has
+ * neither a capacity nor a charge. ⚠ It is NOT exempt from the physics —
+ * it still spends the room's air and still smothers in a sealed cellar,
+ * which is the honest answer the Fire school inherits.
+ */
+export const NO_FUEL_OF_ITS_OWN: readonly string[] = [
+  '/stuff/thing/magic/worked-flame', // ⭐ heat without fuel; the spell is the power
+];
+
+/**
  * Sky-exposed places that are nonetheless dark — the bottom of a shaft, a
  * deep well, a place the sky is technically above and practically not.
  */
@@ -627,6 +641,60 @@ function lint(): void {
     }
   }
 
+  // (h) ⛔⛔ a burner row with no POWER or no FUEL PATH is a dead object
+  //
+  // `maxBurnPowerW` and `fuelCapacityKg` both default to **0**, which is
+  // not dangerous — it is INERT, which is worse, because an inert object
+  // reads as fine in every test and is dead in a player's hands. A
+  // burner needs two things to work: somewhere to put fuel (an authored
+  // bed, a capacity a `stoke` can fill, or an `interiorBulk` interior a
+  // `fill` can pour into — `Lamp.fuelSlot()` answers with the last) and a
+  // power to burn it at.
+  //
+  // ⚠ This shipped TWICE in one week, which is the whole argument for the
+  // clause: the general store's LANTERN (no bed, no slot, no tank) and —
+  // independently, arriving from master — the chandlery CANDLE, which
+  // carried the retired `reserves: { fuel: … }` instead. Both were lights
+  // for sale, on a shelf, that could never be lit. Clause (g) above
+  // catches the `lit:` default because it is *wrong*; this catches the
+  // power/fuel defaults because they are *empty*.
+  let fuelled = 0;
+  for (const row of rows.values()) {
+    if (!isBurnerRow(row, sources)) continue;
+    if (NO_FUEL_OF_ITS_OWN.includes(row.path)) continue;
+    fuelled++;
+    const d = row.data as Record<string, unknown>;
+    const bed = d.fuelBed as Record<string, number> | undefined;
+    const bedKg =
+      bed !== undefined && bed !== null && typeof bed === 'object'
+        ? Object.values(bed).reduce((a, b) => a + Number(b), 0)
+        : 0;
+    const hasFuelPath =
+      Number(d.fuelCapacityKg ?? 0) > 0 ||
+      d.interiorBulk === true ||
+      bedKg > 0;
+    if (!hasFuelPath) {
+      failures.push(
+        `${row.file}: a burner row with nowhere to put fuel. ⚠ ` +
+          `\`fuelCapacityKg\` defaults to 0 and no \`fuelBed\` / ` +
+          `\`interiorBulk\` is authored, so nothing can be stoked into it ` +
+          `and nothing poured in — \`ignite\` will answer *"There is no ` +
+          `fuel in it. Stoke it first."* forever. Author a ` +
+          `\`fuelCapacityKg\` (stoked), or \`interiorBulk: true\` with an ` +
+          `\`interiorCapacity\` (filled), or a charged \`fuelBed\` (a ` +
+          `torch, which IS its fuel).`,
+      );
+    }
+    if (!(Number(d.maxBurnPowerW ?? 0) > 0)) {
+      failures.push(
+        `${row.file}: a burner row with no \`maxBurnPowerW\`. ⚠ it ` +
+          `defaults to 0, so this burns at no power: no heat, no light and ` +
+          `no exhaust, however much fuel is in it. The vessel's ceiling is ` +
+          `the one number only the row knows.`,
+      );
+    }
+  }
+
   for (const w of warnings) console.warn(`  ⚠ ${w}\n`);
   if (failures.length) {
     console.error(`\n✖ lint:light-sources — ${failures.length} finding(s):\n`);
@@ -644,7 +712,9 @@ function lint(): void {
       `${UNDECLARED_INTERIOR_AMBIENT_CEILING} undeclared interior(s) ` +
       `outstanding; ${publicLit} street(s) publicly lit and no lamp object ` +
       `anywhere; ${profiles} celestial profile(s) authored; ` +
-      `${furnaceRows} furnace row(s) all declare \`lit:\`.`,
+      `${furnaceRows} furnace row(s) all declare \`lit:\`; ` +
+      `${fuelled} carry both a fuel path and a power ` +
+      `(${NO_FUEL_OF_ITS_OWN.length} exempt — no fuel of its own).`,
   );
 }
 

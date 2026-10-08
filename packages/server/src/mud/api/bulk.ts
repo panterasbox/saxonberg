@@ -80,7 +80,12 @@ export type TransferAmount =
  *     drained through to the floor's surface puddle.
  * Absent on a clean full transfer.
  */
-export type TransferStatus = 'partial' | 'declined' | 'drained';
+/**
+ * How a transfer ended. ⭐ `'escaped'` is the fire build's: a GAS poured
+ * into something that will not hold it is gone into the air of the room
+ * — not retained, not a floor puddle, and not silently lost.
+ */
+export type TransferStatus = 'partial' | 'declined' | 'drained' | 'escaped';
 
 export interface TransferResult {
   /** Litres actually moved into the final destination. */

@@ -43,6 +43,7 @@ import type { AfflictionRecord } from '../../platform/idea/Condition';
 import type { BulkSlot } from '../bulk/Bulkable';
 import type { Container } from '../spatial/Container';
 import { MixinApi } from '../../api/mixin';
+import type Material from '../material/Material';
 import { SchedulerApi } from '../../api/scheduler';
 import { BiomeApi } from '../../api/biome';
 import { WorldClockApi } from '../../api/worldclock';
@@ -318,7 +319,28 @@ export function RespirationMixin<TBase extends MixinConstructor>(Base: TBase) {
       // ⚠ Destructed during the await above (a released fish, mid-drain):
       // the proxy is inert now and every read answers `undefined`.
       const set = this.getBreathableMedia() as readonly string[] | undefined;
-      if (!set || set.includes(medium)) return { exchanging: true, cause: null };
+      if (!set) return { exchanging: true, cause: null };
+      if (set.includes(medium)) {
+        // ⭐⭐ **A breathable medium is not the same as breathable air.**
+        // The tag says what the medium IS; the contents say how much of
+        // it is left. A room filling with a fire's exhaust reports `air`
+        // throughout and suffocates you anyway — which is what actually
+        // happens, and is why the tag never needed to change.
+        if (immersed) return { exchanging: true, cause: null };
+        const self2 = this as unknown as Stuff;
+        if (!MixinApi.isContainer(self2)) {
+          return { exchanging: true, cause: null };
+        }
+        const contents = BiomeApi.resolveAtmosphereContentsFor(
+          self2 as Stuff & Container,
+        );
+        if (BiomeApi.hasBreathableShare(contents)) {
+          return { exchanging: true, cause: null };
+        }
+        const supplyHere = this.currentSupply();
+        if (supplyHere === 'none') return { exchanging: false, cause: 'medium' };
+        return { exchanging: false, cause: 'supply' };
+      }
 
       // Medium not in this body's set. Confirm it is a *known* atmosphere
       // (`breathableOf` throws on unknown) — an unmodeled medium raises no
@@ -375,6 +397,37 @@ export function RespirationMixin<TBase extends MixinConstructor>(Base: TBase) {
       self.addToxinBurden(contaminant, perBreath);
     }
 
+    /**
+     * ⭐ Fold what the air CARRIES into the body's toxin burden — the
+     * contents seam's first consumer, and the honest version of the
+     * medium contaminant above.
+     *
+     * A gas row's `toxicity` is read as *burden per breath at unit
+     * fraction*, so a room one-tenth full of smoke poisons at a tenth
+     * the rate. ⚠ Deliberately independent of breathability: a
+     * perfectly breathable room can be poisoning you, which is the
+     * whole carbon-monoxide lesson.
+     */
+    private applyMediumContents(): void {
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isMetabolic(self)) return;
+      if (!MixinApi.isContainable(self) || !self.getContainer()) return;
+      if (!MixinApi.isContainer(self)) return;
+      const contents = BiomeApi.resolveAtmosphereContentsFor(
+        self as Stuff & Container,
+      );
+      if (contents.length === 0) return;
+      for (const c of contents) {
+        if (!(c.amount > 0)) continue;
+        const material = StuffApi.findByTemplatePath<Material>(c.type);
+        if (!material) continue;
+        for (const toxin of material.getToxicity()) {
+          if (!(toxin.amount > 0)) continue;
+          self.addToxinBurden(toxin.type, toxin.amount * c.amount);
+        }
+      }
+    }
+
     public async reassess(): Promise<void> {
       const self = this as unknown as Stuff;
       // ⚠ A body destructed mid-drain (a released fish) still has a tick
@@ -423,6 +476,7 @@ export function RespirationMixin<TBase extends MixinConstructor>(Base: TBase) {
       // whether or not it can still exchange O₂. An enclosed fire poisons as
       // well as smothers.
       await this.applyMediumContaminant();
+      this.applyMediumContents();
       const drain = engaged.getEngagementByType('respiration-drain');
       const recovery = engaged.getEngagementByType('respiration-recovery');
 

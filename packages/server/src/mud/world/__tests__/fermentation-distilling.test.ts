@@ -10,6 +10,9 @@
  */
 
 import "../../../test-bootstrap";
+import { chargeHot } from '../../lib/fire/__tests__/burner-fuel';
+import type { Burner } from '../../lib/fire/Burner';
+import type { Stuff } from '../../lib/stuff/Stuff';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -150,18 +153,19 @@ describe('the still recipes (real rows)', () => {
       expect(row.requiresHeatK, key).toBe(351);
       expect(row.discipline, key).toBe('distilling');
     }
-    // And the stills can now actually get there: both rows author the
-    // fuel reserve whose absence was the whole defect.
+    // And the stills can actually get there. ⭐ The fix changed shape in
+    // the fire build: the rows no longer author a `%` fuel reserve (which
+    // was the original defect's fix) — they author a bed CAPACITY and a
+    // POWER, and somebody `stoke`s them. The still's firebox is
+    // deliberately NOT its interior, which is the wash.
     for (const row of ['still', 'small-still']) {
       const data = rowData(
         DISTILLING,
         `content/trade/distilling/thing/${row}.yaml`,
       );
-      const reserves = data.reserves as Record<
-        string,
-        { currentValue: number }
-      >;
-      expect(reserves?.fuel?.currentValue, row).toBeGreaterThan(0);
+      expect(data.reserves, row).toBeUndefined();
+      expect(data.fuelCapacityKg, row).toBeGreaterThan(0);
+      expect(data.maxBurnPowerW, row).toBeGreaterThan(0);
       expect(data.burnTemperatureK, row).toBeGreaterThan(351);
       expect(data.interiorBulk, row).toBe(true);
     }
@@ -299,9 +303,11 @@ describe('the spirit burns (P10)', () => {
       const b = new BurnFixture();
       b.setKeywords(['spill']);
       // The fuel is the spilled spirit itself (Combustible reads the
-      // 'fuel' reserve; the material lends the ignition point).
+      // 'fuel' reserve; the material lends the ignition point). ⚠ A
+      // Combustible keeps that reserve — only an APPLIANCE that holds a
+      // fire got a fuel bed (fire plan D16).
       b.setReserve(
-        new Reserve('fuel', Quantity.of(1, 'kg'), Quantity.of(1, 'kg'), 'fire', 'spent'),
+        new Reserve('fuel', Quantity.of(100, '%'), Quantity.of(100, '%'), 'combustion', null),
       );
       return b;
     });

@@ -1640,18 +1640,110 @@ export const AppSettingKeys = {
   /** Fire — the temperature (K) an air-starved (incomplete) fire holds;
    * cooler than complete combustion (the ventilation lesson). */
   fireFlameTemperatureIncompleteK: "fire.flameTemperatureIncompleteK",
-  /** Fire — scope-air (`%` of the room's `'air'` Reserve) each burning object
-   * consumes per tick in an enclosed scope. */
-  fireAirConsumePerTick: "fire.air.consumePerTick",
-  /** Fire — scope-air (`%`) a VENTILATED scope (sky-exposed or an open
-   * boundary) regains per tick — the bellows / cracked-door replenishment. */
-  fireAirReplenishPerTick: "fire.air.replenishPerTick",
-  /** Fire — scope-air level (`%`) at/above which combustion is complete
-   * (hot, clean); below it starves to incomplete (cooler, soot + CO). */
-  fireAirCompleteThresholdPct: "fire.air.completeThresholdPct",
+  /* ── the burner: fuel, draught, power, heat, light (the fire build) ── */
+  /** Fire — watts a kilogram of fuel can deliver. ⭐ The DURATION term: a
+   * small charge in a big forge burns at the charge's rate, so a heavy log
+   * outlasts kindling of the same wood with no "fire size" field anywhere. */
+  firePowerPerKgW: "fire.power.perKgW",
+  /** Fire — the flame-temperature intercept (K) at zero heat of combustion. */
+  fireFlameBaseK: "fire.flame.baseK",
+  /** Fire — K of flame temperature per MJ/kg of the fuel's heat of
+   * combustion. ⭐ This is what makes `heatOfCombustion` — authored on 26
+   * material rows and read by NOTHING before the fire build — decide
+   * whether a fuel reaches a vessel's ceiling. */
+  fireFlameKPerMJkg: "fire.flame.kPerMJkg",
+  /** Fire — the fraction of its reachable temperature a fully starved fire
+   * holds. The 1000 K / 750 K pair, made continuous. */
+  fireIncompleteTemperatureFactor: "fire.incompleteTemperatureFactor",
+  /** Fire — how luminous a GAS flame (or a worked one, which has no matter
+   * in it at all) is at its cleanest. ⭐⭐ Small, because luminosity IS
+   * incandescent soot: a clean flame is nearly invisible, which is why a
+   * gas lamp is a disappointment until somebody invents a mantle. */
+  fireLightCleanFloor: "fire.light.cleanFloor",
+  /** Fire — the same for a SOLID or LIQUID fuel, whose flame is a cloud of
+   * particles and is luminous even burning well. A wood fire is always
+   * yellow; only how yellow is up to the draught. */
+  fireLightSootyFloor: "fire.light.sootyFloor",
+  /** Fire — the fraction of a vessel's maximum power at which it is
+   * throwing its full authored light. ⭐ Below it a fire is EMBERS: how
+   * much light there is depends on how much fire there is. */
+  fireLightFullSizeFraction: "fire.light.fullSizeFraction",
+  /** Fire — the draught floor. ⭐⭐ BANKING IS THIS NUMBER: you can shut a
+   * fire down but not off, so *bank it, leave, come back to it still in* is
+   * arithmetic rather than a mechanism. */
+  fireDraughtBanked: "fire.draught.banked",
+  /** Fire — the power ceiling (W) a burner row that authors none falls back
+   * to. */
+  fireBurnerDefaultMaxPowerW: "fire.burner.defaultMaxPowerW",
+  /** Fire — the fuel-bed capacity (kg) a burner row that authors none falls
+   * back to. */
+  fireBurnerDefaultCapacityKg: "fire.burner.defaultCapacityKg",
+  /** Fire — the fraction of a scope's medium at which a flammable gas in
+   * it is an explosive mixture. ⭐ Below it a naked flame is merely a
+   * naked flame; at or above it the air itself is fuel. */
+  fireFlammableIgnitesAt: "fire.flammable.ignitesAt",
+  /** Fire — joules a flash delivers to everything in the scope at exactly
+   * the ignition fraction; it scales with how rich the mixture was. ⭐ Into
+   * the one HEAT channel, so armour inversion applies and a mail shirt is
+   * no help. */
+  fireFlammableFlashEnergy: "fire.flammable.flashEnergy",
+  /** Fire — the fraction at which a lit flame visibly wears a cap in a
+   * flammable atmosphere. ⚠ Well BELOW the ignition fraction: the tell
+   * has to arrive before the flash or it is not a warning. */
+  fireFlammableCapAt: "fire.flammable.capAt",
+  /** Fire — the energy density (MJ/kg) a WORKED flame's exhaust is priced
+   * at. It burns no matter, but its power still comes out of the room's
+   * air, so conservation needs a figure and this is the one it uses. */
+  fireWorkedFlameMJPerKg: "fire.workedFlame.mjPerKg",
+
+  /** Fire — the share of a scope's medium that must still be plain air for
+   * combustion to be complete (hot, clean); below it the fire starves to
+   * incomplete (cooler, soot + CO). ⭐ Replaced the `'air'` Reserve's
+   * `%` threshold: air is DERIVED from the enclosure now, not authored. */
+  fireAirCompleteAirShare: "fire.air.completeAirShare",
+  /** Fire — the air share at/below which a fire smothers itself. Strictly
+   * BELOW {@link fireAirCompleteAirShare} and below
+   * {@link atmosphereBreathableAirShare}, so a person in the room is warned
+   * before the fire goes out. */
+  fireAirSmotherAirShare: "fire.air.smotherAirShare",
+  /** Fire — air changes per hour a scope gets per open EXTERIOR opening (a
+   * doorway onto the outside). */
+  fireAirAchPerOpening: "fire.air.achPerOpening",
+  /** Fire — air changes per hour per open INTERIOR opening (a doorway into
+   * another room). Smaller: the next room's air is not fresh air. */
+  fireAirAchInterior: "fire.air.achInterior",
+  /** Fire — air changes per hour a shut scope leaks anyway. Nothing is
+   * airtight; a cellar with the trapdoor down still breathes, slowly. */
+  fireAirAchLeak: "fire.air.achLeak",
+  /** Fire — litres of carbon dioxide a fire puts into its scope per kg of
+   * fuel burnt (every fire, complete or not — this is the conservation leg). */
+  fireExhaustLitresPerKg: "fire.exhaust.litresPerKg",
+  /** Fire — litres of SMOKE per kg burnt, additionally, while combustion is
+   * incomplete. ⭐ Soot is what an air-starved fire makes instead of heat. */
+  fireExhaustSmokeLitresPerKg: "fire.exhaust.smokeLitresPerKg",
+  /** Fire — the Material a fire's soot is made of. */
+  fireExhaustSmokeMaterial: "fire.exhaust.smokeMaterial",
+  /** Fire — the Material a fire's clean exhaust is made of. */
+  fireExhaustCarbonDioxideMaterial: "fire.exhaust.carbonDioxideMaterial",
   /** Respiration — carbon-monoxide (contaminant) toxin burden a breather
    * takes on per reassess while in a contaminated (smoke) medium. */
   respirationContaminantBurdenPerBreath: "respiration.contaminantBurdenPerBreath",
+
+  /* ────────────────────────── atmosphere (what the medium carries) ────────────────────────── */
+  /** Atmosphere — the share of a scope's medium that must still be plain
+   * medium for a body to go on exchanging gas. Above the fire's smother
+   * share on purpose: ⭐ **the person is warned before the fire dies.** */
+  atmosphereBreathableAirShare: "atmosphere.breathableAirShare",
+  /** Atmosphere — standard ambient (K). A material whose boiling point is at
+   * or below this is a GAS, which is how phase stays derived rather than
+   * authored. */
+  atmosphereStandardK: "atmosphere.standardK",
+  /** Atmosphere — how long (game-seconds) a DERIVED standing amount takes to
+   * ramp back after it has been drawn off (the drained firedamp heading). */
+  atmosphereStandingRebuildS: "atmosphere.standingRebuildS",
+  /** Atmosphere — the fraction of the medium below which a content is not
+   * worth mentioning in a reading. */
+  atmosphereNoticeableFraction: "atmosphere.noticeableFraction",
 
   /* ────────────────────────── magic (casting core) ────────────────────────── */
   /** Magic — default cast time (game-seconds) when a spell seed omits one. */

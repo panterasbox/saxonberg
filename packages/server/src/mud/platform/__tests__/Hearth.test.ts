@@ -26,19 +26,19 @@ import { MixinApi } from '../../api/mixin';
 import { StuffApi } from '../../api/stuff';
 import { Reserve } from '../../lib/reserve';
 import { Quantity } from '../../lib/quantity';
+import { chargeWood } from '../../lib/fire/__tests__/burner-fuel';
+import type { Burner } from '../../lib/fire/Burner';
+import type { Stuff } from '../../lib/stuff/Stuff';
 import { makeStuff } from '../../lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 
-function fuelled<T extends { setReserve(r: Reserve): void }>(thing: T): T {
-  thing.setReserve(
-    new Reserve(
-      'fuel',
-      Quantity.of(100, '%'),
-      Quantity.of(100, '%'),
-      'combustion',
-      null,
-    ),
-  );
+/**
+ * ⭐ Lay a charge in a burner's bed. The `%` `'fuel'` Reserve this
+ * replaces could not say WHAT the fire was burning, which is why no
+ * fire in the game could be told what it held or given any more.
+ */
+function fuelled<T>(thing: T): T {
+  chargeWood(thing as unknown as Stuff & Burner, 20);
   return thing;
 }
 
@@ -93,7 +93,8 @@ describe('a hearth only warms while it is burning', () => {
     // face rather than carrying its own state.
     const h = hearth();
     h.ignite();
-    h.adjustReserve('fuel', Quantity.of(-100, '%'));
+    // Burn the bed out.
+    (h as unknown as { fuelBed: Record<string, number> }).fuelBed = {};
     expect(h.fuelRemaining()).toBe(0);
     expect(h.spaceHeatOutputW()).toBe(0);
   });

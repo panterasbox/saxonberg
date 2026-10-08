@@ -104,6 +104,17 @@ export const RECIPE_MEDIA: readonly RecipeMedium[] = ['water', 'fat'];
  * the maker's location; unsold residue stands where it was left (the
  * ambient-burden rule, never a silent vanish).
  */
+/**
+ * One substance a firing drives off its charge: a Material path and how
+ * many litres of it per kilogram consumed.
+ */
+export interface RecipeVolatile {
+  /** The Material template path of what comes off. */
+  material: string;
+  /** Litres of it per kg of charge consumed. */
+  litresPerKg: number;
+}
+
 export interface RecipeResidue {
   /** Template path of the residue item. */
   template: string;
@@ -192,6 +203,7 @@ export class Recipe {
     ice: { persistent: true, spoiler: 1, spoilerName: 0 },
     cure: { persistent: true, spoiler: 1, spoilerName: 0 },
     imparts: { persistent: true, spoiler: 1, spoilerName: 0 },
+    volatiles: { persistent: true, spoiler: 1, spoilerName: 0 },
   };
 
   /** The document's path (`/generic-objects/recipes/martini`). */
@@ -270,6 +282,29 @@ export class Recipe {
   medium: string = '';
   /** The residue output beside the main one, or null (P11). */
   outputResidue: RecipeResidue | null = null;
+
+  /**
+   * ⭐⭐ **What a FIRING drives off the charge** — bulk matter per kg of
+   * what is consumed, in litres.
+   *
+   * Destructive distillation is the mechanism: cook a charge in a closed
+   * chamber and what leaves is as valuable as what stays. Wood gives tar;
+   * coal gives tar AND a gas; the solid that remains is the
+   * `outputTemplate`.
+   *
+   * ⚠ Not a second `outputTemplate` and not an `outputResidue[]`: it
+   * mints nothing. The firing hands the litres to the CHAMBER and the
+   * chamber routes them — to a condenser seated on it, or into the air
+   * of the room, which is why a retort fired with no condenser makes the
+   * room smell of tar and poisons whoever stays.
+   *
+   * ⭐ Why the recipe and not the material: a `Material` row saying what
+   * burning it gives off would put a trade's good's path on a commons
+   * row, and a table on the retort would mean a second feedstock edits
+   * the retort instead of adding a recipe. The firing row is the one
+   * place that already knows this charge's chemistry.
+   */
+  volatiles: RecipeVolatile[] = [];
 
   /** Output-application kind word; empty = `'bulk'` (the bar's default). */
   outputApplication: string = '';
@@ -447,7 +482,67 @@ export class Recipe {
     r.outputResidue = Recipe.residueFrom(data.outputResidue, r.recipeId);
     r.cure = Recipe.cureFrom(data.cure, r.recipeId);
     r.imparts = Recipe.impartsFrom(data.imparts, r.recipeId);
+    r.volatiles = Recipe.volatilesFrom(data.volatiles, r.recipeId);
     return r;
+  }
+
+  /** What this firing drives off the charge. */
+  public getVolatiles(): readonly RecipeVolatile[] {
+    return this.volatiles;
+  }
+
+  /**
+   * Validate an authored `volatiles` block. ⚠ A typo must fail at READ:
+   * an ignored `litresPerKG:` would ship a retort that quietly made no
+   * tar, and nothing about that failure would be visible — the char
+   * would still come out and the recipe would still look right.
+   *
+   * ⚠ `private`, unlike its four sibling validators, and
+   * `lint:lib-statics` is why: it has exactly ONE caller (`fromData`),
+   * so a public static would be a member in neither of the two places a
+   * person searches. ⭐ Being the same shape as its siblings says it may
+   * EXIST, not that the population may grow — and the test is better for
+   * it, because asserting through `fromData` exercises the path a pack
+   * install actually takes.
+   */
+  private static volatilesFrom(
+    value: unknown,
+    recipeId: string,
+  ): RecipeVolatile[] {
+    if (value === undefined || value === null) return [];
+    if (!Array.isArray(value)) {
+      throw new Error(
+        `Recipe '${recipeId}': 'volatiles' must be a list of ` +
+          `{ material, litresPerKg }`,
+      );
+    }
+    return value.map((entry, i) => {
+      const e = entry as Record<string, unknown>;
+      const material = e?.material;
+      const litresPerKg = e?.litresPerKg;
+      if (typeof material !== 'string' || material.length === 0) {
+        throw new Error(
+          `Recipe '${recipeId}': volatiles[${i}] needs a 'material' path`,
+        );
+      }
+      if (typeof litresPerKg !== 'number' || !(litresPerKg > 0)) {
+        throw new Error(
+          `Recipe '${recipeId}': volatiles[${i}] ('${material}') needs a ` +
+            `positive 'litresPerKg'`,
+        );
+      }
+      const extra = Object.keys(e).filter(
+        (k) => k !== 'material' && k !== 'litresPerKg',
+      );
+      if (extra.length > 0) {
+        throw new Error(
+          `Recipe '${recipeId}': volatiles[${i}] has unknown key(s) ` +
+            `${extra.join(', ')} — a misspelt key is a retort that ` +
+            `quietly makes no tar`,
+        );
+      }
+      return { material, litresPerKg };
+    });
   }
 
   /**

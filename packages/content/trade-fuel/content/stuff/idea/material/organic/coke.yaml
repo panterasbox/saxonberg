@@ -1,0 +1,39 @@
+# Coke — coal with the volatiles cooked out of it, and ⭐ the fuel that
+# made iron an industry rather than a craft.
+#
+# The problem coke solves is SULFUR. Coal carries it, sulfur in the fire
+# gets into the metal, and sulfurous iron is hot-short — it cracks when
+# you work it hot, which is the one failure a smith cannot repair.
+# Charcoal has no sulfur and never did, which is why every medieval
+# furnace burnt wood that had been cooked first; but charcoal needs a
+# forest per furnace, and that is the ceiling the metal trade hits.
+# Coking coal clears it.
+#
+# ⭐⭐ **It needs no smelter code at all.** The smelt reads its charge by
+# material TAG — `fuel` + `carbon` for the reducing charge, `sulfurous`
+# for the hot-short arm — so a material tagged carbon-and-fuel and NOT
+# sulfurous passes every gate charcoal passes, with nothing in
+# `trade-smelting` edited. That is the tag vocabulary paying out.
+class: /platform/idea/material/Material
+data:
+  name: coke
+  keywords: [coke]
+  appearance: a grey, light, glittering clinker full of holes
+  # Lighter than the coal it came from — the volatiles left as gas and
+  # tar, which is the whole point of the pack's new chamber.
+  density: 500
+  specificHeat: 1000
+  thermalConductivity: 0.12
+  electricalConductivity: 1.0e2
+  waterAbsorptionCapacity: 25
+  heatOfCombustion: 29
+  autoignitionTemperature: 970
+  edibility: false
+  nutrients: []
+  toxicity: []
+  # ⚠ No `sulfurous`, and that absence is the mechanism.
+  tags: [organic, carbon, fuel, flammable, porous]
+  composition:
+    - { materialPath: /stuff/idea/material/element/carbon, fraction: 0.88 }
+  chemistry: null
+  biologicalSource: null

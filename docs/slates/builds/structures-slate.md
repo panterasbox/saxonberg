@@ -161,3 +161,9 @@ Sketch only, to be argued with rather than implemented:
 - [fire.md](../../subsystems/fire.md) — spread through open boundaries; arson and wildfire deferred
 - [biome-normalization-slate](./biome-normalization-slate.md) — the sibling drift, and the "one mechanism, one job" lesson
 - `docs/requirements/envelope-requirements.md` — the build that needed this and then did not
+
+## ⬅ From the fire build (2026-10)
+
+Left as a line here rather than in a retired plan.
+
+- **The flue as an object, and inter-room air mixing.** The fire build derives a scope's ventilation from its openings (`achPerOpening` / `achInterior` / `achLeak`) but nothing transports a medium BETWEEN scopes, so a chimney is a hole with a number rather than a thing. ⚠ Its four forward-compat constraints held: contents resolve through the same outward walk, no room field was added for a stack, and building condition is untouched.

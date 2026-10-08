@@ -1,0 +1,48 @@
+# The safety lamp — ⭐⭐⭐ **a row, and that is the whole point.**
+#
+# A Davy lamp is an ordinary oil lamp inside a cylinder of wire gauze.
+# The gauze conducts heat away from the flame faster than the flame can
+# travel through it, so the lamp burns in an explosive atmosphere without
+# lighting it — one of the few pieces of nineteenth-century safety
+# engineering that is a pure physical trick rather than a procedure.
+#
+# ⭐ In the model it is `/platform/thing/Lamp` with ONE field authored:
+# `flameEnclosed: true`. No class, no mixin, no new verb. That is the
+# test the fire build's host placement had to pass — a safety lamp is a
+# CONSTRUCTION fact about a lamp, so it is content, and a second maker's
+# lamp is another row.
+#
+# ⚠ It is not merely safe, it is the INSTRUMENT: in firedamp the flame
+# stands tall and wears a pale blue cap, which is the tell a canary
+# cannot give you, because firedamp is breathable at the fractions that
+# will kill you by burning. The lamp that warns you is the lamp that
+# would have killed you, made safe by gauze.
+#
+# ⚠⚠ Ships UNLIT. `lint:light-sources` clause (g) refuses a Burner row
+# that omits `lit:` either way, and a lamp that arrives burning is a lamp
+# nobody decided to light — which in a gassy heading is the one decision
+# that matters.
+class: /platform/thing/Lamp
+data:
+  shortDescription: gauze safety lamp
+  keywords: [lamp, "safety lamp", davy, gauze, light]
+  register: indefinite
+  longDescription: |
+    A squat brass oil lamp inside a tall cylinder of fine wire gauze, with a hooked handle and a thumbscrew to raise the wick. The gauze is black with soot and dented where it has been dropped, and through it the flame shows only as a dull smudge — which is the price of it, and worth paying.
+  _materialPath: /stuff/idea/material/element/copper
+  mass: 1.1
+  lit: false
+  # ⭐⭐ THE one authored fact. A naked flame is a lit Burner whose flame
+  # is not enclosed; this one is.
+  flameEnclosed: true
+  interiorBulk: true
+  interiorCapacity: 0.4
+  interiorMaterial: /stuff/idea/material/bulk/lamp-oil
+  interiorAmount: 0.4
+  closure: liquidTight
+  maxBurnPowerW: 240
+  # Dimmer than a lantern, and the gauze is why. ⭐ The ceiling is scaled
+  # like every other burner's (the darkness sweep's 1/0.6) and then cut
+  # again for the gauze, which is honest: a safety lamp is a bad light.
+  emittedIntensity: 100
+  emittedColorTemperature: 2400

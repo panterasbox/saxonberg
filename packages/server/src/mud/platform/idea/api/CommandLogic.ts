@@ -954,6 +954,29 @@ export class CommandLogic extends ApiLogic {
       }
       Object.assign(fields, r.bound);
       prep = r.prep;
+    } else if (command.fallthrough && command.args.length > 0) {
+      // ⭐⭐ The ZERO-TOKEN fallthrough case, and the fire drive is why
+      // it exists. Phase 3a only fires when there IS a first word to
+      // fall through WITH, so a bare `draught` reached the branch below
+      // and bound nothing at all — not even its top-level args'
+      // `default:`. The verb opted into the flat path; with no
+      // subcommand matched, the flat path owns the invocation, and
+      // binding an empty positional list against `command.args` is
+      // exactly how a defaulted slot gets filled.
+      //
+      // ⚠ Inert for every other fallthrough verb today (`equip`,
+      // `forum`, `git`, `help`, `errors`, `watch`) — none declares a
+      // top-level `default:`, so an empty bind adds nothing.
+      const r = bindPositionals(
+        positionals,
+        command.args,
+        parsed,
+        expand,
+        expandDefault
+      );
+      if ('error' in r) return r;
+      Object.assign(fields, r.bound);
+      prep = r.prep;
     } else if (command.hasSubcommands()) {
       // Subcommanded verb without a subcommand — still legal; the
       // controller decides what to do with `model.subcommand ===

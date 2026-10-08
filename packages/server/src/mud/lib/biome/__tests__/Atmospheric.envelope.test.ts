@@ -15,6 +15,7 @@
  */
 
 import '../../../../test-bootstrap';
+import type { Stuff } from '../../stuff/Stuff';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import CartesianLocation from '../../location/CartesianLocation';
 import CartesianZone from '../../../platform/idea/location/CartesianZone';
@@ -36,6 +37,8 @@ import { installV1QuantityMarshallers } from '../../persistence/__tests__/quanti
 import Hearth from '../../../platform/thing/Hearth';
 import Forge from '../../../platform/thing/Forge';
 import { Reserve } from '../../reserve';
+import { chargeWood } from '../../fire/__tests__/burner-fuel';
+import type { Burner } from '../../fire/Burner';
 import { ContainmentApi } from '../../../api/containment';
 
 const SCALE = 12;
@@ -200,15 +203,7 @@ describe('⭐⭐ a hearth warms its room; a forge does not', () => {
   type Fire = Hearth | Forge;
 
   function lightFireIn(r: CartesianLocation, fire: Fire): Fire {
-    fire.setReserve(
-      new Reserve(
-        'fuel',
-        Quantity.of(100, '%'),
-        Quantity.of(100, '%'),
-        'combustion',
-        null,
-      ),
-    );
+    chargeWood(fire as unknown as Stuff & Burner, 40);
     ContainmentApi.move(fire as never, r as never);
     fire.ignite();
     return fire;
@@ -267,7 +262,7 @@ describe('⭐⭐ a hearth warms its room; a forge does not', () => {
     const warm = env(r).envelopeTemperatureK!;
     expect(warm).toBeGreaterThan(276);
 
-    h.adjustReserve('fuel', Quantity.of(-100, '%'));
+    (h as unknown as { fuelBed: Record<string, number> }).fuelBed = {};
     expect(h.spaceHeatOutputW()).toBe(0);
     for (let i = 0; i < 24; i++) {
       advance(600);

@@ -77,11 +77,16 @@ import {
  * (`Recipe.imparts`) because nothing in the engine knows what a burner
  * is burning. Two fires in the fiction, one in the model.
  */
+/**
+ * ⭐ The fuel clause is GONE: it read *"burns the still's one-shot fuel
+ * reserve down — no refuel verb exists for any burner"*, and the fire
+ * build shipped `stoke`. What is left is the feedstock, which nothing in
+ * the world puts back within a run.
+ */
 export const DIRTY_REASON =
   'kilns the still-house’s barley over its turf stack, grinds and ' +
   'ferments and distils charges that nothing puts back within a run, ' +
-  'fills both casks, and burns the still’s one-shot fuel reserve down — ' +
-  'no refuel verb exists for any burner';
+  'and fills both casks';
 
 declareFile({
   file: 'whiskey-styles.dirty.wire.test.ts',
@@ -483,7 +488,11 @@ suite.skipIf(!isOwnedTestWorld())(
       ).toBe('shape-fall-through');
     }, 180_000);
 
-    it('`ignite still` reaches the burner', async () => {
+    it('`stoke` then `ignite still` reaches the burner', async () => {
+      // ⭐ The still is stoked first now. Before the fire build it ran on
+      // a `%` fuel reserve its row authored once and nothing refilled.
+      const fed = await say(k, 'stoke log into still');
+      understood(fed, 'stoke log into still');
       const r = await say(k, 'ignite still');
       understood(r, 'ignite still');
     }, 120_000);

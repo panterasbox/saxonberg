@@ -31,13 +31,28 @@ data:
   # omits `lit:`, and a candle that arrives already burning is a candle
   # nobody decided to light).
   lit: false
-  reserves:
-    fuel:
-      capacityValue: 100
-      currentValue: 100
-      unit: "%"
-      theme: combustion
-      floorEffect: null
+  # ⭐⭐ **The fire build: a burner's fuel is a BED, not a Reserve.** This
+  # row authored `reserves: { fuel: … }` — a percentage of nothing, which
+  # could not say what the flame was burning and which nothing refills.
+  # `ReservedMixin` left the `Burner` chain, so that block was inert and
+  # a candle off a shop counter was a light that could never be lit.
+  #
+  # ⚠ The bed is a DEFAULT, not a weld — which is the distinction this
+  # class exists to make. Tallow is the ordinary candle (the class's own
+  # docstring: *the cheap light the whole medieval world actually
+  # burned*), so a candle that arrived off a counter is a tallow one; a
+  # DIPPED candle has `adoptMaterialFuel()` re-charge the bed with
+  # whatever fat was in the pot, beside the smell it already adopts. So a
+  # third fat is still a material row and no code here.
+  maxBurnPowerW: 80
+  fuelCapacityKg: 0.2
+  fuelBed:
+    /trade/cooking/idea/material/tallow: 0.1
   # Dim and very warm — a tenth of a lantern and a good deal yellower.
-  emittedIntensity: 12
+  # ⭐⭐ The darkness sweep (fire build): `emittedIntensity` is a CEILING
+  # now rather than the reading, because luminosity is incandescent soot
+  # — a flame at full draught sheds `fire.light.sootyFloor` (0.6) of it.
+  # Every burner's authored figure is scaled by 1/0.6 so a well-run flame
+  # lights its room exactly as brightly as it did before. 12 → 20.
+  emittedIntensity: 20
   emittedColorTemperature: 1900

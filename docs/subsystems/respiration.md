@@ -71,6 +71,34 @@ if it is a known atmosphere** — an unmodeled medium raises no crisis. For
 a default air-breather, `medium ∈ ['air']` and `breathableOf(medium)`
 agree; the species set is what makes the water-breather inversion work.
 
+⭐⭐ **A breathable TAG is not breathable AIR (the fire build, 2026-10).**
+The tag says *what medium this is*; it says nothing about what is now
+mixed into it. So the gate is two questions, and conflating them broke
+firedamp:
+
+- **`isBreathableMixture(medium, contents)`** — is this medium one this
+  body can exchange gas in *at all*? The species question above.
+- **`hasBreathableShare(scope)`** — is there enough of it LEFT? A
+  **displacement** figure: `airShare` is `1 − contentsSum`, and the floor
+  is `fire.air.breathableAirShare` (0.76).
+
+⛔ **The correction worth reading, because the first answer was wrong in
+the safe-looking direction.** The shares were briefly reasoned from
+toxicity — CO₂ is dangerous near 5 %, so the breathable floor "should" be
+0.95. That made a heading holding 14 % methane read as unbreathable, and
+therefore made **the canary react to firedamp** — in the one design whose
+whole point is that the bird is honest and is answering a *different*
+question (it dies of blackdamp, which is air that is not there; firedamp
+is air that will explode). The share is a displacement figure, never a
+toxicity one.
+
+⚠ **The recorded seam:** CO₂ really is toxic near 5 % and this build
+authors no toxicity for it, because a dose needs a toxin type and a
+`Condition` row to mean anything. What a fire in a sealed room does to
+you today is **displacement** — and `applyMediumContents()` does fold a
+gas row's own `toxicity` × its fraction into the breather's toxin burden,
+so the mechanism is there the moment a CO₂ row authors a dose.
+
 The **derived effective set** (species default ∪ media granted by active
 conferred mixins) is the seam a future **gills** breather adds — a
 `getEffectiveBreathableMedia()` walking `MixinApi.getActiveMixins` for a

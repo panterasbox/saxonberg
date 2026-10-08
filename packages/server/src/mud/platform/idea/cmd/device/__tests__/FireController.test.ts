@@ -21,6 +21,9 @@
  */
 
 import '../../../../../../test-bootstrap';
+import { chargeHot } from '../../../../../lib/fire/__tests__/burner-fuel';
+import type { Burner } from '../../../../../lib/fire/Burner';
+import type { Stuff } from '../../../../../lib/stuff/Stuff';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import FireController from '../FireController';
 import Oven from '../../../../thing/Oven';
@@ -69,9 +72,8 @@ function makeKiln(opts: { holdK: number; lit: boolean; bellows?: boolean }): Ove
     const o = new Oven();
     o.setBurnTemperatureK(opts.holdK);
     o.setBellowsMultiplier(1);
-    o.setReserve(
-      new Reserve('fuel', Quantity.of(100, '%'), Quantity.of(100, '%'), 'combustion', null),
-    );
+    // ⭐ A charge in the bed, not a percentage of nothing.
+    chargeHot(o as unknown as Stuff & Burner, 40);
     o.setBellowsActive(opts.bellows ?? false);
     // ⚠ `lit` defaults to TRUE on `BurnerMixin` (a campfire seed starts
     // lit), so the unlit case has to be set explicitly — which is exactly

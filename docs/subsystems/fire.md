@@ -55,6 +55,16 @@ Dials: `response.heat.referenceClo` (the pulse reference) and `response.heat.ref
 
 ### 3. The combustion driver (`lib/fire/`)
 
+> ⭐⭐⭐ **A fire is its fuel, its air and its vessel; heat, light and
+> exhaust are consequences.** The vessel sets the ceiling, the fuel
+> decides whether you reach it, the air decides how clean. ⚠ And the two
+> halves of this subsystem keep their fuel DIFFERENTLY, which is the one
+> thing to hold in mind reading the rest: a **`Combustible`** (matter that
+> burns — a log, a turf) still carries a `'fuel'` `Reserve`, because what
+> is being consumed is the object itself. A **`Burner`** (a vessel that
+> holds a fire — a forge, a lamp, a smoker) carries a **fuel BED**:
+> kilograms, keyed by material. See *the burner's fuel is a bed* below.
+
 - **`CombustibleMixin`** — the capability on matter: a `'fuel'` `Reserve`
   (the Campfire precedent) + a **`Burning`** value-object active state
   (`{ignitedAtGameSec, complete}`). It reads its **material** (not authored
@@ -97,9 +107,21 @@ Dials: `response.heat.referenceClo` (the pulse reference) and `response.heat.ref
   so a wet neighbour resists — emergent from the energy balance. A lone
   `Burning` reconciles-on-read for `analyze`; the tick is the authoritative
   spread driver.
-- **The oxygen leg + complete/incomplete (D5).** An enclosed scope authors an
-  `'air'` `Reserve`; a fire consumes it, a ventilated boundary (sky-exposed or
-  an open exit) replenishes. **Complete** (enough air → hot, clean) vs
+- **The oxygen leg + complete/incomplete (D5).** ⭐⭐ **The air DERIVES
+  from the scope's own openings** (the fire build, 2026-10). It used to be
+  an authored `'air'` `Reserve`, and that was the single worst thing in
+  this subsystem: ⛔ **four of the seven rows that authored one could not
+  hold the key at all** (no `ReservedMixin` anywhere in a
+  `SingletonCartesianLocation` chain), so the vintner cellar, the brewing
+  floor, the cold store and the Crowsfoot floor each *meant* to displace
+  their own air and silently did not — and the one room that worked did so
+  because somebody remembered the line. A scope's medium now carries
+  CONTENTS (litres per litre, keyed by `Material` path) beside its
+  identity tag, and `airShare` is `1 − contentsSum`; ventilation is
+  `airChangesPerHour()` — `Infinity` under the sky, else
+  `exterior × achPerOpening + interior × achInterior + achLeak`. So a shut
+  stone cellar starves a fire **because it is a shut stone room**, and
+  every scope with a doorway does not. **Complete** (enough air → hot, clean) vs
   **incomplete** (starved → cooler flame + soot **smoke** + **carbon
   monoxide**). Smoke lands as a `smoke` atmosphere tag (breathable:`false`,
   contaminant:`carbonMonoxide`) set via `Atmospheric.setAtmosphere` — the
@@ -284,12 +306,23 @@ are ROWS on the same class.
 
 ### A lamp is a small furnace with a light on it
 
-`platform/thing/Lamp` — `Furnace + LightSource + Detailed + Reserved +
-Thermal`. The lantern and the torch moved onto it from `PortableLight`,
-which is a `Switchable` and therefore **burned forever**. The class
-writes almost nothing: the fuel Reserve, the drain against game time,
-reconcile-on-read, the burnout edge and `ignite`/`douse` are all the
-mixin's.
+`platform/thing/Lamp` — `Burner + LightSource + Bulkable + Thermal`
+over `Good`. The lantern and the torch moved onto it from
+`PortableLight`, which is a `Switchable` and therefore **burned
+forever**. The class writes almost nothing: the fuel bed, the drain
+against game time, reconcile-on-read, the burnout edge and
+`ignite`/`douse` are all the mixin's.
+
+⭐ Its **one** override is `fuelSlot()`, and it is what makes a torch and
+a lantern one class and two rows: *this vessel's interior is its fuel
+tank*. A lantern is **filled** (`interiorBulk` + an
+`interiorMaterial` of lamp oil, so `fill lantern from cask` is the act
+and `stoke lantern` is refused in the bed's own words); a torch is a
+bundle of pitchy wood, so its row seeds a charged `fuelBed` and leaves
+`interiorBulk` off. ⚠ `ReservedMixin` is **not** in the chain any
+more — a row that still authors `reserves: { fuel: … }` is authoring an
+inert key, and the two that did shipped as lights nobody could ever
+light (see *the lantern and the candle* below).
 
 `burnTemperatureK` defaults to **330 K** — the case, not the flame, and
 deliberately below the 345 K scalding hook so `get` and `feel` on a lit
@@ -366,11 +399,59 @@ which is why that row stood nowhere in the world for its whole life.**
 ⚠ A fixture note worth keeping: **`lit` defaults to TRUE on `BurnerMixin`**,
 which is exactly why the smelt's unlit branch had no coverage for three builds.
 
-### ⚠ Still unpriced: nothing refuels a furnace
+### ⭐⭐⭐ The burner's fuel is a BED, and that is what refuels a furnace
 
-The extraction build's own risk 7, and it widened rather than closed — a bread
-oven and a limekiln both burn fuel now, and the drive's `DIRTY_REASON` names
-*"burns the limekiln's fuel"* as something the world does not regenerate. A
-furnace is a consumer with no supplier. Offered to
-[metal-chain-slate](../slates/builds/metal-chain-slate.md), which owns the fuel
-chain.
+**Closed by the fire build (2026-10).** This section read *"Still
+unpriced: nothing refuels a furnace"* for two builds — the extraction
+build's risk 7, which had widened rather than closed. The cause was one
+field: a burner's fuel was a `'fuel'` `Reserve` carrying a **percentage
+of nothing**. ⛔ It could not say what the fire was burning, nothing could
+put more in, and a row authored it once — so **a forge arrived
+pre-fuelled and could never be fed again, and no fire in the game could
+run twice.**
+
+Fuel is a **BED** now: `fuelBed` is kilograms keyed by `Material` path,
+`fuelCapacityKg` is the vessel's size, and `maxBurnPowerW` is its
+ceiling. From those three everything else derives —
+
+- **heat** from the fuel's `heatOfCombustion` (a number authored on 26
+  material rows and read by **nothing** before this) against the
+  vessel's ceiling;
+- **duration** from the mass in the bed;
+- **completeness** as `clamp01(draught × airShare / completeAirShare)`,
+  which is what makes the draught and the room's air *one lever seen from
+  two sides*;
+- **light** from soot, because ⭐⭐ **luminosity is incandescent soot** — a
+  clean flame is dim and a sooty one is bright, so one dial moves heat,
+  light and exhaust together and opening the vents makes a fire hotter,
+  cleaner and **dimmer**;
+- **exhaust** as CO₂ (`exhaust.litresPerKg`) plus, when the burn is
+  incomplete, smoke — which is what the oxygen leg reads on the next
+  tick, closing the loop: the fire fills the room, the room starves the
+  fire.
+
+Three verbs carry it, afforded by the burner itself in both
+`environment` and `peers`: **`stoke`** (lay fuel in the bed — and it is
+all-or-nothing, so an item heavier than the bed is refused), **`draught`**
+(the air dial: `wide`/`open`/`half`/`low`/`banked` as SUBCOMMANDS, with a
+bare `draught` reading where it stands), and **`cover`** (bank it under
+its own ash — *couvre-feu*, which is why the word is not `bank`).
+
+⚠ **What a row must now say.** `maxBurnPowerW` and `fuelCapacityKg` both
+default to **0**, which is not dangerous but **inert** — and an inert
+object reads as fine in every test and is dead in a player's hands. Two
+shipped rows proved it in one week (the general store's lantern and the
+chandlery candle, both lights for sale that could never be lit), so
+`lint:light-sources` clause (h) now refuses a burner row with no fuel
+path or no power, as clause (g) already refuses one that omits `lit:`.
+⭐ The pair reads together: **(g)** catches a default that is *wrong*,
+**(h)** two that are *empty*.
+
+⚠ **Still open, and narrower than before:** fuel is now a thing somebody
+carries, so every room with a fire a player is expected to light needs
+fuel in reach — nine rooms did not, and were given some. ⭐ The same
+question for a **carried** fire is the one that got missed: a bee smoker
+has a 1 kg bed, and nothing under a kilo in the realm was fuel until the
+sweep added a roll of sacking. Offered to
+[metal-chain-slate](../slates/builds/metal-chain-slate.md), which owns
+the fuel chain, as a **stocking** question rather than a mechanism one.

@@ -1642,13 +1642,41 @@ much malt you made — a kiln does not dilute its own smoke. Validated at
 **throws** rather than being dropped: either would fail closed and
 silent, and the output would simply never smell of anything.
 
-⭐ Why it is on the recipe and not the fuel: `BurnerMixin`'s fuel is a
-bare `%` reserve and `reachableHeatForImpl` returns a temperature, never
-a source — **nothing in the engine knows what a kiln is burning.** So the
-peated kiln takes the turf as an item slot and declares what the turf
-does, which keeps the fact derivable by the player (they watch four
-turves be consumed) while leaving a fuel-aware burner to the fire/energy
-slate. ⚠ Two fires in the fiction, one in the model.
+⭐⭐⭐ **RESOLVED by the fire build (2026-10): the smoke comes from the
+FIRE.** This paragraph used to explain why `imparts` was on the recipe
+instead of the fuel — *"`BurnerMixin`'s fuel is a bare `%` reserve and
+`reachableHeatForImpl` returns a temperature, never a source, so nothing
+in the engine knows what a kiln is burning"*, which left **two fires in
+the fiction and one in the model**. A burner knows its fuel now (a bed:
+kilograms, by material), so:
+
+- **`Material.combustionImparts`** carries what a fuel puts into the air
+  when it burns. Only `peat` authors one today (`smoke: 40` on jute, for
+  the bee smoker, is the other);
+- **`fireImpartsFor(maker)`** walks the maker's reachable heat source and
+  folds each fuel material's tags **weighted by its share of the bed** —
+  so a half-peat fire imparts half the smoke, with no branch anywhere;
+- **`addAromasTo`** applies it in **all three** output branches. ⛔ That
+  last word is load-bearing: `applyEdibleOutput` folded *neither*
+  `imparts` nor the fire's, and the edible branch is the one **cooking**
+  takes — so smoke-curing had been a recipe declaring an outcome rather
+  than a fire causing one.
+
+⭐ So `kiln-malt-peated` is **deleted**. The same recipe over peat and
+over oak now gives two different malts, one `Recipe` row, and a third
+fuel is a material row and no code. ⚠ And the turf is a thing somebody
+`stoke`s rather than a line in an input list — which means the fire can
+*ask the turf whether it is dry*, and refuses an as-cut one in the
+shipped words (*"It is too sodden to catch."*). An item slot could never
+see moisture; that was the seam this closes.
+
+**`Recipe.volatiles: [{material, litresPerKg}]`** is the sibling for what
+leaves as a GAS rather than staying in the output: wood → charcoal **+
+tar**, coal → coke **+ coal tar + coal gas**. Routed by the controller
+through a structural `receiveVolatiles` probe (a condenser, a gasometer),
+else emitted into the scope — so a retort with nothing attached puts its
+volatiles in the room, which is what the clamp does and why the collier
+discards them.
 
 **⛔⛔ `ComminutingMixin.products[]` — the mill makes what it is fed.**
 `productMaterial` was ONE path per instrument row and both shipped mill

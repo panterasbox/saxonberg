@@ -254,6 +254,47 @@ describe('the candle row', () => {
 });
 
 describe('the class', () => {
+  it('⭐⭐ the ROW ships a burnable bed — a counter candle can be lit', () => {
+    // ⛔ The row authored `reserves: { fuel: … }`, which the fire build
+    // retired off the `Burner` chain: a percentage of nothing that could
+    // not say what the flame was burning and that nothing refilled. It
+    // was inert, so the twelve candles on the chandlery counter were
+    // lights nobody could ever light. The bed is what makes a candle
+    // burn, and `heatOfCombustion` on the fat is what gives it a flame
+    // temperature at all.
+    const row = YAML.parse(
+      readFileSync(
+        join(PACK, 'content/trade/chandlery/thing/candle.yaml'),
+        'utf8',
+      ),
+    ) as { data?: Record<string, unknown> };
+    const data = row.data ?? {};
+    expect(data.reserves, 'the retired fuel Reserve is gone').toBeUndefined();
+    const bed = data.fuelBed as Record<string, number> | undefined;
+    expect(bed, 'the row ships a fuel bed').toBeTruthy();
+    const charged = Object.values(bed ?? {}).reduce((a, b) => a + Number(b), 0);
+    expect(charged).toBeGreaterThan(0);
+    expect(Number(data.fuelCapacityKg)).toBeGreaterThan(0);
+    expect(Number(data.maxBurnPowerW)).toBeGreaterThan(0);
+    // And the fat it names has to be able to burn.
+    const fat = Object.keys(bed ?? {})[0]!;
+    const fatRow = YAML.parse(
+      readFileSync(
+        join(
+          PACK,
+          '..',
+          'trade-cooking/content',
+          `${fat.replace(/^\//, '')}.yaml`,
+        ),
+        'utf8',
+      ),
+    ) as { data?: Record<string, unknown> };
+    expect(
+      Number(fatRow.data?.heatOfCombustion),
+      `${fat} authors no heatOfCombustion, so a candle of it burns cold`,
+    ).toBeGreaterThan(0);
+  });
+
   it('⭐ is a Lamp that smells', () => {
     const c = makeStuff(() => new Candle());
     expect(c instanceof Lamp).toBe(true);
@@ -274,6 +315,12 @@ describe('the class', () => {
     expect(() => c.getLongDescription()).not.toThrow();
     // …and `adoptMaterialSmell` on it is a no-op rather than a crash.
     expect(() => c.adoptMaterialSmell()).not.toThrow();
+    // ⭐⭐ Same for the FUEL, and the fire build is why it matters: a
+    // candle is a `Burner` whose fuel is itself, so a candle with an
+    // empty bed is a light that can never be lit — which is exactly the
+    // defect this build found on a shop counter twice. A materialless
+    // candle keeps the ROW's tallow default rather than being emptied.
+    expect(() => c.adoptMaterialFuel()).not.toThrow();
     expect(c.getOdorIdentity()).toBe('');
   });
 });

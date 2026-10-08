@@ -48,6 +48,12 @@ data:
     # — a disambiguation prompt nobody replied to, wearing the costume
     # of a deadlock. A player would have hit exactly the same thing.
     - /stuff/thing/Hearth
+    # ⭐ Fuel in reach of the fire — the fire build's content half. A
+    # burner's fuel is a BED somebody fills now, so a hearth with nothing
+    # beside it is a hearth nobody can light. ⚠ Bounded, never a faucet:
+    # the store SELLS firewood off its price list, and these are the
+    # two by the hearth for the shopkeeper's own fire.
+    - { template: /stuff/thing/items/dry-log, count: 2 }
   cast:
     - /world/terminus/general-store/agent/clerk
     - /world/terminus/general-store/agent/keeper

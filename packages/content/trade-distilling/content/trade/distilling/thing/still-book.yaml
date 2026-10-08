@@ -39,10 +39,13 @@ data:
   # kiln lines need. ⚠ One NPC doing three trades is a maltster-shaped
   # vacancy, named as one in `docs/vocations.md`.
   #
-  # ⭐ `kiln-malt-peated` rides in on the same seat, and it is the one the
-  # book exists to teach: the clean kiln and the peated kiln are the same
-  # act over a different fire, and everything that makes the two whiskies
-  # different follows from choosing between these two lines.
+  # ⭐⭐ There is ONE kiln line now, and that is the fire build's doing.
+  # `kiln-malt-peated` is retired: the clean kiln and the peated kiln
+  # were the same act over a different fire, and the model says so
+  # directly — the smoke comes off the FUEL BED. So the choice that makes
+  # the two whiskies different has moved off this board and onto the
+  # firebox, where somebody stokes peat or stokes wood. ⭐ The board got
+  # shorter and the decision got realer.
   #
   # ⭐ `grain-wash-mash` is the second CEREAL's line, and the board is
   # where the two products become a choice: malt is dearer to make and
@@ -53,7 +56,6 @@ data:
     [
       steep-barley,
       kiln-malt,
-      kiln-malt-peated,
       wash-mash,
       grain-wash-mash,
       compound-gin,

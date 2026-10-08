@@ -19,8 +19,11 @@ import { FireApi } from '../../api/fire';
 import { MixinApi } from '../../api/mixin';
 import { ContainmentApi } from '../../api/containment';
 import { StuffApi } from '../../api/stuff';
-import { Reserve } from '../../lib/reserve';
+
 import { Quantity } from '../../lib/quantity';
+import { chargeHot } from '../../lib/fire/__tests__/burner-fuel';
+import type { Burner } from '../../lib/fire/Burner';
+import type { Stuff } from '../../lib/stuff/Stuff';
 import { makeStuff, makeStuffAtPath } from '../../lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 
@@ -48,9 +51,11 @@ function forge(burnTempK: number, bellowsMult = 1): Forge {
     const f = new Forge();
     f.setBurnTemperatureK(burnTempK);
     f.setBellowsMultiplier(bellowsMult);
-    f.setReserve(
-      new Reserve('fuel', Quantity.of(100, '%'), Quantity.of(100, '%'), 'combustion', null),
-    );
+    // ⭐ Charcoal-grade fuel (30 MJ/kg → ~2250 K flame), because a forge
+    // that reaches iron's melting point has to be given fuel that can.
+    // That is the fire build's whole point: the vessel sets the ceiling
+    // and the FUEL decides whether you get there.
+    chargeHot(f as unknown as Stuff & Burner, 30);
     return f;
   });
 }
@@ -110,7 +115,14 @@ describe('the furnace family — a burnt-out fire casts no light', () => {
   it('a lit, fuelled furnace emits; doused, it is dark', () => {
     const f = forge(1300);
     f.setEmittedFlux(120);
-    expect(f.getEmittedFlux().rawValue()).toBe(120);
+    // ⭐⭐ The authored flux is a CEILING, not the reading. Luminosity is
+    // incandescent soot, so a solid-fuel flame at full draught sheds
+    // `fire.light.sootyFloor` (0.6) of it — 72 of 120 — and a starved
+    // one climbs back toward the ceiling. That is the fire build's
+    // signature trade-off and the reason `draught wide` reads *"sheds
+    // less light than you would think"*.
+    expect(f.getEmittedFlux().rawValue()).toBeCloseTo(72);
+    expect(f.getEmittedFlux().rawValue()).toBeLessThan(120);
 
     f.douse();
     expect(f.isLit()).toBe(false);
@@ -120,7 +132,8 @@ describe('the furnace family — a burnt-out fire casts no light', () => {
   it('a fire with no fuel left is dark even while its `lit` flag says otherwise', () => {
     const f = forge(1300);
     f.setEmittedFlux(120);
-    f.adjustReserve('fuel', Quantity.of(-100, '%'));
+    // Empty the bed — the burnout edge.
+    (f as unknown as { fuelBed: Record<string, number> }).fuelBed = {};
     expect(f.fuelRemaining()).toBe(0);
     expect(f.getEmittedFlux().rawValue()).toBe(0);
   });

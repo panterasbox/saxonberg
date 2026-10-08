@@ -43,12 +43,14 @@ data:
   # as a finding, not fixed here — it belongs to the fire/energy slate.
   burnTemperatureK: 358
   bellowsMultiplier: 1
-  fuelBurnRatePerMin: 0.1
-  reserves:
-    fuel:
-      capacityValue: 100
-      currentValue: 100
-      unit: "%"
-      theme: combustion
-      floorEffect: null
-
+  # ⭐ The fire build: fuel is a BED (kilograms, by material) that
+  # `stoke` fills, and the vessel's size is a POWER rather than a
+  # percentage-per-minute of nothing. What it reaches depends on what
+  # is in it.
+  # ⚠⚠ The firebox is NOT this vessel's interior. A still's interior is
+  # the WASH (`interiorCapacity: 60` above), which is exactly why
+  # `BurnerMixin.fuelSlot()` is a hook a `Lamp` overrides and `Still`
+  # does not — a runtime `isBulkable` test would have made every still
+  # drink its own charge as fuel.
+  maxBurnPowerW: 10000
+  fuelCapacityKg: 40

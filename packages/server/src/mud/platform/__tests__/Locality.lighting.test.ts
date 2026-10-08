@@ -167,7 +167,7 @@ describe('an extent that funds nothing', () => {
 /**
  * ⭐⭐ **The goods leg** (energy build D10): a `supply` covers as many streets
  * as it physically can (oil on hand / a live wire), and a money-only bill is
- * no longer the only shape. A gas-lit town sets cost 0 and pays through
+ * no longer the only shape. An oil-lit town sets cost 0 and pays through
  * procurement, so the settle burns oil and moves no money.
  */
 describe('the goods leg', () => {

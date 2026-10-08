@@ -5920,7 +5920,15 @@ because tests build state rather than reloading it.
 3. **Declare a `fieldMarshaller`** — the escape hatch, for a genuinely
    variable-key map that genuinely is state.
 
-See [persistence.md](./subsystems/persistence.md) and
+⭐ **And there is a gate now** (the fire build, 2026-10, after this bit
+twice in one week): `check-field-meta --lint` rule 5 refuses a
+`persistent` `Map`/`Set` with no `marshaller`, resolving one level of
+type alias so it does not depend on a `new Map()` initializer being
+present. Census at the time: **one** offender in 3,044 files, so it
+landed as a ratchet at zero.
+
+See [persistence.md](./subsystems/persistence.md),
+[lint-family.md](./lint-family.md) and
 `lib/persistence/Marshaller.ts`.
 
 ## A residency artifact used as part of an identity key

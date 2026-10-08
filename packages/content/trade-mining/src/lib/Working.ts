@@ -56,6 +56,12 @@
  */
 
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
+import { BulkableApi } from '@saxonberg/server/mud/api/bulk';
+import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
+import { Quantity } from '@saxonberg/server/mud/lib/quantity';
+import { TemplatePaths } from '@saxonberg/server/mud/lib/paths';
+import type Material from '@saxonberg/server/mud/lib/material/Material';
+import type { Atmospheric } from '@saxonberg/server/mud/lib/biome/Atmospheric';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { NavigationApi, type CardinalDirection } from '@saxonberg/server/mud/api/navigation';
 import type { MixinConstructor, FieldMeta } from '@saxonberg/server/mud/lib/mixin';
@@ -191,6 +197,15 @@ const FOUL_BELOW = 0.34;
 /** The atmosphere a spent working holds — odourless, and only the bird reads it. */
 const FOUL_ATMOSPHERE = 'blackdamp';
 
+/**
+ * ⭐ How many times the cell's own volume of gas the measures behind a
+ * face hold. The reservoir term of the RGO law: reservoir · recharge ·
+ * act · credit.
+ */
+const FIREDAMP_RESERVOIR_MULTIPLE = 20;
+/** Game-seconds for a drained reservoir to come half the way back. */
+const FIREDAMP_RECHARGE_HALF_LIFE_S = 6 * 3600;
+
 /** How many lumps a fresh face holds before it is worked out. */
 const FACE_LUMPS = 8;
 
@@ -230,6 +245,15 @@ export interface Working extends Strata {
   getTier(): WorkingTier;
   /** Every direction out, and what is behind it. */
   facesOf(): Promise<Face[]>;
+  /**
+   * ⭐⭐⭐ Draw the gas standing here off into a sealed vessel — the one
+   * hazard in this trade you can HARVEST rather than merely survive.
+   */
+  drain(vessel: Stuff | null): Promise<DrainOutcome>;
+  /** How much of the measures' gas has been drawn off, 0–1. */
+  firedampDrawnFraction(): number;
+  /** Litres the measures behind this working hold. */
+  firedampReservoirL(): number;
   /** `f(span, ground, support, water)` — a threshold, never a roll. */
   stabilityAt(): Promise<Stability>;
   /** Condition-weighted timber support standing in this room. */
@@ -294,6 +318,7 @@ export function WorkingMixin<TBase extends MixinConstructor<Stuff & Container>>(
         'trade/mining/cmd/mining/sink.yaml',
         'trade/mining/cmd/mining/raise.yaml',
         'trade/mining/cmd/mining/shore.yaml',
+        'trade/mining/cmd/mining/drain.yaml',
       ],
       inventory: [
         'trade/mining/cmd/mining/hew.yaml',
@@ -301,6 +326,7 @@ export function WorkingMixin<TBase extends MixinConstructor<Stuff & Container>>(
         'trade/mining/cmd/mining/sink.yaml',
         'trade/mining/cmd/mining/raise.yaml',
         'trade/mining/cmd/mining/shore.yaml',
+        'trade/mining/cmd/mining/drain.yaml',
       ],
     };
 
@@ -317,6 +343,12 @@ export function WorkingMixin<TBase extends MixinConstructor<Stuff & Container>>(
       // Provisional one loses them along with the room, which is exactly
       // right. Nothing about it needs a warren.
       workedFaces: { persistent: true },
+      // ⭐ The reservoir, as state about THIS ROOM. Draining is an ACT
+      // with a credit and a consequence, so what has been taken has to
+      // be remembered — a working you have drained stays drained until
+      // the measures give it up again.
+      firedampDrawnL: { persistent: true, runtimeState: true },
+      firedampDrawnStamp: { persistent: true, runtimeState: true },
       oreRow: { persistent: true, authorable: true },
       // ⭐ A fall blocks a FACE, never a room. Persistent because clearing
       // one is work somebody did, and it should still be cleared after a
@@ -335,6 +367,15 @@ export function WorkingMixin<TBase extends MixinConstructor<Stuff & Container>>(
 
     /** Direction → lumps already won from that face. */
     protected workedFaces: Record<string, number> = {};
+
+    /**
+     * ⭐ Litres of gas drawn out of the measures behind this working.
+     * The reservoir term: what you have taken, so that taking more gives
+     * less and leaving it alone gives it back.
+     */
+    protected firedampDrawnL = 0;
+    /** Game-time (s) the draw total was last reconciled; `-1` unseeded. */
+    protected firedampDrawnStamp = -1;
 
     /**
      * The ore row a cut from this working mints. ⭐ LOCALITY content: what
@@ -644,7 +685,168 @@ export function WorkingMixin<TBase extends MixinConstructor<Stuff & Container>>(
       // `null` falls back through the biome chain, which is what a room
       // with good air should do — never a hardcoded 'air'.
       if (self._atmosphere !== want) self._atmosphere = want;
+      void this.settleGas(value);
       return value;
+    }
+
+    /**
+     * ⭐⭐⭐ **The third damp, and it is a GROUND fact.**
+     *
+     * Firedamp is methane adsorbed in coal measures: cut into them and it
+     * comes out, and it accumulates wherever the air is not moving. So
+     * the amount standing in a working is `strength × (how dead the air
+     * is) × (how much the measures have left)` — three terms, each of
+     * which is already true of something else in the model.
+     *
+     * ⚠ **It is the opposite hazard from blackdamp, and that is the
+     * whole design.** Blackdamp is air with nothing left in it: odourless,
+     * only the bird reads it, kills you quietly. Firedamp is breathable
+     * at the fractions that matter — ⭐ so the canary SINGS, and the
+     * player who has learnt to trust the bird learns that the bird is
+     * answering a different question. Its tell is the flame: a lamp burns
+     * a blue cap in it, which is what a Davy lamp was FOR.
+     *
+     * ⭐ Written through `setAtmosphereStanding`, a derived
+     * write-through: standing amounts never decay (the measures are still
+     * giving it off) and drawing one off suppresses it on a ramp. The
+     * accumulated contents a fire emits are a different list in the same
+     * medium, which is what lets the gas and the exhaust coexist without
+     * either knowing about the other.
+     */
+    private async settleGas(air: number): Promise<void> {
+      const self = this as unknown as Stuff & Container;
+      if (!MixinApi.isAtmospheric(self)) return;
+      const atm = self as unknown as Atmospheric;
+      let sample: GroundSample | null = null;
+      try {
+        sample = await this.ground.sampleHere();
+      } catch {
+        return;
+      }
+      const gas = sample?.gas ?? null;
+      if (gas === null) return;
+      // ⭐ Dead air is what lets it build up: a heading with the air
+      // moving through it carries the gas away, which is both true and
+      // the remedy — hole it through and it clears, exactly as blackdamp
+      // does.
+      const standing =
+        gas.strength * (1 - air) * (1 - this.firedampDrawnFraction());
+      atm.setAtmosphereStanding(gas.materialPath, Math.max(0, standing));
+    }
+
+    /**
+     * How much of the measures' gas has been drawn off, 0–1 —
+     * reconcile-on-read with a half-life, so a drained working comes
+     * back and an abandoned one is full again.
+     */
+    public firedampDrawnFraction(): number {
+      const reservoir = this.firedampReservoirL();
+      if (!(reservoir > 0)) return 0;
+      this.reconcileFiredampDrawn();
+      const f = this.firedampDrawnL / reservoir;
+      return f > 1 ? 1 : f < 0 ? 0 : f;
+    }
+
+    /** Litres the measures behind this working hold. */
+    public firedampReservoirL(): number {
+      const self = this as unknown as Atmospheric;
+      const volume = self.getVolume?.() ?? null;
+      if (volume === null) return 0;
+      const litres = volume.rawValue() * 1000;
+      return litres * FIREDAMP_RESERVOIR_MULTIPLE;
+    }
+
+    /** Let the drawn total decay back toward zero over game time. */
+    private reconcileFiredampDrawn(): void {
+      const now = workingNowSeconds();
+      if (now === null) return;
+      if (this.firedampDrawnStamp < 0) {
+        this.firedampDrawnStamp = now;
+        return;
+      }
+      const elapsed = now - this.firedampDrawnStamp;
+      if (elapsed <= 0) return;
+      this.firedampDrawnStamp = now;
+      if (!(this.firedampDrawnL > 0)) return;
+      const halves = elapsed / FIREDAMP_RECHARGE_HALF_LIFE_S;
+      this.firedampDrawnL *= Math.pow(0.5, halves);
+      if (this.firedampDrawnL < 1) this.firedampDrawnL = 0;
+    }
+
+    /**
+     * ⭐⭐⭐ **Draw the gas off into a vessel** — and the thing that was
+     * trying to kill you becomes stock you can carry out.
+     *
+     * That inversion is the whole point of the act. Every other hazard in
+     * this trade is something you avoid or survive; this one is something
+     * you can decide to HARVEST, which is also why it is the act the
+     * industrial epoch is built on (a town's gas supply is this, at
+     * scale).
+     *
+     * ⚠ Only a SEALED vessel will hold it, and the refusal is the
+     * vessel's own: *"it will not stay in a pail"*. That is not a check
+     * this act invented — it is `requiredClosureFor` reading the gas's
+     * boiling point, the same read that makes a bungled pour escape into
+     * the room.
+     */
+    public async drain(vessel: Stuff | null): Promise<DrainOutcome> {
+      const self = this as unknown as Stuff & Container;
+      if (!MixinApi.isAtmospheric(self)) return { ok: false, reason: 'no-gas' };
+      const atm = self as unknown as Atmospheric;
+      let sample: GroundSample | null = null;
+      try {
+        sample = await this.ground.sampleHere();
+      } catch {
+        return { ok: false, reason: 'no-gas' };
+      }
+      const gas = sample?.gas ?? null;
+      if (gas === null) return { ok: false, reason: 'no-gas' };
+      const standing = atm
+        .getAtmosphereContents()
+        .find((c) => c.type === gas.materialPath);
+      const volume = atm.getVolume();
+      if (volume === null) return { ok: false, reason: 'no-gas' };
+      const standingL = (standing?.amount ?? 0) * volume.rawValue() * 1000;
+      if (!(standingL > 0)) return { ok: false, reason: 'no-gas' };
+
+      if (vessel === null || !MixinApi.isBulkable(vessel)) {
+        return { ok: false, reason: 'no-vessel' };
+      }
+      const material =
+        StuffApi.findByTemplatePath<Material>(gas.materialPath) ?? null;
+      if (material === null) return { ok: false, reason: 'no-gas' };
+      const slot = vessel.getBulk('interior');
+      if (slot.getCapacity() === null) return { ok: false, reason: 'no-vessel' };
+      // ⚠ Construction AND the lid. A sealed bladder standing open is a
+      // hole, which is the vessel's own answer and not this act's.
+      if (
+        BulkableApi.compareClosure(
+          slot.getClosure(),
+          BulkableApi.requiredClosureFor(material),
+        ) < 0 ||
+        (MixinApi.isSealable(vessel) && vessel.isOpen())
+      ) {
+        return { ok: false, reason: 'not-sealed' };
+      }
+      const existing = slot.getMaterialPath();
+      if (existing !== null && existing !== gas.materialPath) {
+        return { ok: false, reason: 'not-sealed' };
+      }
+      const litres = Math.min(standingL, slot.remaining());
+      if (!(litres > 0)) return { ok: false, reason: 'no-room' };
+
+      if (existing === null) vessel.setBulkMaterial('interior', material);
+      vessel.setBulkAmount(
+        'interior',
+        Quantity.of(slot.getAmount().rawValue() + litres, 'L'),
+      );
+      // ⭐ Out of the air AND off the reservoir. The first makes the
+      // heading workable; the second is what makes draining it twice
+      // give less the second time.
+      atm.drawAtmosphereContent(gas.materialPath, litres);
+      this.reconcileFiredampDrawn();
+      this.firedampDrawnL += litres;
+      return { ok: true, litres, material: material.getName() };
     }
 
     /**
@@ -679,6 +881,23 @@ export function WorkingMixin<TBase extends MixinConstructor<Stuff & Container>>(
   return WorkingMixin as unknown as TBase & MixinCtor<Working>;
 }
 
+
+/**
+ * What `drain` did, or why it would not. ⭐ Every refusal names a thing
+ * the player can change: find a gassy heading, carry a vessel, carry a
+ * SEALED one, or empty the one you have.
+ */
+export type DrainOutcome =
+  | { ok: true; litres: number; material: string }
+  | { ok: false; reason: 'no-gas' | 'no-vessel' | 'not-sealed' | 'no-room' };
+
+/** In-session game-time (seconds), or null when no world clock runs. */
+function workingNowSeconds(): number | null {
+  if (!StuffApi.findByTemplatePath(TemplatePaths.worldClockRegistry)) {
+    return null;
+  }
+  return WorldClockApi.getNow().rawValue();
+}
 
 /** Does this room have a way OUT of the workings — or say it breathes? */
 function breathes(room: Stuff & Container): boolean {

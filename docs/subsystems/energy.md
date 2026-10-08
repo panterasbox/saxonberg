@@ -100,17 +100,17 @@ drive). It runs on the first real read (the dusk settle, or `analyze grid`).
   **manhole** on the Mayfield spur (the overhead/buried contrast); the other
   grid streets carry the line as a Detail and no object.
 - **`analyze grid`** — a `Reading` channel: bare = the premises + the locality's
-  **derived epoch** (electric if a feeder reaches it, gas-lit if it burns oil,
+  **derived epoch** (electric if a feeder reaches it, oil-lit if it burns oil,
   off-grid if neither — no "tech level"); on a pole = the trace naming the first
   cut.
 
 ## The goods leg and who pays
 
-A `Locality`'s `_publicLighting` names a `supply` — a `FuelStore` (gas-lit) or
+A `Locality`'s `_publicLighting` names a `supply` — a `FuelStore` (oil-lit) or
 the `GridCatalogue` (electric) — implementing the kernel's `StreetLightingSupply`
 shape; the settle asks it `lightStreets` and lights exactly what it covers.
 Terminus migrated from the general-store placeholder to the grid; Heart's Delight
-is gas-lit, with a **parish government** (a treasury, a public-works department,
+is oil-lit, with a **parish government** (a treasury, a public-works department,
 the Warden of the Ways) that buys oil from the oil works through the shipped
 procurement loop. The sales tax splits a `banking.localTaxShare` to a sale's
 covering locality so a town's budget fills from its own trade; `appropriate`

@@ -1,0 +1,44 @@
+# A roll of sacking — ⭐⭐ **the smoker's fuel, and the reason the smoker
+# works at all.**
+#
+# ⛔ The fire build made the bee smoker a real `Burner`: it has a 1 kg
+# fuel bed that `stoke` fills, where before it carried a `100 %` reserve
+# that arrived full and could never be refilled. That was right in
+# principle and left a hole in practice — `stoke` is ALL-OR-NOTHING
+# (`fuelRemaining + kg > capacity` refuses the whole item), and a census
+# of every burnable item in the realm found **sixteen that fit a 1 kg bed
+# and not one that was fuel**: an arrow, a spile, a drop spindle, a
+# fishing rod, a pick haft. A beekeeper could buy a smoker and light it
+# only by burning another trade's tools.
+#
+# ⭐ So this is what a beekeeper actually burns, and the smoker's own
+# prose named it before the item existed: *"smelling permanently of burnt
+# sacking"*. Burlap is jute, jute is dry cellulose, and
+# `jute.combustionImparts` is `smoke` — the one fuel in the game whose
+# PURPOSE is the exhaust rather than the heat.
+#
+# ⚠ 0.3 kg, so three rolls fill the 1 kg bed exactly. One roll is
+# 0.3 × 16 MJ at 200 W — **about 6½ game-hours of smoulder**, which is
+# several inspections rather than one, and deliberately so: the thing a
+# beekeeper should have to think about is whether the smoker is LIT when
+# they open the hive (the colony reads your hands), not whether they
+# remembered to buy a rag. Priced on the store's price-list (Law 1),
+# never here.
+class: /platform/thing/Good
+data:
+  shortDescription: roll of sacking
+  # ⚠ NOT `sack` — the general store already sells a SACK of potting soil,
+  # and `resolveBuy("sack")` at that counter has to keep meaning the one
+  # a gardener asks for. Caught by the standup test the moment this row
+  # claimed the word, which is the same collision the fire build's live
+  # drive hit from the other side (the clamp answers to `charcoal`, so
+  # `stoke charcoal` bound the kiln instead of the fuel). A keyword is a
+  # name, and two things in one shop cannot share one.
+  keywords: [sacking, burlap, hessian, roll]
+  register: indefinite
+  longDescription: >-
+    A short roll of coarse brown sacking, frayed at both ends and stiff
+    with use. It is what a smoker eats: it catches slowly, it will not
+    flare, and it makes far more smoke than heat.
+  _materialPath: /stuff/idea/material/textile/jute
+  mass: 0.3

@@ -763,3 +763,10 @@ stocks, or a brain's beat? It was the extraction plan's own risk 7 and it stayed
 unpriced through the whole build — deliberately, and recorded rather than
 pretended at.
 
+
+## ⬅ From the fire build (2026-10)
+
+Left as a line here rather than in a retired plan.
+
+- **Fuel is both the bed and the reducing charge** (the fire build's R4). A smelt needs carbon *in the reaction*, not only heat under it, so a furnace's `fuelBed` and its reducing charge are the same coke twice over — and nothing yet says which kilogram did which job.
+- ⭐ **Stocking, not mechanism:** a burner's fuel is a carried thing now, so every room with a fire a player is expected to light needs fuel in reach. Nine rooms did not and were given some; the general question of who *supplies* a furnace is still this slate's.
