@@ -428,8 +428,9 @@ surfaceReadingAt(x: number, y: number, errorDeg: number, seed: number): SurfaceR
 It intersects the lode's plane with `z = 0` and reports the surface trace
 and the perpendicular distance to it. ⭐ **That is anticlinal theory** —
 inferring a subsurface trap from the dip and strike you can measure at an
-outcrop — which is precisely the 1860s technique that found the first
-fields. And `errorDeg` is literally the *"how wrong is it allowed to be"*
+outcrop — which is precisely the technique that found the first fields
+(the structural-trap idea circulated from the 1840s and was formalised as
+anticlinal theory in the 1880s). And `errorDeg` is literally the *"how wrong is it allowed to be"*
 parameter, already a function argument.
 
 So drilling's structural survey adds **a `Reading` row, not a mechanism**:
@@ -540,3 +541,108 @@ so the requirements pass starts with them rather than discovering them:
    locality and the obvious candidate; whether an oil field belongs beside
    a mine or wants its own site is a worldcrafting call, not a mechanism
    one.
+
+## ⭐⭐⭐ Addendum — the brine rung, and the barrel is mostly waste (2026-10-08)
+
+Two claims made in conversation, then checked against the tree. The first
+came out **stronger** than claimed; the second came out **worse**, and the
+worse one is the better design.
+
+### ⭐⭐⭐ 1 · Drilling has a MEDIEVAL rung, and it is salt
+
+Drilling was not invented for petroleum — it was invented for **brine**.
+Sichuan salt workers were percussion-drilling narrow holes on bamboo cable
+from the Han period, casing them with bamboo tube, and by the 1830s the
+Shenhai well passed 1,000 m. They kept hitting **natural gas**, first as a
+hazard and then as the fuel they piped off to **boil the brine down to
+salt**.
+
+Every piece of that is already in this tree, and the check found more than
+expected — `trade-quarrying` ships the whole saltern:
+
+| shipped | what |
+|---|---|
+| `thing/brine-hearth.yaml` | ⭐ an **`Oven`** — so a fuel BED, touched by the fire build, `ThermalMixin.heatSourceK()` reading the pan's container |
+| `thing/salt-pan.yaml` | the pan that goes **in** it |
+| `idea/maturation/brine.yaml` | evaporation as a `MaturationProfile` — the patient, solar route |
+| `/stuff/idea/material/bulk/salt-water` + `food/salt` | the materials |
+| `world/terminus/estuary/salt-house.yaml` | the realm's **one** salt works, and it is **coastal** |
+
+And the hearth's own header states the economics this rung plugs into:
+
+> *"the fuel is what somebody else wanted… salt's three sources are three
+> genuinely different cost structures — capital and labour at a rock-salt
+> face, patience on the saltings, **fuel** here — and where a person lives
+> decides which one they use. The fuel competition was already designed as
+> part of the wood contest: the charcoal burner and the smelter want the
+> same cordwood."*
+
+So three findings, none of which needed inventing:
+
+1. ⭐⭐ **A drilled brine well is INLAND salt.** The realm's only saltern is
+   at the estuary, while the *demand* — `salt-cure` (cooking) and
+   `salt-hide` (tanning) — is wherever the food and the hides are. Salt is
+   heavy, so this is a **logistics** story on a shipped cost surface, and
+   it is unmet demand without anything being authored for it.
+2. ⭐⭐⭐ **The Sichuan loop closes a shipped scarcity.** Feed the brine
+   hearth the **well's own gas** instead of cordwood and the hearth leaves
+   the wood contest its own comment describes. The historical fact and the
+   game's economics are the same fact. ⭐ It is also the **fourth gas
+   source**, exactly as § *Gas can be mined* predicted, arriving last and
+   inheriting both halves.
+3. **It de-risks the whole vertical.** The first player to drill is no
+   longer betting a fortune on a substance nobody has a use for yet —
+   they are selling salt, with oil as the thing the technique grows into.
+   ⭐ The capital shape stays honest and stops being a *trap*.
+
+> **Therefore: the brine well is IN SCOPE, and it is the build's first
+> rung.** Drilling is not a purely industrial build; it has a medieval
+> entry that pays for itself, which is the three-rung ladder again.
+
+### ⛔⛔ 2 · Three of five fractions have NO consumer — and that is the content
+
+The conversation claimed gasoline was the discard. A census says it is
+worse than that, and the result reframes the build:
+
+| fraction | consumer | verified state |
+|---|---|---|
+| **kerosene** | lamps, street lighting, the civic bill | ✅ a consumer **with no producer** (`lamp-oil`'s own row calls its crafted route pending) |
+| **paraffin wax** | candles | ✅ ⭐ and free: `candle.yaml` is **one row generalised over its wax**, material stamped at the dip, bed recharged by `adoptMaterialFuel()`. A **drop-in third wax, zero code** — so drilling *disrupts chandlery* |
+| **lubricants** | machine wear | ⛔ **nothing.** One incidental mention in a winemaking press; no mechanism consumes a lubricant |
+| **asphalt** | paved roads | ⛔ **nothing.** `logistics.md` has no paving, no surface, no macadam |
+| **gasoline** | the engine | ⛔ **nothing**, and deliberately — vehicles are Decided #4's out-of-scope |
+
+> ⭐⭐⭐ **A barrel of crude is mostly stuff this realm cannot use.** Which is
+> not a content hole — it is **1860 exactly**, and it is the most teachable
+> thing in the vertical.
+
+**Decided: ship the barrel honestly.** Do **not** scope in machine wear or
+road paving to give the middle fractions customers — each is its own build,
+and authoring demand ahead of supply is the circularity the rubber slate
+warned about, run backwards. A fraction with no consumer is an
+**invitation** to a later build, and absence is meaningful.
+
+Three consequences worth building on:
+
+- ⭐⭐ **Joint production is the lesson.** You cannot choose to make only
+  kerosene; distil crude and the light ends come out whether you want them
+  or not. The cuts rung already models this — ordered spans over the volume
+  drawn, **not a menu** — so the engine states the lesson by construction.
+- ⭐⭐⭐ **The refinery's margin is set by the ONE fraction it can sell,
+  minus the cost of getting rid of the rest.** Historically exact —
+  refiners priced off kerosene and treated the remainder as cost — and it
+  falls out of the content tree as it actually is today. That is a P&L a
+  player can read.
+- ⭐ **The disposal ladder is all shipped machinery**, so the choice is real
+  and every branch bites:
+
+  | choice | what it costs | rides |
+  |---|---|---|
+  | **store it** | volatile + stored is a fire risk | the fire build's ignition balance |
+  | **dump it** | an outfall load on the reach | `contaminationAt(reach, now)` sums upstream outfalls — ⭐ and contamination *carries no sensory tell, on purpose*, so this is the quiet crime |
+  | **flare it** | fuel burned for nothing, visibly | combustion, and the light it sheds |
+
+- ⚠⚠ **And then the epoch turns and the waste becomes the prize.** Same
+  substance, same recipe, opposite value, one era later. Lens 5 with teeth
+  rather than as an assertion — and the strongest argument this vertical
+  makes for keeping `epoch` a derived read rather than a gate.
