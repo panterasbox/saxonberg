@@ -11,10 +11,19 @@
 > whole economy; the gasometer).
 > ✅ **The cuts rung is BUILT** — refining is rows now
 > ([fractionation.md](../../subsystems/fractionation.md), whiskey build
-> 2026-10-04). ⚠ Still blocking: the epoch on-ramp
-> (→ [inquiry-slate](./inquiry-slate.md)) and
-> [destructive-distillation](./destructive-distillation-slate.md), which
-> ships first and hands this slate the gas economy.
+> 2026-10-04). ✅ **Both blockers are CLEARED (2026-10-08).**
+> [destructive-distillation](./destructive-distillation-slate.md)'s Stage A
+> shipped with the fire build — the retort, the condenser, the gasometer,
+> coke, coal tar and **coal gas** — so the gas economy this slate was to
+> inherit is anchored and live. And the epoch on-ramp came **off the
+> critical path**: a recipe needs a *gate token*, not a law catalogue, and
+> the token rides the shipped `RecipeKnowledge` ladder plus the realm's own
+> `epoch` — see [inquiry-slate](./inquiry-slate.md) § end.
+> ⭐ **Drilling is a SEEDED-field RGO** (the dry hole's own honesty
+> argument), so it does not consume the derived-field interface and is
+> **not gated on foraging** — see
+> [rgo-unification-slate](./rgo-unification-slate.md) § *The 09-25 priority
+> vs. the 10-08 direction*.
 > **Size:** a build — and the larger of the two, because the borehole is
 > a genuinely new extraction shape.
 

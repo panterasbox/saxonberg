@@ -17,6 +17,12 @@
 > consumer — the powered blood fridge in the ward. →
 > [thermal.md](../../subsystems/thermal.md) ·
 > [energy.md](../../subsystems/energy.md).
+> ⭐⭐⭐ **The preindustrial rung is an RGO, it is PROMOTED, and its
+> blocker is CLIMATE** (2026-10-08, § end): ice is a seasonal harvested
+> resource whose reservoir is the weather field — and **the realm's
+> coldest hour is 281 K against water's 273**, so nowhere freezes and the
+> only ice in the game comes from the electric freezer. The mechanism is
+> built; the winter is not.
 > **Left:** ⚠ **the preindustrial ice trade** — the seasonal ice-house,
 > the iceman, and **who SELLS ice** (the icebox still consumes a good
 > nobody makes; deferred by user decision to its own build, the cold
@@ -144,3 +150,107 @@ shut"* rather than listing a refrigerator and a freezer as siblings. The
 precedent (`distinguishing` = *"+ what they are wearing"*) is body-shaped, so
 whether the generic describer does this is unverified — and it is the thing the
 whole UX turns on.
+
+---
+
+## ⭐⭐⭐ Ice is an RGO, and the realm has nowhere cold enough (2026-10-08)
+
+Two findings from the RGO-track pass, and they belong together because the
+second is the only thing standing between this slate and a build.
+
+### 1 · The classification nobody had made
+
+> *"I actually never considered the ice trades as an RGO but you're
+> absolutely right they are."* — user
+
+A seasonal harvested natural resource is an RGO by the law's own test:
+**reservoir** (a frozen pool, a cold region), **recharge** (winter),
+**act** (cut and haul), **credit** (the harvester). So the ice trade joins
+the RGO track rather than sitting beside it, and it brings two firsts:
+
+- ⭐⭐ **The first RGO whose reservoir is the CLIMATE itself.** Every other
+  reservoir is a place you can walk to and point at — a seam, a bed, a
+  reach, a stand. Ice's reservoir is a *condition*, and it is gone in
+  April.
+- ⭐ **The first whose recharge is a SEASON rather than a rate**, which
+  lands on `TapWindowSpec`'s `photoperiod` / `rising` machinery instead of
+  a half-life. The ice-house is then the storage that arbitrages the
+  window — the whole trade is *buy the season, sell the year*.
+
+⭐⭐ **And it inverts the epoch ladder.** Every other trade ships its
+medieval rung and is missing both ends ([rgo-unification-slate
+§ *Foraging is a MODE*](./rgo-unification-slate.md)). The cold chain is the
+only one that shipped its **industrial** rung first — `ClimateControlMixin`,
+the electric freezer that MAKES ice, the carried cooler, the cold room (MR
+!320) — and is missing the **preindustrial** one underneath it. So this
+build demonstrates the three-rung ladder from the top down, and it is the
+cheapest available proof that the ladder is real rather than a framing
+device.
+
+### 2 · ⛔⛔ The blocker is CLIMATE, and it is not what this slate assumed
+
+The mechanism is **entirely built**. `water.yaml` carries
+`meltingPoint: 273` and `castTemplate: /stuff/thing/ice-block`;
+`reconcilePhase` is bidirectional and got its ambient driver in the
+placement build; the pan, the blocks, the bin, the bag and three iceboxes
+all ship. A pool of water that gets cold enough mints a carryable block
+today, with no new code.
+
+> **Nothing in the realm ever gets cold enough.**
+> [weather.md](../../subsystems/weather.md) § *the solar term*: **a winter
+> night lands near 281 K.** Water freezes at **273**. The realm's coldest
+> hour is +8 °C.
+
+So the only ice that can exist today comes out of an **electric freezer** —
+exactly backwards from the preindustrial trade this slate wants, and the
+reason *"the icebox still consumes a good nobody makes"* has survived two
+builds that each thought they had addressed it.
+
+⭐ **That makes this build a weather/biome build with a trade on top**, which
+is the user's own reason for promoting it:
+
+> *"I believe it would also help us round out our designs and
+> implementations on the weather and biome front."*
+
+Right, and more so than expected — the ice trade **cannot be designed
+without deciding where winter actually bites**, which is a question the
+weather field has been able to defer precisely because nothing consumed a
+freezing temperature. Two honest shapes, and the choice is a real one:
+
+| shape | what it means | cost |
+|---|---|---|
+| **a colder winter** | the solar term's floor drops below 273 for part of the year, realm-wide | touches every thermal consumer at once — bodies, crops, livestock, stored food |
+| ⭐ **a cold PLACE** | a region (upland, northern reach) whose climate lean crosses 273 while Terminus does not | localised, rides the shipped climate-lean seam, and makes the ice trade a **place** with a cartage problem — which is what the real trade was |
+
+The second is almost certainly right: it keeps the blast radius small, it
+makes the iceman's cost structure honest (ice is cheap at the lake and dear
+in town), and *"Terminus and Rejection get the same winter on the same day"*
+is already flagged in `weather.md` as a limitation rather than a feature.
+
+### 3 · The demand is real and already priced
+
+Not a speculative market — the consumers ship and the arithmetic is
+already in the docs:
+
+- ⭐⭐ **Blood.** [blood.md](../../subsystems/blood.md): a drawn unit keeps
+  **~3 game-days at 293 K and ~4 game-weeks in a cold larder**, so *"warm
+  blood can't be hoarded but cold blood buys a hunt."* The ward's powered
+  fridge shipped with the active rung — but a **medic in the field** has
+  a `Coolbox` and nothing to put in it. User's framing: *"medics are going
+  to need to pack blood for the rest of the party in case anything goes
+  wrong and until electric cooling that means ice."*
+- **Food.** The whole `FreshnessMixin` clock plus the hurdle stack, and a
+  larder whose cold is currently a property of the room rather than a good
+  anybody sells.
+- **Hospitality.** `IceBin` ships in `trade-hospitality` and the drinks
+  recipes want it.
+
+⚠ **It blocks nothing.** Nothing on the drilling or foraging track needs
+ice, and no shipped capability is waiting on it — the gap is a shipped
+**consumer with no producer**, the same class as the gas bladder, not a
+missing mechanism. So it is promotable on demand rather than on dependency:
+⭐ it is an **unblocker**, not a blocker — the weather work it forces is
+owed to the sward, the cold larder and the spoilage hurdles regardless.
+
+**Priority: promoted (user, 2026-10-08)** — onto the RGO track with the
+rest, ahead of foraging, orderable freely against drilling.
