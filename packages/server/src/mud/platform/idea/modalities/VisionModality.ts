@@ -39,6 +39,8 @@ import type { Conduit } from '../../../lib/boundary/Conduit';
 import type { Boundary } from '../../../lib/boundary/Boundary';
 import { BoundaryAnchor } from '../../../lib/boundary/BoundaryAnchor';
 import { CelestialApi } from '../../../api/celestial';
+import { Traversal } from '../../../lib/location/Traversal';
+import type { Leg } from '../../../lib/location/Traversal';
 
 const DEFAULT_VISION_PROFILE: VisionProfile = {
   scotopicMin: 'pitch-black',
@@ -300,23 +302,73 @@ function finalizeSources(sources: LightSourceRef[]): LightSourceRef[] {
 
 
 /**
- * Internal recursive walk. Returns a flux accumulator (lumens +
- * source list); the public `signalAt` divides by sizeScale and wraps.
+ * One leg out of a scope: the other side, how much gets through, and
+ * the FAR side's area — which `mergeCapped` needs to work out what an
+ * opening onto it can be worth.
  */
-function walkFluxAt(
-  loc: Stuff & Container,
-  depth: number,
-  visited: Set<string>,
-  skyFactor: number,
-): FluxAccumulator {
-  const acc = newAccumulator();
-  if (depth > MAX_HOPS) return acc;
-  const id = (loc as unknown as Stuff).stuffId;
-  if (visited.has(id)) return acc;
-  visited.add(id);
+type SpillLeg = { tau: number; area: number };
 
-  /** Light from OTHER scopes — legs (d) and (e). Capped as one. */
-  const spill: { sub: FluxAccumulator; tau: number; area: number }[] = [];
+/**
+ * ⭐ The legs out of `loc`, in the order this walk has always taken
+ * them: boundary conduits (d) first, then doorless obvious exits (e).
+ *
+ * ⚠⚠ **The order is behaviour.** One mutable `visited` set is shared
+ * across the whole walk, so whichever leg reaches a room first is the
+ * depth that room is charged at — and `mergeCapped` is not
+ * commutative in the presence of the cap. The characterization golden
+ * (`scripts/__tests__/golden/perception-characterization.json`) is
+ * what holds this.
+ */
+function lightLegs(loc: Stuff & Container): Array<Leg<Stuff & Container>> {
+  const out: Array<Leg<Stuff & Container>> = [];
+
+  // (d) Cross-boundary propagation. ⭐ Collected, not merged: legs (d)
+  // and (e) are both light from ANOTHER scope, so they share one cap —
+  // see {@link mergeCapped}.
+  if (MixinApi.isAdornable(loc)) {
+    for (const fx of loc.getFixtures()) {
+      if (!BoundaryAnchor.is(fx)) continue;
+      const anchor = fx;
+      const boundary = anchor.getBoundary();
+      if (!boundary) continue;
+      const otherHost = anchor.getOtherHost();
+      if (!otherHost) continue;
+      const conduit = findLightConduit(boundary);
+      if (!conduit) continue;
+      const otherSide = boundary.getOtherSide(anchor);
+      const tau = conduit.transmissivity(otherSide, anchor.getSide());
+      if (!(tau > 0)) continue;
+      const far = otherHost as unknown as Stuff & Container;
+      out.push({ node: far, tau, edge: { tau, area: readSizeScale(far) } });
+    }
+  }
+
+  // (e) Cross-exit propagation. Doored exits skip — the boundary walk
+  // handles those. The five hazard guards are
+  // `ExitableMixin.getObviousNeighbours`' now, in ONE copy; this file
+  // is where four of them were first written down, with the dates they
+  // took `look` down for a whole room.
+  if (MixinApi.isExitable(loc)) {
+    for (const { dest } of loc.getObviousNeighbours()) {
+      out.push({
+        node: dest,
+        tau: EXIT_TAU,
+        edge: { tau: EXIT_TAU, area: readSizeScale(dest) },
+      });
+    }
+  }
+
+  return out;
+}
+
+/**
+ * Everything `loc` contributes **itself** — legs (a) ambient, (a′) the
+ * town's lamps, (b) contents and what people are holding, (c)
+ * fixtures. No propagation: that is the skeleton's job now.
+ */
+function ownFlux(loc: Stuff & Container, skyFactor: number): FluxAccumulator {
+  const acc = newAccumulator();
+  const id = (loc as unknown as Stuff).stuffId;
 
   // (a) Ambient — the location itself contributes flux + color temp.
   //
@@ -413,8 +465,8 @@ function walkFluxAt(
     }
   }
 
+  // (c) Fixture-side emitters.
   if (MixinApi.isAdornable(loc)) {
-    // (c) Fixture-side emitters.
     for (const fx of loc.getFixtureLightSources()) {
       if (!MixinApi.isLightSource(fx)) continue;
       const flux = fx.getEmittedFlux().rawValue();
@@ -426,66 +478,51 @@ function walkFluxAt(
         colorTemperature: colorTempQ ? colorTempQ.rawValue() : null,
       });
     }
-
-    // (d) Cross-boundary propagation. ⭐ Collected, not merged: legs (d)
-    // and (e) are both light from ANOTHER scope, so they share one cap —
-    // see {@link mergeCapped}.
-    for (const fx of loc.getFixtures()) {
-      if (!BoundaryAnchor.is(fx)) continue;
-      const anchor = fx;
-      const boundary = anchor.getBoundary();
-      if (!boundary) continue;
-      const otherHost = anchor.getOtherHost();
-      if (!otherHost) continue;
-      const conduit = findLightConduit(boundary);
-      if (!conduit) continue;
-      const otherSide = boundary.getOtherSide(anchor);
-      const tau = conduit.transmissivity(otherSide, anchor.getSide());
-      if (!(tau > 0)) continue;
-      const sub = walkFluxAt(
-        otherHost as unknown as Stuff & Container,
-        depth + 1,
-        visited,
-        skyFactor,
-      );
-      spill.push({ sub, tau, area: readSizeScale(otherHost as unknown as Stuff & Container) });
-    }
   }
 
-  // (e) Cross-exit propagation. Doored exits skip — the boundary
-  // walk handles those.
-  if (MixinApi.isExitable(loc)) {
-    for (const exit of loc.getObviousExits()) {
-      if (exit.getDoor()) continue;
-      // An exit that applies its own traversal may name no room at all
-      // (the sandbox wardrobe passage names the WIRE). Walking it lands
-      // on a non-Container and takes `look` down for the whole room.
-      if (!exit.hasSpatialDestination()) continue;
-      const destPath = exit.getDestinationTemplatePath();
-      // Existence, not identity: a Warren hub exit names a template with
-      // MANY live clones (`/world/lounge/location/lounge` once a satellite exists),
-      // and the singleton lookup throws on it — which took `look` down for
-      // the whole room and the presence fan with it (found live 2026-08-27).
-      if (destPath && StuffApi.findAllByTemplatePath(destPath).length === 0) continue;
-      let dest: Stuff & Container;
-      try {
-        dest = exit.getDestination();
-      } catch {
-        continue;
-      }
-      // Belt-and-braces on the hot path: a destroyed room's proxy
-      // answers every call with `undefined`, and `look` must not die
-      // because one neighbour was reaped mid-walk.
-      if (!MixinApi.isContainer(dest) || (dest as Stuff).isDestroyed()) {
-        continue;
-      }
-      const sub = walkFluxAt(dest, depth + 1, visited, skyFactor);
-      spill.push({ sub, tau: EXIT_TAU, area: readSizeScale(dest) });
-    }
-  }
-
-  mergeCapped(acc, spill, readSizeScale(loc));
   return acc;
+}
+
+/**
+ * The light walk, on the shared skeleton
+ * (`lib/location/Traversal.ts` — *one traversal, or none*).
+ *
+ * ⭐⭐ **The skeleton is the frontier; the physics stayed here.** What
+ * moved out is the depth gate, the visited set and the recursion —
+ * machinery that was identical in four files. What did NOT move is
+ * anything that makes light light: the three own-contribution legs,
+ * the per-source attribution, and `mergeCapped`'s rule that *an
+ * opening cannot make you brighter than what is on the other side of
+ * it*. That rule is the one place this walk differs from sound and
+ * smell, which merge per child as they go — so it is `fold`'s body and
+ * nobody else's.
+ *
+ * ⚠ `enter` is deliberately absent: unlike sound and smell, light has
+ * no vacuum refusal. A vacuum is transparent.
+ */
+function walkFluxAt(
+  loc: Stuff & Container,
+  depth: number,
+  visited: Set<string>,
+  skyFactor: number,
+): FluxAccumulator {
+  const walk = new Traversal<Stuff & Container, FluxAccumulator, void>({
+    order: 'depth-first',
+    keyOf: (node) => (node as unknown as Stuff).stuffId,
+    neighbours: lightLegs,
+    bound: { hops: MAX_HOPS },
+    visited,
+    fold: (node, _d, _carry, children) => {
+      const acc = ownFlux(node, skyFactor);
+      const spill = children.map(({ leg, result }) => ({
+        sub: result,
+        ...((leg.edge as SpillLeg | undefined) ?? { tau: leg.tau ?? 1, area: 1 }),
+      }));
+      mergeCapped(acc, spill, readSizeScale(node));
+      return acc;
+    },
+  });
+  return walk.walk(loc, { carry: undefined, depth }).result;
 }
 
 /**

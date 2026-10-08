@@ -27,6 +27,8 @@ import type { Container } from '../../../lib/spatial/Container';
 import { Sound, type SoundSourceRef, SOUND_SOURCE_CAP } from '../../../lib/perception/Sound';
 import { MAX_HOPS, EXIT_TAU } from '../../../lib/perception/Modality';
 import { MixinApi } from '../../../api/mixin';
+import { Traversal } from '../../../lib/location/Traversal';
+import type { Leg } from '../../../lib/location/Traversal';
 import { StuffApi } from '../../../api/stuff';
 import { PerceptionApi } from '../../../api/perception';
 import { BiomeApi } from '../../../api/biome';
@@ -89,14 +91,18 @@ function findSoundConduit(boundary: Boundary): SoundConduit | null {
 }
 
 
-function inlineAtmosphere(loc: Stuff & Container): string | null {
-  if (!MixinApi.isAtmospheric(loc)) return null;
-  const atmos = (loc as unknown as { _atmosphere?: string | null })._atmosphere;
-  return typeof atmos === 'string' && atmos.length > 0 ? atmos : null;
-}
-
+/**
+ * ⭐ One copy, on the host that owns the field:
+ * `AtmosphericMixin.atmosphereBlocks()`. This was a private helper
+ * here, in `SmellModality` character-for-character, and in
+ * `AudienceGather` — where the v1 limitation was annotated "shared
+ * verbatim with `SoundModality.walkAt`", a comment admitting the
+ * duplication while making another copy of it. The limitation itself
+ * (a biome-default vacuum does not block; only an authored one does)
+ * is documented at the method.
+ */
 function atmosphereBlocks(loc: Stuff & Container): boolean {
-  return inlineAtmosphere(loc) === 'vacuum';
+  return MixinApi.isAtmospheric(loc) ? loc.atmosphereBlocks() : false;
 }
 
 /**
@@ -114,17 +120,49 @@ function rootAmbientLinear(): number {
   }
 }
 
-function walkAt(
-  loc: Stuff & Container,
-  depth: number,
-  visited: Set<string>,
-): LinearAccumulator {
+/**
+ * ⭐ The legs out of `loc`, in the order this walk has always taken
+ * them: boundary conduits (d) first, then doorless obvious exits (e).
+ * Each carries its own transmissivity, which `fold` applies per child
+ * — ⚠ unlike light, which collects them and caps them as one.
+ */
+function soundLegs(loc: Stuff & Container): Array<Leg<Stuff & Container>> {
+  const out: Array<Leg<Stuff & Container>> = [];
+
+  // (d) Cross-boundary propagation.
+  if (MixinApi.isAdornable(loc)) {
+    for (const fx of loc.getFixtures()) {
+      if (!BoundaryAnchor.is(fx)) continue;
+      const anchor = fx;
+      const boundary = anchor.getBoundary();
+      if (!boundary) continue;
+      const otherHost = anchor.getOtherHost();
+      if (!otherHost) continue;
+      const conduit = findSoundConduit(boundary);
+      if (!conduit) continue;
+      const otherSide = boundary.getOtherSide(anchor);
+      const tau = conduit.transmissivity(otherSide, anchor.getSide());
+      if (!(tau > 0)) continue;
+      out.push({ node: otherHost as unknown as Stuff & Container, tau });
+    }
+  }
+
+  // (e) Cross-exit propagation. Doored exits skip — the boundary walk
+  // handles those. The hazard guards are
+  // `ExitableMixin.getObviousNeighbours`' now, in one copy.
+  if (MixinApi.isExitable(loc)) {
+    for (const { dest } of loc.getObviousNeighbours()) {
+      out.push({ node: dest, tau: EXIT_TAU });
+    }
+  }
+
+  return out;
+}
+
+/** Everything `loc` emits itself — legs (a) ambient, (b) contents, (c) fixtures. */
+function ownSound(loc: Stuff & Container, depth: number): LinearAccumulator {
   const acc = newAccumulator();
-  if (depth > MAX_HOPS) return acc;
   const id = (loc as unknown as Stuff).stuffId;
-  if (visited.has(id)) return acc;
-  visited.add(id);
-  if (atmosphereBlocks(loc)) return acc;
 
   // (a) Ambient floor — only on the root walk (depth 0).
   if (depth === 0) {
@@ -151,8 +189,8 @@ function walkAt(
     });
   }
 
+  // (c) Fixture-side emitters.
   if (MixinApi.isAdornable(loc)) {
-    // (c) Fixture-side emitters.
     for (const fx of loc.getFixtureSoundSources()) {
       if (!MixinApi.isSoundSource(fx)) continue;
       const db = fx.getEmittedAmplitude().rawValue();
@@ -163,49 +201,47 @@ function walkAt(
         character: fx.getCharacter(),
       });
     }
-
-    // (d) Cross-boundary propagation.
-    for (const fx of loc.getFixtures()) {
-      if (!BoundaryAnchor.is(fx)) continue;
-      const anchor = fx;
-      const boundary = anchor.getBoundary();
-      if (!boundary) continue;
-      const otherHost = anchor.getOtherHost();
-      if (!otherHost) continue;
-      const conduit = findSoundConduit(boundary);
-      if (!conduit) continue;
-      const otherSide = boundary.getOtherSide(anchor);
-      const tau = conduit.transmissivity(otherSide, anchor.getSide());
-      if (!(tau > 0)) continue;
-      const sub = walkAt(
-        otherHost as unknown as Stuff & Container,
-        depth + 1,
-        visited,
-      );
-      mergeAttenuated(acc, sub, tau);
-    }
-  }
-
-  // (e) Cross-exit propagation. Doored exits skip — boundary walk
-  // handles those.
-  if (MixinApi.isExitable(loc)) {
-    for (const exit of loc.getObviousExits()) {
-      if (exit.getDoor()) continue;
-      const destPath = exit.getDestinationTemplatePath();
-      // Existence, not identity — a Warren hub exit names a template with many live clones (see VisionModality).
-      if (destPath && StuffApi.findAllByTemplatePath(destPath).length === 0) continue;
-      let dest: Stuff & Container;
-      try {
-        dest = exit.getDestination();
-      } catch {
-        continue;
-      }
-      const sub = walkAt(dest, depth + 1, visited);
-      mergeAttenuated(acc, sub, EXIT_TAU);
-    }
   }
 
   return acc;
+}
+
+/**
+ * The acoustic walk, on the shared skeleton
+ * (`lib/location/Traversal.ts` — *one traversal, or none*).
+ *
+ * ⭐ What is this walk's own, and therefore stayed: the ambient floor
+ * that only applies at depth 0, the vacuum refusal, and
+ * `mergeAttenuated` **per child** — sound dims through each doorway
+ * independently, where light shares one cap across all of them.
+ *
+ * ⚠ `enter` returns the EMPTY accumulator for a vacuum rather than
+ * refusing the leg, which is the same thing the old `if
+ * (atmosphereBlocks(loc)) return acc;` did and is not the same as
+ * `descend` returning null: the node is still entered and still
+ * MARKED, so a second path to it does not try again.
+ */
+function walkAt(
+  loc: Stuff & Container,
+  depth: number,
+  visited: Set<string>,
+): LinearAccumulator {
+  const walk = new Traversal<Stuff & Container, LinearAccumulator, void>({
+    order: 'depth-first',
+    keyOf: (node) => (node as unknown as Stuff).stuffId,
+    neighbours: soundLegs,
+    bound: { hops: MAX_HOPS },
+    visited,
+    enter: (node) => (atmosphereBlocks(node) ? newAccumulator() : undefined),
+    fold: (node, d, _carry, children) => {
+      const acc = ownSound(node, d);
+      for (const { leg, result } of children) {
+        mergeAttenuated(acc, result, leg.tau ?? EXIT_TAU);
+      }
+      return acc;
+    },
+  });
+  return walk.walk(loc, { carry: undefined, depth }).result;
 }
 
 function finalize(acc: LinearAccumulator): Sound {

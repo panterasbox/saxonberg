@@ -30,6 +30,28 @@ import { TemplatePaths } from '../paths';
 import { StuffApi } from '../../api/stuff';
 import { MixinApi } from '../../api/mixin';
 import { PerceptionApi } from '../../api/perception';
+
+/**
+ * One obvious exit and the live room it reaches — the propagation
+ * walks' neighbour. ⭐ Both halves, because every caller needs the
+ * exit (for its direction, its conduit, its edge minutes) *and* the
+ * room, and resolving the room twice is how the guards got copied.
+ */
+export interface ObviousNeighbour {
+  exit: Exit;
+  dest: Stuff & Container;
+}
+
+export interface ObviousNeighbourOptions {
+  /**
+   * `'skip'` (the default) omits any **doored** exit — what the
+   * propagation walks want, because the boundary-conduit walk carries
+   * those with their own transmissivity. `'open-only'` keeps a doored
+   * exit whose door is open, which is what the two openings counts
+   * mean by an opening.
+   */
+  doors?: 'skip' | 'open-only';
+}
 import { BoundaryApi } from '../../api/boundary';
 import { DiagnosticApi } from '../../api/diagnostics';
 
@@ -95,6 +117,13 @@ export interface Exitable {
    * {@link getObviousExits} stays the seam for physics/propagation walks.
    */
   obviousExitsFor(viewer: Stuff): Exit[];
+  /**
+   * ⭐⭐ The obvious exits that actually **reach a live room**, each
+   * paired with the room it reaches — the propagation walks' neighbour
+   * source. See the implementation for why the five guards live here
+   * and not in four copies.
+   */
+  getObviousNeighbours(opts?: ObviousNeighbourOptions): ObviousNeighbour[];
   getExitDoors(): Door[];
   /**
    * Install a forward/back exit pair. Async because it internally
@@ -288,6 +317,25 @@ export interface ExitInstruction {
    * `Exit.edgeMinutes`.
    */
   edgeMinutes?: number | null;
+  /**
+   * ⭐⭐ Is this the KIND of way that closes? A ford that floods, a
+   * causeway the tide covers.
+   *
+   * Authored on the exit KIND, not on the two edges that name it — a
+   * ford is a ford wherever it is laid. The projection reads it off
+   * the kind row and stamps every edge installed from that kind, so a
+   * route plan can say *this way crosses the ford at Kestrel; it is
+   * not always passable* without the index pretending to know whether
+   * it is flooded right now. Whether it IS closed is discovered at the
+   * traverse, which is where a river belongs.
+   *
+   * ⚠ `lint:location-graph` enforces it BY SHAPE: a kind row whose
+   * class overrides `applyTraversal` and names `blocked` must declare
+   * it. Deliberately not "extends FordExit" — a kernel gate must not
+   * enumerate a pack's classes, and a tidal causeway should be caught
+   * with no kernel edit.
+   */
+  conditional?: boolean;
 }
 
 export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>(Base: TBase) {
@@ -453,6 +501,76 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
         if (!exit.isHidden()) result.push(exit);
       }
       return result;
+    }
+
+    /**
+     * ⭐⭐ **The obvious exits that actually reach a live room.**
+     *
+     * Every propagation walk in this tree needed the same five guards
+     * before it could step through a doorway, and every one of them
+     * carried its own copy:
+     *
+     *   1. an exit may name **no room at all** — the sandbox wardrobe
+     *      passage names the WIRE, and walking it lands on a
+     *      non-`Container`;
+     *   2. its destination template may have **many live clones** (a
+     *      Warren hub exit names
+     *      `/world/lounge/location/lounge` once a satellite exists) and
+     *      the singleton lookup THROWS on it;
+     *   3. `getDestination()` may throw for its own reasons;
+     *   4. the far side may not be a `Container`;
+     *   5. the far side may have been **reaped mid-walk**, and a
+     *      destroyed proxy answers every call with `undefined`.
+     *
+     * ⚠ Each of those is a real incident, not a hypothetical: guards 2
+     * and 5 are annotated in `VisionModality` with the dates they took
+     * `look` down for a whole room and the presence fan with it. Four
+     * copies of a five-guard list is four chances to be missing one,
+     * and `Atmospheric`'s two copies say in their own comments that
+     * they were copied from the light walk.
+     *
+     * So it lives on the host that owns the exits. ⭐ The claim this
+     * makes about every `Exitable` is just true: *which live rooms do
+     * my obvious exits reach* is a fact about the exits, not about any
+     * caller.
+     *
+     * `doorsBlock` is the one axis callers genuinely differ on. The
+     * propagation walks skip a **doored** exit entirely (the boundary
+     * conduit walk handles those, with its own transmissivity);
+     * `Atmospheric`'s two openings counts want a doored exit when the
+     * door is **open**. Neither is a default worth guessing at, so the
+     * option says which — and the propagation walks' choice is the
+     * default, because they are the four callers this was extracted
+     * from.
+     */
+    getObviousNeighbours(
+      opts: ObviousNeighbourOptions = {},
+    ): ObviousNeighbour[] {
+      const out: ObviousNeighbour[] = [];
+      for (const exit of this.getObviousExits()) {
+        const door = exit.getDoor();
+        if (opts.doors === 'open-only') {
+          if (door && !door.isOpen()) continue;
+        } else if (door) {
+          continue;
+        }
+        if (!exit.hasSpatialDestination()) continue;
+        const destPath = exit.getDestinationTemplatePath();
+        if (destPath && StuffApi.findAllByTemplatePath(destPath).length === 0) {
+          continue;
+        }
+        let dest: Stuff & Container;
+        try {
+          dest = exit.getDestination();
+        } catch {
+          continue;
+        }
+        if (!MixinApi.isContainer(dest) || (dest as Stuff).isDestroyed()) {
+          continue;
+        }
+        out.push({ exit, dest });
+      }
+      return out;
     }
 
     /**
@@ -768,6 +886,7 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
         media: spec.media,
         wheelPassable: spec.wheelPassable,
         edgeMinutes: spec.edgeMinutes,
+        conditional: spec.conditional,
       };
       const exit = await StuffApi.clone<Exit>(kindPath);
       exit.bind(oneWayOpts);
@@ -824,6 +943,7 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
         media: spec.media,
         wheelPassable: spec.wheelPassable,
         edgeMinutes: spec.edgeMinutes,
+        conditional: spec.conditional,
       });
       exit.markUnbuilt();
       await this.addExit(exit);

@@ -73,17 +73,26 @@ import { MUD, SERVER_SRC, packSources, packSrcFiles } from "./pack-roots";
  * The residue is enumerated in `RESIDUE_REASONS` — a site with no
  * reason there is a walk nobody has justified.
  */
-export const WALK_CEILING = 11;
+export const WALK_CEILING = 2;
 
 /**
  * The one file that is allowed to BE a walk, plus the sites whose
  * residue is a decision rather than an omission. Keyed by the
  * `src`-relative path (kernel) or `<pack>/src`-relative path.
  */
-const RESIDUE_REASONS: Record<string, string> = {
-  "mud/lib/location/Traversal.ts":
-    "the skeleton itself — this is the walk every other caller borrows",
-};
+const RESIDUE_REASONS: Record<string, string> = {};
+
+/**
+ * ⭐ **`Traversal.ts` needs no allowlist entry, and that is the right
+ * answer rather than a lucky one.** The skeleton's own frontier reads
+ * `spec.neighbours(node, depth)` — a callback — so it fails evidence 3
+ * and the detector never sees it. The skeleton is a *generic* walk;
+ * what this gate counts is walks that know about **exits and edges**,
+ * and the whole point of the migration is that only the callers know
+ * that now. An allowlist would have hidden a real regression: if
+ * `Traversal` ever grew a direct `getExits()` call, it SHOULD be
+ * counted.
+ */
 
 /**
  * ⚠ `platform/idea/api/FireLogic.ts` is NOT in this census, and the
