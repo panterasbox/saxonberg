@@ -31,8 +31,22 @@
  * a verb nothing affords reads as a clean pass. Every checkpoint here
  * either reads prose or reads state back.
  *
- * Run: `WIRE_BOOT=1 WIRE_PORT=2013 WIRE_FRAME_TIMEOUT=60000 npx vitest
- * run tests/drilling.dirty.wire.test.ts`
+ * ## ⚠⚠ A fresh DB needs a bigger boot budget than the harness's default
+ *
+ * `bootOwnedWorld`'s budget is `WIRE_BOOT_TIMEOUT ?? 420_000`, and a
+ * **fresh** database does not make it: installing fifty-seven packs from
+ * the checkout took this drive past seven minutes, and the harness gave
+ * up with *the owned server did not answer within 420s* while the log's
+ * last line was `AppBootstrap: world open — the cast may act`. The world
+ * was fine; the probe had stopped asking.
+ *
+ * ⭐ So a run after a `reset:db` wants `WIRE_BOOT_TIMEOUT=900000`, and a
+ * run on a warm DB does not. Worth knowing before concluding anything
+ * about a boot that "hangs".
+ *
+ * Run: `WIRE_BOOT=1 WIRE_PORT=2013 WIRE_BOOT_TIMEOUT=900000
+ * WIRE_FRAME_TIMEOUT=45000 npx vitest run
+ * tests/drilling.dirty.wire.test.ts`
  */
 
 import { describe as suite, it, expect, beforeAll, afterAll } from 'vitest';
@@ -86,6 +100,17 @@ declareFile({
 const PROVISIONING = '/world/terminus/rejection/location/provisioning';
 const BANK_HALL = '/world/terminus/counting-houses/banking-hall';
 const REJECTION = '/world/terminus/rejection';
+
+/** The drilling kit, minted because the Rejection till cannot take money. */
+const KIT = [
+  '/world/terminus/rejection/thing/glowcap-jar',
+  '/trade/drilling/thing/bailer',
+  '/trade/drilling/thing/liner',
+  '/trade/drilling/thing/liner',
+  '/trade/drilling/thing/liner',
+  '/trade/drilling/thing/pressure-gauge',
+  '/trade/mining/thing/miners-dial',
+] as const;
 
 /** Provisioning → the claims office → the hillside → salt country. */
 const TO_THE_SPRING = ['east', 'north', 'north', 'east'] as const;
@@ -215,45 +240,73 @@ async function settle(s: Session, started: CommandResult): Promise<void> {
  * `get` what you cannot see, so a kit dropped there is unreachable —
  * which is the cascade the taps drive paid for and this one inherits.
  */
+/** Whatever is lying in the room with `s`, by display name. */
+async function onTheFloor(s: Session): Promise<string> {
+  const rows = await s.query('here:i', { fields: ['displayName'] });
+  return rows
+    .map((r) => String((r as { displayName?: string }).displayName ?? ''))
+    .join(' | ');
+}
+
 async function mintTheKit(): Promise<void> {
-  for (const path of [
-    '/world/terminus/rejection/thing/glowcap-jar',
-    '/trade/drilling/thing/bailer',
-    '/trade/drilling/thing/liner',
-    '/trade/drilling/thing/liner',
-    '/trade/drilling/thing/liner',
-    '/trade/drilling/thing/pressure-gauge',
-    '/trade/mining/thing/miners-dial',
+  // ⭐⭐⭐ **The founder clones `--here`, then the driller picks it up** —
+  // and this is the fourth shape, with the three that failed recorded
+  // because every one of them is a drive-writing lesson.
+  //
+  // ⛔ `eval --parcel` (the taps drive's route) **took the server down**:
+  // `sandbox boundary denied fromStored()` surfaced as an unhandled
+  // rejection inside `runSandboxed` and the process exited, which the
+  // drive then reported as a frame timeout. ⭐ *A test seam does not
+  // belong in the sandbox at all* — the conclusion the taps drive
+  // reached about the clock and did not finish applying to the kit.
+  //
+  // ⚠⚠ The DRILLER cannot clone, wizard or not: `access-denied — you
+  // don't have permission to clone that`. ⭐ **`wizard: true` is the
+  // CODE-TRUST axis and confers no title**; cloning a row is an
+  // authoring act gated on held extents, which a fresh test character
+  // has none of.
+  //
+  // ⚠ And `clone … --into <somebody>` is refused the same way even for
+  // the founder — the destination is another body's inventory. `--here`
+  // is the permitted form, so the kit lands on the floor and is picked
+  // up, which is also what a player would actually do.
+  const gov = await Session.open('founder', {
+    startLocation: PROVISIONING,
+    wizard: true,
+  });
+  try {
+    for (const path of KIT) {
+      const out = await gov.cmd(`clone ${path} --here`);
+      expect(
+        refusedFor(out) ?? out.notes.find((n) => n.kind === 'controller-error'),
+        `clone ${path} failed: ${JSON.stringify(out.notes)}`,
+      ).toBeUndefined();
+      await new Promise((r) => setTimeout(r, 250));
+    }
+  } finally {
+    gov.close();
+  }
+  // ⚠ The floor is READ before anything is picked up, so a failure says
+  // whether the MINT or the GET is at fault. Three runs were spent
+  // looking at the reading ladder because *the instrument is not in
+  // reach* is what both look like from the far end.
+  const floor = await onTheFloor(k);
+  for (const word of ['bailer', 'liner', 'jar', 'gauge', 'dial']) {
+    expect(floor, `the floor holds: ${floor}`).toMatch(new RegExp(word, 'i'));
+  }
+  for (const word of [
+    'jar',
+    'bailer',
+    'liner',
+    'liner',
+    'liner',
+    'gauge',
+    // ⚠ `theodolite` is the dial's own unique keyword — a bare `dial` is
+    // ambiguous in a store full of instruments, and the row authors its
+    // keywords DEFENSIVELY for exactly that reason.
+    'theodolite',
   ]) {
-    // ⭐⭐ **The player mints its own kit, into its own hands**, and the
-    // two earlier shapes are both worth recording as drive-writing
-    // lessons.
-    //
-    // ⛔ `eval --parcel` (the taps drive's route) **took the server
-    // down**: `sandbox boundary denied fromStored()` surfaced as an
-    // unhandled rejection inside `runSandboxed` and the process exited,
-    // which the drive then reported as a frame timeout. ⭐ *A test seam
-    // does not belong in the sandbox at all* — the conclusion the taps
-    // drive reached about the clock and did not finish applying to the
-    // kit.
-    //
-    // ⚠ `clone … --here` by a second session then put the kit on the
-    // FLOOR, which needs a `get` — and a `get` resolves by keyword
-    // against everything in reach. `get compass` bound the SHOP's
-    // compass inside its `Stock` fixture (held goods are not gettable)
-    // and refused; `get dial` is ambiguous in a store full of
-    // instruments. Both failures read as *the instrument is not in
-    // reach*, which sent three runs looking at the reading ladder.
-    //
-    // ⭐ Cloning with no `--here` lands the object AT THE MAKER, so the
-    // kit arrives in the hands that need it and no `get` is involved.
-    // The session is already `wizard: true` for the clock seam.
-    const out = await say(k, `clone ${path}`);
-    expect(
-      refusedFor(out) ?? out.notes.find((n) => n.kind === 'controller-error'),
-      `clone ${path} failed: ${JSON.stringify(out.notes)}`,
-    ).toBeUndefined();
-    await new Promise((r) => setTimeout(r, 250));
+    await say(k, `get ${word}`);
   }
   await k.drainProse();
 }
@@ -372,7 +425,10 @@ suite('1. the kit is stocked and priced, and the till is somebody else\'s bug', 
   it('⚠ so the kit is minted into the driller\'s own hands instead', async () => {
     await mintTheKit();
     const kit = await carried(k);
-    expect(kit, `the kit is: ${kit}`).toMatch(/bailer/i);
+    expect(
+      kit,
+      `the kit is: ${kit} — and the floor still holds: ${await onTheFloor(k)}`,
+    ).toMatch(/bailer/i);
     expect(kit).toMatch(/liner/i);
     // ⭐ The light matters: the two new sites are outdoor rooms lit by
     // the sky, so after dark they are PITCH BLACK and every checkpoint
