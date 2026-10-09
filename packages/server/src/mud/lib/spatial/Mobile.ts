@@ -237,6 +237,16 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
         'platform/cmd/movement/walk.yaml',
         'platform/cmd/boundary/open.yaml',
         'platform/cmd/boundary/close.yaml',
+        // ⭐⭐ `lock`/`unlock` — **beside open/close, because they are the
+        // same gesture at the same object.** Held unafforded by the
+        // reachability sweep on purpose: the mixin they targeted was a
+        // bolt with no key, so conferring them would have let anybody
+        // lock a university's gate. `lib/boundary/Lockable.ts` carries
+        // the keyway now and the controllers ask it for a key, so the
+        // refusal is diegetic (*you have no key that fits*) rather than
+        // *I don't understand 'lock'*.
+        'platform/cmd/boundary/lock.yaml',
+        'platform/cmd/boundary/unlock.yaml',
         'platform/cmd/author/goto.yaml',
         // ⭐ `teleport` is a MOVEMENT verb and the KERNEL's. Its two
         // universal forks — free movement inside an extent you hold,

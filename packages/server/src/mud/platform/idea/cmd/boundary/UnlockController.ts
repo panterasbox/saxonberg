@@ -15,7 +15,7 @@ import { MixinApi } from '../../../../api/mixin';
 import { MessageApi } from '../../../../api/message';
 import { Mml } from '../../../../api/mml';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
-import type { Lockable } from '../../../../lib/boundary/Locked';
+import type { Lockable } from '../../../../lib/boundary/Lockable';
 
 interface UnlockModel extends CommandModel {
   target?: MqlOneResult;
@@ -63,6 +63,34 @@ export default class UnlockController extends CommandController<UnlockModel> {
         kind: 'controller-rejected',
         reason: 'not-lockable',
         detail: "can't unlock that",
+      });
+      return;
+    }
+
+    // ⭐⭐⭐ **The authority, and it did not exist.** This controller
+    // checked no key, no credential and no title, so conferring `unlock`
+    // over the old boolean mixin would have let any player alive open
+    // the university gate. The door answers for itself now: `opensFor`
+    // is a synchronous scan of the mover's reachable wallet (implant
+    // keychain, then a carried physical `Key` — never one lying on the
+    // floor).
+    //
+    // ⚠ The bolt's STATE and the keyway's AUTHORITY are deliberately two
+    // calls. `unlock()` moves the bolt and asks nobody; this is the ask.
+    // ⭐ And this is the verb's whole point: a key-holder already walks
+    // through a locked door, so unlocking is what you do to let everyone
+    // ELSE through.
+    if (!lockable.opensFor(commandGiver as unknown as Stuff)) {
+      MessageApi.scene(commandGiver)
+        .topic('act.deed')
+        .toSelf(
+          Mml.compose`You have no key that fits ${Mml.thing(lockable as unknown as Stuff)}.`,
+        )
+        .send();
+      context.note({
+        kind: 'controller-rejected',
+        reason: 'no-key',
+        detail: 'no key that fits',
       });
       return;
     }

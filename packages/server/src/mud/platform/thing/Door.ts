@@ -55,7 +55,7 @@
 
 import { Boundary } from '../../lib/boundary/Boundary';
 import { SealableMixin } from '../../lib/spatial/Sealable';
-import { LockableMixin } from '../../lib/boundary/Locked';
+import { LockableMixin } from '../../lib/boundary/Lockable';
 import type Exit from '../../lib/boundary/Exit';
 import type {
   Conduit,
