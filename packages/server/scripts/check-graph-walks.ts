@@ -66,14 +66,25 @@ import ts from "typescript";
 import { MUD, SERVER_SRC, packSources, packSrcFiles } from "./pack-roots";
 
 /**
- * ⭐⭐ The ceiling. It may FALL and never RISE.
+ * ⭐⭐⭐ The ceiling, and it is **ZERO**.
  *
- * Measured by this script's own first run (W0 of the routing build),
- * then driven down wave by wave as each walk moved onto `Traversal`.
- * The residue is enumerated in `RESIDUE_REASONS` — a site with no
- * reason there is a walk nobody has justified.
+ * Measured at 11 by this script's own first run (W0 of the routing
+ * build), then driven down wave by wave as each walk moved onto
+ * `Traversal`: 11 → 9 (the invariants and the grid) → 5 (the four
+ * perception walks) → 2 (mine air and the forage radius) → 0 (the
+ * lane compile and the retired `planRoute`).
+ *
+ * ⭐ Zero is the honest number and not an aspiration: there is no
+ * residue to enumerate, because every walk over the world's shape
+ * found a home on the skeleton. `Traversal.ts` itself is not counted
+ * and needs no allowlist — its frontier reads a CALLBACK, so it fails
+ * evidence 3, which is right: what this gate counts is walks that
+ * know about exits and edges, and only the callers know that now.
+ *
+ * It may FALL (it cannot) and never RISE. A rise wants a caller audit
+ * and a reason in `RESIDUE_REASONS`, in the same diff.
  */
-export const WALK_CEILING = 2;
+export const WALK_CEILING = 0;
 
 /**
  * The one file that is allowed to BE a walk, plus the sites whose

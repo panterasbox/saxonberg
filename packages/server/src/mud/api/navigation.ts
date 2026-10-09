@@ -27,6 +27,7 @@ import type { GraphFinding } from '../lib/location/GraphInvariants';
 import type { MapClaim, MapDocument } from '../lib/location/MapClaim';
 import type { RouteOutcome } from '../lib/location/RoutePlan';
 import type { TravelProfileSpec } from '../lib/location/TravelProfile';
+import type { ReachResult } from '../platform/idea/api/NavigationLogic';
 
 /** Canonical direction names (long form). */
 export type CardinalDirection =
@@ -336,6 +337,29 @@ export class NavigationApi {
   }
 
   /**
+   * Plan over an edge set the CALLER declares — an authored lane's own
+   * iron, a railway, anything whose ways are not walkable exits.
+   *
+   * ⚠ Every declared edge is admitted: an authored edge is the author
+   * saying *this way is for this lane*, so there is nothing left to
+   * admit. See `KnowledgeGraph.fromEdges` for why that is not a
+   * loophole.
+   */
+  public static routeOverEdges(
+    edges: readonly {
+      from: string;
+      to: string;
+      dir?: string;
+      minutes?: number | null;
+    }[],
+    from: string,
+    to: string,
+    budget: number,
+  ): RouteOutcome {
+    return logic().routeOverEdges(edges, from, to, budget);
+  }
+
+  /**
    * Every place reachable from `starts` by a traveller of this kind.
    *
    * ⭐ The lane compile's read: a lane of mode M is M's induced
@@ -347,7 +371,7 @@ export class NavigationApi {
     profile: TravelProfileSpec,
     knowledge: { extent?: string },
     budget: number,
-  ): Promise<{ reached: string[]; expanded: number; exhausted: boolean }> {
+  ): Promise<ReachResult> {
     return logic().reachFrom(starts, profile, knowledge, budget);
   }
 
@@ -393,5 +417,6 @@ export type {
   RouteRefusalReason,
 } from '../lib/location/RoutePlan';
 export type { TravelProfileSpec } from '../lib/location/TravelProfile';
+export type { ReachResult } from '../platform/idea/api/NavigationLogic';
 
 SecurityApi.decorateApiClass(NavigationApi);

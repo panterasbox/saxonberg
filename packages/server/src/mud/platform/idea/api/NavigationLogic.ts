@@ -142,6 +142,15 @@ const NavigationApiCallers = SecurityPolicies.FromModule('/api/navigation#Naviga
  * rather than observing it is what makes a cheapest-first search
  * record the CHEAPEST arrival — see `planOver`.
  */
+/** What a reach answers: the places, the ways between them, the cost. */
+export interface ReachResult {
+  reached: string[];
+  edges: Array<{ from: string; to: string; dir: string }>;
+  expanded: number;
+  /** ⚠ `true` means the set is a FLOOR — the budget ran out. */
+  exhausted: boolean;
+}
+
 interface StepCarry {
   at: string;
   from: string | null;
@@ -373,6 +382,22 @@ export class NavigationLogic extends ApiLogic {
     return this.planOver(graph, from, to, profile, 'map', budget);
   }
 
+  /** See {@link NavigationApi.routeOverEdges}. */
+  @CallSecurity(NavigationApiCallers)
+  public routeOverEdges(
+    edges: readonly { from: string; to: string; dir?: string; minutes?: number | null }[],
+    from: string,
+    to: string,
+    budget: number,
+  ): RouteOutcome {
+    const graph = KnowledgeGraph.fromEdges(edges);
+    // ⚠ The OMNIVOROUS profile, by design: an authored edge is the
+    // author saying *this way is for this lane*, so there is nothing
+    // left to admit. See `KnowledgeGraph.fromEdges`.
+    const any = new OmnivorousTravelProfile();
+    return this.planOver(graph, from, to, any.toSpec(), 'world', budget, true);
+  }
+
   /** See {@link NavigationApi.reachFrom}. */
   @CallSecurity(NavigationApiCallers)
   public async reachFrom(
@@ -380,20 +405,33 @@ export class NavigationLogic extends ApiLogic {
     profile: TravelProfileSpec,
     knowledge: { extent?: string },
     budget: number,
-  ): Promise<{ reached: string[]; expanded: number; exhausted: boolean }> {
+  ): Promise<ReachResult> {
     const reg = registry();
-    if (!reg) return { reached: [], expanded: 0, exhausted: false };
+    if (!reg) {
+      return { reached: [], edges: [], expanded: 0, exhausted: false };
+    }
     const graph = await reg.graphView(knowledge.extent);
     const traveller = new TravelProfile(profile);
     const seeds = starts.filter((s) => graph.has(s));
     if (seeds.length === 0) {
-      return { reached: [], expanded: 0, exhausted: false };
+      return { reached: [], edges: [], expanded: 0, exhausted: false };
     }
     const reached: string[] = [];
+    // ⭐ The EDGES the reach used, not only the places it touched. A
+    // lane is an adjacency map, not a node set, and rebuilding one
+    // from the reached set would mean re-reading every node — so the
+    // walk reports what it walked.
+    const edges: Array<{ from: string; to: string; dir: string }> = [];
     const walk = new Traversal<string, string[], void>({
       order: 'breadth-first',
       keyOf: (id) => id,
-      neighbours: (id) => this.legsOf(graph, id, traveller),
+      neighbours: (id) => {
+        const legs = this.legsOf(graph, id, traveller);
+        for (const leg of legs) {
+          edges.push({ from: id, to: leg.node, dir: leg.dir ?? '' });
+        }
+        return legs;
+      },
       bound: { nodes: budget },
       fold: (id) => {
         reached.push(id);
@@ -401,8 +439,14 @@ export class NavigationLogic extends ApiLogic {
       },
     });
     const out = walk.walkFrom(seeds, { carry: undefined });
+    // ⚠ Only edges between places the reach actually ENTERED. A leg
+    // out of the last node before the budget ran out points at a place
+    // the lane does not contain, and an adjacency entry for it would
+    // let a plan step off the end of the lane.
+    const inReach = new Set(reached);
     return {
       reached,
+      edges: edges.filter((e) => inReach.has(e.from) && inReach.has(e.to)),
       expanded: out.expanded,
       exhausted: out.exhausted === 'nodes',
     };
@@ -513,6 +557,7 @@ export class NavigationLogic extends ApiLogic {
     profile: TravelProfileSpec,
     source: RouteSource,
     budget: number,
+    omnivorous = false,
   ): RouteOutcome {
     if (!graph.has(from)) {
       return { ok: false, reason: 'unknown-origin', expanded: 0 };
@@ -520,7 +565,12 @@ export class NavigationLogic extends ApiLogic {
     if (!graph.has(to)) {
       return { ok: false, reason: 'unknown-destination', expanded: 0 };
     }
-    const traveller = new TravelProfile(profile);
+    // ⚠ `admits` is re-derived from the SPEC here, so an omnivorous
+    // caller must be re-made as one rather than round-tripped through
+    // `toSpec()` — a spec has no way to say *everything*.
+    const traveller = omnivorous
+      ? new OmnivorousTravelProfile()
+      : new TravelProfile(profile);
 
     if (from === to) {
       return {

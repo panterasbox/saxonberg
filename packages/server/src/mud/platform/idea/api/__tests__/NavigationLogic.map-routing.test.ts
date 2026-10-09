@@ -26,10 +26,14 @@ import type { MapClaim } from '../../../../lib/location/MapClaim';
 import { seedKernelContentStore } from '../../../../lib/security/__tests__/test-setup';
 
 const VIEWER = '/platform/agent/Avatar/p1';
-const LOCALITY = '/world/terminus';
-const A = '/world/terminus/market/square';
-const B = '/world/terminus/market/bakery';
-const C = '/world/terminus/wharfside/bank';
+// ⚠ Synthetic paths under `/test/**`: a KERNEL test proves the kernel
+// over synthetic fixtures, and `lint:test-content` holds that line
+// (it caught the first draft of this file, which named Terminus's
+// market square). A test of real content lives beside the content.
+const LOCALITY = '/test/town';
+const A = '/test/town/market/square';
+const B = '/test/town/market/bakery';
+const C = '/test/town/wharf/bank';
 
 const ON_FOOT = { mode: 'walk', medium: 'ground' };
 const PLENTY = 200;
@@ -70,7 +74,7 @@ function edge(
 /** Install one viewer's map, and nothing else. */
 function withMap(claims: readonly MapClaim[]): void {
   vi.spyOn(DocumentApi, 'readMaps').mockResolvedValue([
-    { path: `/home/p1/map/terminus`, data: { locality: LOCALITY, claims } },
+    { path: `/home/p1/map/town`, data: { locality: LOCALITY, claims } },
   ]);
 }
 

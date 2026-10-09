@@ -169,6 +169,55 @@ export class KnowledgeGraph {
   }
 
   /**
+   * ⭐⭐ A graph the CALLER declares, edge by edge — an authored lane's
+   * own iron.
+   *
+   * A lane whose ways are not walkable exits cannot be induced from
+   * anything, which is the case rails prove: a tram runs between two
+   * points on iron somebody laid, and the rails are not a door. Such a
+   * lane writes its `edges:` down, and **those edges are the graph** —
+   * the index knows nothing about them, and in today's realm the
+   * ferrow tramway's two ends are joined by a mine passage that
+   * authors no `media` at all, so planning a wheeled tram over the
+   * index would refuse the only way the lane has.
+   *
+   * ⚠⚠ Every edge here is ADMITTED for every traveller, deliberately.
+   * An authored edge is the author saying *this way is for this lane*;
+   * there is nothing left to admit, and applying the medium rule to it
+   * would mean a lane could declare a way its own vehicles cannot
+   * take. That is also how an authored lane behaved before the router
+   * existed — `induce` never ran for one.
+   */
+  public static fromEdges(
+    edges: readonly { from: string; to: string; dir?: string; minutes?: number | null }[],
+  ): KnowledgeGraph {
+    const places = new Map<string, KnownPlace>();
+    const ensure = (identity: string): KnownPlace => {
+      const hit = places.get(identity);
+      if (hit) return hit;
+      const made: KnownPlace = { identity, edges: [], published: true };
+      places.set(identity, made);
+      return made;
+    };
+    for (const edge of edges) {
+      const near = ensure(edge.from);
+      ensure(edge.to);
+      places.set(near.identity, {
+        ...near,
+        edges: [
+          ...near.edges,
+          {
+            dir: edge.dir ?? '',
+            to: edge.to,
+            minutes: edge.minutes ?? null,
+          },
+        ],
+      });
+    }
+    return new KnowledgeGraph(places);
+  }
+
+  /**
    * One person's map claims, materialised.
    *
    * ⭐⭐ **The join this is allowed to make, and why it is not a join

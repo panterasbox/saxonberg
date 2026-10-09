@@ -18,6 +18,11 @@
 # ask. Nothing in the transport pack implements perception (D3/AC8).
 class: /system/transport/thing/HaulageRig
 data:
+  # ⭐⭐ How this vehicle travels. Until the routing build the LANE knew
+  # and the vehicle did not, so `journey ... via estuary` with a wagon
+  # hitched made the wagon SAIL and it died at the first leg.
+  # A wagon is a road rig: wheels, and therefore the pass refuses it
+  travelMode: wheeled
   # ⭐ A wagon and a team is the four-horse job, and it is the CAPABILITY half of teamstering — a different act, not the same act done better.
   #
   # ⚠⚠ The KEY is data and the transport system never interprets it: a
