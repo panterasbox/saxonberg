@@ -1641,3 +1641,41 @@ rooted tree. Rosters that ship from two roots (Locality, Government)
 scan `TemplatePathRosters`. Not applied inside `/world/<locality>` rows
 (a place's rooms stay `/world/<locality>/<room>`) — only their
 controllers moved to `<locality>/idea/cmd/`.
+
+## ⭐ Pack fifty-seven: `trade-drilling` (2026-10)
+
+A capability pack over `/trade/drilling`, and it is the cleanest
+second-instance claim in the tree so far: four bore sites, three fluid
+bodies, three surface showings and four `surfaceWorkings` entries live in
+**`rejection`**, which still ships **no TypeScript at all.** A second well
+town is rows and a place.
+
+Its `src/` is six things and nothing else: two things (`Wellhead`,
+`Derrick`) plus `Bailer`, two Ideas (`DrillingOutfit`, `BoreRegistry`),
+two readings, five controllers over a shared base, and one `lib/` file
+holding the trade's own channel base. No Api, no logic singleton, no free
+helper, no brain.
+
+⚠ **It depends on `ground` and deliberately NOT on `trade-mining`** —
+the two trades meet in the ground SYSTEM and nowhere else, and the only
+things crossing between them are a Discipline name and a tool capability
+string, both of which are rows. A bore site is one more entry on the
+mine's own claims counter and the brine meets the quarry's pan by TAG.
+
+⚠⚠ **`trade-fuel` became a SECOND namer of
+`/trade/distilling/thing/Still`** and takes the dependency line. By this
+file's own rule that is the signal to promote the class to the kernel;
+recorded rather than done, because a refinery and a pot still are the
+same machine in every respect the engine models and the difference
+belongs in the SCHEDULE (`separation: fractions`), which is where it
+went. Promotion is a review question about where a `Still` belongs, not
+about whether this row is honest.
+
+⚠ And a boot-fatal lesson for any new pack, found twice by driving in one
+afternoon: **a bad value in a CLOSED VOCABULARY makes the whole pack skip
+install with one log line** — `PackApi: pack '<id>' FAILED at step 'read'
+— booting without it` — and everything downstream reads as *I don't
+understand that verb*. Both were words a reasonable author would guess:
+`difficulty: straightforward` (the words are trivial · easy · standard ·
+hard · formidable) and `gradeBand: good` (poor · fair · fine ·
+exceptional · masterful).

@@ -1050,3 +1050,30 @@ teleports the assignee to the room (the window's registrars station at
 the ward, where the fixture stands). ⚠ The par/perception `stockSheetFor`
 skips a CLOSED sealable, so a bank reads its vault's own contents (not the
 sheet) — see `blood.md` (`DonationBankMixin`).
+
+## ⭐⭐ The hiring driver (the drilling build, 2026-10)
+
+The deferred line *`hire`/`fire` exist on the LOGIC and not on the
+facade* is struck: a trade supplies the driver now. `trade-drilling`'s
+`hire <person>` reaches a **reachable** Agent — not an online one — and
+calls the public org face (`appoint`), then the roster primitives under
+`SelfOnly`.
+
+⭐ `appoint` is deliberately **not** widened. `scope: "online"` is right
+for appointing somebody to an OFFICE, where the appointee has to be able
+to accept; a roustabout is not appointed to anything. If a second trade
+wants the same word, widen it then — one consumer is not a pattern.
+
+⚠⚠ **A hired hand must be SENT to the work.** `DrillingOutfit.startCrew`
+moves them to `station ?? operatingLocations[0]`, which is
+`moveForShift`'s own rule re-stated because the facade does not expose
+it and a hire is not a shift flip. The first version did not, on the
+reasoning that *you hire the person standing in front of you* — true of a
+player and **false of every NPC in the realm**, because a brainless hand
+does not walk anywhere, which made hiring at a remote work site
+unreachable by construction. Found by driving.
+
+⭐ And the seats are authored **on the seed row**, which is what the
+no-runtime-setter constraint on `positions` permits rather than blocks:
+what seats a business has is a fact about the KIND of business, so one
+authored row serves every outfit minted at every siting in the realm.

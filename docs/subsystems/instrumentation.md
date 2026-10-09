@@ -172,3 +172,40 @@ that opens with an escaped quote. The rest is: **read the words**.
   [watershed.md](./watershed.md) — packs that ship channels
 - [command-routing.md](./command-routing.md) — the binder, and the
   `greedy`/`required` rules the article defect turns on
+
+## Two channels from the drilling trade (2026-10)
+
+`structure` and `head`, both `trade-drilling`'s, and both are worked
+examples of claims this doc already makes.
+
+⭐ **`structure` adds no instrument.** It asks for `surveying` — the same
+capability mining's dial and surveyor's compass already afford — so a
+trade added a reading and the platform changed nothing. ⚠ Its bracket
+overrides the ratio default's CONSTANTS and not its shape: a depth's
+error is a fraction (`DEPTH_FRACTION`, `{untrained .5 … expert .04}`),
+and it **widens with depth**, which is what makes deep ground different
+in kind from shallow rather than merely dearer.
+
+⚠⚠ **And the half-width is quoted off the READING, never the truth.** A
+bracket scaled off the truth leaks the truth exactly — quote *± 55 m* at
+a half fraction and the reader knows the crest is at 110 m to the metre,
+which makes an untrained eye the sharpest instrument in the game. The
+reading is solved as `R = T / (1 − u·f)` and the quoted half-width is
+`f·R`, which contains the truth for every `u` and is computable from what
+the player was told. Real instruments quote accuracy as a percentage of
+reading for this reason. **Any channel whose truth a player could invert
+out of its own error bar has the same bug.**
+
+⚠ **`head` is not the shipped `pressure`.** `pressure` is atmospheric —
+`scope: [here]`, a barometer reading the weather through `BiomeApi`;
+`head` is a reservoir's own drive at a wellhead's collar,
+`scope: [subject]`. Two quantities about two things, and a channel token
+is unique, so wanting to reuse `pressure` would have been the tell that
+the design was confused. It goes out in **Pa** through the shipped
+`atmosphere` measure channel rather than adding a unit to the kernel's
+closed `Unit` vocabulary for one pack's preferred scale.
+
+⭐ `head`'s eye rung answers in three words with **no digit in it** — a
+driller can tell flowing from slackened from dead by standing there, and
+cannot tell 2.4 atm from 1.9. What the gauge buys is the figure, which is
+what lets somebody do the arithmetic a week ahead instead of a day.

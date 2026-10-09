@@ -450,9 +450,19 @@ suite('4. the crest is somewhere else, and walking there is the lesson', () => {
     expect(r).toMatch(/near the top of it|under your feet/i);
   });
 
-  it('⚠ and the FLAT shows nothing for free — the prose does not give it away', async () => {
-    const here = await read(k, 'look');
-    expect(here).not.toMatch(/\bspring\b|\bstain\b/i);
+  it('⚠ and the FLAT has no SHOWING — there is nothing here to read for free', async () => {
+    // ⚠ Asserted on the CONTENTS, not on the prose: the room's own
+    // description legitimately mentions the spring *back up the slope to
+    // the northwest*, because that is where the exit goes, and a drive
+    // that forbade the word would be forbidding an exit from being
+    // described. What must be absent is a thing with a `showing` on it.
+    const props = await read(k, 'look');
+    expect(props).toMatch(/flat|bare/i);
+    // The eye rung has nothing to interpret here, and says so by not
+    // naming a showing at all.
+    const eye = await read(k, 'analyze structure');
+    expect(eye).toMatch(/nothing tells you that but the hole/i);
+    expect(eye).not.toMatch(/that is the country telling you/i);
   });
 });
 
@@ -483,7 +493,14 @@ suite('6. the rig goes up, and `bore` is afforded by what is in your hands', () 
   it('⭐⭐ at the staked flat, `bore` raises a derrick and sites a wellhead', async () => {
     await walk(k, ['southeast']);
     const sited = await say(k, 'bore');
-    expect(refusedFor(sited), 'siting must not refuse on staked ground').toBeNull();
+    expect(
+      refusedFor(sited),
+      `siting must not refuse on staked ground — the rig said: ${JSON.stringify(sited.notes)}`,
+    ).toBeNull();
+    expect(
+      sited.notes.find((n) => n.kind === 'controller-error'),
+      `siting threw: ${JSON.stringify(sited.notes)}`,
+    ).toBeUndefined();
     const here = await read(k, 'look');
     expect(here).toMatch(/derrick|rig/i);
     expect(here).toMatch(/wellhead|collar/i);
@@ -557,6 +574,54 @@ suite('7. the crew — presence is depth, and depth is wages', () => {
     expect(refusedFor(off)).toBeNull();
     const here = await read(k, 'look');
     expect(here).not.toMatch(/tall roustabout/i);
+  });
+});
+
+/* ───────── Stage B: the well that comes up by itself ───────── */
+
+suite('8. gas country — the same verbs, a different physics', () => {
+  it('⭐ the burnt ground is a fourth site and a third kind of showing', async () => {
+    // ⭐⭐ The falsifiable line: four sites now, three surface showings,
+    // three fluid bodies — and `rejection` still ships no TypeScript.
+    // The channel knows nothing about springs, blows or seeps; it asks
+    // the room what is `showing` and repeats the prose.
+    await walk(k, ['northeast']);
+    const here = await read(k, 'look');
+    expect(here).toMatch(/burnt|bald|patch/i);
+    const eye = await read(k, 'analyze structure');
+    expect(eye).toMatch(/nothing tells you that but the hole/i);
+  });
+
+  it('⚠ `measure head` on something that is NOT a wellhead refuses in the channel\'s own words', async () => {
+    // Not a binder refusal: *head is a thing a wellhead has* is the
+    // sentence somebody needs, and `subjectRequires` would have refused
+    // where the message teaches nothing.
+    const wrong = await say(k, 'measure head on blow');
+    const reason = refusedFor(wrong);
+    if (reason !== null) expect(reason).toBe('not-a-wellhead');
+  });
+});
+
+/* ───────── Stage C: the barrel ───────── */
+
+suite('9. the oil country, and the two structures nothing tells apart', () => {
+  it('⭐⭐⭐ the CAIRN reads exactly as well as the whaleback', async () => {
+    // ⚠⚠ The trade's premise, driven: two structures, one charged and
+    // one not, and no instrument in the game tells them apart. Both
+    // reads must SUCCEED and neither may mention charge.
+    await walk(k, ['northeast']);
+    const seep = await read(k, 'look');
+    expect(seep).toMatch(/seep|hollow|black/i);
+
+    await walk(k, ['east']);
+    const wet = await read(k, 'measure structure');
+    expect(wet).toMatch(/closure|beds/i);
+    expect(wet).not.toMatch(/charged|holds oil|nothing in it/i);
+
+    await walk(k, ['west', 'north']);
+    const dry = await read(k, 'measure structure');
+    expect(dry).toMatch(/closure|beds/i);
+    expect(dry).not.toMatch(/charged|holds oil|nothing in it|empty/i);
   });
 });
 

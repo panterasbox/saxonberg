@@ -1096,6 +1096,13 @@ runs **once** before the MR opens and once at `/finalize`.
   asserts the verb was **understood and a state changed** (never
   `refusedFor` alone).
 
+> **W-A6 — the drive.** Written as
+> `packages/wire/tests/drilling.dirty.wire.test.ts`, run with
+> `WIRE_BOOT=1 WIRE_PORT=2013`. See § Drive record for what it found;
+> the short version is that it found **seven real defects in eight
+> runs**, four of them boot-fatal, and two of them pre-existing in other
+> packs.
+
 ### Stage B — gas
 
 #### W-B1 · The gas well and the gauge — `build(drilling W-B1): a deeper bore reaches gas; a gauge reads the head and the head falls`
@@ -1168,6 +1175,47 @@ runs **once** before the MR opens and once at `/finalize`.
   risk from its material fields; no stock line anywhere names gasoline.
 - Acceptance: drive step 27 (store + flare legs), step 28. ⚠ The dump
   leg of step 27 and of AC 9 is recorded unmet in the requirements.
+
+> **W-B1 ✅ · W-B2 ✅ — `47ddea1e3`.** `HeadReading` + the `head` row, the
+> pressure gauge and its recipe, the gas cap on Ferrow, the burnt ground
+> and its blow, a fourth `surfaceWorkings` entry, and
+> `Oven.fuelSlot()` + `placements: [on]` on the brine hearth.
+>
+> - **`head` goes out in Pa** through the shipped `atmosphere` measure
+>   channel. The `Unit` vocabulary is the kernel's and closed and
+>   `'atm'` is not in it; adding a unit so one pack's channel could
+>   print its favourite scale is a kernel vocabulary edit for a
+>   presentation preference.
+> - **No `halfWidthOf` override on either channel.** This plan called for
+>   one as *the invited non-ratio override* — but both quantities ARE
+>   ratio-shaped, so the ladder's default is right and only the constants
+>   differ. `DEPTH_FRACTION` lives where the observing happens (the
+>   column), and an unused override is dead code.
+> - ⭐⭐ **A DRAINED coupled tank is a fire with NO FUEL**, not one that
+>   falls back to the bed. The test asserted the fallback first and the
+>   code was right: reverting silently would make running out of gas
+>   invisible and the bed's depletion inexplicable.
+
+> **W-C1 ✅ · W-C2 ✅ — `87e543d86`.** The oil leg and the pinned dry
+> trap; the seep, the whaleback and the cairn; five materials; the
+> `crude` schedule; the column and the flare at the oil works; the
+> kernel's `separation` + `FractionSpec.material`.
+>
+> - ⭐⭐ **The separation pair is validated in `onCreate`**, not in
+>   `setFractions`: the two keys arrive in whatever order the row lists
+>   them, so a setter check depends on authoring whitespace. The
+>   convention already says a cross-field rule lives in `onCreate`.
+> - **No new `barrel` row.** One was written and deleted on reading the
+>   fuel pack properly — `oil-cask` IS the empty cask and
+>   `lamp-oil-cask` is the filled twin. The real gap was a STOCK LINE:
+>   nowhere in the mining town sold an empty one.
+> - ⚠ **trade-fuel is a second namer of distilling's `Still`** and takes
+>   the dependency line; promotion is recorded, not done.
+> - ⚠⚠ **Two closed-vocabulary slips caught before a boot could see
+>   them**, both of which make the whole pack skip install with one log
+>   line: `difficulty: straightforward` and `gradeBand: good`.
+
+#### W-C3 · The remainder — ✅ by D17 (store + flare only)
 
 #### W-C4 · The drive and the docs — `drive(drilling): <what driving found>` + `docs(drilling): drilling.md, ground/fractionation/fire/employment/water notes`
 - Wire file complete (28 steps); `docs/subsystems/drilling.md` new;
