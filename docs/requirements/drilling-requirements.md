@@ -348,9 +348,13 @@ otherwise.
    `survey` is the holding mirror — shell and upkeep — and says
    *nothing here to take stock of* on open ground. The free evidence is
    a prop the room shows.)
-2. `analyze ground`. See a bracketed read of the column, **including a
-   salt band at depth**, with the bracket visibly wider the deeper it
-   reports.
+2. `analyze structure`. See what a trained eye makes of the country —
+   the showing named for what it is, and the sentence that says the one
+   thing no instrument will ever tell you. (⚠ Amended at build time: it
+   was `analyze ground`, mining's synthesis of its own field book, and
+   it reports *a salt band at depth* nowhere — there is no salt BAND,
+   there is a fluid body in a trap, and the channel that reads a trap is
+   this build's.)
 3. `measure strike` with the surveyor's instrument, then `measure
    structure`. See numbers tighter than the eye's, and the bracket
    narrow. (⚠ Amended at build time: `measure dip` is `null` from the
@@ -359,14 +363,35 @@ otherwise.
    structural one this build ships.)
 4. `stake` a claim over the ground. See it in the register that already
    exists.
-5. Raise a **derrick** on the claim from timber. See it standing.
+5. `bore` on the claim with a bailer in hand. See a **derrick** go up
+   and a wellhead appear under it. (⚠ Amended at build time: it was
+   *raise a derrick from timber*, by `make`. Two things killed that —
+   `CraftingLogic` lands a tangible output **at the maker**, so a
+   `fixedInPlace` ton-and-a-half frame arrives in your pocket; and six
+   lengths of mine timber is 240 kg, which no body in this game can
+   carry to a hillside. The rig is raised **by the siting act**, which
+   is what happens in the fiction and what the trade's own thesis says
+   should be cheap: *the expensive part of a bore is never the derrick,
+   it is the wages that go down the hole after it.* ⭐ And `bore` is
+   afforded by the **bailer** in your hands, because a derrick cannot be
+   what affords raising a derrick — the kernel's own spade/field split.)
 6. Hire a **crew** — see wages owed, and a shift running.
 7. `bore`. See a durative programme start, depth accumulate, and the
    work continue across sessions while the crew is paid.
 8. `bail`. See cuttings and water come out, the hole deepen on the next
    cut, and **the log gain a line**.
 9. Line the hole. See water stop coming in from above.
-10. Reach the salt band. See **brine**, not salt.
+10. Reach the salt leg. See **brine**, not salt. (⚠ Amended at build
+    time: *band* throughout — a lode is a plane and a fluid body is a
+    trap, and they share no field. ⭐⭐ And the drive now has a second
+    half this step did not anticipate, which is the best thing the build
+    found: **the crest matters.** The spring sits on the trap's RIM, so
+    a bore there reaches the leg and finds about a metre of it; the flat
+    sits over the CREST and finds forty. `measure structure` says which
+    you are standing on before a penny is spent, so staking the wrong
+    one is a decision somebody made rather than a trap laid for them —
+    and without that geometry the structural bracket would have been
+    decorative.)
 11. `bail` brine and `fill` a vessel with it.
 12. Carry it to the **brine hearth** and `boil`. Get **salt**, and see the
     hearth consume fuel to do it.

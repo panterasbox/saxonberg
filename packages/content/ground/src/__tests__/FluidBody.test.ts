@@ -51,6 +51,13 @@ function trap(crestZ: number) {
   };
 }
 
+/** A point `r` of the way out from the crest, along the +across axis. */
+function outAt(r: number): [number, number] {
+  const f = 40 * (Math.PI / 180);
+  const across = r * 120;
+  return [across * Math.cos(f), -across * Math.sin(f)];
+}
+
 /** A synthetic column — never a shipped row (the Deposit suite's rule). */
 function fixture(fluids: FluidBody[]): Deposit {
   const d = makeStuff(() => new Deposit());
@@ -72,8 +79,6 @@ const CHARGED: FluidBody = {
   key: 'salt-leg',
   fluid: BRINE,
   trap: trap(-110),
-  topZ: -110,
-  baseZ: -140,
   charge: true,
   capacityL: 50_000,
   headAtm0: 0,
@@ -316,6 +321,86 @@ describe('fluidAt — the body, then the water, then nothing', () => {
   });
 });
 
+describe('⭐⭐⭐ the crest MATTERS — the leg is the arch, not a slab', () => {
+  beforeEach(() => {
+    installV1QuantityMarshallers();
+    StuffApi.clearAll();
+  });
+
+  it('is the full closure under the crest and NOTHING at the rim', () => {
+    // This is what makes the structural survey worth paying for rather
+    // than decorative. If the leg were a slab, the crest's bearing and
+    // distance would be noise and a narrower bracket would buy nothing.
+    const d = fixture([CHARGED]);
+    expect(d.legAt(CHARGED, 0, 0)!.thicknessM).toBeCloseTo(30, 6);
+    const [rimX, rimY] = outAt(1);
+    expect(d.legAt(CHARGED, rimX, rimY)!.thicknessM).toBeCloseTo(0, 6);
+    // ...and tapers between, monotonically.
+    let last = Infinity;
+    for (const r of [0, 0.25, 0.5, 0.75, 1]) {
+      const [x, y] = outAt(r);
+      const t = d.legAt(CHARGED, x, y)!.thicknessM;
+      expect(t).toBeLessThan(last + 1e-9);
+      last = t;
+    }
+  });
+
+  it('the SPILL depth is the same everywhere; only the top moves', () => {
+    // The physics: anything buoyant floats up against the arch and
+    // fills from the top down to the point where the trap leaks.
+    const d = fixture([CHARGED]);
+    for (const r of [0, 0.4, 0.9]) {
+      const [x, y] = outAt(r);
+      expect(d.legAt(CHARGED, x, y)!.spillZ).toBeCloseTo(-140, 6);
+    }
+    const [x, y] = outAt(0.5);
+    expect(d.legAt(CHARGED, x, y)!.topZ).toBeCloseTo(-125, 6);
+  });
+
+  it('is null outside the trap altogether, and the ellipse is a CURVE', () => {
+    const d = fixture([CHARGED]);
+    const [outX, outY] = outAt(1.2);
+    expect(d.legAt(CHARGED, outX, outY)).toBeNull();
+    // ⚠ A box would admit the corner; a fold closes in a curve, so the
+    // along-and-across corner of the bounding rectangle is OUTSIDE.
+    const f = 40 * (Math.PI / 180);
+    const cornerX = 200 * Math.sin(f) + 120 * Math.cos(f);
+    const cornerY = 200 * Math.cos(f) - 120 * Math.sin(f);
+    expect(d.legAt(CHARGED, cornerX, cornerY)).toBeNull();
+  });
+
+  it('⭐⭐ boring at the RIM of a charged trap finds the water, not the brine', () => {
+    // The lesson a cheap bore teaches, and it is cheap on purpose: the
+    // trap is right there, the read reported it honestly, and the money
+    // went into the thin edge of it.
+    const d = fixture([CHARGED]);
+    const [rimX, rimY] = outAt(0.98);
+    for (const z of [-115, -125, -138]) {
+      const sample = d.fluidAt([rimX, rimY, z], SEED)!;
+      // Above the thin leg: water (we are below the table). Inside the
+      // last half-metre of it: the brine. Either way, not a column.
+      expect([WATER, BRINE]).toContain(sample.materialPath);
+    }
+    // Over the crest, the same depths are all brine.
+    for (const z of [-115, -125, -138]) {
+      expect(d.fluidAt([0, 0, z], SEED)!.materialPath).toBe(BRINE);
+    }
+  });
+
+  it('⭐ the reading says how thick the closure is HERE, and a dry trap says the same', () => {
+    const wet = fixture([{ ...CHARGED, key: 'same' }]);
+    const dry = fixture([{ ...DRY, key: 'same' }]);
+    const crest = wet.structureReadingAt(0, 0, 0.08, SEED)[0]!;
+    expect(crest.thicknessHereM).toBeCloseTo(30, 6);
+    const [x, y] = outAt(0.5);
+    const flank = wet.structureReadingAt(x, y, 0.08, SEED)[0]!;
+    expect(flank.thicknessHereM).toBeCloseTo(15, 6);
+    expect(flank.distanceM).toBeGreaterThan(crest.distanceM);
+    // ⚠⚠ And still identical for the dry one, field for field.
+    expect(dry.structureReadingAt(x, y, 0.08, SEED)[0]).toEqual(flank);
+  });
+});
+
 describe('capacityOf', () => {
   beforeEach(() => {
     installV1QuantityMarshallers();
@@ -330,8 +415,10 @@ describe('capacityOf', () => {
   it('derives from the geometry when nothing is pinned', () => {
     const d = fixture([]);
     const body: FluidBody = { ...CHARGED, capacityL: undefined };
-    // π × 200 × 120 × 30 m of leg × 0.2 porosity × 0.5 dome × 1000 L.
-    const expected = Math.PI * 200 * 120 * 30 * 0.2 * 0.5 * 1000;
+    // The leg is closureM × (1 − r) through an ellipse, and
+    // ∫(1 − r) dA over an ellipse is π·a·b/3 — so a third of the
+    // bounding prism, times the pore fraction.
+    const expected = ((Math.PI * 200 * 120 * 30) / 3) * 0.2 * 1000;
     expect(d.capacityOf(body)).toBeCloseTo(expected, 3);
     // And porosity is read, not assumed.
     expect(d.capacityOf({ ...body, porosity: 0.4 })).toBeCloseTo(
@@ -343,7 +430,11 @@ describe('capacityOf', () => {
   it('a body with no leg holds nothing, rather than throwing', () => {
     const d = fixture([]);
     expect(
-      d.capacityOf({ ...CHARGED, capacityL: undefined, topZ: -110, baseZ: -110 }),
+      d.capacityOf({
+        ...CHARGED,
+        capacityL: undefined,
+        trap: { ...CHARGED.trap, closureM: 0 },
+      }),
     ).toBe(0);
   });
 });

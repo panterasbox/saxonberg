@@ -1,0 +1,51 @@
+verbs: [line]
+controller: /trade/drilling/idea/cmd/drilling/LineController
+description: "Run tube down the hole so it will hold"
+help: |
+  ⭐ The one act at a rig that buys nothing except the ability to keep
+  going. A liner produces no goods, raises no rate and improves no
+  reading: it stops the hole caving in, and it stops the water above
+  coming down into whatever you are trying to lift out.
+
+  Which is exactly why it matters. `bore` refuses to go deeper through
+  soft wet ground until the hole is lined, and the refusal names the
+  remedy — so nobody is stuck, only delayed and poorer.
+
+  ⚠ A liner is timber and leather. `make liner` takes two of timber.
+examples:
+  - cmd: line
+    note: Run the liner you are carrying down the hole
+  - cmd: line with liner
+    note: The same, naming it
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  # ⭐⭐ THE RIG — DECLARED, not hunted for (`lint:instrument-args`), and
+  # the query is the CAPABILITY rather than the class: a second kind of
+  # rig any pack ships works with nothing here changed, and the tag on
+  # the derrick row is CONSUMED rather than decorative.
+  - name: rig
+    type: object
+    required: false
+    prepositions: [at, with, using]
+    default: "reachable:[capability.derrick]"
+    scope: ["reachable"]
+    requires: [ToolMixin]
+  # ⭐ THE HOLE. ⚠ `required: false` and ABSENT IS MEANINGFUL: no hole
+  # bound means there is no hole here, which is the fork `bore` takes to
+  # site one. A required arg would have made siting unreachable.
+  - name: hole
+    type: object
+    required: false
+    default: "reachable:[mixin.GroundPointMixin]"
+    scope: ["reachable"]
+    requires: [GroundPointMixin]
+  - name: liner
+    type: object
+    required: false
+    prepositions: [with, using]
+    default: "me:i"
+    scope: ["inventory", "reachable"]
+    requires: TangibleMixin

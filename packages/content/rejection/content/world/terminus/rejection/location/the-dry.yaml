@@ -22,6 +22,17 @@ data:
 
     It smells of wet wool, coal smoke and other people. After eight hours in the drift it is the best room in the world.
   coords: { x: -1, y: 1, z: 0 }
+  # ⭐⭐ The labour pool, and it is CONTENT rather than a mechanism. Two
+  # hands sitting in the dry with nothing to do, waiting for somebody to
+  # offer them a day. The whole hiring half of the drilling trade needs
+  # exactly this and nothing more: `hire` reaches whoever is reachable,
+  # and a bore crew was always hired out of whoever had walked up.
+  #
+  # ⚠ `cast:`, the person designation — they are people who live here,
+  # not furniture and not something somebody dropped.
+  cast:
+    - /world/terminus/rejection/agent/roustabout-a
+    - /world/terminus/rejection/agent/roustabout-b
   exits:
     southeast:
       destination: /world/terminus/rejection/location/pithead-yard

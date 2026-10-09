@@ -1,0 +1,17 @@
+# A length of liner — timber tube, hooped, run down the hole so it will
+# hold.
+#
+# ⚠ **Never `casing`**, and the reason is a verb collision rather than
+# taste: `casing` is cooking's word for a sausage skin and is both a
+# material tag and a thing row there. `liner`, `tube` and `pipe` are
+# unambiguous at a wellhead and nowhere else in the realm.
+class: /platform/thing/Good
+data:
+  keywords: [liner, tube, pipe, lining]
+  shortDescription: length of well liner
+  register: indefinite
+  longDescription: >-
+    A yard of staved timber tube, hooped at both ends and tarred along
+    the joints. It is meant to go down a hole and never come back.
+  mass: 18
+  _materialPath: /stuff/idea/material/wood/oak

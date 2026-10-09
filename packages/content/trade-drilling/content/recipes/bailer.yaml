@@ -1,0 +1,13 @@
+# Hide, a hoop and a flap. ⚠ Leather, not rubber — see the row.
+recipeId: bailer
+name: Well Bailer
+keywords: [bailer, bucket]
+inputSlots:
+  - { slot: hide, category: leather, minGrade: poor, kind: item, count: 1 }
+  - { slot: stave, category: wood, minGrade: poor, kind: item, count: 1 }
+toolCapabilities: [cutting]
+outputTemplate: /trade/drilling/thing/bailer
+outputMaterial: ''
+outputApplication: tangible
+difficulty: straightforward
+discipline: leatherwork

@@ -70,8 +70,6 @@ const BODY: FluidBody = {
     acrossExtent: 200,
     closureM: 30,
   },
-  topZ: -110,
-  baseZ: -140,
   charge: true,
   capacityL: 50_000,
 };

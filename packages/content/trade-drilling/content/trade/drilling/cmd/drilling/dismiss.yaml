@@ -1,0 +1,48 @@
+verbs: [dismiss]
+controller: /trade/drilling/idea/cmd/drilling/DismissController
+description: "Pay a hand off and let them go"
+help: |
+  `dismiss <person>` settles what they are owed and takes them off the
+  books.
+
+  ⭐⭐ **It is the only thing that stops the meter**, and that is the
+  point of it. A well declines along a curve and nothing announces
+  anything: no notice fires when the pressure falls, nothing tells you
+  the rate is no longer worth the wage. You read the gauge, you do the
+  arithmetic, and you decide. Nobody will decide it for you, and nothing
+  in the game will hint.
+
+  They are paid for the hours they stood there before they go.
+examples:
+  - cmd: dismiss the roustabout
+    note: Settle up and let them go
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+args:
+  # ⭐⭐ THE RIG — DECLARED, not hunted for (`lint:instrument-args`), and
+  # the query is the CAPABILITY rather than the class: a second kind of
+  # rig any pack ships works with nothing here changed, and the tag on
+  # the derrick row is CONSUMED rather than decorative.
+  - name: rig
+    type: object
+    required: false
+    prepositions: [at, with, using]
+    default: "reachable:[capability.derrick]"
+    scope: ["reachable"]
+    requires: [ToolMixin]
+  # ⭐ THE HOLE. ⚠ `required: false` and ABSENT IS MEANINGFUL: no hole
+  # bound means there is no hole here, which is the fork `bore` takes to
+  # site one. A required arg would have made siting unreachable.
+  - name: hole
+    type: object
+    required: false
+    default: "reachable:[mixin.GroundPointMixin]"
+    scope: ["reachable"]
+    requires: [GroundPointMixin]
+  - name: target
+    type: object
+    required: true
+    scope: [reachable]
+    requires: class:Agent
+    greedy: true

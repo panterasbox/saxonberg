@@ -201,17 +201,28 @@ export interface FluidBody {
     /** Half-extent across it, metres. */
     acrossExtent: number;
     /**
-     * Vertical closure under the crest, metres — how deep the structure
-     * holds before it spills. ⭐ This is what makes a structure worth
-     * boring: a big closed structure can hold a lot, and whether it
-     * holds anything is a different question entirely.
+     * ⭐⭐ Vertical closure under the crest, metres — how deep the
+     * structure holds before it **spills**, and therefore the whole of
+     * how much and where.
+     *
+     * The fluid leg is **derived from this and from where you are
+     * standing**, not authored: the beds arch, so the structure surface
+     * is deepest at the trap's rim and shallowest at the crest, and
+     * anything buoyant that got in floats up against the arch. So the
+     * leg runs from the structure surface at `(x, y)` down to the spill
+     * depth (`crest.z − closureM`), which is **`closureM` thick under
+     * the crest and nothing at all at the rim.**
+     *
+     * ⚠ That is why a structural survey is worth paying for rather than
+     * decorative. A bore at the rim of a charged trap finds a metre of
+     * it; the same money spent at the crest finds the whole column. The
+     * bracket on the crest's position is therefore a bracket on **how
+     * much of your payroll was wasted**, which is what makes a narrower
+     * instrument worth buying and a deep bet different in kind from a
+     * shallow one.
      */
     closureM: number;
   };
-  /** Top of the fluid leg, zone metres (negative). */
-  topZ: number;
-  /** Its base — the contact below it. */
-  baseZ: number;
   /**
    * The **lean** on the unreadable factor: the per-body chance the trap
    * is charged, 0–1. Defaults to {@link DEFAULT_CHARGE_CHANCE}. Seeded,
@@ -293,6 +304,17 @@ export interface StructureReading {
   axisDeg: number;
   /** Vertical closure under the crest, metres. */
   closureM: number;
+  /**
+   * ⭐⭐ **How thick the closure is HERE** — the structure surface at
+   * this point down to the spill depth, in metres. The number that
+   * actually prices the bore: it is `closureM` directly over the crest
+   * and nothing at the rim.
+   *
+   * ⚠ Still says nothing about charge. It is how much the trap *could*
+   * hold under your feet, which is a fact about the shape of the rock; a
+   * dry trap reports the identical figure.
+   */
+  thicknessHereM: number;
 }
 
 /** What is in the pore space at a point: the body, or the water, or nothing. */
@@ -743,7 +765,7 @@ export default class Deposit extends GroundSourceMixin(Idea) {
     const f = Math.min(Math.max(errorFraction, 0), MAX_ERROR_FRACTION);
     const out: StructureReading[] = [];
     for (const body of this.fluids) {
-      if (!coversXY(body, x, y)) continue;
+      if (radiusIn(body, x, y) === null) continue;
       const crest = body.trap.crest;
       // Depth is reported positive-down, because that is how a driller
       // says it and how the bore log records it.
@@ -757,6 +779,7 @@ export default class Deposit extends GroundSourceMixin(Idea) {
       const readingDepthM = crestDepthM / (1 - u * f);
       const dx = crest[0] - x;
       const dy = crest[1] - y;
+      const leg = this.legAt(body, x, y);
       out.push({
         key: body.key,
         crestDepthM,
@@ -766,6 +789,7 @@ export default class Deposit extends GroundSourceMixin(Idea) {
         bearingDeg: norm360(Math.atan2(dx, dy) / RAD),
         axisDeg: norm360(body.trap.strike),
         closureM: body.trap.closureM,
+        thicknessHereM: leg?.thicknessM ?? 0,
       });
     }
     return out;
@@ -809,8 +833,9 @@ export default class Deposit extends GroundSourceMixin(Idea) {
     const z = at[2];
     if (z > 0) return null;
     for (const body of this.fluids) {
-      if (!coversXY(body, at[0], at[1])) continue;
-      if (z > body.topZ || z < body.baseZ) continue;
+      const leg = this.legAt(body, at[0], at[1]);
+      if (leg === null) continue;
+      if (z > leg.topZ || z < leg.spillZ) continue;
       if (!this.isCharged(body, seed)) continue;
       return {
         bodyKey: body.key,
@@ -825,22 +850,58 @@ export default class Deposit extends GroundSourceMixin(Idea) {
   }
 
   /**
+   * ⭐⭐ **The fluid leg at a point on the surface** — where the
+   * structure's top is here, where it spills, and how thick that leaves
+   * the leg. `null` where the trap does not reach this point at all.
+   *
+   * This is the geometry that makes the survey worth paying for. The
+   * beds arch over the crest, so the structure surface rises from the
+   * spill depth at the rim to the crest; anything buoyant that got in
+   * floats up against the arch and fills from the top down to the spill
+   * point. So the leg is **the full closure under the crest and nothing
+   * at the rim**, tapering between.
+   *
+   * ⚠ Nothing here consults charge. A dry trap has exactly this shape
+   * and exactly this leg, holding nothing — which is why
+   * {@link Deposit.structureReadingAt} can report the shape honestly to
+   * anybody and still tell them nothing about whether to bore.
+   */
+  public legAt(
+    body: FluidBody,
+    x: number,
+    y: number,
+  ): { topZ: number; spillZ: number; thicknessM: number } | null {
+    const r = radiusIn(body, x, y);
+    if (r === null) return null;
+    const closure = Math.max(0, body.trap.closureM);
+    const crestZ = body.trap.crest[2];
+    const spillZ = crestZ - closure;
+    // The arch: the surface is at the crest directly over it and at the
+    // spill depth by the time it reaches the rim.
+    const topZ = crestZ - closure * r;
+    return { topZ, spillZ, thicknessM: Math.max(0, topZ - spillZ) };
+  }
+
+  /**
    * How much the body holds, in litres — the pin, or derived from the
    * geometry it was authored with.
    *
-   * The derivation is the ordinary reservoir estimate: the trap's
-   * footprint as an ellipse, times the thickness of the fluid leg, times
-   * the pore fraction, times a dome-fill factor because a closed
-   * structure is not a box. ⭐ An author who wants a specific well life
-   * pins `capacityL` and this never runs; the derivation exists so that
-   * a body described purely as geometry still has an honest number.
+   * The derivation is the ordinary reservoir estimate over the shape
+   * {@link Deposit.legAt} describes: the leg is `closureM × (1 − r)`
+   * through an ellipse, and `∫(1 − r) dA` over an ellipse is
+   * `π·a·b / 3` — so the closed volume is a third of the bounding
+   * prism's, times the pore fraction. ⭐ An author who wants a specific
+   * well life pins `capacityL` and this never runs; the derivation
+   * exists so that a body described purely as geometry still has an
+   * honest number.
    */
   public capacityOf(body: FluidBody): number {
     if (body.capacityL !== undefined) return Math.max(0, body.capacityL);
-    const legM = Math.max(0, body.topZ - body.baseZ);
-    const footprintM2 = Math.PI * body.trap.alongExtent * body.trap.acrossExtent;
+    const { alongExtent, acrossExtent, closureM } = body.trap;
     const porosity = body.porosity ?? DEFAULT_POROSITY;
-    const cubicM = footprintM2 * legM * porosity * DOME_FILL;
+    const cubicM =
+      (Math.PI * alongExtent * acrossExtent * Math.max(0, closureM)) / 3 *
+      porosity;
     return cubicM * LITRES_PER_CUBIC_METRE;
   }
 
@@ -1027,13 +1088,6 @@ const DEFAULT_CHARGE_CHANCE = 0.45;
 /** Pore fraction when a body authors none — a fair sandstone. */
 const DEFAULT_POROSITY = 0.2;
 
-/**
- * How much of the trap's bounding prism the closure actually fills. A
- * dome is not a box; a half is the usual first estimate and is honest
- * about being one.
- */
-const DOME_FILL = 0.5;
-
 const LITRES_PER_CUBIC_METRE = 1000;
 
 /**
@@ -1094,11 +1148,16 @@ function admitsAlong(band: GradeBand, along: number): boolean {
 }
 
 /**
- * Does this body's trap lie under `(x, y)`? The same two orthogonal dot
- * products the lode's test uses, read in the trap's own axes: along the
- * fold axis and across it.
+ * ⭐ How far out in the trap `(x, y)` is: `0` at the crest, `1` at the
+ * rim, `null` outside it altogether.
+ *
+ * The same two orthogonal dot products the lode's test uses, read in the
+ * trap's own axes — along the fold axis and across it — and then as an
+ * elliptical radius rather than as a box, because a fold closes in a
+ * curve. One number, and both *is the trap here* and *how far from the
+ * crest* come out of it.
  */
-function coversXY(body: FluidBody, x: number, y: number): boolean {
+function radiusIn(body: FluidBody, x: number, y: number): number | null {
   const t = body.trap;
   const f = t.strike * RAD;
   const dx = x - t.crest[0];
@@ -1106,7 +1165,10 @@ function coversXY(body: FluidBody, x: number, y: number): boolean {
   // The axis vector (horizontal, along the fold) and its perpendicular.
   const along = dx * Math.sin(f) + dy * Math.cos(f);
   const across = dx * Math.cos(f) - dy * Math.sin(f);
-  return Math.abs(along) <= t.alongExtent && Math.abs(across) <= t.acrossExtent;
+  const a = t.alongExtent > 0 ? along / t.alongExtent : 0;
+  const b = t.acrossExtent > 0 ? across / t.acrossExtent : 0;
+  const r = Math.hypot(a, b);
+  return r > 1 ? null : r;
 }
 
 /** The unit vector along the strike line: horizontal, in the plane. */

@@ -464,6 +464,27 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
     push('lode.gangue', (lode as Record<string, unknown>).gangue);
   }
   /*
+   * ⭐⭐ The deposit's FLUID bodies (the drilling build) — each one names
+   * the material that comes up it.
+   *
+   * ⚠ Read here rather than ignored, for the sharpest version of this
+   * gate's own reason: the citation is resolved at the completion of a
+   * BAIL, several game-weeks of paid labour after the bore was sited.
+   * A rowless or misspelt `fluid:` is a trap that reads perfectly well,
+   * a crew that gets paid for a month, a hole that reaches the depth the
+   * survey promised — and then brings up nothing, with no author
+   * anywhere able to tell that from the dry hole the trade ships on
+   * purpose. The two must never be indistinguishable.
+   */
+  const fluids = data.fluids;
+  if (Array.isArray(fluids)) {
+    for (const body of fluids) {
+      if (body && typeof body === 'object') {
+        push('fluids.fluid', (body as Record<string, unknown>).fluid);
+      }
+    }
+  }
+  /*
    * ⭐ The WAYS. A `Lane` and a `ServiceRoute` are pure-data Ideas whose
    * whole content is references to places: the room an induced walk
    * starts from, the endpoints of an authored edge (rail, the TPA), the

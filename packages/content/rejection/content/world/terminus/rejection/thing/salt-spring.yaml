@@ -1,0 +1,48 @@
+# ⭐⭐ The salt spring — **the free evidence, and the one thing in this
+# trade you get for nothing.**
+#
+# ⚠⚠ It tells you there is something in this country. It does NOT tell
+# you where to bore, and the reason is physical rather than a rule: what
+# has reached daylight is by definition what the trap did NOT hold. The
+# spring is the rim of the structure leaking, so the ground directly
+# under it holds almost nothing — the one place a prospector should not
+# sink a hole is the one place the country is shouting at them.
+#
+# The `showing` detail is what the structural channel's eye rung reads.
+# ⭐ The channel knows nothing about springs: it asks the room what is
+# showing and repeats the prose, which is why a third kind of surface
+# showing (a gas blow, a tar pit) is a row and no code.
+class: /platform/thing/Thing
+data:
+  shortDescription: salt spring
+  keywords: [spring, "salt spring", water, pool, seep, crust]
+  register: definite
+  fixedInPlace: true
+  # ⚠ `mass: 0` reads to `lint:mass` as UNSTATED, which is the right
+  # reading: a matter row that weighs nothing is a row nobody has
+  # decided about. A spring is a pool and a crusted rim, and it is what
+  # it says it is made of.
+  mass: 250
+  _materialPath: /stuff/idea/material/bulk/salt-water
+  longDescription: >-
+    Water comes up out of the hillside in a slow coil, no wider than a
+    hat, and runs twenty feet before the ground takes it back. Around the
+    lip the grass has given up and the mud has gone grey and crusted, and
+    the crust is salt — you can taste it off a wet finger and you will
+    want water afterwards.
+  details:
+    # ⚠ The key the eye rung reads. The prose is the venue's; the
+    # interpretation ("that is charge reaching daylight, and it is also
+    # the one place not to bore") is the channel's, and it is added only
+    # for a reader whose band can make the inference.
+    showing:
+      keywords: [showing, salt, crust, brine, taste]
+      description: >-
+        Salt, and a great deal of it for a hillside four days' cart from
+        the sea. Something down there is brine, and it has found a crack
+        it likes.
+    crust:
+      keywords: [crust, mud, rim, grass]
+      description: >-
+        Grey and friable, and it rebuilds itself every dry week. There
+        are hoofprints in it, and the prints have licked edges.

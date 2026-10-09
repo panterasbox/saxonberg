@@ -881,6 +881,49 @@ runs **once** before the MR opens and once at `/finalize`.
 - Acceptance: boot with `SAXONBERG_PACKS` including `trade-drilling`
   prints the pack; `lint:untitled` green on the new claim.
 
+#### W-A0 ✅ DONE — `d320169d1`
+#### W-A1 ✅ DONE — `d320169d1`
+
+> **What landed.** The pack stands up with its own root and ships nothing
+> but a manifest test. `Deposit.fluids` + the three reads +
+> `BodyRegister` + the `body` document kind + `GroundQueryMixin` +
+> `GroundPointMixin`. ground 108 ✓ · trade-mining 154 ✓ unchanged ·
+> trade-quarrying 70 ✓ unchanged · kernel document suite ✓ · **all 69
+> lint gates ✓**.
+>
+> **Three decisions this wave made that this plan did not:**
+>
+> - ⭐⭐ **D1a — the structural bracket is a FRACTION of the READING, not
+>   an absolute in metres.** Caught writing the channel: a half-width
+>   scaled off the *truth* **leaks the truth exactly** — quote *± 55 m*
+>   at a half fraction and the reader knows the crest is at 110 m to the
+>   metre, which makes an untrained eye the sharpest instrument in the
+>   game. The reading is solved as `R = T / (1 − u·f)` and the quoted
+>   half-width is `f·R`, which contains the truth for every `u` by
+>   construction and is computable from what the player was told and
+>   nothing else. A real instrument quotes accuracy as a percentage of
+>   reading for this reason. `structureReadingAt` therefore takes a
+>   FRACTION, not metres.
+> - **D1b — no `boot:` entry for either register.** This plan called for
+>   one; the shipped precedent (`FisheryRegistry`, `HerdRegistry`) is
+>   lazy `StuffApi.singleton` resolution, and *`Api.boot()` is an
+>   operator act*.
+> - **D1c — the two hand-copied non-template dir sets need no edit.**
+>   This plan said `check-template-census.ts:47` would; neither
+>   `fisheries` nor `herds` is in them either, because no pack ships
+>   those dirs as content, and `lib/paths.ts` derives the real set from
+>   `DOCUMENT_KINDS`.
+>
+> **And one piece of substrate this plan put off.** `StructureReading`
+> needed the **place-based** trio (the actor's room), not
+> `GroundPointMixin`'s container-based one — so it would have been the
+> fourth private copy of `depositAt`/`metresAt`/`seedAt`. Promoted to
+> `ground/src/lib/GroundQuery.ts` as `GroundQueryMixin` now;
+> `GroundPointMixin` composes it and supplies the place, so the position
+> logic exists once in this build. ⚠ `trade-mining`'s `SurveyReading`
+> and `trade-farming`'s `SoilReading` still hold their copies — that is
+> the Deferred seam, unchanged, and now it has a home to move to.
+
 #### W-A1 · The column holds a fluid body — `build(drilling W-A1): a Deposit holds fluid bodies with a readable trap and a seeded charge`
 - `Deposit.ts`: `FluidBody`, `fluids` field + `fieldMeta` + `get/setFluids`,
   `structureReadingAt`, `isCharged`, `fluidAt`, `capacityOf` (D1). A
@@ -965,6 +1008,87 @@ runs **once** before the MR opens and once at `/finalize`.
 - Tests: `getBulkMaterialPath` on a wellhead at −120 m is `salt-water`;
   the pan reconciles brine → salt at `productFraction`.
 - Acceptance: drive steps 10–13.
+
+#### W-A2 ✅ · W-A3 ✅ · W-A4 ✅ · W-A5 ✅ — landed together
+
+> **What landed.** The `structure` channel + row; the two Rejection sites
+> and the spring prop; the Ferrow salt leg; two `surfaceWorkings`
+> entries; `Wellhead`, `Derrick`, `Bailer`, `BoreRegistry` + the `bore`
+> kind, `DrillingOutfit` + its seed; five controllers, five views, five
+> controller rows; the bailer/liner recipes; the drilling kit on the
+> store's slate; two roustabouts in the Dry; the saltern at the flat.
+> trade-drilling 55 ✓ · ground 108 ✓ · trade-mining 154 ✓ unchanged ·
+> trade-quarrying 70 ✓ · trade-forestry 122 ✓.
+>
+> ### ⭐⭐⭐ W-A1's premise was WRONG, and fixing it is the best thing in
+> the build
+>
+> The fluid leg was authored as a **slab**: `topZ`/`baseZ` on the body,
+> uniform wherever the trap covered you. Writing the channel's prose
+> made it obvious that this makes **the structural survey decorative** —
+> if the leg is the same everywhere, the crest's bearing and distance are
+> noise, a narrower bracket buys nothing, and acceptance criterion 2 is
+> hollow.
+>
+> So the leg is **derived from the arch**: `legAt(body, x, y)` runs from
+> the structure surface down to the spill depth, which is the full
+> `closureM` directly over the crest and **nothing at the rim**.
+> `topZ`/`baseZ` are gone (two author fields that could contradict the
+> closure), `capacityOf` is the exact `π·a·b·closure / 3` of that shape,
+> and the reading gained `thicknessHereM`. The consequence is the content:
+> **the spring sits on the rim and the flat sits over the crest.** The
+> place the ground tells you about is not the place to dig — and
+> `measure structure` says so, from the spring, before a penny is spent.
+>
+> ### Decisions this wave made that the plan did not
+>
+> - ⭐⭐ **The derrick is raised by the SITING ACT; `make derrick` is
+>   gone, and `bore` is afforded by the BAILER.** Risks §6 called this
+>   right and then some: `CraftingLogic` lands a tangible output at the
+>   maker, so a `fixedInPlace` 1 500 kg frame arrives in a pocket — and
+>   six lengths of mine timber is **240 kg**, which no body in this game
+>   can carry to a hillside. Raising it on site is what happens in the
+>   fiction and what the trade's own thesis says should be cheap. ⭐ That
+>   left a circularity — a derrick cannot be what affords raising a
+>   derrick — closed by the kernel's own blessed split: *`plot` is
+>   afforded by the SPADE, not the field.* So `Bailer` is a class with
+>   `commandContributions.inventory`, and the derrick keeps the `peers`
+>   rung.
+> - ⭐⭐ **The rig and the hole are BOUND BY THE VIEW, not hunted for.**
+>   `lint:instrument-args` refused the `getContents().find(c instanceof
+>   Derrick)` scan with the better answer attached — *the query is the
+>   MIXIN, never the class* — and `lint:capabilities` separately refused
+>   `derrick` as offered-and-unwanted. One fix answered both: `rig`
+>   (`reachable:[capability.derrick]`) and `hole`
+>   (`reachable:[mixin.GroundPointMixin]`) on all five views, and the
+>   ceiling stayed at 1 rather than rising.
+> - ⭐⭐ **The structural bracket may not be quoted off the truth** (D1a,
+>   recorded at W-A1 and worth repeating here because this is where it
+>   would have shipped): `errorM` is `f × reading`, solved as
+>   `R = T / (1 − u·f)`.
+> - **No `@CallSecurity` on `BoreRegistry.appendLine`.** The plan called
+>   for a `FromClass(Wellhead)` participant contract. Declined:
+>   `DocumentApi.saveToRegister` is already gated `FromMixin(Registrar,
+>   caller === args[0])`, the branch is titled to the trade, and this is
+>   the only `Registrar` with that prefix — so the guarantee is already
+>   made. `HerdRegistry.file` is ungated for the same reasons and is the
+>   shipped precedent; being the **first capability pack in the repo** to
+>   use the decorator, to re-state a guarantee the document surface
+>   already makes, is drift with no gain.
+> - **The derrick recipe's `fibre` slot was deleted before it shipped.**
+>   Oak's own tags carry `fibre`, so the slot would have been satisfied
+>   by more timber and refused nothing. ⚠ *A slot that cannot refuse is a
+>   slot that should not exist.*
+> - **`lint:census` clause (d) caught `fluids` on its first run** and the
+>   fix is a reader, not an ignore entry: `refsOf` reads
+>   `fluids[].fluid`. The gate's own reasoning is sharper here than
+>   anywhere it has fired before — the citation resolves at the
+>   completion of a **bail**, game-weeks of paid labour after the siting,
+>   so a misspelt one is a hole that reaches the promised depth and
+>   brings up nothing, **indistinguishable from the dry hole the trade
+>   ships on purpose.**
+> - Five drive steps amended (1, 2, 5, 10, and 15/21/24 by D16) with a ⚠
+>   note each saying what they were.
 
 #### W-A6 · Stage A drive — `drive(drilling A): <what driving found>`
 - `packages/wire/tests/drilling.dirty.wire.test.ts` steps 1–13, run with

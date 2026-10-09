@@ -1,0 +1,13 @@
+# A yard of tube. You will want many of them, and that is the cost of
+# going through wet ground rather than stopping above it.
+recipeId: liner
+name: Well Liner
+keywords: [liner, tube]
+inputSlots:
+  - { slot: timber, category: wood, minGrade: poor, kind: item, count: 2 }
+toolCapabilities: [cutting]
+outputTemplate: /trade/drilling/thing/liner
+outputMaterial: ''
+outputApplication: tangible
+difficulty: straightforward
+discipline: mining

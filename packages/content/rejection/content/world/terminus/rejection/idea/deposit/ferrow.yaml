@@ -150,3 +150,52 @@ data:
     seeded:
       - { feature: vug, chance: 0.04, inLodeOnly: true }
       - { feature: seep, chance: 0.06 }
+  # ⭐⭐⭐ **The fluid bodies under this hill, and this is the venue
+  # making a second claim about its own geology.**
+  #
+  # A lode is a plane you cut; a fluid body is a trap you tap, and they
+  # share no field. Each one here is a FOLD: a crest, an axis, two
+  # half-extents and the vertical closure under the crest. The fluid leg
+  # is DERIVED from that — it is the full closure directly over the crest
+  # and nothing at all at the rim — which is why the structural survey is
+  # worth paying for instead of decorative: bore at the rim of a charged
+  # trap and you find a metre of it, bore at the crest and you find the
+  # column.
+  #
+  # ⚠⚠ **`charge: true` here is a PIN, and it is deliberate.** The first
+  # bore in a new country must not be a coin toss, or the trade teaches
+  # nothing but variance on the way in. The dry structure arrives in
+  # Stage C, pinned false, on ground that reads just as well — so the
+  # lesson lands when the player has the instruments to be sure they read
+  # it right, and cannot blame the survey.
+  #
+  # ⭐ The axis runs 041, the same as the lode's strike, and that is not
+  # a coincidence anybody should have to take on faith: one episode of
+  # folding made both. A hill with structures at right angles to its own
+  # grain would be an authoring tell.
+  fluids:
+    # The salt leg. The crest is under the flat at (6,1) — sixty metres
+    # east, ten north of the yard — and the trap's rim passes under the
+    # spring at (3,5), which is exactly why there is a spring there: a
+    # trap leaks at its edge, and what reaches daylight is what the
+    # ground failed to keep.
+    #
+    # `headAtm0: 0` — ⭐ **it does not come up by itself**, which is the
+    # ordinary and honest case. Brine at a hundred and ten metres has to
+    # be lifted, and that is what the bailer is for and what the pump is
+    # eventually for.
+    - key: salt-leg
+      fluid: /stuff/idea/material/bulk/salt-water
+      trap:
+        crest: [60, 10, -110]
+        strike: 41
+        alongExtent: 140
+        acrossExtent: 50
+        closureM: 40
+      charge: true
+      headAtm0: 0
+      # Pinned rather than derived from the geometry: this is Stage A's
+      # whole supply, and a well life measured in weeks of boiling is a
+      # decision about pacing rather than about reservoir engineering.
+      # ⚠ Recharge is ZERO. The leg is a boom with an end in it.
+      capacityL: 240000

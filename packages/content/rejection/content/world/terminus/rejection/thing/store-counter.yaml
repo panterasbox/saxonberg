@@ -33,6 +33,19 @@ data:
     - { itemTemplatePath: /trade/forestry/thing/auger, par: 2 }
     - { itemTemplatePath: /trade/forestry/thing/spile, par: 12 }
     - { itemTemplatePath: /stuff/thing/vessel/pail, par: 4 }
+    # ⭐⭐ The drilling kit, added by the drilling build, and on the
+    # SAME SHELF for the same reason the sugaring kit is: a new trade's
+    # instruments go where people already buy, not on a bespoke counter.
+    # ⚠ No derrick here — a ton and a half of timber frame is not a
+    # thing you walk out of a shop with. The derrick is `make`'d from
+    # timber at the site, and the timber is already on this slate.
+    - { itemTemplatePath: /trade/drilling/thing/bailer, par: 2 }
+    - { itemTemplatePath: /trade/drilling/thing/liner, par: 10 }
+    # The pan and the hearth the brine ends up in. ⭐ Both are
+    # QUARRYING's rows and neither needed a line of code: the brine
+    # meets the pan by TAG, which is what makes salt one good with three
+    # cost structures rather than three goods.
+    - { itemTemplatePath: /trade/quarrying/thing/salt-pan, par: 2 }
   # ⚠ The field is `prices:` — a path→figure MAP, not an `offers:` list.
   # It was authored as a list first and every `buy` answered *"isn't for
   # sale"*: a `Stock` with stock lines and no prices holds the goods and
@@ -60,3 +73,10 @@ data:
     /trade/forestry/thing/auger: 18
     /trade/forestry/thing/spile: 1
     /stuff/thing/vessel/pail: 5
+    # ⭐ The bailer is cheap and the LINER is the recurring cost of going
+    # deep — ten of them is a hundred metres of wet ground, and that is
+    # what makes stopping above the water table a real temptation rather
+    # than a mistake nobody would make.
+    /trade/drilling/thing/bailer: 9
+    /trade/drilling/thing/liner: 3
+    /trade/quarrying/thing/salt-pan: 16

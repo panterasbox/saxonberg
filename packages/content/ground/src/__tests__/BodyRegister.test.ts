@@ -144,8 +144,6 @@ describe('⭐⭐⭐ two straws, one glass', () => {
         acrossExtent: 300,
         closureM: 30,
       },
-      topZ: -110,
-      baseZ: -140,
       charge: true,
       capacityL: 1000,
     };

@@ -1,0 +1,29 @@
+# ⭐⭐ The drilling outfit — the seed row, and its SEATS are authored
+# HERE, which is the whole point of it.
+#
+# `positions` has no runtime setter and should not have one: what seats a
+# business has is a fact about the KIND of business, not about this one.
+# So the one seat a bore crew has is written down once, here, and every
+# outfit minted at every siting in the realm gets it for free. That is
+# what the no-runtime-setter constraint actually permits, rather than
+# something it blocks.
+#
+# ⚠ `appointingAuthority` and `banksAt` are deliberately EMPTY. They are
+# overlaid at mint from the person who sited the hole and the bank they
+# keep an account at — the stall seed's shape exactly, and the reason an
+# outfit cannot exist without somebody's money behind it.
+#
+# ⭐ A player on a crew uses `apply for roustabout at <outfit>` and
+# `clock on` like any other job, because the seat is a real derived
+# opening on a real business. The engine measures who is standing at the
+# rig and never asks who is behind the eyes.
+class: /trade/drilling/idea/DrillingOutfit
+data:
+  name: drilling outfit
+  appointingAuthority: { path: "" }
+  banksAt: ""
+  positions:
+    - key: roustabout
+      title: roustabout
+      wageRate: 4
+      headcount: 0

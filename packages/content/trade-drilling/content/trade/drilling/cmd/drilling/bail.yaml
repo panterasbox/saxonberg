@@ -1,0 +1,72 @@
+verbs: [bail]
+controller: /trade/drilling/idea/cmd/drilling/BailController
+description: "Send the bailer down and bring up what is standing in the hole"
+help: |
+  A leather bucket on the end of the rope, down the hole and back. It
+  does two jobs and that is why it is one verb.
+
+  **It clears the hole.** A bit swimming in standing water cuts nothing,
+  so `bore` will refuse to go deeper until the hole is bailed out. That
+  is the reason a bailer is on the rig from the first yard, long before
+  there is anything down there worth lifting.
+
+  **And it brings up what is down there.** Broken rock early, water in
+  the middle, and — if the bet was right — the thing you came for.
+
+  ⭐ **Most things in the ground do not come up by themselves.** Brine
+  at a hundred yards has to be lifted, a bucketful at a time, and that
+  is the whole reason a pump was ever worth inventing. A well with
+  pressure behind it is different: you can `fill` a cask straight from
+  the wellhead while it lasts.
+
+  Bring something to put it in. ⚠ A gas wants a sealed vessel, shut —
+  anything else and it goes up into the air around you.
+examples:
+  - cmd: bail into cask
+    note: A bucketful into a cask you are carrying
+  - cmd: bail
+    note: Just clear the hole
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  # ⭐⭐ THE RIG — DECLARED, not hunted for (`lint:instrument-args`), and
+  # the query is the CAPABILITY rather than the class: a second kind of
+  # rig any pack ships works with nothing here changed, and the tag on
+  # the derrick row is CONSUMED rather than decorative.
+  - name: rig
+    type: object
+    required: false
+    prepositions: [at, with, using]
+    default: "reachable:[capability.derrick]"
+    scope: ["reachable"]
+    requires: [ToolMixin]
+  # ⭐ THE HOLE. ⚠ `required: false` and ABSENT IS MEANINGFUL: no hole
+  # bound means there is no hole here, which is the fork `bore` takes to
+  # site one. A required arg would have made siting unreachable.
+  - name: hole
+    type: object
+    required: false
+    default: "reachable:[mixin.GroundPointMixin]"
+    scope: ["reachable"]
+    requires: [GroundPointMixin]
+  # ⭐ WHICH BAILER — DECLARED, not hunted for (`lint:instrument-args`).
+  - name: tool
+    type: object
+    required: false
+    prepositions: [with, using]
+    default: "reachable:[capability.bailing]"
+    scope: ["reachable"]
+    requires: [ToolMixin]
+  # ⭐ WHAT YOU CATCH IT IN. Optional: bailing to clear the hole is a
+  # real act with no vessel at all, and that is most of the early ones.
+  - name: vessel
+    type: object
+    required: false
+    prepositions: [into, in]
+    default: "me:i:[mixin.BulkableMixin]"
+    scope: ["inventory", "reachable"]
+    requires: VisibleMixin
+    validators:
+      - /lib/command/validators/mustHaveBulkSlot

@@ -1,0 +1,57 @@
+verbs: [bore, drill]
+controller: /trade/drilling/idea/cmd/drilling/BoreController
+description: "Site a hole on your own ground, or work the beam on one"
+help: |
+  `bore` at a derrick does one of two things, and which one depends on
+  whether there is a hole under the rig yet.
+
+  **With no hole**, it SITES one: the rig is committed to this ground,
+  an outfit is opened to pay for it, and from that moment the hole is
+  capital you cannot pick up and carry somewhere better. ⚠ The ground
+  has to be yours — `stake` it at the claims counter first.
+
+  **With a hole**, it is one stroke of the beam. A yard of rock takes
+  several strokes and hard rock takes more of them: the number is the
+  rock's hardness, so a driller who has read the column knows what the
+  next ten yards cost before paying for it.
+
+  ⭐ **You are not meant to do this by hand.** A hole deep enough to be
+  worth anything is weeks of beam work, and the way it gets done is a
+  crew: `hire` somebody at the rig and they turn the beam while you are
+  elsewhere, and send you a bill either way. That is the trade — the
+  depth costs wages over time, and the only thing that stops the wages
+  is you deciding to stop them.
+
+  The hole will refuse to go deeper when the ground will not stand
+  open — soft rock under standing water comes in as fast as you clear
+  it — and says so, and the remedy is `line`.
+examples:
+  - cmd: bore
+    note: Site a rig on ground you have staked, or take a stroke
+  - cmd: drill
+    note: The same verb
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  # ⭐⭐ THE RIG — DECLARED, not hunted for (`lint:instrument-args`), and
+  # the query is the CAPABILITY rather than the class: a second kind of
+  # rig any pack ships works with nothing here changed, and the tag on
+  # the derrick row is CONSUMED rather than decorative.
+  - name: rig
+    type: object
+    required: false
+    prepositions: [at, with, using]
+    default: "reachable:[capability.derrick]"
+    scope: ["reachable"]
+    requires: [ToolMixin]
+  # ⭐ THE HOLE. ⚠ `required: false` and ABSENT IS MEANINGFUL: no hole
+  # bound means there is no hole here, which is the fork `bore` takes to
+  # site one. A required arg would have made siting unreachable.
+  - name: hole
+    type: object
+    required: false
+    default: "reachable:[mixin.GroundPointMixin]"
+    scope: ["reachable"]
+    requires: [GroundPointMixin]

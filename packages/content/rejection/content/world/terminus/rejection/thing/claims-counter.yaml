@@ -27,6 +27,21 @@ data:
   surfaceWorkings:
     - path: /world/terminus/rejection/quarry/pit
       keywords: [pit, quarry, face, "hill quarry", stone]
+    # ⭐⭐ **A bore site is one more entry, and that is the falsifiable
+    # line.** The drilling build added no second mechanism and no second
+    # counter: a hole in the ground is surface ground somebody staked,
+    # so `stake spring` and `stake flat` take the same fork the quarry
+    # takes — one `subdivide`, no warren, no block arithmetic.
+    #
+    # ⚠ BOTH are stakeable, and the cheap one is a real choice rather
+    # than a trap. The spring is the rim of the trap and a hole there
+    # finds a metre of brine; the flat is over the crest and finds forty.
+    # The survey says so before a penny is spent, which is what makes
+    # staking the wrong one a decision somebody made.
+    - path: /world/terminus/rejection/location/salt-spring
+      keywords: [spring, "salt spring", seep, hollow]
+    - path: /world/terminus/rejection/location/salt-flat
+      keywords: [flat, "salt flat", "the flat", bare]
   details:
     marks:
       keywords: [marks, mark, crosses, signature]
