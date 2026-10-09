@@ -122,6 +122,17 @@ export class MqlLogic extends ApiLogic {
     if (exit) {
       const door = exit.getDoor();
       if (door && predicate(door)) return door;
+      // ⭐⭐ The THIRD rung, and `lock north` needed it. The question
+      // this method answers is *what, reachable that way, satisfies the
+      // predicate* — and for the keyed-door family the answer is the
+      // EXIT: `KeyedDoorExit` / `FrontDoorExit` / `DormDoor` carry the
+      // lock themselves and have no `Door` Thing at all, so a
+      // door-only walk found nothing and the verb refused with
+      // `not-lockable` at the one door in the realm you actually hold
+      // a key to.
+      if (predicate(exit as unknown as Stuff)) {
+        return exit as unknown as Stuff & T;
+      }
     }
     return null;
   }

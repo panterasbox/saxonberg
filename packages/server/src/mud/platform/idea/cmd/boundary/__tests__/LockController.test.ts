@@ -124,7 +124,13 @@ describe('LockController / UnlockController', () => {
     );
     expect(door.isLocked(), 'the bolt must not have moved').toBe(false);
     expect(
-      ctx.getNotes().some((n) => n.reason === 'no-key'),
+      ctx
+        .getNotes()
+        .some(
+          (n) =>
+            n.kind === 'controller-rejected' &&
+            (n as { reason?: string }).reason === 'no-key',
+        ),
       'the refusal names the missing key, not the mechanism',
     ).toBe(true);
   });
@@ -147,7 +153,15 @@ describe('LockController / UnlockController', () => {
       ctx,
     );
     expect(door.isLocked(), 'the bolt must still be thrown').toBe(true);
-    expect(ctx.getNotes().some((n) => n.reason === 'no-key')).toBe(true);
+    expect(
+      ctx
+        .getNotes()
+        .some(
+          (n) =>
+            n.kind === 'controller-rejected' &&
+            (n as { reason?: string }).reason === 'no-key',
+        ),
+    ).toBe(true);
   });
 
   it('unlocks a locked door when you hold its key', async () => {
@@ -173,7 +187,15 @@ describe('LockController / UnlockController', () => {
       ctx,
     );
     expect(door.isLocked()).toBe(true);
-    expect(ctx.getNotes().some((n) => n.reason === 'no-key')).toBe(true);
+    expect(
+      ctx
+        .getNotes()
+        .some(
+          (n) =>
+            n.kind === 'controller-rejected' &&
+            (n as { reason?: string }).reason === 'no-key',
+        ),
+    ).toBe(true);
   });
 
   it('rejects a non-lockable target', async () => {
