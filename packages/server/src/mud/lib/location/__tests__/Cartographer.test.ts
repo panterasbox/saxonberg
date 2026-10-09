@@ -275,3 +275,35 @@ describe("⭐⭐ a walked edge records that you saw it was a ford", () => {
     expect((edge as unknown as { minutes?: number }).minutes).toBeUndefined();
   });
 });
+
+describe('⭐⭐ a place claim banks the tokens it answered to', () => {
+  /*
+   * The LAST LEG of naming a destination. An address names a
+   * COLLECTION of rooms — giving every room a unique one does not
+   * work — and the keyword picks within it. Banked rather than read
+   * live for the same reason the handle is: the room may not be
+   * loaded when somebody asks the way to it.
+   */
+  it('records the place\'s keywords alongside its name', async () => {
+    const guide = makeStuffAtPath(() => new Guide(), GUIDE_ROW, GUIDE_ID);
+    const hall_ = hall() as unknown as Stuff & { setKeywords(k: string[]): void };
+    hall_.setKeywords(['hall', 'entry']);
+    guide.recordSurroundings(hall_ as unknown as Stuff, []);
+    await new Promise((r) => setTimeout(r, 0));
+    const place = recorded.flatMap((r) => r.claims).find((c) => c.kind === 'place');
+    expect(place?.keywords).toEqual(['hall', 'entry']);
+    // ⚠ And the short description too — it is what a prompt shows to
+    // tell two rooms with the same keyword apart.
+    expect(place?.name).toBe('the hall');
+  });
+
+  it('⚠ leaves them ABSENT when the place answers to nothing', async () => {
+    const guide = makeStuffAtPath(() => new Guide(), GUIDE_ROW, GUIDE_ID);
+    const bare = hall() as unknown as Stuff & { setKeywords(k: string[]): void };
+    bare.setKeywords([]);
+    guide.recordSurroundings(bare as unknown as Stuff, []);
+    await new Promise((r) => setTimeout(r, 0));
+    const place = recorded.flatMap((r) => r.claims).find((c) => c.kind === 'place');
+    expect(place?.keywords).toBeUndefined();
+  });
+});

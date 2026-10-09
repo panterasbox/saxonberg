@@ -104,6 +104,43 @@ export interface MapClaim {
   /** What the place was CALLED when it was perceived. */
   name?: string;
   /**
+   * ⭐⭐ **The targeting tokens the place answered to when you saw it**
+   * — `kitchen`, `yard`, `shop-floor`.
+   *
+   * This is the LAST LEG of naming a destination, and the reason it is
+   * banked rather than derived is the whole shape of addressing a
+   * room: **giving every room a unique address does not work.** You
+   * get `old-road-12` and `desert-34x95`, and only half of that is
+   * legible. So an {@link MapClaim.group | address} names a
+   * COLLECTION of rooms — a terrace, a lot, a quarter — and the
+   * keyword picks within it. `terminus/hinkley-hills/evergreen-terrace/lot-123`
+   * is as specific as the address tier needs to get; inside it there
+   * is a `kitchen` and a `master bedroom`.
+   *
+   * ⭐ Measured on the shipped realm, which is what settles it: **127
+   * of 128 places already author keywords**, so this costs no content
+   * work at all. Globally they collide hard (`yard` names 14 places,
+   * `floor` 12) — and **scoped to one address, exactly one bucket in
+   * the entire realm has an internal collision.** A keyword does not
+   * need to be unique; it needs to be unique *in a place*.
+   *
+   * ⚠ Banked, not read live, for the same reason the handle is: the
+   * room may not be loaded. It is also honest — you stood in it, so
+   * what it answered to is something you learned.
+   *
+   * ⭐ And it keeps the firewall tight for free: keyword matching runs
+   * over your OWN claims, so there is no form of a destination name
+   * that can reach a place you have never been. The authorization
+   * stops being a separate check and becomes the resolution itself.
+   *
+   * The shipped precedent is the TPA board, which targets a finite
+   * destination list by keyword (`FastTravel.resolveRouteByKeyword`).
+   * ⚠ That one answers `{ambiguous: true}` and stops; `route` prompts
+   * with the banked {@link MapClaim.name | short descriptions}, which
+   * is an improvement on the pattern rather than a copy of it.
+   */
+  keywords?: string[];
+  /**
    * The grouping address the content declares, when it declares one.
    * ⭐ A grouping key, never display chrome and never an identity: it
    * is what lets a map read Duncan Hall's four rooms as *Duncan Hall*

@@ -46,6 +46,7 @@
 import { StuffApi } from '../../api/stuff';
 import { NavigationApi } from '../../api/navigation';
 import { AddressApi } from '../../api/address';
+import { MixinApi } from '../../api/mixin';
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import type { Container } from '../spatial/Container';
@@ -207,6 +208,10 @@ export function CartographerMixin<TBase extends MixinConstructor>(
             place,
             label: location.getTemplatePath() ?? undefined,
             name: location.getPresentation(),
+            // ⭐ What it answered to. See `MapClaim.keywords`: the
+            // address names a COLLECTION and the keyword picks within
+            // it, because naming every room uniquely does not work.
+            keywords: this.keywordsOf(location),
             group: this.groupingAddressOf(location),
             channel: how,
             firstSeen: now,
@@ -373,6 +378,19 @@ export function CartographerMixin<TBase extends MixinConstructor>(
      * rather than as four unrelated places, and it groups by what the
      * content already says rather than by anything new.
      */
+    /**
+     * The targeting tokens a place answers to, banked at perception.
+     *
+     * ⚠ Read through `Perceptible`, which is the same surface MQL's
+     * scope walk pools — so what the map remembers you could call it
+     * is what you could actually have called it, standing there.
+     */
+    private keywordsOf(place: Stuff): string[] | undefined {
+      if (!MixinApi.isPerceptible(place)) return undefined;
+      const kws = place.getKeywords();
+      return kws.length > 0 ? [...kws] : undefined;
+    }
+
     private groupingAddressOf(place: Stuff): string | undefined {
       const declared = (
         place as unknown as { getDeclaredAddress?(): string | null }

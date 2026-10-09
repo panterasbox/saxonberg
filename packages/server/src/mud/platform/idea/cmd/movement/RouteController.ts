@@ -38,6 +38,11 @@ import { MessageApi } from '../../../../api/message';
 import { Mml } from '../../../../api/mml';
 import { NavigationApi } from '../../../../api/navigation';
 import { AppApi } from '../../../../api/app';
+import { AddressApi } from '../../../../api/address';
+import { MixinApi } from '../../../../api/mixin';
+import { StuffApi } from '../../../../api/stuff';
+import type { Stuff } from '../../../../lib/stuff/Stuff';
+import type { Container } from '../../../../lib/spatial/Container';
 import { AppSettingKeys } from '../../../../lib/config/AppSettings';
 import { WorldClockApi } from '../../../../api/worldclock';
 import type { MapClaim, MapDocument } from '../../../../lib/location/MapClaim';
@@ -66,10 +71,20 @@ const BY_WORDS: ReadonlyArray<[readonly string[], string, string]> = [
   [['boat', 'barge', 'water', 'sail', 'ship'], 'sailed', 'water'],
 ];
 
-/** One place a player knows, with the name they would use for it. */
+/**
+ * One place a player knows, as the three things naming it needs: the
+ * durable handle to plan with, the short description to show, the
+ * address collection it sits in, and the tokens it answered to.
+ */
 interface Known {
+  /** The durable handle — what the planner uses. Works unloaded. */
   place: string;
+  /** The banked short description — what a prompt shows. */
   name: string;
+  /** The address COLLECTION, or `''`. Narrows; rarely identifies. */
+  group: string;
+  /** The targeting tokens, banked at perception. Picks within a group. */
+  keywords: readonly string[];
 }
 
 export default class RouteController extends CommandController<RouteModel> {
@@ -161,8 +176,9 @@ export default class RouteController extends CommandController<RouteModel> {
         'nowhere',
       );
     }
-    const target = RouteController.resolve(asked, known);
-    if (!target) {
+    const standingGroup = await RouteController.standingGroup(context);
+    const pool = RouteController.candidates(asked, known, standingGroup);
+    if (pool.length === 0) {
       // ⭐⭐ The honest refusal, and the SAME one for a place that does
       // not exist and a place you have simply never been. The realm may
       // well have a bank; this player has not found it, and improving
@@ -174,6 +190,14 @@ export default class RouteController extends CommandController<RouteModel> {
         'unknown-place',
       );
     }
+    // ⭐⭐⭐ Several matches ASK. This is the whole difference from what
+    // was here before: `.find()` picked whichever claim happened to be
+    // enumerated first and nobody could tell.
+    const target =
+      pool.length === 1
+        ? pool[0]!
+        : await this.disambiguate(context, pool, asked);
+    if (!target) return; // declined inside, or the prompt was cancelled
     if (target.place === here) {
       return this.declineWith(context, 'You are already there.', 'already-there');
     }
@@ -187,6 +211,92 @@ export default class RouteController extends CommandController<RouteModel> {
       budget,
     );
     this.renderOutcome(context, outcome, known, target, profile, here);
+  }
+
+  /**
+   * The address of the collection the actor is standing in, or `''`.
+   *
+   * ⚠ `''` is a real answer and a common one: **75 of 128 places carry
+   * no address**, so a player standing in one has no locality to scope
+   * a bare keyword to — which is exactly why `candidates` widens to
+   * every map rather than refusing.
+   */
+  private static async standingGroup(context: CommandContext): Promise<string> {
+    const here = context.location;
+    if (!here) return '';
+    const declared = (
+      here as unknown as { getDeclaredAddress?(): string | null }
+    ).getDeclaredAddress?.();
+    if (declared && declared.length > 0) return declared;
+    // Fall back to the covering Locality — the address tree's own
+    // longest-prefix walk, which is what makes an unaddressed room
+    // still belong somewhere.
+    try {
+      const locality = await AddressApi.resolveLocalityFor(
+        here as unknown as Stuff & Container,
+      );
+      return locality?.getAddress() ?? '';
+    } catch {
+      return '';
+    }
+  }
+
+  /**
+   * ⭐⭐⭐ Ask which one, offering the **banked short descriptions**.
+   *
+   * A keyword is unique in a place and not in a realm, so this is the
+   * mechanism that makes the keyword tier honest rather than lucky.
+   * What it shows is `MapClaim.name` — what the room CALLED ITSELF
+   * when you stood in it — plus its collection, because two kitchens
+   * are told apart by which house they are in.
+   *
+   * ⚠ The shipped TPA board answers `{ambiguous: true}` and stops
+   * there; prompting is an improvement on that pattern, not a copy of
+   * it. ⚠ And a player with no interactive (an NPC driving the verb,
+   * a stripped harness) gets the refusal in words rather than a hang.
+   */
+  private async disambiguate(
+    context: CommandContext,
+    pool: readonly Known[],
+    asked: string,
+  ): Promise<Known | null> {
+    const giver = context.commandGiver;
+    const interactive = MixinApi.isHasInteractive(giver)
+      ? [...giver.getInteractives()][0]
+      : undefined;
+    // Deterministic order, so the same question lists the same way.
+    const sorted = [...pool].sort(
+      (a, b) => a.group.localeCompare(b.group) || a.name.localeCompare(b.name),
+    );
+    if (!interactive) {
+      this.declineWith(
+        context,
+        `You know ${sorted.length} places called '${asked}'. ` +
+          `Name the one you mean: ` +
+          `${sorted.map((k) => RouteController.hint(k)).join('; ')}.`,
+        'ambiguous-place',
+      );
+      return null;
+    }
+    try {
+      const picked = await interactive.promptChoice(
+        `Which '${asked}' did you mean?`,
+        sorted.map((k) => ({
+          label: RouteController.hint(k),
+          response: k.place,
+        })),
+      );
+      return sorted.find((k) => k.place === picked) ?? null;
+    } catch {
+      // Cancelled, timed out, or the socket went. Not a finding.
+      this.declineWith(context, 'Never mind, then.', 'prompt-cancelled');
+      return null;
+    }
+  }
+
+  /** One candidate, as a line a player can tell from the others. */
+  private static hint(k: Known): string {
+    return k.group.length > 0 ? `${k.name} (${k.group})` : k.name;
   }
 
   /* ─────────────────────────── rendering ─────────────────────────── */
@@ -263,8 +373,24 @@ export default class RouteController extends CommandController<RouteModel> {
     profile: Profile,
     budget: number,
   ): Promise<void> {
-    const from = RouteController.resolve(pair.a, known);
-    const to = RouteController.resolve(pair.b, known);
+    // ⚠ The pair form takes the UNAMBIGUOUS reading only. Two prompts
+    // in one command is a worse experience than being asked to say
+    // which pair you meant, so an ambiguous end refuses with the
+    // candidates named.
+    const fromPool = RouteController.candidates(pair.a, known, '');
+    const toPool = RouteController.candidates(pair.b, known, '');
+    if (fromPool.length > 1 || toPool.length > 1) {
+      const which = fromPool.length > 1 ? fromPool : toPool;
+      return this.declineWith(
+        context,
+        `You know more than one of those: ` +
+          `${which.map((k) => RouteController.hint(k)).join('; ')}. ` +
+          `Name one exactly.`,
+        'ambiguous-place',
+      );
+    }
+    const from = fromPool[0] ?? null;
+    const to = toPool[0] ?? null;
     if (!from || !to) {
       const missing = !from ? pair.a : pair.b;
       return this.declineWith(
@@ -427,23 +553,34 @@ export default class RouteController extends CommandController<RouteModel> {
    */
   private static placesIn(docs: readonly MapDocument[]): Known[] {
     const byPlace = new Map<string, Known>();
-    const note = (place: string, name?: string | null): void => {
+    const note = (
+      place: string,
+      claim?: { name?: string | null; group?: string; keywords?: string[] },
+    ): void => {
       if (place.length === 0) return;
       const prior = byPlace.get(place);
-      const better = (name ?? '').trim();
-      if (prior && (better.length === 0 || prior.name !== RouteController.leaf(place))) {
-        return;
-      }
-      byPlace.set(place, {
+      const name = (claim?.name ?? '').trim();
+      const next: Known = {
         place,
-        name: better.length > 0 ? better : RouteController.leaf(place),
-      });
+        name: name.length > 0 ? name : (prior?.name ?? RouteController.leaf(place)),
+        group: claim?.group ?? prior?.group ?? '',
+        keywords: claim?.keywords ?? prior?.keywords ?? [],
+      };
+      // ⚠ A later claim ENRICHES rather than replaces: an edge claim
+      // names a far place with only a row path, and must not wipe the
+      // name and keywords a place claim banked when you stood in it.
+      byPlace.set(place, next);
     };
     for (const doc of docs) {
       for (const claim of doc.claims as MapClaim[]) {
-        if (claim.kind === 'place') note(claim.place, claim.name);
-        else if (claim.to) note(claim.to, claim.toLabel ?? null);
-        else if (claim.toLabel) note(claim.toLabel, null);
+        if (claim.kind === 'place') {
+          note(claim.place, {
+            name: claim.name,
+            ...(claim.group !== undefined ? { group: claim.group } : {}),
+            ...(claim.keywords !== undefined ? { keywords: claim.keywords } : {}),
+          });
+        } else if (claim.to) note(claim.to, { name: claim.toLabel });
+        else if (claim.toLabel) note(claim.toLabel, {});
       }
     }
     return [...byPlace.values()];
@@ -464,24 +601,155 @@ export default class RouteController extends CommandController<RouteModel> {
   }
 
   /**
-   * Resolve a typed name against the claims, and NOTHING else.
+   * ⭐⭐⭐ **Resolve a destination against the claims, and nothing else.**
    *
-   * Exact name, then a prefix, then a substring, then the path leaf —
-   * so `route to bakery` finds *the market bakery* and `route to
-   * /world/...` still works for somebody who typed a path.
+   * ⚠⚠ This replaced a five-rung substring ladder over the place's
+   * short description that ended in `.find()` — **first match wins in
+   * claim-insertion order**. That is not reducing to a single
+   * location; it is an arbitrary pick, and it is the ambiguity
+   * antipattern the engine has a prompt for. Nothing told me, because
+   * every test asserted the content of an answer and none asked
+   * whether the answer was the only one.
+   *
+   * The model, which is the addressing subsystem's and not a new one:
+   *
+   *  - an **address** (`MapClaim.group`) names a **COLLECTION** of
+   *    rooms — a terrace, a lot, a quarter. ⭐ It is deliberately NOT
+   *    unique per room, because giving every room a unique address
+   *    does not work: you get `old-road-12` and `desert-34x95`, and
+   *    only half of that is legible.
+   *  - a **keyword** (`MapClaim.keywords`) picks within the
+   *    collection. Globally they collide hard — `yard` names 14
+   *    places in the shipped realm, `floor` 12 — and **scoped to one
+   *    address exactly one bucket in the whole realm collides.**
+   *  - anything still ambiguous **prompts**, with the banked short
+   *    descriptions, because that is the only thing that can tell two
+   *    kitchens apart.
+   *
+   * Four forms, and the first two are the ones a player types:
+   *
+   * ```
+   *   route to kitchen                 the standing locality, then every map
+   *   route to lot-123 kitchen         a collection, then a keyword
+   *   route to terminus/city/market    a collection alone → prompt
+   *   route to #<stuffId>              exact, and loaded-only
+   * ```
+   *
+   * ⚠ `#<stuffId>` is MQL's own anchor form and resolves through
+   * `StuffApi.findById`, so it works **iff the room is resident** —
+   * which routing is least likely to be. Rooms are lazily loaded and
+   * the usual handle for reaching one is an **exit**; pathfinding
+   * cannot take that deal, because the exit sequence is its OUTPUT.
+   * Routing is the one consumer in the engine that must name NODES,
+   * which is why the durable handle is load-bearing here and the id
+   * is a convenience.
    */
-  private static resolve(asked: string, known: readonly Known[]): Known | null {
+  private static candidates(
+    asked: string,
+    known: readonly Known[],
+    standingGroup: string,
+  ): Known[] {
+    const want = asked.trim();
+    if (want.length === 0) return [];
+
+    // `#<stuffId>` — exact, and only for a loaded room. ⚠ Still
+    // checked against the claims: an id for a place you have never
+    // been to must refuse, or the id form would be a hole in the
+    // firewall rather than a shortcut through it.
+    if (want.startsWith('#') && want.length > 1) {
+      const live = StuffApi.findById(want.slice(1));
+      const handle = live?.getDurableHandle?.() ?? null;
+      if (!handle) return [];
+      return known.filter((k) => k.place === handle);
+    }
+
+    const tokens = want.split(/\s+/).filter((t) => t.length > 0);
+    const head = (tokens[0] ?? '').toLowerCase();
+
+    // An address token carries no spaces, so a leading token that
+    // matches a known collection splits the two halves cleanly.
+    const addressed = known.filter((k) => RouteController.inGroup(k, head));
+    if (tokens.length > 1 && addressed.length > 0) {
+      const keyword = tokens.slice(1).join(' ');
+      const hit = RouteController.pick(addressed, keyword);
+      return hit.length > 0 ? hit : addressed;
+    }
+    // A collection ALONE: every room in it, for the prompt to offer.
+    if (tokens.length === 1 && addressed.length > 0) return addressed;
+
+    // ⭐ A bare keyword prefers THE LOCALITY YOU ARE STANDING IN, and
+    // widens to every map you hold only if that finds nothing. The
+    // common case is the room next door, and trawling the realm for
+    // `kitchen` would make the common case the ambiguous one — but a
+    // player who asks for somewhere they know must never be stuck
+    // because they happen to be standing somewhere unaddressed.
+    if (standingGroup.length > 0) {
+      const near = RouteController.pick(
+        known.filter((k) => RouteController.sharesLocality(k, standingGroup)),
+        want,
+      );
+      if (near.length > 0) return near;
+    }
+    return RouteController.pick(known, want);
+  }
+
+  /**
+   * Does this place sit in the collection `addr` names? Matched by
+   * path SUFFIX, so `lot-123` reaches
+   * `terminus/hinkley-hills/evergreen-terrace/lot-123` and
+   * `market` reaches `terminus/city/market/bakery`.
+   */
+  private static inGroup(k: Known, addr: string): boolean {
+    if (k.group.length === 0 || addr.length === 0) return false;
+    const g = k.group.toLowerCase();
+    if (g === addr) return true;
+    const segs = g.split('/');
+    // Any contiguous run of segments ending anywhere — a right-anchored
+    // or interior path fragment, which is how a person shortens a path.
+    for (let i = 0; i < segs.length; i += 1) {
+      for (let j = i + 1; j <= segs.length; j += 1) {
+        if (segs.slice(i, j).join('/') === addr) return true;
+      }
+    }
+    return false;
+  }
+
+  /** Two places share a locality when one address prefixes the other. */
+  private static sharesLocality(k: Known, standing: string): boolean {
+    if (k.group.length === 0) return false;
+    const a = k.group.toLowerCase();
+    const b = standing.toLowerCase();
+    return a === b || a.startsWith(`${b}/`) || b.startsWith(`${a}/`);
+  }
+
+  /**
+   * Pick within a candidate pool by keyword, then by name.
+   *
+   * ⭐ Keyword first and EXACT, because that is what a keyword is — a
+   * targeting token the place answered to. The name rungs are the
+   * convenience tail, and they are last because a short description
+   * is prose: substring-matching it is how `the yard` came to mean
+   * whichever of fourteen yards was enumerated first.
+   */
+  private static pick(pool: readonly Known[], asked: string): Known[] {
     const want = asked.trim().toLowerCase();
-    if (want.length === 0) return null;
-    const by = (f: (k: Known) => boolean): Known | undefined => known.find(f);
-    return (
-      by((k) => k.name.toLowerCase() === want) ??
-      by((k) => k.place.toLowerCase() === want) ??
-      by((k) => k.name.toLowerCase().startsWith(want)) ??
-      by((k) => k.name.toLowerCase().includes(want)) ??
-      by((k) => RouteController.leaf(k.place).toLowerCase().includes(want)) ??
-      null
-    );
+    if (want.length === 0) return [];
+    const rungs: Array<(k: Known) => boolean> = [
+      (k) => k.keywords.some((kw) => kw.toLowerCase() === want),
+      (k) => k.name.toLowerCase() === want,
+      (k) => k.place.toLowerCase() === want,
+      (k) => k.keywords.some((kw) => kw.toLowerCase().startsWith(want)),
+      (k) => k.name.toLowerCase().startsWith(want),
+      (k) => k.name.toLowerCase().includes(want),
+    ];
+    // ⚠ Every rung returns EVERY match, and the first rung that
+    // matches anything wins the whole pool. One match plans; several
+    // prompt. Nothing here picks.
+    for (const rung of rungs) {
+      const hits = pool.filter(rung);
+      if (hits.length > 0) return hits;
+    }
+    return [];
   }
 
   /** `between <a> and <b>` → the pair, or null for the ordinary form. */

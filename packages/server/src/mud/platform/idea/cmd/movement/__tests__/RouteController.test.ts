@@ -22,6 +22,7 @@ import { CommandApi } from '../../../../../api/command';
 import { NavigationApi } from '../../../../../api/navigation';
 import { DocumentApi } from '../../../../../api/document';
 import { MessageApi } from '../../../../../api/message';
+import { MixinApi } from '../../../../../api/mixin';
 import { StuffApi } from '../../../../../api/stuff';
 import LocationGraphRegistry from '../../../LocationGraphRegistry';
 import type { MapClaim } from '../../../../../lib/location/MapClaim';
@@ -42,6 +43,18 @@ const QUAY = '/test/town/wharf/quay';
 /** What the controller said to self, flattened. */
 let said: string[];
 let registrySpy: { toHaveBeenCalled?: unknown } | null = null;
+/** What `promptChoice` does this test. Default: never asked. */
+let promptImpl: (
+  label: string,
+  opts: Array<{ label: string; response: string }>,
+) => Promise<string> = () => Promise.reject(new Error('no prompt expected'));
+/**
+ * ⚠ A FLAG, not a per-test spy: `giverAt` mocks `isHasInteractive`
+ * every time it builds a giver, so a spy set before `run()` was
+ * silently overwritten and the no-interactive case passed for the
+ * wrong reason (it hit the cancelled branch instead).
+ */
+let hasInteractive = true;
 
 function claim(c: Partial<MapClaim>): MapClaim {
   return {
@@ -62,6 +75,19 @@ function withMap(claims: readonly MapClaim[]): void {
 }
 
 /** A giver with an identity, standing somewhere with a durable handle. */
+/** Answers a `promptChoice` with whatever `answer` picks from the options. */
+function withPrompt(
+  answer: (opts: Array<{ label: string; response: string }>) => string | null,
+): { asked: string[] } {
+  const asked: string[] = [];
+  promptImpl = (label, opts) => {
+    asked.push(label);
+    const r = answer(opts);
+    return r === null ? Promise.reject(new Error('cancelled')) : Promise.resolve(r);
+  };
+  return { asked };
+}
+
 function giverAt(handle: string): { giver: Stuff; location: Stuff } {
   const zone = makeStuff(() => new CartesianZone());
   const loc = makeStuff(() => new CartesianLocation());
@@ -74,6 +100,22 @@ function giverAt(handle: string): { giver: Stuff; location: Stuff } {
   // durable handle and nothing else about the actor.
   class Walker extends Idea {}
   const giver = makeStuff(() => new Walker()) as unknown as Stuff;
+  // ⚠ A giver with an interactive, so an ambiguous destination can
+  // ASK. `getInteractives` is not on a bare `Idea`, so it is attached
+  // rather than spied — and `isHasInteractive` is narrowed to match.
+  // Without an interactive the verb refuses in WORDS instead of
+  // hanging, which is its own case below.
+  (giver as unknown as { getInteractives(): Set<unknown> }).getInteractives =
+    () =>
+      new Set([
+        {
+          promptChoice: (
+            label: string,
+            opts: Array<{ label: string; response: string }>,
+          ) => promptImpl(label, opts),
+        },
+      ]);
+  vi.spyOn(MixinApi, 'isHasInteractive').mockReturnValue(hasInteractive);
   // ⚠ `makeStuff`, not `new`: a controller IS a Stuff and the
   // construction sentinel refuses a direct `new`.
   vi.spyOn(giver, 'getIdentityPath').mockReturnValue(VIEWER);
@@ -111,6 +153,8 @@ async function run(
 
 beforeEach(() => {
   said = [];
+  promptImpl = () => Promise.reject(new Error('no prompt expected'));
+  hasInteractive = true;
   StuffApi.clearAll();
   seedKernelContentStore([]);
   registrySpy = vi.spyOn(
@@ -373,5 +417,182 @@ describe('⭐ the budget refusal is distinguishable, and says so', () => {
     expect(out.reason).toBe('budget');
     expect(out.text).toMatch(/could not work out a way that far/);
     expect(out.text).not.toMatch(/no way/);
+  });
+});
+
+describe("⭐⭐⭐ naming a destination: a collection, then a keyword", () => {
+  /*
+   * The model, and why it is not a search. Giving every room a unique
+   * ADDRESS does not work — you get `old-road-12` and `desert-34x95`,
+   * and only half of that is legible. So an address names a
+   * COLLECTION and a keyword picks within it.
+   *
+   * Measured on the shipped realm, which is what settles it: 127 of
+   * 128 places already author keywords; globally `yard` names 14
+   * places and `floor` 12; and scoped to one address, exactly ONE
+   * bucket in the whole realm has an internal collision.
+   */
+  const KITCHEN_A = '/test/town/terrace/lot-1/kitchen';
+  const KITCHEN_B = '/test/town/terrace/lot-2/kitchen';
+  const BEDROOM = '/test/town/terrace/lot-1/bedroom';
+
+  function terrace(): MapClaim[] {
+    return [
+      claim({
+        place: KITCHEN_A,
+        name: 'a cramped kitchen',
+        group: 'town/terrace/lot-1',
+        keywords: ['kitchen'],
+      }),
+      claim({
+        place: BEDROOM,
+        name: 'the master bedroom',
+        group: 'town/terrace/lot-1',
+        keywords: ['bedroom', 'master'],
+      }),
+      claim({
+        place: KITCHEN_B,
+        name: 'a bright kitchen',
+        group: 'town/terrace/lot-2',
+        keywords: ['kitchen'],
+      }),
+      // ⚠ Both ways. A one-way fixture made two RESOLUTION tests fail
+      // on PLANNING — the name resolved perfectly and there was no
+      // route back — which is a fixture reading as a product failure.
+      claim({ kind: 'edge', place: KITCHEN_A, dir: 'north', toLabel: BEDROOM }),
+      claim({ kind: 'edge', place: BEDROOM, dir: 'south', toLabel: KITCHEN_A }),
+      claim({ kind: 'edge', place: BEDROOM, dir: 'west', toLabel: KITCHEN_B }),
+      claim({ kind: 'edge', place: KITCHEN_B, dir: 'east', toLabel: BEDROOM }),
+    ];
+  }
+
+  it('⭐ a COLLECTION plus a keyword names one room', async () => {
+    withMap(terrace());
+    const out = await run({ destination: 'lot-2 kitchen' }, KITCHEN_A);
+    expect(out.reason).toBeNull();
+    expect(out.text).toMatch(/The way to a bright kitchen/);
+    expectNoIndexRead();
+  });
+
+  it('⭐ the collection is matched by path FRAGMENT, not in full', async () => {
+    // `lot-1` reaches `town/terrace/lot-1`, which is how a person
+    // shortens a path. The full form works too.
+    withMap(terrace());
+    const short = await run({ destination: 'lot-1 bedroom' }, KITCHEN_B);
+    const full = await run(
+      { destination: 'town/terrace/lot-1 bedroom' },
+      KITCHEN_B,
+    );
+    expect(short.reason).toBeNull();
+    expect(full.reason).toBeNull();
+    expect(short.text).toMatch(/the master bedroom/);
+    expect(full.text).toMatch(/the master bedroom/);
+  });
+
+  it('⭐⭐⭐ a keyword that names TWO rooms ASKS, with the banked descriptions', async () => {
+    // The whole point. `.find()` used to pick whichever claim was
+    // enumerated first and nobody could tell.
+    withMap(terrace());
+    const seen = withPrompt((opts) => opts[1]!.response);
+    const out = await run({ destination: 'kitchen' }, BEDROOM);
+    expect(seen.asked[0]).toMatch(/Which 'kitchen' did you mean/);
+    expect(out.reason).toBeNull();
+    expectNoIndexRead();
+  });
+
+  it('⚠ and the choices are told apart by the SHORT DESCRIPTION and the collection', async () => {
+    // Two kitchens are distinguished by which house they are in —
+    // nothing else in the claim can do it.
+    withMap(terrace());
+    let offered: string[] = [];
+    withPrompt((opts) => {
+      offered = opts.map((o) => o.label);
+      return opts[0]!.response;
+    });
+    await run({ destination: 'kitchen' }, BEDROOM);
+    expect(offered).toEqual([
+      'a cramped kitchen (town/terrace/lot-1)',
+      'a bright kitchen (town/terrace/lot-2)',
+    ]);
+  });
+
+  it('⚠ the choice list is DETERMINISTIC — the same question lists the same way', async () => {
+    withMap(terrace());
+    const runOnce = async (): Promise<string[]> => {
+      let o: string[] = [];
+      withPrompt((opts) => {
+        o = opts.map((x) => x.label);
+        return opts[0]!.response;
+      });
+      await run({ destination: 'kitchen' }, BEDROOM);
+      return o;
+    };
+    expect(await runOnce()).toEqual(await runOnce());
+  });
+
+  it('⭐ a bare keyword prefers the locality you are STANDING IN', async () => {
+    // `route to kitchen` from lot-1 means the one here, not a prompt:
+    // the common case is the room next door, and trawling the realm
+    // would make the common case the ambiguous one.
+    withMap(terrace());
+    withPrompt(() => {
+      throw new Error('should not have been asked');
+    });
+    const out = await run({ destination: 'bedroom' }, KITCHEN_A);
+    expect(out.reason).toBeNull();
+    expect(out.text).toMatch(/the master bedroom/);
+  });
+
+  it('a COLLECTION alone offers every room in it', async () => {
+    withMap(terrace());
+    let offered: string[] = [];
+    withPrompt((opts) => {
+      offered = opts.map((o) => o.label);
+      return opts[0]!.response;
+    });
+    await run({ destination: 'lot-1' }, KITCHEN_B);
+    expect(offered).toHaveLength(2);
+    expect(offered.join(' ')).toMatch(/cramped kitchen/);
+    expect(offered.join(' ')).toMatch(/master bedroom/);
+  });
+
+  it('⚠ a cancelled prompt declines gracefully — it is not a finding', async () => {
+    withMap(terrace());
+    withPrompt(() => null);
+    const out = await run({ destination: 'kitchen' }, BEDROOM);
+    expect(out.reason).toBe('prompt-cancelled');
+    expect(out.text).toMatch(/Never mind/);
+  });
+
+  it('⚠⚠ with NO interactive it refuses in WORDS and names the candidates', async () => {
+    // An NPC driving the verb, or a stripped harness. Hanging on a
+    // prompt nobody can answer is the failure to avoid.
+    hasInteractive = false;
+    withMap(terrace());
+    const out = await run({ destination: 'kitchen' }, BEDROOM);
+    expect(out.reason).toBe('ambiguous-place');
+    expect(out.text).toMatch(/2 places called 'kitchen'/);
+    expect(out.text).toMatch(/cramped kitchen/);
+  });
+
+  it('⭐ keyword beats a NAME substring — prose is the last rung, not the first', async () => {
+    // `the master bedroom` contains "master"; the keyword is exact.
+    // The old ladder matched the short description first, which is
+    // how "the yard" came to mean whichever of fourteen was first.
+    withMap(terrace());
+    const out = await run({ destination: 'lot-1 master' }, KITCHEN_B);
+    expect(out.reason).toBeNull();
+    expect(out.text).toMatch(/the master bedroom/);
+  });
+});
+
+describe('⭐ `#<stuffId>` — exact, loaded-only, and still gated', () => {
+  it('⚠⚠ refuses an id for a place with no claim — not a hole in the firewall', async () => {
+    // An id is a shortcut THROUGH the firewall, never around it: the
+    // authorization is still "do I hold a claim for this handle".
+    withMap([claim({ place: SQUARE, name: 'the market square' })]);
+    const out = await run({ destination: '#notaknownid' });
+    expect(out.reason).toBe('unknown-place');
+    expectNoIndexRead();
   });
 });

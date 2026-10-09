@@ -16,7 +16,22 @@ verbs: [route]
 controller: /platform/idea/cmd/movement/RouteController
 description: "Work out a way somewhere from what you know"
 help: |
-  `route to <place>` works out a way there from your own map.
+  `route to <place>` works out a way there from your own map, where
+  `<place>` is a **keyword** — `kitchen`, `yard`, `the quay` — the way
+  you would name anything else you can see.
+
+  ⭐ A keyword is unique in a PLACE, not in a realm. So when more than
+  one of yours answers to it, you are asked which, and the choices are
+  the places as you wrote them down: *a cramped kitchen
+  (town/terrace/lot-1)*. Nothing is picked for you.
+
+  `route to <where> <place>` narrows first: `route to lot-123 kitchen`.
+  `<where>` is an **address** — a street, a lot, a quarter — and it
+  names a COLLECTION of rooms rather than one room. Any fragment of it
+  will do: `lot-123`, `evergreen-terrace/lot-123`, or the whole thing.
+  Give the address alone and you are offered everything in it.
+
+  `route to #<id>` is the exact form, for a place you can already see.
 
   `route to <place> by wagon` (or `by boat`) plans for a conveyance
   instead of your feet. ⭐ The COST you are quoted changes with it, and
@@ -38,8 +53,10 @@ help: |
   long and sure — you are shown BOTH. Choosing is the point; a router
   that picked for you would be deciding the interesting part.
 examples:
-  - cmd: route to the bakery
-    note: A way there, from what you have walked
+  - cmd: route to kitchen
+    note: A keyword, in the locality you are standing in
+  - cmd: route to lot-123 kitchen
+    note: An address narrows first, then the keyword picks
   - cmd: route to the quay by wagon
     note: Planned for wheels, and quoted in minutes
   - cmd: route between the market and the bank
@@ -47,8 +64,17 @@ examples:
 validators:
   - /lib/command/validators/requiresAnimate
 args:
-  # GREEDY: a place is named in words a player would use ("the dye
-  # house"), and a single-token arg would refuse the shape.
+  # GREEDY, because a destination is up to three things: an optional
+  # ADDRESS naming a collection of rooms, and a KEYWORD picking within
+  # it — `lot-123 master bedroom`. A single-token arg would refuse
+  # that shape.
+  #
+  # ⚠⚠ NOT "words a player would use", which is what this comment used
+  # to say and is tautological. The model is the addressing
+  # subsystem's: an address names a COLLECTION (giving every room a
+  # unique address does not work — you get `old-road-12` and
+  # `desert-34x95`), a keyword picks within it, and anything still
+  # ambiguous PROMPTS with the short descriptions the map banked.
   #
   # ⚠⚠ NOT required, and neither is `by`. A required arg with no
   # default fails CLOSED and SILENT at the binder — the player types
