@@ -166,6 +166,15 @@ export function PersonaMixin<TBase extends MixinConstructor>(Base: TBase) {
         // cannot, because the authority belongs to the organization the
         // argument names and `CommandContext` carries no bound model.
         'platform/cmd/employment/appoint.yaml',
+        // ⭐⭐ The `dismiss` verb (employment) — the EMPLOYER's half of
+        // `quit`, universal for exactly the reasons `appoint` is: same
+        // field validator, same authority, same derivation when the house
+        // is omitted. ⚠ Without this line the verb answers `unknown-verb`
+        // for everybody forever while its controller tests stay green —
+        // which is what it did on its first drive run. *A verb nothing
+        // confers is a verb nobody has*, and the affordance is the one
+        // reachability link no controller test can see.
+        'platform/cmd/employment/dismiss.yaml',
         // The `quit` verb (employment) — leave a position you hold. Universal
         // for the same reason: it is your own seat, and the controller
         // refuses when you hold none.
