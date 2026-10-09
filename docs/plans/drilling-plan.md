@@ -1456,5 +1456,126 @@ Read first, in this order:
 
 ## Drive record
 
-*Appended at build time. The record must show the run — the output, the
-count, what each failure was — or the exit criterion has not been met.*
+⚠⚠ **NOT YET MET.** Best pass to date: **20 of 24 checkpoints**
+(`drive-y`, 2026-10-08). The wire file is
+`packages/wire/tests/drilling.dirty.wire.test.ts`; run it with
+
+```
+WIRE_BOOT=1 WIRE_PORT=2013 WIRE_BOOT_TIMEOUT=900000 \
+  WIRE_FRAME_TIMEOUT=60000 npx vitest run tests/drilling.dirty.wire.test.ts
+```
+
+⭐ **A fresh DB needs the raised boot budget** — `bootOwnedWorld`'s
+default is 420 s and installing the full pack set exceeds it, after
+which the harness reports *the owned server did not answer* while the
+log's last line is `AppBootstrap: world open`. Reset with
+`pnpm -C packages/server reset:db` before a run that cares about
+`stake` (the claim persists, and a repeat run answers
+`already-claimed`).
+
+### What the drive has PROVED live
+
+- the free evidence (the spring) and the eye rung's refusal to say more;
+- ⭐⭐⭐ **the structural read points off-site at the spring and says
+  *you are as near the top as the ground gets* at the flat** — the crest
+  geometry, which is the thing W-A1's slab premise would have made
+  decorative;
+- ⭐⭐⭐ **the CAIRN reads exactly as well as the whaleback** — two
+  structures, one charged and one not, and no instrument tells them
+  apart. The trade's premise, driven;
+- ⚠⚠ the instrument's words never mention charge;
+- `stake flat` RECORDING a claim (which had never once succeeded in this
+  realm before this build's fix), and the untitled refusal proved by a
+  **non-wizard**;
+- siting raising a derrick and a wellhead; the second `bore` banking a
+  swing;
+- the wage bill; `dismiss`; the gas country as a fourth site and third
+  showing; `head` refusing a non-wellhead in the channel's own words;
+- the bore log keeping a dry metre.
+
+### ⚠ What is still RED, and why
+
+| checkpoint | state |
+|---|---|
+| the hire rack → the kit in hand | the fix (daylight before the rack) landed but **has not had a clean run yet** |
+| `bore` as a hand's swing | `too-tired` — see below |
+| the hands at the rig / the hole deepening / `dismiss` | downstream of the kit; the content fix (crew at the flat) has not had a clean run yet |
+
+⭐ **`too-tired` is the design, not a defect.** A swing costs real
+endurance and *you are not meant to do this by hand* is the trade's
+thesis. The drive eats, drinks and rests on the clock rather than the
+cost being lowered to suit a test. ⚠ It was NOT a cost problem but a
+**hunger** one: endurance is a Reserve and *hydration throttles
+recovery*, so a body that has never eaten or drunk never gets its wind
+back however long you wait.
+
+### ⭐⭐⭐ Three things perception masqueraded as
+
+Worth the most of anything here, because each one presents as the
+mechanism being broken:
+
+1. a **target** you cannot see does not BIND — `dismiss roustabout`
+   answered `no-target` at a rig with two hands standing on it;
+2. an **item** you cannot see cannot be taken — the `get`s off the rack
+   bound nothing in a dim claims office, so the kit never arrived and
+   `bore` answered *I don't understand that* four rooms later;
+3. a **room** you cannot read returns no prose to match, so a checkpoint
+   fails on its assertion rather than on its subject.
+
+### ⚠⚠ And two drive-writing rules this file paid for
+
+- **A checkpoint must own its position.** A walk appended to checkpoint
+  A does not run when A fails, leaving the session in the wrong room and
+  every later checkpoint failing for reasons unrelated to its subject.
+  *A checkpoint that inherits its position inherits every earlier
+  failure.*
+- **`refusedFor` must read all three refusal kinds.** The usual helper
+  looks only for `controller-rejected` and is blind to
+  `command-rejected` / `validator-failed` — the two ways a command dies
+  before a controller runs. ⭐ The tell was **seven diagnostics inside
+  the controller never firing**, which reads as the controller doing
+  nothing rather than as the command never arriving. *"Not refused" is
+  not "succeeded."*
+
+---
+
+## ⚠ WHERE THIS BUILD LEFT OFF (2026-10-08)
+
+Twenty-five commits on `design/2026-10-08-rgo-track`, all pushed. **No
+MR yet.** The remaining sequence, in order:
+
+1. **Re-run the drive.** The last two fixes (daylight before the rack;
+   the crew cast at the flat) have not had a clean pass. Expect the
+   kit, the crew and `dismiss` to follow the kit.
+2. **Merge `origin/master`** into the branch — it is **28 commits
+   behind**. ⚠ Rebuild `packages/types` afterwards before trusting any
+   `tsc` error.
+3. **`pnpm test` once** (~15 min). It has NOT been run this cycle; every
+   verification so far is `test:near`, the per-pack suites and the lint
+   family.
+4. **Open the MR** against `master`. A description draft is at
+   `/tmp/claude-1000/mr-body.md` (regenerate if gone — the wave notes
+   above carry everything in it).
+
+### ⚠ Two findings owed to OTHER packs, not fixed here
+
+- ⛔⛔ **Rejection's provisioning till cannot take money.** `settleSale`
+  returns `null` for three different reasons — no venue path, no
+  business operator, no operating account — and **all three are
+  reported to the player as `insufficient-funds`**, so a shop that
+  cannot trade tells the buyer their wallet is empty. ⭐ This build adds
+  the thing the taps build could not: **a working comparison.** The
+  apiculture drive buys six goods at the Terminus general store
+  cleanly, so `settleSale` is sound and the defect is specifically
+  `provisioning-business`. A hypothesis worth chasing:
+  `operatingAccountOfImpl` takes an `openingAdvance` only when the
+  account has no entries, and a sale remits the demo sales tax OUT of
+  the shop — so a cold shop at zero may be unable to remit the tax on
+  its first sale, which would make *the first sale a venue ever makes*
+  the one that always fails. A bootstrap deadlock, invisible to any
+  venue that has traded once.
+- ⚠ **A sibling worktree's `dev:server` preflight SIGTERMs this drive's
+  server** mid-run (port 2010 is shared). A run that dies with
+  `fetch failed` and wholesale dispatch timeouts, with
+  `Server: SIGTERM received` in the log, was killed from outside and
+  should simply be re-run.
