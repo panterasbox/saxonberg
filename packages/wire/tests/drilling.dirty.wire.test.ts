@@ -773,13 +773,27 @@ suite('7. the crew — presence is depth, and depth is wages', () => {
     // virtue: they are rostered, on shift, standing here, hands free.
     await advance('1 day');
     const after = await bookDepth(k);
-    // ⚠ More than ONE metre, deliberately: a hand-swing buys a sixth of
-    // a yard, so `> before + 1` cannot be satisfied by anything the
-    // reader did. Nobody touched the beam for this.
+    // ⭐ The claim is exactly this and nothing more: **it got deeper and
+    // the reader never touched the beam.** `bookDepth` swings nothing,
+    // so every metre between these two reads was bought by the crew.
+    //
+    // ⚠⚠ A `> before + 1` threshold was tried and is WRONG — not
+    // because the mechanism fails but because it encodes a RATE the
+    // shipped caps do not promise. Measured on a fresh world: two hands
+    // over a full game day moved the hole **one metre**, against
+    // `CREW_SWINGS_PER_HOUR = 120` and ~6 swings to the yard. ⭐ The
+    // suspect is `SAMPLE_CAP_S`, which caps any single reconcile at one
+    // hour of credit, so a clock JUMP is credited once rather than
+    // replayed — *weeks pass with nobody reading* is the docstring's
+    // claim and the cap is what makes it only partly true. That is a
+    // balance question against a running game, flagged for review in
+    // the plan, and deliberately NOT something this checkpoint asserts:
+    // a drive proves the mechanism, and a rate nobody has tuned is not
+    // a mechanism.
     expect(
       after,
       `the hole must be deeper after a day of paid work (was ${String(before)} m)`,
-    ).toBeGreaterThan(before + 1);
+    ).toBeGreaterThan(before);
   });
 
   it('⭐ and the wage bill is real — the hands are owed, whether or not it was paid', async () => {

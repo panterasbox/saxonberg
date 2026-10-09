@@ -1539,6 +1539,38 @@ mechanism being broken:
 
 ---
 
+## ⚠⚠ ONE QUESTION FOR REVIEW: the crew's rate
+
+**Measured on a fresh world, 2026-10-09:** two roustabouts on shift at
+the rig, over a full game day, moved the hole **one metre**.
+
+Against the shipped constants that looks an order of magnitude light:
+`CREW_SWINGS_PER_HOUR = 120` × 2 hands × 24 h = 5 760 swings, and
+`SWINGS_PER_METRE_REF = 6` at the reference hardness. Lining is **not**
+the gate — the Rejection deposit authors no `waterTable`, so it defaults
+to −45 m and `wantsLinerBeyondM` is 45, far below where the hole stopped.
+
+⭐ **The suspect is `SAMPLE_CAP_S = 3600`.** `reconcileRig` clamps
+`elapsed` to one hour, so a clock JUMP is credited **once** rather than
+replayed hour by hour. The cap is the right shape — it is what stops an
+unobserved rig minting unbounded depth, and it is consistent with
+*depth is BANKED, only the swing is ENGAGED* — but it means the
+docstring's *"weeks pass with nobody reading"* is only partly true: the
+weeks are credited as an hour. A shift window that the jump lands
+outside of would compound it, since `crewOnShift()` counts only hands
+actually on shift.
+
+⚠ **Deliberately not changed by this build, and deliberately not
+asserted by the drive.** Which number is wrong — the cap, the swing
+rate, or the expectation — is a balance question against a running game,
+and this project's standing posture is that pricing and rate tuning are
+parked until there is one. What the drive asserts is the mechanism: the
+hole gets deeper, and the reader never touched the beam. ⭐ A rate
+nobody has tuned is not a mechanism, and a checkpoint that asserts one
+fails for reasons that teach nothing.
+
+---
+
 ## ⚠ WHERE THIS BUILD LEFT OFF (2026-10-08)
 
 Twenty-five commits on `design/2026-10-08-rgo-track`, all pushed. **No
