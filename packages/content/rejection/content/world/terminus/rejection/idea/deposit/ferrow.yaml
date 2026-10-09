@@ -199,3 +199,35 @@ data:
       # decision about pacing rather than about reservoir engineering.
       # ⚠ Recharge is ZERO. The leg is a boom with an end in it.
       capacityL: 240000
+    # ⭐⭐⭐ The gas cap — and the venue is making the SAME claim it
+    # already made with `gas:` above, from the other side.
+    #
+    # `gas:` says the measures under this hill give off firedamp into a
+    # heading you cut. This says there is a closed structure holding a
+    # cap of it that a bore can tap. Both are *there is coal in this hill
+    # under the iron*, which is common in reality and this locality's own
+    # decision — and the two are different FACTS about it: one is a
+    # hazard in a working, the other is a reservoir with a wellhead on
+    # it. ⚠ A second mine authors neither.
+    #
+    # ⭐ `headAtm0: 4` — **this one comes up by itself**, which is the
+    # whole difference between Stage A and Stage B. Brine has to be
+    # lifted a bucket at a time; a gas cap drives its own fluid to the
+    # surface and you `fill` from the wellhead like a tap — until it
+    # does not, and the gauge is the only thing that tells you.
+    #
+    # ⚠ And the capacity is SMALL. A gas cap is a cap: the pressure is
+    # what makes it feel generous and the volume is what makes it end,
+    # which is the decline curve the whole trade is about, arriving
+    # inside one session instead of over a month.
+    - key: gas-cap
+      fluid: /stuff/idea/material/gas/firedamp
+      trap:
+        crest: [120, 60, -165]
+        strike: 41
+        alongExtent: 90
+        acrossExtent: 40
+        closureM: 20
+      charge: true
+      headAtm0: 4
+      capacityL: 9000

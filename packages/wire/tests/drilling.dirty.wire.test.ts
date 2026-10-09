@@ -212,9 +212,13 @@ beforeAll(async () => {
   } finally {
     gov.close();
   }
-  const bal = /balance is (\d+)/i.exec(await k.prose('bank'));
-  expect(bal, 'the account must be funded before the drive starts').toBeTruthy();
-  expect(Number(bal![1])).toBeGreaterThan(100);
+  const bankProse = await k.prose('bank');
+  const bal = /balance is (\d+)/i.exec(bankProse);
+  expect(
+    bal,
+    `the account must be funded before the drive starts — the bank said: ${bankProse}`,
+  ).toBeTruthy();
+  expect(Number(bal![1]), `the bank said: ${bankProse}`).toBeGreaterThan(100);
   k.close();
   k = await Session.open(handle, { startLocation: PROVISIONING, wizard: true });
 }, 300_000);
@@ -235,6 +239,19 @@ suite.skipIf(!isOwnedTestWorld())('0. the clock moves from outside', () => {
 /* ───────────── 1–2. the kit, and the walk into salt country ───────────── */
 
 suite('1. the kit is on the shelf people already buy from', () => {
+  it('⭐ buys a light first — this is a mining town and the sun sets', async () => {
+    // ⚠ Not scenery, and the drive found it: the two new sites are
+    // outdoor rooms lit by the sky, so after dark they are PITCH BLACK
+    // and every checkpoint that reads prose reads *you can make out
+    // nothing*. A glowcap jar is four coins on the same slate and is
+    // what any miner in this town carries — which is also the honest
+    // answer rather than authoring an ambient value that pretends the
+    // sun never sets on a hillside.
+    const bought = await say(k, 'buy jar');
+    expect(refusedFor(bought), `a light must be for sale: ${await read(k, 'bank')}`).toBeNull();
+    expect(await carried(k)).toMatch(/jar|glowcap/i);
+  });
+
   it('⭐ buys a bailer and liners at the mining store, priced', async () => {
     // The trade's instruments go where people already buy. ⚠ No derrick
     // on the slate: a ton and a half of timber frame is not a thing you
@@ -242,7 +259,10 @@ suite('1. the kit is on the shelf people already buy from', () => {
     const shelf = await read(k, 'look counter');
     expect(shelf.length).toBeGreaterThan(0);
     const bought = await say(k, 'buy bailer');
-    expect(refusedFor(bought), 'the bailer must be for sale').toBeNull();
+    expect(
+      refusedFor(bought),
+      `the bailer must be for sale — the bank says: ${await read(k, 'bank')}`,
+    ).toBeNull();
     expect(await carried(k)).toMatch(/bailer/i);
     for (let i = 0; i < 3; i++) await say(k, 'buy liner');
     expect(await carried(k)).toMatch(/liner/i);
@@ -379,13 +399,13 @@ suite('7. the crew — presence is depth, and depth is wages', () => {
     const dry = await read(k, 'look');
     expect(dry).toMatch(/roustabout/i);
 
-    const hired = await say(k, 'hire tall roustabout');
+    const hired = await say(k, 'hire tall');
     expect(refusedFor(hired), 'a proprietor with one rig must be able to hire').toBeNull();
     // He is gone from the dry — he has gone out to the hole.
     const after = await read(k, 'look');
     expect(after).not.toMatch(/tall roustabout/i);
 
-    const second = await say(k, 'hire squat roustabout');
+    const second = await say(k, 'hire squat');
     expect(refusedFor(second)).toBeNull();
   });
 
@@ -417,7 +437,7 @@ suite('7. the crew — presence is depth, and depth is wages', () => {
   it('⭐⭐⭐ `dismiss` is the ONLY thing that stops the meter', async () => {
     // Nothing told the player the rate was no longer worth the wage, and
     // nothing will. That decision IS the content.
-    const off = await say(k, 'dismiss tall roustabout');
+    const off = await say(k, 'dismiss tall');
     expect(refusedFor(off)).toBeNull();
     const here = await read(k, 'look');
     expect(here).not.toMatch(/tall roustabout/i);

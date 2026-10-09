@@ -42,6 +42,10 @@ data:
       keywords: [spring, "salt spring", seep, hollow]
     - path: /world/terminus/rejection/location/salt-flat
       keywords: [flat, "salt flat", "the flat", bare]
+    # ⭐ Gas country, and the fourth entry is still zero code. The
+    # falsifiable line holds: a second kind of well is a row.
+    - path: /world/terminus/rejection/location/gas-flat
+      keywords: [burnt, "burnt ground", blow]
   details:
     marks:
       keywords: [marks, mark, crosses, signature]

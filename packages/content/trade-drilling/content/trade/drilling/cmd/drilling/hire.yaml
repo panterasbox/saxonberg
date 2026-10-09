@@ -25,6 +25,27 @@ validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresConscious
 args:
+  # ⚠⚠ THE PERSON FIRST, and no `greedy:`. Two boot-FATAL ordering
+  # rules, both found by driving on the first boot that got far enough
+  # to try, and both of which took the whole server down with
+  # `CommandApi.preloadAll: 2 command(s) failed`:
+  #
+  #   1. *a required arg cannot follow an optional one* — so `target`
+  #      goes before the two optional bound args;
+  #   2. *a greedy arg must be last, or be followed only by
+  #      prepositional args* — and `hole` is positional, so `greedy`
+  #      cannot live here at all.
+  #
+  # ⭐ And dropping `greedy` is the right answer rather than a
+  # workaround: **quoting exists.** `hire "tall roustabout"` is
+  # typable, and so is `hire tall`. `greedy:` is for a free-text TAIL
+  # (a reason, a message), not for a multi-word noun — reaching for it
+  # here would have been solving a refusal that was never real.
+  - name: target
+    type: object
+    required: true
+    scope: [reachable]
+    requires: class:Agent
   # ⭐⭐ THE RIG — DECLARED, not hunted for (`lint:instrument-args`), and
   # the query is the CAPABILITY rather than the class: a second kind of
   # rig any pack ships works with nothing here changed, and the tag on
@@ -45,9 +66,3 @@ args:
     default: "reachable:[mixin.GroundPointMixin]"
     scope: ["reachable"]
     requires: [GroundPointMixin]
-  - name: target
-    type: object
-    required: true
-    scope: [reachable]
-    requires: class:Agent
-    greedy: true

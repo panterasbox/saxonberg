@@ -9,5 +9,5 @@ toolCapabilities: [cutting]
 outputTemplate: /trade/drilling/thing/liner
 outputMaterial: ''
 outputApplication: tangible
-difficulty: straightforward
+difficulty: easy
 discipline: mining

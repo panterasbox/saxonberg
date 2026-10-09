@@ -9,5 +9,5 @@ toolCapabilities: [cutting]
 outputTemplate: /trade/drilling/thing/bailer
 outputMaterial: ''
 outputApplication: tangible
-difficulty: straightforward
+difficulty: standard
 discipline: leatherwork

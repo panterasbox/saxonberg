@@ -23,7 +23,7 @@ data:
 
     No water. No stain. Nothing anybody has ever bothered to stake — except that somebody has dragged a hearth and an iron pan up here and left them, which is either optimism or knowledge.
 
-    The hollow with the spring is back up the slope to the northwest.
+    The hollow with the spring is back up the slope to the northwest. Further out to the northeast the hill shoulders up again, and there is a bald patch on it you can see from here.
   coords: { x: 6, y: 1, z: 0 }
   # ⭐⭐ The hearth and the pan stand AT THE FLAT, and the reason is
   # haulage rather than convenience: brine is ninety-odd per cent water
@@ -43,3 +43,8 @@ data:
     northwest:
       destination: /world/terminus/rejection/location/salt-spring
       edgeMinutes: 3
+    # ⭐ Further out along the same fold axis: the gas country, which is
+    # the same episode of folding holding something lighter.
+    northeast:
+      destination: /world/terminus/rejection/location/gas-flat
+      edgeMinutes: 6
