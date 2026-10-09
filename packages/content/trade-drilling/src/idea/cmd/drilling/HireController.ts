@@ -80,6 +80,16 @@ export default class HireController extends DrillingActController<HireModel> {
       return;
     }
     if (outfit.employs(who)) {
+      // ⚠⚠ The ONE path out of this verb that files no rejection note,
+      // which made it invisible to the drive: `inform` is deliberately
+      // not a refusal (*already works for you* is information), so
+      // `refusedFor` reads null and a checkpoint asserting "the hire was
+      // not refused" passes while nothing happened. ⭐ The lesson is the
+      // drive's: **assert the EFFECT, never the absence of a refusal.**
+      console.warn(
+        `HireController: ${outfit.getTemplatePath()} already employs ` +
+          `${who.getTemplatePath() ?? '?'} — nothing to do`,
+      );
       this.inform(
         context,
         Mml.compose`${Mml.actor(who)} already works for you.`,

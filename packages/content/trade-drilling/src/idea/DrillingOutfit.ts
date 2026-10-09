@@ -89,8 +89,23 @@ export default class DrillingOutfit extends BusinessEntity {
    */
   public async startCrew(actor: Stuff): Promise<boolean> {
     const employment = await this.appoint(actor, ROUSTABOUT);
-    if (!employment) return false;
-    if (!MixinApi.isEmployed(actor)) return false;
+    if (!employment) {
+      // ⚠ Said out loud for `sendToWork`'s reason: a silent false here
+      // reads to the player as *they will not sign on*, which is a
+      // sentence about the hand rather than about the books.
+      console.warn(
+        `DrillingOutfit.startCrew: ${this.getTemplatePath()} could not ` +
+          `appoint ${actor.getTemplatePath() ?? '?'} to '${ROUSTABOUT}'`,
+      );
+      return false;
+    }
+    if (!MixinApi.isEmployed(actor)) {
+      console.warn(
+        `DrillingOutfit.startCrew: ${actor.getTemplatePath() ?? '?'} is not ` +
+          `Employed — nothing can be put on a payroll that keeps no record`,
+      );
+      return false;
+    }
     const now = WorldClockApi.getNow().rawValue();
     // SelfOnly: the organization driving its own roster primitives.
     this.ensureRostered(actor as Stuff & Employed, ROUSTABOUT, now);
@@ -106,14 +121,46 @@ export default class DrillingOutfit extends BusinessEntity {
    * did not give him.
    */
   private async sendToWork(actor: Stuff): Promise<void> {
-    if (!MixinApi.isMobile(actor) || !MixinApi.isContainable(actor)) return;
+    // ⚠⚠ Every early return SAYS SO. This method failed silently for
+    // three drive runs — the hands stayed in the dry, the hole never
+    // deepened, and `dismiss` came back `no-target`, none of which
+    // pointed here. A guard that returns without a word is a guard that
+    // costs somebody a day.
+    const who = actor.getTemplatePath() ?? actor.getIdentityPath() ?? '?';
+    if (!MixinApi.isMobile(actor) || !MixinApi.isContainable(actor)) {
+      console.warn(
+        `DrillingOutfit.sendToWork: ${who} is not mobile/containable — ` +
+          `a hand who cannot be moved cannot be put to work`,
+      );
+      return;
+    }
     const target = this.getOperatingLocations()[0] ?? '';
-    if (target === '') return;
+    if (target === '') {
+      console.warn(
+        `DrillingOutfit.sendToWork: ${this.getTemplatePath()} authors no ` +
+          `operatingLocations — there is nowhere to send ${who}`,
+      );
+      return;
+    }
     try {
       const dest = await StuffApi.singletonOrClone(target);
-      if (!MixinApi.isContainer(dest)) return;
+      if (!MixinApi.isContainer(dest)) {
+        console.warn(
+          `DrillingOutfit.sendToWork: '${target}' is not a container`,
+        );
+        return;
+      }
       const current = actor.getContainer();
-      if (current && current.stuffId === dest.stuffId) return;
+      if (current && current.stuffId === dest.stuffId) {
+        console.warn(
+          `DrillingOutfit.sendToWork: ${who} is already at '${target}'`,
+        );
+        return;
+      }
+      console.warn(
+        `DrillingOutfit.sendToWork: sending ${who} from ` +
+          `'${current?.getTemplatePath() ?? '(nowhere)'}' to '${target}'`,
+      );
       actor.teleport(dest as Stuff & Container);
     } catch (err) {
       console.error(`DrillingOutfit: could not send a hand to '${target}'`, err);

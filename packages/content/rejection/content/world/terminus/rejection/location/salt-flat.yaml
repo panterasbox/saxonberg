@@ -23,6 +23,8 @@ data:
 
     No water. No stain. Nothing anybody has ever bothered to stake — except that somebody has dragged a hearth and an iron pan up here and left them, which is either optimism or knowledge.
 
+    Two men are sitting on the lip of the hollow beside the hearth with their boots off, not doing anything in particular, and they look up when you come over the rise.
+
     The hollow with the spring is back up the slope to the northwest. Further out to the northeast the hill shoulders up again, and there is a bald patch on it you can see from here.
   coords: { x: 6, y: 1, z: 0 }
   # ⭐⭐ The hearth and the pan stand AT THE FLAT, and the reason is
@@ -39,6 +41,21 @@ data:
   props:
     - /trade/quarrying/thing/brine-hearth
     - /trade/quarrying/thing/salt-pan
+  # ⭐⭐⭐ **The labour pool stands AT THE WORK**, and the requirement's
+  # own words are the reason: *a bore crew is hired at the bore, out of
+  # whoever has walked up to it.* They were in the Dry for one revision
+  # — which is the MINE's changing shack, a different business's
+  # building, and a room a brainless hand can never leave, because a
+  # roustabout has no brain on purpose. Hiring there meant the trade
+  # depended on relocating somebody who cannot walk.
+  #
+  # ⭐ Here they are two men sitting on the edge of a flat where
+  # somebody has already dragged a hearth and a pan up and given up,
+  # waiting to see whether the next outfit does better. No relocation,
+  # no brain, and the fiction is better than the mechanism it replaced.
+  cast:
+    - /world/terminus/rejection/agent/roustabout-a
+    - /world/terminus/rejection/agent/roustabout-b
   exits:
     northwest:
       destination: /world/terminus/rejection/location/salt-spring

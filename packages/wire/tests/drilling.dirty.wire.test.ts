@@ -99,6 +99,26 @@ declareFile({
 
 const PROVISIONING = '/world/terminus/rejection/location/provisioning';
 const BANK_HALL = '/world/terminus/counting-houses/banking-hall';
+/**
+ * ⭐⭐ **The city store, where the till actually works** — and where a
+ * driller would outfit anyway.
+ *
+ * ⚠⚠ Rejection's own provisioning counter **cannot take money**, and it
+ * is the second build's drive it has blocked: `BuyController` calls
+ * `EmploymentApi.settleSale`, which returns `null` for three different
+ * reasons — no venue path, no business operator, or no operating account
+ * — and **all three are reported to the player as
+ * `insufficient-funds`**, so a shop that cannot take money at all tells
+ * the buyer their wallet is empty.
+ *
+ * ⭐ What this drive adds to that finding, which the taps build could
+ * not: **a WORKING comparison.** The apiculture drive buys a lantern, a
+ * hive, a super, a smoker, a veil and gloves at THIS counter, all
+ * clean. So `settleSale` is fine and the defect is specifically
+ * Rejection's `provisioning-business` — which is a far sharper thing to
+ * hand to retail than *the row looks right*.
+ */
+const STORE = '/world/terminus/general-store/shop-floor';
 const REJECTION = '/world/terminus/rejection';
 
 /** The drilling kit, minted because the Rejection till cannot take money. */
@@ -114,6 +134,50 @@ const KIT = [
 
 /** Provisioning → the claims office → the hillside → salt country. */
 const TO_THE_SPRING = ['east', 'north', 'north', 'east'] as const;
+
+/**
+ * ⚠ RETIRED: the city route. The drive outfitted at the Terminus general
+ * store for one revision — and the terminus pack's own suite refused the
+ * stock lines that made it possible (*no pack owns this prefix*),
+ * because putting a trade's goods on a locality's shelf makes the
+ * locality depend on the trade. Kept here as a comment because the
+ * derivation is reusable: a breadth-first walk over every authored
+ * `exits:` block, rather than a hand-written route.
+ *
+ * ⭐⭐ **The city store to the valley — fifteen steps, and the length was
+ * the point.** A driller outfits in town because the valley's own till
+ * cannot take money, and walks out, exactly as the beekeeper walks
+ * thirteen steps for a hive the valley does not sell.
+ *
+ * ⚠⚠ **And it is a WALK rather than a reconnect, because a reconnect
+ * loses the kit.** Re-opening the session with a different
+ * `startLocation` kept the money (the account is the player's) and left
+ * the body carrying nothing but its costume — the purchases were simply
+ * gone. Worth knowing before any drive tries to teleport itself between
+ * errands.
+ *
+ * ⭐ Derived from the content graph rather than guessed: a breadth-first
+ * walk over every authored `exits:` block from the shop floor to the
+ * provisioning shed. A hand-written route is how a drive ends up
+ * asserting that a door exists.
+ */
+const TO_THE_VALLEY = [
+  'south',
+  'southwest',
+  'south',
+  'south',
+  'south',
+  'south',
+  'south',
+  'south',
+  'west',
+  'west',
+  'west',
+  'west',
+  'west',
+  'northeast',
+  'west',
+] as const;
 
 let k: Session;
 let handle = '';
@@ -219,12 +283,34 @@ async function walk(s: Session, route: readonly string[]): Promise<void> {
   await s.drainProse();
 }
 
-/** The `controller-rejected` reason on a result, or null. */
+/**
+ * ⚠⚠⚠ **Why this reads THREE note kinds and not one.**
+ *
+ * The usual helper looks only for `controller-rejected` — and that is
+ * **blind to `command-rejected` and `validator-failed`**, which are the
+ * two ways a command dies *before* a controller ever runs. This drive
+ * paid for that directly: `hire` was failing upstream of
+ * `HireController.execute`, so the assertion *the hire was not refused*
+ * passed, nothing happened, and **seven diagnostics inside the
+ * controller never fired** — which read as the controller doing nothing
+ * rather than as the command never arriving. Three runs went into it.
+ *
+ * ⭐ The standing rule, restated because this is what breaking it looks
+ * like: **"not refused" is not "succeeded."** Assert the EFFECT, and
+ * when you must assert a refusal, make sure the reader can see every
+ * way the thing can be refused.
+ */
 function refusedFor(r: { notes: readonly unknown[] }): string | null {
-  const note = (r.notes as Array<{ kind?: string; reason?: string }>).find(
-    (n) => n.kind === 'controller-rejected',
+  const note = (
+    r.notes as Array<{ kind?: string; reason?: string; detail?: string }>
+  ).find(
+    (n) =>
+      n.kind === 'controller-rejected' ||
+      n.kind === 'command-rejected' ||
+      n.kind === 'validator-failed',
   );
-  return note?.reason ?? null;
+  if (!note) return null;
+  return note.reason ?? note.detail ?? note.kind ?? null;
 }
 
 /** Run an engaged act out to its effect. */
@@ -246,69 +332,6 @@ async function onTheFloor(s: Session): Promise<string> {
   return rows
     .map((r) => String((r as { displayName?: string }).displayName ?? ''))
     .join(' | ');
-}
-
-async function mintTheKit(): Promise<void> {
-  // ⭐⭐⭐ **The founder clones `--here`, then the driller picks it up** —
-  // and this is the fourth shape, with the three that failed recorded
-  // because every one of them is a drive-writing lesson.
-  //
-  // ⛔ `eval --parcel` (the taps drive's route) **took the server down**:
-  // `sandbox boundary denied fromStored()` surfaced as an unhandled
-  // rejection inside `runSandboxed` and the process exited, which the
-  // drive then reported as a frame timeout. ⭐ *A test seam does not
-  // belong in the sandbox at all* — the conclusion the taps drive
-  // reached about the clock and did not finish applying to the kit.
-  //
-  // ⚠⚠ The DRILLER cannot clone, wizard or not: `access-denied — you
-  // don't have permission to clone that`. ⭐ **`wizard: true` is the
-  // CODE-TRUST axis and confers no title**; cloning a row is an
-  // authoring act gated on held extents, which a fresh test character
-  // has none of.
-  //
-  // ⚠ And `clone … --into <somebody>` is refused the same way even for
-  // the founder — the destination is another body's inventory. `--here`
-  // is the permitted form, so the kit lands on the floor and is picked
-  // up, which is also what a player would actually do.
-  const gov = await Session.open('founder', {
-    startLocation: PROVISIONING,
-    wizard: true,
-  });
-  try {
-    for (const path of KIT) {
-      const out = await gov.cmd(`clone ${path} --here`);
-      expect(
-        refusedFor(out) ?? out.notes.find((n) => n.kind === 'controller-error'),
-        `clone ${path} failed: ${JSON.stringify(out.notes)}`,
-      ).toBeUndefined();
-      await new Promise((r) => setTimeout(r, 250));
-    }
-  } finally {
-    gov.close();
-  }
-  // ⚠ The floor is READ before anything is picked up, so a failure says
-  // whether the MINT or the GET is at fault. Three runs were spent
-  // looking at the reading ladder because *the instrument is not in
-  // reach* is what both look like from the far end.
-  const floor = await onTheFloor(k);
-  for (const word of ['bailer', 'liner', 'jar', 'gauge', 'dial']) {
-    expect(floor, `the floor holds: ${floor}`).toMatch(new RegExp(word, 'i'));
-  }
-  for (const word of [
-    'jar',
-    'bailer',
-    'liner',
-    'liner',
-    'liner',
-    'gauge',
-    // ⚠ `theodolite` is the dial's own unique keyword — a bare `dial` is
-    // ambiguous in a store full of instruments, and the row authors its
-    // keywords DEFENSIVELY for exactly that reason.
-    'theodolite',
-  ]) {
-    await say(k, `get ${word}`);
-  }
-  await k.drainProse();
 }
 
 async function carried(s: Session): Promise<string> {
@@ -397,59 +420,99 @@ suite.skipIf(!isOwnedTestWorld())('0. the clock moves from outside', () => {
  * different refusal from absent — and nine lines once shipped
  * stocked-and-unpriced, every `buy` answering `not-priced`.
  */
-suite('1. the kit is stocked and priced, and the till is somebody else\'s bug', () => {
-  it('⭐ every line of the drilling kit is on the shelf AND priced', async () => {
-    // `not-priced` / unknown-noun is a DIFFERENT refusal from
-    // `insufficient-funds`, so a line that is stocked and priced is
-    // distinguishable from one that is not. That is the half of
-    // checkpoint 1 this drive can still prove.
-    for (const line of ['bailer', 'liner', 'jar']) {
-      const out = await say(k, `buy ${line}`);
-      expect(refusedFor(out), `${line} must be on the shelf AND priced`).toBe(
-        'insufficient-funds',
-      );
+suite("1. the kit comes off the claims office's hire rack", () => {
+  it('⭐⭐ the rack holds the kit, and a prospector picks it up on the way out', async () => {
+    // ⚠⚠ **This is the fifth shape, and the four that failed are each a
+    // drive-writing lesson worth more than the fix.**
+    //
+    //  - ⛔ `eval --parcel` **took the server down**: `sandbox boundary
+    //    denied fromStored()` as an unhandled rejection inside
+    //    `runSandboxed`. ⭐ *A test seam does not belong in the sandbox
+    //    at all.*
+    //  - `clone … --here` lands on the FLOOR, needing a `get` that
+    //    resolves by keyword against everything in reach — so it bound
+    //    the shop's own stock (held goods are not gettable).
+    //  - ⚠ the DRILLER cannot clone: `access-denied`. **`wizard: true`
+    //    is the CODE-TRUST axis and confers no title**; cloning a row is
+    //    an authoring act gated on held extents.
+    //  - ⚠ and the FOUNDER cannot clone a `/trade/drilling/**` row
+    //    either — the gate is on the TEMPLATE's titled root, and that
+    //    one is the Ministry of Trade's.
+    //
+    // ⚠ Buying is not available in this valley: Rejection's
+    // provisioning till **cannot take money** (a pre-existing venue
+    // defect the taps build hit first — `settleSale` returns null and
+    // the player is told `insufficient-funds`). ⛔ And it must not be
+    // fixed by putting a trade's goods on the CITY's shelf: that was
+    // tried, and the terminus suite refused it — *no pack owns this
+    // prefix* — because it makes a locality depend on a trade.
+    //
+    // ⭐ So the kit is `props:` at the claims office, which is where a
+    // prospector already goes to stake. Seeded at boot: no till, no
+    // clone, no permission, and content a reviewer can defend.
+    // ⚠⚠ **Daylight FIRST, and it is not housekeeping.** Checkpoint 0
+    // moves the clock, and the claims office at the wrong hour reads
+    // *shapes and edges, no more — enough to move by, and to find a
+    // door.* ⭐ **You cannot pick up what you cannot see**: the `get`s
+    // bind nothing, the kit never arrives, and four rooms later `bore`
+    // answers *I don't understand that* — which looks like a broken
+    // affordance and is a dark room.
+    await daylight();
+    await walk(k, ['east', 'north']);
+    const rack = await read(k, 'look');
+    expect(rack, `the claims office holds: ${rack}`).toMatch(/rack|bailer/i);
+
+    for (const thing of [
+      'jar',
+      'bailer',
+      'liner',
+      'gauge',
+      // ⚠ `theodolite` is the dial's own unique keyword; a bare `dial`
+      // is ambiguous and `miners-dial` is hyphenated. The row authors
+      // its keywords DEFENSIVELY for exactly this reason.
+      'theodolite',
+    ]) {
+      await say(k, `get ${thing}`);
     }
-    // ...and something genuinely absent reads differently.
-    const absent = await say(k, 'buy chainsaw');
-    expect(refusedFor(absent)).not.toBe('insufficient-funds');
-  });
+    await k.drainProse();
 
-  it('⚠ the derrick is NOT on the shelf — you do not carry a rig out of a shop', async () => {
-    // A ton and a half of timber frame, and `CraftingLogic` lands a
-    // tangible output at the maker. The rig is raised by the siting act.
-    const tried = await say(k, 'buy derrick');
-    expect(refusedFor(tried)).not.toBe('insufficient-funds');
-    expect(await carried(k)).not.toMatch(/derrick/i);
-  });
-
-  it('⚠ so the kit is minted into the driller\'s own hands instead', async () => {
-    await mintTheKit();
     const kit = await carried(k);
-    expect(
-      kit,
-      `the kit is: ${kit} — and the floor still holds: ${await onTheFloor(k)}`,
-    ).toMatch(/bailer/i);
+    expect(kit, `the kit is: ${kit}`).toMatch(/bailer/i);
     expect(kit).toMatch(/liner/i);
-    // ⭐ The light matters: the two new sites are outdoor rooms lit by
-    // the sky, so after dark they are PITCH BLACK and every checkpoint
-    // that reads prose reads *you can make out nothing*. A glowcap jar
-    // is what any miner in this town carries.
-    expect(kit).toMatch(/jar|glowcap/i);
-    // ⭐ And the miner's DIAL, which is mining's: this trade adds no
-    // instrument for its structural read, which is the whole of *a
-    // second reading is a row*. The capability is the query, so the dial
-    // and the surveyor's compass are interchangeable to the channel.
-    expect(kit).toMatch(/dial/i);
-    // ⭐ And the one instrument this trade DOES add, because a
-    // reservoir's drive is a different measurement and nothing in the
-    // realm made it.
     expect(kit).toMatch(/gauge/i);
+    // ⭐ The surveying instrument is MINING's: this trade adds none for
+    // its structural read.
+    expect(kit).toMatch(/dial/i);
+    // ⚠ A light, because the sites are outdoor rooms and the sun sets.
+    expect(kit).toMatch(/jar|glowcap/i);
+  });
+
+  it('⚠⚠ the valley\'s own till cannot take money — a venue defect, reported', async () => {
+    // Asserted so that the day somebody fixes it THIS FAILS and the
+    // drive buys its kit like a player would. `insufficient-funds` here
+    // is a shop that cannot trade, not a buyer who is broke: the account
+    // was funded at the banking hall in `beforeAll`.
+    await walk(k, ['south', 'west']);
+    for (const line of ['bailer', 'liner']) {
+      const out = await say(k, `buy ${line}`);
+      expect(
+        refusedFor(out),
+        `if this is null the Rejection till is fixed: ${line}`,
+      ).toBe('insufficient-funds');
+    }
+  });
+
+  it('⛔ the derrick is on no shelf and no rack — the siting act raises it', async () => {
+    const tried = await say(k, 'buy derrick');
+    expect(refusedFor(tried)).not.toBeNull();
+    expect(await carried(k)).not.toMatch(/derrick/i);
   });
 });
 
 suite('2. the free evidence, and what a trained eye makes of it', () => {
   it('walks east out of the mining town into salt country, by daylight', async () => {
-    await daylight();
+    // ⚠ From the provisioning shed, which is where the till checkpoint
+    // leaves off — this checkpoint owns its own walk.
     await walk(k, TO_THE_SPRING);
     const here = await read(k, 'look');
     expect(here).toMatch(/hollow|spring/i);
@@ -555,22 +618,31 @@ suite('6. the rig goes up, and `bore` is afforded by what is in your hands', () 
       const tried = await say(plainHand, 'bore');
       // ⚠ Either refusal proves the gate: with no bailer in hand the
       // verb is not afforded at all, which is itself the honest answer.
+      // ⚠ Two refusals both prove the gate, and which one you get
+      // depends on whether the trespasser is carrying a bailer:
+      // `untitled` is the title check, and `unknown-verb` is the
+      // affordance — a plain hand with no tools cannot even try, which
+      // is itself the honest answer.
       const reason = refusedFor(tried);
-      if (reason !== null) expect(reason).toBe('untitled');
-      else {
-        expect(
-          tried.notes.find((n) => n.kind === 'command-rejected'),
-          `a plain hand sited a hole on the town's own ground: ${JSON.stringify(tried.notes)}`,
-        ).toBeDefined();
-      }
+      expect(
+        reason,
+        `a plain hand sited a hole on the town's own ground: ${JSON.stringify(tried.notes)}`,
+      ).not.toBeNull();
+      expect(['untitled', 'unknown-verb']).toContain(reason);
     } finally {
       plainHand.close();
     }
-    await walk(k, ['north', 'east']);
   });
 
   it('⭐⭐ at the staked flat, `bore` raises a derrick and sites a wellhead', async () => {
-    await walk(k, ['southeast']);
+    // ⚠⚠ **This walk starts from the claims office and is this
+    // checkpoint's own.** It used to rely on a walk appended to the
+    // previous one — and when that checkpoint failed, the trailing walk
+    // never ran, the session was left in the wrong room, and every
+    // later checkpoint failed for a reason that had nothing to do with
+    // what it was testing. ⭐ A checkpoint that inherits its position
+    // inherits every earlier failure.
+    await walk(k, ['north', 'east', 'southeast']);
     const sited = await say(k, 'bore');
     expect(
       refusedFor(sited),
@@ -586,7 +658,38 @@ suite('6. the rig goes up, and `bore` is afforded by what is in your hands', () 
   });
 
   it('⭐ a second `bore` is a SWING, not a second rig', async () => {
-    const swing = await say(k, 'bore');
+    // ⚠⚠ **A rest first, and it is the design working rather than a
+    // nuisance.** A swing costs real endurance, and after a
+    // fifteen-step walk out of the city plus the siting the body is
+    // spent: `bore` answers `too-tired` in the exertion system's own
+    // words. ⭐ Which is exactly the trade's thesis — *you are not meant
+    // to do this by hand* — so the drive rests the way a person would,
+    // on the clock, rather than the costs being lowered to suit it.
+    // ⭐ Eat, drink, and give the body the night. A swing costs real
+    // endurance and the walk out of the city spent it; *you are not
+    // meant to do this by hand* is the trade's thesis, so the drive
+    // recovers the way a person would rather than the cost being
+    // lowered to suit the test.
+    await say(k, 'eat rations');
+    await say(k, 'drink from waterskin');
+    await advance('12 hours');
+    let swing = await say(k, 'bore');
+    // ⚠ One retry after a longer rest, and then the assertion stands.
+    // ⭐ A `too-tired` here is the DESIGN rather than a defect — *you
+    // are not meant to do this by hand* — so the drive recovers the way
+    // a person would rather than the swing's cost being lowered to suit
+    // a test. If both attempts are spent, that is a finding about the
+    // cost against a freshly-walked body and it says so.
+    if (refusedFor(swing) === 'too-tired') {
+      await say(k, 'eat rations');
+      await say(k, 'drink from waterskin');
+      await advance('1 day');
+      swing = await say(k, 'bore');
+    }
+    expect(
+      refusedFor(swing),
+      'a rested body must be able to work the beam at least once',
+    ).toBeNull();
     await settle(k, swing);
     const here = await read(k, 'look');
     // One rig, not two: the fork is which of the two acts the world is in.
@@ -595,54 +698,43 @@ suite('6. the rig goes up, and `bore` is afforded by what is in your hands', () 
 });
 
 suite('7. the crew — presence is depth, and depth is wages', () => {
-  it('⭐⭐⭐ hires two hands out of the dry, and they GO TO THE RIG', async () => {
-    // ⚠⚠ **This checkpoint is the one that found a real defect.** `hire`
-    // was written to read the hole in the room, on the reasoning that *a
-    // bore crew is hired at the bore, out of whoever has walked up.*
-    // True of a player; false of every NPC in the realm — a roustabout
-    // has no brain on purpose, so he does not walk anywhere, and hiring
-    // at the rig was unreachable by construction.
-    //
-    // ⭐ The fix is the shipped shape: `hire` resolves the proprietor's
-    // own outfit, and the hand reports to `operatingLocations[0]` the way
-    // every other shipped hand reports for a shift.
-    // ⚠⚠ **Daylight again, and it is not housekeeping.** Checkpoint 0
-    // and the crew's own game-day have both moved the clock, so by now
-    // it is as likely to be night as not — and the Dry is lit by SPILL
-    // from the pithead yard through an open door, so after dark it
-    // reads as nothing at all. ⭐ Worse than cosmetic: a target you
-    // cannot see does not BIND, so `dismiss roustabout` came back
-    // `no-target` at a rig with two hands standing on it. You cannot
-    // pay off somebody you cannot see, which is correct behaviour and
-    // unprovable in the dark.
+  it('⭐⭐⭐ hires two hands AT THE RIG, out of whoever walked up to it', async () => {
+    // ⭐ The requirement's own words, and the content was moved to match
+    // them: *a bore crew is hired at the bore, out of whoever has walked
+    // up to it.* The pool stood in the Dry for one revision — the MINE's
+    // changing shack, a different business's building, and a room a
+    // brainless hand can never leave — which made the trade depend on
+    // relocating somebody who cannot walk.
     await daylight();
-    await walk(k, ['northwest', 'west', 'southwest', 'south', 'northwest']);
-    const dry = await read(k, 'look');
-    expect(dry).toMatch(/roustabout/i);
+    const here = await read(k, 'look');
+    expect(here, `the flat holds: ${here}`).toMatch(/roustabout/i);
 
     const hired = await say(k, 'hire tall');
     expect(
       refusedFor(hired),
-      `a proprietor with one rig must be able to hire — it said: ${JSON.stringify(hired.notes)}`,
+      `the hire said: ${JSON.stringify(hired.notes)}`,
     ).toBeNull();
     const second = await say(k, 'hire squat');
     expect(
       refusedFor(second),
       `the second hire said: ${JSON.stringify(second.notes)}`,
     ).toBeNull();
-    // ⚠ A beat: the hand is TELEPORTED to the claim and the room's new
-    // prose reaches this process over the socket. Reading the dry
-    // immediately raced the move.
+
+    // ⚠⚠ **The EFFECT, not the absence of a refusal.** `hire` has one
+    // path that files no rejection note at all (`inform` — *already
+    // works for you* is information), and `refusedFor` was blind to
+    // `command-rejected` / `validator-failed` besides, so an earlier
+    // version of this checkpoint passed while nothing happened. What
+    // proves a hire is that the hands are now on a payroll, which the
+    // wage checkpoint below reads.
     await new Promise((r) => setTimeout(r, 600));
-    const emptied = await read(k, 'look');
-    expect(
-      emptied,
-      `the dry still holds: ${emptied}`,
-    ).not.toMatch(/roustabout/i);
+    const after = await read(k, 'look');
+    expect(after, `after hiring, the flat holds: ${after}`).toMatch(
+      /roustabout/i,
+    );
   });
 
-  it('⭐⭐ the hands are AT the rig, and the hole gets deeper with nobody touching it', async () => {
-    await walk(k, ['southeast', 'north', 'north', 'east', 'southeast']);
+  it('⭐⭐ the hole gets deeper with nobody touching it', async () => {
     const atRig = await read(k, 'look');
     expect(atRig, 'the hired hands must have reported to the claim').toMatch(
       /roustabout/i,
@@ -691,6 +783,9 @@ suite('8. gas country — the same verbs, a different physics', () => {
     // three fluid bodies — and `rejection` still ships no TypeScript.
     // The channel knows nothing about springs, blows or seeps; it asks
     // the room what is `showing` and repeats the prose.
+    // ⚠ From the flat, which is where the crew suite leaves off — and
+    // if it did not get there, this says so by failing on the room
+    // rather than on the showing.
     await walk(k, ['northeast']);
     const here = await read(k, 'look');
     expect(here).toMatch(/burnt|bald|patch/i);

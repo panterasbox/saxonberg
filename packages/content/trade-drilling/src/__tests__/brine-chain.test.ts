@@ -161,15 +161,46 @@ describe('the recipes name rows that exist', () => {
 });
 
 describe('the labour pool is content, and the hands have no brain', () => {
-  it('two roustabouts stand in the Dry, cast rather than propped', () => {
-    const dry = data(`${REJECTION}location/the-dry.yaml`);
-    const cast = (dry.cast ?? []) as string[];
+  it('⭐⭐ two roustabouts stand AT THE WORK, cast rather than propped', () => {
+    // ⭐ The requirement's own words: *a bore crew is hired at the bore,
+    // out of whoever has walked up to it.* They stood in the Dry for one
+    // revision — the MINE's changing shack, a different business's
+    // building, and a room a brainless hand can never leave, which made
+    // the trade depend on relocating somebody who cannot walk.
+    const flat = data(`${REJECTION}location/salt-flat.yaml`);
+    const cast = (flat.cast ?? []) as string[];
     expect(cast).toContain('/world/terminus/rejection/agent/roustabout-a');
     expect(cast).toContain('/world/terminus/rejection/agent/roustabout-b');
     // ⚠ `cast:`, never `props:` — they are people.
-    expect((dry.props ?? []) as string[]).not.toContain(
+    expect((flat.props ?? []) as string[]).not.toContain(
       '/world/terminus/rejection/agent/roustabout-a',
     );
+    // ...and the Dry is a changing shack again.
+    const dry = data(`${REJECTION}location/the-dry.yaml`);
+    expect((dry.cast ?? []) as string[]).not.toContain(
+      '/world/terminus/rejection/agent/roustabout-a',
+    );
+  });
+
+  it('⭐ the hire rack at the claims office is how the kit reaches a hand', () => {
+    // ⚠⚠ Because it cannot be bought in this valley: Rejection's
+    // provisioning till cannot take money (a pre-existing venue defect),
+    // and ⛔ putting a trade's goods on the CITY's shelf was refused by
+    // the terminus suite — *no pack owns this prefix* — because it makes
+    // a locality depend on a trade.
+    const office = data(`${REJECTION}location/claims-office.yaml`);
+    const props = (office.props ?? []) as string[];
+    for (const path of [
+      '/trade/drilling/thing/bailer',
+      '/trade/drilling/thing/liner',
+      '/trade/drilling/thing/pressure-gauge',
+      '/trade/mining/thing/miners-dial',
+    ]) {
+      expect(props, `the rack is: ${props.join(', ')}`).toContain(path);
+    }
+    // ⚠ And no repeats: `lint:census` clause (e) reads a repeated path
+    // with no `as` as `count: N` written longhand.
+    expect(new Set(props).size).toBe(props.length);
   });
 
   it('⚠⚠ neither has a BEHAVIOUR, and that is deliberate', () => {
