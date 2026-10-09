@@ -12,6 +12,15 @@
 > (linear vs areal) · the horizon as co-presence · seeded traffic · the
 > two-tier ocean/venue title · the holder's duty · and the first water
 > anybody can stand in.
+> ⭐⭐ **Added 2026-10-09:** the **coast** closes the model — a beach is a
+> land `Location` holding a `Shore` that **cites** a water node, so
+> nothing is ever *in* the water's zone (§ 5a) · the ownership model
+> **corrected** — the frame-holder holds the water and **no land**;
+> adjacent, not nested (§ 5) · *"a place that can be underwater"* was
+> **never a gap** — [underwater-slate](./underwater-slate.md) already
+> derives the medium from `level − elevation` (§ 4) · and the **trade
+> audit** across all 27 shipped trades, with the unbuilt-trade list kept
+> (§ 5b).
 > **Size:** a build, and probably two — the **estuary** is reachable on
 > its own and the **areal** half is most of the cost.
 
@@ -275,11 +284,36 @@ never re-examined for a build where people get wet.**
 | **Friday the 13th** | ⭐ the camp is land | ⚠ the canoe, the drowning, the hand out of the water |
 
 ⭐⭐⭐ **The common missing piece is one thing, not four: water as a place
-you can occupy, surface and beneath.** A **water biome branch** (light
-attenuating by depth, pressure, `breathableMedia` empty so
-`respiration.md`'s asphyxiation crisis runs) plus **permission for a reach
-to be a `Location`.** `fishing.md` already built the half where you act on
-water you are *not* in — the `Shore`. This is the other half.
+you can occupy, surface and beneath.**
+
+### ⚠⚠ CORRECTED 2026-10-09 — most of this is already decided
+
+[underwater-slate.md](./underwater-slate.md) (designed 2026-09-18,
+**DECIDED** on five of seven sections) already holds it, and in a better
+general form than the drafts above:
+
+> **Every water node cites its reach, and the reach's level is the
+> surface.** Medium is **derived** from `level − elevation`, not
+> authored: *a shallow node goes dry on the ebb, a shore node goes under
+> on the flood, and nobody re-authors anything.*
+
+⭐⭐⭐ **So *"a place that can be underwater"* was never a gap** — it is
+one comparison, and it unifies **the reef · the wreck · the drowned
+village · the flooded workings · the tide pool · the flood.** The drowned
+village needs nothing but a reservoir whose level rose, and
+`StorageNode`'s level is *"the build's ONE piece of state."*
+
+Also already decided there: **implicit up** unless a node declares
+`ceiling: true`, with a gate proving a ceiling reaches air · **`depth` on
+the node and `up`/`down` derived** (*"never an arrow"* — the watershed's
+move) · light, temperature and pressure **derived from depth and the
+reach's clarity**, *"never a per-room `ambientIntensity`"* · buoyancy as
+a **read** · and ⭐⭐ **"ascent is never gated on skill — only on breath
+and ballast."** Plus *"Atlantis is in bounds"*, and ⚠ the ground-build
+retrofit that **a band is not standable, its bed is** (`noDefaultFloor`).
+
+⭐ So of the four films, the missing piece is **already designed** and the
+remaining cost is the build, not the thinking.
 
 ### ⭐⭐⭐ The Deliverance gap — a reach has no character
 
@@ -303,6 +337,26 @@ character of its own"* — gradient, bed, width, obstruction — is a claim
 about **what water is** rather than about how water is organised, and it
 changes what is authored on every node in both halves.
 
+#### ⭐⭐⭐ And the underwater slate states it sharply, by contrast
+
+Look at what the **column** has that a **reach** does not:
+
+> *depth ÷ ascent rate = the breath you need; the water's cold is the
+> second clock (`conductivityOf(water)` is ~25× air). **The deep is
+> legitimately deadly, as the mine's bottom is.***
+
+⭐⭐⭐ **The vertical axis priced its passage. The horizontal one never
+did.** Breath, cold, ballast and a derivable survivable path going
+*down*; **flow × width and a boolean** going *along*.
+
+**That is the gap in its real form** — not *a reach has no character*,
+but **one axis got a cost model and the other got a predicate** — and the
+underwater slate is the proof it is buildable, because it did the harder
+of the two. ⭐ The likely shape is `exertion.md`: `exert({durationS,
+powerW})`, the five slow stocks, *reach as a body read*, and **every
+limit soft.** A reach that declares what it costs to pass, derived from
+**gradient and obstruction**, so a surveyor could have warned them.
+
 ### ⭐⭐ Constant versus variable, stated properly
 
 **Constant, rightly:** direction · flow · navigability's arithmetic ·
@@ -321,18 +375,46 @@ than scripted.
 
 ---
 
-## 5. Ownership — two tiers, and the conflict is subdivision
+## 5. Ownership — the frame-holder holds the water, and nothing else
 
 **An independent concern holds each water body** — one committee per
-ocean/expanse, managing the frame. **The individual cartesian locations
-within it can be held by one or more other committees.**
+ocean/expanse, managing the frame. ⭐ The shape has a long history: **the
+frame-holder owns the *way*, and somebody else owns the *destinations***
+(a port authority, a turnpike company).
 
-⭐⭐ **This needs no new mechanism.** `parcel.md`'s **longest-prefix**
-resolution is exactly how two tiers of title coexist: the frame-holder
-holds `/world/<realm>/<ocean>/`, a port committee holds the longer
-prefix, and `ownerOf` resolves to the port. ⭐ The shape has a long
-history — **the frame-holder owns the *way*, the tenants own the
-*destinations*** (a port authority, a turnpike company).
+### ⚠⚠ CORRECTED 2026-10-09 — they are ADJACENT, not nested
+
+A draft of this section put ports *under* the ocean's template path —
+`/world/<realm>/<ocean>/<port>/` — with `parcel.md`'s longest-prefix
+resolution settling the two tiers. **That is wrong, and `wharfside`
+proves it.**
+
+Terminus's waterfront is at **`/world/terminus/wharfside/`** — a district
+of the *city*. It cannot simultaneously sit under an ocean's path,
+because **a template path is singular and a town cannot be inside an
+ocean.**
+
+⭐⭐⭐ **So the frame-holder holds the water and NOTHING ELSE. Every place
+is on somebody's land.** There is no nesting to resolve — the water and
+the shore are **adjacent**, joined by a citation (§ 5a) rather than by
+containment.
+
+⭐ Which is more honest anyway: **a port authority does not own the
+town.** It owns the channel, the moorings and the pilotage; the quay
+belongs to whoever's land it is on.
+
+⭐⭐ And it *sharpens* the design rather than weakening it. A
+water-holder's only assets are **passage** and **stock**, so its only
+revenue instruments are **a toll** and **a licence** — which is exactly
+why § 5's fishery case and the canal's chokepoint case came out as the
+only two shapes available. **It has no berths to let, because it has no
+land.**
+
+⭐⭐⭐ **And the subdivision answer gets sharper too: a hostile water
+committee cannot stop you building a port. It can only stop you leaving
+it.** You may build the whole harbour and then find the charter will not
+license your transit — a far more specific and more interesting power
+than a landlord's veto.
 
 ### ⭐⭐⭐ The conflict of interest is smaller than it looks
 
@@ -415,6 +497,202 @@ polity dealing with it* is what this whole structure exists to make
 possible.
 
 ---
+
+## 5a. ⭐⭐⭐ The coast is the `Shore`, and it closes the model
+
+The seam between this model and the land model — and **it already
+ships.**
+
+> **`/system/water/thing/Shore`** — a **room-fixed feature**
+> (`fixedInPlace`) **citing a `reachRef`**, the water pack's, by the
+> `/system/` test: *a riverbank is there whether or not anyone fishes.*
+
+⭐⭐⭐ **So a beach is neither a node on the expanse nor a node on the
+land graph: it is a LAND `Location` holding a `Shore` feature that CITES
+a water node.** Water is cited, never contained and never containing —
+the same relation a room already has to `_biomePath` and `_address`.
+
+| the coast must | and it does, because |
+|---|---|
+| be reachable on foot | it is an ordinary land `Location` |
+| have its own content | it is an ordinary land `Location` |
+| let you act on water without being in it | ⭐ **that is what a `Shore` is** |
+| be sited and titled by whoever owns the ground | it is on the land graph, held by the town |
+| be where a craft makes landfall | ⭐⭐ **an exit** — `location.md` permits non-cardinal labels *"when the destination's templatePath resolves to a different zone"*, and a beach and an ocean are different zones, so `ashore` / `aboard` are already legal |
+
+⭐⭐ **Two rows already ship** — the wharfside `river-edge` citing
+`kestrel:confluence`, and the moor's `heath-mere` citing `holloway:head`.
+**Terminus's waterfront is already citing a reach.**
+
+⭐ And there is a three-rung fallback: a verb takes a Shore as a declared
+argument (`default: "reachable:[class.Shore]"`) and **falls back to the
+Locality's reach when none is bound** — *"how Heart's Delight's millsite
+fishes the Delight's flats with no row and no code."*
+
+### ⭐⭐ Three faces on one citation
+
+- **`Shore`** — *act on* water you are not in (fish, haul, sound, draw)
+- **a dive entrance** — *enter* water you are not in (⭐ the mine's adit,
+  one element over: you descend where somebody knows there is something)
+- **a mooring or launch** — *put a craft on* water
+
+All three are room-fixed features citing a reach, and ⭐ a craft with
+interior geography has rooms, so a **boat's rail is a `Shore`** and a
+**boat dive** is the same feature aboard.
+
+⭐ **An island** is then a land `Location` with a `Shore` and **no land
+exit.** Same object, nothing new. Likewise a fishing village, a saltern,
+a dyehouse, a whaling station.
+
+### ⚠⚠ One defect, at the busiest seam in the system
+
+From the same section of [fishing.md](../../subsystems/fishing.md):
+
+> *"The room's own `look` does not carry the read — **a prop contributes
+> nothing to its room's prose** (only the floor puddle has a kernel
+> hook). A room-level contribution hook is a finding for the sweep."*
+
+⭐⭐⭐ **So a beach does not mention the sea** unless the author writes it
+twice — once in the room's `longDescription` and again on the Shore — and
+the two then drift. ⚠ That is the *two copies of one sentence* failure at
+the single most-visited join in the whole design, and **every coastal
+room in the realm will hit it.** Worth promoting out of the sweep.
+
+## 5b. ⭐⭐⭐ The trades — what water touches, and what it unlocks
+
+Audited against all 27 shipped trades, 2026-10-09. ⭐ **Water touches far
+more than fishing**, and the useful grouping is *how* it touches.
+
+### Water as POWER
+
+**Milling** is already **fully water-powered and shipped** —
+`ρ·g·Δh·Q·η`, the weir, the race, an overshot wheel, *"in August it turns
+slower."* ⭐ Nobody calls it a water trade and it is the deepest one we
+have.
+
+**Smelting · smithing · fuel** — ⭐⭐ water-powered bellows and trip
+hammers are why every ironworks sat on a stream. A finery forge is a
+waterwheel with a hammer on it.
+
+### ⭐⭐⭐ Water as an ENTITLEMENT — and the rights system has no consumer
+
+**Farming · ranching · milling** do not consume water, they consume **a
+right to water** — and `watershed.md` ships the `water-right` document
+kind, allocation, quotas, prior appropriation recorded, riparian derived,
+and *"the parcel's reach citation."*
+
+⚠⚠ **And the millsite has a weir across the whole river and no water
+right.** Its own prose says *"it passes everything it takes — nothing is
+diverted away, nothing is lost downstream."* ⭐⭐⭐ **That is a claim
+about a diversion right, written as reassurance, with no record behind
+it** — the oldest water dispute there is, in our best room, undocumented.
+
+### ⭐⭐⭐ Water as an INGREDIENT whose chemistry is already readable
+
+**Brewing · distilling · malting** — and the `Shore` read already reports
+**soft / hard** as a physical fact about the water.
+
+⭐⭐⭐ **Terroir-by-water is already readable and nothing consumes it.**
+Burton's gypsum made pale ale, Dublin's hard water made stout, Pilsen's
+soft water made lager — **three beer styles that exist because of three
+rivers**, and we ship the read and the trades and no connection between
+them.
+
+### ⭐⭐⭐ Water as a medium you FOUL — the biggest unwired collision
+
+**Dyeing · tanning · textiles.** All three ship. All three are sited on
+water in life for the same reason. And `watershed.md` ships
+**contamination as a concentration by kind**, so *a dry month is a dirty
+month.*
+
+⭐ `textiles.md` already knows the politics and has nowhere to put it:
+
+> *"**Retting ponds stank badly enough to be banned upstream of
+> towns.**"*
+
+⚠⚠ **An authored prohibition with no river to prohibit it on** — plus
+`MaturingMixin` already running *"the retting pit's clock"* and
+`rotted-flax` as the over-ret, the trade's one visible failure, all
+waiting on still water.
+
+⭐⭐ **Tanning is the worse one and the better story**: lime pits, dung,
+urine, bark liquor, downstream of everything and outside the walls. **A
+LULU with a contamination output on a river** — `settlement-model`'s LULU
+taxonomy meeting `watershed.md`'s contamination at a trade that already
+ships.
+
+⭐⭐⭐ **And the lake's accumulation property makes siting derivable: the
+river carries your filth away and the lake keeps it.** The same tannery
+is viable on one and ruinous on the other, and nobody authors a rule —
+[content-craft § 8c](../../content-craft.md), located rather than
+invented.
+
+### ⭐⭐⭐ Water as TRANSPORT — and forestry's hardest problem is a water problem
+
+**Haulage** — water freight was 10–20× cheaper than land, which is the
+whole Erie finding.
+
+⭐⭐⭐ But the sharp one is **forestry's bole**: *"the first Thing whose
+product exceeds a body,"* tonnes, dropped on the floor and cross-cut in
+place **because you cannot lift it.**
+
+**Water is how a pre-industrial economy moved what exceeded a body.** Log
+driving. ⭐⭐ The bole's entire design constraint is *answered* by a
+river, which is why every sawmill in history was on one. **A bole you
+cannot lift, you can float.**
+
+### Water as a HAZARD — and three documents defer one pump
+
+**Mining · quarrying.** Quarry-hill's water table at −12 is the explicit
+scope boundary (*"a pit that fills, and a pump"*), `mining-slate` defers
+*"everything below the water table — shaft, hoist, pump,"* and § 0 above
+defers flooded workings. ⚠ **Three slates, one pump, nobody's.**
+
+### Water as the RESOURCE
+
+**Fishing** (ships) and **whaling** (§ 7).
+
+### ⭐ Genuinely untouched
+
+apiculture · baking · cooking · hearth-cooking · chandlery (candles, two
+fats — *not* ship chandlery) · medicine · shopkeeping · winemaking ·
+hospitality · bottling (wants water as an ingredient, not as a place).
+
+### ⭐⭐ The three collisions to wire first
+
+1. ⭐⭐⭐ **tanning + dyeing + retting → contamination.** Three trades
+   ship, the mechanism ships, the prohibition is already written in a
+   doc, and the lake/river distinction makes siting a real decision.
+2. ⭐⭐⭐ **the bole → log driving.** It *resolves* a shipped design
+   constraint rather than adding one.
+3. ⭐⭐ **the millsite's weir → a water right.** One row, and it turns a
+   sentence of reassurance into a record somebody can dispute.
+
+### ⚑ Trades not built or discussed — the list, kept
+
+⭐ The governing observation: **every settlement of a certain size sits on
+water**, so this list is long and most of it is cheap.
+
+**Movement and passage** — pilotage · ferrying · lightering · bridge and
+ford tolls · watermen and wherries · ⭐ towpath haulage (the Erie's mules)
+· dredging.
+
+**Taking from the water** — ⭐⭐ **the ice trades** (§ below / own
+drill-down) · salt by evaporation (⭐ `trade-quarrying` already ships a
+**salt pan** and a **brine hearth**) · reed and withy cutting · eel and
+oyster culture · wildfowling · pearl and sponge diving (the column's
+first real consumer) · wrecking and salvage.
+
+**Using the water** — ⭐ laundry (⭐⭐ `textiles.md` already floats *"a
+laundry vocation — water is a precondition, not a consumable"*) · bathing
+and spas · ⭐ **tourism and watersports** · milling (ships) · fulling ·
+ropewalks and sailmaking · boatbuilding.
+
+**Changing the water** — drowned-land reclamation and drainage ·
+embanking · irrigation works · ⭐ the pump (above, and overdue).
+
+⚠ **Not a build list.** Recorded so it is not lost, and because several
+are a row or two on machinery that already ships.
 
 ## 6. The 12× clock decides the content scale
 
@@ -519,9 +797,21 @@ after.**
 
 ## 9. Open questions
 
-1. ⚑⚑ **A reach's own character** (§ 4) — gradient, bed, width,
-   obstruction. **The deepest item**, and the one both halves of the model
-   have been designed around twice rather than faced.
+1. ⚑⚑ **A price on horizontal passage** (§ 4) — gradient, bed, width,
+   obstruction. **The deepest item.** ⭐ Restated 2026-10-09 by contrast
+   with [underwater-slate](./underwater-slate.md): **the vertical axis
+   priced its passage (breath, cold, ballast) and the horizontal one got
+   flow × width and a boolean.** One axis has a cost model and the other
+   has a predicate — and the column is the proof it is buildable.
+1a. ⚑ **A room-level contribution hook** (§ 5a) — so a `Shore` can speak
+   in its room's prose. ⚠ Currently **a waterfront does not mention
+   water** unless it is written twice. Already a sweep finding in
+   `fishing.md`; worth promoting, because every coastal room hits it.
+1b. ⚑ **The place↔bulk line.** Nothing says where water stops being a
+   place and starts being a container's contents — a puddle, a bath, a
+   trough, a cistern, a pond, a tarn, a lake. ⭐ The likely test is the
+   same one as everywhere else (*can you be in it*), ⚠ but a bath breaks
+   it cleanly, so it needs the real answer.
 2. ✅ **Subdivision — ANSWERED (§ 5).** The committee manages it and its
    **charter** sets the consent rules. No engine answer, no default; a
    water body's committee may be a gatekeeper or a rubber stamp, and
@@ -543,7 +833,10 @@ after.**
 
 ---
 
-**See also:** [watershed.md](../../subsystems/watershed.md) (what ships) ·
+**See also:** [underwater-slate](./underwater-slate.md) (⭐ the column,
+the medium derived from `level − elevation`, and the ascent Journey —
+**DECIDED**, and it priced the vertical passage this slate still owes the
+horizontal one) · [watershed.md](../../subsystems/watershed.md) (what ships) ·
 [zone.md](../../subsystems/zone.md) (the decomposition § 2 asks for) ·
 [fishing.md](../../subsystems/fishing.md) (the derived fishery and the
 `Shore`) · [land-compute-and-license](./land-compute-and-license.md) (who
