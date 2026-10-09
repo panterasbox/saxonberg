@@ -1,18 +1,92 @@
-# Locks and keys — the tail
+# Locks, keys and lockcraft — the build
 
-> **Status: PARTIAL** — the substrate shipped (MR !354; the keyway and
-> the bolt composed, `lock`/`unlock` reachable, the keyed-door family
-> given a bolt) → [boundary.md § Locking](../../subsystems/boundary.md),
-> [credential.md](../../subsystems/credential.md). ⭐ The **lens pass
-> below was run after the fact** and is the reason this file exists: the
-> build was decided off a three-option menu in a review thread, not
-> through a design pass, and the pass found three fixable defects (all
-> landed in !354) and three that are real design work.
-> **Left:** the master key's seat (§ 1) · a readable key-holder record
-> and selective revocation (§ 2) · ⭐⭐ **`lockcraft` and the locksmith**
-> (§ 3) — the answer to the two lenses the design outright fails · the
+> **Status: SUBSTRATE SHIPPED, DESIGN OWED** — the mechanism landed with
+> the reachability sweep (!345: the keyway and the bolt composed,
+> `lock`/`unlock` reachable, the keyed-door family given a bolt) →
+> [boundary.md § Locking](../../subsystems/boundary.md),
+> [credential.md](../../subsystems/credential.md).
+> ⭐⭐⭐ **What shipped was a REACHABILITY PATCH, not a design.** The
+> owner's framing, 2026-10-09, and it is the reason this file is a build
+> rather than a tail: *"I felt like patching the whole since we had
+> verbs that did nothing, but it really needs a full design session."*
+> **Left:** ⭐⭐ **`lockcraft` and the locksmith** (§ 3) — the trade, the
+> competence, the guild, and the answer to the two lenses the shipped
+> design outright fails · the master key's seat (§ 1) · a readable
+> key-holder record and selective revocation (§ 2) · the
 > lock-technology namespace and the gate that must own it (§ 4)
-> **Size:** a tail, except § 3, which is a build
+> **Size:** a build — ⚠ and §§ 1–2 should NOT be picked off ahead of
+> it (see *Why this is one build*)
+
+---
+
+## ⭐⭐⭐ Why this is a build, and why the shipped part is not a design
+
+The verbs `lock` and `unlock` shipped **afforded by nothing** — a
+controller, passing unit tests, help text, and no way for any player to
+say the word. The reachability sweep's job was to stop that class of lie,
+and for ten other verbs the fix genuinely was one line. ⛔ For these two
+it could not be, because the thing behind the verb did not exist: there
+were two half-models and conferring either one would have afforded a
+verb that lies *differently* (any player locking a university's gate
+with no key).
+
+So the sweep built the smallest honest mechanism — a keyway and a bolt,
+composed — and that is what is merged. ⚠ **It was decided from a
+three-option menu in a review thread, not through a design pass.** A
+lens pass run afterwards ([below](#the-lens-pass)) found three defects
+that were fixable and fixed, and **two lenses the design fails
+outright**:
+
+| lens | the shipped verdict |
+|---|---|
+| **1 Pedagogy** | ⛔ **fails.** Turning a key exercises no Discipline; the model is a boolean and a token match, and nothing is derivable. |
+| **6 Economy** | ⛔ **fails.** A key is cloned from nothing, with hardcoded prose, in a realm that has smelting and smithing. No producer, no price, no locksmith. |
+
+⭐ And lens 2's named-work test says the same thing from the player's
+end: *The Great Escape*, *Rear Window* and *Ocean's Eleven* are all
+unmakeable, because **every story about a lock is about defeating it and
+you cannot defeat one.** That is not a gap a patch can close.
+
+### ⚠ Why §§ 1–2 should not be picked off first
+
+They look like cheap tails and they are **not independent of § 3**:
+
+- **§ 1, the master key's seat** — the holder is plausibly a constable
+  with a warrant, which is `policing-slate`'s, which is also
+  `lockcraft`'s home. Wiring a master key to some other seat first
+  would decide the governance question that build needs to make.
+- **§ 2, the key-holder record** — what a record is *for* depends on
+  whether keys can be copied, forged or picked. Build the record first
+  and it will be a record of the wrong things.
+
+⭐ So the sequencing is: **§ 3 decides, §§ 1–2 and § 4 follow.** A build
+that starts anywhere else pays for it twice.
+
+### ⭐⭐ The general finding, measured — a conferred verb reveals how thin its subject is
+
+This is worth carrying beyond locks, because the reachability sweep made
+it checkable for the first time. Conferring a verb does not make it
+*designed*; it makes it **sayable**, and then you can see what is behind
+it. Counted on the merged tree:
+
+| verb | what is behind it |
+|---|---|
+| `lock` / `unlock` | **2** `Door` rows + 3 keyed Exit classes |
+| `fold` / `unfold` | **1** row — a camp chair at the University Avenue crossing |
+| `drive` | **1** placed vehicle — the wharfside barge (the coach exists only in an archetype) |
+
+⭐ That is [#30 Emergence](../../lenses/30-emergence.md)'s *objects per
+verb* read as a to-do list rather than a prohibition: the remedy is
+never fewer verbs, it is more things the verb reaches. `Lockable`
+composes anywhere — a chest, a strongbox, a cabinet, a gate, a
+tool-chest — and **that is the cheapest item in this whole file**, worth
+doing even if § 3 waits, because it is what makes every other item worth
+more.
+
+⚠ The other two are somebody else's and are noted here only so the
+pattern is on record: `fold` wants a second foldable thing,
+`drive` wants the coach placed (`passenger-conveyance` is an archetype
+nobody binds). Neither is this build's.
 
 ---
 
@@ -30,6 +104,7 @@ get in and unlocking is how you let everyone *else* through.
 ---
 
 ## ⭐⭐⭐ The lens pass
+<a id="the-lens-pass"></a>
 
 Run against [design-lenses.md](../../design-lenses.md) on 2026-10-09,
 over a design that had already shipped. Recorded in full because the
@@ -66,7 +141,7 @@ keyway identity, technology matching and the bolt; the author gets
 **which doors exist**, and nothing else. No lock has a *character* — no
 quality, no age, no "this one is cheap and everyone knows it." → § 3.
 
-**3a · Immersion — two betrayals, both FIXED in !354.** (i) Both exit
+**3a · Immersion — two betrayals, both FIXED before merge.** (i) Both exit
 listings rendered `(university gate, closed)` for a **locked** gate, so
 the bolt was invisible until you walked into it — now `Door.stateWord()`,
 in one place, with a test that refuses the inline form's return. (ii)
@@ -159,7 +234,7 @@ with no caller is invisible to it. **Worth considering as a fifth arm**
 — "an exported capability no production code reaches" — though the
 false-positive rate over a kernel is the open question.
 
-**Why it was not fixed in !354.** A master key is a *property-role*
+**Why it was not wired.** A master key is a *property-role*
 capability — a landlord, a warden, a superintendent — and no such role
 exists. `OFFICE_APPARATUS` holds five constituted offices of the realm
 (Prime Minister, three Speakers, the Central Bank Governor, the Finance
@@ -204,9 +279,9 @@ collides with nothing today but must be checked against
 
 ## § 3 · ⭐⭐ `lockcraft` and the locksmith — the two failed lenses
 
-This is the item that answers lens 1 and lens 6, and it is **a build,
-not a tail.** It is already designed in two other documents and neither
-knows the lock substrate now exists:
+**This is the build.** It answers lens 1 and lens 6, and it is already
+designed in three other documents, none of which knows the lock
+substrate now exists:
 
 - [policing-slate.md](../builds/policing-slate.md) — **`lockcraft`**, a
   dual-use competence serving *"the burglar and the locksmith"*, with a
@@ -232,6 +307,76 @@ knows the lock substrate now exists:
 | **3b Participation** | exclusion is absolute | a counter-power, and a guild that can refuse someone |
 | **6 Economy** | a key is cloned from nothing | a key is a **smith's product**; re-keying is a service somebody sells |
 
+### ⭐⭐⭐ What the design session must decide
+
+Written now, cold, so the session starts on questions rather than on
+re-deriving the ground. Ordered by how much else depends on them.
+
+**Q1 · ⛔⛔ What resolves a pick, given that a ROLL IS BANNED?** This is
+the load-bearing constraint and the one a session will otherwise
+reinvent wrongly. [uncertainty.md](../../uncertainty.md)'s provenance
+rule is *roll to decide what the world IS, never what your action DID* —
+**resolutional randomness is banned outright.** So "d20 against a
+difficulty" is not available, and neither is a hidden success chance per
+attempt. ⭐ The shipped shapes that ARE available: a **durative engaged
+act** that consumes time and can be interrupted (the lock yields when
+your competence exceeds its resistance, and the only question is *how
+long* and *who walks past*), and a **seeded** property so a given lock
+is the same lock every time you meet it. ⚠ Note what that buys
+pedagogically: it makes a lock's resistance a thing you can *read* and
+*plan against* rather than gamble on, which is lens 1 passing instead of
+failing.
+
+**Q2 · What is `lockcraft`'s DOMINANT act?** Lens 1 insists on naming
+which Discipline *decides the outcome*, because *"fake pedagogy lives in
+the gap"* — a craft can honestly exercise three while the deciding skill
+is menu-recall. If picking reduces to *own the right pick for the
+technology*, the dominant skill is inventory lookup and the Discipline
+is decoration. What is the judgment? Candidate: **reading a lock** —
+inferring technology, quality and condition from what you can observe,
+which is the same shape as the survey ladder and as tasting in cooking.
+
+**Q3 · What is a lock's CHARACTER, and is it authored or derived?** The
+lens-2 gap. Today a lock is `{keyway, technology}` and nothing else, so
+every lock in the realm is identical. Candidates: quality (a grade, from
+who made it), age/condition (a reconcile-on-read wear), and fit. ⭐ Check the shipped
+`GradedMixin` (`lib/craft/Grade.ts`) and `DurableMixin`
+(`lib/material/Durable.ts`) before minting anything — a lock is a
+crafted durable good, so quality-from-its-maker and wear-over-time may
+already exist and only need composing onto the host.
+
+**Q4 · Who produces a key, and does that make a keyway PHYSICAL?** The
+lens-6 gap. `Lock.mintKeyway()` returns an opaque token and
+`keyDescription` hardcodes *"worn brass key"* in a kernel switch. If a
+smith forges a blank and a locksmith cuts it, the keyway stops being
+opaque and becomes a **shape** — which is what makes copying,
+forging and a blank market possible. ⚠ That is a bigger change than it
+looks and it decides Q5.
+
+**Q5 · Can a key be COPIED, and by whom?** § 2's record is a record of
+*whatever this answers*. If keys copy freely, a key-holder list is
+fiction; if copying is a locksmith's service, the list is real and the
+locksmith is its registrar — which is a governance role nobody has
+designed.
+
+**Q6 · The counter-power's governance (lens 7).** A constable with a
+warrant is the obvious holder of § 1's master key. Name the criterion,
+the appeal, and the **entrenchment tier** — and ⚠ remember *the size of
+tier C is the measure of how real the participation is*. A warrant the
+polity cannot amend is a stage with a ballot box on it.
+
+**Q7 · Where does the trade live, and does the guild gate learning?**
+`/trade/locksmithing` as its own pack, or `lockcraft` as a competence
+inside smithing? And `policing-slate` wants a locksmiths' guild
+*"gatekeeping dangerous skill"* — a tier-C question with a real conflict
+in it (what happens when the guild refuses someone), which is lens 3b's
+*can the polity do something we did not want*.
+
+⚠ **Not an open question:** whether the shipped keyway/bolt split
+survives. It does — it is the mechanism this build sits on, and
+`canPass = !isLocked() || opensFor(mover)` is the seam everything above
+attaches to.
+
 ⚠ **Scope warning.** Picking at a lock is the obvious half and the
 smaller one; the lens-2 gap is **a lock with a character** (quality,
 age, condition) and the lens-6 gap is **a key with a producer**. A build
@@ -243,9 +388,9 @@ least interesting third. ⛔ And do not solve this inside a trade build
 
 ## What this slate is NOT
 
-Not a plan, and not a complaint about !354 — that MR shipped a correct
-mechanism and its own fixes for everything the pass found that was
-fixable. ⭐ The one process finding worth carrying: **the design was
+Not a plan, and not a complaint about what shipped — that work landed a
+correct mechanism and its own fixes for everything the pass found that
+was fixable, which is exactly what a reachability patch should do. ⭐ The one process finding worth carrying: **the design was
 decided from a three-option menu in a review thread.** The menu was
 honest and the chosen limb turned out to be the lens-4 payload, which is
 luck rather than method. A lens pass at the slate would have found

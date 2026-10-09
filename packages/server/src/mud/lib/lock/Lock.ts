@@ -55,7 +55,7 @@ import type { CredentialWallet } from "../credential/CredentialWallet";
  * `KeyCredential.addKey`/`authorize` take `technology: string`, so
  * widening this is a one-line change **once a gate exists** to read
  * every authored and pack-declared technology. See
- * `docs/slates/tails/lock-slate.md § 4`.
+ * `docs/slates/builds/lock-slate.md § 4`.
  */
 export type LockType = "pin-tumbler" | "keycard";
 
@@ -155,7 +155,7 @@ export class Lock {
    * or a constable with a warrant from `policing-slate` — and the second
    * is the better answer, because absolute exclusion with no
    * counter-power is the participation gap too. See
-   * `docs/slates/tails/lock-slate.md § 1`.
+   * `docs/slates/builds/lock-slate.md § 1`.
    */
   async issueMasterKeyTo(holder: Stuff): Promise<void> {
     addToKeychain(holder, '', this.technology, true);
