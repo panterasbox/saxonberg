@@ -709,6 +709,7 @@ OrganizationMixin.parentOrganization = 0
 OrganizationMixin.positions = 0
 OrganizationMixin.proprietorPath = 0
 OrganizationMixin.rosterSlots = 0
+OrganizationMixin.startsShiftOnHire = 0
 OuterWarren.capacityKey = 0
 OuterWarren.defaultCapacity = 0
 OuterWarren.parentExtent = 0
