@@ -780,9 +780,10 @@ export class NavigationLogic extends ApiLogic {
         assumptions.push({
           kind: 'conditional',
           leg: i,
-          text:
-            `assumes the way ${leg.dir} out of ${leg.from} is open — it ` +
-            `is not always passable`,
+          // ⚠ One claim, not two. "is open — it is not always
+          // passable" said the same thing twice; what the reader
+          // needs is the uncertainty, named once.
+          text: `the way ${leg.dir} out of ${leg.from} is not always passable`,
         });
       }
       const way = graph
@@ -794,8 +795,8 @@ export class NavigationLogic extends ApiLogic {
           kind: 'stale',
           leg: i,
           text:
-            `assumes the way ${leg.dir} out of ${leg.from} is still there ` +
-            `— you ${evidence.channel} it`,
+            `assumes the way ${leg.dir} out of ${leg.from} is still ` +
+            `there — you ${evidence.channel} it`,
           claim: { channel: evidence.channel, lastSeen: evidence.lastSeen },
         });
       }

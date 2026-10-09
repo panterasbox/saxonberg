@@ -228,8 +228,26 @@ export default class RouteController extends CommandController<RouteModel> {
         lines.push(`  ${leg.dir} from ${from}`);
       }
       lines.push(`  ${RouteController.costLine(plan, profile)}`);
+      /*
+       * ⚠⚠ Plain prose, NOT a `⚠` glyph, and that was a real finding
+       * rather than taste. Of 406 `⚠` in the command tree, exactly
+       * TWO are in a string a player reads — `git` and shell `write`,
+       * both AUTHOR surface. The glyph is a doc convention here, and
+       * `route` is a player's verb.
+       *
+       * ⭐ The precedent for this exact kind of caveat is right next
+       * door: `map` renders a disagreement between two claims as
+       * ordinary prose with a parenthetical date, because the dates
+       * are what let the player judge. An assumption is the same
+       * shape of thing — something the world is telling you it is not
+       * sure of — so it reads the same way.
+       */
+      // ⭐ Nested by INDENT and with no bullet, which is `map`'s
+      // shape exactly. A `—` bullet put two em-dashes on one line
+      // (one structural, one punctuation) and read as a stutter;
+      // reading the actual output is the only way that shows up.
       for (const a of plan.assumptions) {
-        lines.push(`  ⚠ ${RouteController.assumptionProse(a, known)}`);
+        lines.push(`    ${RouteController.assumptionProse(a, known)}`);
       }
     });
 
@@ -296,10 +314,19 @@ export default class RouteController extends CommandController<RouteModel> {
     const legs = plan.cost.legs;
     const ways = legs === 1 ? 'one leg' : `${legs} legs`;
     if (profile.spec.mode === 'walk') {
+      // ⚠ Agreement, and it took READING the output to see: *"one leg,
+      // 1 of them not always passable"* was both ungrammatical and a
+      // word and a digit in one breath. Wire asserted the content and
+      // passed straight through it.
+      const n = plan.cost.conditional;
       const risk =
-        plan.cost.conditional > 0
-          ? `, ${plan.cost.conditional} of them not always passable`
-          : '';
+        n === 0
+          ? ''
+          : legs === 1
+            ? ', and it is not always passable'
+            : n === legs
+              ? ', and none of them is always passable'
+              : `, ${n} of them not always passable`;
       return `${ways}${risk}.`;
     }
     // ⚠ Only a conveyance is quoted a duration, and only for the legs
@@ -314,7 +341,9 @@ export default class RouteController extends CommandController<RouteModel> {
     // than two renderers inventing the same policy twice.
     const measured = legs - plan.cost.unmeasured;
     if (measured === 0) {
-      return `${ways}; none of them says how long it takes.`;
+      return legs === 1
+        ? `${ways}, and it does not say how long it takes.`
+        : `${ways}; none of them says how long it takes.`;
     }
     const floor = plan.cost.unmeasured > 0 ? ' at least' : '';
     return `${ways},${floor} about ${plan.cost.minutes} minutes.`;

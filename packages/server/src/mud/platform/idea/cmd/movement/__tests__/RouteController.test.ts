@@ -238,6 +238,17 @@ describe('⭐⭐ the cost is quoted in the currency the traveller pays (D4a)', (
     ]);
   });
 
+  it('⭐ agrees in number — never "one leg, 1 of them"', async () => {
+    // Found by READING the output, not by a wire assertion: the
+    // singular case produced *"one leg, 1 of them not always
+    // passable"* — ungrammatical, and a word and a digit in one
+    // breath. Wire asserted the content and passed straight through
+    // it, which is the whole argument for reading what a verb says.
+    const out = await run({ destination: 'the bakery' });
+    expect(out.text).toMatch(/one leg/);
+    expect(out.text).not.toMatch(/one leg, 1 of them/);
+  });
+
   it('⚠⚠ a PEDESTRIAN is never quoted minutes', async () => {
     // Ordinary movement is instantaneous and free by deliberate
     // design, so a figure here would teach a cost the world declines
