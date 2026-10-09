@@ -6,6 +6,24 @@
 > also grew a third (employment) conferral leg and two more real
 > `_augmentGated` consumers (`CasterMixin`, `MakerMixin`) since Wave 1 —
 > see augmentation.md.
+> ⭐⭐⭐ **Wave 2 ACQUIRED A DRIVER 2026-10-09, and an ordering** —
+> → [content-declaration-slate § 3.8](../builds/content-declaration-slate.md).
+> Epoch covenants that forbid modern tech make three items on this list
+> **governance requirements rather than roadmap**: **(1) the char-gen
+> loadout**, because *an irreversible default cannot be the legitimate
+> subject of an exclusion* — the Avatar bootstrap installs the
+> `AetherImplant` today, so **nobody chose it**; **(2) the install/remove
+> procedure**, which the owner has priced — **possible, costly, and it
+> needs a professional, so think twice about getting one** (an elective
+> for the medic vertical, and an act of *belonging* rather than an appeal,
+> since the enforcement is witness-strength and no door ever refuses you);
+> **(3) power state**, so the milder rule (*no transmitting*) is
+> `wall`-enforceable instead of collapsing into *no tech at all*.
+> ⚠ Plus a fourth that is **not** on this list: a carried **phone** as a
+> second host for the connection, so `AetherMixin` becomes *the
+> connection with two hosts* — **the implant trades the ability to
+> disconnect for the inability to be disconnected.**
+>
 > **Left:** the medical install/remove procedure · the char-gen augment
 > loadout · translation, prosthetic, sensor, motor and cognitive
 > augments (only the baseline `AetherImplant`/cranial-slot form ships) ·

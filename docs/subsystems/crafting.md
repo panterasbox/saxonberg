@@ -397,6 +397,22 @@ phase engine (Forge + `MeltableMixin` + `Casting` — see
 properties emerge from components) is a genuinely different model,
 still deferred — not faked.
 
+> ⭐⭐⭐ **The deferral acquired a DRIVER 2026-10-09 —
+> [assembly-slate](../slates/builds/assembly-slate.md).** The one-line
+> definition above is kept verbatim there; what the slate adds is the
+> **epoch argument**: a factory is an assembly of assemblies, so
+> **you cannot build a factory until you can build a thing from parts**,
+> and the industrial verticals all sit behind it. Three findings worth
+> knowing from here: **the axis is the JOINT** (bespoke → the threaded
+> fastener → irreversible), so a `Joint` **ROW** carries condition ·
+> operation · strength · reversibility · **signature** — and the
+> row-plus-one-verb-plus-instrument shape is already shipped as
+> `harm.md`'s `Operation` catalogue; **`salvage` is already disassembly**,
+> and *reversibility decides whether taking a thing apart yields parts or
+> scrap*, so the verb needs a reader rather than a sibling; and ⚠
+> **`Durable` wear with no parts makes every failure TOTAL** — an axe is a
+> head and a haft, and the haft is what breaks.
+
 ## The offer: `CommerceMenu` + the venue subclasses
 
 The venue-neutral base is **`lib/commerce/Menu.ts`** (`CommerceMenu`, a
@@ -1072,6 +1088,80 @@ reset on restart).
 | Room / NPC / bottles / tools / Materials | **templates** (cloned) | re-seeded; cloned fresh |
 | Recipe knowledge | **`documents {kind: recipe}`** (the `generic-objects` pack) | persisted reference data, pack-installed |
 | Crafted drinks | transient runtime matter | reset on restart |
+
+### ⛔⛔ DEFECT — a crafted good minted onto a floor is INVISIBLE to persistence
+
+Found 2026-10-09 by a static read, not yet driven.
+**Fix deferred to the next build by the owner's decision.**
+
+⚠⚠ **The row above is honest for a drink and quietly wrong for anything
+you LEAVE.** `furnishing.md` names the failure class exactly:
+
+> *"**A good MINTED onto a floor has no `place` until something says
+> so.** Only the custody verbs (`drop`/`put`/`get`) call `followCustody`;
+> a verb's completion that clones a good into a persistable room and
+> stamps it **has placed it nowhere — the room's capture skips it** and
+> the overlay never finds it."*
+
+**The census:** `followCustody` is called by `hang` · `get` · `put` ·
+`drop` · `buy` (×2) · and **`fell`** — the only trade verb.
+⛔⛔ **Crafting calls it ZERO times.** Neither `CraftingLogic` nor any
+`cmd/crafting/*` controller calls `followCustody` **or**
+`captureHostOf`.
+
+**Everything else in the chain works**, which is why this has gone
+unnoticed: the shutdown sweep is wired (`AppBootstrap.ts:325` →
+`PersistableApi.captureAtShutdown()`); a room's estate slice
+**re-captures loaded, stamped contents fresh** (*"a plant that grew keeps
+its growth"*); and even the owner-offline dormancy case has its third
+path (`CaptureContext.noteOwnedGood`). **The break is upstream, at the
+mint.**
+
+#### ⭐⭐⭐ Why it is invisible for most goods and fatal for a cask
+
+> **The defect does not bite on goods you carry away, and it is total for
+> goods whose purpose is to SIT STILL.**
+
+Craft a hammer and you pick it up — `get` calls `followCustody` and
+nothing is lost. Craft a **`Vat`**, fill it, seal it and **leave it**,
+because leaving it is the entire point: nothing ever places it, so
+nothing ever captures it, and `MaturingMixin`'s
+`maturationClockStamp` reverts to its class default of **`0`**. On the
+next window event `if (this.maturationClockStamp === 0)` restamps to
+*now*. ⛔ **The whisky un-ages.**
+
+⚠ Maturation itself is innocent: `reconcileFerment` fires on window
+events only (`setOpen`/`open`/`close`/`onMoved`) and **correctly** calls
+no capture — the sweep would have covered it.
+
+#### ✅ The fix — one line, with a shipped exemplar
+
+`trade-forestry`'s `FellController` is the first verb to hit this and the
+only one that handles it:
+
+```ts
+await thing.followCustody();              // :364
+await PersistableApi.captureHostOf(host); // and capture the OWNER
+```
+
+Its own comment says why: *"without this a bole on the ride was skipped
+by the room's capture."* And the owner capture matters because *"a live
+owner's estate is otherwise written only on the residency cadence or at
+logout."*
+
+> **So: call `followCustody` + `captureHostOf` at the craft mint.** One
+> change in craft-resolve fixes **every trade at once**, because every
+> recipe output goes through the same `applyTangibleOutput` tail.
+
+⚠ **And it wants a gate after**, because the next minting verb will
+forget too — a **census-then-ratchet** over *verbs that mint a good into a
+room without calling `followCustody`*, which is grep-able even where the
+full rule is not statically decidable.
+
+⚠ **Still owed: the live confirmation.** The static path says *skipped*;
+only a drive proves *lost*. Two checkpoints — craft a cask, seal it, read
+the stamp, restart, read it again. ⛔ Not from the `master` worktree (it is
+documents-only and the port is shared).
 
 ## The knowledge ladder, generalized (open canon, earned shorthand)
 

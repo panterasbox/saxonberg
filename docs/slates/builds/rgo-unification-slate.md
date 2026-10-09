@@ -190,6 +190,52 @@ it, is the same move.
 
 **The standing rule is unchanged: all RGOs before foraging/hunting.**
 
+### ⚠⚠ Roster correction 2026-10-08 — the closure claim has failed twice
+
+This slate says the roster is *"nearly closed… **apiculture is the last
+family**."* The ice/whaling design session then added **ice** and
+**whaling** as "the last two," and a water-trade audit raised
+**submersion**. ⭐ **Three additions to a set declared closed.**
+
+⭐⭐⭐ **And there is a structural reason: the census enumerated PRODUCTS
+and PLACES** — mining, farming, ranching, fishing, forestry, water,
+quarrying, apiculture. **Submersion is neither; it is a MEDIUM OF
+ACCESS**, so it was invisible to the enumeration. ⚠ **The census should be
+re-run on that axis**, because if one family hid there another may.
+
+⛔ **Submersion is NOT a family.** It is a row on **axis 2** (*access
+mode · where it is · who can tap it*) — the axis this slate already calls
+*"the one the whole roster needs."* The trades behind it (gathering,
+underwater mining, salvage, construction, cable-laying) are ordinary
+families **paying a medium tax**. See
+[underwater-slate](./underwater-slate.md) § 8.
+
+**The path, as it now stands:**
+
+> … apiculture → **the bed · ice · whaling** → foraging → hunting
+
+⭐ **And within that tranche, the bed first**, for three reasons that are
+not about interest: it proves the **share/lay** mechanism before whaling
+needs it · it contains a cheap **depletion** case (coral) before whaling's
+expensive one · and its reservoir is a **shipped pattern with a new
+feedstock** (forestry's `StandMixin` cover on ground), so it is the least
+new code of the three. Ice stays blocked on
+[climate-slate](./climate-slate.md) regardless.
+
+### ⚠⚠ And item 4 (the derived-field interface) now waits on a SECOND unseen shape
+
+This slate holds the field interface deliberately, because the hive was
+*"the one genuinely new shape"* and unifying before seeing it would unify
+around the easy cases.
+
+⭐⭐ **The bed is a second unseen shape, and unseen in the way that
+matters: a cover on ground whose RECHARGE RATE IS A FUNCTION OF THE
+HARVEST ACT.** Nothing in the roster has that — mining's recharge is
+zero, fishing's recovers by half-life regardless, forestry's coppice is on
+a fixed rotation. So the held interface waits on the bed too, or it gets
+unified around the easy cases exactly as feared. **This is the
+accommodation check this slate asked to keep running, firing.**
+
 ## ⚠⚠ The roster is EPOCH-BOUNDED, and that was the oversight
 
 Confirmed 2026-09-25: `docs/roadmap.md` and `docs/vocations.md` contain **zero
@@ -231,6 +277,72 @@ epoch ladder (prehistory · medieval · industrial · modern · future) against
 the roster and write down what each epoch *adds*. That converts the
 industrial families from unknown-missing to **known-deferred**, which is the
 difference between an oversight and a decision.
+
+### ⭐⭐⭐ Irrigation — the worked epoch ladder, and groundwater is a DIFFERENT RGO CLASS
+
+Added 2026-10-09 from the water-trade audit. **The best epoch story in
+the roster**, and it belongs here rather than in a trade slate because of
+the last row.
+
+The capability is *get water to a field that does not get enough rain.*
+It survives every epoch. ⭐⭐⭐ **What changes is not the technology — it
+is the institution the technology requires.**
+
+| rung | what moves the water | command area set by | institution required | the reservoir |
+|---|---|---|---|---|
+| **flood recession** | nothing — **the planting moves** | the flood's reach | a **calendar** | the river, **visible** |
+| **gravity ditch** | the contour | **topography** | a **labour commons** (the annual clean-out) | the river, **visible** |
+| **pump (surface)** | energy | **money** | optional | the river, **visible** |
+| **pump (ground)** | energy | money | **none** | ⚠⚠ **an aquifer — invisible, recharge ≈ 0** |
+| **drip / pivot** | energy + control | money | none | both, metered |
+
+- ⭐ **Rung zero is not a device, it is a calendar.** Plant in the mud
+  behind the receding flood — the Nile for three thousand years, no works
+  at all. **And it is buildable today**: the freshet is computable, so
+  planting behind it is a derivable strategy with no new mechanism.
+- ⭐ **Gravity means geography decides.** You can only water what lies
+  below the intake, so contour lines draw the irrigated region.
+  `Zone.elevation` doing real work.
+- ⭐⭐⭐ **The pump breaks the tyranny of contour — and dissolves the
+  commons.** Command area stops being set by topography and starts being
+  set by money; and because a pump serves ONE farm, **you no longer need
+  your neighbours.** *The gravity ditch forced cooperation; the pump lets
+  you defect* — and **the institution was the thing keeping the water
+  allocated.** (Historically exact: acequia systems ran four centuries;
+  the centrifugal pump ended cooperative water management in one
+  generation.)
+- ⭐⭐⭐ **And the fourth rung changes the RGO CLASS, which is why this
+  is a roster entry.** Surface water is a **renewable commons with a
+  recharge rate**; groundwater is a **depletion resource that looks
+  renewable because it is invisible.** Same trade, same verbs, same
+  `Conduit` — **a different reservoir law.**
+- ⚠⚠ **And you cannot SEE a falling water table.** Surface scarcity is
+  public — the river is low and the gauge says so. Groundwater scarcity is
+  invisible until the well fails. **The industrial rung removes the public
+  instrument that made the commons manageable**: the staff gauge made the
+  water argument factual for everybody, and **a well has no gauge.**
+- ⭐⭐ At the **modern** rung, efficiency becomes maximally destructive:
+  drip is ~95% efficient, so there is **almost no return flow**, and every
+  downstream user living on his neighbour's waste is destroyed by his
+  neighbour's environmental improvement. **The most efficient irrigation
+  is the most legally destructive**, and it arrives dressed as
+  conservation. (See
+  [navigable-water-slate](./navigable-water-slate.md) § 5c.)
+
+✅ **The lens-5 test passes cleanly**: at every rung the verb is the
+same — divert, deliver, water — and `Conduit` already covers
+gravity-versus-pumped as **one object** (*"which one you have is the sign
+of `headM`"*). Nothing is rewritten; it is re-parameterised.
+
+⭐⭐⭐ **But *who is holding the obsolete half* has a NEW KIND of
+answer:** the four recorded instances (the ferryman, the whaler, the
+iceman, the laundress) are all **people**. Here the thing the pump
+obsoletes is **the ditch company** — **cooperation itself, a polity
+rather than a trade.** And it is a worse loss: when the ferryman goes you
+lose a livelihood; when the ditch company goes **you lose the only body
+that was allocating the water**, so the water keeps being allocated right
+up until it is not. Promoted to
+[design-lenses.md](../../design-lenses.md) § 5.
 
 ### ⭐⭐ The through-line: an industrial RGO exists to LIFT a medieval limit
 
