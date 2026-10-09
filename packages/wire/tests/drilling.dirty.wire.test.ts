@@ -228,7 +228,13 @@ async function stockTheStore(): Promise<void> {
       '/trade/drilling/thing/liner',
       '/trade/drilling/thing/liner',
       '/trade/drilling/thing/pressure-gauge',
-      '/trade/mining/thing/miners-dial',
+      // ⚠ The surveyor's COMPASS, not the miner's dial — and the choice
+      // is the store's rather than mine: the provisioning counter
+      // actually stocks a compass (`par: 1`) and does not stock a dial,
+      // so this is the instrument a prospector in this town would
+      // genuinely be carrying. Both afford `surveying`, which is the
+      // whole point of the capability being the query.
+      '/trade/mining/thing/compass',
     ]) {
       // ⚠⚠ `clone --here`, NOT `eval`. The taps drive mints its kit with
       // `eval --parcel`, and on this world that route **took the server
@@ -377,10 +383,7 @@ suite('1. the kit is stocked and priced, and the till is somebody else\'s bug', 
       'liner',
       'liner',
       'gauge',
-      // ⚠ `miners-dial`, not `dial`: the row authors its keywords
-      // DEFENSIVELY because a mine is dense in near-identical nouns, and
-      // a bare `dial` in a store full of instruments is ambiguous.
-      'miners-dial',
+      'compass',
     ]) {
       await say(k, `get ${thing}`);
     }
@@ -392,10 +395,12 @@ suite('1. the kit is stocked and priced, and the till is somebody else\'s bug', 
     // that reads prose reads *you can make out nothing*. A glowcap jar
     // is what any miner in this town carries.
     expect(kit).toMatch(/jar|glowcap/i);
-    // ⭐ And the DIAL, which is mining's: this trade adds no instrument
-    // for its structural read, which is the whole of *a second reading
-    // is a row*.
-    expect(kit).toMatch(/dial/i);
+    // ⭐ And the surveyor's COMPASS, which is mining's: this trade adds
+    // no instrument for its structural read, which is the whole of *a
+    // second reading is a row*. The capability is the query, so the
+    // dial and the compass are interchangeable here and the shop's
+    // choice decides which a prospector has.
+    expect(kit).toMatch(/compass/i);
   });
 });
 
@@ -540,13 +545,19 @@ suite('7. the crew — presence is depth, and depth is wages', () => {
     expect(dry).toMatch(/roustabout/i);
 
     const hired = await say(k, 'hire tall');
-    expect(refusedFor(hired), 'a proprietor with one rig must be able to hire').toBeNull();
+    expect(
+      refusedFor(hired),
+      `a proprietor with one rig must be able to hire — it said: ${JSON.stringify(hired.notes)}`,
+    ).toBeNull();
     // He is gone from the dry — he has gone out to the hole.
     const after = await read(k, 'look');
     expect(after).not.toMatch(/tall roustabout/i);
 
     const second = await say(k, 'hire squat');
-    expect(refusedFor(second)).toBeNull();
+    expect(
+      refusedFor(second),
+      `the second hire said: ${JSON.stringify(second.notes)}`,
+    ).toBeNull();
   });
 
   it('⭐⭐ the hands are AT the rig, and the hole gets deeper with nobody touching it', async () => {

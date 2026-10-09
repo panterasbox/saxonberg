@@ -44,6 +44,16 @@ import {
 import type Wellhead from '../../../thing/Wellhead';
 import type DrillingOutfit from '../../DrillingOutfit';
 
+/**
+ * Places a bore crew's seat has on a REAL outfit.
+ *
+ * ⭐ Four is the honest figure rather than a dial: a walking-beam rig is
+ * worked in pairs on a two-shift day — which is also why hiring two
+ * hands halves the time and doubles the wage bill, the arithmetic the
+ * whole trade is about.
+ */
+const CREW_PLACES = 4;
+
 /** The seed rows the siting act mints from. */
 const WELLHEAD_SEED = '/trade/drilling/thing/wellhead';
 const OUTFIT_SEED = '/trade/drilling/idea/business/outfit';
@@ -191,6 +201,19 @@ export default class BoreController extends DrillingActController {
           appointingAuthority: { kind: 'entity', path: owner },
           banksAt: bank,
           operatingLocations: [claim],
+          // ⭐⭐ **The HEADCOUNT is the mint's, not the seed's**, and
+          // `lint:openings` is what drew the line: a seed row that
+          // advertises a place is told, correctly, that it *authors no
+          // `banksAt` — the shift settles into a throw and the worker is
+          // never paid.* True of a seed, which has no bank, no claim and
+          // no proprietor until this moment.
+          //
+          // So the seed says what the seat IS and this says how many
+          // places a REAL outfit has — an opening is a claim about a
+          // going concern. ⚠ Read off the seed rather than restated, so
+          // the seat is defined once: change the wage on the row and
+          // this follows.
+          positions: await openPlaces(),
         },
       });
     }
@@ -266,6 +289,32 @@ export default class BoreController extends DrillingActController {
       },
     });
   }
+}
+
+/**
+ * The seed's own seats, with a headcount added — so the seat is defined
+ * in ONE place (the row) and only the *how many* is the mint's.
+ *
+ * ⚠ Degrades to a bare roustabout seat if the seed cannot be resolved,
+ * because an outfit with no seats is an outfit nobody can be hired onto
+ * and that failure would be silent.
+ */
+async function openPlaces(): Promise<unknown[]> {
+  try {
+    const seed = await StuffApi.singleton<Stuff>(OUTFIT_SEED);
+    const seats = (
+      seed as unknown as { getPositions?(): readonly unknown[] }
+    ).getPositions?.();
+    if (seats && seats.length > 0) {
+      return seats.map((seat) => ({
+        ...(seat as Record<string, unknown>),
+        headcount: CREW_PLACES,
+      }));
+    }
+  } catch (err) {
+    console.error('BoreController: the outfit seed did not resolve', err);
+  }
+  return [{ key: 'roustabout', title: 'roustabout', wageRate: 4, headcount: CREW_PLACES }];
 }
 
 /** The swing, landed. ⚠ Runs long after the controller is a corpse. */

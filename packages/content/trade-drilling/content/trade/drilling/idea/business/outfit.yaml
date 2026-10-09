@@ -22,8 +22,23 @@ data:
   name: drilling outfit
   appointingAuthority: { path: "" }
   banksAt: ""
+  # ⭐⭐ **The seat's SHAPE is here; whether it is HIRING is not.** Two
+  # different facts with two different homes, and `lint:openings` is what
+  # made the distinction visible: a seed row that advertised a place
+  # (`headcount:`) was told, correctly, that *this house authors no
+  # `banksAt` — there is no operating account for the wage to come out
+  # of, the shift settles into a throw, and the worker is never paid.*
+  #
+  # Which is exactly true of a SEED. It has no bank, no claim, no hole
+  # and no proprietor; those are overlaid at the siting, from the person
+  # who spent the money. So the seed says what a roustabout's seat IS —
+  # the key, the title, the wage — and the **minted outfit** says how
+  # many places it has, because an opening is a claim about a going
+  # concern and a seed is not one.
+  #
+  # ⚠ The mint reads these positions and adds the headcount, so the seat
+  # is defined ONCE. See `BoreController.site`.
   positions:
     - key: roustabout
       title: roustabout
       wageRate: 4
-      headcount: 0

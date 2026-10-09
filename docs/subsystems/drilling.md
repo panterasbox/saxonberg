@@ -202,11 +202,22 @@ over time* rather than *depth costs a click*.
 than a concession. A player who wants to be on a crew `apply`s and
 `clock on` like any other job, gets the same wage and counts for the same
 swings, because the engine measures who is standing at the rig and never
-asks who is behind the eyes.
+asks who is behind the eyes. ⚠ That sentence is only true because the
+minted outfit advertises places — `headcount` absent or zero means *no
+opening is ever advertised*, and for one revision it was zero, which
+would have made the help text a lie.
 
-`DrillingOutfit`'s seats are authored **on its seed row**, which is what
-the no-runtime-setter constraint on `positions` permits rather than
-blocks: what seats a business has is a fact about the KIND of business.
+⭐⭐ **The seat's SHAPE is on the seed row; whether it is HIRING is on
+the minted outfit.** Two different facts with two different homes, and
+`lint:openings` is what drew the line: a seed that advertised a place
+was told, correctly, that it *authors no `banksAt` — there is no
+operating account for the wage to come out of, the shift settles into a
+throw, and the worker is never paid.* Which is exactly true of a seed,
+which has no bank, no claim and no proprietor until the siting. So the
+seed says what a roustabout's seat IS and the mint says how many places
+a real outfit has, because **an opening is a claim about a going
+concern.** ⚠ The mint reads the seats off the seed and adds only the
+headcount, so the seat is defined once.
 
 ⚠ A hired hand is **sent to the rig** (`operatingLocations[0]`, the
 `moveForShift` rule). A roustabout has no brain on purpose, so he does

@@ -184,21 +184,41 @@ describe('the labour pool is content, and the hands have no brain', () => {
     }
   });
 
-  it('the outfit seed authors its ONE seat, with a wage on it', () => {
-    // ⭐ `positions` has no runtime setter and should not: what seats a
-    // business has is a fact about the KIND of business. Authoring them
-    // on the seed is what the constraint permits rather than blocks.
+  it('⭐⭐ the seed authors the seat\'s SHAPE and NOT whether it is hiring', () => {
+    // Two different facts with two different homes, and `lint:openings`
+    // is what drew the line: a seed row that advertised a place was
+    // told, correctly, that it authors no `banksAt` — *there is no
+    // operating account for the wage to come out of, the shift settles
+    // into a throw, and the worker is never paid.* True of a seed,
+    // which has no bank, no claim and no proprietor until the siting.
     const seed = data(
       `${PACK}content/trade/drilling/idea/business/outfit.yaml`,
     );
     const positions = (seed.positions ?? []) as Array<{
       key: string;
       wageRate: number;
+      headcount?: number;
     }>;
     expect(positions).toHaveLength(1);
     expect(positions[0]!.key).toBe('roustabout');
     expect(positions[0]!.wageRate).toBeGreaterThan(0);
+    // ⚠⚠ NO headcount on the seed — an opening is a claim about a going
+    // concern, and the mint adds it.
+    expect(positions[0]!.headcount).toBeUndefined();
     // ⚠ Empty on purpose — overlaid at mint from whoever sited the hole.
     expect(seed.banksAt).toBe('');
+  });
+
+  it('⭐ the MINT adds the headcount, and reads the seat off the seed', () => {
+    // So the seat is defined once: change the wage on the row and the
+    // overlay follows. Asserted on the source because only the live
+    // drive can see the overlay actually applied.
+    const src = readFileSync(
+      `${PACK}src/idea/cmd/drilling/BoreController.ts`,
+      'utf8',
+    );
+    expect(src).toMatch(/positions: await openPlaces\(\)/);
+    expect(src).toMatch(/getPositions\?\.\(\)/);
+    expect(src).toMatch(/CREW_PLACES/);
   });
 });
