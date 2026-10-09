@@ -171,6 +171,36 @@ export const DOCUMENT_KINDS = {
    */
   fishery: { kind: 'fishery', naturalKey: null, contentDir: 'fisheries', ext: 'yaml', onVanish: 'keep' },
   /**
+   * A **fluid body's withdrawal** — how many litres have come out of one
+   * reservoir, and by whose straw (drilling D2).
+   *
+   * ⭐⭐ **It is keyed on the BODY and not on the hole, and that is the
+   * whole point of it.** A reservoir spans whatever holdings happen to
+   * lie over it, so two bores into one body are *two straws in one
+   * glass*; if withdrawal lived on each wellhead, each would think the
+   * glass full. Remaining is the body's capacity less the **sum** of
+   * every straw, which is why two owners who have never met watch the
+   * same gauge fall — the fact a polity has to be able to argue about.
+   *
+   * Everything that can derive does: capacity is the body's authored pin
+   * or its geometry and is **never stored**, so no copy of a record can
+   * outlive an edit to the row. ⚠ Recharge is **zero** — not a missing
+   * leg but depletion, the degenerate case of a recharge law, and the
+   * reason an oil country is a boom with an end in it.
+   *
+   * ⚠ Runtime-written, on the `fishery` pattern and for its reasons: no
+   * pack ships one; the ground pack's register get-or-creates it on the
+   * first draw. Path-keyed
+   * (`/system/ground/bodies/<locality address>/<body key>`) because a
+   * country's book is `list(prefix)`. `onVanish: 'keep'` — it is a
+   * record of what was taken out of the ground, and no absent pack file
+   * may refill a reservoir.
+   *
+   * The KIND is the platform's; what a legitimate record looks like is
+   * the ground pack's (`BodyRegister`).
+   */
+  body: { kind: 'body', naturalKey: null, contentDir: 'bodies', ext: 'yaml', onVanish: 'keep' },
+  /**
    * A **bill of lading** — what, how much, from where, to where, whose,
    * and at what declared value, filed by a completed carriage.
    *

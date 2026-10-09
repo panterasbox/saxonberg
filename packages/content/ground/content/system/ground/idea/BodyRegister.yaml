@@ -1,0 +1,15 @@
+# /system/ground/idea/BodyRegister — the register of what has come out of
+# every fluid body, and by whose straw.
+#
+# Pure data: capacity is never stored (it is the body's authored pin or
+# its geometry), and the only thing this writes is per-straw withdrawal —
+# the `body` document kind, filed at
+# /system/ground/bodies/<locality address>/<body key>. Lazily cloned on
+# first use, so there is no boot step to forget, and a body nobody has
+# bored has no document at all.
+#
+# ⚠ The record is about the BODY, not the hole: a reservoir spans
+# holdings, and two bores into one are two straws in one glass. The
+# hole's own state lives on the wellhead.
+class: /system/ground/idea/BodyRegister
+data: {}
