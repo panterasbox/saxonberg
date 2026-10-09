@@ -97,11 +97,11 @@ export default class UnlockController extends CommandController<UnlockModel> {
     // ⭐ And this is the verb's whole point: a key-holder already walks
     // through a locked door, so unlocking is what you do to let everyone
     // ELSE through.
-    if (!lockable.opensFor(commandGiver as unknown as Stuff)) {
+    if (!lockable.opensFor(commandGiver)) {
       MessageApi.scene(commandGiver)
         .topic('act.deed')
         .toSelf(
-          Mml.compose`You have no key that fits ${Mml.thing(lockable as unknown as Stuff)}.`,
+          Mml.compose`You have no key that fits ${Mml.thing(lockable)}.`,
         )
         .send();
       context.note({
@@ -117,9 +117,9 @@ export default class UnlockController extends CommandController<UnlockModel> {
 
     MessageApi.scene(commandGiver)
       .topic('act.deed')
-      .toSelf(Mml.compose`You unlock ${Mml.thing(lockable as unknown as Stuff)}.`)
+      .toSelf(Mml.compose`You unlock ${Mml.thing(lockable)}.`)
       .toPeers(
-        Mml.compose`${Mml.actor(commandGiver)} unlocks ${Mml.thing(lockable as unknown as Stuff)}.`,
+        Mml.compose`${Mml.actor(commandGiver)} unlocks ${Mml.thing(lockable)}.`,
       )
       .send();
 

@@ -727,6 +727,20 @@ had pinned the behaviour, correctly, and `collectLaterPrepositions` is
 what tells the two rungs apart. ⭐ The test is whether the grammar CAN
 bound the field, never whether the player used the boundary.
 
+#### ⚠ A positional's `description:` is DEAD SURFACE today
+
+Salvaged out of the reachability plan at its retirement (2026-10-09) —
+deferred design does not live in a plan.
+
+`getHelpText()` renders **option** descriptions only, so a
+`description:` written on a positional arg is authored text nobody ever
+reads. ⭐ Worth knowing in both directions: an author adding one is
+wasting their effort, and a build that makes it render would make a
+quantity of already-written prose appear at once, so it should expect to
+proofread rather than to ship silence. Until then, a positional's
+meaning has to live in the view's `help:` block, which is where every
+shipped view in fact puts it.
+
 ### `default:` — fill-in when the player typed nothing
 
 A string the matcher uses when the player provides no input for the

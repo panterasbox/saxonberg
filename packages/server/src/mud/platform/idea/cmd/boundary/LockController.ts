@@ -112,11 +112,11 @@ export default class LockController extends CommandController<LockModel> {
     //
     // ⚠ The bolt's STATE and the keyway's AUTHORITY are deliberately two
     // calls. `lock()` moves the bolt and asks nobody; this is the ask.
-    if (!lockable.opensFor(commandGiver as unknown as Stuff)) {
+    if (!lockable.opensFor(commandGiver)) {
       MessageApi.scene(commandGiver)
         .topic('act.deed')
         .toSelf(
-          Mml.compose`You have no key that fits ${Mml.thing(lockable as unknown as Stuff)}.`,
+          Mml.compose`You have no key that fits ${Mml.thing(lockable)}.`,
         )
         .send();
       context.note({
@@ -131,9 +131,9 @@ export default class LockController extends CommandController<LockModel> {
 
     MessageApi.scene(commandGiver)
       .topic('act.deed')
-      .toSelf(Mml.compose`You lock ${Mml.thing(lockable as unknown as Stuff)}.`)
+      .toSelf(Mml.compose`You lock ${Mml.thing(lockable)}.`)
       .toPeers(
-        Mml.compose`${Mml.actor(commandGiver)} locks ${Mml.thing(lockable as unknown as Stuff)}.`,
+        Mml.compose`${Mml.actor(commandGiver)} locks ${Mml.thing(lockable)}.`,
       )
       .send();
 

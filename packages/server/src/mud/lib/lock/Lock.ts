@@ -34,30 +34,32 @@ import type { CredentialWallet } from "../credential/CredentialWallet";
 /**
  * The lock technologies. A key of one technology can't work another's lock.
  *
- * ⭐⭐ **Open to packs, on the `AnyMixinName` precedent** (`api/mixin.ts`):
- * `string & {}` keeps editor completion on the kernel's two names while
- * admitting a pack's own. This matters because **the technology IS the
- * epoch axis** — pin-tumbler, keycard, and whatever a ward or a
- * retina-reader is — and lens 5's whole claim is that the mechanics
- * survive the epoch while the dynamics change. ⚠ A closed union made
- * that claim unkeepable by anyone but the kernel: `arcana` could not
- * ship a warded lock without a kernel MR, which `CLAUDE.md`'s pack
- * doctrine refuses outright (*a pack must never need a kernel list
- * edit*).
+ * ⚠⚠ **CLOSED to packs, and that is a known cost rather than an
+ * oversight.** The technology IS the epoch axis — pin-tumbler, keycard,
+ * and whatever a ward or a retina-reader is — so lens 5 wants it open,
+ * and `CLAUDE.md`'s pack doctrine says *a pack must never need a kernel
+ * list edit*. The lock build opened it on the `AnyMixinName` precedent
+ * (`MixinName | (string & {})`) and **reverted at the pre-merge sweep.**
  *
- * ⭐ And the other half of the pair was already open —
- * `KeyCredential.addKey`/`authorize` have always taken
- * `technology: string`, and the match is string equality. So the lock
- * side was the only narrow one, and this widens rather than builds.
+ * ⭐ The reason is the precedent's own condition, which that change did
+ * not meet: *"when the type system cannot see packs, **the gate owns the
+ * namespace**."* `AnyMixinName` gave up the compiler's typo check and
+ * handed it to `pnpm lint:mixin-names`, which reads every `_mixinName`
+ * on disk. **Nothing owns the lock-technology namespace**, and a typo'd
+ * `lockTechnology:` in a content row does not fail — `authorize` simply
+ * never matches, so the door opens for **nobody**, silently. That is
+ * this project's signature failure mode, and a closed union is the
+ * cheaper of the two frictions.
+ *
+ * ⭐ Note the other half of the pair is already open:
+ * `KeyCredential.addKey`/`authorize` take `technology: string`, so
+ * widening this is a one-line change **once a gate exists** to read
+ * every authored and pack-declared technology. See
+ * `docs/slates/tails/lock-slate.md § 4`.
  */
-export type LockType = "pin-tumbler" | "keycard" | (string & {});
+export type LockType = "pin-tumbler" | "keycard";
 
-/**
- * Validation array companion to {@link LockType} — ⚠ **the KERNEL's two,
- * not the world's.** A pack's technology is legitimately absent from
- * this list, so do not use it as an admission check; it is for help text,
- * authoring pickers and the kernel's own round-trip tests.
- */
+/** Validation array companion to {@link LockType}. */
 export const LOCK_TYPES: readonly LockType[] = ["pin-tumbler", "keycard"];
 
 export class Lock {
@@ -170,14 +172,6 @@ export class Lock {
         return master ? "heavy ring of master keys" : "worn brass key";
       case "keycard":
         return master ? "black master keycard" : "plastic keycard";
-      default:
-        // ⚠ A PACK's technology, and the fallback is deliberately drab.
-        // Opening {@link LockType} means the kernel can no longer know
-        // what every key looks like, and ⭐ a pack that wants its ward
-        // or its retina-token to READ like anything should author the
-        // `Key` row rather than hope the kernel guesses — which is the
-        // same line the materials and reading vocabularies draw.
-        return master ? "ring of master keys" : "key";
     }
   }
 }

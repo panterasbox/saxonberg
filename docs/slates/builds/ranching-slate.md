@@ -36,6 +36,19 @@
 > contracts, a market day, joint capital, profits à prendre)
 > **Size:** a build
 
+> ⭐⭐ *Finding handed over by the reachability sweep's drive
+> (2026-10-09), and it is the breeding gap above with a measurement
+> attached: **a herdbook tally only ever DECREASES.** The yard hens are
+> a `Herdbook` with `tally: 6` — a filed record, not six live birds —
+> and `reachability.dirty.wire.test.ts` butchers one every run, which is
+> why that file is `.dirty.`. Nothing increments a tally: breeding
+> writes SERVED only, so a served hen never becomes a seventh bird. ⚠
+> The honest consequence is that **every flock and herd in the realm is
+> a depleting stock**, and the drive is the instrument that makes it
+> visible — a wire file's dirty reason is a producer that should be
+> producing. The same run drafts an ox and leaves it drafted; `return`
+> exists, so that half is the drive's to tidy rather than this trade's.*
+
 > *Seam note (2026-09-03) discharged: the carcass comes apart into named
 > materials — tallow, hide, bone, meat — scaled by condition, and culling is
 > a decision because a carcass is worth something

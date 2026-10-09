@@ -176,6 +176,26 @@ most duplicate `props:` claims are legitimate — a works-board in twelve
 yards is the intended shape — so it is an open question rather than a
 gate. One paragraph, here, deliberately.
 
+⭐⭐ **`KNOWN_COLLISIONS` wants the same carrier `unreachable:` got**
+— salvaged out of the reachability plan at its retirement, 2026-10-09,
+because deferred design does not live in a plan. That sweep replaced an
+allowlist-in-the-linter with a **field on the thing itself**
+(`unreachable: awaiting:<slate>` on a view, read by
+`lint:reachability` and ignored by the runtime), and the collision
+allowlist in `check-verb-collisions.ts` is the same shape one step
+behind: a central list of pairs, maintained away from the views it
+describes. The disposition belongs on the **shadowed view** — a
+`shadowed-by:` key naming the winner and the reason — so the
+adjudication is readable where an author meets it and the gate stops
+being a list anybody has to remember to prune.
+
+⚠ Not done with the sweep that proposed it, deliberately: the glass
+build was live in that file at the time, and ⭐ the allowlist is down to
+**3 rows** now (`lease`/`unlease`, both safe, and `pour`, a rung-1
+unify), so the carrier buys less than it did. Reassess when the next
+genuine collision arrives — if `pour` unifies, the list is two safe
+domain-local rows and the carrier may never be worth building.
+
 **Command provenance (help) — shipped.** The `affordances` verb
 (`AffordancesController`) lists a giver's available commands annotated
 by affording source, and the underlying attribution record is

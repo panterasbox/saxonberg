@@ -10,7 +10,8 @@
 > landed in !354) and three that are real design work.
 > **Left:** the master key's seat (§ 1) · a readable key-holder record
 > and selective revocation (§ 2) · ⭐⭐ **`lockcraft` and the locksmith**
-> (§ 3) — the answer to the two lenses the design outright fails
+> (§ 3) — the answer to the two lenses the design outright fails · the
+> lock-technology namespace and the gate that must own it (§ 4)
 > **Size:** a tail, except § 3, which is a build
 
 ---
@@ -95,11 +96,12 @@ deserved the argument it did not get, and that is the process finding.
 `{keyway, technology}` already *is* the epoch axis: pin-tumbler →
 keycard → ward → retina-reader. A keycard door answers exactly what a
 brass one does — you `lock`, you `unlock`, you present a credential.
-⚠ `LockType` was a closed kernel union, so `arcana` could not ship a
-warded lock without a kernel MR; opened in !354 on the `AnyMixinName`
-precedent. ⭐ Note the other half had always been open
-(`KeyCredential.authorize` takes `technology: string`), so the lock side
-was the only narrow one.
+⚠ `LockType` is a closed kernel union, so `arcana` cannot ship a warded
+lock without a kernel MR. It was opened on the `AnyMixinName` precedent
+and **reverted at the pre-merge sweep** — see § 4, which is the more
+useful finding than the change was. ⭐ Note the other half is already
+open (`KeyCredential.authorize` takes `technology: string`), so the lock
+side is the only narrow one.
 
 **6 · Economy — ⛔ a key is minted from nothing.** Produces exclusion;
 consumes nothing; nobody pays. `mintKeyway()` is free, re-keying is
@@ -261,3 +263,52 @@ luck rather than method. A lens pass at the slate would have found
   [access.md](../../subsystems/access.md) — ⚠ read before reaching for
   title as a landlord proxy (§ 1).
 - [design-lenses.md](../../design-lenses.md) — the rubric this pass ran.
+
+## § 4 · The lock-technology namespace, and the gate that must own it
+
+**Attempted and reverted at the pre-merge sweep, 2026-10-09** — recorded
+because the reasoning is worth more than the change was.
+
+`LockType` is `"pin-tumbler" | "keycard"`, a closed kernel union. Lens 5
+wants it open (the technology **is** the epoch axis) and `CLAUDE.md`'s
+pack doctrine is explicit that *a pack must never need a kernel list
+edit* — `arcana` cannot ship a warded lock today without a kernel MR.
+So it was widened to `… | (string & {})` on the shipped `AnyMixinName`
+precedent, which does exactly this for mixin names.
+
+⭐⭐ **Then the linter refused it, and the refusal was right.** The
+precedent needs `// eslint-disable-next-line @typescript-eslint/ban-types`,
+and the comment above that line states the condition the widening has to
+meet:
+
+> *"What it gives up is the compiler catching a typo, and that check did
+> not disappear — it moved to `pnpm lint:mixin-names`, which reads every
+> `_mixinName` on disk and so can see what the type system never will.
+> Same move as `requires:`: **when the type system cannot see packs, the
+> gate owns the namespace.**"*
+
+⚠⚠ **Nothing owns the lock-technology namespace.** And the failure a
+typo produces is the worst shape this project has: a misspelled
+`lockTechnology:` in a content row does not throw and does not warn —
+`KeyCredential.authorize` compares two strings, they differ, and **the
+door opens for nobody.** A keyed door that admits no one, silently, in a
+realm where the only doors worth locking are somebody's home.
+
+**So the order of work is fixed:** the gate first, the type second.
+
+**What the gate reads.** Every authored `lockTechnology:` across all
+packs' content, plus every technology a pack *declares*. The declaration
+half is the open question — mixin names solved it by having each pack's
+class carry `static _mixinName`, registered at pack discovery. A lock
+technology has no natural carrier yet; candidates are a row
+(`<root>/idea/lock-technology/<name>`, the `Reading` shape, warmed by a
+catalogue) or a manifest key. ⭐ The row is probably right, because a
+technology wants prose anyway — `Lock.keyDescription` hardcodes *"worn
+brass key"* and *"plastic keycard"* in a kernel switch, which is the
+same closed-vocabulary smell one layer down, and a row would carry its
+own key's description instead of the kernel guessing.
+
+⭐ **Cheap and worth doing together:** that switch and this union are one
+problem. A `lock-technology` row holding `{ displayName, keyProse,
+masterProse }` retires both, and `LOCK_TYPES` becomes the catalogue's
+warm roster rather than a literal array.

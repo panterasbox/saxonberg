@@ -173,9 +173,9 @@ export class MqlLogic extends ApiLogic {
       // door-only walk found nothing and the verb refused with
       // `not-lockable` at the one door in the realm you actually hold
       // a key to.
-      if (predicate(exit as unknown as Stuff)) {
-        return exit as unknown as Stuff & T;
-      }
+      // ⭐ No cast: `Exit extends ConcealableMixin(Idea)` and `Idea
+      // extends Stuff`, so the predicate's own type guard narrows it.
+      if (predicate(exit)) return exit;
     }
     return null;
   }
