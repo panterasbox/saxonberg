@@ -668,7 +668,7 @@ that build **fails lens 1 outright** — turning a key exercises no
 Discipline and nothing is derivable — and fails lens 6, because a key is
 cloned from nothing in a realm that has smelting and smithing. `lockcraft`
 is the answer to both, and the gap list is at
-[lock-slate § 3](../tails/lock-slate.md). ⚠ Picking a lock is the
+[lock-slate § 3](./lock-slate.md). ⚠ Picking a lock is the
 smaller half: a lock needs a **character** (lens 2) and a key needs a
 **producer** (lens 6).
 

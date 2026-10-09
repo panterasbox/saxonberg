@@ -611,7 +611,7 @@ chained, and locked — the gown's, not the town's.*
 
 > ⭐⭐ **What this model does NOT do, and where it is tracked.** A lens
 > pass over the shipped design
-> ([lock-slate](../slates/tails/lock-slate.md)) **fails lens 1
+> ([lock-slate](../slates/builds/lock-slate.md)) **fails lens 1
 > outright** — turning a key exercises no Discipline and nothing is
 > derivable — and lens 6, because a key is cloned from nothing in a
 > realm that has smelting and smithing. It also found that **you cannot
