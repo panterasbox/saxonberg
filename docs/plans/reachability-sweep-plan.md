@@ -2026,6 +2026,75 @@ represent.
 just merge it once at the start.** The water design existed, in the
 user's own worktree, while I was deciding how water works.
 
+### ⛔⛔⛔ W7's other finding: TWO DRIVES WERE RED ON MASTER
+
+The merge brought the **fire build**, which made a lamp need fuel and
+sells the general store's lantern **DRY** on purpose — its row says so:
+*"the oil is a separate purchase, which is the point of selling a lamp in
+a shop that also sells oil, and the refusal when you light it is the
+thing that tells you so."*
+
+⚠⚠ Three wire drives clone that lantern and `light` it in their setup.
+`light me:i:lantern` now answers `no-fuel`, so the `beforeAll` throws and
+**every checkpoint in the file is SKIPPED.** Measured, not inferred:
+
+| file | on master |
+|---|---|
+| `base-class-narrowing.dirty.wire.test.ts` | **31 skipped** — red |
+| `envelope.dirty.wire.test.ts` | red the same way (`light lantern` → `no-fuel`, twice) |
+| `reachability.dirty.wire.test.ts` (this build's) | 22 skipped, which is how it was found |
+
+⭐ **This is the exact failure the wire-drive migration existed to
+prevent** — `docs/testing.md`'s own words about the five retired
+one-off scripts: *"two turned out to have been RED on master for weeks
+with nobody able to know."* The migration made them run on every MR;
+it did not make anybody look at the result.
+
+**REPORTED, not patched — and the attempt to patch is the lesson.**
+
+This build's own drive swaps to the **glowcap jar**: a `PortableLight`
+over a fungus, which consumes nothing and clones already glowing. ⭐ A
+lamp is a thing you operate; a glowcap is a thing that is simply alive.
+
+⚠⚠ I then applied the same four-line swap to `base-class-narrowing` — the
+lantern looked like pure scenery there, something to read rooms by — and
+**it made the file worse.** It got past setup (33 running where 0 had
+been) and then failed four assertions, three of them because **a glowcap
+is DIMMER than a lantern**: the lounge cellar stopped rendering its
+racking, and two checkpoints that expect *"pitch dark"* now read *"It is
+dim here."* That file reads rooms **by eye** and says so — *"three runs
+of this file failed assertions about rations and coaches that were
+standing right there"* — so the lantern's BRIGHTNESS is load-bearing, not
+decoration. Reverted.
+
+So both of master's reds are reported with the diagnosis and the two
+candidate fixes, and neither is patched here:
+
+- `base-class-narrowing` — wants a light **as bright as the lantern**.
+  Either fill the lantern (the fire build's idiom) or pick a brighter
+  fuel-free source, and then re-check the four by-eye assertions. Its
+  author knows which rooms those are.
+- `envelope` — the lamp is the **SUBJECT**, not scenery: the test lights
+  and douses with nothing in between because *"if a lamp goes out between
+  lighting it and putting it out, the READ is what put it out."* That
+  experiment needs a Burner with oil in it, full stop.
+
+⭐⭐ **Fourth application of one lesson in one cycle**, and the one I
+nearly missed because the fix looked trivial: `drive` (a tripwire), `say`
+(a shipped test), `swim` (a slate that merged mid-build), and now this —
+*a four-line change to somebody else's instrument is still somebody
+else's call.* ⚠ The tell each time was that I had the mechanism right and
+the authority wrong.
+
+⚠ And one more light lesson underneath it: the glowcap is dimmer than the
+lantern, so the wharfside bank (a big outdoor quay) reads *"shapes and
+edges, no more"* with one in hand. The drive's prose assertion there is
+gone — ⭐ the claim *the room describes what stands in it* is a CONTENT
+fact and is asserted in `terminus`'s `watershed.test.ts`, which reads the
+bank's `longDescription` without needing a world. What only the drive can
+see is that the rows are standing, and that is what it now asserts.
+**Each claim in the place that can see it.**
+
 ### The master merge, and two ceilings re-pinned
 
 Merged 53 commits (the **fire** build — which dairy was waiting on — the

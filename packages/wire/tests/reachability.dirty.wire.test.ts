@@ -89,7 +89,6 @@ const FARMSTEAD = '/world/terminus/hearts-delight/location/farmstead-yard';
 const DRIFT = '/world/terminus/rejection/ferrow/timbered-drift';
 const CASH_AND_CARRY = '/world/terminus/counting-houses/cash-and-carry';
 const MILLSITE = '/world/terminus/hearts-delight/location/millsite';
-const LANTERN_ROW = '/world/terminus/general-store/thing/lantern';
 
 const open: Session[] = [];
 let k: Session;
@@ -205,6 +204,38 @@ async function whereAmI(s: Session): Promise<string> {
   return String((rows[0] as { displayName?: string })?.displayName ?? '');
 }
 
+/**
+ * ⚠⚠ **A light that burns NOTHING**, and the master merge is why.
+ *
+ * Every session here used to `clone` the general store's lantern and
+ * `light` it, because the wire world boots at midnight on a new moon and
+ * an unlit scope renders every object as *"something"*. The **fire
+ * build** then made a lamp need fuel and sold the lantern **DRY** — its
+ * row says so in terms: *"the oil is a separate purchase, which is the
+ * point of selling a lamp in a shop that also sells oil, and the refusal
+ * when you light it is the thing that tells you so."* So
+ * `light me:i:lantern` answers `no-fuel`, correctly, and this file's
+ * `beforeAll` died on it: **22 skipped, the whole drive gone in setup.**
+ *
+ * ⭐ The glowcap jar is the answer rather than buying oil: a
+ * `PortableLight` over a fungus, which consumes nothing and so needs no
+ * supply chain to light a room for a test. ⚠ It is `Switchable` rather
+ * than a Burner — `light` is the Burner verb and a glowcap has no fire
+ * in it — and it clones **already on**, so there is nothing to do but
+ * carry it.
+ */
+const GLOWCAP_ROW = '/world/terminus/rejection/thing/glowcap-jar';
+
+async function carryALight(s: Session): Promise<void> {
+  expectOk(await s.cmd(`clone ${GLOWCAP_ROW}`));
+  // ⭐ And it arrives GLOWING — `switch me:i:glowcap on` answers
+  // `already-on`, which is the right fiction and the second thing this
+  // helper had to learn: a fungus does not need lighting, it needs
+  // carrying. A lamp is a thing you operate; a glowcap is a thing that
+  // is simply alive.
+  await s.drainProse();
+}
+
 async function at(where: string, tag: string, wizard = true): Promise<Session> {
   const s = await Session.open(uniqueHandle(tag), {
     startLocation: where,
@@ -244,9 +275,7 @@ beforeAll(async () => {
   // scope renders every object as "something", and three runs of the
   // base-class drive failed assertions about things standing in front of
   // them. The doctrine is working; a drive has to carry a lamp.
-  expectOk(await k.cmd(`clone ${LANTERN_ROW}`));
-  expectOk(await k.cmd('light me:i:lantern'));
-  await k.drainProse();
+  await carryALight(k);
 
   other = await at(STORE, 'reach-other');
 }, 420_000);
@@ -285,9 +314,7 @@ suite('1–8. the verbs that shipped and could not be said', () => {
     // the way back off was nobody's. It is `PosedMixin.self`'s now,
     // because `requiresMounted` reads the RIDER's posture.
     const rider = await at(DRIFT, 'reach-rider');
-    expectOk(await rider.cmd(`clone ${LANTERN_ROW}`));
-    expectOk(await rider.cmd('light me:i:lantern'));
-    await rider.drainProse();
+    await carryALight(rider);
 
     const mounted = await act(rider, 'mount pony');
     const seated = refusedFor(mounted) === null && refusalNote(mounted) === null;
@@ -579,9 +606,7 @@ suite('9–14. a good`s name is a PHRASE', () => {
     // `unknown-verb`, correctly: `mill` is conferred by a
     // `ComminutingMixin` host, and the grist mill is at Heart's Delight.
     const miller = await at(MILLSITE, 'reach-miller');
-    expectOk(await miller.cmd(`clone ${LANTERN_ROW}`));
-    expectOk(await miller.cmd('light me:i:lantern'));
-    await miller.drainProse();
+    await carryALight(miller);
     const quoted = await act(miller, 'mill "sack of wheat"');
     expect(refusedFor(quoted)).not.toBe('unknown-verb');
 
@@ -625,9 +650,7 @@ suite('15–22. rows that shipped and nobody could meet', () => {
     // book nobody propped is a herd that does not exist, and the refusal
     // was `unknown-target` on a register the room's own prose describes.
     const farmer = await at(FARMSTEAD, 'reach-farmer');
-    expectOk(await farmer.cmd(`clone ${LANTERN_ROW}`));
-    expectOk(await farmer.cmd('light me:i:lantern'));
-    await farmer.drainProse();
+    await carryALight(farmer);
 
     // ⚠⚠ A QUERY, by the row's OWN name — and two corrections in one
     // line. This used to read `look here` for `/ox book|oxbook|book/i`,
@@ -679,9 +702,7 @@ suite('15–22. rows that shipped and nobody could meet', () => {
     // reads BOTH halves of what the sweep actually fixed: the hopper is
     // buyable, and the vessel holds food.
     const feeder = await at(DRIFT, 'reach-feeder');
-    expectOk(await feeder.cmd(`clone ${LANTERN_ROW}`));
-    expectOk(await feeder.cmd('light me:i:lantern'));
-    await feeder.drainProse();
+    await carryALight(feeder);
     const offered = await act(feeder, 'offer rations to canary');
     expect(refusedFor(offered)).not.toBe('unknown-verb');
 
@@ -736,9 +757,7 @@ suite('15–22. rows that shipped and nobody could meet', () => {
     // fallback `stew-meat ×2` while `trade-cooking` shipped three
     // authored poultry-cut rows that nothing named.
     const farmer = await at(FARMSTEAD, 'reach-butcher');
-    expectOk(await farmer.cmd(`clone ${LANTERN_ROW}`));
-    expectOk(await farmer.cmd('light me:i:lantern'));
-    await farmer.drainProse();
+    await carryALight(farmer);
 
     // ⚠ By QUERY and by the row's own name, for the reasons step 15
     // gives: the yard is dark at boot, and a prose alternation can pass
@@ -769,13 +788,22 @@ suite('15–22. rows that shipped and nobody could meet', () => {
     // standing. ⭐ This is the case that forced arm R's faucet/citation
     // split: being NAMED by a field is not reachability.
     const walker = await at(BANK, 'reach-walker');
-    expectOk(await walker.cmd(`clone ${LANTERN_ROW}`));
-    expectOk(await walker.cmd('light me:i:lantern'));
-    await walker.drainProse();
-    const said = await look(walker);
-    expect(said, 'the bank describes the conduit it carries').toMatch(
-      /cold fell|aqueduct|arches/i,
-    );
+    await carryALight(walker);
+
+    // ⚠⚠ **No prose assertion here, deliberately**, and the master merge
+    // taught it. The bank is a big outdoor quay: a carried glowcap gets
+    // you *"shapes and edges, no more"* rather than the room's
+    // description, so a prose read of it tests the LIGHT and not the
+    // world. (The lantern was bright enough and the fire build sold it
+    // dry — see `carryALight`.)
+    //
+    // ⭐ The prose fact — *the room describes what stands in it* — is a
+    // CONTENT fact and is asserted where content can be read without a
+    // world: `terminus`'s `watershed.test.ts` checks the bank's
+    // `longDescription` for *"Cold Fell"* beside the two `props:` lines.
+    // What only THIS instrument can see is that the rows are actually
+    // standing in the room, which is the next assertion. Each claim in
+    // the place that can see it.
     // ⭐ And the two rows are STANDING, not merely described — a query,
     // because being mentioned in prose is exactly the thing arm R
     // refuses to count as reachability.
@@ -811,9 +839,7 @@ suite('15–22. rows that shipped and nobody could meet', () => {
     // two suspects and said the boot log decides, so what this reads is
     // whether the floor is quiet.
     const yard = await at(CASH_AND_CARRY, 'reach-yard');
-    expectOk(await yard.cmd(`clone ${LANTERN_ROW}`));
-    expectOk(await yard.cmd('light me:i:lantern'));
-    await yard.drainProse();
+    await carryALight(yard);
     for (let i = 0; i < 4; i += 1) {
       const r = await act(yard, 'look here');
       expectOk(r);
