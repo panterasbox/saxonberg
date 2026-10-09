@@ -205,6 +205,32 @@ same place.** ⭐ **The node graph stops being the geography and becomes
 the index**: on land the graph *is* the geography, on an areal passage the
 graph is how we know who might see you.
 
+### ⚠⚠ CORRECTED 2026-10-08 — the horizon is ONE CHANNEL, not the rule
+
+The submarine stress test (§ 3c) found this section's one real defect, and
+it is cheap now and expensive later.
+
+**A submerged boat has no horizon at all.** At periscope depth it has
+about **two nautical miles**, and only if somebody is looking. But it
+**hears** vastly further than it sees.
+
+⭐⭐⭐ So `1.17·√h` was never *the* co-presence rule — **it is one
+channel's rule in a per-channel model.** Visual takes the horizon
+formula; **acoustic takes a different and much larger radius**; and the
+asymmetry stops being *"a ship can see you before you see it"* and
+becomes the sharper thing: **you can hear someone who cannot see you,
+and that is the whole tactical situation.**
+
+⭐⭐ **And the substrate already ships** — `senses.md`'s `SenseChannel`
+vocabulary and `Modality` singletons, `perception.md`'s viewer-aware
+queries and Audible push, `messaging.md`'s capability split. This is
+**applying the shipped sense model to the expanse rather than inventing a
+second radius for it**, so it is a narrowing of scope, not a widening.
+
+⚠ Read the next heading as **one perception model, N channels** — which
+protects the not-sortable property *better*, because every channel is
+then the same machinery for players and for seeded traffic alike.
+
 ### ⭐⭐⭐ One sighting channel, two sources of sail
 
 ⚠ **If a player's craft and an NPC trader arrive by different mechanisms,
@@ -245,6 +271,236 @@ empty water has the stock and nobody within twelve miles.
 **Remoteness is simultaneously the reason the resource is there and the
 reason you die.** Lens 1 producing a risk/reward curve out of two true
 facts, with nobody authoring a tension.
+
+---
+
+## 3b. ⭐⭐⭐ Navigation — what a traverse IS on an areal passage
+
+Designed 2026-10-08. ⭐ **The question that unlocks it:** on a *place* you
+are in a room, cardinal exits work, `go north` goes north, and there is
+no navigation. On a **linear** passage there are exactly **two
+neighbours**, so you cannot get lost in a canal either. Navigation exists
+in precisely one place — and it exists there because **an areal passage
+has no neighbours at all.**
+
+⭐⭐⭐ **There is no exit to take.** So movement on an expanse cannot be
+*choose a destination*; it must be **set a course** — a heading and a
+rate, for a duration. **You choose a vector and the world computes where
+you end up.**
+
+### ⭐⭐⭐ Two positions, and that is the whole mechanic
+
+The world holds your **true** position. You hold your **reckoned** one —
+your own estimate, accumulated from heading × speed × elapsed. They
+diverge because of things you cannot directly measure: the **current** (a
+field value on the expanse), **leeway** (wind pushing you sideways — wind
+already ships as a weather-deviated field), compass error, and the log's
+imprecision.
+
+⭐⭐ **The error is EPISTEMIC, not resolutional**, which is why this is
+legal. `uncertainty.md` bans rolling to decide what the world *is*, and
+**nothing rolls here**: the world knows exactly where you are, *you* do
+not, and your error is accumulated ignorance of **seeded** fields. The
+ban is not a constraint being worked around — it is what makes the
+mechanic honest.
+
+### The decision matrix
+
+Dead reckoning is free and its error grows **monotonically**. A **fix**
+collapses it, and the four sources cost genuinely different things.
+
+| fix | cost | available when |
+|---|---|---|
+| **a landmark** | free | something identifiable is inside your horizon |
+| **soundings** (the lead line) | **way** — you must slow or heave to | ⭐ always, *including fog and dark*, which is when you need it |
+| **a celestial sight** | a moment, an instrument | ⚠ **clear sky only** — so **weather gates your ability to know where you are**, and `fog` is already a weather type |
+| **a pilot** | money | where he lives |
+
+⭐ Soundings being the all-weather fix is what makes them the
+**professional** instrument — and depth-plus-bottom-character is a field
+the fishery already wants.
+
+⭐⭐ **The epoch ladder is historically exact and nearly free.** Latitude
+is easy — the noon sun's altitude, and `solarAltitudeDeg` **ships**.
+Longitude needs an accurate clock. So epoch one is **latitude sailing**:
+run north or south to your destination's parallel, then run down it —
+slower, safer, and the reason historical tracks look absurd on a chart.
+Epoch two is the chronometer, which plugs into the Timekeeping seam and
+into [climate-slate](./climate-slate.md)'s polar finding that **you must
+own a clock**.
+
+### The failure modes, graded
+
+⭐⭐⭐ The governing principle: **being lost is a condition you work out
+of, not a punishment.**
+
+- **Doubt.** You have run your distance and the land is not there. Not a
+  failure state — a **prompt**, whose recovery is a set of actions: heave
+  to, sound, wait for a sight, stand off till dawn. **Most of the
+  gameplay lives here.**
+- **Landfall in the wrong place.** You arrive, just not where you meant.
+  Recoverable, and it *generates* content.
+- **Overrunning.** Past your destination into empty water — which § 3
+  already says is where remoteness kills you.
+- ⭐⭐ **Grounding**, and **the model already expresses it with no new
+  mechanism**: § 1 lists *"Superior: mostly areal passages, with
+  **places** at the ports, the **shoals**, a wreck."* A shoal is a place
+  on the graph, so **running aground is arriving at a place you did not
+  choose.**
+
+**Can you get lost? Yes — and the honest answer is that you are ALWAYS
+slightly lost, and competence is how slightly.** Which is
+`instrumentation.md`'s rule unchanged (competence resolves detail, never
+access). ⭐⭐ But the expert's real advantage is not a better position —
+it is **knowing how wrong he might be**: a confidence interval rather
+than a point, which is that doc's **seeded bracket** doing exactly what
+it was built for. **The skill is calibration, not accuracy**, and
+calibration is the better thing to teach.
+
+### ⭐⭐⭐ Disconnection on an expanse is never topological
+
+On an areal passage **reachability is not a graph property** — position
+is a coordinate, so you can sail anywhere you can survive sailing to.
+Therefore disconnection is **epistemic, logistical, or seasonal**:
+
+- **epistemic** — it is on no chart; you do not know it exists
+- **logistical** — you cannot survive the crossing (provisions, water,
+  `vitamin-c`)
+- **seasonal** — the ice closed it, or the pass did
+
+⭐⭐ Which is what makes **discovery** possible: an island that exists in
+the coordinate field and on nobody's chart. And
+`location-graph.md`'s **per-player map document already does this** —
+channels `walked` · `seen` · `searched` · `published`, with the rule that
+**claims append and nothing is corrected.** A chart **is** a per-player
+map; an uncharted island is one no channel holds.
+
+⭐⭐⭐ **And that append-only rule has a consequence nobody drew out: a
+chart can be WRONG, and stay wrong.** A chart you bought with an error
+on it, where the error belongs to a **previous surveyor** — authored,
+attributable, and not the dice's. ⛔ The evidence firewall (*the index
+must never reach a client*) is what makes a chart an **object** rather
+than a UI element — which is also what makes it sellable, forgeable and
+worth stealing.
+
+### ⭐⭐ So pilotage is TWO TRADES sharing a word
+
+| | you always know | you do not know | failure |
+|---|---|---|---|
+| **the bar / river pilot** — *linear* | where you are | where the water is deep **this month** | you ground |
+| **the deep-sea navigator** — *areal* | the water is deep | where you are | you ground |
+
+The same catastrophe from opposite ignorances. The river pilot's product
+is **derived navigability** — a channel that moves with the freshet and
+that nobody wrote down; the navigator's is **calibration**. One is local
+and unteachable; the other is mathematics and an instrument.
+
+⭐ **They also sit on opposite sides of the epoch**: the navigator is
+replaced by better clocks, and **the river pilot never is** — the channel
+keeps moving.
+
+⭐ **The durative shape**: a passage is an engaged act with interrupts at
+roughly **a watch — twenty real minutes** on § 6's clock, each one a
+decision point where a sighting, the weather, or a chance to sound
+arrives.
+
+### ⚠⚠ The risk, named
+
+**If pilotage becomes a dexterity-and-attention minigame we have built a
+worse Sea of Thieves in text.** We cannot compete on steering and a watch
+is twenty real minutes. ⭐⭐⭐ **The submarine-sim conclusion is the
+design: the PLOT is the interface.** Not a wheel, not a heading dial — a
+running record (reckoned position, last fix, time since, the growing
+bracket) that the player reads and acts on, where the decision is **when
+to spend time on certainty.** Text-native, watch-shaped, and it makes
+expertise an interval rather than a reflex.
+
+### Prior art — by what is transferable
+
+⚠ Our slates cite doctrine heavily and never cite prior art, so every one
+of these arguments gets re-derived from scratch next time.
+
+| source | the transferable mechanism |
+|---|---|
+| ⭐⭐⭐ **Silent Hunter / UBOAT / Cold Waters** | the closest match anywhere: an **estimate maintained on a plotting table** is the shipped, commercial form of reckoned-vs-true — and **the plot is the interface** |
+| ⭐⭐⭐ **Elite / Elite Dangerous** | our `Expanse` already built: **fuel/jump range as the boundary** (logistical disconnection) · a **deterministic procedural galaxy so everyone sees the same star** (seeded-not-drawn, at scale) · ⭐ **exploration sells DATA** (the chart and the record as a player economy) |
+| ⭐⭐ **Sunless Sea** | crossing to sparse ports where **supplies are the clock**, and the honest treatment of **what darkness does to a crossing** |
+| ⭐⭐ **Outer Wilds** | the proof that **knowledge alone can be the whole progression** in a deterministic world |
+| ⭐⭐ **Tunic** | the **fallible manual as the progression object** — the best argument that an unreliable document beats a reliable one |
+| **Kerbal Space Program** | real physics *is* the game; the loop is **predicted vs actual** |
+| ⛔ **Patrician / Port Royale / Anno** | **the anti-pattern**: sea travel as *a route line and a timer*. If the traverse has no decisions in it, we have built Port Royale |
+| ⚠ **Sea of Thieves** | proves **navigating by looking is pleasurable** — but it is 1:1 continuous, so its uncertainty lives in the player's head and it **cannot** tell us how to do this over an abstraction |
+
+**Literature** — ⭐⭐⭐ **Twain, *Life on the Mississippi*** is not an
+analogy: he held the licence, and the book contains the moving channel,
+the unteachable knowledge in both directions and by night, the **Pilots'
+Benevolent Association** (an actual licensing monopoly — the lens-7
+structure, attested), and ⭐ **the obsolescence**, written by a man who
+watched his own trade become worthless. **If we build river pilotage,
+that book is the brief.** · **Conrad, *Heart of Darkness*** — a master
+mariner on watching for snags and guessing at a channel. ·
+**O'Brian / *Master and Commander*** — the watch, the masthead, the log
+line, soundings as a running report. · **Sobel, *Longitude*** — the
+epoch ladder as history. · **Melville**, two chapters not the book:
+⭐ **"The Chart"** (Ahab reasoning about migration from accumulated
+logbooks — *the station's record, in 1851*) and **"The Quadrant"** (he
+smashes the instrument that tells him where he is).
+
+---
+
+## 3c. ⭐⭐ The submarine — the stress test, and what it proved
+
+Run 2026-10-08 to test whether this session's model holds under a third
+dimension. **It holds in three places and broke in one** (§ 3's horizon,
+corrected above), which is the whole value of having run it.
+
+**What holds:**
+
+- ✅ **A sub is aboard-something-crossing.** A vessel is a room that
+  moves, so you are *in the sub* and the sub is *on* the passage.
+  § 1 untouched, and *"water is cited, not inhabited"* survives.
+- ✅ ⭐⭐ **Depth is not a graph problem.** `underwater-slate` already
+  decided that **medium is derived from `level − elevation`**, so depth is
+  a property of where you are **in the medium**, orthogonal to position
+  **on** the expanse. No third graph dimension, no neighbours, nothing
+  re-modelled. ⭐ And the consequence is right: **the sub and the ship
+  above it are at the same node.** They are in the same place and cannot
+  find each other.
+- ✅ **Crush depth is already derivable** — `response = f(mechanism,
+  material, construction)` plus the shipped elevation→pressure
+  derivation. And the underwater slate's *"ascent is never gated on
+  skill, only on breath and ballast"* **is** the submarine's mechanic: a
+  sub is a ballast machine, so this is that model at vessel scale.
+
+**What it adds to § 3b:**
+
+⭐⭐⭐ **Submerged, you have NO fixes** — no landmark, no sight. Dead
+reckoning and the depth under your keel. Historically exact (boats
+surfaced at night *to get a star fix*). **So you must surface to know
+where you are, and knowing where you are is how you get found.** The
+cleanest risk/reward in the navigation design, and not one part of it was
+invented.
+
+**Three couplings:**
+
+1. ⭐⭐⭐ **The pump is the gate for the whole diving ladder** —
+   breath-hold → diving bell → hard-hat suit **with a pump and a hose**
+   → submarine. `watershed.md` says the pump **is the turbine read
+   backwards** (one equation, two efficiency dials), so it unlocks mine
+   dewatering, the quarry pit **and** surface-supplied diving. ⚠ **Third
+   appearance in one session, three consumers, nearly free.**
+2. **Bulk's inert `sealed` rung gets its consumer** — a sub is a room
+   with a finite atmosphere, and respiration ships asphyxiation and the
+   crisis drain. **Air becomes the clock.**
+3. **Diving is how you reach a wreck**, which gates salvage (§ 5c); and
+   pearl/sponge diving was already *"the column's first real consumer."*
+
+⭐ **The honest scoping: diving is the trade and the submarine is its
+last rung**, industrial-epoch and far off. Build the breath-hold end.
+Designing for the top rung cost nothing and is what caught the channel
+defect. · Prior art: **Verne** (and *20,000 Leagues* visits Atlantis,
+which `underwater-slate` already put in bounds) · ***Das Boot*** for
+atmosphere-as-clock and depth under pressure.
 
 ---
 
@@ -693,6 +949,167 @@ embanking · irrigation works · ⭐ the pump (above, and overdue).
 
 ⚠ **Not a build list.** Recorded so it is not lost, and because several
 are a row or two on machinery that already ships.
+
+## 5c. ⭐⭐ The trades examined — drill-down on § 5b's kept list
+
+Worked 2026-10-08, from the ⛑ list above. ⚠ **Not a build order** — the
+six with real content in them, plus the cuts.
+
+### ⭐⭐⭐ Pilotage — see § 3b
+
+The richest entry, and it got its own section because it answers *what a
+traverse is*. Two trades sharing a word; the gate is knowledge that
+**spoils**; the register's criterion 2 is satisfied by something unusual —
+⭐ **the pilot and the laundress are both paid for an absence** (a
+grounding that did not happen, a garment that was not ruined).
+
+### ⭐⭐⭐ The oyster bed — the best demonstration contamination will get
+
+Oysters are **filter feeders**: they clean the water, and in cleaning it
+they **concentrate** what is in it. `spoilage.md`'s doctrine is that
+**spoilage is a clock and contamination is an EVENT** — event-seeded, own
+kill curve, spore floor, and **no sense that reports it**.
+
+⭐⭐⭐ So: a bed downstream of a tannery. **The water runs clear. The
+oyster looks, smells and tastes like an oyster. It kills you.** That is
+`ContaminableMixin`'s silent second population with the most honest
+vector it will ever have, and the lesson is real — **shellfish are an
+integrating instrument for water quality, and the integration is
+invisible.**
+
+Then the politics writes itself and nobody invented it: whose tannery,
+whose bed, how far is far enough, and **the harm is undetectable at the
+moment of sale.** ⭐ Plus § 5b's lake-versus-river rule — *the river
+carries your filth away and the lake keeps it* — so the same bed below
+the same tannery is fine on one and lethal on the other.
+
+⭐⭐ **And it is the first FARMED water resource**: an RGO whose recharge
+you control. With ice (recharge 1.0, no conservation question) and
+whaling (no recharge), **the trade programme gets its full control set —
+three RGOs, three recharge regimes.**
+
+### ⭐⭐⭐ The drainage board — a government that exists only to maintain
+
+⭐⭐ **A polder is land that exists because a collective keeps a dike up,
+and if the maintenance lapses the land ceases to exist.** There is no
+other object like that in the design.
+
+Which is why the Dutch water boards are the **oldest continuously
+functioning democratic institutions in Europe** — they predate the states
+around them, because the dike did not care who was king. A **government
+whose entire charter is maintenance**, with taxing power, over land it
+manufactured, where the franchise belongs to the people whose fields
+drown. `civics.md` is seats-as-positions with Locality-declared
+jurisdiction; ⭐ **this is a jurisdiction defined by who gets wet.**
+
+⭐⭐⭐ **And it completes a family: EXACT COST against CATASTROPHIC,
+DELAYED, UNMEASURABLE loss** — the fuel ration, the station's record, and
+the dike. In all three the ledger says stop paying and **the ledger is
+wrong.** (See [climate-slate](./climate-slate.md) § *What it is FOR*.)
+
+⭐ Prior art: ***Jean de Florette* / *Manon des Sources*** — not laundry
+and not dikes, but **water rights as the entire plot**: a blocked spring,
+a ruined farm, two generations. The dramatic register for the August
+crisis.
+
+### ⭐⭐ Wrecking and salvage — where the law is the content
+
+The richest lens-4 object on the list, because **the law is genuinely
+unsettled and always has been**: who owns a wreck, what a rescuer may
+claim, whether a cargo saved is a cargo bought, whether the owner's
+absence is consent.
+
+⭐⭐ And the dark version is historically real: **a town whose economy is
+wrecks.** Not pirates — ordinary people for whom a bad night is a good
+year, who are not *causing* wrecks and are also not praying very hard
+against them. A community you can write with complete sympathy and no
+villain, which is `content-craft.md` § 8c exactly. The hard edge — **the
+false light**, luring a ship onto rocks — is the one unambiguous crime,
+and is better for being the single line nobody admits is near.
+
+Mechanically close to free: the salvage doctrine, chattel chain-of-title
+and the accountability ledger all ship. **What it needs is a CLAIM and
+somebody to hear it.** ⭐ And a wreck is a **place that appears without
+an author and disappears on a tide** — gated by the diving ladder
+(§ 3c).
+
+### ⭐⭐ Salt — ice's twin, and the climate work created the pair
+
+`trade-quarrying` **already ships a salt pan and a brine hearth.** Solar
+evaporation needs sun and dryness; ice needs cold. **Same mechanism,
+opposite climate, counter-sited.**
+
+⭐⭐⭐ And the climate pass gave it teeth: `stallBelowK: 273` means the
+cold half of the realm **cannot preserve by drying**, so it preserves by
+**freezing** — while the warm half **salts**. **Two preservation
+technologies split by latitude, with a trade route between them**, each
+unable to do the other's job. The north buys salt it cannot make for the
+fish it catches; the south buys ice it cannot make for the summer it has.
+⭐ **Neither trade was designed to need the other and both now do** — the
+best argument yet that the climate unification pays for itself.
+
+### ⭐⭐ The ferryman and the bridge — and this is now a PATTERN
+
+The crossing survives; the ferryman is finished, with no warning except
+watching the piers go in. ⭐ And the ice road replaces him for five
+months **free**, so his year already has a hole in it before the bridge
+arrives.
+
+⭐⭐⭐ **The reason to record it is that it is the third instance in two
+sessions:**
+
+| capability | survives as | the economy that dies |
+|---|---|---|
+| keeping things cold | `ClimateControl` | the ice trade |
+| lighting a room | kerosene — *already in whale oil's own `keywords:`* | whaling |
+| crossing a river | the bridge | ferrying |
+
+⭐⭐⭐ **Three is a pattern, and it belongs to lens 5 rather than to any
+slate** — promoted to
+[design-lenses.md](../../design-lenses.md). The lens as written asks *does
+the new object answer the same commands*, which the platform passes
+trivially and **a person fails completely.** The content is always on the
+person.
+
+### The rest, briefly
+
+- **Dredging** — the ditch rider's sibling: a maintenance trade nobody
+  funds, failing gradually and then suddenly, coupled to siltation behind
+  the mill's weir and to derived navigability. ⭐ Its live question is
+  **where the spoil goes**, which is a LULU.
+- ⭐⭐ **The pump** — three slates defer it; `watershed.md` already says
+  water and power meet at **one equation read in two directions**. ⚠
+  **The third instance of the ice slate's standing check** (*when a
+  bidirectional mechanism ships, one direction gets its driver and the
+  other waits for a consumer*) — turbine shipped, pump did not. **Now
+  three consumers deep (mine, quarry, diver) and the cheapest unblock on
+  the board.**
+- ⭐⭐ **Laundry** — own slate: [laundry-slate](./laundry-slate.md).
+- **Tourism** — the one trade whose product is *the place*, so the first
+  that can be destroyed by succeeding. ⛔ **Must not become a gauge on
+  description** (decor is never a gauge); the honest wiring is **renown at
+  place scope** — famous because people went and talked, not because an
+  author typed well.
+- **Boatbuilding / ropewalks / sailmaking** — the capital-goods tier under
+  everything maritime including whaling. ⭐ A ropewalk is a quarter-mile
+  shed: **a building shaped like its product.**
+- **Reed and withy cutting** — basket and thatch feedstock, a genuine
+  coppice-shaped RGO on wet ground, cheap. · **Wildfowling** — fishing's
+  mechanism over a different animal. · **Pearl and sponge diving** —
+  belongs with underwater and the diving ladder, not here.
+
+### ⛔ Cut
+
+- **Lightering** — a sub-step of haulage **with no decision in it**, and
+  `vocations.md`'s chain-walk rule says a link with no decision produces
+  **procedure, not emergence.**
+- **Bathing and spas** — folds into tourism.
+- **Watermen and wherries** — ferrying at smaller scale; does not earn a
+  second entry.
+- **Embanking** — collapses into the drainage board, where the interesting
+  part was.
+
+---
 
 ## 6. The 12× clock decides the content scale
 
