@@ -50,6 +50,7 @@
     "lint:family": "tsx scripts/lint-family.ts",
     "lint:envelope": "tsx scripts/check-envelope.ts",
     "lint:field-meta": "tsx scripts/check-field-meta.ts --lint",
+    "lint:fraction-schedules": "tsx scripts/check-fraction-schedules.ts",
     "lint:gates": "tsx scripts/check-gate-strings.ts",
     "lint:get-or-create": "tsx scripts/check-get-or-create.ts",
     "lint:ground": "tsx scripts/check-ground.ts",

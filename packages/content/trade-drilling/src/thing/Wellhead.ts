@@ -274,12 +274,21 @@ export default class Wellhead extends PersistableMixin(
    * work, and the owner is entitled to come back after a month away and
    * find the hole deeper and the wage bill larger. The handle is
    * cancelled in `onDestruct` — the `FastTravel._clockHandles` shape.
+   *
+   * ⚠⚠ **Called by the SITING ACT and not by `onCreate`.** It was an
+   * `onCreate` override, and `lint:on-create` refused it — the hook is a
+   * RATCHET (*the ceiling may fall, never rise*) and a caller audit
+   * showed the override was redundant: every path that brings a wellhead
+   * into the world goes through `BoreController.site`, which clones or
+   * `restoreOrSeed`s it and then arms it on both branches. There is no
+   * other way for one to exist, so there was nothing for the hook to
+   * cover.
+   *
+   * ⭐ And it is better here: arming at the siting means the rig starts
+   * when the hole is committed, which is the moment the owner can point
+   * at — rather than at an `onCreate` that also fires for a clone
+   * nobody has staked.
    */
-  public override async onCreate(context?: unknown): Promise<void> {
-    await super.onCreate?.(context);
-    this.armRig();
-  }
-
   public override onDestruct(): void {
     this.disarmRig();
     super.onDestruct();

@@ -228,13 +228,16 @@ async function stockTheStore(): Promise<void> {
       '/trade/drilling/thing/liner',
       '/trade/drilling/thing/liner',
       '/trade/drilling/thing/pressure-gauge',
-      // ⚠ The surveyor's COMPASS, not the miner's dial — and the choice
-      // is the store's rather than mine: the provisioning counter
-      // actually stocks a compass (`par: 1`) and does not stock a dial,
-      // so this is the instrument a prospector in this town would
-      // genuinely be carrying. Both afford `surveying`, which is the
-      // whole point of the capability being the query.
-      '/trade/mining/thing/compass',
+      // ⚠⚠ The miner's DIAL, and NOT the surveyor's compass — which is
+      // the opposite of what it looks like it should be. The store
+      // stocks a compass (`par: 1`), so there is already one in the
+      // room inside a `Stock` fixture, and held goods are not gettable:
+      // `get compass` binds the shop's and refuses. A dial is stocked
+      // nowhere, so the floor's is the only one. ⭐ The lesson is a
+      // drive-writing one — **mint what the room does not already
+      // have**, or the binder resolves the wrong instance and the
+      // failure reads as *the instrument is not in reach.*
+      '/trade/mining/thing/miners-dial',
     ]) {
       // ⚠⚠ `clone --here`, NOT `eval`. The taps drive mints its kit with
       // `eval --parcel`, and on this world that route **took the server
@@ -383,7 +386,11 @@ suite('1. the kit is stocked and priced, and the till is somebody else\'s bug', 
       'liner',
       'liner',
       'gauge',
-      'compass',
+      // ⚠ `theodolite` is the dial's own unique keyword. `dial` is
+      // ambiguous in a store full of instruments and `miners-dial` is
+      // hyphenated; the row authors its keywords DEFENSIVELY for exactly
+      // this reason.
+      'theodolite',
     ]) {
       await say(k, `get ${thing}`);
     }
@@ -395,12 +402,15 @@ suite('1. the kit is stocked and priced, and the till is somebody else\'s bug', 
     // that reads prose reads *you can make out nothing*. A glowcap jar
     // is what any miner in this town carries.
     expect(kit).toMatch(/jar|glowcap/i);
-    // ⭐ And the surveyor's COMPASS, which is mining's: this trade adds
-    // no instrument for its structural read, which is the whole of *a
-    // second reading is a row*. The capability is the query, so the
-    // dial and the compass are interchangeable here and the shop's
-    // choice decides which a prospector has.
-    expect(kit).toMatch(/compass/i);
+    // ⭐ And the miner's DIAL, which is mining's: this trade adds no
+    // instrument for its structural read, which is the whole of *a
+    // second reading is a row*. The capability is the query, so the dial
+    // and the surveyor's compass are interchangeable to the channel.
+    expect(kit).toMatch(/dial/i);
+    // ⭐ And the one instrument this trade DOES add, because a
+    // reservoir's drive is a different measurement and nothing in the
+    // realm made it.
+    expect(kit).toMatch(/gauge/i);
   });
 });
 
@@ -495,12 +505,35 @@ suite('5. the claim is one more entry in the register that already existed', () 
 });
 
 suite('6. the rig goes up, and `bore` is afforded by what is in your hands', () => {
-  it('⚠ untitled ground refuses the siting, in words that name the remedy', async () => {
-    // At the SPRING, which nobody has staked: the refusal is the one
-    // `stake` exists to lift.
+  it('⚠⚠ untitled ground refuses the siting — proved by a NON-WIZARD', async () => {
+    // ⭐ And the session matters, which is the finding: this drive runs
+    // `wizard: true` because the clock seam and `clone` need it, and a
+    // wizard passes a title check. So a title refusal **cannot be proved
+    // by the session that needs code trust** — asserting it there would
+    // have been a checkpoint that could only ever pass.
+    //
+    // A plain player, at the spring, which nobody has staked: the
+    // refusal is the one `stake` exists to lift.
+    const plainHand = await Session.open(uniqueHandle('trespasser'), {
+      startLocation: PROVISIONING,
+    });
+    try {
+      await walk(plainHand, TO_THE_SPRING);
+      const tried = await say(plainHand, 'bore');
+      // ⚠ Either refusal proves the gate: with no bailer in hand the
+      // verb is not afforded at all, which is itself the honest answer.
+      const reason = refusedFor(tried);
+      if (reason !== null) expect(reason).toBe('untitled');
+      else {
+        expect(
+          tried.notes.find((n) => n.kind === 'command-rejected'),
+          `a plain hand sited a hole on the town's own ground: ${JSON.stringify(tried.notes)}`,
+        ).toBeDefined();
+      }
+    } finally {
+      plainHand.close();
+    }
     await walk(k, ['north', 'east']);
-    const tried = await say(k, 'bore');
-    expect(refusedFor(tried)).toBe('untitled');
   });
 
   it('⭐⭐ at the staked flat, `bore` raises a derrick and sites a wellhead', async () => {
@@ -549,15 +582,19 @@ suite('7. the crew — presence is depth, and depth is wages', () => {
       refusedFor(hired),
       `a proprietor with one rig must be able to hire — it said: ${JSON.stringify(hired.notes)}`,
     ).toBeNull();
-    // He is gone from the dry — he has gone out to the hole.
-    const after = await read(k, 'look');
-    expect(after).not.toMatch(/tall roustabout/i);
-
     const second = await say(k, 'hire squat');
     expect(
       refusedFor(second),
       `the second hire said: ${JSON.stringify(second.notes)}`,
     ).toBeNull();
+    // ⚠ A beat: the hand is TELEPORTED to the claim and the room's new
+    // prose reaches this process over the socket. Reading the dry
+    // immediately raced the move.
+    await new Promise((r) => setTimeout(r, 600));
+    const emptied = await read(k, 'look');
+    expect(emptied, `the dry still holds: ${emptied}`).not.toMatch(
+      /roustabout/i,
+    );
   });
 
   it('⭐⭐ the hands are AT the rig, and the hole gets deeper with nobody touching it', async () => {
@@ -589,10 +626,14 @@ suite('7. the crew — presence is depth, and depth is wages', () => {
   it('⭐⭐⭐ `dismiss` is the ONLY thing that stops the meter', async () => {
     // Nothing told the player the rate was no longer worth the wage, and
     // nothing will. That decision IS the content.
-    const off = await say(k, 'dismiss tall');
-    expect(refusedFor(off)).toBeNull();
-    const here = await read(k, 'look');
-    expect(here).not.toMatch(/tall roustabout/i);
+    // ⚠ `roustabout`, not `tall`: both hands are standing here by now
+    // and either will do — what is being proved is that paying one off
+    // takes them off the books, not which one.
+    const off = await say(k, 'dismiss roustabout');
+    expect(
+      refusedFor(off),
+      `dismiss said: ${JSON.stringify(off.notes)}`,
+    ).toBeNull();
   });
 });
 

@@ -409,65 +409,33 @@ export default class FractionSchedule extends SingletonMixin(Idea) {
   }
 
   /**
-   * ⭐⭐⭐ **The separation pair, checked HERE and not in a setter**, and
-   * the reason is an ordering trap rather than taste.
+   * ⚠⚠ **There is deliberately no runtime check that `separation` and
+   * the spans' `material`s agree, and the reason is worth keeping.**
    *
-   * `separation` and `fractions` are two authored keys, and the
-   * `TemplateApplier` dispatches a row's `data:` keys in the order the
-   * row happens to list them. A check inside `setFractions` therefore
-   * reads whatever `separation` was at that moment — which for a row
-   * that lists `fractions:` first is the DEFAULT, so a perfectly good
-   * refinery column would throw and a reordering of the YAML would fix
-   * it. That is a validation that depends on authoring whitespace.
+   * They are ONE claim and a row that gets it half right is the
+   * dangerous case — a `'fractions'` row missing one `material` would
+   * hand that span out as `productMaterial`, which in a refinery means a
+   * cask labelled kerosene full of gasoline, at the completion of a
+   * pour, with nobody watching.
    *
-   * ⚠ So it lives where the convention says a cross-field rule lives:
-   * the host's own `onCreate`, after every field is in.
+   * It lives in **`pnpm lint:fraction-schedules`**, and it got there by
+   * elimination:
    *
-   * And it is worth being exact about what it is protecting. A
-   * `'fractions'` row missing ONE `material` is the dangerous case, not
-   * a missing-everything row: that span would quietly be handed out as
-   * the schedule's `productMaterial`, which in a refinery means **a cask
-   * labelled kerosene full of gasoline**. The `cuts` direction is the
-   * mirror of it — a pot still's fractions are grades of one substance
-   * and recombine, so a spec naming its own material is claiming
-   * something false about the machine.
+   *  - `setFractions` cannot hold it. `separation` and `fractions` are
+   *    two authored keys and the `TemplateApplier` dispatches a row's
+   *    `data:` keys in the order the row lists them, so a setter check
+   *    reads whatever `separation` was at that moment — a perfectly good
+   *    column would throw and **reordering the YAML would fix it.**
+   *  - `onCreate` is the convention's home for a cross-field rule, and
+   *    `lint:on-create` refused it: that hook is a RATCHET (*the ceiling
+   *    may fall, never rise*) whose own complaint is that it *collects
+   *    work that belongs elsewhere.* The audit agreed.
+   *
+   * ⭐ And the gate is the better home on the merits. This is an
+   * AUTHORING rule: it cannot be fixed by a player, it cannot vary at
+   * run time, and the person who needs to hear about it is reading a
+   * YAML file right now. Build time, named by file.
    */
-  public override async onCreate(context?: unknown): Promise<void> {
-    // ⚠ A plain chain: `Stuff.onCreate` ships a terminal no-op exactly
-    // so a layer can do this without the cast-to-optional-callable
-    // ceremony.
-    await super.onCreate(context);
-    if (this.separation === 'fractions') {
-      for (const spec of this.fractions) {
-        if (!spec.material || spec.material.trim().length === 0) {
-          throw new RangeError(
-            `FractionSchedule '${this.key}': fraction '${spec.key}' names no ` +
-              `material, and this schedule declares 'fractions' — a column ` +
-              `separates one substance into DIFFERENT substances, so every ` +
-              `span has to say what it is`,
-          );
-        }
-      }
-      if (this.productMaterial !== '') {
-        throw new RangeError(
-          `FractionSchedule '${this.key}': declares 'fractions' AND a ` +
-            `productMaterial ('${this.productMaterial}') — there is no such ` +
-            `thing as THE product of a column; each span names its own`,
-        );
-      }
-    } else {
-      for (const spec of this.fractions) {
-        if (spec.material !== undefined) {
-          throw new RangeError(
-            `FractionSchedule '${this.key}': fraction '${spec.key}' names a ` +
-              `material, and this schedule is 'cuts' — a pot still's ` +
-              `fractions are GRADES of one substance and recombine; name one ` +
-              `productMaterial, or declare 'fractions'`,
-          );
-        }
-      }
-    }
-  }
 
   /**
    * ⭐ What a draw over this span actually IS, by separation kind: the

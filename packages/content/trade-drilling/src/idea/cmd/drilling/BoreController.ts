@@ -175,8 +175,14 @@ export default class BoreController extends DrillingActController {
     ) {
       ContainmentApi.move(hole as unknown as Stuff & Containable, place);
     }
-    // ⚠ A restored hole's clock handle died with the process; re-arm it
-    // or the rig stands still until somebody types something.
+    // ⚠⚠ **Arm the rig HERE, on both branches** — this is the only place
+    // a wellhead ever comes into the world, so this is where its clock
+    // starts. It was an `onCreate` override on the class and
+    // `lint:on-create` refused it as a ratchet rise; the caller audit
+    // that followed found the hook redundant, because a fresh clone and
+    // a restored record both pass through this line. A restored hole's
+    // handle died with the process and would otherwise stand still until
+    // somebody typed something.
     hole.armRig();
 
     // ⭐ The rig itself. One per site, and it is a plain clone of the

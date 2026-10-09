@@ -28,9 +28,7 @@ import { fileURLToPath } from 'url';
 import { join } from 'path';
 import YAML from 'yaml';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
-import { makeStuff } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '@saxonberg/server/mud/lib/persistence/__tests__/quantity-marshaller-test-helpers';
-import FractionSchedule from '@saxonberg/server/mud/platform/idea/fractionation/FractionSchedule';
 import type { FractionSpec } from '@saxonberg/server/mud/lib/fractionation/FractionSchedule';
 
 const CONTENT = fileURLToPath(new URL('../../../', import.meta.url));
@@ -65,62 +63,40 @@ describe('⭐⭐⭐ the column separates DIFFERENT SUBSTANCES', () => {
     expect(crude.residueMaterial).toBeTruthy();
   });
 
-  it('⚠⚠ a `fractions` row MISSING one material is refused at create', async () => {
-    // The dangerous half-right case. ⭐ Checked in `onCreate` and not in
-    // the setter, because the two keys arrive in whatever order the YAML
-    // lists them — a setter check would depend on authoring whitespace.
-    const s = makeStuff(() => new FractionSchedule());
-    s.setSeparation('fractions');
-    s.setFractions([
-      {
-        key: 'light',
-        upTo: 0.3,
-        material: '/stuff/idea/material/bulk/gasoline',
-        character: 'fast and cold',
-        gradeBand: 'fair',
-      },
-      {
-        key: 'heavy',
-        upTo: 0.6,
-        character: 'slow and amber',
-        gradeBand: 'fine',
-      },
-    ]);
-    await expect(s.onCreate()).rejects.toThrow(/names no material/);
-  });
-
-  it('⚠ a `fractions` row that ALSO names a productMaterial is refused', async () => {
-    const s = makeStuff(() => new FractionSchedule());
-    s.setSeparation('fractions');
-    s.setProductMaterial('/stuff/idea/material/bulk/lamp-oil');
-    s.setFractions([
-      {
-        key: 'light',
-        upTo: 0.3,
-        material: '/stuff/idea/material/bulk/gasoline',
-        character: 'fast and cold',
-        gradeBand: 'fair',
-      },
-    ]);
-    await expect(s.onCreate()).rejects.toThrow(/no such thing as THE product/);
-  });
-
-  it('⚠ a `cuts` row whose span names a material is refused — a still BLENDS', () => {
-    // A pot still's fractions are GRADES of one substance and
-    // recombining them is the distiller's art. A spec claiming its own
-    // material is claiming something false about the machine.
-    const s = makeStuff(() => new FractionSchedule());
-    s.setProductMaterial('/stuff/idea/material/bulk/lamp-oil');
-    s.setFractions([
-      {
-        key: 'heads',
-        upTo: 0.3,
-        material: '/stuff/idea/material/bulk/gasoline',
-        character: 'sharp',
-        gradeBand: 'fair',
-      },
-    ]);
-    return expect(s.onCreate()).rejects.toThrow(/declare 'fractions'/);
+  it('⚠⚠ the half-right row is refused by a GATE, not at runtime', () => {
+    // ⭐⭐ The dangerous case is a `'fractions'` row missing ONE
+    // `material`: that span would be handed out as the schedule's
+    // `productMaterial`, which in a refinery means a cask labelled
+    // kerosene full of gasoline — at the completion of a pour, with
+    // nobody watching.
+    //
+    // ⚠ The check is `pnpm lint:fraction-schedules`, and it got there by
+    // elimination. `setFractions` cannot hold it, because `separation`
+    // and `fractions` are two authored keys dispatched in whatever order
+    // the row lists them — a good column would throw and reordering the
+    // YAML would fix it. `onCreate` is the convention's home for a
+    // cross-field rule and `lint:on-create` refused it as a ratchet
+    // rise, with the complaint that the hook *collects work that belongs
+    // elsewhere*. The audit agreed: this is an AUTHORING rule, it cannot
+    // be fixed by a player, it cannot vary at run time, and the person
+    // who needs to hear about it is reading a YAML file right now.
+    //
+    // Asserted on the gate's existence and its enrolment, because
+    // `lint:family` derives its roster from package.json — a gate
+    // nobody runs is the failure this repo keeps paying for.
+    const gate = readFileSync(
+      `${CONTENT}../server/scripts/check-fraction-schedules.ts`,
+      'utf8',
+    );
+    expect(gate).toMatch(/names no \$\{?material|names no \` \+/);
+    expect(gate).toMatch(/no such thing as THE product/);
+    expect(gate).toMatch(/GRADES of one/);
+    const pkg = JSON.parse(
+      readFileSync(`${CONTENT}../server/package.json`, 'utf8'),
+    ) as { scripts: Record<string, string> };
+    expect(pkg.scripts['lint:fraction-schedules']).toBe(
+      'tsx scripts/check-fraction-schedules.ts',
+    );
   });
 
   it('⭐ every shipped `cuts` schedule is untouched by the new field', () => {
