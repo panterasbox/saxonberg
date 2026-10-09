@@ -122,6 +122,9 @@ importers:
       '@saxonberg/content-trade-fuel':
         specifier: workspace:*
         version: link:packages/content/trade-fuel
+      '@saxonberg/content-trade-glass':
+        specifier: workspace:*
+        version: link:packages/content/trade-glass
       '@saxonberg/content-trade-haulage':
         specifier: workspace:*
         version: link:packages/content/trade-haulage
@@ -714,6 +717,9 @@ importers:
       '@saxonberg/content-trade-fuel':
         specifier: workspace:*
         version: link:../trade-fuel
+      '@saxonberg/content-trade-glass':
+        specifier: workspace:*
+        version: link:../trade-glass
       '@saxonberg/content-trade-mining':
         specifier: workspace:*
         version: link:../trade-mining
@@ -1339,6 +1345,43 @@ importers:
       '@saxonberg/content-trade-distilling':
         specifier: workspace:*
         version: link:../trade-distilling
+      '@saxonberg/server':
+        specifier: workspace:*
+        version: link:../../server
+      '@saxonberg/types':
+        specifier: workspace:*
+        version: link:../../types
+    devDependencies:
+      typescript:
+        specifier: ^5.4.0
+        version: 5.9.3
+      vitest:
+        specifier: ^2.0.0
+        version: 2.1.9(@types/node@20.19.28)(jsdom@25.0.1)
+      yaml:
+        specifier: ^2.8.2
+        version: 2.9.0
+
+  packages/content/trade-glass:
+    dependencies:
+      '@saxonberg/content-base-library':
+        specifier: workspace:*
+        version: link:../base-library
+      '@saxonberg/content-generic-objects':
+        specifier: workspace:*
+        version: link:../generic-objects
+      '@saxonberg/content-ground':
+        specifier: workspace:*
+        version: link:../ground
+      '@saxonberg/content-platform':
+        specifier: workspace:*
+        version: link:../platform
+      '@saxonberg/content-trade-fuel':
+        specifier: workspace:*
+        version: link:../trade-fuel
+      '@saxonberg/content-trade-quarrying':
+        specifier: workspace:*
+        version: link:../trade-quarrying
       '@saxonberg/server':
         specifier: workspace:*
         version: link:../../server

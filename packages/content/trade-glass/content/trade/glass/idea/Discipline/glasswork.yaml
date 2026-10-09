@@ -1,0 +1,22 @@
+# glasswork — ⭐ making and working glass, hot and cold, under one
+# Discipline (the rostered glazier's skill, id 0722).
+#
+# ⚠ One Discipline, not two. The roster's `glassblowing`/`glasscutting`
+# split was never minted, and for this rung the competence is one thing:
+# a glassmaker blows AND cold-works. The glazier — the converter who only
+# cuts and fits bought panes — is a later epoch rung, not this build.
+#
+# ISCED-F 2013 **0722 — Materials (glass, paper, plastic and wood)**.
+class: /platform/idea/Discipline
+data:
+  key: glasswork
+  channel: skill
+  label: Glasswork
+  iscedf: "0722"
+  description: >-
+    Reading the iron in a sand and knowing what it will make; judging a
+    gather hot enough to work and getting the piece formed before it
+    stiffens; scoring, snapping and grozing flat glass to a line; and
+    knowing when a batch wants the bellows and when cullet will do.
+  specializes: []
+  requires: []

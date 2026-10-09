@@ -120,6 +120,18 @@ const REPO_ROOT = join(MUD, '../../../..');
  * `VisionModality.canSee` among them — and the invariant is about
  * visibility, not about which directory a class sits in. **564.**
  * Lowering it is the sweep's whole job.
+ *
+ * ⭐ Glass build (W0) +2 → 337 → 339: two TYPE-level statics on the
+ * `Colour` value object — `fromTag` (a palette WORD → its transmittance
+ * position, the inverse of `nearestTag`) and `normalised` (a Colour from
+ * raw, unclamped channel sums, scaled so the largest is 1). Both are
+ * construction/lookup OF the type — the category this gate's own body
+ * documents as belonging here as a value-static, not world logic that
+ * wants a `*Logic` singleton. Caller audit: `fromTag` is called by
+ * `Window.lightTransmittance` (author word → filter) and the colour
+ * tests; `normalised` by the light walk and `Light.add` (chroma →
+ * hue). An Api home would be wrong for a value-object factory. The
+ * ratchet still only falls from here.
  */
 /**
  * ⚠ **Raised 337 → 342 by the whiskey build (2026-10-04), and the
@@ -214,7 +226,18 @@ const REPO_ROOT = join(MUD, '../../../..');
  * doctrine quotation.** Five rises had landed on this branch before
  * anybody asked who calls the things.
  */
-export const LIB_STATICS_CEILING = 339;
+/**
+ * ⭐ **Glass build, merged onto the whiskey-styles 339 (2026-10-08): +2 →
+ * 341.** The two `Colour` TYPE-level statics (`fromTag`, `normalised`)
+ * were authored against the pre-whiskey 337 (see the glass note above),
+ * so on this branch the rise read 337 → 339; rebased over master's
+ * independent 342 → 339 lowering, the same two statics now sit on top of
+ * 339 and take it to 341. The caller audit stands: `fromTag` is reached
+ * by `Window.lightTransmittance` + the colour tests, `normalised` by the
+ * light walk + `Light.add` — a value-object factory/lookup, the category
+ * this file's own doctrine admits, not world logic wanting a `*Logic`.
+ */
+export const LIB_STATICS_CEILING = 341;
 
 const STATIC =
   /^\s*(?:public\s+)?static\s+(?:async\s+)?(?!readonly\b|get\b|set\b|_)([a-zA-Z]\w*)\s*[(<]/;

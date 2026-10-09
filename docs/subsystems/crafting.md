@@ -1220,12 +1220,17 @@ ratchets).
 
 **`salvage <item>`** (`CraftingApi.salvage` — the one generic lossy
 melt-down, the entropy sink): flatten the item's Material composition;
-each constituent above the dust floor yields `mass × fraction ×
-crafting.salvageRate` in its natural raw form — `metal` → a
-re-meltable `/stuff/thing/Casting`, anything else → an `/stuff/thing/Scrap` stack (a
-`StackableMixin(Good)`, material-stamped, **quantity by mass** at
-0.1 kg units). Conservation asserted (Σ output ≤ input × rate, throw
-on breach); provenance, grade, and the chattel id die with the form
+each constituent above the dust floor yields in its natural raw form —
+`metal` → a re-meltable `/stuff/thing/Casting` at
+`crafting.salvageRate`; a **meltable non-metal** (a material with a
+melting point and no `metal` tag — glass, wax) → a re-meltable
+`/stuff/thing/Casting` **whole** (rate 1.0), carrying the piece's
+instance alloying, because breaking is not melting and glass pays its
+entropy in colour rather than mass (the one-way-toward-green arrow, not
+a mass sink — glass build D7); anything else → an `/stuff/thing/Scrap`
+stack (a `StackableMixin(Good)`, material-stamped, **quantity by mass**
+at 0.1 kg units). Conservation asserted **per branch** (Σ output ≤ Σ
+branch ceilings, throw on breach); provenance, grade, and the chattel id die with the form
 (the shipped destruct release). Salvaging the forged knife yields less
 iron than the ingot that made it — lossless would break conservation;
 losing the value-add makes it self-limiting.

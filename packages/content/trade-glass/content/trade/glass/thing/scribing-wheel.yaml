@@ -1,0 +1,14 @@
+# The scribing wheel — the cold shop's cutting tool. A hardened wheel that
+# scores a line in flat glass for snapping, and the same tool opens a
+# scored cylinder flat. The `scribing` capability is what scribe/snap/
+# flatten bind to.
+class: /trade/glass/thing/ScribingWheel
+data:
+  keywords: [wheel, "scribing wheel", cutter, "glass cutter"]
+  shortDescription: scribing wheel
+  register: indefinite
+  longDescription: >-
+    A small hardened steel wheel in a wooden handle, the edge bright and
+    very sharp, for scoring glass to a line.
+  mass: 0.2
+  capabilities: ["scribing"]

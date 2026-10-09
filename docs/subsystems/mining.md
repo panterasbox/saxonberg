@@ -111,6 +111,17 @@ authored **pin** over authored **lean** over the **procedural** value and
 returns one shape, so an authored pocket and a computed cell are
 indistinguishable to every consumer. Nothing may reach past it.
 
+⭐ **A won unit that can remember its assay does** (glass build, 2026-10).
+`OpenWorkingMixin.mintWinnings` stamps the deposit's own `sampleAt`
+mineral + grade onto any won good that composes `AlloyedMixin` — sampled
+at the face's mid-depth and the room's lateral position, under the same
+locality-address seed a reader would use (falling back to the base seed
+on unaddressed ground, never failing the work). A granite block composes
+nothing and is stamped nothing; a load of glass sand carries the iron
+that will later make a bottle green or leave it clear. The grade is the
+ground's, read once at the face — competence never touches the figure,
+only whether a `measure`/`analyze` reader can make it out.
+
 ⚠ **The deposit speaks METRES**, not grid cells — rock does not know what
 cell size somebody chose for the workings cut through it.
 `Working.metresOf` is the single conversion and reads the zone's own

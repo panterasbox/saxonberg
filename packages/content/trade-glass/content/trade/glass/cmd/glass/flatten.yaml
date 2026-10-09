@@ -1,0 +1,24 @@
+verbs: [flatten]
+controller: /trade/glass/idea/cmd/glass/FlattenController
+description: "Open a scored glass cylinder flat into a pane at the furnace"
+help: |
+  `flatten cylinder` (or `flatten cylinder at furnace`) softens a scored
+  glass cylinder at a lit furnace and opens it out into a flat window pane
+  — the medieval broad-glass finish. Scribe the cylinder first.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  - name: cylinder
+    type: object
+    required: true
+    scope: ["reachable"]
+    requires: TintedMixin
+  - name: furnace
+    type: objects
+    required: false
+    prepositions: [at, in]
+    default: "reachable:[mixin.BurnerMixin]"
+    scope: ["reachable"]
+    requires: [BurnerMixin]

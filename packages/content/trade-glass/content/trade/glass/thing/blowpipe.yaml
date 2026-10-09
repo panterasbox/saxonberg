@@ -1,0 +1,13 @@
+# The blowpipe — the glassmaker's iron. A hollow rod that holds one gather
+# and affords the hot shop (gob/shape/reheat/crack) to whoever carries it.
+# The `blowpipe` capability is what those views bind their `pipe` arg to.
+class: /trade/glass/thing/Blowpipe
+data:
+  keywords: [blowpipe, pipe, iron, "blow pipe", punty]
+  shortDescription: blowpipe
+  register: indefinite
+  longDescription: >-
+    A long hollow iron rod, one end wound with wire for grip, the other
+    blackened and glassy from the gathers it has carried.
+  mass: 2.4
+  capabilities: ["blowpipe"]

@@ -54,8 +54,9 @@
  */
 
 import { StrataMixin, type Strata, type MixinCtor } from '@saxonberg/content-ground/src/lib/Strata';
-import type Deposit from '@saxonberg/content-ground/src/idea/Deposit';
+import Deposit from '@saxonberg/content-ground/src/idea/Deposit';
 import type { StratumBand } from '@saxonberg/content-ground/src/idea/Deposit';
+import { AddressApi } from '@saxonberg/server/mud/api/address';
 import type { MixinConstructor, FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
@@ -606,6 +607,16 @@ export function OpenWorkingMixin<
       if (face.host !== null && MixinApi.isTangible(thing)) {
         thing.setMaterial(face.host);
       }
+      // ⭐ A won unit that can REMEMBER its assay does (glass build W3).
+      // The sand pit's whole economics is its iron GRADE, and the grade is
+      // the deposit's own seeded figure at this face — so a load of sand
+      // carries the iron that will later make a bottle green or leave it
+      // clear. Only an `Alloyed` good is stamped (a granite block composes
+      // nothing and stays bare); competence never touches the figure, only
+      // whether a reader can make it out.
+      if (MixinApi.isAlloyed(thing)) {
+        await this.stampAssay(thing, face);
+      }
       const where = await this.destinationFor(face);
       if (MixinApi.isContainable(thing) && MixinApi.isContainer(where)) {
         ContainmentApi.move(thing as Stuff & Containable, where as Stuff & Container);
@@ -626,6 +637,49 @@ export function OpenWorkingMixin<
           ? 'and it goes to the tip'
           : 'and it lies where it fell';
       return `You work ${thing.getPresentation()} free, ${heaped}.`;
+    }
+
+    /**
+     * Stamp the deposit's seeded assay onto an `Alloyed` won unit — the
+     * mineral and grade the ground actually carries at this face, sampled
+     * at the band's own mid-depth and the room's lateral position. The
+     * seed is the covering Locality's address (the `SurveyReading`
+     * convention), so the figure is the SAME one a reader of this ground
+     * would measure. A zero-grade cell stamps nothing.
+     */
+    private async stampAssay(thing: Stuff, face: ExposedFace): Promise<void> {
+      const deposit = await this.ground.getDeposit();
+      if (deposit === null) return;
+      const self = this as unknown as Stuff & Container;
+      const coords =
+        (self as unknown as {
+          getCoordinates?(): [number, number, number];
+        }).getCoordinates?.() ?? [0, 0, 0];
+      const cellSize =
+        (self as unknown as {
+          getZone?(): { getCellSize?(): number } | null;
+        }).getZone?.()?.getCellSize?.() ?? 1;
+      const midZ = (face.topZ + face.toZ) / 2;
+      // The covering Locality's address is the seed (the SurveyReading
+      // convention), but a failure to resolve it must never cost the work
+      // — ground nobody has addressed falls back to the base seed, exactly
+      // as an unaddressed reading would.
+      let seed: number;
+      try {
+        const locality = await AddressApi.resolveLocalityFor(self);
+        seed = Deposit.seedFor(locality?.getAddress() ?? '');
+      } catch {
+        seed = Deposit.seedFor('');
+      }
+      const sample = deposit.sampleAt(
+        [coords[0] * cellSize, coords[1] * cellSize, midZ],
+        seed,
+      );
+      if (sample.grade > 0 && sample.mineralPath && MixinApi.isAlloyed(thing)) {
+        thing.setAlloying([
+          { materialPath: sample.mineralPath, fraction: sample.grade },
+        ]);
+      }
     }
 
     /**

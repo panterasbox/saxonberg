@@ -1,0 +1,47 @@
+# ⭐ The glasshouse — the hot shop, in a clearing of the Hanging Wood. It
+# sits HERE, in the woods, because glass eats fuel: you burn far more
+# charcoal than you make glass, so the furnace goes to the fuel rather
+# than the fuel to the furnace. And it sits OUTSIDE the town walls because
+# it is a LULU — fire, smoke, and an appetite for every nearby tree.
+#
+# The furnace, the blowpipe and the marver are its capital; the charcoal,
+# the lime and the ash are a starting condition (bounded props, never
+# restocked — the Hearthworks shape). The sand you win yourself at the pit.
+class: /platform/location/SingletonCartesianLocation
+data:
+  shortDescription: glasshouse
+  keywords: [glasshouse, glassworks, furnace, "glass house"]
+  register: definite
+  _biomePath: /stuff/idea/biome/outdoor/woodland
+  # A clearing — more open than the ride, the canopy cut back off the fire.
+  ambientIntensity: 5000
+  ambientColorTemperature: 5600
+  longDescription: |
+    A clearing cut back off the ride, the trees kept at a distance from the fire. A stone furnace stands in the middle of it with its glory hole glowing, a marver slab beside it worn smooth, and blowpipes stood in a rack. Baskets of charcoal are stacked under a lean-to out of the weather, with lime and ash beside them.
+
+    It is here and not in the town for two reasons, and both are plain from where you stand: the wood it eats is all around it, and the smoke it makes is nobody's business out here.
+  coords: { x: 2, y: 1, z: 0 }
+  # ⚠ Repeated props carry an `as` identity (the costume/bed shape) so each
+  # is addressable and none is a pure-repeat the merge cannot substitute.
+  props:
+    - /stuff/thing/Kiln
+    - /trade/glass/thing/blowpipe
+    - /trade/glass/thing/marver
+    - { template: /trade/fuel/thing/charcoal, as: charcoal-1 }
+    - { template: /trade/fuel/thing/charcoal, as: charcoal-2 }
+    - { template: /trade/fuel/thing/charcoal, as: charcoal-3 }
+    - { template: /trade/fuel/thing/charcoal, as: charcoal-4 }
+    - { template: /trade/quarrying/thing/quicklime, as: lime-1 }
+    - { template: /trade/quarrying/thing/quicklime, as: lime-2 }
+    - { template: /trade/fuel/thing/ash, as: ash-1 }
+    - { template: /trade/fuel/thing/ash, as: ash-2 }
+  cast:
+    - /world/terminus/rejection/agent/glassblower
+  exits:
+    west:
+      destination: /world/terminus/rejection/hanging-wood/ride
+      edgeMinutes: 2
+    # The sand pit is just over the rise — you win your own sand there.
+    north:
+      destination: /world/terminus/rejection/sand-pit/clean-face
+      edgeMinutes: 3

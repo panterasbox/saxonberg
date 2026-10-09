@@ -1,0 +1,30 @@
+verbs: [reheat]
+controller: /trade/glass/idea/cmd/glass/ReheatController
+description: "Return the gather to the glory hole to re-open the window"
+help: |
+  `reheat` (or `reheat at furnace`) puts the gather back into the heat so
+  you can go on working it. The one move that buys more time when the
+  glass is stiffening — at the cost of fuel and a trip to the furnace. It
+  needs a lit, fuelled glory hole.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  # ⭐ WHICH FURNACE — a lit, fuelled burner in reach (the `fire`/`smelt`
+  # precedent: the mixin atom, not a capability — a kiln is not a Tool).
+  - name: furnace
+    type: objects
+    required: false
+    prepositions: [at, in]
+    default: "reachable:[mixin.BurnerMixin]"
+    scope: ["reachable"]
+    requires: [BurnerMixin]
+  # ⭐ WHICH PIPE — the one carrying a gather.
+  - name: pipe
+    type: objects
+    required: false
+    prepositions: [with, using]
+    default: "reachable:[capability.blowpipe]"
+    scope: ["reachable"]
+    requires: [ToolMixin]

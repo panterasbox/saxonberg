@@ -1,0 +1,24 @@
+verbs: [scribe]
+controller: /trade/glass/idea/cmd/glass/ScribeController
+description: "Score a line in flat glass for snapping or flattening"
+help: |
+  `scribe pane` (or `scribe cylinder with wheel`) runs a score line in the
+  glass with a scribing wheel, so it will part cleanly when you `snap` it
+  or open flat when you `flatten` a scored cylinder.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  - name: sheet
+    type: object
+    required: true
+    scope: ["reachable"]
+    requires: TintedMixin
+  - name: wheel
+    type: objects
+    required: false
+    prepositions: [with, using]
+    default: "reachable:[capability.scribing]"
+    scope: ["reachable"]
+    requires: [ToolMixin]

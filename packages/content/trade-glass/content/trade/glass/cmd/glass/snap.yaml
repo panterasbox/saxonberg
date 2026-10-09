@@ -1,0 +1,16 @@
+verbs: [snap]
+controller: /trade/glass/idea/cmd/glass/SnapController
+description: "Part a scored sheet of glass in two"
+help: |
+  `snap pane` parts a scored sheet along its line into two panes. Scribe it
+  first — there is nothing to snap along otherwise.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  - name: sheet
+    type: object
+    required: true
+    scope: ["reachable"]
+    requires: TintedMixin
