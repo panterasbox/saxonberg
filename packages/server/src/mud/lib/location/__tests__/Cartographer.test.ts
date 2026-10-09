@@ -27,9 +27,10 @@ import { SingletonMixin } from '../../stuff/Singleton';
 import { ContainerMixin } from '../../spatial/Container';
 import { NamedMixin } from '../../description/Named';
 import { PerceptibleMixin } from '../../description/Perceptible';
-import { makeStuffAtPath } from '../../security/__tests__/test-setup';
-import type { MapClaim } from '../MapClaim';
+import { makeStuff, makeStuffAtPath } from '../../security/__tests__/test-setup';
+import Exit from '../../boundary/Exit';
 import type { Stuff } from '../../stuff/Stuff';
+import type { MapClaim } from '../MapClaim';
 
 const GUIDE_ROW = '/test/carto/agent/guide';
 const GUIDE_ID = '/test/carto/agent/guide/one';
@@ -210,5 +211,67 @@ describe('⚠ a map is a convenience — it never fails the act', () => {
       guide.recordSurroundings(hall() as unknown as Stuff, []),
     ).not.toThrow();
     await new Promise((r) => setTimeout(r, 0));
+  });
+});
+
+describe("⭐⭐ a walked edge records that you saw it was a ford", () => {
+  /*
+   * You were standing at the exit, so anything the exit says about
+   * ITSELF is earned — the Cartographer's standing rule. A plan over
+   * your own map can then carry *this way is not always passable*
+   * rather than quietly routing you over a crossing that disappears.
+   *
+   * ⚠⚠ And NO `minutes` beside it. An earlier draft recorded the
+   * duration on the same argument and the lens pass killed it:
+   * ordinary movement is instantaneous and free by design, so a walker
+   * who crossed in zero game time did not learn how long the way
+   * takes. Recording it would write a number the world never charged.
+   */
+  function exitOut(conditional: boolean): Exit {
+    const from = hall() as unknown as Stuff;
+    const exit = makeStuff(
+      () =>
+        new Exit({
+          direction: 'north',
+          source: from as never,
+          destinationPath: '/test/cartoville/yard',
+          conditional,
+        }),
+    );
+    return exit;
+  }
+
+  it('stamps `conditional: true` on a way that closes', async () => {
+    const guide = makeStuffAtPath(() => new Guide(), GUIDE_ROW, GUIDE_ID);
+    guide.onTraversed(exitOut(true) as never);
+    await new Promise((r) => setTimeout(r, 0));
+    const edge = recorded.flatMap((r) => r.claims).find((c) => c.kind === 'edge');
+    expect(edge?.conditional).toBe(true);
+  });
+
+  it('⚠ leaves it ABSENT on an ordinary way — absent is what it means', async () => {
+    const guide = makeStuffAtPath(() => new Guide(), GUIDE_ROW, GUIDE_ID);
+    guide.onTraversed(exitOut(false) as never);
+    await new Promise((r) => setTimeout(r, 0));
+    const edge = recorded.flatMap((r) => r.claims).find((c) => c.kind === 'edge');
+    expect(edge?.conditional).toBeUndefined();
+  });
+
+  it('⚠⚠ records NO duration, however long the edge declares', async () => {
+    const guide = makeStuffAtPath(() => new Guide(), GUIDE_ROW, GUIDE_ID);
+    const exit = makeStuff(
+      () =>
+        new Exit({
+          direction: 'north',
+          source: hall() as unknown as never,
+          destinationPath: '/test/cartoville/yard',
+          edgeMinutes: 40,
+        }),
+    );
+    guide.onTraversed(exit as never);
+    await new Promise((r) => setTimeout(r, 0));
+    const edge = recorded.flatMap((r) => r.claims).find((c) => c.kind === 'edge');
+    expect(edge).toBeDefined();
+    expect((edge as unknown as { minutes?: number }).minutes).toBeUndefined();
   });
 });

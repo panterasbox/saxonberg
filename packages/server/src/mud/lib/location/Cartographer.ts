@@ -315,6 +315,25 @@ export function CartographerMixin<TBase extends MixinConstructor>(
             // north by GOING north; the knowledge is navigational and
             // the channel says so now.
             channel: 'walked',
+            // ⭐⭐ **You SAW that it was a ford.** You were standing at
+            // the exit, so anything the exit says about ITSELF is
+            // earned — the Cartographer's standing rule — and a plan
+            // over your own map can then carry *this way is not always
+            // passable* as a stated assumption rather than quietly
+            // routing you over a crossing that disappears.
+            //
+            // ⚠⚠ **And deliberately NO `minutes` beside it.** An
+            // earlier draft recorded the duration on the same
+            // argument — you were at the exit, you could see how far
+            // it was — and the lens pass killed it: ordinary movement
+            // is **instantaneous and free** by design, so a walker who
+            // crossed in zero game time **did not learn how long the
+            // way takes**. Recording `edgeMinutes` from a free walk
+            // would write a number the world never charged, and a
+            // later plan would quote it back as a cost. A map plan
+            // costs in LEGS, which is what a pedestrian is answered in
+            // anyway.
+            ...(via.isConditional() ? { conditional: true } : {}),
             firstSeen: now,
             lastSeen: now,
             recordedBy: viewerKey,
