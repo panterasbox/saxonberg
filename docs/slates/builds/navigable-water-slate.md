@@ -188,14 +188,155 @@ passage you spend nearly all your time mid-edge, so the question becomes
 
 ⭐⭐⭐ **The horizon.** `1.17 × √(height in feet)` nautical miles — about
 **12 nm from a masthead a hundred feet up, 2 from a dory.** Unlike a room
-it is **different for every observer**: a ship can see you before you see
-it.
+it is **different for every observer**.
+
+> ### ⚠⚠ CORRECTED 2026-10-09 — three quantities, and the asymmetry is a JOB
+>
+> This paragraph conflated three independent things, and the formula is
+> the single-observer form.
+>
+> | | what it is | depends on | where it binds |
+> |---|---|---|---|
+> | **the geometric horizon** | how far until the **surface curves away** | **only eye height** | ⭐ the open sea |
+> | **atmospheric visibility** | how far you see **through the air** | fog, rain, haze, dark, turbidity | fog, night, underwater |
+> | **obstruction** | what is **in the way** | terrain, trees, buildings | ⚠ **land, nearly always** |
+>
+> ⭐⭐⭐ **So the horizon is not the visibility field — it is a geometric
+> CAP on it**, and a sighting range is
+> **`min(curvature, atmosphere, obstruction)`.** We have the first two.
+> **We have nothing for the third.**
+>
+> ⭐⭐ **And the pair form is a SUM**, because a tall object shows over the
+> bulge:
+>
+> ```
+> 1.17 × (√h_observer + √h_target)   nautical miles, h in feet
+> ```
+>
+> Two mastheads at 100 ft see each other at **23 nm**, not 12.
+>
+> ⛔⛔ **Which means the range between a pair is SYMMETRIC, so *"a ship can
+> see you before you see it"* is NOT a fact about geometry.** The honest
+> version is better: **a ship with a man aloft sees you before your ship,
+> with nobody up the mast, sees it.**
+>
+> ⭐⭐⭐ **The asymmetry is a STAFFING decision, not physics** — which
+> makes the lookout more load-bearing, not less: the information advantage
+> is earned by somebody climbing, and a ship that posts no watch is blind
+> in a way it chose to be.
+>
+> **What we model it on:** eye height, already derivable —
+> `watershed.md`'s *"a place's height is `zone elevation + z ×
+> cellSize`"* ashore, and **the ship's masthead** at sea, where zone
+> elevation is zero.
+>
+> **And what it gates is narrow:** ⭐ **mutual presence on an areal
+> passage** — § 3's broad-phase question. ⚠ It does **not** gate
+> perception generally; a room's contents are perceived by room
+> membership, exactly as today. **Nothing about `look` changes anywhere
+> in the realm.**
 
 ⭐⭐ **And it produces content rather than needing it.** The masthead
 watch is a job whose whole function is extending the radius; the crow's
 nest is an **instrument**, and `instrumentation.md`'s rule applies
 unchanged — *competence resolves detail and never access.* A good lookout
 does not see further; he knows what he is looking at sooner.
+
+### ⭐⭐⭐ Land does NOT participate — and the authored hook is a VANTAGE
+
+Designed 2026-10-09, from *"is this something any SkyExposed location
+participates in?"*
+
+⛔ **Geometrically yes; practically almost never — and we must not pretend
+otherwise.** On land the binding term is **obstruction**, and we have no
+line-of-sight model and no terrain heightfield. **Modelling curvature
+while ignoring obstruction produces a lie:** you would see a town twelve
+miles off *through a mountain.* Confidently wrong nearly everywhere it
+fired is worse than absent.
+
+> ⭐⭐⭐ **So the horizon is a property of being on an UNOBSTRUCTED
+> SURFACE, and the sea is the only place that is true by default.** Which
+> is why it is an *ocean* mechanic and not a perception one — the sea is
+> the one surface with nothing on it.
+
+⛔⛔ **And the standing refusal: we do not model line of sight between
+arbitrary Locations. Ever.** The moment we do, every author owes a terrain
+model and every `look` becomes a graph walk nobody budgeted.
+
+⭐⭐ **Land participates by authored VANTAGE.** A room-fixed feature on a
+Location that **cites what it overlooks** — the `Shore` pattern. The
+**headland** cites the bay's water and participates in its sightings; an
+ordinary hilltop cites nothing and sees nothing special; ⛔ **and no
+author ever has to think about curvature on land.**
+
+⭐ **The payoff: a vantage is a content object** — built, owned,
+garrisoned, inherited, denied. A lighthouse. A signal station. The
+headland the rival company already has a man on. Far better than a derived
+property of every outdoor room, and free for the 99% of content that does
+not care.
+
+**Author expectations, stated:**
+
+| | what you author |
+|---|---|
+| **at sea** | ⭐ **nothing** — you author the **ship** (its masthead height) and the **field**; the range derives. A better lookout is **a taller mast or a crow's nest**, i.e. an *instrument*: `instrumentation.md`'s rule unchanged — the instrument raises the **ceiling**, competence resolves the **detail** |
+| **on land** | ⭐ **nothing by default.** A Location shows its contents and exits, as today. Want a view? Author a **vantage** and say what it overlooks — **you are making a content claim, not invoking geometry** |
+
+### ⭐⭐⭐ And the LANDMARK is the same mechanism, which unifies three problems
+
+The owner's standing complaint: *"the clock tower of the TPA only exists
+in prose which can be seen from outside the structure on University
+Avenue — that's the extent of the clock tower's visibility."*
+
+⭐⭐ **A landmark is the inverse of a vantage** — *this can be seen from
+far* rather than *from here you can see far* — and
+[structures-slate](./structures-slate.md) **already lists it as a
+candidate**: *"a building as a unit of description, read from outside,
+**without authoring that sentence on every street room that can see
+it.**"*
+
+**Split two ways:**
+
+- ⭐ **What it IS** — *a tall stone tower with a clock, visible for
+  miles* — belongs to the **`Structure`**, authored **once**, as its
+  outside description.
+- ⭐ **Who can see it** — **declared**, because the structures slate is
+  right that geometry cannot infer it. And the cheap bulk declaration is a
+  **zone field**: `visibleLandmarks` on the district's zone, inherited
+  through the ordinary ancestor walk, with a cellar or an interior
+  overriding to none. **Visibility of a landmark is regional, not
+  per-room**, which is how the fact actually works.
+
+⭐⭐⭐ **And it unifies three things that looked unrelated:**
+
+| | the referent | the range rule |
+|---|---|---|
+| **the clock tower** from University Avenue | a Structure's outside description | ⭐ **authored** — a zone field, because ashore **obstruction dominates** |
+| **the headland** over the bay | the same, from a vantage in another zone | **authored** — the exceptional, room-level case of the same field |
+| **the landmark fix** (§ 3b's free fix, never specified until now) | a **seamark** — a lighthouse, a steeple, a headland | ⭐⭐ **computed** — `1.17 × (√h_mark + √h_eye)`, because at sea **curvature dominates** |
+
+> ⭐⭐⭐ **One object, two range rules — authored ashore, computed at sea —
+> and the split is honest, because the binding term genuinely differs.**
+
+⭐ Which is also why **a lighthouse's height is on every chart**: it is
+the only number deciding how far out you can take a fix from it. And it
+makes a lighthouse **a navigational asset somebody built.**
+
+**Three consequences:**
+
+- ⭐⭐ **The room-contribution hook now has THREE real consumers** — the
+  `Shore` (which `fishing.md` flags as a defect: *"a prop contributes
+  nothing to its room's prose"*), the Deliverance reach (§ 4), and the
+  landmark. ⭐ Three *existing* ones, so a genuine promotion — and EotL's
+  football room already does it (`WeatherObject->query("weather_msg")`
+  interpolated into a long desc), which proves it is cheap.
+- ⭐⭐⭐ **The clock tower TELLS TIME**, which makes a town clock the
+  **fourth** instance of *civic infrastructure redistributes a private
+  capability* (→ [design-lenses.md](../../design-lenses.md) § 7): the
+  warming house takes **heat**, the public gauge **knowledge**, the
+  washhouse **access**, **the tower TIME.** Nobody needs to own a watch.
+- ⭐ Which answers [climate-slate](./climate-slate.md)'s polar finding —
+  *under polar night you must own a clock* — **unless the town built one.**
 
 ### ⭐⭐ The graph becomes the broad-phase filter
 
@@ -1363,22 +1504,24 @@ after.**
 
 ---
 
-## 7a. ⭐⭐⭐ Vessels — a ship is a HULL plus a WARREN; a boat is one vessel
+## 7a. ⭐⭐⭐ Vessels — a boat is a THING, a ship is a STRUCTURE
 
 Decided 2026-10-09, because the boat wave had no vessel decision and
 § 5b's *"when the boat wave lands"* assumed one existed.
+⚠⚠ **Rewritten the same day**: two earlier drafts of this section are
+recorded as refusals below, because both invented an object where a field
+would do.
 
 ⚠⚠ **What the corpus said, and why neither statement was a decision.**
 `standard-model.md` has *"a ship is a `Vessel` that is `Exitable`"* — a
-**pedagogical example sentence** illustrating composition, sitting beside
-*"a torch is a `Thing` that is also a `LightSource`"*, written long before
-any boat design. And `logistics-slate` **D5** has *"a vehicle is a
-`Mobile ExitableVessel` — a room that moves"*, written for **D4's list:
-back / cart / wagon / barge.** ⛔ **Neither is a ship ruling**, and
-generalising D5 past its evidence is what produced the first wrong draft
-of this section.
+**pedagogical example sentence** illustrating composition, beside the
+torch, written long before any vessel design. And `logistics-slate` **D5**
+has *"a vehicle is a `Mobile ExitableVessel` — a room that moves"*,
+written for **D4's list: back / cart / wagon / barge.** ⛔ Neither is a
+ship ruling, and generalising D5 past its evidence produced the first
+wrong draft.
 
-### The composition settles it
+### Why a ship cannot be one vessel-interior
 
 Four things a ship needs **per space**, and all four live on `Location`:
 
@@ -1390,62 +1533,86 @@ Four things a ship needs **per space**, and all four live on `Location`:
 | `Addressable` | **"cabin 14"** | a Thing's interior has no address |
 
 Plus furnishing, `residence.md` (a cabin you *live in* needs a room) and
-parcel title. ⭐ **An ocean liner is a building that moves**, and every
-tool we have for buildings applies unchanged.
+parcel title. ⭐ **An ocean liner is a building that moves.**
 
-⚠ And the invariant was never at risk: `Location` composes
+⚠ And the top-level invariant was never at risk: `Location` composes
 **`ContainerMixin` and NOT `ContainableMixin`** — *it holds and is not
-held*, enforced by composition. A hull is **matter**, so it sits in a
-Location by ordinary containment and nothing nests.
+held*, enforced by composition.
 
-### ⭐⭐⭐ The decision
+### ⭐⭐⭐ THE DECISION
 
-| | what it is | what it carries |
+> **A boat is a THING. A ship is a STRUCTURE whose position is a
+> variable.**
+
+| | **a boat** | **a ship** |
 |---|---|---|
-| **the hull** | a **Thing** (`Good`, so chattel + movable) | mass, draught, hull material, crush depth, **its position**, and **the thing a lookout sights** |
-| **the interior** | **Locations**, in a warren | per-space air, light, sky-exposure, address, furnishing, tenancy |
-| **the bond** | a **citation** — each room cites the hull | position is **derived**, so when the hull moves the rooms need not |
+| what it is | **a thing you get into** | **a place you go aboard** |
+| spaces | one | many |
+| model | `Mobile ExitableVessel` + `Chamber` stations | a **`Structure`** → [structures-slate](./structures-slate.md) |
+| the preposition | ⭐⭐⭐ you are **in** it | ⭐⭐⭐ you are **aboard** it |
+| nesting | a `Good` — **a ship carries five on davits** | not something you put anywhere |
+| upkeep | **repair**, like gear (`Durable`) | **maintain**, like a building |
+| ownership | `Chattel` — it really can be carried off | ⭐ a **registry and a chain of title**, the parcel's shape |
 
-⭐⭐ This is `watershed.md`'s own rule one level out — *water is cited,
-not inhabited; a mill **beside** the river is not **in** it* — and
-`fishing.md`'s `Shore` is already *"a room-fixed feature citing a
-`reachRef`."* **The ship's rooms are the third consumer of
-citation-over-containment**, and the berth (below) is the fourth.
+⭐⭐⭐ **The whole difference between a building and a ship is ONE FIELD:
+the Structure's position changes.** And § 7a's first draft split that onto
+a separate "hull" Thing for no reason — see the refusal below.
 
-> ⭐⭐⭐ **The test, and an author can answer it: does it have more than
-> one space?**
->
-> **One space → `Mobile ExitableVessel`.** The coach, the whaleboat, the
-> dory, the canoe. Hull and interior fused. D5 unchanged, and it gains a
-> consumer.
->
-> **Many spaces → a hull plus a warren.** The ship, the liner, the
-> submarine, a barge with a cabin.
+⭐⭐ **And the legibility is free, because English already draws the
+line:** *in the boat* versus *aboard the ship.* Nobody has to be taught
+it, and every message in the game reinforces it. Two more markers need no
+explaining either: **one hangs off the other**, and you *repair* gear
+while you *maintain* a building. ⭐ The edge case resolves too — a
+narrowboat has a cabin and a deck, so **two spaces, a small Structure, and
+you go *aboard***, which is what people actually say.
 
-**Five consequences:**
+#### ⛔⛔ REFUSED — "the hull", a Thing beside the Structure
 
-- ⭐ **Cargo is in the hold, not in the hull.** The hold is a Location
-  citing the hull; cargo is contained in the hold. **A bill of lading
-  names a room**, and the hull holds nothing directly (⚠ open: whether
-  the hull composes `Container` at all — lean no).
-- ⭐ **You sight a hull.** § 3's broad-phase filter compares Things with
-  positions; nobody sights a galley.
-- ⭐ **"Who is aboard" is a derived reverse index**, which settles the
-  citation's direction: **the room cites the hull** (the room is the
-  dependent, and an identity path-string survives the hull unloading), and
-  **the muster** is the consumer that needs the reverse walk.
-- ⚠ **Elastic, not resident.** Thirty rooms × N hulls: the interior
-  **faults in on boarding** via the Warren's elastic graph +
-  `DeferredDestinationExit`, with `residency.md`'s cold-tail eviction
-  unloading an unvisited hold — exactly as a building's floors do.
-- ⭐⭐⭐ **And the gift: a wreck is the same ship with a different hull
-  position.** Sink the hull and every room's citation still resolves — to
-  a hull on the bottom, where `level − elevation` makes all of them
-  **underwater.** The forecastle you ate in becomes a dive site with its
-  details, its cargo and its dead still in it. **A shipwreck is not new
-  content; it is an existing object whose citation target moved down** —
-  which hands salvage and the diving ladder their best venue for free, and
-  makes *raising* a wreck the same operation reversed.
+The second draft gave a ship **a hull (a Thing) plus a warren
+(Locations) bound by a citation.** The owner killed it:
+
+> *"The only part I'm not sure about is why we need Structure AND hull… I
+> don't know what the hull is actually there to experience given its
+> 'thingness'. I guess get wet?"*
+
+**Every property I had put on it dies on audit:**
+
+| claimed for the hull | where it actually belongs |
+|---|---|
+| **its position** | ⭐⭐⭐ the **Structure** — by the slate's own justification test (below) |
+| **mass / draught** | **derived** from Structure membership — size plus what is in the holds |
+| **hull material / crush depth** | `response = f(mechanism, material, **construction**)`, and the envelope build put **construction on the ROOM** — so a hull's resistance is the deck's and the hold's, per space |
+| **the outside description a lookout sights** | ⚠ **backwards** — the structures slate already gives a Structure *"a unit of description, read from outside"*. **The Structure is what you sight.** |
+| **chattel identity** | ⚠ **wrong** — `architecture.md`: `Chattel`+`Concealable` are `Good`'s because *"those are what it means to be carried off"*, and **a ship cannot be.** |
+| **can be sunk** | a state, plus a depth on that position |
+| **maintenance** | the Structure's, explicitly |
+| ⭐ **"get wet"** | the owner's joke is the real test and it fails — a hull is permanently immersed, so wetness is meaningless on it |
+
+⛔ Barnacles, sheathing, a name on the bow and damage below the waterline
+are all **conditions of the structure**, which is a maintenance number a
+Structure already owns.
+
+⭐⭐⭐ **And the clincher is the structures slate's own test** — *"a
+structure is justified when something must be true of a SET of rooms that
+no room can decide alone."* **Where the ship is** is exactly that: a fact
+about every one of its rooms, decided by none of them. **So the position
+belongs to the Structure by the test**, and a Parcel's extent and a
+Locality's coverage are the precedent for a coordinator holding spatial
+data. The only new thing is that it **changes.**
+
+⭐⭐ **Draught falls out derived, which is the same test a third time**:
+it gates shallow water, it is `f(size, load)`, and the cargo lives in the
+**holds** — so the load is **a sum over membership.** ⭐ Which also means a
+ship rides higher as it empties, and a whaler coming home full draws more
+water than one going out. True, and free.
+
+⚠⚠ **And the pattern worth recording, because it was the third instance
+in two days:** *the strip* (a new spatial primitive for a position that
+was already orderable), *the hull/warren citation* (which was **Structure
+membership, written down in advance**), and *the hull itself* (which was a
+position field). Same root every time — **adding an object instead of
+adding a field.** The cheap check: **before naming a new object, ask which
+existing one would hold this as data.**
 
 ### ⭐⭐ Inside a boat: stations, and ⛔ NOT a new spatial primitive
 
@@ -1516,7 +1683,7 @@ The way aboard must **not** be an exit, and two unrelated rules say so.
 zone** — and *"the check is **eager and path-based**… It must be an
 **AUTHORED template row**. The walk reads template ancestry in Mongo, so a
 zone **minted at runtime** [fails]."* **A ship's interior is minted per
-hull**, so a semantic exit from the quay into hull #7's warren is
+ship**, so a semantic exit from the quay into ship #7's warren is
 **refused by a shipped check, with an error naming the parent's zone.**
 
 ⚠⚠ **2. The map's append-only rule refuses it.**
@@ -1528,25 +1695,24 @@ aboard from berth four, after she sailed, sank or was broken up.
 would be wrong tomorrow.**
 
 ⭐ **So: the berth is a room-fixed feature on the quay citing whatever
-hull is moored there** — the `Shore` pattern, and you `board <ship>`
+ship is moored there** — the `Shore` pattern, and you `board <ship>`
 rather than `go` anywhere. Empty, it describes itself as empty and affords
-nothing; occupied, it affords boarding, resolving to the hull's citing
-deck.
+nothing; occupied, it affords boarding, resolving to the Structure's
+deck room.
 
 ⭐⭐ **And the berth is strictly better than a dynamic edge, because a
 berth can be owned, rented, assigned, refused and fought over.** Harbour
 dues. A harbourmaster who allocates them. A berth held for thirty years.
-None of that exists if the way aboard is a conditional exit. ⭐ The hull
-is **contained in the harbour Location** and the berth **cites** it — two
-relationships, exactly like the mill that is *in* the town and *cites* the
-reach.
+None of that exists if the way aboard is a conditional exit. ⭐ And the
+berth **cites the ship** — which is the mill-and-the-river shape again: the
+berth is a feature of the quay, and what it points at is somewhere else.
 
 ✅ **Which also means the interior is ordinary cartesian content**, with
 **unconditional cardinal exits** (fore/aft/up/down/port/starboard) and no
 zone check at all. The grid rule *prefers* this; only the boarding edge
 was ever the problem.
 
-#### ⭐⭐⭐ Living aboard: the berth is the ADDRESS, the hull is the home
+#### ⭐⭐⭐ Living aboard: the berth is the ADDRESS, the ship is the home
 
 A liveaboard is **a residence with a position**, which looks like it
 breaks `address.md`'s longest-prefix walk — and the real-world answer is
@@ -1566,8 +1732,8 @@ Three things fall out:
   residency meeting a person who is genuinely nowhere. A real legal tangle
   for boat-dwellers in life, and **lens 7 should decide it rather than let
   it fall out.**
-- ⭐ **The houseboat that never moves** is the limit case: a hull whose
-  position has not changed in forty years — a building that is legally a
+- ⭐ **The houseboat that never moves** is the limit case: a Structure
+  whose position has not changed in forty years — a building that is legally a
   boat, which people do specifically for what it exempts them from.
 
 ### ⭐⭐ And the client finding: THREE spatial registers, one rendered

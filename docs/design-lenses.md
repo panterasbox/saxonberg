@@ -821,6 +821,7 @@ line, because the shape recurs.
 | the **warming house** | **heat** — one heated room is cheaper than forty | from those who can afford their own fire |
 | the **public staff gauge** | **knowledge** — an instrument sets a CEILING, so everyone reads expert-level flow | from those whose eyes or training were better |
 | the public **washhouse** (*lavoir*) | **access** — clean linen is what gets you into rooms | from those with their own water and drying ground |
+| the **town clock** on a tower you can read from the street | ⭐ **time** — and under polar night, *you must own a clock* unless the town built one | from those who could afford a watch |
 
 ⭐⭐ **The gauge is the clearest case and it is a shipped mechanism being
 used politically.** `instrumentation.md`'s rule is that **an instrument
