@@ -190,6 +190,52 @@ it, is the same move.
 
 **The standing rule is unchanged: all RGOs before foraging/hunting.**
 
+### ⚠⚠ Roster correction 2026-10-08 — the closure claim has failed twice
+
+This slate says the roster is *"nearly closed… **apiculture is the last
+family**."* The ice/whaling design session then added **ice** and
+**whaling** as "the last two," and a water-trade audit raised
+**submersion**. ⭐ **Three additions to a set declared closed.**
+
+⭐⭐⭐ **And there is a structural reason: the census enumerated PRODUCTS
+and PLACES** — mining, farming, ranching, fishing, forestry, water,
+quarrying, apiculture. **Submersion is neither; it is a MEDIUM OF
+ACCESS**, so it was invisible to the enumeration. ⚠ **The census should be
+re-run on that axis**, because if one family hid there another may.
+
+⛔ **Submersion is NOT a family.** It is a row on **axis 2** (*access
+mode · where it is · who can tap it*) — the axis this slate already calls
+*"the one the whole roster needs."* The trades behind it (gathering,
+underwater mining, salvage, construction, cable-laying) are ordinary
+families **paying a medium tax**. See
+[underwater-slate](./underwater-slate.md) § 8.
+
+**The path, as it now stands:**
+
+> … apiculture → **the bed · ice · whaling** → foraging → hunting
+
+⭐ **And within that tranche, the bed first**, for three reasons that are
+not about interest: it proves the **share/lay** mechanism before whaling
+needs it · it contains a cheap **depletion** case (coral) before whaling's
+expensive one · and its reservoir is a **shipped pattern with a new
+feedstock** (forestry's `StandMixin` cover on ground), so it is the least
+new code of the three. Ice stays blocked on
+[climate-slate](./climate-slate.md) regardless.
+
+### ⚠⚠ And item 4 (the derived-field interface) now waits on a SECOND unseen shape
+
+This slate holds the field interface deliberately, because the hive was
+*"the one genuinely new shape"* and unifying before seeing it would unify
+around the easy cases.
+
+⭐⭐ **The bed is a second unseen shape, and unseen in the way that
+matters: a cover on ground whose RECHARGE RATE IS A FUNCTION OF THE
+HARVEST ACT.** Nothing in the roster has that — mining's recharge is
+zero, fishing's recovers by half-life regardless, forestry's coppice is on
+a fixed rotation. So the held interface waits on the bed too, or it gets
+unified around the easy cases exactly as feared. **This is the
+accommodation check this slate asked to keep running, firing.**
+
 ## ⚠⚠ The roster is EPOCH-BOUNDED, and that was the oversight
 
 Confirmed 2026-09-25: `docs/roadmap.md` and `docs/vocations.md` contain **zero

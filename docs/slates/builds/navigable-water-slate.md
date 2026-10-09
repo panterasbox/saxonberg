@@ -955,6 +955,16 @@ are a row or two on machinery that already ships.
 Worked 2026-10-08, from the ⛑ list above. ⚠ **Not a build order** — the
 six with real content in them, plus the cuts.
 
+### ⭐⭐⭐ Submersion — moved to [underwater-slate](./underwater-slate.md) § 8
+
+⛔ **And it is not a trade.** Drafted here as a third RGO family beside
+ice and whaling; that was wrong. **Submersion is an ACCESS MODE** — a tax
+every underwater trade pays (gathering, mining, salvage, construction,
+cable-laying) — and belongs on `rgo-unification-slate`'s **axis 2**, not
+in the family roster. See § 8 there for the medium affordance table, the
+edges (tidepools, the trench, under ice), drowning, and the poison-pill
+audit of this slate's own DECIDED items.
+
 ### ⭐⭐⭐ Pilotage — see § 3b
 
 The richest entry, and it got its own section because it answers *what a
@@ -963,7 +973,22 @@ traverse is*. Two trades sharing a word; the gate is knowledge that
 ⭐ **the pilot and the laundress are both paid for an absence** (a
 grounding that did not happen, a garment that was not ruined).
 
-### ⭐⭐⭐ The oyster bed — the best demonstration contamination will get
+### ⚠ The oyster bed — DEMOTED 2026-10-08, and the finding survives
+
+> ⛔ **Cut as a trade.** User: *"I don't have a lot of opinion on
+> oystering, to me it's fancy fishing."* **Correct** — the act is *take a
+> thing from the water*, the fishery is already derived on a reach, and
+> cultivation would be husbandry's reconcile-on-read pointed at water. It
+> was a shipped mechanism in a costume.
+>
+> ⭐ **The contamination finding below does NOT need the trade** — it
+> works on any shellfish the shipped fishery already produces, so it
+> stays here as a note on the contamination collision. And the
+> *reservoir* half moved to
+> [underwater-slate](./underwater-slate.md) § 8b, where it belongs: the
+> bed is **ground with a cover**, not a fishery.
+
+#### The finding, kept
 
 Oysters are **filter feeders**: they clean the water, and in cleaning it
 they **concentrate** what is in it. `spoilage.md`'s doctrine is that
@@ -988,7 +1013,25 @@ you control. With ice (recharge 1.0, no conservation question) and
 whaling (no recharge), **the trade programme gets its full control set —
 three RGOs, three recharge regimes.**
 
-### ⭐⭐⭐ The drainage board — a government that exists only to maintain
+### ⛔ The drainage board — CUT 2026-10-08
+
+> ⛔ User: *"I don't really care about polders. Land is cheap in this
+> game unless the content author needs it to be expensive — this seems
+> like just a tool to do that."*
+>
+> ⭐⭐⭐ **And that is a sharper test than "is it interesting": the
+> polder's entire value depends on land being EXPENSIVE, which is an
+> authoring choice rather than a platform fact.** A mechanism whose
+> premise is a content decision can never justify platform work — it can
+> only ride an author who already wanted scarce land. **Recorded as a
+> reusable refusal.**
+>
+> ⚠ One piece survives as a *pattern*, not a build: the dike is the third
+> member of **exact cost against catastrophic, delayed, unmeasurable
+> loss**, beside the fuel ration and the station's record
+> ([climate-slate](./climate-slate.md) § *What it is FOR*).
+
+#### The argument, kept for the pattern only
 
 ⭐⭐ **A polder is land that exists because a collective keeps a dike up,
 and if the maintenance lapses the land ceases to exist.** There is no

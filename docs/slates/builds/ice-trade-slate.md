@@ -97,6 +97,21 @@ sight.**
 > driver and the other waits for a consumer — and the waiting half is
 > invisible, because the engine looks complete.**
 
+> ### ⚠⚠ The roster, 2026-10-08 — **six instances**
+>
+> | shipped direction | the half still waiting |
+> |---|---|
+> | the melt got its ambient driver | **the freeze** did not |
+> | glass transmissivity carried **light** | it withheld **sight** |
+> | the **turbine** (ρ·g·Δh·Q) | **the pump** — the same equation read backwards, deferred by *three* slates, and now 4 consumers deep (mine · quarry · diver · harbour) |
+> | soiling's host method (`outermostAt`) | **zero emitters** — `SoilableMixin` does not exist |
+> | `wash` strips **colour** (`1 − fastness`) | it cannot strip **dirt** |
+> | ⭐ `moonPhase` / `moonAltitudeDeg` / the synodic month | **the tide clock**, named twice in `fishing.md` as a deferral — the purest case: the forcing function is complete, pure and memoized, and **nothing asks it anything** |
+>
+> ⭐⭐⭐ **Six is enough to stop finding these one at a time.** The check
+> wants a pass of its own: walk every shipped bidirectional mechanism and
+> name which direction has a driver.
+
 ## 3. ⭐⭐⭐ The season, and the two gifts
 
 **Altitude is available and latitude is not.** `Zone.elevation` is on the
