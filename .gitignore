@@ -42,3 +42,6 @@ docs/manifesto/exports/
 
 # tools/docs-mirror build output (published by CI, never committed)
 .docs-mirror/
+
+# tools/suite — one log per package, regenerated every run
+.suite/
