@@ -246,6 +246,44 @@ when both are loaded.
 through `getObviousExits` — used by MQL so a player can target a
 door by keyword without it living in inventory.
 
+#### ⭐⭐ `getObviousNeighbours()` — the five guards, once
+
+`getObviousExits()` answers *which exits are here*; the propagation
+walks need *which live rooms do my exits actually reach*, and every one
+of them carried its own copy of the same five guards before they
+reached for a neighbour:
+
+1. an exit may name **no room at all** — the sandbox wardrobe passage
+   names the WIRE, and walking it lands on a non-`Container`;
+2. its destination template may have **many live clones** (a Warren hub
+   exit names `/world/lounge/location/lounge` once a satellite exists)
+   and the singleton lookup **throws** on it;
+3. `getDestination()` may throw for its own reasons;
+4. the far side may not be a `Container`;
+5. the far side may have been **reaped mid-walk**, and a destroyed
+   proxy answers every call with `undefined`.
+
+⚠⚠ Each is a real incident, dated in `VisionModality`'s comments —
+guards 2 and 5 each took `look` down for a whole room and the presence
+fan with it. The list existed in **six** copies: the three modalities,
+the audience gather, and `Atmospheric`'s two openings counters, whose
+own comments admitted they were *"copied from the light walk"*. Six
+chances to be missing one.
+
+⭐ So it lives on the host that owns the exits, and the claim that makes
+about every `Exitable` is simply true. `opts.doors` is the one axis
+callers genuinely differ on: the propagation walks **skip** a doored
+exit (the boundary conduit carries it, with its own transmissivity),
+while the two openings counters want one whose door is **open**. A test
+per guard, because putting them in one place is only worth something if
+the one place is right.
+
+⚠ Two callers keep their own reader on purpose: mine air reads
+`getExits()` — *all* of them, because a hidden heading still has air in
+it — and the forage census admits a destination that is **not** a
+`Container`. See
+[location-graph.md § Routing](./location-graph.md).
+
 ### Bidirectional exits
 
 `Exitable.addBidirectionalExit(other, direction, opts?)` installs
@@ -331,6 +369,38 @@ An Exit can be authored with a live `destination` ref or a
 destination isn't loaded the getter throws — async-aware
 callers (`Mobile.traverse`) `await
 exit.resolveDestination()` first.
+
+### ⭐⭐ `conditional` — is this the KIND of way that closes?
+
+`Exit.isConditional()`, authored as `conditional: true` on the exit
+**kind** row (a ford is a ford wherever it is laid), projected onto
+`StoredEdge.conditional` and read by the router and the Cartographer.
+
+⚠ It does **not** say the way is shut right now — `isBlocked()` says
+that, and a conditional exit refreshes it at the traverse, which is
+where a river belongs. It says the way is *the kind that closes*, which
+is a fact about the kind and therefore authorable. The index is a
+projection of authored rows and cannot know the water level; what it
+can carry is the caveat a route plan owes its reader — *this way
+crosses the ford at Kestrel; it is not always passable.*
+
+⭐ It is on the base `Exit`, not on the transport pack's `FordExit`,
+for two reasons: the projection and the Cartographer both read it
+through the base shape, and **a second conditional class — a tidal
+causeway — then needs no kernel edit**. Every exit can answer *am I the
+kind that closes*; the honest answer for almost all of them is no.
+
+⚠ `lint:location-graph` enforces it **by shape**: a kind row whose
+class overrides `applyTraversal` *and* names `blocked` must declare it.
+Deliberately not *"extends `FordExit`"* — a kernel gate must not
+enumerate a pack's classes. The honest residue: a conditional class
+that closes by some other means plans with no caveat until the shape
+test is widened.
+
+⭐ It also turned out to be a **risk** axis rather than a cost one —
+the first place in this game where a fast uncertain way can be weighed
+against a slow sure one. Nobody designed that; it fell out of
+projecting one flag.
 
 ## Exit-kind templates (`<root>/idea/exits/<kind>`)
 

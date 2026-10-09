@@ -1,0 +1,196 @@
+#!/bin/sh
+# suite — the full test suite, bounded, and civil to the other worktrees.
+#
+# ⚠ WHY THIS EXISTS. `pnpm test` is `pnpm -r test`, which runs PACKAGES
+# concurrently; each one then spawns vitest's own pool, which defaults to
+# one fork per core less one. On this box that is 4 packages x 7 forks of
+# a ~400 MB kernel on 8 cores and 15 GB — shared with the editor, the
+# agent sessions and whatever the sibling worktrees are doing. It does
+# not degrade, it thrashes: WSL goes unresponsive and the only remedy
+# left is `top` and a fast hand. (That is what `tools/panic` is for; this
+# script is so you need it less.)
+#
+# Three bounds, and they are the whole design:
+#
+#   1 PACKAGES RUN ONE AT A TIME. This is the bound that matters. The
+#     peak is one package's pool, not four.
+#   2 THE POOL IS SIZED FROM FREE MEMORY, before each package, keeping a
+#     reserve for everything that is not this suite. Under pressure it
+#     shrinks to one worker and finishes slowly instead of taking the
+#     box down.
+#   3 ONE SUITE AT A TIME ACROSS ALL WORKTREES, via a lock beside the
+#     bare repo. Two worktrees running suites at once is how a green
+#     tree produced four phantom failures and a 234-second transform —
+#     starvation reads exactly like flake, so it gets prevented rather
+#     than diagnosed.
+#
+# ⭐ And it does NOT stop at the first failing package, which `pnpm -r`
+# does. That abort is why two stale assertions sat red on master: the
+# first failure hid the other 41 packages, so nobody ever saw a full
+# result to be bothered by. You get every package's verdict, every run.
+#
+#   tools/suite                   # everything, bounded
+#   tools/suite --only trade-     # just the packages matching
+#   tools/suite --from server     # resume at a package, skip what passed
+#   tools/suite --workers 2       # pin the pool instead of sizing it
+#   tools/suite --only server --shard 1/3   # a third of one package's files
+#   tools/suite --no-wait         # fail rather than queue behind a sibling
+#
+# Logs land one file per package under .suite/ (gitignored); the summary
+# names the failing ones and their log paths.
+
+set -u
+
+SCRIPT_DIR=$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)
+WORKTREE=$(dirname -- "$SCRIPT_DIR")
+ROOT=$(dirname -- "$WORKTREE")
+
+LOCK="$ROOT/.suite.lock"
+LOGS="$WORKTREE/.suite"
+
+ONLY=''
+FROM=''
+PIN=''
+SHARD=''
+WAIT=1
+RESERVE_GB=4          # left for the editor, the agents, a sibling's dev server
+PER_WORKER_MB=700     # measured: a kernel-loading fork sits at 300-500 MB
+MAX_WORKERS=6
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --only)    ONLY=${2:-}; shift 2 ;;
+    --from)    FROM=${2:-}; shift 2 ;;
+    --workers) PIN=${2:-};  shift 2 ;;
+    # ⭐ Vitest's own file-level split. The server package is most of
+    # the suite's cost in one directory, and a shard is how you run it
+    # in a window short enough to sit and watch — which is the whole
+    # reason not to put a run like this in the background.
+    --shard)   SHARD=${2:-}; shift 2 ;;
+    --no-wait) WAIT=0; shift ;;
+    -h|--help) sed -n '2,40p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+    *) echo "suite: unknown option '$1' (try --help)" >&2; exit 2 ;;
+  esac
+done
+
+avail_mb() { awk '/^MemAvailable:/{print int($2/1024)}' /proc/meminfo; }
+
+workers_now() {
+  [ -n "$PIN" ] && { echo "$PIN"; return; }
+  free=$(avail_mb)
+  spend=$((free - RESERVE_GB * 1024))
+  n=$((spend / PER_WORKER_MB))
+  [ "$n" -lt 1 ] && n=1
+  [ "$n" -gt "$MAX_WORKERS" ] && n=$MAX_WORKERS
+  echo "$n"
+}
+
+# ---- the cross-worktree lock -------------------------------------------
+# `mkdir` is the atomic primitive every shell has. The holder writes its
+# pid and worktree inside, so a stale lock can be told from a live one
+# rather than guessed at — and a dead holder's lock is taken, not waited
+# on, because the common way a lock goes stale here is `tools/panic`.
+take_lock() {
+  while :; do
+    if mkdir "$LOCK" 2>/dev/null; then
+      printf '%s\n%s\n' "$$" "$WORKTREE" > "$LOCK/owner"
+      return 0
+    fi
+    holder=$(sed -n 1p "$LOCK/owner" 2>/dev/null)
+    where=$(sed -n 2p "$LOCK/owner" 2>/dev/null)
+    if [ -z "${holder:-}" ] || [ ! -d "/proc/$holder" ]; then
+      echo "suite: taking a stale lock (holder ${holder:-?} is gone)."
+      rm -rf "$LOCK"
+      continue
+    fi
+    if [ "$WAIT" = 0 ]; then
+      echo "suite: a suite is already running in ${where:-?} (pid $holder). --no-wait, so stopping." >&2
+      exit 3
+    fi
+    echo "suite: waiting for ${where:-?} (pid $holder) to finish its suite..."
+    sleep 20
+  done
+}
+drop_lock() { [ -f "$LOCK/owner" ] && grep -qx "$$" "$LOCK/owner" 2>/dev/null && rm -rf "$LOCK"; }
+trap 'drop_lock; exit 130' INT TERM
+trap 'drop_lock' EXIT
+
+# ---- the package list --------------------------------------------------
+# Read off package.json with grep rather than `pnpm list`, so the roster
+# is available even when node cannot comfortably start. e2e is excluded
+# exactly as the root script excludes it (it is Playwright, own job).
+packages=''
+for f in "$WORKTREE"/packages/*/package.json "$WORKTREE"/packages/content/*/package.json; do
+  [ -f "$f" ] || continue
+  grep -q '"test": *"vitest' "$f" || continue
+  d=$(dirname -- "$f")
+  case "$d" in *"/e2e") continue ;; esac
+  packages="$packages $d"
+done
+
+if [ -n "$FROM" ]; then
+  trimmed=''; seen=0
+  for d in $packages; do
+    case "$d" in *"$FROM"*) seen=1 ;; esac
+    [ "$seen" = 1 ] && trimmed="$trimmed $d"
+  done
+  packages=$trimmed
+fi
+if [ -n "$ONLY" ]; then
+  trimmed=''
+  for d in $packages; do case "$d" in *"$ONLY"*) trimmed="$trimmed $d" ;; esac; done
+  packages=$trimmed
+fi
+
+[ -n "$packages" ] || { echo "suite: no packages matched." >&2; exit 2; }
+
+take_lock
+mkdir -p "$LOGS"
+
+total=$(echo $packages | wc -w)
+echo "suite: $total package(s), one at a time, ${RESERVE_GB} GB reserved. Logs in $LOGS/"
+echo
+
+i=0
+failed=''
+started=$(date +%s)
+
+for d in $packages; do
+  i=$((i + 1))
+  name=$(basename -- "$d")
+  w=$(workers_now)
+  log="$LOGS/$name.log"
+  [ -n "$SHARD" ] && log="$LOGS/$name.$(echo "$SHARD" | tr / -).log"
+
+  printf '[%2s/%s] %-28s %s worker(s), %s GB free ... ' \
+    "$i" "$total" "$name" "$w" "$(awk '/^MemAvailable:/{printf "%.1f", $2/1048576}' /proc/meminfo)"
+
+  # ⚠ BOTH ends of the pool. `--maxWorkers` alone is a RangeError —
+  # vitest keeps its default minimum, which can exceed the maximum you
+  # just set ("options.minThreads and options.maxThreads must not
+  # conflict"), and it arrives as an unhandled error with `no tests`
+  # run, which reads like a broken package rather than a bad flag.
+  # The heap cap makes a runaway worker die on its own instead of
+  # taking the box with it.
+  ( cd "$d" && NODE_OPTIONS="--max-old-space-size=1536" \
+      pnpm exec vitest run --minWorkers=1 --maxWorkers="$w" \
+        ${SHARD:+--shard="$SHARD"} --reporter=dot ) > "$log" 2>&1
+  rc=$?
+
+  if [ "$rc" = 0 ]; then
+    echo "ok   $(awk '/Tests +[0-9]+ passed/{print $0; exit}' "$log" | sed 's/^ *//')"
+  else
+    echo "FAIL (rc=$rc)"
+    failed="$failed $name"
+  fi
+done
+
+echo
+mins=$(( ($(date +%s) - started) / 60 ))
+if [ -z "$failed" ]; then
+  echo "suite: all $total package(s) pass. ${mins}m."
+  exit 0
+fi
+echo "suite: $(echo $failed | wc -w) of $total package(s) FAILED after ${mins}m:"
+for n in $failed; do echo "  $n    $LOGS/$n.log"; done
+exit 1

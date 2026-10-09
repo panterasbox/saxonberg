@@ -46,6 +46,7 @@
 import { StuffApi } from '../../api/stuff';
 import { NavigationApi } from '../../api/navigation';
 import { AddressApi } from '../../api/address';
+import { MixinApi } from '../../api/mixin';
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import type { Container } from '../spatial/Container';
@@ -207,6 +208,10 @@ export function CartographerMixin<TBase extends MixinConstructor>(
             place,
             label: location.getTemplatePath() ?? undefined,
             name: location.getPresentation(),
+            // ⭐ What it answered to. See `MapClaim.keywords`: the
+            // address names a COLLECTION and the keyword picks within
+            // it, because naming every room uniquely does not work.
+            keywords: this.keywordsOf(location),
             group: this.groupingAddressOf(location),
             channel: how,
             firstSeen: now,
@@ -315,6 +320,25 @@ export function CartographerMixin<TBase extends MixinConstructor>(
             // north by GOING north; the knowledge is navigational and
             // the channel says so now.
             channel: 'walked',
+            // ⭐⭐ **You SAW that it was a ford.** You were standing at
+            // the exit, so anything the exit says about ITSELF is
+            // earned — the Cartographer's standing rule — and a plan
+            // over your own map can then carry *this way is not always
+            // passable* as a stated assumption rather than quietly
+            // routing you over a crossing that disappears.
+            //
+            // ⚠⚠ **And deliberately NO `minutes` beside it.** An
+            // earlier draft recorded the duration on the same
+            // argument — you were at the exit, you could see how far
+            // it was — and the lens pass killed it: ordinary movement
+            // is **instantaneous and free** by design, so a walker who
+            // crossed in zero game time **did not learn how long the
+            // way takes**. Recording `edgeMinutes` from a free walk
+            // would write a number the world never charged, and a
+            // later plan would quote it back as a cost. A map plan
+            // costs in LEGS, which is what a pedestrian is answered in
+            // anyway.
+            ...(via.isConditional() ? { conditional: true } : {}),
             firstSeen: now,
             lastSeen: now,
             recordedBy: viewerKey,
@@ -354,10 +378,42 @@ export function CartographerMixin<TBase extends MixinConstructor>(
      * rather than as four unrelated places, and it groups by what the
      * content already says rather than by anything new.
      */
+    /**
+     * The targeting tokens a place answers to, banked at perception.
+     *
+     * ⚠ Read through `Perceptible`, which is the same surface MQL's
+     * scope walk pools — so what the map remembers you could call it
+     * is what you could actually have called it, standing there.
+     */
+    private keywordsOf(place: Stuff): string[] | undefined {
+      if (!MixinApi.isPerceptible(place)) return undefined;
+      const kws = place.getKeywords();
+      return kws.length > 0 ? [...kws] : undefined;
+    }
+
+    /**
+     * The address the place DECLARES, or `undefined`.
+     *
+     * ⚠⚠ **This read was broken from the day it shipped**, and
+     * silently: it duck-typed `getDeclaredAddress?.()`, a method that
+     * exists nowhere in the tree — `AddressableMixin`'s reader is
+     * `getAddress()`. The optional call answered `undefined` every
+     * time, so `MapClaim.group` was **never once populated** and
+     * `map`'s grouping-by-address has never grouped anything: every
+     * place fell into the unnamed bucket, which renders identically
+     * to having no groups at all.
+     *
+     * ⭐ Found in the pre-merge sweep of the routing build, by the
+     * routing build NEEDING it — a dead read stays dead until
+     * something depends on it. The duck-type is why: `?.()` on a name
+     * nobody defines is indistinguishable from a host that declines,
+     * and 53 of the realm's places declare an address. It reads
+     * through `MixinApi.isAddressable` now, which cannot compile
+     * against a method that does not exist.
+     */
     private groupingAddressOf(place: Stuff): string | undefined {
-      const declared = (
-        place as unknown as { getDeclaredAddress?(): string | null }
-      ).getDeclaredAddress?.();
+      if (!MixinApi.isAddressable(place)) return undefined;
+      const declared = place.getAddress();
       return declared && declared.length > 0 ? declared : undefined;
     }
   };

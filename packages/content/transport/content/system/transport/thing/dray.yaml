@@ -5,6 +5,11 @@
 # either side, and it holds less.
 class: /system/transport/thing/HaulageRig
 data:
+  # ⭐⭐ How this vehicle travels. Until the routing build the LANE knew
+  # and the vehicle did not, so `journey ... via estuary` with a wagon
+  # hitched made the wagon SAIL and it died at the first leg.
+  # A dray is a road rig: wheels, and therefore the pass refuses it
+  travelMode: wheeled
   # A dray is a working rig: a novice teamster handles one.
   #
   # ⚠⚠ The KEY is data and the transport system never interprets it: a

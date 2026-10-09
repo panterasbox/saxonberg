@@ -41,6 +41,18 @@ export const GYM_TESTS = [
   // nobody of cold — and the numbers beside them are what a tuning pass
   // argues with.
   "src/mud/lib/thermal/__tests__/Thermal.cold.gym.test.ts",
+  // ⭐⭐ The perception characterization golden (routing W1). Not a
+  // bench at all, and it belongs here for the third reason this list
+  // has: it boots EVERY shipped place (~124 against the terminus
+  // standup's six), plants an ear in each, and writes down the lux,
+  // the dB, the ppm and every gather arrival with its direction. It is
+  // the proof that draining the four perception walks onto one
+  // skeleton changed nothing a player can perceive — and the four
+  // walks are order-dependent, so "changed nothing" has to be a
+  // committed artifact rather than a handful of synthetic grids.
+  //
+  // ⚠ A whole-realm standup must never ride `pnpm test`.
+  "scripts/__tests__/perception-characterization.gym.test.ts",
 ];
 
 /**

@@ -48,7 +48,7 @@
 import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 import type { EvictionContext, Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { VetoResult } from '@saxonberg/server/mud/lib/errors';
-import type { MixinConstructor } from '@saxonberg/server/mud/lib/mixin';
+import type { MixinConstructor, FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 
 /** The mixin's marker, and the string `MixinApi.isActive` narrows on. */
 export const VEHICULAR_MIXIN = 'VehicularMixin';
@@ -59,6 +59,12 @@ const JOURNEY_VIEW = 'system/transport/cmd/movement/journey.yaml';
 /** What a vehicle affords, whatever it is made of. */
 export interface Vehicular {
   canEvict(context: EvictionContext): VetoResult;
+  /**
+   * ⭐⭐ How this vehicle travels: `wheeled`, `sailed`, … See
+   * {@link VehicularMixin.getTravelMode} for why it lives here.
+   */
+  getTravelMode(): string;
+  setTravelMode(value: string): void;
 }
 
 export function VehicularMixin<TBase extends MixinConstructor<Stuff>>(
@@ -66,6 +72,52 @@ export function VehicularMixin<TBase extends MixinConstructor<Stuff>>(
 ) {
   class VehicularMixin extends Base implements Vehicular {
     static _mixinName = VEHICULAR_MIXIN;
+
+    /**
+     * ⚠ NO spread of `Base.fieldMeta`. `MixinApi.getAllFieldMeta`
+     * collects these up the prototype chain, own-property only, with a
+     * PROPERTY-level merge — so a mixin declares only its own fields
+     * and the base's keep working. Spreading the base in would copy a
+     * snapshot of it into this class, which is how a declaration goes
+     * stale without anybody editing it.
+     */
+    static fieldMeta: FieldMeta = {
+      // ⚠⚠ NO underscore, and the gate is why. `lint:instanceable`'s
+      // orphan-key check compares a row's `data:` keys against the
+      // declared `fieldMeta` keys literally, so `_travelMode` would
+      // make every row authoring `travelMode:` read as a key no field
+      // declares — a key the applier "discards silently" — and the
+      // honest fix is the NAME, not a ceiling rise. `Exit.media` and
+      // `Exit.wheelPassable` are the precedent: an ordinary authorable
+      // persistent field carries no prefix. The `_` convention is for
+      // a sealed-mutation surface, which this is not.
+      travelMode: { persistent: true, authorable: true },
+    };
+
+    /**
+     * ⭐⭐ **How this vehicle travels, declared on the vehicle.**
+     *
+     * Until this build the LANE knew and the vehicle did not: a
+     * Journey took its mode from `lane.mode`, which meant `journey to
+     * <stop> via estuary` with a wagon hitched made the wagon **sail**
+     * — and it died at the first leg, because a road exit does not
+     * admit the water medium. A fact about a wagon was being read off
+     * the road it happened to be told to take.
+     *
+     * ⚠ A vehicle that declares no mode REFUSES rather than guessing.
+     * Defaulting to `wheeled` would make a barge a cart on the first
+     * row somebody forgot, and the failure would be a drowned hauler
+     * three legs later rather than a refusal at the verb.
+     */
+    protected travelMode: string = '';
+
+    public getTravelMode(): string {
+      return this.travelMode;
+    }
+
+    public setTravelMode(value: string): void {
+      this.travelMode = typeof value === 'string' ? value.trim() : '';
+    }
 
     /**
      * ⭐ `peers` AND `environment`: the vehicle grants `journey` to

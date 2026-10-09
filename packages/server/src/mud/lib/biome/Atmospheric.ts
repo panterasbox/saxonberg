@@ -98,6 +98,15 @@ export interface Atmospheric {
 
   getAtmosphere(detailKey?: string): Promise<string>;
   setAtmosphere(value: string | null, detailKey?: string): void;
+  /**
+   * ⚠ The scope's **own** atmosphere override, read synchronously, or
+   * `null` when it declares none. NOT the resolved answer — see the
+   * implementation for why the propagation walks are stuck with this
+   * one and what it costs.
+   */
+  getInlineAtmosphere(): string | null;
+  /** Whether this scope's own override is a vacuum. */
+  atmosphereBlocks(): boolean;
 
   // ---------- what the medium CARRIES (the fire build) ----------
 
@@ -676,6 +685,37 @@ export function AtmosphericMixin<
 
     // ---------- atmosphere ----------
 
+    /**
+     * ⚠⚠ **The scope's own override, synchronously — and deliberately
+     * NOT the resolved atmosphere.**
+     *
+     * `getAtmosphere` walks outward through `BiomeApi` and is
+     * therefore **async**, while the three propagation walks that need
+     * this are synchronous all the way up to `signalAt` returning a
+     * `Light`. So they read the raw field, and the honest consequence
+     * — recorded here rather than in three copies of the same comment
+     * — is that **a biome-default vacuum room does not block sound or
+     * smell**: a whistle carries through it. Only a room with
+     * `atmosphere: vacuum` authored on itself blocks.
+     *
+     * Closing that gap means making the whole acoustic walk async,
+     * which is a shared change across all three modalities and is
+     * deferred. What is NOT deferred is having one copy of it: this
+     * method replaces three identical private `inlineAtmosphere`
+     * helpers (`SoundModality`, `SmellModality`, `AudienceGather`),
+     * where the v1 limitation was annotated "shared verbatim" in two
+     * of them — a comment admitting the duplication while making
+     * another copy of it.
+     */
+    public getInlineAtmosphere(): string | null {
+      const atmos = this._atmosphere;
+      return typeof atmos === 'string' && atmos.length > 0 ? atmos : null;
+    }
+
+    public atmosphereBlocks(): boolean {
+      return this.getInlineAtmosphere() === 'vacuum';
+    }
+
     public async getAtmosphere(detailKey?: string): Promise<string> {
       const self = this as unknown as Stuff & Container;
       return BiomeApi.resolveAtmosphereFor(self, detailKey);
@@ -896,20 +936,12 @@ export function AtmosphericMixin<
       if (!MixinApi.isExitable(self)) return { exterior: 0, interior: 0 };
       let exterior = 0;
       let interior = 0;
-      for (const exit of self.getObviousExits()) {
-        // The light walk's four hazard guards, for the same reasons.
-        if (!exit.hasSpatialDestination()) continue;
-        const door = exit.getDoor();
-        if (door && !door.isOpen()) continue;
-        let dest: Stuff & Container;
-        try {
-          dest = exit.getDestination();
-        } catch {
-          continue;
-        }
-        if (!MixinApi.isContainer(dest) || (dest as Stuff).isDestroyed()) {
-          continue;
-        }
+      // ⭐ The five guards are `ExitableMixin.getObviousNeighbours`'
+      // now — this file's own comment said they were copied from the
+      // light walk, which is the whole argument for not having a copy.
+      // `open-only`: an opening is a doorway you can stand in, so a
+      // doored exit counts when the door is open.
+      for (const { dest } of self.getObviousNeighbours({ doors: 'open-only' })) {
         if (this.isThreshold(dest)) exterior += 1;
         else interior += 1;
       }
@@ -973,23 +1005,12 @@ export function AtmosphericMixin<
       const self = this as unknown as Stuff & Container;
       if (!MixinApi.isExitable(self)) return 0;
       let open = 0;
-      for (const exit of self.getObviousExits()) {
-        // The light walk's four hazard guards, for the same reasons: an
-        // exit may name no room, name a template with many live clones,
-        // throw on resolve, or land on something reaped mid-walk. A
-        // neighbour going wrong must not take the temperature down.
-        if (!exit.hasSpatialDestination()) continue;
-        const door = exit.getDoor();
-        if (door && !door.isOpen()) continue;
-        let dest: Stuff & Container;
-        try {
-          dest = exit.getDestination();
-        } catch {
-          continue;
-        }
-        if (!MixinApi.isContainer(dest) || (dest as Stuff).isDestroyed()) {
-          continue;
-        }
+      // The five guards live on `ExitableMixin` now (see
+      // `getObviousNeighbours`): an exit may name no room, name a
+      // template with many live clones, throw on resolve, or land on
+      // something reaped mid-walk, and a neighbour going wrong must
+      // not take the temperature down.
+      for (const { dest } of self.getObviousNeighbours({ doors: 'open-only' })) {
         if (this.isThreshold(dest)) open += 1;
       }
       return open;

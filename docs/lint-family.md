@@ -1330,6 +1330,92 @@ The runtime half is separate and louder: a class that declares
 clone pipeline. See
 [identity.md § Every mint names what keys on it](./subsystems/identity.md).
 
+### `lint:graph-walks` — one traversal, or none (2026-10)
+
+⭐⭐ **The doctrine:** a walk over the world's shape is *machinery*, and
+machinery that exists in eleven copies has eleven behaviours. The
+routing build's census found eleven hand-written walks — a frontier, a
+visited set and a bound each — and **four of them were order-dependent
+in ways players can perceive**: all four perception walks thread one
+mutable `visited` through a DFS, so neighbour order decides which room
+is charged at which depth, the dB a listener hears, and the compass
+direction printed with it. Nobody chose that; it is what a copy does.
+
+The skeleton is `src/mud/lib/location/Traversal.ts`. The gate's job is
+to make *"one traversal"* literal rather than aspirational, which is
+the same job `lint:object-verbs` does for verbs-on-objects: it counts
+frontier loops outside the skeleton, gates today's count as the
+ceiling, and lets each wave drive it down.
+
+**A function body is a walk when it contains all three:** a **frontier
+that grows** (recursion, or a loop body that feeds a collection the
+loop itself consumes — including the nested-loop `frontier = next`
+level BFS, which is one frontier and not two loops); a **visited set**
+(one identifier receiving both `.has(` and `.add(`/`.set(`); and an
+**adjacency read** (`getExits`, `getObviousExits`, `obviousExitsFor`,
+`getObviousNeighbours`, `.edges`, `adjacency.get`, `succ.get`,
+`destinationsOf`, `neighboursOf`). Any two of the three is ordinary
+code.
+
+⚠⚠ **Both halves of that definition were paid for in false
+positives**, and the three that the first run produced are pinned as
+tests in `scripts/__tests__/check-graph-walks.test.ts` so a later
+"tidy" cannot un-sharpen the detector:
+
+- **a dedupe `Set` in a loop over a FIXED list is not a frontier.**
+  MQL's two scope builders (`api/mql/scope-walk.ts`,
+  `api/mql/resolver.ts`) iterate one room's own doors and exits with a
+  `seenDoors` set and never reach a second room. The frontier has to
+  *grow*.
+- **an adjacency probe matching in a DOC COMMENT is prose.**
+  `ParcelLogic.offlineExtent` matched `.edges` inside the sentence
+  explaining why `{'edges.to': 1}` is an index. The probes read the
+  AST now, never the source text.
+- ⭐ The sharpening took the census from fourteen to **eleven**, which
+  is exactly what the requirements' independent survey counted. **A
+  ratchet set above the real count is a hole in the ratchet** — the
+  three false positives were three free slots for a new walk.
+
+⭐⭐⭐ **The ceiling is ZERO.** 11 → 9 (the graph invariants and the
+grid compile) → 5 (the four perception walks) → 2 (mine air and the
+forage radius) → 0 (the lane compile, and `LaneCatalogue.planRoute`
+retired outright). There is no residue to enumerate, which is the
+unusual part: every walk over the world's shape found a home on the
+skeleton.
+
+⭐ `Traversal.ts` itself needs no allowlist entry, and that is the
+right answer rather than a lucky one — its frontier reads a
+**callback**, so it fails evidence 3. What this gate counts is walks
+that know about **exits and edges**, and after the migration only the
+callers know that. An allowlist would have hidden a real regression:
+if the skeleton ever grew a direct `getExits()` call, it *should* be
+counted.
+
+⚠ Two callers keep their own neighbour reader on purpose, and neither
+is laziness: mine air reads `getExits()` — **all** of them, because a
+hidden heading still has air in it — and the forage census admits a
+destination that is not a `Container` (a bee flying into a room-shaped
+nothing contributes no bloom but still spends a hop, at the right
+distance). Routing either through the shared guards would quietly
+change a number.
+
+**Second check, no ceiling: the core's import allowlist.** The routing
+core — `Traversal`, `KnowledgeGraph`, `TravelProfile`, `RoutePlan` —
+may import nothing but each other, `GraphInvariants` and `MapClaim`.
+⛔ Not the registry, not `PlaceNode`, not `DocumentApi`, not `StuffApi`,
+nothing under `api/`. That is the **evidence firewall** made
+structural: a per-player map plans over *claims*, and a module that
+cannot import the index cannot consult it by accident. The map
+*writer* (`Cartographer`) already had this property; the gate extends
+it to the reader, because a firewall honoured by the careful is not a
+firewall.
+
+⚠ `FireLogic` is deliberately absent from the census and fails
+evidence 3 on its own: fire spread walks **contents** and ignition
+sources, never the graph's edges. `Traversal` is generic over its node
+type and a containment `neighbours` is one function away, but that is
+the combustion build's decision, not this gate's.
+
 ### `lint:location-graph` — is the world's SHAPE sound, before anybody boots it? (2026-10)
 
 ⭐⭐ The worst failure in this family is a **dangling exit, which is a

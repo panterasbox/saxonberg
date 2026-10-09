@@ -85,6 +85,108 @@ deterministic function, no stored state, no tick — **so tomorrow is
 computable today.** That single property is what makes an almanac a
 product instead of a wiki dump.
 
+## ⭐⭐⭐ Independent or dependent — the die and the deck
+
+Added 2026-10-09, out of a question worth keeping in the asker's words:
+*"RNG for an ocean shore and a shuffled deck of cards are kinda
+different things."* They are, and the difference is **not** a fifth
+provenance — it is a split inside **generative**.
+
+Provenance 3 as written is **per-instance**: *a dagger that was cursed
+when it was minted.* The die fired once, it became a fact, and ⭐ **that
+fact is independent** — this dagger's curse tells you nothing about the
+next dagger.
+
+⭐⭐⭐ **A shuffled deck is the other kind. Drawing one card tells you
+about the rest**, because the pool is finite and has memory of what has
+left it.
+
+| | the die | the deck |
+|---|---|---|
+| | **independent** generative | **dependent** generative — an **allocation** |
+| the pool | unbounded; each draw is fresh | **finite**, and it remembers |
+| what one draw tells you | nothing about the next | ⭐ **something about every other** |
+| the player's instrument | sampling — assay, observe, record | ⭐⭐ **counting** |
+| examples | BUC, a name, a spawn, weather's minute | a dealt hand, a deposit's ore, a season's ice, a fishery's `drawn` |
+
+### ⭐⭐ The obligation an allocation carries
+
+> **An allocation must be exhaustible and countable, or it is a die
+> pretending to be fair.**
+
+⭐⭐⭐ **A deck is fair because it runs out. The shore is fair because
+nothing turns on it.** Two different fairnesses, and only one of them has
+to be earned — which is why *"seeded, not drawn"* is sufficient for a
+field and insufficient for a pool. A seeded field is *discoverable*; a
+pool must additionally be **depletable by the act of drawing from it**,
+or players will correctly perceive it as a slot machine with a bookkeeping
+story.
+
+⚠ **And the tell that you have one and have modelled the other: you
+needed a depletion multiplier.**
+
+### ⭐ The worked case — a `Deposit` is an allocation implemented as a field
+
+`Deposit` computes a cell's grade from `meanGrade + spread × r`, with
+`depletionScaleAt` folded over the top as a multiplier and authored
+`grade` pins allowed to force it.
+
+⭐⭐ Each cell is therefore drawn **independently**, which is the die's
+shape — and a seam is not a die, it is **a pool**. The ore in that hill
+is finite, it has a total, and taking a ton means there is a ton less.
+⭐⭐⭐ **`depletionScaleAt` exists to reintroduce the memory the field
+discarded**, and the fact that depletion had to be a *multiplier over a
+computed grade* rather than a *subtraction from a remaining quantity* is
+the symptom.
+
+⚠ Not a defect to fix on sight — the field form buys the sparse-graph
+total function the whole `field-substrate` pattern rests on, and the pins
+are load-bearing. **But it should be named**, because the mining and
+quarrying economies are priced on it, and because a player who keeps
+records will eventually notice that the hill does not add up.
+
+### ⭐⭐⭐ Divine intervention is not a fifth kind
+
+The question arises because several slates imply it: **RNG used to model
+not chaos but acts of god.**
+
+⚠⚠ **It is the banned fourth provenance wearing an agent's clothes** —
+the same disguise this doc already names for *"epistemic uncertainty that
+no competence can narrow."* A god who decides your outcome is a die
+between your choice and its result; attributing the die to somebody does
+not move it.
+
+⭐ And the reason it is tempting is worth stating, because the temptation
+is structural: **you want a draw that decides, resolutional is banned, so
+you dress the die as a decision by someone.** The costume is the whole
+mechanism of the error.
+
+> ⭐⭐⭐ See [§ Why a god may not be the RNG](#-why-a-god-may-not-be-the-rng):
+> **a testable god is a temporary god**, and *"both answers are bad —
+> yes gives you a vending machine, no publicly establishes that the gods
+> do nothing."*
+
+⭐ What a slate that reaches for divine intervention almost always
+actually wants is one of the three homes already licensed: **the gap in
+the explanation** (the world publishes data and withholds *why*),
+**irreducible complexity** rather than irreducible randomness, or **the
+gods are other people.** ⚑ Worth an audit pass over the slates that imply
+it, to say which of the three each one meant.
+
+### ⚑ And the practical form
+
+⭐ Where an uncertain site exists, it should be able to **declare which
+of these it is** — not as flavour, but because the four carry different
+obligations and the declaration is what makes them checkable:
+
+| declared | owes |
+|---|---|
+| **environmental** | seeded, forecastable |
+| **generative, independent** | fires once, becomes a fact, investigable |
+| ⭐ **generative, dependent** (an allocation) | **exhaustible and countable** |
+| **epistemic** | ⚠ **narrowable by competence** — or it is resolutional in disguise |
+| **resolutional** | ❌ nothing; it may not exist |
+
 ## What determinism cannot teach
 
 The honest cost of a no-variance world, stated plainly, because it is the

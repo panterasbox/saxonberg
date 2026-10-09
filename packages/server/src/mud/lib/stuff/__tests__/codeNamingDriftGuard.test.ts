@@ -84,6 +84,20 @@ function scanContent(relPath: string, content: string): string[] {
 function walk(dir: string, out: string[]): void {
   for (const entry of readdirSync(dir)) {
     if (entry === "node_modules" || entry === "dist") continue;
+    // ⚠⚠ Skip DOT-DIRECTORIES, and the reason is a cross-file race
+    // rather than tidiness: `api/__tests__/cms.test.ts` creates a
+    // `.tmp-cms-<Date.now()>` directory INSIDE `src/mud/` and removes
+    // it when it is done. Vitest runs files in parallel, so this walk
+    // could enumerate that directory's `a.ts` and then fail to read
+    // it — `ENOENT … .tmp-cms-1791526160328/a.ts`, from a guard that
+    // passes in isolation and reddens at random in a full run.
+    //
+    // ⭐ Fixed on the SCANNER side on purpose. A drift guard over
+    // SOURCE has no business descending into a dotted directory at
+    // all, so this also covers the next transient somebody parks
+    // there — where moving the CMS fixture would have fixed exactly
+    // one instance and changed what that test exercises.
+    if (entry.startsWith(".")) continue;
     const full = join(dir, entry);
     const st = statSync(full);
     if (st.isDirectory()) {

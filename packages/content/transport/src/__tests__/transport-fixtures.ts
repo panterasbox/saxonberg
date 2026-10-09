@@ -9,6 +9,8 @@
 
 import { vi } from 'vitest';
 import { PersistApi } from '@saxonberg/server/mud/api/persist';
+import LocationGraphRegistry from '@saxonberg/server/mud/platform/idea/LocationGraphRegistry';
+import { KnowledgeGraph } from '@saxonberg/server/mud/lib/location/KnowledgeGraph';
 import { Collections } from '@saxonberg/server/mud/lib/persistence/Collections';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
@@ -104,6 +106,64 @@ export function installRooms(rooms: Map<string, Stuff & Container>): void {
     const hit = rooms.get(path);
     return hit ? Promise.resolve(hit) : real(path);
   }) as typeof StuffApi.singleton);
+}
+
+/**
+ * ⭐⭐ The corridor as the WORLD INDEX sees it.
+ *
+ * The lane compile reads `NavigationApi.reachFrom` now, which reads
+ * the `location_graph` projection — and a fixture that wires live
+ * `Exit` objects has no projection behind it. So this derives the
+ * graph nodes from the same exits the fixture just wired and hands
+ * them to the registry.
+ *
+ * ⚠ The seam is the registry's `graphView`, deliberately, and not
+ * `reachFrom`: everything the lane compile actually depends on — the
+ * `Traversal`, `TravelProfile.admits`, the budget, the edge
+ * collection — then runs FOR REAL over fixture data. Stubbing
+ * `reachFrom` would stub the thing under test, and re-deriving the
+ * reach here would put a twelfth copy of the walk in a test fixture,
+ * which is what this build exists to remove.
+ */
+export function installGraph(c: Corridor): void {
+  const nodes = [...c.rooms.entries()].map(([path, room]) => {
+    const exits = (
+      room as unknown as { getExits(): Map<string, Exit> }
+    ).getExits();
+    return {
+      identity: path,
+      published: true,
+      // ⚠⚠ A BLOCKED exit contributes NO EDGE, because that is what
+      // the projection does with an authored `blocked: true` spec: a
+      // blocked way is a way that is not there, not a way the search
+      // has to refuse. A fixture that wires `setBlocked(true)` is
+      // standing in for that row.
+      //
+      // ⚠ It does NOT stand in for a RUNTIME closure — a ford the
+      // river has shut. Those are deliberately NOT in the index (it
+      // is a projection of authored rows and cannot know the water
+      // level), so a flooded ford stays in the lane, every plan over
+      // it carries `conditional` as a stated assumption, and the
+      // closure is discovered at the leg. See `FordExit`.
+      edges: [...exits.values()]
+        .filter((exit) => !exit.isBlocked())
+        .map((exit) => ({
+          dir: exit.getDirection(),
+          to: exit.getDestinationTemplatePath(),
+          minutes: exit.getEdgeMinutes(),
+          media: [...exit.getMedia()],
+          wheelPassable: exit.isWheelPassable(),
+          ...(exit.isConditional() ? { conditional: true } : {}),
+        })),
+    };
+  });
+  makeStuffAtPath(
+    () => new LocationGraphRegistry(),
+    '/platform/idea/LocationGraphRegistry',
+  );
+  vi.spyOn(LocationGraphRegistry.prototype, 'graphView').mockImplementation(
+    async (extent?: string) => KnowledgeGraph.fromNodes(nodes, extent),
+  );
 }
 
 /** The two locomotion modes the fixtures use, as live singletons. */

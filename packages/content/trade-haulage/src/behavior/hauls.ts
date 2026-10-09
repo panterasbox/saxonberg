@@ -57,7 +57,6 @@
  */
 
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
-import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { AppApi } from '@saxonberg/server/mud/api/app';
 import { ContractApi } from '@saxonberg/server/mud/api/contract';
 import { Condition } from '@saxonberg/server/mud/lib/employment/Condition';
@@ -76,9 +75,15 @@ import type {
   BrainContext,
   BrainStatics,
 } from '@saxonberg/server/mud/lib/behavior/brain';
-import LaneCatalogue, {
-  LANE_CATALOGUE_PATH,
-} from '@saxonberg/content-transport/src/idea/LaneCatalogue';
+/*
+ * ⭐⭐ **The pack→pack import of `LaneCatalogue` is GONE**, and that is
+ * the routing build's quietest win. This brain used to reach across
+ * into the transport pack to run a route search it then discarded; it
+ * issues the verb and lets the verb plan, so a haulage brain no longer
+ * knows that lanes exist at all. `trade-haulage` now depends on
+ * transport for nothing but the vehicle rows its gigs name, which is
+ * content.
+ */
 
 /** Game hours a posted haul waits for a player before the carter covers it. */
 const DEFAULT_WINDOW_GAME_HOURS = 6;
@@ -140,13 +145,20 @@ export const brain = class {
 
     const home = carter.getContainer();
     for (const gig of waiting.slice(0, batch)) {
-      await cover(carter, gig, String(ctx.config.lane ?? 'city'));
+      // ⭐ `lane` is an OPTIONAL restriction the author may declare,
+      // not a default. It used to fall back to `'city'`, which made
+      // every carter in the realm a city carter whatever road it was
+      // standing on; absent, the vehicle's mode decides the ways.
+      await cover(carter, gig, String(ctx.config.lane ?? ''));
     }
     // Back to the yard. In a `finally`-shaped position for the same
     // reason `consigns` re-takes home: a beat that died mid-route must
     // not strand the carter at somebody else's counter.
     if (home && MixinApi.isContainer(home) && carter.getContainer() !== home) {
-      await travel(carter, home.getTemplatePath() ?? '', 'city');
+      // ⚠ No lane named: the home leg used to hard-code `'city'`,
+      // which was only ever right because every carter happened to
+      // live on it. The vehicle's mode decides the ways now.
+      await travel(carter, home.getTemplatePath() ?? '', '');
     }
   }
 } satisfies BrainStatics;
@@ -226,16 +238,22 @@ async function travel(
   const here = carter.getContainer()?.getTemplatePath() ?? '';
   if (here === path) return true;
 
-  const catalogue = await StuffApi.singleton<LaneCatalogue>(
-    LANE_CATALOGUE_PATH,
-  ).catch(() => null);
-  if (!catalogue) return false;
-  const route = await catalogue.planRoute(here, path, lane);
-  if (!route) return false;
-
-  // The literal verb, through the ordinary dispatch — the carter is
-  // subject to every gate a person is.
-  await carter.forceCommand(`journey to ${path} via ${lane}`);
+  // ⭐⭐ **The verb plans; the brain does not pre-check.** This used to
+  // call `LaneCatalogue.planRoute` and THROW THE RESULT AWAY — a
+  // feasibility probe whose only effect was to decide whether to
+  // bother issuing the command, using a search the command was about
+  // to run again. Two searches, two chances to disagree, and the
+  // disagreement would read as a carter who refused a gig it could
+  // have covered.
+  //
+  // ⚠ `via` is optional now and this passes it only when the gig's
+  // config named one. Without it `journey` plans over the vehicle's
+  // whole mode graph, so a carter is no longer confined to whichever
+  // lane somebody wrote in a config file — which is what let the home
+  // leg hard-code `'city'` and still work by accident.
+  const command =
+    lane.length > 0 ? `journey to ${path} via ${lane}` : `journey to ${path}`;
+  await carter.forceCommand(command);
   return carter.getContainer()?.getTemplatePath() === path;
 }
 

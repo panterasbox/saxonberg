@@ -19,7 +19,13 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { makeStuff } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
 import LaneCatalogue from '../idea/LaneCatalogue';
-import { corridor, installModes, installRooms, installRows } from './transport-fixtures';
+import {
+  corridor,
+  installGraph,
+  installModes,
+  installRooms,
+  installRows,
+} from './transport-fixtures';
 
 const catalogue = (): LaneCatalogue => makeStuff(() => new LaneCatalogue());
 
@@ -36,6 +42,7 @@ describe('a lane induces its edges from the exits', () => {
   it('walks outward from its seed and keeps every admitting edge', async () => {
     const c = corridor(5);
     installRooms(c.rooms);
+    installGraph(c);
     installRows([{ key: 'road', mode: 'walk', seeds: ['/test/road/0'] }]);
 
     const lane = (await catalogue().laneOf('road'))!;
@@ -51,6 +58,7 @@ describe('a lane induces its edges from the exits', () => {
     // The pass, in miniature: leg 2→3 admits walking and refuses wheels.
     const c = corridor(5, { wheelsRefusedAt: 2 });
     installRooms(c.rooms);
+    installGraph(c);
     installRows([
       { key: 'road', mode: 'walk', seeds: ['/test/road/0'] },
       { key: 'wagon-road', mode: 'wheeled', seeds: ['/test/road/0'] },
@@ -66,16 +74,19 @@ describe('a lane induces its edges from the exits', () => {
       '/test/road/1',
       '/test/road/2',
     ]);
-    // Which is the whole economic point: bulk has to break here.
-    expect(await cat.planRoute('/test/road/0', '/test/road/4', 'wagon-road'))
-      .toBeNull();
-    expect(await cat.planRoute('/test/road/0', '/test/road/4', 'road'))
-      .not.toBeNull();
+    // Which is the whole economic point: bulk has to break here. ⚠
+    // Asserted on the lane's own adjacency rather than by planning a
+    // route through it — routing is `NavigationApi.routeBetween`'s now,
+    // and what a LANE test should pin is the edge set the compile
+    // produced.
+    expect(wheeled.adjacency.has('/test/road/4')).toBe(false);
+    expect((await cat.laneOf('road'))!.adjacency.has('/test/road/4')).toBe(true);
   });
 
   it('a lane whose mode no exit admits compiles empty, and says so', async () => {
     const c = corridor(3, { media: ['ground'] });
     installRooms(c.rooms);
+    installGraph(c);
     installRows([{ key: 'river', mode: 'sailed', seeds: ['/test/road/0'] }]);
     const cat = catalogue();
     // The seed is on the lane (it was walked to) but nothing leads on.
@@ -85,6 +96,7 @@ describe('a lane induces its edges from the exits', () => {
   it('a water lane runs where the exits are water', async () => {
     const c = corridor(4, { media: ['water'] });
     installRooms(c.rooms);
+    installGraph(c);
     installRows([{ key: 'river', mode: 'sailed', seeds: ['/test/road/0'] }]);
     expect((await catalogue().laneOf('river'))!.nodes).toHaveLength(4);
   });
@@ -115,12 +127,13 @@ describe('a lane induces its edges from the exits', () => {
       '/test/terminal/b',
       '/test/terminal/c',
     ]);
-    const route = await catalogue().planRoute(
-      '/test/terminal/a',
-      '/test/terminal/c',
-      'tram',
+    // The authored chain, end to end, read off the compiled adjacency.
+    expect(lane.adjacency.get('/test/terminal/a')).toContain(
+      '/test/terminal/b',
     );
-    expect(route!.nodes).toHaveLength(3);
+    expect(lane.adjacency.get('/test/terminal/b')).toContain(
+      '/test/terminal/c',
+    );
   });
 
   it('an inducing lane with no seed is a reported PROBLEM, not a silent empty', async () => {
@@ -133,6 +146,7 @@ describe('a lane induces its edges from the exits', () => {
   it('⚠ the operator may be nobody, or an institution — never a player', async () => {
     const c = corridor(3);
     installRooms(c.rooms);
+    installGraph(c);
     installRows([
       { key: 'highway', mode: 'walk', seeds: ['/test/road/0'], operator: null },
       {
@@ -158,6 +172,7 @@ describe('a lane induces its edges from the exits', () => {
   it('two lanes may share an edge — the towpath is walked AND barged', async () => {
     const c = corridor(3, { media: ['ground', 'water'] });
     installRooms(c.rooms);
+    installGraph(c);
     installRows([
       { key: 'towpath', mode: 'walk', seeds: ['/test/road/0'] },
       { key: 'reach', mode: 'sailed', seeds: ['/test/road/0'] },
@@ -168,10 +183,16 @@ describe('a lane induces its edges from the exits', () => {
     // …which is exactly why the duration lives on the EDGE and not here.
   });
 
-  it('a blocked exit is off every lane', async () => {
+  it('an AUTHORED blocked exit is off every lane', async () => {
+    // ⚠ Authored, not runtime. A `blocked: true` SPEC projects no edge
+    // at all (`LocationGraphRegistry.edgesOf`), so the way is not
+    // there to be refused. A ford the river has shut is a different
+    // thing and is deliberately still in the lane — the index cannot
+    // know the water level — with the closure discovered at the leg.
     const c = corridor(4);
     c.exits.get('/test/road/1→/test/road/2')!.setBlocked(true);
     installRooms(c.rooms);
+    installGraph(c);
     installRows([{ key: 'road', mode: 'walk', seeds: ['/test/road/0'] }]);
     const lane = (await catalogue().laneOf('road'))!;
     expect(lane.adjacency.get('/test/road/1')).not.toContain('/test/road/2');
@@ -180,6 +201,7 @@ describe('a lane induces its edges from the exits', () => {
   it('lanesAt answers "what ways touch here" — the depot read', async () => {
     const c = corridor(3);
     installRooms(c.rooms);
+    installGraph(c);
     installRows([
       { key: 'road', mode: 'walk', seeds: ['/test/road/0'] },
       { key: 'elsewhere', mode: 'walk', edges: [{ from: '/test/far/a', to: '/test/far/b' }] },

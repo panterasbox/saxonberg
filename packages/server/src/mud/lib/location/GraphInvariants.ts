@@ -35,6 +35,9 @@
  * way of building something.
  */
 
+import { Traversal } from './Traversal';
+import type { Leg } from './Traversal';
+
 /** One edge out of a node, as either caller supplies it. */
 export interface GraphEdge {
   /** The direction word the exit is installed under. */
@@ -367,17 +370,34 @@ export class GraphInvariants {
         }
         continue;
       }
-      const seen = new Set<string>(entrances.map((n) => n.identity));
-      const queue = [...entrances];
-      while (queue.length > 0) {
-        const node = queue.shift()!;
-        for (const edge of node.edges) {
-          const far = this.#far(edge);
-          if (!far || far.zone !== zone || seen.has(far.identity)) continue;
-          seen.add(far.identity);
-          queue.push(far);
-        }
-      }
+      // ⭐ One traversal, or none (`docs/lint-family.md`
+      // § `lint:graph-walks`). The reach is a breadth-first walk from
+      // every entrance at once, sharing one visited set — so the
+      // skeleton's own `visited` IS the `seen` set this rule reports
+      // against, and the zone restriction is this caller's policy,
+      // stated in `neighbours` where policy belongs.
+      const reach = new Traversal<GraphNode, Set<string>, void>({
+        order: 'breadth-first',
+        keyOf: (n) => n.identity,
+        neighbours: (node) => {
+          const out: Array<Leg<GraphNode>> = [];
+          for (const edge of node.edges) {
+            const far = this.#far(edge);
+            if (!far || far.zone !== zone) continue;
+            out.push({ node: far, dir: edge.dir });
+          }
+          return out;
+        },
+        bound: {},
+        // ⚠ The accumulator is the caller's — `fold` runs once per
+        // entered node in a queued walk, with no tree to fold up.
+        fold: (node) => {
+          seen.add(node.identity);
+          return seen;
+        },
+      });
+      const seen = new Set<string>();
+      reach.walkFrom(entrances, { carry: undefined, depth: 0 });
       for (const node of nodes) {
         if (seen.has(node.identity)) continue;
         out.push(

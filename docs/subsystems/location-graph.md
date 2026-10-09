@@ -460,6 +460,19 @@ save is the wrong trade.
 — the places grouped by the address the content declares, each with the
 ways out you know and how you know them.
 
+⚠⚠ **That grouping had never once worked, and the routing build's
+sweep found it.** `CartographerMixin.groupingAddressOf` duck-typed
+`getDeclaredAddress?.()` — a method that exists **nowhere**;
+`AddressableMixin`'s reader is `getAddress()`. The optional call
+answered `undefined` every time, so `MapClaim.group` was never
+populated and every place fell into the unnamed bucket, which renders
+identically to having no groups at all. 53 of the realm's 128 places
+declare an address. ⭐ It was found by routing *needing* it to narrow a
+destination, and routing's own tests had passed because their fixtures
+set `group` by hand — working perfectly against data the writer never
+wrote. See [antipatterns.md § A duck-typed optional call on a method
+name NOBODY DEFINES](../antipatterns.md).
+
 ⭐ **AC14 is structural**: the controller's single read is
 `NavigationApi.readMap(viewerKey, prefix)`, which resolves under the
 actor's own home and nowhere else. Nothing in it touches
@@ -474,6 +487,221 @@ building nobody authored.
 ⚠ No card. The inspection card is laid out by `StuffKind` and a map is
 not a Stuff; the renderer and its card are `map-slate`'s.
 
+## ⭐⭐⭐ Routing — one traversal, or none
+
+The index exists so somebody can plan over it, and this is that
+somebody. The whole of it is four reads on `NavigationApi`
+(`routeBetween` · `routeOnMap` · `reachFrom` · `costMatrix`, plus
+`routeOverEdges` for an authored lane), one value class
+(`lib/location/Traversal.ts`), and a gate that makes *one traversal*
+literal rather than aspirational.
+
+### The skeleton, and what it refuses to own
+
+`Traversal` owns the frontier, the visited set, the bounds, the
+recursion order and the expansion count. ⛔ **It owns no policy.**
+Hazard guards, atmosphere refusal, `published`, mode admission and cost
+caps all live in the caller's `neighbours` / `descend`. A skeleton that
+knew about doors would be the twelfth walk with extra steps.
+
+Three orders: `depth-first` (the perception walks' fold-up),
+`breadth-first` (a reach, mark-on-dequeue), and `cheapest-first`
+(Dijkstra, ⭐ with a deterministic `keyOf` tie-break, because *"the
+router picked a different road today"* is a bug report nobody can act
+on). It is **synchronous** by design: the perception entry points are
+sync (`signalAt` returns a `Light`) and making the walk async would
+change their call shape across every consumer, so async callers
+materialise a graph first and then walk it. That is also the shape
+hierarchical search wants.
+
+⚠⚠ **The depth gate fires BEFORE the visited mark**, and this is
+observable: a node first reached at depth 3 is refused *without being
+marked*, so it stays reachable at depth ≤ 2 by another path. Marking it
+would silently darken rooms.
+`scripts/__tests__/golden/perception-characterization.json` holds every
+place in the realm to the pre-migration numbers — lux, dB, ppm and
+every gather arrival **with its printed compass direction** — because
+all four perception walks are order-dependent and that order is
+preserved deliberately, not inherited by accident.
+
+⭐ **The prior decision was narrowed, not overturned.**
+`Modality.ts` recorded *"per-modality walks, not a generic walker"*,
+and it was right about the accumulators (light caps all its openings as
+one; sound and smell attenuate per child; smell's dominant identity
+turns on walk order; the gather pushes a level down and emits
+pre-order) and wrong about the frontier, which was identical in all
+four. **One skeleton, four accumulators.**
+
+### Bounds, and why only one of them is a budget
+
+`{ hops?, nodes?, cost? }`. `hops` and `cost` are **natural limits** —
+the walk simply does not expand past them. `nodes` is the **budget**:
+reaching it is a *refusal*, reported as `exhausted: 'nodes'` and turned
+into `{ ok: false, reason: 'budget' }`.
+
+⭐⭐ Conflating the two is how a caller comes to believe *"there is no
+way"* when the truth was *"I stopped looking"* — a lie the caller
+cannot detect. Every search takes a **caller-declared budget with no
+default**, and every refusal carries `expanded`, which is both the
+evidence and the input a compute meter would need.
+
+⚠ A budget is a **performance** bound and never a knowledge one. What
+a character knows of the world is 100% its author's to declare
+(`knows:` in brain config, `extent` on the knowledge source); what it
+may think about in one beat is the operator's
+(`navigation.attendedSearchBudget`, 400). Conflating *those* would be
+the engine deciding how much of the realm a character has heard of.
+
+### Two knowledge sources, and the firewall between them
+
+```ts
+routeBetween(from, to, profile, { extent? }, budget)   // the WORLD index
+routeOnMap(viewerKey, prefix, from, to, profile, budget) // one person's CLAIMS
+```
+
+The world source is omniscient: legitimate for a brain whose author
+declared what it knows, and for a compile. ⛔ **Never for answering a
+person.** The map source is append-only, never corrected, possibly
+stale and possibly self-contradictory — *rot is the feature*.
+
+⭐⭐⭐ **The firewall is structural.** The four core modules —
+`Traversal`, `KnowledgeGraph`, `TravelProfile`, `RoutePlan` — may
+import nothing but each other, `GraphInvariants` and `MapClaim`.
+⛔ Not `PlaceNode`, not the registry, not `DocumentApi`, not `StuffApi`,
+nothing under `api/`. `lint:graph-walks`' second check enforces it with
+**no ceiling**, and it earned its keep during the build: `TravelProfile`
+imported `StoredEdge` for a *type* and was refused, rightly —
+`PlaceNode` is a `Document`, so importing it puts the collection one
+property access away from the module that must never consult the index.
+It declares its own two-field `AdmissibleWay` instead, which
+`StoredEdge` satisfies structurally.
+
+A map planner that *could* reach the index would eventually consult it
+— not maliciously, but because it was convenient once, in one branch.
+The map **writer** (`Cartographer`) already had this property
+deliberately; routing extends it to the reader, because a firewall
+honoured by the careful is not a firewall.
+`NavigationLogic.map-routing.test.ts` runs every case with the registry
+absent and its prototype spied, asserting zero calls: the test is of
+**reach**, not of behaviour.
+
+⭐⭐ **The one join a map plan may make.** An edge claim records
+`toLabel` — the far side's authored row path, read off the exit the
+walker was standing at — and a singleton place's durable handle **is**
+its row path. So they are equal whenever the far place is a template
+node, and matching them is a string comparison *inside one document*.
+
+⚠⚠ Where two claims disagree about one `(place, dir)`, **both edges are
+admitted** and the plan names the disagreement. Claims append and
+nothing is corrected; resolving a contradiction in the reader would be
+the reader overriding the writer.
+
+### A plan is a hypothesis
+
+`RoutePlan` carries `nodes`, `legs` (each with its own `dir`), `cost`
+on every axis, and **`assumptions`** — a first-class field, because
+both sources can be wrong and the defect would be a plan that did not
+say so. A map assumption cites the planner's own evidence (`channel` +
+`lastSeen`); ⛔ nothing in it comes from the index.
+
+⭐⭐ **Cost is quoted in the currency the traveller will pay.** The plan
+measures every axis and the **renderer selects**: a walker is answered
+in legs and what is in the way, a conveyance in minutes. That is
+pedagogy, not presentation — `logistics.md` keeps ordinary movement
+**instantaneous and free** on purpose, so quoting a pedestrian *"about
+forty minutes"* for a walk the world will charge nothing for teaches a
+figure that does not exist. ⚠ A pedestrian seeing a minutes figure is a
+drive failure.
+
+⭐ **Incomparable plans both come back.** One `cheapest-first` walk per
+axis — minutes, legs, and `conditional` (⭐ a **risk** axis: the first
+place in this game where a fast uncertain way can be weighed against a
+slow sure one) — de-duplicated, and the engine does **not** pick when
+they disagree. Choosing is the activity. ⚠ Stated plainly: that is a
+*subset* of the Pareto front, one optimum per axis, honest for a realm
+with three corridors.
+
+⭐⭐ **The mode break.** When the mode-admitted search finds no way, the
+same search admitting every medium says whether a way exists at all. If
+it does, the first leg the traveller refuses becomes `breakAt`, and the
+refusal reads *the way stops at the quay; north needs water* rather
+than *there is no way to the island*. Only one of those tells you to
+buy a boat. The second pass's plan is discarded — a plan built with the
+omnivorous profile would send a wagon into a river.
+
+### What the edge had to learn
+
+Routing from the index was impossible until the stored edge carried
+`media`, `wheelPassable` and `conditional` (§ The collection): the
+projection could **cost** a wagon's route but not say whether a wagon
+may *take* it, which is why a lane used to be compiled by walking live
+exits one at a time.
+
+⚠⚠ **A flooded ford is now in the lane, and that is the design.** The
+old lane compile called `refreshCrossing()` by shape and skipped a
+crossing the river had closed; the index is a projection of authored
+rows and cannot know the water level. So the ford is in the lane, the
+plan carries *this way is not always passable* as a stated assumption,
+and the closure is discovered **at the leg**. A cached compile is a
+worse place to learn about a river than the bank of it.
+
+### `route` — the verb
+
+`route to <place> [by <mode>]`, and `route between <a> and <b>` for what
+a pair costs. Afforded by `Avatar.commandContributions.self` beside
+`map`, for the same reason: both read the **player's** own document, and
+`Perceiver` is composed on NPCs too. An NPC may keep a map — a
+cartographer should — and gets no verb, because NPCs do not type.
+
+It plans and **stops**: nothing started, nothing spent, nobody moved.
+⚠⚠ Every place is named by what it **calls itself**, from the claims,
+with the path leaf tidied into words as a last resort — never a
+template path and **not a bare leaf** either. This verb consumes
+handles and row paths end to end, which is exactly the shape that once
+printed `/world/terminus/...` at a player.
+
+⭐⭐⭐ **A map cannot answer `by wagon`, and says so.** A claim records
+the *channel* you learned a way on and not what you were driving, so
+your own map knows a way exists and cannot know whether a cart fits
+through it. The two alternatives are worse: reading "no media recorded"
+as "a footpath" refuses every conveyance with a mode-break sentence
+about needing `ground` (nonsense to a reader), and inventing an
+assumption would have the engine telling you something your map never
+recorded. So it refuses in words and **names the verb that knows** —
+`journey`, which plans with the vehicle's own declared mode, honestly,
+because you are standing next to the vehicle. → A `walked` claim that
+recorded what you were driving is designed and deferred to
+`map-slate`.
+
+### `costMatrix` — the matrix, and deliberately no optimiser
+
+All-pairs cost between named places: the input a travelling-salesman
+solver needs. ⭐⭐ Shipping it **without** the solver is the decision
+rather than the omission — the engine computes what the roads cost and
+the player decides which stop to make first, and taking that away would
+take away the game. It answers `null` for a pair with no way rather
+than omitting the row, because an absent row reads as *I did not ask*.
+`route between <a> and <b>` is its typed reader, so the capability does
+not ship with nobody able to see it.
+
+### The census, and zero
+
+`lint:graph-walks` counted **eleven** hand-written walks on an
+untouched tree and holds the number at **zero**:
+11 → 9 (the invariants, the grid) → 5 (the four perception walks) → 2
+(mine air, the forage radius) → 0 (the lane compile, and `planRoute`
+retired outright with no deprecated forward). Full detector, its two
+checks, and the three false positives that sharpening it cost:
+[lint-family.md § `lint:graph-walks`](../lint-family.md).
+
+⚠ Two callers keep their **own** neighbour reader, and both for a
+reason: mine air reads `getExits()` — *all* of them, because a hidden
+heading still has air in it — and the forage census admits a
+destination that is not a `Container`, which the shared guards refuse
+(a bee flying into a room-shaped nothing contributes no bloom but still
+spends a hop, at the right distance). Routing either through the shared
+reader would quietly change a number.
+
 ---
 
 ## Cross-references
@@ -483,7 +711,9 @@ not a Stuff; the renderer and its card are `map-slate`'s.
 - [persistence.md](./persistence.md) — the `(scope, key)` spine; the registry's three reads
 - [identity.md](./identity.md) — the two identity patterns; the mint census
 - [parcel.md](./parcel.md) — title, and `published`
-- [lint-family.md](../lint-family.md) — `lint:location-graph`'s counts and ceilings
+- [lint-family.md](../lint-family.md) — `lint:location-graph`'s counts and ceilings; `lint:graph-walks`
+- [logistics.md](./logistics.md) — the lane, the Journey, the cost surface
+- [perception.md](./perception.md) · [senses.md](./senses.md) — the four walks that ride `Traversal`
 
 ---
 

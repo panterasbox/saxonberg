@@ -51,11 +51,13 @@ import YAML from "yaml";
 import {
   CONTENT,
   SERVER_SRC,
+  classFileOf,
   composesMixin,
   effectiveRow,
   extendsAny,
+  inheritanceIndex,
   packSources,
-  templateRows,
+  type InheritanceIndex,
   type TemplateRow,
 } from "./pack-roots";
 import {
@@ -239,8 +241,16 @@ export interface GraphScan {
 }
 
 /** Build the graph from the rows on disk and run the invariants. */
-export function scanLocationGraph(): GraphScan {
-  const rows = templateRows();
+export function scanLocationGraph(idx: InheritanceIndex = inheritanceIndex()): GraphScan {
+  // ⚠⚠ `idx.rules` is not decoration. Without it `effectiveRow` merges
+  // EVERY field with `replace`, so a child row replaces its parent's
+  // lists rather than substituting by entry. Measured when this was
+  // fixed: zero rows read differently today, because `exits` declares
+  // `inherit: 'never'` and no place row inherits one — but the next
+  // row that does would have been read wrong, silently. The helper's
+  // own header warns about this exact failure and three of its four
+  // callers already passed the rules; this was the fourth.
+  const rows = idx.rows;
   const claims = publishedByExtent();
   const seats = travelSeats(rows);
   const start = defaultStart();
@@ -250,7 +260,7 @@ export function scanLocationGraph(): GraphScan {
   const kinds = new Set<string>();
 
   for (const row of rows.values()) {
-    const eff = effectiveRow(row.path, rows);
+    const eff = effectiveRow(row.path, rows, idx.rules);
     if (!eff.class) continue;
     if (isZoneClass(eff.class)) {
       zoneRows.add(row.path);
@@ -290,9 +300,77 @@ export function scanLocationGraph(): GraphScan {
   return { nodes, kinds, findings };
 }
 
+/**
+ * ⭐⭐ **A way that CLOSES must say so on its kind row.**
+ *
+ * The `location_graph` projection is a projection of authored content,
+ * so it cannot know whether the ford at Kestrel is flooded right now —
+ * and should not. What it CAN carry is that the way is *the kind that
+ * closes*, which is what a route plan owes the person reading it. The
+ * flag is `conditional: true` on the exit-kind row, and this is the
+ * check that an author cannot forget it.
+ *
+ * ⚠⚠ **Phrased BY SHAPE, deliberately, and not as "extends
+ * `FordExit`".** A kind row whose class overrides `applyTraversal`
+ * *and* names `blocked` is a way that closes itself at the traverse,
+ * whatever it is called. This is a KERNEL gate and `FordExit` is the
+ * transport pack's class; a kernel gate enumerating a pack's classes
+ * is the coupling this repo refuses everywhere else, and the lane
+ * compile already demonstrated the alternative by asking for the
+ * refresh protocol by shape. ⭐ A tidal causeway is then caught with
+ * no kernel edit at all.
+ *
+ * ⚠ The honest residue: a conditional class that closes by some means
+ * other than `blocked` plans with no caveat until this shape test is
+ * widened. That is a content rule with a gate, which is the shape this
+ * repo accepts for authored facts.
+ */
+function conditionalKindFindings(idx: InheritanceIndex): string[] {
+  const sources = packSources();
+  const out: string[] = [];
+  // ⚠ Memoised BY CLASS PATH: 1,500-odd rows name a couple of hundred
+  // distinct classes, so a read per ROW would be an order of magnitude
+  // of wasted I/O. Measured: this rule costs ~6s on a gate that
+  // already took ~45s (44.8s → 51.3s), which is the whole reason it
+  // reads rows rather than standing a world up.
+  const closes = new Map<string, boolean>();
+  const closesItself = (classPath: string): boolean => {
+    const memo = closes.get(classPath);
+    if (memo !== undefined) return memo;
+    let verdict = false;
+    try {
+      const source = readFileSync(classFileOf(classPath, sources), "utf8");
+      verdict =
+        /\bapplyTraversal\s*\(/.test(source) && /\bblocked\b/.test(source);
+    } catch {
+      verdict = false;
+    }
+    closes.set(classPath, verdict);
+    return verdict;
+  };
+  for (const row of idx.rows.values()) {
+    const eff = effectiveRow(row.path, idx.rows, idx.rules);
+    if (!eff.class) continue;
+    if (!closesItself(eff.class)) continue;
+    if (eff.data.conditional === true) continue;
+    out.push(
+      `${row.path} — class ${eff.class} closes itself at the traverse ` +
+        `(it overrides \`applyTraversal\` and names \`blocked\`), so the ` +
+        `row must declare \`conditional: true\`. Without it the index ` +
+        `carries no caveat and a route plan over this way says nothing ` +
+        `about the fact that it is not always there.`,
+    );
+  }
+  return out;
+}
+
 function main(): void {
   const report = process.argv.includes("--report");
-  const { nodes, findings } = scanLocationGraph();
+  // ⚠ ONE index for the whole run — building it walks every authored
+  // YAML in the repo, so the second build this rule would otherwise
+  // need is pure waste.
+  const idx = inheritanceIndex();
+  const { nodes, findings } = scanLocationGraph(idx);
   const counts = new Map<GraphRule, number>();
   for (const f of findings) counts.set(f.rule, (counts.get(f.rule) ?? 0) + 1);
 
@@ -323,6 +401,18 @@ function main(): void {
           `${f.dir ? ` [${f.dir}]` : ""} — ${f.detail}`,
       );
     }
+  }
+
+  const conditionals = conditionalKindFindings(idx);
+  console.log(
+    `  ${conditionals.length > 0 ? "✖" : "ok"} ` +
+      `${"conditional-kind-undeclared".padEnd(32)} ` +
+      `${conditionals.length} (error)`,
+  );
+  if (conditionals.length > 0) {
+    failed = true;
+    console.error("");
+    for (const c of conditionals) console.error(`  ✖ ${c}`);
   }
 
   if (failed) {

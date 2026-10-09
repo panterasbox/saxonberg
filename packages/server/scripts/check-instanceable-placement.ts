@@ -290,7 +290,7 @@ export function packBrainShapeOk(source: string): boolean {
  * `MaturationProfile`, `Reading` and the other catalogue Ideas are
  * over-represented here.
  */
-const ORPHAN_DATA_KEY_CEILING = 393;
+const ORPHAN_DATA_KEY_CEILING = 390;
 
 
 function main(): void {

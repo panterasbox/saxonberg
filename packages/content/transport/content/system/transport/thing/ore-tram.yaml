@@ -12,6 +12,12 @@
 # whole of the difference, expressed as a number.
 class: /system/transport/thing/HaulageRig
 data:
+  # ⭐⭐ How this vehicle travels. Until the routing build the LANE knew
+  # and the vehicle did not, so `journey ... via estuary` with a wagon
+  # hitched made the wagon SAIL and it died at the first leg.
+  # A tram runs on iron somebody laid.
+  # Its ways are the tramway lane's AUTHORED edges, which no medium rule applies to -- but told to take a road it is a wheeled thing, and the pass refuses it like any other
+  travelMode: wheeled
   shortDescription: ore tram
   keywords: [tram, ore-tram, box, ore]
   register: indefinite

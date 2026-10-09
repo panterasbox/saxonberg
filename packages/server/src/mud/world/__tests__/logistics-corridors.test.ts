@@ -38,6 +38,8 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parse } from 'yaml';
 import { LAND_USES } from '../../lib/parcel/LandUse';
+import { Traversal } from '../../lib/location/Traversal';
+import { TravelProfile } from '../../lib/location/TravelProfile';
 
 const CONTENT = fileURLToPath(new URL('../../../../../content/', import.meta.url));
 
@@ -99,42 +101,64 @@ function walk(dir: string, root: string, pack: string, out: Map<string, Row>): v
 
 const ROWS = allRows();
 
-/* ── the mode gates, mirrored from `Exit.allowsMode` ───────────────── */
+/* ── the mode gates, READ from the one place the rule lives ───────── */
 
 /**
- * Empty `media` is the legacy default: the ground PACE family only
- * (walk / sneak / run). Anywhere you can walk you can sneak or run.
+ * ⭐⭐ **This file used to carry a THIRD copy of the admission rule** —
+ * three predicates its own comment described as *"mirrored from
+ * `Exit.allowsMode`"*. A mirror in a test is the worst place for a
+ * rule: it passes forever while the rule it mirrors drifts, and a
+ * corridor test that agrees with its own copy of the gate is testing
+ * nothing. It reads `TravelProfile.admits` now, which IS the rule the
+ * router uses, so a drift in either direction fails here.
+ *
+ * ⚠ `ExitSpec` satisfies `AdmissibleWay` structurally (`media`,
+ * `wheelPassable`), which is the whole reason that interface is
+ * declared in the core rather than imported from `PlaceNode`.
  */
-const admitsOnFoot = (e: ExitSpec): boolean =>
-  !e.media || e.media.length === 0 || e.media.includes('ground');
+const onFoot = new TravelProfile({ mode: 'walk', medium: 'ground' });
+const onWheels = new TravelProfile({
+  mode: 'wheeled',
+  medium: 'ground',
+  wheeled: true,
+});
+const byBoat = new TravelProfile({ mode: 'sailed', medium: 'water' });
+
+const admitsOnFoot = (e: ExitSpec): boolean => onFoot.admits(e);
+const admitsWheels = (e: ExitSpec): boolean => onWheels.admits(e);
+const admitsBoat = (e: ExitSpec): boolean => byBoat.admits(e);
 
 /**
- * A wheeled lane asks two questions: the medium (a cart is not going up a
- * ladder) and `wheelPassable` — the residue the medium cannot express, a
- * stair or a stile or **a pitched pass**.
+ * The reachable set from `start`, over edges `admits` lets through.
+ *
+ * ⭐ The walk is the kernel skeleton's — this function was the
+ * ELEVENTH hand-written graph walk in the tree, and a test's private
+ * copy of a traversal is the same liability as a test's private copy
+ * of an admission rule.
  */
-const admitsWheels = (e: ExitSpec): boolean =>
-  !!e.media && e.media.includes('ground') && e.wheelPassable !== false;
-
-const admitsBoat = (e: ExitSpec): boolean =>
-  !!e.media && e.media.includes('water');
-
-/** The reachable set from `start`, over edges `admits` lets through. */
 function reachable(start: string, admits: (e: ExitSpec) => boolean): Set<string> {
-  const seen = new Set<string>([start]);
-  const queue = [start];
-  while (queue.length > 0) {
-    const here = queue.shift()!;
-    const row = ROWS.get(here);
-    if (!row) continue;
-    for (const spec of Object.values(row.exits)) {
-      const to = spec.destination;
-      if (!to || !admits(spec)) continue;
-      if (seen.has(to)) continue;
-      seen.add(to);
-      queue.push(to);
-    }
-  }
+  const seen = new Set<string>();
+  const walk = new Traversal<string, Set<string>, void>({
+    order: 'breadth-first',
+    keyOf: (path) => path,
+    neighbours: (here) => {
+      const row = ROWS.get(here);
+      if (!row) return [];
+      const out: Array<{ node: string; dir: string }> = [];
+      for (const [dir, spec] of Object.entries(row.exits)) {
+        const to = spec.destination;
+        if (!to || !admits(spec)) continue;
+        out.push({ node: to, dir });
+      }
+      return out;
+    },
+    bound: {},
+    fold: (path) => {
+      seen.add(path);
+      return seen;
+    },
+  });
+  walk.walk(start, { carry: undefined });
   return seen;
 }
 

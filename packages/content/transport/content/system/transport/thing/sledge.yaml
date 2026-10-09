@@ -17,6 +17,12 @@
 # refuse a sledge are the ones that refuse a wagon.
 class: /system/transport/thing/HaulageRig
 data:
+  # ⭐⭐ How this vehicle travels. Until the routing build the LANE knew
+  # and the vehicle did not, so `journey ... via estuary` with a wagon
+  # hitched made the wagon SAIL and it died at the first leg.
+  # A sledge has no wheels, and `wheeled` is still right: it is the mode a hauled ground rig travels in, and the pass refuses a dragged load for the same reason it refuses a cart.
+  # ⚠ If a sledge should one day go where a cart cannot, that is a new LocomotionMode row and no code
+  travelMode: wheeled
   shortDescription: dragged sledge
   keywords: [sledge, sled, drag, boat, dragged]
   register: indefinite

@@ -32,6 +32,27 @@ purpose: |
   `published` is denormalised from the covering parcel so the traversal
   gate can read it synchronously without resolving a destination. The
   parcel remains the source of truth; a flip re-projects the extent.
+
+  ⭐⭐ Each entry in `edges[]` carries `dir`, `to`/`toPath`, and the
+  authored facts a router needs: `bidirectional`, `oneWay`, `door`,
+  `minutes` (from `edgeMinutes`), `kind`, and — added by the routing
+  build — `media`, `wheelPassable` and `conditional`. The last three
+  are read off the edge spec **or its exit-KIND row**, because a stair
+  declares `media: [ground], wheelPassable: false` once on the kind and
+  every stair installed from it inherits it. Without them the index
+  could COST a wagon's route but not say whether a wagon may take it,
+  which is why a lane used to be compiled by walking live exits one at
+  a time.
+
+  `conditional` is the honest middle on a way that closes: the index
+  cannot know whether the ford is flooded right now (that is discovered
+  at the traverse, from the river), but the row knows the way is *the
+  kind that closes*, which is what a route plan owes its reader.
+
+  ⛔ An authored `blocked: true` edge is **not projected at all** — a
+  way that is not there, rather than a way every consumer has to
+  re-derive the exclusion for. No index change is needed for any of
+  this: `edges` is one persistent array field.
 invariants:
   - >-
     DERIVED, never a source: every row is reconstructible from the
@@ -44,6 +65,9 @@ invariants:
     their own map document, and the two never join.
   - >-
     A node is a place; a KIND row is not a node.
+  - >-
+    ⛔ An authored `blocked: true` exit projects NO edge. A blocked way
+    is a way that is not there.
   - >-
     `published` mirrors the covering parcel and is re-projected on every
     flip — the parcel is the source of truth.

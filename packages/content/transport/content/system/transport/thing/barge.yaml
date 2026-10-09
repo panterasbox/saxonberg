@@ -14,6 +14,11 @@
 # nothing: an open container is an open container.
 class: /system/transport/thing/Barge
 data:
+  # ⭐⭐ How this vehicle travels. Until the routing build the LANE knew
+  # and the vehicle did not, so `journey ... via estuary` with a wagon
+  # hitched made the wagon SAIL and it died at the first leg.
+  # A barge travels on water; the estuary and the towpath reaches are its roads
+  travelMode: sailed
   shortDescription: flat-bottomed barge
   keywords: [barge, boat, lighter, craft, flat-bottomed]
   register: indefinite

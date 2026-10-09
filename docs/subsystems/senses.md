@@ -497,14 +497,49 @@ the two diverge only on sound (name 'sound', organ key 'hearing').
 
 ### Propagation walks (field modalities)
 
-Vision, smell, and sound implement their own propagation walk in
-`Modality.signalAt`. The walks share structural shape (ambient +
-contents-side emitters + fixture-side emitters + cross-boundary via
-Conduit + cross-exit at base transmissivity, depth-capped via
-`MAX_HOPS = 2`, cycle-guarded via a `visited` set, vacuum scope
-blocks at the recipient) but remain independent code per the
-"per-modality walks, not a generic walker" decision in the
-requirements doc.
+⚠⚠ **Updated 2026-10-08 (the routing build): the frontier is SHARED
+and the accumulators are not.** This section used to record
+*"per-modality walks, not a generic walker"*, and that decision was
+right about the half it was defending and wrong about the half it was
+conceding.
+
+All four walks — vision, smell, sound, and `AudienceGather`'s outward
+push — now run on `lib/location/Traversal.ts`
+([location-graph.md § Routing](./location-graph.md)) and keep their own
+accumulator. ⭐ What genuinely was not shareable: light caps **all** its
+openings as one (`mergeCapped` — *an opening cannot make you brighter
+than what is on the other side of it*), sound and smell attenuate **per
+child**, smell's dominant identity turns on **walk order**, and the
+gather pushes a level **down** and emits pre-order into an array
+`Scene` consumes in order. What was identical in all four was the
+frontier, the visited set and the depth gate — and four copies of a
+frontier is four behaviours nobody chose.
+
+⚠⚠ **The order-dependence is PRESERVED DELIBERATELY.** All four thread
+one mutable `visited` through a depth-first recursion, so neighbour
+order decides which room is charged at which depth, the dB a listener
+hears and the **compass direction printed beside it**. That is
+behaviour a player can perceive, so
+`scripts/__tests__/golden/perception-characterization.json` pins every
+shipped place's lux, peak lux, dB, ppm and gather arrivals — captured
+before the migration and matched byte-for-byte after. ⭐ Anyone later
+"tidying" neighbour order in a modality breaks that golden, which is
+the point. The depth gate also still fires **before** the visited mark,
+because a node refused at depth 3 must stay reachable at depth ≤ 2 by
+another path; marking it would silently darken rooms.
+
+⭐ Two helpers moved to the hosts that own the data rather than being
+copied a fifth time: `ExitableMixin.getObviousNeighbours()` (the five
+hazard guards — see [boundary.md](./boundary.md)) and
+`AtmosphericMixin.getInlineAtmosphere()` / `atmosphereBlocks()`, which
+existed in three identical private copies, two of them annotating the
+v1 limitation as *"shared verbatim"* — a comment admitting the
+duplication while making another copy of it.
+
+The walks share structural shape (ambient + contents-side emitters +
+fixture-side emitters + cross-boundary via Conduit + cross-exit at base
+transmissivity, depth-capped via `MAX_HOPS = 2`, cycle-guarded via a
+`visited` set, vacuum scope blocks at the recipient):
 
 - **Vision** (relocated from the retired `LightApi.lightAt`):
   lumen-flux accumulator, sources → `Light` value object with lux

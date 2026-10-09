@@ -44,7 +44,12 @@ describe('Route', () => {
     const cat = catalogue();
 
     const authored = (await cat.routeByKey('road-local'))!;
-    const computed = (await cat.planRoute(P(0), P(3), 'road'))!;
+    // ⚠ Built with `Route.computed` directly, which is what
+    // `JourneyController` does now that routing is
+    // `NavigationApi.routeBetween`'s: the Journey never cared who made
+    // its Route, and AC15n of logistics says nothing downstream may
+    // tell authored from computed.
+    const computed = Route.computed('road', authored.nodes, authored.stops);
 
     expect(computed.nodes).toEqual(authored.nodes);
     expect(computed.stops).toEqual(authored.stops);
@@ -85,49 +90,35 @@ describe('Route', () => {
     expect(local.isStop(P(2))).toBe(true);
   });
 
-  it('a computed route carries the lane stop set, narrowed to what it passes', async () => {
-    const c = corridor(5);
-    installRooms(c.rooms);
-    installRows([
-      { key: 'road', mode: 'walk', seeds: [P(0)], stops: [P(0), P(2), P(4)] },
-    ]);
-    const route = (await catalogue().planRoute(P(0), P(3), 'road'))!;
+  it('carries exactly the stop set it is given, narrowed by its maker', async () => {
+    // ⭐ The NARROWING moved, and this test moved with it. It used to
+    // live inside `LaneCatalogue.planRoute`, which is retired;
+    // `JourneyController` now intersects the lane's stops with the
+    // plan's nodes and hands the result here. `Route`'s own contract
+    // is what it was: it carries what it is given.
+    const route = Route.computed('road', [P(0), P(1), P(2), P(3)], [P(0), P(2)]);
     expect(route.nodes).toEqual([P(0), P(1), P(2), P(3)]);
     expect(route.stops).toEqual([P(0), P(2)]);
+    expect(route.isStop(P(1))).toBe(false);
   });
 
-  it('the legs are the beats — one per consecutive pair', () => {
-    const r = Route.computed('road', [P(0), P(1), P(2)], [P(0), P(2)]);
-    expect(r.legs()).toEqual([
-      [P(0), P(1)],
-      [P(1), P(2)],
-    ]);
-    expect(r.origin()).toBe(P(0));
-    expect(r.destination()).toBe(P(2));
-    expect(r.legsFrom(0)).toBe(2);
-    expect(r.legsFrom(1)).toBe(1);
-    expect(r.legsFrom(2)).toBe(0);
-  });
-
-  it('a route to nowhere is null rather than an empty trip', async () => {
-    const c = corridor(3);
-    installRooms(c.rooms);
-    installRows([{ key: 'road', mode: 'walk', seeds: [P(0)] }]);
-    expect(await catalogue().planRoute(P(0), '/test/elsewhere', 'road'))
-      .toBeNull();
-    expect(await catalogue().planRoute(P(0), P(2), 'no-such-lane')).toBeNull();
-  });
+  /*
+   * ⛔ "A route to nowhere is null rather than an empty trip" lived
+   * here and is gone with `planRoute`. The question it asked is the
+   * ROUTER's now and is answered better there: `routeBetween` names
+   * WHY there is no way — `unknown-destination`, `no-way`, `budget`,
+   * `graph-cold` — where this could only say `null`, and a caller
+   * could not tell "I have never heard of that place" from "I stopped
+   * looking". See `NavigationLogic.routing.test.ts`.
+   */
 
   it('⚠ mints nothing — a per-request route has no template row', async () => {
     const c = corridor(3);
     installRooms(c.rooms);
     installRows([{ key: 'road', mode: 'walk', seeds: [P(0)] }]);
-    const cat = catalogue();
-    // Warm first, so the count is about PLANNING and not about the load.
-    await cat.planRoute(P(0), P(2), 'road');
     const before = StuffApi.getAllObjects().length;
-    await cat.planRoute(P(0), P(2), 'road');
-    await cat.planRoute(P(2), P(0), 'road');
+    Route.computed('road', [P(0), P(1), P(2)], [P(0), P(2)]);
+    Route.computed('road', [P(2), P(1), P(0)], [P(2), P(0)]);
     // A Route that were a Stuff would be unaddressable and un-editable —
     // exactly the anti-pattern `lint:census` exists to catch.
     expect(StuffApi.getAllObjects().length).toBe(before);
