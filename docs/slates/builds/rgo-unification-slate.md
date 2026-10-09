@@ -278,6 +278,72 @@ the roster and write down what each epoch *adds*. That converts the
 industrial families from unknown-missing to **known-deferred**, which is the
 difference between an oversight and a decision.
 
+### ⭐⭐⭐ Irrigation — the worked epoch ladder, and groundwater is a DIFFERENT RGO CLASS
+
+Added 2026-10-09 from the water-trade audit. **The best epoch story in
+the roster**, and it belongs here rather than in a trade slate because of
+the last row.
+
+The capability is *get water to a field that does not get enough rain.*
+It survives every epoch. ⭐⭐⭐ **What changes is not the technology — it
+is the institution the technology requires.**
+
+| rung | what moves the water | command area set by | institution required | the reservoir |
+|---|---|---|---|---|
+| **flood recession** | nothing — **the planting moves** | the flood's reach | a **calendar** | the river, **visible** |
+| **gravity ditch** | the contour | **topography** | a **labour commons** (the annual clean-out) | the river, **visible** |
+| **pump (surface)** | energy | **money** | optional | the river, **visible** |
+| **pump (ground)** | energy | money | **none** | ⚠⚠ **an aquifer — invisible, recharge ≈ 0** |
+| **drip / pivot** | energy + control | money | none | both, metered |
+
+- ⭐ **Rung zero is not a device, it is a calendar.** Plant in the mud
+  behind the receding flood — the Nile for three thousand years, no works
+  at all. **And it is buildable today**: the freshet is computable, so
+  planting behind it is a derivable strategy with no new mechanism.
+- ⭐ **Gravity means geography decides.** You can only water what lies
+  below the intake, so contour lines draw the irrigated region.
+  `Zone.elevation` doing real work.
+- ⭐⭐⭐ **The pump breaks the tyranny of contour — and dissolves the
+  commons.** Command area stops being set by topography and starts being
+  set by money; and because a pump serves ONE farm, **you no longer need
+  your neighbours.** *The gravity ditch forced cooperation; the pump lets
+  you defect* — and **the institution was the thing keeping the water
+  allocated.** (Historically exact: acequia systems ran four centuries;
+  the centrifugal pump ended cooperative water management in one
+  generation.)
+- ⭐⭐⭐ **And the fourth rung changes the RGO CLASS, which is why this
+  is a roster entry.** Surface water is a **renewable commons with a
+  recharge rate**; groundwater is a **depletion resource that looks
+  renewable because it is invisible.** Same trade, same verbs, same
+  `Conduit` — **a different reservoir law.**
+- ⚠⚠ **And you cannot SEE a falling water table.** Surface scarcity is
+  public — the river is low and the gauge says so. Groundwater scarcity is
+  invisible until the well fails. **The industrial rung removes the public
+  instrument that made the commons manageable**: the staff gauge made the
+  water argument factual for everybody, and **a well has no gauge.**
+- ⭐⭐ At the **modern** rung, efficiency becomes maximally destructive:
+  drip is ~95% efficient, so there is **almost no return flow**, and every
+  downstream user living on his neighbour's waste is destroyed by his
+  neighbour's environmental improvement. **The most efficient irrigation
+  is the most legally destructive**, and it arrives dressed as
+  conservation. (See
+  [navigable-water-slate](./navigable-water-slate.md) § 5c.)
+
+✅ **The lens-5 test passes cleanly**: at every rung the verb is the
+same — divert, deliver, water — and `Conduit` already covers
+gravity-versus-pumped as **one object** (*"which one you have is the sign
+of `headM`"*). Nothing is rewritten; it is re-parameterised.
+
+⭐⭐⭐ **But *who is holding the obsolete half* has a NEW KIND of
+answer:** the four recorded instances (the ferryman, the whaler, the
+iceman, the laundress) are all **people**. Here the thing the pump
+obsoletes is **the ditch company** — **cooperation itself, a polity
+rather than a trade.** And it is a worse loss: when the ferryman goes you
+lose a livelihood; when the ditch company goes **you lose the only body
+that was allocating the water**, so the water keeps being allocated right
+up until it is not. Promoted to
+[design-lenses.md](../../design-lenses.md) § 5.
+
 ### ⭐⭐ The through-line: an industrial RGO exists to LIFT a medieval limit
 
 | family | the limit it lifts | is the limit modelled today? |

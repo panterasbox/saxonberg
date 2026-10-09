@@ -656,6 +656,7 @@ content.
 | lighting a room | kerosene — ⚠ *already in whale oil's own `keywords:`* | **whaling** |
 | crossing a river | the bridge | **ferrying** |
 | washing clothes | the domestic machine | the **laundress** |
+| watering a field | the **pump** | ⚠ **the ditch company** — *cooperation itself* |
 
 ⭐⭐ **So ask the second question every time: the capability survives —
 who was holding the old one when it did?** That person is the content,
@@ -664,6 +665,19 @@ player who owns an ice house gets to watch their own asset become a
 liability **on a schedule nobody concealed** — which is the guild
 doctrine's *ship ruins, not institutions*, except the player is present
 for the ruining.
+
+⭐⭐⭐ **And the obsolete half can be an INSTITUTION, not only a trade.**
+The pump's victim is the **ditch company** — a gravity ditch silts up and
+must be cleaned every year by people who individually gain too little to
+bother, so the medieval rung *requires* a labour commons; a pump serves
+one farm, so **the technology that made irrigation cheaper made the
+institution unnecessary — and the institution was what kept the water
+allocated.** ⚠ A worse loss than a trade: when the ferryman goes, a
+livelihood ends; when the ditch company goes, **the only body allocating
+the water ends**, and the water keeps being allocated right up until it
+does not. (Worked in
+[rgo-unification-slate](./slates/builds/rgo-unification-slate.md) §
+irrigation.)
 
 ⭐ **And the fourth row is the one that shows the lens has more in it than
 compatibility.** Three of those arcs end with somebody out of a job. The

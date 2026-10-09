@@ -1114,6 +1114,135 @@ the new object answer the same commands*, which the platform passes
 trivially and **a person fails completely.** The content is always on the
 person.
 
+### ⭐⭐ Irrigation — what the WATER side owes it
+
+Worked 2026-10-09. ⚠ **Most of irrigation is farming's**
+([farming-slate](./farming-slate.md) § *Irrigation, and the one commons
+inside private farming*) and the delivery half already ships. Recorded
+here only for the three things the water model owes it — and the epoch
+ladder, which went to
+[rgo-unification-slate](./rgo-unification-slate.md) because **groundwater
+is a different RGO class from surface water** and that is a roster fact.
+
+**What already exists**, and it is more than expected: the `Conduit`
+ladder (**haul · gravity · pumped**, where *"which one you have is the
+sign of `headM`, and nobody declares it"*); both redistribution axes —
+`passFraction` in **time** (*"hold the freshet in May, let it down in
+August"*) and `divertsTo` in **space**, with *"a canal is a watercourse
+with a control at its head"*; and the institution already named:
+*"where the users collectively own the works that is an **irrigation
+district**. None is a different object."*
+
+#### 1. ⚠ The bed↔conduit join does not exist
+
+Rain already waters a bed — *"a bed multiplies the millimetres by its
+land area to get litres of soil moisture; a reach multiplies the same
+millimetres by its catchment area to get cubic metres of river. One walk,
+two scales."* **Irrigation is that same number arriving by pipe instead
+of by sky**, and nothing wires a `Conduit`'s delivery into a bed's
+moisture. Soil's input becomes `rain + delivered`. No new mechanism —
+the join, which is farming's to build and water's to expose.
+
+#### 2. ⭐⭐⭐ Return flow — the real gap, and the best content in it
+
+The `draws` ledger subtracts a withdrawal **in full** (*"a draw at or
+upstream of the reach being read is subtracted; one below it is not"*).
+But irrigation does not consume what it diverts: crops transpire part,
+and the rest percolates back below. **A draw needs a consumptive
+fraction**, with the remainder returning at a downstream reach — one
+field, and the ledger already has the topology to put it back.
+
+Then the consequence, which is why it is worth building:
+
+> ⭐⭐⭐ **If the upstream user LINES HIS DITCH to stop it leaking, the
+> downstream user is INJURED** — because the leakage was his supply.
+> **Efficiency upstream is an injury downstream.**
+
+Real doctrine (the *no-injury* rule is why conservation improvements get
+scrutinised in western US water law), completely counterintuitive, and a
+perfect lens-4 object: **the engine computes both sides exactly,
+*"improve your efficiency"* turns out not to be obviously good, and
+nobody is wrong.** Same shape as climate-slate's mild-winter catastrophe
+— a sensible, sympathetic act with a victim nobody looked for.
+
+⭐ It also sharpens the August crisis: a senior downstream right may have
+been living on junior upstream waste for twenty years with nobody aware.
+
+#### 3. ⭐⭐ Irrigation is what puts FARMING into the water fight
+
+Why it belongs to the water design at all:
+
+> **A rain-fed farm suffers weather. An irrigated farm suffers law.**
+
+Irrigation converts a passive farmer into a **rights holder** — a
+priority date, a headgate, an assessment, and a ditch rider who can walk
+up and close it. Without it a drought is something you endure; with it, a
+drought is somebody **curtailing you, by name, in person.** That is § 5c's
+whole August-crisis content arriving at the farm, and irrigation is the
+only thing that delivers it there.
+
+⭐ Two smaller couplings: irrigation is **`passFraction`'s customer**
+(crops want water in July, the river delivers in May — the timing
+mismatch *is* why storage exists), and it is **the pump's fourth
+consumer** (mine · quarry · diver · field).
+
+#### ⭐ And it passes the test the polder failed
+
+Worth recording because it shows that cut had teeth. The polder died
+because **its premise — expensive land — is an authoring choice.** The
+irrigation district's premise is **water scarcity, which is DERIVED**:
+the late-summer low falls out of the snowpack walk whether anyone
+authored it or not. ⭐⭐ Same institutional shape, opposite verdict — and
+**irrigation is the mechanism that makes land expensive derivably**,
+which is also lens 6's answer (it produces nothing; its product is **land
+value**).
+
+#### The lens pass, briefly
+
+- **1 Pedagogy** — `soil-science` + `agriculture` ship. Four derivables:
+  ⭐⭐ **return flow** · **rights are timing and priority, not volume** ·
+  ⭐ **gravity means geography decides** (read the elevation before you
+  buy the land) · **salinization** as a decades-long cost.
+- **2 Expression** — ordinary: a `Conduit` with an intake and a delivery,
+  no code. ⭐ Bespoke: a **qanat is an underground conduit**, i.e. *a mine
+  that carries water* — the mining warren and the conduit meeting, a
+  genuinely strange object neither system anticipated. Named-work test:
+  **Nile flood-recession farming passes today**, because the freshet is
+  computable and the act is *planting*.
+- **3a Immersion** — ⭐ **a ditch is visible infrastructure.** It crosses
+  roads, it has bridges, it is running or dry — and **whether it runs
+  tells you the season and the politics from the roadside.** A dry ditch
+  in July is a story read without talking to anybody. The headgate is a
+  physical object and it can have a lock on it.
+- **3b Participation** — ⭐⭐⭐ **the polity can choose ROTATION instead
+  of PRIORITY.** Prior appropriation says the senior takes all; a district
+  can run **the turn**, everybody a short slot in order. Both work, the
+  allocation layer supports both, and **they produce different
+  societies** — a property regime versus a sharing regime. The lens's
+  actual test, for free.
+- **4 Values** — efficiency-as-injury · rotation-versus-priority (the
+  seniors fight it, because **a priority date is an asset**) · and
+  ⭐ **salinization is intergenerational**: farm well for thirty years and
+  hand on ruined ground, where the engine measures the yield now and the
+  salt later and **nobody alive is punished.**
+- **6 Economy** — above. ⭐⭐ Who pays: **the assessment, by ACREAGE
+  rather than by use** — how ditch companies actually worked, and itself a
+  values choice: *you pay your share whether you take it or not.*
+- **7 Governance** — the headgate, the rider, the assessment, the turn.
+  Criterion: a curtailment order by priority date; appeal: the district.
+  ⭐⭐ **Entrenchment: whether a district may switch from priority to
+  rotation is a tier-C question whose losers' asset is a DATE**, which is a
+  better tier-C exhibit than most.
+- **Schell** — ⭐⭐ [`27-time`](../../lenses/27-time.md): irrigation is a
+  **seasonal commitment with no undo** (you choose what to plant in April
+  on a forecast and cannot revise in July), a long-lag irreversible
+  decision that entry notes we are short of. ⭐
+  [`7-endogenous-value`](../../lenses/7-endogenous-value.md): **a priority
+  date is pure endogenous value** — worthless outside the game, enormous
+  inside it, and **created by law rather than by labour.**
+  [`33-rules`](../../lenses/33-rules.md): a district writing and amending
+  its own rotation is the house-rule-to-written arrow at farm scale.
+
 ### The rest, briefly
 
 - **Dredging** — the ditch rider's sibling: a maintenance trade nobody
