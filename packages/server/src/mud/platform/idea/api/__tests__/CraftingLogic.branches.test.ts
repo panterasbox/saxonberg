@@ -7,6 +7,8 @@
  */
 
 import "../../../../../test-bootstrap";
+import { chargeHot } from '../../../../lib/fire/__tests__/burner-fuel';
+import type { Burner } from '../../../../lib/fire/Burner';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { CraftingApi } from '../../../../api/crafting';
 import type { CraftRequest } from '../../../../api/crafting';
@@ -107,15 +109,8 @@ function makeForge(lit: boolean, burnK = 1300): Forge {
   return makeStuff(() => {
     const f = new Forge();
     f.setBurnTemperatureK(burnK);
-    f.setReserve(
-      new Reserve(
-        'fuel',
-        Quantity.of(100, '%'),
-        Quantity.of(100, '%'),
-        'combustion',
-        null,
-      ),
-    );
+    // ⭐ A charge in the bed, not a percentage of nothing.
+    chargeHot(f as unknown as Stuff & Burner, 40);
     f._setLit(lit);
     return f;
   });

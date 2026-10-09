@@ -1,0 +1,45 @@
+# drain — ⭐⭐⭐ **take the gas out of the seam, into a vessel.**
+#
+# Every other hazard in this trade is something you avoid or survive.
+# This one you can decide to HARVEST — and that inversion is the point:
+# the thing that was trying to kill you becomes stock you carry out to a
+# gasometer. It is also, at scale, exactly how a town got its gas supply,
+# so the act a miner does to make a heading safe is the act the
+# industrial epoch is built on.
+#
+# ⚠ Only a SEALED vessel will hold it, and the refusal is the VESSEL's:
+# a gas's required closure is derived from its boiling point, the same
+# read that makes a bungled pour escape into the room. *"It will not stay
+# in a pail"* is physics, not a check this verb invented.
+verbs: [drain]
+controller: /trade/mining/idea/cmd/mining/DrainController
+description: "Draw the gas out of a working into a sealed vessel"
+help: |
+  `drain <vessel>` draws the gas standing in the working you are in off
+  into something that will hold it — a bladder, a sealed cylinder.
+
+  ⭐ It does two things. The heading becomes workable, because the gas is
+  no longer in the air; and you are carrying a charge of burnable gas,
+  which is worth money to anybody with a gasometer.
+
+  ⚠ A pail will not do. Gas needs a vessel built gas-tight, with its lid
+  shut — and a sealed vessel standing open is a hole.
+
+  What the measures hold is not endless: drain the same face twice and
+  the second draw is thinner. Leave it alone and it comes back, because
+  the rock is still giving it off — which is also why holing a heading
+  through to air clears it for nothing.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  # ⚠ `greedy: true` — the article defect. Without it `drain the bladder`
+  # binds "the" and refuses, silently, at the binder.
+  - name: vessel
+    type: object
+    required: false
+    greedy: true
+    scope: ["reachable"]
+    default: "me:i:[mixin.BulkableMixin]"
+    requires: [BulkableMixin]

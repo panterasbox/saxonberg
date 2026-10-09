@@ -12,9 +12,13 @@
 > good, and where the gas economy gets defined; `bulk.md`'s inert
 > `sealed` rung + the gasometer) · the first plastic (a thermoset from
 > coal-tar phenol) · the
-> `Law` extension from crosslinking to the polymer family · ⚠ the epoch
-> on-ramp, which blocks this (→ [inquiry-slate](./inquiry-slate.md)).
-> **Size:** a build.
+> `Law` extension from crosslinking to the polymer family.
+> ⭐⭐ **Blocked on NOTHING up to and including coal gas** — the retort is
+> knowledge-by-TRADITION; only the plastic needs the epoch on-ramp
+> (→ [inquiry-slate](./inquiry-slate.md)). See § *The on-ramp blocks the
+> plastic and nothing else* — resolved 2026-10-06.
+> **Size:** a build — Stage A (tar · coke · gas) buildable today, Stage B
+> (the thermoset) gated.
 
 Opened 2026-09-25, out of *"after rubber is exhausted we can talk
 drilling, oil, and plastics."* Running that question turned up a
@@ -37,6 +41,73 @@ by decades.
 
 > **The cheapest path into the industrial epoch runs through a trade that
 > already ships, and it does not touch a drill.**
+
+
+## ⭐⭐⭐ The on-ramp blocks the plastic and nothing else
+
+⚠ **This slate contradicted itself for eleven days** and the contradiction
+decided its position in the backlog, so it is resolved here rather than
+left to the next reader:
+
+| where | claim |
+|---|---|
+| the header | *"the epoch on-ramp, **which blocks this**"* |
+| the table above | destructive distillation · blocked on · **nothing** |
+
+**The table was right, the header was over-broad, and the slate's own
+Decided #1 already said so** — *"it is the epoch's on-ramp in **content
+terms**"*. An on-ramp is not downstream of the other on-ramp. The header
+generalised one rung's dependency to all five.
+
+### The resolution: apply the doctrine instead of quoting it
+
+[inquiry-slate § the bootstrap](./inquiry-slate.md) states the test, and
+it is a test about **epistemics, not about era**:
+
+> **Medieval technology is knowledge-by-TRADITION; industrial technology
+> is knowledge-by-LAW.** … The shipped baseline is pre-understood by
+> construction — it works, and nobody has to know why.
+
+Run each rung through it:
+
+| rung | needs a `Law`? | why |
+|---|---|---|
+| **wood tar → pitch** | ⭐ **no** | Bronze Age. Nobody theorised pitch. |
+| **coke + coal tar** | ⭐ **no** | Darby coked coal in 1709 by trying it. |
+| **coal gas + the gasometer** | ⭐ **no** | Murdoch lit a factory in 1798; aromatic chemistry arrives 70 years later. |
+| **the thermoset** | ⛔ **YES** | the crosslinking `Law`, extended — this slate's own words |
+| aniline dyes | — | out of scope, Decided #5 |
+
+> **Four of the five rungs are knowledge-by-tradition. The retort is a
+> CRAFT advance, not a science one** — you close the vessel and condense
+> what comes off, and it works whether or not anyone can say why.
+
+⭐⭐⭐ **And the order is not merely permitted, it is the honest one.**
+Coal tar is *the feedstock organic chemistry was theorised from*. Perkin
+made aniline dye in 1856 by accident; Kekulé's ring came in 1865. So the
+retort does not wait on inquiry — **the retort is what gives inquiry
+something to be about.** Ship the material first and the theory second,
+which is the sequence that actually happened, and the thermoset then
+becomes the first thing a realm makes *because* it understood something.
+
+⚠ **The one thing this must not be read as:** a licence to skip the
+on-ramp whenever a rung looks old enough. The test is the epistemic one
+above, asked per rung and answered in the table — not *"is this
+pre-1900?"* The thermoset is gated and stays gated; it is the proof case
+and giving it away would cost the build its point.
+
+### Consequence
+
+**Stage A — buildable today.** The retort as the clamp's capitalised
+sibling, the condenser, wood tar → pitch, coke + coal tar, ⭐⭐ coal gas
+with the `sealed` rung and the gasometer. No `Law`, no inquiry, no new
+extraction shape. It disrupts the tapper and the dyer, upgrades the
+smelter, and defines the gas commodity model that drilled gas inherits
+(Decided 3b).
+
+**Stage B — gated on inquiry.** The thermoset, and the `Law` extension
+from crosslinking to the polymer family. Lands whenever the on-ramp does;
+nothing in Stage A is shaped around waiting for it.
 
 ---
 
@@ -176,6 +247,11 @@ argued.
 1. **This slate ships before drilling.** It is the epoch's on-ramp in
    content terms — the first industrial technology a realm can reach with
    no new extraction shape.
+1b. ⭐⭐⭐ **And it is NOT blocked on inquiry's on-ramp, except for the
+   plastic.** Four of five rungs are knowledge-by-tradition; the thermoset
+   is the only one that needs a `Law`. Resolved 2026-10-06 — see § *The
+   on-ramp blocks the plastic and nothing else*, recorded so the header's
+   over-broad claim is not reinstated.
 2. **The retort is `CharcoalPit`'s capitalised sibling**, not a new
    trade. `trade-fuel` grows; nothing is carved out.
 3. **Coke ships with coal tar**, because it is the same act and it
@@ -196,9 +272,14 @@ argued.
    the clamp stays the poor collier's kit, and the choice between them is
    the capital lesson. A retort that strictly dominates deletes a shipped
    decision.
-2. **How many coal-tar cuts.** ⚠ This wants the **cuts rung** (see
-   [drilling-slate](./drilling-slate.md) § refining) and is the one place
-   the two slates touch. Lean: build the cuts rung once, use it twice.
+2. ✅ **How many coal-tar cuts** — the question stands, the **blocker is
+   gone.** The cuts rung SHIPPED with the whiskey build (2026-10-04) as
+   [fractionation.md](../../subsystems/fractionation.md): ordered spans
+   over the volume drawn, each with a character, a grade band, a toxin
+   dose and an `aromaticCarry`. A coal-tar column is a `FractionSchedule`
+   row — ⭐ *"the second [consumer] … is a refinery column, and that is
+   rows."* So this is now a content question (how many cuts are worth
+   authoring), not a substrate one.
 3. **Which plastic first.** A thermoset is the honest first (it is what
    the chemistry of the era gives) and it is also the one whose
    *irreversibility* teaches something — you cannot re-melt it, which is
@@ -216,7 +297,15 @@ argued.
 
 See also: [rubber-slate](./rubber-slate.md) (the law, and the first
 polymer) · [drilling-slate](./drilling-slate.md) (the sibling vertical) ·
-[inquiry-slate](./inquiry-slate.md) (**the blocker** — the epoch
-on-ramp) · [tapping-slate](./tapping-slate.md) (the vocation this
+[inquiry-slate](./inquiry-slate.md) (the epoch on-ramp — ⚠ **blocks
+Stage B only**, not this slate) · [tapping-slate](./tapping-slate.md) (the vocation this
 disrupts) · [maturation.md](../../subsystems/maturation.md) (the cuts
 rung)
+
+## ⬅ From the fire build (2026-10)
+
+Left as a line here rather than in a retired plan.
+
+- **A compressed cylinder (`maxPressureAtm`), and gas leaking from an open sealed vessel over time** — Stage A tail. The fire build shipped pressure as a DERIVED read (amount over capacity) and a binary escape at transfer; a cylinder rated for a pressure, and a slow leak rather than an instant one, are both still open.
+- ⚠ **Supply, from the fire build's drive (the `.dirty` reason).** Exactly **two** gas bladders exist in the realm, both at the fuel yard, and nothing makes more — so the RGO harvest `drain` depends on a vessel with no producer. The first character to carry them off leaves the next with an honest *"You don't see any 'bladder' here."* ⭐ Cordwood is the same shape but has a producer (`fell`), so it is a stocking question; the bladder is a hole.
+- ⚠ **Supply, from the fire build's drive (the `.dirty` reason).** Exactly **two** gas bladders exist in the realm, both at the fuel yard, and nothing makes more — so the RGO harvest `drain` depends on a vessel with no producer. The first character to carry them off leaves the next with an honest *"You don't see any 'bladder' here."* ⭐ Cordwood is the same shape but has a producer (`fell`), so it is a stocking question; the bladder is a hole.

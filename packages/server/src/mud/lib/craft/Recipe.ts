@@ -104,6 +104,17 @@ export const RECIPE_MEDIA: readonly RecipeMedium[] = ['water', 'fat'];
  * the maker's location; unsold residue stands where it was left (the
  * ambient-burden rule, never a silent vanish).
  */
+/**
+ * One substance a firing drives off its charge: a Material path and how
+ * many litres of it per kilogram consumed.
+ */
+export interface RecipeVolatile {
+  /** The Material template path of what comes off. */
+  material: string;
+  /** Litres of it per kg of charge consumed. */
+  litresPerKg: number;
+}
+
 export interface RecipeResidue {
   /** Template path of the residue item. */
   template: string;
@@ -182,6 +193,7 @@ export class Recipe {
     requiresHeatK: { persistent: true, spoiler: 1, spoilerName: 0 },
     holdS: { persistent: true, spoiler: 1, spoilerName: 0 },
     maxHeatK: { persistent: true, spoiler: 1, spoilerName: 0 },
+    massYield: { persistent: true, spoiler: 1, spoilerName: 0 },
     medium: { persistent: true, spoiler: 1, spoilerName: 0 },
     outputResidue: { persistent: true, spoiler: 1, spoilerName: 0 },
     outputApplication: { persistent: true, spoiler: 1, spoilerName: 0 },
@@ -192,6 +204,7 @@ export class Recipe {
     ice: { persistent: true, spoiler: 1, spoilerName: 0 },
     cure: { persistent: true, spoiler: 1, spoilerName: 0 },
     imparts: { persistent: true, spoiler: 1, spoilerName: 0 },
+    volatiles: { persistent: true, spoiler: 1, spoilerName: 0 },
   };
 
   /** The document's path (`/generic-objects/recipes/martini`). */
@@ -262,6 +275,22 @@ export class Recipe {
   maxHeatK: number = 0;
 
   /**
+   * ⭐⭐ **What fraction of the charge's summed mass comes out** — the
+   * conservation knob for a firing that MELTS rather than transforms.
+   *
+   * `0` (the stored default) = unauthored, and the firing mints the
+   * output at its template's own authored mass, byte-identical to every
+   * recipe before this one (`burn-lime` and the rest are untouched). A
+   * value in `(0, 1]` is a claim that the output's mass is the consumed
+   * charge's summed mass × this ÷ batches — so a glass batch yields ~72%
+   * of what went in (the gall and the gases are the rest) and a cullet
+   * remelt yields 1.0 (nothing is lost but the campaign's pot-iron). It
+   * exists because a remelt that minted an authored mass from any lump
+   * would counterfeit glass.
+   */
+  massYield: number = 0;
+
+  /**
    * The heat-carrying medium (`water` / `fat`); empty ⇒ dry. See
    * {@link RecipeMedium} — it does two things, and only two: the recipe
    * must actually HAVE an input carrying the medium's tag (no water, no
@@ -270,6 +299,29 @@ export class Recipe {
   medium: string = '';
   /** The residue output beside the main one, or null (P11). */
   outputResidue: RecipeResidue | null = null;
+
+  /**
+   * ⭐⭐ **What a FIRING drives off the charge** — bulk matter per kg of
+   * what is consumed, in litres.
+   *
+   * Destructive distillation is the mechanism: cook a charge in a closed
+   * chamber and what leaves is as valuable as what stays. Wood gives tar;
+   * coal gives tar AND a gas; the solid that remains is the
+   * `outputTemplate`.
+   *
+   * ⚠ Not a second `outputTemplate` and not an `outputResidue[]`: it
+   * mints nothing. The firing hands the litres to the CHAMBER and the
+   * chamber routes them — to a condenser seated on it, or into the air
+   * of the room, which is why a retort fired with no condenser makes the
+   * room smell of tar and poisons whoever stays.
+   *
+   * ⭐ Why the recipe and not the material: a `Material` row saying what
+   * burning it gives off would put a trade's good's path on a commons
+   * row, and a table on the retort would mean a second feedstock edits
+   * the retort instead of adding a recipe. The firing row is the one
+   * place that already knows this charge's chemistry.
+   */
+  volatiles: RecipeVolatile[] = [];
 
   /** Output-application kind word; empty = `'bulk'` (the bar's default). */
   outputApplication: string = '';
@@ -425,6 +477,13 @@ export class Recipe {
           `be cooked hot enough without burning is not a recipe`,
       );
     }
+    r.massYield = num(data.massYield);
+    if (r.massYield < 0 || r.massYield > 1) {
+      throw new Error(
+        `Recipe '${r.recipeId}': 'massYield' must be in [0, 1] ` +
+          `(0 = unauthored, mint at the template mass)`,
+      );
+    }
     r.medium = Recipe.mediumFrom(data.medium, r.recipeId);
     r.outputApplication = str(data.outputApplication);
     r.outputPortionL = num(data.outputPortionL);
@@ -447,7 +506,67 @@ export class Recipe {
     r.outputResidue = Recipe.residueFrom(data.outputResidue, r.recipeId);
     r.cure = Recipe.cureFrom(data.cure, r.recipeId);
     r.imparts = Recipe.impartsFrom(data.imparts, r.recipeId);
+    r.volatiles = Recipe.volatilesFrom(data.volatiles, r.recipeId);
     return r;
+  }
+
+  /** What this firing drives off the charge. */
+  public getVolatiles(): readonly RecipeVolatile[] {
+    return this.volatiles;
+  }
+
+  /**
+   * Validate an authored `volatiles` block. ⚠ A typo must fail at READ:
+   * an ignored `litresPerKG:` would ship a retort that quietly made no
+   * tar, and nothing about that failure would be visible — the char
+   * would still come out and the recipe would still look right.
+   *
+   * ⚠ `private`, unlike its four sibling validators, and
+   * `lint:lib-statics` is why: it has exactly ONE caller (`fromData`),
+   * so a public static would be a member in neither of the two places a
+   * person searches. ⭐ Being the same shape as its siblings says it may
+   * EXIST, not that the population may grow — and the test is better for
+   * it, because asserting through `fromData` exercises the path a pack
+   * install actually takes.
+   */
+  private static volatilesFrom(
+    value: unknown,
+    recipeId: string,
+  ): RecipeVolatile[] {
+    if (value === undefined || value === null) return [];
+    if (!Array.isArray(value)) {
+      throw new Error(
+        `Recipe '${recipeId}': 'volatiles' must be a list of ` +
+          `{ material, litresPerKg }`,
+      );
+    }
+    return value.map((entry, i) => {
+      const e = entry as Record<string, unknown>;
+      const material = e?.material;
+      const litresPerKg = e?.litresPerKg;
+      if (typeof material !== 'string' || material.length === 0) {
+        throw new Error(
+          `Recipe '${recipeId}': volatiles[${i}] needs a 'material' path`,
+        );
+      }
+      if (typeof litresPerKg !== 'number' || !(litresPerKg > 0)) {
+        throw new Error(
+          `Recipe '${recipeId}': volatiles[${i}] ('${material}') needs a ` +
+            `positive 'litresPerKg'`,
+        );
+      }
+      const extra = Object.keys(e).filter(
+        (k) => k !== 'material' && k !== 'litresPerKg',
+      );
+      if (extra.length > 0) {
+        throw new Error(
+          `Recipe '${recipeId}': volatiles[${i}] has unknown key(s) ` +
+            `${extra.join(', ')} — a misspelt key is a retort that ` +
+            `quietly makes no tar`,
+        );
+      }
+      return { material, litresPerKg };
+    });
   }
 
   /**
@@ -559,6 +678,7 @@ export class Recipe {
       requiresHeatK: this.requiresHeatK,
       holdS: this.holdS,
       maxHeatK: this.maxHeatK,
+      massYield: this.massYield,
       medium: this.medium,
       outputApplication: this.outputApplication,
       outputPortionL: this.outputPortionL,
@@ -623,6 +743,14 @@ export class Recipe {
   /** The working's heat ceiling (K); `0` ⇒ it states none. */
   getMaxHeatK(): number {
     return this.maxHeatK;
+  }
+
+  /**
+   * The fraction of the charge's summed mass the output carries; `0` ⇒
+   * unauthored (mint at the template's own mass). See {@link massYield}.
+   */
+  getMassYield(): number {
+    return this.massYield;
   }
 
   /** What the working does to the output's water state; `null` ⇒ nothing. */

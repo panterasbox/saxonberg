@@ -121,6 +121,7 @@ describe('Recipe schema round-trip', () => {
     expect(r.getRequiresHeatK()).toBe(0);
     expect(r.getOutputApplication()).toBe('bulk');
     expect(r.getOutputPortionL()).toBe(0);
+    expect(r.getMassYield()).toBe(0); // unauthored ⇒ mint at template mass
     expect(r.getDifficulty()).toBe('');
     expect(r.getDiscipline()).toBe('');
     expect(r.getOutputResidue()).toBeNull();
@@ -174,6 +175,18 @@ describe('Recipe schema round-trip', () => {
   it('refuses what the retired seeder refused: empty inputSlots, missing outputTemplate', () => {
     expect(() => Recipe.fromData({ recipeId: 'x', inputSlots: [], outputTemplate: '/t' })).toThrow(/inputSlots/);
     expect(() => Recipe.fromData({ recipeId: 'x', inputSlots: [{}] })).toThrow(/outputTemplate/);
+  });
+
+  it('massYield parses in [0,1], round-trips, and refuses out of range (D6)', () => {
+    const base = { recipeId: 'melt', inputSlots: [{ slot: 's', category: 'glass', minGrade: 'fair', kind: 'item' }], outputTemplate: '/t' };
+    expect(Recipe.fromData({ ...base, massYield: 0.72 }).getMassYield()).toBeCloseTo(0.72, 9);
+    expect(Recipe.fromData({ ...base, massYield: 1 }).getMassYield()).toBe(1);
+    // round-trip
+    const r = Recipe.fromData({ ...base, massYield: 0.72 });
+    expect(Recipe.fromData(r.toData()).getMassYield()).toBeCloseTo(0.72, 9);
+    // out of range fails at read
+    expect(() => Recipe.fromData({ ...base, massYield: 1.5 })).toThrow(/massYield/);
+    expect(() => Recipe.fromData({ ...base, massYield: -0.1 })).toThrow(/massYield/);
   });
 });
 

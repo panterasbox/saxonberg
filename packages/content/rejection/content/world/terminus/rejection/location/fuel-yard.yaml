@@ -19,6 +19,8 @@ data:
   longDescription: |
     A wide flat of beaten earth with the coppice standing behind it — hazel, all of an age, cut to the ground in one panel and eight feet high in the next. Cordwood is stacked in ricks to season, and in the middle of the flat is a turfed dome the height of a man with thin blue smoke coming out of a dozen holes in it.
 
+    Beside the dome, newer and squarer, stands a brick retort with its iron door and a copper coil bent over into a tar-black receiver — the same charge, in a chamber that keeps what the dome lets go. Behind both of them the gasometer's bell floats in its ring of black water, and the whole yard can see where it stands.
+
     Above the yard the hill goes up into trees — the Hanging Wood, which is where all of this comes from.
 
     Nobody is asleep here. Somebody is always awake here.
@@ -28,6 +30,9 @@ data:
       destination: /world/terminus/rejection/location/pithead-yard
     east:
       destination: /world/terminus/rejection/location/smelter
+    # The glazier's hut, added by the glass build — the cold shop, in town.
+    northeast:
+      destination: /world/terminus/rejection/location/glaziers-hut
   props:
     - /trade/fuel/thing/clamp
     # ⚠⚠ Was a loose `hazel-stool`, which afforded NOTHING: `harvest` is
@@ -58,5 +63,24 @@ data:
     - /trade/fuel/thing/charcoal
     - /trade/fuel/thing/charcoal
     - /trade/fuel/thing/charcoal
+    # ⭐⭐ **The retort, beside the clamp, and nothing is removed.** A
+    # clamp and a retort make the same charcoal; the difference is
+    # entirely in the by-product the clamp vents out of its dome. Both
+    # stay, because they are two different skills — a clamp is three days
+    # of watched judgement, a retort is a loaded chamber you fire — and
+    # because the collier's whole craft is the clamp.
+    #
+    # ⭐ The chain is *retort → condenser → bladder*, each one standing
+    # ON the last, so what a firing yields depends on what somebody has
+    # bothered to set up. Fire it bare and the tar is in the air.
+    - /trade/fuel/thing/retort
+    - /trade/fuel/thing/condenser
+    - { template: /trade/fuel/thing/gas-bladder, count: 2 }
+    - /trade/fuel/thing/gasometer
+    # The feedstock for both chambers: the yard's own cordwood (⭐ the
+    # same lengths the clamp takes, which is the point — one charge, two
+    # chambers, two different answers) and coal brought up from Ferrow.
+    - { template: /trade/forestry/thing/cordwood, count: 8 }
+    - { template: /trade/quarrying/thing/coal, count: 4 }
   cast:
     - /world/terminus/rejection/agent/collier

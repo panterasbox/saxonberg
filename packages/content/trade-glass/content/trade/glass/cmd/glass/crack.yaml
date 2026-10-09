@@ -1,0 +1,22 @@
+verbs: [crack]
+controller: /trade/glass/idea/cmd/glass/CrackController
+description: "Crack the finished piece off the blowpipe"
+help: |
+  `crack` parts the piece from the pipe. A formed, still-hot gather comes
+  off as its product — a bottle, or a cylinder for flattening — carrying
+  the colour of its sand. An unformed or cooled gather comes off as
+  cullet instead; the moil left on the pipe is cullet too. A bad blow
+  costs you fuel, not your glass.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  # ⭐ WHICH PIPE — the one carrying a gather.
+  - name: pipe
+    type: objects
+    required: false
+    prepositions: [with, using, off]
+    default: "reachable:[capability.blowpipe]"
+    scope: ["reachable"]
+    requires: [ToolMixin]

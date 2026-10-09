@@ -1,0 +1,35 @@
+# The glassblower — the glasshouse's one hand, who reads a gather by its
+# glow and gets the piece off the pipe before it sets. An `idles` brain:
+# the hot-work window is seconds long and no NPC producer loop drives it,
+# so the glasshouse is capital a player works, not an automated faucet
+# (a producer brain is a deferred seam).
+class: /platform/agent/Cast
+extends: /stuff/agent/costume/student
+data:
+  costume:
+    - /stuff/thing/clothes/field-jacket
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sensitivus
+  lifecycleState: alive
+  keywords: [glassblower, glazier, gaffer]
+  shortDescription: glassblower
+  register: definite
+  longDescription: >-
+    Squint-eyed from a lifetime of looking into the glory hole, with a
+    scorched leather apron and forearms marked by a hundred old burns. She
+    turns a pipe even while she is talking to you, keeping the glass moving.
+  archetype: glassblower
+  prologue:
+    - "Reads a gather by its glow, and has never once let a good one set on the pipe."
+  competence:
+    - { discipline: glasswork, asserting: expert }
+  dispositions:
+    - { disposition: diligence, valence: 70 }
+    - { disposition: patience, valence: 60 }
+  behaviors:
+    - brain: /lib/behavior/idles
+      trigger: candidate
+      config:
+        pool:
+          - { kind: free, value: "turns the pipe, watching the colour go off the glass." }
+          - { kind: free, value: "says, \"The glass tells you when. You have seconds, not minutes — and it does not give them back.\"" }
+          - { kind: free, value: "holds a finished bottle up to the light and turns it, checking the colour." }

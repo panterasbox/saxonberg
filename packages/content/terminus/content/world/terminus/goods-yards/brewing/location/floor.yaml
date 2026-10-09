@@ -32,12 +32,8 @@ data:
   # A warm brewhouse: the ale band's happy middle (the cold store is
   # the lager's — the band is a PLACE, never a rule).
   _temperature: 288
-  # A working brewhouse displaces its own air (P11).
-  reserves:
-    air:
-      capacityValue: 100
-      currentValue: 100
-      unit: "%"
+  # ⭐ A working brewhouse displaces its own air (P11) — derived from the
+  # roller door now, not from an authored budget the applier dropped.
   props:
     - /world/terminus/goods-yards/brewing/thing/stock
     - /trade/brewing/thing/mash-tun

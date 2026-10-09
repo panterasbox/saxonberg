@@ -21,6 +21,8 @@
  */
 
 import '@saxonberg/server/test-bootstrap';
+import { chargeHot } from '@saxonberg/server/mud/lib/fire/__tests__/burner-fuel';
+import type { Burner } from '@saxonberg/server/mud/lib/fire/Burner';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Colony from '../thing/Colony';
 import { Creature } from '@saxonberg/server/mud/lib/creature/Creature';
@@ -155,15 +157,8 @@ function held(): Smoker {
  */
 function lit(): Smoker {
   const s = held();
-  s.setReserve(
-    new Reserve(
-      'fuel',
-      Quantity.of(100, '%'),
-      Quantity.of(100, '%'),
-      'combustion',
-      null,
-    ),
-  );
+  // ⭐ A charge in the bed, not a percentage of nothing.
+  chargeHot(s as unknown as Stuff & Burner, 40);
   const outcome = s.ignite();
   expect(outcome.lit).toBe(true);
   return s;

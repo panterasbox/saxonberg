@@ -1,0 +1,33 @@
+# Pitch — tar boiled down. ⭐ The end of the shortest supply chain in the
+# game: wood → retort → tar → boil → pitch, four steps and three of them
+# are acts somebody does.
+#
+# What it is FOR is caulking: a boat, a barrel, a roof. Nothing consumes
+# it yet, which is said plainly rather than hidden — the demand is the
+# cooperage and shipbuilding builds', and this is the supply waiting for
+# it.
+class: /platform/idea/material/Material
+data:
+  name: pitch
+  keywords: [pitch]
+  # ⚠ Not "brittle": `lint:descriptors` reserves that word for the
+  # spellbook descriptor bank, and a collision is a parser ambiguity bug
+  # (`look at brittle` with two answers) as well as a material claim in
+  # disguise. The gate fires in this direction too — a NEW material
+  # colliding with a shipped descriptor — which is the one nobody checks.
+  appearance: a hard black mass with a tarry shine that snaps rather than bends
+  density: 1150
+  specificHeat: 1700
+  thermalConductivity: 0.17
+  # ⚠ A melting point and not a boiling one: pitch is a solid you warm
+  # until it runs, which is how it is applied.
+  meltingPoint: 320
+  boilingPoint: 600
+  heatOfCombustion: 38
+  autoignitionTemperature: 700
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: [bulk, organic, flammable, tar]
+  composition: []
+  biologicalSource: null

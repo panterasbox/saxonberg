@@ -16,6 +16,9 @@
  */
 
 import '../../../../../test-bootstrap';
+import { MixinApi } from '../../../../api/mixin';
+import { chargeHot, fuelMaterial } from '../../../../lib/fire/__tests__/burner-fuel';
+import type { Burner } from '../../../../lib/fire/Burner';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { CraftingApi } from '../../../../api/crafting';
 import type { CraftRequest } from '../../../../api/crafting';
@@ -90,15 +93,8 @@ function makeHearth(burnK: number): Oven {
   return makeStuff(() => {
     const o = new Oven();
     o.setBurnTemperatureK(burnK);
-    o.setReserve(
-      new Reserve(
-        'fuel',
-        Quantity.of(100, '%'),
-        Quantity.of(100, '%'),
-        'combustion',
-        null,
-      ),
-    );
+    // ⭐ A charge in the bed, not a percentage of nothing.
+    chargeHot(o as unknown as Stuff & Burner, 40);
     o._setLit(true);
     return o;
   });
@@ -289,6 +285,87 @@ afterEach(() => {
   vi.restoreAllMocks();
   WorldClockApi._resetForTesting();
   StuffApi.clearAll();
+});
+
+describe('⭐⭐⭐ what the FIRE puts into the work (the fire build, W5)', () => {
+  /**
+   * Give the hearth in the room a bed of one named fuel. ⭐ The whole
+   * mechanism: the smoke in peated malt comes off the fuel, so the SAME
+   * recipe over peat and over oak gives two different outputs with one
+   * recipe row — and `kiln-malt-peated`, which was `kiln-malt` plus an
+   * `imparts:` block plus four turves as an ITEM SLOT, is retired.
+   */
+  function stokeHearthWith(mjPerKg: number, imparts: { type: string; amount: number }[]): void {
+    const fire = [...(room as unknown as { getContents(): unknown[] })
+      .getContents()]
+      .find((c) => MixinApi.isBurner(c as Stuff)) as unknown as Stuff & Burner;
+    const material = fuelMaterial(mjPerKg, `w5-${imparts.length}`);
+    if (imparts.length > 0) material.setCombustionImparts(imparts);
+    const path = material.getTemplatePath()!;
+    (fire as unknown as { fuelBed: Record<string, number> }).fuelBed = {
+      [path]: 20,
+    };
+  }
+
+  function smokeIn(outcome: { ok: boolean }): number {
+    const dish = StuffApi.findByTemplatePath(DISH_T) as unknown as {
+      getBulkPayload(a: 'interior'): { dissolvedAromatics?: { type: string; amount: number }[] } | null;
+    } | null;
+    expect(outcome.ok).toBe(true);
+    const tags = dish?.getBulkPayload('interior')?.dissolvedAromatics ?? [];
+    return tags.find((t) => t.type === 'smoke')?.amount ?? 0;
+  }
+
+  it('⭐⭐ a smoky fuel puts its smoke into the output', async () => {
+    stokeHearthWith(15, [{ type: 'smoke', amount: 30 }]);
+    const outcome = await craftAs(cook, {
+      recipeRef: 'dry-roast',
+      makerMode: 'self',
+    });
+    expect(smokeIn(outcome)).toBeCloseTo(30);
+  });
+
+  it('⭐⭐ …and the SAME recipe over a clean fuel does not', async () => {
+    // The control, and the whole argument: one recipe, two outputs,
+    // decided by an act somebody performed at the firebox.
+    stokeHearthWith(16, []);
+    const outcome = await craftAs(cook, {
+      recipeRef: 'dry-roast',
+      makerMode: 'self',
+    });
+    expect(smokeIn(outcome)).toBe(0);
+  });
+
+  it('⭐ a MIXED bed is weighted by mass — half as smoky', async () => {
+    const fire = [...(room as unknown as { getContents(): unknown[] })
+      .getContents()]
+      .find((c) => MixinApi.isBurner(c as Stuff)) as unknown as Stuff & Burner;
+    const smoky = fuelMaterial(15, 'w5-mix-smoky');
+    smoky.setCombustionImparts([{ type: 'smoke', amount: 30 }]);
+    const clean = fuelMaterial(16, 'w5-mix-clean');
+    (fire as unknown as { fuelBed: Record<string, number> }).fuelBed = {
+      [smoky.getTemplatePath()!]: 10,
+      [clean.getTemplatePath()!]: 10,
+    };
+    const outcome = await craftAs(cook, {
+      recipeRef: 'dry-roast',
+      makerMode: 'self',
+    });
+    // ⭐ Half the bed, half the smoke. That is the thing a maltster
+    // actually controls, and an item slot could never express it.
+    expect(smokeIn(outcome)).toBeCloseTo(15);
+  });
+
+  it('⚠ a misspelt aroma on a material fails at the SETTER, not silently', () => {
+    // A fuel that quietly imparted nothing would still kiln the barley
+    // and the malt would just be unpeated — the silent-wrong-answer
+    // shape the recipe `imparts` validator exists for.
+    const m = fuelMaterial(15, 'w5-bad');
+    expect(() => m.setCombustionImparts([{ type: 'smoak', amount: 30 }]))
+      .toThrow(/aroma/);
+    expect(() => m.setCombustionImparts([{ type: 'smoke', amount: 0 }]))
+      .toThrow(/amount/);
+  });
 });
 
 describe('the medium caps the effective heat (AC7)', () => {

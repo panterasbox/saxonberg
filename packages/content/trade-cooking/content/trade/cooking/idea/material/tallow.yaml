@@ -22,6 +22,15 @@ data:
   # a medieval kitchen, and the reason a crisp fried cutlet is a tallow
   # dish and not an olive-oil one.
   smokePoint: 478
+  # ⭐⭐ 38 MJ/kg — and the FIRE BUILD is why a cooking fat authors one.
+  # A candle is a `Burner` whose fuel is ITSELF, and a burner's flame
+  # temperature derives from its fuel's heat of combustion. Without this
+  # a tallow candle — the cheap light the whole medieval world actually
+  # burned, and the reason a chandler is a trade — lights to a flame
+  # temperature of zero and sheds nothing. Animal fat is a touch under
+  # beeswax's 42 (beeswax is the longer hydrocarbon), which is also why a
+  # tallow dip is the poorer light of the two.
+  heatOfCombustion: 38
   # Rendered fat keeps: it is nearly anhydrous, far under the 0.60 growth
   # floor. Rendering is a preservation technique, not only a cooking one.
   spoilActivationEnergy: 45000

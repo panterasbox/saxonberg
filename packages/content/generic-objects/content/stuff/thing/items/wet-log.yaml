@@ -7,6 +7,18 @@ data:
   keywords: [rain-soaked, log, oak, firewood, wood, wet]
   register: indefinite
   _materialPath: /stuff/idea/material/wood/oak
+  # ⭐⭐ **A mass, and the fire build's drive is why it is here.** ⛔
+  # `lint:mass` accepts a row that states `_materialPath` INSTEAD of a
+  # mass — and `Tangible.getMass()` derives nothing from a material, so
+  # a row that took the material branch weighed **ZERO**. Nothing read a
+  # fuel's mass before this build, so a weightless log was invisible;
+  # `stoke` reads it, and refused this one as *"There is nothing of it to
+  # burn."* — found on the drive's third checkpoint.
+  #
+  # ⚠ The systemic half (the gate's material branch is not honoured by
+  # the engine) is a finding for the sweep, not something a row can fix.
+  # the same log with the rain still in it.
+  mass: 5
   charMaterialPath: /stuff/idea/material/element/carbon
   _saturation: 1
   reserves:

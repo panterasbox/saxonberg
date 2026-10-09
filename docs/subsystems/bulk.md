@@ -254,8 +254,26 @@ open < liquidTight < sealed        (default: liquidTight)
 A holder retains matter when `closure ≥ requiredClosureFor(material)`.
 v1 bulk is all liquid (`requiredClosureFor → 'liquidTight'`), so an
 `open` vessel doesn't retain it — it **drains through** (below).
-`sealed` (gas) and the phase→required-level mapping are defined on the
-scale but unexercised until gas content lands.
+⭐⭐ **`sealed` is exercised now (the fire build, 2026-10)**, and the
+phase→required-level mapping is no longer a mapping: `requiredClosureFor`
+**derives** from the material's `boilingPoint` against
+`atmosphere.standardK`. There is no `phase` field and no `gas` tag read —
+a material that boils below room temperature wants `sealed`, and that is
+the whole rule.
+
+⛔ Exercising it found that three shipped rows authored **`closure:
+none`**, which is not a `ClosureLevel`. The comparison was `NaN`, `NaN <
+0` is false, and so the sap-pan, the pail and the salt-pan **retained
+liquid as though lidded** — including the salt-pan whose entire mechanism
+is that a covered pan does not work. `setClosure` throws on a rung
+outside `CLOSURE_ORDER` now, so the next one cannot be silent.
+
+⚠ The retention check is also not quite `closure ≥ required` for a gas:
+a sealed vessel **standing open is a hole**, so the transfer step asks
+the DESTINATION for its lid directly (`lidHost` / `lidStandsOpen`) and
+answers `'escaped'` with the vessel's own words. ⚠ `isGasRetained` cannot
+serve that check — it answers about what a slot HOLDS, not about where
+matter is going.
 
 > ⭐⭐ **That rung has named consumers now (2026-09-25), and it turns out
 > to be an ECONOMY rather than a detail.** Gas cannot be held by anything
@@ -269,12 +287,20 @@ scale but unexercised until gas content lands.
 > water seal whose height is visible across a city — is the rung's natural
 > exemplar and a non-gauge readout of a shared resource.
 >
-> ⚠ **One thing to decide deliberately when it lands:** `AirTank`
-> (→ [respiration.md](./respiration.md)) treats gas as **incompressible
-> bulk** — an interior fill *fraction*. Real gas storage is a **pressure**
-> question. The abstraction is defensible while it still costs somebody
-> the vessel and the labour, but once gas is **traded**, *"how much is in
-> there"* is asked in a way a fill fraction cannot answer honestly.
+> ⭐⭐ **DECIDED (the fire build, 2026-10): gas is measured per VOLUME,
+> and pressure DERIVES.** The question above was the right one and the
+> answer is the one it points at — `getGasPressureAtm()` is amount over
+> capacity, so *"how much is in there"* is a real quantity and the
+> pressure is a reading of it rather than a second stored number. ⚠ The
+> constraint came from a trade that does not exist yet: drilling will
+> have gas at pressures a fill fraction cannot express, so the model was
+> built to its requirement before it shipped. `AirTank`'s own fraction is
+> unchanged and still defensible — it costs somebody the vessel.
+>
+> ⭐ And the read has **no figure in it**: `gasLevelWord` answers in five
+> words (*full to the seal* · *riding high* · *about half down* · *low* ·
+> empty), which is what makes a gasometer's bell a thing the whole yard
+> can see rather than a number on a card.
 
 ### `Container` + `Bulkable` — orthogonal slots
 

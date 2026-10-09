@@ -21,9 +21,13 @@
  */
 
 import '../../../../../../test-bootstrap';
+import { chargeHot } from '../../../../../lib/fire/__tests__/burner-fuel';
+import type { Burner } from '../../../../../lib/fire/Burner';
+import type { Stuff } from '../../../../../lib/stuff/Stuff';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import FireController from '../FireController';
 import Oven from '../../../../thing/Oven';
+import Casting from '../../../../thing/Casting';
 import Good from '../../../../../lib/stuff/Good';
 import Material from '../../../../../lib/material/Material';
 import { Reserve } from '../../../../../lib/reserve';
@@ -54,6 +58,10 @@ const STONE_M = '/stuff/idea/material/_test/fire-stone';
 const CLAYISH_M = '/stuff/idea/material/_test/fire-clayish';
 const PRODUCT_ROW = '/stuff/thing/_test/fire-product';
 const OTHER_ROW = '/stuff/thing/_test/fire-other';
+/** A material + row for the mass/alloying CARRY (D6): its own tag so the
+ * melt firing never collides with `test-burn`. */
+const MELTABLE_M = '/stuff/idea/material/_test/fire-meltable';
+const MELT_ROW = '/stuff/thing/_test/fire-melt';
 
 let room: TestActor;
 let actor: TestActor;
@@ -69,9 +77,8 @@ function makeKiln(opts: { holdK: number; lit: boolean; bellows?: boolean }): Ove
     const o = new Oven();
     o.setBurnTemperatureK(opts.holdK);
     o.setBellowsMultiplier(1);
-    o.setReserve(
-      new Reserve('fuel', Quantity.of(100, '%'), Quantity.of(100, '%'), 'combustion', null),
-    );
+    // ⭐ A charge in the bed, not a percentage of nothing.
+    chargeHot(o as unknown as Stuff & Burner, 40);
     o.setBellowsActive(opts.bellows ?? false);
     // ⚠ `lit` defaults to TRUE on `BurnerMixin` (a campfire seed starts
     // lit), so the unlit case has to be set explicitly — which is exactly
@@ -87,6 +94,17 @@ function lumpOf(path: string, kg = 5): Good {
   const t = makeStuff(() => new Good());
   t.setMass(Quantity.of(kg, 'kg'));
   t.setMaterial(StuffApi.findByTemplatePath<Material>(path) as unknown as Material);
+  return t;
+}
+
+const IRON_M = '/stuff/idea/material/element/iron';
+
+/** An Alloyed, Tangible lump carrying a minor iron constituent (D6 carry). */
+function alloyedLumpOf(path: string, kg: number, ironFrac: number): Casting {
+  const t = makeStuff(() => new Casting());
+  t.setMass(Quantity.of(kg, 'kg'));
+  t.setMaterial(StuffApi.findByTemplatePath<Material>(path) as unknown as Material);
+  t.setAlloying([{ materialPath: IRON_M, fraction: ironFrac }]);
   return t;
 }
 
@@ -134,6 +152,9 @@ beforeEach(async () => {
   registerMaterial(CLAYISH_M, 'test clayish', ['earth', '_test-clayish'], {
     keywords: ['clayish'],
   });
+  registerMaterial(MELTABLE_M, 'test meltable', ['_test-meltable'], {
+    keywords: ['meltable'],
+  });
   harness.store['recipes'] = [
     ...branchRecipeRows(),
     {
@@ -168,6 +189,26 @@ beforeEach(async () => {
       difficulty: 'standard',
       discipline: 'quarrying',
     },
+    {
+      // ⭐ The CARRY firing (D6): one melt out of two meltable lumps, at
+      // a massYield < 1 and an Alloyed output that should inherit the
+      // charge's minor constituents mass-weighted.
+      recipeId: 'test-melt',
+      name: 'Test melt',
+      keywords: ['testmelt'],
+      inputSlots: [
+        { slot: 'charge', category: '_test-meltable', minGrade: 'poor', kind: 'item', count: 2 },
+      ],
+      toolCapabilities: [],
+      outputTemplate: MELT_ROW,
+      outputMaterial: '',
+      outputApplication: 'tangible',
+      requiresHeatK: 1100,
+      maxHeatK: 1900,
+      massYield: 0.5,
+      difficulty: 'standard',
+      discipline: 'quarrying',
+    },
   ];
   const catalogue = StuffApi.findByTemplatePath<RecipeCatalogue>(
     '/platform/idea/RecipeCatalogue',
@@ -182,6 +223,16 @@ beforeEach(async () => {
       stampTemplatePathForTest(p, path);
       p.setMass(Quantity.of(2, 'kg'));
       p.setShortDescription(path === PRODUCT_ROW ? 'burnt thing' : 'other thing');
+      return p;
+    }
+    if (path === MELT_ROW) {
+      // An Alloyed + Tangible output whose template mass (99) must be
+      // OVERRIDDEN by the carry, with no authored alloying so the merge
+      // is purely the charge's.
+      const p = makeStuff(() => new Casting());
+      stampTemplatePathForTest(p, path);
+      p.setMass(Quantity.of(99, 'kg'));
+      p.setShortDescription('a pot of melt');
       return p;
     }
     return realClone.call(StuffApi, path);
@@ -295,5 +346,40 @@ describe('the chamber, the charge and the heat', () => {
     for (const v of ['ignite', 'douse', 'pump', 'heat', 'boil']) {
       expect(verbs, v).toContain(v);
     }
+  });
+});
+
+describe('the firing carries its charge (D6)', () => {
+  it('massYield sets the output mass from the consumed charge, overriding the template', async () => {
+    ContainmentApi.move(alloyedLumpOf(MELTABLE_M, 5, 0.01), kiln);
+    ContainmentApi.move(alloyedLumpOf(MELTABLE_M, 5, 0.03), kiln);
+    await fire();
+    await draw();
+    const melt = kiln.getContents().find((c) => c.getTemplatePath() === MELT_ROW);
+    expect(melt).toBeDefined();
+    // 10 kg consumed × 0.5 yield ÷ 1 batch = 5 kg — NOT the template's 99.
+    expect((melt as unknown as { getMass(): { rawValue(): number } }).getMass().rawValue()).toBeCloseTo(5, 6);
+  });
+
+  it('an Alloyed output inherits the charge’s minor constituents, mass-weighted', async () => {
+    ContainmentApi.move(alloyedLumpOf(MELTABLE_M, 5, 0.01), kiln);
+    ContainmentApi.move(alloyedLumpOf(MELTABLE_M, 5, 0.03), kiln);
+    await fire();
+    await draw();
+    const melt = kiln.getContents().find((c) => c.getTemplatePath() === MELT_ROW);
+    expect(melt).toBeDefined();
+    // Mass-weighted iron: (5·0.01 + 5·0.03) / 10 = 0.02.
+    expect((melt as unknown as { fractionOf(p: string): number }).fractionOf(IRON_M)).toBeCloseTo(0.02, 6);
+  });
+
+  it('a recipe with NO massYield keeps the output’s template mass (burn-lime unaffected)', async () => {
+    ContainmentApi.move(lumpOf(STONE_M), kiln);
+    ContainmentApi.move(lumpOf(STONE_M), kiln);
+    await fire();
+    await draw();
+    const prod = kiln.getContents().find((c) => c.getTemplatePath() === PRODUCT_ROW);
+    expect(prod).toBeDefined();
+    // test-burn authors no massYield → the clone keeps its mock mass (2).
+    expect((prod as unknown as { getMass(): { rawValue(): number } }).getMass().rawValue()).toBeCloseTo(2, 6);
   });
 });

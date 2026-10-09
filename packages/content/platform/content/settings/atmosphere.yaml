@@ -1,0 +1,42 @@
+# atmosphere — what the medium IS and what it CARRIES.
+#
+# ⭐ The identity tag (`air`, `water`, `blackdamp`) is the medium's own
+# physics and lives in a closed table in code. These dials govern the
+# amounts carried IN it, which is content's business: a pack adds a gas by
+# adding a Material row, and nothing here changes.
+settings:
+  # ⭐⭐ Above fire.air.smotherAirShare on purpose. A body stops exchanging
+  # gas at 0.76 and a fire smothers at 0.70, so the order of events in a
+  # shut cellar is: the fire goes sooty (0.85), you are in trouble (0.76),
+  # THEN the fire dies (0.70). Reversing the last two would make the fire
+  # the alarm, and a fire going out in the dark is not an alarm — it is
+  # the last thing that happens to you.
+  #
+  # ⚠⚠ **This is a DISPLACEMENT figure: how much of the medium has to
+  # still be medium for a body to get oxygen out of it.** 0.76 leaves
+  # about 16 % oxygen, which is where a person starts labouring. It is
+  # NOT a toxicity figure, and the difference matters: a first pass set
+  # this to 0.95 by reasoning from carbon dioxide being dangerous to
+  # breathe at 5 %, and ⛔ that broke firedamp — a heading holding 14 %
+  # methane read as unbreathable, so the canary would have reacted to it,
+  # which is the one thing the third damp must not do. Methane really is
+  # breathable at the fractions that will kill you by burning; that is
+  # why its tell is a flame and not a bird.
+  - key: atmosphere.breathableAirShare
+    value: "0.76"
+
+  # Standard ambient. A material boiling at or below this is a gas, which
+  # is why there is no `phase` field anywhere: phase is a consequence of
+  # the boiling point and where you are standing.
+  - key: atmosphere.standardK
+    value: "293"
+
+  # Two game-hours for a drained working to fill again — long enough that
+  # draining is worth doing, short enough that it is not a one-time act.
+  - key: atmosphere.standingRebuildS
+    value: "7200"
+
+  # Two parts in a thousand. An analyser finds what a nose cannot, which
+  # is what it is for.
+  - key: atmosphere.noticeableFraction
+    value: "0.002"

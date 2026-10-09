@@ -1,0 +1,23 @@
+verbs: [groze]
+controller: /trade/glass/idea/cmd/glass/GrozeController
+description: "Nibble a glass edge to a line with grozing pliers"
+help: |
+  `groze pane` (or `groze pane with pliers`) nibbles the edge of a sheet to
+  a clean line with grozing pliers — a little glass comes away as dust.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  - name: sheet
+    type: object
+    required: true
+    scope: ["reachable"]
+    requires: TintedMixin
+  - name: pliers
+    type: objects
+    required: false
+    prepositions: [with, using]
+    default: "reachable:[capability.grozing]"
+    scope: ["reachable"]
+    requires: [ToolMixin]

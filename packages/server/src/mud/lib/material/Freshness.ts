@@ -73,7 +73,9 @@ import { WaterActivity, type WaterState } from './WaterActivity';
 import { Contamination } from './Contaminable';
 import { MixinApi } from '../../api/mixin';
 import { StuffApi } from '../../api/stuff';
+import { PerceptionApi } from '../../api/perception';
 import { WorldClockApi } from '../../api/worldclock';
+import type { Container } from '../spatial/Container';
 import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../config/AppSettings';
 import { TemplatePaths } from '../paths';
@@ -455,9 +457,18 @@ export class Freshness {
     material: Material | null,
     tempK: number,
     water: WaterState | null = null,
+    /**
+     * ⭐ A photochemical term added to a NON-NEGATIVE microbial rate —
+     * light-strike (D8). It drives spoilage even when the microbial rate
+     * is zero (a material with no `spoilActivationEnergy`, like beer), so
+     * it is not multiplicative; it is a second rate on the same gauge.
+     * The thermal-death curve (μ < 0) is photochemically untouched.
+     */
+    extraRatePerHour: number = 0,
   ): number {
     if (!(elapsedS > 0)) return clamp01(load);
-    const mu = Freshness.growthRate(material, tempK, water);
+    const mu0 = Freshness.growthRate(material, tempK, water);
+    const mu = mu0 >= 0 ? mu0 + Math.max(0, extraRatePerHour) : mu0;
     if (mu === 0) return clamp01(load);
     const hours = elapsedS / FRESHNESS_DEFAULTS.SECONDS_PER_HOUR;
 
@@ -775,11 +786,16 @@ function advanceFreshnessOverHost(
   material: Material | null,
   water: WaterState | null,
 ): number {
+  // ⭐ Light-strike (D8): sampled ONCE per reconcile, not integrated across
+  // the gap — a stated fidelity limit (a bottle carried sun → cellar ages at
+  // the cellar's light for the whole stretch; see spoilage.md). The same
+  // extra rate is applied to every thermal sub-step below.
+  const extra = lightStrikeRatePerHour(host, material);
   if (host !== null && MixinApi.isThermal(host)) {
     const pw = host.temperatureTrajectory(stampS, nowS);
     let l = load;
     for (const s of pw.samples(FRESHNESS_DEFAULTS.SUB_STEPS)) {
-      l = Freshness.advance(l, s.durationS, material, s.value, water);
+      l = Freshness.advance(l, s.durationS, material, s.value, water, extra);
     }
     return l;
   }
@@ -787,7 +803,60 @@ function advanceFreshnessOverHost(
     host !== null
       ? Freshness.hostTemperatureK(host)
       : dial(AppSettingKeys.freshnessAmbientK, FRESHNESS_DEFAULTS.AMBIENT_K);
-  return Freshness.advance(load, nowS - stampS, material, tempK, water);
+  return Freshness.advance(load, nowS - stampS, material, tempK, water, extra);
+}
+
+/**
+ * ⭐ The photochemical spoilage rate (per hour) a light-sensitive material
+ * accrues in its holder's light — the glass build's light-strike (D8).
+ * Zero unless the material is tagged `light-sensitive` AND the holder
+ * answers the {@link LightFilter} shape (`lightTransmittance(): Colour`,
+ * duck-probed — a holder that does not answer is opaque, the honest
+ * default for a keg). The rate is
+ *
+ *   `ratePerHour × min(lux / referenceLux, 1) × blueTransmittance`
+ *
+ * — photochemistry lives in the blue, which is why a brown bottle (low
+ * blue) protects and a clear one does not, derivably. A module function,
+ * not a class static, because the `lint:lib-statics` ratchet is at its
+ * ceiling (the `advanceFreshnessOverHost` precedent).
+ */
+function lightStrikeRatePerHour(
+  host: Stuff | null,
+  material: Material | null,
+): number {
+  if (host === null || material === null) return 0;
+  if (!material.hasTag('light-sensitive')) return 0;
+  // The LightFilter shape, duck-probed (the TravelNode precedent).
+  const filter = host as unknown as { lightTransmittance?: () => { b: number } };
+  if (typeof filter.lightTransmittance !== 'function') return 0;
+  const blue = filter.lightTransmittance().b;
+  if (!(blue > 0)) return 0;
+  const scope = lightScopeOf(host);
+  if (scope === null) return 0;
+  let lux = 0;
+  try {
+    const vision = PerceptionApi.modalityByName('vision');
+    const light = vision.signalAt(scope) as {
+      intensity: { rawValue(): number };
+    } | null;
+    lux = light ? light.intensity.rawValue() : 0;
+  } catch {
+    return 0;
+  }
+  if (!(lux > 0)) return 0;
+  const ratePerHour = dial(AppSettingKeys.freshnessLightStrikeRatePerHour, 30);
+  const refLux = dial(AppSettingKeys.freshnessLightStrikeReferenceLux, 50000);
+  return ratePerHour * Math.min(lux / refLux, 1) * blue;
+}
+
+/** The container scope whose light reaches the holder, or null. */
+function lightScopeOf(host: Stuff): (Stuff & Container) | null {
+  if (!MixinApi.isContainable(host)) return null;
+  const where = host.getContainer();
+  return where !== null && MixinApi.isContainer(where)
+    ? (where as unknown as Stuff & Container)
+    : null;
 }
 
 export interface Fresh {

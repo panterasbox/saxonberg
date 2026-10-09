@@ -1,0 +1,14 @@
+# The Sand Pit — ⭐ the open working whose whole economics is the PURITY
+# of what it wins. Unlike the hill quarry (a quarry wins the HOST), the
+# sand pit's two faces win the same material — sand — but the iron in it
+# differs by where you dig: the heart of the pit is clean (clear ware),
+# the fringe is rusty (green bottles, and no clearer). That grade is the
+# glass build's whole lesson, and it is pinned on the deposit, not prose.
+#
+# `cellSize: 10` matches the region so a cell means the same everywhere.
+class: /platform/idea/location/CartesianZone
+data:
+  name: The Sand Pit
+  cellSize: 10.0
+  address: terminus/rejection/sand-pit
+  deposit: /world/terminus/rejection/idea/deposit/sand-pit

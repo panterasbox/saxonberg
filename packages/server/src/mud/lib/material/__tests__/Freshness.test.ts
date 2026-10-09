@@ -433,3 +433,40 @@ describe('the gauge across a restore (AC5)', () => {
     expect(fresh.freshnessClockStamp).toBe(0);
   });
 });
+
+describe('Freshness.advance — light-strike as an additive rate (D8)', () => {
+  beforeEach(() => {
+    installV1QuantityMarshallers();
+    WorldClockApi._resetForTesting();
+  });
+  afterEach(() => WorldClockApi._resetForTesting());
+
+  const QUARTER_HOUR = HOUR / 4; // 15 game-minutes, in game-seconds
+
+  it('drives spoilage on an INERT material (no Ea) via the extra rate', () => {
+    const inert = material(0); // μ_microbial = 0 — no clock of its own
+    const dark = Freshness.advance(0, QUARTER_HOUR, inert, 293, null, 0);
+    const clear = Freshness.advance(0, QUARTER_HOUR, inert, 293, null, 30);
+    // Inert + dark: nothing happens. Inert + a clear bottle in the sun:
+    // tainted inside the quarter hour — the "light-struck fast" fact.
+    expect(dark).toBeLessThan(0.01);
+    expect(clear).toBeGreaterThan(0.25);
+  });
+
+  it('a brown bottle (low blue transmittance) spoils far slower than a clear one', () => {
+    const inert = material(0);
+    const clear = Freshness.advance(0, QUARTER_HOUR, inert, 293, null, 30); // b ≈ 1
+    const amber = Freshness.advance(0, QUARTER_HOUR, inert, 293, null, 30 * 0.17); // b ≈ 0.17
+    expect(amber).toBeLessThan(clear);
+    expect(amber).toBeLessThan(0.25); // still fresh over the same stretch
+  });
+
+  it('the thermal-death curve is photochemically untouched (kill ignores the term)', () => {
+    const mat = material(MEAT_EA);
+    const hot = 400; // well past the kill temperature → μ < 0
+    const withLight = Freshness.advance(0.5, HOUR, mat, hot, null, 30);
+    const noLight = Freshness.advance(0.5, HOUR, mat, hot, null, 0);
+    expect(withLight).toBe(noLight); // the extra never applies while dying
+    expect(withLight).toBeLessThan(0.5); // it fell (died), it did not grow
+  });
+});

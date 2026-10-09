@@ -142,7 +142,13 @@ export default class DipController extends CraftController<DipModel> {
     const candle = outcome.output;
     // ⭐ The smell is stamped from the material here rather than authored
     // on the row, which is what lets one row be both candles.
-    if (candle instanceof Candle) candle.adoptMaterialSmell();
+    if (candle instanceof Candle) {
+      candle.adoptMaterialSmell();
+      // ⭐ And the fat it was dipped in is what it BURNS — the fire
+      // build made a burner's fuel a bed, so the dip charges it the
+      // same way it stamps the smell.
+      candle.adoptMaterialFuel();
+    }
     if (MixinApi.isContainable(candle) && MixinApi.isContainer(giver)) {
       ContainmentApi.move(candle, giver);
     }

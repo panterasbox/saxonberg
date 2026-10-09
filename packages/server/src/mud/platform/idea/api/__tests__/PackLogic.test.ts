@@ -409,10 +409,14 @@ describe('PackLogic — pack integration (real packs + real class resolution)', 
     // spell. 32 → 36: the magic-expression pass added stonefist,
     // stone-lance, windrazor and acid-splash — the four channels magic
     // never reached. 36 → 40: a wand for each, so a non-caster can wield
-    // them. This count is a real assertion about what the pack
-    // ships, so it moves when the pack does.
+    // them. ⭐ 41 → 43: the fire build added `conjure flame` and its
+    // locus — the heat side of the Light-split-from-Fire carve the
+    // glowlight proves on the light side, and the second implementer of
+    // `BurnerMixin.fuelSource()` (without which the kernel would ship a
+    // hook with a dead branch). This count is a real assertion about
+    // what the pack ships, so it moves when the pack does.
     const arcane = results.find((r) => r.packId === 'arcane-library');
-    expect(arcane!.inserted).toHaveLength(41);
+    expect(arcane!.inserted).toHaveLength(43);
     expect(arcane!.inserted).toContain('/stuff/idea/magic/Spell/glowlight');
     expect(arcane!.inserted).toContain('/stuff/thing/magic/glowlight-mote');
     expect(arcane!.inserted).toContain('/stuff/thing/magic/ring-of-veil');

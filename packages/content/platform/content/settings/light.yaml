@@ -38,3 +38,9 @@ settings:
   # for a 1 m² closet and a 100 m² yard without either one authoring it.
   - key: light.sky.noonLux
     value: "80"
+
+  # The minimum colour depth (deepest single-channel absorption, 0..1) at
+  # which `look` tells you the room's light is tinted. A faint cast is not
+  # worth a sentence; a stained pane lands well past 0.25. Playtest dial.
+  - key: light.tintLegibleAt
+    value: "0.25"

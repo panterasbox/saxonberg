@@ -8,6 +8,8 @@
  */
 
 import { vi } from 'vitest';
+import { chargeHot } from '../../../../../lib/fire/__tests__/burner-fuel';
+import type { Burner } from '../../../../../lib/fire/Burner';
 import { ThermalMixin } from '../../../../../lib/thermal/Thermal';
 import { AdvancementMixin } from '../../../../../lib/advancement/Advancement';
 import { PersonaMixin } from '../../../../../lib/character/Persona';
@@ -181,15 +183,8 @@ export function makeLitForge(bellows: boolean): Forge {
     const f = new Forge();
     f.setBurnTemperatureK(1300);
     f.setBellowsMultiplier(1.6);
-    f.setReserve(
-      new Reserve(
-        'fuel',
-        Quantity.of(100, '%'),
-        Quantity.of(100, '%'),
-        'combustion',
-        null,
-      ),
-    );
+    // ⭐ A charge in the bed, not a percentage of nothing.
+    chargeHot(f as unknown as Stuff & Burner, 40);
     f.setBellowsActive(bellows);
     return f;
   });
@@ -199,15 +194,8 @@ export function makeLitOven(): Oven {
   return makeStuff(() => {
     const o = new Oven();
     o.setBurnTemperatureK(500);
-    o.setReserve(
-      new Reserve(
-        'fuel',
-        Quantity.of(100, '%'),
-        Quantity.of(100, '%'),
-        'combustion',
-        null,
-      ),
-    );
+    // ⭐ A charge in the bed, not a percentage of nothing.
+    chargeHot(o as unknown as Stuff & Burner, 40);
     return o;
   });
 }

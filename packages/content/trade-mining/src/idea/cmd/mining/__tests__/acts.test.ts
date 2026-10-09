@@ -425,9 +425,14 @@ describe('the mine’s four labour acts', () => {
     // rock belongs to the trade that cuts it. The assertion below is
     // what actually matters and it covers every view here: no deed, no
     // recipe, no band, and a controller row this pack ships.
+    // ⭐⭐ `drain.yaml` joins them from the fire build, and it is the one
+    // act in the trade that HARVESTS a hazard rather than surviving it:
+    // firedamp drawn off a working into a sealed vessel, on the RGO law
+    // — a reservoir, a recharge half-life, an act and a credit. No deed
+    // gate here either, which is the assertion that matters.
     expect(files.sort()).toEqual([
-      'assay.yaml', 'drive.yaml', 'hew.yaml', 'raise.yaml', 'shore.yaml',
-      'sink.yaml', 'stake.yaml',
+      'assay.yaml', 'drain.yaml', 'drive.yaml', 'hew.yaml', 'raise.yaml',
+      'shore.yaml', 'sink.yaml', 'stake.yaml',
     ]);
     for (const f of files) {
       const yaml = readFileSync(join(VIEWS, f), 'utf8');

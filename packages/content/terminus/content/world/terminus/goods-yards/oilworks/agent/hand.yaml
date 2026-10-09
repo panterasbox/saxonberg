@@ -30,7 +30,7 @@ data:
         # A cask is heavy — a few to a walk, not a dozen loose goods.
         batch: 4
         ask:
-          # ⭐ Priced so a night of a gas-lit town's lighting (6 L at ~2/L)
+          # ⭐ Priced so a night of an oil-lit town's lighting (6 L at ~2/L)
           # costs about what envelope's calibrated 4 × 3 streets did (12):
           # a 40 L cask at 80 is 2 credits the litre, and the demand
           # survives as a market price rather than a constant.

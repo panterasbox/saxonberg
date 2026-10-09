@@ -111,6 +111,17 @@ authored **pin** over authored **lean** over the **procedural** value and
 returns one shape, so an authored pocket and a computed cell are
 indistinguishable to every consumer. Nothing may reach past it.
 
+⭐ **A won unit that can remember its assay does** (glass build, 2026-10).
+`OpenWorkingMixin.mintWinnings` stamps the deposit's own `sampleAt`
+mineral + grade onto any won good that composes `AlloyedMixin` — sampled
+at the face's mid-depth and the room's lateral position, under the same
+locality-address seed a reader would use (falling back to the base seed
+on unaddressed ground, never failing the work). A granite block composes
+nothing and is stamped nothing; a load of glass sand carries the iron
+that will later make a bottle green or leave it clear. The grade is the
+ground's, read once at the face — competence never touches the figure,
+only whether a `measure`/`analyze` reader can make it out.
+
 ⚠ **The deposit speaks METRES**, not grid cells — rock does not know what
 cell size somebody chose for the workings cut through it.
 `Working.metresOf` is the single conversion and reads the zone's own
@@ -325,6 +336,45 @@ of it is a bird that stops singing. Nothing makes the canary die
 specially — it breathes what everybody breathes and succumbs first
 because its species row puts `spo2` survivable at 82 against a person's
 50.
+
+### ⭐⭐⭐ The third damp: firedamp, and the remedy is an OBJECT
+
+**The fire build, 2026-10.** Blackdamp is air that is not there and
+stinkdamp is air that reeks; **firedamp is air that will burn**, and it
+completes the set. Every term in it was already true of something else:
+
+- it is a **GROUND fact**, seeded on the deposit in a depth band
+  (`Deposit.gas` → `gasAt(z)`), never drawn — the field pattern, like
+  every other thing the ground knows;
+- it reaches the air through the working's own `settleGas`, and it
+  **recharges**: a reservoir (`FIREDAMP_RESERVOIR_MULTIPLE`) against a
+  half-life (`FIREDAMP_RECHARGE_HALF_LIFE_S`), so a drained face comes
+  back because the rock is still giving it off;
+- a content is **flammable because its material has a heat of
+  combustion** — the same number that gives a fuel its flame temperature.
+  ⚠ There is no `hazard:` field, no authored trap and no room marked
+  dangerous: the danger is that the stuff in the air will burn.
+
+⭐⭐ **So the remedy is an object rather than a rule.** A safety lamp's one
+authored fact is `flameEnclosed: true`; the flash check looks for a
+**naked** flame and does not find one. A player with a gauze lamp works
+ground a player with a torch cannot — and *nothing is told to make that
+true*, which is the difference between a mechanism and a permission.
+
+⭐ And `drain` is the **RGO law applied to a hazard** — reservoir,
+recharge, act, credit — which makes firedamp the one thing in this trade
+you can **harvest** rather than merely survive: the heading becomes
+workable *and* you are carrying a charge of burnable gas, which is worth
+money to anyone with a gasometer. ⚠ It needs a vessel built gas-tight
+with its lid shut, because a sealed vessel standing open is a hole
+([bulk.md § closure](./bulk.md)).
+
+⚠ **The canary still answers a different question**, and this is the
+correction that matters: the breathable share is a **displacement**
+figure, not a toxicity one. Reasoned the other way, 14 % methane reads as
+unbreathable and the bird reacts to firedamp — destroying the one design
+where the bird is honest. See
+[respiration.md](./respiration.md).
 
 ---
 

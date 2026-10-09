@@ -629,11 +629,13 @@ overlap; do not unify them.
 
 ## `Window`
 
-> ⚠ **The class is authorable and nothing authors it** — no window row
-> has ever existed. See [boundary.md § Window](./boundary.md) for why it
-> is kept anyway (it is the only exerciser of partial and directional
-> conduit transmissivity, and of the Hydrator's async
-> singleton-resolving applier).
+> ⭐ **The glass build authored the first windows** (2026-10): Rejection's
+> glazier's hut has two, attached to the sunlit yards either side, and the
+> `glaze` act writes a blown pane's derived colour onto a window so it
+> colours the light it lets into the room. See [glass.md](./glass.md). The
+> class had stood unexercised by content until then (it was the only
+> exerciser of partial and directional conduit transmissivity, and of the
+> Hydrator's async singleton-resolving applier); now a row names it.
 
 The first concrete Boundary user. Composition: `SealableMixin(Boundary)`.
 It implements four conduits — `LightConduit`, `LineOfSight`,
@@ -644,7 +646,14 @@ State (all persisted as scalars):
 - `baseTransmissivity: number` (default 1.0) — symmetric pass-through factor when open.
 - `aToBOverride: number | null` — one-way override for A→B.
 - `bToAOverride: number | null` — one-way override for B→A.
-- `colorTint: ColorTag | null` — stained glass.
+- `colorTint: ColorTag | null` — the authored stained-glass colour word.
+- `glazeR/glazeG/glazeB: number | null` — the per-channel transmittance the
+  `glaze` act writes when a blown pane is set in the window (glass build);
+  overrides `colorTint`. `lightTransmittance(): Colour` resolves glazing,
+  then the authored word, then clear, and the light walk MULTIPLIES it into
+  what passes (`LightConduit.transmittanceColour`), so a stained window
+  colours the room on the far side. `Light` carries a `colour` (hue, white
+  by default, orthogonal to `colorTemperature`); two windows' colours ADD.
 - `open: boolean` (from `Sealable`, predicate `isOpen()`) — shutter state.
 
 `transmissivity(from, to)`:

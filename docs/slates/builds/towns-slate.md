@@ -523,6 +523,125 @@ rather than as furniture — the first beat of the valley losing to land
 price, which is an ending rather than a phase.
 
 
+### ⭐⭐⭐ The millsite — what to add, 2026-10-08
+
+The millsite is the valley's best-finished room and the grain chain's one
+chokepoint. ⭐ **The toll is real**: `MillController` moves a tenth of
+every grind into a 200 L oak bin whose level you can `look` at, so the
+thousand-year grievance about millers is *state* rather than prose.
+
+Seven additions, each a true fact about milling that nothing currently
+expresses. ⭐ See [content-craft.md § 8c](../../content-craft.md) for why
+these were found rather than invented.
+
+**1. ⭐⭐⭐ A sealed measure.** The grievance has an object and **no
+instrument** — nothing anywhere verifies that a tenth was a tenth. The
+historical answer is a stamped standard bushel or peck held by an
+authority and kept somewhere public (the assize of measures, the standard
+at the market cross). ⭐⭐ `instrumentation.md` ships `measure` as a flat
+verb over `Reading` rows any pack adds, so **a sealed standard is a row** —
+and public works already has a warden and a store to keep it in. ⭐ Lens 1
+exactly: *the measure does not tell you she is honest, it lets you find
+out.*
+
+**2. ⭐⭐⭐ Dressing the stones.** Millstones must be periodically
+**dressed** — the furrows recut with a mill pick — or they stop cutting
+and start crushing, which heats the flour and ruins it. Skilled, slow, and
+the mill is stopped while it happens.
+
+⭐⭐ **The gesture is already written.** Sennet *"puts a hand flat on the
+bedstone, listening to it through her palm"* — **she is checking the
+dress.** The content has the act and not the mechanism.
+
+⭐ The detail that makes it content: a stone-dresser's hands carry steel
+splinters from the pick, and the trade's story is that *"show your
+mettle"* comes from showing the metal in your palms to prove you did the
+work. ⚠ The etymology is almost certainly folklore — **which is better,
+not worse.** She believes it. A folk etymology the trade holds is § 8b's
+*error is the signature of authorship*, with the error belonging to a
+character.
+
+So: a maintenance clock on a fixture, with a visible tell on a person's
+body, that she can neglect — and ⭐⭐ **a neglected dress ruins flour
+without anybody stealing anything.** A second innocent explanation for a
+grievance. Rides `crafting.md`'s two wear axes and
+`structure-and-decor-slates`' *maintenance before construction*.
+
+**3. ⭐⭐⭐ The quern, and the right to grind your own.**
+`trade-milling/thing/quern.yaml` already ships. ⭐⭐ **The quern is the
+only genuinely political object here** — lords banned hand querns to force
+tenants to the manorial mill, and there are records of querns confiscated
+and broken. A real conflict with real precedent, in a world that has a
+Compact, a legislature and judicial review.
+
+⭐⭐⭐ **And it is only interesting because the arithmetic is real.** A
+quern costs you **time** (your hands on the handle, doing nothing else);
+the mill costs you **a tenth**. The answer flips with how much grain you
+have — a smallholder should grind at home, a tenant with four acres should
+not. **Nobody has to author a position: the model hands every household a
+different one.**
+
+**4. ⚠⚠ Flour dust and an open flame — free, and already true.** A mill is
+an explosion hazard: suspended flour dust in an enclosed space with an
+ignition source detonates, and it is a well-documented industrial killer.
+The millsite already has *"everything in it is dusted white"*, **a gaslamp
+standard by the mill door** fed from the valley's oil, and `fire.md`, where
+ignition is a **derivable energy balance** rather than a script.
+
+⭐⭐⭐ **The room is already holding a loaded gun it does not know about**,
+and the mechanism to fire it honestly already ships. Nobody designed a
+dramatic event; one is sitting there as a consequence of two true facts.
+
+**5. ⭐ A bolting cloth.** The extraction help says *"the cloth throws away
+the outer coat"* and **there is no cloth.** It is a consumable — it wears,
+it clogs, and a worn one passes bran into the flour. `textiles.md` ships
+cloth; what is new is **mesh** as a purpose.
+
+**6. ⭐⭐ The queue is a venue.** Everyone must come and everyone must
+wait, which is why a mill was a village's information exchange.
+`attendant.md` already ships the queue (lease, `AttendanceEngagement`,
+idle-eviction); the content missing is that **waiting together is where
+the valley's gossip lives** — *the crowd is the index* (`eotl-craft` #8).
+
+**7. ⭐ She bakes, and there is no bread.** The seat `fulfills: [baking]`
+and she claims `baking: competent`. **A miller who bakes competes with the
+baker**, which is a real guild quarrel sitting unbuilt inside a field that
+is already authored.
+
+### ⚠ Two millsite defects found while reading it
+
+- **The miller's row comment is wrong about her.** The description is *"a
+  broad, unhurried **woman**"* and the idles say *her*; the comment says
+  *"he bakes from his own flour."*
+- ⭐ **The millsite is a dead end** — one exit, north to bench-lane, for
+  the busiest industrial site in the valley. For a place everybody has to
+  come to, that is worth a second look.
+
+### The four stories it already sets up
+
+⚠ Recorded as premises, not as a build; the quest layer is
+[content-craft § 8b](../../content-craft.md)'s subject and undecided.
+
+1. ⭐⭐⭐ **The toll, and she is innocent.** A farmer asked for white flour
+   and got back less than his neighbour, and is **certain** he was robbed.
+   He is **right that he is short** and **wrong about why** — a 0.6
+   extraction throws a third of the weight into the bran sack, and nobody
+   in the valley understands extraction. The grievance is sincere, the
+   arithmetic is innocent, the evidence is in a sack of bran, and ⭐ the
+   resolution is not a reward — it is **deciding what you owe the man who
+   was wrong in public.** Knowledge-gated, not execution-gated.
+2. ⭐⭐ **August.** *"In August it turns slower."* Low water, one position,
+   `call: rota`, and somebody's grain in a warm sack. Who grinds first —
+   two obligations that cannot both be honoured, with real parties.
+3. ⭐ **The weir.** *"It passes everything it takes… the valley below would
+   notice at once if it were."* **The content states what would happen if
+   it were not true.** `watershed.md` ships prior appropriation as records
+   and riparian rights as derived.
+4. ⭐ **The lamp.** Seniority 3, first dark when the oil runs low, and the
+   order *"recorded in advance so nobody is judged at the moment of
+   refusal."* Somebody wants the order changed — and public works, a
+   warden and a store all exist to argue about it.
+
 ## The connective tissue — goods and services in and out
 
 *Homed 2026-09-22 → [settlement-model.md § 8 · the realm layout is already von Thünen](../../settlement-model.md).*

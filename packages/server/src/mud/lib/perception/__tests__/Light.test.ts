@@ -1,6 +1,7 @@
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import { Light, LIGHT_SOURCE_CAP } from '../Light';
+import { Colour } from '../Colour';
 import { Quantity } from '../../quantity';
 // `Light.bandFor` lives next to the `LightBand` vocabulary —
 // vision-modality domain.
@@ -133,5 +134,66 @@ describe('bandFor (threshold table)', () => {
     expect(Light.bandFor(199.99)).toBe('bright');
     expect(Light.bandFor(200)).toBe('blinding');
     expect(Light.bandFor(1000)).toBe('blinding');
+  });
+});
+
+describe('Light.colour — the hue axis (W0)', () => {
+  beforeEach(() => {
+    installV1QuantityTagTables();
+  });
+
+  it('Light.ZERO is white', () => {
+    expect(Light.ZERO.colour).toBe(Colour.UNDYED);
+  });
+
+  it('a plain Light.of is white by default', () => {
+    const l = Light.of(40);
+    expect(l.colour.r).toBe(1);
+    expect(l.colour.g).toBe(1);
+    expect(l.colour.b).toBe(1);
+  });
+
+  it('filter MULTIPLIES: a white light through a red pane comes out red and dimmer', () => {
+    const white = Light.of(40);
+    const red = white.filter(Colour.of(1, 0.1, 0.1));
+    expect(red.colour.r).toBeCloseTo(1, 6);
+    expect(red.colour.g).toBeCloseTo(0.1, 6);
+    expect(red.colour.b).toBeCloseTo(0.1, 6);
+    // Less total light gets through than came in.
+    expect(red.intensity.rawValue()).toBeLessThan(40);
+    expect(red.intensity.rawValue()).toBeGreaterThan(0);
+  });
+
+  it('filter by UNDYED is the identity', () => {
+    const white = Light.of(40);
+    const same = white.filter(Colour.UNDYED);
+    expect(same.intensity.rawValue()).toBeCloseTo(40, 6);
+    expect(same.colour.r).toBe(1);
+  });
+
+  it('add MIXES two emitters: a red light + a blue light read high-r, high-b, low-g', () => {
+    const red = Light.of(40).withColour(Colour.of(1, 0.1, 0.1));
+    const blue = Light.of(40).withColour(Colour.of(0.1, 0.1, 1));
+    const sum = red.add(blue);
+    expect(sum.colour.r).toBeGreaterThan(0.8);
+    expect(sum.colour.b).toBeGreaterThan(0.8);
+    expect(sum.colour.g).toBeLessThan(0.3);
+    // Intensities add (no cap at this layer).
+    expect(sum.intensity.rawValue()).toBeCloseTo(80, 6);
+  });
+
+  it('attenuate KEEPS the hue (a neutral dim, not a filter)', () => {
+    const red = Light.of(40).withColour(Colour.of(1, 0.1, 0.1));
+    const dimmer = red.attenuate(0.5);
+    expect(dimmer.intensity.rawValue()).toBeCloseTo(20, 6);
+    expect(dimmer.colour.r).toBeCloseTo(1, 6);
+    expect(dimmer.colour.g).toBeCloseTo(0.1, 6);
+    expect(dimmer.colour.b).toBeCloseTo(0.1, 6);
+  });
+
+  it('toJSON carries the colour as a hex swatch', () => {
+    const red = Light.of(40).withColour(Colour.of(1, 0.1, 0.1));
+    expect(typeof red.toJSON().colour).toBe('string');
+    expect(red.toJSON().colour.startsWith('#')).toBe(true);
   });
 });

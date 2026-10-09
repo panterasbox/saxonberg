@@ -1,0 +1,28 @@
+# The gasometer — ⭐⭐ a vessel you read from across the yard.
+#
+# A bell floating in a water seal: it rides up as gas goes in and sinks
+# as it is drawn off, so the town's gas stock is a thing anybody walking
+# past can SEE. ⭐ The level is derived from amount over capacity and
+# rendered in five level words — no field, no digit, and two players
+# always read the same thing, which is the whole reason this is an object
+# and not a number on a ledger.
+#
+# ⚠ `closure: sealed` is CONSTRUCTION. A bell in a water seal is
+# gas-tight by being one, and without the line `requiredClosureFor` would
+# refuse to let coal gas in at all.
+class: /trade/fuel/thing/Gasometer
+data:
+  shortDescription: gasometer
+  keywords: [gasometer, gasholder, bell, holder, tank]
+  register: definite
+  longDescription: >-
+    A riveted iron bell the height of a house, floating in a ring tank of
+    black water, guided by a lattice of girders gone orange with rust. It
+    rides up and down on what is in it, and the whole yard can see where
+    it stands.
+  _materialPath: /stuff/idea/material/element/iron
+  mass: 18000
+  fixedInPlace: true
+  interiorBulk: true
+  interiorCapacity: 20000
+  closure: sealed

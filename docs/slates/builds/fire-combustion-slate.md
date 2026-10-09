@@ -4,13 +4,17 @@
 > `Material` numbers, the `heat` channel, `Combustible`/`Burning`,
 > phase change, the furnace family
 > → [fire.md](../../subsystems/fire.md)
+> ⭐⭐ **And the refuellable, fuel-aware burner shipped (the fire build,
+> 2026-10):** fuel is a BED (kilograms, by material) that `stoke` fills,
+> heat / duration / light / exhaust all derive from it, and `draught` is
+> one dial moving heat, soot and light together — so *"a REFUELLABLE
+> burner, and a burner that knows WHAT it is burning"* is struck from
+> **Left**. → [fire.md](../../subsystems/fire.md)
 > **Left:** the fire service (§ below) — the fire brigade
 > (bucket-brigade → volunteer → paid-service ladder) · fire-code /
 > prevention / inspection · fire insurance (incl. the moral-hazard /
 > arson tie) · map-scale wildfire · arson-as-crime + investigation ·
-> the Tiebout risk-tolerance framing · ⭐⭐ **a REFUELLABLE burner, and a
-> burner that knows WHAT it is burning** (§ below — offered by the
-> whiskey drives, 2026-10-06)
+> the Tiebout risk-tolerance framing
 > **Size:** a build
 
 ---
@@ -165,3 +169,13 @@ is the same seam that would let an as-cut turf **refuse** (it already
 refuses `ignite` on its own moisture; an item slot cannot see moisture,
 so the peated kiln accepts a sodden one and says nothing). See [crafting.md § History — the whiskey-styles build](../../subsystems/crafting.md),
 which carries `Recipe.imparts` and the fuel-anonymity reasoning.
+
+## ⬅ From the fire build (2026-10)
+
+Left as a line here rather than in a retired plan.
+
+- **A `Combustible`'s duration should derive from its MASS** (the fire build's D16). A `Burner`'s does now — the bed is kilograms — but a burning log still spends a `%` Reserve, so the two halves of combustion measure fuel differently. `FireLogic.burnPowerFor` is the attach point and it is a one-line swap.
+- ⚠ **The sealed cellar's lesson is an order of magnitude slower than its own row claims** (the fire build's live drive). The mechanism is right and the CLAIM is false: 27 m³ with no openings leaks at `achLeak` 0.1, so the room's time constant is **ten game-hours**. Steady state is `airShare` ≈0.687 — just under the 0.70 smother, so it *does* smother, at ~32 game-hours, first noticeable at ~3 (confirmed live: *"ordinary enough"* at 48 game-minutes, *"There is something in the air in here"* at ~4 hours). The row says "tens of ticks". ⭐ The knob is the room's SIZE, not the dials — and how fast a sealed room should kill is a lens-1-against-3a call, not a drive fix.
+- ⚠ **A carried fire needs fuel that fits it.** `stoke` is all-or-nothing, so a 1 kg bed can only take an item of ≤1 kg — and a census found 16 items that fit and none that were fuel, which left the bee smoker unlightable until the sweep added a roll of sacking. ⭐ Clause (h) cannot catch this class: the row is well-formed, and the mismatch is between a VESSEL and a SUPPLY.
+- ⚠ **The sealed cellar's lesson is an order of magnitude slower than its own row claims** (the fire build's live drive). The mechanism is right and the CLAIM is false: 27 m³ with no openings leaks at `achLeak` 0.1, so the room's time constant is **ten game-hours**. Steady state is `airShare` ≈0.687 — just under the 0.70 smother, so it *does* smother, at ~32 game-hours, first noticeable at ~3 (confirmed live: *"ordinary enough"* at 48 game-minutes, *"There is something in the air in here"* at ~4 hours). The row says "tens of ticks". ⭐ The knob is the room's SIZE, not the dials — and how fast a sealed room should kill is a lens-1-against-3a call, not a drive fix.
+- ⚠ **A carried fire needs fuel that fits it.** `stoke` is all-or-nothing, so a 1 kg bed can only take an item of ≤1 kg — and a census found 16 items that fit and none that were fuel, which left the bee smoker unlightable until the sweep added a roll of sacking. ⭐ Clause (h) cannot catch this class: the row is well-formed, and the mismatch is between a VESSEL and a SUPPLY.

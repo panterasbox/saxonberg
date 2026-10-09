@@ -122,70 +122,41 @@ const CULTURE_HOT_FACTOR = 3;
 const DEFAULT_PITCH_KILL_K = 313;
 
 // ── the cellar CO₂ (P11/D12): a working ferment displaces air ──
-/** Air-reserve percentage points a converting batch displaces per day. */
-const CO2_AIR_DRAIN_PCT_PER_DAY = 30;
-/** Percentage points a ventilated room recovers per day. */
-const CO2_AIR_RECOVER_PCT_PER_DAY = 400;
-/** Below this air %, the room's atmosphere flips to carbon dioxide. */
-const CO2_UNBREATHABLE_AT_PCT = 40;
+/**
+ * Litres of carbon dioxide a converting batch breathes into the room per
+ * day. ⭐ Was three `%`-of-a-Reserve constants and a sentinel write onto
+ * the room's atmosphere TAG; it is one emission now, into the same medium
+ * a fire fills, cleared by the same derived ventilation. The ferment and
+ * the fire were always doing the same thing to the same air — they just
+ * had two copies of the idiom, both of which encoded *"only overlay null,
+ * only clear my own tag"* and both of which broke the moment the tag was
+ * not the sole source of truth.
+ */
+const CO2_LITRES_PER_DAY = 5000;
+
+/** The gas a ferment breathes out. The fire's dial names the same row. */
+const CO2_MATERIAL_PATH = '/stuff/idea/material/gas/carbon-dioxide';
 
 /**
- * The cellar's CO₂ (P11): a converting batch displaces the room's
- * authored air reserve (the closed-kitchen mechanism, second consumer —
- * a room that authors no `air` reserve is open air and skips all of
- * this); a VENTILATED room (sky-exposed, or any unblocked exit whose
- * door stands open) recovers fast. Below the threshold the room's
- * atmosphere flips to `carbon-dioxide` (unbreathable — respiration's
- * medium crisis does the rest); recovery flips it back. Only ever
- * overlays a default (null) atmosphere and only clears its own — the
- * fire driver's idempotence rules.
+ * The cellar's CO₂ (P11): a converting batch puts carbon dioxide into the
+ * room it stands in, and the room's own openings carry it away. A
+ * sky-exposed scope accepts none; a shut cellar fills, and respiration's
+ * mixture check does the rest with no atmosphere tag written anywhere.
  */
 function reconcileCellarAir(
   vessel: Stuff,
   days: number,
   producing: boolean,
 ): void {
+  if (!producing || !(days > 0)) return;
   if (!MixinApi.isContainable(vessel)) return;
   const room = vessel.getContainer();
   if (room === null || !MixinApi.isContainer(room)) return;
-  if (!MixinApi.isReserved(room) || !room.hasReserve('air')) return;
-  const ventilated = roomVentilated(room);
-  const deltaPct =
-    (ventilated ? CO2_AIR_RECOVER_PCT_PER_DAY : 0) * days -
-    (producing ? CO2_AIR_DRAIN_PCT_PER_DAY * days : 0);
-  if (deltaPct !== 0) {
-    room.adjustReserve('air', Quantity.of(deltaPct, '%'));
-  }
-  const reserve = room.getReserve('air');
-  if (!reserve) return;
-  const capacity = reserve.capacity.rawValue();
-  if (capacity <= 0) return;
-  const pct = (reserve.current.rawValue() / capacity) * 100;
   if (!MixinApi.isAtmospheric(room)) return;
-  if (pct <= CO2_UNBREATHABLE_AT_PCT) {
-    if (room._atmosphere === null) room.setAtmosphere('carbon-dioxide');
-  } else if (room._atmosphere === 'carbon-dioxide') {
-    room.setAtmosphere(null);
-  }
-}
-
-/**
- * Is `room` ventilated — sky-exposed, or any unblocked exit whose door
- * (if any) stands open? The fire driver's ventilation rule, applied at
- * the ferment's own read (the fire tick only runs where fires burn).
- */
-function roomVentilated(room: Stuff): boolean {
-  if (MixinApi.isContainer(room) && BiomeApi.isSkyExposed(room)) return true;
-  if (!MixinApi.isExitable(room)) return false;
-  for (const exit of room.getExits().values()) {
-    if (exit.isBlocked()) continue;
-    const door = exit.getDoor();
-    if (door !== null && MixinApi.isSealable(door) && !door.isOpen()) {
-      continue;
-    }
-    return true;
-  }
-  return false;
+  room.addAtmosphereContent(
+    CO2_MATERIAL_PATH,
+    CO2_LITRES_PER_DAY * days,
+  );
 }
 
 /**

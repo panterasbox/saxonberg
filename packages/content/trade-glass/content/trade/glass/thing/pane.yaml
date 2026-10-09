@@ -1,0 +1,15 @@
+# A glass pane — a cylinder opened flat at the furnace (`flatten`). The
+# thing a window is glazed with: `glaze <pane> in <window>` copies its
+# transmittance onto the window and consumes it. Its colour is derived
+# from its iron, so a pane cut from green glass colours the room green.
+class: /trade/glass/thing/Sheet
+data:
+  keywords: [pane, "glass pane", sheet, light]
+  shortDescription: glass pane
+  register: indefinite
+  longDescription: >-
+    A flat sheet of glass, faintly rippled where it was opened out, the
+    edges still raw until they are grozed.
+  _materialPath: /stuff/idea/material/glass/glass
+  mass: 0.4
+  form: pane

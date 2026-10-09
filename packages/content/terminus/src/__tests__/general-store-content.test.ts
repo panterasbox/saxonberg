@@ -188,6 +188,13 @@ describe("general-store content integrity", () => {
       // a fire, and feel the room change — which is what makes the
       // envelope something a person can act on rather than read about.
       "/stuff/thing/Hearth",
+      // ⭐⭐ And fuel in reach of it, which is the fire build's content
+      // half: before it, a burner's fuel was a Reserve a row authored
+      // once and nothing could refill, so a room with a fire needed no
+      // wood on the floor and had none. **Nine rooms were like this.**
+      // ⚠ Bounded props, never a faucet — a starting condition, not a
+      // supply. What restocks it is the trade that makes it.
+      { template: "/stuff/thing/items/dry-log", count: 2 },
     ]);
     // The troupe is declared, not derived: the NPCs ride `cast:`.
     expect(room.data?.cast).toEqual([
@@ -219,6 +226,15 @@ describe("general-store content integrity", () => {
   // the standup integration test (which clones the goods for real).
   const DISCRETE_ITEM_CLASSES = new Set([
     "/platform/thing/Thing",
+    // ⭐⭐ `Good` — and it was MISSING, which is the wrong way round:
+    // `GoodBase = ChattelMixin(ConcealableMixin(Thing))`, so `Good` is
+    // THE discrete-chattel class and `Thing` above it is the one that is
+    // not chattel. ⚠ The omission is a trap, not a gap: an author adding
+    // a plain saleable good hits this list, "fixes" it by dropping to
+    // `Thing` — and the standup test then fails on the real runtime
+    // check (*is not chattel*) one layer down. Found by the fire build's
+    // sweep adding the smoker's sacking.
+    "/platform/thing/Good",
     // A `Provision` is the food class — discrete, `Crafted` (so it carries a
     // maker's mark and a grade), and no more Stackable than a bare `Thing`. The
     // ration pack is one: perishable matter belongs on the class that says
@@ -465,8 +481,34 @@ describe("general-store content integrity", () => {
       // ⚠ `BurnerMixin.lit` defaults TRUE — a row that forgets this
       // ships alight on a shop shelf with its fuel draining.
       expect(light.data?.lit).toBe(false);
-      const fuel = (light.data?.reserves as Record<string, { currentValue?: number }> | undefined)?.fuel;
-      expect(Number(fuel?.currentValue)).toBeGreaterThan(0);
+      // ⭐⭐ The fire build: a burner's fuel is a BED — kilograms, by
+      // material — not a `'fuel'` Reserve. The Reserve was a percentage
+      // of nothing: it could not say what the fire was burning, and
+      // nothing could put more in, so no fire in the game could run
+      // twice. These two ship charged (a torch IS its fuel; a lantern
+      // comes with a fill of oil) and the bed is what says so.
+      // ⚠ And the two differ BY DESIGN, so the assertion is per-light
+      // rather than shared: a torch IS its fuel (a charged bed, nothing
+      // to refill), a lantern is FILLED (an interior slot and no bed,
+      // sold dry). What they must share is a tank of SOME kind —
+      // ⛔ the lantern shipped with neither, so `fuelSlot()` answered
+      // `null` and it was a light that could never be lit.
+      expect(Number(light.data?.maxBurnPowerW)).toBeGreaterThan(0);
+      if (f === 'torch') {
+        const bed = light.data?.fuelBed as Record<string, number> | undefined;
+        expect(bed, 'the torch has no fuel bed').toBeTruthy();
+        const charged = Object.values(bed ?? {}).reduce(
+          (a, b) => a + Number(b),
+          0,
+        );
+        expect(charged).toBeGreaterThan(0);
+      } else {
+        expect(light.data?.interiorBulk).toBe(true);
+        expect(Number(light.data?.interiorCapacity)).toBeGreaterThan(0);
+        expect(String(light.data?.interiorMaterial)).toMatch(/lamp-oil$/);
+        // Sold dry: the oil is the shop's other line.
+        expect(light.data?.interiorAmount).toBeUndefined();
+      }
     }
     // The waterskin is a real fluid holder (a capacity to fill).
     const skin = load(STORE_DIR, "thing/waterskin.yaml");

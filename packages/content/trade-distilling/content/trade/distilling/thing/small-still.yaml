@@ -41,12 +41,10 @@ data:
   # as a finding, not fixed here — it belongs to the fire/energy slate.
   burnTemperatureK: 358
   bellowsMultiplier: 1
-  fuelBurnRatePerMin: 0.1
-  reserves:
-    fuel:
-      capacityValue: 100
-      currentValue: 100
-      unit: "%"
-      theme: combustion
-      floorEffect: null
-
+  # ⭐ The fire build: fuel is a BED (kilograms, by material) that
+  # `stoke` fills, and the vessel's size is a POWER rather than a
+  # percentage-per-minute of nothing. What it reaches depends on what
+  # is in it.
+  # The same, a quarter the size: a parlour still you stoke by the handful.
+  maxBurnPowerW: 4000
+  fuelCapacityKg: 12

@@ -57,6 +57,7 @@ import type { Containable } from '../../../../lib/spatial/Containable';
 import type { Burner } from '../../../../lib/fire/Burner';
 import type { Recipe, RecipeInputSlot } from '../../../../lib/craft/Recipe';
 import type RecipeCatalogue from '../../RecipeCatalogue';
+import type { Atmospheric } from '../../../../lib/biome/Atmospheric';
 import { MixinApi } from '../../../../api/mixin';
 import { MessageApi } from '../../../../api/message';
 import { Mml } from '../../../../api/mml';
@@ -64,6 +65,8 @@ import { StuffApi } from '../../../../api/stuff';
 import { ContainmentApi } from '../../../../api/containment';
 import { SchedulerApi } from '../../../../api/scheduler';
 import { ManualBuildStep } from '../../../../lib/craft/ManualBuildStep';
+import { Quantity } from '../../../../lib/quantity';
+import type { CompositionEntry } from '../../../../lib/material/Material';
 
 const TOPIC = 'act.deed';
 
@@ -277,6 +280,27 @@ export default class FireController extends CommandController<FireModel> {
  * because a kiln does not stop because somebody left; only the telling of it
  * needs a listener.
  */
+/**
+ * Put `litres` of a substance into the air of whatever place `from` is
+ * standing in. The outward walk to the first `Atmospheric` ancestor with
+ * a volume — the same one a fire's exhaust takes.
+ */
+function emitIntoScope(from: Stuff, materialPath: string, litres: number): void {
+  let at: Stuff | null = from;
+  let depth = 32;
+  while (at !== null && depth-- > 0) {
+    if (
+      MixinApi.isAtmospheric(at) &&
+      MixinApi.isContainer(at) &&
+      (at as unknown as Atmospheric).getVolume() !== null
+    ) {
+      (at as unknown as Atmospheric).addAtmosphereContent(materialPath, litres);
+      return;
+    }
+    at = MixinApi.isContainable(at) ? at.getContainer() : null;
+  }
+}
+
 async function runFiring(
   context: CommandContext,
   kiln: Stuff & Container & Burner,
@@ -293,14 +317,49 @@ async function runFiring(
     const per = Math.max(1, m.slot.count ?? 1);
     consumed.push(...m.items.slice(0, per * firing.batches));
   }
-  // ⭐ The material the output inherits, taken from the FIRST slot's first
-  // item — the recipe's `outputTemplate` carries its own material for a row
-  // that means one (a pot is ceramic whatever the clay was), and nothing
-  // here overrides it. The read is kept because a later recipe may want it.
+  // ⭐ The firing CARRIES its charge (D6). Two intensive/extensive facts
+  // the output inherits when the recipe authors them, and nothing more:
+  //   - under a `massYield > 0`, the output's mass is the consumed
+  //     charge's summed mass × yield ÷ batches (a remelt mints no glass
+  //     from nothing; a batch loses the gall and the gases);
+  //   - an Alloyed output inherits the charge's minor constituents,
+  //     mass-weighted, ON TOP of whatever the output row authored (the
+  //     pot's own iron pickup) — `setAlloying` sums a repeated material.
+  // A recipe that authors neither (burn-lime, every shipped firing) is
+  // byte-identical to before: the clone keeps its template mass and its
+  // own alloying.
+  const massYield = firing.recipe.getMassYield();
+  const totalConsumedKg = consumed.reduce(
+    (n, c) => n + (MixinApi.isTangible(c) ? c.getMass().rawValue() : 0),
+    0,
+  );
+  const mergedCharge: CompositionEntry[] = [];
+  if (totalConsumedKg > 0) {
+    const acc = new Map<string, number>();
+    for (const c of consumed) {
+      if (!MixinApi.isAlloyed(c) || !MixinApi.isTangible(c)) continue;
+      const weight = c.getMass().rawValue() / totalConsumedKg;
+      for (const e of c.getAlloying()) {
+        acc.set(e.materialPath, (acc.get(e.materialPath) ?? 0) + e.fraction * weight);
+      }
+    }
+    for (const [materialPath, fraction] of acc) {
+      mergedCharge.push({ materialPath, fraction });
+    }
+  }
+
   const outputs: Stuff[] = [];
   for (let i = 0; i < firing.batches; i += 1) {
     try {
       const made = await StuffApi.clone<Stuff>(firing.recipe.getOutputTemplate());
+      if (massYield > 0 && MixinApi.isTangible(made)) {
+        made.setMass(
+          Quantity.of((totalConsumedKg * massYield) / firing.batches, 'kg'),
+        );
+      }
+      if (MixinApi.isAlloyed(made) && mergedCharge.length > 0) {
+        made.setAlloying([...made.getAlloying(), ...mergedCharge]);
+      }
       if (MixinApi.isContainable(made)) {
         ContainmentApi.move(made as Stuff & Containable, kiln);
       }
@@ -323,6 +382,40 @@ async function runFiring(
       return;
     }
   }
+  // ⭐⭐ **The volatiles — the third product of a firing.** What leaves
+  // the charge is as valuable as what stays: wood gives tar, coal gives
+  // tar and a gas. The litres are computed off the mass actually
+  // consumed, and then **the CHAMBER routes them** — the platform never
+  // names a trade's receiver.
+  //
+  // ⚠ A structural probe (`receiveVolatiles` on the host), not a mixin
+  // narrowing: the `analyze water` shape-not-mixin rule. The kernel
+  // cannot import `trade-fuel`'s Retort, and it does not need to — it
+  // needs to know whether this chamber knows what to do with vapour.
+  // A chamber that does not emits into its own scope, which is why
+  // firing a retort with no condenser makes the room smell of tar.
+  const volatiles = firing.recipe.getVolatiles();
+  if (volatiles.length > 0) {
+    let chargeKg = 0;
+    for (const item of consumed) {
+      if (MixinApi.isTangible(item)) chargeKg += item.getMass().rawValue();
+    }
+    if (chargeKg > 0) {
+      const receiver = kiln as unknown as {
+        receiveVolatiles?: (materialPath: string, litres: number) => void;
+      };
+      for (const v of volatiles) {
+        const litres = v.litresPerKg * chargeKg;
+        if (!(litres > 0)) continue;
+        if (typeof receiver.receiveVolatiles === 'function') {
+          receiver.receiveVolatiles(v.material, litres);
+        } else {
+          emitIntoScope(kiln, v.material, litres);
+        }
+      }
+    }
+  }
+
   for (const item of consumed) await StuffApi.destruct(item);
 
   if (MixinApi.isAdvancing(giver) && !giver.isDestroyed()) {

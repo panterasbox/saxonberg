@@ -1,0 +1,36 @@
+# ⭐⭐⭐ **Coal in a retort** — the three-product firing, and the one that
+# matters most.
+#
+# Out comes COKE (the sulfur-free fuel that lets an iron trade grow past
+# one forest per furnace), COAL TAR (the waste that organic chemistry was
+# theorised from), and COAL GAS (the first utility any town ever had).
+# Historically in that order of discovery and in reverse order of how
+# much anybody valued them: the gasworks were built for the gas, sold the
+# coke, and poured the tar into the river.
+#
+# ⭐ Every one of the three is reachable with no further code. Coke passes
+# the smelt by TAG; tar boils to pitch through the shipped
+# `purifiedByBoiling` arrow; the gas needs a sealed vessel, which is
+# derived from its boiling point.
+recipeId: retort-coal
+name: Coking
+keywords: [coke, retort, coal, gas, tar]
+inputSlots:
+  - { slot: charge, category: coal, minGrade: poor, kind: item, count: 4 }
+toolCapabilities: []
+outputTemplate: /trade/fuel/thing/coke
+outputMaterial: ''
+outputApplication: tangible
+# ⚠ Hotter than the wood firing, which is what coking actually needs —
+# and therefore a charge of coke or charcoal in the firebox rather than
+# cordwood, because oak's flame tops out at ~1340 K and this wants to be
+# held well above a wood fire's working heat for hours.
+requiresHeatK: 1100
+difficulty: hard
+discipline: colliery
+# ⭐ The gas figure is the one that is nearly honest: a kg of coal really
+# does give ~300 L of town gas. The tar is scaled like the wood firing's,
+# for the same reason.
+volatiles:
+  - { material: /stuff/idea/material/bulk/coal-tar, litresPerKg: 0.04 }
+  - { material: /stuff/idea/material/gas/coal-gas, litresPerKg: 300 }

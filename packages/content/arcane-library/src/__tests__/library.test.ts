@@ -37,12 +37,17 @@ interface Row { class?: string; data?: Record<string, unknown> }
 describe('the arcane library — every row installs', () => {
   const rows = [...yamlFiles(CONTENT)].map((f) => ({ file: f, row: YAML.parse(readFileSync(f, 'utf-8')) as Row }));
 
-  it('ships forty-one rows: 19 spells, 2 loci, 17 items, 3 draughts', () => {
+  it('ships forty-three rows: 20 spells, 3 loci, 17 items, 3 draughts', () => {
     // 31 → 36: frost (injury) + the four magic-expression workings
     // (stonefist, stone-lance, windrazor, acid-splash) took the spell
     // count from 13 to 18. 36 → 40: a wand for each of those four
     // workings, so a non-caster can wield them (items 13 → 17).
-    expect(rows).toHaveLength(41);
+    // ⭐ 41 → 43: the fire build's `conjure-flame` and the WORKED FLAME
+    // it calls up — a third locus, and the first one that is a `Burner`
+    // rather than a bare light. It takes no exemption from the physics
+    // a hearth obeys: it cooks, it smokes if you choke it, and a room
+    // with no air puts it out.
+    expect(rows).toHaveLength(43);
   });
 
   it('every class resolves — the loci into this pack, the item classes into arcana, the rest into the kernel', async () => {
@@ -67,7 +72,9 @@ describe('the arcane library — every row installs', () => {
     // pass added the four channel workings magic never reached —
     // stonefist, stone-lance, windrazor, acid-splash. None names a locus
     // (the two loci below are unchanged), so only the count moves.
-    expect(spells).toHaveLength(19);
+    // ⭐ 19 → 20: `conjure-flame`, which DOES name a locus — the third,
+    // and the only one that burns.
+    expect(spells).toHaveLength(20);
     const named = new Set<string>();
     for (const { file, row } of spells) {
       for (const raw of row.data!.effects as unknown[]) {
@@ -77,7 +84,11 @@ describe('the arcane library — every row installs', () => {
         expect(e, file).toBeTruthy();
       }
     }
-    expect([...named].sort()).toEqual(['/stuff/thing/magic/glowlight-mote', '/stuff/thing/magic/spark-locus']);
+    expect([...named].sort()).toEqual([
+      '/stuff/thing/magic/glowlight-mote',
+      '/stuff/thing/magic/spark-locus',
+      '/stuff/thing/magic/worked-flame',
+    ]);
     const paths = rows.map((r) => '/' + r.file.slice(CONTENT.length + 1).replace(/\.yaml$/, ''));
     for (const p of named) expect(paths).toContain(p);
   });

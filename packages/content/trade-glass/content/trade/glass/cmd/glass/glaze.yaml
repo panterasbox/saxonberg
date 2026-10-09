@@ -1,0 +1,23 @@
+verbs: [glaze]
+controller: /trade/glass/idea/cmd/glass/GlazeController
+description: "Set a glass pane in a window"
+help: |
+  `glaze pane in window` sets a blown pane into a window. A coloured pane
+  colours the light the window lets into the room — the first window that
+  does something. The pane is consumed into the window.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  - name: pane
+    type: object
+    required: true
+    scope: ["reachable"]
+    requires: TintedMixin
+  - name: window
+    type: object
+    required: true
+    prepositions: [in, into]
+    scope: ["reachable"]
+    requires: any

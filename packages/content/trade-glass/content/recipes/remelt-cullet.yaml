@@ -1,0 +1,25 @@
+# Remelt cullet — broken glass back to a pot of melt. The one-way-green
+# arrow in a recipe: `massYield: 1.0` returns ALL the glass (breaking is
+# not melting; glass pays its entropy in colour, not mass — the W1 salvage
+# branch returns cullet whole), and the firing merges the cullet's iron
+# plus the pot's pickup, so what comes back is never cleaner than it went
+# in. Cheaper than raw batch: `requiresHeatK: 1200`, below the 1400 the
+# reaction needs — cullet is already glass, so no bellows, observably.
+#
+# ⚠ Matched on the `glass` material tag, so a whole BOTTLE in the kiln
+# also remelts — correct: a bottle is glass, and that is how you recycle a
+# finished piece.
+recipeId: remelt-cullet
+name: Remelt cullet
+keywords: [cullet, remelt, "melt cullet", recycle]
+inputSlots:
+  - { slot: cullet, category: glass, minGrade: poor, kind: item, count: 1 }
+toolCapabilities: []
+outputTemplate: /trade/glass/thing/melt
+outputMaterial: ''
+outputApplication: tangible
+requiresHeatK: 1200
+maxHeatK: 1900
+massYield: 1.0
+difficulty: easy
+discipline: glasswork

@@ -1,0 +1,36 @@
+# The worked flame — the `conjure flame` spell's locus, the row its
+# `emit-field` effect names.
+#
+# ⭐ A row and a 20-line class, on the glowlight mote's exact shape. The
+# executor clones whatever `locus:` the row says — no default, no
+# fallback — so a `Burner`-composing locus needs no kernel magic edit.
+#
+# ⚠ `emittedIntensity` is a CEILING, like every burner's. A worked flame
+# has no matter in it, so it burns at the CLEAN floor (0.15) and reads
+# noticeably dim — which is how a player tells a worked fire from a real
+# one by looking, and is the whole observable of the thing.
+class: /arcane-library/thing/WorkedFlame
+data:
+  shortDescription: worked flame
+  keywords: [flame, fire, working, "worked flame"]
+  register: definite
+  longDescription: >-
+    A hand's-breadth of pale fire standing on nothing at all, perfectly
+    steady, with no fuel under it and no smoke above it. It is warm — too
+    warm to hold a hand in — and it throws much less light than a fire
+    that size has any right to.
+  lit: true
+  emittedIntensity: 180
+  emittedColorTemperature: 2200
+  # ⭐⭐ A gram, and it is the honest figure rather than a dodge past
+  # `lint:mass`. **A flame is incandescent GAS, and hot gas weighs
+  # something** — a hand's-breadth of it at 900 K is about this. ⚠ The
+  # thing a worked flame has no matter in is its FUEL: nothing is being
+  # consumed, which is why there is nothing to stoke and no soot. That is
+  # a different claim from the flame itself being nothing, and the
+  # distinction is exactly what the gate asks a row to make.
+  #
+  # ⭐ The glowlight mote is the contrast and stays a counted offender,
+  # correctly: light really is massless, and the gate's verdict on it is
+  # right rather than something to paper over.
+  mass: 0.001

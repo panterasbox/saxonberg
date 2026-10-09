@@ -112,4 +112,35 @@ export default class Candle extends SmellSourceMixin(Lamp) {
     this.setOdorIdentity(name);
     this.setEmittedConcentration(CANDLE_SMELL_PPM);
   }
+
+  /**
+   * ⭐⭐ Charge the fuel bed with the fat it was dipped in — the sibling
+   * of {@link Candle.adoptMaterialSmell}, called from the same place for
+   * the same reason.
+   *
+   * A candle is a `Burner` whose fuel is ITSELF, and since the fire
+   * build a burner's fuel is a BED (kilograms, by material) rather than
+   * a `%` Reserve that could not say what the flame was burning. The row
+   * ships a tallow bed because a candle off a counter is a tallow
+   * candle; a dipped one replaces it with whatever was in the pot, so
+   * what it is made of still decides what it is — and the flame
+   * temperature a beeswax taper reaches is beeswax's 42 MJ/kg rather
+   * than tallow's 38, which is one more reason beeswax was worth its
+   * price.
+   *
+   * ⚠ Mass, not a fraction: the bed is the whole candle, because burning
+   * one down is what consumes it. A candle minted with no material keeps
+   * the row's default rather than ending up with an empty bed — an
+   * unlightable light is the defect this build found twice.
+   */
+  public adoptMaterialFuel(): void {
+    if (!MixinApi.isTangible(this)) return;
+    const material = this.getMaterial();
+    if (!material) return;
+    const path = material.getTemplatePath();
+    if (!path) return;
+    const kg = this.getMass()?.rawValue() ?? 0;
+    if (!(kg > 0)) return;
+    this.fuelBed = { [path]: kg };
+  }
 }

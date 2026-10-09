@@ -14,6 +14,7 @@ import {
   seedKernelContentStore,
 } from '../../lib/security/__tests__/test-setup';
 import type { LightConduit, LineOfSight } from '../../lib/boundary/Conduit';
+import { Colour } from '../../lib/perception/Colour';
 
 describe('Window', () => {
   beforeEach(() => {
@@ -146,5 +147,70 @@ describe('Window', () => {
     BoundaryApi.destruct(w);
     expect(a.getFixtureBoundaries()).toEqual([]);
     expect(b.getFixtureBoundaries()).toEqual([]);
+  });
+});
+
+describe('Window.lightTransmittance — glaze, tint, shut (W0)', () => {
+  beforeEach(() => {
+    seedKernelContentStore();
+  });
+  afterEach(() => {
+    StuffApi.clearAll();
+  });
+
+  it('an open, unglazed, untinted window is clear (UNDYED)', async () => {
+    const w = await StuffApi.create(() => new Window());
+    w.open();
+    const c = w.lightTransmittance();
+    expect(c.r).toBe(1);
+    expect(c.g).toBe(1);
+    expect(c.b).toBe(1);
+  });
+
+  it('an authored colorTint colours the light by its palette word', async () => {
+    const w = await StuffApi.create(() => new Window());
+    w.open();
+    w.setColorTint('green');
+    expect(w.lightTransmittance().nearestTag()).toBe('green');
+  });
+
+  it('glazing WINS over the authored tint', async () => {
+    const w = await StuffApi.create(() => new Window());
+    w.open();
+    w.setColorTint('green');
+    w.setGlazing(Colour.of(1, 0.1, 0.1)); // red glass set over a green-tinted row
+    expect(w.lightTransmittance().nearestTag()).toBe('red');
+    expect(w.getGlazing()).not.toBeNull();
+  });
+
+  it('clearing the glaze falls back to the authored tint', async () => {
+    const w = await StuffApi.create(() => new Window());
+    w.open();
+    w.setColorTint('green');
+    w.setGlazing(Colour.of(1, 0.1, 0.1));
+    w.setGlazing(null);
+    expect(w.getGlazing()).toBeNull();
+    expect(w.lightTransmittance().nearestTag()).toBe('green');
+  });
+
+  it('a SHUT window imparts no colour (it passes no light)', async () => {
+    const w = await StuffApi.create(() => new Window());
+    w.setGlazing(Colour.of(1, 0.1, 0.1));
+    // Window starts closed.
+    const c = w.lightTransmittance();
+    expect(c.r).toBe(1);
+    expect(c.g).toBe(1);
+    expect(c.b).toBe(1);
+  });
+
+  it('the LightConduit exposes transmittanceColour', async () => {
+    const w = await StuffApi.create(() => new Window());
+    w.open();
+    w.setGlazing(Colour.of(1, 0.1, 0.1));
+    const conduit = w
+      .getConduits()
+      .find((c) => c.conduitKind === 'light') as LightConduit;
+    expect(conduit.transmittanceColour).toBeDefined();
+    expect(conduit.transmittanceColour!('A', 'B').nearestTag()).toBe('red');
   });
 });

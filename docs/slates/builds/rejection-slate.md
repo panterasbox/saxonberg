@@ -21,6 +21,14 @@
 > drive walks between them. Deliberately deferred by the user to a dedicated
 > content pass that builds out what 1.0 ships for real; this is that pass's
 > work.
+> ⭐⭐ **Added 2026-10-07 (content pass):** the **1996 prototype** is on
+> disk (`zone/null/spiffy/areas/minetown/` — Sue, Tina, the pogo stick,
+> BobCode, and a handyman shop with no handymen in it) · **residents
+> decided — yes, but not the miners**, and Val and Earl may be the whole
+> local cast · **the graboids are TERRAIN, not a boss**, which hands the
+> town its tactical game (⭐ § Dirt dragons states it best: **the mine
+> manufactures its own threat** and **the industry is the dinner bell**) ·
+> ⭐ the two eras are a **synthesis**, settled, not a tension to resolve.
 > **Size:** a build
 
 Mechanics: [mining-slate](./mining-slate.md) — the four play layers, the
@@ -145,6 +153,160 @@ instrument rows are private to her, so she is the first consumer of the
 
 ---
 
+## ⭐⭐⭐ The 1996 prototype — and it survives
+
+Added 2026-10-07. Rejection's cast is not a fresh invention: a version of
+it was built for EotL and never published, and **it is still on disk** at
+`zone/null/spiffy/areas/minetown/`.
+
+```
+room/   diner.c  handy.c  trailer.c  plant.c  road1-4.c
+mon/    sue.c  suecc.c  tina.c
+obj/    pogostick.c
+mov/    tinapogo.mov  tinadiner.mov  tinafind.mov  tinanewguy.mov
+        suediner.mov  suemoney.mov
+```
+
+⚠ **`room/handy.c` is seven lines — *"a handymans shop"* — and there is no
+`val.c` or `earl.c`.** But Val existed concretely enough to be read:
+
+```c
+// tina.c, fixcheck()
+if( objectp(val=present("val",ENV(THISO))) && val->query("working") ) {
+    mp_setup(MOV "tinabother");
+```
+
+⭐ A `working` property on Val, and a program for a child pestering him
+while he is busy. **`tinabother.mov` was never written.** The hook
+survives and the handymen do not — which is the same scar as the shop.
+
+### What the prototype already had, and where it now lives
+
+The NPCs were written in **BobCode** (`doc/mudlib/bobcode.doc`), whose
+opening sentence is this project's thesis stated thirty years early:
+
+> *"This allows you to have your monsters **take on activities and
+> interaction when alone, rather than just sit around and wait to be
+> killed.**"*
+
+`tina.c` carries, in 199x LPC:
+
+| what she has | where it lives now |
+|---|---|
+| `friends` / `foes` string arrays, `save_object` across reboots | [belief.md](../../subsystems/belief.md) — per-viewer identity memory |
+| three-tier recognition (stranger / known / attacked) | regard + the auto-introduce feature |
+| `set_msgin("pogoes in")` by mode; short changes with her state | [presentation.md](../../subsystems/presentation.md) — the late-bound forms |
+| a route program with `@groundcheck` between every move | [behavior.md](../../subsystems/behavior.md) — brains with `candidate` triggers |
+| halting every other NPC's program to stage one scene | `StagedMixin`'s troupe, and nothing else yet |
+
+⭐⭐ **So the cast table above is a re-derivation of something that
+already ran.** Tina is a working prototype of the belief and presentation
+layers, and the only thing she lacked was a platform willing to
+generalize her.
+
+### ⭐⭐ Sue is the model for how a business should be written
+
+`sue.c`'s description is three economic facts, all of them personal:
+
+> *"Her husband died some years back in a freak mining accident, so now
+> she runs this place to support her daughter, Tina. It's not much, but
+> **the owner of the plant kicks in money to help 'em out once a month**
+> too. The town likes 'em here, so they have **fairly little problem
+> paying the bills.**"*
+
+The industry killed her husband, which is why the diner exists; the plant
+owner pays her monthly **off the books**, so the town's welfare is a man
+rather than an institution; and **she is solvent because the town likes
+her** — her regard *is* her revenue.
+
+⭐⭐⭐ **The character's circumstances ARE the economy.** Not a business
+with a person attached — a business that is the consequence of what
+happened to somebody. That is the standard for every premises in
+Rejection. See [content-craft.md § 3](../../content-craft.md).
+
+⚠ And one defect worth keeping as a warning: the best line in Minetown
+has **never fired.** `call_out(#'command,12,"I swear that girl'd lose her
+head if it weren't attached...",THISO)` is missing its `say`, so it would
+parse as a command verb and fail — and nobody noticed in thirty years,
+because reaching it requires dropping *an item Tina herself owns* in
+front of her mother.
+
+## ⭐ The two eras are a SYNTHESIS — settled, do not re-litigate
+
+The name is the prequel's. *Tremors 4* (1889) is set in **Rejection,
+Nevada**, an active silver mining town that renames itself **Perfection**
+at the end — so the two films are the same place a century apart, and
+⭐⭐ **the rename is the resource town's obituary**: Rejection while the
+silver is coming out, Perfection once there is nothing left to be rejected
+from. `settlement-model`'s *"they die when the seam runs out"* is the
+hundred years between them.
+
+⭐ Rejection's cast draws on **both**, deliberately — Val, Earl and Rhonda
+from 1990 (the dead-mine town of handymen and a diner), the name, the
+active workings and *dirt dragons* from 1889. **Decided 2026-10-07: it is
+a synthesis and all of it is in bounds.** A drafting note that treated the
+era mismatch as a tension to resolve was wrong; there is nothing to
+resolve.
+
+⭐ Loose hooks the prequel leaves, take or leave: an **absentee mine owner
+who has to show up** (Hiram Gummer, Burt's great-grandfather — and the
+Veshko buyout arc is already shaped like him); a **store proprietor** with
+a counter rather than a diner; a **hired gun who dies almost immediately**,
+which is *"nobody wins a fight with one"* delivered as genre subversion;
+and **silver**, which `rgo-unification-slate` lists under *missing
+entirely*.
+
+## ⭐⭐ Residents — yes, but not the miners
+
+**Decided 2026-10-07.** The town has residents; **the miners are not
+among them.** What locals staff is the *supporting* economy, and for a
+town of this type that is very small — ⭐ **Val and Earl may be all it
+needs.**
+
+That is not a shortfall against the settlement model, it is the model
+being honest: Perfection, NV has a population of fourteen and that is the
+point of it. Rejection is a resource town under this document's own death
+sentence, so ⚠ **it should feel underpopulated.**
+
+⭐⭐⭐ **And the handyman is a content-coverage solution that is also a
+character.** A generalist can plausibly fill any economic hole, and a
+dying town can only *afford* generalists — the specialist left years ago.
+So Rejection does not want a general store and a realty office and a
+registry; it wants **two men who do all of it, badly, and resent it.**
+Being underemployed and taking any job is who they are, so the coverage
+comes out of the character sheet rather than in spite of it.
+
+⭐ And Val's existing `Wants` cell — *the fare out, a money threshold* —
+is the settlement model as character. **The people still here are the
+ones who have not left yet, and the town's dying is what keeps them.**
+
+## ⭐⭐ The adult is not a boss — the source says so twice
+
+⭐ [§ Dirt dragons](#dirt-dragons) below is the primary treatment. This is
+only the reading from the source, kept because it arrives independently at
+the same place.
+
+⚠ **Nobody in *Tremors* wins a fight.** Burt and Heather kill one because
+they were **already prepared and everybody thought they were paranoid** —
+the rec room full of guns is a joke until it isn't. Everything else is
+traps, terrain, and somebody having an idea: the pipe, the bulldozer, the
+pole vault, the cliff. ⭐ And the prequel hires a **gunfighter who dies
+almost immediately**, which is the same argument delivered as genre
+subversion: the western's answer fails.
+
+⭐⭐ So the encounter is **a situation that pays off having prepared and
+having an idea.** Reaching for a boss fight is the same mis-borrow as
+reaching for environmental storytelling in a world that runs — see
+[content-craft.md § 5](../../content-craft.md).
+
+⚠ And the traps are **shipped and unused**
+([hazard.md](../../subsystems/hazard.md), `TrapKit` in
+[stealth.md](../../subsystems/stealth.md)). The content question is
+whether a player can **set** one, not whether they can find one — an
+improvised trap is the only version that reproduces the source.
+
+---
+
 ## Dirt dragons
 
 The mining slate's apex predator, named and given a body. **One species, two
@@ -187,7 +349,9 @@ invisible to a dragon.
 the mining slate's danger list — a miner's word for a thing that flies and
 burns. And *whelps* is **wrong**: the town thinks they are juvenile dragons;
 they are a separate life stage. A folk taxonomy corrected by observation is
-exactly the epistemics the prospecting layer is built on.
+exactly the epistemics the prospecting layer is built on — ⭐⭐ and the
+general form is [content-craft.md § 8a](../../content-craft.md): **a wrong
+name is content; ignorance is only absence.**
 
 ⭐ **Whelps reproduce by eating** — eat enough, split, exponential. An
 unchecked outbreak has a doubling time, so the town either responds together

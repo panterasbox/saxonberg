@@ -238,3 +238,45 @@ describe('⚠⚠ the palette does not drift from the client', () => {
     for (const tag of Colour.sharedTags()) expect(emitted.has(tag)).toBe(true);
   });
 });
+
+describe('Colour.fromTag — the word → position inverse', () => {
+  it('a palette word round-trips to a position that names itself', () => {
+    const green = Colour.fromTag('green');
+    expect(green).not.toBeNull();
+    expect(green!.nearestTag()).toBe('green');
+  });
+
+  it('an unknown word is null (so a caller can fall back, not mis-colour)', () => {
+    expect(Colour.fromTag('chartreuse-neon')).toBeNull();
+    // ⚠ `magenta` is deliberately NOT in the palette (W0 risk 5).
+    expect(Colour.fromTag('magenta')).toBeNull();
+  });
+});
+
+describe('Colour.normalise — the hue, stripped of total light', () => {
+  it('scales the largest channel to 1 and keeps the ratios', () => {
+    const n = Colour.normalised(0.4, 0.04, 0.04);
+    expect(n.r).toBeCloseTo(1, 6);
+    expect(n.g).toBeCloseTo(0.1, 6);
+    expect(n.b).toBeCloseTo(0.1, 6);
+  });
+
+  it('a dim red and a bright red normalise to the same hue', () => {
+    const dim = Colour.of(0.2, 0.02, 0.02).normalise();
+    const bright = Colour.of(1, 0.1, 0.1).normalise();
+    expect(dim.r).toBeCloseTo(bright.r, 6);
+    expect(dim.g).toBeCloseTo(bright.g, 6);
+    expect(dim.b).toBeCloseTo(bright.b, 6);
+  });
+
+  it('all-zero chroma is UNDYED (no colour information → white)', () => {
+    expect(Colour.normalised(0, 0, 0)).toBe(Colour.UNDYED);
+  });
+
+  it('white normalises to white', () => {
+    const n = Colour.UNDYED.normalise();
+    expect(n.r).toBe(1);
+    expect(n.g).toBe(1);
+    expect(n.b).toBe(1);
+  });
+});

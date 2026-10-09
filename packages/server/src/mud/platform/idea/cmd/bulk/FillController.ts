@@ -99,6 +99,23 @@ export default class FillController extends CommandController<FillModel> {
       }
     }
 
+    // ⭐⭐ Escape: a GAS into something that will not hold it. ⚠ Checked
+    // BEFORE the `applied <= 0` arm, because an escape DID move litres —
+    // out of the source and into the room's air — so "you can't fill it"
+    // would be both wrong and dangerous.
+    if (result.status === 'escaped') {
+      MessageApi.scene(giver)
+        .topic(TOPIC)
+        .toSelf(
+          Mml.compose`It will not stay in ${Mml.thing(target)} — it is gone into the air.`,
+        )
+        .toPeers(
+          Mml.compose`${Mml.actor(giver)} loses a charge of gas into the air.`,
+        )
+        .send();
+      return;
+    }
+
     if (result.applied <= 0) {
       MessageApi.scene(giver)
         .topic(TOPIC)

@@ -1,0 +1,29 @@
+# ⭐⭐ The glass batch — sand + ash + lime → a pot of molten glass. The
+# lime-burner's comment made good: a pack that ships a glass batch ships a
+# ROW beside burn-lime and touches no code. `fire <kiln>` reads the charge,
+# finds this recipe, holds the heat and clones the melt.
+#
+# Matched on material TAGS, never row paths: `silica` (the sand, the
+# former), `potash` (the collier's ash, the flux), `alkali` (the lime).
+# So any sand, any wood ash and any lime answer.
+#
+# ⚠ `requiresHeatK: 1400` — ABOVE glass's 1300 K liquidus, because the
+# batch REACTION (not just melting) needs the extra, which is the bellows.
+# `massYield: 0.72` — the gall and the gases are the ~28% that does not
+# come out as glass. The firing carries the sand's iron onto the melt.
+recipeId: glass-batch
+name: Glass batch
+keywords: [glass, batch, "glass batch", frit]
+inputSlots:
+  - { slot: sand, category: silica, minGrade: poor, kind: item, count: 2 }
+  - { slot: flux, category: potash, minGrade: poor, kind: item, count: 1 }
+  - { slot: lime, category: alkali, minGrade: poor, kind: item, count: 1 }
+toolCapabilities: []
+outputTemplate: /trade/glass/thing/melt
+outputMaterial: ''
+outputApplication: tangible
+requiresHeatK: 1400
+maxHeatK: 1900
+massYield: 0.72
+difficulty: standard
+discipline: glasswork

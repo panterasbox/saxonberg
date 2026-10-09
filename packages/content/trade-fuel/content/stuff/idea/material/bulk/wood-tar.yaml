@@ -1,0 +1,32 @@
+# Wood tar — ⭐ what a clamp throws away and a retort keeps.
+#
+# Cook wood in a closed chamber and the carbon stays behind as charcoal
+# while everything else leaves: a black, sticky, resinous liquid that has
+# been the sealant of every wooden boat and rope in history. ⚠ The clamp
+# has been making this and venting it for the whole life of the pack —
+# that is what the smoke coming out of a charcoal burn IS.
+#
+# ⭐ `purifiedByBoiling` is the shipped arrow between two authored
+# materials, so boiling tar down to pitch needs no new mechanism and no
+# new verb: the `boil` verb a fire already affords does it. The word
+# *purified* is a stretch (you are driving off the light fraction, not
+# cleaning it) and the volume does not reduce; both are recorded as seams
+# rather than worked around.
+class: /platform/idea/material/Material
+data:
+  name: wood tar
+  keywords: [tar, "wood tar", stockholm]
+  appearance: a black, sticky, resinous liquid
+  density: 1100
+  specificHeat: 1800
+  thermalConductivity: 0.17
+  boilingPoint: 520
+  heatOfCombustion: 36
+  autoignitionTemperature: 680
+  purifiedByBoiling: /stuff/idea/material/bulk/pitch
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: [bulk, organic, flammable, tar]
+  composition: []
+  biologicalSource: null

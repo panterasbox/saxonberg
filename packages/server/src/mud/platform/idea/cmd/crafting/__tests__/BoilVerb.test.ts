@@ -27,6 +27,8 @@
  */
 
 import '../../../../../../test-bootstrap';
+import { chargeHot } from '../../../../../lib/fire/__tests__/burner-fuel';
+import type { Burner } from '../../../../../lib/fire/Burner';
 import { ThermalMixin } from '../../../../../lib/thermal/Thermal';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import BoilController from '../BoilController';
@@ -155,21 +157,21 @@ function makeCauldron(material: Material): TestCauldron {
   return c;
 }
 
-function fire(fuelPct: number): Forge {
-  return makeStuff(() => {
-    const f = new Forge();
-    f.setBurnTemperatureK(900);
-    f.setReserve(
-      new Reserve(
-        'fuel',
-        Quantity.of(100, '%'),
-        Quantity.of(fuelPct, '%'),
-        'combustion',
-        null,
-      ),
-    );
-    return f;
+/**
+ * A forge, lit or out. ⚠ "Out" is now an EMPTY BED rather than an empty
+ * `%` reserve, and `BurnerMixin.lit` defaults TRUE — so a fire with no
+ * fuel is still `lit` and `reachableHeatK` has always counted only
+ * burners that are lit AND fuelled. That is what makes `no-heat` the
+ * honest refusal here.
+ */
+function fire(fuelKg: number): Forge {
+  const f = makeStuff(() => {
+    const x = new Forge();
+    x.setBurnTemperatureK(900);
+    return x;
   });
+  if (fuelKg > 0) chargeHot(f as unknown as Stuff & Burner, fuelKg);
+  return f;
 }
 
 let actor: TestActor;
@@ -180,7 +182,7 @@ async function stand(lit: boolean): Promise<void> {
   room = makeStuff(() => new Location());
   actor = makeStuff(() => new TestActor());
   await ContainmentApi.move(actor as never, room as never);
-  await ContainmentApi.move(fire(lit ? 100 : 0) as never, room as never);
+  await ContainmentApi.move(fire(lit ? 40 : 0) as never, room as never);
 }
 
 /** Run `boil`, then let the engaged step complete. */

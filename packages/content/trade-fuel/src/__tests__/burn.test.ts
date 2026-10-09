@@ -129,7 +129,18 @@ describe('the charcoal burn', () => {
     expect(product).not.toHaveProperty('autoignitionPoint');
     expect(product).not.toHaveProperty('fuelValue');
     const material = row('stuff/idea/material/organic/charcoal.yaml').data as Record<string, unknown>;
-    expect(material.autoignitionPoint).toBe(620);
+    // ⚠⚠ The key is `autoignitionTemperature`. This row said
+    // `autoignitionPoint` — which is not a field — for the life of the
+    // pack, so charcoal's autoignition read ZERO and `tryAutoignite`
+    // would never have caught it from a neighbouring fire. ⭐ The
+    // assertion asserted the DEFECT: it pinned the misspelling in place,
+    // which is what an authored-key test does when it is written off the
+    // row instead of off the field.
+    expect(material.autoignitionTemperature).toBe(620);
+    expect(material).not.toHaveProperty('autoignitionPoint');
+    // ⭐ And the number the fire build actually reads: 30 MJ/kg is why
+    // charcoal reaches a smelting ceiling and oak (16) does not.
+    expect(material.heatOfCombustion).toBe(30);
     expect((material.tags as string[])).toContain('fuel');
   });
 

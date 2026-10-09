@@ -660,6 +660,14 @@ const IGNORED_PATH_FIELDS: readonly string[] = [
   // one, and '' for an unattributed bag. Like `donorIdentityPath` it keys a
   // party, never cites a template row, so there is no row for it to dangle.
   'donorKey',
+  // ⭐ A Window's `attachedHosts` names the two rooms it joins, but its
+  // setter resolves each through `StuffApi.singleton` (lazy-clone) at
+  // apply time and the per-side `BoundaryAnchor`s are the runtime wiring —
+  // so a host that does not yet exist is minted, not a dangling citation,
+  // and the anchors fail closed. The first authored windows (the glass
+  // build's glazier's hut) are what surfaced the field. See light.md /
+  // glass.md.
+  'attachedHosts',
 ];
 
 /**

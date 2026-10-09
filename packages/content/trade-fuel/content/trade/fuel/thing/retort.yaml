@@ -1,0 +1,39 @@
+# The retort — ⭐⭐ the clamp's capitalised sibling.
+#
+# A brick chamber with an iron door and a pipe out of the top. Load it,
+# stoke the firebox under it, light it and `fire` it: the charge cooks,
+# and what leaves goes up the pipe to whatever is standing on the head.
+#
+# ⭐ It affords NOTHING new. `fire`, `stoke`, `draught`, `cover`, `ignite`
+# and `douse` all reach it through `BurnerMixin`, and which recipe fires
+# is decided by what is in the chamber — wood gives charcoal and tar,
+# coal gives coke and tar and gas. A third feedstock is a third recipe
+# row and no code at all.
+#
+# ⚠ `placements: [on]` and not a bespoke `outlet` member: the Placement
+# vocabulary is a ROW set (`on`, `in`, `from`) and a member naming no row
+# makes `place` refuse in the vocabulary's own words. A condenser stands
+# ON the retort, which is both true and already expressible.
+class: /trade/fuel/thing/Retort
+data:
+  shortDescription: brick retort
+  keywords: [retort, chamber, brick, oven]
+  register: definite
+  longDescription: >-
+    A squat brick chamber with a cast-iron door at the front and a short
+    firebox beneath it, and a pipe off the crown of it bent over into
+    whatever will take what comes out. The brick above the door is burnt
+    to the colour of a new pot.
+  _materialPath: /stuff/idea/material/ceramic/ceramic
+  mass: 2200
+  fixedInPlace: true
+  placements: [on]
+  # ⚠ Hot enough to coke coal (1100 K) with a margin, which is what makes
+  # the coal firing possible at all — and reachable only with a charge of
+  # charcoal or coke in the firebox, because oak's flame tops out near
+  # 1340 K and the starvation factor eats into that.
+  burnTemperatureK: 1500
+  bellowsMultiplier: 1
+  lit: false
+  maxBurnPowerW: 14000
+  fuelCapacityKg: 60

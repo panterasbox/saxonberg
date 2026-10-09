@@ -731,11 +731,25 @@ function meltingPointKOf(metal: Material): number {
 }
 
 /**
- * A charcoal clamp: the one furnace in the game whose draught is a dial
- * somebody sets, because keeping the air out is what it is FOR.
+ * A charcoal clamp: the one furnace in the game that has a CHARRING BAND
+ * — a range of draughts between burning the charge to ash and leaving it
+ * half-burnt brands.
+ *
+ * ⚠⚠ This duck-typed on `getDraught` until the fire build, and the fire
+ * build **broke it silently**: `draught` rose onto `BurnerMixin` (every
+ * fire has an air control), so every furnace in the game answered to it
+ * and `smelt` declined *"that is a charcoal clamp"* at a smelting
+ * furnace. ⭐ The pack's own suite caught it, which is the whole case for
+ * a trade keeping tests over its own content.
+ *
+ * The lesson generalises: **duck-typing on a field is only honest while
+ * the field is the thing's own.** `outcomeFor` is the clamp's and will
+ * stay the clamp's — it is the trade's reading of the kernel's dial, and
+ * a trade's reading of a shared number is exactly what does not
+ * generalise.
  */
 function isClamp(item: Stuff): boolean {
-  return typeof (item as unknown as { getDraught?: unknown }).getDraught === 'function';
+  return typeof (item as unknown as { outcomeFor?: unknown }).outcomeFor === 'function';
 }
 
 /** An ore lot: anything that can say what fraction of it is a given metal. */

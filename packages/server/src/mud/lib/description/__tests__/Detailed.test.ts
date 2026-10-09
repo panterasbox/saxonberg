@@ -84,6 +84,14 @@ describe('DetailedMixin', () => {
       // the row supplies the Map on every clone and every boot.
       const fields = MixinApi.getAllPersistentFields(DetailedThing);
       expect(fields).not.toContain('details');
+      // ⭐ …and it is still an INSTRUCTION field, which is what makes a
+      // row's authored `details:` arrive at all. Dropping `persistent`
+      // had to leave AUTHORING untouched, and this is the line that
+      // says so — the two flags are independent, and only one of them
+      // was the defect.
+      expect(MixinApi.getAllInstructionFields(DetailedThing)).toContain(
+        'details',
+      );
     });
 
     it('⚠ the runtime shape is a Map, which is WHY it must not persist', () => {

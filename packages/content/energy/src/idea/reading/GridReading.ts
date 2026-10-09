@@ -5,7 +5,7 @@
  *
  *  - **bare** — the premises you stand in: its power band, the feeder node that
  *    meters it, whether that node is live, and the locality's epoch (electric if
- *    its lighting draws from the grid, gas-lit if it burns oil, off-grid if
+ *    its lighting draws from the grid, oil-lit if it burns oil, off-grid if
  *    neither);
  *  - **on a `LineAccess`** (a pole, a manhole) — the trace back up the line to
  *    the source, naming the first cut on the way (the dark stretch's break).
@@ -131,7 +131,7 @@ export default class GridReading extends Reading {
 
   /**
    * ⭐ The locality's epoch, DERIVED from its lighting supply — never a flag:
-   * electric if it draws from the grid, gas-lit if it burns oil, off-grid if it
+   * electric if it draws from the grid, oil-lit if it burns oil, off-grid if it
    * lights nothing.
    */
   private async epochOf(
@@ -141,7 +141,7 @@ export default class GridReading extends Reading {
     // ⭐ A premises that cites a feeder node IS on the grid — electric —
     // whatever its locality's lighting is (Mayfield Row is addressed outside
     // the city but the main reaches it). Only if nothing reaches the premises
-    // does the locality's lighting supply decide: a FuelStore ⇒ gas-lit, else
+    // does the locality's lighting supply decide: a FuelStore ⇒ oil-lit, else
     // off-grid.
     if (premisesFeeder !== '') return 'electric';
     try {
@@ -153,7 +153,18 @@ export default class GridReading extends Reading {
       )?.getPublicLightingFunding?.();
       const supply = funding?.supply;
       if (supply === GRID_CATALOGUE_PATH) return 'electric';
-      if (typeof supply === 'string' && supply !== '') return 'gas-lit';
+      // ⭐⭐ `oil-lit`, and the word matters. A `FuelStore` holds LAMP
+      // OIL: the town's lamps burn a liquid out of casks, and calling
+      // that gas-lit was simply wrong — it named the wrong fuel, the
+      // wrong supply chain and the wrong century.
+      //
+      // ⚠ `gas-lit` is RESERVED. A town is gas-lit when its supply
+      // burns a GAS, which the fire build has just made possible (coal
+      // gas off a retort, a gasometer to hold it) and which wants a gas
+      // main and a `FuelStore` that stores gas — the power-utility
+      // slate's. Spending the word on oil now would make the real thing
+      // unnameable when it arrives.
+      if (typeof supply === 'string' && supply !== '') return 'oil-lit';
       return 'off-grid';
     } catch {
       return 'off-grid';

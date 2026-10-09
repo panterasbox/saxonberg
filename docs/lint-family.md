@@ -1608,7 +1608,7 @@ rather than a bug.
 
 ⭐ So the gate is **not a census of light** — the common case is derived
 and needs no row. It is a **census of EXCEPTIONS**, and every exception
-is a line somebody had to write in the script. Seven clauses; the debt
+is a line somebody had to write in the script. Eight clauses; the debt
 list (`UNDECLARED_INTERIOR_AMBIENT`) opened at **50** and reached
 **zero** in the same build.
 
@@ -1626,6 +1626,28 @@ Two clauses paid for the gate on their first runs:
   `src/`. The town's lamps are a property of the street; the gate is
   what keeps that decision from quietly eroding into forty-one minted
   fuel reserves.
+- **(h)** — ⛔⛔ a burner row must carry **a fuel path and a power**
+  (the fire build, 2026-10). `maxBurnPowerW` and `fuelCapacityKg` both
+  default to **0**, which is not dangerous — it is **inert**, and that
+  is worse: an inert object reads as fine in every test and is dead in a
+  player's hands. A fuel path is an authored `fuelBed` (a torch, which
+  IS its fuel), a `fuelCapacityKg` a `stoke` can fill, or an
+  `interiorBulk` interior a `fill` can pour into (`Lamp.fuelSlot()`
+  answers with the last).
+  ⚠ **It shipped twice in one week**, which is the argument for the
+  clause: the general store's LANTERN (no bed, no slot, no tank) and —
+  independently, arriving from master — the chandlery CANDLE, carrying
+  the retired `reserves: { fuel: … }` instead. Both were lights for
+  sale, on a shelf, that could never be lit, and both were found by a
+  LIVE browser pass rather than by a test.
+  ⭐ Census first: 24 burner rows, **23 already compliant**, so the
+  clause lands as a **ratchet at zero** rather than a burn-down. One
+  declared exemption (`NO_FUEL_OF_ITS_OWN`): the worked flame, whose
+  power comes from the caster and which carries no matter at all — ⚠ and
+  which is NOT exempt from the physics, since it still spends the room's
+  air and still smothers in a sealed cellar.
+  ⭐ The pair is worth reading together: **(g)** catches a default that
+  is *wrong*, **(h)** catches two that are *empty*.
 
 ### `lint:envelope` — the heat half's twin (2026-09)
 

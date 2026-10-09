@@ -1,0 +1,21 @@
+# The glazier's hut's south window — the second window on the same room,
+# connecting the hut to the pithead yard. Glaze a DIFFERENT colour into
+# this one and the two windows' light ADDS in the hut (a red west window
+# and a blue south window give the floor a mixed cast) — the "two windows
+# add, not multiply" fact the glass drive proves.
+class: /platform/thing/Window
+data:
+  shortDescription: south window
+  keywords: [window, south, light]
+  register: definite
+  longDescription: >-
+    A window in the south wall, over the pithead yard. With the west
+    window it is what lights the hut — and if both are glazed, their
+    colours mix on the bench between them.
+  _materialPath: /stuff/idea/material/glass/glass
+  mass: 3
+  baseTransmissivity: 0.9
+  open: true
+  attachedHosts:
+    - /world/terminus/rejection/location/glaziers-hut
+    - /world/terminus/rejection/location/pithead-yard

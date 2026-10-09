@@ -10,7 +10,7 @@ description: >-
   compiles it to a reachability set and holds the one cut, the
   `GridPowered` a consuming thing composes, the `ElectricLight` that emits
   only while its premises is live, the `LineAccess` a lineman severs and
-  splices, and the `FuelStore` a gas-lit town burns oil out of. Nothing
+  splices, and the `FuelStore` an oil-lit town burns oil out of. Nothing
   here is specific to one town: a class or row that exists for Terminus
   alone belongs to Terminus. Electric now, gas later.
 requires:

@@ -1,0 +1,37 @@
+# A basket of coke — ⭐ the sulfur-free fuel, and the fuel value and
+# ignition point are read off the MATERIAL rather than authored twice
+# (the charcoal row's rule).
+#
+# ⭐⭐ It passes the smelt with NO smelter code changed. The smelt reads
+# its charge by material tag — `fuel` + `carbon` for the reducing charge,
+# `sulfurous` for the hot-short arm — and coke is tagged the first two and
+# not the third, which is the entire difference between a sound bloom and
+# a cracked one.
+class: /platform/thing/Provision
+data:
+  shortDescription: basket of coke
+  keywords: [coke, basket]
+  register: indefinite
+  longDescription: >-
+    Grey, light and full of holes, like a clinker that has been boiled.
+    It rings dull where charcoal rings clear, and it leaves a grey dust
+    on everything it touches.
+  _materialPath: /stuff/idea/material/organic/coke
+  gradeBand: fair
+  mass: 6
+  # ⭐⭐⭐ **Bone dry, SEEDED — and the fire build's drive is why.**
+  #
+  # `WaterActivityMixin`'s sparse default is `_moisture = 1` (as
+  # harvested), which is right for food and ⛔ catastrophically wrong for
+  # a product of a three-day fire: `stoke charcoal into forge` was
+  # refused *"It is too sodden to catch."* on the drive's third
+  # checkpoint, which is both absurd and exactly the shape of defect only
+  # a live world reports.
+  #
+  # ⚠ `_moisture` is deliberately not authorable — water state is runtime
+  # state the WORLD produces, and a `dry-turf` row written to paper over
+  # that was correctly deleted. But a PROP has no production act, and
+  # `seed` is the sanctioned mechanism for the initial runtime state of a
+  # minted object (applier phase 3). ⭐ A freshly cut turf still seeds
+  # nothing and still refuses the flame, which is the lesson.
+  dryness: 0.95

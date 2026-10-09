@@ -96,7 +96,13 @@ export function SpaceHeatingMixin<TBase extends MixinConstructor<Stuff>>(
       if (typeof host.isLit !== 'function') return 0;
       if (typeof host.fuelRemaining !== 'function') return 0;
       if (!host.isLit() || host.fuelRemaining() <= 0) return 0;
-      return this.heatOutputW;
+      // ⭐ The authored figure is a CEILING now, and the fire's actual
+      // power is the floor of the two. A banked hearth warms the room at
+      // a twentieth of its rate — which is both what banking means and
+      // the reason the authored number did not have to change. Rows
+      // change nothing; the docstring's promise is kept.
+      if (typeof host.burnPowerW !== 'function') return this.heatOutputW;
+      return Math.min(this.heatOutputW, host.burnPowerW());
     }
   };
 }

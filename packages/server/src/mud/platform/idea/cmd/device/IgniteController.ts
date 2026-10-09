@@ -65,12 +65,18 @@ export default class IgniteController extends CommandController<IgniteModel> {
 
     const outcome = (ignitable as Stuff & Combustible).ignite();
     if (!outcome.lit) {
+      // ⭐⭐ `no-fuel` is a DIFFERENT refusal from `not-flammable`, and the
+      // difference is the whole progression: a forge with an empty bed is
+      // a fire waiting for somebody to stoke it, and the sentence has to
+      // say so or the player has no way to find out what lifts it.
       const detail =
         outcome.reason === 'already-burning'
           ? 'It is already burning.'
           : outcome.reason === 'too-wet'
             ? "It's too wet to catch."
-            : "That won't burn.";
+            : outcome.reason === 'no-fuel'
+              ? 'There is no fuel in it. Stoke it first.'
+              : "That won't burn.";
       MessageApi.scene(commandGiver)
         .topic('act.deed')
         .toSelf(Mml.compose`${detail}`)

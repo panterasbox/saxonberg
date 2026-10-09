@@ -6,11 +6,15 @@
 > **Left:** the borehole as a **point, not a place** · the derrick and the
 > string · the seeded deep field and the **dry hole** · the survey as the
 > game (instruments → a model → a bet) · the lift (a pump, and ⭐ a pump
-> needs a rubber gasket) · **refining = the deferred CUTS rung** ·
-> the fractions and their consumers · ⭐⭐ **the GAS well** (pressure not
-> lift; `bulk.md`'s inert `sealed` rung as the whole economy; the
-> gasometer) · ⚠ the epoch on-ramp
-> (→ [inquiry-slate](./inquiry-slate.md)) and the cuts rung both block it.
+> needs a rubber gasket) · the fractions and their consumers · ⭐⭐ **the
+> GAS well** (pressure not lift; `bulk.md`'s inert `sealed` rung as the
+> whole economy; the gasometer).
+> ✅ **The cuts rung is BUILT** — refining is rows now
+> ([fractionation.md](../../subsystems/fractionation.md), whiskey build
+> 2026-10-04). ⚠ Still blocking: the epoch on-ramp
+> (→ [inquiry-slate](./inquiry-slate.md)) and
+> [destructive-distillation](./destructive-distillation-slate.md), which
+> ships first and hands this slate the gas economy.
 > **Size:** a build — and the larger of the two, because the borehole is
 > a genuinely new extraction shape.
 
@@ -81,11 +85,13 @@ authoring a lesson about it.
 The cheapest finding in the slate, and the third of its kind this
 session.
 
-`MaturationProfile` already carries an **INERT `foreshotCharacter`**
-field, annotated in [maturation.md](../../subsystems/maturation.md) as
-*"P10 — the deferred **cuts** rung's seam."* Heads, hearts, tails: the
-distiller decides where the boundaries fall, and the craft is knowing
-where.
+✅ **BUILT 2026-10-04 — this section is kept as the record of why, and
+is no longer a prediction.** `MaturationProfile` carried an inert
+`foreshotCharacter` field annotated *"P10 — the deferred **cuts** rung's
+seam"*; the whiskey build **retired the field** and shipped the mechanism
+as [fractionation.md](../../subsystems/fractionation.md). Heads, hearts,
+tails: the distiller decides where the boundaries fall, and the craft is
+knowing where.
 
 **Fractionating crude is that same act** — separate a mixture by boiling
 point, operator decides the cut points. More cuts, different feedstock.
@@ -293,8 +299,13 @@ already has a home.
    and this is the invariant the build is *for*. If a case wants to walk
    down the hole, that case is a mine.
 3. ⭐⭐ **The field stays SEEDED.** No draw at drill time, ever.
-4. **Refining is the cuts rung**, built once and used twice — ⭐ and the
-   cuts rung should be built for **whiskey**, before this slate.
+4. ✅ **Refining is the cuts rung, built once and used twice** — and it
+   was built for **whiskey** first, exactly as recommended
+   ([fractionation.md](../../subsystems/fractionation.md), 2026-10-04).
+   The second use is a `FractionSchedule` row with more spans and a crude
+   `inputCategory`; the doc claims this slate as its second consumer by
+   name. ⭐ **Third instance of *the substrate is ahead of the content* —
+   and the first where acting on it actually paid.**
 5. **Kerosene is the first fraction**, because lamps ship.
 6. ⭐⭐⭐ **Mined gas is NOT designed around drilled gas.** The hazard
    half anchors on **mining**, the commodity half on **coal gas from the
@@ -307,9 +318,16 @@ already has a home.
 
 1. **What instrument reads the deep field**, and how wrong it is allowed
    to be. The whole game lives here — too accurate and the dry hole
-   vanishes; too vague and it is a coin flip wearing a lab coat. ⚠ This
-   is [instrumentation](./instrumentation-slate.md)'s decision and it
-   should be made there, not here.
+   vanishes; too vague and it is a coin flip wearing a lab coat.
+   ⚠ **The deferral in this line is STALE** (noted 2026-10-06): it sent
+   the question to the instrumentation slate, but instrumentation SHIPPED
+   (MR !292) and shipped it as **rows any pack writes** — a `Reading`
+   channel at `<root>/idea/reading/<channel>`, competence resolving
+   detail and never access, the instrument as a ceiling, and the seeded
+   bracket already modelling *"a number you cannot fully trust."*
+   ⭐ So this is **this slate's** question now, and the mechanism for
+   answering it is built: the deep field is a reading channel whose
+   bracket widens with depth. No other build owes it anything.
 2. **Does a well deplete visibly?** Pressure falling is the honest,
    measurable signal and it is the legibility answer above. Lean: yes,
    and it is the *same* reservoir-and-recharge read as every other RGO.

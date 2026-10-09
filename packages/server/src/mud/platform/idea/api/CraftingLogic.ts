@@ -2,6 +2,7 @@
 // (Doc comment on the class below so @internal lands on the reflection.)
 
 import { ApiLogic } from '../../../lib/stuff/ApiLogic';
+import type { AromaTag } from '../../../lib/metabolism/DissolvedAromatics';
 import { CallSecurity, Unshadowable } from '../../../lib/security/decorators';
 import { SecurityPolicies } from '../../../lib/security/SecurityPolicies';
 import type { Stuff } from '../../../lib/stuff/Stuff';
@@ -1393,6 +1394,38 @@ function addConcentrations(
   return [...byType.values()];
 }
 
+/**
+ * ⭐⭐ **What the FIRE puts into the work** — the fuel's own
+ * `combustionImparts`, weighted by its share of the bed.
+ *
+ * This is what makes peated malt the fire's doing rather than a second
+ * recipe's. The two kiln recipes were identical except that one declared
+ * `imparts: [{smoke, 30}]` and took a turf as an ITEM SLOT — which made
+ * *the same recipe over a different fire* inexpressible, and made the
+ * turf's own moisture invisible, because an item slot cannot see it.
+ *
+ * ⭐ A mixed bed is weighted: half peat and half oak reads half as
+ * smoky, which is both true and the thing a maltster actually controls.
+ */
+function fireImpartsFor(maker: Stuff): AromaTag[] {
+  if (!MixinApi.isThermal(maker)) return [];
+  const fire = maker.reachableHeatSource();
+  if (fire === null) return [];
+  const total = fire.fuelRemaining();
+  if (!(total > 0)) return [];
+  const out: AromaTag[] = [];
+  for (const material of fire.fuelMaterials()) {
+    const tags = material.getCombustionImparts();
+    if (tags.length === 0) continue;
+    const share = fire.fuelShareOf(material);
+    if (!(share > 0)) continue;
+    for (const tag of tags) {
+      out.push({ ...tag, amount: tag.amount * share });
+    }
+  }
+  return out;
+}
+
 async function applyBulkOutput(
   output: Stuff,
   recipe: Recipe,
@@ -1401,6 +1434,7 @@ async function applyBulkOutput(
   effectiveHeatK = 0,
   makerPath = '',
   deliveredHeatK: number = effectiveHeatK,
+  fireImparts: AromaTag[] = [],
 ): Promise<void> {
   const outSlot = BulkableApi.slotFor(output, undefined);
   if (!outSlot) {
@@ -1493,6 +1527,16 @@ async function applyBulkOutput(
         imparts,
       );
     }
+    // ⭐⭐ …and what the FIRE adds, on top of what the working does. The
+    // smoke in peated malt comes from the fuel bed, so the same recipe
+    // over peat and over oak gives two different malts and there is one
+    // recipe row.
+    if (fireImparts.length > 0) {
+      carried.dissolvedAromatics = addConcentrations(
+        carried.dissolvedAromatics,
+        fireImparts,
+      );
+    }
     // ⭐ A recipe's own appearance, which this branch IGNORED — see
     // `applyAuthoredAppearance`.
     const authoredLook = recipe.getOutputAppearance();
@@ -1512,8 +1556,16 @@ async function applyBulkOutput(
   const material = await StuffApi.singleton<Material>(GENERIC_MIXED_MATERIAL);
   outSlot.setMaterial(material);
   outSlot.setAmount(Quantity.of(totalL, 'L'));
-  outSlot.setPayload(
-    deriveBlendPayload(
+  // ⭐⭐ **The derived branch drops `imparts` and always did.** A recipe
+  // with no `outputMaterial` lands here, and until the fire build the
+  // branch computed its payload purely from the inputs — so a recipe that
+  // declared what the WORKING adds silently added nothing, and a derived
+  // blend worked over a peat fire came out clean.
+  //
+  // ⚠ Two sources, and they are different claims: `imparts` is what the
+  // ACT adds (authored per recipe) and the fire's is what the FUEL adds
+  // (authored per material, weighted by its share of the bed).
+  const derived = deriveBlendPayload(
       recipe.getRecipeId(),
       recipe.getOutputAppearance(),
       recipe.getKeywords(),
@@ -1539,8 +1591,15 @@ async function applyBulkOutput(
       ],
       effectiveHeatK,
       makerPath,
-    ),
-  );
+    );
+  const addedAromas = [...recipe.getImparts(), ...fireImparts];
+  if (addedAromas.length > 0) {
+    derived.dissolvedAromatics = addConcentrations(
+      derived.dissolvedAromatics,
+      addedAromas,
+    );
+  }
+  outSlot.setPayload(derived);
   // A cold bar mix carries its inputs' spoilage through unchanged — a
   // daiquiri made with yesterday's lime juice is made with yesterday's
   // lime juice, and nothing about shaking it says otherwise.
@@ -1770,6 +1829,7 @@ async function applyEdibleOutput(
   effectiveHeatK: number,
   makerPath = '',
   deliveredHeatK: number = effectiveHeatK,
+  fireImparts: AromaTag[] = [],
 ): Promise<void> {
   const outSlot = BulkableApi.slotFor(output, undefined);
   if (!outSlot) {
@@ -1800,6 +1860,7 @@ async function applyEdibleOutput(
     if (makerPath) {
       outSlot.setPayload({ ...(outSlot.getPayload() ?? {}), maker: makerPath });
     }
+    addAromasTo(outSlot, recipe, fireImparts);
     applySpoilage(
       outSlot,
       outputMicrobialLoad(effectiveHeatK, recipe.getHoldS(), matched, matchedItems),
@@ -1828,11 +1889,38 @@ async function applyEdibleOutput(
       makerPath,
     ),
   );
+  addAromasTo(outSlot, recipe, fireImparts);
   applySpoilage(
     outSlot,
     outputMicrobialLoad(effectiveHeatK, recipe.getHoldS(), matched, matchedItems),
   );
   applyDoneness(outSlot, recipe, deliveredHeatK);
+}
+
+/**
+ * ⭐⭐ Fold what the ACT adds (`recipe.imparts`) and what the FIRE adds
+ * (the fuel's `combustionImparts`, weighted by its share of the bed) into
+ * a slot's aromatics.
+ *
+ * ⚠ **`applyEdibleOutput` handled NEITHER**, and it is the branch cooking
+ * actually takes — so a recipe declaring `imparts:` on an edible output
+ * added nothing, silently, and smoking meat over a peat fire gave clean
+ * meat. One helper, three branches, so the next output kind cannot
+ * quietly miss it.
+ */
+function addAromasTo(
+  outSlot: BulkSlot,
+  recipe: Recipe,
+  fireImparts: readonly AromaTag[],
+): void {
+  const added = [...recipe.getImparts(), ...fireImparts];
+  if (added.length === 0) return;
+  const payload: BulkPayload = { ...(outSlot.getPayload() ?? {}) };
+  payload.dissolvedAromatics = addConcentrations(
+    payload.dissolvedAromatics,
+    added,
+  );
+  outSlot.setPayload(payload);
 }
 
 /**
@@ -2697,6 +2785,7 @@ async function craftImpl(req: CraftRequest): Promise<CraftOutcome> {
       workingHeatK,
       maker.getTemplatePath() ?? '',
       deliveredHeatK,
+      fireImpartsFor(maker),
     );
   } else {
     await applyBulkOutput(
@@ -2707,6 +2796,7 @@ async function craftImpl(req: CraftRequest): Promise<CraftOutcome> {
       workingHeatK,
       maker.getTemplatePath() ?? '',
       deliveredHeatK,
+      fireImpartsFor(maker),
     );
     const outSlot = BulkableApi.slotFor(output, undefined)!;
     await finishGlass(
@@ -2927,13 +3017,19 @@ async function repairImpl(req: RepairRequest): Promise<RepairOutcome> {
 /**
  * Salvage (DECISION L) — the one generic lossy melt-down. Flatten the
  * item's Material composition; each constituent above the dust floor
- * yields `item mass × fraction × crafting.salvageRate` in its natural
- * raw form — `metal` → a re-meltable Casting, anything else → a Scrap
- * stack (quantity by mass). The rest is dross (the entropy sink).
- * Conservation asserted (Σ output ≤ input × rate + ε, throw on breach);
- * the destruct releases provenance, grade, and the chattel id with the
- * form. Outputs are returned unplaced — landing them is the
- * controller's job.
+ * yields in its natural raw form:
+ *   - `metal` → a re-meltable Casting at `crafting.salvageRate` (lossy);
+ *   - a **meltable non-metal** (a material with a melting point and no
+ *     `metal` tag — glass, wax) → a re-meltable Casting at rate **1.0**,
+ *     WHOLE, carrying the piece's instance alloying (its iron history),
+ *     because breaking is not melting and glass pays its entropy in
+ *     colour, not mass (D7);
+ *   - anything else → a Scrap stack (quantity by mass). The rest is
+ *     dross (the entropy sink).
+ * Conservation asserted per-branch (Σ output ≤ Σ branch ceilings + ε,
+ * throw on breach); the destruct releases provenance, grade, and the
+ * chattel id with the form. Outputs are returned unplaced — landing
+ * them is the controller's job.
  */
 async function salvageImpl(req: SalvageRequest): Promise<SalvageOutcome> {
   const maker = (ExecutionContextApi.getActingAuthor() ?? null) as Stuff | null;
@@ -2973,10 +3069,25 @@ async function salvageImpl(req: SalvageRequest): Promise<SalvageOutcome> {
 
   const outputs: Stuff[] = [];
   let recoveredKg = 0;
+  // Conservation ceiling: the item's full mass × the BEST rate any of
+  // its produced constituents earns — a meltable non-metal comes back
+  // WHOLE (rate 1.0), everything else at the lossy salvage rate (D7).
+  // Bounding on massKg (not on Σ fraction × rate) is what still catches
+  // a rigged composition whose fractions sum past 1 — minting matter.
+  let maxRateUsed = 0;
   for (const c of constituents) {
-    const yieldKg = massKg * c.fraction * rate;
+    const metal = c.material.hasTag('metal');
+    // ⭐ A material with a melting point and no `metal` tag — glass, wax —
+    // does not shatter into dross: breaking is not melting, and it pays
+    // its entropy elsewhere (glass goes one step greener, D9). It comes
+    // back as a re-meltable Casting at its FULL mass, remembering the
+    // piece's minor constituents (its iron history) so a re-melt cannot
+    // launder a tinted lump clear.
+    const meltable = !metal && c.material.getMeltingPoint().rawValue() > 0;
+    const branchRate = meltable ? 1.0 : rate;
+    const yieldKg = massKg * c.fraction * branchRate;
     if (yieldKg < SALVAGE_DUST_FLOOR_KG) continue; // dust — lost
-    if (c.material.hasTag('metal')) {
+    if (metal || meltable) {
       const cast = await StuffApi.clone<Stuff>(WORKED_LUMP_TEMPLATE);
       const lump = cast as unknown as Stuff & {
         setShortDescription(s: string): void;
@@ -2988,8 +3099,15 @@ async function salvageImpl(req: SalvageRequest): Promise<SalvageOutcome> {
       lump.setKeywords(['lump', 'salvaged', ...c.material.getName().split(/\s+/)]);
       lump.setMaterial(c.material);
       lump.setMass(Quantity.of(yieldKg, 'kg'));
+      // The instance's alloying is the piece's, not the constituent
+      // material's — glass authors an empty composition, so the whole
+      // item is one constituent and this carries its iron forward.
+      if (meltable && MixinApi.isAlloyed(item) && MixinApi.isAlloyed(cast)) {
+        cast.setAlloying(item.getAlloying());
+      }
       outputs.push(cast);
       recoveredKg += yieldKg;
+      maxRateUsed = Math.max(maxRateUsed, branchRate);
     } else {
       // Scrap: quantity by mass, floor-rounded to whole units (rounding
       // up would counterfeit matter).
@@ -3010,13 +3128,16 @@ async function salvageImpl(req: SalvageRequest): Promise<SalvageOutcome> {
       s.setQuantity(units);
       outputs.push(scrap);
       recoveredKg += units * Scrap.UNIT_KG;
+      maxRateUsed = Math.max(maxRateUsed, branchRate);
     }
   }
 
-  if (recoveredKg > massKg * rate + EPS) {
+  if (recoveredKg > massKg * maxRateUsed + EPS) {
     throw new Error(
       `CraftingLogic: conservation breach — salvage recovered ` +
-        `${recoveredKg} kg from ${massKg} kg at rate ${rate}`,
+        `${recoveredKg} kg from ${massKg} kg (ceiling ` +
+        `${massKg * maxRateUsed} kg at rate ${maxRateUsed}; salvage rate ` +
+        `${rate}, meltable non-metals whole)`,
     );
   }
 
