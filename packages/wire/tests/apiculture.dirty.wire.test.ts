@@ -640,10 +640,31 @@ suite('⭐⭐ 23. the tail — and the rung that was never built', () => {
     const chandler = await Session.open(handle, { startLocation: CHANDLERY });
     try {
       await chandler.drainProse();
-      const shop = await read(chandler, 'look');
-      expect(shop.toLowerCase(), 'the chandlery floor is standing').toMatch(
-        /chandler|dip|candle|pot|wick/,
-      );
+      // ⚠⚠ A QUERY, not prose — and the master merge taught it. The fire
+      // build made a lamp need fuel and sells the general store's lantern
+      // DRY, so this file's own "buy a LIGHT first" checkpoint is red on
+      // master (`ignite lantern` → `no-fuel`) and every session after it
+      // walks in the dark. A prose read then returns *"it is pitch dark.
+      // You can make out no…"*, which tests the light and not the world.
+      //
+      // ⚠ And the query is not light-proof either — `here:i` is
+      // viewer-aware, which the same run proved: in the unlit close
+      // `here:i:cherry` returns nothing while `look first cherry` still
+      // binds. What makes it work HERE is that a chandler's floor has a
+      // lamp on it, so this checkpoint reads a LIT room without needing
+      // the keeper's own lantern to have been sold with oil in it. The
+      // three checkpoints above that do stand in the dark are the fire
+      // build's to answer, not this file's.
+      const onFloor = await chandler.query('here:i', {
+        fields: ['displayName'],
+      });
+      expect(
+        onFloor
+          .map((r) => String((r as { displayName?: string }).displayName ?? ''))
+          .join(' | ')
+          .toLowerCase(),
+        'the chandlery floor is standing',
+      ).toMatch(/dip|pot|wick|candle|vat/);
 
       for (const word of ['melt', 'dip']) {
         const out = await say(chandler, word);

@@ -203,13 +203,80 @@ suite('the plumbing', () => {
    * state CHANGED**. "Not an error" is neither.
    */
   it('8. walking, running and sneaking all move you', async () => {
+    // ⚠⚠ **`stand` first.** The checkpoint above runs ten `rest`/`stand`
+    // cycles, and the locomotion gate order is body plan → POSTURE →
+    // media → enablement, so a body left anything but upright answers
+    // `locomotion-gate-failed` about itself rather than about the verb.
+    await player.cmd('stand');
+
+    // ⭐⭐ **FIRST, and unconditionally: `walk` is UNDERSTOOD.** This is the
+    // reachability claim and the one an unknown verb cannot satisfy.
+    //
+    // ⚠⚠ Before the reachability sweep this whole checkpoint was
+    // `if (moved.status === 'ok') { …assert… }` over a verb that
+    // `MobileMixin` did not confer — so the `if` never opened, the only
+    // assertion never ran, and a step titled *"walking, running and
+    // sneaking all move you"* passed every night over a word the game did
+    // not know. `walk` is `MobileMixin.self`'s now.
+    //
+    // ⚠⚠ The predicate is `reason === 'unknown-verb'`, not the note KIND
+    // — and the distinction cost a run to learn. `command-rejected`
+    // covers two different answers: `unknown-verb` means **nothing in the
+    // game claims the word**, which is the reachability failure; while
+    // `shape-fall-through` means the verb WAS found and the arguments did
+    // not fit it, which is the parser being helpful. Bare `run` earns the
+    // second (its target is required), exactly as bare `subdivide` does.
+    // Conflating them makes a shape error read as a dead verb.
+    const walked = await player.cmd('walk out');
+    expect(
+      (walked.notes ?? []).some(
+        (n) =>
+          n.kind === 'command-rejected' &&
+          (n as { reason?: string }).reason === 'unknown-verb',
+      ),
+      `\`walk\` must be a verb this game understands: ${why(walked)}`,
+    ).toBe(false);
+
+    // ⛔⛔ **And the start room's `out` is gated against locomotion** —
+    // `{gate: "exit-mode"}`, for `go` as well as `walk`. The bar's way
+    // out is *"wired imperatively by the Warren and not declared here"*
+    // (this room's own exits comment), so it carries no authored `media`
+    // and the stored edge admits no mode. ⚠ The old vacuous `if` had been
+    // hiding that too: a `declined` is not an `error`, so the companion
+    // loop below passed over it for as long as it has existed.
+    //
+    // Not fixed here — the exits are the residence/holding substrate's
+    // and the edge media are the location-graph build's.
+    // → `base-class-narrowing-slate` § L9.
+    //
+    // ⭐ So the checkpoint proves what it SAYS — that walking moves you —
+    // by walking whatever way out this room actually offers, and fails
+    // with every refusal collected if there is none.
     const before = await player.queryOne('here', ['displayName']);
-    const moved = await player.cmd('walk out');
-    // ⭐ Unconditional. `walk` is `MobileMixin.self`'s since the
-    // reachability sweep; an unknown verb fails HERE now.
-    expectOk(moved);
+    const tried: string[] = [];
+    let moved = false;
+    for (const dir of ['out', 'north', 'south', 'east', 'west', 'up', 'down']) {
+      const r = await player.cmd(`walk ${dir}`);
+      expect(
+        (r.notes ?? []).some(
+          (n) =>
+            n.kind === 'command-rejected' &&
+            (n as { reason?: string }).reason === 'unknown-verb',
+        ),
+        `\`walk\` stopped being a verb: ${why(r)}`,
+      ).toBe(false);
+      if (r.status === 'ok') {
+        moved = true;
+        break;
+      }
+      tried.push(`${dir}: ${describeResult(r)}`);
+    }
+    expect(
+      moved,
+      `nothing in this room could be WALKED through:\n  ${tried.join('\n  ')}`,
+    ).toBe(true);
     const after = await player.queryOne('here', ['displayName']);
-    expect(after, 'walk out did not move the player').not.toEqual(before);
+    expect(after, 'the walk did not move the player').not.toEqual(before);
 
     // The mode roster (`allModes`) is a path glob; a broken read would
     // make every mode unknown rather than making movement fail.
@@ -218,11 +285,20 @@ suite('the plumbing', () => {
     // not `status: 'error'` — which is precisely why the old assertion
     // could not see one. Assert the verb was understood, per mode, by
     // name.
+    // ⚠ Each mode is given a DIRECTION: these verbs take a required
+    // target, so a bare word earns `shape-fall-through` — the parser
+    // saying the shape is wrong, not the game saying it never heard the
+    // word. The reason, not the kind, is what tells a dead verb from a
+    // mistyped one.
     for (const mode of ['run', 'sneak', 'walk']) {
-      const r = await player.cmd(mode);
+      const r = await player.cmd(`${mode} out`);
       expect(r.status, why(r)).not.toBe('error');
       expect(
-        (r.notes ?? []).some((n) => n.kind === 'command-rejected'),
+        (r.notes ?? []).some(
+          (n) =>
+            n.kind === 'command-rejected' &&
+            (n as { reason?: string }).reason === 'unknown-verb',
+        ),
         `'${mode}' is not a verb this game understands: ${why(r)}`,
       ).toBe(false);
     }

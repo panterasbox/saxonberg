@@ -109,7 +109,18 @@ let other: Session;
  */
 function expectUnderstood(r: CommandResult, what: string): void {
   const notes = r.notes as Array<{ kind?: string; reason?: string }>;
-  const dead = notes.find((n) => n.kind === 'command-rejected');
+  // ⚠⚠ `reason === 'unknown-verb'`, not the note KIND, and the
+  // distinction is the whole point of this helper.
+  // `command-rejected` covers two different answers: **`unknown-verb`**
+  // means nothing in the game claims the word — the reachability failure
+  // — while **`shape-fall-through`** means the verb WAS found and the
+  // arguments did not fit it, which is the parser being helpful. Bare
+  // `subdivide` and bare `run` both earn the second. Conflating them
+  // makes a shape error read as a dead verb, and it cost two drive runs
+  // before it was written down.
+  const dead = notes.find(
+    (n) => n.kind === 'command-rejected' && n.reason === 'unknown-verb',
+  );
   expect(
     dead,
     `'${what}' is not a verb this game can hear: ${JSON.stringify(notes)}`,
@@ -487,10 +498,12 @@ suite('1–8. the verbs that shipped and could not be said', () => {
     const swimmer = await at(REACH, 'reach-swimmer');
     await swimmer.drainProse();
     const out = await say(swimmer, 'swim east');
-    const notes = out.notes as Array<{ kind?: string }>;
+    const notes = out.notes as Array<{ kind?: string; reason?: string }>;
     expect(
-      notes.some((n) => n.kind === 'command-rejected'),
-      '`swim` must still be unknown — held on navigable-water-slate, ' +
+      notes.some(
+        (n) => n.kind === 'command-rejected' && n.reason === 'unknown-verb',
+      ),
+      '`swim` must still be UNKNOWN — held on navigable-water-slate, ' +
         'which owns what the enablement host is',
     ).toBe(true);
   }, 300_000);
@@ -510,10 +523,15 @@ suite('1–8. the verbs that shipped and could not be said', () => {
     // apply: the refusal would point at nothing.
     for (const dead of ['lock north', 'fly up']) {
       const out = await say(k, dead);
-      const notes = out.notes as Array<{ kind?: string }>;
+      const notes = out.notes as Array<{ kind?: string; reason?: string }>;
+      // ⭐ `unknown-verb` specifically — a shape error would ALSO be
+      // `command-rejected` and would pass a kind-only assertion while
+      // proving nothing about whether the word is claimed.
       expect(
-        notes.some((n) => n.kind === 'command-rejected'),
-        `'${dead}' must still be unknown — held, with the reason in a field`,
+        notes.some(
+          (n) => n.kind === 'command-rejected' && n.reason === 'unknown-verb',
+        ),
+        `'${dead}' must still be UNKNOWN — held, with the reason in a field`,
       ).toBe(true);
     }
   }, 180_000);

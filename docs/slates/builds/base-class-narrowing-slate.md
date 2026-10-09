@@ -486,6 +486,23 @@ real objection rather than the plausible one.
     of the ladder's seven. What lifts it is one line on each side
     (`verbs: [drift, drive]` there, the static here) by somebody who owns
     both. → `affordance-verb-slate`.
+  - ⛔⛔ **`walk` is conferred and the LOUNGE'S OWN EXIT refuses it**, which
+    is the gap one layer down. The bar's way out is *"wired imperatively
+    by the Warren and not declared here"*, so it carries no authored
+    `media` and the stored edge does not admit the walk mode:
+    `walk out` answers `{gate: "exit-mode", mode: "walk"}` while `go out`
+    works, because `go` resolves the default mode through the passthrough
+    chain. ⚠ So in **the room every new player starts in, the way out
+    refuses the walk pace** — and a player who takes `sneak.yaml`'s own
+    advice (`set movement.defaultMode sneak`) is stuck in the lounge,
+    which is the exact scenario conferring `walk` was meant to fix. Found
+    by `world-scan.dirty.wire.test.ts` step 8 after the master merge; not
+    fixed in the reachability sweep, because the exits belong to the
+    residence/holding substrate and the edge media to the location-graph
+    build. ⭐ The likely fix is one line wherever the Warren mints that
+    exit — an empty `media` admits the whole ground-pace family by design
+    (`locomotion.md`), so the edge is being given a media list that walk
+    is not in.
   - **`lock`/`unlock` still held, per § I9 below**, and `fly` with them —
     but all three now carry `unreachable:
     awaiting:base-class-narrowing-slate` on the view, so the disposition
