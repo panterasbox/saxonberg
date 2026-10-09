@@ -639,6 +639,61 @@ also the discipline behind *trades ship medieval and advance by
 exercised disciplines*: the ladder is a parameter, not a different
 machine.
 
+### ⭐⭐⭐ The interesting case is WHO IS HOLDING the obsolete half
+
+Added 2026-10-08, after one design session produced three instances
+without trying.
+
+The test above — *does the new epoch's object answer the same commands* —
+is a test **the platform passes trivially and a person fails
+completely.** And the lens as written stops at the platform, which is why
+it has been scored as a compatibility check rather than a source of
+content.
+
+| capability | survives as | the economy that dies |
+|---|---|---|
+| keeping things cold | `ClimateControl` | the **ice trade** |
+| lighting a room | kerosene — ⚠ *already in whale oil's own `keywords:`* | **whaling** |
+| crossing a river | the bridge | **ferrying** |
+| washing clothes | the domestic machine | the **laundress** |
+| watering a field | the **pump** | ⚠ **the ditch company** — *cooperation itself* |
+
+⭐⭐ **So ask the second question every time: the capability survives —
+who was holding the old one when it did?** That person is the content,
+and it is always better **lived through** than supplied as backstory. A
+player who owns an ice house gets to watch their own asset become a
+liability **on a schedule nobody concealed** — which is the guild
+doctrine's *ship ruins, not institutions*, except the player is present
+for the ruining.
+
+⭐⭐⭐ **And the obsolete half can be an INSTITUTION, not only a trade.**
+The pump's victim is the **ditch company** — a gravity ditch silts up and
+must be cleaned every year by people who individually gain too little to
+bother, so the medieval rung *requires* a labour commons; a pump serves
+one farm, so **the technology that made irrigation cheaper made the
+institution unnecessary — and the institution was what kept the water
+allocated.** ⚠ A worse loss than a trade: when the ferryman goes, a
+livelihood ends; when the ditch company goes, **the only body allocating
+the water ends**, and the water keeps being allocated right up until it
+does not. (Worked in
+[rgo-unification-slate](./slates/builds/rgo-unification-slate.md) §
+irrigation.)
+
+⭐ **And the fourth row is the one that shows the lens has more in it than
+compatibility.** Three of those arcs end with somebody out of a job. The
+laundress's ends with **the work still being done, unpaid, by somebody
+nobody counts** — a different outcome entirely, which a
+*does-it-answer-the-same-commands* reading cannot see.
+
+⚠ **Corollary for the backlog:** a trade worth building is often worth
+building **with its obsolescence dated**. Ice was designed that way
+deliberately
+([ice-trade-slate](./slates/builds/ice-trade-slate.md)); whaling's
+successor is already shipped **in the same row as the thing it
+replaces**.
+
+---
+
 ---
 
 ## 6 · Economy — what does it produce, what does it consume, who pays?
@@ -751,6 +806,47 @@ person, on a criterion nobody had written down, with no appeal and
 nothing that lifted it. See
 [antipatterns.md § A bare COUNT as a permanent gate](./antipatterns.md)
 and [credit.md](./subsystems/credit.md).
+
+### ⭐⭐⭐ Civic infrastructure REDISTRIBUTES a private capability
+
+Added 2026-10-08, after the cold/water sessions produced three instances
+and the third one made it obvious.
+
+Lens 7 asks what a polity may **decide**. This is the complement: what a
+polity may **build** — and the answer is more interesting than a budget
+line, because the shape recurs.
+
+| the build | what it redistributes | from whom, to whom |
+|---|---|---|
+| the **warming house** | **heat** — one heated room is cheaper than forty | from those who can afford their own fire |
+| the **public staff gauge** | **knowledge** — an instrument sets a CEILING, so everyone reads expert-level flow | from those whose eyes or training were better |
+| the public **washhouse** (*lavoir*) | **access** — clean linen is what gets you into rooms | from those with their own water and drying ground |
+| the **town clock** on a tower you can read from the street | ⭐ **time** — and under polar night, *you must own a clock* unless the town built one | from those who could afford a watch |
+
+⭐⭐ **The gauge is the clearest case and it is a shipped mechanism being
+used politically.** `instrumentation.md`'s rule is that **an instrument
+resolves a CEILING while competence resolves detail** — so a painted
+stick in the river makes the water argument **factual for every farmer in
+the valley, including the ones who cannot read a river.** Before the
+gauge the argument is about whose eyes are better; after it, the argument
+**must be about rights.** The town chose to have the better argument.
+
+> ⭐⭐⭐ **The test.** When a polity spends money on a *thing* rather
+> than a *rule*: which private capability does the thing make common, and
+> who loses an advantage when it does?
+
+⚠ **Both halves are the point.** A public instrument is not neutral — it
+takes something from whoever held it privately, which is why these get
+**fought over** rather than merely funded, and why they are content
+rather than scenery.
+
+⭐ **And the sibling failure, from the same family:** the one who holds
+**the standard** (the station other instruments are checked against) is
+doing `measurement.md` **layer-3** work while appearing to do layer-1 —
+political power wearing neutrality as a costume. Name it when a design
+puts a reference instrument anywhere.
+
+---
 
 ---
 

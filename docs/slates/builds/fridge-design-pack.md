@@ -10,7 +10,9 @@
 > the energy pack's `GridPoweredMixin`, the fridge/freezer rows, and cold
 > PRODUCTION (the freezer makes ice) → [thermal.md](../../subsystems/thermal.md) ·
 > [energy.md](../../subsystems/energy.md).
-> **Left:** ⭐⭐ **`Chamber`** — the compartment with its own air, and
+> **Left:** ⭐⭐ **`Chamber`** — the compartment with its own air (⭐ plus
+> the **two boat additions**: agents placeable `in` one, and a
+> host-declared re-placement cost — 2026-10-09), and
 > the `AtmosphericMixin` widening it needs; the spec is below, written
 > against the shipped tree and executable cold (this build shipped the
 > freezer compartment as `props:` instead) ·
@@ -543,6 +545,28 @@ to rediscover.
   registers (both composition refusals silent); `occupants()`; a
   `Provision` placed `in` a Chamber authored at 281 K restamps to 281
   while one `on` a `Fitting` in the same room reads the room's.
+- ⭐⭐ **AND THE BOAT IS THE THIRD CONSUMER (added 2026-10-09).** The
+  vessel decision ([navigable-water-slate](./navigable-water-slate.md)
+  § 7a) makes a small boat **one** `ExitableVessel` whose subdivisions are
+  **`Chamber`s as STATIONS** — the bow where the harpoon is, the stern
+  where the steering oar is, the thwarts, the line tub. That forces **two
+  additions, neither changing the shape above:**
+  - ⭐⭐⭐ **Agents are placeable `in` a Chamber.** The spec was written
+    for *things* (a steak in a freezer); a vessel you **occupy** is the
+    case it never considered. Genuinely shared — a coach seat, a howdah, a
+    cockpit — so this is a real third consumer rather than an invented one.
+  - ⭐⭐ **Re-placement may carry a HOST-DECLARED cost.** Moving a steak
+    from the fridge to the freezer is free; moving from the stern to the
+    bow of a pitching whaleboat is not. Declared by the **host** (a boat
+    under way is unstable, a fridge never is), not by the `Placement` row.
+  - ⚠ **And note the purpose splits.** A fridge's chambers exist for
+    **atmosphere** — the freezer is colder. A boat's exist for **position
+    and role** — the bow throws, the stern steers. Same mechanism, two
+    reasons, and **only the first has a consumer today.**
+  - ⭐ The composition refusal is satisfied either way: `spatial.md`'s
+    Placing rule #2 (*a Placing host must not be `Exitable`*) holds because
+    the Chambers are in the vessel's **contents**, not placements on the
+    vessel itself — *"that is how a boot works."*
 - **Why not now**: with the icebox a plain insulated container (D10)
   nothing in this build would compose it, and a class with no composer
   plus a kernel widening with no reader is the *feel/taste shipped

@@ -1,6 +1,10 @@
 # Structures slate — the thing that says "these rooms are one building", and whether it is needed at all
 
-> **Status: UNBUILT — and possibly unnecessary.** Nothing in the model
+> ⭐⭐⭐ **JUSTIFIED 2026-10-09 — the SHIP is what earns it.** See § *The
+> ship passes six for six* below. The question this slate was written to
+> ask is answered; what remains is a build.
+>
+> **Status: UNBUILT — and formerly "possibly unnecessary."** Nothing in the model
 > says two Locations belong to one structure. Four things come close and
 > none of them claims it: a **Locality** is an authored coverage prefix
 > in the address namespace (*"any kind of place, at any depth… **never a
@@ -112,6 +116,74 @@ Candidates that actually pass it, none of them in scope anywhere today:
 Note how many of those are **fire, weather and vertical space**. If a
 structure is ever built, that is the demand that will build it — not
 insulation, which found its own answer.
+
+## ⭐⭐⭐ The ship passes SIX FOR SIX — added 2026-10-09
+
+The justification test above is *"something must be true of a SET of rooms
+that no room can decide alone."* The vessel decision
+([navigable-water-slate](./navigable-water-slate.md) § 7a) ran a ship
+against this slate's own candidate list:
+
+| the candidate above | the ship |
+|---|---|
+| **a shared roof** | ⭐ **the deck** — and water coming over it, onto everything below |
+| **a chimney or flue serving more than one hearth** | ⭐⭐ **the try-works stack**, on a wooden deck, at sea |
+| **vertical heat, smoke and sound** | the most vertically-coupled space in the realm — a fire below decks *is* a whole-ship fact |
+| **a unit of destruction or repair** | ⭐⭐⭐ **she sinks. She burns. She is condemned.** The clearest unit of destruction in the game |
+| **a unit of description read from outside** | ⭐⭐⭐ **you sight a ship at twelve miles. The outside description IS the sighting.** |
+| **entrances** | **the gangway**, and which berth it is at |
+
+**Six for six**, and no building currently in the realm needs more than
+two or three. ⭐ This slate's own observation — *"note how many of those
+are fire, weather and vertical space; if a structure is ever built, that
+is the demand that will build it"* — is satisfied by one object: **a ship
+is all three at once, afloat.**
+
+> ⭐⭐⭐ **THE RULING: a ship is a Structure whose POSITION IS A
+> VARIABLE.** A building is a Structure whose position does not change.
+> **One field is the whole difference.**
+
+⭐⭐ **And the position belongs here by the test itself**: where the ship
+is, is a fact about every one of its rooms decided by none of them. A
+Parcel's extent and a Locality's coverage are the precedent for a
+coordinator holding spatial data — the only new thing is that it changes.
+⛔ An earlier draft split the position onto a separate **"hull" Thing**
+and was refused; the audit is recorded at § 7a.
+
+⭐ **Draught is the same test a third time** — it gates shallow water, it
+is `f(size, load)`, and the cargo lives in the **holds**, so the load is a
+**sum over membership.** A ship rides higher as it empties.
+
+⚠⚠ **And the binding sketch below was already right**, which is worth
+saying because the vessel pass reinvented it: *"not a containment tier —
+rooms would stay roots, the way Warren members do; a structure
+coordinates, it does not contain"* **is** the hull/warren relation, spelled
+out in advance, including the reason geometry cannot be trusted.
+
+### ⭐⭐ And the LANDMARK candidate has its mechanism now
+
+*"A unit of description read from outside"* is the owner's standing
+complaint about the TPA's clock tower, *"which only exists in prose… that
+is the extent of the clock tower's visibility."* The split, worked at
+[navigable-water-slate](./navigable-water-slate.md) § 3:
+
+- **what it IS** → **the Structure's outside description**, authored once
+- **who can see it** → a **zone field** (`visibleLandmarks`), inherited
+  through the ordinary ancestor walk, a room overriding to none — because
+  **landmark visibility is regional, not per-room**
+
+⭐⭐⭐ And it unifies with two things that looked unrelated: the **vantage**
+(a headland declaring what it overlooks) and the **seamark** (the same
+object with a *computed* range, `1.17(√h_mark + √h_eye)`, because at sea
+curvature binds where ashore obstruction does). **One object, two range
+rules.**
+
+⭐ Plus: the **room-contribution hook** now has three real consumers — the
+`Shore`, the Deliverance reach and the landmark — and ⭐⭐ **a town clock
+is the fourth instance of *civic infrastructure redistributes a private
+capability*** (heat · knowledge · access · **time**).
+
+---
 
 ## What it would be, if it is ever justified
 

@@ -13,7 +13,11 @@
 > the volume-tiered sale (bulk contract · the piped-mana utility tier) · the
 > mana farm · the Confluence in Terminus canon · the three vocations ·
 > binding devices (a per-second draw that lapses when the reservoir runs
-> dry — `'binding'` is declared on `DrawMode`, nothing reads it) · sited mana
+> dry — `'binding'` is declared on `DrawMode`, nothing reads it) · ⭐⭐ **the
+> FOURTH faculty band — `conductance`, the pipe the faculty does not model
+> (Part 7)** · ⚠ **re-pricing `transform` as expensive rather than absent, and
+> the `PriceList.ts` docstring that cites 10⁶ over a table reading 10³
+> (Part 7)** · sited mana
 > NODES on the terminus-condition × access-mode grid (geological/dynamic/
 > celestial/biotic × surface/subsurface-solid/subsurface-fluid) · node
 > title, rent and the first natural monopoly · whether a grid-power node
@@ -54,6 +58,204 @@ Settled with the owner, 2026-08-11:
 | **5** | ⭐ **Some sources need refinement** before they are practically usable (Part 4) |
 | **6** | ⭐⭐ **Nonlocality is ENERGY-ONLY.** The postulate moves energy, never mana; **mana moves by contact and conduction**, like charge. Adds *mana conductivity* as a second material field (Part 2) |
 | **7** | ⭐ **Mana PARTITIONS on separation**, with a volatility loss to ambient each pass — refining is a skilled trade, not a boil (Part 4) |
+
+---
+
+## Part 7 — ⭐⭐⭐ The SCALE problem, and the band that is missing
+
+Added 2026-10-09, from a conversation that started as *"every cool spell idea
+gets refuted by the physics"* and found that two of the refutations are
+numbers rather than laws.
+
+### ⚠⚠ First, a correction to the record
+
+⛔ **Mana was proposed in that conversation as its own RGO** — a reservoir
+with a recharge rate, gathered by a new act. **Wrong, and it contradicts
+decisions 3 and 4 already on this page**: *mana is EXTRACTIVE, found in
+places*, and *only some substances hold it — **a new field on the existing
+closed Material set, not a new material.*** The user's correction, verbatim:
+
+> *"Mana isn't really an RGO. It's more that mana has a material form or forms
+> that **existing** RGOs can gather as a normal resource. So magic is its own
+> R but not its own O — unless you think there should be a mana specific
+> operation, but that feels like it fails on the same thinking why we didn't
+> do 'magic damage' and 'magic health'. **What are you really getting except
+> an exact copy of a thing that already exists as a second concern to
+> manage?**"*
+
+⭐⭐⭐ **That is the duplicate-ontology test and it should be the standing
+guard for anything magical**: a magic *resource* is fine, a magic *operation*
+is a parallel system every author then has to learn twice. The tell in my own
+proposal was that it required a **new act** (`accumulate`) beside `hew`,
+`fell`, `harvest` and `tap` — and it would have been a worse version of all
+four.
+
+### ⚠⚠⚠ And a correction to what I told the user magic cannot do
+
+I said *"magic cannot create anything, only move it."* **`PriceList.ts`
+disagrees:**
+
+```
+perceive: 0.5 · destroy: 1 · create: 2 · control: 3 · transform: 1000
+```
+
+⭐⭐ **`create` is the second-cheapest verb in the game.** The expensive one is
+**`transform`** — and the five verbs already draw the distinction I was
+failing to draw: **making a thing is cheap; changing what a thing is MADE OF
+is not.** The doctrine was never as restrictive as I was reporting it.
+
+### ⭐⭐⭐ The scale problem, stated properly
+
+The user's objection, and it is a real structural one that no content fixes:
+
+> *"A matter 'creation' spell that rearranges things subatomically costs so
+> much more than your generic force bolt — that means powering one spell makes
+> the other either irrelevant or extremely overpowered."*
+
+**Correct, and unanswerable in one currency.** A supply that can pay for a
+10⁶ working makes a 10⁰ bolt free; a supply that makes the bolt meaningful
+cannot reach the working. There is no single price list that spans 10⁷.
+
+⭐⭐⭐ **But the premise is wrong, and the 10⁶ guards ONE thing only: changing
+what something is made of at the atomic level.** Almost nothing anybody wants
+from magic requires that.
+
+| the wish | what it physically is | scale |
+|---|---|---|
+| water out of the air | collection + phase change | **latent heat — kJ** |
+| a wall of ice | phase change | **kJ** |
+| fire, heat, ignition | chemical | **kJ–MJ** |
+| shaping stone, hardening steel | chemical / structural | **kJ–MJ** |
+| growing food | carbon fixing — **plants do it on sunlight** | **eV per bond** |
+| force, motion, lifting | mechanical | **joules** |
+| **lead into gold** | **element change** | ⚠ **GJ** |
+| matter from nothing | *mc²* | ⛔ absurd |
+
+⭐⭐ **So the useful band spans ~10³ — the difference between a candle and a
+bonfire — and one currency handles that comfortably.** The ruling is not
+*magic cannot create*; it is **magic cannot change what a thing is made of**,
+which forbids exactly the one item (alchemical gold) that *should* be a
+legendary multi-month works.
+
+### ⭐⭐⭐ A spell and a WORKING are different objects, priced in different currencies
+
+The second half of the answer. Pricing a force bolt and a transmutation in one
+list is the error; they are not the same kind of act.
+
+| | the act | the limit | who | timeframe | priced in |
+|---|---|---|---|---|---|
+| **a spell** | you deliver a burst | **your throughput** | one caster | seconds | **conductance** |
+| **a working** | a crew sustains a draw | **supply × duration** | a ritual, or an apparatus | hours to months | **tonnes of feedstock** |
+
+⭐ **Deliberately non-interoperable, bridged only by equipment** — nobody buys
+a power station in dry cells and nobody runs a lamp off a substation without a
+transformer. And **Kell's Partition already says half of it**: *an impulse
+device draws per use off a stored charge; a binding device draws per second off
+a standing supply.* The doctrine distinguished the two and then kept them in
+one price list.
+
+⭐⭐ **That is also what makes the great work content rather than a refusal.**
+100 GJ stops being *impossible* and becomes *"how many tonnes of ore, at what
+purity, from whom, hauled how far"* — which is Part 4's chain, an economy, and
+therefore other players.
+
+### ⭐⭐⭐ THE FINDING: the faculty models the tank and the refill, and not the PIPE
+
+The user's sharper worry: *"is your personal mana capacity going to be
+meaningful?"* if a working needs GJ and a body holds 80 kJ — a caster becomes a
+socket for the ore in their pack.
+
+**It is meaningful iff the limiting quantity is POWER rather than ENERGY.** And
+`lib/magic/Faculty.ts` ships three bands and none of them is that:
+
+| band | what it is | |
+|---|---|---|
+| `depth` | **capacity** — 80/120/180 pt | the tank |
+| `serenity` | **recovery rate** | the refill |
+| `composure` | **resistance to being patterned by another** (the Reeve Line, `C = C_band·(f + (1−f)·m)`) | ⚠ a *defence* stat, **not** a spend limit |
+
+> ⚠⚠ **There is no discharge-rate cap anywhere.** The faculty models how much
+> you hold and how fast it comes back, and says nothing about how fast you can
+> **spend** it. (The doc's own line — *"depth × serenity are orthogonal: a
+> deep-slow mage and a shallow-fast one"* — is the two axes it does have.)
+
+⭐⭐⭐ **And the concept already exists, on the wrong host.** Decision 6:
+*mana moves by contact and **conduction**, like charge*, adding **mana
+conductivity as a material field.* **A caster is a conductor whose conductance
+is unmodelled.** So the proposal is not a new concept — it is an existing,
+already-decided material field reaching the one host that lacks it:
+
+> ⭐⭐⭐ **A fourth faculty band: conductance — how much mana you can pass per
+> second.**
+
+**What it buys, all of it falling out rather than needing balance:**
+
+- ⭐⭐ **A huge external supply no longer makes you stronger — only supplied.**
+  Hauling a tonne of concentrate extends your afternoon; it does not raise your
+  ceiling. **The "biggest battery wins" problem dies at the root**, which is
+  the user's question answered.
+- ⭐⭐ **The great work becomes impossible for a person even with infinite
+  fuel**, because no faculty can pass GJ/s. So it needs **conductors in
+  parallel — a ritual — or a non-living conduit — an apparatus.** *The
+  mechanism generates the ritual*, instead of the ritual being flavour, and the
+  apparatus is the epoch ladder.
+- ⭐⭐⭐ **The failure mode is not invented: a conductor over its rating
+  HEATS.** `electricity.md` already ships the Ohm's-law core and
+  `SustainedShock` on a different host, and `thermal` ships the consequence.
+  **A caster who overdraws burns, by the same arithmetic as a wire** — and
+  ⚠ **not via `composure`**, which an earlier draft of this proposal wrongly
+  reached for.
+- ⭐ **A novice with a rich supply is dangerous to himself, not to you** — which
+  inverts the usual power fantasy and is a better first lesson.
+- ⭐⭐ **Two shipped numbers already set two regimes.** Recovery is **180 W**; a
+  faculty that can empty its reserve in a few seconds bursts on the order of
+  **20 kW** — a ratio of ~**100**. So **combat is burst-limited and sustained
+  work is supply-limited**, which is Kell's impulse/binding split arriving as
+  *arithmetic* rather than as a rule. ⚠ The 20 kW is inferred, not shipped; the
+  ratio wants deriving.
+
+### ⚠⚠ Two rulings that are a NUMBER, not the physics
+
+The distinction the user asked for — *"we can argue about whether and to what
+extent those constraints should exist"* — and it is checkable.
+
+**1. `PriceList.ts`'s docstring cites a result it does not implement.** The
+comment reads *"`transform` is prohibitive, and that is the point: material
+transformation is priced out by **~10⁶** (chemical bonds in eV against…)"*.
+The table reads `transform: 1000`. ⚠⚠ **10³, not 10⁶** — and `VERB_LABOUR` is
+a **labour** multiplier feeding a derived rarity, not a mana cost at all. So
+**the transform ruling is enforced by a rarity knob wearing the physics'
+clothes**, and the effect is to make the verb **dead rather than expensive**.
+*Dead is the loss.* The physics says *unaffordable to a person*; the price list
+says *unavailable to anyone*.
+
+**2. The specification veto is a difficulty axis used as a prohibition.** On
+body transformation `arcane-science.md` runs two arguments — the energy is
+prohibitive **and** *"the specification is worse."* The second does independent
+work, and **specification difficulty is exactly what a skill ladder is for.**
+Using it as a second veto converts a hard problem into an impossible one.
+
+⭐ **Three of the constraints in this area are physics and earn their keep:**
+*once is cheap, held is dear* (it decides design questions without a judgement
+call — lamp over glowlight, iron lock over held lock, ward as a utility bill) ·
+**the one-way coupling**, which is the quiet load-bearer, because **it is what
+makes magic an ECONOMY at all** (if a waterwheel made mana, mana would be free
+and there would be nothing to mine, sell, steal, tax or run out of) · and
+**site-dependent ambient recovery**, which gives magic a geography. **Two are
+numbers somebody set once.**
+
+### Open, from this pass
+
+1. ⭐⭐ **Does the fourth band ship as `conductance`?** It is the user-facing
+   fix for *"is my capacity meaningful"*, and the one new field in this whole
+   pass.
+2. **Derive the burst ratio** rather than asserting 20 kW — from a force
+   bolt's intended effect, backwards.
+3. **Re-price `transform`** as *expensive* rather than *absent*, now that Part
+   4's chain can supply a works; and decide whether `VERB_LABOUR` should carry
+   the physics claim at all, or whether the claim belongs on the mana cost.
+4. **Does conductance correlate with a material's mana conductivity?** Open
+   question 7 already asks the electrical/mana version; this is the body one.
 
 ---
 

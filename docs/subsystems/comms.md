@@ -294,6 +294,29 @@ design space. Designed but **not yet built**:
   and attribution — *strange, not silent*. Design:
   [content-declaration-slate § 5](../slates/builds/content-declaration-slate.md).
 
+  > ⚠⚠ **AMENDED 2026-10-09 — one clause, and the invariant is
+  > untouched.** *"Never asks what you are carrying"* was written against a
+  > **comms-specific** rule and did not anticipate a **general-tech** rule
+  > reaching a comms instrument *incidentally*: a monastery that forbids
+  > modern machinery is regulating machinery, and the implant falls in that
+  > class whether or not comms was the point.
+  >
+  > ⭐⭐⭐ **So a covenant MAY regulate modern tech as a class. What it
+  > may never do is leave you with no instrument at all** — and the
+  > portability ladder above is what guarantees it cannot: **every band
+  > has an instrument.** You hand over the modern *organ* and you are
+  > holding the medieval *needle*. ***Strange, not silent* — satisfied
+  > exactly.** The invariant does not move; only its mechanism does, from
+  > *"we never ask"* to *"every band has an instrument."*
+  >
+  > ⚠ And the enforcement rung is bounded: ⭐⭐ **the `wall` rung can
+  > refuse an object at a boundary and cannot perform surgery**, so a
+  > no-implant rule is `camera`/`witness`/`norm` strength, never `wall`.
+  > ⛔ Also note that **the AETHER itself is unregulable — it is a physical
+  > background field**, and this doc's framing of it as *"implant / ESP"*
+  > names one receiver of two: a carried **phone** is the other.
+  > → [content-declaration-slate § 3.8](../slates/builds/content-declaration-slate.md).
+
 - **Dynamic-reach shout** — shout currently stamps a flat 90 dB. The
   designed extension makes output dB scale with a **voice-projection
   attribute** (and clarity degrade with distance via acoustic
