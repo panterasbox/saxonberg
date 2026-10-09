@@ -140,25 +140,45 @@ describe("the verbs the reachability sweep conferred", () => {
     expect(affordsOn(walker, "unfold")).toBe(true);
   });
 
-  it("⛔ `drive` is NOT conferred — it is held on a live COLLISION", () => {
-    // ⚠⚠ The sweep conferred this and the full suite refused it.
-    // `trade/mining/cmd/mining/drive.yaml` also claims `drive`, the two
-    // views have the same arity so `requires:` cannot separate them, and
-    // only affordance ORDER would decide which one a miner gets —
-    // `trade-mining`'s acts test asserts `lib/slot/Drivable.ts` carries
-    // no contributions for exactly that reason. ⭐ Conferring one side of
-    // an undiagnosed collision is adjudicating it, and first-come is not
-    // one of the ladder's seven solutions.
+  it("⭐⭐ `drive` IS conferred — and only when a vehicle is beside you", () => {
+    // ⚠⚠ This assertion used to be its own INVERSE, and the reversal is
+    // the record of an adjudication rather than a change of mind. The
+    // reachability sweep conferred `drive`, the full suite refused it
+    // (`trade-mining`'s acts test asserts `lib/slot/Drivable.ts` carries
+    // no contributions, because its own `drive.yaml` claimed the word
+    // with the same arity, so only affordance ORDER would have decided
+    // which one a miner got), and the sweep reverted — correctly:
+    // conferring one side of an undiagnosed collision IS adjudicating
+    // it, and first-come is not one of the ladder's seven solutions.
+    //
+    // ⭐ The lock build then ran the ladder properly
+    // (`command-spec.md § When both are bodily acts`), rungs 2 and 3
+    // agreeing: the vehicle is the generative primitive — `DrivableMixin`
+    // is kernel substrate that every coach, cart and barge extends,
+    // while cutting a heading is one trade's gesture — and "drive" is
+    // what a layman says about a vehicle, while *to drift* is real mining
+    // usage rather than jargon reached for to sound authentic. Mining's
+    // view is `verbs: [drift]` now.
     const room = makeStuff(() => new Room());
     const walker = makeStuff(() => new Walker());
     const cart = makeStuff(() => new Cart());
     ContainmentApi.move(walker, room);
+
+    // ⭐⭐ `environment` + `peers`, never `self` — so the verb exists only
+    // while something drivable does. **This half is the point**: a
+    // target-conferred verb is correctly unsayable in an empty room, and
+    // the lock build's drive learned it the hard way by typing `drive`
+    // in the lounge and failing.
+    expect(
+      affordsOn(walker, "drive"),
+      "with no vehicle present, `drive` must not be afforded",
+    ).toBe(false);
+
     ContainmentApi.move(cart, room);
     expect(
       affordsOn(walker, "drive"),
-      "a drivable vehicle beside you must NOT light up `drive` until the " +
-        "collision with trade-mining's drift is adjudicated",
-    ).toBe(false);
+      "a drivable vehicle beside you lights up `drive`",
+    ).toBe(true);
   });
 
   it("⭐ `prompt` is HasInteractiveMixin's — a prompt is a CONNECTION's", () => {

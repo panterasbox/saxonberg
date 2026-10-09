@@ -89,7 +89,26 @@ export function LockableMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     static fieldMeta: FieldMeta = {
       locked: { persistent: true, authorable: true },
-      keyway: { persistent: true, authorable: true },
+      /**
+       * ⭐⭐ `spoiler: 1` with `spoilerName: 0` — the `Material.density`
+       * shape, and for the same reason: **the existence is schema and
+       * only the value is content.** *A door has a keyway* is what
+       * `help` and the generated docs publish; WHICH keyway is the
+       * secret, because two doors sharing one is exactly what a reader
+       * must hold a key to learn. ⚠ Surfacing the token on a wiki
+       * composition panel would hand that over for free.
+       */
+      keyway: {
+        persistent: true,
+        authorable: true,
+        spoiler: 1,
+        spoilerName: 0,
+      },
+      /**
+       * ⭐ NOT a spoiler: a brass pin-tumbler and a card reader look
+       * different, so the technology is something you read off the door
+       * by standing in front of it.
+       */
       lockTechnology: { persistent: true, authorable: true },
     };
 
