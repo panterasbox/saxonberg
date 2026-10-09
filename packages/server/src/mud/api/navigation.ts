@@ -25,6 +25,8 @@ import { SecurityApi } from './security';
 import type { PlaceNode } from '../lib/location/PlaceNode';
 import type { GraphFinding } from '../lib/location/GraphInvariants';
 import type { MapClaim, MapDocument } from '../lib/location/MapClaim';
+import type { RouteOutcome } from '../lib/location/RoutePlan';
+import type { TravelProfileSpec } from '../lib/location/TravelProfile';
 
 /** Canonical direction names (long form). */
 export type CardinalDirection =
@@ -267,6 +269,129 @@ export class NavigationApi {
   public static mapNow(): number {
     return logic().mapNow();
   }
+
+  /* ── routing ─────────────────────────────────────────────────────────
+   *
+   * ⭐⭐⭐ **One graph traversal, or none.** Every search below spends
+   * a caller-declared `budget` and answers with a stated refusal when
+   * it runs out, because *"I stopped looking"* and *"there is no way"*
+   * are different answers and a caller cannot tell them apart from a
+   * `null`.
+   *
+   * ⚠ String-keyed and plain-data throughout: `NavigationApi` is not
+   * on `lint:object-verbs`' exempt list and should not be. A traveller
+   * is a {@link TravelProfileSpec} — a mode, its medium, and whether
+   * it rolls — never a live mover.
+   */
+
+  /**
+   * Plan a way from `from` to `to` over the **world index**.
+   *
+   * ⛔ This is the omniscient source. Legitimate for a brain whose
+   * author declared what it knows (pass `knowledge.extent` to scope
+   * it) and for a compile; **never** for answering a person, which is
+   * {@link routeOnMap}'s job.
+   *
+   * Answers the non-dominated plans — one optimum per axis (minutes,
+   * legs, and the ways that close), de-duplicated — and does NOT pick
+   * between them when they disagree, because choosing is the activity.
+   */
+  public static routeBetween(
+    from: string,
+    to: string,
+    profile: TravelProfileSpec,
+    knowledge: { extent?: string },
+    budget: number,
+  ): Promise<RouteOutcome> {
+    return logic().routeBetween(from, to, profile, knowledge, budget);
+  }
+
+  /**
+   * Plan a way over **one person's own map claims** — what they have
+   * walked, seen, searched or read as published.
+   *
+   * ⭐⭐ The evidence firewall's reader half, and it is structural:
+   * this path's only read is the viewer's map document, and the four
+   * core modules it plans through **cannot import** the index
+   * (`lint:graph-walks`' second check, no ceiling). A map can be
+   * stale, can disagree with itself, and routes over what it believes;
+   * every plan says what believing it assumes.
+   */
+  public static routeOnMap(
+    viewerKey: string,
+    localityPrefix: string,
+    from: string,
+    to: string,
+    profile: TravelProfileSpec,
+    budget: number,
+  ): Promise<RouteOutcome> {
+    return logic().routeOnMap(
+      viewerKey,
+      localityPrefix,
+      from,
+      to,
+      profile,
+      budget,
+    );
+  }
+
+  /**
+   * Every place reachable from `starts` by a traveller of this kind.
+   *
+   * ⭐ The lane compile's read: a lane of mode M is M's induced
+   * subgraph from its seeds, which is exactly this. `exhausted` means
+   * the budget ran out, so the set is a floor and not the answer.
+   */
+  public static reachFrom(
+    starts: readonly string[],
+    profile: TravelProfileSpec,
+    knowledge: { extent?: string },
+    budget: number,
+  ): Promise<{ reached: string[]; expanded: number; exhausted: boolean }> {
+    return logic().reachFrom(starts, profile, knowledge, budget);
+  }
+
+  /**
+   * The all-pairs cost between `places`.
+   *
+   * ⭐⭐ **The matrix, and deliberately no optimiser.** This is the
+   * input a travelling-salesman solver needs; shipping it without the
+   * solver is the decision rather than the omission. The engine
+   * computes what the roads cost; **the player decides which stop to
+   * make first**, and taking that away would take away the game.
+   */
+  public static costMatrix(
+    places: readonly string[],
+    profile: TravelProfileSpec,
+    knowledge: { extent?: string },
+    budget: number,
+  ): Promise<{
+    pairs: Array<{
+      from: string;
+      to: string;
+      minutes: number | null;
+      legs: number | null;
+    }>;
+    expanded: number;
+  }> {
+    return logic().costMatrix(places, profile, knowledge, budget);
+  }
 }
+
+/*
+ * ⭐ Re-exported so a caller needs ONE import to speak to the router.
+ * The types are the `lib/location/` core's; this is the author-facing
+ * door onto them.
+ */
+export type {
+  RouteOutcome,
+  RoutePlan,
+  RouteLeg,
+  RouteCost,
+  RouteAssumption,
+  RouteSource,
+  RouteRefusalReason,
+} from '../lib/location/RoutePlan';
+export type { TravelProfileSpec } from '../lib/location/TravelProfile';
 
 SecurityApi.decorateApiClass(NavigationApi);

@@ -117,6 +117,23 @@ export interface MapClaim {
   /** For an edge: what the far side was called, when `to` is unknown. */
   toLabel?: string | null;
   channel: MapChannel;
+  /**
+   * ⭐ For an edge you WALKED: was it the kind of way that closes — a
+   * ford, a causeway? You were standing at it, so you saw that much,
+   * and a plan over your own map can carry the caveat.
+   *
+   * ⚠⚠ **There is deliberately no `minutes` beside this**, and the
+   * reason is the pedagogy rather than the plumbing. Ordinary movement
+   * is **instantaneous and free** by design (`logistics.md`), so a
+   * walker who crossed in zero game time **did not learn how long the
+   * way takes** — recording a duration from a free walk would write a
+   * number the world never charged. `edgeMinutes` is what a Journey
+   * spends; a map plan costs in LEGS, which is also what a pedestrian
+   * is answered in.
+   *
+   * A `seen` claim carries neither: a glance measures nothing.
+   */
+  conditional?: boolean;
   /** Game-second of the first observation of this exact claim. */
   firstSeen: number;
   /** Game-second of the most recent one. Bumped, never replaced. */

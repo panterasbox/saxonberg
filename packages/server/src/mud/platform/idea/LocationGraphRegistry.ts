@@ -37,6 +37,7 @@ import { NavigationApi } from '../../api/navigation';
 import { MixinApi } from '../../api/mixin';
 import { Mixins } from '../../lib/mixin';
 import { Template } from '../../lib/stuff/Template';
+import { KnowledgeGraph } from '../../lib/location/KnowledgeGraph';
 import { PlatPlan } from '../../lib/location/PlatPlan';
 import { OuterWarren } from '../../lib/location/OuterWarren';
 import Location from '../../lib/stuff/Location';
@@ -252,6 +253,43 @@ export default class LocationGraphRegistry extends Idea {
     return this.nodesUnderExtent(extent);
   }
 
+  /**
+   * ⭐⭐ The whole index as something walkable — the **world** knowledge
+   * source for routing.
+   *
+   * Cached per `generation`, which costs nothing to get right: the
+   * rebuild already stamps one and sweeps the rest, so a cache keyed
+   * on it is dropped by every rebuild for free and can never serve a
+   * stale shape. ⚠ The cache lives HERE and not on `NavigationLogic`
+   * for the same reason the index does: the Logic is the hot-reload
+   * boundary and a reload must not cost the realm its graph (the
+   * `AddressRegistry` → `AddressLogic` arrangement).
+   *
+   * `extent` is a prefix over identity. ⭐ Scoping a search to an
+   * extent is a thing an AUTHOR may choose — an NPC that only knows
+   * its own quarter is the author saying so. The engine never assumes
+   * it, because what an NPC knows is 100% the author's to declare.
+   *
+   * ⚠ The whole-table read is deliberate and is inside the owner,
+   * which is `lint:whole-table`'s stated exemption: 128 nodes today,
+   * materialised once per generation rather than once per search.
+   */
+  @CallSecurity(NavigationLogicOnly)
+  public async graphView(extent?: string): Promise<KnowledgeGraph> {
+    await this.ensureWarm();
+    const key = extent ?? '';
+    if (this.viewGeneration === this.generation) {
+      const hit = this.views.get(key);
+      if (hit) return hit;
+    } else {
+      this.views.clear();
+      this.viewGeneration = this.generation;
+    }
+    const view = KnowledgeGraph.fromNodes(await this.allNodes(), extent);
+    this.views.set(key, view);
+    return view;
+  }
+
   @CallSecurity(NavigationLogicOnly)
   public async pointingAt(identity: string): Promise<PlaceNode[]> {
     await this.ensureWarm();
@@ -370,6 +408,10 @@ export default class LocationGraphRegistry extends Idea {
   }
 
   /** Every node — the rebuild's and the full check's input. */
+  /** Materialised views, keyed by extent, valid for one generation. */
+  private views = new Map<string, KnowledgeGraph>();
+  private viewGeneration = -1;
+
   private async allNodes(): Promise<PlaceNode[]> {
     return PlaceNode.find<PlaceNode>({});
   }

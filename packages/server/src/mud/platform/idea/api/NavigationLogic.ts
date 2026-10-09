@@ -16,6 +16,25 @@ import type {
   MapDocument,
 } from '../../../lib/location/MapClaim';
 import type { CardinalDirection } from '../../../api/navigation';
+import { Traversal } from '../../../lib/location/Traversal';
+import type { Leg } from '../../../lib/location/Traversal';
+import {
+  TravelProfile,
+  OmnivorousTravelProfile,
+  type TravelProfileSpec,
+} from '../../../lib/location/TravelProfile';
+import {
+  KnowledgeGraph,
+  type ClaimLike,
+  type KnownWay,
+} from '../../../lib/location/KnowledgeGraph';
+import type {
+  RouteAssumption,
+  RouteLeg,
+  RouteOutcome,
+  RoutePlan,
+  RouteSource,
+} from '../../../lib/location/RoutePlan';
 
 /** Where the graph registry stands. */
 const GRAPH_REGISTRY_PATH = '/platform/idea/LocationGraphRegistry';
@@ -116,6 +135,18 @@ function normalize(input: string): CardinalDirection | undefined {
 
 const NavigationApiCallers = SecurityPolicies.FromModule('/api/navigation#NavigationApi'
 );
+
+/**
+ * What travels down a leg while a route is being searched: where I am,
+ * where I came from, and by which way. ⭐ Carrying the predecessor
+ * rather than observing it is what makes a cheapest-first search
+ * record the CHEAPEST arrival — see `planOver`.
+ */
+interface StepCarry {
+  at: string;
+  from: string | null;
+  way: KnownWay | null;
+}
 
 /**
  * NavigationLogic — the hot-reloadable logic singleton behind
@@ -258,6 +289,493 @@ export class NavigationLogic extends ApiLogic {
   @CallSecurity(NavigationApiCallers)
   public async checkGraph(scope?: string): Promise<GraphFinding[]> {
     return (await registry()?.checkGraph(scope)) ?? [];
+  }
+
+
+  /* ── routing ─────────────────────────────────────────────────────────
+   *
+   * ⭐⭐⭐ **A plan is a hypothesis, and the knowledge source is the
+   * whole design.** `routeBetween` plans over the WORLD index — an
+   * omniscient view, legitimate for a brain whose author declared what
+   * it knows and for a compile. `routeOnMap` plans over ONE PERSON'S
+   * CLAIMS, and ⛔ cannot reach the index at all: the four core
+   * modules it calls through may not import it, and
+   * `lint:graph-walks`' second check holds that with no ceiling.
+   *
+   * ⚠ Every search spends a CALLER-DECLARED BUDGET with no default.
+   * Performance is the caller's to bound, because the alternative is
+   * the engine deciding how much of the world an NPC may think about —
+   * and how much an NPC knows is 100% the author's. Exhaustion is a
+   * STATED refusal (`'budget'`), never silently *no way*.
+   */
+
+  /** See {@link NavigationApi.routeBetween}. */
+  @CallSecurity(NavigationApiCallers)
+  public async routeBetween(
+    from: string,
+    to: string,
+    profile: TravelProfileSpec,
+    knowledge: { extent?: string },
+    budget: number,
+  ): Promise<RouteOutcome> {
+    const reg = registry();
+    // ⚠ A real answer, not a throw: plenty runs before the registry is
+    // cloned from the pack manifest. A brain skips the beat; a compile
+    // records a problem.
+    if (!reg) return { ok: false, reason: 'graph-cold', expanded: 0 };
+    const graph = await reg.graphView(knowledge.extent);
+    return this.planOver(graph, from, to, profile, 'world', budget);
+  }
+
+  /** See {@link NavigationApi.routeOnMap}. */
+  @CallSecurity(NavigationApiCallers)
+  public async routeOnMap(
+    viewerKey: string,
+    localityPrefix: string,
+    from: string,
+    to: string,
+    profile: TravelProfileSpec,
+    budget: number,
+  ): Promise<RouteOutcome> {
+    // ⛔⛔ The ONLY read on this path is the person's own claims.
+    // There is no registry call here and there must never be one.
+    //
+    // ⚠ Read through `DocumentApi` directly rather than through
+    // `this.readMap(...)`: an intra-singleton self-call goes back out
+    // through the security proxy and the per-method
+    // `FromModule('/api/navigation#NavigationApi')` gate DENIES it —
+    // this file's own header warns about exactly that, which is why
+    // the direction lookups use a module-private free function.
+    const rows = await DocumentApi.readMaps(viewerKey, localityPrefix);
+    const maps: MapDocument[] = rows.map((r) => {
+      const data = r.data as unknown as MapDocument;
+      return {
+        locality: typeof data?.locality === 'string' ? data.locality : '',
+        claims: Array.isArray(data?.claims) ? data.claims : [],
+      };
+    });
+    const claims: ClaimLike[] = [];
+    for (const map of maps) {
+      for (const claim of map.claims) {
+        claims.push({
+          kind: claim.kind,
+          place: claim.place,
+          ...(claim.dir !== undefined ? { dir: claim.dir } : {}),
+          to: claim.to ?? null,
+          toLabel: claim.toLabel ?? null,
+          channel: claim.channel,
+          lastSeen: claim.lastSeen,
+          ...(claim.conditional === true ? { conditional: true } : {}),
+        });
+      }
+    }
+    const graph = KnowledgeGraph.fromClaims(claims);
+    return this.planOver(graph, from, to, profile, 'map', budget);
+  }
+
+  /** See {@link NavigationApi.reachFrom}. */
+  @CallSecurity(NavigationApiCallers)
+  public async reachFrom(
+    starts: readonly string[],
+    profile: TravelProfileSpec,
+    knowledge: { extent?: string },
+    budget: number,
+  ): Promise<{ reached: string[]; expanded: number; exhausted: boolean }> {
+    const reg = registry();
+    if (!reg) return { reached: [], expanded: 0, exhausted: false };
+    const graph = await reg.graphView(knowledge.extent);
+    const traveller = new TravelProfile(profile);
+    const seeds = starts.filter((s) => graph.has(s));
+    if (seeds.length === 0) {
+      return { reached: [], expanded: 0, exhausted: false };
+    }
+    const reached: string[] = [];
+    const walk = new Traversal<string, string[], void>({
+      order: 'breadth-first',
+      keyOf: (id) => id,
+      neighbours: (id) => this.legsOf(graph, id, traveller),
+      bound: { nodes: budget },
+      fold: (id) => {
+        reached.push(id);
+        return reached;
+      },
+    });
+    const out = walk.walkFrom(seeds, { carry: undefined });
+    return {
+      reached,
+      expanded: out.expanded,
+      exhausted: out.exhausted === 'nodes',
+    };
+  }
+
+  /**
+   * See {@link NavigationApi.costMatrix}.
+   *
+   * ⭐⭐ **The all-pairs matrix, and nothing more.** This is the input
+   * a tour optimiser needs, and shipping the matrix WITHOUT an
+   * optimiser is the decision, not an omission: deciding the order of
+   * the stops is the activity. The engine computes what the roads
+   * cost; the player decides where to go first.
+   */
+  @CallSecurity(NavigationApiCallers)
+  public async costMatrix(
+    places: readonly string[],
+    profile: TravelProfileSpec,
+    knowledge: { extent?: string },
+    budget: number,
+  ): Promise<{
+    pairs: Array<{ from: string; to: string; minutes: number | null; legs: number | null }>;
+    expanded: number;
+  }> {
+    const reg = registry();
+    if (!reg) return { pairs: [], expanded: 0 };
+    const graph = await reg.graphView(knowledge.extent);
+    const pairs: Array<{
+      from: string;
+      to: string;
+      minutes: number | null;
+      legs: number | null;
+    }> = [];
+    let expanded = 0;
+    // Sorted, so the matrix is the same on every run.
+    const sorted = [...places].sort();
+    for (const from of sorted) {
+      for (const to of sorted) {
+        if (from === to) continue;
+        const out = this.planOver(graph, from, to, profile, 'world', budget);
+        expanded += out.expanded;
+        const best = out.ok ? out.plans[0] : null;
+        pairs.push({
+          from,
+          to,
+          minutes: best ? best.cost.minutes : null,
+          legs: best ? best.cost.legs : null,
+        });
+      }
+    }
+    return { pairs, expanded };
+  }
+
+  /* ── the engine ───────────────────────────────────────────────────── */
+
+  /**
+   * The legs out of one place that this traveller may take.
+   *
+   * ⚠ Three refusals, and they are three DIFFERENT kinds of fact:
+   * `admits` is physics (a wagon on water), `published` is knowledge
+   * (a draft zone the realm does not have yet), and an edge whose far
+   * side is not in this graph at all is the limit of what the knower
+   * knows. None of them is `blocked` — a blocked way is not in the
+   * index at all (W5).
+   */
+  private legsOf(
+    graph: KnowledgeGraph,
+    identity: string,
+    traveller: TravelProfile,
+  ): Array<Leg<string>> {
+    const place = graph.at(identity);
+    if (!place) return [];
+    const out: Array<Leg<string>> = [];
+    for (const way of place.edges) {
+      if (way.to === null) continue;
+      const far = graph.at(way.to);
+      if (!far || !far.published) continue;
+      if (!traveller.admits(way)) continue;
+      out.push({
+        node: way.to,
+        dir: way.dir,
+        minutes: way.minutes ?? null,
+        edge: way,
+      });
+    }
+    return out;
+  }
+
+  /**
+   * Plan from `from` to `to` over one knowledge graph.
+   *
+   * ⭐⭐ **One cheapest-first walk per AXIS, and the non-dominated
+   * plans come back.** Three axes — minutes, legs, and `conditional`
+   * (⭐ a RISK axis: the short way over the ford against the long sure
+   * one). Where they agree there is one plan; where they disagree the
+   * caller gets both and ⛔ the engine does NOT pick, because that
+   * choice is the activity.
+   *
+   * ⚠ This is a SUBSET of the Pareto front, stated plainly rather than
+   * dressed up: one optimum per axis, de-duplicated. A full
+   * multi-objective search is not bought for a realm with three
+   * corridors, and the shape is here if a later one needs it.
+   */
+  private planOver(
+    graph: KnowledgeGraph,
+    from: string,
+    to: string,
+    profile: TravelProfileSpec,
+    source: RouteSource,
+    budget: number,
+  ): RouteOutcome {
+    if (!graph.has(from)) {
+      return { ok: false, reason: 'unknown-origin', expanded: 0 };
+    }
+    if (!graph.has(to)) {
+      return { ok: false, reason: 'unknown-destination', expanded: 0 };
+    }
+    const traveller = new TravelProfile(profile);
+
+    if (from === to) {
+      return {
+        ok: true,
+        expanded: 0,
+        plans: [
+          {
+            source,
+            profile,
+            nodes: [from],
+            legs: [],
+            cost: { minutes: 0, legs: 0, conditional: 0, unmeasured: 0 },
+            assumptions: [],
+          },
+        ],
+      };
+    }
+
+    const AXES: Array<(way: KnownWay) => number> = [
+      // minutes — ⚠ an unmeasured leg costs ZERO on this axis, which is
+      // why `cost.unmeasured` is reported beside `cost.minutes`: a
+      // route of eleven unmeasured legs is not a route of zero minutes,
+      // and the renderer must be able to say so.
+      (way) => way.minutes ?? 0,
+      // legs — the walker's currency (D4a).
+      () => 1,
+      // risk — count the ways that close.
+      (way) => (way.conditional === true ? 1 : 0),
+    ];
+
+    let expanded = 0;
+    let exhausted = false;
+    const plans: RoutePlan[] = [];
+    const seen = new Set<string>();
+
+    for (const cost of AXES) {
+      const prev = new Map<string, { from: string; way: KnownWay }>();
+      // ⚠⚠ **The predecessor is recorded ON DEQUEUE, carried down the
+      // leg — not on first sight.** A queued walk has no tree, so the
+      // skeleton cannot hand back a path, and the obvious shortcut
+      // (note the predecessor in `neighbours`, where the legs are) is
+      // WRONG for a cheapest-first walk: `neighbours(start)` sees
+      // every leg out of the start at once, so the destination's
+      // predecessor would be whichever edge was authored first rather
+      // than the cheapest arrival. The diamond fixture caught it —
+      // all three axes answered the same path.
+      //
+      // So the carry holds *where I came from and by what*, and `fold`
+      // — which the skeleton calls exactly once per node, at the
+      // moment it is dequeued as cheapest — writes it down.
+      const walk = new Traversal<string, void, StepCarry>({
+        order: 'cheapest-first',
+        keyOf: (id) => id,
+        neighbours: (id) => this.legsOf(graph, id, traveller),
+        bound: { nodes: budget },
+        cost: (leg) => cost(leg.edge as KnownWay),
+        descend: (carry, leg) => ({
+          at: leg.node,
+          from: carry.at,
+          way: leg.edge as KnownWay,
+        }),
+        fold: (id, _d, carry) => {
+          if (carry.from !== null && carry.way !== null && id !== from) {
+            prev.set(id, { from: carry.from, way: carry.way });
+          }
+        },
+      });
+      const out = walk.walk(from, {
+        carry: { at: from, from: null, way: null },
+      });
+      expanded += out.expanded;
+      if (out.exhausted === 'nodes') exhausted = true;
+      const plan = this.rebuildPlan(from, to, prev, profile, source, graph);
+      if (!plan) continue;
+      const key = plan.nodes.join('>');
+      if (seen.has(key)) continue;
+      seen.add(key);
+      plans.push(plan);
+    }
+
+    if (plans.length > 0) return { ok: true, plans, expanded };
+    if (exhausted) return { ok: false, reason: 'budget', expanded };
+    return this.modeBreak(graph, from, to, traveller, budget, expanded);
+  }
+
+  /**
+   * ⭐⭐ **The mode break.** When the mode-admitted search finds no
+   * way, run it again admitting every medium. If THAT finds a way, the
+   * first leg this traveller does not admit is the answer — *the way
+   * stops at the quay; north needs water* — and one of those two
+   * sentences tells you to buy a boat. Otherwise there genuinely is no
+   * way.
+   *
+   * ⚠ The second pass spends from the same budget's worth of nodes,
+   * and the plan it builds is thrown away: only the refused leg
+   * survives. A plan built with the omnivorous profile would send a
+   * wagon into a river.
+   */
+  private modeBreak(
+    graph: KnowledgeGraph,
+    from: string,
+    to: string,
+    traveller: TravelProfile,
+    budget: number,
+    spent: number,
+  ): RouteOutcome {
+    const any = new OmnivorousTravelProfile();
+    const prev = new Map<string, { from: string; way: KnownWay }>();
+    const walk = new Traversal<string, void, StepCarry>({
+      order: 'breadth-first',
+      keyOf: (id) => id,
+      neighbours: (id) => this.legsOf(graph, id, any),
+      bound: { nodes: budget },
+      descend: (carry, leg) => ({
+        at: leg.node,
+        from: carry.at,
+        way: leg.edge as KnownWay,
+      }),
+      fold: (id, _d, carry) => {
+        if (carry.from !== null && carry.way !== null && id !== from) {
+          prev.set(id, { from: carry.from, way: carry.way });
+        }
+      },
+    });
+    const out = walk.walk(from, { carry: { at: from, from: null, way: null } });
+    const expanded = spent + out.expanded;
+    if (!prev.has(to)) {
+      return out.exhausted === 'nodes'
+        ? { ok: false, reason: 'budget', expanded }
+        : { ok: false, reason: 'no-way', expanded };
+    }
+    // Walk the chain back and name the FIRST leg the traveller refuses.
+    const chain: Array<{ from: string; way: KnownWay }> = [];
+    let cursor = to;
+    const guard = new Set<string>();
+    while (cursor !== from) {
+      const step = prev.get(cursor);
+      if (!step || guard.has(cursor)) break;
+      guard.add(cursor);
+      chain.unshift(step);
+      cursor = step.from;
+    }
+    for (const step of chain) {
+      if (traveller.admits(step.way)) continue;
+      return {
+        ok: false,
+        reason: 'no-way',
+        expanded,
+        breakAt: {
+          node: step.from,
+          dir: step.way.dir,
+          needs: step.way.media ?? ['ground'],
+        },
+      };
+    }
+    return { ok: false, reason: 'no-way', expanded };
+  }
+
+  /**
+   * Walk a predecessor chain back into a plan, deriving the cost on
+   * every axis and the assumptions that believing it requires.
+   *
+   * ⛔⛔ For a MAP source every assumption is built from the planner's
+   * OWN evidence — the channel they saw it on and when. Nothing here
+   * reads the index, and the unit test asserts it with the registry
+   * absent and its prototype spied.
+   */
+  private rebuildPlan(
+    from: string,
+    to: string,
+    prev: ReadonlyMap<string, { from: string; way: KnownWay }>,
+    profile: TravelProfileSpec,
+    source: RouteSource,
+    graph: KnowledgeGraph,
+  ): RoutePlan | null {
+    if (!prev.has(to)) return null;
+    const legs: RouteLeg[] = [];
+    const nodes: string[] = [to];
+    let cursor = to;
+    const guard = new Set<string>([to]);
+    while (cursor !== from) {
+      const step = prev.get(cursor);
+      if (!step) return null;
+      legs.unshift({
+        from: step.from,
+        to: cursor,
+        dir: step.way.dir,
+        minutes: step.way.minutes ?? null,
+        conditional: step.way.conditional === true,
+      });
+      nodes.unshift(step.from);
+      cursor = step.from;
+      if (guard.has(cursor)) return null;
+      guard.add(cursor);
+    }
+
+    const cost = {
+      minutes: legs.reduce((n, l) => n + (l.minutes ?? 0), 0),
+      legs: legs.length,
+      conditional: legs.filter((l) => l.conditional).length,
+      unmeasured: legs.filter((l) => l.minutes === null).length,
+    };
+
+    const assumptions: RouteAssumption[] = [];
+    legs.forEach((leg, i) => {
+      if (leg.conditional) {
+        assumptions.push({
+          kind: 'conditional',
+          leg: i,
+          text:
+            `assumes the way ${leg.dir} out of ${leg.from} is open — it ` +
+            `is not always passable`,
+        });
+      }
+      const way = graph
+        .at(leg.from)
+        ?.edges.find((e) => e.dir === leg.dir && e.to === leg.to);
+      const evidence = way?.evidence;
+      if (source === 'map' && evidence) {
+        assumptions.push({
+          kind: 'stale',
+          leg: i,
+          text:
+            `assumes the way ${leg.dir} out of ${leg.from} is still there ` +
+            `— you ${evidence.channel} it`,
+          claim: { channel: evidence.channel, lastSeen: evidence.lastSeen },
+        });
+      }
+      // ⚠ Where two claims disagree about one (place, dir), BOTH edges
+      // are in the graph and the plan NAMES the disagreement rather
+      // than the engine picking a winner.
+      const rivals = (graph.at(leg.from)?.edges ?? []).filter(
+        (e) => e.dir === leg.dir,
+      );
+      if (rivals.length > 1) {
+        assumptions.push({
+          kind: 'disputed',
+          leg: i,
+          text:
+            `you have recorded ${rivals.length} different places ` +
+            `${leg.dir} of ${leg.from}; this plan takes one of them`,
+        });
+      }
+    });
+    if (cost.unmeasured > 0) {
+      assumptions.push({
+        kind: 'unmeasured',
+        leg: -1,
+        text:
+          `${cost.unmeasured} of ${cost.legs} legs declare no duration, so ` +
+          `any time given is a floor`,
+      });
+    }
+
+    return { source, profile, nodes, legs, cost, assumptions };
   }
 
   /* ── a player's map ──────────────────────────────────────────────────
