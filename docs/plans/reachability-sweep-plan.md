@@ -2208,3 +2208,70 @@ in one cascade. ⭐ Narrowing the keywords did not fix it and renaming the
 display names did not fix it — **measured, with the props removed as the
 counterfactual.** The prompt is correct behaviour; the loose read was
 the defect, and all three are scoped to `here:i:flockbook` now.
+
+### ⛔⛔ W8 — the predicate was wrong, and sharpening it found a defect
+
+**The predicate.** Every checkpoint this build wrote to prove *"the verb
+is understood"* keyed on the note KIND, `command-rejected`. That kind
+covers two different answers:
+
+| reason | what it means |
+|---|---|
+| `unknown-verb` | **nothing in the game claims the word** — the reachability failure this build exists to close |
+| `shape-fall-through` | the verb WAS found and the arguments did not fit it — the parser being helpful |
+
+Reading them as one makes a shape error read as a dead verb, and it cost
+a run: `world-scan` step 8 reported *"'run' is not a verb this game
+understands"* about a verb the game understands perfectly well. Bare
+`run` earns `shape-fall-through` because its target is required, exactly
+as bare `subdivide` does. `reachability`'s `expectUnderstood` and
+world-scan's three assertions key on the **reason** now, and each pace
+mode is given a direction so a required target is not mistaken for a
+missing verb.
+
+**And sharpening it found one.** ⛔⛔ **The lounge's own `out` exit
+refuses all locomotion** — `{gate: "exit-mode"}`, for `go` as well as
+`walk`. The bar's way out is *"wired imperatively by the Warren and not
+declared here"* (the room's own exits comment), so it carries no
+authored `media` and the stored edge admits no mode. ⚠ **In the room
+every new player starts in, the way out refuses the walk pace** — which
+is the exact scenario conferring `walk` was meant to fix, one layer
+further down than this build could see. The old vacuous `if` had been
+hiding this as well: a `declined` is not an `error`, so the companion
+loop passed over it for as long as it has existed.
+
+Not fixed here. The exits are the residence/holding substrate's and the
+edge media the location-graph build's; an empty `media` admits the whole
+ground-pace family by design (`locomotion.md`), so the edge is being
+given a media list `walk` is not in. → `base-class-narrowing-slate`
+§ L9, recorded with the likely one-line fix.
+
+**Step 8 proves what it says now** — it walks whatever way out the room
+actually offers, collecting every refusal into the failure message if
+there is none, after a `stand` (the gate order is body plan → POSTURE →
+media → enablement, and the ten rest/stand cycles above it leave the
+body down).
+
+**The apiculture tail** reads the chandlery by QUERY rather than prose,
+because the fire build's dry lantern leaves that session in the dark and
+a prose read then tests the light instead of the world. ⚠ The comment
+says plainly what the re-run proved: **a query is not light-proof
+either.** `here:i` is viewer-aware — in the unlit close
+`here:i:cherry` returns nothing while `look first cherry` still binds.
+What makes it work at the chandlery is that a chandler's floor has a
+lamp on it.
+
+### Drive record — the final runs, each on a freshly dropped DB
+
+| drive | result |
+|---|---|
+| `reachability.dirty.wire.test.ts` | **22 / 22** |
+| `world-scan.dirty.wire.test.ts` | **14 / 14** |
+| `apiculture.dirty.wire.test.ts` | 17 / 21 — ⚠ all four pre-existing |
+
+⚠ The four apiculture failures trace to **one** defect on master, which
+this build reports and does not patch: the fire build sells the general
+store's lantern DRY, so `ignite lantern` answers
+`controller-rejected:no-fuel`, and the keeper walks the valley in the
+dark. The three downstream failures are that darkness read through MQL
+perception. **Step 23 — this build's own addition — passes.**
