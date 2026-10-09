@@ -12,6 +12,11 @@
 > that belongs with the treasury. The machinery here (title vs
 > entitlement, subsidiarity, the capacity door) is unchanged and correct
 > for CPU.
+> ⭐⭐⭐ **WHO IS CHARGED answered 2026-10-08** (Movement 2) — **rate on
+> the author, volume on the minter**, because the cost has two factors and
+> two parties each control exactly one. Three one-party answers rejected
+> with reasons, including ⛔ charging where the thing *is* (a griefing
+> vector). Three flanks left open.
 > **Left:** compute metering and the entitlement function (quality vs
 > demand weights) · the per-citizen or per-parcel compute floor · the
 > capacity door + the admission taxonomy (instanced / ticketed) ·
@@ -159,6 +164,115 @@ much* you instance — too much fragments the shared world into single-player bu
 - **Scaling bonus:** the central formula only ever sizes top-level blocks, not the
   millions of leaf parcels — delegation absorbs the depth. Subsidiarity as a performance
   property.
+
+### ⭐⭐⭐ WHO IS CHARGED — rate on the author, volume on the minter (2026-10-08)
+
+Worked out from the vehicle case (a craft whose whole value proposition is
+crossing the boundaries attribution is defined by — see
+[navigable-water-slate](./navigable-water-slate.md)). ⭐⭐ **Every
+one-party answer produces an injustice, because the cost has two factors
+and two different parties each control exactly one.**
+
+> **Total compute = cost-per-use × volume-of-use.**
+
+| factor | who controls it, entirely | who is charged |
+|---|---|---|
+| **rate** — how expensive is one tick of this object | ⭐ the **author**: caching versus recomputing, what it polls, how often | ⭐⭐ **the author**, as a property of the **template**, against their own grant |
+| **volume** — how many instances, how often, how long | ⭐ the **owner/operator**: ten toasters when one would do | ⭐⭐ **the minter** (below) |
+
+⭐⭐⭐ **And the author's exposure is bounded by their catalogue, not by
+adoption**, because rate is per-instance-hour and independent of how many
+instances exist. **Popularity never lands on the author.** That is the
+property that makes the rule safe.
+
+### ⭐⭐ Why this is the backstop the author needs
+
+The author is the main party who can decide whether an object uses a lot
+or a little, and **most of that is just choices they make** rather than
+anything emergent. ⭐ So the rate *must* stay with them — and it doubles
+as the **maintenance signal**: a template whose rate climbs after an edit
+is a regression its author owns and can see, in their own budget, without
+anybody reporting it.
+
+### ⚠⚠ Volume follows CAUSE, never CIRCUMSTANCE
+
+That distinction is the whole rule, and three drafts failed on it:
+
+| rejected | why |
+|---|---|
+| ⛔ **the template's origin parcel** | charges the **author** for other people's volume → a **tax on contribution**. Produces the abstract-common-torch workaround, and then enclosure: Narnia restricts who may use Narnia's torch, Middle-earth clones it rather than paying, Narnia restricts cloning and export. ⭐ Good for its shipwrights, bad for everyone who wants a boat |
+| ⛔ **where the thing IS** (the host) | ⚠⚠ **a griefing vector**: carry the most expensive item in the game into the parcel of somebody you dislike and run up their bill. Their only defence is **restricting whose content they host** — which is the *same enclosure*, relocated onto the bystander, and it punishes exactly the openness the project is built to encourage |
+| ⛔ **the owner, always** | most of the world is **unowned**. `props:` and `cast:` clone set dressing with no owner and often never acquire one; and ⭐ **there is no slavery in this game**, so an NPC cannot be owned at all. Self-owning NPCs would be a free lunch — clone a thousand guards and they foot the bill |
+
+⭐⭐⭐ **The rule: volume is charged to the chattel owner if there is one,
+and to the MINTER if there is not.**
+
+The minter is **whoever caused the instance to exist**, and ⭐⭐ it is
+**recorded on the instance at creation from the execution context, once** —
+which makes it definitional after birth and therefore ungriefable. Nobody
+can change it later except by taking ownership, and ownership needs
+consent.
+
+⭐ The shipped precedent is exact: [provenance.md](../../subsystems/provenance.md)
+already does *"`authoring_events`, **context-derived author**, the
+`recordAuthoring` gate"* — this is the same move pointed at compute
+instead of credit, and `ExecutionContextApi.runRoot` already propagates a
+well-defined Root through `StuffApi.create`.
+
+What it resolves to, as a **check** on the mechanism rather than a
+definition of it (*lists are not wrong, they are unbounded*):
+
+| minter | example |
+|---|---|
+| a **staging host** | the millsite's `props:` and `cast:` — ⭐ **so the miller's volume is the millsite's parcel, and nobody owns a person** |
+| a **Warren** | a budded `MultiLocation` — the Warren's own budding policy caused it |
+| a **`SpatialZone`'s spawn sweep** | `stocks` / `favours` / `blessingOdds`, ⭐ *"because only a region in space can stock goods"* |
+| an **explicit clone** | a wizard's `clone` — and a player cannot clone, so the vector does not exist |
+| a **brain acting as a business** | `restocks` buying as the house, exactly as `wallet use house` already stamps |
+| ⭐ a **chattel owner** | **overrides the minter** once a stamp exists |
+
+⭐⭐ **And it asks nothing new of content authors.** Nobody declares an
+owner; **the stager is already in the row** — `props:` and `cast:` are
+written today for entirely different reasons.
+
+### What it buys
+
+- ⭐ **Authorship is free**, so Narnia *wants* Middle-earth cloning its
+  torch: no cost, all reputation. **A popular template is an asset to its
+  author rather than a liability.**
+- ⭐⭐ **The abstract-common-torch workaround retires.** It existed only to
+  route a charge away from the commons; if volume follows ownership and
+  minting, the commons never carried one — so the common torch can be
+  concrete, free to clone, and charged to whoever holds it.
+- ⭐⭐⭐ **And the convergence pressure disappears.** Cloning the shared
+  torch saves you nothing (instance-hours are instance-hours), while
+  authoring costs you rate-budget — so you publish when your version is
+  genuinely *different*. **A tax on redundancy, not on divergence**, which
+  is the pressure the architecture wants.
+- **The host is never charged**, so the griefing vector does not exist.
+
+### ⚑ Three flanks, unresolved
+
+1. ⚑ **Measuring a rate.** How you measure one object's cost per tick
+   inside a shared runtime. ⭐ `measurement.md`'s line holds (*the engine
+   may read a measurement*) and **a per-use rate cannot be inflated by
+   use**, so there is no griefing surface in the measurement itself — but
+   if it can only be measured in aggregate it becomes an estimate, and
+   estimates are arguable.
+2. ⚑⚑ **Interaction cost belongs to neither party.** A torch that is cheap
+   alone and pathological at two hundred in one room is a cost **neither
+   the author nor any individual owner chose.** Rate misses it (each is
+   cheap); volume misses it (each owner has one). ⚠ Probably a
+   **grant-sizing** problem rather than a billing one — a locality that
+   admits two hundred torchbearers hits its own ceiling — but that is
+   host-side consequence again, without a transferable bill, and the
+   distinction may not survive scrutiny.
+3. ⚑ **What stamps a chattel owner.** The accounting hinges on ownership,
+   and stamping happens on *some* acts (`consign` stamps an unstamped
+   author-owned good) and not obviously all. ⚠ **If picking a thing up
+   does not stamp it, there is a long tail of unowned objects living in
+   players' pockets on somebody else's budget**, and the set of acts that
+   stamp is the real boundary of this design.
 
 ## Movement 3 — The license is the land, written as law
 
