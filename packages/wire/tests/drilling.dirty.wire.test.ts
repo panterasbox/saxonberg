@@ -215,55 +215,47 @@ async function settle(s: Session, started: CommandResult): Promise<void> {
  * `get` what you cannot see, so a kit dropped there is unreachable —
  * which is the cascade the taps drive paid for and this one inherits.
  */
-async function stockTheStore(): Promise<void> {
-  const gov = await Session.open('founder', {
-    startLocation: PROVISIONING,
-    wizard: true,
-  });
-  try {
-    for (const path of [
-      '/world/terminus/rejection/thing/glowcap-jar',
-      '/trade/drilling/thing/bailer',
-      '/trade/drilling/thing/liner',
-      '/trade/drilling/thing/liner',
-      '/trade/drilling/thing/liner',
-      '/trade/drilling/thing/pressure-gauge',
-      // ⚠⚠ The miner's DIAL, and NOT the surveyor's compass — which is
-      // the opposite of what it looks like it should be. The store
-      // stocks a compass (`par: 1`), so there is already one in the
-      // room inside a `Stock` fixture, and held goods are not gettable:
-      // `get compass` binds the shop's and refuses. A dial is stocked
-      // nowhere, so the floor's is the only one. ⭐ The lesson is a
-      // drive-writing one — **mint what the room does not already
-      // have**, or the binder resolves the wrong instance and the
-      // failure reads as *the instrument is not in reach.*
-      '/trade/mining/thing/miners-dial',
-    ]) {
-      // ⚠⚠ `clone --here`, NOT `eval`. The taps drive mints its kit with
-      // `eval --parcel`, and on this world that route **took the server
-      // down**: `sandbox boundary denied fromStored()` surfaced as an
-      // UNHANDLED REJECTION inside `runSandboxed` and the process
-      // exited, which the drive then reported as a frame timeout. ⭐ The
-      // lesson generalises past this file — *a test seam does not belong
-      // in the sandbox at all*, which is the conclusion the taps drive
-      // reached about the clock and did not finish applying to the kit.
-      //
-      // `clone` is the shipped author verb for exactly this and runs on
-      // the ordinary dispatch path with no jurisdiction to cross.
-      const out = await gov.cmd(`clone ${path} --here`);
-      // ⚠ Asserted per clone rather than inferred from the inventory at
-      // the end: a silent clone failure read as *the instrument is not
-      // in reach*, which sent two runs looking at the reading ladder
-      // instead of at the mint.
-      expect(
-        out.notes.find((n) => n.kind === 'controller-error'),
-        `clone ${path} threw: ${JSON.stringify(out.notes)}`,
-      ).toBeUndefined();
-      await new Promise((r) => setTimeout(r, 250));
-    }
-  } finally {
-    gov.close();
+async function mintTheKit(): Promise<void> {
+  for (const path of [
+    '/world/terminus/rejection/thing/glowcap-jar',
+    '/trade/drilling/thing/bailer',
+    '/trade/drilling/thing/liner',
+    '/trade/drilling/thing/liner',
+    '/trade/drilling/thing/liner',
+    '/trade/drilling/thing/pressure-gauge',
+    '/trade/mining/thing/miners-dial',
+  ]) {
+    // ⭐⭐ **The player mints its own kit, into its own hands**, and the
+    // two earlier shapes are both worth recording as drive-writing
+    // lessons.
+    //
+    // ⛔ `eval --parcel` (the taps drive's route) **took the server
+    // down**: `sandbox boundary denied fromStored()` surfaced as an
+    // unhandled rejection inside `runSandboxed` and the process exited,
+    // which the drive then reported as a frame timeout. ⭐ *A test seam
+    // does not belong in the sandbox at all* — the conclusion the taps
+    // drive reached about the clock and did not finish applying to the
+    // kit.
+    //
+    // ⚠ `clone … --here` by a second session then put the kit on the
+    // FLOOR, which needs a `get` — and a `get` resolves by keyword
+    // against everything in reach. `get compass` bound the SHOP's
+    // compass inside its `Stock` fixture (held goods are not gettable)
+    // and refused; `get dial` is ambiguous in a store full of
+    // instruments. Both failures read as *the instrument is not in
+    // reach*, which sent three runs looking at the reading ladder.
+    //
+    // ⭐ Cloning with no `--here` lands the object AT THE MAKER, so the
+    // kit arrives in the hands that need it and no `get` is involved.
+    // The session is already `wizard: true` for the clock seam.
+    const out = await say(k, `clone ${path}`);
+    expect(
+      refusedFor(out) ?? out.notes.find((n) => n.kind === 'controller-error'),
+      `clone ${path} failed: ${JSON.stringify(out.notes)}`,
+    ).toBeUndefined();
+    await new Promise((r) => setTimeout(r, 250));
   }
+  await k.drainProse();
 }
 
 async function carried(s: Session): Promise<string> {
@@ -377,23 +369,8 @@ suite('1. the kit is stocked and priced, and the till is somebody else\'s bug', 
     expect(await carried(k)).not.toMatch(/derrick/i);
   });
 
-  it('⚠ so the kit is laid out on the floor instead, and the drive says so', async () => {
-    await stockTheStore();
-    for (const thing of [
-      'jar',
-      'bailer',
-      'liner',
-      'liner',
-      'liner',
-      'gauge',
-      // ⚠ `theodolite` is the dial's own unique keyword. `dial` is
-      // ambiguous in a store full of instruments and `miners-dial` is
-      // hyphenated; the row authors its keywords DEFENSIVELY for exactly
-      // this reason.
-      'theodolite',
-    ]) {
-      await say(k, `get ${thing}`);
-    }
+  it('⚠ so the kit is minted into the driller\'s own hands instead', async () => {
+    await mintTheKit();
     const kit = await carried(k);
     expect(kit, `the kit is: ${kit}`).toMatch(/bailer/i);
     expect(kit).toMatch(/liner/i);
@@ -573,6 +550,16 @@ suite('7. the crew — presence is depth, and depth is wages', () => {
     // ⭐ The fix is the shipped shape: `hire` resolves the proprietor's
     // own outfit, and the hand reports to `operatingLocations[0]` the way
     // every other shipped hand reports for a shift.
+    // ⚠⚠ **Daylight again, and it is not housekeeping.** Checkpoint 0
+    // and the crew's own game-day have both moved the clock, so by now
+    // it is as likely to be night as not — and the Dry is lit by SPILL
+    // from the pithead yard through an open door, so after dark it
+    // reads as nothing at all. ⭐ Worse than cosmetic: a target you
+    // cannot see does not BIND, so `dismiss roustabout` came back
+    // `no-target` at a rig with two hands standing on it. You cannot
+    // pay off somebody you cannot see, which is correct behaviour and
+    // unprovable in the dark.
+    await daylight();
     await walk(k, ['northwest', 'west', 'southwest', 'south', 'northwest']);
     const dry = await read(k, 'look');
     expect(dry).toMatch(/roustabout/i);
@@ -592,9 +579,10 @@ suite('7. the crew — presence is depth, and depth is wages', () => {
     // immediately raced the move.
     await new Promise((r) => setTimeout(r, 600));
     const emptied = await read(k, 'look');
-    expect(emptied, `the dry still holds: ${emptied}`).not.toMatch(
-      /roustabout/i,
-    );
+    expect(
+      emptied,
+      `the dry still holds: ${emptied}`,
+    ).not.toMatch(/roustabout/i);
   });
 
   it('⭐⭐ the hands are AT the rig, and the hole gets deeper with nobody touching it', async () => {
@@ -624,6 +612,8 @@ suite('7. the crew — presence is depth, and depth is wages', () => {
   });
 
   it('⭐⭐⭐ `dismiss` is the ONLY thing that stops the meter', async () => {
+    // See the hiring checkpoint: a hand you cannot see does not bind.
+    await daylight();
     // Nothing told the player the rate was no longer worth the wage, and
     // nothing will. That decision IS the content.
     // ⚠ `roustabout`, not `tall`: both hands are standing here by now
