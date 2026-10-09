@@ -229,12 +229,53 @@ suppressing the roster entry**. That is deliberate — it means the
 quit/fired suppression `holdsSeat` implements exists exactly once and
 cannot drift into a second copy.
 
-## Appointment — the `appoint` verb
+## Appointment — the `appoint` verb (alias `hire`)
 
-`appoint <player> to <position> at <organization>` (`employment`
+`appoint <person> to <position> at <organization>` (`employment`
 category), afforded universally on `Persona.commandContributions.self` for
 the same reason `office` is: the gate is the authority, not the
 affordance.
+
+⭐⭐ **Both optional parts are derived, and `hire` is the same verb**
+(2026-10-09). `appoint <person>` with no position and no organization
+means *the house I am the proprietor of, and its only position* —
+resolved through `EmploymentApi.businessOfProprietor`. A house with
+several positions refuses and **names** them, because which job somebody
+was just given is not a thing to guess on their behalf. `hire` is an
+alias, so the word the work uses reaches the verb the chart uses.
+
+⚠⚠ **The target scope is `["reachable", "online"]`, and `online`-only
+was a real defect.** It meant `appoint` could not reach a brainless NPC
+standing in front of you — so the drilling build shipped `hire` and
+`dismiss` controllers **inside a trade pack**, to call
+`OrganizationMixin.appoint`/`.dismiss`, which the kernel had exposed all
+along. ⭐ *A new systemic capability appearing in a trade build is a
+symptom — look upstream.* The symptom here was two verbs; the cause was
+one arg scope and one missing view. The ladder's first rung is **unify
+behind an interface** (`grind` rides `mill`, `melt` rides `dip`), and a
+trade does not get a second verb because its workers happen not to be
+players.
+
+## Dismissal — the `dismiss` verb
+
+`dismiss <person> [at <organization>]` — the **employer's half of
+`quit`**, and until 2026-10-09 the game had none. `quit` has always
+shipped for the worker and `organization.dismiss(actor)` has always been
+a sealed method on `OrganizationMixin` (*status → fired; history
+preserved*), but no view ever reached it: **no bar, smithy, ranch or
+press office could let anybody go.**
+
+Same declarative gate as `appoint`, same derivation when the
+organization is omitted. It refuses on the subject when the person is not
+on those books, because letting go of somebody who never worked for you
+must not read as a dismissal. ⚠ The final wage is **not** the
+controller's: `fire` flips the record and the shift's own accrual is what
+the hand is owed — a controller computing a figure would be a second
+source of truth for a number the ledger already holds.
+
+⭐ Nothing in the game tells an employer *when* to dismiss anybody. A
+well declines along a curve, a season turns, trade falls off, and no
+notice fires for any of it. That decision is the content.
 
 ⚠ The gate is a **field** validator, `mustHoldAppointingAuthority`, on the
 `organization` argument — not a verb-level one. `CommandContext` carries

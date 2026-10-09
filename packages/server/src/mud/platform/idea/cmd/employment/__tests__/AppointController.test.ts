@@ -134,18 +134,46 @@ describe('mustHoldAppointingAuthority', () => {
     ).resolves.toMatch(/authority/);
   });
 
-  it('fails closed on a path that is not an organization, or is nothing', async () => {
+  it('fails closed on a path that NAMES something which is not an organization', async () => {
     makeOrg();
     const dave = makeAvatar('dave');
     await expect(
       gate(dave as unknown as Stuff, '/compact/nothing-here'),
     ).resolves.toMatch(/authority/);
-    await expect(gate(dave as unknown as Stuff, '')).resolves.toMatch(
-      /authority/,
-    );
-    await expect(gate(dave as unknown as Stuff, undefined)).resolves.toMatch(
-      /authority/,
-    );
+  });
+
+  it('⭐⭐ PASSES an absent organization — absent means DERIVE, not ungated', async () => {
+    // ⚠ This reverses a previous assertion deliberately (2026-10-09).
+    // `appoint`/`dismiss` now allow the house to be omitted, and the
+    // controller derives it from the houses operating here, keeping only
+    // those whose appointing authority the giver holds — asked of
+    // `EmploymentApi.holdsAuthority`, which is the predicate THIS
+    // validator calls. So the omitted form is gated by exactly the check
+    // the named form is gated by.
+    //
+    // ⭐ A field validator cannot do that itself: it cannot see the bound
+    // model, so it cannot know which house was derived. Refusing an
+    // absent value here would not be fail-closed, it would make the
+    // derivation unreachable — and the derivation is what lets `hire
+    // <person>` work at a rig without typing an organization path.
+    //
+    // ⚠ What must stay true, and the test above holds it: every house
+    // that IS named still fails closed. A stranger naming a house is
+    // refused; nobody reaches a house whose authority they lack.
+    makeOrg();
+    const dave = makeAvatar('dave');
+    await expect(gate(dave as unknown as Stuff, '')).resolves.toBeUndefined();
+    await expect(
+      gate(dave as unknown as Stuff, undefined),
+    ).resolves.toBeUndefined();
+    // ⭐ And the permission is not person-specific: a STRANGER also
+    // passes the field gate with no house named, because the gate is not
+    // where that case is decided — the derivation is, and it will find
+    // them no house they hold authority over.
+    const stranger = makeAvatar('stranger');
+    await expect(
+      gate(stranger as unknown as Stuff, ''),
+    ).resolves.toBeUndefined();
   });
 
   it('fails closed on an organization with no authored authority', async () => {

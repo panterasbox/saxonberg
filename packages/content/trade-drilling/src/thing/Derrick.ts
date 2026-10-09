@@ -30,18 +30,24 @@ export const DERRICK = 'derrick';
 
 export default class Derrick extends Tool {
   /**
-   * ⚠ See the header: this block is the ONLY thing that makes the five
-   * acts exist. `hire` and `dismiss` are here with the three labour acts
-   * because the rig is where you stand when you take somebody on — the
-   * hiring hall for a bore crew is the bore.
+   * ⚠ See the header: this block is the ONLY thing that makes the
+   * trade's acts exist.
+   *
+   * ⭐ **Three, not five.** `hire` and `dismiss` were here until
+   * 2026-10-09 and were never this rig's to afford: taking somebody on
+   * and letting them go are the EMPLOYMENT subsystem's acts, which every
+   * house in the realm needs and which the kernel already had the
+   * methods for (`OrganizationMixin.appoint` / `.dismiss`). They are
+   * core verbs now — `hire` an alias on `appoint` — so they need no
+   * affordance and work at a bar and a ranch as well as at a rig. What
+   * is left here is the three acts that genuinely need a derrick
+   * standing over a hole.
    */
   static commandContributions = {
     peers: [
       'trade/drilling/cmd/drilling/bore.yaml',
       'trade/drilling/cmd/drilling/bail.yaml',
       'trade/drilling/cmd/drilling/line.yaml',
-      'trade/drilling/cmd/drilling/hire.yaml',
-      'trade/drilling/cmd/drilling/dismiss.yaml',
     ],
   };
 }

@@ -790,7 +790,7 @@ reason.
   (the FICTION's governments — `government`; the meta `committee` verb
   stays under `system`, the jargon standard's layer split), stream, tpa,
   medical, combat, magic (`cast`/`spells` — the casting core), work (the
-  labor market — `job`/`fulfill`), employment (`appoint`/`quit`/`apply`/`clock`/`tip`/`collect`), retail (`buy`/`consign`/`reclaim`), device
+  labor market — `job`/`fulfill`), employment (`appoint` [alias `hire`]/`dismiss`/`quit`/`apply`/`clock`/`tip`/`collect`), retail (`buy`/`consign`/`reclaim`), device
   ("operating a built object or mechanism" —
   `wind`/`adjust`/`switch`/`fold`/`unfold`/`disarm`/`pump`; `lock`/`unlock`
   stay under `boundary`), mining (the metal chain's cutting acts —

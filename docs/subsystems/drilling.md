@@ -222,7 +222,10 @@ headcount, so the seat is defined once.
 ⚠ A hired hand is **sent to the rig** (`operatingLocations[0]`, the
 `moveForShift` rule). A roustabout has no brain on purpose, so he does
 not walk anywhere — hiring at the rig would otherwise be unreachable by
-construction.
+construction. ⭐ Which is also why the roustabout cast stands **at the
+flat**: the requirement's own words are *a bore crew is hired at the
+bore, out of whoever has walked up to it*, so the hands are already where
+the work is and no relocation is needed for the shipped content.
 
 ⚠ An unpayable wage follows the shipped rule: an arrear on the book, a
 line to a resident proprietor, and the crew keeps working on credit. This
@@ -276,7 +279,16 @@ before they dug it. Only one of those is a public record.
 | `bore` (`drill`) | sites a hole and raises a rig, or swings the beam | the bailer (`environment`), the derrick (`peers`) |
 | `bail` | lifts what is standing, and clears the hole so it can go deeper | the same |
 | `line` | runs tube down so the hole will hold | the same |
-| `hire` / `dismiss` | the payroll, and the only thing that stops it | the same |
+
+⭐⭐ **Three verbs, and the trade ships NO employment verb.** `hire` and
+`dismiss` were this pack's for one build and should never have been:
+taking somebody on and letting them go are the employment subsystem's
+acts, every house in the realm needs them, and the kernel had the methods
+(`OrganizationMixin.appoint` / `.dismiss`) the whole time. `hire` is an
+alias on the kernel's `appoint` now and `dismiss` is a kernel verb, so
+both are core and need no affordance — which is why the table above is
+the three acts that genuinely need a derrick standing over a hole. See
+[employment.md](./employment.md) § Appointment and § Dismissal.
 
 ⭐⭐ **The derrick is raised by the SITING ACT**, not by `make`.
 `CraftingLogic` lands a tangible output at the maker, so a `fixedInPlace`

@@ -117,7 +117,12 @@ describe('⭐⭐⭐ nothing announces the decline', () => {
       'src/idea/reading/HeadReading.ts',
       'src/thing/Wellhead.ts',
       'src/idea/DrillingOutfit.ts',
-      'src/idea/cmd/drilling/DismissController.ts',
+      // ⚠ `DismissController` used to be listed here and is no longer
+      // the pack's: letting a worker go is the EMPLOYMENT subsystem's
+      // act, not drilling's, and the verb moved to the kernel. The rule
+      // it was checked for still holds there — the kernel's help text
+      // says *nothing will tell you when to* — and the three files left
+      // are the ones this pack actually owns.
     ];
     for (const f of files) {
       // ⚠ COMMENTS STRIPPED FIRST, and the test failed without it: the
