@@ -67,6 +67,23 @@ export default class UnlockController extends CommandController<UnlockModel> {
       return;
     }
 
+    // ⭐⭐ **Observable state first, the secret second** — see
+    // `LockController` for the reasoning. A character can SEE that a
+    // door is not locked, so saying so to anybody leaks nothing; the
+    // KEY is the secret.
+    if (!lockable.isLocked()) {
+      MessageApi.scene(commandGiver)
+        .topic('act.deed')
+        .toSelf(Mml.compose`It is already unlocked.`)
+        .send();
+      context.note({
+        kind: 'controller-rejected',
+        reason: 'already-unlocked',
+        detail: 'already unlocked',
+      });
+      return;
+    }
+
     // ⭐⭐⭐ **The authority, and it did not exist.** This controller
     // checked no key, no credential and no title, so conferring `unlock`
     // over the old boolean mixin would have let any player alive open
@@ -95,18 +112,6 @@ export default class UnlockController extends CommandController<UnlockModel> {
       return;
     }
 
-    if (!lockable.isLocked()) {
-      MessageApi.scene(commandGiver)
-        .topic('act.deed')
-        .toSelf(Mml.compose`It is already unlocked.`)
-        .send();
-      context.note({
-        kind: 'controller-rejected',
-        reason: 'already-unlocked',
-        detail: 'already unlocked',
-      });
-      return;
-    }
 
     lockable.unlock();
 

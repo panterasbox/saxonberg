@@ -31,10 +31,33 @@ import type { Container } from "../spatial/Container";
 import type { Containable } from "../spatial/Containable";
 import type { CredentialWallet } from "../credential/CredentialWallet";
 
-/** The lock technologies. A key of one technology can't work another's lock. */
-export type LockType = "pin-tumbler" | "keycard";
+/**
+ * The lock technologies. A key of one technology can't work another's lock.
+ *
+ * ⭐⭐ **Open to packs, on the `AnyMixinName` precedent** (`api/mixin.ts`):
+ * `string & {}` keeps editor completion on the kernel's two names while
+ * admitting a pack's own. This matters because **the technology IS the
+ * epoch axis** — pin-tumbler, keycard, and whatever a ward or a
+ * retina-reader is — and lens 5's whole claim is that the mechanics
+ * survive the epoch while the dynamics change. ⚠ A closed union made
+ * that claim unkeepable by anyone but the kernel: `arcana` could not
+ * ship a warded lock without a kernel MR, which `CLAUDE.md`'s pack
+ * doctrine refuses outright (*a pack must never need a kernel list
+ * edit*).
+ *
+ * ⭐ And the other half of the pair was already open —
+ * `KeyCredential.addKey`/`authorize` have always taken
+ * `technology: string`, and the match is string equality. So the lock
+ * side was the only narrow one, and this widens rather than builds.
+ */
+export type LockType = "pin-tumbler" | "keycard" | (string & {});
 
-/** Validation array companion to {@link LockType}. */
+/**
+ * Validation array companion to {@link LockType} — ⚠ **the KERNEL's two,
+ * not the world's.** A pack's technology is legitimately absent from
+ * this list, so do not use it as an admission check; it is for help text,
+ * authoring pickers and the kernel's own round-trip tests.
+ */
 export const LOCK_TYPES: readonly LockType[] = ["pin-tumbler", "keycard"];
 
 export class Lock {
@@ -121,6 +144,14 @@ export class Lock {
         return master ? "heavy ring of master keys" : "worn brass key";
       case "keycard":
         return master ? "black master keycard" : "plastic keycard";
+      default:
+        // ⚠ A PACK's technology, and the fallback is deliberately drab.
+        // Opening {@link LockType} means the kernel can no longer know
+        // what every key looks like, and ⭐ a pack that wants its ward
+        // or its retina-token to READ like anything should author the
+        // `Key` row rather than hope the kernel guesses — which is the
+        // same line the materials and reading vocabularies draw.
+        return master ? "ring of master keys" : "key";
     }
   }
 }

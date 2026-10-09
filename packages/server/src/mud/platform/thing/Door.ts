@@ -89,6 +89,38 @@ export default class Door extends DoorBase {
    */
   protected attachedTo: Set<Exit> = new Set();
 
+  /**
+   * ⭐⭐⭐ **The one word a room's exit listing uses for this door's
+   * state** — and it said `closed` about a LOCKED door until a lens pass
+   * caught it.
+   *
+   * Both exit listings (`LookController`, `SenseController`) rendered
+   * `(university gate, closed)` for the realm's one locked gate, so the
+   * bolt was **invisible until you walked into it**. That is an
+   * immersion betrayal of exactly the documented kind — the fiction
+   * asserts a locked door and the prose does not back it — and it is a
+   * governance one too: a refusal you cannot see coming has no appeal.
+   *
+   * ⚠⚠ **It also existed TWICE**, as the same four lines in two
+   * controllers, which is why it is a method here rather than a fix in
+   * two places: *two copies of one sentence* drift, and the test beside
+   * this asserts the two renderings are equal.
+   *
+   * ⭐ `locked` wins over `open`/`closed` because the gates rank the
+   * same way — `Exit.canTraverse` refuses a locked door BEFORE it
+   * refuses a shut one, so a door that is somehow both reports the
+   * answer a player would actually meet.
+   *
+   * ⚠ Not viewer-aware, deliberately: a thrown bolt is a physical fact
+   * anybody standing there can see. What a viewer may NOT know is
+   * whether their key fits it, and that stays a question only the act
+   * answers.
+   */
+  public stateWord(): 'locked' | 'open' | 'closed' {
+    if (this.isLocked()) return 'locked';
+    return this.isOpen() ? 'open' : 'closed';
+  }
+
   public attachExit(exit: Exit): void {
     this.attachedTo.add(exit);
   }

@@ -74,6 +74,34 @@ export default class LockController extends CommandController<LockModel> {
       return;
     }
 
+    // ⭐⭐ **Observable state first, the secret second** — and the order
+    // is the whole point, corrected by a lens pass after the first
+    // version shipped it the other way round.
+    //
+    // The first version asked for the key before reading the bolt, on
+    // the reasoning that a stranger should not learn the door's state.
+    // ⚠ That is wrong on immersion (3a): **a character can SEE a thrown
+    // bolt.** Hiding something visible is the engine lying about the
+    // world, which is a betrayal exactly like prose the model does not
+    // back — and it bought nothing, because the door already announces
+    // `locked` in the room's exit listing.
+    //
+    // So: already-locked is reported to anybody, because anybody can see
+    // it. The KEY is the secret, and it is asked only once the act would
+    // otherwise go through.
+    if (lockable.isLocked()) {
+      MessageApi.scene(commandGiver)
+        .topic('act.deed')
+        .toSelf(Mml.compose`It is already locked.`)
+        .send();
+      context.note({
+        kind: 'controller-rejected',
+        reason: 'already-locked',
+        detail: 'already locked',
+      });
+      return;
+    }
+
     // ⭐⭐⭐ **The authority, and it did not exist.** This controller
     // checked no key, no credential and no title, so conferring `lock`
     // over the old boolean mixin would have let any player alive lock
@@ -95,19 +123,6 @@ export default class LockController extends CommandController<LockModel> {
         kind: 'controller-rejected',
         reason: 'no-key',
         detail: 'no key that fits',
-      });
-      return;
-    }
-
-    if (lockable.isLocked()) {
-      MessageApi.scene(commandGiver)
-        .topic('act.deed')
-        .toSelf(Mml.compose`It is already locked.`)
-        .send();
-      context.note({
-        kind: 'controller-rejected',
-        reason: 'already-locked',
-        detail: 'already locked',
       });
       return;
     }

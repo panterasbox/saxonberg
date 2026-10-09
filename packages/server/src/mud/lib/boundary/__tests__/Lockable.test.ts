@@ -292,3 +292,87 @@ describe('Exit.canTraverse — the keyway, not just the bolt', () => {
     }
   });
 });
+
+/**
+ * ⭐⭐⭐ **The state word, and the two copies of one sentence.**
+ *
+ * A room's exit listing renders `(university gate, closed)` — and for
+ * the realm's one locked gate it said exactly that, because both
+ * controllers computed the word as `door.isOpen() ? 'open' : 'closed'`
+ * and neither knew about the bolt. So the lock was **invisible until a
+ * player walked into it**, which is an immersion betrayal (the prose
+ * does not back the fiction) and a governance one (a refusal you cannot
+ * see coming has no appeal).
+ *
+ * ⚠⚠ It existed TWICE, as the same four lines in `LookController` and
+ * `SenseController`. *Two copies of one sentence* drift, so the word
+ * lives on the door and this file asserts **the two renderings are
+ * equal** rather than checking each against a literal.
+ */
+describe('Door.stateWord — what a room says about a door', () => {
+  beforeEach(() => {
+    seedKernelContentStore();
+  });
+
+  async function door(): Promise<Door> {
+    const d = await StuffApi.create(() => new Door());
+    d.setShortDescription('iron gate');
+    return d;
+  }
+
+  it('⭐⭐ says `locked` about a locked door — the betrayal, pinned', async () => {
+    const d = await door();
+    d.setOpen(false);
+    d.setLocked(true);
+    expect(d.stateWord()).toBe('locked');
+  });
+
+  it('⭐ `locked` outranks `open`, because the traversal gates do', async () => {
+    // `Exit.canTraverse` refuses a locked door BEFORE a shut one, so a
+    // door that is somehow both must report the answer a player meets.
+    const d = await door();
+    d.setOpen(true);
+    d.setLocked(true);
+    expect(d.stateWord()).toBe('locked');
+  });
+
+  it('says `open` and `closed` as before when nothing is locked', async () => {
+    const d = await door();
+    d.setOpen(true);
+    expect(d.stateWord()).toBe('open');
+    d.setOpen(false);
+    expect(d.stateWord()).toBe('closed');
+  });
+
+  it('⚠ is not viewer-aware — a thrown bolt is visible to anybody', async () => {
+    // What a viewer may not know is whether their KEY fits; that stays
+    // a question only the act answers. The bolt itself is a physical
+    // fact, so this method takes no viewer and must keep taking none.
+    const d = await door();
+    d.setKeyway('kw-anything');
+    d.setLocked(true);
+    expect(d.stateWord.length, 'stateWord() takes no arguments').toBe(0);
+  });
+
+  it('⭐⭐ the two exit listings cannot drift — same source, one word', async () => {
+    // The real assertion is structural: both controllers now call this
+    // one method, so the literal they used to each own is gone. Read
+    // the sources and refuse a return of the old inline form.
+    const { readFileSync } = await import('fs');
+    const { fileURLToPath } = await import('url');
+    for (const rel of [
+      '../../../platform/idea/cmd/perception/LookController.ts',
+      '../../../platform/idea/cmd/perception/SenseController.ts',
+    ]) {
+      const src = readFileSync(
+        fileURLToPath(new URL(rel, import.meta.url)),
+        'utf8',
+      );
+      expect(src, `${rel} asks the door`).toMatch(/door\.stateWord\(\)/);
+      expect(
+        src,
+        `${rel} must not recompute the word — that is how the lock went invisible`,
+      ).not.toMatch(/isOpen\(\)\s*\?\s*'open'\s*:\s*'closed'/);
+    }
+  });
+});

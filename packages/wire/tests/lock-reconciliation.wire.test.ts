@@ -232,6 +232,26 @@ suite('4–6. the one locked door a newcomer can walk to', () => {
     expect(said, 'and it refuses as LOCKED, not as closed').toMatch(/lock/);
   }, 120_000);
 
+  it('⭐⭐⭐ 4b. the room SAYS the gate is locked — it used to say `closed`', async () => {
+    // ⛔⛔ **Found by a lens pass, not by this drive's first run.** Both
+    // exit listings computed the door's state word as
+    // `isOpen() ? 'open' : 'closed'` and neither knew about the bolt, so
+    // the realm's one locked gate advertised itself as merely *closed*
+    // and the lock was **invisible until you walked into it**.
+    //
+    // ⭐ Two failures in one: the prose did not back the fiction
+    // (immersion), and a refusal nobody can see coming has no appeal
+    // (governance). ⚠ And it was the same four lines in TWO
+    // controllers — `Door.stateWord()` is one word now, with a test
+    // that refuses the inline form's return.
+    const said = plain(await (await avenue.cmd('look')).said()).toLowerCase();
+    expect(said, 'the room lists its exits').toMatch(/gate/);
+    expect(
+      said,
+      'and says the gate is LOCKED, not merely closed',
+    ).toMatch(/locked/);
+  }, 120_000);
+
   it('⭐⭐⭐ 5. `unlock north` answers about the KEY, not about the parser', async () => {
     // ⭐ This is the whole build in one checkpoint. Before it, the
     // answer was *"I don't understand 'unlock'"* — a verb that shipped,
@@ -253,18 +273,24 @@ suite('4–6. the one locked door a newcomer can walk to', () => {
     expect(said, 'the sentence names a key').toMatch(/key/);
   }, 120_000);
 
-  it('⭐⭐ 6. `lock north` is refused the same way — the key is asked FIRST', async () => {
-    // ⚠ Ordering matters and is asserted here. The gate is already
-    // locked, so a controller that checked state before authority would
-    // answer `already-locked` and leak that anybody may operate it. The
-    // key question comes first, so a stranger learns only that they have
-    // no key.
+  it('⭐⭐ 6. `lock north` reports the BOLT, because a bolt is visible', async () => {
+    // ⚠⚠ **This assertion is the inverse of its first version**, and a
+    // lens pass is what turned it round. It used to assert that `lock`
+    // asks for the key BEFORE reading the bolt, so a stranger learned
+    // nothing about the door's state — which sounded like discretion
+    // and was actually the engine lying: **a character can see a thrown
+    // bolt.** Hiding something observable is an immersion betrayal of
+    // the documented kind, and it bought nothing, because the room's own
+    // exit listing announces `locked` (step 4b).
+    //
+    // ⭐ So the order is: observable state to anybody, the KEY only when
+    // the act would otherwise go through.
     const r = await avenue.cmd('lock north');
     expectUnderstood(r, 'lock north');
     expect(
       reasonOf(r),
-      `the key is asked before the bolt is read\n${notesOf(r)}`,
-    ).toBe('no-key');
+      `the already-locked bolt is reported, not concealed\n${notesOf(r)}`,
+    ).toBe('already-locked');
   }, 120_000);
 
   it('⭐⭐⭐ `open north` works — a defect that predates this build by years', async () => {

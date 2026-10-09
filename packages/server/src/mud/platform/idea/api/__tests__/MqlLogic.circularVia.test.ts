@@ -132,8 +132,11 @@ describe('a direction match carries a live Exit', () => {
       commandGiver: mover as never,
       scope: 'reachable',
     });
+    // ⚠ `resolveOne` returns `MqlOne`, which has no `raw`;
+    // `effectiveTarget` takes the command-layer `MqlOneResult`, which
+    // does. The binder supplies it, so the test supplies it too.
     const found = MqlApi.effectiveTarget(
-      one,
+      { ...one, raw: 'north' },
       (s): s is Door => s === (door as unknown as typeof s),
     );
     expect(found, 'the direction reaches the door hanging on it').toBe(door);

@@ -290,7 +290,10 @@ export default class SenseController extends CommandController<SenseModel> {
       const tagged = Mml.exit(exit);
       const door = exit.getDoor();
       if (!door) return tagged;
-      const state = door.isOpen() ? 'open' : 'closed';
+      // ⭐ One word, from the door — see `Door.stateWord`. This read
+      // said `closed` about a LOCKED door, in two controllers, until a
+      // lens pass caught it.
+      const state = door.stateWord();
       const doorLink = Mml.thing(door);
       return Mml.compose`${tagged} (${doorLink}, ${state})`;
     });
