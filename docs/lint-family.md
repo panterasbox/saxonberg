@@ -1159,6 +1159,29 @@ tests in `scripts/__tests__/check-graph-walks.test.ts` so a later
   ratchet set above the real count is a hole in the ratchet** — the
   three false positives were three free slots for a new walk.
 
+⭐⭐⭐ **The ceiling is ZERO.** 11 → 9 (the graph invariants and the
+grid compile) → 5 (the four perception walks) → 2 (mine air and the
+forage radius) → 0 (the lane compile, and `LaneCatalogue.planRoute`
+retired outright). There is no residue to enumerate, which is the
+unusual part: every walk over the world's shape found a home on the
+skeleton.
+
+⭐ `Traversal.ts` itself needs no allowlist entry, and that is the
+right answer rather than a lucky one — its frontier reads a
+**callback**, so it fails evidence 3. What this gate counts is walks
+that know about **exits and edges**, and after the migration only the
+callers know that. An allowlist would have hidden a real regression:
+if the skeleton ever grew a direct `getExits()` call, it *should* be
+counted.
+
+⚠ Two callers keep their own neighbour reader on purpose, and neither
+is laziness: mine air reads `getExits()` — **all** of them, because a
+hidden heading still has air in it — and the forage census admits a
+destination that is not a `Container` (a bee flying into a room-shaped
+nothing contributes no bloom but still spends a hop, at the right
+distance). Routing either through the shared guards would quietly
+change a number.
+
 **Second check, no ceiling: the core's import allowlist.** The routing
 core — `Traversal`, `KnowledgeGraph`, `TravelProfile`, `RoutePlan` —
 may import nothing but each other, `GraphInvariants` and `MapClaim`.
