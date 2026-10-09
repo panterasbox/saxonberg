@@ -143,6 +143,13 @@ data:
     # at par 1 rather than a par on every product, it is in a shop where
     # importing belongs, and this comment is what it is.
     - { itemTemplatePath: /trade/apiculture/thing/nuc, par: 1 }
+    # ⭐⭐ A watch, par 2 — and it is here because two shipped verbs had
+    # no instrument a player could own. `wind` and `adjust` are the
+    # avenue's verbs and the only `Watch` in the realm was in Gus's
+    # pocket; a verb whose one instrument belongs to an NPC is reachable
+    # in theory and not in fact. The general store is where a townsman
+    # buys a watch.
+    - { itemTemplatePath: /world/terminus/general-store/thing/pocket-watch, par: 2 }
     - { itemTemplatePath: /trade/farming/thing/seed/juniper, par: 2 }
     # ⭐ The fibre and dye line (textiles B1). Flax is the chain's whole
     # left edge; the three dyestuffs are what makes cloth worth
@@ -204,6 +211,76 @@ data:
     # and this comment is the record that it is a stand-in rather than a
     # design. The barge and the coach are NOT here: a boat in a general
     # store is silly, and the depot at Wharfside is where those belong.
+    # ⭐⭐⭐ THE REACHABILITY SWEEP's lines — nineteen rows that existed and
+    # that no player could ever meet. Each was authored, described, and
+    # named by nothing anywhere: `lint:reachability`'s arm R is what found
+    # them, and the rule that decided between a shelf and a declaration is
+    # **if a player would plausibly own one it is stock; if it exists only
+    # so a doc can point at it, it is declared `unreachable: exemplar` in
+    # its own row.** These are the first half.
+    #
+    # ⚠⚠ The two that matter most are the first two, and they are not
+    # oversights of long ago — they are last week's.
+    # `ButcherController:320-326` gates the deepest breakdown on a tool
+    # with the `saw` capability, and chops on a `cleaver` AND a block. The
+    # carcass chain PRICED both tools on this counter (`:258-259`, with a
+    # comment about *"the capital cost of being able to take a joint at
+    # all"*) and gave neither a `stockLines` entry — so par was 0, the
+    # sweep cloned none, and `buy cleaver` answered *"there's nothing to
+    # buy here."* The verb's hardest step was unreachable by anybody from
+    # the day it merged. ⭐ A price with no par is a shop that has decided
+    # what it charges for something it never has.
+    - { itemTemplatePath: /trade/cooking/thing/cleaver, par: 2 }
+    - { itemTemplatePath: /trade/cooking/thing/meat-saw, par: 2 }
+    # The two feeding vessels. A hopper is what a kept bird eats from —
+    # the mine canary is `feedingStyle: [hopper]` and the realm had no
+    # hopper — and a trough is its larger cousin, which is the whole of
+    # the difference between them (capacity and prose, no code).
+    - { itemTemplatePath: /stuff/thing/vessel/hopper, par: 2 }
+    - { itemTemplatePath: /stuff/thing/vessel/trough, par: 2 }
+    # Kitchen and yard goods. The compost sack belongs beside the soil
+    # sack; the colander drains, the thermos keeps, the basket carries,
+    # and the supply crate is what a haul gig wants filling.
+    - { itemTemplatePath: /stuff/thing/vessel/compost-sack, par: 3 }
+    - { itemTemplatePath: /stuff/thing/vessel/colander, par: 2 }
+    - { itemTemplatePath: /stuff/thing/vessel/thermos, par: 2 }
+    - { itemTemplatePath: /trade/farming/thing/basket, par: 4 }
+    - { itemTemplatePath: /trade/haulage/thing/supply-crate, par: 4 }
+    - { itemTemplatePath: /stuff/thing/cutlery/table-fork, par: 6 }
+    # ⭐ The two trades you can practise at home, and both were unbuyable.
+    # A drop spindle is the hand version of the wheel and a household vat
+    # is the hand version of the dyehouse — the same suburban-garden path
+    # the seed and pot lines already start, with nothing to start it with.
+    - { itemTemplatePath: /trade/textiles/thing/drop-spindle, par: 2 }
+    - { itemTemplatePath: /trade/dyeing/thing/household-vat, par: 2 }
+    # Gear and clothes. ⭐ The bronze breastplate goes beside its steel
+    # cousin deliberately: the other three plate rows are already lines on
+    # this counter, and selling the bronze one is what turns
+    # `materials-response.md`'s whole lesson — the same construction in a
+    # softer metal turns an edge far less surely — into something a player
+    # buys and feels rather than a paragraph nobody reads.
+    #
+    # ⚠ The hood is the realm's ONLY `DisguiseGarment`. Until this line
+    # the entire disguise mechanism — `belief.md`'s whole appearsAs
+    # realm — had no garment anybody could obtain. It is coarse wool and
+    # it costs three coin, because a deep hood is an ordinary thing and
+    # what you do with it is not the shop's business.
+    - { itemTemplatePath: /stuff/thing/armor/bronze-breastplate, par: 1 }
+    - { itemTemplatePath: /stuff/thing/arms/oak-waster, par: 2 }
+    - { itemTemplatePath: /stuff/thing/gear/backpack, par: 3 }
+    - { itemTemplatePath: /stuff/thing/clothes/hood, par: 3 }
+    - { itemTemplatePath: /stuff/thing/clothes/lab-hoodie, par: 2 }
+    # ⚠ The brazier and the stove are NOT here, and the reason earns the
+    # line: they are `Hearth` rows, and a `Hearth` is not
+    # chattel-stampable. A shop good must be — `Stock` stamps title on the
+    # sale and consignment rides chattel — so stocking a hearth would sell
+    # somebody a thing they cannot own. They are PROPPED instead (the
+    # goods yard and the depot hut), which is how every other `Hearth` and
+    # `Forge` in the realm already stands, including the one on this
+    # shop's own floor. ⭐ The sweep's rule — *if a player would plausibly
+    # own one it is stock* — had to meet a mechanism it did not know
+    # about, and this counter's own standup test is what said so.
+    - { itemTemplatePath: /world/terminus/general-store/thing/saucer, par: 3 }
     - { itemTemplatePath: /stuff/thing/gear/handcart, par: 3 }
     - { itemTemplatePath: /system/transport/thing/sledge, par: 1 }
     - { itemTemplatePath: /system/transport/thing/dray, par: 1 }
@@ -351,6 +428,35 @@ data:
     # ⚠ None of these prices is a balance claim. They are a LADDER
     # against the shipped anchors (stipend 20, wages 4-6 per game-hour),
     # and the one that matters is the bottom of it.
+    # ⭐⭐ The reachability sweep's prices, against the shipped ladder
+    # (stipend 20, wages 4-6 per game-hour, bed 45, wagon 95). ⚠ The saw
+    # and the cleaver are NOT here: they were already priced at :258-259
+    # by the build that forgot to stock them, and those numbers stand.
+    /stuff/thing/vessel/hopper: 2
+    /stuff/thing/vessel/trough: 4
+    /stuff/thing/vessel/compost-sack: 1
+    /stuff/thing/vessel/colander: 2
+    /stuff/thing/vessel/thermos: 5
+    /trade/farming/thing/basket: 2
+    /trade/haulage/thing/supply-crate: 3
+    /stuff/thing/cutlery/table-fork: 1
+    # The two hand trades, both deliberately under a day's wage: a
+    # spindle is a stick and a weight, a vat is a tub. The point of a hand
+    # trade is that the tool is not the obstacle.
+    /trade/textiles/thing/drop-spindle: 2
+    /trade/dyeing/thing/household-vat: 6
+    # ⚠ The bronze plate being DEARER than the steel one at 55 would be a
+    # mistake; at 34 it is the lesson. Cast bronze is more metal and more
+    # work than a gambeson and it protects worse than plate, so it sits
+    # between them — and a player who reads both prices and both
+    # `analyze response` reports has the whole of materials-response
+    # without anybody explaining it.
+    /stuff/thing/armor/bronze-breastplate: 34
+    /stuff/thing/arms/oak-waster: 3
+    /stuff/thing/gear/backpack: 6
+    /stuff/thing/clothes/hood: 3
+    /stuff/thing/clothes/lab-hoodie: 4
+    /world/terminus/general-store/thing/saucer: 1
     /stuff/thing/gear/handcart: 8
     /system/transport/thing/sledge: 14
     /system/transport/thing/dray: 60
@@ -404,3 +510,7 @@ data:
     # ⚠ The one faucet, and the dearest thing on the shelf under the
     # musket. Bees are cheap to keep and expensive to start.
     /trade/apiculture/thing/nuc: 45
+    # ⚠ Dearer than the hive and cheaper than the bees: brass, a spring
+    # and a jewel, made by somebody who knew how. It does not keep time
+    # properly, which is the point and not a discount.
+    /world/terminus/general-store/thing/pocket-watch: 18

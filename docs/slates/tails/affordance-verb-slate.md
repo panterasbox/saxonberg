@@ -102,6 +102,100 @@ ambiguity model** — it reuses `CommandApi.applyCardinalityPolicy` (the
   cardinality many → apply to each; fed by MQL's existing `all X` / `:{*}`.
 - **zero**: not-found error.
 
+## ⭐⭐⭐ The affordance link is GATED now (2026-10-07)
+
+`lint:reachability` arm A: **every command view in the game is named by a
+`commandContributions` static somewhere, or carries a top-level
+`unreachable:` key saying why not.** A zero invariant, opened at fifteen
+dead views and driven to nought by the reachability sweep. Discovery is
+one thing; *existing at all* is the one underneath it, and this slate had
+no gate for it.
+
+⚠ Of the fifteen, **the timepiece verbs are the ones this slate recorded
+the shape of** — `wind` and `adjust`, the `blow`/`tally`/`wind`/`adjust`
+bundle `CLAUDE.md` names as THE exemplar for domain-local commands. Half
+of it had never run. `Watch.ts` reasoned correctly that the capability
+gate belongs on `MechanicalMovementMixin` and then concluded *"so Watch
+contributes none"* — which picks the right GATE and forgets to pick a
+CONFERRER. Its two siblings in the same directory (`Whistle.ts:36`,
+`CrossingLog.ts:41`) got it right, which is exactly what made the
+omission invisible. ⭐ The rule both docstrings carry now: **the mixin is
+the gate, the concrete class in the pack that owns the verbs is the
+conferrer** — a kernel mixin may never name a locality's view.
+
+## ⛔⛔ `drive` vs `drift` — an undiagnosed collision this slate now owns (2026-10-07)
+
+`platform/cmd/movement/drive.yaml` (take a vehicle through an exit) and
+`trade/mining/cmd/mining/drive.yaml` (drive a drift) both claim **`drive`**,
+and `lint:verb-collisions` has listed the pair as undiagnosed since that
+gate landed.
+
+⚠⚠ The reachability sweep conferred the movement view on `DrivableMixin`
+— correctly on its own reasoning: `MountableMixin` one file over confers
+`mount`/`ride`, its comment records that pair being found dead in the
+nutrition-fitness drive, and `drive` is their vehicular sibling missed on
+the same pass. **The full suite refused it.**
+`trade-mining/src/idea/cmd/mining/__tests__/acts.test.ts` asserts that
+`lib/slot/Drivable.ts` carries no contributions static, and says why: the
+two views have the **same arity**, so `requires:` cannot separate them at
+shape and only affordance ORDER decides which one a miner gets.
+
+⭐ So the movement view carries `unreachable: awaiting:affordance-verb-slate`
+and the decision is here. The tripwire's own suggestion is the cheap
+answer and probably the right one:
+
+> *"Nothing in the repo affords the movement view today; if that changes,
+> `drift` becomes primary — one line."*
+
+**The adjudication, in full**, because the ladder wants both sides
+evaluated and first-come is not one of its seven solutions:
+
+1. ⭐ **`verbs: [drift, drive]` on the mining view, then confer the
+   movement view.** A miner always has an unambiguous word; a driver gets
+   `drive`. Two lines, and the mining view already declares both words
+   *"so a miner always has an unambiguous one"* — its own test says so,
+   which means half the work is done and was done deliberately.
+2. **Rename the movement verb.** `pilot`? ⚠ Worse: `drive` is the
+   ordinary English for taking a cart somewhere, and the mining sense is
+   the jargon. Renaming the common word to protect the specialist one is
+   backwards.
+3. **One view with subcommands.** ⛔ They are not one act — a drift is cut
+   and a cart is steered — so the ladder's first rung does not apply.
+
+⭐ Shape 1 on the ladder's own reasoning. ⚠ What it needs is somebody who
+owns BOTH sides: the sweep that found it had already told the glass build
+that its `dip` collision was the glass build's to resolve, and taking
+this one unilaterally would have been that mistake with the roles
+reversed. The drive checkpoint to add with the fix: a miner in a drift
+gets `drift`, and a driver on a cart gets `drive`.
+
+⭐ A **singleton-claimed-once** gate is the honest general form of a
+related bug this sweep met and did not fix (the distributor's counter
+read as a singleton and found two). It needs constant resolution, and
+most duplicate `props:` claims are legitimate — a works-board in twelve
+yards is the intended shape — so it is an open question rather than a
+gate. One paragraph, here, deliberately.
+
+⭐⭐ **`KNOWN_COLLISIONS` wants the same carrier `unreachable:` got**
+— salvaged out of the reachability plan at its retirement, 2026-10-09,
+because deferred design does not live in a plan. That sweep replaced an
+allowlist-in-the-linter with a **field on the thing itself**
+(`unreachable: awaiting:<slate>` on a view, read by
+`lint:reachability` and ignored by the runtime), and the collision
+allowlist in `check-verb-collisions.ts` is the same shape one step
+behind: a central list of pairs, maintained away from the views it
+describes. The disposition belongs on the **shadowed view** — a
+`shadowed-by:` key naming the winner and the reason — so the
+adjudication is readable where an author meets it and the gate stops
+being a list anybody has to remember to prune.
+
+⚠ Not done with the sweep that proposed it, deliberately: the glass
+build was live in that file at the time, and ⭐ the allowlist is down to
+**3 rows** now (`lease`/`unlease`, both safe, and `pour`, a rung-1
+unify), so the carrier buys less than it did. Reassess when the next
+genuine collision arrives — if `pour` unifies, the list is two safe
+domain-local rows and the carrier may never be worth building.
+
 **Command provenance (help) — shipped.** The `affordances` verb
 (`AffordancesController`) lists a giver's available commands annotated
 by affording source, and the underlying attribution record is

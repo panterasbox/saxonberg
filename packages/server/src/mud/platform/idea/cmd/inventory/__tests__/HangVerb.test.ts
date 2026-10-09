@@ -283,6 +283,14 @@ describe("the affordance", () => {
       .map((d) => d.verbs)
       .flat();
     expect(verbs).toContain("hang");
-    expect(verbs).toContain("mount");
+    // ⚠⚠ `mount` was an alias on this view and is NOT any more. It
+    // collided with `movement/mount.yaml` — climbing aboard a horse or a
+    // cart — and the ladder resolves it at rung 2: climbing aboard is
+    // the generative primitive (`MountableMixin` and the
+    // `mount`/`ride`/`dismount` family, which every animal and vehicle
+    // extends), while putting a sconce on a wall already has its plain
+    // English word. ⭐ The alias bought nothing and shadowed something:
+    // *do not pre-emptively claim a name.*
+    expect(verbs).not.toContain("mount");
   });
 });

@@ -145,7 +145,18 @@ Players drive it through the global **`device`-category** verbs
 `fold <thing>` / `unfold <thing>` (`cmd/device/fold.yaml`,
 `cmd/device/unfold.yaml`), which target a reachable object and are
 narrowed to a Foldable by the controller (`MixinApi.isFoldable`,
-`platform/idea/cmd/device/`). `FoldController` additionally refuses to fold a
+`platform/idea/cmd/device/`).
+
+⚠⚠ **Neither verb was afforded by anything until the reachability
+sweep.** Both views, both controllers and the arg gate all shipped with
+this substrate and nothing named the files, so `fold chair` answered *"I
+don't understand 'fold'"* for every player — and the one foldable thing
+in the realm, the avenue's camp chair, was sittable and unfoldable its
+whole life. `FoldableMixin` carries the static now, `environment` +
+`peers` + `inventory` on the Ladder shape: *the thing that folds is what
+makes folding sayable.* The views' own `requires: FoldableMixin` narrows
+the target at the binder, so the affordance claims nothing about chairs
+that do not fold, and `lint:reachability` refuses the old state. `FoldController` additionally refuses to fold a
 host whose slots are occupied — you can't fold a chair someone is
 sitting on. The concrete host is `FoldingChair` (`obj/FoldingChair.ts`
 = `Chair` + `Foldable`, its own file so seeds resolve it by path); it

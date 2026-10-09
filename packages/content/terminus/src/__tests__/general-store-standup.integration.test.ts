@@ -60,6 +60,16 @@ const FISHING_DIR = fileURLToPath(new URL("../../../trade-fishing/content/trade/
 const FISHING_SRC = fileURLToPath(new URL("../../../trade-fishing/src", import.meta.url));
 const APICULTURE_DIR = fileURLToPath(new URL("../../../trade-apiculture/content/trade/apiculture/", import.meta.url));
 const APICULTURE_SRC = fileURLToPath(new URL("../../../trade-apiculture/src", import.meta.url));
+// ⭐ The four packs the reachability sweep's shelf lines reach into. Each
+// was already a dependency; what was missing was a line on the counter.
+const COOKING_SRC = fileURLToPath(new URL("../../../trade-cooking/src", import.meta.url));
+const HAULAGE_SRC = fileURLToPath(new URL("../../../trade-haulage/src", import.meta.url));
+const TEXTILES_SRC = fileURLToPath(new URL("../../../trade-textiles/src", import.meta.url));
+const DYEING_SRC = fileURLToPath(new URL("../../../trade-dyeing/src", import.meta.url));
+/** The commons' fabric-construction rows — `woven`, `knit`, `felted`. */
+const FABRIC_DIR = fileURLToPath(
+  new URL("../../../base-library/content/stuff/idea/fabric/", import.meta.url),
+);
 const COUNTER = "/world/terminus/general-store/counter";
 const TORCH = "/world/terminus/general-store/thing/torch";
 
@@ -220,7 +230,27 @@ const ARMS_LINES = [
  * the seven-deep nested ternary it replaced: the haulage line would have
  * made it eight, and adding a stock line should be adding a row.
  */
+// ⭐⭐ The four packs the REACHABILITY SWEEP's lines reach into. Each was
+// already a dependency of this pack; what was missing was a shelf line,
+// so these roots had never needed naming here.
+const COOKING_TOOLS_DIR = fileURLToPath(
+  new URL("../../../trade-cooking/content/trade/cooking/", import.meta.url),
+);
+const HAULAGE_DIR = fileURLToPath(
+  new URL("../../../trade-haulage/content/trade/haulage/", import.meta.url),
+);
+const TEXTILES_DIR = fileURLToPath(
+  new URL("../../../trade-textiles/content/trade/textiles/", import.meta.url),
+);
+const DYEING_DIR = fileURLToPath(
+  new URL("../../../trade-dyeing/content/trade/dyeing/", import.meta.url),
+);
+
 const ROW_HOMES: { prefix: string; dir: () => string }[] = [
+  { prefix: "/trade/cooking/", dir: () => COOKING_TOOLS_DIR },
+  { prefix: "/trade/haulage/", dir: () => HAULAGE_DIR },
+  { prefix: "/trade/textiles/", dir: () => TEXTILES_DIR },
+  { prefix: "/trade/dyeing/", dir: () => DYEING_DIR },
   { prefix: "/trade/farming/", dir: () => PRODUCE_DIR },
   { prefix: "/system/arcana/", dir: () => ARCANA_DIR },
   { prefix: "/system/residence/", dir: () => RESIDENCE_DIR },
@@ -233,28 +263,62 @@ const ROW_HOMES: { prefix: string; dir: () => string }[] = [
   { prefix: "/stuff/", dir: () => OBJ_DIR },
 ];
 
+/**
+ * ⚠⚠ A row may state `extends:` and NO `class:` — the reachability
+ * sweep's tin saucer does, because the commons' saucer was the documented
+ * exemplar and this shop's was a near-duplicate of it. Reading
+ * `parsed.class` alone on such a row yields `undefined` and the clone
+ * fails with *"Template not found"*, which is the loud version of the
+ * failure `pack-roots.effectiveDoc` exists for: a reader that selects on
+ * `raw.class` goes BLIND on a class-less child, and fifteen lint gates
+ * had to be fixed the same way. Fold the parent in.
+ */
+function foldParent(
+  parsed: Record<string, unknown>,
+  resolve: (path: string) => Record<string, unknown>,
+): { class: string; data: Record<string, unknown> } {
+  const data = (parsed.data as Record<string, unknown>) ?? {};
+  const parent = parsed.extends as string | undefined;
+  if (typeof parsed.class === "string") {
+    return { class: parsed.class, data };
+  }
+  if (!parent) throw new Error("row states neither class: nor extends:");
+  const up = foldParent(resolve(parent), resolve);
+  return { class: up.class, data: { ...up.data, ...data } };
+}
+
 function seedDoc(rel: string): Doc {
   const parsed = YAML.parse(
     readFileSync(`${STORE_DIR}${rel}.yaml`, "utf-8"),
   ) as Record<string, unknown>;
+  const folded = foldParent(parsed, rowFile);
   return {
     path: `/world/terminus/general-store/${rel}`,
-    class: parsed.class as string,
-    data: (parsed.data as Record<string, unknown>) ?? {},
+    class: folded.class,
+    data: folded.data,
   };
+}
+
+/** The raw YAML of a shipped row, by template path. */
+function rowFile(path: string): Record<string, unknown> {
+  if (path.startsWith("/world/terminus/general-store/")) {
+    const rel = path.slice("/world/terminus/general-store/".length);
+    return YAML.parse(readFileSync(`${STORE_DIR}${rel}.yaml`, "utf-8")) as Record<
+      string,
+      unknown
+    >;
+  }
+  const home = ROW_HOMES.find((h) => path.startsWith(h.prefix));
+  if (!home) throw new Error(`rowFile: no pack owns '${path}'`);
+  return YAML.parse(
+    readFileSync(`${home.dir()}${path.slice(home.prefix.length)}.yaml`, "utf-8"),
+  ) as Record<string, unknown>;
 }
 
 /** Load a shipped row by template path, from whichever pack owns it. */
 function objDoc(path: string): Doc {
-  const home = ROW_HOMES.find((h) => path.startsWith(h.prefix));
-  if (!home) throw new Error(`objDoc: no pack owns '${path}'`);
-  const file = `${home.dir()}${path.slice(home.prefix.length)}.yaml`;
-  const parsed = YAML.parse(readFileSync(file, "utf-8")) as Record<string, unknown>;
-  return {
-    path,
-    class: parsed.class as string,
-    data: (parsed.data as Record<string, unknown>) ?? {},
-  };
+  const folded = foldParent(rowFile(path), rowFile);
+  return { path, class: folded.class, data: folded.data };
 }
 
 // The counter stocks every line to par on standup, each a real clone
@@ -268,38 +332,80 @@ describe("general-store standup (real seeds)", () => {
     const goods = readdirSync(`${STORE_DIR}thing/`)
       .filter((f) => f.endsWith(".yaml"))
       .map((f) => seedDoc(`thing/${f.replace(/\.yaml$/, "")}`));
+    /**
+     * ⭐⭐ **DERIVED from the counter, not enumerated beside it.**
+     *
+     * This list used to be eight hand-written groups (`GARDEN_LINES`,
+     * `HAULAGE_LINES`, `APIARY_LINES`…), and the reachability sweep added
+     * nineteen lines to the counter that belonged to none of them — so
+     * the standup went red with *"Template not found"* on a row the
+     * counter plainly names. ⚠ That is the enumeration-rots shape the
+     * lint family removed enumeration for: the counter already states its
+     * roster, and a second copy of it beside the test can only drift. The
+     * groups stay (they also carry rows this test reads directly), and
+     * anything the counter stocks is added whether a group knew about it
+     * or not.
+     */
+    const counterRow = YAML.parse(
+      readFileSync(`${STORE_DIR}counter.yaml`, "utf-8"),
+    ) as { data?: { stockLines?: { itemTemplatePath: string }[] } };
+    const stocked = (counterRow.data?.stockLines ?? [])
+      .map((l) => l.itemTemplatePath)
+      .filter((path) => !path.startsWith("/world/terminus/general-store/"));
+    const enumerated = [
+      ...GARDEN_LINES,
+      ...FURNISH_LINES,
+      ...HOMEBREW_LINES,
+      ...MANA_LINES,
+      ...HAULAGE_LINES,
+      ...TACKLE_LINES,
+      ...ARMS_LINES,
+      ...APIARY_LINES,
+    ];
+    const shelfPaths = [...new Set([...enumerated, ...stocked])];
     installStore([
       { path: PH, class: PH, data: {} },
       seedDoc("counter"),
       ...goods,
-      ...GARDEN_LINES.map(objDoc),
-      ...FURNISH_LINES.map(objDoc),
-      ...HOMEBREW_LINES.map(objDoc),
-      ...MANA_LINES.map(objDoc),
-      ...HAULAGE_LINES.map(objDoc),
-      ...TACKLE_LINES.map(objDoc),
-      ...ARMS_LINES.map(objDoc),
-      ...APIARY_LINES.map(objDoc),
+      ...shelfPaths.map(objDoc),
     ]);
     ModuleApi.registerPackSource(DIST_SRC, "/trade/distilling");
     ModuleApi.registerPackSource(FISHING_SRC, "/trade/fishing");
     ModuleApi.registerPackSource(APICULTURE_SRC, "/trade/apiculture");
     ModuleApi.registerPackSource(ARCANA_SRC, "/system/arcana");
     ModuleApi.registerPackSource(TRANSPORT_SRC, "/system/transport");
-    // ⚠⚠ The FABRIC forms, by hand. `woven` / `knit` / `felted` are
-    // registered at boot by `FabricCatalogue` from rows, and this
-    // harness stands rows up without it — so the moment the shelf
-    // started stocking CLOTH (apiculture's veil and gloves, which are
-    // ordinary clothing by design), every standup assertion died on
-    // `unknown form 'woven'`. The armour line never caught it because
-    // `plate` and `padded` are kernel forms.
-    Construction.registerFabric({
-      key: 'woven',
-      layerBand: 0,
-      loft: 0.1,
-      weaveDensity: 0.75,
-      drape: 0.6,
-    });
+    ModuleApi.registerPackSource(COOKING_SRC, "/trade/cooking");
+    ModuleApi.registerPackSource(HAULAGE_SRC, "/trade/haulage");
+    ModuleApi.registerPackSource(TEXTILES_SRC, "/trade/textiles");
+    ModuleApi.registerPackSource(DYEING_SRC, "/trade/dyeing");
+    // ⚠⚠ The FABRIC forms — ⭐ **read from the ROWS now, not written out
+    // here.** `woven` / `knit` / `felted` are registered at boot by
+    // `FabricCatalogue` from `base-library`'s rows, and this harness
+    // stands rows up without it, so the moment the shelf started stocking
+    // CLOTH (apiculture's veil and gloves, which are ordinary clothing by
+    // design) every standup assertion died on `unknown form 'woven'`.
+    // The armour line never caught it because `plate` and `padded` are
+    // kernel forms.
+    //
+    // ⚠ The first fix registered `woven` ALONE, with a comment naming all
+    // three — and the reachability sweep's shelf lines added a knit
+    // hoodie, so the standup died again on `unknown form 'knit'`. One
+    // hand-written form out of three, beside a comment that knew there
+    // were three. Reading the rows is what makes that unrepeatable: a
+    // fourth form is a row and this harness picks it up.
+    for (const f of readdirSync(FABRIC_DIR).filter((n) => n.endsWith('.yaml'))) {
+      const row = YAML.parse(readFileSync(`${FABRIC_DIR}${f}`, 'utf-8')) as {
+        data?: Record<string, number | string>;
+      };
+      const d = row.data ?? {};
+      Construction.registerFabric({
+        key: String(d.key),
+        layerBand: Number(d.layerBand ?? 0),
+        loft: Number(d.loft ?? 0),
+        weaveDensity: Number(d.weaveDensity ?? 0),
+        drape: Number(d.drape ?? 0),
+      });
+    }
     installV1QuantityMarshallers();
     await AppSettings.warm();
   });

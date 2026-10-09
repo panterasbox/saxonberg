@@ -1,3 +1,17 @@
+# ⛔ `unreachable: awaiting:magic-items-slate` — held against the slate
+# that OWNS this question. `magic-items.md` is explicit that magic
+# distribution is **census-gated**, and the census is the mechanism that
+# decides how many of a thing the realm carries and where. This row has
+# no `censusKey`, so no census draws it and nothing places it: it is a
+# shipped magic item nobody can meet.
+#
+# ⚠ The disposition is deliberately NOT a general-store line. The other
+# nineteen rows the reachability sweep placed went on a shelf because a
+# player would plausibly own one; a magic item's distribution is a
+# design question about scarcity and discovery that a shopkeeper's par
+# would answer by accident. The slate decides it; this key is the record
+# that it is undecided rather than forgotten.
+unreachable: awaiting:magic-items-slate
 # A potion of mana — the catalog potion exemplar on `Potion`, and the
 # proof that a mana potion needs no new mechanism (capability packs D5).
 #

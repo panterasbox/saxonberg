@@ -1004,7 +1004,7 @@ function flatMapBySeed(
     );
     for (const c of candidates) {
       if (priorIds && priorIds.has(c.stuff.stuffId)) continue;
-      const key = c.stuff.stuffId + '|' + (c.via ? JSON.stringify(c.via) : '');
+      const key = c.stuff.stuffId + '|' + viaKey(c.via);
       if (seen.has(key)) continue;
       seen.add(key);
       const next: MqlMatch = { stuff: c.stuff, score: m.score };
@@ -1030,6 +1030,53 @@ const SEEDS_EXCLUDING_PRIOR: ReadonlySet<string> = new Set([
   'peers',
   'inventory',
 ]);
+
+/**
+ * ⛔⛔ A stable dedupe key for a match's `via`, **and it may not be
+ * `JSON.stringify`.**
+ *
+ * `MqlMatchVia` is an open interface every subsystem augments, and
+ * `lib/boundary/Exit.ts` augments it with a LIVE `Exit` Stuff. An Exit
+ * reaches its `Boundary`, whose `anchorA`/`anchorB` point back at it, so
+ * stringifying one throws `Converting circular structure to JSON` and
+ * the whole resolve fails with `mql-error`.
+ *
+ * ⚠⚠ That is a defect this chain walk shipped with, and it was
+ * unreachable until the lock build conferred `lock`/`unlock`: those are
+ * the first views to combine a `requires:` mixin gate with a DIRECTION
+ * candidate, which is the only candidate that carries an exit. The
+ * symptom was `unlock north` → `mql-error[target]` while `unlock gate`
+ * worked, at the one locked door in the realm. ⭐ Found by the drive;
+ * nothing else could see it, because no test had ever targeted a
+ * boundary verb by direction — `OpenController`'s own test names the
+ * door by keyword.
+ *
+ * So: identity, never serialization. Anything Stuff-shaped contributes
+ * its `stuffId`; everything else is JSON, which is safe because the
+ * remaining augmentations are plain data (`detailPath: string[]`,
+ * `bulk: { affordance }`).
+ */
+function viaKey(via: MqlMatchVia | undefined): string {
+  if (!via) return '';
+  const parts: string[] = [];
+  for (const [k, v] of Object.entries(via as Record<string, unknown>)) {
+    const id = (v as { stuffId?: unknown } | null)?.stuffId;
+    if (typeof id === 'string') {
+      parts.push(`${k}=${id}`);
+      continue;
+    }
+    try {
+      parts.push(`${k}=${JSON.stringify(v)}`);
+    } catch {
+      // A future augmentation that is neither Stuff-shaped nor plain
+      // data: fall back to the key alone rather than failing the whole
+      // resolve. Over-merging two candidates is a far smaller fault
+      // than a thrown query.
+      parts.push(`${k}=?`);
+    }
+  }
+  return parts.sort().join('&');
+}
 
 function candidatesForElementDerivable(
   seedName: string,

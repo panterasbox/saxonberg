@@ -42,9 +42,40 @@ function allAfforded(): string[] {
 }
 
 describe('the bar affords each verb from exactly one place', () => {
-  it('the station does the whole-drink acts', () => {
+  it('the station does the whole-drink acts — and the flair', () => {
     const peers = BarStation.commandContributions.peers ?? [];
-    expect(peers).toEqual([V('mix'), V('serve'), V('garnish')]);
+    expect(peers).toEqual([
+      V('mix'),
+      V('serve'),
+      V('garnish'),
+      // ⭐⭐ `platform/cmd/social/flourish.yaml` — the fourth, and the only
+      // one of the four that is a PLATFORM view named from this pack.
+      //
+      // `flourish` was the residue of a retired mechanism. It shipped as
+      // the demonstration that band-gated verb CONFERRAL worked —
+      // `FlourishController`'s docstring still said it was *"afforded
+      // only through competence conferral (it is in no static
+      // commandContributions)"* — and conferral was retired in !285:
+      // `refreshConferrals` no longer exists in the source, and
+      // `Discipline/mixology.yaml` went on carrying a rule that pushed a
+      // verb to nobody. So the verb was afforded by NOTHING, and the
+      // reachability sweep's census is what found it.
+      //
+      // ⭐ The retirement's own doctrine decided where it goes: *a band
+      // must never confer a verb, because THE REFUSAL IS THE PROGRESSION
+      // UI* — if something lifts a verb, the verb has to EXIST for you to
+      // be told. So the RAIL affords it (the instrument affords the verb,
+      // and this station already affords the three acts performed at it)
+      // and Mixology competence LIFTS it, as a refusal in the controller
+      // that names the band. A player at a bar learns there is something
+      // there to get good at; an unknown verb teaches nobody.
+      //
+      // ⚠ A pack class naming a platform view is the shipped direction —
+      // every trade's instrument confers the platform verbs it performs
+      // (`pour`, `stir`, `heat`). The forbidden direction is the kernel
+      // naming a pack's view.
+      'platform/cmd/social/flourish.yaml',
+    ]);
   });
 
   it('the strainer strains; the vessels do not', () => {

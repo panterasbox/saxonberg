@@ -980,7 +980,7 @@ export default class Exit extends ConcealableMixin(Idea) {
    * tools), the mode gate is skipped — backcompat-additive.
    */
   public canTraverse(
-    _mover: Stuff & Containable,
+    mover: Stuff & Containable,
     mode?: string,
   ): TraversalGuard {
     if (this.blocked) {
@@ -1014,10 +1014,23 @@ export default class Exit extends ConcealableMixin(Idea) {
     // (already in hand) — the destination is never resolved, so a
     // locked gate pointing at an unbuilt/dangling destination path is
     // safe to veto.
+    // ⭐⭐ **The bolt refuses, the key excuses.** A locked door admits
+    // whoever presents a key that fits its keyway, so a key-holder never
+    // has to `unlock` to get through — which is exactly how the keyed
+    // Exit family (`KeyedDoorExit`, `FrontDoorExit`, `DormDoor`) has
+    // always behaved. What changed is that the bolt is now a separate
+    // fact from the keyway, so a door can also be left OPEN for
+    // everybody; see `lib/boundary/Lockable.ts` for why those were two
+    // disjoint half-models before.
+    //
+    // ⚠ An empty keyway opens for nobody, so a row authoring
+    // `locked: true` and no keyway is sealed against the whole world —
+    // the university gate's case, and its content row did not change.
     if (
       this.door &&
       MixinApi.isLockable(this.door) &&
-      this.door.isLocked()
+      this.door.isLocked() &&
+      !this.door.opensFor(mover)
     ) {
       const doorName = this.door.getPresentation();
       return {

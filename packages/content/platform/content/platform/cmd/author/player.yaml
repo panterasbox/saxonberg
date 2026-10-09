@@ -1,10 +1,19 @@
-verbs: [player, me]
+# ⭐ `player` — and it used to claim `me` as an alias, which collided
+# with `social/score.yaml`.
+#
+# Adjudicated by the ladder at rung 2 plus *do not reserve a name*: `me`
+# was an alias on BOTH views and each already had a primary word, so one
+# of them was pure surplus. It stays with `score`, because "me" reads as
+# *show me* rather than *configure me* — and this view is subcommanded,
+# which would have made `me set name …` the shape of a bodily-sounding
+# word. A subcommand is something you operate; that is the tell.
+verbs: [player]
 controller: /platform/idea/cmd/author/PlayerController
 description: "Manage your player character settings"
 help: |
   Adjust the basics of who your character is. Use the subcommands
   to set your name, choose your pronouns, or review what's
-  currently set. `me` is a shorthand alias for `player`.
+  currently set. ⚠ `me` is NOT an alias for this verb — it belongs to `score`.
 validators:
   - /lib/command/validators/requiresAvatar
 subcommands:

@@ -6002,3 +6002,60 @@ once to prove it exists.
 ⚠ Greppable, and worth a census if it recurs: an optional call on a
 cast-literal type (`as unknown as { \w+\?\(`). Not gated today — one
 occurrence is a finding, not a population.
+
+## ⛔⛔ `JSON.stringify` over a value that may hold a LIVE Stuff
+
+**Found 2026-10-09, by a drive, after it had been broken for years.**
+
+```ts
+// WRONG — `via` is an open interface and one augmentation holds an Exit
+const key = c.stuff.stuffId + '|' + (c.via ? JSON.stringify(c.via) : '');
+if (JSON.stringify(m.via) !== firstKey) return undefined;
+```
+```ts
+// RIGHT — identity for anything Stuff-shaped, JSON only for plain data
+const key = c.stuff.stuffId + '|' + viaKey(c.via);
+if (!sameVia(m.via, first)) return undefined;
+```
+
+**What happens.** `MqlMatchVia` is an open interface every subsystem
+augments, and `lib/boundary/Exit.ts` augments it with a **live `Exit`**.
+An Exit reaches its `Boundary`, whose `anchorA`/`anchorB` point back at
+it, so the graph has a cycle and `JSON.stringify` throws
+`Converting circular structure to JSON`. The caller catches it and
+reports `mql-error`, so a **well-formed query answers "something went
+wrong."**
+
+⚠⚠ **The symptom was a verb working one way and not the other.**
+`unlock gate` resolved and `unlock north` did not — same view, same
+`requires:` — because only a DIRECTION candidate carries an exit.
+`open north` and `close north` had been broken for as long as they had
+existed, each promised in its own help text.
+
+⭐ **Why no test caught it.** `OpenController`'s own test names the door
+by **keyword** (`'oak'`), so the direction branch of
+`MqlApi.effectiveTarget` had never executed in either controller. The
+code was reachable only through a verb whose arg declares a `requires:`
+mixin gate *and* a direction, and until `lock`/`unlock` were conferred
+no such verb existed. **Being conferred did not cause the bug; it made
+it reachable.**
+
+**The rule.** A dedupe or equality key over a structure a subsystem may
+augment must take **identity** from anything Stuff-shaped
+(`stuffId`) and serialize only what is provably plain data. ⚠ And a
+comment claiming the cheap version is fine is not evidence:
+`consensusVia`'s said *"same exit reference … kept cheap by
+JSON-stringifying"*, which is the contradiction stated out loud —
+a reference compare was both what it meant and cheaper.
+
+⭐ The general shape, worth keeping beyond this one: **an open interface
+cannot be serialized by anybody who does not own every augmentation.**
+`MqlMatchVia`, `CommandContributions` buckets and `BulkPayload` are all
+declared-by-many; treat a value from one as opaque unless you narrowed
+it yourself.
+
+Pinned by `platform/idea/api/__tests__/MqlLogic.circularVia.test.ts`,
+which asserts the **premise** too — that the exit graph really is
+circular — so if that ever stops being true somebody learns the fixes
+became unnecessary rather than wrong. See
+[boundary.md § Locking](./subsystems/boundary.md).

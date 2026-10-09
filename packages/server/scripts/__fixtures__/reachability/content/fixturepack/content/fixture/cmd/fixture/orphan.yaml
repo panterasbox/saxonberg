@@ -1,0 +1,3 @@
+# VIOLATION: no static anywhere names this view.
+verbs: [orphan]
+controller: /fixture/idea/cmd/fixture/OrphanController

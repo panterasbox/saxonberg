@@ -32,9 +32,9 @@ Cross-references:
 | `ExitableMixin` | mixin | Explicit exit map + zone-delegated lookup; `addExit` wires `Door.attachedTo` and (for doored exits) `BoundaryApi.attachExistingBoundary`. |
 | `ExitableVessel` | concrete class | A Vessel you can enter. `onCreate(DoorBearingMixin(ExitableMixin(AdornableMixin(AtmosphericMixin(Vessel)))))` — it composes `Adornable` itself (the fixture surface the Door→`BoundaryAnchor` retrofit needs), since the bare `Vessel` base no longer does, and ⭐ **`Atmospheric` too, since the base-class narrowing build: a thing you can go inside is a place with air** (see [biome.md](./biome.md)). Carries the authored `interiorVolume` the envelope runs on, and overrides `envelopeApplies` + `openExteriorOpenings` because a room's version of each is wrong about a vehicle. Synthesizes `'in'`/`'out'` exits. Migrates the `(vessel, environment)` Boundary anchor pair on `setDoor` / `onMoved`, and resets the weather-locality memo there — a place that goes places has a new address. |
 | `DoorBearingMixin` | mixin | Adds a `door: Door | null` field for hosts whose exits are synthesized rather than authored (`ExitableVessel`). Constrained to `Stuff & Exitable`. |
-| `Door` | concrete `Thing` subclass | `LockableMixin(SealableMixin(Boundary))`. Shared open/closed **and** locked/unlocked state referenced by exit pairs. Implements all five conduits — `LightConduit`, `LineOfSight`, `MovementConduit`, `SmellConduit`, `SoundConduit` — all gated on `isOpen()`. `attachedTo: Set<Exit>` is the runtime back-reference. |
+| `Door` | concrete `Thing` subclass | `LockableMixin(SealableMixin(Boundary))`. Shared open/closed state, plus a **keyway and a bolt**, referenced by exit pairs. Implements all five conduits — `LightConduit`, `LineOfSight`, `MovementConduit`, `SmellConduit`, `SoundConduit` — all gated on `isOpen()`. `attachedTo: Set<Exit>` is the runtime back-reference. |
 | `SwitchableMixin` | mixin | Generic binary on/off toggle (`isOn()` / `setOn()`, `switchOn()` / `switchOff()`). The Sealable of the electrical world — a wall switch, a machine, the crossing `Beacon`. Driven by the `switch` / `toggle` verb (in the `device` category). Registered as `Switchable`, `MixinApi.isSwitchable`. |
-| `LockableMixin` | mixin | Binary locked/unlocked state, composed onto `Door` **beneath** `Sealable` (`isLocked()` / `setLocked()`, `lock()` / `unlock()`). A locked door refuses traversal before the closed-door gate fires. **A STOPGAP** superseded by build-3's `lib/lock/` real `Lock`+`Key` model. Registered as `Lockable`, `MixinApi.isLockable`. |
+| `LockableMixin` | mixin | ⭐ **A keyway AND a bolt** (`lib/boundary/Lockable.ts`), composed onto `Door` **beneath** `Sealable` and onto the three keyed Exit subclasses. The bolt is `isLocked()` / `setLocked()` / `lock()` / `unlock()`; the keyway is `getLock()` / `opensFor(mover)` over `lib/lock/Lock`. `canPass = !isLocked() || opensFor(mover)`, so a key-holder passes a locked door and `unlock` is how you let everyone else through. `getLock()` is a policy seam (the keyed family reads its warren's keyway) and `boltedByDefault()` decides the starting state. Registered as `Lockable`, `MixinApi.isLockable`. |
 | `BistateMixin` | mixin (unregistered) | The shared guarded-boolean substrate under `Sealable` (open/closed), `Switchable` (on/off), and `Foldable` (folded/unfolded). One persisted boolean + a `typeof`-boolean guard, reached via protected `getState()` / `setState(value, label)`. Lives at the `lib/` root (`lib/Bistate.ts`), NOT in `lib/boundary/`. **Deliberately carries no `_mixinName` and is not in the `Mixins` registry** — shared implementation, not a queryable capability; consumers narrow on the concrete axis (`isSealable` / `isSwitchable` / `isFoldable`), never an `isBistate`. |
 | `AdornableMixin` | mixin | Container-side surface for non-portable attached Stuff (`getFixtures()` parallel to `getContents()`). Composed onto `Location` and `ExitableVessel` (not the bare `Vessel` base — every fixture consumer narrows on `MixinApi.isAdornable` first). |
 | `AdornmentMixin` | mixin | Host-side back-reference (`adornedTo`) and not-portable invariant. Composed by `BoundaryAnchor` and by content fixtures (e.g. `domain/lounge/NeonSign` = `Adornment(Branded(LightSource(Thing)))`). Attached declaratively via the host's `adornments:` instruction field (see *Declarative adornments* below) or imperatively via `addFixture`. |
@@ -543,36 +543,111 @@ with only `shortDescription: 'heavy oak door'` is targetable as
 
 ### Locking
 
-`lib/boundary/Locked.ts`. `LockableMixin` composes onto Door **beneath**
-`Sealable`, adding a second boolean axis:
+⭐⭐⭐ **A lock is a KEYWAY and a BOLT, and for most of this project it
+was neither.** `lib/boundary/Lockable.ts` holds both facts; the lock
+build (2026-10-09) is where they met.
 
-- `isLocked()` / `setLocked(value)` — the predicate-getter / noun-setter
-  inter-Stuff contract pair. `setLocked` rejects non-booleans with a
+**What was wrong.** There were two lock models and they were strictly
+disjoint:
+
+| | what it had | what it lacked |
+|---|---|---|
+| `LockableMixin` on `Door` | a **bolt** — a boolean anybody could throw | any key, credential or title check |
+| `Lock` on three Exit subclasses | a **keyway** — `{keyway, technology}` + `opensFor` | a bolt, so the door was *permanently* locked |
+
+The bolt-bearing `Door` Things carried no keyway, and the
+keyway-bearing exits (`residence/src/idea/KeyedDoorExit.ts`,
+`FrontDoorExit.ts`, `eternal-university/.../DormDoor.ts`) carry no
+`Door` at all. ⚠ So `lock`/`unlock` shipped **afforded by nothing** and
+the reachability sweep held them that way on purpose: conferring either
+verb over either half would have afforded a verb that lies — `lock front
+doors` would have locked a hall's doors for every player alive — and the
+keyed family could never be left open for a guest.
+
+**The model.** A real door has both facts and they are independent:
+which key it accepts (the keyway — its identity; re-keying mints a fresh
+one and old keys stop matching), and whether the bolt is currently
+thrown. So:
+
+```
+canPass(mover)  =  !isLocked()  ||  opensFor(mover)
+```
+
+⭐ **The bolt refuses, the key excuses.** A key-holder never has to
+`unlock` to get through, which is exactly how the keyed exits have
+always behaved — so **unlocking is for letting everyone ELSE through**,
+the capability the old model had no way to express.
+
+The surface, and which half is which:
+
+- `isLocked()` / `setLocked(value)` / `lock()` / `unlock()` — **the
+  bolt.** State, no authority; the Exit family and the provisioning
+  controllers move it directly. `setLocked` rejects non-booleans with a
   `TypeError` (a malformed template `locked: 1` crashes loudly at
   hydrate rather than being silently coerced).
-- `lock()` / `unlock()` — the idempotent action verbs.
+- `opensFor(mover)` — **the authority.** A synchronous scan of the
+  mover's reachable wallet (implant keychain, then a carried physical
+  `Key` — never one lying in the room), safe to call from a traversal
+  gate. The verb controllers ask it before touching the bolt;
+  `Exit.canTraverse` asks it before refusing passage.
+- `getLock()` — ⭐ **a policy seam.** The default builds the `Lock`
+  value-object from this host's own `keyway` + `lockTechnology` fields;
+  a host whose keyway is owned elsewhere overrides it. All three keyed
+  exits do, reading the warren's cache, so **a holding's identity stays
+  in one place and re-keying it re-keys every door at once.**
+- `boltedByDefault()` — ⭐ overridable, read once at construction.
+  A plain `Door` returns false (an authored row says `locked: true` when
+  it means it); the keyed family returns **true**, because those doors
+  have been permanently locked for their whole life. ⚠ It must be a
+  field default and not a `postRegister` write: the Hydrator reflects
+  the persisted `locked` in after construction, so a default is
+  correctly overridden by what the player last did, while a lifecycle
+  write would re-bolt the door on every boot.
 
-The enforcement lives in `Exit.canTraverse` (see *Exits* above): the
+⚠ **An empty keyway opens for NOBODY.** A row authoring `locked: true`
+with no keyway is sealed against the whole world — which is how the
+university gate kept working with its content row untouched: *shut,
+chained, and locked — the gown's, not the town's.*
+
+> ⭐⭐ **What this model does NOT do, and where it is tracked.** A lens
+> pass over the shipped design
+> ([lock-slate](../slates/tails/lock-slate.md)) **fails lens 1
+> outright** — turning a key exercises no Discipline and nothing is
+> derivable — and lens 6, because a key is cloned from nothing in a
+> realm that has smelting and smithing. It also found that **you cannot
+> defeat a lock**, so no lock story is makeable (lens 2), that
+> `issueMasterKeyTo` has no production caller and no seat to hold it,
+> and that nothing records who holds a key to a given door. ⭐ The
+> Discipline that answers the first two is already designed —
+> `lockcraft`, on [policing-slate](../slates/builds/policing-slate.md).
+
+**Enforcement** lives in `Exit.canTraverse` (see *Exits* above): the
 lock gate fires **before** the closed-door gate, reads only `this.door`
-(never resolving the destination), and reports `'locked'`. The `lock` /
-`unlock` verbs (`platform/idea/cmd/boundary/LockController.ts` /
-`UnlockController.ts`, mirroring `Close` / `Open`) resolve any reachable
-`Lockable` — a direct hit (`lock oak door`) or a direction match (`lock
-north`, door fetched from `via.exit.getDoor()`) via
-`MqlApi.effectiveTarget`.
+(never resolving the destination), and reports `'locked'`.
 
-**⚠ STOPGAP.** `LockableMixin` carries **no key/credential model** — the
-crossing's north gate is seeded permanently locked and soft-walled in
-dialogue (Gus), so `lock` / `unlock` are minimal admin / no-key verbs. It
-is superseded by build-3's `lib/lock/` real model (a re-keyable `Lock`
-value-object a door carries, plus `Key` riding `CredentialWalletMixin` /
-the `Lock` value class — "the door checks a key, not identity"). This boolean is
-a degenerate special case of that (a lock nobody holds a key for). **At
-reconcile toward `lib/lock/`:** retire this mixin + the `'locked'`
-`Exit.canTraverse` gate and re-express the gate as either a plain
-`blocked` exit or a keyless `Lock`. Do NOT grow it into a second lock
-system, and do NOT fold it into the shared `BistateMixin` base — it is
-leaving the boolean world. See commit `17add9a5`.
+**The verbs.** `lock`/`unlock`
+(`platform/idea/cmd/boundary/LockController.ts` /
+`UnlockController.ts`, mirroring `Close`/`Open`) are afforded by
+`MobileMixin.self`, beside `open`/`close` — the same gesture at the same
+object. Each resolves any reachable `Lockable` through
+`MqlApi.effectiveTarget`, which walks three rungs: the named object, the
+exit's `Door`, and ⭐ the **exit itself** — the rung the keyed family
+needed, since it carries its lock with no `Door` Thing. A mover with no
+fitting key gets `controller-rejected:no-key`, and ⚠ the key is asked
+**before** the bolt is read, so a stranger learns only that they have no
+key rather than that the door is already locked.
+
+> ⛔⛔ **`open north` and `close north` were broken for years**, and the
+> lock build's drive is what found it. Resolving a boundary verb by
+> DIRECTION threw inside MQL — *Converting circular structure to JSON* —
+> because `MqlLogic.consensusVia` and the resolver's chain-walk dedupe
+> key both compared a match's `via` by serializing it, and a direction's
+> `via` holds a live `Exit` whose `Boundary.anchorA` points back at it.
+> Both compare by identity now. ⚠ Nothing could see it:
+> `OpenController`'s own test names the door by KEYWORD, so the
+> direction branch of `effectiveTarget` had never run in either
+> controller. Pinned by
+> `platform/idea/api/__tests__/MqlLogic.circularVia.test.ts`.
 
 ### `DoorBearingMixin`
 

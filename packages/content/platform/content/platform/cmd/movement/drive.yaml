@@ -1,3 +1,22 @@
+# ⭐⭐ `drive` — afforded by `DrivableMixin` (`environment` + `peers`).
+#
+# ⚠⚠ Held unafforded by the reachability sweep, and the hold was right:
+# `trade/mining/cmd/mining/drive.yaml` claimed the same word with the
+# same arity, so conferring this view would have ADJUDICATED a live
+# collision by affordance order, and first-come is not one of the
+# ladder's seven solutions. That sweep had just told the glass build its
+# `dip` collision was the glass build's to resolve.
+#
+# ⭐ The lock build ran the ladder and it resolves at rungs 2 and 3
+# together: the vehicle is the generative primitive (`DrivableMixin` is
+# kernel substrate that every coach, cart and barge extends — a trade's
+# hand-gesture rarely is), and "drive" is what a layman says about a
+# vehicle while *to drift* is real mining usage. Mining's view is
+# `verbs: [drift]` now, which is what its own tripwire predicted.
+#
+# ⚠ `environment` + `peers`, never `self`: a vehicle you are aboard is
+# your CONTAINER, so the affordance reaches you from the environment
+# bucket — the `Ladder`/`climb` shape.
 verbs: [drive]
 controller: /platform/idea/cmd/movement/DriveController
 description: "Drive your vehicle through a named exit (passthrough to the Drivable host)."

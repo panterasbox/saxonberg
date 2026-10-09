@@ -1,3 +1,13 @@
+# ⛔ `unreachable: exemplar` — the demo combustion fixture `fire.md` and
+# `thermal.md` point at, and it is not meant to stand in the world: it
+# ships ALIGHT, with a full fuel reserve and a warming slot, so a
+# campfire propped in a room is a fire somebody lit and walked away
+# from. The practicum's bronze brazier is the deliberate exception and
+# is its own row. ⭐ What a player CAN own is the brazier and the stove
+# (general-store lines since the reachability sweep): the same `Hearth`
+# mechanism, three numbers apart, carried and bought rather than found
+# burning.
+unreachable: exemplar
 # Campfire — the demo combustion fixture. A fuel reserve (content theme
 # 'combustion') burns down over game-time; while lit the fire is pinned
 # hot (its surface scalds — contact burns through the general thermal

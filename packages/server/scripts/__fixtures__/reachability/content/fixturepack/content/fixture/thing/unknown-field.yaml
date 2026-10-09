@@ -1,0 +1,3 @@
+# VIOLATION (gate integrity) — reached by a field in neither list.
+class: /fixture/thing/Plain
+data: { shortDescription: unknown-field widget }

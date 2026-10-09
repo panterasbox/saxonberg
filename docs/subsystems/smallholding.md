@@ -476,6 +476,15 @@ Sandbox-safe for free — `subdivide` and `transfer` both carry
 `assertFieldMutation`, and `parcels` is REFUSE in `COLLECTION_POLICIES`. A
 title minted in a holodeck would be a real title.
 
+⚠⚠ **And neither verb could be SAID until the reachability sweep.** Both
+views and both controllers shipped and no `commandContributions` static
+named either file, so the whole mechanism above was reachable only from
+code: `subdivide` answered *"I don't understand 'subdivide'."* They are
+`PersonaMixin.self`'s now, universally, on `title`'s own doctrine — *your
+own holdings are a self-read, and the gate is the authority, not the
+affordance* — and `AccessApi.can` in the controllers is what refuses. See
+[parcel.md](./parcel.md).
+
 ---
 
 ## Hinkley Hills

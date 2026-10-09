@@ -55,7 +55,7 @@ import type { Sealable } from '../lib/spatial/Sealable';
 import type { Display } from '../lib/display/Display';
 import type { Switchable } from '../lib/boundary/Switchable';
 import type { Energized } from '../lib/electricity/Energized';
-import type { Lockable } from '../lib/boundary/Locked';
+import type { Lockable } from '../lib/boundary/Lockable';
 import type { Foldable } from '../lib/slot/Foldable';
 import type { Timekeeping } from '../lib/time/Timekeeping';
 import type { CartesianCoordinates } from '../lib/location/CartesianCoordinates';

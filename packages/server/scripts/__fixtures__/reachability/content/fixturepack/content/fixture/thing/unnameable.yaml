@@ -1,0 +1,7 @@
+# VIOLATION — the shelf prints "brass widget" and the row answers only to
+# single words, so `buy brass widget` says the shelf is bare of a thing
+# standing right there.
+class: /fixture/thing/Plain
+data:
+  shortDescription: brass widget
+  keywords: [widget, brass, brass-widget]

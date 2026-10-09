@@ -1,13 +1,21 @@
 # A tin saucer on the general store's shelf — the one you buy so you have
-# something to put water in for the cat on the lane. Mirrors the
-# waterskin line for line; the only difference is what it is for.
-class: /platform/thing/Feeder
+# something to put water in for the cat on the lane.
+#
+# ⭐⭐ `extends:` the commons' saucer, since the reachability sweep, and the
+# two rows are why. This one was written for the counter and was never
+# put on it — no `stockLines` entry, no price, so par was 0 and nothing
+# cloned one. The commons' `/stuff/thing/vessel/saucer` was the
+# documented AC-26 proof (*everything it can do it inherits; `Feeder` adds
+# the single claim on top*) and was named by nothing at all. Two
+# near-identical rows, both unreachable, for different reasons.
+#
+# ⚠ The fix is not a deletion. Inheriting makes the parent reachable
+# (arm R's rule 4: a parent whose child is reachable) and leaves the
+# commons' exemplar standing where the doc points at it, while this row
+# keeps the one thing that is actually different — the prose of a dozen
+# stacked on a shop shelf rather than one dented in somebody's yard. It
+# also picks up the `mass` the parent states and this row never did.
+extends: /stuff/thing/vessel/saucer
 data:
-  shortDescription: shallow tin saucer
-  keywords: [saucer, dish, tin, bowl]
-  register: indefinite
   longDescription: |
     A shallow tin saucer, stacked with a dozen of its fellows. Nobody sells it as anything in particular — it holds about a cup of water, and that is the whole of its ambition.
-  feederKind: bowl
-  interiorBulk: true
-  interiorCapacity: 0.3

@@ -1,0 +1,4 @@
+class: /fixture/idea/Zone
+data:
+  stocks:
+    fixture:zoned: 4

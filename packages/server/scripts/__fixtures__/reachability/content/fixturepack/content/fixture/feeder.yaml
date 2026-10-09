@@ -1,0 +1,3 @@
+class: /fixture/idea/Feeder
+data:
+  source: /fixture/thing/cited

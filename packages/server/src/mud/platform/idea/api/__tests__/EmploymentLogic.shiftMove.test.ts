@@ -36,6 +36,7 @@ import { MobileMixin } from '../../../../lib/spatial/Mobile';
 import { ContainableMixin } from '../../../../lib/spatial/Containable';
 import { ContainerMixin } from '../../../../lib/spatial/Container';
 import { Idea } from '../../../../lib/stuff/Idea';
+import Thing from '../../../../lib/stuff/Thing';
 import { StuffApi } from '../../../../api/stuff';
 import { ContainmentApi } from '../../../../api/containment';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
@@ -51,6 +52,12 @@ const OFFSTAGE = '/test/location/offstage';
 class Worker extends EmployedMixin(MobileMixin(ContainableMixin(Idea))) {
   static _mixinName = 'Worker';
 }
+/**
+ * ⚠ A counter: MATTER that holds things. `Thing` is the branch, which is
+ * what `moveForShift` discriminates on — a place to stand is never Matter.
+ */
+class Fixture extends ContainerMixin(ContainableMixin(Thing)) {}
+
 class Room extends ContainerMixin(ContainableMixin(Idea)) {
   static _mixinName = 'Room';
 }
@@ -244,5 +251,66 @@ describe('cover, on demand', () => {
 
     expect(dave.getEmployment(BUSINESS)).toBeUndefined();
     expect(dave.getContainer()?.stuffId).toBe(rooms.get(CELLAR)!.stuffId);
+  });
+});
+
+/**
+ * ⭐⭐⭐ The regression that broke the realm's MAIN SHOP — pinned, through
+ * the real roster tick.
+ *
+ * `operatingLocations[0]` for the general store is its **COUNTER**, and
+ * deliberately so: a house that listed only the room was unfindable as a
+ * supplier, so the fixture is first. The old `moveForShift` took whatever
+ * was first, `singletonOrClone`d it, and teleported the assignee into it
+ * — a `Stock` being a `Container`. Two consequences, both found by the
+ * reachability sweep's drive and neither visible to any unit test:
+ *
+ *  1. a SECOND counter was minted at that template path, so every
+ *     `findByTemplatePath` of it threw `expected singleton, found N` —
+ *     and `BuyController` does exactly that on every purchase. `buy
+ *     torch` answered *"Something went wrong in BuyController"* at the
+ *     realm's main shop on a fresh boot, for every good on the shelf.
+ *  2. the shopkeeper stood inside the till.
+ *
+ * ⚠ The drive found the count at THREE: this, plus two consignment
+ * brains with the same `?? singletonOrClone(shelfPath)` fallback, all
+ * three aimed at one counter.
+ */
+describe('⚠⚠ a FIXTURE in operatingLocations is not a place to stand', () => {
+  beforeEach(() => StuffApi.clearAll());
+  afterEach(() => vi.restoreAllMocks());
+
+  it('skips the Thing, takes the room, and mints no second fixture', async () => {
+    // ⚠ , not : a kernel test proves the kernel over
+    // synthetic fixtures, and  refuses one that names
+    // shipped content. It said so on the first run.
+    const COUNTER = '/test/shop/counter';
+    const { rooms } = seed({ offstage: OFFSTAGE });
+    const business = StuffApi.findByTemplatePath(BUSINESS)!;
+    // The shipped shape: the fixture FIRST, the room second.
+    (business as unknown as { operatingLocations: string[] })
+      .operatingLocations = [COUNTER, BAR];
+    // A counter is Matter that happens to hold things — which is exactly
+    // what made a bare `isContainer` test insufficient.
+    const counter = makeStuffAtPath(() => new Fixture(), COUNTER);
+
+    const mara = makeStuffAtPath(() => new Worker(), MARA);
+    ContainmentApi.move(mara as never, rooms.get(OFFSTAGE) as never);
+
+    atClock(2, 10); // Wednesday 10:00 — on shift
+    EmploymentApi.tickRoster();
+    await settle();
+
+    expect(
+      mara.getContainer()?.stuffId,
+      'the worker stands in the ROOM, never inside the counter',
+    ).toBe(rooms.get(BAR)!.stuffId);
+    // ⭐ The assertion that would have caught the shipped bug: one
+    // counter. `findByTemplatePath` THROWS on two, so this call is itself
+    // the check.
+    expect(
+      StuffApi.findByTemplatePath(COUNTER)?.stuffId,
+      'and no second counter was minted at that path',
+    ).toBe((counter as unknown as Stuff).stuffId);
   });
 });

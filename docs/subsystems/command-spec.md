@@ -442,6 +442,37 @@ illustrates, not at the top level.
 `help search` indexes `verbs` + `description` + `help` + every
 example's `cmd`/`note`, so authored prose is full-text discoverable.
 
+## ⭐⭐ `unreachable:` — why this verb is conferred by nothing, on purpose
+
+A top-level key beside `verbs:` / `controller:` / `description:`, and a
+**declared property of `command.schema.json`** (pattern
+`^(exemplar|awaiting:[a-z0-9-]+)$`), so a typo fails at boot.
+
+`lint:reachability`'s arm A requires every view in the game to be named
+by a `commandContributions` static somewhere — a zero invariant — **or**
+to carry this key saying why not. The three that carry it today are
+`lock`, `unlock` (held on `base-class-narrowing-slate` § I9: their arg
+gate is `requires: LockableMixin`, and the Exit subclasses holding the
+real locks compose no such mixin, so the verb could only ever refuse) and
+`fly` (no `media: ['air']` exit, no flying species, no composer of the
+mixin).
+
+⭐ `fly` is the instructive one, because it is the single case where
+*afford statically, decline diegetically* does NOT apply: the refusal
+would point at nothing that exists in any form, so it would teach
+nothing. `swim` was the opposite case and is conferred — the exits, the
+body plan's mode list and the controller were all already there and only
+the enablement host was missing.
+
+⚠ Declaring the key AND conferring the view with a static is also a
+failure. One of the two is a lie.
+
+The key is inert at runtime: same verbs, same controller, same bound
+model, and it is neither an arg nor an option
+(`CommandDefinition.unreachableKey.test.ts`). The row-side twin is an
+undeclared top-level key, because rows have no closed schema — see
+[templates.md](./templates.md).
+
 ## Positional fields (`args:`)
 
 `args:` is an **ordered array** — index 0 is positional slot 0, index
@@ -590,6 +621,125 @@ When a *later* field declares `prepositions:`, the greedy field
 **stops at the boundary**: `give the red flower to bob` slices `gift`
 at `to` because `recipient.prepositions: [to]`. See
 [Multi-positional verbs](#multi-positional-verbs) below.
+
+### ⭐⭐⭐ The phrase ladder — a name with a space in it
+
+A good's name is a **phrase**, not a word. Thirty-four of the ninety-three
+stock goods carry an authored multi-word keyword, and for most of them it
+is the only name they answer to: the dog loaf is `[loaf, "dog loaf", "dog
+bread", "horse bread", dogbread]`, the seed packets answer to `orange
+seed`, the cell to `mana cell`. `Stock.resolveBuy` →
+`Perceptible.hasKeyword` is an exact `includes`, so the phrase **is** the
+purchase name.
+
+A non-greedy positional takes **exactly one token**, and the binder
+consumes that token *before* `default:` is considered. So `buy dog loaf`
+bound `thing = "dog"`, handed `loaf` to the optional `counter` slot, and
+threw that slot's MQL default away on the way past — and then refused the
+player in the name of a counter they had never mentioned.
+
+⚠ **`greedy:` is not the universal remedy, and quoting already exists.**
+`command-parsing.md:84-96` documents `"…"` as the way to make one token
+out of several, and it works: `mill "sack of wheat"` binds the whole
+phrase today. The question a view has to answer is which rung it is on.
+
+**Rung 1 — the syntax already says where the name ends.** A greedy field
+whose every later field declares a `prepositions:` boundary. The
+load-time invariant (`validateArgOrdering`) permits greedy before other
+args only in this case, and it is the common one: `buy`/`reclaim` stop at
+`from`, `bake` at `at`/`in`/`on`, `ship` at `to`, `order` at `from`.
+Nothing is ambiguous, so nothing needs quoting — `buy dog loaf` just
+works. **Reach for this first.**
+
+**Rung 2 — one argument, and the rest of the line is it.** A trailing
+greedy field: `say`, `tell`, `focus`, `press post`. Dialogue and free
+text live here. The field is last, so there is nothing to collide with.
+
+**Rung 3 — change the syntax so rung 1 applies.** A preposition or a
+subcommand added deliberately, to give the greedy field something to stop
+at. This is a real option and sometimes the best one; `order`'s `from`
+exists for it.
+
+**Rung 4 — quote it, and SAY SO in `help:`.** When a later field declares
+no preposition the binder can see, the name has to mark its own end.
+`mill` is the shipped case: its `extraction` is a bare `number`, so
+`greedy` on `grain` is **refused at load time**, and
+`mill "sack of wheat"` is the only form that can work. ⚠⚠ Quoting is a
+power-user feature and a burden on the player, so a view on this rung
+owes them a sentence in its `help:` — and an honest one. Unquoted,
+`mill sack of wheat` does not refuse: it reads `sack` as the grain, `of`
+as the extraction and `wheat` as the stones, because the binder applies
+**no type gate to a positional**. A help text that says *"you will get an
+error"* would be the second lie on top of the first.
+
+⛔ **Not a rung: leave it and hope.** A view in the
+`string`-then-optional-`object`-with-a-`default` shape is counted by
+`lint:reachability`'s arm G and the count may fall, never rise.
+
+#### ⭐⭐ And the other half: every prepositional object arg wants `greedy`
+
+The article defect above is the same problem wearing the other hat. A
+player who *does* name the instrument types an article with it, and a
+non-greedy prepositional arg has one slot for `the brick oven`:
+
+```
+buy torch from the counter      → "that doesn't match any known command shape"
+bake at the brick oven          → the same
+mill wheat at the quern         → the same
+```
+
+⚠⚠ **All three of those were promised by the view's own help text or its
+own arg comment.** A help text that documents a form the binder refuses
+is the same failure class as a verb nothing confers — closed, silent, and
+discovered only by a player who believed the documentation. The four
+views this ladder was written for are greedy on both arms now, and
+`lint:reachability`'s arm G ratchets the hundred-odd that are not
+(`ARTICLE_SHAPE_CEILING`).
+
+⭐ The rule for a new verb, then: **a prepositional object arg is born
+`greedy: true`.** There is no case where you want the article to be a
+separate argument.
+
+#### Quoting and greedy, together
+
+A greedy field builds its text from a substring of the **original
+source**, so interior whitespace and escapes survive — which is what
+makes rung 2 work. The consequence is that a quoted token's quote marks
+are part of that source, so until the reachability sweep a greedy field
+fed `"dog loaf"` bound the quotes along with it. The rule now:
+
+- **a BOUNDED greedy field** (rung 1 — one the grammar stops with a later
+  field's `prepositions:`) fed exactly **one quoted token** → the unquoted
+  value. That field holds a NAME to be matched, and a player who quotes it
+  is using quoting for precisely what it is for: *treat this phrase as one
+  argument.*
+- **a TRAILING greedy field** (rung 2 — the rest of the line: `say`,
+  `tell`, `press post`) → the source slice, **verbatim, quotes and all.**
+  That is free text and the quotes are content: if you say *she said
+  "no"* you want them in your speech.
+- **several tokens**, either way → the source slice. An interior quote in
+  a phrase is part of what was written.
+
+⚠⚠ The first cut of this rule unquoted a lone quoted token on ANY greedy
+field, and the full suite caught it on `say` —
+`command-assembly.test.ts > keeps quotes literal inside the greedy slice`
+had pinned the behaviour, correctly, and `collectLaterPrepositions` is
+what tells the two rungs apart. ⭐ The test is whether the grammar CAN
+bound the field, never whether the player used the boundary.
+
+#### ⚠ A positional's `description:` is DEAD SURFACE today
+
+Salvaged out of the reachability plan at its retirement (2026-10-09) —
+deferred design does not live in a plan.
+
+`getHelpText()` renders **option** descriptions only, so a
+`description:` written on a positional arg is authored text nobody ever
+reads. ⭐ Worth knowing in both directions: an author adding one is
+wasting their effort, and a build that makes it render would make a
+quantity of already-written prose appear at once, so it should expect to
+proofread rather than to ship silence. Until then, a positional's
+meaning has to live in the view's `help:` block, which is where every
+shipped view in fact puts it.
 
 ### `default:` — fill-in when the player typed nothing
 

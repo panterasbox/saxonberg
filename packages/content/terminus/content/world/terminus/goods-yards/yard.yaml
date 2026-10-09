@@ -72,6 +72,34 @@ data:
     # Rejection is worth paying for, and it costs more because it is.
     # Nobody stands at it: you get the furnace, not the eye.
     - /world/terminus/goods-yards/thing/city-assay-bench
+    # ⭐⭐ The generic anvil — 200 kg, no `capabilities:`, and
+    # `encumbrance.md:286` ships it as THE lift-gate exemplar: the load
+    # that is plainly beyond a person and plainly within a cart. It stood
+    # nowhere, so the exemplar was a paragraph about an object nobody
+    # could try to pick up.
+    #
+    # ⭐ Here beside the wagon, deliberately: a load that wants a cart
+    # standing next to the cart is the encumbrance doc's own pairing, and
+    # a hauler's yard is where heavy things are between places.
+    #
+    # ⚠ It confers NOTHING and declares no capability, so `repair`'s
+    # `capability.anvil` is unaffected — that gate is satisfied by the
+    # SMITHING anvil propped at the Rejection smelter, which is a
+    # different object with a different job.
+    - /stuff/thing/gear/anvil
+    # ⭐ A brazier — `fire.md`'s *"least of the three: it heats what is
+    # immediately around it and little else, and it is the one you can
+    # carry into a room that has no chimney."* A loading yard is exactly
+    # that room, and men standing around a basket of coals between wagons
+    # is what the object is for.
+    #
+    # ⚠ Propped and not SOLD, which the reachability sweep learned the
+    # hard way: a `Hearth` is not chattel-stampable, and a shop good has
+    # to be, because `Stock` stamps title on the sale. The sweep's rule
+    # (*if a player would plausibly own one it is stock*) had to meet a
+    # mechanism it did not know about, and the store's own standup test
+    # is what said so.
+    - /stuff/thing/brazier
   details:
     doors:
       keywords: [doors, door, backs, entrances]

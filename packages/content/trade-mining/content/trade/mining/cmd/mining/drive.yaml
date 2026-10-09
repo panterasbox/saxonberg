@@ -1,15 +1,25 @@
-# ⚠ `drive` collides with the shipped vehicle verb
-# (`platform/cmd/movement/drive.yaml`), which takes the same arity.
-# `requires:` does not discriminate at shape, so the two are separated by
-# affordance order alone. Nothing in the repo affords the movement view
-# today (`DrivableMixin` carries no `commandContributions`), and the two
-# shipped `pour` views prove coexistence is intended — but `drift` is
-# declared as a full alias so a miner always has an unambiguous word.
-verbs: [drive, drift]
+# ⭐⭐ `drift` — and this view used to claim `drive` as well.
+#
+# `platform/cmd/movement/drive.yaml` (driving a VEHICLE) claimed the same
+# word, with the same arity, so `requires:` could not separate them at
+# shape and only affordance ORDER decided which one a miner got. The
+# reachability sweep conferred the movement view, THIS PACK'S OWN
+# TRIPWIRE caught it, and the sweep reverted rather than adjudicate a
+# collision unilaterally.
+#
+# ⭐ Adjudicated by the ladder (`command-spec.md § When both are bodily
+# acts`), rungs 2 and 3 agreeing: the vehicle is the generative primitive
+# (`DrivableMixin` is kernel substrate that every coach and cart will
+# extend; cutting a heading is one trade's gesture), and *to drift* is
+# real mining usage rather than invented jargon. So the vehicle keeps the
+# plain word and this trade keeps its term of art — which is what this
+# pack's own test predicted would happen: *"if that changes, `drift`
+# becomes primary — one line."*
+verbs: [drift]
 controller: /trade/mining/idea/cmd/mining/DriveController
 description: "Drive a heading in a direction"
 help: |
-  `drive north` (or `drift north`) cuts a new working in that direction.
+  `drift north` cuts a new working in that direction.
   What it costs is the ground: hardness times the volume you are moving,
   so a slate heading is cheap and a granite one is not.
 

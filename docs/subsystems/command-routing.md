@@ -381,6 +381,37 @@ every host that contributes it.
 Nothing else. If you want to know what verbs an object confers, you read
 its ancestry; if you want to change them, you edit a static.
 
+#### ⭐⭐⭐ And the record is GATED now — `lint:reachability`, arm A
+
+Every command view in the game is named by a `commandContributions`
+static somewhere, or carries a top-level `unreachable:` key saying why
+not. A **zero invariant**, not a ceiling: a view costs its author one
+static or one line, so the figure never scales with content and never
+has to drift up.
+
+The census opened at **fifteen dead views** — `walk`, `dismount`,
+`fold`, `unfold`, `prompt`, `transfer`, `subdivide`, `wind`, `adjust`,
+`drive`, `flourish`, `swim`, and (held, with the reason in a field)
+`lock`, `unlock`, `fly`. Each shipped a view, a controller, a controller
+row, and usually an arg gate. Each answered *"I don't understand"* to
+every player alive. ⚠⚠ **Eleven of them had PASSING controller unit
+tests**, because a controller test is handed a pre-built model and
+therefore passes happily over a verb that does not exist — the point
+made at *"a whole verb can be unreachable while its controller's tests
+are green"* further down this file, measured.
+
+⚠ **It is a STATIC census and it never runs the resolver.** The gate
+reads class statics off disk and YAML off disk; it boots nothing,
+instantiates nothing, resolves no affordance for any target, and carries
+no table of which verbs suit which targets. *"Not a gate, and it must
+never become one"* below is about the runtime affordance resolver, and
+still holds.
+
+The remedy this serves is the doctrine two sections down — **afford
+statically, decline diegetically.** A verb that is simply absent teaches
+nothing; the gate is what makes an absence cost somebody a sentence
+instead of a build.
+
 There was a second record. `commandContributions` is class-level, so it
 cannot express "contribute X only when this *instance's* state holds",
 and an optional `InstanceContributor` seam

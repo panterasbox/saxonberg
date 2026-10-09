@@ -31,6 +31,8 @@ data:
     Upstream, on a stone footing set out into the current, stands the intake — a screened mouth on a pillar, with a walkway to it. A hundred paces downstream, past the steps, a brick arch in the embankment discharges the other end of the same city, continuously.
 
     You can see both from here without turning your head. That is the whole argument.
+
+    Overhead, a line of brick arches carries the Cold Fell conduit in across the warehouse roofs and sets it down at a squat stone house on the quay, which is turning a wheel on the last of its fall. The city drinks from a different watershed than the one it is standing in, and it went to this much trouble to say so. A barge lies alongside with its hold open.
   coords:
     x: 0
     y: 0
@@ -129,9 +131,39 @@ data:
     # ⭐ The river's edge — the water pack's `Shore`, and what makes the
     # bank fishable: the city's Locality declares no reach (fishing D15).
     - /world/terminus/wharfside/thing/river-edge
+    # ⭐⭐ The Cold Fell aqueduct and the house on its last drop — and
+    # until the reachability sweep NEITHER STOOD ANYWHERE. Both rows
+    # shipped with the water build, the `Feeder/terminus-main` row names
+    # the house as its `source:` (the ControlStructure whose
+    # `isGenerating()` powers the whole feeder tree), and the terminus
+    # content tree mentioned the aqueduct in not one location row. So the
+    # city grid cited a building that was not there, and
+    # `watershed.test.ts` built the conduit from its FILE rather than
+    # from the world.
+    #
+    # ⚠ This is the case that forced arm R's faucet/citation split: being
+    # NAMED by a field is not reachability — the field has to MINT or
+    # PLACE. `source:` reads the house live and places nothing.
+    #
+    # ⭐ They go on the bank because this is where the conduit arrives:
+    # 1115 m of head spent between the cascade and 35 m at the city, and
+    # the house is the weir on the last drop that takes the energy out of
+    # water that was going past anyway.
+    - /world/terminus/wharfside/thing/cold-fell-aqueduct
+    - /world/terminus/wharfside/thing/aqueduct-house
+    # ⭐ A barge at the city's working wharf. The estuary mouth's own prose
+    # says a barge can be there and nothing put one anywhere; the general
+    # store's rig lines say in terms that *"a boat in a general store is
+    # silly, and the depot at Wharfside is where those belong."* This is
+    # that place.
+    - /system/transport/thing/barge
   cast:
     - /world/terminus/wharfside/agent/fisher
   details:
+    aqueduct:
+      keywords: [aqueduct, channel, "cold fell", conduit, arches, house, weir]
+      description: |
+        The Cold Fell conduit comes in high over the warehouse roofs on a line of brick arches and ends at a squat stone house on the quay, where the last of eleven hundred metres of fall is spent on a wheel. The water that goes in at the top of the fell does not come out of this river, and the men who built it were explicit about why.
     lamps:
       keywords: [lamps, lamp, standards, lighting]
       description: |

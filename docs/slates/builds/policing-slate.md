@@ -658,6 +658,20 @@ What exists are **dual-use competences**:
 | **forensics / records** | the detective, the auditor, *and* the forger |
 | **appraisal** | the fence *and* the honest broker |
 
+⭐⭐ **`lockcraft`'s substrate SHIPPED 2026-10-09** and this slate is its
+owner. The lock is a keyway and a bolt now
+([boundary.md § Locking](../../subsystems/boundary.md)), the technology
+axis is open to packs, and `lock`/`unlock` are reachable verbs — so the
+mechanism `launch-worklist.md` was waiting on (*"locksmithing
+additionally a security design"*) is half written. ⚠ A lens pass over
+that build **fails lens 1 outright** — turning a key exercises no
+Discipline and nothing is derivable — and fails lens 6, because a key is
+cloned from nothing in a realm that has smelting and smithing. `lockcraft`
+is the answer to both, and the gap list is at
+[lock-slate § 3](../tails/lock-slate.md). ⚠ Picking a lock is the
+smaller half: a lock needs a **character** (lens 2) and a key needs a
+**producer** (lens 6).
+
 Nobody's transcript says "criminal." It says what they can **do**,
 and the law says whether this use was permitted — the
 intrinsic/social split holding at the competence layer.

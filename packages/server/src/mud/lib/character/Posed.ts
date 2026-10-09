@@ -162,6 +162,19 @@ export function PosedMixin<TBase extends MixinConstructor>(Base: TBase) {
         'platform/cmd/posture/sit.yaml',
         'platform/cmd/posture/stand.yaml',
         'platform/cmd/posture/kneel.yaml',
+        // ⭐⭐ `dismount` — **the same bug class as the four above, found
+        // the same way, four builds later.** `Mountable` confers `mount`
+        // and `ride` on its `peers`; nothing conferred the way back off,
+        // so you could get on a horse and never get off it.
+        //
+        // ⚠ It belongs HERE and not on `Mountable` because the state it
+        // reads is the RIDER's: `requiresMounted`
+        // (`lib/command/validators/requiresMounted.ts`) gates on
+        // `giver.getPosture() !== Postures.Mounted`. You dismount a horse
+        // that has walked out from under you, and a body that is mounted
+        // can always try to stop being — exactly as a body that is
+        // sitting can always try to `stand`.
+        'platform/cmd/movement/dismount.yaml',
       ],
       peers: [],
       environment: [],

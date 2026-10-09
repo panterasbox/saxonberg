@@ -316,6 +316,36 @@ describe('⭐ Terminus drinks and discharges into the same water', () => {
 });
 
 describe('⭐⭐ the Cold Fell aqueduct (D22 / acceptance 19)', () => {
+  /**
+   * ⭐⭐⭐ **The aqueduct has to be SOMEWHERE**, and until the reachability
+   * sweep it was nowhere.
+   *
+   * Both rows — the conduit and the house with the turbine on its last
+   * drop — shipped with the water build and were propped in no location
+   * in the realm. `Feeder/terminus-main.yaml` names the house as its
+   * `source:`, the `ControlStructure` whose `isGenerating()` powers the
+   * city's whole feeder tree, so the grid cited a building that was not
+   * standing. A grep for `aqueduct` over the entire terminus content
+   * tree hit the two thing rows and no room.
+   *
+   * ⚠⚠ And this suite could not notice, because every assertion below
+   * builds the conduit from its FILE. That is the right way to test the
+   * arithmetic and the wrong way to learn whether the thing exists —
+   * exactly the shape of `locomotion.test.ts` manufacturing a swimmable
+   * host the world did not have. So this one assertion comes first and
+   * reads the WORLD: the bank's `props:` list has to name both rows, or
+   * the arithmetic below is about an object nobody can stand next to.
+   */
+  it('⭐ stands on the wharfside bank — the row is propped, not just authored', () => {
+    const bank = data('world/terminus/wharfside/bank.yaml');
+    const props = (bank.props ?? []) as unknown[];
+    expect(props).toContain('/world/terminus/wharfside/thing/cold-fell-aqueduct');
+    expect(props).toContain('/world/terminus/wharfside/thing/aqueduct-house');
+    // ⭐ And the place DESCRIBES what stands in it. A prop the prose never
+    // mentions is a thing a player walks past without a keyword to try.
+    expect(String(bank.longDescription ?? '')).toMatch(/Cold Fell/);
+  });
+
   it('delivers across BASINS, gravity-fed end to end', async () => {
     const aqueduct = conduitFrom(
       'world/terminus/wharfside/thing/cold-fell-aqueduct.yaml',

@@ -72,15 +72,39 @@ data:
       yieldShape: count
       broodAfterDays: 4
       window: { kind: photoperiod, daylightFrom: 0.45, daylightTo: 1 }
-  # ⭐⭐ **A hen is COUNTED, not dressed**, and the absence of `fraction` is
-  # the whole statement. Nobody weighs a chicken carcass and takes shares
-  # off it: you get a bird's worth of meat and its giblets, and that is
-  # true of a plump hen and a scrawny one alike. The dressed shape would
-  # have had a 2.5 kg bird yielding grams of suet and a hide — which is
-  # how the old universal fraction table read, and it was nonsense.
+  # ⭐⭐⭐ **A hen yields POULTRY CUTS**, and until the reachability sweep it
+  # did not — it yielded the generic fallback, `stew-meat ×2`.
+  #
+  # `trade-cooking` has shipped `cut-breast`, `cut-thigh` and
+  # `cut-drumstick` as authored `Cut` rows, with their prose and their
+  # claimed muscles, and NOTHING anywhere named them. Three cuts written
+  # for a bird, and the only bird in the game opened onto a generic stew.
+  # That is this build's whole defect class in one line of YAML, and arm R
+  # is what found it.
+  #
+  # ⭐⭐ **No `fraction:` is needed, and that is the good part.** A line
+  # that CLAIMS muscles derives its share from them
+  # (`Species.dressOut`: *"a claiming line's share DERIVES from the
+  # muscles it takes, so `fraction` stops being a second copy of a fact
+  # the body plan already states"*). The three cuts claim `breast-white`,
+  # `leg` and `shank`; `BodyPlan/fowl` states their shares; so a plump hen
+  # dresses out heavy and a scrawny one light off the same four lines and
+  # nobody authors a number twice.
+  #
+  # ⚠ The old comment here said *"a hen is COUNTED, not dressed, and the
+  # absence of `fraction` is the whole statement"*, and it was half right
+  # for the wrong reason: the absence of `fraction` is not what makes a
+  # line counted — claiming nothing is. The giblets are genuinely counted
+  # (offal is not a muscle and the plan says nothing about it, so its
+  # `units` are the whole statement). The meat is not: it is claiming, and
+  # it weighs what this bird's muscles weigh. The old reasoning's actual
+  # point stands and is now stated by the right mechanism — nobody takes
+  # authored SHARES off a chicken, and nobody has to.
   butcheryYield:
-  - { cut: /stuff/thing/items/stew-meat, units: 2 }
-  - { cut: /stuff/thing/items/offal,     units: 1 }
+  - { cut: /trade/cooking/thing/cut-breast,    units: 1 }
+  - { cut: /trade/cooking/thing/cut-thigh,     units: 2 }
+  - { cut: /trade/cooking/thing/cut-drumstick, units: 2 }
+  - { cut: /stuff/thing/items/offal,           units: 1 }
   longDescription: >-
     A brown hen with a comb flopped over one eye, moving in the short
     decisive bursts of something that has never once thought anything

@@ -1,0 +1,6 @@
+# The synthetic pack `lint:reachability`'s own test runs its three arms
+# over. Every file here is one violation class or one legitimate
+# mechanism, and the test asserts the POSITIVE — that the arm FINDS it.
+id: fixturepack
+root: /fixture
+version: 0.0.0

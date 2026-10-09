@@ -1,0 +1,3 @@
+# Mechanism 4 — a parent with a reachable child.
+class: /fixture/thing/Plain
+data: { shortDescription: base widget }

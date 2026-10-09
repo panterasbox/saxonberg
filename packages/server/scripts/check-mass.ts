@@ -83,7 +83,20 @@ import {
  * made it a vessel that holds sixty litres, and a thing that holds sixty
  * litres of anything had better have a weight.
  */
-export const MASS_CEILING = 241;
+/**
+ * ⭐ **Lowered 241 → 240 by the reachability sweep (2026-10-07)**, and
+ * again the gate is what asked.
+ *
+ * What left the set is `/world/terminus/general-store/thing/saucer`,
+ * which authored neither a mass nor a material and now states neither —
+ * it `extends:` the commons' saucer instead. ⚠ The two rows were
+ * near-duplicate `Feeder` bowls and BOTH were unreachable, which is how
+ * arm R of `lint:reachability` found them; inheriting rather than
+ * deleting kept the commons' documented AC-26 exemplar standing and
+ * picked up the `mass: 0.1` the shop's copy had simply never stated. A
+ * duplicated row is a duplicated omission.
+ */
+export const MASS_CEILING = 240;
 
 /** The high-water mark: what the count was when the gate landed. */
 export const MASS_HIGH_WATER = 242;

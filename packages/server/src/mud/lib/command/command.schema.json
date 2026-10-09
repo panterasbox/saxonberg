@@ -19,6 +19,11 @@
       },
       "description": "Command verbs and aliases. The first entry is the primary verb."
     },
+    "unreachable": {
+      "type": "string",
+      "pattern": "^(exemplar|awaiting:[a-z0-9-]+)$",
+      "description": "\u2b50 WHY this view is deliberately conferred by nothing \u2014 read by `lint:reachability` (arm A) and by nothing else at runtime. `awaiting:<slate-basename>` holds the verb against a named slate whose file must exist under docs/slates/**; `exemplar` is for a view that exists to be cited. A view with no static naming it and no disposition here FAILS the gate, because a verb nothing confers is simply unknown to every player and teaches them nothing (command-routing.md:418-420). \u26a0 Declaring it here AND conferring it with a static is also a failure \u2014 one of the two is a lie."
+    },
     "controller": {
       "type": "string",
       "minLength": 1,

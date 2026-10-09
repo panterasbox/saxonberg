@@ -1,0 +1,4 @@
+extends: /fixture/thing/base
+data:
+  shortDescription: child widget
+  container: /fixture/location/yard

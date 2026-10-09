@@ -36,6 +36,21 @@ data:
     # is where a farmer keeps the paperwork he actually uses. `draft` and
     # `return` are afforded by it, so the flock is reachable from here.
     - /world/terminus/hearts-delight/thing/flock-book
+    # ⭐⭐ The ox book and the hen book — and NEITHER STOOD HERE until the
+    # reachability sweep, which is why the yard's own prose describes a
+    # plough team and a verb could not reach one. `draft` and `return`
+    # are afforded by the BOOK (`Herdbook.ts:70-74`), so a book nobody
+    # propped is a herd that does not exist: the refusal was
+    # `unknown-target` on a register the room describes.
+    #
+    # ⚠ The ox book was in neither this file nor `pack.yaml`'s warm list,
+    # while the flock book was in both. One herd reachable, one not, by
+    # omission.
+    - /world/terminus/hearts-delight/thing/ox-book
+    # ⭐ The hens (authorized 2026-10-07). There was no chicken anywhere in
+    # the realm: a full species row with an egg tap and a butchery yield,
+    # named by no herdbook and no cast. See the row's own header.
+    - /world/terminus/hearts-delight/thing/hen-book
     # ⭐⭐ **The killing place is a BLOCK and a sentence**, not a premises.
     # A smallholder does not have a slaughterhouse; he has a scrubbed
     # block against the barn wall and a bad morning twice a year. The

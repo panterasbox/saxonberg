@@ -24,7 +24,23 @@
  */
 
 import type { MixinConstructor, FieldMeta } from '../mixin';
+import type { CommandContributions } from '../../api/command';
 import { BistateMixin, type BistateInternal } from '../Bistate';
+
+/**
+ * ⭐ The two device verbs, named once — the `Ladder.ts` shape.
+ *
+ * ⚠⚠ Both views and both controllers shipped with the folding substrate
+ * and **nothing named either file**, so `fold chair` answered *"I don't
+ * understand 'fold'"* for every player since. The one foldable thing in
+ * the realm — the avenue's camp chair, propped at
+ * `university-avenue/location/crossing.yaml:123` — has been sittable and
+ * unfoldable its whole life.
+ */
+const FOLD = [
+  'platform/cmd/device/fold.yaml',
+  'platform/cmd/device/unfold.yaml',
+];
 
 /**
  * Public shape added by FoldableMixin. `isFolded()` (predicate getter) /
@@ -44,6 +60,21 @@ export function FoldableMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     static fieldMeta: FieldMeta = {
       folded: { persistent: true },
+    };
+
+    /**
+     * ⭐ `environment` + `peers` — the Ladder shape. A foldable thing in
+     * the room or standing beside you offers the two verbs; the views'
+     * own `requires: FoldableMixin` narrows the TARGET at the binder, so
+     * this claims nothing at all about the chairs that do not fold.
+     *
+     * ⚠ Not `self`: you fold a thing, you are not folded.
+     */
+    static commandContributions: CommandContributions = {
+      self: [],
+      inventory: FOLD,
+      environment: FOLD,
+      peers: FOLD,
     };
 
     /** Predicate getter. */

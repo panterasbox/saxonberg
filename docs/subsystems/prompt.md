@@ -165,6 +165,24 @@ prompt-related actions. v1 ships one subcommand; future additions
 (`prompt set <format>`, `prompt show`, etc.) land additively
 against `PromptController.execute`'s switch.
 
+⚠⚠ **The verb was afforded by nothing until the reachability sweep**, and
+this is the worst place in the game for a dead verb: the one moment a
+player is already blocked by a question they cannot dismiss, `prompt
+cancel` answered *"I don't understand 'prompt'."* The view and
+`PromptController` both shipped and no static named the file.
+
+⭐ It is **`HasInteractiveMixin.self`**'s now, because *a prompt is
+addressed to a CONNECTION* — whoever has a human on the other side is who
+can clear it. The view's only validator is `requiresHasInteractive`, i.e.
+exactly that mixin, so the affordance and the gate agree by construction
+and no guard re-narrows anything. `Login` composes the mixin too and
+that is RIGHT rather than collateral: the enroll machine's questions are
+prompts on a connection with a human behind it. Not
+`SaxonbergClientMixin` — that tier holds *our* client's vocabulary, and a
+prompt is a connection fact any client has. The precedent for conferring
+at this tier is `cockpit`; the behavioural analogue is `EngagedMixin`
+conferring `cancel`.
+
 Per-prompt cancel (the X button on a specific prompt) stays on the
 wire as `prompt-cancel` — different semantics from the wholesale
 verb form.

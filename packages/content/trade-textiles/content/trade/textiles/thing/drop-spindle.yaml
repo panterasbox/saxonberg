@@ -8,7 +8,14 @@
 class: /trade/textiles/thing/SpinningTool
 data:
   shortDescription: drop spindle
-  keywords: [spindle, drop-spindle, whorl, drop]
+  # ⭐ `"drop spindle"` — the SPACED form, and the reachability sweep is
+  # why. The shelf prints *"drop spindle (2)"* and `Stock.resolveBuy` →
+  # `Perceptible.hasKeyword` is an exact `includes`, so until `buy.thing`
+  # went greedy the phrase never reached this list at all (the binder cut
+  # it to `drop`). Now it arrives whole — and a hyphen-only keyword
+  # answers *"the shelf is bare of 'drop spindle'"*, which is a FALSE
+  # refusal about a thing standing right there.
+  keywords: [spindle, "drop spindle", drop-spindle, whorl, drop]
   register: indefinite
   longDescription: |
     A finger-length shaft through a stone whorl, notched at the top. It costs nothing, fits in a pocket, and has outlasted every machine invented to replace it.

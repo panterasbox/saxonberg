@@ -1,0 +1,3 @@
+# Mechanism 5 (prefix) — a source literal holds only the DIRECTORY.
+class: /fixture/thing/Plain
+data: { shortDescription: prefixed widget }

@@ -5,14 +5,39 @@ help: |
   Buy a good off a store counter — `buy torch`. The clerk rings it up;
   you pay by card or in coin, and the good is yours (owned, not just
   carried). Consigned goods on the shelf are bought the same way.
+
+  A two-word name works bare — `buy dog loaf`, `buy orange seed`,
+  `buy mana cell`. Quoting works too (`buy "dog loaf"`) and is worth
+  knowing for anything stranger. Where more than one counter is in
+  reach, say which: `buy torch from the second counter`.
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresConscious
   - /lib/command/validators/requiresEmbodied
 args:
+  # ⭐⭐ `greedy: true` — **a good's name is a PHRASE, not a word.**
+  #
+  # Thirty-four of the ninety-three stock goods carry an authored
+  # multi-word keyword, and for most of them it is the only name they
+  # answer to: the dog loaf is `[loaf, "dog loaf", "dog bread", …]`, the
+  # seed packets answer to `orange seed`, the cell to `mana cell`. A
+  # non-greedy positional takes **exactly one token** and the binder
+  # consumes it BEFORE `default:` is considered, so `buy dog loaf` bound
+  # `thing = "dog"`, handed `loaf` to the trailing slot, and threw that
+  # slot's MQL default away — then refused in the name of a counter the
+  # player never mentioned. Greedy slices to the first LATER declared
+  # preposition (`from`), so `buy torch from second counter` is unchanged.
+  #
+  # ⚠ This is safe here only because every trailing arg declares a
+  # preposition to stop at — `CommandDefinition.validateArgOrdering`
+  # refuses greedy otherwise, which is why `mill` cannot have it (its
+  # `extraction` arg is a bare number). Rationale written out at
+  # `OrderController.ts:72-77`; the libations drive found FOURTEEN of 26
+  # menu items unorderable before `order.cocktail` went greedy.
   - name: thing
     type: string
     required: true
+    greedy: true
   # ⭐ WHERE you are buying from, DECLARED rather than re-derived. The
   # controller used to hunt for a counter itself; now the binder resolves
   # it like any other object and the controller just reads it.
@@ -25,9 +50,19 @@ args:
   # `ConsignmentShelfMixin`, so one arg finds a house counter, a
   # standalone consignment shelf, or a counter being both — and the
   # controller narrows into the two roles it actually uses.
+    # ⭐⭐ `greedy: true` on the TRAILING arg too, and it is the same
+    # defect wearing the other hat: a non-greedy arg takes exactly ONE
+    # token, so naming the counter at all — ``buy torch from the second counter`` —
+    # answered *"that doesn't match any known command shape"*. The
+    # article and the ordinal are two more tokens and there was nowhere
+    # to put them. Identical to the `look at the ground` defect the
+    # ground build found in a browser, on a verb that invites you to say
+    # which counter. Safe because this arg is LAST, which is the other
+    # half of `validateArgOrdering`.
   - name: counter
     type: object
     required: false
+    greedy: true
     prepositions: [from]
     default: "reachable:[mixin.ConsignmentShelfMixin]"
     scope: [reachable]

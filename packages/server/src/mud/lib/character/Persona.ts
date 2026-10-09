@@ -187,6 +187,25 @@ export function PersonaMixin<TBase extends MixinConstructor>(Base: TBase) {
         // one act that changes anything (`title buy`) gates itself on
         // standing at the Registry counter.
         'platform/cmd/civics/title.yaml',
+        // ⭐⭐ `transfer` and `subdivide` (system) — the other two acts on
+        // ground you hold, and they were afforded by NOTHING. `title`
+        // right above shows what you own and `ParcelApi` has always
+        // worked, so every doc that said *"subdivide a parcel"* was
+        // describing an Api from the player's side of a verb that did
+        // not exist.
+        //
+        // Universal, for `title`'s own stated reason and in its own
+        // words: **your own holdings are a self-read, and the gate is
+        // the authority, not the affordance.** Both controllers refuse
+        // through `AccessApi.can`, which is where the authority lives —
+        // so a player who holds nothing is TOLD that, rather than
+        // meeting a verb the game claims not to understand.
+        //
+        // ⚠ Deliberately not `AuthorMixin`: that mixin's own comment
+        // records the inverse mistake, where `press` sat on the author
+        // list and became unaskable by ordinary players.
+        'platform/cmd/system/transfer.yaml',
+        'platform/cmd/system/subdivide.yaml',
       ],
       peers: [],
       environment: [],

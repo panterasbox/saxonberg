@@ -1,3 +1,19 @@
+# ⭐⭐ `lock` — afforded by `MobileMixin.self`, beside `open`/`close`.
+#
+# ⚠⚠ This view shipped afforded by NOTHING, and the reachability sweep
+# held it that way on purpose rather than wiring it. The reason is worth
+# keeping: `LockableMixin` was a **bolt with no key** — a boolean any
+# player could throw on anything — while the realm's real locks were a
+# **keyway with no bolt** on three Exit subclasses that are permanently
+# locked. The two were disjoint, so conferring this verb over either half
+# would have afforded a verb that lies: `lock front doors` would have
+# locked a hall's doors for everybody, with no key consulted.
+#
+# ⭐ `lib/boundary/Lockable.ts` carries both facts now — which key it
+# accepts, and whether the bolt is thrown — and `LockController` asks the
+# door `opensFor(you)` before touching it. So the refusal is diegetic
+# (*you have no key that fits the university gate*) instead of *I don't
+# understand 'lock'*, which is what this doctrine asks for.
 verbs: [lock]
 controller: /platform/idea/cmd/boundary/LockController
 description: "Lock a door (by direction or by name)"

@@ -66,6 +66,7 @@
     "lint:closed-vocabularies": "tsx scripts/check-closed-vocabularies.ts",
     "lint:lib-statics": "tsx scripts/check-lib-statics.ts --lint",
     "lint:reconcile-chains": "tsx scripts/check-reconcile-chains.ts --lint",
+    "lint:reachability": "tsx scripts/check-reachability.ts",
     "lint:location-graph": "tsx scripts/check-location-graph.ts",
     "lint:locations": "tsx scripts/check-location-classes.ts",
     "mixin-census": "tsx scripts/check-mixin-census.ts",
