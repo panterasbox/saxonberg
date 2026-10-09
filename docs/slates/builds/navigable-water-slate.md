@@ -12,6 +12,19 @@
 > (linear vs areal) · the horizon as co-presence · seeded traffic · the
 > two-tier ocean/venue title · the holder's duty · and the first water
 > anybody can stand in.
+> ⭐⭐⭐ **Added 2026-10-09, the whaling session:** § **3b navigation**
+> (set a course, not choose a destination; reckoned vs true position;
+> disconnection is never topological; the chart is the per-player map and
+> **can be wrong**) · § **3's vantage + landmark** (land does *not*
+> participate in the horizon; the clock tower, the headland and the
+> seamark are one object with two range rules) · § **5c the trades
+> examined** · § **7a the vessel decision** (a boat is a **Thing**, a ship
+> is a **`Structure`** whose position is a variable — which **justifies**
+> [structures-slate](./structures-slate.md)) · and §§ **7b–7h: the whole
+> of whaling**, parked complete.
+> ⚠ **Whaling now sequences behind
+> [assembly-slate](./assembly-slate.md)** — not blocked, but shipping it
+> first means shipping its best failure mode as a stub (§ 7).
 > ⭐⭐ **Added 2026-10-09:** the **coast** closes the model — a beach is a
 > land `Location` holding a `Shore` that **cites** a water node, so
 > nothing is ever *in* the water's zone (§ 5a) · the ownership model
@@ -1458,7 +1471,7 @@ have a realm with a few basins.** The *content* was always days long.
 
 ---
 
-## 7. Whaling, in brief — its own slate comes later
+## 7. ⭐⭐⭐ Whaling — the design, parked whole
 
 > ⚠⚠ **SEQUENCING 2026-10-09 — whaling now sits behind
 > [assembly-slate](./assembly-slate.md).** Not *blocked*: casks exist as
@@ -1472,8 +1485,18 @@ have a realm with a few basins.** The *content* was always days long.
 > ⭐ The order is **assembly (cask as exemplar) → coopering → whaling.**
 > ⭐ Boatbuilding stays skipped, so **hulls may be assumed.**
 
-Recorded here only so it is not lost; ⭐ **water first, industries
-after.**
+⚠⚠ **This was *"whaling, in brief — its own slate comes later"* until
+2026-10-09.** It is no longer brief: §§ 7b–7h carry the whole design,
+worked in one session, and **the bullets below are the original parked
+findings kept verbatim** because several of them are still the sharpest
+statement of their point.
+
+⭐ **It stays HERE rather than becoming `whaling-slate.md` for one
+reason:** every load-bearing piece of it — the Expanse, the horizon, the
+reckoned position, the vantage, the `Shore`, the vessel decision, the
+clock — is a section of *this* document, and a separate file would be
+mostly cross-references. ⚠ Split it when it gains requirements, not
+before.
 
 - ⭐⭐⭐ **The demand already ships and is fed by nothing.**
   `trade-fuel`'s **lamp-oil** (43 MJ/kg, casks, bought by public-works,
@@ -1512,7 +1535,14 @@ after.**
   century's plastic; a `textiles.md` consumer) · **ambergris** (⚠ needs
   perfume, which does not exist).
 - ⚠ **Lens 4 wants the moral question decided out loud**, early, rather
-  than settled by drift in a content pass.
+  than settled by drift in a content pass. ✅ **Decided 2026-10-09:** the
+  ugly case is **targeting a calf because the mother will not leave** —
+  real, appalling and effective. **Permit it, cost nothing mechanically,
+  and let the CAST notice.** That is `measurement.md`'s three layers (*the
+  engine measures the oil, the crew valuates the act*), carried by
+  `renown`/`regard`/`trait`. ⛔ **No morality meter** — a shipmate who
+  will not pull an oar for you again, and a boatheader who says something
+  once and never mentions it.
 
 ---
 
@@ -1769,6 +1799,473 @@ you **walk the ship** (grid), **cross the Expanse** (field), and **pursue
 in the boat** (stations). It is the integration test for the client as
 well as the engine, which is § 7's argument arriving from a second
 direction.
+
+---
+
+## 7b. ⭐⭐ The whale — two representations, and the species is the content
+
+Worked 2026-10-09. ⚠ The biggest unexamined gap: **what a whale IS.**
+And the answer is `forestry.md`'s pattern (*the four representations of a
+tree*) with two rungs:
+
+| representation | what it is | what it is for |
+|---|---|---|
+| **the population** | a **field** on the Expanse — seeded, not drawn; capacity, `drawn`, recharge ≈ 0 | **the ground**, and where **depletion** lives |
+| **the individual** | an **Agent** — a Creature with a BodyPlan, a mass, a temperament | **the chase**, and where the **drama** lives |
+| **the carcass** | `mortality.md`'s corpse, on the **Thing** branch | the tow and the cutting-in |
+
+⭐⭐⭐ **The minting moment is the SIGHTING.** The field says *there are
+whales here*; the lookout's sighting **mints one**, with species, size and
+temperament **seeded by position and time** — so two players an hour apart
+see the same animal, it cannot be farmed by re-entering, and a ground can
+be **learned.** § 3's traffic rule applied verbatim.
+
+> ⭐ **The field is where the conservation question lives; the individual
+> is where the fun lives.** Taking one decrements `drawn`, and nothing else
+> connects them.
+
+✅ **And the anatomy needs nothing new.** `butchery.md`: *"**A share,
+because ONE plan serves every size of animal**"* — a whale is a BodyPlan
+with shares and a very large mass, exactly as an ox is.
+
+### ⭐⭐⭐ Species is the content, because the differences are MECHANICAL
+
+| | the difference that matters |
+|---|---|
+| **sperm** | ⭐⭐ **the only one that fights back** — teeth, and it will stave a boat. Historically *why* sperm whaling was the prestige fishery |
+| **right** | ⭐⭐⭐ **floats when dead** — literally the *"right"* whale to kill. **Sperm whales SINK.** |
+| **bowhead** | the longest baleen — the product mix shifts toward the plastic-substitute |
+| **blue** | ⭐ **too fast to catch** until steam and the explosive harpoon |
+
+> ⭐⭐⭐ **So the species decides whether death is a loss risk**, which
+> turns § 7's *"no partial credit"* from a punishment into a **choice**:
+> the right whale is safe and worth less; the sperm whale is dangerous,
+> sinks, and carries the spermaceti.
+
+⭐ And it makes the epoch ladder a **species** ladder — you hunt what you
+can catch *and keep* — which is a tech tree nobody authors.
+
+---
+
+## 7c. ⭐⭐⭐ The player experience — a CHAIN of engagements, and a TETHER graph
+
+⚠ Asked directly: *what is whaling's equivalent of combat's running loop,
+its primitive unit, its state machine, its positional graph?*
+
+**Combat is ONE session, one tempo, many exchanges, and you can
+disengage.** Whaling is **many engagements, each a different tempo,
+chained — with ONE-WAY DOORS.** Once fastened you are *attached*, and the
+only exit is **cutting**, which costs everything invested. ⭐ **Combat's
+drama is inside the loop; whaling's is at the doors.**
+
+| phase | the primitive | tempo | what the feed says |
+|---|---|---|---|
+| **the watch** | a **sweep** | ⭐ 20 real min | nothing · nothing · **"there she blows"** |
+| **the chase** | a **stroke** (pooled effort) | seconds | closing distance, her heading |
+| **the fasten** | **one throw** | a moment | fast / missed / drawn |
+| **the sleighride** | ⭐⭐ **a surge** — line paid or held | seconds | **the rope**: length out, rate, smoking |
+| **the kill** | a **thrust** | seconds | the spout, the flurry |
+| **the tow** | a **stroke**, long | 30 real min | sharks, the carcass's state |
+| **cutting in** | a **cut** | hours | the blanket piece coming off |
+| **trying out** | ⭐ **a cask** | 5 real h | the pot, the fire, the casks filling |
+
+⭐⭐⭐ **The unit changes but the SHAPE repeats: every phase is "a thing
+you repeat while one quantity moves toward a threshold."** Strokes until
+the distance closes, surges until she tires, cuts until the carcass is
+reduced, **casks until the hold is full.** So whaling's *attack* is
+**the DRAW**, and `activity.md`'s engagement framework is the machinery.
+
+### ⭐⭐⭐ Where combat's edges are INTENTIONS, whaling's are ROPES
+
+```
+ship ─── boat ─── line ─── whale
+```
+
+- ⭐⭐ **a second boat can bend on** — passing its line across so **two
+  become one chain** (§ 7f)
+- **the line can part** — the chain breaks, mid-ocean
+- **the boat can be stove** — a node is destroyed and its men are **in the
+  water, attached to nothing**
+- the carcass stage keeps the shape, with **sharks attached to the
+  carcass**
+
+> ⭐⭐⭐ **Whaling's whole tension is that you are connected to something
+> you do not control** — and **cutting is an EDGE DELETION**: visible,
+> immediate, total, and it never fails.
+
+### ⭐⭐ The hooks are fewer than combat's, and the feel is different
+
+Combat needs `@hook` surfaces because its variation is **technique**
+(gambits, playstyles). Whaling's variation is **what you are attached
+to** — so ⭐ **the species' response is a BRAIN, in a pack**
+(`behavior.md`'s `src/behavior/`), the gear is **rows**, and the ground is
+**the field's parameters.** **Whaling is mostly content, not mostly
+engine.**
+
+| | combat | whaling |
+|---|---|---|
+| the feed is | **exchanges** | ⭐ **readings** — the line, the distance, the spout |
+| you are | **contesting** an opponent | ⭐ **attached** to something indifferent |
+| the other party | wants to **beat** you | ⭐⭐ wants to **leave**; killing you is incidental |
+| failure is | you are hurt | ⭐⭐ **you are in the water** |
+
+> ⭐⭐⭐ **The whale is not your enemy. It is your LOAD.** Which is why
+> whaling must never be built as a boss fight: the tension is **leverage
+> and commitment**, not threat and counter.
+
+### ⭐⭐⭐ The sleighride — you never see the whale, you read the ROPE
+
+The decisions after the fasten are all about the line: **snub or let
+run** (friction tires her, and too much parts the line or pulls the bow
+under) · **haul or pay out** · ⭐ **wet the line**, because friction sets
+it smoking — a constant small chore that is *also the tell* · and
+**hold or cut.**
+
+> ⭐⭐⭐ **One dial with two failure directions: she sets the load,
+> friction is what kills her, and too much friction kills you.** The line
+> is a material under tension with a thermal byproduct — `materials-response`
+> unchanged.
+
+⭐⭐ **So the live surface is a ROPE GAUGE, not a health bar**: length
+out, rate, whether it is smoking — and her state is **inferred** (running,
+sounding, tiring). ⭐ The same epistemic shape as the navigator's plot and
+the laundress's stain, banded by `instrumentation.md`: a novice sees *the
+line is running fast*; an expert reads the rate, infers the depth, and
+knows she is about to turn.
+
+⭐⭐ **And the client answer falls out: *lower the boats* IS the mode
+switch**, diegetically. The ship's navigation is a **plot** (a persistent
+record you read); the boat's chase is **live** — the combat surface,
+entered by a physical act. § 7a's three spatial registers, one per phase.
+
+⚠ Every failure is physical: the line **parts** · the line **runs out** ·
+you **snub too hard** and she swamps · a **bight** takes a man over the
+side · and ⭐⭐ **she sounds and comes up under you — a stove boat**, which
+destroys your vehicle and leaves you in the water miles from the ship,
+routing straight into the man-overboard machinery
+([underwater-slate](./underwater-slate.md) § 8).
+
+---
+
+## 7d. ⭐⭐ The crew — one player CAN whale, and the reason is good
+
+Six men: a **boatheader** (steers), a **harpooneer** (throws), and four
+who pull. ⭐⭐⭐ **Four of six are pure effort** — and
+[cooperative-effort-slate](./cooperative-effort-slate.md)'s pooled draw
+works identically whether the exerter is a player or an NPC.
+
+> **Two players and four hired hands is a complete boat. One player and
+> five NPCs is a WORSE boat, not an impossible one.**
+
+⭐⭐ **And the penalty must be legible or it feels arbitrary: NPCs do what
+they are told and nothing else.** They will not wet a smoking line unless
+ordered; they will not cut without an order. **So a hireling boat means
+you issue every order yourself** — a real cognitive load under a live
+clock. ⛔ **No hidden competence modifier.**
+
+⭐⭐⭐ **And the lay gives it teeth: hired hands take a lay too.** Filling
+your boat with NPCs **costs you shares**, so a player crewmate who is good
+is *worth* a bigger lay than a hireling — **the labour market prices
+competence in shares against a known alternative.** The cleanest answer to
+*why bring other players*: not a gate, a preference you can compute.
+
+---
+
+## 7e. ⭐⭐ The bay — and the scoping result is dramatic
+
+Basque shore whaling: a **headland lookout** (⭐ and § 3's **vantage** is
+the mechanism — the sighting happens from land), a **beach launch**, and
+**try-works on the sand.**
+
+> ⭐⭐⭐ **So the first whaling build needs NO SHIP, NO NAVIGATION and NO
+> EXPANSE.** No hull, no berth, no reckoned position, no chart, no § 3b,
+> no § 7a. **Two entire design layers drop out of the critical path.**
+
+And it solves the cold start three ways: ⭐ **the lookout can be an NPC**
+(a hired watchman is a wage and a seat, not a second player) · the crew is
+**two to six** · and **a session is a session** — spot, pull, fasten,
+kill, tow, render, sell.
+
+⭐⭐⭐ **And the bay teaches DEPLETION before the ocean teaches SCALE.**
+A bay holds few whales; you hunt it out in a season or two — **and then
+you can see there is nothing left from the same cliff you used to spot
+them from.** The lesson at the smallest possible scale, early, free,
+delivered by a view you already have.
+
+⭐ The trigger outward is not a shop upgrade: **the whales are over the
+horizon now** — which is when the ship, the chart and the Expanse become
+**wanted** rather than prerequisite. ⭐ And **the next bay is somebody
+else's**, so the second rung is also the first *political* one.
+
+---
+
+## 7f. ⭐⭐ The lay, the boat, and the complement — three mechanisms
+
+### ⭐⭐⭐ The lay is a temporary business with a liquidation date
+
+Nobody is paid wages: everyone takes a **fraction** (the captain ~1/8, a
+green hand ~1/200) of a total nobody knows yet, less **deductions** for
+the outfit and the slop chest — so ⚠ **you can come home owing money.**
+
+⚠ **`contract.md`'s escrow does not fit**, because a lay is a claim on
+proceeds that **do not exist at signing.** ⭐⭐⭐ **The resolution: the
+VOYAGE is a `Business` that owns the commodity, the lays are SHARES in it,
+and the settlement is its LIQUIDATION** — historically exact (a voyage
+*was* a joint venture) and it rides `employment.md` + `banking.md`, with
+the one new thing being **a business with a scheduled end.**
+
+⭐⭐ **The social game happens at the DOCK**, because your lay is
+negotiated against information you do not have: a green hand takes worse
+terms, a proven harpooneer commands better, and ⭐ **the ship has a
+reputation** — a lucky ship gets better crew at worse lays, which is
+`renown` doing plain economic work. ⭐⭐⭐ **And the settlement is a
+scene**: the oil sold, the accounts read out, the deductions named one by
+one. **And some people owe money.**
+
+⭐⭐ **Lens 4, with no villain:** the owners' share is taken first and is
+the largest, and they took no physical risk — which is **capitalization,
+not wickedness**, somebody paid for the ship. But a crew that comes home
+in debt from a voyage where the owners profited is **a real grievance with
+a computable cause**, and the polity may act on it or decline to.
+
+⭐ **And the voyage's end condition is a CAPACITY, not a timer**: *a full
+ship* means **the casks are full** — and the casks are in the holds, which
+are **member rooms**, so ⭐⭐⭐ **the Structure's membership IS the
+progress bar** (§ 7a). The most motivating objective available, because
+you can walk down and look at it.
+
+### ⭐⭐⭐ A lost boat — and the ARTICLES decide how boldly the ship hunts
+
+The ship owns the boats, and voyage expenses come off the gross before the
+lays — so **a stove boat reduces everybody's share.**
+
+⭐⭐⭐ **Which is a textbook agency problem with no villain**: the
+boatheader decides whether to hold the line and the cost lands on thirty
+lays, so **his exposure is a fraction of the consequence he causes** —
+offset, imperfectly, by holding the largest single share and a
+reputation.
+
+⭐⭐ **And the crew can do the arithmetic.** A boat is worth *N*; the
+whale was worth *M*. Everyone aboard can compute whether cutting was
+right, so **second-guessing is accounting rather than resentment** — a
+far stronger pressure than any reputation number.
+
+> ⭐⭐⭐ **But the real finding: the deduction is a CLAUSE, not a rule.**
+> Historically it varied by the articles, and `contract.md` is clauses
+> over verifiable conditions.
+
+| the articles say | the consequence |
+|---|---|
+| **the owners eat gear losses** | ⭐ the crew hunts **BOLDLY** — and the ship attracts them at a **worse lay**, because the terms are generous |
+| **gear losses are deducted** | ⭐ the crew hunts **CAUTIOUSLY**, cutting early to save the boat — and the ship must pay a **better lay** |
+
+> ⭐⭐⭐ **So the articles' deduction terms decide how aggressively the
+> ship hunts, and nobody has to author bravery.** An owner who wants bold
+> crews pays for them by absorbing losses.
+
+⭐ And the harsh clause has a second-order cost its author will not see
+coming: **a cautious crew protects the boat at the owner's expense**,
+because the whale was worth more than the boat. *The prudent clause loses
+money.*
+
+⚠ And the grim edge: a man killed, his lay to his estate **minus his
+slop-chest debts** — which frequently exceeded it, **so a family receives
+a bill.** `credit.md`'s estate (dormant · escheated · reclaimed) with its
+worst possible consumer.
+
+### ⭐⭐ The five-boat complement — the most mechanical of the three
+
+> ⭐⭐⭐ **The complement is the ship's capacity for SIMULTANEOUS and
+> COOPERATIVE engagements** — how many independent chains the tether graph
+> can hold, and how many can combine.
+
+- **parallelism** — lower several boats on a pod, **the crew splits**, and
+  co-presence fragments into separate engagements on separate whales
+- ⭐⭐⭐ **combination** — *a second boat bends on*, passing its line
+  across so **two become one chain.** **The complement is what makes the
+  tether graph multi-party at all.**
+- **redundancy** — a ship down to its last boat is in a different state
+
+⭐⭐⭐ **And it trades directly against everybody's share.** Five boats
+need thirty men, and **thirty men take thirty lays**: *a bigger crew
+catches more and each man gets less.* **So the optimal complement is a
+computable argument the whole ship has an opinion about, settled at the
+dock, by the lay** — balance with no dial anywhere.
+
+⭐⭐ **And a boat is repairable, not replaceable.** You cannot build a
+whaleboat at sea; the carpenter **mends** a stove boat and cannot make
+one. ⭐ Which is [assembly-slate](./assembly-slate.md)'s
+**repair-beats-rebuild** arriving in the fiction, and it explains why the
+complement exceeds the crews: **you carry five for three crews because you
+cannot make a sixth.**
+
+⭐ Mechanically the **davits are a SLOT** — `Slotted` with capacity — so
+the complement is `SlotSpec` capacity authored on the hull row, and **a
+bigger ship carries more boats, derived.** No new mechanism.
+
+---
+
+## 7g. ⭐⭐ The products chain, the shipboard crafts, and ambergris
+
+```
+whale (Agent) → killed → carcass (Thing branch)
+ └─ cut in (butchery, shipside or on the beach)
+    ├─ blubber → minced → TRIED OUT (fire + fractionation)
+    │    ├─ oil → casked  ──────────────▶ lamp-oil's missing recipe ✅
+    │    └─ cracklings ──▶ ⭐ FUEL for the try-works itself
+    ├─ the head case (sperm only) → bailed → SPERMACETI
+    ├─ baleen → cut, split ──▶ textiles / manufacturing
+    ├─ teeth, bone ──▶ SCRIMSHAW (player-made, provenance)
+    ├─ ambergris ──▶ a pure luxury EXPORT (below)
+    └─ meat ──▶ ⚠ discarded, UNLESS you have ice
+```
+
+⭐⭐⭐ **The try-works is a furnace on a wooden deck, at sea** — boiling
+oil over an open fire on a ship of wood and rope and tar, hundreds of
+miles from help. **The most extreme fire risk in the game, and the work
+requires it.** `fire.md`'s Hearthworks on a vessel; historically bricked
+with a water pan underneath, **so the mitigation is authored content
+too.** ⭐⭐ And **the fuel is the whale** — you burn the fried-out scraps
+to render the rest.
+
+⭐ **Grade is set by three independent things** — the species, the
+freshness (spoilage ran during the tow) and the cooking (too hot
+scorches) — composed by `crafting.md`'s weakest-link grade. And the
+spermaceti/body-oil split is `fractionation.md`'s *"the cut as the
+skill."*
+
+⭐⭐ **The CASK matters, which turns up a vocation nobody listed.** Oil is
+sold by the barrel, a cask is a `Vessel`, and **a leaky cask loses oil all
+the way home** — so the **cooper** was one of the most important men
+aboard. ⭐⭐⭐ And he is the general case: **a ship needs one craftsman
+per material** — a **cooper** for wood, a **blacksmith** for the irons, a
+**sailmaker** for canvas, a **carpenter** for the hull. Four shipboard
+crafts, **all of which already exist as land trades**, and all of which
+are hand-tool rung, which is *why* they can go to sea
+([assembly-slate](./assembly-slate.md) § 8).
+
+### ⭐⭐⭐ Ambergris — the realm's hard currency with the outside
+
+A pathological concretion from a sperm whale's gut, found **as often on
+beaches as in whales**, worth more than gold by weight, and used as a
+perfume **fixative** — which does not exist here.
+
+⭐⭐⭐ **And it improves with age and exposure.** Fresh ambergris smells
+appalling; years of seawater and sun make it valuable. So **it is a
+maturing asset you must not use**, and the decision is *sell it fresh for
+little, or cure it for years for a lot* — the ice house's and the cask's
+shape. (Curing in the open is the crofting/sponge path, not a vessel's
+clock.)
+
+⚠⚠ **But "who buys it" is a CONSERVATION problem, not a flavour one.** A
+buyer who pays coin for a good nobody consumes is **a money faucet**,
+which `banking.md`'s chokepoint forbids. So:
+
+> ⭐⭐⭐ **The factor pays in IMPORTS.** He takes your ambergris and gives
+> you things the realm cannot make — historically exact (the whaling ports
+> traded oil and ambergris for manufactures, tea, silk), and it makes
+> ambergris **the realm's hard currency with elsewhere** rather than a
+> lottery ticket.
+
+⭐ Which also resolves the variable-ratio worry: **finding it is luck;
+converting it is negotiation.** ⭐⭐ **And the factor is the only person
+who can tell you what it is worth**, because nobody local can use it — an
+information asymmetry **with a face**, which is a lens-7 question (who
+judges, on what criterion, with what appeal) and makes *getting a second
+buyer into the port* a civic ambition with a computable payoff.
+
+### ⭐⭐ The ice coupling — and it runs the opposite way from the first guess
+
+The meat was discarded because it could not be kept. **With ice, a NEAR
+whale yields oil AND meat; a FAR whale still yields oil only**, because
+ice melts.
+
+> ⭐⭐⭐ **So ice does not extend the fishery — it CONCENTRATES it.** The
+> marginal value of a nearby whale rises, so you hunt close harder, **the
+> near grounds empty faster, and the frontier opens slower.**
+
+A technology that makes you richer by staying home and empties your own
+bay quicker — landing exactly where § 7e's bay already teaches depletion,
+**from the same cliff.** ⚠ So the two last RGOs **push against each
+other**, which is a better relationship than the complement first
+claimed.
+
+---
+
+## 7h. ⭐⭐⭐ The ending — and `destructive-distillation-slate` is what kills whaling
+
+⭐⭐⭐ **Whaling's killer is already slated, already unblocked, and
+nobody had connected it.** That slate's title is ***"the half the collier
+throws away"***, and its status is *"the **cheapest door into the
+industrial epoch**… **blocked on NOTHING** up to and including coal
+gas."*
+
+> **Whaling's killer is a byproduct somebody is currently throwing up a
+> chimney.** Historically exact — *kerosene* was coined for **coal-oil**,
+> which preceded petroleum by a decade. No well required, and
+> `fractionation.md` ships the mechanism with coal tar as a new feedstock.
+
+⭐⭐ **And one retort attacks whale oil's market from two directions**,
+which that slate names half of:
+
+| the retort's product | replaces | whose market |
+|---|---|---|
+| ⭐ **town gas** | piped, fixed, civic | `energy.md`'s **lamp-oil street lighting** — the producer, the `FuelStore`, **the civic bill** |
+| ⭐⭐ **coal-oil** (the tar cut) | portable, bought by the can | **the household lamp** |
+
+⭐ Gas lighting is infrastructure and coal-oil is a commodity you carry
+home, **so the civic half dies FIRST** — a town can sign a contract.
+
+⭐⭐⭐ **And the same slate kills BALEEN in Stage B**: *"the first plastic
+(a thermoset from coal-tar phenol)"* — and **baleen is the 19th century's
+plastic.** So **one build dismantles two of whaling's three products, in
+two stages, years apart**, and spermaceti outlives both because a
+precision lubricant has no substitute until synthetics.
+
+> ⭐⭐⭐ **Whaling does not end. It is dismantled product by product, each
+> with its own killer arriving at its own time** — which makes the ending
+> **a sequence of decisions**: refit for baleen only? sell the ships while
+> they are worth something? go further for sperm?
+
+⭐⭐ **And the note to end on: the last profitable whaling was for the
+LUXURY products.** Oil was the mass market; baleen was corsets and
+spermaceti was precision machinery. **The trade ends serving the rich.**
+
+### ⭐⭐ Who builds the refinery — and it should be a player
+
+Then **one player's innovation legitimately destroys another player's
+industry with no PvP system anywhere near it** — lens 3b's test answered
+by **the economy** rather than the polity.
+
+⚠ **And it survives the griefing check** for a specific reason: **it is
+not targeted and it is not an attack — it is just cheaper oil.** ⭐ And the
+signal arrives **years** before the collapse: the price moves, orders
+slow, and the first retort is a visible public building. **A whaling
+company that pays attention has time to diversify; the ones that die did
+not look** — the same reasoning as the depletion arc, and fair by it.
+
+### ⭐⭐ And the logbook is what PROVES the depletion
+
+The grounds empty and the signal is that **voyages get longer** — but what
+proves it?
+
+> **The logbooks.** And a logbook is the same kind of object as
+> [climate-slate](./climate-slate.md)'s polar station record: **a long
+> series whose value is entirely in its length**, which nobody can buy and
+> can only keep.
+
+⭐ So the person who reads thirty voyages' logs is **the first who can
+prove the whales are going** — a vocation, with the same
+capital-made-of-continuity property and the same lens-4 problem (the cost
+of keeping the series is exact; its value is uncomputable). ⭐⭐ And it is
+historically exact: **the Maury whale charts were compiled from whaling
+logbooks, and they are how we know.**
+
+⚠ **And the honest position on depletion: LET IT HAPPEN.** Nobody in
+history saved the whales — kerosene did, by accident. § 5's
+standing-plus-levy means a polity **could** create a conservation
+interest, and **the lesson is far stronger if they are the ones who did
+not.**
 
 ---
 
