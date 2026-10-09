@@ -355,11 +355,28 @@ this on its way past.
 | **siting** — their station took the best spot first | ⭐ first-mover advantage, which is how every port was sited |
 | ⭐⭐⭐ **subdivision** — who gets a parcel in this water at all | **the real power**, and a landlord's |
 
-⚑ **The fact that decides whether that is structural or merely political:
-does `subdivide` require the parent title-holder's consent, or can the
-registry grant independently?** Consent ⇒ the frame-holder is a
-**gatekeeper** and every port exists at their pleasure. Independent ⇒ a
-**landlord with opinions.** Unchecked.
+### ⭐⭐ Subdivision is the committee's, and the charter decides — ✅ ANSWERED 2026-10-09
+
+A draft of this section asked whether `subdivide` requires the parent
+holder's consent, and framed it as *steward versus monopolist*. ⚠ **That
+dichotomy is wrong, because it assumed the answer was a platform rule.**
+
+⭐⭐⭐ **Subdivision is managed by the committee, and it sets whatever
+rules it wants about consent within its charter.** So there is no engine
+answer and no default to argue about — a water body's committee may be a
+gatekeeper or a rubber stamp, and **which one it is, is content.**
+
+⭐ Two consequences worth keeping:
+
+- **The charter is the instrument**, so the rule is *legible*: anybody can
+  read what this ocean's committee will and will not grant, and a
+  committee that changes it has changed a published document.
+- ⭐⭐ And it folds the lens-7 question below into the same place: *may
+  water be held by somebody who works it* is **the charter's question
+  too.** The criterion is the charter, the appeal is whatever the charter
+  provides (and the courts behind it — `courts-slate`'s *a clerk, not a
+  judge*), and the entrenchment is **Tier C**: the polity decides what a
+  charter may contain, not what any one committee puts in its own.
 
 ### ⭐⭐⭐ The holder's compensation, and why it fixes the incentive
 
@@ -382,13 +399,20 @@ in **fiction** money. **Two parallel compensations, neither converting.**
 ground go** — and the check is that **the revenue dies with the stock.**
 Self-punishing on a delay, which is a *story* rather than a rule.
 
-⚑ **And the open lens-7 question: can the water be held by somebody who
-works it?** A whaling outfit that acquires title to its own ground pays
-the stock's capacity, levies a duty on itself (a wash) and then sets the
-season and the licence for every competitor. **Regulatory capture
-arriving as a lawful land acquisition, with no rule broken.** Criterion,
-appeal and entrenchment all need naming; the honest options are a
-conflict rule, a disclosure rule, or nothing.
+⚑ **The lens-7 question that remains: can the water be held by somebody
+who works it?** A whaling outfit that acquires title to its own ground
+pays the stock's capacity, levies a duty on itself (a wash) and then sets
+the season and the licence for every competitor. **Regulatory capture
+arriving as a lawful land acquisition, with no rule broken.**
+
+⭐ Per the subsection above, **the criterion lives in the charter** — so
+the open part is narrower than it looks: not *what is the rule*, but
+**whether the polity constrains what a charter may say about it** (a
+conflict rule, a disclosure rule, or nothing). ⭐⭐ My lean is **nothing,
+with the holding and the duty public**, because a conflict rule is a
+prohibition the Compact would enforce from outside the fiction, and *the
+polity dealing with it* is what this whole structure exists to make
+possible.
 
 ---
 
@@ -498,10 +522,13 @@ after.**
 1. ⚑⚑ **A reach's own character** (§ 4) — gradient, bed, width,
    obstruction. **The deepest item**, and the one both halves of the model
    have been designed around twice rather than faced.
-2. ⚑ **Does `subdivide` require the parent holder's consent?** (§ 5) —
-   decides steward versus monopolist.
-3. ⚑ **Can water be held by somebody who works it?** (§ 5) — lens 7, and
-   the best political story available.
+2. ✅ **Subdivision — ANSWERED (§ 5).** The committee manages it and its
+   **charter** sets the consent rules. No engine answer, no default; a
+   water body's committee may be a gatekeeper or a rubber stamp, and
+   **which it is, is content.**
+3. ⚑ **Can water be held by somebody who works it?** (§ 5) — lens 7. ⭐
+   Narrowed by #2: the criterion is the charter, so the open part is only
+   **whether the polity constrains what a charter may say.**
 4. ⚑ **Reversing flow** — tidal bores are a real expressive loss and may
    be worth a term rather than a refusal.
 5. ⚑ **Where position-in-a-passage lives.** A fraction for linear, a

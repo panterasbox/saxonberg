@@ -212,9 +212,16 @@ dominance question is for.
 
 ---
 
-## 2 · Creative expression — what can an author make with it?
+## 2 · Creative expression — how far can an author take it?
 
 *What can a person make theirs, and does what they make count?*
+
+⚠⚠ **Read the heading carefully, because the lens is routinely misread as
+its own floor.** It is **not** *how cheaply can you make a standard one* —
+that was never in doubt. It is **how much can you customise and
+personalise your individual instance, through content and code choices.**
+⭐⭐⭐ **Not what you can do with what you were given — where you can take
+it.**
 
 ⭐⭐ **State the promise before the mechanism.** Authoring is continuous
 with playing: the sandbox and the world are the same substrate and
@@ -252,17 +259,19 @@ from every character-customizer ever shipped:
 Personalization is what a finished chain **emits**; the schedule for it
 is the schedule for the chains.
 
-### How the promise is cashed — two tiers, and a design has to serve both
+### How the promise is cashed — a floor and a lens, not two equal tiers
 
-1. **The ordinary case, with no code.** An author assembles the basic
-   thing out of pre-canned interactions the platform already affords —
-   mixins that interoperate, recipes, templates, data files. If making
-   the common case requires writing a class, the substrate has failed
-   this lens.
-2. **The bespoke case, without breaking.** On top of that, an author
-   writes something genuinely custom — and the systems still hold up.
-   The best outcome is stronger than "hold up": the systems **suggest
-   the bespoke idea in the first place**.
+1. **The ordinary case, with no code** — ⚠ **this is the FLOOR, not the
+   lens.** An author assembles the basic thing out of pre-canned
+   interactions the platform already affords — mixins that interoperate,
+   recipes, templates, data files. If making the common case requires
+   writing a class, the substrate has failed. ⭐⭐ **But clearing it is
+   not passing: a system can make the standard instance trivially cheap
+   and still permit no bespoke one at all.**
+2. ⭐⭐⭐ **The bespoke case, without breaking — THIS is the lens.** An
+   author writes something genuinely custom and the systems still hold
+   up. The best outcome is stronger than "hold up": the systems
+   **suggest the bespoke idea in the first place**.
 
 The framing that matters: **give the author the most colors to paint
 with.** Variety comes from combination and permutation, not from
@@ -280,6 +289,41 @@ gives an author a new thing but no new way to *show* it has only half
 landed. ⚠ Lens 3a holds the same surface to a different standard: what
 is an authoring palette here is a **consistency obligation** there.
 
+### ⭐⭐⭐ How to actually audit it — the named-work test
+
+Scoring this lens from the mechanism will always flatter it. ⭐⭐ **Name
+specific works you would want to make, and check each one.** Not genres —
+**titles**, because a title has particulars and a genre does not.
+
+Worked, from the water audit
+([navigable-water-slate § 4](./slates/builds/navigable-water-slate.md)):
+*Bridge on the River Kwai* mostly passes, because a bridge **is**
+`boundary.md`'s two-anchor abstraction. *Anaconda*, *Lake Placid* and
+*Friday the 13th* all fail on **one** missing thing — water as a place you
+can occupy. And **`Deliverance` is unmakeable**, because navigability is
+flow × width and gradient is interpolated away, so *a reach has no
+character of its own.*
+
+⭐ Four titles found a floor that was perfectly solid, a surface that was
+nearly fixed, and one deep structural gap — **none of which a mechanism
+review surfaced**, because a river is cheap to author and the lens looked
+passed.
+
+### ⭐⭐ And state what is CONSTANT versus VARIABLE
+
+The useful output of this lens is two lists, and the division is almost
+always the same:
+
+> **The engine keeps the physics and the law. The author gets the scene.**
+
+For water: constant are direction, flow, navigability's arithmetic,
+contamination as a concentration, the rights doctrines. Variable must be
+which nodes are places, what they are like, what is in them, what is
+built on them, what lives there, what it is like at night.
+
+⚠ **A design that has the first list and an empty second list has failed
+this lens no matter how cheap the standard case is.**
+
 ⭐ **Worked example — recipes.** From the metal-chain slate: *"recipes
 are the single most **expressive** thing for content authors — the whole
 known-of → can-make ladder rides them, and a recipe is a data file."*
@@ -294,6 +338,15 @@ a mixin that only works on the one host it was written for; a feature
 whose second instance requires a kernel edit; ⭐ **a personalization
 knob with no chain behind it** — a wardrobe screen where there is no
 cloth trade; a new thing an author cannot make *read* as anything.
+
+⚠⚠ **And the failure mode that is not about the content at all — scoring
+the lens by its floor.** Auditing how cheaply the standard instance can be
+made, finding it cheap, and recording the lens as passed. ⭐ The water pass
+did exactly this on 2026-10-08: it praised the `Watercourse` class/rows
+split and the two-dials-and-a-row cost of a river, and **missed that
+nobody can be in, on or under the water** — which is the entire lens. The
+guard is the **named-work test** above: *you have not audited this lens
+until you have named something specific you cannot build.*
 
 ---
 
