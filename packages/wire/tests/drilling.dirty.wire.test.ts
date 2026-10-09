@@ -313,6 +313,21 @@ function refusedFor(r: { notes: readonly unknown[] }): string | null {
   return note.reason ?? note.detail ?? note.kind ?? null;
 }
 
+/**
+ * ⭐⭐ The depth a drilling act just reported, in metres, or `null`.
+ *
+ * The hole's own prose never says — *there is no telling anything about
+ * it from up here* is authored, not a gap — so every honest read of the
+ * depth comes off an act that touched the bottom (`bore`, `bail`), each
+ * of which prints a bare `N m`. Reading the figure rather than diffing
+ * the prose is what lets a checkpoint assert that the hole got DEEPER
+ * instead of merely that something changed.
+ */
+function depthFrom(text: string): number | null {
+  const m = /(\d+(?:\.\d+)?)\s*m\b/.exec(text);
+  return m?.[1] === undefined ? null : Number(m[1]);
+}
+
 /** Run an engaged act out to its effect. */
 async function settle(s: Session, started: CommandResult): Promise<void> {
   const id = engagementIdOf(started);
@@ -739,14 +754,27 @@ suite('7. the crew — presence is depth, and depth is wages', () => {
     expect(atRig, 'the hired hands must have reported to the claim').toMatch(
       /roustabout/i,
     );
-    const before = await read(k, 'look wellhead');
+    // ⚠⚠ **NOT `look wellhead`.** The row says, deliberately, *there is
+    // no telling anything about it from up here* — a collar of iron
+    // reads the same at one metre and at forty, which is the whole
+    // reason the trade needs an instrument. A checkpoint that diffed
+    // that prose was asserting against the author's intent and could
+    // only ever fail.
+    //
+    // ⭐ The depth is reported by the act that touches the bottom. One
+    // `bore` is one stroke of ~6 to the yard, so a single swing cannot
+    // move the figure by a metre — which is what makes the comparison
+    // prove the CREW did the work and not the reader.
+    const before = depthFrom(await read(k, 'bore'));
+    expect(before, 'a swing must report the depth in metres').not.toBeNull();
     // ⭐ A game-day of presence. The engine measures presence, not
     // virtue: they are rostered, on shift, standing here, hands free.
     await advance('1 day');
-    const after = await read(k, 'look wellhead');
-    expect(after, 'the hole must have changed over a day of paid work').not.toBe(
-      before,
-    );
+    const after = depthFrom(await read(k, 'bore'));
+    expect(
+      after,
+      `the hole must be deeper after a day of paid work (was ${String(before)} m)`,
+    ).toBeGreaterThan((before ?? 0) + 1);
   });
 
   it('⭐ and the wage bill is real — the hands are owed, whether or not it was paid', async () => {
@@ -755,8 +783,15 @@ suite('7. the crew — presence is depth, and depth is wages', () => {
     // understand 'bank'* is the correct answer up here and cost this
     // drive a run to learn. What IS readable at the rig is the hands
     // themselves, and that they are on shift is the wage bill.
-    const here = await read(k, 'look roustabout');
-    expect(here.length).toBeGreaterThan(0);
+    // ⚠⚠ `tall`, NOT `roustabout`. Both hands are standing here by now,
+    // so the bare noun matches two and the binder raises a
+    // disambiguation PROMPT — which is correct engine behaviour and
+    // fatal to a wire drive: nothing answers it, the frame never
+    // returns, and **the session stays wedged on the open prompt so
+    // every later checkpoint times out too.** One ambiguous noun cost
+    // six checkpoints that had nothing wrong with them.
+    const here = await read(k, 'look tall');
+    expect(here).toMatch(/roustabout/i);
   });
 
   it('⭐⭐⭐ `dismiss` is the ONLY thing that stops the meter', async () => {
@@ -764,10 +799,11 @@ suite('7. the crew — presence is depth, and depth is wages', () => {
     await daylight();
     // Nothing told the player the rate was no longer worth the wage, and
     // nothing will. That decision IS the content.
-    // ⚠ `roustabout`, not `tall`: both hands are standing here by now
-    // and either will do — what is being proved is that paying one off
-    // takes them off the books, not which one.
-    const off = await say(k, 'dismiss roustabout');
+    // ⚠ `tall`, not `roustabout` — see the wage-bill checkpoint. What
+    // is being proved is that paying a hand off takes them off the
+    // books, and naming WHICH hand costs that claim nothing; leaving
+    // the noun ambiguous cost it the whole run.
+    const off = await say(k, 'dismiss tall');
     expect(
       refusedFor(off),
       `dismiss said: ${JSON.stringify(off.notes)}`,
@@ -834,9 +870,24 @@ suite('9. the oil country, and the two structures nothing tells apart', () => {
 
 suite('the bore log — filed under the trade, and nobody holds the pen', () => {
   it('⭐⭐ a dry metre is a FINDING, and the log keeps it', async () => {
-    // Nothing in the game lets the owner edit it, which is exactly why a
-    // buyer would pay for it. Read through `look` at the wellhead.
-    const hole = await read(k, 'look wellhead');
-    expect(hole.length).toBeGreaterThan(0);
+    // ⚠⚠ This checkpoint used to read `look wellhead` and assert the
+    // text was non-empty — **vacuous**, and it passed for the whole
+    // build while the register it claimed to prove was WRITE-ONLY:
+    // every metre was filed and nothing in the game could look at any
+    // of it. *A vacuous assertion looks exactly like a passing one.*
+    //
+    // ⭐⭐⭐ The real reader is the eye rung, which is where the premise
+    // lands: no instrument reports whether a trap is charged, so the
+    // only second-hand evidence is a hole somebody already paid for.
+    // The log is append-only and its subject cannot edit it, which is
+    // precisely why a stranger's book is worth reading.
+    const eye = await read(k, 'analyze structure');
+    expect(
+      eye,
+      'the eye rung must report the hole already sunk in this country',
+    ).toMatch(/somebody has drilled this country before you/i);
+    expect(eye, 'and it must say how deep that hole went').toMatch(/\d+\s*m\b/);
+    // ⚠ And the premise is still the last word, book or no book.
+    expect(eye).toMatch(/nothing tells you that but the hole/i);
   });
 });
