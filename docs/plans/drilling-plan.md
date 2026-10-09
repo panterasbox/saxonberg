@@ -1456,8 +1456,7 @@ Read first, in this order:
 
 ## Drive record
 
-⚠⚠ **NOT YET MET.** Best pass to date: **20 of 24 checkpoints**
-(`drive-y`, 2026-10-08). The wire file is
+✅ **MET — 24 of 24, on a fresh database (2026-10-09).** The wire file is
 `packages/wire/tests/drilling.dirty.wire.test.ts`; run it with
 
 ```
@@ -1493,13 +1492,44 @@ log's last line is `AppBootstrap: world open`. Reset with
   showing; `head` refusing a non-wellhead in the channel's own words;
 - the bore log keeping a dry metre.
 
-### ⚠ What is still RED, and why
+### ✅ What the last four defects were
 
-| checkpoint | state |
+The three checkpoints that had never passed went green with the content
+fixes (daylight before the rack; the crew cast at the flat). The pass
+that got to 23/24 then found four more, and they were the best findings
+of the build:
+
+| defect | what it cost |
 |---|---|
-| the hire rack → the kit in hand | the fix (daylight before the rack) landed but **has not had a clean run yet** |
-| `bore` as a hand's swing | `too-tired` — see below |
-| the hands at the rig / the hole deepening / `dismiss` | downstream of the kit; the content fix (crew at the flat) has not had a clean run yet |
+| `FractionSchedule.setProductMaterial` refused `''` | the crude row threw at hydration and the schedule never stood up: **the only fractionating column in the game was inert**. The pairing rule had already moved to `lint:fraction-schedules` *because* `separation:` may be read after this field — the setter was never relaxed to match the gate it delegated to. |
+| `bore` missing from `DOCUMENT_KINDS` | every `logMetre` threw. ⚠ It catches its own failure, so the metre was still cut and **only the record was lost** — a write that looked like it worked. |
+| ⛔⛔⛔ **nothing ever READ the bore log** | write-only for the whole build. See below. |
+| a swing that bought no yard printed only its stroke count | the depth was already being read here and `void`ed. |
+
+⭐⭐⭐ **The write-only register is the one worth reading about.**
+`StructureReading`'s own header already promised the reader — *"what a
+trained eye makes of the country, and of its own notes"* — so wiring it
+finished a wave rather than widening one. ⚠ It does not weaken the
+premise: *nothing tells you that but the hole* stays exactly true,
+because **a log IS a hole** — append-only, filed by the trade, editable
+by nobody including its subject. That is precisely what makes a **dry**
+log worth money, since a dry trap reads as well as a charged one
+forever, so the only evidence a trap is dry is somebody's wasted
+payroll written down where a stranger can read it.
+
+### ⚠ And three DRIVE defects, which cost more run time than the engine did
+
+- **One ambiguous noun cost six checkpoints.** `look roustabout` matched
+  both hands, the binder raised a disambiguation prompt (correct
+  behaviour), nothing answered it, and **the session stayed wedged on
+  the open prompt so every later checkpoint timed out too** — six
+  failures at 60 s apiece with nothing wrong with their subjects.
+- **A checkpoint read a surface the author had deliberately closed** —
+  it diffed `look wellhead`, whose row says *there is no telling
+  anything about it from up here*.
+- **A vacuous assertion looked exactly like a passing one** — the
+  bore-log checkpoint asserted `look wellhead` was non-empty, and passed
+  green all build while the register it claimed to prove was write-only.
 
 ⭐ **`too-tired` is the design, not a defect.** A swing costs real
 endurance and *you are not meant to do this by hand* is the trade's
@@ -1571,23 +1601,27 @@ fails for reasons that teach nothing.
 
 ---
 
-## ⚠ WHERE THIS BUILD LEFT OFF (2026-10-08)
+## ✅ BUILD COMPLETE (2026-10-09)
 
-Twenty-five commits on `design/2026-10-08-rgo-track`, all pushed. **No
-MR yet.** The remaining sequence, in order:
+The drive is 24/24 on a fresh database, `origin/master` is merged in
+(which brought `trade-glass`), **15 886 tests pass**, `pnpm build` is
+type-clean and all 70 `lint:family` gates pass. The MR is open; review
+is a conversation in the build session.
 
-1. **Re-run the drive.** The last two fixes (daylight before the rack;
-   the crew cast at the flat) have not had a clean pass. Expect the
-   kit, the crew and `dismiss` to follow the kit.
-2. **Merge `origin/master`** into the branch — it is **28 commits
-   behind**. ⚠ Rebuild `packages/types` afterwards before trusting any
-   `tsc` error.
-3. **`pnpm test` once** (~15 min). It has NOT been run this cycle; every
-   verification so far is `test:near`, the per-pack suites and the lint
-   family.
-4. **Open the MR** against `master`. A description draft is at
-   `/tmp/claude-1000/mr-body.md` (regenerate if gone — the wave notes
-   above carry everything in it).
+⭐ **Two stale censuses in other packs surfaced at the full suite**, and
+only one was this build's:
+
+- `PackLogic.discover` expected 57 packs and `trade-drilling` makes 58 —
+  the **fifth** arrival of the hazard that test's own comment block
+  describes. Both branches counted 57 correctly off 56, and git merged
+  the assertion line *cleanly* while conflicting the comments, so it
+  went red with nothing in the diff to explain it.
+- `trade-mining`'s exemplar census was stale for the **glass** build's
+  `sand-pit.yaml` and `glasshouse-business.yaml` (`d4965e7ab`) — so
+  `origin/master` was red, and this merge is simply the first full suite
+  run to notice. ⭐ The ordinary cost of a census living in another
+  pack's test: the build that adds the row is not the build whose suite
+  fails.
 
 ### ⚠ Two findings owed to OTHER packs, not fixed here
 
