@@ -1,0 +1,14 @@
+# The marver — a flat steel slab the glassmaker rolls a gather on to
+# shape and cool its skin. A plain `Placing` work surface (the glasshouse
+# archetype's `surface`); it holds no verb of its own — shaping is a hot
+# act on the gather, and the marver is just where you do it.
+class: /platform/thing/Station
+data:
+  keywords: [marver, slab, "steel slab", table]
+  shortDescription: marver
+  register: indefinite
+  longDescription: >-
+    A thick, polished steel slab on a low iron stand, scored and dulled
+    from years of hot glass rolled across it.
+  mass: 60
+  placements: [on]

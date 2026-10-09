@@ -1,0 +1,20 @@
+# ⭐ The GLASSHOUSE archetype — what a working glasshouse NEEDS, in
+# capabilities the kernel already checks. Reported, never enforced: a
+# glasshouse missing its pipe is a legal, visible state. What it buys is
+# that a second glasshouse anywhere can be checked against it — and it is
+# what makes the pack's `blowpipe` capability a CONSUMED one (the gather
+# slot), so the capability gate is satisfied before the verb views land.
+archetypeId: glasshouse
+label: a working glasshouse
+industry: glass
+capabilities:
+  # The furnace, hot enough for the batch reaction (above the 1300 K
+  # liquidus — the bellows).
+  - { key: melting, needs: { heatK: 1400 } }
+  # Something to gather and blow with — the blowpipe.
+  - { key: gathering, needs: { tool: blowpipe } }
+  # A flat surface to roll a gather on — the marver.
+  - { key: marvering, needs: { surface: true } }
+  # Fuel on hand — the collier's charcoal, which is also why a glasshouse
+  # sites in the woods.
+  - { key: fuel, needs: { presence: charcoal } }

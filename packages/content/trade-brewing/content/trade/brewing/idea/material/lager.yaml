@@ -11,7 +11,9 @@ data:
   nutrients: ["carb", "water"]
   toxicity:
     - { type: alcohol, amount: 13 }
-  tags: ["liquid", "beverage", "drinkable", "alcoholic", "beer", "lager"]
+  # `light-sensitive`: lager goes light-struck under blue light (glass
+  # build D8). No `spoilActivationEnergy` added — microbial clock untouched.
+  tags: ["liquid", "beverage", "drinkable", "alcoholic", "beer", "lager", "light-sensitive"]
   nutrientAmounts:
     carb: 11000
   composition: []

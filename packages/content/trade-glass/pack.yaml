@@ -1,0 +1,25 @@
+id: trade-glass
+version: 0.1.0
+root: /trade/glass
+description: >-
+  The glass trade — ⭐ **the trade that turns three other trades'
+  leftovers into the one material a pre-plastic world cannot do without.**
+  Sand won from a graded pit, the collier's ash, and lime, fired in the
+  shipped kiln through the platform's `fire`, give a pot of molten glass.
+  A blowpipe gathers from it and works it hot through a CLOSING WINDOW —
+  the one new mechanism: a gather cools the moment it leaves the pot, and
+  you return to the glory hole or lose the piece. Cracked off, it is a
+  bottle or a cylinder; the cylinder is scored, snapped and opened flat
+  into a window pane. The iron in the sand is the colour — dirty sand
+  makes green bottles, pure sand clear, and it is never a decorative
+  choice. Cullet re-melts at a discount but only ever goes greener. A
+  stained pane colours the light in the room it is set in — the game's
+  first window that does something. One `glasswork` Discipline covers hot
+  and cold. ⭐⭐ A second glasshouse is rows: a deposit, a business, a
+  location, and no pack code.
+requires:
+  # The trade is placeless (the quarrying precedent): its mechanism is
+  # held by the Ministry of Trade — a seat, never a committee. A specific
+  # glasshouse sits in the world under a locality's committee.
+  title:
+    - { extent: /trade/glass, holder: { organization: /compact/trade } }

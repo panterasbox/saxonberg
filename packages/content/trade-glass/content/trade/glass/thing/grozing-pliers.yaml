@@ -1,0 +1,13 @@
+# Grozing pliers — the cold shop's nibbling tool. Takes small bites off a
+# glass edge to work it to a curve or clean a snap. The `grozing`
+# capability is what `groze` binds to; the pliers also afford `salvage`.
+class: /trade/glass/thing/GrozingPliers
+data:
+  keywords: [pliers, "grozing pliers", groziers, nippers]
+  shortDescription: grozing pliers
+  register: indefinite
+  longDescription: >-
+    Stout iron pliers with notched, blunted jaws, for nibbling glass away
+    an edge at a time rather than cutting it.
+  mass: 0.3
+  capabilities: ["grozing"]

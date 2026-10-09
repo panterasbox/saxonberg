@@ -299,6 +299,73 @@ Duplicate verbs across packs remain fine where the *argument* separates
 them (`butcher` a live animal vs a carcass); this rule is for when it
 cannot.
 
+#### ⭐⭐⭐ When both are bodily acts — which trade keeps the word
+
+The rungs above resolve a collision when one claimant is a **systemic
+surface** (subcommand it) or when the **argument separates** the two
+(`butcher` a live animal vs a carcass — both keep the verb). They do not
+cover the harder case the glass build hit at the 2026-10-08 master merge:
+**two bodily acts, in different packs, that the argument does not separate
+and that genuinely model different mechanics.** English is full of one
+word with several meanings, so this is not rare. ⚠ **First-come is never
+the answer** — the branch that merged first holds no claim the other
+lacks. Work down these, in order; the order is the point.
+
+1. ⭐ **Can they unify? (Consistency — the ladder's first question.)** A
+   verb should model *one* thing, so if the two claimants are the same
+   act, they are one verb: fold them behind one interface. But a shared
+   word over genuinely *different* mechanics cannot be unified without
+   lying about one of them — `dip` a wick to **coat** it (accrete a layer
+   from the bath) and `dip` a pipe to **gather** a gob (lift a mass of the
+   bath itself) are not one act. **The tell:** if unifying would need a
+   guard that re-asks *which mechanic is this*, the models are distinct
+   and one claimant must take a different word. Which one is rungs 2–3.
+
+2. ⭐⭐ **Generativity — the word stays with the definition future content
+   builds on.** Ask of each meaning: *is this a platform primitive other
+   content will extend, or one trade's dead end?* The generative meaning
+   keeps the plain word; the trade-specific gesture yields. Worked at the
+   glass merge, twice:
+   - `dip` as **dip-coating** — immerse to accrete a layer whose material
+     is *derived from the bath*, the bath chosen by a recipe row
+     (galvanising, wax-sealing, lacquer, confection-enrobing,
+     dip-moulding all reuse it) — is the primitive. Glass's
+     *wind-a-gob-onto-a-pipe* is one trade's act. Chandlery keeps `dip`.
+   - `gather` as a member of the **taps yield-verb vocabulary**
+     (`milk` · `shear` · `rob` · `tap` · `gather`, one idiomatic verb per
+     living yield, each a thin `TapActController`, scaling with every new
+     species) is the primitive. Glass's act is, again, the same single
+     gesture. Ranching keeps `gather`.
+
+   So glass yielded **both** generic words and took its own term of art,
+   **`gob`**. The lesson generalises: a trade's hand-gesture is rarely the
+   generative primitive — the system it feeds (dip-coating, the taps
+   vocabulary) is, and the system should keep the plain word.
+
+3. ⭐⭐ **Accessibility — would the real practitioner accept how the game
+   names their trade?** Not a consistency axis; a *player-expectation*
+   one. Would a glassblower, a chicken-keeper, a chandler recognise their
+   craft and feel no friction? Three rules:
+   - **Layman's language is the default, and usually right even for
+     specialists.** *“dip candles”* and *“gather eggs”* are plain English
+     that *also* satisfy the tradesperson — keep a word where it does both
+     jobs. This is often the real reason the generative side (rung 2) also
+     wins: the accessible word and the primitive are the same word.
+   - **An act with no plain-English verb legitimately takes a term of
+     art.** There is no layman word for winding molten glass onto a pipe —
+     the one a layperson reaches for, “dip”, is the wrong mechanic *and*
+     spoken for — so `gob`, jargon, is the honest register. The act is
+     inherently *talking shop*, and a term of art carries what plain words
+     cannot: register, authority, the trade lexicon vs the consumer one.
+   - **Obscure terms earn no bonus.** Jargon is not more correct for being
+     specialist. It wins only when it carries meaning plain language
+     cannot, or when no plain word fits — never reach for it just to sound
+     authentic.
+
+⚠ The outcome is recorded by **renaming one view**, never by a new line in
+`KNOWN_COLLISIONS` — that allowlist is the shipped-before-the-gate
+backlog, not an amnesty (`check-verb-collisions.ts`).
+
 ### `async:` — detach the controller from the giver's input chain
 
 An optional top-level `async: true` (default `false`) makes the verb

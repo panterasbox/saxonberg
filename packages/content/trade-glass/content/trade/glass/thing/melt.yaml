@@ -1,0 +1,21 @@
+# A pot of molten glass — the batch's fired output (glass build D3). One
+# tangible: the pot and its glass together, held at the kiln's heat while
+# it sits in the lit chamber and stiffening when drawn out.
+#
+# ⚠ The mass here is nominal: the batch recipe's `massYield` sets the real
+# mass from the charge at firing time. The `alloying` here is the pot's OWN
+# iron pickup per campaign (D9) — the firing MERGES the sand's iron on top,
+# so a single clean piece re-melted alone still comes back one step greener.
+class: /trade/glass/thing/Melt
+data:
+  keywords: [melt, "molten glass", pot, metal]
+  shortDescription: pot of molten glass
+  register: indefinite
+  longDescription: >-
+    A crucible of glass glowing at the heat, moving like honey when the
+    pipe goes in and setting hard as it loses the fire.
+  _materialPath: /stuff/idea/material/glass/glass
+  mass: 5
+  stampedTemperatureK: 1450
+  alloying:
+    - { materialPath: /stuff/idea/material/element/iron, fraction: 0.0005 }

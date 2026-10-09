@@ -67,6 +67,11 @@ data:
     east:
       destination: /world/terminus/rejection/hanging-wood/sugarbush
       edgeMinutes: 3
+    # ⭐ The glasshouse, added by the glass build — a clearing off the ride
+    # where the furnace stands. The wood it eats is all around it.
+    northeast:
+      destination: /world/terminus/rejection/hanging-wood/glasshouse
+      edgeMinutes: 2
   details:
     litter:
       keywords: [litter, "leaf-litter", leaves, ground, earth]

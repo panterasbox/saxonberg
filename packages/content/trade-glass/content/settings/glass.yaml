@@ -1,0 +1,55 @@
+# glass — the trade's dials (the `settings` kind: merge-missing). Every
+# key here has a seeded literal at its call site, so the trade works with
+# this file absent and these only ever RETUNE it.
+settings:
+  # ── colour: iron and carbon absorption, per PER CENT by mass, per
+  #    channel (Beer–Lambert). Iron absorbs red and blue but barely green
+  #    (→ green); carbon absorbs blue hardest (→ amber). These are the
+  #    whole of why dirty sand makes green bottles. ───────────────────
+  - { key: glass.colour.iron.r, value: "1.6" }
+  - { key: glass.colour.iron.g, value: "0.35" }
+  - { key: glass.colour.iron.b, value: "1.1" }
+  - { key: glass.colour.carbon.r, value: "0.3" }
+  - { key: glass.colour.carbon.g, value: "1.2" }
+  - { key: glass.colour.carbon.b, value: "6.0" }
+
+  # ── colour BAND edges, in PER CENT (the figures a glassmaker names).
+  #    Below paleAt the glass takes clear ware; past bottleAt it is only
+  #    good for bottles; any carbon past amberAt reads amber. ──────────
+  - { key: glass.colour.band.paleAt, value: "0.08" }
+  - { key: glass.colour.band.greenAt, value: "0.2" }
+  - { key: glass.colour.band.bottleAt, value: "0.6" }
+  - { key: glass.colour.band.amberAt, value: "0.1" }
+
+  # ── the hot-work window (D10) ──────────────────────────────────────
+  # The fraction of the glass's melting point at or above which a gather
+  # is still workable (≈ 975 K for soda-lime). Below it the window closed.
+  - { key: glass.hotwork.workingFraction, value: "0.75" }
+  # ⭐ The playtest knob dressed as thermal physics: a compact blob on a
+  # pipe loses heat slower per kilogram than the open-mug geometry the
+  # lumped R is tuned for, so its τ is lengthened by this factor — which
+  # is what makes "you have seconds" land near 40 real seconds. If the
+  # window feels too tight at the keyboard, this is the dial.
+  - { key: glass.hotwork.gatherRFactor, value: "10" }
+  # Game-seconds between hot-work watch ticks (the glow-band narration).
+  - { key: glass.hotwork.tickGameS, value: "45" }
+  # The nominal mass of one gather, kg.
+  - { key: glass.hotwork.gatherKg, value: "0.4" }
+  # The moil — the waste glass left on the pipe when a piece is cracked
+  # off, as a fraction of the gather. Comes back as cullet.
+  - { key: glass.hotwork.moilFraction, value: "0.05" }
+
+  # ── the pot's own iron pickup per campaign (D9): every firing into a
+  #    melt adds this much iron, so a single clean piece re-melted alone
+  #    still comes back one step greener. The one-way-toward-green arrow. ─
+  - { key: glass.pot.ironPickup, value: "0.0005" }
+
+  # ── the cold shop (W6) ─────────────────────────────────────────────
+  # A scored sheet snaps cleanly: the loss chance is 0 and STAYS 0 — a
+  # failed snap is a competence-priced future rung, not a roll (the
+  # uncertainty doctrine's resolutional ban).
+  - { key: glass.cold.snapLossChance, value: "0" }
+  # kg nibbled off an edge per `groze`, lost below the Scrap floor as dust.
+  - { key: glass.cold.grozeKg, value: "0.02" }
+  # The furnace heat (K) a cylinder must be softened to before it opens flat.
+  - { key: glass.cold.flattenK, value: "900" }

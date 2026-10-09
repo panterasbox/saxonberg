@@ -1,0 +1,14 @@
+# A glass cylinder — what `crack` mints from a formed `cylinder` gather:
+# the medieval broad-glass blank. Scored down its length and opened flat
+# at the furnace, it becomes a pane. Mass and alloying set at crack.
+class: /trade/glass/thing/Sheet
+data:
+  keywords: [cylinder, "glass cylinder", muff, blank]
+  shortDescription: glass cylinder
+  register: indefinite
+  longDescription: >-
+    A blown cylinder of glass, both ends cut away, ready to be scored down
+    its length and opened flat into a pane.
+  _materialPath: /stuff/idea/material/glass/glass
+  mass: 0.4
+  form: cylinder

@@ -12,7 +12,11 @@ data:
   edibility: false
   nutrients: ["potassium"]
   toxicity: []
-  tags: ["organic", "mineral", "residue"]
+  # `potash`: the glass batch's flux (glass build W4) — the collier's
+  # catastrophe is the glassmaker's soda, dropping silica's melting point
+  # to something a wood fire can reach. ⚠ This is the collier's residue
+  # (`organic/ash`), NOT the ash tree's timber (`wood/ash`).
+  tags: ["organic", "mineral", "residue", "potash"]
   composition: []
   chemistry: null
   biologicalSource: null

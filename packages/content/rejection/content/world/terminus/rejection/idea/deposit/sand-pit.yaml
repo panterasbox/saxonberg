@@ -1,0 +1,28 @@
+# ⭐⭐ The Sand Pit's column — sand at the surface, and the IRON in it
+# pinned per face (glass build D4/W7).
+#
+# Sand runs from the collar down to −6 m (no overburden — a sand pit is
+# sand at the surface), won as `/trade/glass/thing/sand`. Clay below, and
+# the water table at −8 bounds the floor.
+#
+# ⭐ The two faces win the SAME sand but at different iron grades, forced
+# by `features.pins` at exactly the point each face's room samples (its
+# cell coords × cellSize, at the sand band's mid-depth −3). The pin wins
+# outright over everything, so the clean/dirty split is deterministic and
+# needs no lode geometry:
+#   - clean-face room at cell (0,0) → "0,0,-3"  → iron 0.0003 (clear ware)
+#   - dirty-face room at cell (2,0) → "20,0,-3" → iron 0.012  (green only)
+# Through the batch's dilution these land clear and bottle-green in the
+# finished ware — the colour the glassmaker reads off the sand with
+# `analyze iron` before ever firing it.
+class: /system/ground/idea/Deposit
+data:
+  name: sand-pit
+  stratigraphy:
+    - { toZ: -6, host: /stuff/idea/material/earth/sand, wins: /trade/glass/thing/sand }
+    - { toZ: -400, host: /stuff/idea/material/earth/clay }
+  waterTable: -8
+  features:
+    pins:
+      "0,0,-3": { mineral: /stuff/idea/material/element/iron, grade: 0.0003 }
+      "20,0,-3": { mineral: /stuff/idea/material/element/iron, grade: 0.012 }

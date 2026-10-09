@@ -14,8 +14,14 @@
  *     `baseTransmissivity` for light flowing FROM that side. Set
  *     `bToA = 0` to make a window through which A's light reaches B
  *     but not vice versa.
- *   - `colorTint` (optional ColorTag) — stained glass. Atmospheric
- *     only; does not propagate elsewhere.
+ *   - `colorTint` (optional ColorTag) — the authored stained-glass
+ *     colour, the ordinary case a content row sets by word.
+ *   - `glazeR/glazeG/glazeB` (number | null) — the per-channel
+ *     transmittance the `glaze` act writes when a blown pane is set in
+ *     this window; `null` on each = unglazed. Overrides `colorTint`.
+ *     `lightTransmittance()` resolves glazing, then the authored word,
+ *     then clear — and the light walk MULTIPLIES it into what passes,
+ *     so a stained window colours the room on the far side.
  *
  * Template authoring follows the "option (b)" in the plan: `Window`
  * is template-loadable like `Door` (`class: '/platform/thing/Window'`);
@@ -46,6 +52,7 @@ import type {
 import type { SmellConduit } from '../../lib/boundary/SmellConduit';
 import type { SoundConduit } from '../../lib/boundary/SoundConduit';
 import type { ColorTag } from '../../lib/perception/Light';
+import { Colour } from '../../lib/perception/Colour';
 import type { FieldMeta } from '../../lib/mixin';
 
 const WindowBase = SealableMixin(Boundary);
@@ -68,6 +75,9 @@ export default class Window extends WindowBase {
     aToBOverride: { persistent: true },
     bToAOverride: { persistent: true },
     colorTint: { persistent: true },
+    glazeR: { persistent: true },
+    glazeG: { persistent: true },
+    glazeB: { persistent: true },
     attachedHosts: { persistent: true },
   };
 
@@ -190,6 +200,75 @@ export default class Window extends WindowBase {
 
   public setColorTint(value: ColorTag | null): void {
     this.colorTint = value;
+  }
+
+  /**
+   * The glaze transmittance the `glaze` act writes — three scalars per
+   * the scalar-default rule, `null` on each when unglazed. Not
+   * authorable (a content row tints by `colorTint`); the act copies a
+   * blown pane's own `lightTransmittance()` here.
+   */
+  protected _glazeR: number | null = null;
+  protected _glazeG: number | null = null;
+  protected _glazeB: number | null = null;
+
+  protected get glazeR(): number | null {
+    return this._glazeR;
+  }
+  protected set glazeR(value: number | null) {
+    this._glazeR = validateOverrideScalar(value as number | null, 'glazeR');
+  }
+  protected get glazeG(): number | null {
+    return this._glazeG;
+  }
+  protected set glazeG(value: number | null) {
+    this._glazeG = validateOverrideScalar(value as number | null, 'glazeG');
+  }
+  protected get glazeB(): number | null {
+    return this._glazeB;
+  }
+  protected set glazeB(value: number | null) {
+    this._glazeB = validateOverrideScalar(value as number | null, 'glazeB');
+  }
+
+  /**
+   * The glaze colour, or `null` when this window has not been glazed.
+   * A partial glaze (some channel null) is treated as unglazed — the
+   * act always writes all three together.
+   */
+  public getGlazing(): Colour | null {
+    if (this._glazeR === null || this._glazeG === null || this._glazeB === null) {
+      return null;
+    }
+    return Colour.of(this._glazeR, this._glazeG, this._glazeB);
+  }
+
+  /** Set (or clear, with `null`) the glaze colour — the `glaze` act's writer. */
+  public setGlazing(colour: Colour | null): void {
+    if (colour === null) {
+      this._glazeR = null;
+      this._glazeG = null;
+      this._glazeB = null;
+      return;
+    }
+    this._glazeR = colour.r;
+    this._glazeG = colour.g;
+    this._glazeB = colour.b;
+  }
+
+  /**
+   * ⭐ The colour this window imparts to light passing through it, for
+   * the {@link LightFilter} shape and the light walk. Glazing wins over
+   * the authored `colorTint` word, which wins over clear; a shut window
+   * passes no light, so it imparts no colour (`UNDYED`) — the walk has
+   * already zeroed its flux via `transmissivity`.
+   */
+  public lightTransmittance(): Colour {
+    if (!this.isOpen()) return Colour.UNDYED;
+    const glazing = this.getGlazing();
+    if (glazing) return glazing;
+    if (this._colorTint) return Colour.fromTag(this._colorTint) ?? Colour.UNDYED;
+    return Colour.UNDYED;
   }
 
   // --- Conduit surface --------------------------------------------------
@@ -336,7 +415,7 @@ export default class Window extends WindowBase {
  */
 function validateOverrideScalar(
   value: number | null,
-  name: 'aToBOverride' | 'bToAOverride'
+  name: string
 ): number | null {
   if (value === null) return null;
   if (typeof value !== 'number' || !Number.isFinite(value) || value < 0 || value > 1) {
@@ -357,6 +436,9 @@ function lightConduitFor(window: Window): LightConduit {
     conduitKind: 'light',
     transmissivity(from, to) {
       return window.transmissivity(from, to);
+    },
+    transmittanceColour() {
+      return window.lightTransmittance();
     },
   };
 }

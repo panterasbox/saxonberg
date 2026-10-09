@@ -1,0 +1,26 @@
+verbs: [shape]
+controller: /trade/glass/idea/cmd/glass/ShapeController
+description: "Blow and jack a hot gather into a form"
+help: |
+  `shape bottle` or `shape cylinder` works the gather on your pipe into a
+  form — the blow and the jacks in one move. It takes a moment, and the
+  glass must still be hot when you finish: dawdle, or start too late, and
+  it sets before you are done and comes off as cullet. A cylinder is what
+  you score, snap and open flat into a window pane.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  # The form to work toward — a bottle, or a cylinder for a pane.
+  - name: form
+    type: string
+    required: true
+  # ⭐ WHICH PIPE — the one carrying a gather.
+  - name: pipe
+    type: objects
+    required: false
+    prepositions: [with, using, on]
+    default: "reachable:[capability.blowpipe]"
+    scope: ["reachable"]
+    requires: [ToolMixin]

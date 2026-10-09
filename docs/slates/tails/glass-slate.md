@@ -1,21 +1,23 @@
 # Glass slate — the trade that eats everyone's leftovers
 
-> **Status: UNBUILT** — but ⭐ **better supplied than anything else
-> unbuilt.** Three of the batch's four inputs already ship as *goods*;
-> the melt is a recipe row that `burn-lime.yaml`'s own comment already
-> names; and the colour machinery exists twice over in two halves that
-> have never met.
-> **Left:** a sand deposit row + two material tags · the `meltingPoint`
-> glass has never had · the glass-batch recipe · ⚠ `Colour` on `Light`
-> (the one kernel change) · the light/sight split on `LightConduit` ·
-> light-strike as a third spoilage driver · the hot-work **window** (heat
-> as a closing clock — the one new mechanism) · score-and-snap + groze ·
-> cullet via a widened `salvage` branch · the returns leg on the par
-> sheet · the glasshouse and the bench as two archetypes · the first
-> `Window` row the game has ever had
-> **Size:** a build — with ⛔ **two cross-cutting pieces deliberately
-> extracted** (molds → dairy; the buy-side counter → retail), neither of
-> which glass's first rung needs.
+> **Status: BUILT** — the trade ships as `trade-glass` at `/trade/glass`
+> (the four kernel seams: `Colour` on `Light`, the firing carries its
+> charge, the meltable-non-metal salvage, light-strike). Live reference
+> → [glass.md](../../subsystems/glass.md). Requirements + plan retired
+> (MR !338, 2026-10-08). Shipped: the sand deposit (clean/dirty faces) +
+> the `silica`/`glass` tags, glass's `meltingPoint` (1300 K), the
+> batch/amber/remelt recipes, the hot-work window
+> (`gob`/`shape`/`reheat`/`crack`), the cold bench
+> (`scribe`/`snap`/`groze`/`flatten`), cullet via the widened `salvage`
+> branch, the glasshouse + bench archetypes, the first two authored
+> `Window` rows (`glaze`).
+> **Left:** optics (`optics-slate`) · molds (the dairy build) · the
+> buy-side `sell` counter + the returns loop (retail, then the glass
+> follow-on) · the converter/tube/instrument bench · the light/sight
+> clarity split (`senses-slate`) · the composed stained panel ·
+> decolorisers · the glasshouse outrunning its wood (`forestry.md`) · the
+> crushed-sandstone route · a priced snap-failure rung — see § Tail.
+> **Size:** a tail.
 
 *Opened 2026-10-05, from "I don't really know the glass supply chain."
 The conversation ran supply → optics → brittleness → cullet → the
@@ -719,6 +721,30 @@ not the person.** Two archetypes with different capital and siting.
    `wizardry-rubric.md` § 3 before inventing anything.
 7. **Does the first `Window` row ship with this build?** It would be the
    game's first ever, and stained glass is the reason to bother.
+
+---
+
+## Tail — deferred seams (salvaged from the retired plan, 2026-10-08)
+
+The build shipped the trade; these are the clean attach points it left,
+each with the slate/doc it lives on. ⭐ Most of § 13's open questions are
+now **answered by the build** (colour propagates · the first `Window`
+ships · light-strike is an additive driver · the sandstone crush is
+deferred); what stays open is this table.
+
+| seam | the attach point the build left | lives on |
+|---|---|---|
+| optics (`refractiveIndex`, the grind, lens blanks, acuity) | the glass material row (a field beside `meltingPoint`); the cold bench (a `grind` sibling of `scribe` on the same `Sheet`); a disc is an ordinary `Sheet` | `optics-slate` |
+| molds (one recipe → N products by a tool) | `ShapeController`'s `form` vocabulary is where a mold substitutes for the jacks; `Gather.form` → product-row map is one table | the dairy build (the cheese hoop first) |
+| the buy-side `sell` counter (cullet as a commodity) | a `Casting` of glass is already the commodity; `GlassBottle.category = bottle` keeps the `vessel:*` census honest | retail |
+| the returns/empties loop + the crate defect | same | the glass follow-on, after retail |
+| the converter / tube / instrument bench | `Gather.form` gains `tube`; a `lampwork` archetype with a bench torch; the thermometer/hydrometer/gas-analyzer rows are the customers | the glass follow-on |
+| the light/sight clarity split | `Window.canSeeThrough` untouched; `LineOfSight` is the interface that grows a clarity | `senses-slate` |
+| the composed stained panel (area-weighted filter) | `Window.setGlazing` takes one `Colour`; a panel act folds N grozed pieces by area and calls it once | the glass follow-on |
+| decolorisers (manganese, the arrow's twin) | a third `Tinted` term with a negative sign; a batch row with `pyrolusite` | the glass follow-on |
+| the glasshouse outrunning its wood | `forestry.md`'s coppice `Panel`; the kiln's fuel reserve is the coupling point | `forestry.md` note / rgo-unification |
+| the crushed-sandstone route | a `sandstone` material row + a crushing act; the sand pit's `wins:` is the same field | the trade |
+| a failed snap / the breakage rate at the bench | `glass.cold.snapLossChance` is `0` and not a roll — a competence-priced failure rung needs the uncertainty doc's provenance answer first | the glass follow-on |
 
 ---
 

@@ -110,6 +110,46 @@ Growth is closed-form logistic from an inoculum
 (`L(t) = L₀e^{μt} / (1 − L₀ + L₀e^{μt})`) and death closed-form
 exponential, so a week-long gap costs exactly what a minute does.
 
+### ⭐ Light-strike — a THIRD, photochemical driver on the same gauge (glass build D8)
+
+`Freshness.advance` takes an optional `extraRatePerHour`, **added to a
+non-negative microbial `μ`** (the thermal-death curve, `μ < 0`, is
+photochemically untouched). It is what makes a `light-sensitive` material
+spoil under light — and because it is *additive*, not multiplicative, it
+drives spoilage even on a material with **no `spoilActivationEnergy` at
+all**: beer (`ale`/`lager`) carries no microbial clock, so without this a
+rate multiplier would multiply zero. Beer goes off in the light; it does
+not microbially rot in a cellar.
+
+The rate is computed by the module's own `lightStrikeRatePerHour(holder,
+material)`:
+
+```
+rate/h = freshness.lightStrike.ratePerHour
+       × min(lux / freshness.lightStrike.referenceLux, 1)
+       × blueTransmittance(holder)
+```
+
+- **`light-sensitive`** is a Material tag (on `ale`/`lager`; wine and oil
+  may follow). No material gets light-strike without it.
+- **The holder is the filter.** `lightStrikeRatePerHour` duck-probes the
+  holder for the `LightFilter` shape (`lightTransmittance(): Colour`,
+  declared beside `Colour`) — a stained `Window` and the glass pack's
+  `Tinted` both answer it; a holder that does not (a steel keg, a barrel)
+  is opaque and gets **zero**, the honest default. The term reads the
+  holder's **blue** transmittance, because photochemistry lives in the
+  blue: a brown bottle (low blue) protects, a clear one does not, and the
+  amber-vs-clear difference is *derived*, not authored.
+- **`lux`** is the vision modality's `signalAt` at the holder's enclosing
+  container scope.
+
+⚠ **Sampled once per reconcile, not integrated across the gap** — a
+bottle carried from sun to cellar is aged at the cellar's light for the
+whole stretch. A stated fidelity limit; the trajectory integration (the
+way temperature already does it) is a follow-on. The kill curve and the
+microbial `f_T`/`f_aw` are entirely unchanged — `lint:perishable` is
+untouched because no `Ea` was added to beer.
+
 ## The gauge
 
 `FreshnessMixin` composes onto exactly **one** class: `Provision` — "the
@@ -793,6 +833,8 @@ dialled here — a global "meat spoils faster" knob would erase the point.
 | `freshness.awDefault` | 0.97 | assumed a_w for a perishable that tabulates none |
 | `freshness.inoculum` | 0.002 | the seed population growth starts from |
 | `freshness.ambientK` | 293 | what a gauge on a non-Thermal host reads |
+| `freshness.lightStrike.ratePerHour` | 30 | the photochemical spoilage rate/h at the reference lux through a fully blue-transparent holder (D8) |
+| `freshness.lightStrike.referenceLux` | 50000 | the illuminance (≈ clear midday) at which that full rate is reached; brighter clamps to it |
 | `freshness.band.{tainted,spoiled,rotten}At` | 0.25 / 0.6 / 0.85 | the band thresholds |
 | `freshness.dose.onsetLoad` | 0.3 | below this an ingest carries no dose at all |
 | `freshness.dose.scaleMg` | 900 | the dose a fully rotten serving carries |

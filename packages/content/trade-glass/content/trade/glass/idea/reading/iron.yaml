@@ -1,0 +1,25 @@
+# iron — how much iron is in a piece of glass stock, and therefore what
+# colour it will make. ⭐ The supply side of the sand pit's economics:
+# `analyze iron <sand>` tells you before you fire whether it will take
+# clear ware or only bottles.
+#
+# A pack's channel — the platform names it nowhere. Install trade-glass
+# and `analyze iron` works; the view's `subjectRequires: [AlloyedMixin]`
+# gates it to things that have a makeup to read. Competence resolves
+# DETAIL (an untrained eye reads a band word; a proficient glassmaker
+# reads the figure), never access — the instrumentation doctrine.
+class: /trade/glass/idea/reading/IronReading
+data:
+  channel: iron
+  kind: fact
+  scope: [subject]
+  subjectRequires: [AlloyedMixin]
+  discipline: glasswork
+  instrument: ''
+  eyeCeiling: proficient
+  improves: >-
+    what the glass will come out — whether a sand will take clear ware or
+    only green bottles, and how far a bin of cullet has drifted toward green
+  stakes: >-
+    a batch melted for clear ware that comes out bottle-green; good sand
+    spent on what any dirty sand would have made

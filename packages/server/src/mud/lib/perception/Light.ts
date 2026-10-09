@@ -23,6 +23,7 @@
  */
 
 import { Quantity } from '../quantity';
+import { Colour } from './Colour';
 
 /**
  * Abstract color tag — string alias for the stained-glass /
@@ -65,6 +66,12 @@ export interface LightDataShape {
   intensity: number | Quantity<'lux'>;
   colorTemperature?: string | Quantity<'K'> | null;
   sources?: readonly LightSourceRef[];
+  /**
+   * The light's HUE — a subtractive {@link Colour}, white by default and
+   * orthogonal to `colorTemperature` (a blackbody's warmth is not a
+   * stained pane's green). Absent = `Colour.UNDYED`.
+   */
+  colour?: Colour;
 }
 
 /** Maximum number of contributing sources tracked on a single Light. */
@@ -294,7 +301,7 @@ export class Light {
     );
   }
 
-  /** The zero-light singleton. */
+  /** The zero-light singleton. Its colour is `UNDYED` (white). */
   public static readonly ZERO: Light = new Light(
     Quantity.of(0, 'lux'),
     null,
@@ -304,24 +311,28 @@ export class Light {
   /**
    * Public construct-with-defaults helper. Accepts numeric lux or a
    * `Quantity<'lux'>` for intensity; tag-string, Quantity<'K'>, or
-   * null for color temperature.
+   * null for color temperature. `colour` is the hue (default
+   * `Colour.UNDYED`) and is the LAST, optional parameter so no existing
+   * call site changes.
    */
   public static of(
     intensity: number | Quantity<'lux'>,
     colorTemperature: string | Quantity<'K'> | null = null,
-    source?: LightSourceRef
+    source?: LightSourceRef,
+    colour: Colour = Colour.UNDYED
   ): Light {
     const intensityQ = coerceLux(intensity);
     const colorTempQ = Light.coerceColorTemperature(colorTemperature);
     if (
       intensityQ.rawValue() === 0 &&
       colorTempQ === null &&
-      !source
+      !source &&
+      colour === Colour.UNDYED
     ) {
       return Light.ZERO;
     }
     const sources: LightSourceRef[] = source ? [source] : [];
-    return new Light(intensityQ, colorTempQ, sources);
+    return new Light(intensityQ, colorTempQ, sources, colour);
   }
 
   /**
@@ -349,28 +360,34 @@ export class Light {
     const sources: LightSourceRef[] = data.sources
       ? Array.from(data.sources)
       : [];
+    const colour = data.colour ?? Colour.UNDYED;
     if (
       intensityQ.rawValue() === 0 &&
       colorTempQ === null &&
-      sources.length === 0
+      sources.length === 0 &&
+      colour === Colour.UNDYED
     ) {
       return Light.ZERO;
     }
-    return new Light(intensityQ, colorTempQ, sources);
+    return new Light(intensityQ, colorTempQ, sources, colour);
   }
 
   public readonly intensity: Quantity<'lux'>;
   public readonly colorTemperature: Quantity<'K'> | null;
   public readonly sources: readonly LightSourceRef[];
+  /** The light's hue — white by default; coloured by passage through a filter. */
+  public readonly colour: Colour;
 
   protected constructor(
     intensity: Quantity<'lux'>,
     colorTemperature: Quantity<'K'> | null,
-    sources: readonly LightSourceRef[]
+    sources: readonly LightSourceRef[],
+    colour: Colour = Colour.UNDYED
   ) {
     this.intensity = intensity;
     this.colorTemperature = colorTemperature;
     this.sources = sources;
+    this.colour = colour;
   }
 
   /**
@@ -389,7 +406,18 @@ export class Light {
       Light.mixColorTemperature(merged) ??
       this.colorTemperature ??
       other.colorTemperature;
-    return new Light(intensity, colorTemp, merged);
+    // ⭐ Two EMITTERS add their colours (a red window and a blue window
+    // on one floor give high-r, low-g, high-b), flux-weighted so the
+    // brighter source pulls the hue — the opposite of {@link filter},
+    // where a single pane MULTIPLIES. Normalised back to a pure hue.
+    const i1 = this.intensity.rawValue();
+    const i2 = other.intensity.rawValue();
+    const colour = Colour.normalised(
+      this.colour.r * i1 + other.colour.r * i2,
+      this.colour.g * i1 + other.colour.g * i2,
+      this.colour.b * i1 + other.colour.b * i2,
+    );
+    return new Light(intensity, colorTemp, merged, colour);
   }
 
   /**
@@ -406,7 +434,38 @@ export class Light {
       colorTemperature: s.colorTemperature,
       flux: s.flux * factor,
     }));
-    return new Light(intensity, this.colorTemperature, sources);
+    // Attenuation is a neutral dimming — it keeps the hue. (A pane that
+    // dims AND colours is {@link filter}, not this.)
+    return new Light(intensity, this.colorTemperature, sources, this.colour);
+  }
+
+  /**
+   * ⭐⭐ Pass this light THROUGH a filter of colour `c` — the subtractive
+   * MULTIPLY that a stained pane does. The new hue is `this.colour.over(c)`
+   * normalised, and the intensity falls by how much total light the
+   * filter lets through (`over.lightness() / this.colour.lightness()`),
+   * sources scaling in lockstep. A clear filter (`UNDYED`) is the
+   * identity. Contrast {@link add}, where two emitters' colours sum.
+   */
+  public filter(c: Colour): Light {
+    if (this === Light.ZERO || this.intensity.rawValue() === 0) return this;
+    const over = this.colour.over(c);
+    const base = this.colour.lightness();
+    const factor = base > 0 ? over.lightness() / base : 0;
+    if (factor <= 0) return Light.ZERO;
+    const intensity = this.intensity.scale(factor);
+    const sources: LightSourceRef[] = this.sources.map((s) => ({
+      stuffId: s.stuffId,
+      colorTemperature: s.colorTemperature,
+      flux: s.flux * factor,
+    }));
+    return new Light(intensity, this.colorTemperature, sources, over.normalise());
+  }
+
+  /** Return a copy with the hue overridden. */
+  public withColour(colour: Colour): Light {
+    if (colour === this.colour) return this;
+    return new Light(this.intensity, this.colorTemperature, this.sources, colour);
   }
 
   /** Return a copy with the color temperature overridden. */
@@ -422,7 +481,7 @@ export class Light {
     ) {
       return this;
     }
-    return new Light(this.intensity, c, this.sources);
+    return new Light(this.intensity, c, this.sources, this.colour);
   }
 
   /** JSON serialization shape for tests / debugging. */
@@ -430,6 +489,7 @@ export class Light {
     intensity: { value: number; unit: 'lux' };
     colorTemperature: { value: number; unit: 'K' } | null;
     sources: LightSourceRef[];
+    colour: string;
   } {
     return {
       intensity: this.intensity.toJSON(),
@@ -437,6 +497,7 @@ export class Light {
         ? this.colorTemperature.toJSON()
         : null,
       sources: this.sources.map((s) => ({ ...s })),
+      colour: this.colour.toHex(),
     };
   }
 

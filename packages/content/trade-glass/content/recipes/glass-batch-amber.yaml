@@ -1,0 +1,23 @@
+# The amber batch — the glass batch with charcoal in it (glass build
+# D15). A second batch, not a second mechanism: the only difference is one
+# more item slot (`charcoal`) and a different output row whose alloying
+# carries the carbon that absorbs blue and turns the glass brown. The
+# brown bottle that protects beer from light-strike comes from HERE, never
+# from a colour word.
+recipeId: glass-batch-amber
+name: Amber glass batch
+keywords: [amber, "amber glass", "brown glass", "amber batch"]
+inputSlots:
+  - { slot: sand, category: silica, minGrade: poor, kind: item, count: 2 }
+  - { slot: flux, category: potash, minGrade: poor, kind: item, count: 1 }
+  - { slot: lime, category: alkali, minGrade: poor, kind: item, count: 1 }
+  - { slot: colourant, category: charcoal, minGrade: poor, kind: item, count: 1 }
+toolCapabilities: []
+outputTemplate: /trade/glass/thing/amber-melt
+outputMaterial: ''
+outputApplication: tangible
+requiresHeatK: 1400
+maxHeatK: 1900
+massYield: 0.72
+difficulty: standard
+discipline: glasswork

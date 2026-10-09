@@ -193,6 +193,7 @@ export class Recipe {
     requiresHeatK: { persistent: true, spoiler: 1, spoilerName: 0 },
     holdS: { persistent: true, spoiler: 1, spoilerName: 0 },
     maxHeatK: { persistent: true, spoiler: 1, spoilerName: 0 },
+    massYield: { persistent: true, spoiler: 1, spoilerName: 0 },
     medium: { persistent: true, spoiler: 1, spoilerName: 0 },
     outputResidue: { persistent: true, spoiler: 1, spoilerName: 0 },
     outputApplication: { persistent: true, spoiler: 1, spoilerName: 0 },
@@ -272,6 +273,22 @@ export class Recipe {
    * enough without burning is not a recipe.
    */
   maxHeatK: number = 0;
+
+  /**
+   * ⭐⭐ **What fraction of the charge's summed mass comes out** — the
+   * conservation knob for a firing that MELTS rather than transforms.
+   *
+   * `0` (the stored default) = unauthored, and the firing mints the
+   * output at its template's own authored mass, byte-identical to every
+   * recipe before this one (`burn-lime` and the rest are untouched). A
+   * value in `(0, 1]` is a claim that the output's mass is the consumed
+   * charge's summed mass × this ÷ batches — so a glass batch yields ~72%
+   * of what went in (the gall and the gases are the rest) and a cullet
+   * remelt yields 1.0 (nothing is lost but the campaign's pot-iron). It
+   * exists because a remelt that minted an authored mass from any lump
+   * would counterfeit glass.
+   */
+  massYield: number = 0;
 
   /**
    * The heat-carrying medium (`water` / `fat`); empty ⇒ dry. See
@@ -458,6 +475,13 @@ export class Recipe {
         `Recipe '${r.recipeId}': 'maxHeatK' (${r.maxHeatK}) is below ` +
           `'requiresHeatK' (${r.requiresHeatK}) — a working that cannot ` +
           `be cooked hot enough without burning is not a recipe`,
+      );
+    }
+    r.massYield = num(data.massYield);
+    if (r.massYield < 0 || r.massYield > 1) {
+      throw new Error(
+        `Recipe '${r.recipeId}': 'massYield' must be in [0, 1] ` +
+          `(0 = unauthored, mint at the template mass)`,
       );
     }
     r.medium = Recipe.mediumFrom(data.medium, r.recipeId);
@@ -654,6 +678,7 @@ export class Recipe {
       requiresHeatK: this.requiresHeatK,
       holdS: this.holdS,
       maxHeatK: this.maxHeatK,
+      massYield: this.massYield,
       medium: this.medium,
       outputApplication: this.outputApplication,
       outputPortionL: this.outputPortionL,
@@ -718,6 +743,14 @@ export class Recipe {
   /** The working's heat ceiling (K); `0` ⇒ it states none. */
   getMaxHeatK(): number {
     return this.maxHeatK;
+  }
+
+  /**
+   * The fraction of the charge's summed mass the output carries; `0` ⇒
+   * unauthored (mint at the template's own mass). See {@link massYield}.
+   */
+  getMassYield(): number {
+    return this.massYield;
   }
 
   /** What the working does to the output's water state; `null` ⇒ nothing. */

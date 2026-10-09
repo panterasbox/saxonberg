@@ -1,0 +1,20 @@
+# A glass bottle — what `crack` mints from a formed `bottle` gather, which
+# sets its mass and its alloying (the sand's iron) at that moment. Its
+# COLOUR is derived from that iron, never authored here — this row carries
+# no alloying, so a bottle cloned bare is clear glass, and a blown one is
+# whatever its sand was.
+class: /trade/glass/thing/GlassBottle
+data:
+  keywords: [bottle, "glass bottle", flask]
+  shortDescription: glass bottle
+  register: indefinite
+  longDescription: >-
+    A blown bottle, the glass thinner at the shoulder where it was worked,
+    a pontil mark on the base.
+  _materialPath: /stuff/idea/material/glass/glass
+  mass: 0.4
+  category: bottle
+  interiorBulk: true
+  interiorCapacity: 0.75
+  closure: sealed
+  open: true
