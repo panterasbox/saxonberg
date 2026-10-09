@@ -483,9 +483,11 @@ real objection rather than the plausible one.
     `trade-mining`'s acts test asserts `Drivable.ts` carries no
     contributions static for exactly that reason. ⭐ Conferring one side of
     an undiagnosed collision is ADJUDICATING it, and first-come is not one
-    of the ladder's seven. What lifts it is one line on each side
-    (`verbs: [drift, drive]` there, the static here) by somebody who owns
-    both. → `affordance-verb-slate`.
+    of the ladder's seven. ✅ **DONE 2026-10-09, the lock build** — the
+    ladder resolves it at rungs 2 and 3 together (the vehicle is the
+    generative primitive; *to drift* is real mining usage), so mining's
+    view is `verbs: [drift]` and `DrivableMixin` confers the movement
+    view on `environment` + `peers`.
   - ⛔⛔ **`walk` is conferred and the LOUNGE'S OWN EXIT refuses it**, which
     is the gap one layer down. The bar's way out is *"wired imperatively
     by the Warren and not declared here"*, so it carries no authored
@@ -503,8 +505,8 @@ real objection rather than the plausible one.
     exit — an empty `media` admits the whole ground-pace family by design
     (`locomotion.md`), so the edge is being given a media list that walk
     is not in.
-  - **`lock`/`unlock` still held, per § I9 below**, and `fly` with them —
-    but all three now carry `unreachable:
+  - ✅ **`lock`/`unlock` SHIPPED 2026-10-09** (§ I9 below) — `fly` is the
+    one still held here, and it carries `unreachable:
     awaiting:base-class-narrowing-slate` on the view, so the disposition
     is a gated field rather than an absence. ⭐ `fly` is the one case
     where *afford statically, decline diegetically* does not apply: with
@@ -534,16 +536,21 @@ real objection rather than the plausible one.
   rung is a clone refusal or a catalogue-warm gate
   (`lint:reference-ideas`), which is the real fix for the *inert at
   boot* defect this repo has now hit three times.
-- ⚠ **`lock`/`unlock` over `Lock` + `presentsKey`** (I9) — the
-  reconciliation `lib/boundary/Locked.ts:15-24` asks for; the boolean
-  mixin retires with it and the file is renamed then. ⭐ **Until that
-  lands the two views stay unafforded ON PURPOSE** — this build's
-  Location pass planned to wire them and reversed itself on the Idea
-  planner's evidence (`LockController` checks no key, no credential and
-  no title, and `Locked.ts` says in terms *"Do NOT grow this into a
-  second lock system"*). **The census is the census; the disposition is
-  per verb.** → [boundary](../../subsystems/boundary.md),
-  [credential](../../subsystems/credential.md).
+- ✅ **`lock`/`unlock` over `Lock` + `presentsKey`** (I9) — **DONE
+  2026-10-09, the lock build.** ⭐ And the reconciliation this item asked
+  for turned out to be the WRONG ONE: `Locked.ts` asked to *retire* the
+  boolean, which would have deleted both verbs rather than making them
+  reachable (if every lock is a permanent keyway, nobody ever locks or
+  unlocks anything, and you can never leave your own door open for a
+  friend). The two models were each missing the other's half — a bolt
+  with no key, and a keyway with no bolt — so they COMPOSE:
+  `canPass = !isLocked() || opensFor(mover)`. `lib/boundary/Lockable.ts`
+  (renamed for its export) carries both; `MobileMixin.self` confers the
+  pair beside `open`/`close`; the three keyed Exit subclasses compose it
+  and override `getLock()` so the warren keeps the keyway. ⚠ Zero
+  content change — an empty keyway opens for nobody, so the university
+  gate stayed sealed on its own authored row.
+  → [boundary](../../subsystems/boundary.md).
 - **The unafforded twelve** (I10) — the list with the bucket each would
   take: `Mobile.self` for the door pair once keyed; the locomotion
   family and `Foldable` are `locomotion.md`'s and `slot.md`'s.

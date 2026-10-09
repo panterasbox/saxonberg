@@ -1,5 +1,7 @@
 # ⛔⛔ HELD — and this one is held on a DESIGN IN FLIGHT, which makes it
-# different from the other three and worth the lines.
+# different from the one other held view (`fly.yaml`) and worth the lines.
+# ⚠ `lock`/`unlock` were held beside these two and SHIPPED 2026-10-09;
+# only `swim` and `fly` remain.
 #
 # ⚠⚠ The reachability sweep CONFERRED this view and then reversed itself,
 # and the reversal is the right call. Everything about the gap was real:
