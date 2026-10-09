@@ -9,8 +9,22 @@
 class: /platform/idea/material/Material
 data:
   name: lubricating oil
-  keywords: [lubricating-oil, lubricant, "machine oil", grease, heavy]
-  appearance: a heavy amber oil that clings to the side of the measure
+  # ⚠⚠ The word `heavy` appears NOWHERE in this row's player-facing
+  # words, and a compound did not save it: `lint:descriptors` splits a
+  # keyword on whitespace, so `"heavy oil"` still yields the token
+  # `heavy`, which a shipped descriptor bank (`wand`) already uses. A
+  # collision is a PARSER AMBIGUITY BUG — `look at heavy` would have two
+  # answers — and ⭐ the gate fires in BOTH directions, which is the half
+  # nobody thinks to check: a new MATERIAL colliding with an existing
+  # DESCRIPTOR lands here too.
+  keywords: [lubricating-oil, lubricant, "machine oil", grease]
+  # ⚠ NOT "a heavy amber oil". `lint:descriptors` caught it: `heavy` is
+  # a word a shipped descriptor bank (`wand`) already uses, and a
+  # collision is a PARSER AMBIGUITY BUG — `look at heavy` would have two
+  # answers. ⭐ The gate fires in both directions and this is the
+  # direction nobody thinks to check: a NEW MATERIAL colliding with an
+  # existing descriptor.
+  appearance: a slow amber oil that clings to the side of the measure
   density: 900
   specificHeat: 1900
   thermalConductivity: 0.13

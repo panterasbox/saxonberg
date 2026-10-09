@@ -288,9 +288,19 @@ export default class Wellhead extends PersistableMixin(
   /** Arm the hourly reconcile. Idempotent — it disarms first. */
   public armRig(): void {
     this.disarmRig();
-    this._clockHandle = WorldClockApi.every('1h', () => {
-      void this.reconcileRig();
-    }, { host: this as unknown as Stuff });
+    // ⚠ `'1 hour'`, NOT `'1h'`. The duration grammar is words
+    // (`/^\s*(\d+)\s*(second|minute|hour|day)s?\s*$/`) and an
+    // abbreviation THROWS — which, from `onCreate`, meant the whole
+    // siting act failed with `controller-error` and the hole was never
+    // minted. Found by driving; no unit test could see it, because a
+    // fixture built with `makeStuff` never runs `onCreate`.
+    this._clockHandle = WorldClockApi.every(
+      '1 hour',
+      () => {
+        void this.reconcileRig();
+      },
+      { host: this as unknown as Stuff },
+    );
   }
 
   /** Drop the handle. Called on destruct and before re-arming. */
@@ -368,19 +378,29 @@ export default class Wellhead extends PersistableMixin(
     bank: number;
     needed: number;
   }> {
-    const bill = await this.cutBill();
-    const needed = bill?.swingsPerMetre ?? SWINGS_PER_METRE_REF;
+    let bill = await this.cutBill();
+    let needed = bill?.swingsPerMetre ?? SWINGS_PER_METRE_REF;
     if (!(swings > 0)) {
       return { deepened: false, depthM: this.depthM, bank: this.swingBank, needed };
     }
     this.swingBank += swings;
     let deepened = false;
-    while (this.swingBank >= needed) {
+    // ⚠ The bill is re-read EVERY metre, not once before the loop. A
+    // crew's banked presence can pay for twenty metres in one reconcile,
+    // and twenty metres is enough to cross out of slate and into
+    // granite — so a single reading would have charged the whole run at
+    // the price of its first yard. The ground changes under the bit, and
+    // the cost has to change with it.
+    while (bill !== null && this.swingBank >= needed) {
       this.swingBank -= needed;
       this.depthM += 1;
       deepened = true;
-      await this.logMetre(bill?.hostPath ?? '');
+      await this.logMetre(bill.hostPath);
+      // The hole stops where it will not stand open; the refusal names
+      // the remedy and the banked swings wait for the liner.
       if (await this.wantsLining()) break;
+      bill = await this.cutBill();
+      needed = bill?.swingsPerMetre ?? needed;
     }
     return { deepened, depthM: this.depthM, bank: this.swingBank, needed };
   }

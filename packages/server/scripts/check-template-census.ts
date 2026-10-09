@@ -464,6 +464,28 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
     push('lode.gangue', (lode as Record<string, unknown>).gangue);
   }
   /*
+   * ⭐⭐ A FractionSchedule's spans, in a `separation: fractions` column
+   * (the drilling build) — each span names the MATERIAL it yields.
+   *
+   * ⚠ Read here for the sharpest version of this gate's purpose. In
+   * `cuts` mode a span names no material and the schedule's scalar
+   * `productMaterial` (censused above) is the whole answer; in
+   * `fractions` mode the scalar is EMPTY by validation and these are
+   * the only citations there are. So a misspelt one is not a missing
+   * product — it is a cask stamped with a path that resolves to
+   * nothing, handed to somebody who asked for kerosene, at the
+   * completion of a pour. The scalar's censusing would have gone on
+   * reporting green over it.
+   */
+  const spans = data.fractions;
+  if (Array.isArray(spans)) {
+    for (const span of spans) {
+      if (span && typeof span === 'object') {
+        push('fractions.material', (span as Record<string, unknown>).material);
+      }
+    }
+  }
+  /*
    * ⭐⭐ The deposit's FLUID bodies (the drilling build) — each one names
    * the material that comes up it.
    *

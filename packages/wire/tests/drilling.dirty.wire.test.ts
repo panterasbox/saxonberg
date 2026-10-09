@@ -241,7 +241,15 @@ async function stockTheStore(): Promise<void> {
       //
       // `clone` is the shipped author verb for exactly this and runs on
       // the ordinary dispatch path with no jurisdiction to cross.
-      await gov.cmd(`clone ${path} --here`);
+      const out = await gov.cmd(`clone ${path} --here`);
+      // ⚠ Asserted per clone rather than inferred from the inventory at
+      // the end: a silent clone failure read as *the instrument is not
+      // in reach*, which sent two runs looking at the reading ladder
+      // instead of at the mint.
+      expect(
+        out.notes.find((n) => n.kind === 'controller-error'),
+        `clone ${path} threw: ${JSON.stringify(out.notes)}`,
+      ).toBeUndefined();
       await new Promise((r) => setTimeout(r, 250));
     }
   } finally {
@@ -598,7 +606,11 @@ suite('8. gas country — the same verbs, a different physics', () => {
     // where the message teaches nothing.
     const wrong = await say(k, 'measure head on blow');
     const reason = refusedFor(wrong);
-    if (reason !== null) expect(reason).toBe('not-a-wellhead');
+    // ⚠ Either answer is correct and the LADDER decides which: the
+    // instrument rung is resolved before the subject is, so a reader
+    // with no gauge is told about the gauge first. What must not happen
+    // is a reading.
+    expect(reason === 'not-a-wellhead' || reason === 'no-instrument').toBe(true);
   });
 });
 
