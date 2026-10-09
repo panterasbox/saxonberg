@@ -38,6 +38,19 @@ data:
   #
   # ⚠ The mint reads these positions and adds the headcount, so the seat
   # is defined ONCE. See `BoreController.site`.
+  # ⭐⭐⭐ **A bore crew starts at the beam.** The wage runs from the
+  # moment they take hold of it, whether the beam turns or not, and that
+  # is the whole of what makes a dry hole expensive rather than merely
+  # disappointing.
+  #
+  # ⚠ The kernel default is `false` — *a shift is something you choose to
+  # start* — and it is right for a chart: a press office's appointee
+  # starts nothing by being appointed. This house is the other kind, so
+  # this house says so. ⭐ It is a declaration about hiring and therefore
+  # lives on the chart, beside `positions`; it is NOT a trade mechanism,
+  # and any house that hires hands who cannot clock themselves on can set
+  # it. See employment.md § Starting work on hire.
+  startsShiftOnHire: true
   positions:
     - key: roustabout
       title: roustabout

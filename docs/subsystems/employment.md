@@ -256,6 +256,47 @@ behind an interface** (`grind` rides `mill`, `melt` rides `dip`), and a
 trade does not get a second verb because its workers happen not to be
 players.
 
+## ⭐⭐⭐ Starting work on hire — `startsShiftOnHire`
+
+`beginShift` has exactly **two** drivers, and between them they leave a
+population with no home:
+
+| population | what starts its shift |
+|---|---|
+| an authored NPC with `rosterSlots` | the roster tick, on the slot's schedule |
+| a holder who applied | `clock on`, their own act |
+| ⚠ **an NPC an employer takes on ad hoc** | **nothing** |
+
+The third one held a job and never worked a shift — employed, unpaid,
+standing wherever it was hired. It was hidden until 2026-10-09 because
+the drilling build's own `hire` controller called `beginShift` itself;
+unifying that verb into `appoint` exposed it as a kernel gap.
+
+⚠⚠ **Two attempts to close it globally each broke a shipped contract**,
+and both tests were right:
+
+- starting the shift at hire broke *being taken on does NOT put you on
+  shift* — a wage for merely existing is the AFK wage lens 6 rejects
+  (`livelihood-slate` §5.4);
+- writing the hand a rota slot broke *the roster tick leaves a clocked-on
+  applicant alone* — an applicant having **no assignment** is exactly
+  what keeps the tick off a voluntary shift.
+
+⭐ **So the house declares it.** `startsShiftOnHire` on the chart,
+default `false` (every house shipped before this date, unchanged). A bore
+crew is hired at the beam and starts at the beam, because the wage runs
+from the moment they take hold of it — that is what makes a dry hole
+expensive. A press office's appointee starts nothing by being appointed.
+Both are true and they are not the same claim.
+
+It lives on the **chart**, beside `positions` / `rosterSlots` / `call`,
+because it is a claim about *this house's hiring* — not a trade
+mechanism. Any house that hires hands who cannot clock themselves on can
+set it.
+
+⚠ A **player** is never auto-started whatever the house says. Clocking on
+is their act.
+
 ## Dismissal — the `dismiss` verb
 
 `dismiss <person> [at <organization>]` — the **employer's half of

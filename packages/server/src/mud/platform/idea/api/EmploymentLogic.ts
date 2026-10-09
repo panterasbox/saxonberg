@@ -460,76 +460,53 @@ async function hireImpl(
   );
   if (record) {
     await issueHouseCardImpl(organization, actor, positionKey);
-    await startShiftForHiredNpcImpl(organization, actor, positionKey);
+    await startWorkForHiredNpcImpl(organization, actor, positionKey);
   }
   return record;
 }
 
 /**
- * ⭐⭐⭐ **The NPC shape of being put on the rota** — the exact sibling of
- * {@link issueHouseCardImpl} below, and for the same reason: *do for an
- * NPC what a player does for themselves.*
+ * ⭐⭐⭐ **A hand taken on at a house that starts its hires** — the exact
+ * sibling of {@link issueHouseCardImpl} below, and for the same reason:
+ * *do for an NPC what a player does for themselves.*
  *
- * `beginShift` has two drivers and an ad-hoc NPC hire reaches neither.
- * The roster tick drives authored `rosterSlots`, and `clock on` drives a
- * seat somebody applied for. ⚠ So **appointing an NPC produced a hand
- * who held a job and never worked a shift** — employed, unpaid, and
- * standing wherever it was hired.
+ * ⚠⚠ Gated on the HOUSE's own `startsShiftOnHire`, default `false`, and
+ * the long version of why is on that field. The short version: an NPC an
+ * employer takes on ad hoc is a **third population** the shipped model
+ * has no driver for — the tick governs authored `rosterSlots`, `clock
+ * on` governs a seat somebody applied for, and this hand reaches
+ * neither, so it held a job and never worked a shift. Closing that
+ * globally broke a shipped contract twice over (see the field), so the
+ * house declares it: a bore crew starts at the beam, a press office's
+ * appointee does not.
  *
- * ⭐⭐⭐ **So this writes an ASSIGNMENT and does not begin a shift.** The
- * first draft called `beginShift` here and was wrong: *a shift is
- * something you choose to start* is a shipped contract with a test of
- * that name, and the reason is lens 6 — a wage for merely existing is
- * the AFK wage (`livelihood-slate` §5.4). Giving the hand a roster
- * assignment instead routes it through **the one driver every other NPC
- * already uses**, so the tick starts the shift, on the tick's schedule,
- * with no second mechanism and no contract broken.
+ * ⭐ A **player** is never started here however the house is authored.
+ * Clocking on is their act.
  *
- * ⭐ A **player** is untouched for the same reason, from the other side:
- * clocking on is their choice, and `apply` + `clock on` is their path.
- *
- * ⚠ A **rostered** NPC is untouched too, by the rule `clockImpl`'s header
- * states: the tick iterates assignments and owns anything it has one
- * for, so the two cannot fight.
- *
- * ⚠ And the hand is put WHERE THE WORK IS, by `teleport` — the primitive
- * the roster tick uses. A hand reporting for a shift is not traversing
- * exits, and making it walk would need a brain most hands deliberately
- * do not have. This arrived from the drilling build, where a roustabout
- * hired at a rig had to be at the rig for the hole to deepen at all.
+ * ⚠ Every early return SAYS SO. The version of this logic that lived in
+ * a trade pack failed silently for three drive runs — the hands stayed
+ * where they were, the work never happened, and nothing pointed at it.
  */
-async function startShiftForHiredNpcImpl(
+async function startWorkForHiredNpcImpl(
   organization: OrganizationStuff,
   actor: Stuff,
   positionKey: string,
 ): Promise<void> {
+  if (!organization.getStartsShiftOnHire()) return;
   if (PlayerApi.isAvatarStuff(actor)) return;
   if (!MixinApi.isEmployed(actor)) return;
   const path = organization.getOrganizationPath();
-  // The tick owns anything it has an assignment for.
-  const mine = new Set(
-    [actor.getIdentityPath(), actor.getTemplatePath()].filter(
-      (x): x is string => typeof x === 'string' && x.length > 0,
-    ),
-  );
-  const rostered = organization
-    .getRosterAssignments()
-    .some((a) => mine.has(a.assignee));
-  if (rostered) return;
 
   const now = WorldClockApi.getNow().rawValue();
   organization.ensureRostered(actor as EmployedActor, positionKey, now);
+  organization.beginShift(actor as EmployedActor, now);
 
-  // ⚠ Every early return says so: this failed silently for three drive
-  // runs in the build it came from — the hands stayed where they were,
-  // the work never happened, and nothing pointed here.
   // ⚠ `operatingLocations` is the BUSINESS's; a chart with no premises
-  // (a press office) has nowhere to send anybody and does not need to.
+  // has nowhere to send anybody, and the shift simply accrues where the
+  // hand stands.
   const target = MixinApi.isBusiness(organization)
     ? (organization.getOperatingLocations()[0] ?? '')
     : '';
-  // ⭐ Not a warning: a house with no premises is a chart rather than a
-  // defect. The hand is on the books and the tick will find it.
   if (target === '') return;
   if (!MixinApi.isMobile(actor) || !MixinApi.isContainable(actor)) {
     console.warn(
