@@ -18,6 +18,22 @@ data:
   # person does. What refuses wheels in this realm is the PASS, and it is
   # meant to be the only thing that does.
   wheelPassable: true
+  # ⭐⭐ The way is THE KIND THAT CLOSES, and the index says so.
+  #
+  # Whether the ford is flooded right now is the river's business and
+  # is discovered at the traverse (`FordExit.applyTraversal` refreshes
+  # from the reach's derived flow). What a ROW can honestly declare is
+  # that this crossing is not always there — which is exactly what a
+  # route plan owes the person reading it: *this way crosses the ford
+  # at Kestrel; it is not always passable.* Without it a plan would
+  # either lie by omission or the index would have to pretend to know
+  # the water level.
+  #
+  # ⚠ Required by `lint:location-graph`, by SHAPE: a kind row whose
+  # class overrides `applyTraversal` and names `blocked` must declare
+  # it. The gate names no pack class, so a tidal causeway is caught
+  # with no kernel edit.
+  conditional: true
   crossesReach: delight:mouth
   floodThresholdM3S: 12
   messageOut: "{{ mover }} splashes across the ford."

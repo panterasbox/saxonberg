@@ -160,6 +160,21 @@ adding.
 - **Value objects** — pure data + small per-instance math (`Light`,
   `Quantity`). Not Stuff. Lives in `lib/` because it's a domain
   primitive the Api layer consumes.
+  ⭐⭐ **A parameterized ALGORITHM is one of these**, and the routing
+  build added the first: `lib/location/Traversal` is a walk —
+  a frontier, a visited set, three orders and three bounds — with its
+  policy supplied by the caller's `neighbours` / `descend` / `fold`.
+  It owns no world knowledge and makes no decisions, which is what
+  keeps it a value class rather than a logic singleton: there is no
+  state to hot-reload and nothing to gate. Its three siblings
+  (`KnowledgeGraph` · `TravelProfile` · `RoutePlan`) are ordinary
+  value objects over plain data.
+  ⚠ Their import list is **gated** (`lint:graph-walks`' second check,
+  no ceiling): none of the four may import the world index, which is
+  how the evidence firewall became structural rather than a
+  convention. A value class with no reach cannot consult anything by
+  accident — and that property is also what would let the set move to
+  a client unchanged.
 - **Named value-object / vocabulary / registry modules** — the
   sanctioned home for a substrate primitive that isn't an instanceable
   `Stuff` but is still *the concept the module exists for*: a value

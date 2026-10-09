@@ -67,6 +67,7 @@
  */
 
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
+import { NavigationApi } from '@saxonberg/server/mud/api/navigation';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { CommandApi } from '@saxonberg/server/mud/api/command';
 import { AppApi } from '@saxonberg/server/mud/api/app';
@@ -83,6 +84,17 @@ import Stock from '@saxonberg/server/mud/lib/retail/Stock';
 import { Urgency } from '@saxonberg/server/mud/lib/behavior/Urgency';
 import type { TaskKind } from '@saxonberg/server/mud/lib/behavior/Urgency';
 import type { EngagementSlot } from '@saxonberg/server/mud/lib/activity/Engaged';
+
+/**
+ * ⚠ An UNATTENDED search's budget, and it is the brain's own number
+ * rather than the operator dial `route` and `journey` read. Nobody is
+ * waiting on a hand, and a hand that spent an attended budget every
+ * beat would be the cheapest way in the game to make the server think
+ * for free. The errand is genuinely cross-district (a producer's yard
+ * to a city counter), so it is not small — but it is bounded, stated,
+ * and the refusal is a hand that does not travel this beat.
+ */
+const WALK_SEARCH_BUDGET = 150;
 
 const DEFAULT_BATCH = 6;
 const DEFAULT_ASK = 10;
@@ -335,58 +347,53 @@ function positiveInt(v: unknown, fallback: number): number {
  * the hand walks the way a person without a cart walks, which is also
  * the way a player would.
  *
- * ⭐ The route comes from the transport pack's `LaneCatalogue`, reached
- * **by shape** and never by import (the `TravelNode` /
- * `AnalyzeWaterController` idiom — the mudlib does not import packs). An
- * install with no roads has a hand that simply does not travel, which is
- * the honest degradation: without the pack there is nowhere to walk.
+ * ⭐⭐ The route comes from `NavigationApi.routeBetween` — the KERNEL's
+ * router, over the world index. It used to come from the transport
+ * pack's `LaneCatalogue`, reached **by shape** through a duck-typed
+ * `planRoute`, and that was the right call while routing lived in a
+ * pack: the mudlib does not import packs. Routing is the kernel's now,
+ * so the shape test goes with it, and with it goes the hazard the
+ * distilling suite had written down — a stub catalogue matched BY
+ * SHAPE, whose comment said a drift in the signature would make this
+ * walk stop silently. A typed Api drifts loudly.
+ *
+ * ⚠ A hand walks on foot and is told so: `mode: 'walk'`. It used to
+ * plan over the `'city'` lane whatever district it was in, which was
+ * only ever right because every hand happened to work in one.
  *
  * ⚠ Bounded, and it stops on the first refused step. **Blocked means
  * blocked**: the goods stay in hand and the next beat tries again.
  * Nothing here routes around anything, because auto-routing would hide
  * the geography the road was built to make real.
  *
- * ⚠⚠ **This is the ONE non-vehicle caller of the lane router, and it is
- * deliberately not shared.** Its errand is genuinely cross-district (a
- * producer's yard to a city counter); a shop's keeper crossing its own
- * street walks AUTHORED directions instead (`stocks`), because a search
- * over a freight network to reach the building opposite is not a route,
- * it is a category error. Whether one pathfinder should serve every
- * consumer is open — docs/slates/builds/pathfinding-slate.md — and until
- * it is answered nothing promotes this out of the brain that needs it.
+ * ⚠⚠ **The directions come from the PLAN.** This used to re-derive
+ * each one by scanning `room.getExits()` for an exit whose destination
+ * matched the next node — a second, hand-written answer to a question
+ * the search had already answered, and one that silently gave up
+ * (`direction === ''` → return) whenever two exits led to the same
+ * place or the room's exit map disagreed with the lane's edge set. A
+ * `RouteLeg` carries its own `dir`, which is the whole reason the plan
+ * value object has legs rather than only nodes.
  */
 async function walkTo(hand: Hand, targetPath: string): Promise<void> {
   const here = hand.getContainer()?.getTemplatePath() ?? '';
   if (here === '' || here === targetPath) return;
 
-  const catalogue = await StuffApi.singleton<Stuff>(
-    '/system/transport/idea/LaneCatalogue',
-  ).catch(() => null);
-  const planner = catalogue as unknown as {
-    planRoute?: (
-      from: string,
-      to: string,
-      lane: string,
-    ) => Promise<{ nodes: readonly string[] } | null>;
-  } | null;
-  if (!planner || typeof planner.planRoute !== 'function') return;
+  const outcome = await NavigationApi.routeBetween(
+    here,
+    targetPath,
+    { mode: 'walk', medium: 'ground' },
+    {},
+    WALK_SEARCH_BUDGET,
+  );
+  if (!outcome.ok) return;
+  const plan = outcome.plans[0];
+  if (!plan) return;
 
-  const route = await planner.planRoute(here, targetPath, 'city');
-  if (!route) return;
-
-  for (let i = 0; i + 1 < route.nodes.length; i += 1) {
-    const room = hand.getContainer();
-    if (!room || !MixinApi.isExitable(room)) return;
-    const next = route.nodes[i + 1]!;
-    let direction = '';
-    for (const [dir, exit] of room.getExits().entries()) {
-      if (exit.getDestinationTemplatePath() === next) {
-        direction = dir;
-        break;
-      }
-    }
-    if (direction === '') return;
-    await hand.forceCommand(`go ${direction}`);
-    if (hand.getContainer()?.getTemplatePath() !== next) return;
+  for (const leg of plan.legs) {
+    await hand.forceCommand(`go ${leg.dir}`);
+    // ⚠ Stops on the first step that did not land. The plan is a
+    // hypothesis; the ground has the last word.
+    if (hand.getContainer()?.getTemplatePath() !== leg.to) return;
   }
 }

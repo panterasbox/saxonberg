@@ -40,6 +40,7 @@ import type { Engaged } from '@saxonberg/server/mud/lib/activity/Engaged';
 import { OrganismMixin } from '@saxonberg/server/mud/lib/species/Organism';
 import LaneCatalogue from '../idea/LaneCatalogue';
 import { Journey } from '../lib/journey/Journey';
+import { Route } from '../lib/journey/Route';
 import HaulageRig from '../thing/HaulageRig';
 import {
   corridor,
@@ -122,7 +123,15 @@ async function start(
   ctx: Rig,
   to = P(4),
 ): Promise<Journey> {
-  const route = (await ctx.cat.planRoute(P(0), to, 'road'))!;
+  // ⭐ Built with `Route.computed` directly — the Journey never cared
+  // who made its Route (AC15n: nothing downstream may tell authored
+  // from computed), and routing is `NavigationApi.routeBetween`'s now.
+  const nodes: string[] = [];
+  for (let i = 0; ; i += 1) {
+    nodes.push(P(i));
+    if (P(i) === to) break;
+  }
+  const route = Route.computed('road', nodes, nodes);
   const journey = new Journey({
     driver: ctx.driver as unknown as Stuff & Engaged,
     vehicle: ctx.rig as unknown as Stuff,

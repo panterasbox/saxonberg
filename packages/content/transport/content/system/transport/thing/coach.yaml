@@ -21,6 +21,12 @@
 # journey is the driver's `hands`.
 class: /system/transport/thing/Coach
 data:
+  # ⭐⭐ How this vehicle travels. Until the routing build the LANE knew
+  # and the vehicle did not, so `journey ... via estuary` with a wagon
+  # hitched made the wagon SAIL and it died at the first leg.
+  # A coach is a road vehicle.
+  # It cannot take the pass, which refuses wheels
+  travelMode: wheeled
   shortDescription: road coach
   keywords: [coach, carriage, cab, road]
   register: indefinite

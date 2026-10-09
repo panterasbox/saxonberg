@@ -68,11 +68,28 @@ export type Percept = unknown;
  * Shared propagation-walk constants for the `'field'` modalities
  * (vision, smell, sound, and future ESP). Vision was the original
  * exporter — the walk relocated from the retired `LightApi` —
- * but the constants are substrate-shared, not vision-owned. Per
- * the requirements doc's "Per-modality walks, not a generic
- * walker" decision, the modalities each implement their own walk
- * body; what they share is the depth-budget + per-exit attenuation
- * tuning, which lives here on the substrate's neutral home.
+ * but the constants are substrate-shared, not vision-owned.
+ *
+ * ⭐⭐ **The prior decision here, narrowed (2026-10-08).** This comment
+ * used to record *"per-modality walks, not a generic walker"* and the
+ * modalities each carried their own walk body. That decision was
+ * right about the half it was defending and wrong about the half it
+ * was conceding: **the accumulators genuinely are not shareable** —
+ * light caps all its openings as one (`mergeCapped`), sound and smell
+ * attenuate per child, smell's dominant identity turns on walk order,
+ * and the gather pushes a level down and emits pre-order — but the
+ * FRONTIER was identical in all four, and four copies of a frontier
+ * is four behaviours. All four now walk
+ * `lib/location/Traversal.ts` and keep their own accumulator; the
+ * narrowed decision is *one skeleton, four accumulators.* What is
+ * still shared here is the depth budget and the per-exit attenuation
+ * tuning, on the substrate's neutral home.
+ *
+ * ⚠ The order-dependence that came with the copies is PRESERVED
+ * deliberately, not inherited by accident — it is observable as light,
+ * dB and printed compass direction, and
+ * `scripts/__tests__/golden/perception-characterization.json` holds
+ * every place in the realm to it.
  *
  * `MAX_HOPS = 2` — maximum recursion depth. Smell / sound / vision
  * each guard with `if (depth > MAX_HOPS) return acc`.
@@ -85,7 +102,8 @@ export type Percept = unknown;
  * A per-modality override knob hasn't earned its place yet; if a
  * future modality needs different depth or attenuation, add a
  * `maxHops()` / `exitTau()` accessor on the modality singleton with
- * these as defaults.
+ * these as defaults — and note that `Traversal`'s `bound.hops` is
+ * already per-walk, so the knob is a read, not a mechanism.
  */
 export const MAX_HOPS = 2;
 export const EXIT_TAU = 1.0;

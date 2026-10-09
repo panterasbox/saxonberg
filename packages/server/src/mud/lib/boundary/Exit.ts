@@ -167,6 +167,11 @@ export interface ExitOptions {
    */
   wheelPassable?: boolean;
   /**
+   * ⭐⭐ Is this the KIND of way that closes? See
+   * {@link Exit.isConditional}.
+   */
+  conditional?: boolean;
+  /**
    * Game minutes for ONE baseline traverse of this edge — unloaded, in
    * walk mode. `null` (the default) means *use the corridor default*,
    * the `transport.defaultEdgeMinutes` AppSetting.
@@ -229,6 +234,7 @@ export default class Exit extends ConcealableMixin(Idea) {
     messageOut: { persistent: true },
     media: { persistent: true },
     wheelPassable: { persistent: true },
+    _conditional: { persistent: true },
     _edgeMinutes: { persistent: true },
     blocked: { persistent: true },
     muffled: { persistent: true },
@@ -565,6 +571,48 @@ export default class Exit extends ConcealableMixin(Idea) {
   }
 
   /**
+   * ⭐⭐ **Is this the kind of way that sometimes is not there?**
+   *
+   * A ford that floods, a causeway the tide covers. ⚠ This does NOT
+   * say the way is closed right now — `isBlocked()` says that, and a
+   * conditional exit refreshes it at the traverse, which is where a
+   * river belongs. This says the way is *the kind that closes*, which
+   * is a fact about the kind and therefore authorable on the kind row.
+   *
+   * ⭐ It lives on the base `Exit`, not on the transport pack's
+   * `FordExit`, for two reasons: the projection and the Cartographer
+   * both read it through the base shape, and **a second conditional
+   * class — a tidal causeway — then needs no kernel edit**. Every exit
+   * can answer *am I the kind that closes*; the honest answer for
+   * almost all of them is no.
+   *
+   * What reads it: the `location_graph` projection (stamping
+   * `StoredEdge.conditional`), so a route plan can carry *this way
+   * crosses the ford; it is not always passable* as a stated
+   * assumption; and `CartographerMixin.recordTraversal`, so your own
+   * map remembers that you saw a ford.
+   */
+  /*
+   * ⚠ Underscored, where `VehicularMixin.travelMode` deliberately is
+   * not, and the asymmetry is a real distinction rather than taste.
+   * A vehicle ROW is applied by FIELD NAME (the `TemplateApplier`
+   * matches `travelMode:` to `setTravelMode`), so an underscored key
+   * would read to `lint:instanceable` as a key the applier discards
+   * silently. An exit is never built that way: `_applyExitSpec` binds
+   * an `ExitInstruction` through `bind(opts)`, so the row key and the
+   * field name never have to agree — which is why `_edgeMinutes` and
+   * `_destination` carry the prefix too.
+   */
+  protected _conditional: boolean = false;
+
+  public isConditional(): boolean {
+    return this._conditional;
+  }
+  public setConditional(value: boolean): void {
+    this._conditional = value;
+  }
+
+  /**
    * Game minutes for one baseline (unloaded, walk-mode) traverse of
    * this edge; `null` → the `transport.defaultEdgeMinutes` corridor
    * default. Read by the transport pack's Journey and by nothing in the
@@ -714,6 +762,7 @@ export default class Exit extends ConcealableMixin(Idea) {
     // default preserves backcompat for callers that don't pass it.
     this.setMedia(opts.media ?? []);
     this._wheelPassable = opts.wheelPassable ?? true;
+    this._conditional = opts.conditional ?? false;
     this.setEdgeMinutes(opts.edgeMinutes ?? null);
   }
 

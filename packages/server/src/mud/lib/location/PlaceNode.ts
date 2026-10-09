@@ -55,6 +55,35 @@ export interface StoredEdge extends GraphEdge {
   minutes?: number | null;
   /** The exit-kind row this edge is installed from. */
   kind?: string | null;
+  /**
+   * The locomotion MEDIA this exit admits (`['ground']`, `['water']`).
+   * Empty or absent means the ground pace family, which is what
+   * `Exit.allowsMode` means by an empty list.
+   *
+   * ⚠⚠ Without this the index could **cost** a wagon's route but not
+   * say whether a wagon may take it — the whole reason a lane had to
+   * be compiled by walking live exits instead of read off the
+   * projection.
+   */
+  media?: string[];
+  /** `false` iff the exit refuses wheels. Absent means it admits them. */
+  wheelPassable?: boolean;
+  /**
+   * ⭐⭐ Is this the KIND of way that closes?
+   *
+   * The index is a projection of authored rows, so whether the ford at
+   * Kestrel is flooded *right now* cannot be in it — that is discovered
+   * at the traverse, and rightly. What the row does know is that this
+   * way is **the kind that sometimes is not there**, which is exactly
+   * what a plan owes the person reading it: *this way crosses the ford;
+   * it is not always passable.*
+   *
+   * ⭐ It is also the first place in this game where a fast uncertain
+   * way can be weighed against a slow sure one, which makes it a RISK
+   * axis rather than a cost one. Nobody designed that; it fell out of
+   * projecting one flag.
+   */
+  conditional?: boolean;
 }
 
 export class PlaceNode extends Document {

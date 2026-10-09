@@ -22,6 +22,8 @@ import type { Container } from '../../../lib/spatial/Container';
 import { Smell, type SmellSourceRef, SMELL_SOURCE_CAP } from '../../../lib/perception/Smell';
 import { MAX_HOPS, EXIT_TAU } from '../../../lib/perception/Modality';
 import { MixinApi } from '../../../api/mixin';
+import { Traversal } from '../../../lib/location/Traversal';
+import type { Leg } from '../../../lib/location/Traversal';
 import { StuffApi } from '../../../api/stuff';
 import { PerceptionApi } from '../../../api/perception';
 import { BoundaryAnchor } from '../../../lib/boundary/BoundaryAnchor';
@@ -94,28 +96,59 @@ function findSmellConduit(boundary: Boundary): SmellConduit | null {
  * room explicitly tagged `_atmosphere = 'vacuum'` (the only v1
  * blocker) is the test surface.
  */
-function inlineAtmosphere(loc: Stuff & Container): string | null {
-  if (!MixinApi.isAtmospheric(loc)) return null;
-  const atmos = (loc as unknown as { _atmosphere?: string | null })._atmosphere;
-  return typeof atmos === 'string' && atmos.length > 0 ? atmos : null;
-}
-
+/**
+ * ⭐ One copy, on `AtmosphericMixin`. This helper was
+ * character-for-character identical in `SoundModality` and
+ * `AudienceGather`; see the method for the v1 limitation it carries
+ * (an inherited vacuum does not block — only an authored one does).
+ */
 function atmosphereBlocks(loc: Stuff & Container): boolean {
-  return inlineAtmosphere(loc) === 'vacuum';
+  return MixinApi.isAtmospheric(loc) ? loc.atmosphereBlocks() : false;
 }
 
-function walkAt(
-  loc: Stuff & Container,
-  depth: number,
-  visited: Set<string>,
-): ConcentrationAccumulator {
+/**
+ * ⭐ The legs out of `loc`, in the order this walk has always taken
+ * them: boundary conduits (d), then doorless obvious exits (e).
+ *
+ * ⚠⚠ This leg list was **character-for-character identical** to
+ * `SoundModality`'s, and the two walks STILL differ — smell's
+ * `finalize` picks a dominant identity by argmax with a strict `>`,
+ * so ties go to **walk order**. That is exactly why the skeleton is
+ * shared and the accumulators are not: the duplication was in the
+ * machinery, and the difference that matters is three functions down.
+ */
+function smellLegs(loc: Stuff & Container): Array<Leg<Stuff & Container>> {
+  const out: Array<Leg<Stuff & Container>> = [];
+
+  if (MixinApi.isAdornable(loc)) {
+    for (const fx of loc.getFixtures()) {
+      if (!BoundaryAnchor.is(fx)) continue;
+      const anchor = fx;
+      const boundary = anchor.getBoundary();
+      if (!boundary) continue;
+      const otherHost = anchor.getOtherHost();
+      if (!otherHost) continue;
+      const conduit = findSmellConduit(boundary);
+      if (!conduit) continue;
+      const otherSide = boundary.getOtherSide(anchor);
+      const tau = conduit.transmissivity(otherSide, anchor.getSide());
+      if (!(tau > 0)) continue;
+      out.push({ node: otherHost as unknown as Stuff & Container, tau });
+    }
+  }
+
+  if (MixinApi.isExitable(loc)) {
+    for (const { dest } of loc.getObviousNeighbours()) {
+      out.push({ node: dest, tau: EXIT_TAU });
+    }
+  }
+
+  return out;
+}
+
+/** Everything `loc` emits itself — legs (b) contents, (c) fixtures. */
+function ownSmell(loc: Stuff & Container): ConcentrationAccumulator {
   const acc = newAccumulator();
-  if (depth > MAX_HOPS) return acc;
-  const id = (loc as unknown as Stuff).stuffId;
-  if (visited.has(id)) return acc;
-  visited.add(id);
-  // (a) Vacuum blocks: no signal at all in a vacuum scope.
-  if (atmosphereBlocks(loc)) return acc;
 
   // (b) Contents-side emitters.
   for (const item of loc.getContents()) {
@@ -129,8 +162,8 @@ function walkAt(
     });
   }
 
+  // (c) Fixture-side emitters.
   if (MixinApi.isAdornable(loc)) {
-    // (c) Fixture-side emitters.
     for (const fx of loc.getFixtureSmellSources()) {
       if (!MixinApi.isSmellSource(fx)) continue;
       const conc = fx.getEmittedConcentration().rawValue();
@@ -141,49 +174,40 @@ function walkAt(
         identity: fx.getOdorIdentity(),
       });
     }
-
-    // (d) Cross-boundary propagation.
-    for (const fx of loc.getFixtures()) {
-      if (!BoundaryAnchor.is(fx)) continue;
-      const anchor = fx;
-      const boundary = anchor.getBoundary();
-      if (!boundary) continue;
-      const otherHost = anchor.getOtherHost();
-      if (!otherHost) continue;
-      const conduit = findSmellConduit(boundary);
-      if (!conduit) continue;
-      const otherSide = boundary.getOtherSide(anchor);
-      const tau = conduit.transmissivity(otherSide, anchor.getSide());
-      if (!(tau > 0)) continue;
-      const sub = walkAt(
-        otherHost as unknown as Stuff & Container,
-        depth + 1,
-        visited,
-      );
-      mergeAttenuated(acc, sub, tau);
-    }
-  }
-
-  // (e) Cross-exit propagation. Doored exits skip — boundary walk
-  // handles those.
-  if (MixinApi.isExitable(loc)) {
-    for (const exit of loc.getObviousExits()) {
-      if (exit.getDoor()) continue;
-      const destPath = exit.getDestinationTemplatePath();
-      // Existence, not identity — a Warren hub exit names a template with many live clones (see VisionModality).
-      if (destPath && StuffApi.findAllByTemplatePath(destPath).length === 0) continue;
-      let dest: Stuff & Container;
-      try {
-        dest = exit.getDestination();
-      } catch {
-        continue;
-      }
-      const sub = walkAt(dest, depth + 1, visited);
-      mergeAttenuated(acc, sub, EXIT_TAU);
-    }
   }
 
   return acc;
+}
+
+/**
+ * The olfactory walk, on the shared skeleton
+ * (`lib/location/Traversal.ts` — *one traversal, or none*).
+ *
+ * `enter` returns the empty accumulator in a vacuum — leg (a), *no
+ * signal at all in a vacuum scope* — and the node is still entered and
+ * marked, exactly as before.
+ */
+function walkAt(
+  loc: Stuff & Container,
+  depth: number,
+  visited: Set<string>,
+): ConcentrationAccumulator {
+  const walk = new Traversal<Stuff & Container, ConcentrationAccumulator, void>({
+    order: 'depth-first',
+    keyOf: (node) => (node as unknown as Stuff).stuffId,
+    neighbours: smellLegs,
+    bound: { hops: MAX_HOPS },
+    visited,
+    enter: (node) => (atmosphereBlocks(node) ? newAccumulator() : undefined),
+    fold: (node, _d, _carry, children) => {
+      const acc = ownSmell(node);
+      for (const { leg, result } of children) {
+        mergeAttenuated(acc, result, leg.tau ?? EXIT_TAU);
+      }
+      return acc;
+    },
+  });
+  return walk.walk(loc, { carry: undefined, depth }).result;
 }
 
 function finalize(acc: ConcentrationAccumulator): Smell {

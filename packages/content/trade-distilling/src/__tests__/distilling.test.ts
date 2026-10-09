@@ -18,6 +18,7 @@
 
 import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { NavigationApi } from '@saxonberg/server/mud/api/navigation';
 import { readdirSync, readFileSync, existsSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { join } from 'path';
@@ -70,7 +71,6 @@ function fillLikeAClone(bottle: { setBulkMaterial: (a: string, m: never) => void
   bottle.setBulkAmount('interior', Quantity.of(litres, 'L'));
 }
 import { CommandDefinition } from '@saxonberg/server/mud/lib/command/CommandDefinition';
-import { Idea } from '@saxonberg/server/mud/lib/stuff/Idea';
 import Location from '@saxonberg/server/mud/lib/stuff/Location';
 import { ExitableMixin } from '@saxonberg/server/mud/lib/boundary/Exitable';
 import { brain as consigns } from '@saxonberg/content-trade-shopkeeping/src/behavior/consigns';
@@ -131,7 +131,6 @@ const COUNTER_ROOM = '/stuff/test/distilling/cash-and-carry';
  * If the shape ever drifts, the walk silently stops happening, which is
  * exactly what these two tests would then catch.
  */
-const LANE_CATALOGUE = '/system/transport/idea/LaneCatalogue';
 
 /** A room with doors — the base `Location` is not `Exitable`, and the
  * shipped rooms this fixture stands for (`SingletonCartesianLocation`)
@@ -140,20 +139,19 @@ class TestRoom extends ExitableMixin(Location) {
   static _mixinName = 'TestRoom';
 }
 
-/** A stand-in for the transport pack's `LaneCatalogue` — the two-room
- * route this fixture needs, and nothing else. */
-class TestLaneCatalogue extends Idea {
-  static _mixinName = 'TestLaneCatalogue';
-  async planRoute(
-    from: string,
-    to: string,
-  ): Promise<{ nodes: readonly string[] } | null> {
-    const known = [FLOOR_ROOM, COUNTER_ROOM];
-    return known.includes(from) && known.includes(to) && from !== to
-      ? { nodes: [from, to] }
-      : null;
-  }
-}
+/*
+ * ⭐⭐ **The stub catalogue is gone, and good riddance.** This fixture
+ * carried a `TestLaneCatalogue extends Idea` with a two-parameter
+ * `planRoute`, matched by the brain BY SHAPE — and its own comment
+ * said what the hazard was: a drift in that signature would make the
+ * hand's walk stop **silently**. The shape test existed because
+ * routing lived in a pack and the mudlib does not import packs.
+ *
+ * Routing is the kernel's now, so the brain calls
+ * `NavigationApi.routeBetween` and this fixture spies it: a TYPED seam
+ * that drifts loudly, which is the fix for the hazard the stub
+ * documented rather than solved.
+ */
 
 /**
  * A real NPC rung rather than a synthetic host — an `Extra` is the
@@ -455,7 +453,39 @@ describe('trade-distilling — the outfit consigns as itself, and the house card
     await counterRoom.applyExits({
       back: { destination: FLOOR_ROOM, media: ['ground'], edgeMinutes: 4 },
     });
-    makeStuffAtPath(() => new TestLaneCatalogue(), LANE_CATALOGUE);
+    // The two-room plan this fixture needs, and nothing else. ⚠ Typed:
+    // a change to `routeBetween`'s shape fails to compile here instead
+    // of quietly answering `undefined` and stranding the hand.
+    vi.spyOn(NavigationApi, 'routeBetween').mockImplementation(
+      async (from: string, to: string) => {
+        const known = [FLOOR_ROOM, COUNTER_ROOM];
+        if (!known.includes(from) || !known.includes(to) || from === to) {
+          return { ok: false, reason: 'no-way', expanded: 2 };
+        }
+        return {
+          ok: true,
+          expanded: 2,
+          plans: [
+            {
+              source: 'world',
+              profile: { mode: 'walk', medium: 'ground' },
+              nodes: [from, to],
+              legs: [
+                {
+                  from,
+                  to,
+                  dir: from === FLOOR_ROOM ? 'out' : 'back',
+                  minutes: 4,
+                  conditional: false,
+                },
+              ],
+              cost: { minutes: 4, legs: 1, conditional: 0, unmeasured: 0 },
+              assumptions: [],
+            },
+          ],
+        };
+      },
+    );
     counter = makeStuffAtPath(() => {
       const s = new Stock();
       s.stockLines = [];

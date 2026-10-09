@@ -422,6 +422,12 @@ export const AppSettingKeys = {
    */
   transportDefaultEdgeMinutes: "transport.defaultEdgeMinutes",
   /**
+   * ⭐ How many places an ATTENDED search may enter — a person typing
+   * `route` or `journey`. A PERFORMANCE bound, never a knowledge one:
+   * what a character knows of the world is its author's to declare.
+   */
+  navigationAttendedSearchBudget: "navigation.attendedSearchBudget",
+  /**
    * Transport — the beat-interval multiplier for a rig loaded to
    * capacity (1.0 empty, interpolated on the load fraction). The one
    * dial that makes a heavy wagon genuinely slower.
