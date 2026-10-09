@@ -104,6 +104,25 @@ base class *deliberately* (*"height above datum is a fact about a region
 of the map"*) and the Kestrel's headwaters are authored at **1400 m**;
 per-place latitude *"rides celestial's deferred planetary anchor."*
 
+> ⚠⚠ **CORRECTED 2026-10-08 — that last clause was quoted from a doc
+> sentence rather than read out of the code, and it is false.** Every
+> celestial function is **already latitude-parameterized**
+> (`solarAltitudeDeg(profile, latitudeDegrees, t)` and ~14 siblings), and
+> `sunriseHourAngleDeg` **already returns `'polar-day' | 'polar-night'`**
+> with a comment saying *"at 66.5° and beyond, both genuinely happen."*
+> `CAMPUS_LATITUDE = 42` is a **hardcoded argument**, not an absent
+> model, so per-place latitude is a field — the shape `Zone.elevation`
+> already is.
+>
+> ⛔ **And the gift below must not be read as a reason to skip latitude.**
+> **Elevation on an expanse is zero by definition**, so the lapse term
+> contributes nothing anywhere a ship can go: an altitude-only climate
+> **cannot reach whaling**, which is the trade this programme is ordered
+> toward. Altitude is a legitimate *shortcut for ice* and the wrong
+> *axis for the realm*. See
+> [climate-slate](./climate-slate.md) § *Latitude is a hardcoded
+> argument*.
+
 ⭐⭐⭐ **So ice can ship on altitude alone** — a tarn high on the
 headwaters freezes while the lowland does not. **The mountain is the ice
 house**, and it is the historically right answer anyway: Mediterranean
