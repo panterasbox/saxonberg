@@ -35,9 +35,9 @@ materials-response all shipped, which made the name actively misleading.
 
 <!-- BEGIN GENERATED — ./tools/slate-index -->
 
-**281 slates.** 69 greenfield · 96 continuations · 60 waves · 56 tails.
+**282 slates.** 70 greenfield · 96 continuations · 60 waves · 56 tails.
 
-## ⭐ Greenfield — nothing shipped yet (69)
+## ⭐ Greenfield — nothing shipped yet (70)
 
 Pick from here for a clean cycle with no existing substrate to
 respect.
@@ -89,6 +89,7 @@ respect.
 | [map](./builds/map-slate.md) | the SVG grid + up/down corner glyphs + the pinned card · the |
 | [mind](./builds/mind-slate.md) | the equanimity Reserve + the stress equilibrium (the deferred `traits-stress` build named in trait.md) · the start/stop axis on `AbortReason` · emotes as evidence about the ACTOR (rate · range … |
 | [mirror](./builds/mirror-slate.md) | the inbound assertion channel · what is admissible (the INTRINSIC/SOCIAL firewall — condition, never character) · claim, corroboration and decay · the density threshold … |
+| [navigable-water](./builds/navigable-water-slate.md) | the place/passage distinction on a water node · the `LocationZoneMixin` decomposition that lets an **`Expanse`** exist · a **water biome branch** (surface + submerged) · ⭐⭐⭐ **a reach's own character** (gradient, bed, obstruction — the Deliverance gap) … |
 | [notification](./builds/notification-slate.md) | the subject-keyed event · the substrate-owned prose templates (not a second bus) · the durable subscription (`PathTrie` routing) · derive-on-read delivery + the cursor/dismissal read state … |
 | [odometer](./builds/odometer-slate.md) | the counter roster (editorial, chosen against observed play) + the authoring surface (Q1) · the subject-scoped derive over chronicle/participation/advancement + the projection map (Q2) + whether participation shares the store (Q5) · the aggregate headline + its weighting (Q4) · milestones → recognition via belief (Q3) … |
 | [optics](./builds/optics-slate.md) | the derivable power model (focal length from index × curvature) · the grind as the shaping act · **Half A** additive detail instruments (loupe/microscope/telescope/burning-glass) · **Half B** visual acuity as a NUMERIC perception modifier + the corrective lens … |
