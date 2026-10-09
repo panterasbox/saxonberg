@@ -731,6 +731,38 @@ the slate wants. The refinery row ships one `direction: disposal` outfall.
 ⚠ This is the plan's one reach into a system pack beyond ground; see
 Risks §5 for the user's call.
 
+**D16 · The drive's wording is amended to the shipped vocabulary, and no
+geometry is reopened.** Risks §1–§4 are four places the drive names
+something the code does not do, and all four are wording: step 1 is
+`look` (`survey` is the holding mirror), step 3's second instrument read
+is `measure structure` (`measure dip` is `null` from the surface by the
+mining build's own geometry and this build does not reopen it), step 15
+is `fill <sealed vessel> from wellhead` (`drain` is mining's room-bound
+working verb; only its refusal sentence transfers), step 21 is `measure
+head`, and step 24 is the lantern plus the civic fuel store, which takes
+the kerosene fraction by the `lamp-oil` tag with nothing changed.
+Amended in the requirements doc at build time, each with a ⚠ note saying
+what it was and why. **What decided it:** lens 1 — the ground's geometry
+has a derivable right answer that the mining build already derived, and
+changing it to make a sentence true would make the world less derivable,
+not more.
+
+**D17 · The river leg is DEFERRED; W-C3 ships store and flare only.**
+Risks §5 was left as the user's call between a `Conduit` sump plus a new
+`'hydrocarbon'` contaminant kind, and deferring. Deferred — the standing
+rule is that **a trade build never solves a cross-cutting capability**,
+and a new member of the water system's contaminant vocabulary plus a new
+derived-load path on `Conduit` is that by shape, whatever its size. The
+two disposal routes that need **no code at all** ship (a volatile in a
+cask is a fire risk by its own authored fields; `fill flare from cask;
+light flare` burns it visibly for nothing), the `'hydrocarbon'` kind and
+the sump go to the watershed slate beside *a dumped liquid as a discharge
+from any shore*, and **AC 9's dump leg is recorded unmet** in the
+requirements rather than quietly dropped. W-C3 therefore touches no pack
+outside `trade-fuel`, which leaves this build's reach exactly ground +
+kernel + its own pack. **What decided it:** the standing constraint, not
+a lens.
+
 ---
 
 ## ⭐⭐ Host placement
@@ -748,7 +780,7 @@ Risks §5 for the user's call.
 | `StructureReading` / `HeadReading` rows + classes | `/trade/drilling/idea/reading/{structure,head}` | two channels, warmed by the catalogue by infix; the platform names neither. |
 | `separation` + `FractionSpec.material` | `lib/fractionation/FractionSchedule.ts` (kernel) | every schedule declares its kind, default `cuts`; every shipped row is byte-identical. The `fractions` branches of the three seams live in `Fractionating.ts` beside the `cuts` ones. |
 | `Oven.fuelSlot()` override | `platform/thing/Oven.ts` (kernel) | every Oven may be fed by a sealed gas vessel placed on it — true of an oven, and needs no guard. ⛔ Not on `Firebox` (the Retort's placed items are products). ⛔ Not a new `GasOven` class (one row toggles it by `placements: [on]`). |
-| `Conduit` sump + `'hydrocarbon'` kind | `packages/content/water/src/thing/Conduit.ts` | a disposal conduit's load may derive from what is poured into it; authored `dischargeLoadPerSecond` stays the default when no sump is authored. |
+| ~~`Conduit` sump + `'hydrocarbon'` kind~~ | ⛔ **withdrawn by D17** — deferred to the watershed slate; this build touches no water-pack file. |
 | crude + four fraction materials; `refinery.yaml`; `flare.yaml`; `crude.yaml` schedule; `oil-cask` mass | **trade-fuel** (`/stuff/idea/material/bulk/*` shipped by fuel, rows under `/trade/fuel/`) | fuel owns oil and its products (the requirements' placement). Kerosene **is** the shipped `lamp-oil` material — the fraction names it, and the lamp, the store and the civic bill need nothing. |
 | `paraffin-wax` material (`tags: [… candle-stock]`) | trade-fuel ships it to the commons | the candle's third wax is a tag; chandlery is untouched. |
 | salt spring, gas flat, seep hollow, dry rise rooms + props; four `surfaceWorkings` entries; Ferrow `fluids:`; two roustabout rows | **rejection** (no `src/`) | a second well town is rows and a place. |
@@ -1000,13 +1032,18 @@ runs **once** before the MR opens and once at `/finalize`.
   with the kerosene fraction.
 - Acceptance: drive steps 20, 23–26.
 
-#### W-C3 · The remainder — `build(drilling W-C3): store it, flare it, or send it down the pipe`
-- Water (D15): `Conduit` sump + `'hydrocarbon'` + the derived
-  `dischargeLoad`; `oilworks/thing/outfall.yaml`.
-- Tests (water): a sump with gasoline discharges; an empty one answers the
-  authored figure; `contaminationAt` downstream rises with no sensory
-  detail on the reach.
-- Acceptance: drive steps 27–28.
+#### W-C3 · The remainder — `build(drilling W-C3): store it or flare it; the river leg is deferred`
+- **Revised by D17.** No water-pack change. `thing/flare.yaml` ships in
+  W-C2 with the rest of trade-fuel's rows; this wave is the **honesty**
+  wave: the flare's authored light/burn fields (`lint:light-sources`),
+  the volatile materials' `autoignitionTemperature`, and the line on the
+  watershed slate recording the sump + `'hydrocarbon'` kind as the
+  deferred half.
+- Tests (trade-fuel): the flare row warms and lights off a cask of
+  gasoline; a cask of gasoline standing in a room reports its own fire
+  risk from its material fields; no stock line anywhere names gasoline.
+- Acceptance: drive step 27 (store + flare legs), step 28. ⚠ The dump
+  leg of step 27 and of AC 9 is recorded unmet in the requirements.
 
 #### W-C4 · The drive and the docs — `drive(drilling): <what driving found>` + `docs(drilling): drilling.md, ground/fractionation/fire/employment/water notes`
 - Wire file complete (28 steps); `docs/subsystems/drilling.md` new;
@@ -1063,7 +1100,7 @@ and a Reading row whose class does not extend `Reading` warms as nothing.
 | 6 the hearth on the bore's gas, cordwood untouched | W-B1, W-B2 | the bed unchanged while coupled |
 | 7 pressure falls across visits; the owner decides | W-B1, W-C1 | `head` monotone; `dismiss` is the decision; no notice ever fires |
 | 8 kerosene in a lamp, paraffin in a candle, by hand | W-C2 | the lantern burns the kerosene fraction; the dip matches `candle-stock` |
-| 9 something nobody buys; every disposal visible | W-C2, W-C3 | no stock line names gasoline; the flare's light; the outfall's contamination |
+| 9 something nobody buys; every disposal visible | W-C2, W-C3 | no stock line names gasoline; the cask's own fire risk; the flare's light. ⚠ The **dump** leg is unmet by D17 and amended in the requirements |
 | 10 owner's geology, crew's labour | W-A3, W-A4, W-A5 | two transcripts after one bore |
 | 11 a second bore is rows | W-A2, W-B1, W-C1 | four sites, zero code in `rejection` |
 | 12 same seed, same answer | W-A1 | the determinism test across two processes |
@@ -1176,8 +1213,10 @@ Nothing unmapped.
   copy exists now; the sweep is `trade-mining`'s (D3).
 - **Dip from the surface** — Risks §1; a `Deposit` decision the mining
   build made and this one leaves.
-- **A dumped liquid as a discharge from any shore** — the cross-cutting
-  half D15 does not solve → watershed slate.
+- **A dumped liquid as a discharge from any shore** — the whole of it now
+  (D17), not just the general half: the `Conduit` sump, the derived
+  `dischargeLoad` and the `'hydrocarbon'` contaminant kind → watershed
+  slate.
 - **Secondary recovery; `cap`/`plug`** → drilling-slate's tail. An
   uncapped well leaks (W-B1) and nothing caps it — the liability the
   polity gets to price.

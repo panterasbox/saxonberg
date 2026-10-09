@@ -343,13 +343,20 @@ otherwise.
 
 **Stage A — brine**
 
-1. Stand in Rejection and `survey`. See the place reported, including
-   that there is a **salt spring** on it.
+1. Stand in Rejection and `look`. See the place reported, including
+   that there is a **salt spring** on it. (⚠ Amended at build time:
+   `survey` is the holding mirror — shell and upkeep — and says
+   *nothing here to take stock of* on open ground. The free evidence is
+   a prop the room shows.)
 2. `analyze ground`. See a bracketed read of the column, **including a
    salt band at depth**, with the bracket visibly wider the deeper it
    reports.
-3. `measure strike` and `measure dip` with the surveyor's instrument.
-   See two numbers tighter than the eye's, and the bracket narrow.
+3. `measure strike` with the surveyor's instrument, then `measure
+   structure`. See numbers tighter than the eye's, and the bracket
+   narrow. (⚠ Amended at build time: `measure dip` is `null` from the
+   surface by the mining build's own geometry — dip wants the vein in
+   section — so the second instrument read on open ground is the
+   structural one this build ships.)
 4. `stake` a claim over the ground. See it in the register that already
    exists.
 5. Raise a **derrick** on the claim from timber. See it standing.
@@ -369,8 +376,10 @@ otherwise.
 **Stage B — gas**
 
 14. `bore` a second hole, deeper. Reach gas instead of brine.
-15. `drain` the gas into a **sealed vessel**. See it refuse an unsealed
-    one, in words that name the reason.
+15. `fill` a **sealed vessel** from the wellhead. See it refuse an
+    unsealed one, in words that name the reason. (⚠ Amended at build
+    time: `drain` is mining's working verb and is room-bound twice
+    over; what transfers is its refusal sentence, not the verb.)
 16. Feed the **brine hearth** from the gas rather than from cordwood. See
     the hearth run, and the cordwood untouched.
 
@@ -383,19 +392,29 @@ otherwise.
 19. `bore` on a second structure. Hit **oil**. See it flow without a
     lift.
 20. `fill` casks. `ship` them to Terminus with a bill of lading.
-21. `measure pressure` at the wellhead across several visits. See it
-    **fall**, with nothing announcing anything.
+21. `measure head` at the wellhead across several visits. See it
+    **fall**, with nothing announcing anything. (⚠ Amended at build
+    time: the shipped `pressure` channel is atmospheric and
+    Container-only; the reservoir's channel is `head`.)
 22. When flow stops, `bail` to keep producing. See a worse rate for the
     same wage, and decide whether to keep paying.
 23. Split a barrel. See **kerosene**, **paraffin wax**, and three
     fractions with **no buyer named anywhere**.
-24. Put kerosene in a **street lamp** and light it.
+24. Put kerosene in a **lantern** and light it; put a cask of it in the
+    **civic fuel store** and see the street lit off it. (⚠ Amended at
+    build time: there is no street-lamp object — street lighting is the
+    Locality's own mixin over a depleting fuel store, and it takes the
+    kerosene fraction by the `lamp-oil` tag with nothing changed.)
 25. Dip a **candle** in the paraffin. See a candle that is not tallow and
     not beeswax.
 26. Try to sell the gasoline. See that nobody is buying.
-27. Store it — see a fire risk. Or dump it in the reach — see the water
-    carry it downstream with **no sensory tell**. Or flare it — see it
-    burn for nothing, brightly.
+27. Store it — see a fire risk in the material's own fields. Or flare it
+    — see it burn for nothing, brightly. (⚠ Amended at build time: the
+    third leg, **dumping it in the reach**, is deferred. Nothing shipped
+    turns a poured liquid into a discharge, and building that half is a
+    cross-cutting water capability a trade build may not solve — it goes
+    to the watershed slate with the rest of *a dumped liquid as a
+    discharge from any shore*. AC 9 is amended to match.)
 28. Walk away from the abandoned hole. See that it is still a liability
     somebody can name.
 
@@ -423,7 +442,14 @@ Observable from outside the code, by a person playing.
 8. A player can get kerosene into a lamp and paraffin into a candle, by
    their own hand, starting from a hole in the ground.
 9. A player who splits a barrel is **left holding something nobody will
-   buy**, and every way of getting rid of it is visible to somebody else.
+   buy**, and every way of getting rid of it that this build ships is
+   visible to somebody else: stored, it is a fire risk standing in a
+   room; flared, it is light anyone present can see. ⚠ **Amended at
+   build time — the river leg is unmet and deferred.** Dumping it into a
+   reach would need a shipped mechanism turning a poured liquid into a
+   discharge, which does not exist and is cross-cutting water
+   substrate; it is recorded on the watershed slate rather than solved
+   here.
 10. An owner who never touches the beam still advances their ground
     reading; a hired hand who never chose the site still advances their
     labour.
