@@ -50,9 +50,6 @@ data:
     # find one — and where a hauler at the far end asks what wants
     # moving BACK (`jobs --origin here`, the backhaul).
     - /trade/haulage/thing/works-board
-    # ⭐ The deeps — what makes this room's `water`-medium exit(s)
-    # usable. One row, four rooms; see the row's own header.
-    - /world/terminus/estuary/thing/open-water
     # ⭐ A closed stove in the depot hut — `fire.md`'s best of the three: a
     # firebox with a door loses less up the chimney, so it puts MORE heat
     # into the room off the same fuel and gives almost no light for it.

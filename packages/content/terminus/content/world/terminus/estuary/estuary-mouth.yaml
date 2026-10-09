@@ -33,9 +33,6 @@ data:
     - /world/terminus/estuary/thing/tide
     - /trade/quarrying/thing/salt-pan
     - /trade/quarrying/thing/salt-pan
-    # ⭐ The deeps — what makes the west exit's `water` medium a thing
-    # a person can actually use. See the row's own header.
-    - /world/terminus/estuary/thing/open-water
   exits:
     west:
       destination: /world/terminus/estuary/reach
