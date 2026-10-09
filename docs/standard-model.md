@@ -115,6 +115,18 @@ mechanism that forms the bond; the bond's runtime form is the
 **interface** the composed object presents — which is why the element
 list below catalogs interfaces, not mixin factories.
 
+> ⚠⚠ **The ship example above is ILLUSTRATIVE, not a ruling — and the
+> ruling went the other way (2026-10-09).** *"A ship is a `Vessel` that is
+> `Exitable`"* was written to show composition, beside the torch, long
+> before any vessel design existed; it has since been **cited as a
+> decision.** The vessel decision is
+> [navigable-water-slate](./slates/builds/navigable-water-slate.md) § 7a:
+> a **small boat** is a `Mobile ExitableVessel`, and a **ship is a HULL
+> (a Thing) plus a WARREN (Locations) bound by a citation**, because
+> `Atmospheric`, `AmbientLit`, `SkyExposed` and `Addressable` are all
+> `Location`'s and a ship needs each of them **per space**. The torch is
+> still a fine example.
+
 ### Everything is Stuff: one set of base laws
 
 Rooms, swords, avatars, exits, even framework records — all descend from

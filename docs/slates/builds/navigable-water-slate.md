@@ -1363,6 +1363,237 @@ after.**
 
 ---
 
+## 7a. ⭐⭐⭐ Vessels — a ship is a HULL plus a WARREN; a boat is one vessel
+
+Decided 2026-10-09, because the boat wave had no vessel decision and
+§ 5b's *"when the boat wave lands"* assumed one existed.
+
+⚠⚠ **What the corpus said, and why neither statement was a decision.**
+`standard-model.md` has *"a ship is a `Vessel` that is `Exitable`"* — a
+**pedagogical example sentence** illustrating composition, sitting beside
+*"a torch is a `Thing` that is also a `LightSource`"*, written long before
+any boat design. And `logistics-slate` **D5** has *"a vehicle is a
+`Mobile ExitableVessel` — a room that moves"*, written for **D4's list:
+back / cart / wagon / barge.** ⛔ **Neither is a ship ruling**, and
+generalising D5 past its evidence is what produced the first wrong draft
+of this section.
+
+### The composition settles it
+
+Four things a ship needs **per space**, and all four live on `Location`:
+
+| | and one vessel-interior cannot have | why |
+|---|---|---|
+| `Atmospheric` | a **hot galley and a cold hold** | `ExitableVessel` carries ONE authored `interiorVolume` |
+| `AmbientLit` | **below decks dark, the deck lit by sky** | per-space light is `Location`'s |
+| `SkyExposed` | the **deck weathered, the hold not** | the whole weather fold is gated on this |
+| `Addressable` | **"cabin 14"** | a Thing's interior has no address |
+
+Plus furnishing, `residence.md` (a cabin you *live in* needs a room) and
+parcel title. ⭐ **An ocean liner is a building that moves**, and every
+tool we have for buildings applies unchanged.
+
+⚠ And the invariant was never at risk: `Location` composes
+**`ContainerMixin` and NOT `ContainableMixin`** — *it holds and is not
+held*, enforced by composition. A hull is **matter**, so it sits in a
+Location by ordinary containment and nothing nests.
+
+### ⭐⭐⭐ The decision
+
+| | what it is | what it carries |
+|---|---|---|
+| **the hull** | a **Thing** (`Good`, so chattel + movable) | mass, draught, hull material, crush depth, **its position**, and **the thing a lookout sights** |
+| **the interior** | **Locations**, in a warren | per-space air, light, sky-exposure, address, furnishing, tenancy |
+| **the bond** | a **citation** — each room cites the hull | position is **derived**, so when the hull moves the rooms need not |
+
+⭐⭐ This is `watershed.md`'s own rule one level out — *water is cited,
+not inhabited; a mill **beside** the river is not **in** it* — and
+`fishing.md`'s `Shore` is already *"a room-fixed feature citing a
+`reachRef`."* **The ship's rooms are the third consumer of
+citation-over-containment**, and the berth (below) is the fourth.
+
+> ⭐⭐⭐ **The test, and an author can answer it: does it have more than
+> one space?**
+>
+> **One space → `Mobile ExitableVessel`.** The coach, the whaleboat, the
+> dory, the canoe. Hull and interior fused. D5 unchanged, and it gains a
+> consumer.
+>
+> **Many spaces → a hull plus a warren.** The ship, the liner, the
+> submarine, a barge with a cabin.
+
+**Five consequences:**
+
+- ⭐ **Cargo is in the hold, not in the hull.** The hold is a Location
+  citing the hull; cargo is contained in the hold. **A bill of lading
+  names a room**, and the hull holds nothing directly (⚠ open: whether
+  the hull composes `Container` at all — lean no).
+- ⭐ **You sight a hull.** § 3's broad-phase filter compares Things with
+  positions; nobody sights a galley.
+- ⭐ **"Who is aboard" is a derived reverse index**, which settles the
+  citation's direction: **the room cites the hull** (the room is the
+  dependent, and an identity path-string survives the hull unloading), and
+  **the muster** is the consumer that needs the reverse walk.
+- ⚠ **Elastic, not resident.** Thirty rooms × N hulls: the interior
+  **faults in on boarding** via the Warren's elastic graph +
+  `DeferredDestinationExit`, with `residency.md`'s cold-tail eviction
+  unloading an unvisited hold — exactly as a building's floors do.
+- ⭐⭐⭐ **And the gift: a wreck is the same ship with a different hull
+  position.** Sink the hull and every room's citation still resolves — to
+  a hull on the bottom, where `level − elevation` makes all of them
+  **underwater.** The forecastle you ate in becomes a dive site with its
+  details, its cargo and its dead still in it. **A shipwreck is not new
+  content; it is an existing object whose citation target moved down** —
+  which hands salvage and the diving ladder their best venue for free, and
+  makes *raising* a wreck the same operation reversed.
+
+### ⭐⭐ Inside a boat: stations, and ⛔ NOT a new spatial primitive
+
+A boat is one vessel, one air, one space — and `spatial.md`'s Placing
+refusal #2 already points at the answer: *"A Placing host must NOT compose
+`ExitableMixin`… put a `Fitting` or a **`Chamber`** in its contents
+instead (that is how a boot works)."*
+
+⭐ **So a boat's subdivisions are `Chamber`s as STATIONS** — and
+`Chamber` is **designed** in
+[fridge-design-pack](./fridge-design-pack.md) and deferred by the owner,
+not missing: `AtmosphericMixin(PlacingMixin(DetailedMixin(Thing)))`,
+`placements = ['in']`, `fixedInPlace`, `occupants() → getPlaced('in')`,
+needing the `Atmospheric` widening plus one `occupants()` seam.
+
+⭐⭐ **A station is a role with a position** — the bow is not a place, it
+is a job. And **the station does not gate the verb; the station is where
+the GEAR is.** You cannot throw the harpoon from the stern because you are
+not holding it; it is in the bow. Ordinary reach and containment, **no new
+affordance gating.**
+
+#### ⛔⛔ REJECTED — "the strip", an intra-space linear-position primitive
+
+A draft of this section proposed promoting § 1's **linear passage** to an
+intra-space primitive (position as a fraction along, two neighbours),
+claiming a ladder, a corridor, a mine drift, a boat and a river as
+consumers. **The owner refused it and was right.** Recorded because the
+reasoning is reusable:
+
+> *"A waterway and a ladder and a boat aren't anything alike except that
+> you're saying they're all 1-dimensional lines… **that's like making a
+> triangle for the first time and saying you've unlocked the pyramids. No,
+> you just made triangles.**"*
+
+⚠⚠ **Three of the five consumers were fake**: a **ladder** is an exit
+with a mode (`Climbable` ships) · a **corridor** is rooms, or one room · a
+**mine drift** is a `MineWarren`. They are *geometrically* linear and have
+**no need for intra-space position.** And the two real cases want different
+things from it: **the river's fraction gives arrival time and the next
+node; the boat's station gives REACH.**
+
+⛔ **And the doctrine it broke is written down.** CLAUDE.md promotes
+substrate when *"a third pack **wanting** a mixin"* appears — ***"not
+count them up later"*** — and **the third consumer was invented.** The
+fridge pack names the same failure in its own deferral: *"a class with no
+composer plus a kernel widening with no reader is the
+feel/taste-shipped-without-running failure."*
+
+⭐⭐ **And the ordering turned out to be decoration.** In a 28-foot boat,
+do you need to know you passed the thwarts? Only if something happens
+there, and nothing does. **What is load-bearing is that a station is a
+position with gear in it and changing station costs something** — which is
+not a line. § 1's linear passage keeps its job because it already had
+one.
+
+**So the whole intra-boat design is two widenings to a shipped spec** —
+agents placeable in a `Chamber`, and a host-declared cost on
+re-placement — plus one genuinely new mechanism, which is **not spatial**:
+[cooperative-effort-slate](./cooperative-effort-slate.md).
+
+### ⭐⭐⭐ The berth — and two shipped invariants force it
+
+The way aboard must **not** be an exit, and two unrelated rules say so.
+
+⚠⚠ **1. The minted-zone check refuses it.** `zone.md`: a
+`CartesianLocation` accepts **cardinal exits unconditionally** and
+**semantic-label exits only when the destination resolves to a different
+zone** — and *"the check is **eager and path-based**… It must be an
+**AUTHORED template row**. The walk reads template ancestry in Mongo, so a
+zone **minted at runtime** [fails]."* **A ship's interior is minted per
+hull**, so a semantic exit from the quay into hull #7's warren is
+**refused by a shipped check, with an error naming the parent's zone.**
+
+⚠⚠ **2. The map's append-only rule refuses it.**
+`location-graph.md`'s per-player map has *claims append and nothing is
+corrected* — so a berth edge recorded today **outlives the ship.** You
+board the *Hesper* once and your map claims forever that there is a way
+aboard from berth four, after she sailed, sank or was broken up.
+⭐⭐⭐ **A ship cannot be an edge on a durable map, because the map
+would be wrong tomorrow.**
+
+⭐ **So: the berth is a room-fixed feature on the quay citing whatever
+hull is moored there** — the `Shore` pattern, and you `board <ship>`
+rather than `go` anywhere. Empty, it describes itself as empty and affords
+nothing; occupied, it affords boarding, resolving to the hull's citing
+deck.
+
+⭐⭐ **And the berth is strictly better than a dynamic edge, because a
+berth can be owned, rented, assigned, refused and fought over.** Harbour
+dues. A harbourmaster who allocates them. A berth held for thirty years.
+None of that exists if the way aboard is a conditional exit. ⭐ The hull
+is **contained in the harbour Location** and the berth **cites** it — two
+relationships, exactly like the mill that is *in* the town and *cites* the
+reach.
+
+✅ **Which also means the interior is ordinary cartesian content**, with
+**unconditional cardinal exits** (fore/aft/up/down/port/starboard) and no
+zone check at all. The grid rule *prefers* this; only the boarding edge
+was ever the problem.
+
+#### ⭐⭐⭐ Living aboard: the berth is the ADDRESS, the hull is the home
+
+A liveaboard is **a residence with a position**, which looks like it
+breaks `address.md`'s longest-prefix walk — and the real-world answer is
+the design:
+
+> **Your post goes to the berth, not to the boat.** You rent an address
+> at the quay and moor your home to it, which is precisely how a marina
+> works.
+
+Three things fall out:
+
+- ⭐ **The berth and the home are separable assets**, and in a crowded
+  harbour the **berth is the scarcer one** — a rent story with no new
+  mechanism.
+- ⭐⭐ **The cruising liveaboard has NO ADDRESS** — no mail, no delivery,
+  and ⚠ possibly **no residency**, which is `civics.md`'s derive-on-read
+  residency meeting a person who is genuinely nowhere. A real legal tangle
+  for boat-dwellers in life, and **lens 7 should decide it rather than let
+  it fall out.**
+- ⭐ **The houseboat that never moves** is the limit case: a hull whose
+  position has not changed in forty years — a building that is legally a
+  boat, which people do specifically for what it exempts them from.
+
+### ⭐⭐ And the client finding: THREE spatial registers, one rendered
+
+The owner's worry was that this stretches the design. It does not — it
+reveals that **we have three spatial models and have only ever rendered
+one.**
+
+| register | a position is | wants to look like | content |
+|---|---|---|---|
+| **the grid** | a room with cardinal exits | **a map** | everything shipped |
+| **the field** | a **coordinate with no neighbours** | **a bearing and a distance**, plus the reckoned-position plot (§ 3b) | the `Expanse` |
+| **stations** | **which `Chamber` you are in** | ⛔ **not an exit list** | a boat, a coach, a cockpit |
+
+⚠ **The presentational mistake to avoid: rendering four stations as four
+exits**, which makes one space feel like four rooms when the whole point
+is that everybody can see everybody.
+
+⭐⭐ And whaling is the first content that uses all three in one session —
+you **walk the ship** (grid), **cross the Expanse** (field), and **pursue
+in the boat** (stations). It is the integration test for the client as
+well as the engine, which is § 7's argument arriving from a second
+direction.
+
+---
+
 ## 8. Lens pass
 
 1. **Pedagogy** ⭐⭐⭐ — almost everything derivable: the horizon is
