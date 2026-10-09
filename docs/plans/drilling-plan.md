@@ -1601,6 +1601,77 @@ fails for reasons that teach nothing.
 
 ---
 
+## ⛔⛔⛔ REVIEW ROUND 1 — `hire`/`dismiss` were never this trade's
+
+**The question:** *"why is hiring people and firing people in a drilling
+build? how is that not already solved for everyone everywhere?"* It was,
+and the review was right.
+
+`OrganizationMixin` has exposed `appoint(actor, positionKey)` and
+`dismiss(actor)` the whole time, with `EmploymentLogic.hire`/`fire`
+behind them. The trade wrote two controllers to reach methods the kernel
+already had. What it actually hit was two **view-layer** gaps:
+
+1. `appoint`'s target was `scope: "online"`, so it could not reach a
+   brainless NPC standing in front of you;
+2. nothing anywhere had a view for the dismiss half — `quit` is the
+   worker's verb, so **no bar, smithy, ranch or press office in this
+   game could let anybody go.**
+
+⭐ The ladder's first rung is unify behind an interface (`grind` rides
+`mill`, `melt` rides `dip`), so: `appoint` takes
+`scope: ["reachable", "online"]` with `hire` as an **alias**; `position`
+and `organization` are optional and derived (*the house operating here
+whose appointing authority I hold, and its only position*); `dismiss` is
+a kernel `employment` verb; and **`trade-drilling` ships no employment
+verb at all** — two views, two controllers, two controller rows deleted,
+and the derrick affords three acts instead of five.
+
+⚠ The authority gate is not weakened. `mustHoldAppointingAuthority`
+passes an ABSENT organization because absent means *derive*, and the
+derivation calls `holdsAuthority` itself — the same predicate the
+validator calls. Every named house still fails closed. Derived by
+AUTHORITY rather than proprietorship because an authority may be an
+OFFICE: a proprietor-keyed derivation would have worked at a rig and
+silently failed at every chart in the Compact.
+
+### ⭐⭐⭐ And it uncovered a THIRD POPULATION with no driver
+
+`beginShift` has exactly two: the roster tick over authored
+`rosterSlots`, and `clock on` for a seat somebody applied for. **An NPC
+an employer takes on ad hoc reaches neither** — it held a job and never
+worked a shift. Invisible for the whole build, because drilling's own
+`hire` called `beginShift` itself. *The duplicate verb was hiding a
+kernel gap.*
+
+⚠⚠ Two attempts to close it globally each broke a shipped contract, and
+**both tests were right**:
+
+- `beginShift` at hire broke *being taken on does NOT put you on shift*
+  (the AFK wage, lens 6, `livelihood-slate` §5.4);
+- writing the hand a rota slot broke *the roster tick leaves a
+  clocked-on applicant alone* — an applicant having NO assignment is
+  precisely what keeps the tick off a voluntary shift.
+
+⭐ So the **house declares it**: `startsShiftOnHire` on the chart,
+default `false` — every house shipped before today, behaviour unchanged.
+A bore crew is hired at the beam and starts at the beam, because the
+wage runs from the moment they take hold of it; a press office's
+appointee starts nothing by being appointed. Both true, not the same
+claim. See [employment.md](../subsystems/employment.md) § Starting work
+on hire.
+
+⚠ Two further defects the re-drive found in the move itself:
+`dismiss` answered **`unknown-verb` for everybody** until it was added to
+`Persona.commandContributions.self` (*a verb nothing affords is a verb
+nobody has* — the one reachability link no controller test can see); and
+the hire was green while the hole stayed at 0 m, which is what led to the
+third population above.
+
+**Drive after the round: 24/24 on a fresh database.**
+
+---
+
 ## ✅ BUILD COMPLETE (2026-10-09)
 
 The drive is 24/24 on a fresh database, `origin/master` is merged in
