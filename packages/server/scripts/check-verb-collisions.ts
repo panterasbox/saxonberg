@@ -95,13 +95,7 @@ const KNOWN_COLLISIONS: Record<string, string> = {
     "domain-local, two different localities (duncan-hall provision / " +
     "mayfield-row lease) — never afforded together. SAFE.",
   unlease: "as `lease` — the same two localities. SAFE.",
-  me: "platform: author/player.yaml vs social/score.yaml — undiagnosed.",
   pour: "platform: bulk/pour.yaml vs crafting/pour.yaml — undiagnosed.",
-  hang: "platform inventory/hang.yaml vs trade-cooking dry.yaml — undiagnosed.",
-  mount: "platform: inventory/hang.yaml vs movement/mount.yaml — undiagnosed.",
-  drive:
-    "platform movement/drive.yaml (a vehicle) vs trade-mining drive.yaml " +
-    "(drive a drift) — undiagnosed.",
 };
 
 export function claimsIn(files: string[]): Claim[] {

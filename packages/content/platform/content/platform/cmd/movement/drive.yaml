@@ -1,34 +1,22 @@
-# ⛔⛔ HELD — and this one is held on a COLLISION, which makes it the most
-# interesting of the four.
+# ⭐⭐ `drive` — afforded by `DrivableMixin` (`environment` + `peers`).
 #
-# `trade/mining/cmd/mining/drive.yaml` also claims `drive` (driving a
-# drift), the two views have the **same arity** so `requires:` cannot
-# separate them at shape, and only affordance ORDER would decide which
-# one a miner gets. `lint:verb-collisions` lists the pair among its
-# undiagnosed ones.
+# ⚠⚠ Held unafforded by the reachability sweep, and the hold was right:
+# `trade/mining/cmd/mining/drive.yaml` claimed the same word with the
+# same arity, so conferring this view would have ADJUDICATED a live
+# collision by affordance order, and first-come is not one of the
+# ladder's seven solutions. That sweep had just told the glass build its
+# `dip` collision was the glass build's to resolve.
 #
-# ⚠⚠ The reachability sweep CONFERRED this view — `DrivableMixin` has no
-# static, `Mountable` one file over confers `mount`/`ride`, and `drive` is
-# plainly their vehicular sibling — and the full suite refused it.
-# `trade-mining`'s own acts test asserts that `lib/slot/Drivable.ts`
-# contains no `commandContributions`, and spells out the remedy if that
-# ever changes: *"nothing in the repo affords the movement view today; if
-# that changes, `drift` becomes primary — one line."*
+# ⭐ The lock build ran the ladder and it resolves at rungs 2 and 3
+# together: the vehicle is the generative primitive (`DrivableMixin` is
+# kernel substrate that every coach, cart and barge extends — a trade's
+# hand-gesture rarely is), and "drive" is what a layman says about a
+# vehicle while *to drift* is real mining usage. Mining's view is
+# `verbs: [drift]` now, which is what its own tripwire predicted.
 #
-# ⭐⭐ Conferring it is therefore ADJUDICATING a live collision, and the
-# ladder's first rule is that first-come is not one of the seven
-# solutions and that both sides get evaluated. The same sweep had already
-# told the glass build that its `dip` collision was the glass build's to
-# resolve; taking this one unilaterally would be that mistake with the
-# roles reversed.
-#
-# ⭐ What lifts this, and it is cheap: somebody owning both sides flips
-# `trade-mining`'s view to `verbs: [drift, drive]` so a miner always has
-# an unambiguous word, then confers this one on `DrivableMixin`
-# (`environment` + `peers` — a vehicle you are aboard is your CONTAINER,
-# which is the environment bucket). One line each, and a drive checkpoint
-# to prove the miner still gets a drift.
-unreachable: awaiting:affordance-verb-slate
+# ⚠ `environment` + `peers`, never `self`: a vehicle you are aboard is
+# your CONTAINER, so the affordance reaches you from the environment
+# bucket — the `Ladder`/`climb` shape.
 verbs: [drive]
 controller: /platform/idea/cmd/movement/DriveController
 description: "Drive your vehicle through a named exit (passthrough to the Drivable host)."

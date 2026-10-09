@@ -63,41 +63,52 @@ export function DrivableMixin<TBase extends MixinConstructor<Stuff & Slotted>>(
     static _mixinName = 'DrivableMixin';
 
     /**
-     * ⛔⛔ **`drive` is NOT conferred here, and that is a decision with a
-     * tripwire guarding it.**
+     * ⭐⭐⭐ **`drive` is conferred here, and the collision it was held on
+     * is adjudicated rather than deferred.**
      *
-     * `platform/cmd/movement/drive.yaml` is afforded by nothing, and the
-     * reachability sweep conferred it here — correctly on its own
-     * reasoning (`Mountable` one file over confers `mount`/`ride` and its
-     * comment records that pair being found dead in the nutrition-fitness
-     * drive; `drive` is their vehicular sibling and was missed on the
-     * same pass) — and then **the full suite refused it.**
-     *
-     * `trade-mining/src/idea/cmd/mining/__tests__/acts.test.ts` asserts
-     * that this file contains no `commandContributions`, and its comment
-     * says exactly why: `trade/mining/cmd/mining/drive.yaml` ALSO claims
-     * `drive` (driving a drift), the two views have the **same arity** so
+     * The reachability sweep conferred this and the full suite refused
+     * it: `trade/mining/cmd/mining/drive.yaml` also claimed `drive`
+     * (driving a drift), the two views have the **same arity** so
      * `requires:` cannot separate them at shape, and only affordance
-     * ORDER would decide which one a miner gets. *"Nothing in the repo
-     * affords the movement view today; if that changes, `drift` becomes
-     * primary — one line."*
+     * ORDER would have decided which one a miner got. Conferring one
+     * side of an undiagnosed collision is ADJUDICATING it, and the
+     * ladder's first rule is that first-come is not one of the seven
+     * solutions — so the sweep reverted and recorded the question.
      *
-     * ⭐⭐ So conferring it is **adjudicating a live collision**, and the
-     * verb-collision ladder's first rule is that first-come is not one of
-     * the seven solutions and that BOTH sides get evaluated.
-     * `lint:verb-collisions` lists `drive` among its undiagnosed pairs.
-     * The sweep that found this had already told the glass build that its
-     * `dip` collision was the glass build's to resolve; taking this one
-     * unilaterally would have been the same mistake with the roles
-     * reversed.
+     * ⭐ The lock build ran the ladder properly
+     * (`command-spec.md § When both are bodily acts`) and it resolves
+     * cleanly, with rungs 2 and 3 pointing the same way:
      *
-     * ⭐ The view carries `unreachable: awaiting:affordance-verb-slate`
-     * instead, so the absence is a gated declaration rather than an
-     * oversight — and the adjudication is one line of `verbs:` reordering
-     * away whenever somebody owns both sides. ⚠ Leave this comment and
-     * that tripwire alone together: the tripwire is what caught a
-     * reviewer-grade mistake that eleven thousand other tests did not.
+     * - **Rung 1, unify?** No. Riding a thing that carries you and
+     *   cutting a horizontal tunnel are not one act; unifying would need
+     *   a guard re-asking which mechanic this is, which is the tell.
+     * - **Rung 2, generativity.** The word stays with the definition
+     *   future content builds on. `DrivableMixin` is KERNEL substrate and
+     *   the sibling of `Mountable`'s `mount`/`ride` — every coach, cart,
+     *   barge and future vehicle extends it. Driving a drift is one
+     *   trade's gesture. ⭐ *A trade's hand-gesture is rarely the
+     *   generative primitive*, which is how `dip` and `gather` were
+     *   decided at the glass merge.
+     * - **Rung 3, accessibility.** "Drive" is what a layman says about a
+     *   vehicle, and *to drift* is real mining usage rather than
+     *   invented jargon — a term of art that carries its own register.
+     *
+     * So the vehicle keeps the plain word and mining keeps `drift`,
+     * which is **exactly what mining's own tripwire predicted**: *"if
+     * that changes, `drift` becomes primary — one line."* That line is
+     * now `verbs: [drift]` in its view.
+     *
+     * ⚠ `environment` + `peers`, not `self`: a vehicle you are aboard is
+     * your CONTAINER, so the affordance has to reach you from the
+     * environment bucket — the `Ladder`/`climb` shape.
      */
+    static commandContributions: CommandContributions = {
+      self: [],
+      inventory: [],
+      environment: ['platform/cmd/movement/drive.yaml'],
+      peers: ['platform/cmd/movement/drive.yaml'],
+    };
+
     static fieldMeta: FieldMeta = {
       controllerSlot: { persistent: true, authorable: true },
       _vehicularModePath: { persistent: true, authorable: true, authorPicker: 'Template' },
