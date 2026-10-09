@@ -397,6 +397,22 @@ phase engine (Forge + `MeltableMixin` + `Casting` — see
 properties emerge from components) is a genuinely different model,
 still deferred — not faked.
 
+> ⭐⭐⭐ **The deferral acquired a DRIVER 2026-10-09 —
+> [assembly-slate](../slates/builds/assembly-slate.md).** The one-line
+> definition above is kept verbatim there; what the slate adds is the
+> **epoch argument**: a factory is an assembly of assemblies, so
+> **you cannot build a factory until you can build a thing from parts**,
+> and the industrial verticals all sit behind it. Three findings worth
+> knowing from here: **the axis is the JOINT** (bespoke → the threaded
+> fastener → irreversible), so a `Joint` **ROW** carries condition ·
+> operation · strength · reversibility · **signature** — and the
+> row-plus-one-verb-plus-instrument shape is already shipped as
+> `harm.md`'s `Operation` catalogue; **`salvage` is already disassembly**,
+> and *reversibility decides whether taking a thing apart yields parts or
+> scrap*, so the verb needs a reader rather than a sibling; and ⚠
+> **`Durable` wear with no parts makes every failure TOTAL** — an axe is a
+> head and a haft, and the haft is what breaks.
+
 ## The offer: `CommerceMenu` + the venue subclasses
 
 The venue-neutral base is **`lib/commerce/Menu.ts`** (`CommerceMenu`, a

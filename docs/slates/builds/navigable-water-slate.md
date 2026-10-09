@@ -1460,6 +1460,18 @@ have a realm with a few basins.** The *content* was always days long.
 
 ## 7. Whaling, in brief — its own slate comes later
 
+> ⚠⚠ **SEQUENCING 2026-10-09 — whaling now sits behind
+> [assembly-slate](./assembly-slate.md).** Not *blocked*: casks exist as
+> rows, so whaling could ship on spawned casks exactly as the Oil Works
+> ships on spawned `lamp-oil`. ⚠ **But that reproduces the defect whaling
+> was chosen to fix**, and whaling's best economic material depends on the
+> cask being a MADE thing — the **full ship** as a progress bar (the casks
+> are in the holds, so the Structure's membership *is* the progress bar),
+> the **leaky cask**, and the cooper's **delayed attributable failure**
+> (oil lost for three years, blame assigned at settlement).
+> ⭐ The order is **assembly (cask as exemplar) → coopering → whaling.**
+> ⭐ Boatbuilding stays skipped, so **hulls may be assumed.**
+
 Recorded here only so it is not lost; ⭐ **water first, industries
 after.**
 
