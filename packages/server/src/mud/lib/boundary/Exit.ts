@@ -592,6 +592,17 @@ export default class Exit extends ConcealableMixin(Idea) {
    * assumption; and `CartographerMixin.recordTraversal`, so your own
    * map remembers that you saw a ford.
    */
+  /*
+   * ⚠ Underscored, where `VehicularMixin.travelMode` deliberately is
+   * not, and the asymmetry is a real distinction rather than taste.
+   * A vehicle ROW is applied by FIELD NAME (the `TemplateApplier`
+   * matches `travelMode:` to `setTravelMode`), so an underscored key
+   * would read to `lint:instanceable` as a key the applier discards
+   * silently. An exit is never built that way: `_applyExitSpec` binds
+   * an `ExitInstruction` through `bind(opts)`, so the row key and the
+   * field name never have to agree — which is why `_edgeMinutes` and
+   * `_destination` carry the prefix too.
+   */
   protected _conditional: boolean = false;
 
   public isConditional(): boolean {
