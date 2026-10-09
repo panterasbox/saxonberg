@@ -1,0 +1,15 @@
+# Glass sand — a won load from the sand pit. `wins:` on the pit's deposit
+# names THIS row, and the quarry stamps its iron assay onto it at the face
+# (the `AlloyedMixin` carry, glass build W3). The iron it carries is what
+# decides whether the glass it makes comes out clear or green.
+class: /trade/glass/thing/Sand
+data:
+  keywords: [sand, "glass sand", grit]
+  shortDescription: load of glass sand
+  register: indefinite
+  longDescription: >-
+    A heap of pale, sharp sand, the sort that melts to glass. Whether it
+    makes clear ware or green depends on the iron in it, which you cannot
+    see by looking — you analyze it.
+  _materialPath: /stuff/idea/material/earth/sand
+  mass: 4

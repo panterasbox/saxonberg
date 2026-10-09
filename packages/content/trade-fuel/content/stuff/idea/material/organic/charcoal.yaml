@@ -42,7 +42,9 @@ data:
   edibility: false
   nutrients: []
   toxicity: []
-  tags: ["organic", "carbon", "fuel", "flammable", "porous"]
+  # `charcoal`: the amber-glass batch's colourant (glass build W4) — a
+  # specific match, so coal and other carbons do not stand in for it.
+  tags: ["organic", "carbon", "fuel", "flammable", "porous", "charcoal"]
   composition:
     - { materialPath: /stuff/idea/material/element/carbon, fraction: 0.9 }
   chemistry: null

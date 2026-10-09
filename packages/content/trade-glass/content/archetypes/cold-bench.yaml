@@ -1,0 +1,16 @@
+# ⭐ The COLD-BENCH archetype — the glass trade's second siting, in town
+# by the customer rather than in the woods by the fuel. Where blown blanks
+# are scored, snapped, grozed and glazed into finished ware. It needs no
+# fire and no fuel — just the two cutting tools and a bench — which is the
+# whole difference between the hot shop and the cold one, written down.
+# Makes the pack's `scribing` and `grozing` capabilities CONSUMED ones.
+archetypeId: cold-bench
+label: a glazier's cold bench
+industry: glass
+capabilities:
+  # The scoring wheel — scribe, snap, flatten.
+  - { key: scribing, needs: { tool: scribing } }
+  # The grozing pliers — nibble an edge to a line.
+  - { key: grozing, needs: { tool: grozing } }
+  # A bench to work the glass flat on.
+  - { key: bench, needs: { surface: true } }

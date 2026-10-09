@@ -22,6 +22,8 @@
  * `transmissivity('B','A') = 0`).
  */
 
+import type { Colour } from '../perception/Colour';
+
 /** Stable kind tag for the conduit registry. */
 export type ConduitKind = 'light' | 'sight' | 'movement' | 'sound' | 'smell';
 
@@ -46,6 +48,14 @@ export interface Conduit {
 export interface LightConduit extends Conduit {
   readonly conduitKind: 'light';
   transmissivity(from: BoundarySide, to: BoundarySide): number;
+  /**
+   * The COLOUR a boundary imparts to light passing `from` → `to` — a
+   * per-channel transmittance the light walk multiplies in. Optional: a
+   * boundary that does not colour what it passes (a plain door, a clear
+   * window) omits it and the walk reads `Colour.UNDYED` (white). A
+   * stained `Window` answers its glazing here.
+   */
+  transmittanceColour?(from: BoundarySide, to: BoundarySide): Colour;
 }
 
 /**

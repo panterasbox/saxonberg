@@ -1,0 +1,32 @@
+# The glazier's hut — the COLD shop, in town by the customer (the cold
+# bench sites where the hot shop cannot: no fire, no fuel, just the two
+# cutting tools and a bench). Blown blanks come down from the glasshouse
+# to be scored, snapped, grozed and glazed into finished ware here.
+#
+# ⭐ It authors NO ambient light of its own: it is lit through its two
+# windows from the sunlit yards either side. That is the whole reason it
+# can show the stained-glass effect — the light in here IS the light that
+# came through the glass.
+class: /platform/location/SingletonCartesianLocation
+data:
+  shortDescription: glazier's hut
+  keywords: [hut, glazier, "glazier's hut", bench, shop]
+  register: definite
+  _biomePath: /stuff/idea/biome/indoor/baseline
+  coords: { x: 2, y: 2, z: 0 }
+  longDescription: |
+    A low timber hut with a workbench down one side and a window in each of two walls, letting in the light off the yards. A scribing wheel and a pair of grozing pliers lie on the bench, and offcuts of glass catch the light in the corners.
+
+    Whatever colour the day is outside, it is a different colour in here, through the glass.
+  props:
+    - /trade/glass/thing/scribing-wheel
+    - /trade/glass/thing/grozing-pliers
+    - /world/terminus/rejection/thing/hut-window-west
+    - /world/terminus/rejection/thing/hut-window-south
+  exits:
+    west:
+      destination: /world/terminus/rejection/location/fuel-yard
+      edgeMinutes: 1
+    south:
+      destination: /world/terminus/rejection/location/pithead-yard
+      edgeMinutes: 1

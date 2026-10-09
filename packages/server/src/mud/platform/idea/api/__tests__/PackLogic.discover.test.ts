@@ -77,6 +77,12 @@ describe('the shipped packs (real discovery, no install)', () => {
     // 18 of 19 trade packs ship exactly one Discipline. Installed after
     // ranching, whose hide row names tanning's class; chandlery after
     // apiculture and cooking, whose wax and tallow it dips.
+    // 55 → 56: the whiskey build adds `trade-malting` (see the note at the
+    // length assertion). ⭐ 56 → 57: the glass build adds `trade-glass`
+    // (the batch, the hot-work window, the first windows), ordered after
+    // generic-objects and its leftover-suppliers (quarrying, fuel) — this
+    // very hazard arriving a FOURTH time: three branches each counted
+    // correctly off 53 and only the sum (57) is right.
     //
     // ⚠⚠ Worth knowing: each of those builds wrote `49` independently, and
     // git merged the two comment blocks as a CONFLICT while merging the
@@ -85,16 +91,22 @@ describe('the shipped packs (real discovery, no install)', () => {
     // one assertion a three-way merge cannot reconcile. A
     // count, not a claim — what the claims below check is the ORDER,
     // which is where a pack graph actually breaks.
-    // ⭐ And `trade-malting` off the whiskey build makes 56 — ⭐⭐ which
-    // is this very comment block's point arriving for the THIRD time:
-    // two branches each counted correctly off 53 (55 here, 54 there) and
-    // only the sum is right. ⚠ That pack had to be added to the REPO
-    // ROOT's `package.json` to be discovered at all, because
-    // `PackLogic.discover` reads the shipped set out of
-    // `contentDepsOf(deploymentRoot/package.json)`. A pack's own deps
-    // drive install ORDER, not whether it ships.
-    expect(ids).toHaveLength(56);
-    expect(ids[0]).toBe('platform');    for (const trade of ['trade-smithing', 'trade-cooking', 'trade-hospitality', 'trade-distilling']) {
+    // ⭐ And `trade-malting` off the whiskey build makes 56, then
+    // `trade-glass` makes 57 — ⭐⭐ this very comment block's point arriving
+    // for the FOURTH time: three branches each counted correctly off 53
+    // (55 carcass, 56 whiskey, 54 glass) and only the sum is right. ⚠ Each
+    // pack had to be added to the REPO ROOT's `package.json` to be
+    // discovered at all, because `PackLogic.discover` reads the shipped set
+    // out of `contentDepsOf(deploymentRoot/package.json)`. A pack's own
+    // deps drive install ORDER, not whether it ships.
+    expect(ids).toHaveLength(57);
+    expect(ids[0]).toBe('platform');
+    // ⭐ The glass pack orders after generic-objects and the trades whose
+    // leftovers it consumes (quarrying's sand/lime, fuel's ash).
+    expect(ids.indexOf('trade-glass')).toBeGreaterThan(ids.indexOf('generic-objects'));
+    expect(ids.indexOf('trade-glass')).toBeGreaterThan(ids.indexOf('trade-quarrying'));
+    expect(ids.indexOf('trade-glass')).toBeGreaterThan(ids.indexOf('trade-fuel'));
+    for (const trade of ['trade-smithing', 'trade-cooking', 'trade-hospitality', 'trade-distilling']) {
       expect(ids.indexOf(trade)).toBeGreaterThan(ids.indexOf('generic-objects'));
     }
     for (const trade of ['trade-smithing', 'trade-cooking']) {

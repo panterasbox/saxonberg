@@ -1,0 +1,28 @@
+# The clean face — the heart of the sand pit, where the sand is palest and
+# cleanest. `dig sand` here wins a load whose iron is low (clear ware).
+# The grade is the ground's, read by `analyze iron` on what you win; the
+# prose does not state a number.
+class: /trade/quarrying/location/OpenWorking
+data:
+  shortDescription: clean sand face
+  keywords: [face, pit, sand, working, clean]
+  register: definite
+  _address: terminus/rejection/sand-pit
+  _biomePath: /stuff/idea/biome/outdoor/baseline
+  ambientIntensity: 8000
+  ambientColorTemperature: 5800
+  longDescription: |
+    A pale bite out of the heath, the sand here so clean it is almost white where a spade has freshly cut it. This is the heart of the pit, and the glassmakers prize it: the clearest ware comes from the cleanest sand.
+
+    The worked-out fringe lies off to the east, redder with iron.
+  coords: { x: 0, y: 0, z: 0 }
+  faceRunM: 20
+  props:
+    - /trade/quarrying/thing/spade
+  exits:
+    east:
+      destination: /world/terminus/rejection/sand-pit/dirty-face
+      edgeMinutes: 2
+    south:
+      destination: /world/terminus/rejection/hanging-wood/glasshouse
+      edgeMinutes: 3

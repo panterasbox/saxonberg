@@ -84,6 +84,11 @@ interface Claim {
  * ⭐ To remove a row: decide whether the two really are one verb (fold
  * them into one view with subcommands) or two (rename one), then delete
  * the line. Never add a row to make a new build pass.
+ *
+ * ⭐⭐ Which one yields, when both are bodily acts the argument cannot
+ * separate: `docs/subsystems/command-spec.md § When both are bodily acts
+ * — which trade keeps the word` (first-come is never the basis; decide by
+ * unify → generativity → accessibility, in that order).
  */
 const KNOWN_COLLISIONS: Record<string, string> = {
   lease:

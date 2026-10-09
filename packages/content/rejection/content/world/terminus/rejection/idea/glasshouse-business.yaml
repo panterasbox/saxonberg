@@ -1,0 +1,22 @@
+# The glasshouse — works the furnace and sells glass ware. Its sand it
+# wins at the pit, its fuel is the collier's charcoal, its flux the
+# collier's ash and the quarry's lime: the one trade downstream of three
+# others' leftovers.
+class: /platform/idea/Business
+data:
+  appointingAuthority:
+    kind: entity
+    path: /world/terminus/rejection/agent/glassblower
+  positions:
+    - key: glassblower
+      noun: glassblower
+      label: working the furnace
+      wageRate: 6
+  rosterSlots:
+    - positionKey: glassblower
+      assignee: /world/terminus/rejection/agent/glassblower
+      schedule:
+        - { days: [0, 1, 2, 3, 4, 5, 6], hours: [6, 18] }
+  banksAt: goodkin
+  operatingLocations:
+    - /world/terminus/rejection/hanging-wood/glasshouse

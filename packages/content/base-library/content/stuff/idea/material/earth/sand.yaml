@@ -24,7 +24,9 @@ data:
   edibility: false
   nutrients: []
   toxicity: []
-  tags: ["granular", "solid", "earth"]
+  # `silica`: the glass batch's former (glass build W4) — sand is what
+  # vitrifies, the ash and lime are the fluxes that drop its melting point.
+  tags: ["granular", "solid", "earth", "silica"]
   composition: []
   chemistry: null
   biologicalSource: null

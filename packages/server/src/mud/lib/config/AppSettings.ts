@@ -1394,6 +1394,13 @@ export const AppSettingKeys = {
   freshnessInoculum: "freshness.inoculum",
   /** Spoilage — the ambient temperature (K) a gauge on a non-Thermal host reads. */
   freshnessAmbientK: "freshness.ambientK",
+  /** Spoilage — light-strike (glass build D8): the photochemical spoilage
+   * rate per hour a `light-sensitive` material accrues at the reference
+   * illuminance through a fully blue-transparent holder. */
+  freshnessLightStrikeRatePerHour: "freshness.lightStrike.ratePerHour",
+  /** Spoilage — light-strike: the illuminance (lux) at which the rate above
+   * is reached; brighter is clamped to it. */
+  freshnessLightStrikeReferenceLux: "freshness.lightStrike.referenceLux",
   /** Spoilage — load at/above which the band reads `tainted`. */
   freshnessBandTaintedAt: "freshness.band.taintedAt",
   /** Spoilage — load at/above which the band reads `spoiled`. */
@@ -1591,6 +1598,10 @@ export const AppSettingKeys = {
    * room's noon flux is this times its own floor area, so a row that
    * authors nothing is lit correctly for its size. */
   lightSkyNoonLux: "light.sky.noonLux",
+  /** Light — the minimum colour DEPTH (0..1) at which `look` says a room's
+   * light is tinted. Below this a faint cast is not worth a sentence; a
+   * stained pane clears it easily. Read by `LookController`. */
+  lightTintLegibleAt: "light.tintLegibleAt",
 
   /* ────────────────────────── weather (Wave 2 light / sky) ────────────────────────── */
   /** Weather — the maximum ambient-light dimming at full cloud (cloud=1);

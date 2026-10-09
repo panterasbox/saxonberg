@@ -33,6 +33,7 @@ import { DurableMixin } from '../../../../lib/material/Durable';
 import { ToolMixin } from '../../../../lib/craft/Tooled';
 import { ManualBuildMixin } from '../../../../lib/craft/ManualBuild';
 import { CraftedMixin } from '../../../../lib/craft/Crafted';
+import { AlloyedMixin } from '../../../../lib/material/Alloyed';
 import type { SalvageOutcome } from '../../../../api/crafting';
 import {
   makeStuff,
@@ -127,6 +128,11 @@ class TestPot extends CraftedMixin(
   public override capabilities: string[] = ['pot'];
 }
 
+/** An Alloyed glass good — the meltable-non-metal salvage case (D7). */
+class GlassPiece extends AlloyedMixin(Good) {
+  static _mixinName = 'GlassPieceSalvage';
+}
+
 describe('CraftingLogic.salvage', () => {
   it('a forged knife yields LESS iron than the ingot that made it (conservation)', async () => {
     // The acceptance loop's last leg: a 0.5 kg iron knife (forged from a
@@ -182,6 +188,39 @@ describe('CraftingLogic.salvage', () => {
     expect(scrap.getQuantity()).toBe(4);
     expect(outcome.recoveredKg).toBeCloseTo(1.0, 9);
     expect(outcome.recoveredKg).toBeLessThanOrEqual(2 * 0.5 + 1e-9);
+  });
+
+  it('a meltable NON-METAL (glass) comes back WHOLE and remembers its alloying (D7)', async () => {
+    const GLASS = '/stuff/idea/material/_test/sv-glass';
+    makeStuffAtPath(() => {
+      const m = new Material();
+      m.setName('glass');
+      m.setTags(['glass', 'amorphous']); // deliberately NO 'metal'
+      m.setMeltingPoint(Quantity.of(1300, 'K'));
+      return m;
+    }, GLASS);
+    const piece = makeStuff(() => new GlassPiece());
+    piece.setMaterial(mat(GLASS));
+    piece.setMass(Quantity.of(0.6, 'kg'));
+    piece.setAlloying([{ materialPath: IRON, fraction: 0.004 }]);
+    ContainmentApi.move(piece, room);
+
+    const outcome = await salvageAs(piece);
+    expect(outcome.ok).toBe(true);
+    if (!outcome.ok) return;
+    // WHOLE: rate 1.0, not the lossy 0.5 — glass pays its entropy in colour.
+    expect(outcome.recoveredKg).toBeCloseTo(0.6, 9);
+    expect(outcome.outputs).toHaveLength(1);
+    const cast = outcome.outputs[0]!;
+    expect(cast).toBeInstanceOf(Casting); // re-meltable cullet
+    if (MixinApi.isTangible(cast)) {
+      expect(cast.getMass().rawValue()).toBeCloseTo(0.6, 9);
+    }
+    // ⭐ It remembers the iron — a re-melt cannot launder a tinted lump clear.
+    if (MixinApi.isAlloyed(cast)) {
+      expect(cast.fractionOf(IRON)).toBeCloseTo(0.004, 9);
+    }
+    expect(piece.isDestroyed()).toBe(true);
   });
 
   it('throws (conservation breach) on a rigged composition that mints matter', async () => {

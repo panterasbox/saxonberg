@@ -38,6 +38,9 @@ data:
       destination: /world/terminus/rejection/location/the-dry
     south:
       destination: /world/terminus/rejection/location/adit
+    # The glazier's hut, added by the glass build — the cold shop.
+    southeast:
+      destination: /world/terminus/rejection/location/glaziers-hut
     northeast:
       destination: /world/terminus/rejection/location/fuel-yard
     # The goods entrance: the yard's road-side door onto the Kestrel road.

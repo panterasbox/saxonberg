@@ -3233,10 +3233,63 @@
     ]
   },
   {
+    "place": "/world/terminus/rejection/hanging-wood/glasshouse",
+    "lux": 157.077,
+    "lightSources": 3,
+    "colourTemperature": 5738.942,
+    "peakLux": 165.606,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/terminus/rejection/hanging-wood/glasshouse",
+        "db": 100,
+        "direction": null
+      },
+      {
+        "at": "/world/terminus/rejection/hanging-wood/ride",
+        "db": 80,
+        "direction": "west"
+      },
+      {
+        "at": "/world/terminus/rejection/hanging-wood/treeline",
+        "db": 60,
+        "direction": "west"
+      },
+      {
+        "at": "/world/terminus/rejection/hanging-wood/oak-clearing",
+        "db": 60,
+        "direction": "west"
+      },
+      {
+        "at": "/world/terminus/rejection/hanging-wood/hazel-cant",
+        "db": 60,
+        "direction": "west"
+      },
+      {
+        "at": "/world/terminus/rejection/hanging-wood/sugarbush",
+        "db": 60,
+        "direction": "west"
+      },
+      {
+        "at": "/world/terminus/rejection/sand-pit/clean-face",
+        "db": 80,
+        "direction": "north"
+      },
+      {
+        "at": "/world/terminus/rejection/sand-pit/dirty-face",
+        "db": 60,
+        "direction": "north"
+      }
+    ]
+  },
+  {
     "place": "/world/terminus/rejection/hanging-wood/hazel-cant",
     "lux": 74.799,
     "lightSources": 3,
-    "colourTemperature": 5800,
+    "colourTemperature": 5753.596,
     "peakLux": 78.86,
     "db": null,
     "soundSources": 0,
@@ -3265,6 +3318,11 @@
       },
       {
         "at": "/world/terminus/rejection/hanging-wood/sugarbush",
+        "db": 60,
+        "direction": "east"
+      },
+      {
+        "at": "/world/terminus/rejection/hanging-wood/glasshouse",
         "db": 60,
         "direction": "east"
       }
@@ -3274,7 +3332,7 @@
     "place": "/world/terminus/rejection/hanging-wood/oak-clearing",
     "lux": 74.799,
     "lightSources": 3,
-    "colourTemperature": 5800,
+    "colourTemperature": 5753.596,
     "peakLux": 78.86,
     "db": null,
     "soundSources": 0,
@@ -3303,6 +3361,11 @@
       },
       {
         "at": "/world/terminus/rejection/hanging-wood/sugarbush",
+        "db": 60,
+        "direction": "south"
+      },
+      {
+        "at": "/world/terminus/rejection/hanging-wood/glasshouse",
         "db": 60,
         "direction": "south"
       }
@@ -3348,6 +3411,16 @@
         "at": "/world/terminus/rejection/hanging-wood/sugarbush",
         "db": 80,
         "direction": "east"
+      },
+      {
+        "at": "/world/terminus/rejection/hanging-wood/glasshouse",
+        "db": 80,
+        "direction": "northeast"
+      },
+      {
+        "at": "/world/terminus/rejection/sand-pit/clean-face",
+        "db": 60,
+        "direction": "northeast"
       }
     ]
   },
@@ -3355,7 +3428,7 @@
     "place": "/world/terminus/rejection/hanging-wood/sugarbush",
     "lux": 71.059,
     "lightSources": 3,
-    "colourTemperature": 5663.291,
+    "colourTemperature": 5649.261,
     "peakLux": 74.917,
     "db": null,
     "soundSources": 0,
@@ -3384,6 +3457,11 @@
       },
       {
         "at": "/world/terminus/rejection/hanging-wood/hazel-cant",
+        "db": 60,
+        "direction": "west"
+      },
+      {
+        "at": "/world/terminus/rejection/hanging-wood/glasshouse",
         "db": 60,
         "direction": "west"
       }
@@ -3437,6 +3515,11 @@
       },
       {
         "at": "/world/terminus/rejection/hanging-wood/sugarbush",
+        "db": 60,
+        "direction": "north"
+      },
+      {
+        "at": "/world/terminus/rejection/hanging-wood/glasshouse",
         "db": 60,
         "direction": "north"
       }
@@ -3664,6 +3747,11 @@
         "direction": "northeast"
       },
       {
+        "at": "/world/terminus/rejection/location/glaziers-hut",
+        "db": 59.542,
+        "direction": "northeast"
+      },
+      {
         "at": "/world/terminus/rejection/location/claims-office",
         "db": 60,
         "direction": "northeast"
@@ -3719,6 +3807,11 @@
       {
         "at": "/world/terminus/rejection/location/pithead-yard",
         "db": 80,
+        "direction": "north"
+      },
+      {
+        "at": "/world/terminus/rejection/location/glaziers-hut",
+        "db": 59.542,
         "direction": "north"
       },
       {
@@ -3785,6 +3878,11 @@
         "direction": "west"
       },
       {
+        "at": "/world/terminus/rejection/location/glaziers-hut",
+        "db": 59.542,
+        "direction": "west"
+      },
+      {
         "at": "/world/terminus/rejection/location/claims-office",
         "db": 60,
         "direction": "west"
@@ -3835,6 +3933,11 @@
       {
         "at": "/world/terminus/rejection/location/pithead-yard",
         "db": 80,
+        "direction": "south"
+      },
+      {
+        "at": "/world/terminus/rejection/location/glaziers-hut",
+        "db": 59.542,
         "direction": "south"
       },
       {
@@ -3952,10 +4055,10 @@
   },
   {
     "place": "/world/terminus/rejection/location/fuel-yard",
-    "lux": 164.557,
-    "lightSources": 3,
-    "colourTemperature": 5700,
-    "peakLux": 173.492,
+    "lux": 108.308,
+    "lightSources": 2,
+    "colourTemperature": null,
+    "peakLux": 114.189,
     "db": null,
     "soundSources": 0,
     "ppm": null,
@@ -3967,43 +4070,51 @@
         "direction": null
       },
       {
+        "at": "/world/terminus/rejection/location/glaziers-hut",
+        "db": 79.542,
+        "direction": null
+      },
+      {
         "at": "/world/terminus/rejection/location/pithead-yard",
-        "db": 80,
-        "direction": "southwest"
-      },
-      {
-        "at": "/world/terminus/rejection/location/claims-office",
-        "db": 60,
-        "direction": "southwest"
-      },
-      {
-        "at": "/world/terminus/rejection/location/assay-shed",
-        "db": 60,
-        "direction": "southwest"
-      },
-      {
-        "at": "/world/terminus/rejection/location/provisioning",
-        "db": 60,
-        "direction": "southwest"
-      },
-      {
-        "at": "/world/terminus/rejection/location/the-dry",
-        "db": 60,
-        "direction": "southwest"
-      },
-      {
-        "at": "/world/terminus/rejection/location/adit",
-        "db": 60,
-        "direction": "southwest"
-      },
-      {
-        "at": "/world/terminus/rejection/kestrel-road/yard-gate",
-        "db": 60,
-        "direction": "southwest"
+        "db": 59.085,
+        "direction": null
       },
       {
         "at": "/world/terminus/rejection/location/smelter",
         "db": 80,
+        "direction": "east"
+      }
+    ]
+  },
+  {
+    "place": "/world/terminus/rejection/location/glaziers-hut",
+    "lux": 107.71,
+    "lightSources": 2,
+    "colourTemperature": null,
+    "peakLux": 113.558,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/terminus/rejection/location/glaziers-hut",
+        "db": 100,
+        "direction": null
+      },
+      {
+        "at": "/world/terminus/rejection/location/fuel-yard",
+        "db": 79.542,
+        "direction": null
+      },
+      {
+        "at": "/world/terminus/rejection/location/pithead-yard",
+        "db": 59.542,
+        "direction": "southwest"
+      },
+      {
+        "at": "/world/terminus/rejection/location/smelter",
+        "db": 59.542,
         "direction": "east"
       }
     ]
@@ -4131,6 +4242,16 @@
         "direction": null
       },
       {
+        "at": "/world/terminus/rejection/location/glaziers-hut",
+        "db": 79.542,
+        "direction": null
+      },
+      {
+        "at": "/world/terminus/rejection/location/fuel-yard",
+        "db": 59.085,
+        "direction": null
+      },
+      {
         "at": "/world/terminus/rejection/location/claims-office",
         "db": 80,
         "direction": "north"
@@ -4164,16 +4285,6 @@
         "at": "/world/terminus/rejection/ferrow/cage-bottom",
         "db": 60,
         "direction": "south"
-      },
-      {
-        "at": "/world/terminus/rejection/location/fuel-yard",
-        "db": 80,
-        "direction": "northeast"
-      },
-      {
-        "at": "/world/terminus/rejection/location/smelter",
-        "db": 60,
-        "direction": "northeast"
       },
       {
         "at": "/world/terminus/rejection/kestrel-road/yard-gate",
@@ -4211,6 +4322,11 @@
       {
         "at": "/world/terminus/rejection/location/pithead-yard",
         "db": 80,
+        "direction": "east"
+      },
+      {
+        "at": "/world/terminus/rejection/location/glaziers-hut",
+        "db": 59.542,
         "direction": "east"
       },
       {
@@ -4267,6 +4383,11 @@
         "direction": "west"
       },
       {
+        "at": "/world/terminus/rejection/location/glaziers-hut",
+        "db": 59.542,
+        "direction": "west"
+      },
+      {
         "at": "/world/terminus/rejection/location/pithead-yard",
         "db": 60,
         "direction": "west"
@@ -4292,6 +4413,11 @@
       {
         "at": "/world/terminus/rejection/location/pithead-yard",
         "db": 80,
+        "direction": "southeast"
+      },
+      {
+        "at": "/world/terminus/rejection/location/glaziers-hut",
+        "db": 59.542,
         "direction": "southeast"
       },
       {
@@ -4389,6 +4515,67 @@
         "at": "/world/terminus/rejection/location/old-workings",
         "db": 60,
         "direction": "south"
+      }
+    ]
+  },
+  {
+    "place": "/world/terminus/rejection/sand-pit/clean-face",
+    "lux": 119.678,
+    "lightSources": 3,
+    "colourTemperature": 5763.636,
+    "peakLux": 126.176,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/terminus/rejection/sand-pit/clean-face",
+        "db": 100,
+        "direction": null
+      },
+      {
+        "at": "/world/terminus/rejection/sand-pit/dirty-face",
+        "db": 80,
+        "direction": "east"
+      },
+      {
+        "at": "/world/terminus/rejection/hanging-wood/glasshouse",
+        "db": 80,
+        "direction": "south"
+      },
+      {
+        "at": "/world/terminus/rejection/hanging-wood/ride",
+        "db": 60,
+        "direction": "south"
+      }
+    ]
+  },
+  {
+    "place": "/world/terminus/rejection/sand-pit/dirty-face",
+    "lux": 157.077,
+    "lightSources": 3,
+    "colourTemperature": 5752.381,
+    "peakLux": 165.606,
+    "db": null,
+    "soundSources": 0,
+    "ppm": null,
+    "smell": null,
+    "gather": [
+      {
+        "at": "/world/terminus/rejection/sand-pit/dirty-face",
+        "db": 100,
+        "direction": null
+      },
+      {
+        "at": "/world/terminus/rejection/sand-pit/clean-face",
+        "db": 80,
+        "direction": "west"
+      },
+      {
+        "at": "/world/terminus/rejection/hanging-wood/glasshouse",
+        "db": 60,
+        "direction": "west"
       }
     ]
   },

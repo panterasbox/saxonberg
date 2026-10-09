@@ -153,6 +153,44 @@ export class Colour {
   }
 
   /**
+   * ⭐ The palette WORD as a transmittance triple — the inverse of
+   * {@link nearestTag}. `null` for a word the palette does not carry,
+   * so a caller can fall back rather than silently mis-colour.
+   *
+   * This is how an authored `colorTint` ("green") becomes the Colour a
+   * stained pane filters light by: the word names a point, the point is
+   * the filter.
+   */
+  static fromTag(tag: ColorTag): Colour | null {
+    for (const entry of PALETTE) {
+      if (entry.tag === tag) return new Colour(entry.r, entry.g, entry.b);
+    }
+    return null;
+  }
+
+  /**
+   * ⭐⭐ Divide by the largest channel so the brightest band is 1 — the
+   * HUE, stripped of how much total light it carries. A light's
+   * photometric total lives on `Light.intensity`; this is the chroma
+   * the walk accumulates flux-weighted and then normalises, so a red
+   * window and a dim red window read the same colour word.
+   *
+   * All-zero (no chroma at all) returns `UNDYED` — the honest default
+   * for "no colour information", and the all-zero case only arises when
+   * there is no light either, where the Light is `ZERO` regardless.
+   */
+  static normalised(r: number, g: number, b: number): Colour {
+    const m = Math.max(r, g, b);
+    if (!(m > 0)) return Colour.UNDYED;
+    return new Colour(r / m, g / m, b / m);
+  }
+
+  /** This colour with its largest channel scaled to 1. See {@link normalised}. */
+  normalise(): Colour {
+    return Colour.normalised(this.r, this.g, this.b);
+  }
+
+  /**
    * ⭐⭐ Lay this colour OVER another — the subtractive product, which
    * is the whole model in one line.
    *
@@ -300,4 +338,19 @@ export class Colour {
       grey + (this.b - grey) * f,
     );
   }
+}
+
+/**
+ * ⭐ A thing that COLOURS the light passing through it — a stained pane,
+ * a tinted bottle — answering with its per-channel transmittance.
+ *
+ * A **structural shape, not a mixin**: whoever answers it is a filter,
+ * and a holder that does not answer it is opaque (the honest default for
+ * a keg). Probed duck-typed, the `TravelNode` precedent — the kernel
+ * `Window` answers it and the glass pack's `Tinted` answers it, with no
+ * shared base between them. Lives beside `Colour` because the thing it
+ * returns is a `Colour` and nothing else needs to import it.
+ */
+export interface LightFilter {
+  lightTransmittance(): Colour;
 }

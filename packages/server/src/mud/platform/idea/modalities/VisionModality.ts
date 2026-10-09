@@ -24,6 +24,7 @@ import {
   REQUIRED_BAND_FOR_DETAIL,
   type LightSourceRef,
 } from '../../../lib/perception/Light';
+import { Colour } from '../../../lib/perception/Colour';
 import type {
   LightBand,
   ShadowQuality,
@@ -51,6 +52,14 @@ const DEFAULT_VISION_PROFILE: VisionProfile = {
 /** Internal accumulator the walk passes around — flux-shaped. */
 interface FluxAccumulator {
   flux: number;
+  /**
+   * ⭐ Flux-weighted per-channel sums — the chroma. A white contribution
+   * adds its `flux` to all three channels, so for unfiltered light every
+   * channel equals `flux` and the normalised colour is white. Passage
+   * through a coloured pane multiplies the sub-walk's channels, so a
+   * room lit only through a green window accumulates more g than r/b.
+   */
+  chroma: { r: number; g: number; b: number };
   sources: LightSourceRef[];
 }
 
@@ -102,10 +111,12 @@ export class VisionModality extends Modality {
     const lux = scale > 0 ? acc.flux / scale : acc.flux;
     const sources = finalizeSources(acc.sources);
     const colorTemperature = Light.mixColorTemperature(sources);
+    const colour = Colour.normalised(acc.chroma.r, acc.chroma.g, acc.chroma.b);
     return Light.from({
       intensity: Quantity.of(lux, 'lux'),
       colorTemperature,
       sources,
+      colour,
     });
   }
 
@@ -278,7 +289,7 @@ function isPerception(viewer: Stuff): viewer is Stuff & Sensor & Perception {
 // -------- Walk implementation --------
 
 function newAccumulator(): FluxAccumulator {
-  return { flux: 0, sources: [] };
+  return { flux: 0, chroma: { r: 0, g: 0, b: 0 }, sources: [] };
 }
 
 function addContribution(
@@ -288,6 +299,12 @@ function addContribution(
 ): void {
   if (flux <= 0) return;
   acc.flux += flux;
+  // A direct emitter / ambient contributes WHITE: its flux into every
+  // channel. Only passage through a coloured pane (mergeAttenuated)
+  // diverges the channels.
+  acc.chroma.r += flux;
+  acc.chroma.g += flux;
+  acc.chroma.b += flux;
   if (source) acc.sources.push(source);
 }
 
@@ -306,7 +323,7 @@ function finalizeSources(sources: LightSourceRef[]): LightSourceRef[] {
  * the FAR side's area — which `mergeCapped` needs to work out what an
  * opening onto it can be worth.
  */
-type SpillLeg = { tau: number; area: number };
+type SpillLeg = { tau: number; area: number; colour: Colour };
 
 /**
  * ⭐ The legs out of `loc`, in the order this walk has always taken
@@ -338,8 +355,22 @@ function lightLegs(loc: Stuff & Container): Array<Leg<Stuff & Container>> {
       const otherSide = boundary.getOtherSide(anchor);
       const tau = conduit.transmissivity(otherSide, anchor.getSide());
       if (!(tau > 0)) continue;
+      // ⭐⭐ The pane's TINT, from the glass build (merged 2026-10-09).
+      // A coloured pane multiplies the sub-walk's channels, so light
+      // through green glass arrives green; an uncoloured boundary is
+      // `UNDYED` and behaves exactly as before.
+      //
+      // ⚠ Asked BY SHAPE (`transmittanceColour?.`) because it is the
+      // conduit's optional half — not every light conduit tints.
+      const colour =
+        conduit.transmittanceColour?.(otherSide, anchor.getSide()) ??
+        Colour.UNDYED;
       const far = otherHost as unknown as Stuff & Container;
-      out.push({ node: far, tau, edge: { tau, area: readSizeScale(far) } });
+      out.push({
+        node: far,
+        tau,
+        edge: { tau, area: readSizeScale(far), colour },
+      });
     }
   }
 
@@ -350,10 +381,17 @@ function lightLegs(loc: Stuff & Container): Array<Leg<Stuff & Container>> {
   // took `look` down for a whole room.
   if (MixinApi.isExitable(loc)) {
     for (const { dest } of loc.getObviousNeighbours()) {
+      // ⚠ `UNDYED`: a doorway is not a pane. Only a boundary conduit
+      // can tint, which is why the two legs differ here and nowhere
+      // else.
       out.push({
         node: dest,
         tau: EXIT_TAU,
-        edge: { tau: EXIT_TAU, area: readSizeScale(dest) },
+        edge: {
+          tau: EXIT_TAU,
+          area: readSizeScale(dest),
+          colour: Colour.UNDYED,
+        },
       });
     }
   }
@@ -516,7 +554,11 @@ function walkFluxAt(
       const acc = ownFlux(node, skyFactor);
       const spill = children.map(({ leg, result }) => ({
         sub: result,
-        ...((leg.edge as SpillLeg | undefined) ?? { tau: leg.tau ?? 1, area: 1 }),
+        ...((leg.edge as SpillLeg | undefined) ?? {
+          tau: leg.tau ?? 1,
+          area: 1,
+          colour: Colour.UNDYED,
+        }),
       }));
       mergeCapped(acc, spill, readSizeScale(node));
       return acc;
@@ -533,10 +575,23 @@ function mergeAttenuated(
   parent: FluxAccumulator,
   sub: FluxAccumulator,
   tau: number,
+  colour: Colour,
 ): void {
   if (sub.flux === 0 && sub.sources.length === 0) return;
   if (tau <= 0) return;
-  parent.flux += sub.flux * tau;
+  // ⭐ The chroma passes through the pane: each channel of the sub-walk
+  // is multiplied by `tau × colour[channel]`. The FLUX that gets through
+  // is the mean of the three filtered channels — for a clear pane
+  // (colour = white) that is exactly `sub.flux * tau`, so an uncoloured
+  // boundary behaves precisely as before; a coloured pane passes less,
+  // and the surviving light carries the hue.
+  const fr = sub.chroma.r * tau * colour.r;
+  const fg = sub.chroma.g * tau * colour.g;
+  const fb = sub.chroma.b * tau * colour.b;
+  parent.chroma.r += fr;
+  parent.chroma.g += fg;
+  parent.chroma.b += fb;
+  parent.flux += (fr + fg + fb) / 3;
   for (const s of sub.sources) {
     parent.sources.push({
       stuffId: s.stuffId,
@@ -572,7 +627,12 @@ function mergeAttenuated(
  */
 function mergeCapped(
   parent: FluxAccumulator,
-  spill: readonly { sub: FluxAccumulator; tau: number; area: number }[],
+  spill: readonly {
+    sub: FluxAccumulator;
+    tau: number;
+    area: number;
+    colour: Colour;
+  }[],
   receiverArea: number,
 ): void {
   if (spill.length === 0) return;
@@ -586,9 +646,10 @@ function mergeCapped(
   if (rawFlux <= 0) return;
   // Scale every contribution by one factor, so `analyze light`'s
   // per-source attribution still adds up to what the room actually reads.
+  // The cap is on FLUX; the colour multiply rides inside mergeAttenuated.
   const scale = rawFlux > capFlux ? capFlux / rawFlux : 1;
-  for (const { sub, tau } of spill) {
-    mergeAttenuated(parent, sub, tau * scale);
+  for (const { sub, tau, colour } of spill) {
+    mergeAttenuated(parent, sub, tau * scale, colour);
   }
 }
 
