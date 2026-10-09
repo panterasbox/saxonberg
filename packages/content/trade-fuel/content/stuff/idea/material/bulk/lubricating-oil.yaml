@@ -1,0 +1,30 @@
+# Lubricating oil — the heavy cut, and the one fraction with an obvious
+# customer in an epoch full of bearings.
+#
+# ⭐ It is also the quiet argument for the whole trade: every machine in
+# the industrial epoch needs this, and before mineral oil the answer was
+# tallow and whale oil. A barrel that yields it is a barrel that makes
+# every other machine cheaper to run, which is a far better reason for
+# an oil industry than the lamp.
+class: /platform/idea/material/Material
+data:
+  name: lubricating oil
+  keywords: [lubricating-oil, lubricant, "machine oil", grease, heavy]
+  appearance: a heavy amber oil that clings to the side of the measure
+  density: 900
+  specificHeat: 1900
+  thermalConductivity: 0.13
+  electricalConductivity: 1.0e-13
+  meltingPoint: 250
+  boilingPoint: 620
+  latentHeatOfFusion: 130000
+  latentHeatOfVaporization: 320000
+  heatOfCombustion: 41
+  autoignitionTemperature: 620
+  edibility: false
+  nutrients: []
+  toxicity:
+    - { type: ptomaine, amount: 700 }
+  tags: [liquid, lubricant, flammable]
+  composition: []
+  biologicalSource: null

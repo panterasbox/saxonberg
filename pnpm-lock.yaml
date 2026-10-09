@@ -1336,6 +1336,9 @@ importers:
       '@saxonberg/content-platform':
         specifier: workspace:*
         version: link:../platform
+      '@saxonberg/content-trade-distilling':
+        specifier: workspace:*
+        version: link:../trade-distilling
       '@saxonberg/server':
         specifier: workspace:*
         version: link:../../server

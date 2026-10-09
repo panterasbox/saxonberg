@@ -45,13 +45,29 @@ export default class Bailer extends Tool {
    * on staked ground holding a bailer types `bore` and is told *"I don't
    * understand 'bore'."*
    *
-   * `inventory` rather than `peers`: it is in your hands, and what it
-   * lets you do is start. Once the rig is up the derrick affords the
-   * same five from `peers`, so putting the bailer down at the wellhead
-   * costs nothing.
+   * ⚠⚠ **`environment`, and `inventory` was WRONG** — the buckets name
+   * WHO RECEIVES, from the declaring object's point of view. `inventory`
+   * is *everything nested inside this object* (a pack affords `rummage`
+   * to what it swallowed), so a bailer declaring `inventory` granted
+   * `bore` to whatever was inside the bailer. `environment` is *its
+   * container chain, outward* — the doc's own example is a wand in your
+   * hand granting YOU `zap`, which is exactly this. The drive found it:
+   * a player holding a bailer on staked ground typed `bore` and was told
+   * *I don't understand 'bore'.*
+   *
+   * ⭐ And `peers` beside it, so a bailer lying at the wellhead works
+   * too. Putting your tools down at the rig should not take the verbs
+   * away.
    */
   static commandContributions = {
-    inventory: [
+    environment: [
+      'trade/drilling/cmd/drilling/bore.yaml',
+      'trade/drilling/cmd/drilling/bail.yaml',
+      'trade/drilling/cmd/drilling/line.yaml',
+      'trade/drilling/cmd/drilling/hire.yaml',
+      'trade/drilling/cmd/drilling/dismiss.yaml',
+    ],
+    peers: [
       'trade/drilling/cmd/drilling/bore.yaml',
       'trade/drilling/cmd/drilling/bail.yaml',
       'trade/drilling/cmd/drilling/line.yaml',

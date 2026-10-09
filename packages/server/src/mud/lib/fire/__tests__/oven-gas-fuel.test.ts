@@ -41,7 +41,9 @@ import CartesianLocation from '../../location/CartesianLocation';
 import { chargeWood } from './burner-fuel';
 import type { Stuff } from '../../stuff/Stuff';
 import type { Burner } from '../Burner';
+import type { Bulkable } from '../../bulk/Bulkable';
 import type { Containable } from '../../spatial/Containable';
+import type { Placing } from '../../spatial/Placing';
 
 let seq = 0;
 
@@ -103,7 +105,7 @@ function oven(): Stuff & Burner {
 }
 
 /** A sealed bladder holding `litres` of `material`. */
-function bladder(material: Material, litres: number): Stuff {
+function bladder(material: Material, litres: number): Stuff & Bulkable {
   const f = makeStuff(() => new Flask());
   (f as unknown as { interiorBulk: boolean }).interiorBulk = true;
   (f as unknown as { interiorCapacity: Quantity<'L'> | null }).interiorCapacity =
@@ -113,7 +115,7 @@ function bladder(material: Material, litres: number): Stuff {
   const slot = f.getBulk('interior');
   slot.setMaterial(material);
   slot.setAmount(Quantity.of(litres, 'L'));
-  return f as unknown as Stuff;
+  return f as unknown as Stuff & Bulkable;
 }
 
 describe('⭐⭐⭐ a sealed gas vessel on an oven IS its fuel', () => {
@@ -123,7 +125,7 @@ describe('⭐⭐⭐ a sealed gas vessel on an oven IS its fuel', () => {
     expect(bedKg).toBeCloseTo(20, 6);
 
     const tank = bladder(gas(55), 300);
-    ContainmentApi.place(tank as unknown as Stuff & Containable, 'on', o as unknown as Stuff);
+    ContainmentApi.place(tank as unknown as Stuff & Containable, 'on', o as unknown as Stuff & Placing);
 
     // 300 L at 0.72 kg/m³ is a very small mass — which is exactly right
     // for a gas, and is why a bladder is a day's cooking and not a
@@ -141,7 +143,7 @@ describe('⭐⭐⭐ a sealed gas vessel on an oven IS its fuel', () => {
     const o = oven();
     const before = o.fuelRemaining();
     const tank = bladder(gas(55), 300);
-    ContainmentApi.place(tank as unknown as Stuff & Containable, 'on', o as unknown as Stuff);
+    ContainmentApi.place(tank as unknown as Stuff & Containable, 'on', o as unknown as Stuff & Placing);
     expect(o.fuelRemaining()).not.toBeCloseTo(before, 6);
     // Take it off again — to somewhere else. See the fixture note.
     ContainmentApi.move(tank as unknown as Stuff & Containable, bench);
@@ -159,7 +161,7 @@ describe('⚠ the three conditions, and each refuses something real', () => {
       Quantity.of(10, 'L');
     pail.getBulk('interior').setMaterial(water());
     pail.getBulk('interior').setAmount(Quantity.of(8, 'L'));
-    ContainmentApi.place(pail as unknown as Stuff & Containable, 'on', o as unknown as Stuff);
+    ContainmentApi.place(pail as unknown as Stuff & Containable, 'on', o as unknown as Stuff & Placing);
     // Still the bed. ⚠ The dangerous failure would be `0`.
     expect(o.fuelRemaining()).toBeCloseTo(before, 6);
   });
@@ -169,7 +171,7 @@ describe('⚠ the three conditions, and each refuses something real', () => {
     const before = o.fuelRemaining();
     const open = bladder(gas(55), 300);
     (open as unknown as { setClosure(v: string): void }).setClosure('liquidTight');
-    ContainmentApi.place(open as unknown as Stuff & Containable, 'on', o as unknown as Stuff);
+    ContainmentApi.place(open as unknown as Stuff & Containable, 'on', o as unknown as Stuff & Placing);
     expect(o.fuelRemaining()).toBeCloseTo(before, 6);
   });
 
@@ -178,7 +180,7 @@ describe('⚠ the three conditions, and each refuses something real', () => {
     const before = o.fuelRemaining();
     const ajar = bladder(gas(55), 300);
     (ajar as unknown as { setOpen(v: boolean): void }).setOpen(true);
-    ContainmentApi.place(ajar as unknown as Stuff & Containable, 'on', o as unknown as Stuff);
+    ContainmentApi.place(ajar as unknown as Stuff & Containable, 'on', o as unknown as Stuff & Placing);
     expect(o.fuelRemaining()).toBeCloseTo(before, 6);
   });
 
@@ -191,7 +193,7 @@ describe('⚠ the three conditions, and each refuses something real', () => {
       Quantity.of(400, 'L');
     virgin.setClosure('sealed');
     virgin.setOpen(false);
-    ContainmentApi.place(virgin as unknown as Stuff & Containable, 'on', o as unknown as Stuff);
+    ContainmentApi.place(virgin as unknown as Stuff & Containable, 'on', o as unknown as Stuff & Placing);
     // No material in it at all, so there is nothing that could be fuel.
     expect(o.fuelRemaining()).toBeCloseTo(before, 6);
   });
@@ -205,7 +207,7 @@ describe('⚠ the three conditions, and each refuses something real', () => {
     // invisible and the bed's depletion inexplicable.
     const o = oven();
     const drained = bladder(gas(55), 300);
-    ContainmentApi.place(drained as unknown as Stuff & Containable, 'on', o as unknown as Stuff);
+    ContainmentApi.place(drained as unknown as Stuff & Containable, 'on', o as unknown as Stuff & Placing);
     drained.getBulk('interior').setAmount(Quantity.of(0, 'L'));
     expect(o.fuelRemaining()).toBe(0);
     // ...and taking it off brings the wood back.

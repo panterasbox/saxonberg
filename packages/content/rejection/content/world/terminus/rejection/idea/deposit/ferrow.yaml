@@ -231,3 +231,51 @@ data:
       charge: true
       headAtm0: 4
       capacityL: 9000
+    # ⭐⭐ The oil leg. Deeper than everything else, in granite, and the
+    # bore that reaches it is the most expensive thing in the valley —
+    # which is the point: oil is the rung where the payroll stops being
+    # an expense and becomes a bet with real money on it.
+    #
+    # ⭐ `headAtm0: 2.5` — it flows, and then it does not. The decline is
+    # the whole of Stage C's content, and nothing announces it.
+    - key: oil-leg
+      fluid: /stuff/idea/material/bulk/crude-oil
+      trap:
+        crest: [220, 140, -205]
+        strike: 41
+        alongExtent: 60
+        acrossExtent: 60
+        closureM: 35
+      charge: true
+      headAtm0: 2.5
+      capacityL: 60000
+    # ⭐⭐⭐ **The dry trap, and it is the most important row in the whole
+    # deposit.**
+    #
+    # It reads PERFECTLY. It is a real closed structure with a real
+    # crest and thirty metres of closure under it; `measure structure`
+    # reports it exactly as it reports the charged ones, field for field,
+    # at every band and with every instrument. And there is nothing in
+    # it.
+    #
+    # ⚠⚠ `charge: false` is a PIN, and pinning it is deliberate: the
+    # lesson has to land when the player has the instruments to be sure
+    # they read it right, so they cannot blame the survey. A seeded
+    # answer here would let them wonder whether they measured badly. The
+    # bet was the bet, they lost it, and the hole is worth something to
+    # whoever looks at this country next — which is what the log is for.
+    #
+    # ⭐ **This is why the trade's premise survives every improvement to
+    # the instruments.** There is no reading anywhere in the game that
+    # distinguishes this row from the one above it.
+    - key: dry-trap
+      fluid: /stuff/idea/material/bulk/crude-oil
+      trap:
+        crest: [140, 160, -190]
+        strike: 41
+        alongExtent: 70
+        acrossExtent: 50
+        closureM: 30
+      charge: false
+      headAtm0: 2.5
+      capacityL: 60000

@@ -46,6 +46,14 @@ data:
     # falsifiable line holds: a second kind of well is a row.
     - path: /world/terminus/rejection/location/gas-flat
       keywords: [burnt, "burnt ground", blow]
+    # ⭐⭐ Oil country: the whaleback over the charged trap, and the cairn
+    # over the one that reads just as well and holds nothing. BOTH are
+    # stakeable, and that is the point — the register cannot tell them
+    # apart either.
+    - path: /world/terminus/rejection/location/oil-rise
+      keywords: [whaleback, rise, back]
+    - path: /world/terminus/rejection/location/dry-rise
+      keywords: [cairn, "cairn rise", stones]
   details:
     marks:
       keywords: [marks, mark, crosses, signature]

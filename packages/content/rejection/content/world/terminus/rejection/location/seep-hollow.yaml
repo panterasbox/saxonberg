@@ -1,0 +1,31 @@
+# ⭐ The Seep — the oil country's free evidence, and the third room in
+# this build built on one shape: the ground tells you about a place that
+# is NOT the place to dig.
+#
+# ⚠ Standing here, `measure structure` says the beds rise to the east
+# and names the distance. The bore to make is over there.
+class: /platform/location/SingletonCartesianLocation
+data:
+  _biomePath: /stuff/idea/biome/outdoor/baseline
+  shortDescription: seep hollow
+  keywords: [seep, hollow, "seep hollow", overhang]
+  register: definite
+  longDescription: |
+    A bite out of the hillside with an overhang over it, and under the overhang the rock is wet and black and smells like a tannery that has caught fire.
+
+    Somebody has set a flat stone at the edge of the pool to kneel on. It is worn.
+
+    East the ground rises into a long whaleback of a hill. North it rises differently — steeper, barer, and with a cairn on the top of it that somebody built for no reason anybody remembers.
+  coords: { x: 18, y: 10, z: 0 }
+  props:
+    - /world/terminus/rejection/thing/oil-seep
+  exits:
+    southwest:
+      destination: /world/terminus/rejection/location/gas-flat
+      edgeMinutes: 8
+    east:
+      destination: /world/terminus/rejection/location/oil-rise
+      edgeMinutes: 5
+    north:
+      destination: /world/terminus/rejection/location/dry-rise
+      edgeMinutes: 7

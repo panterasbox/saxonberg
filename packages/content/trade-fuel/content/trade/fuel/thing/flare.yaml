@@ -1,0 +1,40 @@
+# ⭐⭐ The flare — **burning something for nothing, brightly, where
+# everybody can see you do it.**
+#
+# It is a `Lamp` with a big tank and no wick worth speaking of, and that
+# is the entire implementation: `fill flare from cask; light flare` and
+# the fraction nobody will buy goes up as light and heat. Zero code.
+#
+# ⚠ And the *visibility* is the point rather than a side effect. The
+# requirement is that **every way of getting rid of the waste is visible
+# to somebody else** — so the disposal that costs nothing has to be the
+# one that announces itself for a mile. A player who flares is telling
+# the whole valley what their barrel yield looks like, which is exactly
+# the externality the design wants priced by a polity rather than by a
+# rule.
+#
+# ⭐ Historically exact, too: early refiners burned the light ends in
+# open pits because they came over whether anybody wanted them or not.
+class: /platform/thing/Lamp
+data:
+  shortDescription: flare stack
+  keywords: [flare, stack, "flare stack", pit, burner]
+  register: definite
+  longDescription: |
+    A length of iron pipe standing on three legs with a bell on top of it and a cock at the bottom, set in a ring of scorched gravel well away from anything that matters.
+
+    Lit, you can see it from the far side of the valley, and it makes a noise like a sheet being torn slowly.
+  lit: false
+  mass: 240
+  fixedInPlace: true
+  interiorBulk: true
+  interiorCapacity: 400
+  closure: liquidTight
+  # Bright and hot, which is what makes it both the cheap answer and the
+  # conspicuous one.
+  burnTemperatureK: 1400
+  maxBurnPowerW: 90000
+  # ⚠ No `fuelCapacityKg` and no fuel bed: a flare's fuel is its TANK,
+  # which `Lamp.fuelSlot()` answers with. A bed as well would make
+  # `stoke flare` a thing, and you do not put wood in a flare.
+  fuelCapacityKg: 0

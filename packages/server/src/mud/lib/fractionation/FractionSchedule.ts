@@ -110,7 +110,50 @@ export interface FractionSpec {
    * phenol over and leave 30 % behind, which is about right.
    */
   aromaticCarry?: number;
+  /**
+   * ⭐⭐⭐ **What this fraction IS** — a `Material` path, in a schedule
+   * whose `separation` is `'fractions'`. Absent in `'cuts'` mode, and
+   * required in `'fractions'` mode.
+   *
+   * This is the one field that makes a refinery a different machine from
+   * a still, and the difference is not a matter of degree:
+   *
+   *  - A **pot still** separates one substance into GRADES of itself.
+   *    Foreshots, hearts and tails are all new-make spirit; they differ
+   *    in character and in what they will poison you with, and the
+   *    distiller's whole art is **deciding where to cut** and then
+   *    blending what they kept. One `productMaterial`, several qualities
+   *    of it, and recombining them is legitimate.
+   *  - A **refinery column** separates one substance into DIFFERENT
+   *    SUBSTANCES. Gasoline is not a grade of kerosene and no amount of
+   *    blending makes it one; you cannot distil crude and choose not to
+   *    make the light ends, and you cannot pour the light ends back in
+   *    and have crude again.
+   *
+   * ⚠ Which is why `getBulkAvailable` **clamps at the boundary** in this
+   * mode: the column will not hand you gasoline and kerosene in one
+   * cask. You draw until the character changes and you change casks,
+   * which is what *joint production* means at the tap.
+   */
+  material?: string;
 }
+
+/**
+ * ⭐⭐⭐ **What KIND of separation a schedule performs**, and the one
+ * thing that decides whether its fractions recombine.
+ *
+ * `'cuts'` — grades of one substance (a pot still). The default, so
+ * every schedule authored before this existed is byte-identical.
+ *
+ * `'fractions'` — distinct substances (a refinery column). Each spec
+ * names its own `material` and the schedule's `productMaterial` must be
+ * empty, because there is no such thing as *the* product.
+ *
+ * ⚠ A TypeScript string union rather than an exported array with a
+ * membership test, deliberately: `lint:closed-vocabularies` sits at its
+ * ceiling of 5 and the compiler is already the gate here.
+ */
+export type Separation = 'cuts' | 'fractions';
 
 export default class FractionSchedule extends SingletonMixin(Idea) {
   /** Stable key — what a host records to re-find its schedule. */
@@ -124,6 +167,12 @@ export default class FractionSchedule extends SingletonMixin(Idea) {
    * re-key every vessel that so much as receives the charge.
    */
   public inputCategory = '';
+  /**
+   * ⭐⭐ What kind of separation this is — grades of one substance, or
+   * distinct substances. See {@link Separation}. Default `'cuts'`, so
+   * every shipped row is unchanged.
+   */
+  public separation: Separation = 'cuts';
   /** The Discipline the draw credits. `''` = none. */
   public discipline = '';
   /**
@@ -158,6 +207,7 @@ export default class FractionSchedule extends SingletonMixin(Idea) {
   static fieldMeta: FieldMeta = {
     key: { persistent: true, authorable: true },
     inputCategory: { persistent: true, authorable: true },
+    separation: { persistent: true, authorable: true },
     discipline: { persistent: true, authorable: true },
     requiresHeatK: { persistent: true, authorable: true },
     productMaterial: { persistent: true, authorable: true },
@@ -233,6 +283,16 @@ export default class FractionSchedule extends SingletonMixin(Idea) {
       );
     }
     this.productMaterial = value;
+  }
+
+  /** What kind of separation this schedule performs. See {@link Separation}. */
+  getSeparation(): Separation {
+    return this.separation;
+  }
+
+  /** Declare the separation kind (the row's `separation:`). */
+  setSeparation(value: Separation): void {
+    this.separation = value === 'fractions' ? 'fractions' : 'cuts';
   }
 
   getResidueMaterial(): string {
@@ -346,6 +406,79 @@ export default class FractionSchedule extends SingletonMixin(Idea) {
       );
     }
     this.fractions = value.map((s) => ({ ...s }));
+  }
+
+  /**
+   * ⭐⭐⭐ **The separation pair, checked HERE and not in a setter**, and
+   * the reason is an ordering trap rather than taste.
+   *
+   * `separation` and `fractions` are two authored keys, and the
+   * `TemplateApplier` dispatches a row's `data:` keys in the order the
+   * row happens to list them. A check inside `setFractions` therefore
+   * reads whatever `separation` was at that moment — which for a row
+   * that lists `fractions:` first is the DEFAULT, so a perfectly good
+   * refinery column would throw and a reordering of the YAML would fix
+   * it. That is a validation that depends on authoring whitespace.
+   *
+   * ⚠ So it lives where the convention says a cross-field rule lives:
+   * the host's own `onCreate`, after every field is in.
+   *
+   * And it is worth being exact about what it is protecting. A
+   * `'fractions'` row missing ONE `material` is the dangerous case, not
+   * a missing-everything row: that span would quietly be handed out as
+   * the schedule's `productMaterial`, which in a refinery means **a cask
+   * labelled kerosene full of gasoline**. The `cuts` direction is the
+   * mirror of it — a pot still's fractions are grades of one substance
+   * and recombine, so a spec naming its own material is claiming
+   * something false about the machine.
+   */
+  public override async onCreate(context?: unknown): Promise<void> {
+    // ⚠ A plain chain: `Stuff.onCreate` ships a terminal no-op exactly
+    // so a layer can do this without the cast-to-optional-callable
+    // ceremony.
+    await super.onCreate(context);
+    if (this.separation === 'fractions') {
+      for (const spec of this.fractions) {
+        if (!spec.material || spec.material.trim().length === 0) {
+          throw new RangeError(
+            `FractionSchedule '${this.key}': fraction '${spec.key}' names no ` +
+              `material, and this schedule declares 'fractions' — a column ` +
+              `separates one substance into DIFFERENT substances, so every ` +
+              `span has to say what it is`,
+          );
+        }
+      }
+      if (this.productMaterial !== '') {
+        throw new RangeError(
+          `FractionSchedule '${this.key}': declares 'fractions' AND a ` +
+            `productMaterial ('${this.productMaterial}') — there is no such ` +
+            `thing as THE product of a column; each span names its own`,
+        );
+      }
+    } else {
+      for (const spec of this.fractions) {
+        if (spec.material !== undefined) {
+          throw new RangeError(
+            `FractionSchedule '${this.key}': fraction '${spec.key}' names a ` +
+              `material, and this schedule is 'cuts' — a pot still's ` +
+              `fractions are GRADES of one substance and recombine; name one ` +
+              `productMaterial, or declare 'fractions'`,
+          );
+        }
+      }
+    }
+  }
+
+  /**
+   * ⭐ What a draw over this span actually IS, by separation kind: the
+   * span's own material in a column, the schedule's one product in a
+   * still. The single place the distinction is read, so no consumer has
+   * to know which kind of machine it is looking at.
+   */
+  materialFor(spec: FractionSpec): string {
+    return this.separation === 'fractions'
+      ? (spec.material ?? '')
+      : this.productMaterial;
   }
 
   /** Cumulative fraction of the charge that is residue. */

@@ -572,6 +572,25 @@ export function FractionatingMixin<TBase extends MixinConstructor<Stuff>>(
       if (affordance === 'interior' && !this._reconcilingRun) {
         this.reconcileRun();
       }
+      // ⭐⭐⭐ In a COLUMN, what is in the slot is the material of the
+      // fraction the next litre is in — because a column separates one
+      // substance into DIFFERENT substances and there is no such thing
+      // as *the* product of it.
+      //
+      // ⚠ This has to answer here and not only in the payload, because
+      // `BulkableApi.transfer` reads the source's MATERIAL at step 1 and
+      // stamps the destination with it. Without this a cask drawn off a
+      // running column would be stamped `crude` whatever came out of the
+      // tap — the same class of defect as the bottle of wash that
+      // poisons you, which is what this method's history is about.
+      if (affordance === 'interior' && this.runPhase === 'running') {
+        const schedule = FractionSchedule.byKey(this.runScheduleKey);
+        if (schedule && schedule.getSeparation() === 'fractions') {
+          const spec = this.fractionAtL(schedule, this.drawnL);
+          if (spec) return schedule.materialFor(spec);
+          return schedule.getResidueMaterial() || null;
+        }
+      }
       return super.getBulkMaterialPath(affordance);
     }
 
@@ -597,6 +616,25 @@ export function FractionatingMixin<TBase extends MixinConstructor<Stuff>>(
       if (!schedule) return amount;
       const floor = this.residueFloorL(schedule);
       let ceiling = Math.max(0, amount - floor);
+      // ⭐⭐⭐ **A column will not hand you two substances in one cask.**
+      // Clamp at the boundary of the fraction the next litre is in, so a
+      // draw stops where the substance changes: you draw until the
+      // character changes and you change casks. That is what *joint
+      // production* means at the tap, and it is the one behaviour that
+      // makes the barrel a sequence of decisions rather than a number.
+      //
+      // ⚠ A pot still does the opposite on purpose — a pour that
+      // straddles a boundary carries both sides in proportion, because
+      // its fractions are GRADES of one substance and blending them is
+      // the distiller's art. The blend lives in
+      // `getBulkPayloadForDraw`, untouched below.
+      if (schedule.getSeparation() === 'fractions') {
+        const spec = this.fractionAtL(schedule, this.drawnL);
+        if (spec) {
+          const boundaryL = spec.upTo * this.chargeL;
+          ceiling = Math.min(ceiling, Math.max(0, boundaryL - this.drawnL));
+        }
+      }
       // Clamp at the first fraction whose own heat gate is unmet.
       let startL = 0;
       for (const spec of this.effectiveFractions(schedule)) {

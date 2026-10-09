@@ -1,0 +1,29 @@
+# ⭐ The seep — the free evidence in oil country, and the third instance
+# of one shape: *something is down there*, and *this is the one place not
+# to bore.*
+#
+# ⚠ By the third one it should be obvious that the channel's eye rung
+# knows nothing about springs, blows or seeps: it asks the room what is
+# SHOWING and repeats the prose. A fourth kind of surface showing is a
+# row and no code, which is what that claim is worth.
+class: /platform/thing/Thing
+data:
+  shortDescription: oil seep
+  keywords: [seep, "oil seep", tar, pool, sump, slick]
+  register: definite
+  fixedInPlace: true
+  mass: 300
+  _materialPath: /stuff/idea/material/bulk/crude-oil
+  longDescription: >-
+    A hollow under an overhang where the rock weeps, and what it weeps is
+    black. It has been weeping long enough to have made a pool, and the
+    pool has a skin on it, and under the skin it is still moving.
+  details:
+    showing:
+      keywords: [showing, oil, tar, slick, skin, pool]
+      description: >-
+        Rock oil, coming up through a crack on its own. People have been
+        skimming it off this pool for lamps and liniment since before
+        anybody wrote anything down about this valley, a bucket at a
+        time, and none of them ever thought to ask where it was coming
+        from.

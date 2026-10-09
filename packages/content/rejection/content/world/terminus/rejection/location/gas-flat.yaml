@@ -25,6 +25,8 @@ data:
     Somebody has put a ring of stones round it. Somebody else has knocked half of them over.
 
     If you stand still in the middle of it on a windless day there is a smell, faint and not quite anything, like a cellar that has been shut too long.
+
+    The hill carries on up to the northeast and the going gets worse.
   coords: { x: 12, y: 6, z: 0 }
   props:
     - /world/terminus/rejection/thing/gas-blow
@@ -32,3 +34,8 @@ data:
     southwest:
       destination: /world/terminus/rejection/location/salt-flat
       edgeMinutes: 6
+    # ⭐ On out into oil country — further along the same fold, deeper,
+    # and the most expensive ground in the valley.
+    northeast:
+      destination: /world/terminus/rejection/location/seep-hollow
+      edgeMinutes: 8
