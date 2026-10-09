@@ -383,6 +383,13 @@ describe('the venue itself', () => {
      * The outward walk makes the nearest citation win, so a hillside a
      * quarter of a mile from the lode is a different column and the
      * galleries' hardness is untouched — one field, no code.
+     *
+     * ⭐ The eighth is the **Sand Pit** (glass), and it is a zone for the
+     * same reason and no other: its own `deposit:`, whose two faces win
+     * the same material at different purities. Which is the second
+     * demonstration of the same one field — a trade nobody had written
+     * when the quarry's was authored took the pattern and needed no
+     * code either.
      */
     expect(zones.sort()).toEqual([
       'content/world/terminus/rejection.yaml',
@@ -392,15 +399,19 @@ describe('the venue itself', () => {
       'content/world/terminus/rejection/kestrel-road.yaml',
       'content/world/terminus/rejection/location.yaml',
       'content/world/terminus/rejection/quarry.yaml',
+      'content/world/terminus/rejection/sand-pit.yaml',
     ]);
   });
 
-  it('⭐ FOUR businesses, and the smelter buys out of REVENUE — no new money anywhere', () => {
+  it('⭐ FIVE businesses, and the smelter buys out of REVENUE — no new money anywhere', () => {
     const businesses = files(
       join(REJECTION, 'content/world/terminus/rejection/idea'),
       (f) => f.endsWith('-business.yaml'),
     );
-    expect(businesses.length).toBe(4);
+    // ⭐ The fifth is the glasshouse (glass W7), and it changes nothing
+    // about the invariant below: it buys its sand, its fuel and its flux
+    // out of revenue like the smelter does.
+    expect(businesses.length).toBe(5);
     for (const rel of businesses) {
       const b = row(rel);
       expect(b.class).toBe('/platform/idea/Business');
