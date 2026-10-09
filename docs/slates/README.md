@@ -35,9 +35,9 @@ materials-response all shipped, which made the name actively misleading.
 
 <!-- BEGIN GENERATED — ./tools/slate-index -->
 
-**280 slates.** 69 greenfield · 96 continuations · 60 waves · 55 tails.
+**280 slates.** 68 greenfield · 96 continuations · 60 waves · 56 tails.
 
-## ⭐ Greenfield — nothing shipped yet (69)
+## ⭐ Greenfield — nothing shipped yet (68)
 
 Pick from here for a clean cycle with no existing substrate to
 respect.
@@ -92,7 +92,6 @@ respect.
 | [mirror](./builds/mirror-slate.md) | the inbound assertion channel · what is admissible (the INTRINSIC/SOCIAL firewall — condition, never character) · claim, corroboration and decay · the density threshold … |
 | [notification](./builds/notification-slate.md) | the subject-keyed event · the substrate-owned prose templates (not a second bus) · the durable subscription (`PathTrie` routing) · derive-on-read delivery + the cursor/dismissal read state … |
 | [odometer](./builds/odometer-slate.md) | the counter roster (editorial, chosen against observed play) + the authoring surface (Q1) · the subject-scoped derive over chronicle/participation/advancement + the projection map (Q2) + whether participation shares the store (Q5) · the aggregate headline + its weighting (Q4) · milestones → recognition via belief (Q3) … |
-| [pathfinding](./builds/pathfinding-slate.md) | ⭐⭐ decide whether a shared pathfinder should exist at all (the pets build concluded *not for animals*; the economic bootstrap concluded *not for a shopkeeper crossing her own street* — see the second datum below, where the answer was authored directions) · the graph vocabulary — exits vs lanes vs conduits vs the elastic Warren · the cost model (legs · distance … |
 | [pharma](./builds/pharma-slate.md) | the actives/pharmacopoeia content · `neutralizedBy` + `rinse [with <substance>]` (the first row of the pharmacopoeia) · extraction as a process · glass vessels … |
 | [presence-hollowing](./builds/presence-hollowing-slate.md) | presence-vs-hollow as a physical state on an agent · who perceives it (ESP · the attuned reader dial · sacred instruments) … |
 | [prison](./builds/prison-slate.md) | `PrisonMixin` (a locality you cannot leave — the boundary + the custody book, and nothing else) · the three enforcement tiers in content · cells as provisioned shelters on the residence spine · interior law as the prison's own jurisdiction (no `securityLevel`) … |
@@ -158,7 +157,7 @@ are the named remainders.
 | [eternal-university](./builds/eternal-university-slate.md) | the arrival gate · the Quad + the walkway spine (the EC road names) · Student Services (registrar + housing office) · the Health Center clinic … |
 | [executive](./builds/executive-slate.md) | the **executive log** (append-only; principal · authority invoked · act · authorization … |
 | [farming](./builds/farming-slate.md) | the arable field crop — the aggregate density (`sow`/`water`/ `harvest field`; no verb sows a `Field`) · plant genetics — `Genome`, `express` reaction norms, `pollinate`, cultivars and fixed-vs-segregating seed lots, the husbandry-wide breeding substrate · the environment-control tier (greenhouse glass + hydroponics) · the sun→ambient light driver … |
-| [fire-combustion](./builds/fire-combustion-slate.md) | the fire service (§ below) — the fire brigade (bucket-brigade → volunteer → paid-service ladder) · fire-code / prevention / inspection · fire insurance (incl. the moral-hazard / arson tie) · map-scale wildfire … |
+| [fire-combustion](./builds/fire-combustion-slate.md) | . → fire.md |
 | [food-safety](./builds/food-safety-slate.md) | molds (Part 10) — the second population's visible surface · rancidity's own small law (Part 10) · the attach points nobody uses yet (irrigation contamination · the `trade-butchery` spin-out … |
 | [freight](./builds/freight-slate.md) | the barricade (exits vs lane edges · the clearing verb · erect via crafting?) · the tollgate + the turnpike trust (the toll schedule as a `parameter` clause … |
 | [fridge-design-pack](./builds/fridge-design-pack.md) | ⭐⭐ **`Chamber`** — the compartment with its own air, and the `AtmosphericMixin` widening it needs; the spec is below, written against the shipped tree and executable cold (this build shipped the freezer compartment as `props:` instead) · the COP fork · the mirror inbound channel (Part 4) · the civic "better resident" extension (Part 5 — needs its own pass) … |
@@ -283,7 +282,7 @@ are the named remainders.
 | [wizard-bar](./tails/wizard-bar-slate.md) | the safe-harbour standard text (⭐ the product) · admit (exam + archwizard flip) · the public roster · the hearing process … |
 | [youtube-relay](./tails/youtube-relay-slate.md) | outbound `liveChatMessages.insert` · the quota accountant + coalescing and drop policy · per-player `youtube.force-ssl` OAuth · the `GoogleProfile` token extension + `google-reauth` |
 
-## Tails — small and opportunistic (55)
+## Tails — small and opportunistic (56)
 
 | slate | left |
 |---|---|
@@ -330,6 +329,7 @@ are the named remainders.
 | [reactions](./tails/reactions-slate.md) | the analytics event-stream tap (Wave 3) · the emote-flood salvage (Future direction, below) · reactability for act-kinds beyond the shipped `speech.vocal`/`act.emote`/`speech.channel`/`act.combat` set (e.g. system notices) |
 | [reference-lifetime](./tails/reference-lifetime-slate.md) | the undeclared instance-ref sites still guarding by hand (`SandboxCrossingExit.crossing` · the `ExitableVessel` caches · `LoungeWarren._reapTimers` · the warren maps, now `OuterWarren._holdingsByKey` / `_circulationByNode` / `_entriesByKey` and `HoldingWarren._roomsByKey`) … |
 | [respiration](./tails/respiration-slate.md) | ⚠ **the in-place trigger** (a body standing still is never re-checked — fire's smoke is a live consumer today) · **the air reserve as a breathable read** (rooms already carry one; nobody breathes it) · a BOD term on the reach's oxygen (watershed's line) · three named non-goals with destinations |
+| [routing](./tails/routing-slate.md) | seven attach points, each with a named destination; two content gaps the build surfaced and did not close (75 of 128 places declare no address; a `walked` claim does not record what you were driving); and one vacancy — `knows:` makes a **guide** an economically coherent role for the first time. |
 | [sandbox](./tails/sandbox-slate.md) | chronicle presentation of wire deeds · what counts as "power" at the release gate + combination exploits + instancing · draft-overlay compose · circle transfer (move / sell an owned circle) … |
 | [scripting](./tails/scripting-slate.md) | the piping model over the built `Pipeline` AST node + the value→field binder + the two-channel/ByValue compatibility design · the block-value fork (`it`-only vs explicit params on the generic `Block` value — `def`'s named params are a separate mechanism and already shipped) · the `improv` seam · LLM-director authoring … |
 | [social-graph](./tails/social-graph-slate.md) | message-restyle live wiring (needs a sync contacts fast-path) · recognition-gated bucketing (deferred to the recognition-family build) · account-level bucket federation across characters · comms trust-tiered message policy (foes drop / friends bypass filters — comms-slate territory, untouched) … |

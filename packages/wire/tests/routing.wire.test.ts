@@ -1,6 +1,24 @@
 /**
  * Routing — ⭐⭐ **the drive**, over the socket, as a person would type it.
  *
+ * ⭐ **Clean, and that took a change to earn.** Every act here is a
+ * plan, a read or a refusal: `route` starts nothing and spends
+ * nothing, and the one `journey` is refused by the barge it asks. The
+ * sessions mint disposable characters and leave their map documents,
+ * which every wire file does and which consumes nothing scarce.
+ *
+ * ⚠⚠ It was named `.dirty.` and declared clean — and the declaration
+ * is what the guard checks while **the filename is what the sequencer
+ * sorts on**, so the two disagreeing is exactly the lie
+ * `declareFile`'s own comment warns about. The guard passed because
+ * it read the declared name — which is why this file passes
+ * `import.meta.url` now, the one form that cannot drift.
+ *
+ * ⚠ And the step that made it LOOK dirty — a global operator setting,
+ * mutated and restored — turned out never to have mutated anything:
+ * `config` is operator surface and the set was refused, so the
+ * assertion fell through to a vacuous one. See step 8.
+ *
  * `docs/requirements/routing-requirements.md § The drive`, steps 1–14 as
  * far as a socket reaches. ⚠ **Tests build state; they never use it** —
  * and this build drained eleven hand-written graph walks and replaced a
@@ -53,7 +71,13 @@ import {
 } from '../src/harness';
 
 declareFile({
-  file: 'routing.wire.test.ts',
+  // ⭐ `import.meta.url`, not a hand-written string. The dirtiness
+  // guard keys on this value while the SEQUENCER sorts on the real
+  // filename, so a typed name that drifts from the file makes the
+  // batching a lie — and that is exactly how this file passed the
+  // guard while named `.dirty.` and declaring clean. Three files
+  // already use the url form; it is the one that cannot drift.
+  file: import.meta.url,
   packs: [
     'saxonberg-lounge',
     'terminus',
@@ -299,30 +323,38 @@ suite('routing — the drive', () => {
 
   /* ── 8 · exhaust a budget ────────────────────────────────────────── */
 
-  it('8 · ⭐⭐ a budget exhausted says so, and is NOT "there is no way"', async () => {
-    // ⚠ A search that spent its allowance has not proved anything
-    // about the world, and the two sentences lead a player to do
-    // different things. Lowered with `config` so the refusal is
-    // reachable at all — a budget nobody can hit is a budget nobody
-    // can test.
+  it('8 · ⚠⚠ the budget is an OPERATOR dial — a player cannot touch it', async () => {
+    // ⭐⭐⭐ This step is what is left after two wrong versions of it,
+    // and the history is the finding.
+    //
+    // v1 did `config set navigation.attendedSearchBudget 1`, asserted
+    // the refusal sentence, and restored the value in a `finally`. It
+    // PASSED — and it was **vacuous**: `config` is operator surface,
+    // so the set was refused, the test took its `else` branch and
+    // asserted only that *some* prose came back. It also made the
+    // file look dirty (a global setting, mutated) for a mutation that
+    // never happened.
+    //
+    // v2 read the dial instead. Also refused: `config` is gated for
+    // READS too.
+    //
+    // ⚠ So a socket cannot settle anything about the budget's value,
+    // and saying so is better than a third dressed-up version. Where
+    // it IS settled, exactly: `NavigationLogic.routing.test.ts`
+    // asserts the same pair answers differently as ONLY the budget
+    // changes, and `RouteController.test.ts` asserts the sentence is
+    // *"could not work out a way that far"* rather than *"there is no
+    // way"*.
+    //
+    // What a socket genuinely settles is the property this step now
+    // asserts, which is real and was never tested: **the dial is not
+    // player-settable.** A search budget a player could raise is a
+    // player who can make the server think for free.
     const s = await at(SQUARE, 'budget');
-    await s.cmd('look');
-    const set = await s.cmd('config set navigation.attendedSearchBudget 1');
-    try {
-      const res = await s.cmd('route to the bakery');
-      const out = plain(await res.said());
-      if (set.status === 'ok') {
-        // Either the budget bit, or the pair was one hop and inside it.
-        expect(out).toMatch(/could not work out a way that far|The way to|do not know/i);
-        expect(out).not.toMatch(/there is no way/i);
-      } else {
-        // `config` is operator surface; an unprivileged session cannot
-        // set it, and saying so is better than a skipped assertion.
-        expect(out.length).toBeGreaterThan(0);
-      }
-    } finally {
-      await s.cmd('config set navigation.attendedSearchBudget 400');
-    }
+    const res = await s.cmd('config navigation.attendedSearchBudget 999999');
+    expectRefused(res);
+    const out = plain(await res.said());
+    expect(out).toMatch(/permission/i);
   });
 
   /* ── 10 · the firewall, from the map verb's side ─────────────────── */

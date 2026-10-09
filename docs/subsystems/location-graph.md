@@ -460,6 +460,19 @@ save is the wrong trade.
 — the places grouped by the address the content declares, each with the
 ways out you know and how you know them.
 
+⚠⚠ **That grouping had never once worked, and the routing build's
+sweep found it.** `CartographerMixin.groupingAddressOf` duck-typed
+`getDeclaredAddress?.()` — a method that exists **nowhere**;
+`AddressableMixin`'s reader is `getAddress()`. The optional call
+answered `undefined` every time, so `MapClaim.group` was never
+populated and every place fell into the unnamed bucket, which renders
+identically to having no groups at all. 53 of the realm's 128 places
+declare an address. ⭐ It was found by routing *needing* it to narrow a
+destination, and routing's own tests had passed because their fixtures
+set `group` by hand — working perfectly against data the writer never
+wrote. See [antipatterns.md § A duck-typed optional call on a method
+name NOBODY DEFINES](../antipatterns.md).
+
 ⭐ **AC14 is structural**: the controller's single read is
 `NavigationApi.readMap(viewerKey, prefix)`, which resolves under the
 actor's own home and nowhere else. Nothing in it touches

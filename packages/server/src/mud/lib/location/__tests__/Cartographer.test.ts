@@ -27,6 +27,7 @@ import { SingletonMixin } from '../../stuff/Singleton';
 import { ContainerMixin } from '../../spatial/Container';
 import { NamedMixin } from '../../description/Named';
 import { PerceptibleMixin } from '../../description/Perceptible';
+import { AddressableMixin } from '../../address/Addressable';
 import { makeStuff, makeStuffAtPath } from '../../security/__tests__/test-setup';
 import Exit from '../../boundary/Exit';
 import type { Stuff } from '../../stuff/Stuff';
@@ -49,6 +50,19 @@ class Incurious extends CartographerMixin(NamedMixin(Idea)) {
 /** A singleton place, so its handle is its row. */
 class Hall extends SingletonMixin(
   ContainerMixin(NamedMixin(PerceptibleMixin(Idea))),
+) {}
+
+/**
+ * ⭐ The same, but ADDRESSABLE — composed, not stubbed.
+ *
+ * ⚠⚠ This class exists because of how the group bug hid: the routing
+ * tests set `MapClaim.group` by hand in their fixtures, so the
+ * resolution tier they were exercising worked perfectly against data
+ * the WRITER never writes. A claim-shape field has to be asserted
+ * through the thing that banks it.
+ */
+class AddressedHall extends AddressableMixin(
+  SingletonMixin(ContainerMixin(NamedMixin(PerceptibleMixin(Idea)))),
 ) {}
 
 let recorded: Array<{
@@ -305,5 +319,43 @@ describe('⭐⭐ a place claim banks the tokens it answered to', () => {
     await new Promise((r) => setTimeout(r, 0));
     const place = recorded.flatMap((r) => r.claims).find((c) => c.kind === 'place');
     expect(place?.keywords).toBeUndefined();
+  });
+});
+
+describe("⭐⭐⭐ a place claim banks the address it DECLARES", () => {
+  /*
+   * ⚠⚠ This read was broken from the day it shipped, and silently:
+   * `groupingAddressOf` duck-typed `getDeclaredAddress?.()`, a method
+   * that exists NOWHERE in the tree (`AddressableMixin`'s reader is
+   * `getAddress()`). The optional call answered `undefined` every
+   * time, so `MapClaim.group` was never once populated and `map`'s
+   * grouping-by-address has never grouped anything.
+   *
+   * ⭐ Found in the routing build's pre-merge sweep, by the routing
+   * build NEEDING it — a dead read stays dead until something depends
+   * on it. 53 of the realm's 128 places declare an address.
+   */
+  it('reads the declared address through the mixin, not a duck-type', async () => {
+    const guide = makeStuffAtPath(() => new Guide(), GUIDE_ROW, GUIDE_ID);
+    const addressed = makeStuffAtPath(() => new AddressedHall(), HALL);
+    addressed.setName('the hall');
+    addressed.setAddress('test/cartoville/civic-quarter');
+
+    guide.recordSurroundings(addressed as unknown as Stuff, []);
+    await new Promise((r) => setTimeout(r, 0));
+
+    const place = recorded.flatMap((r) => r.claims).find((c) => c.kind === 'place');
+    expect(place?.group).toBe('test/cartoville/civic-quarter');
+  });
+
+  it('⚠ leaves it absent for a place that declares none — the sparse case', async () => {
+    const guide = makeStuffAtPath(() => new Guide(), GUIDE_ROW, GUIDE_ID);
+    guide.recordSurroundings(hall() as unknown as Stuff, []);
+    await new Promise((r) => setTimeout(r, 0));
+    const place = recorded.flatMap((r) => r.claims).find((c) => c.kind === 'place');
+    // 75 of 128 places declare nothing, so `undefined` is the COMMON
+    // answer — which is why a bare keyword must widen past the
+    // standing locality rather than refuse.
+    expect(place?.group).toBeUndefined();
   });
 });

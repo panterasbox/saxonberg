@@ -391,10 +391,29 @@ export function CartographerMixin<TBase extends MixinConstructor>(
       return kws.length > 0 ? [...kws] : undefined;
     }
 
+    /**
+     * The address the place DECLARES, or `undefined`.
+     *
+     * ⚠⚠ **This read was broken from the day it shipped**, and
+     * silently: it duck-typed `getDeclaredAddress?.()`, a method that
+     * exists nowhere in the tree — `AddressableMixin`'s reader is
+     * `getAddress()`. The optional call answered `undefined` every
+     * time, so `MapClaim.group` was **never once populated** and
+     * `map`'s grouping-by-address has never grouped anything: every
+     * place fell into the unnamed bucket, which renders identically
+     * to having no groups at all.
+     *
+     * ⭐ Found in the pre-merge sweep of the routing build, by the
+     * routing build NEEDING it — a dead read stays dead until
+     * something depends on it. The duck-type is why: `?.()` on a name
+     * nobody defines is indistinguishable from a host that declines,
+     * and 53 of the realm's places declare an address. It reads
+     * through `MixinApi.isAddressable` now, which cannot compile
+     * against a method that does not exist.
+     */
     private groupingAddressOf(place: Stuff): string | undefined {
-      const declared = (
-        place as unknown as { getDeclaredAddress?(): string | null }
-      ).getDeclaredAddress?.();
+      if (!MixinApi.isAddressable(place)) return undefined;
+      const declared = place.getAddress();
       return declared && declared.length > 0 ? declared : undefined;
     }
   };

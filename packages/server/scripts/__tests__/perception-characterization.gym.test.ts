@@ -180,7 +180,7 @@ function bootUnion(): string[] {
   return out;
 }
 
-let readings: PlaceReading[] = [];
+const readings: PlaceReading[] = [];
 let placeCount = 0;
 
 describe("perception characterization — every place in the realm", () => {

@@ -5953,3 +5953,52 @@ anything is loaded. ⭐ The test for any identity key: *would this
 component still be the same if the process had just restarted?* If
 not, it is not part of the identity.
 
+
+## ⛔⛔ A duck-typed optional call on a method name NOBODY DEFINES
+
+```ts
+// WRONG — answers `undefined` forever, and reads as "the host declined"
+const declared = (
+  place as unknown as { getDeclaredAddress?(): string | null }
+).getDeclaredAddress?.();
+
+// RIGHT — the predicate cannot compile against a method that is absent
+if (!MixinApi.isAddressable(place)) return undefined;
+const declared = place.getAddress();
+```
+
+⭐ **Why `?.()` on a cast is different from any other duck-type.** The
+codebase reaches across packs by shape on purpose — `refreshCrossing`,
+`airAt`, the `TravelNode` idiom — and that is sound where the *protocol*
+is the contract and a host that lacks it genuinely declines. The failure
+is when the name is simply **wrong**: `?.()` makes "this host does not
+implement it" and "this method does not exist anywhere" the same
+expression, and TypeScript cannot object because the cast asked it not
+to.
+
+⚠⚠ **The live case, and how long it hid.**
+`CartographerMixin.groupingAddressOf` read `getDeclaredAddress?.()`.
+`AddressableMixin`'s reader is **`getAddress()`**; `getDeclaredAddress`
+exists nowhere in the tree. So `MapClaim.group` was **never once
+populated**, and `map`'s grouping-by-address had never grouped anything
+— every place fell into the unnamed bucket, which renders identically to
+having no groups at all. 53 of the realm's 128 places declare an
+address.
+
+⭐ **It was found by something finally needing it.** The routing build's
+destination resolution narrows by that address, and its own tests passed
+because the fixtures set `group` by hand — **working perfectly against
+data the writer never writes.** A dead read stays dead until a consumer
+depends on it, and a fixture that supplies the field is how the
+dependency gets hidden a second time. The test that catches it composes
+`AddressableMixin` and asserts through `recordSurroundings`.
+
+**The rule:** a cross-shape read needs a narrowing predicate
+(`MixinApi.isX`) or an interface import — something the compiler checks
+the *name* against. Reserve a duck-typed `?.()` for a protocol whose
+absence is a legitimate answer, and when you use one, grep the name
+once to prove it exists.
+
+⚠ Greppable, and worth a census if it recurs: an optional call on a
+cast-literal type (`as unknown as { \w+\?\(`). Not gated today — one
+occurrence is a finding, not a population.

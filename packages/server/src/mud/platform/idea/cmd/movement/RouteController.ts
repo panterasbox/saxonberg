@@ -224,9 +224,15 @@ export default class RouteController extends CommandController<RouteModel> {
   private static async standingGroup(context: CommandContext): Promise<string> {
     const here = context.location;
     if (!here) return '';
-    const declared = (
-      here as unknown as { getDeclaredAddress?(): string | null }
-    ).getDeclaredAddress?.();
+    // ⚠ Through the predicate, not a duck-type. The first draft of
+    // this copied the Cartographer's `getDeclaredAddress?.()` — a
+    // method that exists NOWHERE (`AddressableMixin`'s reader is
+    // `getAddress()`), so it answered `undefined` every time and this
+    // always fell through to the locality walk. See
+    // `Cartographer.groupingAddressOf` for how long that hid.
+    const declared = MixinApi.isAddressable(here as unknown as Stuff)
+      ? (here as unknown as Stuff & { getAddress(): string | null }).getAddress()
+      : null;
     if (declared && declared.length > 0) return declared;
     // Fall back to the covering Locality — the address tree's own
     // longest-prefix walk, which is what makes an unaddressed room
