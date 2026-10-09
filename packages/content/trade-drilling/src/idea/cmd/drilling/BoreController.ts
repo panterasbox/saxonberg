@@ -346,12 +346,18 @@ async function completeSwing(
         : Mml.compose`The bit drops through — and the hole changes its voice. ${String(result.depthM)} m, and there is something in it.`,
     );
   } else {
+    // ⭐ **A swing that buys no yard still says how deep you are.** It
+    // used to report only the stroke count, which meant the one number
+    // the whole bet turns on was visible only in the instant a metre
+    // happened to complete — so a driller who came back after a day of
+    // paid work had no way to ask the hole how far it had got. The
+    // depth was already being read here and thrown away (`before` was
+    // computed and voided); this spends it.
     scene.toSelf(
-      Mml.compose`The beam comes up, the bit comes down. ${String(result.bank)} of ${String(needed)} strokes toward the next yard.`,
+      Mml.compose`The beam comes up, the bit comes down. ${String(before)} m, and ${String(result.bank)} of ${String(needed)} strokes toward the next yard.`,
     );
   }
   scene.send();
-  void before;
 
   // ⭐ The LABOUR discipline, to whoever actually swung — which is this
   // body, whether it is a player's or a hired hand's.

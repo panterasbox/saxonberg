@@ -276,13 +276,28 @@ export default class FractionSchedule extends SingletonMixin(Idea) {
   getProductMaterial(): string {
     return this.productMaterial;
   }
+  /**
+   * Declare the one material every span of this schedule is a GRADE of.
+   *
+   * ⚠⚠ **Empty is legal, and it means a column.** A `fractions` schedule
+   * has no single product — *there is no such thing as THE product of a
+   * refinery column* — so its row leaves this blank and every span names
+   * its own `material` instead. The setter cannot check that itself:
+   * `separation:` may be read after this field, so a cross-field refusal
+   * here would depend on YAML key order. The pairing rule is
+   * `lint:fraction-schedules`' (a `fractions` schedule naming a product,
+   * or a `cuts` schedule naming none, both fail the gate) — which is
+   * where an AUTHORING rule belongs.
+   *
+   * ⛔ This refused an empty string until 2026-10-08, and the cost was
+   * exact: the applier's `setProductMaterial('')` threw, the whole row
+   * failed to stand up (`FractionScheduleCatalogue: '/trade/fuel/idea/
+   * fractionation/crude' failed to stand up`), and **the only column in
+   * the game was inert** — a one-line boot warning for a dead trade
+   * stage. Found by driving, not by the suite.
+   */
   setProductMaterial(value: string): void {
-    if (!value || value.trim().length === 0) {
-      throw new RangeError(
-        'FractionSchedule.setProductMaterial: must name a material path',
-      );
-    }
-    this.productMaterial = value;
+    this.productMaterial = value.trim();
   }
 
   /** What kind of separation this schedule performs. See {@link Separation}. */

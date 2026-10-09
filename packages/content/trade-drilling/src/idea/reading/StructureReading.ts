@@ -46,6 +46,8 @@ import type { CompetenceBandName } from '@saxonberg/server/mud/lib/advancement/C
 import type { StructureReading as Structure } from '@saxonberg/content-ground/src/idea/Deposit';
 import type Deposit from '@saxonberg/content-ground/src/idea/Deposit';
 import { GroundChannel, GEOLOGY, READING_TOPIC } from '../../lib/GroundChannel';
+import { StuffApi } from '@saxonberg/server/mud/api/stuff';
+import { BoreRegistry, BORE_REGISTRY_PATH } from '../BoreRegistry';
 
 export default class StructureReading extends GroundChannel {
   /**
@@ -226,6 +228,26 @@ export default class StructureReading extends GroundChannel {
       }
     }
 
+    // ⭐⭐⭐ **The book of holes — the one second-hand route to the
+    // factor no instrument reports.**
+    //
+    // Every other line above is a read of the SHAPE, and the shape is
+    // all an instrument can ever give. This one is a read of what
+    // somebody's payroll already bought: a hole that was sunk here, how
+    // deep it went, and what it found or failed to find. ⚠ It does not
+    // weaken the premise — *nothing tells you that but the hole* is
+    // still exactly true, because a log IS a hole, written down by the
+    // trade and editable by nobody.
+    //
+    // ⭐ It is also what makes a DRY log worth money. A dry trap reads
+    // as well as a charged one forever, so the only evidence a trap is
+    // dry is somebody's wasted wages — and until this read existed the
+    // register was write-only and that evidence reached no player.
+    // Found by driving: the log was filed for every metre and nothing
+    // in the game could ever look at it.
+    const book = await this.boreBookAt(place);
+    for (const note of book) lines.push(note);
+
     // ⚠⚠ Whatever else is said, this sentence is always the last one,
     // and it is the trade's premise in one line.
     lines.push(
@@ -297,6 +319,54 @@ export default class StructureReading extends GroundChannel {
       grouped.set(key, list);
     }
     return [...grouped.entries()].sort((a, b) => a[0].localeCompare(b[0]));
+  }
+
+  /**
+   * ⭐⭐⭐ **What the holes already sunk in this country found** — one
+   * line per log, newest-sounding first, or nothing at all where nobody
+   * has drilled.
+   *
+   * ⚠ This reads the TRADE's register, not the reader's own notes, and
+   * that is the point: a log is append-only and its subject cannot edit
+   * it, so a stranger's book is evidence in a way a stranger's word is
+   * not. It is the only thing in the trade that reports the charged
+   * factor, and it reports it the only honest way — *somebody already
+   * paid to find out.*
+   *
+   * ⚠ Failure is silent and empty. A country whose register cannot be
+   * read is a country nobody has drilled as far as this rung can tell;
+   * an eye read must not die because a document did.
+   */
+  private async boreBookAt(place: Stuff & Container): Promise<string[]> {
+    try {
+      const address = await this.ground.addressAt(place);
+      if (address === '') return [];
+      const registry = await StuffApi.singleton<BoreRegistry>(
+        BORE_REGISTRY_PATH,
+      );
+      const book = await registry.bookOf(address);
+      if (book.length === 0) return [];
+      const out: string[] = [];
+      for (const record of book) {
+        const deepest = record.lines.reduce(
+          (d, l) => (l.depthM > d ? l.depthM : d),
+          0,
+        );
+        if (deepest <= 0) continue;
+        // ⭐ `fluid: null` on every line is the FINDING, and it is the
+        // most valuable row in the book: this trap reads as well as any
+        // and somebody proved it holds nothing.
+        const struck = record.lines.find((l) => l.fluid !== null);
+        out.push(
+          struck === undefined
+            ? `Somebody has drilled this country before you: a hole down to ${String(deepest)} m, and the log says dry the whole way.`
+            : `Somebody has drilled this country before you: a hole down to ${String(deepest)} m, and the log says it came in at ${String(struck.depthM)} m.`,
+        );
+      }
+      return out;
+    } catch {
+      return [];
+    }
   }
 }
 
