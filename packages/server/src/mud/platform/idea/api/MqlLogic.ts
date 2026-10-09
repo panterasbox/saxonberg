@@ -22,8 +22,52 @@ const MqlApiCallers = SecurityPolicies.FromModule('/api/mql#MqlApi');
  * match's via is undefined, return undefined; when every match's via is
  * the same identity (shallow-equal), return that one; otherwise
  * `undefined` (mixed paths). "Same identity" = same exit reference or
- * same detailPath sequence; kept cheap by JSON-stringifying.
+ * same detailPath sequence.
+ *
+ * ⛔⛔ **Compared by IDENTITY, never by `JSON.stringify`** — and this
+ * function's own comment used to say *"same exit reference … kept cheap
+ * by JSON-stringifying"*, which is the contradiction that shipped. An
+ * `exit` via holds a LIVE `Exit`, which reaches its `Boundary`, whose
+ * `anchorA`/`anchorB` point back at it; stringifying one throws
+ * `Converting circular structure to JSON` and the caller reports
+ * `mql-error` on a query that was perfectly well-formed.
+ *
+ * ⚠⚠ Unreachable until the lock build conferred `lock`/`unlock`: a
+ * direction is the only candidate carrying an exit, and these are the
+ * first views to resolve one through a `requires:` mixin gate. It
+ * presented as `unlock north` → `mql-error[target]` while `unlock gate`
+ * worked — at the realm's one locked door. ⭐ Found by the drive, and
+ * findable nowhere else: no test had ever targeted a boundary verb by
+ * direction (`OpenController`'s own test names the door by keyword), so
+ * `open north` and `close north` were broken the same way for as long
+ * as they have existed, each promised by its own help text.
+ *
+ * ⭐ A shallow reference compare is also what the doc always SAID, and
+ * it is cheaper than serializing an object graph.
  */
+function sameVia(a: MqlMatchVia, b: MqlMatchVia): boolean {
+  const ka = Object.keys(a) as Array<keyof MqlMatchVia>;
+  const kb = Object.keys(b) as Array<keyof MqlMatchVia>;
+  if (ka.length !== kb.length) return false;
+  for (const k of ka) {
+    const va = (a as Record<string, unknown>)[k as string];
+    const vb = (b as Record<string, unknown>)[k as string];
+    if (va === vb) continue;
+    // `detailPath: string[]` is the one augmentation whose equality is
+    // by VALUE rather than by reference.
+    if (
+      Array.isArray(va) &&
+      Array.isArray(vb) &&
+      va.length === vb.length &&
+      va.every((x, i) => x === vb[i])
+    ) {
+      continue;
+    }
+    return false;
+  }
+  return true;
+}
+
 function consensusVia(
   matches: ReadonlyArray<{ via?: MqlMatchVia }>
 ): MqlMatchVia | undefined {
@@ -33,10 +77,9 @@ function consensusVia(
     for (const m of matches) if (m.via) return undefined;
     return undefined;
   }
-  const firstKey = JSON.stringify(first);
   for (const m of matches) {
     if (!m.via) return undefined;
-    if (JSON.stringify(m.via) !== firstKey) return undefined;
+    if (!sameVia(m.via, first)) return undefined;
   }
   return first;
 }
