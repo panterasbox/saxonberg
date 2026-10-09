@@ -1229,6 +1229,161 @@ No demo asked for that.
 
 ---
 
+## ⭐⭐⭐ Two sports areas read closely — football and the ski simulation
+
+Added 2026-10-09. ⚠⚠ **And the reason this section exists is a process
+finding about this document.** The frame at the top of this file names
+*"the ski simulation"* as one of three exemplar **Systems** — the column
+it says *"we have built almost exclusively"* the opposite of, with *"no
+doctrine, no tooling and no vocabulary"* for. **It had never been
+opened.** The code is on disk at
+`/zone/present/sports/` and `/zone/present/resort/`.
+
+> ⭐⭐ **Standing habit: when this document cites EotL content as an
+> exemplar, go read the code.** A citation is not a reading, and thirty
+> years of specifics are sitting in a directory.
+
+The cabal's own `DESCRIPTION`:
+
+> *"The purpose of this cabal is to coordinate programming efforts that
+> involved major **and** minor sports activities. From American style
+> football to full-contact pingpong to skydiving. We do it all!"*
+
+⭐⭐⭐ **And the two finished areas chose OPPOSITE strategies**, which is
+the finding — there is no single way to make a sport into content:
+
+| | strategy | cost | how it is remembered |
+|---|---|---|---|
+| **football** | a **venue and a cast**, with the sport's *vocabulary* converted into mechanics that already existed | one good idea, 161 rooms | **a moment** — retellable verbatim |
+| **skiing** | a **real simulation** of the one act the sport is about | months | **a system** — you remember *doing* it |
+
+### ⭐⭐ Football: the field is the map, and no game is simulated
+
+161 rooms. `home10_1` … `home50_5` and `away10_1` … `away50_5` — **the
+field is a walkable 2-D grid by yard line and lateral position, with all
+eight compass exits** (`home30_3` goes north to `home20_3`, west to
+`home30_2`, northeast to `home20_4`). Plus `homezone`/`awayzone`, three
+locker sets per team, tunnels, `wrowa`–`wrowe` (five rows of stands),
+`booth1`/`booth2` (the press box), `sidewest` (the sideline — *"the
+coaches and the news crews are off to the west"*), a bank and a shop.
+
+**The cast is the sport**: `montana`, `rice`, `namath`, `jimbrown`,
+`meanjoe`, `lt`, `deion`, `troy`, `steveyoung`, `tombrady`, `peyton`,
+`madden`, `ditka`, `cowher`, `vinatieri` — plus `referee`, `fans`,
+`reporter`, `ballboy1/2`, and `naked`, a player in the shower with a bar
+of Ivory Soap. **The weapons directory is `ring.c`, `diamond_ring.c`,
+`ring_set.c`: championship rings are the loot.**
+
+⚠ **No game is simulated.** Scoring vocabulary appears only in prose
+biographies — no clock, no down, no possession. The invitation is in the
+field room's detail map instead, on the keyword `"millionairs"`:
+
+> *"You wonder how much these players make running around. Of course
+> there is one way to find out how much they cary on them."*
+
+#### ⭐⭐⭐ And the whole thesis is one function
+
+`monsters/referee.c` — `add_special_attack("penalty_attack", THISO, 50)`.
+**The referee fights you by throwing a flag.** It picks from eighteen real
+penalties (*Roughing the Passer · Intentional Grounding of Pass · Invalid
+fair-catch signal · Illegal Crackback*) plus two jokes — *"Tripping the
+Ref"* and *"Acting like a big meanie"* — and then:
+
+```c
+damage = 10 + random(20);
+command("say "+call+" by "+capitalize(victim->query_real_name())
+        +" at the "+ENV(attacker)->query("short")+"!", attacker);
+command("say "+damage+" yard penalty", attacker);
+tell_object(victim, "The bad call hurts your brain pan!\n");
+```
+
+⭐⭐⭐ **The damage number IS the yardage** — one integer read two ways —
+and because the room's short name is the field position, the output reads
+as a broadcast: *"Holding by Bobalu at the Home Team 30 Yard Line! 17 yard
+penalty."*
+
+> ⭐⭐⭐ **The lesson: a sport becomes content by converting its
+> VOCABULARY into mechanics you already have.** Nobody built a football
+> engine. They took combat and renamed the numbers — and it is the
+> funniest thing in 161 rooms.
+
+Two more worth stealing. ⭐ The field room does
+`color = WeatherObject->query("weather_msg")` and **interpolates live
+weather into its long description** — which is exactly the defect
+`fishing.md` names in ours (*"a prop contributes nothing to its room's
+prose"*). And the flag spawns on
+`random(100) > sizeof(clones(FMISC+"flag")) + 20`: ⭐ **a spawn gated on
+the global population of that object** — census-gated distribution, 1997.
+
+### ⭐⭐⭐ Skiing: the failure is DIAGNOSED
+
+`lib/slopes/balance.c`, its own header:
+
+> *"This is the module that determines, after all factors are taken into
+> consideration, whether a person makes it down a ski slope standing up or
+> not."*
+> `-2: Fell because it was too steep. -1: Fell because it was too bumpy.`
+> `0: Fell because of something random. 1: Succeeded, but only barely.`
+> `2: Succeeded easily.`
+
+⭐⭐⭐ **Two independent slope parameters against two independent body
+stats** — steepness vs **strength**, bumpiness vs **dexterity** — each
+modified by proficiency, encumbrance, and the skis' own
+`query_str_bonus()` / `query_dex_bonus()`. **So a slope has a SHAPE in a
+2-D difficulty space, and different skiers fail on different runs for
+different reasons.**
+
+⭐⭐⭐ **And you are told WHICH.** Not *you fell* — *too steep*, or *too
+bumpy*, or *bad luck*. That is `instrumentation.md`'s *competence resolves
+detail* and our *the refusal is the progression UI*, shipped in 1997, and
+it is what makes the system **teachable rather than punitive.** We have
+the doctrine and **no exemplar of it anywhere in our own tree.**
+
+The module list is a genuine build: `junction.c` — ⭐ **slopes branch, so
+a descent is a sequence of choices rather than one roll** · `obstacle.c` ·
+`path.c` · `fatigue.c` · `enc.c` · `lift.c` + `liftseat.c` (the lift has
+individual seats) · `weather_obj.c` + `weather.log` + `wtend.log` ·
+`profc.c` (a proficiency curve) · `statcomp.c` · and `success.c` /
+`failure.c` as separate messaging modules.
+
+#### ⭐⭐ And `deaths.log` is content
+
+Seventy entries, decades deep, each with the slope and the cause:
+
+```
+Thu Sep 19 05:34:04 2019 : Sarig died on Babs (), by running into a patch of sheer ice.
+Fri Apr 17 19:57:45 2020 : Rennai died on Paranoia <>, by running into a cliff.
+Sun Apr 19 05:40:41 2020 : Rennai died on Luger (), by running into a large hole.
+```
+
+⭐⭐ **A persistent, public, twenty-year record of who died where and on
+what** — and the obstacles are *specific* (jagged rocks, a light support,
+sheer ice, a large hole). We have the chronicle substrate and **nothing
+writes a list anybody would read.**
+
+⭐ Note also the grading notation carried in the run names themselves —
+`Babs ()`, `Lion's Mane []`, `Paranoia <>`. **The difficulty is a
+typographic convention: authored, visible, and not a number.** Which makes
+it a *claim by the resort*, like a chart or a guidebook.
+
+### The five transferable things
+
+1. ⭐⭐⭐ **Convert the vocabulary; do not simulate the game.**
+2. ⭐⭐⭐ **Diagnose the failure** — worth more than any difficulty curve.
+3. ⭐⭐ **Two parameters against two stats**: difficulty is a **shape**,
+   not a scalar.
+4. ⭐⭐ **The log is content.**
+5. ⭐ **Position as a room name** makes every message localize itself for
+   free.
+
+⭐ Carried into
+[tourism-and-sport-slate](./slates/builds/tourism-and-sport-slate.md),
+which also records the mistake this section is the cure for: asked about
+football-as-content and skiing-as-content, the first answer was **a theory
+of what sport is** — the third column answering a second-column question.
+
+---
+
 ## What was not read
 
 `kanori` (3,348 files, the largest thing in the game) · the 25 guilds ·

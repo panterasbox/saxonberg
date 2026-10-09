@@ -1257,14 +1257,24 @@ value**).
   three consumers deep (mine, quarry, diver) and the cheapest unblock on
   the board.**
 - ⭐⭐ **Laundry** — own slate: [laundry-slate](./laundry-slate.md).
-- **Tourism** — the one trade whose product is *the place*, so the first
-  that can be destroyed by succeeding. ⛔ **Must not become a gauge on
-  description** (decor is never a gauge); the honest wiring is **renown at
-  place scope** — famous because people went and talked, not because an
-  author typed well.
-- **Boatbuilding / ropewalks / sailmaking** — the capital-goods tier under
-  everything maritime including whaling. ⭐ A ropewalk is a quarter-mile
-  shed: **a building shaped like its product.**
+- ⭐⭐ **Tourism and sport — own slate:**
+  [tourism-and-sport-slate](./tourism-and-sport-slate.md). Worked
+  2026-10-09: **catering is a choice of whose taste you serve** (range ×
+  whose taste, where *visitors* is one option among several) · the district
+  needs a **taste** · ⭐⭐⭐ **tourism is content discovery wearing a
+  diegetic costume**, and ⛔ must never become a recommendation algorithm ·
+  the **tourist trap as a collapse of feedback** · and the two EotL
+  precedents read closely (football's **venue and cast**, skiing's
+  **diagnosed failure**) →
+  [eotl-craft.md](../../eotl-craft.md) § *Two sports areas read closely.*
+- ⛔ **Boatbuilding / ropewalks / sailmaking — SKIPPED 2026-10-09.** Raised
+  as possibly *upstream of whaling* (you cannot whale without ships). User:
+  *"I think we can skip boatbuilding. We'll do cargo before we have an auto
+  industry probably — I don't think they're blocking design."* ⭐ **The
+  vehicle/capital-goods tier is a later concern and does not gate the
+  trades that use its output**, so whaling may assume hulls exist. (Kept
+  for whenever it lands: a ropewalk is a quarter-mile shed — **a building
+  shaped like its product.**)
 - **Reed and withy cutting** — basket and thatch feedstock, a genuine
   coppice-shaped RGO on wet ground, cheap. · **Wildfowling** — fishing's
   mechanism over a different animal. · **Pearl and sponge diving** —
