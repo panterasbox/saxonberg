@@ -314,18 +314,23 @@ function refusedFor(r: { notes: readonly unknown[] }): string | null {
 }
 
 /**
- * ⭐⭐ The depth a drilling act just reported, in metres, or `null`.
+ * ⭐⭐ How deep the deepest hole in this country has gone, off the
+ * TRADE's book — `0` where nobody has drilled it yet.
  *
- * The hole's own prose never says — *there is no telling anything about
- * it from up here* is authored, not a gap — so every honest read of the
- * depth comes off an act that touched the bottom (`bore`, `bail`), each
- * of which prints a bare `N m`. Reading the figure rather than diffing
- * the prose is what lets a checkpoint assert that the hole got DEEPER
- * instead of merely that something changed.
+ * ⚠ Why the book and not a swing. The hole's own prose never says how
+ * deep it is — *there is no telling anything about it from up here* is
+ * authored, not a gap — and `bore` is an ENGAGED act, so its figure
+ * arrives in a completion frame rather than in the answer to the
+ * command. A swing also costs real endurance, and after the walk out of
+ * the city the honest reply to a third one is `too-tired`. The book
+ * costs nothing, needs no body, and is the surface a player would
+ * really use to ask how far a hole got — which is what makes it the
+ * right witness to work somebody ELSE did.
  */
-function depthFrom(text: string): number | null {
-  const m = /(\d+(?:\.\d+)?)\s*m\b/.exec(text);
-  return m?.[1] === undefined ? null : Number(m[1]);
+async function bookDepth(s: Session): Promise<number> {
+  const eye = await read(s, 'analyze structure');
+  const m = /a hole down to (\d+(?:\.\d+)?)\s*m\b/i.exec(eye);
+  return m?.[1] === undefined ? 0 : Number(m[1]);
 }
 
 /** Run an engaged act out to its effect. */
@@ -761,20 +766,20 @@ suite('7. the crew — presence is depth, and depth is wages', () => {
     // that prose was asserting against the author's intent and could
     // only ever fail.
     //
-    // ⭐ The depth is reported by the act that touches the bottom. One
-    // `bore` is one stroke of ~6 to the yard, so a single swing cannot
-    // move the figure by a metre — which is what makes the comparison
-    // prove the CREW did the work and not the reader.
-    const before = depthFrom(await read(k, 'bore'));
-    expect(before, 'a swing must report the depth in metres').not.toBeNull();
+    // ⭐ The depth comes off the trade's BOOK — see `bookDepth` for why
+    // not a swing.
+    const before = await bookDepth(k);
     // ⭐ A game-day of presence. The engine measures presence, not
     // virtue: they are rostered, on shift, standing here, hands free.
     await advance('1 day');
-    const after = depthFrom(await read(k, 'bore'));
+    const after = await bookDepth(k);
+    // ⚠ More than ONE metre, deliberately: a hand-swing buys a sixth of
+    // a yard, so `> before + 1` cannot be satisfied by anything the
+    // reader did. Nobody touched the beam for this.
     expect(
       after,
       `the hole must be deeper after a day of paid work (was ${String(before)} m)`,
-    ).toBeGreaterThan((before ?? 0) + 1);
+    ).toBeGreaterThan(before + 1);
   });
 
   it('⭐ and the wage bill is real — the hands are owed, whether or not it was paid', async () => {
