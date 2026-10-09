@@ -609,6 +609,18 @@ with no keyway is sealed against the whole world — which is how the
 university gate kept working with its content row untouched: *shut,
 chained, and locked — the gown's, not the town's.*
 
+> ⭐⭐ **What this model does NOT do, and where it is tracked.** A lens
+> pass over the shipped design
+> ([lock-slate](../slates/tails/lock-slate.md)) **fails lens 1
+> outright** — turning a key exercises no Discipline and nothing is
+> derivable — and lens 6, because a key is cloned from nothing in a
+> realm that has smelting and smithing. It also found that **you cannot
+> defeat a lock**, so no lock story is makeable (lens 2), that
+> `issueMasterKeyTo` has no production caller and no seat to hold it,
+> and that nothing records who holds a key to a given door. ⭐ The
+> Discipline that answers the first two is already designed —
+> `lockcraft`, on [policing-slate](../slates/builds/policing-slate.md).
+
 **Enforcement** lives in `Exit.canTraverse` (see *Exits* above): the
 lock gate fires **before** the closed-door gate, reads only `this.door`
 (never resolving the destination), and reports `'locked'`.

@@ -128,6 +128,32 @@ export class Lock {
    * Issue a **master** key for this lock's whole technology (a super's
    * ring) to `holder` — keychain master (if any) + a physical master
    * `Key`. Opens every lock of that technology, so the keyway is ignored.
+   *
+   * ⛔⛔ **NOTHING IN PRODUCTION CALLS THIS, and that is a recorded hold
+   * rather than dead code.** Its only caller is
+   * `DormWarren.test.ts:390`, so the dorm design plainly intends master
+   * keys; nothing wires them. ⭐ This is the reachability failure class
+   * MR !345 was built to close, surviving in the **method** surface,
+   * where `lint:reachability` does not look — that gate reads command
+   * views and `thing` rows.
+   *
+   * **Why it is not wired.** A master key is a *property-role*
+   * capability — a landlord, a warden, a superintendent — and no such
+   * role exists. `OFFICE_APPARATUS` holds five constituted offices of
+   * the realm and none of them is a building superintendent.
+   *
+   * ⚠⚠ **And parcel title is NOT the landlord.** The tempting shortcut
+   * is `ParcelApi.ownerOf` / `AccessApi.can`, since a holding sits on a
+   * parcel. Do not: parcel title is *who maintains the code*, not who
+   * owns the land in the fiction — two unconnected axes, conflated
+   * twice already. A master key is a fiction-side property right and
+   * needs a fiction-side holder.
+   *
+   * ⭐ What lifts it: a warden seat from the holding/residence design,
+   * or a constable with a warrant from `policing-slate` — and the second
+   * is the better answer, because absolute exclusion with no
+   * counter-power is the participation gap too. See
+   * `docs/slates/tails/lock-slate.md § 1`.
    */
   async issueMasterKeyTo(holder: Stuff): Promise<void> {
     addToKeychain(holder, '', this.technology, true);
