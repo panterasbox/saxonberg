@@ -259,6 +259,148 @@ covenant, which `Epoch.ts` already names as its intended consumer — and
 stamp a second trade at a different band. The metal chain is the obvious
 candidate: **a bloomery and a blast furnace are not the same era.**
 
+### 3.8 ⭐⭐⭐ The aether and the implant — and the OBJECT/PERSON line
+
+Decided 2026-10-09. § 3.5 above scopes the aether out of the ordinal
+vocabulary (*"platform, not content"*), which answers the literal
+question and leaves the want unresolved. This is the want.
+
+⛔⛔ **Four corrections, because the first pass got each of them
+backwards:**
+
+1. ⛔ **The aether cannot be refused.** It is a **physical background
+   field** — the owner's analogy is *the Higgs field.* What a covenant
+   regulates is **the implant or the phone that transmits and receives
+   on it.** Every sentence about "forbidding the aether" is a category
+   error.
+2. ⛔ **The sensitive species is OUT OF SCOPE, not an exception.** They
+   use the aether *naked and unaugmented*, so there is no instrument to
+   regulate. ⭐ **A technology restriction cannot reach a capability that
+   is not technological** — nothing to refuse, no lens-7 question,
+   nothing to price. (The first pass inverted it into a cost; wrong.)
+3. ⛔ **`@RequiresActive` is about CONFERRAL, not power.** It checks
+   `MixinApi.isActive(this, mixinName)` — *is this mixin currently
+   conferred by an attached augment* — and throws
+   `InactiveCapabilityError`. It is not a switch on a device.
+4. ⚠ **The implant cannot be switched off today.** `augmentation.md`
+   lists *"failure modes / **power state**"* under **Wave 2+**, so that
+   is a feature to add, not a lever to use.
+
+#### ⭐⭐⭐ The line: a covenant regulates OBJECTS, and the enforcement rung decides whether it can reach a body
+
+A phone is a `Thing`, so a no-devices boundary **refuses the phone and
+not the person** — **a cloakroom, not a bouncer.** A vehicle crossing a
+parcel line is a Thing carrying Things and is checked the same way.
+
+> ⭐⭐ **So no exemption list is needed for agents or vehicles, which is
+> what the first pass thought it had to invent.** You never refuse a
+> person, so lens 7's trigger — *when this feature decides something
+> about a PERSON* — never fires.
+
+⚠ **An implant breaks that, because there is nothing to check at the
+door.** And the owner's rule is legitimate: *"no modern tech, even if it
+is unpowered, can very much be a rule."* So:
+
+| the rule | what it refuses | the strongest honest rung |
+|---|---|---|
+| **no transmitting** | **operation** | ⭐ `wall`, once **power state** ships (Wave 2) |
+| **no devices** | **a carried object** | `wall` — the cloakroom |
+| **no modern tech, even unpowered** — against an **implant** | **possession, inside a body** | ⭐⭐⭐ `camera` / `witness` / `norm` — **never `wall`** |
+
+> ⭐⭐⭐ **The `wall` rung can refuse an object at a boundary. It cannot
+> perform surgery.**
+
+⭐⭐ **And that is the enforcement ladder doing exactly its job.** A
+monastery may forbid implants; a person who walks in with one **has
+broken the rule and been seen doing it.** The NPCs react, standing
+suffers, the abbot asks them to leave. § 3.3 already licenses this —
+*"declaration without enforcement still produces evidence"* and *"a rule
+with no stated damage is advisory… not a loophole, a correctly-typed
+rule."* **Governance, not a gate** — and nobody is cut off from anybody.
+
+#### ⚠⚠ The collision with `comms.md`, and the narrow amendment that resolves it
+
+`comms.md` carries a hard refusal, and it has to be dealt with rather
+than routed around:
+
+> ⛔⛔ *"**Communication is never a regulated act** — an epoch covenant
+> restricts the instrument bound to a *regulated* act and **never asks
+> what you are carrying**, which is what keeps *never cut players off
+> from their peers* structural rather than an exception. What epoch may
+> flavour is privacy, latency, length, cost and attribution — **strange,
+> not silent.**"*
+
+⭐⭐⭐ **The resolution is that a no-modern-tech rule is not ABOUT
+communication.** A monastery banning machinery is regulating *machinery*;
+the effect on your comms is **incidental, not the purpose.** And the
+guarantee survives intact because of the ladder `comms.md` itself
+supplies — *prehistory a **place** you go to · medieval an **object** you
+carry (the sympathetic needle) · industrial a **device** you operate ·
+modern an **organ*** — so:
+
+> ⭐⭐⭐ **A band that bans the implant must have an instrument of its
+> own, and every band does. You hand over the modern organ and you are
+> holding the medieval needle. STRANGE, NOT SILENT — satisfied exactly.**
+
+⚠ **The amendment is one clause:** a covenant **may** regulate *modern
+tech as a class*, and an implant falls in that class — what it may never
+do is **leave you with no instrument at all.** The old wording's *"never
+asks what you are carrying"* was written against a comms-specific rule
+and did not anticipate a general-tech rule reaching a comms instrument
+incidentally. **The invariant (never silent) is untouched; only the
+mechanism that protects it moves from *"we never ask"* to *"every band
+has an instrument."***
+
+#### ⭐⭐⭐ Which makes the implant OPT-IN a governance requirement, not a flavour choice
+
+Today the **Avatar bootstrap installs the `AetherImplant`** — everyone
+has one and nobody chose it.
+
+> ⭐⭐⭐ **An irreversible default cannot be the legitimate subject of an
+> exclusion.**
+
+A player who **elected** the implant accepted being unwelcome in certain
+content; that is a choice with a consequence. A player handed one at
+spawn and never asked is unwelcome **by accident**, and there is no
+criterion you can state to that person that does not read as *the engine
+did this to you.* ⭐ **Opt-in is what makes the restriction speakable.**
+
+⭐⭐ **And removal is an act of BELONGING rather than an appeal.** Since
+the enforcement is witness-strength rather than a wall, nothing refuses
+you at the door — so you have the implant taken out **because you want to
+live in the valley**, not because a door turned you away. Decided with
+the owner:
+
+> ⭐ **Removal is possible, costly, and needs a professional — so think
+> twice about getting one in the first place.**
+
+⭐ Which gives the medic vertical a real elective procedure, and makes the
+char-gen choice carry weight in both directions.
+
+#### The three Wave 2 items this needs, in order
+
+→ [augmentation-slate](../tails/augmentation-slate.md), whose Wave 2 list
+already contains all three. This gives them a **driver** and an ordering:
+
+1. ⭐⭐ **char-gen loadout** — so the choice exists at all
+2. ⭐⭐ **the install/remove procedure** — costly, professional, so the
+   choice is revisable at a price
+3. ⭐ **power state** — so the *milder* rule (no transmitting) becomes
+   `wall`-enforceable instead of collapsing into the harsh one
+
+⚠ And the **phone** is the fourth, and it is not on that list: a carried
+`Thing` that hosts the connection, so **going off-grid is an act with a
+visible object.** ⭐ The trade is clean and both sides are real — **the
+implant trades the ability to disconnect for the inability to be
+disconnected**; a phone can be left behind, taken, broken, sold or
+dropped in the sea. ⚠ It also means `AetherMixin` is **the connection
+with two hosts** (a Thing you carry, an augment you are), and hosted apps
+— `calendar.md`'s *"the personal calendar **on the aether implant**"* —
+must run on either. **If `AetherMixin` is currently constrained to the
+body, that constraint is the defect the phone reveals.**
+
+---
+
 ### 3.7 ⭐ If extensibility ever becomes real
 
 Not a Catalogue. **Epoch would be our first *ordinal* vocabulary** —
