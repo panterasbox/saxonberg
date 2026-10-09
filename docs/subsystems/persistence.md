@@ -621,6 +621,38 @@ drive retiring a rented stall; it had thrown in `captureState` for every
 persistable destructed outside a sweep). A caller that wants a host's
 final state written captures it explicitly before `StuffApi.destruct`.
 
+> ⭐⭐⭐ **The three tiers, and what *"transient space"* means**
+> (recorded 2026-10-09 →
+> [assembly-slate § 11](../slates/builds/assembly-slate.md)). `scope` being
+> a **singleton** `templatePath` is why `captureHostOf` captures **the
+> nearest persistable ancestor** rather than the thing: five hundred casks
+> sharing one row were never going to have records here.
+>
+> | | persists | |
+> |---|---|---|
+> | **floor stock / props** | **nothing** — *"lives in transient space"* | the author **staged** the scene; `restoreOrSeed`'s seed branch re-lays it, and ⭐ **a prop a player breaks comes back** |
+> | **ordinary player property** | its **host's** record, via `captureHostOf` | the author made the place **player-supplied** |
+> | ⭐⭐ **a promoted object** — named, masterwork | its own **`(row, chattelId)`** record | earned, not authored; `NameController`'s direct `capture` is the shipped path |
+>
+> ⚠ **And `captureHostOf`'s "clean no-op when no host is found" is benign
+> for an UNOWNED thing and lossy for an owned one — which is correct.**
+> Ownership of a destroyed thing is **moot, not false**: your ID in the
+> gutter is still your ID, and if it is swept up you simply do not have
+> one. **Loss is a legitimate outcome of where you chose to put
+> something**, and a chain of title to a lost object is a **closed chain**
+> rather than a dangling pointer. ⛔ An earlier draft proposed that an
+> owned thing must always have a persistable host, and that staged rooms
+> must therefore refuse player property — **refused**, because a room that
+> refuses property cannot let you put a cup down in a tavern.
+>
+> ⭐⭐ **Why a UNIQUE object earns its own tier:** a fungible thing can be
+> replaced and a unique one cannot — *"you could replace it with a new one
+> but it wouldn't be the same item."* That is why naming promotes.
+>
+> ⚠ **And capture is EXPLICIT** — *"after a mutating act"* — so every act
+> that changes `runtimeState` must call it. A **census-then-ratchet**
+> candidate; the failure is silent until a reboot.
+
 The engine-of-record is `PersistedRecord`
 (`lib/persistence/PersistedRecord.ts`) over the **`holder_snapshots`**
 collection — a `{ scope, owner, state }` envelope:

@@ -10,9 +10,9 @@
 > strength · reversibility · signature) · `AssembledMixin` on the whole ·
 > the **bill on the KIND, history on the INSTANCE** split · **lossy
 > disassembly** · the derived-property rules (grade · composite material
-> response · **localized wear**) · one new verb · and ⚠ the **per-instance
-> persistence of a non-singleton owned clone**, which is an open question
-> with a shipped constraint (below).
+> response · **localized wear**) · one new verb · and ✅ **persistence
+> is RESOLVED** (§ 11): `captureHostOf` captures **the host**, not the
+> thing, and **loss is a legitimate outcome**.
 > **Size:** a build — and **the cask is its exemplar**, the way the
 > freezer compartment is `Chamber`'s first honest composer.
 
@@ -397,35 +397,171 @@ the sink is why anyone ever rives another stave.
 
 ---
 
-## 11. ⚠⚠ The one open question with a shipped constraint
+## 11. ⭐⭐⭐ Persistence — RESOLVED, and it is the opposite of swap
 
-**Where does per-instance state on a non-singleton owned clone live?**
+⚠⚠ **An earlier draft of this section called this "the one open question
+with a shipped constraint." It is not open.** The constraint was real and
+the conclusion was wrong, and the pattern has five call sites.
 
-| | where it goes |
+The owner's boundary on the search: *"I'm willing to explore every
+possible option here up to but excluding complete swap. Anything that
+smells like building swap is out."*
+
+### ⭐⭐⭐ `PersistableApi.captureHostOf` — you do not capture the thing, you capture WHAT HOLDS IT
+
+Its docstring is the whole answer:
+
+> *"Capture the persistence host **responsible for** `stuff`, after a
+> mutating act on it: `stuff` itself when it is a host (a watered plant),
+> else **the nearest persistable containment ancestor** (the dorm room a
+> chest sits in), captured under its own stashed key. **A clean no-op when
+> no host is found — the thing lives in transient space** — and hop-capped
+> against a containment cycle."*
+
+⭐ **In use five times on exactly this problem** — `captureHostOf(plant)`,
+`(bed)`, `(ground)`, from the plant, repot, feed, harvest and water
+controllers. **Non-singletons whose state rides in a singleton ancestor's
+record.**
+
+⚠ **And the constraint I had found was the REASON for the pattern, not a
+problem to solve.** `holder_snapshots` is `{scope, owner, state}` with
+`scope` the host's *singleton* `templatePath`, so five hundred barrels
+sharing one row were never going to have records there. **The barrel does
+not get a record. Its host does.**
+
+⭐⭐ **And the multi-instance holder is handled too** — `restoreOrSeed`'s
+**`(scope, key)` keyed-holder pattern**, *"the decision every
+multi-instance holder makes: a `DormWarren` per leased unit, a
+smallholding per titled lot."*
+
+### ⭐⭐ It is definitionally NOT swap
+
+- nothing is **paged out** — capture is **event-driven, after a named
+  mutating act**
+- nothing is **generic** — a caller names the moment
+- a thing with no persistable ancestor persists **nothing at all**
+- and the walk is **hop-capped against a containment cycle**
+
+**Swap persists everything automatically and faults it back. This persists
+the responsible holder at named moments and lets the rest evaporate.**
+
+### ⭐⭐⭐ The author's decision: STAGED or PLAYER-SUPPLIED, and both are valid
+
+The owner's framing, and it is the right one:
+
+> *"When you build a wine cellar you need to specify whether your barrels
+> are supplied at runtime by players — through markets or crafting — and
+> you capture, and it's the player **staging** the scene; or the cellar is
+> **staged by the author** with the barrels as props. The latter captures
+> no state and every reset it gets new barrels, whether they're broken or
+> not. That's an authorial decision that applies to the cellar creator.
+> **Both are valid use cases.**"*
+
+⭐⭐ **And `restoreOrSeed` is both modes as one call** — *"either restore
+its `(scope, key)` record, or lay down its born-with fixtures and capture
+them,"* returning `true` for a restore and `false` for a fresh seed. The
+seed branch is the staged cellar; the restore branch is the
+player-supplied one.
+
+⭐ **Mode A already has its vocabulary and its metaphor**: `props:` is the
+author's staging, `_propsStaged` is the flag, and `StagedMixin`'s theatre
+model supplies the words — **a set is restored between performances.**
+Which names a benefit nobody would list: ⭐⭐ **a prop a player breaks is a
+prop the author gets back. You cannot grief a set.**
+
+### ⛔⛔ REFUSED — "an owned thing must always have a persistable host"
+
+A draft of this section proposed that invariant, and that a **staged-only
+room must therefore REFUSE player property.** The owner killed it:
+
+> *"That's not true at all. If I carry my ID and drop it, it's still my
+> ID. If the game resets while it's on my person, it saves because I'm a
+> persistable host. If the game resets while it's on the ground, it
+> doesn't make the original claim a lie — **it just means the item is
+> lost.** You could replace it with a new one after the reset but it
+> wouldn't be the same item."*
+
+⭐⭐⭐ **Ownership of a destroyed thing is not FALSE, it is MOOT.** The
+claim was true the whole time the thing existed. ⚠ And the invariant
+would have forced a bad design: **a room that refuses player property
+cannot let you put a cup down in a tavern.**
+
+⭐ **What survives is a vocabulary point only: the chain of title is a
+HISTORY, not an index of extant things.** A title to a lost object is a
+**closed chain**, not a dangling pointer — `chronicle.md`'s
+deed-versus-claim shape, where the record of what *was* is the point.
+
+⭐⭐ **And the player expectation needs no mechanism at all:**
+***don't leave valuables on the floor*** is universal, pre-taught and true
+in life. **Loss is a legitimate outcome of where you chose to put
+something** — not an integrity failure, which is what the refused draft
+mistook it for.
+
+### ⭐⭐⭐ And the owner's "it'd be impossible to find" is what justifies the PROMOTED tier
+
+Loss means different things to different objects:
+
+| | losing it | |
+|---|---|---|
+| **a barrel** | **replaceable** — buy another, it is identical | rides its host, or is lost |
+| ⭐⭐ **the scrimshaw you carved** · a masterwork cask · *the* barrel off the *Hesper* | ⭐⭐⭐ **unrecoverable — a replacement is NOT IT** | **earns its own record** |
+
+> ⭐⭐⭐ **That is why naming promotes.** Not because named things are
+> special in the fiction, but because **a fungible thing can be replaced
+> and a unique one cannot**, so the two have genuinely different exposure
+> to the same loss.
+
+⭐ The promotion path is shipped and already in use: `NameController`
+calls **`PersistableApi.capture(animal)` directly**, and `pets.md` calls
+naming *"the promotion."* It is `identity.md`'s **Cast-versus-Extra**
+split applied to objects — *a* barrel versus ***the*** barrel. ⭐⭐ And
+for a multi-instance kind the keyed form carries it:
+**`(scope = the row, key = the chattel id)`**, the same shape as a
+`DormWarren` per leased unit — so **a promoted object survives wherever it
+happens to be sitting.**
+
+### The three tiers, and the author only chooses between two
+
+| | persists | whose decision |
+|---|---|---|
+| **floor stock / props** | **nothing** — *"the thing lives in transient space"* | ⭐ the author: **staged** |
+| **ordinary player property** | via `captureHostOf` — **its host's record** | ⭐ the author: **player-supplied** |
+| ⭐⭐ **a promoted object** | **its own `(row, chattelId)` record** | ⛔ **not the author's call** — earned by naming or by being a masterwork |
+
+⭐ So the authorial choice is subjective and that is fine, because the
+cost of guessing wrong is **an ordinary kind of loss players already
+understand** — and the one thing that should not be exposed to it, a
+unique object, is protected by a tier the author does not control.
+
+### ⚠ The one real residual risk: capture is EXPLICIT
+
+*"After a mutating act on it"* — so **every act that changes instance
+state must remember to call it.** For assembly that is fill, draw, `fit`,
+and replacing a part. **Five call sites got it right; the sixth will
+forget**, and the failure is silent until a reboot.
+
+⭐ A **census-then-ratchet** candidate rather than a lint proper:
+enumerate controllers that mutate a `persistent, runtimeState` field and
+do not call `captureHostOf`, gate today's count as the ceiling, drive it
+to zero. The census is grep-able even where the full rule is not
+statically decidable.
+
+⚠⚠ **And worth DRIVING rather than reasoning about:** `MaturingMixin`
+declares eight `persistent, runtimeState` fields
+(`maturationClockStamp`, `fractionConverted`, `turnedDays`…), so **whether
+a cask mid-maturation survives a reboot depends entirely on whether
+something captured after the last tick.** One checkpoint, and it should be
+run before assembly leans on the same machinery.
+
+### What goes where, finally
+
+| | where |
 |---|---|
-| **the bill** (the kind) | ✅ **the template row.** Authored content, no runtime state |
-| **the history** | ✅ **`authoring_events`**, keyed on the durable `_chattelId` — *the bill of materials IS an authoring event*, so **no new collection** (and memory is firm: *no new Mongo collections*, *an index before a collection*) |
-| **the fill count / spentness** | ⚠ **a persistent instance field** — hot, small, and nobody wants its history, only its value |
+| **the bill** (the kind) | the **template row.** Authored content, no runtime state |
+| **the history** | **`authoring_events`** keyed on `_chattelId` — *the bill of materials IS an authoring event*, so **no new collection** |
+| **the fill count / spentness** | a `persistent, runtimeState` field, captured via **`captureHostOf`** — or its own `(row, chattelId)` record if promoted |
+| **an unowned barrel on a shop floor** | ✅ **nothing**, and that is correct |
 
-⚠⚠ **And the obvious home is ruled out.** `holder_snapshots` is
-`{scope, owner, state}` where **`scope` is the host's *singleton*
-`templatePath`** — so **five hundred barrels sharing one row cannot each
-have a record there.** That is the **Avatar shared-templatePath
-collision** exactly, which *"cost a SHARED BANK ACCOUNT and a dead labor
-market, invisibly to the suite."*
-
-Remaining candidates, none verified: **the owner's furnishing / estate
-slice** (`furnishing.md` is *owner-based persistence*, so a placed object
-may persist as part of what holds it) · **a purpose Document** · or
-**nothing**.
-
-⭐⭐⭐ **And the line that decides whether a barrel persists at all is
-OWNERSHIP:** *floor stock is ephemeral and re-spawns from its row at boot;
-an owned barrel persists.* Which is what `chattel.md` is for, and it means
-**a shop full of spawned barrels costs nothing in Mongo** — also the right
-economics of storage.
-
----
 
 ## 12. The lens pass — and almost none of it is about barrels
 
@@ -536,8 +672,9 @@ a shipped subsystem.**
 
 ## 14. Open questions
 
-1. ⚠⚠ **Per-instance persistence of a non-singleton owned clone** — § 11.
-   The one thing here with a shipped answer not in hand.
+1. ✅ **RESOLVED — persistence** (§ 11). What remains is the
+   **census-then-ratchet** on explicit capture, and ⚠ **a one-checkpoint
+   drive on whether a maturing cask survives a reboot today.**
 2. ⭐⭐ **The derived-property rules**, which are the genuinely hard part —
    especially **composite material response**.
 3. ⭐ **The first `Joint` rows**, and how few a cask needs (lean: **one** —
