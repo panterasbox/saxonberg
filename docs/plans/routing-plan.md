@@ -901,6 +901,8 @@ vitest + `pnpm -C packages/server lint:family`, and ends at a commit.
 
 ### W0 · `lint:graph-walks` — the census, shipped first and alone
 
+✅ **Done.** Census measured **11**, not the surveyed ten — and the first detector flagged **14**, with three false positives (two MQL dedupe loops over fixed lists; one `.edges` match inside a DOC COMMENT). Sharpening it — a frontier must GROW, adjacency reads off the AST — took it to 11, exactly the independent survey. ⚠ A ratchet set above the real count is a hole in it; those three were three free slots. All pinned as tests.
+
 - **Goal:** the ratchet exists before anything moves, with today's
   count as its ceiling (D11).
 - **Files:** `packages/server/scripts/check-graph-walks.ts` (new);
@@ -914,6 +916,8 @@ vitest + `pnpm -C packages/server lint:family`, and ends at a commit.
 - **Commit:** `lint(graph-walks): the census — <N> hand-written walks, and a ceiling`
 
 ### W1 · The characterization fixture — pinned before the migration
+
+✅ **Done.** 128 places, 77s, own CI job. Three findings, all from its own boot: the **boot union is not optional** (63 of 128 places failed on `unknown form 'woven'` until `FabricCatalogue` was warmed); **`effectiveRow` without `idx.rules` merges everything as `replace`** (Dave's Bar came up with 5 props instead of 25); and **the golden did not reproduce** — `signalAt` samples the live sky factor, so the clock is pinned. `peakLux` being byte-identical across runs is what found it.
 
 - **Goal:** family B's behaviour over every shipped place is a committed
   artifact (D12).
@@ -929,6 +933,8 @@ vitest + `pnpm -C packages/server lint:family`, and ends at a commit.
 - **Commit:** `test(perception): characterize every place's light, sound, smell and gather before the drain`
 
 ### W2 · `Traversal` + the two order-independent family-A migrations
+
+✅ **Done** (landed with W3/W4 — a skeleton with no callers is worse than none). 18 tests. `GraphInvariants` counts unchanged (13 unreachable); energy green.
 
 - **Goal:** the skeleton lands with real consumers, not as dead code.
 - **Files:** `lib/location/Traversal.ts` (new, D3/D4) +
@@ -946,6 +952,8 @@ vitest + `pnpm -C packages/server lint:family`, and ends at a commit.
 - **Commit:** `feat(location): Traversal — one skeleton, three orders; the invariants and the grid walk it`
 
 ### W3 · Family B drained — four accumulators, one skeleton, the fixture green
+
+✅ **Done.** The golden matches **byte-for-byte**: same lux, peak lux, dB, ppm, and every gather arrival in order with its direction. The prior decision was NARROWED, not overturned. `getObviousNeighbours` replaced **six** copies of the five guards; `atmosphereBlocks` three. ⚠ One stated behaviour change: the gather's guard list was always shorter and now has all five.
 
 - **Goal:** the four perception walks share the frontier and keep their
   physics (requirements § *The skeleton is shared; the accumulators are
@@ -971,6 +979,8 @@ vitest + `pnpm -C packages/server lint:family`, and ends at a commit.
 
 ### W4 · Families C and D drained
 
+✅ **Done**, no numeric change in either pack. ⭐⭐ The hive found a **real skeleton bug**: with `R = void` every `fold` returns `undefined`, so a `last ?? fold(start,…)` fallback folded the START TWICE — 12 m² of bloom where one cherry stands in 6. A sentinel that collides with a legal result is not a sentinel. Both callers keep their own neighbour reader, each for a stated reason.
+
 - **Files:** `trade-mining/src/lib/Working.ts` (`airAt` → breadth-first
   with `enter` returning `'halt'` at the first `breathes(room)`,
   `bound.hops = AIR_REACH`, result = the halt depth; `refreshAir` →
@@ -986,6 +996,8 @@ vitest + `pnpm -C packages/server lint:family`, and ends at a commit.
 - **Commit:** `refactor(mining,apiculture): air reach and forage radius on Traversal — same depth, same radius`
 
 ### W5 · The edge carries `media`, `wheelPassable`, `conditional`; blocked edges are dropped
+
+✅ **Done.** Read off the edge spec **or its kind row** — reading only the spec would have projected an empty media list for every kinded exit in the realm. ⚠⚠ The core's import gate refused `TravelProfile`'s `import type { StoredEdge }` and was right to; it declares `AdmissibleWay` instead. `lint:lib-statics` bit twice at 340/341 of 339 and both took the compliant path. The new `conditional-kind-undeclared` error was verified to FIRE. All censused counts unchanged.
 
 - **Files:** `lib/location/PlaceNode.ts` (`StoredEdge` += three);
   `platform/idea/LocationGraphRegistry.ts` `edgesOf` (+ the kind-row
@@ -1012,6 +1024,8 @@ vitest + `pnpm -C packages/server lint:family`, and ends at a commit.
 
 ### W6 · `routeBetween` · `routeOnMap` · `reachFrom` · `costMatrix` — the core, the two knowledge sources, the firewall
 
+✅ **Done.** 22 + 9 tests. ⭐⭐ The **diamond fixture caught a real bug**: predecessors were recorded on first sight, which is wrong for a cheapest-first walk — all three axes answered the same path. The carry holds the predecessor now, written at dequeue. ⚠ And this file's own documented trap caught me: `this.readMap(...)` is an intra-singleton self-call the `FromModule` gate DENIES.
+
 - **Files:** `lib/location/KnowledgeGraph.ts` (new, `@internal`, D6),
   `lib/location/RoutePlan.ts` (new, D8); `LocationGraphRegistry.ts`
   (`graphView(extent?)`, generation-keyed cache);
@@ -1033,6 +1047,8 @@ vitest + `pnpm -C packages/server lint:family`, and ends at a commit.
 - **Commit:** `feat(navigation): routeBetween, routeOnMap, reachFrom, costMatrix — a plan is a hypothesis, and the map path cannot reach the index`
 
 ### W7 · Transport, haulage and shopkeeping migrate; `planRoute` retires
+
+✅ **Done.** ⭐⭐⭐ `lint:graph-walks` reaches **ZERO**. ⭐ One unplanned addition, found by asking what `via ferrow-tram` would do: an AUTHORED lane is its own graph (the tramway's ends are joined by a passage authoring no `media`), so `routeOverEdges` is a third knowledge source. `trade-haulage`'s pack→pack import of `LaneCatalogue` is gone entirely.
 
 - **Files:** `transport/src/lib/Vehicular.ts` (`travelMode` + getter +
   `fieldMeta`; the three vehicle rows); `transport/src/idea/LaneCatalogue.ts`
@@ -1060,6 +1076,8 @@ vitest + `pnpm -C packages/server lint:family`, and ends at a commit.
 
 ### W8 · The `route` verb, the budget dial, the earned claim fields
 
+✅ **Done.** 18 controller tests + 3 Cartographer. ⭐⭐⭐ Writing the tests found a design hole: **a map cannot answer `by wagon`** — a claim records the channel, not what you were driving — so it refuses in words and names `journey`. Deferred-and-designed to `map-slate`.
+
 - **Files:** `platform/idea/cmd/movement/RouteController.ts` (new,
   D14) + `__tests__/RouteController.test.ts`;
   `platform/content/platform/cmd/movement/route.yaml` (new);
@@ -1079,6 +1097,8 @@ vitest + `pnpm -C packages/server lint:family`, and ends at a commit.
 - **Commit:** `feat(navigation): route — ask the way on your own map, and be told what it assumes`
 
 ### W9 · The residue, the drive, the docs
+
+✅ **Done.** Ceiling at **zero** with no residue to enumerate. The drive is 14/14 — see § Drive record for the nine failures it opened with and what they were actually about.
 
 - **Files:** `scripts/check-graph-walks.ts` (ceiling → the residue,
   each site listed with its reason — the fire spread; anything found
@@ -1301,4 +1321,106 @@ Read first, in this order:
 
 ## Drive record
 
-*(appended at build time)*
+Run `2026-10-08` against an **owned** world
+(`WIRE_BOOT=1 WIRE_PORT=2017 vitest run tests/routing.dirty.wire.test.ts`),
+on a dropped-and-reinstalled `saxonberg_build3`.
+
+**14 of 14 steps pass.** ⚠ The first run was **9 of 14 failing**, and
+every one of those failures was worth having.
+
+### ⭐⭐⭐ What it found first, and it was not the product
+
+Nine steps failed with **`I don't understand 'route'.`** — the verb
+dead over the socket, with every unit test green. The textbook silent
+failure, and the cause was not in the build:
+
+> **The wire runner ATTACHES by default and only boots a world when
+> `WIRE_BOOT=1`** (`global-setup.ts`: *"CI always owns its world;
+> locally it is opt-in"*), and attach mode's default URL is
+> **`http://localhost:2010`** — which in this checkout is **another
+> worktree's dev server**. Every refusal was *build-4's world*
+> answering, running a tree with no `route` in it. `WIRE_PORT` sets
+> the port an OWNED boot uses and does not redirect an attach.
+
+⚠ Three dead ends were walked before that landed, and they are worth
+recording because each looked like the answer:
+
+1. **"the store is stale"** — the DB was dropped twice and the verb
+   stayed dead. It was never the DB.
+2. **"the view is malformed, so the pack install refused it"** —
+   `CommandApi.validateCommandView` passes it, and `lint:controller-rows`
+   had already caught the one thing that WAS missing (below).
+3. **"the affordance is shadowed"** — `collectSelfDefs(PrimaryAvatar)`
+   contains `route`, and only `Avatar` affords `map`, so the list that
+   serves `map` is the list that serves `route`.
+
+⭐ The instrument that settled it was booting a world **by hand** and
+reading its log: `306 command YAML(s) preloaded` and `217 command-view
+document(s)` installed, against the wire run's `301`. Same disk, same
+code, different world. ⭐⭐ *Validate the instrument before believing
+the finding* — the drive was telling the truth about a world, and it
+was the wrong world.
+
+### What the gates caught before the drive could
+
+Three omissions, all of which fail **closed and silent**:
+
+- **`lint:controller-rows`** — `RouteController` had no template ROW.
+  A controller is an `Idea` the dispatcher clones; without the row the
+  verb would have been dead *with every controller test green*. This
+  is the gate doing the drive's job earlier and cheaper.
+- **`lint:test-content`** (twice) — `/world/` paths in a kernel test,
+  once in a fixture and once in a sentence inside a doc comment.
+- **`lint:instanceable`** — `_travelMode` as a `fieldMeta` key made
+  every row authoring `travelMode:` read as an orphan key the applier
+  discards silently. The fix was the NAME, and the ceiling then
+  ratcheted **down**, 393 → 390.
+
+### What the live content taught the drive
+
+Two steps were rewritten because the realm is more interesting than
+the script assumed, and in both cases **the code was right and the
+assertion was wrong**:
+
+- **Step 1.** What affords `journey` at Wharfside bank is a **moored
+  barge**, and a barge asked for the market square answers *no road
+  from here goes to 'the market square'*. That is AC1 from the other
+  side — the mode is the vehicle's, so a sailed hull is never planned
+  over a wheeled way — and it is a better test than the one written.
+  ⚠ The converse (a hitched wagon told `via estuary` no longer
+  sailing) needs a funded session and the haulage flow; it is pinned
+  by `JourneyController.test.ts` and `Vehicular.test.ts`.
+- **Step 6.** **Wharfside bank is pitch dark and the market square is
+  dim**, so a fresh character looking around learns less than the
+  script assumed — an unlit place yields no name worth resolving and
+  the honest answer to `route to <name>` is *you do not know the way*.
+  That is the firewall working. The socket step now asserts what a
+  socket can settle; the assumption derivation is pinned in
+  `NavigationLogic.map-routing.test.ts` and `RouteController.test.ts`.
+
+⚠ And one defect in the drive file itself: `Session.close()` is
+**synchronous**, so `await s.close().catch(…)` threw in `afterAll` and
+failed the SUITE while all 14 steps passed. A green run reported as a
+failure is the worst kind of noise.
+
+### Steps a socket cannot settle, and where each lives
+
+| step | why not | where it is pinned |
+|---|---|---|
+| 9 · block a leg mid-journey | needs a wizard shutting a road under a moving journey | `Journey.test.ts:242` — halt at the previous place, no replan |
+| 11 · the perception walks unchanged | a socket could spot-check one room | `golden/perception-characterization.json` — 128 places, byte-for-byte, **including printed compass directions** |
+| 12 · the pack walks unchanged | same | `trade-apiculture` + `trade-mining` suites, no numeric change |
+
+### Verified by the run
+
+`route` reachable and afforded · no template path or raw leaf in any
+output · a place the realm HAS and the player has not found is refused
+in words, with **no index read** · a pedestrian is never quoted
+minutes · `by wagon` on a map refuses and names `journey` · the budget
+refusal is distinguishable from *no way* · `map` still shows only what
+the player knows · a TPA terminal is never a routed leg · `route
+between <a> and <b>` answers a pair and offers no order · `help route`
+renders · bare `route` refuses in words.
+
+---
+
