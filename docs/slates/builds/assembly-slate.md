@@ -533,6 +533,43 @@ cost of guessing wrong is **an ordinary kind of loss players already
 understand** — and the one thing that should not be exposed to it, a
 unique object, is protected by a tier the author does not control.
 
+### ⛔⛔ AND THE RESIDUAL RISK TURNED OUT TO BE A LIVE DEFECT
+
+Driven statically 2026-10-09, at the owner's request, on the question
+*does a maturing cask survive a reboot?* **Answer: it depends on how the
+cask got there.**
+
+| how you got it | survives? |
+|---|---|
+| **bought it, `put` it in your cellar** | ✅ **yes** |
+| ⛔ **crafted it and left it where you made it** | ⛔ **no — the clock resets to zero** |
+
+**Everything in the chain works except the mint.** The shutdown sweep is
+wired (`AppBootstrap.ts:325`), a room's estate slice **re-captures
+loaded, stamped contents fresh** (*"a plant that grew keeps its
+growth"*), and the owner-offline dormancy case has its third path. But
+`furnishing.md`: *"a good **minted** onto a floor has no `place` until
+something says so… the room's capture **skips it**."*
+
+⛔⛔ **And the census is conclusive: `followCustody` is called by `hang` ·
+`get` · `put` · `drop` · `buy` · and `fell` — and CRAFTING CALLS IT ZERO
+TIMES.**
+
+> ⭐⭐⭐ **The defect is invisible for goods you carry away and total for
+> goods whose purpose is to SIT STILL** — which is why **maturation** is
+> where it surfaces and why **assembly will hit it too**, since an
+> assembled object is a crafted good that gets left somewhere.
+
+✅ **The fix is `fell`'s two lines at the craft mint**
+(`followCustody` + `captureHostOf`), one change in craft-resolve for
+every trade at once — recorded in full at
+[crafting.md § DEFECT](../../subsystems/crafting.md).
+**Deferred to the next build by the owner's decision.**
+
+⚠ **So this slate has a prerequisite it did not know about**: *assembly
+must not ship before the craft mint places its output*, or every
+assembled object is invisible to persistence on the day it is made.
+
 ### ⚠ The one real residual risk: capture is EXPLICIT
 
 *"After a mutating act on it"* — so **every act that changes instance
@@ -540,18 +577,19 @@ state must remember to call it.** For assembly that is fill, draw, `fit`,
 and replacing a part. **Five call sites got it right; the sixth will
 forget**, and the failure is silent until a reboot.
 
-⭐ A **census-then-ratchet** candidate rather than a lint proper:
-enumerate controllers that mutate a `persistent, runtimeState` field and
-do not call `captureHostOf`, gate today's count as the ceiling, drive it
-to zero. The census is grep-able even where the full rule is not
-statically decidable.
+⚠⚠ **And the census above was aimed WRONG.** It is not *controllers that
+mutate a `runtimeState` field without capturing* — the shutdown sweep
+covers the reboot case for anything the room can see. ⭐⭐⭐ **It is
+*verbs that MINT a good into a room without calling `followCustody`*** —
+sharper, grep-able, and **already fixed once** (`fell`). Census those,
+gate today's count as the ceiling, drive it to zero.
 
-⚠⚠ **And worth DRIVING rather than reasoning about:** `MaturingMixin`
-declares eight `persistent, runtimeState` fields
-(`maturationClockStamp`, `fractionConverted`, `turnedDays`…), so **whether
-a cask mid-maturation survives a reboot depends entirely on whether
-something captured after the last tick.** One checkpoint, and it should be
-run before assembly leans on the same machinery.
+✅ **DRIVEN STATICALLY 2026-10-09 — see above.** ⚠ Maturation itself is
+innocent: `reconcileFerment` fires on window events only and **correctly**
+calls no capture; the sweep would have covered it. ⚠ **Still owed: the
+live confirmation** — the static path says *skipped* and only a drive
+proves *lost*. Two checkpoints (craft a cask, seal it, read the stamp,
+restart, read it again), ⛔ not from the `master` worktree.
 
 ### What goes where, finally
 
