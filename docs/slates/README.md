@@ -35,7 +35,7 @@ materials-response all shipped, which made the name actively misleading.
 
 <!-- BEGIN GENERATED — ./tools/slate-index -->
 
-**280 slates.** 69 greenfield · 96 continuations · 60 waves · 55 tails.
+**281 slates.** 69 greenfield · 96 continuations · 60 waves · 56 tails.
 
 ## ⭐ Greenfield — nothing shipped yet (69)
 
@@ -75,7 +75,6 @@ respect.
 | [eternal-university-narrative](./builds/eternal-university-narrative-slate.md) | the whole arc — the three-tier serial crime, Dunny and Wren, the killer + the panic · the census mechanic (roll · enumerator · count → conviction-voting) … |
 | [faith](./builds/faith-slate.md) | the deed-tag vocabulary + the four tags Part 1 needs (`aid.treat`, `aid.attend-dying`, `harm.nonconsented`, `ritual.attend`, honouring `since`) · `liturgy`/`transgressions` on `Tradition` · the derive-on-read fall with NO readable fidelity · the surprising-write narration … |
 | [flowers](./builds/flowers-slate.md) | the act record (who gave what, to whom, publicly) · the wiki floriography with NO shipped meanings table · the lawn as a land use (D69 — pasture whose yield is discarded, the cheapest entry point) · ornamental breeding on parentage-seeding … |
-| [glass](./builds/glass-slate.md) | a sand deposit row + two material tags · the `meltingPoint` glass has never had · the glass-batch recipe · ⚠ `Colour` on `Light` (the one kernel change) … |
 | [guild](./builds/guild-slate.md) | the `Guild` Idea + charter schema (+ the charter validation pass) · the `guild:` GroupProvider + ranks · the three membership tiers + the witnessed rank exam · focus-tagged `TranscriptEntry` + charter-weighted `Competence` … |
 | [household-lifecycle](./builds/household-lifecycle-slate.md) | the household as ordinary content (a template row, unstamped) · the generator as an author · minting parents at char-gen with a residence · **un-gating the estate machine from `Avatar`** … |
 | [hunting](./builds/hunting-slate.md) | the wild population as a record materialized on encounter · `track` + the method ladder · *ferae naturae* + game law + close seasons · poaching enforcement … |
@@ -92,6 +91,7 @@ respect.
 | [mirror](./builds/mirror-slate.md) | the inbound assertion channel · what is admissible (the INTRINSIC/SOCIAL firewall — condition, never character) · claim, corroboration and decay · the density threshold … |
 | [notification](./builds/notification-slate.md) | the subject-keyed event · the substrate-owned prose templates (not a second bus) · the durable subscription (`PathTrie` routing) · derive-on-read delivery + the cursor/dismissal read state … |
 | [odometer](./builds/odometer-slate.md) | the counter roster (editorial, chosen against observed play) + the authoring surface (Q1) · the subject-scoped derive over chronicle/participation/advancement + the projection map (Q2) + whether participation shares the store (Q5) · the aggregate headline + its weighting (Q4) · milestones → recognition via belief (Q3) … |
+| [optics](./builds/optics-slate.md) | the derivable power model (focal length from index × curvature) · the grind as the shaping act · **Half A** additive detail instruments (loupe/microscope/telescope/burning-glass) · **Half B** visual acuity as a NUMERIC perception modifier + the corrective lens … |
 | [pathfinding](./builds/pathfinding-slate.md) | ⭐⭐ decide whether a shared pathfinder should exist at all (the pets build concluded *not for animals*; the economic bootstrap concluded *not for a shopkeeper crossing her own street* — see the second datum below, where the answer was authored directions) · the graph vocabulary — exits vs lanes vs conduits vs the elastic Warren · the cost model (legs · distance … |
 | [pharma](./builds/pharma-slate.md) | the actives/pharmacopoeia content · `neutralizedBy` + `rinse [with <substance>]` (the first row of the pharmacopoeia) · extraction as a process · glass vessels … |
 | [presence-hollowing](./builds/presence-hollowing-slate.md) | presence-vs-hollow as a physical state on an agent · who perceives it (ESP · the attuned reader dial · sacred instruments) … |
@@ -158,7 +158,7 @@ are the named remainders.
 | [eternal-university](./builds/eternal-university-slate.md) | the arrival gate · the Quad + the walkway spine (the EC road names) · Student Services (registrar + housing office) · the Health Center clinic … |
 | [executive](./builds/executive-slate.md) | the **executive log** (append-only; principal · authority invoked · act · authorization … |
 | [farming](./builds/farming-slate.md) | the arable field crop — the aggregate density (`sow`/`water`/ `harvest field`; no verb sows a `Field`) · plant genetics — `Genome`, `express` reaction norms, `pollinate`, cultivars and fixed-vs-segregating seed lots, the husbandry-wide breeding substrate · the environment-control tier (greenhouse glass + hydroponics) · the sun→ambient light driver … |
-| [fire-combustion](./builds/fire-combustion-slate.md) | the fire service (§ below) — the fire brigade (bucket-brigade → volunteer → paid-service ladder) · fire-code / prevention / inspection · fire insurance (incl. the moral-hazard / arson tie) · map-scale wildfire … |
+| [fire-combustion](./builds/fire-combustion-slate.md) | . → fire.md |
 | [food-safety](./builds/food-safety-slate.md) | molds (Part 10) — the second population's visible surface · rancidity's own small law (Part 10) · the attach points nobody uses yet (irrigation contamination · the `trade-butchery` spin-out … |
 | [freight](./builds/freight-slate.md) | the barricade (exits vs lane edges · the clearing verb · erect via crafting?) · the tollgate + the turnpike trust (the toll schedule as a `parameter` clause … |
 | [fridge-design-pack](./builds/fridge-design-pack.md) | ⭐⭐ **`Chamber`** — the compartment with its own air, and the `AtmosphericMixin` widening it needs; the spec is below, written against the shipped tree and executable cold (this build shipped the freezer compartment as `props:` instead) · the COP fork · the mirror inbound channel (Part 4) · the civic "better resident" extension (Part 5 — needs its own pass) … |
@@ -283,7 +283,7 @@ are the named remainders.
 | [wizard-bar](./tails/wizard-bar-slate.md) | the safe-harbour standard text (⭐ the product) · admit (exam + archwizard flip) · the public roster · the hearing process … |
 | [youtube-relay](./tails/youtube-relay-slate.md) | outbound `liveChatMessages.insert` · the quota accountant + coalescing and drop policy · per-player `youtube.force-ssl` OAuth · the `GoogleProfile` token extension + `google-reauth` |
 
-## Tails — small and opportunistic (55)
+## Tails — small and opportunistic (56)
 
 | slate | left |
 |---|---|
@@ -312,6 +312,7 @@ are the named remainders.
 | [fishing](./tails/fishing-slate.md) | the tank (§ 12 — the reach reports its parameters; the vessel's ledger and the keeper are the build) · ⭐ the named apex as an INDIVIDUAL in the record (the one that got away, older; v1's sturgeon is a count and a deed) · the stew pond (aquaculture) · the boat regime … |
 | [forestry](./tails/forestry-slate.md) | the four seams the doc defers, which have no body section here — `analyze wood` + a per-wood roll-up · partial yield below ripe · the Cover seam (Sward + Stand → a kernel `lib/husbandry/Cover`; the stand's moisture factor integrated stepwise) · a planted standard folding into `mix[].standing` at maturity — plus this slate's own open design: multi-product wood — ⭐ **bark SHIPPED 2026-10-05** as a fourth `fell` yield declared per species (oak tans, birch does not), because the carcass chain needed the tannin and a yield with no sink is the dead end that build existed to close → butchery.md; mast → pannage and the spring spike remain … |
 | [gazette](./tails/gazette-slate.md) | locality-scoped gazettes as shipped content (Wave 2, the press industry, is worked in press-slate, not here; the docket and the events-not-significance rule are tracked solely there too — see press-slate § *The structural threat*) |
+| [glass](./tails/glass-slate.md) | optics (`optics-slate`) · molds (the dairy build) · the buy-side `sell` counter + the returns loop (retail, then the glass follow-on) · the converter/tube/instrument bench … |
 | [host-slot-activities](./tails/host-slot-activities-slate.md) | sit/lie/mount/drive as interruptible durative engagements · `SlotApi.claimPending` · the decode half of `read` as a duration |
 | [hydration-framework](./tails/hydration-framework-slate.md) | nothing of this slate's own; its one live tail — the never-fault predicate on `check-on-create.ts` — was rehomed to eager-residency-slate § 2. |
 | [incapacity](./tails/incapacity-slate.md) | impound-on-a-claim (⚠ contradicted for a DEPARTED player by credit.md § Three states of a player` — a last-seen clock, dormant 30 / escheat 180 real days, derived on read) · the harm-scoped remedy · the preserving (never improving) receiver · return and reclaim … |
