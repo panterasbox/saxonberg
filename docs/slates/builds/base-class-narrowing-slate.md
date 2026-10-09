@@ -452,7 +452,7 @@ real objection rather than the plausible one.
   static in the kernel and every pack, and **arm A of
   `lint:reachability` is a zero invariant now**: every view is conferred
   or declares `unreachable:` saying why not.
-  - **Conferred (10):** `walk` → `MobileMixin.self` (the third ground
+  - **Conferred (9):** `walk` → `MobileMixin.self` (the third ground
     pace; `sneak` and `run` beside it always worked) · `dismount` →
     `PosedMixin.self` (the state is the RIDER's — `requiresMounted` reads
     the giver's posture, so you dismount a horse that walked out from
@@ -462,12 +462,19 @@ real objection rather than the plausible one.
     the authority, not the affordance*) · `wind`/`adjust` → the pack's
     `Watch` class · `flourish` → `BarStation`, which this list did not
     know about.
-  - **`swim` conferred** by a new `platform/thing/OpenWater`
-    (`SwimmableMixin(Thing)`), one row propped in four estuary and
-    wharfside rooms — the Ladder shape, because the enablement walk looks
-    in the actor's container and its contents. ⚠ Until then the only
-    composition of `Swimmable` or `Flyable` in the repo was an
-    integration test that manufactures its own hosts.
+  - ⛔⛔ **`swim` is HELD too**, and that is a reversal: the sweep shipped
+    a `platform/thing/OpenWater` (`SwimmableMixin(Thing)`) propped in four
+    estuary and wharfside rooms, then deleted it when the master merge
+    brought in `navigable-water-slate` — which merged mid-build and owns
+    the question. That slate's model is place-or-passage with a **dive
+    entrance** citing a water node, *"so nothing is ever in the water's
+    zone"*, and *"the first water anybody can stand in"* is on its Left
+    list. A Thing in a land room is a fourth shape it would never
+    produce, in the rooms it names as its own first target. ⚠ Until some
+    water build lands, the only composition of `Swimmable` or `Flyable`
+    in the repo remains an integration test that manufactures its own
+    hosts. → `navigable-water-slate`, which is told that the six
+    `media: [ground, water]` exits are already authored and waiting.
   - ⛔⛔ **`drive` is HELD on a COLLISION**, and it is the one worth
     reading. The sweep conferred it on `DrivableMixin` — correct on its
     own reasoning — and the full suite refused it:
@@ -486,8 +493,8 @@ real objection rather than the plausible one.
     where *afford statically, decline diegetically* does not apply: with
     no `media: ['air']` exit, no flying species and no composer, the
     refusal would point at nothing. **What lifts it** is a flying species
-    with the mode on its body plan plus one air exit; then the host
-    follows `OpenWater`'s shape exactly.
+    with the mode on its body plan plus one air exit; then the host is
+    whatever that build makes it.
   - ⚠⚠ **Eleven of the fifteen had PASSING controller unit tests**, which
     is the finding worth carrying forward: a controller test is handed a
     pre-built model, so it passes over a verb that does not exist.

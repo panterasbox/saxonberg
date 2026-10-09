@@ -424,43 +424,48 @@ suite('1–8. the verbs that shipped and could not be said', () => {
     expectUnderstood(xfer, 'transfer');
   }, 300_000);
 
-  it('⭐⭐⭐ 7. `swim` crosses an estuary water exit — the first Swimmable in the realm', async () => {
-    // `swim.yaml`, `SwimController`, `SwimmableMixin` and
-    // `biped.yaml`'s `locomotionModes: [walk, climb, swim]` all shipped,
-    // six exits carry `media: [ground, water]`, and NOTHING composed the
-    // mixin — the only composition in the repo was an integration test
-    // that manufactured its own host and passed nightly for three builds.
-    const swimmer = await at(REACH, 'reach-swimmer');
-    expectOk(await swimmer.cmd(`clone ${LANTERN_ROW}`));
-    expectOk(await swimmer.cmd('light me:i:lantern'));
-    await swimmer.drainProse();
-
-    // ⭐ The water is a THING in the room — that is what makes a fifth
-    // reach one authored row rather than a Location subclass.
+  it('⛔⛔ 7. `swim` is STILL unknown — the water design owns how you get in', async () => {
+    // ⭐⭐⭐ The reversal, asserted as a POSITIVE so it cannot rot.
     //
-    // ⚠ Asserted by a QUERY, not by prose. The wire world boots at
-    // midnight on a new moon and a lit lantern still reads the open reach
-    // as *"shapes and edges, no more"* — which is the light doctrine
-    // working, and which cost the drive's first run this checkpoint. What
-    // matters here is that the row is STANDING, and `here:i` says so
-    // whatever the light is doing.
-    const deeps = await swimmer.query('here:i', { fields: ['displayName'] });
+    // Everything about the gap is real and the sweep found it:
+    // `SwimmableMixin` and `SwimController` shipped with the locomotion
+    // build, `BodyPlan/biped.yaml` lists `swim` among a person's modes,
+    // SIX exits in the estuary and at the wharf carry
+    // `media: [ground, water]`, and nothing in the game composes the
+    // mixin — the only composition anywhere is an integration test that
+    // manufactures its own host. Somebody authored those exits expecting
+    // this to work.
+    //
+    // ⚠⚠ And the sweep's answer — a `SwimmableMixin(Thing)` propped in a
+    // land room, so a land exit becomes swimmable — was reversed, because
+    // `navigable-water-slate` merged to master mid-build and OWNS the
+    // question. Its status block says *"nowhere on, in or under the water
+    // is a place you can be"* and puts **"the first water anybody can
+    // stand in"** on its Left list; its model is that every water node is
+    // a **place** (a `Location`) or a **passage** (cited, never
+    // inhabited), with a beach as a land `Location` holding a `Shore`
+    // that CITES a water node *"so nothing is ever in the water's
+    // zone"*, and entering water as a **dive entrance** — one of three
+    // faces on that citation. A Thing in a land room is a fourth shape
+    // it would never produce, in the exact rooms it names as its own
+    // first target.
+    //
+    // ⭐⭐ Third instance of one lesson in one build, after `drive` and
+    // `say`: a gate can prove a view is afforded or declared; it cannot
+    // tell you whether conferring one was yours to decide.
+    //
+    // ⭐ When that build lands this checkpoint FAILS, and asks for the
+    // real thing in its place: swim an estuary exit, and be told there is
+    // nothing to swim in at a dry one.
+    const swimmer = await at(REACH, 'reach-swimmer');
+    await swimmer.drainProse();
+    const out = await say(swimmer, 'swim east');
+    const notes = out.notes as Array<{ kind?: string }>;
     expect(
-      deeps
-        .map((r) => String((r as { displayName?: string }).displayName ?? ''))
-        .join(' | '),
-      'the deeps are standing in the reach',
-    ).toMatch(/deep|water/i);
-
-    const before = await whereAmI(swimmer);
-    const swam = await act(swimmer, 'swim east');
-    expect(refusedFor(swam)).not.toBe('unknown-verb');
-    if (refusedFor(swam) === null) {
-      expect(
-        await whereAmI(swimmer),
-        'swimming east crossed the water',
-      ).not.toBe(before);
-    }
+      notes.some((n) => n.kind === 'command-rejected'),
+      '`swim` must still be unknown — held on navigable-water-slate, ' +
+        'which owns what the enablement host is',
+    ).toBe(true);
   }, 300_000);
 
   it('⛔ 8. `lock north` and `fly up` are STILL unknown — and that is a recorded decision', async () => {

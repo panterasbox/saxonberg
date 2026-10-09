@@ -12,7 +12,7 @@ mixins (`Climbable` / `Swimmable` / `Flyable`), the
 |---|---|---|
 | `LocomotionMode` | `lib/locomotion/LocomotionMode.ts` | Singleton Idea — one per mode. Author-data: speed / noise / body-profile / ground-contact / cost / passthrough / conveyance + enablement mixin names / medium |
 | `Enablement` | `lib/locomotion/Enablement.ts` | Shared interface (axes + difficulty + capability gate) implemented by all three per-mode enablement mixins |
-| `Climbable` / `Swimmable` / `Flyable` | `lib/locomotion/{Climbable,Swimmable,Flyable}.ts` | Host capability mixins. Each exports its own `*_CAPABILITY_PROP` for the per-mode skill gate. ⚠ Nothing composed `Climbable` until the nutrition-and-fitness build shipped `platform/thing/Ladder` (`ClimbableMixin(Good)`) and rejection's winze ladder — the first climb in the game's history. ⚠⚠ **`Swimmable` waited three more builds**: the reachability sweep shipped `platform/thing/OpenWater` (`SwimmableMixin(Thing)`) and propped one row in four estuary and wharfside rooms, and until then the ONLY composition of either `Swimmable` or `Flyable` anywhere was `__tests__/integration/locomotion.test.ts`, which manufactures its own hosts — *a test that manufactures what the world lacks hides the lack.* **`Flyable` still composes nothing**, by declaration: `fly.yaml` carries `unreachable: awaiting:base-class-narrowing-slate`, because with no `media: ['air']` exit and no flying species the refusal would point at nothing |
+| `Climbable` / `Swimmable` / `Flyable` | `lib/locomotion/{Climbable,Swimmable,Flyable}.ts` | Host capability mixins. Each exports its own `*_CAPABILITY_PROP` for the per-mode skill gate. ⚠ Nothing composed `Climbable` until the nutrition-and-fitness build shipped `platform/thing/Ladder` (`ClimbableMixin(Good)`) and rejection's winze ladder — the first climb in the game's history. ⚠⚠ **`Swimmable` and `Flyable` compose NOTHING, and both views are declared.** The ONLY composition of either anywhere is `__tests__/integration/locomotion.test.ts`, which manufactures its own hosts — *a test that manufactures what the world lacks hides the lack.* `fly.yaml` is held on `base-class-narrowing-slate` (no `media: ['air']` exit, no flying species, so the refusal would point at nothing); `swim.yaml` is held on **`navigable-water-slate`**, which owns how a player gets into water and whose model is place-or-passage with a **dive entrance** citing a water node — *"nowhere on, in or under the water is a place you can be"*, and *"the first water anybody can stand in"* is on its Left list. ⭐ The reachability sweep briefly shipped a `platform/thing/OpenWater` propped in the estuary and reversed it: a Thing in a land room is a fourth shape that design would never produce, in the rooms it names as its own first target. ⚠ Six exits already carry `media: [ground, water]` — somebody wanted this, and that build inherits the evidence |
 | `LocomotionApi` | `api/locomotion.ts` | Mode resolution, eligibility, engagement lifecycle, passthrough chain, emission walk, default-mode resolution |
 | `LocomotionControllerBase` | `platform/idea/cmd/movement/LocomotionControllerBase.ts` | Abstract base for the six per-mode verbs and refactored `go` |
 | `Walk` / `Climb` / `Swim` / `Fly` / `Ride` / `DriveController` | `platform/idea/cmd/*.ts` | Concrete controllers — override `modeName()` and (optionally) `composeRejection()` for verb-templated prose |
@@ -335,8 +335,10 @@ Adding a new mode (e.g., `slither`):
      MOVER** — `walk`, `sneak` and `run` are `MobileMixin.self`;
    - a mode that needs something in the room is an
      **`environment`/`peers` contribution of the ENABLEMENT HOST** —
-     `climb` on `platform/thing/Ladder`, `swim` on
-     `platform/thing/OpenWater`. *The instrument affords the verb.*
+     `climb` on `platform/thing/Ladder` is the shipped exemplar. *The
+     instrument affords the verb.* ⚠ `swim` and `fly` have no host and
+     their views are declared `unreachable:` rather than conferred; the
+     enablement host for water is `navigable-water-slate`'s to choose.
 
    ⚠⚠ **This step is new because it was MISSING, and the omission cost
    four verbs.** `climb`, `swim`, `walk` and `dismount` each shipped with

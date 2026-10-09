@@ -49,11 +49,14 @@ class ClimbZoneLocation extends ClimbableLoc {}
  * cases stay, because a unit test of the enablement walk is a legitimate
  * thing to have and a synthetic host is the right way to write one — but
  * they are relabelled so nobody reads them as evidence about the realm
- * again. `swim` has a real host now (`platform/thing/OpenWater`, propped
- * in four estuary and wharfside rooms) and the live proof is the
- * reachability drive. `fly` still has none, declared
- * `unreachable: awaiting:base-class-narrowing-slate` on its view, and
- * `lint:reachability` is what will notice if that stops being true.
+ * again. ⚠ **Neither mode has a real host, and both views are declared**
+ * — `fly` on `base-class-narrowing-slate` (no air exit, no flying
+ * species) and `swim` on `navigable-water-slate`, which owns how a
+ * player gets into water. The reachability sweep briefly shipped a
+ * `SwimmableMixin(Thing)` for the estuary and reversed it when that
+ * slate merged mid-build: a Thing in a land room is not the model, and
+ * the slate names the estuary as its own first target.
+ * `lint:reachability` is what will notice when either stops being true.
  */
 const SwimmableLoc = SwimmableMixin(CartesianLocation);
 class SwimZoneLocation extends SwimmableLoc {}
@@ -142,7 +145,7 @@ describe('Locomotion integration — § 16 compositions', () => {
     expect(guard.gate).toBe('exitMode');
   });
 
-  it('swims a SYNTHETIC Swimmable host + swim-allowed exit → success (the realm\'s host is platform/thing/OpenWater; see the note above)', async () => {
+  it('swims a SYNTHETIC Swimmable host + swim-allowed exit → success (the realm has NO swimmable host; see the note above)', async () => {
     const swim = buildMode('swim');
     const zone = makeStuff(() => new CartesianZone());
     const pond = makeStuff(() => new SwimZoneLocation());

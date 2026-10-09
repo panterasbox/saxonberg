@@ -781,8 +781,22 @@ export const PHRASE_SHAPE_CEILING = 6;
  * ⚠ Lower it, never raise it. A NEW prepositional object arg declaring
  * no `greedy` is an author about to ship `at the brick oven` as a shape
  * error, which is the defect, not a style.
+ *
+ * ⚠⚠ **Opened at 106 and re-pinned to 122 before it ever merged**, and
+ * the reason is worth more than the number. The sweep measured 106
+ * against a tree that was 53 commits stale; `trade-glass` (eight views)
+ * and the fire build's device verbs (`draught`, `fire`, `lift`) merged
+ * while this gate was being written, and their authors had no way to know
+ * the rule existed. ⭐ So this is an **opening census against the tree the
+ * gate actually lands on**, not a rise in the ratchet's sense — the
+ * distinction being that a rise asks to tolerate growth the gate was
+ * already watching, and there was no gate.
+ *
+ * ⭐⭐ The lesson for the next census-then-ratchet: **a ceiling opened on a
+ * stale tree is opened at the wrong number.** Measure at the merge, not
+ * at the branch point, and say which you did.
  */
-export const ARTICLE_SHAPE_CEILING = 106;
+export const ARTICLE_SHAPE_CEILING = 122;
 
 /**
  * ⭐ The naming ratchet — stocked goods whose printed name is a phrase
@@ -795,8 +809,13 @@ export const ARTICLE_SHAPE_CEILING = 106;
  * of something they can see, and a shop lying about its own stock is
  * worse than a verb nobody can say: the verb teaches you it is not there,
  * and this teaches you something false.
+ *
+ * ⚠ 71 → 72 at the master merge, for the reason `ARTICLE_SHAPE_CEILING`
+ * gives at length: the figure was measured on a stale tree and re-pinned
+ * against the one the gate lands on. The one addition is
+ * `/trade/fishing/thing/fish-bowl`, which prints *"glass fish bowl"*.
  */
-export const UNNAMEABLE_GOOD_CEILING = 71;
+export const UNNAMEABLE_GOOD_CEILING = 72;
 
 /**
  * ⭐⭐ **Arm A is a ZERO INVARIANT.** There is no ceiling: every command

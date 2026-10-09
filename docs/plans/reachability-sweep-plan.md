@@ -538,6 +538,43 @@ second mechanical timepiece in another pack carries its own static
 naming its own pack's views (or the terminus ones if it depends on
 terminus).
 
+**⛔⛔ D7 — REVERSED after the master merge. `swim` is HELD, not
+conferred, and `OpenWater` is deleted.**
+
+`docs/slates/builds/navigable-water-slate.md` merged to master on
+2026-10-08/09 — **after this branch's merge point** — and it owns the
+question of how a player gets into water. Its status block says in terms
+that *"nowhere on, in or under the water is a place you can be"*, and
+**"the first water anybody can stand in"** is on its Left list. Its model:
+every water node is a **place** (a `Location`) or a **passage** (cited,
+never inhabited); §5a is explicit that *"a beach is a land `Location`
+holding a `Shore` that CITES a water node, so nothing is ever in the
+water's zone"*; and entering water is one of three faces on that citation
+— a **dive entrance**, the mine's adit one element over.
+
+⚠⚠ `SwimmableMixin(Thing)` propped in a land room is a fourth shape that
+design would never produce, **in the exact rooms it names as its own
+first target** (*"the estuary is reachable on its own"*, *"Terminus
+already has an `estuary` district and a `wharfside`"*). Shipping it meant
+a kernel class and a row for that build to retire, and a reachability
+sweep pre-deciding how water works.
+
+⭐⭐ **This is the third instance of one lesson in one build**, after
+`drive` and after `say`: the gate can prove a view is afforded or
+declared; it cannot tell you whether conferring one was yours to decide.
+Here the authority was a slate that merged mid-build. ⭐ The user caught
+it — *"we have a whole water design going right now that I'm sure
+supersedes all of this"* — and they were right.
+
+`swim.yaml` carries `unreachable: awaiting:navigable-water-slate` with
+the whole reasoning above it, and a note to that build that **the six
+`media: [ground, water]` exits are already authored and waiting** — they
+are the evidence somebody wanted this before either of us. The drive's
+step 7 asserts the hold as a POSITIVE, beside `lock`/`unlock`/`fly`.
+
+*The original decision, kept because its reasoning about the MECHANISM is
+still correct and the next person will want it:*
+
 **D7 — The water host is a Thing in the room, `platform/thing/OpenWater`
 = `SwimmableMixin(Thing)`, the Ladder shape — not a Location subclass
 and not either existing water thing.** Rows: one,
@@ -1949,6 +1986,69 @@ of the changed hosts — twelve files — and all of them ran directly: the
 kernel's 409 and the three remaining packs' 202, green. ⚠ *An abort-first
 runner turns a full-suite run into a binary search; a targeted census
 turns it back into one question.*
+
+### ⛔⛔ W7 — the user caught the fourth: `OpenWater` belonged to a design in flight
+
+> *"not sure about this OpenWater business. why was that needed? because
+> we have a whole water design going right now in our master worktree
+> that I'm sure supersedes all of this"*
+
+They were right, and I had merged master at the location-graph era and
+never looked again. `docs/slates/builds/navigable-water-slate.md` merged
+on **2026-10-08/09**, 53 commits past my branch point, and it owns how a
+player gets into water: every node a **place** or a **passage**, a beach
+as a land `Location` holding a `Shore` that CITES a water node *"so
+nothing is ever in the water's zone"*, and entering water as a **dive
+entrance**. Its status block says *"nowhere on, in or under the water is
+a place you can be"* and puts **"the first water anybody can stand in"**
+on its Left list. ⚠ It names the estuary as its own first target — *"the
+estuary is reachable on its own"*, *"Terminus already has an `estuary`
+district and a `wharfside`"* — which is exactly where I propped the row.
+
+**Reverted in full:** `platform/thing/OpenWater.ts`, its test, the
+`/world/terminus/estuary/thing/open-water` row and all four `props:`
+lines are gone; `swim.yaml` carries
+`unreachable: awaiting:navigable-water-slate` with the whole reasoning
+above the key, including a note that **the six `media: [ground, water]`
+exits are already authored and waiting** — they are the evidence somebody
+wanted this before either of us, and that build inherits them. The
+drive's step 7 asserts the hold as a POSITIVE, so it fails the day the
+water lands and asks for the real swim in its place.
+
+⭐⭐ **Third instance of one lesson in one build**, after `drive` and after
+`say`: arm A can prove a view is afforded or declared; it cannot tell you
+whether conferring one was **yours to decide**. Three different
+authorities said no — another pack's tripwire, a shipped test, and a
+slate that merged mid-build — and none of them is a thing a gate can
+represent.
+
+⚠ And a process finding with it: **a long build must re-read master, not
+just merge it once at the start.** The water design existed, in the
+user's own worktree, while I was deciding how water works.
+
+### The master merge, and two ceilings re-pinned
+
+Merged 53 commits (the **fire** build — which dairy was waiting on — the
+**glass** build, drilling, routing, `Traversal`). Clean, no conflicts.
+⭐ `pnpm install` first, because the pack graph gained `trade-glass`:
+without it every pack suite fails at collection with a module-resolution
+error that reads like a repo defect.
+
+⭐⭐ **Arm A and arm R both held at ZERO across the merge** — 314 views
+(13 new) and 690 rows (20 new), and the fire, glass and drilling builds
+had conferred every verb they shipped and placed every row. That is the
+gate's first real test against work it did not supervise, and it passed
+without a finding.
+
+⚠ Two ratchets went over and were re-pinned: `ARTICLE_SHAPE_CEILING`
+106 → **122** (sixteen from `trade-glass`'s eight views and the fire
+build's `draught`/`fire`/`lift`) and `UNNAMEABLE_GOOD_CEILING` 71 → **72**
+(the fishing pack's *"glass fish bowl"*). ⭐ Stated as what it is: an
+**opening census against the tree the gate actually lands on**, not a
+rise. A rise asks to tolerate growth the gate was already watching; there
+was no gate when those views were written. **The lesson for the next
+census-then-ratchet: a ceiling opened on a stale tree is opened at the
+wrong number — measure at the merge, and say which you did.**
 
 ### ⛔⛔⛔ W6 — the suite's THIRD finding, and the best one: a tripwire caught a reviewer-grade mistake
 
