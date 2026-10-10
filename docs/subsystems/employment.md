@@ -229,12 +229,94 @@ suppressing the roster entry**. That is deliberate — it means the
 quit/fired suppression `holdsSeat` implements exists exactly once and
 cannot drift into a second copy.
 
-## Appointment — the `appoint` verb
+## Appointment — the `appoint` verb (alias `hire`)
 
-`appoint <player> to <position> at <organization>` (`employment`
+`appoint <person> to <position> at <organization>` (`employment`
 category), afforded universally on `Persona.commandContributions.self` for
 the same reason `office` is: the gate is the authority, not the
 affordance.
+
+⭐⭐ **Both optional parts are derived, and `hire` is the same verb**
+(2026-10-09). `appoint <person>` with no position and no organization
+means *the house I am the proprietor of, and its only position* —
+resolved through `EmploymentApi.businessOfProprietor`. A house with
+several positions refuses and **names** them, because which job somebody
+was just given is not a thing to guess on their behalf. `hire` is an
+alias, so the word the work uses reaches the verb the chart uses.
+
+⚠⚠ **The target scope is `["reachable", "online"]`, and `online`-only
+was a real defect.** It meant `appoint` could not reach a brainless NPC
+standing in front of you — so the drilling build shipped `hire` and
+`dismiss` controllers **inside a trade pack**, to call
+`OrganizationMixin.appoint`/`.dismiss`, which the kernel had exposed all
+along. ⭐ *A new systemic capability appearing in a trade build is a
+symptom — look upstream.* The symptom here was two verbs; the cause was
+one arg scope and one missing view. The ladder's first rung is **unify
+behind an interface** (`grind` rides `mill`, `melt` rides `dip`), and a
+trade does not get a second verb because its workers happen not to be
+players.
+
+## ⭐⭐⭐ Starting work on hire — `startsShiftOnHire`
+
+`beginShift` has exactly **two** drivers, and between them they leave a
+population with no home:
+
+| population | what starts its shift |
+|---|---|
+| an authored NPC with `rosterSlots` | the roster tick, on the slot's schedule |
+| a holder who applied | `clock on`, their own act |
+| ⚠ **an NPC an employer takes on ad hoc** | **nothing** |
+
+The third one held a job and never worked a shift — employed, unpaid,
+standing wherever it was hired. It was hidden until 2026-10-09 because
+the drilling build's own `hire` controller called `beginShift` itself;
+unifying that verb into `appoint` exposed it as a kernel gap.
+
+⚠⚠ **Two attempts to close it globally each broke a shipped contract**,
+and both tests were right:
+
+- starting the shift at hire broke *being taken on does NOT put you on
+  shift* — a wage for merely existing is the AFK wage lens 6 rejects
+  (`livelihood-slate` §5.4);
+- writing the hand a rota slot broke *the roster tick leaves a clocked-on
+  applicant alone* — an applicant having **no assignment** is exactly
+  what keeps the tick off a voluntary shift.
+
+⭐ **So the house declares it.** `startsShiftOnHire` on the chart,
+default `false` (every house shipped before this date, unchanged). A bore
+crew is hired at the beam and starts at the beam, because the wage runs
+from the moment they take hold of it — that is what makes a dry hole
+expensive. A press office's appointee starts nothing by being appointed.
+Both are true and they are not the same claim.
+
+It lives on the **chart**, beside `positions` / `rosterSlots` / `call`,
+because it is a claim about *this house's hiring* — not a trade
+mechanism. Any house that hires hands who cannot clock themselves on can
+set it.
+
+⚠ A **player** is never auto-started whatever the house says. Clocking on
+is their act.
+
+## Dismissal — the `dismiss` verb
+
+`dismiss <person> [at <organization>]` — the **employer's half of
+`quit`**, and until 2026-10-09 the game had none. `quit` has always
+shipped for the worker and `organization.dismiss(actor)` has always been
+a sealed method on `OrganizationMixin` (*status → fired; history
+preserved*), but no view ever reached it: **no bar, smithy, ranch or
+press office could let anybody go.**
+
+Same declarative gate as `appoint`, same derivation when the
+organization is omitted. It refuses on the subject when the person is not
+on those books, because letting go of somebody who never worked for you
+must not read as a dismissal. ⚠ The final wage is **not** the
+controller's: `fire` flips the record and the shift's own accrual is what
+the hand is owed — a controller computing a figure would be a second
+source of truth for a number the ledger already holds.
+
+⭐ Nothing in the game tells an employer *when* to dismiss anybody. A
+well declines along a curve, a season turns, trade falls off, and no
+notice fires for any of it. That decision is the content.
 
 ⚠ The gate is a **field** validator, `mustHoldAppointingAuthority`, on the
 `organization` argument — not a verb-level one. `CommandContext` carries
@@ -1050,3 +1132,30 @@ teleports the assignee to the room (the window's registrars station at
 the ward, where the fixture stands). ⚠ The par/perception `stockSheetFor`
 skips a CLOSED sealable, so a bank reads its vault's own contents (not the
 sheet) — see `blood.md` (`DonationBankMixin`).
+
+## ⭐⭐ The hiring driver (the drilling build, 2026-10)
+
+The deferred line *`hire`/`fire` exist on the LOGIC and not on the
+facade* is struck: a trade supplies the driver now. `trade-drilling`'s
+`hire <person>` reaches a **reachable** Agent — not an online one — and
+calls the public org face (`appoint`), then the roster primitives under
+`SelfOnly`.
+
+⭐ `appoint` is deliberately **not** widened. `scope: "online"` is right
+for appointing somebody to an OFFICE, where the appointee has to be able
+to accept; a roustabout is not appointed to anything. If a second trade
+wants the same word, widen it then — one consumer is not a pattern.
+
+⚠⚠ **A hired hand must be SENT to the work.** `DrillingOutfit.startCrew`
+moves them to `station ?? operatingLocations[0]`, which is
+`moveForShift`'s own rule re-stated because the facade does not expose
+it and a hire is not a shift flip. The first version did not, on the
+reasoning that *you hire the person standing in front of you* — true of a
+player and **false of every NPC in the realm**, because a brainless hand
+does not walk anywhere, which made hiring at a remote work site
+unreachable by construction. Found by driving.
+
+⭐ And the seats are authored **on the seed row**, which is what the
+no-runtime-setter constraint on `positions` permits rather than blocks:
+what seats a business has is a fact about the KIND of business, so one
+authored row serves every outfit minted at every siting in the realm.

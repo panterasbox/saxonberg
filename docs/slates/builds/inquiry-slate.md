@@ -10,6 +10,11 @@
 > depends on and REFUSES by name; added 2026-09-25, § below) · deferred:
 > credibility as a renown consumer, the published refutation,
 > misinformation-as-crime
+> ⭐⭐⭐ **The epoch on-ramp is OFF the critical path (2026-10-08)** — a
+> recipe that ships-and-refuses needs a **gate token**, not a law
+> catalogue, and the token rides the shipped `RecipeKnowledge` ladder plus
+> the realm's `epoch`. ⚠ Also: **the row is not a law — the law is the
+> TypeScript**, and the name collides with governance's. § end.
 > **Size:** a build
 
 See also:
@@ -322,3 +327,118 @@ paper, the piece it calls its soul.
   fictional curriculum.
 - Deferred consumers: credibility (renown), misinformation-as-crime
   (alignment + blame-ledger), and the imported/didactic study.com track.
+
+---
+
+## ⭐⭐⭐ What the `Law` row was actually doing — and the name (2026-10-08)
+
+Raised when the drilling track asked this slate for its on-ramp. Two
+objections, both the user's, and the second one is the load-bearing one.
+
+### 1 · ⚠ The name collides, and it is cheap to fix today
+
+> *"when we use the word 'Law' here it's almost always in reference to
+> governance, but you're talking about laws of nature?"*
+
+Correct, and the collision is real: in this project *law* means the
+legislated kind nearly everywhere else — the Compact, the amendment
+library, law-as-content over forums. The nature reading has reached
+exactly three docs (this one, [tradition-slate](../tails/tradition-slate.md),
+[uncertainty.md](../../uncertainty.md) § *Law vs Tenet*) and **zero lines
+of code**: no `Law` class, no `Law` document kind. So it is a three-doc
+rename now versus a real one later.
+
+⭐ **Proposed: `Principle`.** It reads as nature, collides with nothing,
+and survives the naming rule (name a thing for what it IS). The existing
+`Law`/`Tenet` split is unaffected — it is positive-vs-normative, not
+nature-vs-statute, and *principles are true; a tradition decides which
+ones you bother investigating* reads the same.
+
+### 2 · ⭐⭐⭐ The row is not a law. The law is the TypeScript.
+
+> *"aren't our laws of nature just javascript code like any other
+> rule/law that gets to be enforced by the machine?"*
+
+Yes — and that observation dissolves the concept this slate was building.
+Inverse-square falloff is a function in the engine. It runs whether
+anybody knows it or not; it cannot be amended, appealed or disobeyed.
+**The row is not the law.** Five distinct things were wearing one noun:
+
+| | what it is | state |
+|---|---|---|
+| 1 | **the rule** — an evaluator | TypeScript. Already there. Never data |
+| 2 | **the codification record** — who required it, what enforces it | ⬅ governance (§ 3 below), not physics |
+| 3 | **can this person do it** | ✅ ships — `RecipeKnowledge`'s known-of → can-do ladder |
+| 4 | **is it codified in this realm at all** | the `epoch` stamp — half-built (stamped, unread) |
+| 5 | **can a player RECOVER the rule by experiment** | ⭐ the only genuinely new machinery, and **this slate's actual subject** |
+
+Everything above this section is about row 5, and row 5 is a **pedagogy
+feature about discovery**. It is not what a recipe needs in order to exist
+and refuse.
+
+### 3 · ⭐⭐⭐ The codification doctrine — a law of nature is a law whose codification already happened
+
+The user's reframe, recorded close to verbatim because it is the useful
+part and it belongs to the governance docs as much as to this one:
+
+> *"what the legislature gives us is not completed laws, because the
+> completed law also includes its enforcement — and if that enforcement
+> includes code… for us, codification doesn't stop at the legislature, it
+> extends to the executive, who are the engineering arm of the government.
+> we can't expect a legislature of hundreds/thousands to collectively write
+> a javascript class. a bill gets recorded as a law in an extent's slice of
+> the document tree, with the compact getting their own slice and it being
+> authoritative; it includes product requirements and sometimes metadata,
+> and from that the executive derives the engineering requirements."*
+
+> ⭐⭐⭐ **"Law of nature" and "statute" are not two kinds of thing. They are
+> two positions in one pipeline.** A law of nature is a law whose
+> codification **already happened** — by the engineering arm, pre-adoption.
+> A statute is one whose codification is **pending**.
+
+Two consequences:
+
+- ⛔ **The Compact cannot pass a law of nature.** It can pass a
+  *requirement that somebody codify one*. A bill saying *"vulcanization is
+  latex × sulfur × heat"* is inert until an engineering arm turns it into
+  an evaluator — which is why the bill carries product requirements and the
+  executive derives engineering ones. Not a quirk of this project: it is
+  what codification **means** when the enforcer is a computer.
+- ⭐ **A catalogue of real "legislation" grandfathered in at adoption** is
+  therefore a coherent artifact — every physical law the platform already
+  enforces, entered on the record as law whose codification predates the
+  polity. *"We'll see about that"* — flagged, not decided.
+
+⚠ **That build is a GOVERNANCE build about the executive and the document
+tree** (→ [legal-code-slate](./legal-code-slate.md),
+[executive-slate](./executive-slate.md)). It is **not** on the drilling
+track and must not be dragged onto it.
+
+### 4 · The consequence for the epoch on-ramp
+
+The user's own argument closes it:
+
+> *"all our other laws of nature found their way into being codified
+> without any of this machinery."*
+
+Combustion, Newton cooling, subtractive dye, Liebig limiting factors,
+inverse-square falloff — **every one was codified by the engineering arm
+with no catalogue**, because row 2 needs a *record*, and a record can be
+prose. A catalogue only buys row 5.
+
+> ⭐⭐ **So a recipe that ships-and-refuses needs a GATE TOKEN, not a law
+> catalogue** — and the token rides rows 3 + 4, both of which largely
+> exist: `RecipeKnowledge` for the person, `epoch` for the realm. What
+> lifts it is that the realm's executive **codified** vulcanization, which
+> in practice is a pack install — which is this slate's own escape hatch
+> (*"a content pack may ship a world that already knows things"*) arriving
+> from the other direction. Per-instance tech trees still fall out; realms
+> still diverge, because their executives shipped different things.
+
+⚠ **This does not retire this slate.** Row 5 — recovering a relationship
+by experiment, graded by *prediction* rather than by stating the model —
+is still the best pedagogical object in the backlog, and
+[rubber](./rubber-slate.md) is still its best first consumer. What changed
+is that it is **no longer a blocker**: rubber, plastics and drilling can
+ship on the token, and discovery can arrive later as what it always was —
+a *better way to earn one*.

@@ -1,8 +1,23 @@
 # Destructive distillation slate — the half the collier throws away
 
-> **Status: UNBUILT** — and it is the **cheapest door into the industrial
-> epoch**, because it is an upgrade to a trade that already ships rather
-> than a new one. `trade-fuel` ships the collier: `char`, the
+> ✅⭐⭐ **Status: STAGE A SHIPPED** (the fire build, merged 2026-10-08 in
+> `7745f1320`) — and it was indeed the cheapest door into the industrial
+> epoch. **The retort** (`trade-fuel`'s `Retort.ts` + `retort.yaml`, beside
+> the clamp and not replacing it), **the condenser**, **the gasometer**,
+> **coke**, **wood tar → pitch**, **coal tar** and ⭐⭐ **coal gas** — the
+> first gas that is a good — all ship, over `Recipe.volatiles` and a
+> structural `receiveVolatiles` probe (a retort with nothing on the head
+> vents into the room, which is what the clamp does and why the collier
+> discards them). `bulk.md`'s inert `sealed` rung is live: gas is bulk only
+> a sealed vessel holds. → [crafting.md](../../subsystems/crafting.md) ·
+> [fire.md](../../subsystems/fire.md).
+> **Stage B — the thermoset — is still unbuilt**, and ⭐ the epoch on-ramp
+> it waits on is now believed **much smaller than an inquiry build** (a gate
+> token, not a law catalogue — [inquiry-slate](./inquiry-slate.md) § end).
+> ⚠ Everything below is preserved as the design record and describes
+> Stage A in the future tense — originally: it is the **cheapest door into
+> the industrial epoch**, because it is an upgrade to a trade that already
+> ships rather than a new one. `trade-fuel` ships the collier: `char`, the
 > `CharcoalPit` clamp, the draught decision, and charcoal · ash · brands.
 > Coal and peat ship (MR !291). ⚠ **No tar, pitch, naphtha or creosote
 > material exists anywhere in the tree.**
@@ -307,5 +322,4 @@ rung)
 Left as a line here rather than in a retired plan.
 
 - **A compressed cylinder (`maxPressureAtm`), and gas leaking from an open sealed vessel over time** — Stage A tail. The fire build shipped pressure as a DERIVED read (amount over capacity) and a binary escape at transfer; a cylinder rated for a pressure, and a slow leak rather than an instant one, are both still open.
-- ⚠ **Supply, from the fire build's drive (the `.dirty` reason).** Exactly **two** gas bladders exist in the realm, both at the fuel yard, and nothing makes more — so the RGO harvest `drain` depends on a vessel with no producer. The first character to carry them off leaves the next with an honest *"You don't see any 'bladder' here."* ⭐ Cordwood is the same shape but has a producer (`fell`), so it is a stocking question; the bladder is a hole.
 - ⚠ **Supply, from the fire build's drive (the `.dirty` reason).** Exactly **two** gas bladders exist in the realm, both at the fuel yard, and nothing makes more — so the RGO harvest `drain` depends on a vessel with no producer. The first character to carry them off leaves the next with an honest *"You don't see any 'bladder' here."* ⭐ Cordwood is the same shape but has a producer (`fell`), so it is a stocking question; the bladder is a hole.

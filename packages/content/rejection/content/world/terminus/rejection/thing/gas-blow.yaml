@@ -1,0 +1,29 @@
+# The blow — ⭐ the free evidence in gas country, and it is the same
+# shape as the salt spring's: *something is down there*, and *this is
+# the one place not to bore*, because what has reached daylight is what
+# the trap failed to hold.
+#
+# ⚠ The `showing` detail is what the structural channel's eye rung reads.
+# The channel knows nothing about gas blows, springs or tar pits: it asks
+# the room what is showing and repeats the prose, which is why a third
+# kind of surface showing is a row and no code.
+class: /platform/thing/Thing
+data:
+  shortDescription: gas blow
+  keywords: [blow, "gas blow", vent, stones, ring, patch]
+  register: definite
+  fixedInPlace: true
+  mass: 180
+  _materialPath: /stuff/idea/material/rock/slate
+  longDescription: >-
+    A ring of knocked-about stones round a patch of bare grey soil, and
+    in the middle of it a hole you could put a thumb in. Hold a hand over
+    the hole and the air coming out of it is cold and moving.
+  details:
+    showing:
+      keywords: [showing, smell, air, hole, gas]
+      description: >-
+        Gas, coming up out of the ground on its own and killing
+        everything that tries to root in it. Somebody has clearly held a
+        light to this at some point: the stones on the downwind side are
+        scorched.

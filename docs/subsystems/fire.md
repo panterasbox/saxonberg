@@ -455,3 +455,31 @@ has a 1 kg bed, and nothing under a kilo in the realm was fuel until the
 sweep added a roll of sacking. Offered to
 [metal-chain-slate](../slates/builds/metal-chain-slate.md), which owns
 the fuel chain, as a **stocking** question rather than a mechanism one.
+
+## ⭐⭐ An oven on a pipe (the drilling build, 2026-10)
+
+`Oven.fuelSlot()` answers with the interior of a **sealed vessel of
+something that burns, standing ON it**. Everything else follows from the
+burner substrate with no further code: fuel mass off the slot's litres
+and the material's density, energy off its heat of combustion,
+`consumeFuel` debiting litres, and `stoke` refusing `'no-bed'` while a
+tank is coupled — *the fire is on the pipe; take the bladder off to burn
+wood.* A row opts in with `placements: [on]`.
+
+⚠⚠ **Why `Oven` and not `Firebox`.** A `Retort` is a Firebox that is
+also a `Placing` host, and what is placed on a retort is its **product**
+— the condenser, the gasometer the volatiles run into. On `Firebox` the
+hook would need a guard to tell a fuel vessel from a product vessel, and
+**a guard that re-narrows the host set is the tell that the host is
+wrong.** On `Oven` it needs none: a sealed vessel of something flammable
+standing on a cooking fire is fuel, which is true of every oven.
+
+⭐ A **drained** coupled tank is a fire with **no fuel**, not a fire that
+falls back to the bed. Silently reverting to the cordwood would make
+running out of gas invisible and the bed's depletion inexplicable; the
+remedy is to take the vessel off, and the refusal says so.
+
+⚠ A fixture lesson: `ContainmentApi.move` is a no-op inside one
+container, so moving a vessel from *on the oven* to *the floor of the
+same room* leaves its placement stamp and it is still coupled. Taking
+something off a hearth means taking it somewhere.

@@ -55,6 +55,31 @@ settle; credential first, then cash; the demo tax remits on the taxable
 slice. ⚠ **Every failure is "on the house", never a throw** — no operator,
 no bank, no funds: the customer is served and nothing is taken.
 
+> ⛔⛔ **FINDING (drilling build, 2026-10-09): the failures are
+> indistinguishable to the player, and one of them lies.**
+> `settleSale` returns `null` for at least three different reasons — no
+> venue path, no business operator, no operating account — and **all of
+> them reach the buyer as `insufficient-funds`.** So a shop that *cannot
+> trade* tells the customer their wallet is empty, which is the one
+> explanation that sends them to fix the wrong thing.
+>
+> ⭐ The drilling drive supplies what the taps build could not: **a
+> working comparison.** Six goods buy cleanly at the Terminus general
+> store in the apiculture drive, so `settleSale` itself is sound and the
+> defect is specific to Rejection's `provisioning-business`. A
+> hypothesis worth chasing first: `operatingAccountOfImpl` takes an
+> `openingAdvance` only when the account has no entries, and a sale
+> remits the demo sales tax OUT of the shop — so **a cold shop at zero
+> may be unable to remit the tax on its first sale**, which would make
+> *the first sale a venue ever makes* the one that always fails. A
+> bootstrap deadlock, invisible to any venue that has traded once.
+>
+> ⚠ Reported, not fixed: it is this subsystem's, not a trade's. The live
+> evidence is the checkpoint
+> `packages/wire/tests/drilling.dirty.wire.test.ts` § *the valley's own
+> till cannot take money* — which asserts the DEFECT, so it will start
+> failing when somebody fixes this, and that is the intended alarm.
+
 > ⭐⭐ **`Tariff.labourIndexed` — care priced by the labour it restores**
 > (recovery build, D13). When authored true, a `treatment` service's
 > `priceFor` bends by `1 + LABOUR_INDEX × (wage / REFERENCE_WAGE) ×

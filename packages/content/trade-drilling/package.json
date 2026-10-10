@@ -1,0 +1,25 @@
+{
+  "name": "@saxonberg/content-trade-drilling",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "The drilling trade — the derrick, the wellhead, the bailer, the liner, the bore log, the outfit, and the two reading channels.",
+  "dependencies": {
+    "@saxonberg/content-base-library": "workspace:*",
+    "@saxonberg/content-generic-objects": "workspace:*",
+    "@saxonberg/content-ground": "workspace:*",
+    "@saxonberg/content-platform": "workspace:*",
+    "@saxonberg/server": "workspace:*",
+    "@saxonberg/types": "workspace:*"
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0",
+    "vitest": "^2.0.0",
+    "yaml": "^2.8.2"
+  }
+}

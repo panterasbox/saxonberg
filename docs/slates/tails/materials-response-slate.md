@@ -283,7 +283,7 @@ case — the one `electricity.md` teaches counterplay with — is served **today
 > times; `SealableMixin` is a binary door latch). A number for springiness buys
 > nothing until something can leak.
 
-And [drilling-slate](../builds/drilling-slate.md) names the first real consumer
+And [drilling-slate](../tails/drilling-slate.md) names the first real consumer
 in its own Left block — *"the lift (a pump, and ⭐ **a pump needs a rubber
 gasket**)"* — and is deliberately scheduled last. So the honest sequencing is:
 **pressure containment is drilling's prerequisite, not rubber's**, and

@@ -1,0 +1,32 @@
+# ⭐⭐⭐ The Cairn — **and there is nothing under it.**
+#
+# This room is the whole argument of the trade. The ground beneath it
+# holds a real closed structure with thirty metres of closure under its
+# crest, and `measure structure` reports it exactly as it reports the
+# whaleback's: same fields, same bracket, same confidence. A prospector
+# with the best instrument in the valley and an expert's eye reads it
+# perfectly and still cannot tell.
+#
+# ⚠ The only way to find out is to spend the payroll. That is the bet,
+# and it is why no improvement to any instrument will ever make the dry
+# hole go away.
+#
+# ⭐ What the payroll buys even so is the LOG: *nothing at a hundred and
+# ninety metres* is negative information about a structure, filed where
+# a buyer can read it and the seller cannot change it. The next person
+# who looks at this country will pay for that sentence.
+class: /platform/location/SingletonCartesianLocation
+data:
+  _biomePath: /stuff/idea/biome/outdoor/baseline
+  shortDescription: cairn rise
+  keywords: [cairn, rise, "cairn rise", stones, steep]
+  register: definite
+  longDescription: |
+    Steeper than the whaleback and barer, with the rock coming through the turf in ribs, and a cairn on the top of it about chest high.
+
+    Somebody built the cairn. Nobody remembers why, and there is nothing under it but more of the hill — which is also true of the hill.
+  coords: { x: 14, y: 16, z: 0 }
+  exits:
+    south:
+      destination: /world/terminus/rejection/location/seep-hollow
+      edgeMinutes: 7

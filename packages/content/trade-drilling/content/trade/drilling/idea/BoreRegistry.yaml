@@ -1,0 +1,19 @@
+# /trade/drilling/idea/BoreRegistry — the bore log, filed under the trade
+# because nobody holds the pen over their own.
+#
+# ⭐⭐ A log is a SALES DOCUMENT: a buyer reads *what did you cut, how
+# deep, and what came up*. If its subject could edit it, it would be
+# worth nothing, and the engine would be supplying the pen for the fraud.
+# So it is titled to the trade, written only through the gated document
+# surface, and append-only — nothing is ever removed and nothing is ever
+# corrected.
+#
+# ⚠ What the owner MAY keep private is their own field book: the
+# structural readings in the DISCOVERY realm, which are theirs and always
+# were. The log is what the hole DID; the field book is what they thought
+# before they dug it. Only one of those is a public record.
+#
+# Lazily cloned on first use — no boot step to forget, and a country
+# nobody has bored has no book at all.
+class: /trade/drilling/idea/BoreRegistry
+data: {}

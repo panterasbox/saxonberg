@@ -1,0 +1,20 @@
+# The Whaleback — over the crest of the oil trap, and the most expensive
+# hole in the valley to sink. Two hundred metres of granite, and granite
+# is twice the swings of slate.
+#
+# ⭐ Nothing here says so. The prose is a hill.
+class: /platform/location/SingletonCartesianLocation
+data:
+  _biomePath: /stuff/idea/biome/outdoor/baseline
+  shortDescription: whaleback
+  keywords: [whaleback, rise, hill, back, crest]
+  register: definite
+  longDescription: |
+    A long smooth swell of hill with the grass combed one way by the wind, and nothing on it at all: no stone, no stain, no water, no reason to stop.
+
+    From the top of it you can see the seep back down to the west, and the smoke of the pithead a long way beyond that.
+  coords: { x: 22, y: 14, z: 0 }
+  exits:
+    west:
+      destination: /world/terminus/rejection/location/seep-hollow
+      edgeMinutes: 5

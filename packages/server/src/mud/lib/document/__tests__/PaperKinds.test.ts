@@ -75,6 +75,35 @@ describe('the freight paper kinds', () => {
     expect(names).not.toContain('fisheries');
   });
 
+  it('⭐⭐ the body kind (drilling D2) is keyed on the BODY, not the hole', () => {
+    // The reason this kind exists rather than fields on a wellhead: a
+    // reservoir spans holdings, so two bores into one are two straws in
+    // one glass. Path-keyed on `<locality address>/<body key>` so a
+    // country's book is a prefix read, and `keep` because it is a record
+    // of what came out of the ground — recharge is zero, and no absent
+    // pack file may refill a reservoir.
+    const spec = DOCUMENT_KINDS.body;
+    expect(spec.kind).toBe('body');
+    expect(spec.naturalKey).toBeNull();
+    expect(spec.onVanish).toBe('keep');
+    expect(spec.contentDir).toBe('bodies');
+    expect(spec.ext).toBe('yaml');
+    expect(DECLARED_DOCUMENT_KINDS).toContain('body');
+    expect(FLAT_KEY_DOCUMENT_KINDS).not.toContain('body');
+    const names = Object.values(Collections) as string[];
+    expect(names).not.toContain('body');
+    expect(names).not.toContain('bodies');
+  });
+
+  it('a body\'s withdrawal survives the nightly reset', () => {
+    // A reservoir that refilled at 04:00 would make every well infinite
+    // and nothing would say why.
+    const d = RESET_DISPOSITIONS[Collections.Documents];
+    const keep = (d as unknown as { keep: { kind: { $in: string[] } } }).keep
+      .kind.$in;
+    expect(keep).toContain('body');
+  });
+
   it('each has its own content dir, and none collides', () => {
     const dirs = DECLARED_DOCUMENT_KINDS.map((k) => DOCUMENT_KINDS[k].contentDir);
     expect(new Set(dirs).size).toBe(dirs.length);

@@ -38,7 +38,21 @@ const preload: NonNullable<FieldValidator<boolean>['preload']> = async (
   context,
 ) => {
   const path = typeof value === 'string' ? value.trim() : '';
-  if (path.length === 0) return false;
+  // ⭐⭐ **An ABSENT organization is not an ungated path — it is a
+  // DERIVED one, and the derivation applies THIS SAME PREDICATE.**
+  //
+  // `appoint` and `dismiss` let the house be omitted, and the controller
+  // then resolves it from the houses operating here, keeping only those
+  // whose `getAppointingAuthority()` the giver holds — asked of
+  // `EmploymentApi.holdsAuthority`, which is what this validator calls
+  // too. So the omitted form is gated by exactly the check the named
+  // form is gated by; there is no route through here to a house whose
+  // authority the giver lacks. A validator cannot do it itself because
+  // it cannot see the bound model and so cannot know which house was
+  // derived.
+  //
+  // ⚠ Fail-closed is untouched for every NAMED organization below.
+  if (path.length === 0) return true;
   const organization = StuffApi.findByTemplatePath(path);
   if (!organization || !MixinApi.isOrganization(organization)) return false;
   return EmploymentApi.holdsAuthority(

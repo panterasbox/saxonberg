@@ -1,0 +1,36 @@
+# ⭐⭐ Paraffin wax — **the third wax, and it is a TAG.**
+#
+# `candle-stock` is what `trade-chandlery`'s candle recipe asks for, and
+# beeswax and tallow already carry it. So a candle dipped in this is a
+# candle that is not tallow and not beeswax, and **chandlery is
+# untouched** — no new recipe, no new class, no edit to that pack at all.
+# That is the whole test of whether a material vocabulary is doing its
+# job.
+#
+# ⭐ And historically it is the fraction that mattered most: paraffin
+# candles are brighter than tallow, do not stink, and do not go rancid.
+# The candle trade was transformed by a by-product of the lamp trade,
+# which is joint production paying off rather than costing.
+class: /platform/idea/material/Material
+data:
+  name: paraffin wax
+  keywords: [paraffin, "paraffin wax", wax, candle-wax]
+  appearance: a translucent white wax that goes greasy under a thumb
+  density: 900
+  specificHeat: 2500
+  thermalConductivity: 0.25
+  electricalConductivity: 1.0e-15
+  # ⚠ Solid at room temperature and liquid on a stove, which is what a
+  # dipping pot needs — the `dip` verb warms it and the phase change is
+  # the kernel's.
+  meltingPoint: 330
+  boilingPoint: 650
+  latentHeatOfFusion: 210000
+  latentHeatOfVaporization: 330000
+  heatOfCombustion: 46
+  autoignitionTemperature: 520
+  edibility: false
+  nutrients: []
+  tags: [solid, wax, candle-stock, flammable]
+  composition: []
+  biologicalSource: null

@@ -150,3 +150,132 @@ data:
     seeded:
       - { feature: vug, chance: 0.04, inLodeOnly: true }
       - { feature: seep, chance: 0.06 }
+  # ⭐⭐⭐ **The fluid bodies under this hill, and this is the venue
+  # making a second claim about its own geology.**
+  #
+  # A lode is a plane you cut; a fluid body is a trap you tap, and they
+  # share no field. Each one here is a FOLD: a crest, an axis, two
+  # half-extents and the vertical closure under the crest. The fluid leg
+  # is DERIVED from that — it is the full closure directly over the crest
+  # and nothing at all at the rim — which is why the structural survey is
+  # worth paying for instead of decorative: bore at the rim of a charged
+  # trap and you find a metre of it, bore at the crest and you find the
+  # column.
+  #
+  # ⚠⚠ **`charge: true` here is a PIN, and it is deliberate.** The first
+  # bore in a new country must not be a coin toss, or the trade teaches
+  # nothing but variance on the way in. The dry structure arrives in
+  # Stage C, pinned false, on ground that reads just as well — so the
+  # lesson lands when the player has the instruments to be sure they read
+  # it right, and cannot blame the survey.
+  #
+  # ⭐ The axis runs 041, the same as the lode's strike, and that is not
+  # a coincidence anybody should have to take on faith: one episode of
+  # folding made both. A hill with structures at right angles to its own
+  # grain would be an authoring tell.
+  fluids:
+    # The salt leg. The crest is under the flat at (6,1) — sixty metres
+    # east, ten north of the yard — and the trap's rim passes under the
+    # spring at (3,5), which is exactly why there is a spring there: a
+    # trap leaks at its edge, and what reaches daylight is what the
+    # ground failed to keep.
+    #
+    # `headAtm0: 0` — ⭐ **it does not come up by itself**, which is the
+    # ordinary and honest case. Brine at a hundred and ten metres has to
+    # be lifted, and that is what the bailer is for and what the pump is
+    # eventually for.
+    - key: salt-leg
+      fluid: /stuff/idea/material/bulk/salt-water
+      trap:
+        crest: [60, 10, -110]
+        strike: 41
+        alongExtent: 140
+        acrossExtent: 50
+        closureM: 40
+      charge: true
+      headAtm0: 0
+      # Pinned rather than derived from the geometry: this is Stage A's
+      # whole supply, and a well life measured in weeks of boiling is a
+      # decision about pacing rather than about reservoir engineering.
+      # ⚠ Recharge is ZERO. The leg is a boom with an end in it.
+      capacityL: 240000
+    # ⭐⭐⭐ The gas cap — and the venue is making the SAME claim it
+    # already made with `gas:` above, from the other side.
+    #
+    # `gas:` says the measures under this hill give off firedamp into a
+    # heading you cut. This says there is a closed structure holding a
+    # cap of it that a bore can tap. Both are *there is coal in this hill
+    # under the iron*, which is common in reality and this locality's own
+    # decision — and the two are different FACTS about it: one is a
+    # hazard in a working, the other is a reservoir with a wellhead on
+    # it. ⚠ A second mine authors neither.
+    #
+    # ⭐ `headAtm0: 4` — **this one comes up by itself**, which is the
+    # whole difference between Stage A and Stage B. Brine has to be
+    # lifted a bucket at a time; a gas cap drives its own fluid to the
+    # surface and you `fill` from the wellhead like a tap — until it
+    # does not, and the gauge is the only thing that tells you.
+    #
+    # ⚠ And the capacity is SMALL. A gas cap is a cap: the pressure is
+    # what makes it feel generous and the volume is what makes it end,
+    # which is the decline curve the whole trade is about, arriving
+    # inside one session instead of over a month.
+    - key: gas-cap
+      fluid: /stuff/idea/material/gas/firedamp
+      trap:
+        crest: [120, 60, -165]
+        strike: 41
+        alongExtent: 90
+        acrossExtent: 40
+        closureM: 20
+      charge: true
+      headAtm0: 4
+      capacityL: 9000
+    # ⭐⭐ The oil leg. Deeper than everything else, in granite, and the
+    # bore that reaches it is the most expensive thing in the valley —
+    # which is the point: oil is the rung where the payroll stops being
+    # an expense and becomes a bet with real money on it.
+    #
+    # ⭐ `headAtm0: 2.5` — it flows, and then it does not. The decline is
+    # the whole of Stage C's content, and nothing announces it.
+    - key: oil-leg
+      fluid: /stuff/idea/material/bulk/crude-oil
+      trap:
+        crest: [220, 140, -205]
+        strike: 41
+        alongExtent: 60
+        acrossExtent: 60
+        closureM: 35
+      charge: true
+      headAtm0: 2.5
+      capacityL: 60000
+    # ⭐⭐⭐ **The dry trap, and it is the most important row in the whole
+    # deposit.**
+    #
+    # It reads PERFECTLY. It is a real closed structure with a real
+    # crest and thirty metres of closure under it; `measure structure`
+    # reports it exactly as it reports the charged ones, field for field,
+    # at every band and with every instrument. And there is nothing in
+    # it.
+    #
+    # ⚠⚠ `charge: false` is a PIN, and pinning it is deliberate: the
+    # lesson has to land when the player has the instruments to be sure
+    # they read it right, so they cannot blame the survey. A seeded
+    # answer here would let them wonder whether they measured badly. The
+    # bet was the bet, they lost it, and the hole is worth something to
+    # whoever looks at this country next — which is what the log is for.
+    #
+    # ⭐ **This is why the trade's premise survives every improvement to
+    # the instruments.** There is no reading anywhere in the game that
+    # distinguishes this row from the one above it.
+    - key: dry-trap
+      fluid: /stuff/idea/material/bulk/crude-oil
+      trap:
+        crest: [140, 160, -190]
+        strike: 41
+        alongExtent: 70
+        acrossExtent: 50
+        closureM: 30
+      charge: false
+      headAtm0: 2.5
+      capacityL: 60000

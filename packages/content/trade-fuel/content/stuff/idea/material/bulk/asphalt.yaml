@@ -1,0 +1,28 @@
+# Asphalt — what is left in the bottom of the column when everything
+# that will come over has come over.
+#
+# ⭐ The residue, and the schedule names it as one: a column that gave up
+# everything it held would not be a column. It is tar: it will not pour
+# cold, it will not burn usefully, and the one thing it is unarguably
+# good for is roads — which is a later build's business and a fine
+# reason for this row to exist now, holding the bottom of the barrel.
+class: /platform/idea/material/Material
+data:
+  name: asphalt
+  keywords: [asphalt, bitumen, tar, pitch, residue]
+  appearance: a black tar that holds a thumbprint and smells of hot roads
+  density: 1030
+  specificHeat: 1700
+  thermalConductivity: 0.17
+  electricalConductivity: 1.0e-13
+  meltingPoint: 390
+  boilingPoint: 800
+  latentHeatOfFusion: 150000
+  latentHeatOfVaporization: 350000
+  heatOfCombustion: 40
+  autoignitionTemperature: 760
+  edibility: false
+  nutrients: []
+  tags: [liquid, tar, flammable]
+  composition: []
+  biologicalSource: null

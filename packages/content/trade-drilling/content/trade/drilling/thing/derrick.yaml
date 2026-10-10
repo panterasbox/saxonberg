@@ -1,0 +1,25 @@
+# ⭐⭐ The derrick — the instrument that affords every act at a hole, and
+# the only reason the five verbs exist at all.
+#
+# ⚠ The affordance is a STATIC ON THE CLASS (`Derrick.commandContributions`),
+# not a key in this row: a row's `commandContributions:` is dead
+# silently, and two builds in this repo shipped exactly that failure.
+#
+# ⚠ Keywords authored DEFENSIVELY. A bore site is dense in near-identical
+# nouns — derrick/drill, beam/bailer, rig/rope — and keyword matching is
+# substring. `derrick` and `rig` are the primaries; `beam` is here
+# because that is what a player reaches for when they want to work it,
+# and nothing else at a wellhead answers to it.
+class: /trade/drilling/thing/Derrick
+data:
+  keywords: [derrick, rig, beam, frame, headframe, sheave]
+  shortDescription: drilling derrick
+  register: definite
+  longDescription: >-
+    Four legs of squared timber leaning in to a crown twenty feet up,
+    with a walking beam pivoted at the head of it and a rope over the
+    sheave. The beam is worn smooth and shiny in two places where hands
+    go, and the ground inside the legs is trodden to bare clay.
+  mass: 1500
+  fixedInPlace: true
+  capabilities: ["derrick"]

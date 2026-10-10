@@ -1,0 +1,41 @@
+# ⭐⭐ The Burnt Ground — the gas country, and the room where the trade
+# stops being about lifting.
+#
+# ⚠ The ground under this room is over a CAP: a closed structure holding
+# firedamp at four atmospheres. That is the whole difference between
+# Stage A and Stage B — brine has to be bailed a bucket at a time, and a
+# gas cap drives its own fluid to the surface. You `fill` a bladder from
+# the wellhead like a tap, and the only thing that will ever tell you it
+# is running out is the gauge.
+#
+# ⭐ The free evidence here is a SMELL and a dead patch, and it is the
+# honest kind: shallow gas seeping through the soil kills grass, which is
+# a real thing you can read if you know what it means. ⚠ It still tells
+# you nothing about where to bore — the seep is where the cap LEAKS,
+# which is the edge of it.
+class: /platform/location/SingletonCartesianLocation
+data:
+  _biomePath: /stuff/idea/biome/outdoor/baseline
+  shortDescription: burnt ground
+  keywords: [burnt, "burnt ground", patch, dead, gas]
+  register: definite
+  longDescription: |
+    A shoulder of hill with a bald patch in the middle of it the size of a cottage, and nothing growing on the bald patch at all — not grass, not heather, not even the bracken that gets everywhere else.
+
+    Somebody has put a ring of stones round it. Somebody else has knocked half of them over.
+
+    If you stand still in the middle of it on a windless day there is a smell, faint and not quite anything, like a cellar that has been shut too long.
+
+    The hill carries on up to the northeast and the going gets worse.
+  coords: { x: 12, y: 6, z: 0 }
+  props:
+    - /world/terminus/rejection/thing/gas-blow
+  exits:
+    southwest:
+      destination: /world/terminus/rejection/location/salt-flat
+      edgeMinutes: 6
+    # ⭐ On out into oil country — further along the same fold, deeper,
+    # and the most expensive ground in the valley.
+    northeast:
+      destination: /world/terminus/rejection/location/seep-hollow
+      edgeMinutes: 8

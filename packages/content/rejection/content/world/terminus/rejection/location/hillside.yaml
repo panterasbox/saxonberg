@@ -40,3 +40,9 @@ data:
     north:
       destination: /world/terminus/rejection/hanging-wood/treeline
       edgeMinutes: 4
+    # ⭐ East, over the shoulder of the hill, into salt country. The lode
+    # does not go that way — the walk is a different trade's, and the
+    # same hill.
+    east:
+      destination: /world/terminus/rejection/location/salt-spring
+      edgeMinutes: 4
