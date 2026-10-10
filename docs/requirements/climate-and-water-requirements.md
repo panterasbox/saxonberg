@@ -449,6 +449,13 @@ Seven lenses ([design-lenses.md](../design-lenses.md)).
    death-trap on a required path. Its altitude: the **invariant** is "no
    drive-path becomes lethally cold"; the **grain** is how brutal an
    *optional* place may get. A chosen value, not an accepted limitation.
+   ⭐ **Decided at planning:** unifying onto the honest catchment numbers
+   gives even the default 42° coast a real winter (coldest dawn ≈ 268 K;
+   the starter outfit is under 1 clo). We **keep the honest winter** —
+   it is what makes wool and clothing pay — and the room a new player
+   wakes in **offers a warm coat**. Warming the starter region with an
+   offset was rejected: it would be the one dishonest climate in the
+   realm.
 5. **Continuity** — strong: the sun's geometry is the sun's geometry in
    any epoch. The derivation survives; only the content built on it
    changes. A medieval winter and an industrial winter are the same
@@ -569,6 +576,9 @@ Observable from outside the code.
     polar place (never pitch-dark), an opposite-hemisphere place, and a
     wet/arid pair — and ⛔ **no place a drive must survive became lethally
     cold.**
+21. **A new player can dress for the winter** — the room they wake in
+    offers (does not force on them) a coat warm enough for the default
+    world's coldest night.
 
 ---
 
