@@ -6,7 +6,14 @@
  * the rock**, lifted verbatim out of `trade-mining`'s `WorkingMixin`
  * (which now composes over this) so the second consumer does not have to
  * depend on a mine. The extraction build's quarry is that consumer; a
- * cellar, a well and a cave are the ones after it.
+ * cellar and a cave are the ones after it.
+ *
+ * ⚠ **A well is NOT one of them**, and that correction is worth keeping:
+ * this header used to predict one. A bore is a POINT, not a place — it
+ * mints no room and has no inside, and what comes out comes up a pipe.
+ * The reads it needs are the same trio taken one hop out, from the
+ * container's zone rather than one's own, which is
+ * {@link GroundPointMixin} in this pack's `lib/` beside this file.
  *
  * The split is the one the mining build already named — *"reads go to the
  * space, mutation goes to the warren"* — carried one level further: **the

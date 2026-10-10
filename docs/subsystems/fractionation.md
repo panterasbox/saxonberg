@@ -371,3 +371,39 @@ assert a chemistry that is not in the charge.
 not carry `wash` or two schedules claim one charge, and `forMaterial`
 resolves a double match by taking the lowest key — silently. A test now
 scans the whole content tree for that clash.
+
+## ⭐⭐⭐ `separation` — grades of one thing, or different things (the drilling build, 2026-10)
+
+A schedule now declares what KIND of separation it performs, and the
+distinction is not a matter of degree.
+
+- `'cuts'` (the default, so every row authored before this is
+  byte-identical) — **grades of one substance**. A pot still's
+  foreshots, heads, hearts and tails are all new-make spirit; they
+  differ in character and in what they will poison you with, and the
+  distiller's art is deciding where to cut and then **blending what they
+  kept**. One `productMaterial`, several qualities of it.
+- `'fractions'` — **different substances**. A refinery column's gasoline
+  is not a grade of kerosene and no amount of blending makes it one.
+  Every `FractionSpec` names its own `material`, `productMaterial` must
+  be empty, and ⚠ **`getBulkAvailable` clamps at the boundary**: the
+  column will not hand you two substances in one cask. You draw until
+  the character changes and you change casks.
+
+⭐ That clamp is the mechanism behind *you cannot distil crude and choose
+not to make the light ends* — joint production, and the honest reason a
+player ends up holding something nobody will buy.
+
+⚠ The pair is validated in **`onCreate`**, not in `setFractions`:
+`separation` and `fractions` are two authored keys and the applier
+dispatches them in whatever order the row lists them, so a setter check
+reads whatever `separation` happened to be at that moment. A perfectly
+good column would throw and reordering the YAML would fix it — a
+validation that depends on authoring whitespace. The convention already
+says a cross-field rule lives in the host's `onCreate`.
+
+⭐ And `FractionSpec.requiresHeatK` is exercised for the first time by
+`/trade/fuel/idea/fractionation/crude`: naphtha comes over at 350 K and
+gas oil does not, so a cold column gives the light ends and stops. That
+is the seam this doc's own header predicted *a refinery column is built
+on and a pot still never exercises.*

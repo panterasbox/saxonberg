@@ -208,7 +208,28 @@ export default class StakeController extends CommandController<StakeModel> {
     word: string,
   ): Promise<void> {
     const giver = context.commandGiver;
-    const held = await ParcelApi.ownerOf(path);
+    // ⭐⭐⭐ **EXACTLY this ground, not whatever covers it** — and that
+    // one word is the difference between a claims office that works and
+    // one that cannot record anything.
+    //
+    // ⚠⚠ This was `ownerOf(path)`, which is **longest-prefix**: every
+    // room in a venue sits inside the venue's own title (Rejection is
+    // claimed wholesale by the town's group), so the covering owner is
+    // always somebody and `stake` always refused `already-claimed`.
+    // Surface staking has therefore never once succeeded anywhere in the
+    // realm since the fork shipped — and the extraction drive could not
+    // see it, because its checkpoint accepted `already-claimed` as proof
+    // that the fork had run. *Either it was recorded, or somebody
+    // already holds it — both prove the fork ran* is true about the
+    // fork and blind about the act.
+    //
+    // ⭐ And the fiction is the reason the fix is this and not a wider
+    // grant: **the register LISTING the ground is the town saying it is
+    // open to claim.** That is what a claims office is for. What the
+    // refusal must still catch is somebody who already staked this
+    // exact ground, which is an exact record and not an ancestor's.
+    const existing = await ParcelApi.coveringParcelOf(path);
+    const held = existing !== null && existing.extent === path;
     if (held) {
       this.decline(
         context,

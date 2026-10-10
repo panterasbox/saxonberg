@@ -1,0 +1,40 @@
+# An empty oil cask — the vessel lamp oil travels and is stored in.
+#
+# ⭐⭐ **RESTORED 2026-10-09 by the drilling build's pre-merge sweep**, and
+# the collision is worth recording. The reachability build (`fc5c03893`,
+# arm R to zero) found 45 unreached rows and resolved 44 of them —
+# nineteen *"went on a shop shelf"* — and deleted exactly ONE. This was
+# the one. ⚠ At the same time, on another branch, the drilling build was
+# putting it on a shop shelf: a driller with a hole full of brine had
+# nothing to put it in, and *that is a stock line, not a row* (the build
+# deliberately wrote no new barrel row, because this one already existed).
+#
+# So the two branches disagreed about whether this row had a consumer,
+# each correctly for its own tree, and the merge took the deletion while
+# keeping the references — which `lint:census` caught immediately. ⭐ The
+# resolution is the reachability build's own: it goes on a shelf. It is
+# now `par: 6` on Rejection's provisioning counter at 7 zorkmids.
+#
+# A `Bottle` preset (the stock vessel every floor product is a row over — its
+# docstring names `cask` as an example kind): a 40 L liquid-tight oak cask.
+# ⭐ Empty, it counts under its VESSEL KIND (`vessel:oil-cask`), which is what
+# ties it to the filled `lamp-oil-cask` — buy the oil, burn or pour it, and
+# the same cask is left, empty, ready to refill.
+#
+# `_materialPath` is oak (the cask body), stated on the ROW so its mass is
+# honest — a wooden cask, not the glass a bare Bottle defaults to.
+class: /platform/thing/Bottle
+data:
+  shortDescription: oak cask
+  # ⚠ `"oak cask"` is the printed name and therefore a keyword: this row
+  # is on a counter now, so a buyer reads the name off the shelf and
+  # types it (`lint:reachability` arm naming).
+  keywords: [cask, oil-cask, barrel, "oak cask"]
+  register: indefinite
+  longDescription: >-
+    A squat, iron-hooped oak cask, liquid-tight, the size a strong back can
+    still roll. The bung smells of oil even when it is dry.
+  category: oil-cask
+  _materialPath: /stuff/idea/material/wood/oak
+  interiorBulk: true
+  interiorCapacity: 40

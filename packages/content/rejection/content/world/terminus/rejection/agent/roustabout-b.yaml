@@ -1,0 +1,20 @@
+# The second hand. ⭐ Two, because the arithmetic of a crew only becomes
+# visible at two: one hand is a rate and two hands is *half the time for
+# twice the wage*, which is the decision the trade is actually about.
+#
+# ⚠ No brain — see `roustabout-a.yaml` for why that is deliberate.
+class: /platform/agent/Extra
+extends: /stuff/agent/costume/student
+data:
+  costume:
+    - /stuff/thing/clothes/field-jacket
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sensitivus
+  lifecycleState: alive
+  keywords: [roustabout, hand, driller, squat]
+  shortDescription: squat roustabout
+  register: indefinite
+  longDescription: >-
+    Short, wide and entirely unhurried, sitting on the end of a bench
+    with his boots off and his socks steaming. He has the look of
+    somebody who has worked for four outfits this year and expects to
+    work for a fifth.

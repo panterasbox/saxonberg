@@ -110,7 +110,50 @@ export interface FractionSpec {
    * phenol over and leave 30 % behind, which is about right.
    */
   aromaticCarry?: number;
+  /**
+   * ⭐⭐⭐ **What this fraction IS** — a `Material` path, in a schedule
+   * whose `separation` is `'fractions'`. Absent in `'cuts'` mode, and
+   * required in `'fractions'` mode.
+   *
+   * This is the one field that makes a refinery a different machine from
+   * a still, and the difference is not a matter of degree:
+   *
+   *  - A **pot still** separates one substance into GRADES of itself.
+   *    Foreshots, hearts and tails are all new-make spirit; they differ
+   *    in character and in what they will poison you with, and the
+   *    distiller's whole art is **deciding where to cut** and then
+   *    blending what they kept. One `productMaterial`, several qualities
+   *    of it, and recombining them is legitimate.
+   *  - A **refinery column** separates one substance into DIFFERENT
+   *    SUBSTANCES. Gasoline is not a grade of kerosene and no amount of
+   *    blending makes it one; you cannot distil crude and choose not to
+   *    make the light ends, and you cannot pour the light ends back in
+   *    and have crude again.
+   *
+   * ⚠ Which is why `getBulkAvailable` **clamps at the boundary** in this
+   * mode: the column will not hand you gasoline and kerosene in one
+   * cask. You draw until the character changes and you change casks,
+   * which is what *joint production* means at the tap.
+   */
+  material?: string;
 }
+
+/**
+ * ⭐⭐⭐ **What KIND of separation a schedule performs**, and the one
+ * thing that decides whether its fractions recombine.
+ *
+ * `'cuts'` — grades of one substance (a pot still). The default, so
+ * every schedule authored before this existed is byte-identical.
+ *
+ * `'fractions'` — distinct substances (a refinery column). Each spec
+ * names its own `material` and the schedule's `productMaterial` must be
+ * empty, because there is no such thing as *the* product.
+ *
+ * ⚠ A TypeScript string union rather than an exported array with a
+ * membership test, deliberately: `lint:closed-vocabularies` sits at its
+ * ceiling of 5 and the compiler is already the gate here.
+ */
+export type Separation = 'cuts' | 'fractions';
 
 export default class FractionSchedule extends SingletonMixin(Idea) {
   /** Stable key — what a host records to re-find its schedule. */
@@ -124,6 +167,12 @@ export default class FractionSchedule extends SingletonMixin(Idea) {
    * re-key every vessel that so much as receives the charge.
    */
   public inputCategory = '';
+  /**
+   * ⭐⭐ What kind of separation this is — grades of one substance, or
+   * distinct substances. See {@link Separation}. Default `'cuts'`, so
+   * every shipped row is unchanged.
+   */
+  public separation: Separation = 'cuts';
   /** The Discipline the draw credits. `''` = none. */
   public discipline = '';
   /**
@@ -158,6 +207,7 @@ export default class FractionSchedule extends SingletonMixin(Idea) {
   static fieldMeta: FieldMeta = {
     key: { persistent: true, authorable: true },
     inputCategory: { persistent: true, authorable: true },
+    separation: { persistent: true, authorable: true },
     discipline: { persistent: true, authorable: true },
     requiresHeatK: { persistent: true, authorable: true },
     productMaterial: { persistent: true, authorable: true },
@@ -226,13 +276,38 @@ export default class FractionSchedule extends SingletonMixin(Idea) {
   getProductMaterial(): string {
     return this.productMaterial;
   }
+  /**
+   * Declare the one material every span of this schedule is a GRADE of.
+   *
+   * ⚠⚠ **Empty is legal, and it means a column.** A `fractions` schedule
+   * has no single product — *there is no such thing as THE product of a
+   * refinery column* — so its row leaves this blank and every span names
+   * its own `material` instead. The setter cannot check that itself:
+   * `separation:` may be read after this field, so a cross-field refusal
+   * here would depend on YAML key order. The pairing rule is
+   * `lint:fraction-schedules`' (a `fractions` schedule naming a product,
+   * or a `cuts` schedule naming none, both fail the gate) — which is
+   * where an AUTHORING rule belongs.
+   *
+   * ⛔ This refused an empty string until 2026-10-08, and the cost was
+   * exact: the applier's `setProductMaterial('')` threw, the whole row
+   * failed to stand up (`FractionScheduleCatalogue: '/trade/fuel/idea/
+   * fractionation/crude' failed to stand up`), and **the only column in
+   * the game was inert** — a one-line boot warning for a dead trade
+   * stage. Found by driving, not by the suite.
+   */
   setProductMaterial(value: string): void {
-    if (!value || value.trim().length === 0) {
-      throw new RangeError(
-        'FractionSchedule.setProductMaterial: must name a material path',
-      );
-    }
-    this.productMaterial = value;
+    this.productMaterial = value.trim();
+  }
+
+  /** What kind of separation this schedule performs. See {@link Separation}. */
+  getSeparation(): Separation {
+    return this.separation;
+  }
+
+  /** Declare the separation kind (the row's `separation:`). */
+  setSeparation(value: Separation): void {
+    this.separation = value === 'fractions' ? 'fractions' : 'cuts';
   }
 
   getResidueMaterial(): string {
@@ -346,6 +421,47 @@ export default class FractionSchedule extends SingletonMixin(Idea) {
       );
     }
     this.fractions = value.map((s) => ({ ...s }));
+  }
+
+  /**
+   * ⚠⚠ **There is deliberately no runtime check that `separation` and
+   * the spans' `material`s agree, and the reason is worth keeping.**
+   *
+   * They are ONE claim and a row that gets it half right is the
+   * dangerous case — a `'fractions'` row missing one `material` would
+   * hand that span out as `productMaterial`, which in a refinery means a
+   * cask labelled kerosene full of gasoline, at the completion of a
+   * pour, with nobody watching.
+   *
+   * It lives in **`pnpm lint:fraction-schedules`**, and it got there by
+   * elimination:
+   *
+   *  - `setFractions` cannot hold it. `separation` and `fractions` are
+   *    two authored keys and the `TemplateApplier` dispatches a row's
+   *    `data:` keys in the order the row lists them, so a setter check
+   *    reads whatever `separation` was at that moment — a perfectly good
+   *    column would throw and **reordering the YAML would fix it.**
+   *  - `onCreate` is the convention's home for a cross-field rule, and
+   *    `lint:on-create` refused it: that hook is a RATCHET (*the ceiling
+   *    may fall, never rise*) whose own complaint is that it *collects
+   *    work that belongs elsewhere.* The audit agreed.
+   *
+   * ⭐ And the gate is the better home on the merits. This is an
+   * AUTHORING rule: it cannot be fixed by a player, it cannot vary at
+   * run time, and the person who needs to hear about it is reading a
+   * YAML file right now. Build time, named by file.
+   */
+
+  /**
+   * ⭐ What a draw over this span actually IS, by separation kind: the
+   * span's own material in a column, the schedule's one product in a
+   * still. The single place the distinction is read, so no consumer has
+   * to know which kind of machine it is looking at.
+   */
+  materialFor(spec: FractionSpec): string {
+    return this.separation === 'fractions'
+      ? (spec.material ?? '')
+      : this.productMaterial;
   }
 
   /** Cumulative fraction of the charge that is residue. */

@@ -1,0 +1,40 @@
+# head — how hard a wellhead is still driving its own fluid to the
+# surface.
+#
+# ⚠⚠ **NOT the shipped `pressure` channel, and the distinction is real
+# rather than cosmetic.** `pressure` is ATMOSPHERIC — a barometer,
+# `scope: [here]`, reading the weather through `BiomeApi`. This is the
+# RESERVOIR's drive, measured at the collar, and it is a different
+# quantity about a different thing. A channel token is unique, so taking
+# `pressure` would have collided; wanting to take it would have been the
+# tell that the design was confused about which pressure it meant.
+#
+# ⭐⭐ It is the instrument the whole decline arc is read off, and the
+# only one: nothing in this build announces that a well is failing. No
+# notice, no warning, no *played out* message. You read the gauge, you do
+# the arithmetic, and you decide when to stop paying the crew — and that
+# decision IS the content.
+#
+# `scope: [subject]` — you put a gauge on a particular hole. ⚠ The
+# wellhead check is in the CHANNEL's own words rather than in
+# `subjectRequires`, because a binder refusal teaches nothing: *head is a
+# thing a wellhead has* is the sentence somebody needs.
+class: /trade/drilling/idea/reading/HeadReading
+data:
+  channel: head
+  kind: fact
+  scope: [subject]
+  discipline: physics
+  instrument: gauging
+  instrumentNoun: "a pressure gauge"
+  # ⭐ The eye rung is real and goes all the way down: anybody standing
+  # at a wellhead can tell flowing from slackened from dead. What the
+  # gauge buys is the FIGURE, which is what lets you do the arithmetic a
+  # week ahead instead of a day.
+  eyeCeiling: untrained
+  improves: >-
+    how long the well has left at this rate, and therefore whether the
+    wage is still worth paying
+  stakes: >-
+    a crew paid for a month out of a hole that stopped paying for itself
+    in the first week

@@ -1,0 +1,39 @@
+# ⭐⭐⭐ Crude oil — **and the whole point of it is that it is not a
+# product.**
+#
+# Nobody wants crude. It will not burn in a lamp (too much light ends:
+# it flashes), it will not grease an axle (too much light ends again),
+# and it will not go in a candle. It is a feedstock and only a feedstock,
+# which is why the barrel is the content: ⚠ **you cannot distil crude and
+# choose not to make the light ends.** That is joint production, and it
+# is the honest reason a player ends up holding something nobody will
+# buy.
+#
+# ⭐ `tags: [crude]` is what the refinery's `FractionSchedule` matches on
+# (`inputCategory: crude`). The tag is the whole wiring: pour crude into
+# a column and the run starts, because the column was authored to look
+# for that word and the material was authored to carry it.
+class: /platform/idea/material/Material
+data:
+  name: crude oil
+  keywords: [crude, "crude oil", oil, petroleum, rock-oil]
+  appearance: a black, slow, faintly green-sheened liquid that stains everything
+  density: 870
+  specificHeat: 2000
+  thermalConductivity: 0.14
+  electricalConductivity: 1.0e-13
+  meltingPoint: 240
+  boilingPoint: 620
+  latentHeatOfFusion: 110000
+  latentHeatOfVaporization: 300000
+  # MJ/kg. It burns — badly, smokily, and with a flash point low enough
+  # that burning it where you stand is a bad idea.
+  heatOfCombustion: 42
+  autoignitionTemperature: 500
+  edibility: false
+  nutrients: []
+  toxicity:
+    - { type: ptomaine, amount: 900 }
+  tags: [liquid, crude, fuel, flammable]
+  composition: []
+  biologicalSource: null

@@ -1956,3 +1956,44 @@ typechecked for free — and that retired the main invariant of an
 older gate (`lint:boundary`'s *"every exempt path resolves to a real
 seed row"*), whose own header had already identified the string
 coupling as the defect.
+
+## `lint:fraction-schedules` (the drilling build, 2026-10)
+
+⭐⭐ **A schedule's `separation` and its spans' `material`s are ONE
+claim, and a row that gets it half right is the dangerous case.**
+
+A `FractionSchedule` is either `'cuts'` (grades of one substance — a pot
+still, whose fractions recombine) or `'fractions'` (different substances
+— a refinery column, whose fractions never do). The gate checks that the
+row's kind and its spans agree, in both directions, plus the `separation`
+word itself.
+
+⚠ What it is protecting is not a missing-everything row; those fail
+loudly. It is a `'fractions'` row missing **one** `material`: that span
+would be handed out as the schedule's `productMaterial` — in a refinery,
+**a cask labelled kerosene full of gasoline**, at the completion of a
+pour, with nobody watching. And a `separation` typo, which is quieter
+still: nothing coerces a row's string, so a misspelling reads as `cuts`
+and a column silently becomes a pot still.
+
+### ⭐ Why it is a GATE, and the general lesson
+
+It arrived here by elimination, and the route is worth more than the
+gate:
+
+- **`setFractions` cannot hold it.** `separation` and `fractions` are
+  two authored keys and the `TemplateApplier` dispatches a row's `data:`
+  keys in the order the row happens to list them, so a setter check
+  reads whatever `separation` was at that moment. A perfectly good
+  column throws and **reordering the YAML fixes it** — a validation that
+  depends on authoring whitespace.
+- **`onCreate` is the convention's stated home for a cross-field rule**
+  (`CLAUDE.md`), and `lint:on-create` refused it: that hook is a ratchet
+  and its own complaint is that it *collects work that belongs
+  elsewhere.*
+
+⭐⭐ **The audit agreed with the gate, and the test generalises: is the
+rule an AUTHORING rule?** A player cannot fix it, it cannot vary at run
+time, and the person who needs to hear about it is reading a YAML file
+right now. When all three are true, the home is build time and named by
+file — not a constructor, and not a setter.

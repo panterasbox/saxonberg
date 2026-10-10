@@ -1,0 +1,55 @@
+verbs: [line]
+controller: /trade/drilling/idea/cmd/drilling/LineController
+description: "Run tube down the hole so it will hold"
+help: |
+  ⭐ The one act at a rig that buys nothing except the ability to keep
+  going. A liner produces no goods, raises no rate and improves no
+  reading: it stops the hole caving in, and it stops the water above
+  coming down into whatever you are trying to lift out.
+
+  Which is exactly why it matters. `bore` refuses to go deeper through
+  soft wet ground until the hole is lined, and the refusal names the
+  remedy — so nobody is stuck, only delayed and poorer.
+
+  ⚠ A liner is timber and leather. `make liner` takes two of timber.
+examples:
+  - cmd: line
+    note: Run the liner you are carrying down the hole
+  - cmd: line with liner
+    note: The same, naming it
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  # ⚠⚠ **ARG ORDER: the positional `hole` comes FIRST, and that is a
+  # boot-fatal rule rather than a style.** Every prepositional object arg
+  # below carries `greedy: true` (`lint:reachability` arm G — a
+  # prepositional object arg that is not greedy takes ONE token, so
+  # `at the brick oven` is a shape error and `command-spec.md` says they
+  # all want greedy). But *a greedy arg must be last, or be followed only
+  # by prepositional args* — so a greedy `rig` standing before the
+  # positional `hole` would fail `CommandApi.preloadAll` and take the
+  # whole server down. Moving `hole` to the front satisfies both.
+  - name: hole
+    type: object
+    required: false
+    default: "reachable:[mixin.GroundPointMixin]"
+    scope: ["reachable"]
+    requires: [GroundPointMixin]
+  - name: rig
+    type: object
+    required: false
+    prepositions: [at, with, using]
+    greedy: true
+    default: "reachable:[capability.derrick]"
+    scope: ["reachable"]
+    requires: [ToolMixin]
+  - name: liner
+    type: object
+    required: false
+    prepositions: [with, using]
+    greedy: true
+    default: "me:i"
+    scope: ["inventory", "reachable"]
+    requires: TangibleMixin

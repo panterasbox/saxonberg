@@ -18,6 +18,8 @@ data:
   register: definite
   longDescription: |
     A flagged floor dark with spilled oil, a squat retort standing cold in the corner with a copper coil bent over into its receiver, and racks of casks waiting for the cart.
+
+    Newer than any of it: a riveted iron tower twice the height of a man against the end wall, with a firebox under it and four taps coming off it at four heights, each with a tin label painted by hand. Through the doorway behind it, out in the scorched gravel, there is a pipe on three legs with a bell on top.
   exits:
     # The back door onto the goods yards — a hauler comes in this way to
     # collect what the hand crated, and the hand walks out this way to the
@@ -35,6 +37,22 @@ data:
     # condenser, and it works.
     - /trade/fuel/thing/retort
     - /trade/fuel/thing/condenser
+    # ⭐⭐ **The column, and it stands HERE rather than at the wellhead** —
+    # which is a fact about freight and the same one that puts a limekiln
+    # at a quarry and a saltern at a brine spring, read the other way
+    # round. Crude is heavy and worth little; four of its five fractions
+    # have buyers in a town and none has a buyer on a hillside. So the
+    # barrel travels and the column does not, and the oil works is where
+    # the barrel is going.
+    #
+    # ⚠ It is `/trade/distilling/thing/Still` — the same class, a bigger
+    # pot and a hotter fire. What makes it a refinery rather than a still
+    # is its SCHEDULE (`separation: fractions`), which is where the
+    # difference belongs.
+    - /trade/fuel/thing/refinery
+    # The cheap answer to the fraction nobody buys, and the conspicuous
+    # one: it can be seen from the far side of the valley.
+    - /trade/fuel/thing/flare
     # ⭐⭐ **Fuel, in reach of the fire.** The fire build made a burner's
     # fuel a BED somebody fills — before it, a `%` Reserve the row
     # authored once meant a forge arrived pre-fuelled and could never be

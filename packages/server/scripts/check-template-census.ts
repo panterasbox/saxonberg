@@ -464,6 +464,49 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
     push('lode.gangue', (lode as Record<string, unknown>).gangue);
   }
   /*
+   * ⭐⭐ A FractionSchedule's spans, in a `separation: fractions` column
+   * (the drilling build) — each span names the MATERIAL it yields.
+   *
+   * ⚠ Read here for the sharpest version of this gate's purpose. In
+   * `cuts` mode a span names no material and the schedule's scalar
+   * `productMaterial` (censused above) is the whole answer; in
+   * `fractions` mode the scalar is EMPTY by validation and these are
+   * the only citations there are. So a misspelt one is not a missing
+   * product — it is a cask stamped with a path that resolves to
+   * nothing, handed to somebody who asked for kerosene, at the
+   * completion of a pour. The scalar's censusing would have gone on
+   * reporting green over it.
+   */
+  const spans = data.fractions;
+  if (Array.isArray(spans)) {
+    for (const span of spans) {
+      if (span && typeof span === 'object') {
+        push('fractions.material', (span as Record<string, unknown>).material);
+      }
+    }
+  }
+  /*
+   * ⭐⭐ The deposit's FLUID bodies (the drilling build) — each one names
+   * the material that comes up it.
+   *
+   * ⚠ Read here rather than ignored, for the sharpest version of this
+   * gate's own reason: the citation is resolved at the completion of a
+   * BAIL, several game-weeks of paid labour after the bore was sited.
+   * A rowless or misspelt `fluid:` is a trap that reads perfectly well,
+   * a crew that gets paid for a month, a hole that reaches the depth the
+   * survey promised — and then brings up nothing, with no author
+   * anywhere able to tell that from the dry hole the trade ships on
+   * purpose. The two must never be indistinguishable.
+   */
+  const fluids = data.fluids;
+  if (Array.isArray(fluids)) {
+    for (const body of fluids) {
+      if (body && typeof body === 'object') {
+        push('fluids.fluid', (body as Record<string, unknown>).fluid);
+      }
+    }
+  }
+  /*
    * ⭐ The WAYS. A `Lane` and a `ServiceRoute` are pure-data Ideas whose
    * whole content is references to places: the room an induced walk
    * starts from, the endpoints of an authored edge (rail, the TPA), the

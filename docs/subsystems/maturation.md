@@ -257,7 +257,7 @@ are not all poison. ⭐ That rung is its own subsystem now:
 fractions as it is drawn*, driven by volume where this one is driven by a
 clock, and generalising the lees split from one boundary to many. The
 refinery is the same mechanism with a different feedstock, which is rows
-(see [drilling-slate](../slates/builds/drilling-slate.md) § *Refining is
+(see [drilling-slate](../slates/tails/drilling-slate.md) § *Refining is
 the distiller's deferred cuts rung*). **A new drink is rows alone** —
 proven by the cider test
 (`world/__tests__/fermentation-cider.test.ts`).

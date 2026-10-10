@@ -1,0 +1,43 @@
+# ⭐⭐ The refinery column — and it is distilling's `Still` CLASS with a
+# bigger pot and a hotter fire, which is the right answer rather than a
+# shortcut.
+#
+# A column and a pot still are the same machine in every respect this
+# engine models: a vessel, a fire, a charge, and matter coming over in
+# ordered fractions as it is drawn. What differs is the SCHEDULE — and
+# that is exactly where the difference belongs, which is why the
+# `separation: fractions` field went on `FractionSchedule` and not on a
+# new class. A refinery that was its own class would have had to
+# re-implement four policy seams to behave identically.
+#
+# ⚠ **This makes trade-fuel a SECOND namer of `/trade/distilling/thing/
+# Still`**, and the content-packs rule says a class two packs name wants
+# promoting to the kernel. Recorded rather than done: promotion is a
+# review question about where a `Still` belongs, and a dependency line is
+# the honest interim. See the drilling plan's Deferred seams.
+class: /trade/distilling/thing/Still
+data:
+  shortDescription: refining column
+  keywords: [column, refinery, still, "refining column", tower]
+  register: definite
+  longDescription: |
+    A riveted iron tower twice the height of a man with a firebox under it and a nest of pipes coming off it at four heights, each with a tap and a tin label. The labels are hand-painted and two of them have been painted over.
+
+    It smells of hot oil and the floor around it is black and tacky.
+  lit: false
+  mass: 2200
+  fixedInPlace: true
+  # ⭐ A barrel is about a hundred and sixty litres and a column runs
+  # several at a time. The charge is what makes the arithmetic of the cut
+  # visible: at this size the gasoline fraction alone is nearly sixty
+  # litres of something nobody will buy.
+  interiorBulk: true
+  interiorCapacity: 320
+  closure: liquidTight
+  # ⚠ The column's working heat, and it has to clear the TOP fraction's
+  # own gate (the wax comes over at 620 K) or the heavy ends never come
+  # off and the schedule's own clamp stops the run early — which is the
+  # seam working correctly and would read as a broken column.
+  burnTemperatureK: 700
+  maxBurnPowerW: 40000
+  fuelCapacityKg: 300

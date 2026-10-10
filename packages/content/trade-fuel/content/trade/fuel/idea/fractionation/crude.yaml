@@ -1,0 +1,98 @@
+# ⭐⭐⭐ The barrel — **and this row is the first `separation: fractions`
+# schedule in the game, which is the whole of why Stage C needed a
+# kernel change.**
+#
+# A pot still separates one substance into GRADES of itself: foreshots,
+# heads, hearts and tails are all new-make spirit, they differ in
+# character and in what they will poison you with, and the distiller's
+# art is deciding where to cut and then blending what they kept. One
+# `productMaterial`, several qualities of it, recombining is legitimate.
+#
+# A refinery column separates one substance into DIFFERENT SUBSTANCES.
+# Gasoline is not a grade of kerosene and no amount of blending makes it
+# one. ⚠⚠ **You cannot distil crude and choose not to make the light
+# ends** — that is joint production, and it is the honest reason a player
+# ends up holding something nobody will buy. So every span names its own
+# material, the schedule names none, and `getBulkAvailable` clamps at
+# each boundary: **the column will not hand you gasoline and kerosene in
+# one cask.** You draw until the character changes and you change casks.
+#
+# ## ⭐⭐ The per-fraction heat gates, exercised for the first time
+#
+# `FractionSpec.requiresHeatK` shipped with the fractionation substrate
+# and no shipped schedule ever used it, because a pot still is one
+# temperature. A column is a LADDER of them: naphtha comes over at 350 K
+# and gas oil does not, so a cold column gives you the light ends and
+# stops — which is exactly the seam the substrate's own header predicted
+# *a refinery column is built on and a pot still never exercises.*
+#
+# ## ⭐ Kerosene IS the shipped `lamp-oil` material
+#
+# Not a new row. Its keywords already include `kerosene` and `paraffin`,
+# the lantern burns it, the civic fuel store counts casks of it by its
+# `lamp-oil` tag, and the street-lighting bill reads that store. So the
+# fraction's KEY is `kerosene` (what a refiner calls it) and its MATERIAL
+# is `lamp-oil` (what the realm already knows) — and the lamp, the store
+# and the bill needed nothing at all. Renaming the row would have been a
+# rename across five packs for no new behaviour.
+#
+# ⚠ `discipline: chemistry` — the platform's row, not a new one. Cutting
+# a barrel is knowing what comes over at what temperature, which is what
+# chemistry is; the refining trade does not get a Discipline of its own
+# for the same reason the salt boiler does not.
+class: /platform/idea/fractionation/FractionSchedule
+data:
+  key: crude
+  inputCategory: crude
+  # ⭐⭐⭐ The field this build added to the kernel. Default is `cuts`, so
+  # every schedule authored before this existed is byte-identical.
+  separation: fractions
+  discipline: chemistry
+  # The column's own floor — below this nothing comes over at all.
+  requiresHeatK: 350
+  # ⚠ EMPTY, and the validator insists: there is no such thing as THE
+  # product of a column.
+  productMaterial: ''
+  residueMaterial: /stuff/idea/material/bulk/asphalt
+  # A refiner's nose is not the question here and the boundaries are a
+  # thermometer's, so the blur is small — but it is not zero, because
+  # nobody reads a column perfectly either.
+  readBlur: 0.01
+  gradeStretch: 0
+  fractions:
+    # ⚠ **No digit may appear in a `character`** — the read is a
+    # character and not a gauge, and the validator refuses one.
+    - key: gasoline
+      upTo: 0.18
+      material: /stuff/idea/material/bulk/gasoline
+      character: >-
+        It comes over fast and cold and you can see the fumes moving over
+        the top of the measure. Whatever this is, it is in a hurry.
+      gradeBand: fair
+      requiresHeatK: 350
+    # ⭐ The one everybody came for, and it is barely a fifth of the
+    # barrel. The whole economics of early refining in one `upTo`.
+    - key: kerosene
+      upTo: 0.42
+      material: /stuff/idea/material/bulk/lamp-oil
+      character: >-
+        Pale gold, slow, and it smells like a clean lamp. This is the
+        thing the hole was sunk for.
+      gradeBand: fine
+      requiresHeatK: 450
+    - key: lubricating
+      upTo: 0.62
+      material: /stuff/idea/material/bulk/lubricating-oil
+      character: >-
+        Heavier now, and amber, and it clings to the side of the measure
+        and comes down slowly.
+      gradeBand: fine
+      requiresHeatK: 550
+    - key: wax
+      upTo: 0.74
+      material: /stuff/idea/material/bulk/paraffin-wax
+      character: >-
+        It runs clear and sets white on the rim of anything cold it
+        touches, which is how you know to change the cask.
+      gradeBand: fine
+      requiresHeatK: 620
