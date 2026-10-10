@@ -1,0 +1,24 @@
+# A plough — ⭐⭐⭐ the wear-part exemplar (assembly AC 13): a hewn beam, an
+# oak mouldboard and two stilts pegged together, and a smith's iron share
+# wedged on the front of it. Run by `fit plough`. A ploughwright is a
+# woodworker, so this is farming's row raised under carpentry's Discipline.
+#
+# The `share` slot is the bill's WEAR part — not required by
+# `lint:bills`, and here because a plough with no share is a sledge. It
+# is the line the ground wears, and `fit share to plough` replaces it
+# every season with the beam, the mouldboard and the stilts untouched.
+recipeId: plough
+name: Plough
+keywords: [plough, plow]
+inputSlots:
+  - { slot: plough-beam, category: wood, minGrade: fair, kind: item, count: 1 }
+  - { slot: mouldboard, category: wood, minGrade: poor, kind: item, count: 1 }
+  - { slot: stilt, category: wood, minGrade: poor, kind: item, count: 2 }
+  - { slot: peg, category: wood, minGrade: poor, kind: item, count: 4 }
+  - { slot: share, category: metal, minGrade: poor, kind: item, count: 1 }
+toolCapabilities: [driving]
+outputTemplate: /trade/farming/thing/plough
+outputMaterial: ''
+outputApplication: tangible
+difficulty: standard
+discipline: carpentry

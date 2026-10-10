@@ -1,0 +1,22 @@
+# A bowstave — a riven length of yew with the sapwood left on the back
+# and the heartwood on the belly. ⭐ The part a bow is made of, and the
+# one where the species is the whole point: sapwood takes the stretch,
+# heartwood takes the squeeze, and yew is the wood that has both in one
+# piece. Carved from a riven blank (`carve bowstave`); a bowyer buys
+# them seasoned and keeps them years.
+#
+# Riven, never sawn: a stave whose fibres are cut across snaps at the
+# first full draw. The bill names this row with `material: yew`; one
+# carved from an ash blank is an ash bow, and a worse one.
+class: /platform/thing/Timber
+data:
+  shortDescription: yew bowstave
+  keywords: [bowstave, bowstaves, bow-stave, "bow stave", yew]
+  register: indefinite
+  longDescription: |
+    A long split stave of yew, pale cream sapwood along one face and dark orange heartwood along the other, tapering to a nock at each end and thickest at the grip.
+  _materialPath: /stuff/idea/material/wood/yew
+  mass: 0.8
+  constructionForm: riven
+  seasonedFraction: 1
+  quantity: 1

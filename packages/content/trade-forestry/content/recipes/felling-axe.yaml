@@ -1,19 +1,23 @@
+# A felling axe — ⭐ a smith's forged head on a woodworker's helve,
+# WEDGED: the by-hand joint, no heat, no anvil, no competence. Run by
+# `fit felling-axe`.
+#
+# ⭐⭐ It used to be forged whole at the anvil from a bar and a haft, under
+# MINING's discipline — the one recipe in the realm that made a woodman's
+# tool out of a miner's skill. The head is the smith's part now (`forge
+# axe-head`), the helve the woodworker's (`carve axe-haft`), and hanging
+# one on the other is carpentry: the same rung, and the same Discipline,
+# as the froe beside it. Not silviculture — that is knowing the wood
+# standing, not the tool that takes it down.
 recipeId: felling-axe
 name: Felling Axe
-keywords: [axe, felling-axe]
-# ⭐⭐ The stock slot asks for `forgeable`, and that one tag is the whole
-# rule: **an anvil recipe takes stock an anvil can work.** `ferrous`
-# would admit a pig of cast iron, which shatters under a hammer;
-# `metal` would admit a pig AND a bloom, which is a quarter glass.
-# Hot iron, steel and copper are what an anvil actually works, and they
-# are what carries the tag.
+keywords: [felling-axe, axe]
 inputSlots:
-  - { slot: stock, category: forgeable, minGrade: fair, kind: item, count: 1 }
-  - { slot: haft, category: wood, minGrade: poor, kind: item, count: 1 }
-toolCapabilities: [striking, anvil]
+  - { slot: axe-head, category: metal, minGrade: fair, kind: item, count: 1 }
+  - { slot: helve, category: wood, minGrade: poor, kind: item, count: 1 }
+toolCapabilities: []
 outputTemplate: /trade/forestry/thing/felling-axe
 outputMaterial: ''
 outputApplication: tangible
-requiresHeatK: 1300
-difficulty: hard
-discipline: mining
+difficulty: easy
+discipline: carpentry

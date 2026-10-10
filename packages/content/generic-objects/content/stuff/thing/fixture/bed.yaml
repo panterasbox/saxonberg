@@ -35,3 +35,14 @@ data:
     frame:
       keywords: [frame, wood, posts]
       description: A plain wooden frame, pegged rather than nailed, worn smooth at the footboard.
+  # ⭐ What a bed is MADE OF (assembly D3): a joiner's pegged bedstead
+  # (the frame row — legs, rails, pegs — with its own bill) and a tailor's
+  # stitched mattress SEATED in it. The mattress is the WEAR part, and
+  # `Chair.getRestQuality` is where that is felt: a bed whose mattress has
+  # gone rests you like a bare frame. `fit mattress to bed` replaces it.
+  bill:
+    parts:
+      - { part: bedstead, template: /trade/carpentry/thing/frame, count: 1, role: structural, material: /stuff/idea/material/wood/ash }
+      - { part: mattress, template: /trade/tailoring/thing/mattress, count: 1, role: wear, material: /stuff/idea/material/textile/linen }
+    joints:
+      - { key: bedding, method: seated, members: [mattress, bedstead] }

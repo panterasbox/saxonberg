@@ -129,12 +129,10 @@ describe('the anvil ladder', () => {
   });
 
   it('⭐⭐ the nine arms are all makeable, and more metal is more work', () => {
-    const arms = [
-      'dagger', 'spear', 'flail', 'warhammer', 'mace',
-      'sword', 'mail-hauberk', 'shield', 'breastplate',
-    ];
+    // The forged arms: one piece of metal, shaped whole at the anvil.
+    const forged = ['dagger', 'sword', 'mail-hauberk', 'breastplate'];
     const byId = new Map(recipes.map((r) => [r.recipeId, r]));
-    for (const id of arms) {
+    for (const id of forged) {
       const r = byId.get(id);
       expect(
         r,
@@ -147,5 +145,34 @@ describe('the anvil ladder', () => {
     expect(stockOf('dagger')).toBe(1);
     expect(stockOf('sword')).toBe(2);
     expect(stockOf('breastplate')).toBe(4);
+  });
+
+  it('⭐⭐ the hafted and boarded arms are ASSEMBLED — the smith forges the head, `fit` makes the arm', () => {
+    // ⭐ assembly W6: a spear is a head on a shaft, a shield is boards
+    // under a face with a boss riveted through. What the anvil makes is
+    // the metal PART; the arm is raised from parts, cold.
+    const all = new Map<string, Recipe>();
+    const dir = join(PACKS, 'trade-smithing', 'content', 'recipes');
+    for (const file of readdirSync(dir)) {
+      const row = YAML.parse(readFileSync(join(dir, file), 'utf8')) as Recipe | null;
+      if (row) all.set(row.recipeId, row);
+    }
+    const anvil = new Map(recipes.map((r) => [r.recipeId, r]));
+    const assembled: Record<string, string> = {
+      spear: 'spear-head',
+      mace: 'mace-head',
+      warhammer: 'warhammer-head',
+      flail: 'flail-head',
+      shield: 'shield-boss',
+    };
+    for (const [arm, part] of Object.entries(assembled)) {
+      const r = all.get(arm);
+      expect(r, `no recipe for ${arm}`).toBeDefined();
+      expect(r!.toolCapabilities ?? [], `${arm} is fitted, not forged`).not.toContain('anvil');
+      expect(r!.requiresHeatK ?? 0, `${arm} is fitted cold`).toBe(0);
+      const head = anvil.get(part);
+      expect(head, `${part} — the metal part of the ${arm} — is an anvil recipe`).toBeDefined();
+      expect(head!.requiresHeatK).toBeGreaterThan(1000);
+    }
   });
 });

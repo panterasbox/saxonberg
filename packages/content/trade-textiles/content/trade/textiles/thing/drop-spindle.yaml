@@ -15,7 +15,10 @@ data:
   # it to `drop`). Now it arrives whole — and a hyphen-only keyword
   # answers *"the shelf is bare of 'drop spindle'"*, which is a FALSE
   # refusal about a thing standing right there.
-  keywords: [spindle, "drop spindle", drop-spindle, whorl, drop]
+  # ⚠ No `whorl` any more: the whorl is a PART now, its own row, and a
+  # bill's part is matched by keyword — a spindle answering to `whorl`
+  # would be fitted as its own flywheel.
+  keywords: [spindle, "drop spindle", drop-spindle, drop]
   register: indefinite
   longDescription: |
     A finger-length shaft through a stone whorl, notched at the top. It costs nothing, fits in a pocket, and has outlasted every machine invented to replace it.
@@ -23,3 +26,14 @@ data:
     - { kind: spinning, rate: 1 }
   _materialPath: /stuff/idea/material/wood/oak
   mass: 0.2
+  # ⭐⭐ What a drop spindle is MADE OF (assembly D3) — and the FLOOR of the
+  # joint vocabulary: a shaft through a stone whorl, FRICTION-fitted. No
+  # fastener, no tool, no competence; `salvage` pulls it apart whole and
+  # `fit drop-spindle` puts it back. The shaft is whittled (`carve
+  # spindle-shaft`); the whorl is a stone somebody bored.
+  bill:
+    parts:
+      - { part: spindle-shaft, template: /trade/textiles/thing/spindle-shaft, count: 1, role: structural, material: /stuff/idea/material/wood/oak }
+      - { part: whorl, template: /trade/textiles/thing/whorl, count: 1, role: structural, material: /stuff/idea/material/rock/slate }
+    joints:
+      - { key: seating, method: friction, members: [spindle-shaft, whorl] }

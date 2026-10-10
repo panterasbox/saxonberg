@@ -1,0 +1,17 @@
+# A cushion cover — one panel of the case a cushion or a mattress is
+# stitched into. ⭐ A part, not a garment: two of them and a fill of
+# stuffing, stitched round, are a cushion (`fit cushion`).
+#
+# Keyworded `cover`, which is the bill's part name — and nothing else a
+# player can pick up answers to it.
+class: /platform/thing/Tool
+data:
+  keywords: [cover, covers, cushion-cover, ticking]
+  shortDescription: linen cushion cover
+  register: indefinite
+  longDescription: >-
+    A square of heavy linen ticking, striped grey on cream, its edges
+    turned and pressed ready to be sewn to its pair.
+  mass: 0.3
+  capabilities: []
+  _materialPath: /stuff/idea/material/textile/linen

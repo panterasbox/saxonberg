@@ -1,0 +1,20 @@
+# A mattress — the cushion's big brother and the same bill at a bigger
+# count: two covers of ticking and three bags of stuffing, stitched round
+# and tufted through (`fit mattress`). ⭐ The bed's WEAR part: a bed is a
+# pegged bedstead that lasts a lifetime and a mattress that does not.
+class: /platform/thing/Assembly
+data:
+  shortDescription: wool mattress
+  keywords: [mattress, mattresses, tick]
+  register: indefinite
+  longDescription: >-
+    A long flat sack of striped ticking packed hard with wool, tufted
+    through at a handspan's intervals so the fill cannot drift to one end.
+  mass: 3.0
+  _materialPath: /stuff/idea/material/textile/linen
+  bill:
+    parts:
+      - { part: cover, plural: covers, template: /trade/tailoring/thing/cushion-cover, count: 2, role: structural, material: /stuff/idea/material/textile/linen }
+      - { part: stuffing, plural: stuffing, template: /trade/tailoring/thing/stuffing, count: 3, role: structural, material: /stuff/idea/material/textile/wool }
+    joints:
+      - { key: tufting, method: stitched, members: [cover, stuffing] }

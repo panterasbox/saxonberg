@@ -1,0 +1,21 @@
+# An armchair — ⭐⭐ the NESTED assembly (assembly AC 5): a pegged frame
+# that is itself four legs, four rails and eight pegs, with a stitched
+# cushion seated on it. Run by `fit armchair`. Both parts arrive made —
+# the frame from a joiner (`fit frame`), the cushion from a tailor
+# (`fit cushion`) — and the chair keeps each one's own record inside its
+# own, so a worn-through cushion is replaced (`fit cushion to armchair`)
+# without a peg of the frame being touched.
+#
+# Seated, by hand: the cushion is set into the frame, not fixed to it.
+recipeId: armchair
+name: Armchair
+keywords: [armchair]
+inputSlots:
+  - { slot: seat-frame, category: wood, minGrade: poor, kind: item, count: 1 }
+  - { slot: cushion, category: textile, minGrade: poor, kind: item, count: 1 }
+toolCapabilities: []
+outputTemplate: /stuff/thing/fixture/armchair
+outputMaterial: ''
+outputApplication: tangible
+difficulty: standard
+discipline: carpentry

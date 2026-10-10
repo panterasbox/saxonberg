@@ -6,7 +6,8 @@
 # trade. The pick's bill names it at this path.
 class: /platform/thing/Tool
 data:
-  keywords: [pick-head, head, forged, pick]
+  # ⚠ Not bare `pick`: a head in reach made `fit pick` bind the head.
+  keywords: [pick-head, head, forged, "pick head"]
   shortDescription: forged pick head
   register: indefinite
   longDescription: >-

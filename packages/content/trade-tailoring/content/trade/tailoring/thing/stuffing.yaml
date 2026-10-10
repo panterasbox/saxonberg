@@ -1,0 +1,13 @@
+# Stuffing — loose carded wool, the fill of a cushion or a mattress. A
+# fibre good sold by the bag; it is what goes flat and lumpy with use,
+# which is why the cushion it fills is the armchair's wear part.
+class: /trade/textiles/thing/TextileStock
+data:
+  shortDescription: bag of wool stuffing
+  keywords: [stuffing, wadding, flock, fill]
+  register: indefinite
+  longDescription: |
+    A coarse sack of carded wool, springy and a little greasy, the short staple nobody wanted to spin.
+  _materialPath: /stuff/idea/material/textile/wool
+  mass: 0.8
+  gradeBand: fair

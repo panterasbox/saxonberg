@@ -1,0 +1,19 @@
+# A compass housing — the turned metal bowl a compass needle swings in,
+# with a pivot pin standing up from its floor and a bezel to hold the
+# glass. ⭐ The structural part of the surveyor's compass: the rose is
+# glued into it and the needle and the crystal are seated in it.
+#
+# ⚠ COPPER, though a surveyor would call it brass: the realm has no zinc,
+# so it has no brass, and copper is what brass mostly is.
+class: /platform/thing/Tool
+data:
+  keywords: [housing, compass-housing, "compass bowl"]
+  shortDescription: compass housing
+  register: indefinite
+  longDescription: >-
+    A shallow turned bowl of yellow metal with a hinged lid, a steel pivot
+    pin standing up from the centre of its floor and a bezel round its
+    rim for a crystal.
+  mass: 0.3
+  capabilities: []
+  _materialPath: /stuff/idea/material/element/copper

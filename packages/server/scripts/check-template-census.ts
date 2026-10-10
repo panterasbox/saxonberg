@@ -207,6 +207,15 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
     for (const g of data.costume as unknown[]) push('costume', g);
   }
 
+  // ⭐ A host's `chambers:` (assembly D15) — the compartments it mints at
+  // template phase 2. A rowless chamber template is a sawmill whose
+  // drying loft never appears.
+  if (Array.isArray(data.chambers)) {
+    for (const c of data.chambers as Array<Record<string, unknown>>) {
+      if (c && typeof c === 'object') push('chambers.template', c.template);
+    }
+  }
+
   // ⭐ A Wood row's `mix:` — the species standing on a clearing, each
   // naming its Species row, the wood a felled one is made of and the seed
   // it drops. All three resolve live at a felling; a rowless one is a

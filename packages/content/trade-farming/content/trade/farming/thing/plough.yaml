@@ -19,4 +19,23 @@ data:
     than you.
   mass: 42
   capabilities: ["ploughing"]
-  _materialPath: /stuff/idea/material/wood/oak
+  # ⚠ ASH, because the prose says an ash beam and the beam is most of it.
+  _materialPath: /stuff/idea/material/wood/ash
+  # ⭐⭐⭐ What a plough is MADE OF (assembly D3), and THE wear-part
+  # exemplar (AC 13): a hewn ash beam, an oak mouldboard and two stilts
+  # pegged together by a ploughwright, and a smith's iron SHARE wedged on
+  # the front. The share is `role: wear` — ploughing wears it (no channel,
+  # so the wear lands on the wear line) — and it is replaced every season
+  # with `fit share to plough` while the beam, the mouldboard and the
+  # stilts go on for a generation. A smith who makes shares has a customer
+  # for life.
+  bill:
+    parts:
+      - { part: plough-beam, template: /trade/carpentry/thing/plough-beam, count: 1, role: structural, material: /stuff/idea/material/wood/ash }
+      - { part: mouldboard, template: /trade/carpentry/thing/mouldboard, count: 1, role: structural, material: /stuff/idea/material/wood/oak }
+      - { part: stilt, plural: stilts, template: /trade/carpentry/thing/plough-stilt, count: 2, role: structural, material: /stuff/idea/material/wood/ash }
+      - { part: peg, plural: pegs, template: /trade/carpentry/thing/peg, count: 4, role: fastener, material: /stuff/idea/material/wood/oak }
+      - { part: share, template: /trade/smithing/thing/plough-share, count: 1, role: wear, material: /stuff/idea/material/element/iron }
+    joints:
+      - { key: framing, method: pegged, members: [plough-beam, mouldboard, stilt], fastener: peg }
+      - { key: shoeing, method: wedged, members: [share, plough-beam] }

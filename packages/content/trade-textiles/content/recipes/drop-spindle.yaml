@@ -1,0 +1,16 @@
+# A drop spindle — ⭐ a whittled shaft pushed through a bored stone whorl
+# until it jams. Run by `fit drop-spindle`. FRICTION: no fastener, no
+# tool, no competence — the floor of the joint vocabulary, and the
+# reason a spinner with a knife and a stone has a spindle by evening.
+recipeId: drop-spindle
+name: Drop Spindle
+keywords: [drop-spindle, spindle]
+inputSlots:
+  - { slot: spindle-shaft, category: wood, minGrade: poor, kind: item, count: 1 }
+  - { slot: whorl, category: rock, minGrade: poor, kind: item, count: 1 }
+toolCapabilities: []
+outputTemplate: /trade/textiles/thing/drop-spindle
+outputMaterial: ''
+outputApplication: tangible
+difficulty: trivial
+discipline: textiles

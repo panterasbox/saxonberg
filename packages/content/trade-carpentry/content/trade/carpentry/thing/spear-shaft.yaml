@@ -1,0 +1,17 @@
+# A spear shaft — a long straight pole shaved round, tapered at the head
+# end to take a socket. A woodworker's part for a smith's head; the spear
+# is the two of them, wedged (`fit spear`).
+#
+# ⚠ Keyworded away from `shaft`: an arrow answers to that, and a bill's
+# part is matched by keyword as well as by row.
+class: /platform/thing/Tool
+data:
+  keywords: [spear-shaft, "spear shaft", pole, staff]
+  shortDescription: spear shaft
+  register: indefinite
+  longDescription: >-
+    A pole of riven ash taller than a man, shaved round and true, swelled
+    a little at the grip and tapered at one end to go into a socket.
+  mass: 1.4
+  capabilities: []
+  _materialPath: /stuff/idea/material/wood/ash

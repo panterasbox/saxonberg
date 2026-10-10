@@ -321,6 +321,25 @@ data:
     # woodworker's make (`/trade/carpentry`); the shop sells it the way it
     # sells a lantern — somebody hauled it here.
     - { itemTemplatePath: /trade/carpentry/thing/pick-haft, par: 3 }
+    # ⭐⭐⭐ The WEAR-PART line (assembly AC 13) — and the reason each is
+    # here is the same as the haft's: the whole outlives a dozen of them,
+    # so the part is what people come back for. A pane for the lantern on
+    # this shelf (crack it and the room goes dim); a share for the plough
+    # (the ground eats one a season); a string and a pair of nocks for the
+    # bow; soles for the boots; a shaft and a whorl for the spindle; a
+    # bellows for the smoker; a cushion for the armchair. ⚠ A general
+    # store is a stand-in for the people whose whole trade these are — the
+    # smith, the stringmaker, the horner, the tanner — and this comment is
+    # the record that it is one: somebody hauled them here.
+    - { itemTemplatePath: /trade/glass/thing/pane, par: 3 }
+    - { itemTemplatePath: /trade/smithing/thing/plough-share, par: 2 }
+    - { itemTemplatePath: /trade/textiles/thing/bowstring, par: 4 }
+    - { itemTemplatePath: /stuff/thing/arms/nock, par: 4 }
+    - { itemTemplatePath: /trade/tanning/thing/sole, par: 4 }
+    - { itemTemplatePath: /trade/textiles/thing/spindle-shaft, par: 3 }
+    - { itemTemplatePath: /trade/textiles/thing/whorl, par: 3 }
+    - { itemTemplatePath: /trade/apiculture/thing/bellows, par: 2 }
+    - { itemTemplatePath: /trade/tailoring/thing/cushion, par: 2 }
   prices:
     # ⭐⭐ **A JOINT costs four times TRIM**, and that price gap is the
     # butchery chain's whole economic argument standing in one place: the
@@ -452,6 +471,17 @@ data:
     # A haft is a stick somebody carved: under an hour's wage, so re-hafting
     # a pick is always cheaper than buying one.
     /trade/carpentry/thing/pick-haft: 3
+    # The wear parts, each a fraction of the whole it keeps going — which
+    # is the arithmetic that makes mending cheaper than replacing (AC 9).
+    /trade/glass/thing/pane: 3
+    /trade/smithing/thing/plough-share: 6
+    /trade/textiles/thing/bowstring: 2
+    /stuff/thing/arms/nock: 1
+    /trade/tanning/thing/sole: 2
+    /trade/textiles/thing/spindle-shaft: 1
+    /trade/textiles/thing/whorl: 1
+    /trade/apiculture/thing/bellows: 3
+    /trade/tailoring/thing/cushion: 4
     /trade/textiles/thing/drop-spindle: 2
     /trade/dyeing/thing/household-vat: 6
     # ⚠ The bronze plate being DEARER than the steel one at 55 would be a

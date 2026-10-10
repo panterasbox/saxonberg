@@ -1,0 +1,14 @@
+# A plough stilt — one of the two handles a ploughman steers by. Long,
+# because a plough is steered with the whole body leaning on them, and
+# pegged through the beam so a broken one is drifted out and replaced.
+class: /platform/thing/Tool
+data:
+  keywords: [stilt, stilts, plough-stilt, "plough handle", plough-handle]
+  shortDescription: plough stilt
+  register: indefinite
+  longDescription: >-
+    A long riven ash handle with a gentle bend at the top where the hand
+    goes, a tenon cut at the foot and a peg hole through it.
+  mass: 2.5
+  capabilities: []
+  _materialPath: /stuff/idea/material/wood/ash

@@ -15,3 +15,14 @@ data:
   capabilities: ["felling", "cutting", "striking"]
   epoch: medieval
   _materialPath: /stuff/idea/material/element/iron
+  # ⭐ What a felling axe is MADE OF (assembly D3): a smith's head on a
+  # woodworker's helve, wedged by hand. The part names are the specific
+  # words — `axe-head`, `helve` — because a bill's part is matched by
+  # keyword as well as by row, and every head in a smithy answers to
+  # `head`. Re-hanging a head on a fresh helve is `fit helve to axe`.
+  bill:
+    parts:
+      - { part: axe-head, template: /trade/smithing/thing/axe-head, count: 1, role: structural, material: /stuff/idea/material/element/iron }
+      - { part: helve, template: /trade/carpentry/thing/axe-haft, count: 1, role: structural, material: /stuff/idea/material/wood/ash }
+    joints:
+      - { key: hafting, method: wedged, members: [axe-head, helve] }

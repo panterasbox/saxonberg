@@ -55,6 +55,14 @@ interface PloughModel extends CommandModel {
  */
 const KG_PER_DRAUGHT = 70;
 
+/**
+ * Condition one bout of ploughing takes off the plough — which lands on
+ * its share. Twenty-five bouts to a share: about one field turned, which
+ * is the season the share is supposed to last. Grain: a number for a
+ * balance pass to move.
+ */
+const SHARE_WEAR_PER_BOUT = 0.04;
+
 export default class PloughController extends FieldWorkController {
   async execute(model: PloughModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
@@ -71,6 +79,22 @@ export default class PloughController extends FieldWorkController {
         'no-tool',
       );
       return;
+    }
+    // ⭐⭐ **A plough with its share worn through is a sledge** (assembly AC
+    // 13). The refusal names the PART and the cure, because that is the
+    // whole lesson of a wear part: you do not buy a plough, you fit a
+    // share. A failed line of any kind refuses the same way — the beam
+    // split, a stilt sprung.
+    if (MixinApi.isAssembled(plough)) {
+      const failed = plough.failedLines()[0];
+      if (failed) {
+        this.decline(
+          context,
+          Mml.compose`The ${failed.part} on ${Mml.thing(plough)} is done for. Fit a new ${failed.part} before you plough again.`,
+          'part-failed',
+        );
+        return;
+      }
     }
     const { field, sample, bill } = reading;
     if (field.progressOn('clearing', bill) >= 1) {
@@ -100,6 +124,15 @@ export default class PloughController extends FieldWorkController {
         : Mml.compose`You get the traces over your shoulders and lean. The share goes in about half as far as it ought to.`,
       beginPeers: Mml.compose`${Mml.actor(giver)} starts a furrow across the field.`,
       onComplete: () => {
+        // ⭐⭐⭐ The ground WEARS the plough, and a plough is a beam with a
+        // share on it: wear with no channel lands on the `role: wear`
+        // line, which is the share (assembly D7). Until the assembly
+        // build nothing wore a plough, so the share — the part a smith
+        // sells every farmer every season — had no demand. ⚠ A local, not
+        // `this`: the controller is gone by the time the bout ends.
+        if (MixinApi.isDurable(plough) && !plough.isDestroyed()) {
+          plough.wear(SHARE_WEAR_PER_BOUT);
+        }
         void this.finish(context, reading, draught, beast);
       },
     });

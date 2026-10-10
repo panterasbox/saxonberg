@@ -1,0 +1,16 @@
+# A bed — a pegged bedstead with a stitched mattress laid in it. Run by
+# `fit bed`. The same nesting as the armchair: the bedstead is a frame
+# (legs, rails, pegs) with its own record, the mattress a tailor's
+# assembly with its own, and the mattress is the part that wears out.
+recipeId: bed
+name: Bed
+keywords: [bed]
+inputSlots:
+  - { slot: bedstead, category: wood, minGrade: poor, kind: item, count: 1 }
+  - { slot: mattress, category: textile, minGrade: poor, kind: item, count: 1 }
+toolCapabilities: []
+outputTemplate: /stuff/thing/fixture/bed
+outputMaterial: ''
+outputApplication: tangible
+difficulty: standard
+discipline: carpentry

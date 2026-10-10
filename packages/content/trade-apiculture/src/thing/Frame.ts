@@ -10,10 +10,20 @@
  *
  * ⚠ Not a `Comb`. A frame of brood is not food and nobody eats it; the
  * capped comb you rob is a `Provision` and a different object.
+ *
+ * ⭐ **The smallest honest assembly** (assembly D8): four bars glued
+ * square. `AssembledMixin(CraftedMixin(DurableMixin(…)))` — the
+ * `Assembly` stack — because a beekeeper makes frames (`fit hive-frame`)
+ * and a made thing carries its maker. ⛔ The HIVE has no bill and never
+ * will: it is a box you put frames IN, and containment already says so
+ * (`lint:bills` refuses one).
  */
 
 import Good from '@saxonberg/server/mud/lib/stuff/Good';
 import { DetailedMixin } from '@saxonberg/server/mud/lib/description/Detailed';
+import { AssembledMixin } from '@saxonberg/server/mud/lib/craft/Assembled';
+import { CraftedMixin } from '@saxonberg/server/mud/lib/craft/Crafted';
+import { DurableMixin } from '@saxonberg/server/mud/lib/material/Durable';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import Hive from './Hive';
 
@@ -24,7 +34,9 @@ import Hive from './Hive';
 // and a nucleus are all things somebody buys, carries and owns, so the
 // chain of title is the point rather than an incidental. Found by the
 // terminus standup the moment the shelf started stocking them.
-export default class Frame extends DetailedMixin(Good) {
+export default class Frame extends AssembledMixin(
+  CraftedMixin(DurableMixin(DetailedMixin(Good))),
+) {
   /**
    * ⭐ The derived line. A frame is the one object in the trade that
    * tells you about its container rather than about itself — which is

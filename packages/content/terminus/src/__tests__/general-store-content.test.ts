@@ -100,6 +100,22 @@ const DYEING_DIR = fileURLToPath(
   new URL("../../../trade-dyeing/content/trade/dyeing/", import.meta.url),
 );
 
+// ⭐ The wear-part line (assembly W6) reaches four more trades: the
+// glasshouse's pane, the smith's share, the tanner's sole and the tailor's
+// cushion — each from the pack whose trade makes it.
+const GLASS_DIR = fileURLToPath(
+  new URL("../../../trade-glass/content/trade/glass/", import.meta.url),
+);
+const SMITHING_DIR = fileURLToPath(
+  new URL("../../../trade-smithing/content/trade/smithing/", import.meta.url),
+);
+const TANNING_DIR = fileURLToPath(
+  new URL("../../../trade-tanning/content/trade/tanning/", import.meta.url),
+);
+const TAILORING_DIR = fileURLToPath(
+  new URL("../../../trade-tailoring/content/trade/tailoring/", import.meta.url),
+);
+
 const GOOD_HOMES: { prefix: string; dir: () => string }[] = [
   { prefix: "/trade/haulage/", dir: () => HAULAGE_DIR },
   { prefix: "/trade/textiles/", dir: () => TEXTILES_DIR },
@@ -120,6 +136,10 @@ const GOOD_HOMES: { prefix: string; dir: () => string }[] = [
   // because a general store's job IS importing — and the one line that
   // mints life (the nucleus) belongs in a shop for the same reason.
   { prefix: "/trade/apiculture/", dir: () => APICULTURE_DIR },
+  { prefix: "/trade/glass/", dir: () => GLASS_DIR },
+  { prefix: "/trade/smithing/", dir: () => SMITHING_DIR },
+  { prefix: "/trade/tanning/", dir: () => TANNING_DIR },
+  { prefix: "/trade/tailoring/", dir: () => TAILORING_DIR },
   // The commons — the generic-objects pack, and the fallback.
   { prefix: "/stuff/", dir: () => OBJ_DIR },
 ];
@@ -357,6 +377,12 @@ describe("general-store content integrity", () => {
     "/trade/apiculture/thing/HiveBox",
     "/trade/apiculture/thing/Frame",
     "/trade/apiculture/thing/Smoker",
+    // ⭐ The wear-part line (assembly W6): a pane is the glasshouse's
+    // `Sheet`, and a cushion or a smoker's bellows is an `Assembly` — a
+    // made thing of parts with no other capability. All discrete: you
+    // own a cushion, you do not carry cushions as a quantity.
+    "/trade/glass/thing/Sheet",
+    "/platform/thing/Assembly",
     // The householder's kit — a `Tool` subclass in the residence
     // pack, because the verb it confers is a static on a class and a
     // row cannot carry one.

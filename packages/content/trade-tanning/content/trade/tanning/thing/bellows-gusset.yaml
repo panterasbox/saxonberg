@@ -1,0 +1,15 @@
+# A bellows gusset — the pleated leather that joins a bellows' two
+# cheeks and is the part that cracks. Supple, thin and oiled; the hand
+# bellows on a smoker and the great ones at a forge are the same thing at
+# different sizes.
+class: /platform/thing/Tool
+data:
+  keywords: [gusset, gussets, bellows-gusset, "bellows leather"]
+  shortDescription: leather bellows gusset
+  register: indefinite
+  longDescription: >-
+    A pleated strip of thin oiled leather, cut in a long wedge so it folds
+    up like a fan between two boards.
+  mass: 0.1
+  capabilities: []
+  _materialPath: /stuff/idea/material/organic/leather

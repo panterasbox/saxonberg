@@ -1,0 +1,16 @@
+# A smoker canister — tinplate, cut, rolled and soldered round, with a
+# hinged spout for a lid. The fire box of a bee smoker: the part that
+# holds the smoulder, and the part that lasts. A tinsmith's work, like
+# the lantern body beside it.
+class: /platform/thing/Tool
+data:
+  keywords: [canister, smoker-canister, "smoker canister", "fire box"]
+  shortDescription: tin smoker canister
+  register: indefinite
+  longDescription: >-
+    A tin cylinder the size of a large mug, a grate fixed across the
+    bottom and a conical lid with a spout hinged on top, its seams run
+    with solder.
+  mass: 0.7
+  capabilities: []
+  _materialPath: /stuff/idea/material/element/tin

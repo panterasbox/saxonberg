@@ -1,0 +1,16 @@
+# A sole — ⭐⭐⭐ a WEAR part (assembly AC 13): cut from the thickest,
+# hardest-tanned leather on the hide (the bend), it is the line of a boot
+# the street wears through, and it is replaced while the upper goes on.
+# A tanner who sells nothing but sole leather has a customer on every
+# road in the realm.
+class: /platform/thing/Tool
+data:
+  keywords: [sole, soles, sole-leather, "boot sole", "leather sole"]
+  shortDescription: leather sole
+  register: indefinite
+  longDescription: >-
+    A boot-shaped cut of bend leather as thick as a finger, oak-tanned
+    to the colour of strong tea and hard enough to ring when you rap it.
+  mass: 0.3
+  capabilities: []
+  _materialPath: /stuff/idea/material/organic/leather

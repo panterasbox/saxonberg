@@ -21,8 +21,10 @@ data:
     could — but a man who gets inside it turns all that length into a
     liability.
   _materialPath: /stuff/idea/material/alloy/steel
+  # ⚠ ASH, because the prose says ash: this read `oak` while the haft was
+  # a name on a table, and a bill line is a claim about a part.
   _detailMaterialPaths:
-    haft: /stuff/idea/material/wood/oak
+    haft: /stuff/idea/material/wood/ash
   constructionForm: pointed
   gradeBand: fine
   # A long reach weapon — the authored length is what makes it out-reach a
@@ -33,3 +35,15 @@ data:
     "/stuff/idea/species/BodyPlan/biped": ["hand:left", "hand:right"]
   # ⭐ The spear is the reach argument, and reach is its own practice.
   exercises: [polearms]
+  # ⭐ What it is MADE OF (assembly D3): a smith's head on a woodworker's
+  # haft. The smith forges the head (`forge spear-head`); the whole is `fit
+  # spear`. The part names are the specific words because a bill's part is
+  # matched by keyword as well as by row — every head in a smithy answers
+  # to `head`. `material:` is what a FOUND one's parts are, promoted from
+  # `_detailMaterialPaths` above.
+  bill:
+    parts:
+      - { part: spear-head, template: /trade/smithing/thing/spear-head, count: 1, role: structural, material: /stuff/idea/material/alloy/steel }
+      - { part: spear-shaft, template: /trade/carpentry/thing/spear-shaft, count: 1, role: structural, material: /stuff/idea/material/wood/ash }
+    joints:
+      - { key: hafting, method: wedged, members: [spear-head, spear-shaft] }

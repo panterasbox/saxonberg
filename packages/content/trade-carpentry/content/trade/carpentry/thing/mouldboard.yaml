@@ -1,0 +1,15 @@
+# A mouldboard — the curved board behind the share that lifts the cut
+# sod and turns it over. Hewn from a single piece of oak along its curve,
+# and polished by the soil to a glassy shine on the working face.
+class: /platform/thing/Timber
+data:
+  shortDescription: oak mouldboard
+  keywords: [mouldboard, moldboard, "mould board", breastboard]
+  register: indefinite
+  longDescription: |
+    A broad curved board of hewn oak, twisted along its length like a strip of peel, the concave face meant to run against the soil.
+  _materialPath: /stuff/idea/material/wood/oak
+  mass: 9
+  constructionForm: hewn
+  seasonedFraction: 1
+  quantity: 1

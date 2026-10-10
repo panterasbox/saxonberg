@@ -31,3 +31,18 @@ data:
   readySeconds: 3
   slotClaims:
     "/stuff/idea/species/BodyPlan/biped": ["hand:right"]
+  # ⭐ What a bow is MADE OF (assembly D3): a yew stave, two horn nocks
+  # GLUED on its tips, and a linen string looped over them by hand. ⭐⭐ The
+  # string is the bow's WEAR part (assembly AC 13): it frays at the
+  # nocking point and parts, and is replaced in the field by hand
+  # (`friction` — no tool, no fastener) while the stave goes on for
+  # years. `fit bowstring to bow` restrings one; a stringmaker who makes
+  # nothing but strings sells to every archer in the realm.
+  bill:
+    parts:
+      - { part: bowstave, template: /trade/carpentry/thing/bow-stave, count: 1, role: structural, material: /stuff/idea/material/wood/yew }
+      - { part: nock, plural: nocks, template: /stuff/thing/arms/nock, count: 2, role: structural, material: /stuff/idea/material/organic/horn }
+      - { part: bowstring, template: /trade/textiles/thing/bowstring, count: 1, role: wear, material: /stuff/idea/material/textile/linen }
+    joints:
+      - { key: nocking, method: glued, members: [bowstave, nock] }
+      - { key: stringing, method: friction, members: [bowstave, bowstring] }

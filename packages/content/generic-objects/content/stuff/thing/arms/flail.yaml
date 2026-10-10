@@ -33,3 +33,19 @@ data:
     "/stuff/idea/species/BodyPlan/biped": ["hand:right"]
   # ⭐ A hinged head — no guard of its own, which is the practice.
   exercises: [flails]
+  # ⭐ What it is MADE OF (assembly D3): a smith's head on a woodworker's
+  # haft. The smith forges the head (`forge flail-head`); the whole is `fit
+  # flail`. The part names are the specific words because a bill's part is
+  # matched by keyword as well as by row — every head in a smithy answers
+  # to `head`. `material:` is what a FOUND one's parts are, promoted from
+  # `_detailMaterialPaths` above.
+  # The chain's end ring is RIVETED through a staple at the top of the
+  # haft — a hammer and a smith's novice band, and a joint that does not
+  # come apart (salvage gets the head back as scrap, not as a head).
+  bill:
+    parts:
+      - { part: flail-head, template: /trade/smithing/thing/flail-head, count: 1, role: structural, material: /stuff/idea/material/alloy/steel }
+      - { part: haft, template: /trade/carpentry/thing/straight-haft, count: 1, role: structural, material: /stuff/idea/material/wood/oak }
+      - { part: rivet, plural: rivets, template: /trade/smithing/thing/rivet, count: 1, role: fastener, material: /stuff/idea/material/element/iron }
+    joints:
+      - { key: swivel, method: riveted, members: [flail-head, haft], fastener: rivet }

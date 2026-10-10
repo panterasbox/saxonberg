@@ -15,6 +15,13 @@
  * ⚠ Not a `Lamp` — it emits nothing. Not a `Tool` — no verb or recipe
  * consumes a capability from it, and `lint:capabilities` is right to
  * refuse a capability word nothing asks for.
+ *
+ * ⭐ **Made of parts** (assembly D8): a tin canister and a leather bellows
+ * riveted to its side. `AssembledMixin(DurableMixin(…))` sits INSIDE the
+ * burner's composition and OUTSIDE `Durable` — an assembly's wear has to
+ * have somewhere to go, and `__validateComposition__` refuses it the
+ * other way round. The bellows is the wear part: the leather cracks long
+ * before the tin burns through.
  */
 
 import Good from '@saxonberg/server/mud/lib/stuff/Good';
@@ -23,6 +30,8 @@ import { BurnerMixin } from '@saxonberg/server/mud/lib/fire/Burner';
 import { ThermalMixin } from '@saxonberg/server/mud/lib/thermal/Thermal';
 import { WieldableMixin } from '@saxonberg/server/mud/lib/slot/Wieldable';
 import { SlottableMixin } from '@saxonberg/server/mud/lib/slot/Slottable';
+import { AssembledMixin } from '@saxonberg/server/mud/lib/craft/Assembled';
+import { DurableMixin } from '@saxonberg/server/mud/lib/material/Durable';
 
 // ⚠ **`Wieldable` + `Slottable`, and the plan said otherwise.** D16 had
 // it that *"a `Thing` is `get`-able and the read checks the hand slots'
@@ -32,7 +41,9 @@ import { SlottableMixin } from '@saxonberg/server/mud/lib/slot/Slottable';
 // sting test refusing to put one in a hand.
 const SmokerBase = BurnerMixin(
   WieldableMixin(
-    SlottableMixin(ThermalMixin(DetailedMixin(Good))),
+    SlottableMixin(
+      ThermalMixin(AssembledMixin(DurableMixin(DetailedMixin(Good)))),
+    ),
   ),
 );
 

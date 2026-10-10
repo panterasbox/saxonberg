@@ -10,14 +10,28 @@
 # and it burns out when the fuel does, exactly as a lantern does.
 class: /trade/apiculture/thing/Smoker
 data:
-  keywords: [smoker, bellows, tin, smoke]
+  keywords: [smoker, tin, smoke]
   shortDescription: bee smoker
   register: indefinite
   longDescription: >-
     A tin canister with a spout and a leather bellows riveted to its side,
     scorched black inside and smelling permanently of burnt sacking.
-  _materialPath: /stuff/idea/material/element/iron
+  # ⚠ TIN, because the prose says tin and so does the canister it is.
+  _materialPath: /stuff/idea/material/element/tin
   mass: 1.4
+  # ⭐ What a smoker is MADE OF (assembly D3): a tinsmith's canister and a
+  # leather bellows riveted to its side. ⭐ The bellows is the WEAR part —
+  # the gusset cracks from being squeezed a thousand times a season, and
+  # it is the bellows a beekeeper replaces (`fit smoker-bellows to
+  # smoker`), not the smoker. `smoker-bellows`, not `bellows`: a bill's
+  # part is matched by keyword too, and a forge answers to `bellows`.
+  bill:
+    parts:
+      - { part: canister, template: /trade/smithing/thing/canister, count: 1, role: structural, material: /stuff/idea/material/element/tin }
+      - { part: smoker-bellows, template: /trade/apiculture/thing/bellows, count: 1, role: wear, material: /stuff/idea/material/organic/leather }
+      - { part: rivet, plural: rivets, template: /trade/smithing/thing/rivet, count: 2, role: fastener, material: /stuff/idea/material/element/iron }
+    joints:
+      - { key: mounting, method: riveted, members: [smoker-bellows, canister], fastener: rivet }
   # ⭐ One hand — the other one is lifting frames. `hand:right` is the
   # one-handed convention every shipped tool and weapon uses.
   slotClaims:

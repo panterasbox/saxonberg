@@ -1,0 +1,25 @@
+# A cushion — ⭐ a tailor's assembly that is a PART of a joiner's: two
+# covers and a fill of stuffing, stitched round (`fit cushion`), seated on
+# an armchair's frame (`fit armchair`). Nesting by row reference
+# (assembly D3): this bill is the cushion's own, and the armchair's line
+# for its cushion carries this record inside it.
+#
+# ⭐ The armchair's WEAR part (assembly AC 13): it goes flat long before
+# the frame loosens, and `fit cushion to armchair` replaces it without a
+# peg of the frame being touched.
+class: /platform/thing/Assembly
+data:
+  shortDescription: stuffed cushion
+  keywords: [cushion, cushions, pillow, "stuffed cushion"]
+  register: indefinite
+  longDescription: >-
+    A deep square cushion of striped ticking, plump with wool and stitched
+    round all four edges with a doubled linen thread.
+  mass: 1.4
+  _materialPath: /stuff/idea/material/textile/linen
+  bill:
+    parts:
+      - { part: cover, plural: covers, template: /trade/tailoring/thing/cushion-cover, count: 2, role: structural, material: /stuff/idea/material/textile/linen }
+      - { part: stuffing, plural: stuffing, template: /trade/tailoring/thing/stuffing, count: 1, role: structural, material: /stuff/idea/material/textile/wool }
+    joints:
+      - { key: closing, method: stitched, members: [cover, stuffing] }

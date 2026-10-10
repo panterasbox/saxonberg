@@ -1,0 +1,13 @@
+# A spindle shaft — a finger-length stick whittled true. Run by `carve`;
+# a whorl and a shaft are a drop spindle (`fit drop-spindle`).
+recipeId: spindle-shaft
+name: Spindle Shaft
+keywords: [spindle-shaft]
+inputSlots:
+  - { slot: stock, category: wood, minGrade: poor, kind: item, count: 1 }
+toolCapabilities: [cutting]
+outputTemplate: /trade/textiles/thing/spindle-shaft
+outputMaterial: ''
+outputApplication: tangible
+difficulty: easy
+discipline: carpentry

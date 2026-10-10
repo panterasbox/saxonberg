@@ -27,3 +27,20 @@ data:
     seat:
       keywords: [seat, cushion, upholstery]
       description: A sagging cushion that has taken the shape of whoever sits in it most.
+  # ⭐⭐ What an armchair is MADE OF (assembly D3) — and the NESTING case
+  # (AC 5): a joiner's pegged frame, which is itself legs, rails and pegs
+  # with a bill of its own, and a tailor's stitched cushion, which is
+  # covers and stuffing with one of its own, SEATED together by hand.
+  # ⭐ The cushion is the WEAR part: `Chair.getRestQuality` reads every
+  # structural line's condition and drops to a bare frame's rest when the
+  # cushion has failed — and `fit cushion to armchair` puts a new one in
+  # without a peg of the frame being touched.
+  #
+  # `seat-frame`, not `frame`: a bill's part is matched by keyword as well
+  # as by row, and a hive frame answers to `frame`.
+  bill:
+    parts:
+      - { part: seat-frame, template: /trade/carpentry/thing/frame, count: 1, role: structural, material: /stuff/idea/material/wood/ash }
+      - { part: cushion, template: /trade/tailoring/thing/cushion, count: 1, role: wear, material: /stuff/idea/material/textile/linen }
+    joints:
+      - { key: upholstery, method: seated, members: [cushion, seat-frame] }

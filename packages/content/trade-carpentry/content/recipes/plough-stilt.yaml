@@ -1,0 +1,12 @@
+# A plough stilt — one of the two handles. Run by `carve`.
+recipeId: plough-stilt
+name: Plough Stilt
+keywords: [plough-stilt, stilt]
+inputSlots:
+  - { slot: stock, category: wood, minGrade: poor, kind: item, count: 1 }
+toolCapabilities: [cutting]
+outputTemplate: /trade/carpentry/thing/plough-stilt
+outputMaterial: ''
+outputApplication: tangible
+difficulty: easy
+discipline: carpentry

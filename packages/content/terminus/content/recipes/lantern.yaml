@@ -1,0 +1,27 @@
+# A lantern — ⭐ a tinsmith's soldered body with a glass pane SEATED in
+# its door and a linen wick SEATED in its burner. Run by `fit lantern`,
+# by hand: the soldering was done when the body was made (`lantern-body`,
+# at the bench's heat), and fitting a pane and a wick is not soldering.
+#
+# The pane is the bill's FACING part — crack it and the light that gets
+# out drops (`Lamp.getEmittedFlux`) — and the wick its WEAR part, the
+# line that burns down. Neither is required by `lint:bills`; both are
+# here because a lantern with neither is a tin can.
+#
+# ⚠ In THIS pack, not the smith's: the output is the general store's own
+# lantern row, and a trade pack's recipe naming one town's row would
+# dangle the day that town is not installed. The discipline is still
+# the tinsmith's.
+recipeId: lantern
+name: Lantern
+keywords: [lantern]
+inputSlots:
+  - { slot: lantern-body, category: metal, minGrade: fair, kind: item, count: 1 }
+  - { slot: pane, category: glass, minGrade: poor, kind: item, count: 1 }
+  - { slot: wick, category: textile, minGrade: poor, kind: item, count: 1 }
+toolCapabilities: []
+outputTemplate: /world/terminus/general-store/thing/lantern
+outputMaterial: ''
+outputApplication: tangible
+difficulty: standard
+discipline: smithing

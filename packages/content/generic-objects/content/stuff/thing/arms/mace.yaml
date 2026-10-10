@@ -32,3 +32,15 @@ data:
     "/stuff/idea/species/BodyPlan/biped": ["hand:right"]
   # ⭐ Mass at the end of a haft — the guard-breaking practice.
   exercises: [bludgeons]
+  # ⭐ What it is MADE OF (assembly D3): a smith's head on a woodworker's
+  # haft. The smith forges the head (`forge mace-head`); the whole is `fit
+  # mace`. The part names are the specific words because a bill's part is
+  # matched by keyword as well as by row — every head in a smithy answers
+  # to `head`. `material:` is what a FOUND one's parts are, promoted from
+  # `_detailMaterialPaths` above.
+  bill:
+    parts:
+      - { part: mace-head, template: /trade/smithing/thing/mace-head, count: 1, role: structural, material: /stuff/idea/material/alloy/steel }
+      - { part: haft, template: /trade/carpentry/thing/straight-haft, count: 1, role: structural, material: /stuff/idea/material/wood/oak }
+    joints:
+      - { key: hafting, method: wedged, members: [mace-head, haft] }

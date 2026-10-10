@@ -68,6 +68,7 @@ import { BurnerMixin } from '../../lib/fire/Burner';
 import { MixinApi } from '../../api/mixin';
 import { DurableMixin } from '../../lib/material/Durable';
 import { AssembledMixin } from '../../lib/craft/Assembled';
+import { CraftedMixin } from '../../lib/craft/Crafted';
 import { Quantity } from '../../lib/quantity';
 import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../../lib/config/AppSettings';
@@ -108,7 +109,9 @@ const LAMP = {
 // a pane and a wick — the pane's condition is a light the room reads.
 const LampBase = BurnerMixin(
   LightSourceMixin(
-    BulkableMixin(ThermalMixin(AssembledMixin(DurableMixin(Good)))),
+    BulkableMixin(
+      ThermalMixin(AssembledMixin(CraftedMixin(DurableMixin(Good)))),
+    ),
   ),
 );
 

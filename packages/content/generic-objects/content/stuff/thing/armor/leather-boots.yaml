@@ -12,3 +12,15 @@ data:
   constructionForm: hide
   gradeBand: fair
   mass: 1.4
+  # ⭐⭐ What a pair of boots is MADE OF (assembly D3): two uppers WELTED to
+  # two soles — stitched, a needle and a tailor's band. ⭐⭐⭐ The soles are
+  # the WEAR part (assembly AC 13): with no channel named, wear lands on
+  # them, and a cobbler resoles a pair (`fit sole to boots`) while the
+  # uppers go on. A tanner who sells sole leather and nothing else has a
+  # customer on every road.
+  bill:
+    parts:
+      - { part: upper, plural: uppers, template: /trade/tailoring/thing/boot-upper, count: 2, role: structural, material: /stuff/idea/material/organic/leather }
+      - { part: sole, plural: soles, template: /trade/tanning/thing/sole, count: 2, role: wear, material: /stuff/idea/material/organic/leather }
+    joints:
+      - { key: welting, method: stitched, members: [upper, sole] }

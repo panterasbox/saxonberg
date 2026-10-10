@@ -4,8 +4,10 @@
 # ⭐ A COMPARTMENT, not a room: a Chamber (`/platform/thing/Chamber`) with
 # its own air, minted by the sawmill that declares it and standing beside
 # it. A board `put … in loft` is placed in its air rather than the
-# yard's: warm off the saw floor, dry, and with a draught through the
-# louvres — the conditions a timber yard pays for. Its biome is indoor,
+# yard's: dry, and with a draught through the
+# louvres — the conditions a timber yard pays for. ⚠ Its warmth is NOT
+# authored (`lint:envelope`: a room's warmth is derived); what the loft
+# declares is its dryness and its draught. Its biome is indoor,
 # so the rain that sets back a stack in the open never reaches it.
 #
 # The loft charges nothing (`admission` is the maritime lane's field, not
@@ -19,6 +21,5 @@ data:
   longDescription: |
     A long low loft over the saw floor, louvred at both gable ends, its boards laid in stick on bearers with a hand's gap between each so the air can move. It is warm up here off the frame below and smells of sawdust and resin.
   _biomePath: /stuff/idea/biome/indoor/baseline
-  _temperature: 297
   _humidity: 40
   _wind: 1.5

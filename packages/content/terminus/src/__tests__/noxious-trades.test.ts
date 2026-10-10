@@ -231,8 +231,11 @@ describe('the premises have what the trades need', () => {
     const lines = counter.data['stockLines'] as {
       itemTemplatePath: string;
     }[];
+    // ⭐ …and wick by the length: a lantern's wear part (assembly AC 13)
+    // is sold by whoever sells candles.
     expect(lines.map((l) => l.itemTemplatePath)).toEqual([
       '/trade/chandlery/thing/candle',
+      '/trade/chandlery/thing/wick',
     ]);
   });
 

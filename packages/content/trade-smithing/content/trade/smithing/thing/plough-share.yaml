@@ -4,7 +4,7 @@
 # customer for life.
 class: /platform/thing/Tool
 data:
-  keywords: [share, plough-share, ploughshare, plowshare]
+  keywords: [share, plough-share, "plough share", ploughshare, plowshare]
   shortDescription: plough share
   register: indefinite
   longDescription: >-

@@ -1,0 +1,13 @@
+# A plough beam — hewn to its curve from a heavy timber. Run by
+# `carve`; the edge does the work an adze does on a larger piece.
+recipeId: plough-beam
+name: Plough Beam
+keywords: [plough-beam]
+inputSlots:
+  - { slot: stock, category: wood, minGrade: fair, kind: item, count: 1 }
+toolCapabilities: [cutting]
+outputTemplate: /trade/carpentry/thing/plough-beam
+outputMaterial: ''
+outputApplication: tangible
+difficulty: standard
+discipline: carpentry

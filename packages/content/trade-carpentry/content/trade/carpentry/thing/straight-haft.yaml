@@ -1,0 +1,14 @@
+# A straight haft — the plain helve a mace, a war-hammer or a flail is
+# hung on. No curve, no swell at the neck: a striking weapon wants its
+# weight in the head and a grip it cannot twist out of.
+class: /platform/thing/Tool
+data:
+  keywords: [haft, straight-haft, "straight haft", helve]
+  shortDescription: straight haft
+  register: indefinite
+  longDescription: >-
+    A straight helve of riven oak, octagonal at the grip and rounded where
+    a head is meant to go on, a wedge slot sawn down the top end.
+  mass: 0.8
+  capabilities: []
+  _materialPath: /stuff/idea/material/wood/oak

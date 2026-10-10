@@ -1,0 +1,15 @@
+# A compass needle — a slip of magnetized steel balanced on a jewelled
+# cap. ⭐ The part of a surveyor's compass that FINDS north; a needle that
+# has lost its pivot or its magnetism drags, and the reading drags with
+# it. `compass-needle`, because a sewing kit answers to `needle`.
+class: /platform/thing/Tool
+data:
+  keywords: [compass-needle, "compass needle"]
+  shortDescription: compass needle
+  register: indefinite
+  longDescription: >-
+    A slender lozenge of blued steel as long as a finger, one end painted
+    red, balanced on a tiny agate cap at its centre.
+  mass: 0.005
+  capabilities: []
+  _materialPath: /stuff/idea/material/alloy/steel

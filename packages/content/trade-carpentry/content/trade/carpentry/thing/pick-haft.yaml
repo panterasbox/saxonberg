@@ -7,7 +7,9 @@
 # under a shock, and it springs rather than snaps. The mining row was oak.
 class: /platform/thing/Tool
 data:
-  keywords: [haft, pick-haft, handle, shaped, pick, "pick haft", "shaped pick haft"]
+  # ⚠ Not `pick` (a haft in reach made `fit pick` bind the haft) nor
+  # `handle` (a keyword fills a part slot of that name — a froe's handle).
+  keywords: [haft, pick-haft, shaped, "pick haft", "shaped pick haft"]
   shortDescription: shaped pick haft
   register: indefinite
   longDescription: >-

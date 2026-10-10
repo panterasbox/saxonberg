@@ -16,10 +16,15 @@ data:
   keywords: [shield, faced]
   register: indefinite
   longDescription: >
-    A broad round shield, oak-boarded and faced in metal. Held up between you
-    and one foe it turns almost anything — but it guards only what it faces,
-    and two attackers will find the side it can't cover.
-  _materialPath: /stuff/idea/material/alloy/steel
+    A broad round shield of oak boards faced in stiff hide, an iron boss
+    riveted over the grip. Held up between you and one foe it turns almost
+    anything — but it guards only what it faces, and two attackers will
+    find the side it can't cover.
+  # ⚠ LEATHER, because the face is hide (assembly D7): a whole's authored
+  # material is its FACING's by convention — the outer surface is what an
+  # edge, a flame or a splash of lye meets first. It read steel while the
+  # shield was three bars of metal at the anvil.
+  _materialPath: /stuff/idea/material/organic/leather
   _detailMaterialPaths:
     boards: /stuff/idea/material/wood/oak
   # An armor construction (it resists like plate) worn in the hand, not on the
@@ -29,3 +34,18 @@ data:
   gradeBand: fine
   slotClaims:
     "/stuff/idea/species/BodyPlan/biped": ["hand:left"]
+  # ⭐ What a shield is MADE OF (assembly D3, W2's fold route): three oak
+  # boards, a hide FACE glued over them, and an iron boss riveted through
+  # the middle with four rivets. ⭐ The face is `role: facing` — an edge
+  # blow lands on it and a blunt one on the boards behind it, because the
+  # fold asks which part answers the channel. `fit shield` raises one;
+  # `fit hide-face to shield` re-faces a cut-up one.
+  bill:
+    parts:
+      - { part: shield-board, plural: shield-boards, template: /trade/carpentry/thing/board, count: 3, role: structural, material: /stuff/idea/material/wood/oak }
+      - { part: hide-face, template: /trade/tanning/thing/hide-face, count: 1, role: facing, material: /stuff/idea/material/organic/leather }
+      - { part: boss, template: /trade/smithing/thing/shield-boss, count: 1, role: structural, material: /stuff/idea/material/element/iron }
+      - { part: rivet, plural: rivets, template: /trade/smithing/thing/rivet, count: 4, role: fastener, material: /stuff/idea/material/element/iron }
+    joints:
+      - { key: bossing, method: riveted, members: [boss, shield-board], fastener: rivet }
+      - { key: facing, method: glued, members: [hide-face, shield-board] }

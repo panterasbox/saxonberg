@@ -1,0 +1,20 @@
+# A pair of leather boots — ⭐ two uppers WELTED to two soles (`fit
+# leather-boots`), stitched with a needle under a tailor's band: the
+# cordwainer's act, which shares the code with cloth. The soles are the
+# bill's WEAR part — the line the street wears through — and a pair is
+# resoled, not replaced: `fit sole to boots`.
+#
+# The `sole` slot is not required by `lint:bills` (a wear part); it is
+# here because a pair of boots with no soles is a pair of socks.
+recipeId: leather-boots
+name: Leather Boots
+keywords: [leather-boots, boots]
+inputSlots:
+  - { slot: upper, category: leather, minGrade: fair, kind: item, count: 2 }
+  - { slot: sole, category: leather, minGrade: poor, kind: item, count: 2 }
+toolCapabilities: [mending]
+outputTemplate: /stuff/thing/armor/leather-boots
+outputMaterial: ''
+outputApplication: tangible
+difficulty: standard
+discipline: tailoring

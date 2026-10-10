@@ -14,6 +14,23 @@ data:
     A punched-tin lantern with a little glass door and a hook to hang it by. Lit, it throws a steady patterned light where a torch only gutters. It costs more than a fistful of torches and is worth it the first time you need both hands and still want to see — and unlike a torch you can fill it again.
   # ⚠ `BurnerMixin.lit` defaults TRUE. A lantern on a shop shelf is out.
   lit: false
+  # TIN — the body is, and a whole's material is its outside's.
+  _materialPath: /stuff/idea/material/element/tin
+  # ⭐⭐ What a lantern is MADE OF (assembly D3, AC 11): a tinsmith's
+  # soldered body, a glass pane SEATED in its door and a linen wick SEATED
+  # in its burner, all by hand. ⭐ The pane is the FACING — crack it and
+  # `Lamp.getEmittedFlux` lets out a third of the light, so the room gets
+  # darker; seat a new one (`fit pane to lantern`, a pane off the same
+  # shelf) and it gets brighter. ⭐ The wick is the WEAR part, and the
+  # chandler sells it by the length.
+  bill:
+    parts:
+      - { part: lantern-body, template: /trade/smithing/thing/lantern-body, count: 1, role: structural, material: /stuff/idea/material/element/tin }
+      - { part: pane, template: /trade/glass/thing/pane, count: 1, role: facing, material: /stuff/idea/material/glass/glass }
+      - { part: wick, template: /trade/chandlery/thing/wick, count: 1, role: wear, material: /stuff/idea/material/textile/linen }
+    joints:
+      - { key: glazing, method: seated, members: [pane, lantern-body] }
+      - { key: wicking, method: seated, members: [wick, lantern-body] }
   # Steady and bright — the reason it costs more than a torch.
   # ⭐⭐ The darkness sweep (fire build). `emittedIntensity` is a CEILING
   # now, not the reading: luminosity is incandescent soot, so a solid-fuel

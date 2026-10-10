@@ -32,3 +32,15 @@ data:
     "/stuff/idea/species/BodyPlan/biped": ["hand:left", "hand:right"]
   # ⭐ A hammer is a mace that has committed further.
   exercises: [bludgeons]
+  # ⭐ What it is MADE OF (assembly D3): a smith's head on a woodworker's
+  # haft. The smith forges the head (`forge warhammer-head`); the whole is `fit
+  # war-hammer`. The part names are the specific words because a bill's part is
+  # matched by keyword as well as by row — every head in a smithy answers
+  # to `head`. `material:` is what a FOUND one's parts are, promoted from
+  # `_detailMaterialPaths` above.
+  bill:
+    parts:
+      - { part: warhammer-head, template: /trade/smithing/thing/warhammer-head, count: 1, role: structural, material: /stuff/idea/material/alloy/steel }
+      - { part: haft, template: /trade/carpentry/thing/straight-haft, count: 1, role: structural, material: /stuff/idea/material/wood/oak }
+    joints:
+      - { key: hafting, method: wedged, members: [warhammer-head, haft] }

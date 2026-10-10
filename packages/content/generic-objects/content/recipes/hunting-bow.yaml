@@ -1,0 +1,23 @@
+# A hunting bow — ⭐ a bowstave, two horn nocks GLUED on its tips, and a
+# linen string looped over them. Run by `fit hunting-bow`. The bowyer is
+# a woodworker: the stave is the bow, and the nocks and the string are
+# what a bowyer buys in.
+#
+# The `bowstring` slot is the bill's WEAR part (`role: wear`), so
+# `lint:bills` does not require it — and it is here anyway, because a
+# bow is not finished until it is strung. Strung by hand (the `friction`
+# joint): restringing one is the one repair every archer does in the
+# field.
+recipeId: hunting-bow
+name: Hunting Bow
+keywords: [hunting-bow, bow]
+inputSlots:
+  - { slot: bowstave, category: wood, minGrade: fair, kind: item, count: 1 }
+  - { slot: nock, category: horn, minGrade: poor, kind: item, count: 2 }
+  - { slot: bowstring, category: textile, minGrade: poor, kind: item, count: 1 }
+toolCapabilities: []
+outputTemplate: /stuff/thing/arms/hunting-bow
+outputMaterial: ''
+outputApplication: tangible
+difficulty: standard
+discipline: carpentry

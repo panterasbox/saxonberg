@@ -9,7 +9,9 @@
 # resolution; equipment buys access.
 class: /trade/mining/thing/instrument/SurveyInstrument
 data:
-  keywords: [compass, surveyors-compass, needle, "surveyor's", surveyor, brass]
+  # ⚠ No `needle`: the needle is a PART now, and a bill's part is matched
+  # by keyword.
+  keywords: [compass, surveyors-compass, "surveyor's", surveyor, brass]
   shortDescription: surveyor's brass compass
   register: indefinite
   longDescription: >-
@@ -19,3 +21,23 @@ data:
     being set down on rock.
   mass: 0.4
   capabilities: ["surveying"]
+  # ⚠ COPPER for brass — the realm has no zinc (see the housing's row).
+  _materialPath: /stuff/idea/material/element/copper
+  # ⭐⭐ What a surveyor's compass is MADE OF (assembly D3, D14) — the
+  # instrument exemplar: a housing, a rose GLUED into it, a needle and a
+  # crystal SEATED in it. ⭐ Nothing else is needed for the derived
+  # property: a reading's ceiling reads the instrument's condition, and an
+  # assembly's condition is its worst line's — so a cracked crystal or a
+  # dragging needle reads coarser (AC 11), and `fit pane to compass` or
+  # `fit compass-needle to compass` puts it right. The crystal is a pane
+  # of the glasshouse's glass, `role: facing`.
+  bill:
+    parts:
+      - { part: housing, template: /trade/mining/thing/compass-housing, count: 1, role: structural, material: /stuff/idea/material/element/copper }
+      - { part: rose, template: /trade/mining/thing/compass-rose, count: 1, role: structural, material: /stuff/idea/material/textile/linen }
+      - { part: compass-needle, template: /trade/mining/thing/compass-needle, count: 1, role: structural, material: /stuff/idea/material/alloy/steel }
+      - { part: crystal, template: /trade/glass/thing/pane, count: 1, role: facing, material: /stuff/idea/material/glass/glass }
+    joints:
+      - { key: mounting, method: glued, members: [rose, housing] }
+      - { key: pivot, method: seated, members: [compass-needle, housing] }
+      - { key: glazing, method: seated, members: [crystal, housing] }

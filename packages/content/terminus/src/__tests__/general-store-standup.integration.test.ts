@@ -60,6 +60,14 @@ const FISHING_DIR = fileURLToPath(new URL("../../../trade-fishing/content/trade/
 const FISHING_SRC = fileURLToPath(new URL("../../../trade-fishing/src", import.meta.url));
 // ⭐ The pick haft (assembly drive 16) — a woodworker's wear part.
 const CARPENTRY_DIR = fileURLToPath(new URL("../../../trade-carpentry/content/trade/carpentry/", import.meta.url));
+// The wear-part line (assembly W6): a pane, a share, a sole, a cushion —
+// each from the pack whose trade makes it. The pane's `Sheet` class ships
+// in the glass pack's src/.
+const GLASS_DIR = fileURLToPath(new URL("../../../trade-glass/content/trade/glass/", import.meta.url));
+const GLASS_SRC = fileURLToPath(new URL("../../../trade-glass/src", import.meta.url));
+const SMITHING_DIR = fileURLToPath(new URL("../../../trade-smithing/content/trade/smithing/", import.meta.url));
+const TANNING_DIR = fileURLToPath(new URL("../../../trade-tanning/content/trade/tanning/", import.meta.url));
+const TAILORING_DIR = fileURLToPath(new URL("../../../trade-tailoring/content/trade/tailoring/", import.meta.url));
 const APICULTURE_DIR = fileURLToPath(new URL("../../../trade-apiculture/content/trade/apiculture/", import.meta.url));
 const APICULTURE_SRC = fileURLToPath(new URL("../../../trade-apiculture/src", import.meta.url));
 // ⭐ The four packs the reachability sweep's shelf lines reach into. Each
@@ -263,6 +271,10 @@ const ROW_HOMES: { prefix: string; dir: () => string }[] = [
   { prefix: "/trade/fishing/", dir: () => FISHING_DIR },
   { prefix: "/trade/apiculture/", dir: () => APICULTURE_DIR },
   { prefix: "/trade/carpentry/", dir: () => CARPENTRY_DIR },
+  { prefix: "/trade/glass/", dir: () => GLASS_DIR },
+  { prefix: "/trade/smithing/", dir: () => SMITHING_DIR },
+  { prefix: "/trade/tanning/", dir: () => TANNING_DIR },
+  { prefix: "/trade/tailoring/", dir: () => TAILORING_DIR },
   { prefix: "/stuff/", dir: () => OBJ_DIR },
 ];
 
@@ -381,6 +393,7 @@ describe("general-store standup (real seeds)", () => {
     ModuleApi.registerPackSource(HAULAGE_SRC, "/trade/haulage");
     ModuleApi.registerPackSource(TEXTILES_SRC, "/trade/textiles");
     ModuleApi.registerPackSource(DYEING_SRC, "/trade/dyeing");
+    ModuleApi.registerPackSource(GLASS_SRC, "/trade/glass");
     // ⚠⚠ The FABRIC forms — ⭐ **read from the ROWS now, not written out
     // here.** `woven` / `knit` / `felted` are registered at boot by
     // `FabricCatalogue` from `base-library`'s rows, and this harness

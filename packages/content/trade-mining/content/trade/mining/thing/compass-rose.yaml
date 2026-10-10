@@ -1,0 +1,16 @@
+# A compass rose — the printed card under a compass needle, marked in
+# whole degrees. ⭐ A leaf part of the surveyor's compass: what the needle
+# is READ against, so a card that has slipped or stained reads coarser
+# however true the needle is. Named for the rose, not the card — a bill's
+# part is matched by keyword, and a payment card answers to `card`.
+class: /platform/thing/Tool
+data:
+  keywords: [rose, compass-rose, "compass rose", "compass card"]
+  shortDescription: compass rose
+  register: indefinite
+  longDescription: >-
+    A disc of stiffened rag paper printed with a compass rose and ruled
+    round its rim in single degrees, every tenth one numbered.
+  mass: 0.005
+  capabilities: []
+  _materialPath: /stuff/idea/material/textile/linen
