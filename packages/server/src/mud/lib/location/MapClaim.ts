@@ -71,6 +71,16 @@
  * know what a modality is.
  *
  * A value-object module: the shape and the vocabulary, no behaviour.
+ *
+ * ⭐⭐ **`told` came back, and `charted` with it — each WITH a writer**
+ * (the maritime build). The cut above was right for its reason: an axis
+ * value with no writer teaches the wrong shape. Both now have one. A
+ * **chart** you read writes `charted` claims — the sea as the chart
+ * states it, wrong if the chart is wrong, and never corrected; a
+ * **pilot** you pay writes `told` claims, carrying `toldBy` so that a lie
+ * is traceable to whoever told it. And a claim may now be about a
+ * **band** (a current, a fog) as well as a place or an edge — what you
+ * know of the water between places, `where` in the chart's own words.
  */
 
 /** How a player came to know something about a place. */
@@ -79,12 +89,14 @@ export const MAP_CHANNELS = [
   'seen',
   'searched',
   'published',
+  'charted',
+  'told',
 ] as const;
 
 export type MapChannel = (typeof MAP_CHANNELS)[number];
 
-/** What a claim is about: a place, or a way out of one. */
-export type MapClaimKind = 'place' | 'edge';
+/** What a claim is about: a place, a way out of one, or a band of water. */
+export type MapClaimKind = 'place' | 'edge' | 'band';
 
 export interface MapClaim {
   kind: MapClaimKind;
@@ -171,6 +183,17 @@ export interface MapClaim {
    * A `seen` claim carries neither: a glance measures nothing.
    */
   conditional?: boolean;
+  /**
+   * For a `charted` or `told` claim about a band: WHERE it is, in the
+   * words the chart or the pilot used — *a mile wide, from the bar to
+   * Gannet Rock*. Kept as stated, so a wrong chart stays wrong.
+   */
+  where?: string;
+  /**
+   * For a `told` claim: who told you (their identity path) — the minimum
+   * that lets a lie be traced to whoever told it.
+   */
+  toldBy?: string;
   /** Game-second of the first observation of this exact claim. */
   firstSeen: number;
   /** Game-second of the most recent one. Bumped, never replaced. */

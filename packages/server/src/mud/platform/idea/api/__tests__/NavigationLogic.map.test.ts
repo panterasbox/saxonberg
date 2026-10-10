@@ -235,3 +235,28 @@ describe('the read', () => {
     expect(docs[0]!.claims).toEqual([]);
   });
 });
+
+describe('⭐ charted and told — each with a writer (maritime D9)', () => {
+  const BAND = '/test/sea/the-westerlies';
+
+  it('a chart read twice bumps; a chart that draws the band elsewhere APPENDS', async () => {
+    const right = claim({ kind: 'band', place: BAND, channel: 'charted', where: 'from the bar to the rock' });
+    await NavigationApi.recordPlace(VIEWER, LOCALITY, [right]);
+    await NavigationApi.recordPlace(VIEWER, LOCALITY, [{ ...right, lastSeen: 200 }]);
+    expect(saved?.claims).toHaveLength(1);
+    expect(saved?.claims[0]!.lastSeen).toBe(200);
+    const wrong = { ...right, where: 'ten miles south of the bar', lastSeen: 300 };
+    await NavigationApi.recordPlace(VIEWER, LOCALITY, [wrong]);
+    expect(saved?.claims.map((c) => c.where)).toEqual([
+      'from the bar to the rock',
+      'ten miles south of the bar',
+    ]);
+  });
+
+  it('two pilots telling the same thing are two sources', async () => {
+    const told = claim({ kind: 'band', place: BAND, channel: 'told', toldBy: '/test/pilot/a' });
+    await NavigationApi.recordPlace(VIEWER, LOCALITY, [told]);
+    await NavigationApi.recordPlace(VIEWER, LOCALITY, [{ ...told, toldBy: '/test/pilot/b' }]);
+    expect(saved?.claims.map((c) => c.toldBy)).toEqual(['/test/pilot/a', '/test/pilot/b']);
+  });
+});

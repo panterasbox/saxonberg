@@ -143,6 +143,23 @@ export default class ReadController extends CommandController<ReadModel> {
 
     // ── …and whatever reading it sets off ──
     await this.fireAnyWorking(target, context);
+    await this.takeAnyChart(target, context);
+  }
+
+  /**
+   * ⭐ A chart writes what it shows into the reader's map (maritime D15)
+   * — at the same seam a scroll's working fires, after the text has
+   * landed. It is still a reading: the marks show first.
+   */
+  private async takeAnyChart(target: Stuff, context: CommandContext): Promise<void> {
+    if (!MixinApi.isCharted(target)) return;
+    const giver = context.commandGiver;
+    const n = await target.writeClaimsFor(giver);
+    if (n === 0) return;
+    MessageApi.scene(giver)
+      .topic(TOPIC)
+      .toSelf(Mml.compose`You take in what the chart shows and carry it in your head now — \`map\` will show it.`)
+      .send();
   }
 
   /**

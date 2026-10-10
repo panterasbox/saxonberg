@@ -1,0 +1,26 @@
+# Navigation — reckoning where you are at sea, and knowing how wrong
+# you probably are (maritime build).
+#
+# ⭐ A sibling of `teamstering`, sharing its ISCED-F code — the same
+# field, a different practice (`guarding`/`stealth` at 1032 is the
+# shipped pair). ⛔ Not `pilotage`: a pilot's knowledge is CLAIMS about
+# one water, bought and sold and sometimes wrong, never a band you study
+# up. ⛔ Not `seamanship`, which is ship-handling and too broad.
+#
+# ⭐ Competence buys INFORMATION, not outcomes: the bracket on a sight is
+# narrower, a sounding reports what the bottom is, the reckoning is
+# stated more precisely. ⚠ It never makes the craft faster, never sets
+# the course truer, and gates no act — no conferrals, no synergies.
+# Earned by `measure latitude`, `measure depth`, and making the landfall
+# you said you would.
+class: /platform/idea/Discipline
+data:
+  key: navigation
+  channel: skill
+  label: Navigation
+  iscedf: "1041"  # ISCED-F 2013: transport services
+  description: >-
+    Reckoning a position from heading, speed and time; the sight, the
+    sounding and the landfall that correct it. Knowing how wrong you
+    probably are, and what it would cost to be sure.
+  requires: []

@@ -318,6 +318,8 @@ export const Mixins = {
   Positioned: 'PositionedMixin',
   // A craft that holds a course across an expanse (a ship, a boat).
   Voyaging: 'VoyagingMixin',
+  // A written thing whose reading writes `charted` claims (a chart).
+  Charted: 'ChartedMixin',
   // A thing that adds a line to its room's prose on `look` (Shore, Vantage).
   RoomContributor: 'RoomContributorMixin',
   DoorBearing: 'DoorBearingMixin',

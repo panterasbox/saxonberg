@@ -1,0 +1,27 @@
+# latitude — the noon sight: how far north you are, by a sextant.
+#
+# ⭐ The SAME instrument capability as `measure elevation` (`sighting`):
+# the sextant already ships, and a second reading on it is a row.
+#
+# ⭐ Latitude only. Longitude needs a clock, and that is another build;
+# the sight mends the reckoning north-south and leaves the east-west
+# error where it was. ⚠ `altitude` already exists and means YOUR height,
+# by altimeter — a different question.
+#
+# ⭐ The weather denial is the sky's own: under anything but a clear sky
+# the sight is refused in those words, with nothing added.
+class: /platform/idea/reading/LatitudeReading
+data:
+  channel: latitude
+  kind: fact
+  scope: [here]
+  discipline: navigation
+  instrument: sighting
+  instrumentNoun: "a sextant"
+  # No eye rung: you cannot judge a latitude by looking.
+  eyeCeiling: untrained
+  improves: >-
+    how far north you are, and nothing about how far along
+  stakes: >-
+    a landfall made on the wrong side of a headland; a course laid from
+    a reckoning forty miles adrift

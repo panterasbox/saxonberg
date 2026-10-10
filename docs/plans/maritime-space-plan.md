@@ -1535,6 +1535,27 @@ marked **B-n**.)*
   kind-row trick was not needed. `launch`/`recover` moved to B2 with the
   Boat they act on. D26 and D27 landed as planned.
 
+- ✅ **A4**. `charted` + `told` + kind `band` + `where?` + `toldBy?` on
+  `MapClaim` (docstring records the return, each with its writer);
+  `RouteClaimChannel` mirrors. **B-21:** no `recordChart` — charts write
+  through the existing `recordPlace` (same growth rule); a second Api
+  static that only forwards would be a thin-forwarder. **B-22:** the
+  dedupe key gains `where` and `toldBy`, so a wrong chart APPENDS beside a
+  right one and two pilots are two sources (the plan assumed `channel`
+  alone was enough — it is not: two charts of one band share every other
+  key part). Band claims are skipped when building a route graph (water
+  is not a way) and render in `map`'s own *The waters* section.
+  `ChartedMixin` + `Chart` + `ReadController.takeAnyChart` at the scroll's
+  seam. `LatitudeReading`: the centre is the TRUE latitude, the bracket
+  by band, printed to the places the bracket justifies (same answer,
+  different bracket — the base `observe()` would have moved the centre
+  per reader); refused under any non-`clear` sky in the sky's own word and
+  when the sun is down; mends only the plot's latitude; credits
+  `navigation`. **B-23:** a sextant row already shipped
+  (`/stuff/thing/instrument/sextant`, capability `sighting`, the
+  `measure elevation` instrument) — `latitude` names `instrument:
+  sighting`, a second reading on the same tool, and no new tool row.
+
 ---
 
 ## Drive record
