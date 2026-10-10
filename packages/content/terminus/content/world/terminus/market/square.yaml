@@ -76,6 +76,9 @@ data:
     # ⭐ The fish stall — a second consignment counter (fishing D11),
     # kept by the fishmonger on the market's roster.
     - /world/terminus/market/thing/fish-stall
+    # ⭐⭐ The standpipe on the city main (the pump build) — the tap that
+    # goes off when the intake pump does, and says so.
+    - /world/terminus/market/thing/standpipe
   cast:
     - /world/terminus/market/agent/fishmonger
   details:

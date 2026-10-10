@@ -13,7 +13,11 @@
 class: /system/water/thing/ControlStructure
 data:
   shortDescription: aqueduct house
-  keywords: [house, wheel, turbine, generator, aqueduct]
+  # ⚠ `"aqueduct house"`, not a bare `aqueduct` (the pump build): the bare
+  # word belongs to the aqueduct standing beside it, and sharing it made
+  # `analyze water aqueduct` a question about which of two things you meant.
+  # The printed name is a keyword, as every printed phrase must be.
+  keywords: [house, wheel, turbine, generator, "aqueduct house"]
   register: definite
   alternateNames: [wheelhouse, turbine]
   longDescription: |

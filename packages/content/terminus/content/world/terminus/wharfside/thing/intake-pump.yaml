@@ -1,0 +1,42 @@
+# The intake pump — the engine in the brick housing on the bank, and the
+# reason Terminus has water at all.
+#
+# ⭐⭐ The river is five metres BELOW the city, so the intake is a pumped
+# main, and before the pump build its pump was prose: a Detail that said
+# *"the pump is always running"* and drew nothing from anywhere. Now it is
+# a thing — a force pump on a grid meter — and it costs a watt, from the
+# Wharfside line, for as long as it runs. Switch it off and the city's
+# taps go off with it.
+#
+# ⚠⚠ Left OVERDRAWN, deliberately (a decision recorded in the pump
+# requirements): lifting the intake's full 1.2 m³/s through five metres
+# wants about 98 kW, and Wharfside's industrial band carries 60. So it
+# draws all the line gives it and lifts about three-fifths of what is
+# asked, and `analyze water the intake` SAYS so. ⛔ Do not raise the band
+# and do not lower the capacity — both would delete the lesson.
+#
+# Its packing wears by the running hour, integrated over the supply, and
+# nobody tends it yet: the keeper is the polity's position to create.
+class: /system/energy/thing/ElectricPump
+data:
+  keywords: [pump, engine, housing, shaft, "intake pump"]
+  shortDescription: intake pump
+  register: definite
+  longDescription: >-
+    A brick housing on the bank with a shaft turning inside it, and the
+    sound of a thing that has not stopped since it was built. The river is
+    below the city, so this runs or the city is dry. A cable comes down to
+    it from a pole by the gate.
+  mass: 1200
+  _materialPath: /stuff/idea/material/alloy/cast-iron
+  fixedInPlace: true
+  mechanism: /platform/idea/PumpMechanism/force
+  liftM: 30
+  # The intake's own capacity, in litres a second — and more than the
+  # line will power at this head.
+  throughputLps: 1200
+  strokeS: 20
+  # ⚠ RUNNING — `Switchable` defaults off.
+  on: true
+  props:
+    - /trade/tanning/thing/packing

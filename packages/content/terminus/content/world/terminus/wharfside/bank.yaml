@@ -149,6 +149,13 @@ data:
     # 1115 m of head spent between the cascade and 35 m at the city, and
     # the house is the weir on the last drop that takes the energy out of
     # water that was going past anyway.
+    #
+    # ⚠⚠ And the room's `aqueduct` DETAIL is gone (the pump build): it
+    # predated these two standing here, and a detail wins the binding — so
+    # `analyze water aqueduct` read the BANK ("carries no water anywhere")
+    # and `look aqueduct` read a sentence with nothing behind it. Two
+    # copies of one object, and the one that was not real won. The
+    # aqueduct and its house carry their own prose.
     - /world/terminus/wharfside/thing/cold-fell-aqueduct
     - /world/terminus/wharfside/thing/aqueduct-house
     # ⭐ A barge at the city's working wharf. The estuary mouth's own prose
@@ -160,10 +167,6 @@ data:
   cast:
     - /world/terminus/wharfside/agent/fisher
   details:
-    aqueduct:
-      keywords: [aqueduct, channel, "cold fell", conduit, arches, house, weir]
-      description: |
-        The Cold Fell conduit comes in high over the warehouse roofs on a line of brick arches and ends at a squat stone house on the quay, where the last of eleven hundred metres of fall is spent on a wheel. The water that goes in at the top of the fell does not come out of this river, and the men who built it were explicit about why.
     lamps:
       keywords: [lamps, lamp, standards, lighting]
       description: |

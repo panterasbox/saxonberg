@@ -39,9 +39,9 @@ import {
  * water standing in troughs.
  */
 export const DIRTY_REASON =
-  'carries the rack’s force pump and spare packing off to the deep well, ' +
-  'wears a packing it leaves behind on the hillside, and leaves water ' +
-  'standing in the troughs';
+  'carries the rack’s force pump, bailer and spare packing off to the old ' +
+  'brine bore, wears a packing it leaves behind on the hillside, draws ' +
+  'brine the salt leg never puts back, and leaves water in the troughs';
 
 declareFile({
   file: 'pump.dirty.wire.test.ts',
@@ -58,6 +58,9 @@ declareFile({
     'ground',
     'hinkley-hills',
     'eternal-university',
+    'energy',
+    'water',
+    'hearthworks',
   ],
   dirtyReason: DIRTY_REASON,
 });
@@ -535,5 +538,115 @@ suite('7. a dead brine bore: bail it once, then fit a pump', () => {
     note(`analyze pump bore (force) → ${eye.replace(/\s+/g, ' ').trim()}`);
     expect(eye).toMatch(/drives/i);
     expect(eye).not.toMatch(/no deeper than/);
+  });
+});
+
+/* ───────────── 8. the city intake costs a watt; the aqueduct does not ───────────── */
+
+const BANK = '/world/terminus/wharfside/bank';
+const SQUARE = '/world/terminus/market/square';
+const LANE = '/world/terminus/hinkley-hills/location/lane';
+const SMITHY = '/world/terminus/hearthworks/location/smithy';
+
+suite('8. the intake draws real power; the aqueduct draws none', () => {
+  it('⭐⭐ analyze water the intake reads the kilowatts — and says it is short of them', async () => {
+    k.close();
+    k = await Session.open(handle, { startLocation: BANK, wizard: true });
+    await daylight();
+    const intake = await read(k, 'analyze water intake');
+    note(`analyze water intake → ${intake.replace(/\s+/g, ' ').trim()}`);
+    expect(intake).toMatch(/kW/);
+    expect(intake).toMatch(/pump/i);
+    // ⭐ The overdraw, LEGIBLE: the pump wants more than the line gives it.
+    expect(intake).toMatch(/the line gives it 60\.0 kW/);
+    expect(intake).toMatch(/less than is asked of it/);
+
+    const aqueduct = await read(k, 'analyze water aqueduct');
+    note(`analyze water aqueduct → ${aqueduct.replace(/\s+/g, ' ').trim()}`);
+    expect(aqueduct).toMatch(/runs on gravity, and costs nothing to run/);
+
+    const power = await read(k, 'analyze power pump');
+    note(`analyze power pump → ${power.replace(/\s+/g, ' ').trim()}`);
+    expect(power, 'the pump is a real consumer on the Wharfside line').toMatch(/60\.0 kW reaching it/);
+    expect(power, 'a running pump turns').toMatch(/kg a minute/);
+  });
+});
+
+/* ───────────── 9. switch it off, and a tap uphill says so ───────────── */
+
+suite('9. stopping the city pump is observable from a tap uphill', () => {
+  it('⭐⭐⭐ off at the bank → the market standpipe is shut off, in the shipped words → on, and it runs', async () => {
+    const off = await act(k, 'switch pump off');
+    note(`switch pump off → ${refusedFor(off.r) ?? 'ok'} · ${off.said.trim()}`);
+    expect(refusedFor(off.r), `switch off: ${JSON.stringify(off.r.notes)}`).toBeNull();
+
+    k.close();
+    k = await Session.open(handle, { startLocation: SQUARE, wizard: true });
+    const looked = await read(k, 'look standpipe');
+    note(`look standpipe (pump off) → ${looked.replace(/\s+/g, ' ').trim()}`);
+    expect(looked).toMatch(/Nothing comes out of it: it has been shut off\./);
+    const dry = await act(k, 'fill pail from standpipe');
+    note(`fill pail from standpipe (pump off) → ${dry.said.trim()}`);
+    expect(dry.said).toMatch(/can't fill/i);
+    const report = await read(k, 'analyze water standpipe');
+    note(`analyze water standpipe (pump off) → ${report.replace(/\s+/g, ' ').trim()}`);
+    expect(report).toMatch(/NOT delivering: it has been shut off \(off\)/);
+
+    k.close();
+    k = await Session.open(handle, { startLocation: BANK, wizard: true });
+    const on = await act(k, 'switch pump on');
+    expect(refusedFor(on.r), `switch on: ${JSON.stringify(on.r.notes)}`).toBeNull();
+
+    k.close();
+    k = await Session.open(handle, { startLocation: SQUARE, wizard: true });
+    const wet = await act(k, 'fill pail from standpipe');
+    note(`fill pail from standpipe (pump on) → ${wet.said.trim()}`);
+    expect(wet.said).toMatch(/you fill/i);
+    expect(await read(k, 'look standpipe')).not.toMatch(/Nothing comes out/);
+    await say(k, 'spill pail');
+  });
+});
+
+/* ───────────── 10. the forge's bellows, as it always was ───────────── */
+
+suite('10. pump forge reads and behaves exactly as before', () => {
+  it('⭐ the bellows answers in its shipped sentences', async () => {
+    k.close();
+    k = await Session.open(handle, { startLocation: SMITHY, wizard: true });
+    const { r, said } = await act(k, 'pump forge');
+    note(`pump forge → ${refusedFor(r) ?? 'ok'} · ${said.trim()}`);
+    expect(r.notes.find((n) => n.kind === 'command-rejected')).toBeUndefined();
+    // ⚠ Which sentence depends on the forge's own state — a fresh world's
+    // forge has an empty bed — so the assertion reads the reason and holds
+    // the matching shipped sentence to the letter.
+    const why = refusedFor(r);
+    if (why === 'not-lit') {
+      // ⚠ The forge's NAME is perception's (an unlit smithy renders it
+      // "something"); the sentence frame is the shipped one, to the letter.
+      expect(said).toMatch(/^You work the bellows, but .+ is cold — air without fire moves nothing\.$/);
+    } else {
+      expect(why).toBeNull();
+      expect(said).toMatch(/You lean into the bellows, and .* roars up white-hot\./);
+    }
+  });
+});
+
+/* ───────────── 13. Hinkley still runs on gravity ───────────── */
+
+suite('13. the Hinkley tank still runs on gravity, with no pump', () => {
+  it('⭐ its fifteen metres of head still explain it', async () => {
+    k.close();
+    k = await Session.open(handle, { startLocation: LANE, wizard: true });
+    const tank = await read(k, 'analyze water tank');
+    note(`analyze water tank (Hinkley) → ${tank.replace(/\s+/g, ' ').trim()}`);
+    expect(tank).not.toMatch(/pump/i);
+    // ⚠ A FINDING, recorded rather than asserted away: the district tank is
+    // not a supply reporter, so `analyze water tank` answers "carries no
+    // water anywhere" — before this build and after it (the tank and the
+    // standpipe rows are not in this build's diff). The tank's own prose is
+    // what says its fifteen metres are the pressure.
+    const looked = await read(k, 'look tank');
+    note(`look tank (Hinkley) → ${looked.replace(/\s+/g, ' ').slice(0, 260)}`);
+    expect(looked).toMatch(/standpipe below runs because it is up here/i);
   });
 });

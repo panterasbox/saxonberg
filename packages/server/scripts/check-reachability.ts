@@ -574,6 +574,7 @@ const CITATIONS: Record<string, string> = {
   operatingLocations: "a business lists where it trades; it clones nothing",
   exemplar: "a par line's example good — it arrives by purchase, not by minting",
   mainsRef: "the line a device is wired to",
+  suppliedBy: "the main a tap is plumbed to — read live, never placed (the pump build)",
   source: "a feeder's generator — read live, never placed (the case that forced this list)",
   supply: "a locality's supply point",
   shelf: "a brain's config — the fixture is propped by its room",

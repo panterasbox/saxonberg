@@ -1,0 +1,26 @@
+# The market standpipe — a tap on a post at the edge of the square, on the
+# city main.
+#
+# ⭐⭐ The first tap in the realm that knows what feeds it. It is plumbed
+# to the city intake (`suppliedBy`), so it runs while the intake's pump
+# runs and goes dry the moment somebody switches it off — and says why, in
+# the supply vocabulary every utility shares: *it has been shut off*.
+# `analyze water standpipe` reads the main, not the tap, because what you
+# see at a tap is decided somewhere else.
+#
+# The square's prose has always had standpipes in it; this is one of them
+# made real.
+class: /platform/thing/WaterFixture
+data:
+  shortDescription: standpipe
+  keywords: [standpipe, tap, pipe, spigot, water]
+  register: indefinite
+  longDescription: >-
+    An iron pipe standing up out of the cobbles at the edge of the square,
+    with a brass tap on top and a worn stone set under it to stand a
+    bucket on.
+  mass: 40
+  _materialPath: /stuff/idea/material/alloy/cast-iron
+  interiorBulk: true
+  interiorMaterial: /stuff/idea/material/bulk/water
+  suppliedBy: /world/terminus/wharfside/thing/city-intake

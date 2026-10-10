@@ -18,7 +18,7 @@ data:
   keywords: [intake, mouth, screen, pillar, waterworks, city]
   register: definite
   longDescription: |
-    A screened mouth of riveted iron on a stone pillar out in the current, with a plank walkway to it and a housing on the bank where the pump lives. The pump is running. The pump is always running.
+    A screened mouth of riveted iron on a stone pillar out in the current, with a plank walkway to it and a housing on the bank where the pump lives.
   conduitKey: terminus-intake
   direction: supply
   reachRef: kestrel:confluence
@@ -30,15 +30,16 @@ data:
   treatmentFactor: 0
   ownerRef: "group:terminus"
   fixedInPlace: true
+  # ⭐⭐ Its pump is a THING now (the pump build) — the engine in the
+  # housing, on the Wharfside line, switchable, and the reason a tap uphill
+  # runs or does not. It used to be a Detail that drew nothing.
+  props:
+    - /world/terminus/wharfside/thing/intake-pump
   details:
     screen:
       keywords: [screen, mouth, grate, grille]
       description: |
         A riveted iron grille across the mouth, coarse enough to pass a fish and fine enough to stop a log. Somebody rakes it. You can tell because of what is piled beside it.
-    pump:
-      keywords: [pump, housing, engine, shed]
-      description: |
-        A brick housing on the bank with a shaft turning inside it, and the sound of a thing that has not stopped since it was built. The river is below the city, so this runs or the city is dry.
     walkway:
       keywords: [walkway, planks, plank, gangway]
       description: |

@@ -116,6 +116,7 @@ export interface Pumping extends Pumpable {
   isRunning(): boolean;
   moverPowerW(): number;
   deliverableM3S(headM: number, demandM3S: number): number;
+  throughputNow(): number;
   reconcileRunning(nowS: number): void;
   crewLitresFor(hands: number, elapsedS: number): number;
   liftsFrom(source: Stuff & LiftSource): Promise<boolean>;
@@ -465,6 +466,28 @@ export function PumpingMixin<TBase extends MixinConstructor>(Base: TBase) {
         if (perM3S > 0) q = Math.min(q, this.moverPowerW() / perM3S);
       }
       return Math.max(0, q);
+    }
+
+    /**
+     * ⭐ Kilograms a minute this pump is moving RIGHT NOW — the shape
+     * `analyze power` reads off any driven machine (the mill answers it
+     * first; a pump is the second). A pump nobody is working and no mover
+     * is driving moves nothing: *it will not turn*. Water is a kilogram a
+     * litre, near enough for a reading in words.
+     */
+    public throughputNow(): number {
+      if (!this.isRunning()) return 0;
+      const host = this.sourceOf() as unknown as {
+        getHeadM?: () => number | null;
+        standingDepthM?: () => number;
+      } | null;
+      const head =
+        typeof host?.getHeadM === 'function'
+          ? Math.abs(host.getHeadM() ?? 0)
+          : typeof host?.standingDepthM === 'function'
+            ? host.standingDepthM()
+            : 0;
+      return this.deliverableM3S(head, this.throughputLps / 1000) * 1000 * 60;
     }
 
     /**
