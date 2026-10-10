@@ -235,11 +235,32 @@ export function SeasoningMixin<TBase extends MixinConstructor>(Base: TBase) {
       return this.seasonWorst < 1 ? g.min(Grade.of(MaturationClock.bandFor(this.seasonWorst))) : g;
     }
 
+    /**
+     * The absorbed lot's seasoned fraction, stashed by {@link canMergeWith}
+     * — the merge destructs the absorbed stack BEFORE `onMerged` fires, so
+     * that hook cannot read it (the `Ore` precedent). Keyed on stuffId and
+     * cleared on use, so a probe that never merges cannot leak.
+     */
+    private _absorbingSeason: { stuffId: string; fraction: number } | null = null;
+
+    canMergeWith(other: Stuff): boolean {
+      const base = (Base.prototype as unknown as { canMergeWith?: (o: Stuff) => boolean })
+        .canMergeWith;
+      const ok = base ? base.call(this, other) : true;
+      this._absorbingSeason =
+        ok && MixinApi.isSeasoning(other)
+          ? { stuffId: other.stuffId, fraction: other.getSeasonedFraction() }
+          : null;
+      return ok;
+    }
+
     /** A merge takes the greener — weakest-link, applied to time. */
     onMerged(absorbed: Stuff): void {
+      const stashed = this._absorbingSeason;
+      this._absorbingSeason = null;
       this.reconcileSeasoning();
-      if (MixinApi.isSeasoning(absorbed)) {
-        this.seasonedFraction = Math.min(this.seasonedFraction, absorbed.getSeasonedFraction());
+      if (stashed !== null && stashed.stuffId === absorbed.stuffId) {
+        this.seasonedFraction = Math.min(this.seasonedFraction, stashed.fraction);
       }
       const base = (Base.prototype as unknown as { onMerged?: (a: Stuff) => void }).onMerged;
       if (base) base.call(this, absorbed);

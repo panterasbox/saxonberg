@@ -16,7 +16,11 @@ import { ContainmentApi } from '../../../api/containment';
 import { BiomeApi, type AirSegment } from '../../../api/biome';
 import { Evaporation } from '../../material/Evaporation';
 import { Grade } from '../../craft/Grade';
-import { makeStuff, makeStuffAtPath } from '../../security/__tests__/test-setup';
+import {
+  makeStuff,
+  makeStuffAtPath,
+  stampTemplatePathForTest,
+} from '../../security/__tests__/test-setup';
 
 class Yard extends ContainerMixin(Idea) {
   static _mixinName = 'SeasoningTestYard';
@@ -113,6 +117,12 @@ describe('SeasoningMixin', () => {
   it('a merge takes the greener', () => {
     const dry = stack(OAK, 0.9);
     const green = stack(OAK, 0.1);
+    // Stacks merge only within one row.
+    stampTemplatePathForTest(dry, '/x/thing/board');
+    stampTemplatePathForTest(green, '/x/thing/board');
+    // The merge's own order: the probe (which stashes the absorbed lot),
+    // then the witness — the absorbed stack is gone by the time it fires.
+    expect(dry.canMergeWith(green)).toBe(true);
     dry.onMerged(green);
     expect(dry.getSeasonedFraction()).toBeCloseTo(0.1, 6);
   });
