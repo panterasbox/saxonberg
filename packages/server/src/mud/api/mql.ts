@@ -112,13 +112,14 @@ export class MqlApi {
   }
 
   /**
-   * Make the synchronous resolver's warm reads current for `query`: a
-   * query naming the `horizon` seed recomputes the giver's horizon first
-   * (`PerceptionApi.horizonFor`). Everything else is a no-op. The command
-   * binder awaits this before resolving an object field.
+   * Make the synchronous resolver's warm reads current for `query`
+   * resolved over `scopes`: when either names the `horizon` seed, the
+   * giver's horizon is recomputed first (`PerceptionApi.horizonFor`).
+   * Everything else is a no-op. The command binder awaits this before
+   * resolving an object field.
    */
-  static prepare(query: string, giver: Stuff | null): Promise<void> {
-    return logic().prepare(query, giver);
+  static prepare(query: string, giver: Stuff | null, scopes: readonly string[] = []): Promise<void> {
+    return logic().prepare(query, giver, scopes);
   }
 
   /**

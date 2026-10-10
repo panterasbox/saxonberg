@@ -1575,7 +1575,7 @@ keyword `horizon` renamed (the seed would shadow it).
 - ✅ **C3 — watching.** R6, R7. Tests: HorizonWatch reports in/out deltas
   only; WatchController dispatch; the brain says sightings when on shift
   and not otherwise. Commit `…C3`.
-- **C4 — the bearing.** R8. Tests: truth, bracket by band, fix on a fixed
+- ✅ **C4 — the bearing.** R8. Tests: truth, bracket by band, fix on a fixed
   subject only. Commit `…C4`.
 - **C5 — the water, the fog.** R9, R10. Tests: the delta (no change → no
   line), the lean seam (inside the haar the sky reads fog; cold → no
@@ -1660,6 +1660,19 @@ keyword `horizon` renamed (the seed would shadow it).
   claims only `voice` (the watch holds `attention`). **B-47 (for C6):**
   the Hesper's outfit gets `startsShiftOnHire: true`, so `appoint` alone
   puts a hired lookout on watch.
+- ✅ **C4.** `BearingReading` (`/platform/idea/reading/bearing`,
+  capability `bearing`, eye rung at `untrained` = ±10°) answers off the
+  expanse's own `contactsFrom` from the reader's eye, so a light below
+  your horizon cannot be taken; a FIXED contact mends the reckoning to
+  `range × tan(bracket)` and a sail mends nothing. **B-48:** `measure`'s
+  and `analyze`'s subject scope gains `horizon` LAST (after `$focus` and
+  `reachable`), so `measure bearing light` finds the light without the
+  `horizon:` prefix; `MqlApi.prepare` therefore warms when a SCOPE names
+  the seed, not only the query. **B-49:** the hand-bearing compass row
+  lands with C4 on the Hesper's deck (not C6) — `lint:reachability`
+  refuses a row nothing places. The reading has no `truth()` override: a
+  bearing depends on the observer, and the engine's read has no single
+  scalar.
 
 ## Build log
 

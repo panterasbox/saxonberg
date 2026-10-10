@@ -25,6 +25,7 @@ data:
     - /world/terminus/hesper/thing/pump
     - /system/water/thing/lead-line
     - /stuff/thing/instrument/sextant
+    - /stuff/thing/instrument/hand-compass
     - /trade/fishing/thing/rod
     - /trade/fishing/thing/worm
     - /world/terminus/hesper/thing/dinghy

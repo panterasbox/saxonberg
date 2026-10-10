@@ -110,8 +110,13 @@ function consensusVia(
 export class MqlLogic extends ApiLogic {
   /** See {@link MqlApi.prepare}. */
   @CallSecurity(MqlApiCallers)
-  public async prepare(query: string, giver: Stuff | null): Promise<void> {
-    if (giver === null || !SURVEY_SEED_TOKEN.test(query)) return;
+  public async prepare(
+    query: string,
+    giver: Stuff | null,
+    scopes: readonly string[] = [],
+  ): Promise<void> {
+    if (giver === null) return;
+    if (!SURVEY_SEED_TOKEN.test(query) && !scopes.some((s) => SURVEY_SEED_TOKEN.test(s))) return;
     await PerceptionApi.horizonFor(giver);
   }
 
