@@ -10,6 +10,7 @@ import type { Containable } from '../../../lib/spatial/Containable';
 import { Quantity } from '../../../lib/quantity';
 import { MixinApi } from '../../../api/mixin';
 import { AddressApi } from '../../../api/address';
+import { ZoneApi } from '../../../api/zone';
 import { WorldClockApi } from '../../../api/worldclock';
 import { CelestialApi } from '../../../api/celestial';
 import { ConnectionApi } from '../../../api/connection';
@@ -128,27 +129,41 @@ const SEGMENTS_PER_YEAR = Math.round(
 const seasonCache = new Map<number, Season>();
 
 /**
- * The season governing a segment, evaluated at the segment's start.
- * Wave 1 season is global (single `CAMPUS_LATITUDE`), so the pure
- * `CelestialApi.seasonFor(EARTH_LIKE, t)` is sufficient and keeps
- * `weatherAt` process-stable with no clock. Memoized per year-relative
- * segment to keep the per-read cost off the gated proxy. Season is
+ * Is this site in the southern hemisphere? The grammar's only question
+ * about where it is: `SEASON_BIAS` biases by the LOCAL season, so a
+ * southern place snows in July. `null`/absent = the realm default
+ * (northern), which keeps every caller that names no site byte-identical.
+ */
+function isSouthern(site: ClimateSite | null | undefined): boolean {
+  return site != null && site.latitudeDeg < 0;
+}
+
+/**
+ * The season governing a segment, evaluated at the segment's start, in
+ * one hemisphere (`south`: the site's latitude is negative). The pure
+ * `CelestialApi.seasonFor(EARTH_LIKE, t, ±1)` keeps `weatherAt`
+ * process-stable with no clock. Memoized per (hemisphere, year-relative
+ * segment) to keep the per-read cost off the gated proxy. Season is
  * exactly periodic with `SEGMENTS_PER_YEAR`, so we both key AND compute
  * from the normalized non-negative residue — the computed value always
  * matches its key, and negative segments (the `seg - 1` interpolation
  * lookback at segment 0) never depend on `dayOfYear`'s negative-time
  * handling.
  */
-function seasonAtSegment(seg: number): Season {
-  const key =
+function seasonAtSegment(seg: number, south = false): Season {
+  const residue =
     SEGMENTS_PER_YEAR > 0
       ? ((seg % SEGMENTS_PER_YEAR) + SEGMENTS_PER_YEAR) % SEGMENTS_PER_YEAR
       : seg;
+  // The hemisphere is part of the key: the same segment is spring in the
+  // north and autumn in the south.
+  const key = south ? -1 - residue : residue;
   const hit = seasonCache.get(key);
   if (hit !== undefined) return hit;
   const season = CelestialApi.seasonFor(
     EARTH_LIKE,
-    key * WEATHER_DEFAULTS.SEGMENT_LENGTH_S,
+    residue * WEATHER_DEFAULTS.SEGMENT_LENGTH_S,
+    south ? -1 : 1,
   );
   seasonCache.set(key, season);
   return season;
@@ -192,8 +207,9 @@ function anchorTypeFor(
   anchorSeg: number,
   seed: number,
   lean: ClimateLean | null,
+  south = false,
 ): WeatherType {
-  const season = seasonAtSegment(anchorSeg);
+  const season = seasonAtSegment(anchorSeg, south);
   const roll = Seeded.unit(anchorSeg, seed ^ 0x0000_a5a5);
   return pickWeighted(ANCHOR_CANDIDATES, season, roll, lean);
 }
@@ -220,13 +236,14 @@ function typeForSegment(
   seg: number,
   seed: number,
   lean: ClimateLean | null,
+  south = false,
 ): WeatherType {
   if (forcedType !== null) return forcedType;
   const warm = WEATHER_DEFAULTS.GRAMMAR_WARMUP;
   const anchorSeg = Math.floor(seg / warm) * warm;
-  let cur = anchorTypeFor(anchorSeg, seed, lean);
+  let cur = anchorTypeFor(anchorSeg, seed, lean, south);
   for (let i = anchorSeg; i < seg; i++) {
-    const season = seasonAtSegment(i + 1);
+    const season = seasonAtSegment(i + 1, south);
     cur = nextTypeFrom(cur, season, Seeded.unit(i + 1, seed), lean);
   }
   return cur;
@@ -263,20 +280,25 @@ function lerpDeviation(
  * the current segment's. The reported type is always the current
  * segment's (piecewise-constant).
  */
-function computeSample(nowS: number, locality: Locality | null): WeatherSample {
+function computeSample(
+  nowS: number,
+  locality: Locality | null,
+  site?: ClimateSite | null,
+): WeatherSample {
   const seed = localitySeed(locality);
   const lean = leanOf(locality);
+  const south = isSouthern(site);
   const seg = segmentIndexAt(nowS);
   const segStart = seg * WEATHER_DEFAULTS.SEGMENT_LENGTH_S;
   const frac = (nowS - segStart) / WEATHER_DEFAULTS.SEGMENT_LENGTH_S;
 
-  const curType = typeForSegment(seg, seed, lean);
+  const curType = typeForSegment(seg, seed, lean, south);
   const curProfile = WEATHER_PROFILES[curType];
 
   let deviation = curProfile.deviation;
   const band = WEATHER_DEFAULTS.INTERP_BAND;
   if (band > 0 && frac < band) {
-    const prevType = typeForSegment(seg - 1, seed, lean);
+    const prevType = typeForSegment(seg - 1, seed, lean, south);
     const prevDev = WEATHER_PROFILES[prevType].deviation;
     deviation = lerpDeviation(prevDev, curProfile.deviation, frac / band);
   }
@@ -287,7 +309,7 @@ function computeSample(nowS: number, locality: Locality | null): WeatherSample {
     deviation,
     cloud: curProfile.cloud,
     precipitation: curProfile.precipitation,
-    season: seasonAtSegment(seg),
+    season: seasonAtSegment(seg, south),
   };
 }
 
@@ -460,6 +482,7 @@ function walkSegments(
   locality: Locality | null,
   visit: (segment: WeatherSegment) => void,
   maxSegments: number = WEATHER_DEFAULTS.PRECIPITATION_MAX_SEGMENTS,
+  site: ClimateSite | null = null,
 ): number {
   if (!Number.isFinite(t0S) || !Number.isFinite(t1S) || t1S <= t0S) return 0;
 
@@ -488,6 +511,7 @@ function walkSegments(
   const pin = locality?.getWeatherPin() ?? null;
   const seed = localitySeed(locality);
   const lean = leanOf(locality);
+  const south = isSouthern(site);
 
   for (let seg = firstSeg; seg <= lastSeg; seg++) {
     const segStart = seg * L;
@@ -495,8 +519,8 @@ function walkSegments(
     if (overlapS <= 0) continue;
     visit({
       segmentIndex: seg,
-      type: pin !== null ? pin.type : typeForSegment(seg, seed, lean),
-      season: seasonAtSegment(seg),
+      type: pin !== null ? pin.type : typeForSegment(seg, seed, lean, south),
+      season: seasonAtSegment(seg, south),
       startsAtS: segStart,
       overlapS,
     });
@@ -550,6 +574,7 @@ function pinnedSample(
   pin: WeatherPin,
   locality: Locality | null,
   nowS: number,
+  site: ClimateSite | null = null,
 ): WeatherSample {
   const profile = WEATHER_PROFILES[pin.type];
   const seg = segmentIndexAt(nowS);
@@ -559,12 +584,12 @@ function pinnedSample(
     deviation: pinnedDeviation(pin, locality, nowS),
     cloud: profile.cloud,
     precipitation: profile.precipitation,
-    season: seasonAtSegment(seg),
+    season: seasonAtSegment(seg, isSouthern(site)),
   };
 }
 
 /** The biome-baseline sample: `clear`, zero deviation (indoor / no-sky, no pin). */
-function baselineSample(nowS: number): WeatherSample {
+function baselineSample(nowS: number, site: ClimateSite | null = null): WeatherSample {
   const seg = segmentIndexAt(nowS);
   const p = WEATHER_PROFILES.clear;
   return {
@@ -573,7 +598,7 @@ function baselineSample(nowS: number): WeatherSample {
     deviation: p.deviation,
     cloud: p.cloud,
     precipitation: p.precipitation,
-    season: seasonAtSegment(seg),
+    season: seasonAtSegment(seg, isSouthern(site)),
   };
 }
 
@@ -610,10 +635,11 @@ function computeResolved(
   locality: Locality | null,
   nowS: number,
   skyExposed: boolean,
+  site: ClimateSite | null = null,
 ): ResolvedWeather {
   const pin = resolveWeatherPin(scope, locality);
   if (pin !== null) {
-    const sample = pinnedSample(pin, locality, nowS);
+    const sample = pinnedSample(pin, locality, nowS, site);
     return {
       sample,
       provenance: pin.mode === 'frozen' ? 'pin-frozen' : 'pin-alive',
@@ -624,7 +650,7 @@ function computeResolved(
   // No pin: the procgen sky field only reaches SkyExposed scopes; an
   // indoor scope reads the biome baseline (weather = sky dynamics).
   if (!skyExposed) {
-    const sample = baselineSample(nowS);
+    const sample = baselineSample(nowS, site);
     return {
       sample,
       provenance: 'biome',
@@ -632,7 +658,7 @@ function computeResolved(
       cloudForm: cloudFormFor(sample.type, []),
     };
   }
-  const sample = computeSample(nowS, locality);
+  const sample = computeSample(nowS, locality, site);
   const leaned = hasLean(leanOf(locality));
   return {
     sample,
@@ -674,6 +700,7 @@ function computeSkyRead(
   resolved: ResolvedWeather,
   locality: Locality | null,
   nowS: number,
+  site: ClimateSite | null = null,
 ): SkyRead {
   const modelled =
     resolved.provenance === 'procgen' ||
@@ -692,7 +719,7 @@ function computeSkyRead(
   const n = Math.max(0, Math.floor(dial(AppSettingKeys.weatherSkyForecastSegments, 2)));
   const upcoming: WeatherType[] = [];
   for (let i = 1; i <= n; i++) {
-    upcoming.push(typeForSegment(seg + i, seed, lean));
+    upcoming.push(typeForSegment(seg + i, seed, lean, isSouthern(site)));
   }
   const cloudForm = cloudFormFor(currentType, upcoming);
   return {
@@ -746,7 +773,8 @@ async function runBoundaryFanout(): Promise<void> {
 
     if (nowS === null) continue;
     const locality = await AddressApi.resolveLocalityFor(room);
-    const resolved = computeResolved(room, locality, nowS, sky);
+    const site = await siteOfRoom(room);
+    const resolved = computeResolved(room, locality, nowS, sky, site);
 
     // Puddle accrual / evaporation (Wave 2, D): source-indifferent — an
     // authored indoor rain fills a Floor pool exactly as procgen rain does.
@@ -778,7 +806,7 @@ async function runBoundaryFanout(): Promise<void> {
       // town, so the dim term asks for the exposed sample explicitly.
       const skySample = sky
         ? resolved.sample
-        : computeResolved(room, locality, nowS, true).sample;
+        : computeResolved(room, locality, nowS, true, site).sample;
       const dimFactor = dial(AppSettingKeys.weatherCloudDimFactor, 0.6);
       const dim = Math.max(0, 1 - dimFactor * skySample.cloud);
       (room as unknown as AmbientLit).setWeatherDimFactor(dim);
@@ -786,78 +814,18 @@ async function runBoundaryFanout(): Promise<void> {
   }
 }
 
-/* ─────────────────────────── Wave-2 puddle sink ─────────────────────────── */
-
 /**
- * ⭐⭐ **The sun's own contribution to the temperature**, in K, as a
- * deviation from the universe baseline.
- *
- * ```
- *   −A_year · cos(2π · doy / year)  −  A_day · cos(2π · (secOfDay − 3h) / day)
- * ```
- *
- * Two cosines: one turning once a year, one once a day, each at its
- * minimum where the sun is lowest. `A_year = 10 K` and `A_day = 4 K`
- * put a winter night near 281 K (8 °C), a winter noon near 289, a
- * summer noon near 309 and a summer night near 301. The diurnal term
- * lags three hours, so the coldest hour is about 3 a.m. rather than
- * midnight — heat keeps leaving after the sun stops arriving, which is
- * why dawn is the cold part of the night.
- *
- * ## ⚠⚠ Why this had to exist at all
- *
- * The requirements said *"outside, temperature is already alive — the
- * weather deviates it and the season biases it — so the realm already
- * has a winter"*. **It did not.** `WEATHER_PROFILES` deviate by weather
- * TYPE only (clear 0, overcast −1, rain −3, storm −5 K) over a 295 K
- * base, and `SEASON_BIAS` biases the type DISTRIBUTION — how often it
- * snows — and nothing else. So mid-winter at 3 a.m. read 290 K, which
- * is 17 °C, and *"an unheated room in winter is cold"* had nothing to
- * be cold FROM. The whole heat half of the build rested on a fact that
- * was true of snowfall and false of temperature.
- *
- * Same shape as the sky's illuminance factor and for the same reasons:
- * a pure function of game time, seeded-not-drawn, memoized per game
- * minute, with no state anywhere to go stale. ⚠ One latitude means one
- * climate — Terminus and Rejection get the same winter on the same day
- * — and widening that is the per-zone celestial profile, which stays a
- * named deferred seam.
+ * A room's climate site through its own memo (awaited, so a fan-out never
+ * folds the default), or `null` for a scope with no air of its own.
  */
-function solarTemperatureDeviationK(nowS: number): number {
-  const minute = Math.floor(nowS / 60);
-  if (solarTempMemo.minute === minute) return solarTempMemo.value;
-  const annualSwing = dial(AppSettingKeys.weatherSolarAnnualSwingK, 10);
-  const diurnalSwing = dial(AppSettingKeys.weatherSolarDiurnalSwingK, 4);
-  const doy = CelestialApi.dayOfYear(EARTH_LIKE, nowS);
-  const secOfDay = CelestialApi.secondOfDay(EARTH_LIKE, nowS);
-  const year = EARTH_LIKE.yearLengthDays;
-  const day = EARTH_LIKE.dayLengthSeconds;
-  // Day 0 is the vernal EQUINOX, so the annual minimum sits three
-  // quarters of a year later — hence the quarter-turn offset, which is
-  // what makes `cos` bottom out in winter rather than in spring.
-  const annual =
-    -annualSwing * Math.cos((2 * Math.PI * (doy - year / 4)) / year);
-  const diurnal =
-    -diurnalSwing * Math.cos((2 * Math.PI * (secOfDay - 3 * 3600)) / day);
-  const value = annual + diurnal;
-  solarTempMemo.minute = minute;
-  solarTempMemo.value = value;
-  return value;
+async function siteOfRoom(room: Stuff & Container): Promise<ClimateSite | null> {
+  if (!MixinApi.isAtmospheric(room)) return null;
+  const host = room as unknown as Atmospheric;
+  await host.resolveClimateSite();
+  return host.climateSite();
 }
 
-/**
- * Per-game-minute memo for {@link solarTemperatureDeviationK}.
- *
- * ⚠ Module scope, and legitimately: `CLAUDE.md`'s rule permits
- * `const` declarations including pure value construction, and
- * `WeatherLogic` already carries `seasonCache` in exactly this shape —
- * the function is pure, so the cache holds no world state and nothing
- * needs to initialize or reset it.
- */
-const solarTempMemo: { minute: number; value: number } = {
-  minute: -1,
-  value: 0,
-};
+/* ─────────────────────────── Wave-2 puddle sink ─────────────────────────── */
 
 /* ─────────────── the climate: one temperature from four levers ─────────────── */
 
@@ -1049,12 +1017,13 @@ function climateK(site: ClimateSite, nowS: number, d: ClimateDials): number {
 function weatherTemperatureDeviationK(
   locality: Locality | null,
   nowS: number,
+  site: ClimateSite | null = null,
 ): number {
   const pin = locality?.getWeatherPin() ?? null;
   const dev =
     pin !== null
       ? pinnedDeviation(pin, locality, nowS)
-      : computeSample(nowS, locality).deviation;
+      : computeSample(nowS, locality, site).deviation;
   return dev.temperature.rawValue();
 }
 
@@ -1065,7 +1034,7 @@ function temperatureAtSite(
   nowS: number,
   d: ClimateDials = climateDials(),
 ): number {
-  return climateK(site, nowS, d) + weatherTemperatureDeviationK(locality, nowS);
+  return climateK(site, nowS, d) + weatherTemperatureDeviationK(locality, nowS, site);
 }
 
 /** Numeric AppSetting read with a seeded-literal fallback (pre-warm safe). */
@@ -1197,7 +1166,7 @@ async function runStormFanout(): Promise<void> {
     visited.add(room.stuffId);
     if (!BiomeApi.isSkyExposed(room)) continue;
     const locality = await AddressApi.resolveLocalityFor(room);
-    const resolved = computeResolved(room, locality, nowS, true);
+    const resolved = computeResolved(room, locality, nowS, true, await siteOfRoom(room));
     if (resolved.sample.type !== 'storm') continue;
     // ⭐ D13: every occupant that answers to a storm is called — an overhead
     // LineAccess pole faults here (presence-gated, like every weather
@@ -1343,22 +1312,20 @@ export class WeatherLogic extends ApiLogic {
     locality: Locality | null,
     field: WeatherField,
     timeS: Quantity<'s'>,
+    site?: ClimateSite | null,
   ): Quantity<WeatherFieldUnit> {
     const nowS = timeS.rawValue();
     const pin = resolveWeatherPin(scope, locality);
     const dev =
       pin !== null
         ? pinnedDeviation(pin, locality, nowS)
-        : computeSample(nowS, locality).deviation;
-    const base = dev[field] as Quantity<WeatherFieldUnit>;
-    if (field !== 'temperature') return base;
-    // ⭐⭐ The SOLAR term (envelope D3a) rides beside the type deviation,
-    // and it is why the realm has a winter at all — see
-    // {@link solarTemperatureDeviationK}.
-    return Quantity.of(
-      base.rawValue() + solarTemperatureDeviationK(nowS),
-      base.unit,
-    ) as Quantity<WeatherFieldUnit>;
+        : computeSample(nowS, locality, site).deviation;
+    // ⚠ The weather TYPE's deviation only. The season and the day's swing
+    // are the CLIMATE's (`climateAt`), which the biome chain substitutes
+    // for the universe baseline under the sky — before the climate build
+    // a solar cosine rode here, on top of whatever the chain answered,
+    // authored or not.
+    return dev[field] as Quantity<WeatherFieldUnit>;
   }
 
   /** See {@link WeatherApi.resolveWeatherFor}. Async — resolves locality + sky. */
@@ -1382,7 +1349,8 @@ export class WeatherLogic extends ApiLogic {
     // this ~free after the first call.
     const { BiomeApi } = await import('../../../api/biome');
     const sky = BiomeApi.isSkyExposed(scope);
-    return computeResolved(scope, locality, nowS, sky);
+    const site = await ZoneApi.climateSiteFor(scope);
+    return computeResolved(scope, locality, nowS, sky, site);
   }
 
   /** See {@link WeatherApi.skyReadFor}. Async — resolves locality + forecast. */
@@ -1398,7 +1366,8 @@ export class WeatherLogic extends ApiLogic {
       };
     }
     const locality = await AddressApi.resolveLocalityFor(scope);
-    return computeSkyRead(resolved, locality, nowS);
+    const site = await ZoneApi.climateSiteFor(scope);
+    return computeSkyRead(resolved, locality, nowS, site);
   }
 
   /** See {@link WeatherApi.cloudFormFor}. Pure. */
@@ -1417,10 +1386,12 @@ export class WeatherLogic extends ApiLogic {
     segments?: number,
   ): Promise<WeatherForecast> {
     const locality = await AddressApi.resolveLocalityFor(scope);
+    const site = await ZoneApi.climateSiteFor(scope);
+    const south = isSouthern(site);
     const nowS = WorldClockApi.getNow().rawValue();
     const seed = localitySeed(locality);
     const lean = leanOf(locality);
-    const current = computeSample(nowS, locality);
+    const current = computeSample(nowS, locality, site);
     const n = Math.max(0, segments ?? WEATHER_DEFAULTS.FORECAST_SEGMENTS);
     const seg = current.segmentIndex;
     const upcoming: WeatherForecastEntry[] = [];
@@ -1428,7 +1399,7 @@ export class WeatherLogic extends ApiLogic {
       const s = seg + i;
       upcoming.push({
         segmentIndex: s,
-        type: typeForSegment(s, seed, lean),
+        type: typeForSegment(s, seed, lean, south),
         startsAt: Quantity.of(s * WEATHER_DEFAULTS.SEGMENT_LENGTH_S, 's'),
       });
     }
@@ -1439,7 +1410,8 @@ export class WeatherLogic extends ApiLogic {
   @CallSecurity(WeatherApiCallers)
   public async sampleFor(scope: Stuff & Container): Promise<WeatherSample> {
     const locality = await AddressApi.resolveLocalityFor(scope);
-    return computeSample(WorldClockApi.getNow().rawValue(), locality);
+    const site = await ZoneApi.climateSiteFor(scope);
+    return computeSample(WorldClockApi.getNow().rawValue(), locality, site);
   }
 
   /** See {@link WeatherApi.precipitationBetween}. */
@@ -1469,6 +1441,12 @@ export class WeatherLogic extends ApiLogic {
       maxSegments,
     );
     return out;
+  }
+
+  /** See {@link WeatherApi.climateAt}. Pure, SYNC. */
+  @CallSecurity(WeatherApiCallers)
+  public climateAt(site: ClimateSite, timeS: Quantity<'s'>): Quantity<'K'> {
+    return Quantity.of(climateK(site, timeS.rawValue(), climateDials()), 'K');
   }
 
   /** See {@link WeatherApi.temperatureAt}. Pure, SYNC. */

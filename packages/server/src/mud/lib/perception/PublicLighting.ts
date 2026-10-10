@@ -55,6 +55,7 @@ import type { Stuff } from '../stuff/Stuff';
 import { CelestialApi } from '../../api/celestial';
 import { AddressApi } from '../../api/address';
 import { StuffApi } from '../../api/stuff';
+import { MixinApi } from '../../api/mixin';
 
 /**
  * What a street says about the service the town runs on it.
@@ -137,9 +138,21 @@ export function PublicLightingMixin<TBase extends MixinConstructor<Stuff>>(
      * enough to need it**, and **the extent paid for this street
      * tonight**. Three conditions, all derived, none authored.
      */
+    /**
+     * The latitude this street's dusk is read at — its memoized climate
+     * site when it has air of its own (every street does), else the
+     * realm default. A polar street's lamps burn through its polar night.
+     */
+    private lightingLatitude(): number | undefined {
+      const self = this as unknown as Stuff;
+      return MixinApi.isAtmospheric(self)
+        ? self.climateSite().latitudeDeg
+        : undefined;
+    }
+
     public isPubliclyLitNow(): boolean {
       if (this.publicLighting === null) return false;
-      if (CelestialApi.skyFactorNow() >= CelestialApi.lampDuskFactor()) {
+      if (CelestialApi.skyFactorNow(this.lightingLatitude()) >= CelestialApi.lampDuskFactor()) {
         return false; // it is daylight; the lamps are out
       }
       const path = (this as unknown as Stuff).getTemplatePath();
@@ -195,7 +208,7 @@ export function PublicLightingMixin<TBase extends MixinConstructor<Stuff>>(
         return base;
       }
       let live: string;
-      if (CelestialApi.skyFactorNow() >= CelestialApi.lampDuskFactor()) {
+      if (CelestialApi.skyFactorNow(this.lightingLatitude()) >= CelestialApi.lampDuskFactor()) {
         live = 'The lamps are out; it is daylight.';
       } else if (this.isPubliclyLitNow()) {
         // ⭐ The epoch, derived off a lamp: "burning the town's oil" /

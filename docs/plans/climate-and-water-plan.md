@@ -1244,6 +1244,15 @@ weather dials: `climate.poleMeanK` 245, `climate.equatorMeanK` 301,
   that height (the pass keeps its own, higher, elevation).
 - **B3 (W0) — `phase` on `WeatherSegment` lands in W3** with the code that
   fills it, not as an empty field a wave early.
+- **B5 (W2) — the open-water biome breathes air.** The plan's
+  `_defaultAtmosphere: water` would drown everyone standing on a boat:
+  the atmosphere tag is the medium a body is IN (respiration's medium
+  trigger). The stub authors humidity 100 % and inherits air.
+- **B6 (W1) — the sync air substitutes the climate with no Locality.**
+  `airFor` used to fold nothing until the weather Locality resolved; the
+  climate needs only the site, so a sky place under no Locality still
+  has a season on the sync path (the weather deviation still waits for
+  the Locality).
 - **B4 (W0) — no `climate.defaultContinentality` dial.** The default site
   is the `DEFAULT_CLIMATE_SITE` value; a dial read beside a const would be
   two sources for one number.
@@ -1434,6 +1443,26 @@ live read's segment mean). Re-run the taps wire drive attached.
 ≈ 284 ± diurnal; `trace atmosphere` says *derived from the climate*;
 `analyze sky` at a `{−89}` test room (unit) says polar night on day 3.
 **Commit.** `build(climate W1): the sky derives from latitude — biome, celestial and season re-sourced`
+
+> ✅ **Done.** `temperatureTraceFor` mirrors `pressureTraceFor`: a sky
+> scope whose chain reaches the universe constant reads
+> `WeatherApi.climateAt(site)` + the weather (trace `source: 'climate'`,
+> naming the zone and the site); authored wins and takes the TYPE
+> deviation only. `outsideKFor` substitutes the climate whenever the
+> chain reached the root — ⚠ **so an indoor-biomed enclosed room now
+> drifts toward the real winter** (before, its outside was 295 K the
+> year round: `indoor/baseline` reached the root as `biome-ancestor`,
+> which the old `fromSky` test excluded). The solar cosine and its dial
+> are deleted. Season/hemisphere thread through the grammar
+> (`seasonAtSegment(seg, south)`; every weather fold of one scope passes
+> the site so its fields read one type). The `climateSite()` memo trio
+> is on `AtmosphericMixin`; the sync `airFor` substitutes the climate
+> even with no Locality (B6). Celestial location methods resolve
+> `latitudeFor(location)`; the sky factor memos key by ½° latitude;
+> vision, street dusk, `Producing.daylightFraction` and fishing's
+> twilight read the place's latitude; `analyze sky` names the polar
+> night/day. The taps wire re-run is folded into W11's drive boot (one
+> owned world for all wire runs).
 
 ### W2 — `lint:biome` and the loud catalogue; the water biome
 

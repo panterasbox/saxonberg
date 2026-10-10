@@ -4,6 +4,15 @@
 # returns this template. All six `_defaultX` fields are mandatory
 # at boot — the chain's terminal step (step 6) consults this biome.
 # `_defaultWind` is calm (0 m/s) by default; windy biomes override.
+#
+# ⭐ `_defaultTemperature` is NOT the temperature under the sky. Since the
+# climate build a sky-exposed place whose chain falls through to here
+# reads the DERIVED climate at its latitude, elevation, continentality
+# and offset (BiomeLogic's temperature trace, `source: climate`), and an
+# enclosed room drifts toward that same derived outside. This 295 K is
+# the temperature of a place that is neither under the sky nor authored
+# — an unbiomed interior, Offstage — and the chain's step 6 still
+# requires it.
 class: /platform/idea/Biome
 data:
   name: universe

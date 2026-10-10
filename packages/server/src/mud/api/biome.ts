@@ -45,6 +45,7 @@ import { HotReloadApi } from './hot-reload';
 import { BiomeLogic } from '../platform/idea/api/BiomeLogic';
 import { fileURLToPath } from 'url';
 import { SecurityApi } from './security';
+import type { ClimateSite } from '../lib/weather/WeatherType';
 
 /**
  * Provenance for a single resolved atmospheric field. Returned by
@@ -64,6 +65,11 @@ export interface AtmosphericTrace<V> {
     | 'biome-ancestor'
     | 'zone'
     | 'elevation'
+    // ⭐⭐ Under the sky, where no author said otherwise, the temperature
+    // is DERIVED — the climate at the place's latitude, elevation,
+    // continentality and offset, plus the weather. Replaces the universe
+    // constant the way `elevation` replaces its sea-level pressure.
+    | 'climate'
     | 'universe'
     // ⭐⭐ The room's own envelope answered: it is holding a state
     // different from its outside, and {@link EnvelopeTrace} says what
@@ -82,6 +88,8 @@ export interface AtmosphericTrace<V> {
   ancestorChain: string[];
   /** Present iff `source === 'envelope'`. What is keeping it there. */
   envelope?: EnvelopeTrace;
+  /** Present iff `source === 'climate'`. Where on the world it was derived for. */
+  site?: ClimateSite;
 }
 
 /**

@@ -31,21 +31,16 @@ const BASE_H = 50; // %
 const BASE_W = 5; // m/s
 
 /**
- * ⭐⭐ The temperature the solar term alone would produce right now,
- * over the biome base.
+ * ⭐⭐ The temperature under a clear sky right now — the CLIMATE alone.
  *
- * ⚠ Since the envelope build (D3a) the outdoor temperature carries a
- * **solar deviation** as well as the weather TYPE deviation: two
- * cosines, one turning once a year and one once a day, so that the
- * realm has a winter and a night at all. Before it, `SEASON_BIAS`
- * biased only how often it SNOWED and mid-winter at 3 a.m. read 17 °C.
- *
- * That term is a pure function of game time, so every absolute
- * temperature in this file would otherwise be a pin on what o'clock the
- * test clock happens to say. The seam this file is about is the
- * WEATHER fold, so the assertions compare against this baseline and the
- * claims are unchanged: *a storm reads its type's deviation below a
- * clear sky, and an indoor scope reads neither.*
+ * Since the climate build a sky-exposed scope whose chain reaches the
+ * universe constant reads the derived climate at its site (a pure
+ * function of game time and place), so every absolute temperature in
+ * this file would otherwise be a pin on what o'clock the test clock
+ * happens to say. The seam this file is about is the WEATHER fold, so the
+ * assertions compare against this baseline and the claims are unchanged:
+ * *a storm reads its type's deviation below a clear sky, and an indoor
+ * scope reads neither.*
  */
 async function solarBaseT(room: ReturnType<typeof skyRoom>): Promise<number> {
   // ⚠ Forces `clear` unconditionally, which also CREATES the weather

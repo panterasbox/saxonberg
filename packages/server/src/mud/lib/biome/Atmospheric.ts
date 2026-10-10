@@ -43,7 +43,12 @@ import { StuffApi } from '../../api/stuff';
 import { AddressApi } from '../../api/address';
 import type Locality from '../../platform/idea/Locality';
 import type Biome from './Biome';
-import type { WeatherPin } from '../weather/WeatherType';
+import {
+  DEFAULT_CLIMATE_SITE,
+  type ClimateSite,
+  type WeatherPin,
+} from '../weather/WeatherType';
+import { ZoneApi } from '../../api/zone';
 
 import type Material from '../material/Material';
 import type { Concentrate } from '../bulk/Concentration';
@@ -202,6 +207,30 @@ export interface Atmospheric {
    * A `Location` never calls it; `ExitableVessel.onMoved` does.
    */
   resetWeatherLocality(): void;
+
+  /**
+   * ⭐ **Where on the world this place is** — the four climate levers
+   * (`ZoneApi.climateSiteFor`), memoized SYNC for the readers that cannot
+   * await: the evaporation air, a floor's snow, the vision walk's sky.
+   *
+   * The {@link weatherLocality} memo's shape exactly, and its caveat:
+   * until the first walk lands this answers the realm default
+   * (`DEFAULT_CLIMATE_SITE`) and kicks the walk, so one sync read after a
+   * cold clone can see 42° at a polar place and heals on the next. The
+   * async readers (`resolveTemperatureFor`, the Reading verbs) await
+   * {@link resolveClimateSite} first, so a verb never sees the default.
+   * Not persisted, for the same reason the locality memo is not.
+   */
+  climateSite(): ClimateSite;
+
+  /** Run (or join) the zone walk behind {@link climateSite}. Coalescing. */
+  resolveClimateSite(): Promise<void>;
+
+  /** Forget the memoized site — my place changed (`ExitableVessel.onMoved`). */
+  resetClimateSite(): void;
+
+  /** Whether {@link climateSite} has resolved (vs. answering the default). */
+  isClimateSiteResolved(): boolean;
 
   // ---------- derived geometry ----------
 
@@ -1554,6 +1583,55 @@ export function AtmosphericMixin<
         // so a later read tries again instead of reading flat forever.
       } finally {
         this._weatherLocalityPromise = null;
+      }
+    }
+
+    // ---------- the climate site memo (climate build) ----------
+    // The weather-locality trio above, field for field: the site is
+    // WHERE the place is, the locality is WHOSE weather it has.
+
+    private _climateSite: ClimateSite | null = null;
+    private _climateSitePromise: Promise<void> | null = null;
+    private _climateSiteGeneration = 0;
+
+    public climateSite(): ClimateSite {
+      if (this._climateSite === null) {
+        void this.resolveClimateSite();
+        return DEFAULT_CLIMATE_SITE;
+      }
+      return this._climateSite;
+    }
+
+    public isClimateSiteResolved(): boolean {
+      return this._climateSite !== null;
+    }
+
+    public resolveClimateSite(): Promise<void> {
+      if (this._climateSite !== null) return Promise.resolve();
+      const inFlight = this._climateSitePromise;
+      if (inFlight !== null) return inFlight;
+      const started = this.walkClimateSite();
+      this._climateSitePromise = started;
+      return started;
+    }
+
+    public resetClimateSite(): void {
+      this._climateSiteGeneration += 1;
+      this._climateSite = null;
+    }
+
+    /** The walk itself; {@link resolveClimateSite} owns the coalescing. */
+    private async walkClimateSite(): Promise<void> {
+      const generation = this._climateSiteGeneration;
+      try {
+        const self = this as unknown as Stuff & Container;
+        const site = await ZoneApi.climateSiteFor(self);
+        if (generation !== this._climateSiteGeneration) return;
+        this._climateSite = site;
+      } catch {
+        // Unresolved stays unresolved: the next read walks again.
+      } finally {
+        this._climateSitePromise = null;
       }
     }
 

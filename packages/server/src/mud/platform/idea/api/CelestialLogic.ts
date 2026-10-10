@@ -7,6 +7,8 @@ import { CallSecurity, Unshadowable } from '../../../lib/security/decorators';
 import { SecurityPolicies } from '../../../lib/security/SecurityPolicies';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import type { Zone } from '../../../lib/zone/Zone';
+import { MixinApi } from '../../../api/mixin';
+import { ZoneApi } from '../../../api/zone';
 import { Quantity } from '../../../lib/quantity';
 import {
   type CelestialProfile,
@@ -116,11 +118,12 @@ export class CelestialLogic extends ApiLogic {
       ? await zone.lookupField<CelestialProfile>('celestialProfile')
       : null;
     // ⚠⚠ The single-profile guard (envelope D1). `skyFactorNow()` is a
-    // per-game-minute memo over EARTH_LIKE + CAMPUS_LATITUDE, consumed
-    // SYNCHRONOUSLY by the light walk for every room in the realm — one
-    // sky for one world. A second profile would make that memo silently
+    // per-game-minute memo over EARTH_LIKE, keyed by LATITUDE since the
+    // climate build, consumed SYNCHRONOUSLY by the light walk for every
+    // room in the realm — one sun for one world. A second profile (a
+    // different tilt, a different day) would make that memo silently
     // wrong for the rooms it does not describe, and the walk has no
-    // location-keyed seam to fix it in. So a zone that authors one fails
+    // profile-keyed seam to fix it in. So a zone that authors one fails
     // loudly and by name rather than reading the other world's sun.
     // `lint:light-sources` clause (f) refuses the row at build time; this
     // is the runtime half, for a profile that arrives some other way.
@@ -144,7 +147,8 @@ export class CelestialLogic extends ApiLogic {
    * initialize). `null` = nothing memoized yet.
    */
   private _skyFactorMinute: number | null = null;
-  private _skyFactorValue: number = 0;
+  /** Per-latitude values for `_skyFactorMinute` (½° keys; cleared each minute). */
+  private _skyFactorByLat = new Map<number, number>();
 
   /** See {@link CelestialApi.skyIlluminanceFactor}. */
   @CallSecurity(CelestialApiCallers)
@@ -159,17 +163,22 @@ export class CelestialLogic extends ApiLogic {
 
   /** See {@link CelestialApi.skyFactorNow}. */
   @CallSecurity(CelestialApiCallers)
-  public skyFactorNow(): number {
+  public skyFactorNow(latitudeDeg: number = CAMPUS_LATITUDE): number {
     const t = WorldClockApi.getNow().rawValue();
     const minute = Math.floor(t / 60);
-    if (this._skyFactorMinute === minute) return this._skyFactorValue;
-    const factor = skyIlluminanceFactor(EARTH_LIKE, CAMPUS_LATITUDE, t, {
+    if (this._skyFactorMinute !== minute) {
+      this._skyFactorMinute = minute;
+      this._skyFactorByLat.clear();
+    }
+    const key = Math.round(latitudeDeg * 2);
+    const hit = this._skyFactorByLat.get(key);
+    if (hit !== undefined) return hit;
+    const factor = skyIlluminanceFactor(EARTH_LIKE, key / 2, t, {
       twilightDecadeDeg: dial(AppSettingKeys.lightSkyTwilightDecadeDeg, 3),
       moonMax: dial(AppSettingKeys.lightSkyMoonMax, 0.03),
       starlight: dial(AppSettingKeys.lightSkyStarlight, 0.002),
     });
-    this._skyFactorMinute = minute;
-    this._skyFactorValue = factor;
+    this._skyFactorByLat.set(key, factor);
     return factor;
   }
 
@@ -178,15 +187,22 @@ export class CelestialLogic extends ApiLogic {
    * per-minute memo above, one rung coarser.
    */
   private _skyPeakDay: number | null = null;
-  private _skyPeakValue: number = 0;
+  private _skyPeakByLat = new Map<number, number>();
 
   /** See {@link CelestialApi.skyFactorDailyPeak}. */
   @CallSecurity(CelestialApiCallers)
-  public skyFactorDailyPeak(): number {
+  public skyFactorDailyPeak(latitudeDeg: number = CAMPUS_LATITUDE): number {
     const now = WorldClockApi.getNow().rawValue();
     const dayS = EARTH_LIKE.dayLengthSeconds;
     const day = Math.floor(now / dayS);
-    if (this._skyPeakDay === day) return this._skyPeakValue;
+    if (this._skyPeakDay !== day) {
+      this._skyPeakDay = day;
+      this._skyPeakByLat.clear();
+    }
+    const key = Math.round(latitudeDeg * 2);
+    const held = this._skyPeakByLat.get(key);
+    if (held !== undefined) return held;
+    const lat = key / 2;
     const opts = {
       twilightDecadeDeg: dial(AppSettingKeys.lightSkyTwilightDecadeDeg, 3),
       moonMax: dial(AppSettingKeys.lightSkyMoonMax, 0.03),
@@ -207,7 +223,7 @@ export class CelestialLogic extends ApiLogic {
       let bestT = from;
       for (let i = 0; i <= steps; i++) {
         const t = from + ((to - from) * i) / steps;
-        const f = skyIlluminanceFactor(EARTH_LIKE, CAMPUS_LATITUDE, t, opts);
+        const f = skyIlluminanceFactor(EARTH_LIKE, lat, t, opts);
         if (f > best) {
           best = f;
           bestT = t;
@@ -218,8 +234,7 @@ export class CelestialLogic extends ApiLogic {
     const step = dayS / SKY_SCAN_SAMPLES;
     const [, coarseT] = scan(t0, t0 + dayS, SKY_SCAN_SAMPLES);
     const [peak] = scan(coarseT - step, coarseT + step, SKY_SCAN_SAMPLES);
-    this._skyPeakDay = day;
-    this._skyPeakValue = peak;
+    this._skyPeakByLat.set(key, peak);
     return peak;
   }
 
@@ -235,7 +250,8 @@ export class CelestialLogic extends ApiLogic {
   @CallSecurity(CelestialApiCallers)
   public async isDayAt(location: Stuff, time?: Quantity<'s'>): Promise<boolean> {
     const profile = await this.profileFor(location);
-    return isDay(profile, CAMPUS_LATITUDE, nowOr(time));
+    const lat = await latitudeFor(location);
+    return isDay(profile, lat, nowOr(time));
   }
 
   /** See {@link CelestialApi.sunAltitude}. */
@@ -245,8 +261,9 @@ export class CelestialLogic extends ApiLogic {
     time?: Quantity<'s'>
   ): Promise<Quantity<'degrees'>> {
     const profile = await this.profileFor(location);
+    const lat = await latitudeFor(location);
     return Quantity.of(
-      solarAltitudeDeg(profile, CAMPUS_LATITUDE, nowOr(time)),
+      solarAltitudeDeg(profile, lat, nowOr(time)),
       'degrees'
     );
   }
@@ -258,8 +275,9 @@ export class CelestialLogic extends ApiLogic {
     time?: Quantity<'s'>
   ): Promise<Quantity<'degrees'>> {
     const profile = await this.profileFor(location);
+    const lat = await latitudeFor(location);
     return Quantity.of(
-      solarAzimuthDeg(profile, CAMPUS_LATITUDE, nowOr(time)),
+      solarAzimuthDeg(profile, lat, nowOr(time)),
       'degrees'
     );
   }
@@ -271,7 +289,8 @@ export class CelestialLogic extends ApiLogic {
     time?: Quantity<'s'>
   ): Promise<Season> {
     const profile = await this.profileFor(location);
-    return seasonFor(profile, nowOr(time));
+    const lat = await latitudeFor(location);
+    return seasonFor(profile, nowOr(time), lat);
   }
 
   /* ──────────────────── event times ──────────────────── */
@@ -283,9 +302,10 @@ export class CelestialLogic extends ApiLogic {
     time?: Quantity<'s'>
   ): Promise<Quantity<'s'>> {
     const profile = await this.profileFor(location);
+    const lat = await latitudeFor(location);
     const next = nextSolarEvent(
       profile,
-      CAMPUS_LATITUDE,
+      lat,
       nowOr(time),
       'sunrise'
     );
@@ -299,9 +319,10 @@ export class CelestialLogic extends ApiLogic {
     time?: Quantity<'s'>
   ): Promise<Quantity<'s'>> {
     const profile = await this.profileFor(location);
+    const lat = await latitudeFor(location);
     const next = nextSolarEvent(
       profile,
-      CAMPUS_LATITUDE,
+      lat,
       nowOr(time),
       'sunset'
     );
@@ -330,9 +351,10 @@ export class CelestialLogic extends ApiLogic {
     time?: Quantity<'s'>
   ): Promise<Quantity<'degrees'>> {
     const profile = await this.profileFor(location);
+    const lat = await latitudeFor(location);
     const synodic = profile.moons[0]?.synodicPeriodDays ?? defaultSynodic();
     return Quantity.of(
-      moonAltitudeDeg(profile, CAMPUS_LATITUDE, synodic, nowOr(time)),
+      moonAltitudeDeg(profile, lat, synodic, nowOr(time)),
       'degrees'
     );
   }
@@ -344,9 +366,10 @@ export class CelestialLogic extends ApiLogic {
     time?: Quantity<'s'>
   ): Promise<Quantity<'degrees'>> {
     const profile = await this.profileFor(location);
+    const lat = await latitudeFor(location);
     const synodic = profile.moons[0]?.synodicPeriodDays ?? defaultSynodic();
     return Quantity.of(
-      moonAzimuthDeg(profile, CAMPUS_LATITUDE, synodic, nowOr(time)),
+      moonAzimuthDeg(profile, lat, synodic, nowOr(time)),
       'degrees'
     );
   }
@@ -484,8 +507,9 @@ export class CelestialLogic extends ApiLogic {
     time?: Quantity<'s'>
   ): Promise<Quantity<'s'>> {
     const profile = await this.profileFor(location);
+    const lat = await latitudeFor(location);
     return Quantity.of(
-      daylightSeconds(profile, CAMPUS_LATITUDE, nowOr(time)),
+      daylightSeconds(profile, lat, nowOr(time)),
       's'
     );
   }
@@ -497,9 +521,10 @@ export class CelestialLogic extends ApiLogic {
     time?: Quantity<'s'>
   ): Promise<number> {
     const profile = await this.profileFor(location);
+    const lat = await latitudeFor(location);
     const day = profile.dayLengthSeconds;
     if (day <= 0) return 0;
-    return daylightSeconds(profile, CAMPUS_LATITUDE, nowOr(time)) / day;
+    return daylightSeconds(profile, lat, nowOr(time)) / day;
   }
 
   /** See {@link CelestialApi.sunriseSecOfDay}. */
@@ -619,6 +644,23 @@ export class CelestialLogic extends ApiLogic {
 // Pure geometry (module-private free functions, off-class, ungated). The
 // pedagogical seam: plain numbers in, plain numbers out.
 // ---------------------------------------------------------------------------
+
+/**
+ * **The latitude of a place** — its zone chain's `latitude`, through the
+ * one resolver the climate uses (`ZoneApi.climateSiteFor`), so the sun's
+ * path and the temperature it drives are read at one latitude. A place
+ * whose chain authors none is at {@link CAMPUS_LATITUDE}, the default.
+ */
+async function latitudeFor(location: Stuff): Promise<number> {
+  if (MixinApi.isContainer(location)) {
+    return (await ZoneApi.climateSiteFor(location)).latitudeDeg;
+  }
+  const zone = (
+    location as Stuff & { getZone?: () => Zone | null }
+  ).getZone?.();
+  const authored = zone ? await zone.lookupField<number>('latitude') : null;
+  return authored ?? CAMPUS_LATITUDE;
+}
 
 /** Resolve `time` to a raw second value, defaulting to the world clock. */
 function nowOr(time?: Quantity<'s'>): number {

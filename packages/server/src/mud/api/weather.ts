@@ -196,6 +196,16 @@ export class WeatherApi {
   }
 
   /**
+   * **The climate alone at a site** — {@link temperatureAt} without the
+   * weather's deviation. The biome chain substitutes this for the
+   * universe baseline under the sky, then folds the (pin-aware, per-scope)
+   * weather deviation on top through {@link deviatedFieldFor}.
+   */
+  public static climateAt(site: ClimateSite, timeS: Quantity<'s'>): Quantity<'K'> {
+    return logic().climateAt(site, timeS);
+  }
+
+  /**
    * The local season at a site — the day-of-year quarter, shifted half a
    * year in the southern hemisphere. The same geometry as
    * {@link temperatureAt}, so a place's season and its cold agree.
@@ -272,14 +282,19 @@ export class WeatherApi {
    * `Locality | null`; this folds the **pinned type's** deviation when a
    * pin governs the scope, else the procgen deviation — byte-identical to
    * `deviationFor` when no pin applies.
+   *
+   * ⚠ The weather TYPE's deviation only — the season and the diurnal
+   * swing are the climate's ({@link climateAt}). `site` decides the
+   * hemisphere the grammar's season bias reads (default northern).
    */
   public static deviatedFieldFor(
     scope: Stuff & Container,
     locality: Locality | null,
     field: WeatherField,
     timeS: Quantity<'s'>,
+    site?: ClimateSite | null,
   ): Quantity<WeatherFieldUnit> {
-    return logic().deviatedFieldFor(scope, locality, field, timeS);
+    return logic().deviatedFieldFor(scope, locality, field, timeS, site);
   }
 
   /* ──────────────── cloud forms (Wave 2, Phase H) ──────────────── */

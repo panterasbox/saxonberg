@@ -1612,15 +1612,11 @@ export const AppSettingKeys = {
    * pick a presaging cloud form (the deterministic forecast tell). */
   weatherSkyForecastSegments: "weather.skyForecastSegments",
   /**
-   * ⭐⭐ Weather — the ANNUAL temperature swing, in K either side of the
-   * universe baseline (envelope D3a). The realm's winter: before this
-   * the season biased only how often it SNOWED, and mid-winter at 3 a.m.
-   * read 17 °C.
-   */
-  weatherSolarAnnualSwingK: "weather.solarAnnualSwingK",
-  /**
    * Weather — the DIURNAL temperature swing, in K either side of the
    * day's mean. Lagged three hours, so the coldest hour is near dawn.
+   * (Its annual sibling, `weather.solarAnnualSwingK`, retired with the
+   * climate build: the season is DERIVED from latitude now — see the
+   * `climate.*` keys.)
    */
   weatherSolarDiurnalSwingK: "weather.solarDiurnalSwingK",
 

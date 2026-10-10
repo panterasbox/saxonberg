@@ -41,6 +41,17 @@ function describeSource(trace: AtmosphericTrace<unknown>): string {
       // Pressure DERIVED from the zone's height above sea level (D4) —
       // the reading whose cause the altimeter is actually measuring.
       return `derived from elevation (${trace.sourcePath})`;
+    case 'climate': {
+      // ⭐ Derived, not authored: the sun at this latitude, the land's
+      // memory, the height and the anomaly — plus the weather.
+      const s = trace.site;
+      const where = trace.sourcePath ?? 'the realm default';
+      return s
+        ? `derived from the climate at ${where} (latitude ${s.latitudeDeg}°, ` +
+            `${s.elevationM} m, continentality ${s.continentality}` +
+            `${s.offsetK !== 0 ? `, offset ${s.offsetK} K` : ''})`
+        : `derived from the climate at ${where}`;
+    }
     case 'universe':
       return `universe default`;
     case 'envelope':

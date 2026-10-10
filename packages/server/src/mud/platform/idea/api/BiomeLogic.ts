@@ -29,6 +29,10 @@ import { Evaporation } from '../../../lib/material/Evaporation';
 import type { AirSegment } from '../../../api/biome';
 import type Locality from '../Locality';
 import type { Concentrate } from '../../../lib/bulk/Concentration';
+import {
+  DEFAULT_CLIMATE_SITE,
+  type ClimateSite,
+} from '../../../lib/weather/WeatherType';
 import { AppApi } from '../../../api/app';
 import { AppSettingKeys } from '../../../lib/config/AppSettings';
 
@@ -273,14 +277,7 @@ export class BiomeLogic extends ApiLogic {
       const envelope = await resolveEnvelopeTemperature(scope);
       if (envelope !== null) return Quantity.of(envelope.value, 'K');
     }
-    return resolveQuantityFor<'K'>(
-      scope,
-      detailKey,
-      'temperature',
-      (b) => b.getDefaultTemperature(),
-      (a, k) => readDetailMap<Quantity<'K'>>(a._detailTemperatures, k),
-      (a) => a._temperature,
-    );
+    return (await liveTemperatureTraceFor(scope, detailKey)).value;
   }
 
   /**
@@ -314,6 +311,7 @@ export class BiomeLogic extends ApiLogic {
         locality,
         'pressure',
         WorldClockApi.getNow(),
+        await climateSiteOf(scope),
       );
       return base.add(dev as unknown as Quantity<'Pa'>);
     }
@@ -458,14 +456,10 @@ export class BiomeLogic extends ApiLogic {
         };
       }
     }
-    return traceResolveQuantityFor<'K'>(
-      scope,
-      detailKey,
-      'temperature',
-      (b) => b.getDefaultTemperature(),
-      (a, k) => readDetailMap<Quantity<'K'>>(a._detailTemperatures, k),
-      (a) => a._temperature,
-    );
+    // ⭐ The trace reports the chain's provenance un-weathered, as every
+    // trace does — EXCEPT the climate, whose answer is the air under the
+    // sky, weather and all, so `trace atmosphere` and `measure` agree.
+    return temperatureTraceFor(scope, detailKey);
   }
 
   /** See {@link BiomeApi.traceResolvePressureFor}. */
@@ -590,12 +584,17 @@ export class BiomeLogic extends ApiLogic {
   @CallSecurity(BiomeApiCallers)
   public airFor(scope: Stuff & Container): Evaporation {
     const base = localAir(scope);
+    if (!WeatherApi.isActive() || !skyExposedWalk(scope)) return base;
+    // The climate substitutes for the universe constant whether or not a
+    // Locality is known — a sky with no weather is still a sky with a
+    // season. The weather's deviation needs the Locality (null until the
+    // memo lands, the `weatherLocalityOf` caveat).
+    const tempK = skyBaseTempK(scope, base.tempK, WorldClockApi.getNow().rawValue());
     const dev = liveDeviation(scope);
-    if (dev === null) return base;
     return new Evaporation(
-      base.humidityPct + dev.humidity,
-      base.windMs + dev.wind,
-      base.tempK + dev.temperature,
+      base.humidityPct + (dev?.humidity ?? 0),
+      base.windMs + (dev?.wind ?? 0),
+      tempK + (dev?.temperature ?? 0),
     );
   }
 
@@ -639,10 +638,15 @@ export class BiomeLogic extends ApiLogic {
 
     return segments.map((seg) => {
       const dev = WEATHER_PROFILES[seg.type].deviation;
+      // ⭐ The climate at the middle of the overlap — the same expression
+      // the live read takes, so drying and maturation integrate the
+      // winter a `feel` reports (before the climate build this path had
+      // no seasonal term at all).
+      const midS = seg.startsAtS + seg.overlapS / 2;
       const air = new Evaporation(
         base.humidityPct + dev.humidity.rawValue(),
         base.windMs + dev.wind.rawValue(),
-        base.tempK + dev.temperature.rawValue(),
+        skyBaseTempK(scope, base.tempK, midS) + dev.temperature.rawValue(),
       );
       // The segment's own rate, integrated through the shipped spine
       // rather than read off a private table — so the operator dials
@@ -963,13 +967,31 @@ async function outsideKFor(scope: Stuff & Container): Promise<number> {
     (a) => a._temperature,
   );
   let outside = trace.value.rawValue();
+  if (!WeatherApi.isActive()) return outside;
+
+  // ⭐⭐ The climate build: where the chain fell through to the universe
+  // constant — reached directly, or through an indoor or sky biome that
+  // says nothing about temperature — the outside IS the climate at this
+  // place, plus the weather. An enclosed room drifts toward the real
+  // winter now; before, an indoor-biomed room's outside was 295 K the
+  // year round. An authored temperature anywhere in the chain (the
+  // upper workings' 285 K of rock) still wins and the weather does not
+  // touch it, unless it is a sky biome's.
+  if (trace.sourcePath === ROOT_BIOME_PATH) {
+    const site = await climateSiteOf(scope);
+    const locality = await AddressApi.resolveLocalityFor(scope);
+    const now = WorldClockApi.getNow();
+    return (
+      WeatherApi.climateAt(site, now).rawValue() +
+      WeatherApi.deviatedFieldFor(scope, locality, 'temperature', now, site).rawValue()
+    );
+  }
 
   const fromSky =
-    trace.source === 'universe' ||
-    ((trace.source === 'biome' || trace.source === 'biome-ancestor') &&
-      trace.sourcePath !== null &&
-      isSkyBiomePath(trace.sourcePath));
-  if (!fromSky || !WeatherApi.isActive()) return outside;
+    (trace.source === 'biome' || trace.source === 'biome-ancestor') &&
+    trace.sourcePath !== null &&
+    isSkyBiomePath(trace.sourcePath);
+  if (!fromSky) return outside;
 
   const locality = await AddressApi.resolveLocalityFor(scope);
   outside += WeatherApi.deviatedFieldFor(
@@ -977,8 +999,126 @@ async function outsideKFor(scope: Stuff & Container): Promise<number> {
     locality,
     'temperature',
     WorldClockApi.getNow(),
+    await climateSiteOf(scope),
   ).rawValue();
   return outside;
+}
+
+/**
+ * ⭐⭐ **The temperature chain under the sky — the climate build's D4.**
+ *
+ * Mirrors {@link pressureTraceFor}: run the chain, and when it fell all
+ * the way through to the universe constant (`sourcePath ===
+ * ROOT_BIOME_PATH`) on a sky-exposed scope with weather active, the
+ * answer is the CLIMATE at this place — `WeatherApi.climateAt` at its
+ * site — plus the weather's deviation (pin-aware, per scope). The 295 K
+ * in hand was never anything an author said about this place, so
+ * replacing it takes nothing from anybody.
+ *
+ * An authored temperature anywhere in the chain (a detail, the room, a
+ * biome row, a zone's `atmosphere.temperature`) short-circuits earlier
+ * and is returned as the chain answered it, un-weathered — the caller
+ * folds the weather TYPE deviation on top for a sky scope
+ * ({@link liveTemperatureTraceFor}). The honest tool for *this place is
+ * warmer than its latitude* is the zone's `climateOffsetK`, not a flat
+ * number on an outdoor biome (`lint:biome` refuses one).
+ */
+async function temperatureTraceFor(
+  scope: Stuff & Container,
+  detailKey: string | undefined,
+): Promise<AtmosphericTrace<Quantity<'K'>>> {
+  const trace = await runChainWalk<Quantity<'K'>>(
+    scope,
+    detailKey,
+    'temperature',
+    (b) => b.getDefaultTemperature(),
+    (a, k) => readDetailMap<Quantity<'K'>>(a._detailTemperatures, k),
+    (a) => a._temperature,
+  );
+  if (trace.sourcePath !== ROOT_BIOME_PATH) return trace;
+  if (!WeatherApi.isActive() || !skyExposedWalk(scope)) return trace;
+  const site = await climateSiteOf(scope);
+  const locality = await AddressApi.resolveLocalityFor(scope);
+  const now = WorldClockApi.getNow();
+  const value = WeatherApi.climateAt(site, now).add(
+    WeatherApi.deviatedFieldFor(
+      scope,
+      locality,
+      'temperature',
+      now,
+      site,
+    ) as unknown as Quantity<'K'>,
+  );
+  return {
+    value,
+    source: 'climate',
+    sourcePath: outermostZonePathOf(scope),
+    ancestorChain: trace.ancestorChain,
+    site,
+  };
+}
+
+/**
+ * The live (weathered) temperature read: the climate where the chain
+ * derives it, else the authored answer plus — under the sky — the
+ * weather TYPE's deviation. The one rule `resolveTemperatureFor` and the
+ * per-detail reads share.
+ */
+async function liveTemperatureTraceFor(
+  scope: Stuff & Container,
+  detailKey: string | undefined,
+): Promise<AtmosphericTrace<Quantity<'K'>>> {
+  const trace = await temperatureTraceFor(scope, detailKey);
+  if (trace.source === 'climate') return trace;
+  if (!WeatherApi.isActive() || !skyExposedWalk(scope)) return trace;
+  const locality = await AddressApi.resolveLocalityFor(scope);
+  const site = await climateSiteOf(scope);
+  const dev = WeatherApi.deviatedFieldFor(
+    scope,
+    locality,
+    'temperature',
+    WorldClockApi.getNow(),
+    site,
+  );
+  return { ...trace, value: trace.value.add(dev as unknown as Quantity<'K'>) };
+}
+
+/**
+ * The scope's climate site through the nearest air-bearing host's memo,
+ * AWAITED — so an async read never folds the realm default at a polar
+ * place. A scope with no air of its own anywhere outward reads its zone
+ * directly.
+ */
+async function climateSiteOf(scope: Stuff & Container): Promise<ClimateSite> {
+  const host = nearestAtmosphericOf(scope);
+  if (host !== null) {
+    await host.resolveClimateSite();
+    return host.climateSite();
+  }
+  return ZoneApi.climateSiteFor(scope);
+}
+
+/**
+ * The scope's climate site, SYNC, through the same memo — the default
+ * until the first walk lands (the {@link weatherLocalityOf} caveat).
+ */
+function climateSiteSyncOf(scope: Stuff & Container): ClimateSite {
+  return nearestAtmosphericOf(scope)?.climateSite() ?? DEFAULT_CLIMATE_SITE;
+}
+
+/** The innermost air-bearing scope at or around `scope`. */
+function nearestAtmosphericOf(
+  scope: Stuff & Container,
+): (Stuff & Container & Atmospheric) | null {
+  let cursor: (Stuff & Container) | null = scope;
+  let depth = CONTAINMENT_DEPTH_CAP;
+  while (cursor !== null && depth-- > 0) {
+    if (MixinApi.isAtmospheric(cursor)) {
+      return cursor as Stuff & Container & Atmospheric;
+    }
+    cursor = stepOutward(cursor);
+  }
+  return null;
 }
 
 /** Does the biome row at `path` compose `SkyExposedMixin`? */
@@ -1108,11 +1248,14 @@ async function resolveQuantityFor<U extends Unit>(
     // pinned type's deviation instead of the procgen field; byte-identical
     // to the old `deviationFor` when no pin applies. The pin walk runs only
     // here, after the three cheap gates above passed.
+    // The site decides the hemisphere the grammar's season reads, so
+    // every field of one scope reads one weather type.
     const dev = WeatherApi.deviatedFieldFor(
       scope,
       locality,
       fieldBare as WeatherField,
       WorldClockApi.getNow(),
+      await climateSiteOf(scope),
     );
     return base.add(dev as unknown as Quantity<U>);
   }
@@ -1509,6 +1652,30 @@ function weatherLocalityOf(scope: Stuff & Container): Locality | null {
 }
 
 /**
+ * The sync sky's base temperature at an instant: the climate at the
+ * scope's (memoized) site when the sync chain fell through to the
+ * universe constant, else the authored figure in hand. The sync mirror
+ * of {@link temperatureTraceFor}'s substitution; the caller has already
+ * established that weather is active and the scope is under the sky.
+ */
+function skyBaseTempK(
+  scope: Stuff & Container,
+  chainK: number,
+  nowS: number,
+): number {
+  const { hit } = syncChainWalk<Quantity<'K'>>(
+    scope,
+    undefined,
+    (b) => b.getDefaultTemperature(),
+    () => null,
+    (a) => a._temperature,
+  );
+  const fromRoot = hit === null || hit.sourcePath === ROOT_BIOME_PATH;
+  if (!fromRoot) return chainK;
+  return WeatherApi.climateAt(climateSiteSyncOf(scope), Quantity.of(nowS, 's')).rawValue();
+}
+
+/**
  * The live per-field weather deviation for a scope, or `null` when weather
  * does not reach it (indoors, weather-absent, or locality unresolved).
  */
@@ -1520,19 +1687,22 @@ function liveDeviation(
   const locality = weatherLocalityOf(scope);
   if (locality === null) return null;
   const nowS = WorldClockApi.getNow();
+  const site = climateSiteSyncOf(scope);
   return {
     humidity: WeatherApi.deviatedFieldFor(
       scope,
       locality,
       'humidity',
       nowS,
+      site,
     ).rawValue(),
-    wind: WeatherApi.deviatedFieldFor(scope, locality, 'wind', nowS).rawValue(),
+    wind: WeatherApi.deviatedFieldFor(scope, locality, 'wind', nowS, site).rawValue(),
     temperature: WeatherApi.deviatedFieldFor(
       scope,
       locality,
       'temperature',
       nowS,
+      site,
     ).rawValue(),
   };
 }
