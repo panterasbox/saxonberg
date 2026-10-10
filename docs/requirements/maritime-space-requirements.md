@@ -140,7 +140,7 @@ content puts something on it."*
   question with a separate answer**: a course and a distance on a
   tangent plane is ordinary plane sailing, convertible to and from the
   frame by arithmetic, and it is what a player actually works with.
-- ⭐⭐⭐ **The expanse has EDGES, and an edge confers cost and character,
+- ⭐⭐⭐ **The expanse has BANDS, and a band confers cost and character,
   never connectivity.** A current, a trade wind, a reach with a
   reputation. Any two nodes are always reachable by setting a course
   between them; an edge only says what a crossing is *like*, and whether
@@ -377,12 +377,13 @@ build.
 | stock | ⭐ the resource. `SpatialZone` already keeps `stocks`/`favours`, already justified as *"only a region in space can stock goods"* |
 | ⛔ biome | **not authored here** — consumed from the climate build |
 
-### A band (an edge)
+### A band (an *edge* is the special case that has endpoints)
 
 | | |
 |---|---|
-| its two nodes, **directionally** | ⚠ Load-bearing: a current helps one way and hinders the other, so an undirected edge makes a trade wind unmodellable |
-| ⭐ its **width** | what makes it a region you are in or out of rather than a route you pick |
+| ⭐ an **extent** | the region it occupies. A **corridor** (two points and a width) or a **belt** (a span that connects nothing) — a small closed vocabulary, extensible, because ⭐⭐ **the engine only ever asks "is this position inside this band?"** |
+| a **direction** | ⚠ Load-bearing: a current helps one way and hinders the other, so an undirected band makes a trade wind unmodellable |
+| ⭐ **endpoints — OPTIONAL** | two nodes, or none. See *Surface decisions*: they are a **planning affordance**, not a geometry |
 | a name | *the Westerlies*, *the Narrows* |
 | cost per axis | time and way — plus the **`conditional` risk axis**, which already ships |
 | ⭐⭐ a **wind lean** | direction and strength, in the `weather.md` lean's own shape. ⭐ **This is the band's mechanical character** — not prose |
@@ -651,7 +652,7 @@ a node sits anywhere, and the **plot** is a course and a distance on a
 tangent plane because that is what a navigator works with. The conversion
 is arithmetic, and real navigation makes the same split.
 
-### An edge carries cost and character, never connectivity
+### A band carries cost and character, never connectivity
 
 **The question.** If there are edges, do they define what is reachable?
 
@@ -661,7 +662,7 @@ expanse is that disconnection on it is never topological — the moment an
 edge gates reachability, this is the exit graph again with a different
 renderer, and every reason to build it is gone.
 
-### ⭐⭐⭐ An edge is a BAND, and the boundary is the activity
+### ⭐⭐⭐ A band is a REGION, and the boundary is the activity
 
 **The question.** Is an edge a route you travel along, or a region you
 are inside?
@@ -673,6 +674,38 @@ every question about edges then answers itself: following one needs
 tending, veering out of one is detectable, ignoring them all still
 crosses them, and a wrong chart is a band drawn in the wrong place —
 ⭐ discovered by **not feeling a change you expected.**
+
+### ⭐⭐ A band needs no endpoints — a free-standing belt is legal
+
+**The question.** Must every band run between two nodes?
+
+**The answer.** No. A current runs between places; a **belt** — the
+doldrums, a latitude of fog — connects nothing and simply lies across
+everything, and both are legal.
+
+⭐⭐⭐ **And this is a simplification rather than a loosening.** Because a
+band confers **no connectivity**, a band with endpoints was never
+*structurally* different from one without — so allowing belts does not
+relax the model, it reveals that **endpoints were always decoration.**
+What endpoints buy is that a band becomes **nameable in a plan** (*via
+the Westerlies*) and documentable on a chart as joining two places.
+Nothing else changes.
+
+⚠ So **"edge" is the wrong word for the general case** and *band* is the
+authored concept; an edge is the special case that happens to have
+endpoints. ⭐ **The graph is the NODES; the bands are the field's
+structure.**
+
+### ⚠⚠ Overlapping bands — forced by belts, so decided here
+
+Corridors between nodes rarely overlapped. **Belts overlap by nature** —
+a current crossing a fog belt is the ordinary case — so a composition
+rule is now mandatory rather than optional:
+
+| | rule | why |
+|---|---|---|
+| **field values** — the wind lean, the fetch | ⭐ **the narrowest band wins** | the shipped pattern twice over: `zone.md`'s innermost-ancestor field walk and `address.md`'s longest-prefix resolve. ⭐ And it hands authors the obvious tool — **to override a belt locally, author a narrower band** |
+| **placed things** — hazards, stock | **union** | a hazard is a thing *placed*, not a value competing for a slot, so it was never in contention |
 
 ⭐⭐ **And it is what makes the chart mechanical rather than decorative:
 the chart shows the bands.** Without one you learn a sea by crossing it
@@ -939,31 +972,35 @@ Against the running game, before the MR opens.
     field alone — the water is not what it should be here.
 12. **`anchor` away from any node** and **`fish` from the deck** — the
     water described by nobody, and ⛔ **without ever being in it.**
-13. ⭐ **Cross from a long fetch onto a shoal** and have the sea get
+13. ⭐ **Sail into a belt that joins nothing** — a latitude of fog — and
+    have it behave exactly as a band between two nodes does. Then
+    **cross a narrow band laid over it** and have the narrow one's
+    weather win.
+14. ⭐ **Cross from a long fetch onto a shoal** and have the sea get
     worse, with nothing anywhere authoring *rough*.
-14. **Launch a boat mid-passage**, be *in* it rather than in the water,
+15. **Launch a boat mid-passage**, be *in* it rather than in the water,
     and have **its** position be the one that answers.
-15. **`journey` to a node and be refused honestly**, with the refusal
+16. **`journey` to a node and be refused honestly**, with the refusal
     naming `course`.
-16. **`read` a chart you were given, then `map`**, and see the charted
+17. **`read` a chart you were given, then `map`**, and see the charted
     claims appear alongside what you walked and saw — **marked as
     bought.**
-17. **`read` a chart that is wrong**, act on it, and find the water does
+18. **`read` a chart that is wrong**, act on it, and find the water does
     not agree. ⭐ The claim is **still there afterwards.**
-18. **See another craft at a distance**, and have a second observer at a
+19. **See another craft at a distance**, and have a second observer at a
     different height **not** see it. Then **`hail` it**.
-19. ⭐ **`appoint` somebody lookout** and see further than you did a
+20. ⭐ **`appoint` somebody lookout** and see further than you did a
     moment ago, with nothing about the craft having changed.
-20. **Pass the same lane twice at the same hour on different days** and
+21. **Pass the same lane twice at the same hour on different days** and
     meet the same traffic. **Re-enter and gain nothing.**
-21. **Log out mid-crossing and log back in.** You are on the craft, the
+22. **Log out mid-crossing and log back in.** You are on the craft, the
     craft has moved, and the course is still set.
-22. **Stand on a headland** and see the whole of the bay it overlooks.
-23. ⭐⭐ **Read a landmark from three different zones**, described once,
+23. **Stand on a headland** and see the whole of the bay it overlooks.
+24. ⭐⭐ **Read a landmark from three different zones**, described once,
     and from a fourth place see nothing because an author said so.
-24. **Approach a coast from open water** and take a fix off a tall thing
+25. **Approach a coast from open water** and take a fix off a tall thing
     ashore, at a range its height decides.
-25. **Look at a building from the street** and get a sentence nobody
+26. **Look at a building from the street** and get a sentence nobody
     wrote into that street.
 
 ---
@@ -1013,57 +1050,63 @@ Against the running game, before the MR opens.
     carries a script hook.**
 16. ⭐ The expanse position can be held by **a boat as well as a ship**,
     and the **outward walk** decides whose applies.
-17. A **`navigation` Discipline exists**, anchored to a named ISCED-F
+17. ⭐ **A band needs no endpoints.** A free-standing belt is authorable
+    and behaves identically; endpoints only make a band **nameable in a
+    plan**.
+18. ⚠ **Overlapping bands compose by rule, not by accident:** field
+    values resolve to **the narrowest band**, and placed things
+    **union**. ⭐ A narrower band authored over a belt overrides it.
+19. A **`navigation` Discipline exists**, anchored to a named ISCED-F
     code with its meaning written beside it, and both reading rows
     declare it.
-18. ⛔ **Competence gates nothing and improves no outcome.** A band-0
+20. ⛔ **Competence gates nothing and improves no outcome.** A band-0
     navigator can set any course anywhere; no competence makes the same
     craft faster or the world's drift smaller. What it changes is the
     **bracket on a sight**, **what a sounding reports about the bottom**,
     and **the allowance carried in the reckoning**.
-19. ⭐ **The pilot's knowledge is CLAIMS, not competence.** Hiring
+21. ⭐ **The pilot's knowledge is CLAIMS, not competence.** Hiring
     somebody who knows the water yields claims about that water —
     purchasable, specific to it, and able to be **wrong**.
-20. Being lost **always has a way out** that is an action, not a wait.
-21. ⭐ The crossing is a **sustained** engagement with no completion
+22. Being lost **always has a way out** that is an action, not a wait.
+23. ⭐ The crossing is a **sustained** engagement with no completion
     time: arrival is detected, never scheduled, and a course with no
     node ahead of it is legal.
-22. ⭐ The voyage's state is **the position, the course and when it was
+24. ⭐ The voyage's state is **the position, the course and when it was
     set** — nothing else — and the engagement is **re-established at
     boot** from those.
-23. The beat is the **watch**, and the manning of a watch is what the
+25. The beat is the **watch**, and the manning of a watch is what the
     degradation reads.
-24. The crossing is held by the **craft**: logging out does not abort it,
+26. The crossing is held by the **craft**: logging out does not abort it,
     the craft's position **survives a restart**, and the player is on it
     when they return. ⛔ **Nobody dies while logged out.**
-25. An **unattended** passage degrades, and the degradation is
+27. An **unattended** passage degrades, and the degradation is
     **derivable from a seeded field** — ⛔ nothing is rolled.
-26. Mutual presence on open water is decided by **sight distance from eye
+28. Mutual presence on open water is decided by **sight distance from eye
     height**, per observer, and **a second channel with a different range
     is expressible** without reopening the model — demonstrated by
     `hail`.
-27. A **lookout is a seat somebody occupies**, and the sight advantage
+29. A **lookout is a seat somebody occupies**, and the sight advantage
     follows the occupancy, not the craft.
-28. Traffic on open water is **seeded**: the same at the same place and
+30. Traffic on open water is **seeded**: the same at the same place and
     time for every observer, and unfarmable by re-entry.
-29. A **chart is procured and read**, writes **`bought`** claims, and
+31. A **chart is procured and read**, writes **`bought`** claims, and
     ⭐ a chart that is wrong **stays** wrong — the claim is never
     corrected or removed.
-30. ⛔ **No expanse topology ever reaches a client** except as the
+32. ⛔ **No expanse topology ever reaches a client** except as the
     player's own claims.
-31. A **vantage** is authored, names what it overlooks, and is believed.
-32. A **landmark** is described once on the thing itself and read from
+33. A **vantage** is authored, names what it overlooks, and is believed.
+34. A **landmark** is described once on the thing itself and read from
     every place an author says can see it — ⭐ including, at sea, from a
     range its **height** decides.
-33. Something says **these rooms are one building**, coordinates them
+35. Something says **these rooms are one building**, coordinates them
     without containing them, owns the outside description and the way
     in, and is **sparse** — and **its position is a field that can
     change.**
-34. A cited or placed thing can **contribute to its room's prose.**
-35. ⛔ Every land claim about what can be seen is **authored**. The
+36. A cited or placed thing can **contribute to its room's prose.**
+37. ⛔ Every land claim about what can be seen is **authored**. The
     engine computes a sight range **only** where nothing can be in the
     way.
-36. A position carries a **depth**, every reader of it works at depth
+38. A position carries a **depth**, every reader of it works at depth
     zero, and ⛔ **no mechanism in this build gives depth a second
     value.**
 
@@ -1071,20 +1114,15 @@ Against the running game, before the MR opens.
 
 ## Open questions
 
-1. ⚑⚑ **Must every band run between two nodes?** A current does. ⚠ But a
-   belt — the doldrums, a latitude of fog — connects nothing; it simply
-   lies across everything. If free-standing bands are legal then *edge*
-   is the wrong word for them, and the authored shape is **a band that
-   MAY have endpoints.**
-2. ⚑ **The logbook.** § 7h: *"the logbook is what proves the
+1. ⚑ **The logbook.** § 7h: *"the logbook is what proves the
    depletion."* A durable record rather than verb surface, and
    `chronicle` is append-only and already exists — but it is the one
    piece of the UX with no home yet.
-3. ⚑ **The place↔bulk line.** Nothing says where water stops being a
+2. ⚑ **The place↔bulk line.** Nothing says where water stops being a
    place and starts being a container's contents — a puddle, a bath, a
    trough, a cistern, a pond, a lake. ⚠ The *"can you be in it"* test
    **breaks cleanly on a bath.**
-4. ⚑ **Reversing flow / the tidal bore.** A real expressive loss, and in
+3. ⚑ **Reversing flow / the tidal bore.** A real expressive loss, and in
    neither this build's nor the climate build's collision table.
 
 ---
