@@ -25,6 +25,10 @@ data:
   basin: cold-fell
   # High granite: soft, faintly acid, next to nothing in it.
   water: { pH: 6.8, hardnessDgh: 5, nitrateMgL: 0.5 }
+  # Where on the world it runs (the climate build): the realm's latitude,
+  # authored here because a reach is not a place a zone chain reaches.
+  # Elevation is each node's own.
+  site: { latitudeDeg: 42 }
   nodes:
     # A tarn under the ridge — snowmelt and rain, and nobody upstream of
     # it at all, which is exactly what makes it worth an aqueduct.

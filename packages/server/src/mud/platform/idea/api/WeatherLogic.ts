@@ -51,6 +51,8 @@ import {
   type StormExposed,
   type ClimateSite,
   type DailyRange,
+  type SnowCover,
+  type SnowStep,
 } from '../../../lib/weather/WeatherType';
 import type { Atmospheric } from '../../../lib/biome/Atmospheric';
 import { Seeded } from '../../../lib/Seeded';
@@ -1117,6 +1119,112 @@ function temperatureAtSite(
   return climateK(site, nowS, d) + weatherTemperatureDeviationK(locality, nowS, site);
 }
 
+/* ─────────────── snow on the ground: the walk back to the last melt-out ─────────────── */
+
+/**
+ * ⭐⭐ **The snow lying at a site, from the weather it has had** — the
+ * climate build's D6 + D15, and the ONE function the floor's snow and the
+ * catchment's snowpack both read (so the two never disagree: AC 9 holds by
+ * identity of function).
+ *
+ * Accumulate what fell as SNOW (phase by temperature, amount by the
+ * Locality's intensity), melt it on a degree-day model above freezing,
+ * and report what is lying now and what came off over the melt window.
+ *
+ * ## Why it walks back to the last melt-out (D15)
+ *
+ * A pinned Locality forces its type across the whole walk, history and
+ * all, so a fixed-window sum at a snow-pinned site where nothing melts is
+ * a SLIDING sum — each day adds a day and drops the oldest — and reads
+ * constant: a snowfield that never deepens. The state is monotone in its
+ * starting value, so the walk starts at the CAP a window back and
+ * integrates forward: once the capped pack melts to zero, every smaller
+ * start would have too, and the history after is exact. No zero before
+ * the melt window opens → double the window (180 → 360 → 720 days); none
+ * at the bound → the pack is PERENNIAL, reported at the cap. Snow older
+ * than two winters is a glacier's business, not a floor's.
+ */
+function snowWalk(
+  site: ClimateSite,
+  locality: Locality | null,
+  nowS: number,
+  meltWindowS: number,
+  onStep?: (step: SnowStep) => void,
+): SnowCover {
+  const d = climateDials();
+  const meltFactor = dial(AppSettingKeys.waterSnowMeltMmPerKPerDay, 4);
+  const capMm = dial(AppSettingKeys.climateSnowPerennialMaxMm, 1500);
+  const firstDays = Math.max(1, dial(AppSettingKeys.climateWalkbackWindowDays, 180));
+  const maxDays = Math.max(firstDays, dial(AppSettingKeys.climateWalkbackMaxDays, 720));
+  const densityRatio = Math.max(1, dial(AppSettingKeys.climateSnowDensityRatio, 10));
+  const snowK = dial(AppSettingKeys.climateSnowThresholdK, 274.5);
+  const intensity = precipitationIntensityOf(locality, site);
+  const meltFrom = nowS - meltWindowS;
+  const DAY_S = EARTH_LIKE.dayLengthSeconds;
+
+  for (let days = firstDays; ; days *= 2) {
+    const windowDays = Math.min(days, maxDays);
+    const t0 = nowS - windowDays * DAY_S;
+    let pack = capMm;
+    let zeroedBeforeMelt = false;
+    let meltMm = 0;
+    const steps: SnowStep[] = [];
+    walkSegments(
+      t0,
+      nowS,
+      locality,
+      (seg) => {
+        const mid = seg.startsAtS + WEATHER_DEFAULTS.SEGMENT_LENGTH_S / 2;
+        const airK =
+          climateK(site, mid, d) +
+          WEATHER_PROFILES[seg.type].deviation.temperature.rawValue();
+        const hours = seg.overlapS / 3600;
+        if (seg.phase === 'snow') {
+          pack = Math.min(capMm, pack + precipitationRateOf(seg.type) * intensity * hours);
+        }
+        if (airK > FREEZING_K && pack > 0) {
+          const released = Math.min(
+            pack,
+            meltFactor * (airK - FREEZING_K) * (seg.overlapS / DAY_S),
+          );
+          pack -= released;
+          if (seg.startsAtS >= meltFrom) meltMm += released;
+        }
+        if (pack <= 0 && seg.startsAtS + seg.overlapS <= meltFrom) {
+          zeroedBeforeMelt = true;
+        }
+        if (onStep) {
+          steps.push({
+            startsAtS: seg.startsAtS,
+            overlapS: seg.overlapS,
+            airK,
+            phase: seg.phase,
+            packMm: pack,
+          });
+        }
+      },
+      Math.ceil((windowDays * DAY_S) / WEATHER_DEFAULTS.SEGMENT_LENGTH_S) + 1,
+      site,
+    );
+    const atBound = windowDays >= maxDays;
+    if (zeroedBeforeMelt || atBound) {
+      const perennial = !zeroedBeforeMelt && pack > 0;
+      if (onStep) for (const step of steps) onStep(step);
+      const packMm = perennial ? capMm : pack;
+      return {
+        packMm,
+        meltMm,
+        depthM: (packMm * densityRatio) / 1000,
+        perennial,
+        overS: meltWindowS,
+      };
+    }
+  }
+}
+
+/** Water freezes here; the degree-day melt counts kelvin above it. */
+const FREEZING_K = 273.15;
+
 /** Numeric AppSetting read with a seeded-literal fallback (pre-warm safe). */
 function dial(key: string, fallback: number): number {
   try {
@@ -1567,6 +1675,21 @@ export class WeatherLogic extends ApiLogic {
       if (k > maxK) maxK = k;
     }
     return { minK, maxK };
+  }
+
+  /** See {@link WeatherApi.snowCoverAt}. Pure, SYNC. */
+  @CallSecurity(WeatherApiCallers)
+  public snowCoverAt(
+    site: ClimateSite,
+    locality: Locality | null,
+    timeS: Quantity<'s'>,
+    opts?: { meltWindowS?: number; onStep?: (step: SnowStep) => void },
+  ): SnowCover {
+    const meltWindowS =
+      opts?.meltWindowS ??
+      Math.max(1, dial(AppSettingKeys.waterBaseflowWindowDays, 30)) *
+        EARTH_LIKE.dayLengthSeconds;
+    return snowWalk(site, locality, timeS.rawValue(), meltWindowS, opts?.onStep);
   }
 
   /** See {@link WeatherApi.nextBoundaryAfter}. */

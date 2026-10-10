@@ -1257,6 +1257,15 @@ weather dials: `climate.poleMeanK` 245, `climate.equatorMeanK` 301,
   (the weeping chamber's rain) is not falling from this sky and keeps
   its descriptor; the integral (keyed by Locality) always takes the
   phase when the caller hands a site.
+- **B8 (W4) — the conduit's extent site is read, not stamped.**
+  `Conduit.resolveHead` is called by tests only; nothing at runtime
+  stamps `headM`. The extent's air is resolved inside the already-async
+  `readingFor` (`extentAirK`), under the weather of the room the
+  conduit stands in.
+- **B9 (W4/W3) — tests that meant "warm and wet" moved to a summer
+  afternoon.** `YEAR = 365 d` is day 5 of a 360-day year — an equinox
+  midnight that now freezes a main and snows on a headwaters. Every
+  moved test kept its claim; the cold cases got their own.
 - **B4 (W0) — no `climate.defaultContinentality` dial.** The default site
   is the `DEFAULT_CLIMATE_SITE` value; a dial read beside a const would be
   two sources for one number.
@@ -1565,6 +1574,25 @@ on day N+1 than on day N.
 `{42, 30 m}` and `airTemperatureKAt(kestrel:confluence)` at the same
 instant agree to < 0.1 K.
 **Commit.** `build(climate W4): the catchment reads the one expression — the seasonal table and the second snowpack are gone`
+
+> ✅ **Done.** Kernel `WeatherApi.snowCoverAt(site, locality, t,
+> {meltWindowS, onStep})` with the D15 walk-back (cap start, doubling to
+> 720 d, `perennial` at the cap); proven EXACT against an independent
+> bare-ground integration in `WeatherLogic.snow.test.ts`. `CompiledReach.site`
+> from the course's authored `site:` + the node's elevation;
+> `airTemperatureKAt` is `temperatureAt`; `snowpackOf`, `airTemperatureK`,
+> `seasonMeanK` and five dials deleted; the fishery reads the reach's
+> local season. `Zone.climateSite()` is the one fold of the four levers
+> (`ZoneApi.climateSiteFor` asks it). `Conduit.extentAirK` + frozen on
+> either end. ⚠ **`resolveHead` has no runtime caller** — the head was
+> only ever stamped by tests, so the extent site is resolved at read
+> (B8). ⚠ **Surprise (R15):** a reach's melt is computed at its OWN
+> elevation, so a high headwaters melting in summer does not hand that
+> melt to the reach below — pre-existing, made visible by the real
+> climate; the Flow test now compares rain runoff for "more ground,
+> more water" and the hydrograph test asserts the SHAPE (spring melt,
+> no summer melt, the low in the summer half) rather than "the peak is
+> a melt peak". Six water tests moved off the day-5 midnight (B9).
 
 ### W5 — Snow on the ground
 
@@ -1920,6 +1948,10 @@ Nothing unmapped.
   implausible mass. D18 names the fallback (ship the heaviest honest
   coat, record the derived figures, file the under-read against
   textiles) so the build does not stop on it.
+- **R15 — snowmelt is not routed downstream** (found in W4). Each reach
+  melts the pack at its own elevation; the confluence never sees the
+  headwaters' summer melt. Pre-existing in the catchment model and
+  exposed by the real climate; leaves as a watershed tail line.
 - **R14 — `interiorAmount` is `runtimeState` in `Bulkable.fieldMeta`**
   (:534). Rows author it today (`jar-of-barm`, the sugarbush panel), so
   the brine cask relies on the same hydration path; if a `runtimeState`

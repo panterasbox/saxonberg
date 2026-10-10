@@ -36,7 +36,14 @@ import WatercourseCatalogue, {
   type ContaminantKind,
 } from '../idea/WatercourseCatalogue';
 
-const YEAR = 365 * 86_400;
+/**
+ * "A year in" — on a summer afternoon. ⚠ Since the climate build the
+ * catchment reads the realm's real climate: 365 days is day 5 of a
+ * 360-day year, an equinox midnight cold enough that a conduit freezes
+ * and the high reaches snow. These suites are about flow, fouling and
+ * the failure vocabulary, so they read where it is unambiguously warm.
+ */
+const YEAR = (360 + 100) * 86_400 + 15 * 3600;
 
 /**
  * The Kestrel through a town: four reaches, so an outfall at `mill` has

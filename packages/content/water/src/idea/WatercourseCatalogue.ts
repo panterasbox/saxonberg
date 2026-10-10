@@ -54,12 +54,10 @@ import { AppSettingKeys } from '@saxonberg/server/mud/lib/config/AppSettings';
 import { WeatherApi } from '@saxonberg/server/mud/api/weather';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import {
-  WEATHER_PROFILES,
   WEATHER_DEFAULTS,
-  PRECIPITATION_RATES_MM_PER_HOUR,
-  type WeatherType,
+  DEFAULT_CLIMATE_SITE,
+  type ClimateSite,
 } from '@saxonberg/server/mud/lib/weather/WeatherType';
-import type { Season } from '@saxonberg/server/mud/lib/time/CelestialProfile';
 import type { EvictionContext } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { VetoResult } from '@saxonberg/server/mud/lib/errors';
 import {
@@ -68,6 +66,7 @@ import {
   type WatercourseNode,
   type WatercourseStock,
   type WatercourseWater,
+  type WatercourseSite,
 } from './Watercourse';
 import {
   WATER_PARAMETERS,
@@ -158,6 +157,15 @@ export interface CompiledReach {
   meanDepthM: number | null;
   /** Authored stocking — the aquaculture seam (fishing D3). Empty for every shipped row. */
   stocks: WatercourseStock[];
+  /**
+   * ⭐ **Where on the world this reach is** (the climate build): the
+   * course's authored latitude, continentality and offset, at THIS
+   * node's elevation. Every temperature the reach reads — its air, its
+   * snowpack, its ice — is `WeatherApi.temperatureAt(site, …)`, the same
+   * expression the sky over a room reads, so the river and the street
+   * beside it agree.
+   */
+  site: ClimateSite;
 }
 
 /**
@@ -491,14 +499,16 @@ export default class WatercourseCatalogue extends Idea {
   }
 
   /**
-   * The air temperature (K) over a reach's catchment right now — the
-   * same lapse-rate model the snowpack runs on, exposed because a
-   * conduit needs it to know whether it is frozen.
+   * The air temperature (K) over a reach right now — **the realm's one
+   * temperature** (`WeatherApi.temperatureAt`) at the reach's site and
+   * its catchment's weather. A conduit reads it to know whether it is
+   * frozen; the water's own temperature floors it at the under-ice
+   * figure.
    *
-   * ⚠ Not the same question as "how warm is the room by the river".
-   * This is the CATCHMENT's air, derived from season and altitude,
-   * because a reach is a position on a river rather than a place you
-   * stand and has no biome chain to walk.
+   * ⚠ Since the climate build this is the same expression the sky over a
+   * room reads: a street at the reach's latitude and elevation, under the
+   * same Locality, reads the same kelvin. The catchment's old four-row
+   * seasonal table is gone.
    */
   public async airTemperatureKAt(
     ref: ReachRef,
@@ -507,15 +517,16 @@ export default class WatercourseCatalogue extends Idea {
     const index = await this.index();
     const reach = index.reaches.get(ref);
     if (reach === undefined) return null;
-    const sample = WeatherApi.segmentsBetween(
-      Quantity.of(nowS - WEATHER_DEFAULTS.SEGMENT_LENGTH_S, 's'),
-      Quantity.of(nowS, 's'),
+    return WeatherApi.temperatureAt(
+      reach.site,
       climateOf(reach),
-      1,
-    );
-    const seg = sample[sample.length - 1];
-    if (seg === undefined) return null;
-    return airTemperatureK(seg.season, seg.type, reach.elevation);
+      Quantity.of(nowS, 's'),
+    ).rawValue();
+  }
+
+  /** A reach's climate site, or `null` when the citation names nothing. */
+  public async siteOf(ref: ReachRef): Promise<ClimateSite | null> {
+    return (await this.index()).reaches.get(ref)?.site ?? null;
   }
 
   /**
@@ -550,7 +561,7 @@ export default class WatercourseCatalogue extends Idea {
     // fish are in the liquid beneath.
     const temperatureK = Math.max(
       UNDER_ICE_K,
-      (await this.airTemperatureKAt(ref, nowS)) ?? seasonMeanK('spring'),
+      (await this.airTemperatureKAt(ref, nowS)) ?? UNDER_ICE_K,
     );
     const flow = await this.flowAt(ref, nowS, await this.liveDraws(nowS));
     const m3s = flow?.m3s ?? 0;
@@ -906,6 +917,13 @@ async function loadIndex(): Promise<CompiledIndex> {
         climateLocalityPath: null, // filled below
         meanDepthM: node.meanDepthM ?? null,
         stocks: node.stocks ?? [],
+        site: {
+          latitudeDeg: course.site?.latitudeDeg ?? DEFAULT_CLIMATE_SITE.latitudeDeg,
+          continentality:
+            course.site?.continentality ?? DEFAULT_CLIMATE_SITE.continentality,
+          offsetK: course.site?.offsetK ?? DEFAULT_CLIMATE_SITE.offsetK,
+          elevationM: node.elevation ?? 0,
+        },
       });
     });
     byCourse.set(course.key, refs);
@@ -1237,7 +1255,6 @@ function assignDepths(
 /* ─────────────────────── flow and snowpack ─────────────────────── */
 
 const SECONDS_PER_DAY = 86_400;
-const FREEZING_K = 273.15;
 /** Liquid water under a frozen surface — the floor a river's temperature reads. */
 const UNDER_ICE_K = 274;
 
@@ -1254,25 +1271,6 @@ function dial(key: string, fallback: number): number {
 }
 
 /**
- * The mm/h a segment delivers — the operator dial in front of the
- * kernel's authored table, so the river and the soil never disagree
- * about how hard it is raining.
- */
-function precipitationRateOf(type: keyof typeof PRECIPITATION_RATES_MM_PER_HOUR): number {
-  const authored = PRECIPITATION_RATES_MM_PER_HOUR[type];
-  switch (type) {
-    case 'rain':
-      return dial(AppSettingKeys.waterRainRateMmPerHour, authored);
-    case 'storm':
-      return dial(AppSettingKeys.waterStormRateMmPerHour, authored);
-    case 'snow':
-      return dial(AppSettingKeys.waterSnowRateMmPerHour, authored);
-    default:
-      return authored;
-  }
-}
-
-/**
  * The locality whose weather stands in for a catchment's, resolved live
  * and sync. `null` — no declared contributor, or a process where the
  * localities are not resident — falls back to the global weather field,
@@ -1284,42 +1282,6 @@ function climateOf(reach: CompiledReach): Locality | null {
     (StuffApi.findByTemplatePath(reach.climateLocalityPath) as Locality | null) ??
     null
   );
-}
-
-/**
- * Air temperature over a catchment: the seasonal sea-level mean, the
- * weather type's own deviation, and the **lapse rate** acting on
- * altitude.
- *
- * ⭐ That last term is the whole of why a headwaters town has a
- * different water problem from the city below it: the same storm rains
- * on one and snows on the other.
- */
-function airTemperatureK(
-  season: Season,
-  type: WeatherType,
-  elevationM: number,
-): number {
-  const lapseKPerM = dial(AppSettingKeys.waterSnowLapseRateKPerKm, 6.5) / 1000;
-  return (
-    seasonMeanK(season) +
-    WEATHER_PROFILES[type].deviation.temperature.rawValue() -
-    lapseKPerM * elevationM
-  );
-}
-
-/** Mean sea-level air temperature (K) for a season. */
-function seasonMeanK(season: Season): number {
-  switch (season) {
-    case 'spring':
-      return dial(AppSettingKeys.waterSeasonMeanKSpring, 285);
-    case 'summer':
-      return dial(AppSettingKeys.waterSeasonMeanKSummer, 295);
-    case 'fall':
-      return dial(AppSettingKeys.waterSeasonMeanKFall, 283);
-    case 'winter':
-      return dial(AppSettingKeys.waterSeasonMeanKWinter, 272);
-  }
 }
 
 /**
@@ -1340,12 +1302,12 @@ function seasonMeanK(season: Season): number {
  *     rights matter*: without it, seniority never binds and the whole
  *     allocation layer is decoration.
  *
- * ⚠ The temperature model is the catchment's own, because a **reach has
- * no room to resolve a biome from** — it is a position on a river, not
- * a place you stand. So a seasonal sea-level mean is authored and the
- * atmospheric **lapse rate** does the rest. That one number is what
- * makes altitude the thing that banks snow: the same storm rains on the
- * city and snows on the headwaters.
+ * ⭐ Both terms read the reach's SITE: the runoff takes only what fell
+ * as rain there, and the snowmelt is the kernel's one snow function
+ * (`WeatherApi.snowCoverAt`) — the same pack a floor at that latitude and
+ * elevation reports lying on it. The lapse rate in the shared climate
+ * expression is what makes altitude the thing that banks snow: the same
+ * storm rains on the city and snows on the headwaters.
  */
 function computeNaturalFlow(
   reach: CompiledReach,
@@ -1365,13 +1327,19 @@ function computeNaturalFlow(
     Quantity.of(nowS - windowS, 's'),
     Quantity.of(nowS, 's'),
     climateOf(reach),
+    reach.site,
   );
   const covered = fell.coveredS > 0 ? fell.coveredS : windowS;
   // mm over the window → metres per second over the catchment.
   const runoffM3S =
     ((fell.liquid.rawValue() / 1000) / covered) * areaM2 * runoff;
 
-  const snow = snowpackOf(reach, nowS);
+  const snow = WeatherApi.snowCoverAt(
+    reach.site,
+    climateOf(reach),
+    Quantity.of(nowS, 's'),
+    { meltWindowS: windowS },
+  );
   const meltM3S = ((snow.meltMm / 1000) / snow.overS) * areaM2 * runoff;
 
   return {
@@ -1379,54 +1347,6 @@ function computeNaturalFlow(
     melt: meltM3S,
     snowpackMm: snow.packMm,
   };
-}
-
-/**
- * Walk the snow year: accumulate what fell as snow at this catchment's
- * altitude, melt it back on a degree-day model, and report both what is
- * still lying and what came off during the flow window.
- *
- * The oldest and most robust snowmelt model there is, and the right
- * level of abstraction for a river you look at rather than forecast.
- */
-function snowpackOf(
-  reach: CompiledReach,
-  nowS: number,
-): { packMm: number; meltMm: number; overS: number } {
-  const windowDays = Math.max(1, dial(AppSettingKeys.waterSnowWindowDays, 180));
-  const meltFactor = dial(AppSettingKeys.waterSnowMeltMmPerKPerDay, 4);
-  const flowWindowS =
-    Math.max(1, dial(AppSettingKeys.waterBaseflowWindowDays, 30)) *
-    SECONDS_PER_DAY;
-
-  const segments = WeatherApi.segmentsBetween(
-    Quantity.of(nowS - windowDays * SECONDS_PER_DAY, 's'),
-    Quantity.of(nowS, 's'),
-    climateOf(reach),
-    Math.ceil(
-      (windowDays * SECONDS_PER_DAY) / WEATHER_DEFAULTS.SEGMENT_LENGTH_S,
-    ),
-  );
-
-  let packMm = 0;
-  let meltInFlowWindowMm = 0;
-  const flowWindowStart = nowS - flowWindowS;
-
-  for (const seg of segments) {
-    const hours = seg.overlapS / 3600;
-    const days = seg.overlapS / SECONDS_PER_DAY;
-    const airK = airTemperatureK(seg.season, seg.type, reach.elevation);
-
-    if (WEATHER_PROFILES[seg.type].precipitation === 'snow') {
-      packMm += precipitationRateOf(seg.type) * hours;
-    }
-    if (airK > FREEZING_K && packMm > 0) {
-      const released = Math.min(packMm, meltFactor * (airK - FREEZING_K) * days);
-      packMm -= released;
-      if (seg.startsAtS >= flowWindowStart) meltInFlowWindowMm += released;
-    }
-  }
-  return { packMm, meltMm: meltInFlowWindowMm, overS: flowWindowS };
 }
 
 /* ─────────────────────────── parsing ─────────────────────────── */
@@ -1532,6 +1452,7 @@ function descriptorOf(
   const key = str(data.key) || str(data.name);
   if (key === '') return null;
   const water = waterOf(data.water);
+  const site = siteOfData(data.site);
   return {
     key,
     name: str(data.name) || key,
@@ -1539,7 +1460,24 @@ function descriptorOf(
     nodes: nodesOf(data.nodes),
     branchesFrom: str(data.branchesFrom) === '' ? null : str(data.branchesFrom),
     ...(water ? { water } : {}),
+    ...(site ? { site } : {}),
   };
+}
+
+/** The authored `site:` block, numbers only; `null` when absent. */
+function siteOfData(value: unknown): WatercourseSite | null {
+  if (!value || typeof value !== 'object') return null;
+  const v = value as Record<string, unknown>;
+  const num = (x: unknown): number | undefined =>
+    typeof x === 'number' && Number.isFinite(x) ? x : undefined;
+  const out: WatercourseSite = {};
+  const lat = num(v.latitudeDeg);
+  const cont = num(v.continentality);
+  const off = num(v.offsetK);
+  if (lat !== undefined) out.latitudeDeg = lat;
+  if (cont !== undefined) out.continentality = cont;
+  if (off !== undefined) out.offsetK = off;
+  return out;
 }
 
 /** The authored shapes this catalogue speaks, re-exported for callers. */

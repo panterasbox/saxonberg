@@ -46,6 +46,7 @@ const REACH: CompiledReach = {
   climateLocalityPath: null,
   meanDepthM: null,
   stocks: [],
+  site: { latitudeDeg: 42, elevationM: 30, continentality: 0.5, offsetK: 0 },
 };
 
 function standing(over: Partial<FisheryStanding> = {}): FisheryStanding {

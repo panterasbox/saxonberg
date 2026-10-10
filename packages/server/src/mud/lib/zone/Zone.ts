@@ -33,6 +33,10 @@ import { ZoneApi } from '../../api/zone';
 import type { FieldMeta } from '../mixin';
 
 import type { BoundaryRole } from '../security/BoundaryRole';
+import {
+  DEFAULT_CLIMATE_SITE,
+  type ClimateSite,
+} from '../weather/WeatherType';
 // `ZoneApi` is statically imported because it owns the field-walk
 // orchestration (`ZoneApi.getEnclosingZone`) that `lookupAncestorField`
 // delegates to. The api side breaks its end of the would-be cycle by
@@ -220,6 +224,29 @@ export abstract class Zone extends Idea {
   public setClimateOffsetK(value: number | null): void {
     this.climateOffsetK =
       value === null || Number.isFinite(value) ? value : null;
+  }
+
+  /**
+   * ⭐ **Where on the world this zone is, as the climate reads it** — the
+   * four levers, each resolved through this zone's own inheritance walk
+   * ({@link lookupField}), with the realm default for any the chain does
+   * not declare. The one place the levers are folded into a
+   * `ClimateSite`; `ZoneApi.climateSiteFor` asks the zone a thing stands
+   * in, and a conduit asks the zone it serves.
+   */
+  public async climateSite(): Promise<ClimateSite> {
+    const [lat, elev, cont, off] = await Promise.all([
+      this.lookupField<number>('latitude'),
+      this.lookupField<number>('elevation'),
+      this.lookupField<number>('continentality'),
+      this.lookupField<number>('climateOffsetK'),
+    ]);
+    return {
+      latitudeDeg: lat ?? DEFAULT_CLIMATE_SITE.latitudeDeg,
+      elevationM: elev ?? DEFAULT_CLIMATE_SITE.elevationM,
+      continentality: cont ?? DEFAULT_CLIMATE_SITE.continentality,
+      offsetK: off ?? DEFAULT_CLIMATE_SITE.offsetK,
+    };
   }
 
   public getWire(): boolean | null { return this.wire; }

@@ -35,7 +35,14 @@ import WatercourseCatalogue, {
 } from '../idea/WatercourseCatalogue';
 import type { DrawLedger } from '../idea/WatercourseCatalogue';
 
-const YEAR = 365 * 86_400;
+/**
+ * "A year in" — on a summer afternoon. ⚠ Since the climate build the
+ * catchment reads the realm's real climate: 365 days is day 5 of a
+ * 360-day year, an equinox midnight cold enough that a conduit freezes
+ * and the high reaches snow. These suites are about flow, fouling and
+ * the failure vocabulary, so they read where it is unambiguously warm.
+ */
+const YEAR = (360 + 100) * 86_400 + 15 * 3600;
 
 interface Row {
   path: string;
@@ -397,5 +404,94 @@ describe('treatment is an attribute of the conduit', () => {
     expect(c.getTreatmentFactor()).toBe(1);
     c.setTreatmentFactor(-1);
     expect(c.getTreatmentFactor()).toBe(0);
+  });
+});
+
+describe('⭐ frozen is read at BOTH ends (the climate build, D7)', () => {
+  const ICE_COURSE: Row = {
+    path: '/stuff/idea/Watercourse/icecap',
+    class: '/system/water/idea/Watercourse',
+    data: {
+      key: 'icecap',
+      name: 'the Icecap',
+      basin: 'icecap',
+      branchesFrom: null,
+      // A southern course: on a northern-summer day it is in its polar night.
+      site: { latitudeDeg: -89, continentality: 1 },
+      nodes: [
+        { name: 'cap', elevation: 1500 },
+        { name: 'shore', elevation: 0 },
+      ],
+    },
+  };
+  const POLAR_ZONE: Row = {
+    path: '/world/polar',
+    class: '/platform/idea/location/CartesianZone',
+    data: { latitude: -89, continentality: 1, elevation: 1500 },
+  };
+
+  it('a warm intake serving a frozen extent is frozen', async () => {
+    WeatherApi._forceTypeForTesting('clear');
+    installWorld([POLAR_ZONE]);
+    installRootBiome();
+    const c = makeConduit({ reach: 'kestrel:falls', extent: '/world/polar' });
+    expect((await catalogue().airTemperatureKAt('kestrel:falls', YEAR))!).toBeGreaterThan(273.15);
+    expect((await c.extentAirK(YEAR))!).toBeLessThan(273.15);
+    // Zero demand: under a clear sky the main is also short of water, and
+    // `dry` outranks `frozen` in the vocabulary's precedence.
+    expect((await c.readingFor(catalogue(), YEAR, 0)).state).toBe('frozen');
+  });
+
+  it('a frozen intake serving a warm extent is frozen', async () => {
+    WeatherApi._forceTypeForTesting('clear');
+    installWorld([ICE_COURSE]);
+    installRootBiome();
+    const c = makeConduit({ reach: 'icecap:cap', extent: '/world/lowtown', capacity: 5 });
+    expect((await catalogue().airTemperatureKAt('icecap:cap', YEAR))!).toBeLessThan(273.15);
+    expect((await c.extentAirK(YEAR))!).toBeGreaterThan(273.15);
+    const states = await c.readingFor(catalogue(), YEAR, 0);
+    expect(states.state).toBe('frozen');
+  });
+
+  it('⭐ the reach and a room at the same site read the same air (AC 1)', async () => {
+    WeatherApi._forceTypeForTesting('clear');
+    installWorld([
+      {
+        path: '/world/confluence-bank',
+        class: '/platform/idea/location/CartesianZone',
+        data: { elevation: 40, latitude: 42 },
+      },
+    ]);
+    installRootBiome();
+    const { BiomeApi } = await import('@saxonberg/server/mud/api/biome');
+    const { WorldClockApi } = await import('@saxonberg/server/mud/api/worldclock');
+    const { Stuff } = await import('@saxonberg/server/mud/lib/stuff/Stuff');
+    const { default: CartesianLocation } = await import(
+      '@saxonberg/server/mud/lib/location/CartesianLocation'
+    );
+    const { SkyExposedBiome } = await import(
+      '@saxonberg/server/mud/platform/idea/SkyExposedBiome'
+    );
+    const { makeStuff } = await import(
+      '@saxonberg/server/mud/lib/security/__tests__/test-setup'
+    );
+    let t = 0;
+    WorldClockApi._resetForTesting();
+    WorldClockApi._setNowProviderForTesting(() => t);
+    WorldClockApi.setScale(1000);
+    t = YEAR;
+    const sky = makeStuffAtPath(() => {
+      const b = new SkyExposedBiome();
+      b.setExtendsBiomePath('/stuff/idea/biome/universe');
+      return b;
+    }, '/stuff/idea/biome/outdoor/bank');
+    const zone = await StuffApi.singleton('/world/confluence-bank');
+    const room = makeStuff(() => new CartesianLocation());
+    Stuff._stampZone(room, zone as never);
+    room.setBiome(sky);
+    const roomK = (await BiomeApi.resolveTemperatureFor(room)).rawValue();
+    const reachK = (await catalogue().airTemperatureKAt('kestrel:confluence', YEAR))!;
+    expect(Math.abs(roomK - reachK)).toBeLessThan(0.1);
+    WorldClockApi._resetForTesting();
   });
 });

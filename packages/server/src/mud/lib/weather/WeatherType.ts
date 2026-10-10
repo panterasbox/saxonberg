@@ -220,6 +220,45 @@ export interface DailyRange {
   maxK: number;
 }
 
+/**
+ * ⭐ **The snow lying at a site** — `WeatherApi.snowCoverAt`'s answer, and
+ * the one the floor's snow and the catchment's snowpack share.
+ */
+export interface SnowCover {
+  /** Water-equivalent lying now, mm. */
+  packMm: number;
+  /** Water-equivalent that melted off over the melt window, mm. */
+  meltMm: number;
+  /** How deep it lies: `packMm × climate.snowDensityRatio`, in metres. */
+  depthM: number;
+  /**
+   * No melt-out within the walk-back bound: the pack is reported at the
+   * cap (`climate.snow.perennialMaxMm`) — firn and glaciers are not
+   * modelled, and a reading says *perennial* rather than a number.
+   */
+  perennial: boolean;
+  /** The melt window's length, s. */
+  overS: number;
+}
+
+/**
+ * One segment of an exact snow walk, handed to a caller that integrates
+ * something else alongside the pack — the ice on a still reach reads the
+ * snow lying on it, segment by segment.
+ */
+export interface SnowStep {
+  /** Game-second the segment starts at. */
+  startsAtS: number;
+  /** Seconds of it inside the walk. */
+  overlapS: number;
+  /** The air at the segment's midpoint — the climate plus the type's deviation. */
+  airK: number;
+  /** What fell in it. */
+  phase: 'none' | 'rain' | 'snow';
+  /** Water-equivalent lying at the END of the segment, mm. */
+  packMm: number;
+}
+
 /* ─────────────────────────── the precipitation integral ─────────────────────────── */
 
 /**

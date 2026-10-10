@@ -51,3 +51,22 @@ settings:
   # `_precipitationIntensity` overrides it.
   - key: climate.precipPolarFactor
     value: "0.4"
+
+  # Snow on the ground. Fresh snow lies about ten times deeper than the
+  # water it holds.
+  - key: climate.snowDensityRatio
+    value: "10"
+
+  # A snow (or ice) walk looks back for the LAST MELT-OUT — the moment the
+  # ground was bare — so an old pack is counted whole: first this far…
+  - key: climate.walkback.windowDays
+    value: "180"
+
+  # …doubling to this bound. No melt-out inside it and the pack is
+  # PERENNIAL, reported at the cap below: snow older than two winters is a
+  # glacier's business, not a floor's.
+  - key: climate.walkback.maxDays
+    value: "720"
+
+  - key: climate.snow.perennialMaxMm
+    value: "1500"

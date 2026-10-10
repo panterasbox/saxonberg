@@ -1649,6 +1649,19 @@ export const AppSettingKeys = {
   /** Climate — the unauthored precipitation intensity at 80° and beyond:
    * polar air holds little water, so the high Arctic is a desert. */
   climatePrecipPolarFactor: "climate.precipPolarFactor",
+  /** Climate — fresh snow's depth per depth of water it holds: 10 cm of
+   * snow is about a centimetre of rain. */
+  climateSnowDensityRatio: "climate.snowDensityRatio",
+  /** Climate — the most water-equivalent (mm) a pack holds: the cap a
+   * snow walk starts from and reports as PERENNIAL. Older than that is
+   * a glacier's business. */
+  climateSnowPerennialMaxMm: "climate.snow.perennialMaxMm",
+  /** Climate — how far back (game-days) a snow or ice walk first looks
+   * for the last melt-out. Doubled until it finds one, up to the max. */
+  climateWalkbackWindowDays: "climate.walkback.windowDays",
+  /** Climate — the walk-back's bound (game-days). No melt-out inside it
+   * and the pack, or the sheet, is perennial. */
+  climateWalkbackMaxDays: "climate.walkback.maxDays",
 
   /* ────────────────────────── thermal (Wave 2 wet coupling) ────────────────────────── */
   /** Thermal — how strongly a wet body loses heat faster: at full
@@ -1999,24 +2012,12 @@ export const AppSettingKeys = {
    * damped hydrograph instead of a channel that empties in a dry week. */
   waterBaseflowWindowDays: "water.baseflowWindowDays",
 
-  /** Water — how far back the snowpack integral looks, in game-days. It
-   * has to see a whole winter to know what is sitting on the mountain,
-   * so this is deliberately far longer than the flow window. */
-  waterSnowWindowDays: "water.snow.windowDays",
   /** Water — atmospheric lapse rate (K per kilometre of altitude). What
    * makes ALTITUDE the thing that banks snow. */
   waterSnowLapseRateKPerKm: "water.snow.lapseRateKPerKm",
   /** Water — degree-day melt factor: mm of water-equivalent released
    * per Kelvin above freezing per game-day. */
   waterSnowMeltMmPerKPerDay: "water.snow.meltMmPerKPerDay",
-  /** Water — mean sea-level air temperature (K) in spring. */
-  waterSeasonMeanKSpring: "water.season.meanK.spring",
-  /** Water — mean sea-level air temperature (K) in summer. */
-  waterSeasonMeanKSummer: "water.season.meanK.summer",
-  /** Water — mean sea-level air temperature (K) in fall. */
-  waterSeasonMeanKFall: "water.season.meanK.fall",
-  /** Water — mean sea-level air temperature (K) in winter. */
-  waterSeasonMeanKWinter: "water.season.meanK.winter",
 
   /** Water — flow (m³/s) at or above which a reach carries a boat. */
   waterNavigableMinFlowM3S: "water.navigable.minFlowM3S",

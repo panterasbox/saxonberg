@@ -55,6 +55,8 @@ export type {
   SkyRead,
   ClimateSite,
   DailyRange,
+  SnowCover,
+  SnowStep,
 } from '../lib/weather/WeatherType';
 
 import type { Season } from '../lib/time/CelestialProfile';
@@ -71,6 +73,8 @@ import type {
   SkyRead,
   ClimateSite,
   DailyRange,
+  SnowCover,
+  SnowStep,
 } from '../lib/weather/WeatherType';
 
 const LOGIC_PATH = '/platform/idea/api/weather';
@@ -235,6 +239,31 @@ export class WeatherApi {
     dayStartS: Quantity<'s'>,
   ): DailyRange {
     return logic().dailyRangeAt(site, locality, dayStartS);
+  }
+
+  /**
+   * ⭐⭐ **The snow lying at a site, from the weather it has had** — the
+   * ONE snow function: a floor reads its depth from it and a river reads
+   * its snowpack and melt from it, so the snow on the ground and the snow
+   * in the catchment can never disagree.
+   *
+   * Stateless: what fell as snow (phase by temperature, amount by the
+   * Locality's intensity), melted on a degree-day model, walked back to
+   * the last melt-out (180 → 360 → 720 days) so an old pack is counted
+   * whole; no melt-out at the bound is reported `perennial` at the cap.
+   * Correct after any absence, because nothing is stored.
+   *
+   * `meltWindowS` (default the catchment's flow window) bounds `meltMm`;
+   * `onStep` receives every segment of the exact walk (the ice on a still
+   * reach integrates alongside it).
+   */
+  public static snowCoverAt(
+    site: ClimateSite,
+    locality: Locality | null,
+    timeS: Quantity<'s'>,
+    opts?: { meltWindowS?: number; onStep?: (step: SnowStep) => void },
+  ): SnowCover {
+    return logic().snowCoverAt(site, locality, timeS, opts);
   }
 
   /* ──────────────── the biome seam (cheap, SYNC) ──────────────── */

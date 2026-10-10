@@ -59,6 +59,12 @@ import { AppSettingKeys } from '@saxonberg/server/mud/lib/config/AppSettings';
 import { ZoneApi } from '@saxonberg/server/mud/api/zone';
 import { BiomeApi } from '@saxonberg/server/mud/api/biome';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
+import { MixinApi } from '@saxonberg/server/mud/api/mixin';
+import { AddressApi } from '@saxonberg/server/mud/api/address';
+import { WeatherApi } from '@saxonberg/server/mud/api/weather';
+import { Quantity } from '@saxonberg/server/mud/lib/quantity';
+import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
+import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 import {
   type SupplyState,
@@ -333,6 +339,26 @@ export default class Conduit extends ConduitBase {
     return head;
   }
 
+  /**
+   * The air (K) over the extent this conduit serves — the zone the extent
+   * names, at its own latitude, elevation, continentality and offset,
+   * under the weather of the place the conduit stands in. `null` when the
+   * extent resolves no zone.
+   */
+  public async extentAirK(nowS: number): Promise<number | null> {
+    if (this.extent === '') return null;
+    const zone = await ZoneApi.resolveEnclosingZoneForPath(this.extent);
+    if (zone === null) return null;
+    const site = await zone.climateSite();
+    const self = this as unknown as Stuff;
+    const room = MixinApi.isContainable(self) ? self.getContainer() : null;
+    const locality =
+      room !== null && MixinApi.isContainer(room)
+        ? await AddressApi.resolveLocalityFor(room as Stuff & Container)
+        : null;
+    return WeatherApi.temperatureAt(site, locality, Quantity.of(nowS, 's')).rawValue();
+  }
+
   /** Whether it runs on gravity. `false` while the head is unresolved. */
   public isGravityFed(): boolean {
     return this.headM !== null && this.headM >= 0;
@@ -404,8 +430,18 @@ export default class Conduit extends ConduitBase {
       troubles.add('dry');
     }
 
-    const airK = await catalogue.airTemperatureKAt(this.reachRef, nowS);
-    if (airK !== null && airK <= dial(AppSettingKeys.waterFreezeK, 273.15)) {
+    // ⭐ A line is frozen if ANY part of it is (the climate build, D7): the
+    // intake's air at the reach, or the delivered extent's air where the
+    // pipes run. Both are the realm's one temperature, so the main and the
+    // street it serves agree — and an aqueduct whose intake sits high on a
+    // fell freezes before the town below it does, which is true of one.
+    const freezeK = dial(AppSettingKeys.waterFreezeK, 273.15);
+    const intakeK = await catalogue.airTemperatureKAt(this.reachRef, nowS);
+    const extentK = await this.extentAirK(nowS);
+    if (
+      (intakeK !== null && intakeK <= freezeK) ||
+      (extentK !== null && extentK <= freezeK)
+    ) {
       troubles.add('frozen');
     }
 

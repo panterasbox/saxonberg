@@ -55,12 +55,10 @@ settings:
     value: "30"
 
   # ── snowpack ──────────────────────────────────────────────────────
-  # How far back the snowpack integral looks. It has to see a whole
-  # winter to know what is sitting on the mountain, so it is deliberately
-  # far longer than the flow window — and it is the most expensive read
-  # in the build, which is why flow is memoised per weather segment.
-  - key: water.snow.windowDays
-    value: "180"
+  # ⭐ The snowpack is the KERNEL's since the climate build
+  # (`WeatherApi.snowCoverAt` — the same pack a floor reports lying on
+  # it), walked back to the last melt-out (`climate.walkback.*` in the
+  # platform's climate settings). The old fixed window is retired.
 
   # The atmospheric lapse rate. This one number is what makes ALTITUDE
   # the thing that banks snow: the same storm rains on the city and
@@ -75,18 +73,10 @@ settings:
   - key: water.snow.meltMmPerKPerDay
     value: "4"
 
-  # ⚠ Mean SEA-LEVEL air temperature by season. This table exists
-  # because a REACH has no room to resolve a biome from — it is a
-  # position on a river, not a place you stand — so the catchment needs
-  # a temperature model of its own. The lapse rate above does the rest.
-  - key: water.season.meanK.spring
-    value: "285"
-  - key: water.season.meanK.summer
-    value: "295"
-  - key: water.season.meanK.fall
-    value: "283"
-  - key: water.season.meanK.winter
-    value: "272"
+  # The seasonal temperature table that used to live here is RETIRED
+  # (the climate build): a reach reads the realm's one temperature at its
+  # course's authored site (`site:` on the Watercourse row) and its node's
+  # elevation, so the river and the street beside it agree.
 
   # ── navigability ──────────────────────────────────────────────────
   # BOTH conditions hold. A torrent through a gorge is not navigable and

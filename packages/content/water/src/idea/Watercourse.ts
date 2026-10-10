@@ -137,6 +137,24 @@ export interface WatercourseWater {
   nitrateMgL?: number;
 }
 
+/**
+ * ⭐ **Where on the world a river runs** (the climate build, D-L): the
+ * three climate levers a reach cannot get from a zone, because a reach
+ * is a position on a river rather than a place you stand. Elevation is
+ * the node's own; these are the course's. Every field is optional and
+ * falls back to the realm default (`DEFAULT_CLIMATE_SITE`).
+ *
+ * ⚠ Authored, not derived: a river's latitude can disagree with the
+ * zones it runs past, and that is an authoring error the climate drive
+ * catches for the shipped basins. The seam that retires it is a
+ * Locality that knows its zone (biome-normalization slate).
+ */
+export interface WatercourseSite {
+  latitudeDeg?: number;
+  continentality?: number;
+  offsetK?: number;
+}
+
 /** The authored shape of a watercourse row's `data` block. */
 export interface WatercourseDescriptor {
   /** Durable key (`kestrel`), independent of the template path. */
@@ -159,6 +177,8 @@ export interface WatercourseDescriptor {
   branchesFrom: string | null;
   /** See {@link WatercourseWater}; absent = the dials' defaults. */
   water?: WatercourseWater;
+  /** See {@link WatercourseSite}; absent = the realm's default site. */
+  site?: WatercourseSite;
 }
 
 /**
@@ -203,6 +223,7 @@ export default class Watercourse extends NamedMixin(Idea) {
     nodes: { persistent: true, authorable: true },
     branchesFrom: { persistent: true, authorable: true },
     water: { persistent: true, authorable: true },
+    site: { persistent: true, authorable: true },
   };
 
   protected key = '';
@@ -210,6 +231,7 @@ export default class Watercourse extends NamedMixin(Idea) {
   protected nodes: WatercourseNode[] = [];
   protected branchesFrom: string | null = null;
   protected water: WatercourseWater | null = null;
+  protected site: WatercourseSite | null = null;
 
   public getKey(): string {
     return this.key;
@@ -244,5 +266,12 @@ export default class Watercourse extends NamedMixin(Idea) {
   }
   public setWater(value: WatercourseWater | null): void {
     this.water = value && typeof value === 'object' ? { ...value } : null;
+  }
+
+  public getSite(): WatercourseSite | null {
+    return this.site === null ? null : { ...this.site };
+  }
+  public setSite(value: WatercourseSite | null): void {
+    this.site = value && typeof value === 'object' ? { ...value } : null;
   }
 }

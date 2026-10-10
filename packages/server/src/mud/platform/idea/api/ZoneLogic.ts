@@ -175,18 +175,7 @@ export class ZoneLogic extends ApiLogic {
     }
     const zone = outermost.getZone();
     if (zone === null) return { ...DEFAULT_CLIMATE_SITE };
-    const [lat, elev, cont, off] = await Promise.all([
-      zone.lookupField<number>('latitude'),
-      zone.lookupField<number>('elevation'),
-      zone.lookupField<number>('continentality'),
-      zone.lookupField<number>('climateOffsetK'),
-    ]);
-    return {
-      latitudeDeg: lat ?? DEFAULT_CLIMATE_SITE.latitudeDeg,
-      elevationM: elev ?? DEFAULT_CLIMATE_SITE.elevationM,
-      continentality: cont ?? DEFAULT_CLIMATE_SITE.continentality,
-      offsetK: off ?? DEFAULT_CLIMATE_SITE.offsetK,
-    };
+    return zone.climateSite();
   }
 
   /** See {@link ZoneApi._clearClassCaches}. */
