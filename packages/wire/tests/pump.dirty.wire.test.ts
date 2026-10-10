@@ -39,9 +39,9 @@ import {
  * water standing in troughs.
  */
 export const DIRTY_REASON =
-  'moves the village hand pump and the rack’s force pump and spare packing ' +
-  'out of where they were staged, wears a packing it leaves behind, and ' +
-  'leaves water standing in two troughs';
+  'carries the rack’s force pump and spare packing off to the deep well, ' +
+  'wears a packing it leaves behind on the hillside, and leaves water ' +
+  'standing in the troughs';
 
 declareFile({
   file: 'pump.dirty.wire.test.ts',
@@ -142,13 +142,30 @@ async function walk(s: Session, route: readonly string[]): Promise<void> {
   await s.drainProse();
 }
 
-/** All three ways a command dies before or inside its controller. */
+/** Type a command; return its outcome and its own prose. */
+async function act(s: Session, text: string): Promise<{ r: CommandResult; said: string }> {
+  const r = await say(s, text);
+  return { r, said: await r.said() };
+}
+
+/**
+ * Every way a command dies before or inside its controller.
+ *
+ * ⚠⚠ FIVE kinds, not three. The drilling drive's helper read three, and
+ * this drive found the fourth the hard way: a greedy arg is ONE MQL query,
+ * so `get packing from "force pump"` failed with an `mql-error` note (the
+ * quote is not MQL), the helper said *not refused*, and the next
+ * checkpoint failed for a reason three steps removed. `empty-result` is
+ * the fifth: a target that bound nothing.
+ */
 function refusedFor(r: { notes: readonly unknown[] }): string | null {
   const note = (r.notes as Array<{ kind?: string; reason?: string; detail?: string }>).find(
     (n) =>
       n.kind === 'controller-rejected' ||
       n.kind === 'command-rejected' ||
-      n.kind === 'validator-failed',
+      n.kind === 'validator-failed' ||
+      n.kind === 'mql-error' ||
+      n.kind === 'empty-result',
   );
   if (!note) return null;
   return note.reason ?? note.detail ?? note.kind ?? null;
@@ -158,9 +175,12 @@ function refusedFor(r: { notes: readonly unknown[] }): string | null {
 async function settle(s: Session, started: CommandResult): Promise<string> {
   const id = engagementIdOf(started);
   expect(id, `the act did not start an engagement: ${JSON.stringify(started.notes)}`).toBeTruthy();
+  // ⚠ `cmd()` clears the prose buffer before it sends, so the completion
+  // scene must be read off the STARTING command's own `said()` — which
+  // snapshots lazily, after the engagement has landed.
   await s.awaitActivity(id!, 90_000);
-  await new Promise((r) => setTimeout(r, 500));
-  return (await s.drainProse()).join('\n');
+  await new Promise((r) => setTimeout(r, 800));
+  return started.said();
 }
 
 async function carried(s: Session): Promise<string> {
@@ -241,21 +261,26 @@ suite('2. pump well, and carry water a machine raised', () => {
     await say(k, 'get pail');
     await k.drainProse();
     expect(await carried(k)).toMatch(/pail/i);
-    const fill = await say(k, 'fill pail from village well');
-    await k.drainProse();
-    expect(refusedFor(fill), 'an empty trough should not fill a pail').not.toBeNull();
+    const { r: fill, said } = await act(k, 'fill pail from well');
+    note(`fill pail from an unpumped well → ${refusedFor(fill) ?? 'ok'} · ${said.trim()}`);
+    // ⚠ `fill` says so in prose and files no refusal note when nothing
+    // moves (FillController's shipped shape) — so the witness is STATE:
+    // the pail still has nothing in it to spill.
+    expect(said, 'an empty trough must not fill a pail').toMatch(/can't fill/i);
+    expect(await read(k, 'spill pail')).toMatch(/is empty/i);
   });
 
   it('⭐⭐ a spell at the handle raises water, and the pail carries it', async () => {
     const closing = await pumpOnce(k, 'village well');
     note(`pump village well → ${closing.replace(/\s+/g, ' ').slice(0, 200)}`);
     expect(closing).toMatch(/water comes up/i);
-    const fill = await say(k, 'fill pail from village well');
-    await k.drainProse();
+    const { r: fill, said } = await act(k, 'fill pail from well');
+    note(`fill pail from well → ${refusedFor(fill) ?? 'ok'} · ${said.trim()}`);
     expect(refusedFor(fill), `fill was refused: ${JSON.stringify(fill.notes)}`).toBeNull();
-    const pail = await read(k, 'look pail');
-    note(`look pail → ${pail.replace(/\s+/g, ' ').slice(0, 200)}`);
-    expect(pail).toMatch(/water/i);
+    // ⭐ The witness is the pail's own state: it has something in it to spill.
+    const spilt = await read(k, 'spill pail');
+    note(`spill pail → ${spilt.trim()}`);
+    expect(spilt).toMatch(/you spill/i);
   });
 });
 
@@ -294,17 +319,16 @@ suite('3. measure pressure at the yard, then up at Hinkley', () => {
 
 suite('4. a suction pump at the deep well is told the depth, and nothing else', () => {
   it('⭐⭐ the hand pump comes out of the village well', async () => {
-    const got = await say(k, 'get hand pump from village well');
+    const got = await say(k, 'get pump from well');
     await k.drainProse();
-    note(`get hand pump from village well → ${refusedFor(got) ?? 'ok'}`);
+    note(`get pump from well → ${refusedFor(got) ?? 'ok'}`);
     expect(refusedFor(got), `get pump from well: ${JSON.stringify(got.notes)}`).toBeNull();
     expect(await carried(k)).toMatch(/hand pump/i);
   });
 
   it('⭐ a pail is not a pump — the well refuses it in its own words', async () => {
-    const put = await say(k, 'put pail in village well');
-    const said = (await k.drainProse()).join(' ');
-    note(`put pail in village well → ${refusedFor(put)} · ${said.trim()}`);
+    const { r: put, said } = await act(k, 'put pail in well');
+    note(`put pail in well → ${refusedFor(put)} · ${said.trim()}`);
     expect(refusedFor(put)).toBe('refused-by-container');
     expect(said).toMatch(/only a pump goes in a well/i);
   });
@@ -313,12 +337,11 @@ suite('4. a suction pump at the deep well is told the depth, and nothing else', 
     await walk(k, TO_THE_HILLSIDE);
     const hill = await read(k, 'look');
     expect(hill).toMatch(/deep well|well/i);
-    const put = await say(k, 'put hand pump in deep well');
+    const put = await say(k, 'put pump in well');
     await k.drainProse();
     expect(refusedFor(put), `put pump in well: ${JSON.stringify(put.notes)}`).toBeNull();
 
-    const tried = await say(k, 'pump deep well');
-    const said = (await k.drainProse()).join(' ');
+    const { r: tried, said } = await act(k, 'pump deep well');
     note(`pump deep well (suction) → ${refusedFor(tried)} · ${said.trim()}`);
     expect(refusedFor(tried)).toBe('beyond-suction');
     expect(said).toMatch(/14 metres/);
@@ -336,22 +359,34 @@ suite('4. a suction pump at the deep well is told the depth, and nothing else', 
 
 suite('5. a force pump in the same well lifts', () => {
   it('⭐⭐ swap the pumps, and water comes up from fourteen metres', async () => {
-    await say(k, 'get hand pump from deep well');
+    // ⭐ The hand pump goes BACK in the village well — the village gets its
+    // pump back, and only one pump is ever in reach at a time. ⚠ Not
+    // dropped on the hillside: with two pumps in reach MQL's `packing from
+    // force pump` bound the HAND pump, and the spare went in the wrong one.
+    await say(k, 'get pump from well');
     await k.drainProse();
-    await walk(k, BACK_TO_THE_OFFICE);
-    await say(k, 'get force pump');
-    await k.drainProse();
+    await walk(k, ['southwest', 'south']);
+    const { r: back, said: backSaid } = await act(k, 'put pump in well');
+    note(`put the hand pump back in the village well → ${refusedFor(back) ?? 'ok'} · ${backSaid.trim()}`);
+    expect(refusedFor(back)).toBeNull();
+    await walk(k, ['north']);
+    const { r: got, said: gotSaid } = await act(k, 'get pump');
+    note(`get pump (the rack's force pump) → ${refusedFor(got) ?? 'ok'} · ${gotSaid.trim()}`);
     expect(await carried(k)).toMatch(/force pump/i);
     await walk(k, ['north']);
-    const put = await say(k, 'put force pump in deep well');
+    const put = await say(k, 'put pump in well');
     await k.drainProse();
     expect(refusedFor(put), `put force pump: ${JSON.stringify(put.notes)}`).toBeNull();
 
     const closing = await pumpOnce(k, 'deep well');
     note(`pump deep well (force) → ${closing.replace(/\s+/g, ' ').slice(0, 200)}`);
     expect(closing).toMatch(/water comes up/i);
-    const well = await read(k, 'look deep well');
-    expect(well).toMatch(/holds .*water/i);
+    // ⚠ Quoted: `reachable` reaches one exit away, and the claims office
+    // next door racks a WELL bailer — a bare `well` bound it.
+    const { r: fill, said: filled } = await act(k, 'fill pail from "deep well"');
+    note(`fill pail from the deep well → ${refusedFor(fill) ?? 'ok'} · ${filled.trim()}`);
+    expect(filled).toMatch(/you fill/i);
+    expect(await read(k, 'spill pail')).toMatch(/you spill/i);
   });
 });
 
@@ -369,7 +404,7 @@ suite('6. pump until the leather goes, and fit the spare', () => {
     const before = await packingWord();
     note(`packing before → ${before}`);
     for (let i = 0; i < 4; i++) {
-      await say(k, 'fill pail from deep well');
+      await say(k, 'fill pail from "deep well"');
       await say(k, 'spill pail');
       await k.drainProse();
       await pumpOnce(k, 'deep well');
@@ -380,8 +415,7 @@ suite('6. pump until the leather goes, and fit the spare', () => {
   });
 
   it('repair, attempted and recorded', async () => {
-    const tried = await say(k, 'repair packing');
-    const said = (await k.drainProse()).join(' ');
+    const { r: tried, said } = await act(k, 'repair packing');
     note(`repair packing → ${refusedFor(tried) ?? 'ok'} · ${said.replace(/\s+/g, ' ').slice(0, 200)}`);
     // ⚠ Recorded, not asserted: a self-repair wants a mending kit AND
     // leather stock, and the valley has neither to hand. The verb must be
@@ -389,30 +423,56 @@ suite('6. pump until the leather goes, and fit the spare', () => {
     expect(refusedFor(tried)).not.toBe('command-rejected');
   });
 
-  it('⭐⭐ take the worn leather out, and the pump stops; fit the spare, and it works', async () => {
-    const out = await say(k, 'get packing from force pump');
+  it('⭐⭐ pull the pump, take the worn leather out, and it stops; fit the spare, and it works', async () => {
+    // ⭐ You re-pack a pump by PULLING it — nobody reaches two levels down
+    // a well for a cup of leather. And that is the platform's own rule:
+    // `get` reaches one container deep (`mustBeInLocation`, the same rule
+    // `canReach` asks), so the packing comes out of a pump standing on the
+    // ground, not out of one standing in a shaft.
+    const pulled = await say(k, 'get pump from well');
+    expect(refusedFor(pulled), `pull the pump: ${JSON.stringify(pulled.notes)}`).toBeNull();
+    await say(k, 'drop pump');
     await k.drainProse();
-    note(`get packing from force pump → ${refusedFor(out) ?? 'ok'}`);
+    // ⚠⚠ `pump:i:packing`, not `packing from pump`. MQL's natural layer
+    // does not read `from` as containment — the words are matched as one
+    // query and the best match wins (`packing from force pump` took the
+    // FORCE PUMP). The canonical contents read is the colon chain.
+    const out = await say(k, 'get pump:i:packing');
+    await k.drainProse();
+    note(`get pump:i:packing → ${refusedFor(out) ?? 'ok'}`);
     expect(refusedFor(out), `get packing: ${JSON.stringify(out.notes)}`).toBeNull();
 
-    const dead = await say(k, 'pump deep well');
+    // Set back with no leather in it, the pump draws nothing.
+    await say(k, 'get pump');
+    await say(k, 'put pump in well');
     await k.drainProse();
+    const { r: dead, said: deadSaid } = await act(k, 'pump deep well');
+    note(`pump deep well with no packing → ${refusedFor(dead)} · ${deadSaid.trim()}`);
     expect(refusedFor(dead)).toBe('no-packing');
 
+    // The worn leather stays on the hillside; the spare comes off the rack.
     await say(k, 'drop packing');
+    await say(k, 'get pump from well');
+    await k.drainProse();
     await walk(k, BACK_TO_THE_OFFICE);
     await say(k, 'get packing');
     await k.drainProse();
     expect(await carried(k)).toMatch(/packing/i);
     await walk(k, ['north']);
-    const fit = await say(k, 'put packing in force pump');
+    await say(k, 'drop pump');
     await k.drainProse();
+    const { r: fit, said: fitSaid } = await act(k, 'put packing in pump');
+    note(`put packing in pump → ${refusedFor(fit) ?? 'ok'} · ${fitSaid.trim()}`);
     expect(refusedFor(fit), `fit packing: ${JSON.stringify(fit.notes)}`).toBeNull();
+    await say(k, 'get pump');
+    await say(k, 'put pump in well');
+    await k.drainProse();
     expect(await packingWord()).toBe('sound');
-    await say(k, 'fill pail from deep well');
+    await say(k, 'fill pail from "deep well"');
     await say(k, 'spill pail');
     await k.drainProse();
     const closing = await pumpOnce(k, 'deep well');
+    note(`pump deep well with the spare fitted → ${closing.replace(/\s+/g, ' ').slice(-120)}`);
     expect(closing).toMatch(/water comes up/i);
   });
 });

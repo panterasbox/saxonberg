@@ -18,11 +18,16 @@ data:
     A long iron barrel meant to stand down in the shaft, with a rod coming
     up out of it to a rocking handle on a frame. The pipe leaves it from
     the side, not the top. The plunger at the bottom is cupped in leather.
-  mass: 55
+  # ⚠ 30 kg, not 55: a driven character could not lift it off the rack
+  # (`too-heavy-to-lift`), and a pump nobody can carry to a well is a pump
+  # that is never fitted. A small force barrel and its rod are a load.
+  mass: 30
   _materialPath: /stuff/idea/material/alloy/cast-iron
   mechanism: /platform/idea/PumpMechanism/force
   liftM: 30
-  throughputLps: 0.4
+  # ⭐ Half a litre a second — strictly more than a bailer's twelve litres a
+  # thirty-second trip, which is the whole case for fitting one to a bore.
+  throughputLps: 0.5
   strokeS: 20
   props:
     - /trade/tanning/thing/packing

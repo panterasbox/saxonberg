@@ -39,7 +39,7 @@ data:
   interiorCapacity: 10
   # ⚠ No `category:` and no `open:` — a `Receptacle` declares neither
   # (they are the `Vat`/`VesselKind` rung's, which is why the salt-pan
-  # has them), and `closure: open` already says a pail has no lid. The
+  # has them). The
   # `milk` verb's vessel default matches `mixin.BulkableMixin`, not a
   # kind, so nothing needed them.
   # ⚠⚠ `open`, and it said `none` until the fire build — which is not a
@@ -48,5 +48,15 @@ data:
   # never fired and this vessel RETAINED LIQUID AS THOUGH IT WERE LIDDED.
   # ⭐ `setClosure` throws on an unknown rung now, so a row like that
   # fails its own hydration instead of quietly inverting its own prose.
-  closure: open
+  # ⚠⚠⚠ `liquidTight`, and it said `open` until the pump build's drive
+  # filled this pail from a well and found it EMPTY a second later: the
+  # transfer answered `drained` and the water went to the floor. On the
+  # closure ladder `open` does not mean *no lid* — it means NOT
+  # LIQUID-TIGHT (a sieve, a basket), and every liquid requires
+  # `liquidTight` (`requiredClosureFor`). The lid question is `sealed`'s,
+  # and only a gas asks it. So the comment above had the rungs backwards,
+  # and since the fire build's `none → open` fix this pail — and every
+  # `milk` into it — poured straight through. A pail holds water and has
+  # no lid: that is exactly `liquidTight`.
+  closure: liquidTight
   mass: 1.2

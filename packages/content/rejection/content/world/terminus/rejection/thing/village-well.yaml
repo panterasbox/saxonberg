@@ -14,7 +14,9 @@
 # it goes.
 class: /platform/thing/Well
 data:
-  keywords: [well, "village well", pump, trough, shaft]
+  # ⚠ Not `pump`: the hand pump set in it answers to that, and a well that
+  # claimed the word stole `look pump` from the thing it names.
+  keywords: [well, "village well", trough, shaft]
   shortDescription: village well
   register: definite
   longDescription: >-

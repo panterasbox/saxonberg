@@ -29,5 +29,10 @@ args:
     required: true
     scope: "reachable"
     requires: any
+    # ⚠⚠ `greedy` — found by DRIVING it: `pump village well` answered
+    # *"That doesn't match any known command shape"*, because without it
+    # the two words are two positionals. The target is the whole tail
+    # (the `look.yaml` precedent), so nothing else can be swallowed.
+    greedy: true
     validators:
       - /lib/command/validators/canReach
