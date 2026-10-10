@@ -64,15 +64,11 @@ export default class Bailer extends Tool {
       'trade/drilling/cmd/drilling/bore.yaml',
       'trade/drilling/cmd/drilling/bail.yaml',
       'trade/drilling/cmd/drilling/line.yaml',
-      'trade/drilling/cmd/drilling/hire.yaml',
-      'trade/drilling/cmd/drilling/dismiss.yaml',
     ],
     peers: [
       'trade/drilling/cmd/drilling/bore.yaml',
       'trade/drilling/cmd/drilling/bail.yaml',
       'trade/drilling/cmd/drilling/line.yaml',
-      'trade/drilling/cmd/drilling/hire.yaml',
-      'trade/drilling/cmd/drilling/dismiss.yaml',
     ],
   };
 }
