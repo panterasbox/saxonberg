@@ -108,9 +108,16 @@ async function say(s: Session, line: string): Promise<string> {
   return said;
 }
 
-/** Into the player's HANDS — the craft gather reaches what you carry. */
+/** Where each player stands — their parts are cloned there. */
+const WHERE = new WeakMap<Session, string>();
+
+/**
+ * A player's part, cloned into the room they stand in — by the founder,
+ * because `clone` asks for title over the TEMPLATE's path (wizard confers
+ * none). The craft gather reaches the room as well as the hands.
+ */
 async function cloneHand(s: Session, path: string, count = 1): Promise<void> {
-  expectOk(await s.cmd(`clone ${path}${count > 1 ? ` --count ${count}` : ''}`));
+  await cloneHere(WHERE.get(s) ?? SMITHY, path, count);
 }
 
 /** Into the ROOM, by the founder, who holds the title to it. */
@@ -141,7 +148,8 @@ async function practise(s: Session, discipline: string, n: number): Promise<void
 /** Open a player with a light — the world boots at midnight. */
 async function player(tag: string, where: string): Promise<Session> {
   const s = await Session.open(uniqueHandle(tag), { startLocation: where, wizard: true });
-  expectOk(await s.cmd(`clone ${GLOWCAP}`));
+  WHERE.set(s, where);
+  await cloneHere(where, GLOWCAP);
   await s.drainProse();
   return s;
 }
@@ -266,6 +274,7 @@ suite('⭐⭐ the cooper (drive 6, 7, 8, 9, 11, 17, 22; AC 6, 14, 22, 23, 24)', 
     const barrel = await say(cooper, 'fit slack-barrel');
     expect(barrel, `slack barrel: ${barrel}`).toMatch(/barrel/i);
     await cloneHand(cooper, T.peg, 3);
+    await say(cooper, 'get peg');
     const put = await say(cooper, 'put peg in barrel');
     expect(put, `put in barrel: ${put}`).not.toMatch(/can'?t|cannot/i);
     await cloneHere(SMITHY, T.butt);
@@ -322,7 +331,7 @@ suite('⭐⭐ the cooper (drive 6, 7, 8, 9, 11, 17, 22; AC 6, 14, 22, 23, 24)', 
     const gauger = await Session.open('founder', { startLocation: SMITHY, wizard: true });
     try {
       expectOk(await gauger.cmd(`appoint me to gauger at ${REGISTRY}`));
-      await cloneHand(gauger, T.rod);
+      expectOk(await gauger.cmd(`clone ${T.rod} --here`));
       const record = await say(gauger, 'measure capacity cask');
       expect(record, `gauger gauges: ${record}`).toMatch(/of record/i);
       expect(record).not.toMatch(/not of record/i);
