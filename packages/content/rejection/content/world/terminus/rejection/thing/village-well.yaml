@@ -1,0 +1,31 @@
+# The village well — a shaft in the pithead yard with a hand pump set in
+# it and a stone trough at the collar.
+#
+# ⭐⭐ The first pump anywhere in the realm, and the first time anybody
+# could carry water a machine raised. The water stands six metres down —
+# well inside what a suction pump will draw — so `pump well` brings it up
+# into the trough and `fill bucket from well` takes it away.
+#
+# The trough starts EMPTY on purpose: before anybody has pumped, there is
+# nothing to fill a bucket from, and the well says so.
+#
+# ⚠ No numbers in the prose. A person standing here sees a handle, a
+# barrel and a trough, and the leather is something you learn about when
+# it goes.
+class: /platform/thing/Well
+data:
+  keywords: [well, "village well", pump, trough, shaft]
+  shortDescription: village well
+  register: definite
+  longDescription: >-
+    A ring of dressed slate knee-high round a dark shaft, with a stone
+    trough set against it and a cast-iron pump bolted to a post over the
+    hole. Its handle is worn bright where the hands go. The mud around the
+    trough never quite dries.
+  mass: 2000
+  _materialPath: /stuff/idea/material/rock/slate
+  depthM: 6
+  interiorBulk: true
+  interiorCapacity: 20
+  props:
+    - /stuff/thing/gear/hand-pump

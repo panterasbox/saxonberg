@@ -23,7 +23,7 @@ data:
   # biome and the light follows the sun, the moon and the cloud.
   # A pithead yard is OUTDOORS. It authored 8000 lumens and no biome at all, so the realm did not know — and gave it no weather either.
   longDescription: |
-    A flat of trodden mud and grey spoil, walled on three sides by the slope it was cut out of. Ore carts stand where they were left. A cable drum, a winch house with its door off, and a rail line that runs twenty yards and stops.
+    A flat of trodden mud and grey spoil, walled on three sides by the slope it was cut out of. Ore carts stand where they were left. A cable drum, a winch house with its door off, and a rail line that runs twenty yards and stops. By the winch house a pump stands over the village well.
 
     On the low side, where the spoil has been shifted, the country rock comes up green — a band of it, brighter than anything else here, running away up the hillside and under the buildings.
   coords: { x: 0, y: 0, z: 0 }
@@ -61,6 +61,12 @@ data:
     # the guard contract the consequence build added is exactly the job a
     # mine has and a station does not.
     - /world/terminus/rejection/thing/pithead-board
+    # ⭐⭐ The village well (the pump build) — a hand pump on a six-metre
+    # shaft, and the first water anybody could carry that a machine raised.
+    - /world/terminus/rejection/thing/village-well
+    # …and a pail beside it, because a well is where a pail is left. ⚠ The
+    # store stocks pails and cannot sell one (its till cannot take money).
+    - /stuff/thing/vessel/pail
   details:
     outcrop:
       keywords: [outcrop, stain, green, band, rock, malachite]

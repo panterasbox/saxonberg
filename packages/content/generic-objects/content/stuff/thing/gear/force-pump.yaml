@@ -1,0 +1,28 @@
+# The force pump — a plunger that sits down at the water and drives it up
+# the pipe ahead of it. Heavier, dearer, and the answer to a well the
+# village pump will not draw from.
+#
+# ⭐⭐ `mechanism: force`. Pushing has no atmospheric wall, so the only
+# limit is this row's own `liftM` — the build of the barrel and the arm
+# on the handle. Set it in the deep well the hand pump was refused at and
+# it simply works; nothing explains the difference.
+#
+# Born with its packing, like every pump: the same leather, the same wear.
+class: /platform/thing/Pump
+data:
+  # ⚠ `"force pump"` is the printed name, so it is a keyword too.
+  keywords: [pump, handle, barrel, cylinder, plunger, "force pump"]
+  shortDescription: force pump
+  register: indefinite
+  longDescription: >-
+    A long iron barrel meant to stand down in the shaft, with a rod coming
+    up out of it to a rocking handle on a frame. The pipe leaves it from
+    the side, not the top. The plunger at the bottom is cupped in leather.
+  mass: 55
+  _materialPath: /stuff/idea/material/alloy/cast-iron
+  mechanism: /platform/idea/PumpMechanism/force
+  liftM: 30
+  throughputLps: 0.4
+  strokeS: 20
+  props:
+    - /trade/tanning/thing/packing

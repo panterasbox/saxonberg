@@ -1,0 +1,32 @@
+# The hand pump — a cast-iron barrel on a post with a long handle, set
+# down in a well. The village pump.
+#
+# ⭐⭐ `mechanism: suction`, and the row says nothing else about a limit.
+# A suction pump DRAWS: the plunger lifts, a flap closes under it, and
+# the water follows it up the pipe — so it will not lift past what the
+# air where it stands will push. That ceiling is the place's arithmetic
+# (BiomeApi.suctionHeadFor), never a number on this row; set this pump in
+# a fourteen-metre well and it tells you the water is fourteen metres
+# down and that it will not draw it, and nothing anywhere tells you why.
+#
+# Born with its packing: a cup of leather the tanner made, which wears
+# with every spell at the handle (see /trade/tanning/thing/packing).
+class: /platform/thing/Pump
+data:
+  # ⚠ `"hand pump"` is the printed name, so it is a keyword too.
+  keywords: [pump, handle, barrel, cylinder, "hand pump"]
+  shortDescription: hand pump
+  register: indefinite
+  longDescription: >-
+    A barrel of cast iron the length of a forearm on top of a wooden post,
+    with a spout on one side and a long iron handle on the other. A pipe
+    goes down out of the bottom of it. Inside, round the end of the
+    plunger, is a cup of leather that seals it.
+  mass: 35
+  _materialPath: /stuff/idea/material/alloy/cast-iron
+  mechanism: /platform/idea/PumpMechanism/suction
+  liftM: 8
+  throughputLps: 0.5
+  strokeS: 20
+  props:
+    - /trade/tanning/thing/packing
