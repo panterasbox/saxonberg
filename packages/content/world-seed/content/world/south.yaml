@@ -5,7 +5,7 @@
 class: /platform/idea/location/CartesianZone
 data:
   name: The South Station
-  cellSize: 10.0
+  cellSize: 3.0
   address: south
   latitude: -89
   continentality: 0.3

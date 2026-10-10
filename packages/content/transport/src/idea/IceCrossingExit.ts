@@ -112,10 +112,12 @@ export default class IceCrossingExit extends Exit {
     this.setBlocked(refusal !== null);
   }
 
-  /** Read for THIS mover, then fall through: the `blocked` gate refuses. */
-  public override async applyTraversal(mover: Stuff): Promise<boolean> {
+  /**
+   * Read for THIS mover BEFORE the gate (`Exit.prepareTraversal`, awaited
+   * ahead of `canTraverse`); the `blocked` gate then refuses.
+   */
+  public override async prepareTraversal(mover: Stuff & Containable): Promise<void> {
     await this.refreshCrossing(IceCrossingExit.massOf(mover));
-    return false;
   }
 
   /** The refusal names what is wrong with the ice. */

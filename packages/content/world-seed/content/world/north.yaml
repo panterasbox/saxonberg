@@ -7,7 +7,7 @@
 class: /platform/idea/location/CartesianZone
 data:
   name: The North
-  cellSize: 10.0
+  cellSize: 3.0
   address: north
   latitude: 71
   continentality: 0.7

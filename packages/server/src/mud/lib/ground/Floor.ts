@@ -689,10 +689,14 @@ export function FloorMixin<
       } catch {
         sky = false;
       }
+      // ⚠ Not memoised (found by the climate drive): the first read of a
+      // floor happens as its room MATERIALIZES, before the room's biome
+      // resolves, so "not under the sky" was cached for a whole six-hour
+      // segment and a snowfield read bare. The check is two cheap sync
+      // walks; it re-runs each read until the place answers.
       if (host === null || !sky || !this.isOnGrade()) {
         this._snowDepthM = 0;
         this._snowPerennial = false;
-        this._snowSegment = segment;
         return;
       }
       if (!MixinApi.isAtmospheric(place)) return;

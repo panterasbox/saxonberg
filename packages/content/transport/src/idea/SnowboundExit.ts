@@ -94,10 +94,12 @@ export default class SnowboundExit extends Exit {
     this.setBlocked(depth > this._closesAboveM);
   }
 
-  /** Refresh, then fall through: the `blocked` gate does the refusing. */
-  public override async applyTraversal(_mover: Stuff): Promise<boolean> {
+  /**
+   * Refresh BEFORE the gate (`Exit.prepareTraversal`, awaited ahead of
+   * `canTraverse`); the `blocked` gate then refuses with the reason below.
+   */
+  public override async prepareTraversal(_mover: Stuff & Containable): Promise<void> {
     await this.refreshCrossing();
-    return false;
   }
 
   /** The refusal names the snow, not "the way". */

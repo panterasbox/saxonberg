@@ -401,6 +401,9 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
       // canTraverseExit before this method is reached, so this throw is
       // reached only by misbehaving callers or test code that walks
       // through a mode-gated exit.
+      // A conditional exit brings its derived state up to date first (a
+      // ford reads the river, a pass its snow) — see Exit.prepareTraversal.
+      await exit.prepareTraversal(this);
       const guard = exit.canTraverse(this, mode);
       if (!guard.ok) {
         throw new ContainmentError(

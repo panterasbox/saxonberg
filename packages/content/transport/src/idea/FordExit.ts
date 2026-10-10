@@ -18,11 +18,12 @@
  * water, the lane compile drops the edge, and a `Journey` mid-route
  * aborts `route-blocked` at the leg boundary.
  *
- * **`applyTraversal`** refreshes it, and `Mobile.traverse` awaits that
- * before anything else — so a person walking up to the water always
- * gets today's answer. It never *handles* the traversal; it refreshes
- * and falls through, letting the ordinary `blocked` gate do the
- * refusing. ⚠ The `LaneCatalogue` no longer calls `refreshCrossing` by
+ * **`prepareTraversal`** refreshes it, and the locomotion controller and
+ * `Mobile.traverse` await that BEFORE the `blocked` gate — so a person
+ * walking up to the water always gets today's answer. (It refreshed in
+ * `applyTraversal` until the climate build, which runs after the gate:
+ * the first crossing after the water rose went through.) It never
+ * *handles* the traversal; the ordinary `blocked` gate refuses. ⚠ The `LaneCatalogue` no longer calls `refreshCrossing` by
  * shape (`LaneCatalogue.ts` records why): a compiled road finds the
  * closure at the leg, by this same `applyTraversal`. `SnowboundExit` and
  * `IceCrossingExit` (the climate build) are this class's two siblings.
@@ -146,6 +147,16 @@ export default class FordExit extends Exit {
   public override async applyTraversal(_mover: Stuff): Promise<boolean> {
     await this.refreshCrossing();
     return false;
+  }
+
+  /**
+   * ⭐ Refresh BEFORE the gate (the climate build found the order): the
+   * `blocked` gate runs ahead of `applyTraversal`, so a refresh there
+   * landed one crossing late — the first walk after the river rose went
+   * through. `Exit.prepareTraversal` is awaited first.
+   */
+  public override async prepareTraversal(_mover: Stuff & Containable): Promise<void> {
+    await this.refreshCrossing();
   }
 
   /** The refusal names the water, not "the way". */

@@ -177,6 +177,16 @@ describe('a ford reads the river', () => {
     expect(f.isBlocked()).toBe(false);
   });
 
+  it('⭐ prepareTraversal refreshes BEFORE the gate (the climate build found the order)', async () => {
+    const w = installWater();
+    const f = ford();
+    w.m3s = 30;
+    expect(f.isBlocked()).toBe(false); // stale until something asks
+    await f.prepareTraversal({} as Stuff & Containable);
+    expect(f.isBlocked()).toBe(true);
+    expect(f.canTraverse({} as Stuff & Containable, 'walk').ok).toBe(false);
+  });
+
   it('applyTraversal refreshes and NEVER handles the traversal itself', async () => {
     const w = installWater();
     const f = ford();

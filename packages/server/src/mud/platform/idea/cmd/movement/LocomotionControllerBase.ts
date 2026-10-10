@@ -133,6 +133,9 @@ export abstract class LocomotionControllerBase extends CommandController<Locomot
     // enablement (with capability). MQL's canReach validator already
     // confirmed the exit is reachable; canTraverseExit adds the
     // mode-specific gates.
+    // ⭐ A conditional exit refreshes what its gate reads (the river, the
+    // snow, the ice) BEFORE the gate runs — Exit.prepareTraversal.
+    if (MixinApi.isContainable(actor)) await exit.prepareTraversal(actor);
     const guard = LocomotionApi.canTraverseExit(actor, exit, mode, direction);
     if (!guard.ok) {
       this.emitRejection(guard, mode, model, context);
@@ -239,7 +242,10 @@ export abstract class LocomotionControllerBase extends CommandController<Locomot
       case 'noConveyance':
         return `You're not ${mode.getName()}ing anything.`;
       case 'blocked':
-        return 'The way is blocked.';
+        // The exit's own words when it has them — a snowbound pass or an
+        // unsafe ford says WHY (found by the climate drive: the snow
+        // sentence never reached the player).
+        return guard.reason ?? 'The way is blocked.';
       case 'door':
         return guard.reason ?? 'The way is closed.';
       case 'terrain':

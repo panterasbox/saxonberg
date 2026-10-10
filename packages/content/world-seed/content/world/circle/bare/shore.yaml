@@ -3,7 +3,7 @@
 class: /platform/location/SingletonCartesianLocation
 data:
   shortDescription: bare shore
-  keywords: [shore, clearmere]
+  keywords: [shore, bare]
   register: definite
   longDescription: |
     A wind-scoured shore where no snow lies, above a small mere. The wind takes everything that falls here off across the water. East, the camp.

@@ -65,10 +65,10 @@ function crossing(): IceCrossingExit {
 }
 
 /** A mover of `kg`. */
-function body(kg: number): Stuff {
+function body(kg: number): Stuff & Containable {
   const s = makeStuff(() => new Idea()) as unknown as Stuff & { getMass(): Quantity<'kg'> };
   (s as unknown as { getMass: () => Quantity<'kg'> }).getMass = () => Quantity.of(kg, 'kg');
-  return s;
+  return s as unknown as Stuff & Containable;
 }
 
 const reasonOf = (x: IceCrossingExit): string => {
@@ -92,12 +92,12 @@ describe('an ice crossing reads the sheet', () => {
   it('⭐ open water refuses; a bearing sheet lets a person across', async () => {
     const w = installWater();
     const x = crossing();
-    await x.applyTraversal(body(80));
+    await x.prepareTraversal(body(80));
     expect(x.isBlocked()).toBe(true);
     expect(reasonOf(x)).toMatch(/water is open/);
 
     w.ice = { thicknessM: 0.1, bearsKg: 250, rotting: false, reason: null };
-    await x.applyTraversal(body(80));
+    await x.prepareTraversal(body(80));
     expect(x.isBlocked()).toBe(false);
   });
 
@@ -105,9 +105,9 @@ describe('an ice crossing reads the sheet', () => {
     const w = installWater();
     const x = crossing();
     w.ice = { thicknessM: 0.1, bearsKg: 250, rotting: false, reason: null };
-    await x.applyTraversal(body(80));
+    await x.prepareTraversal(body(80));
     expect(x.isBlocked()).toBe(false);
-    await x.applyTraversal(body(500));
+    await x.prepareTraversal(body(500));
     expect(x.isBlocked()).toBe(true);
     expect(reasonOf(x)).toMatch(/would not bear you/);
   });
@@ -116,10 +116,10 @@ describe('an ice crossing reads the sheet', () => {
     const w = installWater();
     const x = crossing();
     w.ice = { thicknessM: 0.3, bearsKg: 2250, rotting: true, reason: null };
-    await x.applyTraversal(body(80));
+    await x.prepareTraversal(body(80));
     expect(reasonOf(x)).toMatch(/rotten/);
     w.ice = { thicknessM: 0, bearsKg: 0, rotting: false, reason: 'running' };
-    await x.applyTraversal(body(80));
+    await x.prepareTraversal(body(80));
     expect(reasonOf(x)).toMatch(/moving/);
   });
 
@@ -128,7 +128,7 @@ describe('an ice crossing reads the sheet', () => {
     const x = crossing();
     x.setBearsMarginKg(100);
     w.ice = { thicknessM: 0.08, bearsKg: 160, rotting: false, reason: null };
-    await x.applyTraversal(body(80));
+    await x.prepareTraversal(body(80));
     expect(x.isBlocked()).toBe(true);
   });
 
@@ -139,7 +139,7 @@ describe('an ice crossing reads the sheet', () => {
     expect(reasonOf(x)).toMatch(/no crossing here/);
   });
 
-  it('applyTraversal never handles the traversal itself', async () => {
+  it('applyTraversal never handles the traversal itself — the refresh is prepareTraversal\'s', async () => {
     installWater().ice = { thicknessM: 0.2, bearsKg: 1000, rotting: false, reason: null };
     expect(await crossing().applyTraversal(body(80))).toBe(false);
   });

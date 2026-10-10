@@ -1289,6 +1289,39 @@ weather dials: `climate.poleMeanK` 245, `climate.equatorMeanK` 301,
   heath the storm pin never reached); fixed, ratchet lowered.
 - **B16 (W10) — the greatcoat is staged by the footlocker**, not placed
   by the room: `Footlocker` composes `StagedMixin` like `Chest`.
+- **B17 (W11) — the salt pan is born with brine; the cask is gone.**
+  The pan is `closure: open`, so anything poured into it drains through
+  (D17's pour could never land). `circle/thing/brine-pan` `extends:` the
+  quarrying pan with 20 L of salt-water in it.
+- **B18 (W11) — `Exit.prepareTraversal(mover)`, an awaited `@hook` ahead
+  of the gate.** The three conditional exits refreshed in
+  `applyTraversal`, which runs AFTER `canTraverse` — so a pass that
+  should shut on this crossing shut on the next. ⚠ The shipped `FordExit`
+  had the same ordering bug. Base is a no-op; `Mobile.traverse` and
+  `LocomotionControllerBase` await it.
+- **B19 (W11) — two "unresolved" reads are no longer cached as answers.**
+  The floor memoised "not under the sky" during materialization (a
+  snowfield read bare for a segment); and the per-command sense-gate
+  preload (`PerceptionLogic.preloadForSenseGate`) now awaits the place's
+  climate site + weather Locality, so a first `look` reads the real snow
+  and the real daylight at the room's latitude. Lens: 3a — the fiction
+  may not be wrong on first sight.
+- **B20 (W11) — the Circle crossing has a 15 kg margin.** After B14 the
+  young snow-ice bears ≈72 kg at noon on day 0 and ≈93 kg on day 1
+  (measured), so a bare mover-mass test let a person across on day 0.
+  `_bearsMarginKg: 15` is the authored grain (a careful crosser's hand of
+  margin), not a law.
+- **B21 (W11) — the `blocked` gate speaks the exit's own reason.**
+  `LocomotionControllerBase.composeRejection` returned *"The way is
+  blocked."* and dropped `guard.reason`, so the snow sentence and the
+  ford's never reached a player.
+- **B22 (W11) — AC 19's comms half is proven over a channel post, not
+  `tell`.** `tell <online player>` is refused for every name — the
+  pre-existing `online`-scope defect (`governance.md § Open`, reported
+  2026-08-02). Recorded there as hitting `dm`/`tell` too; not fixed here.
+- **R16 corollary — a room's ambient is restamped at a weather boundary
+  only where somebody is.** The drive advances its days standing at the
+  Circle camp so the pan sees the cold; a pan nobody visits cools late.
 - **B4 (W0) — no `climate.defaultContinentality` dial.** The default site
   is the `DEFAULT_CLIMATE_SITE` value; a dial read beside a const would be
   two sources for one number.
@@ -1859,6 +1892,11 @@ lines to `/finalize`.
 **Then:** `pnpm test` once; push; open the MR.
 **Commit.** `drive(climate): what driving found` + `docs(climate): …`.
 
+> ✅ **Done.** The drive went 13/13 on run 12 (see **Drive record**);
+> twelve runs found eleven things, six of them product defects (B17–B22,
+> two in shipped code: `FordExit`'s gate ordering and the `blocked`
+> refusal that never said why).
+
 ---
 
 ## Reachability wiring
@@ -2172,3 +2210,54 @@ Read first, in this order:
 `packages/wire/tests/climate-and-water.dirty.wire.test.ts` against an
 owned world: the count, each step's outcome, and what each failure was.
 Precedent: `farming-plan.md § Checkpoint A`.)*
+
+**Run 12 — 13 / 13 green** (2026-10-10, fresh `saxonberg_build4`, owned
+world on port 2019, starting on day-of-year 0 at noon). The readings:
+
+| step | what was seen |
+|---|---|
+| 1 · 11 | north station 259.2 K, Wharfside 279.7 K; both `trace atmosphere` lines say the temperature is derived from the climate |
+| 2 | Kestrel Road pass (1500 m) 271.3 K against the Wharfside's 279.7 K |
+| 3 | the south station reads polar night on day 3 and is still lit by its brazier |
+| 4 | the south station is in autumn while the Wharfside is in spring |
+| 6 | the Circle camp's ground: snow on day 0, knee-deep or deeper by day 3 |
+| 7 | the snowfield's precipitation is snow (⚠ partial: the peak-and-valley pair under ONE storm is not driven — `WeatherLogic.phase.test.ts` carries it) |
+| 8 | the Circle pan: *"It holds murky brine. It sits frozen over. Nothing is leaving it."* |
+| 9 | the maple at Rejection's 450 m is in season on the equinox; the refusal is the auger (`no-tool`), not the season |
+| 10 | the city intake reads the Wharfside's air (280.5 K) and is not frozen |
+| 12 · 14 | circlemere's ice refuses a person on day 0 and bears them on day 1 — the crossing opens LIVE; blackmere (standing) bears a crossing; clearmere is iced too |
+| 13 | the Circle pass is open on day 0 and shut on day 2 with the mover still at its foot, refusing in the snow's own words; the snowfield pass is shut; the plateau gap is open; a channel post goes out from behind the shut pass (AC 19) |
+| 15 | the wet coast: *"a very wet month — more than the ground can take"*; the dry basin: *"a dry month — almost nothing has fallen"*; the plateau has a dusting beside the snowfield's deep snow |
+
+**Not driven over the wire, and where each is proven instead:** step 5
+(a vessel freezing and thawing — `Thermal` phase-reconcile tests, W6);
+D18's greatcoat (no wire path admits a dorm unit — `DormHouseplant.test.ts`
+admits one and finds the coat).
+
+**What driving found** (runs 1–11; every one fixed, decisions B17–B22):
+
+1. `goto` could not reach an unvisited room (`unknown-target`) or a
+   `/world` subtree without title (`access-denied`) — the drive re-homes
+   its session instead (harness, not product).
+2. A fresh world's clock is midnight: every outdoor read was dark. The
+   drive reads at noon.
+3. ⭐ The floor cached "not under the sky" while its room materialized,
+   so a snowfield read bare earth for six hours (B19).
+4. ⭐ The first `look` at a place read the DEFAULT climate site — no snow,
+   42° daylight — because nothing awaited the place's walks before the
+   sync seams (B19, the sense-gate preload).
+5. ⭐⭐ The conditional exits refreshed AFTER the gate: a pass that
+   should shut let this mover through and shut on the next. The shipped
+   `FordExit` had the same defect (B18).
+6. ⭐ The `blocked` refusal dropped the exit's reason — players read
+   *"The way is blocked."*, never the snow (B21).
+7. D17's pour into the salt pan could never land: the pan is open and
+   drains (B17).
+8. The pan never cooled while nobody stood at the camp across the clock
+   jumps (R16's corollary).
+9. B14 narrowed D16's ice window: day 0 already bore 72 kg (B20).
+10. The drive's own refusal helper was blind to `locomotion-gate-failed`
+    and read every shut way as open — an instrument defect, fixed first.
+11. `tell` to an online player is refused for every name — pre-existing,
+    recorded on `governance.md § Open` (B22).
+

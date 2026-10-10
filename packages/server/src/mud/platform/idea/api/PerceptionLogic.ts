@@ -228,6 +228,12 @@ export class PerceptionLogic extends ApiLogic {
     // without an await. `bandFor` returns the floor band when the
     // `awareness` Discipline is unseeded (Phase 3 seeds it), so this is
     // safe today; a throw degrades to the floor too.
+    // ⭐ And the place's climate site + weather Locality (the climate
+    // build): daylight is read at the room's LATITUDE and the floor's snow
+    // from both, all on sync seams — an unresolved walk answers the
+    // default site and no snow, so a first `look` at a snowfield read
+    // bare earth (found by the climate drive).
+    const place = MixinApi.isContainable(actor) ? actor.getContainer() : null;
     const [, , band] = await Promise.all([
       SpeciesApi.preloadAnatomy(actor),
       this.preloadModalities(),
@@ -236,6 +242,14 @@ export class PerceptionLogic extends ApiLogic {
             () => CompetenceBand.FLOOR,
           )
         : Promise.resolve(CompetenceBand.FLOOR),
+      place !== null && MixinApi.isAtmospheric(place)
+        ? Promise.all([
+            place.resolveClimateSite(),
+            place.isWeatherLocalityResolved()
+              ? Promise.resolve()
+              : place.resolveWeatherLocality(),
+          ])
+        : Promise.resolve(),
     ]);
     awarenessBandCache.set(actor.stuffId, band);
   }

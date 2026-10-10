@@ -186,6 +186,20 @@ describe('snow lies on a sky-exposed floor', () => {
     expect(text).toMatch(/Snow lies deep/);
   });
 
+  it('⚠⚠ a read before the room has a sky is NOT memoised either (found by the climate drive)', async () => {
+    // The first read of a floor happens as its room materializes — before
+    // the room's biome resolves — and a cached "not under the sky" read a
+    // snowfield bare for a whole segment.
+    const { room, floor } = await floorAt(CIRCLE);
+    setDay(721);
+    await settle(room);
+    const sky = room.getBiome();
+    room.setBiome(null as never);
+    expect(floor.getSnowDepthM()).toBe(0);
+    room.setBiome(sky as never);
+    expect(floor.getSnowDepthM()).toBeGreaterThan(0); // same segment
+  });
+
   it('⚠ an unresolved place reads 0 and is NOT memoised as bare', async () => {
     const { room, floor } = await floorAt(CIRCLE);
     setDay(721);

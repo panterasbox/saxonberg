@@ -6,5 +6,9 @@ data:
   wheelPassable: true
   _conditional: true
   _crossesReach: circlemere:mere
+  # A hand's margin over the mover (plan B20): the young snow-ice bears
+  # ~72 kg at noon on day 0 and ~93 kg on day 1, so a person is refused
+  # on the first and carried on the second.
+  _bearsMarginKg: 15
   messageOut: "{{ mover }} steps out onto the ice."
   messageIn: "{{ mover }} steps off the ice."

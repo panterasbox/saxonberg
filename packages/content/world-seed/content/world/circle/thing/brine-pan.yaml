@@ -1,0 +1,19 @@
+# The Circle camp's salt pan, left with brine in it at the end of the
+# summer (the climate build, D17 as built). Quarrying's own pan, the
+# `brine` maturation profile matched by its tag: brine EVAPORATES only
+# above 273 K, so in a freezing camp the batch starts and stalls, and the
+# pan's look says so in the evaporative profile's own words — "It sits
+# frozen over. Nothing is leaving it."
+#
+# ⚠ Born with its brine rather than filled by `pour`: a salt pan is an
+# OPEN vessel, and an open vessel lets a poured liquid run straight
+# through (`BulkableLogic`, the closure ladder — *a covered pan is a pan
+# that does not work*). The drive found that; the plan's cask-and-pour
+# could never have landed.
+extends: /trade/quarrying/thing/salt-pan
+data:
+  longDescription: >-
+    A wide shallow pan of sheet lead on a low brick bed, left out at the
+    end of the summer with a few inches of brine still in it.
+  interiorMaterial: /stuff/idea/material/bulk/salt-water
+  interiorAmount: 20

@@ -969,6 +969,27 @@ export default class Exit extends ConcealableMixin(Idea) {
   }
 
   /**
+   * ⭐ Bring the exit's own state up to date for `mover` BEFORE any gate
+   * reads it — the async half of a conditional exit (the climate build).
+   *
+   * A ford, a snowbound pass and an ice crossing each derive `blocked`
+   * from something that moves (the river, the snow, the ice) and can
+   * only read it asynchronously, while every gate — the controller's
+   * `canTraverseExit`, `Mobile.traverse`'s `canTraverse` — is sync. The
+   * ford used to refresh inside `applyTraversal`, which runs AFTER the
+   * gate, so the first crossing after the water rose still went through
+   * and only the next was refused. This hook runs first.
+   *
+   * @hook Awaited by the locomotion controller before
+   *   `LocomotionApi.canTraverseExit`, and by `Mobile.traverse` before
+   *   `canTraverse` (a programmatic mover). **Override** to refresh
+   *   derived state; never move the mover here. The base is a no-op.
+   */
+  public async prepareTraversal(_mover: Stuff & Containable): Promise<void> {
+    return;
+  }
+
+  /**
    * Can `mover` traverse this exit right now?
    *
    * Returns `{ ok: false, reason, gate }` on the first failing gate

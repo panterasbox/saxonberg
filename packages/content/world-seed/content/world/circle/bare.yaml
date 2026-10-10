@@ -4,6 +4,6 @@
 class: /platform/idea/location/CartesianZone
 data:
   name: The Bare Shore
-  cellSize: 10.0
+  cellSize: 3.0
   address: circle/bare
   climateOffsetK: -6

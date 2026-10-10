@@ -11,7 +11,7 @@
 class: /platform/idea/location/CartesianZone
 data:
   name: The Circle
-  cellSize: 10.0
+  cellSize: 3.0
   address: circle
   latitude: -66
   continentality: 1
