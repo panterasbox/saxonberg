@@ -43,7 +43,11 @@ export default class PumpMechanism extends PumpMechanismBase {
 
   static fieldMeta: FieldMeta = {
     name: { persistent: true, authorable: true },
-    pulls: { persistent: true, authorable: true },
+    // ⭐ `spoiler: 1` — the one fact the suction law follows from. That a
+    // mechanism HAS this property is public; whether THIS one pulls is
+    // collapsed by default on a wiki panel, so the law stays something a
+    // player can find out rather than read (AC 2; the maxHeatK precedent).
+    pulls: { persistent: true, authorable: true, spoiler: 1, spoilerName: 0 },
     description: { persistent: true, authorable: true },
   };
 

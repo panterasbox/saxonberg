@@ -67,12 +67,11 @@ export default class PumpReading extends Reading {
       const scope = this.scopeOf(pump, actor);
       if (scope) {
         const ceiling = await BiomeApi.suctionHeadFor(scope);
-        const shown = this.bracketed(
-          Quantity.of(ceiling.rawValue(), 'm'),
-          band,
-          this.seedFor(actor, pump, 'pump'),
-          'spatial',
-        );
+        // ⚠ The quantity and the seed are hoisted: `MeasureChannel.totality`
+        // reads every quoted literal near a bracketing call as a channel.
+        const depth = Quantity.of(ceiling.rawValue(), 'm');
+        const seed = this.seedFor(actor, pump, 'pump');
+        const shown = this.bracketed(depth, band, seed, 'spatial');
         lines.push(
           Mml.compose`Worked here, it will draw water from no deeper than about ${shown}.`,
         );
