@@ -164,6 +164,11 @@ export class BulkableLogic extends ApiLogic {
     if (boiling > 0 && boiling <= bulkDial(AppSettingKeys.atmosphereStandardK, 293)) {
       return 'sealed';
     }
+    // ⭐ A GRANULAR solid — flour, meal, sand — is kept in by any vessel
+    // whose staves meet: `dryTight` (assembly D10). It does not need the
+    // liquor-tight cask, which is the whole reason a dry cooper's barrel
+    // and a wet cooper's cask are different products.
+    if (material.hasTag('granular')) return 'dryTight';
     return 'liquidTight';
   }
 

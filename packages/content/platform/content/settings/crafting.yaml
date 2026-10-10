@@ -45,6 +45,12 @@ settings:
   - key: crafting.refireHeatK
     value: "573"
 
+  - key: lamp.paneCrackedFlux
+    value: "0.35"
+
+  - key: chair.bareFrameRest
+    value: "0.5"
+
   - key: crafting.repair.costFactor
     value: "0.6"
 

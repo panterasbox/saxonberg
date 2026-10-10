@@ -43,5 +43,5 @@ data:
   # ⭐ `gluten` is the tag that makes this flour a BREAD flour. Barley's
   # does not carry it, and that is the honest reason barley bread is
   # flat: the proteins are there, the elastic sheet is not.
-  tags: ["food", "flour", "wheat-flour", "gluten", "baking"]
+  tags: ["food", "flour", "wheat-flour", "gluten", "baking", "granular"]
   composition: []

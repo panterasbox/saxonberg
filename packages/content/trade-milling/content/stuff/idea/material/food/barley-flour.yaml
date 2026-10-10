@@ -28,5 +28,5 @@ data:
   nutrients: ["carb", "protein"]
   nutrientAmounts: { carb: 795000, protein: 78000 }
   toxicity: []
-  tags: ["food", "flour", "barley-flour", "baking"]
+  tags: ["food", "flour", "barley-flour", "baking", "granular"]
   composition: []

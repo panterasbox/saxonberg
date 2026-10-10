@@ -1926,6 +1926,12 @@ export const AppSettingKeys = {
   /** Assembly — the heat (K) a cooper's re-fire wants reachable: enough to
    * char the inside of a shaved cask. */
   craftingRefireHeatK: "crafting.refireHeatK",
+  /** Assembly — the share of a lamp's light a CRACKED pane lets out
+   * (assembly AC 11: a part's condition moves the room's light). */
+  lampPaneCrackedFlux: "lamp.paneCrackedFlux",
+  /** Assembly — the rest a bare frame gives, as a share of the seat's,
+   * when its cushion has failed. */
+  chairBareFrameRest: "chair.bareFrameRest",
   /** Crafting — repair material cost factor: cost mass = item mass ×
    * (1 − condition) × costFactor. */
   craftingRepairCostFactor: "crafting.repair.costFactor",
