@@ -1,0 +1,11 @@
+# `anchor` — stop the craft where she is. Afforded by a `Helm`.
+verbs: [anchor]
+controller: /platform/idea/cmd/movement/AnchorController
+description: "Stop the craft where she is"
+help: |
+  Let go the anchor and stop — anywhere, not only at a place. The water
+  where you lie is still water: you can fish from the deck, wait for a
+  sight, or `course` on again.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious

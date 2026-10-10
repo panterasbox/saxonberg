@@ -1496,6 +1496,45 @@ marked **B-n**.)*
   `setKn`, `reputation`, `gearHardness`, `confined`) join `fieldMeta` in
   A3 with their reader — `lint:unconsumed-seams` again.
 
+- ✅ **A3**. The voyage. **B-14:** the voyage state is `VoyagingMixin`
+  (`lib/expanse/Voyaging.ts`, `Mixins.Voyaging`), composed on `Structure`
+  now and `Boat` in B2 — two hosts carrying the same three fields plus
+  the plot is a mixin, not duplicated fields. ⭐ The STORED
+  `expansePosition` IS the fix, and `getExpansePosition()` answers the
+  DERIVED position while a course is set, so the persisted triple is
+  literally the requirements' *position, course, course-set-time*, and
+  everything asking *where is this craft* gets the truth without knowing
+  there is a voyage. `rebase(course, now)` is the one writer of the
+  triple; `placeAt` snaps (arrival, launch); `steer`/`anchorHere` are the
+  acts. **B-15:** the set is integrated piecewise along the undisplaced
+  track, split at every band boundary; in each piece the narrowest band
+  owns the set and the way (`cost.wayFactor`). The plot (`Plot`) carries
+  the reckoning forward along courses steered with NO set; its stated
+  bracket is worded by the reader's `navigation` band and never refuses.
+  **B-16:** `Persistable.onRestored()` `@hook` (B-8) — `PersistableLogic`
+  calls it after a record restore; `Voyaging.onRestored` registers the
+  craft and restarts a voyage with a course. **B-17:** `Voyage` beats
+  water report → arrival → landmark free fix → sightings (from the
+  highest eye aboard — the lookout seat) → neglect wear. The medium
+  speaks through two plain polymorphic methods on `Expanse`,
+  `readAt(pos, scope)` and `roughnessAt(pos, scope)` (frame defaults: the
+  narrowest band's outside description, and `1`); the water tier
+  overrides both in B1. **B-18:** `ExpanseApi` is never handed a world
+  object — controllers walk `getRootContainer()` and pass the path (B-9);
+  each controller has its own three-line `craftOf` (a public static
+  helper would rise `lint:lib-statics`). **B-19:** `hail`'s arg is
+  optional so a bare `hail` refuses in words (a required string fails
+  closed and silent at the binder). **B-20:** `Exit.bind` is `@Final`, so
+  the aboard/ashore lookups (which node is this landing, which craft is
+  this deck's) happen in a new `Exit.prepareTraversal()` `@hook`, awaited
+  by `LocomotionControllerBase` before the synchronous `canTraverse`; two
+  implementers. The two exits carry an authored destination (the usual
+  berth) and RECOMPUTE on every traverse; nothing alongside / nothing to
+  step onto refuse in words. ⚠ They are therefore ordinary edges in the
+  location graph (the authored destination), not unmapped — the plan's
+  kind-row trick was not needed. `launch`/`recover` moved to B2 with the
+  Boat they act on. D26 and D27 landed as planned.
+
 ---
 
 ## Drive record

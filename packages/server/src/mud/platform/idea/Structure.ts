@@ -45,6 +45,10 @@ import { NamedMixin } from '../../lib/description/Named';
 import { PositionedMixin } from '../../lib/expanse/Positioned';
 import { EngagedMixin } from '../../lib/activity/Engaged';
 import { PersistableMixin } from '../../lib/persistence/Persistable';
+import { VoyagingMixin } from '../../lib/expanse/Voyaging';
+import { Template } from '../../lib/stuff/Template';
+import { StuffApi } from '../../api/stuff';
+import type { Container } from '../../lib/spatial/Container';
 import type { FieldMeta } from '../../lib/mixin';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import { MixinApi } from '../../api/mixin';
@@ -55,7 +59,7 @@ const LOOKOUT_POSITION = 'lookout';
 export const STRUCTURE_CLASS_PATH = '/platform/idea/Structure';
 
 export default class Structure extends PersistableMixin(
-  EngagedMixin(PositionedMixin(NamedMixin(SingletonMixin(Idea))))
+  VoyagingMixin(EngagedMixin(PositionedMixin(NamedMixin(SingletonMixin(Idea)))))
 ) {
   static fieldMeta: FieldMeta = {
     extent: { persistent: true, authorable: true },
@@ -145,5 +149,50 @@ export default class Structure extends PersistableMixin(
       return this.mastheadHeightM;
     }
     return deck;
+  }
+
+  /** Runtime cache of the member room rows (the extent's descendants). */
+  private memberPaths: Promise<string[]> | null = null;
+
+  /** The member rooms that are resident now. */
+  private async liveMembers(): Promise<(Stuff & Container)[]> {
+    if (this.memberPaths === null) {
+      const ext = this.extent;
+      this.memberPaths = ext === ''
+        ? Promise.resolve([])
+        : Template.findDescendants(ext).then((ts) => ts.map((t) => t.path));
+    }
+    const out: (Stuff & Container)[] = [];
+    for (const p of await this.memberPaths) {
+      const s = StuffApi.findByTemplatePath<Stuff>(p);
+      if (s && s.isLocation() && MixinApi.isContainer(s)) out.push(s);
+    }
+    return out;
+  }
+
+  /** Everyone standing in a member room — told what the water does. */
+  override async aboard(): Promise<Stuff[]> {
+    const out: Stuff[] = [];
+    for (const room of await this.liveMembers()) {
+      for (const x of room.getContents()) if (MixinApi.isOrganism(x)) out.push(x);
+    }
+    return out;
+  }
+
+  /** The entrance — the deck the watch is kept on. */
+  override async watchRoom(): Promise<(Stuff & Container) | null> {
+    if (!this.entrance) return null;
+    try {
+      const s = await StuffApi.singleton<Stuff>(this.entrance);
+      return MixinApi.isContainer(s) ? s : null;
+    } catch {
+      return null;
+    }
+  }
+
+  /** The Durable gear on deck — what an unattended watch wears. */
+  override async gearAboard(): Promise<Stuff[]> {
+    const deck = await this.watchRoom();
+    return deck ? deck.getContents().filter((x) => MixinApi.isDurable(x)) : [];
   }
 }

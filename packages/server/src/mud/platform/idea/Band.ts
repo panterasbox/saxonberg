@@ -52,8 +52,11 @@ export default class Band extends NamedMixin(SingletonMixin(Idea)) {
     hazards: { persistent: true, authorable: true },
     stock: { persistent: true, authorable: true },
     outsideDescription: { persistent: true, authorable: true },
-    // ⓘ endpoints · setKn · reputation · gearHardness · confined join
-    // fieldMeta in A3, with the voyage that reads them.
+    endpoints: { persistent: true, authorable: true },
+    setKn: { persistent: true, authorable: true },
+    gearHardness: { persistent: true, authorable: true },
+    confined: { persistent: true, authorable: true },
+    // ⓘ `reputation` joins with the pilot who repeats it (B1).
   };
 
   protected extent: BandExtentRecord | null = null;

@@ -1,0 +1,18 @@
+# `hail` — signal a sail in sight: flags, a lamp, a gun.
+#
+# ⛔ Not `shout`: a hail carries at signal range (twelve miles by
+# default) however high you stand. Afforded by a `Helm`.
+verbs: [hail]
+controller: /platform/idea/cmd/social/HailController
+description: "Signal a sail in sight"
+help: |
+  `hail <sail>` signals a craft you can see — by name (`hail kittiwake`)
+  or by what it is (`hail collier`). A real craft's people hear it;
+  a passer-by answers in kind.
+validators:
+  - /lib/command/validators/requiresConscious
+args:
+  - name: contact
+    type: string
+    required: false
+    greedy: true

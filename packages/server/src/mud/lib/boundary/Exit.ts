@@ -385,6 +385,18 @@ export default class Exit extends ConcealableMixin(Idea) {
    *   it; the traversal path does not.
    */
   public hasSpatialDestination(): boolean { return true; }
+
+  /**
+   * Get ready to be traversed — the async half of a gate that is
+   * synchronous. An exit whose far side depends on something it has to
+   * look up (which craft lies alongside, which node a ship is at) does
+   * the lookup here, so `canTraverse` can answer from what it found.
+   *
+   * @hook Invoked (awaited) by the movement verbs after the exit is
+   *   resolved and before `canTraverse`. Default: nothing. Never throw —
+   *   a lookup that fails should leave `canTraverse` to refuse in words.
+   */
+  public async prepareTraversal(): Promise<void> {}
   public setDestination(value: Stuff & Container): void { this.destination = value; }
 
   /** Backing storage for `door`; the accessor pair mediates

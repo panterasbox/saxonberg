@@ -127,6 +127,9 @@ export abstract class Expanse extends SingletonMixin(SpatialZone) {
   /** Runtime only: the craft currently on this expanse. */
   private craftSet = new Set<Stuff & Positioned>();
   private compiled: Promise<{ nodes: ExpanseNode[]; bands: Band[] }> | null = null;
+  /** The compiled rows once loaded, for the synchronous reads. */
+  private loadedBands: Band[] = [];
+  private loadedNodes: ExpanseNode[] = [];
 
   public getPrevailingDeg(): number { return this.prevailingDeg; }
   public setPrevailingDeg(v: number): void { this.prevailingDeg = Number(v) || 0; }
@@ -151,9 +154,45 @@ export abstract class Expanse extends SingletonMixin(SpatialZone) {
     return (await this.compile()).bands;
   }
 
+  /**
+   * The bands as compiled so far — synchronous, and EMPTY until the first
+   * async read has loaded them. A craft's derived position reads this, so
+   * whoever sets a course or re-arms a voyage awaits `bands()` first.
+   */
+  public peekBands(): Band[] {
+    return this.loadedBands;
+  }
+
+  /** The nodes as compiled so far — synchronous; empty until loaded. */
+  public peekNodes(): ExpanseNode[] {
+    return this.loadedNodes;
+  }
+
   /** Drop the compiled rows so the next read recompiles (a go-live). */
   public invalidate(): void {
     this.compiled = null;
+  }
+
+  /* ───────────────────────── what the medium says ───────────────────────── */
+
+  /**
+   * The water (or the sand, or the ice) at `pos`, in words — what a
+   * boundary crossing reports and what the deck reads. Never a position:
+   * *the field alone is evidence*. The frame answers the narrowest band's
+   * outside description; a medium tier says more (the sea state).
+   */
+  public async readAt(pos: GeoPosition, _scope: Stuff | null): Promise<string> {
+    const f = await this.fieldAt(pos);
+    return f.band?.getOutsideDescription() || this.outsideDescription || '';
+  }
+
+  /**
+   * How hard the medium is on gear at `pos` (0 = flat calm), a
+   * multiplier on neglect wear. The frame answers `1`; a medium tier
+   * derives it (the sea state).
+   */
+  public async roughnessAt(_pos: GeoPosition, _scope: Stuff | null): Promise<number> {
+    return 1;
   }
 
   /** The node at `path`, if it is one of this expanse's. */
@@ -383,6 +422,8 @@ export abstract class Expanse extends SingletonMixin(SpatialZone) {
         nodes.push(s);
       }
     }
+    this.loadedBands = bands;
+    this.loadedNodes = nodes;
     return { nodes, bands };
   }
 }

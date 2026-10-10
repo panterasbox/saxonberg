@@ -6,6 +6,8 @@ import { ApiLogic } from "../../../lib/stuff/ApiLogic";
 import { CallSecurity, Unshadowable } from "../../../lib/security/decorators";
 import { SecurityPolicies } from "../../../lib/security/SecurityPolicies";
 import { MixinApi, type AnyConstructor } from "../../../api/mixin";
+import { AppApi } from "../../../api/app";
+import { AppSettingKeys } from "../../../lib/config/AppSettings";
 import { SpeciesApi } from "../../../api/species";
 import { StuffApi } from "../../../api/stuff";
 import { ContainmentApi } from "../../../api/containment";
@@ -323,7 +325,32 @@ async function restorePlacement(
 ): Promise<void> {
   if (!place || !MixinApi.isContainable(host)) return;
   const anchor = await resolvePlacementAnchor(place);
-  if (!anchor) return;
+  if (!anchor) {
+    // ⭐ The backstop (maritime D26): you log on where you logged off,
+    // and when that place no longer resolves — somebody broke the room,
+    // the ship you slept on is gone — you land at the realm's default
+    // start rather than nowhere. A containerless host would otherwise
+    // make `Avatar.enter` throw and the login fail outright.
+    const fallback = AppApi.setting(AppSettingKeys.defaultStartLocation);
+    if (!fallback) return;
+    try {
+      const { container } = await ContainmentApi.resolveLanding(fallback);
+      if (container) {
+        console.warn(
+          `PersistableLogic.restorePlacement: ${host.getTemplatePath()} ` +
+            `could not return to its captured place; landed at '${fallback}'`,
+        );
+        ContainmentApi.move(host as Stuff & Containable, container);
+      }
+    } catch (err) {
+      console.warn(
+        `PersistableLogic.restorePlacement: the default start '${fallback}' ` +
+          `did not resolve either:`,
+        err,
+      );
+    }
+    return;
+  }
   // The anchor is exact; the way down is matched WITHIN it (see
   // `HostPlacement.via`).
   ContainmentApi.move(host as Stuff & Containable, descendVia(anchor, place.via));
@@ -1130,6 +1157,17 @@ async function restoreRecord(host: Stuff, record: PersistedRecord): Promise<void
   await overlayOwnedGoods(host);
   // ...and last, put a resting body back on the thing it was resting on.
   reoccupyRestingHost(host);
+  // The host re-arms what ran on its fields (a craft re-starts its voyage).
+  if (MixinApi.isPersistable(host)) {
+    try {
+      await host.onRestored();
+    } catch (err) {
+      console.warn(
+        `PersistableLogic: onRestored failed for ${host.getTemplatePath()}:`,
+        err,
+      );
+    }
+  }
 }
 
 /**

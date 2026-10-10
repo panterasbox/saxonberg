@@ -133,6 +133,7 @@ export abstract class LocomotionControllerBase extends CommandController<Locomot
     // enablement (with capability). MQL's canReach validator already
     // confirmed the exit is reachable; canTraverseExit adds the
     // mode-specific gates.
+    await exit.prepareTraversal();
     const guard = LocomotionApi.canTraverseExit(actor, exit, mode, direction);
     if (!guard.ok) {
       this.emitRejection(guard, mode, model, context);

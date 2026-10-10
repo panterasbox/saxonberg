@@ -316,6 +316,8 @@ export const Mixins = {
   LocationZone: 'LocationZoneMixin',
   // A geographic position in an Expanse — a node, a Structure, a boat.
   Positioned: 'PositionedMixin',
+  // A craft that holds a course across an expanse (a ship, a boat).
+  Voyaging: 'VoyagingMixin',
   // A thing that adds a line to its room's prose on `look` (Shore, Vantage).
   RoomContributor: 'RoomContributorMixin',
   DoorBearing: 'DoorBearingMixin',

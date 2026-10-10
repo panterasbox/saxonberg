@@ -1,0 +1,7 @@
+# The way off a craft onto whatever she lies at — refused between nodes
+# (maritime D19). Placed on a craft's entrance room as
+# `kind: /platform/idea/exits/ashore`.
+class: /platform/idea/AshoreExit
+data:
+  messageOut: "{{ mover }} goes ashore."
+  messageIn: "{{ mover }} comes ashore."
