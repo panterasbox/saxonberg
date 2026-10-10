@@ -1,0 +1,27 @@
+# Whey — what a set curd gives up (dairy D7): the `productMaterial` of a
+# curd profile, drawn off the vat down to the curd. ⭐ It still carries the
+# lactic culture, so a crock of whey IS a living starter (the
+# `whey-starter` culture profile keys on this tag), and the milk sugar it
+# holds is what a feed restores. Backslopping: the drained whey into the
+# crock is next time's starter.
+class: /platform/idea/material/Material
+data:
+  name: "whey"
+  keywords: [whey]
+  appearance: thin and greenish-yellow
+  density: 1030
+  specificHeat: 3900
+  thermalConductivity: 0.5
+  electricalConductivity: 0.4
+  waterAbsorptionCapacity: 0
+  hardness: 0
+  toughness: 0
+  edibility: true
+  tastes: [sour]
+  nutrients: ["fat", "protein", "sugar", "water"]
+  nutrientAmounts: { fat: 3000, protein: 9000, sugar: 48000, water: 935000 }
+  spoilActivationEnergy: 60000
+  waterActivity: 0.99
+  toxicity: []
+  tags: ["food", "dairy", "liquid", "perishable", "whey"]
+  composition: []

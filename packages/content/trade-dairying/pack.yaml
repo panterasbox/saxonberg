@@ -1,0 +1,31 @@
+id: trade-dairying
+version: 0.1.0
+root: /trade/dairying
+description: >-
+  The dairying trade — ⭐⭐ **milk is what you have to do something with
+  TODAY**, and every product of the trade is a way of making it keep.
+
+  Milk spoils in about a game day warm. So a dairy is a sequence of
+  decisions against that clock: set it in a pan and let the cream rise,
+  churn the cream at the right warmth until it breaks into butter, or set
+  it in a vat with a living starter (and rennet off a calf, for a firm
+  curd), draw the whey off, pour the curd into a hoop, weight it, take the
+  wheel out, salt it, and put it on a cold shelf where it ripens for a week
+  or a season.
+
+  ⭐ **It ships no verb.** Every act is one the world already has — `pour`,
+  `churn` (the kitchen's `stir`), `heat`, `put … on`, `get`, `cure`,
+  `split`, `look`, `taste`. What the trade adds is the vessels that know
+  what happens in them: a setting pan and a churn that separate by the
+  volume drawn, a hoop that is a MOULD (the wheel takes its shape and
+  stays in it), and a wheel that ripens. The vat is the kernel's own; its
+  profiles are this pack's rows.
+
+  ⭐ The species reach the cheese through the numbers, not a list: cream
+  and curd shares derive from each milk's own fat and protein, so ewe's
+  milk gives a richer cheese because it is richer milk. A second creamery
+  — and a third animal — needs ZERO pack code.
+requires:
+  # The mechanism is the trade's; the creameries are the realm's.
+  title:
+    - { extent: /trade/dairying, holder: { organization: /compact/trade } }

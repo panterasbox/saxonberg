@@ -1,0 +1,25 @@
+# Ricotta (dairy D15) — "cooked again": whey brought nearly to the boil
+# gives up the last of its protein as a soft curd, ladled into a basket to
+# drain. What a cheesemaker does with the whey the pigs would otherwise
+# get.
+recipeId: ricotta
+name: Ricotta
+keywords:
+- ricotta
+inputSlots:
+- slot: whey
+  category: whey
+  minGrade: poor
+  measureL: 2
+toolCapabilities:
+- pot
+outputTemplate: /trade/dairying/thing/ricotta-basket
+outputAppearance: soft white curds, grainy and steaming
+outputApplication: bulk
+outputMaterial: /trade/dairying/idea/material/ricotta
+outputPortionL: 0.3
+requiresHeatK: 358
+holdS: 600
+maxHeatK: 373
+difficulty: standard
+discipline: dairying

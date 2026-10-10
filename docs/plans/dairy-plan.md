@@ -1400,7 +1400,7 @@ line; `lint:kept-animals` passes the goat).
 - The pump/taps wire re-runs for the re-classed pail ride the W5 drive
   session (one boot).
 
-### W2 — the `trade-dairying` pack (D1, D4, D5, D7, D9, D10, D16, D21)
+### W2 — the `trade-dairying` pack (D1, D4, D5, D7, D9, D10, D16, D21) ✅
 
 **Files.**
 - `packages/content/trade-dairying/{package.json, pack.yaml, tsconfig.json,
@@ -1477,6 +1477,36 @@ consumed; `lint:reachability` will complain that the rows are propped
 nowhere until W4 — if it does, the instrument rows move to W4's commit,
 the pump W1 precedent).
 **Commit:** `build(dairy W2): trade-dairying — the pan, the churn, the vat's profiles, the hoop that casts a wheel, the wheel that ripens`.
+
+**✅ W2 done (build, 2026-10-10).** Notes for review:
+- **The churn is not a build vessel** (W0's D5 revision): `Churn` answers
+  `HandWorked.workByHand('churned')`, reads its own temperature, and swaps
+  cream → churned cream in the 283–291 K band (too cold: no swap; too warm:
+  swap, grade capped `fair`). The churn row authors no `capabilities`.
+- `SettingPan` and `Churn` compose `ContaminableMixin` too (food equipment
+  — `wash pan` clears a surface load), beyond the plan's composition.
+- **A drain set stamps its material** (`SetPool.stampMaterial`): the one
+  wheel row authors a placeholder `_materialPath` (soft cheese) for
+  `lint:mass`/`lint:perishable`, and the set must overwrite it with the
+  curd's `becomes`. A freeze keeps a shape row's own material when the pool
+  is `liquid`-tagged (an ice block is ice, never water) and stamps it
+  otherwise (one ingot row for every metal).
+- Ripening rows: `soft-cheese`'s `turnedMaterial` names the soft cheese
+  itself (going over is a phase and a grade, not a substance); `wildStrain:
+  ''` on both ripening rows.
+- `lint:census` learned `transforms[].becomes` and `drainSetting.becomes`
+  (`refsOf`), the gate's own instruction for a new path-valued field.
+- ⭐ **Found by the W2 tests: a vat poured its whey labelled MILK.**
+  `BulkableApi.transfer` reads the source's material before anything
+  advances the batch, so a vat nobody had looked at since its curd set
+  still answered *milk*. `Maturing.getBulkMaterialPath` now reconciles
+  first (re-entry-guarded) — the guard `Fractionating` already had.
+- ⚠ `lint:reachability` arm R is red from this commit until W4: the six
+  vessel rows (pan, churn, vat, hoop, crock, butter crock) are propped by
+  the creamery. They ship here because the pack's tests hydrate them.
+- Added rows not in the plan's list: `jug` (the scald recipe's output and
+  the buttermilk's carrier). `ricotta` is BULK in a `ricotta-basket`
+  (a `CraftVessel`), not a discrete `Provision`.
 
 ### W2b — the other two moulds (D19, D20)
 

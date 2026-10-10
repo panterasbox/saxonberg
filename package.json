@@ -33,6 +33,7 @@
     "@saxonberg/content-trade-brewing": "workspace:*",
     "@saxonberg/content-trade-chandlery": "workspace:*",
     "@saxonberg/content-trade-cooking": "workspace:*",
+    "@saxonberg/content-trade-dairying": "workspace:*",
     "@saxonberg/content-trade-distilling": "workspace:*",
     "@saxonberg/content-trade-drilling": "workspace:*",
     "@saxonberg/content-trade-dyeing": "workspace:*",

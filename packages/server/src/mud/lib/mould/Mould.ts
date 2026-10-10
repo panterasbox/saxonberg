@@ -64,6 +64,13 @@ export interface SetPool {
   payload: BulkPayload | null;
   /** The set thing's moisture (a drain set writes it); absent ⇒ untouched. */
   moisture?: number;
+  /**
+   * ⭐ Stamp `material` even over a shape row that authored its own. A
+   * DRAIN set's `becomes` is authoritative (one wheel row, every cheese);
+   * a FREEZE keeps the row's material, because the row knows the solid
+   * phase (an ice block is ice, never water).
+   */
+  stampMaterial?: boolean;
 }
 
 /**
@@ -322,7 +329,13 @@ export function MouldMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
         this.setProgress = 0;
         this.setStamp = 0;
         this.setPressed = 0;
-        void this.castInto({ material: becomes, massKg, payload, moisture });
+        void this.castInto({
+          material: becomes,
+          massKg,
+          payload,
+          moisture,
+          stampMaterial: true,
+        });
       } finally {
         this._settingGuard = false;
       }
@@ -345,7 +358,9 @@ export function MouldMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
         setKeywords?(k: string[]): void;
       };
       const authored = typeof c.getMaterial === 'function' ? c.getMaterial() : null;
-      if (!authored && typeof c.setMaterial === 'function') {
+      if (pool.stampMaterial === true && typeof c.setMaterial === 'function') {
+        c.setMaterial(pool.material);
+      } else if (!authored && typeof c.setMaterial === 'function') {
         c.setMaterial(pool.material);
         // The material's own fallback shape is a generic lump with no prose
         // of its own; a mould's shape is a row that authored its prose.

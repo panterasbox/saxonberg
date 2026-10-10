@@ -1,0 +1,13 @@
+# A butter crock — what churned butter is poured off into and kept in, as
+# soft stock a cook ladles from.
+class: /platform/thing/CraftVessel
+data:
+  shortDescription: butter crock
+  keywords: [crock, "butter crock", butter-crock]
+  register: indefinite
+  longDescription: A squat glazed crock with a slate lid, cool to the touch.
+  category: butter-crock
+  interiorBulk: true
+  interiorCapacity: 2
+  _materialPath: /stuff/idea/material/ceramic/ceramic
+  mass: 1.2

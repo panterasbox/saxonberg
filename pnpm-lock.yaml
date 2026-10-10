@@ -101,6 +101,9 @@ importers:
       '@saxonberg/content-trade-cooking':
         specifier: workspace:*
         version: link:packages/content/trade-cooking
+      '@saxonberg/content-trade-dairying':
+        specifier: workspace:*
+        version: link:packages/content/trade-dairying
       '@saxonberg/content-trade-distilling':
         specifier: workspace:*
         version: link:packages/content/trade-distilling
@@ -1116,6 +1119,40 @@ importers:
       '@saxonberg/content-trade-farming':
         specifier: workspace:*
         version: link:../trade-farming
+      '@saxonberg/server':
+        specifier: workspace:*
+        version: link:../../server
+      '@saxonberg/types':
+        specifier: workspace:*
+        version: link:../../types
+    devDependencies:
+      typescript:
+        specifier: ^5.4.0
+        version: 5.9.3
+      vitest:
+        specifier: ^2.0.0
+        version: 2.1.9(@types/node@20.19.28)(jsdom@25.0.1)
+      yaml:
+        specifier: ^2.8.2
+        version: 2.9.0
+
+  packages/content/trade-dairying:
+    dependencies:
+      '@saxonberg/content-base-library':
+        specifier: workspace:*
+        version: link:../base-library
+      '@saxonberg/content-generic-objects':
+        specifier: workspace:*
+        version: link:../generic-objects
+      '@saxonberg/content-platform':
+        specifier: workspace:*
+        version: link:../platform
+      '@saxonberg/content-trade-cooking':
+        specifier: workspace:*
+        version: link:../trade-cooking
+      '@saxonberg/content-trade-ranching':
+        specifier: workspace:*
+        version: link:../trade-ranching
       '@saxonberg/server':
         specifier: workspace:*
         version: link:../../server

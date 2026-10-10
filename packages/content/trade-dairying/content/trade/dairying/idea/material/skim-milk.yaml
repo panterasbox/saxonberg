@@ -1,0 +1,25 @@
+# Skim milk — what drains from under the cream (dairy D4). Thin and blue,
+# a drink and a pig-feed. ⚠ NOT tagged `milk`: a setting pan does not set
+# it again and a vat does not take it for cheese (a skim cheese is real,
+# and is a row for whoever wants one).
+class: /platform/idea/material/Material
+data:
+  name: "skim milk"
+  keywords: [skim, "skim milk", skim-milk, milk]
+  appearance: thin and faintly blue
+  density: 1030
+  specificHeat: 3900
+  thermalConductivity: 0.5
+  electricalConductivity: 0.4
+  waterAbsorptionCapacity: 0
+  hardness: 0
+  toughness: 0
+  edibility: true
+  tastes: [sweet]
+  nutrients: ["fat", "protein", "sugar", "water"]
+  nutrientAmounts: { fat: 3000, protein: 34000, sugar: 49000, water: 905000 }
+  spoilActivationEnergy: 60000
+  waterActivity: 0.99
+  toxicity: []
+  tags: ["food", "dairy", "liquid", "perishable", "skim-milk"]
+  composition: []

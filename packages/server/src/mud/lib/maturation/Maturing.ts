@@ -1100,6 +1100,25 @@ export function MaturingMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     /**
+     * ⭐⭐ **The material read reconciles too** (found by the dairy build's
+     * vat test) — the Fractionating lesson, one subsystem over.
+     * `BulkableApi.transfer` reads the source's MATERIAL first and stamps
+     * the destination with it; the batch only advanced when a later seam
+     * (`getBulkAvailable`) asked. So a vat nobody had looked at since its
+     * curd set poured its WHEY into a pail labelled *milk*. Reconciling here
+     * makes the first read the true one. Guarded: the reconcile reads this
+     * same field.
+     */
+    // ⚠ No `override` keyword: the returned class extends a GENERIC
+    // `Base` (TS4112). It overrides `Bulkable`'s at runtime.
+    public getBulkMaterialPath(affordance: BulkAffordance): string | null {
+      if (affordance === 'interior' && !this._reconcilingFerment) {
+        this.reconcileFerment();
+      }
+      return super.getBulkMaterialPath(affordance);
+    }
+
+    /**
      * The rack floor: past `finished`, the lees stay behind — a pour
      * draws product only down to them (P12's derived split; no second
      * bulk slot). Shadows the Bulkable base read the transfer clamps

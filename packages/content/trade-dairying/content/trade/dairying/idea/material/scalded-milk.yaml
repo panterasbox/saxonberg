@@ -1,0 +1,23 @@
+# Scalded milk — milk taken to near the boil in a pot (dairy D7, the
+# `scald-milk` recipe), which is what a yoghurt maker does first. The
+# `yoghurt` profile keys on it.
+class: /platform/idea/material/Material
+data:
+  name: "scalded milk"
+  keywords: [milk, "scalded milk"]
+  appearance: hot-smelling, with a skin on it
+  density: 1030
+  specificHeat: 3900
+  thermalConductivity: 0.5
+  electricalConductivity: 0.4
+  waterAbsorptionCapacity: 0
+  hardness: 0
+  toughness: 0
+  edibility: true
+  nutrients: ["fat", "protein", "sugar", "water"]
+  nutrientAmounts: { fat: 34000, protein: 33000, sugar: 48000, water: 870000 }
+  spoilActivationEnergy: 60000
+  waterActivity: 0.99
+  toxicity: []
+  tags: ["food", "dairy", "liquid", "perishable", "scalded-milk"]
+  composition: []
