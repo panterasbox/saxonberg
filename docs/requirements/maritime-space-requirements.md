@@ -146,6 +146,25 @@ content puts something on it."*
   to follow one is the player's. ⛔ **An edge is never the only way
   across** — *"disconnection on an expanse is never topological"* — and
   the moment it is, we have rebuilt the exit graph on water.
+- ⭐⭐⭐ **And an edge is a BAND, not a rail.** It has a direction and a
+  **width**, so your course either lies inside it or it does not, and
+  **the interesting moment is the boundary.** You cross into calm out of
+  chop and *the water tells you*; you then alter course to lie along the
+  band, or hold your course and take the chop back. ⭐ Nobody authored a
+  decision point — the geometry made one.
+- ⭐⭐ **So following an edge is an activity, not a choice made once.** A
+  band has width and you drift, so staying in one needs tending — which
+  is what navigating along an edge actually costs, and why a lazy
+  straight course is a real alternative rather than a worse one. A
+  straight course crosses whatever bands lie in its way, in order, so
+  ⭐ **a featureless passage is still textured at the boundaries**, with
+  nobody placing anything.
+- ⭐⭐⭐ **And the sea is itself a navigational instrument.** Veer off and
+  the field changes when you were not expecting it — evidence that your
+  reckoning is wrong, costing nothing and needing no instrument. You
+  know you have left the stream because the stream feels different, which
+  is true of the real thing, and it is **evidence you never had to ask
+  for** — not a fourth fix, a thing the sea tells you.
 - ⭐⭐ **And the edges are what finally price horizontal passage.** The
   slate's deepest open item: *"the vertical axis priced its passage
   (breath, cold, ballast) and the horizontal one got flow × width and a
@@ -244,13 +263,73 @@ The prohibition saved one field and bought a retrofit. And it was
 unholdable anyway: **a sounding reports a depth**, and a sounding is one
 of the four fixes.
 
-### A node is a POINT
+### A node is a POINT, because the extent is a FIELD
 
-Areas are content — several nodes, or an edge. ⚠ **The first thing that
-argues with this is a fishery**, which is an area and not a point; if a
-node needs a radius then *being at* a node becomes a test rather than an
-identity, and the shore↔expanse boundary goes soft. Recorded as a
-decision rather than a certainty.
+⭐⭐ A node carries no radius. **Stock is a field over the extent and you
+work it where you are** — so a fishery is not a node with an area, it is
+a value the field answers at your position. Whaling the same. ⭐ That
+keeps *being at a node* an identity rather than a test, keeps the
+shore↔expanse boundary hard, and means a sea's resource needs no nodes
+at all.
+
+### ⭐⭐ Away from a node, the place is DERIVED
+
+**Nodes are where bespoke authored content lives. Everywhere else is
+light procgen, and the sea needing almost no features is the point.**
+
+A craft that stops away from a node becomes somewhere: a **derived
+place, minted at its position and discarded when it leaves**, described
+from the field it is standing in — biome, sea state, depth, what the
+stock is. ⭐ The house pattern exists twice already: `ground.md` mints
+every Location's floor with a **derived ten-word kind, never authored**,
+and `forestry.md`'s `Wood` is *"ground with a stand cover, derive-on-read
+from its own soil, read by `look` in words."*
+
+⭐ Three things fall out. Nothing persists, so residency is answered for
+free. *"Grey water, a long swell, nothing in sight"* costs no author
+anything, ten thousand times over. And **fishing and whaling work away
+from a node**, which is what the open sea is for.
+
+---
+
+## What an author writes
+
+⭐ Two tables, and they are the whole authoring surface of an expanse.
+Everything else about a sea is derived, seeded or consumed from another
+build.
+
+### A node
+
+| | |
+|---|---|
+| position | lat/long. ⭐ **Anywhere** — this is why the frame is geographic |
+| identity and character | a name, and prose for what being here is like. ⭐ The `a reach has no character` fix |
+| `place \| passage`, `linear \| areal` | the three authored facts |
+| the content behind it | a destination — ordinary locations in a zone — or **nothing.** ⭐ Most nodes have nothing |
+| surface level | the column's zero |
+| what can be seen from here, and at what height | the vantage and landmark half |
+| stock | ⭐ the resource. `SpatialZone` already keeps `stocks`/`favours`, already justified as *"only a region in space can stock goods"* |
+| ⛔ biome | **not authored here** — consumed from the climate build |
+
+### A band (an edge)
+
+| | |
+|---|---|
+| its two nodes, **directionally** | ⚠ Load-bearing: a current helps one way and hinders the other, so an undirected edge makes a trade wind unmodellable |
+| ⭐ its **width** | what makes it a region you are in or out of rather than a route you pick |
+| a name | *the Westerlies*, *the Narrows* |
+| cost per axis | time and way — plus the **`conditional` risk axis**, which already ships |
+| character | what the crossing is like, in prose. ⭐ This is the lens-2 answer the slate said water did not have |
+| a reputation | ⭐ what people *say*, which is the `told` channel's content — **and may be false** |
+| a season or window | a trade wind blows when it blows. Climate build again |
+| ⭐⭐ **what happens here** | the event weighting. **A band is where a voyage's events are authored** |
+
+⭐⭐⭐ **That last row is why bands exist.** *"This crossing has a
+character"* and *"things happen on this crossing"* are one fact wearing
+two hats — a node is where you **arrive**, a band is what the voyage is
+**made of**. Which is also how you author the inexplicable: a band that
+weights its event field strangely, with no special case anywhere in the
+engine.
 
 ---
 
@@ -261,10 +340,11 @@ surface is built on top of it later — the same approach as combat.** So
 the verb set *is* the UX, and it is the deliverable. Checked against all
 466 shipped views.
 
-### Two new verbs
+### Three new verbs
 
 | verb | shape |
 |---|---|
+| **`anchor`** | ⭐ leave the voyage and **become somewhere**, at any position, node or not. The place you get is derived (see *Placement*) and it is what makes fishing and whaling work on open water. `anchor` again, or `course`, takes you back out |
 | **`course`** | `course` reads your current course and your reckoned position **with its uncertainty**; `course <bearing>` / `course <node>` sets one and begins the crossing. Zero-arg-reads / arg-sets is the shipped shape (`cockpit <mode>`, `house par`) |
 | **`hail`** | a directed act at a sighted contact. ⛔ Not `shout`, which is the acoustic-range verb — a hail at twelve miles is flags, a light or a gun, which is the **second sighting channel** getting a real consumer instead of staying hypothetical |
 
@@ -307,6 +387,92 @@ does nothing.
 
 ⛔ Also refused as taken, none worth contesting: `watch` (livestreaming),
 `sink` and `shore` (mining), `study` (arcana), `survey` (soil).
+
+---
+
+## Voyage structure
+
+### ⭐⭐ It is a SUSTAINED engagement, not a durative one
+
+The shipped framework splits engagements on whether a timer completes
+them: a `DurativeActivity` carries a `duration` and an `onComplete`, a
+`SustainedEngagement` ends only when an explicit verb aborts it.
+
+⭐⭐⭐ **A course has neither, because a course is a heading and not a
+destination.** You sail until you stop. **Arrival at a node is an event
+the beat detects, not the engagement finishing** — which makes *"setting
+a course, not choosing a destination"* true at the engine level instead
+of only in the prose.
+
+### ⚠ The craft holds it, and that is a real departure
+
+`Engagement.actor` is a `Stuff & Engaged`, and today the shipped journey
+is the **driver's**: the coach says it outright — *"a passenger holds no
+engagement at all — the journey is the driver's `hands`."* ⛔ A voyage
+held in a driver's hands means they can do nothing else for the length of
+a passage and logging out ends it. So **the craft composes `Engaged` and
+holds its own engagement**, which is a host-placement change rather than
+something inherited.
+
+### ⛔ No phases
+
+Departure, passage and landfall are **reads** off the position and the
+horizon, not stored states — the house pattern everywhere else (wounds,
+competence bands, trait position, renown and residency all reconcile on
+read). ⚠ Phases as objects would be the third instance of the thing the
+slate already caught twice: **adding an object where a field would do.**
+
+### ⭐⭐ The watch is the beat
+
+The mechanism ships: `emissions: ScheduledEmission[]` — *"the declarative
+cadenced-side-effect channel; authors describe what fires on what
+cadence, the scheduler owns the timers."*
+
+**One emission, one watch.** Four game hours is twenty real minutes on
+the 12× clock, and ⭐ the watch is already the unit of three separate
+things — the beat, the **manning** (who is on deck for it), and the
+crew's deliberation, since `behavior.md` already gives each agent **one
+beat**. A long passage is scores of watches and almost all of them are
+empty.
+
+⚠ **And nothing about a voyage may live only in the engagement**, because
+the engagement does not survive a restart. Persisted: the position, the
+course, and when the course was set. **The engagement is re-established
+at boot** from those three and the elapsed time — maturation's pattern,
+and it is what actually makes *"the craft moved while I was logged off"*
+true.
+
+### ⭐⭐⭐ Two sources of activity, and the player chooses the mix
+
+| | what it is | determined by |
+|---|---|---|
+| **boundary crossings** | the **texture** — most of what happens on a passage | ⭐ **deterministic.** Your course and the authored bands. Computable the moment a course is set, which is why **a chart can preview it** |
+| **encounters** | the **punctuation** — a sail, a contact, trouble | **seeded.** The same for everyone at that place and that hour. ⭐ A lookout converts a surprise into a **fifteen-minute window** |
+
+⭐⭐ **So the passive/active ratio is authored nowhere.** A straight course
+across a busy sea is eventful; a tended course along a quiet band is
+calm; and both are the player's doing. *How passive is a voyage* is a
+question about the water you chose and the watch you kept.
+
+⭐⭐⭐ **And the lookout's value states itself: a lookout does not give you
+more information, it gives you more time.** A contact at twelve miles
+closing at four knots is fifteen real minutes away. Manned, it arrives
+announced and closing, running, hailing or hiding is a real decision.
+Unmanned, it arrives *at* you. Same seeded fact; the watch converts a
+surprise into a window — which is *"a ship with nobody aloft is blind by
+its own choice"* as a mechanic rather than a sentiment. ⭐ The fuse length
+is **grain.**
+
+### Flow control is three things
+
+1. **Arrival detection**, on the beat.
+2. **A boundary crossing**, which reports and asks nothing.
+3. **A sighting opening a fuse.**
+
+⚠ And one problem to solve rather than inherit: `interruptibleBy` must be
+nearly empty, and **`cancelable` defaults to `true`**, so as shipped
+anybody's `cancel` would end a voyage. Striking a course wants to be its
+own act.
 
 ---
 
@@ -401,6 +567,26 @@ expanse is that disconnection on it is never topological — the moment an
 edge gates reachability, this is the exit graph again with a different
 renderer, and every reason to build it is gone.
 
+### ⭐⭐⭐ An edge is a BAND, and the boundary is the activity
+
+**The question.** Is an edge a route you travel along, or a region you
+are inside?
+
+**The answer.** **A region** — a corridor with a direction and a width.
+A rail would make an edge a thing you *choose once*, which is a menu;
+a band makes it a thing you are *in or out of*, which is a position, and
+every question about edges then answers itself: following one needs
+tending, veering out of one is detectable, ignoring them all still
+crosses them, and a wrong chart is a band drawn in the wrong place —
+⭐ discovered by **not feeling a change you expected.**
+
+⭐⭐ **And it is what makes the chart mechanical rather than decorative:
+the chart shows the bands.** Without one you learn a sea by crossing it
+and feeling the changes. With one you plan — and the plan is already a
+hypothesis that states its evidence. The chart, the reckoning, the
+uncertainty and the edges turn out to be one mechanism, and none of it
+needed inventing.
+
 ### The knowledge layer is the shipped claim store, with one new channel
 
 **The question.** Does an unrevealed sea graph need its own knowledge
@@ -426,9 +612,20 @@ place you left. `Avatar.startLocation` already *is* that field and
 already defaults to the lounge.
 
 ⭐ Two consequences for a ship, and both are shipped shapes: its rooms are
-**a warren with durable keys** (`(scope = templatePath, key)`, the leased
-`DormRoom`'s model), and its **position is one persistent field on the
-Structure** — the pair is the whole persistence story, and neither is new.
+**ordinary locations in a zone**, keyed durably by the persistence spine
+(`(scope = templatePath, key)`, the leased `DormRoom`'s model), and its
+**position is one persistent field on the Structure** — the pair is the
+whole persistence story, and neither is new.
+
+⚠⚠ **Not a warren, and the distinction is load-bearing.** A `Warren` is
+an incorporeal `Idea` that coordinates member rooms or member warrens,
+with tiers, holdings and circulation machinery. A ship's rooms need none
+of that; what coordinates them is the **Structure**, which does a
+different job — a warren is an *elastic graph* that mints members and
+runs circulation, a Structure is a *unit of shared facts* (the outside,
+the roof, the way in, the position). ⭐ Same for a node's content: it is
+locations in a zone, and it becomes a warren only if something there
+actually needs coordinating.
 
 ⚠ What a sinking costs: **the ship and the cargo, never the body.** The
 remoteness axis supplies the fiction without an author — on a lane there
@@ -544,29 +741,37 @@ Against the running game, before the MR opens.
    the uncertainty collapse.
 7. ⭐ **`measure latitude` and get a latitude and nothing else**, then
    **have the weather deny the sight** and say so in the sky's own terms.
-8. **Follow an edge and then cross the same gap ignoring it**, and have
-   the two crossings differ in a way the edge explains.
-9. **`journey` to a node and be refused honestly**, with the refusal
-   naming `course`.
-10. **`read` a chart you were given, then `map`**, and see the charted
+8. **Cross into a band mid-passage** and have the water change without
+   anybody announcing it. ⭐ Then **alter course to lie along it**, hold
+   it for a watch, and **drift out** — and be able to tell that you did.
+9. **Hold a straight course across the same water instead**, crossing
+   the band and out the other side, and have the two passages differ in
+   a way the band explains.
+10. ⭐ **Veer off course without taking a fix**, and learn it from the
+    field alone — the water is not what it should be here.
+11. **`anchor` away from any node**, get a described place that nobody
+    authored, and **fish it**.
+12. **`journey` to a node and be refused honestly**, with the refusal
+    naming `course`.
+13. **`read` a chart you were given, then `map`**, and see the charted
     claims appear alongside what you walked and saw — **marked as
     bought.**
-11. **`read` a chart that is wrong**, act on it, and find the water does
+14. **`read` a chart that is wrong**, act on it, and find the water does
     not agree. ⭐ The claim is **still there afterwards.**
-12. **See another craft at a distance**, and have a second observer at a
+15. **See another craft at a distance**, and have a second observer at a
     different height **not** see it. Then **`hail` it**.
-13. ⭐ **`appoint` somebody lookout** and see further than you did a
+16. ⭐ **`appoint` somebody lookout** and see further than you did a
     moment ago, with nothing about the craft having changed.
-14. **Pass the same lane twice at the same hour on different days** and
+17. **Pass the same lane twice at the same hour on different days** and
     meet the same traffic. **Re-enter and gain nothing.**
-15. **Log out mid-crossing and log back in.** You are on the craft, the
+18. **Log out mid-crossing and log back in.** You are on the craft, the
     craft has moved, and the course is still set.
-16. **Stand on a headland** and see the whole of the bay it overlooks.
-17. ⭐⭐ **Read a landmark from three different zones**, described once,
+19. **Stand on a headland** and see the whole of the bay it overlooks.
+20. ⭐⭐ **Read a landmark from three different zones**, described once,
     and from a fourth place see nothing because an author said so.
-18. **Approach a coast from open water** and take a fix off a tall thing
+21. **Approach a coast from open water** and take a fix off a tall thing
     ashore, at a range its height decides.
-19. **Look at a building from the street** and get a sentence nobody
+22. **Look at a building from the street** and get a sentence nobody
     wrote into that street.
 
 ---
@@ -583,50 +788,67 @@ Against the running game, before the MR opens.
 4. **Edges exist, are authored, and carry cost and character.** ⛔ No
    edge is ever required to get between two nodes, and removing every
    edge from a sea leaves it fully crossable.
-5. A person can stand on a **shore** and act on the water it cites,
+5. ⭐ **An edge is a band with a width**, and a course is inside one or
+   it is not. **Crossing a boundary is reported** without anybody
+   announcing it; **drifting out of a band is detectable**; and a course
+   that ignores every band still crosses them in order.
+6. ⭐⭐ **The field alone is evidence.** A navigator who has veered off
+   can tell from the water, with no fix and no instrument.
+7. ⭐ **Away from a node there is still a place.** It is derived, not
+   authored, described from the field, discarded on leaving — and
+   **fishing works in it.**
+8. A person can stand on a **shore** and act on the water it cites,
    while never being inside the water's frame.
-6. Crossing an areal passage is **setting a course**, and the arrival is
+9. Crossing an areal passage is **setting a course**, and the arrival is
    computed rather than chosen.
-7. A **reckoned** position exists, differs from the true one, and the
-   difference is **readable by the player** and not by a number nobody
-   sees. ⛔ **No surface reports the true position to its occupant.**
-8. **Four fixes** work and cost differently, and at least one of them
-   can be **refused by the weather**.
-9. ⭐ A **sight yields latitude only.** Longitude is not obtainable by
-   any means this build ships, and the refusal says what would be
-   needed.
-10. Being lost **always has a way out** that is an action, not a wait.
-11. The crossing is held by the **craft**: logging out does not abort it,
+10. A **reckoned** position exists, differs from the true one, and the
+    difference is **readable by the player** and not by a number nobody
+    sees. ⛔ **No surface reports the true position to its occupant.**
+11. **Four fixes** work and cost differently, and at least one of them
+    can be **refused by the weather**.
+12. ⭐ A **sight yields latitude only.** Longitude is not obtainable by
+    any means this build ships, and the refusal says what would be
+    needed.
+13. Being lost **always has a way out** that is an action, not a wait.
+14. ⭐ The crossing is a **sustained** engagement with no completion
+    time: arrival is detected, never scheduled, and a course with no
+    node ahead of it is legal.
+15. ⭐ The voyage's state is **the position, the course and when it was
+    set** — nothing else — and the engagement is **re-established at
+    boot** from those.
+16. The beat is the **watch**, and the manning of a watch is what the
+    degradation reads.
+17. The crossing is held by the **craft**: logging out does not abort it,
     the craft's position **survives a restart**, and the player is on it
     when they return. ⛔ **Nobody dies while logged out.**
-12. An **unattended** passage degrades, and the degradation is
+18. An **unattended** passage degrades, and the degradation is
     **derivable from a seeded field** — ⛔ nothing is rolled.
-13. Mutual presence on open water is decided by **sight distance from eye
+19. Mutual presence on open water is decided by **sight distance from eye
     height**, per observer, and **a second channel with a different range
     is expressible** without reopening the model — demonstrated by
     `hail`.
-14. A **lookout is a seat somebody occupies**, and the sight advantage
+20. A **lookout is a seat somebody occupies**, and the sight advantage
     follows the occupancy, not the craft.
-15. Traffic on open water is **seeded**: the same at the same place and
+21. Traffic on open water is **seeded**: the same at the same place and
     time for every observer, and unfarmable by re-entry.
-16. A **chart is procured and read**, writes **`bought`** claims, and
+22. A **chart is procured and read**, writes **`bought`** claims, and
     ⭐ a chart that is wrong **stays** wrong — the claim is never
     corrected or removed.
-17. ⛔ **No expanse topology ever reaches a client** except as the
+23. ⛔ **No expanse topology ever reaches a client** except as the
     player's own claims.
-18. A **vantage** is authored, names what it overlooks, and is believed.
-19. A **landmark** is described once on the thing itself and read from
+24. A **vantage** is authored, names what it overlooks, and is believed.
+25. A **landmark** is described once on the thing itself and read from
     every place an author says can see it — ⭐ including, at sea, from a
     range its **height** decides.
-20. Something says **these rooms are one building**, coordinates them
+26. Something says **these rooms are one building**, coordinates them
     without containing them, owns the outside description and the way
     in, and is **sparse** — and **its position is a field that can
     change.**
-21. A cited or placed thing can **contribute to its room's prose.**
-22. ⛔ Every land claim about what can be seen is **authored**. The
+27. A cited or placed thing can **contribute to its room's prose.**
+28. ⛔ Every land claim about what can be seen is **authored**. The
     engine computes a sight range **only** where nothing can be in the
     way.
-23. A position carries a **depth**, every reader of it works at depth
+29. A position carries a **depth**, every reader of it works at depth
     zero, and ⛔ **no mechanism in this build gives depth a second
     value.**
 
@@ -644,20 +866,20 @@ Against the running game, before the MR opens.
 2. ⚑⚑ **Sea state.** What makes an edge dangerous, and the boundary of
    *"this build reads the weather and edits neither."* Derived from wind,
    almost certainly in scope, and currently unwritten.
-3. ⚑ **Does a node need an extent?** A fishery is an area. See
-   *Placement*; recorded as a point, with the fishery as the standing
-   objection.
-4. ⚑ **`anchor`.** Holding position away from a node — wanted only if a
-   crossing can be paused somewhere that is not a place.
-5. ⚑ **The logbook.** § 7h: *"the logbook is what proves the
+3. ⚑⚑ **Must every band run between two nodes?** A current does. ⚠ But a
+   belt — the doldrums, a latitude of fog — connects nothing; it simply
+   lies across everything. If free-standing bands are legal then *edge*
+   is the wrong word for them, and the authored shape is **a band that
+   MAY have endpoints.**
+4. ⚑ **The logbook.** § 7h: *"the logbook is what proves the
    depletion."* A durable record rather than verb surface, and
    `chronicle` is append-only and already exists — but it is the one
    piece of the UX with no home yet.
-6. ⚑ **The place↔bulk line.** Nothing says where water stops being a
+5. ⚑ **The place↔bulk line.** Nothing says where water stops being a
    place and starts being a container's contents — a puddle, a bath, a
    trough, a cistern, a pond, a lake. ⚠ The *"can you be in it"* test
    **breaks cleanly on a bath.**
-7. ⚑ **Reversing flow / the tidal bore.** A real expressive loss, and in
+6. ⚑ **Reversing flow / the tidal bore.** A real expressive loss, and in
    neither this build's nor the climate build's collision table.
 
 ---
