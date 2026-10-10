@@ -442,3 +442,20 @@ is still the best pedagogical object in the backlog, and
 is that it is **no longer a blocker**: rubber, plastics and drilling can
 ship on the token, and discovery can arrive later as what it always was —
 a *better way to earn one*.
+
+---
+
+## ⭐⭐ Candidate first case — the suction limit (seeded by the pump build, 2026-10-09)
+
+The pump build shipped the ~10 m suction limit as **a consequence with no
+explanation anywhere**: a suction pump at a fourteen-metre well is told the
+depth and nothing else, the same pump on a hill draws less, brine stands
+lower than water, a force pump on the same well simply works, and a bucket
+on a rope comes up from any depth. A barometer reads the pressure in both
+places. Every observation needed to discover *the air is doing the lifting*
+is reachable, and no row, help text or reading says it — which is exactly
+the shape this slate wants for a law somebody can find, record and be
+credited for. Torricelli's own route (a column of mercury) is the
+experiment a player would need an instrument for. See
+[pump.md](../../subsystems/pump.md) § *Nothing explains the number*.
+

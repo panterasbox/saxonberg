@@ -367,6 +367,35 @@ export class BiomeLogic extends ApiLogic {
     );
   }
 
+  /** See {@link BiomeApi.columnHeightOf}. */
+  @CallSecurity(BiomeApiCallers)
+  public columnHeightOf(
+    pressure: Quantity<'Pa'>,
+    density: Quantity<'kg/m³'>,
+    gravity: Quantity<'m/s²'>
+  ): Quantity<'m'> {
+    const rho = density.rawValue();
+    const g = gravity.rawValue();
+    if (!(rho > 0) || !(g > 0)) return Quantity.of(0, 'm');
+    return Quantity.of(pressure.rawValue() / (rho * g), 'm');
+  }
+
+  /** See {@link BiomeApi.suctionHeadFor}. */
+  @CallSecurity(BiomeApiCallers)
+  public async suctionHeadFor(
+    scope: Stuff & Container,
+    fluidDensity?: Quantity<'kg/m³'>
+  ): Promise<Quantity<'m'>> {
+    const pressure = await this.resolvePressureFor(scope);
+    if (!(pressure.rawValue() > 0)) return Quantity.of(0, 'm');
+    const gravity = await this.resolveGravityFor(scope);
+    return this.columnHeightOf(
+      pressure,
+      fluidDensity ?? this.densityOf('water'),
+      gravity
+    );
+  }
+
   /** See {@link BiomeApi.resolveGravityFor}. */
   @CallSecurity(BiomeApiCallers)
   public async resolveGravityFor(

@@ -8,7 +8,9 @@
 > reference.
 > **Left:** the bathroom's modelled function (`bathe`, gated on water
 > availability — waits on room-condition) · "running water" as a
-> residence-ladder rung feature (waits on the residence-ladder pack)
+> residence-ladder rung feature (waits on the residence-ladder pack) ·
+> ⭐⭐ **plumbing the city** — every tap names its main, and a tap served
+> by TWO mains (§ below, opened by the pump build 2026-10-10)
 > **Size:** a tail
 
 See also: [power-utility-slate](../builds/power-utility-slate.md) (water is named there
@@ -106,3 +108,52 @@ the wrong place to start.
 **What it costs to leave it:** drilling's AC 9 ships with its dump leg
 **unmet and recorded**; storing and flaring both work with no code, so
 the waste is still disposable and still visible — just never into water.
+
+---
+
+## ⭐⭐ Plumbing the city — every tap names its main (opened by the pump build, 2026-10-10)
+
+The pump build shipped the LINK and one tap on it: `WaterFixture.suppliedBy`
+names the main a tap is plumbed to, `Conduit.supplyStateNow()` answers the
+sync subset of the six words, and the **market standpipe** is the first tap
+in the realm that knows what feeds it — switch the Wharfside intake's pump
+off and it says *"Nothing comes out of it: it has been shut off."*
+
+⚠ **It is one tap.** Every other tap in Terminus — Duncan Hall, the dorm
+taps, the bar basin — is still its own source and runs whatever the mains
+are doing. What is left:
+
+1. **Plumb the rest of the city.** One authorable field per tap
+   (`suppliedBy`), so the work is content — but it is a CONTENT decision
+   about which main serves which district, and it wants making all at once
+   rather than tap by tap.
+2. ⭐ **A tap served by two mains.** The Cold Fell aqueduct also serves
+   `/world/terminus`. In the fiction, the intake stopping should not dry a
+   tap the aqueduct also feeds — the rule wants to be *a tap is served while
+   ANY main serving it delivers*, which makes `suppliedBy` a list or makes
+   the extent the join (a tap asks which mains serve its path —
+   `StorageNode.serves(path)` is the shipped precedent, still with no
+   production caller). ⚠ Today the single-main link only reads right
+   because of item 3.
+3. **The aqueduct is switched off** — its row never sets `on: true`, so it
+   reports *NOT delivering — shut off*. Turning it on moves the river's draw
+   ledger (fishing reads it), which is why the pump build did not do it
+   blind. ⭐ The user's call: this and item 2 belong to **the content/lore
+   pass over placeholder content once systems are built**, not to a systems
+   build.
+4. **Taps do not feel an overdraw.** The intake lifts 0.73 of the 1.2 m³/s
+   asked of it (its pump wants ~98 kW, the industrial band gives 60 —
+   deliberate), and that is legible in `analyze water intake` and nowhere
+   else: a tap is on or off, because domestic demand is not modelled (this
+   pack's own ∞-tap ruling). If an overdraw should ever reach a tap, it is
+   `overdrawn` in the async report, never a sync refusal.
+5. **The Hinkley tank answers no `supplyReport`** — `analyze water tank`
+   says *carries no water anywhere* before and after the pump build. A
+   `StorageNode` implementing `SupplyReporting` / `SupplyServing` is the
+   second implementer the pump build named and did not ship.
+6. ⚠ **A power cut at a pump reads `off`** (*"it has been shut off"*): the
+   six words have no *unpowered*, and a seventh is a design conversation.
+
+See [pump.md](../../subsystems/pump.md) § *The city, and the tap that reads
+its main* and [watershed.md](../../subsystems/watershed.md) § *The pump build*.
+

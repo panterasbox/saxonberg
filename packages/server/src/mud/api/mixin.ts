@@ -109,6 +109,7 @@ import type { Contaminable } from '../lib/material/Contaminable';
 import type { Growing } from '../lib/husbandry/Growing';
 import type { Maturing } from '../lib/maturation/Maturing';
 import type { Fractionating } from '../lib/fractionation/Fractionating';
+import type { Pumping } from '../lib/pump/Pumping';
 import type { Plantable } from '../lib/husbandry/Plantable';
 import type { Soil } from '../lib/husbandry/Soil';
 import type { Handling } from '../lib/husbandry/Handling';
@@ -1495,6 +1496,15 @@ export class MixinApi {
    */
   public static isFractionating(obj: Stuff): obj is Stuff & Fractionating {
     return this.hasMixin(obj, Mixins.Fractionating);
+  }
+
+  /**
+   * A displacement machine that moves a fluid — a pump. ⚠ A furnace's
+   * bellows is NOT one: it speaks the `Pumpable` protocol, which the
+   * `pump` verb narrows by shape.
+   */
+  public static isPumping(obj: Stuff): obj is Stuff & Pumping {
+    return this.hasMixin(obj, Mixins.Pumping);
   }
 
   /**

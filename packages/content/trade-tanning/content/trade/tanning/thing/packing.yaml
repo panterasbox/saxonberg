@@ -1,0 +1,30 @@
+# The packing — a cup of leather that sits round a pump's plunger and
+# seals it against the barrel.
+#
+# ⭐⭐ **Every pre-industrial pump was leather-packed**, and this is the
+# part that wears. A pump with no packing, or with one gone to nothing,
+# moves no water at all: the handle drops with no resistance. So the
+# pump is the tanner's customer forever — the leather goes, and somebody
+# makes another out of a hide. That standing demand is the reason this
+# row is the trade's and not the pump's.
+#
+# ⭐ A `Tool` offering `packing`, so wear is the shipped Durable gauge
+# and a broken one offers nothing (capability loss, no state machine).
+# It mends like any leather good — a mending kit and leather stock — and
+# it is replaced by `get packing from pump` / `put packing in pump`.
+#
+# ⚠ It is an OCCUPANT of the pump today, not a constitutive part; the
+# assembly build's part model absorbs it (see docs/subsystems/pump.md).
+class: /platform/thing/Tool
+data:
+  # ⚠ `"leather packing"` is the printed name, so it is a keyword too.
+  keywords: [packing, seal, leather, cup, "leather packing"]
+  shortDescription: leather packing
+  register: indefinite
+  longDescription: >-
+    A thick cup of oiled leather, cut round and crimped to fit over the
+    end of a plunger. It is stiff when dry and swells tight when wet,
+    which is the whole of what it is for.
+  mass: 0.3
+  _materialPath: /stuff/idea/material/organic/leather
+  capabilities: ["packing"]

@@ -35,7 +35,7 @@ materials-response all shipped, which made the name actively misleading.
 
 <!-- BEGIN GENERATED — ./tools/slate-index -->
 
-**289 slates.** 70 greenfield · 97 continuations · 61 waves · 61 tails.
+**290 slates.** 70 greenfield · 98 continuations · 61 waves · 61 tails.
 
 ## ⭐ Greenfield — nothing shipped yet (70)
 
@@ -96,7 +96,6 @@ respect.
 | [pharma](./builds/pharma-slate.md) | the actives/pharmacopoeia content · `neutralizedBy` + `rinse [with <substance>]` (the first row of the pharmacopoeia) · extraction as a process · glass vessels … |
 | [presence-hollowing](./builds/presence-hollowing-slate.md) | presence-vs-hollow as a physical state on an agent · who perceives it (ESP · the attuned reader dial · sacred instruments) … |
 | [prison](./builds/prison-slate.md) | `PrisonMixin` (a locality you cannot leave — the boundary + the custody book, and nothing else) · the three enforcement tiers in content · cells as provisioned shelters on the residence spine · interior law as the prison's own jurisdiction (no `securityLevel`) … |
-| [pump](./builds/pump-slate.md) | the pump as substrate (lift · throughput · power · seal) … |
 | [quest-modeling](./builds/quest-modeling-slate.md) | the template primitive · the beat + condition-detection seam · the cast surface (typed slot binding, save-gate validated, the two authoring tiers) · one genre cast end-to-end (Mystery, against the forensic win) … |
 | [reconcile-chains](./builds/reconcile-chains-slate.md) | `restamp` on `Freshness` · `Contaminable` · `Maturing` (store the driver at last reconcile, integrate along `Decay.toward` as `ThermalDose` does) · the **step problem** — `Coolbox` and any supply-driven host store *when supply last changed and to what*, so the trajectory is closed-form … |
 | [record-integrity](./builds/record-integrity-slate.md) | event-source `positions` → `position_events` · `prevHash` chaining with canonical serialization + the single-writer append discipline · the Merkle checkpoint · anchoring via `GitApi` to third-party hosts … |
@@ -106,6 +105,7 @@ respect.
 | [rubber](./builds/rubber-slate.md) | latex as a tap (→ tapping-slate) · sulfur as a deposit row + material · the **crosslinking `Law`** and its honest evaluator · `vulcanize` as a recipe gated on that law … |
 | [saxonberg-city](./builds/saxonberg-city-slate.md) | the Locality + parcel spine · the residential district and its launch stock (six units) · the four leasable storefront shells · the second Compact grant (waits on the stewardship cascade) … |
 | [scarcity](./builds/scarcity-slate.md) | the four-channel per-parcel meter (the whole near-term build) · the CPU entitlement coefficients + the capacity door · the retention schedule as a polity question · the token/egress appropriation + its ceiling … |
+| [steam-engine](./builds/steam-engine-slate.md) | ⭐⭐⭐ **the Carnot bound** as the second un-authorable invariant (and `arcane-science.md` has already ratified it for magic, so this is its first non-magical consumer) · ⭐⭐⭐ **shaft work as a coupling** — the thing nothing in the realm has, since traction couples to a cart and nothing else · the four rungs (atmospheric → separate condenser → high pressure → rotative) as rows · ⭐⭐ **fuel as a standing bill**, which is why the first engine belongs at a pithead and the second one does not … |
 | [structures](./builds/structures-slate.md) | ⭐ the justification test FIRST — this slate's own question is whether the concept earns its existence. Then, only if it does: what a structure is a claim about, how membership is declared, what it owns that no room can own alone, and what it must never absorb. |
 | [surgery-specialty](./builds/surgery-specialty-slate.md) | the operations-demand audit (which ops, and is there demand) · the harm-profile / violent-engagement gap check · the theatre (a room that matters) · the surgical team (anaesthetist + assistant) … |
 | [underwater](./builds/underwater-slate.md) | ⚠ **a band is not standable; its BED is** (added 2026-09-23 from the ground build: every Location gets a floor by default, so a water band must declare `noDefaultFloor: true` or the open column will be floored and sittable — the ground build ships the declaration and a test, not a row) · the column — bands as zones, `depth` as a zone field, `up`/`down` derived · implicit up + declared ceilings + the reach-to-air gate · medium derived from the reach's level … |
@@ -115,7 +115,7 @@ respect.
 | [wizardry](./builds/wizardry-slate.md) | ⭐ the **curriculum** → wizardry-curriculum-slate (§ 8a) · the seven Discipline rows + the noun extractor (rubric § 10) · the conferral logic · the band's disclosure rule … |
 | [wizardry-curriculum](./builds/wizardry-curriculum-slate.md) | the kind-of-content intake · the eight topics of W101 as lessons · the exemplar set (one per kind) · the detail-density mirror … |
 
-## ⭐ Continuations — substrate shipped, a build's worth remains (97)
+## ⭐ Continuations — substrate shipped, a build's worth remains (98)
 
 The subsystem doc is the reference for what already ships; these
 are the named remainders.
@@ -200,6 +200,7 @@ are the named remainders.
 | [property](./builds/property-slate.md) | the compute economy (Phase 1 — predicted heartbeat budget, measured degradation, cost-owner attribution; `allowance` is inert) · dormancy-as-reclamation for insolvency / over-deficit · governance allocation (Phase 2 — fiscal cycle, commons subsidy, frontier/center curve, over-subscription) · tenancy economics (Phase 3 — rent as a recurring charge, sublet, valuation + resale) … |
 | [provenance](./builds/provenance-slate.md) | the generalized path-ownership resolver over both namespaces (Layer A — leaf templates + code modules, declared splits — not the same thing as parcel/zone ownership, which stops at land) · the dependency DAG (Layer C) · the contributor-set / team split behind `authorOf`'s derivation seam (+ the richer explicit `release` action) · versioned law (an amendment as branch/edit/merge) … |
 | [psychology](./builds/psychology-slate.md) | the scoped disclosure grant · the therapist's file object · the psychology vocation + its Discipline · privilege and the conflict class … |
+| [pump](./builds/pump-slate.md) | dewatering the mine · the power ladder past men and the grid (animal → water → steam — the steam-engine slate) · the |
 | [ranching](./builds/ranching-slate.md) | ⚠ **tap standing at the draft** (handed over by the carcass chain: a head drafted out of the flock carries no record of what it has already given, so nothing prices a ewe that was shorn last week) · the feed loop — grazing demand on the animal, a way to feed a head, hay as the stored form, the winter-feed budget · the paddock move — `move herd`, paddocks as subdivided fields, the open gate resolved at reconcile, fencing as a bound, the hired-hand cadence with its utilization penalty · breeding (gestation … |
 | [ranged](./builds/ranged-slate.md) | W2 — authored cover (directional · destructible · leased) + overturnable furniture · armor on the response grid (point→blunt, proof marks) … |
 | [recovery](./builds/recovery-slate.md) | the deferred lens-tails, each now its own slate — prosthetics → augmentation-slate · the absent body → absent-body-slate · surgery + blood (transfusion / donation) → the clinical-medicine-slate umbrella (which pulls in blood-slate for the deep blood economy). |
@@ -347,7 +348,7 @@ are the named remainders.
 | [thermal](./tails/thermal-slate.md) | the generic hot-object radiant read · the indoor room-ambient convection bump · microclimates beyond the campfire (sun-spot / shade-spot) · sauna / steam room content … |
 | [tourism-and-sport](./builds/tourism-and-sport-slate.md) | the **district demand profile** (a district needs a *taste*) |
 | [value-object-statics](./builds/value-object-statics-slate.md) | `GroundCharacter.forZone` / `resolve` (a finder returning its own class that is not a `Document`; a null-model static) · the unruled async lookups `OuterWarren.conditionOf` / `admitFor`, `HoldingWarren.entryRowOf` · `Login.generateGuestName` · `readInt` ×3 → `AppApi.settingInt` (a behaviour change to `SandboxLogic`) … |
-| [water-design-pack](./tails/water-design-pack.md) | the bathroom's modelled function (`bathe`, gated on water availability — waits on room-condition) · "running water" as a residence-ladder rung feature (waits on the residence-ladder pack) |
+| [water-design-pack](./tails/water-design-pack.md) | the bathroom's modelled function (`bathe`, gated on water availability — waits on room-condition) · "running water" as a residence-ladder rung feature (waits on the residence-ladder pack) · ⭐⭐ **plumbing the city** — every tap names its main, and a tap served by TWO mains (§ below, opened by the pump build 2026-10-10) |
 | [wiki](./tails/wiki-slate.md) | the level-3 source embed · the rest of the transclusion palette (page-card) · the diegetic narrative front · anonymous pre-auth read (Q5) … |
 | [wire-suite-growth](./tails/wire-suite-growth-slate.md) | boot groups · the compressed-clock group (farming's arc as its first customer) · farming's yard legs (the one-actor problem) · metal-chain's provisioning leg … |
 | [world-scan-perf](./tails/world-scan-perf-slate.md) | MQL grammar for the specialized rosters (D5, "later if at all") · an active-mixin selector `[active.X]` if anything ever wants one (Q1's residue) |

@@ -45,12 +45,56 @@ import { BulkableMixin } from '../../lib/bulk/Bulkable';
 import { ThermalMixin } from '../../lib/thermal/Thermal';
 import { UnboundedSourceMixin } from '../../lib/bulk/UnboundedSource';
 import type { CommandContributions } from '../../api/command';
+import type { FieldMeta } from '../../lib/mixin';
+import type { Stuff } from '../../lib/stuff/Stuff';
+import type { BulkAffordance } from '../../lib/bulk/Bulkable';
+import type { MarkupAugmenter } from '../../api/mml';
+import { StuffApi } from '../../api/stuff';
+import {
+  SUPPLY_STATE_GLOSS,
+  type SupplyReport,
+  type SupplyReporting,
+  type SupplyServing,
+  type SupplyState,
+} from '../../lib/supply/SupplyState';
+
+/**
+ * ⭐ Says why nothing comes out of a tap whose main is not delivering — in
+ * the shipped vocabulary's own gloss, so a player who has learned what
+ * *shut off* means at one tap has learned it at every tap.
+ */
+function supplyAugmenter(text: string, host: Stuff): string {
+  if (!(host instanceof WaterFixture)) return text;
+  const state = host.supplyStateNow();
+  if (state === null) return text;
+  return `${text}\n\nNothing comes out of it: ${SUPPLY_STATE_GLOSS[state]}.`;
+}
 
 // The same order `Receptacle` uses, and for the same reason: Thermal outer
 // of Bulkable, so a holder's heat capacity derives from what is in it.
 const WaterFixtureBase = UnboundedSourceMixin(ThermalMixin(BulkableMixin(Thing)));
 
-export default class WaterFixture extends WaterFixtureBase {
+export default class WaterFixture
+  extends WaterFixtureBase
+  implements SupplyServing, SupplyReporting
+{
+  /**
+   * ⭐⭐ The main this tap is plumbed to — an identity path, or `''` for a
+   * tap that is its own source (every tap the realm shipped before the
+   * pump build, unchanged). When set, the tap runs only while the main
+   * delivers, and says why when it does not.
+   */
+  protected suppliedBy = '';
+
+  static fieldMeta: FieldMeta = {
+    suppliedBy: { persistent: true, authorable: true, ref: 'identity' },
+  };
+
+  static markupAugmenters: MarkupAugmenter[] = [supplyAugmenter];
+
+  /** Has the unresolved-main warning already been logged? */
+  private _warnedUnresolved = false;
+
   constructor() {
     super();
     // ⭐ Plumbed in. A live drive walked out of Dave's Bar carrying the
@@ -60,6 +104,65 @@ export default class WaterFixture extends WaterFixtureBase {
     // what `fixedInPlace` says: no agent pockets it, while a remodel or
     // a `place` still moves it.
     this.fixedInPlace = true;
+  }
+
+  public getSuppliedBy(): string {
+    return this.suppliedBy;
+  }
+
+  /**
+   * The main, resolved by path. ⚠ An unresolved main **fails open** and
+   * logs once: a tap on a main the world has not loaded behaves as every
+   * tap always has, and `analyze water` says the main could not be found.
+   */
+  private mainOf(): (Stuff & Partial<SupplyServing & SupplyReporting>) | null {
+    if (this.suppliedBy === '') return null;
+    const main = StuffApi.findByTemplatePath(this.suppliedBy);
+    if (!main && !this._warnedUnresolved) {
+      this._warnedUnresolved = true;
+      console.warn(
+        `WaterFixture: main '${this.suppliedBy}' did not resolve; the tap runs as its own source`,
+      );
+    }
+    return (main as Stuff & Partial<SupplyServing & SupplyReporting>) ?? null;
+  }
+
+  /** Why the main is not delivering, or `null` (running, or no main). */
+  public supplyStateNow(): SupplyState | null {
+    const main = this.mainOf();
+    if (!main || typeof main.supplyStateNow !== 'function') return null;
+    return main.supplyStateNow();
+  }
+
+  public override isBulkEmpty(affordance: BulkAffordance): boolean {
+    if (affordance === 'interior' && this.supplyStateNow() !== null) return true;
+    return super.isBulkEmpty(affordance);
+  }
+
+  public override getBulkAvailable(affordance: BulkAffordance): number {
+    if (affordance === 'interior' && this.supplyStateNow() !== null) return 0;
+    return super.getBulkAvailable(affordance);
+  }
+
+  /**
+   * ⭐ `analyze water <tap>` reads the MAIN — the tap has no working of its
+   * own to show, and the whole lesson is that what you see at the tap is
+   * decided somewhere else.
+   */
+  public async supplyReport(nowS: number): Promise<SupplyReport> {
+    const main = this.mainOf();
+    if (main && typeof main.supplyReport === 'function') {
+      return main.supplyReport(nowS);
+    }
+    return {
+      label: this.getPresentation(),
+      state: null,
+      lines: [
+        this.suppliedBy === ''
+          ? 'It draws on its own source, and nothing upstream decides whether it runs.'
+          : 'It is plumbed to a main that cannot be found.',
+      ],
+    };
   }
 
   /** Sideways: anyone in the room with the basin can wash at it. */

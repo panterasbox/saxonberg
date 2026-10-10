@@ -67,6 +67,16 @@ data:
     # The surveying instrument is MINING's — this trade adds none for its
     # structural read, which is the whole of *a second reading is a row*.
     - /trade/mining/thing/miners-dial
+    # ⭐ The force pump (the pump build) — the answer to the deep well the
+    # village pump will not draw from, on the rack for the same reason the
+    # bailer is: the provisioning till cannot take money (two drives have
+    # recorded it) and nobody in the valley makes pumps to sell.
+    - /stuff/thing/gear/force-pump
+    # …and a spare packing, because the leather goes. ⚠ It cannot be
+    # bought (the till) and a fresh hand cannot `make` one either — `make`
+    # is deed-gated until somebody has built it once by hand. The recipe
+    # ships for the trade; the rack is the shipped answer to the till.
+    - /trade/tanning/thing/packing
     # A light, because the sites are outdoor rooms and the sun sets.
     - /world/terminus/rejection/thing/glowcap-jar
   cast:

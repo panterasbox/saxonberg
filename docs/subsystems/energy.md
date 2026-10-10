@@ -126,3 +126,13 @@ sources from a locality's own treasury when it has one.
 - **Durable cuts + the lineman work-order market**, **gas as a second piped
   commodity**, **the retort** (crafted lamp oil), **overdrawn brownout**. →
   power-utility-slate / destructive-distillation-slate.
+
+## The pump build (2026-10-09) — the first mechanical consumer
+
+`ElectricPump = GridPowered(Switchable(Pump))` is the energy pack's third
+appliance, and the `Powered` shape's first consumer that does mechanical
+work: the kernel pump reads `availablePowerW` / `poweredTrajectory`
+structurally, so a prime mover is simply a `Powered` implementer. It
+affords `switch` itself; turning it reconciles its packing's running wear
+first. The Wharfside intake's pump asks ~98 kW of a 60 kW industrial band
+and is left overdrawn on purpose — see [pump.md](./pump.md).

@@ -271,6 +271,38 @@ export class BiomeApi {
   }
 
   /**
+   * ⭐ **A pressure difference, expressed as the height of a column of a
+   * medium** — `ΔP / (ρ·g)`. Pure arithmetic, and the primitive two
+   * readings share: the altimeter is `(P_sea − P_here)` over AIR, and the
+   * suction ceiling is `P_here` over the FLUID being lifted. A zero (or
+   * negative) density answers `0 m` rather than dividing by it.
+   */
+  public static columnHeightOf(
+    pressure: Quantity<'Pa'>,
+    density: Quantity<'kg/m³'>,
+    gravity: Quantity<'m/s²'>
+  ): Quantity<'m'> {
+    return logic().columnHeightOf(pressure, density, gravity);
+  }
+
+  /**
+   * ⭐⭐ **How high the air at `scope` will push a fluid up a pipe** — the
+   * ceiling of every pump that PULLS. `P_here / (ρ_fluid·g)`: about
+   * 10.3 m of water at sea level, less on a hill (the pressure falls with
+   * elevation, which nobody authored), less for brine (it is denser). A
+   * vacuum answers `0 m`. `fluidDensity` defaults to water.
+   *
+   * ⚠ A pump that pushes has no such wall, and a bucket carried up has
+   * none at any depth — so only a mechanism that pulls ever asks this.
+   */
+  public static async suctionHeadFor(
+    scope: Stuff & Container,
+    fluidDensity?: Quantity<'kg/m³'>
+  ): Promise<Quantity<'m'>> {
+    return logic().suctionHeadFor(scope, fluidDensity);
+  }
+
+  /**
    * Whether `tag` is an atmosphere the medium's physics tables know.
    * `setAtmosphere` gates on it so an unknown tag fails the ROW rather
    * than the first thermal read taken in the room.

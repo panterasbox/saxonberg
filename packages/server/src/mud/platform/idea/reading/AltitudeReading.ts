@@ -89,10 +89,12 @@ export default class AltitudeReading extends Reading {
     const seaLevel =
       BiomeApi.getRootBiome().getDefaultPressure() ?? Quantity.of(101325, 'Pa');
     const gravity = await BiomeApi.resolveGravityFor(scope);
-    return Quantity.of(
-      (seaLevel.rawValue() - localPressure.rawValue()) /
-        (density.rawValue() * gravity.rawValue()),
-      'm',
+    // ⭐ A pressure difference as a column of AIR — the same primitive the
+    // suction ceiling reads over the fluid it lifts.
+    return BiomeApi.columnHeightOf(
+      Quantity.of(seaLevel.rawValue() - localPressure.rawValue(), 'Pa'),
+      density,
+      gravity,
     );
   }
 }

@@ -834,3 +834,11 @@ The locality memo for the weather field, as `weatherLocality()` +
 persisted, and no tri-state** — nothing integrates a backlog off it, so an
 unresolved read misses the deviation once and then heals. That is cheaper than
 correct here, and saying so is the point.
+
+## The pump build (2026-10-09) — a pressure as a column
+
+`BiomeApi.columnHeightOf(ΔP, ρ, g)` is the primitive two readings share,
+and `BiomeApi.suctionHeadFor(scope, ρ_fluid?)` = `P_here / (ρ_fluid·g)` is
+the ceiling of every pump that pulls. `AltitudeReading` is refactored onto
+the first (behaviour unchanged). Elevation lowers the pressure and so the
+ceiling, with nobody authoring it. See [pump.md](./pump.md).
