@@ -1,0 +1,12 @@
+# The circlemere — a water pack `Shore` on the circlemere:mere reach. `look` reads the
+# water and its ice in words; `analyze water` reads the ice by competence.
+class: /system/water/thing/Shore
+data:
+  shortDescription: circlemere
+  keywords: [mere, water, ice, shore, circlemere]
+  register: definite
+  longDescription: |
+    A wide shallow mere on the upland, grey water under a grey sky.
+  reachRef: circlemere:mere
+  # What the shore underfoot is made of (a bank of stones).
+  _materialPath: /stuff/idea/material/rock/granite

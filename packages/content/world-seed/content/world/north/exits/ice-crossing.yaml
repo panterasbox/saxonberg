@@ -1,0 +1,14 @@
+# The blackmere crossing — a way across the mere that exists only while the
+# ice bears you (transport's IceCrossingExit, the climate build). Black ice
+# since the autumn, a metre and more of it: open all winter.
+class: /system/transport/idea/IceCrossingExit
+data:
+  media: [ground]
+  wheelPassable: true
+  # ⚠ Required by lint:location-graph by shape: a kind whose class
+  # overrides applyTraversal and names `blocked` declares it. (The
+  # declared field's own name, so the row adds no orphan key.)
+  _conditional: true
+  _crossesReach: blackmere:mere
+  messageOut: "{{ mover }} goes out across the ice."
+  messageIn: "{{ mover }} comes in off the ice."

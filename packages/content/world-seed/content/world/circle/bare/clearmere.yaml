@@ -1,0 +1,12 @@
+# The clearmere — a water pack `Shore` on the clearmere:mere reach. `look` reads the
+# water and its ice in words; `analyze water` reads the ice by competence.
+class: /system/water/thing/Shore
+data:
+  shortDescription: clearmere
+  keywords: [mere, water, ice, shore, clearmere]
+  register: definite
+  longDescription: |
+    A small mere the wind keeps swept, so whatever is on it shows dark and clear.
+  reachRef: clearmere:mere
+  # What the shore underfoot is made of (a bank of stones).
+  _materialPath: /stuff/idea/material/rock/granite

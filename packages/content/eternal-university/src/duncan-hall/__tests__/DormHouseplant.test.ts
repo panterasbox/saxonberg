@@ -43,6 +43,7 @@ import RepotController from '@saxonberg/server/mud/platform/idea/cmd/inventory/R
 import PourController from '@saxonberg/server/mud/platform/idea/cmd/bulk/PourController';
 import FillController from '@saxonberg/server/mud/platform/idea/cmd/bulk/FillController';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
+import { Construction } from '@saxonberg/server/mud/lib/material/Construction';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
@@ -204,6 +205,10 @@ function seedDomain(): void {
   addSeed('/trade/farming/thing/seed/peace-lily', `${PRODUCE}trade/farming/thing/seed/peace-lily.yaml`);
   addSeed('/trade/farming/thing/seed/snake-plant', `${PRODUCE}trade/farming/thing/seed/snake-plant.yaml`);
   addSeed('/stuff/thing/vessel/watering-can', `${OBJECTS}stuff/thing/vessel/watering-can.yaml`);
+  // ⭐ The winter coat the footlocker is born with (the climate build, D18).
+  addSeed('/stuff/thing/clothes/greatcoat', `${OBJECTS}stuff/thing/clothes/greatcoat.yaml`);
+  // …and its fabric form, which the real world's catalogue registers.
+  Construction.registerFabric({ key: 'felted', layerBand: 1, loft: 0.6, weaveDensity: 0.9, drape: 0.3 });
   addSeed('/stuff/thing/vessel/soil-sack', `${OBJECTS}stuff/thing/vessel/soil-sack.yaml`);
   // Materials + taxonomy the above reference.
   // The dorm's mana lamp (TPA reform W5): the DOMESTIC half of the
@@ -567,6 +572,19 @@ describe('the dorm houseplant — content and placement', () => {
 
     // Resting on the desk (the `on:` placement key).
     expect((pot!.getPlacement()?.host ?? null)).toBe(desk);
+
+    // ⭐ A warm coat where a new player wakes (the climate build, D18): the
+    // footlocker is born with the greatcoat, offered and not worn.
+    const footlocker = room
+      .getContents()
+      .find((f) => (f as Stuff).getTemplatePath() === '/world/terminus/eternal/duncan-hall/thing/footlocker');
+    expect(footlocker).toBeDefined();
+    const inLocker = MixinApi.isContainer(footlocker as Stuff)
+      ? (footlocker as unknown as Stuff & Container).getContents()
+      : [];
+    expect(
+      inLocker.some((c) => (c as Stuff).getTemplatePath() === '/stuff/thing/clothes/greatcoat'),
+    ).toBe(true);
 
     // A real peace lily: species resolved, alive, healthy, and its own host.
     expect(plant!.getSpecies()?.getBinomial()).toBe('Spathiphyllum wallisii');

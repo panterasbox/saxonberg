@@ -1,0 +1,10 @@
+# The circlemere crossing — across the new ice, once it bears a person.
+# On the day the cold comes it is thin and grey; a day later it holds.
+class: /system/transport/idea/IceCrossingExit
+data:
+  media: [ground]
+  wheelPassable: true
+  _conditional: true
+  _crossesReach: circlemere:mere
+  messageOut: "{{ mover }} steps out onto the ice."
+  messageIn: "{{ mover }} steps off the ice."

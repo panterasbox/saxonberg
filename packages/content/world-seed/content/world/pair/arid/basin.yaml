@@ -1,0 +1,19 @@
+# The dry basin — 42° in the middle of a continent, 400 m: a hard winter
+# and very little rain, by lean and by amount.
+class: /platform/location/SingletonCartesianLocation
+data:
+  shortDescription: dry basin
+  keywords: [basin, flat, scrub]
+  register: definite
+  longDescription: |
+    A wide basin of cracked pale ground and grey scrub under a hard sky, mountains standing round the edge of it like the rim of a dish. West, a day toward the sea, the wet coast.
+  _biomePath: /stuff/idea/biome/outdoor/baseline
+  coords:
+    x: 0
+    y: 0
+    z: 0
+  exits:
+    west:
+      destination: /world/pair/wet/coast
+      media: [ground]
+      edgeMinutes: 1440

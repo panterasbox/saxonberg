@@ -1,0 +1,10 @@
+# The plateau — always snowing, and almost none of it lands (intensity
+# 0.004): the dry cold. A dusting beside the snowfield's depth.
+class: /platform/idea/Locality
+data:
+  name: The Plateau
+  _address: north/plateau
+  _weatherPin:
+    type: snow
+    mode: frozen
+  _precipitationIntensity: 0.004

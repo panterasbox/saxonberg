@@ -610,7 +610,9 @@ export default class LocationGraphRegistry extends Idea {
             ? (kindData.wheelPassable as boolean)
             : null;
       const conditional =
-        s.conditional === true || kindData?.conditional === true;
+        s.conditional === true ||
+        kindData?.conditional === true ||
+        kindData?._conditional === true;
       out.push({
         dir,
         to: dest,

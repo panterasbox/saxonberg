@@ -1,0 +1,18 @@
+class: /platform/location/SingletonCartesianLocation
+data:
+  shortDescription: moraine bank
+  keywords: [bank, moraine]
+  register: definite
+  longDescription: |
+    A bank of grey moraine across the mere from the camp. South, back over the water.
+  _biomePath: /stuff/idea/biome/outdoor/baseline
+  coords:
+    x: 0
+    y: 2
+    z: 0
+  exits:
+    south:
+      kind: /world/circle/exits/circle-crossing
+      destination: /world/circle/shore
+      media: [ground]
+      edgeMinutes: 10

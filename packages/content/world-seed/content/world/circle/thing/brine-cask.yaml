@@ -1,0 +1,19 @@
+# The Circle camp's brine cask (the climate build, D17) — thirty litres of
+# salt water for the pan beside it. Pour it into the pan in a freezing camp
+# and the batch starts and stalls: brine evaporates only above 273 K, and the
+# pan's own look says so ("It sits frozen over. Nothing is leaving it.").
+# A Receptacle, the commons pail's shape.
+class: /platform/thing/Receptacle
+data:
+  shortDescription: brine cask
+  keywords: [cask, brine, barrel]
+  register: indefinite
+  longDescription: |
+    A squat oak cask under the lean-to, its staves white with dried salt.
+  _materialPath: /stuff/idea/material/wood/oak
+  interiorBulk: true
+  interiorCapacity: 40
+  interiorMaterial: /stuff/idea/material/bulk/salt-water
+  interiorAmount: 30
+  closure: open
+  mass: 12

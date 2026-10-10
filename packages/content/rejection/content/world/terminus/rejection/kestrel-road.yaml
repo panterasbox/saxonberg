@@ -17,3 +17,9 @@ class: /platform/idea/location/CartesianZone
 data:
   name: The Kestrel Road
   cellSize: 20.0
+  # ⭐ The road climbs (the climate build): the pass at the top of the
+  # Kestrel Road is 1500 m up, nearly ten kelvin colder than the city it
+  # leaves — snow on it most of the winter. Its lower stretches say
+  # nothing and read the same height; zoning finer is how a road would
+  # vary along its length.
+  elevation: 1500

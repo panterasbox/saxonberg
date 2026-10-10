@@ -1,0 +1,15 @@
+# clearmere — the Circle's bare twin (the climate build): the same air as
+# circlemere's (6 K of offset for snow's 6 K of weather), no snow on it,
+# black ice.
+class: /system/water/idea/Watercourse
+data:
+  key: clearmere
+  name: clearmere
+  basin: clearmere
+  branchesFrom: null
+  water: { pH: 6.8, hardnessDgh: 2, nitrateMgL: 0.3 }
+  # Where on the world it lies (the climate build). Wide and deep, so the
+  # water is still and a sheet can form on it.
+  site: { latitudeDeg: -66, continentality: 1, offsetK: -6 }
+  nodes:
+    - { name: mere, elevation: 900, channelWidthM: 200, meanDepthM: 4 }

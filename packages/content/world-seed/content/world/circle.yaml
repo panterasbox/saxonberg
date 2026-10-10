@@ -1,0 +1,19 @@
+# The Circle — 66° S, continental, 900 m: a southern place at the end of
+# its short summer. On the northern equinox the south enters autumn, so the
+# cold here is DAYS OLD when a visitor arrives: the snow deepens day on day,
+# the mere's sheet thickens until it bears a person, and the pass shuts
+# under the snow — live, inside a few game days. The growing case.
+#
+# ⚠ Its offset is 0; the Locality's snow pin is what makes it this cold
+# this early (snow weather runs 6 K under a clear sky). The `bare` sub-zone
+# is offset −6 K under a CLEAR pin, so its mere sees the same temperatures
+# with no snow on it: black ice beside snow-ice, one variable apart.
+class: /platform/idea/location/CartesianZone
+data:
+  name: The Circle
+  cellSize: 10.0
+  address: circle
+  latitude: -66
+  continentality: 1
+  elevation: 900
+  climateOffsetK: 0

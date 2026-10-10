@@ -8,4 +8,10 @@ data:
   keywords: [footlocker]
   register: indefinite
   longDescription: |
-    A dented metal footlocker with a hasp for a padlock nobody has supplied yet. Empty, and smelling faintly of the last person's shoes.
+    A dented metal footlocker with a hasp for a padlock nobody has supplied yet. It smells faintly of the last person's shoes, and of the wool somebody left folded in it for the winter.
+  # ⭐ A warm coat where a new player wakes (the climate build, D18): the
+  # winter is real now, and the room OFFERS one — folded in the
+  # footlocker, nobody made to wear it. Staged with the footlocker, so
+  # every unit's footlocker is born with its own.
+  props:
+    - /stuff/thing/clothes/greatcoat

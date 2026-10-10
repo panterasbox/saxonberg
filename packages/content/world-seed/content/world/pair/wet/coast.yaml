@@ -1,0 +1,19 @@
+# The wet coast — 42° on the sea. A mild winter and a great deal of rain:
+# the Locality leans to rain and storm and doubles the amount.
+class: /platform/location/SingletonCartesianLocation
+data:
+  shortDescription: wet coast
+  keywords: [coast, shore, headland]
+  register: definite
+  longDescription: |
+    A grey headland over a grey sea, the turf on it sodden and the gorse dripping. It has been raining, or about to, for as long as anybody here remembers. East, a day inland, the dry basin.
+  _biomePath: /stuff/idea/biome/outdoor/baseline
+  coords:
+    x: 0
+    y: 0
+    z: 0
+  exits:
+    east:
+      destination: /world/pair/arid/basin
+      media: [ground]
+      edgeMinutes: 1440

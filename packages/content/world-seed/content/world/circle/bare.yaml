@@ -1,0 +1,9 @@
+# The bare shore of the Circle — swept clear of snow by a clear-sky pin,
+# offset 6 K colder so its air is the snowy shore's to the kelvin. The
+# black-ice twin of circlemere's snow-ice.
+class: /platform/idea/location/CartesianZone
+data:
+  name: The Bare Shore
+  cellSize: 10.0
+  address: circle/bare
+  climateOffsetK: -6

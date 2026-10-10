@@ -1,0 +1,26 @@
+# The greatcoat — heavy boiled-wool, ankle-length: the coat a new player
+# finds in the dorm footlocker (the climate build, D18). The realm has an
+# honest winter now — a 42° sea-level dawn reaches ~268 K — and the room a
+# new player wakes in OFFERS a coat for it; nobody is made to wear one.
+#
+# Felted (boiled) wool is the highest-loft shipped form, so this is the
+# warmest honest garment the commons has. ⚠ Its insulation is DERIVED
+# (`Wearable.getClo`) and reads lower than a real greatcoat's (plan R13 —
+# the derivation models no air trapped between layers); the figure is
+# pinned in `Slotted.covering.test.ts` and the under-read is the textiles
+# trade's to correct, not this coat's to inflate.
+class: /platform/thing/equipment/Garment
+data:
+  shortDescription: heavy wool greatcoat
+  keywords: [greatcoat, coat, wool, heavy]
+  register: indefinite
+  longDescription: >
+    A heavy greatcoat of boiled grey wool that comes down past the knee,
+    with a deep collar that turns up against the wind and horn buttons the
+    size of coins. It weighs about what a winter weighs.
+  slotClaims:
+    "/stuff/idea/species/BodyPlan/biped": [torso, legs]
+  _materialPath: /stuff/idea/material/textile/wool
+  constructionForm: felted
+  gradeBand: fair
+  mass: 3.5

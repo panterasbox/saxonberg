@@ -1,0 +1,10 @@
+# The dry basin — 42°, in the middle of a continent (0.9), 400 m: a hard
+# winter, a hot summer, and very little rain at any time of year.
+class: /platform/idea/location/CartesianZone
+data:
+  name: The Dry Basin
+  cellSize: 10.0
+  address: pair/arid
+  latitude: 42
+  continentality: 0.9
+  elevation: 400

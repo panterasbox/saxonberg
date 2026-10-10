@@ -1,0 +1,12 @@
+# The South Station — 89° S. On the northern equinox the sun is going down
+# here for six months; within a few days it does not rise at all, and the
+# sky says so. A brazier keeps the station lit through the polar night — a
+# polar place reachable by the drive must never be pitch dark.
+class: /platform/idea/location/CartesianZone
+data:
+  name: The South Station
+  cellSize: 10.0
+  address: south
+  latitude: -89
+  continentality: 0.3
+  elevation: 20

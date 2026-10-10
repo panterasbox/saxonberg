@@ -1,0 +1,9 @@
+# The South Station — a clear sky over 89° S, so the polar night is the
+# sky's own and not a cloud's.
+class: /platform/idea/Locality
+data:
+  name: The South Station
+  _address: south
+  _weatherPin:
+    type: clear
+    mode: frozen

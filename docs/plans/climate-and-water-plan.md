@@ -1283,6 +1283,12 @@ weather dials: `climate.poleMeanK` 245, `climate.equatorMeanK` 301,
   0.49–0.57 rising is the weeks either side of the equinox — after the
   maple, as in life. A row change, which is what the row's own header
   promised.
+- **B14 (W10) — the Circle at offset 0, its bare twin at −6.** See W10.
+- **B15 (W10) — the moor's `address:` → `_address:`.** A pre-existing
+  authoring defect inside this build's subject (the storm prose of a
+  heath the storm pin never reached); fixed, ratchet lowered.
+- **B16 (W10) — the greatcoat is staged by the footlocker**, not placed
+  by the room: `Footlocker` composes `StagedMixin` like `Chest`.
 - **B4 (W0) — no `climate.defaultContinentality` dial.** The default site
   is the `DEFAULT_CLIMATE_SITE` value; a dial read beside a const would be
   two sources for one number.
@@ -1805,6 +1811,34 @@ freshly admitted dorm unit's footlocker holds the greatcoat and the
 outfit + coat sizing test records ≥ 2.0 clo (or the honest figure and
 the filed residue, D18).
 **Commit.** `build(climate W10): the north, the south, the wet coast and the dry basin — the places the drive stands in`
+
+> ✅ **Done.** world-seed: zones `/world/north` (+ `snowfield`,
+> `plateau`), `/world/circle` (+ `bare`), `/world/south`, `/world/pair`
+> (`wet`, `arid`); 17 rooms; 3 cast-iron braziers (`extends:` the
+> practicum's banked one); 3 meres + Shores; 8 Localities (pins, leans,
+> intensities; the mere Localities declare a 2 km² catchment so the
+> mere reads their weather); 4 exit kinds (authoring the DECLARED
+> `_conditional` / `_crossesReach` / `_closesAboveM` — the location-graph
+> lint and projection now accept `_conditional` too); the brine cask.
+> Each cluster is joined by real exits so no zone lacks an entrance
+> (station↔plateau, camp↔bare shore, camp↔south station "days off across
+> the ice", coast↔basin). Rejection 450 m, Kestrel Road 1500 m. The
+> greatcoat (3.5 kg felted wool, 0.43 clo derived — R13 as predicted)
+> is staged by the FOOTLOCKER's own `props:` (Footlocker became
+> `StagedMixin(Vessel)`, the Chest shape) because a `Holder` is not a
+> Placing host and the room's `in:` would have thrown.
+> ⚠ **B14:** the Circle re-tuned — offset 0 (not −7): under the snow
+> pin's −6 K the plan's site had been frozen for weeks by day 0. At
+> offset 0 the sheet is 5.4 cm / 72 kg on day 0 and 6.1 cm / 93 kg on
+> day 1 (refuses then bears an 80 kg body), snow 0.31 → 0.39 → 0.47 →
+> 0.56 m (`closesAboveM 0.45` shuts on day 2). The bare twin is offset
+> −6 under a clear pin — the same air, so snow-ice vs black ice is one
+> variable apart again (repairs B11). ⚠ **B15:** the moor's rooms
+> authored `address:` (no such field) — the moor's storm pin never
+> reached its own heath. They author `_address:`; the orphan-key
+> ratchet falls 390 → 387. Dropped: the `northwater` running reach (its
+> flow at 71° in winter is snowmelt-zero, so it would freeze — running
+> stays a unit test) and the moor mere crossing.
 
 ### W11 — The drive, the docs, the MR
 

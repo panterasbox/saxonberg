@@ -1,0 +1,14 @@
+# The North — the climate build's cold northern place (71° N, near the sea,
+# 50 m). A test-and-teaching region in the moor's tradition: no inbound exit
+# from the realm, reached by teleport. Everything here is DERIVED from four
+# zone fields — latitude, continentality, elevation, offset — and no room
+# says how cold it is: on the equinox the station reads ≈ 255 K, the mere
+# below it has carried ice since the autumn, and the sun goes round low.
+class: /platform/idea/location/CartesianZone
+data:
+  name: The North
+  cellSize: 10.0
+  address: north
+  latitude: 71
+  continentality: 0.7
+  elevation: 50

@@ -1,0 +1,21 @@
+# The bare shore — clearmere's: the same air as circlemere's, with no snow
+# on the ice. Black ice beside snow-ice, one variable apart. Teleport only.
+class: /platform/location/SingletonCartesianLocation
+data:
+  shortDescription: bare shore
+  keywords: [shore, clearmere]
+  register: definite
+  longDescription: |
+    A wind-scoured shore where no snow lies, above a small mere. The wind takes everything that falls here off across the water. East, the camp.
+  _biomePath: /stuff/idea/biome/outdoor/baseline
+  coords:
+    x: 0
+    y: 0
+    z: 0
+  exits:
+    east:
+      destination: /world/circle/camp
+      media: [ground]
+      edgeMinutes: 20
+  props:
+    - /world/circle/bare/clearmere

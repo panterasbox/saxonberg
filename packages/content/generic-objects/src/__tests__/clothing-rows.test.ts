@@ -49,7 +49,7 @@ const ARMOUR = rows(ARMOR);
 const ALL = [...CLOTHING, ...ARMOUR];
 
 describe("every worn row is a real physical object", () => {
-  it("there are eleven clothing rows and six armor rows", () => {
+  it("there are twelve clothing rows and six armor rows", () => {
     // ⚠ 9 → 11: apiculture adds a bee veil and work gloves, which are
     // ORDINARY CLOTHING — that is the whole design of them. A veil works
     // because it is woven cloth over the place bees go for, resolved by
@@ -61,7 +61,8 @@ describe("every worn row is a real physical object", () => {
     // is the per-row battery below (`it.each`) — that every worn row
     // carries a material, a form, a grade and a mass. The count is a
     // census; keep it, and expect to bump it.
-    expect(CLOTHING).toHaveLength(11);
+    // ⚠ 11 → 12: the climate build's greatcoat (the dorm footlocker's).
+    expect(CLOTHING).toHaveLength(12);
     expect(ARMOUR).toHaveLength(6);
   });
 

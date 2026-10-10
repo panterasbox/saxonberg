@@ -1,0 +1,18 @@
+class: /platform/location/SingletonCartesianLocation
+data:
+  shortDescription: ridge gap
+  keywords: [gap, ridge]
+  register: definite
+  longDescription: |
+    A gap in a low ridge of shattered rock. South, the plateau.
+  _biomePath: /stuff/idea/biome/outdoor/baseline
+  coords:
+    x: 0
+    y: 1
+    z: 0
+  exits:
+    south:
+      kind: /world/north/exits/snowbound-pass
+      destination: /world/north/plateau/flat
+      media: [ground]
+      edgeMinutes: 15

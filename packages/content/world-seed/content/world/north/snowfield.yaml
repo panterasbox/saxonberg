@@ -1,0 +1,9 @@
+# The snowfield — the WET cold peak (a snow-pinned Locality at a light
+# intensity). Snow has lain here since the autumn and the pass out of it is
+# shut until it goes: the standing case beside the Circle's growing one.
+class: /platform/idea/location/CartesianZone
+data:
+  name: The Snowfield
+  cellSize: 10.0
+  address: north/snowfield
+  elevation: 60

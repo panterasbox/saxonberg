@@ -1,0 +1,11 @@
+# The circle brazier — the practicum's banked brazier (a lit Campfire)
+# with its own words: authored light, so the place is never pitch dark
+# whatever the sky is doing.
+extends: /world/practicum/brazier
+data:
+  shortDescription: camp brazier
+  keywords: [brazier, fire, coals]
+  longDescription: >
+    A squat iron brazier in a ring of blackened stones, banked to burn all day.
+  _materialPath: /stuff/idea/material/alloy/cast-iron
+  mass: 30

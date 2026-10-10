@@ -1,0 +1,24 @@
+class: /platform/location/SingletonCartesianLocation
+data:
+  shortDescription: circlemere shore
+  keywords: [shore, mere, circlemere]
+  register: definite
+  longDescription: |
+    The shore of a wide shallow mere. Across the water, the far bank is a low line of moraine. Snow drifts along the edge of the water.
+  _biomePath: /stuff/idea/biome/outdoor/baseline
+  coords:
+    x: 0
+    y: 1
+    z: 0
+  exits:
+    south:
+      destination: /world/circle/camp
+      media: [ground]
+      edgeMinutes: 3
+    north:
+      kind: /world/circle/exits/circle-crossing
+      destination: /world/circle/far-bank
+      media: [ground]
+      edgeMinutes: 10
+  props:
+    - /world/circle/circlemere

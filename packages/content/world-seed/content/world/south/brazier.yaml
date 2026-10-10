@@ -1,0 +1,11 @@
+# The south brazier — the practicum's banked brazier (a lit Campfire)
+# with its own words: authored light, so the place is never pitch dark
+# whatever the sky is doing.
+extends: /world/practicum/brazier
+data:
+  shortDescription: station brazier
+  keywords: [brazier, fire, coals]
+  longDescription: >
+    A heavy brazier bolted to the floor, banked to burn all day and all night — which here is the same thing.
+  _materialPath: /stuff/idea/material/alloy/cast-iron
+  mass: 30

@@ -1,0 +1,37 @@
+# The Circle camp — 66° S at the end of its summer. Its cold is days old on
+# the northern equinox: the growing case, where snow deepens and ice thickens
+# inside a drive. The salt pan is quarrying's, the cask is the camp's: brine
+# poured in sits frozen over (the evaporative profile's own words).
+class: /platform/location/SingletonCartesianLocation
+data:
+  shortDescription: Circle camp
+  keywords: [camp, circle]
+  register: definite
+  longDescription: |
+    A summer camp on a bare upland at the edge of the southern ice: a stone hut, a cask under a lean-to, a shallow pan set out to make salt in the sun that is going. North, the mere; east, the way up to the pass; west, the bare shore; and south, days off across the ice, the pole.
+  _biomePath: /stuff/idea/biome/outdoor/baseline
+  coords:
+    x: 0
+    y: 0
+    z: 0
+  exits:
+    south:
+      destination: /world/south/station
+      media: [ground]
+      edgeMinutes: 4320
+    west:
+      destination: /world/circle/bare/shore
+      media: [ground]
+      edgeMinutes: 20
+    north:
+      destination: /world/circle/shore
+      media: [ground]
+      edgeMinutes: 3
+    east:
+      destination: /world/circle/pass
+      media: [ground]
+      edgeMinutes: 10
+  props:
+    - /world/circle/brazier
+    - /world/circle/thing/brine-cask
+    - /trade/quarrying/thing/salt-pan

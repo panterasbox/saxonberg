@@ -1,0 +1,11 @@
+# The snowfield pass — a way that is shut while the snow lies deeper than a
+# knee (transport's SnowboundExit, the climate build). Under snow since the
+# autumn; nobody gets through until it goes.
+class: /system/transport/idea/SnowboundExit
+data:
+  media: [ground]
+  wheelPassable: false
+  _conditional: true
+  _closesAboveM: 0.5
+  messageOut: "{{ mover }} goes on up into the pass."
+  messageIn: "{{ mover }} comes down out of the pass."

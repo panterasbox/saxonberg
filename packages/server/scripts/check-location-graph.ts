@@ -352,7 +352,10 @@ function conditionalKindFindings(idx: InheritanceIndex): string[] {
     const eff = effectiveRow(row.path, idx.rows, idx.rules);
     if (!eff.class) continue;
     if (!closesItself(eff.class)) continue;
-    if (eff.data.conditional === true) continue;
+    // The authored key or the field it lands in (`Exit.fieldMeta` declares
+    // `_conditional`, so a row that authors the declared key adds no
+    // orphan to lint:instanceable's ratchet).
+    if (eff.data.conditional === true || eff.data._conditional === true) continue;
     out.push(
       `${row.path} — class ${eff.class} closes itself at the traverse ` +
         `(it overrides \`applyTraversal\` and names \`blocked\`), so the ` +
