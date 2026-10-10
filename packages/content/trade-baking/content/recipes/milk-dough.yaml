@@ -1,0 +1,30 @@
+# Milk dough (dairy D15) — the plain dough with milk for its water. It
+# makes the same dough (`outputMaterial: dough`), so it proves and bakes
+# into the shipped loaf with nothing else edited; milk only makes it
+# softer, which is a cook's knowledge and not a new loaf.
+recipeId: milk-dough
+name: Milk dough
+keywords:
+- milk-dough
+- milk dough
+inputSlots:
+- slot: flour
+  category: flour
+  minGrade: poor
+  measureL: 1
+- slot: milk
+  category: milk
+  minGrade: poor
+  measureL: 0.6
+- slot: salt
+  category: salt
+  minGrade: poor
+  kind: item
+  count: 1
+toolCapabilities: []
+outputTemplate: /trade/baking/thing/dough-trough
+outputAppearance: a soft, pale dough, smelling faintly of milk
+outputApplication: bulk
+outputMaterial: /stuff/idea/material/food/dough
+difficulty: standard
+discipline: baking

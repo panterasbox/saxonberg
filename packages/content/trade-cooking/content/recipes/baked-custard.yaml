@@ -1,0 +1,35 @@
+# Baked custard (dairy D15) — eggs beaten into milk and cooked gently
+# until it sets. ⭐ The narrowest window in the kitchen: ten kelvin. Under
+# it, it does not set; over it, the egg tightens and the milk weeps out —
+# CURDLED, which is the doneness band's own word for it (*scorched*) on
+# `look`. A custard teaches what a thermometer is for.
+#
+# ⚠ No sweetener: no sweetener category is invented here — the sugar
+# trade owns that vocabulary.
+recipeId: baked-custard
+name: Baked Custard
+keywords:
+- baked-custard
+- custard
+inputSlots:
+- slot: egg
+  category: egg
+  minGrade: poor
+  kind: item
+  count: 2
+- slot: milk
+  category: milk
+  minGrade: poor
+  kind: bulk
+  measureL: 0.4
+toolCapabilities:
+- pot
+outputTemplate: /stuff/thing/items/bowl
+outputAppearance: a pale trembling custard
+outputApplication: edible
+outputPortionL: 0.4
+requiresHeatK: 353
+holdS: 1800
+maxHeatK: 363
+difficulty: standard
+discipline: cooking

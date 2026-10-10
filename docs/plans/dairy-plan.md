@@ -1570,7 +1570,7 @@ green.
   copper-row census admits the generic `ingot` row (minted only by a
   mould's set).
 
-### W3 — the kitchen (D15)
+### W3 — the kitchen (D15) ✅
 
 **Files.** `packages/content/trade-cooking/content/recipes/{creamed-mash,
 toasted-cheese, baked-custard}.yaml`; `packages/content/trade-baking/content/recipes/milk-dough.yaml`;
@@ -1587,6 +1587,13 @@ from drawn whey.
 
 **Acceptance.** `lint:doneness` ceiling 0 holds; `test:near` green.
 **Commit:** `build(dairy W3): the kitchen takes dairy by category — butter as a fat, custard that curdles, a milk loaf, ricotta from the whey`.
+
+**✅ W3 done (build, 2026-10-10).** Four rows, no code: `creamed-mash`,
+`toasted-cheese`, `baked-custard` (cooking), `milk-dough` (baking — milk
+for water, `outputMaterial: dough`, so it proves and bakes into the shipped
+loaf). `kitchen.test.ts` pins the category matches from the shipped rows;
+the custard's curdle rides the kernel's doneness band (tested in
+`CraftingLogic.doneness.test.ts`) and the drive. Ricotta shipped in W2.
 
 ### W4 — the venues (D14)
 
