@@ -78,8 +78,7 @@ content puts something on it."*
   property an unrevealed sea graph needs.** `location-graph.md`: the
   **evidence firewall** (⛔ *the index must never reach a client*, made
   structural by an import gate) · **four channels, three of which can be
-  wrong**, including **`bought`** — *"a transaction \| yes, and that is
-  the seller's reputation"* — which is **vocabulary with no writer** ·
+  wrong** — `walked` · `seen` · `searched` · `published` ·
   claims **append and nothing is corrected**, *"which is what lets a map
   be wrong"* · **a plan is a hypothesis**, with `assumptions` as a
   first-class field citing `channel` + `lastSeen` · cost on every axis
@@ -175,8 +174,9 @@ content puts something on it."*
 - ⭐⭐⭐ **The graph does not reveal itself.** Unlike the containment
   graph, an expanse's nodes and edges are not visible for standing
   there. What you know of a sea is **claims** you made, were told, or
-  **bought** — so a chart is a thing you procure, it can be wrong, and
-  it stays wrong because claims append and nothing is corrected.
+  **read off a chart** — so a chart is a thing you procure, it can be
+  wrong, and it stays wrong because claims append and nothing is
+  corrected.
 - ⭐⭐⭐ **Crossing open water is setting a course, not choosing a
   destination**, because there is no exit to take. You declare a heading
   and a rate; the world tells you where you arrived. **And the world
@@ -389,7 +389,7 @@ build.
 | ⭐⭐ a **wind lean** | direction and strength, in the `weather.md` lean's own shape. ⭐ **This is the band's mechanical character** — not prose |
 | ⚠ a **fetch** | one number: how much open water the wind has had. **Declared, not computed** — see *Sea state* |
 | prose | what the crossing is like, for flavour. ⭐ The lens-2 answer the slate said water did not have, but it is the lean that does the work |
-| a reputation | ⭐ what people *say*, which is the `told` channel's content — **and may be false** |
+| a reputation | ⭐ what people *say* — a `told` claim, **and may be false** |
 | a season or window | a trade wind blows when it blows. Climate build again |
 | a traffic weighting | busy lane, or empty water |
 | hazard rows placed in it | a shoal, ice, a reef — `hazard.md`'s self-resolving hazards |
@@ -458,7 +458,7 @@ own terms with nothing added.
 | verb | today | on an expanse |
 |---|---|---|
 | **`locate`** | *"report the location chain of an object"* | ⭐ There is no chain, so it answers with **your reckoning**, and says that is what it is. It is a **perception** verb, so reporting what you perceive rather than the truth is already its contract |
-| **`read`** | *"take in the marks on a written thing and decode them"* | ⭐⭐ **That is the chart.** `read <chart>` writes **`bought`** claims into your map — the first writer the channel has ever had |
+| **`read`** | *"take in the marks on a written thing and decode them"* | ⭐⭐ **That is the chart.** `read <chart>` writes **`charted`** claims into your map |
 | **`map`** | renders your claims | renders the charted ones too, with **no renderer edit**, because the channels are the words |
 | **`journey`** / **`route`** | plan over the exit graph | ⭐ They **refuse honestly and name `course`**. The precedent is exact: *"a map cannot answer `by wagon`, and says so… names the verb that knows"* |
 | **`appoint`** | an employment seat | ⭐ **A lookout is a seat, not a verb** — and a hired watchman is *"a wage and a seat, not a second player."* A player going aloft is `go` to a station |
@@ -618,7 +618,7 @@ own act.
 | ⚠ **the underwater build** | ⭐ **The axis is ours and the second value is theirs.** This build declares that a position has a depth and only ever reads zero; they add everything that makes a depth mean something. Nothing they need gets retrofitted |
 | ⚠⚠ **`standing-instructions-slate`** | **An event-driven passage that degrades unattended depends on a question nobody has opened.** This build ships the neglect model and does **not** decide whether a crew may act on standing orders — the taps build decided exactly that inside a trade build and it was cut before the MR merged |
 | ⚠⚠ **vector wind** | ⭐ **sea state needs a direction and shipped wind is scalar** — `weather.md` has *"vector wind, moving fronts"* as a wave-2 tail. This build takes direction from the **band's lean** and touches no weather code; when the climate build vectors the wind, the lean becomes a deviation rather than the only source |
-| ⚠ **the shipped claim store** | this build is the **first writer of the `bought` channel**. The vocabulary was put in the shape from the start precisely so this would need no retrofit; confirm that holds |
+| ⚠⚠ **the shipped claim store** | ⛔ **`told` and `bought` were CUT**, and the shipped vocabulary is `walked` · `seen` · `searched` · `published`. This build **adds two channels, each with its writer in the same change** — see *Surface decisions*. ⚠ `location-graph.md` still carries a **stale** four-channel section describing the cut vocabulary as live; fix it at the sweep |
 | ⚠ **the word "structure"** | ⭐ the drilling build shipped a `structure` **reading channel** — *"the shape of the rock under this ground"*. Unrelated to the building coordinator this build ships, and the two must not be conflated in prose: `measure structure` is geology |
 | ⭐ **four documents cite the vessel decision by section letter** | do not renumber it |
 
@@ -803,17 +803,48 @@ course anywhere, crosses badly, and the only way to get better is to go.
 **What earns it:** taking sights, taking soundings, and ⭐ **arriving
 where you said you would** — a deed with a verifiable condition.
 
-### The knowledge layer is the shipped claim store, with one new channel
+### The knowledge layer is the shipped claim store, with TWO new channels
 
 **The question.** Does an unrevealed sea graph need its own knowledge
 model?
 
 **The answer.** No, and this is the build's biggest de-risk. The shipped
-store already has the firewall, the four channels, append-never-correct,
-plan-as-hypothesis and a risk axis. ⭐ A nautical chart is **the first
-writer of `bought`**, and *"the channels are the words, so a new channel
-needs no edit in the renderer."* A chart that can be wrong and stays
-wrong is not a feature to build; it is the store's existing growth rule.
+store already has the firewall, append-never-correct, plan-as-hypothesis
+and a risk axis; and *"the channels are the words, so a new channel needs
+no edit in the renderer."* A chart that can be wrong and stays wrong is
+not a feature to build; it is the store's existing growth rule.
+
+⚠⚠ **What it does NOT have is the channels this build needs**, and an
+earlier draft of this document said otherwise. It cited
+`location-graph.md`'s four-channel table — `perception` · `publication` ·
+`told` · `bought`, *"vocabulary with no writer"* — and called the chart
+its first writer. ⛔ **That vocabulary was CUT.** The shipped channels are
+`walked` · `seen` · `searched` · `published` (`lib/location/MapClaim.ts`),
+and the cut's own reason was that *"an axis with two live values and two
+imaginary ones teaches a reader the wrong shape."* The subsystem doc kept
+the stale table beside the newer one, and that is what was read.
+
+⭐⭐ **But the same sentence authorises this build to add them back:**
+*"the retrofit argument is cheaper to make again later than a wrong
+vocabulary is to unlearn."* This build is that later, and the condition
+the cut implied is that a channel arrives **with its writer.** So two
+channels are added, each with its writer in the same change:
+
+| channel | how you came to know it | its writer, in this build |
+|---|---|---|
+| ⭐ **`charted`** | you read it off a chart | `read <chart>` |
+| ⭐ **`told`** | somebody who knows the water told you | **hiring a pilot** — the pilot's knowledge is claims (see the `navigation` decision), and this is how they reach you |
+
+⭐ **`charted`, not `bought`.** Every shipped channel names *how you know*
+— walked, seen, searched, published. A transaction is not a way of
+knowing; reading a chart is. That `bought` never fitted the axis's own
+shape is plausibly part of why it read as speculative.
+
+⚠ **And `told` gets the attribution question it was cut for.** The cut
+noted that *somebody lied to you, and the record should say who* belongs
+with the accountability ledger. A pilot's `told` claim carries who told
+you — the minimum that lets a lie be traced — and the ledger link stays
+the accountability build's.
 
 ### Where you log back on
 
@@ -905,13 +936,13 @@ character.
 could.** The single failure to guard: **the engine quoting a true
 position.** Your reckoning is yours, it is wrong, and no surface may
 leak the truth — which is why `locate` answers with the reckoning and
-says so. ⭐ And a bought chart that is wrong *stays* wrong, because
+says so. ⭐ And a chart that is wrong *stays* wrong, because
 correcting it in the reader would be the reader overriding the writer.
 
 **3b. Participation ⭐⭐⭐ — measured by whether the polity can do
-something we did not want, and it can.** A chart is a **bought** claim
-carrying *"the seller's reputation"*, so a market in bad charts is
-possible and nobody authored it. A lookout is a seat, so keeping a watch
+something we did not want, and it can.** A chart is a **purchased
+claim** whose channel records that you read it off paper somebody sold
+you, so a market in bad charts is possible and nobody authored it. A lookout is a seat, so keeping a watch
 is an employer's rota problem. Pilotage becomes a thing to sell.
 
 **4. Values ⭐⭐⭐ — the undecidable choice is the route.** The short edge
@@ -984,7 +1015,7 @@ Against the running game, before the MR opens.
     naming `course`.
 17. **`read` a chart you were given, then `map`**, and see the charted
     claims appear alongside what you walked and saw — **marked as
-    bought.**
+    charted.**
 18. **`read` a chart that is wrong**, act on it, and find the water does
     not agree. ⭐ The claim is **still there afterwards.**
 19. **See another craft at a distance**, and have a second observer at a
@@ -1065,8 +1096,9 @@ Against the running game, before the MR opens.
     **bracket on a sight**, **what a sounding reports about the bottom**,
     and **the allowance carried in the reckoning**.
 21. ⭐ **The pilot's knowledge is CLAIMS, not competence.** Hiring
-    somebody who knows the water yields claims about that water —
-    purchasable, specific to it, and able to be **wrong**.
+    somebody who knows the water yields **`told`** claims about that
+    water — purchasable, specific to it, attributed to who told you,
+    and able to be **wrong**.
 22. Being lost **always has a way out** that is an action, not a wait.
 23. ⭐ The crossing is a **sustained** engagement with no completion
     time: arrival is detected, never scheduled, and a course with no
@@ -1089,7 +1121,7 @@ Against the running game, before the MR opens.
     follows the occupancy, not the craft.
 30. Traffic on open water is **seeded**: the same at the same place and
     time for every observer, and unfarmable by re-entry.
-31. A **chart is procured and read**, writes **`bought`** claims, and
+31. A **chart is procured and read**, writes **`charted`** claims, and
     ⭐ a chart that is wrong **stays** wrong — the claim is never
     corrected or removed.
 32. ⛔ **No expanse topology ever reaches a client** except as the
