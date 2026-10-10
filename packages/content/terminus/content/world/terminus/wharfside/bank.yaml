@@ -159,6 +159,7 @@ data:
     - /system/transport/thing/barge
   cast:
     - /world/terminus/wharfside/agent/fisher
+    - /world/terminus/wharfside/agent/pilot
   details:
     aqueduct:
       keywords: [aqueduct, channel, "cold fell", conduit, arches, house, weir]

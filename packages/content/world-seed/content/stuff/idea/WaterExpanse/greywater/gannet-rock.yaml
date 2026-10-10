@@ -1,0 +1,14 @@
+# Gannet Rock — a stack of granite fifteen miles out, with a light on it
+# and a landing at its foot. An AREAL passage with content behind it.
+class: /platform/idea/ExpanseNode
+data:
+  name: Gannet Rock
+  alternateNames: [gannet, rock, gannet rock]
+  kind: passage
+  passage: areal
+  destination: /world/terminus/gannet-rock/landing
+  expansePosition: { latDeg: 42.180, lonDeg: -8.150 }
+  expanse: /stuff/idea/WaterExpanse/greywater
+  outsideDescription: >-
+    Gannet Rock stands up out of the sea white with birds, a lighthouse on
+    its crown.

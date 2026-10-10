@@ -331,7 +331,12 @@ export function VoyagingMixin<
       if (this.storedFix() === null) return;
       const expanse = await this.liveExpanse();
       if (expanse === null) return;
-      await expanse.bands();
+      // ⚠ Not `await expanse.bands()`: the expanse's own compile stands
+      // its ships up, so a ship restored DURING that compile would wait
+      // on the compile that is waiting on it. The first watch loads the
+      // bands; the derived position reads them once they are there. Kick
+      // the compile without waiting on it.
+      void expanse.bands();
       expanse.register(this as unknown as Stuff & Positioned);
       if (this.course !== null && this.currentVoyage() === null) {
         SchedulerApi.start(new Voyage(this as unknown as Craft));

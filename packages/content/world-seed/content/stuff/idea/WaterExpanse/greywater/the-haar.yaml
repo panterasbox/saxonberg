@@ -1,0 +1,14 @@
+# The haar — a BELT of sea fog that joins nothing: a latitude of it,
+# right round the world. ⭐ Behaves exactly as a band between two nodes.
+class: /system/water/idea/WaterBand
+data:
+  name: the haar
+  extent:
+    kind: belt
+    latMinDeg: 42.080
+    latMaxDeg: 42.120
+  lean: { directionDeg: 180, strengthMps: 0.5 }
+  gearHardness: 0.1
+  outsideDescription: >-
+    A haar lies on the water, a cold grey fog that makes a wall of
+    everything past a cable.

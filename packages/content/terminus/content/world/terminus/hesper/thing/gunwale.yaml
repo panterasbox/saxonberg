@@ -1,0 +1,11 @@
+# The gunwale — the deck's edge, a shore that moves with her. Look over
+# it and you read whatever water she is on; `fish` from it. You are never
+# IN the water from here.
+class: /system/water/thing/Gunwale
+data:
+  shortDescription: gunwale
+  keywords: [gunwale, side, rail, water, sea]
+  register: definite
+  longDescription: |
+    The low rail along the side, worn smooth where hands go over it. Below it, the water.
+  _materialPath: /stuff/idea/material/wood/oak

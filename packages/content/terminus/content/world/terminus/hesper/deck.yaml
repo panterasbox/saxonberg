@@ -1,0 +1,38 @@
+# The Hesper's deck — the entrance, where the watch is kept.
+#
+# ⭐ Everything that makes this a deck is a thing ON it: the HELM affords
+# `course`/`anchor`/`hail` (a building has none, so it is never offered
+# them); the GUNWALE is a shore that moves with her and reads whatever
+# water she is on (`fish` from here); the lead and the sextant are how you
+# find out where you are; the rigging and the pump are what an unwatched
+# deck wears out; the dinghy is what goes over the side.
+class: /platform/location/SingletonCartesianLocation
+data:
+  shortDescription: Hesper's deck
+  keywords: [deck, hesper, ketch, ship]
+  register: definite
+  _biomePath: /stuff/idea/biome/outdoor/open-water
+  ambientIntensity: 900
+  ambientColorTemperature: 6000
+  longDescription: |
+    A flush deck of scrubbed pine between low bulwarks, two masts with their sails stopped down along the booms, and a tiller at the stern with a compass in a brass bowl before it. Coils of line hang on pins along the rail. A hatch forward goes down into the hold.
+  coords:
+    x: 0
+    y: 0
+    z: 0
+  props:
+    - /world/terminus/hesper/thing/helm
+    - /world/terminus/hesper/thing/gunwale
+    - /world/terminus/hesper/thing/rigging
+    - /world/terminus/hesper/thing/pump
+    - /system/water/thing/lead-line
+    - /stuff/thing/instrument/sextant
+    - /trade/fishing/thing/rod
+    - /trade/fishing/thing/worm
+    - /world/terminus/hesper/thing/dinghy
+  exits:
+    down:
+      destination: /world/terminus/hesper/hold
+    ashore:
+      kind: /platform/idea/exits/ashore
+      destination: /world/terminus/estuary/estuary-mouth

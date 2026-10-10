@@ -1,0 +1,20 @@
+# An old chart of the Greywater — and it is WRONG.
+#
+# ⭐ It draws the Westerlies ten miles south of where they run. `read` it
+# and that is what your map holds, signed `charted`, beside whatever else
+# you know — and it is still there after the water has disagreed. A
+# chart is never corrected; a later observation is appended.
+class: /platform/thing/Chart
+data:
+  shortDescription: old chart of the Greywater
+  keywords: [old, chart, greywater]
+  register: indefinite
+  longDescription: |
+    An older sheet than the other, brown at the folds, its soundings in a hand nobody writes any more.
+  markText: >-
+    The Greywater. The Westerlies set strongly to the eastward ten miles
+    south of the bar.
+  of: /stuff/idea/WaterExpanse/greywater
+  entries:
+    - { kind: band, path: /stuff/idea/WaterExpanse/greywater/the-westerlies, name: the Westerlies, where: ten miles south of the bar }
+  mass: 0.1

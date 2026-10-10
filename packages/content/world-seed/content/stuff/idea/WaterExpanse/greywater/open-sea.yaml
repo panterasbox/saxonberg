@@ -1,0 +1,10 @@
+# Open sea — a point on the water with nothing at it. ⭐ Most nodes have
+# no content: you can be here, and there is nothing to step onto.
+class: /platform/idea/ExpanseNode
+data:
+  name: open sea
+  alternateNames: [offing, sea]
+  kind: passage
+  passage: areal
+  expansePosition: { latDeg: 41.900, lonDeg: -7.900 }
+  expanse: /stuff/idea/WaterExpanse/greywater

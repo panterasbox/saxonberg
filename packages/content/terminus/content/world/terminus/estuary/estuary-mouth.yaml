@@ -1,10 +1,14 @@
 # The estuary mouth — the end of the water lane, and the edge of the
 # realm's map.
 #
-# ⚠ It goes no further, and it says so. The sea is not content; what
-# matters here is that the export road HAS an end a barge can be at, so
-# "carry it downriver" is a thing you can do rather than a direction you
-# can face.
+# The export road HAS an end a barge can be at, so "carry it downriver"
+# is a thing you can do rather than a direction you can face.
+#
+# ⭐ And since the maritime build it is also a LANDING: the bar is the
+# Greywater's linear passage across the mouth, and whatever lies at the
+# bar is reached `aboard` from here. The sea is still not content in the
+# room sense — nothing is ever inside the Greywater; its places are its
+# nodes, and this room is the content behind one of them.
 class: /platform/location/SingletonCartesianLocation
 data:
   shortDescription: mouth of the estuary
@@ -18,7 +22,7 @@ data:
   longDescription: |
     The banks give up. The river spreads into a mile of saltings and mud and channels that move between one season and the next, and the made path ends at a post with a lamp bracket on it and no lamp.
 
-    A deep channel keeps to the northern side and is marked, after a fashion, by withies pushed into the mud. Beyond that there is grey water and a great deal of sky, and whatever is out there is nobody's business here.
+    A deep channel keeps to the northern side and is marked, after a fashion, by withies pushed into the mud, out to the bar. Beyond that there is grey water and a great deal of sky. East, a strand of pale sand runs under a headland.
   coords:
     x: 3
     y: 0
@@ -38,6 +42,14 @@ data:
       destination: /world/terminus/estuary/reach
       media: [ground, water]
       edgeMinutes: 4
+    east:
+      destination: /world/terminus/estuary/strand
+      media: [ground]
+    # ⭐ The way aboard whatever lies at the bar (maritime D19) — a ship
+    # that has sailed is not alongside, and this says so.
+    aboard:
+      kind: /platform/idea/exits/aboard
+      destination: /world/terminus/hesper/deck
   details:
     withies:
       keywords: [withies, withy, marks, channel, sticks]

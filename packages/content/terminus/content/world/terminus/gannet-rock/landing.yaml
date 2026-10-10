@@ -1,0 +1,23 @@
+# The landing on Gannet Rock — iron rungs and a ledge, and the way aboard
+# whatever is lying off.
+class: /platform/location/SingletonCartesianLocation
+data:
+  shortDescription: landing on Gannet Rock
+  keywords: [landing, rock, ledge, gannet]
+  register: definite
+  _biomePath: /stuff/idea/biome/outdoor/open-water
+  ambientIntensity: 900
+  ambientColorTemperature: 6000
+  longDescription: |
+    A ledge of wet granite with iron rungs let into it, the sea sucking at the foot of them. Above, the lighthouse goes up white against the sky, and the birds go up with it.
+  coords:
+    x: 0
+    y: 0
+    z: 0
+  exits:
+    # ⭐ One way by ROWS: the way back is the deck's `ashore`, which
+    # resolves to whichever node the ship is lying at — a code edge.
+    aboard:
+      kind: /platform/idea/exits/aboard
+      destination: /world/terminus/hesper/deck
+      oneWay: true

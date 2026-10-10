@@ -1,0 +1,23 @@
+# The Hesper's outfit — the house whose roster mans her.
+#
+# ⭐⭐ A LOOKOUT is a seat, not a verb (maritime D13): whoever holds
+# `lookout` here ON SHIFT sees from the masthead, and everyone else from
+# the deck — so `appoint` makes her see further with nothing about her
+# having changed. A hired watchman is a wage and a seat, not a second
+# player.
+class: /platform/idea/Business
+data:
+  name: "the Hesper's company"
+  appointingAuthority:
+    kind: office
+    office: prime-minister
+  positions:
+    - key: lookout
+      noun: lookout
+      label: at the masthead
+      wageRate: 3
+      headcount: 1
+  rosterSlots: []
+  banksAt: goodkin
+  operatingLocations:
+    - /world/terminus/hesper/deck

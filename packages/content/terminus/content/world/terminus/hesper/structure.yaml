@@ -1,0 +1,24 @@
+# The Hesper as ONE thing — her Structure (maritime D4).
+#
+# ⭐⭐ A ship is a Structure whose POSITION is a variable. Her rooms
+# (everything under `extent`) are members; she coordinates them and does
+# not contain them. Her position, her course and when it was set are the
+# voyage's whole state, persisted here, so she goes on sailing with
+# nobody aboard and across a restart.
+#
+# She starts lying at the bar, off the estuary mouth.
+class: /platform/idea/Structure
+data:
+  name: the Hesper
+  extent: /world/terminus/hesper
+  entrance: /world/terminus/hesper/deck
+  outsideDescription: >-
+    A black-hulled ketch, two masts and a long bowsprit, her name in white
+    across the transom: the Hesper.
+  heightM: 18
+  deckHeightM: 3
+  mastheadHeightM: 20
+  house: /world/terminus/hesper/idea/outfit
+  expanse: /stuff/idea/WaterExpanse/greywater
+  expansePosition: { latDeg: 42.000, lonDeg: -8.470 }
+  speedKn: 6

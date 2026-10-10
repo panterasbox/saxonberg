@@ -1,0 +1,12 @@
+# Still water — the instrument of swimming (maritime D27). Standing in a
+# room, it makes the `media: [water]` exits there swimmable, as a ladder
+# makes a shaft climbable; where none stands, `swim` is refused in words.
+class: /platform/thing/StillWater
+data:
+  shortDescription: still water
+  keywords: [water, pool, shallows]
+  register: indefinite
+  fixedInPlace: true
+  longDescription: |
+    Clear green water over sand, cold to the touch and still enough to see the bottom.
+  _materialPath: /stuff/idea/material/bulk/salt-water

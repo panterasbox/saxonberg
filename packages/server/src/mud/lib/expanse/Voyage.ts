@@ -187,13 +187,11 @@ export class Voyage implements SustainedEngagement {
     const observer = lookoutAmong(craft, aboard) ?? aboard[0] ?? craft;
     const hour = Math.floor(nowS / 3600);
     const contacts = await expanse.contactsFrom(craft, observer, 'visual', hour);
-    const moving = new Set(expanse.craft().map((c) => c.stuffId));
     for (const c of contacts) {
-      if (c.craft && !moving.has(c.craft.stuffId)) {
+      if (c.craft && c.fixed) {
         if (this.fixedFrom.has(c.craft.stuffId)) continue;
         this.fixedFrom.add(c.craft.stuffId);
-        const truth = c.craft.getExpansePosition();
-        if (truth) craft.takeFix(pos, 0.2);
+        craft.takeFix(pos, 0.2);
         tell(`${capitalize(c.name)} is in sight, bearing ${bearingWords(c.bearingDeg)}; you fix your position by it.`);
         continue;
       }

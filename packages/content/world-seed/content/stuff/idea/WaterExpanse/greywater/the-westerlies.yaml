@@ -1,0 +1,26 @@
+# The Westerlies — a current that sets north-east from the roads to
+# Gannet Rock. ⭐ It confers cost and character, never connectivity:
+# lie along it and it carries you; cross it and it sets you off your
+# course by exactly its speed × the time you spent in it.
+class: /system/water/idea/WaterBand
+data:
+  name: the Westerlies
+  extent:
+    kind: corridor
+    from: { latDeg: 42.020, lonDeg: -8.400 }
+    to: { latDeg: 42.180, lonDeg: -8.150 }
+    widthNm: 4
+  direction: 50
+  setKn: 1.5
+  endpoints:
+    - /stuff/idea/WaterExpanse/greywater/the-roads
+    - /stuff/idea/WaterExpanse/greywater/gannet-rock
+  lean: { directionDeg: 250, strengthMps: 3 }
+  traffic: 0.35
+  stock:
+    /stuff/idea/species/grey-mullet: 0.6
+  gearHardness: 0.2
+  fetchKm: 300
+  outsideDescription: >-
+    The water has a run to it here, blue-grey and purposeful, setting
+    north-east.

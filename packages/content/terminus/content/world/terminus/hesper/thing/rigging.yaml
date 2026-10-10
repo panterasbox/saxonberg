@@ -1,0 +1,11 @@
+# The rigging — standing and running, and what an unwatched deck wears
+# out first in a hard sea.
+class: /platform/thing/Tool
+data:
+  shortDescription: rigging
+  keywords: [rigging, lines, sheets, halyards, rope]
+  register: definite
+  fixedInPlace: true
+  longDescription: |
+    Tarred shrouds to the mastheads and a web of running line through blocks. It wants watching; a line left to chafe in a seaway is a line gone by morning.
+  _materialPath: /stuff/idea/material/textile/jute

@@ -1,0 +1,20 @@
+# The bar — the shoal across the estuary mouth, and the channel over it.
+#
+# ⭐ A LINEAR passage: a fraction along one dimension. Riding the
+# confined `channel` band, a course from here runs to its other end (the
+# roads) or back, and nowhere else — you do not cut across a bar.
+# Behind it, the estuary mouth: this is where a craft lies to put people
+# ashore.
+class: /platform/idea/ExpanseNode
+data:
+  name: the bar
+  alternateNames: [bar, estuary bar]
+  kind: passage
+  passage: linear
+  along: /stuff/idea/WaterExpanse/greywater/channel
+  destination: /world/terminus/estuary/estuary-mouth
+  expansePosition: { latDeg: 42.000, lonDeg: -8.470 }
+  expanse: /stuff/idea/WaterExpanse/greywater
+  outsideDescription: >-
+    The bar shows as a line of broken water across the mouth, white where
+    the swell trips over it.

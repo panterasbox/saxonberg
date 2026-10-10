@@ -1,0 +1,14 @@
+# The pool — a sheltered cove inside the headland, small enough to see
+# across. ⭐ A PLACE: a small water is a place, and its content is the
+# pool itself, a room you can be in (and swim).
+class: /platform/idea/ExpanseNode
+data:
+  name: the pool
+  alternateNames: [pool, cove]
+  kind: place
+  destination: /world/terminus/estuary/pool
+  expansePosition: { latDeg: 42.006, lonDeg: -8.455 }
+  expanse: /stuff/idea/WaterExpanse/greywater
+  outsideDescription: >-
+    Inside the headland the pool lies green and still, a cove you could
+    swim across, cut off from the swell by a shoulder of rock.

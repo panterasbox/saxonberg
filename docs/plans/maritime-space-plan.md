@@ -1603,6 +1603,40 @@ marked **B-n**.)*
   (the row seats it on the deck). `journey` refuses a sea node by name
   over the `ExpanseNode` rows, naming `course`.
 
+- ✅ **B3**. The Greywater (world-seed: five nodes, four bands — the
+  bar is a linear passage over the confined channel, landing at the
+  estuary mouth; the pool is a PLACE whose content is the swimmable pool;
+  the haar is a belt with the race laid over it), the Hesper (zone, deck,
+  hold, Structure lying at the bar, outfit with a `lookout` seat), the
+  light on Gannet Rock (a positioned Structure with no deck — a landmark),
+  the terminal clock tower as a Structure named by three zones and refused
+  by four wharfside interiors (`[]`), the strand / pool / headland with
+  `StillWater` and a `Vantage`, the pilot Nell Abery on the bank, two
+  charts in the hold (one wrong), the lead line and the sextant on deck.
+  **B-33:** the expanse's compile now ALSO stands up every Structure row
+  sited on it — one with a deck (`deckHeightM`) is a SHIP and is
+  registered from the start (else a ship that has never sailed is never
+  "alongside" its landing), one without is a LANDMARK; contacts carry
+  `fixed` and only a fixed contact is a free fix. **B-34:** that made a
+  deadlock (the compile stands the ship up, the ship's `onRestored`
+  awaited the compile) — `onRestored` kicks the compile and does not
+  await it. **B-35:** the pool node is the pool itself, not a landing
+  for a ship; the strand and headland are reached on foot from the
+  estuary mouth. **B-36:** gates taught three facts, each read as data:
+  `lint:census` reads the maritime citations (`destination`, `along`,
+  `entrance`, `house`, `expanse`, `of`, `endpoints`, `overlooks`,
+  `visibleLandmarks`, `entries[].path`); `lint:location-graph` treats an
+  expanse node's landing as an entrance (the `seatIn` way — you arrive by
+  sea through a code edge); and `GraphInvariants`' cross-zone rule now
+  honours a declared `oneWay`, as its asymmetric sibling already did (the
+  rock's `aboard` returns by the deck's code-resolved `ashore`). No
+  ceiling rose. **B-37:** the hold is lit by a lantern adornment (a room's
+  light must name its source); the outfit is `boot:`-listed (an
+  advertised seat needs a live house, and `appoint` validates a live
+  one); the dinghy is NOT (it is a deck prop of a singleton row — booting
+  it would clone it twice), so a boat adrift across a restart waits for
+  its deck to stand up — recorded as a seam.
+
 ---
 
 ## Drive record

@@ -1,0 +1,23 @@
+# The headland — a high shoulder of land over the pool and the sea, and
+# a VANTAGE: an author says what can be seen from here, and is believed.
+class: /platform/location/SingletonCartesianLocation
+data:
+  shortDescription: headland
+  keywords: [headland, point, cliff, height]
+  register: definite
+  _address: terminus/city/wharfside/headland
+  _biomePath: /stuff/idea/biome/outdoor/baseline
+  ambientIntensity: 800
+  ambientColorTemperature: 5900
+  longDescription: |
+    A turf-topped shoulder of rock above the cove, the wind coming straight off the sea and flattening the thrift.
+  coords:
+    x: 4
+    y: 1
+    z: 0
+  props:
+    - /world/terminus/estuary/thing/headland-view
+  exits:
+    south:
+      destination: /world/terminus/estuary/strand
+      media: [ground]

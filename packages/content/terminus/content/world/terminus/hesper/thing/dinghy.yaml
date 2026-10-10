@@ -1,0 +1,15 @@
+# The Hesper's dinghy — a boat you sit IN, that holds a position of its
+# own once it is over the side. `launch` from inside it; `recover`
+# alongside.
+class: /system/transport/thing/Boat
+data:
+  shortDescription: dinghy
+  keywords: [dinghy, boat, tender, punt]
+  register: definite
+  longDescription: |
+    A clinker-built tender twelve feet long, turned right way up on chocks on the deck, with two oars stowed along the thwarts.
+  eyeHeightM: 1
+  heightM: 1.5
+  speedKn: 3
+  mass: 120
+  _materialPath: /stuff/idea/material/wood/oak

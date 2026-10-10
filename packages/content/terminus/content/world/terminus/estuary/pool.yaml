@@ -1,0 +1,24 @@
+# The pool — a small water is a PLACE (maritime): the cove itself, a room
+# you are IN, behind the `the-pool` node of the Greywater. Swim in from the
+# strand, and back.
+class: /platform/location/SingletonCartesianLocation
+data:
+  shortDescription: pool
+  keywords: [pool, cove, water]
+  register: definite
+  _address: terminus/city/wharfside/pool
+  _biomePath: /stuff/idea/biome/outdoor/baseline
+  ambientIntensity: 750
+  ambientColorTemperature: 5900
+  longDescription: |
+    You are in the water. It is cold, clear and still, green over sand, and the strand is a few strokes behind you.
+  coords:
+    x: 5
+    y: 0
+    z: 0
+  props:
+    - /world/terminus/estuary/thing/still-water
+  exits:
+    west:
+      destination: /world/terminus/estuary/strand
+      media: [water]

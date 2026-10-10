@@ -1,0 +1,15 @@
+# The light on Gannet Rock — a Structure whose position never changes.
+#
+# ⭐ At sea its range is COMPUTED from its height (curvature binds; nothing
+# is in the way), so a craft raises it at a distance thirty metres decide,
+# and a watch that sights it takes a free fix.
+class: /platform/idea/Structure
+data:
+  name: the light on Gannet Rock
+  extent: /world/terminus/gannet-rock
+  entrance: /world/terminus/gannet-rock/landing
+  outsideDescription: >-
+    A white tower on a black rock, a lantern on top.
+  heightM: 30
+  expanse: /stuff/idea/WaterExpanse/greywater
+  expansePosition: { latDeg: 42.182, lonDeg: -8.148 }

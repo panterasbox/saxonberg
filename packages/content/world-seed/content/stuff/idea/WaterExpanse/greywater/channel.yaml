@@ -1,0 +1,24 @@
+# The channel over the bar — a CONFINED corridor a linear passage rides.
+#
+# ⭐ Shallow, with a long fetch behind it: the sea state over it is
+# DERIVED steep and short whenever the wind has had a run at it, and no
+# row anywhere says "rough". That is the bar pilot's danger, falling out.
+class: /system/water/idea/WaterBand
+data:
+  name: the channel
+  extent:
+    kind: corridor
+    from: { latDeg: 42.000, lonDeg: -8.470 }
+    to: { latDeg: 42.020, lonDeg: -8.400 }
+    widthNm: 0.4
+  direction: 70
+  endpoints:
+    - /stuff/idea/WaterExpanse/greywater/bar
+    - /stuff/idea/WaterExpanse/greywater/the-roads
+  confined: true
+  depthM: 4
+  fetchKm: 120
+  bottom: clean sand
+  gearHardness: 0.3
+  outsideDescription: >-
+    The channel over the bar is brown and quick and too shallow to forgive.

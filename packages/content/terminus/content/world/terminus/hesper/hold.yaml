@@ -1,0 +1,22 @@
+# The Hesper's hold — below the deck. ⚠ Not persistable: anything left in
+# it does not survive a restart (the vessel build's question, not this
+# one's).
+class: /platform/location/SingletonCartesianLocation
+data:
+  shortDescription: hold
+  keywords: [hold, below]
+  register: definite
+  longDescription: |
+    Dim and close under the deck beams, smelling of bilge and tar. A chart locker is built against the bulkhead, its door hooked open, and a lantern hangs from a beam.
+  coords:
+    x: 0
+    y: 0
+    z: -1
+  adornments:
+    - { template: /world/terminus/hesper/thing/hold-lamp, slot: lamp:hold }
+  props:
+    - /world/terminus/hesper/thing/chart
+    - /world/terminus/hesper/thing/old-chart
+  exits:
+    up:
+      destination: /world/terminus/hesper/deck

@@ -1,0 +1,12 @@
+# The roads — the open anchorage outside the bar, where the channel ends
+# and the Westerlies begin. An AREAL passage: a point you reach by bearing.
+class: /platform/idea/ExpanseNode
+data:
+  name: the roads
+  alternateNames: [roads, roadstead, anchorage]
+  kind: passage
+  passage: areal
+  expansePosition: { latDeg: 42.020, lonDeg: -8.400 }
+  expanse: /stuff/idea/WaterExpanse/greywater
+  outsideDescription: >-
+    Outside the bar the roads lie open and grey, with room to swing.

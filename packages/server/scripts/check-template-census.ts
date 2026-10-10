@@ -176,8 +176,27 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
     // freeze that empties the pool and mints nothing. Read here rather than
     // ignored, because the ref IS the behaviour.
     'castTemplate',
+    // ⭐ The maritime citations, every one resolved live and every one a
+    // silent failure if rowless: a node's `destination` is the content
+    // behind it (a rowless one is a landing that refuses `ashore`
+    // forever), a linear node's `along` the band it rides, a Structure's
+    // `entrance` and `house` the deck and the roster that mans it, a
+    // positioned thing's `expanse` the sea it is on, a chart's or a
+    // pilot's `of` the sea they know.
+    'destination', 'along', 'entrance', 'house', 'expanse', 'of',
   ] as const) {
     push(f, data[f]);
+  }
+  // ⭐ The maritime lists: a band's `endpoints`, a vantage's `overlooks`,
+  // a region's `visibleLandmarks`, and the rows a chart or pilot's
+  // `entries` cite. A rowless one is a sight-line to nothing.
+  for (const f of ['endpoints', 'overlooks', 'visibleLandmarks'] as const) {
+    if (Array.isArray(data[f])) for (const v of data[f] as unknown[]) push(f, v);
+  }
+  if (Array.isArray(data.entries)) {
+    for (const e of data.entries as Array<Record<string, unknown>>) {
+      if (e && typeof e === 'object') push('entries.path', e.path);
+    }
   }
   // ⭐ `enclosure.material` — what a place is BOUNDED BY.
   // Resolved live at the first async temperature read, and a rowless one

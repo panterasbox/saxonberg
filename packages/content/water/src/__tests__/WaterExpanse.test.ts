@@ -40,6 +40,7 @@ beforeEach(() => {
   vi.spyOn(Template, 'findDescendants').mockImplementation(async () =>
     [...live.keys()].filter((p) => p.startsWith(`${SEA}/`)).map((path) => ({ path, data: {} }) as unknown as Template),
   );
+  vi.spyOn(Template, 'findWhereDataHas').mockResolvedValue([]);
   vi.spyOn(StuffApi, 'singleton').mockImplementation(async (p: string) => {
     const s = live.get(p);
     if (!s) throw new Error(`no fixture ${p}`);

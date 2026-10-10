@@ -1,0 +1,9 @@
+# The hold's lamp — a lit lantern on a beam, the only light below deck.
+# Hung as an adornment so it lights the room fixture-side; without it the
+# hold is pitch black and the charts in the locker unreadable.
+class: /generic-objects/thing/SconceLamp
+extends: /stuff/thing/fixture/sconce-lamp
+data:
+  shortDescription: hold lantern
+  keywords: [lantern, lamp, light]
+  on: true

@@ -1,0 +1,18 @@
+# The race — a narrow corridor of broken water laid ACROSS the haar,
+# where the stream runs over a ledge. ⭐ Narrower than the haar, so where
+# they overlap the race's weather wins (the zone walk's innermost rule).
+class: /system/water/idea/WaterBand
+data:
+  name: the race
+  extent:
+    kind: corridor
+    from: { latDeg: 42.100, lonDeg: -8.350 }
+    to: { latDeg: 42.100, lonDeg: -8.150 }
+    widthNm: 1
+  lean: { directionDeg: 270, strengthMps: 12 }
+  depthM: 9
+  fetchKm: 250
+  bottom: rock and shell
+  gearHardness: 0.8
+  outsideDescription: >-
+    The race: a mile of broken water where every wave stands up on its own.

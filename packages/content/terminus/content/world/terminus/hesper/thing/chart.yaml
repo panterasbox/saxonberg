@@ -1,0 +1,26 @@
+# The Hesper's chart of the Greywater — the TRUE one.
+#
+# ⭐ `read` it and what it shows goes into your map as `charted` claims:
+# the edges of a sea are unknown to you until you procure a chart.
+class: /platform/thing/Chart
+data:
+  shortDescription: chart of the Greywater
+  keywords: [chart, greywater, map]
+  register: indefinite
+  longDescription: |
+    A sheet of heavy paper, much folded, drawn in two inks: the coast in brown, the soundings and the streams in blue.
+  markText: >-
+    THE GREYWATER, from the Bar to Gannet Rock. Surveyed. The channel over
+    the bar shoals to two fathoms; keep to the withies. The Westerlies set
+    NE at a knot and a half from the roads to the Rock. A haar lies along
+    42°06' in most weathers. The race over the ledge breaks in any wind.
+  of: /stuff/idea/WaterExpanse/greywater
+  entries:
+    - { kind: node, path: /stuff/idea/WaterExpanse/greywater/bar, name: the bar, where: across the estuary mouth }
+    - { kind: node, path: /stuff/idea/WaterExpanse/greywater/the-roads, name: the roads, where: outside the bar }
+    - { kind: node, path: /stuff/idea/WaterExpanse/greywater/gannet-rock, name: Gannet Rock, where: "fifteen miles north-east, a light on it" }
+    - { kind: band, path: /stuff/idea/WaterExpanse/greywater/channel, name: the channel, where: over the bar to the roads }
+    - { kind: band, path: /stuff/idea/WaterExpanse/greywater/the-westerlies, name: the Westerlies, where: from the roads to Gannet Rock }
+    - { kind: band, path: /stuff/idea/WaterExpanse/greywater/the-haar, name: the haar, where: "along 42°06', right across" }
+    - { kind: band, path: /stuff/idea/WaterExpanse/greywater/the-race, name: the race, where: across the haar south-west of the Rock }
+  mass: 0.1

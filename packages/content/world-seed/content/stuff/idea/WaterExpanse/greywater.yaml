@@ -1,0 +1,30 @@
+# The Greywater — the sea off Terminus, beyond the estuary bar.
+#
+# ⭐ An EXPANSE: a frame whose places are reached by setting a course,
+# and NOTHING is inside it. Its nodes (the bar, the roads, the pool,
+# Gannet Rock, open sea) and bands (the channel, the Westerlies, the haar,
+# the race) are the rows beneath this one — all Ideas. Behind a node may
+# sit ordinary rooms (the estuary mouth, the pool, the landing on the
+# rock), authored exactly as any other place.
+#
+# ⭐ Positions are GEOGRAPHIC — latitude and longitude, near the realm's
+# 42° — so a node sits wherever its author put it, on no lattice.
+#
+# ⚠ The name is a placeholder; whether this is a sea or an ocean is
+# undecided.
+class: /system/water/idea/WaterExpanse
+data:
+  name: the Greywater
+  # The map a chart of it files under — `map greywater`.
+  address: greywater
+  prevailingDeg: 240
+  trafficDefault: 0.12
+  depthM: 70
+  fetchKm: 400
+  bottom: grey mud
+  waterTemperatureK: 286
+  salinityPpt: 35
+  outsideDescription: >-
+    Past the bar the Greywater runs out to the edge of the sky, the colour
+    of its name, with a swell coming in under it from somewhere you cannot
+    see.

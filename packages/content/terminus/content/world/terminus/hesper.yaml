@@ -1,0 +1,15 @@
+# The Hesper — a two-masted ketch lying off the estuary, and the first
+# craft anybody can sail.
+#
+# ⭐ Her rooms are ordinary rooms in their own zone; what makes her a SHIP
+# is her Structure (`hesper/structure`), whose POSITION is a variable —
+# the one field that is the whole difference between a ship and a
+# building. Nothing about her is inside the sea.
+#
+# ⚠ The name is a placeholder.
+class: /platform/idea/location/CartesianZone
+data:
+  name: The Hesper
+  cellSize: 6.0
+  # From her deck the city is a smudge; no tower is in sight at sea.
+  visibleLandmarks: []

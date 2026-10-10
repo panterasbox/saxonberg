@@ -1,0 +1,11 @@
+# The helm — the instrument of steering; it affords `course`, `anchor`
+# and `hail`.
+class: /platform/thing/Helm
+data:
+  shortDescription: tiller
+  keywords: [tiller, helm, wheel, compass]
+  register: definite
+  fixedInPlace: true
+  longDescription: |
+    A long curved tiller of ash on the rudder head, and before it a compass card swimming in a brass bowl of spirit. This is where the Hesper is steered from.
+  _materialPath: /stuff/idea/material/wood/ash

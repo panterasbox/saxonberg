@@ -224,6 +224,25 @@ function travelSeats(rows: ReadonlyMap<string, TemplateRow>): Set<string> {
   return out;
 }
 
+/**
+ * ⭐ Every expanse node's landing — read as DATA, by field name, the
+ * `seatIn` way (maritime): a node row carrying `kind: place | passage`
+ * and a `destination` names the room behind a point on a sea, and you
+ * arrive in that room by setting a course and going `ashore`, which is a
+ * code-resolved edge no row can show. So the landing is an entrance to
+ * its zone exactly as a travel stop is.
+ */
+function seaLandings(rows: ReadonlyMap<string, TemplateRow>): Set<string> {
+  const out = new Set<string>();
+  for (const row of rows.values()) {
+    const data = (row.raw.data ?? {}) as Record<string, unknown>;
+    if ((data.kind === "place" || data.kind === "passage") && typeof data.destination === "string") {
+      out.add(data.destination);
+    }
+  }
+  return out;
+}
+
 /** The default start location, which is an entrance wherever it lies. */
 function defaultStart(): string | null {
   const file = join(SERVER_SRC, "mud", "lib", "config", "AppSettings.ts");
@@ -253,6 +272,7 @@ export function scanLocationGraph(idx: InheritanceIndex = inheritanceIndex()): G
   const rows = idx.rows;
   const claims = publishedByExtent();
   const seats = travelSeats(rows);
+  const landings = seaLandings(rows);
   const start = defaultStart();
 
   const zoneRows = new Set<string>();
@@ -280,7 +300,7 @@ export function scanLocationGraph(idx: InheritanceIndex = inheritanceIndex()): G
       zone,
       address: typeof data._address === "string" ? data._address : null,
       published: publishedAt(row.path, claims),
-      entrance: seats.has(row.path) || row.path === start,
+      entrance: seats.has(row.path) || landings.has(row.path) || row.path === start,
       edges,
     };
   });

@@ -16,3 +16,5 @@ class: /platform/idea/location/CartesianZone
 data:
   name: The Chandlery
   cellSize: 4.0
+  # Indoors: the tower the wharf can see is not visible from in here.
+  visibleLandmarks: []

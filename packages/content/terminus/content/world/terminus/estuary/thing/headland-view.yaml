@@ -1,0 +1,18 @@
+# The view from the headland — a VANTAGE (maritime D24).
+#
+# ⭐ On land a sight-line is AUTHORED and believed: this headland
+# overlooks the pool and the sea beyond, and `look` up here reads both
+# from their own outside descriptions, written once on the water itself.
+class: /platform/thing/Vantage
+data:
+  shortDescription: view
+  keywords: [view, outlook, prospect]
+  register: definite
+  fixedInPlace: true
+  longDescription: |
+    From up here you can see the whole of it.
+  overlooks:
+    - /stuff/idea/WaterExpanse/greywater/the-pool
+    - /stuff/idea/WaterExpanse/greywater
+    - /world/terminus/gannet-rock/structure
+  _materialPath: /stuff/idea/material/rock/granite

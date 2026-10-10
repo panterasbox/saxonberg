@@ -70,6 +70,8 @@ export interface Contact {
   bearingDeg: number;
   rangeNm: number;
   channel: SightingChannel;
+  /** A landmark that never moves (a light) — a free fix, not a sail. */
+  fixed: boolean;
 }
 
 /** Seeded traffic's vocabulary — prose, not a class roster. */
@@ -130,6 +132,8 @@ export abstract class Expanse extends SingletonMixin(SpatialZone) {
   /** The compiled rows once loaded, for the synchronous reads. */
   private loadedBands: Band[] = [];
   private loadedNodes: ExpanseNode[] = [];
+  /** Positioned Structures on this sea with no deck — landmarks. */
+  private landmarks: (Stuff & Positioned)[] = [];
 
   public getPrevailingDeg(): number { return this.prevailingDeg; }
   public setPrevailingDeg(v: number): void { this.prevailingDeg = Number(v) || 0; }
@@ -336,7 +340,7 @@ export abstract class Expanse extends SingletonMixin(SpatialZone) {
 
     const out: Contact[] = [];
     const seen = new Set<string>();
-    const consider = (c: Stuff & Positioned): void => {
+    const consider = (c: Stuff & Positioned, fixed: boolean): void => {
       if (c.stuffId === from.stuffId || seen.has(c.stuffId)) return;
       const at = c.getExpansePosition();
       if (at === null) return;
@@ -349,10 +353,12 @@ export abstract class Expanse extends SingletonMixin(SpatialZone) {
         bearingDeg: here.bearingTo(at),
         rangeNm: Math.round(d * 10) / 10,
         channel,
+        fixed,
       });
     };
-    for (const c of this.craft()) consider(c);
-    for (const fixed of await this.fixedStructures()) consider(fixed);
+    await this.compile();
+    for (const c of this.craft()) consider(c, false);
+    for (const lm of this.landmarks) consider(lm, true);
 
     const field = await this.fieldAt(here);
     const passer = this.trafficAt(here, hourIndex, field.traffic);
@@ -363,6 +369,7 @@ export abstract class Expanse extends SingletonMixin(SpatialZone) {
         bearingDeg: passer.bearingDeg,
         rangeNm: passer.rangeNm,
         channel,
+        fixed: false,
       });
     }
     return out.sort((a, b) => a.rangeNm - b.rangeNm);
@@ -370,21 +377,29 @@ export abstract class Expanse extends SingletonMixin(SpatialZone) {
 
   /* ───────────────────────── internals ───────────────────────── */
 
-  /** Positioned Structures sited on this expanse that never move. */
-  private async fixedStructures(): Promise<(Stuff & Positioned)[]> {
+  /**
+   * ⭐ The Structures sited on this sea, stood up from their rows: one
+   * with a DECK is a ship and is registered as craft from the start (so a
+   * ship that has never sailed is still alongside its landing); one with
+   * no deck is a building — a light on a rock — and is a LANDMARK, sighted
+   * but never sailing.
+   */
+  private async loadStructures(): Promise<void> {
     const self = this.getTemplatePath();
-    const out: (Stuff & Positioned)[] = [];
+    const landmarks: (Stuff & Positioned)[] = [];
     for (const tpl of await Template.findWhereDataHas('expansePosition')) {
       const d = (tpl.data ?? {}) as Record<string, unknown>;
       if (d.expanse !== self || !('extent' in d)) continue;
       try {
         const s = await StuffApi.singleton<Stuff>(tpl.path);
-        if (MixinApi.isPositioned(s)) out.push(s);
+        if (!MixinApi.isPositioned(s)) continue;
+        if (d.deckHeightM !== undefined && d.deckHeightM !== null) this.register(s);
+        else landmarks.push(s);
       } catch {
         /* a broken row contributes nothing */
       }
     }
-    return out;
+    this.landmarks = landmarks;
   }
 
   private compile(): Promise<{ nodes: ExpanseNode[]; bands: Band[] }> {
@@ -424,6 +439,7 @@ export abstract class Expanse extends SingletonMixin(SpatialZone) {
     }
     this.loadedBands = bands;
     this.loadedNodes = nodes;
+    await this.loadStructures();
     return { nodes, bands };
   }
 }
