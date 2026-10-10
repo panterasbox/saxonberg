@@ -79,6 +79,11 @@ import {
 } from '../material/Evaporation';
 import { Quantity } from '../quantity';
 import { TemplatePaths } from '../paths';
+import {
+  MaturationClock,
+  MATURING_SUB_STEPS,
+  SECONDS_PER_GAME_DAY,
+} from './MaturationClock';
 
 /** The batch phases, in lifecycle order. */
 export const FERMENT_PHASES = ['idle', 'active', 'finished', 'turned'] as const;
@@ -86,15 +91,6 @@ export const FERMENT_PHASES = ['idle', 'active', 'finished', 'turned'] as const;
 /** A batch phase — one of {@link FERMENT_PHASES}. */
 export type MaturationPhase = (typeof FERMENT_PHASES)[number];
 
-const SECONDS_PER_GAME_DAY = 86_400;
-/** Midpoint samples per trajectory stretch when integrating over a gap. */
-const MATURING_SUB_STEPS = 8;
-
-/**
- * Kelvin past `damageAboveK` at which the stretch satisfaction reaches
- * 0 — the width of the damage ramp (inside it, damage is partial).
- */
-const DAMAGE_RAMP_K = 15;
 
 /**
  * Grams of sugar per litre consumed per 1% ABV produced (≈16.8 in the
@@ -159,42 +155,15 @@ function reconcileCellarAir(
   );
 }
 
-/**
- * Worst-stretch satisfaction → grade band. The husbandry harvest
- * thresholds, second consumer: a batch never run hot grades
- * `masterful`; the deeper into the damage ramp the worst stretch went,
- * the lower the band.
- */
-function bandFor(worst: number): GradeBand {
-  if (worst >= 0.95) return 'masterful';
-  if (worst >= 0.8) return 'exceptional';
-  if (worst >= 0.6) return 'fine';
-  if (worst >= 0.35) return 'fair';
-  return 'poor';
-}
-
 function clamp01(x: number): number {
   return x < 0 ? 0 : x > 1 ? 1 : x;
 }
 
-/** Conversion rate (fraction/day) at `tempK` under `profile`. */
-function rateAt(profile: MaturationProfile, tempK: number): number {
-  const above = profile.getStallAboveK();
-  if (above !== null && tempK > above) return 0;
-  const stall = profile.getStallBelowK();
-  const happy = profile.getHappyK();
-  if (tempK <= stall) return 0;
-  const full = profile.getRatePerDay();
-  if (tempK >= happy || happy <= stall) return full;
-  return (full * (tempK - stall)) / (happy - stall);
-}
-
-/** Damage satisfaction at `tempK`: 1 at/below the damage line. */
-function damageSat(profile: MaturationProfile, tempK: number): number {
-  const damage = profile.getDamageAboveK();
-  if (tempK <= damage) return 1;
-  return clamp01(1 - (tempK - damage) / DAMAGE_RAMP_K);
-}
+// ⭐ The curves are the clock's (`MaturationClock`) — lifted out byte for
+// byte so a second host (seasoning wood) runs on the same ones.
+const rateAt = MaturationClock.rateAt;
+const damageSat = MaturationClock.damageSat;
+const bandFor = MaturationClock.bandFor;
 
 export interface Maturing {
   /** Integrate the batch over elapsed game-time (lazy; reads drive it). */
