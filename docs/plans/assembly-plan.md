@@ -1179,6 +1179,30 @@ exactly twice: before the MR opens, and at `/finalize`.
 
 ### W0 — the mint lands, stamps and captures its output
 
+> ✅ **Done — `0ac87f240`** (one commit with W1–W2: they share
+> `CraftingLogic.ts`, and W1's `fit` affordance names W2's view).
+> **Build decisions.** (1) The chokepoint is PUBLIC, not module-private:
+> `ContainmentApi.land(item, to, owner)` (move · stamp-if-untitled ·
+> `followCustody` · `captureHostOf` both), and `landOutput` resolves the
+> `Landing` onto it — so every non-craft mint could use the same call
+> (lens 2: one way to put a made thing in the world). (2) `lint:mint-custody`
+> was driven 55 → **27** in this wave, not across waves: a background agent
+> audited every file; **28 trade verbs lost their output at restart** (spin,
+> weave, sew, cut, smelt, the bloom, char, butcher, haul, mow, the kiln, the
+> assay paper, a lease's key, a reissued card, a conjured object…) and now
+> land it; the 27 survivors are enumerated with a why (a Login, an Avatar,
+> a sandbox fork, a ground feature…). (3) ⚠ **`RecipeCatalogue.warm()` does
+> NOT throw on a malformed row** (plan said it would): a recipe is also a
+> document a player authors, and one bad document must not take crafting
+> down for everyone (lens 2). The strictness moved to the build gate —
+> `lint:reachability`'s new `mint` arm parses every SHIPPED recipe through
+> `Recipe.fromData` and checks every `outputTemplate`/`outputResidue`
+> names an authored row. (4) The craft stamp's maker is now the IDENTITY
+> path. (5) Edible/bulk outputs land `'none'` unless the verb asks — Cook
+> and Preserve ask for `'hands'` (the dish comes to hand, as before).
+> **Surprise:** the cooking roster test had to load a root biome — a landed
+> cure is in a container from birth, so its water clock now reads the room.
+
 **Decisions:** D1, D11 (recipe outputs).
 **Files:** `api/crafting.ts` (`Landing`, three request shapes),
 `CraftingLogic.ts` (`landOutput`; one call in each of `craftImpl`,
@@ -1196,6 +1220,32 @@ why; `lint:reachability` fails on a recipe naming a missing row.
 **Commit:** `build(assembly W0): the craft mint lands, stamps and captures its output; mint-custody ratchet; recipe outputs must resolve`.
 
 ### W1 — the model: bill, parts, joints, the mint's new branch, the pick
+
+> ✅ **Done — `0ac87f240`.** **Build decisions.** (1) ⛔ **The shipped
+> pick recipe could never have matched**: the craft gather refuses a Tool or
+> a Crafted thing as an item input (it protects your hammer from being
+> "metal"), and `pick-head`/`pick-haft` are Tool rows. Fix: the gather keeps
+> a `parts` pool of MADE things, and an item slot whose name is a part on
+> the output's bill may draw from it — only a thing that IS that part (its
+> row, or its keyword). (2) `JointCatalogue` warms LAZILY with no
+> `onCreate` (the `lint:on-create` ratchet refused the rise); the craft mint
+> warms it before recording joints, and a cold sync `peek` returns `null`
+> (wear uses the default strength) and kicks the warm. (3) `stitched` ships
+> in **trade-tailoring**, not the platform pack, by D4's own rule — its
+> Discipline is tailoring's. `soldered` is `portability: premises` with no
+> instrument (there is no `heat` capability). (4) The stock forms
+> (`riven`/`sawn`/`hewn`, `integrityFor`) landed HERE, not W3 — the
+> resistance read needed them. (5) `MaterialApi.resistanceTo(channel,
+> candidates) → number[]` (scores, not an index) on the fold's own scale:
+> a covering part scores `base(token) × materialScale`; any other part is a
+> SLAB that resists `moderate`ly — grain, recorded. (6) A bill part may
+> author `material:` — what a FOUND thing's part is (a spawned pick's haft is
+> ash, not the head's iron). (7) **Mining's `hew` now wears the pick**
+> (`shock`, 0.02/hew) — nothing wore a pick before, so a haft could never
+> split in play. Combat strikes and the smith's hammer pass `shock` too
+> (the plan said "the weapon's primary channel"; a strike JARS the weapon
+> whatever it delivers). (8) `Durable.wear(amount?, channel?)` widened on
+> the interface so every caller can pass a channel.
 
 **Decisions:** D3, D4, D7 (the overrides and the use-wear route), D8
 (the mixin, `Assembly`, composed on `Tool`/`Weapon`/`Shield`/`Garment`).
@@ -1223,6 +1273,20 @@ fixture.
 **Commit:** `build(assembly W1): the bill on the kind, the parts record on the instance, Joint rows, the mint keeps its inputs' identity — the pick knows it has a haft`.
 
 ### W2 — the three verbs' arms, and the four new Durable hosts
+
+> ✅ **Done — `0ac87f240`.** **Build decisions.** (1) **`fit` carries no
+> can-make deed gate** (`requireDeed`): fitting by hand IS the hand build
+> that gate asks for, and a fit records the deed (lens 1). The joint's band
+> is the gate that remains. (2) A SOUND member swapped out comes back to
+> hand; a FAILED one is not minted (it melts with the rest). (3) Recovery
+> by band is a code table (untrained 0.5 · novice 0.7 · competent 0.85 ·
+> proficient 0.95 · expert 1.05), rounded, and a member knocked out by a
+> hand short of the joint's craft comes back one grade worse. (4) Salvage's
+> remainder now melts PER PART in its own material (by each part row's
+> `mass`), not as the whole's material. (5) `leaks()` → closure landed here
+> on Vat and Receptacle. Tests: `Assembled.test.ts` (10),
+> `CraftingLogic.assembly.test.ts` (the pick walk, 5), `fit-view.binder`
+> (4), `check-bills` (6).
 
 **Decisions:** D5, D6, D7 (the fold route), D8 (Vat, Lamp, Chair,
 Receptacle), D10 (`leaks()` → closure), D11 (`lint:capabilities`
