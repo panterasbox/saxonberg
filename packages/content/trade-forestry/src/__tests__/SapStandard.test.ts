@@ -361,3 +361,68 @@ describe('a tree you tap', () => {
     );
   });
 });
+
+describe('⭐⭐ a maple on freeze–thaw (the climate build)', () => {
+  const MAPLE_PATH = '/stuff/idea/species/_test/freeze-thaw-maple';
+
+  beforeEach(async () => {
+    installV1QuantityMarshallers();
+    makeStuffAtPath(() => new WorldClockRegistry(), '/platform/idea/WorldClockRegistry');
+    makeStuffAtPath(() => {
+      const sp = new Species();
+      sp.setProduction([
+        { ...SAP[0]!, window: { kind: 'freeze-thaw' } },
+      ]);
+      return sp;
+    }, MAPLE_PATH);
+    clock = vi.spyOn(WorldClockApi, 'getNow');
+    const { WeatherApi } = await import('@saxonberg/server/mud/api/weather');
+    WeatherApi._forceTypeForTesting('clear'); // active weather, no type deviation
+  });
+  afterEach(async () => {
+    const { WeatherApi } = await import('@saxonberg/server/mud/api/weather');
+    WeatherApi._resetForTesting();
+    vi.restoreAllMocks();
+    StuffApi.clearAll();
+  });
+
+  /** A mature maple standing in a place at `latitude` and `elevationM`. */
+  async function mapleAt(latitude: number, elevationM: number): Promise<SapStandard> {
+    const { default: CartesianZone } = await import(
+      '@saxonberg/server/mud/platform/idea/location/CartesianZone'
+    );
+    const { default: CartesianLocation } = await import(
+      '@saxonberg/server/mud/lib/location/CartesianLocation'
+    );
+    const { Stuff } = await import('@saxonberg/server/mud/lib/stuff/Stuff');
+    const zone = makeStuff(() => new CartesianZone());
+    zone.setLatitude(latitude);
+    zone.setElevation(elevationM);
+    const room = makeStuff(() => new CartesianLocation());
+    Stuff._stampZone(room, zone as never);
+    await room.resolveClimateSite();
+    const t = tree();
+    t._speciesPath = MAPLE_PATH;
+    await ContainmentApi.move(t as never, room as never);
+    return t;
+  }
+
+  it('runs on a day that froze at night and thawed by day', async () => {
+    // 800 m at 42° on the equinox: ~269 K before dawn, ~277 K by afternoon.
+    const t = await mapleAt(42, 800);
+    at(DAY + 15 * 3600);
+    expect(t.tapWindow('sap').open).toBe(true);
+  });
+
+  it('is shut on a day that never froze — "warm"', async () => {
+    const t = await mapleAt(42, 0); // the valley floor on the equinox
+    at(DAY + 15 * 3600);
+    expect(t.tapWindow('sap')).toEqual({ open: false, reason: 'warm' });
+  });
+
+  it('is shut on a day that never thawed — "cold"', async () => {
+    const t = await mapleAt(80, 2000);
+    at(300 * DAY + 15 * 3600); // deep northern winter
+    expect(t.tapWindow('sap')).toEqual({ open: false, reason: 'cold' });
+  });
+});

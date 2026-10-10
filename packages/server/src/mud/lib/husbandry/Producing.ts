@@ -70,6 +70,8 @@ import type {
   TapWindowSpec,
 } from '../../platform/idea/species/Species';
 import { CelestialApi } from '../../api/celestial';
+import { WeatherApi } from '../../api/weather';
+import type { Atmospheric } from '../biome/Atmospheric';
 import { EARTH_LIKE } from '../time/CelestialProfile';
 import {
   DEFAULT_CLIMATE_SITE,
@@ -386,6 +388,41 @@ export function ProducingMixin<TBase extends MixinConstructor<Stuff>>(
               if (k > spec.maxK) return { open: false, reason: 'warm' };
             }
           }
+          return OPEN;
+        }
+        case 'freeze-thaw': {
+          const self = this as unknown as Stuff;
+          const day = daylightFraction(self);
+          if (
+            day !== null &&
+            spec.daylightFrom !== undefined &&
+            spec.daylightTo !== undefined &&
+            !inBand(day, spec.daylightFrom, spec.daylightTo)
+          ) {
+            return { open: false, reason: seasonSide(day, spec.daylightFrom) };
+          }
+          if (day !== null && spec.rising !== undefined) {
+            const yesterday = daylightFraction(self, -SECONDS_PER_GAME_DAY);
+            if (yesterday !== null && day > yesterday !== spec.rising) {
+              return {
+                open: false,
+                reason: spec.rising ? 'after-season' : 'before-season',
+              };
+            }
+          }
+          // The air's last game day at the tree's place. Weather inactive
+          // (no world, a unit test) is unmodelled, which is open.
+          const now = nowSeconds();
+          if (now === null || !WeatherApi.isActive()) return OPEN;
+          const place = airPlaceOf(self);
+          const range = WeatherApi.dailyRangeAt(
+            place?.climateSite() ?? DEFAULT_CLIMATE_SITE,
+            place?.weatherLocality() ?? null,
+            Quantity.of(now - SECONDS_PER_GAME_DAY, 's'),
+          );
+          const freezeK = spec.freezeK ?? 273.15;
+          if (range.maxK <= freezeK) return { open: false, reason: 'cold' };
+          if (range.minK >= freezeK) return { open: false, reason: 'warm' };
           return OPEN;
         }
       }
@@ -1043,13 +1080,18 @@ const SITE_WALK_DEPTH_CAP = 16;
  * A host standing nowhere reads the realm default.
  */
 function siteOfHost(host: Stuff): ClimateSite {
+  return airPlaceOf(host)?.climateSite() ?? DEFAULT_CLIMATE_SITE;
+}
+
+/** The nearest air-bearing place around a producer, or `null`. */
+function airPlaceOf(host: Stuff): (Stuff & Atmospheric) | null {
   let cursor: Stuff | null = host;
   for (let depth = 0; cursor !== null && depth < SITE_WALK_DEPTH_CAP; depth++) {
-    if (MixinApi.isAtmospheric(cursor)) return cursor.climateSite();
+    if (MixinApi.isAtmospheric(cursor)) return cursor;
     if (!MixinApi.isContainable(cursor)) break;
     cursor = cursor.getContainer() as Stuff | null;
   }
-  return DEFAULT_CLIMATE_SITE;
+  return null;
 }
 
 /**

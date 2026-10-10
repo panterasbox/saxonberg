@@ -1274,6 +1274,15 @@ weather dials: `climate.poleMeanK` 245, `climate.equatorMeanK` 301,
   mere is colder and its sheet thicker over a few days despite the
   smaller α. The drive compares the KIND (snow-ice vs black), not
   thickness.
+- **B12 (W9) — no separate high sugarbush.** Rejection at 450 m reads
+  271–279 K on the equinox, a freeze-thaw day; the shipped Hanging Wood
+  panel's maples are the drive's maples. The 800 m pin in W0 stays as
+  the arithmetic's proof.
+- **B13 (W9) — the birch band moved.** 0.40–0.50 rising was late winter
+  at 42°; under the honest climate it never reaches 278 K there.
+  0.49–0.57 rising is the weeks either side of the equinox — after the
+  maple, as in life. A row change, which is what the row's own header
+  promised.
 - **B4 (W0) — no `climate.defaultContinentality` dial.** The default site
   is the `DEFAULT_CLIMATE_SITE` value; a dial read beside a const would be
   two sources for one number.
@@ -1737,6 +1746,20 @@ day and a mild day close); `docs/subsystems/taps.md` (the kind).
 0; the hanging-wood site (450 m) does not on day 0 and does on a
 synthetic winter day.
 **Commit.** `build(climate W9): the maple runs on freeze and thaw`
+
+> ✅ **Done.** `TapWindowSpec` `freeze-thaw` (optional band and
+> `rising`); the arm reads `WeatherApi.dailyRangeAt` over the last game
+> day at the tree's air place (`airPlaceOf`, the memo the daylength now
+> also reads). Maple re-pointed with no band (grain); its header
+> rewritten. ⚠⚠ **Surprise (B13):** the BIRCH would never have run —
+> its 0.40–0.50 band is late winter at 42°, which now averages under its
+> 278 K floor. Re-derived as a row: 0.49–0.57 rising (≈ days 355–40),
+> birch after the maple, as in life. ⭐ **B12:** the Hanging Wood
+> sugarbush at Rejection's new 450 m straddles freezing at the equinox
+> (271–279 K), so the shipped maples run freeze-thaw there — the plan's
+> separate "high sugarbush" is not built. 3 SapStandard tests; sugaring
+> tests re-pointed (the "no window asks for a freeze" test, written to
+> fail when winter was real, is retired).
 
 ### W10 — The places
 

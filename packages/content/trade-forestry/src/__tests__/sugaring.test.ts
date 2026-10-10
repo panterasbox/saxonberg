@@ -163,45 +163,25 @@ describe('the sap trees — the rows the mechanism reads', () => {
     }
   });
 
-  it('⭐⭐⭐ both windows are `rising` — or a tree would run twice a year', () => {
+  it('⭐⭐⭐ the birch window is `rising` — or it would run twice a year', () => {
     // Spring and autumn cross the same daylength band and are not the
     // same season for a tree. Without this term the sap would run in
     // September, and nothing in the game would ever have reported it.
-    for (const sp of [birch(), maple()]) {
-      const tap = (sp.production as unknown as Array<Record<string, unknown>>)[0]!;
-      const window = tap.window as Record<string, unknown>;
-      expect(window.kind).toBe('weather');
-      expect(window.rising).toBe(true);
-    }
+    const tap = (birch().production as unknown as Array<Record<string, unknown>>)[0]!;
+    const window = tap.window as Record<string, unknown>;
+    expect(window.kind).toBe('weather');
+    expect(window.rising).toBe(true);
   });
 
-  it('⚠ maple opens EARLIER than birch, which is the real order', () => {
-    const b = (birch().production as unknown as Array<Record<string, unknown>>)[0]!;
-    const m = (maple().production as unknown as Array<Record<string, unknown>>)[0]!;
-    const bw = b.window as Record<string, number>;
-    const mw = m.window as Record<string, number>;
-    // ⚠ `noUncheckedIndexedAccess` makes an index read `| undefined`,
-    // so the band is asserted present before it is compared — a bare
-    // `toBeLessThan(undefined)` would have passed vacuously on a row
-    // that lost its window.
-    expect(mw.daylightFrom).toBeDefined();
-    expect(bw.daylightFrom).toBeDefined();
-    expect(Number(mw.daylightFrom)).toBeLessThan(Number(bw.daylightFrom));
-  });
-
-  it('⚠⚠ no window asks for a FREEZE — it would never fire in this climate', () => {
-    // The realm's temperature floor is around 276 K (a 295 K baseline
-    // with ±10 K annual and ±4 K diurnal deviation), so a freeze-thaw
-    // opener — which is what a real sugar maple runs on — would not fire
-    // ONCE, in any season, anywhere. Authoring one would have shipped a
-    // tree that silently never ran. ⭐ The fix is a ROW when winter is
-    // real, which is the climate slate's first consumer, and this
-    // assertion is what will fail when somebody tries it early.
-    for (const sp of [birch(), maple()]) {
-      const tap = (sp.production as unknown as Array<Record<string, unknown>>)[0]!;
-      const window = tap.window as Record<string, number>;
-      expect(window.minK).toBeGreaterThan(273);
-    }
+  it('⭐⭐ the maple runs on FREEZE–THAW (the climate build) — no daylength band', () => {
+    // The row the climate slate's first consumer was waiting for: open on
+    // a game day whose air crossed freezing both ways at the tree. No band
+    // is GRAIN — the freeze-thaw is the season (a warm November spell runs
+    // a maple too); the kind still accepts one.
+    const tap = (maple().production as unknown as Array<Record<string, unknown>>)[0]!;
+    const window = tap.window as Record<string, unknown>;
+    expect(window.kind).toBe('freeze-thaw');
+    expect(window.daylightFrom).toBeUndefined();
   });
 
   it('⭐ birch runs more sap per spile and maple carries more sugar', () => {

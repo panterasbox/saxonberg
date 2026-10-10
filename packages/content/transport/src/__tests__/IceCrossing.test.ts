@@ -73,7 +73,7 @@ function body(kg: number): Stuff {
 
 const reasonOf = (x: IceCrossingExit): string => {
   const g = x.canTraverse({} as Stuff & Containable, 'walk');
-  return g.ok ? '' : g.reason;
+  return g.ok ? '' : (g.reason ?? '');
 };
 
 beforeEach(() => {
