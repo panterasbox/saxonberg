@@ -35,9 +35,9 @@ materials-response all shipped, which made the name actively misleading.
 
 <!-- BEGIN GENERATED — ./tools/slate-index -->
 
-**289 slates.** 71 greenfield · 97 continuations · 61 waves · 60 tails.
+**289 slates.** 70 greenfield · 97 continuations · 61 waves · 61 tails.
 
-## ⭐ Greenfield — nothing shipped yet (71)
+## ⭐ Greenfield — nothing shipped yet (70)
 
 Pick from here for a clean cycle with no existing substrate to
 respect.
@@ -67,8 +67,6 @@ respect.
 | [dairy](./builds/dairy-slate.md) | the dairy as a business (the hourly tap and the hired hand) · pasteurization on the shipped kill curve · cheese as a maturation profile with whey as the lees · butter and cream as mechanical process … |
 | [deduction](./builds/deduction-slate.md) | the thin generic quest spine (milestones · branches · completion) · the casebook word-bank … |
 | [demo](./builds/demo-slate.md) | the mock issuer adapter · the aged demo world · the threshold-ceremony beats · aid-post content … |
-| [destructive-distillation](./builds/destructive-distillation-slate.md) | the retort as the clamp's capitalised sibling · the condenser and the volatile fraction · wood tar → pitch · **coal tar** and its cuts … |
-| [drilling](./builds/drilling-slate.md) | the borehole as a **point, not a place** · the derrick and the string · the seeded deep field and the **dry hole** · the survey as the game (instruments → a model → a bet) … |
 | [education-integration](./builds/education-integration-slate.md) | earn-by-learning (the vocational lab as a crafting venue) · the student → TA → instructor ladder · the corpo sponsor funding a cohort against outcomes · the treasury lane (⚠ blocked on the fiscal cycle) … |
 | [end-of-life](./builds/end-of-life-slate.md) | custody of the body + terminal decay → **remains** · the |
 | [enforcement](./builds/enforcement-slate.md) | the enforcement-mode vocabulary (wall · camera · witness · norm) as a committee-picked field … |
@@ -98,11 +96,12 @@ respect.
 | [pharma](./builds/pharma-slate.md) | the actives/pharmacopoeia content · `neutralizedBy` + `rinse [with <substance>]` (the first row of the pharmacopoeia) · extraction as a process · glass vessels … |
 | [presence-hollowing](./builds/presence-hollowing-slate.md) | presence-vs-hollow as a physical state on an agent · who perceives it (ESP · the attuned reader dial · sacred instruments) … |
 | [prison](./builds/prison-slate.md) | `PrisonMixin` (a locality you cannot leave — the boundary + the custody book, and nothing else) · the three enforcement tiers in content · cells as provisioned shelters on the residence spine · interior law as the prison's own jurisdiction (no `securityLevel`) … |
+| [pump](./builds/pump-slate.md) | the pump as substrate (lift · throughput · power · seal) … |
 | [quest-modeling](./builds/quest-modeling-slate.md) | the template primitive · the beat + condition-detection seam · the cast surface (typed slot binding, save-gate validated, the two authoring tiers) · one genre cast end-to-end (Mystery, against the forensic win) … |
 | [reconcile-chains](./builds/reconcile-chains-slate.md) | `restamp` on `Freshness` · `Contaminable` · `Maturing` (store the driver at last reconcile, integrate along `Decay.toward` as `ThermalDose` does) · the **step problem** — `Coolbox` and any supply-driven host store *when supply last changed and to what*, so the trajectory is closed-form … |
 | [record-integrity](./builds/record-integrity-slate.md) | event-source `positions` → `position_events` · `prevHash` chaining with canonical serialization + the single-writer append discipline · the Merkle checkpoint · anchoring via `GitApi` to third-party hosts … |
 | [resilience](./builds/resilience-slate.md) | Tier 1 code-trust auditing (eval payloads, source-tree writes, the hot-reload ledger) · the Api tier's default-open (`HotReloadApi`, `SourceTreeApi`; the four `gateSourceWrite` copies) · per-call time budgets (`RenderBudget` generalized; the `eval` timeout) · input reaching dangerous constructs (+ the object quota) … |
-| [rgo-unification](./builds/rgo-unification-slate.md) | ⭐ `ProducingMixin` (the tap) promoted out of `trade-ranching`'s pack lib into the kernel · a home for the pin walk (`stepOutwardForPin`, copied 3×) · the **sweetener vocabulary** decided once across sugar, honey and maple · and — **held deliberately** — the derived-field interface, which waits for foraging |
+| [rgo-unification](./builds/rgo-unification-slate.md) | ⭐ `ProducingMixin` (the tap) promoted out of `trade-ranching`'s pack lib into the kernel · a home for the pin walk (`stepOutwardForPin`, copied 3×) · the **sweetener vocabulary** decided once across sugar, honey and maple · and — **held deliberately** — the derived-field interface, which waits for foraging to be **DESIGNED** (not built — § below) |
 | [room-condition-design-pack](./builds/room-condition-design-pack.md) | `SoilableMixin` (items · surfaces · bodies — hands on `Creature`, the attach point absorbed from food-safety 2026-09-21) · the room debris field … |
 | [rubber](./builds/rubber-slate.md) | latex as a tap (→ tapping-slate) · sulfur as a deposit row + material · the **crosslinking `Law`** and its honest evaluator · `vulcanize` as a recipe gated on that law … |
 | [saxonberg-city](./builds/saxonberg-city-slate.md) | the Locality + parcel spine · the residential district and its launch stock (six units) · the four leasable storefront shells · the second Compact grant (waits on the stewardship cascade) … |
@@ -287,7 +286,7 @@ are the named remainders.
 | [wizard-bar](./tails/wizard-bar-slate.md) | the safe-harbour standard text (⭐ the product) · admit (exam + archwizard flip) · the public roster · the hearing process … |
 | [youtube-relay](./tails/youtube-relay-slate.md) | outbound `liveChatMessages.insert` · the quota accountant + coalescing and drop policy · per-player `youtube.force-ssl` OAuth · the `GoogleProfile` token extension + `google-reauth` |
 
-## Tails — small and opportunistic (60)
+## Tails — small and opportunistic (61)
 
 | slate | left |
 |---|---|
@@ -312,6 +311,7 @@ are the named remainders.
 | [dgg-relay](./tails/dgg-relay-slate.md) | the dgg WebSocket transport · the anonymous read path · the developer-key credential (it rides no OAuth spine) · the two-way write path, which is the point of it |
 | [document-store-tiering](./tails/document-store-tiering-slate.md) | a compound index for time-paged reads by kind (the press archive full-scans and sorts in JS today) · `release`'s `onVanish: 'delete'`, which its own neighbours' comments argue against · `descriptor-bank`, the one unit the collapse programme skipped · the |
 | [dossier](./tails/dossier-slate.md) | Q2 the materialized trio (participation + influence still seed-and-fold; make `renownOf` derive) · Q3 a seeded condition's cause · Q4 dossiers for organizations · Q5 converging char-gen's claim seeding |
+| [drilling](./tails/drilling-slate.md) | ⛔ **`cap`/`plug`** — an uncapped well leaks and there is no act that stops it, not even a refusal (the liability the polity gets to price) · **secondary recovery** (wants the pump first) · ⚠⚠ **the crew's RATE**, measured at one metre per two-hand game-day and an order of magnitude light — `SAMPLE_CAP_S` credits a clock jump once rather than replaying it, and which number is wrong is a balance question. See § Tail. |
 | [encumbrance](./tails/encumbrance-slate.md) | per-item placement refinement (a frame pack beating the worn floor) · augment-conferred capacity · gravity/environmental margins · tissue-derived mass … |
 | [explicit-targeting](./tails/explicit-targeting-slate.md) | the reserved per-invocation `--strict` / `--loose` option · turning `warn` on where a verb wants a voice (`open` · `close` · `unlock` — a content question, wants a live drive) |
 | [fishing](./tails/fishing-slate.md) | the tank (§ 12 — the reach reports its parameters; the vessel's ledger and the keeper are the build) · ⭐ the named apex as an INDIVIDUAL in the record (the one that got away, older; v1's sturgeon is a count and a deed) · the stew pond (aquaculture) · the boat regime … |

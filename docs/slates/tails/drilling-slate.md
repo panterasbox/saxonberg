@@ -1,41 +1,27 @@
 # Drilling slate — the extraction that does not expand the map
 
-> **Status: UNBUILT**, and deliberately after
-> [destructive-distillation](./destructive-distillation-slate.md), which
-> reaches the industrial epoch without it.
-> **Left:** the borehole as a **point, not a place** · the derrick and the
-> string · the seeded deep field and the **dry hole** · the survey as the
-> game (instruments → a model → a bet) · the lift (a pump — ⚠⚠ whose
-> gasket is **LEATHER**, not rubber, so this slate is **not** gated on
-> rubber; corrected 2026-10-08, and the pump belongs to the **mine fluid
-> pass** anyway) · the fractions and their consumers · ⭐⭐ **the
-> GAS well** (pressure not lift; `bulk.md`'s inert `sealed` rung as the
-> whole economy; the gasometer).
-> ✅ **The cuts rung is BUILT** — refining is rows now
-> ([fractionation.md](../../subsystems/fractionation.md), whiskey build
-> 2026-10-04). ✅ **Both blockers are CLEARED (2026-10-08).**
-> [destructive-distillation](./destructive-distillation-slate.md)'s Stage A
-> shipped with the fire build — the retort, the condenser, the gasometer,
-> coke, coal tar and **coal gas** — so the gas economy this slate was to
-> inherit is anchored and live. And the epoch on-ramp came **off the
-> critical path**: a recipe needs a *gate token*, not a law catalogue, and
-> the token rides the shipped `RecipeKnowledge` ladder plus the realm's own
-> `epoch` — see [inquiry-slate](./inquiry-slate.md) § end.
-> ⭐ **Drilling is a SEEDED-field RGO** (the dry hole's own honesty
-> argument), so it does not consume the derived-field interface and is
-> **not gated on foraging** — see
-> [rgo-unification-slate](./rgo-unification-slate.md) § *The 09-25 priority
-> vs. the 10-08 direction*.
-> ⭐⭐⭐ **DESIGNED 2026-10-08 (§ end) — the four opens are closed.** The
-> survey has **two factors and only one is readable**: structure reads off
-> the shipped `Deposit.surfaceReadingAt` (whose `errorDeg` argument *is*
-> the how-wrong-may-it-be knob, widening with depth), while **charge has
-> no channel at all** — so the dry hole survives any instrument
-> improvement, and the free counter-signal is a **seep**. Depletion is a
-> derived pressure read; field ownership ships as physics for the polity
-> to argue about.
-> **Size:** a build — and the larger of the two, because the borehole is
-> a genuinely new extraction shape.
+> **Status: PARTIAL** — SHIPPED 2026-10-09 (MR !353) →
+> [drilling.md](../../subsystems/drilling.md). All three stages (brine ·
+> gas · oil), a new `trade-drilling` pack, and the premise driven live:
+> ⭐⭐⭐ **two factors and only one has a channel** — a trap's STRUCTURE
+> reads with a bracket that narrows with the instrument and widens with
+> depth, and whether it is CHARGED has no reading anywhere in the game,
+> so a dry hole survives every instrument and the payroll is a **bet**.
+> The borehole is a **POINT, not a place** (no room, no location-graph
+> node); the fluid leg is derived from the **arch**, so the spring sits
+> on the rim and the flat over the crest and *the place the ground tells
+> you about is not the place to dig*; the barrel is
+> `separation: fractions` — *you cannot distil crude and choose not to
+> make the light ends.* Drive 24/24.
+> **Left:** ⛔ **`cap`/`plug`** — an uncapped well leaks and there is no
+> act that stops it, not even a refusal (the liability the polity gets to
+> price) · **secondary recovery** (wants the
+> [pump](./pump-slate.md) first) · ⚠⚠ **the crew's RATE**, measured at
+> one metre per two-hand game-day and an order of magnitude light —
+> `SAMPLE_CAP_S` credits a clock jump once rather than replaying it, and
+> which number is wrong is a balance question. See § Tail.
+> **Size:** a tail — each remaining piece is small or rides another
+> build; none is its own cycle.
 
 ⚠ **Nothing petroleum exists in the tree**: no oil, no naphtha, no
 kerosene, no tar, no pitch. `olive-oil` is a food.
@@ -821,3 +807,76 @@ constant introduced. Cheap, honest physics, but not zero. → [inquiry-slate](./
    without a pump, and the pump is a **throughput upgrade** that extends a
    well's economic life. ⚠ A pump-before-drilling recommendation was made
    and withdrawn inside one exchange on exactly this point.
+
+---
+
+## ⚠ Tail — what the 2026-10-09 build shipped WITHOUT (MR !353)
+
+Salvaged out of `drilling-plan.md` at that build's pre-merge sweep, when
+the plan retired. Each of these was a deliberate non-goal with a
+destination, not an oversight.
+
+### ⛔ `cap` / `plug` — the liability nobody can discharge
+
+An uncapped well **leaks** (W-B1 shipped the flowing well and the burnt
+ground), and **nothing caps it.** So the realm now contains a thing that
+can be abandoned in a state that costs everybody something, with no act
+that stops it.
+
+⭐ That is the interesting half and the reason it was left: *the polity
+gets to price it.* A cap is cheap, a leak is diffuse, and the question of
+who pays for an abandoned well is the sort a legal code is for rather
+than a mechanism. But the verb has to exist before anybody can be made
+to use it — see [verb-conferral's rule](../../subsystems/employment.md):
+**the refusal is the progression UI**, and here there is not even a
+refusal.
+
+### Secondary recovery
+
+Pressure falls, the well stops flowing, and the shipped answer is the
+bailer and then nothing. Water flood / gas re-injection is the rung that
+makes a declining field a capital decision rather than an ending. ⚠ It
+wants the [pump slate](./pump-slate.md) first — you cannot re-inject
+without a pump.
+
+### ⚠⚠ The crew's RATE — measured, unexplained, deliberately untuned
+
+**Two roustabouts on shift, a full game day, one metre.** Against
+`CREW_SWINGS_PER_HOUR = 120` × 2 hands × 24 h and
+`SWINGS_PER_METRE_REF = 6` that is an order of magnitude light, and
+lining is **not** the gate (the Rejection deposit authors no
+`waterTable`, so the default −45 puts the liner threshold at 45 m).
+
+⭐ The suspect is `SAMPLE_CAP_S = 3600`: `Wellhead.reconcileRig` clamps
+`elapsed` to one hour, so a clock **jump** is credited once rather than
+replayed hour by hour. The cap is the right *shape* — it is what stops an
+unobserved rig minting unbounded depth, and it is consistent with *depth
+is BANKED, only the swing is ENGAGED* — but it makes the method's own
+docstring claim (*"weeks pass with nobody reading"*) only partly true. A
+shift window the jump lands outside of would compound it, since
+`crewOnShift()` counts only hands actually on shift.
+
+⚠ Which number is wrong — the cap, the swing rate, or the expectation —
+is a **balance** question against a running game, and this project parks
+rate tuning until there is one. ⭐ The drive asserts the mechanism (the
+hole gets deeper and the reader never touches the beam) and deliberately
+asserts no rate: *a rate nobody has tuned is not a mechanism, and a
+checkpoint that asserts one fails for reasons that teach nothing.*
+
+### The others, which already have homes
+
+- **the pump** → [pump-slate](./pump-slate.md) (the wellhead's bailed
+  rung is where a throughput plugs in)
+- **compressed storage** (`maxPressureAtm`) →
+  [destructive-distillation-slate](./destructive-distillation-slate.md)
+- **the river leg** — a dumped liquid as a discharge from any shore: the
+  `Conduit` sump, the derived `dischargeLoad` and a `'hydrocarbon'`
+  contaminant kind → the watershed slate. ⭐ Withdrawn as **D17** because
+  a trade build never solves a cross-cutting capability; AC 9's dump leg
+  is recorded unmet.
+- **`Still` promotion to the kernel** when a third pack names it
+- **dip from the surface** — a `Deposit` decision the mining build made
+  and this one left
+- **the act/credit legs for every other RGO** →
+  [field-substrate](./field-substrate-slate.md); the owner/crew split is
+  implemented on the wellhead and the spine will want the same read
