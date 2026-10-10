@@ -1073,6 +1073,9 @@ importers:
       '@saxonberg/content-distribution':
         specifier: workspace:*
         version: link:../distribution
+      '@saxonberg/content-generic-objects':
+        specifier: workspace:*
+        version: link:../generic-objects
       '@saxonberg/content-platform':
         specifier: workspace:*
         version: link:../platform
