@@ -74,6 +74,8 @@ import {
   type ReachRef,
 } from './WatercourseCatalogue';
 import type WatercourseCatalogue from './WatercourseCatalogue';
+import WaterExpanse from './WaterExpanse';
+import { GeoPosition } from '@saxonberg/server/mud/lib/expanse/GeoPosition';
 
 /** Where the register lives in the document tree — titled to the water group. */
 export const FISHERY_PREFIX = '/system/water/fisheries';
@@ -165,6 +167,7 @@ export default class FisheryRegistry extends RegistrarMixin(Idea) {
     reachRef: ReachRef,
     nowS: number,
   ): Promise<FisheryStanding | null> {
+    if (reachRef.includes('@')) return this.seaStandingAt(reachRef, nowS);
     const cat = await this.catalogue();
     const reach = await cat.reachOf(reachRef);
     if (reach === null) return null;
@@ -205,6 +208,64 @@ export default class FisheryRegistry extends RegistrarMixin(Idea) {
       });
     }
     return { reachRef, species, water, flow, contamination };
+  }
+
+  /**
+   * ⭐ **What the open sea holds at one cell** — the `@` grammar a
+   * `Gunwale` cites (`"<expanse>@<lat>,<lon>"`, maritime D7).
+   *
+   * The same derive as a reach, from the sea's own inputs: the water state
+   * at the position (`WaterExpanse.waterStateAt`), and the stock the bands
+   * there place (their union over the expanse's own), so a species the
+   * author put in a band is stocked at the band's abundance and anything
+   * else at its habitat fit. Only `drawn` is state, keyed on the 0.1° cell,
+   * so the same spot depletes and recovers by the shipped half-life.
+   */
+  private async seaStandingAt(ref: string, nowS: number): Promise<FisheryStanding | null> {
+    const cell = parseSeaRef(ref);
+    if (cell === null) return null;
+    let sea: Stuff | null = null;
+    try {
+      sea = await StuffApi.singleton<Stuff>(cell.expanse);
+    } catch {
+      return null;
+    }
+    if (!(sea instanceof WaterExpanse)) return null;
+    const pos = new GeoPosition(cell.latDeg, cell.lonDeg);
+    const water = await sea.waterStateAt(pos);
+    const placed = { ...sea.getStock(), ...(await sea.fieldAt(pos)).stock };
+    const season = CelestialApi.seasonFor(EARTH_LIKE, nowS);
+    const cellCapacity = dial('water.fishery.seaCellCapacity', 40);
+    const lengthKm = dial('water.fishery.reachLengthKm', 1);
+    const record = await this.read(ref);
+    const drawn = record === null ? {} : recovered(record, nowS).drawn;
+    const species: SpeciesStanding[] = [];
+    for (const sp of await this.species()) {
+      const habitat = sp.getHabitat();
+      if (habitat === null) continue;
+      const path = sp.getTemplatePath() ?? '';
+      const { fit, limiting } = sp.fitIn(water, season);
+      const abundance = placed[path];
+      const stocked = abundance !== undefined;
+      const capacity = stocked
+        ? Math.round(abundance * cellCapacity)
+        : Math.round(fit * habitat.abundance * lengthKm);
+      if (capacity <= 0 && !stocked) continue;
+      species.push({
+        speciesPath: path,
+        name: sp.getCommonNames()[0] ?? nameOf(path),
+        capacity,
+        full: Math.max(1, stocked ? Math.round(cellCapacity) : Math.round(habitat.abundance * lengthKm)),
+        level: Math.max(0, capacity - Math.round(drawn[path] ?? 0)),
+        fit: stocked ? 1 : fit,
+        limiting: stocked ? null : limiting,
+        stocked,
+        role: habitat.role,
+        fightRating: habitat.fightRating,
+        ...(habitat.feedsAt !== undefined ? { feedsAt: habitat.feedsAt } : {}),
+      });
+    }
+    return { reachRef: ref, species, water, flow: null, contamination: null };
   }
 
   /**
@@ -363,7 +424,24 @@ export default class FisheryRegistry extends RegistrarMixin(Idea) {
 /* ───────────────────────── module-private ───────────────────────── */
 
 /** `/system/water/fisheries/<course>/<node>`, or `null` for a malformed citation. */
+/** `"<expanse>@<lat>,<lon>"` → its parts, or `null`. */
+function parseSeaRef(ref: string): { expanse: string; latDeg: number; lonDeg: number } | null {
+  const m = /^(\/[^@]+)@(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)$/.exec(ref);
+  if (!m) return null;
+  return { expanse: m[1]!, latDeg: Number(m[2]), lonDeg: Number(m[3]) };
+}
+
 function pathOf(reachRef: ReachRef): string | null {
+  // ⭐ A sea cell files under its expanse's key and the cell, with the
+  // signs spelled so no segment starts with a dash.
+  const sea = parseSeaRef(reachRef);
+  if (sea !== null) {
+    const key = sea.expanse.split('/').pop() ?? '';
+    if (!/^[a-z0-9-]+$/i.test(key)) return null;
+    const lat = `${sea.latDeg < 0 ? 's' : 'n'}${Math.abs(sea.latDeg).toFixed(1)}`;
+    const lon = `${sea.lonDeg < 0 ? 'w' : 'e'}${Math.abs(sea.lonDeg).toFixed(1)}`;
+    return `${FISHERY_PREFIX}/sea/${key}/${lat}${lon}`;
+  }
   const [course, node, ...rest] = reachRef.split(':');
   if (!course || !node || rest.length > 0) return null;
   if (course.includes('/') || node.includes('/')) return null;

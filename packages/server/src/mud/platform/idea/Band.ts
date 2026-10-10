@@ -56,7 +56,6 @@ export default class Band extends NamedMixin(SingletonMixin(Idea)) {
     setKn: { persistent: true, authorable: true },
     gearHardness: { persistent: true, authorable: true },
     confined: { persistent: true, authorable: true },
-    // ⓘ `reputation` joins with the pilot who repeats it (B1).
   };
 
   protected extent: BandExtentRecord | null = null;
@@ -73,8 +72,6 @@ export default class Band extends NamedMixin(SingletonMixin(Idea)) {
   protected hazards: string[] = [];
   /** What lives in it: stock key → abundance (0..1). */
   protected stock: Record<string, number> = {};
-  /** What people SAY about it — the reputation a pilot repeats. */
-  protected reputation = '';
   /** 0..1 — how hard this water is on gear. */
   protected gearHardness = 0;
   /** A confined corridor (a channel over a bar): a linear node rides it. */
@@ -123,9 +120,6 @@ export default class Band extends NamedMixin(SingletonMixin(Idea)) {
 
   public getStock(): Record<string, number> { return { ...this.stock }; }
   public setStock(v: Record<string, number> | null): void { this.stock = { ...(v ?? {}) }; }
-
-  public getReputation(): string { return this.reputation; }
-  public setReputation(v: string): void { this.reputation = (v ?? '').trim(); }
 
   public getGearHardness(): number { return this.gearHardness; }
   public setGearHardness(v: number): void {

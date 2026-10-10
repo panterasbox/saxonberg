@@ -12,6 +12,11 @@
  * Narrowed at `read`'s own seam (the point a scroll's working fires),
  * never by `instanceof` in the controller. A pilot's book or sailing
  * directions would compose this same mixin.
+ *
+ * ⭐ And so does a PILOT: a person whose knowledge of one water is the
+ * same thing — entries, as they believe them — written as `told` claims
+ * with their name on them (`toldBy`), so a lie is traceable to whoever
+ * told it. One mixin for *a source whose knowledge is claims*.
  */
 
 import type { MixinConstructor, FieldMeta } from '../mixin';
@@ -37,8 +42,11 @@ export interface ChartEntry {
 export interface Charted {
   getOf(): string;
   getEntries(): ChartEntry[];
-  /** Write this chart's claims into `reader`'s map; the count written. */
-  writeClaimsFor(reader: Stuff): Promise<number>;
+  /**
+   * Write these entries into `reader`'s map; the count written. A chart
+   * writes `charted`; a person telling it writes `told`, signed `toldBy`.
+   */
+  writeClaimsFor(reader: Stuff, told?: { by: string }): Promise<number>;
 }
 
 export function ChartedMixin<TBase extends MixinConstructor>(Base: TBase) {
@@ -64,7 +72,7 @@ export function ChartedMixin<TBase extends MixinConstructor>(Base: TBase) {
         : [];
     }
 
-    async writeClaimsFor(reader: Stuff): Promise<number> {
+    async writeClaimsFor(reader: Stuff, told?: { by: string }): Promise<number> {
       if (!MixinApi.isCartographer(reader) || !reader.keepsMaps()) return 0;
       if (this.of === '' || this.entries.length === 0) return 0;
       const locality = await localityOf(this.of);
@@ -76,7 +84,8 @@ export function ChartedMixin<TBase extends MixinConstructor>(Base: TBase) {
         label: e.path,
         name: e.name,
         ...(e.where ? { where: e.where } : {}),
-        channel: 'charted',
+        channel: told ? 'told' : 'charted',
+        ...(told ? { toldBy: told.by } : {}),
         firstSeen: now,
         lastSeen: now,
         recordedBy: by,

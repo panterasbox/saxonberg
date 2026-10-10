@@ -1556,6 +1556,38 @@ marked **B-n**.)*
   `measure elevation` instrument) — `latitude` names `instrument:
   sighting`, a second reading on the same tool, and no new tool row.
 
+- ✅ **B1**. `WaterExpanse` (the column, derived sea state, the water
+  state every fish's tolerances read), `WaterBand` (`depthM`, `fetchKm`,
+  `bottom`), `Gunwale extends Shore`, the fishery's `@` grammar,
+  `DepthReading`, `Pilot` + `pilot`, the open-water biome. **B-24:** no
+  `WaterNode` — `surfaceLevelM` has no reader in this build (the tide is
+  climate's), so nodes use the kernel `ExpanseNode`; a field with no
+  reader is the `lint:unconsumed-seams` failure. **B-25:** `Band.reputation`
+  dropped for the same reason — a pilot's knowledge is entries, not the
+  band's prose. **B-26:** the gunwale's citation is
+  `"<expanse PATH>@<lat>,<lon>"` (the full row path, not the key, so it
+  resolves with no lookup), rounded to the 0.1° cell, so the fishery's
+  `drawn` is per-cell with no extra quantizing; its register path is
+  `/system/water/fisheries/sea/<key>/n50.2w4.5`. `Shore` opened three
+  seams (`_memo`/`refresh`/`readWater` protected, a `lines` memo for a
+  water that is not a reach, `disciplineKeyNow()`); the fishing pack is
+  untouched. **B-27:** the PILOT is a `ChartedMixin` too — one mixin for
+  *a source whose knowledge is claims*; `writeClaimsFor(reader, { by })`
+  writes `told` signed `toldBy`. ⚠ **The `pilot` verb is the PLAYER's,
+  not the NPC's dispatch (D17 reversed):** `BankingApi.settle` charges
+  whoever is acting, so a pilot running `pilot <player>` would pay
+  himself. The Pilot affords `pilot` on `peers`; the player pays the fee
+  in coin into the pilot's hands and gets the claims. **B-28:** the
+  open-water biome ships from the WATER pack at
+  `/stuff/idea/biome/outdoor/open-water` (forestry's woodland precedent:
+  a trade ships the biome it stands under), not world-seed. **B-29:** a
+  sounding over a band that authors its own depth (a bank) is a FIX
+  (reckoning to within 2 nm); over the anonymous open sea it only reads
+  the depth. ⚠ `depth.yaml` and the lead-line row land in B3 with the
+  ship that carries the lead — `lint:capabilities` refuses a reading whose
+  instrument nothing offers, and `lint:reachability` a tool row nothing
+  places.
+
 ---
 
 ## Drive record

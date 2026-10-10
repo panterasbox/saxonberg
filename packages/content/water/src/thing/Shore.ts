@@ -64,12 +64,20 @@ const DEFAULT_READ_DISCIPLINE = '/trade/fishing/idea/Discipline/fishing';
 const SEGMENT_S = 6 * 3600;
 
 /** What the last refresh found. */
-interface ShoreMemo {
+export interface ShoreMemo {
   reach: CompiledReach | null;
   standing: FisheryStanding | null;
   /** The key of the Discipline the read is gated on, or `null` when its row is not installed. */
   disciplineKey: string | null;
   atS: number;
+  /**
+   * The physical read, already in words, for a water that is not a
+   * reach (the open sea under a `Gunwale`). Absent for a reach, whose
+   * words come from the compiled course.
+   */
+  lines?: string[];
+  /** The citation this memo was read for. */
+  ref?: string;
 }
 
 const ShoreBase = RoomContributorMixin(Thing);
@@ -85,7 +93,7 @@ export default class Shore extends ShoreBase {
   /** `"<courseKey>:<nodeName>"` — the reach this shore stands on. */
   public reachRef = '';
 
-  private _memo: ShoreMemo | null = null;
+  protected _memo: ShoreMemo | null = null;
   /** The refresh in flight, so a `settle()` can await one already running. */
   private _refreshing: Promise<void> | null = null;
 
@@ -126,8 +134,15 @@ export default class Shore extends ShoreBase {
    */
   override contributeToRoom(_viewer: Stuff): string | null {
     const memo = this.waterRead();
-    if (memo === null || memo.reach === null) return null;
+    if (memo === null) return null;
+    if (memo.lines) return memo.lines[0] ?? null;
+    if (memo.reach === null) return null;
     return physicalRead(memo)[0] ?? null;
+  }
+
+  /** The Discipline whose band reads what this water holds. */
+  protected disciplineKeyNow(): Promise<string | null> {
+    return readDisciplineKey();
   }
 
   public bandOf(viewer: Stuff): CompetenceBandName {
@@ -137,7 +152,7 @@ export default class Shore extends ShoreBase {
     return bands?.find((b) => b.discipline === key)?.band ?? CompetenceBand.FLOOR;
   }
 
-  private refresh(force = false): Promise<void> {
+  protected refresh(force = false): Promise<void> {
     if (this._refreshing !== null) return this._refreshing;
     if (!StuffApi.findByTemplatePath(TemplatePaths.worldClockRegistry)) return Promise.resolve();
     const nowS = WorldClockApi.getNow().rawValue();
@@ -149,7 +164,7 @@ export default class Shore extends ShoreBase {
     return run;
   }
 
-  private async readWater(nowS: number): Promise<void> {
+  protected async readWater(nowS: number): Promise<void> {
     const ref = this.reachRef;
     if (!ref) {
       this._memo = { reach: null, standing: null, disciplineKey: null, atS: nowS };
@@ -196,10 +211,10 @@ function waterReadAugmenter(text: string, host: Stuff, viewer: Stuff): string {
   if (!(host instanceof Shore) || host.isDestroyed()) return text;
   const memo = host.waterRead();
   const lines: string[] = [];
-  if (memo === null || memo.reach === null) {
+  if (memo === null || (memo.reach === null && !memo.lines)) {
     lines.push('The water is hard to read yet.');
   } else {
-    lines.push(...physicalRead(memo));
+    lines.push(...(memo.lines ?? physicalRead(memo)));
     const standing = memo.standing;
     if (standing !== null && memo.disciplineKey !== null) {
       const registry = StuffApi.findByTemplatePath<Stuff>(FISHERY_REGISTRY_PATH) as unknown as FisheryRegistry | null;

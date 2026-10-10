@@ -886,6 +886,7 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
   SampledMixin: '{} is not a sample — take one with `sample`, so it says where it came from',
   ChargedMixin: "{} doesn't hold a charge",
   MarkedMixin: "{} doesn't carry a mark",
+  ChartedMixin: "{} has nothing to tell you about the water",
   LabelledMixin: "{} can't be labelled",
 
   // Conveyance & haulage.

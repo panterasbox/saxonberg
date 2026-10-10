@@ -147,6 +147,12 @@ settings:
   # ⭐ ONE kilometre — the stretch you can fish from where you stand, not
   # the whole reach between two nodes: at 3 the confluence held eight
   # hundred fish and no net could empty it in an afternoon (the drive).
+  # ⭐ How many fish a 0.1° cell of open sea holds at a band's full
+  # abundance (maritime D7) — the sea's counterpart to a reach's length.
+  # A cell is ~six miles across, so this is a shoal, not an ocean.
+  - key: water.fishery.seaCellCapacity
+    value: "40"
+
   - key: water.fishery.reachLengthKm
     value: "1"
 
