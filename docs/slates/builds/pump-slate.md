@@ -5,8 +5,8 @@
 > the suction limit as arithmetic over the place, the force pump, the
 > village well, the seal as recurring demand, the bellows verb unified,
 > and the city intake as a pumped main that a tap uphill can feel. ⚠ The
-> ledger below wants compacting at the sweep (`/compact-slate`).
-> **Still Left:** dewatering the mine · the power ladder past men and the
+> ledger below wants compacting (`/compact-slate`).
+> **Left:** dewatering the mine · the power ladder past men and the
 > grid (animal → water → steam — the steam-engine slate) · the
 > **shared-pump public-goods problem** and the hoist toll · ⭐⭐ **stopping a
 > pump as an act against someone else** (the city pump is stoppable now and
@@ -19,7 +19,7 @@
 > clause — *"everything below the water table — shaft/hoist/pump
 > (`LiftMixin`…)"*. It has **four customers** and scores four lenses at
 > ⭐⭐⭐, which is what earns it a file rather than a line.
-> **Left:** the pump as substrate (lift · throughput · power · seal) · ⭐⭐⭐
+> *Left before the pump build (kept for the record):* the pump as substrate (lift · throughput · power · seal) · ⭐⭐⭐
 > **the ~10 m suction limit** and the atmospheric-pressure constant it
 > needs · the force pump as the second rung · the power ladder (men →
 > animal → water → steam) · dewatering the mine · the village well · the

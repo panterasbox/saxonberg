@@ -1,7 +1,8 @@
 /**
  * ⭐⭐ **The pump, driven end to end** — the pump build's exit criterion,
  * run against the real socket. The requirements' drive script, step by
- * step (`docs/requirements/pump-requirements.md § The drive`).
+ * step (the pump build's requirements, retired at its sweep — the subsystem
+ * is docs/subsystems/pump.md).
  *
  * In one sentence: *walk to the village well at Rejection, work its pump
  * and carry water a machine raised; take a barometer up a hill; try to

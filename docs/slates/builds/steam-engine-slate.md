@@ -286,8 +286,8 @@ readings worth recording now because they are what justifies the file.
 
 See also: [pump-slate](./pump-slate.md) (**the parent** — the limit this
 answers, and the first consumer) ·
-[pump-requirements](../../requirements/pump-requirements.md) (the survey
-that found this gap) · [mining-slate](./mining-slate.md) +
+[pump.md](../../subsystems/pump.md) (the pump build that settled the
+coupling — its requirements survey found this gap) · [mining-slate](./mining-slate.md) +
 [metal-chain-slate](./metal-chain-slate.md) (dewatering, the coal→coke
 transition, and the drainage commons this engine is historically *for*) ·
 [rgo-unification-slate](./rgo-unification-slate.md) (who holds the
