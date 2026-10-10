@@ -1,6 +1,10 @@
 # Dairy — implementation plan
 
-Executes [dairy-requirements.md](../requirements/dairy-requirements.md).
+Executes [dairy-requirements.md](../requirements/dairy-requirements.md)
+(as revised at `d12166754` — moulds). **Revised 2026-10-10: moulds** — D9
+and everything that hung on it (the press, the hoop, the wheel's row, the
+`mould` verb) were reopened with the user; the revised decisions are
+marked.
 **Kind:** feature (a trade, and the venues it belongs to) · **Leads
 from:** content · **first consumers of the four kernel seams:** milk
 (spoils), the cheese vat (a live ferment holds off rot), the wheel (a
@@ -10,14 +14,18 @@ What is built: a `trade-dairying` capability pack whose products are
 ROWS over shipped substrate — a setting pan and a churn that are
 **fractionating** vessels (the volume-drawn twin of maturation already
 ships `separation: fractions`, which is a pan with a plug at the bottom),
-a cheese vat that is a `Vat`, a hoop that is a by-hand build vessel with
-its own terminal verb (`mould`), a wheel that is a `Provision` composing
-a new kernel `RipeningMixin`, and three milks whose cream and curd yields
-**derive** from their own fat and protein. Six small kernel seams carry
+a cheese vat that is a `Vat`, a kernel **mould system** — a vessel that
+answers *when what is in me sets, what shape comes out?*, with the cheese
+hoop (curd sets by draining, faster and further under a weight), the
+smelt's ingot mould and the commons' ice pan (both freezing) as its three
+consumers and **no verb** — a wheel that is a `Provision` composing a new
+kernel `RipeningMixin`, and three milks whose cream and curd yields
+**derive** from their own fat and protein. Seven small kernel seams carry
 it (a spoilage hold, a batch rekey on a pour, a scald mark, a composition
-share, a rest gate on a fraction schedule, a sex/rest pair on a tap), one
-ranching wave gives the herd a sex and a dry period, and three venues
-prove the second-venue claim with rows.
+share, a rest gate on a fraction schedule, a sex/rest pair on a tap, and
+the set site asking its container first), one ranching wave gives the
+herd a sex and a dry period, and three venues prove the second-venue
+claim with rows.
 
 ---
 
@@ -75,6 +83,32 @@ and the resolution is named so the user can veto it.
    `whey`-tagged contents match a `culture`-kind profile, so a crock of whey
    IS a living starter (viability, feeding, kill) — same outcome, honest
    mechanism. The requirement's observable behaviour is unchanged.
+
+7. **"Salt the curd" (step 15) / "salted curd set in a hoop."** No shipped
+   act salts BULK matter: `cure` (trade-cooking, the salting trough) salts
+   a discrete `Provision`, and a `Vat` is not a container a sack can be
+   emptied into. **Resolution (D21):** salting is the shipped `cure` on the
+   **unmoulded wheel** (dry-salting a pressed wheel is how most hard
+   cheeses are actually salted; the creamery props a salting trough and a
+   salt sack), so step 15 reads *pour the curd, weight it, take the wheel
+   out, salt it*. The observable — a salted wheel that keeps longer by the
+   water-activity model — is unchanged. Salt IN the hoop (a dissolving
+   solute at the set) is recorded as a seam, not built.
+8. **Step 19a needs molten copper**, and the smelt today never makes a
+   pool: `runCharge` clones the product ROW into the furnace
+   (`SmeltController.ts:719`, `pour()`), and the only liquid-metal path in
+   the engine is a `Meltable` solid melting onto the room's **floor**
+   (`Thermal.ts doMelt`). **Resolution (D19):** the smelt's LIQUID branch
+   runs the metal, as bulk at the furnace's held temperature, into an empty
+   mould or crucible in the room; the shipped freeze edge then casts it —
+   an ingot in the mould, a lump in a crucible. With neither in reach it
+   pools on the hearth as a lump (the metal's own `castTemplate`). ⚠ That
+   changes the smelt's shipped output when no mould is present
+   (`SmeltController.test.ts` expects an `Ingot` from `smelt-copper`); the
+   Rejection smelter props an ingot mould in W4 so the chain the metal-
+   chain drive walks still ends in an ingot. The drive step itself needs
+   ore at the smelter — a wizard session clones an ore lot (the taps
+   drive's set-up precedent).
 
 One finding, not a conflict: there is no goat anywhere in the realm (the
 only `capra` grep hit is *satyrus*), and `HeadSeed`'s `sex` is computed at
@@ -322,7 +356,8 @@ Every fact verified by opening the file on `reqs/dairy` at `2c0a6c139`
   `requireDeed` + `craft({recipeRef})` with no discipline filter; `plate`
   is cooking's terminal mint; `strain` the bar's; `quench` the smith's
   (crafting.md § Verbs). `make` runs a transcribed recipe-script after the
-  deed. **No view claims `churn`, `mould`, `hoop` or `wedge`.**
+  deed. **No view claims `churn`.** (`mould`/`hoop` are no longer verbs
+  this build needs.)
 - `HeatController.ts` (88 lines) — `isBuildVessel` gate, `reachableHeatK()`
   on the giver, `build.noteHeat(finalK)` at completion. The physical path is
   thermal.md § The furnace couple: `restamp()` asks `heatSourceK()` first
@@ -350,6 +385,55 @@ Every fact verified by opening the file on `reqs/dairy` at `2c0a6c139`
   `butchery.yaml`; `Discipline.ts` fields `key, channel, label,
   description, iscedf, requires, specializes, synergizes, conferrals,
   stock`.
+
+### Casting, the set site, the smelt, the ice pan (revised 2026-10-10)
+
+- `lib/thermal/Thermal.ts` — `reconcilePhaseImpl` (l.1213) runs
+  `reconcileMelt` on a `Meltable & Thermal` host and `reconcileBulkPhase`
+  (l.1281) on every `Bulkable & Thermal` host. The solidify edge (l.1304–
+  1380): plateau at `mp` while `latentRemovedJ` banks, the ruin branch,
+  then **`StuffApi.clone(mat.getCastTemplate())`** with mass from the
+  pool, material/prose stamped only when the clone authored none, and
+  `ContainmentApi.move(cast, v.getContainer())` — the cast lands **beside
+  the vessel**, and the pool's payload is nulled (`setBulkPayload(aff,
+  null)`). `doMelt` (l.1255) flows a melted solid onto the scope's
+  `Floor` surface bulk — ⚠ **no crucible class or row exists anywhere**
+  (`grep -rn Crucible` is empty).
+- `Material.castTemplate` (`Material.ts:468`, authorable, default
+  `/stuff/thing/Casting`); only `water.yaml` authors one
+  (`/stuff/thing/ice-block`). `platform/thing/Casting = AlloyedMixin(MeltableMixin(ThermalMixin(Good)))`;
+  `generic-objects/.../Casting.yaml` is the lump row;
+  `ice-block.yaml` is a `Casting` row over `/trade/bottling/idea/material/ice`
+  at 4 kg. `ice-pan.yaml` is a `Receptacle` (4 L, no Container, no
+  Crafted) whose own header says the pan is a mould in all but name.
+  `Thermal.freeze.test.ts` asserts the plateau, the solidify and the ruin
+  — not where the cast lands.
+- `trade-smelting`: recipes `smelt-copper`/`cast-bar` name
+  `/trade/smelting/thing/copper-ingot` (`/platform/thing/Ingot =
+  AlloyedMixin(ManualBuildMixin(MeltableMixin(ThermalMixin(Good))))`, a
+  build vessel — which is why a smith can `hammer` an ingot and not a
+  `Casting`). `SmeltController.runCharge` (l.399–535): destructs the
+  charge, computes `liquid = !ferrous || heldK >= meltingPointOf(carbon)`,
+  resolves `productRowFor(material)` by `_materialPath` under
+  `/trade/smelting/thing`, and `pour(furnace, row, kg)` clones the row
+  INTO the furnace; credits `smelting`. `SmeltingFurnace =
+  ContainerMixin(Forge)`; the Rejection smelter props the furnace, tongs,
+  slag, an anvil, a hammer, two charcoal — no mould, no crucible.
+  Shipped assertions on the output: `SmeltController.test.ts` (an `Ingot`
+  from `smelt-copper`), `smelt.test.ts:138` (reads the copper-ingot row),
+  `metallurgy.dirty.wire.test.ts:245` (the store's ingot is gone — not
+  the smelt's).
+- `lib/spatial/Placing.ts` — `getPlaced(name?)` walks the host's
+  environment for items whose placement pair names it (no storage on the
+  mixin); `airExposure` authorable; `canPlace` veto. `put.yaml` accepts a
+  `PlacingMixin` target with `on`. `get.yaml` reaches into an open
+  container or off a surface by name (`scope: peers`).
+- `lib/material/Durable.ts` — composes on any Stuff; `wear(amount =
+  0.01)`, `isBroken()` at the `crafting.brokenThreshold` dial.
+- Discipline credit for a vessel act: `platform/idea/cmd/bulk/PourController.ts:98–120`
+  credits `fermenting` on a rack of a finished batch and the schedule's
+  own discipline on a draw; `Maturing.ts` credits nothing itself.
+- `Mixins` has no `Mould`; `Cast` is the identity rung's name.
 
 ### The pack rung, the harness, the gates
 
@@ -392,7 +476,8 @@ Every fact verified by opening the file on `reqs/dairy` at `2c0a6c139`
 **D1 — The pack, and the four homes.** `trade-dairying` at `/trade/dairying`
 (root claim titled to `{organization: /compact/trade}`, the placeless-trade
 rule). It holds the PROCESS: the five vessel classes (`SettingPan`, `Churn`,
-`CheeseVat`, `Hoop`, `Wheel`), the `mould` verb, the intermediate and
+`CheeseVat`, `Hoop`, `Wheel` — and, since the 2026-10-10 revision, **no
+verb**: the pack ships no `cmd/`), the intermediate and
 product materials (`skim-milk`, `cream`, `churned-cream`, `buttermilk`,
 `butter`, `whey`, `renneted-milk`, `scalded-milk`, `soft-curd`,
 `firm-curd`, `yoghurt`, `ricotta`, `soft-cheese`, `hard-cheese`, `rennet`),
@@ -441,7 +526,7 @@ or `× 2.4` (soft) — ewe's milk gives roughly twice the cow's curd per
 litre with nothing authored per species; (b) `Maturing.startBatch` records
 the batch's input material as `BulkPayload.parts = [{material, fraction:
 1}]` (a batch remembers what it was made from — true of wine too), the
-craft carries `parts` through the mould into the wheel's stored payload,
+the set site carries `parts` from the pool onto the wheel's stored payload,
 and the wheel's `taste` line names it (*"a ewe's-milk cheese"*). The
 cheese TYPE (soft/hard) is the material; the species is the payload.
 (Lens 2 decides: the alternative — a profile and a product material per
@@ -554,41 +639,159 @@ filled `rennet-jar` row (the barm precedent). The dairy farm keeps a
 `calf-register` (tally 3, `foundingMeanAgeDays 45`, `femaleFraction 0.5`)
 so AC 9 is reachable in the world the drive runs in.
 
-**D9 — The wheel is a `Provision` composing a kernel `RipeningMixin`, pressed
-in a by-hand build whose terminal verb is `mould`.** `lib/maturation/Ripening.ts`
-— the DISCRETE twin of `Maturing`: no bulk, no strain, no lees; reuses
-`MaturationProfile` rows matched by the host's **material** tags
-(`soft-cheese`, `hard-cheese`), folds the host's `temperatureTrajectory`
-through `rateAt`/`damageSat` exactly as `Maturing` does (the two helpers
-move to module scope of the profile file so neither mixin copies them),
-phases `idle | active | finished | turned | killed` (a stored `killed` —
-the flag maturation.md records as its own deferred seam, taken here because
-a wheel cannot be re-pitched), grade = `min(damage, inputBand, maturity)`
-written to the Graded face each reconcile with `productAtFraction` opening
-the *young but sellable* window; `turnDays` + an **open** host is "goes
-over" (a soft wheel in a game week; `turned` writes `poor`); a hard profile
-authors no turn and its `maturityBand` keeps climbing to `masterful` over
-game months. `look` and `taste` read the band in words (*young · coming
-on · ripe · over · gone*), never a digit. Composition-validated on
-`Fresh + Thermal + Graded` hosts (so `Provision`), composed by **`Wheel`
-only** (`trade-dairying/src/thing/Wheel.ts`, `RipeningMixin(Provision)`);
-rows `soft-wheel` / `hard-wheel` are `Wheel` rows over the two cheese
-materials (`soft-cheese`: `Ea 70000`, `a_w 0.97`; `hard-cheese`: `Ea
-70000`, `a_w 0.91`). The press: `Hoop = ManualBuildMixin(ToolMixin(DurableMixin(CraftVessel)))`
-(`capabilities: ['hoop']`, the `CookPot` shape — curd is poured in with
-the build `pour`, salt put in), and the dairying pack's `mould [<hoop>]`
-terminal (`MouldController`, the `plate` shape: `CraftingApi.mintFromBuild`
-reverse-matches the hoop's contributions to a `discipline: dairying`
-recipe and mints the wheel into the maker's hands; the first faithful
-`mould` earns the deed; `make soft-wheel` runs it thereafter). Recipes
-`soft-wheel` / `hard-wheel` (`{curd, bulk 2 L, category soft-curd |
-firm-curd} + {salt, item 1}`, `toolCapabilities: [hoop]`, `outputTemplate`
-the wheel row, `difficulty: standard`). `press` stays the ticker's (the
-requirements closed it); `mould` is chosen because a cheese mould IS the
-hoop and the glass slate already calls the hoop a mould — the rung where
-glass's form later joins the same verb. The hoop is a **reusable** tool
-(`Durable`, wears per mould; `repair` restores it) — the glass slate's
-question, decided: consumed moulds are the sand-casting rung, not this one.
+**D9 (revised 2026-10-10: moulds) — Moulds are a kernel system; the hoop is
+its first consumer; the wheel is a `Provision` composing a kernel
+`RipeningMixin`; there is no verb.** A mould is a vessel that answers one
+question — *when what is in me sets, what shape comes out?* — and the
+glass slate's finding stands: today the MATERIAL decides (`castTemplate`
+at the freeze edge) and the RECIPE decides (`outputTemplate`), and a
+mould is exactly the claim that the **container** decides and the recipe
+owns no shape. Three pieces:
+
+*(a) `lib/mould/Mould.ts` — `MouldMixin` + `Mould` interface*, a new
+`lib/<subsystem>/` folder (the pump precedent; doc `docs/subsystems/mould.md`).
+Composed on a `Bulkable + Thermal + Container` host. Authorable fields:
+`castTemplate` (identity ref — the shape), `reusable` (default `true`),
+`wearPerCast` (default `WEAR_PER_USE`), `discipline` (default `''` — what
+a fill credits). Methods: `castTemplateFor(material)` (the row's
+`castTemplate`; a **broken** reusable mould answers the material's own
+default — a cracked mould casts a lump), `takeCast(cast)` (moves the set
+thing INTO the mould, wears a reusable mould or breaks a consumed one),
+`holdsCast()`, `loadKg()` (`Σ mass` of what is placed `on` it when the host
+composes `PlacingMixin`, else 0), `reconcileSetting()` (the drain set,
+below), `setLine()` (*filled · setting · set*, no digit). ⭐ **Every set
+site asks the container first and falls back to the material**: the
+freeze edge in `Thermal.ts` becomes `const mould = MixinApi.isMould(v) ? v :
+null; template = mould?.castTemplateFor(mat) ?? mat.getCastTemplate();
+destination = mould ?? scope`, and when the cast is `Fresh`/`Contaminable`/
+`Crafted` the pool's `freshness`, `pathogens`, `maker` and `parts` are
+carried onto it (today the payload is nulled — right for an ingot, wrong
+for food). A plain vessel keeps today's behaviour exactly: the lump drops
+beside it. `platform/thing/Mould = MouldMixin(DurableMixin(CraftedMixin(ThermalMixin(BulkableMixin(ContainerMixin(Good))))))`
+is the instanceable twin every row but the hoop names.
+
+*(b) Setting is the MATERIAL's.* Freeze is shipped (`meltingPoint` +
+latent heat). **Drain** is new and is also a material fact:
+`Material.drainSetting?: { days, becomes?, moisture: {unloaded, loaded},
+loadRef }` (authorable) — curd drains over `days` unloaded, `(1 +
+loadKg / (poolKg × loadRef))` times faster under a weight, and sets with
+`moisture = lerp(unloaded, loaded, min(1, loadKg / (poolKg × loadRef)))`
+written to the cast's water state; `becomes` is the material the set
+thing is (curd → cheese, the way a finished batch swaps to its product;
+absent ⇒ the pool's own material, which is what freezing does). The
+cast's mass is the pool's less the water driven out (`poolKg × (1 − (1 −
+moisture) × waterFraction)`). `MouldMixin.reconcileSetting()` is
+reconcile-on-read on the mould's own reads (`look`, `get`, the bulk
+reads) and integrates the LOAD as it stands at each read (the `Stand`
+form, stated). `soft-curd` authors `{days: 0.5, becomes: soft-cheese,
+moisture: {unloaded: 0.9, loaded: 0.75}, loadRef: 2}`; `firm-curd`
+`{days: 0.5, becomes: hard-cheese, moisture: {unloaded: 0.8, loaded:
+0.55}, loadRef: 2}`. With `a_w = base · moisture · (1 − solute)`, a
+weighted firm wheel sits at or under the microbial floor and keeps for
+months; an unweighted soft wheel at ≈ 0.89 keeps days. Nothing enumerates
+"hard cheese keeps": the press drove the water out. Dry, cure and bake
+are later set processes on the same hook (deferred seams).
+
+*(c) The acts are the shipped ones.* `pour vat into hoop`, wait (the
+whey draws down; `look hoop` says *"it has drawn down and firmed"*), `put
+stone on hoop` to press (D21), `get wheel from hoop` (the hoop is an
+open container; `get` reaches in). **No `mould` verb, no `MouldController`,
+no recipe naming the wheel, no deed** — a gate whose key does not exist
+is a lock (`preserve`'s ruling). The same three acts cast an ingot and
+freeze a block (D19, D20). The fill decides the size (mass from the pool,
+the shipped rule); an over-full hoop spills by the pour rule.
+
+*The hoop and the wheel.* `Hoop = PlacingMixin(MouldMixin(DurableMixin(CraftVessel)))`
+in `trade-dairying/src/thing/` — `CraftVessel` for food equipment
+(washed, a surface load), `Durable` for the wear, `Placing` for the stone
+(a drain mould takes a press; an ingot mould does not, so `Placing` is the
+hoop's and not `Mould`'s), `MouldMixin` outermost; row `hoop`
+(`castTemplate: /trade/dairying/thing/wheel`, `discipline: dairying`,
+`closure: liquidTight` — the whey leaves by the set clock, not by the
+drain-through arm, which would empty the hoop onto the floor the way the
+pail once did). `Wheel = RipeningMixin(Provision)` implements `Splittable`
+(D10); **one row**, `/trade/dairying/thing/wheel`, authoring **no
+material**: the set stamps the pool's `becomes` (`soft-cheese` /
+`hard-cheese`), so one hoop and one wheel row give every cheese the milk,
+the curd and the press can make. `RipeningMixin` (`lib/maturation/Ripening.ts`)
+is the DISCRETE twin of `Maturing`: no bulk, no strain, no lees; reuses
+`MaturationProfile` rows matched by the host's material tags
+(`soft-cheese`, `hard-cheese` — the `becomes` materials, so a vat's curd
+never matches a ripening row), folds the host's `temperatureTrajectory`
+through the profile's `rateAt`/`damageSat`, phases `idle | active |
+finished | turned | killed` (a stored `killed`, maturation.md's own
+deferred seam, taken because a wheel cannot be re-pitched), grade =
+`min(damage, inputBand, maturity)` written to the Graded face each
+reconcile with `productAtFraction` opening the *young but sellable*
+window; `turnDays` on an open host is "goes over" (soft, `poor`); a hard
+profile authors no turn and climbs to `masterful` over game months. `look`
+and `taste` read the band in words. Composition-validated on `Fresh +
+Thermal + Graded`; composed by `Wheel` only (kernel rather than pack
+`lib/` because the requirements name it a kernel seam and its second
+composer, a cured ham, is cooking's — the only common home is the kernel).
+The hoop is **reusable** and wears per cast (`repair` restores it); the
+`reusable` property ships on the mixin and **no consumed mould ships**
+(the first casting trade that needs sand or wax ships one).
+
+**D19 (new 2026-10-10) — The smelt's ingot mould.** `runCharge`'s LIQUID
+branch (`!ferrous || heldK ≥ meltingPoint`) no longer clones a product
+row. It looks for an **empty `Mould` in the furnace's room**, else an
+empty plain `Bulkable + Thermal` vessel (a crucible), and runs the metal
+into it as bulk — `massToLitres(kg, metal)` litres of the metal's own
+Material through a transient `UnboundedReceptacle` (the `pourTake` shape)
+at `heldK`, the calorimetric blend heating the vessel — and the shipped
+freeze edge does the rest as the vessel cools: in a mould, the mould's
+`castTemplate` (`/trade/smelting/thing/ingot`, an `Ingot`-class row
+authoring no material, stamped from the pool — one row for copper, tin
+and cast iron alike; `copper-ingot.yaml` stays for `cast-bar`); in a
+crucible, the metal's `castTemplate` — a `Casting` lump beside it. With
+neither in reach the metal pools on the hearth and sets as a lump in the
+furnace. The SOLID branch (a bloom, a carburized bar) is untouched. New
+rows in `trade-smelting`: `thing/ingot-mould` (`/platform/thing/Mould`,
+fired clay, `castTemplate` the ingot, `discipline: smelting`,
+`interiorCapacity 0.6` L ≈ 5 kg copper), `thing/ingot`, `thing/crucible`
+(`/platform/thing/Receptacle`, refractory). `SmeltController.test.ts`
+changes with it: an `Ingot` with the mould in the room, a `Casting` lump
+without, the mass conserved either way. A bar is **still hammerable only
+as an `Ingot`**, so a lump wants recasting through a mould — which is what
+the `cast-bar` recipe's prose has always described. ⚠ `world-seed`'s
+`casting-yard` is the SPELL practice yard and is not touched.
+
+**D20 (new 2026-10-10) — The ice pan is a true mould.** `ice-pan.yaml`
+re-classes to `/platform/thing/Mould` with `castTemplate:
+/stuff/thing/ice-block`; `water.yaml`'s `castTemplate` line is **removed**
+(water frozen in a bucket is a lump of ice, the generic cast — its prose
+reads *cast lump of water*, and the `Casting` clone's generic line gains
+*frozen* when the material is a liquid at room temperature so it reads
+*frozen lump of water*; a one-line prose fix in the solidify edge). Same
+block, honest reason. The shipped cold-storage tests that freeze water in a
+PLAIN vessel and expect `ice-block` (if any — `Thermal.freeze.test.ts`
+asserts the plateau and the ruin, not the row) change to the pan.
+
+**D21 (new 2026-10-10) — Pressing is a weight on the hoop; salt is the
+shipped `cure`.** `put stone on hoop` (Placement `on`; the hoop composes
+`PlacingMixin`, `placements: ['on']`, `canPlace` accepting anything with a
+mass) — `loadKg()` is the drain rate's and the final moisture's input
+(D9b); `get stone` lifts it. The press stone is a commons row
+(`generic-objects/.../press-stone.yaml`, a `Good` of granite, 12 kg) — the
+hoop is the only thing that reads it, by mass, which is why a sack of
+flour works too. **Salt** does not go in the hoop (conflict 7): the
+unmoulded wheel is a `Provision`, and trade-cooking's `cure` at the
+creamery's salting trough applies the shipped `salt-cure` recipe's
+`cure: {solute}` — the hard wheel's second hurdle, stacking with the
+press's moisture exactly as the water-activity model says. The creamery
+props a `salting-trough` and a `salt-sack`.
+
+**D22 (new 2026-10-10) — Credit at the fill; no deed.** The bulk
+`PourController` already credits a destination's schedule discipline on a
+draw; it gains the symmetric line: a pour INTO a `Mould` whose row authors
+a `discipline` credits it at `standard` (the hoop → `dairying`; the ingot
+mould → `smelting`; the ice pan authors none). The decision a mould
+teaches — how long, weighted or not, when to take it out — is read back
+in the wheel's grade, water state and ripening, which is lens 1's
+pedagogy; there is no recipe, so there is nothing a deed could gate, and
+`make`/`cook` are not involved. `Ripening`'s read credits nothing (a look
+is not a deed); the ripened wheel's grade is the maker's record.
 
 **D10 — `split wheel` → wedges, by the declared shape.** `Wheel` implements
 `Splittable` (`splittable: true`, `planWork` wants an edge — `constructionForm:
@@ -673,7 +876,8 @@ indoor,
 `ambientIntensity 35`; props: two `setting-pan`s, one `churn`, one
 `cheese-vat`, two `hoop`s, the `starter-crock` (a `Vat` row prefilled
 `whey` 1 L), the `rennet-jar` (prefilled `rennet` 0.5 L), a `Hearth`
-row, a `thermometer`, a `salt-sack`, a `water-butt`, a `table`, a
+row, a `thermometer`, a `salt-sack`, a `salting-trough` (cooking's, for
+`cure wheel` — D21), two `press-stone`s, a `water-butt`, a `table`, a
 `consignment shelf` (the co-op's), a jug and two crocks; `cast`: the
 creamery keeper), `location/cheese-room` (below, `down`; `_temperature:
 284`; props: two `/stuff/thing/fixture/shelf`-class Placing rows if one
@@ -714,21 +918,28 @@ a world test that fries roots in butter at the cookhouse.
 **D16 — `dairying` under `fermenting`.** `trade-dairying/content/trade/dairying/idea/Discipline/dairying.yaml`:
 `key: dairying`, `channel: skill`, ISCED 0721, `specializes: [fermenting]`,
 `requires: [recipe-knowledge]`. Credited by: the setting and churning
-schedules (`discipline: dairying`), the curd profiles (the batch's
-credit), the mould and rennet recipes, and `RipeningMixin`'s read.
+schedules (`discipline: dairying`), the hoop (a fill into a mould credits
+the mould's discipline — D22), the rennet, scald and ricotta recipes.
+`RipeningMixin`'s read credits nothing.
 `stockmanship` stays the animal's (the milking act credits it, unchanged).
 
 **D17 — The drive is `packages/wire/tests/dairy.dirty.wire.test.ts`.**
 Dirty: it consumes the creamery's seed starter and rennet, leaves wheels on
 the shelf and milk in pails, drafts and returns heads, and infects a second
-character. Twenty-six steps, every one asserting a state change or the
-exact refusal; the test clock walks setting (hours), ripening (a week; two
-months), the dry-off (0.6 game days) and the rest (3 game days); a second
-`Session` is the stranger; a wizard session reads the ledger.
+character. Twenty-eight steps (the requirements' 26 plus 19a and 19b),
+every one asserting a state change or the exact refusal; the test clock
+walks setting (hours), the hoop's drain (half a game day, twice — one
+weighted, one not), ripening (a week; two months), the dry-off (0.6 game
+days), the rest (3 game days), an ingot cooling and a pan freezing; a
+second `Session` is the stranger; a wizard session reads the ledger,
+clones the ore lot for 19a, and stands at the avenue block's freezer for
+19b (the cold-storage drive's room — the only freezer a player can walk
+to).
 
-**D18 — Staging is six waves, kernel first, each landable.** W0 kernel
-seams · W1 the animals and the kitchen's inputs · W2 the pack · W3 the
-kitchen · W4 the venues · W5 the drive, the docs, the gates.
+**D18 — Staging is seven waves, kernel first, each landable.** W0 kernel
+seams (moulds included) · W1 the animals and the kitchen's inputs · W2 the
+pack · W2b the other two moulds (the smelt, the ice pan) · W3 the kitchen
+· W4 the venues · W5 the drive, the docs, the gates.
 
 ---
 
@@ -752,14 +963,19 @@ claim, and what it refuses.
 | `SettingPan` (`FractionatingMixin(CraftedMixin(ThermalMixin(BulkableMixin(Good))))`) | pack class, rows `setting-pan` | a vessel whose interior yields in fractions as drawn, after a rest. Crafted for `wash`; Thermal for the trajectory; no Container (nothing goes IN a pan). |
 | `Churn` (`ManualBuildMixin(FractionatingMixin(CraftedMixin(ThermalMixin(BulkableMixin(Good)))))`) | pack class, row `churn` (`capabilities: [churn]`, `rate`) | a build vessel (so `stir.yaml`'s `churn` reaches it) whose worked interior separates. Its `setBuildMethod` override is the host's own hook, no guard: a churn with no cream in it records `churned` and nothing breaks. |
 | `CheeseVat` | **none — a `Vat` row** (`/trade/dairying/thing/cheese-vat`, `category: cheese-vat`, 25 L, open) | ⭐ The vat IS the kernel's; the profiles do the work. A pack class here would claim nothing a row cannot. |
-| `Hoop` (`ManualBuildMixin(ToolMixin(DurableMixin(CraftVessel)))`) | pack class, row `hoop` (`capabilities: [hoop]`) | the `CookPot` shape: a build vessel that is a tool. Affords `mould` (`peers` + `environment`) and the platform build steps come from `ManualBuildMixin`. ⛔ Not `CookPot` (a hoop does not cook or plate). |
-| `Wheel` (`RipeningMixin(Provision)`, `Splittable`) | pack class, rows `soft-wheel`, `hard-wheel` | a solid cheese that ripens and divides. `wedgesPerWheel` authorable; `wedgesLeft` persistent. |
+| `MouldMixin` (`lib/mould/Mould.ts`) — `castTemplate`, `reusable`, `wearPerCast`, `discipline` (authorable); `setProgress`, `setStamp` (runtime) | `platform/thing/Mould` and `Hoop` | *when what is in me sets, it takes MY shape and stays in me until taken out.* ⛔ Not `Bulkable` (a pail is not a mould), not `CraftVessel` (a pot is not), not `Receptacle`. The freeze edge asks `MixinApi.isMould`; a host that is not one gets today's behaviour exactly. |
+| `Mould` (class, `MouldMixin(DurableMixin(CraftedMixin(ThermalMixin(BulkableMixin(ContainerMixin(Good))))))`) | `platform/thing/Mould`; rows `ice-pan` (commons), `ingot-mould` (smelting) | a made, wearing, washable vessel that casts. No `Placing` (a weight is the drain mould's fact), no `Contaminable` (an ingot mould is not food equipment). |
+| `Material.drainSetting` (authorable) | `Material` rows (`soft-curd`, `firm-curd`) | *this matter sets by losing water over time, faster under load, and becomes that.* Read only by `MouldMixin.reconcileSetting`; vacuous on every other material. ⛔ Not on the mould (how a thing sets is the thing's business, which is the requirements' own sentence). |
+| the set-site hook in `Thermal.reconcileBulkPhase` | kernel | *the container is asked first.* One `isMould` narrowing at the one place a pool becomes a solid; the payload carries onto a food cast. |
+| `Hoop` (`PlacingMixin(MouldMixin(DurableMixin(CraftVessel)))`) | pack class, row `hoop` (`castTemplate: …/wheel`, `discipline: dairying`, `closure: liquidTight`) | food equipment that casts and takes a weight. ⛔ No `ManualBuildMixin` (nothing is reverse-matched), no `ToolMixin` (no recipe names a capability). |
+| `Wheel` (`RipeningMixin(Provision)`, `Splittable`) | pack class, **one row** `wheel` authoring no material | a solid cheese that ripens and divides; its material is what set in the hoop. `wedgesPerWheel` authorable; `wedgesLeft` persistent. |
+| `press-stone` | commons row over `Good` | a mass; nothing reads it but a hoop's `loadKg()`. |
+| `ingot`, `ingot-mould`, `crucible` | `trade-smelting` rows (`Ingot`, `Mould`, `Receptacle`) | the smelt's three answers: a shape, a lump, a hearth. |
 | `wedge`, `vell`, `ricotta` (if discrete) | `/platform/thing/Provision` rows | food; no class. |
 | `starter-crock`, `rennet-jar`, `cheese-vat` | `/platform/thing/Vat` rows (prefilled) | the culture-jar shape. ⚠ A rennet jar is a `Vat` only so `pour` from it carries no strain and so the row can prefill; its material matches no profile and it idles. The build may prefer `GradedReceptacle` for the jar — either is a row. |
 | `skim-milk`, `cream`, `churned-cream`, `buttermilk`, `butter` (tags `fat`, `dairy`), `whey`, `renneted-milk`, `scalded-milk`, `soft-curd`, `firm-curd`, `yoghurt`, `ricotta`, `soft-cheese`, `hard-cheese`, `rennet` (tag `coagulant`) | `/trade/dairying/idea/material/*` rows | the trade's intermediates and products. Each perishable one authors `Ea` + `a_w`; `rennet` and `butter` author none (salted fat and a salt extract keep). |
 | `ewe-milk`, `goat-milk`, the cow milk's `Ea`/`a_w`/tags | commons (`trade-ranching/content/stuff/idea/material/food/`) | facts about mammals. |
 | `capra/hircus` | commons species tree | a species row. |
-| `mould.yaml` + `MouldController` | `trade-dairying/content/trade/dairying/cmd/crafting/`, `src/idea/cmd/crafting/` | the dairying terminal; afforded by `Hoop` only. |
 | `churn` | `platform/cmd/crafting/stir.yaml` (a verb added to a shipped view) | the alias the requirements chose; `StirController` is the kernel's and the method string is open. |
 | `heat`'s placing arm | `platform/idea/cmd/crafting/HeatController.ts` + `heat.yaml` | a kernel verb widened on its own axis (a pot and a vat are both brought to the fire). |
 | `dairying` Discipline, the profiles, the schedules, the recipes | `trade-dairying/content/…` rows | content. |
@@ -772,7 +988,10 @@ not on who called; `Producing.planTap`'s sex check reads the tap's own
 `sex` and the host's own `getSex()` — a hive authors no `sex` and is never
 asked. If W2 finds itself writing `if (MixinApi.isWheel(…))` inside
 `RipeningMixin`, or a `category === 'cheese-vat'` test inside `Maturing`,
-the host is wrong and the finding goes here, not in code.
+the host is wrong and the finding goes here, not in code. Likewise if
+`MouldMixin` ever asks *what kind of mould am I* — the hoop knows about
+weights because it composes `Placing`, and the mixin asks `MixinApi.isPlacing(this)`
+once, which is an optional capability, not a host-set guard.
 
 ---
 
@@ -791,8 +1010,8 @@ Checked against the tree, not recalled.
 - **The five axes and `<root>/<branch>/`** — `/trade/dairying/{thing,idea}/…`,
   `/trade/dairying/idea/material/*`, `/trade/dairying/idea/maturation/*`,
   `/trade/dairying/idea/fractionation/*`, `/trade/dairying/idea/Discipline/*`,
-  `/trade/dairying/cmd/crafting/mould` with its controller at
-  `/trade/dairying/idea/cmd/crafting/MouldController`; commons rows at
+  (no `cmd/` — the pack ships no verb); kernel substrate at `lib/mould/`
+  with its twin at `platform/thing/Mould`; commons rows at
   `/stuff/idea/{material/food,species}/…`; cooking's at `/trade/cooking/thing/vell`
   and `content/recipes/`; venue rows under `/world/terminus/{hearts-delight,rejection}/…`.
   Kernel: `lib/maturation/Ripening.ts`, `lib/material/CompositionShare.ts`
@@ -818,31 +1037,31 @@ Checked against the tree, not recalled.
   is inherited inside the pack); no `eslint-disable`; no Mongo
   collection; no migration (a dev DB holding pre-`chargedAtS` stills
   comes back with `0`, which is "charged long ago").
-- **A bound arg is `MqlOneResult`** — `MouldController` reads
-  `model.hoop?.stuff`; `HeatController`'s new arm reads `model.target?.stuff`.
+- **A bound arg is `MqlOneResult`** — `HeatController`'s new arm reads
+  `model.target?.stuff`; nothing else binds.
 - **`requires: A|B` deletes a check** — `heat.yaml` moves to `requires:
   any` with the controller narrowing to its two arms (the `split.yaml`
-  shape; declared, so `lint:arg-kinds` sees it); `mould.yaml`'s hoop is
-  `requires: ManualBuildMixin` with `default: "reachable:[capability.hoop]"`;
-  `split.yaml` stays `any`.
+  shape; declared, so `lint:arg-kinds` sees it); `split.yaml` stays `any`;
+  no new view ships.
 - **Identity, not lineage** — the milker stamp and `runMaker` are
   `getIdentityPath()`; the herd overlay keys on `(herdId, index)`.
 - **Lint gates with new work in them:** `lint:mixin-names` (`Ripening`
   added to `Mixins`), `lint:instanceable` (one new instanceable twin per
   pack class with a row; `lib/` substrate-only; every `boot:` entry a real
-  row), `lint:controller-rows` (`MouldController.yaml` ships with its
-  class), `lint:reachability` (`mould.yaml` afforded by `Hoop`; every new
-  row propped), `lint:capabilities` (`hoop` and `churn` declared by rows
-  AND consumed — `hasCapability('hoop')` in the mould recipes' tool gate,
-  `churn` by the row's `rate` read — in the same wave), `lint:mass` (every
+  row; `lib/mould/` substrate-only), `lint:controller-rows` (no new
+  controller), `lint:reachability` (every new row propped — no new
+  verb, so no affordance to miss), `lint:capabilities` (`churn` declared
+  by the churn row AND consumed by the row's `rate` read in the same
+  wave; `hoop` is NOT a capability now), `lint:mass` (every
   Thing row `mass` + `_materialPath`), `lint:perishable` (wheel, wedge,
   vell on `Provision`; cheese/vell materials with `Ea`), `lint:pathogens`
   (unchanged roster), `lint:doneness` (every heated recipe authors
   `maxHeatK`; ceiling stays 0), `lint:anatomy` (the vell line claims no
   tissue), `lint:kept-animals` (the goat row), `lint:arg-kinds`
-  (`mould.yaml`, `heat.yaml`), `lint:verb-collisions` (no second view for
-  `churn`/`mould`; `KNOWN_COLLISIONS` untouched), `lint:closed-vocabularies`
-  (ceiling 5, **no member added to `MATURATION_MECHANISMS`**),
+  (`heat.yaml`), `lint:verb-collisions` (no second view for `churn`;
+  `KNOWN_COLLISIONS` untouched), `lint:closed-vocabularies` (ceiling 5,
+  **no member added to `MATURATION_MECHANISMS`**, and `MaturationProfile.kind`
+  gains no value — ripening rows are told apart by the tags they key on),
   `lint:on-create` (unchanged), `lint:lib-statics` (`--report` before and
   after W0; new mixins carry only `_mixinName`/`fieldMeta`/
   `markupAugmenters`), `lint:unconsumed-seams` (every new authorable
@@ -852,8 +1071,9 @@ Checked against the tree, not recalled.
   row ships in W1 with the species lines that name it), `lint:field-meta`,
   `lint:imports`, `lint:gates` (absolute `FromModule` strings in the pack),
   `lint:module-scope`, `lint:drive-scripts`, `lint:test-bootstrap`,
-  `lint:test-content`, `lint:instrument-args` (`mould`'s hoop is declared
-  with a default; nothing hunts), `lint:dossiers` (the three new cast rows
+  `lint:test-content`, `lint:instrument-args` (nothing hunts; the smelt's
+  mould is found in the furnace's room the way `crewOnShift` reads it —
+  the completion has no binder), `lint:dossiers` (the three new cast rows
   claim competence their seats need), `lint:presentation`, `lint:schema`
   (no collection change).
 
@@ -861,7 +1081,7 @@ Checked against the tree, not recalled.
 
 ## Waves
 
-### W0 — the kernel seams (D2, D3, D4, D6, D7, D8, D9, D12)
+### W0 — the kernel seams (D2, D3, D4, D6, D7, D8, D9, D12, D20, D22)
 
 **Goal.** Every seam a row or a pack class will lean on exists, is tested,
 and changes nothing shipped: every default is today's behaviour.
@@ -906,6 +1126,33 @@ and changes nothing shipped: every default is today's behaviour.
   per-material share. A `look` line for a resting charge (*"It stands;
   nothing has separated yet."* — the pan's own `character` is on its
   fractions; this is the state line).
+- `packages/server/src/mud/lib/mould/Mould.ts` — `MouldMixin` + `Mould`
+  (D9a/b): `static _mixinName: string = 'MouldMixin'`, `fieldMeta`
+  (`castTemplate {persistent, authorable, ref: 'identity'}`, `reusable`,
+  `wearPerCast`, `discipline` authorable; `setProgress`, `setStamp`
+  runtime), `__validateComposition__` requiring `Bulkable`, `Thermal`,
+  `Container`; `castTemplateFor`, `takeCast`, `holdsCast`, `loadKg`,
+  `reconcileSetting`, `setLine`; `markupAugmenters` on `look`.
+  `Mixins.Mould = 'MouldMixin'` + refusal `"{} isn't a mould"`;
+  `MixinApi.isMould`. `packages/server/src/mud/platform/thing/Mould.ts`
+  — the twin (D9a composition), no own fields.
+- `packages/server/src/mud/lib/material/Material.ts` — `drainSetting`
+  (authorable, persistent; setter validates `days > 0`, moistures in
+  `(0, 1]`, `loaded ≤ unloaded`, `loadRef > 0`, `becomes` a path or
+  absent), `getDrainSetting()`.
+- `packages/server/src/mud/lib/thermal/Thermal.ts` — `reconcileBulkPhase`'s
+  solidify tail asks the mould (template, destination, `takeCast`), carries
+  the pool's `maker`/`parts`/`freshness`/`pathogens` onto a cast that can
+  hold them (narrowed by `MixinApi.isCrafted`/`isFresh`/`isContaminable`
+  on the clone), and gains the *frozen lump* prose for a liquid-at-room
+  material. A plain vessel's path is byte-identical.
+- `packages/server/src/mud/platform/idea/cmd/bulk/PourController.ts` —
+  a pour into a `Mould` with a `discipline` credits it (D22), beside the
+  schedule credit.
+- `packages/content/generic-objects/content/stuff/thing/vessel/ice-pan.yaml`
+  → `class: /platform/thing/Mould`, `castTemplate: /stuff/thing/ice-block`
+  (D20); `packages/content/base-library/content/stuff/idea/material/bulk/water.yaml`
+  drops `castTemplate`; `generic-objects/.../gear/press-stone.yaml` (D21).
 - `packages/server/src/mud/lib/maturation/Ripening.ts` — `RipeningMixin`
   + `Ripening` interface (`reconcileRipening`, `getRipeningPhase`,
   `getRipeness()` → fraction, `holdsSpoilage`, `ripenessLine(viewer)`);
@@ -981,14 +1228,27 @@ takes the surface load, a plain one does not. `Species.dressOut.test.ts`
 no age given. `HeatController.test.ts` — a `Vat` beside a lit `Hearth`
 is placed on it and its `restamp` reads the fire; beside a cold one it
 declines; a build vessel still latches. `StirController.test.ts` — `churn`
-records `churned`.
+records `churned`. `Mould.test.ts` — water in a `Mould` row authoring the
+ice block freezes to an `ice-block` INSIDE the pan and the pan reads
+*set*; the same water in a `Receptacle` freezes to a `Casting` lump
+BESIDE it (today's behaviour, pinned); a broken mould casts the lump; a
+reusable mould wears by `wearPerCast`; a `drainSetting` material in a
+mould authoring `castTemplate` sets after `days` unloaded with
+`moisture.unloaded`, and in half the time with `moisture.loaded` under a
+load of `poolKg × loadRef` placed `on` a `Placing` host; the cast's
+material is `becomes`, its mass is the pool's less the water driven out,
+and `maker`/`parts`/`pathogens` ride onto it; a pour into a mould with
+`discipline` credits the pourer once at `standard`; `water.yaml` without a
+`castTemplate` still freezes (to a lump) in every shipped cold-store test
+(those tests move their expectation to the pan or stay on the plateau —
+named in the commit).
 
 **Acceptance.** `pnpm test:near` green; `pnpm -C packages/server lint:family`
 green with `closed-vocabularies` at 5, `on-create` unchanged,
 `lib-statics` unchanged (`--report` diff shows only `_mixinName`/
 `fieldMeta`/`markupAugmenters`); every shipped maturation, fractionation
 and taps test unchanged.
-**Commit:** `build(dairy W0): the kernel seams — a live ferment holds spoilage, a pour may rekey a batch, a solid ripens, a tap has a sex and a rest`.
+**Commit:** `build(dairy W0): the kernel seams — a live ferment holds spoilage, a pour may rekey a batch, a mould decides the shape of what sets, a solid ripens, a tap has a sex and a rest`.
 
 ### W1 — the animals, the milks, the vell, the pail (D3, D8, D11, D12, D13)
 
@@ -1040,33 +1300,38 @@ checkpoints (`pnpm wire -- pump.dirty taps.dirty`); `lint:family` green
 line; `lint:kept-animals` passes the goat).
 **Commit:** `build(dairy W1): three milks, a goat, a vell off a young head, a herd with a sex and a dry period, and a pail you can wash`.
 
-### W2 — the `trade-dairying` pack (D1, D4, D5, D7, D9, D10, D16)
+### W2 — the `trade-dairying` pack (D1, D4, D5, D7, D9, D10, D16, D21)
 
 **Files.**
 - `packages/content/trade-dairying/{package.json, pack.yaml, tsconfig.json,
   vitest.config.ts, README.md}` — deps `platform`, `base-library`,
-  `generic-objects`, `trade-cooking` (the vell, the salt sack, the
-  butcher's categories), `@saxonberg/server`, `@saxonberg/types`;
+  `generic-objects`, `trade-cooking` (the vell, the salt sack, the salting
+  trough, the butcher's categories), `@saxonberg/server`, `@saxonberg/types`;
   `root: /trade/dairying`; title `{extent: /trade/dairying, holder:
   {organization: /compact/trade}}`; `boot:` none (catalogues warm by
-  class). Root `package.json` gains the line; `pnpm install`.
+  class). Root `package.json` gains the line; `pnpm install`. **No `cmd/`
+  and no controller — the pack ships no verb.**
 - `src/thing/SettingPan.ts`, `Churn.ts`, `Hoop.ts`, `Wheel.ts` (D4, D5,
-  D9, D10); `src/idea/cmd/crafting/MouldController.ts` (the `plate`
-  shape over `ManualBuildController`; `FromModule('/trade/dairying/idea/cmd/crafting/MouldController')`
-  absolute).
-- `content/trade/dairying/cmd/crafting/mould.yaml` (`verbs: [mould, mold]`;
-  `hoop` `required: false`, `default: "reachable:[capability.hoop]"` — a
-  cook pot beside the hoop must not be the default — `requires:
-  ManualBuildMixin`) + `idea/cmd/crafting/MouldController.yaml`.
-- `content/trade/dairying/thing/{setting-pan, churn, hoop, soft-wheel,
-  hard-wheel, wedge, cheese-vat, starter-crock, rennet-jar, butter-crock,
+  D9, D10, D21).
+- `content/trade/dairying/thing/{setting-pan, churn, hoop, wheel, wedge,
+  cheese-vat, starter-crock, rennet-jar, butter-crock,
   ricotta-basket}.yaml` (every one `mass` + `_materialPath`; the churn
-  `capabilities: [{kind: churn, rate: 1}]`; the hoop `capabilities:
-  [hoop]`; the wheels `wedgesPerWheel: 8`, `_materialPath` the cheese).
+  `capabilities: [{kind: churn, rate: 1}]`; the hoop `castTemplate:
+  /trade/dairying/thing/wheel`, `discipline: dairying`, `reusable: true`,
+  `closure: liquidTight`, `interiorCapacity 4`, `placements: [on]`; the
+  wheel `wedgesPerWheel: 8` and **no `_materialPath`** — the set stamps
+  it; ⚠ `lint:mass`/`lint:perishable` read authored rows, so the wheel
+  row authors `mass` and the gate's material check is satisfied by the
+  `becomes` materials being perishable and the class composing
+  `FreshnessMixin` — if `lint:perishable` insists on a `_materialPath`,
+  the row authors `soft-cheese` as a placeholder the set overwrites, and
+  the plan records it).
 - `content/trade/dairying/idea/material/*.yaml` (the fifteen in D1, with
-  the D2/D9 constants; `butter` tags `[food, dairy, fat, …]`; `whey` tags
-  `[food, dairy, liquid, whey, perishable]`; `cream` `[…, cream]`;
-  `churned-cream`; `rennet` `[coagulant, liquid]`).
+  the D2/D9 constants; `soft-curd`/`firm-curd` author `drainSetting`
+  (D9b); `soft-cheese` `Ea 70000`, `a_w 0.97`; `hard-cheese` `Ea 70000`,
+  `a_w 0.91`; `butter` tags `[food, dairy, fat, …]`; `whey` `[food, dairy,
+  liquid, whey, perishable]`; `cream` `[…, cream]`; `churned-cream`;
+  `rennet` `[coagulant, liquid]`).
 - `content/trade/dairying/idea/maturation/{soft-curd, firm-curd,
   whey-starter, yoghurt, soft-cheese, hard-cheese}.yaml` (D7, D9 — the
   two cheese profiles are the RIPENING rows: `inputCategory: soft-cheese`
@@ -1075,8 +1340,9 @@ line; `lint:kept-animals` passes the goat).
   `productAtFraction 0.3`, soft `turnDays 4`).
 - `content/trade/dairying/idea/fractionation/{milk-setting, churning}.yaml`
   (D4, D5; `discipline: dairying`; characters with no digit).
-- `content/recipes/{soft-wheel, hard-wheel, rennet, scald-milk, ricotta}.yaml`
-  (D8, D9, D15 — `discipline: dairying`, every heated one with `maxHeatK`).
+- `content/recipes/{rennet, scald-milk, ricotta}.yaml` (D8, D15 —
+  `discipline: dairying`, every heated one with `maxHeatK`). **No wheel
+  recipe.**
 - `content/trade/dairying/idea/Discipline/dairying.yaml` (D16).
 
 **Tests** (`src/__tests__/`, the pack's own vitest): `setting.test.ts` —
@@ -1090,23 +1356,53 @@ soft; with rennet, firm; whey drawn off, the residual is curd and
 pourable; the drawn whey into a crock reads as a living starter; a vat
 held at 336 K for thirty game-minutes kills strain, flora and an
 inoculated pathogen, and a fresh pitch starts it again; one held at 375
-K sets `poor`. `wheel.test.ts` — `mould` on a hoop holding 2 L firm curd
-+ salt mints a `hard-wheel` with the maker's mark and `parts` naming the
-milk; the first mould earns the deed and `make hard-wheel` then works;
-a wheel at 284 K reads young → ripe; `split` with a knife yields a wedge
-of the same material and grade and the wheel at seven; `split` with a
-spoon refuses; the wedge spoils on its own clock. `rows.test.ts` —
-every material a profile or schedule names resolves; every recipe's
-categories are carried by some shipped material; no character has a
-digit. A **content test** that the pack ships no Api, no logic singleton,
-no free export (the `trade-tanning` README's shape).
+K sets `poor`. `hoop.test.ts` — 2 L of firm curd poured into a hoop with
+a 12 kg stone `on` it sets in under half a game day into a `wheel` of
+`hard-cheese` INSIDE the hoop with `moisture ≈ 0.55`, the maker's mark
+and `parts` naming the milk, sized by the fill (1 L → half the mass);
+soft curd unweighted sets slower into `soft-cheese` at `moisture 0.9`;
+the hoop's condition fell by `wearPerCast`; `get wheel` lifts it out;
+`cure wheel` at a trough raises `solute`; the hard wheel's `a_w` is under
+the microbial floor and the soft one's is not. `wheel.test.ts` — a wheel
+at 284 K reads young → ripe; `split` with a knife yields a wedge of the
+same material and grade and the wheel at seven; `split` with a spoon
+refuses; the wedge spoils on its own clock. `rows.test.ts` — every
+material a profile or schedule names resolves; every recipe's categories
+are carried by some shipped material; no character has a digit; the
+pack ships no Api, no logic singleton, no free export, no `cmd/`.
 
 **Acceptance.** `pnpm -C packages/content/trade-dairying test` green;
-`lint:family` green (`lint:capabilities` sees `hoop` + `churn` declared
-and consumed; `lint:controller-rows`; `lint:reachability` will complain
-that the rows are propped nowhere until W4 — if it does, the instrument
-rows move to W4's commit, the pump W1 precedent).
-**Commit:** `build(dairy W2): trade-dairying — the pan, the churn, the vat's profiles, the hoop and its mould, the wheel that ripens`.
+`lint:family` green (`lint:capabilities` sees `churn` declared and
+consumed; `lint:reachability` will complain that the rows are propped
+nowhere until W4 — if it does, the instrument rows move to W4's commit,
+the pump W1 precedent).
+**Commit:** `build(dairy W2): trade-dairying — the pan, the churn, the vat's profiles, the hoop that casts a wheel, the wheel that ripens`.
+
+### W2b — the other two moulds (D19, D20)
+
+**Files.** `packages/content/trade-smelting/src/idea/cmd/smelting/SmeltController.ts`
+(`runCharge`'s liquid branch: `mouldInRoom(furnace)` → `crucibleInRoom`
+→ the hearth lump; the bulk run through a transient `UnboundedReceptacle`
+at `heldK`; the tap scene names where it went); rows
+`content/trade/smelting/thing/{ingot, ingot-mould, crucible}.yaml`;
+`packages/content/rejection/content/world/terminus/rejection/location/smelter.yaml`
+props an `ingot-mould` and a `crucible` (⚠ rows in a venue pack this
+build otherwise reaches only in W4 — landed here because the shipped
+smelt chain must not go dark between W2b and W4); the metallurgy
+history line is W5's.
+
+**Tests.** `SmeltController.test.ts` — `smelt-copper` with an ingot mould
+in the room runs the metal into it and, cooled past the latent plateau,
+leaves an `Ingot` of copper IN the mould at the charge's metal mass; with
+a crucible instead, a `Casting` lump beside it; with neither, a lump in
+the furnace; a bloom is still a bloom in the furnace; the smelter is
+credited `smelting` for the run and the pour. `Mould.test.ts` (W0)
+already covers the pan.
+
+**Acceptance.** `pnpm -C packages/content/trade-smelting test` green;
+`pnpm wire -- metal-chain.dirty metallurgy.dirty` still pass; `lint:family`
+green.
+**Commit:** `build(dairy W2b): the smelt runs its metal into a mould — an ingot in the mould, a lump in the crucible — and the ice pan is a mould in name too`.
 
 ### W3 — the kitchen (D15)
 
@@ -1161,24 +1457,30 @@ here is platform's).
 
 ### W5 — the drive, the docs, the gates (D17)
 
-**Files.** `packages/wire/tests/dairy.dirty.wire.test.ts` (26 steps + the
+**Files.** `packages/wire/tests/dairy.dirty.wire.test.ts` (28 steps + the
 optional calf checkpoint; `declareFile.packs` lists every pack the walk
-touches); `docs/subsystems/dairying.md` (new: the trade as a reader
-finds it — the pan, the churn, the vat, the hoop, the wheel, the three
-milks, the hygiene source; one-line pointer added to `CLAUDE.md`'s map
-at the sweep, not here); the touched subsystem docs get their history
-lines (`spoilage.md` § the collision is now decided; `maturation.md` §
-the discrete twin + `transforms`; `fractionation.md` § `restDays`;
-`taps.md` § `sex`/`restDays`; `ranching.md` § the dry period;
-`butchery.md` § `maxAgeDays`; `crafting.md` § `mould`, `churn`, the
-placing arm of `heat`); the plan's § Drive record.
+touches — `trade-smelting` and the avenue block's pack included);
+**`docs/subsystems/mould.md`** (new: the system — the question a mould
+answers, set-site-asks-the-container-first, the two shipped set processes
+and the hook for the next, reusable vs consumed, the three consumers, the
+no-verb rule, what composing `MouldMixin` claims); `docs/subsystems/dairying.md`
+(new: the trade as a reader finds it — the pan, the churn, the vat, the
+hoop and the press, the wheel, the three milks, the hygiene source;
+one-line pointers for both added to `CLAUDE.md`'s map at the sweep, not
+here); the touched subsystem docs get their history lines (`spoilage.md`
+§ the collision is now decided; `maturation.md` § the discrete twin +
+`transforms`; `fractionation.md` § `restDays`; `thermal.md` § the set
+site asks its container; `taps.md` § `sex`/`restDays`; `ranching.md` §
+the dry period; `butchery.md` § `maxAgeDays`; `crafting.md` § `churn`,
+the placing arm of `heat`, and *a mould is not a recipe*; the glass slate
+§8 marked built); the plan's § Drive record.
 
 **Acceptance.** `pnpm wire -- dairy.dirty` passes every checkpoint on a
 fresh DB on `WIRE_PORT=2013`; `pnpm -C packages/server lint:family` green;
 **`pnpm test` once** (the pre-MR run) green; push; MR opened against
 `master`.
 **Commits:** `drive(dairy): what driving the valley's milk found` then
-`docs(dairy): dairying.md and the history lines`.
+`docs(dairy): mould.md, dairying.md and the history lines`.
 
 ---
 
@@ -1198,7 +1500,9 @@ Each capability's five links. Each fails closed and silent.
 | the thermometer | `measure temperature <vessel>` (shipped) | the reading row | the `thermometer` row propped at the creamery | `ReadingCatalogue` (shipped) | `measure`'s subject `requires: any` |
 | pitch, rennet, feed | `pour` (bulk) | — | profiles `soft-curd` (+ `transforms`), `firm-curd`, `whey-starter`; `coagulant` tag on `rennet` | the crock and the jar at `producer` (prefilled rows must be minted to be alive) | — |
 | the curd and the whey | `pour`, `look` | — | `leesShare`, `productMaterial: whey`, `leesMaterial` | — | — |
-| the wheel | `pour` (build view) + `put salt in hoop` + `mould` | `Hoop.commandContributions {peers, environment: [trade/dairying/cmd/crafting/mould.yaml]}` + `ManualBuildMixin`'s pour/stir | recipes `soft-wheel`/`hard-wheel`; `hoop` capability; the `salt` category on the salt sack | — | `mould.yaml hoop requires: ManualBuildMixin`; the recipes' tool gate `hasCapability('hoop')` |
+| the wheel | `pour` (bulk) · `put stone on hoop` · `look hoop` · `get wheel` · `cure wheel` — **no verb of its own** | none needed: `pour`/`put`/`get`/`look` are platform verbs over mixin gates; `cure` is afforded by the salting trough (shipped) | the hoop row's `castTemplate`; `soft-curd`/`firm-curd`'s `drainSetting`; the `wheel` row; the press stone | — | `pour target` `mustHaveBulkSlot` ✓ hoop; `put target` `ContainerMixin\|PlacingMixin` ✓ hoop (so `put stone IN hoop` is also accepted — `Hoop.canAddContainable` refuses a solid into a filled hoop in words); `get targets` `ContainableMixin` ✓ wheel; `cure`'s target a `Provision` ✓ |
+| the ingot | `smelt` (shipped) · `look mould` · `get ingot` | the furnace affords `smelt` (shipped) | `ingot-mould` row in the smelter room; the `ingot` row; the metal's `meltingPoint`/`latentHeatOfFusion` | — | — (the completion finds the mould in the room; no arg) |
+| the ice block | `fill pan`/`pour` · `put pan in freezer` · `get block` | — | `ice-pan.yaml` as a `Mould` with `castTemplate`; a freezer below 273 K (the avenue block fridge) | — | `put target` a Container ✓ freezer compartment |
 | ripening | `look`/`taste` | — | `soft-cheese`/`hard-cheese` ripening profiles; tags on the cheese materials; a cold room (`_temperature: 284`) and a Placing shelf (`airExposure`) | `MaturationProfileCatalogue` (shipped) | — |
 | wedges and a sale | `split`, `consign` | `split` is a platform verb over `requires: any`; `consign`'s shelf default | the `wedge` row; a `ConsignmentShelf` at the creamery | — | `consign thing requires: ChattelMixin` ✓ |
 | raw-milk harm | `wash` (hands), `milk`, `eat`, `chronicle` | `WaterFixture` affords `wash` (the byre's water butt) | `payload.maker`, the `e-coli` row's `incubationSec` | — | `wash target requires: CraftedMixin` ✓ pail |
@@ -1216,7 +1520,9 @@ Each capability's five links. Each fails closed and silent.
 | 3 cream, butter, buttermilk with `pour` + `churn` | D4, D5 (W0 `restDays`, W2 pan/churn/schedules) | W2 tests; drive 7–9 |
 | 4 heating kills; too hot sets badly, in words | D6 (W0 placing arm + `scaldAboveK`) | W2 curd test; drive 10–11 |
 | 5 starter → soft, + rennet → firm; whey off, whey starts the next | D7 (W0 `transforms`, W2 profiles) | W2 curd test; drive 12–14 |
-| 6 a wheel ripens cool, reads in words, is worth more ripe, soft goes over, warm spoils | D9 (W0 `RipeningMixin`, W2 wheel + profiles, W4 the cold room) | W0/W2 tests; drive 16–18 |
+| 6 curd set in a hoop is a wheel of the hoop's shape and the fill's size; weighted firm curd makes a drier, longer-keeping wheel than unweighted soft | D9 (a/b/c), D21 (W0 `MouldMixin` + `drainSetting`, W2 hoop/wheel) | W0 `Mould.test`; W2 `hoop.test` (moisture 0.55 vs 0.9, `a_w` under/over the floor, mass ∝ fill); drive 15 |
+| 6a molten metal in an ingot mould is an ingot, water in an ice pan a block, by the same acts and no verb; a pool in a plain vessel is a lump | D19, D20 (W0 set site + pan, W2b smelt) | W0 `Mould.test`; W2b `SmeltController.test`; drive 19a, 19b |
+| 6b a wheel ripens cool, reads in words, is worth more ripe, soft goes over, warm spoils | D9 (W0 `RipeningMixin`, W2 profiles, W4 the cold room) | W0 `Ripening.test`; W2 `wheel.test`; drive 16–18 |
 | 7 split into wedges, a wedge consigned | D10, W4 shelf | W2 wheel test; drive 19 |
 | 8 ewe's/goat's cheese differs, and follows from the milk | D3 (`CompositionShare`, `parts`) | W0 share test (yields monotone in fat); W2 curd test per milk; drive 24–25 (`taste` names the milk) |
 | 9 rennet off a young head | D8 (W0 `maxAgeDays`, W1 vell + lines + calf register in W4) | W0/W1 tests; the optional drive checkpoint |
@@ -1243,7 +1549,9 @@ Nothing is unmapped.
   rows (profiles, schedules, recipes, venues) — a content test proves the
   content, so the engine tests in W0 stay synthetic.
 - **The wire drive** is the only proof of: the binder on `heat vat`,
-  `wash pail` and `mould`; the placing arm against a real `Hearth`; the
+  `wash pail`, `put stone on hoop` and `get wheel from hoop`; the placing
+  arm against a real `Hearth`; the smelt's mould in a real room; the pan
+  in a real freezer; the
   hygiene decay over six game-hours; the ledger row; the cold room's
   temperature reaching the shelf; the species warm order. It asserts
   UNDERSTOOD + CHANGED (prose or state read back), never "not refused".
@@ -1295,6 +1603,22 @@ Nothing is unmapped.
 - **Drive length.** Twenty-six steps with four clock walks; the pump drive
   ran under `WIRE_BOOT_TIMEOUT=900000`. Budget two sessions plus the
   wizard.
+- **The hoop's `closure`.** `liquidTight` keeps the curd pour in and lets
+  the set clock drain it abstractly; the drained whey is not minted
+  anywhere (a few hundred millilitres per wheel — the floor's puddle
+  would be honest and is a one-line seam if review wants it).
+- **`get` and a set thing inside a `Sealable`-less open container.** The
+  hoop and the mould are open `Container`s; `get wheel` reaches in
+  today. If the binder's `mustBeInLocation` refuses a thing one level
+  down, the fix is the validator's shipped `peers` reach, not a verb.
+- **The smelt's mould is found by ROOM, not by binder.** `runCharge` is a
+  completion with no bound args; it scans the furnace's room for the
+  first empty `Mould`, else crucible. Two moulds in one smelter take the
+  first; recorded, not a bug.
+- **`water.yaml` losing its `castTemplate`** touches every freezing-water
+  test; the ones that assert `ice-block` from a plain vessel move to the
+  pan. A `frozen lump of water` is honest prose and the user has accepted
+  the trade; a `Casting` of ice behaves as the block did (same class).
 - **Stop-and-ask list** (the only real stops): a second mechanism word
   turns out to be unavoidable (it should not — if it is, the design is
   wrong, not the census); a kernel class would have to name a dairying row
@@ -1317,6 +1641,22 @@ Clean attach points, each with the slate it leaves to.
 - **Fluid milk sold cold; the separator; HTST** → `cold-chain-slate`,
   `dairy-slate` *Left*. `restDays: 0` on a `separator` schedule is the
   epoch rung.
+- **The other moulded goods** — candles and soap → `rendering-slate`;
+  bricks (`burn-lime`'s brick clamp), baking tins, press-moulded ceramics,
+  glass press- and blow-moulding → their trades' slates, each a `Mould`
+  row + a material `drainSetting`/freeze/a later set process. **Dry, cure
+  and bake as set processes** are the next hooks on `MouldMixin.reconcileSetting`
+  (a tin that bakes is doneness reaching the set site).
+- **A consumed mould** (sand, lost wax) → the first casting trade that
+  needs one; `reusable: false` ships and `takeCast` breaks it, untested
+  by any row.
+- **Salt in the hoop** (a dissolving solute at the set) → `dairy-slate`
+  *Left*; `cure` on the wheel is the shipped answer.
+- **The pool's payload onto a non-food cast** (dirty water → a dirty
+  block) → `spoilage.md` finding; this build carries it for food only.
+- **A melted solid pooling into a vessel it stands in** (today `doMelt`
+  goes to the floor) → the first consumer that melts stock in a crucible
+  (the recast rung); the smelt's run bypasses it by pouring bulk directly.
 - **Rind care, bloomy/blue moulds, washing a rind** → `dairy-slate` *Left*;
   `RipeningMixin`'s profile is the attach point (a `turnedMaterial` for a
   rind that goes wrong; an act that resets `overDays`).
@@ -1356,9 +1696,15 @@ Read first, in this order:
    `src/lib/HeadSeed.ts`, `src/idea/HerdRegistry.ts`.
 6. `packages/server/src/mud/platform/idea/species/Species.ts` (l.40–110,
    432–560, 1195–1260).
-7. `packages/server/src/mud/platform/idea/cmd/crafting/{HeatController,StirController}.ts`,
-   `packages/content/trade-cooking/src/idea/cmd/crafting/PlateController.ts`,
-   `packages/server/src/mud/lib/craft/ManualBuild.ts`.
+7. `packages/server/src/mud/platform/idea/cmd/crafting/{HeatController,StirController}.ts`;
+   `packages/server/src/mud/lib/thermal/Thermal.ts` (l.1205–1395 — the
+   melt, the solidify edge, the set site to change), `Material.ts`
+   (l.455–500, `castTemplate`), `platform/thing/Casting.ts`,
+   `generic-objects/.../{vessel/ice-pan, ice-block, Casting}.yaml`,
+   `base-library/.../material/bulk/water.yaml`; `lib/spatial/Placing.ts`;
+   `packages/content/trade-smelting/src/idea/cmd/smelting/SmeltController.ts`
+   (l.280–360, 399–535, 700–725) and its `__tests__/SmeltController.test.ts`;
+   `docs/slates/tails/glass-slate.md` §8.
 8. `packages/content/trade-tanning/` (the pack scaffold) and
    `packages/content/trade-cooking/src/thing/{CookPot,KitchenTool}.ts`.
 9. `packages/content/hearts-delight/` (every file) and
