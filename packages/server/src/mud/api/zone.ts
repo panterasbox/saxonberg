@@ -31,7 +31,6 @@
 import { StuffApi } from './stuff';
 import type { Zone } from '../lib/zone/Zone';
 import type { Stuff } from '../lib/stuff/Stuff';
-import type { Container } from '../lib/spatial/Container';
 import type { SpatialZone } from '../lib/zone/SpatialZone';
 import { HotReloadApi } from './hot-reload';
 import { ZoneLogic } from '../platform/idea/api/ZoneLogic';
@@ -121,7 +120,7 @@ export class ZoneApi {
    * See [docs/subsystems/watershed.md].
    */
   public static async elevationFor(
-    scope: Stuff & Container,
+    scope: Stuff,
   ): Promise<number | null> {
     return logic().elevationFor(scope);
   }

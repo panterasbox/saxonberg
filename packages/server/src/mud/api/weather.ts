@@ -221,7 +221,7 @@ export class WeatherApi {
    * `deviationFor` when no pin applies.
    */
   public static deviatedFieldFor(
-    scope: Stuff & Container,
+    scope: Stuff,
     locality: Locality | null,
     field: WeatherField,
     timeS: Quantity<'s'>,

@@ -147,13 +147,24 @@ export function SeasoningMixin<TBase extends MixinConstructor>(Base: TBase) {
         return;
       }
       const self = this as unknown as Stuff;
-      // The air of whatever this stands in — a yard, a loft, a shed; a
-      // chamber's own air when it sits in one (the chain walk).
-      let scope: Stuff | null = MixinApi.isContainable(self) ? self.getContainer() : null;
-      while (scope !== null && !MixinApi.isContainer(scope)) {
-        scope = MixinApi.isContainable(scope) ? scope.getContainer() : null;
+      // The air of whatever this stands in — a yard, a loft, a shed. ⭐ The
+      // ENCLOSING scope, not the container: a stack placed `in` a chamber
+      // (a drying loft) has `container = the room` and enclosing scope =
+      // the chamber, and it is the chamber's air that dries it. Off a
+      // placement — or under one that does not enclose (`on` a rack) — the
+      // enclosing scope IS the container, so nothing else changes. The
+      // walk steps out until something holds things or has air of its own.
+      let scope: Stuff | null = MixinApi.isContainable(self)
+        ? self.getEnclosingScope()
+        : null;
+      while (
+        scope !== null &&
+        !MixinApi.isContainer(scope) &&
+        !MixinApi.isAtmospheric(scope)
+      ) {
+        scope = MixinApi.isContainable(scope) ? scope.getEnclosingScope() : null;
       }
-      if (scope === null || !MixinApi.isContainer(scope)) {
+      if (scope === null) {
         this.seasonClockStamp = nowS;
         return;
       }

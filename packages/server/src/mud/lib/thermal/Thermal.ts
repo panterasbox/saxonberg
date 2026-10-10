@@ -1070,13 +1070,14 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
         // that has its own, else the first container up the chain that
         // is `Atmospheric`. A bag, a crate and a carrier are stepped
         // through, because none of them is weather.
+        // ⭐ Any Atmospheric scope answers — since the `Atmospheric`
+        // widening that includes a `Chamber`, which holds its occupants
+        // by placement and is no Container.
         const scope = airScopeOf(this.thermalHost);
-        const container =
-          scope !== null && MixinApi.isContainer(scope) ? scope : null;
-        if (container !== null) {
+        if (scope !== null) {
           try {
             ambientK = (
-              await BiomeApi.resolveTemperatureFor(container)
+              await BiomeApi.resolveTemperatureFor(scope)
             ).rawValue();
           } catch {
             // keep the cached ambient on any resolution failure

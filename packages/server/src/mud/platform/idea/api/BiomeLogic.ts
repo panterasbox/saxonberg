@@ -7,7 +7,6 @@ import { CallSecurity, Unshadowable } from '../../../lib/security/decorators';
 import { SecurityPolicies } from '../../../lib/security/SecurityPolicies';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import type { Container } from '../../../lib/spatial/Container';
-import type { Containable } from '../../../lib/spatial/Containable';
 import type { Atmospheric } from '../../../lib/biome/Atmospheric';
 import Biome from '../../../lib/biome/Biome';
 import { Quantity } from '../../../lib/quantity';
@@ -257,7 +256,7 @@ export class BiomeLogic extends ApiLogic {
   /** See {@link BiomeApi.resolveTemperatureFor}. */
   @CallSecurity(BiomeApiCallers)
   public async resolveTemperatureFor(
-    scope: Stuff & Container,
+    scope: Stuff,
     detailKey?: string
   ): Promise<Quantity<'K'>> {
     // ⭐⭐ **One source of truth.** Everything that asks a scope how warm
@@ -291,7 +290,7 @@ export class BiomeLogic extends ApiLogic {
    */
   @CallSecurity(BiomeApiCallers)
   public async outsideTemperatureFor(
-    scope: Stuff & Container
+    scope: Stuff
   ): Promise<Quantity<'K'>> {
     return Quantity.of(await outsideKFor(scope), 'K');
   }
@@ -299,7 +298,7 @@ export class BiomeLogic extends ApiLogic {
   /** See {@link BiomeApi.resolvePressureFor}. */
   @CallSecurity(BiomeApiCallers)
   public async resolvePressureFor(
-    scope: Stuff & Container,
+    scope: Stuff,
     detailKey?: string
   ): Promise<Quantity<'Pa'>> {
     const base = (await pressureTraceFor(scope, detailKey)).value;
@@ -323,7 +322,7 @@ export class BiomeLogic extends ApiLogic {
   /** See {@link BiomeApi.resolveHumidityFor}. */
   @CallSecurity(BiomeApiCallers)
   public async resolveHumidityFor(
-    scope: Stuff & Container,
+    scope: Stuff,
     detailKey?: string
   ): Promise<Quantity<'%'>> {
     return resolveQuantityFor<'%'>(
@@ -338,7 +337,7 @@ export class BiomeLogic extends ApiLogic {
 
   /** See {@link BiomeApi.localHumidityFor}. */
   @CallSecurity(BiomeApiCallers)
-  public localHumidityFor(scope: Stuff & Container): number | null {
+  public localHumidityFor(scope: Stuff): number | null {
     const { hit } = syncChainWalk<Quantity<'%'>>(
       scope,
       undefined,
@@ -354,7 +353,7 @@ export class BiomeLogic extends ApiLogic {
   /** See {@link BiomeApi.resolveWindFor}. */
   @CallSecurity(BiomeApiCallers)
   public async resolveWindFor(
-    scope: Stuff & Container,
+    scope: Stuff,
     detailKey?: string
   ): Promise<Quantity<'m/s'>> {
     return resolveQuantityFor<'m/s'>(
@@ -370,7 +369,7 @@ export class BiomeLogic extends ApiLogic {
   /** See {@link BiomeApi.resolveGravityFor}. */
   @CallSecurity(BiomeApiCallers)
   public async resolveGravityFor(
-    scope: Stuff & Container,
+    scope: Stuff,
     detailKey?: string
   ): Promise<Quantity<'m/s²'>> {
     return resolveQuantityFor<'m/s²'>(
@@ -386,7 +385,7 @@ export class BiomeLogic extends ApiLogic {
   /** See {@link BiomeApi.resolveAtmosphereFor}. */
   @CallSecurity(BiomeApiCallers)
   public async resolveAtmosphereFor(
-    scope: Stuff & Container,
+    scope: Stuff,
     detailKey?: string
   ): Promise<string> {
     return resolveStringFor(
@@ -407,7 +406,7 @@ export class BiomeLogic extends ApiLogic {
 
   /** See {@link BiomeApi.resolveAtmosphereContentsFor}. */
   @CallSecurity(BiomeApiCallers)
-  public resolveAtmosphereContentsFor(scope: Stuff & Container): Concentrate[] {
+  public resolveAtmosphereContentsFor(scope: Stuff): Concentrate[] {
     return resolveContentsFor(scope);
   }
 
@@ -443,7 +442,7 @@ export class BiomeLogic extends ApiLogic {
   /** See {@link BiomeApi.traceResolveTemperatureFor}. */
   @CallSecurity(BiomeApiCallers)
   public async traceResolveTemperatureFor(
-    scope: Stuff & Container,
+    scope: Stuff,
     detailKey?: string
   ): Promise<AtmosphericTrace<Quantity<'K'>>> {
     if (detailKey === undefined) {
@@ -471,7 +470,7 @@ export class BiomeLogic extends ApiLogic {
   /** See {@link BiomeApi.traceResolvePressureFor}. */
   @CallSecurity(BiomeApiCallers)
   public async traceResolvePressureFor(
-    scope: Stuff & Container,
+    scope: Stuff,
     detailKey?: string
   ): Promise<AtmosphericTrace<Quantity<'Pa'>>> {
     return pressureTraceFor(scope, detailKey);
@@ -480,7 +479,7 @@ export class BiomeLogic extends ApiLogic {
   /** See {@link BiomeApi.traceResolveHumidityFor}. */
   @CallSecurity(BiomeApiCallers)
   public async traceResolveHumidityFor(
-    scope: Stuff & Container,
+    scope: Stuff,
     detailKey?: string
   ): Promise<AtmosphericTrace<Quantity<'%'>>> {
     return traceResolveQuantityFor<'%'>(
@@ -496,7 +495,7 @@ export class BiomeLogic extends ApiLogic {
   /** See {@link BiomeApi.traceResolveWindFor}. */
   @CallSecurity(BiomeApiCallers)
   public async traceResolveWindFor(
-    scope: Stuff & Container,
+    scope: Stuff,
     detailKey?: string
   ): Promise<AtmosphericTrace<Quantity<'m/s'>>> {
     return traceResolveQuantityFor<'m/s'>(
@@ -512,7 +511,7 @@ export class BiomeLogic extends ApiLogic {
   /** See {@link BiomeApi.traceResolveGravityFor}. */
   @CallSecurity(BiomeApiCallers)
   public async traceResolveGravityFor(
-    scope: Stuff & Container,
+    scope: Stuff,
     detailKey?: string
   ): Promise<AtmosphericTrace<Quantity<'m/s²'>>> {
     return traceResolveQuantityFor<'m/s²'>(
@@ -528,7 +527,7 @@ export class BiomeLogic extends ApiLogic {
   /** See {@link BiomeApi.traceResolveAtmosphereFor}. */
   @CallSecurity(BiomeApiCallers)
   public async traceResolveAtmosphereFor(
-    scope: Stuff & Container,
+    scope: Stuff,
     detailKey?: string
   ): Promise<AtmosphericTrace<string>> {
     return traceResolveStringFor(
@@ -544,7 +543,7 @@ export class BiomeLogic extends ApiLogic {
   /** See {@link BiomeApi.traceResolveAll}. */
   @CallSecurity(BiomeApiCallers)
   public async traceResolveAll(
-    scope: Stuff & Container,
+    scope: Stuff,
     detailKey?: string,
   ): Promise<{
     temperature: AtmosphericTrace<Quantity<'K'>>;
@@ -580,7 +579,7 @@ export class BiomeLogic extends ApiLogic {
 
   /** See {@link BiomeApi.isSkyExposed}. */
   @CallSecurity(BiomeApiCallers)
-  public isSkyExposed(scope: Stuff & Container): boolean {
+  public isSkyExposed(scope: Stuff): boolean {
     return skyExposedWalk(scope);
   }
 
@@ -588,7 +587,7 @@ export class BiomeLogic extends ApiLogic {
 
   /** See {@link BiomeApi.airFor}. */
   @CallSecurity(BiomeApiCallers)
-  public airFor(scope: Stuff & Container): Evaporation {
+  public airFor(scope: Stuff): Evaporation {
     const base = localAir(scope);
     const dev = liveDeviation(scope);
     if (dev === null) return base;
@@ -602,7 +601,7 @@ export class BiomeLogic extends ApiLogic {
   /** See {@link BiomeApi.airSegmentsFor}. */
   @CallSecurity(BiomeApiCallers)
   public airSegmentsFor(
-    scope: Stuff & Container,
+    scope: Stuff,
     t0S: number,
     t1S: number,
   ): AirSegment[] {
@@ -671,12 +670,12 @@ export class BiomeLogic extends ApiLogic {
  * returns whether that biome composes `SkyExposedMixin`; `false` when no
  * biome resolves.
  */
-function skyExposedWalk(scope: Stuff & Container): boolean {
-  let cursor: (Stuff & Container) | null = scope;
+function skyExposedWalk(scope: Stuff): boolean {
+  let cursor: Stuff | null = scope;
   let depth = CONTAINMENT_DEPTH_CAP;
   while (cursor !== null && depth-- > 0) {
     if (MixinApi.isAtmospheric(cursor)) {
-      const biome = (cursor as Stuff & Container & Atmospheric).getBiome();
+      const biome = (cursor as Stuff & Atmospheric).getBiome();
       if (biome !== null) {
         return MixinApi.isSkyExposed(biome);
       }
@@ -695,13 +694,13 @@ function skyExposedWalk(scope: Stuff & Container): boolean {
  * outward, the same one `skyExposedWalk` uses.
  */
 function enclosingAtmosphericOf(
-  scope: Stuff & Container,
-): (Stuff & Container & Atmospheric) | null {
+  scope: Stuff,
+): (Stuff & Atmospheric) | null {
   let cursor = stepOutward(scope);
   let depth = CONTAINMENT_DEPTH_CAP;
   while (cursor !== null && depth-- > 0) {
     if (MixinApi.isAtmospheric(cursor)) {
-      return cursor as Stuff & Container & Atmospheric;
+      return cursor as Stuff & Atmospheric;
     }
     cursor = stepOutward(cursor);
   }
@@ -745,13 +744,13 @@ function rootBiome(): Biome {
  * has no enclosing container.
  */
 function stepOutward(
-  cursor: Stuff & Container,
-): (Stuff & Container) | null {
+  cursor: Stuff,
+): Stuff | null {
   if (!MixinApi.isContainable(cursor)) return null;
-  const next = (cursor as Stuff & Containable).getContainer();
+  const next = cursor.getContainer();
   if (next === null) return null;
   if (!MixinApi.isContainer(next)) return null;
-  return next as Stuff & Container;
+  return next;
 }
 
 /**
@@ -841,7 +840,7 @@ function walkBiomeAncestry<V>(
  * barometric anything).
  */
 async function pressureFromElevation(
-  scope: Stuff & Container,
+  scope: Stuff,
   seaLevel: Quantity<'Pa'>,
 ): Promise<{ value: Quantity<'Pa'>; zonePath: string | null } | null> {
   const elevation = await ZoneApi.elevationFor(scope);
@@ -876,9 +875,9 @@ async function pressureFromElevation(
 }
 
 /** The outermost container's zone path, for provenance reporting. */
-function outermostZonePathOf(scope: Stuff & Container): string | null {
-  let cursor: (Stuff & Container) | null = scope;
-  let outermost: Stuff & Container = scope;
+function outermostZonePathOf(scope: Stuff): string | null {
+  let cursor: Stuff | null = scope;
+  let outermost: Stuff = scope;
   let depth = CONTAINMENT_DEPTH_CAP;
   while (cursor !== null && depth-- > 0) {
     outermost = cursor;
@@ -902,7 +901,7 @@ function outermostZonePathOf(scope: Stuff & Container): string | null {
  * chain short-circuits earlier and wins.
  */
 async function pressureTraceFor(
-  scope: Stuff & Container,
+  scope: Stuff,
   detailKey: string | undefined,
 ): Promise<AtmosphericTrace<Quantity<'Pa'>>> {
   const trace = await runChainWalk<Quantity<'Pa'>>(
@@ -938,7 +937,7 @@ async function pressureTraceFor(
  * the universe baseline and a `SkyExposedBiome` describe something the
  * weather is happening to.
  */
-async function outsideKFor(scope: Stuff & Container): Promise<number> {
+async function outsideKFor(scope: Stuff): Promise<number> {
   // ⭐ F1 — the nested-envelope seam. A scope that stands INSIDE another
   // scope's air (a fridge in a shop, the coach in a coach-house) drifts
   // toward the ROOM it stands in, not toward the biome default. Before the
@@ -998,10 +997,10 @@ function isSkyBiomePath(path: string): boolean {
  * walk, and the body's vitals poll cannot afford either.
  */
 async function resolveEnvelopeTemperature(
-  scope: Stuff & Container,
+  scope: Stuff,
 ): Promise<{ value: number; trace: EnvelopeTrace } | null> {
   if (!MixinApi.isAtmospheric(scope)) return null;
-  const host = scope as Stuff & Container & Atmospheric;
+  const host = scope as Stuff & Atmospheric;
   if (!host.envelopeApplies()) return null;
 
   // ⚠⚠ **Reentry guard, per scope.** Resolving a room's temperature can
@@ -1037,13 +1036,18 @@ async function resolveEnvelopeTemperature(
  * `feel` says and what the room DID cannot come apart.
  */
 function traceOf(
-  host: Stuff & Container & Atmospheric,
-  scope: Stuff & Container,
+  host: Stuff & Atmospheric,
+  scope: Stuff,
 ): EnvelopeTrace {
   let heatInputW = 0;
   let hottestSource: string | null = null;
   let hottestW = 0;
-  for (const occupant of scope.getContents()) {
+  // The envelope integrates only for a scope with a volume (a Location,
+  // a Vessel) — both Containers — so a placement-shaped scope (a
+  // `Chamber`) never reaches here; the guard is the widening's type
+  // honesty, not a branch any live scope takes.
+  const occupants = MixinApi.isContainer(scope) ? scope.getContents() : [];
+  for (const occupant of occupants) {
     if (!MixinApi.isSpaceHeating(occupant)) continue;
     const w = occupant.spaceHeatOutputW();
     heatInputW += w;
@@ -1070,15 +1074,15 @@ function traceOf(
 const envelopeResolving = new Set<string>();
 
 async function resolveQuantityFor<U extends Unit>(
-  scope: Stuff & Container,
+  scope: Stuff,
   detailKey: string | undefined,
   fieldBare: string,
   biomeGetter: (b: Biome) => Quantity<U> | null,
   detailGetter: (
-    a: Stuff & Container & Atmospheric,
+    a: Stuff & Atmospheric,
     detailKey: string,
   ) => { value: Quantity<U>; matchedKey: string } | null,
-  ownGetter: (a: Stuff & Container & Atmospheric) => Quantity<U> | null,
+  ownGetter: (a: Stuff & Atmospheric) => Quantity<U> | null,
 ): Promise<Quantity<U>> {
   const trace = await runChainWalk<Quantity<U>>(
     scope,
@@ -1120,15 +1124,15 @@ async function resolveQuantityFor<U extends Unit>(
 }
 
 async function resolveStringFor(
-  scope: Stuff & Container,
+  scope: Stuff,
   detailKey: string | undefined,
   fieldBare: string,
   biomeGetter: (b: Biome) => string | null,
   detailGetter: (
-    a: Stuff & Container & Atmospheric,
+    a: Stuff & Atmospheric,
     detailKey: string,
   ) => { value: string; matchedKey: string } | null,
-  ownGetter: (a: Stuff & Container & Atmospheric) => string | null,
+  ownGetter: (a: Stuff & Atmospheric) => string | null,
 ): Promise<string> {
   const trace = await runChainWalk<string>(
     scope,
@@ -1142,15 +1146,15 @@ async function resolveStringFor(
 }
 
 async function traceResolveQuantityFor<U extends Unit>(
-  scope: Stuff & Container,
+  scope: Stuff,
   detailKey: string | undefined,
   fieldBare: string,
   biomeGetter: (b: Biome) => Quantity<U> | null,
   detailGetter: (
-    a: Stuff & Container & Atmospheric,
+    a: Stuff & Atmospheric,
     detailKey: string,
   ) => { value: Quantity<U>; matchedKey: string } | null,
-  ownGetter: (a: Stuff & Container & Atmospheric) => Quantity<U> | null,
+  ownGetter: (a: Stuff & Atmospheric) => Quantity<U> | null,
 ): Promise<AtmosphericTrace<Quantity<U>>> {
   return runChainWalk<Quantity<U>>(
     scope,
@@ -1163,15 +1167,15 @@ async function traceResolveQuantityFor<U extends Unit>(
 }
 
 async function traceResolveStringFor(
-  scope: Stuff & Container,
+  scope: Stuff,
   detailKey: string | undefined,
   fieldBare: string,
   biomeGetter: (b: Biome) => string | null,
   detailGetter: (
-    a: Stuff & Container & Atmospheric,
+    a: Stuff & Atmospheric,
     detailKey: string,
   ) => { value: string; matchedKey: string } | null,
-  ownGetter: (a: Stuff & Container & Atmospheric) => string | null,
+  ownGetter: (a: Stuff & Atmospheric) => string | null,
 ): Promise<AtmosphericTrace<string>> {
   return runChainWalk<string>(
     scope,
@@ -1195,32 +1199,32 @@ async function traceResolveStringFor(
  * ancestor chain).
  */
 function syncChainWalk<V>(
-  scope: Stuff & Container,
+  scope: Stuff,
   detailKey: string | undefined,
   biomeGetter: (b: Biome) => V | null,
   detailGetter: (
-    a: Stuff & Container & Atmospheric,
+    a: Stuff & Atmospheric,
     detailKey: string,
   ) => { value: V; matchedKey: string } | null,
-  ownGetter: (a: Stuff & Container & Atmospheric) => V | null,
+  ownGetter: (a: Stuff & Atmospheric) => V | null,
 ): {
   hit: AtmosphericTrace<V> | null;
-  outermost: Stuff & Container;
+  outermost: Stuff;
   ancestorChain: string[];
 } {
   const ancestorChain: string[] = [];
-  let cursor: (Stuff & Container) | null = scope;
-  let outermost: Stuff & Container = scope;
+  let cursor: Stuff | null = scope;
+  let outermost: Stuff = scope;
   let isInnermost = true;
   let depth = CONTAINMENT_DEPTH_CAP;
 
   while (cursor !== null && depth-- > 0) {
     outermost = cursor;
-    const cursorPath = (cursor as Stuff).getTemplatePath?.() ?? null;
+    const cursorPath = cursor.getTemplatePath?.() ?? null;
     if (cursorPath !== null) ancestorChain.push(cursorPath);
 
     if (MixinApi.isAtmospheric(cursor)) {
-      const a = cursor as Stuff & Container & Atmospheric;
+      const a = cursor as Stuff & Atmospheric;
 
       // Steps a + b — detail-key + prefix walk, innermost only.
       if (isInnermost && detailKey !== undefined && detailKey.length > 0) {
@@ -1291,15 +1295,15 @@ function syncChainWalk<V>(
  * safety); awaits the Zone field-inheritance walk at step 5.
  */
 async function runChainWalk<V>(
-  scope: Stuff & Container,
+  scope: Stuff,
   detailKey: string | undefined,
   fieldBare: string,
   biomeGetter: (b: Biome) => V | null,
   detailGetter: (
-    a: Stuff & Container & Atmospheric,
+    a: Stuff & Atmospheric,
     detailKey: string,
   ) => { value: V; matchedKey: string } | null,
-  ownGetter: (a: Stuff & Container & Atmospheric) => V | null,
+  ownGetter: (a: Stuff & Atmospheric) => V | null,
 ): Promise<AtmosphericTrace<V>> {
   const { hit, outermost, ancestorChain } = syncChainWalk<V>(
     scope,
@@ -1383,12 +1387,12 @@ function biomeDial(key: string, fallback: number): number {
  * and passes through; nothing in the chain means `[]`, the plain air of a
  * world with nothing in it.
  */
-function resolveContentsFor(scope: Stuff & Container): Concentrate[] {
-  let cursor: (Stuff & Container) | null = scope;
+function resolveContentsFor(scope: Stuff): Concentrate[] {
+  let cursor: Stuff | null = scope;
   let depth = CONTAINMENT_DEPTH_CAP;
   while (cursor !== null && depth-- > 0) {
     if (MixinApi.isAtmospheric(cursor)) {
-      const a = cursor as Stuff & Container & Atmospheric;
+      const a = cursor as Stuff & Atmospheric;
       if (a.getVolume() !== null) {
         a.reconcileAtmosphereContents();
         return sumByType(a._atmosphereContents, a._atmosphereStanding);
@@ -1427,7 +1431,7 @@ function sumByType(
  * BiomeLogic.localHumidityFor} skips, for the same reason: a
  * reconcile-on-read gauge cannot await.
  */
-function localAir(scope: Stuff & Container): Evaporation {
+function localAir(scope: Stuff): Evaporation {
   const humidity = syncScalar<'%'>(
     scope,
     (b) => b.getDefaultHumidity(),
@@ -1451,9 +1455,9 @@ function localAir(scope: Stuff & Container): Evaporation {
 
 /** One sync-walked scalar, falling back to the universe then a literal. */
 function syncScalar<U extends Unit>(
-  scope: Stuff & Container,
+  scope: Stuff,
   biomeGetter: (b: Biome) => Quantity<U> | null,
-  ownGetter: (a: Stuff & Container & Atmospheric) => Quantity<U> | null,
+  ownGetter: (a: Stuff & Atmospheric) => Quantity<U> | null,
   fallback: number,
 ): number {
   const { hit } = syncChainWalk<Quantity<U>>(
@@ -1496,12 +1500,12 @@ const AIR_FALLBACK_TEMP_K = 288;
  * the first time anybody looked twice. The memo kicks its own walk, so the
  * next read has the real answer.
  */
-function weatherLocalityOf(scope: Stuff & Container): Locality | null {
-  let cursor: (Stuff & Container) | null = scope;
+function weatherLocalityOf(scope: Stuff): Locality | null {
+  let cursor: Stuff | null = scope;
   let depth = CONTAINMENT_DEPTH_CAP;
   while (cursor !== null && depth-- > 0) {
     if (MixinApi.isAtmospheric(cursor)) {
-      return (cursor as Stuff & Container & Atmospheric).weatherLocality();
+      return (cursor as Stuff & Atmospheric).weatherLocality();
     }
     cursor = stepOutward(cursor);
   }
@@ -1513,7 +1517,7 @@ function weatherLocalityOf(scope: Stuff & Container): Locality | null {
  * does not reach it (indoors, weather-absent, or locality unresolved).
  */
 function liveDeviation(
-  scope: Stuff & Container,
+  scope: Stuff,
 ): { humidity: number; wind: number; temperature: number } | null {
   if (!WeatherApi.isActive()) return null;
   if (!skyExposedWalk(scope)) return null;

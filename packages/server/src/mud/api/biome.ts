@@ -213,21 +213,21 @@ export class BiomeApi {
   // ---------- Wave 3 — chain resolution ----------
 
   public static async resolveTemperatureFor(
-    scope: Stuff & Container,
+    scope: Stuff,
     detailKey?: string
   ): Promise<Quantity<'K'>> {
     return logic().resolveTemperatureFor(scope, detailKey);
   }
 
   public static async resolvePressureFor(
-    scope: Stuff & Container,
+    scope: Stuff,
     detailKey?: string
   ): Promise<Quantity<'Pa'>> {
     return logic().resolvePressureFor(scope, detailKey);
   }
 
   public static async resolveHumidityFor(
-    scope: Stuff & Container,
+    scope: Stuff,
     detailKey?: string
   ): Promise<Quantity<'%'>> {
     return logic().resolveHumidityFor(scope, detailKey);
@@ -245,26 +245,26 @@ export class BiomeApi {
    * off a getter, which is what it exists for (`WaterActivity.ambientHumidityOf`).
    * Everything that can await should call `resolveHumidityFor` instead.
    */
-  public static localHumidityFor(scope: Stuff & Container): number | null {
+  public static localHumidityFor(scope: Stuff): number | null {
     return logic().localHumidityFor(scope);
   }
 
   public static async resolveWindFor(
-    scope: Stuff & Container,
+    scope: Stuff,
     detailKey?: string
   ): Promise<Quantity<'m/s'>> {
     return logic().resolveWindFor(scope, detailKey);
   }
 
   public static async resolveGravityFor(
-    scope: Stuff & Container,
+    scope: Stuff,
     detailKey?: string
   ): Promise<Quantity<'m/s²'>> {
     return logic().resolveGravityFor(scope, detailKey);
   }
 
   public static async resolveAtmosphereFor(
-    scope: Stuff & Container,
+    scope: Stuff,
     detailKey?: string
   ): Promise<string> {
     return logic().resolveAtmosphereFor(scope, detailKey);
@@ -289,7 +289,7 @@ export class BiomeApi {
    * The innermost ancestor that has a derivable volume answers.
    */
   public static resolveAtmosphereContentsFor(
-    scope: Stuff & Container,
+    scope: Stuff,
   ): Concentrate[] {
     return logic().resolveAtmosphereContentsFor(scope);
   }
@@ -331,42 +331,42 @@ export class BiomeApi {
   // ---------- trace variants ----------
 
   public static async traceResolveTemperatureFor(
-    scope: Stuff & Container,
+    scope: Stuff,
     detailKey?: string
   ): Promise<AtmosphericTrace<Quantity<'K'>>> {
     return logic().traceResolveTemperatureFor(scope, detailKey);
   }
 
   public static async traceResolvePressureFor(
-    scope: Stuff & Container,
+    scope: Stuff,
     detailKey?: string
   ): Promise<AtmosphericTrace<Quantity<'Pa'>>> {
     return logic().traceResolvePressureFor(scope, detailKey);
   }
 
   public static async traceResolveHumidityFor(
-    scope: Stuff & Container,
+    scope: Stuff,
     detailKey?: string
   ): Promise<AtmosphericTrace<Quantity<'%'>>> {
     return logic().traceResolveHumidityFor(scope, detailKey);
   }
 
   public static async traceResolveWindFor(
-    scope: Stuff & Container,
+    scope: Stuff,
     detailKey?: string
   ): Promise<AtmosphericTrace<Quantity<'m/s'>>> {
     return logic().traceResolveWindFor(scope, detailKey);
   }
 
   public static async traceResolveGravityFor(
-    scope: Stuff & Container,
+    scope: Stuff,
     detailKey?: string
   ): Promise<AtmosphericTrace<Quantity<'m/s²'>>> {
     return logic().traceResolveGravityFor(scope, detailKey);
   }
 
   public static async traceResolveAtmosphereFor(
-    scope: Stuff & Container,
+    scope: Stuff,
     detailKey?: string
   ): Promise<AtmosphericTrace<string>> {
     return logic().traceResolveAtmosphereFor(scope, detailKey);
@@ -377,7 +377,7 @@ export class BiomeApi {
    * Convenience helper for the `trace atmosphere` controller.
    */
   public static async traceResolveAll(
-    scope: Stuff & Container,
+    scope: Stuff,
     detailKey?: string,
   ): Promise<{
     temperature: AtmosphericTrace<Quantity<'K'>>;
@@ -398,7 +398,7 @@ export class BiomeApi {
    * `SkyExposedMixin`. Returns `false` when no biome resolves (the
    * scope has no atmospheric ancestor with a biome ref).
    */
-  public static isSkyExposed(scope: Stuff & Container): boolean {
+  public static isSkyExposed(scope: Stuff): boolean {
     return logic().isSkyExposed(scope);
   }
 
@@ -414,7 +414,7 @@ export class BiomeApi {
    * but that is rock, and a storm must not cool it.
    */
   public static async outsideTemperatureFor(
-    scope: Stuff & Container
+    scope: Stuff
   ): Promise<Quantity<'K'>> {
     return logic().outsideTemperatureFor(scope);
   }
@@ -453,7 +453,7 @@ export class BiomeApi {
    * a scope nobody has looked at reports the biome base and the next
    * reports the weather.
    */
-  public static airFor(scope: Stuff & Container): Evaporation {
+  public static airFor(scope: Stuff): Evaporation {
     return logic().airFor(scope);
   }
 
@@ -469,7 +469,7 @@ export class BiomeApi {
    * summing the list cannot silently credit nothing.
    */
   public static airSegmentsFor(
-    scope: Stuff & Container,
+    scope: Stuff,
     t0S: number,
     t1S: number,
   ): AirSegment[] {

@@ -295,13 +295,11 @@ function computeSample(nowS: number, locality: Locality | null): WeatherSample {
 const PIN_WALK_DEPTH_CAP = 32;
 
 /** One outward step (containment) for the pin walk. */
-function stepOutwardForPin(
-  cursor: Stuff & Container,
-): (Stuff & Container) | null {
+function stepOutwardForPin(cursor: Stuff): Stuff | null {
   if (!MixinApi.isContainable(cursor)) return null;
-  const next = (cursor as Stuff & Containable).getContainer();
+  const next = cursor.getContainer();
   if (next === null || !MixinApi.isContainer(next)) return null;
-  return next as Stuff & Container;
+  return next;
 }
 
 /**
@@ -313,10 +311,10 @@ function stepOutwardForPin(
  * anywhere, the procgen branch applies.
  */
 function resolveWeatherPin(
-  scope: Stuff & Container,
+  scope: Stuff,
   locality: Locality | null,
 ): WeatherPin | null {
-  let cursor: (Stuff & Container) | null = scope;
+  let cursor: Stuff | null = scope;
   let depth = PIN_WALK_DEPTH_CAP;
   while (cursor !== null && depth-- > 0) {
     if (MixinApi.isAtmospheric(cursor)) {
@@ -1128,7 +1126,7 @@ export class WeatherLogic extends ApiLogic {
   /** See {@link WeatherApi.deviatedFieldFor}. Pin-aware, SYNC — no I/O. */
   @CallSecurity(WeatherApiCallers)
   public deviatedFieldFor(
-    scope: Stuff & Container,
+    scope: Stuff,
     locality: Locality | null,
     field: WeatherField,
     timeS: Quantity<'s'>,

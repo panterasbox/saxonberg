@@ -26,6 +26,7 @@ import type { SettingsSchemaEntry } from '../lib/shell/Environment';
 import type { Container } from '../lib/spatial/Container';
 import type { Containable } from '../lib/spatial/Containable';
 import type { Placing } from '../lib/spatial/Placing';
+import type { Chambered } from '../lib/spatial/Chambered';
 import type { Coolbox } from '../lib/thermal/Coolbox';
 import type { ClimateControl } from '../lib/thermal/ClimateControl';
 import type { Powered } from '../lib/supply/Powered';
@@ -1027,6 +1028,11 @@ export class MixinApi {
 
   public static isPlacing(obj: Stuff): obj is Stuff & Placing {
     return this.hasMixin(obj, Mixins.Placing);
+  }
+
+  /** A thing that declares and mints compartments of its own. */
+  public static isChambered(obj: Stuff): obj is Stuff & Chambered {
+    return this.hasMixin(obj, Mixins.Chambered);
   }
 
   public static isCoolbox(
