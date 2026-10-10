@@ -46,6 +46,8 @@
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { CommandContributions } from '../../api/command';
 import type { MarkupAugmenter } from '../../api/mml';
+import { Mml } from '../../api/mml';
+import type { Pumpable, PumpPrognosis, PumpResult } from '../pump/Pumpable';
 import type { Stuff } from '../stuff/Stuff';
 import type { Thermal } from '../thermal/Thermal';
 import type { Container } from '../spatial/Container';
@@ -126,8 +128,14 @@ export type StokeOutcome =
       reason: 'not-matter' | 'not-fuel' | 'too-wet' | 'bed-full' | 'no-bed';
     };
 
-/** The furnace capability surface. */
-export interface Burner {
+/**
+ * The furnace capability surface.
+ *
+ * ⭐ It speaks the `pump` protocol ({@link Pumpable}) because a bellows is
+ * worked by hand — but a furnace is NOT a pump: it implements the
+ * protocol, never `PumpingMixin`'s capability.
+ */
+export interface Burner extends Pumpable {
   /** Is the furnace currently alight? */
   isLit(): boolean;
   /** Fuel remaining, in **kilograms** (was a `%` of a Reserve). */
@@ -679,6 +687,58 @@ export function BurnerMixin<TBase extends MixinConstructor<Stuff>>(
 
     public setBellowsActive(active: boolean): void {
       this.bellowsActive = active === true;
+    }
+
+    // ---------- ⭐ the bellows speaks the pump protocol ----------
+
+    /**
+     * Working the bellows, as a {@link Pumpable}: an INSTANT act
+     * (`durationMs: 0`) that toggles. ⭐ The three refusals and both scenes
+     * are the ones `PumpController` printed before the pump build, moved
+     * here verbatim — a bellows-less, cold or unfuelled furnace declines
+     * exactly as it always did (AC 10).
+     */
+    public async planPump(_by: Stuff): Promise<PumpPrognosis> {
+      const self = this as unknown as Stuff;
+      if (this.bellowsMultiplier <= 1) {
+        return {
+          kind: 'refusal',
+          reason: 'no-bellows',
+          prose: Mml.compose`${Mml.thing(self)} has no bellows to work.`,
+        };
+      }
+      if (!this.bellowsActive && (!this.isLit() || this.fuelRemaining() <= 0)) {
+        return {
+          kind: 'refusal',
+          reason: 'not-lit',
+          prose: Mml.compose`You work the bellows, but ${Mml.thing(self)} is cold — air without fire moves nothing.`,
+        };
+      }
+      return {
+        kind: 'plan',
+        durationMs: 0,
+        effortW: 0,
+        beginSelf: null,
+        beginPeers: null,
+        token: !this.bellowsActive,
+      };
+    }
+
+    public async completePump(by: Stuff, token: unknown): Promise<PumpResult> {
+      const self = this as unknown as Stuff;
+      const next = token === true;
+      this.setBellowsActive(next);
+      return next
+        ? {
+            self: Mml.compose`You lean into the bellows, and ${Mml.thing(self)} roars up white-hot.`,
+            peers: Mml.compose`${Mml.actor(by)} works the bellows; ${Mml.thing(self)} roars up white-hot.`,
+            litres: 0,
+          }
+        : {
+            self: Mml.compose`You ease off the bellows, and ${Mml.thing(self)} settles back to its banked glow.`,
+            peers: Mml.compose`${Mml.actor(by)} eases off the bellows of ${Mml.thing(self)}.`,
+            litres: 0,
+          };
     }
 
     public getDraught(): number {

@@ -721,6 +721,29 @@ one whose supply is unresolvable reads as before and logs once.
 `lib-statics` and `on-create` ceilings unchanged.
 **Commit:** `build(pump W0): the pump substrate — Pumping, Well, the mechanism rows, the ceiling on BiomeApi`.
 
+> ✅ **Done — `4bd010214`.** 27 unit tests (22 pump, 5 tap); lint family
+> green; `lib-statics` and `on-create` unmoved. What the build decided:
+> - **B1 — prose is `Mml`, not a markup string.** `Workable` carries
+>   strings; the bellows' shipped scenes bind actor and furnace per
+>   viewer, and a string would have flattened them (AC 10).
+> - **B2 — `PumpSource { pumpFitted() }` is how a pump tells SET from
+>   CARRIED.** A pump in a crate is luggage; only a host that answers
+>   `pumpFitted` is a source. Read by shape.
+> - **B3 — `Well` has no `Thermal`.** Nothing reads the trough's
+>   temperature this build (callable == visible == cared-about).
+> - **B4 — `put` asks a container's veto FIRST.** Unasked, a veto threw a
+>   `ContainmentError` and `put bucket in well` answered with an error
+>   (the hive had the same exposure since apiculture). Kernel fix, ~20 lines.
+> - **B5 — the packing row + recipe moved to W0** — `lint:capabilities`
+>   wants the declaring row in the consuming wave.
+> - ⚠ Grounding correction: a `props:` entry CAN place onto an earlier
+>   prop (`{ template, on: <entry> }`, `Staged.ts`). D4's containment
+>   still stands on its own reason — a suction pump's cylinder does go
+>   down the well, and containment gives `get`/`put` and the veto hook.
+> - Seen in passing: trade-mining's `drain` (firedamp) narrates *"work
+>   the pump"* with no pump object — a later consumer, recorded in
+>   Deferred seams.
+
 ### W1 — one `pump` verb, and the bellows as its implementer (D3, D9)
 
 **Files.**

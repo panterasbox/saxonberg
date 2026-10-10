@@ -1,20 +1,33 @@
 verbs: [pump, work]
 controller: /platform/idea/cmd/device/PumpController
-description: "Work a furnace's bellows"
+description: "Work a pump by hand — a well's handle or a furnace's bellows"
 help: |
-  Work a furnace's bellows — `pump forge` (or `work bellows`). A worked
-  bellows drives the fire far past its banked heat; smelting and the
-  hottest smithing work need it. Pump again to ease off. A cold or
-  unfuelled furnace just wheezes.
+  Work something by hand that moves a fluid — `pump well`, `pump
+  wellhead`, `pump forge` (or `work bellows`).
+
+  At a well or a wellhead, a spell at the handle raises what stands below
+  into the trough, and it is honest work: the deeper the water, the
+  harder you pump. A pump's leather packing wears with every spell; when
+  it is gone the handle drops with no resistance and nothing comes. Not
+  every pump will lift from every depth — some will not draw water up
+  past a certain point, and the pump will tell you how far down it is.
+
+  At a furnace, a worked bellows drives the fire far past its banked
+  heat; smelting and the hottest smithing work need it. Pump again to
+  ease off. A cold or unfuelled furnace just wheezes.
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresConscious
   - /lib/command/validators/requiresEmbodied
 args:
+  # ⭐ `requires: any` — a furnace, a well and a wellhead share no mixin,
+  # and an alternation would delete a check (the `dig.yaml` reasoning).
+  # The controller narrows by SHAPE — the `Pumpable` protocol, or a pump
+  # source that holds one — and every refusal is the thing's own sentence.
   - name: target
     type: object
     required: true
     scope: "reachable"
-    requires: BurnerMixin
+    requires: any
     validators:
       - /lib/command/validators/canReach
