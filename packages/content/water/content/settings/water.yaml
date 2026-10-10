@@ -78,6 +78,44 @@ settings:
   # course's authored site (`site:` on the Watercourse row) and its node's
   # elevation, so the river and the street beside it agree.
 
+  # ── ice on a still reach (the climate build) ─────────────────────
+  # Running water does not freeze over here: at or above this current
+  # (m/s) a reach reads `running` (the thin place over the current is the
+  # ice trade's to model).
+  - key: water.ice.stillWaterMps
+    value: "0.1"
+
+  # Stefan's law: a sheet thickens as α·√(freezing degree-days), because
+  # its own thickness insulates the water beneath. α for clear (black)
+  # ice grown on open water…
+  - key: water.ice.growthClear
+    value: "0.027"
+
+  # …and for ice grown under snow, which insulates it: slower, white,
+  # weaker (the sheet reads `snow-ice` once 30 % of its cold came so).
+  - key: water.ice.growthUnderSnow
+    value: "0.017"
+
+  # Thaw: metres of sheet lost per kelvin above freezing per day.
+  - key: water.ice.meltMPerKd
+    value: "0.005"
+
+  # Thawing degree-days over the last five days above which a sheet reads
+  # ROTTEN — honeycombed and dark, whatever its thickness.
+  - key: water.ice.rotTddK
+    value: "10"
+
+  # Gold's formula: a sheet bears σ·h² (kg, h in metres) — a person at
+  # 6 cm, a horse at 14, a loaded cart at 20. The ice trade's margins are
+  # its own.
+  - key: water.ice.bearingKgPerM2
+    value: "25000"
+
+  # The walk-back's cap: a sheet that never opened inside the bound
+  # (climate.walkback.maxDays) is perennial at this thickness.
+  - key: water.ice.perennialMaxM
+    value: "2.0"
+
   # ── navigability ──────────────────────────────────────────────────
   # BOTH conditions hold. A torrent through a gorge is not navigable and
   # neither is a wide trickle, so nobody authors a navigable stretch:

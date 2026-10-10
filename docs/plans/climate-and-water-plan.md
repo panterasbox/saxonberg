@@ -1266,6 +1266,14 @@ weather dials: `climate.poleMeanK` 245, `climate.equatorMeanK` 301,
   afternoon.** `YEAR = 365 d` is day 5 of a 360-day year — an equinox
   midnight that now freezes a main and snows on a headwaters. Every
   moved test kept its claim; the cold cases got their own.
+- **B10 (W7) — the ice dials are `water.ice.*`, the water pack's.** A
+  pack cannot add to the kernel's `AppSettingKeys`; it reads literal
+  keys from its own settings yaml (the fishery's precedent).
+- **B11 (W7) — snow-ice is not thinner than its bare twin here.** The
+  `snow` weather type deviates −6 K against `clear`'s 0, so the snowy
+  mere is colder and its sheet thicker over a few days despite the
+  smaller α. The drive compares the KIND (snow-ice vs black), not
+  thickness.
 - **B4 (W0) — no `climate.defaultContinentality` dial.** The default site
   is the `DEFAULT_CLIMATE_SITE` value; a dial read beside a const would be
   two sources for one number.
@@ -1673,6 +1681,21 @@ thicker every day.
 **Acceptance.** `analyze water` at a Shore on a frozen test reach prints
 an ice line whose detail follows the actor's `physics` band.
 **Commit.** `build(climate W7): ice grows on still water by freezing-degree-days, and you can read it`
+
+> ✅ **Done.** `WatercourseCatalogue.iceAt` + `IceRecord` (adds a
+> `perennial` flag), memoised per segment beside the flow memo. The ice
+> walk rides the kernel's EXACT snow walk through `snowCoverAt`'s
+> `onStep` (air + snow per segment), so ice and snow share one history:
+> `h² += α²·ΔFDD` (α 0.027 clear / 0.017 under snow), thaw melts back,
+> a capped start that opens is exact after. Dials are the pack's
+> `water.ice.*` in `water.yaml` (B10). `analyze water` gains the ice line
+> banded on `physics` (presence · judgement at competent · cm/kind/load
+> at proficient) with a `creditDeed` at competent+; the Shore says
+> *"Ice lies on it from bank to bank."* / *"It is open water."* A failed
+> ice read leaves the rest of the Shore's read intact. 7 + 1 tests.
+> ⚠ **B11:** the plan's *"the bare mere is thicker"* does not hold — the
+> `snow` type runs 6 K colder than `clear`, which outweighs the snow's
+> insulation over days; the comparison is the KIND of ice.
 
 ### W8 — The routes that close
 

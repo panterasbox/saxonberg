@@ -273,6 +273,32 @@ export interface Withdrawing {
   withdrawalM3S?: (naturalM3S: number) => number;
 }
 
+/**
+ * ⭐ **The ice on a reach** (the climate build, D8) — its own record, not
+ * a `WaterState` word: that vocabulary is the fish tank's, closed in the
+ * kernel, and ice is not a tank parameter. Derived on read from the
+ * weather the water has had, like the snow.
+ */
+export interface IceRecord {
+  ref: ReachRef;
+  /** How thick the sheet is, m. `0` is open water. */
+  thicknessM: number;
+  /**
+   * `black` — clear ice, grown on open water with little snow on it,
+   * the strong kind; `snow-ice` — grown under snow, white, weaker and
+   * slower; `none` — no sheet.
+   */
+  quality: 'none' | 'black' | 'snow-ice';
+  /** The last few days thawed it hard: honeycombed, dark, untrustworthy. */
+  rotting: boolean;
+  /** What the sheet bears, kg — Gold's `σ · h²`. */
+  bearsKg: number;
+  /** Why there is no sheet: the water moves, or it is too warm. */
+  reason: 'running' | 'warm' | null;
+  /** No open water inside the walk-back bound: a sheet older than two winters. */
+  perennial: boolean;
+}
+
 /** Everything a flow query worked out, for `analyze` and for tests. */
 export interface FlowReading {
   /** The reach it describes. */
@@ -330,6 +356,10 @@ export default class WatercourseCatalogue extends Idea {
   >();
   private flowCacheSegment = -1;
 
+  /** Per-segment ice memo — the flow memo's sibling, same clearing rule. */
+  private iceCache = new Map<ReachRef, IceRecord>();
+  private iceCacheSegment = -1;
+
 
   /**
    * Residency veto — a load-bearing process-lifetime singleton is never
@@ -371,6 +401,57 @@ export default class WatercourseCatalogue extends Idea {
     this.worksLoading = null;
     this.flowCache.clear();
     this.flowCacheSegment = -1;
+    this.iceCache.clear();
+    this.iceCacheSegment = -1;
+  }
+
+  /**
+   * ⭐⭐ **The ice on a reach right now** (the climate build, D8) — `null`
+   * when the citation names nothing.
+   *
+   * - **Running water does not freeze over here.** A reach whose current
+   *   is at or above `water.ice.stillWaterMps` reads `running` (the thin
+   *   place over the current is the ice trade's).
+   * - **Still water grows ice by Stefan's law.** Freezing degree-days
+   *   thicken the sheet as `h² += α²·ΔFDD` — a sheet thickens as the root
+   *   of the cold it has had, because its own thickness insulates the
+   *   water beneath — with `α` the clear-ice coefficient, or the smaller
+   *   snow-ice one while snow lies on it (the kernel's one snow function,
+   *   segment by segment). Thawing degree-days melt it back.
+   * - **Walked back to the last open water**, from a capped start, the
+   *   snow's D15 discipline: once the capped sheet opens, every thinner
+   *   start would have too, and the history after is exact.
+   * - **It bears `σ·h²`** (Gold's formula): about a person at 6 cm, a
+   *   horse at 14, a loaded cart at 20.
+   */
+  public async iceAt(ref: ReachRef, nowS: number): Promise<IceRecord | null> {
+    const index = await this.index();
+    const reach = index.reaches.get(ref);
+    if (reach === undefined) return null;
+    const segment = Math.floor(nowS / WEATHER_DEFAULTS.SEGMENT_LENGTH_S);
+    if (segment !== this.iceCacheSegment) {
+      this.iceCache.clear();
+      this.iceCacheSegment = segment;
+    }
+    const hit = this.iceCache.get(ref);
+    if (hit !== undefined) return hit;
+
+    const water = await this.waterStateAt(ref, nowS);
+    const still = dial('water.ice.stillWaterMps', 0.1);
+    const record: IceRecord =
+      water !== null && water.currentMps >= still
+        ? {
+            ref,
+            thicknessM: 0,
+            quality: 'none',
+            rotting: false,
+            bearsKg: 0,
+            reason: 'running',
+            perennial: false,
+          }
+        : computeIce(reach, nowS);
+    this.iceCache.set(ref, record);
+    return record;
   }
 
   // ---------- reads ----------
@@ -1346,6 +1427,77 @@ function computeNaturalFlow(
     total: runoffM3S + meltM3S,
     melt: meltM3S,
     snowpackMm: snow.packMm,
+  };
+}
+
+/* ─────────────────────────── ice ─────────────────────────── */
+
+/**
+ * The sheet on a still reach, walked over the kernel's exact snow walk
+ * (which hands every segment's air and snow) from a capped start.
+ */
+function computeIce(reach: CompiledReach, nowS: number): IceRecord {
+  const alphaClear = dial('water.ice.growthClear', 0.027);
+  const alphaSnow = dial('water.ice.growthUnderSnow', 0.017);
+  const meltPerKd = dial('water.ice.meltMPerKd', 0.005);
+  const rotTdd = dial('water.ice.rotTddK', 10);
+  const capM = dial('water.ice.perennialMaxM', 2.0);
+  const bearing = dial('water.ice.bearingKgPerM2', 2.5e4);
+
+  let h = capM;
+  let opened = false;
+  let fddTotal = 0;
+  let fddUnderSnow = 0;
+  /** Thawing degree-days per step, for the rot window. */
+  const thaw: Array<{ atS: number; tdd: number }> = [];
+  const freezeK = 273.15;
+
+  WeatherApi.snowCoverAt(reach.site, climateOf(reach), Quantity.of(nowS, 's'), {
+    onStep: (step) => {
+      const days = step.overlapS / SECONDS_PER_DAY;
+      if (step.airK < freezeK) {
+        const fdd = (freezeK - step.airK) * days;
+        const alpha = step.packMm > 0 ? alphaSnow : alphaClear;
+        h = Math.min(capM, Math.sqrt(h * h + alpha * alpha * fdd));
+        fddTotal += fdd;
+        if (step.packMm > 0) fddUnderSnow += fdd;
+        thaw.push({ atS: step.startsAtS, tdd: 0 });
+      } else {
+        const tdd = (step.airK - freezeK) * days;
+        h = Math.max(0, h - meltPerKd * tdd);
+        thaw.push({ atS: step.startsAtS, tdd });
+      }
+      if (h <= 0) {
+        // Open water: everything before this moment no longer matters.
+        opened = true;
+        fddTotal = 0;
+        fddUnderSnow = 0;
+      }
+    },
+  });
+
+  if (h <= 0) {
+    return {
+      ref: reach.ref,
+      thicknessM: 0,
+      quality: 'none',
+      rotting: false,
+      bearsKg: 0,
+      reason: 'warm',
+      perennial: false,
+    };
+  }
+  const recentTdd = thaw
+    .filter((t) => t.atS >= nowS - 5 * SECONDS_PER_DAY)
+    .reduce((sum, t) => sum + t.tdd, 0);
+  return {
+    ref: reach.ref,
+    thicknessM: h,
+    quality: fddTotal > 0 && fddUnderSnow / fddTotal >= 0.3 ? 'snow-ice' : 'black',
+    rotting: recentTdd > rotTdd,
+    bearsKg: bearing * h * h,
+    reason: null,
+    perennial: !opened,
   };
 }
 

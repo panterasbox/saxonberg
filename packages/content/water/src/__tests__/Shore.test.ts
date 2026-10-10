@@ -204,3 +204,35 @@ describe('the memo', () => {
     expect(look(s, viewer(null))).toMatch(/hard to read yet/);
   });
 });
+
+describe('the ice on the water (the climate build) — for everyone, never a number', () => {
+  it('a sheet reads bank to bank; open water says so; neither carries a digit', async () => {
+    installWater();
+    installDiscipline();
+    const cat = StuffApi.findByTemplatePath(WATERCOURSE_CATALOGUE_PATH) as unknown as WatercourseCatalogue;
+    const ice = vi.spyOn(cat, 'iceAt').mockResolvedValue({
+      ref: REACH.ref,
+      thicknessM: 0.12,
+      quality: 'black',
+      rotting: false,
+      bearsKg: 360,
+      reason: null,
+      perennial: false,
+    });
+    const frozen = look(await shoreOn(), viewer(null));
+    expect(frozen).toMatch(/Ice lies on it from bank to bank\./);
+    expect(frozen).not.toMatch(/\d/);
+
+    ice.mockResolvedValue({
+      ref: REACH.ref,
+      thicknessM: 0,
+      quality: 'none',
+      rotting: false,
+      bearsKg: 0,
+      reason: 'warm',
+      perennial: false,
+    });
+    const open = look(await shoreOn(), viewer(null));
+    expect(open).toMatch(/It is open water\./);
+  });
+});
