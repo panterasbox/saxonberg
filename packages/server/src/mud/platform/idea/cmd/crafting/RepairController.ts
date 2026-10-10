@@ -59,9 +59,10 @@ export default class RepairController extends ManualBuildController<RepairModel>
 
     // Capture the maker from the live command frame; the repair runs at
     // engaged-completion, where no frame exists (the strain pattern).
-    const makerPath =
-      (ExecutionContextApi.getActingAuthor() as Stuff | null)?.getTemplatePath() ??
-      '';
+    // ⚠ The IDENTITY path — a joint re-made records WHO, and every player
+    // Avatar shares one templatePath (assembly D3).
+    const author = ExecutionContextApi.getActingAuthor() as Stuff | null;
+    const makerPath = author?.getIdentityPath() ?? author?.getTemplatePath() ?? '';
 
     this.engageStep(context, {
       durationMs: this.paceMs(REPAIR_MS, pacer, ['mending', 'anvil']),
@@ -84,6 +85,27 @@ function completeRepair(giver: Stuff, item: Stuff, makerPath: string): void {
       MessageApi.scene(giver)
         .topic(TOPIC)
         .toSelf(Mml.compose`${CraftingDecline.messageFor(outcome)}`)
+        .send();
+      return;
+    }
+    if (outcome.rung === 'tightened') {
+      // ⭐ The joint, not the parts: nothing was consumed (assembly D6).
+      MessageApi.scene(giver)
+        .topic(TOPIC)
+        .toSelf(
+          Mml.compose`You take up the slack in ${Mml.thing(item)} — the ${outcome.named ?? 'joint'}, driven home. Nothing else wanted doing.`,
+        )
+        .toPeers(Mml.compose`${Mml.actor(giver)} tightens ${Mml.thing(item)}.`)
+        .send();
+      return;
+    }
+    if (outcome.rung === 'refired') {
+      MessageApi.scene(giver)
+        .topic(TOPIC)
+        .toSelf(
+          Mml.compose`You shave ${Mml.thing(item)} back to clean wood and fire the inside until it chars — it will give its contents something again.`,
+        )
+        .toPeers(Mml.compose`${Mml.actor(giver)} re-fires ${Mml.thing(item)}.`)
         .send();
       return;
     }

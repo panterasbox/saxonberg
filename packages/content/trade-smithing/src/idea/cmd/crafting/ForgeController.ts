@@ -20,7 +20,6 @@
 import { CraftController } from '@saxonberg/server/mud/platform/idea/cmd/crafting/CraftController';
 import type { CommandContext, CommandModel } from '@saxonberg/server/mud/api/command';
 import { CraftingApi } from '@saxonberg/server/mud/api/crafting';
-import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
@@ -86,9 +85,6 @@ export default class ForgeController extends CraftController<ForgeModel> {
     }
 
     const output = outcome.output;
-    if (MixinApi.isContainable(output) && MixinApi.isContainer(giver)) {
-      ContainmentApi.move(output, giver);
-    }
     MessageApi.scene(giver)
       .topic(TOPIC)
       .toSelf(Mml.compose`You forge ${Mml.thing(output)}.`)

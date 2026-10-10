@@ -44,8 +44,27 @@ import type Material from '../lib/material/Material';
  */
 export type MakerMode = 'self' | 'fulfilling-bartender';
 
+/**
+ * ⭐⭐ **Where a minted output LANDS** — the Api places it, never the
+ * controller. A good minted onto a floor and moved by nobody is invisible
+ * to persistence: the room's estate slice skips a player's good whose
+ * `place` was never written, and the overlay never finds it. So the mint
+ * moves, stamps (`stampChattel` + `followCustody`, the `fell` pair) and
+ * captures in one place, and the seventh verb cannot forget.
+ *
+ * - `'hands'` — into the maker (the default for a tangible output);
+ * - `'here'` — into the maker's container (salvage's default);
+ * - `{ into }` — a named container (the baker's oven);
+ * - `'none'` — leave it where it is (a vessel claimed from the pool is
+ *   already on the bar; derived, never needed by hand).
+ */
+export type Landing = 'hands' | 'here' | { into: Stuff } | 'none';
+
 /** The craft request. Carries no maker — only the `makerMode` enum. */
 export interface CraftRequest {
+  /** Where the output lands — see {@link Landing}. Default `'hands'` for a
+   * tangible output; a claimed vessel is always `'none'`. */
+  landing?: Landing;
   /** Recipe id or keyword. */
   recipeRef: string;
   makerMode: MakerMode;
@@ -96,7 +115,7 @@ export type CraftDeclineReason =
 
 export interface CraftSuccess {
   ok: true;
-  /** The new stamped output Thing. */
+  /** The new stamped output Thing — already LANDED (see {@link Landing}). */
   output: Stuff;
   /** Its derived quality grade. */
   grade: Grade;
@@ -166,6 +185,9 @@ export interface BuildMintRequest {
    * this is the fallback, never a wire value.
    */
   makerPath?: string;
+  /** Where a workpiece mint's output lands — see {@link Landing}. Default
+   * `'hands'`; a vessel mint is always `'none'` (the vessel is in reach). */
+  landing?: Landing;
 }
 
 /**
@@ -191,7 +213,18 @@ export type RepairDeclineReason =
   | 'no-maker'
   | 'missing-tool'
   | 'insufficient-heat'
-  | 'insufficient-input';
+  | 'insufficient-input'
+  /**
+   * ⭐ A member of the thing has FAILED — the haft is split — and no repair
+   * mends a split haft; fitting a new one does (assembly D6). `detail` is
+   * the part's name, or — below the joint's band — the set's, because a
+   * novice can tell something is wrong with the staves and not which.
+   * ⭐ The refusal is the progression UI: it names the cure.
+   */
+  | 'part-failed'
+  /** The joint is made at a band the repairer has not reached. `detail`
+   * names the joint and the band. */
+  | 'not-skilled';
 
 export interface RepairSuccess {
   ok: true;
@@ -200,6 +233,14 @@ export interface RepairSuccess {
   conditionBefore: number;
   /** The material mass (kg) the repair consumed. */
   costKg: number;
+  /**
+   * Which rung of repair's ladder applied (assembly D6): `tightened` a
+   * slack joint (consumes nothing), `refired` a spent cask, or `restored`
+   * wear with material. Absent on a thing that is not made of parts.
+   */
+  rung?: 'tightened' | 'refired' | 'restored';
+  /** What the rung acted on — the joints tightened, in words. */
+  named?: string;
 }
 
 export interface RepairFailure {
@@ -211,10 +252,69 @@ export interface RepairFailure {
 /** The outcome of a repair — declines are data, breaches throw. */
 export type RepairOutcome = RepairSuccess | RepairFailure;
 
+/**
+ * ⭐ The `fit` request (assembly D5) — the one new verb, two arms.
+ *
+ * - **raise**: `recipeRef` and no `whole` — make the whole from the parts
+ *   in reach (an ordinary craft; the mint keeps the parts' identity).
+ * - **replace**: a `part` and a `whole` — fit one member of one line of the
+ *   whole, re-making the joints it sits in under this maker's hand.
+ */
+export interface FitRequest {
+  /** The part to fit (replace arm). */
+  part?: Stuff;
+  /** The assembly to fit it to (replace arm). */
+  whole?: Stuff;
+  /** The recipe to raise (raise arm). */
+  recipeRef?: string;
+}
+
+/** Why a fit was refused (rendered diegetically). */
+export type FitDeclineReason =
+  | 'no-maker'
+  | 'no-recipe'
+  /** The whole has no line this part fits. `detail` names what it would need. */
+  | 'no-line'
+  /** The joint's instrument is not in reach. `detail` is the capability. */
+  | 'missing-tool'
+  /** The joint wants a band the fitter has not reached. */
+  | 'not-skilled'
+  | 'insufficient-input';
+
+export interface FitReplaced {
+  ok: true;
+  arm: 'replace';
+  whole: Stuff;
+  /** The line's part name. */
+  part: string;
+  /** How many members were replaced. */
+  replaced: number;
+  /** A SOUND member swapped out comes back to hand; a failed one does not. */
+  returned: Stuff | null;
+}
+
+export interface FitRaised {
+  ok: true;
+  arm: 'raise';
+  output: Stuff;
+  grade: Grade;
+  recipeId: string;
+}
+
+export interface FitFailure {
+  ok: false;
+  reason: FitDeclineReason | CraftDeclineReason;
+  detail?: string;
+}
+
+export type FitOutcome = FitReplaced | FitRaised | FitFailure;
+
 /** The salvage request — the form to break down for its matter. */
 export interface SalvageRequest {
   /** The Tangible to break down (already resolved held/reachable). */
   item: Stuff;
+  /** Where the recovered forms land — see {@link Landing}. Default `'here'`. */
+  landing?: Landing;
 }
 
 /** Why a salvage was refused (rendered diegetically). */
@@ -222,11 +322,17 @@ export type SalvageDeclineReason = 'no-maker' | 'insufficient-input';
 
 export interface SalvageSuccess {
   ok: true;
-  /** The recovered raw forms (castings / scrap stacks), unplaced — the
-   * controller lands them in the actor's location. */
+  /** The recovered raw forms (castings / scrap stacks), already LANDED
+   * (default: the actor's location), stamped and captured. */
   outputs: Stuff[];
   /** Total recovered mass (kg) — always ≤ input mass × salvageRate. */
   recoveredKg: number;
+  /**
+   * ⭐ When the thing was an ASSEMBLY taken apart by its joints (assembly
+   * D6): how many members came back whole, per part — fewer than went in,
+   * and fewer still for a clumsier hand. Absent for the melt-down.
+   */
+  recoveredParts?: { part: string; count: number; of: number }[];
 }
 
 export interface SalvageFailure {
@@ -304,6 +410,18 @@ export class CraftingApi {
     request: SalvageRequest,
   ): Promise<SalvageOutcome> {
     return logic().salvage(request);
+  }
+
+  /**
+   * ⭐ Fit — the one assembly verb (assembly D5). Raise a whole from the
+   * parts in reach (an ordinary craft whose mint keeps each part's
+   * identity), or replace one member of one line of a whole, re-making the
+   * joints it sits in under this maker's hand. Both arms want each joint's
+   * instrument in reach and its band. The maker is derived from context.
+   * See {@link CraftingLogic.fit}.
+   */
+  public static async fit(request: FitRequest): Promise<FitOutcome> {
+    return logic().fit(request);
   }
 
 

@@ -55,6 +55,18 @@ import type RecipeCatalogue from '../RecipeCatalogue';
 import type { BulkSlot, BlendPart,
   BulkPayload } from '../../../lib/bulk/Bulkable';
 import type { Tooled } from '../../../lib/craft/Tooled';
+import type { PartLine, JointState, Assembled, Bill } from '../../../lib/craft/Assembled';
+import type { Durable } from '../../../lib/material/Durable';
+import type { GradeBand } from '../../../lib/craft/Grade';
+import {
+  CompetenceBand,
+  type CompetenceBandName,
+} from '../../../lib/advancement/CompetenceBand';
+import type JointCatalogue from '../JointCatalogue';
+import type { JointDescriptor } from '../Joint';
+import { TemplatePaths } from '../../../lib/paths';
+import { GrammarApi } from '../../../api/grammar';
+import { PersistableApi } from '../../../api/persistable';
 import type {
   CraftRequest,
   CraftOutcome,
@@ -66,6 +78,9 @@ import type {
   RepairOutcome,
   SalvageRequest,
   SalvageOutcome,
+  Landing,
+  FitRequest,
+  FitOutcome,
 } from '../../../api/crafting';
 import { MaterialApi } from '../../../api/material';
 import { AppApi } from '../../../api/app';
@@ -141,6 +156,12 @@ interface ItemCandidate {
 /** A matched item input: the source Stuff + units to consume from it. */
 interface MatchedItemInput {
   stuff: Stuff;
+  /**
+   * The recipe slot this input filled (`head`, `haft`) — the part name an
+   * assembly records it under (assembly D3). Set by the craft path's
+   * matcher; absent for the manual-build path, which has no slots.
+   */
+  slotName?: string;
   count: number;
   /** True ⇒ quantity debit (stack); false ⇒ destruct the whole Tangible. */
   stack: boolean;
@@ -420,6 +441,14 @@ interface GatheredMatter {
   tools: (Stuff & Tooled)[];
   items: ItemCandidate[];
   glasses: Stuff[];
+  /**
+   * ⭐ MADE things in reach — tools and crafted goods — that a recipe may
+   * consume only as a declared PART (assembly D3). Never ordinary stock:
+   * a smith's hammer is not "metal" for the next nail. A slot draws from
+   * here only when the output's bill names a part of the slot's name, and
+   * only a thing that IS that part (its row, or its keyword).
+   */
+  parts: ItemCandidate[];
 }
 
 /**
@@ -623,6 +652,22 @@ async function collectCandidate(c: Stuff, into: GatheredMatter): Promise<void> {
       return;
     }
   }
+  if (
+    MixinApi.isTangible(c) &&
+    (MixinApi.isTool(c) || (MixinApi.isCrafted(c) && !isEdibleMatter(c))) &&
+    !MixinApi.isBulkable(c) &&
+    !MixinApi.isOrganism(c)
+  ) {
+    const material = c.getMaterial();
+    if (material) {
+      into.parts.push({
+        stuff: c,
+        material,
+        grade: MixinApi.isGraded(c) ? c.getGrade() : Grade.of('fair'),
+        quantity: MixinApi.isStackable(c) ? c.getQuantity() : 1,
+      });
+    }
+  }
   if (isItemCandidate(c) && MixinApi.isTangible(c)) {
     const material = c.getMaterial();
     if (!material) return;
@@ -661,6 +706,7 @@ async function gatherMatter(
     tools: [],
     items: [],
     glasses: [],
+    parts: [],
   };
   if (!MixinApi.isContainer(location)) return gathered;
   for (const c of location.getContents()) {
@@ -2158,6 +2204,164 @@ async function recordCraftEvidence(
   }
 }
 
+/** The authored bill on a row, read off its template (no clone). */
+async function billOfRow(path: string): Promise<Bill | null> {
+  try {
+    const tpl = await Template.findByPath(path);
+    const bill = (tpl?.data as { bill?: unknown } | undefined)?.bill as Bill | undefined;
+    return bill && Array.isArray(bill.parts) ? bill : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * ⭐⭐ **The assembly arm** (assembly D3) — record which input became which
+ * part, on an output that is made of parts.
+ *
+ * The tangible arm above flattens: one material, one summed mass. That is
+ * still the whole's material and mass. This keeps what the flatten loses,
+ * as a record on the instance — a line per recipe slot, carrying the
+ * input's own material, grade, wear, form and maker, and (when the input
+ * was itself an assembly) its own record nested inside. The joints come
+ * from the row's bill, made at full tension under the assembler's hand.
+ *
+ * Runs when the output composes `AssembledMixin` AND it is made of parts
+ * by declaration (a bill) or by recipe (two or more distinct item slots).
+ * ⭐ The pick needs no bill for this: its shipped recipe has a `head` slot
+ * and a `haft` slot, and that is two parts.
+ *
+ * A one-slot craft whose input was itself an assembly carries the record
+ * across (re-hafting by recipe keeps what the head was).
+ *
+ * ⚠ The narrowing here is on an output this function is already writing —
+ * the one legitimate narrowing the assembly build allows at the mint.
+ */
+function applyAssembledOutput(
+  output: Stuff,
+  matchedItems: MatchedItemInput[],
+  makerIdentity: string,
+): void {
+  if (!MixinApi.isAssembled(output)) return;
+  const bill = output.getBill();
+  const slots = [
+    ...new Set(matchedItems.map((m) => m.slotName).filter((n): n is string => !!n)),
+  ];
+  if (!bill && slots.length < 2) {
+    const only = matchedItems[0];
+    if (
+      matchedItems.length === 1 &&
+      only &&
+      MixinApi.isAssembled(only.stuff) &&
+      only.stuff.isAssembly()
+    ) {
+      output.recordAssembly(only.stuff.getParts(), only.stuff.getJoints());
+    }
+    return;
+  }
+  const lines: PartLine[] = [];
+  for (const slot of slots) {
+    const ms = matchedItems.filter((m) => m.slotName === slot);
+    const first = ms[0]!;
+    const billPart = bill?.parts.find((p) => p.part === slot) ?? null;
+    const count = ms.reduce((n, m) => n + m.count, 0);
+    // Weakest link across the members that went into the line.
+    const grade = ms.reduce((g, m) => g.min(m.grade), first.grade);
+    const conditions = ms.map((m) =>
+      MixinApi.isDurable(m.stuff) ? m.stuff.getCondition() : 1,
+    );
+    const condition = conditions.reduce((a, b) => a + b, 0) / conditions.length;
+    const makers: string[] = [];
+    for (const m of ms) {
+      const by = MixinApi.isCrafted(m.stuff) ? m.stuff.getMaker() : '';
+      if (by && !makers.includes(by)) makers.push(by);
+    }
+    if (makerIdentity && !makers.includes(makerIdentity)) makers.push(makerIdentity);
+    const line: PartLine = {
+      part: slot,
+      template: first.stuff.getTemplatePath() ?? billPart?.template ?? '',
+      count,
+      role: billPart?.role ?? 'structural',
+      material: first.material.getTemplatePath() ?? '',
+      grade: grade.getBand(),
+      condition,
+      failed: 0,
+      makers,
+    };
+    if (billPart?.plural) line.plural = billPart.plural;
+    if (MixinApi.isConstructed(first.stuff)) {
+      const form = first.stuff.getConstructionForm();
+      if (form) line.form = form;
+    }
+    if (MixinApi.isAssembled(first.stuff) && first.stuff.isAssembly()) {
+      line.parts = first.stuff.getParts();
+      line.joints = first.stuff.getJoints();
+    }
+    lines.push(line);
+  }
+  // Bill parts no slot supplied — a wear part the kind declares that the
+  // recipe does not consume — read at the bill's defaults.
+  if (bill) {
+    const ownMaterial = MixinApi.isTangible(output)
+      ? (output.getMaterial()?.getTemplatePath() ?? '')
+      : '';
+    for (const p of bill.parts) {
+      if (lines.some((l) => l.part === p.part)) continue;
+      lines.push({
+        part: p.part,
+        template: p.template,
+        count: p.count,
+        role: p.role,
+        material: p.material ?? ownMaterial,
+        grade: 'fair',
+        condition: 1,
+        failed: 0,
+        makers: makerIdentity ? [makerIdentity] : [],
+        ...(p.plural ? { plural: p.plural } : {}),
+      });
+    }
+  }
+  const joints: JointState[] = (bill?.joints ?? []).map((j) => ({
+    key: j.key,
+    method: j.method,
+    members: [...j.members],
+    ...(j.fastener ? { fastener: j.fastener } : {}),
+    tension: 1,
+    maker: makerIdentity,
+  }));
+  output.recordAssembly(lines, joints);
+}
+
+/**
+ * ⭐⭐ **Land a minted output** — move it, stamp it to its maker, record
+ * where it is, and capture the hosts. The ONE place the mint does this, so
+ * that no trade verb can forget (see {@link Landing}).
+ *
+ * The mechanism is {@link ContainmentApi.land} (move, stamp-if-untitled,
+ * `followCustody`, capture); this resolves WHERE from the request's
+ * {@link Landing}.
+ */
+async function landOutput(
+  output: Stuff,
+  maker: Stuff | null,
+  landing: Landing,
+): Promise<void> {
+  if (landing === 'none' || !maker) return;
+  let into: Stuff | null;
+  if (landing === 'hands') into = maker;
+  else if (landing === 'here') {
+    into = MixinApi.isContainable(maker) ? maker.getContainer() : null;
+  } else into = landing.into;
+  if (
+    !into ||
+    !MixinApi.isContainer(into) ||
+    !MixinApi.isContainable(output)
+  ) {
+    return;
+  }
+  await ContainmentApi.land(output, into, maker);
+}
+
 /**
  * Mint from a completed manual build. See
  * {@link CraftingApi.mintFromBuild}. Reuses the craft quality model —
@@ -2212,7 +2416,15 @@ async function mintFromBuildImpl(req: BuildMintRequest): Promise<CraftOutcome> {
     (makerPath ? (StuffApi.findByTemplatePath<Stuff>(makerPath) ?? null) : null);
 
   if (req.workpiece) {
-    return mintWorkpiece(req.workpiece, recipe, grade, makerPath, makerStuff);
+    const minted = await mintWorkpiece(
+      req.workpiece,
+      recipe,
+      grade,
+      makerPath,
+      makerStuff,
+    );
+    if (minted.ok) await landOutput(minted.output, makerStuff, req.landing ?? 'hands');
+    return minted;
   }
   // The same clamp the reverse-match applied, kept for the output step:
   // what the working actually reached is what killed (or did not kill)
@@ -2590,7 +2802,15 @@ async function craftImpl(req: CraftRequest): Promise<CraftOutcome> {
     return { ok: false, reason: 'insufficient-input', detail: 'no-location' };
   }
 
-  const { bottles, tools, items, glasses } = await gatherMatter(location, maker);
+  const { bottles, tools, items, glasses, parts } = await gatherMatter(location, maker);
+  // ⭐ The output's bill, when it has one: a slot named for one of its
+  // parts may take a MADE thing that is that part (assembly D3). The shipped
+  // pick recipe asks for a `head` and a `haft`, and both are Tool rows — so
+  // until the bill existed it could never have matched either.
+  const outBill =
+    recipe.getOutputApplication() === 'tangible'
+      ? await billOfRow(recipe.getOutputTemplate())
+      : null;
 
   // Match input slots (per-source no-double-claim), dispatching each slot
   // on its kind: bulk → bottle draw, item → discrete/stack units.
@@ -2612,9 +2832,20 @@ async function craftImpl(req: CraftRequest): Promise<CraftOutcome> {
     : null;
   for (const inSlot of recipe.getInputSlots()) {
     if (Recipe.isItemSlot(inSlot)) {
+      const billPart = outBill?.parts.find((p) => p.part === inSlot.slot) ?? null;
+      const pool = billPart
+        ? [
+            ...items,
+            ...parts.filter(
+              (c) =>
+                c.stuff.getTemplatePath() === billPart.template ||
+                (MixinApi.isPerceptible(c.stuff) && c.stuff.hasKeyword(billPart.part)),
+            ),
+          ]
+        : items;
       const picks = pickItemInputs(
         inSlot,
-        items,
+        pool,
         claimedUnits,
         brandKey,
         req.target ?? null,
@@ -2622,7 +2853,7 @@ async function craftImpl(req: CraftRequest): Promise<CraftOutcome> {
       if (!picks) {
         return { ok: false, reason: 'insufficient-input', detail: inSlot.category };
       }
-      matchedItems.push(...picks);
+      matchedItems.push(...picks.map((p) => ({ ...p, slotName: inSlot.slot })));
       for (const p of picks) grades.push(p.grade);
       continue;
     }
@@ -2740,7 +2971,7 @@ async function craftImpl(req: CraftRequest): Promise<CraftOutcome> {
   // recipe's output-application kind), stamp, consume, wear.
   let output: Stuff;
   if (application === 'bulk' || application === 'edible') {
-    const pool = { bottles, tools, items, glasses };
+    const pool = { bottles, tools, items, glasses, parts };
     const glass = claimGlass(pool, recipe, await outputVesselKind(recipe));
     if (glass) {
       output = glass;
@@ -2776,6 +3007,14 @@ async function craftImpl(req: CraftRequest): Promise<CraftOutcome> {
       workingHeatK,
       deliveredHeatK,
     );
+    // ⭐⭐ …and, when the output is made of parts, which input became which
+    // part. Before consumption: the inputs are still alive to be read. The
+    // joint roster is warmed first, so the wear it will take reads its
+    // joints' real figures (the catalogue is lazy — no onCreate).
+    if (MixinApi.isAssembled(output) && (output.getBill()?.joints?.length ?? 0) > 0) {
+      await (await jointCatalogue()).allWarmed();
+    }
+    applyAssembledOutput(output, matchedItems, maker.getIdentityPath() ?? '');
   } else if (application === 'edible') {
     await applyEdibleOutput(
       output,
@@ -2821,7 +3060,11 @@ async function craftImpl(req: CraftRequest): Promise<CraftOutcome> {
     );
   }
   output.stamp({
-    maker: maker.getTemplatePath() ?? '',
+    // ⚠ The IDENTITY path, never the lineage: every player Avatar shares one
+    // templatePath, so a lineage stamp named every player maker the same
+    // person (antipatterns § Keying a PERSON on getTemplatePath()). The
+    // manual-build mint has always stamped identity; this agrees with it.
+    maker: maker.getIdentityPath() ?? '',
     grade,
     recipe: recipe.getRecipeId(),
     craftedAt: WorldClockApi.getNow().rawValue(),
@@ -2854,26 +3097,36 @@ async function craftImpl(req: CraftRequest): Promise<CraftOutcome> {
   const residue = recipe.getOutputResidue();
   if (residue && residue.template) {
     const count = Math.max(1, Math.floor(residue.count ?? 1));
-    const here = MixinApi.isContainable(maker) ? maker.getContainer() : null;
     for (let i = 0; i < count; i++) {
       const cake = await StuffApi.clone<Stuff>(residue.template);
-      if (
-        here !== null &&
-        MixinApi.isContainer(here) &&
-        MixinApi.isContainable(cake)
-      ) {
-        ContainmentApi.move(cake, here);
-      }
+      await landOutput(cake, maker, 'here');
     }
   }
   // Tools wear on use — the durable-good half (a Tool composes
   // DurableMixin alongside ToolMixin).
-  for (const t of usedTools) if (MixinApi.isDurable(t)) t.wear();
+  //
+  // ⭐ A STRIKING tool takes the work as a jar (`shock`), so a made-of-parts
+  // tool gives where a jar gives — the haft, never the head (assembly D7).
+  // Every other use wears as before.
+  const striking = recipe.getToolCapabilities().includes('striking');
+  for (const t of usedTools) {
+    if (!MixinApi.isDurable(t)) continue;
+    t.wear(undefined, striking && t.hasCapability('striking') ? 'shock' : undefined);
+  }
 
 
   // The evidence tail: advancement deed + watch-=-claim for witnesses
   // (a no-op for recipes authoring no discipline — every bar row).
   await recordCraftEvidence(maker, recipe);
+
+  // ⭐⭐ Land it. A vessel claimed from the pool is already where it
+  // belongs (the glass is on the bar), so the Api does not move it unless
+  // the verb ASKED — the cook hands you the bowl; the bartender does not.
+  await landOutput(
+    output,
+    maker,
+    req.landing ?? (application === 'tangible' ? 'hands' : 'none'),
+  );
 
   return { ok: true, output, grade, recipeId: recipe.getRecipeId() };
 }
@@ -2909,6 +3162,15 @@ async function repairImpl(req: RepairRequest): Promise<RepairOutcome> {
   const item = req.item;
   if (!MixinApi.isDurable(item)) {
     return { ok: false, reason: 'insufficient-input', detail: 'not-durable' };
+  }
+  // ⭐⭐ The assembly rungs come FIRST (assembly D6): a slack hoop is not
+  // wear, so a sound cask whose hoops have slipped reads as "nothing to
+  // repair" to the wear rung below — and it weeps all the same.
+  const assembled = MixinApi.isAssembled(item) && item.isAssembly();
+  if (assembled) {
+    const { tools: jointTools } = await gatherMatter(location, maker);
+    const rung = await repairAssemblyRungs(item, maker, jointTools);
+    if (rung) return rung;
   }
   const conditionBefore = item.getCondition();
   const deficit = 1 - conditionBefore;
@@ -3011,7 +3273,13 @@ async function repairImpl(req: RepairRequest): Promise<RepairOutcome> {
       ]),
     );
   }
-  return { ok: true, item, conditionBefore, costKg: needKg };
+  return {
+    ok: true,
+    item,
+    conditionBefore,
+    costKg: needKg,
+    ...(assembled ? { rung: 'restored' as const } : {}),
+  };
 }
 
 /**
@@ -3055,26 +3323,58 @@ async function salvageImpl(req: SalvageRequest): Promise<SalvageOutcome> {
   }
   const rate = dial(AppSettingKeys.craftingSalvageRate, 0.5);
 
+  // ⭐⭐ An assembly comes apart BY ITS JOINTS first (assembly D6): the
+  // members its joints give back whole, and only the remainder — failed
+  // members, a glued joint's everything, the fasteners that did not
+  // survive — goes down the melt-down below, by mass.
+  const outputs: Stuff[] = [];
+  let recoveredKg = 0;
+  let meltKg = massKg;
+  let recoveredParts: { part: string; count: number; of: number }[] | undefined;
+  let remnantShares: { material: Material | null; share: number }[] = [];
+  if (MixinApi.isAssembled(item)) {
+    const byJoints = await salvageByJoints(item, maker);
+    if (byJoints) {
+      outputs.push(...byJoints.outputs);
+      recoveredParts = byJoints.recoveredParts;
+      remnantShares = byJoints.remnants;
+      // ⚠ Conservation, the reversible half: the members back can never
+      // weigh more than the thing did.
+      if (byJoints.recoveredKg > massKg + EPS) {
+        throw new Error(
+          `CraftingLogic: conservation breach — taking apart recovered ` +
+            `${byJoints.recoveredKg} kg of parts from ${massKg} kg`,
+        );
+      }
+      meltKg = Math.max(0, massKg - byJoints.recoveredKg);
+    }
+  }
+  const meltOutputs: Stuff[] = [];
+  let meltRecoveredKg = 0;
+
+  // What melts: the whole, or — after an assembly came apart by its
+  // joints — each part's unrecovered share, in that part's own material.
+  const pieces: { material: Material; kg: number }[] =
+    recoveredParts && remnantShares.length > 0
+      ? remnantShares
+          .filter((r) => r.material !== null)
+          .map((r) => ({ material: r.material!, kg: r.share * meltKg }))
+      : [{ material, kg: meltKg }];
+
+  let maxRateUsed = 0;
+  for (const piece of pieces) {
+  const pieceKg = piece.kg;
   // The flattened constituents — a pure material is its own whole.
-  const comp = material.elementalComposition();
+  const comp = piece.material.elementalComposition();
   const constituents: { material: Material; fraction: number }[] = [];
   if (comp.direct.length === 0) {
-    constituents.push({ material, fraction: 1 });
+    constituents.push({ material: piece.material, fraction: 1 });
   } else {
     for (const entry of comp.direct) {
       const m = await StuffApi.singleton<Material>(entry.materialPath);
       constituents.push({ material: m, fraction: entry.fraction });
     }
   }
-
-  const outputs: Stuff[] = [];
-  let recoveredKg = 0;
-  // Conservation ceiling: the item's full mass × the BEST rate any of
-  // its produced constituents earns — a meltable non-metal comes back
-  // WHOLE (rate 1.0), everything else at the lossy salvage rate (D7).
-  // Bounding on massKg (not on Σ fraction × rate) is what still catches
-  // a rigged composition whose fractions sum past 1 — minting matter.
-  let maxRateUsed = 0;
   for (const c of constituents) {
     const metal = c.material.hasTag('metal');
     // ⭐ A material with a melting point and no `metal` tag — glass, wax —
@@ -3085,7 +3385,7 @@ async function salvageImpl(req: SalvageRequest): Promise<SalvageOutcome> {
     // launder a tinted lump clear.
     const meltable = !metal && c.material.getMeltingPoint().rawValue() > 0;
     const branchRate = meltable ? 1.0 : rate;
-    const yieldKg = massKg * c.fraction * branchRate;
+    const yieldKg = pieceKg * c.fraction * branchRate;
     if (yieldKg < SALVAGE_DUST_FLOOR_KG) continue; // dust — lost
     if (metal || meltable) {
       const cast = await StuffApi.clone<Stuff>(WORKED_LUMP_TEMPLATE);
@@ -3105,8 +3405,8 @@ async function salvageImpl(req: SalvageRequest): Promise<SalvageOutcome> {
       if (meltable && MixinApi.isAlloyed(item) && MixinApi.isAlloyed(cast)) {
         cast.setAlloying(item.getAlloying());
       }
-      outputs.push(cast);
-      recoveredKg += yieldKg;
+      meltOutputs.push(cast);
+      meltRecoveredKg += yieldKg;
       maxRateUsed = Math.max(maxRateUsed, branchRate);
     } else {
       // Scrap: quantity by mass, floor-rounded to whole units (rounding
@@ -3126,23 +3426,393 @@ async function salvageImpl(req: SalvageRequest): Promise<SalvageOutcome> {
       s.setMaterial(c.material);
       s.setMass(Quantity.of(Scrap.UNIT_KG, 'kg'));
       s.setQuantity(units);
-      outputs.push(scrap);
-      recoveredKg += units * Scrap.UNIT_KG;
+      meltOutputs.push(scrap);
+      meltRecoveredKg += units * Scrap.UNIT_KG;
       maxRateUsed = Math.max(maxRateUsed, branchRate);
     }
   }
 
-  if (recoveredKg > massKg * maxRateUsed + EPS) {
+  }
+
+  // Conservation ceiling: the melted mass × the BEST rate any of its
+  // produced constituents earns — a meltable non-metal comes back WHOLE
+  // (rate 1.0), everything else at the lossy salvage rate (D7). Bounding
+  // on the mass (not on Σ fraction × rate) is what still catches a rigged
+  // composition whose fractions sum past 1 — minting matter.
+  if (meltRecoveredKg > meltKg * maxRateUsed + EPS) {
     throw new Error(
       `CraftingLogic: conservation breach — salvage recovered ` +
-        `${recoveredKg} kg from ${massKg} kg (ceiling ` +
-        `${massKg * maxRateUsed} kg at rate ${maxRateUsed}; salvage rate ` +
+        `${meltRecoveredKg} kg from ${meltKg} kg (ceiling ` +
+        `${meltKg * maxRateUsed} kg at rate ${maxRateUsed}; salvage rate ` +
         `${rate}, meltable non-metals whole)`,
     );
   }
+  outputs.push(...meltOutputs);
+  recoveredKg += meltRecoveredKg;
 
   StuffApi.destruct(item); // provenance, grade, chattel die with the form
-  return { ok: true, outputs, recoveredKg };
+  for (const out of outputs) await landOutput(out, maker, req.landing ?? 'here');
+  return {
+    ok: true,
+    outputs,
+    recoveredKg,
+    ...(recoveredParts ? { recoveredParts } : {}),
+  };
+}
+
+// ────────────────────────────────────────────────────────────────────────
+// ⭐⭐ Assembly — the joint reads the three verbs share (assembly D4–D6)
+// ────────────────────────────────────────────────────────────────────────
+
+/** How much of a joint's recovery a hand of each band gets back. Grain. */
+const RECOVERY_BY_BAND: Record<CompetenceBandName, number> = {
+  untrained: 0.5,
+  novice: 0.7,
+  competent: 0.85,
+  proficient: 0.95,
+  expert: 1.05,
+};
+
+async function jointCatalogue(): Promise<JointCatalogue> {
+  return (
+    StuffApi.findByTemplatePath<JointCatalogue>(TemplatePaths.jointCatalogue) ??
+    (await StuffApi.singleton<JointCatalogue>(TemplatePaths.jointCatalogue))
+  );
+}
+
+/** The person's band in a Discipline (the floor for an unadvancing body). */
+async function bandIn(who: Stuff, discipline: string): Promise<CompetenceBandName> {
+  return MixinApi.isAdvancing(who)
+    ? await who.competenceBandFor(discipline)
+    : CompetenceBand.FLOOR;
+}
+
+/**
+ * Can `who` make (or re-make) this joint here — its instrument in reach and
+ * its band reached? `null` when they can; otherwise the refusal.
+ */
+async function jointGate(
+  who: Stuff,
+  joint: JointDescriptor,
+  tools: (Stuff & Tooled)[],
+): Promise<{ reason: 'missing-tool' | 'not-skilled'; detail: string } | null> {
+  if (joint.instrument && !tools.some((t) => t.hasCapability(joint.instrument))) {
+    return { reason: 'missing-tool', detail: joint.instrument };
+  }
+  if (joint.competence) {
+    const band = await bandIn(who, joint.competence.discipline);
+    if (!CompetenceBand.atOrAbove(band, joint.competence.band)) {
+      return {
+        reason: 'not-skilled',
+        detail: `${joint.label} work wants ${joint.competence.band} ${joint.competence.discipline}`,
+      };
+    }
+  }
+  return null;
+}
+
+/** The joints a line sits in (as a member or as the fastener). */
+function jointsOf(host: Assembled, part: string): JointState[] {
+  return host.getJoints().filter((j) => j.members.includes(part) || j.fastener === part);
+}
+
+/** The plural-aware noun of a line. */
+function lineNoun(l: PartLine, n: number): string {
+  if (n === 1) return l.part;
+  return l.plural && l.plural.length > 0 ? l.plural : `${l.part}s`;
+}
+
+/**
+ * Repair's assembly rungs (assembly D6), before wear: ⭐ a slack joint is
+ * TIGHTENED (it consumes nothing — a hoop driven back down), and a failed
+ * member is REFUSED with its name, because no repair mends a split haft —
+ * fitting a new one does. `null` falls through to the material-priced
+ * restore.
+ */
+async function repairAssemblyRungs(
+  item: Stuff & Assembled & Durable,
+  maker: Stuff,
+  tools: (Stuff & Tooled)[],
+): Promise<RepairOutcome | null> {
+  item.ensureParts();
+  const cat = await jointCatalogue();
+  const conditionBefore = item.getCondition();
+  const slack = item.slackJoints();
+  if (slack.length > 0) {
+    const tightened: string[] = [];
+    for (const j of slack) {
+      const row = await cat.warmed(j.method);
+      if (!row || !row.tightenable) continue;
+      const gate = await jointGate(maker, row, tools);
+      if (gate) return { ok: false, reason: gate.reason, detail: gate.detail };
+      item.tightenJoint(j.key, maker.getIdentityPath() ?? '');
+      tightened.push(j.key);
+    }
+    if (tightened.length > 0) {
+      return {
+        ok: true,
+        item,
+        conditionBefore,
+        costKg: 0,
+        rung: 'tightened',
+        named: GrammarApi.joinList(tightened),
+      };
+    }
+  }
+  const failed = item.failedLines()[0];
+  if (failed) {
+    // ⭐ The diagnosis rung (grain): below the joint's band you can tell
+    // something is wrong with the SET, not which member.
+    let named = failed.part;
+    if (failed.count > 1) {
+      named = lineNoun(failed, failed.count);
+      for (const j of jointsOf(item, failed.part)) {
+        const row = await cat.warmed(j.method);
+        if (row?.competence) {
+          const band = await bandIn(maker, row.competence.discipline);
+          if (!CompetenceBand.atOrAbove(band, row.competence.band)) {
+            named = `something about the ${lineNoun(failed, failed.count)}`;
+          }
+        }
+      }
+    }
+    return { ok: false, reason: 'part-failed', detail: named };
+  }
+  return null;
+}
+
+/**
+ * ⭐⭐ Fit (assembly D5). The raise arm is an ordinary craft — its mint keeps
+ * the parts' identity — after every joint the kind's bill names has been
+ * gated. The replace arm amends one line of a whole.
+ */
+async function fitImpl(req: FitRequest): Promise<FitOutcome> {
+  const maker = (ExecutionContextApi.getActingAuthor() ?? null) as Stuff | null;
+  if (!maker || !MixinApi.isContainable(maker)) return { ok: false, reason: 'no-maker' };
+  const location = maker.getContainer();
+  if (!location) return { ok: false, reason: 'insufficient-input', detail: 'no-location' };
+  const { tools } = await gatherMatter(location, maker);
+  const cat = await jointCatalogue();
+
+  if (req.recipeRef && !req.whole) {
+    const catalogue = await requireCatalogue();
+    const recipe =
+      catalogue.findByKeyword(req.recipeRef) ?? catalogue.getRecipe(req.recipeRef);
+    if (!recipe) return { ok: false, reason: 'no-recipe', detail: req.recipeRef };
+    // Gate every joint the made thing will carry, before anything is spent.
+    const tpl = await Template.findByPath(recipe.getOutputTemplate());
+    const bill = (tpl?.data as { bill?: { joints?: { method?: string }[] } } | undefined)?.bill;
+    for (const j of bill?.joints ?? []) {
+      const row = j.method ? await cat.warmed(j.method) : null;
+      if (!row) continue;
+      const gate = await jointGate(maker, row, tools);
+      if (gate) return { ok: false, reason: gate.reason, detail: gate.detail };
+    }
+    const made = await craftImpl({ recipeRef: recipe.getRecipeId(), makerMode: 'self' });
+    if (!made.ok) return made;
+    return {
+      ok: true,
+      arm: 'raise',
+      output: made.output,
+      grade: made.grade,
+      recipeId: made.recipeId,
+    };
+  }
+
+  const whole = req.whole ?? null;
+  const part = req.part ?? null;
+  if (!whole || !part) return { ok: false, reason: 'insufficient-input', detail: 'nothing-to-fit' };
+  if (!MixinApi.isAssembled(whole) || !whole.isAssembly()) {
+    return { ok: false, reason: 'no-line', detail: 'not-an-assembly' };
+  }
+  whole.ensureParts();
+  const tplPath = part.getTemplatePath() ?? '';
+  const fits = (l: PartLine): boolean =>
+    l.template === tplPath ||
+    (MixinApi.isPerceptible(part) && part.hasKeyword(l.part));
+  const candidates = whole.getParts().filter(fits);
+  if (candidates.length === 0) {
+    return {
+      ok: false,
+      reason: 'no-line',
+      detail: GrammarApi.joinList(whole.getParts().map((l) => l.part)),
+    };
+  }
+  // The line that needs it most: a failed member first, then the most worn.
+  candidates.sort((a, b) => b.failed - a.failed || a.condition - b.condition);
+  const line = candidates[0]!;
+  for (const j of jointsOf(whole, line.part)) {
+    const row = await cat.warmed(j.method);
+    if (!row) continue;
+    const gate = await jointGate(maker, row, tools);
+    if (gate) return { ok: false, reason: gate.reason, detail: gate.detail };
+  }
+
+  const stack = MixinApi.isStackable(part);
+  const have = stack ? part.getQuantity() : 1;
+  const k = Math.min(have, line.failed > 0 ? line.failed : 1, line.count);
+  // ⭐ A SOUND member swapped out comes back to hand — a haft you are
+  // replacing because you want a better one is still a haft. A failed one
+  // (split, sprung) is not worth minting: it is the irreversible branch's.
+  let returned: Stuff | null = null;
+  if (line.count === 1 && line.failed === 0) {
+    returned = await mintMember(line, 1);
+  }
+  const material = MixinApi.isTangible(part) ? (part.getMaterial()?.getTemplatePath() ?? '') : '';
+  const grade = MixinApi.isGraded(part) ? part.getGrade().getBand() : ('fair' as GradeBand);
+  const form = MixinApi.isConstructed(part) ? part.getConstructionForm() : '';
+  const nested =
+    MixinApi.isAssembled(part) && part.isAssembly()
+      ? { parts: part.getParts(), joints: part.getJoints() }
+      : null;
+  const makerId = maker.getIdentityPath() ?? '';
+  consumeItemInputs([
+    {
+      stuff: part,
+      count: k,
+      stack,
+      grade: Grade.of(grade),
+      material: (MixinApi.isTangible(part) ? part.getMaterial() : null) as Material,
+    },
+  ]);
+  whole.replaceMembers(line.part, k, {
+    material,
+    grade,
+    ...(form ? { form } : {}),
+    maker: makerId,
+    ...(nested ? nested : {}),
+  });
+  // The whole is as good as its worst line (weakest link).
+  if (MixinApi.isGraded(whole)) {
+    const worst = whole
+      .getParts()
+      .reduce((g, l) => g.min(Grade.of(l.grade)), Grade.of(whole.getParts()[0]!.grade));
+    whole.setGrade(worst);
+  }
+  if (returned && MixinApi.isContainable(returned) && MixinApi.isContainer(maker)) {
+    await ContainmentApi.land(returned, maker, maker);
+  }
+  try {
+    await PersistableApi.captureHostOf(whole);
+  } catch (err) {
+    console.warn('CraftingLogic: fit capture failed:', err);
+  }
+  return { ok: true, arm: 'replace', whole, part: line.part, replaced: k, returned };
+}
+
+/**
+ * Mint `n` members of a line back into the world — the line's own row,
+ * carrying the line's material, grade, form, wear and nested record. A
+ * stackable row comes back as one stack; anything else as `n` things.
+ */
+async function mintMember(line: PartLine, n: number, gradeDown = false): Promise<Stuff | null> {
+  if (n <= 0 || !line.template) return null;
+  let out: Stuff;
+  try {
+    out = await StuffApi.clone<Stuff>(line.template);
+  } catch (err) {
+    console.warn(`CraftingLogic: cannot mint a '${line.part}' from '${line.template}':`, err);
+    return null;
+  }
+  const m = line.material ? StuffApi.findByTemplatePath<Material>(line.material) : null;
+  if (m && MixinApi.isTangible(out)) out.setMaterial(m);
+  if (MixinApi.isGraded(out)) {
+    let g = Grade.of(line.grade);
+    if (gradeDown) g = Grade.fromOrdinal(g.getOrdinal() - 1);
+    out.setGrade(g);
+  }
+  if (MixinApi.isDurable(out)) out.setCondition(line.condition);
+  if (line.form && MixinApi.isConstructed(out)) out.setConstructionForm(line.form);
+  if (line.parts && MixinApi.isAssembled(out)) out.recordAssembly(line.parts, line.joints ?? []);
+  if (MixinApi.isStackable(out)) out.setQuantity(n);
+  return out;
+}
+
+/**
+ * ⭐⭐ Salvage's REVERSIBLE branch (assembly D6): an assembly taken apart BY
+ * ITS JOINTS. Each sound member of a line comes back whole at the joint's
+ * recovery × the salvager's hand; fasteners mostly do not survive; a
+ * `never` joint sends its members down the irreversible branch, and so does
+ * every failed member. Returns null when the thing is not an assembly with
+ * joints — the melt-down is the whole answer then.
+ */
+async function salvageByJoints(
+  item: Stuff & Assembled & Durable,
+  maker: Stuff,
+): Promise<{
+  outputs: Stuff[];
+  recoveredKg: number;
+  recoveredParts: { part: string; count: number; of: number }[];
+  /** What did NOT come back, as each part's share of the remainder by
+   * mass, in that part's own material — the melt-down's input. */
+  remnants: { material: Material | null; share: number }[];
+} | null> {
+  if (!item.isAssembly()) return null;
+  item.ensureParts();
+  const joints = item.getJoints();
+  if (joints.length === 0) return null;
+  const cat = await jointCatalogue();
+  const outputs: Stuff[] = [];
+  const recoveredParts: { part: string; count: number; of: number }[] = [];
+  const lost: { material: Material | null; kg: number }[] = [];
+  let recoveredKg = 0;
+  for (const line of item.getParts()) {
+    const sound = line.count - line.failed;
+    const mine = jointsOf(item, line.part);
+    let rec = mine.length === 0 ? 0 : 1;
+    let factor = 1;
+    for (const j of mine) {
+      const row = await cat.warmed(j.method);
+      if (!row || row.reversible === 'never') {
+        rec = 0;
+        break;
+      }
+      const isFastener = j.fastener === line.part || line.role === 'fastener';
+      rec = Math.min(rec, isFastener ? row.fastenerRecovery : row.structuralRecovery);
+      if (row.competence) {
+        factor = Math.min(
+          factor,
+          RECOVERY_BY_BAND[await bandIn(maker, row.competence.discipline)],
+        );
+      }
+    }
+    const back = Math.max(0, Math.min(sound, Math.round(sound * rec * factor)));
+    recoveredParts.push({ part: line.part, count: back, of: line.count });
+    // The members that did not come back (failed, or lost to the joint),
+    // weighed by the row's own unit mass — the melt-down's share.
+    if (line.count - back > 0) {
+      const tpl = line.template ? await Template.findByPath(line.template) : null;
+      const unit = Number((tpl?.data as { mass?: unknown } | undefined)?.mass);
+      lost.push({
+        material: line.material
+          ? (StuffApi.findByTemplatePath<Material>(line.material) ?? null)
+          : null,
+        kg: (Number.isFinite(unit) && unit > 0 ? unit : 1) * (line.count - back),
+      });
+    }
+    if (back === 0) continue;
+    // ⭐ Knocked apart is not as good as made: a member taken out of a set
+    // by a hand short of the joint's craft comes back one band worse.
+    const minted = await mintMember(line, back, factor < 1);
+    if (!minted) continue;
+    outputs.push(minted);
+    if (MixinApi.isTangible(minted)) {
+      const unit = minted.getMass().rawValue();
+      recoveredKg += MixinApi.isStackable(minted) ? unit * minted.getQuantity() : unit;
+    }
+    // A non-stackable row with more than one member back: the rest.
+    if (!MixinApi.isStackable(minted)) {
+      for (let i = 1; i < back; i++) {
+        const more = await mintMember(line, 1, factor < 1);
+        if (!more) continue;
+        outputs.push(more);
+        if (MixinApi.isTangible(more)) recoveredKg += more.getMass().rawValue();
+      }
+    }
+  }
+  const total = lost.reduce((a, b) => a + b.kg, 0);
+  const remnants = total > 0 ? lost.map((l) => ({ material: l.material, share: l.kg / total })) : [];
+  return { outputs, recoveredKg, recoveredParts, remnants };
 }
 
 async function lookupImpl(ref: string): Promise<RecipeView | null> {
@@ -3199,6 +3869,12 @@ export class CraftingLogic extends ApiLogic {
   @CallSecurity(CraftingApiCallers)
   public async salvage(request: SalvageRequest): Promise<SalvageOutcome> {
     return salvageImpl(request);
+  }
+
+  /** See {@link CraftingApi.fit}. */
+  @CallSecurity(CraftingApiCallers)
+  public async fit(request: FitRequest): Promise<FitOutcome> {
+    return fitImpl(request);
   }
 
   /** See {@link CraftingApi.lookupRecipe}. */

@@ -181,6 +181,7 @@ import type { Graded } from '../lib/craft/Graded';
 import type { Steepable } from '../lib/craft/Steepable';
 import type { Tooled } from '../lib/craft/Tooled';
 import type { Durable } from '../lib/material/Durable';
+import type { Assembled } from '../lib/craft/Assembled';
 import type { Keen } from '../lib/material/Keen';
 import type { Dressing } from '../lib/vitals/Dressing';
 import type { Crafted } from '../lib/craft/Crafted';
@@ -1826,6 +1827,13 @@ export class MixinApi {
    * armor). A `Tool` is also `Durable`; the reverse does not hold. */
   public static isDurable(obj: Stuff): obj is Stuff & Durable {
     return this.hasMixin(obj, Mixins.Durable);
+  }
+
+  /** A durable thing whose parts keep their identity (a pick: a head on a
+   * haft). Composed beside `Durable`; vacuous on a one-material thing —
+   * ask `isAssembly()` whether THIS one has parts. See AssembledMixin. */
+  public static isAssembled(obj: Stuff): obj is Stuff & Assembled & Durable {
+    return this.hasMixin(obj, Mixins.Assembled);
   }
 
   /** An edged/pointed good with the fast-cycling keenness (edge) gauge —

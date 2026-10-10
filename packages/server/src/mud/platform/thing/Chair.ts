@@ -13,8 +13,14 @@
 import Good from '../../lib/stuff/Good';
 import { PosturedMixin } from '../../lib/slot/Postured';
 import { SlottedMixin } from '../../lib/slot/Slotted';
+import { DurableMixin } from '../../lib/material/Durable';
+import { AssembledMixin } from '../../lib/craft/Assembled';
 
-const ChairBase = PosturedMixin(SlottedMixin(Good));
+// ⭐ Durable + Assembled (assembly D8): every seat and bed wears, and may be
+// a frame and a cushion — the rest it gives is the worst of them.
+const ChairBase = PosturedMixin(
+  SlottedMixin(AssembledMixin(DurableMixin(Good))),
+);
 
 export default class Chair extends ChairBase {
   constructor() {

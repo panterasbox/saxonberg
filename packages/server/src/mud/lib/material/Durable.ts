@@ -20,6 +20,7 @@
  */
 
 import type { MixinConstructor, FieldMeta } from '../mixin';
+import type { Channel } from './Channel';
 import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../config/AppSettings';
 
@@ -27,8 +28,13 @@ export interface Durable {
   /** Wear gauge, 0 (worn out) .. 1 (pristine). */
   getCondition(): number;
   setCondition(value: number): void;
-  /** Decrement condition by `amount` (clamped at 0). The wear-on-use seam. */
-  wear(amount?: number): void;
+  /**
+   * Decrement condition by `amount` (clamped at 0). The wear-on-use seam.
+   * `channel` names what the use did to the thing — a jar (`shock`), a
+   * cut (`edge`) — so a thing made of parts can route the wear to the
+   * part that gives first (assembly D7). A one-material good ignores it.
+   */
+  wear(amount?: number, channel?: Channel): void;
   /**
    * Whether the good is **broken** — condition at/below the
    * `crafting.brokenThreshold` dial. Broken is capability loss, not a
@@ -86,7 +92,7 @@ export function DurableMixin<TBase extends MixinConstructor>(Base: TBase) {
       this.condition = value;
     }
 
-    wear(amount: number = WEAR_PER_USE): void {
+    wear(amount: number = WEAR_PER_USE, _channel?: Channel): void {
       if (!Number.isFinite(amount) || amount < 0) return;
       this.condition = this._condition - amount;
     }

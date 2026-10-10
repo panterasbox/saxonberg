@@ -33,6 +33,7 @@ import { ConstructedMixin } from '../../../lib/material/Constructed';
 import { DurableMixin } from '../../../lib/material/Durable';
 import { KeenMixin } from '../../../lib/material/Keen';
 import { CraftedMixin } from '../../../lib/craft/Crafted';
+import { AssembledMixin } from '../../../lib/craft/Assembled';
 import { SlottableMixin } from '../../../lib/slot/Slottable';
 import { WieldableMixin } from '../../../lib/slot/Wieldable';
 import { MixinApi } from '../../../api/mixin';
@@ -76,7 +77,7 @@ import type { FieldMeta } from '../../../lib/mixin';
 const WeaponBase = WieldableMixin(
   SlottableMixin(
     KeenMixin(
-      CraftedMixin(DurableMixin(ConstructedMixin(Good))),
+      AssembledMixin(CraftedMixin(DurableMixin(ConstructedMixin(Good)))),
     ),
   ),
 );

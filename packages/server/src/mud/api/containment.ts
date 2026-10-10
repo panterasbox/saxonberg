@@ -381,6 +381,32 @@ export class ContainmentApi {
    * `Warren` value is loaded dynamically so the static import graph stays
    * acyclic (`Warren` imports `ContainmentApi`).
    */
+  /**
+   * ⭐⭐ **Land a NEWLY MINTED good** — `move` it, then do the two things a
+   * minted good needs and a moved one already has: stamp its title to
+   * `owner` (when it has none yet) and record where it is
+   * (`followCustody`), then capture the hosts that now hold it.
+   *
+   * ⚠ Why this is not just `move`. A good minted onto a floor was moved by
+   * NOBODY — `get`/`drop`/`put` call `followCustody` after their moves,
+   * and a verb that clones a thing into the world does not. The room's
+   * estate slice then skips a player's good with no recorded `place`, the
+   * overlay never finds it, and the good is gone at the next restart. The
+   * craft mint, `fell`, and every trade verb that clones its output land
+   * through here, and `lint:mint-custody` holds the rest to a ratchet.
+   *
+   * `owner` defaults to nobody: the thing is placed and captured, and its
+   * title is whatever it already had. Persistence failures are warned,
+   * never thrown — the act that made the thing is not unmade by them.
+   */
+  public static async land(
+    item: ContainableStuff,
+    to: ContainerStuff,
+    owner: Stuff | null = null,
+  ): Promise<void> {
+    return logic().land(item, to, owner);
+  }
+
   public static async resolveLanding(
     ref: string
   ): Promise<{ container: Stuff & Container; warren: Warren | null }> {

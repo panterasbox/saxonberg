@@ -1,0 +1,15 @@
+# Seated — a pane set into its frame, a cork into its neck: held by the
+# shape of the thing it sits in. Lifts out.
+class: /platform/idea/Joint
+data:
+  key: seated
+  label: seated
+  portability: hand
+  instrument: ''
+  competence: null
+  reversible: freely
+  strength: 0.4
+  structuralRecovery: 1.0
+  fastenerRecovery: 1.0
+  tightenable: false
+  failure: sprung

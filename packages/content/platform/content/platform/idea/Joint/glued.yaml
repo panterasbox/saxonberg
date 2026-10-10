@@ -1,0 +1,15 @@
+# Glued — hide glue, a fish glue, a pitch. Anybody can smear it on, and
+# nobody can take it apart again: the joint is stronger than the wood.
+class: /platform/idea/Joint
+data:
+  key: glued
+  label: glued
+  portability: hand
+  instrument: ''
+  competence: null
+  reversible: never
+  strength: 0.7
+  structuralRecovery: 0.0
+  fastenerRecovery: 0.0
+  tightenable: false
+  failure: parted

@@ -29,15 +29,23 @@ import { Quantity } from '../../lib/quantity';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type { Container } from '../../lib/spatial/Container';
 import { VesselKindMixin } from '../../lib/bulk/VesselKind';
+import type { ClosureLevel } from '../../lib/bulk/Bulkable';
+import { DurableMixin } from '../../lib/material/Durable';
+import { AssembledMixin } from '../../lib/craft/Assembled';
 
 // Merge of two independent changes: master wrapped the vat in
 // `VesselKindMixin`; this branch renamed `FermentingMixin` to
 // `MaturingMixin` (bleaching is a photochemical maturation, not a
 // ferment — see maturation.md). Both apply.
+// ⭐ Durable + Assembled (assembly D8): a vessel wears, and may be made of
+// staves — which is what lets `repair <cask>` reach its controller at all
+// (the view gates on `DurableMixin`).
 const VatBase = VesselKindMixin(
   MaturingMixin(
-    CraftedMixin(
-      SealableMixin(ThermalMixin(BulkableMixin(Good))),
+    AssembledMixin(
+      DurableMixin(
+        CraftedMixin(SealableMixin(ThermalMixin(BulkableMixin(Good)))),
+      ),
     ),
   ),
 );
@@ -62,6 +70,16 @@ export default class Vat extends VatBase {
   // thermal drift (the Flask precedent). This is what makes "credit
   // the closed window at its conditions" honest — the open time past
   // finished and the cellar move are each credited exactly.
+
+  /**
+   * ⭐ The authored closure is the CEILING; the joints are the floor
+   * (assembly D10). A vessel made of staves holds what its build allows
+   * only while every structural member is sound and every joint is tight —
+   * a sprung stave or a slack hoop and it weeps, whatever the row says.
+   */
+  public override getClosure(): ClosureLevel {
+    return this.leaks() ? 'open' : super.getClosure();
+  }
 
   public override setOpen(value: boolean): void {
     this.reconcileFerment();

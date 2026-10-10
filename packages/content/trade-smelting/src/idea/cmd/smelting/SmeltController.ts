@@ -417,6 +417,8 @@ async function runCharge(
   // stop reducing because somebody left; only the telling of it needs a
   // listener.
   const watching = !giver.isDestroyed();
+  /** Who the tap is titled to — the smelterman, while they are here. */
+  const owner = watching ? giver : null;
   const metalPath = metal?.getTemplatePath() ?? '';
 
   let chargeKg = 0;
@@ -441,7 +443,7 @@ async function runCharge(
   for (const stone of flux) StuffApi.destruct(stone);
 
   if (metal === null || metalKg <= 0) {
-    await pour(furnace, SLAG_ROW, Math.max(chargeKg, 1));
+    await pour(furnace, SLAG_ROW, Math.max(chargeKg, 1), owner);
     if (!watching) return;
     MessageApi.scene(giver)
       .topic(TOPIC)
@@ -487,21 +489,24 @@ async function runCharge(
   // become metal.
   const trapped = flux.length > 0 ? BLOOM_SLAG_FLUXED : BLOOM_SLAG;
   const productKg = bloom ? metalKg * (1 + trapped) : metalKg;
-  const product = await pour(furnace, row, productKg);
-  if (product && MixinApi.isAlloyed(product) && carbon > 0) {
-    product.setFractionOf(CARBON, carbon);
-  }
-  if (product && bloom) {
-    const spongy = product as unknown as { setSlagFraction?(v: number): void };
-    spongy.setSlagFraction?.(trapped / (1 + trapped));
-  }
+  // ⭐ The carbon and the trapped slag are set BEFORE it lands, so the
+  // capture `land` takes is of the finished product.
+  await pour(furnace, row, productKg, owner, (product) => {
+    if (MixinApi.isAlloyed(product) && carbon > 0) {
+      product.setFractionOf(CARBON, carbon);
+    }
+    if (bloom) {
+      const spongy = product as unknown as { setSlagFraction?(v: number): void };
+      spongy.setSlagFraction?.(trapped / (1 + trapped));
+    }
+  });
   // ⭐ Whether this run was poisoned — read for the tap scene and the deed,
   // and nothing else: the MATERIAL already carries the consequence.
   //
   // ⚠ Non-ferrous is untouched, and that is not an oversight: sulfur is
   // iron's problem. Copper is smelted FROM a sulfide.
   const soured = sour && ferrous;
-  await pour(furnace, SLAG_ROW, Math.max(chargeKg - productKg, 0));
+  await pour(furnace, SLAG_ROW, Math.max(chargeKg - productKg, 0), owner);
 
   if (!watching) return;
   // ⭐ The tap names what the flux and the fuel did, because a player who is
@@ -713,13 +718,24 @@ async function productRowFor(materialPath: string): Promise<string | null> {
   return null;
 }
 
-/** Clone one product into the furnace and stamp its real mass. */
-async function pour(furnace: Stuff & Container, row: string, kg: number): Promise<Stuff | null> {
+/**
+ * Clone one product into the furnace, stamp its real mass, and LAND it —
+ * titled to `owner` and captured where it lies, so a tap nobody has
+ * emptied yet survives a restart.
+ */
+async function pour(
+  furnace: Stuff & Container,
+  row: string,
+  kg: number,
+  owner: Stuff | null,
+  shape?: (item: Stuff) => void,
+): Promise<Stuff | null> {
   if (kg <= 0) return null;
   const item = await StuffApi.clone<Stuff>(row);
   const massed = item as unknown as { setMass?(q: Quantity<'kg'>): void };
   massed.setMass?.(Quantity.of(Number(kg.toFixed(3)), 'kg'));
-  ContainmentApi.move(item as unknown as Stuff & Containable, furnace as never);
+  shape?.(item);
+  await ContainmentApi.land(item as unknown as Stuff & Containable, furnace, owner);
   return item;
 }
 

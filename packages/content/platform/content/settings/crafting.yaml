@@ -29,6 +29,13 @@ settings:
   - key: crafting.salvageRate
     value: "0.5"
 
+  # ── assembly: joints and green wood (assembly D6, D2).
+  - key: crafting.joint.slackThreshold
+    value: "0.5"
+
+  - key: crafting.greenWearFactor
+    value: "2"
+
   - key: crafting.repair.costFactor
     value: "0.6"
 

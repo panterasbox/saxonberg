@@ -1910,6 +1910,13 @@ export const AppSettingKeys = {
   /** Crafting — the lossy salvage fraction: each constituent material
    * returns `mass × fraction × salvageRate`; the rest is dross. */
   craftingSalvageRate: "crafting.salvageRate",
+  /** Assembly — a joint's tension below which it is SLACK: the cask weeps,
+   * the head rocks on its haft, and `repair` tightens it before anything
+   * else (assembly D6). */
+  craftingJointSlackThreshold: "crafting.joint.slackThreshold",
+  /** Assembly — how much faster a part worked GREEN wears than a seasoned
+   * one (assembly D2: green wood warps and gives). */
+  craftingGreenWearFactor: "crafting.greenWearFactor",
   /** Crafting — repair material cost factor: cost mass = item mass ×
    * (1 − condition) × costFactor. */
   craftingRepairCostFactor: "crafting.repair.costFactor",

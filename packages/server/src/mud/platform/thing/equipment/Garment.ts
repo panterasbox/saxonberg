@@ -58,14 +58,15 @@ import Good from '../../../lib/stuff/Good';
 import { ConstructedMixin } from '../../../lib/material/Constructed';
 import { DurableMixin } from '../../../lib/material/Durable';
 import { CraftedMixin } from '../../../lib/craft/Crafted';
+import { AssembledMixin } from '../../../lib/craft/Assembled';
 import { DyedMixin } from '../../../lib/material/Dyed';
 import { SlottableMixin } from '../../../lib/slot/Slottable';
 import { WearableMixin } from '../../../lib/slot/Wearable';
 
 const GarmentBase = WearableMixin(
   SlottableMixin(
-    CraftedMixin(
-      DurableMixin(ConstructedMixin(DyedMixin(Good))),
+    AssembledMixin(
+      CraftedMixin(DurableMixin(ConstructedMixin(DyedMixin(Good)))),
     ),
   ),
 );

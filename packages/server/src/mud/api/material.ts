@@ -113,6 +113,16 @@ export interface TraumaResolution {
   severity: number;
 }
 
+/**
+ * One part a channel might be routed to — its material and, when it has
+ * one, its construction (a covering form, a stock form). See
+ * {@link MaterialApi.resistanceTo}.
+ */
+export interface ResistanceCandidate {
+  material: Material | null;
+  construction: Construction | null;
+}
+
 export class MaterialApi {
   // The `materialOf` read-wrapper was removed: the read lives on the
   // object itself — narrow with `MixinApi.isTangible(stuff)` and call
@@ -183,6 +193,22 @@ export class MaterialApi {
    */
   public static materialScale(material: Material | null, channel: Channel): number {
     return logic().materialScale(material, channel);
+  }
+
+  /**
+   * ⭐⭐ **Which part answers a blow** — each candidate's resistance on
+   * `channel`, in order, so a caller routes to the best resister (the
+   * layer that stops a blow is the layer that takes it) or the worst (the
+   * part that gives first under use). No composite arithmetic: each part
+   * answers with its own material and construction through the same three
+   * axes the fold reads (assembly D7). Subjectless — the first parameter
+   * is a channel, never a world object.
+   */
+  public static resistanceTo(
+    channel: Channel,
+    candidates: readonly ResistanceCandidate[],
+  ): number[] {
+    return logic().resistanceTo(channel, candidates);
   }
 
   public static attenuate(

@@ -1,0 +1,18 @@
+# Stitched — a seam: the boot's upper to its sole, a cushion's cover
+# closed over its stuffing. ⭐ Shipped by tailoring because its
+# competence is tailoring's, and a joint must not name a Discipline that
+# may not be installed (assembly D4). Unpick it and most of the thread
+# is lost; the panels come back.
+class: /platform/idea/Joint
+data:
+  key: stitched
+  label: stitched
+  portability: tool
+  instrument: mending
+  competence: { discipline: tailoring, band: novice }
+  reversible: effort
+  strength: 0.5
+  structuralRecovery: 0.9
+  fastenerRecovery: 0.1
+  tightenable: true
+  failure: parted

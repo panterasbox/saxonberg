@@ -31,8 +31,8 @@ import AccountabilityEvent, {
 import type { DeathSpec } from '../../../api/condition';
 import { Channels } from '../../../lib/material/Channel';
 import type { Channel } from '../../../lib/material/Channel';
-import type { Construction } from '../../../lib/material/Construction';
-import type { Grade } from '../../../lib/craft/Grade';
+import { Construction } from '../../../lib/material/Construction';
+import { Grade } from '../../../lib/craft/Grade';
 import type Material from '../../../lib/material/Material';
 import type {
   Trauma,
@@ -1191,13 +1191,31 @@ function inflictThroughStack(
       spec.shieldFacing ?? true
     )) {
       const incident = residual;
+      // ⭐⭐ A layer made of PARTS answers with the part that answers the
+      // blow (assembly D7): a shield of boards with a hide face meets an
+      // edge with its face and a club with its boards. The fold's own
+      // attenuation is unchanged — it is just asked with that part's own
+      // material, form, grade and wear. Nothing composite is computed.
+      const answering =
+        Channels.isMechanicalChannel(channel) &&
+        MixinApi.isAssembled(layer.occ) &&
+        layer.occ.isAssembly()
+          ? layer.occ.partAnswering(channel)
+          : null;
+      const lineForm = answering?.form;
+      const lineConstruction =
+        lineForm && Construction.isCoveringForm(lineForm)
+          ? Construction.of(lineForm)
+          : layer.construction;
       residual = MaterialApi.attenuate(
         channel,
         residual,
-        layer.material,
-        layer.construction,
-        layer.grade,
-        layer.condition,
+        answering
+          ? (StuffApi.findByTemplatePath<Material>(answering.material) ?? layer.material)
+          : layer.material,
+        lineConstruction,
+        answering ? Grade.of(answering.grade) : layer.grade,
+        answering ? answering.condition : layer.condition,
         agent,
         'penetration' in spec ? (spec.penetration ?? 1) : 1,
         // ⭐ The layer's REAL insulation for the thermal channels — the
@@ -1237,9 +1255,14 @@ function inflictThroughStack(
         const seamWear =
           1 +
           tightness * dial(AppSettingKeys.textilesFitTightnessWear, 1.5);
-        layer.occ.wear(
-          dial(AppSettingKeys.craftingWearArmorPerBlow, 0.004) * seamWear,
-        );
+        const perBlow =
+          dial(AppSettingKeys.craftingWearArmorPerBlow, 0.004) * seamWear;
+        // The part that stopped the blow is the part the blow wore.
+        if (answering && MixinApi.isAssembled(layer.occ)) {
+          layer.occ.wearLine(answering.part, perBlow);
+        } else {
+          layer.occ.wear(perBlow);
+        }
       }
     }
     const part = target.getPart(spec.site);

@@ -232,9 +232,10 @@ export default class HarvestController extends CommandController<HarvestModel> {
           crop.setGrade(Grade.of(band));
         }
         if (MixinApi.isContainable(crop) && MixinApi.isContainer(giver)) {
-          ContainmentApi.move(
+          await ContainmentApi.land(
             crop as Stuff & Containable,
             giver as Stuff & Container,
+            giver,
           );
         }
         crops.push(crop);

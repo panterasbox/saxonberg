@@ -175,7 +175,13 @@ async function openClamp(
     if (row) {
       for (let i = 0; i < Math.max(count, 0); i++) {
         const item = await StuffApi.clone<Stuff>(row);
-        ContainmentApi.move(item as unknown as Stuff & Containable, pit as unknown as Stuff & Container);
+        // ⭐ Titled to the collier when they are still here to hold it; a
+        // departed collier's charcoal is still placed and captured.
+        await ContainmentApi.land(
+          item as unknown as Stuff & Containable,
+          pit as unknown as Stuff & Container,
+          watching ? giver : null,
+        );
         made.push(item);
       }
     }

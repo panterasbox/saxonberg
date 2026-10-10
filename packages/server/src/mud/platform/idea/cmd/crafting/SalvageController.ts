@@ -4,20 +4,19 @@
  * `CraftingApi.salvage` breaks the form into a lossy fraction of its
  * constituent materials (metal → re-meltable castings, the rest → scrap
  * stacks); provenance, grade, and the chattel stamp die with the form.
- * The recovered raw forms land in the actor's location (this
- * controller's job — the Api returns them unplaced).
+ * The recovered forms land in the actor's location — the Api lands them.
+ * ⭐ An assembly comes apart BY ITS JOINTS first (assembly D6): whole
+ * members back at the joint's recovery × the hand's, the rest melted.
  */
 
 import { CraftController } from './CraftController';
 import type { CommandContext, CommandModel } from '../../../../api/command';
 import type { MqlOneResult } from '../../../../api/mql';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
-import type { Container } from '../../../../lib/spatial/Container';
 import { CraftingApi } from '../../../../api/crafting';
-import { ContainmentApi } from '../../../../api/containment';
-import { MixinApi } from '../../../../api/mixin';
 import { MessageApi } from '../../../../api/message';
 import { Mml } from '../../../../api/mml';
+import { GrammarApi } from '../../../../api/grammar';
 
 const TOPIC = 'act.deed';
 
@@ -46,21 +45,33 @@ export default class SalvageController extends CraftController<SalvageModel> {
       return;
     }
 
-    // Land the raw forms where the work happened.
-    const loc = context.location;
-    if (loc && MixinApi.isContainer(loc)) {
-      for (const out of outcome.outputs) {
-        if (MixinApi.isContainable(out)) {
-          ContainmentApi.move(out, loc as Stuff & Container);
-        }
-      }
-    }
+    // The raw forms were landed where the work happened by the Api.
     if (outcome.outputs.length === 0) {
       MessageApi.scene(giver)
         .topic(TOPIC)
         .toSelf(
           Mml.compose`You break ${itemName} down, but nothing worth keeping survives it.`,
         )
+        .send();
+      return;
+    }
+    // ⭐ An assembly comes apart by its joints: say what came back WHOLE —
+    // fewer than went in, and how many fewer depends on the joint and on
+    // the hand (assembly D6). Counts in words, never digits.
+    if (outcome.recoveredParts && outcome.recoveredParts.some((p) => p.count > 0)) {
+      const back = outcome.recoveredParts
+        .filter((p) => p.count > 0)
+        .map((p) =>
+          p.of === 1
+            ? `the ${p.part}`
+            : `${GrammarApi.inWords(p.count)} of the ${GrammarApi.inWords(p.of)} ${p.part}s`,
+        );
+      MessageApi.scene(giver)
+        .topic(TOPIC)
+        .toSelf(
+          Mml.compose`You take ${itemName} apart. ${GrammarApi.cap(GrammarApi.joinList(back))} come away whole; the rest is scrap.`,
+        )
+        .toPeers(Mml.compose`${Mml.actor(giver)} takes ${itemName} apart.`)
         .send();
       return;
     }

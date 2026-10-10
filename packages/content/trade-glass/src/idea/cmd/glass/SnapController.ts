@@ -28,7 +28,7 @@ interface SnapModel extends CommandModel {
 }
 
 export default class SnapController extends ManualBuildController<SnapModel> {
-  execute(model: SnapModel, context: CommandContext): void {
+  async execute(model: SnapModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
     const sheet = model.sheet?.stuff ?? null;
     if (!sheet || !(sheet instanceof Sheet)) {
@@ -43,7 +43,9 @@ export default class SnapController extends ManualBuildController<SnapModel> {
       );
       return;
     }
-    void this.snap(sheet, giver);
+    // ⚠ Awaited: the panes are LANDED (custody + capture), so the act
+    // finishes when they are recorded, not a microtask later.
+    await this.snap(sheet, giver);
   }
 
   private async snap(sheet: Sheet, giver: Stuff): Promise<void> {
@@ -60,7 +62,7 @@ export default class SnapController extends ManualBuildController<SnapModel> {
       p.setForm("pane");
       if (MixinApi.isAlloyed(p) && alloying.length > 0) p.setAlloying(alloying);
       if (where && MixinApi.isContainer(where) && MixinApi.isContainable(p)) {
-        ContainmentApi.move(p as unknown as Stuff & Containable, where as Stuff & Container);
+        await ContainmentApi.land(p as unknown as Stuff & Containable, where as Stuff & Container, giver);
       }
     }
     MessageApi.scene(giver)

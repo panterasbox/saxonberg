@@ -20,10 +20,15 @@ import type {
   CraftFailure,
   RepairFailure,
   SalvageFailure,
+  FitFailure,
 } from '../../api/crafting';
 
-/** Any crafting-family decline (craft / repair / salvage) — one renderer. */
-export type CraftingFailure = CraftFailure | RepairFailure | SalvageFailure;
+/** Any crafting-family decline (craft / repair / salvage / fit) — one renderer. */
+export type CraftingFailure =
+  | CraftFailure
+  | RepairFailure
+  | SalvageFailure
+  | FitFailure;
 
 export class CraftingDecline {
   /** The diegetic line a decline `reason` (and its `detail`) reads as. */
@@ -60,10 +65,30 @@ export class CraftingDecline {
         if (detail === 'build-in-use') {
           return "There's a build still working in it — finish or empty it first.";
         }
+        if (detail === 'nothing-to-fit') {
+          return 'Fit what, to what? Name the part and the thing it goes on.';
+        }
         if (detail === 'no-material' || detail === 'no-matter') {
           return "There's no honest matter in it to recover.";
         }
         return `There isn't enough ${detail || 'stock'} to make that.`;
+      case 'part-failed':
+        // ⭐⭐ The refusal NAMES the part and the cure (assembly D6, AC 10):
+        // no repair mends a split haft, and saying so is the lesson. Below
+        // the joint's band the detail is the set — "something about the
+        // staves" — and the cure is still the same act.
+        return detail && detail.startsWith('something about')
+          ? `There is ${detail} that will not answer to repair — something in it has failed, and wants replacing. Fit a new one.`
+          : `The ${detail || 'part'} has failed, and no repair will mend that. Fit a new ${detail || 'one'}.`;
+      case 'not-skilled':
+        return `You don't have the hand for that yet — ${detail || 'it wants more skill than you have'}.`;
+      case 'no-line':
+        if (detail === 'not-an-assembly') {
+          return "That isn't made of parts — there's nothing in it to fit anything to.";
+        }
+        return detail
+          ? `That doesn't fit anywhere in it. It is made of ${detail}.`
+          : "That doesn't fit anywhere in it.";
       case 'insufficient-heat':
         return 'Nothing here runs hot enough for that — the forge is cold, or there is no fire at all.';
       case 'no-recipe':

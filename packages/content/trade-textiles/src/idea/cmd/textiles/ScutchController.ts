@@ -194,9 +194,10 @@ async function finish(
       // weakest-link rule and nothing else.
       if (MixinApi.isGraded(stock)) stock.setGrade(Grade.of(band));
       if (MixinApi.isContainable(stock) && MixinApi.isContainer(giver)) {
-        ContainmentApi.move(
+        await ContainmentApi.land(
           stock as Stuff & Containable,
           giver as Stuff & Container,
+          watching ? giver : null,
         );
       }
       made.push(`${units} of ${label}`);

@@ -155,7 +155,11 @@ export default class MowController extends FieldWorkController {
         (hay as unknown as { baledMoistureFraction?: number })
           .baledMoistureFraction = round2(0.1 + moisture * 0.3);
       }
-      ContainmentApi.move(hay as Stuff & Containable, field as unknown as Stuff & Container);
+      await ContainmentApi.land(
+        hay as Stuff & Containable,
+        field as unknown as Stuff & Container,
+        giver,
+      );
     }
 
     MessageApi.scene(giver)

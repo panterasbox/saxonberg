@@ -185,9 +185,10 @@ async function finish(
     // the two are twins and now live on the same mixin.
     if (MixinApi.isWearable(pieces)) pieces.setSeamAllowance(allowance);
     if (MixinApi.isContainable(pieces) && MixinApi.isContainer(giver)) {
-      ContainmentApi.move(
+      await ContainmentApi.land(
         pieces as Stuff & Containable,
         giver as Stuff & Container,
+        watching ? giver : null,
       );
     }
 
@@ -198,9 +199,10 @@ async function finish(
     const offcuts = await StuffApi.clone<Stuff>(OFFCUT_ROW);
     if (MixinApi.isStackable(offcuts)) offcuts.setQuantity(offcutUnits);
     if (MixinApi.isContainable(offcuts) && MixinApi.isContainer(giver)) {
-      ContainmentApi.move(
+      await ContainmentApi.land(
         offcuts as Stuff & Containable,
         giver as Stuff & Container,
+        watching ? giver : null,
       );
     }
 

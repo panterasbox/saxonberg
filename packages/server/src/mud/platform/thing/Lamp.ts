@@ -66,6 +66,8 @@ import { LightSourceMixin } from '../../lib/perception/LightSource';
 import { ThermalMixin } from '../../lib/thermal/Thermal';
 import { BurnerMixin } from '../../lib/fire/Burner';
 import { MixinApi } from '../../api/mixin';
+import { DurableMixin } from '../../lib/material/Durable';
+import { AssembledMixin } from '../../lib/craft/Assembled';
 
 /**
  * Lamp dials. Playtest-tuned, not plan decisions.
@@ -89,8 +91,12 @@ const LAMP = {
   MAX_BURN_POWER_W: 300,
 } as const;
 
+// ⭐ Durable + Assembled (assembly D8): a lamp wears, and may be a body,
+// a pane and a wick — the pane's condition is a light the room reads.
 const LampBase = BurnerMixin(
-  LightSourceMixin(BulkableMixin(ThermalMixin(Good))),
+  LightSourceMixin(
+    BulkableMixin(ThermalMixin(AssembledMixin(DurableMixin(Good)))),
+  ),
 );
 
 export default class Lamp extends LampBase {

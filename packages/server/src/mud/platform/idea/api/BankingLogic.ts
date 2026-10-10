@@ -2049,7 +2049,13 @@ async function issueCardImpl(
   pay.setActiveAccount(accountId);
   pay.setSpendCap(capMinor);
   if (principal && MixinApi.isContainer(principal)) {
-    ContainmentApi.move(card as unknown as Stuff & Containable, principal);
+    // ⭐ LANDED: a card is a held good — titled to whoever it is issued
+    // to and recorded where it is, or it is gone at the next restart.
+    await ContainmentApi.land(
+      card as unknown as Stuff & Containable,
+      principal,
+      principal,
+    );
   }
   return card as Stuff & CredentialWallet;
 }

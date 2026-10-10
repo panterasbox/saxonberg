@@ -120,7 +120,7 @@ export default class Bloom extends BloomBase {
    * afterwards, so there is no second call to guard against. Hammering
    * twice cannot double the metal, and it cannot halve it either.
    */
-  public async consolidate(): Promise<Consolidation | null> {
+  public async consolidate(by: Stuff | null = null): Promise<Consolidation | null> {
     const wholeKg = this.getMass().rawValue();
     if (wholeKg <= 0) return null;
     const slagKg = wholeKg * this.slagFraction;
@@ -141,12 +141,12 @@ export default class Bloom extends BloomBase {
       bar.setAlloying(this.getAlloying());
       bar.setTemper(this.getTemper());
     }
-    place(bar, where);
+    await place(bar, where, by);
 
     if (slagKg > 0) {
       const slag = await StuffApi.clone<Stuff>(SLAG_ROW);
       if (MixinApi.isTangible(slag)) slag.setMass(Quantity.of(round3(slagKg), 'kg'));
-      place(slag, where);
+      await place(slag, where, by);
     }
 
     StuffApi.destruct(this as unknown as Stuff);
@@ -154,12 +154,17 @@ export default class Bloom extends BloomBase {
   }
 }
 
-/** Put a freshly cloned thing where the bloom was standing. */
-function place(item: Stuff, where: Stuff | null): void {
+/**
+ * LAND a freshly cloned thing where the bloom was standing — titled to
+ * `by` (the smith at the anvil, when the caller names one) and captured,
+ * so the bar survives a restart.
+ */
+async function place(item: Stuff, where: Stuff | null, by: Stuff | null): Promise<void> {
   if (!where || !MixinApi.isContainer(where)) return;
-  ContainmentApi.move(
+  await ContainmentApi.land(
     item as unknown as Stuff & Containable,
     where as unknown as Stuff & Container,
+    by,
   );
 }
 

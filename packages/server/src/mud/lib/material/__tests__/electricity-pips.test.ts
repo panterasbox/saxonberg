@@ -6,6 +6,7 @@
  */
 
 import "../../../../test-bootstrap";
+import { MixinApi } from '../../../api/mixin';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import Garment from '../../../platform/thing/equipment/Garment';
 import Material from '../Material';
@@ -37,10 +38,13 @@ function plateArmor(conductivity: number): Garment {
 
 /** Filled-pip count of the `shock` column in the rendered pip line. */
 function shockPips(a: Garment): number {
-  const augment = (Garment as unknown as {
-    markupAugmenters: Array<(t: string, h: unknown, v: unknown) => string>;
-  }).markupAugmenters[0]!;
-  const rendered = augment('', a, a);
+  // Fold EVERY augmenter on the chain, exactly as `look` does — the class's
+  // own static is only its outermost mixin's (the assembly build put
+  // AssembledMixin outside the one that renders the pips).
+  const rendered = MixinApi.getAllMarkupAugmenters(Garment).reduce(
+    (t, augment) => augment(t, a, a),
+    '',
+  );
   const m = /shock (●*)○*/.exec(rendered);
   return m ? m[1]!.length : -1;
 }

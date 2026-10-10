@@ -548,6 +548,8 @@ export const Mixins = {
   // A physical thing that wears out with use (the condition/wear gauge).
   // Composed by tools, weapons, and armor alike — durability is not "tool".
   Durable: 'DurableMixin',
+  /** ⭐ Made of parts that keep their identity (assembly D3). */
+  Assembled: 'AssembledMixin',
   // The working-surface (edge) wear axis — Durable's fast-cycling sibling.
   Keen: 'KeenMixin',
   Tool: 'ToolMixin',
@@ -853,6 +855,7 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
   SteepableMixin: "{} isn't something you can steep",
   CraftedMixin: "{} isn't a made thing",
   DurableMixin: "{} doesn't wear out",
+  AssembledMixin: "{} isn't made of parts",
   // ⚠ The phrase says the MATERIAL fact, not the mixin's name: what
   // `hammer` wants is a piece of metal stock, and "isn't metal stock
   // you can work" tells somebody what to go and find.

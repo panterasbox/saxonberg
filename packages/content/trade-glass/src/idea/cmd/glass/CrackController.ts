@@ -121,7 +121,7 @@ export default class CrackController extends ManualBuildController<CrackModel> {
       });
     }
     if (where && MixinApi.isContainable(product)) {
-      ContainmentApi.move(product as Stuff & Containable, where);
+      await ContainmentApi.land(product as Stuff & Containable, where, giver);
     }
 
     // The moil — waste glass left on the pipe — as cullet beside you.
@@ -135,7 +135,7 @@ export default class CrackController extends ManualBuildController<CrackModel> {
       (moil as unknown as Labelled).setShortDescription("scrap of cullet");
       (moil as unknown as Labelled).setKeywords(["cullet", "moil", "glass"]);
       if (MixinApi.isAlloyed(moil) && alloying.length > 0) moil.setAlloying(alloying);
-      if (where && MixinApi.isContainable(moil)) ContainmentApi.move(moil as Stuff & Containable, where);
+      if (where && MixinApi.isContainable(moil)) await ContainmentApi.land(moil as Stuff & Containable, where, giver);
     } catch {
       /* missing cullet row: the moil is simply lost */
     }

@@ -182,6 +182,32 @@ export class ContainmentLogic extends ApiLogic {
   // walk now lives in MQL's `reachable` seed (api/mql/scope-walk.ts
   // `candidatesForReachable`).
 
+  /** See {@link ContainmentApi.land}. */
+  @CallSecurity(ContainmentApiCallers)
+  public async land(
+    item: ContainableStuff,
+    to: ContainerStuff,
+    owner: Stuff | null,
+  ): Promise<void> {
+    moveCore(item, to, false);
+    if (MixinApi.isChattel(item)) {
+      try {
+        if (owner && !item.getChattelId()) await item.stampChattel(owner);
+        await item.followCustody();
+      } catch (err) {
+        console.warn('ContainmentApi.land: custody record failed:', err);
+      }
+    }
+    const { PersistableApi } = await import('../../../api/persistable');
+    for (const host of owner ? [item, owner] : [item]) {
+      try {
+        await PersistableApi.captureHostOf(host);
+      } catch (err) {
+        console.warn('ContainmentApi.land: capture failed:', err);
+      }
+    }
+  }
+
   /** See {@link ContainmentApi.resolveLanding}. */
   @CallSecurity(ContainmentApiCallers)
   public async resolveLanding(

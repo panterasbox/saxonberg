@@ -41,6 +41,7 @@ import { ExecutionContextApi } from '@saxonberg/server/mud/api/execution-context
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
 import { TemplatePaths } from '@saxonberg/server/mud/lib/paths';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
+import Biome from '@saxonberg/server/mud/lib/biome/Biome';
 import { Reserve } from '@saxonberg/server/mud/lib/reserve';
 import { Idea } from '@saxonberg/server/mud/lib/stuff/Idea';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
@@ -256,6 +257,22 @@ beforeAll(async () => {
   for (const r of contentRows().filter((r) => r.path.includes('/idea/material/'))) {
     await StuffApi.singleton(r.path);
   }
+
+  // ⭐ The root biome, as every live world has it. Since the assembly build
+  // the craft mint LANDS its output in the cook's hands, so a cured cut is
+  // in a container from the moment it exists — and its water clock reads
+  // the room's humidity, which walks to the root. Before, the output was
+  // unplaced and the read never happened.
+  makeStuffAtPath(() => {
+    const b = new Biome();
+    b.setDefaultTemperature(Quantity.of(295, 'K'));
+    b.setDefaultPressure(Quantity.of(101_325, 'Pa'));
+    b.setDefaultHumidity(Quantity.of(50, '%'));
+    b.setDefaultGravity(Quantity.of(9.81, 'm/s²'));
+    b.setDefaultWind(Quantity.of(0, 'm/s'));
+    b.setDefaultAtmosphere('air');
+    return b;
+  }, '/stuff/idea/biome/universe');
 
   kitchen = makeStuff(() => new TestKitchen()) as unknown as Stuff & Container;
   cook = makeStuff(() => new TestCook());

@@ -2346,7 +2346,9 @@ function naturalMassScale(
 function wearWeaponOnStrike(weapon: Stuff | null, channel: Channel): void {
   if (!weapon) return;
   if (MixinApi.isDurable(weapon)) {
-    weapon.wear(dial(AppSettingKeys.craftingWearWeaponPerStrike, 0.004));
+    // ⭐ The strike JARS the weapon whatever it delivers — so a hafted one
+    // gives at the haft, not the head (assembly D7).
+    weapon.wear(dial(AppSettingKeys.craftingWearWeaponPerStrike, 0.004), 'shock');
   }
   if (
     (channel === "edge" || channel === "point") &&

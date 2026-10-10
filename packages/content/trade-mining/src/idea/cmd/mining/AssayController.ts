@@ -363,7 +363,14 @@ async function finishAssay(
           sampledOn: stamp?.on ?? 0,
           tell: said.tell ?? null,
         });
-        ContainmentApi.move(paper as unknown as Stuff & Containable, room);
+        // ⭐ Landed, titled to the customer when they are still in the
+        // world — a batch can finish long after they walked off.
+        const live = StuffApi.findByTemplatePath<Stuff>(batch.customer) ?? null;
+        await ContainmentApi.land(
+          paper as unknown as Stuff & Containable,
+          room,
+          live && live.getIdentityPath() === batch.customer ? live : null,
+        );
         // ⭐ The sample is CONSUMED. An assay is destructive — that is
         // why it costs a sample and why salting is worth doing.
         await StuffApi.destruct(sample);

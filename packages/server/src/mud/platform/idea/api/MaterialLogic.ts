@@ -12,6 +12,7 @@ import type {
   AttenuationResult,
   TraumaResolution,
   OutcomeBand,
+  ResistanceCandidate,
 } from '../../../api/material';
 import { StuffApi } from '../../../api/stuff';
 import { AppApi } from '../../../api/app';
@@ -101,6 +102,15 @@ export class MaterialLogic extends ApiLogic {
   @CallSecurity(MaterialApiCallers)
   public materialScale(material: Material | null, channel: Channel): number {
     return materialScale(material, channel);
+  }
+
+  /** See {@link MaterialApi.resistanceTo}. */
+  @CallSecurity(MaterialApiCallers)
+  public resistanceTo(
+    channel: Channel,
+    candidates: readonly ResistanceCandidate[],
+  ): number[] {
+    return candidates.map((c) => resistanceOf(channel, c));
   }
 
   /** See {@link MaterialApi.gradeConditionScale}. */
@@ -359,6 +369,36 @@ function baseAttenuationFor(token: ResistToken): number {
  * covering side (no covering protects nothing) and is guarded on the
  * delivery side (see `instrumentDeliveryScale`).
  */
+/**
+ * One candidate part's resistance on a channel, on ONE scale — the fold's
+ * own attenuation (`base(token) × materialScale`) at unit grade and wear:
+ *
+ * - a part with a COVERING form answers with that form's token on the
+ *   channel (a hide face, a mail facing) — exactly what the fold reads;
+ * - any other part (a board, a haft) is a SLAB, which resists `moderate`ly
+ *   on every channel — grain, recorded (assembly D7) — times its stock
+ *   form's integrity (riven against sawn).
+ *
+ * The material scales; the form shapes; nothing composite is computed.
+ * Thermal and corrosion channels are not routed (the fold reads the host
+ * for those), so they score by material alone.
+ */
+function resistanceOf(channel: Channel, c: ResistanceCandidate): number {
+  const k = c.construction;
+  const scale = materialScale(c.material, channel);
+  const mechanical = Channels.isMechanicalChannel(channel);
+  let r: number;
+  if (k && k.isCovering() && mechanical) {
+    r = baseAttenuationFor(k.responseFor(channel)) * scale;
+  } else if (mechanical || channel === 'shock') {
+    r = baseAttenuationFor('moderate') * scale;
+  } else {
+    r = scale;
+  }
+  if (k) r *= k.integrityFor(channel);
+  return r;
+}
+
 function materialScale(material: Material | null, channel: Channel): number {
   const scaleMax = dial(AppSettingKeys.responseMaterialScaleMax, 1.5);
   if (!material) return 0;
@@ -384,9 +424,17 @@ function materialScale(material: Material | null, channel: Channel): number {
     case 'blunt':
       ratio = tn;
       break;
+    case 'shock':
+      // ⭐ Reached since the assembly build: a blow that JARS a thing — the
+      // sledge's ring up a haft — is resisted by what absorbs energy before
+      // it fails, which is toughness. The covering fold still never sees
+      // shock (it resolves by circuit upstream); the use-wear route does,
+      // and asks which part of an assembly gives first (assembly D7).
+      ratio = tn;
+      break;
     default:
-      // Non-mechanical channel (shock) — nothing mechanical to scale. Never
-      // reached in practice (shock skips the fold); guards exhaustiveness.
+      // Non-mechanical channels (heat, cold, corrosion) — nothing
+      // mechanical to scale. Never reached: those fold elsewhere.
       ratio = 0;
       break;
   }

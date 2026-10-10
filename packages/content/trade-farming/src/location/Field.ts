@@ -762,7 +762,9 @@ export default class Field extends FieldBase {
   private async mintSpoil(row: string): Promise<Stuff | null> {
     try {
       const thing = await StuffApi.clone<Stuff>(row);
-      ContainmentApi.move(
+      // ⭐ LANDED, not moved: the hook names no actor, so the spoil
+      // carries no title — but the field is captured with it in it.
+      await ContainmentApi.land(
         thing as Stuff & Containable,
         this as unknown as Stuff & Container,
       );

@@ -1,0 +1,16 @@
+# Soldered — a tin lantern's seams run with solder at the fire. Needs a
+# working heat, so it is a premises joint: you solder where a fire is
+# hot enough (the heat the recipe asks for), not with an instrument.
+class: /platform/idea/Joint
+data:
+  key: soldered
+  label: soldered
+  portability: premises
+  instrument: ''
+  competence: { discipline: smithing, band: competent }
+  reversible: never
+  strength: 0.6
+  structuralRecovery: 0.0
+  fastenerRecovery: 0.0
+  tightenable: false
+  failure: split

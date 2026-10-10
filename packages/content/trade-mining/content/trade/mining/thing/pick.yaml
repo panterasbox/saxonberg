@@ -15,3 +15,15 @@ data:
   mass: 2.6
   capabilities: ["winning", "striking"]
   _materialPath: /stuff/idea/material/element/iron
+  # ⭐⭐ What a pick is MADE OF (assembly D3). The shipped `pick` recipe
+  # already consumes a `head` and a `haft`, and `lint:bills` holds the two
+  # to one declaration: every structural part here is an item slot of the
+  # same name and count there. The head is wedged on — anybody can do it,
+  # which is why anybody can re-haft one. `material` is what a FOUND pick's
+  # parts are; a made one records what actually went in.
+  bill:
+    parts:
+      - { part: head, template: /trade/mining/thing/pick-head, count: 1, role: structural, material: /stuff/idea/material/element/iron }
+      - { part: haft, template: /trade/mining/thing/pick-haft, count: 1, role: structural, material: /stuff/idea/material/wood/ash }
+    joints:
+      - { key: hafting, method: wedged, members: [head, haft] }

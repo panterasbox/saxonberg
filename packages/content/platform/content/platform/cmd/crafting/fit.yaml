@@ -1,0 +1,72 @@
+# ⭐⭐ `fit` — the ONE assembly verb (assembly D5, AC 7). Two arms:
+#
+#   fit cask              — RAISE: make the whole from the parts in reach.
+#                           An ordinary craft, whose mint keeps each part's
+#                           identity on the thing it made.
+#   fit haft to pick      — REPLACE: fit one member of one part of a whole,
+#                           and re-make the joints it sits in under your
+#                           hand. The head you forged stays the head.
+#
+# ⭐ Afforded by WHAT IS BEING FITTED, not by an instrument: every
+# assembly in reach (and every part beside it) makes the verb sayable,
+# because the hand rung — a friction fit, a wedge — has no instrument at
+# all (AssembledMixin's static `commandContributions`).
+#
+# Taking a thing apart is `salvage` — the shipped verb, whose yield the
+# joint's reversibility decides. Tightening a slack joint is `repair`.
+verbs: [fit]
+controller: /platform/idea/cmd/crafting/FitController
+description: "Fit a part to a thing made of parts, or raise one from its parts"
+help: |
+  Things made of parts are made, and mended, a part at a time.
+
+  `fit haft to pick` puts a new haft on your pick and keeps the head.
+  `fit stave to cask` replaces a sprung stave. `fit cask` raises a
+  whole cask from the staves, heads and hoops in reach.
+
+  Each joint has a way of being made: some by hand, some with a tool
+  (a cooper's driver), some only at a forge — and some want a hand
+  that has learned the trade. `look` at a thing to read what it is
+  made of and what has failed. A slack joint is `repair`ed; a thing
+  is taken apart with `salvage`, and how much comes back depends on
+  how it was joined, and on who is taking it apart.
+examples:
+  - cmd: fit haft to pick
+    note: Replace one part and keep the rest
+  - cmd: fit cask
+    note: Raise a whole from its parts
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  # The part to fit — or, when it names no thing in reach, the recipe to
+  # raise (`fit cask`). `required: false` so an unresolved word binds as
+  # `{stuff: null, raw}` (the `measure` rule); the controller refuses when
+  # nothing bound at all. ⚠ `greedy: true` — `fit the oak haft` is three
+  # tokens and one thing.
+  - name: thing
+    type: object
+    required: false
+    greedy: true
+    scope: ["reachable"]
+    requires: any
+  # What it is fitted TO. Only an assembly can take a part.
+  - name: whole
+    type: object
+    required: false
+    greedy: true
+    prepositions: [to, on, in, into, onto]
+    scope: ["reachable"]
+    requires: AssembledMixin
+  # ⭐ WHICH TOOL — declared, not hunted for (`lint:instrument-args`). Bare,
+  # the binder hands over every reachable tool; the joint decides which
+  # capability it wants.
+  - name: tool
+    type: objects
+    required: false
+    greedy: true
+    prepositions: [with, using]
+    default: "reachable:[mixin.ToolMixin]"
+    scope: ["reachable"]
+    requires: [ToolMixin]

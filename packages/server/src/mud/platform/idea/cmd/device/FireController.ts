@@ -361,7 +361,13 @@ async function runFiring(
         made.setAlloying([...made.getAlloying(), ...mergedCharge]);
       }
       if (MixinApi.isContainable(made)) {
-        ContainmentApi.move(made as Stuff & Containable, kiln);
+        // Landed, not moved: a fired good is somebody's, and a good moved
+        // into a kiln by nobody has no recorded place to come back to.
+        await ContainmentApi.land(
+          made as Stuff & Containable,
+          kiln,
+          watching ? giver : null,
+        );
       }
       outputs.push(made);
     } catch {

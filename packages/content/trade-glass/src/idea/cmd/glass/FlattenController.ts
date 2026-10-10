@@ -97,7 +97,7 @@ export default class FlattenController extends ManualBuildController<FlattenMode
     pane.setForm("pane");
     if (MixinApi.isAlloyed(pane) && alloying.length > 0) pane.setAlloying(alloying);
     if (where && MixinApi.isContainer(where) && MixinApi.isContainable(pane)) {
-      ContainmentApi.move(pane as unknown as Stuff & Containable, where as Stuff & Container);
+      await ContainmentApi.land(pane as unknown as Stuff & Containable, where as Stuff & Container, giver);
     }
     await StuffApi.destruct(cyl);
     MessageApi.scene(giver)

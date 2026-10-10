@@ -395,7 +395,7 @@ export default class Hive extends HiveBase implements Splittable {
         comb.setComposition(composition);
       }
       if (MixinApi.isContainer(by) && MixinApi.isContainable(comb)) {
-        ContainmentApi.move(comb, by);
+        await ContainmentApi.land(comb, by, by);
       }
       made.push(comb);
     }
@@ -747,9 +747,10 @@ export default class Hive extends HiveBase implements Splittable {
       const half = made as unknown as Colonial;
       half.seedFromSplit(taken, this.nowGameSeconds() ?? 0);
       if (MixinApi.isContainer(by)) {
-        ContainmentApi.move(
+        await ContainmentApi.land(
           made as Stuff & Containable,
           by as Stuff & Container,
+          by,
         );
       }
     }

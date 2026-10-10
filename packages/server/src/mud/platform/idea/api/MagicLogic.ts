@@ -1702,7 +1702,9 @@ async function execConjure(
     const conjured = await StuffApi.clone(e.templatePath);
     const scene = deliveryScene(ctx.origin) ?? deliveryScene(ctx.actor);
     if (scene && MixinApi.isContainer(scene) && MixinApi.isContainable(conjured)) {
-      ContainmentApi.move(conjured, scene);
+      // ⭐ LANDED, titled to whoever acted: a conjured thing is a good in
+      // the world, and a bare move left it with no recorded place.
+      await ContainmentApi.land(conjured, scene, ctx.actor);
     }
     return `${conjured.getPresentation()} takes shape out of nothing.`;
   }

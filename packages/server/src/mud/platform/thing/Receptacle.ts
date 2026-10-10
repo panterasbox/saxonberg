@@ -37,12 +37,28 @@
 import Good from '../../lib/stuff/Good';
 import { BulkableMixin } from '../../lib/bulk/Bulkable';
 import { ThermalMixin } from '../../lib/thermal/Thermal';
+import { DurableMixin } from '../../lib/material/Durable';
+import { AssembledMixin } from '../../lib/craft/Assembled';
+import type { ClosureLevel } from '../../lib/bulk/Bulkable';
 
 // ThermalMixin outer of Bulkable: a fluid holder's Thermal capacity
 // derives from its contents (more liquid → larger C → slower cooling),
 // so the coffee in any receptacle has a real, drifting temperature. An
 // open holder (a mug) has no sealing barrier → it cools in minutes; the
 // sealable Flask switches to a vacuum barrier when closed (τ in hours).
-const ReceptacleBase = ThermalMixin(BulkableMixin(Good));
+// ⭐ Durable + Assembled (assembly D8): a pail, a pot, a bowl wears, and may
+// be hooped staves. The widest claim of the four — true of every pot.
+const ReceptacleBase = AssembledMixin(
+  DurableMixin(ThermalMixin(BulkableMixin(Good))),
+);
 
-export default class Receptacle extends ReceptacleBase {}
+export default class Receptacle extends ReceptacleBase {
+  /**
+   * ⭐ The authored closure is the CEILING; the joints are the floor
+   * (assembly D10). A hooped pail holds only while its staves are sound
+   * and its hoops tight; a found mug with no parts reads its row exactly.
+   */
+  public override getClosure(): ClosureLevel {
+    return this.leaks() ? 'open' : super.getClosure();
+  }
+}

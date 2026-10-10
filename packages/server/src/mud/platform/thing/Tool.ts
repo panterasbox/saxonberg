@@ -29,6 +29,7 @@ import Good from '../../lib/stuff/Good';
 import { ToolMixin } from '../../lib/craft/Tooled';
 import { DurableMixin } from '../../lib/material/Durable';
 import { CraftedMixin } from '../../lib/craft/Crafted';
+import { AssembledMixin } from '../../lib/craft/Assembled';
 
 // CraftedMixin closes the tools-make-tools loop: a Tool can be a
 // recipe output (smithing makes the hammer smithing needs); the mark
@@ -50,6 +51,6 @@ import { CraftedMixin } from '../../lib/craft/Crafted';
 // The attach point stays open and named: a `KitchenTool` the day a sieve or
 // a board genuinely needs to carry a load, the same way irrigation
 // contamination composes onto `WateringCan` when someone wants it.
-const ToolBase = CraftedMixin(ToolMixin(DurableMixin(Good)));
+const ToolBase = AssembledMixin(CraftedMixin(ToolMixin(DurableMixin(Good))));
 
 export default class Tool extends ToolBase {}

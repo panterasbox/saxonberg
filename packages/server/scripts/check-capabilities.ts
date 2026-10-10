@@ -152,6 +152,14 @@ function scanYaml(doc: unknown, site: string, declared: Sites, consumed: Sites):
       if (typeof want === 'string' && want !== '') add(consumed, want, site);
     }
   }
+  // ⭐ A JOINT ROW naming the instrument that makes it — the fifth consumer
+  // kind (assembly D11). `fit` and `repair` read it to decide whether the
+  // cooper's driver is in reach, so `driving` is wanted by the `hooped`
+  // row and by nothing in source. Gated on the site, as the reading arm is.
+  if (site.includes('/idea/Joint/')) {
+    const want = o['instrument'];
+    if (typeof want === 'string' && want !== '') add(consumed, want, site);
+  }
   for (const v of Object.values(o)) if (v && typeof v === 'object') scanYaml(v, site, declared, consumed);
 }
 

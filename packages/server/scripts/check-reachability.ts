@@ -217,6 +217,7 @@ import {
   walkYamlFiles,
   type PackSource,
 } from "./pack-roots";
+import { Recipe } from "../src/mud/lib/craft/Recipe";
 
 // ──────────────────────────────────────────────────────────────────────
 // The carrier
@@ -310,7 +311,7 @@ function slateFileExists(basename: string, slateDir: string): boolean {
 // ──────────────────────────────────────────────────────────────────────
 
 export interface Finding {
-  arm: "A" | "G" | "R" | "field" | "carrier" | "scan";
+  arm: "A" | "G" | "R" | "field" | "carrier" | "scan" | "mint";
   where: string;
   detail: string;
 }
@@ -555,6 +556,27 @@ const FAUCETS: Record<string, string> = {
 };
 
 /**
+ * ⭐⭐ The faucets a RECIPE mints through — every one must name an AUTHORED
+ * row. A faucet only proves the row it names is reachable; it never proved
+ * the row EXISTS, and `/trade/distilling/thing/spirit-bottle` shipped in
+ * two recipes naming a row nobody wrote (the authored one is
+ * `empty-spirit-bottle`) — a whisky that could never be minted, in a gate
+ * that counted it as a faucet. The assembly build made the check.
+ */
+const MINTS = new Set(["outputTemplate", "outputResidue"]);
+
+/** Every pack-shipped recipe document (`<pack>/content/recipes/**.yaml`). */
+function recipeFiles(contentDir: string): string[] {
+  const out: string[] = [];
+  if (!existsSync(contentDir)) return out;
+  for (const pack of readdirSync(contentDir).sort()) {
+    const dir = join(contentDir, pack, "content", "recipes");
+    if (existsSync(dir)) out.push(...walkYamlFiles(dir));
+  }
+  return out;
+}
+
+/**
  * CITATIONS — a field that NAMES a row without bringing it into the
  * world. Being cited is not reachability.
  *
@@ -619,8 +641,13 @@ export function collectFaucets(
   findings: Finding[],
   contentDir: string = CONTENT,
   serverSrc: string = SERVER_SRC,
-): { named: Map<string, FaucetHit>; stocks: Map<string, number> } {
+): {
+  named: Map<string, FaucetHit>;
+  stocks: Map<string, number>;
+  minted: { path: string; field: string; file: string }[];
+} {
   const named = new Map<string, FaucetHit>();
+  const minted: { path: string; field: string; file: string }[] = [];
   const stocks = new Map<string, number>();
   const unknown = new Map<string, { file: string; example: string }>();
 
@@ -663,6 +690,7 @@ export function collectFaucets(
       }
       if (!isThingPath(node)) return;
       if (FAUCETS[leaf] !== undefined) {
+        if (MINTS.has(leaf)) minted.push({ path: node, field: leaf, file });
         if (!named.has(node)) named.set(node, { field: leaf, file });
         return;
       }
@@ -686,7 +714,7 @@ export function collectFaucets(
         `462 refs while still reporting green.`,
     });
   }
-  return { named, stocks };
+  return { named, stocks, minted };
 }
 
 
@@ -922,8 +950,37 @@ export function run(
   }
 
   // ── Arm R ────────────────────────────────────────────────────────
-  const { named, stocks } = collectFaucets(findings, contentDir, serverSrc);
+  const { named, stocks, minted } = collectFaucets(findings, contentDir, serverSrc);
   const idx = inheritanceIndex(serverSrc, contentDir);
+  // ⭐ …and every shipped recipe must PARSE. At runtime the catalogue
+  // skips a malformed row with a warning, deliberately — a recipe is also
+  // a document a player authors, and one bad document must not take
+  // crafting down for everybody. So the strictness lives HERE, on what a
+  // pack ships, where a skipped row is a defect nobody would ever see.
+  for (const file of recipeFiles(contentDir)) {
+    try {
+      const data = YAML.parse(readFileSync(file, "utf8")) as Record<string, unknown>;
+      Recipe.fromData(data ?? {});
+    } catch (err) {
+      findings.push({
+        arm: "mint",
+        where: relative(contentDir, file),
+        detail:
+          `the recipe does not parse (${(err as Error).message}) — the ` +
+          `catalogue would skip it at boot and nobody could ever make it.`,
+      });
+    }
+  }
+  for (const m of minted) {
+    if (idx.rows.has(m.path)) continue;
+    findings.push({
+      arm: "mint",
+      where: relative(contentDir, m.file),
+      detail:
+        `'${m.field}: ${m.path}' names no authored row — the recipe can ` +
+        `never mint its output. Point it at the row that exists, or author it.`,
+    });
+  }
   const mixinCache = new Map<string, boolean>();
 
   // Children by parent, for mechanism 4.
@@ -1158,7 +1215,9 @@ function main(): void {
 
   // Findings that are NOT the per-item census lines (those are counted by
   // the ceilings) — the carrier, the scan, and the unclassified fields.
-  const hard = report.findings.filter((f) => f.arm === "carrier" || f.arm === "scan");
+  const hard = report.findings.filter(
+    (f) => f.arm === "carrier" || f.arm === "scan" || f.arm === "mint",
+  );
   // ⭐ Gate-integrity findings — an unclassified path field means arm R
   // has gone blind on whatever that field reaches, which no ceiling can
   // express. Always hard, never counted against a ratchet.

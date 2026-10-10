@@ -169,11 +169,9 @@ export default class QuenchController extends ManualBuildController<QuenchModel>
             return;
           }
           const recipeId = outcome.recipeId;
-          // The workpiece was consumed by the mint; hand its successor over.
+          // The workpiece was consumed by the mint, which hands its
+          // successor over (the Api lands, stamps and captures it).
           const output = outcome.output;
-          if (MixinApi.isContainable(output) && MixinApi.isContainer(giver)) {
-            ContainmentApi.move(output, giver);
-          }
           MessageApi.scene(giver)
             .topic(TOPIC)
             .toSelf(Mml.compose`You draw ${Mml.thing(output)} from the tub, finished.`)
