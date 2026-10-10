@@ -104,7 +104,9 @@ function seasoningAugmenter(text: string, host: Stuff, _viewer: Stuff): string {
         ? 'It is seasoned enough to work.'
         : f >= 0.4
           ? 'It is still drying; worked now, it would move.'
-          : 'It is green — heavy, cool, and wet at the end grain.';
+          : f >= 0.15
+            ? 'It has begun to dry — lighter than it was, the end grain paling — but it is still green.'
+            : 'It is green — heavy, cool, and wet at the end grain.';
   return text && text.length > 0 ? `${text}\n\n${line}` : line;
 }
 
