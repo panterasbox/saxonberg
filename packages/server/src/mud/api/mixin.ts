@@ -70,6 +70,7 @@ import type { Alias } from '../lib/shell/Alias';
 import type { Singleton } from '../lib/stuff/Singleton';
 import type { LocationZone } from '../lib/zone/LocationZone';
 import type { Positioned } from '../lib/expanse/Positioned';
+import type { RoomContributor } from '../lib/description/RoomContributor';
 import type { DoorBearing } from '../lib/boundary/DoorBearing';
 import type { Adornable } from '../lib/boundary/Adornable';
 import type { Adornment } from '../lib/boundary/Adornment';
@@ -1274,6 +1275,10 @@ export class MixinApi {
 
   public static isPositioned(obj: Stuff): obj is Stuff & Positioned {
     return this.hasMixin(obj, Mixins.Positioned);
+  }
+
+  public static isRoomContributor(obj: Stuff): obj is Stuff & RoomContributor {
+    return this.hasMixin(obj, Mixins.RoomContributor);
   }
 
   public static isDoorBearing(obj: Stuff): obj is Stuff & DoorBearing {

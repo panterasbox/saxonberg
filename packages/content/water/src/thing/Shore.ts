@@ -36,6 +36,7 @@
  */
 
 import Thing from '@saxonberg/server/mud/platform/thing/Thing';
+import { RoomContributorMixin } from '@saxonberg/server/mud/lib/description/RoomContributor';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { MarkupAugmenter } from '@saxonberg/server/mud/api/mml';
@@ -71,7 +72,7 @@ interface ShoreMemo {
   atS: number;
 }
 
-const ShoreBase = Thing;
+const ShoreBase = RoomContributorMixin(Thing);
 
 export default class Shore extends ShoreBase {
   static fieldMeta: FieldMeta = {
@@ -116,6 +117,19 @@ export default class Shore extends ShoreBase {
   }
 
   /** The viewer's band in the read Discipline — sync, the floor when unknown. */
+  /**
+   * ⭐ The room hears the water (maritime D24). `look` at the bank now
+   * names the river beside it — its name and its breadth, the first
+   * sentence of the physical read — instead of the water staying
+   * invisible until somebody examines the edge. The full read (current,
+   * salinity, what is in it) stays on `look <the edge>`.
+   */
+  override contributeToRoom(_viewer: Stuff): string | null {
+    const memo = this.waterRead();
+    if (memo === null || memo.reach === null) return null;
+    return physicalRead(memo)[0] ?? null;
+  }
+
   public bandOf(viewer: Stuff): CompetenceBandName {
     const key = this._memo?.disciplineKey ?? null;
     if (key === null || !MixinApi.isAdvancing(viewer)) return CompetenceBand.FLOOR;

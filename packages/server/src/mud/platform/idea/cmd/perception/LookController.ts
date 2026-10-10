@@ -50,6 +50,8 @@ import {
 } from '../../../../lib/perception/Light';
 import type { VisionModality } from '../../modalities/VisionModality';
 import { AppApi } from '../../../../api/app';
+import { TemplatePaths } from '../../../../lib/paths';
+import type StructureCatalogue from '../../StructureCatalogue';
 import { AppSettingKeys } from '../../../../lib/config/AppSettings';
 import type { Sensor } from '../../../../lib/message/Sensor';
 import type { Perception } from '../../../../lib/perception/Perception';
@@ -452,6 +454,19 @@ export default class LookController extends CommandController<LookModel> {
     if (opened) scene.meta({ carded: opened });
     scene.toSelf(body).send();
 
+    // ⭐⭐ What can be SEEN from here, and what the room's contents say in
+    // its voice (maritime D24) — its own uncarded scene, for the reason
+    // the light line and the notices ride one: folded into `body` it would
+    // reach the card, which never renders handed prose. Landmarks first
+    // (the zone walk's `visibleLandmarks`, each described once on the
+    // structure itself), then every `RoomContributor` among the contents.
+    for (const line of await this.roomContributions(actor, location, visibleContents)) {
+      MessageApi.scene(actor)
+        .topic('sense.survey')
+        .toSelf(Mml.compose`${Mml.fromMarkup(line)}`)
+        .send();
+    }
+
     // ⭐ The notices ride their own scene, UNCARDED, so the transcript
     // keeps them. A card on a wall is a thing you NOTICE, not part of the
     // room's own description — which is why this reads correctly rather
@@ -464,6 +479,54 @@ export default class LookController extends CommandController<LookModel> {
     }
 
     return;
+  }
+
+  /**
+   * The lines a room gains from outside itself (maritime D24): the
+   * outside description of each landmark the zone walk names, then each
+   * contributing item's line.
+   *
+   * A landmark is skipped when the viewer is INSIDE it (you do not see the
+   * clock tower from its own stair). An authored `visibleLandmarks: []`
+   * stops the walk — *nothing is visible from here* — which is why the
+   * walk is `lookupField` and not a union. Every failure degrades to a
+   * missing line: a broken contributor must never take `look` down.
+   */
+  private async roomContributions(
+    actor: Stuff,
+    location: Stuff,
+    visibleContents: readonly Stuff[],
+  ): Promise<string[]> {
+    const lines: string[] = [];
+    const here = location.getTemplatePath() ?? '';
+    const zone = location.getZone();
+    const landmarks = zone ? await zone.lookupField<string[]>('visibleLandmarks') : null;
+    if (Array.isArray(landmarks) && landmarks.length > 0) {
+      try {
+        const cat = await StuffApi.singleton<StructureCatalogue>(
+          TemplatePaths.structureCatalogue,
+        );
+        for (const path of landmarks) {
+          const row = await cat.rowOf(path);
+          if (row === null || row.outsideDescription === '') continue;
+          const inside = row.extent !== '' &&
+            (here === row.extent || here.startsWith(`${row.extent}/`));
+          if (!inside) lines.push(row.outsideDescription);
+        }
+      } catch (err) {
+        console.warn('LookController: landmark walk failed:', err);
+      }
+    }
+    for (const item of visibleContents) {
+      if (!MixinApi.isRoomContributor(item)) continue;
+      try {
+        const line = await item.contributeToRoom(actor);
+        if (typeof line === 'string' && line.trim() !== '') lines.push(line.trim());
+      } catch (err) {
+        console.warn('LookController: a room contributor failed:', err);
+      }
+    }
+    return lines;
   }
 
   /**

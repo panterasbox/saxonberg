@@ -1438,6 +1438,42 @@ Read first, in this order, before touching anything:
 14. `packages/wire/tests/fishing.dirty.wire.test.ts` (the drive shape), `docs/testing.md § Two tiers`
 15. `docs/subsystems/{zone,location,location-graph,activity,instrumentation,content-packs,command-routing}.md`
 
+## Build log
+
+*(appended wave by wave at build time — what changed, what was decided,
+what surprised. Decisions the build made that the plan did not are
+marked **B-n**.)*
+
+- ✅ **A0** (`6c86e0152`). The split landed as planned. **B-1:** no
+  `stampZoneOf` seam — `FromSpatialZone` is `FromModule(SpatialZone,
+  { includeSubclasses })` and it resolves the CALLER (the zone instance),
+  not the module whose code runs, so `LocationZoneMixin` calling
+  `location.setZone(this)` passes exactly as `SpatialZone` did. **B-2:**
+  `GeoPosition` persists as its plain record (`{latDeg, lonDeg, depthM}`)
+  and is rebuilt on read; no marshaller row. Its constructor takes a
+  record or degrees — a public `from()` static would have risen
+  `lint:lib-statics` (341 ceiling).
+- ✅ **A1**. `Structure` (kernel Idea, persistable singleton),
+  `StructureCatalogue` (lazy, reads ROWS by class — the landmark walk needs
+  the tower's sentence, not a resident tower), `RoomContributorMixin`,
+  `Vantage`, and `look`'s contribution step. **B-3:** the landmark and
+  contributor lines ride their OWN uncarded scenes after the room body —
+  folded into `body` they would reach the card, which never renders
+  handed prose (the help-wanted defect). **B-4:** a landmark is skipped
+  when the viewer stands inside its extent. **B-5:** `Vantage` contributes
+  each cited row's `outsideDescription`; `ExpanseNode` and the expanse
+  rows carry the same field, so *anything with an outside* can be
+  overlooked or be a landmark. **B-6:** `Shore` composes the hook and
+  contributes the first sentence of its physical read (*This is the
+  Kestrel, a great wide water.*). **B-7:** `deckHeightM` /
+  `mastheadHeightM` / `sightHeightFor` move to A3 —
+  `lint:unconsumed-seams` counts a field consumed only when ANOTHER file
+  reads it, and its reader (`ExpanseLogic`) is A3's. **B-8 (for A3):**
+  the voyage is re-armed by a new `Persistable.onRestored()` `@hook`
+  called after a record restore, NOT `Structure.onCreate` —
+  `lint:on-create` holds 82/82 and `StuffApi.singleton` already restores a
+  persistable singleton; two implementers (`Structure`, `Boat`).
+
 ---
 
 ## Drive record
