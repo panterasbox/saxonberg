@@ -1311,6 +1311,28 @@ one to the boards (unit test over `rankAgainst`).
 
 ### W3 — the wood column's kernel: the clock seam, seasoning, `Timber`, riven/sawn
 
+> ✅ **Done — `5817ec5a3` (the byte-identical clock refactor, alone) +
+> `ecb8f30c7` + `430abd0be`.** **Build decisions.** (1) `MaturationClock`
+> holds the curves as `@internal` statics (`lint:lib-statics` counts a lib
+> class's statics unless the CLASS doc says `@internal`); the gap loop
+> stayed in `Maturing` — only the pure pieces moved, so the refactor is
+> trivially byte-identical (maturation 60, world fermentation 56 green
+> before and after). (2) Seasoning's rate is the species' days × how hard
+> THIS air dries it (`Evaporation`, wood's equilibrium 85 % RH, against a
+> reference good-drying air) × the clock's temperature curve; rain on an
+> exposed stack reverses it; drying above 330 K checks the board and caps
+> its grade (the clock's band rule). (3) ⚠ `Timber` = `Seasoning(Stackable(…))`,
+> NOT `Stackable(Seasoning(…))`: the outer class's `onMerged` is the one
+> that runs, and a merge must take the greener. (4) **Green work warps**:
+> a line fitted green records `greenAt`; once it has dried a tenth of its
+> species' seasoning in place, one member fails (`warped`) and its joints
+> slacken by `greenShrinkage × 6` — the stated reason (AC 19). (5) Two
+> mint fixes found on the way (`430abd0be`): a crafted thing that SEASONS
+> is item stock (no recipe could consume a board before), and the tangible
+> arm carries the greenest input's seasoned fraction onto the output.
+> (6) The stock forms shipped in W1 (see there); `lint:does-nothing` walks
+> them; `lint:closed-vocabularies` did not rise.
+
 **Decisions:** D2, D12 (`Timber`), D7's D10 half.
 **Files:** `lib/maturation/MaturationClock.ts` (+ tests), `Maturing.ts`
 (calls it; no behaviour change — **its own commit first**:
@@ -1356,6 +1378,31 @@ green; AC 18 by `grep discipline:` on the three recipes.
 **Commit:** `build(assembly W4): trade-carpentry (saw, carve, the sawmill) and forestry's rive; the haft re-homed to the woodworker, the head to the smith`.
 
 ### W5 — coopering: the cask, the character, the gauger
+
+> ⏳ **Kernel half done — `958e200ea`, `91c0060b1`; the pack is in the
+> tree pending W4's carpentry pack + `pnpm install`.** **Build decisions.**
+> (1) ⭐⭐ **The three cooper products are three JOINT ROWS**
+> (`slack-hooped` novice · `hooped` competent · `tight-hooped` proficient),
+> because what the trade's competence IS is how tight the hoops are driven;
+> `fit cask` by a hand short of proficient is refused naming the band, and
+> the same hand can make the other two (lens 1). (2) ⚠ **A Vat holds
+> liquids, not things** — "put nails in it" (drive 9) needs a container, so
+> the novice's product is a **`Barrel`** (new kernel class, a made
+> container of staves; you cannot pour into it — the stated reason),
+> the competent one a `dry-cask` (`dryTight`, holds granular bulk), the
+> proficient one the `cask`. `requiredClosureFor` returns `dryTight` for a
+> material tagged `granular`; the two flours carry the tag. Commons rows:
+> `/stuff/thing/vessel/{slack-barrel,dry-cask,cask}`. (3) Fill history:
+> `fillsSinceRefire` counts, so the first fill after a re-fire gives the
+> whole character; the shipped refill test now expects the second fill's
+> two-thirds. (4) The re-fire's competence is read off the vessel's OWN
+> joints, never a Discipline the kernel names. (5) Brewing's cask extends
+> the commons cask with `imparts: []` stated, so its ale is unchanged
+> (AC 27); the charred cask is the plain cask with `charLevel: 1` (same
+> figures). (6) `CapacityReading` answers anyone; the seat writes
+> `setGauge` on the cask; standards come from `Government.standards[]`
+> (Terminus: cask 25 L). The gauger position is on the registry chart and
+> rostered to the clerk.
 
 **Decisions:** D9, D10, D12 (coopering), D13.
 **Files:** `packages/content/trade-coopering/**` (rows, recipes,
