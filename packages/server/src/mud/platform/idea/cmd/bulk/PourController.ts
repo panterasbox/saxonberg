@@ -127,6 +127,26 @@ export default class PourController extends CommandController<PourModel> {
       }
     }
 
+    // ⭐ The mould's credit (dairy D22): filling a mould IS the act — there
+    // is no recipe and no deed to gate — so a mould row that names a
+    // Discipline credits it here, at the fill (a hoop → dairying, an ingot
+    // mould → smelting; an ice pan names none).
+    if (result.applied > 0 && MixinApi.isMould(target)) {
+      const discipline = target.getMouldDiscipline();
+      if (discipline) {
+        try {
+          if (MixinApi.isAdvancing(giver))
+            await giver.creditDeed({
+              discipline,
+              difficulty: 'standard',
+              outcome: 'success',
+            });
+        } catch (err) {
+          console.warn('PourController: recording the deed failed:', err);
+        }
+      }
+    }
+
     // ⭐⭐ Escape: a GAS into something that will not hold it. Not a
     // puddle and not silence — it is in the air of the room now, and the
     // sentence has to say so, because in a shut room that is dangerous.

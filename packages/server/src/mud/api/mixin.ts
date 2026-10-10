@@ -109,6 +109,8 @@ import type { Contaminable } from '../lib/material/Contaminable';
 import type { Growing } from '../lib/husbandry/Growing';
 import type { Maturing } from '../lib/maturation/Maturing';
 import type { Fractionating } from '../lib/fractionation/Fractionating';
+import type { Mould } from '../lib/mould/Mould';
+import type { Ripening } from '../lib/maturation/Ripening';
 import type { Pumping } from '../lib/pump/Pumping';
 import type { Plantable } from '../lib/husbandry/Plantable';
 import type { Soil } from '../lib/husbandry/Soil';
@@ -1496,6 +1498,22 @@ export class MixinApi {
    */
   public static isFractionating(obj: Stuff): obj is Stuff & Fractionating {
     return this.hasMixin(obj, Mixins.Fractionating);
+  }
+
+  /**
+   * A vessel that decides the shape of what sets in it and keeps it — a
+   * cheese hoop, an ingot mould, an ice pan. The set site asks this first.
+   */
+  public static isMould(obj: Stuff): obj is Stuff & Mould {
+    return this.hasMixin(obj, Mixins.Mould);
+  }
+
+  /**
+   * A solid that converts on a shelf by its own temperature — a wheel of
+   * cheese. Maturing's discrete twin.
+   */
+  public static isRipening(obj: Stuff): obj is Stuff & Ripening {
+    return this.hasMixin(obj, Mixins.Ripening);
   }
 
   /**

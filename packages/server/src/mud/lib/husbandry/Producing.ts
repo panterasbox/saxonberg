@@ -76,7 +76,9 @@ import { ContainmentApi } from '../../api/containment';
 import { Quantity } from '../quantity';
 import type Material from '../../platform/idea/material/Material';
 import type { Tooled } from '../craft/Tooled';
-import type { Bulkable } from '../bulk/Bulkable';
+import type { Bulkable, BulkSlot } from '../bulk/Bulkable';
+import { Contamination } from '../material/Contaminable';
+import { HARM_DEFAULTS } from '../../platform/idea/Condition';
 import type { Tappable } from './Tappable';
 import type {
   WorkDifficulty,
@@ -160,6 +162,13 @@ export interface Producing extends Tappable {
   takeFrom(key: string): TapTake;
   /** Put an `expire` tap back into production (a new lactation). */
   freshen(key: string): void;
+  /**
+   * Mark a tap dried off — the reconcile's own write, exposed so a drafter
+   * can restore a recorded dry period (dairy D12).
+   */
+  dryOff(key: string): void;
+  /** Does this body's sex give this tap? Unknown sex answers yes. */
+  givesTap(key: string): boolean;
   /** How hard this animal is working, `[0, 1]` — the condition scale. */
   productionFactor(): number;
   /** Whether a tap is open right now, and why not. */
@@ -406,6 +415,8 @@ export function ProducingMixin<TBase extends MixinConstructor<Stuff>>(
           return 'she is sitting tight and will not be moved';
         case 'no-forage':
           return 'there is nothing out there to work';
+        case 'wrong-sex':
+          return 'there is nothing of that to be had from this one';
       }
     }
 
@@ -429,6 +440,8 @@ export function ProducingMixin<TBase extends MixinConstructor<Stuff>>(
       this.reconcileProduction();
       const lines: string[] = [];
       for (const tap of this.taps()) {
+        // A bull has no milk to be in or out of.
+        if (!this.givesTap(tap.key)) continue;
         const state = this.tapState[tap.key];
         if (!state) continue;
         if (tap.behaviour === 'expire') {
@@ -471,6 +484,23 @@ export function ProducingMixin<TBase extends MixinConstructor<Stuff>>(
         }
       }
       return lines;
+    }
+
+    public givesTap(key: string): boolean {
+      const tap = this.taps().find((t) => t.key === key);
+      if (!tap?.sex) return true;
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isOrganism(self)) return true;
+      const sex = self.getSex();
+      // ⚠ The tri-state rule: an unrecorded sex is open, not closed.
+      return sex === null || sex === tap.sex;
+    }
+
+    public dryOff(key: string): void {
+      this.reconcileProduction();
+      const state = this.tapState[key];
+      if (!state) return;
+      this.tapState = { ...this.tapState, [key]: { ...state, driedOff: true } };
     }
 
     public freshen(key: string): void {
@@ -675,6 +705,14 @@ export function ProducingMixin<TBase extends MixinConstructor<Stuff>>(
             ' does not give that.',
         };
       }
+      // ⭐ Is this the animal that gives it, before is it the season?
+      if (!this.givesTap(key)) {
+        return {
+          kind: 'refusal',
+          reason: 'wrong-sex',
+          prose: this.tapRefusal(key, 'wrong-sex'),
+        };
+      }
       const window = this.tapWindow(key);
       if (!window.open && window.reason !== null) {
         return {
@@ -765,7 +803,7 @@ export function ProducingMixin<TBase extends MixinConstructor<Stuff>>(
 
       const credit = this.tapCredit(key);
       if (shape === 'volume') {
-        const kept = await this.pourTake(tap, take.units, vessel);
+        const kept = await this.pourTake(tap, take.units, vessel, by);
         return {
           self: this.tapTookPhrase(key, take.units, kept),
           peers: null,
@@ -798,6 +836,7 @@ export function ProducingMixin<TBase extends MixinConstructor<Stuff>>(
       tap: TapSpec,
       units: number,
       vessel: (Stuff & Bulkable) | null,
+      by: Stuff | null = null,
     ): Promise<number> {
       if (!vessel) return 0;
       const material = yieldMaterial(tap);
@@ -816,7 +855,9 @@ export function ProducingMixin<TBase extends MixinConstructor<Stuff>>(
           litres: units,
           mode: 'lenient',
         });
-        return result.applied ?? 0;
+        const applied = result.applied ?? 0;
+        if (applied > 0 && by !== null) stampTheHand(by, vessel, to);
+        return applied;
       } finally {
         StuffApi.destruct(source);
       }
@@ -1049,4 +1090,34 @@ function seasonSide(day: number, from: number): TapClosedReason {
 function nowSeconds(): number | null {
   if (!StuffApi.findByTemplatePath(TemplatePaths.worldClockRegistry)) return null;
   return WorldClockApi.getNow().rawValue();
+}
+
+/**
+ * ⭐ How much of an unwashed hand's dirt goes into the pail (dairy D11) —
+ * the `e-coli` severity at fully filthy hands, scaled by `1 − cleanliness`.
+ */
+const MILKING_INOCULUM = 0.3;
+
+/**
+ * ⭐⭐ **The milker's hand is on what they drew** (dairy D11): who drew it
+ * — the identity path the harm ledger keys on, never the lineage — and,
+ * when the hands have gone unwashed, what came off them. Milk comes out of
+ * a healthy udder clean; what makes raw milk dangerous is the hand and the
+ * pail. Hygiene's own header names this as its deferred producer, so no
+ * new state is minted: six game-hours unwashed is dirty. No sense reports
+ * it; procedure does.
+ */
+function stampTheHand(by: Stuff, vessel: Stuff & Bulkable, slot: BulkSlot): void {
+  const maker = by.getIdentityPath();
+  if (maker) slot.setPayload({ ...(slot.getPayload() ?? {}), maker });
+  if (!MixinApi.isHygiene(by)) return;
+  const clean = by.handsCleanliness();
+  if (clean >= HARM_DEFAULTS.SEPSIS_DIRTY_THRESHOLD) return;
+  const severity = (1 - clean) * MILKING_INOCULUM;
+  const loads = new Contamination(slot).loads();
+  new Contamination(slot).stampLoads({
+    ...loads,
+    'e-coli': Math.min(1, (loads['e-coli'] ?? 0) + severity),
+  });
+  if (MixinApi.isContaminable(vessel)) vessel.contaminate('e-coli', severity);
 }

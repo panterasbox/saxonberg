@@ -982,7 +982,12 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
       //
       // Outside the `try`, so the plateau's own `setContentsTemperature`
       // is not swallowed by the reentry guard.
-      if (MixinApi.isMeltable(self)) this.reconcilePhase();
+      if (
+        MixinApi.isMeltable(self) ||
+        freezesWhereItStands(self, this.stampedTemperatureK)
+      ) {
+        this.reconcilePhase();
+      }
     }
 
     /**
@@ -1341,12 +1346,20 @@ function reconcileBulkPhase(v: Stuff & Bulkable & Thermal): void {
       return;
     }
 
-    // Solidify — the liquid becomes a cast solid of the same material, a
-    // clone of the material's `castTemplate` (water → ice-block; a metal →
-    // the generic `/stuff/thing/Casting`), mass derived back from the pool.
+    // Solidify — the liquid becomes a cast solid of the same material.
+    // ⭐⭐ **The set site asks the CONTAINER first** (dairy D9): a mould
+    // keeps what set in it, in its own shape (an ice pan → a block; an
+    // ingot mould → an ingot); any other vessel falls back to the
+    // material's `castTemplate` (water → a lump of ice; a metal → the
+    // generic `/stuff/thing/Casting`) dropped beside it, today's behaviour.
+    const setPayload = v.getBulkPayload(aff);
     v.setBulkAmount(aff, Quantity.of(0, 'L'));
     v.setBulkMaterial(aff, null);
     v.setBulkPayload(aff, null);
+    if (MixinApi.isMould(v)) {
+      void v.castInto({ material: mat, massKg, payload: setPayload });
+      return;
+    }
     const scope = (v as unknown as { getContainer(): Stuff | null })
       .getContainer();
     void StuffApi.clone(mat.getCastTemplate()).then((cast) => {
@@ -1379,6 +1392,24 @@ function reconcileBulkPhase(v: Stuff & Bulkable & Thermal): void {
       // booted world the template is present (water → ice-block).
     });
   }
+}
+
+/**
+ * ⭐ **A liquid freezes because it is COLD** — the mirror of the melt
+ * driver above (a solid melts because it is warm). A bulk holder whose
+ * pool stands at or below its melting point runs the phase on the same
+ * lazy read, so a crucible left to cool sets, and a pail left out in a
+ * frost freezes, without a fire or a cold store having to drive it.
+ * ⚠ Freeze side only: the boil edge keeps its own drivers (a lit burner),
+ * so nothing on a merely warm read flashes to steam.
+ */
+function freezesWhereItStands(self: Stuff, tempK: number): boolean {
+  if (!MixinApi.isBulkable(self) || !MixinApi.isThermal(self)) return false;
+  const aff: BulkAffordance = self.hasInteriorBulk() ? 'interior' : 'surface';
+  if (!(self.getBulkAmount(aff).rawValue() > 0)) return false;
+  const mp = self.getBulkMaterial(aff)?.getMeltingPoint().rawValue() ?? 0;
+  if (!(mp > 0)) return false;
+  return tempK <= mp;
 }
 
 /** Game-seconds for a freeze-ruin freshness stamp, or 0 before boot. */

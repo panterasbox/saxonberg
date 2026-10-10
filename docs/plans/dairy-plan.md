@@ -1282,6 +1282,55 @@ green with `closed-vocabularies` at 5, `on-create` unchanged,
 and taps test unchanged.
 **Commit:** `build(dairy W0): the kernel seams — a live ferment holds spoilage, a pour may rekey a batch, a mould decides the shape of what sets, a solid ripens, a tap has a sex and a rest`.
 
+**✅ W0 done (build, 2026-10-10).** What changed against the plan, and why:
+- **`madeFrom`, not `parts`.** There is no `BulkPayload.parts`; the nearest
+  field, `composition`, is read for NUTRITION, so writing the milk there
+  would feed a wheel as litres of milk. Maturation declares its own
+  `BulkPayload.madeFrom` (written once at a batch's first fill, kept across
+  the lees split and the rekey, carried onto a cast through a duck-probed
+  `MadeFromHolding.setMadeFrom`). (Lens 2 and the bulk.md rule that each
+  subsystem declares its own payload field.)
+- **The churn is NOT a build vessel (D5 revised).** A `pour` into a
+  `ManualBuildMixin` target routes to `crafting/pour.yaml`, which BANKS the
+  matter as a recipe contribution and drains the source — cream poured into
+  a build-vessel churn would vanish into the buffer. So `lib/craft/ManualBuild.ts`
+  declares a `HandWorked { workByHand(method) }` shape; `stir.yaml` widens
+  to `requires: any` (the `heat` precedent) and `StirController` narrows to
+  two arms: a build vessel records the method; a hand-worked vessel works
+  its charge and says what came of it. The churn row authors no
+  `capabilities` (a churn is not a `Tool`); `churn` paces at a fixed 8 s.
+- **A liquid freezes because it is COLD.** Nothing drove the bulk freeze
+  edge on an ordinary read — only a cold store's envelope, a lit burner and
+  spells did (the thermal.md comment claiming *"a CraftVessel drives it"*
+  is false: no vessel calls `reconcilePhase`). So molten copper in a mould
+  would never have set, nor a crucible left to cool. Thermal's post-drift
+  driver now also runs the phase for a bulk holder at or below its pool's
+  melting point (`freezesWhereItStands`) — **freeze side only**, so
+  nothing boils on a warm read. A pail of water out in a frost now freezes
+  to a lump of ice; that is D20's whole point.
+- **The mould drives itself**: `MouldMixin.getContents()` reconciles the set
+  first, so `get wheel from hoop` finds a wheel nobody has looked at; the
+  freeze site calls `castInto` on a mould (`lib/mould/Mould.ts` owns the one
+  cast path both set processes share).
+- ⭐ **A shipped defect, found and fixed: the refinery column never ran.**
+  `Fractionating.beginRun` returned early unless the schedule named a live
+  `productMaterial`, and `separation: fractions` rows author `''` (the
+  shipped `crude.yaml`) — a charged barrel warned and never began. And had
+  it begun, the run's own reconcile read the span material through the
+  read override and restarted the charge every read. Fix: a fractions run
+  keeps the CHARGE as its stored material (no swap) and the override is
+  skipped inside the run's own reconcile. Drilling's suite still green.
+- **Ripening's input band** is recorded by a `setGrade` witness while idle
+  (the Maturing precedent), not read at start — every wheel defaults to
+  `fair`, so reading it capped every wheel at fair for ever (found by the
+  W0 ripening test).
+- `heat`'s placing arm finds the fire through `reachableHeatSource()` and
+  needs it to compose `Placing` (a hearth, a stove); a forge declines with
+  the same line. A test hearth must be lit explicitly — `Hearth.lit`
+  defaults false.
+- `press-stone.yaml` lands in **W4** with the creamery that props it
+  (`lint:reachability` refuses an unreached row — the pump W1 precedent).
+
 ### W1 — the animals, the milks, the vell, the pail (D3, D8, D11, D12, D13)
 
 **Files.**

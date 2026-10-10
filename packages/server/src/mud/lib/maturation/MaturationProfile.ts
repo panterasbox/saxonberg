@@ -29,6 +29,29 @@ import type Material from '../material/Material';
 import type { FieldMeta } from '../mixin';
 import type { VetoResult } from '../errors';
 import type { EvictionContext } from '../stuff/Stuff';
+import {
+  CompositionShare,
+  type CompositionShareSpec,
+} from '../material/CompositionShare';
+
+/**
+ * Kelvin past `damageAboveK` at which the stretch satisfaction reaches
+ * 0 — the width of the damage ramp (inside it, damage is partial).
+ */
+const DAMAGE_RAMP_K = 15;
+
+/**
+ * ⭐ A declared change of what a batch IS (dairy D7): a working batch
+ * poured into by matter carrying the tag `category` becomes `becomes` —
+ * rennet into milk makes renneted milk, whatever the order of rennet and
+ * starter. Read only by `MaturingMixin`.
+ */
+export interface MaturationTransform {
+  /** The material TAG a pour must carry (`coagulant`). */
+  category: string;
+  /** Template path of the material the batch becomes. */
+  becomes: string;
+}
 
 /**
  * How a maturation actually proceeds. ⚠ CLOSED — a mechanism nobody
@@ -320,6 +343,24 @@ export default class MaturationProfile extends SingletonMixin(Idea) {
    */
   public starveDays = 14;
 
+  /**
+   * ⭐ What a working batch may be TURNED INTO by a pour (dairy D7) — see
+   * {@link MaturationTransform}. Empty for every shipped profile.
+   */
+  public transforms: MaturationTransform[] = [];
+  /**
+   * ⭐ The scald mark (dairy D6): a batch whose peak temperature since the
+   * fill exceeded this sets badly — its band is capped at `poor`. `null` =
+   * no scald modelled (every shipped profile).
+   */
+  public scaldAboveK: number | null = null;
+  /**
+   * ⭐ The lees share DERIVED from what the batch was made from (dairy D3)
+   * — curd is the fat and protein the milk had. When set, it overrides
+   * {@link leesFraction}; `null` = the literal fraction.
+   */
+  public leesShare: CompositionShareSpec | null = null;
+
   static fieldMeta: FieldMeta = {
     key: { persistent: true, authorable: true },
     inputCategory: { persistent: true, authorable: true },
@@ -344,6 +385,9 @@ export default class MaturationProfile extends SingletonMixin(Idea) {
     leesFraction: { persistent: true, authorable: true },
     leesMaterial: { persistent: true, authorable: true },
     starveDays: { persistent: true, authorable: true },
+    transforms: { persistent: true, authorable: true },
+    scaldAboveK: { persistent: true, authorable: true },
+    leesShare: { persistent: true, authorable: true },
   };
 
   // ── the inter-Stuff contract (methods, never fields) ──
@@ -564,6 +608,88 @@ export default class MaturationProfile extends SingletonMixin(Idea) {
       );
     }
     this.starveDays = value;
+  }
+
+  getTransforms(): readonly MaturationTransform[] {
+    return this.transforms;
+  }
+  setTransforms(value: MaturationTransform[]): void {
+    if (!Array.isArray(value)) {
+      throw new RangeError('MaturationProfile.setTransforms: expected a list');
+    }
+    for (const t of value) {
+      if (
+        !t ||
+        typeof t.category !== 'string' ||
+        t.category.trim() === '' ||
+        typeof t.becomes !== 'string' ||
+        t.becomes.trim() === ''
+      ) {
+        throw new RangeError(
+          'MaturationProfile.setTransforms: each entry needs a non-empty category and becomes',
+        );
+      }
+    }
+    this.transforms = value.map((t) => ({ category: t.category, becomes: t.becomes }));
+  }
+
+  /**
+   * The material a pour of `material` turns a working batch into, or
+   * `null` when this profile declares no transform for it.
+   */
+  transformFor(material: Material): string | null {
+    for (const t of this.transforms) {
+      if (material.hasTag(t.category)) return t.becomes;
+    }
+    return null;
+  }
+
+  getScaldAboveK(): number | null {
+    return this.scaldAboveK;
+  }
+  setScaldAboveK(value: number | null): void {
+    this.scaldAboveK =
+      value === null ? null : requireFiniteK('setScaldAboveK', value);
+  }
+
+  getLeesShare(): CompositionShareSpec | null {
+    return this.leesShare;
+  }
+  setLeesShare(value: CompositionShareSpec | null): void {
+    // Construct once to validate — a bad spec fails at the row, not at a read.
+    this.leesShare = value === null ? null : new CompositionShare(value).toSpec();
+  }
+
+  /**
+   * The lees fraction for a batch made from `material` — the derived share
+   * when the row authors one, else the literal {@link leesFraction}.
+   */
+  getLeesFractionFor(material: Material | null): number {
+    if (this.leesShare === null) return this.leesFraction;
+    return new CompositionShare(this.leesShare).evaluate(material);
+  }
+
+  /**
+   * Conversion rate (fraction/day) at `tempK` — this profile's own answer
+   * about itself, shared by the bulk batch and the discrete ripening twin.
+   */
+  rateAt(tempK: number): number {
+    const above = this.getStallAboveK();
+    if (above !== null && tempK > above) return 0;
+    const stall = this.getStallBelowK();
+    const happy = this.getHappyK();
+    if (tempK <= stall) return 0;
+    const full = this.getRatePerDay();
+    if (tempK >= happy || happy <= stall) return full;
+    return (full * (tempK - stall)) / (happy - stall);
+  }
+
+  /** Damage satisfaction at `tempK`: 1 at/below the damage line. */
+  damageSat(tempK: number): number {
+    const damage = this.getDamageAboveK();
+    if (tempK <= damage) return 1;
+    const x = 1 - (tempK - damage) / DAMAGE_RAMP_K;
+    return x < 0 ? 0 : x > 1 ? 1 : x;
   }
   // ── the roster queries (statics on the owning class — no Api: a
   // stateless glob over the live population needs no gate, no logic

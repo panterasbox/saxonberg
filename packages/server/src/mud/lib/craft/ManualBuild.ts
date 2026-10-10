@@ -38,6 +38,24 @@ import type { Technique } from "./Technique";
 /** How the build was worked — recorded by `stir` / `shake` / `muddle`. */
 export type BuildMethod = Technique;
 
+/**
+ * ⭐ **A vessel whose CONTENTS are worked by hand, not a build** (dairy
+ * D5): a butter churn is not assembling a recipe from banked ingredients —
+ * it holds a charge of cream as bulk, and working it changes what that
+ * cream IS. `stir`/`shake`/`churn` reach a build vessel through its
+ * build buffer, and anything else through this declared shape, which the
+ * controller duck-probes (the `SpoilageHolding` precedent). The answer is
+ * the sentence the working ends on, in the vessel's own words, or `null`
+ * when there was nothing in it to work.
+ *
+ * ⚠ Why not a build vessel: a `pour` into a build vessel BANKS the matter
+ * as a recipe contribution and drains the source — cream poured into a
+ * build-vessel churn would vanish into the buffer instead of filling it.
+ */
+export interface HandWorked {
+  workByHand(method: BuildMethod): string | null;
+}
+
 /** One banked ingredient: its recipe category, measure, and input grade. */
 export interface BuildContribution {
   /**

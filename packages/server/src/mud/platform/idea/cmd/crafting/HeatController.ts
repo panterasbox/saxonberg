@@ -8,6 +8,15 @@
  * (`noteHeat` — max-latching), which the terminal mint's reverse-match
  * reads against each recipe's `requiresHeatK`. Works on any `Builds`
  * host: the smithing workpiece (the ingot in the tongs) or the cook pot.
+ *
+ * ⭐ **The placing arm** (dairy D6): a vessel that is not a build — a
+ * cheese vat, a pail of milk — is brought to the fire by SETTING IT ON
+ * the lit furnace in reach (a hearth, a stove), so its contents really do
+ * warm: the furnace couple makes the fire's held temperature its ambient.
+ * Nothing is latched; the thermometer reads what happened. Taking it off
+ * is `get` / `put … on table`. The view's arg is `requires: any` because a
+ * build vessel and a cold vat share no mixin (a shaker builds and is not
+ * Thermal), so the controller narrows to its two arms.
  */
 
 import { ManualBuildController } from './ManualBuildController';
@@ -17,6 +26,7 @@ import type { Stuff } from '../../../../lib/stuff/Stuff';
 import { MixinApi } from '../../../../api/mixin';
 import { MessageApi } from '../../../../api/message';
 import { Mml } from '../../../../api/mml';
+import { ContainmentApi } from '../../../../api/containment';
 
 const TOPIC = 'act.deed';
 const HEAT_MS = 4000;
@@ -31,6 +41,15 @@ export default class HeatController extends ManualBuildController<HeatModel> {
 
     const target: Stuff | null =
       model.target?.stuff ?? null;
+    if (
+      target &&
+      !MixinApi.isBuildVessel(target) &&
+      MixinApi.isThermal(target) &&
+      MixinApi.isContainable(target)
+    ) {
+      this.setOnTheFire(giver, target, context);
+      return;
+    }
     if (!target || !MixinApi.isBuildVessel(target)) {
       this.declineStep(
         context,
@@ -84,5 +103,28 @@ export default class HeatController extends ManualBuildController<HeatModel> {
           .send();
       },
     });
+  }
+
+  /** The placing arm — set a plain vessel on the lit fire in reach. */
+  private setOnTheFire(
+    giver: Stuff,
+    target: Stuff,
+    context: CommandContext,
+  ): void {
+    const fire = MixinApi.isThermal(giver) ? giver.reachableHeatSource() : null;
+    if (!fire || !MixinApi.isPlacing(fire) || !MixinApi.isContainable(target)) {
+      this.declineStep(
+        context,
+        Mml.compose`There's no fire here to set ${Mml.thing(target)} on.`,
+        'no-fire-to-set-on',
+      );
+      return;
+    }
+    ContainmentApi.place(target, 'on', fire);
+    MessageApi.scene(giver)
+      .topic(TOPIC)
+      .toSelf(Mml.compose`You set ${Mml.thing(target)} on ${Mml.thing(fire)} to take the heat.`)
+      .toPeers(Mml.compose`${Mml.actor(giver)} sets ${Mml.thing(target)} on ${Mml.thing(fire)}.`)
+      .send();
   }
 }

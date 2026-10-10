@@ -77,6 +77,8 @@ import type { MarkupAugmenter } from '../../api/mml';
 import { MixinApi } from '../../api/mixin';
 import { StuffApi } from '../../api/stuff';
 import { ExecutionContextApi } from '../../api/execution-context';
+import { WorldClockApi } from '../../api/worldclock';
+import { TemplatePaths } from '../paths';
 import type Material from '../material/Material';
 import type { BulkAffordance, BulkPayload } from '../bulk/Bulkable';
 import type { ToxinTag } from '../metabolism/Metabolic';
@@ -176,8 +178,14 @@ function fractionAugmenter(
     if (aroma) line = line ? `${line} ${aroma}` : aroma;
   } else if (!filter) {
     const phase = host.getRunPhase();
-    if (phase === 'charged') line = 'It is charged and cold.';
-    else if (phase === 'running') line = 'It is running.';
+    const resting = (host.getRunSchedule()?.getRestDays() ?? 0) > 0;
+    if (phase === 'charged') {
+      line = resting
+        ? 'It stands; nothing has separated yet.'
+        : 'It is charged and cold.';
+    } else if (phase === 'running') {
+      line = resting ? 'It has stood, and separated.' : 'It is running.';
+    }
     else if (phase === 'spent') line = 'It is run out — only the dregs left.';
   }
   if (!line) return text;
@@ -239,7 +247,22 @@ export function FractionatingMixin<TBase extends MixinConstructor<Stuff>>(
       runMaterialPath: { persistent: true, runtimeState: true },
       runMaker: { persistent: true, runtimeState: true },
       runChargeBand: { persistent: true, runtimeState: true },
+      chargedAtS: { persistent: true, runtimeState: true },
+      runResidueFraction: { persistent: true, runtimeState: true },
     };
+
+    /**
+     * Game-seconds the charge landed (dairy D4) — what a schedule's
+     * `restDays` is measured from. `0` = charged before the stamp existed,
+     * which reads as "long ago" (a dev DB's old still needs no migration).
+     */
+    public chargedAtS = 0;
+    /**
+     * The residue fraction THIS charge leaves (dairy D3), fixed at the
+     * charge from its material's composition. `0` = unset → the
+     * schedule's literal residue.
+     */
+    public runResidueFraction = 0;
 
     /** Litres the charge started at. */
     public chargeL = 0;
@@ -286,7 +309,7 @@ export function FractionatingMixin<TBase extends MixinConstructor<Stuff>>(
 
         if (this.runPhase === 'charged') {
           const schedule = FractionSchedule.byKey(this.runScheduleKey);
-          if (schedule && this.heatReached(schedule.getRequiresHeatK())) {
+          if (schedule && this.readyToRun(schedule)) {
             this.beginRun(schedule, amount);
           }
           return;
@@ -305,7 +328,7 @@ export function FractionatingMixin<TBase extends MixinConstructor<Stuff>>(
           // side of it: a pour of exactly `available()` left the host one
           // part in ten-thousand-million above its own floor and the run
           // never ended. `drawnL` is what the draw actually moved.
-          const drawable = this.chargeL * (1 - schedule.getResidueFraction());
+          const drawable = this.chargeL * (1 - this.residueFractionOf(schedule));
           if (this.drawnL >= drawable - 1e-9) this.spendRun(schedule);
         }
       } finally {
@@ -322,6 +345,8 @@ export function FractionatingMixin<TBase extends MixinConstructor<Stuff>>(
       this.runMaterialPath = null;
       this.runMaker = '';
       this.runChargeBand = '';
+      this.chargedAtS = 0;
+      this.runResidueFraction = 0;
     }
 
     /**
@@ -339,6 +364,10 @@ export function FractionatingMixin<TBase extends MixinConstructor<Stuff>>(
       this.chargeL = amount;
       this.runScheduleKey = schedule.getKey();
       this.runPhase = 'charged';
+      this.chargedAtS = fractionNowSeconds() ?? 0;
+      this.runResidueFraction = schedule.getResidueShare()
+        ? schedule.getResidueFractionFor(material)
+        : 0;
       const self = this as unknown as Stuff;
       // The charge's identity, captured at the charge: the vat's grade is
       // what this run has to work with (D10 stretches the heads by it),
@@ -369,7 +398,7 @@ export function FractionatingMixin<TBase extends MixinConstructor<Stuff>>(
             : null) ?? '';
       }
       // Heat may already be on — a column that never cools.
-      if (this.heatReached(schedule.getRequiresHeatK())) {
+      if (this.readyToRun(schedule)) {
         this.beginRun(schedule, amount);
       }
     }
@@ -383,6 +412,19 @@ export function FractionatingMixin<TBase extends MixinConstructor<Stuff>>(
     protected beginRun(schedule: FractionSchedule, amount: number): void {
       const self = this as unknown as Stuff;
       if (!MixinApi.isBulkable(self)) return;
+      // ⭐⭐ **A column has no product to swap to** (found by the dairy
+      // build): `separation: fractions` names a material per SPAN, and the
+      // read override below answers with the span the next litre is in. So
+      // the stored interior stays the CHARGE and the run starts with no
+      // swap. ⚠ This used to require a live `productMaterial` and return
+      // otherwise — and the shipped refinery column authors `''`, so a
+      // charged barrel warned and never began its run.
+      if (schedule.getSeparation() === 'fractions') {
+        this.chargeL = amount;
+        this.drawnL = 0;
+        this.runPhase = 'running';
+        return;
+      }
       const product = StuffApi.findByTemplatePath<Material>(
         schedule.getProductMaterial(),
       );
@@ -423,7 +465,31 @@ export function FractionatingMixin<TBase extends MixinConstructor<Stuff>>(
 
     /** Litres at which the last fraction is exhausted. */
     protected residueFloorL(schedule: FractionSchedule): number {
-      return this.chargeL * schedule.getResidueFraction();
+      return this.chargeL * this.residueFractionOf(schedule);
+    }
+
+    /**
+     * This charge's residue fraction — fixed at the charge from its
+     * material when the schedule derives one, else the schedule's literal.
+     */
+    protected residueFractionOf(schedule: FractionSchedule): number {
+      return this.runResidueFraction > 0
+        ? this.runResidueFraction
+        : schedule.getResidueFraction();
+    }
+
+    /**
+     * ⭐ May the run begin? The heat is reached AND the charge has stood
+     * for the schedule's `restDays` (dairy D4). Every shipped schedule
+     * authors no rest, so this is `heatReached` exactly.
+     */
+    protected readyToRun(schedule: FractionSchedule): boolean {
+      if (!this.heatReached(schedule.getRequiresHeatK())) return false;
+      const rest = schedule.getRestDays();
+      if (!(rest > 0) || this.chargedAtS === 0) return true;
+      const nowS = fractionNowSeconds();
+      if (nowS === null) return false;
+      return nowS - this.chargedAtS >= rest * SECONDS_PER_GAME_DAY;
     }
 
     /** Has the host reached `k` Kelvin? `0` is always reached. */
@@ -447,7 +513,15 @@ export function FractionatingMixin<TBase extends MixinConstructor<Stuff>>(
       schedule: FractionSchedule,
     ): readonly FractionSpec[] {
       const stretch = schedule.getGradeStretch();
-      const fractions = schedule.getFractions();
+      let fractions = schedule.getFractions();
+      // ⭐ A derived residue (dairy D3) scales every boundary so the last
+      // one lands at `1 − residue`: ewe's milk gives less skim and more
+      // cream than cow's, from the same schedule row.
+      if (this.runResidueFraction > 0 && fractions.length > 0) {
+        const last = fractions[fractions.length - 1]!.upTo;
+        const k = (1 - this.runResidueFraction) / last;
+        fractions = fractions.map((f) => ({ ...f, upTo: f.upTo * k }));
+      }
       if (stretch <= 0 || !this.runChargeBand) return fractions;
       const top = Grade.BANDS.length - 1;
       const band = Grade.isBand(this.runChargeBand)
@@ -583,7 +657,14 @@ export function FractionatingMixin<TBase extends MixinConstructor<Stuff>>(
       // running column would be stamped `crude` whatever came out of the
       // tap — the same class of defect as the bottle of wash that
       // poisons you, which is what this method's history is about.
-      if (affordance === 'interior' && this.runPhase === 'running') {
+      // ⚠ Not inside the run's own reconcile: it reads the STORED material
+      // to tell a fresh charge from the run it is in, and the span's
+      // material would read as a new charge on every call.
+      if (
+        affordance === 'interior' &&
+        this.runPhase === 'running' &&
+        !this._reconcilingRun
+      ) {
         const schedule = FractionSchedule.byKey(this.runScheduleKey);
         if (schedule && schedule.getSeparation() === 'fractions') {
           const spec = this.fractionAtL(schedule, this.drawnL);
@@ -751,4 +832,18 @@ export function FractionatingMixin<TBase extends MixinConstructor<Stuff>>(
       return payload;
     }
   };
+}
+
+/** Seconds in a game day — the unit `restDays` is authored in. */
+const SECONDS_PER_GAME_DAY = 86400;
+
+/**
+ * Game-seconds now, or `null` when no world clock is running (pre-boot,
+ * a bare unit test). A module function for the `lint:lib-statics` ceiling.
+ */
+function fractionNowSeconds(): number | null {
+  if (!StuffApi.findByTemplatePath(TemplatePaths.worldClockRegistry)) {
+    return null;
+  }
+  return WorldClockApi.getNow().rawValue();
 }

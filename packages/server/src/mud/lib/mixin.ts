@@ -543,6 +543,12 @@ export const Mixins = {
   // gives up fractions in sequence as it is drawn. Maturing's sibling,
   // driven by volume drawn rather than by a clock.
   Fractionating: 'FractionatingMixin',
+  // ⭐ A vessel that decides the SHAPE of what sets in it, and keeps it —
+  // a cheese hoop, an ingot mould, an ice pan (dairy D9).
+  Mould: 'MouldMixin',
+  // ⭐ A SOLID that converts on a shelf by its own temperature — a wheel
+  // of cheese. Maturing's discrete twin (dairy D9).
+  Ripening: 'RipeningMixin',
   // ⭐ A displacement machine that moves a fluid — a hand pump, a force
   // pump, the city intake. The bellows implements the PROTOCOL
   // (`lib/pump/Pumpable`), not this capability.
@@ -770,6 +776,10 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
   // — the Launcher lesson. "the bucket doesn't come off in fractions" is
   // the useful sentence.
   FractionatingMixin: "{} doesn't come off in fractions",
+
+  // A mould — the refusal names what one is for.
+  MouldMixin: "{} isn't a mould",
+  RipeningMixin: "{} doesn't ripen",
 
   // A pump — the refusal names what one does.
   PumpingMixin: "{} doesn't pump anything",
