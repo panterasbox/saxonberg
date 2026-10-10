@@ -1588,6 +1588,21 @@ marked **B-n**.)*
   instrument nothing offers, and `lint:reachability` a tool row nothing
   places.
 
+- ✅ **B2**. `Boat` = `Singleton(Persistable(Voyaging(Engaged(Positioned(
+  Mobile(ExitableVessel))))))` in the transport pack. **B-30:** `launch`
+  and `recover` are TRANSPORT-pack verbs afforded from INSIDE the boat
+  (`environment`) — a kernel Helm naming a pack view would be the wrong
+  direction, and you must be in the boat to go over the side with it.
+  The boat's `environment` also names the kernel `course`/`anchor`/`hail`
+  views (the ratified pack-static-names-kernel-view direction), so a boat
+  steers like a ship. **B-31:** no transport `dinghy` row — the Boat is a
+  singleton, so one row is one boat and it lives with the ship that
+  carries it (B3). **B-32:** no `getBiome` override for an adrift boat —
+  nothing in the drive reads a boat's biome; recorded as a seam.
+  `onRestored` puts a boat whose record has a position back in the water
+  (the row seats it on the deck). `journey` refuses a sea node by name
+  over the `ExpanseNode` rows, naming `course`.
+
 ---
 
 ## Drive record

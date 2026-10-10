@@ -1,0 +1,11 @@
+# `recover` — bring the boat you are in back aboard a ship lying close.
+verbs: [recover]
+controller: /system/transport/idea/cmd/movement/RecoverController
+description: "Bring your boat back aboard a ship alongside"
+help: |
+  In a boat on the water, within a mile of a ship, `recover` comes
+  alongside and has her swung back aboard — with you in her. `out` to
+  climb onto the deck.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
