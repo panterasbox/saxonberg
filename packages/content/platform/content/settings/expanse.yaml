@@ -1,0 +1,28 @@
+# expanse — the dials of the maritime frame (the `settings` kind:
+# merge-missing; an operator's `config` change is never touched).
+#
+# ⚠ Every key here has a seeded literal at its call site, so the frame
+# works with this file absent and these only ever RETUNE it.
+settings:
+  # A watch, in game hours — the voyage's one beat. Four hours is the
+  # sea's own watch; at the game's 12x clock it is twenty real minutes.
+  - key: expanse.watchGameHours
+    value: "4"
+  # Within this many nautical miles of a named node, a course arrives.
+  - key: expanse.arrivalNm
+    value: "1"
+  # Within this many miles of the craft, a launched boat can be recovered.
+  - key: expanse.recoverNm
+    value: "1"
+  # The hail's range — flags, a lamp, a gun — regardless of height.
+  - key: expanse.signalRangeNm
+    value: "12"
+  # How hard an UNMANNED watch is on the gear aboard, per watch, before
+  # the band's hardness and the sea state multiply it. A manned watch
+  # wears at a quarter of this.
+  - key: expanse.neglectWearPerWatch
+    value: "0.02"
+  # How fast a dead reckoning goes stale with no fix, nautical miles of
+  # uncertainty per hour under way.
+  - key: expanse.reckoningGrowthNmPerHour
+    value: "0.5"

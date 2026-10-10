@@ -32,6 +32,21 @@ describe('Structure', () => {
     expect(s.getExpansePosition()!.latDeg).toBe(50);
   });
 
+  it('⭐ the lookout seat sees from the masthead; everybody else from the deck', () => {
+    const s = makeStuff(() => new Structure());
+    s.setDeckHeightM(3);
+    s.setMastheadHeightM(20);
+    s.setHouse('/test/ship/idea/outfit');
+    const job = { positionKey: 'lookout', status: 'on-shift' };
+    const lookout = makeStuff(() => new Structure());
+    vi.spyOn(MixinApi, 'isEmployed').mockImplementation((o) => o === lookout);
+    (lookout as unknown as { getEmployment: () => unknown }).getEmployment = () => job;
+    expect(s.sightHeightFor(lookout)).toBe(20);
+    job.status = 'employed';
+    expect(s.sightHeightFor(lookout)).toBe(3);
+    expect(s.sightHeightFor(makeStuff(() => new Structure()))).toBe(3);
+  });
+
   it('the catalogue answers the structure a place is in by the longest extent', async () => {
     vi.spyOn(Template, 'findByClass').mockResolvedValue([
       { path: '/test/a/structure', data: { extent: '/test/a' } },

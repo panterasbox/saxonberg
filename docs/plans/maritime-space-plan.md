@@ -1474,6 +1474,28 @@ marked **B-n**.)*
   `lint:on-create` holds 82/82 and `StuffApi.singleton` already restores a
   persistable singleton; two implementers (`Structure`, `Boat`).
 
+- ✅ **A2**. `Expanse` (abstract, `SingletonMixin(SpatialZone)`),
+  `BandExtent` (corridor = a rectangle on the local plane; belt = a
+  lat/lon box, longitude optional; `crossings` is a Liang–Barsky clip, so
+  entry/exit are exact parameters), `SightingChannel`, `Band`,
+  `ExpanseNode`, `ExpanseApi`/`ExpanseLogic`, `content/settings/expanse.yaml`.
+  **B-9:** `ExpanseApi` takes PATHS only (`craftAt(placePath)`,
+  `expanse(path)`) — `lint:object-verbs` refuses a world-object-first Api
+  static, and rather than widen its exempt list the caller walks its own
+  containment (`getRootContainer()`) and hands the root's path. **B-10:**
+  composition, sighting and traffic are methods ON the `Expanse`
+  (`fieldAt`, `contactsFrom`, `trafficAt`, `sightRangeNm`) — verbs on the
+  object that owns the water and the craft registry; the FNV is
+  module-private in `Expanse.ts`. **B-11:** `Positioned` gains two height
+  `@hook`s, `sightHeightFor(observer)` and `getTargetHeightM()`
+  (implemented by `Structure` now, `Boat` in B2), so `contactsFrom` reads
+  heights without narrowing on a class. **B-12:** the nodes and bands are
+  stood up as live singletons and narrowed by `instanceof` on the class
+  (the `ReadingCatalogue` pattern). A linear node with no `along` warns
+  and is reached by bearing. **B-13:** five band fields (`endpoints`,
+  `setKn`, `reputation`, `gearHardness`, `confined`) join `fieldMeta` in
+  A3 with their reader — `lint:unconsumed-seams` again.
+
 ---
 
 ## Drive record

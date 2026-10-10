@@ -23,6 +23,8 @@ export interface Positioned {
   setExpansePosition(value: GeoPositionRecord | GeoPosition | null): void;
   getExpanse(): string | null;
   setExpanse(path: string | null): void;
+  sightHeightFor(observer: unknown): number;
+  getTargetHeightM(): number;
 }
 
 export function PositionedMixin<TBase extends MixinConstructor>(Base: TBase) {
@@ -54,5 +56,30 @@ export function PositionedMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     getExpanse(): string | null { return this.expanse; }
     setExpanse(path: string | null): void { this.expanse = path ?? null; }
+
+    /**
+     * How high `observer`'s eye is when looking out from this thing,
+     * metres — what the sea's horizon formula reads of an observer.
+     *
+     * @hook Invoked by `Expanse.contactsFrom` for the observing craft.
+     *   Default `0` — an eye at the waterline. A Structure answers its
+     *   deck or, for whoever holds the lookout seat, its masthead; a boat
+     *   its own eye height.
+     */
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    sightHeightFor(_observer: unknown): number {
+      return 0;
+    }
+
+    /**
+     * How tall this thing stands as a TARGET, metres — what the horizon
+     * formula reads of it when somebody else is looking.
+     *
+     * @hook Invoked by `Expanse.contactsFrom` for each candidate. Default
+     *   `0`; a Structure answers its `heightM`, a boat its own.
+     */
+    getTargetHeightM(): number {
+      return 0;
+    }
   };
 }

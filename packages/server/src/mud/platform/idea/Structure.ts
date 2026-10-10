@@ -23,7 +23,8 @@
  * - **the outside description** — authored once, read wherever the
  *   structure is a landmark (`SpatialZone.visibleLandmarks`) and wherever
  *   it is sighted at sea.
- * - **height** — `heightM` is what a horizon reads of it as a target.
+ * - **heights** — `heightM` is what a horizon reads of it as a target;
+ *   `deckHeightM` / `mastheadHeightM` what it reads of an observer aboard.
  * - **the house** — the Business whose roster mans it (a ship's outfit),
  *   so the lookout is a SEAT, read off the shipped roster.
  * - **the position and the voyage** — `expansePosition` (Positioned) and,
@@ -45,6 +46,11 @@ import { PositionedMixin } from '../../lib/expanse/Positioned';
 import { EngagedMixin } from '../../lib/activity/Engaged';
 import { PersistableMixin } from '../../lib/persistence/Persistable';
 import type { FieldMeta } from '../../lib/mixin';
+import type { Stuff } from '../../lib/stuff/Stuff';
+import { MixinApi } from '../../api/mixin';
+
+/** The position key of the seat that sees further (maritime D13). */
+const LOOKOUT_POSITION = 'lookout';
 
 export const STRUCTURE_CLASS_PATH = '/platform/idea/Structure';
 
@@ -56,6 +62,8 @@ export default class Structure extends PersistableMixin(
     entrance: { persistent: true, authorable: true },
     outsideDescription: { persistent: true, authorable: true },
     heightM: { persistent: true, authorable: true },
+    deckHeightM: { persistent: true, authorable: true },
+    mastheadHeightM: { persistent: true, authorable: true },
     house: { persistent: true, authorable: true },
   };
 
@@ -67,6 +75,10 @@ export default class Structure extends PersistableMixin(
   protected outsideDescription = '';
   /** Its height as a TARGET, metres (a tower's top, a ship's truck). */
   protected heightM = 0;
+  /** An observer's eye height on deck, metres; `null` for a building. */
+  protected deckHeightM: number | null = null;
+  /** An observer's eye height at the masthead, metres; `null` for none. */
+  protected mastheadHeightM: number | null = null;
   /** The Business row whose roster mans it; `null` for a building. */
   protected house: string | null = null;
 
@@ -84,6 +96,16 @@ export default class Structure extends PersistableMixin(
   public getHeightM(): number { return this.heightM; }
   public setHeightM(value: number): void { this.heightM = Number(value) || 0; }
 
+  public getDeckHeightM(): number | null { return this.deckHeightM; }
+  public setDeckHeightM(value: number | null): void {
+    this.deckHeightM = value === null || value === undefined ? null : Number(value);
+  }
+
+  public getMastheadHeightM(): number | null { return this.mastheadHeightM; }
+  public setMastheadHeightM(value: number | null): void {
+    this.mastheadHeightM = value === null || value === undefined ? null : Number(value);
+  }
+
   public getHouse(): string | null { return this.house; }
   public setHouse(value: string | null): void { this.house = value ?? null; }
 
@@ -95,5 +117,33 @@ export default class Structure extends PersistableMixin(
     const ext = this.extent;
     if (ext === '') return false;
     return locationPath === ext || locationPath.startsWith(`${ext}/`);
+  }
+
+  /** Its height as a target — the tower's top, the ship's truck. */
+  override getTargetHeightM(): number {
+    return this.heightM;
+  }
+
+  /**
+   * How high `observer`'s eye is, aboard this structure.
+   *
+   * ⭐⭐ The lookout is a SEAT (maritime D13): the masthead height is
+   * granted to whoever holds the house's `lookout` position **on shift**,
+   * read off the shipped roster, and the deck height to everyone else. So
+   * appointing somebody lookout makes the craft see further with nothing
+   * about the craft having changed. A structure with no deck height (a
+   * building) answers its own height — you look out from the top of it.
+   */
+  override sightHeightFor(observer: unknown): number {
+    const deck = this.deckHeightM ?? this.heightM;
+    const house = this.house;
+    if (house === null || this.mastheadHeightM === null) return deck;
+    const who = observer as Stuff;
+    if (!who || !MixinApi.isEmployed(who)) return deck;
+    const job = who.getEmployment(house);
+    if (job?.positionKey === LOOKOUT_POSITION && job.status === 'on-shift') {
+      return this.mastheadHeightM;
+    }
+    return deck;
   }
 }
