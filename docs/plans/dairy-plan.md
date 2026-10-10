@@ -98,17 +98,19 @@ and the resolution is named so the user can veto it.
    pool: `runCharge` clones the product ROW into the furnace
    (`SmeltController.ts:719`, `pour()`), and the only liquid-metal path in
    the engine is a `Meltable` solid melting onto the room's **floor**
-   (`Thermal.ts doMelt`). **Resolution (D19):** the smelt's LIQUID branch
-   runs the metal, as bulk at the furnace's held temperature, into an empty
-   mould or crucible in the room; the shipped freeze edge then casts it —
-   an ingot in the mould, a lump in a crucible. With neither in reach it
-   pools on the hearth as a lump (the metal's own `castTemplate`). ⚠ That
-   changes the smelt's shipped output when no mould is present
-   (`SmeltController.test.ts` expects an `Ingot` from `smelt-copper`); the
-   Rejection smelter props an ingot mould in W4 so the chain the metal-
-   chain drive walks still ends in an ingot. The drive step itself needs
-   ore at the smelter — a wizard session clones an ore lot (the taps
-   drive's set-up precedent).
+   (`Thermal.ts doMelt`). **Resolution (D19, revised):** the smelt's LIQUID
+   branch runs the metal, as bulk at the furnace's held temperature, into
+   the **crucible standing in the furnace** (a plain refractory vessel the
+   player set there); the PLAYER then `pour crucible into mould` while it
+   is molten and the mould's set gives the ingot; a crucible left to cool
+   leaves a lump by the shipped freeze edge. With no crucible in the
+   furnace the metal pools on the hearth and sets as a lump. ⚠ That changes
+   the smelt's shipped output (`SmeltController.test.ts` expects an `Ingot`
+   from `smelt-copper`, approved); the Rejection smelter props a crucible
+   in its furnace and an ingot mould beside it so the chain the
+   metal-chain drive walks still ends in an ingot, now by the player's
+   pour. The drive step itself needs ore at the smelter — a wizard session
+   clones an ore lot (the taps drive's set-up precedent).
 
 One finding, not a conflict: there is no goat anywhere in the realm (the
 only `capra` grep hit is *satyrus*), and `HeadSeed`'s `sex` is computed at
@@ -733,40 +735,66 @@ The hoop is **reusable** and wears per cast (`repair` restores it); the
 `reusable` property ships on the mixin and **no consumed mould ships**
 (the first casting trade that needs sand or wax ships one).
 
-**D19 (new 2026-10-10) — The smelt's ingot mould.** `runCharge`'s LIQUID
-branch (`!ferrous || heldK ≥ meltingPoint`) no longer clones a product
-row. It looks for an **empty `Mould` in the furnace's room**, else an
-empty plain `Bulkable + Thermal` vessel (a crucible), and runs the metal
-into it as bulk — `massToLitres(kg, metal)` litres of the metal's own
-Material through a transient `UnboundedReceptacle` (the `pourTake` shape)
-at `heldK`, the calorimetric blend heating the vessel — and the shipped
-freeze edge does the rest as the vessel cools: in a mould, the mould's
-`castTemplate` (`/trade/smelting/thing/ingot`, an `Ingot`-class row
-authoring no material, stamped from the pool — one row for copper, tin
-and cast iron alike; `copper-ingot.yaml` stays for `cast-bar`); in a
-crucible, the metal's `castTemplate` — a `Casting` lump beside it. With
-neither in reach the metal pools on the hearth and sets as a lump in the
-furnace. The SOLID branch (a bloom, a carburized bar) is untouched. New
-rows in `trade-smelting`: `thing/ingot-mould` (`/platform/thing/Mould`,
-fired clay, `castTemplate` the ingot, `discipline: smelting`,
-`interiorCapacity 0.6` L ≈ 5 kg copper), `thing/ingot`, `thing/crucible`
-(`/platform/thing/Receptacle`, refractory). `SmeltController.test.ts`
-changes with it: an `Ingot` with the mould in the room, a `Casting` lump
-without, the mass conserved either way. A bar is **still hammerable only
-as an `Ingot`**, so a lump wants recasting through a mould — which is what
-the `cast-bar` recipe's prose has always described. ⚠ `world-seed`'s
-`casting-yard` is the SPELL practice yard and is not touched.
+**D19 (new 2026-10-10; revised 2026-10-10 — the smelt does not pick the
+mould) — The smelt fills the crucible; the player pours the mould.**
+`runCharge`'s LIQUID branch (`!ferrous || heldK ≥ meltingPoint`) no
+longer clones a product row. The metal goes where molten metal goes in a
+furnace: into the **crucible** — the one plain `Bulkable + Thermal`
+vessel standing INSIDE the furnace's container (`SmeltingFurnace =
+ContainerMixin(Forge)`; the player put it there with `put crucible in
+furnace`, and the furnace couple holds it at the fire's heat, so the
+metal stays molten as long as the fire does). The run is a bulk transfer
+— `massToLitres(kg, metal)` litres of the metal's own Material through a
+transient `UnboundedReceptacle` (the `pourTake` shape) at `heldK`, the
+calorimetric blend heating the crucible. With no crucible in the furnace
+the metal pools on the hearth and sets as a lump in the furnace (the
+metal's `castTemplate`). ⛔ **The engine chooses nothing**: there is one
+crucible slot (the furnace's contents) and the player filled it; the
+MOULD is the player's next act — `pour crucible into mould` (the bulk
+`pour`, source `scope: reachable`, which reaches one level into the open
+furnace, so the crucible is **poured where it stands**; nothing is
+grabbed), then the shipped freeze edge casts the ingot INTO the mould
+(D9a) as it cools: `look mould` — set; `get ingot from mould`. Dawdle, and
+it freezes in the crucible as a lump (the plain-vessel rule, D9a:
+beside it, which for a crucible in a furnace is *in the furnace*).
+**Hot handling follows the shipped pattern and adds nothing:** a
+bare-handed `get crucible` takes it AND scalds the hand through the
+`heat` channel (`GetController.burnOnGrab`, a glove insulates); the
+`gripping` tongs are read by nothing today and this build does not make
+them a gate — a smelter who pours in place is never burned, which is the
+honest procedure. ⚠ **No shipped check refuses molten metal into a
+wooden pail**: `BulkableApi.transfer` reads closure (`liquidTight`) and
+blends heat, not the vessel's melting point. Recorded as a finding in
+Risks; the mould and crucible rows are fired clay, and the pail would
+merely get very hot. The mould's `castTemplate` is
+`/trade/smelting/thing/ingot` (an `Ingot`-class row authoring no
+material, stamped from the pool — one row for copper, tin and cast iron;
+`copper-ingot.yaml` stays for `cast-bar`). The SOLID branch (a bloom, a
+carburized bar) is untouched. New rows in `trade-smelting`:
+`thing/ingot-mould` (`/platform/thing/Mould`, fired clay, `discipline:
+smelting`, `interiorCapacity 0.6` L ≈ 5 kg copper), `thing/ingot`,
+`thing/crucible` (`/platform/thing/Receptacle`, refractory, `closure:
+liquidTight`, 1 L). `SmeltController.test.ts` changes with it: molten
+copper in the crucible after the run, an `Ingot` in the mould after the
+pour and the cooling, a lump when the crucible is left, a lump in the
+furnace with no crucible, the mass conserved on every path. A bar is
+**still hammerable only as an `Ingot`**, so a lump wants remelting and
+pouring — which is what the `cast-bar` recipe's prose has always
+described. ⚠ `world-seed`'s `casting-yard` is the SPELL practice yard and
+is not touched.
 
-**D20 (new 2026-10-10) — The ice pan is a true mould.** `ice-pan.yaml`
-re-classes to `/platform/thing/Mould` with `castTemplate:
-/stuff/thing/ice-block`; `water.yaml`'s `castTemplate` line is **removed**
-(water frozen in a bucket is a lump of ice, the generic cast — its prose
-reads *cast lump of water*, and the `Casting` clone's generic line gains
-*frozen* when the material is a liquid at room temperature so it reads
-*frozen lump of water*; a one-line prose fix in the solidify edge). Same
-block, honest reason. The shipped cold-storage tests that freeze water in a
-PLAIN vessel and expect `ice-block` (if any — `Thermal.freeze.test.ts`
-asserts the plateau and the ruin, not the row) change to the pan.
+**D20 (new 2026-10-10; revised 2026-10-10 — water keeps a fallback that
+reads as ice) — The ice pan is a true mould; a pot gives a lump of ice.**
+`ice-pan.yaml` re-classes to `/platform/thing/Mould` with `castTemplate:
+/stuff/thing/ice-block` (the pan's shaped block). `water.yaml` **keeps**
+a `castTemplate`, re-pointed at a new generic row
+`generic-objects/.../ice-lump.yaml` (`/platform/thing/Casting`, material
+ice, *"a lump of ice, clouded and dripping"*, mass stamped by the pool) —
+so water frozen in a bucket reads *a lump of ice*, never *a frozen lump of
+water*. Chosen over a solid-phase name on `Material` because it is one
+row and one line against a new kernel field every liquid would then
+owe; the ice block stays the pan's answer and the lump the material's.
+No prose change at the solidify edge.
 
 **D21 (new 2026-10-10) — Pressing is a weight on the hoop; salt is the
 shipped `cure`.** `put stone on hoop` (Placement `on`; the hoop composes
@@ -930,7 +958,8 @@ character. Twenty-eight steps (the requirements' 26 plus 19a and 19b),
 every one asserting a state change or the exact refusal; the test clock
 walks setting (hours), the hoop's drain (half a game day, twice — one
 weighted, one not), ripening (a week; two months), the dry-off (0.6 game
-days), the rest (3 game days), an ingot cooling and a pan freezing; a
+days), the rest (3 game days), a poured mould cooling, a second crucible
+left to freeze, and a pan freezing; a
 second `Session` is the stranger; a wizard session reads the ledger,
 clones the ore lot for 19a, and stands at the avenue block's freezer for
 19b (the cold-storage drive's room — the only freezer a player can walk
@@ -970,7 +999,8 @@ claim, and what it refuses.
 | `Hoop` (`PlacingMixin(MouldMixin(DurableMixin(CraftVessel)))`) | pack class, row `hoop` (`castTemplate: …/wheel`, `discipline: dairying`, `closure: liquidTight`) | food equipment that casts and takes a weight. ⛔ No `ManualBuildMixin` (nothing is reverse-matched), no `ToolMixin` (no recipe names a capability). |
 | `Wheel` (`RipeningMixin(Provision)`, `Splittable`) | pack class, **one row** `wheel` authoring no material | a solid cheese that ripens and divides; its material is what set in the hoop. `wedgesPerWheel` authorable; `wedgesLeft` persistent. |
 | `press-stone` | commons row over `Good` | a mass; nothing reads it but a hoop's `loadKg()`. |
-| `ingot`, `ingot-mould`, `crucible` | `trade-smelting` rows (`Ingot`, `Mould`, `Receptacle`) | the smelt's three answers: a shape, a lump, a hearth. |
+| `ingot`, `ingot-mould`, `crucible` | `trade-smelting` rows (`Ingot`, `Mould`, `Receptacle`) | the shape the player pours into, the plain vessel the smelt fills, and what a lump is when nobody pours. ⛔ The crucible is NOT a mould (a pool left in it is a lump). |
+| `ice-lump` | commons row over `Casting` | water's own fallback shape; the pan's `ice-block` is the mould's. |
 | `wedge`, `vell`, `ricotta` (if discrete) | `/platform/thing/Provision` rows | food; no class. |
 | `starter-crock`, `rennet-jar`, `cheese-vat` | `/platform/thing/Vat` rows (prefilled) | the culture-jar shape. ⚠ A rennet jar is a `Vat` only so `pour` from it carries no strain and so the row can prefill; its material matches no profile and it idles. The build may prefer `GradedReceptacle` for the jar — either is a row. |
 | `skim-milk`, `cream`, `churned-cream`, `buttermilk`, `butter` (tags `fat`, `dairy`), `whey`, `renneted-milk`, `scalded-milk`, `soft-curd`, `firm-curd`, `yoghurt`, `ricotta`, `soft-cheese`, `hard-cheese`, `rennet` (tag `coagulant`) | `/trade/dairying/idea/material/*` rows | the trade's intermediates and products. Each perishable one authors `Ea` + `a_w`; `rennet` and `butter` author none (salted fat and a salt extract keep). |
@@ -1144,15 +1174,17 @@ and changes nothing shipped: every default is today's behaviour.
   solidify tail asks the mould (template, destination, `takeCast`), carries
   the pool's `maker`/`parts`/`freshness`/`pathogens` onto a cast that can
   hold them (narrowed by `MixinApi.isCrafted`/`isFresh`/`isContaminable`
-  on the clone), and gains the *frozen lump* prose for a liquid-at-room
-  material. A plain vessel's path is byte-identical.
+  on the clone). A plain vessel's path is byte-identical (D20: water's
+  own fallback is the `ice-lump` row, so no prose changes here).
 - `packages/server/src/mud/platform/idea/cmd/bulk/PourController.ts` —
   a pour into a `Mould` with a `discipline` credits it (D22), beside the
   schedule credit.
 - `packages/content/generic-objects/content/stuff/thing/vessel/ice-pan.yaml`
   → `class: /platform/thing/Mould`, `castTemplate: /stuff/thing/ice-block`
-  (D20); `packages/content/base-library/content/stuff/idea/material/bulk/water.yaml`
-  drops `castTemplate`; `generic-objects/.../gear/press-stone.yaml` (D21).
+  (D20); new `generic-objects/.../ice-lump.yaml` (a `Casting` of ice);
+  `packages/content/base-library/content/stuff/idea/material/bulk/water.yaml`
+  `castTemplate: /stuff/thing/ice-lump`; `generic-objects/.../gear/press-stone.yaml`
+  (D21).
 - `packages/server/src/mud/lib/maturation/Ripening.ts` — `RipeningMixin`
   + `Ripening` interface (`reconcileRipening`, `getRipeningPhase`,
   `getRipeness()` → fraction, `holdsSpoilage`, `ripenessLine(viewer)`);
@@ -1238,10 +1270,10 @@ mould authoring `castTemplate` sets after `days` unloaded with
 load of `poolKg × loadRef` placed `on` a `Placing` host; the cast's
 material is `becomes`, its mass is the pool's less the water driven out,
 and `maker`/`parts`/`pathogens` ride onto it; a pour into a mould with
-`discipline` credits the pourer once at `standard`; `water.yaml` without a
-`castTemplate` still freezes (to a lump) in every shipped cold-store test
-(those tests move their expectation to the pan or stay on the plateau —
-named in the commit).
+`discipline` credits the pourer once at `standard`; water in a plain
+`Receptacle` freezes to an `ice-lump` beside it (the shipped cold-store
+tests that read the row move from `ice-block` to `ice-lump` — named in the
+commit); water in the pan to an `ice-block` inside it.
 
 **Acceptance.** `pnpm test:near` green; `pnpm -C packages/server lint:family`
 green with `closed-vocabularies` at 5, `on-create` unchanged,
@@ -1381,28 +1413,34 @@ the pump W1 precedent).
 ### W2b — the other two moulds (D19, D20)
 
 **Files.** `packages/content/trade-smelting/src/idea/cmd/smelting/SmeltController.ts`
-(`runCharge`'s liquid branch: `mouldInRoom(furnace)` → `crucibleInRoom`
-→ the hearth lump; the bulk run through a transient `UnboundedReceptacle`
-at `heldK`; the tap scene names where it went); rows
-`content/trade/smelting/thing/{ingot, ingot-mould, crucible}.yaml`;
+(`runCharge`'s liquid branch: `crucibleIn(furnace)` — the first plain
+`Bulkable & Thermal` content of the furnace that is not a `Mould` and
+holds nothing or the same metal — else the hearth lump; the bulk run
+through a transient `UnboundedReceptacle` at `heldK`; the tap scene says
+*"the metal runs bright into the crucible"* or *"…pools on the hearth"*);
+rows `content/trade/smelting/thing/{ingot, ingot-mould, crucible}.yaml`;
 `packages/content/rejection/content/world/terminus/rejection/location/smelter.yaml`
-props an `ingot-mould` and a `crucible` (⚠ rows in a venue pack this
-build otherwise reaches only in W4 — landed here because the shipped
-smelt chain must not go dark between W2b and W4); the metallurgy
-history line is W5's.
+props an `ingot-mould` in the room and a `crucible` **in the furnace**
+(Staged `{ template: …/crucible, in: <the furnace entry> }` if `Staged`
+places into an earlier prop as it places onto one — the pump W0 finding;
+else the room props it and the metal-chain drive gains a `put crucible in
+furnace` line) (⚠ rows in a venue pack this build otherwise reaches only
+in W4 — landed here because the shipped smelt chain must not go dark
+between W2b and W4); the metallurgy history line is W5's.
 
-**Tests.** `SmeltController.test.ts` — `smelt-copper` with an ingot mould
-in the room runs the metal into it and, cooled past the latent plateau,
-leaves an `Ingot` of copper IN the mould at the charge's metal mass; with
-a crucible instead, a `Casting` lump beside it; with neither, a lump in
-the furnace; a bloom is still a bloom in the furnace; the smelter is
-credited `smelting` for the run and the pour. `Mould.test.ts` (W0)
-already covers the pan.
+**Tests.** `SmeltController.test.ts` — `smelt-copper` with a crucible in
+the furnace leaves molten copper in the crucible at the charge's metal
+mass and nothing minted; `pour crucible into mould` (`BulkableApi.transfer`
+in the test) then a cool past the latent plateau leaves an `Ingot` of
+copper IN the mould; the same crucible left to cool leaves a `Casting`
+lump; with no crucible, a lump in the furnace; a bloom is still a bloom
+in the furnace; `smelting` is credited for the run and (D22) for the pour
+into the mould. `Mould.test.ts` (W0) already covers the pan.
 
 **Acceptance.** `pnpm -C packages/content/trade-smelting test` green;
 `pnpm wire -- metal-chain.dirty metallurgy.dirty` still pass; `lint:family`
 green.
-**Commit:** `build(dairy W2b): the smelt runs its metal into a mould — an ingot in the mould, a lump in the crucible — and the ice pan is a mould in name too`.
+**Commit:** `build(dairy W2b): the smelt fills the crucible and the smelter pours the mould — an ingot if you pour, a lump if you wait — and the ice pan is a mould in name too`.
 
 ### W3 — the kitchen (D15)
 
@@ -1501,7 +1539,7 @@ Each capability's five links. Each fails closed and silent.
 | pitch, rennet, feed | `pour` (bulk) | — | profiles `soft-curd` (+ `transforms`), `firm-curd`, `whey-starter`; `coagulant` tag on `rennet` | the crock and the jar at `producer` (prefilled rows must be minted to be alive) | — |
 | the curd and the whey | `pour`, `look` | — | `leesShare`, `productMaterial: whey`, `leesMaterial` | — | — |
 | the wheel | `pour` (bulk) · `put stone on hoop` · `look hoop` · `get wheel` · `cure wheel` — **no verb of its own** | none needed: `pour`/`put`/`get`/`look` are platform verbs over mixin gates; `cure` is afforded by the salting trough (shipped) | the hoop row's `castTemplate`; `soft-curd`/`firm-curd`'s `drainSetting`; the `wheel` row; the press stone | — | `pour target` `mustHaveBulkSlot` ✓ hoop; `put target` `ContainerMixin\|PlacingMixin` ✓ hoop (so `put stone IN hoop` is also accepted — `Hoop.canAddContainable` refuses a solid into a filled hoop in words); `get targets` `ContainableMixin` ✓ wheel; `cure`'s target a `Provision` ✓ |
-| the ingot | `smelt` (shipped) · `look mould` · `get ingot` | the furnace affords `smelt` (shipped) | `ingot-mould` row in the smelter room; the `ingot` row; the metal's `meltingPoint`/`latentHeatOfFusion` | — | — (the completion finds the mould in the room; no arg) |
+| the ingot | `smelt` (shipped) · **`pour crucible into mould`** (bulk `pour`) · `look mould` · `get ingot` | the furnace affords `smelt` (shipped); `pour`/`get`/`look` are platform verbs | a `crucible` in the furnace (propped); an `ingot-mould` in the room; the `ingot` row; the metal's `meltingPoint`/`latentHeatOfFusion` | — | `pour source` `mustHaveBulkSlot` ✓ crucible, reached one level into the open furnace; `pour target` ✓ mould; `get targets` ✓ ingot inside the open mould |
 | the ice block | `fill pan`/`pour` · `put pan in freezer` · `get block` | — | `ice-pan.yaml` as a `Mould` with `castTemplate`; a freezer below 273 K (the avenue block fridge) | — | `put target` a Container ✓ freezer compartment |
 | ripening | `look`/`taste` | — | `soft-cheese`/`hard-cheese` ripening profiles; tags on the cheese materials; a cold room (`_temperature: 284`) and a Placing shelf (`airExposure`) | `MaturationProfileCatalogue` (shipped) | — |
 | wedges and a sale | `split`, `consign` | `split` is a platform verb over `requires: any`; `consign`'s shelf default | the `wedge` row; a `ConsignmentShelf` at the creamery | — | `consign thing requires: ChattelMixin` ✓ |
@@ -1521,7 +1559,7 @@ Each capability's five links. Each fails closed and silent.
 | 4 heating kills; too hot sets badly, in words | D6 (W0 placing arm + `scaldAboveK`) | W2 curd test; drive 10–11 |
 | 5 starter → soft, + rennet → firm; whey off, whey starts the next | D7 (W0 `transforms`, W2 profiles) | W2 curd test; drive 12–14 |
 | 6 curd set in a hoop is a wheel of the hoop's shape and the fill's size; weighted firm curd makes a drier, longer-keeping wheel than unweighted soft | D9 (a/b/c), D21 (W0 `MouldMixin` + `drainSetting`, W2 hoop/wheel) | W0 `Mould.test`; W2 `hoop.test` (moisture 0.55 vs 0.9, `a_w` under/over the floor, mass ∝ fill); drive 15 |
-| 6a molten metal in an ingot mould is an ingot, water in an ice pan a block, by the same acts and no verb; a pool in a plain vessel is a lump | D19, D20 (W0 set site + pan, W2b smelt) | W0 `Mould.test`; W2b `SmeltController.test`; drive 19a, 19b |
+| 6a molten metal in an ingot mould is an ingot, water in an ice pan a block, by the same acts and no verb; a pool in a plain vessel is a lump | D19, D20 (W0 set site + pan + `ice-lump`, W2b smelt) | W0 `Mould.test` (pan → block; pot → `ice-lump`); W2b `SmeltController.test`; drive 19a (smelt → `pour crucible into mould` → wait → `look mould` → `get ingot from mould`; the second crucible left to cool → a lump), 19b |
 | 6b a wheel ripens cool, reads in words, is worth more ripe, soft goes over, warm spoils | D9 (W0 `RipeningMixin`, W2 profiles, W4 the cold room) | W0 `Ripening.test`; W2 `wheel.test`; drive 16–18 |
 | 7 split into wedges, a wedge consigned | D10, W4 shelf | W2 wheel test; drive 19 |
 | 8 ewe's/goat's cheese differs, and follows from the milk | D3 (`CompositionShare`, `parts`) | W0 share test (yields monotone in fat); W2 curd test per milk; drive 24–25 (`taste` names the milk) |
@@ -1611,14 +1649,23 @@ Nothing is unmapped.
   hoop and the mould are open `Container`s; `get wheel` reaches in
   today. If the binder's `mustBeInLocation` refuses a thing one level
   down, the fix is the validator's shipped `peers` reach, not a verb.
-- **The smelt's mould is found by ROOM, not by binder.** `runCharge` is a
-  completion with no bound args; it scans the furnace's room for the
-  first empty `Mould`, else crucible. Two moulds in one smelter take the
-  first; recorded, not a bug.
-- **`water.yaml` losing its `castTemplate`** touches every freezing-water
-  test; the ones that assert `ice-block` from a plain vessel move to the
-  pan. A `frozen lump of water` is honest prose and the user has accepted
-  the trade; a `Casting` of ice behaves as the block did (same class).
+- **The smelt chooses no mould — dropped (revised).** The first draft had
+  `runCharge` scan the furnace's room for an empty mould, which is the
+  engine doing the player's job. The metal now goes to the one place the
+  player put a vessel (the crucible in the furnace) or the hearth, and
+  the mould is the player's pour. Two crucibles in one furnace take the
+  first — a furnace has one crucible, and that is a content fact, not a
+  choice.
+- **Nothing refuses molten metal into a vessel that cannot take it.**
+  `transfer` checks closure and blends heat, never the vessel's melting
+  point; a wooden pail of copper gets very hot and survives. A finding on
+  `bulk.md` for the first build that melts a vessel; not dairy's.
+- **Hot handling is the shipped rule.** `get crucible` bare-handed scalds
+  and succeeds; poured in place nothing is touched; tongs (`gripping`)
+  gate nothing today and this build does not change that.
+- **`water.yaml`'s `castTemplate` moves to `ice-lump`**, so the shipped
+  tests that read the row from a plain vessel move with it; the block is
+  the pan's now and the class is the same.
 - **Stop-and-ask list** (the only real stops): a second mechanism word
   turns out to be unavoidable (it should not — if it is, the design is
   wrong, not the census); a kernel class would have to name a dairying row
@@ -1700,8 +1747,10 @@ Read first, in this order:
    `packages/server/src/mud/lib/thermal/Thermal.ts` (l.1205–1395 — the
    melt, the solidify edge, the set site to change), `Material.ts`
    (l.455–500, `castTemplate`), `platform/thing/Casting.ts`,
-   `generic-objects/.../{vessel/ice-pan, ice-block, Casting}.yaml`,
-   `base-library/.../material/bulk/water.yaml`; `lib/spatial/Placing.ts`;
+   `generic-objects/.../{vessel/ice-pan, ice-block, Casting}.yaml` (and the
+   new `ice-lump`),
+   `base-library/.../material/bulk/water.yaml`; `lib/spatial/Placing.ts`; `platform/idea/cmd/inventory/GetController.ts`
+   (l.494–520, `burnOnGrab`) and `lib/perception/Touch.ts` (l.103);
    `packages/content/trade-smelting/src/idea/cmd/smelting/SmeltController.ts`
    (l.280–360, 399–535, 700–725) and its `__tests__/SmeltController.test.ts`;
    `docs/slates/tails/glass-slate.md` §8.
