@@ -99,85 +99,8 @@ declareFile({
 
 const PROVISIONING = '/world/terminus/rejection/location/provisioning';
 const BANK_HALL = '/world/terminus/counting-houses/banking-hall';
-/**
- * ⭐⭐ **The city store, where the till actually works** — and where a
- * driller would outfit anyway.
- *
- * ⚠⚠ Rejection's own provisioning counter **cannot take money**, and it
- * is the second build's drive it has blocked: `BuyController` calls
- * `EmploymentApi.settleSale`, which returns `null` for three different
- * reasons — no venue path, no business operator, or no operating account
- * — and **all three are reported to the player as
- * `insufficient-funds`**, so a shop that cannot take money at all tells
- * the buyer their wallet is empty.
- *
- * ⭐ What this drive adds to that finding, which the taps build could
- * not: **a WORKING comparison.** The apiculture drive buys a lantern, a
- * hive, a super, a smoker, a veil and gloves at THIS counter, all
- * clean. So `settleSale` is fine and the defect is specifically
- * Rejection's `provisioning-business` — which is a far sharper thing to
- * hand to retail than *the row looks right*.
- */
-const STORE = '/world/terminus/general-store/shop-floor';
-const REJECTION = '/world/terminus/rejection';
-
-/** The drilling kit, minted because the Rejection till cannot take money. */
-const KIT = [
-  '/world/terminus/rejection/thing/glowcap-jar',
-  '/trade/drilling/thing/bailer',
-  '/trade/drilling/thing/liner',
-  '/trade/drilling/thing/liner',
-  '/trade/drilling/thing/liner',
-  '/trade/drilling/thing/pressure-gauge',
-  '/trade/mining/thing/miners-dial',
-] as const;
-
 /** Provisioning → the claims office → the hillside → salt country. */
 const TO_THE_SPRING = ['east', 'north', 'north', 'east'] as const;
-
-/**
- * ⚠ RETIRED: the city route. The drive outfitted at the Terminus general
- * store for one revision — and the terminus pack's own suite refused the
- * stock lines that made it possible (*no pack owns this prefix*),
- * because putting a trade's goods on a locality's shelf makes the
- * locality depend on the trade. Kept here as a comment because the
- * derivation is reusable: a breadth-first walk over every authored
- * `exits:` block, rather than a hand-written route.
- *
- * ⭐⭐ **The city store to the valley — fifteen steps, and the length was
- * the point.** A driller outfits in town because the valley's own till
- * cannot take money, and walks out, exactly as the beekeeper walks
- * thirteen steps for a hive the valley does not sell.
- *
- * ⚠⚠ **And it is a WALK rather than a reconnect, because a reconnect
- * loses the kit.** Re-opening the session with a different
- * `startLocation` kept the money (the account is the player's) and left
- * the body carrying nothing but its costume — the purchases were simply
- * gone. Worth knowing before any drive tries to teleport itself between
- * errands.
- *
- * ⭐ Derived from the content graph rather than guessed: a breadth-first
- * walk over every authored `exits:` block from the shop floor to the
- * provisioning shed. A hand-written route is how a drive ends up
- * asserting that a door exists.
- */
-const TO_THE_VALLEY = [
-  'south',
-  'southwest',
-  'south',
-  'south',
-  'south',
-  'south',
-  'south',
-  'south',
-  'west',
-  'west',
-  'west',
-  'west',
-  'west',
-  'northeast',
-  'west',
-] as const;
 
 let k: Session;
 let handle = '';
@@ -338,20 +261,6 @@ async function settle(s: Session, started: CommandResult): Promise<void> {
   const id = engagementIdOf(started);
   if (id) await s.awaitActivity(id, 60_000);
   await new Promise((r) => setTimeout(r, 400));
-}
-
-/**
- * Lay the drilling kit out in the provisioning store. ⚠ In the STORE and
- * not at the site: the sites are outdoor rooms and after dark you cannot
- * `get` what you cannot see, so a kit dropped there is unreachable —
- * which is the cascade the taps drive paid for and this one inherits.
- */
-/** Whatever is lying in the room with `s`, by display name. */
-async function onTheFloor(s: Session): Promise<string> {
-  const rows = await s.query('here:i', { fields: ['displayName'] });
-  return rows
-    .map((r) => String((r as { displayName?: string }).displayName ?? ''))
-    .join(' | ');
 }
 
 async function carried(s: Session): Promise<string> {

@@ -12,7 +12,12 @@
 class: /platform/thing/Flask
 data:
   shortDescription: oiled-canvas gas bladder
-  keywords: [bladder, bag, gas, canvas]
+  # ⚠ The printed name is a phrase, and the drilling build put this row
+  # on Rejection's counter — so a buyer reads `oiled-canvas gas bladder`
+  # off the shelf and must be able to type it (`lint:reachability` arm
+  # naming). `"gas bladder"` too, which is what anybody would actually
+  # say.
+  keywords: [bladder, bag, gas, canvas, "gas bladder", "oiled-canvas gas bladder"]
   register: indefinite
   longDescription: >-
     A limp bag of canvas soaked in linseed oil, with a brass tap and a

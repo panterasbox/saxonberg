@@ -18,7 +18,13 @@
 # already blessed. See `Bailer.ts`.
 class: /trade/drilling/thing/Bailer
 data:
-  keywords: [bailer, bucket, bail, sandpump]
+  # ⚠ `"well bailer"` is the PRINTED name, so it must be a keyword too
+  # (`lint:reachability` arm naming): a good that prints a phrase it does
+  # not answer to tells a buyer the shelf is bare of a thing standing
+  # right there — which is worse than an unknown verb, because it
+  # asserts something false about the world. The shipped exemplars are
+  # the general store's `"dog loaf"` and `"mana cell"`.
+  keywords: [bailer, bucket, bail, sandpump, "well bailer"]
   shortDescription: well bailer
   register: indefinite
   longDescription: >-

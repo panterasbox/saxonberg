@@ -88,7 +88,10 @@ describe('⭐⭐⭐ the column separates DIFFERENT SUBSTANCES', () => {
       `${CONTENT}../server/scripts/check-fraction-schedules.ts`,
       'utf8',
     );
-    expect(gate).toMatch(/names no \$\{?material|names no \` \+/);
+    // ⚠ The backtick needs no escape inside a character-class-free
+    // alternation — eslint's `no-useless-escape` is right and this was
+    // the branch's one lint ERROR.
+    expect(gate).toMatch(/names no \$\{?material|names no ` \+/);
     expect(gate).toMatch(/no such thing as THE product/);
     expect(gate).toMatch(/GRADES of one/);
     const pkg = JSON.parse(

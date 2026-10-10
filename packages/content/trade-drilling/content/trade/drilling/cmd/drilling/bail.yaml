@@ -31,40 +31,42 @@ validators:
   - /lib/command/validators/requiresConscious
   - /lib/command/validators/requiresEmbodied
 args:
-  # ⭐⭐ THE RIG — DECLARED, not hunted for (`lint:instrument-args`), and
-  # the query is the CAPABILITY rather than the class: a second kind of
-  # rig any pack ships works with nothing here changed, and the tag on
-  # the derrick row is CONSUMED rather than decorative.
-  - name: rig
-    type: object
-    required: false
-    prepositions: [at, with, using]
-    default: "reachable:[capability.derrick]"
-    scope: ["reachable"]
-    requires: [ToolMixin]
-  # ⭐ THE HOLE. ⚠ `required: false` and ABSENT IS MEANINGFUL: no hole
-  # bound means there is no hole here, which is the fork `bore` takes to
-  # site one. A required arg would have made siting unreachable.
+  # ⚠⚠ **ARG ORDER: the positional `hole` comes FIRST, and that is a
+  # boot-fatal rule rather than a style.** Every prepositional object arg
+  # below carries `greedy: true` (`lint:reachability` arm G — a
+  # prepositional object arg that is not greedy takes ONE token, so
+  # `at the brick oven` is a shape error and `command-spec.md` says they
+  # all want greedy). But *a greedy arg must be last, or be followed only
+  # by prepositional args* — so a greedy `rig` standing before the
+  # positional `hole` would fail `CommandApi.preloadAll` and take the
+  # whole server down. Moving `hole` to the front satisfies both.
   - name: hole
     type: object
     required: false
     default: "reachable:[mixin.GroundPointMixin]"
     scope: ["reachable"]
     requires: [GroundPointMixin]
-  # ⭐ WHICH BAILER — DECLARED, not hunted for (`lint:instrument-args`).
+  - name: rig
+    type: object
+    required: false
+    prepositions: [at, with, using]
+    greedy: true
+    default: "reachable:[capability.derrick]"
+    scope: ["reachable"]
+    requires: [ToolMixin]
   - name: tool
     type: object
     required: false
     prepositions: [with, using]
+    greedy: true
     default: "reachable:[capability.bailing]"
     scope: ["reachable"]
     requires: [ToolMixin]
-  # ⭐ WHAT YOU CATCH IT IN. Optional: bailing to clear the hole is a
-  # real act with no vessel at all, and that is most of the early ones.
   - name: vessel
     type: object
     required: false
     prepositions: [into, in]
+    greedy: true
     default: "me:i:[mixin.BulkableMixin]"
     scope: ["inventory", "reachable"]
     requires: VisibleMixin

@@ -7,7 +7,8 @@
 # unambiguous at a wellhead and nowhere else in the realm.
 class: /platform/thing/Good
 data:
-  keywords: [liner, tube, pipe, lining]
+  # ⚠ The printed name is a phrase, so it is a keyword — see bailer.yaml.
+  keywords: [liner, tube, pipe, lining, "well liner", "length of well liner"]
   shortDescription: length of well liner
   register: indefinite
   longDescription: >-

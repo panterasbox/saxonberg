@@ -48,6 +48,24 @@ that shapes every slate.
 > ⚠ Still cut and recorded rather than half-shipped: **foraging**;
 > breeding writes *served* and gestation is a follow-on. See [towns-slate](./slates/builds/towns-slate.md) D27 +
 > [venue-and-supply-slate](./slates/builds/venue-and-supply-slate.md) V11.
+> ⭐⭐ **DRILLING shipped 2026-10-09** (MR !353) — the RGO family's
+> **seeded**-field member, and the one whose instrument deliberately
+> cannot answer the question that matters: a trap's STRUCTURE reads with
+> a bracket that narrows with the instrument and widens with depth, and
+> whether it is CHARGED has no reading anywhere in the game. So a dry
+> hole survives every improvement to the instruments and a bore's
+> payroll is a **bet**, which is the whole trade. Also the crest-derived
+> fluid leg (full closure over the crest, nothing at the rim, so *the
+> place the ground tells you about is not the place to dig*), a bore as
+> a POINT rather than a place, and `separation: cuts | fractions` —
+> *you cannot distil crude and choose not to make the light ends.* See
+> [drilling.md](./subsystems/drilling.md).
+> ⚠ Its review round moved `hire`/`dismiss` OUT of the trade and into
+> the kernel's employment verbs, where every house in the realm can
+> reach them — see [employment.md](./subsystems/employment.md)
+> § Dismissal. ⚠ Deferred and recorded: the river leg (D17, a
+> cross-cutting water capability) and the crew's RATE, which is a
+> balance question against a running game.
 > ⭐⭐ **Phase 5's first half — PETS — shipped 2026-09-17** (MR !257): the
 > kept animal as a rung, the bond as regard × handling, feeding as a
 > ladder, the offer as a moment the animal decides, naming as the

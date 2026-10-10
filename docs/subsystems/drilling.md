@@ -391,6 +391,32 @@ surface showings, and **no TypeScript at all.**
 rung knows nothing about springs, gas blows or oil seeps — it asks the
 room what is `showing` and repeats the prose.
 
+## ⚠⚠ Known-soft: the crew's RATE
+
+Measured live, 2026-10-09: **two roustabouts on shift, a full game day,
+one metre.** Against `CREW_SWINGS_PER_HOUR = 120` × 2 hands × 24 h and
+`SWINGS_PER_METRE_REF = 6` that is an order of magnitude light, and
+lining is **not** the gate — Rejection's deposit authors no `waterTable`,
+so the default −45 puts the liner threshold at 45 m.
+
+⭐ The suspect is `SAMPLE_CAP_S`: `reconcileRig` clamps `elapsed` to one
+hour, so a clock **jump** is credited once rather than replayed hour by
+hour. The cap is the right shape — it is what stops an unobserved rig
+minting unbounded depth, and it follows *depth is BANKED, only the swing
+is ENGAGED* — but it makes this method's own *"weeks pass with nobody
+reading"* only partly true.
+
+⚠ Untuned on purpose: which number is wrong is a **balance** question
+against a running game. The drive asserts the mechanism and no rate.
+Full write-up and the other deferrals:
+[drilling-slate](../slates/tails/drilling-slate.md) § Tail.
+
+## ⛔ And nothing CAPS a well
+
+An uncapped well leaks and there is no act that stops it — not even a
+refusal. Recorded as the polity's to price rather than as a mechanism;
+see the slate's tail.
+
 ## Cross-references
 
 - [ground.md](./ground.md) — the column, and the `fluids` field
@@ -399,5 +425,5 @@ room what is `showing` and repeats the prose.
 - [fractionation.md](./fractionation.md) — the cut, and now the column
 - [bulk.md](./bulk.md) — the four policy seams, and the gas that escapes
 - [fire.md](./fire.md) — the burner, and the coupled fuel vessel
-- [employment.md](./employment.md) — the roster, the wage, the hiring driver
+- [employment.md](./employment.md) — the roster, the wage, and ⭐ the KERNEL's `appoint` (alias `hire`) / `dismiss`, which this trade deliberately ships none of its own version of
 - [activity.md](./activity.md) — why a bore may not be an engagement
