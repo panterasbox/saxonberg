@@ -34,6 +34,7 @@
     "lint:authored-prose": "tsx scripts/check-authored-prose.ts",
     "lint:capabilities": "tsx scripts/check-capabilities.ts",
     "lint:bills": "tsx scripts/check-bills.ts",
+    "lint:pack-extends": "tsx scripts/check-pack-extends.ts",
     "lint:create-sites": "tsx scripts/check-create-sites.ts",
     "lint:mint-custody": "tsx scripts/check-mint-custody.ts",
     "lint:census": "tsx scripts/check-template-census.ts",
