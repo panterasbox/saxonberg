@@ -1111,7 +1111,7 @@ Checked against the tree, not recalled.
 
 ## Waves
 
-### W0 — the kernel seams (D2, D3, D4, D6, D7, D8, D9, D12, D20, D22)
+### W0 — the kernel seams (D2, D3, D4, D6, D7, D8, D9, D12, D20, D22) ✅
 
 **Goal.** Every seam a row or a pack class will lean on exists, is tested,
 and changes nothing shipped: every default is today's behaviour.
@@ -1331,7 +1331,7 @@ and taps test unchanged.
 - `press-stone.yaml` lands in **W4** with the creamery that props it
   (`lint:reachability` refuses an unreached row — the pump W1 precedent).
 
-### W1 — the animals, the milks, the vell, the pail (D3, D8, D11, D12, D13)
+### W1 — the animals, the milks, the vell, the pail (D3, D8, D11, D12, D13) ✅
 
 **Files.**
 - `packages/content/trade-ranching/content/stuff/idea/material/food/milk.yaml`
@@ -1380,6 +1380,25 @@ checkpoints (`pnpm wire -- pump.dirty taps.dirty`); `lint:family` green
 (`lint:census` sees the vell row; `lint:anatomy` passes a non-claiming
 line; `lint:kept-animals` passes the goat).
 **Commit:** `build(dairy W1): three milks, a goat, a vell off a young head, a herd with a sex and a dry period, and a pail you can wash`.
+
+**✅ W1 done (build, 2026-10-10).** As planned, with these notes:
+- `DraftController.mint` now applies the seeded sex (in a `try` — a
+  species with no sex system refuses `setSex`, and the head stays
+  unrecorded, which the tap reads as open) and restores a dry period from
+  `HeadOverlay.driedOffAt` (`restoreDryPeriods`). `ReturnController`
+  writes the stamp for every dried-off `expire` tap and **keeps an earlier
+  stamp still inside its rest**, so turning a dry cow in twice does not
+  restart her clock.
+- `HerdRecord.femaleFraction` is optional; a record filed before it reads
+  `DEFAULT_FEMALE_FRACTION` (0.85, the old literal). ⚠ A warm dev DB keeps
+  its old ox record (get-or-create), whose oxen will draft 85 % female —
+  drop the DB before the drive (dev DBs are droppable; no migration).
+- The lactation behaviour (draft → dry → return → redraft) is proved by
+  the drive (steps 4 and 26) rather than a controller-level test; the unit
+  tests pin the record (`femaleFraction` round-trip, the seed's sex mix,
+  the `driedOffAt` overlay fold) and the kernel half (`Producing.sex.test`).
+- The pump/taps wire re-runs for the re-classed pail ride the W5 drive
+  session (one boot).
 
 ### W2 — the `trade-dairying` pack (D1, D4, D5, D7, D9, D10, D16, D21)
 

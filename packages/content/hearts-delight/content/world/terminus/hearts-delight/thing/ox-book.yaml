@@ -75,6 +75,9 @@ data:
   # which is what makes the "another season or the block" question live
   # rather than hypothetical.
   foundingMeanAgeDays: 2920
+  # ⭐ (dairy D12) An ox is a castrated bull — every head in this register
+  # is male, and the dairy's milk tap refuses a bull in his own voice.
+  femaleFraction: 0
   holderRef: organization:/world/terminus/hearts-delight/idea/farm-business
   # ⚠ The FLATS, not the bench — the ground with the water rights and the
   # ploughing to do. The bench is sheep country and the flock book says

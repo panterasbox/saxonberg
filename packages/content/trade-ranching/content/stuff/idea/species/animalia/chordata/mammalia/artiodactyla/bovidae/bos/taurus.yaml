@@ -62,6 +62,12 @@ data:
       windowDays: 0.6
       yieldShape: volume
       window: { kind: event }
+      # ⭐ (dairy D12) A bull is not milked — read against the head's own
+      # sex, refused in her voice. And a cow that has dried off RESTS
+      # before she comes back into milk: the dry period starts when she is
+      # returned to the herd, and a redraft inside it is still dry.
+      sex: female
+      restDays: 3
   # ⭐⭐ **What comes off this animal, and it is the ANIMAL's answer.**
   #
   # Until the carcass-chain build the game had two `butcher` verbs with two
@@ -103,6 +109,10 @@ data:
   - { cut: /stuff/thing/items/offal,          units: 3, fraction: 0.12 }
   - { cut: /trade/ranching/thing/suet,           units: 2, fraction: 0.05 }
   - { cut: /trade/cooking/thing/gut,            units: 2, fraction: 0.02 }
+  # ⭐ The vell — a calf's fourth stomach, and the source of rennet (dairy
+  # D8). Only off a young head: an animal weaned onto grass has stopped
+  # making the enzyme worth taking, so the line closes at `weanedAt`.
+  - { cut: /trade/cooking/thing/vell,           units: 1, fraction: 0.004, maxAgeDays: 60 }
   - { cut: /trade/ranching/thing/hide,           units: 1, fraction: 0.07, conditioned: false }
   - { cut: /trade/ranching/thing/bone,           units: 4, fraction: 0.12, conditioned: false }
   longDescription: >-

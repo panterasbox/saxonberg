@@ -1,0 +1,28 @@
+# Ewe's milk — ⭐ twice the fat of a cow's and two thirds more protein, so
+# a litre of it gives roughly twice the curd (dairy D3). Nothing authored
+# per species says so: the cream and curd shares DERIVE from these numbers
+# (`CompositionShare`), so the difference is the milk's, and the cheese
+# made from it is richer because the milk was.
+#
+# ⚠ A season, not a lactation you start: a ewe milks after lambing,
+# through the lengthening days (`aries.yaml`'s photoperiod window).
+class: /platform/idea/material/Material
+data:
+  name: ewe's milk
+  keywords: [milk, "ewe's milk", ewe-milk]
+  appearance: thick, white and sweet-smelling
+  density: 1035
+  specificHeat: 3900
+  thermalConductivity: 0.53
+  electricalConductivity: 0.5
+  waterAbsorptionCapacity: 0
+  hardness: 0
+  toughness: 0
+  edibility: true
+  nutrients: ["fat", "protein", "sugar", "water"]
+  nutrientAmounts: { fat: 70000, protein: 55000, sugar: 48000, water: 815000 }
+  spoilActivationEnergy: 60000
+  waterActivity: 0.99
+  toxicity: []
+  tags: ["food", "dairy", "liquid", "perishable", "once-living", "milk", "ewe-milk"]
+  composition: []

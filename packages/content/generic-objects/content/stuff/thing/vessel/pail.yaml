@@ -27,7 +27,14 @@
 #
 # ⚠ The two names are arguably swapped (classically a *vessel* IS the
 # liquid one); `Receptacle.ts` records that and the rename is filed.
-class: /platform/thing/Receptacle
+#
+# ⭐⭐ `CraftVessel` since the dairy build (D11): a pail is FOOD EQUIPMENT.
+# Milk caught in a dirty pail is dirty milk, so the pail carries a surface
+# load (`Contaminable`) that the next fill picks up and `wash pail`
+# clears — the shipped vessel rule, which a plain `Receptacle` could not
+# take part in because it is not `Crafted` and `wash` refused it at the
+# binder. Same closure, same capacity, same everything else.
+class: /platform/thing/CraftVessel
 data:
   shortDescription: wooden pail
   keywords: [pail, bucket, wooden]

@@ -29,7 +29,10 @@ import { TemplatePaths } from '@saxonberg/server/mud/lib/paths';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import type Species from '@saxonberg/server/mud/platform/idea/species/Species';
-import HerdRegistry, { type HerdRecord } from '../../HerdRegistry';
+import HerdRegistry, {
+  DEFAULT_FEMALE_FRACTION,
+  type HerdRecord,
+} from '../../HerdRegistry';
 import { HeadSeed } from '../../../lib/HeadSeed';
 import type Livestock from '../../../agent/Livestock';
 
@@ -124,7 +127,7 @@ export default class DraftController extends CommandController<DraftModel> {
       {
         herdId: herd.herdId,
         meanAgeDays: this.meanAgeOf(herd, index),
-        femaleFraction: 0.85,
+        femaleFraction: herd.femaleFraction ?? DEFAULT_FEMALE_FRACTION,
       },
       index,
       herd.overlay[String(index)],
@@ -135,6 +138,15 @@ export default class DraftController extends CommandController<DraftModel> {
     animal.setSpecies(species);
     this.nameAfterSpecies(animal, species);
     animal.setLifecycleState('alive');
+    // ⭐ (dairy D12) The seed always said which sex a head was, and nothing
+    // applied it — every drafted head was sexless. A species with no sex
+    // system (or a seed the species refuses) leaves it unrecorded, which
+    // the tap reads as open.
+    try {
+      animal.setSex(sample.sex);
+    } catch {
+      /* the species keeps no sexes; the head stays unrecorded */
+    }
     animal.setAge(sample.ageDays);
     animal.handling = sample.handling;
     const flesh = animal.getReserve('flesh');
@@ -144,6 +156,7 @@ export default class DraftController extends CommandController<DraftModel> {
         Quantity.of(sample.flesh - flesh.current.rawValue(), '%'),
       );
     }
+    this.restoreDryPeriods(animal, species, herd.overlay[String(index)]);
 
     const where = (giver as unknown as { getContainer(): Stuff | null }).getContainer();
     if (where && MixinApi.isContainer(where)) {
@@ -181,6 +194,27 @@ export default class DraftController extends CommandController<DraftModel> {
     }
     const since = Math.max(0, (nowS - herd.founded) / SECONDS_PER_GAME_DAY);
     return herd.foundingMeanAgeDays + since;
+  }
+
+  /**
+   * ⭐ (dairy D12) A head returned dried off is still dry if it comes out
+   * again inside the species' rest: the dry-off is in the record, so
+   * returning and redrafting cannot launder a dry cow. Past the rest she
+   * is drafted fresh — the default state, which IS back in milk.
+   */
+  private restoreDryPeriods(
+    animal: Livestock,
+    species: Species | null,
+    overlay: HerdRecord['overlay'][string] | undefined,
+  ): void {
+    const dried = overlay?.driedOffAt;
+    if (!dried || !species) return;
+    const nowS = this.nowSeconds();
+    for (const tap of species.getProduction()) {
+      const at = dried[tap.key];
+      if (typeof at !== 'number' || !(tap.restDays && tap.restDays > 0)) continue;
+      if (nowS - at < tap.restDays * SECONDS_PER_GAME_DAY) animal.dryOff(tap.key);
+    }
   }
 
   /** Game-seconds now, or `0` when there is no world clock yet. */
