@@ -273,23 +273,88 @@ keeps *being at a node* an identity rather than a test, keeps the
 shore↔expanse boundary hard, and means a sea's resource needs no nodes
 at all.
 
-### ⭐⭐ Away from a node, the place is DERIVED
+### ⭐⭐⭐ The deck is a SHORE THAT MOVES — nothing is ever minted
 
 **Nodes are where bespoke authored content lives. Everywhere else is
 light procgen, and the sea needing almost no features is the point.**
 
-A craft that stops away from a node becomes somewhere: a **derived
-place, minted at its position and discarded when it leaves**, described
-from the field it is standing in — biome, sea state, depth, what the
-stock is. ⭐ The house pattern exists twice already: `ground.md` mints
-every Location's floor with a **derived ten-word kind, never authored**,
-and `forestry.md`'s `Wood` is *"ground with a stand cover, derive-on-read
+⛔ **But stopping away from a node does not mint a place.** An earlier
+draft of this section said it did and that was wrong: a minted place
+would put a person **inside the water's frame**, which the model forbids
+and `Watercourse` settled first — *"a mill beside the river is not in
+it."*
+
+⭐ Instead the craft's deck carries a **`Shore`-shaped feature whose
+citation resolves to the expanse at the craft's current position**, and
+this is nearly free because `Shore` already ships in exactly that shape:
+a **room-fixed feature** that cites a water rather than containing
+anything, keeping a refreshed memo — and ⭐⭐ **a verb that wants water
+already declares `default: "reachable:[class.Shore]"`.** So `fish` works
+from a deck with **no change to the fishing pack at all**, and whaling's
+launch has somewhere to stand.
+
+⭐ The light procgen is the **citation's derived description** — *"grey
+water, a long swell, nothing in sight"* — read off the field (biome, sea
+state, depth, stock) and costing no author anything, ten thousand times
+over. The house pattern exists twice: `ground.md` mints every Location's
+floor with a **derived ten-word kind, never authored**, and
+`forestry.md`'s `Wood` is *"ground with a stand cover, derive-on-read
 from its own soil, read by `look` in words."*
 
-⭐ Three things fall out. Nothing persists, so residency is answered for
-free. *"Grey water, a long swell, nothing in sight"* costs no author
-anything, ten thousand times over. And **fishing and whaling work away
-from a node**, which is what the open sea is for.
+⭐⭐ **And nothing persists because nothing exists**: residency never
+arises, there is no place to evict, and the frame invariant stays
+*literally* true rather than nearly true.
+
+### ⭐⭐ Sea state is DERIVED, and nobody ever authors "rough"
+
+| | |
+|---|---|
+| wind **direction** | ⭐ the **band's lean.** A trade wind is named for being constant — direction is a band fact, not a weather one |
+| wind **strength** | the **weather field**, read and never edited |
+| **fetch** | ⚠ **authored on the band** — one number |
+| **depth** | the column, at this position |
+| **sea state** | ⛔ **always derived. Never authored, at any tier.** |
+
+⭐ An author writes *"the wind here sets westerly, hard, in winter, over
+a long fetch"* and roughness **follows** — which clears the derivability
+bar the slate set with `Watercourse` (*an uphill reach is
+unrepresentable, not validated*). And the bar pilot's danger falls out
+for free: **short steep seas over a shoal** are what a long fetch at a
+shallow depth *is*, with nobody authoring *"the bar is dangerous."*
+
+⚠⚠ **Why direction comes from the band and not from the weather.**
+`weather.md` lists *"vector wind, moving fronts"* as an explicit **wave-2
+tail**, so shipped wind is **scalar** — and this build reads the weather
+and edits neither. The split is the escape: **direction from the band,
+magnitude from the field.** No weather edit is needed, and vector wind
+arriving later only refines it.
+
+⚠ **Why fetch is declared rather than derived.** True fetch is the
+distance of open water upwind, which requires knowing where land is — the
+terrain model this build refuses for line of sight. So it is a
+declaration, under the standing rule: *ask whether the predicate exists
+before promising to derive it; often it does not, and then it is a
+declaration plus a ratchet.*
+
+### ⭐⭐ You are always inside something
+
+> **At a node you may step out of a craft into authored content. Between
+> nodes you may only move BETWEEN CRAFT — and the position belongs to
+> the OUTERMOST one.**
+
+⭐ Launching a boat from a ship is the case that makes this precise: the
+boat is a `Mobile ExitableVessel`, a Thing you are *in*, so nobody is
+ever in the water — and the boat, now the outermost thing crossing for
+its occupants, **holds a position of its own.** The outward walk decides
+whose position applies, which is the same resolver the biome chain
+already uses.
+
+⚠ **One forward-compat constraint, and it is the only part of this that
+matters now:** the position field must be able to live on **a boat as
+well as a ship**, because retrofitting *whose* position it is would
+reach every reader of it. ⛔ What a towed boat *means* — carried
+somewhere you did not navigate to, with your ship over the horizon — is
+a design this build does not settle. → `navigable-water-slate` § 7c.
 
 ---
 
@@ -320,17 +385,39 @@ build.
 | ⭐ its **width** | what makes it a region you are in or out of rather than a route you pick |
 | a name | *the Westerlies*, *the Narrows* |
 | cost per axis | time and way — plus the **`conditional` risk axis**, which already ships |
-| character | what the crossing is like, in prose. ⭐ This is the lens-2 answer the slate said water did not have |
+| ⭐⭐ a **wind lean** | direction and strength, in the `weather.md` lean's own shape. ⭐ **This is the band's mechanical character** — not prose |
+| ⚠ a **fetch** | one number: how much open water the wind has had. **Declared, not computed** — see *Sea state* |
+| prose | what the crossing is like, for flavour. ⭐ The lens-2 answer the slate said water did not have, but it is the lean that does the work |
 | a reputation | ⭐ what people *say*, which is the `told` channel's content — **and may be false** |
 | a season or window | a trade wind blows when it blows. Climate build again |
-| ⭐⭐ **what happens here** | the event weighting. **A band is where a voyage's events are authored** |
+| a traffic weighting | busy lane, or empty water |
+| hazard rows placed in it | a shoal, ice, a reef — `hazard.md`'s self-resolving hazards |
+| a stock | what is here to be taken |
 
-⭐⭐⭐ **That last row is why bands exist.** *"This crossing has a
-character"* and *"things happen on this crossing"* are one fact wearing
-two hats — a node is where you **arrive**, a band is what the voyage is
-**made of**. Which is also how you author the inexplicable: a band that
-weights its event field strangely, with no special case anywhere in the
-engine.
+⭐⭐⭐ **A band MODULATES SHIPPED MECHANISMS; it is not a script host.**
+*"This crossing has a character"* and *"things happen on this crossing"*
+are one fact wearing two hats — a node is where you **arrive**, a band is
+what the voyage is **made of** — and an author expresses both by saying
+**what is TRUE here**, never by writing a sequence.
+
+| what happens on a passage | the shipped mechanism that does it | what the band authors |
+|---|---|---|
+| the sea changes | the crossing itself | the lean, the fetch |
+| the weather turns | `weather.md`, **read** | the lean |
+| a sail, a contact | **seeded traffic** | a weighting |
+| a leak, gear failing | the neglect model + `Durable` | how hard it is on gear |
+| ⭐ a shoal, ice, a reef | **`hazard.md`** — self-resolving, with a `HazardDelivery` | a hazard row |
+| something ashore comes in sight | the landmark + a computed range | nothing — geometry |
+| fish, whales | the **stock field** | the stock |
+
+⭐ So the Bermuda Triangle is a traffic weighting, a hazard set and a
+reputation, and no engine knows it is special. ⛔ **The moment a band
+carries a script hook it stops being geography**, and *"a second venue
+needs zero pack code"* is gone with it.
+
+⚠ **What genuinely needs code goes somewhere else:** a bespoke one-off —
+a derelict with a story, the ghost ship of the Narrows — is a
+`candidate`/brain or ordinary content **at a node.**
 
 ---
 
@@ -345,7 +432,7 @@ the verb set *is* the UX, and it is the deliverable. Checked against all
 
 | verb | shape |
 |---|---|
-| **`anchor`** | ⭐ leave the voyage and **become somewhere**, at any position, node or not. The place you get is derived (see *Placement*) and it is what makes fishing and whaling work on open water. `anchor` again, or `course`, takes you back out |
+| **`anchor`** | ⭐ **stop the craft** — leave the voyage engagement without arriving anywhere. ⛔ It mints no place: the deck's citation simply reads the field where you stopped (see *Placement*), which is what makes fishing and whaling work on open water. `course` takes you back out |
 | **`course`** | `course` reads your current course and your reckoned position **with its uncertainty**; `course <bearing>` / `course <node>` sets one and begins the crossing. Zero-arg-reads / arg-sets is the shipped shape (`cockpit <mode>`, `house par`) |
 | **`hail`** | a directed act at a sighted contact. ⛔ Not `shout`, which is the acoustic-range verb — a hail at twelve miles is flags, a light or a gun, which is the **second sighting channel** getting a real consumer instead of staying hypothetical |
 
@@ -505,6 +592,11 @@ own act.
   hired crew does while you are away is **not this build's question**. →
   `standing-instructions-slate`, which is unopened and where *"may a
   player automate labour at all"* has to be answered on its own.
+- ⛔ **No scripted multi-beat sequences on a band.** A storm that builds,
+  breaks and passes wants an authored arc, and `scripting.md`'s
+  **game-time Coroutine** is the right host for one. ⚠ It stays out
+  because the moment it is available on a band, everything becomes a
+  script instead of geography. → `navigable-water-slate` § 3b.
 - ⛔ **No combat at sea.** Two ships in sight of each other is a real
   case and it is not this one. → `navigable-water-slate` § 7c, whose
   tether graph is the nearest designed thing.
@@ -524,6 +616,7 @@ own act.
 | ⚠ **the assembly build** | owns the compartment-with-its-own-air. **This build must not touch it** — automatic, given no stations and no `Chamber` |
 | ⚠ **the underwater build** | ⭐ **The axis is ours and the second value is theirs.** This build declares that a position has a depth and only ever reads zero; they add everything that makes a depth mean something. Nothing they need gets retrofitted |
 | ⚠⚠ **`standing-instructions-slate`** | **An event-driven passage that degrades unattended depends on a question nobody has opened.** This build ships the neglect model and does **not** decide whether a crew may act on standing orders — the taps build decided exactly that inside a trade build and it was cut before the MR merged |
+| ⚠⚠ **vector wind** | ⭐ **sea state needs a direction and shipped wind is scalar** — `weather.md` has *"vector wind, moving fronts"* as a wave-2 tail. This build takes direction from the **band's lean** and touches no weather code; when the climate build vectors the wind, the lean becomes a deviation rather than the only source |
 | ⚠ **the shipped claim store** | this build is the **first writer of the `bought` channel**. The vocabulary was put in the shape from the start precisely so this would need no retrofit; confirm that holds |
 | ⚠ **the word "structure"** | ⭐ the drilling build shipped a `structure` **reading channel** — *"the shape of the rock under this ground"*. Unrelated to the building coordinator this build ships, and the two must not be conflated in prose: `measure structure` is geology |
 | ⭐ **four documents cite the vessel decision by section letter** | do not renumber it |
@@ -844,29 +937,33 @@ Against the running game, before the MR opens.
     a way the band explains.
 11. ⭐ **Veer off course without taking a fix**, and learn it from the
     field alone — the water is not what it should be here.
-12. **`anchor` away from any node**, get a described place that nobody
-    authored, and **fish it**.
-13. **`journey` to a node and be refused honestly**, with the refusal
+12. **`anchor` away from any node** and **`fish` from the deck** — the
+    water described by nobody, and ⛔ **without ever being in it.**
+13. ⭐ **Cross from a long fetch onto a shoal** and have the sea get
+    worse, with nothing anywhere authoring *rough*.
+14. **Launch a boat mid-passage**, be *in* it rather than in the water,
+    and have **its** position be the one that answers.
+15. **`journey` to a node and be refused honestly**, with the refusal
     naming `course`.
-14. **`read` a chart you were given, then `map`**, and see the charted
+16. **`read` a chart you were given, then `map`**, and see the charted
     claims appear alongside what you walked and saw — **marked as
     bought.**
-15. **`read` a chart that is wrong**, act on it, and find the water does
+17. **`read` a chart that is wrong**, act on it, and find the water does
     not agree. ⭐ The claim is **still there afterwards.**
-16. **See another craft at a distance**, and have a second observer at a
+18. **See another craft at a distance**, and have a second observer at a
     different height **not** see it. Then **`hail` it**.
-17. ⭐ **`appoint` somebody lookout** and see further than you did a
+19. ⭐ **`appoint` somebody lookout** and see further than you did a
     moment ago, with nothing about the craft having changed.
-18. **Pass the same lane twice at the same hour on different days** and
+20. **Pass the same lane twice at the same hour on different days** and
     meet the same traffic. **Re-enter and gain nothing.**
-19. **Log out mid-crossing and log back in.** You are on the craft, the
+21. **Log out mid-crossing and log back in.** You are on the craft, the
     craft has moved, and the course is still set.
-20. **Stand on a headland** and see the whole of the bay it overlooks.
-21. ⭐⭐ **Read a landmark from three different zones**, described once,
+22. **Stand on a headland** and see the whole of the bay it overlooks.
+23. ⭐⭐ **Read a landmark from three different zones**, described once,
     and from a fourth place see nothing because an author said so.
-22. **Approach a coast from open water** and take a fix off a tall thing
+24. **Approach a coast from open water** and take a fix off a tall thing
     ashore, at a range its height decides.
-23. **Look at a building from the street** and get a sentence nobody
+25. **Look at a building from the street** and get a sentence nobody
     wrote into that street.
 
 ---
@@ -904,57 +1001,69 @@ Against the running game, before the MR opens.
 12. ⭐ A **sight yields latitude only.** Longitude is not obtainable by
     any means this build ships, and the refusal says what would be
     needed.
-13. A **`navigation` Discipline exists**, anchored to a named ISCED-F
+13. ⭐ **Sea state is derived at every tier** — from the band's wind
+    lean, the weather field's strength, the band's declared fetch and the
+    local depth. ⛔ **No row anywhere authors a sea state**, and no
+    weather code is edited.
+14. ⭐⭐ **Stopping away from a node mints nothing.** The deck's citation
+    reads the field where you stopped, water-wanting verbs resolve
+    through it, and ⛔ nobody is ever inside the water's frame.
+15. **A band authors only what is TRUE in it** — a lean, a fetch, a
+    traffic weighting, hazard rows, a stock, a reputation. ⛔ **No band
+    carries a script hook.**
+16. ⭐ The expanse position can be held by **a boat as well as a ship**,
+    and the **outward walk** decides whose applies.
+17. A **`navigation` Discipline exists**, anchored to a named ISCED-F
     code with its meaning written beside it, and both reading rows
     declare it.
-14. ⛔ **Competence gates nothing and improves no outcome.** A band-0
+18. ⛔ **Competence gates nothing and improves no outcome.** A band-0
     navigator can set any course anywhere; no competence makes the same
     craft faster or the world's drift smaller. What it changes is the
     **bracket on a sight**, **what a sounding reports about the bottom**,
     and **the allowance carried in the reckoning**.
-15. ⭐ **The pilot's knowledge is CLAIMS, not competence.** Hiring
+19. ⭐ **The pilot's knowledge is CLAIMS, not competence.** Hiring
     somebody who knows the water yields claims about that water —
     purchasable, specific to it, and able to be **wrong**.
-16. Being lost **always has a way out** that is an action, not a wait.
-17. ⭐ The crossing is a **sustained** engagement with no completion
+20. Being lost **always has a way out** that is an action, not a wait.
+21. ⭐ The crossing is a **sustained** engagement with no completion
     time: arrival is detected, never scheduled, and a course with no
     node ahead of it is legal.
-18. ⭐ The voyage's state is **the position, the course and when it was
+22. ⭐ The voyage's state is **the position, the course and when it was
     set** — nothing else — and the engagement is **re-established at
     boot** from those.
-19. The beat is the **watch**, and the manning of a watch is what the
+23. The beat is the **watch**, and the manning of a watch is what the
     degradation reads.
-20. The crossing is held by the **craft**: logging out does not abort it,
+24. The crossing is held by the **craft**: logging out does not abort it,
     the craft's position **survives a restart**, and the player is on it
     when they return. ⛔ **Nobody dies while logged out.**
-21. An **unattended** passage degrades, and the degradation is
+25. An **unattended** passage degrades, and the degradation is
     **derivable from a seeded field** — ⛔ nothing is rolled.
-22. Mutual presence on open water is decided by **sight distance from eye
+26. Mutual presence on open water is decided by **sight distance from eye
     height**, per observer, and **a second channel with a different range
     is expressible** without reopening the model — demonstrated by
     `hail`.
-23. A **lookout is a seat somebody occupies**, and the sight advantage
+27. A **lookout is a seat somebody occupies**, and the sight advantage
     follows the occupancy, not the craft.
-24. Traffic on open water is **seeded**: the same at the same place and
+28. Traffic on open water is **seeded**: the same at the same place and
     time for every observer, and unfarmable by re-entry.
-25. A **chart is procured and read**, writes **`bought`** claims, and
+29. A **chart is procured and read**, writes **`bought`** claims, and
     ⭐ a chart that is wrong **stays** wrong — the claim is never
     corrected or removed.
-26. ⛔ **No expanse topology ever reaches a client** except as the
+30. ⛔ **No expanse topology ever reaches a client** except as the
     player's own claims.
-27. A **vantage** is authored, names what it overlooks, and is believed.
-28. A **landmark** is described once on the thing itself and read from
+31. A **vantage** is authored, names what it overlooks, and is believed.
+32. A **landmark** is described once on the thing itself and read from
     every place an author says can see it — ⭐ including, at sea, from a
     range its **height** decides.
-29. Something says **these rooms are one building**, coordinates them
+33. Something says **these rooms are one building**, coordinates them
     without containing them, owns the outside description and the way
     in, and is **sparse** — and **its position is a field that can
     change.**
-30. A cited or placed thing can **contribute to its room's prose.**
-31. ⛔ Every land claim about what can be seen is **authored**. The
+34. A cited or placed thing can **contribute to its room's prose.**
+35. ⛔ Every land claim about what can be seen is **authored**. The
     engine computes a sight range **only** where nothing can be in the
     way.
-32. A position carries a **depth**, every reader of it works at depth
+36. A position carries a **depth**, every reader of it works at depth
     zero, and ⛔ **no mechanism in this build gives depth a second
     value.**
 
@@ -962,23 +1071,20 @@ Against the running game, before the MR opens.
 
 ## Open questions
 
-1. ⚑⚑ **Sea state.** What makes an edge dangerous, and the boundary of
-   *"this build reads the weather and edits neither."* Derived from wind,
-   almost certainly in scope, and currently unwritten.
-2. ⚑⚑ **Must every band run between two nodes?** A current does. ⚠ But a
+1. ⚑⚑ **Must every band run between two nodes?** A current does. ⚠ But a
    belt — the doldrums, a latitude of fog — connects nothing; it simply
    lies across everything. If free-standing bands are legal then *edge*
    is the wrong word for them, and the authored shape is **a band that
    MAY have endpoints.**
-3. ⚑ **The logbook.** § 7h: *"the logbook is what proves the
+2. ⚑ **The logbook.** § 7h: *"the logbook is what proves the
    depletion."* A durable record rather than verb surface, and
    `chronicle` is append-only and already exists — but it is the one
    piece of the UX with no home yet.
-4. ⚑ **The place↔bulk line.** Nothing says where water stops being a
+3. ⚑ **The place↔bulk line.** Nothing says where water stops being a
    place and starts being a container's contents — a puddle, a bath, a
    trough, a cistern, a pond, a lake. ⚠ The *"can you be in it"* test
    **breaks cleanly on a bath.**
-5. ⚑ **Reversing flow / the tidal bore.** A real expressive loss, and in
+4. ⚑ **Reversing flow / the tidal bore.** A real expressive loss, and in
    neither this build's nor the climate build's collision table.
 
 ---
