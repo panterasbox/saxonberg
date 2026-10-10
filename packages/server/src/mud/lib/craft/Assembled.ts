@@ -314,6 +314,21 @@ function assemblyAugmenter(text: string, host: Stuff, _viewer: Stuff): string {
   for (const j of host.slackJoints()) {
     sentences.push(GrammarApi.cap(`The ${j.key} has gone slack.`));
   }
+  // ⭐ Whose hands are in it (drive 18): everyone who made or fitted a
+  // part, or made a joint — so a mended cask reads two names. Only the
+  // people the world can still name; a maker long gone is not invented.
+  const hands: string[] = [];
+  const name = (path: string): void => {
+    if (!path) return;
+    const who = StuffApi.findByTemplatePath<Stuff>(path);
+    const shown = who ? who.getPresentation() : null;
+    if (shown && !hands.includes(shown)) hands.push(shown);
+  };
+  for (const l of lines) for (const m of l.makers) name(m);
+  for (const j of joints) name(j.maker);
+  if (hands.length > 0) {
+    sentences.push(`It is the work of ${GrammarApi.joinList(hands)}.`);
+  }
   const line = sentences.join(' ');
   return text && text.length > 0 ? `${text}\n\n${line}` : line;
 }
