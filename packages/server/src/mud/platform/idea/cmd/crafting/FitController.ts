@@ -54,11 +54,15 @@ export default class FitController extends CraftController<FitModel> {
       return;
     }
 
-    // ⭐ A word that bound a PART, with no whole named and nothing in reach
-    // it would mend, but that names a recipe, means RAISE: `fit pick` with
+    // ⭐ A word that bound a PART, with no whole named, that names a recipe
+    // and is not one of the part's own words, means RAISE: `fit pick` with
     // a pick head and a pick haft on the bench binds "pick" to one of them
-    // by substring, and the person meant the pick.
-    if (part && !whole && raw && !this.wholeFor(part, giver)) {
+    // by substring, and the person meant the pick — and `fit cask` beside
+    // a slack barrel bound the cask HEAD ("cask head") and fitted it into
+    // the barrel (the assembly drive). `fit head` still means the head.
+    const ownWord =
+      part !== null && MixinApi.isPerceptible(part) && part.hasKeyword(raw.toLowerCase());
+    if (part && !whole && raw && (!ownWord || !this.wholeFor(part, giver))) {
       const recipe = await CraftingApi.lookupRecipe(raw);
       if (recipe) return this.raise(raw, giver, context);
     }
@@ -74,6 +78,16 @@ export default class FitController extends CraftController<FitModel> {
         return;
       }
       return this.raise(raw, giver, context);
+    }
+
+    // ⚠ A named whole that is not made of parts is a mis-bind when the
+    // word also names one that is: `fit share to plough` with two plough
+    // SHARES in hand bound "plough" to a share (inventory is searched
+    // first, and a share is a Tool like the plough) — the assembly drive.
+    // The thing the part fits, answering to the word, is what was meant.
+    if (whole && !(MixinApi.isAssembled(whole) && whole.isAssembly()) && model.whole?.raw) {
+      const meant = this.wholeFor(part, giver, model.whole.raw.trim().toLowerCase());
+      if (meant) whole = meant;
     }
 
     // ── the replace arm: find the whole when none was named.
@@ -132,7 +146,7 @@ export default class FitController extends CraftController<FitModel> {
    * the room. An assembly with a FAILED line the part fits wins over one
    * that is merely worn; `null` when none, or when it is ambiguous.
    */
-  private wholeFor(part: Stuff, giver: Stuff): Stuff | null {
+  private wholeFor(part: Stuff, giver: Stuff, named?: string): Stuff | null {
     const pools: Stuff[] = [];
     if (MixinApi.isContainer(giver)) pools.push(...(giver as Stuff & Container).getContents());
     const room = MixinApi.isContainable(giver) ? giver.getContainer() : null;
@@ -140,6 +154,7 @@ export default class FitController extends CraftController<FitModel> {
     const tpl = part.getTemplatePath() ?? '';
     const fits = (s: Stuff): { failed: boolean } | null => {
       if (s === part || !MixinApi.isAssembled(s) || !s.isAssembly()) return null;
+      if (named && !(MixinApi.isPerceptible(s) && s.hasKeyword(named))) return null;
       const lines = s
         .getParts()
         .filter(

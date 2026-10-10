@@ -169,10 +169,15 @@ export default class BuyController extends CommandController<BuyModel> {
     if (MixinApi.isStackable(item) && item.getQuantity() > 1) {
       item = (await item.split(1)) as unknown as Stuff & Containable;
     }
-    this.handOver(item, giver);
     const owner = await this.buyerOf(giver, paid.receipt);
-    if (MixinApi.isChattel(item)) {
-      await item.stampChattel(owner);
+    // ⚠ Stamped BEFORE it is handed over, and named before: a piece that
+    // arrives where its like already is merges INTO it and is destroyed
+    // (the resident absorbs the arrival), so a stamp or a name after the
+    // move would land on nothing.
+    if (MixinApi.isChattel(item)) await item.stampChattel(owner);
+    const named = item.getPresentation();
+    this.handOver(item, giver);
+    if (!item.isDestroyed() && MixinApi.isChattel(item)) {
       // ⚠ And WHERE it is — the placement record every other custody
       // verb writes (`get`/`drop`/`put`/`hang`). A bought good stamped but
       // never placed was in nobody's estate: it vanished at the next
@@ -181,7 +186,7 @@ export default class BuyController extends CommandController<BuyModel> {
       // bought and carried, were gone; a bowl once set down survived).
       await item.followCustody();
     }
-    this.announce(giver, item, paid.tail, owner);
+    this.announce(giver, item, paid.tail, owner, named);
   }
 
   /**
@@ -343,12 +348,20 @@ export default class BuyController extends CommandController<BuyModel> {
     }
   }
 
-  private announce(giver: Stuff, item: Stuff, paid: string, owner: Stuff): void {
+  private announce(
+    giver: Stuff,
+    item: Stuff,
+    paid: string,
+    owner: Stuff,
+    named?: string,
+  ): void {
     const forHouse = owner === giver ? "" : ` for ${owner.getPresentation()}`;
+    // A piece that merged into a stack on arrival is named as it was.
+    const what = item.isDestroyed() ? Mml.text(named ?? "it") : Mml.thing(item);
     MessageApi.scene(giver)
       .topic(TOPIC)
-      .toSelf(Mml.compose`You buy ${Mml.thing(item)}${forHouse}. ${paid}`)
-      .toPeers(Mml.compose`${Mml.actor(giver)} buys ${Mml.thing(item)}${forHouse}.`)
+      .toSelf(Mml.compose`You buy ${what}${forHouse}. ${paid}`)
+      .toPeers(Mml.compose`${Mml.actor(giver)} buys ${what}${forHouse}.`)
       .send();
   }
 

@@ -19,11 +19,12 @@ const SOUND: [string, TemplateRow][] = [
     class: '/platform/idea/Joint',
     data: { key: 'wedged', portability: 'hand', competence: null },
   }),
-  row('/x/thing/head', { class: '/platform/thing/Tool', data: {} }),
-  row('/x/thing/haft', { class: '/platform/thing/Tool', data: {} }),
+  row('/x/thing/head', { class: '/platform/thing/Tool', data: { mass: 1.8 } }),
+  row('/x/thing/haft', { class: '/platform/thing/Tool', data: { mass: 0.8 } }),
   row('/x/thing/pick', {
     class: '/platform/thing/Tool',
     data: {
+      mass: 2.6,
       bill: {
         parts: [
           { part: 'head', template: '/x/thing/head', count: 1, role: 'structural' },
@@ -57,6 +58,15 @@ describe('check-bills', () => {
   it('fires when a recipe does not supply a structural part (one declaration)', () => {
     const recipe = { ...PICK_RECIPE, slots: [{ slot: 'head', count: 1, kind: 'item' }] };
     expect(details(SOUND, [recipe]).join('\n')).toMatch(/no item slot named 'haft'/);
+  });
+
+  it('⭐ fires when the parts outweigh the whole (salvage conserves mass)', () => {
+    const heavy = SOUND.map(([p, r]) =>
+      p === '/x/thing/pick'
+        ? row(p, { ...r.raw, data: { ...(r.raw.data as object), mass: 1 } })
+        : ([p, r] as [string, TemplateRow]),
+    );
+    expect(details(heavy).join('\n')).toMatch(/parts weigh 2\.60 kg and the whole 1 kg/);
   });
 
   it('fires when a slot count disagrees with the bill', () => {

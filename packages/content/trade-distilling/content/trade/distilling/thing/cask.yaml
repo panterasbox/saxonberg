@@ -55,7 +55,7 @@ data:
     filled in. The staves are pale inside, raised but never fired.
   category: cask
   _materialPath: /stuff/idea/material/wood/oak
-  mass: 40
+  mass: 50
   interiorBulk: true
   interiorCapacity: 25
   closure: liquidTight

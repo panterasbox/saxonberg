@@ -12,6 +12,7 @@
 # where you find out.
 class: /platform/thing/equipment/Shield
 data:
+  mass: 7.7
   shortDescription: faced shield
   keywords: [shield, faced]
   register: indefinite
@@ -42,7 +43,7 @@ data:
   # `fit hide-face to shield` re-faces a cut-up one.
   bill:
     parts:
-      - { part: shield-board, plural: shield-boards, template: /trade/carpentry/thing/board, count: 3, role: structural, material: /stuff/idea/material/wood/oak }
+      - { part: shield-board, plural: shield-boards, template: /trade/carpentry/thing/board, count: 1, role: structural, material: /stuff/idea/material/wood/oak }
       - { part: hide-face, template: /trade/tanning/thing/hide-face, count: 1, role: facing, material: /stuff/idea/material/organic/leather }
       - { part: boss, template: /trade/smithing/thing/shield-boss, count: 1, role: structural, material: /stuff/idea/material/element/iron }
       - { part: rivet, plural: rivets, template: /trade/smithing/thing/rivet, count: 4, role: fastener, material: /stuff/idea/material/element/iron }

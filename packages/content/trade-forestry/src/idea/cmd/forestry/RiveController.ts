@@ -206,6 +206,10 @@ export default class RiveController extends ManualBuildController<RiveModel> {
       recipe = choices[0]!;
     }
 
+    // ⚠ Named BEFORE the craft: the craft consumes the billet, and a
+    // reference to a destroyed thing renders as nothing (it threw in the
+    // scene — found by the assembly drive, the first run to rive one).
+    const riven = billet.getPresentation();
     const outcome = await CraftingApi.craft({
       recipeRef: recipe.getRecipeId(),
       makerMode: 'self',
@@ -220,7 +224,7 @@ export default class RiveController extends ManualBuildController<RiveModel> {
     MessageApi.scene(giver)
       .topic(FORESTRY_TOPIC)
       .toSelf(
-        Mml.compose`You drive the froe into the end of ${Mml.thing(billet)} and lever, following the grain down, and it comes apart as ${Mml.thing(outcome.output)}.`,
+        Mml.compose`You drive the froe into the end of ${riven} and lever, following the grain down, and it comes apart as ${Mml.thing(outcome.output)}.`,
       )
       .toPeers(
         Mml.compose`${Mml.actor(giver)} rives a billet with a froe and a mallet.`,

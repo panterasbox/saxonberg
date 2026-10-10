@@ -17,7 +17,7 @@ data:
   longDescription: >-
     Four ash legs joined by four rails at knee height, every tenon
     pinned through with an oak peg whose end stands proud of the leg.
-  mass: 9
+  mass: 9.1
   _materialPath: /stuff/idea/material/wood/ash
   bill:
     parts:

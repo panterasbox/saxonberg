@@ -7,6 +7,7 @@
 # never mattered is that nowhere in the realm was dark.
 class: /platform/thing/Lamp
 data:
+  mass: 0.85
   shortDescription: punched-tin lantern
   keywords: [lantern, lamp, light, tin, punched-tin]
   register: indefinite

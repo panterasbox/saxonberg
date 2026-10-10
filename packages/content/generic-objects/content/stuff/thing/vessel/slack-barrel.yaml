@@ -12,7 +12,7 @@ data:
     A rough oak barrel, the staves standing true but not meeting — light
     shows between them — hooped in iron and headed at one end.
   _materialPath: /stuff/idea/material/wood/oak
-  mass: 30
+  mass: 50
   open: true
   bill:
     parts:

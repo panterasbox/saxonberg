@@ -14,7 +14,7 @@ data:
     and not quite closed.
   category: dry-cask
   _materialPath: /stuff/idea/material/wood/oak
-  mass: 36
+  mass: 50
   interiorBulk: true
   interiorCapacity: 25
   closure: dryTight

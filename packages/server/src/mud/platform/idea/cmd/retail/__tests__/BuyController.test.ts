@@ -33,6 +33,7 @@ import { ContainerMixin } from "../../../../../lib/spatial/Container";
 import { ContainableMixin } from "../../../../../lib/spatial/Containable";
 import { NamedMixin } from "../../../../../lib/description/Named";
 import { StackableMixin } from "../../../../../lib/stuff/Stackable";
+import { StackableApi } from "../../../../../api/stackable";
 import { Idea } from "../../../../../lib/stuff/Idea";
 import Location from "../../../../../lib/stuff/Location";
 import { CommandDefinition } from "../../../../../lib/command/CommandDefinition";
@@ -102,6 +103,11 @@ function stubClones(): void {
       return t;
     }
     if (path === POT) return makePot(path);
+    if (path === STAVE) {
+      const st = makeStuffAtPath(() => new Stave(), path);
+      st.setKeywords(["stave"]);
+      return st;
+    }
     const c = makeStuffAtPath(() => {
     const coin = new Coin();
     coin.currency = "zorkmid";
@@ -286,6 +292,7 @@ describe("BuyController — buy that stamps", () => {
     heap.setQuantity(30);
     ContainmentApi.move(heap as never, stock as never);
 
+    StackableApi.installMergeOnArrival();
     const controller = makeStuff(() => new BuyController());
     await asOwner(giver, () =>
       controller.execute(
@@ -300,6 +307,19 @@ describe("BuyController — buy that stamps", () => {
     expect(bought).toHaveLength(1);
     expect((bought[0] as unknown as Stave).getQuantity()).toBe(1);
     expect(BankingApi.balanceOf(storeAcct).minor).toBe(2);
+
+    // ⚠ A bought piece is TITLED, and a titled lot does not merge — the
+    // second stave arrives as its own piece beside the first.
+    await asOwner(giver, () =>
+      controller.execute(
+        { thing: "stave", counter: { stuff: stock as never, raw: "counter" } },
+        makeContext(giver, loc, stock),
+      ),
+    );
+    const after = giver.getContents().filter((c) => c !== card);
+    expect(after).toHaveLength(2);
+    expect(after.every((c) => (c as unknown as Stave).getQuantity() === 1)).toBe(true);
+    expect(stock.onHand(STAVE)).toBe(28);
   });
 
   it("buy by cash: coin-holder settles across the bridge to the store", async () => {

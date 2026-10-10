@@ -14,7 +14,7 @@ name: Faced Shield
 keywords: [shield]
 inputSlots:
   - { slot: hide-face, category: leather, minGrade: poor, kind: item, count: 1 }
-  - { slot: shield-board, category: wood, minGrade: poor, kind: item, count: 3 }
+  - { slot: shield-board, category: wood, minGrade: poor, kind: item, count: 1 }
   - { slot: boss, category: metal, minGrade: poor, kind: item, count: 1 }
   - { slot: rivet, category: metal, minGrade: poor, kind: item, count: 4 }
 toolCapabilities: [striking]

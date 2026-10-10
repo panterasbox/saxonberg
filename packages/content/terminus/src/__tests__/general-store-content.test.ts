@@ -414,7 +414,15 @@ describe("general-store content integrity", () => {
   // one chattel-stamped stick at a time. The injury build (W-C2) put them
   // on the shelf. Every OTHER good stays discrete; this is the exception,
   // named so a second stackable staple can't sneak in unnoticed.
-  const AMMUNITION_CLASSES = new Set(["/platform/thing/equipment/Projectile"]);
+  // ⭐ …and the second, named: worked WOOD (assembly). A haft is Timber
+  // because it seasons — one carved green warps where it is fitted — and
+  // Timber stacks. A stack on a shelf now sells one piece at the piece
+  // price and counts as its quantity toward par (the two defects that
+  // made "discrete only" the safe rule).
+  const AMMUNITION_CLASSES = new Set([
+    "/platform/thing/equipment/Projectile",
+    "/platform/thing/Timber",
+  ]);
 
   /**
    * ⭐ The supplied lines (economic bootstrap D11/D14): each names the

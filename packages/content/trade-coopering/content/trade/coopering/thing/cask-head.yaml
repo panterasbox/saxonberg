@@ -8,13 +8,13 @@ data:
   shortDescription: cask head
   register: indefinite
   longDescription: >-
-    A disc of oak boards dowelled edge to edge, bevelled round the rim so
+    A disc of oak heading — two staves' worth, dowelled edge to edge, bevelled round the rim so
     it will seat in a croze.
-  mass: 2.5
+  mass: 2.8
   _materialPath: /stuff/idea/material/wood/oak
   bill:
     parts:
-      - { part: board, template: /trade/carpentry/thing/board, count: 3, role: structural }
+      - { part: stave, template: /trade/coopering/thing/stave, count: 2, role: structural }
       - { part: dowel, template: /trade/carpentry/thing/dowel, count: 4, role: fastener }
     joints:
-      - { key: doweling, method: pegged, members: [board], fastener: dowel }
+      - { key: doweling, method: pegged, members: [stave], fastener: dowel }

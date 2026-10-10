@@ -9,7 +9,7 @@ data:
   longDescription: >-
     A curved wooden fence with a narrow iron cutter set through it, for
     running round the inside of a cask's end.
-  mass: 0.7
+  mass: 1.2
   capabilities: ["crozing"]
   _materialPath: /stuff/idea/material/wood/ash
   bill:

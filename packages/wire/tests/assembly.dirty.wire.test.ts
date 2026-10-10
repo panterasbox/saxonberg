@@ -73,6 +73,9 @@ declareFile({
 });
 
 const SMITHY = '/world/terminus/hearthworks/location/smithy';
+// ⭐ The cookhouse next door has the water butt (`clone` will not stand a
+// second one up: a live butt exists where the founder holds no title).
+const COOKHOUSE = '/world/terminus/hearthworks/location/cookhouse';
 const SAWMILL = '/world/terminus/hearts-delight/location/sawmill';
 const STORE = '/world/terminus/general-store/shop-floor';
 const BANK_HALL = '/world/terminus/counting-houses/banking-hall';
@@ -92,7 +95,6 @@ const T = {
   inshave: '/trade/coopering/thing/inshave',
   rod: '/trade/coopering/thing/gauging-rod',
   peg: '/trade/carpentry/thing/peg',
-  butt: '/stuff/thing/fixture/water-butt',
   brewCask: '/trade/brewing/thing/cask',
   frame: '/trade/carpentry/thing/frame',
   plough: '/trade/farming/thing/plough',
@@ -196,6 +198,7 @@ async function practise(s: Session, discipline: string, n: number): Promise<void
 let smith: Session;
 let sawyer: Session;
 let cooper: Session;
+let menderHandle = '';
 
 // ⭐ The world boots at midnight, and in the dark a thing is "something" —
 // names drop out of prose and descriptions. Work by daylight.
@@ -299,7 +302,9 @@ suite('⭐⭐ the novice cooper (drive 9; AC 22)', () => {
     await say(cooper, 'get peg');
     const put = await say(cooper, 'put peg in barrel');
     expect(put, `put in barrel: ${put}`).not.toMatch(/can'?t|cannot/i);
-    await cloneHere(SMITHY, T.butt);
+    // To the butt, carrying it: a barrel holds things, not water.
+    cooper.close();
+    cooper = await goTo(handle, COOKHOUSE);
     const poured = (await (await cooper.cmd('fill barrel from butt')).said()).toLowerCase();
     expect(poured, `fill a barrel: ${poured}`).not.toMatch(/you fill/);
     expectOk(await cooper.cmd('drop barrel'));
@@ -332,6 +337,9 @@ suite('⭐⭐ forty days later (drive 3, 4, 5, 18, 23; AC 10, 19, 25)', () => {
     const looked = await examine(mender, 'miners-pick');
     expect(looked, `look mended pick: ${looked}`).not.toMatch(/warped|broken/i);
     expect(looked, `two makers: ${looked}`).toMatch(/work of .+ and /i);
+    // Carried through the restart: a body is persisted with what it holds.
+    await say(mender, 'get miners-pick');
+    menderHandle = mender.handle;
   }, 300_000);
 
   it('⭐ drive 4 — the mill has sawn the bole into boards while nobody stood over it', async () => {
@@ -359,6 +367,10 @@ suite('⭐⭐ the proficient cooper (drive 6, 7, 8, 11, 17, 22; AC 6, 14, 23, 24
     const looked = await examine(cooper, 'cask');
     expect(looked, `look cask: ${looked}`).toMatch(/staves/i);
     expect(looked).toMatch(/hoop/i);
+    // The driver goes too — the hoops are driven down at the butt.
+    await say(cooper, 'get driver');
+    cooper.close();
+    cooper = await goTo(handle, COOKHOUSE);
     expectOk(await cooper.cmd('drop cask'));
     await say(cooper, 'fill cask from butt');
     const full = await examine(cooper, 'cask');
@@ -379,7 +391,7 @@ suite('⭐⭐ the proficient cooper (drive 6, 7, 8, 11, 17, 22; AC 6, 14, 23, 24
   }, 300_000);
 
   it('⭐⭐ drive 17 — fill it until it gives nothing; re-fire it and it gives again', async () => {
-    await cloneHere(SMITHY, T.inshave);
+    await cloneHere(COOKHOUSE, T.inshave);
     for (let i = 0; i < 4; i++) {
       await say(cooper, 'fill cask from butt');
       await examine(cooper, 'cask');
@@ -395,10 +407,10 @@ suite('⭐⭐ the proficient cooper (drive 6, 7, 8, 11, 17, 22; AC 6, 14, 23, 24
   }, 300_000);
 
   it('⭐⭐ drive 22 — anybody measures; the gauger’s figure is of record', async () => {
-    await cloneHere(SMITHY, T.rod);
+    await cloneHere(COOKHOUSE, T.rod);
     const mine = await say(cooper, 'measure capacity cask');
     expect(mine, `cooper gauges: ${mine}`).toMatch(/not of record/i);
-    const gauger = await Session.open('founder', { startLocation: SMITHY, wizard: true });
+    const gauger = await Session.open('founder', { startLocation: COOKHOUSE, wizard: true });
     try {
       expectOk(await gauger.cmd(`appoint me to gauger at ${REGISTRY}`));
       const record = await say(gauger, 'measure capacity cask');
@@ -415,7 +427,7 @@ suite('⭐⭐ the proficient cooper (drive 6, 7, 8, 11, 17, 22; AC 6, 14, 23, 24
   }, 300_000);
 
   it('⭐ drive 22 — an off-standard cask says so, to anyone', async () => {
-    await cloneHere(SMITHY, T.brewCask);
+    await cloneHere(COOKHOUSE, T.brewCask);
     const off = await say(cooper, 'measure capacity cask');
     expect(off, `off-standard: ${off}`).toMatch(/off standard/i);
   }, 300_000);
@@ -483,10 +495,11 @@ suite('⭐⭐⭐ drive 1 — a made, mended thing survives a restart (AC 1)', ()
   });
 
   it.skipIf(!isOwnedTestWorld())('restart, and find the mended pick where it was left', async () => {
-    // The pick the smith made and the mender re-hafted lies on the sawmill
-    // floor, where it was mended — made by the mint, landed, stamped, and
-    // captured. Restart the world and read it back.
-    const handle = sawyer.handle;
+    // The pick the smith made and the mender re-hafted is in the mender's
+    // hands — made by the mint, landed, stamped, and captured with the body
+    // that carries it. Restart the world and read it back.
+    const handle = menderHandle;
+    expect(handle, 'the mender never mended the pick').not.toBe('');
     smith?.close();
     sawyer?.close();
     cooper?.close();

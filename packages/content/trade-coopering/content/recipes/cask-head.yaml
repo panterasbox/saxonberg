@@ -3,7 +3,7 @@ recipeId: cask-head
 name: Cask Head
 keywords: [cask-head, "cask head"]
 inputSlots:
-  - { slot: board, category: wood, minGrade: poor, kind: item, count: 3 }
+  - { slot: stave, category: wood, minGrade: poor, kind: item, count: 2 }
   - { slot: dowel, category: wood, minGrade: poor, kind: item, count: 4 }
 toolCapabilities: [driving]
 outputTemplate: /trade/coopering/thing/cask-head

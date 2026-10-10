@@ -448,16 +448,23 @@ export default class GetController extends CommandController<GetModel> {
       }
     }
 
+    // ⚠ Named BEFORE the move: a stack that arrives where its like
+    // already is MERGES into it and is destroyed, and a reference to a
+    // destroyed thing threw in the scene (the assembly drive's pegs).
+    const named = operand.getPresentation();
     ContainmentApi.move(operand, giver);
+    const merged = operand.isDestroyed();
     // Custody returns to a pair of hands; `place` follows to `inventory`.
     // Picking up a good you do not hold title to is theft — permitted and
     // recoverable — so this records, it does not refuse. (D8)
-    if (MixinApi.isChattel(operand)) await operand.followCustody();
+    if (!merged && MixinApi.isChattel(operand)) await operand.followCustody();
+    const what = merged ? Mml.text(named) : Mml.thing(operand);
     MessageApi.scene(giver)
       .topic('sense.survey')
-      .toSelf(Mml.compose`You pick up ${Mml.thing(operand)}.`)
-      .toPeers(Mml.compose`${Mml.actor(giver)} picks up ${Mml.thing(operand)}.`)
+      .toSelf(Mml.compose`You pick up ${what}.`)
+      .toPeers(Mml.compose`${Mml.actor(giver)} picks up ${what}.`)
       .send();
+    if (merged) return true;
     this.burnOnGrab(operand, giver);
     return true;
   }

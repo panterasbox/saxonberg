@@ -6,6 +6,6 @@ data:
   register: indefinite
   longDescription: >-
     A studded iron ball on a short length of forged chain ending in a ring.
-  mass: 1.2
+  mass: 0.55
   capabilities: []
   _materialPath: /stuff/idea/material/element/iron

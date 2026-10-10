@@ -19,7 +19,7 @@ data:
     degrees and its needle jewelled at the pivot. The lid carries a
     folding sight vane, scratched to nothing along one edge from years of
     being set down on rock.
-  mass: 0.4
+  mass: 0.75
   capabilities: ["surveying"]
   # ⚠ COPPER for brass — the realm has no zinc (see the housing's row).
   _materialPath: /stuff/idea/material/element/copper

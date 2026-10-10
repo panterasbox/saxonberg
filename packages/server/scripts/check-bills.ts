@@ -22,6 +22,10 @@
  *    MATERIAL — a construction, not an assembly of rings), and neither do
  *    the containers on {@link REFUSED} (a hive is a box you put frames IN;
  *    containment already says that);
+ * 6. ⛔ **the parts weigh no more than the whole** — salvage conserves
+ *    mass, so a bill whose parts outweigh its row refused every take-apart
+ *    with a conservation breach (the assembly drive: a 2.5 kg cask head
+ *    of three 6 kg boards). A row with a bill states its mass.
  * 5. ⛔ every `Joint` row's `competence.discipline` names a Discipline that
  *    exists — a joint gated on a Discipline nobody ships reads every
  *    salvager as a novice and nothing says why (found in the plan's
@@ -157,6 +161,23 @@ export function checkBills(
       if (p.material !== undefined && (typeof p.material !== "string" || !rows.has(p.material))) {
         out.push({ where: at(row), detail: `part '${name}' names material '${String(p.material)}', which no row ships` });
       }
+    }
+    // 6 — the parts weigh no more than the whole.
+    const own = Number(data.mass ?? 0);
+    let partsKg = 0;
+    for (const p of parts) {
+      if (typeof p.template !== "string" || !rows.has(p.template)) continue;
+      partsKg += Number(effectiveRow(p.template, rows).data.mass ?? 0) * Number(p.count ?? 1);
+    }
+    if (!(own > 0)) {
+      out.push({ where: at(row), detail: `a row with a bill states its mass (its parts weigh ${partsKg.toFixed(2)} kg)` });
+    } else if (partsKg > own * 1.0001) {
+      out.push({
+        where: at(row),
+        detail:
+          `its parts weigh ${partsKg.toFixed(2)} kg and the whole ${own} kg — salvage ` +
+          `conserves mass, so taking it apart would be refused as a breach`,
+      });
     }
     const js = Array.isArray(bill.joints) ? (bill.joints as Record<string, unknown>[]) : [];
     for (const j of js) {

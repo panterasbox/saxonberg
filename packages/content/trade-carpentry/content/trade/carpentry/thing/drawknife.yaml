@@ -10,7 +10,7 @@ data:
   longDescription: >-
     A straight blade as long as a forearm, bevelled on one side, with a
     turned ash handle set at each end and bent toward you.
-  mass: 0.7
+  mass: 0.9
   capabilities: [shaving]
   epoch: medieval
   _materialPath: /stuff/idea/material/alloy/steel

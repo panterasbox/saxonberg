@@ -1399,8 +1399,8 @@ green; AC 18 by `grep discipline:` on the three recipes.
 
 ### W5 — coopering: the cask, the character, the gauger
 
-> ⏳ **Kernel half done — `958e200ea`, `91c0060b1`; the pack is in the
-> tree pending W4's carpentry pack + `pnpm install`.** **Build decisions.**
+> ✅ **Done — `958e200ea`, `91c0060b1` (kernel) + `42deefe25` (the pack),
+> `d9c3404aa` (dry-out).** **Build decisions.**
 > (1) ⭐⭐ **The three cooper products are three JOINT ROWS**
 > (`slack-hooped` novice · `hooped` competent · `tight-hooped` proficient),
 > because what the trade's competence IS is how tight the hoops are driven;
@@ -1442,6 +1442,21 @@ clock); every brewing/distilling/winemaking/fuel suite green unchanged;
 **Commit:** `build(assembly W5): trade-coopering — three casks by capability, the character that spends and is re-fired, the hoop from the smith, the gauger as a seat and a reading`.
 
 ### W6 — the exemplar span
+
+> ✅ **Done — `34aa38fe9`** (a background agent; reviewed and fixed here).
+> **Build decisions.** (1) Part names are words nothing else answers to:
+> four colliding keywords came off (`whorl`, `needle`, `bellows`, `wick`),
+> and `pick`/`handle` off the haft — a haft in reach made `fit pick` bind
+> the haft. `FitController` also prefers the raise when the bound part has
+> no whole and the word names a recipe. (2) `Chair` and `Lamp` compose
+> `CraftedMixin` — `fit armchair` threw without it. (3) The plough's bout
+> wears it (the share takes it) and ploughing refuses naming a failed part.
+> (4) The hive rows stay billless (D6); the hive FRAME is the assembly.
+> (5) ⚠ Found by the drive: the carved wooden parts (hafts, handle, spear
+> shaft, plough stilt) were `Tool` rows and dropped the green fraction at
+> the mint, so a green haft never warped. They are `Timber` (seasoned on
+> the shelf; green when carved from a green billet) — the nearest pattern
+> (`leg`, `rail`, `dowel` already were).
 
 **Decisions:** D7 (derived outputs), D14.
 **Files:** `trade-forestry/content/recipes/felling-axe.yaml` (head +

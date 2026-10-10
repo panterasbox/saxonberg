@@ -6,6 +6,6 @@ data:
   register: indefinite
   longDescription: >-
     A flanged iron head the size of a fist, bored through for a haft.
-  mass: 1.5
+  mass: 0.8
   capabilities: []
   _materialPath: /stuff/idea/material/element/iron

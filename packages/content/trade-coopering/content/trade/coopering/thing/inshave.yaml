@@ -8,7 +8,7 @@ data:
   longDescription: >-
     A deeply curved blade between two handles, drawn toward you to hollow
     the inside of a stave.
-  mass: 0.6
+  mass: 0.9
   capabilities: ["shaving"]
   _materialPath: /stuff/idea/material/element/iron
   bill:
