@@ -1127,6 +1127,9 @@ const COMPASS_POINTS = [
   'to the south', 'to the south-west', 'to the west', 'to the north-west',
 ] as const;
 
+/** An observer's eye above the ground they stand on, metres. */
+const SHORE_EYE_M = 2;
+
 const EMPTY_HORIZON: HorizonView = { things: [], traffic: [], atSea: false };
 
 /**
@@ -1144,6 +1147,10 @@ async function horizonAtSea(viewer: Stuff): Promise<HorizonView | null> {
   if (craft === null || craft.getExpansePosition() === null) return null;
   const expanse = MixinApi.isVoyaging(craft) ? await craft.liveExpanse() : null;
   if (expanse === null) return null;
+  // Below decks there is no horizon: the watch is kept where the sky is.
+  const { BiomeApi } = await import('../../../api/biome');
+  const room = roomOf(viewer);
+  if (room === null || !BiomeApi.isSkyExposed(room)) return { things: [], traffic: [], atSea: true };
   const hour = Math.floor(WorldClockApi.getNow().rawValue() / 3600);
   const things: HorizonSighting[] = [];
   const traffic: HorizonTraffic[] = [];
@@ -1185,8 +1192,30 @@ async function horizonAshore(viewer: Stuff): Promise<HorizonView> {
   const myElev = zone ? (await zone.lookupField<number>('elevation')) ?? 0 : 0;
 
   const things: HorizonSighting[] = [];
+  const traffic: HorizonTraffic[] = [];
   const seen = new Set<string>();
+  const { ExpanseApi } = await import('../../../api/expanse');
   for (const zonePath of named) {
+    // ⭐ A height ashore that names a SEA (maritime R11: the headland)
+    // looks out over it from the nearest landing, its eye at the zone's
+    // elevation — curvature binds out there, exactly as aboard.
+    const sea = await ExpanseApi.expanse(zonePath);
+    if (sea !== null) {
+      const from = await sea.shorePositionFor(here);
+      if (from === null) continue;
+      const hour = Math.floor(WorldClockApi.getNow().rawValue() / 3600);
+      const eye = Math.max(0, myElev) + SHORE_EYE_M;
+      for (const c of await sea.sightingsFrom(from, eye, viewer, 'visual', hour)) {
+        if (c.craft) {
+          if (seen.has(c.craft.stuffId)) continue;
+          seen.add(c.craft.stuffId);
+          things.push({ stuff: c.craft, bearingDeg: c.bearingDeg, rangeNm: c.rangeNm });
+        } else {
+          traffic.push({ name: c.name, bearingDeg: c.bearingDeg, rangeNm: c.rangeNm });
+        }
+      }
+      continue;
+    }
     const target = StuffApi.findByTemplatePath<SpatialZone>(zonePath);
     const theirExtent = target?.getExtentM() ?? 0;
     const theirElev = target ? (await target.lookupField<number>('elevation')) ?? 0 : 0;
@@ -1200,5 +1229,15 @@ async function horizonAshore(viewer: Stuff): Promise<HorizonView> {
       things.push({ stuff: s, bearingDeg: null, rangeNm: null });
     }
   }
-  return { things, traffic: [], atSea: false };
+  return { things, traffic, atSea: false };
+}
+
+/** The room `who` stands in — through any vessel (a boat) to the Location. */
+function roomOf(who: Stuff): (Stuff & Container) | null {
+  let cur: Stuff | null = MixinApi.isContainable(who) ? who.getContainer() : null;
+  for (let i = 0; cur !== null && i < 8; i++) {
+    if (cur.isLocation() && MixinApi.isContainer(cur)) return cur;
+    cur = MixinApi.isContainable(cur) ? cur.getContainer() : null;
+  }
+  return null;
 }

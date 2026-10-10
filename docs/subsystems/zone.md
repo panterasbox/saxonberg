@@ -90,7 +90,7 @@ CartesianZone  SphericalZone
   `prototype instanceof Zone`). Subclasses participate
   automatically without editing a central allow-list.
 - **`SpatialZone`** — abstract intermediate: a REGION in space (the
-  region fields below, `address`, `visibleLandmarks`). ⭐ Since the
+  region fields below, `address`, `horizon`). ⭐ Since the
   maritime build it does **not** hold rooms: the location-aware surface
   (`addLocation`, `getLocations`, `removeLocation`, `contains`, the
   `canDestruct` veto) is **`LocationZoneMixin`** (`lib/zone/LocationZone.ts`),
@@ -98,8 +98,14 @@ CartesianZone  SphericalZone
   `Stuff.zone` (the `FromSpatialZone` gate reads the calling zone
   instance, so it passes unchanged). An `Expanse` is a `SpatialZone` that
   composes no Location half — see [expanse.md](./expanse.md).
-  `visibleLandmarks` names Structures whose outside description `look`
-  appends for every room the walk reaches; an authored `[]` stops it.
+  ⭐ `horizon` names the ZONES scanned from here by `look horizon` /
+  `watch horizon` — an authorial partition, inherited down the tree (a
+  room's own `horizon` wins, then the walk); an authored `[]` is *nothing
+  from in here*. Whether anything in a named zone is in VIEW is derived
+  (open sky, height against the zones' size — `getExtentM()`, which a
+  gridded zone answers as cell size × its grid's span). A height is a
+  zone with its own `elevation` (the estuary's headland). See
+  [expanse.md § Perception at range](./expanse.md).
   `CartesianZone` and `SphericalZone` extend this — not `Zone`
   directly. Exits are authored explicitly on rooms; the zone is the
   coordinate grid + its invariants, never an exit source.

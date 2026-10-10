@@ -90,17 +90,26 @@ actor is the craft** — nobody's `cancel` reaches it, logging out does
 not end it, a craft under way with nobody aboard still advances. One
 emission per watch (`expanse.watchGameHours`, default 4):
 
-1. **the water tells you** — every band boundary crossed, in order,
-   described by the medium (`Expanse.readAt` — the sea state), never a
-   position; a manned watch also names the band's hazards;
+1. **the water says what CHANGED** — at every band boundary crossed, in
+   order, the field just before against just after
+   (`Expanse.changesAcross`, a `@hook`: the frame reports the SET — *a
+   current takes her, setting north-east*, *the current lets her go*;
+   `WaterExpanse` adds the sea getting up or going down and the water
+   paling over shallow ground), then the sky over the deck against the
+   last watch's (*Fog closes in.*). Never a position, never authored; a
+   crossing that changes nothing perceptible says nothing;
 2. **arrival** — a course set for a node arrives when the track passes
    within `expanse.arrivalNm`; a bare bearing never does;
-3. **a landmark is a free fix** — a fixed Structure in sight;
-4. **sightings** — craft and seeded traffic, from the highest eye aboard
-   (the lookout seat);
-5. **neglect** — the deck's `Durable` gear wears by
+3. **neglect** — the deck's `Durable` gear wears by
    `gearHardness × roughness × expanse.neglectWearPerWatch`, a quarter of
    that when the watch is manned. Nothing new persists.
+
+⛔⛔ **The beat sees nothing and fixes nothing** (revision 1). Noticing a
+sail is the lookout's job (`watch horizon`, the `keeps-watch` brain) and
+fixing the position is the navigator's (`measure bearing`); a beat that
+announced either made the seat decorative. It names no hazard either:
+seeing the race ahead is somebody's job, and the water says what the race
+does to her once she is in it.
 
 `Persistable.onRestored()` re-arms it after a restart. ⚠ It does NOT await
 the expanse's compile — the compile stands the ships up, so awaiting it
@@ -112,16 +121,19 @@ from inside a ship's restore deadlocks.
 knowing nothing of the set. `course` and `locate` report THIS, labelled
 as a reckoning, with an uncertainty (`expanse.reckoningGrowthNmPerHour`)
 worded by the reader's `navigation` band — never refused. A fix
-collapses it: a landmark in sight, a sounding over ground with a depth of
-its own, arriving somewhere; a sun sight (`measure latitude`) mends the
-latitude only.
+collapses it, and every fix is an ACT: a bearing taken on a fixed thing
+(`measure bearing` — to within `range × tan(bracket)`), a sounding over
+ground with a depth of its own, arriving somewhere; a sun sight
+(`measure latitude`) mends the latitude only. ⛔ Nothing fixes you by
+being seen.
 
 ## What the frame registers
 
 The expanse's compile also stands up every Structure row sited on it: one
 with a **deck** (`deckHeightM`) is a SHIP and is registered as craft from
 the start (so it is alongside its landing before it ever sails); one
-without is a **landmark** — sighted, a free fix, never a sail.
+without is FIXED — a light on a rock: in view from a craft's eye, never a
+sail, and the thing a bearing fixes by.
 
 ## Sight and traffic
 
@@ -164,6 +176,9 @@ wrong chart is wrong in one row and never reconciled. See
 | `launch` / `recover` | `Boat` (inventory — you are in it) | over the side / back aboard |
 | `pilot` | `Pilot` (peers) | buy told claims |
 | `measure depth` / `measure latitude` | reading rows (`sounding` / `sighting`) | the sounding; the noon sight |
+| `measure bearing` | reading row (`bearing`; the hand-bearing compass, or the eye at ±10°) | the bearing of a thing in view; a fix on a fixed one |
+| `look horizon` | `look` (a bare `horizon` names a whole scope) | what is in view beyond the room |
+| `watch horizon` | `watch` (the stream verb's horizon form) | keep a watch: told only what changes |
 | `swim` | `StillWater` (environment, peers) | a small water is a place |
 | `go aboard` / `go ashore` | `AboardExit` / `AshoreExit` | the far side recomputed every traverse |
 
@@ -177,14 +192,40 @@ landing of the node she lies at. Both refuse in words otherwise. Their
 lookups run in `Exit.prepareTraversal()` (awaited by the movement verbs
 before the synchronous gate) — `Exit.bind` is `@Final`.
 
-## The room hook and the landmark
+## Perception at range (revision 1)
 
-`RoomContributorMixin` — a thing that adds a line to its room's prose
-(`Shore`, `Gunwale`, `Vantage`). `SpatialZone.visibleLandmarks` names the
-Structures visible from anywhere in a region; their `outsideDescription`
-is appended by `look`, each its own uncarded scene. An authored `[]`
-stops the walk. ⛔ On land every sight-line is authored; only at sea is a
-range computed.
+⭐⭐ **Pull, never push.** Nothing on the horizon is ever announced to
+anybody: somebody looks (`look horizon`) or keeps a watch (`watch
+horizon`, `HorizonWatch` — an engagement on the watcher's attention that
+says only what came into or dropped out of view). Push comes only from
+emitters that announce themselves (a bell, a gun, a signal).
+
+- **What is in view** is `PerceptionApi.horizonFor(viewer)` (the MQL
+  `horizon` seed reads it; `MqlApi.prepare` refreshes it before a query or
+  a scope names the seed). Afloat: the expanse's contacts from the
+  viewer's own eye (`Structure.sightHeightFor` — the lookout seat is the
+  masthead), nothing below decks. Ashore: the nearest `horizon`
+  declaration (a room's, then the zone walk) names ZONES; a Structure in
+  one is in view from a sky-exposed room when `(heightM + |Δelevation|) ×
+  perception.horizonRatio ≥` the distance the zones' spans imply
+  (`CartesianZone.getExtentM`). A zone naming an EXPANSE is read like a
+  deck: from the nearest landing (`Expanse.shorePositionFor`) at the
+  zone's elevation (`Expanse.sightingsFrom`) — the headland raises the
+  light, the strand below it does not.
+- **A Structure is Visible** (+ Detailed + Perceptible — `Species`'s and
+  `Material`'s precedent): described once, the ordinary way; its inside is
+  its member rooms. `landmark: true` FEATURES it in the summary; a room's
+  `featured` features others. Whether it can be seen is derived.
+- ⛔ **The engine appends nothing to a room's prose.** A room that mentions
+  the tower does so in its own words, for its own reason (the crossing's
+  `tower` detail tells the time).
+- **Weather shortens sight**: visual range × the observer's sky (`fog
+  0.1 · storm 0.3 · snow 0.4 · rain 0.6`, `expanse.visibility.<type>`); a
+  signal is heard and unaffected.
+- **Fog is a weather lean**: `Band.weatherLean` multiplies over the
+  Locality's lean wherever a scope is aboard a craft inside the band
+  (`ExpanseApi.leanAtSync`, warm state only — cold leans nothing). See
+  [weather.md](./weather.md). No band authors prose.
 
 ## Deferred seams
 
@@ -200,6 +241,13 @@ range computed.
 
 ## History
 
+- **Maritime revision 1 — perception at range (2026-10, before merge).**
+  The room hook (`RoomContributorMixin`), the `Vantage` object, every
+  `outsideDescription`, the beat's automatic sightings and fixes and its
+  hazard warning were REMOVED: the engine was doing the lookout's and the
+  navigator's jobs (lens 3b). In their place: the `horizon` scope, `look
+  horizon`, `watch horizon` + the hired lookout's brain, `measure
+  bearing`, the derived crossing delta, and fog as a weather lean.
 - **Maritime build (2026-10).** The frame, the water tier, the voyage,
   the Structure, the two channels, the Greywater and the Hesper. The
   `SpatialZone` split into the region and `LocationZoneMixin`.

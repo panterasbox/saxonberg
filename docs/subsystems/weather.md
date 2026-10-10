@@ -435,6 +435,15 @@ cloudForm }`.
    multiplied into `pickWeighted`; shapes only the procgen branch a pin
    outranks). Provenance `climate-leaned` when a lean applies, else
    `procgen`.
+   ⭐ **The positional lean** (maritime R10): a scope aboard a craft on an
+   expanse also takes the narrowest band's `weatherLean` under the craft,
+   MULTIPLIED over the Locality's per type — so a fog band (the haar,
+   `{ fog: 40 }`) rolls fog with nothing authoring *foggy*. It is read
+   synchronously over warm state (`ExpanseApi.leanAtSync`); `ExpanseApi`
+   is loaded on the first async weather read (a static import closes a
+   cycle), so a sync read before any async one leans by the Locality
+   alone — cold leans nothing. Downstream with no special case: the sky
+   read, the voyage's crossing report, and visual range at sea.
 3. **Biome baseline** — an indoor / no-sky scope with no pin reads the
    static biome baseline (a `clear` sample, provenance `biome`) — weather
    *is* sky dynamics.

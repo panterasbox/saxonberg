@@ -1,19 +1,21 @@
 # The headland — a high shoulder of land over the pool and the sea, and
-# a VANTAGE: an author says what can be seen from here, and is believed.
-class: /platform/location/SingletonCartesianLocation
+# a HEIGHT: a sub-zone of the estuary with an elevation of its own
+# (maritime R11).
+#
+# ⭐⭐ A vantage is a zone, not an object. Its `elevation` is what puts the
+# eye forty metres up, and its `horizon` names what it overlooks — the
+# Greywater (read from the estuary's landing, curvature binding exactly as
+# aboard, so the light on Gannet Rock is raised from up here and not from
+# the strand below) and the terminal's zone across the town. Nobody
+# authors what is visible; the height decides.
+#
+# ⚠ Seeing the ordinary contents of the bay below (the swimmer in the
+# pool) is LATER — navigable-water slate § 3.
+class: /platform/idea/location/CartesianZone
 data:
-  shortDescription: headland
-  keywords: [headland, point, cliff, height]
-  register: definite
-  _address: terminus/city/wharfside/headland
-  _biomePath: /stuff/idea/biome/outdoor/baseline
-  longDescription: |
-    A turf-topped shoulder of rock above the cove, the wind coming straight off the sea and flattening the thrift.
-  coords:
-    x: 4
-    y: 1
-    z: 0
-  exits:
-    south:
-      destination: /world/terminus/estuary/strand
-      media: [ground]
+  name: The Headland
+  cellSize: 20.0
+  elevation: 40
+  horizon:
+    - /stuff/idea/WaterExpanse/greywater
+    - /world/terminus/terminal

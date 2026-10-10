@@ -25,5 +25,5 @@ data:
       destination: /world/terminus/estuary/pool
       media: [water]
     north:
-      destination: /world/terminus/estuary/headland
+      destination: /world/terminus/estuary/headland/brow
       media: [ground]

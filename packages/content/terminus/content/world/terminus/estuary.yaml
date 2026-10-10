@@ -29,3 +29,7 @@ data:
   # its height against the zones' size). Described once, on the tower.
   horizon:
     - /world/terminus/terminal
+    # ⭐ And the sea, read from the estuary's landing at the estuary's
+    # height (sea level): the strand raises the Hesper at the bar and not
+    # the light eighteen miles off — the headland above it does.
+    - /stuff/idea/WaterExpanse/greywater

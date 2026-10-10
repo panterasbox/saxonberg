@@ -69,6 +69,14 @@ Containable → Container → Engaged → Mobile → CommandGiver
 | `taste` | `self` | PerceiverMixin | `requiresTaste` |
 | `sense` | `self` | PerceiverMixin | — (gestalt) |
 
+⭐ **Beyond the room** (the maritime build's revision 1): `look horizon`
+surveys what can be seen from here that is not in the room — the
+`horizon` MQL scope, `PerceptionApi.horizonFor` — featured structures
+first, then *"You can also make out …"*; `look horizon:<it>` reads one
+like any visible thing. `watch horizon` keeps a watch (an engagement told
+only what changes). Nothing beyond the room is ever appended to a room's
+own `look`. See [expanse.md § Perception at range](./expanse.md).
+
 All nine are actor-side only. The five sense verbs are each gated by
 a `requires*` sensorium validator (see
 [senses.md](./senses.md)); `sense` is the gestalt form, filtered to

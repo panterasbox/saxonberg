@@ -335,11 +335,9 @@ when smoked* — `butcher` is afforded only by the cookhouse block, so the
 carcass-load transfer is a unit test; the fishmonger's replacement through
 `appoint` and the sturgeon's *release* deed are unit-tested, not driven.
 
-## The room hook, and fishing from a deck (the maritime build, 2026-10)
+## Fishing from a deck (the maritime build, 2026-10)
 
-`Shore` composes the kernel `RoomContributorMixin`: `look` at the bank
-now names the water beside it in the room's own prose. And `Gunwale
-extends Shore` is the deck's moving shore, citing the sea cell under its
+`Gunwale extends Shore` is the deck's moving shore, citing the sea cell under its
 craft as `"<expanse>@<lat>,<lon>"`; `FisheryRegistry.standingAt` reads
 that cell from the bands' stock and keys `drawn` on it. `fish` reaches it
 through its shipped `reachable:[class.Shore]` default — no change here.

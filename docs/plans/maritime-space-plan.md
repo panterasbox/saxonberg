@@ -1702,6 +1702,33 @@ keyword `horizon` renamed (the seed would shadow it).
     `expanse.visibility.<type>`); a signal is heard, not seen, and is
     unaffected.
   - The haar row: `weatherLean: { fog: 40 }` — nothing authors foggy.
+- **C6 (content, drive, docs).** **B-53:** a zone's `horizon` may name an
+  EXPANSE, and the land scan then reads it like a deck — from the node
+  whose landing shares the longest path with the viewer's room
+  (`Expanse.shorePositionFor`; sharing only the realm's root is not near)
+  at the zone's elevation + a 2 m eye, through `Expanse.sightingsFrom`
+  (the core `contactsFrom` now delegates to). That is what makes R11's
+  headland work: it names the Greywater, and its 40 m raises the light
+  eighteen miles off. **B-54:** the estuary zone names the Greywater too,
+  so the drive's step 23 is a real comparison — the strand raises the
+  Hesper at the bar and not the light; the headland above it does.
+  **B-55:** at sea the horizon also requires a sky-exposed room (through
+  any vessel to its Location), and the hold gains the indoor biome — so
+  somebody below decks sees nothing (step 19's second observer).
+  **B-56:** the lookout Cast (Tam Rook, a placeholder) is `archetype:
+  hand` and her brain rides `trigger: candidate` (`lint:dossiers`,
+  `lint:idle-cadence` — a brain that declares urgency rides the one beat);
+  she is UNSEATED until appointed, and `startsShiftOnHire` puts her on
+  watch at `appoint`. **B-57:** the flats' `horizon` detail keyword is
+  `skyline` (the seed would shadow it). The headland is the zone at
+  `estuary/headland`, its one room `estuary/headland/brow`.
+  - The drive is rewritten to the revised script: 23–24 (ashore, with
+    `horizonUntil` waiting out weather between looks), 9/11/13/14/26 (a
+    passage in ten-minute legs so a watch falls INSIDE the two-and-a-half
+    -mile haar; the sextant is tried when the fog closes in), 19 (the Rock,
+    the hold), 20 (a watch from the deck misses the light; an appointed
+    lookout calls it — at anchor, so weather can be waited out) and 25
+    (close the coast, raise the light, `measure bearing`).
 
 ## Build log
 

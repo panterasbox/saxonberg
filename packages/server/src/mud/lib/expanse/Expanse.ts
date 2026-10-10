@@ -362,7 +362,23 @@ export abstract class Expanse extends SingletonMixin(SpatialZone) {
   ): Promise<Contact[]> {
     const here = from.getExpansePosition();
     if (here === null) return [];
-    const eye = from.sightHeightFor(observer);
+    return this.sightingsFrom(here, from.sightHeightFor(observer), observer, channel, hourIndex, from);
+  }
+
+  /**
+   * ⭐ What can be perceived from a POSITION at an eye height — the core of
+   * {@link contactsFrom}, and what a height ashore reads when its horizon
+   * names this sea (maritime R11: the headland). `exclude` is the
+   * observer's own craft.
+   */
+  public async sightingsFrom(
+    here: GeoPosition,
+    eye: number,
+    observer: Stuff,
+    channel: SightingChannel,
+    hourIndex: number,
+    exclude: Stuff | null = null,
+  ): Promise<Contact[]> {
     const signalNm = numSetting('expanse.signalRangeNm', 12);
     // ⭐ The weather shortens sight (maritime R10): fog to a tenth, rain
     // to a little over half. A signal is a gun or a lamp — unaffected.
@@ -373,7 +389,7 @@ export abstract class Expanse extends SingletonMixin(SpatialZone) {
     const out: Contact[] = [];
     const seen = new Set<string>();
     const consider = (c: Stuff & Positioned, fixed: boolean): void => {
-      if (c.stuffId === from.stuffId || seen.has(c.stuffId)) return;
+      if (c.stuffId === exclude?.stuffId || seen.has(c.stuffId)) return;
       const at = c.getExpansePosition();
       if (at === null) return;
       const d = here.distanceNm(at);
@@ -406,6 +422,33 @@ export abstract class Expanse extends SingletonMixin(SpatialZone) {
       });
     }
     return out.sort((a, b) => a.rangeNm - b.rangeNm);
+  }
+
+  /**
+   * Where a place ashore looks out over this sea from: the position of
+   * the node whose landing shares the longest path with `placePath` (the
+   * estuary's mouth for a height above the estuary), or `null` when no
+   * node lands anywhere near it.
+   */
+  public async shorePositionFor(placePath: string): Promise<GeoPosition | null> {
+    const shared = (a: string, b: string): number => {
+      const x = a.split('/');
+      const y = b.split('/');
+      let n = 0;
+      while (n < x.length && n < y.length && x[n] === y[n]) n++;
+      return n;
+    };
+    let best: { n: number; at: GeoPosition } | null = null;
+    for (const node of await this.nodes()) {
+      const dest = node.getDestination();
+      const at = node.getExpansePosition();
+      if (!dest || !at) continue;
+      const n = shared(dest, placePath);
+      // Sharing only the realm's root is not "near".
+      if (n < 4) continue;
+      if (best === null || n > best.n) best = { n, at };
+    }
+    return best?.at ?? null;
   }
 
   /* ───────────────────────── internals ───────────────────────── */

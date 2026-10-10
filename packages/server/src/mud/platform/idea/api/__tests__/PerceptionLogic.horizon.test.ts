@@ -134,6 +134,27 @@ describe('the horizon ashore', () => {
   });
 });
 
+describe('a height ashore that names a sea (R11)', () => {
+  it('⭐ looks out over it from the nearest landing, its eye at the zone\'s elevation', async () => {
+    const head = zoneAt('/t/head', [[0, 0]], 20);
+    head.setElevation(40);
+    head.setHorizon(['/t/sea']);
+    const light = structureAt('/t/rock/structure', '/t/rock', 30, ['light']);
+    const sightingsFrom = vi.fn().mockResolvedValue([
+      { craft: light, name: 'the light', bearingDeg: 50, rangeNm: 18, channel: 'visual', fixed: true },
+    ]);
+    const shorePositionFor = vi.fn().mockResolvedValue({ latDeg: 42, lonDeg: -8.4 });
+    vi.spyOn(ExpanseApi, 'expanse').mockImplementation(async (p: string) =>
+      (p === '/t/sea' ? { shorePositionFor, sightingsFrom } : null) as never,
+    );
+    const view = await PerceptionApi.horizonFor(viewerIn('/t/head/room-0'));
+    expect(names(view)).toEqual(['/t/rock/structure']);
+    expect(view.things[0]!.rangeNm).toBe(18);
+    expect(shorePositionFor).toHaveBeenCalledWith('/t/head/room-0');
+    expect(sightingsFrom.mock.calls[0]![1]).toBe(42); // 40 m of headland + a 2 m eye
+  });
+});
+
 describe('the horizon afloat', () => {
   it('reports the expanse\'s contacts from the viewer\'s eye — craft as things, traffic in words', async () => {
     const other = structureAt('/t/sea/brig', '/t/brig', 18, ['brig']);

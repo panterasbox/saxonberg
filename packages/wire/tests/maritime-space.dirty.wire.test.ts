@@ -20,6 +20,11 @@
  * clock route; the voyage's position is DERIVED, so a watch after a jump
  * reports everything the craft crossed in it.
  *
+ * ⭐ Revision 1 (perception at range): nothing on the horizon is ever
+ * announced. `look horizon` and `watch horizon` are acts; the hired
+ * lookout CALLS what she sees; a fix is `measure bearing`. The crossing
+ * report is a derived delta, and the haar's fog is the weather field's.
+ *
  * ⚠⚠ `.dirty.`: it moves the Hesper (a persisted position), reads charts
  * into the founder's map, pays the pilot, appoints a lookout, draws a sea
  * cell, launches the dinghy. None of it is produced again.
@@ -52,11 +57,14 @@ declareFile({
 const MOUTH = '/world/terminus/estuary/estuary-mouth';
 const BANK_HALL = '/world/terminus/counting-houses/banking-hall';
 const BANK = '/world/terminus/wharfside/bank';
-const HEADLAND = '/world/terminus/estuary/headland';
+const HOLD = '/world/terminus/hesper/hold';
 const AVENUE = '/world/terminus/university-avenue/location/crossing';
 const MILL = '/world/terminus/wharfside/mill/location/floor';
 const OUTFIT = '/world/terminus/hesper/idea/outfit';
-const TOWER = /clock tower shows its face/;
+/** The tower as `look horizon` features it, and its own description. */
+const FEATURED_TOWER = /You can see the terminal clock tower/;
+const TOWER_SAYS = /square brick shaft/;
+const LIGHT = /light on Gannet Rock/;
 
 /** A watch, shortened: 0.02 game hours = 72 game seconds = 6 real at 12×. */
 const WATCH_MS = 7_000;
@@ -84,6 +92,21 @@ async function sail(s: Session, hours: string): Promise<string> {
   await s.drainProse();
   await advanceWorldClock(hours);
   return squash(await s.listen(WATCH_MS));
+}
+
+/**
+ * `look horizon` until `want` is in view, waiting out the weather between
+ * looks (fog and rain shorten sight). The craft must be at anchor or
+ * ashore — waiting moves nothing else.
+ */
+async function horizonUntil(s: Session, want: RegExp, tries = 8): Promise<string> {
+  let said = '';
+  for (let i = 0; i < tries; i++) {
+    said = await look(s, 'look horizon');
+    if (want.test(said)) return said;
+    await advanceWorldClock('3 hours');
+  }
+  return said;
 }
 
 /** Advance to daylight — a dark world reads every room as pitch black. */
@@ -165,27 +188,35 @@ suite('1–3 · the shore, the wade, the small water', () => {
   });
 });
 
-suite('23 · 24 · 26 · the headland, the landmark', () => {
-  it('23 · from the headland you see the pool and the sea, each described once on itself', async () => {
+suite('23 · 24 · the horizon ashore', () => {
+  it('23 · the strand raises the Hesper and not the light; the headland above it raises the light', async () => {
+    const strand = await horizonUntil(me, /Hesper/);
+    expect(strand).toMatch(/Hesper/);
+    expect(strand).not.toMatch(LIGHT);
     expectOk(await me.cmd('north'));
-    const said = await look(me);
-    expect(said).toMatch(/pool lies green and still/);
-    expect(said).toMatch(/Greywater runs out to the edge of the sky/);
-    expect(said).toMatch(/white tower on a black rock/);
+    const head = await horizonUntil(me, LIGHT);
+    expect(head).toMatch(/You can see the light on Gannet Rock, to the north-east, some \d+ miles off/);
+    // ⛔ The room's own look repeats nothing from outside it.
+    expect(await look(me)).not.toMatch(LIGHT);
+    const drill = await look(me, 'look horizon:light');
+    expect(drill).toMatch(/white tower on a black rock/);
+    expectOk(await me.cmd('south'));
   });
 
-  it('24 · 26 · the tower is read from three zones, described once; an interior sees nothing', async () => {
+  it('24 · the tower is featured from three zones and read once; an interior sees nothing', async () => {
     for (const where of [AVENUE, BANK, MOUTH]) {
       const s = await Session.open(LANDSMAN, { startLocation: where });
       try {
-        expect(await look(s), where).toMatch(TOWER);
+        expect(await horizonUntil(s, FEATURED_TOWER), where).toMatch(FEATURED_TOWER);
+        expect(await look(s, 'look horizon:tower'), where).toMatch(TOWER_SAYS);
+        expect(await look(s), where).not.toMatch(TOWER_SAYS);
       } finally {
         s.close();
       }
     }
     const inside = await Session.open(LANDSMAN, { startLocation: MILL });
     try {
-      expect(await look(inside)).not.toMatch(TOWER);
+      expect(await look(inside, 'look horizon')).toMatch(/Nothing beyond where you stand/);
     } finally {
       inside.close();
     }
@@ -242,35 +273,41 @@ suite('17 · 18 · charts', () => {
   });
 });
 
-suite('9 · 10 · 11 · 13 · 14 · the bands — the water tells you', () => {
+suite('9 · 11 · 13 · 14 · 26 · the bands — the water says what changed', () => {
   let passage = '';
-  it('9 · 13 · laying a course for the Rock crosses into the Westerlies, the haar and the race, reported by the water', async () => {
+  let latitudeInFog = '';
+  it('9 · laying a course for the Rock: a current takes her as she enters the Westerlies', async () => {
     const go = await me.cmd('course gannet');
     expectOk(go);
     expectNote(go, 'engagement-started');
-    passage = await sail(me, '1 hour');
-    passage += ' ' + (await sail(me, '1 hour'));
-    expect(passage).toMatch(/The water changes\./);
+    // Short legs, so a watch falls INSIDE the haar (two and a half miles
+    // of it) — a long jump would carry her straight through.
+    for (let i = 0; i < 30 && !/You raise Gannet Rock/.test(passage); i++) {
+      const leg = await sail(me, '10 minutes');
+      passage += ' ' + leg;
+      if (/Fog closes in/.test(leg) && !latitudeInFog) {
+        expectOk(await me.cmd('get sextant'));
+        latitudeInFog = squash(await (await me.cmd('measure latitude')).said());
+      }
+    }
+    expect(passage).toMatch(/A current takes her, setting north-east\./);
   });
 
-  it('13 · the belt reports like any band, and the narrow race laid over it wins the weather', async () => {
-    passage += ' ' + (await sail(me, '30 minutes'));
-    expect(passage).toMatch(/fog|haar/i);
-    expect(passage).toMatch(/broken water/);
-    expect(passage).toMatch(/running from the west/);
+  it('26 · into the haar: fog closes in, and the sextant is refused by the fog', () => {
+    expect(passage).toMatch(/Fog closes in\./);
+    expect(latitudeInFog).toMatch(/The sky is fog — there is no sun/);
   });
 
-  it('14 · over the shoal ledge the sea is short and steep, with nothing authoring rough', async () => {
-    expect(passage).toMatch(/short and steep/);
+  it('13 · 14 · over the race the sea gets up, short and steep, with nothing authoring rough', () => {
+    expect(passage).toMatch(/The sea gets up — [a-z ]+, short and steep\./);
   });
 
-  it('11 · the reckoning has drifted from the truth — and a landmark fixes it', async () => {
-    expect(passage).toMatch(/in sight, bearing \d{3}; you fix your position by it/);
+  it('11 · ⛔ nothing fixes her and nothing is sighted by being seen', () => {
+    expect(passage).not.toMatch(/fix your position|A sail:/);
   });
 
-  it('she comes up to Gannet Rock', async () => {
-    const said = (passage + ' ' + (await sail(me, '2 hours')));
-    expect(said).toMatch(/You raise Gannet Rock/);
+  it('she comes up to Gannet Rock', () => {
+    expect(passage).toMatch(/You raise Gannet Rock/);
   });
 });
 
@@ -283,7 +320,7 @@ suite('6 · 7 · 8 · finding out where you are', () => {
   });
 
   it('7 · `measure latitude` gives latitude and nothing else — and the sky denies it in its own words', async () => {
-    expectOk(await me.cmd('get sextant'));
+    await me.cmd('get sextant');
     let got = '';
     let denied = '';
     for (let i = 0; i < 16 && (!got || !denied); i++) {
@@ -305,21 +342,59 @@ suite('6 · 7 · 8 · finding out where you are', () => {
 });
 
 suite('19 · 20 · 25 · sight at sea', () => {
-  it('19 · hail what is in sight', async () => {
+  it('19 · `look horizon` at the Rock shows the light; `look horizon:light` reads it; `hail` it', async () => {
+    const said = await look(me, 'look horizon');
+    expect(said).toMatch(/You can see the light on Gannet Rock/);
+    expect(await look(me, 'look horizon:light')).toMatch(/white tower on a black rock/);
     const r = await me.cmd('hail light');
     expectOk(r);
     expect(squash(await r.said())).toMatch(/You hail the light on Gannet Rock/);
   });
 
-  it('20 · 25 · appoint a lookout: the light is raised from further off, with nothing about her changed', async () => {
-    // Out to open sea, past the deck's horizon for the light.
+  it('19 · ⭐ somebody below decks sees nothing of it', async () => {
+    const s = await Session.open(LANDSMAN, { startLocation: HOLD });
+    try {
+      expect(await look(s, 'look horizon')).toMatch(/Nothing beyond where you stand/);
+    } finally {
+      s.close();
+    }
+  });
+
+  it('20 · ⭐ a watch from the deck misses the light; an appointed lookout calls it', async () => {
+    // Out past the deck's horizon for the light, inside the masthead's,
+    // and at anchor so the weather can be waited out without moving.
     expectOk(await me.cmd('course open sea'));
     await sail(me, '3 hours');
-    expectOk(await me.cmd(`appoint me to lookout at ${OUTFIT}`));
-    expectOk(await me.cmd('clock on'));
-    expectOk(await me.cmd('course 200'));
-    const said = await sail(me, '5 minutes');
-    expect(said).toMatch(/light on Gannet Rock is in sight/);
+    expectOk(await me.cmd('anchor'));
+    const w = await me.cmd('watch horizon');
+    expectOk(w);
+    expect(squash(await w.said())).toMatch(/You settle to watching the horizon/);
+    // ⛔ Nobody in the seat: nobody calls anything.
+    const quiet = squash(await me.listen(35_000));
+    expect(quiet).not.toMatch(LIGHT);
+    expectOk(await me.cmd(`appoint tam to lookout at ${OUTFIT}`));
+    let called = '';
+    for (let i = 0; i < 6 && !LIGHT.test(called); i++) {
+      called = squash(await me.listen(40_000));
+      if (!LIGHT.test(called)) await advanceWorldClock('3 hours');
+    }
+    expect(called).toMatch(/Tam Rook[^]*light on Gannet Rock[^]*!/);
+    expectOk(await me.cmd('watch off'));
+  });
+
+  it('25 · close the coast, raise the light, and `measure bearing` on it to fix your position', async () => {
+    expectOk(await me.cmd('get compass'));
+    expectOk(await me.cmd('course gannet'));
+    let seen = '';
+    for (let i = 0; i < 24 && !LIGHT.test(seen); i++) {
+      await sail(me, '10 minutes');
+      seen = await look(me, 'look horizon');
+    }
+    expect(seen).toMatch(LIGHT);
+    expectOk(await me.cmd('anchor'));
+    const r = await me.cmd('measure bearing light');
+    expectOk(r);
+    expect(squash(await r.said())).toMatch(/The light on Gannet Rock bears \d{3}° ± [\d.]+°\. .*fixes you to within/);
   });
 });
 

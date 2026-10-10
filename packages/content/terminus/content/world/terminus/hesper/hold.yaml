@@ -6,6 +6,9 @@ data:
   shortDescription: hold
   keywords: [hold, below]
   register: definite
+  # ⭐ Below decks: no sky, so nothing on the horizon is seen from here
+  # (maritime R4) — the watch is kept on deck.
+  _biomePath: /stuff/idea/biome/indoor/baseline
   longDescription: |
     Dim and close under the deck beams, smelling of bilge and tar. A chart locker is built against the bulkhead, its door hooked open, and a lantern hangs from a beam.
   coords:

@@ -18,6 +18,9 @@ data:
       wageRate: 3
       headcount: 1
   rosterSlots: []
+  # ⭐ A hire starts work at once: appointing somebody lookout puts them
+  # on watch, with no rota to wait for (maritime R7).
+  startsShiftOnHire: true
   banksAt: goodkin
   operatingLocations:
     - /world/terminus/hesper/deck
