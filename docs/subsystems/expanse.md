@@ -158,10 +158,10 @@ wrong chart is wrong in one row and never reconciled. See
 
 | verb | afforded by | does |
 |---|---|---|
-| `course` | `Helm` (peers), `Boat` (environment) | reads the plot; lays a course by bearing or node |
+| `course` | `Helm` (peers), `Boat` (inventory — granted inward to whoever sits in it) | reads the plot; lays a course by bearing or node |
 | `anchor` | same | stops where she is |
 | `hail` | same | signals a contact in signal range |
-| `launch` / `recover` | `Boat` (environment — you are in it) | over the side / back aboard |
+| `launch` / `recover` | `Boat` (inventory — you are in it) | over the side / back aboard |
 | `pilot` | `Pilot` (peers) | buy told claims |
 | `measure depth` / `measure latitude` | reading rows (`sounding` / `sighting`) | the sounding; the noon sight |
 | `swim` | `StillWater` (environment, peers) | a small water is a place |

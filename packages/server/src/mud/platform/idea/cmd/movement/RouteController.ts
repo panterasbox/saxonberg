@@ -177,12 +177,12 @@ export default class RouteController extends CommandController<RouteModel> {
         'nowhere',
       );
     }
-    const standingGroup = await RouteController.standingGroup(context);
-    const pool = RouteController.candidates(asked, known, standingGroup);
-    if (pool.length === 0) {
-      // ⭐ A place on open water is not on any road (maritime D18). Only
-      // for a craft's own expanse — the engine lends no knowledge of a
-      // sea the asker is not on.
+    // ⭐ A place on open water is not on any road (maritime D18) — asked
+    // BEFORE the claims, because a chart makes a sea node a place you
+    // know, and planning to it would end in "you do not know the way".
+    // Only for a craft's own expanse: the engine lends no knowledge of a
+    // sea the asker is not on.
+    {
       const sea = await RouteController.seaNodeNamed(giver, asked);
       if (sea !== null) {
         return this.declineWith(
@@ -191,6 +191,10 @@ export default class RouteController extends CommandController<RouteModel> {
           'open-water',
         );
       }
+    }
+    const standingGroup = await RouteController.standingGroup(context);
+    const pool = RouteController.candidates(asked, known, standingGroup);
+    if (pool.length === 0) {
       // ⭐⭐ The honest refusal, and the SAME one for a place that does
       // not exist and a place you have simply never been. The realm may
       // well have a bank; this player has not found it, and improving

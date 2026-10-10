@@ -36,6 +36,7 @@ import {
   expectNote,
   advanceWorldClock,
 } from '../src/harness';
+import type { CommandResult } from '../src/harness';
 
 export const DIRTY_REASON =
   'moves the Hesper (a persisted position) and her dinghy, reads two charts ' +
@@ -67,7 +68,13 @@ const LANDSMAN = uniqueHandle('landsman');
 /** The pilot's customer, who carries the coin. */
 const MATE = uniqueHandle('mate');
 
-async function look(s: Session, what = 'look'): Promise<string> {
+/**
+ * ⚠ `look here`, not a bare `look`: a bare look targets `$focus`, and
+ * after handling things in one room and leaving it, the focus can still
+ * name that room's things — the drive met a "which target?" prompt
+ * between a chart in hand and the hold's lantern (recorded in the plan).
+ */
+async function look(s: Session, what = 'look here'): Promise<string> {
   await s.drainProse();
   return squash(await s.prose(what));
 }
@@ -89,6 +96,21 @@ async function daylight(s: Session): Promise<void> {
     seen.push(`${Math.round(t.after)}: ${said.slice(0, 60)}`);
   }
   throw new Error(`no daylight in a day of trying:\n${seen.join('\n')}`);
+}
+
+/**
+ * Read a chart on deck, waiting for light good enough to read ink by —
+ * the `bright` band, which outdoors is a clear sky near noon.
+ */
+async function readInDaylight(s: Session, what: string): Promise<CommandResult> {
+  let r = await s.cmd(`read ${what}`);
+  for (let i = 0; i < 36 && r.status !== 'ok'; i++) {
+    const why = r.notes.find((n) => (n as { reason?: string }).reason === 'too-dark-to-read');
+    if (!why) break;
+    await advanceWorldClock('1 hour');
+    r = await s.cmd(`read ${what}`);
+  }
+  return r;
 }
 
 async function aboardFrom(s: Session): Promise<void> {
@@ -205,8 +227,7 @@ suite('17 · 18 · charts', () => {
     expectOk(await me.cmd('get survey'));
     expectOk(await me.cmd('get old'));
     expectOk(await me.cmd('up'));
-    await daylight(me);
-    const r = await me.cmd('read survey');
+    const r = await readInDaylight(me, 'survey');
     expectOk(r);
     expect(squash(await r.said())).toMatch(/map/);
     const map = squash(await me.prose('map greywater'));
@@ -214,7 +235,7 @@ suite('17 · 18 · charts', () => {
   });
 
   it('18 · a wrong chart appends, and the right claim stays beside it', async () => {
-    expectOk(await me.cmd('read old'));
+    expectOk(await readInDaylight(me, 'old'));
     const map = squash(await me.prose('map greywater'));
     expect(map).toMatch(/the Westerlies — ten miles south of the bar \(charted\)/);
     expect(map).toMatch(/the Westerlies — from the roads to Gannet Rock \(charted\)/);
@@ -323,7 +344,9 @@ suite('12 · 15 · anchored at sea; the boat', () => {
     expectOk(r);
     expect(squash(await me.prose('locate me'))).toMatch(/at sea, by reckoning/);
     expectOk(await me.cmd('recover'));
-    expectOk(await me.cmd('out'));
+    // ⚠ `go out`: a bare `out` answered unknown-verb here (recorded).
+    expectOk(await me.cmd('go out'));
+    expect(await look(me)).toMatch(/Hesper's deck/i);
   });
 });
 

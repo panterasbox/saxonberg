@@ -1591,7 +1591,7 @@ marked **B-n**.)*
 - ✅ **B2**. `Boat` = `Singleton(Persistable(Voyaging(Engaged(Positioned(
   Mobile(ExitableVessel))))))` in the transport pack. **B-30:** `launch`
   and `recover` are TRANSPORT-pack verbs afforded from INSIDE the boat
-  (`environment`) — a kernel Helm naming a pack view would be the wrong
+  (`inventory` — a container grants inward; `environment` flows OUT from a held item to its holder, which the drive found) — a kernel Helm naming a pack view would be the wrong
   direction, and you must be in the boat to go over the side with it.
   The boat's `environment` also names the kernel `course`/`anchor`/`hail`
   views (the ratified pack-static-names-kernel-view direction), so a boat
@@ -1641,4 +1641,39 @@ marked **B-n**.)*
 
 ## Drive record
 
-*(appended at build time, not at plan time)*
+`packages/wire/tests/maritime-space.dirty.wire.test.ts`, run cold
+(`WIRE_BOOT=1 WIRE_PORT=2014`, freshly reset database, world up in
+299 s): **24 / 24 checkpoints pass** (run 16). Sixteen runs to get there;
+what they found, every item fixed unless marked:
+
+| # | found by driving | fix |
+|---|---|---|
+| 1 | `course` was `unknown-verb` with the tiller in the room — the Helm afforded on `environment`, which in the code flows OUT from a held item to its holder | `Helm` affords on `peers` |
+| 2 | `swim` refused "There's no water to swim in." beside the water — `StillWater` authored no `axes`, and the default enables no direction | `axes: ['*']` on the row |
+| 3 | ⚠ PRE-EXISTING: the estuary was too dark to describe at noon — its rooms authored 600–700 lumens of ambient, which REPLACES the sky's noon flux, and over a 20 m cell that is under two lux | authored ambient removed; the rooms follow the sky |
+| 4 | reading ink needs the `bright` band (60 lux); the hold's lantern lights it to see by, not to read by | charts are carried up and read on deck in good light (the drive waits for it) |
+| 5 | a whole-world fog belt never won anywhere a corridor ran through it (the narrowest owns the field) — the haar was never reported | the haar is bounded in longitude; the rule is documented in expanse.md |
+| 6 | a restored lighthouse registered itself as craft and was reported as "a sail" | only a craft under way registers on restore; the compile registers ships by deck; landmarks are considered first; `aboard` requires a deck |
+| 7 | the two charts shared a keyword | the true one is the *survey* chart |
+| 8 | the watch's narration could not be asserted — `cmd` clears the prose buffer | `Session.listen(ms)` in the wire harness |
+| 9 | `route` to a CHARTED sea node planned over the claim and said "you do not know the way" | the sea check runs before the claim lookup |
+| 10 | `launch` was `unknown-verb` from inside the dinghy — a container grants verbs inward on `inventory`, not `environment` | `Boat` affords on `inventory`; expanse.md corrected |
+| 11 | ⚠ NOT FIXED (perception's): a bare `look` after handling things in a room you have since left raised "which target?" between a chart in hand and that room's lantern — `$focus` stays on the room's things | the drive uses `look here`; → the focus owner |
+| 12 | ⚠ NOT FIXED (boundary's): a bare `out` answered `unknown-verb` inside a recovered dinghy, where `go out` works — the coach's own docs say "alighting is `out`" | the drive uses `go out`; → boundary / the vessel exits |
+| 13 | a drive harness concern: the realm's till is empty, so a pilot's fee in coin needs an embodied character (the Arrival Note's twenty) | the mate is embodied |
+
+| 14 | the stated bracket read "within about 1 miles" | `Plot` says "a mile" |
+| 15 | ⚠ NOT FIXED (cosmetic, locate's): `locate me` aboard names the ship's zone "something" in its chain — the zone's presentation | recorded |
+
+**Step 22, by hand (2026-10-10), on the world the drive left:** logged in
+with no start location — the founder came back ON THE DECK (where they
+logged off). `course 180` → *Your course: 180 at 6 knots … 41°55.3'N
+7°55.2'W*. Server stopped (graceful) and restarted. Logged back in: still
+on the deck, *Your course: 180 at 6 knots … 41°53.8'N 7°55.2'W* — the
+course survived the restart and the craft had moved south while nobody
+was logged in. ✅
+
+**Covered elsewhere, honestly:** step 8's *different bracket at a
+different band* is `LatitudeReading.test.ts` (no wire session can hold a
+navigation band it did not earn); step 21's *same traffic, same place,
+same hour* is `Expanse.test.ts`; step 22 is below, by hand.

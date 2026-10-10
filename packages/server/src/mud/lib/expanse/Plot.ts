@@ -26,11 +26,16 @@ export interface PlotRecord {
   nm: number;
 }
 
+/** `1 mile`, `3 miles`. */
+function miles(n: number): string {
+  return n === 1 ? 'a mile' : `${n} miles`;
+}
+
 /** A bracket in words, by competence band — never a refusal. */
 const BRACKET_WORDS: Record<string, (nm: number) => string> = {
   untrained: (nm) => (nm < 2 ? 'close to here, you think' : 'somewhere hereabouts — a guess'),
-  novice: (nm) => `within ${Math.max(1, Math.round(nm / 5) * 5)} miles or so`,
-  competent: (nm) => `within about ${Math.max(1, Math.round(nm))} miles`,
+  novice: (nm) => `within ${miles(Math.max(1, Math.round(nm / 5) * 5))} or so`,
+  competent: (nm) => `within about ${miles(Math.max(1, Math.round(nm)))}`,
   proficient: (nm) => `within ${nm.toFixed(1)} miles`,
   expert: (nm) => `within ${nm.toFixed(1)} miles, and you know which way the error runs`,
 };

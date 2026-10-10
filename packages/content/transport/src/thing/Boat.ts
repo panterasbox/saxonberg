@@ -64,7 +64,7 @@ const FROM_INSIDE = [
 
 export default class Boat extends BoatBase {
   static commandContributions: CommandContributions = {
-    environment: FROM_INSIDE,
+    inventory: FROM_INSIDE,
   };
 
   static fieldMeta: FieldMeta = {
