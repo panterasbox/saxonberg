@@ -15,7 +15,9 @@
 class: /trade/carpentry/thing/Sawmill
 data:
   shortDescription: sawmill frame
-  keywords: [sawmill, frame, saw, carriage, blades, mill]
+  # ⚠ Not `frame`: a chair frame and a hive frame are parts a player
+  # names to `fit`, and the sawmill must not answer for them.
+  keywords: [sawmill, "sawmill frame", saw, carriage, blades, mill]
   register: definite
   longDescription: |
     A great upright frame of oak beams with a set of long blades strung in it, driven up and down by a crank off the wheel shaft below the floor. A log on the carriage walks into the blades an inch a stroke, and the whole building shakes with it.
@@ -25,3 +27,9 @@ data:
   throughputKgPerHour: 0
   kgPerHourPerKw: 20
   maxThroughputKgPerHour: 300
+  # ⭐ The drying loft over the saw floor (assembly D15, AC 25): a
+  # compartment with its own air, minted with the sawmill and standing
+  # beside it. Boards stacked IN it season at the loft's warm, dry,
+  # draughty air — and rain cannot reach them.
+  chambers:
+    - { key: loft, template: /trade/carpentry/thing/drying-loft }

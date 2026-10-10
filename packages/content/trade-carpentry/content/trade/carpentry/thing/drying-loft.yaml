@@ -1,0 +1,24 @@
+# The drying loft — the room over a sawmill's floor where boards are
+# stacked in stick to season (assembly D15, AC 25).
+#
+# ⭐ A COMPARTMENT, not a room: a Chamber (`/platform/thing/Chamber`) with
+# its own air, minted by the sawmill that declares it and standing beside
+# it. A board `put … in loft` is placed in its air rather than the
+# yard's: warm off the saw floor, dry, and with a draught through the
+# louvres — the conditions a timber yard pays for. Its biome is indoor,
+# so the rain that sets back a stack in the open never reaches it.
+#
+# The loft charges nothing (`admission` is the maritime lane's field, not
+# yet a reader's) and a person cannot step into it: no shipped verb places
+# a person in a compartment (recorded — AC 25 is the goods half).
+class: /platform/thing/Chamber
+data:
+  shortDescription: drying loft
+  keywords: [loft, "drying loft", drying-loft]
+  register: definite
+  longDescription: |
+    A long low loft over the saw floor, louvred at both gable ends, its boards laid in stick on bearers with a hand's gap between each so the air can move. It is warm up here off the frame below and smells of sawdust and resin.
+  _biomePath: /stuff/idea/biome/indoor/baseline
+  _temperature: 297
+  _humidity: 40
+  _wind: 1.5
