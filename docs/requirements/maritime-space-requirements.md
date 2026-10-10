@@ -358,6 +358,7 @@ does nothing.
 | ⚠ **the underwater build** | ⭐ **The axis is ours and the second value is theirs.** This build declares that a position has a depth and only ever reads zero; they add everything that makes a depth mean something. Nothing they need gets retrofitted |
 | ⚠⚠ **`standing-instructions-slate`** | **An event-driven passage that degrades unattended depends on a question nobody has opened.** This build ships the neglect model and does **not** decide whether a crew may act on standing orders — the taps build decided exactly that inside a trade build and it was cut before the MR merged |
 | ⚠ **the shipped claim store** | this build is the **first writer of the `bought` channel**. The vocabulary was put in the shape from the start precisely so this would need no retrofit; confirm that holds |
+| ⚠ **the word "structure"** | ⭐ the drilling build shipped a `structure` **reading channel** — *"the shape of the rock under this ground"*. Unrelated to the building coordinator this build ships, and the two must not be conflated in prose: `measure structure` is geology |
 | ⭐ **four documents cite the vessel decision by section letter** | do not renumber it |
 
 ---
