@@ -1357,7 +1357,16 @@ function reconcileBulkPhase(v: Stuff & Bulkable & Thermal): void {
     v.setBulkMaterial(aff, null);
     v.setBulkPayload(aff, null);
     if (MixinApi.isMould(v)) {
-      void v.castInto({ material: mat, massKg, payload: setPayload });
+      // ⭐ A metal is the same material molten or set, so the pool stamps
+      // the mould's shape row (one ingot row for copper, tin and iron); a
+      // `liquid`-tagged pool (water) has its own solid row (ice), which the
+      // shape row authors and keeps.
+      void v.castInto({
+        material: mat,
+        massKg,
+        payload: setPayload,
+        stampMaterial: !mat.hasTag('liquid'),
+      });
       return;
     }
     const scope = (v as unknown as { getContainer(): Stuff | null })
@@ -1395,19 +1404,31 @@ function reconcileBulkPhase(v: Stuff & Bulkable & Thermal): void {
 }
 
 /**
- * ⭐ **A liquid freezes because it is COLD** — the mirror of the melt
+ * ⭐ **A molten pool sets because it has cooled** — the mirror of the melt
  * driver above (a solid melts because it is warm). A bulk holder whose
  * pool stands at or below its melting point runs the phase on the same
- * lazy read, so a crucible left to cool sets, and a pail left out in a
- * frost freezes, without a fire or a cold store having to drive it.
- * ⚠ Freeze side only: the boil edge keeps its own drivers (a lit burner),
- * so nothing on a merely warm read flashes to steam.
+ * lazy read, so molten copper in a crucible or a mould sets as it cools
+ * without a fire or a cold store having to drive it (dairy D19).
+ *
+ * ⚠⚠ **Only matter the world does NOT handle as a liquid** — and the
+ * reason is measured. Tallow (320 K), pitch, paraffin and asphalt sit in
+ * crocks and barrels as `liquid`-tagged bulk at room temperature, below
+ * their own melting points: the shipped model treats a soft solid in a
+ * crock as pourable stock. Driving their phase on every read would set a
+ * tallow crock into a lump on the floor beside it and break the chandlery.
+ * So a `liquid`-tagged pool keeps exactly the drivers it always had (a
+ * cold store, a fire, a spell — water freezes in a freezer, not on a
+ * glance), and only a pool that is NOT a liquid at ambient — molten metal,
+ * which has no other way to exist as bulk — sets by itself.
+ * ⚠ Freeze side only: the boil edge keeps its own drivers.
  */
 function freezesWhereItStands(self: Stuff, tempK: number): boolean {
   if (!MixinApi.isBulkable(self) || !MixinApi.isThermal(self)) return false;
   const aff: BulkAffordance = self.hasInteriorBulk() ? 'interior' : 'surface';
   if (!(self.getBulkAmount(aff).rawValue() > 0)) return false;
-  const mp = self.getBulkMaterial(aff)?.getMeltingPoint().rawValue() ?? 0;
+  const mat = self.getBulkMaterial(aff);
+  if (!mat || mat.hasTag('liquid')) return false;
+  const mp = mat.getMeltingPoint().rawValue();
   if (!(mp > 0)) return false;
   return tempK <= mp;
 }

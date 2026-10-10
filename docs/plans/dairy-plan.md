@@ -1508,7 +1508,7 @@ the pump W1 precedent).
   the buttermilk's carrier). `ricotta` is BULK in a `ricotta-basket`
   (a `CraftVessel`), not a discrete `Provision`.
 
-### W2b — the other two moulds (D19, D20)
+### W2b — the other two moulds (D19, D20) ✅
 
 **Files.** `packages/content/trade-smelting/src/idea/cmd/smelting/SmeltController.ts`
 (`runCharge`'s liquid branch: `crucibleIn(furnace)` — the first plain
@@ -1539,6 +1539,36 @@ into the mould. `Mould.test.ts` (W0) already covers the pan.
 `pnpm wire -- metal-chain.dirty metallurgy.dirty` still pass; `lint:family`
 green.
 **Commit:** `build(dairy W2b): the smelt fills the crucible and the smelter pours the mould — an ingot if you pour, a lump if you wait — and the ice pan is a mould in name too`.
+
+**✅ W2b done (build, 2026-10-10).** Notes:
+- `runIntoCrucible` runs the metal as bulk through a transient
+  `UnboundedReceptacle` into the crucible IN the furnace, clamped to the
+  crucible's room, and sets the crucible's contents to the furnace's held
+  heat; what does not fit (or all of it, with no crucible) pools on the
+  hearth as a lump of the metal's own `castTemplate`, in the furnace. The
+  liquid branch no longer needs a product row (only the solid branch does).
+  The tap scene says where the metal went.
+- ⚠ The ferrous LIQUID branch (a cast-iron run) loses the carbon fraction
+  `setFractionOf` used to stamp on a pig: bulk carries no alloy state. The
+  MATERIAL (cast iron — brittle, not forgeable) is the consequence that
+  matters and is kept; recorded, not modelled.
+- ⭐ **The freeze driver was narrowed** (a W0 decision, corrected here):
+  tallow (320 K), pitch, paraffin and asphalt sit in crocks and barrels as
+  `liquid`-tagged bulk below their own melting points, so a freeze on
+  every read would have set a tallow crock into a lump and broken the
+  chandlery. `freezesWhereItStands` now skips a `liquid`-tagged pool —
+  those keep exactly their old drivers (a cold store, a fire, a spell) —
+  and only a pool that is NOT a liquid at ambient (molten metal) sets by
+  itself. Water still freezes in a freezer, not on a glance.
+- The smelter props the crucible and the ingot mould IN THE ROOM: a
+  placement key needs a `Placing` host and `SmeltingFurnace` is a plain
+  container. The drive (and the metal-chain drive) must `put crucible in
+  furnace` first.
+- `SmeltController.test.ts` rewritten per conflict 8 (crucible run, hearth
+  lump, pour into a mould → an `Ingot` of copper IN the mould, crucible
+  left to cool → a lump, cast iron runs into the crucible); `smelt.test.ts`'s
+  copper-row census admits the generic `ingot` row (minted only by a
+  mould's set).
 
 ### W3 — the kitchen (D15)
 

@@ -24,6 +24,11 @@ import Ore from '@saxonberg/content-trade-mining/src/thing/Ore';
 import Material from '@saxonberg/server/mud/lib/material/Material';
 import Ingot from '@saxonberg/server/mud/platform/thing/Ingot';
 import Good from '@saxonberg/server/mud/lib/stuff/Good';
+import Receptacle from '@saxonberg/server/mud/platform/thing/Receptacle';
+import UnboundedReceptacle from '@saxonberg/server/mud/platform/thing/UnboundedReceptacle';
+import Casting from '@saxonberg/server/mud/platform/thing/Casting';
+import Mould from '@saxonberg/server/mud/platform/thing/Mould';
+import { BulkableApi } from '@saxonberg/server/mud/api/bulk';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
@@ -65,6 +70,8 @@ const BLOOM_ROW = '/trade/smelting/thing/iron-bloom';
 const STEEL_ROW = '/trade/smelting/thing/steel-ingot';
 const PIG_ROW = '/trade/smelting/thing/cast-iron-pig';
 const SLAG_ROW = '/trade/smelting/thing/slag';
+const LUMP_ROW = '/stuff/thing/Casting';
+const MOULD_INGOT_ROW = '/trade/smelting/thing/ingot';
 
 /**
  * The product rows, as the smelt discovers them: by `_materialPath`,
@@ -237,6 +244,25 @@ beforeEach(async () => {
       stampTemplatePathForTest(s, SLAG_ROW);
       return s as never;
     }
+    // ⭐ (dairy D19) A pool set on the hearth: the metal's own fallback.
+    if (path === LUMP_ROW) {
+      const c = makeStuff(() => new Casting());
+      stampTemplatePathForTest(c, LUMP_ROW);
+      return c as never;
+    }
+    // …and the shape an ingot mould gives it: one row, stamped by the pool.
+    if (path === MOULD_INGOT_ROW) {
+      const i = makeStuff(() => new Ingot());
+      stampTemplatePathForTest(i, MOULD_INGOT_ROW);
+      return i as never;
+    }
+    // The transient source a bulk run is poured out of.
+    if (path === '/platform/thing/UnboundedReceptacle') {
+      const r = makeStuff(() => new UnboundedReceptacle());
+      (r as unknown as { interiorBulk: boolean }).interiorBulk = true;
+      r.setInteriorCapacity(Quantity.of(1000, 'L'));
+      return r as never;
+    }
     throw new Error(`unexpected clone ${path}`);
   });
 
@@ -250,6 +276,9 @@ beforeEach(async () => {
   goethite.setTags(['mineral', 'ore', 'iron']);
   const copper = makeStuffAtPath(() => new Material(), COPPER);
   copper.setMeltingPoint(Quantity.of(1358, 'K'));
+  copper.setDensity(Quantity.of(8960, 'kg/m³'));
+  copper.setSpecificHeat(Quantity.of(385, 'J/(kg·K)'));
+  copper.setLatentHeatOfFusion(Quantity.of(205_000, 'J/kg'));
   copper.setTags(['element', 'metal', 'non-ferrous', 'forgeable']);
   const iron = makeStuffAtPath(() => new Material(), IRON);
   iron.setMeltingPoint(Quantity.of(1811, 'K'));
@@ -260,7 +289,9 @@ beforeEach(async () => {
     { materialPath: IRON, fraction: 0.998 },
     { materialPath: CARBON, fraction: 0.002 },
   ]);
-  makeStuffAtPath(() => new Material(), CAST_IRON).setTags(['alloy', 'metal', 'ferrous', 'brittle']);
+  const castIron = makeStuffAtPath(() => new Material(), CAST_IRON);
+  castIron.setTags(['alloy', 'metal', 'ferrous', 'brittle']);
+  castIron.setDensity(Quantity.of(7200, 'kg/m³'));
   makeStuffAtPath(() => new Material(), BLOOM_IRON).setTags(['metal', 'ferrous', 'bloom']);
   // ⚠⚠ Hot-short iron: still ferrous, and BRITTLE — which is the tag the
   // smith's own verbs already refuse.
@@ -336,9 +367,25 @@ describe('the furnace the smelt needs', () => {
   });
 });
 
+/** A crucible the smelter set in the fire (dairy D19). */
+function crucible(): Receptacle {
+  const c = makeStuff(() => new Receptacle());
+  (c as unknown as { interiorBulk: boolean }).interiorBulk = true;
+  c.setInteriorCapacity(Quantity.of(1.5, 'L'));
+  c.setMass(Quantity.of(4, 'kg'));
+  return c;
+}
+
+/** Kilograms of molten metal standing in a crucible. */
+function moltenKg(c: Receptacle, density: number): number {
+  return (c.getBulkAmount('interior').rawValue() / 1000) * density;
+}
+
 describe('dispatching the smelt', () => {
-  it('⭐⭐ taps a bar of Σ(mass × grade × metal fraction) and slag for the rest', async () => {
+  it('⭐⭐ runs Σ(mass × grade × metal fraction) into the crucible, slag for the rest', async () => {
     // 3 lumps of 1.4 kg at grade 0.07 — Rejection's own oxide cap.
+    const pot = crucible();
+    ContainmentApi.move(pot, furnace);
     ContainmentApi.move(lump(1.4, 3, 0.07), furnace);
     ContainmentApi.move(basket(), furnace);
     ContainmentApi.move(basket(), furnace);
@@ -347,13 +394,15 @@ describe('dispatching the smelt', () => {
     expect(declinedFor(context)).toBeUndefined();
     await tap();
 
+    // ⭐ (dairy D19) No bar is MINTED: the metal is bulk, molten, in the
+    // crucible the smelter set in the fire.
     const products = productsIn(furnace);
-    const bars = products.get(INGOT_ROW) ?? [];
-    expect(bars).toHaveLength(1);
-
+    expect(products.has(INGOT_ROW)).toBe(false);
+    expect(pot.getBulkMaterialPath('interior')).toBe(COPPER);
     const chargeKg = 3 * 1.4;
     const metalKg = chargeKg * 0.07 * 0.5748;
-    expect(bars[0]!.getMass().rawValue()).toBeCloseTo(Number(metalKg.toFixed(3)), 6);
+    expect(moltenKg(pot, 8960)).toBeCloseTo(metalKg, 3);
+    expect(pot.getTemperature().rawValue()).toBeGreaterThan(1358);
 
     const slag = products.get(SLAG_ROW) ?? [];
     expect(slag).toHaveLength(1);
@@ -363,7 +412,72 @@ describe('dispatching the smelt', () => {
     );
     // …and there is always more slag than metal, because a lump of ore
     // is mostly not ore.
-    expect(slag[0]!.getMass().rawValue()).toBeGreaterThan(bars[0]!.getMass().rawValue());
+    expect(slag[0]!.getMass().rawValue()).toBeGreaterThan(metalKg);
+  });
+
+  it('⭐ with no crucible in the fire the metal pools on the hearth and sets as a lump', async () => {
+    ContainmentApi.move(lump(1.4, 3, 0.07), furnace);
+    ContainmentApi.move(basket(), furnace);
+    ContainmentApi.move(basket(), furnace);
+    await smelt();
+    await tap();
+    const lumps = productsIn(furnace).get(LUMP_ROW) ?? [];
+    expect(lumps).toHaveLength(1);
+    expect(lumps[0]!.getMaterial()?.getTemplatePath()).toBe(COPPER);
+    expect(lumps[0]!.getMass().rawValue()).toBeCloseTo(3 * 1.4 * 0.07 * 0.5748, 3);
+  });
+
+  it('⭐⭐ the smelter pours the crucible into a MOULD, and it sets there as an ingot', async () => {
+    const pot = crucible();
+    ContainmentApi.move(pot, furnace);
+    ContainmentApi.move(lump(1.4, 3, 0.07), furnace);
+    ContainmentApi.move(basket(), furnace);
+    ContainmentApi.move(basket(), furnace);
+    await smelt();
+    await tap();
+    const kg = moltenKg(pot, 8960);
+
+    const mould = makeStuff(() => new Mould());
+    (mould as unknown as { interiorBulk: boolean }).interiorBulk = true;
+    mould.setInteriorCapacity(Quantity.of(0.6, 'L'));
+    mould.setMass(Quantity.of(6, 'kg'));
+    mould.setCastTemplate(MOULD_INGOT_ROW);
+    ContainmentApi.move(mould, room);
+    const res = BulkableApi.transfer(
+      BulkableApi.slotFor(pot, undefined)!,
+      BulkableApi.slotFor(mould, undefined)!,
+      { kind: 'all' },
+    );
+    expect(res.applied).toBeGreaterThan(0);
+    // Cooled well past its latent heat — the mould's own set.
+    mould.setStampedTemperatureK(300);
+    mould.reconcilePhase();
+    for (let i = 0; i < 4; i++) await new Promise<void>((r) => setTimeout(r, 0));
+
+    const inMould = mould.getContents() as Stuff[];
+    expect(inMould).toHaveLength(1);
+    const ingot = inMould[0] as Massed;
+    expect(ingot.getTemplatePath()).toBe(MOULD_INGOT_ROW);
+    expect(ingot.getMaterial()?.getTemplatePath()).toBe(COPPER);
+    expect(ingot.getMass().rawValue()).toBeCloseTo(kg, 3);
+    expect(MixinApi.isBuildVessel(ingot)).toBe(true); // a smith can hammer it
+  });
+
+  it('⚠ a crucible LEFT to cool sets as a lump in the furnace — not an ingot', async () => {
+    const pot = crucible();
+    ContainmentApi.move(pot, furnace);
+    ContainmentApi.move(lump(1.4, 3, 0.07), furnace);
+    ContainmentApi.move(basket(), furnace);
+    ContainmentApi.move(basket(), furnace);
+    await smelt();
+    await tap();
+    pot.setStampedTemperatureK(300);
+    pot.reconcilePhase();
+    for (let i = 0; i < 4; i++) await new Promise<void>((r) => setTimeout(r, 0));
+    expect(pot.getBulkAmount('interior').rawValue()).toBe(0);
+    const lumps = productsIn(furnace).get(LUMP_ROW) ?? [];
+    expect(lumps).toHaveLength(1);
+    expect(lumps[0]!.getMaterial()?.getTemplatePath()).toBe(COPPER);
   });
 
   it('⭐⭐ consumes EVERY basket — a charge has a ratio, or it has no carbon decision', async () => {
@@ -377,7 +491,8 @@ describe('dispatching the smelt', () => {
     // It used to take `fuel.slice(0, 2)` and strand the rest, so a
     // four-basket charge was indistinguishable from a two-basket one.
     for (const b of baskets) expect(b.isDestroyed()).toBe(true);
-    expect(productsIn(furnace).has(INGOT_ROW)).toBe(true);
+    // No crucible: the copper set on the hearth.
+    expect(productsIn(furnace).has(LUMP_ROW)).toBe(true);
   });
 
   it('declines an empty furnace, an ore-less charge and a fuel-less one, by name', async () => {
@@ -408,6 +523,7 @@ describe('dispatching the smelt', () => {
 
     const products = productsIn(furnace);
     expect(products.has(INGOT_ROW)).toBe(false);
+    expect(products.has(LUMP_ROW)).toBe(false);
     expect(products.get(SLAG_ROW)).toHaveLength(1);
   });
 });
@@ -508,24 +624,25 @@ describe('⭐⭐ the ferrous ladder — the charge decides the metal', () => {
       .toBeCloseTo(0.3 / 1.3, 6);
   });
 
-  it('⭐⭐ a HEAVY charge RUNS — and what pours is a pig you cannot forge', async () => {
+  it('⭐⭐ a HEAVY charge RUNS — and what runs is cast iron you cannot forge', async () => {
     furnace.setBellowsActive(true);
+    const pot = crucible();
+    ContainmentApi.move(pot, furnace);
     chargeIron(3, 4);
     await smelt();
     await tap();
 
-    const product = productOf();
-    expect(product?.getTemplatePath()).toBe(PIG_ROW);
-    // Saturated at the eutectic — which is WHY it ran.
-    const carbon = MixinApi.isAlloyed(product!) ? product!.fractionOf(CARBON) : 0;
-    expect(carbon).toBeCloseTo(0.043, 6);
-    // ⚠ No slag rides a pig: it melted, so the gangue separated out.
+    // ⭐ (dairy D19) It RAN, so it is in the crucible as molten cast iron —
+    // the material is the consequence (a pour that sets carries it).
+    expect(pot.getBulkMaterialPath('interior')).toBe(CAST_IRON);
+    // ⚠ No slag rides a melt: the gangue separated out.
     const metalKg = 3 * 1.4 * 0.12 * 0.6285;
-    expect(product!.getMass().rawValue()).toBeCloseTo(Number(metalKg.toFixed(3)), 3);
-    // …and its material is not `forgeable`, which is what actually stops
-    // an anvil taking it — no verb had to be told about cast iron.
-    expect(product!.getMaterial()!.getTags()).not.toContain('forgeable');
-    expect(product!.getMaterial()!.getTags()).toContain('brittle');
+    expect(moltenKg(pot, 7200)).toBeCloseTo(metalKg, 3);
+    // …and cast iron is not `forgeable`, which is what actually stops an
+    // anvil taking it — no verb had to be told about cast iron.
+    const material = StuffApi.findByTemplatePath<Material>(CAST_IRON)!;
+    expect(material.getTags()).not.toContain('forgeable');
+    expect(material.getTags()).toContain('brittle');
   });
 
   it('⭐⭐ and BETWEEN them is natural steel — a bloom rich enough to beat into it', async () => {
