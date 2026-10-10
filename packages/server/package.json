@@ -44,6 +44,7 @@
     "lint:conditions": "tsx scripts/check-conditions.ts",
     "lint:controller-rows": "tsx scripts/check-controller-rows.ts",
     "lint:counters": "tsx scripts/check-counters.ts",
+    "lint:shopfronts": "tsx scripts/check-shopfronts.ts",
     "lint:descriptors": "tsx scripts/check-descriptor-banks.ts",
     "lint:dispositions": "tsx scripts/check-dispositions.ts",
     "lint:does-nothing": "tsx scripts/check-does-nothing.ts",

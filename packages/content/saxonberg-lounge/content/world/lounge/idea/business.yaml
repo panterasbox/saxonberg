@@ -116,6 +116,8 @@ data:
   # v1: Goodkin, the one real branch; a rival bank is one edit away.
   banksAt: goodkin
   operatingLocations:
+    # The counter a sale settles at (lint:shopfronts).
+    - /world/lounge/thing/bar-counter
     - /world/lounge/location/bar
   # ⭐ Where the cast wait when they are off shift. One fact on the HOUSE,
   # where it used to be the same path repeated in four people's `shifts`

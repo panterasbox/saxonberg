@@ -1804,6 +1804,16 @@ named four composition markers; `BankCounter` composes `BankMixin` (not
 (`extends CommerceMenu`). A ceiling that undercounts is a ceiling that
 means nothing — it would have admitted two more counters silently.
 
+**`lint:shopfronts` — a counter that names its house is a place that
+house trades (ceiling 0; assembly build, 2026-10).** A sale settles to the
+business found at the COUNTER's own path, through every Business row's
+`operatingLocations`. A counter whose `businessPath` names a house that
+lists only the room is a shop where nothing can be bought, and the buyer
+is told *"You can't cover …"* — which blames their purse. Six counters
+shipped that way (the timber yard, the Rejection till, the lounge bar, the
+bloodworks, the haulage depot, the bale store); the assembly drive found
+it when no stave was ever sold.
+
 **`lint:openings` — an opening judges a PERSON (ceiling 0).** Six arms:
 the `requires` vocabulary is closed to `{gigs, discipline, band}` (nothing
 may select on species, lineage, trait, renown or wealth); a band must be

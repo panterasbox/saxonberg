@@ -183,7 +183,9 @@ async function goTo(handle: string, where: string): Promise<Session> {
 async function buy(s: Session, item: string, n = 1): Promise<void> {
   for (let i = 0; i < n; i++) {
     const said = await say(s, `buy ${item}`);
-    expect(said, `buy ${item} (#${i + 1}): ${said}`).not.toMatch(/bare of|can'?t afford|no .* here/i);
+    // ⚠ Asserted as the SALE, not as the absence of three refusals: the
+    // counter has six ways to say no and the old check knew three.
+    expect(said, `buy ${item} (#${i + 1}): ${said}`).toMatch(/you buy/i);
   }
 }
 

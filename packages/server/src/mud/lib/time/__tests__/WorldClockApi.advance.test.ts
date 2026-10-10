@@ -70,6 +70,20 @@ describe('WorldClockApi.advance', () => {
     expect(fired).toBe(1);
   });
 
+  it('⭐ a COALESCING `every` fires once for a backlog, then keeps its cadence', () => {
+    let plain = 0;
+    let coalesced = 0;
+    WorldClockApi.every(Quantity.of(3600, 's'), () => plain++);
+    WorldClockApi.every(Quantity.of(3600, 's'), () => coalesced++, { coalesce: true });
+    WorldClockApi.advance('40 days');
+    expect(plain).toBe(960);
+    expect(coalesced).toBe(1);
+    WorldClockApi.advance('2 hours');
+    expect(coalesced).toBe(2);
+    WorldClockApi.advance('1 hour');
+    expect(coalesced).toBe(3);
+  });
+
   it('a one-shot BEYOND the jump does not fire early', () => {
     let fired = 0;
     WorldClockApi.after(Quantity.of(2 * DAY_S, 's'), () => fired++);

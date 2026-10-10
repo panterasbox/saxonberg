@@ -163,6 +163,12 @@ export default class BuyController extends CommandController<BuyModel> {
       this.rejectBroke(giver, context, item, model);
       return;
     }
+    // ⚠⚠ A price is per PIECE, and a restocked stackable sits on the shelf
+    // as one heap: handing over the heap sold thirty staves for the price
+    // of one (found by the assembly drive). One comes off the heap.
+    if (MixinApi.isStackable(item) && item.getQuantity() > 1) {
+      item = (await item.split(1)) as unknown as Stuff & Containable;
+    }
     this.handOver(item, giver);
     const owner = await this.buyerOf(giver, paid.receipt);
     if (MixinApi.isChattel(item)) {

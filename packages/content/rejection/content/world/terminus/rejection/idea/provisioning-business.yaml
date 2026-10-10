@@ -21,4 +21,6 @@ data:
         - { days: [0, 1, 2, 3, 4, 5, 6], hours: [6, 18] }
   banksAt: goodkin
   operatingLocations:
+    # The counter a sale settles at (lint:shopfronts).
+    - /world/terminus/rejection/thing/store-counter
     - /world/terminus/rejection/location/provisioning

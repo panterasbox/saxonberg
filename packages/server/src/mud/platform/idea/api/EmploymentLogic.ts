@@ -1703,6 +1703,9 @@ export class EmploymentLogic extends ApiLogic {
           console.error('EmploymentLogic: roster tick failed', err);
         }
       },
+      // The pass is a function of the hour it runs in; a backlog of
+      // missed hours is one pass at the latest.
+      { coalesce: true },
     );
   }
 

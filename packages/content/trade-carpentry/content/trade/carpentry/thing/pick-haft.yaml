@@ -5,7 +5,7 @@
 #
 # Ash, because a haft is ash: it is the toughest of the common woods
 # under a shock, and it springs rather than snaps. The mining row was oak.
-class: /platform/thing/Tool
+class: /platform/thing/Timber
 data:
   # ⚠ Not `pick` (a haft in reach made `fit pick` bind the haft) nor
   # `handle` (a keyword fills a part slot of that name — a froe's handle).
@@ -16,5 +16,9 @@ data:
     A length of close-grained wood, shaved oval and swelled at the butt
     so a wet hand does not lose it.
   mass: 0.8
-  capabilities: []
+  # ⭐ Riven and carved wood: it SEASONS (assembly D2). One off a shelf
+  # has had its year; one carved from a green billet carries the billet's
+  # fraction instead, and warps where it is fitted.
+  constructionForm: riven
+  seasonedFraction: 1
   _materialPath: /stuff/idea/material/wood/ash

@@ -53,5 +53,7 @@ data:
         - { days: [0, 1, 2, 3, 4, 5, 6], hours: [6, 18] }
   banksAt: goodkin
   operatingLocations:
+    # The counter a sale settles at (lint:shopfronts).
+    - /trade/textiles/thing/bale-store
     - /world/terminus/wharfside/mill/location/floor
     - /world/terminus/wharfside/mill/thing/stock
