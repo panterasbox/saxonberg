@@ -46,6 +46,7 @@ describe('Exit', () => {
   let peerInB: PeerSensor;
 
   beforeEach(() => {
+    buildAllModes();
     zone = makeStuff(() => new CartesianZone());
 
     locA = makeStuff(() => new CartesianLocation());

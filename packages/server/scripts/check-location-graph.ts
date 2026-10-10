@@ -311,7 +311,8 @@ export function scanLocationGraph(idx: InheritanceIndex = inheritanceIndex()): G
  * check that an author cannot forget it.
  *
  * ⚠⚠ **Phrased BY SHAPE, deliberately, and not as "extends
- * `FordExit`".** A kind row whose class overrides `applyTraversal`
+ * `FordExit`".** A kind row whose class overrides `prepareTraversal`
+ * (the seam where an exit brings its state up to date before the gate)
  * *and* names `blocked` is a way that closes itself at the traverse,
  * whatever it is called. This is a KERNEL gate and `FordExit` is the
  * transport pack's class; a kernel gate enumerating a pack's classes
@@ -341,7 +342,7 @@ function conditionalKindFindings(idx: InheritanceIndex): string[] {
     try {
       const source = readFileSync(classFileOf(classPath, sources), "utf8");
       verdict =
-        /\b(applyTraversal|prepareTraversal)\s*\(/.test(source) && /\bblocked\b/.test(source);
+        /\bprepareTraversal\s*\(/.test(source) && /\bblocked\b/.test(source);
     } catch {
       verdict = false;
     }
@@ -358,7 +359,7 @@ function conditionalKindFindings(idx: InheritanceIndex): string[] {
     if (eff.data.conditional === true || eff.data._conditional === true) continue;
     out.push(
       `${row.path} — class ${eff.class} closes itself at the traverse ` +
-        `(it overrides \`applyTraversal\` or \`prepareTraversal\` and names \`blocked\`), so the ` +
+        `(it overrides \`prepareTraversal\` and names \`blocked\`), so the ` +
         `row must declare \`conditional: true\`. Without it the index ` +
         `carries no caveat and a route plan over this way says nothing ` +
         `about the fact that it is not always there.`,

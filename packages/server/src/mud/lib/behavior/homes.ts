@@ -122,11 +122,9 @@ export const brain = class {
       if (!dest) continue;
       if (!wanted.includes(PersistableApi.placeIdOf(dest))) continue;
       if (!exit.canTraverse(host, 'walk').ok) continue;
-      try {
-        await LocomotionApi.traverseWithDefault(host, exit);
-      } catch {
-        // Shut between the check and the step. Try again next beat.
-      }
+      // Shut between the check and the step: the crossing refuses, and
+      // it tries again next beat.
+      await LocomotionApi.traverseWithDefault(host, exit);
       return;
     }
     // Nothing it knows is behind an open door. It stays. That is "lost".

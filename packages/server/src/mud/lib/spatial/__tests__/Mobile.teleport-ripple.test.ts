@@ -8,6 +8,7 @@
 
 import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { buildAllModes } from '../../locomotion/__tests__/test-helpers';
 import { MobileMixin } from '../Mobile';
 import { ContainableMixin } from '../Containable';
 import { ContainerMixin } from '../Container';
@@ -67,7 +68,10 @@ function tworoom(): { locA: CartesianLocation; locB: CartesianLocation } {
 }
 
 describe('Mobile.teleport — D14', () => {
-  beforeEach(() => installV1QuantityMarshallers());
+  beforeEach(() => {
+    installV1QuantityMarshallers();
+    buildAllModes();
+  });
   afterEach(() => StuffApi.clearAll());
 
   it('⭐⭐ teleporting while HITCHED slips the hitch — you go, the cart stays', () => {

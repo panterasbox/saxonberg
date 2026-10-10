@@ -588,15 +588,19 @@ name. `CircleAvatar` was considered and rejected for a subtler reason:
 - **Traversal seam (Decision H)**: `Exit.applyTraversal(mover)` — an
   `@hook` an exit subclass overrides to fully apply the traversal
   (`true` = handled; nothing resolves, announces, or moves).
-  `Mobile.traverse` consults it after the door gate and the mover's
-  own veto, BEFORE destination resolution (a crossing has no
-  destination and no departure — the body stays put).
+  `Mobile.traverse` consults it after every gate and the mover's
+  `beforeTraverse`, BEFORE destination resolution (a crossing has no
+  destination and no departure — the body stays put). ⚠ It only
+  CROSSES; it decides nothing (see locomotion.md § The one crossing).
 - **`SandboxCrossingExit`**: `enter` direction runs the full door gate
-  (sync person-shape checks in `canTraverse`; the async authority gate
-  — own circle always yours, else title holder or `ParcelApi.
-  hasUseGrant` — in `applyTraversal`, refusing via the ordinary
-  ContainmentError prose path) then `SandboxApi.enter`; `return`
-  direction is always open and runs `SandboxApi.exit`.
+  — the async authority half (own circle always yours, else title
+  holder or `ParcelApi.hasUseGrant`) in `prepareTraversal`, recorded
+  PER MOVER; the sync half (person-shape checks + that verdict,
+  fail-closed when absent) in `canTraverse`, refusing in the door's own
+  words — then `applyTraversal` → `SandboxApi.enter`. (Until the
+  traversal refactor the authority check ran inside `applyTraversal`
+  and THREW, after every gate had passed.) `return` direction is always
+  open and runs `SandboxApi.exit`.
 - **`SandboxCrossing`** (`lib/sandbox/`): the door's MECHANISM —
   Thing-tier, chattel-identified, two persistent fields
   (`linkedSandboxPath`, an identity ref, `''` = unlinked; and

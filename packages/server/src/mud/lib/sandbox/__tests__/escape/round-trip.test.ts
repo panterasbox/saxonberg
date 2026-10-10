@@ -10,6 +10,7 @@
 import "../../../../../test-bootstrap";
 import { KERNEL_CONTENT_ROWS } from '../../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi  } from 'vitest';
+import { buildAllModes } from '../../../locomotion/__tests__/test-helpers';
 import { SandboxApi } from '../../../../api/sandbox';
 import { StuffApi } from '../../../../api/stuff';
 import { ShadowApi } from '../../../../api/shadow';
@@ -159,6 +160,7 @@ describe('sandbox-escape: the round-trip criterion', () => {
     StuffApi.clearAll();
     ShadowApi._clearAllForTesting();
     EventApi._clearAllForTesting();
+    buildAllModes();
     ExecutionContextApi._clearForTesting();
     pm = PersistenceManager.get();
     store = installFakeStore(pm);

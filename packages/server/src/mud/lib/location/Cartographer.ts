@@ -128,6 +128,12 @@ export function CartographerMixin<TBase extends MixinConstructor>(
      * fires it from inside the move and it has other implementers.
      */
     public onTraversed(via: Exit): void {
+      // ⚠ Chain the inner witness first: an Avatar composes this OUTSIDE
+      // `RespirationMixin`, whose `onTraversed` this used to shadow.
+      const inner = (Base.prototype as {
+        onTraversed?: (v: Exit) => void;
+      }).onTraversed;
+      if (typeof inner === 'function') inner.call(this, via);
       void this.recordTraversal(via);
     }
 

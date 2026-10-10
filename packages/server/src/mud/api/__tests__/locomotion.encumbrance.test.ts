@@ -118,7 +118,7 @@ describe('LocomotionApi — loaded-traversal drain (engageAround)', () => {
     overload(bearer);
     const before = endurance(bearer);
 
-    await LocomotionApi.engageAround(bearer, walk, exitBetween(here, there), async () => {});
+    await LocomotionApi.engageAround(bearer, walk, exitBetween(here, there), async () => ({ ok: true }));
 
     expect(endurance(bearer)).toBeLessThan(before);
   });
@@ -131,12 +131,12 @@ describe('LocomotionApi — loaded-traversal drain (engageAround)', () => {
     ContainmentApi.move(massThing(1), bearer); // ratio well under the floor
     const before = endurance(bearer);
 
-    await LocomotionApi.engageAround(bearer, walk, exitBetween(here, there), async () => {});
+    await LocomotionApi.engageAround(bearer, walk, exitBetween(here, there), async () => ({ ok: true }));
 
     expect(endurance(bearer)).toBe(before);
   });
 
-  it('a raw Mobile.traverse (bypassing LocomotionApi) drains nothing', async () => {
+  it('a CARRIED traverse (a rider moved by its mount) drains nothing', async () => {
     const here = makeStuff(() => new Location());
     const there = makeStuff(() => new Location());
     const bearer = bearerOf(() => new MobileBearer());
@@ -144,8 +144,11 @@ describe('LocomotionApi — loaded-traversal drain (engageAround)', () => {
     overload(bearer);
     const before = endurance(bearer);
 
-    // The §1.4 guarantee: the move substrate is encumbrance-agnostic.
-    await bearer.traverse(exitBetween(here, there), 'walk');
+    // ⭐ Since the traversal refactor `traverse` IS the self-powered
+    // crossing and exerts; the walked-vs-rode exclusion is the carried
+    // branch (the conveyance ripple's), which never engages.
+    const mount = makeStuff(() => new Location());
+    await bearer.traverse(exitBetween(here, there), 'walk', { carriedBy: mount });
 
     expect(endurance(bearer)).toBe(before);
   });

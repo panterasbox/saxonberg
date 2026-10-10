@@ -22,7 +22,8 @@ import { DestructError, type VetoResult } from '../../lib/errors';
 import { ContainerMixin, type Container } from '../../lib/spatial/Container';
 import { ExitableMixin, type Exitable } from '../../lib/boundary/Exitable';
 import { MobileMixin, type Mobile } from '../../lib/spatial/Mobile';
-import Exit from '../../lib/boundary/Exit';
+import Exit, { type TraversalGuard } from '../../lib/boundary/Exit';
+import { buildAllModes } from '../../lib/locomotion/__tests__/test-helpers';
 import { HasInteractiveMixin } from '../../lib/connection/HasInteractive';
 import Interactive from '../../platform/idea/Interactive';
 import { SecurityError } from '../../lib/security/errors';
@@ -139,6 +140,9 @@ describe('setContainer lockdown', () => {
 });
 
 describe('Traversal Witness hooks (Mobile.traverse)', () => {
+  /** One shared log, so the test can read the ORDER the hooks ran in. */
+  let log: string[] = [];
+
   class HookableLocation
     extends ExitableMixin(ContainableMixin(ContainerMixin(Idea)))
     implements Exitable
@@ -147,67 +151,126 @@ describe('Traversal Witness hooks (Mobile.traverse)', () => {
     public exited: Array<[unknown, Exit]> = [];
     public enterVeto: VetoResult | null = null;
 
+    canExit?(_mover: Stuff & Mobile & Containable, _via: Exit): VetoResult {
+      log.push('canExit');
+      return { ok: true };
+    }
     canEnter?(_mover: Stuff & Mobile & Containable, _via: Exit): VetoResult {
+      log.push('canEnter');
       return this.enterVeto ?? { ok: true };
     }
     onEntered?(mover: Stuff & Mobile & Containable, via: Exit): void {
+      log.push('onEntered');
       this.entered.push([mover, via]);
     }
     onExited?(mover: Stuff & Mobile & Containable, via: Exit): void {
+      log.push('onExited');
       this.exited.push([mover, via]);
     }
   }
 
   class HookableMover extends MobileMixin(ContainableMixin(Idea)) {
     public traverses: Array<Exit> = [];
-    public traverseVeto: VetoResult | null = null;
+    public refusal: TraversalGuard | null = null;
 
-    canTraverse?(_via: Exit): VetoResult {
-      return this.traverseVeto ?? { ok: true };
+    beforeTraverse?(_via: Exit): TraversalGuard {
+      log.push('beforeTraverse');
+      return this.refusal ?? { ok: true };
     }
     onTraversed?(via: Exit): void {
+      log.push('onTraversed');
       this.traverses.push(via);
     }
   }
 
-  beforeEach(() => {
-    ShadowApi._clearAllForTesting();
-    StuffApi.clearAll();
-  });
+  /** An exit that logs its two hooks and its gate. */
+  class LoggingExit extends Exit {
+    public override async prepareTraversal(): Promise<void> {
+      log.push('prepare');
+    }
+    public override canTraverse(mover: Stuff & Containable, mode?: string): TraversalGuard {
+      log.push('gate');
+      return super.canTraverse(mover, mode);
+    }
+    public override async applyTraversal(): Promise<boolean> {
+      log.push('apply');
+      return false;
+    }
+  }
 
-  it('fires the full hook quartet on a successful traverse', async () => {
+  function scene(): {
+    source: HookableLocation;
+    dest: HookableLocation;
+    mover: HookableMover;
+    exit: Exit;
+  } {
     const source = makeStuff(() => new HookableLocation());
     const dest = makeStuff(() => new HookableLocation());
     const mover = makeStuff(() => new HookableMover());
     ContainmentApi.move(mover, source);
-    const exit = StuffApi.createSync(() => new Exit({
+    const exit = StuffApi.createSync(() => new LoggingExit({
       direction: 'north',
       source: source as unknown as Stuff & Container,
       destination: dest as unknown as Stuff & Container,
       door: null,
     }));
-    await mover.traverse(exit, 'walk');
+    return { source, dest, mover, exit };
+  }
+
+  beforeEach(() => {
+    ShadowApi._clearAllForTesting();
+    StuffApi.clearAll();
+    buildAllModes();
+    log = [];
+  });
+
+  it('⭐ runs ONE sequence, in order: prepare → gate → the mover → apply → the places → the move → the witnesses', async () => {
+    const { source, dest, mover, exit } = scene();
+    const guard = await mover.traverse(exit, 'walk');
+    expect(guard).toEqual({ ok: true });
+    expect(log).toEqual([
+      'prepare',
+      'gate',
+      'beforeTraverse',
+      'apply',
+      'canExit',
+      'canEnter',
+      'onExited',
+      'onEntered',
+      'onTraversed',
+    ]);
     expect(mover.traverses).toEqual([exit]);
     expect(source.exited).toHaveLength(1);
     expect(dest.entered).toHaveLength(1);
     expect(mover.getContainer()).toBe(dest);
   });
 
-  it('canEnter veto blocks traversal before move runs', async () => {
-    const source = makeStuff(() => new HookableLocation());
-    const dest = makeStuff(() => new HookableLocation());
+  it('a canEnter veto is RETURNED as the refusal, and nothing moves', async () => {
+    const { source, dest, mover, exit } = scene();
     dest.enterVeto = { ok: false, reason: 'sealed' };
-    const mover = makeStuff(() => new HookableMover());
-    ContainmentApi.move(mover, source);
-    const exit = StuffApi.createSync(() => new Exit({
-      direction: 'north',
-      source: source as unknown as Stuff & Container,
-      destination: dest as unknown as Stuff & Container,
-      door: null,
-    }));
-    await expect(mover.traverse(exit, 'walk')).rejects.toThrow(/sealed/);
+    const guard = await mover.traverse(exit, 'walk');
+    expect(guard).toEqual({ ok: false, gate: 'veto', mode: 'walk', reason: 'sealed' });
     expect(mover.getContainer()).toBe(source);
     expect(dest.entered).toEqual([]);
+  });
+
+  it("the mover's beforeTraverse refuses with its own gate, before apply or the places are asked", async () => {
+    const { source, mover, exit } = scene();
+    mover.refusal = { ok: false, gate: 'breakaway', reason: 'held' };
+    const guard = await mover.traverse(exit, 'walk');
+    expect(guard).toEqual({ ok: false, gate: 'breakaway', mode: 'walk', reason: 'held' });
+    expect(log).toEqual(['prepare', 'gate', 'beforeTraverse']);
+    expect(mover.getContainer()).toBe(source);
+  });
+
+  it('a carried rider skips the cascade and its own beforeTraverse — the host already passed', async () => {
+    const { dest, mover, exit } = scene();
+    mover.refusal = { ok: false, gate: 'breakaway', reason: 'would refuse if asked' };
+    const host = makeStuff(() => new HookableMover());
+    const guard = await mover.traverse(exit, 'walk', { carriedBy: host });
+    expect(guard).toEqual({ ok: true });
+    expect(log).not.toContain('beforeTraverse');
+    expect(mover.getContainer()).toBe(dest);
   });
 });
 

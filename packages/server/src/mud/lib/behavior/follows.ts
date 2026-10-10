@@ -73,12 +73,9 @@ export const brain = class {
         }
       }
 
-      try {
-        await LocomotionApi.traverseWithDefault(host, exit);
-        host.rememberFollowed(leaver);
-      } catch {
-        // Blocked between the check and the step — hold position.
-      }
+      // A refused step (shut since the check) holds position.
+      const stepped = await LocomotionApi.traverseWithDefault(host, exit);
+      if (stepped.ok) host.rememberFollowed(leaver);
       return;
     }
   }

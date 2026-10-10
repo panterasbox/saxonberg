@@ -4,11 +4,11 @@
  * refactored `go`.
  *
  * Each concrete controller overrides `modeName()` to return its mode's
- * short name (e.g. `'climb'`); `LocomotionApi.modeOfOrThrow` resolves
- * the full templatePath. Routing for passthrough modes (ride / drive)
- * walks to the conveyance host; non-passthrough modes traverse
- * directly via `LocomotionApi.engageAround` (which threads engagedMode
- * bookkeeping around the inner `Mobile.traverse`).
+ * short name (e.g. `'climb'`). The controller is presentation and
+ * coordination only: it picks the mode (and drops a run the body cannot
+ * hold to a walk), resolves the exit, calls `Mobile.traverse` — which
+ * owns every gate, the flee, the conveyance host and the move — and
+ * renders the refusal the crossing returns.
  *
  * Target shape mirrors `go.yaml`: MQL pre-resolves the player's typed
  * direction (or door alias) to a `target` carrying `via.exit` (via the
@@ -33,9 +33,6 @@ import type { LocomotionMode } from '../../LocomotionMode';
 import { MessageApi } from '../../../../api/message';
 import { MixinApi } from '../../../../api/mixin';
 import { Mml } from '../../../../api/mml';
-import { CombatApi } from '../../../../api/combat';
-import type { Combatant } from '../../../../lib/combat/Combatant';
-import type { Stuff } from '../../../../lib/stuff/Stuff';
 
 export interface LocomotionModel extends CommandModel {
   target?: MqlOneResult;
@@ -127,69 +124,12 @@ export abstract class LocomotionControllerBase extends CommandController<Locomot
       );
       return;
     }
-    const direction = exit.getDirection();
-
-    // Run the remaining gates: body-plan, posture, exit-media,
-    // enablement (with capability). MQL's canReach validator already
-    // confirmed the exit is reachable; canTraverseExit adds the
-    // mode-specific gates.
-    // ⭐ A conditional exit refreshes what its gate reads (the river, the
-    // snow, the ice) BEFORE the gate runs — Exit.prepareTraversal.
-    if (MixinApi.isContainable(actor)) await exit.prepareTraversal(actor);
-    const guard = LocomotionApi.canTraverseExit(actor, exit, mode, direction);
-    if (!guard.ok) {
-      this.emitRejection(guard, mode, model, context);
-      return;
-    }
-
-    // Fleeing = a locomotion attempt made while engaged. Combat resolves
-    // it here: a no-op when not fighting, else an opposed-lite disengage
-    // (a focus-fire pin can veto the break; foes still locked on get a
-    // parting shot). On a successful break the actor has left the fight and
-    // the traverse proceeds under the chosen mode.
-    // A mover with no combatant face was never fighting — break trivially.
-    const broke = MixinApi.isCombatant(actor)
-      ? actor.disengage()
-      : { ok: true as const };
-    if (!broke.ok) {
-      MessageApi.scene(actor)
-        .topic('shell.result')
-        .toSelf(Mml.fromMarkup(broke.message ?? "You can't break away!"))
-        .send();
-      context.note({
-        kind: 'locomotion-gate-failed',
-        gate: 'breakaway',
-        mode: mode.getName(),
-      });
-      return;
-    }
-
-    if (mode.getPassthrough()) {
-      const host = LocomotionApi.findConveyanceHost(actor, mode);
-      if (
-        !host ||
-        !MixinApi.isMobile(host) ||
-        !MixinApi.isContainable(host)
-      ) {
-        this.emitRejection(
-          { ok: false, gate: 'noConveyance', mode: mode.getName() },
-          mode,
-          model,
-          context,
-        );
-        return;
-      }
-      const hostMode = LocomotionApi.resolveHostMode(host);
-      await LocomotionApi.engageAround(host, hostMode, exit, () =>
-        host.traverse(exit, hostMode.getName()),
-      );
-    } else {
-      await LocomotionApi.engageAround(actor, mode, exit, () =>
-        actor.traverse(exit, mode.getName()),
-      );
-    }
-
-    return;
+    // ⭐ The crossing decides — prepare, every gate, the flee, the
+    // conveyance host, engagement and the move all live in
+    // `Mobile.traverse`, the one authoritative sequence. The controller
+    // chose the exit and the mode; it reports what the crossing said.
+    const guard = await actor.traverse(exit, mode.getName());
+    if (!guard.ok) this.emitRejection(guard, mode, model, context);
   }
 
   /**
@@ -275,6 +215,7 @@ function mapGate(gate: string | undefined): LocomotionGateFailedNote['gate'] {
     case 'door': return 'door';
     case 'terrain': return 'terrain';
     case 'breakaway': return 'breakaway';
+    case 'veto': return 'veto';
     default: return 'exit-mode';
   }
 }

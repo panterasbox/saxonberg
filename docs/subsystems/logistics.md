@@ -741,8 +741,8 @@ catalogue's own **six-game-hour weather segment**, so a ford and
 ### ⭐ The ford's two siblings — a pass under snow, a crossing over ice (the climate build)
 
 Both are `transport` classes that copy the ford exactly
-(`applyTraversal` refreshes and returns `false`; the shipped `blocked`
-gate refuses; `conditional: true` on the kind row; physical only — a
+(`prepareTraversal` refreshes ahead of the gate; the shipped `blocked`
+gate refuses, in the exit's own words; `conditional: true` on the kind row; physical only — a
 `tell` from behind a shut pass goes through):
 
 - **`SnowboundExit`** (`_closesAboveM`, default 0.5 m) reads the snow

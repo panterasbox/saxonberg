@@ -178,9 +178,17 @@ export class LocomotionLogic extends ApiLogic {
     // covered: sessile plants ARE organisms with an empty
     // locomotionModes list.
     if (!MixinApi.isOrganism(actor)) return true;
-    const species = actor.getSpecies();
-    const bodyPlan = species?.getBodyPlan();
-    const planModes = bodyPlan?.getLocomotionModes() ?? [];
+    // ⭐ The same rule one step in: an organism with NO body plan (no
+    // species, or a species with none) has no anatomy to constrain it
+    // either. Only a plan that exists and lacks the mode refuses — the
+    // sessile plant. This became load-bearing when `Mobile.traverse`
+    // took over the cascade: a player always passed through it, but an
+    // NPC brain never did, and a species-less NPC would otherwise stop
+    // walking silently. Anatomy is preloaded first, so "no plan" here is
+    // a body that has none, not a cold cache.
+    const bodyPlan = actor.getSpecies()?.getBodyPlan();
+    if (!bodyPlan) return true;
+    const planModes = bodyPlan.getLocomotionModes();
     return required.some((m) => planModes.includes(m));
   }
 
@@ -371,26 +379,25 @@ export class LocomotionLogic extends ApiLogic {
 
   /** See {@link LocomotionApi.engageAround}. */
   @CallSecurity(LocomotionApiCallers)
-  public async engageAround<T>(
+  public async engageAround(
     actor: Stuff & Mobile,
     mode: LocomotionMode,
     exit: Exit,
-    action: () => Promise<T>,
-  ): Promise<T> {
+    action: () => Promise<TraversalGuard>,
+  ): Promise<TraversalGuard> {
     actor.setEngagedMode(mode);
     try {
       const result = await action();
+      // A refused crossing moved nothing and costs nothing.
+      if (!result.ok) return result;
       // ⭐ The traverse is an EXERTION — fires only after a *successful*
-      // self-powered traverse (a throw skips this and falls to `finally`).
-      // This is the universal self-powered chokepoint: every player
-      // command, NPC brain, and follow/lead automation routes a self-
-      // powered move through here, so a body tires whatever initiated
-      // the step — a walk costs nothing, a run or a climb costs its
-      // excess, a load raises the power (the old loaded-traversal drain,
-      // folded in). Conveyance riders (repositioned by the vehicle's
-      // ripple) and raw/dev/`forceMove` traverses don't reach
-      // `engageAround`, so they never exert — the walked-vs-rode
-      // exclusion is structural, not a coded check. The mixin owns the
+      // self-powered traverse. `Mobile.traverse` calls this for every
+      // self-powered crossing — a player's `go`, an NPC brain, a Journey
+      // leg — so a body tires whatever initiated the step: a walk costs
+      // nothing, a run or a climb costs its excess, a load raises the
+      // power. A carried rider (`carriedBy`) and a passthrough rider (its
+      // mount crosses instead) never reach here, and neither does a
+      // `forceMove` — the walked-vs-rode exclusion stays structural. The mixin owns the
       // dials; a logic singleton holds none.
       if (MixinApi.isExerting(actor)) {
         actor.exertTraverse(mode);
@@ -455,18 +462,8 @@ export class LocomotionLogic extends ApiLogic {
   public async traverseWithDefault(
     actor: Stuff & Mobile & Containable,
     exit: Exit,
-  ): Promise<void> {
-    // Lazy-load the actor's anatomy (species + bodyplan) and the
-    // locomotion mode singleton before the sync eligibility cascade
-    // runs. Both `getBodyPlan()` and `modeOf` are sync registry
-    // lookups; on a fresh server the first `go` would otherwise
-    // fail at the body-plan gate (null bodyplan ⇒ empty planModes)
-    // or at the mode resolution (LocomotionMode not loaded).
-    await this.preloadActorAnatomy(actor);
-    const mode = await this.loadMode(this.defaultModeFor(actor));
-    await this.engageAround(actor, mode, exit, () =>
-      actor.traverse(exit, mode.getName()),
-    );
+  ): Promise<TraversalGuard> {
+    return actor.traverse(exit, this.defaultModeFor(actor));
   }
 }
 

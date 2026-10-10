@@ -87,7 +87,13 @@ export type TraversalGate =
    * and so creating the row heals it, but nothing lies that way yet.
    * Before this the same situation was a BOOT CRASH.
    */
-  | 'unbuilt';
+  | 'unbuilt'
+  /**
+   * A traversal witness said no — the mover's `beforeTraverse`, the
+   * source's `canExit`, or the destination's `canEnter`. The hook's own
+   * `reason` is the prose.
+   */
+  | 'veto';
 
 /**
  * Result of `Exit.canTraverse()`.
@@ -951,16 +957,17 @@ export default class Exit extends ConcealableMixin(Idea) {
    * handled — `Mobile.traverse` then returns without resolving a
    * destination, announcing, or moving anything. The wardrobe passage
    * is the first override: crossing into a circle runs the wire-body
-   * choreography, and nothing material ever traverses. Default `false`
-   * (a virtual call + branch on the hot path; every ordinary exit
-   * takes the normal road).
+   * choreography, and nothing material ever traverses. Default `false`.
    *
-   * @hook Invoked by `Mobile.traverse` after the door gate
-   *   (`canTraverse`) and the mover's own veto, BEFORE departure
-   *   announcement and destination resolution. Return `true` when this
-   *   exit has fully handled the traversal (nothing more happens);
-   *   `false` to continue the ordinary move. **Override** — chain is
-   *   unnecessary (the base is a constant `false`).
+   * ⚠ ONE job: *I handle this crossing myself.* It is not a place to
+   * refresh state — it runs after every gate has decided. That is
+   * {@link prepareTraversal}'s job.
+   *
+   * @hook Invoked by `Mobile.traverse` after the gates and the mover's
+   *   `beforeTraverse`, BEFORE destination resolution, the source and
+   *   destination vetoes and the departure announcement. Return `true`
+   *   when this exit has fully handled the traversal; `false` to continue
+   *   the ordinary move. **Override** — the base is a constant `false`.
    */
   public async applyTraversal(
     _mover: Stuff & Containable
@@ -970,20 +977,20 @@ export default class Exit extends ConcealableMixin(Idea) {
 
   /**
    * ⭐ Bring the exit's own state up to date for `mover` BEFORE any gate
-   * reads it — the async half of a conditional exit (the climate build).
+   * reads it — the async half of a conditional exit.
    *
    * A ford, a snowbound pass and an ice crossing each derive `blocked`
-   * from something that moves (the river, the snow, the ice) and can
-   * only read it asynchronously, while every gate — the controller's
-   * `canTraverseExit`, `Mobile.traverse`'s `canTraverse` — is sync. The
-   * ford used to refresh inside `applyTraversal`, which runs AFTER the
-   * gate, so the first crossing after the water rose still went through
-   * and only the next was refused. This hook runs first.
+   * from something that moves (the river, the snow, the ice) and can only
+   * read it asynchronously, while the gate ({@link canTraverse}) is sync.
+   * This is where the read happens.
    *
-   * @hook Awaited by the locomotion controller before
-   *   `LocomotionApi.canTraverseExit`, and by `Mobile.traverse` before
-   *   `canTraverse` (a programmatic mover). **Override** to refresh
-   *   derived state; never move the mover here. The base is a no-op.
+   * @hook Awaited FIRST by `Mobile.traverse`, before any gate. The
+   *   sequence a crossing runs, in order: **prepare** (this) → **gate**
+   *   (`canTraverse` + the locomotion cascade) → the mover's
+   *   `beforeTraverse` → **apply** ({@link applyTraversal}) → the
+   *   `canExit`/`canEnter` vetoes → the move → the `on*` witnesses.
+   *   **Override** to refresh derived state; never move the mover here.
+   *   The base is a no-op.
    */
   public async prepareTraversal(_mover: Stuff & Containable): Promise<void> {
     return;

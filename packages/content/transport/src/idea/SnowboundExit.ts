@@ -12,10 +12,10 @@
  * ## How it answers
  *
  * One cached answer per weather segment (the snow's own memo period),
- * written to the shipped `blocked` bit. `applyTraversal` refreshes it
- * before every crossing and falls through, so the ordinary `blocked`
- * gate refuses — with the reason below — and the lane compile and a
- * `Journey` mid-route see the same bit.
+ * written to the shipped `blocked` bit. `prepareTraversal` refreshes it
+ * before every crossing's gate, so the ordinary `blocked` gate refuses —
+ * with the reason below — and the lane compile and a `Journey` mid-route
+ * see the same bit.
  *
  * ⚠ **Physical only** (the requirements' AC 19). Nothing here touches
  * comms, teleport or the peer graph: a pass under snow stops a body and

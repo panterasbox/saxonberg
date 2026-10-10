@@ -187,15 +187,15 @@ describe('a ford reads the river', () => {
     expect(f.canTraverse({} as Stuff & Containable, 'walk').ok).toBe(false);
   });
 
-  it('applyTraversal refreshes and NEVER handles the traversal itself', async () => {
+  it('applyTraversal NEVER handles the traversal (the ford refreshes in prepareTraversal only)', async () => {
     const w = installWater();
     const f = ford();
     w.m3s = 30;
-    // Returning true would mean "I moved them" — the ford never does.
-    // It refreshes, returns false, and lets the ordinary `blocked` gate
-    // do the refusing with the reason above.
-    expect(await f.applyTraversal({} as Stuff)).toBe(false);
-    expect(f.isBlocked()).toBe(true);
+    // Returning true would mean "I moved them" — the ford never does. It
+    // no longer reads the river here either: that is prepareTraversal's
+    // job, ahead of the gate, and a read after it is one crossing late.
+    expect(await f.applyTraversal({} as Stuff & Containable)).toBe(false);
+    expect(f.isBlocked()).toBe(false);
   });
 
   it('the threshold is validated — a negative flood level is an authoring error', () => {

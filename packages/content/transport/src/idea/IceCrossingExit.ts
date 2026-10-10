@@ -11,8 +11,8 @@
  * ## How it answers
  *
  * Unlike the ford, the answer depends on WHO is crossing: a sheet that
- * bears a person refuses a horse. `applyTraversal` reads the ice for this
- * mover's mass and sets the shipped `blocked` bit before the gate looks;
+ * bears a person refuses a horse. `prepareTraversal` reads the ice for
+ * this mover's mass and sets the shipped `blocked` bit before the gate looks;
  * `refreshCrossing` (the lane compile's question, by shape) answers for a
  * person on foot. The refusal names what is wrong with the ice: open
  * water, thin ice, rotten ice, or water that moves.

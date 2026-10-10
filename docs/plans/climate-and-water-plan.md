@@ -1319,6 +1319,43 @@ weather dials: `climate.poleMeanK` 245, `climate.equatorMeanK` 301,
   `tell`.** `tell <online player>` is refused for every name — the
   pre-existing `online`-scope defect (`governance.md § Open`, reported
   2026-08-02). Recorded there as hitting `dm`/`tell` too; not fixed here.
+- **B23 (review round 1) — `Mobile.traverse` is the one authoritative
+  crossing.** The user's review of B18: *"we shouldn't be doing anything
+  both in the controller and in the mixin… the mixin should be
+  authoritative and the controllers relatively dumb."* The controller had
+  run prepare + the gate cascade + combat's flee and then called
+  `traverse`, which re-ran the exit's gate as a backstop. NPC brains and
+  `Journey` legs skipped the controller, so they never met the body-plan,
+  enablement or haulage gates, and never fled. `traverse` now runs the
+  sequence itself: prepare → gate (`canTraverseExit`) → the mover's
+  `beforeTraverse` → passthrough to the conveyance host → `engageAround`
+  (called from inside, so exertion fires only on a crossing that
+  happened) → apply → `canExit`/`canEnter` → the move. It RETURNS a
+  `TraversalGuard` (`veto` joins the gate vocabulary) and never throws a
+  refusal. The controller resolves, calls, renders. `carriedBy` is the
+  ripple's: a rider skips the cascade, the flee and the exertion.
+- **B24 — flee is `CombatantMixin.beforeTraverse`.** It was controller
+  code, so only a player's verb reached it. Now every mover flees the
+  same way, after the gates (no parting shot for a wall). The mover's
+  old `canTraverse?` veto (no production implementer, and it shared a
+  name with `Exit.canTraverse`) is folded into it. `applyTraversal` goes
+  back to one job: the ford's override is deleted, and the wardrobe's
+  async authority check moves from `applyTraversal` (where it THREW,
+  after every gate) to `prepareTraversal`, recorded per mover and
+  fail-closed. The location-graph lint now keys on `prepareTraversal`.
+- **B25 — an organism with no body plan is unconstrained**, like a
+  non-organism. Since every NPC now runs the body-plan gate, a
+  species-less NPC would otherwise stop walking silently. A plan that
+  exists and lacks the mode still refuses (the sessile plant).
+- **B26 — mover witnesses chain.** `Avatar` composes `CartographerMixin`
+  outside `RespirationMixin`, and neither one's `onTraversed` chained, so
+  the cartographer silently shadowed respiration's for every player.
+  Both chain now.
+- ⚠ **Residue, not fixed:** `IceCrossingExit` writes a per-mover verdict
+  (mass against the sheet) into the SHARED `blocked` bit, so two movers
+  interleaving across the prepare's await can read each other's answer.
+  The fix is to read the ice in prepare and compare the mass in the sync
+  gate; left for a follow-up.
 - **R16 corollary — a room's ambient is restamped at a weather boundary
   only where somebody is.** The drive advances its days standing at the
   Circle camp so the pan sees the cold; a pan nobody visits cools late.
