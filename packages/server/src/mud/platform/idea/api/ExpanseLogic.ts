@@ -10,6 +10,7 @@ import { MixinApi } from '../../../api/mixin';
 import { StuffApi } from '../../../api/stuff';
 import { TemplatePaths } from '../../../lib/paths';
 import type StructureCatalogue from '../StructureCatalogue';
+import type { ClimateLean } from '../../../lib/weather/WeatherType';
 
 const ExpanseApiCallers = SecurityPolicies.FromModule('/api/expanse#ExpanseApi');
 
@@ -37,6 +38,22 @@ export class ExpanseLogic extends ApiLogic {
     if (row === null) return null;
     const s = await StuffApi.singleton<Stuff>(row.path);
     return MixinApi.isPositioned(s) && s.getExpansePosition() !== null ? s : null;
+  }
+
+  /** See {@link ExpanseApi.leanAtSync}. */
+  @CallSecurity(ExpanseApiCallers)
+  public leanAtSync(placePath: string): ClimateLean | null {
+    if (!placePath) return null;
+    let craft: Stuff | null = StuffApi.findByTemplatePath<Stuff>(placePath) ?? null;
+    if (!craft || !MixinApi.isPositioned(craft) || craft.getExpansePosition() === null) {
+      const cat = StuffApi.findByTemplatePath<StructureCatalogue>(TemplatePaths.structureCatalogue);
+      craft = cat?.peekStructureOf(placePath) ?? null;
+    }
+    if (!craft || !MixinApi.isVoyaging(craft)) return null;
+    const pos = craft.getExpansePosition();
+    const sea = StuffApi.findByTemplatePath<Stuff>(craft.getExpanse() ?? '');
+    if (pos === null || !(sea instanceof Expanse)) return null;
+    return sea.peekNarrowestAt(pos)?.getWeatherLean() ?? null;
   }
 
   /** See {@link ExpanseApi.expanse}. */

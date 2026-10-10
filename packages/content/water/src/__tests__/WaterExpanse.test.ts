@@ -67,7 +67,31 @@ describe('sea state is derived', () => {
     expect(shoal.steep).toBe(true);
     expect(deep.steep).toBe(false);
     expect(shoal.heightM).toBeGreaterThan(deep.heightM);
-    expect(await sea.readAt(new GeoPosition(50.5, 0), null)).toMatch(/short and steep/);
+    expect(await sea.seaReadAt(new GeoPosition(50.5, 0), null)).toMatch(/short and steep/);
+  });
+
+  it('⭐ a crossing says what the SEA changed — and nothing when nothing did', async () => {
+    band('deep', (b) => {
+      b.setExtent({ kind: 'belt', latMinDeg: 49, latMaxDeg: 50 });
+      b.setFetchKm(150);
+      b.setDepthM(80);
+    });
+    band('bar', (b) => {
+      b.setExtent({ kind: 'belt', latMinDeg: 50, latMaxDeg: 51 });
+      b.setFetchKm(150);
+      b.setDepthM(4);
+    });
+    band('deep2', (b) => {
+      b.setExtent({ kind: 'belt', latMinDeg: 48, latMaxDeg: 49 });
+      b.setFetchKm(150);
+      b.setDepthM(80);
+    });
+    const onto = await sea.changesAcross(new GeoPosition(49.9, 0), new GeoPosition(50.1, 0), null);
+    expect(onto.some((l) => /The sea gets up — .*short and steep/.test(l))).toBe(true);
+    expect(onto).toContain('The water pales over shallow ground.');
+    const off = await sea.changesAcross(new GeoPosition(50.1, 0), new GeoPosition(49.9, 0), null);
+    expect(off).toContain('The water darkens as the bottom falls away.');
+    expect(await sea.changesAcross(new GeoPosition(48.9, 0), new GeoPosition(49.1, 0), null)).toEqual([]);
   });
 
   it('the narrow band\'s lean wins: the sea runs from its direction', async () => {
@@ -81,7 +105,7 @@ describe('sea state is derived', () => {
     });
     const s = await sea.seaStateAt(new GeoPosition(50, 0), null);
     expect(s.fromDeg).toBe(270);
-    expect(await sea.readAt(new GeoPosition(50, 0), null)).toMatch(/from the west/);
+    expect(await sea.seaReadAt(new GeoPosition(50, 0), null)).toMatch(/from the west/);
   });
 
   it('the sounding reads the narrowest band\'s depth, else the sea\'s own', async () => {

@@ -1577,7 +1577,7 @@ keyword `horizon` renamed (the seed would shadow it).
   and not otherwise. Commit `…C3`.
 - ✅ **C4 — the bearing.** R8. Tests: truth, bracket by band, fix on a fixed
   subject only. Commit `…C4`.
-- **C5 — the water, the fog.** R9, R10. Tests: the delta (no change → no
+- ✅ **C5 — the water, the fog.** R9, R10. Tests: the delta (no change → no
   line), the lean seam (inside the haar the sky reads fog; cold → no
   lean), visibility factor. Commit `…C5`.
 - **C6 — content, drive, docs.** R11, R12; the drive's steps 19, 20,
@@ -1673,6 +1673,35 @@ keyword `horizon` renamed (the seed would shadow it).
   refuses a row nothing places. The reading has no `truth()` override: a
   bearing depends on the observer, and the engine's read has no single
   scalar.
+- ✅ **C5.** The crossing report is a DERIVED DELTA: `Expanse.changesAcross
+  (before, after)` (`@hook`) — the frame says what the SET did (*a current
+  takes her, setting north-east* / *lets her go* / *swings*, felt above
+  `expanse.setFeltKn` 0.3 kn); `WaterExpanse` adds the sea getting up or
+  going down (a step on the scale, or turning steep) and the water paling
+  over / darkening off shallow ground (`expanse.shoalM` 12 m), then chains
+  `super`. Nothing changed → nothing said. The sky is a second delta, per
+  watch: the deck's `skyReadFor` against the last watch's (*Fog closes
+  in.* / *The fog thins and lifts.*). `Expanse.readAt` is gone; the
+  gunwale's read is `WaterExpanse.seaReadAt`. **B-50:** the manned watch's
+  automatic *"calls a warning"* on entering a hazard band is DELETED, not
+  moved — seeing the race ahead is the lookout's job (the lens finding
+  that started revision 1), and the water says what it does to her once
+  she is in it.
+  - R10's seam, as decided: `Band.weatherLean` (a `ClimateLean`; keys NOT
+    checked against the weather vocabulary — **B-51**, the Locality
+    precedent, because `lint:closed-vocabularies` refuses a new content-
+    facing kernel list); `ExpanseApi.leanAtSync(placePath)` reads only warm
+    state (`StructureCatalogue.peekStructureOf`, `Expanse.peekNarrowestAt`);
+    `WeatherLogic` multiplies it over the Locality's lean in every
+    scope-bearing compute. **B-52:** WeatherLogic loads `ExpanseApi` lazily
+    on its first async read (its own BiomeApi precedent — a static import
+    closes a cycle), so a sync read before any async one leans by the
+    Locality alone: *cold → no lean*, exactly the plan's rule.
+  - Visibility: `contactsFrom` multiplies VISUAL range by the observer's
+    sky (`fog 0.1`, `storm 0.3`, `snow 0.4`, `rain 0.6`; retune by
+    `expanse.visibility.<type>`); a signal is heard, not seen, and is
+    unaffected.
+  - The haar row: `weatherLean: { fog: 40 }` — nothing authors foggy.
 
 ## Build log
 

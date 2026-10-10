@@ -31,7 +31,17 @@ import type { WaterState } from '@saxonberg/server/mud/platform/idea/species/Spe
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { WeatherApi } from '@saxonberg/server/mud/api/weather';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
+import { AppApi } from '@saxonberg/server/mud/api/app';
 import WaterBand from './WaterBand';
+
+function numSetting(key: string, fallback: number): number {
+  try {
+    const n = Number(AppApi.setting(key));
+    return Number.isFinite(n) && n > 0 ? n : fallback;
+  } catch {
+    return fallback;
+  }
+}
 
 const G = 9.81;
 /** A breeze where no weather field reaches (an adrift boat, a bare test). */
@@ -128,14 +138,47 @@ export default class WaterExpanse extends Expanse {
     return { heightM: hs, words, steep, fromDeg, roughness: Math.min(3, hs / 2) };
   }
 
-  /** ⭐ What the water says at `pos`: the sea state, then the band's own character. */
-  public override async readAt(pos: GeoPosition, scope: Stuff | null): Promise<string> {
+  /**
+   * ⭐ What the water looks like at `pos` from the deck — the sea state,
+   * derived. What the gunwale reads; never a position, never authored.
+   */
+  public async seaReadAt(pos: GeoPosition, scope: Stuff | null): Promise<string> {
     const sea = await this.seaStateAt(pos, scope);
     const from = compass(sea.fromDeg);
     const line = sea.words === 'calm'
       ? 'The sea is calm.'
       : `The sea is ${sea.words}${sea.steep ? ', short and steep' : ''}, running from the ${from}.`;
     return line;
+  }
+
+  /**
+   * ⭐ What the SEA changed across a boundary (maritime R9), on top of the
+   * frame's set: the sea getting up or going down (a step on the scale),
+   * turning short and steep over a shoal, and the water paling over
+   * shallow ground or darkening as the bottom falls away. Nothing when
+   * nothing a person on deck would notice changed.
+   */
+  public override async changesAcross(
+    before: GeoPosition,
+    after: GeoPosition,
+    scope: Stuff | null,
+  ): Promise<string[]> {
+    const out: string[] = [];
+    const a = await this.seaStateAt(before, scope);
+    const b = await this.seaStateAt(after, scope);
+    const rank = (w: string): number => SEA_WORDS.findIndex(([, words]) => words === w);
+    if (rank(b.words) > rank(a.words) || (b.steep && !a.steep)) {
+      out.push(`The sea gets up — ${b.words}${b.steep ? ', short and steep' : ''}.`);
+    } else if (rank(b.words) < rank(a.words)) {
+      out.push(b.words === 'calm' ? 'The sea goes down to a calm.' : `The sea goes down — ${b.words}.`);
+    }
+    const shoal = numSetting('expanse.shoalM', 12);
+    const da = await this.depthAt(before);
+    const db = await this.depthAt(after);
+    if (da >= shoal && db < shoal) out.push('The water pales over shallow ground.');
+    else if (da < shoal && db >= shoal) out.push('The water darkens as the bottom falls away.');
+    out.push(...(await super.changesAcross(before, after, scope)));
+    return out;
   }
 
   /** How hard the sea is on gear at `pos`. */

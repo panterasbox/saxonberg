@@ -29,6 +29,7 @@ import { NamedMixin } from '../../lib/description/Named';
 import { BandExtent, type BandExtentRecord, type BandCrossing } from '../../lib/expanse/BandExtent';
 import type { GeoPosition } from '../../lib/expanse/GeoPosition';
 import type { FieldMeta } from '../../lib/mixin';
+import type { ClimateLean, WeatherType } from '../../lib/weather/WeatherType';
 
 /** A band's wind lean: a direction it blows FROM and an added strength. */
 export interface BandLean {
@@ -48,6 +49,7 @@ export default class Band extends NamedMixin(SingletonMixin(Idea)) {
     direction: { persistent: true, authorable: true },
     cost: { persistent: true, authorable: true },
     lean: { persistent: true, authorable: true },
+    weatherLean: { persistent: true, authorable: true },
     traffic: { persistent: true, authorable: true },
     hazards: { persistent: true, authorable: true },
     stock: { persistent: true, authorable: true },
@@ -63,6 +65,15 @@ export default class Band extends NamedMixin(SingletonMixin(Idea)) {
   protected endpoints: [string, string] | null = null;
   protected cost: BandCost = {};
   protected lean: BandLean | null = null;
+  /**
+   * ⭐ How this water leans the WEATHER (maritime R10) — the shipped
+   * per-type multiplier a Locality authors, multiplied over the
+   * Locality's own while a craft is inside the band. A haar is
+   * `{ fog: 8 }`: nothing authors *foggy*; the weather field rolls fog
+   * more often here, and the sky, the crossing report and the range of
+   * sight all follow from the roll.
+   */
+  protected weatherLean: ClimateLean | null = null;
   /** The current's speed along `direction`, knots; `0` for a wind band. */
   protected setKn = 0;
   /** 0..1 — how busy this water is (the seeded traffic field's weight). */
@@ -100,6 +111,26 @@ export default class Band extends NamedMixin(SingletonMixin(Idea)) {
 
   public getCost(): BandCost { return { ...this.cost }; }
   public setCost(v: BandCost | null): void { this.cost = v ?? {}; }
+
+  public getWeatherLean(): ClimateLean | null {
+    return this.weatherLean ? { ...this.weatherLean } : null;
+  }
+  public setWeatherLean(v: ClimateLean | null): void {
+    if (v === null || v === undefined) {
+      this.weatherLean = null;
+      return;
+    }
+    // Keys are not checked against the weather vocabulary (the Locality's
+    // `climateLean` precedent, and `lint:closed-vocabularies`): a key that
+    // names no weather type simply never matches a roll.
+    const out: ClimateLean = {};
+    for (const [k, n] of Object.entries(v)) {
+      const x = Number(n);
+      if (!Number.isFinite(x) || x < 0) throw new Error(`Band: weatherLean.${k} must be a non-negative number`);
+      out[k as WeatherType] = x;
+    }
+    this.weatherLean = out;
+  }
 
   public getLean(): BandLean | null { return this.lean; }
   public setLean(v: BandLean | null): void { this.lean = v ?? null; }

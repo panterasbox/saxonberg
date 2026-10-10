@@ -63,7 +63,7 @@ export default class Gunwale extends Shore {
       return;
     }
     const room = this.getContainer();
-    const lines = [await sea.readAt(at, room)];
+    const lines = [await sea.seaReadAt(at, room)];
     const registry = (await StuffApi.singleton<Stuff>(FISHERY_REGISTRY_PATH)) as unknown as FisheryRegistry;
     const standing = await registry.standingAt(ref, nowS).catch(() => null);
     this._memo = {

@@ -21,9 +21,13 @@
  *
  * Every watch (`expanse.watchGameHours`, default four game hours):
  *
- * 1. **the water tells you** — every band boundary the track crossed since
- *    the last watch is reported in order, described by the medium (the
- *    sea state), never by a position;
+ * 1. **the water tells you what CHANGED** — at every band boundary the
+ *    track crossed since the last watch, in order, the field just before
+ *    against the field just after (`Expanse.changesAcross`: the sea
+ *    getting up, a current taking her, the water shoaling), and the sky
+ *    over the deck against the last watch's (fog closing in). Never a
+ *    position, never authored, and a crossing that changes nothing
+ *    perceptible says nothing (maritime R9);
  * 2. **arrival** — a course set for a node arrives when the track passes
  *    within `expanse.arrivalNm` of it; a bare bearing never arrives;
  * 3. **neglect** — the gear on deck wears by the water's hardness and
@@ -48,16 +52,26 @@ import { StuffApi } from '../../api/stuff';
 import { WorldClockApi } from '../../api/worldclock';
 import { PersistableApi } from '../../api/persistable';
 import { AppApi } from '../../api/app';
+import { WeatherApi } from '../../api/weather';
 import type { AbortReason } from '@saxonberg/types';
 import type { Stuff } from '../stuff/Stuff';
 import type { Engaged, EngagementSlot } from '../activity/Engaged';
-import { Template } from '../stuff/Template';
 import { Expanse } from './Expanse';
 import type { GeoPosition } from './GeoPosition';
 import type { Positioned } from './Positioned';
 import type { Voyaging } from './Voyaging';
 
 export const VOYAGE_TYPE = 'expanse-voyage';
+
+/** What a turn of the weather looks like from the deck. */
+const SKY_CHANGE: Record<string, string> = {
+  fog: 'Fog closes in.',
+  rain: 'Rain comes on.',
+  storm: 'It comes on to blow hard.',
+  snow: 'Snow begins to fall.',
+  overcast: 'The sky clouds over.',
+  clear: 'The sky clears.',
+};
 
 declare module '@saxonberg/types' {
   interface AbortReasonRegistry {
@@ -91,6 +105,8 @@ export class Voyage implements SustainedEngagement {
   readonly emissions: readonly ScheduledEmission[];
 
   private lastBeatS: number;
+  /** The sky over the deck at the last watch (runtime). */
+  private lastSky: string | null = null;
   private beating = false;
   private ended = false;
 
@@ -158,8 +174,11 @@ export class Voyage implements SustainedEngagement {
       }
     };
 
-    // 1. The water tells you — every boundary crossed, in order.
-    for (const line of await this.boundaryReport(expanse, prev, pos, deck, manned)) tell(line);
+    // 1. The water tells you what changed — every boundary, in order,
+    // then the sky.
+    for (const line of await this.boundaryReport(expanse, prev, pos, deck)) tell(line);
+    const skyLine = await this.skyChange(deck);
+    if (skyLine) tell(skyLine);
 
     // 2. Arrival.
     const course = craft.getCourse();
@@ -189,32 +208,49 @@ export class Voyage implements SustainedEngagement {
     this.persist();
   }
 
-  /** Each boundary the straight track crossed, described by the medium after it. */
+  /**
+   * What each boundary the straight track crossed CHANGED, in order — the
+   * field just before it against just after. ⛔ No hazard is announced:
+   * seeing the race ahead is the lookout's job, and the water says what it
+   * does to her when she is in it.
+   */
   private async boundaryReport(
     expanse: Expanse,
     prev: GeoPosition,
     pos: GeoPosition,
     deck: Stuff | null,
-    manned: boolean,
   ): Promise<string[]> {
-    const events: { t: number; entering: boolean; hazards: string[] }[] = [];
+    const ts: number[] = [];
     for (const b of await expanse.bands()) {
-      for (const c of b.crossings(prev, pos)) {
-        events.push({ t: c.t, entering: c.entering, hazards: c.entering ? b.getHazards() : [] });
-      }
+      for (const c of b.crossings(prev, pos)) ts.push(c.t);
     }
-    events.sort((a, b) => a.t - b.t);
+    ts.sort((a, b) => a - b);
     const lines: string[] = [];
-    for (const e of events) {
-      const after = prev.lerp(pos, Math.min(1, e.t + 1e-4));
-      const read = await expanse.readAt(after, deck);
-      let line = `The water changes. ${read}`.trim();
-      if (manned && e.hazards.length > 0) {
-        line += ` The watch calls a warning: ${(await hazardNames(e.hazards)).join(', ')}.`;
-      }
-      lines.push(line);
+    for (const t of ts) {
+      const before = prev.lerp(pos, Math.max(0, t - 1e-4));
+      const after = prev.lerp(pos, Math.min(1, t + 1e-4));
+      lines.push(...(await expanse.changesAcross(before, after, deck)));
     }
     return lines;
+  }
+
+  /**
+   * The sky over the deck against the last watch's, in words — or `null`
+   * when it is the same (or this is the first look, which only notes it).
+   */
+  private async skyChange(deck: Stuff | null): Promise<string | null> {
+    if (deck === null || !MixinApi.isContainer(deck)) return null;
+    let now: string;
+    try {
+      now = (await WeatherApi.skyReadFor(deck)).currentType;
+    } catch {
+      return null;
+    }
+    const was = this.lastSky;
+    this.lastSky = now;
+    if (was === null || was === now) return null;
+    if (was === 'fog') return now === 'clear' ? 'The fog lifts, and the sky is clear.' : 'The fog thins and lifts.';
+    return SKY_CHANGE[now] ?? null;
   }
 
   private async expanse(): Promise<Expanse | null> {
@@ -254,10 +290,3 @@ function closestApproachNm(a: GeoPosition, b: GeoPosition, p: GeoPosition): numb
   return Math.hypot(ap.northNm - t * ab.northNm, ap.eastNm - t * ab.eastNm);
 }
 
-async function hazardNames(paths: string[]): Promise<string[]> {
-  const rows = new Map((await Template.findByPaths(paths)).map((t) => [t.path, t]));
-  return paths.map((p) => {
-    const name = (rows.get(p)?.data as Record<string, unknown> | undefined)?.name;
-    return typeof name === 'string' && name !== '' ? name : (p.split('/').pop() ?? p).replace(/-/g, ' ');
-  });
-}

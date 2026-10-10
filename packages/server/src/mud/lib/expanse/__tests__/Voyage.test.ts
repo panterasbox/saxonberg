@@ -25,14 +25,7 @@ import { makeStuffAtPath } from '../../security/__tests__/test-setup';
  * anchoring cancels `anchored`, a restore re-arms it, and neglect wears
  * the gear by the formula.
  */
-class TestExpanse extends Expanse {
-  // The frame describes nothing (no band authors prose); a medium tier
-  // derives its words. This one names the band it is in.
-  override async readAt(pos: GeoPosition): Promise<string> {
-    const band = (await this.fieldAt(pos)).band;
-    return band ? `You are in the ${band.getName()}.` : 'Open water.';
-  }
-}
+class TestExpanse extends Expanse {}
 
 let nowS = 1_000_000;
 let told: string[] = [];
@@ -153,22 +146,34 @@ describe('the position is derived from three fields', () => {
 });
 
 describe('the watch', () => {
-  it('a boundary is reported once, in order, by the water — never a position', async () => {
+  it('⭐ a boundary reports what CHANGED, once, in order — never a position', async () => {
+    addBand('stream', (b) => {
+      b.setExtent({ kind: 'belt', latMinDeg: 49, latMaxDeg: 51, lonMinDeg: -4.9, lonMaxDeg: -4.8 });
+      b.setDirection(45);
+      b.setSetKn(2);
+    });
+    await ship.steer({ bearingDeg: 90, speedKn: 6, node: null });
+    hours(2);
+    await started[0]!.watch();
+    expect(told).toContain('A current takes her, setting north-east.');
+    expect(told).toContain('The current lets her go.');
+    expect(told.indexOf('A current takes her, setting north-east.'))
+      .toBeLessThan(told.indexOf('The current lets her go.'));
+    expect(told.join('\n')).not.toMatch(/°/);
+    told = [];
+    hours(4);
+    await started[0]!.watch();
+    expect(told.filter((t) => /current/.test(t))).toHaveLength(0);
+  });
+
+  it('a band that changes nothing perceptible says nothing', async () => {
     addBand('haar', (b) => {
-      b.setName('haar');
       b.setExtent({ kind: 'belt', latMinDeg: 49, latMaxDeg: 51, lonMinDeg: -4.9, lonMaxDeg: -4.8 });
     });
     await ship.steer({ bearingDeg: 90, speedKn: 6, node: null });
     hours(2);
     await started[0]!.watch();
-    const crossings = told.filter((t) => t.startsWith('The water changes.'));
-    expect(crossings).toHaveLength(2);
-    expect(crossings[0]).toContain('the haar');
-    expect(told.join('\n')).not.toMatch(/°/);
-    told = [];
-    hours(4);
-    await started[0]!.watch();
-    expect(told.filter((t) => t.startsWith('The water changes.'))).toHaveLength(0);
+    expect(told).toEqual([]);
   });
 
   it('a bare bearing never arrives', async () => {

@@ -235,6 +235,50 @@ function leanOf(locality: Locality | null): ClimateLean | null {
   return locality?.getClimateLean() ?? null;
 }
 
+/**
+ * `ExpanseApi`, loaded by the first async weather read. ⚠ Deferred (the
+ * BiomeApi precedent below): the expanse's graph reaches this module, and
+ * the positional lean is read SYNCHRONOUSLY — so until something async has
+ * loaded it, a scope leans by its Locality alone (cold → no lean).
+ */
+let expanseApi: typeof import('../../../api/expanse').ExpanseApi | null = null;
+
+async function loadExpanseApi(): Promise<void> {
+  if (expanseApi === null) expanseApi = (await import('../../../api/expanse')).ExpanseApi;
+}
+
+/**
+ * ⭐ **The positional lean** (maritime R10): a scope aboard a craft on an
+ * expanse takes the `weatherLean` of the narrowest band under the craft —
+ * the haar's `{ fog: 8 }` — or `null` ashore.
+ */
+function positionalLean(scope: Stuff | null): ClimateLean | null {
+  if (expanseApi === null || scope === null) return null;
+  const root = MixinApi.isContainable(scope) ? scope.getRootContainer() ?? scope : scope;
+  try {
+    return expanseApi.leanAtSync(root.getTemplatePath() ?? '');
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * The lean the weather field rolls with at `scope`: the Locality's,
+ * multiplied by the positional one per type (a band never REPLACES the
+ * climate it sits in; it leans it further).
+ */
+function effectiveLean(scope: Stuff | null, locality: Locality | null): ClimateLean | null {
+  const base = leanOf(locality);
+  const here = positionalLean(scope);
+  if (here === null) return base;
+  const out: ClimateLean = { ...(base ?? {}) };
+  for (const [k, v] of Object.entries(here)) {
+    const t = k as WeatherType;
+    out[t] = (out[t] ?? 1) * (v ?? 1);
+  }
+  return out;
+}
+
 /** Component-wise linear interpolation between two deviation bundles. */
 function lerpDeviation(
   a: WeatherDeviation,
@@ -261,9 +305,12 @@ function lerpDeviation(
  * the current segment's. The reported type is always the current
  * segment's (piecewise-constant).
  */
-function computeSample(nowS: number, locality: Locality | null): WeatherSample {
+function computeSample(
+  nowS: number,
+  locality: Locality | null,
+  lean: ClimateLean | null = leanOf(locality),
+): WeatherSample {
   const seed = localitySeed(locality);
-  const lean = leanOf(locality);
   const seg = segmentIndexAt(nowS);
   const segStart = seg * WEATHER_DEFAULTS.SEGMENT_LENGTH_S;
   const frac = (nowS - segStart) / WEATHER_DEFAULTS.SEGMENT_LENGTH_S;
@@ -630,8 +677,9 @@ function computeResolved(
       cloudForm: cloudFormFor(sample.type, []),
     };
   }
-  const sample = computeSample(nowS, locality);
-  const leaned = hasLean(leanOf(locality));
+  const lean = effectiveLean(scope, locality);
+  const sample = computeSample(nowS, locality, lean);
+  const leaned = hasLean(lean);
   return {
     sample,
     provenance: leaned ? 'climate-leaned' : 'procgen',
@@ -672,6 +720,7 @@ function computeSkyRead(
   resolved: ResolvedWeather,
   locality: Locality | null,
   nowS: number,
+  lean: ClimateLean | null = leanOf(locality),
 ): SkyRead {
   const modelled =
     resolved.provenance === 'procgen' ||
@@ -685,7 +734,6 @@ function computeSkyRead(
     };
   }
   const seed = localitySeed(locality);
-  const lean = leanOf(locality);
   const seg = segmentIndexAt(nowS);
   const n = Math.max(0, Math.floor(dial(AppSettingKeys.weatherSkyForecastSegments, 2)));
   const upcoming: WeatherType[] = [];
@@ -1138,7 +1186,7 @@ export class WeatherLogic extends ApiLogic {
     const dev =
       pin !== null
         ? pinnedDeviation(pin, locality, nowS)
-        : computeSample(nowS, locality).deviation;
+        : computeSample(nowS, locality, effectiveLean(scope, locality)).deviation;
     const base = dev[field] as Quantity<WeatherFieldUnit>;
     if (field !== 'temperature') return base;
     // ⭐⭐ The SOLAR term (envelope D3a) rides beside the type deviation,
@@ -1155,6 +1203,7 @@ export class WeatherLogic extends ApiLogic {
   public async resolveWeatherFor(
     scope: Stuff & Container,
   ): Promise<ResolvedWeather> {
+    await loadExpanseApi();
     const nowS = nowSecondsOrNull();
     if (nowS === null) {
       const sample = baselineSample(0);
@@ -1187,7 +1236,7 @@ export class WeatherLogic extends ApiLogic {
       };
     }
     const locality = await AddressApi.resolveLocalityFor(scope);
-    return computeSkyRead(resolved, locality, nowS);
+    return computeSkyRead(resolved, locality, nowS, effectiveLean(scope, locality));
   }
 
   /** See {@link WeatherApi.cloudFormFor}. Pure. */
@@ -1205,11 +1254,12 @@ export class WeatherLogic extends ApiLogic {
     scope: Stuff & Container,
     segments?: number,
   ): Promise<WeatherForecast> {
+    await loadExpanseApi();
     const locality = await AddressApi.resolveLocalityFor(scope);
     const nowS = WorldClockApi.getNow().rawValue();
     const seed = localitySeed(locality);
-    const lean = leanOf(locality);
-    const current = computeSample(nowS, locality);
+    const lean = effectiveLean(scope, locality);
+    const current = computeSample(nowS, locality, lean);
     const n = Math.max(0, segments ?? WEATHER_DEFAULTS.FORECAST_SEGMENTS);
     const seg = current.segmentIndex;
     const upcoming: WeatherForecastEntry[] = [];
@@ -1227,8 +1277,9 @@ export class WeatherLogic extends ApiLogic {
   /** See {@link WeatherApi.sampleFor}. Async — resolves the locality. */
   @CallSecurity(WeatherApiCallers)
   public async sampleFor(scope: Stuff & Container): Promise<WeatherSample> {
+    await loadExpanseApi();
     const locality = await AddressApi.resolveLocalityFor(scope);
-    return computeSample(WorldClockApi.getNow().rawValue(), locality);
+    return computeSample(WorldClockApi.getNow().rawValue(), locality, effectiveLean(scope, locality));
   }
 
   /** See {@link WeatherApi.precipitationBetween}. */

@@ -10,6 +10,8 @@ import type { Stuff } from '../../stuff/Stuff';
 import { StuffApi } from '../../../api/stuff';
 import { ExpanseApi } from '../../../api/expanse';
 import { makeStuffAtPath } from '../../security/__tests__/test-setup';
+import { WeatherApi } from '../../../api/weather';
+import { MixinApi } from '../../../api/mixin';
 
 /**
  * The frame (maritime A2) over synthetic rows: composition at a position,
@@ -159,5 +161,70 @@ describe('ExpanseApi.craftAt', () => {
     ship.setExpansePosition({ latDeg: 50, lonDeg: -4 });
     expect(await ExpanseApi.craftAt('/test/ship/deck')).toBe(ship);
     expect(await ExpanseApi.craftAt('/test/elsewhere')).toBeNull();
+  });
+});
+
+describe('the weather on the water (maritime R9/R10)', () => {
+  it('⭐ fog shortens sight to a tenth — what a clear day shows, a haar hides', async () => {
+    const ship = makeStuffAtPath(() => new Structure(), '/test/ship/structure');
+    ship.setDeckHeightM(20);
+    ship.setExpansePosition({ latDeg: 50, lonDeg: -4 });
+    const other = makeStuffAtPath(() => new Structure(), '/test/other/structure');
+    other.setHeightM(5);
+    other.setExpansePosition(new GeoPosition(50, -4).destination(90, 10));
+    sea.register(ship);
+    sea.register(other);
+    const room = { stuffId: 'deck' } as unknown as Stuff;
+    const eye = { stuffId: 'eye', getContainer: () => room } as unknown as Stuff;
+    vi.spyOn(MixinApi, 'isContainable').mockImplementation(((x: unknown) => x === eye) as never);
+    vi.spyOn(MixinApi, 'isContainer').mockImplementation(((x: unknown) => x === room) as never);
+    let sky = 'clear';
+    vi.spyOn(WeatherApi, 'skyReadFor').mockImplementation(async () => ({ currentType: sky }) as never);
+    expect((await sea.contactsFrom(ship, eye, 'visual', 1)).some((c) => c.craft === other)).toBe(true);
+    sky = 'fog';
+    expect((await sea.contactsFrom(ship, eye, 'visual', 1)).some((c) => c.craft === other)).toBe(false);
+    // A gun or a lamp is not seen through the fog — it is heard.
+    expect((await sea.contactsFrom(ship, eye, 'signal', 1)).some((c) => c.craft === other)).toBe(true);
+  });
+
+  it('⭐ a crossing reports what CHANGED: a current takes her, lets her go, or nothing', async () => {
+    band('stream', (b) => {
+      b.setExtent({ kind: 'belt', latMinDeg: 49, latMaxDeg: 51 });
+      b.setDirection(45);
+      b.setSetKn(2);
+    });
+    band('slack', (b) => b.setExtent({ kind: 'belt', latMinDeg: 52, latMaxDeg: 53 }));
+    const outside = new GeoPosition(48, 0);
+    const inside = new GeoPosition(50, 0);
+    const slack = new GeoPosition(52.5, 0);
+    expect(await sea.changesAcross(outside, inside, null)).toEqual(['A current takes her, setting north-east.']);
+    expect(await sea.changesAcross(inside, outside, null)).toEqual(['The current lets her go.']);
+    expect(await sea.changesAcross(outside, slack, null)).toEqual([]);
+  });
+
+  it('⭐ the lean under a craft is the narrowest band\'s — and a cold sea leans nothing', async () => {
+    const ship = makeStuffAtPath(() => new Structure(), '/test/ship/structure');
+    live.set('/test/ship/structure', ship);
+    ship.setExtent('/test/ship');
+    ship.setExpanse(SEA);
+    ship.setExpansePosition({ latDeg: 50, lonDeg: -4 });
+    band('haar', (b) => {
+      b.setExtent({ kind: 'belt', latMinDeg: 49, latMaxDeg: 51 });
+      b.setWeatherLean({ fog: 8 });
+    });
+    const { default: StructureCatalogue } = await import('../../../platform/idea/StructureCatalogue');
+    const cat = makeStuffAtPath(() => new StructureCatalogue(), '/platform/idea/StructureCatalogue');
+    live.set('/platform/idea/StructureCatalogue', cat);
+    vi.spyOn(Template, 'findByClass').mockResolvedValue([
+      { path: '/test/ship/structure', data: { extent: '/test/ship' } },
+    ] as unknown as Template[]);
+    vi.spyOn(StuffApi, 'findByTemplatePath').mockImplementation(((p: string) => live.get(p) ?? null) as never);
+    expect(ExpanseApi.leanAtSync('/test/ship/deck')).toBeNull(); // cold: nothing stood up
+    await cat.all();
+    expect(ExpanseApi.leanAtSync('/test/ship/deck')).toBeNull(); // the bands are not compiled yet
+    await sea.bands();
+    expect(ExpanseApi.leanAtSync('/test/ship/deck')).toEqual({ fog: 8 });
+    expect(ExpanseApi.leanAtSync('/test/elsewhere')).toBeNull();
+    expect(() => band('bad', (b) => b.setWeatherLean({ fog: -1 }))).toThrow(/non-negative/);
   });
 });

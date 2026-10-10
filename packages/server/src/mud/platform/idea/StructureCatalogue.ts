@@ -69,6 +69,20 @@ export default class StructureCatalogue extends Idea {
     });
   }
 
+  /**
+   * The standing Structure a place belongs to (longest extent) —
+   * SYNCHRONOUS over the warm set, `null` before the first `all()`. What
+   * the weather's positional lean reads.
+   */
+  public peekStructureOf(locationPath: string): Structure | null {
+    let best: Structure | null = null;
+    for (const s of this.standing) {
+      if (s.isDestroyed() || !s.hasMember(locationPath)) continue;
+      if (best === null || s.getExtent().length > best.getExtent().length) best = s;
+    }
+    return best;
+  }
+
   /** The row at `path`, or `null`. */
   public async rowOf(path: string): Promise<StructureRow | null> {
     return (await this.all()).find((r) => r.path === path) ?? null;

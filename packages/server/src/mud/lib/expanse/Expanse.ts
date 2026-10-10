@@ -174,14 +174,49 @@ export abstract class Expanse extends SingletonMixin(SpatialZone) {
   /* ───────────────────────── what the medium says ───────────────────────── */
 
   /**
-   * The water (or the sand, or the ice) at `pos`, in words — what a
-   * boundary crossing reports and what the deck reads. Never a position:
-   * *the field alone is evidence*. The frame has no medium to describe and
-   * answers nothing; a medium tier derives it (the sea state). ⛔ No band
-   * authors prose (maritime R9).
+   * ⭐ **What CHANGED across a boundary** (maritime R9) — the field just
+   * before it against the field just after, in words, and nothing when
+   * nothing perceptible changed. Never a position and never authored:
+   * *the field alone is evidence*, and a band carries no prose to read.
+   *
+   * The frame knows the set (a current taking her, letting her go,
+   * swinging); a medium tier adds what its medium makes perceptible (the
+   * sea getting up, the water shoaling) and chains `super`.
+   *
+   * @hook Invoked by the voyage for each crossing, in order.
    */
-  public async readAt(_pos: GeoPosition, _scope: Stuff | null): Promise<string> {
-    return '';
+  public async changesAcross(
+    before: GeoPosition,
+    after: GeoPosition,
+    _scope: Stuff | null,
+  ): Promise<string[]> {
+    const was = (await this.fieldAt(before)).band;
+    const now = (await this.fieldAt(after)).band;
+    const kn = (b: Band | null): number => b?.getSetKn() ?? 0;
+    const felt = numSetting('expanse.setFeltKn', 0.3);
+    if (kn(was) < felt && kn(now) >= felt) {
+      return [`A current takes her, setting ${compassWord(now!.getDirection())}.`];
+    }
+    if (kn(was) >= felt && kn(now) < felt) return ['The current lets her go.'];
+    if (kn(was) >= felt && kn(now) >= felt) {
+      const swing = Math.abs((((now!.getDirection() - was!.getDirection()) % 360) + 540) % 360 - 180);
+      if (swing > 45) return [`The set swings ${compassWord(now!.getDirection())}.`];
+    }
+    return [];
+  }
+
+  /**
+   * The narrowest band at `pos` among those compiled so far — SYNCHRONOUS,
+   * and `null` until the first async read has loaded them. What the
+   * weather's positional lean reads (it cannot wait).
+   */
+  public peekNarrowestAt(pos: GeoPosition): Band | null {
+    let best: Band | null = null;
+    for (const b of this.loadedBands) {
+      if (!b.contains(pos)) continue;
+      if (best === null || b.area() < best.area()) best = b;
+    }
+    return best;
   }
 
   /**
@@ -329,8 +364,11 @@ export abstract class Expanse extends SingletonMixin(SpatialZone) {
     if (here === null) return [];
     const eye = from.sightHeightFor(observer);
     const signalNm = numSetting('expanse.signalRangeNm', 12);
+    // ⭐ The weather shortens sight (maritime R10): fog to a tenth, rain
+    // to a little over half. A signal is a gun or a lamp — unaffected.
+    const seeing = channel === 'visual' ? await visibilityFor(observer) : 1;
     const rangeFor = (targetM: number): number =>
-      channel === 'signal' ? signalNm : this.sightRangeNm(eye, targetM);
+      channel === 'signal' ? signalNm : this.sightRangeNm(eye, targetM) * seeing;
 
     const out: Contact[] = [];
     const seen = new Set<string>();
@@ -436,5 +474,43 @@ export abstract class Expanse extends SingletonMixin(SpatialZone) {
     this.loadedNodes = nodes;
     await this.loadStructures();
     return { nodes, bands };
+  }
+}
+
+const COMPASS_WORDS = [
+  'north', 'north-east', 'east', 'south-east', 'south', 'south-west', 'west', 'north-west',
+] as const;
+
+/** `setting north-east` — a direction the way the water goes. */
+function compassWord(deg: number): string {
+  return COMPASS_WORDS[Math.round((((deg % 360) + 360) % 360) / 45) % 8]!;
+}
+
+/** How far a weather lets you see, as a fraction of a clear day's range. */
+const VISIBILITY: Record<string, number> = {
+  clear: 1,
+  overcast: 1,
+  rain: 0.6,
+  snow: 0.4,
+  storm: 0.3,
+  fog: 0.1,
+};
+
+/**
+ * The weather's factor on `observer`'s sight: the sky over the room they
+ * stand in (`expanse.visibility.<type>` retunes the table). `1` when no
+ * sky can be read.
+ */
+async function visibilityFor(observer: Stuff): Promise<number> {
+  const room = MixinApi.isContainable(observer) ? observer.getContainer() : null;
+  if (!room || !MixinApi.isContainer(room)) return 1;
+  try {
+    // ⚠ Deferred: the weather's graph reaches back into this module (the
+    // positional lean), and a static import would close the cycle.
+    const { WeatherApi } = await import('../../api/weather');
+    const type = (await WeatherApi.skyReadFor(room)).currentType;
+    return numSetting(`expanse.visibility.${type}`, VISIBILITY[type] ?? 1);
+  } catch {
+    return 1;
   }
 }
