@@ -113,10 +113,11 @@ content puts something on it."*
 3. ⚠ **A prop contributes nothing to its room's prose** — named as a
    defect by the fishing build and still true, which is why a shore, a
    reach's character and a landmark all have nowhere to speak.
-4. ⚠ **There is no navigation Discipline.** Seventy-two exist and none
-   of them is navigation, pilotage or seamanship; `teamstering` is the
-   land-haulage one. A `Reading` row must declare a `discipline:`, so
-   the rows force the question.
+4. ⚠ **There is no navigation Discipline.** **Seventy-seven** rows exist
+   and **not one** mentions navigation, seamanship, pilotage or sailing;
+   `teamstering` is the land-haulage one. A `Reading` row must declare a
+   `discipline:`, so the rows force the question — answered under
+   *Surface decisions*.
 
 ---
 
@@ -355,10 +356,10 @@ word regardless. ⛔ Not `set course`: `set` is the settings verb.
 
 ### Two new `Reading` rows, and no verbs at all
 
-| channel | the act | instrument | notes |
-|---|---|---|---|
-| **`depth`** | `measure depth` | a lead line | ⚠ Free — `dip` is mining's seam angle and `elevation` is the land's. This is the sounding, and it is why the column cannot be deferred |
-| **`latitude`** | `measure latitude` | a sextant | ⭐ The noon sight. `altitude` already exists and means *your own height, by altimeter* — a different question |
+| channel | the act | instrument | discipline | notes |
+|---|---|---|---|---|
+| **`depth`** | `measure depth` | a lead line | `navigation` | ⚠ Free — `dip` is mining's seam angle and `elevation` is the land's. This is the sounding, and it is why the column cannot be deferred |
+| **`latitude`** | `measure latitude` | a sextant | `navigation` | ⭐ The noon sight. `altitude` already exists and means *your own height, by altimeter* — a different question |
 
 ⭐ **The weather denial is free.** `sky` already ships with no instrument
 and an `expert` eye ceiling, so overcast refuses the sight in the sky's
@@ -587,6 +588,95 @@ hypothesis that states its evidence. The chart, the reckoning, the
 uncertainty and the edges turn out to be one mechanism, and none of it
 needed inventing.
 
+### ⭐⭐⭐ `navigation` is a Discipline; the river pilot is NOT
+
+**The question.** The two reading rows must each declare a
+`discipline:` and there is no navigational one. What gets added?
+
+**The test**, from the catalogue's own rule: *"A Discipline is a FIELD OF
+STUDY, not a JOB TITLE. If you cannot anchor it to a real ISCED-F code,
+it is not a Discipline — it is a position, and positions live on a
+Business roster."*
+
+**The answer.** Run it over the slate's two halves and they land on **two
+different mechanisms**:
+
+| | | |
+|---|---|---|
+| **the deep-sea navigator** | *"mathematics and an instrument"* | ⭐ **a Discipline.** A real field of study — arithmetic, tables, an observation. Teachable and transferable, and *replaced by better clocks*, which is what a field of study does |
+| **the bar or river pilot** | *"local and unteachable — a channel that moves with the freshet and that nobody wrote down"* | ⭐⭐⭐ **not a Discipline — CLAIMS.** A Discipline is a field of *study*, and this explicitly is not studied. It is knowledge of one water, which the claim store already models |
+
+⭐⭐ **And that pays for itself twice.** *Hiring somebody who knows the
+water* needs no employment system, because **you are buying claims** —
+which is also why they can be sold, and why they can be **wrong.** And
+the pilot's progression is **their map growing**, which is better than a
+band because it is specific: they know the Kestrel, not rivers.
+⭐ It makes the unteachability mechanical rather than asserted — you
+cannot study your way to knowing a channel, you have to go there, which
+is `uncertainty.md`'s abstraction law holding (*an abstraction is
+legitimate while it still costs somebody the activity*).
+
+⭐ It also explains the epoch asymmetry the slate noticed with no rule
+added: the navigator is replaced by better instruments **because a field
+of study can be**; the pilot never is, because the channel keeps moving
+and no instrument records it.
+
+### The `navigation` row
+
+```yaml
+class: /platform/idea/Discipline
+data:
+  key: navigation
+  channel: skill
+  label: Navigation
+  iscedf: "1041"  # ISCED-F 2013: transport services
+  description: >-
+    Reckoning a position from heading, speed and time; the sight, the
+    sounding and the landfall that correct it. Knowing how wrong you
+    probably are, and what it would cost to be sure.
+  requires: []
+```
+
+⭐ **A sibling of `teamstering`, sharing the code**, which is explicitly
+blessed: *"sharing an ISCED-F code does not argue against a split. A
+shared code means the same field; it does not mean the same practice"* —
+and `guarding`/`stealth` at 1032 is the shipped pair, *"the same field
+studied from opposite ends."*
+
+⛔ **Not `pilotage`** — by the slate's own analysis that is the ambiguous
+word two trades share. ⛔ **Not `seamanship`**, which is ship-handling
+and too broad. And a *navigator* is a **position on a roster**, which is
+the job-title half of the test falling on the right side.
+
+### What competence buys, and what it must never buy
+
+`teamstering`'s rule is the standing one and it is blunt: ⭐ ***competence
+buys information, not outcomes***, with ⚠⚠ *"no conferral makes the same
+act better — asserted in the suite, because it is the one thing that
+would quietly turn a discipline into a stat."*
+
+**Information:**
+
+- the **bracket on a sight** is narrower — never refused, because
+  *competence resolves DETAIL and never ACCESS*;
+- ⭐ a **sounding reports what the bottom is**, not only how deep. The
+  armed lead brought up sand or shell, and that is how you knew where you
+  were — real technique, and information *before* you commit;
+- the **reckoning carries a better allowance for the set of the
+  current**. ⚠ Precisely: competence does not reduce the world's drift,
+  only your estimate of it. The water does what the water does.
+
+⛔ **No capability rung, deliberately.** Teamstering's second half is
+*bigger rigs* — a different act, not the same act done better — and the
+honest analogue here is handling a larger vessel, which is the vessel
+build's. So `navigation` **grades and gates nothing**, like `stealth`
+(*"no conferrals: competence only grades"*). ⭐ Which satisfies *"band 0
+must be able to earn"* in the strongest available way: a novice sets any
+course anywhere, crosses badly, and the only way to get better is to go.
+
+**What earns it:** taking sights, taking soundings, and ⭐ **arriving
+where you said you would** — a deed with a verifiable condition.
+
 ### The knowledge layer is the shipped claim store, with one new channel
 
 **The question.** Does an unrevealed sea graph need its own knowledge
@@ -671,8 +761,10 @@ author's to change.
 everything is derivable and nearly all of it is real: dead reckoning is
 heading × speed × time, the horizon is `1.17√h`, a noon sight gives
 latitude and withholds longitude, and longitude needs a clock that keeps
-time at sea. ⭐⭐ The **dominant** Discipline would be navigation — and
-there isn't one. See *Open questions*.
+time at sea. ⭐⭐ The **dominant** Discipline is `navigation`, added by this build —
+and ⭐ its *other* half deliberately is not a Discipline at all, because
+a channel nobody wrote down is not a field of study. See *Surface
+decisions*.
 
 **2. Creative expression ⭐⭐ — and the edges are what lifted it.** The
 ordinary case needs no code: a sea is a row, with nodes and edges as
@@ -741,37 +833,40 @@ Against the running game, before the MR opens.
    the uncertainty collapse.
 7. ⭐ **`measure latitude` and get a latitude and nothing else**, then
    **have the weather deny the sight** and say so in the sky's own terms.
-8. **Cross into a band mid-passage** and have the water change without
+8. ⭐ **Take the same sight as a novice and as a practised hand**, and
+   get the **same answer with a different bracket** — never a refusal.
+   Then **`competence`** and see `navigation` on the transcript.
+9. **Cross into a band mid-passage** and have the water change without
    anybody announcing it. ⭐ Then **alter course to lie along it**, hold
    it for a watch, and **drift out** — and be able to tell that you did.
-9. **Hold a straight course across the same water instead**, crossing
-   the band and out the other side, and have the two passages differ in
-   a way the band explains.
-10. ⭐ **Veer off course without taking a fix**, and learn it from the
+10. **Hold a straight course across the same water instead**, crossing
+    the band and out the other side, and have the two passages differ in
+    a way the band explains.
+11. ⭐ **Veer off course without taking a fix**, and learn it from the
     field alone — the water is not what it should be here.
-11. **`anchor` away from any node**, get a described place that nobody
+12. **`anchor` away from any node**, get a described place that nobody
     authored, and **fish it**.
-12. **`journey` to a node and be refused honestly**, with the refusal
+13. **`journey` to a node and be refused honestly**, with the refusal
     naming `course`.
-13. **`read` a chart you were given, then `map`**, and see the charted
+14. **`read` a chart you were given, then `map`**, and see the charted
     claims appear alongside what you walked and saw — **marked as
     bought.**
-14. **`read` a chart that is wrong**, act on it, and find the water does
+15. **`read` a chart that is wrong**, act on it, and find the water does
     not agree. ⭐ The claim is **still there afterwards.**
-15. **See another craft at a distance**, and have a second observer at a
+16. **See another craft at a distance**, and have a second observer at a
     different height **not** see it. Then **`hail` it**.
-16. ⭐ **`appoint` somebody lookout** and see further than you did a
+17. ⭐ **`appoint` somebody lookout** and see further than you did a
     moment ago, with nothing about the craft having changed.
-17. **Pass the same lane twice at the same hour on different days** and
+18. **Pass the same lane twice at the same hour on different days** and
     meet the same traffic. **Re-enter and gain nothing.**
-18. **Log out mid-crossing and log back in.** You are on the craft, the
+19. **Log out mid-crossing and log back in.** You are on the craft, the
     craft has moved, and the course is still set.
-19. **Stand on a headland** and see the whole of the bay it overlooks.
-20. ⭐⭐ **Read a landmark from three different zones**, described once,
+20. **Stand on a headland** and see the whole of the bay it overlooks.
+21. ⭐⭐ **Read a landmark from three different zones**, described once,
     and from a fourth place see nothing because an author said so.
-21. **Approach a coast from open water** and take a fix off a tall thing
+22. **Approach a coast from open water** and take a fix off a tall thing
     ashore, at a range its height decides.
-22. **Look at a building from the street** and get a sentence nobody
+23. **Look at a building from the street** and get a sentence nobody
     wrote into that street.
 
 ---
@@ -809,46 +904,57 @@ Against the running game, before the MR opens.
 12. ⭐ A **sight yields latitude only.** Longitude is not obtainable by
     any means this build ships, and the refusal says what would be
     needed.
-13. Being lost **always has a way out** that is an action, not a wait.
-14. ⭐ The crossing is a **sustained** engagement with no completion
+13. A **`navigation` Discipline exists**, anchored to a named ISCED-F
+    code with its meaning written beside it, and both reading rows
+    declare it.
+14. ⛔ **Competence gates nothing and improves no outcome.** A band-0
+    navigator can set any course anywhere; no competence makes the same
+    craft faster or the world's drift smaller. What it changes is the
+    **bracket on a sight**, **what a sounding reports about the bottom**,
+    and **the allowance carried in the reckoning**.
+15. ⭐ **The pilot's knowledge is CLAIMS, not competence.** Hiring
+    somebody who knows the water yields claims about that water —
+    purchasable, specific to it, and able to be **wrong**.
+16. Being lost **always has a way out** that is an action, not a wait.
+17. ⭐ The crossing is a **sustained** engagement with no completion
     time: arrival is detected, never scheduled, and a course with no
     node ahead of it is legal.
-15. ⭐ The voyage's state is **the position, the course and when it was
+18. ⭐ The voyage's state is **the position, the course and when it was
     set** — nothing else — and the engagement is **re-established at
     boot** from those.
-16. The beat is the **watch**, and the manning of a watch is what the
+19. The beat is the **watch**, and the manning of a watch is what the
     degradation reads.
-17. The crossing is held by the **craft**: logging out does not abort it,
+20. The crossing is held by the **craft**: logging out does not abort it,
     the craft's position **survives a restart**, and the player is on it
     when they return. ⛔ **Nobody dies while logged out.**
-18. An **unattended** passage degrades, and the degradation is
+21. An **unattended** passage degrades, and the degradation is
     **derivable from a seeded field** — ⛔ nothing is rolled.
-19. Mutual presence on open water is decided by **sight distance from eye
+22. Mutual presence on open water is decided by **sight distance from eye
     height**, per observer, and **a second channel with a different range
     is expressible** without reopening the model — demonstrated by
     `hail`.
-20. A **lookout is a seat somebody occupies**, and the sight advantage
+23. A **lookout is a seat somebody occupies**, and the sight advantage
     follows the occupancy, not the craft.
-21. Traffic on open water is **seeded**: the same at the same place and
+24. Traffic on open water is **seeded**: the same at the same place and
     time for every observer, and unfarmable by re-entry.
-22. A **chart is procured and read**, writes **`bought`** claims, and
+25. A **chart is procured and read**, writes **`bought`** claims, and
     ⭐ a chart that is wrong **stays** wrong — the claim is never
     corrected or removed.
-23. ⛔ **No expanse topology ever reaches a client** except as the
+26. ⛔ **No expanse topology ever reaches a client** except as the
     player's own claims.
-24. A **vantage** is authored, names what it overlooks, and is believed.
-25. A **landmark** is described once on the thing itself and read from
+27. A **vantage** is authored, names what it overlooks, and is believed.
+28. A **landmark** is described once on the thing itself and read from
     every place an author says can see it — ⭐ including, at sea, from a
     range its **height** decides.
-26. Something says **these rooms are one building**, coordinates them
+29. Something says **these rooms are one building**, coordinates them
     without containing them, owns the outside description and the way
     in, and is **sparse** — and **its position is a field that can
     change.**
-27. A cited or placed thing can **contribute to its room's prose.**
-28. ⛔ Every land claim about what can be seen is **authored**. The
+30. A cited or placed thing can **contribute to its room's prose.**
+31. ⛔ Every land claim about what can be seen is **authored**. The
     engine computes a sight range **only** where nothing can be in the
     way.
-29. A position carries a **depth**, every reader of it works at depth
+32. A position carries a **depth**, every reader of it works at depth
     zero, and ⛔ **no mechanism in this build gives depth a second
     value.**
 
@@ -856,30 +962,23 @@ Against the running game, before the MR opens.
 
 ## Open questions
 
-1. ⚑⚑ **The navigation Discipline.** Seventy-two exist and none is
-   navigation, pilotage or seamanship. A `Reading` row must declare a
-   `discipline:`, so `depth` and `latitude` force it: either they hang on
-   `awareness` (as `altitude` does) or this build adds one. ⚠ And the
-   instrumentation law constrains the answer either way — **competence
-   resolves DETAIL and never ACCESS**, so a novice's fix is vaguer and
-   never refused.
-2. ⚑⚑ **Sea state.** What makes an edge dangerous, and the boundary of
+1. ⚑⚑ **Sea state.** What makes an edge dangerous, and the boundary of
    *"this build reads the weather and edits neither."* Derived from wind,
    almost certainly in scope, and currently unwritten.
-3. ⚑⚑ **Must every band run between two nodes?** A current does. ⚠ But a
+2. ⚑⚑ **Must every band run between two nodes?** A current does. ⚠ But a
    belt — the doldrums, a latitude of fog — connects nothing; it simply
    lies across everything. If free-standing bands are legal then *edge*
    is the wrong word for them, and the authored shape is **a band that
    MAY have endpoints.**
-4. ⚑ **The logbook.** § 7h: *"the logbook is what proves the
+3. ⚑ **The logbook.** § 7h: *"the logbook is what proves the
    depletion."* A durable record rather than verb surface, and
    `chronicle` is append-only and already exists — but it is the one
    piece of the UX with no home yet.
-5. ⚑ **The place↔bulk line.** Nothing says where water stops being a
+4. ⚑ **The place↔bulk line.** Nothing says where water stops being a
    place and starts being a container's contents — a puddle, a bath, a
    trough, a cistern, a pond, a lake. ⚠ The *"can you be in it"* test
    **breaks cleanly on a bath.**
-6. ⚑ **Reversing flow / the tidal bore.** A real expressive loss, and in
+5. ⚑ **Reversing flow / the tidal bore.** A real expressive loss, and in
    neither this build's nor the climate build's collision table.
 
 ---
