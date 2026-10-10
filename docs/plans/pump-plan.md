@@ -792,6 +792,11 @@ reports a bracket containing 10.33; a pushing pump reports no depth.
 passes its `pump forge` checkpoint; `lint:family` green.
 **Commit:** `build(pump W1): one pump verb — the bellows implements it, and analyze pump reads the packing`.
 
+> ✅ **Done — `91b98d19b`.** `PumpController.test` (7, AC 10 pinned — the
+> controller had no test before) and `PumpReading.test` (3). `lint:census`
+> now reads `mechanism`/`suppliedBy`. The two pump rows moved to W2's
+> commit, because `lint:reachability` refuses a row nothing props.
+
 ### W2 — the village: Rejection, tanning, and the drive is born (D4, D8, D12)
 
 **Files.**
@@ -841,6 +846,23 @@ passes its `pump forge` checkpoint; `lint:family` green.
 WIRE_PORT=2013`); `lint:reachability` and `lint:capabilities` green.
 **Commit:** `build(pump W2): the village well — a hand pump on it, a force pump on the rack, and leather that wears`.
 
+> ✅ **Done — `3458d515a`, then `ebbad1418` (what driving found).**
+> - **B6 — a commons row may name a trade's row** (`hand-pump` →
+>   `/trade/tanning/thing/packing`): the shipped `urn.yaml` →
+>   `/trade/cooking` precedent. ⚠ Naming a trade's CLASS is different: the
+>   installer refuses it without a `package.json` dependency (W3 hit it).
+> - **B7 — the deep well is on the HILLSIDE** (above the yard: higher
+>   ground, deeper water), not the far fringe (a mine working).
+> - **B8 — a pail is propped by the village well**: the store stocks pails
+>   and its till cannot take money.
+> - Driving found: ⚠⚠⚠ **the pail could not hold water** (`closure: open`
+>   is *not liquid-tight* on the ladder — every fill `drained`; pre-existing
+>   since the fire build); `pump village well` fell through the shape (→
+>   `greedy: true`); the well's `pump` keyword stole `look pump`; the force
+>   pump was too heavy to lift (55 → 30 kg); and re-packing means PULLING
+>   the pump — `get` reaches one container deep, so Risk 10 resolves as a
+>   procedure, not a defect. MQL's `from` is not containment (`pump:i:packing`).
+
 ### W3 — the bore (D5, D13, D14)
 
 **Files.**
@@ -876,6 +898,23 @@ WIRE_PORT=2013`); `lint:reachability` and `lint:capabilities` green.
 **Acceptance.** `trade-drilling`'s own vitest + `drilling.dirty.wire`
 unchanged; suite 7 passes.
 **Commit:** `build(pump W3): a lift on the bore — Wellhead answers LiftSource, and an abandoned brine hole at the spring`.
+
+> ✅ **Done — `743eff91d`.** Wellhead.test +7 (drilling 87/87).
+> - **B9 — the bore is at the spring hollow** and stands in about a metre of
+>   the leg: an hour of seepage is ~3 L. The drive proves the capability
+>   (bail 3 L from 25 m — AC 11; fit the force pump; brine comes up, and
+>   again an hour on); the RATE comparison (AC 6) is arithmetic pinned in
+>   `Wellhead.test` — a crew at the pump earns 30 L in two minutes, a
+>   bailer's best is 12 L a trip and 0 asleep.
+> - **B10 — no powered-pump credit on a wellhead.** D14 asked for one; no
+>   content ships a powered pump on a bore, and its integral would be a
+>   consumer nobody asked for.
+> - **B11 — the force pump's throughput is 0.5 L/s** (was 0.4) so it beats
+>   the bailer's 0.4 L/s strictly.
+> - ⚠ `bore` at the old hole refuses `untitled` before it can refuse
+>   `wants-bailing`, so AC 7 stays proven by `drilling.dirty.wire` (re-run,
+>   § Drive record).
+> - Rejection now depends on trade-drilling (it names drilling's class).
 
 ### W4 — the city: the intake draws, and a tap notices (D10, D11)
 
@@ -917,6 +956,25 @@ unchanged; suite 7 passes.
 13 pass.
 **Commit:** `build(pump W4): the city intake costs a watt — ElectricPump, the conduit delivers what its pump can, and the market standpipe reads the main`.
 
+> ✅ **Done — `fd7e66360`.** water 158, energy 39, terminus 159.
+> - ⚠⚠ **Found by driving: `Conduit.resolveHead` had no production
+>   caller** — every live conduit's head was "never surveyed", so the
+>   intake did not know it needed a pump and no tap could ever go off.
+>   `readingFor` resolves it on read; a sync tap read treats a FITTED pump
+>   as evidence the main is pumped while the head is unknown.
+> - **B12 — a power shortfall is not a supply failure.** The overdrawn
+>   intake still DELIVERS (0.73 of 1.2 m³/s), so it reports no state and
+>   dries no tap; the report says it plainly instead (the legibility
+>   obligation the requirements attached to the overdraw).
+> - **B13 — the bank's `aqueduct` detail is removed** (it shadowed the
+>   aqueduct standing there: `analyze water aqueduct` read the BANK), and
+>   the aqueduct house answers to its printed name, not the bare word.
+> - **B14 — the pump answers `throughputNow`** (the mill's `analyze power`
+>   duck), or a running pump read *"it will not turn"*.
+> - Recorded, not fixed: the Cold Fell aqueduct row never sets `on: true`
+>   (reports *shut off*); the Hinkley `StorageNode` answers no
+>   `supplyReport`. Neither row is in this build; both are watershed's.
+
 ### W5 — docs, slates, and the drive record
 
 - `docs/subsystems/pump.md` (new): the two families, the mechanism row,
@@ -945,6 +1003,12 @@ unchanged; suite 7 passes.
   owned world, with the output and the count.
 
 **Commit:** `docs(pump): pump.md, the seven subsystem updates, and the slates the build seeds` then `drive(pump): <what driving found>`.
+
+> ✅ **Done.** `pump.md`; notes in watershed, drilling, energy, biome, bulk,
+> fire, exertion, instrumentation; pump-slate status + Left; drilling-slate's
+> duplicate section cut to a pointer; steam-engine's coupling settled;
+> inquiry seeded with the suction limit. The `CLAUDE.md` map line is left to
+> the sweep (an index file).
 
 ---
 

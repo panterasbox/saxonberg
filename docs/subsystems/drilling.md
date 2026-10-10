@@ -427,3 +427,16 @@ see the slate's tail.
 - [fire.md](./fire.md) — the burner, and the coupled fuel vessel
 - [employment.md](./employment.md) — the roster, the wage, and ⭐ the KERNEL's `appoint` (alias `hire`) / `dismiss`, which this trade deliberately ships none of its own version of
 - [activity.md](./activity.md) — why a bore may not be an engagement
+
+## The pump build (2026-10-09) — the attach point, consumed
+
+The wellhead's `liftL()` *"is the pump build's entire attach point"* — and
+the pump attached there. `Wellhead` answers `LiftSource` (the hole's depth,
+the body's fluid, the sump) and `PumpSource` (one pump, set in it by `put`,
+vetoing everything else); it affords `pump`. `liftInto` is bounded by the
+sump and the trough; `lift()` — the bailer — is unchanged and asks no
+pressure: a bucket has no ceiling at any depth. A crew at a fitted pump
+earns a continuous rate in `reconcileRig`, only where the pump's own law
+lets it lift. `bodyKey` is **authorable** now: Rejection ships an old brine
+bore at the spring (25 m, the salt leg's rim) — a venue asserting a history.
+See [pump.md](./pump.md).

@@ -94,6 +94,14 @@ had six consumers. Before this build designs a temperature, read
 
 ## ⭐⭐⭐ The real substrate is the coupling, not the boiler
 
+> ⭐ **Settled by the pump build (2026-10-09): a prime mover is a `Powered`
+> implementer, and the pump is its first mechanical consumer.** The kernel
+> pump reads `availablePowerW` / `poweredTrajectory` structurally and
+> delivers `min(throughput, P·η/(ρ·g·h))`; `ElectricPump` is the grid's
+> implementer. An engine is a second one, in its own pack, and nothing in
+> the kernel moves. See [pump.md](../../subsystems/pump.md).
+
+
 A boiler is four numbers and some prose. **Shaft work is a hole in the
 model**, and the pump build's survey is what exposed it:
 

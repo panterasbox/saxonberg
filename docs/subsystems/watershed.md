@@ -1213,3 +1213,26 @@ this build does not touch. And `wiki-spoiler-fields.snapshot` walks only
 the kernel tree, so a capability pack's `authorable` fields are still
 invisible to acceptance 28's reveal audit — the same blind spot
 `check-world-scan` had until this build widened it.
+
+## The pump build (2026-10-09)
+
+- ⚠⚠ **`Conduit.resolveHead` had no production caller**, so every live
+  conduit's head read *"never surveyed"* — the aqueduct could not say it
+  runs on gravity and the intake could not say it needs a pump. `readingFor`
+  now resolves it on read (the async path, catalogue in hand) and it persists.
+- A pumped conduit **holds its pump** (`Staged` + `Container`, pumps only).
+  The pump is a thing — `/system/energy/thing/ElectricPump` — and the water
+  pack still ships no mover and no verb. `readingFor` delivers what the pump
+  lifts; `pumpWattsFor` reads through the fitted pump; `supplyReport` makes
+  a power shortfall legible (the intake's deliberate overdraw).
+- `SupplyServing.supplyStateNow()` — the SYNC subset of the six words, read
+  by a tap: cut · a closed valve · a pumped main whose pump is not running
+  (→ `off`). With the head still unknown, a FITTED pump is taken as evidence
+  the main is pumped.
+- `WaterFixture.suppliedBy` plumbs a tap to a main; the market standpipe is
+  the first. `dry`/`frozen`/`fouled` are not read at a tap (they need the
+  river). See [pump.md](./pump.md).
+- ⚠ Two findings left for this subsystem: the Cold Fell aqueduct row never
+  sets `on: true`, so it reports *NOT delivering — shut off*; and the Hinkley
+  `StorageNode` answers no `supplyReport` (`analyze water tank` → *carries no
+  water anywhere*). Neither row is in the pump build's diff.
