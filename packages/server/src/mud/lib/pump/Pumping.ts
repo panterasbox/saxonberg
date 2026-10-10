@@ -334,7 +334,7 @@ export function PumpingMixin<TBase extends MixinConstructor>(Base: TBase) {
         return {
           kind: 'refusal',
           reason: 'not-set',
-          prose: Mml.compose`${Mml.thing(self)} is not set in anything — it would only pump air.`,
+          prose: Mml.compose`There is nothing under ${Mml.thing(self)} — it is not set in anything, and would only pump air.`,
         };
       }
       const source = this.liftSource();
@@ -342,7 +342,7 @@ export function PumpingMixin<TBase extends MixinConstructor>(Base: TBase) {
         return {
           kind: 'refusal',
           reason: 'not-a-lift',
-          prose: Mml.compose`${Mml.thing(self)} is machinery here, not something you work by hand.`,
+          prose: Mml.compose`You cannot work ${Mml.thing(self)} by hand — here it is machinery.`,
         };
       }
       if (this.packingFitted() === null) {
@@ -384,7 +384,7 @@ export function PumpingMixin<TBase extends MixinConstructor>(Base: TBase) {
         return {
           kind: 'refusal',
           reason: 'trough-full',
-          prose: Mml.compose`${Mml.thing(source)} is full to the lip already.`,
+          prose: Mml.compose`The trough at ${Mml.thing(source)} is full to the lip already.`,
         };
       }
       const token: StrokeToken = { litres: this.throughputLps * this.strokeS };

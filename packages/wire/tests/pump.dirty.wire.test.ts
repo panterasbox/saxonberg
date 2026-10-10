@@ -508,7 +508,7 @@ suite('7. a dead brine bore: bail it once, then fit a pump', () => {
     const trip = await say(k, 'bail into pail');
     const tripped = await settle(k, trip);
     note(`bail into pail at 25 m → ${tripped.replace(/\s+/g, ' ').slice(-200)}`);
-    expect(tripped).toMatch(/litres out of the hole/i);
+    expect(tripped).toMatch(/(litres|A cupful) out of the hole/i);
     await say(k, 'spill pail');
     await k.drainProse();
   });

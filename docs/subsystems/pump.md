@@ -78,8 +78,7 @@ any` (a furnace, a well and a wellhead share no mixin; an alternation
 would delete a check), `greedy: true` (*"pump village well"* fell through
 the shape without it — found by driving). `PumpController` narrows:
 protocol → work it; pump source → the pump set in it, or *"Nothing is set
-in the well to work."*; anything else → *"The chair has nothing to
-pump."* A spell is an engagement on the hands with `effortW` derived from
+in the well to work."*; anything else → *"There is nothing to pump on the chair."* A spell is an engagement on the hands with `effortW` derived from
 the work (`ρ·g·h·Q/η_pump`, over the shipped `exertion.efficiency`,
 floored by `pump.handFloorW`) — the body pays at completion.
 

@@ -9,9 +9,11 @@
 # The trough starts EMPTY on purpose: before anybody has pumped, there is
 # nothing to fill a bucket from, and the well says so.
 #
-# ⚠ No numbers in the prose. A person standing here sees a handle, a
-# barrel and a trough, and the leather is something you learn about when
-# it goes.
+# ⚠ No numbers in the prose. And ⚠⚠ the prose does NOT describe the pump:
+# the pump is a thing that can be taken out (and was, in a live browser
+# walk, which left a well still describing "a cast-iron pump bolted to a
+# post" with nothing in it). The pump describes itself, and `look` lists
+# what is in the well.
 class: /platform/thing/Well
 data:
   # ⚠ Not `pump`: the hand pump set in it answers to that, and a well that
@@ -21,9 +23,8 @@ data:
   register: definite
   longDescription: >-
     A ring of dressed slate knee-high round a dark shaft, with a stone
-    trough set against it and a cast-iron pump bolted to a post over the
-    hole. Its handle is worn bright where the hands go. The mud around the
-    trough never quite dries.
+    trough set against it and a stout post over the hole, bolted for a
+    pump. The mud around the trough never quite dries.
   mass: 2000
   _materialPath: /stuff/idea/material/rock/slate
   depthM: 6

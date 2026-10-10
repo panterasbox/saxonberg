@@ -9,7 +9,9 @@
 # the story without explaining it: *somebody dug this, set a pump on it,
 # and walked away.*
 #
-# Born with NO pump — whoever gave up took it with them.
+# Born with NO pump — whoever gave up took it with them. ⚠ The prose says
+# only that a pump HAS stood here, which stays true when a player sets one
+# in it (it said "the iron of it is gone" over "In it: a force pump").
 class: /platform/thing/Well
 data:
   keywords: [well, "deep well", "old well", shaft, trough]
@@ -17,9 +19,9 @@ data:
   register: definite
   longDescription: >-
     A shaft lined with slate, sunk into the slope with a trough beside it
-    gone green with standing rain. Four bolt holes in the capstone show
-    where a pump was fixed, and the iron of it is gone. A stone dropped
-    down takes a long while to answer.
+    gone green with standing rain. There are bolt holes in the capstone,
+    worn smooth, where a pump has stood. A stone dropped down takes a
+    long while to answer.
   mass: 2000
   _materialPath: /stuff/idea/material/rock/slate
   depthM: 14

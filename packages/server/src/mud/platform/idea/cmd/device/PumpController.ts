@@ -12,7 +12,12 @@
  *   1. the bound thing speaks the protocol (a furnace, a loose pump) — work it;
  *   2. it is a pump SOURCE (a well, a wellhead) — work the pump set in it,
  *      or say plainly that nothing is;
- *   3. anything else — *"The chair has nothing to pump."*
+ *   3. anything else — *"There is nothing to pump on the chair."*
+ *
+ * ⚠ No sentence here OPENS with a thing's name: the platform has no
+ * sentence-initial capitalisation, so `a wooden pail has nothing to pump`
+ * rendered lowercase in a live browser (the shipped bellows line keeps
+ * its form, verbatim, for AC 10).
  *
  * ⭐ Every refusal past that is the THING's sentence, never the verb's: the
  * bellows says it is cold, the pump says the water stands fourteen metres
@@ -98,7 +103,7 @@ export default class PumpController extends ManualBuildController<PumpModel> {
       if (!source) {
         this.declineStep(
           context,
-          Mml.compose`${Mml.thing(target)} has nothing to pump.`,
+          Mml.compose`There is nothing to pump on ${Mml.thing(target)}.`,
           'nothing-to-pump',
         );
         return;

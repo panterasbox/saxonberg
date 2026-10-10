@@ -1282,6 +1282,38 @@ until a keeper exists (B15); the intake row's claim that *the city's taps*
 go off was false (it is one tap) and is corrected. Plumbing the city, two
 mains, the aqueduct's `on`, taps that feel an overdraw → water design pack.
 
+**The browser walk (2026-10-10)** — the real client (Vite, this branch) on
+a fresh owned world, driven by a headless Chromium typing into the
+command input and reading the transcript and the card feed (the
+chrome-devtools connector's profile was held by another session's
+browser). Nine walks covered every step of the drive script: the
+village well, a spell and a carried pail, the barometer, the deep well's
+depth-only refusal, the force pump, the brine bore, the intake's legible
+overdraw, the aqueduct, `switch pump off` → the market standpipe's card
+*"Nothing comes out of it: it has been shut off."* → on → it runs, and
+`pump forge` / `work bellows`. No client errors. It found what the wire
+could not:
+
+1. **Sentences that opened with a thing's name rendered lowercase**
+   (*"a wooden pail has nothing to pump."*) — the platform has no
+   sentence-initial capitalisation. The four new sentences are reworded so
+   none opens with a name; the shipped bellows line keeps its form (AC 10).
+2. ⚠⚠ **Prose that asserted a removable pump.** The village well described
+   *"a cast-iron pump bolted to a post … its handle worn bright"* and the
+   deep well *"the iron of it is gone"* over *"In it: a force pump"*; the
+   yard said *"a pump stands over the village well."* The pump is a thing
+   now, so the holder's prose may not describe it — reworded to be true
+   with or without it (*"a stout post over the hole, bolted for a pump"*).
+3. **Bailing a trickle printed "0 litres … You taste it off your
+   knuckle"** — drilling's sentence; under a litre now reads *"A cupful"*.
+4. Recorded, not this build's: plural `get pump` took the well bailer too,
+   and `look intake pump` offered it as a choice — MQL scores a keyword
+   SUBSTRING above zero (the bailer's `sandpump`), and a plural arg takes
+   every match. And the unlit smithy names its forge *"something"*.
+
+Also found while there: the crew-rate test read the real-time clock twice
+and failed one run in a few — pinned.
+
 **Regression drives:** fire ✅ (AC 10). ⚠ Red on master, not this build:
 reachability §8 (master made `lock` reachable), fishing (`reserve issue`
 retired), taps (`eval --parcel` → sandbox boundary unhandled rejection).

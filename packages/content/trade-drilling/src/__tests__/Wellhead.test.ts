@@ -444,7 +444,11 @@ describe('⭐⭐ the pump\'s attach point — a hole answers LiftSource (pump bu
     ContainmentApi.move(pump(), w);
     const hand = makeStuff(() => new Good());
     vi.spyOn(w, 'crewOnShift').mockReturnValue([hand]);
-    const now = WorldClockApi.getNow().rawValue();
+    // ⚠ The clock is PINNED: it runs in real time under test, and a tick
+    // between the stamp and the reconcile made elapsed 120 s and a bit —
+    // which failed a six-place assertion one run in a few.
+    const now = 1_000_000;
+    vi.spyOn(WorldClockApi, 'getNow').mockReturnValue(Quantity.of(now, 's') as never);
     (w as unknown as { rigStamp: number }).rigStamp = now - 120;
     await w.reconcileRig();
     // 0.5 L/s × 120 s × one hand × half the shift at the handle = 30 L,
@@ -458,7 +462,8 @@ describe('⭐⭐ the pump\'s attach point — a hole answers LiftSource (pump bu
     const w = seeded(400);
     ContainmentApi.move(pump(10), w); // a pump that will not push 25 m
     vi.spyOn(w, 'crewOnShift').mockReturnValue([makeStuff(() => new Good())]);
-    (w as unknown as { rigStamp: number }).rigStamp = WorldClockApi.getNow().rawValue() - 120;
+    vi.spyOn(WorldClockApi, 'getNow').mockReturnValue(Quantity.of(1_000_000, 's') as never);
+    (w as unknown as { rigStamp: number }).rigStamp = 1_000_000 - 120;
     await w.reconcileRig();
     expect(w.getBulk('interior').getAmount().rawValue()).toBe(0);
   });
