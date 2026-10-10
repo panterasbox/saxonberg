@@ -599,7 +599,11 @@ function isItemCandidate(c: Stuff): boolean {
     MixinApi.isTangible(c) &&
     c.getMaterial() !== null &&
     !MixinApi.isTool(c) &&
-    (!MixinApi.isCrafted(c) || isEdibleMatter(c)) &&
+    // ⭐ A crafted thing is a finished good, not stock — EXCEPT converted
+    // wood (a billet, a board, a stave): it is stamped because somebody
+    // rove or sawed it, and it exists to be worked. The seasoning axis is
+    // what marks it (composed by `Timber` alone, assembly D12).
+    (!MixinApi.isCrafted(c) || isEdibleMatter(c) || MixinApi.isSeasoning(c)) &&
     !MixinApi.isContainer(c) &&
     !MixinApi.isBulkable(c) &&
     !MixinApi.isOrganism(c)
@@ -1756,6 +1760,16 @@ async function applyTangibleOutput(
     );
   }
   if (totalKg > 0) output.setMass(Quantity.of(totalKg, 'kg'));
+
+  // ⭐ Seasoning rides the transform too (assembly D2): a stave riven from a
+  // seasoned billet is seasoned; one from a green billet is green. The
+  // weakest link — the greenest input — is what the output is.
+  if (MixinApi.isSeasoning(output)) {
+    const fractions = matchedItems
+      .filter((m) => MixinApi.isSeasoning(m.stuff))
+      .map((m) => (m.stuff as Stuff & { getSeasonedFraction(): number }).getSeasonedFraction());
+    if (fractions.length > 0) output.setSeasonedFraction(Math.min(...fractions));
+  }
 
   // ⭐ The per-instance minor constituents ride the transform when both
   // ends can carry them. That is what keeps a carburized bar's carbon

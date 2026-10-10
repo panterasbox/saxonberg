@@ -11,6 +11,7 @@ import { Idea } from '../../stuff/Idea';
 import { ContainerMixin } from '../../spatial/Container';
 import { WorldClockApi } from '../../../api/worldclock';
 import { StuffApi } from '../../../api/stuff';
+import { MixinApi } from '../../../api/mixin';
 import { ContainmentApi } from '../../../api/containment';
 import { BiomeApi, type AirSegment } from '../../../api/biome';
 import { Evaporation } from '../../material/Evaporation';
@@ -103,7 +104,7 @@ describe('SeasoningMixin', () => {
 
   it('dried too hot, it checks — the grade reads no better than the worst stretch', () => {
     const t = stack(OAK);
-    t.setGrade(Grade.of('fine'));
+    if (MixinApi.isGraded(t)) t.setGrade(Grade.of('fine'));
     air = (t0, t1) => [{ air: new Evaporation(20, 2, 345), durationS: t1 - t0, rainMmPerH: 0 }];
     advanceGameDays(2);
     expect(t.getGrade().getBand()).toBe('poor');
