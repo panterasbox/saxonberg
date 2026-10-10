@@ -20,6 +20,10 @@
 > container + loot that walks · authored place-KINDS (a vault, a hoard) ·
 > the tail / breadth author knobs, parcel-scoped · concealment by default
 > for spawned things · `kind` / `bulk` / `fragility` as weights
+> ⭐⭐⭐ **The foraging half is the PREHISTORIC RUNG of every trade, not an
+> RGO family** (user, 2026-10-08; § end) — a MODE over the whole roster, so
+> **one rung × N trades**, a **platform pass** rather than a trade build, and
+> **one build with [hunting](./hunting-slate.md)**.
 > **Size:** a build
 
 **Captured 2026-08-02** as `foraging-slate`; **renamed and widened the
@@ -759,3 +763,42 @@ The controller and view are in the branch history at MR !268
 (`packages/content/trade-fishing/…/DigController.ts`, cut in review) if
 the shape is wanted back.
 
+
+---
+
+## ⭐⭐⭐ Foraging is the PREHISTORIC RUNG, not an RGO family (2026-10-08)
+
+A reclassification from the RGO-track pass, and it changes this slate's
+size and its home rather than its content. User:
+
+> *"foraging is how you get any of these resources **without
+> cultivation**. every RGO in the game wants a foraging counterpart —
+> after all the G in RGO is 'gathering'. basically it's the **prehistoric
+> epoch implementation that every trade is missing** to round out the
+> epoch lens."*
+
+[rgo-unification-slate](./rgo-unification-slate.md) had foraging as
+**family #11** — one more RGO to ship before the roster closed. It is not
+a family. It is a **mode over the whole roster**: the rung below
+cultivation that every trade is missing, and the one that costs nothing —
+no title, no tool, no land, no season.
+
+What that changes here:
+
+- **Size.** Not one family but **one rung × N trades**. The forage verb,
+  the patch and the biome table are the substrate; the *content* is a
+  gathering counterpart for each shipped RGO (the wood, the reach, the
+  stand, the sward, the seam's outcrop).
+- **Home.** Cross-cutting by construction, so it is a **platform pass**
+  and ⛔⛔ must not be smuggled into a trade build — the standing rule,
+  which this slate's framing previously made easy to break.
+- ⭐ **It is the participation floor.** The only mode needing no capital,
+  therefore every trade's on-ramp for a player who owns nothing, and this
+  backlog's first real answer to lens 3b.
+- **It builds WITH hunting as one build** —
+  [hunting-slate](./hunting-slate.md) — because gathering and hunting are
+  the same rung of the same ladder, not two features.
+- ⚠ **The derived-field interface still waits on it** (the first
+  **derived** RGO stock, against three shipped **seeded** fields) — but on
+  it being **DESIGNED**, not built. That distinction is what frees build
+  order across the track.

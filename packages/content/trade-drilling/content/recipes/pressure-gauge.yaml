@@ -1,0 +1,16 @@
+# ⭐ The gauge, and it is the only INSTRUMENT this trade adds. Forged
+# work: a Bourdon tube is a flattened brass tube, and flattening brass
+# without splitting it is the skill the recipe is pricing.
+recipeId: pressure-gauge
+name: Pressure Gauge
+keywords: [gauge, "pressure gauge"]
+inputSlots:
+  - { slot: tube, category: forgeable, minGrade: good, kind: item, count: 1 }
+  - { slot: case, category: wood, minGrade: poor, kind: item, count: 1 }
+toolCapabilities: [striking, anvil]
+outputTemplate: /trade/drilling/thing/pressure-gauge
+outputMaterial: ''
+outputApplication: tangible
+requiresHeatK: 1100
+difficulty: formidable
+discipline: physics

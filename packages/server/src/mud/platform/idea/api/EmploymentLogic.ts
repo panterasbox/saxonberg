@@ -458,8 +458,82 @@ async function hireImpl(
     positionKey,
     WorldClockApi.getNow().rawValue(),
   );
-  if (record) await issueHouseCardImpl(organization, actor, positionKey);
+  if (record) {
+    await issueHouseCardImpl(organization, actor, positionKey);
+    await startWorkForHiredNpcImpl(organization, actor, positionKey);
+  }
   return record;
+}
+
+/**
+ * ⭐⭐⭐ **A hand taken on at a house that starts its hires** — the exact
+ * sibling of {@link issueHouseCardImpl} below, and for the same reason:
+ * *do for an NPC what a player does for themselves.*
+ *
+ * ⚠⚠ Gated on the HOUSE's own `startsShiftOnHire`, default `false`, and
+ * the long version of why is on that field. The short version: an NPC an
+ * employer takes on ad hoc is a **third population** the shipped model
+ * has no driver for — the tick governs authored `rosterSlots`, `clock
+ * on` governs a seat somebody applied for, and this hand reaches
+ * neither, so it held a job and never worked a shift. Closing that
+ * globally broke a shipped contract twice over (see the field), so the
+ * house declares it: a bore crew starts at the beam, a press office's
+ * appointee does not.
+ *
+ * ⭐ A **player** is never started here however the house is authored.
+ * Clocking on is their act.
+ *
+ * ⚠ Every early return SAYS SO. The version of this logic that lived in
+ * a trade pack failed silently for three drive runs — the hands stayed
+ * where they were, the work never happened, and nothing pointed at it.
+ */
+async function startWorkForHiredNpcImpl(
+  organization: OrganizationStuff,
+  actor: Stuff,
+  positionKey: string,
+): Promise<void> {
+  if (!organization.getStartsShiftOnHire()) return;
+  if (PlayerApi.isAvatarStuff(actor)) return;
+  if (!MixinApi.isEmployed(actor)) return;
+  const path = organization.getOrganizationPath();
+
+  const now = WorldClockApi.getNow().rawValue();
+  organization.ensureRostered(actor as EmployedActor, positionKey, now);
+  organization.beginShift(actor as EmployedActor, now);
+
+  // ⚠ `operatingLocations` is the BUSINESS's; a chart with no premises
+  // has nowhere to send anybody, and the shift simply accrues where the
+  // hand stands.
+  const target = MixinApi.isBusiness(organization)
+    ? (organization.getOperatingLocations()[0] ?? '')
+    : '';
+  if (target === '') return;
+  if (!MixinApi.isMobile(actor) || !MixinApi.isContainable(actor)) {
+    console.warn(
+      `EmploymentLogic: ${actor.getTemplatePath() ?? '?'} is not ` +
+        `mobile/containable — a hand who cannot be moved cannot be put ` +
+        `to work at ${target}`,
+    );
+    return;
+  }
+  try {
+    const where = await StuffApi.singletonOrClone(target);
+    if (!MixinApi.isContainer(where)) {
+      console.warn(
+        `EmploymentLogic: ${path} operates '${target}', which is not a ` +
+          `container — a hand cannot be sent to a place that is not there`,
+      );
+      return;
+    }
+    const current = actor.getContainer();
+    if (current && current.stuffId === where.stuffId) return;
+    actor.teleport(where);
+  } catch (err) {
+    console.error(
+      `EmploymentLogic: could not send a hand to '${target}'`,
+      err,
+    );
+  }
 }
 
 /**

@@ -212,6 +212,8 @@ export interface Organization {
     nowRaw: number,
   ): Employment;
   /** Stamp `actor` on-shift (`onShiftSince = nowRaw`). */
+  getStartsShiftOnHire(): boolean;
+  setStartsShiftOnHire(value: boolean): void;
   beginShift(actor: Stuff & Employed, nowRaw: number): void;
   /** Flip `actor` off-shift (caller settles the wage off the captured
    * record first). */
@@ -235,6 +237,7 @@ export interface OrganizationFields {
   proprietorPath: string;
   positions: PositionData[];
   rosterSlots: RosterAssignment[];
+  startsShiftOnHire: boolean;
   call: CallPolicy | '';
 }
 
@@ -261,6 +264,7 @@ export function OrganizationMixin<TBase extends MixinConstructor>(
       positions: { persistent: true, authorable: true },
       rosterSlots: { persistent: true, authorable: true },
       call: { persistent: true, authorable: true },
+      startsShiftOnHire: { persistent: true, authorable: true },
       name: { persistent: true, authorable: true },
     };
 
@@ -468,6 +472,39 @@ export function OrganizationMixin<TBase extends MixinConstructor>(
      */
     public rosterSlots: RosterAssignment[] = [];
 
+    /**
+     * ⭐⭐⭐ **Does being taken on here mean starting work?** Default
+     * `false`, which is every house shipped before 2026-10-09 and the
+     * shipped contract *a shift is something you choose to start*.
+     *
+     * ⚠⚠ **Why this is a house's declaration and not a global rule.**
+     * `beginShift` has exactly two drivers: the roster tick, over
+     * authored `rosterSlots`, and `clock on`, for a seat somebody
+     * applied for. That leaves a **third population with no home** — an
+     * NPC an employer takes on ad hoc, which reaches neither, so it held
+     * a job and never worked a shift. Two attempts to close that
+     * globally each broke a shipped contract with a test on the other
+     * side: starting the shift at hire broke *being taken on does NOT
+     * put you on shift*, and writing the hand a rota slot broke *the
+     * roster tick leaves a clocked-on applicant alone* (an applicant has
+     * no assignment, which is exactly what keeps the tick off a
+     * voluntary shift).
+     *
+     * ⭐ So the house says. A bore crew is hired at the beam and starts
+     * at the beam — the wage runs from the moment they take hold of it,
+     * which is the whole of what makes a dry hole expensive. A press
+     * office's appointee does not start anything by being appointed.
+     * Both are true, they are not the same claim, and the chart is where
+     * a claim about *this* house's hiring belongs — beside `positions`,
+     * `rosterSlots` and `call`, which are the chart's other hiring
+     * facts.
+     *
+     * ⚠ A **player** is never auto-started whatever this says: clocking
+     * on is their act, and `apply` + `clock on` is their path. This is
+     * about hands who have no choice to exercise.
+     */
+    public startsShiftOnHire = false;
+
     public getOrganizationPath(): string {
       // The identity path — the template path for every content row, the
       // minted identity for a business stood up from a seed (D15).
@@ -584,6 +621,16 @@ export function OrganizationMixin<TBase extends MixinConstructor>(
       };
       actor._upsertEmployment(record);
       return Employment.of(record);
+    }
+
+    /** Does a hire here start work at once? See the field. */
+    public getStartsShiftOnHire(): boolean {
+      return this.startsShiftOnHire;
+    }
+
+    /** Declare whether a hire here starts work at once. */
+    public setStartsShiftOnHire(value: boolean): void {
+      this.startsShiftOnHire = value === true;
     }
 
     @CallSecurity(OrganizationSurface)

@@ -1,0 +1,48 @@
+# ⭐⭐⭐ Gasoline — **the thing nobody will buy, and it is the most
+# important row in the barrel.**
+#
+# In this epoch there is no engine to put it in. It is too volatile for a
+# lamp (it flashes rather than burns on a wick), useless as a lubricant,
+# and dangerous to keep. Early refiners genuinely ran it into creeks and
+# burned it off in pits, because it came over whether they wanted it or
+# not — ⚠ **you cannot distil crude and choose not to make the light
+# ends.**
+#
+# ⭐ So this row is what makes acceptance criterion 9 true: a player who
+# splits a barrel is **left holding something nobody will buy.** There is
+# deliberately no stock line anywhere in the realm that names it, and
+# there must not be one until there is an engine.
+#
+# ⚠ The disposal routes are the material's own physics and no code:
+# `autoignitionTemperature` and `heatOfCombustion` make a cask of it a
+# visible fire risk standing in a room, and the flare burns it for
+# nothing because it is a `Lamp` with a tank. The third route — down a
+# river — is DEFERRED and recorded on the water design pack: nothing
+# shipped turns a poured liquid into a discharge.
+class: /platform/idea/material/Material
+data:
+  name: gasoline
+  keywords: [gasoline, petrol, naphtha, benzine, spirit]
+  appearance: a clear, restless liquid whose fumes you can see moving over it
+  density: 745
+  specificHeat: 2200
+  thermalConductivity: 0.12
+  electricalConductivity: 1.0e-14
+  meltingPoint: 180
+  boilingPoint: 350
+  latentHeatOfFusion: 100000
+  latentHeatOfVaporization: 350000
+  # MJ/kg — the highest in the barrel, which is the joke: the most
+  # energetic thing that comes out of the ground in this epoch is the one
+  # thing there is nothing to do with.
+  heatOfCombustion: 46
+  # ⚠ Low, and that is the hazard rather than a flag: it catches from a
+  # warm day and a spark, which is why storing it is a decision.
+  autoignitionTemperature: 520
+  edibility: false
+  nutrients: []
+  toxicity:
+    - { type: ptomaine, amount: 1400 }
+  tags: [liquid, fuel, flammable, volatile]
+  composition: []
+  biologicalSource: null

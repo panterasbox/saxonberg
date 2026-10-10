@@ -731,3 +731,33 @@ a test structurally incapable of failing on the thing that matters.
 `StakeController` a fork that runs **before** the warren resolves (or the
 three-number fork's own refusals shadow it). ⭐ The parent extent is **derived
 from the path** rather than authored. Same counter, same clerk, a second book.
+
+## ⭐ The column's second consumer, and a `stake` fix (2026-10)
+
+The drilling trade reads the same `Deposit` the mine does — `fluids[]`
+beside the lode, `hardnessMPa` pricing a bore's metre exactly as it
+prices a heading — and depends on **`ground`**, never on this pack. The
+two trades meet in the ground system and nowhere else; the only thing
+crossing between them is a Discipline NAME and a tool CAPABILITY
+(`surveying`), both of which are rows.
+
+⛔⛔ **`stakeSurface` was refusing everything, and had been since the
+fork shipped.** It tested `ParcelApi.ownerOf(path)`, which is
+**longest-prefix**: every room in a venue sits inside the venue's own
+title (Rejection is claimed wholesale by the town's group), so the
+covering owner was always somebody and `stake` always answered
+`already-claimed`. **Surface staking had never once succeeded anywhere in
+the realm.**
+
+⚠ And the extraction drive could not see it, because its checkpoint
+accepted `already-claimed` as proof that the fork had run: *either it was
+recorded, or somebody already holds it — both prove the fork ran* is true
+about the fork and blind about the act. ⭐ The general lesson is worth
+more than the fix: **a checkpoint that accepts two outcomes proves
+whichever one it was written to doubt, and nothing about the other.**
+
+The fix is one word of scope — an **exact** parcel record rather than the
+covering one — and the fiction is the reason it is the right one:
+**the register LISTING the ground is the town saying it is open to
+claim.** That is what a claims office is for. What the refusal must still
+catch is somebody who already staked this exact ground.

@@ -46,3 +46,19 @@ data:
   # A long open pan boiled hard — the saltern's one piece of plant.
   maxBurnPowerW: 15000
   fuelCapacityKg: 100
+  # ⭐⭐⭐ **One key, and it is what lets a hearth run on a bore's gas.**
+  #
+  # An `Oven` is already a `Placing` host; what this says is that things
+  # may stand ON this one. `Oven.fuelSlot()` then reads whatever is
+  # placed on it, and a SEALED vessel holding something that burns is its
+  # fuel tank — so a bladder of firedamp off a wellhead feeds the hearth
+  # and the cordwood stays unbought. While a tank is coupled `stoke`
+  # refuses in words: *the fire is on the pipe; take the bladder off to
+  # burn wood.*
+  #
+  # ⚠ Nothing else changes. A hearth with nothing on it burns its bed
+  # exactly as it did, and a pail of water standing on it is not fuel —
+  # which is the reason the hook is on `Oven` and not on `Firebox`, where
+  # a retort's placed items are its PRODUCTS and the hook would have
+  # needed a guard.
+  placements: [on]

@@ -99,13 +99,31 @@ describe('the shipped packs (real discovery, no install)', () => {
     // discovered at all, because `PackLogic.discover` reads the shipped set
     // out of `contentDepsOf(deploymentRoot/package.json)`. A pack's own
     // deps drive install ORDER, not whether it ships.
-    expect(ids).toHaveLength(57);
+    //
+    // ⭐⭐ **57 → 58: the drilling build adds `trade-drilling`** — and
+    // this is the FIFTH arrival of the hazard the block above describes.
+    // The glass branch counted 57 correctly off 56 and the drilling
+    // branch counted 57 correctly off 56, and only the sum (58) is
+    // right. ⚠ The merge was CLEAN: both branches touched the same
+    // assertion line in a way git reconciled without a conflict, and the
+    // number went red on the full suite with nothing in the diff to
+    // explain it. *A count is the one assertion a three-way merge cannot
+    // reconcile* — which is why the claims below check ORDER, and the
+    // count is bookkeeping.
+    expect(ids).toHaveLength(58);
     expect(ids[0]).toBe('platform');
     // ⭐ The glass pack orders after generic-objects and the trades whose
     // leftovers it consumes (quarrying's sand/lime, fuel's ash).
     expect(ids.indexOf('trade-glass')).toBeGreaterThan(ids.indexOf('generic-objects'));
     expect(ids.indexOf('trade-glass')).toBeGreaterThan(ids.indexOf('trade-quarrying'));
     expect(ids.indexOf('trade-glass')).toBeGreaterThan(ids.indexOf('trade-fuel'));
+    // ⭐ The drilling pack orders after generic-objects and after the
+    // `ground` system, whose `Deposit` holds the fluid bodies it reads.
+    // ⚠ Deliberately NOT after trade-mining or trade-quarrying: a bore
+    // is not a cut, and depending on either would have made the trade
+    // claim a chain it does not belong to.
+    expect(ids.indexOf('trade-drilling')).toBeGreaterThan(ids.indexOf('generic-objects'));
+    expect(ids.indexOf('trade-drilling')).toBeGreaterThan(ids.indexOf('ground'));
     for (const trade of ['trade-smithing', 'trade-cooking', 'trade-hospitality', 'trade-distilling']) {
       expect(ids.indexOf(trade)).toBeGreaterThan(ids.indexOf('generic-objects'));
     }

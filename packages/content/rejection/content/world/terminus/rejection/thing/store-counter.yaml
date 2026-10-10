@@ -33,6 +33,35 @@ data:
     - { itemTemplatePath: /trade/forestry/thing/auger, par: 2 }
     - { itemTemplatePath: /trade/forestry/thing/spile, par: 12 }
     - { itemTemplatePath: /stuff/thing/vessel/pail, par: 4 }
+    # ⭐⭐ The drilling kit, added by the drilling build, and on the
+    # SAME SHELF for the same reason the sugaring kit is: a new trade's
+    # instruments go where people already buy, not on a bespoke counter.
+    # ⚠ No derrick here — a ton and a half of timber frame is not a
+    # thing you walk out of a shop with. The derrick is `make`'d from
+    # timber at the site, and the timber is already on this slate.
+    - { itemTemplatePath: /trade/drilling/thing/bailer, par: 2 }
+    - { itemTemplatePath: /trade/drilling/thing/liner, par: 10 }
+    # The pan and the hearth the brine ends up in. ⭐ Both are
+    # QUARRYING's rows and neither needed a line of code: the brine
+    # meets the pan by TAG, which is what makes salt one good with three
+    # cost structures rather than three goods.
+    - { itemTemplatePath: /trade/quarrying/thing/salt-pan, par: 2 }
+    # ⭐⭐ **An EMPTY cask, and it already existed.** A barrel row was
+    # written for this build and deleted again on reading the fuel pack
+    # properly: `oil-cask` IS the empty one (forty litres, liquid-tight
+    # oak, bung dry) and `lamp-oil-cask` is the filled twin. A second
+    # row would have been a duplicate of a thing the realm already has,
+    # which is the antipattern rather than the gap.
+    #
+    # ⚠ What IS a real gap is that nowhere in the mining town sold one,
+    # so a driller with a hole full of brine had nothing to put it in.
+    # That is a stock line, not a row.
+    - { itemTemplatePath: /trade/fuel/thing/oil-cask, par: 6 }
+    # The sealed vessel a GAS wants. ⚠ A barrel will not hold one, and
+    # the refusal says so in words — *it will not stay in that; gas wants
+    # a sealed vessel, shut* — which is the whole Stage B lesson and is
+    # only teachable if the right vessel is buyable nearby.
+    - { itemTemplatePath: /trade/fuel/thing/gas-bladder, par: 3 }
   # ⚠ The field is `prices:` — a path→figure MAP, not an `offers:` list.
   # It was authored as a list first and every `buy` answered *"isn't for
   # sale"*: a `Stock` with stock lines and no prices holds the goods and
@@ -60,3 +89,12 @@ data:
     /trade/forestry/thing/auger: 18
     /trade/forestry/thing/spile: 1
     /stuff/thing/vessel/pail: 5
+    # ⭐ The bailer is cheap and the LINER is the recurring cost of going
+    # deep — ten of them is a hundred metres of wet ground, and that is
+    # what makes stopping above the water table a real temptation rather
+    # than a mistake nobody would make.
+    /trade/drilling/thing/bailer: 9
+    /trade/drilling/thing/liner: 3
+    /trade/quarrying/thing/salt-pan: 16
+    /trade/fuel/thing/oil-cask: 7
+    /trade/fuel/thing/gas-bladder: 11

@@ -1,0 +1,74 @@
+verbs: [bail]
+controller: /trade/drilling/idea/cmd/drilling/BailController
+description: "Send the bailer down and bring up what is standing in the hole"
+help: |
+  A leather bucket on the end of the rope, down the hole and back. It
+  does two jobs and that is why it is one verb.
+
+  **It clears the hole.** A bit swimming in standing water cuts nothing,
+  so `bore` will refuse to go deeper until the hole is bailed out. That
+  is the reason a bailer is on the rig from the first yard, long before
+  there is anything down there worth lifting.
+
+  **And it brings up what is down there.** Broken rock early, water in
+  the middle, and — if the bet was right — the thing you came for.
+
+  ⭐ **Most things in the ground do not come up by themselves.** Brine
+  at a hundred yards has to be lifted, a bucketful at a time, and that
+  is the whole reason a pump was ever worth inventing. A well with
+  pressure behind it is different: you can `fill` a cask straight from
+  the wellhead while it lasts.
+
+  Bring something to put it in. ⚠ A gas wants a sealed vessel, shut —
+  anything else and it goes up into the air around you.
+examples:
+  - cmd: bail into cask
+    note: A bucketful into a cask you are carrying
+  - cmd: bail
+    note: Just clear the hole
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  # ⚠⚠ **ARG ORDER: the positional `hole` comes FIRST, and that is a
+  # boot-fatal rule rather than a style.** Every prepositional object arg
+  # below carries `greedy: true` (`lint:reachability` arm G — a
+  # prepositional object arg that is not greedy takes ONE token, so
+  # `at the brick oven` is a shape error and `command-spec.md` says they
+  # all want greedy). But *a greedy arg must be last, or be followed only
+  # by prepositional args* — so a greedy `rig` standing before the
+  # positional `hole` would fail `CommandApi.preloadAll` and take the
+  # whole server down. Moving `hole` to the front satisfies both.
+  - name: hole
+    type: object
+    required: false
+    default: "reachable:[mixin.GroundPointMixin]"
+    scope: ["reachable"]
+    requires: [GroundPointMixin]
+  - name: rig
+    type: object
+    required: false
+    prepositions: [at, with, using]
+    greedy: true
+    default: "reachable:[capability.derrick]"
+    scope: ["reachable"]
+    requires: [ToolMixin]
+  - name: tool
+    type: object
+    required: false
+    prepositions: [with, using]
+    greedy: true
+    default: "reachable:[capability.bailing]"
+    scope: ["reachable"]
+    requires: [ToolMixin]
+  - name: vessel
+    type: object
+    required: false
+    prepositions: [into, in]
+    greedy: true
+    default: "me:i:[mixin.BulkableMixin]"
+    scope: ["inventory", "reachable"]
+    requires: VisibleMixin
+    validators:
+      - /lib/command/validators/mustHaveBulkSlot
