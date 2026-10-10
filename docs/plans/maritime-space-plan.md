@@ -1752,6 +1752,12 @@ keyword `horizon` renamed (the seed would shadow it).
   gets up short and steep; nothing is sighted or fixed by being seen; a
   watch from the deck misses the light and the appointed deckhand CALLS
   it; `measure bearing` on the light fixes her.
+- **Revision 1 full suite:** 39/40 packages green on the one run; the
+  server package's two (13,232 passed) were this revision's own — the
+  Avatar affordance test asserted `watch` on Avatar's own list (it is
+  `PerceiverMixin`'s now, which the Avatar composes) and the wiki spoiler
+  snapshot gained/lost exactly the revision's fields. Both fixed and
+  re-run green.
 
 ## Build log
 

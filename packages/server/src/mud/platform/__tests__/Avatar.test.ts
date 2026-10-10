@@ -24,6 +24,9 @@ import Interactive from '../idea/Interactive';
 import { Character } from '../../lib/character/Character';
 import { User } from '../../lib/identity/User';
 import { MixinApi } from '../../api/mixin';
+import { Mixins } from '../../lib/mixin';
+import { PerceiverMixin } from '../../lib/description/Perceiver';
+import { Idea } from '../../lib/stuff/Idea';
 import { makeStuff } from '../../lib/security/__tests__/test-setup';
 import type { MessageFrame } from '@saxonberg/types';
 
@@ -988,8 +991,14 @@ describe('Avatar', () => {
   // so they belong on the player Avatar's own console surface.
   describe('stream verb affordances', () => {
     it('affords the watch and tune verbs to the player Avatar', () => {
-      expect(Avatar.commandContributions.self).toContain('platform/cmd/stream/watch.yaml');
+      // `tune` is the Avatar's own. `watch` is every PERCEIVER's since the
+      // maritime build — keeping a watch on the horizon is a perceiver's
+      // act, so a hired NPC lookout can take it up — and the Avatar is a
+      // perceiver, so it still reaches the player.
       expect(Avatar.commandContributions.self).toContain('platform/cmd/stream/tune.yaml');
+      expect(MixinApi.hasMixin(Avatar, Mixins.Perceiver)).toBe(true);
+      class Seer extends PerceiverMixin(Idea) {}
+      expect(Seer.commandContributions.self).toContain('platform/cmd/stream/watch.yaml');
     });
 
     it('the afforded stream contributions resolve to real verbs', () => {
