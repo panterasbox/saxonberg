@@ -150,12 +150,19 @@ ship, the recipe ships, the learner's ladder is authored. ⭐ Only the
    shield) take only `forgeable` stock and output rows that declare a
    wooden haft — the spear's own comment admits it: *"One bar, and the
    rest is a stick."*
-7. ⚠ **A cask's own history does not exist.** The argument for putting
+7. ⚠ **A row's declared material can disagree with its own prose, and a
+   bill makes that matter.** `arms/hunting-bow.yaml` reads *"a plain
+   stave of **yew**"* and authors `_materialPath: .../wood/oak`. Harmless
+   while a bow is one material; **a lie once the stave is a part**, and a
+   yew bow is not an oak bow. ⭐ Expect more of these wherever
+   `_detailMaterialPaths` or the prose names a second wood — audit them as
+   the bills land.
+8. ⚠ **A cask's own history does not exist.** The argument for putting
    character on the vessel appeals to *this barrel's own history*, and
    **there is no record of how many times it has been filled.** ⭐ Note
    `baseGradeBand` and `imparts` are declared in the recipe's `fieldMeta`
    and **authored nowhere** — there may already be a home nobody filled.
-8. ⛔ **Two live content defects, and the gate that should catch them does
+9. ⛔ **Two live content defects, and the gate that should catch them does
    not look.** `/trade/distilling/thing/spirit-bottle` is the
    `outputTemplate` of `vat-whisky.yaml:57` and `compound-gin.yaml:20` and
    **no such row exists** (the authored row is `empty-spirit-bottle`) — so
@@ -230,6 +237,12 @@ ship, the recipe ships, the learner's ladder is authored. ⭐ Only the
   competence.
 - ⭐ **A part is a tradeable good.** Somebody can make staves and never
   make a cask.
+- ⭐⭐⭐ **And some parts are MEANT to be replaced.** A plough share, a saw
+  blade, a drive band, a bow string, a boot sole: **recurring demand for
+  the life of the host**, which is what makes a parts market a living
+  rather than a one-shot. ⭐ It is also `repair`'s commonest rung — not a
+  broken thing mended but **a consumable swapped before it fails**, which
+  is what maintenance actually is.
 
 ### The wood column — because the parts demand it
 
@@ -361,6 +374,79 @@ cooper build instead of the assembly build.
 
 ---
 
+## The part taxonomy — and where assembly stops at both ends
+
+⭐⭐ Built from the shipped-goods census, not from first principles, and
+the roster below is what the design must handle. **Both boundaries are
+evidence-backed.**
+
+### Five rungs, and assembly occupies exactly two
+
+| rung | | example | an assembly? |
+|---|---|---|---|
+| 0 | **raw** | a bole, an ore, a hide, a glass batch | no — feedstock |
+| 1 | **converted stock** | a riven billet, a sawn board, drawn wire, tanned leather, a blown cylinder | no — one transformation |
+| 2 | ⭐ **a shaped part** *(the leaf)* | a stave, a haft, a hoop, a pane, a sole, a peg | ⛔ **no — the floor** |
+| 3 | ⭐⭐ **a sub-assembly** | a cask head, a bellows, a cushion, a wheel | ✅ **the nesting rung** |
+| 4 | **a finished good** | a cask, an axe, an armchair, a sextant | ✅ |
+| 5 | **a stack of goods** | a hive + its supers, a rod + reel | ⛔ **no — CONTAINMENT** (D6) |
+
+⭐ **The floor:** a stave is *riven from a billet* — one input, so a
+transformation. **A part whose bill has one input is not an assembly.**
+⭐ **The ceiling:** `put super in hive` already works as containment. **So
+assembly is rungs 2 → 3 → 4 and nothing else.**
+
+### ⭐⭐⭐ Four part ROLES, and the design treats them differently
+
+| role | | survives disassembly? |
+|---|---|---|
+| ① **structural** | a stave, a haft, a board, an upper | ✅ — this is what `salvage` gives back |
+| ② ⭐⭐ **fastener** | a peg, a nail, a rivet, glue, solder, **a hoop** | ⛔ mostly **not** — see D16 |
+| ③ ⭐⭐⭐ **wear part** | a plough share, a saw blade, a drive band, a bow string, a boot sole, a wick | n/a — **it is replaced on purpose, repeatedly** |
+| ④ **facing / layer** | upholstery, a shield's metal face, leather over a bellows frame, a boot's lining | ✅ — and ⭐ **where composite response bites hardest**, because the layers answer different channels |
+
+### The roster the design must handle
+
+**Trivial — 2 parts, 1 joint, 1 decision, depth 2:**
+the **pick** (head + haft, wedged — *ships today*) · the **felling axe ·
+sledge · shovel · quarry pick · spade** (same shape) · ⭐ the
+**bootstrap set** — froe, drawknife, adze, croze, cooper's driver (forged
+blade + riven handle) · the **drop spindle** (oak shaft + **stone
+whorl**) · **shears** (two identical blades + a hinge rivet, where
+⭐ *the fastener is the failure*) · the **spear** (head + shaft + socket
+rivet).
+
+⭐ **The drop spindle is the floor case and must stay expressible** —
+*"a finger-length shaft through a stone whorl"*: two materials, **zero
+fasteners, zero tools, reversible by pulling.** If the `Joint` vocabulary
+cannot say *friction fit* it is over-engineered.
+
+**Middling — many parts, or mixed reversibility:**
+
+| good | bill | what it stresses |
+|---|---|---|
+| ⭐ **cask** | 30 staves + 6 hoops + **2 heads** | the head is itself boards + dowels → **depth 3**, and the hoop is a fastener that **IS** the structure |
+| **pail · water-butt** | the same at two other scales | one implementation, three products |
+| **hunting bow** | yew stave + 2 horn nocks + **linen string** | ⭐ the string is a **wear part** and the failure point |
+| ⭐ **lantern** | tin body + **pane** + hinge + bail + burner + **wick** | ⭐⭐ **three reversibilities in one object** — soldered body (never), seated pane (freely), consumable wick |
+| **leather boots** | uppers + lining + insole + **sole** + hobnails + laces | a **layered** composite *and* a wear part; the resole is the canonical repair |
+| **table** | top boards + 4 legs + 2 rails + pegs | depth 3 if the top is jointed boards |
+| **plough** | ash beam + **iron share** + mouldboard + 2 handles + hitch | ⭐ the best **wear part** in the game — the row already says *"worn bright as a mirror on one face and rusted on the other"* |
+
+**Complex — depth 3–4, several methods, several decisions:**
+
+| good | bill | depth | the stress |
+|---|---|---|---|
+| **armchair** | **frame** (4 legs + rails + back, pegged) + webbing + springs + **cushion** (stitched cover + stuffing) | **4** | soft-over-rigid, three joint methods, and `restQuality: 1.2` is the *service* that degrades |
+| **spinning wheel** | **wheel** (hub + spokes + rim) + treadle + flyer + bobbin + **drive band** | **3** | a sub-assembly + a wear part + a **capital good** |
+| **broad loom** | 4 posts + 3 beams + **heddles on cords** + shuttle + treadles | **3** | hundreds of identical sub-parts |
+| **bee smoker** | canister + spout + **bellows** (2 boards + leather + nozzle, riveted) | **3** | an irreversible joint; soft-over-rigid |
+| **sextant** | frame + arc + index mirror + shades + **telescope** (tube + lenses) + vernier | **4** | ⭐ **epistemic** output — a damaged part coarsens a *reading* |
+| ⛔ **pocket watch** | case + lid + hinge + dial + hands + **movement** + mainspring | **5+** | the refusal case — see **D15** |
+| ⛔ **flintlock musket** | barrel + stock + **lock** (frizzen + flint + spring + pan) + ramrod | **4+** | ⭐ *"lock, stock and barrel"* **is** the bill |
+
+---
+
 ## Placement
 
 | what | where | why |
@@ -481,6 +567,51 @@ And both halves are already data:
 ⚠ What he must NOT become: a tax mechanism. He **measures and records**;
 what a polity does with the number is the polity's, and the entrenchment
 tier question belongs to `measurement.md` layer 3, not here.
+
+**D15 — Nesting depth is bounded by DECISIONS, not by a limit.** The
+musket's lock is fifteen real parts and **one decision** — *which lock* —
+so it is a **leaf part you buy and fit**, not an assembly. Same for the
+watch movement.
+
+> ⭐⭐⭐ **A sub-assembly whose own bill nobody will ever decompose is a
+> PART.**
+
+That is § *decisions per assembly* applied to **depth**, and it bounds
+nesting with a principle instead of a cap — which is what makes *no guns,
+no clocks* a rule rather than an exclusion list. ⭐ The watchmaker and the
+gunsmith are later builds that **decompose a part that already exists**,
+which is exactly how the model is supposed to grow.
+
+**D16 — A joint may span a SET, not only a pair.** ⭐⭐ The cask's hoop
+does not join stave 7 to stave 8; it holds all thirty in a ring, and
+cutting it gives you **a pile rather than a loose cask**. So joint state
+(§ *a joint has state of its own*) is **per-joint over its member set**,
+and compression is the case that proves it. ⚠ A pairwise-only model ships
+a cask that cannot be slackened, which is drive step 8.
+
+**D17 — ⭐⭐⭐ A WEAR PART is a declared role, and it is the parts market's
+engine.** A plough share, a saw blade, a drive band, a bow string, a boot
+sole, a wick: **replaced on purpose, repeatedly, for the life of the
+host.**
+
+> **Without this role the part market is one-shot** — a cask is bought
+> once and salvaged once. Wear parts are **recurring demand**, and they
+> are what turns *a man who makes only staves* from a hobby into a
+> living.
+
+⭐ It also gives `repair` its commonest and least dramatic rung: not a
+broken thing mended, but **a consumable swapped before it fails** — which
+is what maintenance actually is, and what `stewardship-doctrine.md`
+already prefers. ⚠ A wear part's replacement must **not** route through
+the diagnosis rule: you do not diagnose a worn share, you look at it.
+
+**D18 — Mail is a MATERIAL, not an assembly** — and the refusal belongs
+beside the hive's, because it is the same mistake at the other end. A
+hauberk is thousands of riveted rings, repaired **patch-wise**, and
+**nobody names a part**. It is a `constructionForm` over a material,
+which is how `materials-response` already treats it. ⛔ Do not give it a
+bill. ⭐ **The test: if the parts have no individual identity to anyone,
+it is a construction, not an assembly.**
 
 ---
 
@@ -694,11 +825,18 @@ already lists it as its own row; **D11** puts its code in
 18. **Read who made a cask**, and after a repair, **read both names.**
 19. ⭐ **Make a froe by hand** — a forged blade on a riven handle — and
     then use it to rive. The tool tree's root, walked.
-20. ⭐⭐ **Have the gauger measure your cask** — `measure capacity` — and
+20. ⭐⭐⭐ **Wear a plough share out and replace just the share**, keeping
+    the beam, the mouldboard and the handles — then **do it again next
+    season.** And **break a bow string** and re-string it. Buy both from
+    somebody whose whole trade is making them.
+21. ⭐ **Assemble the drop spindle** — a shaft through a stone whorl, no
+    fastener and no tool — and **pull it apart with your hands.** The
+    floor of the joint vocabulary, walked.
+22. ⭐⭐ **Have the gauger measure your cask** — `measure capacity` — and
     get a number; then **try it without the seat** and be refused for a
     stated reason. Then **present an off-standard cask** and have the
     reading say so.
-21. ⭐ **Put something in a compartment with its own air** and have it
+23. ⭐ **Put something in a compartment with its own air** and have it
     read that air rather than the room's — and **stand in one.**
 
 ---
@@ -734,36 +872,47 @@ already lists it as its own row; **D11** puts its code in
     coarseness of a reading.
 12. A part is a **tradeable good** with its own price, and ⭐ **the wood
     market is four rungs deep**: a bole, boards, parts, assemblies.
-13. ⭐⭐ **Three trades answer the vocation test**: a carpenter, a sawyer
+13. ⭐⭐⭐ **A wear part is replaced repeatedly over a host's life** — the
+    share, the string, the band, the sole — and **the demand recurs**, so
+    a producer of one part alone has a living. ⚠ Replacing a worn part
+    does **not** require a diagnosis.
+14. ⭐⭐ **A joint can span a SET**: one hoop holds thirty staves, and
+    cutting it yields a pile rather than a loose cask.
+15. ⭐⭐ **A leaf part may be complex in the fiction and atomic in the
+    engine** — a lock is bought and fitted, not decomposed — and the rule
+    that decides which is **decisions, not part count.**
+16. ⛔ **Mail has no bill**, and neither does a hive: a construction and
+    a container, refused on the record.
+17. ⭐⭐ **Three trades answer the vocation test**: a carpenter, a sawyer
     at a mill, and a cooper, each with what it consumes, what it produces
     and who pays. **A second cooperage, sawmill and joiner's shop each
     need zero pack code.**
-14. ⭐ **A haft is made by a woodworker and a pick-head by a smith**, and
+18. ⭐ **A haft is made by a woodworker and a pick-head by a smith**, and
     neither is `discipline: mining` any more.
-15. ⭐ **Seasoned wood differs from green**, the difference is priced, and
+19. ⭐ **Seasoned wood differs from green**, the difference is priced, and
     wood worked green fails for a stated reason.
-16. ⭐ **Riven and sawn stock behave differently** under the same force,
+20. ⭐ **Riven and sawn stock behave differently** under the same force,
     through the construction axis rather than a special case.
-17. ⭐ **The by-hand rung makes the hand-tool rung's tools** — demonstrated
+21. ⭐ **The by-hand rung makes the hand-tool rung's tools** — demonstrated
     with a real tool, not asserted.
-18. The three cooper grades are a **capability** ladder: a lower grade
+22. The three cooper grades are a **capability** ladder: a lower grade
     makes a **different product**, not a worse one, and the refusal says
     which.
-19. A cask's **fill history exists**, reduces what it imparts, and is
+23. A cask's **fill history exists**, reduces what it imparts, and is
     **restorable** by a service.
-20. ⭐⭐ **The gauger exists as a seat and a reading, and neither is
+24. ⭐⭐ **The gauger exists as a seat and a reading, and neither is
     code**: `measure capacity` answers on a cask, the seat gates who may
     do it officially, and ⭐ **a second polity appoints a gauger with no
     pack code at all.**
-21. ⭐ A **compartment** has its own air, holds gear, and **admits a
+25. ⭐ A **compartment** has its own air, holds gear, and **admits a
     person** at a cost its host declares.
-22. ⛔ **A crafted cask and a found cask are the same kind** — same
+26. ⛔ **A crafted cask and a found cask are the same kind** — same
     composition, same bill, same behaviour — differing only in recorded
     history.
-23. ⭐ **TEN shipped consumers of casks keep working unchanged** — the
+27. ⭐ **TEN shipped consumers of casks keep working unchanged** — the
     `oil-cask` the drilling build added included — and so do `fell`, the
     bole and the coppice.
-24. ⛔ **A recipe naming a row that does not exist fails a gate**, and
+28. ⛔ **A recipe naming a row that does not exist fails a gate**, and
     `spirit-bottle` is fixed.
 
 ---
