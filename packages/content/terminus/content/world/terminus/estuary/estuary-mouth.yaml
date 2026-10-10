@@ -43,11 +43,13 @@ data:
     east:
       destination: /world/terminus/estuary/strand
       media: [ground]
+      edgeMinutes: 2
     # ⭐ The way aboard whatever lies at the bar (maritime D19) — a ship
     # that has sailed is not alongside, and this says so.
     aboard:
       kind: /platform/idea/exits/aboard
       destination: /world/terminus/hesper/deck
+      edgeMinutes: 1
   details:
     withies:
       keywords: [withies, withy, marks, channel, sticks]
