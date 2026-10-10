@@ -378,18 +378,25 @@ It answers *how good is this place* where `skyFactorNow()` answers
 perception reads the instant, a growth model reads the peak. See
 [light.md § Two questions](./light.md).
 
-⚠⚠ **One sky for one world.** `skyFactorNow()` reads `EARTH_LIKE` at
-`CAMPUS_LATITUDE` and asks no location. `profileFor` therefore **throws
-by name** on a second celestial profile, and `lint:light-sources` clause
-(f) refuses a row that authors one — the alternative is a memo that is
-silently wrong for every room it does not describe. Per-zone profiles
-stay deferred, and now fail loudly instead of quietly.
+⭐ **Latitude is a place's** (the climate build, 2026-10): a `Zone` field
+resolved through the zone chain (`ZoneApi.climateSiteFor`), with
+`CAMPUS_LATITUDE` (42) surviving as the DEFAULT for a chain that authors
+none. The location-taking calls (`isDayAt`, `sunAltitude`,
+`currentSeason`, `daylightFractionAt`, `nextSunrise`…) resolve it;
+`skyFactorNow(latitudeDeg?)` / `skyFactorDailyPeak(latitudeDeg?)` memoise
+per ½° of latitude within the minute / day, and the vision walk passes
+the room's memoized site — so a polar station sits in its polar night
+while the campus has a dawn, and `analyze sky` says *polar night* /
+*polar day*. `seasonFor(profile, t, latitudeDeg)` shifts a southern
+latitude half a year. ⚠⚠ **Still one celestial PROFILE for the world:**
+`profileFor` throws on a second (a different tilt or day), and
+`lint:light-sources` (f) refuses a row that authors one. ⚠ The lamp
+schedule's realm-wide arming tick keeps the default latitude; the
+per-street dusk gate reads the street's own (`PublicLighting`).
 
-⭐ The sun also drives **temperature**, not only light: `WeatherLogic`
-folds a solar deviation (annual ±10 K, diurnal ±4 K lagged three hours)
-beside the weather-type deviation. Before that the realm had no winter
-in its temperature at all — `SEASON_BIAS` biased how often it *snowed*
-and nothing else, and mid-winter at 3 a.m. read 17 °C.
+⭐ The sun also drives **temperature**: the climate expression derives
+each day's insolation from the same declination and sunrise hour angle
+(weather.md § the climate).
 
 ### `CelestialProfile` + `EARTH_LIKE`
 
@@ -462,7 +469,8 @@ the `Quantity`-returning `moonPhase` / `nextFullMoon`).
 
 ### Geography config — module constants, NOT settings (R8)
 
-`CAMPUS_LATITUDE = 42`, `CAMPUS_LONGITUDE = 0`, `scale`'s default, and
+`CAMPUS_LATITUDE = 42` (the DEFAULT latitude since the climate build),
+`CAMPUS_LONGITUDE = 0`, `scale`'s default, and
 `SNAPSHOT_INTERVAL_MS` are **module constants**, not EnvironmentMixin
 settings. `resolveSetting` resolves defaults by walking the host's own
 prototype chain (no global registry), and the clock consumes its
@@ -743,8 +751,8 @@ moving it is not a private act.
 
 ~~Celestial → ambient-light wiring (deferred until `perception`
 merges)~~ — **shipped, the envelope build**; friendly time tags (`morning`/`midnight`) in
-`config/quantity-tags.yaml`; per-zone / per-region latitude and
-longitude time zones; per-actor locale subsystem; a second celestial
+`config/quantity-tags.yaml`; ~~per-zone latitude~~ (shipped, the climate
+build); longitude time zones; per-actor locale subsystem; a second celestial
 profile (Narnia / fey realm) — ⚠ now **guarded**: `profileFor` throws on
 one while `skyFactorNow()` is global, so the seam fails loudly rather
 than half-working; weather; NPC schedules / routines; admin

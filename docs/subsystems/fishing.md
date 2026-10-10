@@ -134,6 +134,15 @@ perfect fit), so a species the water barely suits reads *a few* and the
 limiter line says why. Never a number. The shore keeps a memo refreshed
 fire-and-forget (the `GristMill` shape); `settle()` awaits it.
 
+⭐ **The ice** (the climate build): the physical read ends *"Ice lies on
+it from bank to bank."* (or *grey and rotten*) when the reach carries a
+sheet, *"It is open water."* when it is too warm — still no number. The
+sheet is `WatercourseCatalogue.iceAt` (watershed.md § ice), and a failed
+ice read leaves the rest of the shore's read intact. `analyze water`
+reads the ice by `physics`: presence for anyone; whether it would bear
+you at competent; thickness, black or snow-ice, and what it bears (a
+person · a horse · a loaded cart) at proficient.
+
 ⚠ The room's own `look` does not carry the read — a prop contributes
 nothing to its room's prose (only the floor puddle has a kernel hook). A
 room-level contribution hook is a finding for the sweep.

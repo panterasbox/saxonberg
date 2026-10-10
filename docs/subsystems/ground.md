@@ -205,12 +205,40 @@ ground, and the ground does not leak to the sky. Coverings — a rug, snow
 over paving — remain the named open seam they were, and if they ever
 land they are a floor concern rather than an envelope one.
 
+## ⭐ Snow on the ground, and a puddle frozen over (the climate build, 2026-10)
+
+The first covering to ship, and it is **derived, not stored**:
+`FloorMixin.getSnowDepthM()` reads `WeatherApi.snowCoverAt` at the
+floor's place — the same function the river's snowpack reads, so the
+snow on the ground and the snow in the catchment can never disagree.
+The gate is a fact about the PLACE (on grade and under the sky), never a
+class test: an indoor floor answers 0 because nothing falls on it.
+Memoised per weather segment; an unresolved site or weather locality
+answers 0 and is NOT memoised (unknown must never be cached as bare).
+
+`getSnowBand()` reads `none · dusting · ankle-deep · knee-deep · deep`
+(dials `climate.snow.bandM.*`); a second markup augmenter appends the
+overlay (*"Snow lies ankle-deep."*), and at knee-deep and over the
+ground's own sentence is MASKED — nobody standing in it can see what it
+is made of. ⚠ The ground KIND is untouched: snow is on the ground, not
+what the ground is, so the ten words stay closed. `isSnowPerennial()`
+says *it has not gone in years* where the walk-back found no melt-out.
+
+`isFrozenOver()` is the puddle's frozen read — standing water under air
+at or below freezing (the sync air, `BiomeApi.airFor`) — and `look` says
+*"A skin of ice lies on the standing water."* The floor is not
+`Thermal` and does not become one for this.
+
+Seams: shovelled or trodden snow (a stored `snowRemovedMm` subtracting
+from the derivation → the locomotion-on-snow slate); meltwater into the
+room's soil (soil still discards `frozen` → field-substrate-slate).
+
 ## Seams left open
 
 - **`dig` reads the floor** — `getGroundKind()`, `isOnGrade()`, and
   `resolveUnderfoot()` again after a strip → § The worked-act protocol above (the
   extraction slate retired absorbed, 2026-09-24).
-- **Coverings** — a rug, snow, mud over paving; a layer *above* the floor,
+- **Coverings** — a rug, mud over paving; a layer *above* the floor,
   and the reason rugs and carpets are excluded from the census →
   [field-substrate-slate](../slates/tails/field-substrate-slate.md).
 - **Consequences of the read** — traction, footstep sound, fire across

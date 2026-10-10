@@ -686,11 +686,21 @@ above was complete and had no ambient driver — a fire or a wizard had
 to be pointed at a thing before its phase was ever reconciled.
 
 `reconcileThermal()` drives it now, **immediately after the drift
-that makes a body warm**, and narrowed to `Meltable` hosts: the
-`Bulkable` freeze/boil rung has its own callers (a `CraftVessel`
-drives it from its own reconcile) and widening it would double-run
-them. The call sits outside the reentry guard so the plateau's own
-`setContentsTemperature` is not swallowed.
+that makes a body warm**. The call sits outside the reentry guard so the
+plateau's own `setContentsTemperature` is not swallowed.
+
+⭐⭐ **And a pool freezes because it is COLD** (the climate build,
+2026-10): the call was narrowed to `Meltable` hosts on the belief that
+"a `CraftVessel` drives the bulk rung from its own reconcile" — it never
+did (it calls `absorbIntoIce`), so a jug of water in a winter street
+never froze. It now runs for `Bulkable & Thermal` hosts too: the jug
+plateaus at the melting point, banks its latent heat, and empties into
+its material's cast. Safe twice over — a second pass at `T == mp` banks
+nothing, and the slot empties before the cast mints. ⚠ The engine banks
+the undershoot it FINDS at a read, not the heat extracted over the gap,
+so one long unread gap banks one cooling's worth (≈ 96 of the 334 kJ a
+litre needs); a watched jug freezes over a few reads. Pre-existing, and
+the melt shares it → thermal-slate.
 
 ⭐ It is one line on the lazy read path, and it is the reason an
 icebox has a clock at all.

@@ -457,34 +457,66 @@ supplies a literal.
 
 ### ⭐ Snowpack, and why altitude is the mechanism
 
-`WeatherApi.segmentsBetween` gives the walk its season and type per
-segment; the pack model is the **watershed's**, not weather's. For each
-segment,
+⭐ **Since the climate build the pack is the KERNEL's**:
+`WeatherApi.snowCoverAt(reach.site, climateOf(reach), t)` — the same
+function a floor reads the snow lying on it from, so the snow on the
+ground and the snow in the catchment never disagree (weather.md § the
+climate). What fell as snow (phase by the temperature at the reach's
+site, amount by the Locality's intensity) accumulates; a **degree-day**
+model melts it back above freezing — the oldest and most robust
+snowmelt model there is. Walked back to the last melt-out from a capped
+start, so an old pack is counted whole.
 
-```
-T_air = seasonalSeaLevelMean(season) + typeDeviation − lapseRate × elevation
-```
+A reach's temperature is `WeatherApi.temperatureAt(reach.site, …)`:
+the course's authored `site:` (latitude, continentality, offset — a
+reach is a position on a river, not a place a zone chain reaches) and
+the node's own elevation. ⚠ The catchment's four-row seasonal table and
+its dials (`water.season.meanK.*`, `water.snow.windowDays`) are gone.
+The lapse rate in the shared expression still does the real work: one
+number makes altitude the thing that banks snow, so the same storm rains
+on the city and snows on the headwaters — and the headwaters are where
+the ore is.
 
-snow accumulates below freezing and releases on a **degree-day** model
-above it — the oldest and most robust snowmelt model there is, and the
-right level of abstraction for a river you look at rather than forecast.
-
-⚠ The seasonal sea-level temperature table is authored because **a reach
-has no room to resolve a biome from**. The lapse rate then does the real
-work: one number makes altitude the thing that banks snow, so the same
-storm rains on the city and snows on the headwaters — and the headwaters
-are where the ore is.
+⚠ **Melt is not routed downstream** (found by the climate build): each
+reach melts the pack at its OWN elevation, so the confluence does not
+receive the headwaters' summer melt. A watershed tail.
 
 The result is a genuine hydrograph: a **spring rise** as the pack comes
 off, and a **late-summer low**. That low is *why senior rights bind at
 all* — without it, seniority never binds and the whole allocation layer
 is decoration.
 
-The snowpack walk looks back half a game year and is the most expensive
+The snowpack walk looks back to the last melt-out and is the most expensive
 read in the build, so natural flow is **memoised per weather segment**.
 Weather is piecewise-constant over six-hour segments, so the segment
 index is a cache key whose invalidation is *by construction* rather than
 enumerated.
+
+### ⭐ Ice on a still reach (the climate build, 2026-10)
+
+`WatercourseCatalogue.iceAt(ref, t)` → `IceRecord { thicknessM, quality
+('none' | 'black' | 'snow-ice'), rotting, bearsKg, reason ('running' |
+'warm' | null), perennial }` — its OWN record, not a `WaterState` word
+(that vocabulary is the fish tank's, closed in the kernel).
+
+- **Running water does not freeze over here**: a current at or above
+  `water.ice.stillWaterMps` (0.1) reads `running` (the thin place over
+  the current is the ice trade's).
+- **Stefan's law**: the sheet thickens as `h² += α²·ΔFDD` over freezing
+  degree-days — its own thickness insulates the water beneath — with α
+  0.027 for clear ice and 0.017 while snow lies on it; thawing
+  degree-days melt it back (`water.ice.meltMPerKd`). It rides the
+  kernel's EXACT snow walk (`snowCoverAt`'s `onStep`), so the ice and the
+  snow on it share one history, walked back to the last open water from
+  a capped start (`perennial` at `water.ice.perennialMaxM`).
+- **Quality**: `snow-ice` when ≥ 30 % of its cold came under snow, else
+  `black`; **rotting** after 10 K·d of thaw in five days.
+- **Bearing**: Gold's `σ·h²` (`water.ice.bearingKgPerM2` 2.5e4) — a person
+  at 6 cm, a horse at 14, a loaded cart at 20.
+
+Read by `analyze water` (by `physics`), by the Shore's look, and by
+transport's `IceCrossingExit` (logistics.md). Memoised per weather
+segment beside the flow memo.
 
 ### Navigability is derived, never authored
 
@@ -532,6 +564,11 @@ terrain that nobody authored.
 
 ### Head is resolved once, at construction
 
+⚠ **No runtime caller stamps it** (found by the climate build): `resolveHead`
+is called by tests; nothing in the world calls it, so a live conduit's
+head reads *unknown*. The extent's climate is therefore read at report
+time (`extentAirK`), not stamped here.
+
 `resolveHead()` is the P0 discipline in one method: elevation resolution
 is an async ancestor walk and a conduit is asked for its state on hot
 paths, so the walk happens where it is already asynchronous — a build
@@ -571,7 +608,7 @@ make a future power pack depend on the water pack for a word.
 |---|---|
 | `dry` | the **source** has nothing to give |
 | `cut` | the **line** is physically broken |
-| `frozen` | the line or the source is below freezing |
+| `frozen` | **either end** is at or below freezing — the intake reach's air, or the served extent's (`extentAirK`, the climate build): an aqueduct whose intake sits on a fell freezes before the town below it |
 | `fouled` | what arrives is unfit — past what treatment removes |
 | `off` | somebody **closed** it, and somebody can open it again |
 | `overdrawn` | more is asked of it than its **capacity** carries |

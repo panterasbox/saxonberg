@@ -91,10 +91,12 @@ closed-form cooling assumes, and the natural restamp boundary (D4).
   `clear` has no `storm` candidate, so it must pass through
   `overcast`/`rain`; `snow` is reachable only from `overcast`/`snow`
   (the coherence criterion).
-- **Season** is global in Wave 1 (single `CAMPUS_LATITUDE`), computed by
-  the pure `CelestialApi.seasonFor(EARTH_LIKE, t)`, memoized per
-  year-relative segment. `SEASON_BIAS` leans snow heavy in winter and
-  **zeroes it in summer**.
+- **Season** is LOCAL since the climate build: the site's hemisphere
+  (the sign of its latitude) shifts the day-of-year quarters by half a
+  year, so a southern place snows in July. `seasonAtSegment(seg, south)`
+  is memoized per (hemisphere, year-relative segment); every fold of one
+  scope passes its site, so all its fields read one weather type.
+  `SEASON_BIAS` leans snow heavy in winter and **zeroes it in summer**.
 - **Interpolation** (D-D): within a segment the deviation lerps from the
   previous segment's targets to the current's over a configurable
   lead-in band (`INTERP_BAND`) measured from the start boundary; outside
@@ -136,45 +138,79 @@ per-region coordinate that doesn't exist (celestial uses one global
 `CAMPUS_LATITUDE`); that rides celestial's deferred planetary anchor,
 never a weather-specific frame.
 
-## ⭐⭐ The solar term — where the realm's winter actually comes from
+## ⭐⭐ The climate — one temperature from four levers (the climate build, 2026-10)
 
-Added by the envelope build (2026-09-24), and it closed a gap the
-requirements had **assumed was already closed**.
+The realm used to have **two climates that disagreed**: the sky's (a
+295 K universe constant plus a solar cosine that knew nothing of
+latitude) and the catchment's (a four-row seasonal table plus a lapse
+rate), with the biome's flat default a third truth. They are one now:
+**`WeatherApi.temperatureAt(site, locality, t)`** is the realm's
+temperature, and the sky over a room, the air over a river, the night a
+maple waits out and a puddle's freeze all read it.
 
-⚠⚠ Before it, `SEASON_BIAS` biased the **type distribution** — how often
-it snows — and nothing else, and `WEATHER_PROFILES` deviate temperature
-by *type* alone (clear 0, overcast −1, rain −3, storm −5 K) over a 295 K
-base. So mid-winter at 3 a.m. read **290 K, which is 17 °C**, and *"an
-unheated room in winter is cold"* had nothing to be cold **from**. The
-whole heat half of the envelope build rested on a fact that was true of
-snowfall and false of temperature.
+**The site** (`ClimateSite`, `lib/weather/WeatherType.ts`) is four
+levers, each a `Zone` field resolved through the zone chain
+(`Zone.climateSite()`, `ZoneApi.climateSiteFor`): `latitude` (signed;
+the hemisphere), `elevation`, `continentality` (0 coast … 1 continent)
+and `climateOffsetK` (the anomaly nothing local derives). An unauthored
+chain is `DEFAULT_CLIMATE_SITE` — 42°, sea level, 0.5, 0 — so every
+reader of latitude answers exactly as before latitude was a field. A
+river authors its own (`site:` on the Watercourse row) because a reach
+is not a place a zone chain reaches.
 
-`deviatedFieldFor` now folds a **solar deviation** beside the type
-deviation, for `temperature` only:
+**The expression** (`WeatherLogic`, module-private):
 
 ```
-−A_year · cos(2π · doy / year)  −  A_day · cos(2π · (secOfDay − 3 h) / day)
+π·Q(φ,d)   = H0·sinφ·sinδ + cosφ·cosδ·sin H0         (the day's insolation; H0, δ from CelestialApi)
+T_eq       = poleMeanK + (equatorMeanK − poleMeanK) · π·Q
+L(φ,c,d)   = exponentially-weighted mean of T_eq over the preceding days, τ(c) 30 … 55 d   (the LAG)
+T_season   = (1 − m)·L + m·annualMean(φ),   m = maritimeMixing·(1 − c)                     (the DAMPING)
+T_here(t)  = T_season (interpolated across the day) − lapse·elevation + offset
+             − A_day·cos(2π(sec − 3h)/day) + the weather type's deviation
 ```
 
-`A_year = 10 K`, `A_day = 4 K` (`weather.solarAnnualSwingK` /
-`weather.solarDiurnalSwingK`). A winter night lands near 281 K, a winter
-noon near 289, a summer noon near 309. The diurnal term lags three hours
-so the coldest point is near **dawn** — heat keeps leaving after the sun
-stops arriving.
+Lag and damping are separate on purpose: a coast is both MILDER and
+LATER than an inland town at the same latitude (Seattle vs Minneapolis).
+Dials `climate.{poleMeanK 247, equatorMeanK 299, tauContinentalDays 30,
+tauMaritimeDays 55, maritimeMixing 0.6}` + the kept `weather.solarDiurnalSwingK`
+and `water.snow.lapseRateKPerKm`. ⭐ **Calibration pins**
+(`WeatherLogic.climate.test.ts`) are the authority over the dials: the
+default site averages ≈ 285 K, winter quarter ≈ 274, summer ≈ 297, the
+coldest clear dawn ≥ 268 K, the coldest month 20–45 days after the
+solstice. ⚠ Polar summers run warm (no ice-albedo term) — an accepted
+abstraction. The memos quantise latitude to ½° and continentality to
+0.1, keyed by day of year (bounded by construction).
 
-⭐ Same shape as the sky's illuminance factor and for the same reasons: a
-**pure function of game time**, seeded-not-drawn, memoized per game
-minute, with no state anywhere to go stale. ⚠ One latitude means one
-climate — Terminus and Rejection get the same winter on the same day —
-and widening that is the per-zone celestial profile, a named deferred
-seam.
+**Under the sky the temperature is derived.** `BiomeLogic`'s temperature
+trace mirrors the pressure-from-elevation step: where the chain falls
+through to the universe constant, the answer is `climateAt(site)` plus
+the weather (`trace atmosphere` says *derived from the climate at …*). An
+authored temperature still wins and takes only the weather TYPE's
+deviation (`deviatedFieldFor` returns the type deviation only — the old
+solar cosine and `weather.solarAnnualSwingK` are retired), and
+`lint:biome` (d) refuses a sky biome that authors one. An enclosed room's
+outside is the derived climate too — the winter reaches indoors.
 
-⚠ **Absolute outdoor temperatures are no longer pinnable in a test.**
-Seven shipped assertions did pin them and were re-derived as **deltas
-against a clear-sky baseline measured on the same clock**, which is what
-this seam actually claims. A helper that measures that baseline must
-*create* the weather singleton, or it measures a world without a solar
-term and the comparison is off by exactly that term.
+**Precipitation phase and amount.** With a site, each segment's phase is
+the temperature's at its midpoint (`climate.snowThresholdK` 274.5:
+`WeatherSegment.phase`), so a `snow` segment over a warm valley rains and
+one storm snows on the peak. A Locality's `_precipitationIntensity`
+multiplies the integral; unauthored it is 1 up to 55° and falls to 0.4 at
+80°. `analyze weather` reports the last thirty days.
+
+**Snow on the ground** is `WeatherApi.snowCoverAt(site, locality, t)` —
+the ONE snow function: the floor reads its depth from it
+(`FloorMixin.getSnowDepthM`, ground.md) and the catchment its snowpack
+and melt (watershed.md), so the two cannot disagree. Stateless: walked
+back to the last melt-out from a capped start (180 → 360 → 720 days);
+no melt-out at the bound is `perennial` at the cap
+(`climate.snow.perennialMaxMm`). ⚠ A pin forces its type across the
+WHOLE walk, history included — a fixed window would have read a
+permanently snowing place as a sliding constant.
+
+**Other readers:** `seasonAt(site, t)`, `dailyRangeAt(site, locality,
+day)` (the maple's freeze-thaw window, taps.md), `climateAt(site, t)`
+(the climate without weather).
 
 ## The biome-deviation seam (D2)
 
@@ -604,15 +640,20 @@ inbound exit — the treeline / substation content-standup precedent).
 
 ## Still-deferred seams
 
-- **fog → visibility** (senses), **snow depth**, and other hazards
-  (flood / blizzard / heat wave).
+- **fog → visibility** (senses), and other hazards (flood / blizzard /
+  heat wave). (Snow depth shipped with the climate build — ground.md.)
 - **vector wind** (direction) — Wave-2 wind stays a scalar
   `Quantity<'m/s'>` (D5); direction feeds sailing / scent / fire spread.
 - **a bulk-weight tie for wet garments** — cheap and optional; the
   electricity + thermal reads are the load-bearing consumers.
 - **a dedicated `look up` sky-prose surface** (above).
-- **per-region latitude/longitude + moving fronts** — rides celestial's
-  deferred planetary anchor, not weather (season is global).
+- **moving fronts** — latitude is per-zone since the climate build, but
+  a front crossing it is still a pure function of time per Locality.
+- **from the climate build:** rain-on-snow melt (the walk has both terms
+  — `climate-slate`); the ice-albedo term (polar summers run warm);
+  firn and glaciers (the `perennial` cap is their attach point); a
+  runtime weather-pin seam for drives (`/auth/test-weather`); a Locality
+  that knows its zone (retires `Watercourse.site`).
 - **magic `Create·Lightning`** — the frontier noun; this build ships the
   mundane strike on the reserved seam
   ([capability-magic](../slates/builds/capability-magic-slate.md)).

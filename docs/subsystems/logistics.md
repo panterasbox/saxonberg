@@ -738,6 +738,30 @@ pack has a ford that is simply always passable. It memoises on the
 catalogue's own **six-game-hour weather segment**, so a ford and
 `measure` cannot disagree about the same water at the same moment.
 
+### ⭐ The ford's two siblings — a pass under snow, a crossing over ice (the climate build)
+
+Both are `transport` classes that copy the ford exactly
+(`applyTraversal` refreshes and returns `false`; the shipped `blocked`
+gate refuses; `conditional: true` on the kind row; physical only — a
+`tell` from behind a shut pass goes through):
+
+- **`SnowboundExit`** (`_closesAboveM`, default 0.5 m) reads the snow
+  lying on the floor of the room it starts from (`getSnowDepthM`, by
+  shape — the floor is kernel) and shuts while it is deeper. Memoised per
+  weather segment. *"The way is under snow — deeper than your knee…"*
+- **`IceCrossingExit`** (`_crossesReach`, `_bearsMarginKg`) is the
+  ford's INVERSE: a road the ice OPENS. Across iff the sheet on the reach
+  (`iceAt`, by shape) bears the mover's mass plus the margin, so the
+  answer is the mover's — a sheet that bears a person refuses a horse.
+  It refuses open water, running water, thin ice and rotten ice in their
+  own words, and with no water pack installed it is a WALL (a ford with
+  no river is a road; a crossing with no ice is nothing).
+
+Kind rows author the DECLARED keys (`_conditional`, `_crossesReach`,
+`_closesAboveM`), which `lint:location-graph` and the projection accept,
+so a new kind adds no orphan key. The demonstrators are world-seed's
+north and Circle.
+
 ### ⚠⚠ Never put a direction word in a detail's keywords
 
 `go west` resolves its argument through MQL, and a detail keyworded

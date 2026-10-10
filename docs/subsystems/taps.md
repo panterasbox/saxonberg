@@ -67,7 +67,7 @@ species fact, which is already the engine's belief about animals.
 ### `TapWindowSpec` — a season is DATA
 
 ```
-always | event | photoperiod | biome | weather
+always | event | photoperiod | biome | weather | freeze-thaw
 ```
 
 `ProducingMixin.tapWindow(key)` evaluates it, so **a new season is a row
@@ -76,9 +76,9 @@ and not a code path.**
 - **`event`** — opened by `freshen()`, closed by drying off. Milk's
   shape: a lactation is not a season, and a cow is near-aseasonal.
 - **`photoperiod`** — a daylength band, read through the SYNC twin
-  `CelestialApi.daylightSecondsFor(EARTH_LIKE, CAMPUS_LATITUDE, now)`
-  (a reconcile cannot await, and the async face only awaits a zone field
-  guarded to `EARTH_LIKE` anyway). ⭐ A wrapping band is legal.
+  `CelestialApi.daylightSecondsFor(EARTH_LIKE, latitude, now)` at the
+  host's OWN latitude (since the climate build: its air place's memoized
+  climate site — a reconcile cannot await). ⭐ A wrapping band is legal.
 - **`biome`** — the HOST answers (`biomeWindowOpen`). A hive reads its
   own forage census, which is the first RGO whose reservoir is somebody
   else's land.
@@ -86,7 +86,19 @@ and not a code path.**
   `rising` discriminates spring from autumn, **which cross the same
   daylength band and are not the same season for a tree**: without it a
   birch would run twice a year, and nothing in the game would ever have
-  reported it.
+  reported it. ⚠ The birch's band moved to 0.49–0.57 with the climate
+  build: the old 0.40–0.50 was late winter at 42°, which under the
+  honest climate never reaches its 278 K floor.
+- **`freeze-thaw`** (the climate build) — open iff the AIR at the host's
+  place crossed `freezeK` (default 273.15) both ways over the last game
+  day (`WeatherApi.dailyRangeAt` — the air, never the host's cached body
+  temperature: a tree's xylem follows the air). Shut `cold` (it never
+  thawed) or `warm` (it never froze). The optional daylength band and
+  `rising` behave as in `weather`. ⭐ The sugar maple's — the row whose
+  header waited for winter to be real, and which needed no code when it
+  was. It authors no band (GRAIN: the freeze-thaw IS the season), so a
+  maple at Rejection's 450 m runs on the equinox and one in a warm valley
+  only in a cold snap.
 
 ⚠ **The tri-state rule:** a term this world does not model reads as
 OPEN, never closed. A host that answers no temperature is gated by

@@ -43,6 +43,37 @@ rock rather than sky.
 `indoor/` folder** — an atrium has a glass roof — which is why every
 check here reads the **class**, never the path.
 
+## ⭐⭐ Under the sky the temperature is DERIVED (the climate build, 2026-10)
+
+The second line, and its mirror: **a sky biome may not say a
+temperature at all.** Where a sky-exposed scope's chain falls through to
+the universe constant, the answer is the CLIMATE at the place's site —
+`WeatherApi.climateAt` plus the weather (`AtmosphericTrace.source:
+'climate'`, carrying the `site`; `trace atmosphere` prints *derived from
+the climate at <zone> (latitude …, … m, continentality …)*). It mirrors
+the pressure-from-elevation step exactly: the 295 K in hand was never
+anything an author said about the place. An enclosed room's outside is
+the same derived climate, so the winter reaches indoors (an
+indoor-biomed room used to drift toward 295 K the year round).
+
+So `universe._defaultTemperature` is now the temperature of a place
+that is **neither under the sky nor authored** (an unbiomed interior,
+`Offstage`), and step 6 still requires it. An authored temperature still
+wins and takes only the weather TYPE's deviation; the honest tool for
+*this place is warm for its latitude* is the zone's `climateOffsetK`.
+
+⭐ **`lint:biome`** (the resolve-gate) holds all of it: (a) every
+`_biomePath` resolves to a row whose class extends `Biome` (census only
+checks existence — a room citing the `outdoor` folder passes census and
+has no air); (b) every chain ends at the universe root, no cycle, no
+ghost; (c) the root answers the six mandatory fields; (d) no
+`SkyExposedBiome` row authors `_defaultTemperature`; (e) every biome
+class loads.
+
+The water pack ships `/stuff/idea/biome/water/open` — a stub for
+maritime: saturated air over open water, breathable (the atmosphere tag
+is the medium a body is IN; `water` would drown a deck).
+
 ## Two trees, separated by job
 
 The biome substrate uses **two independent structures** that meet at
@@ -349,6 +380,13 @@ the platform pack's `boot:` manifest (role `sync-read`). The roster is
 extends `Biome`, so a realm pack shipping
 `/world/<place>/idea/biome/cavern` is warmed with nothing to edit — never an
 allowlist of roots.
+
+⭐ **And it is loud** (the climate build): `warm()` returns `{ stood,
+failed }`. A row whose class does not LOAD, or that fails to stand up,
+logs at `console.error` and files a `biome.unresolved` author diagnostic
+(`errors`) naming it; the boot line counts the failures. A row whose
+class loads and is not a Biome (the `outdoor`/`indoor` FolderZones) is
+the folder it looks like, and is skipped quietly.
 
 ⚠ **Twice now.** `base-library/pack.yaml` still carries a `boot:` line for
 `/stuff/idea/biome/universe` alone, with the note that it *"was never cloned
