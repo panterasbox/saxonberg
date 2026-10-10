@@ -202,6 +202,14 @@ export interface Floor {
   isSnowPerennial(): boolean;
   /** The overlay sentence for the snow, or `null` when none lies. */
   snowPhrase(): string | null;
+  /**
+   * ⭐ Standing water here with the air at or below freezing — the
+   * puddle's FROZEN read (the climate build, D7). A read, not a state:
+   * the floor is a fixture with no thermal mass of its own, so it is not
+   * `Thermal`, and the water in its surface slot is frozen exactly when
+   * the air over it says so.
+   */
+  isFrozenOver(): boolean;
 }
 
 /**
@@ -295,8 +303,13 @@ function floorAugmenter(text: string, host: Stuff, _viewer: Stuff): string {
  */
 function snowAugmenter(text: string, host: Stuff, _viewer: Stuff): string {
   if (!MixinApi.isActive(host, FLOOR_MIXIN)) return text;
-  const line = (host as unknown as Floor).snowPhrase();
-  if (!line) return text;
+  const floor = host as unknown as Floor;
+  const lines = [
+    floor.isFrozenOver() ? 'A skin of ice lies on the standing water.' : null,
+    floor.snowPhrase(),
+  ].filter((l): l is string => l !== null);
+  if (lines.length === 0) return text;
+  const line = lines.join(' ');
   return text && text.length > 0 ? `${text}\n\n${line}` : line;
 }
 
@@ -604,6 +617,18 @@ export function FloorMixin<
     }
 
     // ──────────────────────────── snow ────────────────────────────────
+
+    public isFrozenOver(): boolean {
+      if (!this.hasStandingWater()) return false;
+      const host = this.hostOf();
+      if (host === null || !MixinApi.isContainer(host as unknown as Stuff)) {
+        return false;
+      }
+      // The sync air over the place — the climate under the sky, the
+      // envelope indoors — the same reading `feel` resolves.
+      const airK = BiomeApi.airFor(host as unknown as Stuff & Container).tempK;
+      return airK <= snowDial(AppSettingKeys.waterFreezeK, 273.15);
+    }
 
     /**
      * Per-weather-segment memo of the snow read (the `FordExit` idiom):

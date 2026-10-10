@@ -1641,6 +1641,18 @@ into the room; a second `getTemperature` banks nothing more).
 unchanged.
 **Commit.** `build(climate W6): the freeze gets its ambient driver — the melt's mirror`
 
+> ✅ **Done.** `Thermal.ts` widens the phase call to `Bulkable & Thermal`
+> (the stale "CraftVessel drives it" comment rewritten). `Floor.isFrozenOver()`
+> reads the sync air over the place; the snow augmenter says *"A skin of
+> ice lies on the standing water."* Verified against seven trade packs
+> that pour hot or cold liquids (smelting, cooking, glass, distilling,
+> forestry, quarrying, hospitality, smithing) — all green. ⚠ **R16:** the
+> phase engine banks the undershoot it FINDS at a read, so one long
+> unread gap banks one cooling's worth of latent heat (≈ 96 of the
+> 334 kJ a litre needs); a watched jug freezes in a few hours of reads,
+> an unwatched one waits for its next few reads. Pre-existing for the
+> melt too → thermal tail.
+
 ### W7 — Ice on a reach
 
 **Goal.** A still reach grows ice by freezing degree-days, snow spoils
@@ -1964,6 +1976,10 @@ Nothing unmapped.
   melts the pack at its own elevation; the confluence never sees the
   headwaters' summer melt. Pre-existing in the catchment model and
   exposed by the real climate; leaves as a watershed tail line.
+- **R16 — the phase engine under-banks a long unread gap** (found in
+  W6): latent heat is banked from the undershoot found at a read, not
+  integrated over the gap. A jug in a winter street freezes over a few
+  reads, not in one. Pre-existing (the melt shares it) → thermal tail.
 - **R14 — `interiorAmount` is `runtimeState` in `Bulkable.fieldMeta`**
   (:534). Rows author it today (`jar-of-barm`, the sugarbush panel), so
   the brine cask relies on the same hydration path; if a `runtimeState`

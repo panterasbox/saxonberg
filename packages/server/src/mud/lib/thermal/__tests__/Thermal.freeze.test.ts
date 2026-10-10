@@ -106,3 +106,52 @@ describe('the honest freeze', () => {
     expect(payload?.latentRemovedJ ?? 0).toBe(0);
   });
 });
+
+describe('⭐⭐ the ambient freeze — a pool freezes because it is COLD (the climate build, D7)', () => {
+  beforeEach(() => {
+    StuffApi.clearAll();
+  });
+
+  it('a jug of water left in freezing air plateaus, banks its latent heat, then empties into ice', async () => {
+    const { WorldClockApi } = await import('../../../api/worldclock');
+    await import('../../../platform/idea/WorldClockRegistry');
+    let now = 0;
+    WorldClockApi._resetForTesting();
+    WorldClockApi._setNowProviderForTesting(() => now);
+    WorldClockApi.setScale(1000);
+    now = 100; // ⚠ a thermal stamp of 0 means "never touched"
+    try {
+      const water = liquid({ mp: 273.15, latent: 334_000 });
+      const jug = pan(water, 1, 280);
+      jug.setLastAmbientK(250); // a winter street at dawn
+      jug.getTemperature(); // opens the thermal clock
+
+      // An hour in: below the melting point is impossible — it holds at
+      // mp while the latent bank fills. Nothing pointed a cooler at it;
+      // the weather's ambient is the whole driver.
+      now = 100 + 3600;
+      expect(jug.getTemperature().rawValue()).toBeCloseTo(273.15, 1);
+      const banked = jug.getBulkPayload('interior')?.latentRemovedJ ?? 0;
+      expect(banked).toBeGreaterThan(0);
+      expect(jug.getBulkAmount('interior').rawValue()).toBe(1);
+
+      // A second read at the same instant banks nothing more.
+      jug.getTemperature();
+      expect(jug.getBulkPayload('interior')?.latentRemovedJ ?? 0).toBeCloseTo(banked, 6);
+
+      // Read through the day (a watched world reads; ⚠ the phase engine
+      // banks the undershoot it FINDS at a read, so one long unread gap
+      // banks one cooling's worth — a thermal-tail limit, plan R16), and
+      // the bank reaches m·L: the pool is gone. The cast
+      // (/stuff/thing/ice-block) mints into the jug's container, which the
+      // drive proves; here the slot emptying is the claim.
+      for (let h = 2; h <= 24 && jug.getBulkAmount('interior').rawValue() > 0; h++) {
+        now = 100 + h * 3600;
+        jug.getTemperature();
+      }
+      expect(jug.getBulkAmount('interior').rawValue()).toBe(0);
+    } finally {
+      WorldClockApi._resetForTesting();
+    }
+  });
+});

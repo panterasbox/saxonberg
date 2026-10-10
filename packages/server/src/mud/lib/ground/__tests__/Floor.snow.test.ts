@@ -9,6 +9,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Floor from '../../../platform/thing/Floor';
 import CartesianLocation from '../../location/CartesianLocation';
 import Biome from '../../biome/Biome';
+import Material from '../../material/Material';
 import { SkyExposedBiome } from '../../../platform/idea/SkyExposedBiome';
 import { Zone } from '../../zone/Zone';
 import { Stuff } from '../../stuff/Stuff';
@@ -197,4 +198,43 @@ describe('snow lies on a sky-exposed floor', () => {
     expect(floor.getSnowDepthM()).toBeGreaterThan(0);
   });
 
+
+describe('a puddle in freezing air reads frozen over (W6, D7)', () => {
+  async function wetFloor(levers: Parameters<typeof floorAt>[0]): Promise<{ room: CartesianLocation; floor: Floor }> {
+    const { room, floor } = await floorAt(levers);
+    const water = makeStuffAtPath(() => {
+      const m = new Material();
+      m.setName('water');
+      return m;
+    }, `/test/material/water-${seq}`) as unknown as Material;
+    floor.surfaceBulk = true;
+    (floor as unknown as { surfaceCapacity: Quantity<'L'> }).surfaceCapacity = Quantity.of(40, 'L');
+    floor.setBulkMaterial('surface', water);
+    floor.setBulkAmount('surface', Quantity.of(10, 'L'));
+    return { room, floor };
+  }
+
+  it('cold air freezes it over, and look says so; warm air does not', async () => {
+    WeatherApi._forceTypeForTesting('clear');
+    const cold = await wetFloor(ICECAP);
+    const warm = await wetFloor({ latitude: 0 });
+    setDay(720);
+    await settle(cold.room);
+    await settle(warm.room);
+    expect(cold.floor.isFrozenOver()).toBe(true);
+    expect(warm.floor.isFrozenOver()).toBe(false);
+    const augmenters = (Floor as unknown as { markupAugmenters: MarkupAugmenter[] })
+      .markupAugmenters;
+    let text = '';
+    for (const aug of augmenters) text = aug(text, cold.floor, cold.floor);
+    expect(text).toMatch(/skin of ice/);
+  });
+
+  it('a dry floor is never frozen over', async () => {
+    const { room, floor } = await floorAt(ICECAP);
+    setDay(720);
+    await settle(room);
+    expect(floor.isFrozenOver()).toBe(false);
+  });
+});
 });

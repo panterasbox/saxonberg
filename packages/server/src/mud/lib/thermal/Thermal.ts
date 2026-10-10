@@ -975,14 +975,27 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
       // complete and had no ambient driver.
       //
       // The drift above is what makes a body warm, so the phase check
-      // belongs immediately after it, on the same lazy read. It is
-      // narrowed to `Meltable` hosts: the `Bulkable` freeze/boil rung
-      // has its own callers (a `CraftVessel` drives it from its own
-      // reconcile) and widening it here would double-run them.
+      // belongs immediately after it, on the same lazy read.
+      //
+      // ⭐⭐ **And a pool freezes because it is COLD** (the climate build,
+      // D7). The `Bulkable` freeze rung had no ambient driver either —
+      // only a cooler's contents pass and two spells — so a jug of water
+      // left in a winter street never froze. It is the melt's exact
+      // mirror: a plateau at the melting point while the latent heat is
+      // banked, then the material's cast. Widening is safe twice over: a
+      // second pass at `T == mp` banks nothing (the undershoot is zero),
+      // and the slot is emptied before the cast mints, so it cannot mint
+      // twice. (`CraftVessel` never called `reconcilePhase` — it drives
+      // `absorbIntoIce` — so there is nothing here to double-run.)
       //
       // Outside the `try`, so the plateau's own `setContentsTemperature`
       // is not swallowed by the reentry guard.
-      if (MixinApi.isMeltable(self)) this.reconcilePhase();
+      if (
+        MixinApi.isMeltable(self) ||
+        (MixinApi.isBulkable(self) && MixinApi.isThermal(self))
+      ) {
+        this.reconcilePhase();
+      }
     }
 
     /**
