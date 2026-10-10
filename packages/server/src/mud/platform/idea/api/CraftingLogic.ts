@@ -3650,6 +3650,11 @@ async function fitImpl(req: FitRequest): Promise<FitOutcome> {
     // Gate every joint the made thing will carry, before anything is spent.
     const tpl = await Template.findByPath(recipe.getOutputTemplate());
     const bill = (tpl?.data as { bill?: { joints?: { method?: string }[] } } | undefined)?.bill;
+    // ⭐ `fit` RAISES things made of parts — it is not a general make verb.
+    // A recipe whose output has no bill is somebody else's act (`forge`,
+    // `carve`, `rive`), and the refusal says so rather than quietly
+    // running a transformation under the wrong verb (assembly D5).
+    if (!bill) return { ok: false, reason: 'no-line', detail: 'not-raised-from-parts' };
     for (const j of bill?.joints ?? []) {
       const row = j.method ? await cat.warmed(j.method) : null;
       if (!row) continue;

@@ -83,6 +83,9 @@ export class CraftingDecline {
       case 'not-skilled':
         return `You don't have the hand for that yet — ${detail || 'it wants more skill than you have'}.`;
       case 'no-line':
+        if (detail === 'not-raised-from-parts') {
+          return "That isn't raised from parts — it's made another way (forged, carved, riven), not fitted.";
+        }
         if (detail === 'not-an-assembly') {
           return "That isn't made of parts — there's nothing in it to fit anything to.";
         }
