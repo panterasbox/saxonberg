@@ -311,6 +311,11 @@ export const Mixins = {
   Environment: 'EnvironmentMixin',
   Alias: 'AliasMixin',
   Singleton: 'SingletonMixin',
+  // The room-holding half of a spatial zone (Cartesian/Spherical); a frame
+  // like an Expanse is a SpatialZone that composes no Location half.
+  LocationZone: 'LocationZoneMixin',
+  // A geographic position in an Expanse — a node, a Structure, a boat.
+  Positioned: 'PositionedMixin',
   DoorBearing: 'DoorBearingMixin',
   Adornable: 'AdornableMixin',
   Adornment: 'AdornmentMixin',

@@ -68,6 +68,8 @@ import type { SaxonbergClient } from '../lib/connection/SaxonbergClient';
 import type { Environment } from '../lib/shell/Environment';
 import type { Alias } from '../lib/shell/Alias';
 import type { Singleton } from '../lib/stuff/Singleton';
+import type { LocationZone } from '../lib/zone/LocationZone';
+import type { Positioned } from '../lib/expanse/Positioned';
 import type { DoorBearing } from '../lib/boundary/DoorBearing';
 import type { Adornable } from '../lib/boundary/Adornable';
 import type { Adornment } from '../lib/boundary/Adornment';
@@ -1264,6 +1266,14 @@ export class MixinApi {
 
   public static isSingleton(obj: Stuff): obj is Stuff & Singleton {
     return this.hasMixin(obj, Mixins.Singleton);
+  }
+
+  public static isLocationZone(obj: Stuff): obj is Stuff & LocationZone {
+    return this.hasMixin(obj, Mixins.LocationZone);
+  }
+
+  public static isPositioned(obj: Stuff): obj is Stuff & Positioned {
+    return this.hasMixin(obj, Mixins.Positioned);
   }
 
   public static isDoorBearing(obj: Stuff): obj is Stuff & DoorBearing {

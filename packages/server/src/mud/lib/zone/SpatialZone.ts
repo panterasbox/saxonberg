@@ -2,20 +2,22 @@
  * SpatialZone — abstract intermediate layering location-aware behavior on Zone.
  *
  * The bare `Zone` is a scope/folder unit (templates use Zone-class folders to
- * carry policy that descendants inherit). `SpatialZone` adds the topographical
- * surface: a Set of member Locations and the location/zone back-reference
- * dance. Exits are authored explicitly on every room — the zone does not
- * synthesize them (CartesianZone *validates* cardinal-exit geometry instead).
+ * carry policy that descendants inherit). `SpatialZone` adds the REGION: the
+ * fields only a place in space can carry (what it stocks, its address, the
+ * ground under it, what can be seen from it).
  *
- * `CartesianZone` and `SphericalZone` extend this — not `Zone` directly.
+ * ⭐ It does NOT hold rooms. That half is `LocationZoneMixin`
+ * (`lib/zone/LocationZone.ts`), composed by `CartesianZone` and
+ * `SphericalZone`; an `Expanse` (`lib/expanse/Expanse.ts`) is a region in
+ * space whose points of interest are Ideas, and it composes no Location
+ * half. Until the maritime build the two were one class, which made every
+ * future frame inherit a room set it had to guard against.
  *
  * Non-spatial Zone subclasses (`Clade`, future permission-grouping zones,
  * future runtime-rule scopes) extend bare `Zone`. They reuse the
  * folder-of-templates contract without inheriting location-aware behavior.
  */
 import { Zone } from './Zone';
-import type Location from '../stuff/Location';
-import type { VetoResult } from '../errors';
 import type { FieldMeta } from '../mixin';
 import type { BlessingOdds } from '../magic/Blessing';
 import type { CelestialProfile } from '../time/CelestialProfile';
@@ -23,8 +25,9 @@ import { Suppressions } from '../magic/Suppression';
 import type { MagicSuppression } from '../magic/Suppression';
 
 /**
- * Abstract base for all topographical Zone subtypes (`CartesianZone`,
- * `SphericalZone`): a Set of member Locations + the zone back-reference.
+ * Abstract base for every region in space: the room-holding zones
+ * (`CartesianZone`, `SphericalZone`, via `LocationZoneMixin`) and the
+ * frames that hold no rooms (`Expanse`).
  */
 export abstract class SpatialZone extends Zone {
   /**
@@ -59,6 +62,7 @@ export abstract class SpatialZone extends Zone {
     groundCharacter: { persistent: true, authorable: true },
     celestialProfile: { persistent: true, authorable: true },
     suppressesMagic: { persistent: true, authorable: true },
+    visibleLandmarks: { persistent: true, authorable: true },
   };
 
   /**
@@ -235,72 +239,25 @@ export abstract class SpatialZone extends Zone {
   }
 
   /**
-   * Locations that live in this zone. Populated by the subclass's
-   * `addLocation()`. Host-internal storage; external callers go
-   * through `getLocations()` / `contains()`.
+   * ⭐ **The Structures visible from anywhere in this region** — template
+   * paths of `Structure` rows whose outside description `look` appends to
+   * every room the zone walk reaches, or `null` to walk on.
    *
-   * Membership is maintained by the SpatialZone; `Location.zone` (on the
-   * Stuff base) is the back-reference stamped when the location is added.
-   */
-  protected locations: Set<Location> = new Set();
-
-  public getLocations(): ReadonlySet<Location> { return this.locations; }
-
-  /**
-   * Mark a location as belonging to this zone.
-   * Subclasses may extend to capture coordinates (CartesianZone stamps grid
-   * position, SphericalZone stamps focus tuple).
-   */
-  public addLocation(location: Location): void {
-    this.locations.add(location);
-    location.setZone(this);
-  }
-
-  /**
-   * Remove a location from this zone. Clears the back-reference.
-   */
-  public removeLocation(location: Location): boolean {
-    const removed = this.locations.delete(location);
-    if (removed && location.getZone() === this) {
-      location.setZone(null);
-    }
-    return removed;
-  }
-
-  /**
-   * Does this zone contain the given location?
-   */
-  public contains(location: Location): boolean {
-    return this.locations.has(location);
-  }
-
-  /**
-   * Refuse to destruct a non-empty SpatialZone. Caller must drain the
-   * member locations (destruct or relocate) before destructing the
-   * zone itself. Refusal is bypassable via `StuffApi.forceDestruct`
-   * (admin-gated).
+   * Landmark visibility is REGIONAL, not per-room: the clock tower is seen
+   * from the whole avenue, so one declaration on the avenue's zone covers
+   * every room in it, and the tower's sentence is authored once on the
+   * tower. An authored `[]` is an answer — *nothing is visible from here*
+   * — and stops the walk, which is how an interior under a region that
+   * sees the tower says it does not.
    *
-   * Witness shape: `canDestruct` returns `VetoResult` per the
-   * destruct hook contract in `StuffApi.destruct`.
-   *
-   * @hook Invoked by `StuffApi.destruct` first, before `onDestruct`.
-   *   **Veto** — return `{ ok: false, reason }` to refuse destruction
-   *   (raises `DestructError`) or `{ ok: true }` to allow.
-   *   `forceDestruct` still fires it (so observers run) but ignores the
-   *   veto. There is no base declaration on `Stuff`; implement on any
-   *   subclass that guards its own destruction — this declaration is
-   *   the canonical contract for the optional hook.
+   * Every land range is authored here; only at sea does the engine compute
+   * one (`ExpanseApi.sightRangeNm`), because ashore obstruction binds and
+   * at sea curvature does.
    */
-  public canDestruct(): VetoResult {
-    if (this.locations.size > 0) {
-      return {
-        ok: false,
-        reason:
-          `cannot destruct zone '${this.getName()}' with ` +
-          `${this.locations.size} live location(s); ` +
-          `destruct locations first`,
-      };
-    }
-    return { ok: true };
+  protected visibleLandmarks: string[] | null = null;
+
+  public getVisibleLandmarks(): string[] | null { return this.visibleLandmarks; }
+  public setVisibleLandmarks(value: string[] | null): void {
+    this.visibleLandmarks = value ?? null;
   }
 }

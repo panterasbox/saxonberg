@@ -12,6 +12,7 @@
  */
 
 import { SpatialZone } from '../../../lib/zone/SpatialZone';
+import { LocationZoneMixin } from '../../../lib/zone/LocationZone';
 import type Location from '../../../lib/stuff/Location';
 import { SingletonMixin } from '../../../lib/stuff/Singleton';
 import { MixinApi } from '../../../api/mixin';
@@ -22,7 +23,7 @@ function focusKey(coords: [number, number, number]): string {
   return `${coords[0].toFixed(2)},${coords[1].toFixed(2)},${coords[2].toFixed(2)}`;
 }
 
-export default class SphericalZone extends SingletonMixin(SpatialZone) {
+export default class SphericalZone extends SingletonMixin(LocationZoneMixin(SpatialZone)) {
   /**
    * Debug / authoring aid: locations indexed by rounded focus tuple.
    * Multiple locations may share a key (nothing prevents overlap); the

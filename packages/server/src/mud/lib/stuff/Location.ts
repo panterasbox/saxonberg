@@ -449,7 +449,7 @@ export default class Location extends LocationBase {
    */
   public override onDestruct(): void {
     const zone = this.getZone();
-    if (zone) {
+    if (zone && MixinApi.isLocationZone(zone)) {
       zone.removeLocation(this);
     }
     super.onDestruct();
