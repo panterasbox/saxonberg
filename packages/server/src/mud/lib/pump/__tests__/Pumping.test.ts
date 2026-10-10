@@ -382,6 +382,11 @@ describe('⭐ the machine rung — power-limited, and wear INTEGRATED', () => {
   });
 
   it('a ten-hour gap with a six-hour cut wears for four hours, not ten', () => {
+    // The shipped rate is 0 until a keeper exists; the INTEGRAL is what is
+    // under test, so the dial is set here.
+    vi.mocked(AppApi.setting).mockImplementation((k: string) =>
+      k === 'pump.wearPerRunningHour' ? '0.002' : '',
+    );
     const p = poweredPump(60_000, [3_600 * 2, 3_600 * 8]);
     p.reconcileRunning(1); // the first reconcile only stamps
     const before = p.packingPart()!.getCondition();

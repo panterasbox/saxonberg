@@ -63,7 +63,16 @@ export const PACKING = 'packing';
 
 /** Fallbacks for the four dials, used when the settings row is unseeded. */
 const WEAR_PER_STROKE_FALLBACK = 0.06;
-const WEAR_PER_RUNNING_HOUR_FALLBACK = 0.002;
+/**
+ * ⚠ ZERO, deliberately, until the keeper exists. A powered pump's packing
+ * sits two containers deep in a main (room › conduit › pump › packing) and
+ * its pump is fixed in place, so nothing a player can do reaches it to
+ * re-pack or repair — and a failure nobody can lift is not a lesson, it is
+ * a time bomb (the intake would have gone dry for good in ~19 game days).
+ * The mechanism ships and is tested at a set rate; the consequence waits
+ * for the seat that answers it (a waterworks keeper — pump.md § Deferred).
+ */
+const WEAR_PER_RUNNING_HOUR_FALLBACK = 0;
 const HAND_FLOOR_W_FALLBACK = 200;
 const CREW_DUTY_FALLBACK = 0.5;
 const PUMP_EFFICIENCY_FALLBACK = 0.6;

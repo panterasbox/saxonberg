@@ -15,10 +15,14 @@ settings:
     value: "0.06"
 
   # Packing condition one RUNNING hour of a powered pump wears off —
-  # integrated over the supply's trajectory, never sampled. About three
-  # weeks of round-the-clock running to gone, which is a keeper's job.
+  # integrated over the supply's trajectory, never sampled.
+  # ⚠ ZERO until the keeper exists. A powered pump's packing is two
+  # containers deep in its main and the pump is fixed in place, so nobody
+  # can re-pack or repair it; at 0.002 the city intake went dry for good
+  # in ~19 game days. Raise it the day a waterworks seat can answer it
+  # (about 0.002 is three weeks of round-the-clock running to gone).
   - key: pump.wearPerRunningHour
-    value: "0.002"
+    value: "0"
 
   # The least metabolic watts a spell at the handle costs, however
   # shallow the water: lifting the handle is work before any water is.

@@ -72,6 +72,10 @@ describe('ElectricPump', () => {
   });
 
   it('⭐⭐ turning it off reconciles the hours it ran, first', () => {
+    // The shipped rate is 0 until a keeper exists; set it to see the wear.
+    vi.mocked(AppApi.setting).mockImplementation((k: string) =>
+      k === 'pump.wearPerRunningHour' ? '0.002' : '',
+    );
     const p = pump();
     supply(p, 60_000);
     p.setOn(true);

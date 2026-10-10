@@ -1274,6 +1274,14 @@ rim seeps ~3 L an hour); AC 7's `wants-bailing` is drilling's own drive
 (`bore` at an unstaked hole refuses `untitled` first); AC 13's tank
 answers *"carries no water anywhere"* before and after this build.
 
+**Review round 1 (2026-10-10):** a look back at the city found the intake
+would brick itself — the packing two containers deep and the pump fixed in
+place, so its running-hour wear (0.002/h) dried the market standpipe for
+good in ~19 game days with no remedy. `pump.wearPerRunningHour` ships at 0
+until a keeper exists (B15); the intake row's claim that *the city's taps*
+go off was false (it is one tap) and is corrected. Plumbing the city, two
+mains, the aqueduct's `on`, taps that feel an overdraw → water design pack.
+
 **Regression drives:** fire ✅ (AC 10). ⚠ Red on master, not this build:
 reachability §8 (master made `lock` reachable), fishing (`reserve issue`
 retired), taps (`eval --parcel` → sandbox boundary unhandled rejection).

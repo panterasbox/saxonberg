@@ -102,7 +102,15 @@ A packing is a `Tool` (`capabilities: [packing]`, leather) set IN the
 pump; the pump holds one and vetoes everything else. It wears per spell
 (`pump.wearPerStroke`) and per RUNNING hour (`pump.wearPerRunningHour`,
 ⚠ **integrated over `poweredTrajectory`, never sampled** — the switch has
-no history, so `ElectricPump.setOn` reconciles first). A broken packing
+no history, so `ElectricPump.setOn` reconciles first).
+
+⚠⚠ **The running-hour rate ships at ZERO, until the keeper exists.** A
+powered pump's packing sits two containers deep in its main and the pump is
+fixed in place, so nothing a player can do reaches it to re-pack or repair.
+At the rate first shipped (0.002/h) the city intake went dry for good in
+about 19 game days — a failure nobody could lift, which is not a lesson.
+The mechanism is tested at a set rate; the consequence waits for the
+waterworks seat (Deferred). A broken packing
 offers nothing (`hasCapability` is false on a broken Durable): *the
 leather has gone* is capability loss, no state machine. It reads in five
 words and no digit (`sound · worn · leaking · perished · gone`).
@@ -154,6 +162,11 @@ part model absorbs it.
   first tap in the realm that knows what feeds it.
 - ⚠ A power cut at the pump reads `off` too — the six words have no
   *unpowered*.
+- ⚠ **One tap.** Only the market standpipe is plumbed; every other tap in
+  Terminus is its own source. Plumbing the city, a tap served by two mains
+  (the aqueduct also serves Terminus, and is switched off), and taps that
+  feel an overdraw are the water design pack's Left —
+  [water-design-pack](../slates/tails/water-design-pack.md).
 
 ## Gates
 
@@ -170,7 +183,9 @@ powered pump on a wellhead (no content ships one) · the finite aquifer ·
 `dry`/`frozen`/`fouled` at a tap (the async words) · a seventh supply word
 for *unpowered* · the packing as a constitutive PART (assembly) · a pump
 as a recipe output · the city pump's keeper (a seat the polity creates) ·
-the suction limit as a discoverable law (inquiry slate) · mine
+the suction limit as a discoverable law (inquiry slate) · running-hour
+wear (ships at 0 until a keeper can re-pack a powered pump) · a hand
+bellows you carry (pump slate) · plumbing the rest of the city · mine
 dewatering and trade-mining's `drain`, which narrates *"work the pump"*
 with no pump object · the gym's `pace` slot.
 
