@@ -2110,7 +2110,9 @@ Nothing unmapped.
   reads, not in one. Pre-existing (the melt shares it) → thermal tail.
 - **R14 — `interiorAmount` is `runtimeState` in `Bulkable.fieldMeta`**
   (:534). Rows author it today (`jar-of-barm`, the sugarbush panel), so
-  the brine cask relies on the same hydration path; if a `runtimeState`
+  the brine cask relied on the same hydration path (⚠ superseded by B17:
+  the cask is gone and the PAN is born with brine — and the drive read it
+  there, so the path holds); if a `runtimeState`
   key is ever skipped at hydrate the cask arrives empty and drive step 8
   fails loudly at the pour — the Rejection salt flat's spring/hearth is
   the fallback source (`bail`/`boil` are the drilling drive's steps).

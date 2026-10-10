@@ -44,7 +44,7 @@ describe('The Weeping Moor — content integrity', () => {
     const heath = seed('world/moor/stormy-heath');
     expect(heath.class).toBe('/platform/location/SingletonCartesianLocation');
     expect(heath.data?._biomePath).toBe('/stuff/idea/biome/outdoor/baseline');
-    expect(heath.data?.address).toBe('moor/heath');
+    expect(heath.data?._address).toBe('moor/heath');
     expect(templateExists('/stuff/idea/biome/outdoor/baseline')).toBe(true);
     for (const p of (heath.data?.adornments ?? []) as string[]) {
       expect(templateExists(p)).toBe(true);
@@ -57,7 +57,7 @@ describe('The Weeping Moor — content integrity', () => {
     expect(chamber.data?._biomePath).toBe('/stuff/idea/biome/indoor/baseline');
     expect(chamber.data?._weatherPin).toEqual({ type: 'rain', mode: 'frozen' });
     expect(chamber.data?._humidity).toBe(98); // authored sodden air
-    expect(chamber.data?.address).toBe('moor/chamber');
+    expect(chamber.data?._address).toBe('moor/chamber');
     for (const p of (chamber.data?.adornments ?? []) as string[]) {
       expect(templateExists(p)).toBe(true);
     }
