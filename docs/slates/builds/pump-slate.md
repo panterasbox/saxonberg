@@ -11,7 +11,8 @@
 > **shared-pump public-goods problem** and the hoist toll · ⭐⭐ **stopping a
 > pump as an act against someone else** (the city pump is stoppable now and
 > nobody's job keeps it) · the suction limit as a DISCOVERED law (inquiry)
-> · ⭐ **the hand bellows** — a carried one (§ below)
+> · ⭐ **the hand bellows** — a carried one (§ below) · ⚠ **nobody makes
+> or sells a pump or a packing** — the drive's dirty reason (§ below)
 >
 > Originally **promoted out of
 > [mining-slate](./mining-slate.md)'s Left** (2026-10-08), where it was one
@@ -256,6 +257,19 @@ working it (a sustained effort, not a toggle — which is the pump build's
 engagement shape, not the forge's instant one). ⚠ That touches every
 `BurnerMixin` host, so it is a fire-subsystem decision with this slate's
 protocol under it — not a pump-build change.
+
+## ⚠ The drive's dirty reason — a producer that should be producing
+
+The pump drive (`packages/wire/tests/pump.dirty.wire.test.ts`) is dirty
+because it **takes the claims office's force pump and spare packing off a
+hire rack** and leaves a worn packing on a hillside. That is a finding for
+the trades, not a test hygiene note: in the shipped realm **nobody makes a
+pump** (a pump is a stocked row — the cylinder is a smith's, the valves a
+pump-maker's, and assembly makes it a recipe output) and **nobody sells a
+packing** (the tanning recipe ships and is deed-gated; Rejection's till
+cannot take money; no tannery has a counter). When a pump-maker and a
+tanner's counter exist, the drive takes its kit from them and stops being
+dirty on that count.
 
 ## Open
 

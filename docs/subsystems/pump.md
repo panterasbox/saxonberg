@@ -195,4 +195,13 @@ a pail that could not hold water (`closure: open` means not liquid-tight;
 fixed in generic-objects), `Conduit.resolveHead` with no production
 caller (every live conduit's head "never surveyed"), the bank's
 `aqueduct` detail shadowing the aqueduct, and a verb that fell through
-the shape on two words.
+the shape on two words. A browser walk then found sentences opening
+lowercase on a thing's name (the platform has no sentence-initial
+capitalisation, so none of this subsystem's sentences open with one) and
+holder prose describing a removable pump (antipatterns.md § *A holder's
+prose describing an occupant that can be REMOVED*). Review round 1 zeroed
+the running-hour wear until a keeper exists.
+
+Re-drive: `WIRE_BOOT=1 WIRE_PORT=<worktree's> npx vitest run
+tests/drilling.dirty.wire.test.ts tests/pump.dirty.wire.test.ts` from
+`packages/wire` — the two share one world without taking each other's kit.

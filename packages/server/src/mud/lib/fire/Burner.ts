@@ -696,7 +696,7 @@ export function BurnerMixin<TBase extends MixinConstructor<Stuff>>(
      * (`durationMs: 0`) that toggles. ⭐ The three refusals and both scenes
      * are the ones `PumpController` printed before the pump build, moved
      * here verbatim — a bellows-less, cold or unfuelled furnace declines
-     * exactly as it always did (AC 10).
+     * exactly as it always did (pump build AC 10).
      */
     public async planPump(_by: Stuff): Promise<PumpPrognosis> {
       const self = this as unknown as Stuff;

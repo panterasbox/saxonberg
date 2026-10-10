@@ -27,7 +27,6 @@ import {
   PersistenceManager,
   Collections,
 } from '../../../../backend/PersistenceManager';
-import CartesianZone from '../../../platform/idea/location/CartesianZone';
 import CartesianLocation from '../../location/CartesianLocation';
 import Biome from '../../biome/Biome';
 import Material from '../../material/Material';

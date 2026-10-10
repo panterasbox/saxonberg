@@ -65,7 +65,7 @@ export interface PumpPlan {
    *
    * ⚠ `Mml`, not a markup string as `Workable` carries: the bellows'
    * shipped scenes bind the actor and the furnace PER VIEWER, and a string
-   * would have flattened them — AC 10 pins those sentences.
+   * would have flattened them — the pump build's AC 10 pins those sentences.
    */
   beginSelf: Mml | null;
   /** What the room sees as it starts, or `null`. */

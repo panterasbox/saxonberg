@@ -41,7 +41,10 @@
  * So the slot is empty on a dead well not because of a gate but because
  * the brine is a hundred metres down. ⭐ And *that* is the hole a pump
  * fills: {@link Wellhead.liftL} is a single number, and a lift mechanism
- * raising it is the pump build's entire attach point.
+ * raising it was the pump build's entire attach point — which that build
+ * consumed: a pump set IN the hole raises by `liftInto` (this host answers
+ * `LiftSource` and `PumpSource`; see docs/subsystems/pump.md), while the
+ * bailer's `lift()` is unchanged and asks no pressure.
  *
  * ## 4 ⚠⚠ Depth is BANKED; only the swing is ENGAGED
  *
@@ -217,7 +220,7 @@ export default class Wellhead
     rigStamp: { persistent: true },
     sumpL: { persistent: true },
     drawnL: { persistent: true },
-    // ⭐ Authorable since the pump build (D13): a venue may ship a hole
+    // ⭐ Authorable since the pump build (its D13): a venue may ship a hole
     // somebody sank and walked away from, already standing in a body. A
     // bore that is SUNK still learns its body by reaching it (`logMetre`);
     // an authored key is a venue asserting a history, not a shortcut.
@@ -468,7 +471,7 @@ export default class Wellhead
       }
       await this.reconcileInflow(elapsed);
       // ⭐⭐ A pump on the hole and hands at it: the bucket-at-a-time act
-      // becomes a CONTINUOUS rate, credited while the owner sleeps (D14).
+      // becomes a CONTINUOUS rate, credited while the owner sleeps (pump build D14).
       // The same law as a hand at the handle — a crew cannot out-pump the
       // air any more than a player can.
       if (hands > 0) await this.creditPumping(hands, elapsed);
@@ -647,7 +650,7 @@ export default class Wellhead
     return moved;
   }
 
-  /** The crew's spell at the pump, credited by presence (D14). */
+  /** The crew's spell at the pump, credited by presence (pump build D14). */
   private async creditPumping(hands: number, elapsed: number): Promise<void> {
     const pump = this.pumpFitted();
     if (!pump || !MixinApi.isPumping(pump)) return;
