@@ -1,0 +1,36 @@
+# The dairywoman (dairy D14) — keeps the herd and does the milking. The
+# household exists so the herd is somebody's; staffing the hourly tap is
+# the ranching slate's (a seat that fulfils nothing here).
+class: /platform/agent/Cast
+extends: /stuff/agent/costume/student
+data:
+  costume:
+    - /stuff/thing/clothes/field-jacket
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sensitivus
+  lifecycleState: alive
+  name: Hesper Vane
+  keywords: [hesper, vane, dairywoman, dairymaid]
+  shortDescription: brisk dairywoman
+  register: definite
+  longDescription: >-
+    A broad, quick woman with her sleeves pushed past the elbow and a
+    scrubbed red look to her forearms. She washes her hands before she
+    touches a cow and after, and expects you to.
+  archetype: farmer
+  prologue:
+    - "Has milked the same six cows twice a day for nine years."
+    - "Will not let a pail into the byre that has not been scalded."
+  competence:
+    - { discipline: stockmanship, asserting: proficient }
+    - { discipline: dairying, asserting: competent }
+  dispositions:
+    - { disposition: diligence, valence: 80 }
+    - { disposition: composure, valence: 40 }
+  behaviors:
+    - brain: /lib/behavior/idles
+      trigger: candidate
+      config:
+        pool:
+          - { kind: free, value: "scrubs her hands at the butt, hard, and shakes them dry." }
+          - { kind: free, value: "runs a hand down a cow's flank and says something to it." }
+          - { kind: free, value: "turns a pail upside down on its peg to drain." }

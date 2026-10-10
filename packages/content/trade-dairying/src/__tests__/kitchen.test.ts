@@ -6,6 +6,7 @@
  * shipped rows; the doneness band the custard's ten-kelvin window rides is
  * the kernel's and is tested there (`CraftingLogic.doneness.test.ts`).
  */
+import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'fs';
 import { join } from 'path';

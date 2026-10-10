@@ -1,0 +1,13 @@
+# A cheese rack (dairy D14) — slatted shelving in the cheese room, where
+# wheels stand to ripen with the air moving round them. ⭐ The shipped
+# drying rack's class: a slatted surface things are put ON, open to the
+# air — which is what a cheese shelf is.
+class: /trade/cooking/thing/DryingRack
+data:
+  shortDescription: cheese rack
+  keywords: [rack, "cheese rack", shelf, shelves, slats]
+  register: indefinite
+  longDescription: |
+    Shelves of thin pine slats on oak uprights, the slats stained pale yellow where wheels have stood on them.
+  _materialPath: /stuff/idea/material/wood/pine
+  mass: 30

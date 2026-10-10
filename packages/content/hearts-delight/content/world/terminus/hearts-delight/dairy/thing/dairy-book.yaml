@@ -1,0 +1,20 @@
+# The dairy herd book (dairy D14) — six cows, nearly all of them cows: a
+# dairy keeps a bull only when it means to, and nineteen head in twenty
+# are female.
+class: /trade/ranching/thing/Herdbook
+data:
+  shortDescription: herd book
+  keywords: [book, "herd book", herdbook, register, dairy]
+  register: definite
+  longDescription: >-
+    A heavy book with a cloth spine, ruled for number, dam, born, served,
+    calved and dry. The DRY column is kept as carefully as the rest.
+  mass: 0.8
+  herdId: delight-dairy
+  herdName: the Delight dairy herd
+  speciesPath: /stuff/idea/species/animalia/chordata/mammalia/artiodactyla/bovidae/bos/taurus
+  tally: 6
+  foundingMeanAgeDays: 1100
+  femaleFraction: 0.95
+  holderRef: organization:/world/terminus/hearts-delight/idea/dairy-business
+  homeExtent: /world/terminus/hearts-delight/dairy/location/yard

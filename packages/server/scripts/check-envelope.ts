@@ -154,6 +154,15 @@ export const AUTHORED_TEMPERATURES: ReadonlyArray<{
       "of the five, and the first to argue with if this list is ever " +
       "paid down.",
   },
+  {
+    path: "/world/terminus/hearts-delight/creamery/location/cheese-room",
+    reason:
+      "284 K — a cheese cave cut into the bank under the creamery (dairy " +
+      "D14). A cellar the same the year round is the case this list " +
+      "exists for, and here the temperature IS the product: the ripening " +
+      "profiles' happy band is 284 K, and a wheel carried up into the warm " +
+      "goes over or dies.",
+  },
 ];
 
 /**

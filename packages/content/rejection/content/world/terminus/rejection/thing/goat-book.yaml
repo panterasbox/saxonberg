@@ -1,0 +1,21 @@
+# The goat book (dairy D14) — Rejection's three nannies, filed on the
+# register like any herd. All female: a billy is borrowed when one is
+# wanted, which is how a household herd works.
+class: /trade/ranching/thing/Herdbook
+data:
+  shortDescription: goat book
+  keywords: [book, "goat book", register, herd]
+  register: definite
+  longDescription: >-
+    A school exercise book on a nail, its cover cockled with damp. Three
+    names in it — Bess, Old Tin and the Duchess — and a column of tally
+    marks against each that somebody has given up adding up.
+  mass: 0.2
+  herdId: rejection-nannies
+  herdName: the Rejection nannies
+  speciesPath: /stuff/idea/species/animalia/chordata/mammalia/artiodactyla/bovidae/capra/hircus
+  tally: 3
+  foundingMeanAgeDays: 900
+  femaleFraction: 1
+  holderRef: organization:/world/terminus/rejection/idea/provisioning-business
+  homeExtent: /world/terminus/rejection/kestrel-road/goat-pen

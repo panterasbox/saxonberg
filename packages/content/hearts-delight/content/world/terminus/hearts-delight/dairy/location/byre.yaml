@@ -1,0 +1,41 @@
+# The byre (dairy D14) — where the cows are milked, and where the dairy
+# keeps its books: the herd and the calves. Lit by what comes through the
+# door; the milking is done by daylight.
+class: /platform/location/SingletonCartesianLocation
+data:
+  shortDescription: byre
+  keywords: [byre, cowshed, shed, stalls]
+  register: definite
+  _address: terminus/hearts-delight/dairy/byre
+  _biomePath: /stuff/idea/biome/indoor/baseline
+  ambientSource: sky
+  ambientOpening: door
+  ambientIntensity: 10000
+  ambientColorTemperature: 5000
+  longDescription: |
+    A long whitewashed shed with a row of stalls down one side and a swept walk down the other, the floor sloping to a gutter. Pails hang on pegs by the door beside a water butt, and the herd book and the calf register lie on a shelf where the light falls.
+
+    A three-legged stool stands by the first stall, worn dark on the seat.
+  coords: { x: 1, y: -6, z: 0 }
+  exits:
+    west:
+      destination: /world/terminus/hearts-delight/dairy/location/yard
+      media: [ground]
+      edgeMinutes: 1
+  props:
+    - /world/terminus/hearts-delight/dairy/thing/dairy-book
+    - /world/terminus/hearts-delight/dairy/thing/calf-register
+    - { template: /stuff/thing/vessel/pail, count: 2 }
+    - /stuff/thing/fixture/water-butt
+  cast:
+    - /world/terminus/hearts-delight/agent/dairywoman
+    - /world/terminus/hearts-delight/agent/dairy-lad
+  details:
+    stool:
+      keywords: [stool, "milking stool"]
+      description: |
+        Three legs, so it sits on uneven ground. You milk from the cow's right, and you do it sitting down.
+    door:
+      keywords: [door, light]
+      description: |
+        Wide, and propped open. All the light in here comes through it.

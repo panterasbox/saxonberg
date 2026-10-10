@@ -1,0 +1,48 @@
+# The goat pen — three nannies on rough ground outside the yard wall
+# (dairy D14). ⭐ The second-venue proof: everything here is a row, and
+# every class it names is ranching's or dairying's. Rejection still ships
+# no TypeScript.
+#
+# ⭐ Why goats, and why here: a mining town on a dry hillside cannot keep a
+# cow, and a goat lives on what grows between the spoil heaps. Three litres
+# a game day each is not a dairy; it is milk for the town and a soft cheese
+# set in a pan on the lodge stove — which is exactly the household scale
+# a goat has always been kept at.
+class: /platform/location/SingletonCartesianLocation
+data:
+  shortDescription: goat pen
+  keywords: [pen, goats, fold, hurdles]
+  register: definite
+  _address: terminus/rejection/road/goat-pen
+  _biomePath: /stuff/idea/biome/outdoor/baseline
+  ambientIntensity: 24000
+  ambientColorTemperature: 5700
+  longDescription: |
+    A rough fold of hurdles and spoil-stone against the outside of the yard wall, with a lean-to roof of corrugated iron at one end. The ground inside is bare and trodden and smells of goat. Whatever grew here has been eaten, and so has most of the hurdle nearest the gate.
+
+    A milking bench stands under the lean-to beside a shelf with a pan and a crock on it. The book of the herd hangs on a nail.
+  coords:
+    x: -5
+    y: 0
+    z: 0
+  exits:
+    east:
+      destination: /world/terminus/rejection/kestrel-road/yard-gate
+      media: [ground]
+      edgeMinutes: 2
+  props:
+    - /world/terminus/rejection/thing/goat-book
+    - /stuff/thing/vessel/pail
+    - /trade/dairying/thing/setting-pan
+    - /trade/dairying/thing/starter-crock
+    - /trade/dairying/thing/hoop
+    - /trade/cooking/thing/salt-sack
+  details:
+    bench:
+      keywords: [bench, "milking bench", stand]
+      description: |
+        A plank stand at knee height with a stanchion at one end — you put the goat up on it, not yourself down to her. The wood is polished where the hooves go.
+    lean-to:
+      keywords: [lean-to, roof, iron, shelter]
+      description: |
+        Four sheets of corrugated iron on two posts and the wall. It keeps the worst of the weather off the goats, who do not appear grateful.

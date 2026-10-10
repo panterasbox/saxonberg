@@ -1,0 +1,26 @@
+# The dairy lad (dairy D14) — mucks out and carries pails.
+class: /platform/agent/Cast
+extends: /stuff/agent/costume/student
+data:
+  costume:
+    - /stuff/thing/clothes/field-jacket
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sensitivus
+  lifecycleState: alive
+  name: Tobin Ash
+  keywords: [tobin, ash, lad, boy]
+  shortDescription: lanky dairy lad
+  register: definite
+  longDescription: >-
+    All elbows and boots, with straw in his hair he has not noticed. He
+    carries two full pails at once as if it were nothing, which to him it
+    is.
+  archetype: farmer
+  competence:
+    - { discipline: stockmanship, asserting: competent }
+  behaviors:
+    - brain: /lib/behavior/idles
+      trigger: candidate
+      config:
+        pool:
+          - { kind: free, value: "forks clean straw into an empty stall." }
+          - { kind: free, value: "whistles two notes of something and stops." }

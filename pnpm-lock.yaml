@@ -608,6 +608,9 @@ importers:
       '@saxonberg/content-trade-cooking':
         specifier: workspace:*
         version: link:../trade-cooking
+      '@saxonberg/content-trade-dairying':
+        specifier: workspace:*
+        version: link:../trade-dairying
       '@saxonberg/content-trade-farming':
         specifier: workspace:*
         version: link:../trade-farming
@@ -714,6 +717,12 @@ importers:
       '@saxonberg/content-platform':
         specifier: workspace:*
         version: link:../platform
+      '@saxonberg/content-trade-cooking':
+        specifier: workspace:*
+        version: link:../trade-cooking
+      '@saxonberg/content-trade-dairying':
+        specifier: workspace:*
+        version: link:../trade-dairying
       '@saxonberg/content-trade-drilling':
         specifier: workspace:*
         version: link:../trade-drilling
@@ -732,6 +741,9 @@ importers:
       '@saxonberg/content-trade-quarrying':
         specifier: workspace:*
         version: link:../trade-quarrying
+      '@saxonberg/content-trade-ranching':
+        specifier: workspace:*
+        version: link:../trade-ranching
       '@saxonberg/content-trade-shopkeeping':
         specifier: workspace:*
         version: link:../trade-shopkeeping

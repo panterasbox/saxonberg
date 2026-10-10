@@ -1,0 +1,11 @@
+# The co-op's shelf (dairy D14) — where the creamery sells: butter, cheese
+# by the wedge, whatever a member brings in to consign.
+class: /trade/shopkeeping/thing/ConsignmentShelf
+data:
+  shortDescription: co-op shelf
+  keywords: [shelf, counter, slate, co-op]
+  register: definite
+  longDescription: |
+    A slate shelf by the door with a cloth over half of it and a price slate above, chalked in a careful hand. A cash tin is chained to the bracket.
+  _materialPath: /stuff/idea/material/rock/slate
+  mass: 20

@@ -1,0 +1,23 @@
+# The co-op creamery (dairy D14) — the organization the creamery is
+# titled to, appointed by its keeper. The valley's farms are its members
+# in the fiction; its sanction stays prose (this build adds no governance).
+class: /platform/idea/Business
+data:
+  appointingAuthority:
+    kind: entity
+    path: /world/terminus/hearts-delight/agent/creamery-keeper
+  call: rota
+  positions:
+    - key: cheesemaker
+      noun: cheesemaker
+      label: in the creamery
+      wageRate: 4
+  rosterSlots:
+    - positionKey: cheesemaker
+      assignee: /world/terminus/hearts-delight/agent/creamery-keeper
+      schedule:
+        - { days: [0, 1, 2, 3, 4, 5, 6], hours: [6, 18] }
+  banksAt: goodkin
+  operatingLocations:
+    - /world/terminus/hearts-delight/creamery/location/floor
+    - /world/terminus/hearts-delight/creamery/location/cheese-room

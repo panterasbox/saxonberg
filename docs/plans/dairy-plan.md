@@ -1595,7 +1595,7 @@ loaf). `kitchen.test.ts` pins the category matches from the shipped rows;
 the custard's curdle rides the kernel's doneness band (tested in
 `CraftingLogic.doneness.test.ts`) and the drive. Ricotta shipped in W2.
 
-### W4 — the venues (D14)
+### W4 — the venues (D14) ✅
 
 **Files.** Heart's Delight: `location/{dairy-yard, byre, creamery,
 cheese-room}.yaml`, `thing/{dairy-book, calf-register}.yaml`,
@@ -1627,6 +1627,35 @@ crock is alive at boot; the goat book drafts a nanny that gives
 `lint:dossiers` green; `SAXONBERG_PACKS=platform` still boots (nothing
 here is platform's).
 **Commit:** `build(dairy W4): a dairy farm on the flats, the co-op creamery and its cheese room, and three nannies at Rejection — rows`.
+
+**✅ W4 done (build, 2026-10-10).** What changed against the plan:
+- **Sub-namespaces, not flat rows**: `…/hearts-delight/dairy/{location/yard,
+  location/byre, thing/dairy-book, thing/calf-register}` and
+  `…/hearts-delight/creamery/{location/floor, location/cheese-room,
+  thing/hearth, thing/shelf, thing/cheese-rack}` — the `bench-field/`
+  precedent, so ONE title claim covers each venue's extent (the dairy →
+  `dairy-business`, `agricultural`; the creamery → `creamery-coop`,
+  `commercial`, `powerBand: off-grid` — `lint:power-posture`).
+- The creamery's hearth is its own row: the generic `Hearth` ships OUT
+  (`lit: false`, 6 kg oak). The creamery's is lit, 30 kg of oak, 520 K —
+  a dairy fire. The cheese room's shelf is the cooking pack's
+  `DryingRack` class (a slatted surface things are put on).
+- **Light at 20 m cells**: the copied indoor intensities (25–35) read
+  under 0.1 lux over 400 m² — pitch black. The creamery is 12 000, the byre
+  10 000, the cheese room 8 000 (`LIT_LUX` is 20). The three are added to
+  `SKYLIT_INTERIORS` with their openings (`lint:light-sources` (b)); the
+  cheese room's 284 K to `AUTHORED_TEMPERATURES` (`lint:envelope` — *the
+  temperature IS the product*).
+- Rejection's goat pen is WEST of the yard gate (north was taken by the
+  road to the wilds) on the Kestrel road's `wild` claim — no gate refused
+  a herdbook there. Rejection gains `boot:` (the goat book, the goat).
+- ⭐ **The drive's bull is CALF 1** of the calf register: the dairy book's
+  six heads all seed female at 0.95 (computed in `venues.test.ts`), and
+  calf 1 is male at 42 game days — so the same calf is the wrong-sex
+  refusal AND the vell. ⚠ The drive must do the calf steps BEFORE any long
+  clock walk: a register's ages run on from its founding.
+- `kitchen.test.ts` gained the `test-bootstrap` import (`lint:test-bootstrap`
+  — it touches the runtime through `rows.ts`).
 
 ### W5 — the drive, the docs, the gates (D17)
 
