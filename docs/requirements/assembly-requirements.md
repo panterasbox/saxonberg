@@ -151,12 +151,17 @@ ship, the recipe ships, the learner's ladder is authored. ⭐ Only the
    wooden haft — the spear's own comment admits it: *"One bar, and the
    rest is a stick."*
 7. ⚠ **A row's declared material can disagree with its own prose, and a
-   bill makes that matter.** `arms/hunting-bow.yaml` reads *"a plain
-   stave of **yew**"* and authors `_materialPath: .../wood/oak`. Harmless
-   while a bow is one material; **a lie once the stave is a part**, and a
-   yew bow is not an oak bow. ⭐ Expect more of these wherever
-   `_detailMaterialPaths` or the prose names a second wood — audit them as
-   the bills land.
+   bill makes that matter.** ✅ **Fixed 2026-10-09:**
+   `arms/hunting-bow.yaml` read *"a plain stave of **yew**"* and authored
+   `_materialPath: .../wood/oak`. Harmless while a bow is one material;
+   **a lie once the stave is a part.** ⭐ And the row it should have named
+   was authored *for it*: `wood/yew` carries `toughness: 110` against
+   oak's **60**, which is exactly why every bow wood in history was yew —
+   yet **yew's only reference in the whole tree was its own species row.**
+   A material authored for one object, which that object did not use.
+   ⭐ Expect more wherever prose or `_detailMaterialPaths` names a second
+   wood — **audit them as the bills land**, because a bill turns every one
+   of them from cosmetic into load-bearing.
 8. ⚠ **A cask's own history does not exist.** The argument for putting
    character on the vessel appeals to *this barrel's own history*, and
    **there is no record of how many times it has been filled.** ⭐ Note

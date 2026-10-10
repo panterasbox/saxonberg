@@ -13,7 +13,12 @@ data:
   longDescription: >
     A plain stave of yew, horn-nocked and waxed against the damp, with a
     linen string wound at the loops. Light enough to carry all day.
-  _materialPath: /stuff/idea/material/wood/oak
+  # ⚠ YEW, because the prose says yew and a bow is the one object where
+  # the species is the whole point: `toughness: 110` against oak's 60 is
+  # exactly why every bow wood in history was yew. It read `oak` until
+  # 2026-10-09 — harmless while a bow is one material, a lie the moment
+  # the stave is a part with a bill.
+  _materialPath: /stuff/idea/material/wood/yew
   # ⚠ `hafted` — a bowstave is a club when it has to be, which is both
   # true and what keeps `lint:inert-weapon` satisfied without a special
   # case for launchers.
