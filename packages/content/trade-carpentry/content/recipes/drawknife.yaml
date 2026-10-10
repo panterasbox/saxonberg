@@ -1,0 +1,14 @@
+# A drawknife — a smith's blade and two carved handles, wedged by hand.
+# Run by `fit drawknife`.
+recipeId: drawknife
+name: Drawknife
+keywords: [drawknife, draw-knife]
+inputSlots:
+  - { slot: blade, category: metal, minGrade: fair, kind: item, count: 1 }
+  - { slot: handle, category: wood, minGrade: poor, kind: item, count: 2 }
+toolCapabilities: []
+outputTemplate: /trade/carpentry/thing/drawknife
+outputMaterial: ''
+outputApplication: tangible
+difficulty: easy
+discipline: carpentry

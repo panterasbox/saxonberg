@@ -95,12 +95,18 @@ importers:
       '@saxonberg/content-trade-brewing':
         specifier: workspace:*
         version: link:packages/content/trade-brewing
+      '@saxonberg/content-trade-carpentry':
+        specifier: workspace:*
+        version: link:packages/content/trade-carpentry
       '@saxonberg/content-trade-chandlery':
         specifier: workspace:*
         version: link:packages/content/trade-chandlery
       '@saxonberg/content-trade-cooking':
         specifier: workspace:*
         version: link:packages/content/trade-cooking
+      '@saxonberg/content-trade-coopering':
+        specifier: workspace:*
+        version: link:packages/content/trade-coopering
       '@saxonberg/content-trade-distilling':
         specifier: workspace:*
         version: link:packages/content/trade-distilling
@@ -602,12 +608,21 @@ importers:
       '@saxonberg/content-trade-apiculture':
         specifier: workspace:*
         version: link:../trade-apiculture
+      '@saxonberg/content-trade-carpentry':
+        specifier: workspace:*
+        version: link:../trade-carpentry
       '@saxonberg/content-trade-cooking':
         specifier: workspace:*
         version: link:../trade-cooking
+      '@saxonberg/content-trade-coopering':
+        specifier: workspace:*
+        version: link:../trade-coopering
       '@saxonberg/content-trade-farming':
         specifier: workspace:*
         version: link:../trade-farming
+      '@saxonberg/content-trade-forestry':
+        specifier: workspace:*
+        version: link:../trade-forestry
       '@saxonberg/content-trade-fuel':
         specifier: workspace:*
         version: link:../trade-fuel
@@ -862,6 +877,9 @@ importers:
       '@saxonberg/content-trade-brewing':
         specifier: workspace:*
         version: link:../trade-brewing
+      '@saxonberg/content-trade-carpentry':
+        specifier: workspace:*
+        version: link:../trade-carpentry
       '@saxonberg/content-trade-chandlery':
         specifier: workspace:*
         version: link:../trade-chandlery
@@ -1068,6 +1086,40 @@ importers:
         specifier: workspace:*
         version: link:../../types
 
+  packages/content/trade-carpentry:
+    dependencies:
+      '@saxonberg/content-base-library':
+        specifier: workspace:*
+        version: link:../base-library
+      '@saxonberg/content-generic-objects':
+        specifier: workspace:*
+        version: link:../generic-objects
+      '@saxonberg/content-platform':
+        specifier: workspace:*
+        version: link:../platform
+      '@saxonberg/content-trade-forestry':
+        specifier: workspace:*
+        version: link:../trade-forestry
+      '@saxonberg/content-trade-smithing':
+        specifier: workspace:*
+        version: link:../trade-smithing
+      '@saxonberg/server':
+        specifier: workspace:*
+        version: link:../../server
+      '@saxonberg/types':
+        specifier: workspace:*
+        version: link:../../types
+    devDependencies:
+      typescript:
+        specifier: ^5.4.0
+        version: 5.9.3
+      vitest:
+        specifier: ^2.0.0
+        version: 2.1.9(@types/node@20.19.28)(jsdom@25.0.1)
+      yaml:
+        specifier: ^2.8.2
+        version: 2.9.0
+
   packages/content/trade-chandlery:
     dependencies:
       '@saxonberg/content-base-library':
@@ -1113,6 +1165,43 @@ importers:
       '@saxonberg/content-trade-farming':
         specifier: workspace:*
         version: link:../trade-farming
+      '@saxonberg/server':
+        specifier: workspace:*
+        version: link:../../server
+      '@saxonberg/types':
+        specifier: workspace:*
+        version: link:../../types
+    devDependencies:
+      typescript:
+        specifier: ^5.4.0
+        version: 5.9.3
+      vitest:
+        specifier: ^2.0.0
+        version: 2.1.9(@types/node@20.19.28)(jsdom@25.0.1)
+      yaml:
+        specifier: ^2.8.2
+        version: 2.9.0
+
+  packages/content/trade-coopering:
+    dependencies:
+      '@saxonberg/content-base-library':
+        specifier: workspace:*
+        version: link:../base-library
+      '@saxonberg/content-generic-objects':
+        specifier: workspace:*
+        version: link:../generic-objects
+      '@saxonberg/content-platform':
+        specifier: workspace:*
+        version: link:../platform
+      '@saxonberg/content-trade-carpentry':
+        specifier: workspace:*
+        version: link:../trade-carpentry
+      '@saxonberg/content-trade-forestry':
+        specifier: workspace:*
+        version: link:../trade-forestry
+      '@saxonberg/content-trade-smithing':
+        specifier: workspace:*
+        version: link:../trade-smithing
       '@saxonberg/server':
         specifier: workspace:*
         version: link:../../server
@@ -1561,6 +1650,12 @@ importers:
       '@saxonberg/content-species-and-names':
         specifier: workspace:*
         version: link:../species-and-names
+      '@saxonberg/content-trade-carpentry':
+        specifier: workspace:*
+        version: link:../trade-carpentry
+      '@saxonberg/content-trade-smithing':
+        specifier: workspace:*
+        version: link:../trade-smithing
       '@saxonberg/server':
         specifier: workspace:*
         version: link:../../server

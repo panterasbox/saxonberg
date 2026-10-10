@@ -1,0 +1,14 @@
+# A leg — the upright member of a frame, with a mortise cut in it for
+# each rail. Riven and shaved, because a leg takes every load the frame
+# carries and a riven one does not split along a sawn-through fibre.
+class: /platform/thing/Timber
+data:
+  shortDescription: frame leg
+  keywords: [leg, legs, upright, post]
+  register: indefinite
+  longDescription: |
+    A squared length of riven ash about knee high, with two mortises chopped into it at right angles near the top.
+  _materialPath: /stuff/idea/material/wood/ash
+  mass: 1.0
+  constructionForm: riven
+  quantity: 1

@@ -1,0 +1,27 @@
+# The sawmill — the Business entity behind the frame and the yard.
+#
+# ⚠ Like the grist mill's, its real income is not the wage: it is the
+# yard. The sawyer saws what the frame is not doing for anybody else and
+# stacks it to season, and a year later it is the dearest wood in the
+# valley.
+class: /platform/idea/Business
+data:
+  name: "the sawmill"
+  appointingAuthority:
+    kind: entity
+    path: /world/terminus/hearts-delight/agent/sawyer
+  # Who comes over: `rota` — a floor has no regulars.
+  call: rota
+  positions:
+    - key: sawyer
+      noun: sawyer
+      label: minding the frame
+      wageRate: 4
+  rosterSlots:
+    - positionKey: sawyer
+      assignee: /world/terminus/hearts-delight/agent/sawyer
+      schedule:
+        - { days: [0, 1, 2, 3, 4, 5], hours: [6, 18] }
+  banksAt: goodkin
+  operatingLocations:
+    - /world/terminus/hearts-delight/location/sawmill

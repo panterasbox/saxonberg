@@ -1,0 +1,18 @@
+# slack-hooped — a slack cooper's barrel — the staves stand true but need not meet. Hoops driven down over a SET of staves (a joint
+# spans a set: one hoop holds thirty staves, assembly D16). Knocked off,
+# most of the staves come back and many of the hoops do not survive the
+# driving. ⭐ The three cooper's joints differ by how tight the hoops are
+# driven — which is what decides what the vessel can hold.
+class: /platform/idea/Joint
+data:
+  key: slack-hooped
+  label: slack-hooped
+  portability: tool
+  instrument: driving
+  competence: { discipline: coopering, band: novice }
+  reversible: effort
+  strength: 0.4
+  structuralRecovery: 0.7
+  fastenerRecovery: 0.6
+  tightenable: true
+  failure: slack

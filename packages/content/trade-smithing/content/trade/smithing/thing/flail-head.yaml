@@ -1,0 +1,11 @@
+# A flail head — a ball and chain, the ring for the swivel on the haft.
+class: /platform/thing/Tool
+data:
+  keywords: [head, flail-head]
+  shortDescription: flail head
+  register: indefinite
+  longDescription: >-
+    A studded iron ball on a short length of forged chain ending in a ring.
+  mass: 1.2
+  capabilities: []
+  _materialPath: /stuff/idea/material/element/iron

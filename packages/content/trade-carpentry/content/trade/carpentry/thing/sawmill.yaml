@@ -1,0 +1,27 @@
+# A water sawmill — ⭐ the top rung, and what it BUYS you is your time.
+#
+# `throughputKgPerHour: 0` and `kgPerHourPerKw: 20`: this thing has no
+# rate of its own at all. It cuts at whatever the race gives it, so a
+# sawmill with no race beside it is a shed with a saw in it — and it says
+# so rather than quietly falling back to hand speed.
+#
+# ⚠⚠ Which means the rate is SEASONAL and nobody authored that: the power
+# is `rho*g*dh*Q*eta` and `Q` is the flow passing this week. A sawmill
+# that opens a log in a quarter of an hour in spring takes longer in a
+# dry August.
+#
+# `maxThroughputKgPerHour: 300` is the frame's own ceiling — a flood does
+# not make the blades go through oak faster than the carriage can feed.
+class: /trade/carpentry/thing/Sawmill
+data:
+  shortDescription: sawmill frame
+  keywords: [sawmill, frame, saw, carriage, blades, mill]
+  register: definite
+  longDescription: |
+    A great upright frame of oak beams with a set of long blades strung in it, driven up and down by a crank off the wheel shaft below the floor. A log on the carriage walks into the blades an inch a stroke, and the whole building shakes with it.
+  mass: 1200
+  capabilities: [sawing]
+  epoch: medieval
+  throughputKgPerHour: 0
+  kgPerHourPerKw: 20
+  maxThroughputKgPerHour: 300

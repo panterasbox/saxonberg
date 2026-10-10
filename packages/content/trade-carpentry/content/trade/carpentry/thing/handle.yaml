@@ -1,0 +1,14 @@
+# A handle — the short turned grip a blade's tang goes into. ⭐ The part
+# the tool tree's root turns on: a carved handle and a forged blade are a
+# froe, wedged by hand, and the froe rives the next blank.
+class: /platform/thing/Tool
+data:
+  keywords: [handle, handles, grip]
+  shortDescription: wooden handle
+  register: indefinite
+  longDescription: >-
+    A short grip of riven ash, shaved round and bored down its length
+    for a tang.
+  mass: 0.2
+  capabilities: []
+  _materialPath: /stuff/idea/material/wood/ash

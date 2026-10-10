@@ -1,0 +1,17 @@
+# A frame — four legs, four rails, eight pegs, driven home with a mallet.
+# ⭐ Run by `fit frame`. The slot NAMES and COUNTS are the frame row's
+# bill — `lint:bills` holds them to one declaration — so a slot named
+# for a part takes the part (a carved leg), not just any wood.
+recipeId: frame
+name: Pegged Frame
+keywords: [frame]
+inputSlots:
+  - { slot: leg, category: wood, minGrade: poor, kind: item, count: 4 }
+  - { slot: rail, category: wood, minGrade: poor, kind: item, count: 4 }
+  - { slot: peg, category: wood, minGrade: poor, kind: item, count: 8 }
+toolCapabilities: [driving]
+outputTemplate: /trade/carpentry/thing/frame
+outputMaterial: ''
+outputApplication: tangible
+difficulty: standard
+discipline: carpentry

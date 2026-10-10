@@ -1,0 +1,11 @@
+# A warhammer head — a face and a beak, bored for a haft.
+class: /platform/thing/Tool
+data:
+  keywords: [head, warhammer-head]
+  shortDescription: warhammer head
+  register: indefinite
+  longDescription: >-
+    A square hammer face on one side and a curved beak on the other, an eye through the middle.
+  mass: 1.3
+  capabilities: []
+  _materialPath: /stuff/idea/material/alloy/steel

@@ -1,0 +1,62 @@
+verbs: [carve]
+controller: /trade/carpentry/idea/cmd/carpentry/CarveController
+description: "Carve a part out of a piece of wood with an edge"
+help: |
+  `carve haft` shapes a pick haft out of the best piece of wood in reach
+  that will do. `carve peg from the blank` names the piece. `carve handle
+  with the billhook` names the edge.
+
+  ⭐ What you can carve is every part that is one piece of wood and an
+  edge: a haft, a handle, a peg, a dowel, a leg, a rail, a mallet. Say
+  `carve` with a word it does not know and it tells you the list.
+
+  Carve from **riven** wood when you can — a blank split off a billet
+  with a froe. Riven wood follows the grain the whole length of the
+  piece, so a riven haft does not snap where a sawn one would. And carve
+  it **seasoned** if you can wait: green wood shrinks as it dries, and a
+  haft carved green works loose in its head.
+
+  ⭐ This is where the tool tree starts. A handle you carve and a blade a
+  smith forges are a froe (`fit froe`), and the froe rives the next
+  blank.
+examples:
+  - cmd: carve haft
+    note: Shape a pick haft from wood in reach
+  - cmd: carve peg from the blank
+    note: Name the piece to carve it from
+  - cmd: carve handle with the billhook
+    note: Name the edge
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  # The PART — a word naming a carving recipe, read off `raw`. An object
+  # arg so the phrase may be several words (`carve pick haft`) and so an
+  # unresolved word binds as `{ stuff: null, raw }` (the `fit`/`measure`
+  # rule) — the controller resolves it against the recipe catalogue and
+  # refuses naming what CAN be carved. `requires: any` — DECLARED and it
+  # gates nothing: a word names no object at all.
+  - name: thing
+    type: object
+    required: false
+    greedy: true
+    scope: ["reachable"]
+    requires: any
+  # The piece to carve it from, when you want a particular one.
+  - name: stock
+    type: object
+    required: false
+    greedy: true
+    prepositions: [from, out]
+    scope: ["reachable"]
+    requires: TangibleMixin
+  # ⭐ WHICH EDGE — declared, not hunted for (`lint:instrument-args`).
+  - name: knife
+    type: object
+    required: false
+    greedy: true
+    prepositions: [with, using]
+    default: "reachable:[capability.cutting]"
+    scope: ["reachable"]
+    requires: [ToolMixin]

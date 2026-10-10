@@ -1,0 +1,41 @@
+# ⭐⭐ The sawyer's one decision, stated so a player can predict the
+# yield and the board.
+class: /platform/idea/HelpConcept
+data:
+  key: the-cut
+  title: The cut
+  summary: Through-sawn or quartered — more boards, or boards that stay flat.
+  keywords: [cut, saw, sawn, quarter, quartered, quarter-sawn, through, board, sawmill, cup]
+  seeAlso: [grain, seasoning]
+  body: |
+    There are two ways to open a log into boards, and every sawyer
+    chooses between them on every log.
+
+    ## Through-sawn
+
+    Lay the log on the carriage and take boards off it one after another,
+    each parallel to the last. You get the most boards a log will give.
+    But look at the end of a wide board from the middle of the log: the
+    growth rings run ACROSS its face, in arcs. As it dries, each ring
+    shrinks more along its length than across, and the board CUPS — the
+    face curls away from the heart.
+
+    ## Quartered
+
+    Split the log into four along its length first, and take the boards
+    off each quarter radially — from the bark in toward the heart. Now
+    the rings run THROUGH the thickness of every board, and it shrinks in
+    its thickness, which nobody notices, and stays flat.
+
+    ⭐ The cost is the wedges. Quartering wastes about a third of the log,
+    so a quartered log gives two boards for every three a through-sawn
+    one would. A cooper pays for quartered boards because a cask head that
+    cups leaks. A barn wall does not care.
+
+    ## The saw that does it
+
+    A pit saw is a long blade and two men, one in a pit under the log —
+    and both your hands are on it until the cut is through. A sawmill is
+    the same blade in a frame driven by a waterwheel: you put the log on
+    and walk away. Its speed is the river's, so a sawmill cuts slower in
+    a dry August, and not at all with no water in the race.

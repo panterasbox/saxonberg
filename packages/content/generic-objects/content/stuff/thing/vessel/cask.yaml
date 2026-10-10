@@ -1,0 +1,46 @@
+# ⭐⭐ THE cask — the commons row every trade's cask extends (assembly D10).
+#
+# It lives in the commons because the cooper's recipe must name an
+# AUTHORED row and coopering cannot be a dependency of the trades that
+# fill casks (brewing, distilling): so the kind is here, and
+# `/trade/brewing/thing/cask` and `/trade/distilling/thing/cask` say
+# `extends: /stuff/thing/vessel/cask` and keep their own words.
+#
+# A cask is thirty riven staves, two heads and six iron hoops driven down
+# over the set (`tight-hooped` — the proficient cooper's joint). Every
+# made cask carries the record of what went in; a found one reads this
+# bill at defaults. ⭐ The closure is the CEILING: a sprung stave or a
+# slack hoop and it weeps, whatever this row says.
+#
+# Its character: what fresh oak gives (`imparts`) and what a charred
+# inside gives (`charredImparts`, the re-fire's). Each fill after the
+# first since a re-fire spends a third of it.
+class: /platform/thing/Vat
+data:
+  shortDescription: cask
+  keywords: [cask, barrel, oak, empty]
+  register: indefinite
+  longDescription: >-
+    An oak cask, thirty staves bellied in a ring and hooped in black
+    iron, the bung-hole sitting up.
+  category: cask
+  _materialPath: /stuff/idea/material/wood/oak
+  mass: 40
+  interiorBulk: true
+  interiorCapacity: 25
+  closure: liquidTight
+  open: true
+  imparts:
+    - { type: oak, amount: 25 }
+    - { type: vanilla, amount: 3 }
+  charredImparts:
+    - { type: vanilla, amount: 40 }
+    - { type: char, amount: 120 }
+    - { type: oak, amount: 15 }
+  bill:
+    parts:
+      - { part: stave, template: /trade/coopering/thing/stave, count: 30, role: structural, plural: staves }
+      - { part: head, template: /trade/coopering/thing/cask-head, count: 2, role: structural }
+      - { part: hoop, template: /trade/smithing/thing/hoop, count: 6, role: fastener, material: /stuff/idea/material/element/iron }
+    joints:
+      - { key: hooping, method: tight-hooped, members: [stave, head], fastener: hoop }

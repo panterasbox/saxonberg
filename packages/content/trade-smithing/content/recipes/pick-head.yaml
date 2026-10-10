@@ -1,6 +1,10 @@
 # ⭐⭐ The rung the whole chain closes on. A pick head is forged from metal
 # somebody dug, and swung at the ground it came out of — mine → smelter →
 # smith → miner, with a real sink at the end because picks wear out.
+#
+# ⭐ A SMITH's recipe now (assembly AC 18): it moved here from the mining
+# trade, and its discipline with it. The head is forged by somebody whose
+# trade is forging; the miner fits it to a haft.
 recipeId: pick-head
 name: Pick Head
 keywords: [pick-head, head]
@@ -13,9 +17,9 @@ keywords: [pick-head, head]
 inputSlots:
   - { slot: stock, category: forgeable, minGrade: fair, kind: item, count: 1 }
 toolCapabilities: [striking, anvil]
-outputTemplate: /trade/mining/thing/pick-head
+outputTemplate: /trade/smithing/thing/pick-head
 outputMaterial: ''
 outputApplication: tangible
 requiresHeatK: 1200
 difficulty: hard
-discipline: mining
+discipline: smithing

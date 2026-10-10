@@ -2853,15 +2853,16 @@ async function craftImpl(req: CraftRequest): Promise<CraftOutcome> {
   for (const inSlot of recipe.getInputSlots()) {
     if (Recipe.isItemSlot(inSlot)) {
       const billPart = outBill?.parts.find((p) => p.part === inSlot.slot) ?? null;
+      // ⚠ A billed slot takes only a thing that IS that part — its row, or
+      // its keyword — whether it is a made part or stock (a stave is both).
+      // Ordinary stock of the right material is not a part: a wrought bar
+      // is not the froe's blade until a smith has made it one.
+      const isThePart = (c: ItemCandidate): boolean =>
+        billPart !== null &&
+        (c.stuff.getTemplatePath() === billPart.template ||
+          (MixinApi.isPerceptible(c.stuff) && c.stuff.hasKeyword(billPart.part)));
       const pool = billPart
-        ? [
-            ...items,
-            ...parts.filter(
-              (c) =>
-                c.stuff.getTemplatePath() === billPart.template ||
-                (MixinApi.isPerceptible(c.stuff) && c.stuff.hasKeyword(billPart.part)),
-            ),
-          ]
+        ? [...new Set([...items, ...parts])].filter(isThePart)
         : items;
       const picks = pickItemInputs(
         inSlot,

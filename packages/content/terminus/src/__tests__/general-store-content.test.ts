@@ -62,6 +62,11 @@ const TRANSPORT_DIR = fileURLToPath(
 const FISHING_DIR = fileURLToPath(
   new URL("../../../trade-fishing/content/trade/fishing/", import.meta.url),
 );
+// ⭐ The pick haft (assembly drive 16): a woodworker's part, a wear part
+// the shop carries so a miner can re-haft rather than buy a whole pick.
+const CARPENTRY_DIR = fileURLToPath(
+  new URL("../../../trade-carpentry/content/trade/carpentry/", import.meta.url),
+);
 const MEDICINE_DIR = fileURLToPath(
   new URL("../../../trade-medicine/content/trade/medicine/", import.meta.url),
 );
@@ -110,6 +115,7 @@ const GOOD_HOMES: { prefix: string; dir: () => string }[] = [
   { prefix: "/system/transport/", dir: () => TRANSPORT_DIR },
   { prefix: "/trade/fishing/", dir: () => FISHING_DIR },
   { prefix: "/trade/medicine/", dir: () => MEDICINE_DIR },
+  { prefix: "/trade/carpentry/", dir: () => CARPENTRY_DIR },
   // ⭐ The beekeeper's kit. It is stocked HERE rather than in the valley
   // because a general store's job IS importing — and the one line that
   // mints life (the nucleus) belongs in a shop for the same reason.

@@ -1,6 +1,9 @@
 # A pick head — the forged half, before it is hafted. ⭐ The chain closes
 # HERE: this is what a smith makes from copper somebody dug, and what a
 # miner buys to swing at the ground it came out of.
+#
+# ⭐ The SMITH's row (assembly AC 18) — it moved here from the mining
+# trade. The pick's bill names it at this path.
 class: /platform/thing/Tool
 data:
   keywords: [pick-head, head, forged, pick]

@@ -1,0 +1,14 @@
+# An axe haft — the curved one, with the swell at the end that stops it
+# leaving your hands on the back swing. A woodworker's part for a
+# smith's head; the felling axe is the two of them, wedged.
+class: /platform/thing/Tool
+data:
+  keywords: [haft, axe-haft, "axe haft", handle, helve]
+  shortDescription: axe haft
+  register: indefinite
+  longDescription: >-
+    A riven ash helve with a gentle double curve, thinned at the neck
+    where it meets the head and swelled to a knob at the end.
+  mass: 0.9
+  capabilities: []
+  _materialPath: /stuff/idea/material/wood/ash

@@ -25,6 +25,7 @@
 # choose a cask is CHARACTER, not quality — and the whiskey-aging
 # profile's `productAtFraction` is where *when to bottle* lives.
 class: /platform/thing/Vat
+extends: /stuff/thing/vessel/cask
 data:
   shortDescription: "charred cask"
   keywords: [cask, barrel, oak, charred, whiskey, empty, "charred cask"]
@@ -44,7 +45,8 @@ data:
   # 0.3 mg/L, so 40 and 120 both read *clearly*; oak at 15 against 0.07
   # reads *faintly*. The firing has taken the plain wood note DOWN and
   # put vanilla and char in front of it, which is what charring does.
-  imparts:
-    - { type: vanilla, amount: 40 }
-    - { type: char, amount: 120 }
-    - { type: oak, amount: 15 }
+  # ⭐ The charred cask IS the plain cask with its inside charred
+  # (assembly D9): `charLevel: 1` reads the commons cask's
+  # `charredImparts` — the same vanilla 40 / char 120 / oak 15 this row
+  # authored before — and a cooper's re-fire of a plain cask MAKES one.
+  charLevel: 1

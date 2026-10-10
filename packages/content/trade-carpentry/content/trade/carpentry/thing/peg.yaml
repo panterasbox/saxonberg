@@ -1,0 +1,16 @@
+# A peg — a riven hardwood pin, octagonal and a little tapered, driven
+# through a mortise and tenon to draw the joint tight. ⭐ A FASTENER: the
+# frame's bill names eight of them, and salvage gets few back (a peg
+# driven out is a peg split). Which is why somebody carves pegs for a
+# living.
+class: /platform/thing/Timber
+data:
+  shortDescription: oak peg
+  keywords: [peg, pegs, pin, trenail, treenail]
+  register: indefinite
+  longDescription: |
+    A finger-length pin of riven oak, shaved to eight sides and tapered so it draws tighter the further it is driven.
+  _materialPath: /stuff/idea/material/wood/oak
+  mass: 0.03
+  constructionForm: riven
+  quantity: 1

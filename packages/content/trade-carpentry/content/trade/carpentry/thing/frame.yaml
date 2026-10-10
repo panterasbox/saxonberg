@@ -1,0 +1,28 @@
+# A frame — four legs and four rails, mortised, tenoned and pegged. ⭐ The
+# carpenter's assembly, and the first bill whose joint a TRADE ships
+# (`pegged`, this pack's): a stool, a bench, a bed and a table are a
+# frame with something on top.
+#
+# The pegs are FASTENERS (`role: fastener`): eight of them, one through
+# each tenon, and the `pegged` joint names them. Drift them out and the
+# legs and rails come back nearly whole; the pegs mostly do not.
+#
+# `lint:bills` holds this bill and the frame recipe to one declaration:
+# a `leg` slot of four, a `rail` slot of four and a `peg` slot of eight.
+class: /platform/thing/Assembly
+data:
+  shortDescription: pegged frame
+  keywords: [frame, carcass, stool-frame, "pegged frame"]
+  register: indefinite
+  longDescription: >-
+    Four ash legs joined by four rails at knee height, every tenon
+    pinned through with an oak peg whose end stands proud of the leg.
+  mass: 9
+  _materialPath: /stuff/idea/material/wood/ash
+  bill:
+    parts:
+      - { part: leg, plural: legs, template: /trade/carpentry/thing/leg, count: 4, role: structural, material: /stuff/idea/material/wood/ash }
+      - { part: rail, plural: rails, template: /trade/carpentry/thing/rail, count: 4, role: structural, material: /stuff/idea/material/wood/ash }
+      - { part: peg, plural: pegs, template: /trade/carpentry/thing/peg, count: 8, role: fastener, material: /stuff/idea/material/wood/oak }
+    joints:
+      - { key: framing, method: pegged, members: [leg, rail], fastener: peg }

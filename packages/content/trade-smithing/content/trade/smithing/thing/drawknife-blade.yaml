@@ -1,0 +1,12 @@
+# A drawknife blade — two tangs for two carved handles. The cooper's and
+# the chairmaker's shaving edge.
+class: /platform/thing/Tool
+data:
+  keywords: [blade, drawknife-blade]
+  shortDescription: drawknife blade
+  register: indefinite
+  longDescription: >-
+    A straight steel blade bevelled on one side, with a tang drawn out at each end and turned toward the edge.
+  mass: 0.5
+  capabilities: []
+  _materialPath: /stuff/idea/material/alloy/steel

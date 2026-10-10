@@ -1,0 +1,13 @@
+# Inshave — a forged blade wedged onto a carved handle, by hand (`fit inshave`).
+recipeId: inshave
+name: Inshave
+keywords: [inshave]
+inputSlots:
+  - { slot: blade, category: metal, minGrade: poor, kind: item, count: 1 }
+  - { slot: handle, category: wood, minGrade: poor, kind: item, count: 2 }
+toolCapabilities: []
+outputTemplate: /trade/coopering/thing/inshave
+outputMaterial: ''
+outputApplication: tangible
+difficulty: easy
+discipline: coopering

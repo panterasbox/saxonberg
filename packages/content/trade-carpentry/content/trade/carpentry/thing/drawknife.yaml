@@ -1,0 +1,22 @@
+# A drawknife — a blade with a handle at each end, pulled toward you
+# along the grain to shave a piece round or flat. The tool the cooper
+# hollows and backs a stave with, and the one that trues a re-fired cask.
+# A smith's blade and two carved handles, wedged.
+class: /platform/thing/Tool
+data:
+  keywords: [drawknife, draw-knife, drawshave, "draw knife"]
+  shortDescription: drawknife
+  register: indefinite
+  longDescription: >-
+    A straight blade as long as a forearm, bevelled on one side, with a
+    turned ash handle set at each end and bent toward you.
+  mass: 0.7
+  capabilities: [shaving]
+  epoch: medieval
+  _materialPath: /stuff/idea/material/alloy/steel
+  bill:
+    parts:
+      - { part: blade, template: /trade/smithing/thing/drawknife-blade, count: 1, role: structural, material: /stuff/idea/material/alloy/steel }
+      - { part: handle, plural: handles, template: /trade/carpentry/thing/handle, count: 2, role: structural, material: /stuff/idea/material/wood/ash }
+    joints:
+      - { key: hafting, method: wedged, members: [blade, handle] }

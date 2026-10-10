@@ -1,0 +1,39 @@
+# ⭐⭐ Why a haft is riven and a board is sawn — the one fact about wood a
+# player can act on, stated so they can PREDICT which piece breaks.
+class: /platform/idea/HelpConcept
+data:
+  key: grain
+  title: Grain
+  summary: Why riven wood is stronger than sawn, and why the froe comes before the saw.
+  keywords: [grain, riven, rive, sawn, saw, froe, fibre, split, haft, wood]
+  seeAlso: [the-cut, seasoning]
+  body: |
+    Wood is a bundle of long fibres running the length of the tree. Almost
+    everything about working it follows from that.
+
+    ## Riven
+
+    Drive a froe into the end of a billet and lever, and the wood SPLITS —
+    and it splits between the fibres, following them wherever they go.
+    Every fibre in a riven piece runs the whole length of it unbroken.
+    That is why a haft is riven: a blow down the length of it is carried
+    by fibres that go from one end to the other.
+
+    ## Sawn
+
+    A saw goes in a straight line, and the grain does not. Wherever the
+    tree grew with a twist or round a knot, the saw cuts across the
+    fibres, and a sawn piece is full of short fibres that stop at its
+    face. Under a sudden blow it breaks where they stop.
+
+    ⭐ So the same oak, struck the same way, holds as a riven haft and
+    snaps as a sawn one. Riven stock is about a third tougher under a
+    shock. `analyze response` on the two will tell you the same thing in
+    numbers.
+
+    ## Why boards are sawn anyway
+
+    Because you cannot rive a wide flat board out of a log — the split
+    wanders, and you get a wedge. Riving is for pieces that are long and
+    narrow: hafts, staves, pegs, laths, rails. Boards are for the saw.
+    A woodworker has both, and uses each for what it is good for.

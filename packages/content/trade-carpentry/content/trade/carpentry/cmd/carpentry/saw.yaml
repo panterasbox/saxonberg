@@ -1,0 +1,72 @@
+verbs: [saw]
+controller: /trade/carpentry/idea/cmd/carpentry/SawController
+description: "Saw a log into boards — through-sawn, or quartered"
+help: |
+  `saw bole` takes a length off a felled trunk and saws it into boards.
+  `saw length` does the same to a length of timber you have cut, and a
+  billet will go on the saw too. Where there is more than one saw in
+  reach, say which: `saw the bole at the sawmill`.
+
+  ⭐ **The decision is how you open the log.** Through-sawn (the
+  default) takes every board off parallel to the last: the most boards a
+  log will give, and the wide ones cup as they dry, because the growth
+  rings run across their faces. Quartered (`saw bole --quarter`) splits
+  the log into four first and takes the boards off radially: a third of
+  the wood goes to waste in the wedges, and every board left stays flat.
+  A cooper and a joiner pay for quartered boards; a barn does not need
+  them.
+
+  ⭐⭐ **What a sawmill buys you is your TIME.** At a pit saw both your
+  hands are on the handle until the cut is through. At a sawmill on a
+  race you dog the log on the carriage, open the hatch and leave; the
+  river drives the frame whether you are there or not, and the boards are
+  on the mill floor when you come back. Its speed is the river's — a dry
+  August cuts slower, and a race with no water in it cuts nothing.
+
+  Boards come off as green as the log: a bole is green wood. Stack them
+  somewhere with air round them and wait — see `help seasoning`.
+examples:
+  - cmd: saw bole
+    note: Take a length off a felled trunk and saw it through
+  - cmd: saw bole --quarter
+    note: Quarter it — fewer boards, and boards that stay flat
+  - cmd: saw the length at the pit saw
+    note: Name the saw when there is more than one
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  # ⭐ Wood in the round — a felled bole, a length, a billet. They share
+  # no class (a bole is a plain good, a billet is converted stock) but
+  # all are physical matter, so the arg constrains to Tangible and the
+  # controller reads the MATERIAL's `wood` tag, never a class.
+  - name: log
+    type: object
+    required: true
+    scope: ["reachable"]
+    requires: TangibleMixin
+  # ⭐⭐ WHICH SAW, declared rather than hunted (`lint:instrument-args`).
+  # ⚠ The query is the CAPABILITY, not `[class.Sawmill]`: a pit saw and a
+  # sawmill are two rows of one class today, and a second saw a realm
+  # authors on any tool class is found by what it offers. `greedy` so
+  # `at the pit saw` is one name; safe because it is the last arg.
+  - name: saw
+    type: object
+    required: false
+    greedy: true
+    prepositions: [at, with, on]
+    default: "reachable:[capability.sawing]"
+    scope: ["reachable"]
+    requires: [ToolMixin]
+# ⚠ The cut is an OPTION, not a positional word: a bare string positional
+# before a defaulted object is the binder's phrase-shape defect (it would
+# hand word two of `saw oak bole` to the cut and throw the saw's default
+# away). `--quarter` cannot be mistaken for part of a name.
+options:
+  quarter:
+    type: boolean
+    description: "Quarter the log first — two boards in three, and every one stays flat"
+  through:
+    type: boolean
+    description: "Through-saw it (the default) — the most boards, and the wide ones cup"

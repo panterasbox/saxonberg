@@ -1,0 +1,11 @@
+# A mace head — flanged iron, bored for a haft.
+class: /platform/thing/Tool
+data:
+  keywords: [head, mace-head]
+  shortDescription: mace head
+  register: indefinite
+  longDescription: >-
+    A flanged iron head the size of a fist, bored through for a haft.
+  mass: 1.5
+  capabilities: []
+  _materialPath: /stuff/idea/material/element/iron

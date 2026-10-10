@@ -42,6 +42,12 @@ data:
       destination: /world/terminus/hearts-delight/location/bench-lane
       media: [ground]
       edgeMinutes: 5
+    # ⭐ Downstream, the sawmill — the same water, taken again below the
+    # tailrace. A fall is worth more than one wheel.
+    south:
+      destination: /world/terminus/hearts-delight/location/sawmill
+      media: [ground]
+      edgeMinutes: 2
   props:
     - /world/terminus/hearts-delight/thing/millrace
     - /trade/milling/thing/grist-mill

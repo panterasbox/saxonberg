@@ -1,0 +1,31 @@
+# A froe — ⭐⭐ the ROOT of the wood tool tree, and made by hand.
+#
+# An L-shaped tool: a straight blade with a handle standing up from one
+# end of it. Set the blade on the end of a billet, strike its back with a
+# mallet, and lever the handle — the wood splits along its grain. It is
+# what turns a billet into staves, blanks and laths (`rive`).
+#
+# ⭐ And it is an assembly anybody can put together: a smith's forged
+# blade and a carved handle, WEDGED (the platform's by-hand joint, no
+# competence). That is the by-hand rung making the hand-tool rung's
+# tools (assembly AC 21) — the knife carves the handle, the handle and
+# the blade are a froe, the froe rives the next blank.
+class: /platform/thing/Tool
+data:
+  keywords: [froe, frow, riving-knife, "riving knife"]
+  shortDescription: froe
+  register: indefinite
+  longDescription: >-
+    A thick straight blade a foot long, sharp on one edge and broad on
+    the back for the mallet, with a round ash handle standing up from
+    the eye at one end.
+  mass: 1.3
+  capabilities: [riving]
+  epoch: medieval
+  _materialPath: /stuff/idea/material/element/iron
+  bill:
+    parts:
+      - { part: blade, template: /trade/smithing/thing/froe-blade, count: 1, role: structural, material: /stuff/idea/material/element/iron }
+      - { part: handle, template: /trade/carpentry/thing/handle, count: 1, role: structural, material: /stuff/idea/material/wood/ash }
+    joints:
+      - { key: hafting, method: wedged, members: [blade, handle] }

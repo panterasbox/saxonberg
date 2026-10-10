@@ -1,0 +1,12 @@
+# A frame leg — squared and mortised. Run by `carve`.
+recipeId: leg
+name: Frame Leg
+keywords: [leg]
+inputSlots:
+  - { slot: stock, category: wood, minGrade: poor, kind: item, count: 1 }
+toolCapabilities: [cutting]
+outputTemplate: /trade/carpentry/thing/leg
+outputMaterial: ''
+outputApplication: tangible
+difficulty: easy
+discipline: carpentry

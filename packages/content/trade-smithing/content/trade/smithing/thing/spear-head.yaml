@@ -1,0 +1,11 @@
+# A spear head — the socketed point a shaft is fitted into.
+class: /platform/thing/Tool
+data:
+  keywords: [head, spear-head, spearhead]
+  shortDescription: spear head
+  register: indefinite
+  longDescription: >-
+    A leaf-shaped blade with a socket forged round at its base for the shaft.
+  mass: 0.4
+  capabilities: []
+  _materialPath: /stuff/idea/material/alloy/steel

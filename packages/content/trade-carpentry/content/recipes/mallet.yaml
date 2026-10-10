@@ -1,0 +1,14 @@
+# A mallet — one piece of beech, carved. ⭐ It offers `driving`, which the
+# `pegged` joint asks for: the frame's tool is one the trade makes for
+# itself. Run by `carve`.
+recipeId: mallet
+name: Mallet
+keywords: [mallet]
+inputSlots:
+  - { slot: stock, category: wood, minGrade: poor, kind: item, count: 1 }
+toolCapabilities: [cutting]
+outputTemplate: /trade/carpentry/thing/mallet
+outputMaterial: ''
+outputApplication: tangible
+difficulty: easy
+discipline: carpentry

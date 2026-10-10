@@ -1,0 +1,18 @@
+# tight-hooped — a tight cooper's cask — the staves meet so closely that liquor stays in. Hoops driven down over a SET of staves (a joint
+# spans a set: one hoop holds thirty staves, assembly D16). Knocked off,
+# most of the staves come back and many of the hoops do not survive the
+# driving. ⭐ The three cooper's joints differ by how tight the hoops are
+# driven — which is what decides what the vessel can hold.
+class: /platform/idea/Joint
+data:
+  key: tight-hooped
+  label: tight-hooped
+  portability: tool
+  instrument: driving
+  competence: { discipline: coopering, band: proficient }
+  reversible: effort
+  strength: 0.65
+  structuralRecovery: 0.85
+  fastenerRecovery: 0.4
+  tightenable: true
+  failure: slack

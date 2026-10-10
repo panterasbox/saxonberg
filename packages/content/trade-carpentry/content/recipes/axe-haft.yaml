@@ -1,0 +1,13 @@
+# An axe haft — the curved helve. Harder than a pick haft: the double
+# curve has to follow the grain or it snaps at the neck. Run by `carve`.
+recipeId: axe-haft
+name: Axe Haft
+keywords: [axe-haft, helve]
+inputSlots:
+  - { slot: stock, category: wood, minGrade: fair, kind: item, count: 1 }
+toolCapabilities: [cutting]
+outputTemplate: /trade/carpentry/thing/axe-haft
+outputMaterial: ''
+outputApplication: tangible
+difficulty: standard
+discipline: carpentry

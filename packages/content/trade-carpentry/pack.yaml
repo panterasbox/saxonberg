@@ -1,0 +1,22 @@
+id: trade-carpentry
+version: 0.1.0
+root: /trade/carpentry
+description: >-
+  The carpentry trade — the wood column's middle rungs. ⭐ A bole is not
+  yet anything; a board, a peg and a haft are. The trade has two acts of
+  its own and both are conversions: `saw` turns a length off a bole into
+  boards (through-sawn for yield, quarter-sawn for boards that stay
+  flat), and `carve` shapes a riven blank into a part — a haft, a handle,
+  a peg, a leg — with nothing more than an edge. What those parts are FOR
+  is the engine's `fit`: a frame is four legs and four rails, pegged; a
+  froe is a smith's blade on a carved handle, wedged. ⭐⭐ The capital
+  ladder is the miller's, on the same river: a pit saw holds two pairs of
+  hands for the whole cut, while a water-driven sawmill runs on the race
+  and you walk away — and in a dry August it cuts slower, because the
+  power is the flow.
+requires:
+  # The trade is placeless (economic bootstrap D6/D7): its mechanism is
+  # held by the Ministry of Trade — a seat, never a committee. Its
+  # premises, if any, sit in the world under a locality's committee.
+  title:
+    - { extent: /trade/carpentry, holder: { organization: /compact/trade } }

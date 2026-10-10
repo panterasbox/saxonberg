@@ -1,0 +1,20 @@
+# A cask head — itself an assembly (a sub-assembly, the nesting case):
+# three boards dowelled edge to edge and cut to a disc that drops into
+# the croze. Its row has a bill, so a head in a cask carries its own
+# record, and a split head-board is replaced without driving a hoop.
+class: /platform/thing/Assembly
+data:
+  keywords: [head, "cask head", cask-head]
+  shortDescription: cask head
+  register: indefinite
+  longDescription: >-
+    A disc of oak boards dowelled edge to edge, bevelled round the rim so
+    it will seat in a croze.
+  mass: 2.5
+  _materialPath: /stuff/idea/material/wood/oak
+  bill:
+    parts:
+      - { part: board, template: /trade/carpentry/thing/board, count: 3, role: structural }
+      - { part: dowel, template: /trade/carpentry/thing/dowel, count: 4, role: fastener }
+    joints:
+      - { key: doweling, method: pegged, members: [board], fastener: dowel }

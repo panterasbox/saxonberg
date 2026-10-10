@@ -1,0 +1,13 @@
+# A peg — the frame's fastener. Trivial to make and made by the hundred,
+# which is why it is a living. Run by `carve`.
+recipeId: peg
+name: Peg
+keywords: [peg, treenail]
+inputSlots:
+  - { slot: stock, category: wood, minGrade: poor, kind: item, count: 1 }
+toolCapabilities: [cutting]
+outputTemplate: /trade/carpentry/thing/peg
+outputMaterial: ''
+outputApplication: tangible
+difficulty: trivial
+discipline: carpentry

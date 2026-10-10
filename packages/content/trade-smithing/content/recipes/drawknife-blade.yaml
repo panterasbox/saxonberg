@@ -1,0 +1,16 @@
+# drawknife blade — a smith's part, forged at the anvil from one heat of stock.
+# ⚠ The slot signature (count × grade × heat) is this recipe's own: no two
+# anvil recipes may share one (`anvil-ladder.test.ts`), or the catalogue's
+# file order would pick the output.
+recipeId: drawknife-blade
+name: Drawknife Blade
+keywords: [drawknife-blade]
+inputSlots:
+  - { slot: stock, category: forgeable, minGrade: fair, kind: item, count: 1 }
+toolCapabilities: [striking, anvil]
+outputTemplate: /trade/smithing/thing/drawknife-blade
+outputMaterial: ''
+outputApplication: tangible
+requiresHeatK: 1350
+difficulty: standard
+discipline: smithing

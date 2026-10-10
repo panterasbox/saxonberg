@@ -58,6 +58,8 @@ const DIST_SRC = fileURLToPath(new URL("../../../trade-distilling/src", import.m
 // Trap / Bait classes, stocked cross-pack.
 const FISHING_DIR = fileURLToPath(new URL("../../../trade-fishing/content/trade/fishing/", import.meta.url));
 const FISHING_SRC = fileURLToPath(new URL("../../../trade-fishing/src", import.meta.url));
+// ⭐ The pick haft (assembly drive 16) — a woodworker's wear part.
+const CARPENTRY_DIR = fileURLToPath(new URL("../../../trade-carpentry/content/trade/carpentry/", import.meta.url));
 const APICULTURE_DIR = fileURLToPath(new URL("../../../trade-apiculture/content/trade/apiculture/", import.meta.url));
 const APICULTURE_SRC = fileURLToPath(new URL("../../../trade-apiculture/src", import.meta.url));
 // ⭐ The four packs the reachability sweep's shelf lines reach into. Each
@@ -260,6 +262,7 @@ const ROW_HOMES: { prefix: string; dir: () => string }[] = [
   { prefix: "/trade/distilling/", dir: () => DIST_DIR },
   { prefix: "/trade/fishing/", dir: () => FISHING_DIR },
   { prefix: "/trade/apiculture/", dir: () => APICULTURE_DIR },
+  { prefix: "/trade/carpentry/", dir: () => CARPENTRY_DIR },
   { prefix: "/stuff/", dir: () => OBJ_DIR },
 ];
 

@@ -1,0 +1,14 @@
+# A riven blank — a billet split down with a froe. ⭐ Run by `rive` (the
+# forestry trade's verb), not by `carve`: the froe is the tool, and what
+# comes off is straight-grained stock for a haft, a handle or a peg.
+recipeId: riven-blank
+name: Riven Blank
+keywords: [blank, riven-blank]
+inputSlots:
+  - { slot: stock, category: wood, minGrade: poor, kind: item, count: 1 }
+toolCapabilities: [riving]
+outputTemplate: /trade/carpentry/thing/riven-blank
+outputMaterial: ''
+outputApplication: tangible
+difficulty: easy
+discipline: carpentry

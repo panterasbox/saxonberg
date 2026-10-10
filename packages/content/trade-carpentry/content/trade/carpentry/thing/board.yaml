@@ -1,0 +1,20 @@
+# A board — through-sawn, the most a log will give. ⭐ What a sawyer
+# sells by the stack and a joiner buys by the stack.
+#
+# `mass: 6` is ONE board (a stack's mass is per unit) and it is the figure
+# the `saw` verb's yield arithmetic divides by (`BOARD_KG`); a test holds
+# the two together. The row is seasoned because the row is what the
+# timber yard stocks — the yard's patience is what you pay for. Boards a
+# player saws off a bole come off green, whatever the row says.
+class: /platform/thing/Timber
+data:
+  shortDescription: sawn board
+  keywords: [board, boards, plank, planks, sawn, "sawn board"]
+  register: indefinite
+  longDescription: |
+    A sawn board two strides long and a hand wide, the saw marks still across its faces and the growth rings arcing across the end grain.
+  _materialPath: /stuff/idea/material/wood/oak
+  mass: 6
+  constructionForm: sawn
+  seasonedFraction: 1
+  quantity: 1

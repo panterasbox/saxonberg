@@ -1,0 +1,53 @@
+# The sawmill — ⭐⭐ **the same fall, taken twice.** Below the grist
+# mill's tailrace the Delight still has a few feet of drop before it
+# spreads out across the flats, and a second race takes it and turns a
+# second wheel. A fall is worth more than one wheel; every mill-river in
+# Europe was a staircase of them.
+#
+# ⭐ And the sawmill is where the river does the work the pit saw used to
+# do with two men and an afternoon. What it buys is the sawyer's TIME:
+# put the log on the carriage, open the hatch, walk away. In a dry August
+# it cuts slower, and the sawyer's year has a shape nobody chose.
+#
+# ⚠ A venue, not a trade: every row named here is the carpentry trade's
+# mechanism or the water pack's, and a second sawmill in a second valley
+# is this file again with no code (assembly AC 17).
+class: /platform/location/Street
+data:
+  shortDescription: sawmill
+  keywords: [sawmill, saw-mill, yard, "timber yard", wheel]
+  register: definite
+  _address: terminus/hearts-delight/sawmill
+  _biomePath: /stuff/idea/biome/outdoor/baseline
+  ambientIntensity: 20000
+  ambientColorTemperature: 5400
+  longDescription: |
+    Below the mill the Delight runs fast and shallow over a stony bed for a hundred yards before it slackens, and a second race has been taken off it to a lower, rougher building with its doors open at both ends. Inside, a frame saw stands upright over a long carriage, its blades strung in it like a harp, and the floor is ankle deep in sawdust.
+
+    Outside, timber is stacked to the eaves under a lean-to roof — boards with sticks between them so the air can get round, billets in heaps, the lengths still in their bark — and every stack is chalked with a date.
+  coords: { x: -13, y: -8, z: 3 }
+  exits:
+    north:
+      destination: /world/terminus/hearts-delight/location/millsite
+      media: [ground]
+      edgeMinutes: 2
+  props:
+    - /world/terminus/hearts-delight/thing/sawmill-race
+    - /trade/carpentry/thing/sawmill
+    - /trade/carpentry/thing/pit-saw
+    - /world/terminus/hearts-delight/thing/timber-yard
+  cast:
+    - /world/terminus/hearts-delight/agent/sawyer
+  details:
+    race:
+      keywords: [race, leat, channel, tailrace, hatch]
+      description: |
+        A second race, shallower than the mill's, taken off below the grist mill's tailrace and led along the bank to an undershot wheel. A hatch at its head shuts the water off; when the hatch is down, the frame stops.
+    stacks:
+      keywords: [stacks, stack, sticks, lean-to, chalk]
+      description: |
+        Boards stacked flat with thin sticks laid across between every course, so the air can reach both faces of every board. Each stack is chalked with the date it was sawn. ⭐ That is the whole technology of seasoning: air, time, and a roof to keep the rain off. Green wood is cheap; the date on the stack is what you pay for.
+    pit:
+      keywords: [pit, sawpit, saw-pit]
+      description: |
+        An old sawpit in the yard, lined with planks, from before there was a wheel. A long two-handled saw still hangs over it. It still works — for two people with an afternoon and a log the frame is not free for.

@@ -1,0 +1,15 @@
+# A rail — the horizontal member of a frame, a tenon at each end. Hewn:
+# squared with the edge rather than split true, which is what a rail
+# needs — it is held at both ends and does not take a shock along its
+# length the way a haft does.
+class: /platform/thing/Timber
+data:
+  shortDescription: frame rail
+  keywords: [rail, rails, stretcher, crosspiece]
+  register: indefinite
+  longDescription: |
+    A hewn length of ash with a tenon cut at each end and a peg hole bored through each tenon.
+  _materialPath: /stuff/idea/material/wood/ash
+  mass: 1.2
+  constructionForm: hewn
+  quantity: 1

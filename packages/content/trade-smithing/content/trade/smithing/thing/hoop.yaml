@@ -1,0 +1,13 @@
+# An iron hoop — the cooper's fastener. ⭐ A WEAR part's cousin: a cask is
+# hooped, and a hoop that rusts through is replaced, so a smith who makes
+# nothing but hoops has a living. Flat bar, scarfed and riveted round.
+class: /platform/thing/Tool
+data:
+  keywords: [hoop, hoops, band]
+  shortDescription: iron hoop
+  register: indefinite
+  longDescription: >-
+    A flat iron band riveted into a ring, a little narrower at one edge than the other so it drives down a taper.
+  mass: 1.4
+  capabilities: []
+  _materialPath: /stuff/idea/material/element/iron

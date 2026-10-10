@@ -1,0 +1,12 @@
+# An axe head — a forged wedge with an eye. On a carved helve it is an
+# axe; a woodworker makes the helve and a smith the head.
+class: /platform/thing/Tool
+data:
+  keywords: [head, axe-head]
+  shortDescription: axe head
+  register: indefinite
+  longDescription: >-
+    A wedge of iron with a steel edge welded in, an eye through the poll for the helve.
+  mass: 1.6
+  capabilities: []
+  _materialPath: /stuff/idea/material/element/iron

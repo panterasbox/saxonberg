@@ -1,0 +1,42 @@
+# Tamsin Rook — the sawyer. ⭐ A sawyer at a mill is one of the assembly
+# build's three vocations (AC 17): what she consumes is the valley's
+# felled timber, what she produces is boards and blanks, and who pays is
+# every joiner and cooper who would rather not spend an afternoon in a
+# sawpit.
+#
+# She keeps the frame running and the stacks dated, and she can tell you
+# to the week how long a board has stood.
+class: /platform/agent/Cast
+extends: /stuff/agent/costume/student
+data:
+  # ⭐ What this person has on comes from the parent row
+  # (`/stuff/agent/costume/student`).
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sensitivus
+  lifecycleState: alive
+  name: Tamsin Rook
+  keywords: [tamsin, rook, sawyer]
+  shortDescription: sawdusty sawyer
+  register: definite
+  longDescription: >-
+    A long-armed woman with sawdust in the creases of her sleeves and a
+    folding rule in her apron, who reads the end grain of every log that
+    comes into the yard before she says a word about it.
+  archetype: sawyer
+  prologue:
+    - "Keeps the frame running and the stacks dated, and knows a good log by its end."
+  competence:
+    - { discipline: carpentry, asserting: proficient }
+    - { discipline: silviculture, asserting: competent }
+  dispositions:
+    - { disposition: sociability, valence: 20 }
+    - { disposition: composure, valence: 60 }
+  behaviors:
+    - brain: /lib/behavior/introduces
+      trigger: arrival
+    - brain: /lib/behavior/idles
+      trigger: candidate
+      config:
+        pool:
+          - { kind: free, value: "crouches by a log on the carriage and runs a thumb across its end grain." }
+          - { kind: free, value: "chalks a date on the end of a fresh stack and squares it up with her boot." }
+          - { kind: free, value: "lifts the hatch on the race a notch and listens to the frame pick up its stroke." }

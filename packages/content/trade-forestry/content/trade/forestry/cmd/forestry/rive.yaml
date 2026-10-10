@@ -1,0 +1,57 @@
+verbs: [rive]
+controller: /trade/forestry/idea/cmd/forestry/RiveController
+description: "Split wood along its grain with a froe — a bole into billets, a billet into staves or blanks"
+help: |
+  `rive bole` takes a length off a felled trunk and splits it with a froe
+  into billets — green, riven, and as many as the length will give.
+  `rive billet` splits a billet again, into whatever the trades here
+  rive out of one: a blank for carving, a stave for a cask. Where there
+  is more than one answer, say which: `rive billet into blank`.
+
+  ⭐ **Riving follows the grain.** The froe does not cut; it opens the
+  wood along its own fibres wherever they go, so every fibre in a riven
+  piece runs its whole length. That is why a haft and a stave are riven
+  and a board is sawn — see `help grain`.
+
+  It wants a froe (a smith's blade on a carved handle — `fit froe`), and
+  your hands are on it until the length is split.
+examples:
+  - cmd: rive bole
+    note: Split a length off a felled trunk into billets
+  - cmd: rive billet into blank
+    note: Split a billet into a blank for carving
+  - cmd: rive the billet with the froe
+    note: Name the froe
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  # A bole or a billet. They share no class (a bole is a plain good, a
+  # billet is converted stock) but both are physical matter; the
+  # controller narrows and refuses in its own words. `greedy` so `rive
+  # the oak bole` is one name — safe, every later arg declares a
+  # preposition to stop at.
+  - name: target
+    type: object
+    required: true
+    greedy: true
+    scope: ["reachable"]
+    requires: TangibleMixin
+  # What to rive a billet INTO — a recipe word. Optional: with one answer
+  # installed there is nothing to choose.
+  - name: into
+    type: string
+    required: false
+    greedy: true
+    prepositions: [into, for]
+  # ⭐ WHICH FROE — declared, not hunted for (`lint:instrument-args`). The
+  # CAPABILITY, never a class: a froe is a `Tool` row.
+  - name: froe
+    type: object
+    required: false
+    greedy: true
+    prepositions: [with, using]
+    default: "reachable:[capability.riving]"
+    scope: ["reachable"]
+    requires: [ToolMixin]

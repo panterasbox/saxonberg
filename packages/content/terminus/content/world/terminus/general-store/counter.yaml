@@ -315,6 +315,12 @@ data:
     - { itemTemplatePath: /trade/fishing/thing/leger-rod, par: 1 }
     - { itemTemplatePath: /trade/fishing/thing/spoon, par: 2 }
     - { itemTemplatePath: /trade/fishing/thing/keepnet, par: 1 }
+    # ⭐ A pick HAFT, and it is here because a haft is a WEAR part (assembly
+    # drive 16): the head outlives a dozen of them, and a miner who split
+    # one at the face buys another rather than a whole pick. The haft is a
+    # woodworker's make (`/trade/carpentry`); the shop sells it the way it
+    # sells a lantern — somebody hauled it here.
+    - { itemTemplatePath: /trade/carpentry/thing/pick-haft, par: 3 }
   prices:
     # ⭐⭐ **A JOINT costs four times TRIM**, and that price gap is the
     # butchery chain's whole economic argument standing in one place: the
@@ -443,6 +449,9 @@ data:
     # The two hand trades, both deliberately under a day's wage: a
     # spindle is a stick and a weight, a vat is a tub. The point of a hand
     # trade is that the tool is not the obstacle.
+    # A haft is a stick somebody carved: under an hour's wage, so re-hafting
+    # a pick is always cheaper than buying one.
+    /trade/carpentry/thing/pick-haft: 3
     /trade/textiles/thing/drop-spindle: 2
     /trade/dyeing/thing/household-vat: 6
     # ⚠ The bronze plate being DEARER than the steel one at 55 would be a

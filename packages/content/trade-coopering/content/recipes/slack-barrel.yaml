@@ -1,0 +1,16 @@
+# Slack Barrel, raised from its parts — `fit slack-barrel`. Thirty staves in a truss,
+# two heads crozed in, six hoops driven down.
+# ⭐ A NOVICE's product — not a worse cask but a different thing: a barrel for dry goods. The joint (slack-hooped) is what a novice can drive.
+recipeId: slack-barrel
+name: Slack Barrel
+keywords: [slack-barrel, barrel, "slack barrel"]
+inputSlots:
+  - { slot: stave, category: wood, minGrade: poor, kind: item, count: 30 }
+  - { slot: head, category: wood, minGrade: poor, kind: item, count: 2 }
+  - { slot: hoop, category: metal, minGrade: poor, kind: item, count: 6 }
+toolCapabilities: [driving, crozing]
+outputTemplate: /stuff/thing/vessel/slack-barrel
+outputMaterial: ''
+outputApplication: tangible
+difficulty: easy
+discipline: coopering

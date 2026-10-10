@@ -1,0 +1,12 @@
+# A frame rail — a tenon at each end. Run by `carve`.
+recipeId: rail
+name: Frame Rail
+keywords: [rail]
+inputSlots:
+  - { slot: stock, category: wood, minGrade: poor, kind: item, count: 1 }
+toolCapabilities: [cutting]
+outputTemplate: /trade/carpentry/thing/rail
+outputMaterial: ''
+outputApplication: tangible
+difficulty: easy
+discipline: carpentry

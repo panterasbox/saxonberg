@@ -1,0 +1,28 @@
+# A dry cask — the competent cooper's product (assembly D10, AC 22): the
+# staves meet and the hoops are driven, tight enough to keep flour, meal
+# and salt in (`dryTight`) and not liquor. ⭐ Not a worse cask: a
+# different one. Pour beer in and it runs out through the joints — the
+# stated reason.
+class: /platform/thing/Vat
+data:
+  shortDescription: dry cask
+  keywords: [cask, "dry cask", dry-cask, barrel, oak, empty]
+  register: indefinite
+  longDescription: >-
+    An oak cask hooped in iron, sound to look at, the inside dry and
+    dusty white. Hold it to the light and you see the joints are close
+    and not quite closed.
+  category: dry-cask
+  _materialPath: /stuff/idea/material/wood/oak
+  mass: 36
+  interiorBulk: true
+  interiorCapacity: 25
+  closure: dryTight
+  open: true
+  bill:
+    parts:
+      - { part: stave, template: /trade/coopering/thing/stave, count: 30, role: structural, plural: staves }
+      - { part: head, template: /trade/coopering/thing/cask-head, count: 2, role: structural }
+      - { part: hoop, template: /trade/smithing/thing/hoop, count: 6, role: fastener, material: /stuff/idea/material/element/iron }
+    joints:
+      - { key: hooping, method: hooped, members: [stave, head], fastener: hoop }

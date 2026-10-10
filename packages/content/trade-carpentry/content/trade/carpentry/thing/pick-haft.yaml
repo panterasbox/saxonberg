@@ -1,0 +1,18 @@
+# A pick haft — ⭐ made by a woodworker now, not by a miner (assembly AC
+# 18). It moved here from the mining trade with the haft recipe, and the
+# pick's bill names it at this path: a miner buys a haft from somebody
+# who makes only hafts, or carves one.
+#
+# Ash, because a haft is ash: it is the toughest of the common woods
+# under a shock, and it springs rather than snaps. The mining row was oak.
+class: /platform/thing/Tool
+data:
+  keywords: [haft, pick-haft, handle, shaped, pick, "pick haft", "shaped pick haft"]
+  shortDescription: shaped pick haft
+  register: indefinite
+  longDescription: >-
+    A length of close-grained wood, shaved oval and swelled at the butt
+    so a wet hand does not lose it.
+  mass: 0.8
+  capabilities: []
+  _materialPath: /stuff/idea/material/wood/ash

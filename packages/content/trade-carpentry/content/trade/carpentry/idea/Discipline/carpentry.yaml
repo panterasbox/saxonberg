@@ -1,0 +1,24 @@
+# The carpentry Discipline — ⭐ and what it is competence AT is reading
+# the GRAIN, not pushing the saw.
+#
+# Anybody can drag a saw through a log. What a woodworker knows is which
+# way this piece will split before the froe goes in, which board will cup
+# and which will stay flat, when a blank is dry enough to carve without
+# the haft working loose in its eye a month later, and where the peg
+# goes so the joint draws tight instead of splitting the rail. That is
+# why a riven blank in a novice's hands and a master's make different
+# hafts out of the same tree.
+class: /platform/idea/Discipline
+data:
+  key: carpentry
+  channel: skill
+  label: Carpentry
+  description: >-
+    Converting wood and joining it — sawing a log into boards, riving and
+    carving the parts, and pegging them into a frame. The saw, the froe
+    and the edge, and the judgment of which way the grain will go.
+  iscedf: "0722"  # ISCED-F 2013: materials (glass, paper, plastic and wood)
+  requires: [recipe-knowledge]
+  specializes: ""
+  synergizes: [silviculture, smithing]
+  conferrals: []

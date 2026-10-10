@@ -1,0 +1,19 @@
+# An inshave — a curved drawknife for hollowing a stave's inside, and for
+# shaving a spent cask back to clean wood before it is re-fired.
+class: /platform/thing/Tool
+data:
+  keywords: [inshave, "hollowing knife"]
+  shortDescription: inshave
+  register: indefinite
+  longDescription: >-
+    A deeply curved blade between two handles, drawn toward you to hollow
+    the inside of a stave.
+  mass: 0.6
+  capabilities: ["shaving"]
+  _materialPath: /stuff/idea/material/element/iron
+  bill:
+    parts:
+      - { part: blade, template: /trade/smithing/thing/drawknife-blade, count: 1, role: structural, material: /stuff/idea/material/element/iron }
+      - { part: handle, template: /trade/carpentry/thing/handle, count: 2, role: structural, material: /stuff/idea/material/wood/ash }
+    joints:
+      - { key: hafting, method: wedged, members: [blade, handle] }

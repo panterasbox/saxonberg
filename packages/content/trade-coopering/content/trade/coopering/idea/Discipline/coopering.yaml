@@ -1,0 +1,18 @@
+# Coopering — ⭐ the competence is the TIGHTNESS. Anybody can stand
+# staves in a truss hoop; making thirty pieces of riven oak meet so
+# closely that liquor stays in is the trade, and it is why the cooper's
+# grades are three products rather than three qualities of one.
+class: /platform/idea/Discipline
+data:
+  key: coopering
+  channel: skill
+  label: Coopering
+  description: >-
+    Riving, dressing and raising staves into barrels and casks; driving
+    hoops; crozing and heading; gauging; mending a stave at a time and
+    re-firing a spent cask.
+  iscedf: "0722"
+  requires: [recipe-knowledge]
+  specializes: carpentry
+  synergizes: [brewing, distilling]
+  conferrals: []

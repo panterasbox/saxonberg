@@ -1,0 +1,14 @@
+# A dowel — a longer, rounder pin than a peg, for joining two boards
+# edge to edge (a cask head is boards and dowels). Riven, then shaved
+# round.
+class: /platform/thing/Timber
+data:
+  shortDescription: wooden dowel
+  keywords: [dowel, dowels, pin, rod]
+  register: indefinite
+  longDescription: |
+    A rod of riven wood shaved round, as long as a hand and as thick as a finger.
+  _materialPath: /stuff/idea/material/wood/oak
+  mass: 0.08
+  constructionForm: riven
+  quantity: 1

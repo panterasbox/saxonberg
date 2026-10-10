@@ -1,0 +1,20 @@
+# A pit saw — ⭐ the bottom rung, and what it costs you is your HANDS.
+#
+# A long two-handled blade, one sawyer on top of the log and one in the
+# pit under it. Thirty kilograms of log an hour, which for one length off
+# a bole is most of an hour of sawing — and for every minute of it your
+# hands are on the handle. That is the cost of the bottom rung, and it is
+# what makes a sawmill worth walking to.
+class: /trade/carpentry/thing/Sawmill
+data:
+  shortDescription: pit saw
+  keywords: [saw, pit-saw, pitsaw, "pit saw", whipsaw, blade]
+  register: indefinite
+  longDescription: |
+    A blade longer than a man is tall, with a cross handle at the top end and a box handle at the bottom, the teeth raked to cut on the down stroke only. It takes two to work it and one of them stands in a pit.
+  mass: 7
+  capabilities: [sawing]
+  epoch: medieval
+  throughputKgPerHour: 30
+  kgPerHourPerKw: 0
+  maxThroughputKgPerHour: 0

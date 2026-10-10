@@ -10,6 +10,8 @@
     "@saxonberg/content-ground": "workspace:*",
     "@saxonberg/content-platform": "workspace:*",
     "@saxonberg/content-species-and-names": "workspace:*",
+    "@saxonberg/content-trade-carpentry": "workspace:*",
+    "@saxonberg/content-trade-smithing": "workspace:*",
     "@saxonberg/server": "workspace:*",
     "@saxonberg/types": "workspace:*"
   },

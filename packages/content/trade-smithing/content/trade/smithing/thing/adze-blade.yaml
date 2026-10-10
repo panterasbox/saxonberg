@@ -1,0 +1,12 @@
+# An adze blade — the edge set crosswise, for hollowing and dressing.
+# The cooper's adze levels the chime; a carpenter's dresses a beam.
+class: /platform/thing/Tool
+data:
+  keywords: [blade, adze-blade]
+  shortDescription: adze blade
+  register: indefinite
+  longDescription: >-
+    A curved blade set across its eye like a hoe's, the edge ground on the inside of the curve.
+  mass: 1.0
+  capabilities: []
+  _materialPath: /stuff/idea/material/alloy/steel

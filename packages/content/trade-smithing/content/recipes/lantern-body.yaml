@@ -1,0 +1,16 @@
+# A lantern body — tinsmith's work at the bench, not the anvil: the sheet
+# is cut, bent round and its seams soldered. ⚠ `metal`, not `forgeable` —
+# tin is not anvil stock, so this recipe is outside the anvil ladder by
+# construction; the solder's heat is the only heat it asks for.
+recipeId: lantern-body
+name: Lantern Body
+keywords: [lantern-body]
+inputSlots:
+  - { slot: stock, category: metal, minGrade: fair, kind: item, count: 1 }
+toolCapabilities: [striking]
+outputTemplate: /trade/smithing/thing/lantern-body
+outputMaterial: ''
+outputApplication: tangible
+requiresHeatK: 520
+difficulty: standard
+discipline: smithing

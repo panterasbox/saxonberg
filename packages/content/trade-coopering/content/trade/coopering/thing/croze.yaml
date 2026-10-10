@@ -1,0 +1,20 @@
+# A croze — the cooper's groove-cutter, run round inside the ends of a
+# raised cask to cut the channel its heads seat in. A blade on a handle,
+# wedged: anybody can re-haft one.
+class: /platform/thing/Tool
+data:
+  keywords: [croze]
+  shortDescription: croze
+  register: indefinite
+  longDescription: >-
+    A curved wooden fence with a narrow iron cutter set through it, for
+    running round the inside of a cask's end.
+  mass: 0.7
+  capabilities: ["crozing"]
+  _materialPath: /stuff/idea/material/wood/ash
+  bill:
+    parts:
+      - { part: blade, template: /trade/smithing/thing/adze-blade, count: 1, role: structural, material: /stuff/idea/material/element/iron }
+      - { part: handle, template: /trade/carpentry/thing/handle, count: 1, role: structural, material: /stuff/idea/material/wood/ash }
+    joints:
+      - { key: hafting, method: wedged, members: [blade, handle] }

@@ -1928,7 +1928,7 @@ export const AppSettingKeys = {
   craftingRefireHeatK: "crafting.refireHeatK",
   /** Assembly — the share of a lamp's light a CRACKED pane lets out
    * (assembly AC 11: a part's condition moves the room's light). */
-  lampPaneCrackedFlux: "lamp.paneCrackedFlux",
+  lampCrackedGlassFlux: "lamp.crackedGlassFlux",
   /** Assembly — the rest a bare frame gives, as a share of the seat's,
    * when its cushion has failed. */
   chairBareFrameRest: "chair.bareFrameRest",

@@ -4,6 +4,7 @@
 # NOT `sealed`, and that is not an oversight: a cask breathes through
 # the oak; bung it (`close`) and the conditioning profile takes over.
 class: /platform/thing/Vat
+extends: /stuff/thing/vessel/cask
 data:
   shortDescription: "cask"
   keywords: [cask, barrel, oak, empty]
@@ -17,3 +18,9 @@ data:
   interiorCapacity: 50
   closure: liquidTight
   open: true
+  # ⭐ A conditioning cask gives its ale nothing — the commons cask's oak
+  # character is a SPIRIT cask's, and an ale cask is pitched and seasoned
+  # until it does not taint. Stated as empty so the inheritance is not
+  # silent (assembly D10; AC 27 — the brewing behaviour is unchanged).
+  imparts: []
+  charredImparts: []

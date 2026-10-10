@@ -145,7 +145,7 @@ export default class Lamp extends LampBase {
     let factor = 1;
     for (const line of this.getParts()) {
       if (line.role !== 'facing' || line.failed <= 0) continue;
-      factor *= lampDial(AppSettingKeys.lampPaneCrackedFlux, 0.35);
+      factor *= lampDial(AppSettingKeys.lampCrackedGlassFlux, 0.35);
     }
     return factor === 1 ? flux : Quantity.of(flux.rawValue() * factor, 'lumen');
   }

@@ -61,9 +61,16 @@ export default class Bole extends BoleBase {
     lengthsLeft: { persistent: true, authorable: true },
   };
 
-  /** ⭐ The bole affords its own cross-cut, wherever it lies. */
+  /**
+   * ⭐ The bole affords its own cross-cut, wherever it lies — and its own
+   * riving: a froe takes a length off it as billets (`rive bole`), the
+   * same way the axe takes a length off it as round timber.
+   */
   static commandContributions: CommandContributions = {
-    self: ['trade/forestry/cmd/forestry/fell.yaml'],
+    self: [
+      'trade/forestry/cmd/forestry/fell.yaml',
+      'trade/forestry/cmd/forestry/rive.yaml',
+    ],
     environment: [],
     peers: [],
   };

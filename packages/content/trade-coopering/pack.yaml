@@ -1,0 +1,17 @@
+id: trade-coopering
+version: 0.1.0
+root: /trade/coopering
+description: >-
+  The cooper's trade — staves riven from a billet, raised in a truss,
+  hooped, crozed and headed. ⭐ Three products by competence, not three
+  grades of one: a SLACK barrel for dry goods, a dry-tight cask for flour
+  and meal, and the tight cask that holds liquor. A cask is mended a stave
+  at a time, its hoops are driven back down when they slip, and when it
+  has given its contents everything it had, a cooper shaves and re-fires
+  it. ⭐⭐ And the gauger: anyone may measure what a cask holds, and only
+  the seat's figure is of record.
+requires:
+  # A placeless trade (economic bootstrap D6/D7): the mechanism is held
+  # by the Ministry of Trade; a cooperage is a locality's content.
+  title:
+    - { extent: /trade/coopering, holder: { organization: /compact/trade } }

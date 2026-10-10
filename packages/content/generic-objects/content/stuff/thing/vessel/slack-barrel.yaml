@@ -1,0 +1,23 @@
+# A slack barrel — the novice cooper's product (assembly D10, AC 22): a
+# barrel for THINGS — nails, apples, a sack of meal — whose staves stand
+# true and need not meet. A container you put things in, not a vessel:
+# you cannot pour into it at all, which is the stated reason a novice's
+# barrel is not a beer cask.
+class: /platform/thing/Barrel
+data:
+  shortDescription: slack barrel
+  keywords: [barrel, "slack barrel", slack-barrel, oak, empty]
+  register: indefinite
+  longDescription: >-
+    A rough oak barrel, the staves standing true but not meeting — light
+    shows between them — hooped in iron and headed at one end.
+  _materialPath: /stuff/idea/material/wood/oak
+  mass: 30
+  open: true
+  bill:
+    parts:
+      - { part: stave, template: /trade/coopering/thing/stave, count: 30, role: structural, plural: staves }
+      - { part: head, template: /trade/coopering/thing/cask-head, count: 2, role: structural }
+      - { part: hoop, template: /trade/smithing/thing/hoop, count: 6, role: fastener, material: /stuff/idea/material/element/iron }
+    joints:
+      - { key: hooping, method: slack-hooped, members: [stave, head], fastener: hoop }
