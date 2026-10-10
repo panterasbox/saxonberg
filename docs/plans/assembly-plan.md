@@ -1351,6 +1351,26 @@ goes backwards; `sawn` integrity under `blunt` is 0.7 of `riven` in
 
 ### W4 — the wood column's content: forestry rives, carpentry saws and carves, the sawmill on the Delight
 
+> ✅ **Done — `42deefe25`** (built by a background agent, reviewed and
+> committed with W5's content). **Build decisions.** (1) ⚠ **A kernel class
+> may not name a pack's view**, so `Timber` affords only the kernel `fit`;
+> forestry's `Billet` (extends Timber) affords `rive`, carpentry's `Blank`
+> (the riven blank) affords `carve` — each pack's stock class affords its
+> own verb (the plan had Timber's static naming `rive.yaml`). A subclass's
+> affordance list replaces its parent's, so both spread Timber's back in.
+> (2) `saw <log> --quarter|--through` (an option, not a word: a string arg
+> before a defaulted object is a shape `lint:reachability` ratchets); the
+> quartered board is its own row. (3) The water sawmill runs on the clock
+> and holds nothing of yours (20 kg/h per kW, ≤300); the pit saw holds
+> your hands (30 kg/h); slower at low flow (tested). (4) ⚠ **No knife
+> offers `cutting`** (the knives are Weapons): the by-hand root starts at
+> the billhook, recorded rather than changed. (5) A billed slot was taking
+> ANY stock of its material (a wrought bar as the froe's blade) — fixed in
+> the kernel: a billed slot takes only a thing that IS that part (row or
+> keyword). (6) The sawmill no longer answers to `frame`. (7) trade-mining
+> depends on smithing + carpentry now (the trade-fuel → distilling
+> precedent); the pick RECIPE is untouched.
+
 **Decisions:** D12, D13 (the two Disciplines), D15's first composer
 is W7's — the loft is only a row here.
 **Files:** `packages/content/trade-carpentry/**` (scaffolded from
@@ -1446,6 +1466,21 @@ every bill; a mail hauberk with a bill fails the gate (fixture).
 **Commit:** `build(assembly W6): eight families — wedged, hooped, pegged, stitched, seated, riveted, friction; the pane darkens the room, the cushion rests you, the share is replaced next season`.
 
 ### W7 — the compartment
+
+> ✅ **Done — `77c0efe1e` (kernel, a background agent) + `c5ddf21de`
+> (the loft).** **Build decisions.** (1) `chambers:` is an INSTRUCTION
+> field applied at template phase 2, idempotent by key — `postRegister`
+> is retired and `onCreate` is at its ratchet. (2) A chamber stands BESIDE
+> its host in the host's container and is carried when the host moves; the
+> chambers are owned refs (the destruct cascade takes them) and are
+> re-minted from the row, not persisted under `(scope, key)` — ⚠ whether
+> boards placed in a loft survive a restart rides the room slice's capture
+> of the chamber and is the drive's to prove. (3) The widening reached the
+> address, zone and weather walks too (same family). (4) ⛔ **No shipped
+> verb places a PERSON in a compartment** (`put` is inventory-only;
+> `sit`/`lie` need a posture slot; nothing enters) — no verb invented, so
+> AC 25 is the goods half; the gap is the slate's. (5) The drying loft:
+> indoor biome, 297 K, 40 %, a draught — rain never reaches it.
 
 **Decisions:** D15.
 **Files:** `lib/biome/Atmospheric.ts` (the widening),
