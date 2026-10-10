@@ -143,9 +143,14 @@ trade that should have been selling it saw none of the demand.
   that burns oil and a city that draws a feeder.
 - ⭐⭐⭐ **The city's pump stops being free.** The Wharfside intake's watts
   become a real draw with a real source; and ⭐ **stopping it is an act
-  against a city** — every tap above it reports an honest supply failure
-  in the vocabulary that already exists for exactly this, and somebody
-  can turn it back on.
+  against a city** — a tap above it reports an honest supply failure, and
+  somebody can turn it back on. ⚠ **The vocabulary ships and the tap's
+  reading of it does not**: the six supply words are kernel and precedence-
+  ordered, but a water fixture today knows nothing about a main — it has
+  no reference to a conduit, a supply or a service, and the one method
+  that answers *does this serve that place* has **no caller in production
+  anywhere**. So this goal is a genuine piece of wiring and not a
+  presentation of something already built.
 - ⭐ **A second pump anywhere is rows.** Five numbers — **mechanism**,
   lift, throughput, power, seal — so a hand pump, a sucker rod, a horse
   gin and a steam pump are all authored, not coded. ⭐⭐ **The mechanism
@@ -378,6 +383,27 @@ territory exactly: the engine can price both sides and cannot say who is
 right. This build ships the shared case (the city) and leaves the private
 case to the slate that owns irrigation.
 
+### ⭐ The city intake is left overdrawn, deliberately
+
+Decided by the user, 2026-10-09, after the plan surfaced it. The
+intake's own authored numbers do not fit its own power band: five metres
+of lift at its full capacity, through the shipped efficiency dial, asks
+about **98 kW** against an industrial ceiling of **60**. So the pump will
+deliver roughly **three-fifths of the capacity the row claims**, and the
+instrument will say so.
+
+**Leave it.** ⭐ A city whose water supply is capacity-limited by its own
+power band — derived from numbers two different builds authored without
+consulting each other, and reported honestly by a reading that already
+ships — is the build teaching something nobody wrote down. ⛔ Do **not**
+raise the band and do **not** lower the capacity to make the arithmetic
+come out even; both are a row's worth of work and both would delete the
+lesson.
+
+⚠ What this does oblige: the shortfall must be **legible**, not silent. A
+player who asks the instrument what the intake is doing has to be able to
+find out that it is asking for more power than it is allowed.
+
 ### Does the bailer retire?
 
 **No, and that is a design commitment, not a courtesy.** The decline
@@ -479,9 +505,19 @@ opens.
    successfully. Nothing explains the difference; the machine simply
    works where the other did not.
 6. **Pump until the leather goes.** `analyze` the pump and read its
-   packing's condition in words. `repair` it, and then wear it out past
-   repairing and **buy a new seal** from somebody who made it out of a
-   hide.
+   packing's condition in words — five words and no digit. `repair` it,
+   and watch the words improve. Then **take a fresh packing and fit it**,
+   and confirm the pump that had stopped working works again.
+   ⚠ **Not *"wear it out past repairing"*, which this economy does not
+   have**: `repair`'s own prose says gear never obsoletes, and nothing
+   shipped makes a good unrepairable. Replacing a part is not the same
+   claim as exhausting one, and this build is not the place to invent an
+   irreparable state for a single good. ⚠ And the spare is **taken from a
+   rack, not bought** — the mining town's till cannot take money (two
+   drives have now recorded it), no tanner sells anywhere, and `make` is
+   deed-gated. The **recipe ships for the trade**; the purchase is a
+   retail defect older than this build and it is not this build's to
+   fix.
 7. **Go to a brine bore with no head of its own.** Bail it once and note
    what one haul gives you. Fit a pump, and get a **continuous rate**
    instead — then confirm `bail` still clears the hole, because `bore`
@@ -518,8 +554,12 @@ opens.
    through standing water.
 8. The **city intake's pump draws real power from a real source**, and the
    gravity-fed aqueduct beside it draws none.
-9. ⭐ **Stopping the city's pump is observable from a tap uphill**, in the
-   supply vocabulary, and somebody can start it again.
+9. ⭐ **Stopping the city's pump is observable from a tap uphill** — the
+   tap names the failure in the shipped supply vocabulary, and somebody
+   can start the pump again and have the tap run. ⚠ A tap that reports
+   this is **new**: no fixture in the realm reads a main today, so this
+   criterion is satisfied by a tap that did not previously exist or did
+   not previously know what fed it.
 10. **`pump forge` is unchanged** — same prose, same toggle, same refusals
     for a cold, unfuelled or bellows-less furnace.
 11. ⭐⭐ **A bucket still comes up from below the suction ceiling.** At a
