@@ -1133,6 +1133,14 @@ the ward, where the fixture stands). ⚠ The par/perception `stockSheetFor`
 skips a CLOSED sealable, so a bank reads its vault's own contents (not the
 sheet) — see `blood.md` (`DonationBankMixin`).
 
+## A seat with a perceptual effect: the lookout (the maritime build, 2026-10)
+
+The first seat whose holding changes what somebody can SEE. A ship's
+house (`Structure.house`) carries a `lookout` position; whoever holds it
+**on shift** sees from the masthead (`Structure.sightHeightFor`), and
+everyone else from the deck. Read off the shipped roster — `appoint`,
+`clock on` — with nothing about the ship changing.
+
 ## ⭐⭐ The hiring driver (the drilling build, 2026-10)
 
 The deferred line *`hire`/`fire` exist on the LOGIC and not on the

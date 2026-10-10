@@ -89,9 +89,17 @@ CartesianZone  SphericalZone
   folder-of-templates contract (`ZoneApi.isFolderClass` checks
   `prototype instanceof Zone`). Subclasses participate
   automatically without editing a central allow-list.
-- **`SpatialZone`** — abstract intermediate carrying the
-  location-aware surface (`addLocation`, `getLocations`,
-  `removeLocation`, `contains`, `canDestruct`). Stamps `Stuff.zone`.
+- **`SpatialZone`** — abstract intermediate: a REGION in space (the
+  region fields below, `address`, `visibleLandmarks`). ⭐ Since the
+  maritime build it does **not** hold rooms: the location-aware surface
+  (`addLocation`, `getLocations`, `removeLocation`, `contains`, the
+  `canDestruct` veto) is **`LocationZoneMixin`** (`lib/zone/LocationZone.ts`),
+  composed by `CartesianZone` and `SphericalZone`, which still stamps
+  `Stuff.zone` (the `FromSpatialZone` gate reads the calling zone
+  instance, so it passes unchanged). An `Expanse` is a `SpatialZone` that
+  composes no Location half — see [expanse.md](./expanse.md).
+  `visibleLandmarks` names Structures whose outside description `look`
+  appends for every room the walk reaches; an authored `[]` stops it.
   `CartesianZone` and `SphericalZone` extend this — not `Zone`
   directly. Exits are authored explicitly on rooms; the zone is the
   coordinate grid + its invariants, never an exit source.

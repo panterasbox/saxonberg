@@ -1,5 +1,11 @@
-# The haar — a BELT of sea fog that joins nothing: a latitude of it,
-# right round the world. ⭐ Behaves exactly as a band between two nodes.
+# The haar — a BELT of sea fog that joins nothing: a stretch of
+# latitude, eighteen miles of it west from the Rock, with no endpoints.
+# ⭐ Behaves exactly as a band between two nodes.
+#
+# ⚠ Bounded in longitude, and the bound is load-bearing: where bands
+# overlap the NARROWEST owns the weather, so a belt right round the world
+# would never win anywhere a corridor runs through it — the Westerlies
+# would be all anybody ever saw of the fog.
 class: /system/water/idea/WaterBand
 data:
   name: the haar
@@ -7,6 +13,8 @@ data:
     kind: belt
     latMinDeg: 42.080
     latMaxDeg: 42.120
+    lonMinDeg: -8.400
+    lonMaxDeg: -8.100
   lean: { directionDeg: 180, strengthMps: 0.5 }
   gearHardness: 0.1
   outsideDescription: >-

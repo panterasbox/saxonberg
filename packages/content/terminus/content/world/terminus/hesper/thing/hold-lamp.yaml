@@ -7,3 +7,6 @@ data:
   shortDescription: hold lantern
   keywords: [lantern, lamp, light]
   on: true
+  # Enough to see the hold by (500 lumens over 16 m² is `lit`), not to
+  # read fine ink — a chart is taken up on deck and read in daylight.
+  emittedIntensity: 500

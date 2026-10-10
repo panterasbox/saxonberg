@@ -4,8 +4,8 @@
 # the edges of a sea are unknown to you until you procure a chart.
 class: /platform/thing/Chart
 data:
-  shortDescription: chart of the Greywater
-  keywords: [chart, greywater, map]
+  shortDescription: survey chart of the Greywater
+  keywords: [chart, survey, greywater, map]
   register: indefinite
   longDescription: |
     A sheet of heavy paper, much folded, drawn in two inks: the coast in brown, the soundings and the streams in blue.

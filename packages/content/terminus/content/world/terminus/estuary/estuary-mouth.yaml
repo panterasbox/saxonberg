@@ -17,8 +17,6 @@ data:
   alternateNames: [estuary, saltings, marsh, water]
   _address: terminus/city/wharfside/estuary-mouth
   _biomePath: /stuff/idea/biome/outdoor/baseline
-  ambientIntensity: 700
-  ambientColorTemperature: 5900
   longDescription: |
     The banks give up. The river spreads into a mile of saltings and mud and channels that move between one season and the next, and the made path ends at a post with a lamp bracket on it and no lamp.
 

@@ -19,6 +19,6 @@ const STEERING = [
 
 export default class Helm extends Good {
   static commandContributions: CommandContributions = {
-    environment: STEERING,
+    peers: STEERING,
   };
 }

@@ -357,8 +357,9 @@ export abstract class Expanse extends SingletonMixin(SpatialZone) {
       });
     };
     await this.compile();
-    for (const c of this.craft()) consider(c, false);
+    // Landmarks first: a light is a light, whatever else has it listed.
     for (const lm of this.landmarks) consider(lm, true);
+    for (const c of this.craft()) consider(c, false);
 
     const field = await this.fieldAt(here);
     const passer = this.trafficAt(here, hourIndex, field.traffic);

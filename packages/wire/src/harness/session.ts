@@ -854,6 +854,26 @@ export class Session {
     this.proseFrames.length = 0;
   }
 
+  /**
+   * ⭐ Prose the world sent UNASKED — a ship's watch reporting the water,
+   * a sail sighted, an arrival — gathered for `ms` and returned as plain
+   * text, then dropped.
+   *
+   * ⚠ `cmd` clears the prose buffer when it starts, so anything a
+   * scheduled beat narrated between two commands is lost to the next
+   * one. A test that asserts what an engagement SAID on its own clock
+   * listens instead of sending a command to find out.
+   */
+  async listen(ms: number): Promise<string> {
+    this.captureLast?.();
+    this.captureLast = null;
+    this.proseFrames.length = 0;
+    await pause(ms);
+    const heard = plain(this.proseFrames.join('\n'));
+    this.proseFrames.length = 0;
+    return heard;
+  }
+
   close(): void {
     if (this.closed) return;
     this.closed = true;

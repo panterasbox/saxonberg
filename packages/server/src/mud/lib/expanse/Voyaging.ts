@@ -335,10 +335,12 @@ export function VoyagingMixin<
       // its ships up, so a ship restored DURING that compile would wait
       // on the compile that is waiting on it. The first watch loads the
       // bands; the derived position reads them once they are there. Kick
-      // the compile without waiting on it.
+      // the compile without waiting on it — it registers every SHIP sited
+      // on the sea (a Structure with a deck), at anchor or not; a building
+      // (a light on a rock) is never registered as craft.
       void expanse.bands();
-      expanse.register(this as unknown as Stuff & Positioned);
       if (this.course !== null && this.currentVoyage() === null) {
+        expanse.register(this as unknown as Stuff & Positioned);
         SchedulerApi.start(new Voyage(this as unknown as Craft));
       }
     }

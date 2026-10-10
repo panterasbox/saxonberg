@@ -1695,3 +1695,16 @@ understand that verb*. Both were words a reasonable author would guess:
 `difficulty: straightforward` (the words are trivial · easy · standard ·
 hard · formidable) and `gradeBand: good` (poor · fair · fine ·
 exceptional · masterful).
+
+## ⭐ The maritime build (2026-10)
+
+The **water** pack gains the medium tier of the expanse —
+`WaterExpanse`, `WaterBand`, `Gunwale extends Shore`, `DepthReading`,
+the `Pilot` agent and its `pilot` verb — and ships the `open-water`
+biome stub at the commons path (a trade ships the biome it stands
+under). The **transport** pack gains `Boat` and its `launch`/`recover`
+verbs; the boat's static also names the kernel `course`/`anchor`/`hail`
+views. The realm's sea, the Greywater, is a **world-seed** row under
+`/stuff/idea/WaterExpanse/`; the Hesper, Gannet Rock and the estuary's
+strand, pool and headland are **terminus**'s. See
+[expanse.md](./expanse.md).

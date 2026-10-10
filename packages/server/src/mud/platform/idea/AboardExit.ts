@@ -71,7 +71,7 @@ export default class AboardExit extends DeferredDestinationExit {
     for (const c of e.craft()) {
       // Only a Structure has a deck to step onto; a boat is boarded by
       // `enter`, as any vessel is.
-      if (!(c instanceof Structure) || c.getEntrance() === null) continue;
+      if (!(c instanceof Structure) || c.getEntrance() === null || c.getDeckHeightM() === null) continue;
       const at = c.getExpansePosition();
       if (!at || c.getCourse() !== null) continue;
       if (at.distanceNm(this.node.at) <= within) return c;

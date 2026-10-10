@@ -8,8 +8,6 @@ data:
   alternateNames: [path, wharf, quay, bank]
   _address: terminus/city/wharfside/lower-towpath
   _biomePath: /stuff/idea/biome/outdoor/baseline
-  ambientIntensity: 590
-  ambientColorTemperature: 5800
   longDescription: |
     Below the confluence the Kestrel goes wide and slow and the city finally does something useful with it. A stone quay runs along the bank, low enough to work a barge over and high enough to stay out of the spring, with rings set into it at intervals and a crane frame at the near end with no rope on it.
 

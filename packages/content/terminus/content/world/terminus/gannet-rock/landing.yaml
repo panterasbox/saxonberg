@@ -6,8 +6,6 @@ data:
   keywords: [landing, rock, ledge, gannet]
   register: definite
   _biomePath: /stuff/idea/biome/outdoor/open-water
-  ambientIntensity: 900
-  ambientColorTemperature: 6000
   longDescription: |
     A ledge of wet granite with iron rungs let into it, the sea sucking at the foot of them. Above, the lighthouse goes up white against the sky, and the birds go up with it.
   coords:

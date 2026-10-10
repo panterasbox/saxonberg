@@ -7,8 +7,6 @@ data:
   register: definite
   _address: terminus/city/wharfside/headland
   _biomePath: /stuff/idea/biome/outdoor/baseline
-  ambientIntensity: 800
-  ambientColorTemperature: 5900
   longDescription: |
     A turf-topped shoulder of rock above the cove, the wind coming straight off the sea and flattening the thrift.
   coords:

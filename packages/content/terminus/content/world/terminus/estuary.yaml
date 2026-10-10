@@ -14,6 +14,12 @@
 # Below the confluence, so a barge gets up it. The gorge above Terminus
 # is *"steep enough that no boat has ever been up it"* — the water build
 # decided that, not this one.
+# ⚠ Its rooms author NO ambient light (maritime drive finding): an
+# authored `ambientIntensity` REPLACES the sky's noon flux rather than
+# calibrating it, and the 600–700 lumens these rows carried, spread over a
+# 20-metre cell, read under two lux — the estuary was too dark to describe
+# at noon. With nothing authored, each room follows the sky over its own
+# floor area, as an outdoor room should.
 class: /platform/idea/location/CartesianZone
 data:
   name: The Estuary

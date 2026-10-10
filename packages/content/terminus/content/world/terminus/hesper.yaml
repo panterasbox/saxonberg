@@ -10,6 +10,6 @@
 class: /platform/idea/location/CartesianZone
 data:
   name: The Hesper
-  cellSize: 6.0
+  cellSize: 4.0
   # From her deck the city is a smudge; no tower is in sight at sea.
   visibleLandmarks: []

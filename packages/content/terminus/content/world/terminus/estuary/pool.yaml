@@ -8,8 +8,6 @@ data:
   register: definite
   _address: terminus/city/wharfside/pool
   _biomePath: /stuff/idea/biome/outdoor/baseline
-  ambientIntensity: 750
-  ambientColorTemperature: 5900
   longDescription: |
     You are in the water. It is cold, clear and still, green over sand, and the strand is a few strokes behind you.
   coords:

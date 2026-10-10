@@ -12,8 +12,6 @@ data:
   keywords: [deck, hesper, ketch, ship]
   register: definite
   _biomePath: /stuff/idea/biome/outdoor/open-water
-  ambientIntensity: 900
-  ambientColorTemperature: 6000
   longDescription: |
     A flush deck of scrubbed pine between low bulwarks, two masts with their sails stopped down along the booms, and a tiller at the stern with a compass in a brass bowl before it. Coils of line hang on pins along the rail. A hatch forward goes down into the hold.
   coords:

@@ -7,7 +7,7 @@
 class: /platform/thing/Chart
 data:
   shortDescription: old chart of the Greywater
-  keywords: [old, chart, greywater]
+  keywords: [old, greywater]
   register: indefinite
   longDescription: |
     An older sheet than the other, brown at the folds, its soundings in a hand nobody writes any more.

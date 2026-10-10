@@ -732,6 +732,17 @@ sibling slates:
   `restart` `AbortReasonRegistry` augmentation lands when the
   shutdown-lifecycle subsystem ships.
 
+## An engagement held by a THING, re-armed after a restart (the maritime build, 2026-10)
+
+The `Voyage` (`lib/expanse/Voyage.ts`) is the first sustained engagement
+whose actor is not a person: the craft (`Structure`, `Boat`) composes
+`EngagedMixin` and holds it, so logging out does not end it and nobody's
+bare `cancel` reaches it (`cancelAll` reaches only the GIVER's). It is
+also the first engagement **re-established at boot**: its state is three
+persisted fields on the craft, and `Persistable.onRestored()` restarts it.
+`anchor` ends it `anchored` (a new `AbortReasonRegistry` member declared
+in `Voyage.ts`); arriving `complete`s it. See [expanse.md](./expanse.md).
+
 ## History
 
 The Wave 1 build landed on the `activity` branch in three commits

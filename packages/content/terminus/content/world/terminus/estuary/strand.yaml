@@ -9,8 +9,6 @@ data:
   register: definite
   _address: terminus/city/wharfside/strand
   _biomePath: /stuff/idea/biome/outdoor/baseline
-  ambientIntensity: 750
-  ambientColorTemperature: 5900
   longDescription: |
     A crescent of pale sand in the lee of the headland, with the pool lying green and still across from it. The far side is a short swim off; you could throw a stone onto it.
   coords:

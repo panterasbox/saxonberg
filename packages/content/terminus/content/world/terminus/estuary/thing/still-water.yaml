@@ -7,6 +7,9 @@ data:
   keywords: [water, pool, shallows]
   register: indefinite
   fixedInPlace: true
+  # ⚠ Which ways it can be swum. Empty (the mixin's default) enables NO
+  # direction, and `swim` refuses as if there were no water at all.
+  axes: ['*']
   longDescription: |
     Clear green water over sand, cold to the touch and still enough to see the bottom.
   _materialPath: /stuff/idea/material/bulk/salt-water

@@ -208,9 +208,9 @@ describe('anchor and restart', () => {
     expect(sea.craft()).toContain(ship);
   });
 
-  it('a restored craft at anchor registers and starts nothing', async () => {
+  it('a restored craft at anchor starts nothing — the sea\'s compile registers its ships', async () => {
     await ship.onRestored();
     expect(started).toHaveLength(0);
-    expect(sea.craft()).toContain(ship);
+    expect(sea.craft()).not.toContain(ship);
   });
 });
