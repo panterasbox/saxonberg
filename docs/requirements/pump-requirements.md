@@ -146,9 +146,12 @@ trade that should have been selling it saw none of the demand.
   against a city** — every tap above it reports an honest supply failure
   in the vocabulary that already exists for exactly this, and somebody
   can turn it back on.
-- ⭐ **A second pump anywhere is rows.** Four numbers — lift, throughput,
-  power, seal — so a hand pump, a horse gin, a water-wheel pump and a
-  steam pump are all authored, not coded.
+- ⭐ **A second pump anywhere is rows.** Five numbers — **mechanism**,
+  lift, throughput, power, seal — so a hand pump, a sucker rod, a horse
+  gin and a steam pump are all authored, not coded. ⭐⭐ **The mechanism
+  is the one that carries a law**: it is what decides whether this
+  machine has a ceiling, and it is why the other four cannot be the whole
+  surface.
 
 ---
 
@@ -203,6 +206,15 @@ trade that should have been selling it saw none of the demand.
   [inquiry-slate](../slates/builds/inquiry-slate.md), which ⚠ **does not
   know the pump exists** (its worked first case is vulcanization
   throughout) and which this build should seed with it.
+- ⛔ **No screw and no centrifugal pump** — the two family-B-looking
+  machines that are not this build's. ⭐ The Archimedes screw is a
+  **family A bucket machine wearing a pipe**: it has no seal, develops no
+  pressure and has no ceiling, so it belongs with the noria. The
+  centrifugal has no piston at all, is the **industrial epoch**, and
+  needs priming — which is a mechanic of its own and the thing that ended
+  cooperative water management when it arrived. → the family A concept
+  below, and [rgo-unification-slate](../slates/builds/rgo-unification-slate.md)
+  for the centrifugal's economics.
 - ⛔ **No metered power billing.** The grid draw is real; invoicing it is
   already Tier C elsewhere. → the power-utility slate.
 
@@ -224,7 +236,7 @@ packs.
 
 | | |
 |---|---|
-| the lift mechanism, the four numbers, the suction ceiling, the seal's wear | **kernel** |
+| the displacement mechanism, the five numbers, the suction ceiling, the seal's wear | **kernel** |
 | the unified `pump` verb and its interface | **kernel** (the platform pack's view) |
 | the village well and its pump | **`rejection`** — a rows-only pack with no `src/`, which is the placement test passing: a second well anywhere needs zero code |
 | the lift fitted to a bore | **`trade-drilling`**, over the attach point it already published |
@@ -286,6 +298,41 @@ found the mine has no water at all; the three chosen consumers each need
 attach point drilling already published and documented as ours, and one
 is a shipped row with an inert watts function and three sentences of
 prose about a pump that has never cost anything.
+
+### ⭐⭐⭐ Two families, and the ceiling belongs to the mechanism
+
+The slate describes one ladder — shadoof · screw · bucket chain · suction
+pump · force pump · sucker rod — and asks as its first open question
+*"is the pump `LiftMixin`, or its sibling?"*. Working through the actual
+machines answers that question and splits the ladder in two, and the
+split is load-bearing rather than tidy.
+
+| family | how it moves fluid | lift is | seal | ceiling |
+|---|---|---|---|---|
+| **A · bucket machines** — shadoof, noria, bucket chain, the mine cage, the ore skip, ⭐ **and the bailer, which ships** | it **carries** the fluid or the load up inside a container | how far the mechanism reaches | none — a flap valve at most | ⛔ **none, at any depth** |
+| **B · displacement machines** — suction pump, force pump, sucker rod, centrifugal, ⭐ **and the furnace bellows, which ships** | it **pushes** the fluid through a pipe | what the mechanism can develop | yes, and under pressure in the force case | ⚠ **only the suction variant** |
+
+> ⭐⭐⭐ **The suction limit is therefore not a property of pumps. It is a
+> property of pumps that PULL.** Sichuan lifted brine from three hundred
+> metres with a bucket on a rope, and this realm already ships that
+> bucket. If the ceiling lives on the *machine*, the first authored noria
+> inherits a ten-metre cap that is **physically false** — and the lesson
+> stops being a law and becomes a lie.
+
+**So the ceiling is a consequence of the mechanism, declared nowhere and
+authored never.** A row says which mechanism it is; whether it has a wall
+follows.
+
+⭐⭐ **And family A is `LiftMixin`'s, which is the answer to the slate's
+Open #1.** A hoist raises a cage, and a cage is a container you put
+things in — so the hoist, the skip, the noria, the shadoof and the bailer
+are **one concept**, and it is a concept **three slates have already
+named** (mining, metal-chain and rejection all spend `LiftMixin` on the
+called cage and the ore skip). ⛔ **This build must not take that name**,
+and the pump is its **sibling, not its instance**. ⚠ Nor may it add a
+fourth meaning to *lift*, which already means the gym verb, the bore's
+own lift act, and that unbuilt hoist — the three-`Conduit` problem,
+caught early for once.
 
 ### Does the suction limit use the real atmosphere, or a constant?
 
@@ -361,11 +408,17 @@ reads the engine already makes. Disciplines: `physics` (whose own
 description names the head on a water course), `smithing`, `leatherwork`.
 ⭐ The world announces a law **by refusing, with a number** — *the water
 stops coming at thirty feet and nobody knows why* — which is the honest
-shape for a law nobody has discovered yet.
+shape for a law nobody has discovered yet. ⭐⭐ And the families split
+makes the lesson **completable**: *why does the bailer have no ceiling*
+is answerable from the mechanism instead of standing as an exception the
+player has to swallow.
 
-**2 · Creative expression — ⭐⭐.** Four numbers, so every rung of the
-historical ladder is a row; the interface means a new pump is authored
-rather than coded. The limb that decided the verb fork.
+**2 · Creative expression — ⭐⭐⭐, raised from the slate's ⭐⭐.** Putting
+the ceiling on the **mechanism** rather than the machine is what buys the
+third star: an author writes a force pump, a sucker rod or a bellows as
+rows and **each gets the right physics**, where a ceiling on the machine
+would hand all three a cap that is true of only one. ⭐ This limb decided
+both forks in this doc — the verb's interface and the families split.
 
 **3a · Immersion — ⭐⭐.** Raised from the slate's ⭐ by the altitude
 consequence: the ceiling moving when you climb is the kind of coherence
@@ -399,8 +452,9 @@ content files that mention its absence, before a single line is written.
 dependence, appeal is the courts, entrenchment is tier C. Derivative of
 3b and 4, as the slate said.
 
-**⭐⭐ Altitude.** **Invariant:** the suction ceiling — it is arithmetic
-over the atmosphere, and an author who changes it is changing the air.
+**⭐⭐ Altitude.** **Invariant:** the suction ceiling, **and that it
+belongs to the mechanism rather than the machine** — it is arithmetic over
+the atmosphere, and an author who changes it is changing the air.
 **Grain:** lift, throughput, power source, seal material, and the choice
 to make the frontier hand-powered and the city grid-powered. **Title:**
 who pays for a shared pump — we ship a dependence and no answer.
@@ -468,9 +522,15 @@ opens.
    supply vocabulary, and somebody can start it again.
 10. **`pump forge` is unchanged** — same prose, same toggle, same refusals
     for a cold, unfuelled or bellows-less furnace.
-11. A **second pump anywhere in the realm is authored rows** and needs no
-    new code.
-12. The **Hinkley standpipe still runs on gravity** with no pump, and its
+11. ⭐⭐ **A bucket still comes up from below the suction ceiling.** At a
+    bore deeper than the depth a suction pump refused in criterion 2,
+    `bail` still brings up its load — because carrying water up in a
+    container was never subject to the limit, and nothing about shipping
+    the limit may make the realm claim otherwise.
+12. A **second pump anywhere in the realm is authored rows** and needs no
+    new code, and a row says **which mechanism** it is rather than
+    whether it has a ceiling.
+13. The **Hinkley standpipe still runs on gravity** with no pump, and its
     fifteen metres of head still explain it.
 
 ---
