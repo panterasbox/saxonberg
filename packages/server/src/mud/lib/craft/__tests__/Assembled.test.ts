@@ -12,6 +12,7 @@ import Material from '../../material/Material';
 import { MaterialApi } from '../../../api/material';
 import { MixinApi } from '../../../api/mixin';
 import { StuffApi } from '../../../api/stuff';
+import { WorldClockApi } from '../../../api/worldclock';
 import { Quantity } from '../../quantity';
 import { Construction } from '../../material/Construction';
 import {
@@ -166,6 +167,29 @@ describe('AssembledMixin', () => {
       [],
     );
     expect(shield.partAnswering('edge')!.part).toBe('face');
+  });
+
+  it('⭐ green work WARPS once it has dried in place — a member fails and says so', () => {
+    const oak = StuffApi.findByTemplatePath<Material>(ASH)!;
+    oak.seasoningDays = 100;
+    oak.greenShrinkage = 0.1;
+    let nowS = 1_000_000;
+    WorldClockApi._setNowProviderForTesting(() => nowS);
+    const t0 = WorldClockApi.getNow().rawValue();
+    const cask = makeStuff(() => new Assembly());
+    cask.recordAssembly(
+      [line('stave', ASH, { count: 30, plural: 'staves', green: true, greenAt: t0 })],
+      [{ key: 'hooping', method: 'hooped', members: ['stave'], tension: 1, maker: '' }],
+    );
+    expect(cask.failedLines()).toEqual([]);
+    // Push the game clock well past a tenth of the seasoning time.
+    while (WorldClockApi.getNow().rawValue() - t0 < 11 * 86_400) nowS += 10_000_000;
+    const staves = cask.getLine('stave')!;
+    expect(staves.warped).toBe(true);
+    expect(staves.failed).toBe(1);
+    expect(cask.getJoints()[0]!.tension).toBeLessThan(0.5);
+    expect(cask.leaks()).toBe(true);
+    WorldClockApi._resetForTesting();
   });
 
   it('composes on Tool and is registered', () => {

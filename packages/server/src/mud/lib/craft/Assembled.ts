@@ -63,6 +63,7 @@ import { GrammarApi } from '../../api/grammar';
 import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../config/AppSettings';
 import { TemplatePaths } from '../paths';
+import { WorldClockApi } from '../../api/worldclock';
 import type JointCatalogue from '../../platform/idea/JointCatalogue';
 import type { JointDescriptor } from '../../platform/idea/Joint';
 
@@ -129,6 +130,10 @@ export interface PartLine {
   failed: number;
   /** Worked unseasoned (the seasoning axis, assembly D2). */
   green?: boolean;
+  /** Game-seconds it was fitted green — the warp clock starts here. */
+  greenAt?: number;
+  /** It dried in place and moved: a member failed for that reason. */
+  warped?: boolean;
   /** Identity paths of everyone who made or fitted a member of this line. */
   makers: string[];
   /** The nested record, when the fitted part was itself an assembly. */
@@ -223,6 +228,15 @@ function dial(key: string, fallback: number): number {
   }
 }
 
+/**
+ * ⭐ How far through its species' seasoning a green part dries IN PLACE
+ * before it moves enough to warp (assembly D2, AC 19). Grain: oak (365
+ * days to season) warps a month after it was fitted green.
+ */
+const WARP_AFTER_SEASONING_FRACTION = 0.1;
+/** How much of its shrinkage a warped member takes off its joints' tension. */
+const WARP_SLACK_PER_SHRINKAGE = 6;
+
 /** The default a joint is read at when its row is not (yet) warm. */
 const JOINT_DEFAULT: Pick<JointDescriptor, 'strength' | 'failure'> = {
   strength: 0.5,
@@ -306,6 +320,7 @@ function assemblyAugmenter(text: string, host: Stuff, _viewer: Stuff): string {
 
 /** How a failed line's member is described — by the joint it sits in. */
 function failureWordFor(host: Assembled, line: PartLine): string {
+  if (line.warped) return 'warped';
   if (line.role === 'wear') return 'worn through';
   for (const j of host.getJoints()) {
     if (j.members.includes(line.part)) {
@@ -400,13 +415,44 @@ export function AssembledMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     getParts(): PartLine[] {
-      return this.parts.length > 0 ? this.parts : this.billLines();
+      if (this.parts.length === 0) return this.billLines();
+      this.reconcileWarp();
+      return this.parts;
+    }
+
+    /**
+     * ⭐ Green wood dries where it was fitted, shrinks, and MOVES: once a
+     * green line has had a tenth of its species' seasoning in place, one of
+     * its members has warped (it fails, and says so) and the joints it
+     * sits in slacken by what the material shrinks. Reconcile-on-read, once
+     * per line — the green flag clears when it has happened. This is the
+     * stated reason green work fails (AC 19).
+     */
+    private reconcileWarp(): void {
+      let nowS: number | null = null;
+      for (const line of this.parts) {
+        if (!line.green || !line.greenAt) continue;
+        const m = materialAt(line.material);
+        const days = m?.getSeasoningDays() ?? 0;
+        if (days <= 0) continue;
+        nowS ??= WorldClockApi.getNow().rawValue();
+        if (nowS - line.greenAt < days * WARP_AFTER_SEASONING_FRACTION * 86_400) continue;
+        line.green = false;
+        line.warped = true;
+        if (line.failed < line.count) line.failed += 1;
+        const slack = (m?.getGreenShrinkage() ?? 0) * WARP_SLACK_PER_SHRINKAGE;
+        for (const j of this.joints) {
+          if (j.members.includes(line.part)) j.tension = Math.max(0, j.tension - slack);
+        }
+      }
     }
 
     getJoints(): JointState[] {
-      return this.joints.length > 0 || this.parts.length > 0
-        ? this.joints
-        : this.billJoints();
+      if (this.parts.length > 0) {
+        this.reconcileWarp();
+        return this.joints;
+      }
+      return this.joints.length > 0 ? this.joints : this.billJoints();
     }
 
     getLine(part: string): PartLine | null {
@@ -584,8 +630,14 @@ export function AssembledMixin<TBase extends MixinConstructor>(Base: TBase) {
         line.failed = 0;
         if (fitted.form) line.form = fitted.form;
         else delete line.form;
-        if (fitted.green) line.green = true;
-        else delete line.green;
+        if (fitted.green) {
+          line.green = true;
+          line.greenAt = WorldClockApi.getNow().rawValue();
+        } else {
+          delete line.green;
+          delete line.greenAt;
+        }
+        delete line.warped;
         if (fitted.parts && fitted.parts.length > 0) {
           line.parts = fitted.parts.map((p) => ({ ...p }));
           line.joints = (fitted.joints ?? []).map((j) => ({ ...j }));
@@ -597,7 +649,11 @@ export function AssembledMixin<TBase extends MixinConstructor>(Base: TBase) {
         // A set takes the weakest link: the line's grade is the worse of
         // the two, and a green member makes the set green.
         line.grade = Grade.of(line.grade).min(Grade.of(fitted.grade)).getBand();
-        if (fitted.green) line.green = true;
+        if (fitted.green && !line.green) {
+          line.green = true;
+          line.greenAt = WorldClockApi.getNow().rawValue();
+        }
+        if (line.failed === 0) delete line.warped;
       }
       if (fitted.maker && !line.makers.includes(fitted.maker)) {
         line.makers.push(fitted.maker);

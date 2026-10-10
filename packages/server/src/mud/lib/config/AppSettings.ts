@@ -1917,6 +1917,9 @@ export const AppSettingKeys = {
   /** Assembly — how much faster a part worked GREEN wears than a seasoned
    * one (assembly D2: green wood warps and gives). */
   craftingGreenWearFactor: "crafting.greenWearFactor",
+  /** Seasoning — the seasoned fraction (0..1) at or above which wood may
+   * be worked without warping (assembly D2). */
+  woodSeasonedThreshold: "wood.seasonedThreshold",
   /** Crafting — repair material cost factor: cost mass = item mass ×
    * (1 − condition) × costFactor. */
   craftingRepairCostFactor: "crafting.repair.costFactor",

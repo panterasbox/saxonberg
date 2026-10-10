@@ -550,6 +550,8 @@ export const Mixins = {
   Durable: 'DurableMixin',
   /** ⭐ Made of parts that keep their identity (assembly D3). */
   Assembled: 'AssembledMixin',
+  /** ⭐ Converted wood that dries at its species' rate (assembly D2). */
+  Seasoning: 'SeasoningMixin',
   // The working-surface (edge) wear axis — Durable's fast-cycling sibling.
   Keen: 'KeenMixin',
   Tool: 'ToolMixin',
@@ -856,6 +858,7 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
   CraftedMixin: "{} isn't a made thing",
   DurableMixin: "{} doesn't wear out",
   AssembledMixin: "{} isn't made of parts",
+  SeasoningMixin: "{} doesn't season",
   // ⚠ The phrase says the MATERIAL fact, not the mixin's name: what
   // `hammer` wants is a piece of metal stock, and "isn't metal stock
   // you can work" tells somebody what to go and find.

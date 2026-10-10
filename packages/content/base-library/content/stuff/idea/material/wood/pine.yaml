@@ -35,6 +35,11 @@ data:
   tags: ["wood", "mixture", "organic", "flammable", "once-living"]
   composition: []
   chemistry: null
+  # ⭐ Seasoning (assembly D2): game-days for a 25 mm board to dry in
+  # good air, and how much it shrinks getting there — what makes work
+  # done green move. Grain: an author's numbers.
+  seasoningDays: 180
+  greenShrinkage: 0.07
   biologicalSource:
     speciesPath: /stuff/idea/species/plantae/tracheophyta/pinopsida/pinales/pinaceae/pinus/sylvestris
     tissueType: wood

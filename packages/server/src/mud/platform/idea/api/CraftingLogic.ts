@@ -2293,6 +2293,12 @@ function applyAssembledOutput(
       const form = first.stuff.getConstructionForm();
       if (form) line.form = form;
     }
+    // ⭐ Worked GREEN: the set wears faster and, once it has dried in
+    // place, warps (assembly D2) — the stated reason green work fails.
+    if (ms.some((m) => MixinApi.isSeasoning(m.stuff) && m.stuff.isGreen())) {
+      line.green = true;
+      line.greenAt = WorldClockApi.getNow().rawValue();
+    }
     if (MixinApi.isAssembled(first.stuff) && first.stuff.isAssembly()) {
       line.parts = first.stuff.getParts();
       line.joints = first.stuff.getJoints();
@@ -3661,6 +3667,7 @@ async function fitImpl(req: FitRequest): Promise<FitOutcome> {
   const material = MixinApi.isTangible(part) ? (part.getMaterial()?.getTemplatePath() ?? '') : '';
   const grade = MixinApi.isGraded(part) ? part.getGrade().getBand() : ('fair' as GradeBand);
   const form = MixinApi.isConstructed(part) ? part.getConstructionForm() : '';
+  const green = MixinApi.isSeasoning(part) && part.isGreen();
   const nested =
     MixinApi.isAssembled(part) && part.isAssembly()
       ? { parts: part.getParts(), joints: part.getJoints() }
@@ -3679,6 +3686,7 @@ async function fitImpl(req: FitRequest): Promise<FitOutcome> {
     material,
     grade,
     ...(form ? { form } : {}),
+    ...(green ? { green } : {}),
     maker: makerId,
     ...(nested ? nested : {}),
   });

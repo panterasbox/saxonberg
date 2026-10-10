@@ -182,6 +182,7 @@ import type { Steepable } from '../lib/craft/Steepable';
 import type { Tooled } from '../lib/craft/Tooled';
 import type { Durable } from '../lib/material/Durable';
 import type { Assembled } from '../lib/craft/Assembled';
+import type { Seasoning } from '../lib/maturation/Seasoning';
 import type { Keen } from '../lib/material/Keen';
 import type { Dressing } from '../lib/vitals/Dressing';
 import type { Crafted } from '../lib/craft/Crafted';
@@ -1834,6 +1835,12 @@ export class MixinApi {
    * ask `isAssembly()` whether THIS one has parts. See AssembledMixin. */
   public static isAssembled(obj: Stuff): obj is Stuff & Assembled & Durable {
     return this.hasMixin(obj, Mixins.Assembled);
+  }
+
+  /** Converted wood that dries over time at its species' rate (a board, a
+   * stave, a billet). See SeasoningMixin. */
+  public static isSeasoning(obj: Stuff): obj is Stuff & Seasoning {
+    return this.hasMixin(obj, Mixins.Seasoning);
   }
 
   /** An edged/pointed good with the fast-cycling keenness (edge) gauge —
