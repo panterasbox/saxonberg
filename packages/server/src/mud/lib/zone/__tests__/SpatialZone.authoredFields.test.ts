@@ -205,4 +205,15 @@ describe('a zone row cannot author a field the hydrator will discard', () => {
     expect(base.deposit).toBeUndefined();
     expect(base.groundCharacter).toBeUndefined();
   });
+
+  it('⭐ the climate levers sit on Zone, where a FolderZone region root can author them', () => {
+    // The opposite call from `address`: a realm authors its latitude ONCE,
+    // on its region root (a FolderZone), and every
+    // room beneath agrees — so the levers live with `elevation` on the base.
+    const base = (Zone as unknown as { fieldMeta: Record<string, { authorable?: boolean }> })
+      .fieldMeta;
+    for (const key of ['elevation', 'latitude', 'continentality', 'climateOffsetK']) {
+      expect(base[key]?.authorable, key).toBe(true);
+    }
+  });
 });

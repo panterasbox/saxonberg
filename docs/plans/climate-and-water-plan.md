@@ -1228,6 +1228,26 @@ weather dials: `climate.poleMeanK` 245, `climate.equatorMeanK` 301,
 `water.snow.lapseRateKPerKm`, `water.snow.meltMmPerKPerDay` and every
 `water.rate.*` dial (now shared by ground snow and the catchment — AC 9).
 
+### Build decisions (recorded during /build)
+
+- **B1 (W0) — the dials moved a kelvin, as the plan expected.** At
+  `poleMeanK 245 / equatorMeanK 301` the default annual mean was 286.3 K,
+  over the [282, 286] pin. Retuned to **247 / 299**: annual 285.4,
+  winter quarter 274.0, summer 296.7, coldest clear dawn 268.6, lag 37 d;
+  the Circle reads 269.5 → 267.0 K over days 0–5 (was 270.2 → 267.5).
+  Decided by the calibration pins (D2 says they are the authority).
+- **B2 (W0) — the high sugarbush cannot stand at 1500 m.** The plan's
+  *"1500 m at 42°: dawn ≈ 271, afternoon ≈ 279"* was arithmetic error:
+  day 0 at the default site is 277.9 K, so 1500 m reads 264–272 K and
+  never thaws. A freeze-thaw day at the equinox needs ≈ 750–850 m. W0
+  pins `{42, 800 m}` straddling 273 on day 0; W10 places the sugarbush at
+  that height (the pass keeps its own, higher, elevation).
+- **B3 (W0) — `phase` on `WeatherSegment` lands in W3** with the code that
+  fills it, not as an empty field a wave early.
+- **B4 (W0) — no `climate.defaultContinentality` dial.** The default site
+  is the `DEFAULT_CLIMATE_SITE` value; a dial read beside a const would be
+  two sources for one number.
+
 ---
 
 ## Host placement
@@ -1367,6 +1387,15 @@ maximum exceeds 285 K).
 **Acceptance.** `lint:family` green; no behaviour change (the taps,
 drilling and fishing wire drives still pass when attached).
 **Commit.** `build(climate W0): one temperature expression at a site, pinned`
+
+> ✅ **Done.** `WeatherApi.temperatureAt / seasonAt / dailyRangeAt`, the
+> three Zone levers, `ZoneApi.climateSiteFor`, `seasonFor(…, latitude)`,
+> five `climate.*` dials (`content/settings/climate.yaml`). 16 calibration
+> pins in `WeatherLogic.climate.test.ts`. Dials retuned (B1); the
+> sugarbush height corrected (B2). The memo quantises latitude to ½° and
+> continentality to 0.1 — an author's 0.75 reads as 0.8 (stated in the
+> memo's comment). The day's season is interpolated across the day, so
+> `T` is continuous at midnight.
 
 ### W1 — The sky re-sourced: biome, celestial, the memo, the readers
 

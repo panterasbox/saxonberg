@@ -48,6 +48,8 @@ import {
   type PrecipitationIntegral,
   type WeatherSegment,
   type StormExposed,
+  type ClimateSite,
+  type DailyRange,
 } from '../../../lib/weather/WeatherType';
 import type { Atmospheric } from '../../../lib/biome/Atmospheric';
 import { Seeded } from '../../../lib/Seeded';
@@ -857,6 +859,215 @@ const solarTempMemo: { minute: number; value: number } = {
   value: 0,
 };
 
+/* ─────────────── the climate: one temperature from four levers ─────────────── */
+
+/**
+ * The climate's dials, read once per evaluation rather than per day of a
+ * walk. Seeded literals at every read (the water pack's rule): the
+ * kernel has a climate with no settings document at all.
+ */
+interface ClimateDials {
+  poleK: number;
+  equatorK: number;
+  tauContinentalD: number;
+  tauMaritimeD: number;
+  mixing: number;
+  lapseKPerKm: number;
+  diurnalK: number;
+}
+
+function climateDials(): ClimateDials {
+  return {
+    poleK: dial(AppSettingKeys.climatePoleMeanK, 247),
+    equatorK: dial(AppSettingKeys.climateEquatorMeanK, 299),
+    tauContinentalD: dial(AppSettingKeys.climateTauContinentalDays, 30),
+    tauMaritimeD: dial(AppSettingKeys.climateTauMaritimeDays, 55),
+    mixing: dial(AppSettingKeys.climateMaritimeMixing, 0.6),
+    lapseKPerKm: dial(AppSettingKeys.waterSnowLapseRateKPerKm, 6.5),
+    diurnalK: dial(AppSettingKeys.weatherSolarDiurnalSwingK, 4),
+  };
+}
+
+/**
+ * The seasonal memos. Pure-function memos (the `seasonCache`
+ * precedent), bounded by construction: latitude is quantised to half a
+ * degree (≤ 361 keys), continentality to a tenth (≤ 11), and the season
+ * repeats yearly, so every key is `(latitude, [continentality,] day of
+ * year)`. They depend on the dials, so a change of dial (an operator's
+ * `config`) clears them — the signature below.
+ */
+const equilibriumMemo = new Map<number, number>();
+const annualMeanMemo = new Map<number, number>();
+const seasonalMemo = new Map<number, number>();
+let climateMemoSignature = '';
+
+function syncClimateMemos(d: ClimateDials): void {
+  const sig = `${d.poleK}|${d.equatorK}|${d.tauContinentalD}|${d.tauMaritimeD}|${d.mixing}`;
+  if (sig === climateMemoSignature) return;
+  equilibriumMemo.clear();
+  annualMeanMemo.clear();
+  seasonalMemo.clear();
+  climateMemoSignature = sig;
+}
+
+/** Latitude quantised to half a degree — the memo's key and its value. */
+function latitudeKey(latitudeDeg: number): number {
+  return Math.round(Math.max(-90, Math.min(90, latitudeDeg)) * 2);
+}
+
+/** Continentality quantised to a tenth. */
+function continentalityKey(c: number): number {
+  return Math.round(Math.max(0, Math.min(1, c)) * 10);
+}
+
+function yearDays(): number {
+  return EARTH_LIKE.yearLengthDays;
+}
+
+function wrapDay(doy: number): number {
+  const Y = yearDays();
+  return ((doy % Y) + Y) % Y;
+}
+
+/**
+ * **The equilibrium temperature on a day** — what the place would sit at
+ * if it had no memory: the pole figure plus the insolation the day
+ * delivers, scaled so the equator's equinox sun reaches the equator
+ * figure.
+ *
+ * ```
+ *   π·Q = H0·sinφ·sinδ + cosφ·cosδ·sin H0        (H0 in radians)
+ *   T_eq = T_pole + (T_equator − T_pole) · π·Q
+ * ```
+ *
+ * `Q` is the day's top-of-atmosphere insolation as a fraction of the
+ * solar constant; `H0` is the sunrise hour angle (0 in polar night, π in
+ * polar day) and `δ` the declination — both CelestialApi's geometry, so
+ * the climate and the sky's path are one model.
+ */
+function equilibriumK(latKey: number, doy: number, d: ClimateDials): number {
+  const key = latKey * 400 + doy;
+  const hit = equilibriumMemo.get(key);
+  if (hit !== undefined) return hit;
+  const latDeg = latKey / 2;
+  const t = doy * EARTH_LIKE.dayLengthSeconds;
+  const decRad = (CelestialApi.declinationDeg(EARTH_LIKE, t) * Math.PI) / 180;
+  const h0 = CelestialApi.sunriseHourAngleDeg(EARTH_LIKE, latDeg, t);
+  const H0 =
+    h0 === 'polar-day' ? Math.PI : h0 === 'polar-night' ? 0 : (h0 * Math.PI) / 180;
+  const lat = (latDeg * Math.PI) / 180;
+  const piQ =
+    H0 * Math.sin(lat) * Math.sin(decRad) +
+    Math.cos(lat) * Math.cos(decRad) * Math.sin(H0);
+  const value = d.poleK + (d.equatorK - d.poleK) * piQ;
+  equilibriumMemo.set(key, value);
+  return value;
+}
+
+/** The year's mean equilibrium at a latitude — what damping pulls toward. */
+function annualMeanK(latKey: number, d: ClimateDials): number {
+  const hit = annualMeanMemo.get(latKey);
+  if (hit !== undefined) return hit;
+  const Y = yearDays();
+  let sum = 0;
+  for (let doy = 0; doy < Y; doy++) sum += equilibriumK(latKey, doy, d);
+  const value = sum / Y;
+  annualMeanMemo.set(latKey, value);
+  return value;
+}
+
+/**
+ * **The season at a site, on a day of the year** — the lag and the
+ * damping, separately.
+ *
+ * - The LAG is the land's memory: an exponentially weighted average of
+ *   the equilibrium over the preceding days, with time constant
+ *   `τ(c)` running from `tauContinentalDays` (c = 1) to
+ *   `tauMaritimeDays` (c = 0). A weighted sum, not a fitted sinusoid, so
+ *   it is exact for the polar night's flat floor.
+ * - The DAMPING pulls the lagged value toward the latitude's annual
+ *   mean by `m(c) = maritimeMixing · (1 − c)`: a coast's winter is mild
+ *   and its summer cool.
+ *
+ * Keeping them separate is what lets a coast be both milder AND later
+ * than an inland town at the same latitude — Seattle and Minneapolis.
+ */
+function seasonalK(latKey: number, cKey: number, doy: number, d: ClimateDials): number {
+  const key = (latKey + 200) * 10_000 + cKey * 400 + doy;
+  const hit = seasonalMemo.get(key);
+  if (hit !== undefined) return hit;
+  const c = cKey / 10;
+  const tau = d.tauContinentalD + (d.tauMaritimeD - d.tauContinentalD) * (1 - c);
+  const span = Math.ceil(4 * Math.max(1, tau));
+  let sum = 0;
+  let wsum = 0;
+  for (let k = 0; k <= span; k++) {
+    const w = Math.exp(-k / Math.max(1e-6, tau));
+    sum += w * equilibriumK(latKey, wrapDay(doy - k), d);
+    wsum += w;
+  }
+  const lagged = sum / wsum;
+  const m = Math.max(0, Math.min(1, d.mixing * (1 - c)));
+  const value = (1 - m) * lagged + m * annualMeanK(latKey, d);
+  seasonalMemo.set(key, value);
+  return value;
+}
+
+/**
+ * **The climate's own temperature at a site and an instant**, before
+ * the weather: the season (interpolated across the day, so the answer
+ * is continuous in time), lapsed by elevation, shifted by the offset,
+ * swung by the diurnal term (coldest three hours after midnight — heat
+ * keeps leaving after the sun stops arriving).
+ */
+function climateK(site: ClimateSite, nowS: number, d: ClimateDials): number {
+  syncClimateMemos(d);
+  const D = EARTH_LIKE.dayLengthSeconds;
+  const dayF = nowS / D;
+  const day0 = Math.floor(dayF);
+  const frac = dayF - day0;
+  const latKey = latitudeKey(site.latitudeDeg);
+  const cKey = continentalityKey(site.continentality);
+  const s0 = seasonalK(latKey, cKey, wrapDay(day0), d);
+  const s1 = seasonalK(latKey, cKey, wrapDay(day0 + 1), d);
+  const season = s0 + (s1 - s0) * frac;
+  const secOfDay = ((nowS % D) + D) % D;
+  const diurnal = -d.diurnalK * Math.cos((2 * Math.PI * (secOfDay - 3 * 3600)) / D);
+  return (
+    season -
+    (d.lapseKPerKm * site.elevationM) / 1000 +
+    site.offsetK +
+    diurnal
+  );
+}
+
+/**
+ * The weather's temperature deviation at an instant over a Locality:
+ * the pinned type's when the Locality is pinned, else the procgen
+ * grammar's (both shipped; this only composes them).
+ */
+function weatherTemperatureDeviationK(
+  locality: Locality | null,
+  nowS: number,
+): number {
+  const pin = locality?.getWeatherPin() ?? null;
+  const dev =
+    pin !== null
+      ? pinnedDeviation(pin, locality, nowS)
+      : computeSample(nowS, locality).deviation;
+  return dev.temperature.rawValue();
+}
+
+/** The full air temperature at a site: the climate plus the weather. */
+function temperatureAtSite(
+  site: ClimateSite,
+  locality: Locality | null,
+  nowS: number,
+  d: ClimateDials = climateDials(),
+): number {
+  return climateK(site, nowS, d) + weatherTemperatureDeviationK(locality, nowS);
+}
+
 /** Numeric AppSetting read with a seeded-literal fallback (pre-warm safe). */
 function dial(key: string, fallback: number): number {
   try {
@@ -1258,6 +1469,43 @@ export class WeatherLogic extends ApiLogic {
       maxSegments,
     );
     return out;
+  }
+
+  /** See {@link WeatherApi.temperatureAt}. Pure, SYNC. */
+  @CallSecurity(WeatherApiCallers)
+  public temperatureAt(
+    site: ClimateSite,
+    locality: Locality | null,
+    timeS: Quantity<'s'>,
+  ): Quantity<'K'> {
+    return Quantity.of(temperatureAtSite(site, locality, timeS.rawValue()), 'K');
+  }
+
+  /** See {@link WeatherApi.seasonAt}. Pure, SYNC. */
+  @CallSecurity(WeatherApiCallers)
+  public seasonAt(site: ClimateSite, timeS: Quantity<'s'>): Season {
+    return CelestialApi.seasonFor(EARTH_LIKE, timeS.rawValue(), site.latitudeDeg);
+  }
+
+  /** See {@link WeatherApi.dailyRangeAt}. Pure, SYNC. */
+  @CallSecurity(WeatherApiCallers)
+  public dailyRangeAt(
+    site: ClimateSite,
+    locality: Locality | null,
+    dayStartS: Quantity<'s'>,
+  ): DailyRange {
+    const d = climateDials();
+    const t0 = dayStartS.rawValue();
+    let minK = Number.POSITIVE_INFINITY;
+    let maxK = Number.NEGATIVE_INFINITY;
+    // Hourly: the diurnal term and a segment change both resolve at an
+    // hour, and 24 samples of a memoised expression cost nothing.
+    for (let h = 0; h < 24; h++) {
+      const k = temperatureAtSite(site, locality, t0 + h * 3600, d);
+      if (k < minK) minK = k;
+      if (k > maxK) maxK = k;
+    }
+    return { minK, maxK };
   }
 
   /** See {@link WeatherApi.nextBoundaryAfter}. */

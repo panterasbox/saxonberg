@@ -56,7 +56,12 @@ const DEG_PER_TURN = 360;
 const SKY_SCAN_SAMPLES = 48;
 const TWO_PI = Math.PI * 2;
 
-/** Campus latitude (°N). Single-region v1; per-zone latitude is future work. */
+/**
+ * The realm's DEFAULT latitude (°N) — what a place resolves when nothing
+ * in its zone chain authors `latitude`. Since the climate build latitude
+ * is a zone field (`ZoneApi.climateSiteFor`); this constant survives as
+ * the default, and as `DEFAULT_CLIMATE_SITE.latitudeDeg`.
+ */
 export const CAMPUS_LATITUDE = 42;
 /** Campus longitude (°E). Reserved for future time-zone work. */
 export const CAMPUS_LONGITUDE = 0;
@@ -530,8 +535,12 @@ export class CelestialLogic extends ApiLogic {
 
   /** See {@link CelestialApi.seasonFor}. */
   @CallSecurity(CelestialApiCallers)
-  public seasonFor(profile: CelestialProfile, t: number): Season {
-    return seasonFor(profile, t);
+  public seasonFor(
+    profile: CelestialProfile,
+    t: number,
+    latitudeDeg: number = CAMPUS_LATITUDE
+  ): Season {
+    return seasonFor(profile, t, latitudeDeg);
   }
 
   /** See {@link CelestialApi.moonPhaseFor}. */
@@ -791,9 +800,20 @@ function nextSolarEvent(
   return null;
 }
 
-function seasonFor(profile: CelestialProfile, t: number): Season {
-  const dayIndex = dayOfYear(profile, t);
+/**
+ * The season at a latitude. Day 0 is the NORTHERN vernal equinox; a
+ * southern latitude reads the same quarters shifted half a year, so its
+ * day 0 is autumn and it snows in July. The equator takes the northern
+ * label (a convention; it has no winter to speak of either way).
+ */
+function seasonFor(
+  profile: CelestialProfile,
+  t: number,
+  latitudeDeg: number = CAMPUS_LATITUDE
+): Season {
   const Y = profile.yearLengthDays;
+  const north = dayOfYear(profile, t);
+  const dayIndex = latitudeDeg < 0 ? (north + Y / 2) % Y : north;
   if (dayIndex < Y / 4) return 'spring';
   if (dayIndex < Y / 2) return 'summer';
   if (dayIndex < (3 * Y) / 4) return 'fall';

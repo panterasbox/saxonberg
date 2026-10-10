@@ -53,8 +53,11 @@ export type {
   ResolvedWeather,
   CloudForm,
   SkyRead,
+  ClimateSite,
+  DailyRange,
 } from '../lib/weather/WeatherType';
 
+import type { Season } from '../lib/time/CelestialProfile';
 import type {
   PrecipitationIntegral,
   WeatherSegment,
@@ -66,6 +69,8 @@ import type {
   ResolvedWeather,
   CloudForm,
   SkyRead,
+  ClimateSite,
+  DailyRange,
 } from '../lib/weather/WeatherType';
 
 const LOGIC_PATH = '/platform/idea/api/weather';
@@ -162,6 +167,54 @@ export class WeatherApi {
     maxSegments?: number,
   ): WeatherSegment[] {
     return logic().segmentsBetween(t0, t1, locality, maxSegments);
+  }
+
+  /* ──────────────── the climate (pure, SYNC) ──────────────── */
+
+  /**
+   * ⭐⭐ **The air temperature at a site and an instant — the realm's one
+   * temperature.** Every outdoor reader asks this: the sky over a room,
+   * the air over a river, the night a maple waits out.
+   *
+   * Derived, never authored: the sun at the site's latitude (the day's
+   * insolation, from the same geometry that moves the sun across the
+   * sky), lagged by the land's memory and damped toward the annual mean
+   * by its continentality, lapsed by its elevation, shifted by its
+   * offset, swung through the day — plus the weather's own deviation
+   * (the Locality's pin, else the procgen type). See
+   * [docs/subsystems/weather.md § the climate].
+   *
+   * Sync and pure; the caller holds the site (`ZoneApi.climateSiteFor`,
+   * or a room's `climateSite()` memo) and the Locality.
+   */
+  public static temperatureAt(
+    site: ClimateSite,
+    locality: Locality | null,
+    timeS: Quantity<'s'>,
+  ): Quantity<'K'> {
+    return logic().temperatureAt(site, locality, timeS);
+  }
+
+  /**
+   * The local season at a site — the day-of-year quarter, shifted half a
+   * year in the southern hemisphere. The same geometry as
+   * {@link temperatureAt}, so a place's season and its cold agree.
+   */
+  public static seasonAt(site: ClimateSite, timeS: Quantity<'s'>): Season {
+    return logic().seasonAt(site, timeS);
+  }
+
+  /**
+   * The coldest and warmest the air reaches over the game-day starting at
+   * `dayStartS` (24 hourly samples of {@link temperatureAt}) — the read a
+   * freeze-thaw opener needs.
+   */
+  public static dailyRangeAt(
+    site: ClimateSite,
+    locality: Locality | null,
+    dayStartS: Quantity<'s'>,
+  ): DailyRange {
+    return logic().dailyRangeAt(site, locality, dayStartS);
   }
 
   /* ──────────────── the biome seam (cheap, SYNC) ──────────────── */

@@ -14,6 +14,10 @@ import { MixinApi } from '../../../api/mixin';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import type { Container } from '../../../lib/spatial/Container';
 import type { Containable } from '../../../lib/spatial/Containable';
+import {
+  DEFAULT_CLIMATE_SITE,
+  type ClimateSite,
+} from '../../../lib/weather/WeatherType';
 
 /**
  * Cache of `classPath → prototype instanceof Zone` results. The check
@@ -155,6 +159,34 @@ export class ZoneLogic extends ApiLogic {
     const zone = outermost.getZone();
     if (zone === null) return null;
     return zone.lookupField<number>('elevation');
+  }
+
+  /** See {@link ZoneApi.climateSiteFor}. */
+  @CallSecurity(ZoneApiCallers)
+  public async climateSiteFor(scope: Stuff & Container): Promise<ClimateSite> {
+    // The same outward walk as `elevationFor`, for the same reason: the
+    // zone that knows where a thing stands is its outermost container's.
+    let cursor: (Stuff & Container) | null = scope;
+    let outermost: Stuff & Container = scope;
+    let depth = CONTAINMENT_DEPTH_CAP;
+    while (cursor !== null && depth-- > 0) {
+      outermost = cursor;
+      cursor = stepOutward(cursor);
+    }
+    const zone = outermost.getZone();
+    if (zone === null) return { ...DEFAULT_CLIMATE_SITE };
+    const [lat, elev, cont, off] = await Promise.all([
+      zone.lookupField<number>('latitude'),
+      zone.lookupField<number>('elevation'),
+      zone.lookupField<number>('continentality'),
+      zone.lookupField<number>('climateOffsetK'),
+    ]);
+    return {
+      latitudeDeg: lat ?? DEFAULT_CLIMATE_SITE.latitudeDeg,
+      elevationM: elev ?? DEFAULT_CLIMATE_SITE.elevationM,
+      continentality: cont ?? DEFAULT_CLIMATE_SITE.continentality,
+      offsetK: off ?? DEFAULT_CLIMATE_SITE.offsetK,
+    };
   }
 
   /** See {@link ZoneApi._clearClassCaches}. */

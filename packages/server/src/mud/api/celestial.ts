@@ -356,9 +356,20 @@ export class CelestialApi {
     return logic().nextSolarEvent(profile, latitudeDegrees, t, which);
   }
 
-  /** Season from day-of-year quarter (vernal equinox = day 0 = spring). */
-  public static seasonFor(profile: CelestialProfile, t: number): Season {
-    return logic().seasonFor(profile, t);
+  /**
+   * Season from day-of-year quarter (the northern vernal equinox = day 0
+   * = spring), **at a latitude**: the southern hemisphere's seasons run
+   * half a year out of step, so day 0 is its autumn. The hemisphere is
+   * the SIGN of the latitude; `latitudeDeg` defaults to
+   * {@link CelestialApi.CAMPUS_LATITUDE}, so a caller that names none
+   * gets the northern answer it always got.
+   */
+  public static seasonFor(
+    profile: CelestialProfile,
+    t: number,
+    latitudeDeg?: number
+  ): Season {
+    return logic().seasonFor(profile, t, latitudeDeg);
   }
 
   /** Moon phase in `[0, 1)`: 0 = new, 0.5 = full. */

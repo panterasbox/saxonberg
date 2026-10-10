@@ -33,6 +33,7 @@ import type { Zone } from '../lib/zone/Zone';
 import type { Stuff } from '../lib/stuff/Stuff';
 import type { Container } from '../lib/spatial/Container';
 import type { SpatialZone } from '../lib/zone/SpatialZone';
+import type { ClimateSite } from '../lib/weather/WeatherType';
 import { HotReloadApi } from './hot-reload';
 import { ZoneLogic } from '../platform/idea/api/ZoneLogic';
 import { fileURLToPath } from 'url';
@@ -124,6 +125,25 @@ export class ZoneApi {
     scope: Stuff & Container,
   ): Promise<number | null> {
     return logic().elevationFor(scope);
+  }
+
+  /**
+   * **Where a place is on the world, as the climate reads it** — its
+   * latitude, elevation, continentality and climate offset, each resolved
+   * through the zone chain exactly as {@link elevationFor} resolves
+   * elevation (an authored value anywhere wins over anything above it),
+   * with the realm default (`DEFAULT_CLIMATE_SITE`) for any lever nothing
+   * declares. Never `null`: a place with no zone is at the default site.
+   *
+   * Async (the ancestor walk). The sync readers hold it in a per-place
+   * memo (`AtmosphericMixin.climateSite()`).
+   *
+   * See [docs/subsystems/weather.md].
+   */
+  public static async climateSiteFor(
+    scope: Stuff & Container,
+  ): Promise<ClimateSite> {
+    return logic().climateSiteFor(scope);
   }
 
   /**

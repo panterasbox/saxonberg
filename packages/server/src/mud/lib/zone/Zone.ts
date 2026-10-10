@@ -69,6 +69,9 @@ export abstract class Zone extends Idea {
     name: { persistent: true },
     wire: { persistent: true },
     elevation: { persistent: true, authorable: true },
+    latitude: { persistent: true, authorable: true },
+    continentality: { persistent: true, authorable: true },
+    climateOffsetK: { persistent: true, authorable: true },
   };
 
   // ⚠ Region/spawn fields (`stocks` / `favours` / `blessingOdds`) are NOT
@@ -153,6 +156,70 @@ export abstract class Zone extends Idea {
 
   public setElevation(value: number | null): void {
     this.elevation = value === null || Number.isFinite(value) ? value : null;
+  }
+
+  /**
+   * **Where on the world this place is: degrees from the equator,
+   * signed** — negative is the southern hemisphere. With elevation,
+   * continentality and the offset it is one of the four levers the
+   * climate derives a place's temperature from
+   * (`WeatherApi.temperatureAt`); the sun's path, the day's length and
+   * the local season all read it too.
+   *
+   * Inherited like `elevation` — a realm authors it once on its region
+   * root and every room beneath agrees. `null` = not declared here; a
+   * chain that declares it nowhere resolves the realm default (42°,
+   * `DEFAULT_CLIMATE_SITE`). On `Zone`, not `SpatialZone`, because the
+   * region root that authors it is a FolderZone.
+   *
+   * See [docs/subsystems/weather.md § the climate].
+   */
+  protected latitude: number | null = null;
+
+  /** Degrees of latitude declared HERE (no ancestor walk). */
+  public getLatitude(): number | null { return this.latitude; }
+
+  public setLatitude(value: number | null): void {
+    this.latitude =
+      value === null || !Number.isFinite(value)
+        ? null
+        : Math.max(-90, Math.min(90, value));
+  }
+
+  /**
+   * **How far the place is from the sea's influence**, 0 (maritime) …
+   * 1 (continental). A coast's winters are mild and late; a continent's
+   * are hard and early — the Seattle-versus-Minneapolis lever, at one
+   * latitude. `null` = not declared here (walk further; the realm default
+   * is 0.5).
+   */
+  protected continentality: number | null = null;
+
+  /** Continentality declared HERE (no ancestor walk). */
+  public getContinentality(): number | null { return this.continentality; }
+
+  public setContinentality(value: number | null): void {
+    this.continentality =
+      value === null || !Number.isFinite(value)
+        ? null
+        : Math.max(0, Math.min(1, value));
+  }
+
+  /**
+   * **The anomaly no local term derives**, in kelvin — a warm current, a
+   * cold upwelling, a frost hollow. The honest tool for *this place is
+   * warmer than its latitude says*; authoring a flat temperature on an
+   * outdoor biome is not (`lint:biome` refuses it). `null` = not declared
+   * here (walk further; default 0).
+   */
+  protected climateOffsetK: number | null = null;
+
+  /** The climate offset declared HERE (no ancestor walk). */
+  public getClimateOffsetK(): number | null { return this.climateOffsetK; }
+
+  public setClimateOffsetK(value: number | null): void {
+    this.climateOffsetK =
+      value === null || Number.isFinite(value) ? value : null;
   }
 
   public getWire(): boolean | null { return this.wire; }

@@ -1624,6 +1624,26 @@ export const AppSettingKeys = {
    */
   weatherSolarDiurnalSwingK: "weather.solarDiurnalSwingK",
 
+  /* ────────────────────────── climate (one temperature from four levers) ────────────────────────── */
+  /** Climate — the equilibrium temperature (K) of a place that gets NO
+   * sun: the polar night's floor, and the low end of the insolation
+   * scale. Read by `WeatherLogic`'s climate expression. */
+  climatePoleMeanK: "climate.poleMeanK",
+  /** Climate — the equilibrium temperature (K) under the equator's
+   * equinox sun: the high end of the insolation scale. */
+  climateEquatorMeanK: "climate.equatorMeanK",
+  /** Climate — the land's thermal memory (game-days) at continentality
+   * 1. The season LAGS the sun by about this much; a continent's coldest
+   * month comes about four weeks after the solstice. */
+  climateTauContinentalDays: "climate.tauContinentalDays",
+  /** Climate — the same memory at continentality 0: the sea remembers
+   * longer, so a coast's winter comes later. */
+  climateTauMaritimeDays: "climate.tauMaritimeDays",
+  /** Climate — how strongly a fully maritime place (continentality 0) is
+   * pulled toward its annual mean: the DAMPING that makes a coast's
+   * winter mild and its summer cool. Scaled by `1 − continentality`. */
+  climateMaritimeMixing: "climate.maritimeMixing",
+
   /* ────────────────────────── thermal (Wave 2 wet coupling) ────────────────────────── */
   /** Thermal — how strongly a wet body loses heat faster: at full
    * saturation the cold-side wind-chill / immersion term is scaled by

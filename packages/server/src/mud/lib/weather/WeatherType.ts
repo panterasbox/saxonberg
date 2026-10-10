@@ -172,6 +172,54 @@ export const WEATHER_PROFILES: Record<WeatherType, WeatherTypeProfile> = {
   },
 };
 
+/* ─────────────────────────── the climate site ─────────────────────────── */
+
+/**
+ * **Where a place is on the world, as the climate reads it** — the four
+ * levers one temperature is derived from (`WeatherApi.temperatureAt`).
+ *
+ * `latitudeDeg` decides how much sun arrives and when (and, by its
+ * sign, the hemisphere); `elevationM` lapses the air colder with
+ * height; `continentality` decides how much the season swings and how
+ * late it lags (0 a sea-coast, 1 the middle of a continent); `offsetK`
+ * is the anomaly nothing local derives — a warm current, a frost
+ * hollow. A place resolves its site from its zone chain
+ * (`ZoneApi.climateSiteFor`); a river authors its own.
+ */
+export interface ClimateSite {
+  /** Signed degrees from the equator; negative is the southern hemisphere. */
+  latitudeDeg: number;
+  /** Metres above sea level. */
+  elevationM: number;
+  /** 0 = maritime … 1 = continental. */
+  continentality: number;
+  /** The anomaly no local term derives, in K. */
+  offsetK: number;
+}
+
+/**
+ * The site a place resolves when its chain authors nothing: the realm's
+ * historical latitude (`CAMPUS_LATITUDE`), at sea level, halfway between
+ * coast and continent, with no anomaly. Every reader of latitude answers
+ * exactly as it did before latitude was a field.
+ */
+export const DEFAULT_CLIMATE_SITE: ClimateSite = {
+  latitudeDeg: 42,
+  elevationM: 0,
+  continentality: 0.5,
+  offsetK: 0,
+};
+
+/**
+ * The coldest and warmest the air reaches over one game-day at a site —
+ * what a tree's sap answers to (a freeze-thaw day is one whose range
+ * straddles freezing).
+ */
+export interface DailyRange {
+  minK: number;
+  maxK: number;
+}
+
 /* ─────────────────────────── the precipitation integral ─────────────────────────── */
 
 /**

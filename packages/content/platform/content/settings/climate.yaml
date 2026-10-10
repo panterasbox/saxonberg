@@ -1,0 +1,35 @@
+# climate — application settings shipped by the platform pack (the
+# `settings` kind: merge-missing — a key the app_settings singleton lacks is
+# merged in; a value the operator changed via `config` is never touched).
+#
+# ⭐⭐ One temperature from four levers. A place's air temperature is
+# derived from the sun at its LATITUDE (how much arrives, day by day),
+# lagged by the land's memory and damped toward the annual mean by its
+# CONTINENTALITY, lapsed by its ELEVATION and shifted by its authored
+# OFFSET. See docs/subsystems/weather.md § the climate.
+settings:
+  # The insolation scale's two ends. A place in polar night relaxes to the
+  # pole figure; the equator's equinox sun holds the equator figure. These
+  # two set every latitude's annual mean: at the realm default (42°, sea
+  # level, continentality 0.5) the year averages ≈ 285 K, the winter
+  # quarter ≈ 274 K, the summer ≈ 297 K and the coldest clear dawn
+  # ≈ 268.5 K — the old catchment table's numbers, which were the honest
+  # ones. Pinned by WeatherLogic.climate.test.ts.
+  - key: climate.poleMeanK
+    value: "247"
+
+  - key: climate.equatorMeanK
+    value: "299"
+
+  # The land's memory, in game-days: the season lags the sun by roughly
+  # this much. A continent (1) answers in a month, a coast (0) nearer two.
+  - key: climate.tauContinentalDays
+    value: "30"
+
+  - key: climate.tauMaritimeDays
+    value: "55"
+
+  # How hard a fully maritime place is held to its annual mean — the
+  # damping that keeps a coast's winter mild. Scaled by 1 − continentality.
+  - key: climate.maritimeMixing
+    value: "0.6"
