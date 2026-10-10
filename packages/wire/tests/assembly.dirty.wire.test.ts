@@ -105,10 +105,34 @@ function understood(said: string): boolean {
 
 async function say(s: Session, line: string): Promise<string> {
   const r = await s.cmd(line);
-  const said = await r.said();
+  // Trimmed: control frames carry empty bodies, which read as blank lines.
+  const said = (await r.said()).trim();
   expect(understood(said), `'${line}' was not understood: ${said}`).toBe(true);
   await s.drainProse();
   return said;
+}
+
+/**
+ * What a player reads off a thing in reach — its description, every
+ * augmenter's line included (what it is made of, what has failed, whose
+ * work it is). ⚠ Through the projection, not `look at`: `look` at a thing
+ * renders to the CARD, not to prose.
+ */
+async function examine(s: Session, keyword: string): Promise<string> {
+  const rows = await s.query(keyword, { fields: 'detail' });
+  return rows
+    .map((r) => {
+      const row = r as { displayName?: unknown; longDescription?: unknown; bulkMaterial?: { name?: unknown } | null };
+      const holds = row.bulkMaterial?.name ? ` [holds ${String(row.bulkMaterial.name)}]` : '';
+      return `${String(row.displayName ?? '')}${holds}: ${String(row.longDescription ?? '')}`;
+    })
+    .join('\n');
+}
+
+/** Everything in reach, by name — the room and what you carry. */
+async function inReach(s: Session): Promise<string> {
+  const rows = await s.query('reachable', { fields: 'detail' });
+  return rows.map((r) => String((r as { displayName?: unknown }).displayName ?? '')).join(', ');
 }
 
 /** Into the ROOM, by the founder, who holds the title. */
@@ -186,7 +210,7 @@ suite('⭐⭐ the pick is a head on a haft (drive 2, 10, 16; AC 2, 3, 10, 12)', 
     await cloneHere(SMITHY, T.pickHead);
     const made = await say(smith, 'fit pick');
     expect(made, `fit pick: ${made}`).toMatch(/fit the parts together/i);
-    const looked = await say(smith, 'look at miners-pick');
+    const looked = await examine(smith, 'miners-pick');
     expect(looked, `look pick: ${looked}`).toMatch(/made of/i);
     expect(looked).toMatch(/head/i);
     expect(looked).toMatch(/haft/i);
@@ -194,7 +218,7 @@ suite('⭐⭐ the pick is a head on a haft (drive 2, 10, 16; AC 2, 3, 10, 12)', 
   }, 300_000);
 
   it('⭐ drive 10 — a part cannot be inspected in place', async () => {
-    const looked = await say(smith, 'look at haft');
+    const looked = await examine(smith, 'haft');
     expect(looked, `look haft: ${looked}`).not.toMatch(/made of/i);
   }, 60_000);
 
@@ -226,7 +250,7 @@ suite('⭐ the wood column (drive 4, 16, 23 setup; AC 12, 20)', () => {
     await say(sawyer, 'rive bole'); // with the froe the smith left at the mill
     await new Promise((r) => setTimeout(r, 15_000)); // the riving's own engagement
     await sawyer.drainProse();
-    const seen = (await sawyer.prose('look')) + (await sawyer.prose('inventory'));
+    const seen = await inReach(sawyer);
     expect(seen, `after rive: ${seen}`).toMatch(/billet/i);
     const sawing = await say(sawyer, 'saw bole');
     expect(sawing, `saw: ${sawing}`).not.toMatch(/race is dry|no saw|can'?t/i);
@@ -241,8 +265,8 @@ suite('⭐ the wood column (drive 4, 16, 23 setup; AC 12, 20)', () => {
   it('⭐ drive 16 — buy thirty staves from a yard that makes nothing else of them', async () => {
     cooper = await newPlayer('cooper', SAWMILL);
     await buy(cooper, 'stave', 30);
-    const inv = await cooper.prose('inventory');
-    expect(inv, `staves bought: ${inv}`).toMatch(/stave/i);
+    const inv = await cooper.query('me:i', { fields: 'detail' });
+    expect(JSON.stringify(inv), 'staves bought').toMatch(/stave/i);
   }, 600_000);
 });
 
@@ -281,7 +305,7 @@ suite('⭐⭐ forty days later (drive 3, 4, 5, 18, 23; AC 10, 19, 25)', () => {
   afterAll(() => mender?.close());
 
   it('⭐⭐ drive 5 + 3 — the green haft has WARPED in place, and repair names it', async () => {
-    const looked = await say(smith, 'look at miners-pick');
+    const looked = await examine(smith, 'miners-pick');
     expect(looked, `look warped pick: ${looked}`).toMatch(/warped/i);
     const refused = await say(smith, 'repair miners-pick');
     expect(refused.toLowerCase(), `repair refusal: ${refused}`).toMatch(/haft/);
@@ -296,18 +320,18 @@ suite('⭐⭐ forty days later (drive 3, 4, 5, 18, 23; AC 10, 19, 25)', () => {
     mender = await goTo(handle, SAWMILL);
     const fitted = await say(mender, 'fit haft to miners-pick');
     expect(fitted, `mender fit: ${fitted}`).toMatch(/fit a new haft/i);
-    const looked = await say(mender, 'look at miners-pick');
+    const looked = await examine(mender, 'miners-pick');
     expect(looked, `look mended pick: ${looked}`).not.toMatch(/warped|broken/i);
     expect(looked, `two makers: ${looked}`).toMatch(/work of .+ and /i);
   }, 300_000);
 
   it('⭐ drive 4 — the mill has sawn the bole into boards while nobody stood over it', async () => {
-    const seen = (await sawyer.prose('look')) + (await sawyer.prose('inventory'));
+    const seen = await inReach(sawyer);
     expect(seen, `boards: ${seen}`).toMatch(/board/i);
   }, 120_000);
 
   it('⭐⭐ drive 23 — the billets in the LOFT have begun to dry', async () => {
-    const lofted = await say(sawyer, 'look at billet');
+    const lofted = await examine(sawyer, 'billet');
     expect(lofted, `billet in the loft: ${lofted}`).toMatch(/begun to dry|still drying|seasoned/i);
   }, 120_000);
 });
@@ -323,25 +347,25 @@ suite('⭐⭐ the proficient cooper (drive 6, 7, 8, 11, 17, 22; AC 6, 14, 23, 24
     await practise(cooper, 'coopering', 16);
     const made = await say(cooper, 'fit cask');
     expect(made, `fit cask: ${made}`).toMatch(/cask/i);
-    const looked = await say(cooper, 'look at cask');
+    const looked = await examine(cooper, 'cask');
     expect(looked, `look cask: ${looked}`).toMatch(/staves/i);
     expect(looked).toMatch(/hoop/i);
     expectOk(await cooper.cmd('drop cask'));
     await say(cooper, 'fill cask from butt');
-    const full = await say(cooper, 'look at cask');
+    const full = await examine(cooper, 'cask');
     expect(full, `filled cask: ${full}`).toMatch(/water/i);
   }, 900_000);
 
   it('⭐⭐ drive 8 + 7 — left empty it dries; its hoops ride loose with every stave sound; repair consumes nothing', async () => {
     await say(cooper, 'spill cask');
-    await say(cooper, 'look at cask'); // the first empty read starts the drying
+    await examine(cooper, 'cask'); // the first empty read starts the drying
     await advanceWorldClock('10 days');
-    const dry = await say(cooper, 'look at cask');
+    const dry = await examine(cooper, 'cask');
     expect(dry, `dried-out cask: ${dry}`).toMatch(/slack/i);
     expect(dry).not.toMatch(/sprung|split|broken/i);
     await say(cooper, 'repair cask');
     await new Promise((r) => setTimeout(r, 10_000)); // the repair's engagement
-    const after = await say(cooper, 'look at cask');
+    const after = await examine(cooper, 'cask');
     expect(after, `tightened: ${after}`).not.toMatch(/has gone slack/i);
   }, 300_000);
 
@@ -349,14 +373,14 @@ suite('⭐⭐ the proficient cooper (drive 6, 7, 8, 11, 17, 22; AC 6, 14, 23, 24
     await cloneHere(SMITHY, T.inshave);
     for (let i = 0; i < 4; i++) {
       await say(cooper, 'fill cask from butt');
-      await say(cooper, 'look at cask');
+      await examine(cooper, 'cask');
       await say(cooper, 'spill cask');
     }
-    const spent = await say(cooper, 'look at cask');
+    const spent = await examine(cooper, 'cask');
     expect(spent, `spent cask: ${spent}`).toMatch(/given its contents everything/i);
     await say(cooper, 'repair cask');
     await new Promise((r) => setTimeout(r, 10_000));
-    const refired = await say(cooper, 'look at cask');
+    const refired = await examine(cooper, 'cask');
     expect(refired, `re-fired cask: ${refired}`).toMatch(/charred/i);
     expect(refired).not.toMatch(/given its contents everything/i);
   }, 300_000);
@@ -407,7 +431,7 @@ suite('⭐ the exemplar span (drive 13, 20, 21; AC 5, 13)', () => {
     await cloneHere(SMITHY, T.frame);
     const made = await say(joiner, 'fit armchair');
     expect(made, `fit armchair: ${made}`).toMatch(/armchair|chair/i);
-    const looked = await say(joiner, 'look at armchair');
+    const looked = await examine(joiner, 'armchair');
     expect(looked, `armchair: ${looked}`).toMatch(/frame/i);
     expect(looked).toMatch(/cushion/i);
     const swapped = await say(joiner, 'fit cushion to armchair');
@@ -421,7 +445,7 @@ suite('⭐ the exemplar span (drive 13, 20, 21; AC 5, 13)', () => {
       const fitted = await say(joiner, 'fit share to plough');
       expect(fitted, `season ${season} share: ${fitted}`).toMatch(/fit a new share/i);
     }
-    const plough = await say(joiner, 'look at plough');
+    const plough = await examine(joiner, 'plough');
     expect(plough, `plough: ${plough}`).toMatch(/beam/i);
     await cloneHere(SMITHY, T.bow);
     const strung = await say(joiner, 'fit bowstring to bow');
@@ -467,7 +491,7 @@ suite('⭐⭐⭐ drive 1 — a made, mended thing survives a restart (AC 1)', ()
 
     const back = await Session.open(handle, { startLocation: SAWMILL, wizard: true });
     try {
-      const pick = await say(back, 'look at miners-pick');
+      const pick = await examine(back, 'miners-pick');
       expect(pick, `the mended pick, after a restart: ${pick}`).toMatch(/haft/i);
       expect(pick, `both makers, after a restart: ${pick}`).toMatch(/work of .+ and /i);
     } finally {
