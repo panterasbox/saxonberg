@@ -741,6 +741,8 @@ function previewBandImpl(
   // profile — it is not cold and it does not dissolve you — so a
   // non-mechanical channel on a weapon is honestly `turned`.
   if (!Channels.isMechanicalChannel(channel)) return 'turned';
+  // A stock form (riven, sawn) delivers nothing — it is not a weapon.
+  if (!construction.isWeapon()) return 'turned';
   const token = construction.deliveryFor(channel);
   if (token === 'none') return 'turned';
   const factor =

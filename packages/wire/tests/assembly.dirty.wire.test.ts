@@ -40,7 +40,8 @@ import {
 import { spawnSync } from 'child_process';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
-import { bootOwnedWorld, stopOwnedWorld, WIRE_PORT } from '../src/runner/boot';
+import { bootOwnedWorld, stopOwnedWorld, WIRE_PORT, WIRE_LOG } from '../src/runner/boot';
+import { copyFileSync } from 'fs';
 
 export const DIRTY_REASON =
   'buys out the general store’s hafts and the timber yard’s staves and ' +
@@ -193,6 +194,12 @@ async function practise(s: Session, discipline: string, n: number): Promise<void
 let smith: Session;
 let sawyer: Session;
 let cooper: Session;
+
+// ⭐ The world boots at midnight, and in the dark a thing is "something" —
+// names drop out of prose and descriptions. Work by daylight.
+beforeAll(async () => {
+  await advanceWorldClock('12 hours');
+}, 120_000);
 
 afterAll(() => {
   smith?.close();
@@ -482,6 +489,12 @@ suite('⭐⭐⭐ drive 1 — a made, mended thing survives a restart (AC 1)', ()
     sawyer?.close();
     cooper?.close();
 
+    // Keep the first world's log — the reboot overwrites it.
+    try {
+      copyFileSync(WIRE_LOG, `${WIRE_LOG}.before-restart`);
+    } catch {
+      /* no log to keep */
+    }
     const serverDir = join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'server');
     spawnSync('node', [join(serverDir, 'scripts', 'dev-preflight.mjs'), String(WIRE_PORT), 'server'], {
       cwd: serverDir,

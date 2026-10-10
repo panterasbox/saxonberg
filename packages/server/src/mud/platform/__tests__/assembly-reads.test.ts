@@ -8,6 +8,8 @@ import { describe, it, expect, afterEach, vi } from 'vitest';
 import Lamp from '../thing/Lamp';
 import Chair from '../thing/Chair';
 import Vat from '../thing/Vat';
+import Timber from '../thing/Timber';
+import { MixinApi } from '../../api/mixin';
 import { WorldClockApi } from '../../api/worldclock';
 import { StuffApi } from '../../api/stuff';
 import { Quantity } from '../../lib/quantity';
@@ -61,5 +63,17 @@ describe('a part moves another subsystem', () => {
     expect(cask.failedLines()).toEqual([]);
     expect(cask.slackJoints().map((j) => j.key)).toEqual(['hooping']);
     WorldClockApi._resetForTesting();
+  });
+
+  it('⚠ a SAWN board is neither armour nor a weapon — every look line runs without throwing', () => {
+    // The drive's first board: the protection-pips augmenter asked a stock
+    // form for its weapon delivery and the whole query died.
+    const board = makeStuff(() => new Timber());
+    board.setConstructionForm('sawn');
+    const text = MixinApi.getAllMarkupAugmenters(Timber).reduce(
+      (t, augment) => augment(t, board, board),
+      '',
+    );
+    expect(text).not.toMatch(/Protection|Delivers/);
   });
 });

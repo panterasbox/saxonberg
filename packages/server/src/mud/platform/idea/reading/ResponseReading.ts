@@ -110,6 +110,15 @@ export default class ResponseReading extends Reading {
       ? stuff.getCondition()
       : undefined;
 
+    // ⚠ A stock form (riven, sawn) is neither: there is no response to read.
+    if (construction.isStock()) {
+      this.decline(
+        context,
+        Mml.compose`${Mml.thing(stuff)} is worked stock — riven or sawn — not armour and not a weapon; there is no response to read.`,
+        'no-response',
+      );
+      return;
+    }
     const armor = construction.isCovering();
     const verb = armor ? 'turns' : 'delivers';
     const lines: Mml[] = [];
