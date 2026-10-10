@@ -259,6 +259,7 @@ describe('the locality treasury', () => {
         treasury: '/test/town-budget',
         departments: [],
         seats: [],
+        standards: [],
       },
     ]);
     vi.spyOn(StuffApi, 'singleton').mockResolvedValue({} as never);

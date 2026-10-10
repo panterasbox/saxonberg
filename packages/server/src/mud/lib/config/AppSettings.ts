@@ -1920,6 +1920,12 @@ export const AppSettingKeys = {
   /** Seasoning — the seasoned fraction (0..1) at or above which wood may
    * be worked without warping (assembly D2). */
   woodSeasonedThreshold: "wood.seasonedThreshold",
+  /** Maturation — how much of a vessel's character each fill after the
+   * first spends (assembly D9): a third, so a fourth fill gives nothing. */
+  maturingImpartsSpentPerFill: "maturing.impartsSpentPerFill",
+  /** Assembly — the heat (K) a cooper's re-fire wants reachable: enough to
+   * char the inside of a shaved cask. */
+  craftingRefireHeatK: "crafting.refireHeatK",
   /** Crafting — repair material cost factor: cost mass = item mass ×
    * (1 − condition) × costFactor. */
   craftingRepairCostFactor: "crafting.repair.costFactor",

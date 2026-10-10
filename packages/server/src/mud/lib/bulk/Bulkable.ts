@@ -64,13 +64,23 @@ import type Material from '../material/Material';
  * phase→required-level mapping are defined here but unexercised until
  * gas content lands.
  */
-export type ClosureLevel = 'open' | 'liquidTight' | 'sealed';
+export type ClosureLevel = 'open' | 'dryTight' | 'liquidTight' | 'sealed';
 
-/** Numeric rank for {@link ClosureLevel} comparison. */
+/**
+ * Numeric rank for {@link ClosureLevel} comparison.
+ *
+ * ⭐ `dryTight` (the assembly build, D10): tight enough to keep DRY goods
+ * in — flour, nails, salt — and not liquor. The slack cooper's whole
+ * product: a flour barrel is made at a competence a beer cask is not, and
+ * pouring beer into one is not refused, it RUNS THROUGH, which is the
+ * stated reason. A rung of physics, not content: kernel-owned like the
+ * rest of the ladder.
+ */
 export const CLOSURE_ORDER: Record<ClosureLevel, number> = {
   open: 0,
-  liquidTight: 1,
-  sealed: 2,
+  dryTight: 1,
+  liquidTight: 2,
+  sealed: 3,
 };
 
 /** Which bulk slot a holder offers / a match arrived through. */
@@ -653,7 +663,7 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
       if (!(level in CLOSURE_ORDER)) {
         throw new TypeError(
           `setClosure: '${level}' is not a closure level. The scale is a ` +
-            `three-rung PHYSICS ladder — ${Object.keys(CLOSURE_ORDER).join(
+            `PHYSICS ladder — ${Object.keys(CLOSURE_ORDER).join(
               ' < ',
             )} — and content never adds a rung to it. An open-topped ` +
             `vessel is \`open\`.`,

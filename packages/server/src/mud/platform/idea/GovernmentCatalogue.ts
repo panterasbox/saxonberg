@@ -194,6 +194,22 @@ function buildGovernmentDescriptor(
     treasury: str(d.treasury),
     departments: stringArray(d.departments),
     seats,
+    standards: Array.isArray(d.standards)
+      ? (d.standards as Record<string, unknown>[])
+          .filter(
+            (x) =>
+              x !== null &&
+              typeof x === "object" &&
+              typeof x.key === "string" &&
+              typeof x.value === "number" &&
+              typeof x.unit === "string",
+          )
+          .map((x) => ({
+            key: x.key as string,
+            value: x.value as number,
+            unit: x.unit as string,
+          }))
+      : [],
   };
 }
 
@@ -203,5 +219,6 @@ function cloneGovernment(d: GovernmentDescriptor): GovernmentDescriptor {
     ...d,
     departments: [...d.departments],
     seats: d.seats.map((s) => ({ ...s })),
+    standards: d.standards.map((s) => ({ ...s })),
   };
 }

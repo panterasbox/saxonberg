@@ -3598,6 +3598,34 @@ async function repairAssemblyRungs(
     }
     return { ok: false, reason: 'part-failed', detail: named };
   }
+  // ⭐⭐ Rung 3 — a SPENT character (assembly D6, D9, AC 23): a cask that
+  // has given everything is shaved back to clean wood and charred. It wants
+  // a fire hot enough to char, a shaving tool, and the hand of the trade
+  // that made it — read off the vessel's own joints, never a Discipline
+  // the kernel names.
+  if (MixinApi.isMaturing(item) && item.isSpent()) {
+    const heatK = dial(AppSettingKeys.craftingRefireHeatK, 573);
+    if ((MixinApi.isThermal(maker) ? maker.reachableHeatK() : 0) < heatK) {
+      return { ok: false, reason: 'insufficient-heat', detail: `${heatK}` };
+    }
+    if (!tools.some((t) => t.hasCapability('shaving'))) {
+      return { ok: false, reason: 'missing-tool', detail: 'shaving' };
+    }
+    for (const j of item.getJoints()) {
+      const row = await cat.warmed(j.method);
+      if (!row?.competence) continue;
+      const band = await bandIn(maker, row.competence.discipline);
+      if (!CompetenceBand.atOrAbove(band, row.competence.band)) {
+        return {
+          ok: false,
+          reason: 'not-skilled',
+          detail: `re-firing wants ${row.competence.band} ${row.competence.discipline}`,
+        };
+      }
+    }
+    item.refire();
+    return { ok: true, item, conditionBefore, costKg: 0, rung: 'refired' };
+  }
   return null;
 }
 

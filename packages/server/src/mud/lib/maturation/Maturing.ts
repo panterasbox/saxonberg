@@ -79,6 +79,8 @@ import {
 } from '../material/Evaporation';
 import { Quantity } from '../quantity';
 import { TemplatePaths } from '../paths';
+import { AppApi } from '../../api/app';
+import { AppSettingKeys } from '../config/AppSettings';
 import {
   MaturationClock,
   MATURING_SUB_STEPS,
@@ -166,6 +168,16 @@ const damageSat = MaturationClock.damageSat;
 const bandFor = MaturationClock.bandFor;
 
 export interface Maturing {
+  /** Batches this vessel has held (assembly D9). */
+  getFillCount(): number;
+  /** 0..1 — how much of its character it has given away. */
+  getImpartsSpent(): number;
+  /** 0 plain, 1 charred. */
+  getCharLevel(): number;
+  /** Has it given everything it had to give? */
+  isSpent(): boolean;
+  /** The cooper's re-fire: restore the character, char the inside. */
+  refire(): void;
   /** Integrate the batch over elapsed game-time (lazy; reads drive it). */
   reconcileFerment(): void;
   /** The batch phase (reconciles first). */
@@ -401,6 +413,14 @@ export function MaturingMixin<TBase extends MixinConstructor>(Base: TBase) {
       // somebody notice; that is the control working.
       imparts: { persistent: true, authorable: true, spoiler: 1, spoilerName: 0 },
       impartedFraction: { persistent: true, runtimeState: true },
+      // ⭐⭐ The cask's CHARACTER over its life (assembly D9, AC 23): what
+      // it has been filled with spends what it gives. Instance state; the
+      // two profiles are the row's.
+      fillCount: { persistent: true, runtimeState: true },
+      impartsSpent: { persistent: true, runtimeState: true },
+      fillsSinceRefire: { persistent: true, runtimeState: true },
+      charLevel: { persistent: true, runtimeState: true, authorable: true },
+      charredImparts: { persistent: true, authorable: true, spoiler: 1, spoilerName: 0 },
       batchDays: { persistent: true, runtimeState: true },
     };
 
@@ -440,6 +460,22 @@ export function MaturingMixin<TBase extends MixinConstructor>(Base: TBase) {
      * time anybody looks at the cask.
      */
     public impartedFraction = 0;
+
+    /** How many batches this vessel has held. */
+    public fillCount = 0;
+    /**
+     * 0..1 — how much of its character the vessel has given away. Each
+     * fill after the first spends `maturing.impartsSpentPerFill` (a third):
+     * a third fill gives little and a fourth nothing. A cooper's re-fire
+     * restores it.
+     */
+    public impartsSpent = 0;
+    /** Fills since it was made or last re-fired — the first one is free. */
+    public fillsSinceRefire = 0;
+    /** 0 plain, 1 charred — a re-fire chars the inside (and makes a plain cask a charred one). */
+    public charLevel = 0;
+    /** What a CHARRED inside gives — the second authored profile. */
+    public charredImparts: { type: string; amount: number }[] = [];
 
     /**
      * ⭐ Game-days this batch has been in the vessel — the **age
@@ -773,6 +809,24 @@ export function MaturingMixin<TBase extends MixinConstructor>(Base: TBase) {
      * retries rather than latching a sugarless idle forever.
      */
     private startBatch(materialPath: string, nowS: number): void {
+      // ⭐ A fresh fill spends the vessel's character — the one before it
+      // took a third of what it had to give (assembly D9).
+      if (this.imparts.length > 0 || this.charredImparts.length > 0) {
+        if (this.fillsSinceRefire > 0) {
+          const per = Number.parseFloat(
+            (() => {
+              try {
+                return AppApi.setting(AppSettingKeys.maturingImpartsSpentPerFill);
+              } catch {
+                return '';
+              }
+            })(),
+          );
+          this.impartsSpent = Math.min(1, this.impartsSpent + (Number.isFinite(per) ? per : 0.34));
+        }
+        this.fillCount += 1;
+        this.fillsSinceRefire += 1;
+      }
       this.fractionConverted = 0;
       this._worstStretch = 1;
       this.turnedDays = 0;
@@ -975,14 +1029,51 @@ export function MaturingMixin<TBase extends MixinConstructor>(Base: TBase) {
      * for a vessel authoring none, which is every shipped row but the
      * casks.
      */
+    /**
+     * What this vessel gives NOW: the charred profile when it is charred
+     * (and has one), else the plain, scaled by what it has left to give.
+     */
+    private effectiveImparts(): { type: string; amount: number }[] {
+      const base =
+        this.charLevel >= 1 && this.charredImparts.length > 0
+          ? this.charredImparts
+          : this.imparts;
+      const left = 1 - clamp01(this.impartsSpent);
+      return base.map((i) => ({ type: i.type, amount: i.amount * left }));
+    }
+
+    public getFillCount(): number {
+      return this.fillCount;
+    }
+    public getImpartsSpent(): number {
+      return clamp01(this.impartsSpent);
+    }
+    public getCharLevel(): number {
+      return this.charLevel;
+    }
+    /** Has it given everything it had (and so wants re-firing)? */
+    public isSpent(): boolean {
+      return (this.imparts.length > 0 || this.charredImparts.length > 0) &&
+        this.impartsSpent >= 1 - 1e-9;
+    }
+    /**
+     * ⭐ The cooper's re-fire: shaved back to clean wood and charred — it
+     * gives again, and it gives what a CHARRED cask gives (AC 23).
+     */
+    public refire(): void {
+      this.impartsSpent = 0;
+      this.fillsSinceRefire = 0;
+      this.charLevel = 1;
+    }
+
     private applyImparts(): void {
-      if (this.imparts.length === 0) return;
+      if (this.imparts.length === 0 && this.charredImparts.length === 0) return;
       const self = this as unknown as Stuff;
       if (!MixinApi.isBulkable(self)) return;
       const earned = clamp01(this.fractionConverted) - this.impartedFraction;
       if (!(earned > 1e-9)) return;
       if (self.getBulkMaterial('interior') === null) return;
-      const add = this.imparts
+      const add = this.effectiveImparts()
         .filter((i) => i.amount > 0)
         .map((i) => ({ type: i.type, amount: i.amount * earned }));
       if (add.length === 0) return;
