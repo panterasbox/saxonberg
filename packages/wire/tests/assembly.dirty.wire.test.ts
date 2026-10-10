@@ -77,6 +77,7 @@ const STORE = '/world/terminus/general-store/shop-floor';
 const BANK_HALL = '/world/terminus/counting-houses/banking-hall';
 const REGISTRY = '/world/terminus/registry/business';
 const GLOWCAP = '/world/terminus/rejection/thing/glowcap-jar';
+const FUEL_YARD = '/world/terminus/rejection/location/fuel-yard';
 
 const T = {
   pickHead: '/trade/smithing/thing/pick-head',
@@ -135,10 +136,21 @@ async function newPlayer(tag: string, where: string): Promise<Session> {
   return goTo(handle, where);
 }
 
-/** The same person, standing somewhere else (inventory travels). */
+const LIT = new Set<string>();
+
+/**
+ * The same person, standing somewhere else (inventory travels). The first
+ * time, they are handed a glowcap jar to CARRY — `clone` refuses a row with
+ * a live instance on ground the founder holds no title to, so each row is
+ * cloned once and carried after.
+ */
 async function goTo(handle: string, where: string): Promise<Session> {
   const s = await Session.open(handle, { startLocation: where, wizard: true });
-  await cloneHere(where, GLOWCAP);
+  if (!LIT.has(handle)) {
+    LIT.add(handle);
+    await cloneHere(where, GLOWCAP);
+    await s.cmd('get glowcap');
+  }
   await s.drainProse();
   return s;
 }
@@ -173,8 +185,8 @@ suite('⭐⭐ the pick is a head on a haft (drive 2, 10, 16; AC 2, 3, 10, 12)', 
     smith = await goTo(handle, SMITHY);
     await cloneHere(SMITHY, T.pickHead);
     const made = await say(smith, 'fit pick');
-    expect(made, `fit pick: ${made}`).toMatch(/pick/i);
-    const looked = await say(smith, 'look at pick');
+    expect(made, `fit pick: ${made}`).toMatch(/fit the parts together/i);
+    const looked = await say(smith, 'look at miners-pick');
     expect(looked, `look pick: ${looked}`).toMatch(/made of/i);
     expect(looked).toMatch(/head/i);
     expect(looked).toMatch(/haft/i);
@@ -189,17 +201,20 @@ suite('⭐⭐ the pick is a head on a haft (drive 2, 10, 16; AC 2, 3, 10, 12)', 
   it('⭐ drive 5 (setup) — at the yard, carve a haft from a GREEN billet and fit it', async () => {
     const handle = smith.handle;
     smith.close();
+    // The billhook is the fuel yard's; nobody sells one. Pick it up.
+    smith = await goTo(handle, FUEL_YARD);
+    await say(smith, 'get billhook');
+    smith.close();
     smith = await goTo(handle, SAWMILL);
     await buy(smith, 'billet');
-    await cloneHere(SAWMILL, T.froe);
-    await cloneHere(SAWMILL, T.billhook);
+    await cloneHere(SAWMILL, T.froe); // stays at the mill; the sawyer uses it too
     const rove = await say(smith, 'rive billet into riven-blank');
     expect(rove, `rive: ${rove}`).not.toMatch(/can'?t|cannot|no (froe|tool)/i);
     await new Promise((r) => setTimeout(r, 10_000)); // riving takes a moment
     await smith.drainProse();
     const carved = await say(smith, 'carve pick-haft');
     expect(carved, `carve: ${carved}`).toMatch(/haft/i);
-    const fitted = await say(smith, 'fit haft to pick');
+    const fitted = await say(smith, 'fit haft to miners-pick');
     expect(fitted, `fit green haft: ${fitted}`).toMatch(/fit a new haft/i);
   }, 300_000);
 });
@@ -208,7 +223,7 @@ suite('⭐ the wood column (drive 4, 16, 23 setup; AC 12, 20)', () => {
   it('⭐ drive 4 — rive a bole into billets; set the mill sawing another', async () => {
     sawyer = await newPlayer('sawyer', SAWMILL);
     await cloneHere(SAWMILL, T.bole);
-    await say(sawyer, 'rive bole');
+    await say(sawyer, 'rive bole'); // with the froe the smith left at the mill
     await new Promise((r) => setTimeout(r, 15_000)); // the riving's own engagement
     await sawyer.drainProse();
     const seen = (await sawyer.prose('look')) + (await sawyer.prose('inventory'));
@@ -238,8 +253,10 @@ suite('⭐⭐ the novice cooper (drive 9; AC 22)', () => {
     cooper = await goTo(handle, SMITHY);
     await cloneHere(SMITHY, T.driver);
     await cloneHere(SMITHY, T.croze);
-    await cloneHere(SMITHY, T.head, 2);
-    await cloneHere(SMITHY, T.hoop, 6);
+    // Enough heads and hoops for the barrel AND the cask — each row is
+    // cloned once (see goTo).
+    await cloneHere(SMITHY, T.head, 4);
+    await cloneHere(SMITHY, T.hoop, 12);
     const refused = await say(cooper, 'fit cask');
     expect(refused, `untrained fit cask: ${refused}`).toMatch(/proficient/i);
     await practise(cooper, 'coopering', 4);
@@ -264,22 +281,22 @@ suite('⭐⭐ forty days later (drive 3, 4, 5, 18, 23; AC 10, 19, 25)', () => {
   afterAll(() => mender?.close());
 
   it('⭐⭐ drive 5 + 3 — the green haft has WARPED in place, and repair names it', async () => {
-    const looked = await say(smith, 'look at pick');
+    const looked = await say(smith, 'look at miners-pick');
     expect(looked, `look warped pick: ${looked}`).toMatch(/warped/i);
-    const refused = await say(smith, 'repair pick');
+    const refused = await say(smith, 'repair miners-pick');
     expect(refused.toLowerCase(), `repair refusal: ${refused}`).toMatch(/haft/);
   }, 300_000);
 
   it('⭐ drive 3 + 18 — a second pair of hands fits a new haft; the pick names both', async () => {
-    expectOk(await smith.cmd('drop pick'));
+    expectOk(await smith.cmd('drop miners-pick'));
     const m = await newPlayer('mender', STORE);
     await buy(m, 'pick haft');
     const handle = m.handle;
     m.close();
     mender = await goTo(handle, SAWMILL);
-    const fitted = await say(mender, 'fit haft to pick');
+    const fitted = await say(mender, 'fit haft to miners-pick');
     expect(fitted, `mender fit: ${fitted}`).toMatch(/fit a new haft/i);
-    const looked = await say(mender, 'look at pick');
+    const looked = await say(mender, 'look at miners-pick');
     expect(looked, `look mended pick: ${looked}`).not.toMatch(/warped|broken/i);
     expect(looked, `two makers: ${looked}`).toMatch(/work of .+ and /i);
   }, 300_000);
@@ -303,8 +320,6 @@ suite('⭐⭐ the proficient cooper (drive 6, 7, 8, 11, 17, 22; AC 6, 14, 23, 24
     await buy(cooper, 'stave', 30);
     cooper.close();
     cooper = await goTo(handle, SMITHY);
-    await cloneHere(SMITHY, T.head, 2);
-    await cloneHere(SMITHY, T.hoop, 6);
     await practise(cooper, 'coopering', 16);
     const made = await say(cooper, 'fit cask');
     expect(made, `fit cask: ${made}`).toMatch(/cask/i);
@@ -429,20 +444,16 @@ suite('⭐ the exemplar span (drive 13, 20, 21; AC 5, 13)', () => {
  * server on its own port through the same preflight the runner uses and
  * boots a fresh one — attached to somebody else's server, it skips.
  */
-suite('⭐⭐⭐ drive 1 — a made thing survives a restart (AC 1)', () => {
+suite('⭐⭐⭐ drive 1 — a made, mended thing survives a restart (AC 1)', () => {
   afterAll(async () => {
     await stopOwnedWorld();
   });
 
-  it.skipIf(!isOwnedTestWorld())('restart, and find it where it was', async () => {
-    const k = await newPlayer('keeper', STORE);
-    await buy(k, 'pick haft');
-    const handle = k.handle;
-    k.close();
-    const keeper = await goTo(handle, SMITHY);
-    await cloneHere(SMITHY, T.pickHead);
-    await say(keeper, 'fit pick'); // lands in HAND: the mint stamps and captures it
-    keeper.close();
+  it.skipIf(!isOwnedTestWorld())('restart, and find the mended pick where it was left', async () => {
+    // The pick the smith made and the mender re-hafted lies on the sawmill
+    // floor, where it was mended — made by the mint, landed, stamped, and
+    // captured. Restart the world and read it back.
+    const handle = sawyer.handle;
     smith?.close();
     sawyer?.close();
     cooper?.close();
@@ -454,12 +465,11 @@ suite('⭐⭐⭐ drive 1 — a made thing survives a restart (AC 1)', () => {
     });
     process.env.WIRE_SERVER_URL = await bootOwnedWorld();
 
-    const back = await Session.open(handle, { startLocation: SMITHY, wizard: true });
+    const back = await Session.open(handle, { startLocation: SAWMILL, wizard: true });
     try {
-      const inv = await back.prose('inventory');
-      expect(inv, `the made pick, after a restart: ${inv}`).toMatch(/pick/i);
-      const pick = await say(back, 'look at pick');
-      expect(pick, `the pick still knows its haft: ${pick}`).toMatch(/haft/i);
+      const pick = await say(back, 'look at miners-pick');
+      expect(pick, `the mended pick, after a restart: ${pick}`).toMatch(/haft/i);
+      expect(pick, `both makers, after a restart: ${pick}`).toMatch(/work of .+ and /i);
     } finally {
       back.close();
     }

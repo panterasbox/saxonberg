@@ -271,7 +271,15 @@ export default class Stock extends StockBase {
   onHand(itemTemplatePath: string): number {
     let n = 0;
     for (const item of this.offeredItems()) {
-      if (item.getTemplatePath() === itemTemplatePath) n++;
+      if (item.getTemplatePath() !== itemTemplatePath) continue;
+      // ⚠⚠ A STACK is its quantity, not one thing. A restocked stackable
+      // merges on arrival, so counting objects read a shelf of thirty
+      // staves as ONE and cloned twenty-nine more every hour, without
+      // bound — found by the assembly drive, whose first forty-day clock
+      // jump drained ~28,000 stave clones and wedged the world. Every
+      // stackable stock line had the defect; timber was the first to sit
+      // on a shelf long enough to show it.
+      n += MixinApi.isStackable(item) ? item.getQuantity() : 1;
     }
     return n;
   }

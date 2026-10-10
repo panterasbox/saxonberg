@@ -54,6 +54,15 @@ export default class FitController extends CraftController<FitModel> {
       return;
     }
 
+    // ⭐ A word that bound a PART, with no whole named and nothing in reach
+    // it would mend, but that names a recipe, means RAISE: `fit pick` with
+    // a pick head and a pick haft on the bench binds "pick" to one of them
+    // by substring, and the person meant the pick.
+    if (part && !whole && raw && !this.wholeFor(part, giver)) {
+      const recipe = await CraftingApi.lookupRecipe(raw);
+      if (recipe) return this.raise(raw, giver, context);
+    }
+
     // ── the raise arm: a word naming no thing in reach.
     if (!part) {
       if (model.whole?.raw && !whole) {
@@ -64,26 +73,7 @@ export default class FitController extends CraftController<FitModel> {
         context.note({ kind: 'empty-result', field: 'whole', query: model.whole.raw });
         return;
       }
-      const outcome = await CraftingApi.fit({ recipeRef: raw });
-      if (!outcome.ok) {
-        if (outcome.reason === 'no-recipe') {
-          MessageApi.scene(giver)
-            .topic(TOPIC)
-            .toSelf(Mml.compose`You don't see any '${raw}' here, and it isn't anything you could raise from parts.`)
-            .send();
-          context.note({ kind: 'empty-result', field: 'thing', query: raw });
-          return;
-        }
-        this.declineToScene(giver, outcome, context);
-        return;
-      }
-      if (outcome.arm !== 'raise') return;
-      MessageApi.scene(giver)
-        .topic(TOPIC)
-        .toSelf(Mml.compose`You fit the parts together into ${Mml.thing(outcome.output)}.`)
-        .toPeers(Mml.compose`${Mml.actor(giver)} fits together ${Mml.thing(outcome.output)}.`)
-        .send();
-      return;
+      return this.raise(raw, giver, context);
     }
 
     // ── the replace arm: find the whole when none was named.
@@ -111,6 +101,29 @@ export default class FitController extends CraftController<FitModel> {
           : Mml.compose`You fit ${what} to ${Mml.thing(whole)}.`,
       )
       .toPeers(Mml.compose`${Mml.actor(giver)} fits ${what} to ${Mml.thing(whole)}.`)
+      .send();
+  }
+
+  /** The raise arm: make the whole named by `raw` from the parts in reach. */
+  private async raise(raw: string, giver: Stuff, context: CommandContext): Promise<void> {
+    const outcome = await CraftingApi.fit({ recipeRef: raw });
+    if (!outcome.ok) {
+      if (outcome.reason === 'no-recipe') {
+        MessageApi.scene(giver)
+          .topic(TOPIC)
+          .toSelf(Mml.compose`You don't see any '${raw}' here, and it isn't anything you could raise from parts.`)
+          .send();
+        context.note({ kind: 'empty-result', field: 'thing', query: raw });
+        return;
+      }
+      this.declineToScene(giver, outcome, context);
+      return;
+    }
+    if (outcome.arm !== 'raise') return;
+    MessageApi.scene(giver)
+      .topic(TOPIC)
+      .toSelf(Mml.compose`You fit the parts together into ${Mml.thing(outcome.output)}.`)
+      .toPeers(Mml.compose`${Mml.actor(giver)} fits together ${Mml.thing(outcome.output)}.`)
       .send();
   }
 
