@@ -755,7 +755,12 @@ gate refuses, in the exit's own words; `conditional: true` on the kind row; phys
   answer is the mover's — a sheet that bears a person refuses a horse.
   It refuses open water, running water, thin ice and rotten ice in their
   own words, and with no water pack installed it is a WALL (a ford with
-  no river is a road; a crossing with no ice is nothing).
+  no river is a road; a crossing with no ice is nothing). ⚠ Because the
+  answer is per mover, nothing per-mover is STORED: `prepareTraversal`
+  reads the sheet (shared — the same for everyone) and the sync gate
+  weighs each mover against it, so two people at the shore at once
+  cannot read each other's verdict. `isBlocked()` is the on-foot summary
+  for readers with no mover (fire, the scope walk, routing).
 
 Kind rows author the DECLARED keys (`_conditional`, `_crossesReach`,
 `_closesAboveM`), which `lint:location-graph` and the projection accept,

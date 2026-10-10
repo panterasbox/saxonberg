@@ -11,11 +11,15 @@
  * ## How it answers
  *
  * Unlike the ford, the answer depends on WHO is crossing: a sheet that
- * bears a person refuses a horse. `prepareTraversal` reads the ice for
- * this mover's mass and sets the shipped `blocked` bit before the gate looks;
- * `refreshCrossing` (the lane compile's question, by shape) answers for a
- * person on foot. The refusal names what is wrong with the ice: open
- * water, thin ice, rotten ice, or water that moves.
+ * bears a person refuses a horse. So the two halves are split by what is
+ * shared: `prepareTraversal` reads the SHEET (the same for everyone) and
+ * the sync gate weighs THIS mover against it. Nothing per-mover is ever
+ * stored — an earlier version wrote each mover's verdict into the shared
+ * `blocked` bit, and two people at the shore across the read's await
+ * could get each other's answer. `isBlocked()` answers for a person on
+ * foot, for the readers with no mover in hand (fire, the scope walk,
+ * routing). The refusal names what is wrong with the ice: open water,
+ * thin ice, rotten ice, or water that moves.
  *
  * ⚠ **Physical only**, like every closure in this build: comms and
  * teleport do not care what the river is doing.
@@ -79,8 +83,14 @@ export default class IceCrossingExit extends Exit {
   /** Kilograms of margin beyond the mover's own. */
   protected _bearsMarginKg = 0;
 
-  /** Why the last read refused (`null` when it bore the mover). */
-  private refusal: IceRefusal | null = null;
+  /**
+   * ⭐ The last read of the SHEET — the same for every mover, so it is
+   * safe to share. `undefined` = never read; `null` = nothing to read
+   * (no water pack, no reach). Who it bears is NOT stored: the gate
+   * compares each mover's own mass against it, synchronously, so two
+   * people at the shore at once can never read each other's answer.
+   */
+  private ice: IceRead | null | undefined = undefined;
 
   constructor(opts?: IceCrossingExitOptions) {
     super(opts);
@@ -105,39 +115,59 @@ export default class IceCrossingExit extends Exit {
     this._bearsMarginKg = value;
   }
 
-  /** Read the ice for a body of `moverKg` and set `blocked` from it. */
-  public async refreshCrossing(moverKg: number = DEFAULT_MOVER_KG): Promise<void> {
-    const refusal = await this.refusalFor(moverKg);
-    this.refusal = refusal;
-    this.setBlocked(refusal !== null);
+  /** Read the sheet as it is now. Mover-independent. */
+  public async refreshCrossing(): Promise<void> {
+    this.ice = await IceCrossingExit.readIce(this._crossesReach);
+  }
+
+  /** Read the sheet BEFORE the gate (`Exit.prepareTraversal`). */
+  public override async prepareTraversal(_mover: Stuff & Containable): Promise<void> {
+    await this.refreshCrossing();
   }
 
   /**
-   * Read for THIS mover BEFORE the gate (`Exit.prepareTraversal`, awaited
-   * ahead of `canTraverse`); the `blocked` gate then refuses.
+   * The way as a person on foot would find it — the answer for every
+   * reader that has no mover in hand (fire spread, the scope walk,
+   * routing). The authored `blocked` bit still closes it outright.
+   *
+   * ⚠ Before the sheet has ever been read this is the AUTHORED bit alone:
+   * `Exitable` asks `isBlocked()` at `addExit` to decide whether an exit
+   * is "settled at birth", and an unread crossing must still get its
+   * inverse wired. The gate is what fails closed (see `refusalFor`).
    */
-  public override async prepareTraversal(mover: Stuff & Containable): Promise<void> {
-    await this.refreshCrossing(IceCrossingExit.massOf(mover));
+  public override isBlocked(): boolean {
+    if (super.isBlocked()) return true;
+    if (this.ice === undefined) return false;
+    return this.refusalFor(DEFAULT_MOVER_KG) !== null;
   }
 
-  /** The refusal names what is wrong with the ice. */
+  /** Bears THIS mover? Refusals name what is wrong with the ice. */
   public override canTraverse(mover: Stuff & Containable, mode?: string): TraversalGuard {
-    const base = super.canTraverse(mover, mode);
-    if (base.ok || base.gate !== 'blocked') return base;
-    return { ok: false, gate: 'blocked', reason: IceCrossingExit.prose(this.refusal) };
+    const refusal = this.refusalFor(IceCrossingExit.massOf(mover));
+    if (refusal !== null) {
+      return { ok: false, gate: 'blocked', reason: IceCrossingExit.prose(refusal) };
+    }
+    return super.canTraverse(mover, mode);
   }
 
-  private async refusalFor(moverKg: number): Promise<IceRefusal | null> {
-    if (this._crossesReach === '') return 'no-water';
-    const water = await IceCrossingExit.iceSource();
-    if (!water) return 'no-water';
-    const ice = await water.iceAt(this._crossesReach, WorldClockApi.getNow().rawValue());
+  /** What is wrong with the ice for a body of `moverKg`, or `null`. */
+  private refusalFor(moverKg: number): IceRefusal | null {
+    const ice = this.ice;
+    // Never read: fail closed — a crossing exists only while it bears.
+    if (ice === undefined) return 'open';
     if (ice === null) return 'no-water';
     if (ice.reason === 'running') return 'running';
     if (ice.thicknessM <= 0) return 'open';
     if (ice.rotting) return 'rotten';
     if (ice.bearsKg < moverKg + this._bearsMarginKg) return 'thin';
     return null;
+  }
+
+  private static async readIce(reach: string): Promise<IceRead | null> {
+    if (reach === '') return null;
+    const water = await IceCrossingExit.iceSource();
+    if (!water) return null;
+    return water.iceAt(reach, WorldClockApi.getNow().rawValue());
   }
 
   private static prose(refusal: IceRefusal | null): string {

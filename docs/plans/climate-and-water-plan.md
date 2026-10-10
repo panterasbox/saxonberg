@@ -1351,11 +1351,17 @@ weather dials: `climate.poleMeanK` 245, `climate.equatorMeanK` 301,
   outside `RespirationMixin`, and neither one's `onTraversed` chained, so
   the cartographer silently shadowed respiration's for every player.
   Both chain now.
-- ⚠ **Residue, not fixed:** `IceCrossingExit` writes a per-mover verdict
-  (mass against the sheet) into the SHARED `blocked` bit, so two movers
-  interleaving across the prepare's await can read each other's answer.
-  The fix is to read the ice in prepare and compare the mass in the sync
-  gate; left for a follow-up.
+- **B27 (review round 1) — the ice crossing stores the sheet, never a
+  verdict.** It wrote each mover's verdict (mass against the sheet) into
+  the SHARED `blocked` bit, so two movers interleaving across the
+  prepare's await could read each other's answer. Now `prepareTraversal`
+  reads the ice record, which is the same for everyone, and `canTraverse`
+  weighs THIS mover against it synchronously. `isBlocked()` is the
+  on-foot summary for readers with no mover (fire, the scope walk,
+  routing). Before the first read it is the authored bit alone, because
+  `Exitable` asks at `addExit` whether an exit is "settled at birth" and
+  an unread crossing must still get its inverse wired. The gate fails
+  closed. A test pins two concurrent prepares.
 - **R16 corollary — a room's ambient is restamped at a weather boundary
   only where somebody is.** The drive advances its days standing at the
   Circle camp so the pan sees the cold; a pan nobody visits cools late.

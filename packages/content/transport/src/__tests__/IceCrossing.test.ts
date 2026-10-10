@@ -105,11 +105,38 @@ describe('an ice crossing reads the sheet', () => {
     const w = installWater();
     const x = crossing();
     w.ice = { thicknessM: 0.1, bearsKg: 250, rotting: false, reason: null };
-    await x.prepareTraversal(body(80));
+    const person = body(80);
+    const horse = body(500);
+    await x.prepareTraversal(person);
+    expect(x.canTraverse(person, 'walk').ok).toBe(true);
+    const refused = x.canTraverse(horse, 'walk');
+    expect(refused.ok).toBe(false);
+    expect(refused.reason).toMatch(/would not bear you/);
+    // The on-foot summary (fire, routing, the scope walk) is a person's.
     expect(x.isBlocked()).toBe(false);
-    await x.prepareTraversal(body(500));
-    expect(x.isBlocked()).toBe(true);
-    expect(reasonOf(x)).toMatch(/would not bear you/);
+  });
+
+  it('⭐ two movers at the shore at once never read each other\'s answer', async () => {
+    const w = installWater();
+    const x = crossing();
+    w.ice = { thicknessM: 0.1, bearsKg: 250, rotting: false, reason: null };
+    const person = body(80);
+    const horse = body(500);
+    // Both prepares in flight together, the horse's landing last — the
+    // interleaving that used to leave the HORSE's verdict on the shared
+    // `blocked` bit when the person reached the gate.
+    await Promise.all([x.prepareTraversal(person), x.prepareTraversal(horse)]);
+    expect(x.canTraverse(person, 'walk').ok).toBe(true);
+    expect(x.canTraverse(horse, 'walk').ok).toBe(false);
+  });
+
+  it('never read is never crossed — the gate fails closed', () => {
+    installWater().ice = { thicknessM: 0.3, bearsKg: 2250, rotting: false, reason: null };
+    const x = crossing();
+    expect(x.canTraverse(body(80), 'walk').ok).toBe(false);
+    // …while the summary stays the authored bit, so `Exitable` still
+    // wires the crossing's inverse at birth.
+    expect(x.isBlocked()).toBe(false);
   });
 
   it('rotten ice and running water refuse in their own words', async () => {
