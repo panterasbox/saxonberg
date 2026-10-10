@@ -77,13 +77,33 @@ describe('the roster warm', () => {
       { path: '/stuff/idea/biome/bad', class: '/platform/idea/Biome' },
       { path: '/stuff/idea/biome/good', class: '/platform/idea/Biome' },
     ] as unknown as Template[]);
-    vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const errors = vi.spyOn(console, 'error').mockImplementation(() => {});
     vi.spyOn(StuffApi, 'singleton').mockImplementation(async (path: string) => {
       if (path.endsWith('bad')) throw new Error('boom');
       return makeStuff(() => new ConcreteBiome()) as never;
     });
     const catalogue = makeStuff(() => new BiomeCatalogue());
-    expect(await catalogue.warm()).toBe(1);
+    const { stood, failed } = await catalogue.warm();
+    expect(stood).toBe(1);
+    // ⭐ The failure is COUNTED and said out loud (climate build D11).
+    expect(failed).toEqual(['/stuff/idea/biome/bad']);
+    expect(errors.mock.calls.some((c) => String(c[0]).includes('/stuff/idea/biome/bad'))).toBe(true);
+  });
+
+  it('⭐ a row whose class does not load is counted as failed, not skipped', async () => {
+    vi.spyOn(Template, 'findByPathInfix').mockResolvedValue([
+      { path: '/stuff/idea/biome/ghost', class: '/platform/idea/NoSuchBiome' },
+      { path: '/stuff/idea/biome/outdoor', class: '/platform/idea/FolderZone' },
+    ] as unknown as Template[]);
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    vi.spyOn(StuffApi, 'singleton').mockImplementation(async () =>
+      makeStuff(() => new ConcreteBiome()) as never,
+    );
+    const catalogue = makeStuff(() => new BiomeCatalogue());
+    const { stood, failed } = await catalogue.warm();
+    // The folder is a folder (quietly skipped); the ghost is a failure.
+    expect(stood).toBe(0);
+    expect(failed).toEqual(['/stuff/idea/biome/ghost']);
   });
 
   it('is never culled — a culled catalogue re-warms nothing', () => {

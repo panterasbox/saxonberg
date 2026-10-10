@@ -1480,6 +1480,18 @@ bad class is COUNTED.
 scratch row citing `/stuff/idea/biome/nowhere`.
 **Commit.** `build(climate W2): lint:biome — a biome that does not resolve fails loud; the water-biome stub`
 
+> ✅ **Done.** `scripts/check-biome.ts` (a pure `biomeFindings` core +
+> disk facts; 7 fixture tests); green on the tree: 9 biome rows, 67
+> citations. ⚠ `Biome` is a base CLASS whose twin aliases it
+> (`extends BiomeBase`), so "is a biome" is `extendsAny`, not
+> `composesMixin` — the first run called every indoor citation a
+> non-biome. `BiomeCatalogue.warm()` returns `{stood, failed}` and
+> distinguishes a folder (quiet) from an unloadable class (loud:
+> `console.error` + a `biome.unresolved` diagnostic). The water stub
+> breathes air (B5). ⚠ The pointer line in `maritime-space-requirements.md`
+> lives on the maritime branch (build-1) — left for that build, named
+> in the MR.
+
 ### W3 — Precipitation: phase by temperature, amount by place
 
 **Goal.** It cannot snow at 290 K; one storm snows on the peak and rains

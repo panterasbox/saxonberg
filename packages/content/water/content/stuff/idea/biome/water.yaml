@@ -1,0 +1,8 @@
+# /stuff/idea/biome/water — the folder for what a WATER is made of,
+# atmospherically. Shipped by the water pack because the question is the
+# water system's (a surface you are on rather than ground you stand on);
+# the `outdoor/woodland` row from trade-forestry is the precedent for a
+# /stuff biome row from a non-platform pack.
+class: /platform/idea/FolderZone
+data:
+  name: water
