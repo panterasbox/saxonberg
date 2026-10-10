@@ -474,6 +474,16 @@ export class PerceptionApi {
   }
 
   /**
+   * Where something on the horizon lies, as a GLANCE gives it — one of
+   * eight compass points and a rough range (*to the north-east, some 3
+   * miles off*). `look horizon` and a kept watch both say it this way; a
+   * bearing worth fixing by is `measure bearing`'s, never a glance's.
+   */
+  public static glance(bearingDeg: number, rangeNm: number): string {
+    return logic().glance(bearingDeg, rangeNm);
+  }
+
+  /**
    * The things `viewer`'s last {@link horizonFor} found — synchronous, for
    * the MQL `horizon` seed (`MqlApi.prepare` refreshes it before a query
    * that names the seed is resolved). Empty when never computed.

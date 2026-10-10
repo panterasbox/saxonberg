@@ -1572,7 +1572,7 @@ keyword `horizon` renamed (the seed would shadow it).
   landmark admitted from a sky-exposed room, refused from an interior and
   by `[]`, reach by height vs zone extent), sea scan (contacts), the seed
   in MQL, `look horizon` featured/also-make-out. Commit `…C2`.
-- **C3 — watching.** R6, R7. Tests: HorizonWatch reports in/out deltas
+- ✅ **C3 — watching.** R6, R7. Tests: HorizonWatch reports in/out deltas
   only; WatchController dispatch; the brain says sightings when on shift
   and not otherwise. Commit `…C3`.
 - **C4 — the bearing.** R8. Tests: truth, bracket by band, fix on a fixed
@@ -1643,6 +1643,23 @@ keyword `horizon` renamed (the seed would shadow it).
   - At sea `look horizon` gives a compass point and a rough range
     (*to the north-east, some 3 miles off*) — a glance. The bearing worth
     fixing by is C4's `measure bearing`.
+- ✅ **C3.** `HorizonWatch` (`lib/perception/`) holds the watcher's
+  `attention`, looks every `perception.watchGameMinutes` (5) and says only
+  the delta; the first look reports what is in view. `watch horizon`
+  branches in `WatchController` BEFORE the player-client check, so an NPC
+  can take it; `watch off` stands a watch down before it touches the
+  embed. **B-45:** the glance wording (*to the north-east, some 3 miles
+  off*) is ONE `PerceptionApi.glance` used by both `look horizon` and the
+  watch — two public statics on the lib class would have risen
+  `lint:lib-statics`, and two copies of one sentence drift. **B-46:** the
+  watch keeps its beat's news (`takeNews`, capped at 20) so the
+  `keeps-watch` brain can call it on the watcher's behalf — the brain is
+  stateless and the engagement is where the watching happens. The brain
+  stands down off shift (`watch off`) and calls sightings RELATIVE to the
+  ship's head (*on the starboard bow*), by the compass at anchor; it
+  claims only `voice` (the watch holds `attention`). **B-47 (for C6):**
+  the Hesper's outfit gets `startsShiftOnHire: true`, so `appoint` alone
+  puts a hired lookout on watch.
 
 ## Build log
 

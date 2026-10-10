@@ -528,6 +528,16 @@ export class PerceptionLogic extends ApiLogic {
     return view;
   }
 
+  /** See {@link PerceptionApi.glance}. */
+  @CallSecurity(PerceptionApiCallers)
+  public glance(bearingDeg: number, rangeNm: number): string {
+    const i = Math.round((((bearingDeg % 360) + 360) % 360) / 45) % 8;
+    const point = COMPASS_POINTS[i]!;
+    if (rangeNm < 1) return `${point}, close by`;
+    if (rangeNm < 2) return `${point}, about a mile off`;
+    return `${point}, some ${Math.round(rangeNm)} miles off`;
+  }
+
   /** See {@link PerceptionApi.peekHorizon}. */
   @CallSecurity(PerceptionApiCallers)
   public peekHorizon(viewer: Stuff): Stuff[] {
@@ -1111,6 +1121,11 @@ function hintsForImpl(viewer: Stuff, scope: readonly Stuff[]): Stuff[] {
 }
 
 /* ───────────────────────── the horizon (maritime R4) ───────────────────────── */
+
+const COMPASS_POINTS = [
+  'to the north', 'to the north-east', 'to the east', 'to the south-east',
+  'to the south', 'to the south-west', 'to the west', 'to the north-west',
+] as const;
 
 const EMPTY_HORIZON: HorizonView = { things: [], traffic: [], atSea: false };
 

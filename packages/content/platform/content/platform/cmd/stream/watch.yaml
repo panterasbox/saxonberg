@@ -1,6 +1,6 @@
 verbs: [watch]
 controller: /platform/idea/cmd/stream/WatchController
-description: "Put a livestream's video in the focal embed (Twitch / YouTube / Kick)"
+description: "Put a livestream's video in the focal embed, or keep a watch on the horizon"
 help: |
   Put a livestream's video in the cockpit's focal embed. Name the
   streamer the same three ways as `tune`:
@@ -13,6 +13,12 @@ help: |
 
   There is one focal video — a second `watch` swaps it; `watch off`
   clears it.
+
+  `watch horizon` keeps a WATCH instead: you hold your attention on
+  what lies beyond your room, and are told what comes into view and
+  what drops out of it — nothing else. From a masthead you see further.
+  `watch off` (or `cancel`) stands you down. Nobody watching, nobody
+  told: the horizon never calls out on its own.
 
   A SHARED screen — the booth TV — takes `watch <target> on <screen>`:
   whoever may drive it (the remote in hand, the house's seat, or anyone

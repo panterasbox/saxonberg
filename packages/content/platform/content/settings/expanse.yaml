@@ -32,3 +32,7 @@ settings:
   # across half a kilometre of roofs. A crude dial; optics widen it later.
   - key: perception.horizonRatio
     value: "20"
+  # A kept watch (`watch horizon`) looks again this often, in game
+  # minutes, and says only what came into or went out of view.
+  - key: perception.watchGameMinutes
+    value: "5"

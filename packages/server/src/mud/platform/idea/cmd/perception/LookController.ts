@@ -124,7 +124,7 @@ export default class LookController extends CommandController<LookModel> {
     const room = context.location;
     const featuredPaths = room instanceof Location ? room.getFeatured() : [];
     const where = (b: number | null, r: number | null): string =>
-      b === null || r === null ? '' : `, ${compassPoint(b)}, ${roughMiles(r)}`;
+      b === null || r === null ? '' : `, ${PerceptionApi.glance(b, r)}`;
     const featured: Mml[] = [];
     const rest: Mml[] = [];
     for (const t of view.things) {
@@ -765,22 +765,4 @@ export default class LookController extends CommandController<LookModel> {
     // all there is."
     return Mml.compose`── Obvious exits: ${joined}.`;
   }
-}
-
-const COMPASS_POINTS = [
-  'to the north', 'to the north-east', 'to the east', 'to the south-east',
-  'to the south', 'to the south-west', 'to the west', 'to the north-west',
-] as const;
-
-/** A bearing as a glance gives it — one of eight points. */
-function compassPoint(deg: number): string {
-  const i = Math.round((((deg % 360) + 360) % 360) / 45) % 8;
-  return COMPASS_POINTS[i]!;
-}
-
-/** A range as a glance gives it. */
-function roughMiles(nm: number): string {
-  if (nm < 1) return 'close by';
-  if (nm < 2) return 'about a mile off';
-  return `some ${Math.round(nm)} miles off`;
 }

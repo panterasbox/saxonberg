@@ -18,6 +18,12 @@
  * booth TV): the screen's own `mayDrive` decides (the remote, the seat, reach),
  * and its `show` writes every viewer's embed who sees the screen.
  * `watch off on <screen>` darkens it. See docs/subsystems/display.md.
+ *
+ * ⭐ `watch horizon` (maritime R6) keeps a WATCH instead: a sustained
+ * engagement on the watcher's attention (`HorizonWatch`) that reports
+ * what comes into view and what drops out of it, and nothing else. It is
+ * the one form an NPC may take (the hired lookout), so it is decided
+ * before the player-only checks. `watch off` and `cancel` stand it down.
  */
 
 import { CommandController } from '../../../../lib/command/CommandController';
@@ -35,6 +41,8 @@ import type { Stuff } from '../../../../lib/stuff/Stuff';
 import type { ClientState } from '../../../../lib/connection/ClientState';
 import type { SaxonbergClient } from '../../../../lib/connection/SaxonbergClient';
 import type { WatchTarget } from '@saxonberg/types';
+import { SchedulerApi } from '../../../../api/scheduler';
+import { HorizonWatch, HORIZON_WATCH_TYPE } from '../../../../lib/perception/HorizonWatch';
 
 const WATCH_KEY = 'cockpit.watch';
 
@@ -52,6 +60,12 @@ interface WatchModel extends CommandModel {
 export default class WatchController extends CommandController<WatchModel> {
   async execute(model: WatchModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
+    if (!model.on && (model.target ?? '').trim().toLowerCase() === 'horizon') {
+      return this.keepWatch(context);
+    }
+    if (model.subcommand === 'off' && !model.on && this.standDown(giver)) {
+      return this.send(context, Mml.fromMarkup('\nYou stand down from your watch.\n'));
+    }
     if (!MixinApi.isSaxonbergClient(giver)) {
       return this.fail(
         context,
@@ -93,6 +107,35 @@ export default class WatchController extends CommandController<WatchModel> {
       );
     }
     return this.watch(model, context, host, screen);
+  }
+
+  /** `watch horizon` — take up a watch (or say you already keep one). */
+  private keepWatch(context: CommandContext): void {
+    const giver = context.commandGiver;
+    if (!MixinApi.isEngaged(giver)) {
+      return this.fail(context, 'You cannot keep a watch.', 'not-engaged');
+    }
+    if (giver.getEngagementByType(HORIZON_WATCH_TYPE)) {
+      return this.send(context, Mml.fromMarkup('\nYou are already keeping a watch.\n'));
+    }
+    const started = SchedulerApi.start(new HorizonWatch(giver));
+    if (!started.ok) {
+      return this.fail(
+        context,
+        'Your attention is taken up — you cannot keep a watch as well.',
+        'engagement-conflict',
+      );
+    }
+    this.send(context, Mml.fromMarkup('\nYou settle to watching the horizon.\n'));
+  }
+
+  /** End a horizon watch the giver keeps; `false` when there is none. */
+  private standDown(giver: Stuff): boolean {
+    if (!MixinApi.isEngaged(giver)) return false;
+    const w = giver.getEngagementByType(HORIZON_WATCH_TYPE);
+    if (!w) return false;
+    SchedulerApi.cancel(w, 'cancelled');
+    return true;
   }
 
   private clear(host: WatchHost, context: CommandContext): void {
