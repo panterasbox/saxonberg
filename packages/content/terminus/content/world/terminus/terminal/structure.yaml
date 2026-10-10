@@ -1,15 +1,21 @@
-# The terminal — and its clock tower, as a LANDMARK.
+# The terminal — and its clock tower, a LANDMARK.
 #
-# ⭐⭐ Described ONCE, here, and read from every zone that names it in
-# `visibleLandmarks` (the avenue, the wharf, the estuary) — instead of
-# living only in the prose of the room next to it. ⛔ On land the claim is
-# authored, never computed: what is in the way is not modelled.
+# ⭐⭐ A Structure is Visible: described once, here, the ordinary way, and
+# read by `look horizon:tower` from any zone whose `horizon` names this
+# one (maritime R1/R3). `landmark: true` FEATURES it in the horizon
+# summary; whether it can be seen at all is derived (sky, height, the
+# zones' size in metres). ⛔ No room repeats it — a room that mentions the
+# tower does so in its own words, for its own reason (the crossing's
+# `tower` detail tells the time).
 class: /platform/idea/Structure
 data:
-  name: the terminal
   extent: /world/terminus/terminal
   entrance: /world/terminus/terminal/location/arrival-gate
-  outsideDescription: >-
-    Over the roofs the terminal's clock tower shows its face, keeping the
-    station's true time.
+  shortDescription: terminal clock tower
+  register: definite
+  keywords: [tower, clock, terminal, clocktower]
+  longDescription: >-
+    The terminal's clock tower stands over the roofs, a square brick shaft
+    with a white face on each side, keeping the station's true time.
+  landmark: true
   heightM: 25

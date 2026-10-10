@@ -183,7 +183,32 @@ export default class Location extends LocationBase {
     suppressesMagic: { persistent: true, authorable: true },
     floor: { persistent: true, authorable: true },
     noDefaultFloor: { persistent: true, authorable: true },
+    horizon: { persistent: true, authorable: true },
+    featured: { persistent: true, authorable: true },
   };
+
+  /**
+   * The ZONES scanned from this room, overriding its zone's `horizon`
+   * (the `suppressesMagic` shape: the room's own value wins, then the zone
+   * walk). `null` defers; `[]` is *nothing from in here* (maritime R3).
+   */
+  protected horizon: string[] | null = null;
+  /**
+   * Structures this room FEATURES on its horizon beyond the landmarks —
+   * the room's author saying *from here, this is worth naming first*.
+   * Emphasis only: it makes nothing visible that is not.
+   */
+  protected featured: string[] = [];
+
+  public getHorizon(): string[] | null { return this.horizon; }
+  public setHorizon(value: string[] | null): void {
+    this.horizon = Array.isArray(value) ? value.map((p) => String(p)) : null;
+  }
+
+  public getFeatured(): string[] { return [...this.featured]; }
+  public setFeatured(value: string[] | null): void {
+    this.featured = Array.isArray(value) ? value.map((p) => String(p)) : [];
+  }
 
   /**
    * The anti-magic field this place carries, or `null` (the overwhelming

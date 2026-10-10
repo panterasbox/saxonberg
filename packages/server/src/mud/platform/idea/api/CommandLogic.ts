@@ -1297,6 +1297,18 @@ export class CommandLogic extends ApiLogic {
       if (def.type !== 'object' && def.type !== 'objects') continue;
       if (typeof raw !== 'string' || raw.length === 0) continue;
 
+      // ⭐ A seed the synchronous resolver reads warm (the `horizon`,
+      // maritime R4) is recomputed before the query that names it.
+      await MqlApi.prepare(raw, giver);
+      // ⭐ Naming a whole scope (`look horizon`) asks for the SCOPE, not for
+      // one thing in it: no pick, no "which one?" — the field binds no
+      // stuff and keeps its raw text, and the controller surveys it.
+      if (def.type === 'object' && MqlApi.namesWholeScope(raw)) {
+        const whole: MqlOneResult = { stuff: null, raw };
+        resolved[fname] = whole;
+        continue;
+      }
+
       // Build the scope try-list. The YAML's `scope:` is authoritative
       // — it's the explicit ordered fallback chain. Each entry runs
       // through ShellApi.expandVariables so authors can reference

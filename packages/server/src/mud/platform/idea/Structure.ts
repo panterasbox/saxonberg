@@ -20,9 +20,11 @@
  *   contain.
  * - **the entrance** — the way in (and, aboard, the deck the watch is
  *   kept on).
- * - **the outside description** — authored once, read wherever the
- *   structure is a landmark (`SpatialZone.visibleLandmarks`) and wherever
- *   it is sighted at sea.
+ * - **how it looks** — it is `Visible` + `Detailed` like any thing you
+ *   look at (the `Species` precedent: an Idea can be seen). Its inside is
+ *   its member rooms; there is no second, "outside" description.
+ *   `landmark` opts it in to be FEATURED on a horizon (maritime R1) —
+ *   whether it can be seen at all is derived, never authored.
  * - **heights** — `heightM` is what a horizon reads of it as a target;
  *   `deckHeightM` / `mastheadHeightM` what it reads of an observer aboard.
  * - **the house** — the Business whose roster mans it (a ship's outfit),
@@ -42,6 +44,9 @@
 import { Idea } from '../../lib/stuff/Idea';
 import { SingletonMixin } from '../../lib/stuff/Singleton';
 import { NamedMixin } from '../../lib/description/Named';
+import { VisibleMixin } from '../../lib/description/Visible';
+import { PerceptibleMixin } from '../../lib/description/Perceptible';
+import { DetailedMixin } from '../../lib/description/Detailed';
 import { PositionedMixin } from '../../lib/expanse/Positioned';
 import { EngagedMixin } from '../../lib/activity/Engaged';
 import { PersistableMixin } from '../../lib/persistence/Persistable';
@@ -59,12 +64,14 @@ const LOOKOUT_POSITION = 'lookout';
 export const STRUCTURE_CLASS_PATH = '/platform/idea/Structure';
 
 export default class Structure extends PersistableMixin(
-  VoyagingMixin(EngagedMixin(PositionedMixin(NamedMixin(SingletonMixin(Idea)))))
+  VoyagingMixin(EngagedMixin(PositionedMixin(
+    DetailedMixin(VisibleMixin(PerceptibleMixin(NamedMixin(SingletonMixin(Idea)))))
+  )))
 ) {
   static fieldMeta: FieldMeta = {
     extent: { persistent: true, authorable: true },
     entrance: { persistent: true, authorable: true },
-    outsideDescription: { persistent: true, authorable: true },
+    landmark: { persistent: true, authorable: true },
     heightM: { persistent: true, authorable: true },
     deckHeightM: { persistent: true, authorable: true },
     mastheadHeightM: { persistent: true, authorable: true },
@@ -75,8 +82,8 @@ export default class Structure extends PersistableMixin(
   protected extent = '';
   /** The member room you enter by — aboard, the deck. */
   protected entrance: string | null = null;
-  /** What it looks like from outside — authored once. */
-  protected outsideDescription = '';
+  /** Featured on a horizon — opt-in emphasis, not visibility. */
+  protected landmark = false;
   /** Its height as a TARGET, metres (a tower's top, a ship's truck). */
   protected heightM = 0;
   /** An observer's eye height on deck, metres; `null` for a building. */
@@ -92,10 +99,8 @@ export default class Structure extends PersistableMixin(
   public getEntrance(): string | null { return this.entrance; }
   public setEntrance(value: string | null): void { this.entrance = value ?? null; }
 
-  public getOutsideDescription(): string { return this.outsideDescription; }
-  public setOutsideDescription(value: string): void {
-    this.outsideDescription = (value ?? '').trim();
-  }
+  public isLandmark(): boolean { return this.landmark; }
+  public setLandmark(value: boolean): void { this.landmark = value === true; }
 
   public getHeightM(): number { return this.heightM; }
   public setHeightM(value: number): void { this.heightM = Number(value) || 0; }

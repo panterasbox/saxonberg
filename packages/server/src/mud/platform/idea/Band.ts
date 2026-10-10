@@ -51,7 +51,6 @@ export default class Band extends NamedMixin(SingletonMixin(Idea)) {
     traffic: { persistent: true, authorable: true },
     hazards: { persistent: true, authorable: true },
     stock: { persistent: true, authorable: true },
-    outsideDescription: { persistent: true, authorable: true },
     endpoints: { persistent: true, authorable: true },
     setKn: { persistent: true, authorable: true },
     gearHardness: { persistent: true, authorable: true },
@@ -76,8 +75,6 @@ export default class Band extends NamedMixin(SingletonMixin(Idea)) {
   protected gearHardness = 0;
   /** A confined corridor (a channel over a bar): a linear node rides it. */
   protected confined = false;
-  /** What it looks like from outside — a fogbank seen from clear water. */
-  protected outsideDescription = '';
 
   private cachedExtent: BandExtent | null = null;
 
@@ -128,9 +125,6 @@ export default class Band extends NamedMixin(SingletonMixin(Idea)) {
 
   public isConfined(): boolean { return this.confined; }
   public setConfined(v: boolean): void { this.confined = v === true; }
-
-  public getOutsideDescription(): string { return this.outsideDescription; }
-  public setOutsideDescription(v: string): void { this.outsideDescription = (v ?? '').trim(); }
 
   /** Is `pos` inside this band? */
   public contains(pos: GeoPosition): boolean {

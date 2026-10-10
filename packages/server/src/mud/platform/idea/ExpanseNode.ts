@@ -38,14 +38,12 @@ export default class ExpanseNode extends PositionedMixin(
     passage: { persistent: true, authorable: true },
     destination: { persistent: true, authorable: true },
     along: { persistent: true, authorable: true },
-    outsideDescription: { persistent: true, authorable: true },
   };
 
   protected kind: NodeKind = 'passage';
   protected passage: PassageKind | null = 'areal';
   protected destination: string | null = null;
   protected along: string | null = null;
-  protected outsideDescription = '';
 
   public getKind(): NodeKind { return this.kind; }
   public setKind(v: NodeKind): void {
@@ -70,9 +68,6 @@ export default class ExpanseNode extends PositionedMixin(
   /** The confined band a linear passage rides; required when linear. */
   public getAlong(): string | null { return this.along; }
   public setAlong(v: string | null): void { this.along = v ?? null; }
-
-  public getOutsideDescription(): string { return this.outsideDescription; }
-  public setOutsideDescription(v: string): void { this.outsideDescription = (v ?? '').trim(); }
 
   public isLinear(): boolean {
     return this.kind === 'passage' && this.passage === 'linear';

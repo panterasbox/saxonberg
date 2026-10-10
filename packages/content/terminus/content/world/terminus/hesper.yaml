@@ -11,5 +11,5 @@ class: /platform/idea/location/CartesianZone
 data:
   name: The Hesper
   cellSize: 4.0
-  # From her deck the city is a smudge; no tower is in sight at sea.
-  visibleLandmarks: []
+  # No `horizon`: afloat, what is in view is COMPUTED from two heights
+  # (maritime R4) — nothing is named.

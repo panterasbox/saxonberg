@@ -1565,10 +1565,10 @@ keyword `horizon` renamed (the seed would shadow it).
 
 ### Waves
 
-- **C1 — subtraction.** R1 (Visible Structure, `landmark`), R2, the
+- ✅ **C1 — subtraction.** R1 (Visible Structure, `landmark`), R2, the
   `outsideDescription` deletions, `Crossing` → `Street`. Tests: Structure
   is Visible; look appends nothing. Commit `build(maritime C1): …`.
-- **C2 — the horizon.** R3, R4, R5. Tests: land scan (a named zone's
+- ✅ **C2 — the horizon.** R3, R4, R5. Tests: land scan (a named zone's
   landmark admitted from a sky-exposed room, refused from an interior and
   by `[]`, reach by height vs zone extent), sea scan (contacts), the seed
   in MQL, `look horizon` featured/also-make-out. Commit `…C2`.
@@ -1585,6 +1585,64 @@ keyword `horizon` renamed (the seed would shadow it).
   horizon scope), mql-grammar.md (the seed), weather.md (the positional
   lean), zone.md (`horizon`). Re-drive cold to green; `pnpm test` before
   pushing. Commit `drive(maritime): …`.
+
+### Revision 1 — build log
+
+*(Decisions the revision's build made that R1–R12 did not are marked
+**B-n**, continuing the main log's numbering.)*
+
+- ✅ **C1 + C2, one commit.** They had to land together: C1's new
+  `Location.horizon`/`featured` fields have their only reader in C2, and
+  `lint:unconsumed-seams` refuses a field nothing else reads. The census
+  reads `featured` and `horizon` in place of `overlooks`/`visibleLandmarks`.
+  - Structure composes `DetailedMixin(VisibleMixin(PerceptibleMixin(…)))`.
+    **B-38:** `Perceptible` too, because `keywords` is that mixin's field
+    (the `Material` precedent, `PerceptibleMixin(Idea)`); without it
+    `horizon:tower` could not match and the rows' `keywords` were orphan
+    keys (`lint:instanceable` invariant 12). The terminal row drops its
+    Named `name` so it presents as *the terminal clock tower* (a Named
+    name outranks the short description).
+  - **B-39 (R2 reversed in part):** the `Crossing` location class STAYS.
+    It predates this build, and its live `tower` detail (the civic time,
+    which Gus's slow watch disagrees with) is exactly what the
+    requirements keep: *a venue that mentions the tower does so in its own
+    words, for its own reason* — the user's own example was *a clock tower
+    tells time*. Lens 2 (the bespoke case without breaking) decided it.
+  - The voyage's automatic sightings and landmark fixes went in C1, not
+    C5: deleting them is subtraction. The beat keeps the crossing report
+    (interim: the frame's `readAt` answers nothing until C5's delta),
+    arrival and neglect.
+  - **B-40:** the MQL resolver is SYNCHRONOUS and the horizon is not
+    (catalogue rows, structure singletons, the zone walk). So
+    `PerceptionApi.horizonFor` (async) computes and remembers per viewer;
+    the `horizon` seed reads `peekHorizon`; and the command binder awaits
+    a new `MqlApi.prepare(raw, giver)` before resolving any object field
+    (it recomputes the horizon when the query names the seed).
+  - **B-41:** a bare `horizon` names a WHOLE SCOPE (`MqlApi.namesWholeScope`):
+    the binder binds no stuff, keeps the raw, and skips `onExcess: prompt`
+    — otherwise `look horizon` asked *"which target?"*. `LookController`
+    surveys it.
+  - **B-42:** `StructureCatalogue` warms LAZILY, with no `onCreate` and no
+    boot entry. An eager warm was tried and refused: `lint:on-create`'s
+    ceiling may not exceed its landing census (82), and the
+    `LocationGraphRegistry` argument holds — nothing reads the horizon at
+    boot; `horizonFor` awaits `all()`, which stands every Structure up.
+  - **B-43:** a load-time cycle (Visible → MQL subscription → resolver →
+    PerceptionLogic → ExpanseApi → StructureCatalogue → Structure →
+    Visible) is broken the `WeatherLogic` way: `horizonAtSea` /
+    `horizonAshore` `await import(…)` ExpanseApi, BiomeApi and Location.
+  - **B-44 (the derivation, a grain):** a zone's span is
+    `CartesianZone.getExtentM()` — cell size × the larger side of its
+    resident grid's bounding box, remembered at its widest (an evicted
+    corner room does not shrink the avenue); a non-gridded zone answers
+    `null`. Distance from inside a named zone is half its span, from
+    another zone half of each; a structure is in view when
+    `(heightM + |Δelevation|) × perception.horizonRatio (20) ≥ distance`.
+    Elevation either way helps — a high viewer sees over roofs, a high
+    tower stands over them.
+  - At sea `look horizon` gives a compass point and a rough range
+    (*to the north-east, some 3 miles off*) — a glance. The bearing worth
+    fixing by is C4's `measure bearing`.
 
 ## Build log
 

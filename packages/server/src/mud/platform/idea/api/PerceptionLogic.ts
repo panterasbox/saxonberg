@@ -36,6 +36,11 @@ import { LIGHT_BANDS } from '../../../lib/perception/Light';
 // subsystem into this module's eval.
 import type { VisionModality } from '../modalities/VisionModality';
 import type { SearchDepth } from '../../../api/perception';
+import type { HorizonView, HorizonSighting, HorizonTraffic } from '../../../api/perception';
+import { WorldClockApi } from '../../../api/worldclock';
+import { TemplatePaths } from '../../../lib/paths';
+import type StructureCatalogue from '../StructureCatalogue';
+import type { SpatialZone } from '../../../lib/zone/SpatialZone';
 
 /** Template-path prefix shared by every modality singleton. */
 const MODALITY_PREFIX = TemplatePathPrefixes.perceptionModalities;
@@ -510,6 +515,23 @@ export class PerceptionLogic extends ApiLogic {
     stealthBand: CompetenceBandName,
   ): ConcealmentLevel {
     return hideLevelForImpl(actor, stealthBand);
+  }
+
+  /** Each viewer's last horizon (runtime), keyed by stuffId. */
+  private readonly horizons = new Map<string, Stuff[]>();
+
+  /** See {@link PerceptionApi.horizonFor}. */
+  @CallSecurity(PerceptionApiCallers)
+  public async horizonFor(viewer: Stuff): Promise<HorizonView> {
+    const view = (await horizonAtSea(viewer)) ?? (await horizonAshore(viewer));
+    this.horizons.set(viewer.stuffId, view.things.map((t) => t.stuff));
+    return view;
+  }
+
+  /** See {@link PerceptionApi.peekHorizon}. */
+  @CallSecurity(PerceptionApiCallers)
+  public peekHorizon(viewer: Stuff): Stuff[] {
+    return (this.horizons.get(viewer.stuffId) ?? []).filter((s) => !s.isDestroyed());
   }
 
   /** See {@link PerceptionApi.resolveSearch}. */
@@ -1086,4 +1108,82 @@ function hintsForImpl(viewer: Stuff, scope: readonly Stuff[]): Stuff[] {
     if (gap <= cutoff) out.push(cand);
   }
   return out;
+}
+
+/* ───────────────────────── the horizon (maritime R4) ───────────────────────── */
+
+const EMPTY_HORIZON: HorizonView = { things: [], traffic: [], atSea: false };
+
+/**
+ * At sea: the viewer's root is a craft on an expanse, and the range is
+ * COMPUTED from two heights — the viewer's eye (a lookout seat is the
+ * masthead) and each target's. `null` when the viewer is not afloat.
+ */
+async function horizonAtSea(viewer: Stuff): Promise<HorizonView | null> {
+  // ⚠ Deferred, the WeatherLogic way: the MQL pipeline reaches this module
+  // eagerly (its predicates and the `horizon` seed), and the expanse's
+  // catalogue → Structure → Visible chain would close a load-time cycle.
+  const { ExpanseApi } = await import('../../../api/expanse');
+  const root = MixinApi.isContainable(viewer) ? viewer.getRootContainer() ?? viewer : viewer;
+  const craft = await ExpanseApi.craftAt(root.getTemplatePath() ?? '');
+  if (craft === null || craft.getExpansePosition() === null) return null;
+  const expanse = MixinApi.isVoyaging(craft) ? await craft.liveExpanse() : null;
+  if (expanse === null) return null;
+  const hour = Math.floor(WorldClockApi.getNow().rawValue() / 3600);
+  const things: HorizonSighting[] = [];
+  const traffic: HorizonTraffic[] = [];
+  for (const c of await expanse.contactsFrom(craft, viewer, 'visual', hour)) {
+    if (c.craft) things.push({ stuff: c.craft, bearingDeg: c.bearingDeg, rangeNm: c.rangeNm });
+    else traffic.push({ name: c.name, bearingDeg: c.bearingDeg, rangeNm: c.rangeNm });
+  }
+  return { things, traffic, atSea: true };
+}
+
+/**
+ * Ashore: the nearest `horizon` declaration names ZONES; a Structure in
+ * one is in view when the room is open to the sky and its height — plus
+ * the elevation between — clears the distance the zones' size implies.
+ *
+ * ⭐ Distance is approximated from the zones' extents in metres (cell size
+ * × the grid's span): from inside a named zone, half its span; from
+ * another zone, half of each. Crude by design — a grain, tuned by
+ * `perception.horizonRatio`, which optics widen later.
+ */
+async function horizonAshore(viewer: Stuff): Promise<HorizonView> {
+  // ⚠ Deferred for the same cycle as `horizonAtSea`.
+  const { BiomeApi } = await import('../../../api/biome');
+  const { default: Location } = await import('../../../lib/stuff/Location');
+  const room = MixinApi.isContainable(viewer) ? viewer.getContainer() : null;
+  // `instanceof Location` is the shipped narrowing (CombatLogic's extent read).
+  if (!(room instanceof Location) || !MixinApi.isContainer(room)) return EMPTY_HORIZON;
+  if (!BiomeApi.isSkyExposed(room)) return EMPTY_HORIZON;
+  const zone = room.getZone() as SpatialZone | null;
+  const own = room.getHorizon();
+  const named = own ?? (zone ? await zone.lookupField<string[]>('horizon') : null);
+  if (!Array.isArray(named) || named.length === 0) return EMPTY_HORIZON;
+
+  const cat = await StuffApi.singleton<StructureCatalogue>(TemplatePaths.structureCatalogue);
+  await cat.all();
+  const here = room.getTemplatePath() ?? '';
+  const ratio = dialNumber('perception.horizonRatio', 20);
+  const myExtent = zone?.getExtentM() ?? 0;
+  const myElev = zone ? (await zone.lookupField<number>('elevation')) ?? 0 : 0;
+
+  const things: HorizonSighting[] = [];
+  const seen = new Set<string>();
+  for (const zonePath of named) {
+    const target = StuffApi.findByTemplatePath<SpatialZone>(zonePath);
+    const theirExtent = target?.getExtentM() ?? 0;
+    const theirElev = target ? (await target.lookupField<number>('elevation')) ?? 0 : 0;
+    const within = here === zonePath || here.startsWith(`${zonePath}/`);
+    const distanceM = within ? theirExtent / 2 : (myExtent + theirExtent) / 2;
+    for (const s of cat.structuresIn(zonePath)) {
+      if (seen.has(s.stuffId) || s.hasMember(here)) continue;
+      const clearanceM = s.getHeightM() + Math.abs(theirElev - myElev);
+      if (clearanceM * ratio < distanceM) continue;
+      seen.add(s.stuffId);
+      things.push({ stuff: s, bearingDeg: null, rangeNm: null });
+    }
+  }
+  return { things, traffic: [], atSea: false };
 }

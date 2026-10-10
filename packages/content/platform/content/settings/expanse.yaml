@@ -26,3 +26,9 @@ settings:
   # uncertainty per hour under way.
   - key: expanse.reckoningGrowthNmPerHour
     value: "0.5"
+  # ⭐ The horizon ashore (maritime R4): a structure in a named zone is in
+  # view when its height plus the elevation between clears the distance
+  # the zones' size implies, divided by this. 20 puts a 25 m tower in view
+  # across half a kilometre of roofs. A crude dial; optics widen it later.
+  - key: perception.horizonRatio
+    value: "20"

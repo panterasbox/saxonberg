@@ -12,7 +12,10 @@ data:
   name: the Hesper
   extent: /world/terminus/hesper
   entrance: /world/terminus/hesper/deck
-  outsideDescription: >-
+  shortDescription: Hesper
+  register: definite
+  keywords: [hesper, ketch, ship, vessel]
+  longDescription: >-
     A black-hulled ketch, two masts and a long bowsprit, her name in white
     across the transom: the Hesper.
   heightM: 18

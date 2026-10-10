@@ -9,6 +9,3 @@ data:
   destination: /world/terminus/estuary/pool
   expansePosition: { latDeg: 42.006, lonDeg: -8.455 }
   expanse: /stuff/idea/WaterExpanse/greywater
-  outsideDescription: >-
-    Inside the headland the pool lies green and still, a cove you could
-    swim across, cut off from the swell by a shoulder of rock.

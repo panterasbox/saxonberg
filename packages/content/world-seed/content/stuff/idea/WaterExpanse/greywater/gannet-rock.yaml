@@ -9,6 +9,3 @@ data:
   destination: /world/terminus/gannet-rock/landing
   expansePosition: { latDeg: 42.180, lonDeg: -8.150 }
   expanse: /stuff/idea/WaterExpanse/greywater
-  outsideDescription: >-
-    Gannet Rock stands up out of the sea white with birds, a lighthouse on
-    its crown.

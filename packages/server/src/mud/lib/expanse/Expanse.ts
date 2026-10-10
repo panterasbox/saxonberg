@@ -116,15 +116,12 @@ export abstract class Expanse extends SingletonMixin(SpatialZone) {
   static fieldMeta: FieldMeta = {
     prevailingDeg: { persistent: true, authorable: true },
     trafficDefault: { persistent: true, authorable: true },
-    outsideDescription: { persistent: true, authorable: true },
   };
 
   /** The prevailing wind, degrees FROM — where no band leans. */
   protected prevailingDeg = 225;
   /** 0..1 — traffic where no band says otherwise. */
   protected trafficDefault = 0.1;
-  /** What it looks like from the shore. */
-  protected outsideDescription = '';
 
   /** Runtime only: the craft currently on this expanse. */
   private craftSet = new Set<Stuff & Positioned>();
@@ -142,9 +139,6 @@ export abstract class Expanse extends SingletonMixin(SpatialZone) {
   public setTrafficDefault(v: number): void {
     this.trafficDefault = Math.max(0, Math.min(1, Number(v) || 0));
   }
-
-  public getOutsideDescription(): string { return this.outsideDescription; }
-  public setOutsideDescription(v: string): void { this.outsideDescription = (v ?? '').trim(); }
 
   /* ───────────────────────── the rows ───────────────────────── */
 
@@ -182,12 +176,12 @@ export abstract class Expanse extends SingletonMixin(SpatialZone) {
   /**
    * The water (or the sand, or the ice) at `pos`, in words — what a
    * boundary crossing reports and what the deck reads. Never a position:
-   * *the field alone is evidence*. The frame answers the narrowest band's
-   * outside description; a medium tier says more (the sea state).
+   * *the field alone is evidence*. The frame has no medium to describe and
+   * answers nothing; a medium tier derives it (the sea state). ⛔ No band
+   * authors prose (maritime R9).
    */
-  public async readAt(pos: GeoPosition, _scope: Stuff | null): Promise<string> {
-    const f = await this.fieldAt(pos);
-    return f.band?.getOutsideDescription() || this.outsideDescription || '';
+  public async readAt(_pos: GeoPosition, _scope: Stuff | null): Promise<string> {
+    return '';
   }
 
   /**

@@ -47,6 +47,27 @@ describe('Structure', () => {
     expect(s.sightHeightFor(makeStuff(() => new Structure()))).toBe(3);
   });
 
+  it('⭐ a structure is Visible and Detailed — described the ordinary way, no second "outside" field', () => {
+    const s = makeStuff(() => new Structure());
+    expect(MixinApi.isVisible(s)).toBe(true);
+    expect(MixinApi.isDetailed(s)).toBe(true);
+    s.setShortDescription('terminal clock tower');
+    expect(s.getShortDescription()).toBe('terminal clock tower');
+    expect(s.isLandmark()).toBe(false);
+    s.setLandmark(true);
+    expect(s.isLandmark()).toBe(true);
+  });
+
+  it('the catalogue reads the landmark flag off the row', async () => {
+    vi.spyOn(Template, 'findByClass').mockResolvedValue([
+      { path: '/test/t/structure', data: { extent: '/test/t', landmark: true } },
+      { path: '/test/u/structure', data: { extent: '/test/u' } },
+    ] as unknown as Template[]);
+    const cat = makeStuff(() => new StructureCatalogue());
+    expect((await cat.rowOf('/test/t/structure'))?.landmark).toBe(true);
+    expect((await cat.rowOf('/test/u/structure'))?.landmark).toBe(false);
+  });
+
   it('the catalogue answers the structure a place is in by the longest extent', async () => {
     vi.spyOn(Template, 'findByClass').mockResolvedValue([
       { path: '/test/a/structure', data: { extent: '/test/a' } },

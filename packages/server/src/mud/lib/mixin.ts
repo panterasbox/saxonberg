@@ -320,8 +320,6 @@ export const Mixins = {
   Voyaging: 'VoyagingMixin',
   // A written thing whose reading writes `charted` claims (a chart).
   Charted: 'ChartedMixin',
-  // A thing that adds a line to its room's prose on `look` (Shore, Vantage).
-  RoomContributor: 'RoomContributorMixin',
   DoorBearing: 'DoorBearingMixin',
   Adornable: 'AdornableMixin',
   Adornment: 'AdornmentMixin',

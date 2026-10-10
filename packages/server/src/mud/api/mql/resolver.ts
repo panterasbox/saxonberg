@@ -26,6 +26,7 @@ import { MixinApi } from '../mixin';
 import { Warren } from '../../lib/location/Warren';
 import { PathPatternApi } from '../path-pattern';
 import { StuffApi } from '../stuff';
+import { PerceptionApi } from '../perception';
 import {
   ExecutionContextApi,
   OMNI_SCOPE,
@@ -468,6 +469,9 @@ function resolveKeywordSeed(node: KeywordsNode, ctx: MqlContext): MqlMatch[] {
         candidatesForPerson(requireGiver(ctx, "'person'"), ctx.attention),
       );
     }
+    if (w === 'horizon') {
+      return candidatesToMatches(candidatesForHorizon(ctx));
+    }
   }
   // Otherwise: keyword search against the field's scope.
   return scopeKeywordSearch(node.words, ctx);
@@ -755,6 +759,7 @@ function candidatesForScopePart(
       ctx.attention,
     );
   }
+  if (lower === 'horizon') return candidatesForHorizon(ctx);
   if (lower === 'online') {
     // Ungated for the same reason as the seed promotion above —
     // who's online is normal social fabric, not privacy-tier info.
@@ -792,6 +797,18 @@ function candidatesForScopePart(
     return found ? candidatesForFlat([found], ctx.commandGiver, ctx.attention) : [];
   }
   return null;
+}
+
+/**
+ * ⭐ The `horizon` scope (maritime R4): what the giver can see from where
+ * they stand that is NOT in their room — a fixed pool, like `here`. The
+ * resolver is synchronous and the horizon is not, so this reads the
+ * giver's last computed horizon; `MqlApi.prepare` recomputes it before a
+ * query naming the seed is resolved.
+ */
+function candidatesForHorizon(ctx: MqlContext): ScopeCandidate[] {
+  const giver = requireGiver(ctx, "the 'horizon' scope");
+  return candidatesForFlat(PerceptionApi.peekHorizon(giver), giver, ctx.attention);
 }
 
 function candidatesForHereScope(ctx: MqlContext): ScopeCandidate[] {
@@ -836,6 +853,7 @@ const NAMED_SEED_KEYWORDS: ReadonlySet<string> = new Set([
   'peers',
   'reachable',
   'person',
+  'horizon',
 ]);
 
 /**

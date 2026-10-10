@@ -62,7 +62,7 @@ export abstract class SpatialZone extends Zone {
     groundCharacter: { persistent: true, authorable: true },
     celestialProfile: { persistent: true, authorable: true },
     suppressesMagic: { persistent: true, authorable: true },
-    visibleLandmarks: { persistent: true, authorable: true },
+    horizon: { persistent: true, authorable: true },
   };
 
   /**
@@ -239,25 +239,35 @@ export abstract class SpatialZone extends Zone {
   }
 
   /**
-   * ⭐ **The Structures visible from anywhere in this region** — template
-   * paths of `Structure` rows whose outside description `look` appends to
-   * every room the zone walk reaches, or `null` to walk on.
+   * ⭐ **The ZONES scanned from here** — `look horizon`'s authority
+   * (maritime R3): template paths of zones whose Structures may be in
+   * view, or `null` to walk on up the tree.
    *
-   * Landmark visibility is REGIONAL, not per-room: the clock tower is seen
-   * from the whole avenue, so one declaration on the avenue's zone covers
-   * every room in it, and the tower's sentence is authored once on the
-   * tower. An authored `[]` is an answer — *nothing is visible from here*
-   * — and stops the walk, which is how an interior under a region that
-   * sees the tower says it does not.
+   * Zones, because a zone is an authorial partition — whoever owns it owns
+   * everything in it — so naming one says *what over there may be seen*
+   * without naming every tower in it. One declaration on the avenue covers
+   * every room in it; a nested zone or a room narrows it; an authored `[]`
+   * is an answer — *nothing from in here* — and stops the walk.
    *
-   * Every land range is authored here; only at sea does the engine compute
-   * one (`ExpanseApi.sightRangeNm`), because ashore obstruction binds and
-   * at sea curvature does.
+   * ⭐ WHETHER a structure in a named zone is in view is derived, never
+   * authored: the viewer's room must be open to the sky, and its height
+   * must clear the distance the zones' size in metres implies
+   * (`PerceptionApi.horizonFor`). At sea nothing is named at all — the
+   * range is computed from two heights (`Expanse.contactsFrom`).
    */
-  protected visibleLandmarks: string[] | null = null;
+  protected horizon: string[] | null = null;
 
-  public getVisibleLandmarks(): string[] | null { return this.visibleLandmarks; }
-  public setVisibleLandmarks(value: string[] | null): void {
-    this.visibleLandmarks = value ?? null;
+  public getHorizon(): string[] | null { return this.horizon; }
+  public setHorizon(value: string[] | null): void {
+    this.horizon = Array.isArray(value) ? value.map((p) => String(p)) : null;
+  }
+
+  /**
+   * This zone's span in metres, or `null` when it cannot say — what the
+   * horizon reads as distance (maritime R4). The frame knows no geometry;
+   * a gridded zone derives it from its cell size and its rooms.
+   */
+  public getExtentM(): number | null {
+    return null;
   }
 }

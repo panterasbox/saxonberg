@@ -72,7 +72,6 @@ import type { LocationZone } from '../lib/zone/LocationZone';
 import type { Positioned } from '../lib/expanse/Positioned';
 import type { Voyaging } from '../lib/expanse/Voyaging';
 import type { Charted } from '../lib/expanse/Charted';
-import type { RoomContributor } from '../lib/description/RoomContributor';
 import type { DoorBearing } from '../lib/boundary/DoorBearing';
 import type { Adornable } from '../lib/boundary/Adornable';
 import type { Adornment } from '../lib/boundary/Adornment';
@@ -1285,10 +1284,6 @@ export class MixinApi {
 
   public static isCharted(obj: Stuff): obj is Stuff & Charted {
     return this.hasMixin(obj, Mixins.Charted);
-  }
-
-  public static isRoomContributor(obj: Stuff): obj is Stuff & RoomContributor {
-    return this.hasMixin(obj, Mixins.RoomContributor);
   }
 
   public static isDoorBearing(obj: Stuff): obj is Stuff & DoorBearing {

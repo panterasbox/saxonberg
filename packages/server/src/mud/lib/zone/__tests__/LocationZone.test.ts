@@ -31,12 +31,13 @@ describe('LocationZoneMixin', () => {
     expect(raw.getLocations).toBeUndefined();
   });
 
-  it('a frame still carries the region fields, landmarks included', () => {
+  it('a frame still carries the region fields — a horizon names zones; the frame has no extent', () => {
     const frame = makeStuff(() => new FixtureFrame());
-    frame.setVisibleLandmarks(['/test/x/tower']);
-    expect(frame.getVisibleLandmarks()).toEqual(['/test/x/tower']);
-    frame.setVisibleLandmarks([]);
-    expect(frame.getVisibleLandmarks()).toEqual([]);
+    frame.setHorizon(['/test/x']);
+    expect(frame.getHorizon()).toEqual(['/test/x']);
+    frame.setHorizon([]);
+    expect(frame.getHorizon()).toEqual([]);
+    expect(frame.getExtentM()).toBeNull();
   });
 
   it('addLocation still stamps the back-reference through the gate', () => {

@@ -13,8 +13,6 @@ data:
     x: 4
     y: 1
     z: 0
-  props:
-    - /world/terminus/estuary/thing/headland-view
   exits:
     south:
       destination: /world/terminus/estuary/strand

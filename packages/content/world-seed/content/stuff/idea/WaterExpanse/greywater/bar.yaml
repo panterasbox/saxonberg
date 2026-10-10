@@ -15,6 +15,3 @@ data:
   destination: /world/terminus/estuary/estuary-mouth
   expansePosition: { latDeg: 42.000, lonDeg: -8.470 }
   expanse: /stuff/idea/WaterExpanse/greywater
-  outsideDescription: >-
-    The bar shows as a line of broken water across the mouth, white where
-    the swell trips over it.

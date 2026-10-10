@@ -187,10 +187,11 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
   ] as const) {
     push(f, data[f]);
   }
-  // ⭐ The maritime lists: a band's `endpoints`, a vantage's `overlooks`,
-  // a region's `visibleLandmarks`, and the rows a chart or pilot's
-  // `entries` cite. A rowless one is a sight-line to nothing.
-  for (const f of ['endpoints', 'overlooks', 'visibleLandmarks'] as const) {
+  // ⭐ The maritime lists: a band's `endpoints`, a room's `featured`
+  // structures, and the rows a chart or pilot's `entries` cite. A rowless
+  // one is a sight-line to nothing. (A `horizon` names ZONES, which are
+  // rows too.)
+  for (const f of ['endpoints', 'featured', 'horizon'] as const) {
     if (Array.isArray(data[f])) for (const v of data[f] as unknown[]) push(f, v);
   }
   if (Array.isArray(data.entries)) {

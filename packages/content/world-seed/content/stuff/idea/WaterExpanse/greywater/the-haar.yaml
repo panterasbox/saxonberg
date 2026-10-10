@@ -17,6 +17,3 @@ data:
     lonMaxDeg: -8.100
   lean: { directionDeg: 180, strengthMps: 0.5 }
   gearHardness: 0.1
-  outsideDescription: >-
-    A haar lies on the water, a cold grey fog that makes a wall of
-    everything past a cable.

@@ -26,13 +26,15 @@
  *    sea state), never by a position;
  * 2. **arrival** — a course set for a node arrives when the track passes
  *    within `expanse.arrivalNm` of it; a bare bearing never arrives;
- * 3. **a landmark is a free fix** — a fixed tall thing in sight corrects
- *    the reckoning;
- * 4. **sightings** — craft and seeded traffic in range, from the
- *    lookout's height if the seat is manned;
- * 5. **neglect** — the gear on deck wears by the water's hardness and
+ * 3. **neglect** — the gear on deck wears by the water's hardness and
  *    roughness, at a quarter of that when the watch is manned. Nothing
  *    new persists: the gear remembers.
+ *
+ * ⛔ **What it does NOT do (maritime R9): see or fix anything.** Noticing
+ * a sail is the lookout's job (`watch horizon`, the `keeps-watch` brain)
+ * and fixing the position is the navigator's (`measure bearing`). A beat
+ * that announced them made both seats decorative — the engine doing the
+ * player's job.
  *
  * Nothing is drawn. Crossings are exact; traffic is seeded.
  */
@@ -76,11 +78,6 @@ function numSetting(key: string, fallback: number): number {
   }
 }
 
-/** `070` — a bearing as a navigator writes it. */
-function bearingWords(deg: number): string {
-  return `${String(Math.round(((deg % 360) + 360) % 360)).padStart(3, '0')}`;
-}
-
 export class Voyage implements SustainedEngagement {
   engagementId = '';
   readonly type = VOYAGE_TYPE;
@@ -96,10 +93,6 @@ export class Voyage implements SustainedEngagement {
   private lastBeatS: number;
   private beating = false;
   private ended = false;
-  /** Contacts already reported this voyage (runtime). */
-  private readonly told = new Set<string>();
-  /** Landmarks already fixed from this voyage (runtime). */
-  private readonly fixedFrom = new Set<string>();
 
   constructor(craft: Craft) {
     this.actor = craft;
@@ -183,25 +176,7 @@ export class Voyage implements SustainedEngagement {
       }
     }
 
-    // 3 & 4. What is in sight — from the lookout's height if the seat is manned.
-    const observer = lookoutAmong(craft, aboard) ?? aboard[0] ?? craft;
-    const hour = Math.floor(nowS / 3600);
-    const contacts = await expanse.contactsFrom(craft, observer, 'visual', hour);
-    for (const c of contacts) {
-      if (c.craft && c.fixed) {
-        if (this.fixedFrom.has(c.craft.stuffId)) continue;
-        this.fixedFrom.add(c.craft.stuffId);
-        craft.takeFix(pos, 0.2);
-        tell(`${capitalize(c.name)} is in sight, bearing ${bearingWords(c.bearingDeg)}; you fix your position by it.`);
-        continue;
-      }
-      const key = c.craft ? c.craft.stuffId : `seeded:${c.name}:${hour}`;
-      if (this.told.has(key)) continue;
-      this.told.add(key);
-      tell(`A sail: ${c.name}, bearing ${bearingWords(c.bearingDeg)}, perhaps ${Math.round(c.rangeNm)} miles off.`);
-    }
-
-    // 5. Neglect — the gear remembers.
+    // 3. Neglect — the gear remembers.
     const field = await expanse.fieldAt(pos);
     const hardness = field.band?.getGearHardness() ?? 0;
     const rough = await expanse.roughnessAt(pos, deck);
@@ -270,20 +245,6 @@ function isManned(deck: Stuff | null): boolean {
   });
 }
 
-/** Whoever aboard sees from highest — the lookout on shift, if any. */
-function lookoutAmong(craft: Craft, aboard: Stuff[]): Stuff | null {
-  let best: Stuff | null = null;
-  let bestH = -Infinity;
-  for (const who of aboard) {
-    const h = craft.sightHeightFor(who);
-    if (h > bestH) {
-      best = who;
-      bestH = h;
-    }
-  }
-  return best;
-}
-
 /** The nearest the segment `a → b` comes to `p`, nautical miles. */
 function closestApproachNm(a: GeoPosition, b: GeoPosition, p: GeoPosition): number {
   const ab = a.offsetTo(b);
@@ -299,8 +260,4 @@ async function hazardNames(paths: string[]): Promise<string[]> {
     const name = (rows.get(p)?.data as Record<string, unknown> | undefined)?.name;
     return typeof name === 'string' && name !== '' ? name : (p.split('/').pop() ?? p).replace(/-/g, ' ');
   });
-}
-
-function capitalize(s: string): string {
-  return s.length > 0 ? s[0]!.toUpperCase() + s.slice(1) : s;
 }

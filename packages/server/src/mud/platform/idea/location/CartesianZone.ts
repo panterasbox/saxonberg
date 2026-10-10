@@ -53,6 +53,31 @@ export default class CartesianZone extends SingletonMixin(LocationZoneMixin(Spat
 
   public getGrid(): ReadonlyMap<string, Location> { return this.grid; }
 
+  /** The widest span the grid has shown, in cells (runtime; it only grows). */
+  private spanCells = 0;
+
+  /**
+   * ⭐ This zone's span in metres (maritime R4): cell size × the larger
+   * side of the bounding box of the rooms on its grid. Read off the rooms
+   * that are resident, and REMEMBERED at its widest — a room evicted from
+   * the far corner does not make the avenue shorter. A zone with one room
+   * (or none yet) is one cell across.
+   */
+  public override getExtentM(): number {
+    let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+    for (const key of this.grid.keys()) {
+      const [x, y] = key.split(',').map(Number) as [number, number];
+      if (x < minX) minX = x;
+      if (x > maxX) maxX = x;
+      if (y < minY) minY = y;
+      if (y > maxY) maxY = y;
+    }
+    if (Number.isFinite(minX)) {
+      this.spanCells = Math.max(this.spanCells, maxX - minX + 1, maxY - minY + 1);
+    }
+    return Math.max(1, this.spanCells) * this.cellSize;
+  }
+
   /**
    * True iff the supplied coordinates currently host a room in this
    * zone's grid. When `room` is provided, the check tightens to "is

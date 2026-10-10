@@ -24,8 +24,8 @@ class: /platform/idea/location/CartesianZone
 data:
   name: The Estuary
   cellSize: 20.0
-  # ⭐ The terminal's clock tower is visible from the whole of this region
-  # (maritime D24) — described once, on the tower; an interior below that
-  # cannot see it says so with `visibleLandmarks: []`.
-  visibleLandmarks:
-    - /world/terminus/terminal/structure
+  # ⭐ The horizon from here (maritime R3) names the ZONE the terminal
+  # stands in; whether its clock tower is in view is derived (open sky,
+  # its height against the zones' size). Described once, on the tower.
+  horizon:
+    - /world/terminus/terminal

@@ -132,11 +132,9 @@ export default class WaterExpanse extends Expanse {
   public override async readAt(pos: GeoPosition, scope: Stuff | null): Promise<string> {
     const sea = await this.seaStateAt(pos, scope);
     const from = compass(sea.fromDeg);
-    let line = sea.words === 'calm'
+    const line = sea.words === 'calm'
       ? 'The sea is calm.'
       : `The sea is ${sea.words}${sea.steep ? ', short and steep' : ''}, running from the ${from}.`;
-    const own = (await this.fieldAt(pos)).band?.getOutsideDescription() ?? '';
-    if (own !== '') line += ` ${own}`;
     return line;
   }
 

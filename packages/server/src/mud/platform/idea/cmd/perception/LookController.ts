@@ -29,7 +29,10 @@ import type {
   CommandContext,
   CommandModel,
   } from '../../../../api/command';
-import type { MqlOneResult } from '../../../../api/mql';
+import { MqlApi, type MqlOneResult } from '../../../../api/mql';
+import type { HorizonView } from '../../../../api/perception';
+import Location from '../../../../lib/stuff/Location';
+import Structure from '../../Structure';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import { MixinApi } from '../../../../api/mixin';
 import { StuffApi } from '../../../../api/stuff';
@@ -50,8 +53,6 @@ import {
 } from '../../../../lib/perception/Light';
 import type { VisionModality } from '../../modalities/VisionModality';
 import { AppApi } from '../../../../api/app';
-import { TemplatePaths } from '../../../../lib/paths';
-import type StructureCatalogue from '../../StructureCatalogue';
 import { AppSettingKeys } from '../../../../lib/config/AppSettings';
 import type { Sensor } from '../../../../lib/message/Sensor';
 import type { Perception } from '../../../../lib/perception/Perception';
@@ -74,6 +75,11 @@ export default class LookController extends CommandController<LookModel> {
     // vase) and "you tried to look at a referent that didn't
     // resolve" (`look here` when you're placeless). MQL returns null
     // in both cases; consistency is intentional.
+    // ⭐ `look horizon` (maritime R5): the binder hands a whole scope over
+    // unpicked; survey it like a room.
+    if (target && target.stuff === null && MqlApi.namesWholeScope(target.raw ?? '')) {
+      return this.lookAtHorizon(context);
+    }
     if (!target || target.stuff === null) {
       const raw = target?.raw ?? '';
       MessageApi.scene(context.commandGiver)
@@ -100,6 +106,53 @@ export default class LookController extends CommandController<LookModel> {
       return this.lookAtLocation(context);
     }
     return this.lookAtTarget(target.stuff, context);
+  }
+
+  /**
+   * ⭐ The horizon, surveyed like a room (maritime R5): what is FEATURED
+   * first — a landmark, or a structure this room's author features — each
+   * by its short description, then *"You can also make out …"* for the
+   * rest, and at sea the passers-by in words. Each one can be drilled into
+   * with `look horizon:<it>`, whether or not this summary named it.
+   *
+   * At sea the direction is a compass point and the distance rough — what
+   * a glance gives. A bearing worth fixing by is `measure bearing`'s.
+   */
+  private async lookAtHorizon(context: CommandContext): Promise<void> {
+    const viewer = context.commandGiver;
+    const view: HorizonView = await PerceptionApi.horizonFor(viewer);
+    const room = context.location;
+    const featuredPaths = room instanceof Location ? room.getFeatured() : [];
+    const where = (b: number | null, r: number | null): string =>
+      b === null || r === null ? '' : `, ${compassPoint(b)}, ${roughMiles(r)}`;
+    const featured: Mml[] = [];
+    const rest: Mml[] = [];
+    for (const t of view.things) {
+      const isFeatured =
+        (t.stuff instanceof Structure && t.stuff.isLandmark()) ||
+        featuredPaths.includes(t.stuff.getTemplatePath() ?? '');
+      const line = Mml.compose`${Mml.thing(t.stuff, { form: 'presence' })}${where(t.bearingDeg, t.rangeNm)}`;
+      (isFeatured ? featured : rest).push(line);
+    }
+    for (const p of view.traffic) {
+      rest.push(Mml.compose`${p.name}${where(p.bearingDeg, p.rangeNm)}`);
+    }
+    const scene = MessageApi.scene(viewer).topic('sense.survey');
+    if (featured.length === 0 && rest.length === 0) {
+      scene.toSelf(Mml.compose`Nothing beyond where you stand catches the eye.`).send();
+      context.note({ kind: 'empty-result', field: 'target', query: 'horizon' });
+      return;
+    }
+    for (const f of featured) {
+      MessageApi.scene(viewer).topic('sense.survey').toSelf(Mml.compose`You can see ${f}.`).send();
+    }
+    if (rest.length > 0) {
+      const lead = featured.length > 0 ? 'You can also make out' : 'You can make out';
+      MessageApi.scene(viewer)
+        .topic('sense.survey')
+        .toSelf(Mml.compose`${lead} ${Mml.list(rest, { style: 'inline' })}.`)
+        .send();
+    }
   }
 
   /**
@@ -454,19 +507,6 @@ export default class LookController extends CommandController<LookModel> {
     if (opened) scene.meta({ carded: opened });
     scene.toSelf(body).send();
 
-    // ⭐⭐ What can be SEEN from here, and what the room's contents say in
-    // its voice (maritime D24) — its own uncarded scene, for the reason
-    // the light line and the notices ride one: folded into `body` it would
-    // reach the card, which never renders handed prose. Landmarks first
-    // (the zone walk's `visibleLandmarks`, each described once on the
-    // structure itself), then every `RoomContributor` among the contents.
-    for (const line of await this.roomContributions(actor, location, visibleContents)) {
-      MessageApi.scene(actor)
-        .topic('sense.survey')
-        .toSelf(Mml.compose`${Mml.fromMarkup(line)}`)
-        .send();
-    }
-
     // ⭐ The notices ride their own scene, UNCARDED, so the transcript
     // keeps them. A card on a wall is a thing you NOTICE, not part of the
     // room's own description — which is why this reads correctly rather
@@ -479,54 +519,6 @@ export default class LookController extends CommandController<LookModel> {
     }
 
     return;
-  }
-
-  /**
-   * The lines a room gains from outside itself (maritime D24): the
-   * outside description of each landmark the zone walk names, then each
-   * contributing item's line.
-   *
-   * A landmark is skipped when the viewer is INSIDE it (you do not see the
-   * clock tower from its own stair). An authored `visibleLandmarks: []`
-   * stops the walk — *nothing is visible from here* — which is why the
-   * walk is `lookupField` and not a union. Every failure degrades to a
-   * missing line: a broken contributor must never take `look` down.
-   */
-  private async roomContributions(
-    actor: Stuff,
-    location: Stuff,
-    visibleContents: readonly Stuff[],
-  ): Promise<string[]> {
-    const lines: string[] = [];
-    const here = location.getTemplatePath() ?? '';
-    const zone = location.getZone();
-    const landmarks = zone ? await zone.lookupField<string[]>('visibleLandmarks') : null;
-    if (Array.isArray(landmarks) && landmarks.length > 0) {
-      try {
-        const cat = await StuffApi.singleton<StructureCatalogue>(
-          TemplatePaths.structureCatalogue,
-        );
-        for (const path of landmarks) {
-          const row = await cat.rowOf(path);
-          if (row === null || row.outsideDescription === '') continue;
-          const inside = row.extent !== '' &&
-            (here === row.extent || here.startsWith(`${row.extent}/`));
-          if (!inside) lines.push(row.outsideDescription);
-        }
-      } catch (err) {
-        console.warn('LookController: landmark walk failed:', err);
-      }
-    }
-    for (const item of visibleContents) {
-      if (!MixinApi.isRoomContributor(item)) continue;
-      try {
-        const line = await item.contributeToRoom(actor);
-        if (typeof line === 'string' && line.trim() !== '') lines.push(line.trim());
-      } catch (err) {
-        console.warn('LookController: a room contributor failed:', err);
-      }
-    }
-    return lines;
   }
 
   /**
@@ -773,4 +765,22 @@ export default class LookController extends CommandController<LookModel> {
     // all there is."
     return Mml.compose`── Obvious exits: ${joined}.`;
   }
+}
+
+const COMPASS_POINTS = [
+  'to the north', 'to the north-east', 'to the east', 'to the south-east',
+  'to the south', 'to the south-west', 'to the west', 'to the north-west',
+] as const;
+
+/** A bearing as a glance gives it — one of eight points. */
+function compassPoint(deg: number): string {
+  const i = Math.round((((deg % 360) + 360) % 360) / 45) % 8;
+  return COMPASS_POINTS[i]!;
+}
+
+/** A range as a glance gives it. */
+function roughMiles(nm: number): string {
+  if (nm < 1) return 'close by';
+  if (nm < 2) return 'about a mile off';
+  return `some ${Math.round(nm)} miles off`;
 }

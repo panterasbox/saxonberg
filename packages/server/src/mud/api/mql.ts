@@ -111,6 +111,25 @@ export class MqlApi {
     return logic().resolveMany(query, ctx);
   }
 
+  /**
+   * Make the synchronous resolver's warm reads current for `query`: a
+   * query naming the `horizon` seed recomputes the giver's horizon first
+   * (`PerceptionApi.horizonFor`). Everything else is a no-op. The command
+   * binder awaits this before resolving an object field.
+   */
+  static prepare(query: string, giver: Stuff | null): Promise<void> {
+    return logic().prepare(query, giver);
+  }
+
+  /**
+   * Does `query` name a whole scope — the bare `horizon` — rather than a
+   * thing? A verb asked about a scope surveys it instead of picking from
+   * it (`look horizon`).
+   */
+  static namesWholeScope(query: string): boolean {
+    return logic().namesWholeScope(query);
+  }
+
   // ⭐ There is no third resolve method. `world` is refused for
   // everybody here and permitted by the ENVIRONMENT — see
   // `CompactApi.readWorldAs` and `ExecutionContextApi.getWorldReadGrant`.

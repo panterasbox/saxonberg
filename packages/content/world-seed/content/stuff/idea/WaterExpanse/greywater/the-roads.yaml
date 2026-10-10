@@ -8,5 +8,3 @@ data:
   passage: areal
   expansePosition: { latDeg: 42.020, lonDeg: -8.400 }
   expanse: /stuff/idea/WaterExpanse/greywater
-  outsideDescription: >-
-    Outside the bar the roads lie open and grey, with room to swing.

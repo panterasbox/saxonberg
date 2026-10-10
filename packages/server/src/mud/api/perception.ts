@@ -47,6 +47,34 @@ import { fileURLToPath } from 'url';
  */
 export type SearchDepth = 'broad' | 'narrow' | 'glance';
 
+/** One thing in view beyond the room (maritime R4). */
+export interface HorizonSighting {
+  /** The structure or craft. */
+  stuff: Stuff;
+  /** Degrees true from the viewer, when it can be said (at sea). */
+  bearingDeg: number | null;
+  /** Nautical miles, at sea; `null` ashore (the zones give no number). */
+  rangeNm: number | null;
+}
+
+/**
+ * Seeded traffic in view at sea — a passer-by the world IS, with no object
+ * behind it, so it can be told in words and never looked at.
+ */
+export interface HorizonTraffic {
+  name: string;
+  bearingDeg: number;
+  rangeNm: number;
+}
+
+/** What `viewer` can see from where they stand that is not in their room. */
+export interface HorizonView {
+  things: HorizonSighting[];
+  traffic: HorizonTraffic[];
+  /** `true` at sea (ranges computed), `false` ashore (zones named). */
+  atSea: boolean;
+}
+
 const LOGIC_PATH = '/platform/idea/api/perception';
 const LOGIC_CLASS_FILE = fileURLToPath(
   new URL('../platform/idea/api/PerceptionLogic', import.meta.url)
@@ -421,6 +449,37 @@ export class PerceptionApi {
     depth: SearchDepth,
   ): Stuff[] {
     return logic().resolveSearch(viewer, scope, depth);
+  }
+
+  /**
+   * ⭐ **The horizon** (maritime R4) — what `viewer` can see from where
+   * they stand that is NOT in their room, recomputed now:
+   *
+   * - **at sea** (the viewer's root is a craft on an expanse): every craft
+   *   and fixed structure in range from the viewer's own eye height (the
+   *   lookout seat sees from the masthead), plus this hour's seeded
+   *   traffic in words;
+   * - **ashore**: the nearest `horizon` declaration (the room's, then the
+   *   zone walk) names ZONES; a Structure standing in one is in view when
+   *   the viewer's room is open to the sky and its height — plus the
+   *   elevation between — clears the distance the zones' size in metres
+   *   implies over `perception.horizonRatio`.
+   *
+   * ⛔ The viewer's own structure is never on its own horizon. Also keeps
+   * the result for {@link peekHorizon}, which the synchronous MQL seed
+   * reads.
+   */
+  public static horizonFor(viewer: Stuff): Promise<HorizonView> {
+    return logic().horizonFor(viewer);
+  }
+
+  /**
+   * The things `viewer`'s last {@link horizonFor} found — synchronous, for
+   * the MQL `horizon` seed (`MqlApi.prepare` refreshes it before a query
+   * that names the seed is resolved). Empty when never computed.
+   */
+  public static peekHorizon(viewer: Stuff): Stuff[] {
+    return logic().peekHorizon(viewer);
   }
 
   /**
