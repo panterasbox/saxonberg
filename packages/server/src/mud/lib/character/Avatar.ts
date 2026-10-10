@@ -255,6 +255,14 @@ export default abstract class Avatar extends AvatarBase {
       // verb belongs on `Avatar` beside `help`/`wiki`/`press` rather
       // than on the perception mixin that writes it.
       'platform/cmd/perception/map.yaml',
+      // ⭐⭐ `route` sits beside `map` for exactly the same reason, and
+      // it is the reason rather than the neighbourhood that matters:
+      // both read the PLAYER's own document under `/home/<self>`, and
+      // `Perceiver` is composed on NPCs too. An NPC may keep a map —
+      // a cartographer should — and gets no verb, because NPCs do not
+      // type. A brain plans through `NavigationApi` with the knowledge
+      // its author declared.
+      'platform/cmd/movement/route.yaml',
       "platform/cmd/system/ping.yaml",
       "platform/cmd/system/help.yaml",
       // The wiki sits beside `help` deliberately. Both are reference

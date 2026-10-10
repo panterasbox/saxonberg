@@ -599,8 +599,9 @@ until wound. The full spring installs lazily on first touch (a stored
 `reserves` record from hydrate is honoured wholesale), so no mixin
 constructor is needed.
 
-Two content verbs, both in the locality bundle
-(`domain/eternal/university-avenue/command/`):
+Two content verbs, both in the locality bundle — the views at
+`terminus/content/world/terminus/university-avenue/cmd/` and the
+controllers at `terminus/src/university-avenue/idea/cmd/`:
 
 - **`wind <timepiece>`** (`WindController`) — refills the mainspring to
   full; the movement resumes ticking.
@@ -609,12 +610,37 @@ Two content verbs, both in the locality bundle
   drift. There is no clock to sync to: the player reads the tower and
   dials it in by hand, which is exactly why it re-drifts.
 
+⭐⭐⭐ **The mixin is the GATE. `Watch` is the CONFERRER.** Both halves,
+because for the whole life of this locality only the first was written
+down — and `wind watch` answered *"I don't understand 'wind'"* to every
+player as a result.
+
 Both verbs gate on the **presence of `MechanicalMovementMixin`**, not on
 `instanceof Watch` — a local `MixinApi.hasMixin(s,
-Mixins.MechanicalMovement)` guard in the bundle's controllers (the
-verbs are the locality's, so the gate stays bundle-local rather than a
-global `MixinApi.is*` predicate). An accurate/aether timepiece composing plain `Timekeeping`
-affords neither verb, which is the whole point.
+Mixins.MechanicalMovement)` guard in the bundle's controllers (the verbs
+are the locality's, so the gate stays bundle-local rather than a global
+`MixinApi.is*` predicate). An accurate/aether timepiece composing plain
+`Timekeeping` fails that gate, which is the whole point.
+
+⚠⚠ What this paragraph used to end with was *"affords neither verb"* —
+and `Watch.ts`'s own docstring drew the conclusion out loud: *"the verbs
+are gated on the presence of `MechanicalMovementMixin`, so Watch
+contributes none."* Every clause of that is true except the conclusion.
+It picks the right GATE and then forgets to pick a CONFERRER, and since a
+verb reaches a player through `commandContributions` and nothing else
+(`command-routing.md:378-381`), the two verbs `CLAUDE.md` names as THE
+exemplar for domain-local commands had **never run once**. Their two
+siblings in the same directory (`Whistle.ts`, `CrossingLog.ts`) got it
+right, which is what made the omission invisible.
+
+The mixin cannot fix it for the class, either: it is kernel substrate
+(`lib/time/MechanicalMovement.ts`) and these views belong to the terminus
+locality, and a kernel class may never name a locality's or a trade's
+view (`command-routing.md:418-424`). So the pack's concrete timepiece
+carries the static — `Watch.commandContributions` names both views on
+`inventory` and `environment` — and a second mechanical timepiece in
+another pack composes the mixin for the gate and names its own pack's
+views. `lint:reachability` refuses the old state now.
 
 `Watch` (`.../university-avenue/Watch.ts`) is the concrete demonstrator —
 a brass hunter-cased pocket watch = `Sealable` (the lid; shut → dial

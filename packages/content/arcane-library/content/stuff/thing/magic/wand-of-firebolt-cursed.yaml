@@ -1,3 +1,27 @@
+# ⛔ `unreachable: awaiting:magic-items-slate`, and ⚠ a CORRECTION to the
+# reachability sweep's own plan, which said to delete this row.
+#
+# The plan's reasoning was that the row sat at `regionTarget: 0` *"until
+# generation odds land"* and the odds HAVE landed — `wand-of-firebolt`
+# carries `blessingOdds: { cursed: 3, uncursed: 95, blessed: 2 }` and
+# `ResidencyLogic.rollBlessing` stamps the band on each minted instance,
+# so cursed wands do now enter the world from the ORDINARY row. That
+# much is right, and it makes the comment below (*"only when somebody
+# clones it deliberately… without making it a hazard nobody opted
+# into"*) stale: a 3-in-100 roll is exactly a hazard nobody opted into.
+#
+# ⚠ But deleting it is wrong. `arcane-library/README.md` lists it and
+# `plans/slate-compaction/magic-items.md:88` cites it as the code
+# evidence for *a cursed identify plants a false identification*.
+# Deleting content two docs point at in order to satisfy a gate is the
+# gate wagging the dog. And the live question — whether a hand-authored
+# cursed exemplar should still exist beside a mechanism that mints the
+# same object — is a DISTRIBUTION question, which is the slate's.
+#
+# ⭐ So it is parked with the five other arcane-library rows the sweep
+# parked, and the stale `regionTarget: 0` comment stays exactly where it
+# is as the evidence of what needs deciding.
+unreachable: awaiting:magic-items-slate
 # A cursed wand of firebolt — the BUC exemplar, and the first thing in
 # the world that is not `uncursed`.
 #

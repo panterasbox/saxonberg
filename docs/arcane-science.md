@@ -693,6 +693,20 @@ you have to know the temperatures.
 
 ### Transform is not forbidden. It is unaffordable.
 
+> ⚠⚠ **Interrogated 2026-10-09** →
+> [mana-economy-design-pack](./slates/builds/mana-economy-design-pack.md)
+> § Part 7. Three findings this section should be read with:
+> ⭐⭐ **the 10⁶ guards ELEMENT CHANGE only**, and almost nothing players
+> want from magic requires it (water, ice, fire, force, shaping, growing are
+> all chemical or phase — a band spanning ~10³), which is why `PriceList`'s
+> `create: 2` is the second-**cheapest** verb · ⚠⚠ **`PriceList.ts`'s
+> docstring cites this 10⁶ over a table reading `transform: 1000`**, and
+> `VERB_LABOUR` is a labour multiplier rather than a mana cost — so the
+> ruling is enforced by a **rarity knob**, which makes the verb *dead* rather
+> than *expensive* · ⚠ and **the specification argument below is a
+> DIFFICULTY axis used as a second prohibition**, which is what a skill
+> ladder is for.
+
 This is the field's most misunderstood result, and it is settled.
 
 Chemical bonds run at 1–5 eV. Nuclear binding runs at about 8 MeV per

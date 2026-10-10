@@ -43,6 +43,7 @@ import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { LocomotionApi } from '@saxonberg/server/mud/api/locomotion';
 import { AppApi } from '@saxonberg/server/mud/api/app';
+import { NavigationApi } from '@saxonberg/server/mud/api/navigation';
 import { AppSettingKeys } from '@saxonberg/server/mud/lib/config/AppSettings';
 import type Exit from '@saxonberg/server/mud/lib/boundary/Exit';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
@@ -178,52 +179,49 @@ export default class LaneCatalogue extends Idea {
   }
 
   /**
-   * A route worked out **for this request** — a haulage gig's, a
-   * hail's, a hauler's own errand. Breadth-first over the compiled edge
-   * set, so it is the shortest path in LEGS, which is the thing a
-   * traveller experiences.
+   * ⛔ `planRoute` is RETIRED (routing W7). It was a plain
+   * breadth-first walk over one compiled lane's edge set — shortest in
+   * LEGS, blind to `edgeMinutes` (which sat immediately below it with
+   * a doc comment explaining why cost belongs to the exit, and which
+   * the search never called), and unable to plan across lanes at all.
    *
-   * ⚠⚠ Returns the same shape `routeByKey` does, and nothing downstream
-   * may tell them apart (AC15n). Mints nothing.
+   * Routing is `NavigationApi.routeBetween` / `routeOnMap` now: one
+   * search, over the world index or over a person's own map, costing
+   * on every axis and stating what believing the plan assumes. There
+   * is deliberately **no deprecated forward** here — a second way to
+   * plan a route is the thing this build existed to remove, and
+   * leaving a shim would have left two.
    */
-  public async planRoute(
-    fromPath: string,
-    toPath: string,
-    laneKey: string,
-  ): Promise<Route | null> {
-    const lane = await this.laneOf(laneKey);
-    if (!lane) return null;
-    if (fromPath === toPath) return Route.computed(laneKey, [fromPath], [fromPath]);
-    if (!lane.adjacency.has(fromPath)) return null;
 
-    const prev = new Map<string, string>();
-    const seen = new Set<string>([fromPath]);
-    const queue: string[] = [fromPath];
-    let found = false;
-    while (queue.length > 0 && !found) {
-      const here = queue.shift()!;
-      for (const next of lane.adjacency.get(here) ?? []) {
-        if (seen.has(next)) continue;
-        seen.add(next);
-        prev.set(next, here);
-        if (next === toPath) {
-          found = true;
-          break;
-        }
-        queue.push(next);
-      }
-    }
-    if (!found) return null;
+  /**
+   * ⭐ The lanes that cover a plan's legs, sorted by key — the LABEL a
+   * journey wears now that it is not a search scope.
+   *
+   * A lane of mode M is M's induced subgraph from its seeds, so
+   * *"across more than one lane of the same mode"* is structurally
+   * *"over M's whole graph rather than one compiled lane's node
+   * list"*. The lane stops being where the search happens and becomes
+   * what the way is CALLED: *along the spine, then the city streets*.
+   *
+   * ⚠ Sorted by key, so the same trip reads the same way on every run.
+   * A label that varied with compile order would be a different answer
+   * to the same question.
+   */
+  public async laneNamesFor(nodes: readonly string[]): Promise<string[]> {
+    const index = await this.index();
+    const keys = await this.laneLabelFor(nodes);
+    return keys.map((k) => index.lanes.get(k)?.name ?? k);
+  }
 
-    const nodes: string[] = [toPath];
-    let cursor = toPath;
-    while (cursor !== fromPath) {
-      cursor = prev.get(cursor)!;
-      nodes.unshift(cursor);
+  public async laneLabelFor(nodes: readonly string[]): Promise<string[]> {
+    const index = await this.index();
+    const covering: string[] = [];
+    for (const [key, lane] of [...index.lanes.entries()].sort(([a], [b]) =>
+      a.localeCompare(b),
+    )) {
+      if (nodes.some((n) => lane.adjacency.has(n))) covering.push(key);
     }
-    // The lane's own stop set, narrowed to the nodes this trip passes.
-    const stops = nodes.filter((n) => lane.stops.length === 0 || lane.stops.includes(n));
-    return Route.computed(laneKey, nodes, stops);
+    return covering;
   }
 
   /**
@@ -465,14 +463,37 @@ async function compileLane(
 }
 
 /**
- * The induced walk: outward from each seed, through every exit that
- * admits this lane's mode.
+ * The induced lane: every place this lane's mode reaches from its
+ * seeds, read off the WORLD INDEX.
  *
- * ⚠ A `wheeled` lane asks `isWheelPassable()` as well as the medium.
- * The medium gate already refuses a cart on a ladder or a ford; the bit
+ * ⭐⭐ **This used to walk live exits, one `StuffApi.singleton` at a
+ * time, and the reason it had to is gone.** The projection could cost
+ * a wagon's route but not say whether a wagon may TAKE it — it carried
+ * `edgeMinutes` and not `media` — so the only way to know which ways
+ * a wheeled lane admits was to stand each room up and ask its exits.
+ * W5 put `media`, `wheelPassable` and `conditional` on the stored
+ * edge, so the admission rule is now answerable from the index, and
+ * this is one `reachFrom` call.
+ *
+ * ⚠ A `wheeled` lane asks `wheelPassable` as well as the medium. The
+ * medium gate already refuses a cart on a ladder or a ford; the bit
  * covers the residue the medium cannot express — a stair, a stile, a
  * turnstile, all of which admit walking and must refuse wheels. **The
  * pass is one of these**, which is why bulk breaks at the crossroads.
+ * That rule is `TravelProfile.admits` now, in one place, rather than
+ * three lines here.
+ *
+ * ⚠⚠ **The stated behaviour swap: a FLOODED FORD is now in the lane.**
+ * This walk used to call `refreshCrossing()` by shape and skip a
+ * crossing the river had closed, so a lane recompiled in spring simply
+ * did not contain the ford. The index is a projection of authored
+ * rows and cannot know the water level, so the ford is in the lane,
+ * every plan over it carries *this way is not always passable* as a
+ * stated assumption, and the closure is discovered **at the leg** by
+ * `FordExit.applyTraversal` — which is where a river belongs. A
+ * Journey halts at the previous place and says so. The requirements
+ * put the verdict at the traverse deliberately: a cached compile is a
+ * worse place to learn about a river than the bank of it.
  */
 async function induce(
   d: LaneDescriptor,
@@ -480,67 +501,58 @@ async function induce(
   note: (path: string) => void,
   problems: string[],
 ): Promise<void> {
-  // ⚠⚠ Load the MODE before the walk. `Exit.allowsMode` asks the sync
-  // `LocomotionApi.modeOf`, which answers only for a mode singleton that
-  // is already live — and a mode is first-touched by somebody walking.
-  // Compiled at boot, before anyone had, every lane came out as its seed
-  // alone with "names mode 'walk', which no LocomotionMode row declares",
-  // and the index cached that forever: no hand ever walked to the
-  // cash-and-carry, and `journey` said "no road runs from here" at the
-  // seed itself. Found by the economic bootstrap's drive.
-  if ((await LocomotionApi.loadMode(d.mode).catch(() => null)) === null) {
+  // ⚠⚠ Load the MODE before the walk — not for `allowsMode` any more,
+  // but because the traveller profile needs the mode's MEDIUM and
+  // `LocomotionApi.modeOf` answers only for a singleton that is
+  // already live. Compiled at boot before anyone had walked, every
+  // lane used to come out as its seed alone with "names mode 'walk',
+  // which no LocomotionMode row declares", and the index cached that
+  // forever: no hand ever walked to the cash-and-carry, and `journey`
+  // said "no road runs from here" at the seed itself. Found by the
+  // economic bootstrap's drive, and the refusal below is its memorial.
+  const mode = await LocomotionApi.loadMode(d.mode).catch(() => null);
+  if (mode === null) {
     problems.push(
       `lane '${d.key}' names mode '${d.mode}', which no LocomotionMode ` +
         `row declares — no exit can admit it, so the lane is empty`,
     );
     return;
   }
-  const wheeled = d.mode === 'wheeled';
-  const seen = new Set<string>();
-  const queue = [...d.seeds];
-  while (queue.length > 0) {
-    if (seen.size > MAX_LANE_NODES) {
-      problems.push(
-        `lane '${d.key}' walked past ${MAX_LANE_NODES} nodes and was cut ` +
-          `short — a lane that large is almost certainly a mis-authored seed`,
-      );
-      return;
-    }
-    const path = queue.shift()!;
-    if (seen.has(path)) continue;
-    seen.add(path);
-    // ⚠ A node is ON the lane even when nothing leads onward from it: a
-    // wharf whose river is frozen is still a wharf on the river, and a
-    // lane that forgot its own seed could not be planned FROM.
-    note(path);
 
-    const room = await StuffApi.singleton<Stuff & Container>(path).catch(
-      () => null,
+  const reach = await NavigationApi.reachFrom(
+    d.seeds,
+    {
+      mode: d.mode,
+      medium: mode.getMedium(),
+      wheeled: d.mode === 'wheeled',
+    },
+    {},
+    MAX_LANE_NODES,
+  );
+
+  if (reach.exhausted) {
+    problems.push(
+      `lane '${d.key}' walked past ${MAX_LANE_NODES} nodes and was cut ` +
+        `short — a lane that large is almost certainly a mis-authored seed`,
     );
-    if (!room) {
-      problems.push(`lane '${d.key}' names '${path}', which resolves to nothing`);
-      continue;
-    }
-    if (!MixinApi.isExitable(room)) continue;
+  }
 
-    for (const exit of room.getExits().values()) {
-      // ⭐ Some crossings answer differently at different times of year —
-      // a ford is up in the spring flood. Asked BY SHAPE, so a seasonal
-      // exit participates without this walk knowing what kind it is, and
-      // an ordinary exit costs one `typeof`.
-      const seasonal = exit as unknown as {
-        refreshCrossing?: () => Promise<void>;
-      };
-      if (typeof seasonal.refreshCrossing === 'function') {
-        await seasonal.refreshCrossing();
-      }
-      if (exit.isBlocked()) continue;
-      if (!exit.allowsMode(d.mode)) continue;
-      if (wheeled && !exit.isWheelPassable()) continue;
-      const to = exit.getDestinationTemplatePath();
-      if (!to) continue;
-      link(path, to);
-      if (!seen.has(to)) queue.push(to);
+  // ⚠ A node is ON the lane even when nothing leads onward from it: a
+  // wharf whose river is frozen is still a wharf on the river, and a
+  // lane that forgot its own seed could not be planned FROM.
+  for (const path of reach.reached) note(path);
+  for (const edge of reach.edges) link(edge.from, edge.to);
+
+  // ⚠ A seed the index does not know is an authoring error and must be
+  // said out loud. The old walk reported it per path as it failed to
+  // resolve a room; the index knows it up front.
+  for (const seed of d.seeds) {
+    if (!reach.reached.includes(seed)) {
+      problems.push(
+        `lane '${d.key}' names seed '${seed}', which the location graph ` +
+          `does not know — either the row is not a place (one row, one ` +
+          `place: it must compose SingletonMixin) or the path is wrong`,
+      );
     }
   }
 }

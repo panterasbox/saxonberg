@@ -16,6 +16,7 @@
 
 import DeferredDestinationExit from '@saxonberg/server/mud/lib/boundary/DeferredDestinationExit';
 import { type TraversalGuard } from '@saxonberg/server/mud/lib/boundary/Exit';
+import { LockableMixin } from '@saxonberg/server/mud/lib/boundary/Lockable';
 import { Lock, type LockType } from '@saxonberg/server/mud/lib/lock/Lock';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import type { OuterWarren } from '@saxonberg/server/mud/lib/location/OuterWarren';
@@ -23,7 +24,7 @@ import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
 
-export default class FrontDoorExit extends DeferredDestinationExit {
+export default class FrontDoorExit extends LockableMixin(DeferredDestinationExit) {
   /** The owning institution — held as a PATH (an identity ref; the
    *  singleton is process-lifetime but a torn-down test world isn't). */
   private warrenPath = '';
@@ -73,20 +74,35 @@ export default class FrontDoorExit extends DeferredDestinationExit {
    * matching-key admits (a master key passes the same way); an empty
    * keyway is locked to everyone.
    */
+  /** ⭐ An institution's front door starts BOLTED — as it always was. */
+  protected override boltedByDefault(): boolean {
+    return true;
+  }
+
+  /**
+   * ⭐⭐ `LockableMixin`'s policy seam: the keyway is the institution's,
+   * not this door's own field, so re-keying a holding re-keys its door.
+   */
+  public override getLock(): Lock {
+    return new Lock(
+      this.warren()?.keywayOf(this.holdingKey) ?? '',
+      this.lockTech,
+    );
+  }
+
   public override canTraverse(
     mover: Stuff & Containable,
     mode?: string,
   ): TraversalGuard {
-    const keyway = this.warren()?.keywayOf(this.holdingKey) ?? '';
-    if (!keyway) {
-      return { ok: false, gate: 'door', reason: 'The door is locked.' };
-    }
-    const lock = new Lock(keyway, this.lockTech);
-    if (!lock.opensFor(mover)) {
+    // ⭐⭐ The bolt refuses, the key excuses; the bolt is a separate fact
+    // now, so a holder can leave their own front door open.
+    if (this.isLocked() && !this.opensFor(mover)) {
       return {
         ok: false,
         gate: 'door',
-        reason: "Your key doesn't fit this lock.",
+        reason: this.getLock().keyway
+          ? "Your key doesn't fit this lock."
+          : 'The door is locked.',
       };
     }
     return super.canTraverse(mover, mode);

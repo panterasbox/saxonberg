@@ -1,0 +1,4 @@
+# VIOLATION: outside the carrier's vocabulary.
+unreachable: someday
+verbs: [bogus]
+controller: /fixture/idea/cmd/fixture/BogusController

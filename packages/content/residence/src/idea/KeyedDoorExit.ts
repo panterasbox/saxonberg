@@ -14,6 +14,7 @@
  */
 
 import Exit, { type TraversalGuard } from '@saxonberg/server/mud/lib/boundary/Exit';
+import { LockableMixin } from '@saxonberg/server/mud/lib/boundary/Lockable';
 import { Lock, type LockType } from '@saxonberg/server/mud/lib/lock/Lock';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
@@ -23,7 +24,7 @@ import type HoldingWarren from './HoldingWarren';
 
 type ExitableContainer = Stuff & Container & Exitable;
 
-export default class KeyedDoorExit extends Exit {
+export default class KeyedDoorExit extends LockableMixin(Exit) {
   private programmeRef: HoldingWarren | null = null;
   private lockTech: LockType = 'pin-tumbler';
 
@@ -36,26 +37,48 @@ export default class KeyedDoorExit extends Exit {
     this.lockTech = opts.lockTech ?? 'pin-tumbler';
   }
 
-  public override canTraverse(
-    mover: Stuff & Containable,
-    mode?: string,
-  ): TraversalGuard {
-    // ⚠ `programmeRef` is set by `configureKeyedDoor` after the clone,
-    // so an unconfigured door is a door nobody can open — which is the
-    // right answer, not a crash.
+  /**
+   * ⭐ A door of a holding starts BOLTED. It has been permanently locked
+   * for its whole life; what the lock build adds is the ability to
+   * withdraw the bolt, not a new default.
+   */
+  protected override boltedByDefault(): boolean {
+    return true;
+  }
+
+  /**
+   * ⭐⭐ The policy seam `LockableMixin` leaves open: this door's keyway
+   * is NOT its own field — it is a sync read off the owning warren, so
+   * the warren stays the one record of a holding's identity and
+   * re-keying it re-keys every door at once.
+   *
+   * ⚠ `programmeRef` is set by `configureKeyedDoor` after the clone, so
+   * an unconfigured door yields an empty keyway — which opens for
+   * nobody, the right answer rather than a crash.
+   */
+  public override getLock(): Lock {
     const keyway =
       !this.programmeRef || this.programmeRef.isDestroyed()
         ? ''
         : this.programmeRef.keyway();
-    if (!keyway) {
-      return { ok: false, gate: 'door', reason: 'The door is locked.' };
-    }
-    const lock = new Lock(keyway, this.lockTech);
-    if (!lock.opensFor(mover)) {
+    return new Lock(keyway, this.lockTech);
+  }
+
+  public override canTraverse(
+    mover: Stuff & Containable,
+    mode?: string,
+  ): TraversalGuard {
+    // ⭐⭐ The bolt refuses, the key excuses — and the bolt is now a
+    // separate fact, so a resident can `unlock` this door and leave it
+    // open for a guest who holds no key. That was unexpressible while
+    // the keyway was the only state.
+    if (this.isLocked() && !this.opensFor(mover)) {
       return {
         ok: false,
         gate: 'door',
-        reason: "Your key doesn't fit this lock.",
+        reason: this.getLock().keyway
+          ? "Your key doesn't fit this lock."
+          : 'The door is locked.',
       };
     }
     return super.canTraverse(mover, mode);

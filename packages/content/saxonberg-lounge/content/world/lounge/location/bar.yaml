@@ -135,6 +135,30 @@ data:
     # is empty by construction, because she clears it every beat.
     - /trade/haulage/thing/works-board
     - /trade/haulage/thing/receiving-bench
+    # ⭐⭐ TWO BANDAGES, behind the rail — and ⚠ a CORRECTION to the
+    # reachability sweep's own plan, which listed this row for deletion.
+    #
+    # `/world/lounge/thing/bandage`'s own header says it is *"stocked in
+    # the glass alley (where you get cut) so the treat loop is playable
+    # in-world."* It was not stocked anywhere, and there is no glass
+    # alley: the lounge is four rooms and none of them is one. So the
+    # canonical first-aid dressing that `treat`/`bind`/`dress` CONSUMES
+    # existed and no player could ever hold one — which means deleting it
+    # would have deleted the only dressing in the realm and taken the
+    # treat loop with it.
+    #
+    # ⭐ Behind a bar is where a first-aid tin actually lives, and a bar
+    # is where the broken glass is. Two, because a dressing is consumed:
+    # one is a demonstration, two is a supply.
+    #
+    # ⚠ `as:` on both, not two bare repeats. `lint:census` clause (e)
+    # refuses a pure repeat — *the same path twice in one list with no
+    # `as` is `count: N` written longhand, and a repeat with no identity
+    # is an entry no child row can ever replace* — and it said so on the
+    # first run after these went in. Named, a child row (another bar, a
+    # richer tin) can substitute either one.
+    - { template: /world/lounge/thing/bandage, as: dressing-1 }
+    - { template: /world/lounge/thing/bandage, as: dressing-2 }
     # ⭐ The house tablet REPLACES the parent's, in place, because both
     # carry `as: tablet`. Without that identity the merge would have to
     # guess between appending (two tablets on one back-bar) and

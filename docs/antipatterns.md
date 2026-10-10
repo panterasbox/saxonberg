@@ -5953,3 +5953,109 @@ anything is loaded. ⭐ The test for any identity key: *would this
 component still be the same if the process had just restarted?* If
 not, it is not part of the identity.
 
+
+## ⛔⛔ A duck-typed optional call on a method name NOBODY DEFINES
+
+```ts
+// WRONG — answers `undefined` forever, and reads as "the host declined"
+const declared = (
+  place as unknown as { getDeclaredAddress?(): string | null }
+).getDeclaredAddress?.();
+
+// RIGHT — the predicate cannot compile against a method that is absent
+if (!MixinApi.isAddressable(place)) return undefined;
+const declared = place.getAddress();
+```
+
+⭐ **Why `?.()` on a cast is different from any other duck-type.** The
+codebase reaches across packs by shape on purpose — `refreshCrossing`,
+`airAt`, the `TravelNode` idiom — and that is sound where the *protocol*
+is the contract and a host that lacks it genuinely declines. The failure
+is when the name is simply **wrong**: `?.()` makes "this host does not
+implement it" and "this method does not exist anywhere" the same
+expression, and TypeScript cannot object because the cast asked it not
+to.
+
+⚠⚠ **The live case, and how long it hid.**
+`CartographerMixin.groupingAddressOf` read `getDeclaredAddress?.()`.
+`AddressableMixin`'s reader is **`getAddress()`**; `getDeclaredAddress`
+exists nowhere in the tree. So `MapClaim.group` was **never once
+populated**, and `map`'s grouping-by-address had never grouped anything
+— every place fell into the unnamed bucket, which renders identically to
+having no groups at all. 53 of the realm's 128 places declare an
+address.
+
+⭐ **It was found by something finally needing it.** The routing build's
+destination resolution narrows by that address, and its own tests passed
+because the fixtures set `group` by hand — **working perfectly against
+data the writer never writes.** A dead read stays dead until a consumer
+depends on it, and a fixture that supplies the field is how the
+dependency gets hidden a second time. The test that catches it composes
+`AddressableMixin` and asserts through `recordSurroundings`.
+
+**The rule:** a cross-shape read needs a narrowing predicate
+(`MixinApi.isX`) or an interface import — something the compiler checks
+the *name* against. Reserve a duck-typed `?.()` for a protocol whose
+absence is a legitimate answer, and when you use one, grep the name
+once to prove it exists.
+
+⚠ Greppable, and worth a census if it recurs: an optional call on a
+cast-literal type (`as unknown as { \w+\?\(`). Not gated today — one
+occurrence is a finding, not a population.
+
+## ⛔⛔ `JSON.stringify` over a value that may hold a LIVE Stuff
+
+**Found 2026-10-09, by a drive, after it had been broken for years.**
+
+```ts
+// WRONG — `via` is an open interface and one augmentation holds an Exit
+const key = c.stuff.stuffId + '|' + (c.via ? JSON.stringify(c.via) : '');
+if (JSON.stringify(m.via) !== firstKey) return undefined;
+```
+```ts
+// RIGHT — identity for anything Stuff-shaped, JSON only for plain data
+const key = c.stuff.stuffId + '|' + viaKey(c.via);
+if (!sameVia(m.via, first)) return undefined;
+```
+
+**What happens.** `MqlMatchVia` is an open interface every subsystem
+augments, and `lib/boundary/Exit.ts` augments it with a **live `Exit`**.
+An Exit reaches its `Boundary`, whose `anchorA`/`anchorB` point back at
+it, so the graph has a cycle and `JSON.stringify` throws
+`Converting circular structure to JSON`. The caller catches it and
+reports `mql-error`, so a **well-formed query answers "something went
+wrong."**
+
+⚠⚠ **The symptom was a verb working one way and not the other.**
+`unlock gate` resolved and `unlock north` did not — same view, same
+`requires:` — because only a DIRECTION candidate carries an exit.
+`open north` and `close north` had been broken for as long as they had
+existed, each promised in its own help text.
+
+⭐ **Why no test caught it.** `OpenController`'s own test names the door
+by **keyword** (`'oak'`), so the direction branch of
+`MqlApi.effectiveTarget` had never executed in either controller. The
+code was reachable only through a verb whose arg declares a `requires:`
+mixin gate *and* a direction, and until `lock`/`unlock` were conferred
+no such verb existed. **Being conferred did not cause the bug; it made
+it reachable.**
+
+**The rule.** A dedupe or equality key over a structure a subsystem may
+augment must take **identity** from anything Stuff-shaped
+(`stuffId`) and serialize only what is provably plain data. ⚠ And a
+comment claiming the cheap version is fine is not evidence:
+`consensusVia`'s said *"same exit reference … kept cheap by
+JSON-stringifying"*, which is the contradiction stated out loud —
+a reference compare was both what it meant and cheaper.
+
+⭐ The general shape, worth keeping beyond this one: **an open interface
+cannot be serialized by anybody who does not own every augmentation.**
+`MqlMatchVia`, `CommandContributions` buckets and `BulkPayload` are all
+declared-by-many; treat a value from one as opaque unless you narrowed
+it yourself.
+
+Pinned by `platform/idea/api/__tests__/MqlLogic.circularVia.test.ts`,
+which asserts the **premise** too — that the exit graph really is
+circular — so if that ever stops being true somebody learns the fixes
+became unnecessary rather than wrong. See
+[boundary.md § Locking](./subsystems/boundary.md).

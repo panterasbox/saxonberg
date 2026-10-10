@@ -7,7 +7,10 @@
 > (rob · swarm · nuc · split), forage over the flowering census and the
 > crowding read, the sting with veil and smoke, crush-vs-spin, wax and
 > the candle, mead, and Quist's close.
-> **Left:** **foulbrood** via `Contaminable` on the comb (varroa still
+> **Left:** ⛔⛔ **NO ACT RESOLVES `crush-comb` OR `spin-comb`** — two
+> authored recipes a player cannot run, and the comb→honey rung of the
+> trade's own epoch ladder (see below) ·
+> **foulbrood** via `Contaminable` on the comb (varroa still
 > deferred) · robbing between colonies · persistent-disturbance
 > absconding · honey character + mad honey · queen rearing · the allergy
 > seam (→ pharma) · pollination as a *contract* (N hives over a bloom
@@ -15,6 +18,61 @@
 > non-regenerating nucleus, the unlit shop, and the one browser
 > observation it never got.
 > **Size:** a tail
+
+## ⛔⛔ No act resolves `crush-comb` or `spin-comb` (found 2026-10-07)
+
+**Two authored recipes, resolved by nothing.** `recipes/crush-comb.yaml`
+and `recipes/spin-comb.yaml` each carry an input slot, a tool capability,
+an output template, a material, a portion and a residue, and
+`apiculture.md § What comes out is comb` writes them up as a table and
+calls them *the epoch ladder*. There is no way for a player to run
+either.
+
+The reachability sweep's drive typed `crush` and got *"I don't understand
+'crush'."* `crush` is a KEYWORD on the recipe, which is a different kind
+of thing from a verb. Every trade in the game resolves its own catalogue
+recipes through its OWN verb's controller — `BakeController`,
+`MillController`, `DipController`, `CookController`, `ForgeController`,
+each calling `CraftingApi.craft` — and this trade ships exactly one verb.
+This doc says so itself: *"`rob` is the trade's ONE verb."* ⚠ `make` is
+not a fallback: it dispatches a recipe SCRIPT, not a catalogue recipe,
+which is the same wall the carcass chain's AC 1 hit with
+`make leather-jerkin`.
+
+⭐ **It is a sixth reachability link wearing a familiar shape** — not a
+verb nothing confers, but a RECIPE no verb resolves. The five links the
+sweep gated (verb · affordance · data · boot · arg gate) would each have
+passed it, and `lint:reachability` does not see it either: the recipe
+documents are a `recipe` DocumentKind, not a `thing` row.
+
+### Why the sweep did not just ship a `crush` verb
+
+A second verb for a trade is a laddered decision and not a gap to plug.
+The verb-collision ladder's first rung is *unify behind an interface*,
+and this slate's own framing says crush-vs-spin is **the epoch choice** —
+so the act that expresses it is a question about what the trade teaches,
+not a missing file. Three shapes, at least:
+
+1. **A `crush` verb in this pack**, conferred by whatever you crush comb
+   over (the ladder's instrument rung — and a `spin` verb beside it,
+   conferred by the extractor, which already carries
+   `capabilities: ["extracting"]`).
+2. **A `rob` subcommand** — `rob hive`, then `rob crush` / `rob spin` —
+   which keeps the trade at one verb and makes the epoch choice a
+   sub-decision of the take.
+3. ⭐ **One verb over both recipes, with the TOOL deciding** — which is
+   what this doc already implies (*"nothing in the code branches on the
+   tool: two recipes over one input"*). An extractor in reach spins; no
+   extractor crushes. That is the shape `dip` uses for tallow-vs-wax and
+   it needs one verb, not two.
+
+⭐ Shape 3 looks right on this slate's own reasoning, and it is cheap:
+one view, one controller calling `CraftingApi.craft` with the recipe the
+tool selects. ⚠ Whoever ships it should know the drive is waiting:
+`apiculture.dirty.wire.test.ts`'s step-23 checkpoint asserts as a
+POSITIVE that `crush` is unknown, so it FAILS the day the act lands and
+asks for the real comb → honey → cake → candle walk in its place.
+
 
 > **Captured 2026-09-25**, in the design conversation after the extraction
 > build merged (MR !291). Extraction took three of the four remaining RGO

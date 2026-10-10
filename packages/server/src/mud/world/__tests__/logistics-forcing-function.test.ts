@@ -77,12 +77,17 @@ describe('⭐ AC15 — the brains stop teleporting', () => {
     // so a second brain could take it; that put "an NPC routes itself"
     // on the base class ahead of the design that should decide it, and
     // it came back out. The shop keeper walks AUTHORED directions
-    // instead — see `stocks` — so this stays the ONE non-vehicle caller
-    // of the lane router. docs/slates/builds/pathfinding-slate.md.
+    // instead — see `stocks`.
+    //
+    // ⭐ The router is the KERNEL's now (`NavigationApi.routeBetween`),
+    // not the transport pack's `planRoute`, and the question this
+    // guard asks is unchanged: does the hand WALK, step by step,
+    // through the ordinary `go` dispatch — or did somebody make it
+    // teleport. The identifier moved; the property did not.
     const code = codeOf(CONSIGNS);
     expect(code).toMatch(/async function walkTo\(/);
     expect(code).toMatch(/forceCommand\(`go \$\{/);
-    expect(code).toMatch(/planRoute/);
+    expect(code).toMatch(/NavigationApi\.routeBetween/);
   });
 
   it('⭐⭐ NEITHER brain calls `teleport`, anywhere, at all', () => {

@@ -38,6 +38,7 @@ import { Idea } from '@saxonberg/server/mud/lib/stuff/Idea';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
 import { Piecewise, type Stretch } from '@saxonberg/server/mud/lib/Trajectory';
+import { Traversal } from '@saxonberg/server/mud/lib/location/Traversal';
 import { Template } from '@saxonberg/server/mud/lib/stuff/Template';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { EvictionContext } from '@saxonberg/server/mud/lib/stuff/Stuff';
@@ -575,16 +576,32 @@ function addEdge(
   (pred.get(to) ?? pred.set(to, []).get(to)!).push(from);
 }
 
-/** Every node reachable downstream of `ref` (exclusive of `ref`). */
+/**
+ * Every node reachable downstream of `ref` (exclusive of `ref`).
+ *
+ * ⭐ One traversal, or none (`docs/lint-family.md`
+ * § `lint:graph-walks`): the frontier, the visited set and the order
+ * are the kernel skeleton's, and what is left here is the only part
+ * that was ever grid-specific — the successor map, and the fact that
+ * `ref` itself is not downstream of itself.
+ */
 function bfs(ref: NodeRef, succ: Map<NodeRef, NodeRef[]>): Set<NodeRef> {
   const out = new Set<NodeRef>();
-  const queue = [...(succ.get(ref) ?? [])];
-  while (queue.length > 0) {
-    const cur = queue.shift()!;
-    if (out.has(cur)) continue;
-    out.add(cur);
-    queue.push(...(succ.get(cur) ?? []));
-  }
+  const starts = succ.get(ref) ?? [];
+  if (starts.length === 0) return out;
+  const walk = new Traversal<NodeRef, Set<NodeRef>, void>({
+    order: 'breadth-first',
+    keyOf: (n) => n,
+    neighbours: (n) => (succ.get(n) ?? []).map((node) => ({ node })),
+    // The whole compiled graph is the bound: a feeder tree cannot be
+    // larger than the node roster it was compiled from.
+    bound: { nodes: succ.size + 1 },
+    fold: (n) => {
+      out.add(n);
+      return out;
+    },
+  });
+  walk.walkFrom(starts, { carry: undefined });
   return out;
 }
 

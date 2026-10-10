@@ -19,6 +19,7 @@
  */
 
 import type { MixinConstructor, FieldMeta } from '../mixin';
+import type { CommandContributions } from '../../api/command';
 import type { Stuff } from '../stuff/Stuff';
 import type { Container } from '../spatial/Container';
 import type { Slottable } from './Slottable';
@@ -60,6 +61,54 @@ export function DrivableMixin<TBase extends MixinConstructor<Stuff & Slotted>>(
 ) {
   return class DrivableMixin extends Base {
     static _mixinName = 'DrivableMixin';
+
+    /**
+     * ⭐⭐⭐ **`drive` is conferred here, and the collision it was held on
+     * is adjudicated rather than deferred.**
+     *
+     * The reachability sweep conferred this and the full suite refused
+     * it: `trade/mining/cmd/mining/drive.yaml` also claimed `drive`
+     * (driving a drift), the two views have the **same arity** so
+     * `requires:` cannot separate them at shape, and only affordance
+     * ORDER would have decided which one a miner got. Conferring one
+     * side of an undiagnosed collision is ADJUDICATING it, and the
+     * ladder's first rule is that first-come is not one of the seven
+     * solutions — so the sweep reverted and recorded the question.
+     *
+     * ⭐ The lock build ran the ladder properly
+     * (`command-spec.md § When both are bodily acts`) and it resolves
+     * cleanly, with rungs 2 and 3 pointing the same way:
+     *
+     * - **Rung 1, unify?** No. Riding a thing that carries you and
+     *   cutting a horizontal tunnel are not one act; unifying would need
+     *   a guard re-asking which mechanic this is, which is the tell.
+     * - **Rung 2, generativity.** The word stays with the definition
+     *   future content builds on. `DrivableMixin` is KERNEL substrate and
+     *   the sibling of `Mountable`'s `mount`/`ride` — every coach, cart,
+     *   barge and future vehicle extends it. Driving a drift is one
+     *   trade's gesture. ⭐ *A trade's hand-gesture is rarely the
+     *   generative primitive*, which is how `dip` and `gather` were
+     *   decided at the glass merge.
+     * - **Rung 3, accessibility.** "Drive" is what a layman says about a
+     *   vehicle, and *to drift* is real mining usage rather than
+     *   invented jargon — a term of art that carries its own register.
+     *
+     * So the vehicle keeps the plain word and mining keeps `drift`,
+     * which is **exactly what mining's own tripwire predicted**: *"if
+     * that changes, `drift` becomes primary — one line."* That line is
+     * now `verbs: [drift]` in its view.
+     *
+     * ⚠ `environment` + `peers`, not `self`: a vehicle you are aboard is
+     * your CONTAINER, so the affordance has to reach you from the
+     * environment bucket — the `Ladder`/`climb` shape.
+     */
+    static commandContributions: CommandContributions = {
+      self: [],
+      inventory: [],
+      environment: ['platform/cmd/movement/drive.yaml'],
+      peers: ['platform/cmd/movement/drive.yaml'],
+    };
+
     static fieldMeta: FieldMeta = {
       controllerSlot: { persistent: true, authorable: true },
       _vehicularModePath: { persistent: true, authorable: true, authorPicker: 'Template' },

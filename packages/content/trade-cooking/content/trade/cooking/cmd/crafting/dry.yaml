@@ -1,4 +1,15 @@
-verbs: [dry, hang]
+# ⭐ `dry` — and this view used to claim `hang` as an alias, which
+# collided with `platform/cmd/inventory/hang.yaml` (fixing a wall fixture
+# to a room).
+#
+# Adjudicated by the ladder at rung 2: hanging a thing on a wall is the
+# generative primitive — the furnishing/placement family, where what you
+# hang stays yours and survives the room emptying — while drying meat
+# already HAS its plain word, and this view's own help leads with it
+# (`dry <thing> [on <rack>]`). ⚠ The alias bought nothing and shadowed
+# something. `hang` is still the right word in the PROSE, which is where
+# it belongs: *you hang a cut up to dry.*
+verbs: [dry]
 controller: /trade/cooking/idea/cmd/crafting/DryController
 description: "Hang something up where the air can dry it"
 help: |

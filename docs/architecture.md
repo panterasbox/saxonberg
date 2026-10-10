@@ -160,6 +160,21 @@ adding.
 - **Value objects** — pure data + small per-instance math (`Light`,
   `Quantity`). Not Stuff. Lives in `lib/` because it's a domain
   primitive the Api layer consumes.
+  ⭐⭐ **A parameterized ALGORITHM is one of these**, and the routing
+  build added the first: `lib/location/Traversal` is a walk —
+  a frontier, a visited set, three orders and three bounds — with its
+  policy supplied by the caller's `neighbours` / `descend` / `fold`.
+  It owns no world knowledge and makes no decisions, which is what
+  keeps it a value class rather than a logic singleton: there is no
+  state to hot-reload and nothing to gate. Its three siblings
+  (`KnowledgeGraph` · `TravelProfile` · `RoutePlan`) are ordinary
+  value objects over plain data.
+  ⚠ Their import list is **gated** (`lint:graph-walks`' second check,
+  no ceiling): none of the four may import the world index, which is
+  how the evidence firewall became structural rather than a
+  convention. A value class with no reach cannot consult anything by
+  accident — and that property is also what would let the set move to
+  a client unchanged.
 - **Named value-object / vocabulary / registry modules** — the
   sanctioned home for a substrate primitive that isn't an instanceable
   `Stuff` but is still *the concept the module exists for*: a value
@@ -1276,9 +1291,9 @@ registry) lives in `lib/mixin.ts`.
 | `lib/spatial/` | `SealableMixin` | open/closed state (doors) |
 | `lib/` | `BistateMixin` | shared guarded-boolean base (typeof-boolean guard, round-trip persistence) under `Sealable` / `Switchable` / `Foldable`. **Unregistered / unmarked** — an implementation base, not a registry mixin. See [boundary.md](./subsystems/boundary.md). |
 | `lib/boundary/` | `SwitchableMixin` | generic two-state on/off toggle over `BistateMixin`; the `device`-category `switch`/`toggle` verb. Consumed by `Beacon` (walk/stop). See [boundary.md](./subsystems/boundary.md). |
-| `lib/boundary/` | `LockableMixin` | lock state over `Door` (`Lockable`, `MixinApi.isLockable`); `Exit.canTraverse` vetoes with gate `'locked'` **before** destination resolution (reads off `this.door` in hand, so a locked gate can point at an unbuilt far side). A **stopgap** superseded by build-3's `lib/lock/` Lock+Key model; `lock`/`unlock` minimal, keyed-credential model deferred. See [boundary.md](./subsystems/boundary.md). |
+| `lib/boundary/` | `LockableMixin` | ⭐ **a keyway AND a bolt** (`Lockable.ts`) — the `lib/lock/` `Lock` value-object composed with the boolean, on `Door` and on the three keyed Exit subclasses. `canPass = !isLocked() \|\| opensFor(mover)`, so a key-holder passes a locked door and `unlock` is how you let everyone else through. `getLock()` is a policy seam (the keyed family reads its warren's keyway); `boltedByDefault()` sets the starting state. `Exit.canTraverse` vetoes with gate `'locked'` **before** destination resolution (reads off `this.door` in hand, so a locked gate can point at an unbuilt far side). `lock`/`unlock` afforded by `MobileMixin.self`. See [boundary.md](./subsystems/boundary.md). |
 | `lib/slot/` | `AttiredMixin` | the **covering** half, split off `SlottedMixin` (2026-09-06) because a slot is not a garment: nine of ten `Slotted` composers are not bodies. Carries `wornStack` / `coveringAt` / `outermostAt` / `insulationAt` / `bodyInsulation` / `windproofing` / `concealmentOffset` / `attentionFactor` / `wouldLayerViolate`, the `worn` subscribable field and the dressed-impression line, and absorbs the old `BodyPlanSlotsMixin`. Composed on **`Creature`** and nowhere else (barding works; a corpse stays dressed). Requires `Slotted` beneath it, so `MixinApi.isAttired` narrows to `Stuff & Slotted & Attired` — **narrow on that, never `isSlotted`, before a covering read.** See [slot.md](./subsystems/slot.md). |
-| `lib/slot/` | `FoldableMixin` | two-state fold/unfold over `BistateMixin`; a folded host refuses its sit slot (`canOccupy` gate). The `device`-category `fold`/`unfold` verbs (reachable-scope, `MixinApi.isFoldable`-narrowed). `FoldingChair` first driver. See [slot.md](./subsystems/slot.md). |
+| `lib/slot/` | `FoldableMixin` | two-state fold/unfold over `BistateMixin`; a folded host refuses its sit slot (`canOccupy` gate). ⭐ **CONFERS** the `device`-category `fold`/`unfold` verbs (`environment`+`peers`+`inventory`, the Ladder shape) — ⚠ it conferred nothing until the reachability sweep, so both verbs were unknown to every player and the realm's one foldable chair was unfoldable its whole life. Reachable-scope, `MixinApi.isFoldable`-narrowed at the binder. `FoldingChair` first driver. See [slot.md](./subsystems/slot.md). |
 | `lib/time/` | `TimekeepingMixin` | the display seam — an in-world object that reads/shows game-time via `WorldClockApi`. (Accurate by default; drift is a *content* concern layered on top — see the locality `MechanicalMovement`. The clock tower is prose, not a Timekeeping Stuff.) See [time.md](./subsystems/time.md). |
 | `lib/time/` | `MechanicalMovementMixin` | the windable, drifting clockwork inside a mechanical timepiece (`Timekeeping` over `Reserved` — the mainspring); `wind`/`adjust` gate on its presence. In `lib/time` since content packs wave 4b (graduated out of University Avenue; `Watch` stays content). See [time.md](./subsystems/time.md). |
 | `lib/spatial/` | `DoorBearingMixin` | adds `door: Door \| null` for hosts whose exits are synthesized rather than authored (`ExitableVessel`). Constrained to `Stuff & Exitable`. |

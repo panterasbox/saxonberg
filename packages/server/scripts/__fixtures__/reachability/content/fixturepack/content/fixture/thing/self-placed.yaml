@@ -1,0 +1,5 @@
+# Mechanism 2 — the row places itself.
+class: /fixture/thing/Plain
+data:
+  shortDescription: self-placed widget
+  container: /fixture/location/yard

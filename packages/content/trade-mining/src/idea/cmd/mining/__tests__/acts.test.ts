@@ -445,40 +445,74 @@ describe('the mine’s four labour acts', () => {
     }
   });
 
-  it('the drive view declares BOTH words, so a miner always has an unambiguous one', () => {
+  it('⭐⭐ the cutting act is `drift`, and it no longer claims `drive`', () => {
     const def = CommandDefinition.fromYaml(
       readFileSync(join(VIEWS, 'drive.yaml'), 'utf8'),
       'drive.yaml',
     );
-    expect(def.hasVerb('drive')).toBe(true);
-    expect(def.hasVerb('drift')).toBe(true);
+    expect(def.hasVerb('drift'), 'the miner has an unambiguous word').toBe(
+      true,
+    );
+    // ⚠⚠ THE ADJUDICATION, and this assertion is the record of it. This
+    // view used to claim both words, which left the collision live: the
+    // platform's `movement/drive.yaml` has the SAME ARITY, so
+    // `requires:` could not separate them at shape and only affordance
+    // ORDER decided which one a miner got.
+    //
+    // ⭐ Resolved by the ladder (`command-spec.md § When both are bodily
+    // acts`), rungs 2 and 3 agreeing: the vehicle is the generative
+    // primitive — `DrivableMixin` is kernel substrate every coach, cart
+    // and barge extends, while cutting a heading is one trade's gesture
+    // — and *to drift* is real mining usage, not jargon reached for to
+    // sound authentic. So the vehicle keeps the plain word.
+    //
+    // This is exactly what the tripwire below used to predict: *"if that
+    // changes, `drift` becomes primary — one line."* It did, and this is
+    // the line.
+    expect(def.hasVerb('drive'), 'the vehicle keeps the plain word').toBe(
+      false,
+    );
   });
 
-  it('⚠ the drive collision tripwire: the shipped movement view has the same arity', () => {
-    // The rival, read off the platform pack itself rather than described.
+  it('⭐ the collision is GONE, not deferred: one claimant each', () => {
     const movement = fileURLToPath(
       new URL(
         '../../../../../../platform/content/platform/cmd/movement/drive.yaml',
         import.meta.url,
       ),
     );
-    const rival = CommandDefinition.fromYaml(readFileSync(movement, 'utf8'), 'drive.yaml');
+    const vehicle = CommandDefinition.fromYaml(
+      readFileSync(movement, 'utf8'),
+      'drive.yaml',
+    );
     const ours = CommandDefinition.fromYaml(
       readFileSync(join(VIEWS, 'drive.yaml'), 'utf8'),
       'drive.yaml',
     );
-    expect(rival.hasVerb('drive')).toBe(true);
-    expect(ours.hasVerb('drive')).toBe(true);
-    // ⚠ Same arity, so `requires:` cannot separate them at shape and only
-    // affordance ORDER decides. Nothing in the repo affords the movement
-    // view today; if that changes, `drift` becomes primary — one line.
-    expect(rival.args.length).toBe(ours.args.length);
-    expect(
-      readFileSync(
-        fileURLToPath(new URL('../../../../../../../server/src/mud/lib/slot/Drivable.ts', import.meta.url)),
-        'utf8',
+    // Exactly one view claims each word now.
+    expect(vehicle.hasVerb('drive')).toBe(true);
+    expect(vehicle.hasVerb('drift')).toBe(false);
+    expect(ours.hasVerb('drive')).toBe(false);
+    expect(ours.hasVerb('drift')).toBe(true);
+
+    // ⭐⭐ And the affordance exists, which is the half the old tripwire
+    // was guarding the ABSENCE of. `DrivableMixin` confers the vehicle
+    // view on `environment` + `peers` — never `self`, because a vehicle
+    // you are aboard is your CONTAINER. ⚠ Asserted on a DECLARATION
+    // rather than a bare mention, so the file stays free to explain
+    // itself in prose; a bare-word match once failed on the explanation,
+    // which is the one thing a tripwire must never forbid.
+    const drivable = readFileSync(
+      fileURLToPath(
+        new URL(
+          '../../../../../../../server/src/mud/lib/slot/Drivable.ts',
+          import.meta.url,
+        ),
       ),
-    ).not.toMatch(/commandContributions/);
+      'utf8',
+    );
+    expect(drivable).toMatch(/static\s+commandContributions/);
+    expect(drivable).toMatch(/platform\/cmd\/movement\/drive\.yaml/);
   });
 });
 

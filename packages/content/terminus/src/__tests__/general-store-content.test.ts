@@ -79,7 +79,26 @@ const APICULTURE_DIR = fileURLToPath(
  * prefix written once, and adding a line to the counter is adding a row
  * here rather than threading two more branches through both chains.
  */
+// ⭐⭐ The four packs the REACHABILITY SWEEP's lines reach into. Each was
+// already a dependency of this pack; what was missing was a shelf line,
+// so these roots had never needed naming here.
+const COOKING_TOOLS_DIR = fileURLToPath(
+  new URL("../../../trade-cooking/content/trade/cooking/", import.meta.url),
+);
+const HAULAGE_DIR = fileURLToPath(
+  new URL("../../../trade-haulage/content/trade/haulage/", import.meta.url),
+);
+const TEXTILES_DIR = fileURLToPath(
+  new URL("../../../trade-textiles/content/trade/textiles/", import.meta.url),
+);
+const DYEING_DIR = fileURLToPath(
+  new URL("../../../trade-dyeing/content/trade/dyeing/", import.meta.url),
+);
+
 const GOOD_HOMES: { prefix: string; dir: () => string }[] = [
+  { prefix: "/trade/haulage/", dir: () => HAULAGE_DIR },
+  { prefix: "/trade/textiles/", dir: () => TEXTILES_DIR },
+  { prefix: "/trade/dyeing/", dir: () => DYEING_DIR },
   { prefix: "/world/terminus/general-store/", dir: () => STORE_DIR },
   { prefix: "/trade/farming/", dir: () => PRODUCE_DIR },
   { prefix: "/trade/cooking/", dir: () => COOKING_DIR },
@@ -114,6 +133,36 @@ interface Seed {
 
 function load(dir: string, file: string): Seed {
   return YAML.parse(readFileSync(`${dir}${file}`, "utf8")) as Seed;
+}
+
+/**
+ * The class a row EFFECTIVELY names — its own, or the nearest one up its
+ * `extends:` chain. The kernel's `pack-roots.effectiveRow` does this for
+ * the lint family; this is the one-parent case a content test needs.
+ */
+function classOf(seed: Seed, file: string): string {
+  if (seed.class) return seed.class;
+  const parent = (seed as { extends?: string }).extends;
+  if (!parent) {
+    throw new Error(`${file} states neither class: nor extends:`);
+  }
+  // Content-tree paths mirror template paths. The two roots a store good
+  // can inherit from: the store's own namespace, and the commons
+  // (`/stuff/…` → the generic-objects pack, which is `OBJ_DIR`'s parent).
+  const candidates = [
+    `${STORE_DIR}${parent.replace("/world/terminus/general-store/", "")}.yaml`,
+    `${OBJ_DIR}${parent.replace("/stuff/", "")}.yaml`,
+  ];
+  for (const candidate of candidates) {
+    let raw: string;
+    try {
+      raw = readFileSync(candidate, "utf8");
+    } catch {
+      continue;
+    }
+    return classOf(YAML.parse(raw) as Seed, candidate);
+  }
+  throw new Error(`${file}: cannot resolve parent ${parent}`);
 }
 
 describe("general-store content integrity", () => {
@@ -213,6 +262,34 @@ describe("general-store content integrity", () => {
     // more Stackable than the waterskin beside it on the shelf. The store
     // sells a tin saucer so somebody can put water down for the cat.
     "/platform/thing/Feeder",
+    // ⭐⭐⭐ THE REACHABILITY SWEEP's nineteen. Each of these classes backs
+    // a row that was authored, described and reachable by NOBODY until the
+    // sweep put it on this shelf — `lint:reachability`'s arm R is what
+    // found them. None is Stackable, which is this allowlist's actual
+    // question: a `Hearth` is a fire you carry or a stove you buy, a
+    // `Flask` is a thermos, a `Crate` is a basket, a `Pack` is a
+    // backpack, a `Cutlery` is a fork, and a `KitchenTool` is the cleaver
+    // and the saw whose absence from any shelf meant `butcher`'s deepest
+    // step could not be reached by anybody from the day it merged.
+    "/platform/thing/Hearth",
+    "/platform/thing/Flask",
+    "/platform/thing/Crate",
+    "/platform/thing/Cutlery",
+    "/platform/thing/equipment/Pack",
+    // ⚠ The realm's ONLY DisguiseGarment. Until the sweep the whole
+    // appearsAs mechanism had no garment anybody could obtain.
+    "/platform/thing/equipment/DisguiseGarment",
+    "/trade/cooking/thing/KitchenTool",
+    "/trade/textiles/thing/SpinningTool",
+    "/trade/dyeing/thing/DyeVat",
+    // ⭐ A `Watch` (the University Avenue locality's class) — a brass
+    // hunter-cased pocket watch, `Sealable` + `MechanicalMovement` over a
+    // `Good`, discrete and no more Stackable than the lantern. It is on
+    // the shelf since the reachability sweep because `wind` and `adjust`
+    // are shipped verbs whose only instrument in the realm was in an
+    // NPC's pocket — a verb whose one instrument belongs to somebody else
+    // is reachable in theory and unreachable in fact.
+    "/world/terminus/university-avenue/thing/Watch",
     // The crafting goods: the sewing kit and the sewing MACHINE are both
     // `MendingTool` — one class, because they afford identically and
     // differ only in `rate`/`control`, which is row data. The whetstone
@@ -371,7 +448,10 @@ describe("general-store content integrity", () => {
       const good = load(dir, `${rel}.yaml`);
       // A real item class (backed by a shipped system, not a prop):
       // discrete chattel, or the one stackable exception, ammunition.
-      const cls = good.class ?? "";
+      // ⚠ `classOf`, not `good.class`: a child row states `extends:` and
+      // no class, and reading the raw key on one is the go-blind failure
+      // `pack-roots.effectiveDoc` exists for.
+      const cls = classOf(good, line.itemTemplatePath);
       expect(
         DISCRETE_ITEM_CLASSES.has(cls) || AMMUNITION_CLASSES.has(cls),
         `${line.itemTemplatePath} class ${cls}`,
@@ -496,7 +576,16 @@ describe("general-store content integrity", () => {
     expect(goods.length).toBeGreaterThan(0);
     for (const f of goods) {
       const good = load(STORE_DIR, `thing/${f}`);
-      expect(DISCRETE_ITEM_CLASSES.has(good.class ?? "")).toBe(true);
+      // ⚠⚠ A child row states NO `class:` — it inherits one. Reading
+      // `good.class ?? ""` on one is the failure `pack-roots.effectiveDoc`
+      // exists for, and the reason fifteen gates had to be fixed the same
+      // way: *a gate selecting on `raw.class` skips a class-less child
+      // SILENTLY, which reads exactly like a pass.* Here it does not even
+      // skip — the tin saucer went to `extends:` in the reachability sweep
+      // and this assertion went red, which is the better of the two
+      // outcomes and still not the right one. Resolve the parent.
+      expect(classOf(good, f)).toBeTruthy();
+      expect(DISCRETE_ITEM_CLASSES.has(classOf(good, f))).toBe(true);
     }
   });
 });

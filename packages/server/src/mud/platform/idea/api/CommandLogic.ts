@@ -2493,6 +2493,66 @@ function bindPositionals(
           }
         }
       }
+      /**
+       * ⭐⭐⭐ **A BOUNDED greedy span of exactly one quoted token binds the
+       * token's value; a TRAILING one keeps the source slice verbatim.**
+       *
+       * The branches below build the field from a substring of the
+       * ORIGINAL SOURCE, deliberately, so that interior whitespace and
+       * escapes survive (`press post Some long headline`). The cost is
+       * that a quoted token's quote marks are part of that source — so
+       * `buy "dog loaf"` bound the six-plus-two-character string
+       * `"dog loaf"`, quotes and all, and `Stock.resolveBuy` →
+       * `Perceptible.hasKeyword` is an exact `includes` against
+       * `"dog loaf"` without them. The purchase could never match.
+       *
+       * ⚠⚠ And it was a REGRESSION waiting on the next author to go
+       * greedy: a NON-greedy positional binds `token.value`, which the
+       * tokenizer has already unquoted, so quoting worked perfectly on
+       * every one-token arg in the game. The reachability sweep made
+       * `buy.thing` greedy to fix `buy dog loaf` and would have broken
+       * `buy "dog loaf"` in the same commit — the bare form and the
+       * quoted form trading places, which is worse than either.
+       * `command-parsing.md:84-96` documents `"…"` as *the* way to make
+       * one token out of several, and nothing had ever asserted it
+       * through `assemble`: the only coverage was a lex/format
+       * round-trip.
+       *
+       * ⚠⚠ **The first cut of this rule was too broad and the suite said
+       * so.** It unquoted a lone quoted token on ANY greedy field, which
+       * broke `say "hello world"` — a shipped, documented, tested
+       * behaviour where the quotes are the point: if you say *she said
+       * "no"* you want the quotes in your speech.
+       * `command-assembly.test.ts` pins it, correctly.
+       *
+       * ⭐⭐ The discriminator is the one `command-spec.md § The phrase
+       * ladder` already draws, and it is structural rather than a taste:
+       *
+       *  - **rung 1 — a BOUNDED greedy field**, one the grammar stops with
+       *    a later field's `prepositions:` (`buy … from`, `bake … at`,
+       *    `ship … to`). That field holds a NAME, something to be matched
+       *    against a keyword, and a player who quotes it is using quoting
+       *    for exactly what it is for: *treat this phrase as one
+       *    argument.* So the unquoted value is what they meant.
+       *  - **rung 2 — a TRAILING greedy field**, which is the rest of the
+       *    line (`say`, `tell`, `press post`, `focus`). That is FREE TEXT,
+       *    the quotes are content, and the verbatim source slice is right.
+       *
+       * ⭐ `collectLaterPrepositions` is the test, not `stopAt`: whether
+       * the grammar CAN bound this field, never whether the player
+       * happened to use the boundary. `buy "dog loaf"` unquotes with or
+       * without a `from` clause; `say "hello"` never does.
+       *
+       * ⚠ And SEVERAL tokens is free text either way — an interior quote
+       * in a phrase is part of what was written, so the slice stands.
+       */
+      const greedySpan = positionals.slice(pi, stopAt);
+      const loneQuoted =
+        laterPreps.size > 0 &&
+        greedySpan.length === 1 &&
+        greedySpan[0]!.raw !== greedySpan[0]!.value
+          ? greedySpan[0]!.value
+          : null;
       if (stopAt === pi) {
         // The boundary preposition appeared with nothing before it
         // — the greedy field has no content. Default fills if
@@ -2505,6 +2565,8 @@ function bindPositionals(
             summary: `missing required arg: ${name}`,
           };
         }
+      } else if (loneQuoted !== null) {
+        bound[name] = expand(loneQuoted);
       } else if (stopAt < positionals.length) {
         // Build the substring from the original source to preserve
         // whitespace, but cut it just before the boundary token.

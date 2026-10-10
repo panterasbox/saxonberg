@@ -1,0 +1,28 @@
+# navigation — application settings shipped by the platform pack (the
+# `settings` kind: merge-missing — a key the app_settings singleton lacks
+# is merged in; a value the operator changed via `config` is never
+# touched).
+#
+# ⭐⭐ These are SEARCH BUDGETS, and the reason they are operator dials
+# rather than engine constants is the whole shape of the routing build:
+# **every search spends a caller-declared budget with no default**, and
+# exhaustion is a stated refusal rather than a silent *no way*.
+#
+# ⚠ A budget is a PERFORMANCE bound and never a knowledge one. What an
+# NPC knows of the world is 100% its author's to declare (`knows:` in
+# the brain's config); what it may think about in one beat is the
+# operator's. Conflating the two would be the engine deciding how much
+# of the realm a character has heard of, which is not its decision to
+# make. See docs/subsystems/location-graph.md.
+settings:
+  # How many places an ATTENDED search may enter — a person typing
+  # `route to <place>` or `journey to <stop>`. Generous, because a
+  # person is waiting and there is one of them; the realm has 128
+  # places, so 400 is *the whole world, three times over* and the
+  # refusal should effectively never be seen in today's content.
+  #
+  # ⭐ The drive lowers it with `config` to prove the refusal exists
+  # and says what it means — a budget nobody can reach is a budget
+  # nobody can test.
+  - key: navigation.attendedSearchBudget
+    value: "400"

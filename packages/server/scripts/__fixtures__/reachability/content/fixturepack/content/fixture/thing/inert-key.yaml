@@ -1,0 +1,7 @@
+# VIOLATION — a censusKey on a class that composes no CirculatingMixin,
+# so the spawn table never considers it.
+class: /fixture/thing/Plain
+data:
+  shortDescription: inert-key widget
+  censusKey: fixture:inert
+  regionTarget: 5

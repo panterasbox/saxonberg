@@ -9,7 +9,17 @@ data:
     - recipe-knowledge
   specializes:
     - bartending
-  conferrals:
-    - band: competent
-      verbs:
-        - social/flourish.yaml
+  # ⚠⚠ `conferrals: []` because band-gated verb conferral was RETIRED
+  # (!285), and this row was the last live entry in the whole realm —
+  # pushing `social/flourish.yaml` through a mechanism
+  # (`refreshConferrals`) that no longer exists in the source. The verb
+  # was afforded by nothing at all as a result, for every player, and
+  # nothing failed; `lint:reachability` is what found it.
+  #
+  # ⭐ `flourish` is afforded by `trade-hospitality`'s `BarStation` now —
+  # the rail is what makes it sayable — and THIS Discipline is what lifts
+  # it, as a refusal in `FlourishController` naming the band. That is the
+  # retirement's own doctrine: **the refusal is the progression UI.** A
+  # verb a band hides teaches nobody it exists; a verb that tells you
+  # your hand is still unsteady at Mixology teaches both halves.
+  conferrals: []

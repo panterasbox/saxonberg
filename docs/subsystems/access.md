@@ -71,7 +71,11 @@ The substrate ships these predicates:
    match; for an **organization** owner, the same staff-or-authority
    test. Used by verb controllers when the target IS a Zone
    Template (transfer ownership, destruct the slice) — and by the
-   `subdivide` / `transfer` parcel verbs. Resolves title the same
+   `subdivide` / `transfer` parcel verbs. ⚠ Those two verbs were
+   **afforded by nothing** until the reachability sweep — the predicate
+   below has always worked and the verbs that call it were unsayable;
+   they are `PersonaMixin.self`'s now (see
+   [parcel.md](./parcel.md)). Resolves title the same
    way (`ParcelApi.ownerOf`); the covering parcel's owner is the
    nearest-ancestor owner the former upward walk found.
 3. **`AccessApi.heldExtents(subject)`** — the inverse read: every

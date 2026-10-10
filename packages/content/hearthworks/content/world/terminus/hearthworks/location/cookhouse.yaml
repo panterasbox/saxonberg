@@ -116,6 +116,13 @@ data:
     - /stuff/thing/cutlery/horn-spoon
     - /stuff/thing/cutlery/horn-spoon
     - /stuff/thing/cutlery/table-knife
+    # ⭐ And a FORK, which the reachability sweep found had never stood
+    # anywhere in the realm. The comment above says in terms that *"a
+    # cookhouse that serves stew and hands you nothing to eat it with is
+    # a worse lie than one that does"* — and it was handing out two
+    # spoons and a knife while an authored fork row sat in the commons
+    # reached by nothing.
+    - /stuff/thing/cutlery/table-fork
     # The roster's instruments beyond the pot: a sieve makes a broth clear,
     # a press makes the oil, and the crock and bottle are what rendering
     # and pressing FILL (claimed from the pool like every other vessel).

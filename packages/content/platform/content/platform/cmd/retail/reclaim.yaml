@@ -4,20 +4,42 @@ description: "Take back an unsold good you consigned"
 help: |
   Take back a good you consigned that hasn't sold yet — `reclaim
   lantern`. Custody returns to you; you owned it the whole time.
+
+  A two-word name works bare — `reclaim dog loaf` — and quoting works
+  too (`reclaim "dog loaf"`). Where more than one shelf is in reach,
+  say which: `reclaim lantern from the second shelf`.
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresConscious
   - /lib/command/validators/requiresEmbodied
 args:
+  # ⭐⭐ `greedy: true` — byte-for-byte `buy`'s problem and `buy`'s
+  # answer; the reasoning is written out once, at
+  # `platform/cmd/retail/buy.yaml`. In short: a non-greedy positional
+  # takes exactly one token, so `reclaim dog loaf` bound `thing = "dog"`,
+  # gave `loaf` to the shelf slot and discarded that slot's default.
+  # Greedy stops at the first later-declared preposition (`from`), so
+  # `reclaim lantern from the second shelf` is unchanged.
   - name: thing
     type: string
     required: true
+    greedy: true
   # ⭐ The shelf you are reclaiming from — DECLARED, so the binder resolves it like
   # any other object and the controller just reads it. `from` keeps the
   # existing grammar intact while making it addressable when it matters.
+    # ⭐⭐ `greedy: true` on the TRAILING arg too, and it is the same
+    # defect wearing the other hat: a non-greedy arg takes exactly ONE
+    # token, so naming the counter at all — ``reclaim lantern from the second shelf`` —
+    # answered *"that doesn't match any known command shape"*. The
+    # article and the ordinal are two more tokens and there was nowhere
+    # to put them. Identical to the `look at the ground` defect the
+    # ground build found in a browser, on a verb that invites you to say
+    # which counter. Safe because this arg is LAST, which is the other
+    # half of `validateArgOrdering`.
   - name: shelf
     type: object
     required: false
+    greedy: true
     prepositions: [from]
     default: "reachable:[mixin.ConsignmentShelfMixin]"
     scope: [reachable]

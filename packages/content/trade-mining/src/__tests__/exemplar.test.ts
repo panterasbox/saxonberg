@@ -384,10 +384,12 @@ describe('the venue itself', () => {
      * quarter of a mile from the lode is a different column and the
      * galleries' hardness is untouched — one field, no code.
      *
-     * ⭐ The eighth is the **sand pit** (glass W7), and it is a zone for
-     * the quarry's reason: it carries its own `deposit:`, so the sand
-     * the glasshouse melts comes out of a column of its own rather than
-     * out of the lode's.
+     * ⭐ The eighth is the **Sand Pit** (glass), and it is a zone for the
+     * same reason and no other: its own `deposit:`, whose two faces win
+     * the same material at different purities. Which is the second
+     * demonstration of the same one field — a trade nobody had written
+     * when the quarry's was authored took the pattern and needed no
+     * code either.
      */
     expect(zones.sort()).toEqual([
       'content/world/terminus/rejection.yaml',
@@ -406,13 +408,9 @@ describe('the venue itself', () => {
       join(REJECTION, 'content/world/terminus/rejection/idea'),
       (f) => f.endsWith('-business.yaml'),
     );
-    // ⭐ 4 → 5: the glasshouse (glass W7). ⚠ This census and the zone
-    // list above were both left stale by the build that added the rows,
-    // so **master was red** until the drilling build merged it and ran
-    // the full suite — the ordinary cost of a census living in another
-    // pack's test. What it still proves is the claim in the title, which
-    // no number affects: not one house in this town carries an
-    // endowment, a float or a lending line.
+    // ⭐ The fifth is the glasshouse (glass W7), and it changes nothing
+    // about the invariant below: it buys its sand, its fuel and its flux
+    // out of revenue like the smelter does.
     expect(businesses.length).toBe(5);
     for (const rel of businesses) {
       const b = row(rel);

@@ -1,4 +1,12 @@
-verbs: [hang, mount]
+# ⭐ `hang` — and it used to claim `mount` as an alias, which collided
+# with `movement/mount.yaml` (climbing aboard a horse or a cart).
+#
+# Adjudicated by the ladder at rung 2: climbing aboard is the generative
+# primitive — `MountableMixin` and the `mount`/`ride`/`dismount` family,
+# which every animal and vehicle extends — while putting a sconce on a
+# wall already HAS its plain English word, `hang`. ⚠ So the alias bought
+# nothing and shadowed something: *do not pre-emptively claim a name.*
+verbs: [hang]
 controller: /platform/idea/cmd/inventory/HangController
 description: "Hang a fixture on the wall of the room you're in"
 help: |

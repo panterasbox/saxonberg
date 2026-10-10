@@ -60,6 +60,7 @@ import { BulkableApi } from '@saxonberg/server/mud/api/bulk';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import { TemplatePaths } from '@saxonberg/server/mud/lib/paths';
+import { Traversal } from '@saxonberg/server/mud/lib/location/Traversal';
 import type Material from '@saxonberg/server/mud/lib/material/Material';
 import type { Atmospheric } from '@saxonberg/server/mud/lib/biome/Atmospheric';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
@@ -649,21 +650,25 @@ export function WorkingMixin<TBase extends MixinConstructor<Stuff & Container>>(
      */
     public async airAt(): Promise<number> {
       const start = this as unknown as Stuff & Container;
-      const seen = new Set<string>([start.stuffId]);
-      let frontier: (Stuff & Container)[] = [start];
-      for (let depth = 0; depth <= AIR_REACH && frontier.length > 0; depth++) {
-        const next: (Stuff & Container)[] = [];
-        for (const room of frontier) {
-          if (breathes(room)) return this.settleAir(clamp01(1 - depth / AIR_REACH));
-          for (const neighbour of neighboursOf(room)) {
-            if (seen.has(neighbour.stuffId)) continue;
-            seen.add(neighbour.stuffId);
-            next.push(neighbour);
-          }
-        }
-        frontier = next;
-      }
-      return this.settleAir(0);
+      // ⭐ One traversal, or none (`docs/lint-family.md`
+      // § `lint:graph-walks`). What is this walk's own and therefore
+      // stayed: `breathes` as the halt condition, `AIR_REACH` as both
+      // the bound AND the divisor, and `destinationsOf` as the
+      // neighbour source — ⚠ deliberately `getExits()`, ALL of them,
+      // where the perception walks read only the obvious ones. A
+      // hidden heading still has air in it.
+      const walk = new Traversal<Stuff & Container, number, void>({
+        order: 'breadth-first',
+        keyOf: (room) => room.stuffId,
+        neighbours: (room) => neighboursOf(room).map((node) => ({ node })),
+        bound: { hops: AIR_REACH },
+        enter: (room) => (breathes(room) ? ('halt' as const) : undefined),
+        fold: (_room, depth) => depth,
+      });
+      const { result, halted } = walk.walk(start, { carry: undefined });
+      return halted === undefined
+        ? this.settleAir(0)
+        : this.settleAir(clamp01(1 - result / AIR_REACH));
     }
 
     /**
@@ -857,20 +862,26 @@ export function WorkingMixin<TBase extends MixinConstructor<Stuff & Container>>(
      */
     public async refreshAir(): Promise<void> {
       const start = this as unknown as Stuff & Container;
-      const seen = new Set<string>([start.stuffId]);
-      let frontier: (Stuff & Container)[] = [start];
-      for (let d = 0; d <= AIR_REACH * 2 && frontier.length > 0; d++) {
-        const next: (Stuff & Container)[] = [];
-        for (const room of frontier) {
-          const w = room as unknown as { airAt?(): Promise<number> };
-          if (typeof w.airAt === 'function') await w.airAt();
-          for (const n of neighboursOf(room)) {
-            if (seen.has(n.stuffId)) continue;
-            seen.add(n.stuffId);
-            next.push(n);
-          }
-        }
-        frontier = next;
+      // ⭐ Reach first (synchronously), then re-settle each room in
+      // reach order. The skeleton is sync by design, and that costs
+      // nothing here: `airAt` reads the topology and `getVentilated`,
+      // never the `_atmosphere` it writes, so no room's answer depends
+      // on whether a neighbour has already been re-settled. Collecting
+      // then awaiting is identical to interleaving.
+      const reached: (Stuff & Container)[] = [];
+      const walk = new Traversal<Stuff & Container, void, void>({
+        order: 'breadth-first',
+        keyOf: (room) => room.stuffId,
+        neighbours: (room) => neighboursOf(room).map((node) => ({ node })),
+        bound: { hops: AIR_REACH * 2 },
+        fold: (room) => {
+          reached.push(room);
+        },
+      });
+      walk.walk(start, { carry: undefined });
+      for (const room of reached) {
+        const w = room as unknown as { airAt?(): Promise<number> };
+        if (typeof w.airAt === 'function') await w.airAt();
       }
     }
   }

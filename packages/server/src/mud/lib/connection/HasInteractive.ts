@@ -30,6 +30,7 @@
  */
 
 import type { MixinConstructor } from '../mixin';
+import type { CommandContributions } from '../../api/command';
 import type { VetoResult } from '../errors';
 import type { EvictionContext } from '../stuff/Stuff';
 import type Interactive from '../../platform/idea/Interactive';
@@ -105,6 +106,38 @@ export interface HasInteractive {
 export function HasInteractiveMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class HasInteractiveMixin extends Base {
     static _mixinName: string = 'HasInteractiveMixin';
+
+    /**
+     * ⭐⭐ `prompt` — **a prompt is addressed to a CONNECTION**, so
+     * whoever has a human on the other side is who can clear it.
+     *
+     * ⚠⚠ The view and `PromptController` shipped and nothing named the
+     * file, so a player with a stuck question had no way to dismiss it:
+     * `prompt cancel` answered *"I don't understand 'prompt'"*, which is
+     * the worst place in the game for a dead verb — the one moment the
+     * player is already blocked. The view's only validator is
+     * `requiresHasInteractive`, i.e. exactly this mixin, so the
+     * affordance and the gate agree by construction and no guard
+     * re-narrows anything.
+     *
+     * ⭐ `Login` composes this too, and that is RIGHT, not collateral:
+     * the enroll machine's questions are prompts on a connection with a
+     * human behind it, and `Login` already carries its own
+     * contributions static one tier up
+     * (`platform/idea/Login.ts:130`). The precedent for conferring at
+     * the connection tier is `SaxonbergClientMixin`'s `cockpit`
+     * (`lib/connection/SaxonbergClient.ts:598-602`); the behavioural
+     * analogue is `lib/activity/Engaged.ts:111` conferring `cancel`.
+     *
+     * Not `SaxonbergClientMixin` — that tier holds OUR client's
+     * vocabulary, and a prompt is a connection fact any client has.
+     */
+    static commandContributions: CommandContributions = {
+      self: ['platform/cmd/system/prompt.yaml'],
+      inventory: [],
+      environment: [],
+      peers: [],
+    };
 
     /**
      * Residency veto: a session holder (Avatar / Login) is never culled

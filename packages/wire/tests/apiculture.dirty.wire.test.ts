@@ -547,3 +547,141 @@ suite('⭐ honey goes on the shelf people already buy from', () => {
     expect(refusedFor(bought)).not.toBe('unknown-verb');
   }, 300_000);
 });
+
+/* ═══════ 23. THE TAIL — comb → honey → wax → a beeswax candle ═══════ */
+
+/**
+ * ⭐⭐⭐ **Added by the reachability sweep — and what it FOUND is better
+ * than what it was asked to prove.**
+ *
+ * ## First, a retraction
+ *
+ * `butchery-slate.md` carried, in its status block and at length in its
+ * body, the claim that **beeswax has no supply in the realm** — and
+ * `carcass-chain.dirty.wire.test.ts` step 16 was TITLED with that claim
+ * and asserted it, so the suite enforced the mistake nightly and the
+ * slate inherited it from the test rather than the other way round.
+ *
+ * The SUPPLY claim is false. Every link is a shipped row and this file
+ * walks most of them: the general store sells a NUCLEUS (par 1, 45 coin,
+ * under a comment calling itself *"ONE labelled faucet: the bees
+ * themselves"*), a hive at 12, and `rob` takes comb off it. ⚠ The
+ * original search was for `colony|swarm` and never for `nuc` — a
+ * beekeeper's word for a starter colony — so the grep that produced *"no
+ * supply"* could not see the one line that supplies it.
+ *
+ * ## ⛔⛔ And then: there is no act that CRUSHES the comb
+ *
+ * The drive's first run of this checkpoint typed `crush` and got *"I
+ * don't understand 'crush'."* It is not a verb. `crush` is a KEYWORD on
+ * `recipes/crush-comb.yaml`, which is a different kind of thing — and
+ * every trade in the game resolves its own catalogue recipes through its
+ * OWN verb's controller (`BakeController`, `MillController`,
+ * `DipController`, `CookController`, `ForgeController`, each calling
+ * `CraftingApi.craft`). Apiculture ships exactly one verb, and
+ * `apiculture.md` says so in terms: *"`rob` is the trade's ONE verb."*
+ *
+ * So `crush-comb` and `spin-comb` — two authored recipes with input
+ * slots, a tool capability, an output, a portion and a residue, written
+ * up in a table in the subsystem doc as *the epoch ladder* — **are
+ * resolved by nothing.** `make` is not the answer either: it dispatches a
+ * recipe SCRIPT, not a catalogue recipe (the same wall AC 1 of the
+ * carcass chain hit with `make leather-jerkin`).
+ *
+ * ⭐ That is a sixth reachability link wearing a familiar shape: not a
+ * verb nothing confers, but a RECIPE no verb resolves. The five links
+ * would each have passed it.
+ *
+ * ## Why this build does not ship a `crush` verb
+ *
+ * Because a second verb for a trade is a laddered decision, not a gap to
+ * be plugged: the verb-collision ladder's first rung is *unify behind an
+ * interface*, and whether crushing is a verb, a `rob` subcommand, or the
+ * second rung of an epoch ladder is a question about what the trade
+ * teaches. `apiculture.md` already frames crush-vs-spin as the epoch
+ * choice; the act that expresses it belongs to the trade's own design.
+ * → `apiculture-slate`.
+ *
+ * ## What this checkpoint therefore asserts
+ *
+ * The truth, in a form that can fail. The chandlery's two verbs ARE
+ * reachable now and that is this sweep's doing — `dip` was conferred by
+ * nothing at all until the carcass chain, and `melt` rides it as an
+ * alias. So: `melt` and `dip` are UNDERSTOOD at the pot, and `crush` is
+ * NOT a word the game knows. ⭐ The day apiculture ships the act, this
+ * checkpoint fails and tells whoever ships it to come and finish the
+ * chain here.
+ */
+suite('⭐⭐ 23. the tail — and the rung that was never built', () => {
+  it('⛔ no act resolves `crush-comb`: the comb→honey step does not exist', async () => {
+    // ⚠ A POSITIVE assertion about an absence, the same shape the
+    // reachability drive uses for `lock` and `fly`. An absence nobody
+    // records reads as somebody's oversight; an absence a checkpoint
+    // asserts is a decision with a date on it.
+    const out = await say(k, 'crush comb');
+    const said = (await out.said()).toLowerCase();
+    expect(
+      said,
+      '`crush` is a RECIPE keyword, not a verb — if this now parses, ' +
+        'apiculture has shipped the act and this checkpoint should become ' +
+        'the real crush → honey → cake walk',
+    ).toMatch(/don't understand|do not understand/);
+  }, 120_000);
+
+  it('⭐⭐ `melt` and `dip` ARE reachable at the chandler’s pot', async () => {
+    // ⭐⭐⭐ The assertion the chandlery shipped without. `dip` was
+    // conferred by NOTHING — the pack's row named the kernel's
+    // `CraftVessel`, and a kernel class cannot know a pack's view exists
+    // — and its drive passed because it checked only that the refusal was
+    // not `no-recipe` and not `not-learned`. An unknown verb is neither.
+    // `src/thing/DipPot.ts` is the fix; this is the second instrument
+    // that reads it, from the bees' end rather than the tallow's.
+    const CHANDLERY = '/world/terminus/wharfside/chandlery/location/floor';
+    const chandler = await Session.open(handle, { startLocation: CHANDLERY });
+    try {
+      await chandler.drainProse();
+      // ⚠⚠ A QUERY, not prose — and the master merge taught it. The fire
+      // build made a lamp need fuel and sells the general store's lantern
+      // DRY, so this file's own "buy a LIGHT first" checkpoint is red on
+      // master (`ignite lantern` → `no-fuel`) and every session after it
+      // walks in the dark. A prose read then returns *"it is pitch dark.
+      // You can make out no…"*, which tests the light and not the world.
+      //
+      // ⚠ And the query is not light-proof either — `here:i` is
+      // viewer-aware, which the same run proved: in the unlit close
+      // `here:i:cherry` returns nothing while `look first cherry` still
+      // binds. What makes it work HERE is that a chandler's floor has a
+      // lamp on it, so this checkpoint reads a LIT room without needing
+      // the keeper's own lantern to have been sold with oil in it. The
+      // three checkpoints above that do stand in the dark are the fire
+      // build's to answer, not this file's.
+      const onFloor = await chandler.query('here:i', {
+        fields: ['displayName'],
+      });
+      expect(
+        onFloor
+          .map((r) => String((r as { displayName?: string }).displayName ?? ''))
+          .join(' | ')
+          .toLowerCase(),
+        'the chandlery floor is standing',
+      ).toMatch(/dip|pot|wick|candle|vat/);
+
+      for (const word of ['melt', 'dip']) {
+        const out = await say(chandler, word);
+        const said = (await out.said()).toLowerCase();
+        expect(
+          said,
+          `\`${word}\` must be in the vocabulary — the dip-pot affords it: ${said}`,
+        ).not.toMatch(/don't understand|do not understand/);
+        // ⚠ Either may decline for want of fat in the pot, which is a
+        // true refusal about the world. What must not happen is
+        // `no-recipe` or `not-learned`: the recipe is UNGATED, and a gate
+        // there would mean a candle nobody without a trade could make.
+        expect(refusedFor(out), said).not.toBe('no-recipe');
+        expect(refusedFor(out), said).not.toBe('not-learned');
+      }
+    } finally {
+      chandler.close();
+    }
+  }, 300_000);
+});

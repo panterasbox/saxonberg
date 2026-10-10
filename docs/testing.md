@@ -633,6 +633,51 @@ sandbox/timing tests.
 **Never quote a failure count without an isolation run.** The count
 tracks machine load, not code health.
 
+### ⚠⚠ An UNHANDLED REJECTION fails the run while every test passes
+
+Observed 2026-10-09, on the lock build, through `tools/suite --only
+server`:
+
+```
+ Test Files  1375 passed | 1 skipped (1376)
+      Tests  13142 passed | 2 skipped | 2 todo (13146)
+     Errors  1 error
+⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
+Error: PersistenceManager: Not connected to MongoDB
+ ❯ Function.findByPath src/mud/lib/stuff/Template.ts:454
+ ❯ Function.#cloneInner src/mud/api/stuff.ts:516
+```
+
+**Everything green, `rc=1`.** Vitest exits non-zero on a reported error
+even with no failing test, so the package reads as FAILED and the
+summary names no test — which is the most misleading shape a suite
+failure can take.
+
+The cause is an **unawaited `StuffApi.clone` outliving the suite's Mongo
+teardown**: the clone reaches `Template.findByPath` → `PersistApi.find`
+after the connection is closed. It is blamed on whichever file was
+running when it landed (here `CombatLogic.hooks.test.ts`), and that
+attribution is **noise** — vitest says so itself: *"It doesn't mean the
+error was thrown inside the file itself."*
+
+⚠ **It is intermittent.** Measured: the same package, same commit, same
+runner — one run `rc=1` with this error, the next `rc=0`; and the named
+file is 45/45 green in isolation. So before chasing it:
+
+1. **Read the counts, not the exit code.** All tests passing with
+   `Errors 1 error` is this shape, not a regression.
+2. **Re-run the package alone** (`tools/suite --only <pkg>`). A result
+   that moves is a race; one that repeats is a defect.
+3. ⚠ **Do not call it a flake and move on.** *An unnamed failure is not
+   a flake* — name the rejection and the call it came from, which is
+   what this section is.
+
+⭐ **The real fix is upstream of the suite**: an unawaited promise is a
+defect wherever it is (see *an unawaited promise = flake*), and the
+clone chain above should be awaited or cancelled at teardown. Finding
+WHICH caller leaks it needs a run with `--sequence.shuffle false` and a
+per-file bisect; nobody has paid for that yet.
+
 ### ⭐⭐ The sandbox family was not flaky — it was over budget
 
 Diagnosed during the card-surface sweep (2026-08-17), and the

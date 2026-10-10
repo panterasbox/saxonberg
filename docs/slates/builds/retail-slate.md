@@ -7,7 +7,7 @@
 > S3 producer + real cost/supply pricing (the derived stance, then
 > characterization) · S4 player-owned storefronts, franchising and the
 > market arena · ⚠ **a business never stands DOWN** (below) · the
-> standing bar-refresh intent
+> standing bar-refresh intent · ⭐ **a PRICE WITH NO PAR** (below, 2026-10)
 > **Size:** a build
 
 Working slate for the **shop** — the **retailer** business archetype and
@@ -16,6 +16,39 @@ reason this isn't one build: **a shop is one small build plus two economy
 substrates it grows into.** The retail counter ships complete-at-its-tier
 now; it gets richer as the Circulation Reserve and the producer/pricing
 supply chain land beneath it, and is never half-grown at any stage.
+
+
+## ⭐ A price with no par — found 2026-10-07, deliberately not gated
+
+A counter's `prices:` map and its `stockLines[]` are two lists, and
+nothing requires them to agree. A path priced with no `par` is a shop
+that has decided what it charges for something it never has: par 0 means
+the stock sweep clones none, and `buy <it>` answers *"there's nothing to
+buy here."*
+
+**It shipped.** The carcass-chain build priced the meat saw at 7 and the
+cleaver at 9 on the general store's counter, under a careful comment
+about *"the capital cost of being able to take a joint at all"* — and
+gave neither a stock line. `ButcherController` gates the deepest
+breakdown on a tool with the `saw` capability and chops on a `cleaver`
+AND a block, so **the verb's hardest step was unreachable by anybody from
+the day the build merged.** `lint:reachability`'s arm R found it as two
+unreachable rows; both are stocked now.
+
+⚠ **The census is 4, and only 2 were defects** — which is why there is no
+gate. The other two are `/trade/cooking/thing/cut-loin` and
+`/stuff/thing/items/stew-meat`: meat a player brings IN, priced so the
+shop can buy it, legitimately with no par. Nothing in the authoring
+vocabulary distinguishes *"I sell this"* from *"I buy this"*, so a gate
+would have to invent the field first.
+
+⭐ Which is the real question for this slate, and it is S3-shaped: **a
+counter has one price map doing two jobs.** The buy-side and the sell-side
+of a shop are different numbers in any real economy (the spread is the
+margin), and the producer/pricing work is where that split belongs. Give
+it a shape there and the gate falls out for free — a `prices:` entry
+would declare which side it is, and a sell-side price with no par becomes
+checkable.
 
 This slate owns the **build decomposition** (what ships when, at what
 magnitude, gated by what). The underlying *theory* lives in the economy

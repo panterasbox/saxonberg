@@ -446,10 +446,78 @@ real objection rather than the plausible one.
   reads; it did not unify them.)
 - **A spherical venue cannot author `props:`** (L7) — `SphericalLocation`
   composes no `Staged`; 0 rows want it; a one-line addition when one does.
-- **Ten verbs still afforded by nothing** (L9) — `fold`/`unfold`
-  ([slot.md](../../subsystems/slot.md)), `walk`/`swim`/`fly`/`dismount`
-  ([locomotion.md](../../subsystems/locomotion.md)). This build afforded
-  `hitch`/`unhitch` and `mount`/`ride`; the rest are their subsystems'.
+- ✅ **The unafforded verbs (L9) — CLOSED by the reachability sweep
+  (2026-10-07), and the real count was FIFTEEN, not ten.** That build
+  censused all 301 command views against every `commandContributions`
+  static in the kernel and every pack, and **arm A of
+  `lint:reachability` is a zero invariant now**: every view is conferred
+  or declares `unreachable:` saying why not.
+  - **Conferred (9):** `walk` → `MobileMixin.self` (the third ground
+    pace; `sneak` and `run` beside it always worked) · `dismount` →
+    `PosedMixin.self` (the state is the RIDER's — `requiresMounted` reads
+    the giver's posture, so you dismount a horse that walked out from
+    under you) · `fold`/`unfold` → `FoldableMixin` · `prompt` →
+    `HasInteractiveMixin.self` · `transfer`/`subdivide` →
+    `PersonaMixin.self` (universal, on `title`'s doctrine: *the gate is
+    the authority, not the affordance*) · `wind`/`adjust` → the pack's
+    `Watch` class · `flourish` → `BarStation`, which this list did not
+    know about.
+  - ⛔⛔ **`swim` is HELD too**, and that is a reversal: the sweep shipped
+    a `platform/thing/OpenWater` (`SwimmableMixin(Thing)`) propped in four
+    estuary and wharfside rooms, then deleted it when the master merge
+    brought in `navigable-water-slate` — which merged mid-build and owns
+    the question. That slate's model is place-or-passage with a **dive
+    entrance** citing a water node, *"so nothing is ever in the water's
+    zone"*, and *"the first water anybody can stand in"* is on its Left
+    list. A Thing in a land room is a fourth shape it would never
+    produce, in the rooms it names as its own first target. ⚠ Until some
+    water build lands, the only composition of `Swimmable` or `Flyable`
+    in the repo remains an integration test that manufactures its own
+    hosts. → `navigable-water-slate`, which is told that the six
+    `media: [ground, water]` exits are already authored and waiting.
+  - ⛔⛔ **`drive` is HELD on a COLLISION**, and it is the one worth
+    reading. The sweep conferred it on `DrivableMixin` — correct on its
+    own reasoning — and the full suite refused it:
+    `trade/mining/cmd/mining/drive.yaml` also claims `drive`, the two
+    views have the same arity so `requires:` cannot separate them, and
+    `trade-mining`'s acts test asserts `Drivable.ts` carries no
+    contributions static for exactly that reason. ⭐ Conferring one side of
+    an undiagnosed collision is ADJUDICATING it, and first-come is not one
+    of the ladder's seven. ✅ **DONE 2026-10-09, the lock build** — the
+    ladder resolves it at rungs 2 and 3 together (the vehicle is the
+    generative primitive; *to drift* is real mining usage), so mining's
+    view is `verbs: [drift]` and `DrivableMixin` confers the movement
+    view on `environment` + `peers`.
+  - ⛔⛔ **`walk` is conferred and the LOUNGE'S OWN EXIT refuses it**, which
+    is the gap one layer down. The bar's way out is *"wired imperatively
+    by the Warren and not declared here"*, so it carries no authored
+    `media` and the stored edge does not admit the walk mode:
+    `walk out` answers `{gate: "exit-mode", mode: "walk"}` while `go out`
+    works, because `go` resolves the default mode through the passthrough
+    chain. ⚠ So in **the room every new player starts in, the way out
+    refuses the walk pace** — and a player who takes `sneak.yaml`'s own
+    advice (`set movement.defaultMode sneak`) is stuck in the lounge,
+    which is the exact scenario conferring `walk` was meant to fix. Found
+    by `world-scan.dirty.wire.test.ts` step 8 after the master merge; not
+    fixed in the reachability sweep, because the exits belong to the
+    residence/holding substrate and the edge media to the location-graph
+    build. ⭐ The likely fix is one line wherever the Warren mints that
+    exit — an empty `media` admits the whole ground-pace family by design
+    (`locomotion.md`), so the edge is being given a media list that walk
+    is not in.
+  - ✅ **`lock`/`unlock` SHIPPED 2026-10-09** (§ I9 below) — `fly` is the
+    one still held here, and it carries `unreachable:
+    awaiting:base-class-narrowing-slate` on the view, so the disposition
+    is a gated field rather than an absence. ⭐ `fly` is the one case
+    where *afford statically, decline diegetically* does not apply: with
+    no `media: ['air']` exit, no flying species and no composer, the
+    refusal would point at nothing. **What lifts it** is a flying species
+    with the mode on its body plan plus one air exit; then the host is
+    whatever that build makes it.
+  - ⚠⚠ **Eleven of the fifteen had PASSING controller unit tests**, which
+    is the finding worth carrying forward: a controller test is handed a
+    pre-built model, so it passes over a verb that does not exist.
+  This build afforded `hitch`/`unhitch` and `mount`/`ride`.
 - **`alternateNames` × 45** — the next dead-key burn-down;
   `turf-bank.yaml` is one of them.
 - **The lounge on plain `Location`** — D14-honest today. If
@@ -468,16 +536,21 @@ real objection rather than the plausible one.
   rung is a clone refusal or a catalogue-warm gate
   (`lint:reference-ideas`), which is the real fix for the *inert at
   boot* defect this repo has now hit three times.
-- ⚠ **`lock`/`unlock` over `Lock` + `presentsKey`** (I9) — the
-  reconciliation `lib/boundary/Locked.ts:15-24` asks for; the boolean
-  mixin retires with it and the file is renamed then. ⭐ **Until that
-  lands the two views stay unafforded ON PURPOSE** — this build's
-  Location pass planned to wire them and reversed itself on the Idea
-  planner's evidence (`LockController` checks no key, no credential and
-  no title, and `Locked.ts` says in terms *"Do NOT grow this into a
-  second lock system"*). **The census is the census; the disposition is
-  per verb.** → [boundary](../../subsystems/boundary.md),
-  [credential](../../subsystems/credential.md).
+- ✅ **`lock`/`unlock` over `Lock` + `presentsKey`** (I9) — **DONE
+  2026-10-09, the lock build.** ⭐ And the reconciliation this item asked
+  for turned out to be the WRONG ONE: `Locked.ts` asked to *retire* the
+  boolean, which would have deleted both verbs rather than making them
+  reachable (if every lock is a permanent keyway, nobody ever locks or
+  unlocks anything, and you can never leave your own door open for a
+  friend). The two models were each missing the other's half — a bolt
+  with no key, and a keyway with no bolt — so they COMPOSE:
+  `canPass = !isLocked() || opensFor(mover)`. `lib/boundary/Lockable.ts`
+  (renamed for its export) carries both; `MobileMixin.self` confers the
+  pair beside `open`/`close`; the three keyed Exit subclasses compose it
+  and override `getLock()` so the warren keeps the keyway. ⚠ Zero
+  content change — an empty keyway opens for nobody, so the university
+  gate stayed sealed on its own authored row.
+  → [boundary](../../subsystems/boundary.md).
 - **The unafforded twelve** (I10) — the list with the bucket each would
   take: `Mobile.self` for the door pair once keyed; the locomotion
   family and `Foldable` are `locomotion.md`'s and `slot.md`'s.

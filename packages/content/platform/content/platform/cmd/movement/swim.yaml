@@ -1,3 +1,44 @@
+# ⛔⛔ HELD — and this one is held on a DESIGN IN FLIGHT, which makes it
+# different from the one other held view (`fly.yaml`) and worth the lines.
+# ⚠ `lock`/`unlock` were held beside these two and SHIPPED 2026-10-09;
+# only `swim` and `fly` remain.
+#
+# ⚠⚠ The reachability sweep CONFERRED this view and then reversed itself,
+# and the reversal is the right call. Everything about the gap was real:
+# `SwimmableMixin` and `SwimController` shipped with the locomotion
+# build, `BodyPlan/biped.yaml` has listed `swim` among a person's modes
+# the whole time, six exits in the estuary and at the wharf already carry
+# `media: [ground, water]`, and **nothing in the game composed the
+# mixin** — the only composition anywhere was an integration test that
+# manufactured its own host and passed nightly for three builds. So
+# somebody authored those exits expecting this to work.
+#
+# ⭐⭐ But `docs/slates/builds/navigable-water-slate.md` OWNS the question
+# of how you get into water, it merged while this build was running, and
+# its model is not the one the sweep reached for. Its status block says
+# in terms that *"nowhere on, in or under the water is a place you can
+# be"*, and **"the first water anybody can stand in"** is on its Left
+# list. Every water node there is a **place** (a `Location`) or a
+# **passage** (cited, never inhabited); a beach is a land `Location`
+# holding a `Shore` that CITES a water node, *"so nothing is ever in the
+# water's zone"*; and the way you ENTER water is one of three faces on
+# that citation — a **dive entrance**, the mine's adit one element over.
+#
+# The sweep's answer was a `SwimmableMixin(Thing)` propped in a land room
+# to make a land exit swimmable. That is a fourth shape the design would
+# never produce, in the exact rooms it names as its own first target
+# (*"the estuary is reachable on its own"*, *"Terminus already has an
+# `estuary` district and a `wharfside`"*). Shipping it would have meant a
+# kernel class and a row for that build to retire, and a reachability
+# sweep pre-deciding how water works.
+#
+# ⭐ What lifts this: the first water node anybody can be in. Then the
+# enablement host is whatever that build makes it — most likely the water
+# `Location` itself, or the dive entrance that cites it — and this key
+# comes off. ⚠ Tell that build the six `media: [ground, water]` exits are
+# already authored and waiting; they are the evidence that somebody
+# wanted this before either of us.
+unreachable: awaiting:navigable-water-slate
 verbs: [swim]
 controller: /platform/idea/cmd/movement/SwimController
 description: "Swim through a named exit (must be Swimmable-enabled)."

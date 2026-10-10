@@ -25,6 +25,7 @@
  * answering `null` is what makes the taps go quiet without a guard.
  */
 
+import { Traversal } from '@saxonberg/server/mud/lib/location/Traversal';
 import { Vessel } from '@saxonberg/server/mud/lib/stuff/Vessel';
 import { AtmosphericMixin } from '@saxonberg/server/mud/lib/biome/Atmospheric';
 import { DetailedMixin } from '@saxonberg/server/mud/lib/description/Detailed';
@@ -805,30 +806,66 @@ export default class Hive extends HiveBase implements Splittable {
     const defaultEdge = this.dial('apiculture.defaultEdgeMinutes', 5);
 
     const start = (this as unknown as Stuff & Containable).getContainer();
-    const visited = new Set<Stuff>();
-    const queue: Array<{ at: Stuff; minutes: number }> = [];
-    if (start !== null) queue.push({ at: start, minutes: 0 });
 
-    let hops = 0;
-    while (queue.length > 0 && hops < FORAGE_HOP_CAP) {
-      const step = queue.shift();
-      if (!step) break;
-      const { at, minutes } = step;
-      if (visited.has(at)) continue;
-      visited.add(at);
-      hops += 1;
-
-      // The sward under this patch of ground.
-      if (MixinApi.hasMixin(at.constructor as never, SWARD_MIXIN as never)) {
-        const field = at as unknown as Field;
-        const m2 = field.inFlowerFraction() * field.swardAreaM2();
-        if (m2 > 0) {
-          const key = '/trade/apiculture/idea/material/clover-nectar';
-          sources.set(key, (sources.get(key) ?? 0) + m2);
+    // ⭐ One traversal, or none (`docs/lint-family.md`
+    // § `lint:graph-walks`). What stayed here is everything that makes
+    // this a FORAGE census rather than a reach: the sward under the
+    // ground, the one level into a bed, the rival-colony count, and
+    // both of today's cost inequalities.
+    //
+    // ⚠⚠ This walk keeps its OWN neighbour reader and must: it admits
+    // a destination that is not a `Container`, which
+    // `ExitableMixin.getObviousNeighbours` refuses. A bee flying into
+    // a room-shaped nothing contributes no bloom but still spends a
+    // hop, and spends it at the right distance — routing this through
+    // the shared guards would quietly change the radius.
+    //
+    // ⚠ Plain breadth-first, so `minutes` is FIRST-DISCOVERED and not
+    // cheapest. Unchanged, deliberately: the skeleton offers
+    // `cheapest-first` and taking it would change every radius in the
+    // apiary.
+    const walk = new Traversal<Stuff, void, number>({
+      order: 'breadth-first',
+      keyOf: (at) => at.stuffId,
+      neighbours: (at) => {
+        if (!MixinApi.isExitable(at)) return [];
+        const out: Array<{ node: Stuff; minutes: number }> = [];
+        for (const exit of at.getObviousExits()) {
+          let dest: Stuff | null = null;
+          try {
+            dest = exit.getDestination() as unknown as Stuff | null;
+          } catch {
+            continue;
+          }
+          if (dest === null) continue;
+          const cost = exit.getEdgeMinutes() ?? defaultEdge;
+          out.push({ node: dest, minutes: cost > 0 ? cost : defaultEdge });
         }
-      }
+        return out;
+      },
+      // `FORAGE_HOP_CAP` counts DEQUEUED unique nodes, which is what
+      // the skeleton's node budget counts.
+      bound: { nodes: FORAGE_HOP_CAP },
+      // Both inequalities, exactly as they were: a patch at or past the
+      // range stops expanding, and a leg that would cross the range is
+      // refused rather than clamped.
+      descend: (minutes, leg) => {
+        if (minutes >= rangeMinutes) return null;
+        const next = minutes + (leg.minutes ?? defaultEdge);
+        return next > rangeMinutes ? null : next;
+      },
+      fold: (at) => {
+        // The sward under this patch of ground.
+        if (MixinApi.hasMixin(at.constructor as never, SWARD_MIXIN as never)) {
+          const field = at as unknown as Field;
+          const m2 = field.inFlowerFraction() * field.swardAreaM2();
+          if (m2 > 0) {
+            const key = '/trade/apiculture/idea/material/clover-nectar';
+            sources.set(key, (sources.get(key) ?? 0) + m2);
+          }
+        }
 
-      if (MixinApi.isContainer(at)) {
+        if (!MixinApi.isContainer(at)) return;
         for (const item of at.getContents()) {
           this.countBloom(item, sources, flowering, perPlant);
           // One level into a bed: a plant seated in a garden bed is a
@@ -855,24 +892,9 @@ export default class Hive extends HiveBase implements Splittable {
             if (other.getStrength() > 0) hives += 1;
           }
         }
-      }
-
-      if (minutes >= rangeMinutes) continue;
-      if (!MixinApi.isExitable(at)) continue;
-      for (const exit of at.getObviousExits()) {
-        let dest: Stuff | null = null;
-        try {
-          dest = exit.getDestination() as unknown as Stuff | null;
-        } catch {
-          continue;
-        }
-        if (dest === null || visited.has(dest)) continue;
-        const cost = exit.getEdgeMinutes() ?? defaultEdge;
-        const next = minutes + (cost > 0 ? cost : defaultEdge);
-        if (next > rangeMinutes) continue;
-        queue.push({ at: dest, minutes: next });
-      }
-    }
+      },
+    });
+    if (start !== null) walk.walk(start, { carry: 0 });
 
     let totalM2 = 0;
     for (const v of sources.values()) totalM2 += v;

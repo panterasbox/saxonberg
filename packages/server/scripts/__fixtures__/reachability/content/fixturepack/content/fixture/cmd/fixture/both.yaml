@@ -1,0 +1,4 @@
+# VIOLATION: declared held AND conferred by a static — one is a lie.
+unreachable: awaiting:fixture-slate
+verbs: [both]
+controller: /fixture/idea/cmd/fixture/BothController

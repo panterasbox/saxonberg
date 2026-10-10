@@ -1,0 +1,3 @@
+recipeId: make-widget
+name: Make widget
+outputTemplate: /fixture/thing/recipe-output

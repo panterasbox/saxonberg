@@ -1,3 +1,12 @@
+# ⛔ `unreachable: exemplar` — the transmission-axis demonstration
+# `encumbrance.md:286` points at, and deliberately not stock for the
+# same reason the coffee urn is not: a vessel that nearly erases the
+# weight of whatever goes in it defeats the gauge it exists to
+# illustrate. ⭐ The axis it demonstrates IS reachable through ordinary
+# goods — the backpack (a general-store line since the reachability
+# sweep) is the honest version, couplng a load at the worn floor with
+# `transmissionFactor` left at 1.0.
+unreachable: exemplar
 # Bag of holding — a plain Vessel with a very low transmissionFactor.
 # Exercises the encumbrance *transmission* axis: whatever you drop in
 # barely adds to what you bear. No subclass needed — it's just a Vessel

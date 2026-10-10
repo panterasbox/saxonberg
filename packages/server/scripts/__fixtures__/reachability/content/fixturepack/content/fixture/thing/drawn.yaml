@@ -1,0 +1,6 @@
+# Mechanism 3 — census-drawn: a key, a Circulating class, and a target.
+class: /fixture/thing/Widget
+data:
+  shortDescription: drawn widget
+  censusKey: fixture:drawn
+  regionTarget: 3

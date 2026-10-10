@@ -1162,6 +1162,51 @@ commentary is later about.
 
 ---
 
+## 9a. ⭐⭐⭐ The counter is the description
+
+Added 2026-10-09, from the tourism pass
+([tourism-and-sport-slate](./slates/builds/tourism-and-sport-slate.md)
+§ 2). A cheap authoring tool that § 9's cultural-content rule implies and
+nobody had stated.
+
+> ⭐⭐⭐ **You learn what a neighbourhood is by what its shops sell.
+> Nobody needs a sign.**
+
+A bakery on the tourist pier selling one famous loaf, a downtown bakery
+with the staples plus some specialties, a bakery selling bean cakes to the
+community that lives around it, a bakery selling to a subculture — **four
+different places, described by their inventory**, with no prose doing the
+work. The owner's framing, which is the useful part:
+
+> *"Catering to tourists is more about **whose preferences you're going to
+> prioritize**. It's not necessarily about the market, though obviously
+> the market is shaped by consumer preferences."*
+
+⭐⭐ **Two axes — RANGE (narrow ↔ broad) and WHOSE TASTE (a city · a
+community · a subculture · a trade · visitors).** And *visitors* is one
+option among several, not the axis: a bean-cake shop is **narrow-range and
+serving regulars**, which has nothing to do with tourism.
+
+⭐ **And the exemplar is already in our notes.** Gnomelands' bakery
+(§ *eotl-craft.md*, *The joke is four integers*) prices **plain bread as
+the most expensive thing on the board, because it is *gnomish*** — four
+integers on a sign, and the sign *is* the characterization. Nobody
+explains it.
+
+**Why it belongs in this document rather than in a trade slate:** it is
+§ 9's rule — *cultural content is what players know that the text never
+said* — **achieved with rows rather than prose**, which makes it the
+cheapest instance of the hardest thing in here. ⛔ And it is not decor
+scoring: the counter is **evidence**, read by a player, never a gauge.
+
+⚠ The structural half is `settlement-model.md`'s specialization gradient
+(*"a city is where the general store fragments"*) — a narrow shop is
+viable because density supplies a narrow clientele. **So the authoring
+tool only works at city scale**, and in a village one broad store is the
+honest answer.
+
+---
+
 ## 10. ⚠ The risk this document should say out loud
 
 The method is screenwriting's: **treatment first** — plot beats and

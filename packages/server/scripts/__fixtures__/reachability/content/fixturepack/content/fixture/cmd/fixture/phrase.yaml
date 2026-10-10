@@ -1,0 +1,14 @@
+# VIOLATION (arm G): a string positional with a later optional, defaulted
+# object positional — the binder gives word two to `counter` and throws
+# the counter's own default away.
+verbs: [phrase]
+controller: /fixture/idea/cmd/fixture/PhraseController
+args:
+  - name: thing
+    type: string
+    required: true
+  - name: counter
+    type: object
+    required: false
+    prepositions: [from]
+    default: "reachable:[mixin.FixtureMixin]"

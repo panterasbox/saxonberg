@@ -61,6 +61,22 @@ boot:
   # flock that does not exist — and the refusal would be `unknown-target`
   # on a book the room's own prose describes.
   - { template: /world/terminus/hearts-delight/thing/flock-book, role: producer, reason: "the flock book affords draft/return — the only way into the twelve head, and a prop nothing warms is a prop that is not there" }
+  # ⚠⚠ The OX BOOK and the HEN BOOK, for the identical reason, and the ox
+  # book's absence from this list is the omission the reachability sweep
+  # found: the flock book was warmed and propped, the ox book was
+  # neither, and `draft ox` answered `unknown-target` on a team the
+  # yard's own prose describes.
+  - { template: /world/terminus/hearts-delight/thing/ox-book, role: producer, reason: "the ox book affords draft/return on the team — the only way into the two head, and the sweep found it warmed by nothing and propped nowhere" }
+  - { template: /world/terminus/hearts-delight/thing/hen-book, role: producer, reason: "the hen book affords draft/return on the yard hens, and is the realm's only path to a chicken at all — the egg tap and three authored poultry cuts had no bird" }
+  # ⚠⚠ The two SPECIES, synchronously, for the reason the ewe's line below
+  # gives: `butcheryYield` and `taps()` are both sync species reads, so an
+  # inert row is a team with no carcass and a flock with no eggs. ⭐ The
+  # hen's matters twice over now — her yield names `trade-cooking`'s three
+  # poultry cuts, and an inert species row would read as no species at
+  # all, which is what makes the "you cannot butcher a person" gate fail
+  # OPEN across a clade walk.
+  - { template: /stuff/idea/species/animalia/chordata/mammalia/artiodactyla/bovidae/bos/taurus, role: sync-read, reason: "the ox's butchery yield is a synchronous species read — an inert row is a worn-out ox that opens onto nothing" }
+  - { template: /stuff/idea/species/animalia/chordata/aves/galliformes/phasianidae/gallus/domesticus, role: sync-read, reason: "the hen's egg tap and her three poultry cuts are both synchronous species reads — an inert row is a bird with no eggs and no breast" }
   # ⚠⚠ The SPECIES, synchronously. `ProducingMixin.taps()` is a sync read
   # of the host's species and `getSpecies()` is a `findByTemplatePath` —
   # so a drafted ewe whose species nothing stood up has no wool tap and

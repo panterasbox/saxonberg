@@ -233,7 +233,10 @@ shipped rows at all, so `CardSource` is a discriminated union:
   existence, identity, lifetime and pinned-ness; only the body is the
   client's.
 - **`prompt`** — no body at all. The client already holds one prompt
-  model and the card joins it by `promptId`.
+  model and the card joins it by `promptId`. ⚠ The **`prompt cancel`
+  VERB** — the typed escape hatch when a question is stuck — was afforded
+  by nothing until the reachability sweep; it is
+  `HasInteractiveMixin.self`'s now. See [prompt.md](./prompt.md).
 
   ⚠ **Pushed by `PromptApi`'s own push path**, not by a command — a
   question is the one card nobody types a command to get. Its key is

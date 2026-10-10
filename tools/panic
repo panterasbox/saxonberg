@@ -1,0 +1,174 @@
+#!/bin/sh
+# panic — stop a Saxonberg test storm, from a shell, under load.
+#
+# ⭐ The one requirement that shapes everything here: it must work when
+# the box is ALREADY thrashing and the agent that started the storm has
+# stopped answering. So it is POSIX sh reading /proc directly — no node,
+# no pnpm, no vitest, nothing that needs to allocate or resolve a module
+# graph to tell you what is eating the machine.
+#
+#   tools/panic              # kill TEST processes in every worktree
+#   tools/panic -n           # list them, kill nothing
+#   tools/panic --here       # only this worktree's
+#   tools/panic --all        # test processes AND dev servers
+#   tools/panic --dev        # only dev servers
+#
+# WHAT IT KILLS, and the line it draws. A suite's processes are
+# disposable by nature: a killed `vitest run` loses a result you can
+# recompute, which is why this is safe to run reflexively. A dev server
+# is somebody's session — port 2010 is whoever is driving — so it is
+# NOT in the default set, and `--all` is the deliberate second word.
+#
+# ⚠ Three things it will never touch, whatever you pass: a `claude`
+# process (those are the sessions, and killing one loses the only
+# unrecoverable thing on the box — the conversation), the VS Code
+# server, and the tmux server. A storm is never those; they are what
+# you need alive to deal with it.
+#
+# ⚠ And it never kills a process outside a Saxonberg worktree. The
+# condition is the real ROOT path, not the string "saxonberg" — a
+# process is in scope only when its cwd or its command line sits under
+# the directory this script's own worktree sits in.
+
+set -u
+
+SELF=$$
+HERE_ONLY=0
+DRY=0
+WANT_TEST=1
+WANT_DEV=0
+
+for a in "$@"; do
+  case "$a" in
+    -n|--dry-run) DRY=1 ;;
+    --here)       HERE_ONLY=1 ;;
+    --all)        WANT_DEV=1 ;;
+    --dev)        WANT_DEV=1; WANT_TEST=0 ;;
+    -h|--help)    sed -n '2,40p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+    *)            echo "panic: unknown option '$a' (try --help)" >&2; exit 2 ;;
+  esac
+done
+
+# The worktree this script lives in, and the directory that holds every
+# worktree beside it. Resolved from the script path so a copy in another
+# checkout scopes itself to that checkout.
+SCRIPT_DIR=$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)
+WORKTREE=$(dirname -- "$SCRIPT_DIR")
+ROOT=$(dirname -- "$WORKTREE")
+
+if [ "$HERE_ONLY" = 1 ]; then SCOPE=$WORKTREE; else SCOPE=$ROOT; fi
+
+# Every ancestor of this shell, so we cannot kill what is running us —
+# the terminal, the shell, an agent's Bash tool, the tmux pane.
+ANCESTORS=" "
+p=$SELF
+while [ "$p" != 0 ] && [ "$p" != 1 ]; do
+  ANCESTORS="$ANCESTORS$p "
+  p=$(awk '{print $4}' "/proc/$p/stat" 2>/dev/null) || break
+  [ -n "${p:-}" ] || break
+done
+
+victims=''
+kb_total=0
+listed=''
+
+for d in /proc/[0-9]*; do
+  pid=${d#/proc/}
+  [ -r "$d/cmdline" ] || continue
+
+  case "$ANCESTORS" in *" $pid "*) continue ;; esac
+
+  cmd=$(tr '\0' ' ' < "$d/cmdline" 2>/dev/null) || continue
+  [ -n "$cmd" ] || continue
+
+  # ⚠ The never-touch set, checked before anything else.
+  case "$cmd" in
+    *claude*|*vscode-server*|*"tmux "*|*tmux\ new-session*) continue ;;
+  esac
+
+  cwd=$(readlink "$d/cwd" 2>/dev/null) || cwd=''
+
+  # In scope only if it actually lives in the tree.
+  in_scope=0
+  case "$cwd" in "$SCOPE"*) in_scope=1 ;; esac
+  if [ "$in_scope" = 0 ]; then
+    case "$cmd" in *"$SCOPE"*) in_scope=1 ;; esac
+  fi
+  [ "$in_scope" = 1 ] || continue
+
+  kind=''
+
+  # A world the wire harness booted says so in its own environment —
+  # `SAXONBERG_TEST_WORLD` (packages/wire/src/runner/boot.ts). That is
+  # the honest discriminator between a booted test world and somebody's
+  # dev server, which otherwise have the same command line.
+  if grep -qa 'SAXONBERG_TEST_WORLD=1' "$d/environ" 2>/dev/null; then
+    kind=test
+  else
+    case "$cmd" in
+      *tsx\ watch*|*dev-preflight*|*concurrently*)      kind=dev ;;
+      *vite\ *|*node_modules/.bin/vite|*"/vite/bin"*)   kind=dev ;;
+      *vitest*)                                          kind=test ;;
+      *" -r test"*|*"run test"*|*"pnpm test"*|*"vitest run"*) kind=test ;;
+      # ⚠ An esbuild service belongs to whoever spawned it, and a vite
+      # dev server spawns one too — so it inherits its PARENT's kind
+      # rather than being called a test process on its own name. A
+      # service whose parent is already dead is an orphan and goes.
+      *esbuild*)
+        ppid=$(awk '{print $4}' "$d/stat" 2>/dev/null)
+        pcmd=''
+        [ -n "${ppid:-}" ] && pcmd=$(tr '\0' ' ' < "/proc/$ppid/cmdline" 2>/dev/null)
+        case "$pcmd" in
+          '')                                            kind=test ;;
+          *tsx\ watch*|*dev-preflight*|*concurrently*)   kind=dev ;;
+          *vite\ *|*node_modules/.bin/vite|*"/vite/bin"*) kind=dev ;;
+          *)                                             kind=test ;;
+        esac
+        ;;
+    esac
+  fi
+
+  [ -n "$kind" ] || continue
+  [ "$kind" = test ] && [ "$WANT_TEST" = 0 ] && continue
+  [ "$kind" = dev ]  && [ "$WANT_DEV"  = 0 ] && continue
+
+  kb=$(awk '/^VmRSS:/{print $2}' "$d/status" 2>/dev/null)
+  [ -n "${kb:-}" ] || kb=0
+  kb_total=$((kb_total + kb))
+
+  victims="$victims $pid"
+  listed="$listed$(printf '%7s  %-4s %5s MB  %s\n' "$pid" "$kind" "$((kb / 1024))" "$(printf '%.150s' "$cmd")")
+"
+done
+
+if [ -z "$victims" ]; then
+  echo "panic: nothing to kill under $SCOPE."
+  exit 0
+fi
+
+printf '%s' "$listed"
+n=$(echo $victims | wc -w)
+printf -- '---- %s process(es), %s MB resident\n' "$n" "$((kb_total / 1024))"
+
+if [ "$DRY" = 1 ]; then
+  echo "panic: --dry-run, nothing killed."
+  exit 0
+fi
+
+# TERM, a breath, then KILL. A vitest worker mid-transform does not
+# always answer TERM, and under memory pressure it is slower still —
+# but we are not waiting long, because the reason you ran this is that
+# the box is unusable NOW.
+for pid in $victims; do kill -TERM "$pid" 2>/dev/null; done
+sleep 2
+for pid in $victims; do kill -KILL "$pid" 2>/dev/null; done
+
+left=0
+for pid in $victims; do [ -d "/proc/$pid" ] && left=$((left + 1)); done
+
+avail=$(awk '/^MemAvailable:/{printf "%.1f", $2/1048576}' /proc/meminfo)
+if [ "$left" = 0 ]; then
+  echo "panic: killed $n. ${avail} GB available."
+else
+  echo "panic: killed $((n - left)) of $n; $left did not die (run again). ${avail} GB available."
+fi

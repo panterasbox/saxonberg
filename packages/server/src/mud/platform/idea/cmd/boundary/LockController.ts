@@ -22,7 +22,7 @@ import { MixinApi } from '../../../../api/mixin';
 import { MessageApi } from '../../../../api/message';
 import { Mml } from '../../../../api/mml';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
-import type { Lockable } from '../../../../lib/boundary/Locked';
+import type { Lockable } from '../../../../lib/boundary/Lockable';
 
 interface LockModel extends CommandModel {
   target?: MqlOneResult;
@@ -74,6 +74,21 @@ export default class LockController extends CommandController<LockModel> {
       return;
     }
 
+    // ⭐⭐ **Observable state first, the secret second** — and the order
+    // is the whole point, corrected by a lens pass after the first
+    // version shipped it the other way round.
+    //
+    // The first version asked for the key before reading the bolt, on
+    // the reasoning that a stranger should not learn the door's state.
+    // ⚠ That is wrong on immersion (3a): **a character can SEE a thrown
+    // bolt.** Hiding something visible is the engine lying about the
+    // world, which is a betrayal exactly like prose the model does not
+    // back — and it bought nothing, because the door already announces
+    // `locked` in the room's exit listing.
+    //
+    // So: already-locked is reported to anybody, because anybody can see
+    // it. The KEY is the secret, and it is asked only once the act would
+    // otherwise go through.
     if (lockable.isLocked()) {
       MessageApi.scene(commandGiver)
         .topic('act.deed')
@@ -87,13 +102,38 @@ export default class LockController extends CommandController<LockModel> {
       return;
     }
 
+    // ⭐⭐⭐ **The authority, and it did not exist.** This controller
+    // checked no key, no credential and no title, so conferring `lock`
+    // over the old boolean mixin would have let any player alive lock
+    // the university gate and a hall's front doors. The door answers for
+    // itself now: `opensFor` is a synchronous scan of the mover's
+    // reachable wallet (implant keychain, then a carried physical `Key`
+    // — never one lying on the floor).
+    //
+    // ⚠ The bolt's STATE and the keyway's AUTHORITY are deliberately two
+    // calls. `lock()` moves the bolt and asks nobody; this is the ask.
+    if (!lockable.opensFor(commandGiver)) {
+      MessageApi.scene(commandGiver)
+        .topic('act.deed')
+        .toSelf(
+          Mml.compose`You have no key that fits ${Mml.thing(lockable)}.`,
+        )
+        .send();
+      context.note({
+        kind: 'controller-rejected',
+        reason: 'no-key',
+        detail: 'no key that fits',
+      });
+      return;
+    }
+
     lockable.lock();
 
     MessageApi.scene(commandGiver)
       .topic('act.deed')
-      .toSelf(Mml.compose`You lock ${Mml.thing(lockable as unknown as Stuff)}.`)
+      .toSelf(Mml.compose`You lock ${Mml.thing(lockable)}.`)
       .toPeers(
-        Mml.compose`${Mml.actor(commandGiver)} locks ${Mml.thing(lockable as unknown as Stuff)}.`,
+        Mml.compose`${Mml.actor(commandGiver)} locks ${Mml.thing(lockable)}.`,
       )
       .send();
 

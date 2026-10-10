@@ -44,6 +44,8 @@ import type { Container } from '../spatial/Container';
 import type { Sensor } from '../message/Sensor';
 import { MAX_HOPS, EXIT_TAU } from './Modality';
 import { MixinApi } from '../../api/mixin';
+import { Traversal } from '../location/Traversal';
+import type { Leg } from '../location/Traversal';
 import { StuffApi } from '../../api/stuff';
 import { MessageApi } from '../../api/message';
 import type { BoundaryAnchor } from '../boundary/BoundaryAnchor';
@@ -85,21 +87,17 @@ export interface AudienceArrival {
  */
 const PER_HOP_TAU = 0.01;
 
-// v1 limitation shared verbatim with `SoundModality.walkAt`: this reads
-// only the room's *inline* `_atmosphere` override, not the biome-inherited
-// value — so a biome-default vacuum room does NOT block the walk (a whistle
-// would carry through it). The proper resolve, `Atmospheric.getAtmosphere`
-// → `BiomeApi`, is **async**, and this walk is sync (no await), so the raw
-// field is the only sync source. Closing the gap means making the whole
-// acoustic walk async — a shared change with SoundModality, deferred.
-function inlineAtmosphere(loc: Stuff & Container): string | null {
-  if (!MixinApi.isAtmospheric(loc)) return null;
-  const atmos = (loc as unknown as { _atmosphere?: string | null })._atmosphere;
-  return typeof atmos === 'string' && atmos.length > 0 ? atmos : null;
-}
-
+/**
+ * ⭐ One copy, on `AtmosphericMixin.atmosphereBlocks()`. The comment
+ * that used to sit here said the v1 limitation was *"shared verbatim
+ * with `SoundModality.walkAt`"* — a note admitting the duplication
+ * while making a third copy of it. The limitation (an inherited
+ * vacuum does not block; only a room's own `atmosphere: vacuum` does,
+ * because the resolve is async and this walk is not) is documented at
+ * the method, once.
+ */
 function atmosphereBlocks(loc: Stuff & Container): boolean {
-  return inlineAtmosphere(loc) === 'vacuum';
+  return MixinApi.isAtmospheric(loc) ? loc.atmosphereBlocks() : false;
 }
 
 function isSoundConduit(c: Conduit): c is SoundConduit {
@@ -135,33 +133,29 @@ function linearToDb(sourceDb: number, cumulativeTau: number): number {
   return sourceDb + 10 * Math.log10(cumulativeTau);
 }
 
-function walkOutward(
-  loc: Stuff & Container,
-  sourceDb: number,
-  depth: number,
-  cumulativeTau: number,
-  direction: string | null,
-  visited: Set<string>,
-  out: AudienceArrival[],
-): void {
-  if (depth > MAX_HOPS) return;
-  const id = (loc as unknown as Stuff).stuffId;
-  if (visited.has(id)) return;
-  visited.add(id);
-  // Vacuum stops the walk at the recipient room (no emit, no recurse).
-  if (atmosphereBlocks(loc)) return;
+/** What travels outward along the legs: the running tau and the first-hop direction. */
+interface Carry {
+  tau: number;
+  direction: string | null;
+}
 
-  // (a) Emit one arrival per hearing sensor in this room.
-  const db = linearToDb(sourceDb, cumulativeTau);
-  for (const sensor of MessageApi.getSensors(loc)) {
-    out.push({ sensor, db, direction });
-  }
+/**
+ * ⭐ The legs out of `loc`, in the order this walk has always taken
+ * them: doored/windowed boundaries (b) first, then doorless obvious
+ * exits (c) — mirroring `SoundModality.walkAt`, which is the pull-side
+ * of the same physics.
+ *
+ * Each leg carries the tau that applies to it and the direction a
+ * first hop through it would be attributed to. ⚠ `direction` is
+ * **sticky**: only the FIRST hop names a direction, because what a
+ * listener two rooms away reports is the way the sound came INTO their
+ * neighbourhood, not the last doorway it crossed.
+ */
+function gatherLegs(loc: Stuff & Container): Array<Leg<Stuff & Container>> {
+  const out: Array<Leg<Stuff & Container>> = [];
 
-  if (depth >= MAX_HOPS) return;
-
-  // (b) Cross-boundary propagation — doored / windowed boundaries.
-  // Mirrors `walkAt`'s BoundaryAnchor branch; a closed Door's
-  // SoundConduit returns transmissivity 0 and short-circuits.
+  // (b) Cross-boundary propagation — doored / windowed boundaries. A
+  // closed Door's SoundConduit returns transmissivity 0 and is dropped.
   if (MixinApi.isAdornable(loc)) {
     for (const fx of loc.getFixtures()) {
       if (!isBoundaryAnchor(fx)) continue;
@@ -175,46 +169,81 @@ function walkOutward(
       const otherSide = boundary.getOtherSide(anchor);
       const tau = conduit.transmissivity(otherSide, anchor.getSide());
       if (!(tau > 0)) continue;
-      const nextDirection =
-        direction ?? directionThroughBoundary(loc, boundary);
-      walkOutward(
-        otherHost as unknown as Stuff & Container,
-        sourceDb,
-        depth + 1,
-        cumulativeTau * tau * PER_HOP_TAU,
-        nextDirection,
-        visited,
-        out,
-      );
+      out.push({
+        node: otherHost as unknown as Stuff & Container,
+        tau,
+        dir: directionThroughBoundary(loc, boundary),
+      });
     }
   }
 
-  // (c) Cross-exit propagation — doorless exits only (doored exits are
-  // handled by the boundary branch above, matching `walkAt`).
+  // (c) Cross-exit propagation — doorless exits only.
+  //
+  // ⚠ This walk's guard list was always SHORTER than the modalities':
+  // it never checked `hasSpatialDestination`, `isContainer` or
+  // `isDestroyed`. Routing the legs through
+  // `ExitableMixin.getObviousNeighbours` gives it all five, which is a
+  // behaviour change in exactly one direction — an exit that names no
+  // room, or a room reaped mid-walk, no longer reaches this walk at
+  // all. Before, it would have been handed to `MessageApi.getSensors`
+  // and emitted arrivals for a destroyed proxy's contents. Nothing in
+  // today's content exercises it (the golden is unchanged), which is
+  // why it reads as tidying rather than a fix.
   if (MixinApi.isExitable(loc)) {
-    for (const exit of loc.getObviousExits()) {
-      if (exit.getDoor()) continue;
-      const destPath = exit.getDestinationTemplatePath();
-      // Existence, not identity — a Warren hub exit names a template with many live clones (see VisionModality).
-      if (destPath && StuffApi.findAllByTemplatePath(destPath).length === 0) continue;
-      let dest: Stuff & Container;
-      try {
-        dest = exit.getDestination();
-      } catch {
-        continue;
-      }
-      const nextDirection = direction ?? exit.getDirection();
-      walkOutward(
-        dest,
-        sourceDb,
-        depth + 1,
-        cumulativeTau * EXIT_TAU * PER_HOP_TAU,
-        nextDirection,
-        visited,
-        out,
-      );
+    for (const { exit, dest } of loc.getObviousNeighbours()) {
+      out.push({ node: dest, tau: EXIT_TAU, dir: exit.getDirection() });
     }
   }
+
+  return out;
+}
+
+/**
+ * The outward sound walk, on the shared skeleton
+ * (`lib/location/Traversal.ts` — *one traversal, or none*).
+ *
+ * ⭐⭐ **This is the push-down case, and it is why the skeleton has an
+ * `enter` hook at all.** The three modalities fold a signal UP from
+ * their neighbours; this one carries a level DOWN and emits at each
+ * room it reaches. `Scene` consumes the result **in order** and
+ * filters by threshold, so the emission order is the contract —
+ * pre-order, which is what `enter` gives.
+ *
+ * ⚠ A vacuum short-circuits by returning the accumulator from
+ * `enter`: no emit and no recursion, which is what *"vacuum stops the
+ * walk at the recipient room"* always meant. The node is still marked.
+ */
+function walkOutward(
+  loc: Stuff & Container,
+  sourceDb: number,
+  depth: number,
+  cumulativeTau: number,
+  direction: string | null,
+  visited: Set<string>,
+  out: AudienceArrival[],
+): void {
+  const walk = new Traversal<Stuff & Container, AudienceArrival[], Carry>({
+    order: 'depth-first',
+    keyOf: (node) => (node as unknown as Stuff).stuffId,
+    neighbours: gatherLegs,
+    bound: { hops: MAX_HOPS },
+    visited,
+    descend: (carry, leg) => ({
+      tau: carry.tau * (leg.tau ?? EXIT_TAU) * PER_HOP_TAU,
+      // Sticky: the first hop names the direction and later hops keep it.
+      direction: carry.direction ?? leg.dir ?? null,
+    }),
+    enter: (node, _d, carry) => {
+      if (atmosphereBlocks(node)) return out;
+      const db = linearToDb(sourceDb, carry.tau);
+      for (const sensor of MessageApi.getSensors(node)) {
+        out.push({ sensor, db, direction: carry.direction });
+      }
+      return undefined;
+    },
+    fold: () => out,
+  });
+  walk.walk(loc, { carry: { tau: cumulativeTau, direction }, depth });
 }
 
 /**

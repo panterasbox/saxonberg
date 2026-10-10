@@ -1,3 +1,13 @@
+# ⛔ `unreachable: exemplar` — the ∞-source demonstration `bulk.md`
+# points at, and the one vessel on this shelf that must NOT be stock.
+# Its interior `available()` is infinite and never depletes, which is
+# the whole point of the source end of the holder dial — and an
+# inexhaustible coffee supply in a player's pack would be a hole in
+# the economy rather than a lesson. ⭐ Its siblings on the same demo
+# shelf ARE stock now (the colander and the thermos are general-store
+# lines): a drain-through and a vacuum flask are ordinary household
+# goods, and only the infinite one is a mechanism and not a thing.
+unreachable: exemplar
 # Coffee urn — the demo's inexhaustible liquid source. It's an
 # `UnboundedReceptacle` (composes `UnboundedSourceMixin`), so its
 # interior `available()` is ∞ and it never depletes — refills never run

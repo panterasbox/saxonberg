@@ -18,6 +18,18 @@
  * University Avenue): any pack's clockwork composes it; the concrete
  * timepieces (`Watch`) stay content.
  *
+ * ⭐⭐ **This mixin is the GATE. The CONFERRER is the concrete timepiece
+ * class, in the pack that owns the verbs.** Say both halves, because
+ * saying only the first is what shipped the bug: `Watch.ts` reasoned
+ * correctly that the capability gate belongs here, concluded that it
+ * should therefore contribute nothing, and left `wind` and `adjust`
+ * afforded by **nobody** for the life of the locality. This mixin cannot
+ * fix that for it — it is kernel substrate and those views are the
+ * terminus locality's, and a kernel class may never name a trade's or a
+ * locality's view (`command-routing.md:418-424`). A second mechanical
+ * timepiece in another pack composes this mixin for the gate and carries
+ * its own static naming its own pack's views.
+ *
  * Composition: the mixin folds in `TimekeepingMixin` (the read contract it
  * re-defines with its drift physics) over `ReservedMixin` (the mainspring,
  * reached through the documented `Reserved` cast — the `Foldable` /

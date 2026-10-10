@@ -1,0 +1,13 @@
+# NOT a violation: the string arg is greedy, so it takes the whole phrase.
+verbs: [safephrase]
+controller: /fixture/idea/cmd/fixture/SafePhraseController
+args:
+  - name: thing
+    type: string
+    required: true
+    greedy: true
+  - name: counter
+    type: object
+    required: false
+    prepositions: [from]
+    default: "reachable:[mixin.FixtureMixin]"

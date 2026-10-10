@@ -316,6 +316,46 @@ hydration source completes before `onCreate` begins**, so a hook may
 rely on remembered state being present instead of reading a collection
 itself.
 
+## ⭐⭐ `unreachable:` — the fourth top-level key, read by a LINT and nothing else
+
+A sibling of `class:` / `extends:` / `data:` on a row file, and the one
+key here that the runtime never sees.
+
+It answers one question: **why can no player ever meet this row?**
+`lint:reachability`'s arm R requires every `thing`-branch row to be
+reached by one of five mechanisms or to carry this key. Closed
+vocabulary:
+
+| value | means |
+|---|---|
+| `exemplar` | a substrate exemplar a subsystem doc cites and tests build; not meant to stand in the world (the coffee urn's infinite source, the bag of holding, the braille slate) |
+| `parent` | a base row that exists to be `extends:`-ed and which nothing extends YET. ⚠ A parent WITH a reachable child is detected automatically (arm R rule 4), so this value is only for the not-yet case |
+| `awaiting:<slate-basename>` | held against a named slate, whose file must exist under `docs/slates/**`. A **stranded** reason — one naming no slate — is a finding |
+
+⭐ **The installer never sees it.** `PackLogic` reads `class`, `extends`
+and `data` off a row file and nothing else, and hashes
+`{class, extends, data}` — so the key does not reach Mongo, does not
+change a row's content hash, and cannot affect hydration.
+
+⚠ A `data:`-level carrier was considered and rejected on a stronger
+reason than *it would be persisted*: the `TemplateApplier` iterates the
+host's DECLARED fields and lights a `reportUnapplied` diagnostic for
+anything left over, so `data.unreachable` would raise an author-visible
+diagnostic at the `errors` verb **on every clone of the row.** Same
+conclusion, better reason — it is a top-level key.
+
+⚠⚠ The honest objection — *a key only a script reads* — is accepted and
+is the point. It is an authoring declaration the same way a `# comment`
+was, except greppable, vocabulary-checked and gated. A comment saying
+*"nothing places this on purpose"* was indistinguishable from an
+oversight, and that is how fifteen command views and forty-five rows came
+to be unreachable without anybody noticing.
+
+⚠ On a **command view** the same key is a declared property of
+`command.schema.json` instead, because a view's schema is closed
+(`additionalProperties: false`) and an undeclared key throws at load. See
+[command-spec.md](./command-spec.md).
+
 ## ⭐ The entry shape: `as`, `count`, `onto`
 
 A `props:` entry is a bare path or an object:

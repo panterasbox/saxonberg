@@ -1,0 +1,4 @@
+# Mechanism 1 — a recipe's outputTemplate is a TOP-LEVEL key, not under
+# `data:`, which is why the faucet walk reads both levels.
+class: /fixture/thing/Plain
+data: { shortDescription: recipe output }

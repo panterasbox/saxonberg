@@ -525,7 +525,27 @@ suite('1–3. a flock, a book, and one head out of it', () => {
   }, 120_000);
 
   it('⭐ 2. the book names a flock and a tally', async () => {
-    const said = await read(k, 'look flock book');
+    // ⚠⚠ `here:i:flockbook` — SCOPED, and the reachability sweep is why.
+    // That sweep hung two more herdbooks on this shelf (the ox register,
+    // which `draft` is afforded by and which was propped nowhere, and the
+    // hen tally, because the realm had no chicken at all). `look`'s
+    // target is greedy and its matcher scores loosely across three
+    // near-identical records, so `look flock book` now raises a
+    // disambiguation prompt — ⭐ correctly: three registers in one room is
+    // a question the game should ask, and a player answers it.
+    //
+    // ⚠⚠⚠ A wire session cannot. An unanswered foreground prompt lands on
+    // its own frame, `cmd` waits out the whole timeout, and **it poisons
+    // every later command on the session** — twenty-two checkpoints of
+    // this file went down in one cascade before the read was narrowed.
+    // The harness's prompt recovery does not catch this shape either: it
+    // triggers on a *raised a PROMPT* error and what arrives is a plain
+    // timeout.
+    //
+    // ⭐ The lesson, which is the whole drive discipline in one line:
+    // **name what you mean.** A unique keyword costs nothing and a loose
+    // read costs the next person who adds an object to the room.
+    const said = await read(k, 'look here:i:flockbook');
     expect(said).toMatch(/column|number|lambed|ruled/i);
   }, 120_000);
 
@@ -683,7 +703,11 @@ suite('⭐⭐⭐ 6. slaughter — the wave the build turns on', () => {
   }, 180_000);
 
   it('⭐ the book says what became of her, and the tally fell', async () => {
-    const said = await read(k, 'look flock book');
+    // ⚠ Scoped, for the reason checkpoint 2 gives at length: three
+    // herdbooks hang on that shelf since the reachability sweep, and a
+    // loose `look flock book` raises a disambiguation prompt a wire
+    // session cannot answer.
+    const said = await read(k, 'look here:i:flockbook');
     expect(said.length).toBeGreaterThan(20);
   }, 120_000);
 });
@@ -1126,29 +1150,55 @@ suite('⭐⭐⭐ 14–16. the candle — one act, and the fat decides', () => {
     expect(reason, said).not.toBe('not-learned');
   }, 300_000);
 
-  it('⚠⚠ 16. `melt` is an ALIAS, and the WAX half has no supply in the realm', async () => {
-    // ⭐⭐⭐ **A finding, not a checkpoint I could make pass.**
+  it('⭐ 16. `melt` is an ALIAS — the one thing this step owns', async () => {
+    // ⛔⛔ **THIS STEP USED TO ASSERT A FALSEHOOD, and it is the reason
+    // the falsehood survived two builds.**
     //
-    // This step used to `clone /trade/apiculture/thing/beeswax-cake
-    // --here` and die on `access-denied`. Looking for the honest route
-    // instead turned up something worth more than the checkpoint:
-    // **beeswax is obtainable NOWHERE in the realm.** It appears in the
-    // chandlery's own prose — *"the pale beeswax ones are a tenth of the
-    // number and the whole of the front row"* — and in no props list, no
-    // stock line and no counter. The shop advertises a candle the world
-    // cannot supply.
+    // Its title was *"the WAX half has no supply in the realm"* and its
+    // comment said beeswax appears *"in no props list, no stock line and
+    // no counter."* **That is wrong.** The chain is whole and every link
+    // is a shipped row: the general store sells a NUCLEUS of bees
+    // (`counter.yaml:139`, par 1, 45 coin — the dearest thing on the
+    // shelf under the musket) → a hive at 12 → `rob` → comb →
+    // `crush-comb`, whose `outputResidue` IS the cake → `melt-wax` → the
+    // chandler's pot → `dip`.
     //
-    // ⚠ That is precisely the sinkless/sourceless dead end the carcass
-    // chain existed to close, surviving in the half nobody drove. It is
-    // recorded on `butchery-slate.md`; the fix is apiculture's
-    // `crush-comb` reaching a counter, not a clone here.
+    // ⚠⚠ The original search was for `colony|swarm` and never for
+    // **`nuc`** — a beekeeper's word for a starter colony — so the grep
+    // that produced *"no supply"* could not see the one line that
+    // supplies it, under a comment calling itself *"ONE labelled faucet:
+    // the bees themselves."* An absence found by grep is only as good as
+    // the vocabulary of the grep.
     //
-    // ⭐⭐ And the two-fats CLAIM is not going untested: it is unit-proven
-    // in `CraftingLogic.dipped.test.ts` — *a pot of WAX dips a candle
-    // made of beeswax* beside *the SAME recipe over a pot of tallow dips
-    // a tallow candle*, through the real resolve. What this file owns is
-    // reachability, and what it can still prove here is the ALIAS: that
-    // `melt` reaches the dip controller rather than being a second verb.
+    // ⚠⚠⚠ And then the claim became LOAD-BEARING because it was written
+    // here. `butchery-slate.md` carried it in its status block, quoted
+    // from this test rather than from the content; planning cited the
+    // slate. Three documents agreed and all three descended from one
+    // search. The reachability sweep retracted it in the slate and
+    // rewrote this step in the same commit — *a premise stated once gets
+    // cited.*
+    //
+    // ⚠⚠ **But the chain is not whole either, and for a different reason
+    // than the slate gave.** Walking the tail for the first time found
+    // that `crush` is not a VERB — it is a keyword on
+    // `recipes/crush-comb.yaml`, and every trade resolves its own
+    // catalogue recipes through its own verb's controller. Apiculture
+    // ships exactly one verb (`rob`). So the comb→honey rung was never
+    // built, and `crush-comb`/`spin-comb` are resolved by nothing. →
+    // `apiculture-slate`. The FAR end works, which is this file's
+    // business: `melt-wax` and `dip` both run, over a pot the carcass
+    // chain had to confer the verb for.
+    //
+    // ⭐ Two corrections in one place, then: the supply was never
+    // missing, and the chain was never whole. Rows being present is not
+    // a chain being walkable.
+    //
+    // ⭐⭐ The two-fats CLAIM stays unit-proven in
+    // `CraftingLogic.dipped.test.ts` — *a pot of WAX dips a candle made
+    // of beeswax* beside *the SAME recipe over a pot of tallow* — through
+    // the real resolve. What THIS step owns, and all it owns, is the
+    // ALIAS: that `melt` reaches the dip controller rather than being a
+    // second verb.
     const melted = await say(k, 'melt');
     const reason = refusedFor(melted);
     const said = (await melted.said()).toLowerCase();
@@ -1489,7 +1539,8 @@ suite('⚠ regressions — nothing a player could do before has stopped', () => 
     k = await Session.open(handle, { startLocation: YARD, wizard: true });
     await ensureDaylight(k);
     await k.drainProse();
-    const book = await read(k, 'look flock book');
+    // ⚠ Scoped — the third of three in this file. See checkpoint 2.
+    const book = await read(k, 'look here:i:flockbook');
     expect(book).toMatch(/column|number|lambed|ruled|eleven|11|nine|10/i);
   }, 180_000);
 

@@ -12,7 +12,7 @@ mixins (`Climbable` / `Swimmable` / `Flyable`), the
 |---|---|---|
 | `LocomotionMode` | `lib/locomotion/LocomotionMode.ts` | Singleton Idea — one per mode. Author-data: speed / noise / body-profile / ground-contact / cost / passthrough / conveyance + enablement mixin names / medium |
 | `Enablement` | `lib/locomotion/Enablement.ts` | Shared interface (axes + difficulty + capability gate) implemented by all three per-mode enablement mixins |
-| `Climbable` / `Swimmable` / `Flyable` | `lib/locomotion/{Climbable,Swimmable,Flyable}.ts` | Host capability mixins. Each exports its own `*_CAPABILITY_PROP` for the per-mode skill gate. ⚠ Nothing composed `Climbable` until the nutrition-and-fitness build shipped `platform/thing/Ladder` (`ClimbableMixin(Good)`) and rejection's winze ladder — the first climb in the game's history |
+| `Climbable` / `Swimmable` / `Flyable` | `lib/locomotion/{Climbable,Swimmable,Flyable}.ts` | Host capability mixins. Each exports its own `*_CAPABILITY_PROP` for the per-mode skill gate. ⚠ Nothing composed `Climbable` until the nutrition-and-fitness build shipped `platform/thing/Ladder` (`ClimbableMixin(Good)`) and rejection's winze ladder — the first climb in the game's history. ⚠⚠ **`Swimmable` and `Flyable` compose NOTHING, and both views are declared.** The ONLY composition of either anywhere is `__tests__/integration/locomotion.test.ts`, which manufactures its own hosts — *a test that manufactures what the world lacks hides the lack.* `fly.yaml` is held on `base-class-narrowing-slate` (no `media: ['air']` exit, no flying species, so the refusal would point at nothing); `swim.yaml` is held on **`navigable-water-slate`**, which owns how a player gets into water and whose model is place-or-passage with a **dive entrance** citing a water node — *"nowhere on, in or under the water is a place you can be"*, and *"the first water anybody can stand in"* is on its Left list. ⭐ The reachability sweep briefly shipped a `platform/thing/OpenWater` propped in the estuary and reversed it: a Thing in a land room is a fourth shape that design would never produce, in the rooms it names as its own first target. ⚠ Six exits already carry `media: [ground, water]` — somebody wanted this, and that build inherits the evidence |
 | `LocomotionApi` | `api/locomotion.ts` | Mode resolution, eligibility, engagement lifecycle, passthrough chain, emission walk, default-mode resolution |
 | `LocomotionControllerBase` | `platform/idea/cmd/movement/LocomotionControllerBase.ts` | Abstract base for the six per-mode verbs and refactored `go` |
 | `Walk` / `Climb` / `Swim` / `Fly` / `Ride` / `DriveController` | `platform/idea/cmd/*.ts` | Concrete controllers — override `modeName()` and (optionally) `composeRejection()` for verb-templated prose |
@@ -35,6 +35,14 @@ nine v1 modes live at `/platform/idea/LocomotionMode/<name>`.
 | wheeled | ground | — | — | — |
 | sailed | water | — | — | — |
 | aerial | air | — | — | — |
+
+⚠⚠ **`walk` was afforded by NOTHING until the reachability sweep**, and
+this paragraph is where it should have been caught. `MobileMixin.self`
+carried `go`, `sneak` and `run` and not the middle one, so a player who
+took `sneak.yaml`'s own advice (`set movement.defaultMode sneak`) had no
+verb to walk a single exit back — `go` was the only way out of the
+setting. Two of the three paces worked and the one this paragraph is
+named for did not.
 
 **The care↔speed axis** — `sneak` / `walk` / `run` are the three ground
 *paces*, bracketing `walk` (sneak `speed 0.5` / `noiseLevel quiet` /
@@ -319,7 +327,27 @@ Adding a new mode (e.g., `slither`):
    that extends `LocomotionControllerBase` with `modeName()` returning
    `'slither'`. Author a controller seed at
    `platform/content/platform/idea/cmd/movement/SlitherController.yaml`.
-4. Update body-plan seeds that should permit the mode (add to
+4. ⭐⭐⭐ **CONFER THE VERB.** A view no `commandContributions` static
+   names is dead YAML and the verb is simply unknown to every player
+   (`command-routing.md:378-381`). There are two shapes, and which one
+   you want follows from whether the mode needs an enablement host:
+   - a mode anybody can use anywhere is a **`self` contribution of the
+     MOVER** — `walk`, `sneak` and `run` are `MobileMixin.self`;
+   - a mode that needs something in the room is an
+     **`environment`/`peers` contribution of the ENABLEMENT HOST** —
+     `climb` on `platform/thing/Ladder` is the shipped exemplar. *The
+     instrument affords the verb.* ⚠ `swim` and `fly` have no host and
+     their views are declared `unreachable:` rather than conferred; the
+     enablement host for water is `navigable-water-slate`'s to choose.
+
+   ⚠⚠ **This step is new because it was MISSING, and the omission cost
+   four verbs.** `climb`, `swim`, `walk` and `dismount` each shipped with
+   a view, a controller, a mode row and a body-plan entry, and were
+   afforded by nothing — `walk` for the whole life of the subsystem,
+   while `sneak` and `run` beside it worked. `lint:reachability` refuses
+   a view in that state now, so step 4 is enforced rather than
+   remembered.
+5. Update body-plan seeds that should permit the mode (add to
    `locomotionModes`) and optionally bump `defaultLocomotionMode`
    for species whose default movement is the new mode.
 

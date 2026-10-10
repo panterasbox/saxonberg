@@ -23,7 +23,12 @@ import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { MqlApi } from '@saxonberg/server/mud/api/mql';
-import { VEHICULAR_MIXIN } from '../../../lib/Vehicular';
+import { VEHICULAR_MIXIN, type Vehicular } from '../../../lib/Vehicular';
+import { LocomotionApi } from '@saxonberg/server/mud/api/locomotion';
+import { NavigationApi } from '@saxonberg/server/mud/api/navigation';
+import type { RoutePlan } from '@saxonberg/server/mud/api/navigation';
+import { AppApi } from '@saxonberg/server/mud/api/app';
+import { Route } from '../../../lib/journey/Route';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { SchedulerApi } from '@saxonberg/server/mud/api/scheduler';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
@@ -101,30 +106,121 @@ export default class JourneyController extends CommandController<JourneyModel> {
       );
     }
 
-    const lane = await this.laneFor(catalogue, here, there, model.via);
-    if (!lane) {
+    // ⭐⭐ **The mode is the VEHICLE's, not the lane's** (D13). It used
+    // to come from `lane.mode`, which meant `journey to <stop> via
+    // estuary` with a wagon hitched made the wagon SAIL — and it died
+    // at the first leg, because a road exit does not admit water. A
+    // fact about a wagon was being read off the road it was told to
+    // take.
+    const travelMode = vehicle.getTravelMode();
+    if (travelMode.length === 0) {
       return this.fail(
         context,
-        model.via
-          ? `there is no '${model.via}' lane running from here to there`
-          : 'no way you can take runs from here to there',
+        `the ${vehicle.getPresentation()} does not say how it travels`,
+        'no-travel-mode',
+      );
+    }
+    const mode = await LocomotionApi.loadMode(travelMode).catch(() => null);
+    if (!mode) {
+      return this.fail(
+        context,
+        `nothing here knows how to travel '${travelMode}'`,
+        'unknown-travel-mode',
+      );
+    }
+
+    const lane = model.via
+      ? await this.laneFor(catalogue, here, model.via)
+      : null;
+    if (model.via && !lane) {
+      return this.fail(
+        context,
+        `there is no '${model.via}' lane running from here to there`,
         'no-lane',
       );
     }
-    const route = await catalogue.planRoute(here, there, lane.key);
-    if (!route || route.legsFrom(0) === 0) {
+
+    const budget = this.searchBudget();
+    const profile = {
+      mode: travelMode,
+      medium: mode.getMedium(),
+      wheeled: travelMode === 'wheeled',
+    };
+
+    // ⭐ Three ways to plan, and which one applies is a fact about the
+    // lane rather than a preference:
+    //
+    //  - **an AUTHORED lane** (`edges:`) IS its own graph. Rails are
+    //    not doors, and the ferrow tramway's two ends are joined by a
+    //    mine passage that authors no `media` at all — so planning it
+    //    over the index would refuse the only way the lane has.
+    //  - **a named INDUCED lane** restricts the search to its own node
+    //    set: the lane as a restriction the traveller chose.
+    //  - **no lane named** plans over the whole mode graph, and the
+    //    lanes the plan crosses become its LABEL.
+    const outcome =
+      lane && lane.authored
+        ? NavigationApi.routeOverEdges(
+            this.edgesOf(lane),
+            here,
+            there,
+            budget,
+          )
+        : await NavigationApi.routeBetween(here, there, profile, {}, budget);
+
+    if (!outcome.ok) {
+      return this.fail(context, this.refusalProse(outcome, lane), outcome.reason);
+    }
+
+    // ⚠ A named induced lane is a RESTRICTION: the plan must stay on
+    // it. Asserted after the search rather than inside it, because the
+    // honest refusal is *the lane does not join those two places* and
+    // not *there is no way* — the way exists, it is simply not that
+    // lane's.
+    const plans =
+      lane && !lane.authored
+        ? outcome.plans.filter((p: RoutePlan) =>
+            p.nodes.every((n: string) => lane.adjacency.has(n)),
+          )
+        : outcome.plans;
+    if (plans.length === 0) {
       return this.fail(
         context,
-        `the ${lane.name} does not join those two places`,
+        `the ${lane?.name ?? 'way'} does not join those two places`,
         'route-not-found',
       );
     }
+
+    // ⭐ The first plan, and the renderer below says which axes agreed.
+    // The engine does not choose between genuinely incomparable plans
+    // anywhere a person is reading; `route` is where a person sees
+    // them all, and `journey` is a commitment to go.
+    const plan = plans[0]!;
+    const label = lane
+      ? lane.key
+      : (await catalogue.laneLabelFor(plan.nodes)).join(', ');
+    const laneStops = lane ? lane.stops : [];
+    // ⚠ The stop NARROWING moved here from the retired
+    // `LaneCatalogue.planRoute`: the lane's own stop set, cut down to
+    // the nodes this trip passes.
+    const stops = plan.nodes.filter(
+      (n: string) => laneStops.length === 0 || laneStops.includes(n),
+    );
+    const route = Route.computed(
+      label.length > 0 ? label : 'the way',
+      plan.nodes,
+      stops,
+    );
+    const crossed = lane
+      ? [lane.name]
+      : await catalogue.laneNamesFor(plan.nodes);
+    const wayName = crossed.length > 0 ? crossed.join(', then ') : 'the way';
 
     const journey = new Journey({
       driver,
       vehicle,
       route,
-      mode: lane.mode,
+      mode: travelMode,
       catalogue,
     });
     const started = SchedulerApi.start(journey);
@@ -139,14 +235,17 @@ export default class JourneyController extends CommandController<JourneyModel> {
     }
     if (started.status !== 'completed-sync') context.note(started.note);
 
+    // ⭐ What the way is CALLED. A named lane says its own name; a
+    // plan across several says all of them, sorted, so the same trip
+    // reads the same on every run.
     const legs = route.legsFrom(0);
     MessageApi.scene(driver as unknown as Stuff)
       .topic(TOPIC)
       .toSelf(
-        Mml.compose`You set off along ${lane.name} — ${String(legs)} legs to go.`,
+        Mml.compose`You set off along ${wayName} — ${String(legs)} legs to go.`,
       )
       .toPeers(
-        Mml.compose`${Mml.actor(driver as unknown as Stuff)} sets off along ${lane.name}.`,
+        Mml.compose`${Mml.actor(driver as unknown as Stuff)} sets off along ${wayName}.`,
       )
       .send();
   }
@@ -188,14 +287,14 @@ export default class JourneyController extends CommandController<JourneyModel> {
   /* ─────────────────────────── resolution ─────────────────────────── */
 
   /** The vehicle this verb was afforded by, or a reachable one. */
-  private vehicleFor(context: CommandContext): Stuff | null {
+  private vehicleFor(context: CommandContext): (Stuff & Vehicular) | null {
     const source = context.commandSource;
-    if (source && isVehicle(source)) return source;
+    if (source && isVehicle(source)) return source as Stuff & Vehicular;
     const reachable = MqlApi.resolveMany('reachable', {
       commandGiver: context.commandGiver,
       scope: 'reachable',
     }).stuff;
-    return reachable.find((s) => isVehicle(s)) ?? null;
+    return (reachable.find((s) => isVehicle(s)) as Stuff & Vehicular) ?? null;
   }
 
   /**
@@ -255,25 +354,93 @@ export default class JourneyController extends CommandController<JourneyModel> {
   }
 
   /**
-   * The lane to take: the one named by `--via`, else the first lane both
-   * ends are on.
+   * The lane named by `via`, when it runs from here.
    *
-   * ⚠ Deliberately no auto-replan across lanes and no cleverness in the
-   * choice: blocked means blocked, and auto-routing would hide the
-   * geography this whole build exists to make real.
+   * ⭐⭐ **A lane is no longer a search scope**, which is what let the
+   * `via`-less case stop being *"the first lane in compile order that
+   * happens to contain both ends"*. A lane of mode M is M's induced
+   * subgraph from its seeds, so *"across more than one lane of the
+   * same mode"* is structurally *"over M's whole graph"* — and the
+   * plan's lanes become its LABEL instead.
+   *
+   * ⚠ Still deliberately no auto-replan: blocked means blocked, and
+   * auto-routing around a closure would hide the geography this whole
+   * build exists to make real.
    */
   private async laneFor(
     catalogue: LaneCatalogue,
     here: string,
-    there: string,
-    via: string | undefined,
+    via: string,
   ): Promise<CompiledLane | null> {
-    if (via) {
-      const named = await catalogue.laneOf(via.trim());
-      return named && named.nodes.includes(here) ? named : null;
+    const named = await catalogue.laneOf(via.trim());
+    return named && named.nodes.includes(here) ? named : null;
+  }
+
+  /** An authored lane's declared edges, as a graph the router can plan. */
+  private edgesOf(
+    lane: CompiledLane,
+  ): Array<{ from: string; to: string }> {
+    const out: Array<{ from: string; to: string }> = [];
+    for (const [from, tos] of lane.adjacency) {
+      for (const to of tos) out.push({ from, to });
     }
-    const candidates = await catalogue.lanesAt(here);
-    return candidates.find((l) => l.nodes.includes(there)) ?? null;
+    return out;
+  }
+
+  /**
+   * The caller-declared search budget — an operator dial, not content.
+   *
+   * ⚠ Guarded, because `AppApi.setting` THROWS on an unwarmed cache
+   * and a journey that would not plan because the settings document
+   * had not loaded yet is a boot-order bug surfacing as a mysteriously
+   * dead verb. The floor equals the shipped value, so a *wrong*
+   * authored number still reads through — this can mask an absent
+   * setting, never a misconfigured one. (`LaneCatalogue.dial`'s
+   * reasoning, applied here.)
+   */
+  private searchBudget(): number {
+    let raw: string;
+    try {
+      raw = AppApi.setting('navigation.attendedSearchBudget');
+    } catch {
+      return 400;
+    }
+    const n = Number(raw);
+    return Number.isFinite(n) && n > 0 ? Math.floor(n) : 400;
+  }
+
+  /**
+   * Why there is no way, in words a player can act on.
+   *
+   * ⭐ The `breakAt` case is the one that earns its place: *there is no
+   * way to the island* and *the way stops at the quay; north needs
+   * water* are different sentences, and only one of them tells you to
+   * buy a boat.
+   */
+  private refusalProse(
+    outcome: { reason: string; breakAt?: { node: string; dir: string; needs: readonly string[] } },
+    lane: CompiledLane | null,
+  ): string {
+    if (outcome.breakAt) {
+      const { dir, needs } = outcome.breakAt;
+      return (
+        `the way runs out before you get there: ${dir} from there needs ` +
+        `${needs.join(' or ')}, and this is not the vehicle for it`
+      );
+    }
+    switch (outcome.reason) {
+      case 'budget':
+        return 'you could not work out a way that far';
+      case 'graph-cold':
+        return 'nobody has the roads to hand just now';
+      case 'unknown-origin':
+      case 'unknown-destination':
+        return lane
+          ? `the ${lane.name} does not join those two places`
+          : 'no way you can take runs from here to there';
+      default:
+        return 'no way you can take runs from here to there';
+    }
   }
 
   /* ─────────────────────────── prose ─────────────────────────── */

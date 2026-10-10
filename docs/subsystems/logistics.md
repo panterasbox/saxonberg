@@ -869,31 +869,98 @@ mean.
 
 ## ⭐⭐⭐ Routing: what the pathfinding actually is
 
-**One BFS, per lane, over a compiled adjacency map.** `LaneCatalogue`
-induces each lane's edges once, caches the graph (dropped on HMR), and
-`planRoute(from, to, lane)` breadth-firsts across it, bounded at 2,000
-nodes so a mis-authored graph cannot hang a boot. `consigns`' walk and
-the carter's `journey` both call it.
+⚠⚠ **Rewritten 2026-10-08 (the routing build), and it OVERTURNS the
+three standing decisions this section used to record.** The old text is
+kept below as the history, because two of the three were right for
+their moment and one of them turned out to be about the wrong layer.
 
-Three properties of that, stated because each is a decision:
+**One traversal, in the kernel, over the world index.** Routing is
+`NavigationApi.routeBetween` / `routeOnMap` / `reachFrom` /
+`costMatrix`, planning over `location_graph` or over a player's own map
+claims; the full design is
+[location-graph.md § Routing](./location-graph.md). `LaneCatalogue.planRoute`
+is **deleted**, with no deprecated forward, and `lint:graph-walks`
+holds the number of hand-written graph walks in the tree at **zero**.
 
-- ⭐ **It is hop-optimal, not time-optimal.** `edgeMinutes` weights the
-  DURATION of the trip, never the search. A road with fewer, longer legs
-  wins over a shorter one with more legs. Roads are roads; nobody
-  Dijkstras a valley.
-- ⚠ **There is no cross-lane routing.** A lane is a mode, so a route
-  that would change modes — wheels to a back at the pass — is *not
-  planned for you*, and that is the design: **breaking bulk is the
-  lesson**, and auto-routing around it would hide the geography this
-  build exists to make real. Blocked means blocked.
-- ⭐ **There is no general pathfinding Api and should not be one yet.**
-  A general graph search invites auto-routing at every call site, which
-  is the regression above. When a second edge set needs search, promote
-  the walk then — not before.
+What changed, decision by decision:
 
-Cost is not a concern at this size: the compile is once, a query is
-O(V+E) over a bounded, cached map, and the callers are a player's verb
-and an NPC beat measured in minutes.
+- ⭐⭐ **It is cost-optimal now, on every axis, and answers more than
+  one plan.** The old search was hop-optimal and *never called
+  `edgeMinutes`* — which sat immediately below it with a doc comment
+  explaining why cost belongs to the exit. The new one runs one
+  cheapest-first walk per axis (minutes · legs · `conditional`) and
+  returns the **non-dominated** set, so a short way over a ford and a
+  long sure one both come back and the engine does **not** pick.
+  *"Nobody Dijkstras a valley"* was true about the cost of the search
+  and wrong about the cost of the trip.
+- ⭐⭐ **There IS cross-lane routing, and breaking bulk is still the
+  lesson.** The old prose conflated two things. A lane is a mode, so a
+  route that changes MODES is still not planned for you — a wagon is
+  refused at the pass, and the refusal now *names* it (*the way stops
+  here; north needs water*) instead of answering a bare `null`. What
+  the old search also refused was planning across two lanes **of the
+  same mode**, which taught nothing and was an artifact of the search
+  scope being one compiled lane. A lane is a **label** on the plan now,
+  not a search scope. Blocked still means blocked; there is no
+  auto-replan anywhere.
+- ⛔ **There IS a general routing Api, and the fear it was held off for
+  was real but misplaced.** *"A general graph search invites
+  auto-routing at every call site"* — the thing that would actually
+  invite it is a router that silently finds a way round a closure, and
+  the design refuses that explicitly rather than by being absent:
+  `Journey.advance` re-validates every leg against the live ground,
+  halts where it is blocked, and **does not replan**. Meanwhile the
+  census found **eleven** hand-written walks living in the absence,
+  four of them order-dependent in ways players could perceive. The
+  second edge set that was supposed to trigger promotion had already
+  arrived ten times over.
+
+⚠ **The behaviour swap worth knowing about:** a flooded ford is now in
+the lane. The old compile asked each crossing to refresh itself and
+skipped a closed one, so a lane recompiled in spring did not contain
+the ford; the index is a projection of authored rows and cannot know
+the water level. The ford is in the lane, the plan says *this way is
+not always passable*, and the closure is discovered **at the leg**. A
+cached compile is a worse place to learn about a river than the bank of
+it.
+
+⭐ **And the mode comes from the VEHICLE now.** A Journey used to take
+its mode from `lane.mode`, so `journey to <stop> via estuary` with a
+wagon hitched made the wagon **sail** — and it died at the first leg,
+because a road exit does not admit water. A fact about a wagon was
+being read off the road it happened to be told to take.
+`VehicularMixin.travelMode` is authored on the row, and ⚠ a vehicle
+that declares none **refuses** rather than guessing.
+
+<details>
+<summary>The superseded text, as history</summary>
+
+> **One BFS, per lane, over a compiled adjacency map.** `LaneCatalogue`
+> induces each lane's edges once, caches the graph (dropped on HMR), and
+> `planRoute(from, to, lane)` breadth-firsts across it, bounded at 2,000
+> nodes so a mis-authored graph cannot hang a boot. `consigns`' walk and
+> the carter's `journey` both call it.
+>
+> - ⭐ **It is hop-optimal, not time-optimal.** `edgeMinutes` weights the
+>   DURATION of the trip, never the search. A road with fewer, longer legs
+>   wins over a shorter one with more legs. Roads are roads; nobody
+>   Dijkstras a valley.
+> - ⚠ **There is no cross-lane routing.** A lane is a mode, so a route
+>   that would change modes — wheels to a back at the pass — is *not
+>   planned for you*, and that is the design: **breaking bulk is the
+>   lesson**, and auto-routing around it would hide the geography this
+>   build exists to make real. Blocked means blocked.
+> - ⭐ **There is no general pathfinding Api and should not be one yet.**
+>   A general graph search invites auto-routing at every call site, which
+>   is the regression above. When a second edge set needs search, promote
+>   the walk then — not before.
+
+</details>
+
+⭐ The cost argument still holds and is now load-bearing in a different
+place: the compile is once per generation, a query is bounded by a
+**caller-declared budget** with no default, and exhaustion is a stated
+refusal rather than a silent *no way*.
 
 ## ⚠⚠ Players and NPCs do not travel the same way, and that hid every bug
 

@@ -31,11 +31,12 @@ import { type TraversalGuard } from '@saxonberg/server/mud/lib/boundary/Exit';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
+import { LockableMixin } from '@saxonberg/server/mud/lib/boundary/Lockable';
 import { Lock } from '@saxonberg/server/mud/lib/lock/Lock';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import DormWarren from './DormWarren';
 
-export default class DormDoor extends DeferredDestinationExit {
+export default class DormDoor extends LockableMixin(DeferredDestinationExit) {
   /** The unit parcel extent this door fronts (the D1 key + lease key). */
   private unitKey = '';
 
@@ -62,17 +63,38 @@ export default class DormDoor extends DeferredDestinationExit {
    * an unprovisioned/re-keyed unit no key opens. A master key (a super's ring)
    * passes via the same check.
    */
+  /** ⭐ A dorm room door starts BOLTED — as it always was. */
+  protected override boltedByDefault(): boolean {
+    return true;
+  }
+
+  /**
+   * ⭐⭐ `LockableMixin`'s policy seam: the keyway is the WARREN's cache
+   * for this unit, so a re-key reaches every door of the room at once.
+   */
+  public override getLock(): Lock {
+    const keyway =
+      StuffApi.findByTemplatePath<DormWarren>(
+        DormWarren.WARREN_PATH,
+      )?.keywayOf(this.unitKey) ?? '';
+    return new Lock(keyway, DormWarren.DORM_LOCK_TECH);
+  }
+
   public override canTraverse(
     mover: Stuff & Containable,
     mode?: string,
   ): TraversalGuard {
-    const keyway = StuffApi.findByTemplatePath<DormWarren>(DormWarren.WARREN_PATH)?.keywayOf(this.unitKey) ?? '';
-    if (!keyway) {
-      return { ok: false, gate: 'door', reason: 'The door is locked.' };
-    }
-    const lock = new Lock(keyway, DormWarren.DORM_LOCK_TECH);
-    if (!lock.opensFor(mover)) {
-      return { ok: false, gate: 'door', reason: "Your key doesn't fit this lock." };
+    // ⭐⭐ The bolt refuses, the key excuses — and a student can now
+    // `unlock` their own door and leave it open for a friend, which the
+    // keyway-only model had no way to say.
+    if (this.isLocked() && !this.opensFor(mover)) {
+      return {
+        ok: false,
+        gate: 'door',
+        reason: this.getLock().keyway
+          ? "Your key doesn't fit this lock."
+          : 'The door is locked.',
+      };
     }
     return super.canTraverse(mover, mode);
   }

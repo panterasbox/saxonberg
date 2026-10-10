@@ -1,0 +1,72 @@
+# ⭐⭐⭐ **The hens** — and the reason this row exists is that there was no
+# chicken in the world.
+#
+# `gallus/domesticus` has shipped for builds: a full species row with an
+# egg tap on a photoperiod window, a body plan (`fowl`, whose breast is
+# `breast-white` because a bird that gave up flying has pale flight
+# muscle), and — since the reachability sweep — a butchery yield naming
+# `trade-cooking`'s three authored poultry cuts. It was named by no
+# `Herdbook` and no `cast:` entry anywhere. The only bird in the realm was
+# the mine canary.
+#
+# So the egg tap had no hen to take an egg from, and three authored cut
+# rows had no path into the world even after the yield was fixed. ⭐ A farm
+# that keeps sheep, dogs and oxen and no chickens is a stranger thing than
+# this row is expensive — and leaving a row unreachable is precisely what
+# the gate this build ships would flag.
+#
+# ## ⭐ A row and no code, which is the test that matters
+#
+# This is the ox book's shape exactly: a `Herdbook` with a species, a
+# tally and a home extent. No new verb, no new class, `Species.ts`
+# untouched. `draft`/`return` and `slaughter` reach the flock on the one
+# shipped path, and a second poultry yard anywhere in the realm is one
+# more row like this one.
+#
+# ## Six, and on the flats
+#
+# Six is a household flock, not a business: enough that the egg tap has
+# something to accrue against and a bird can go in the pot without ending
+# the line, and few enough that nobody is running a poultry operation.
+# The yard rather than the bench, with the oxen and the dogs — hens live
+# where the kitchen is and the grain spills, which is also why they are
+# the one animal on a farm nobody allocates land to.
+#
+# ⚠ `foundingMeanAgeDays` is deliberately low: a point-of-lay pullet is
+# about five months, and a flock bought in last spring is what a
+# smallholder has. The egg window is photoperiod-gated, so the age and
+# the season between them decide whether there is anything to collect —
+# which is the whole of what keeping hens teaches.
+class: /trade/ranching/thing/Herdbook
+data:
+  # ⭐ **"hen tally", not "hen book"** — a tally is what this actually is:
+  # six birds and a count of eggs by the week. See the ox register's note
+  # for why the rename is writing rather than a fix, and where the fix
+  # went.
+  shortDescription: hen tally
+  # ⚠⚠ **No `flock`, and no bare `book` or `register`.** Three herdbooks
+  # hang in this yard now — the flock book, the ox book and this — and the
+  # shipped one already claims `flock`, `book`, `register` and `ledger`.
+  # Putting `flock` here (a flock of hens is perfectly good English) made
+  # `look flock book` match TWO things, which raises a disambiguation
+  # prompt, and an unanswered foreground prompt poisons every later
+  # command on the session: it cost the carcass-chain drive twenty-two
+  # checkpoints to a cascade. ⭐ This is the collision question the
+  # requirements phase asks — *which existing objects does this touch, and
+  # who already lives there?* — arriving as a wedged test rather than as a
+  # paragraph.
+  keywords: [hentally, "hen tally", henbook, "hen book", hens, chickens, poultry]
+  register: definite
+  longDescription: >-
+    A half-sheet of paper folded into the back of the ox book's cover,
+    written on in pencil and rubbed out more than once. Six birds, no
+    names, and a tally of eggs by the week that stops in the autumn and
+    starts again in the spring.
+  mass: 0.1
+  herdId: delight-hens
+  herdName: the yard hens
+  speciesPath: /stuff/idea/species/animalia/chordata/aves/galliformes/phasianidae/gallus/domesticus
+  tally: 6
+  foundingMeanAgeDays: 210
+  holderRef: organization:/world/terminus/hearts-delight/idea/farm-business
+  homeExtent: /world/terminus/hearts-delight/location/farmstead-yard

@@ -1,0 +1,5 @@
+# NOT a violation — it carries the spaced form a player reads and types.
+class: /fixture/thing/Plain
+data:
+  shortDescription: tin widget
+  keywords: [widget, "tin widget", tin]
