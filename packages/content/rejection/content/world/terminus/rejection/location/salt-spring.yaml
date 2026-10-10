@@ -30,6 +30,10 @@ data:
     # rig they left over it, because a bailer needs a derrick to hang from.
     - /world/terminus/rejection/thing/old-brine-bore
     - /trade/drilling/thing/derrick
+    # …and the bailer, still on its rope. Whoever left did not take it, and
+    # it means the old hole can be bailed without emptying the claims
+    # office's rack — which a prospector staking new ground needs more.
+    - /trade/drilling/thing/bailer
   exits:
     west:
       destination: /world/terminus/rejection/location/hillside

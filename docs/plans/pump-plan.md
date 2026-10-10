@@ -672,7 +672,7 @@ player yet.
   'identity'}`, `liftM`, `throughputLps`, `strokeS` authorable,
   `runStamp` persistent), `commandContributions: { peers:
   ['platform/cmd/device/pump.yaml'] }`, `const PACKING = 'packing'`.
-  Methods per D3/D6/D8: `mechanism()`, `sourceOf()`, `packingFitted()`,
+  Methods per D3/D6/D8: `mechanismRow()` (built name — `mechanism` is the row key), `sourceOf()`, `packingFitted()`,
   `ceilingHereM()`, `powerForDuty(headM, m3s)`, `handWattsFor(headM)`,
   `planPump`, `completePump`, `isRunning()`, `moverPowerW()`,
   `deliverableM3S(headM, demandM3S)`, `reconcileRunning(nowS)`,
@@ -1238,4 +1238,87 @@ Read first, in this order:
 
 ## Drive record
 
-*(appended at build time, not at plan time)*
+**Run 2026-10-10, owned world on a fresh database, build-2 (port 2013):**
+`WIRE_BOOT=1 WIRE_PORT=2013 WIRE_BOOT_TIMEOUT=900000 npx vitest run
+tests/drilling.dirty.wire.test.ts tests/pump.dirty.wire.test.ts` →
+**2 files, 43/43** (drilling 24, pump 19), in ONE shared world — so the
+two drives are proven not to take each other's kit.
+
+Fourteen runs to get here. What they found is in each wave's done-note;
+in one list:
+
+1. ⚠⚠⚠ the shipped pail could not hold water (`closure: open` = not
+   liquid-tight; every fill `drained`) — pre-existing, fixed;
+2. ⚠⚠ `Conduit.resolveHead` had no production caller — every live
+   conduit's head "never surveyed" — pre-existing, fixed (resolve on read);
+3. the bank's `aqueduct` detail shadowed the aqueduct; the aqueduct house
+   shared the bare word — fixed;
+4. `pump village well` fell through the shape (→ `greedy`); the well's
+   `pump` keyword stole `look pump`; a 55 kg force pump could not be lifted;
+5. a running pump read *"it will not turn"* (the `throughputNow` duck);
+6. re-packing is PULLING the pump (one-container reach); MQL's `from` is
+   not containment (`pump:i:packing`);
+7. the drive's own helper was blind to `mql-error` / `empty-result`;
+8. ⚠ the drilling drive's trespasser checkpoint used the spring as *ground
+   nothing stands on* — an abandoned hole stands there now, and a swing is
+   deliberately not title-gated; the checkpoint moved to the hillside;
+9. the two drives shared the rack's ONE bailer when run together; the old
+   bore's rig keeps its own.
+
+**Deviations, recorded not hidden:** AC 3's fall is not asserted live (an
+untrained barometer reads ±8 %, ~8 kPa, against a ~1.5 kPa difference,
+and weather moves it — the truth is the unit test's); `repair packing` is
+unknown in the valley (no mending kit in reach) and the spare comes off
+the rack; AC 6's rate comparison is arithmetic in `Wellhead.test` (the
+rim seeps ~3 L an hour); AC 7's `wants-bailing` is drilling's own drive
+(`bore` at an unstaked hole refuses `untitled` first); AC 13's tank
+answers *"carries no water anywhere"* before and after this build.
+
+**Regression drives:** fire ✅ (AC 10). ⚠ Red on master, not this build:
+reachability §8 (master made `lock` reachable), fishing (`reserve issue`
+retired), taps (`eval --parcel` → sandbox boundary unhandled rejection).
+
+The record, as the run printed it:
+
+```
+look village well →  the village well A ring of dressed slate knee-high round a dark shaft, with a stone trough set against it and a cast-iron pump bolted to a post over the hole. Its handle is worn bright where the hands go. The mud around the trough never qu
+fill pail from an unpumped well → empty-result · You can't fill a wooden pail from the village well .
+pump village well → You take the handle of a hand pump and work it, up and down. Water comes up in gouts and runs into the village well .
+fill pail from well → ok · You fill a wooden pail from the village well .
+spill pail → You spill a wooden pail out; a puddle pools on the floor.
+measure pressure at the pithead yard → Pressure: 99779 Pa ± 455 Pa (normal)
+measure pressure at Hinkley (130 m) → Pressure: 97042 Pa ± 2638 Pa (normal)
+(yard 99.779 kPa vs Hinkley 97.042 kPa as an untrained reader saw them)
+get pump from well → ok
+put pail in well → refused-by-container · Only a pump goes in a well.
+pump deep well (suction) → beyond-suction · You work the handle until your arms ache, and nothing comes. The water stands 14 metres down, and the pump will not draw it up.
+analyze pump deep well → It draws: the plunger lifts, a flap closes under it, and whatever stands in the pipe follows it up. The leather in the barrel is sound: the handle comes up heavy and even. Worked here, it will draw water from no deeper than about 10 m 
+put the hand pump back in the village well → ok · You put a hand pump in the village well .
+get pump (the rack's force pump) → ok · You pick up a force pump .
+pump deep well (force) → You take the handle of a force pump and work it, up and down. Water comes up in gouts and runs into the deep well .
+fill pail from the deep well → ok · You fill a wooden pail from the deep well .
+packing before → sound
+packing after five spells → worn
+repair packing → unknown-verb · I don't understand 'repair'.
+get pump:i:packing → ok
+pump deep well with no packing → no-packing · The handle drops with no resistance at all — there is no packing in the barrel to seal it.
+put packing in pump → ok · You put a leather packing in a force pump .
+pump deep well with the spare fitted → You take the handle of a force pump and work it, up and down. Water comes up in gouts and runs into the deep well .
+look (the spring hollow) →  the spring hollow A fold in the hill where the slope flattens before it climbs again, and the grass in it is the wrong colour — pale, then grey, then gone altogether around a pool the size of a hat. Sheep have been here. So has some
+bail into pail at 25 m → You pay the rope out and let the bailer go down. 3 litres out of the hole and into it. You taste it off your knuckle before you think about it, which is how everybody finds out.
+put pump in bore → ok
+pump bore → You take the handle of a force pump and work it, up and down. Salt water comes up in gouts and runs into the old brine bore .
+pump bore again, an hour on → You take the handle of a force pump and work it, up and down. Salt water comes up in gouts and runs into the old brine bore .
+analyze pump bore (force) → It drives: the plunger presses down on what stands under it and sends it up the pipe ahead. The leather in the barrel is sound: the handle comes up heavy and even. It will push as high as its build and the arm on the handle will car
+analyze water intake → the city intake draws from kestrel:confluence and serves /world/terminus 23.30 m³/s passing there, 16.51 of it snowmelt capacity 1.20 m³/s 5 m of lift against it — its pump would draw 98.1 kW to lift 1.20 m³/s, and the line gives it 60.0
+analyze water aqueduct → the Cold Fell aqueduct draws from cold-fell:cascade and serves /world/terminus 1.40 m³/s passing there, 1.12 of it snowmelt capacity 0.80 m³/s 1115 m of head in its favour — it runs on gravity, and costs nothing to run treatment remove
+analyze power intake pump → 60.0 kW reaching it 44036.70 kg a minute
+switch pump off → ok · You switch the intake pump off.
+look standpipe (pump off) → a standpipe An iron pipe standing up out of the cobbles at the edge of the square, with a brass tap on top and a worn stone set under it to stand a bucket on. Nothing comes out of it: it has been shut off.
+fill pail from standpipe (pump off) → You can't fill a wooden pail from a standpipe .
+analyze water standpipe (pump off) → the city intake draws from kestrel:confluence and serves /world/terminus 23.30 m³/s passing there, 16.51 of it snowmelt capacity 1.20 m³/s 5 m of lift against it — its pump is not running, so nothing is lifted NOT deliverin
+fill pail from standpipe (pump on) → You fill a wooden pail from a standpipe .
+pump forge → not-lit · You work the bellows, but something is cold — air without fire moves nothing.
+analyze water tank (Hinkley) → the District tank carries no water anywhere.
+look tank (Hinkley) →  the District tank A riveted iron tank on a timber frame at the top of the lane, painted a green that has mostly gone, with HINKLEY HILLS IMPROVEMENT DISTRICT on the side of it in letters that were expensive. A ladder up one leg. It fills
+```

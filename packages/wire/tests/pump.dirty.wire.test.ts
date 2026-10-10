@@ -488,14 +488,14 @@ suite('6. pump until the leather goes, and fit the spare', () => {
 suite('7. a dead brine bore: bail it once, then fit a pump', () => {
   it('⭐⭐ the bailer still brings brine up from twenty-five metres (AC 11)', async () => {
     // The force pump comes out of the deep well and goes with us; the
-    // bailer comes off the rack. Hillside → office → hillside → spring.
+    // bailer is the abandoned rig's own, at the hollow — ⚠ not the rack's,
+    // which the drilling drive carries off when both run in one world.
     const pulled = await say(k, 'get pump from well');
     expect(refusedFor(pulled), `pull the force pump: ${JSON.stringify(pulled.notes)}`).toBeNull();
-    await walk(k, BACK_TO_THE_OFFICE);
+    await walk(k, ['east']);
     await say(k, 'get bailer');
     await k.drainProse();
     expect(await carried(k)).toMatch(/bailer/i);
-    await walk(k, ['north', 'east']);
     const hollow = await read(k, 'look');
     note(`look (the spring hollow) → ${hollow.replace(/\s+/g, ' ').slice(0, 300)}`);
     expect(hollow).toMatch(/old brine bore|bore|rig/i);
@@ -565,8 +565,8 @@ suite('8. the intake draws real power; the aqueduct draws none', () => {
     note(`analyze water aqueduct → ${aqueduct.replace(/\s+/g, ' ').trim()}`);
     expect(aqueduct).toMatch(/runs on gravity, and costs nothing to run/);
 
-    const power = await read(k, 'analyze power pump');
-    note(`analyze power pump → ${power.replace(/\s+/g, ' ').trim()}`);
+    const power = await read(k, 'analyze power intake pump');
+    note(`analyze power intake pump → ${power.replace(/\s+/g, ' ').trim()}`);
     expect(power, 'the pump is a real consumer on the Wharfside line').toMatch(/60\.0 kW reaching it/);
     expect(power, 'a running pump turns').toMatch(/kg a minute/);
   });
