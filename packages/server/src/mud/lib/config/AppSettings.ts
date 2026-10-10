@@ -1929,6 +1929,9 @@ export const AppSettingKeys = {
   /** Assembly — the share of a lamp's light a CRACKED pane lets out
    * (assembly AC 11: a part's condition moves the room's light). */
   lampCrackedGlassFlux: "lamp.crackedGlassFlux",
+  /** Assembly — game-days an assembled cask may stand empty before it
+   * dries out and its hoops ride loose (drive 8). */
+  caskDryOutDays: "cask.dryOutDays",
   /** Assembly — the rest a bare frame gives, as a share of the seat's,
    * when its cushion has failed. */
   chairBareFrameRest: "chair.bareFrameRest",

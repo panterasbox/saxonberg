@@ -7,6 +7,8 @@ import '../../../test-bootstrap';
 import { describe, it, expect, afterEach, vi } from 'vitest';
 import Lamp from '../thing/Lamp';
 import Chair from '../thing/Chair';
+import Vat from '../thing/Vat';
+import { WorldClockApi } from '../../api/worldclock';
 import { StuffApi } from '../../api/stuff';
 import { Quantity } from '../../lib/quantity';
 import { makeStuff } from '../../lib/security/__tests__/test-setup';
@@ -42,5 +44,22 @@ describe('a part moves another subsystem', () => {
     expect(chair.getRestQuality()).toBeCloseTo(0.4, 6);
     chair.recordAssembly([line('frame', 'structural', 0, 0.5), line('cushion', 'wear')], []);
     expect(chair.getRestQuality()).toBeCloseTo(0.4, 6);
+  });
+
+  it('⭐⭐ a cask left EMPTY dries out and its hoops ride loose — every stave sound', () => {
+    let nowS = 1_000_000;
+    WorldClockApi._setNowProviderForTesting(() => nowS);
+    const cask = makeStuff(() => new Vat());
+    cask.recordAssembly(
+      [line('stave', 'structural')],
+      [{ key: 'hooping', method: 'hooped', members: ['stave'], tension: 1, maker: '' }],
+    );
+    expect(cask.getClosure()).toBe('liquidTight'); // first empty read starts the clock
+    const t0 = WorldClockApi.getNow().rawValue();
+    while (WorldClockApi.getNow().rawValue() - t0 < 8 * 86_400) nowS += 10_000_000;
+    expect(cask.getClosure()).toBe('open');
+    expect(cask.failedLines()).toEqual([]);
+    expect(cask.slackJoints().map((j) => j.key)).toEqual(['hooping']);
+    WorldClockApi._resetForTesting();
   });
 });

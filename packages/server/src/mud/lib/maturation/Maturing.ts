@@ -365,11 +365,31 @@ function maturationAugmenter(text: string, host: Stuff, _viewer: Stuff): string 
   return text && text.length > 0 ? `${text}\n\n${line}` : line;
 }
 
+/**
+ * ⭐ The cask's CHARACTER, in words (assembly D9, AC 23): a charred inside
+ * says so, and a vessel that has given everything it had says that too —
+ * which is what tells a buyer it wants re-firing. A vat that imparts
+ * nothing says nothing.
+ */
+function characterAugmenter(text: string, host: Stuff, _viewer: Stuff): string {
+  if (!MixinApi.isMaturing(host)) return text;
+  const lines: string[] = [];
+  if (host.getCharLevel() >= 1) lines.push('Through the bung the inside of the staves is charred black.');
+  if (host.isSpent()) {
+    lines.push('The wood inside is dull and grey with use — it has given its contents everything it had.');
+  } else if (host.getImpartsSpent() >= 0.5) {
+    lines.push('The wood inside has been filled more than once; it has less left to give.');
+  }
+  if (lines.length === 0) return text;
+  const line = lines.join(' ');
+  return text && text.length > 0 ? `${text}\n\n${line}` : line;
+}
+
 export function MaturingMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class MaturingMixin extends Base implements Maturing {
     static _mixinName = 'MaturingMixin';
 
-    static markupAugmenters: MarkupAugmenter[] = [maturationAugmenter];
+    static markupAugmenters: MarkupAugmenter[] = [maturationAugmenter, characterAugmenter];
 
     static __validateComposition__(ctor: AnyConstructor): void {
       const name = (ctor as { name?: string }).name ?? 'class';

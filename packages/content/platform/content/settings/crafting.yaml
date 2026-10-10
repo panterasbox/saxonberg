@@ -45,6 +45,9 @@ settings:
   - key: crafting.refireHeatK
     value: "573"
 
+  - key: cask.dryOutDays
+    value: "7"
+
   - key: lamp.crackedGlassFlux
     value: "0.35"
 

@@ -30,6 +30,10 @@ import type { Stuff } from '../../lib/stuff/Stuff';
 import type { Container } from '../../lib/spatial/Container';
 import { VesselKindMixin } from '../../lib/bulk/VesselKind';
 import type { ClosureLevel } from '../../lib/bulk/Bulkable';
+import type { FieldMeta } from '../../lib/mixin';
+import { WorldClockApi } from '../../api/worldclock';
+import { AppApi } from '../../api/app';
+import { AppSettingKeys } from '../../lib/config/AppSettings';
 import { DurableMixin } from '../../lib/material/Durable';
 import { AssembledMixin } from '../../lib/craft/Assembled';
 
@@ -50,7 +54,27 @@ const VatBase = VesselKindMixin(
   ),
 );
 
+/** How far an empty cask's hoops ride loose when it dries out. */
+const DRY_OUT_SLACK = 0.6;
+
+/** Numeric AppSetting read with the seeded fallback. */
+function vatDial(key: string, fallback: number): number {
+  try {
+    const n = Number.parseFloat(AppApi.setting(key));
+    return Number.isFinite(n) ? n : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
 export default class Vat extends VatBase {
+  /** Game-seconds it was first read empty; 0 = wet (or never read empty). */
+  public emptySince = 0;
+
+  static fieldMeta: FieldMeta = {
+    emptySince: { persistent: true, runtimeState: true },
+  };
+
   constructor() {
     super();
     // Host-internal writes (the constructor IS the class body — the
@@ -78,7 +102,40 @@ export default class Vat extends VatBase {
    * a sprung stave or a slack hoop and it weeps, whatever the row says.
    */
   public override getClosure(): ClosureLevel {
+    this.reconcileDrying();
     return this.leaks() ? 'open' : super.getClosure();
+  }
+
+  /**
+   * ⭐⭐ **A cask left standing EMPTY dries out, and its hoops slip**
+   * (assembly AC 6, drive 8) — why a cooper keeps a cask wet, and why an
+   * empty one weeps the first time it is filled again. The staves shrink
+   * as they dry and the hoops ride loose with every stave still sound: a
+   * joint failing with every part undamaged, and the repair (drive the
+   * hoops back down) consumes nothing.
+   *
+   * Reconciled on read: the first read that finds it empty starts the
+   * clock; a read that finds it full stops it. After
+   * `cask.dryOutDays` empty, every joint slackens once — by its row's
+   * looseness, so a slack barrel's hoops go further than a tight cask's.
+   */
+  public reconcileDrying(): void {
+    if (!this.isAssembly() || this.getJoints().length === 0) return;
+    const now = WorldClockApi.getNow().rawValue();
+    if (!this.isBulkEmpty('interior')) {
+      this.emptySince = 0;
+      return;
+    }
+    if (this.emptySince === 0) {
+      this.emptySince = now;
+      return;
+    }
+    const days = vatDial(AppSettingKeys.caskDryOutDays, 7);
+    if (now - this.emptySince < days * 86_400) return;
+    // Once per drying-out: restart the clock so it does not slacken again
+    // until it has been wetted and left empty again.
+    this.emptySince = Number.MAX_SAFE_INTEGER;
+    for (const j of this.getJoints()) this.slackenJoint(j.key, DRY_OUT_SLACK);
   }
 
   public override setOpen(value: boolean): void {
