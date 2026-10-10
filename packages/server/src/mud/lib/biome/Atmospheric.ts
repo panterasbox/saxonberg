@@ -195,6 +195,13 @@ export interface Atmospheric {
   resolveWeatherLocality(): Promise<void>;
 
   /**
+   * Whether {@link weatherLocality} has an ANSWER (a Locality, or none)
+   * rather than not having looked yet — the difference a reader that
+   * memoises must not blur (a floor's snow).
+   */
+  isWeatherLocalityResolved(): boolean;
+
+  /**
    * ⚠⚠ **Forget the memoized locality — my address changed.**
    *
    * The memo above resolves ONCE and is right for a room, which never
@@ -1556,6 +1563,10 @@ export function AtmosphericMixin<
       return (
         StuffApi.findByTemplatePath<Locality>(this._weatherLocalityPath) ?? null
       );
+    }
+
+    public isWeatherLocalityResolved(): boolean {
+      return this._weatherLocalityResolved;
     }
 
     public resolveWeatherLocality(): Promise<void> {

@@ -70,3 +70,14 @@ settings:
 
   - key: climate.snow.perennialMaxMm
     value: "1500"
+
+  # How a floor's snow reads, by depth in metres. Knee-deep and over masks
+  # the ground's own sentence — nobody can see what is under it.
+  - key: climate.snow.bandM.dusting
+    value: "0.02"
+  - key: climate.snow.bandM.ankle
+    value: "0.15"
+  - key: climate.snow.bandM.knee
+    value: "0.5"
+  - key: climate.snow.bandM.deep
+    value: "1.0"

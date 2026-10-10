@@ -1652,6 +1652,13 @@ export const AppSettingKeys = {
   /** Climate — fresh snow's depth per depth of water it holds: 10 cm of
    * snow is about a centimetre of rain. */
   climateSnowDensityRatio: "climate.snowDensityRatio",
+  /** Climate — the snow depths (m) at which a floor's snow reads a
+   * dusting, ankle-deep, knee-deep and deep. Knee-deep and over masks
+   * the ground's own sentence. */
+  climateSnowBandDustingM: "climate.snow.bandM.dusting",
+  climateSnowBandAnkleM: "climate.snow.bandM.ankle",
+  climateSnowBandKneeM: "climate.snow.bandM.knee",
+  climateSnowBandDeepM: "climate.snow.bandM.deep",
   /** Climate — the most water-equivalent (mm) a pack holds: the cap a
    * snow walk starts from and reports as PERENNIAL. Older than that is
    * a glacier's business. */

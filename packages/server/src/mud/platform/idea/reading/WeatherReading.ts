@@ -27,6 +27,9 @@ import { ZoneApi } from '../../../api/zone';
 import { WorldClockApi } from '../../../api/worldclock';
 import { Quantity } from '../../../lib/quantity';
 import { CompetenceBand } from '../../../lib/advancement/CompetenceBand';
+import { BiomeApi } from '../../../api/biome';
+import { Mixins } from '../../../lib/mixin';
+import type { Floor } from '../../../lib/ground/Floor';
 import {
   WEATHER_DEFAULTS,
   type WeatherField,
@@ -133,6 +136,7 @@ export default class WeatherReading extends Reading {
     }
 
     const scope = target.stuff as Stuff & Container;
+    const bandOfReader = band;
     // The Wave-2 resolved state (authored pin → procgen(lean) → biome) — the
     // ONE read every consumer sees. `forecastFor` still supplies the upcoming
     // types; `skyReadFor` the cloud form + hedged tell.
@@ -204,6 +208,30 @@ export default class WeatherReading extends Reading {
       );
     } else {
       lines.push(Mml.compose`  the last thirty days: ${words}`);
+    }
+
+    // ⭐ The snow lying here (the climate build), read through the room's
+    // own FLOOR — the one source `look` reads too. The walks it depends on
+    // are awaited first, so a verb never reads the unresolved zero.
+    if (MixinApi.isAtmospheric(scope)) {
+      await scope.resolveClimateSite();
+      await scope.resolveWeatherLocality();
+    }
+    const floor = MixinApi.isAdornable(scope) ? scope.getFloor() : null;
+    if (floor !== null && MixinApi.isActive(floor, Mixins.Floor)) {
+      const f = floor as unknown as Floor;
+      const snow = f.getSnowBand();
+      if (snow !== 'none') {
+        const age = f.isSnowPerennial() ? ', and it has not gone in years' : '';
+        if (CompetenceBand.atOrAbove(bandOfReader, 'proficient')) {
+          const cm = Math.round(f.getSnowDepthM() * 100);
+          lines.push(Mml.compose`  snow lying: ${snow} — ${cm} cm${age}`);
+        } else {
+          lines.push(Mml.compose`  snow lying: ${snow}${age}`);
+        }
+      } else if (MixinApi.isAtmospheric(scope) && BiomeApi.isSkyExposed(scope)) {
+        lines.push(Mml.compose`  snow lying: none`);
+      }
     }
 
     let body = Mml.compose`\n`;

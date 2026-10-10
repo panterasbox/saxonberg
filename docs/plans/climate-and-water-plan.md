@@ -1615,6 +1615,18 @@ Locality) renders the overlay sentence after the ground sentence;
 `analyze weather` prints the depth.
 **Commit.** `build(climate W5): snow lies on sky-exposed ground, derived from the same integral the river banks`
 
+> ✅ **Done.** `FloorMixin.getSnowDepthM / getSnowBand / isSnowPerennial
+> / snowPhrase`, memoised per weather segment; the gate is the floor's
+> place (on grade + sky), never a class test. Unresolved site OR
+> locality → 0, NOT memoised — which needed a new
+> `Atmospheric.isWeatherLocalityResolved()` (the locality memo could not
+> tell "none" from "not yet"). `snowAugmenter` appends the overlay;
+> `floorAugmenter` drops the ground sentence at knee-deep and over. Five
+> band dials (`climate.snow.bandM.*`, adding `deep` 1.0). `analyze
+> weather` reads the snow through the room's floor (band always; cm at
+> proficient+; *"has not gone in years"* when perennial). 6 tests in
+> `Floor.snow.test.ts`, including floor == kernel to 1e-12 (AC 9).
+
 ### W6 — Freezing from the weather
 
 **Goal.** A vessel of water freezes in a cold street and the puddle

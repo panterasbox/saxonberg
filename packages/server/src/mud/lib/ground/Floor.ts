@@ -51,6 +51,10 @@ import { AppApi } from '../../api/app';
 import { BiomeApi } from '../../api/biome';
 import { AddressApi } from '../../api/address';
 import { MixinApi } from '../../api/mixin';
+import { WeatherApi } from '../../api/weather';
+import { WorldClockApi } from '../../api/worldclock';
+import { Quantity } from '../quantity';
+import { WEATHER_DEFAULTS } from '../weather/WeatherType';
 import { AppSettingKeys } from '../config/AppSettings';
 import { Mixins, type MixinConstructor, type FieldMeta } from '../mixin';
 import { UNBOUNDED_CAPACITY, type SlotSpec } from '../slot/Slotted';
@@ -78,6 +82,43 @@ import {
 } from './GroundKind';
 
 const FLOOR_MIXIN = 'FloorMixin';
+
+/**
+ * ⭐ How deep the snow lies, as a body standing in it would say it. A TS
+ * union, never a runtime list — the bands are thresholds on a derived
+ * depth (`climate.snow.bandM.*`), not a vocabulary anything authors.
+ */
+export type SnowBand = 'none' | 'dusting' | 'ankle-deep' | 'knee-deep' | 'deep';
+
+/** The overlay sentence per band — exhaustive, so a new band cannot go unsaid. */
+const SNOW_PHRASES: Record<SnowBand, string> = {
+  none: '',
+  dusting: 'A dusting of snow lies over it.',
+  'ankle-deep': 'Snow lies ankle-deep.',
+  'knee-deep': 'Snow lies knee-deep; walking is work.',
+  deep: 'Snow lies deep here, and whatever is under it is under it.',
+};
+
+/** Numeric AppSetting with a seeded literal (the kernel snows with no settings document). */
+function snowDial(key: string, fallback: number): number {
+  try {
+    const raw = AppApi.setting(key);
+    if (raw === '' || raw == null) return fallback;
+    const n = Number.parseFloat(raw);
+    return Number.isFinite(n) ? n : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+/** A depth in metres, banded. */
+function snowBandOf(depthM: number): SnowBand {
+  if (depthM >= snowDial(AppSettingKeys.climateSnowBandDeepM, 1.0)) return 'deep';
+  if (depthM >= snowDial(AppSettingKeys.climateSnowBandKneeM, 0.5)) return 'knee-deep';
+  if (depthM >= snowDial(AppSettingKeys.climateSnowBandAnkleM, 0.15)) return 'ankle-deep';
+  if (depthM >= snowDial(AppSettingKeys.climateSnowBandDustingM, 0.02)) return 'dusting';
+  return 'none';
+}
 
 /**
  * Which rung of the ladder answered. Reported by `getUnderfootRung()` and
@@ -146,6 +187,21 @@ export interface Floor {
   resolveUnderfoot(): Promise<void>;
   /** The one derived sentence `look` appends, or `null` when it has none. */
   groundPhrase(): string | null;
+  /**
+   * ⭐ Metres of snow lying on this floor (the climate build). Derived on
+   * read from the weather the place has had — `WeatherApi.snowCoverAt`,
+   * the same function the river's snowpack reads — and memoised per
+   * weather segment. `0` indoors, off grade, with weather inactive, or
+   * while the place's site is still resolving (that answer is NOT
+   * memoised, so the next read has the real one).
+   */
+  getSnowDepthM(): number;
+  /** The depth, as a body standing in it would put it. */
+  getSnowBand(): SnowBand;
+  /** Whether the snow lying here is older than the walk-back bound. */
+  isSnowPerennial(): boolean;
+  /** The overlay sentence for the snow, or `null` when none lies. */
+  snowPhrase(): string | null;
 }
 
 /**
@@ -222,7 +278,24 @@ function classifyTags(tags: readonly string[]): GroundMaterialClass | null {
  */
 function floorAugmenter(text: string, host: Stuff, _viewer: Stuff): string {
   if (!MixinApi.isActive(host, FLOOR_MIXIN)) return text;
-  const line = (host as unknown as Floor).groundPhrase();
+  const floor = host as unknown as Floor;
+  // ⭐ Snow knee-deep and over MASKS the ground: whatever it is made of,
+  // nobody standing here can see it (the snow augmenter says what is).
+  const band = floor.getSnowBand();
+  if (band === 'knee-deep' || band === 'deep') return text;
+  const line = floor.groundPhrase();
+  if (!line) return text;
+  return text && text.length > 0 ? `${text}\n\n${line}` : line;
+}
+
+/**
+ * The snow lying on the floor, appended after the ground sentence — an
+ * OVERLAY, never a ground kind (the ten words stay closed: snow is on the
+ * ground, not what the ground is).
+ */
+function snowAugmenter(text: string, host: Stuff, _viewer: Stuff): string {
+  if (!MixinApi.isActive(host, FLOOR_MIXIN)) return text;
+  const line = (host as unknown as Floor).snowPhrase();
   if (!line) return text;
   return text && text.length > 0 ? `${text}\n\n${line}` : line;
 }
@@ -237,7 +310,7 @@ export function FloorMixin<
     static _mixinName = FLOOR_MIXIN;
 
     /** The derived reading, rendered into the host's `look`. */
-    static markupAugmenters: MarkupAugmenter[] = [floorAugmenter];
+    static markupAugmenters: MarkupAugmenter[] = [floorAugmenter, snowAugmenter];
 
     static fieldMeta: FieldMeta = {
       onGrade: { persistent: true, authorable: true },
@@ -528,6 +601,94 @@ export function FloorMixin<
       const name = material.getAppearance() || material.getName();
       if (!name) return null;
       return `It is ${name}, ${GROUND_KIND_PHRASES[this.getGroundKind()]}.`;
+    }
+
+    // ──────────────────────────── snow ────────────────────────────────
+
+    /**
+     * Per-weather-segment memo of the snow read (the `FordExit` idiom):
+     * the weather is piecewise-constant over a segment, so the segment
+     * index is a key whose invalidation is by construction. Runtime-only.
+     */
+    private _snowSegment: number | null = null;
+    private _snowDepthM = 0;
+    private _snowPerennial = false;
+
+    public getSnowDepthM(): number {
+      this.refreshSnow();
+      return this._snowDepthM;
+    }
+
+    public getSnowBand(): SnowBand {
+      return snowBandOf(this.getSnowDepthM());
+    }
+
+    public isSnowPerennial(): boolean {
+      this.refreshSnow();
+      return this._snowPerennial;
+    }
+
+    public snowPhrase(): string | null {
+      const band = this.getSnowBand();
+      if (band === 'none') return null;
+      return this._snowPerennial
+        ? `${SNOW_PHRASES[band]} It has not gone in years.`
+        : SNOW_PHRASES[band];
+    }
+
+    /**
+     * Recompute the snow when the segment has turned. The gate is a fact
+     * about the floor's PLACE — on grade, under the sky — never a class
+     * test: an indoor floor answers 0 because nothing falls on it.
+     */
+    private refreshSnow(): void {
+      if (!WeatherApi.isActive()) {
+        this._snowDepthM = 0;
+        this._snowPerennial = false;
+        return;
+      }
+      let nowS: number;
+      try {
+        nowS = WorldClockApi.getNow().rawValue();
+      } catch {
+        return;
+      }
+      const segment = Math.floor(nowS / WEATHER_DEFAULTS.SEGMENT_LENGTH_S);
+      if (segment === this._snowSegment) return;
+
+      const host = this.hostOf();
+      const place = host as unknown as Stuff & Container;
+      let sky = false;
+      try {
+        sky = host !== null && BiomeApi.isSkyExposed(place);
+      } catch {
+        sky = false;
+      }
+      if (host === null || !sky || !this.isOnGrade()) {
+        this._snowDepthM = 0;
+        this._snowPerennial = false;
+        this._snowSegment = segment;
+        return;
+      }
+      if (!MixinApi.isAtmospheric(place)) return;
+      // ⚠ Unresolved place: answer 0 and do NOT memoise, so the read after
+      // the walks land has the real depth (the soil tri-state's lesson —
+      // unknown must never be cached as bare).
+      if (!place.isClimateSiteResolved() || !place.isWeatherLocalityResolved()) {
+        void place.resolveClimateSite();
+        void place.resolveWeatherLocality();
+        this._snowDepthM = 0;
+        this._snowPerennial = false;
+        return;
+      }
+      const cover = WeatherApi.snowCoverAt(
+        place.climateSite(),
+        place.weatherLocality(),
+        Quantity.of(nowS, 's'),
+      );
+      this._snowDepthM = cover.depthM;
+      this._snowPerennial = cover.perennial;
+      this._snowSegment = segment;
     }
 
     // ──────────────────── keywords and the slot ───────────────────────
