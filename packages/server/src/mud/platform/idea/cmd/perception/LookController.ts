@@ -143,16 +143,15 @@ export default class LookController extends CommandController<LookModel> {
       context.note({ kind: 'empty-result', field: 'target', query: 'horizon' });
       return;
     }
-    for (const f of featured) {
-      MessageApi.scene(viewer).topic('sense.survey').toSelf(Mml.compose`You can see ${f}.`).send();
-    }
+    // ⭐ ONE scene, like a room's body: the summary is one reading, and
+    // separate sends arrive as separate frames a reader can split.
+    const lines: Mml[] = featured.map((f) => Mml.compose`You can see ${f}.`);
     if (rest.length > 0) {
       const lead = featured.length > 0 ? 'You can also make out' : 'You can make out';
-      MessageApi.scene(viewer)
-        .topic('sense.survey')
-        .toSelf(Mml.compose`${lead} ${Mml.list(rest, { style: 'inline' })}.`)
-        .send();
+      lines.push(Mml.compose`${lead} ${Mml.list(rest, { style: 'inline' })}.`);
     }
+    const body = lines.reduce((acc, line) => Mml.compose`${acc}\n${line}`);
+    scene.toSelf(body).send();
   }
 
   /**

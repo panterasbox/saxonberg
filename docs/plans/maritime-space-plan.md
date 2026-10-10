@@ -1580,7 +1580,7 @@ keyword `horizon` renamed (the seed would shadow it).
 - ✅ **C5 — the water, the fog.** R9, R10. Tests: the delta (no change → no
   line), the lean seam (inside the haar the sky reads fog; cold → no
   lean), visibility factor. Commit `…C5`.
-- **C6 — content, drive, docs.** R11, R12; the drive's steps 19, 20,
+- ✅ **C6 — content, drive, docs.** R11, R12; the drive's steps 19, 20,
   23–26 rewritten to the revised script; expanse.md, perceiver.md (the
   horizon scope), mql-grammar.md (the seed), weather.md (the positional
   lean), zone.md (`horizon`). Re-drive cold to green; `pnpm test` before
@@ -1729,6 +1729,29 @@ keyword `horizon` renamed (the seed would shadow it).
     the hold), 20 (a watch from the deck misses the light; an appointed
     lookout calls it — at anchor, so weather can be waited out) and 25
     (close the coast, raise the light, `measure bearing`).
+- ✅ **Revision 1 drive record — 26/26 on a cold world** (run 4 of 4,
+  `packages/wire/tests/maritime-space.dirty.wire.test.ts`, `reset:db`
+  before each). What driving found, each fixed:
+
+  | # | found | fixed |
+  |---|---|---|
+  | R-1 | step 1 still expected the river in the bank's own `look` — that was the deleted room hook | the drive looks at the water's edge (`look edge`), which is the requirement |
+  | R-2 | waiting out weather in three-hour jumps on a windy height, wet from the wade, put the founder on the ground (*"Your vision tunnels…"*) and cascaded through the run | the horizon steps run dry, before the wade, waiting an hour at a time |
+  | R-3 | `look horizon`'s lines were separate sends and split across captures | ONE scene, like a room's body |
+  | R-4 | ⚠ the estuary inherited Terminus's 35 m, so the strand saw the light as if from a cliff | the estuary zone is at `elevation: 0` (the Kestrel's own estuary node says 0); the headland 45 |
+  | R-5 | `appoint tam` found nobody — a Cast's name is not addressable until you are introduced | the drive appoints *the deckhand* |
+  | R-6 | ⭐ the hired lookout never called: `watch` was afforded only by `Avatar`, so an NPC's `watch horizon` was an unknown verb | **B-58:** `watch` moves to `PerceiverMixin` (keeping a watch is a perceiver's act; the stream form still refuses a non-player in words) |
+  | R-7 | ⚠ the gunwale's failed read stored an EMPTY line list, which the augmenter rendered as nothing — no water at all, not even *hard to read yet* | the failed memo carries no `lines`; the drive looks again while a fresh cell's read lands |
+  | R-8 | drive-only: anchoring after arrival is refused (`not-under-way`); the lookout rides the 20 s / 120 s-by-night beat | get under way first; longer listening and per-step timeouts |
+
+  ⭐ Proven on the wire: the strand raises the Hesper and NOT the light;
+  the headland raises the light at 18 miles; the tower featured from the
+  avenue, the wharf and the mouth and read once; an interior and the hold
+  see nothing; a current takes her entering the Westerlies; *Fog closes
+  in* inside the haar and the sextant is refused by the fog; the race
+  gets up short and steep; nothing is sighted or fixed by being seen; a
+  watch from the deck misses the light and the appointed deckhand CALLS
+  it; `measure bearing` on the light fixes her.
 
 ## Build log
 

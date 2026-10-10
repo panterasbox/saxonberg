@@ -245,6 +245,11 @@ export function PerceiverMixin<TBase extends MixinConstructor>(Base: TBase) {
     static commandContributions: CommandContributions = {
       self: [
         'platform/cmd/perception/look.yaml',
+        // ⭐ `watch`: keeping a watch on the horizon is a perceiver's act
+        // (maritime R6), so a hired lookout — an NPC — can take it up;
+        // the stream form refuses anybody without a client, in words.
+        // It moved here from Avatar, which is a perceiver too.
+        'platform/cmd/stream/watch.yaml',
         'platform/cmd/perception/scry.yaml',
         'platform/cmd/perception/locate.yaml',
         'platform/cmd/shell/find.yaml',

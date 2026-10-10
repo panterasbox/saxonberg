@@ -60,6 +60,7 @@ Containable → Container → Engaged → Mobile → CommandGiver
 | Verb | Bucket | Lives where | Gated by |
 |---|---|---|---|
 | `look` | `self` | PerceiverMixin | — |
+| `watch` | `self` | PerceiverMixin | — (the stream form refuses a non-player; `watch horizon` is any perceiver's) |
 | `scry` | `self` | PerceiverMixin | — |
 | `locate` | `self` | PerceiverMixin | — |
 | `find` | `self` | PerceiverMixin | — |

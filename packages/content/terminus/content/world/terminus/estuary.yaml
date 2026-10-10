@@ -24,6 +24,10 @@ class: /platform/idea/location/CartesianZone
 data:
   name: The Estuary
   cellSize: 20.0
+  # ⭐ At SEA LEVEL (the Kestrel's own `estuary` node says 0): without
+  # this the estuary inherited Terminus's 35 m, and the strand saw the
+  # light on Gannet Rock as though from a cliff (maritime drive finding).
+  elevation: 0
   # ⭐ The horizon from here (maritime R3) names the ZONE the terminal
   # stands in; whether its clock tower is in view is derived (open sky,
   # its height against the zones' size). Described once, on the tower.

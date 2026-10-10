@@ -59,7 +59,9 @@ export default class Gunwale extends Shore {
     const path = craft?.getExpanse() ?? null;
     const sea = path ? await StuffApi.singleton<Stuff>(path).catch(() => null) : null;
     if (!ref || !at || !(sea instanceof WaterExpanse)) {
-      this._memo = { reach: null, standing: null, disciplineKey: null, atS: nowS, lines: [], ref };
+      // No `lines`: the read says "hard to read yet" rather than nothing
+      // (an empty list rendered the gunwale with no water at all).
+      this._memo = { reach: null, standing: null, disciplineKey: null, atS: nowS, ref };
       return;
     }
     const room = this.getContainer();

@@ -3,7 +3,7 @@
 # (maritime R11).
 #
 # ⭐⭐ A vantage is a zone, not an object. Its `elevation` is what puts the
-# eye forty metres up, and its `horizon` names what it overlooks — the
+# eye forty-five metres above the sea (the estuary below is at 0), and its `horizon` names what it overlooks — the
 # Greywater (read from the estuary's landing, curvature binding exactly as
 # aboard, so the light on Gannet Rock is raised from up here and not from
 # the strand below) and the terminal's zone across the town. Nobody
@@ -15,7 +15,7 @@ class: /platform/idea/location/CartesianZone
 data:
   name: The Headland
   cellSize: 20.0
-  elevation: 40
+  elevation: 45
   horizon:
     - /stuff/idea/WaterExpanse/greywater
     - /world/terminus/terminal

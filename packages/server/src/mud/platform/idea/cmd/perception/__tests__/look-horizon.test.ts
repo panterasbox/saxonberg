@@ -104,9 +104,9 @@ describe('look horizon', () => {
       traffic: [],
       atSea: false,
     });
-    expect(out).toHaveLength(2);
-    expect(out[0]).toMatch(/You can see .*clock tower/);
-    expect(out[1]).toMatch(/You can also make out .*windmill/);
+    // One reading, one scene: featured first, then the rest.
+    expect(out).toHaveLength(1);
+    expect(out[0]).toMatch(/You can see [^\n]*clock tower[^\n]*\nYou can also make out [^\n]*windmill/);
   });
 
   it('a room may feature what is not a landmark', async () => {

@@ -99,12 +99,12 @@ async function sail(s: Session, hours: string): Promise<string> {
  * looks (fog and rain shorten sight). The craft must be at anchor or
  * ashore — waiting moves nothing else.
  */
-async function horizonUntil(s: Session, want: RegExp, tries = 8): Promise<string> {
+async function horizonUntil(s: Session, want: RegExp, tries = 10): Promise<string> {
   let said = '';
   for (let i = 0; i < tries; i++) {
     said = await look(s, 'look horizon');
     if (want.test(said)) return said;
-    await advanceWorldClock('3 hours');
+    await advanceWorldClock('1 hour');
   }
   return said;
 }
@@ -160,47 +160,38 @@ beforeAll(async () => {
 
 afterAll(() => me?.close());
 
-suite('1–3 · the shore, the wade, the small water', () => {
-  it('1 · from the wharf the river is described in the room, and you are on land', async () => {
+suite('1 · the shore', () => {
+  it('1 · from the wharf you look at the water and it is described, and you are on land', async () => {
     const s = await Session.open(LANDSMAN, { startLocation: BANK });
     try {
-      const said = await look(s);
+      // ⭐ Revision 1: the room's own look no longer appends the river; you
+      // look at the water's edge and read it there.
+      const said = await look(s, 'look edge');
       expect(said).toMatch(/This is the Kestrel/);
     } finally {
       s.close();
     }
   });
-
-  it('2 · wading is refused where no still water stands, in words; admitted where it does', async () => {
-    const r = await me.cmd('swim west');
-    expectRefused(r);
-    expect(squash(await r.said())).not.toMatch(/don't understand/i);
-    expectOk(await me.cmd('east'));
-    expect(await look(me)).toMatch(/strand/i);
-    const swim = await me.cmd('swim east');
-    expectOk(swim);
-  });
-
-  it('3 · a water you can see across is a PLACE: you are in the pool, by an ordinary exit', async () => {
-    expect(await look(me)).toMatch(/You are in the water/);
-    expectOk(await me.cmd('swim west'));
-    expect(await look(me)).toMatch(/strand/i);
-  });
 });
 
 suite('23 · 24 · the horizon ashore', () => {
   it('23 · the strand raises the Hesper and not the light; the headland above it raises the light', async () => {
+    // Dry, before the wade: waiting out weather wet on a windy height
+    // put the founder on the ground in the first run.
+    expectOk(await me.cmd('east'));
     const strand = await horizonUntil(me, /Hesper/);
     expect(strand).toMatch(/Hesper/);
     expect(strand).not.toMatch(LIGHT);
     expectOk(await me.cmd('north'));
     const head = await horizonUntil(me, LIGHT);
-    expect(head).toMatch(/You can see the light on Gannet Rock, to the north-east, some \d+ miles off/);
+    // (` ,`: the plain-text rendering of a thing tag leaves a space.)
+    expect(head).toMatch(/You can see the light on Gannet Rock ?, to the north-east, some \d+ miles off/);
     // ⛔ The room's own look repeats nothing from outside it.
     expect(await look(me)).not.toMatch(LIGHT);
     const drill = await look(me, 'look horizon:light');
     expect(drill).toMatch(/white tower on a black rock/);
     expectOk(await me.cmd('south'));
+    expectOk(await me.cmd('west'));
   });
 
   it('24 · the tower is featured from three zones and read once; an interior sees nothing', async () => {
@@ -220,6 +211,24 @@ suite('23 · 24 · the horizon ashore', () => {
     } finally {
       inside.close();
     }
+  });
+});
+
+suite('2 · 3 · the wade, the small water', () => {
+  it('2 · wading is refused where no still water stands, in words; admitted where it does', async () => {
+    const r = await me.cmd('swim west');
+    expectRefused(r);
+    expect(squash(await r.said())).not.toMatch(/don't understand/i);
+    expectOk(await me.cmd('east'));
+    expect(await look(me)).toMatch(/strand/i);
+    const swim = await me.cmd('swim east');
+    expectOk(swim);
+  });
+
+  it('3 · a water you can see across is a PLACE: you are in the pool, by an ordinary exit', async () => {
+    expect(await look(me)).toMatch(/You are in the water/);
+    expectOk(await me.cmd('swim west'));
+    expect(await look(me)).toMatch(/strand/i);
   });
 });
 
@@ -291,7 +300,7 @@ suite('9 · 11 · 13 · 14 · 26 · the bands — the water says what changed', 
       }
     }
     expect(passage).toMatch(/A current takes her, setting north-east\./);
-  });
+  }, 600_000);
 
   it('26 · into the haar: fog closes in, and the sextant is refused by the fog', () => {
     expect(passage).toMatch(/Fog closes in\./);
@@ -372,15 +381,18 @@ suite('19 · 20 · 25 · sight at sea', () => {
     // ⛔ Nobody in the seat: nobody calls anything.
     const quiet = squash(await me.listen(35_000));
     expect(quiet).not.toMatch(LIGHT);
-    expectOk(await me.cmd(`appoint tam to lookout at ${OUTFIT}`));
+    // ⭐ By what she IS, not her name: nobody aboard has been introduced.
+    expectOk(await me.cmd(`appoint deckhand to lookout at ${OUTFIT}`));
+    // She rides the agents' one deliberation beat (20 s by day, two
+    // minutes by night): take up the watch on one, call on the next.
     let called = '';
-    for (let i = 0; i < 6 && !LIGHT.test(called); i++) {
-      called = squash(await me.listen(40_000));
-      if (!LIGHT.test(called)) await advanceWorldClock('3 hours');
+    for (let i = 0; i < 10 && !LIGHT.test(called); i++) {
+      called = squash(await me.listen(45_000));
+      if (!LIGHT.test(called) && i % 2 === 1) await advanceWorldClock('1 hour');
     }
-    expect(called).toMatch(/Tam Rook[^]*light on Gannet Rock[^]*!/);
+    expect(called).toMatch(/deckhand[^]*light on Gannet Rock[^]*!/i);
     expectOk(await me.cmd('watch off'));
-  });
+  }, 600_000);
 
   it('25 · close the coast, raise the light, and `measure bearing` on it to fix your position', async () => {
     expectOk(await me.cmd('get compass'));
@@ -391,18 +403,26 @@ suite('19 · 20 · 25 · sight at sea', () => {
       seen = await look(me, 'look horizon');
     }
     expect(seen).toMatch(LIGHT);
-    expectOk(await me.cmd('anchor'));
     const r = await me.cmd('measure bearing light');
     expectOk(r);
     expect(squash(await r.said())).toMatch(/The light on Gannet Rock bears \d{3}° ± [\d.]+°\. .*fixes you to within/);
-  });
+  }, 600_000);
 });
 
 suite('12 · 15 · anchored at sea; the boat', () => {
   it('12 · anchor away from any node and fish over the side — the water read by nobody', async () => {
+    // Off the Rock and out to sea, so she is under way to anchor.
+    expectOk(await me.cmd('course open sea'));
+    await sail(me, '30 minutes');
     expectOk(await me.cmd('anchor'));
     await daylight(me);
-    const over = squash(await me.prose('look --peek gunwale'));
+    // The gunwale reads the sea cell under her; a fresh cell's read lands
+    // a moment after she stops ("hard to read yet" until it does).
+    let over = '';
+    for (let i = 0; i < 5 && !/The sea is /.test(over); i++) {
+      over = squash(await me.prose('look --peek gunwale'));
+      if (!/The sea is /.test(over)) await me.listen(1_500);
+    }
     expect(over).toMatch(/The sea is /);
     expectOk(await me.cmd('get worm'));
     expectOk(await me.cmd('get cane'));
