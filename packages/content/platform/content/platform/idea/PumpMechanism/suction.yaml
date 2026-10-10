@@ -1,0 +1,16 @@
+# suction — the common pump: a plunger draws up, a valve holds, and the
+# water follows the plunger up the pipe.
+#
+# ⭐ `pulls: true`. The water is not lifted by the pump; it is PUSHED up
+# by the air pressing on the well, into the space the plunger leaves. So
+# it rises only as far as that pressure will carry it — about ten metres
+# of water at sea level, less on a hill, less again for brine. The row
+# says none of that: the pressure is the place's, and the arithmetic is
+# BiomeApi.suctionHeadFor.
+class: /platform/idea/PumpMechanism
+data:
+  name: suction
+  pulls: true
+  description: >-
+    It draws: the plunger lifts, a flap closes under it, and whatever
+    stands in the pipe follows it up.

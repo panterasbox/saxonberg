@@ -2168,6 +2168,15 @@ export const AppSettingKeys = {
   exertionCombatExchangeW: "exertion.combatExchangeW",
   /** Exertion — game-seconds one combat exchange lasts, for the emit. */
   exertionCombatExchangeS: "exertion.combatExchangeS",
+  /** Pump — packing condition one spell at the handle wears off (0..1). */
+  pumpWearPerStroke: "pump.wearPerStroke",
+  /** Pump — packing condition one RUNNING hour of a powered pump wears
+   * off; integrated over the supply's trajectory, never sampled. */
+  pumpWearPerRunningHour: "pump.wearPerRunningHour",
+  /** Pump — the least metabolic watts a spell at the handle costs. */
+  pumpHandFloorW: "pump.handFloorW",
+  /** Pump — the fraction of a shift a rostered hand spends at the handle. */
+  pumpCrewDuty: "pump.crewDuty",
 } as const;
 
 export type AppSettingKey =

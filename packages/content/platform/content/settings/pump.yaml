@@ -1,0 +1,31 @@
+# pump — application settings shipped by the platform pack (the `settings`
+# kind: merge-missing — an operator's `config` change is never touched).
+#
+# ⭐ What working a pump costs and what it wears. The PHYSICS is not here:
+# the suction ceiling is the place's pressure over the fluid's density
+# (BiomeApi.suctionHeadFor), the shaft watts are ρ·g·h·Q/η with η the
+# shipped `water.pumpEfficiency`, and the body's share rides the shipped
+# `exertion.efficiency`. These four are the grain an author may change.
+# See docs/subsystems/pump.md.
+settings:
+  # Packing condition (0..1) one spell at the handle wears off. Leather
+  # in a barrel goes from sound to worn in a handful of spells and to
+  # nothing in about fifteen — a day's hard pumping, then a mend.
+  - key: pump.wearPerStroke
+    value: "0.06"
+
+  # Packing condition one RUNNING hour of a powered pump wears off —
+  # integrated over the supply's trajectory, never sampled. About three
+  # weeks of round-the-clock running to gone, which is a keeper's job.
+  - key: pump.wearPerRunningHour
+    value: "0.002"
+
+  # The least metabolic watts a spell at the handle costs, however
+  # shallow the water: lifting the handle is work before any water is.
+  - key: pump.handFloorW
+    value: "200"
+
+  # The fraction of a shift a rostered hand spends at the handle — the
+  # rest is carrying, resting and swapping the cask.
+  - key: pump.crewDuty
+    value: "0.5"

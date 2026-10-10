@@ -543,6 +543,10 @@ export const Mixins = {
   // gives up fractions in sequence as it is drawn. Maturing's sibling,
   // driven by volume drawn rather than by a clock.
   Fractionating: 'FractionatingMixin',
+  // ⭐ A displacement machine that moves a fluid — a hand pump, a force
+  // pump, the city intake. The bellows implements the PROTOCOL
+  // (`lib/pump/Pumpable`), not this capability.
+  Pumping: 'PumpingMixin',
   Behaved: 'BehavedMixin',
   Graded: 'GradedMixin',
   // A physical thing that wears out with use (the condition/wear gauge).
@@ -766,6 +770,9 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
   // — the Launcher lesson. "the bucket doesn't come off in fractions" is
   // the useful sentence.
   FractionatingMixin: "{} doesn't come off in fractions",
+
+  // A pump — the refusal names what one does.
+  PumpingMixin: "{} doesn't pump anything",
 
   // Construction & table — a butcher's blade is any EDGE, and cutlery is
   // what you eat with.

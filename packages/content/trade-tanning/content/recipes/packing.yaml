@@ -1,0 +1,13 @@
+# A cup of leather for a pump's plunger. ⭐ The pump's standing demand
+# on the tannery: every pump in the realm wears these out.
+recipeId: packing
+name: Leather Packing
+keywords: [packing, seal, leather]
+inputSlots:
+  - { slot: hide, category: leather, minGrade: poor, kind: item, count: 1 }
+toolCapabilities: [cutting]
+outputTemplate: /trade/tanning/thing/packing
+outputMaterial: ''
+outputApplication: tangible
+difficulty: standard
+discipline: leatherwork
