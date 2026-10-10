@@ -687,13 +687,18 @@ nothing is ever inside the frame.
 `S/platform/thing/Chart.ts = MarkedMixin(Good)` with fieldMeta `of` (the
 expanse row path) and `entries: ChartEntry[]` — authored `{ node | band,
 path, name, where }` **as the chart states them**, so a wrong chart is
-authored wrong in one row and never reconciled. `Chart.onRead(reader)`
-is what `ReadController` calls after the decode (a new optional method
-the controller probes with `MixinApi.isChart`? no — `Chart` is a class;
-the controller checks `instanceof` via a kernel import, which is legal
-inside the kernel); it writes `charted` claims under the expanse's
-`address` through `NavigationApi.recordChart` keyed by
-`reader.mapOwnerKey()`. `map <sea>` renders them marked *charted*.
+authored wrong in one row and never reconciled. ⭐ **The read effect
+follows the shipped seam, not `instanceof`.** `ReadController` already
+fires a scroll's working after the decode by narrowing
+`MixinApi.isArcane(target)` (`ReadController.ts:163`); the chart takes the
+same shape — `S/lib/expanse/Charted.ts` → `ChartedMixin` (`Mixins.Charted`,
+`MixinApi.isCharted`) owning `of`, `entries` and `writeClaimsFor(reader)`,
+narrowed at the same point. ⛔ No `instanceof` in a controller (the
+branch-predicate rule: a method never `instanceof`s). `Chart =
+ChartedMixin(MarkedMixin(Good))`. `writeClaimsFor` writes `charted` claims
+under the expanse's `address` through `NavigationApi.recordChart` keyed by
+`reader.mapOwnerKey()`. `map <sea>` renders them marked *charted*. A
+pilot's book or sailing directions would compose the same mixin.
 
 **D16 — `depth` is the water pack's reading; `latitude` and
 `navigation` are the platform's.** `/system/water/idea/reading/DepthReading`
@@ -795,9 +800,16 @@ three consumers.** `SpatialZone.fieldMeta` gains `visibleLandmarks:
 drops it); `LookController.lookAtLocation` appends, after the body: (a)
 for each Structure path in `zone.lookupField('visibleLandmarks')`
 (an authored `[]` stops the walk), its `outsideDescription`; (b) for each
-content item with a `contributeToRoom(viewer): string | null` method —
-`Shore` (the water read, which fishing.md flagged), `Vantage`, `Gunwale`
-— its line. `S/platform/thing/Vantage.ts` (`Good`, `fixedInPlace`,
+content item that **composes `RoomContributorMixin`** —
+`S/lib/description/RoomContributor.ts` (`Mixins.RoomContributor`,
+`MixinApi.isRoomContributor`, one `@hook contributeToRoom(viewer):
+string | null`, default `null`) — its line. ⛔ **Not a `typeof
+x.contributeToRoom === 'function'` probe** (CLAUDE.md: narrow with
+`MixinApi.isX`, never by method-sniffing). It is a kernel mixin because
+`LookController` is kernel and `Shore` is a pack class, so the hook must
+be declared where both can see it; three implementers — `Shore` (the
+water read, which fishing.md flagged), `Vantage`, and `Gunwale` by
+inheritance — so it clears *a hook needs more than one implementer*. `S/platform/thing/Vantage.ts` (`Good`, `fixedInPlace`,
 `overlooks: string[]` of node/expanse/structure paths) contributes what
 it overlooks (the expanse's read at the cited node + landmarks + craft in
 visual range from its room's height — `zone elevation + eye`), and
@@ -811,6 +823,42 @@ backdates `courseSetAtS` with a wizard `eval` on the Structure for the
 "logged off, the craft moved" step — the fishing drive's precedent
 (*game-day skips are wizard `eval`s on the OBJECT that carries the
 clock*). Nothing moves the world clock.
+
+**D26 — The login fallback rides this MR.** *(User decision, 2026-10-10.)*
+`restorePlacement` (`S/platform/idea/api/PersistableLogic.ts`): when
+`resolvePlacementAnchor` returns `null`, land the host on the app
+setting `defaultStartLocation` (through `ContainmentApi.resolveLanding`,
+the same path `startLocation` takes) instead of leaving it where the
+clone placed it — so `Avatar.enter` never throws on a place somebody
+broke or a ship that no longer exists. One branch; the `console.warn`
+stays and names what could not be resolved and where the host went.
+⚠ A general lifecycle fix that ships are the first content to need; the
+requirements' surface decision is corrected to say this build **adds**
+the backstop rather than inheriting it. Test: `PersistableLogic` with a
+captured `place` whose container path does not resolve → the host lands
+in the default start location.
+
+**D27 — `swim` is this build's to discharge, and the first draft of this
+plan omitted it.** `C/platform/content/platform/cmd/movement/swim.yaml`
+carries `unreachable: awaiting:navigable-water-slate` and **nothing
+composes `SwimmableMixin`** (`S/lib/locomotion/Swimmable.ts`) — the
+reachability sweep held the verb for exactly this build. Requirements
+drive steps 2 (*wade in*) and 3 (*cross a water you can see across*)
+depend on it and would otherwise die as `unknown-verb`. The Ladder shape,
+verbatim (`S/platform/thing/Ladder.ts`): `S/platform/thing/StillWater.ts`
+= `SwimmableMixin(Good)`, `fixedInPlace`, `static commandContributions =
+{ environment: SWIM, peers: SWIM }` — the water you can see across is the
+**instrument** of swimming as a ladder is of climbing, and it satisfies
+`LocomotionApi.checkEnablementScope` (a host composing the mode's
+enablement mixin in the actor's container or its contents). Placed as a
+prop in the Pool and the strand; the `media: [water]` exits between them
+are what `swim` traverses. The `unreachable:` line is **deleted**
+(`lint:reachability` arm A then requires the static, which exists).
+⚠ **Wading** is `swim` admitted or refused by the enablement check with
+the reason stated — no new verb. ⛔ `Swimmable` goes on **neither `Shore`
+nor `Gunwale`**: that would make every riverbank and every deck
+swimmable, and the reachability sweep recorded that the water host must
+not claim the salt-works' water or the fishery's reach.
 
 ---
 
@@ -831,7 +879,10 @@ clock*). Nothing moves the world clock.
 | `Voyage` | plain engagement class, `lib/expanse/` | nothing — plain object. Its actor is a `Stuff & Engaged & Positioned`. |
 | `Helm` | `platform/thing/` (`Good`, fixed) | the instrument that affords `course`/`anchor`/`hail`/`recover`. A deck without one cannot be steered — which is the building. |
 | `Vantage` | `platform/thing/` (`Good`, fixed) | a room-fixed feature citing what it overlooks; the land participates only by authored claim. |
-| `Chart` | `platform/thing/` (`MarkedMixin(Good)`) | a readable thing that writes `charted` claims. |
+| `ChartedMixin` | `Chart` (and later a pilot's book) | a readable thing that writes claims when read; narrowed at the scroll's seam, never by `instanceof`. |
+| `Chart` | `platform/thing/` (`ChartedMixin(MarkedMixin(Good))`) | a readable thing that writes `charted` claims. |
+| `RoomContributorMixin` | `Shore` (→ `Gunwale`), `Vantage` | a thing in a room may add a line to the room's prose. Kernel, because the reader (`LookController`) is kernel and one composer is a pack class. |
+| `StillWater` | `platform/thing/` (`SwimmableMixin(Good)`, fixed) | the instrument of swimming. Composed nowhere near a `Shore` or a deck. |
 | `Boat` | transport pack `/system/transport/thing/` | the transport pack owns vehicle shapes; a boat is the fourth. `Persistable + Engaged + Positioned + Mobile + ExitableVessel`, singleton. |
 | `Gunwale extends Shore` | water pack `/system/water/thing/` | a shore that moves with its deck; `fish` reaches it through the declared `class.Shore` default with no fishing-pack change. |
 | `Pilot extends Cast` | water pack `/system/water/agent/` | a person whose knowledge is claims. A pack agent class, as `trade-fishing/src/agent` already is. |
@@ -937,9 +988,11 @@ Commit: `build(maritime A0): SpatialZone splits into the frame and LocationZoneM
 *Implements D4, D24.*
 Files: `S/platform/idea/Structure.ts`, `S/platform/idea/StructureCatalogue.ts`
 (+ its platform row `C/platform/content/platform/idea/StructureCatalogue.yaml`),
-`S/platform/thing/Vantage.ts`, `S/platform/idea/cmd/perception/LookController.ts`
+`S/platform/thing/Vantage.ts`, `S/lib/description/RoomContributor.ts`
+(+ `Mixins.RoomContributor`, `MixinApi.isRoomContributor`),
+`S/platform/idea/cmd/perception/LookController.ts`
 (the contribution step after the body: landmarks from the zone walk,
-`contributeToRoom` from contents), `S/lib/paths.ts`
+then each `RoomContributor` in contents), `S/lib/paths.ts`
 (`structureCatalogue`), tests (`Structure.test.ts`: extent membership by
 longest prefix, a building with null position, persistence capture of
 the position; `LookController` test: a room in a zone naming a landmark
@@ -986,6 +1039,9 @@ and `social/hail.yaml`, `S/platform/idea/cmd/perception/LocateController.ts`
 reckoning and **never** the true position), `S/platform/idea/cmd/movement/RouteController.ts`
 (D18), `S/platform/idea/exits/{Aboard,Ashore}Exit.ts` + rows
 `C/platform/content/platform/idea/exits/{aboard,ashore}.yaml`,
+`S/platform/thing/StillWater.ts` (D27) + delete `unreachable:` from
+`C/platform/content/platform/cmd/movement/swim.yaml`,
+`S/platform/idea/api/PersistableLogic.ts` (D26, the login fallback),
 `S/lib/config/AppSettings.ts` + `C/platform/content/settings/expanse.yaml`
 (`expanse.watchGameHours 4`, `expanse.arrivalNm 1`, `expanse.recoverNm
 1`, `expanse.signalRangeNm 12`, `expanse.neglectWearPerWatch 0.02`,
@@ -999,7 +1055,10 @@ re-starts the engagement; an unmanned beat wears a Durable aboard by the
 formula and a manned beat by a quarter; `locate` prints *reckoned* and
 not the true coordinates — assert the true string is absent).
 Acceptance: AC 9, 10, 22, 23, 24, 25, 26 (engine half), 27, 29 (the
-height read), the honesty of `locate`.
+height read), the honesty of `locate`; `swim` reachable past the binder
+where a `StillWater` stands and refused in words where none does; a
+login whose captured place does not resolve lands in the default start
+location.
 Commit: `build(maritime A3): the Voyage on the craft, the plot, course/anchor/hail, the aboard/ashore exits`.
 
 **A4 — the claim store, the chart, the readings, the Discipline.**
@@ -1010,9 +1069,11 @@ the return with writers), `S/lib/location/RoutePlan.ts` (mirror),
 `S/platform/idea/api/NavigationLogic.ts` (`recordChart`; the dedupe
 key already includes `channel`), `S/api/navigation.ts`,
 `S/platform/idea/cmd/perception/MapController.ts` (the *charted*
-section; `band` claims render name + `where`), `S/platform/thing/Chart.ts`,
-`S/platform/idea/cmd/perception/ReadController.ts` (after decode: a
-`Chart` writes its claims), `S/platform/idea/reading/LatitudeReading.ts` +
+section; `band` claims render name + `where`), `S/lib/expanse/Charted.ts`
+(+ `Mixins.Charted`, `MixinApi.isCharted`), `S/platform/thing/Chart.ts`,
+`S/platform/idea/cmd/perception/ReadController.ts` (after decode, beside
+the `isArcane` working: `if (MixinApi.isCharted(target))
+target.writeClaimsFor(giver)`), `S/platform/idea/reading/LatitudeReading.ts` +
 `C/platform/content/platform/idea/reading/latitude.yaml`,
 `C/platform/content/platform/idea/Discipline/navigation.yaml`, a sextant
 tool row `C/generic-objects/content/stuff/thing/gear/sextant.yaml`
@@ -1068,6 +1129,7 @@ tower); `university-avenue.yaml`, `wharfside.yaml`, `estuary.yaml`
 (`visibleLandmarks: [/world/terminus/terminal/structure]`); the
 counting-house's hall zone (`visibleLandmarks: []`);
 `estuary/{pool,strand,headland}.yaml` + `estuary/thing/{vantage,aboard}` +
+a `StillWater` prop in the pool and the strand (D27) +
 the `ashore` exit on the deck; `estuary-mouth.yaml` (an exit to the
 headland and the `aboard` exit kind); `gannet-rock/{landing,structure}.yaml`
 (the lighthouse, `heightM: 30`); `wharfside/agent/pilot.yaml` +
@@ -1133,6 +1195,7 @@ gate** — each fails closed and silent.
 | the landmark | `look` (shipped) | — | `visibleLandmarks` on three zone rows, `[]` on one; the tower Structure row | `StructureCatalogue` lazy | — |
 | the vantage | `look` | — | the headland's `Vantage` prop | — | — |
 | journey refusal | `journey` (transport) | shipped `Vehicular` | — | — | — |
+| wade / swim the pool (D27) | `swim` (shipped view, **`unreachable:` deleted**) | `StillWater.commandContributions` (environment + peers) | a `StillWater` prop in the pool and the strand; `media: [water]` exits | — | the exit's mode admission via `checkEnablementScope` — ⚠ refused in words where no `StillWater` stands |
 
 ⚠ The fifth link is the binder: `launch`'s `requires: PositionedMixin`
 is satisfied only because `Boat` composes it; a barge is refused before
@@ -1237,8 +1300,8 @@ not absorbed, surfaced:**
    For this build the deck room is a singleton authored row, so it
    resolves; the backstop the requirements describe is a **separate
    fix** (`restorePlacement` → `defaultStartLocation` on a null anchor)
-   that this build should not quietly own. The user decides whether it
-   rides this MR as a one-line fix or its own.
+   that this build should not quietly own. ✅ **Decided 2026-10-10: it
+   rides this MR — D26.**
 2. ⛔ **"a wind lean, direction and strength, in the `weather.md` lean's
    own shape."** `ClimateLean` is `Partial<Record<WeatherType, number>>`
    — a per-type multiplier with **no direction**. The band's lean is
@@ -1248,14 +1311,16 @@ not absorbed, surfaced:**
    water-pack verb the pilot runs through the dialogue tree's shipped
    `dispatch` effect. If the user would rather the pilot's claims arrive
    by another act (a `talk` effect verb in the kernel, a chart the pilot
-   draws), that is a Phase-1 call.
+   draws), that is a Phase-1 call. ✅ **Accepted 2026-10-10.**
 4. ⛔ **Hazard rows in a band cannot fire with the shipped hazard
    model.** `HazardMixin` fires from `Mobile.traverse` on a Stuff locus;
    `proximity` triggers are unhandled kernel-wide; a reef is not
    one-shot. The band carries `hazards[]` (AC 15) and the beat **names**
    them in the boundary report to a manned watch; the harm delivery is
    a seam → `navigable-water-slate § 3b` (grounding = arriving at a shoal
-   node, which this build does support). Say so or re-scope.
+   node, which this build does support). ✅ **Accepted 2026-10-10:
+   hazards ship as data, reported by a manned watch; firing is a
+   deferred seam, because proximity triggers are a kernel-wide change.**
 5. ⛔ **"a ship's rooms are keyed durably by the persistence spine,
    the leased DormRoom's model"** — the only persistable Location class
    is `FurnishableRoom`, roster-gated by `lint:locations`. This build's
@@ -1267,6 +1332,12 @@ not absorbed, surfaced:**
    confined corridor; the drive has no linear step (the bar is authored
    as one and unit-tested). If the register matters now, add a drive
    step; otherwise it is a seam the river's own build will exercise.
+
+✅ **Also confirmed 2026-10-10:** the sea row at
+`/stuff/idea/WaterExpanse/<key>` (D1); a new subsystem `ExpanseApi`
+rather than growing `NavigationApi` (D9); and with build-4 both editing
+the water pack, **whichever lands second rebases** and re-runs B1's
+tests.
 
 **Collision map (name them in the MR):**
 
@@ -1343,7 +1414,6 @@ in — never a plan section.
 | crew acting on standing orders | the neglect model reads manning only | `standing-instructions-slate` |
 | a pilotage trade with seats and a licence | `Pilot.knows` | `navigable-water-slate` § 3b |
 | cargo persistence in a ship's hold | the rooms are singleton, non-persistable | the vessel build |
-| the login backstop to the lounge | `restorePlacement`'s null anchor | ⛔ Risk 1 |
 
 ---
 
@@ -1362,6 +1432,7 @@ Read first, in this order, before touching anything:
 9. `S/lib/boundary/{ExitableVessel,DeferredDestinationExit}.ts`, `C/transport/src/thing/{Barge,Coach}.ts`, `C/transport/src/lib/Vehicular.ts`
 10. `S/lib/employment/{Position,Organization,Employed}.ts`, `docs/subsystems/employment.md § Capability grant`
 11. `S/lib/hazard/Hazard.ts`, `S/lib/material/Durable.ts`
+11a. `S/platform/thing/Ladder.ts` + `S/lib/locomotion/Swimmable.ts` + `C/platform/content/platform/cmd/movement/swim.yaml` (D27 — the shape `StillWater` copies, and the `unreachable:` line it deletes); `S/platform/idea/api/PersistableLogic.ts:314-380` (D26)
 12. `S/api/weather.ts`, `S/lib/weather/WeatherType.ts:400-520`, `S/api/celestial.ts`, `S/platform/idea/api/CelestialLogic.ts:393-432`
 13. `C/terminus/content/world/terminus/estuary/*.yaml`, `wharfside/bank.yaml`, `terminal/location/arrival-gate.yaml`, `C/terminus/pack.yaml`
 14. `packages/wire/tests/fishing.dirty.wire.test.ts` (the drive shape), `docs/testing.md § Two tiers`

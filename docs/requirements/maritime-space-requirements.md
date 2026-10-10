@@ -386,7 +386,7 @@ build.
 | ⭐ **endpoints — OPTIONAL** | two nodes, or none. See *Surface decisions*: they are a **planning affordance**, not a geometry |
 | a name | *the Westerlies*, *the Narrows* |
 | cost per axis | time and way — plus the **`conditional` risk axis**, which already ships |
-| ⭐⭐ a **wind lean** | direction and strength, in the `weather.md` lean's own shape. ⭐ **This is the band's mechanical character** — not prose |
+| ⭐⭐ a **wind lean** | a direction and a strength — its **own** small shape. ⚠ `weather.md`'s `ClimateLean` is a per-weather-type multiplier with no direction, so it cannot be reused. ⭐ **This is the band's mechanical character** — not prose |
 | ⚠ a **fetch** | one number: how much open water the wind has had. **Declared, not computed** — see *Sea state* |
 | prose | what the crossing is like, for flavour. ⭐ The lens-2 answer the slate said water did not have, but it is the lean that does the work |
 | a reputation | ⭐ what people *say* — a `told` claim, **and may be false** |
@@ -855,14 +855,21 @@ changes. ⛔ **You cannot die while logged out.** You log on where you
 logged off, addressed by a durable handle — a singleton template path or
 a warren key, always something that can be re-cloned — with the **lounge
 as the resolve-failure backstop** for the case where somebody broke the
-place you left. `Avatar.startLocation` already *is* that field and
-already defaults to the lounge.
+place you left. ⚠ **This build adds that backstop; it does not inherit
+it.** An earlier draft said `Avatar.startLocation` already was the
+fallback. It is not: today a login whose captured place cannot be
+resolved leaves the avatar with no container, and `Avatar.enter` throws.
+The fix lands the avatar on the `defaultStartLocation` app setting
+(the lounge) instead.
 
 ⭐ Two consequences for a ship, and both are shipped shapes: its rooms are
-**ordinary locations in a zone**, keyed durably by the persistence spine
-(`(scope = templatePath, key)`, the leased `DormRoom`'s model), and its
-**position is one persistent field on the Structure** — the pair is the
-whole persistence story, and neither is new.
+**ordinary singleton locations in a zone** — their identity is the row,
+so you always log back in on the deck — and its **position is one
+persistent field on the Structure**. ⚠ An earlier draft said the rooms
+were keyed by the persistence spine like a leased `DormRoom`. They are
+not: the only Location class that persists is `FurnishableRoom`, so
+**anything left in the hold does not survive a restart.** That is the
+vessel build's problem to solve.
 
 ⚠⚠ **Not a warren, and the distinction is load-bearing.** A `Warren` is
 an incorporeal `Idea` that coordinates member rooms or member warrens,
