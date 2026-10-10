@@ -178,8 +178,11 @@ async function settle(s: Session, started: CommandResult): Promise<string> {
   // ⚠ `cmd()` clears the prose buffer before it sends, so the completion
   // scene must be read off the STARTING command's own `said()` — which
   // snapshots lazily, after the engagement has landed.
+  // ⚠ 2.5 s, not 0.8: at a bore the completion runs through the rig's
+  // async reconcile (the deposit, the body's book), and its scene landed
+  // AFTER an 800 ms read — in the next command's buffer.
   await s.awaitActivity(id!, 90_000);
-  await new Promise((r) => setTimeout(r, 800));
+  await new Promise((r) => setTimeout(r, 2_500));
   return started.said();
 }
 
@@ -474,5 +477,63 @@ suite('6. pump until the leather goes, and fit the spare', () => {
     const closing = await pumpOnce(k, 'deep well');
     note(`pump deep well with the spare fitted → ${closing.replace(/\s+/g, ' ').slice(-120)}`);
     expect(closing).toMatch(/water comes up/i);
+  });
+});
+
+/* ───────────── 7. the bore — a bucket, then a pump ───────────── */
+
+suite('7. a dead brine bore: bail it once, then fit a pump', () => {
+  it('⭐⭐ the bailer still brings brine up from twenty-five metres (AC 11)', async () => {
+    // The force pump comes out of the deep well and goes with us; the
+    // bailer comes off the rack. Hillside → office → hillside → spring.
+    const pulled = await say(k, 'get pump from well');
+    expect(refusedFor(pulled), `pull the force pump: ${JSON.stringify(pulled.notes)}`).toBeNull();
+    await walk(k, BACK_TO_THE_OFFICE);
+    await say(k, 'get bailer');
+    await k.drainProse();
+    expect(await carried(k)).toMatch(/bailer/i);
+    await walk(k, ['north', 'east']);
+    const hollow = await read(k, 'look');
+    note(`look (the spring hollow) → ${hollow.replace(/\s+/g, ' ').slice(0, 300)}`);
+    expect(hollow).toMatch(/old brine bore|bore|rig/i);
+
+    // The first reconcile only stamps; an hour later the leg has seeped in.
+    const first = await say(k, 'bail into pail');
+    if (first.notes.some((n) => n.kind === 'engagement-started')) await settle(k, first);
+    await k.drainProse();
+    await advance('1 hours');
+    const trip = await say(k, 'bail into pail');
+    const tripped = await settle(k, trip);
+    note(`bail into pail at 25 m → ${tripped.replace(/\s+/g, ' ').slice(-200)}`);
+    expect(tripped).toMatch(/litres out of the hole/i);
+    await say(k, 'spill pail');
+    await k.drainProse();
+  });
+
+  it('⭐⭐ a force pump set in the hole lifts brine — and keeps lifting', async () => {
+    const put = await say(k, 'put pump in bore');
+    await k.drainProse();
+    note(`put pump in bore → ${refusedFor(put) ?? 'ok'}`);
+    expect(refusedFor(put), `put pump in bore: ${JSON.stringify(put.notes)}`).toBeNull();
+
+    await advance('1 hours');
+    const a = await pumpOnce(k, 'bore');
+    note(`pump bore → ${a.replace(/\s+/g, ' ').slice(-160)}`);
+    expect(a).toMatch(/salt water comes up|comes up in gouts/i);
+
+    await say(k, 'fill pail from bore');
+    await say(k, 'spill pail');
+    await k.drainProse();
+    await advance('1 hours');
+    const b = await pumpOnce(k, 'bore');
+    note(`pump bore again, an hour on → ${b.replace(/\s+/g, ' ').slice(-160)}`);
+    expect(b).toMatch(/comes up in gouts/i);
+  });
+
+  it('⭐ a suction pump on the same hole is told the depth (brine stands lower than water)', async () => {
+    const eye = await read(k, 'analyze pump bore');
+    note(`analyze pump bore (force) → ${eye.replace(/\s+/g, ' ').trim()}`);
+    expect(eye).toMatch(/drives/i);
+    expect(eye).not.toMatch(/no deeper than/);
   });
 });

@@ -19,12 +19,17 @@ data:
   longDescription: |
     A fold in the hill where the slope flattens before it climbs again, and the grass in it is the wrong colour — pale, then grey, then gone altogether around a pool the size of a hat.
 
-    Sheep have been here. So has somebody with a cart: there are two ruts coming in from the west and none going out, which means whatever they came for they carried.
+    Sheep have been here. So has somebody with a cart: there are two ruts coming in from the west and none going out, which means whatever they came for they carried. Beside the pool an old rig stands over a capped hole, and nobody is working it.
 
     East and down, the hill opens into a long bare flat with nothing growing on it at all.
   coords: { x: 3, y: 5, z: 0 }
   props:
     - /world/terminus/rejection/thing/salt-spring
+    # ⭐⭐ The old brine bore (the pump build) — sunk where the brine showed,
+    # standing in a metre of the leg, with no head of its own. And the
+    # rig they left over it, because a bailer needs a derrick to hang from.
+    - /world/terminus/rejection/thing/old-brine-bore
+    - /trade/drilling/thing/derrick
   exits:
     west:
       destination: /world/terminus/rejection/location/hillside

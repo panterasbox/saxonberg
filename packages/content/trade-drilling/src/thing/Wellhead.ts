@@ -62,6 +62,13 @@
 import Good from '@saxonberg/server/mud/platform/thing/Good';
 import { BulkableMixin } from '@saxonberg/server/mud/lib/bulk/Bulkable';
 import { PersistableMixin } from '@saxonberg/server/mud/lib/persistence/Persistable';
+import { StagedMixin } from '@saxonberg/server/mud/lib/stuff/Staged';
+import { ContainerMixin } from '@saxonberg/server/mud/lib/spatial/Container';
+import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
+import type { VetoResult } from '@saxonberg/server/mud/lib/errors';
+import type { LiftSource, PumpSource } from '@saxonberg/server/mud/lib/pump/Pumpable';
+import type { Pumping } from '@saxonberg/server/mud/lib/pump/Pumping';
+import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 import { GroundPointMixin } from '@saxonberg/content-ground/src/lib/GroundPoint';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
@@ -170,9 +177,12 @@ export interface CutCost {
   hostPath: string;
 }
 
-export default class Wellhead extends PersistableMixin(
-  BulkableMixin(GroundPointMixin(Good)),
-) {
+export default class Wellhead
+  extends PersistableMixin(
+    StagedMixin(ContainerMixin(BulkableMixin(GroundPointMixin(Good)))),
+  )
+  implements LiftSource, PumpSource
+{
   /** Metres sunk. The hole's own fact, on the hole. */
   protected depthM = 0;
 
@@ -207,9 +217,21 @@ export default class Wellhead extends PersistableMixin(
     rigStamp: { persistent: true },
     sumpL: { persistent: true },
     drawnL: { persistent: true },
-    bodyKey: { persistent: true },
+    // ⭐ Authorable since the pump build (D13): a venue may ship a hole
+    // somebody sank and walked away from, already standing in a body. A
+    // bore that is SUNK still learns its body by reaching it (`logMetre`);
+    // an authored key is a venue asserting a history, not a shortcut.
+    bodyKey: { persistent: true, authorable: true },
     outfitPath: { persistent: true, authorable: true },
     claimPath: { persistent: true, authorable: true },
+  };
+
+  /**
+   * ⭐ Anyone at the collar can try a pump set in the hole (the pump build).
+   * A bare hole affords it too, and says plainly that nothing is set in it.
+   */
+  static commandContributions: CommandContributions = {
+    peers: ['platform/cmd/device/pump.yaml'],
   };
 
   /** Reentry guard — the reconcile must never recurse through a read. */
@@ -445,6 +467,11 @@ export default class Wellhead extends PersistableMixin(
         if (swings > 0) await this.bankSwing(swings);
       }
       await this.reconcileInflow(elapsed);
+      // ⭐⭐ A pump on the hole and hands at it: the bucket-at-a-time act
+      // becomes a CONTINUOUS rate, credited while the owner sleeps (D14).
+      // The same law as a hand at the handle — a crew cannot out-pump the
+      // air any more than a player can.
+      if (hands > 0) await this.creditPumping(hands, elapsed);
       await this.payCrew();
     } finally {
       this._reconcilingRig = false;
@@ -547,6 +574,86 @@ export default class Wellhead extends PersistableMixin(
     this.sumpL -= litres;
     this.addToHead(material, litres);
     return litres;
+  }
+
+  // ---------- ⭐⭐ the pump's attach point (LiftSource) ----------
+
+  /** The pump set in this hole, or `null`. */
+  public pumpFitted(): Stuff | null {
+    for (const c of this.getContents()) {
+      if (MixinApi.isPumping(c)) return c;
+    }
+    return null;
+  }
+
+  /** ⭐ Only a pump goes down a hole, and only one. */
+  public canAddContainable(thing: Stuff & Containable): VetoResult {
+    if (!MixinApi.isPumping(thing)) {
+      return { ok: false, reason: 'Only a pump goes in a wellhead.' };
+    }
+    if (this.pumpFitted() !== null) {
+      return { ok: false, reason: 'There is a pump in it already.' };
+    }
+    return { ok: true };
+  }
+
+  public standingDepthM(): number {
+    return this.depthM;
+  }
+
+  public async standingMaterial(): Promise<string | null> {
+    const body = await this.bodyHere();
+    return body?.fluid ?? null;
+  }
+
+  public async standingAvailableL(): Promise<number> {
+    await this.reconcileRig();
+    return this.sumpL;
+  }
+
+  public receivableL(): number {
+    return Math.max(0, this.getBulk('interior').remaining());
+  }
+
+  /**
+   * ⭐ Raise up to `litres` from the sump into the head — what a pump does
+   * on every spell. ⚠ It consults no pressure: whether the fluid CAN be
+   * pulled this far is the pump's question, asked first. And unlike the
+   * bailer's {@link lift} it never raises more than the trough will hold,
+   * because a pump's stroke is not a bucket somebody tips.
+   */
+  public async liftInto(litres: number): Promise<number> {
+    await this.reconcileRig();
+    return this.raiseFromSump(litres);
+  }
+
+  public liftScope(): (Stuff & Container) | null {
+    const place = this.groundPlace();
+    return place && MixinApi.isContainer(place)
+      ? (place as unknown as Stuff & Container)
+      : null;
+  }
+
+  /** Move sump → head, bounded by what stands and what the trough holds. */
+  private async raiseFromSump(litres: number): Promise<number> {
+    const moved = Math.min(Math.max(0, litres), this.sumpL, this.receivableL());
+    if (!(moved > 0)) return 0;
+    const material = await this.sumpMaterial();
+    if (material === null) return 0;
+    const held = this.getBulk('interior').getMaterialPath();
+    if (held !== null && held !== (material.getTemplatePath() ?? '')) return 0;
+    this.sumpL -= moved;
+    this.addToHead(material, moved);
+    return moved;
+  }
+
+  /** The crew's spell at the pump, credited by presence (D14). */
+  private async creditPumping(hands: number, elapsed: number): Promise<void> {
+    const pump = this.pumpFitted();
+    if (!pump || !MixinApi.isPumping(pump)) return;
+    const p = pump as Stuff & Pumping;
+    if (!(await p.liftsFrom(this))) return;
+    await this.raiseFromSump(p.crewLitresFor(hands, elapsed));
   }
 
   /**

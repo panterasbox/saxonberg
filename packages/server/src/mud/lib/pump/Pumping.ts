@@ -118,6 +118,7 @@ export interface Pumping extends Pumpable {
   deliverableM3S(headM: number, demandM3S: number): number;
   reconcileRunning(nowS: number): void;
   crewLitresFor(hands: number, elapsedS: number): number;
+  liftsFrom(source: Stuff & LiftSource): Promise<boolean>;
 }
 
 export function PumpingMixin<TBase extends MixinConstructor>(Base: TBase) {
@@ -407,9 +408,14 @@ export function PumpingMixin<TBase extends MixinConstructor>(Base: TBase) {
           litres: 0,
         };
       }
+      // ⭐ Name what came up — brine is not water, and a pump on a bore
+      // says so.
+      const path = await source.standingMaterial();
+      const name = (path ? StuffApi.findByTemplatePath<Material>(path)?.getName() : '') || 'water';
+      const What = name.charAt(0).toUpperCase() + name.slice(1);
       return {
-        self: Mml.compose`Water comes up in gouts and runs into ${Mml.thing(source)}.`,
-        peers: Mml.compose`${Mml.actor(by)} works the handle of ${Mml.thing(self)}, and water comes up.`,
+        self: Mml.compose`${What} comes up in gouts and runs into ${Mml.thing(source)}.`,
+        peers: Mml.compose`${Mml.actor(by)} works the handle of ${Mml.thing(self)}, and ${name} comes up.`,
         litres,
       };
     }
@@ -488,6 +494,20 @@ export function PumpingMixin<TBase extends MixinConstructor>(Base: TBase) {
           hours * dial(AppSettingKeys.pumpWearPerRunningHour, WEAR_PER_RUNNING_HOUR_FALLBACK),
         );
       }
+    }
+
+    /**
+     * ⭐ Will this pump lift from `source` at all — its mechanism's wall and
+     * its own lift — with a sound packing? The same law `planPump` applies,
+     * for a caller with no hand on the handle (a crew credited by the hour
+     * must not out-pump the atmosphere either).
+     */
+    public async liftsFrom(source: Stuff & LiftSource): Promise<boolean> {
+      if (this.packingFitted() === null) return false;
+      const depth = source.standingDepthM();
+      if (depth > this.liftM) return false;
+      const ceiling = await this.ceilingAtM(source);
+      return ceiling === null || depth <= ceiling;
     }
 
     /**

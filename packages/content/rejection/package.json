@@ -9,6 +9,7 @@
     "@saxonberg/content-generic-objects": "workspace:*",
     "@saxonberg/content-ground": "workspace:*",
     "@saxonberg/content-platform": "workspace:*",
+    "@saxonberg/content-trade-drilling": "workspace:*",
     "@saxonberg/content-trade-forestry": "workspace:*",
     "@saxonberg/content-trade-fuel": "workspace:*",
     "@saxonberg/content-trade-glass": "workspace:*",

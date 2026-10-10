@@ -1,0 +1,43 @@
+# The old brine bore — a hole somebody sank where the brine showed at the
+# spring, bailed for a season, and walked away from.
+#
+# ⭐⭐ The pump's second consumer, and the reason the pump was ever worth
+# inventing. The spring sits on the trap's RIM — a bore here stands in
+# about a metre of the salt leg, which seeps rather than flows — and the
+# brine at the bottom has no head of its own: it has to be lifted. A
+# bailer brings it up twelve litres a trip. A force pump set in the hole
+# brings it up faster, and keeps bringing it while a crew stands at the
+# handle — the continuous rate a bucket can never be.
+#
+# ⚠ Twenty-five metres, deeper than any pump that DRAWS will lift (brine
+# is denser than water, so its ceiling is lower still). A suction pump in
+# this hole is told the depth and nothing else; the bailer, which carries
+# rather than pulls, still brings its load up from any depth — the bucket
+# family has no ceiling, and shipping the limit must never make the realm
+# claim otherwise.
+#
+# ⭐ `bodyKey` is AUTHORED (authorable since the pump build): this venue
+# asserts a history — the hole reached the leg long ago. A hole that is
+# SUNK still learns its body by reaching it.
+#
+# Not on the flat: the flat's whole lesson is that nothing on the surface
+# tells you the crest is under it. Here the spring already told somebody,
+# which is why they dug here, and why the hole is worth so little.
+class: /trade/drilling/thing/Wellhead
+data:
+  keywords: [wellhead, well, hole, bore, borehole, collar, "old bore", "brine bore"]
+  shortDescription: old brine bore
+  register: definite
+  longDescription: >-
+    An iron collar set in a ring of grey clay crusted white at the edges,
+    with a plank trough beside it gone stiff with salt. A rope's end lies
+    coiled where somebody dropped it. Whoever worked this hole left in a
+    hurry, or did not care.
+  mass: 90
+  fixedInPlace: true
+  interiorBulk: true
+  interiorCapacity: 60
+  closure: liquidTight
+  depthM: 25
+  linedToM: 25
+  bodyKey: salt-leg

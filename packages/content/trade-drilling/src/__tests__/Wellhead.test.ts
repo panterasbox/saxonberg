@@ -36,6 +36,11 @@ import BodyRegister, {
   BODY_REGISTER_PATH,
 } from '@saxonberg/content-ground/src/idea/BodyRegister';
 import Wellhead from '../thing/Wellhead';
+import Pump from '@saxonberg/server/mud/platform/thing/Pump';
+import Tool from '@saxonberg/server/mud/platform/thing/Tool';
+import Good from '@saxonberg/server/mud/platform/thing/Good';
+import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
+import { AppApi } from '@saxonberg/server/mud/api/app';
 import { BORE_KIND, BORE_REGISTRY_PATH, BoreRegistry } from '../idea/BoreRegistry';
 
 const DEPOSIT_PATH = '/test/idea/deposit/fixture';
@@ -374,5 +379,87 @@ describe('the log — append-only, and `nothing` is a finding', () => {
     expect(paths[0]!.startsWith('/trade/drilling/bores/')).toBe(true);
     // ⛔ Never the owner's home branch, and never the parcel.
     expect(paths[0]!.startsWith('/home/')).toBe(false);
+  });
+});
+
+describe('⭐⭐ the pump\'s attach point — a hole answers LiftSource (pump build)', () => {
+  /** A pump with no law of its own (no mechanism row) and a sound packing. */
+  function pump(liftM = 200, throughputLps = 0.5): Pump {
+    const p = makeStuff(() => new Pump());
+    p.setLiftM(liftM);
+    p.setThroughputLps(throughputLps);
+    p.setStrokeS(20);
+    const leather = makeStuff(() => new Tool());
+    leather.setCapabilities(['packing']);
+    ContainmentApi.move(leather, p);
+    return p;
+  }
+
+  function seeded(sumpL: number): Wellhead {
+    const w = hole([SALT]);
+    w.setDepthM(25);
+    (w as unknown as { sumpL: number }).sumpL = sumpL;
+    (w as unknown as { bodyKey: string }).bodyKey = 'salt-leg';
+    return w;
+  }
+
+  it('answers the depth of the hole and what stands in it', async () => {
+    const w = seeded(30);
+    expect(w.standingDepthM()).toBe(25);
+    expect(await w.standingMaterial()).toBe(BRINE);
+  });
+
+  it('a pump stroke raises into the trough, capped by what stands below', async () => {
+    const w = seeded(7);
+    expect(await w.liftInto(10)).toBe(7);
+    expect(w.getSumpL()).toBe(0);
+    expect(w.getBulk('interior').getAmount().rawValue()).toBe(7);
+  });
+
+  it('…and capped by the trough, so a stroke never overfills the head', async () => {
+    const w = seeded(100);
+    expect(await w.liftInto(80)).toBe(60);
+    expect(w.receivableL()).toBe(0);
+    expect(await w.liftInto(10)).toBe(0);
+  });
+
+  it('⭐⭐ the bailer is untouched: twelve litres a trip, and no pressure asked (AC 11)', async () => {
+    const w = seeded(100);
+    expect(await w.lift()).toBe(12);
+  });
+
+  it('only a pump goes down a hole, and only one', () => {
+    const w = seeded(0);
+    expect(w.canAddContainable(makeStuff(() => new Good()) as never).ok).toBe(false);
+    const a = pump();
+    expect(w.canAddContainable(a as never).ok).toBe(true);
+    ContainmentApi.move(a, w);
+    expect(w.pumpFitted()).toBe(a);
+    expect(w.canAddContainable(pump() as never).ok).toBe(false);
+  });
+
+  it('⭐⭐ a crew at a fitted pump earns a CONTINUOUS rate — more than a bailer over the same hour', async () => {
+    vi.spyOn(AppApi, 'setting').mockReturnValue('');
+    const w = seeded(400);
+    ContainmentApi.move(pump(), w);
+    const hand = makeStuff(() => new Good());
+    vi.spyOn(w, 'crewOnShift').mockReturnValue([hand]);
+    const now = WorldClockApi.getNow().rawValue();
+    (w as unknown as { rigStamp: number }).rigStamp = now - 120;
+    await w.reconcileRig();
+    // 0.5 L/s × 120 s × one hand × half the shift at the handle = 30 L,
+    // where a bailer's best is 12 L per 30 s trip — 48 L in two minutes of
+    // nothing but bailing, by a player at the keyboard, and 0 L asleep.
+    expect(w.getBulk('interior').getAmount().rawValue()).toBeCloseTo(30, 6);
+  });
+
+  it('a crew cannot out-pump the pump\'s own law', async () => {
+    vi.spyOn(AppApi, 'setting').mockReturnValue('');
+    const w = seeded(400);
+    ContainmentApi.move(pump(10), w); // a pump that will not push 25 m
+    vi.spyOn(w, 'crewOnShift').mockReturnValue([makeStuff(() => new Good())]);
+    (w as unknown as { rigStamp: number }).rigStamp = WorldClockApi.getNow().rawValue() - 120;
+    await w.reconcileRig();
+    expect(w.getBulk('interior').getAmount().rawValue()).toBe(0);
   });
 });
