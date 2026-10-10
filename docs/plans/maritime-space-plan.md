@@ -1438,6 +1438,154 @@ Read first, in this order, before touching anything:
 14. `packages/wire/tests/fishing.dirty.wire.test.ts` (the drive shape), `docs/testing.md § Two tiers`
 15. `docs/subsystems/{zone,location,location-graph,activity,instrumentation,content-packs,command-routing}.md`
 
+## ⭐⭐⭐ Revision 1 — perception at range (2026-10-10, after MR !358 opened)
+
+Decided in conversation with the user after review of !358. The product
+half is the requirements' new section *Perception at range* and ACs
+28–29, 33–42 (revised). **Superseded here:** D24 entirely (the room hook
+and the vantage object), D13's narration (the seat's height stays), D6's
+beat items 3–4 (landmark fixes and sightings), D10's vantage and
+landmark wiring, and build decisions B-3, B-4, B-5, B-6. The lenses
+decided it — **3b**: the engine was doing the lookout's and the
+navigator's jobs; **1**: the lessons are in the acts (climb, look, take
+a bearing).
+
+### Decisions
+
+**R1 — The Structure is Visible.** `Structure` composes `VisibleMixin`
+and `DetailedMixin` (precedent: `Species` is `VisibleMixin(Idea)`):
+short/long description, keywords, details, authored the ordinary way.
+⛔ `outsideDescription` is deleted from `Structure`, `ExpanseNode`,
+`Expanse`/`WaterExpanse` and `Band`, and from `StructureCatalogue`'s
+row view. A Structure gains `landmark: boolean` — opt-in to be
+**featured** on the horizon (visibility itself is derived and generous).
+
+**R2 — Deleted:** `RoomContributorMixin` (+ `Mixins.RoomContributor`,
+`MixinApi.isRoomContributor`, its refusal phrase if any), `Vantage` (class
++ the headland's `headland-view` row), `Shore.contributeToRoom`,
+`LookController.roomContributions` and every landmark append. ⛔ The
+engine appends nothing to a room's prose. The `Crossing` location
+subclass (its code-built `tower` detail) is retired: the row's class
+becomes `Street`, and the detail is static prose.
+
+**R3 — Authority: zones name zones.** `SpatialZone.visibleLandmarks` is
+replaced by **`horizon: string[] | null`** — the ZONE paths scanned from
+here, inherited by the ordinary `lookupField` walk; `[]` = nothing.
+`Location` gains the same field (the room's own value wins, then the
+zone walk — the `suppressesMagic` shape) and **`featured: string[]`**
+(structures this room features, beyond the landmarks). Declared in
+`fieldMeta` on both, or the hydrator drops them.
+
+**R4 — The `horizon` scope.** A new MQL seed `horizon` (fixed-pool,
+like `here`), resolved by **`PerceptionApi.horizonFor(viewer)`** →
+`PerceptionLogic` (PerceptionApi is already exempt from
+`lint:object-verbs` as a viewer-relative query). It returns Stuff:
+- **at sea** (the viewer's root resolves a craft on an expanse): the
+  expanse's visual contacts from the viewer's eye height
+  (`Expanse.contactsFrom`) — craft and fixed structures; seeded traffic
+  has no object and is reported in prose only;
+- **on land**: the nearest `horizon` declaration (room, then zone walk);
+  for each named zone, the Structures whose `extent` lies in it, kept if
+  the derivation admits them: the viewer's room must be **sky-exposed**
+  (`BiomeApi.isSkyExposed`); distance is approximated from **zone extents
+  in metres** (cell size × the bounding box of the zone's rows' `coords`,
+  computed once per zone, cached); a structure is in reach when its
+  `heightM` + the elevation difference clears `distance / HORIZON_RATIO`
+  (grain, a dial `perception.horizonRatio`); optics later (the optics
+  slate) widen it.
+- ⛔ the viewer's own Structure is never on its own horizon.
+
+**R5 — `look horizon`.** `LookController` takes the `horizon` seed as a
+whole-scope target and renders like a room: **featured** structures
+(`landmark: true` or the room's `featured`) each with its short
+description, then *"You can also make out: …"* for the rest, then (at
+sea) seeded traffic in words. `look horizon:<kw>` is ordinary `look` on
+the matched Structure — its own description and details.
+
+**R6 — `watch horizon`.** The livestream `watch` view gains the horizon
+target: `WatchController` dispatches on the bound target — a streamer as
+today; the `horizon` seed starts a **`HorizonWatch`** sustained
+engagement on the WATCHER (`lib/perception/HorizonWatch.ts`; slots
+`['attention']`; one emission per game minute-band, a dial). Each beat
+recomputes `horizonFor(watcher)` (+ seeded traffic at sea) and tells the
+watcher only what came into or went out of view. `cancel` ends it.
+⚠ The view's arg gate must admit the horizon target — the fifth
+reachability link.
+
+**R7 — The hired lookout.** A brain (`/system/water/behavior/keeps-watch`,
+water pack `src/behavior/`): an agent holding the house's `lookout` seat
+ON SHIFT and standing in a member room of the craft starts
+`watch horizon` and **says** each new sighting to the room (*"Light on
+the starboard bow!"*). The seat's `sightHeightFor` (masthead) is what
+makes the lookout see further. Nobody on watch → nobody told.
+
+**R8 — `measure bearing`.** A platform `Reading` row
+(`/platform/idea/reading/bearing`, `BearingReading`), instrument
+capability `bearing` (a hand-bearing compass tool row; the helm's
+binnacle is prose), eye rung allowed with a wide bracket, subject = a
+thing in view (the view's subject scope admits `horizon`). Truth = the
+true bearing from the craft to the subject; the bracket by band. On a
+**fixed** subject (a landmark) it corrects the reckoning to within
+`range × tan(bracket)` (`Voyaging.takeFix`). Credits `navigation`.
+
+**R9 — The voyage beat.** `Voyage.beat` keeps arrival and neglect and
+**loses** sightings, automatic fixes and `fixedFrom`. The boundary report
+becomes a **derived delta**: for each crossing, compare the field just
+before and just after — sea-state word, set (on/off, direction), depth
+band, weather type — and say only what changed (*"the sea gets up, short
+and steep"*, *"a current takes her, setting north-east"*, *"fog closes
+in"*). Nothing changed → nothing said. `Expanse.readAt` is deleted;
+`WaterExpanse` exposes the derived pieces.
+
+**R10 — Fog is a weather lean.** `Band` gains `weatherLean: ClimateLean`
+(the shipped per-type multiplier). **The seam (option 1, user-decided):**
+`WeatherLogic`'s lean resolution gains a positional source — a scope
+whose root resolves a craft on an expanse takes the narrowest band's
+`weatherLean`, multiplied over its Locality's. It must stay SYNC (the
+weather reads are), so it reads only warm state: a new
+`ExpanseApi.leanAtSync(placePath)` over the StructureCatalogue's loaded
+rows and the expanse's `peekBands()`; cold → no lean. Downstream with no
+special case: the sky read (a sight refused in fog), the crossing delta,
+and visual range (`contactsFrom` multiplies range by a per-weather
+visibility factor, a dial table: `fog 0.1`, `rain 0.6`, …). ⚠ Overlaps
+build-4 (climate-and-water) — whichever lands second rebases.
+
+**R11 — The headland is a sub-zone.** `/world/terminus/estuary/headland`
+becomes a zone row (`CartesianZone`, its own `elevation`, `horizon:
+[/stuff/idea/WaterExpanse/greywater]`) with the headland room beneath it.
+The bay below is **later** (→ navigable-water slate § 3).
+
+**R12 — Content.** The terminal Structure: `landmark: true`, Visible
+fields (short: *the terminal clock tower*). The avenue, wharf and estuary
+zones: `horizon: [/world/terminus/terminal]`; the four wharfside interiors
+`horizon: []`. The light on Gannet Rock: `landmark: true`. A hand-bearing
+compass on the Hesper's deck. A lookout Cast on the Hesper (the outfit's
+roster) with the `keeps-watch` brain. The `delight-road/flats` detail
+keyword `horizon` renamed (the seed would shadow it).
+
+### Waves
+
+- **C1 — subtraction.** R1 (Visible Structure, `landmark`), R2, the
+  `outsideDescription` deletions, `Crossing` → `Street`. Tests: Structure
+  is Visible; look appends nothing. Commit `build(maritime C1): …`.
+- **C2 — the horizon.** R3, R4, R5. Tests: land scan (a named zone's
+  landmark admitted from a sky-exposed room, refused from an interior and
+  by `[]`, reach by height vs zone extent), sea scan (contacts), the seed
+  in MQL, `look horizon` featured/also-make-out. Commit `…C2`.
+- **C3 — watching.** R6, R7. Tests: HorizonWatch reports in/out deltas
+  only; WatchController dispatch; the brain says sightings when on shift
+  and not otherwise. Commit `…C3`.
+- **C4 — the bearing.** R8. Tests: truth, bracket by band, fix on a fixed
+  subject only. Commit `…C4`.
+- **C5 — the water, the fog.** R9, R10. Tests: the delta (no change → no
+  line), the lean seam (inside the haar the sky reads fog; cold → no
+  lean), visibility factor. Commit `…C5`.
+- **C6 — content, drive, docs.** R11, R12; the drive's steps 19, 20,
+  23–26 rewritten to the revised script; expanse.md, perceiver.md (the
+  horizon scope), mql-grammar.md (the seed), weather.md (the positional
+  lean), zone.md (`horizon`). Re-drive cold to green; `pnpm test` before
+  pushing. Commit `drive(maritime): …`.
+
 ## Build log
 
 *(appended wave by wave at build time — what changed, what was decided,

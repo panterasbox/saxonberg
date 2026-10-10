@@ -388,8 +388,8 @@ build.
 | cost per axis | time and way — plus the **`conditional` risk axis**, which already ships |
 | ⭐⭐ a **wind lean** | a direction and a strength — its **own** small shape. ⚠ `weather.md`'s `ClimateLean` is a per-weather-type multiplier with no direction, so it cannot be reused. ⭐ **This is the band's mechanical character** — not prose |
 | ⚠ a **fetch** | one number: how much open water the wind has had. **Declared, not computed** — see *Sea state* |
-| prose | what the crossing is like, for flavour. ⭐ The lens-2 answer the slate said water did not have, but it is the lean that does the work |
-| a reputation | ⭐ what people *say* — a `told` claim, **and may be false** |
+| ⛔ **no prose** | *(revised 2026-10-10)* A band authors **no description**. What a crossing is like is DERIVED from what the band physically is — sea state from the lean, fetch and depth; a set from the current; the water's colour from depth — and reported as the **change** (see *Perception at range*). What a band is *known for* lives on the charts and in the pilots' words, which are authored and can be wrong |
+| ⭐ a **weather lean** | *(revised 2026-10-10)* the shipped per-weather-type lean (`fog`, `rain`…) applied to whoever is on the water inside the band. ⭐ **This is how a fog belt is fog**: the sky read, the sight and the crossing report all follow from it, with no special case |
 | a season or window | a trade wind blows when it blows. Climate build again |
 | a traffic weighting | busy lane, or empty water |
 | hazard rows placed in it | a shoal, ice, a reef — `hazard.md`'s self-resolving hazards |
@@ -408,7 +408,7 @@ what the voyage is **made of** — and an author expresses both by saying
 | a sail, a contact | **seeded traffic** | a weighting |
 | a leak, gear failing | the neglect model + `Durable` | how hard it is on gear |
 | ⭐ a shoal, ice, a reef | **`hazard.md`** — self-resolving, with a `HazardDelivery` | a hazard row |
-| something ashore comes in sight | the landmark + a computed range | nothing — geometry |
+| something ashore comes in sight | the `horizon` scope — **and somebody watching it** | nothing — geometry |
 | fish, whales | the **stock field** | the stock |
 
 ⭐ So the Bermuda Triangle is a traffic weighting, a hazard set and a
@@ -452,6 +452,20 @@ word regardless. ⛔ Not `set course`: `set` is the settings verb.
 ⭐ **The weather denial is free.** `sky` already ships with no instrument
 and an `expert` eye ceiling, so overcast refuses the sight in the sky's
 own terms with nothing added.
+
+### ⭐⭐ Perception at range: one scope, one engagement, one reading *(revised 2026-10-10)*
+
+| surface | shape |
+|---|---|
+| **`look horizon`** | ⭐ what you can see from here that is **not in your room**. `horizon` is a **scope** (in the `here` / `reachable` family), so it composes and drills: `look horizon:tower` reads the tower like any visible thing, even when the summary did not name it. The summary reads like a room: the **featured** things first, then *"you can also make out…"* |
+| **`watch horizon`** | ⭐⭐ **keeping watch** — a held engagement that tells the watcher when what is in view changes. ⭐ It unifies with the livestream `watch` (the collision ladder's first rung): both are *attending to something over time and being told when it changes*, and the target decides which |
+| **`measure bearing`** | ⭐ a **fix is an act**: a bearing on something in view, read off the compass (a `Reading` row, the instrument ladder). Laid against the chart, it corrects the reckoning |
+
+⛔ **The engine does nobody's watch for them.** Nothing on the horizon
+announces itself: a sail, a light, a coast are SEEN by somebody looking,
+and a lookout who sees one SAYS so. Only an emitter that announces itself
+— a bell, a gun, a signal — pushes, and it is routed to whoever can
+perceive it, as sound already is.
 
 ### Five honest extensions
 
@@ -544,7 +558,10 @@ calm; and both are the player's doing. *How passive is a voyage* is a
 question about the water you chose and the watch you kept.
 
 ⭐⭐⭐ **And the lookout's value states itself: a lookout does not give you
-more information, it gives you more time.** A contact at twelve miles
+more information, it gives you more time.** *(Revised 2026-10-10: and the
+lookout is a person DOING it — keeping watch from the masthead and calling
+what they see. The engine announces nothing on anyone's behalf; a seat
+nobody fills is a watch nobody keeps.)* A contact at twelve miles
 closing at four knots is fifteen real minutes away. Manned, it arrives
 announced and closing, running, hailing or hiding is a real decision.
 Unmanned, it arrives *at* you. Same seeded fact; the watch converts a
@@ -556,7 +573,8 @@ is **grain.**
 
 1. **Arrival detection**, on the beat.
 2. **A boundary crossing**, which reports and asks nothing.
-3. **A sighting opening a fuse.**
+3. **A watcher calling a sighting** *(revised 2026-10-10)* — a person
+   keeping watch sees it and says so. Nobody watching, nobody told.
 
 ⚠ And one problem to solve rather than inherit: `interruptibleBy` must be
 nearly empty, and **`cancelable` defaults to `true`**, so as shipped
@@ -564,6 +582,51 @@ anybody's `cancel` would end a voyage. Striking a course wants to be its
 own act.
 
 ---
+
+## ⭐⭐⭐ Perception at range *(revised 2026-10-10 — supersedes the room hook, the vantage object and the landmark-in-every-room design)*
+
+**The gap.** Perception stops at the walls. `look` reads your container,
+the scene composer delivers to a room's occupants, MQL's scopes are
+`here` / `peers` / `reachable` / `person`, and only sound travels — exit
+by exit. So the clock tower is prose in one room, and at sea, where most
+of what matters is outside your room, nothing could be seen at all.
+
+**What this build designs is perception beyond the room, in two
+directions — and the lenses decided both:**
+
+1. **Pull — somebody looks.** `look horizon` once; `watch horizon` to
+   keep watch. ⭐ *Lens 3b:* the economy has a lookout-shaped hole, and
+   the engine must not fill it — appointing a lookout means somebody is
+   watching, and a ship with nobody watching is blind by its own choice.
+   ⭐ *Lens 1:* the lesson is in the acts — climb to see further, take a
+   bearing to fix.
+2. **Push — only what announces itself.** A bell, a gun, a signal —
+   emitters acting, routed to whoever can perceive them. A passive thing
+   on the horizon never pushes.
+
+**What is in view (the `horizon` scope):**
+
+| | |
+|---|---|
+| ⭐ **authority is the zone tree** | a zone names the **zones** to scan from it, inherited down the tree; a nested zone or a room narrows it; an authored `[]` is *nothing from in here*. Zones, because a zone is an authorial partition — whoever owns it owns everything in it |
+| ⭐ **reach is derived** | whether your room is **open to the sky**, your **elevation**, the **size of the zones in metres** (cell size × the grid's extent — sizes vary from 3 m to 20 m), and later your **optics** (the optics slate's telescope) |
+| ⭐ **at sea it is computed** | from the two heights — nothing is in the way |
+| **what can appear** | **structures** — a tower, a light, a ship. Visibility is generous; ⭐ an author's knob is EMPHASIS: a landmark opts in to be **featured**, and a room may feature others. Everything visible can be drilled into |
+| **what you see of a thing** | its own description, derived from its own state like any object — a structure is described like any visible thing. ⛔ **No author restates it**, and no room repeats it |
+
+**Room prose is the author's own.** A venue that mentions the tower does
+so in its own words, for its own reason. ⛔ The engine never appends a
+landmark to a room.
+
+**A height is a zone's.** A vantage — the headland over the bay — is a
+sub-zone with its own elevation whose scan names the sea. ⚠ Seeing the
+ordinary contents of a near space you overlook (the swimmer in the bay)
+is **later**.
+
+**Under way, the water tells whoever is on deck what CHANGED** — the sea
+getting up, a current taking her, fog closing in — derived from the band
+and never authored. A crossing that changes nothing perceptible says
+nothing.
 
 ## Non-goals
 
@@ -1025,21 +1088,27 @@ Against the running game, before the MR opens.
     charted.**
 18. **`read` a chart that is wrong**, act on it, and find the water does
     not agree. ⭐ The claim is **still there afterwards.**
-19. **See another craft at a distance**, and have a second observer at a
-    different height **not** see it. Then **`hail` it**.
-20. ⭐ **`appoint` somebody lookout** and see further than you did a
-    moment ago, with nothing about the craft having changed.
+19. **`look horizon` at sea** and see the light on Gannet Rock; **`look
+    horizon:light`** and read it. Then **`hail` it**. ⭐ Have a second
+    observer lower down **not** see it.
+20. ⭐ **`watch horizon` from the deck, then `appoint` somebody lookout**
+    and have them call a light the deck cannot see. ⛔ With nobody
+    watching, nothing is called.
 21. **Pass the same lane twice at the same hour on different days** and
     meet the same traffic. **Re-enter and gain nothing.**
 22. **Log out mid-crossing and log back in.** You are on the craft, the
     craft has moved, and the course is still set.
-23. **Stand on a headland** and see the whole of the bay it overlooks.
-24. ⭐⭐ **Read a landmark from three different zones**, described once,
-    and from a fourth place see nothing because an author said so.
-25. **Approach a coast from open water** and take a fix off a tall thing
-    ashore, at a range its height decides.
-26. **Look at a building from the street** and get a sentence nobody
-    wrote into that street.
+23. **Stand on the headland** and `look horizon`: the sea, and the light
+    far out on it, at a range the headland's height decides.
+24. ⭐⭐ **`look horizon` from three different zones** and find the clock
+    tower featured in each; `look horizon:tower` reads the one
+    description; from a fourth place (an interior) **nothing** is in view
+    because an author said so. ⛔ No room's own `look` repeats the tower.
+25. **Approach a coast from open water**, `look horizon` until the light
+    comes into view, and **`measure bearing`** on it to fix your position.
+26. **Sail into the haar** and have the fog close in — the crossing
+    report says so, `measure latitude` is refused by the fog, and the
+    horizon shrinks.
 
 ---
 
@@ -1120,12 +1189,13 @@ Against the running game, before the MR opens.
     when they return. ⛔ **Nobody dies while logged out.**
 27. An **unattended** passage degrades, and the degradation is
     **derivable from a seeded field** — ⛔ nothing is rolled.
-28. Mutual presence on open water is decided by **sight distance from eye
-    height**, per observer, and **a second channel with a different range
-    is expressible** without reopening the model — demonstrated by
-    `hail`.
-29. A **lookout is a seat somebody occupies**, and the sight advantage
-    follows the occupancy, not the craft.
+28. What is in view on open water is decided by **sight distance from
+    eye height**, per observer, and **a second channel with a different
+    range is expressible** without reopening the model — demonstrated
+    by `hail`.
+29. A **lookout is a seat somebody occupies and a job they DO**: the
+    holder keeps watch and calls what they see. ⛔ Nothing in view is
+    announced by the engine; with nobody watching, nobody is told.
 30. Traffic on open water is **seeded**: the same at the same place and
     time for every observer, and unfarmable by re-entry.
 31. A **chart is procured and read**, writes **`charted`** claims, and
@@ -1133,21 +1203,36 @@ Against the running game, before the MR opens.
     corrected or removed.
 32. ⛔ **No expanse topology ever reaches a client** except as the
     player's own claims.
-33. A **vantage** is authored, names what it overlooks, and is believed.
-34. A **landmark** is described once on the thing itself and read from
-    every place an author says can see it — ⭐ including, at sea, from a
-    range its **height** decides.
+33. A **vantage** is a place with height — a zone with its own
+    elevation — whose author names what is scanned from it, and it is
+    believed.
+34. `look horizon` lists what can be seen from here that is not in the
+    room — **featured** things first — and **anything in view can be
+    looked at** (`look horizon:<thing>`), described once, on itself. ⭐
+    At sea the range is decided by **height**.
 35. Something says **these rooms are one building**, coordinates them
-    without containing them, owns the outside description and the way
-    in, and is **sparse** — and **its position is a field that can
-    change.**
-36. A cited or placed thing can **contribute to its room's prose.**
-37. ⛔ Every land claim about what can be seen is **authored**. The
-    engine computes a sight range **only** where nothing can be in the
-    way.
+    without containing them, is described like any visible thing, owns
+    the way in, and is **sparse** — and **its position is a field that
+    can change.**
+36. ⛔ **No room repeats a landmark.** A room's prose is its author's; the
+    engine appends nothing to it.
+37. ⛔ On land, what can be scanned is **authored** (zones name zones)
+    and how far the scan reaches is **derived** (sky, elevation, zone
+    size); the engine computes a full sight range **only** where nothing
+    can be in the way.
 38. A position carries a **depth**, every reader of it works at depth
     zero, and ⛔ **no mechanism in this build gives depth a second
     value.**
+39. **`watch horizon` is a held engagement** that reports to the watcher
+    what came into or went out of view.
+40. **A fix is an act**: `measure bearing` on something in view corrects
+    the reckoning. ⛔ Nothing corrects it automatically.
+41. ⛔ **A band authors no prose.** A crossing reports what CHANGED,
+    derived from the band; a crossing that changes nothing perceptible
+    says nothing.
+42. ⭐ **A fog band is fog**: inside it the sky reads as fog — a sight is
+    refused — and visual range shrinks, from the band's weather lean,
+    with no special case.
 
 ---
 
